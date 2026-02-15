@@ -46,14 +46,14 @@ seastate_roller::seastate_roller(lexer *p, fdm_seastate *e, double beta_) : R(p)
     ndir = g.ndir;
 
     Rt = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ndir,p->A704);
-    Rt->build(e->wet0.V);
+    Rt->build(e->wet0.data());
     Rt->fill(0.0f);
 
     R0 = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ndir,p->A704);
-    R0->build(e->wet0.V);
+    R0->build(e->wet0.data());
 
     Sw = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ndir,p->A704);
-    Sw->build(e->wet0.V);
+    Sw->build(e->wet0.data());
 
     pex = new seastate_exchange(p,ndir,1);
 

@@ -47,7 +47,8 @@ public:
     inline T& operator()(int ii, int jj, int kk) noexcept {return V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin];};
     inline T& operator[](int n) noexcept {return V[n];};
 
-	T *V;
+    T *data() noexcept {return V;}
+    const T *data() const noexcept {return V;}
 
 protected:
     // Vertical-extent-parameterised constructor. operator() folds kz into both
@@ -60,6 +61,8 @@ protected:
     {
         V = allocate ? new T[static_cast<std::size_t>(p->imax)*jkmax + slack] {} : nullptr;
     }
+
+    T *V;
 
 private:
     const int imin,jkmax,jmin,kmin,kmax;

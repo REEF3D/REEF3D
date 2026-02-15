@@ -73,7 +73,7 @@ void diff_wallghost::probe(lexer *p, ghostcell *pgc, int c, int *flag, int mode,
         val = m*m;
         }
 
-        P.V[q] = val;
+        P.data()[q] = val;
     }
 
     if(c==0)
@@ -92,7 +92,7 @@ void diff_wallghost::probe(lexer *p, ghostcell *pgc, int c, int *flag, int mode,
     int g = ghost_index(p,gcb[q][0],gcb[q][1],gcb[q][2],gcb[q][3]);
 
         if(g>=0)
-        res[q] = P.V[g];
+        res[q] = P.data()[g];
     }
 }
 

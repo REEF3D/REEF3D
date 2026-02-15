@@ -168,7 +168,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->A700==1 && iter_max>1)
     {
     N0 = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nbin,p->A704);
-    N0->build(e->wet.V);
+    N0->build(e->wet.data());
     }
 
     // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency
@@ -178,9 +178,9 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     dca  = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ns,p->A704);
     dcax = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ns,p->A704);
     dcay = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ns,p->A704);
-    dca->build(e->wet.V);
-    dcax->build(e->wet.V);
-    dcay->build(e->wet.V);
+    dca->build(e->wet.data());
+    dcax->build(e->wet.data());
+    dcay->build(e->wet.data());
     dfS = new slice4(p);
     dfT = new slice4(p);
     dfK = new slice4(p);
@@ -602,13 +602,13 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
 
     // block-sparse storage over the rank's index range including the ghost cells
     e->N = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nbin,p->A704);
-    e->N->build(e->wet.V);
+    e->N->build(e->wet.data());
 
     // wave number and group velocity per frequency, same tiles
     e->kw = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nsig,p->A704);
-    e->kw->build(e->wet.V);
+    e->kw->build(e->wet.data());
     e->cg = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nsig,p->A704);
-    e->cg->build(e->wet.V);
+    e->cg->build(e->wet.data());
 
     // memory report
     int active=0;
