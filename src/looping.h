@@ -24,7 +24,6 @@ Author: Hans Bihs
 #define LOOPING_H_
 
 #include"iterators.h"
-#include"boundcheck.h"
 #include"definitions.h"
 #include"looping2D.h"
 //#include"looping_part.h"
