@@ -30,7 +30,6 @@ class solver;
 class fdm_nhf;
 class lexer;
 class ghostcell;
-class field;
 class fluid_update;
 class heat;
 class concentration;
