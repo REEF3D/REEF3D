@@ -398,7 +398,7 @@ void fnpf_breaking::breaking_f(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
          filter(p,c,pgc,Fifsf);
         } 
     }
-    
+    /*
     if(p->A350==2)
     SLICELOOP4
     {
@@ -407,7 +407,7 @@ void fnpf_breaking::breaking_f(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta
          filter(p,c,pgc,eta);
          filter(p,c,pgc,Fifsf);
         }   
-    }
+    }*/
     
     SLICELOOP4
     c->breaklog(i,j)=0;

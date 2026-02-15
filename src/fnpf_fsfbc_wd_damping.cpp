@@ -40,7 +40,7 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
     if((gcval==55 || gcval==155) && (p->A357==1 || p->A357==3))
     check=1;
     
-    if(p->A350==1)
+    if(p->A350>0)
     {
         n=0;
         SLICELOOP4

@@ -38,6 +38,12 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 
     SLICELOOP4
     {
+        
+        //---------------
+        // Shallow Water
+        //---------------
+        if((p->A351==1 || p->A351==3) && p->count>1)
+        {
         // Onset threshold: eta_t > eta_I * sqrt(g * h)
         threshold_I = eta_I * sqrt(9.81 * c->WL(i,j));
 
@@ -50,22 +56,44 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             c->breaking(i,j) = 1;
             t_break(i,j)  = p->simtime;
         }
-
+        
         // Check for breaking cessation
-        if (c->breaking(i,j) == 1 && eta_t(i,j) < threshold_F)
+        if(c->breaking(i,j) == 1 && eta_t(i,j) < threshold_F)
         {
             c->breaking(i,j) = 0;
             B_coeff(i,j)  = 0.0;
             c->vb(i,j)     = 0.0;
         }
+        }
+        
+        //---------------
+        // Deep Water
+        //---------------
+        // steepness detection
+        if((p->A351==2 || p->A351==3) && p->count>1)
+        {
+        if (c->breaking(i,j) == 0 && (fabs(c->Ex(i,j)) > p->A355 || fabs(c->Ey(i,j)) > p->A355))
+        {
+            c->breaking(i,j) = 2;
+            t_break(i,j)  = p->simtime;
+            
+            cout<<"BREAKING"<<endl;
+        }
+        
+        // Check for breaking cessation
+        if(c->breaking(i,j) == 2 && (fabs(c->Ex(i,j)) < p->A356*p->A355 || fabs(c->Ey(i,j)) < p->A356*p->A355))
+        {
+            c->breaking(i,j) = 0;
+            B_coeff(i,j)  = 0.0;
+            c->vb(i,j)     = 0.0;
+        }
+        
+        
+        }
     }
     
     
-    
-    
-    
     // calculate viscosity
-    
     double T_ramp, dt_break;
 
     SLICELOOP4
@@ -93,8 +121,32 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             // Using |eta_t| to ensure positive viscosity
             c->vb(i,j) = B_coeff(i, j) * delta_b * delta_b * c->WL(i,j) * fabs(eta_t(i, j));
             
+            c->vb(i-1,j) = p->A365;
+            c->vb(i+1,j) = p->A365;
+        
+            if(p->j_dir==1)
+            {
+            c->vb(i,j-1) = p->A365;
+            c->vb(i,j+1) = p->A365;
+            }
+            
             //cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  B_coeff(i, j): "<<B_coeff(i, j)<<" dt_break: "<<dt_break<<" t_break(i,j): "<<t_break(i,j)<<endl;
         }
+        
+        else
+        if(c->breaking(i,j)==2)
+        {
+        c->vb(i,j) = p->A365;
+        c->vb(i-1,j) = p->A365;
+        c->vb(i+1,j) = p->A365;
+        
+        if(p->j_dir==1)
+        {
+        c->vb(i,j-1) = p->A365;
+        c->vb(i,j+1) = p->A365;
+        }
+        }
+        
         else
         {
             c->vb(i, j)    = 0.0;

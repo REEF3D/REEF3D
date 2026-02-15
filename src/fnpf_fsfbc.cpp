@@ -126,7 +126,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     if(p->A345==1)
     c->wd_criterion=p->A345_val*p->DXM;
     
-    if(p->A350==1)
+    if(p->A350>0)
     psolv =  new sflow_bicgstab(p,pgc);
     
     

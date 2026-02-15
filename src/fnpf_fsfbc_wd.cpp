@@ -134,7 +134,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     
     expinverse = 1.0/(exp(1.0)-1.0);
     
-    if(p->A350==1)
+    if(p->A350>0)
     psolv = new sflow_bicgstab(p,pgc);
     
     count_n=0;
