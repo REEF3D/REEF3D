@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"iterators.h"
 #include"definitions.h"
 #include"looping2D.h"
-//#include"looping_part.h"
 #include"iterators2D.h"
 #include"iterators1D.h"
 

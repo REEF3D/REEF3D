@@ -1097,7 +1097,6 @@
           <File Name="geotopo.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
-          <File Name="looping_part.h"/>
           <File Name="iterators1D.h"/>
           <File Name="increment.h"/>
           <File Name="looping.h"/>
