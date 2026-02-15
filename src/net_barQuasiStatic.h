@@ -24,13 +24,7 @@ Authors: Tobias Martin, Hans Bihs
 #define NET_BARQUASISTATIC_H_
 
 #include"net.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4a.h"
 #include"fieldint4.h"
-#include"field5.h"
-#include"fieldint5.h"
 #include"vec.h"
 #include<fstream>
 #include<iostream>
@@ -154,7 +148,7 @@ private:
     MatrixVi tetMesh;
     
     // Raytracing
-    fieldint5 cutl,cutr;
+    fieldint4 cutl,cutr;
     double xs,xe,ys,ye,zs,ze;
     int tend;  
 	
