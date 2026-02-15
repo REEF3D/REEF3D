@@ -102,7 +102,7 @@ momentum_FC3::momentum_FC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
     pupdate = new fluid_update_rheology(p);
     
-    if(p->F300>0)
+    if(p->F300>0 || p->F30==0)
 	pupdate = new fluid_update_void();
 
 	if(p->F46==2)
