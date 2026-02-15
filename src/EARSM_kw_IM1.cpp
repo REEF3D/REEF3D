@@ -32,7 +32,7 @@ Author: Hans Bihs
 
 EARSM_kw_IM1::EARSM_kw_IM1(lexer* p, fdm* a, ghostcell *pgc): komega_IM1(p,a,pgc),EARSM(p,a),cmu(cmu)
 {
-	gcval_earsm=25;
+	gcval_earsm=24;
 }
 
 EARSM_kw_IM1::~EARSM_kw_IM1()
