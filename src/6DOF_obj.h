@@ -66,7 +66,7 @@ public:
 	void initialize_cfd(lexer*,fdm*,ghostcell*);
     void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void initialize_shipwave(lexer*,ghostcell*,slice&,slice&);
-    void initialize_wavemaker(lexer*,ghostcell*,slice&,slice&);
+    void initialize_wavemaker(lexer*,fdm_nhf*,ghostcell*,slice&,slice&);
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);

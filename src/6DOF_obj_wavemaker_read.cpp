@@ -31,7 +31,12 @@ void sixdof_obj::read_format_1(lexer *p, ghostcell *pgc)
 	double val,val0,val1;
     double sign,beta,s;
 	int count,qn;
+    
+    colnum = 2;
 	
+    if(p->mpirank==0)
+    cout<<"6DOF_motion  wavemaker "<<endl;
+    
 	sprintf(name,"6DOF_motion.dat");
 
 // open file and count
@@ -40,25 +45,17 @@ void sixdof_obj::read_format_1(lexer *p, ghostcell *pgc)
 	if(!file)
 	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
     
-    if(p->mpirank==0)
-    cout<<"6DOF WM DAT    001"<<endl;
-    
     count=0;
-	while(!file.eof())
+	while(file.peek()!=EOF)
 	{
         for(qn=0;qn<colnum;++qn)
         file>>val;
 	++count;
 	}
 	ptnum=count;
-    
-    if(p->mpirank==0)
-    cout<<"6DOF WM DAT    002"<<endl;
-    
+
 	file.close();
-    
-    if(p->mpirank==0)
-    cout<<"6DOF WM DAT    003"<<endl;
+
 // allocate
     p->Darray(data,ptnum,colnum);
     

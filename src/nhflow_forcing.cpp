@@ -165,7 +165,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     // WL and eta
     
-    if(p->A516==2 || p->A516==4 || p->X240==21)
+    if(p->A516==2 || p->A516==4 || p->X240==21 || p->X10==4)
     {
         k=p->knoz;
 

@@ -31,9 +31,6 @@ void sixdof_motionext_wavemaker::read_format_1(lexer *p, ghostcell *pgc)
 	double val,val0,val1;
     double sign,beta,s;
 	int count;
-    
-    if(p->mpirank==0)
-    cout<<"6DOF_motion  wavemaker "<<endl;
 	
 	sprintf(name,"6DOF_motion.dat");
 

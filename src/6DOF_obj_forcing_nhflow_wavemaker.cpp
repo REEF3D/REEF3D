@@ -40,7 +40,7 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
         uf = uwm1;
         vf = 0.0;
         wf = 0.0;
-         
+         //cout <<"UF: "<<uwm1<<endl;
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
@@ -57,6 +57,7 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
         vf = 0.0;
         wf = 0.0;
          
+        
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
     // Normal vectors calculation 

@@ -74,6 +74,19 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
         ++entity_count;
     }
     
+    if(p->X170==1)
+    {
+        tstart[entity_count]=tricount;
+
+        piston(p,pgc,0);
+        tricount+=12;
+        
+        tend[entity_count]=tricount;
+        
+        
+        ++entity_count;
+    }
+    
     if(p->X180==1)
     {
         read_stl(p,pgc);
@@ -97,7 +110,7 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     triangle_switch_ray(p,pgc);
     
     // Refine triangles
-    if(p->X185>0 && p->X60==1 && entity_count>0)
+    if(p->X185>0 && p->X60==1 && entity_count>0 && p->X170==0)
 	geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)
@@ -108,7 +121,7 @@ void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
-    entity_sum = p->X110 + p->X131 + p->X132 + p->X133 + p->X153 + p->X163 + p->X164;
+    entity_sum = p->X110 + p->X131 + p->X132 + p->X133 + p->X153 + p->X163 + p->X164 + p->X170 + p->X171 + p->X172;
 	tricount=0;
     trisum=0;
     
@@ -144,6 +157,9 @@ void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
     
     // hexahedron
     trisum+=12*p->X164;
+    
+    // piston
+    trisum+=12*p->X170;
     
     // STL
     if(p->X180==1)
