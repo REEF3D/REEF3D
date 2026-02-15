@@ -1,26 +1,21 @@
+# Codelite build files
 src/Makefile*
 **/.codelite
-.codelite/.tern-port
-.codelite/REEF3D.tags
-.codelite/refactoring.db
 All
 Release
 Dev
 Debug
+src/*.txt
+src/*.mk
+# GNUMake build files
 bin
-obj
-*.session
-*.db
-*.tags
+build
+# Temp files
 *.d
 *.o
-*.pyc
-*.json
-src/*.txt
-*.workspace.session
-*.mk
-*.batch_build
-.DS_Store
-tags
-doxydoc*
 *.tmp
+*.pyc
+# IDE files
+*.json
+# MacOS files
+.DS_Store
