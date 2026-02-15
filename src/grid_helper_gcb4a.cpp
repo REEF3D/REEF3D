@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,53 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef GRID_H_
-#define GRID_H_
+#include"grid_helper.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
-#include"increment.h"
-
-class lexer;
-
-using namespace std;
-
-class grid :  public increment
+void grid_helper::fillgcb4a(lexer *p)
 {
-public:
+    int q;
 
-	grid (lexer *);
-	virtual ~grid();
-    
-    // gcb
-    void fillgcb1(lexer*);
-    void fillgcb2(lexer*);
-    void fillgcb3(lexer*);
-    void fillgcb4a(lexer*);
-    
-    void fillgcb4_wall(lexer*);
+    p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
+    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count);
 
-    // dgc
-    void make_dgc(lexer*);
-    void unmake_dgc(lexer*);
-    void fill_dgc1(lexer*);
-    void fill_dgc2(lexer*);
-    void fill_dgc3(lexer*);
-    void fill_dgc4(lexer*);
-    
-    int imin,imax,jmax,jmin,kmin,kmax;
-    
-private:
-	int di,dj,dk;
-	int qn;
-    
-    int *hgc;
-	
-};
+    p->gcb4a_count=p->gcb4_count;
 
-#endif
+    QGCB4
+    {
+    for(n=0;n<5;++n)
+    p->gcb4a[q][n]=p->gcb4[q][n];
 
-
-
-
-
-
-
+    p->gcd4a[q]=p->gcd4[q];
+    }
+}

@@ -20,24 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"grid.h"
+#include"grid_helper.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"fieldint4.h"
 
-void grid::fillgcb4a(lexer *p)
+void grid_helper::fillgcb4_wall(lexer *p)
 {
-    int q;
-    
-    p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
-    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count); 
-    
-    p->gcb4a_count=p->gcb4_count;
+    int q,n;
 
-    QGCB4
-	{
-	for(n=0;n<5;++n)
-	p->gcb4a[q][n]=p->gcb4[q][n];
-    
-    p->gcd4a[q]=p->gcd4[q];
-	}
+
+    fieldint4 cval(p);
+
+    int count=0;
+
+    BASELOOP
+    {
+    cval(i,j,k)=count;
+
+    ++count;
+    }
+
+    GC4LOOP
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+    p->gcb4[n][5]=cval(i,j,k);
+    }
+
 }
