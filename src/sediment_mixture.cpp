@@ -189,22 +189,22 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     for(int q=0;q<nf;++q)
     for(int nn=0;nn<size;++nn)
     {
-    F[q]->V[nn]  = Fe[q];
-    Fs[q]->V[nn] = V[q];
-    qbe_k[q]->V[nn] = 0.0;
-    qb_k[q]->V[nn]  = 0.0;
-    qbn_k[q]->V[nn] = 0.0;
-    vz_k[q]->V[nn]  = 0.0;
-    dh_k[q]->V[nn]  = 0.0;
-    fh_k[q]->V[nn]  = 0.0;
+    F[q]->data()[nn]  = Fe[q];
+    Fs[q]->data()[nn] = V[q];
+    qbe_k[q]->data()[nn] = 0.0;
+    qb_k[q]->data()[nn]  = 0.0;
+    qbn_k[q]->data()[nn] = 0.0;
+    vz_k[q]->data()[nn]  = 0.0;
+    dh_k[q]->data()[nn]  = 0.0;
+    fh_k[q]->data()[nn]  = 0.0;
     }
 
     for(int nn=0;nn<size;++nn)
     {
-    Hs.V[nn] = MAX(p->S53,0.0);
-    qbe_raw.V[nn] = 0.0;
-    qbe_tot.V[nn] = 0.0;
-    fac.V[nn] = 1.0;
+    Hs.data()[nn] = MAX(p->S53,0.0);
+    qbe_raw.data()[nn] = 0.0;
+    qbe_tot.data()[nn] = 0.0;
+    fac.data()[nn] = 1.0;
     }
 
     grain_stats(p,pgc);
@@ -253,7 +253,7 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     cout<<"  hiding/exposure: "<<(p->S54==1?"Wu, Wang & Jia (2000), m = ":"off")<<(p->S54==1?p->S55:0.0)<<endl;
 
     for(int q=0;q<nf;++q)
-    cout<<"  fraction "<<q+1<<"  d = "<<d[q]<<" m   F_active = "<<Fe[q]<<"   F_substrate = "<<Fs[q]->V[0]<<endl;
+    cout<<"  fraction "<<q+1<<"  d = "<<d[q]<<" m   F_active = "<<Fe[q]<<"   F_substrate = "<<Fs[q]->data()[0]<<endl;
 
     mkdir("./REEF3D_Log",0777);
     
@@ -300,10 +300,10 @@ void sediment_mixture::save_base(lexer *p, sediment_fdm *s)
 
     for(int nn=0;nn<size;++nn)
     {
-    shields_eff0.V[nn]   = s->shields_eff.V[nn];
-    shields_crit0.V[nn]  = s->shields_crit.V[nn];
-    tau_crit0.V[nn]      = s->tau_crit.V[nn];
-    shearvel_crit0.V[nn] = s->shearvel_crit.V[nn];
+    shields_eff0.data()[nn]   = s->shields_eff.data()[nn];
+    shields_crit0.data()[nn]  = s->shields_crit.data()[nn];
+    tau_crit0.data()[nn]      = s->tau_crit.data()[nn];
+    shearvel_crit0.data()[nn] = s->shearvel_crit.data()[nn];
     }
 }
 
@@ -313,10 +313,10 @@ void sediment_mixture::restore_base(lexer *p, sediment_fdm *s)
 
     for(int nn=0;nn<size;++nn)
     {
-    s->shields_eff.V[nn]   = shields_eff0.V[nn];
-    s->shields_crit.V[nn]  = shields_crit0.V[nn];
-    s->tau_crit.V[nn]      = tau_crit0.V[nn];
-    s->shearvel_crit.V[nn] = shearvel_crit0.V[nn];
+    s->shields_eff.data()[nn]   = shields_eff0.data()[nn];
+    s->shields_crit.data()[nn]  = shields_crit0.data()[nn];
+    s->tau_crit.data()[nn]      = tau_crit0.data()[nn];
+    s->shearvel_crit.data()[nn] = shearvel_crit0.data()[nn];
     }
 
     s->dk = p->S20;
@@ -349,7 +349,7 @@ void sediment_mixture::bedload_fractions(lexer *p, ghostcell *pgc, sediment_fdm 
     save_base(p,s);
 
     for(int nn=0;nn<size;++nn)
-    qbe_raw.V[nn] = 0.0;
+    qbe_raw.data()[nn] = 0.0;
 
     for(int q=0;q<nf;++q)
     {
@@ -359,15 +359,15 @@ void sediment_mixture::bedload_fractions(lexer *p, ghostcell *pgc, sediment_fdm 
 
         for(int nn=0;nn<size;++nn)
         {
-        qbe_k[q]->V[nn] = F[q]->V[nn]*s->qbe.V[nn];
-        qbe_raw.V[nn] += qbe_k[q]->V[nn];
+        qbe_k[q]->data()[nn] = F[q]->data()[nn]*s->qbe.data()[nn];
+        qbe_raw.data()[nn] += qbe_k[q]->data()[nn];
         }
     }
 
     restore_base(p,s);
 
     for(int nn=0;nn<size;++nn)
-    s->qbe.V[nn] = qbe_raw.V[nn];
+    s->qbe.data()[nn] = qbe_raw.data()[nn];
 }
 
 // --------------------------------------------------------------------
@@ -382,8 +382,8 @@ void sediment_mixture::exner_begin(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
     for(int nn=0;nn<size;++nn)
     {
-    qbe_tot.V[nn] = s->qbe.V[nn];
-    fac.V[nn] = fabs(qbe_raw.V[nn])>1.0e-20?qbe_tot.V[nn]/qbe_raw.V[nn]:0.0;
+    qbe_tot.data()[nn] = s->qbe.data()[nn];
+    fac.data()[nn] = fabs(qbe_raw.data()[nn])>1.0e-20?qbe_tot.data()[nn]/qbe_raw.data()[nn]:0.0;
     }
 
     save_base(p,s);
@@ -396,7 +396,7 @@ void sediment_mixture::exner_end(lexer *p, ghostcell *pgc, sediment_fdm *s)
     restore_base(p,s);
 
     for(int nn=0;nn<size;++nn)
-    s->qbe.V[nn] = qbe_tot.V[nn];
+    s->qbe.data()[nn] = qbe_tot.data()[nn];
 }
 
 // --------------------------------------------------------------------
@@ -565,11 +565,11 @@ void sediment_mixture::slide_zero(lexer *p, ghostcell *pgc)
 
     for(int q=0;q<nf;++q)
     for(int nn=0;nn<size;++nn)
-    fh_k[q]->V[nn] = 0.0;
+    fh_k[q]->data()[nn] = 0.0;
 
     for(int q=0;q<9;++q)
     for(int nn=0;nn<size;++nn)
-    out[q]->V[nn] = 0.0;
+    out[q]->data()[nn] = 0.0;
 }
 
 // called inside the slide loops: must not touch the static loop indices

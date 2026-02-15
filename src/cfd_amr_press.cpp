@@ -127,7 +127,7 @@ field& cfd_amr::pfield(int g, int k)
 
 double* cfd_amr::pvec(int g, int k)
 {
-    return pfield(g,k).V;
+    return pfield(g,k).data();
 }
 
 // rows, leaf cells, the faces at the patch edges, vectors and multigrids
@@ -440,7 +440,7 @@ void cfd_amr::pr_weights()
         int o[3] = {0,0,0};
         o[F.d] = F.dir;
         const double w = interface_width_face(c->pp,c->a->phi,F.fi[0],F.fi[1],F.fi[2],o[0],o[1],o[2]);
-        const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
+        const double H = heaviside(0.5*(c->a->phi.data()[F.qf] + c->a->phi.data()[F.qm]),w);
         F.rof = c->pp->W1*H + c->pp->W3*(1.0-H);
     }
 
@@ -450,8 +450,8 @@ void cfd_amr::pr_weights()
         fdm *ac = gfd(F.gc);
         const double e = qc->psi, row = qc->W1, roa = qc->W3;
         const double *dn[3] = {qc->DXN,qc->DYN,qc->DZN};
-        const double phC = ac->phi.V[F.qc];
-        const double phf = CP(F.pid)->a->phi.V[F.qf];
+        const double phC = ac->phi.data()[F.qc];
+        const double phf = CP(F.pid)->a->phi.data()[F.qf];
 
         F.ns = 1;
         F.sg[0] = F.gc;
@@ -479,19 +479,19 @@ void cfd_amr::pr_weights()
 
             if(qm>=0 && qp>=0)
             {
-                const double mm = rmass(ac->phi.V[qm],ac->phi.V[qp],2.0*h,e,row,roa);
+                const double mm = rmass(ac->phi.data()[qm],ac->phi.data()[qp],2.0*h,e,row,roa);
                 put(qp,mf/mm,t,1);
                 put(qm,-mf/mm,t,-1);
             }
             else if(qp>=0)
             {
-                const double mp = rmass(phC,ac->phi.V[qp],h,e,row,roa);
+                const double mp = rmass(phC,ac->phi.data()[qp],h,e,row,roa);
                 put(qp,mf/mp,t,1);
                 F.sw[0] -= mf/mp;
             }
             else if(qm>=0)
             {
-                const double mm = rmass(phC,ac->phi.V[qm],-h,e,row,roa);
+                const double mm = rmass(phC,ac->phi.data()[qm],-h,e,row,roa);
                 put(qm,mf/mm,t,-1);
                 F.sw[0] -= mf/mm;
             }
@@ -610,7 +610,7 @@ double cfd_amr::pr_ps(const cfd_amr_cf &F)
 {
     double v = 0.0;
     for(int m=0; m<F.ns; ++m)
-    v += F.sw[m]*gfd(F.sg[m])->press.V[F.sq[m]];
+    v += F.sw[m]*gfd(F.sg[m])->press.data()[F.sq[m]];
     return v;
 }
 
