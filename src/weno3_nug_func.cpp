@@ -60,21 +60,21 @@ void weno3_nug_func::own_ini(lexer* p)
 {
     own_tables=1;
     own_p=p;
-    own_nx=p->knox+8;
-    own_ny=p->knoy+8;
-    own_nz=p->knoz+8;
+    own_nx=p->knox+2*marge;
+    own_ny=p->knoy+2*marge;
+    own_nz=p->knoz+2*marge;
 
-    p->Darray(qfx,p->knox+8,2,4,2);
-    p->Darray(qfy,p->knoy+8,2,4,2);
-    p->Darray(qfz,p->knoz+8,2,4,2);
+    p->Darray(qfx,p->knox+2*marge,2,4,2);
+    p->Darray(qfy,p->knoy+2*marge,2,4,2);
+    p->Darray(qfz,p->knoz+2*marge,2,4,2);
 
-    p->Darray(cfx,p->knox+8,2,4);
-    p->Darray(cfy,p->knoy+8,2,4);
-    p->Darray(cfz,p->knoz+8,2,4);
+    p->Darray(cfx,p->knox+2*marge,2,4);
+    p->Darray(cfy,p->knoy+2*marge,2,4);
+    p->Darray(cfz,p->knoz+2*marge,2,4);
 
-    p->Darray(isfx,p->knox+8,2,4);
-    p->Darray(isfy,p->knoy+8,2,4);
-    p->Darray(isfz,p->knoz+8,2,4);
+    p->Darray(isfx,p->knox+2*marge,2,4);
+    p->Darray(isfy,p->knoy+2*marge,2,4);
+    p->Darray(isfz,p->knoz+2*marge,2,4);
 
     precalc_qf(p);
     precalc_cf(p);
@@ -85,17 +85,17 @@ void weno3_nug_func::ini(lexer* p)
 {
     if(iniflag==0)
     {
-    p->Darray(s_qfx,p->knox+8,2,4,2);
-    p->Darray(s_qfy,p->knoy+8,2,4,2);
-    p->Darray(s_qfz,p->knoz+8,2,4,2);
+    p->Darray(s_qfx,p->knox+2*marge,2,4,2);
+    p->Darray(s_qfy,p->knoy+2*marge,2,4,2);
+    p->Darray(s_qfz,p->knoz+2*marge,2,4,2);
 
-    p->Darray(s_cfx,p->knox+8,2,4);
-    p->Darray(s_cfy,p->knoy+8,2,4);
-    p->Darray(s_cfz,p->knoz+8,2,4);
+    p->Darray(s_cfx,p->knox+2*marge,2,4);
+    p->Darray(s_cfy,p->knoy+2*marge,2,4);
+    p->Darray(s_cfz,p->knoz+2*marge,2,4);
 
-    p->Darray(s_isfx,p->knox+8,2,4);
-    p->Darray(s_isfy,p->knoy+8,2,4);
-    p->Darray(s_isfz,p->knoz+8,2,4);
+    p->Darray(s_isfx,p->knox+2*marge,2,4);
+    p->Darray(s_isfy,p->knoy+2*marge,2,4);
+    p->Darray(s_isfz,p->knoz+2*marge,2,4);
     }
 
     qfx=s_qfx; qfy=s_qfy; qfz=s_qfz;

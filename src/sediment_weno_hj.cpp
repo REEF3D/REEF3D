@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 sediment_weno_hj::sediment_weno_hj(lexer* p) :  ddweno_f_nug(p)
 {
-    p->Darray(ckz,p->knoz+1+4*marge,5);
+    p->Darray(ckz,p->knoz+1+2*marge,5);
     
     fnpf_discrete_weights dw(p);
 
