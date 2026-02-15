@@ -128,8 +128,8 @@ seastate_fas2::~seastate_fas2()
     if(pc!=nullptr)
     {
     const int m = marge;
-    const int nxa = pc->knox+1+4*m;
-    const int nya = pc->knoy+1+4*m;
+    const int nxa = pc->knox+1+2*m;
+    const int nya = pc->knoy+1+2*m;
     const int nsl = pc->imax*pc->jmax;
 
     pc->del_Darray(pc->XN,nxa); pc->del_Darray(pc->XP,nxa); pc->del_Darray(pc->DXN,nxa); pc->del_Darray(pc->DXP,nxa);
@@ -204,8 +204,8 @@ void seastate_fas2::build_lexer(lexer *p, ghostcell *pgc)
     pc->x_dir = p->x_dir; pc->y_dir = p->y_dir; pc->z_dir = p->z_dir;
 
     // nodes: every second fine node, the last node of the rank, beyond the ends the fine halo nodes
-    const int nxa = kx+1+4*m, nya = ky+1+4*m;
-    const int pnxa = p->knox+1+4*m, pnya = p->knoy+1+4*m;
+    const int nxa = kx+1+2*m, nya = ky+1+2*m;
+    const int pnxa = p->knox+1+2*m, pnya = p->knoy+1+2*m;
 
     pc->Darray(pc->XN,nxa); pc->Darray(pc->XP,nxa); pc->Darray(pc->DXN,nxa); pc->Darray(pc->DXP,nxa);
     pc->Darray(pc->YN,nya); pc->Darray(pc->YP,nya); pc->Darray(pc->DYN,nya); pc->Darray(pc->DYP,nya);
