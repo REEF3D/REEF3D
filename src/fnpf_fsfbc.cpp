@@ -36,7 +36,6 @@ Author: Hans Bihs
 #include"fnpf_cds6.h"
 #include"fnpf_weno3.h"
 #include"fnpf_weno5.h"
-#include"fnpf_weno7.h"
 #include"fnpf_weno5_wd.h"
 #include"fnpf_wenoflux.h"
 #include"fnpf_hires.h"
@@ -85,12 +84,6 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     {
     pconvec = new fnpf_cds6(p);
     pconeta = new fnpf_cds6(p);
-    }
-    
-    if(p->A311==7)
-    {
-    pconvec = new fnpf_weno7(p);
-    pconeta = new fnpf_weno7(p);
     }
     
 
