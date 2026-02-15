@@ -2905,7 +2905,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Ini">
-        <File Name="driver_ini_sflow.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
