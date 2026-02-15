@@ -52,6 +52,7 @@ private:
     int imin,imax,jmax,jmin,kmin,kmax;
 
     int *hgc;
+    int **fgc;
 };
 
 #endif
