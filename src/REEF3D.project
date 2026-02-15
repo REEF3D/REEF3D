@@ -2436,6 +2436,7 @@
           <File Name="6DOF_obj_solve.cpp"/>
           <File Name="6DOF_obj_rotation.cpp"/>
           <VirtualDirectory Name="Initialize">
+            <File Name="6DOF_obj_ini_wavemaker.cpp"/>
             <File Name="6DOF_obj_ini_nhflow.cpp"/>
             <File Name="6DOF_obj_ini_shipwave.cpp"/>
             <File Name="6DOF_obj_ini_cfd.cpp"/>
@@ -2462,6 +2463,7 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <File Name="6DOF_obj_wavemaker_read.cpp"/>
             <VirtualDirectory Name="Objects">
               <File Name="6DOF_obj_flap_double.cpp"/>
               <File Name="6DOF_obj_piston.cpp"/>

@@ -26,8 +26,22 @@ Author: Hans Bihs
 
 void sixdof_obj::piston(lexer *p, ghostcell *pgc, int id)
 {
-	xs = p->X170_xs;
-    xe = p->X170_xe;
+    // find correct time step
+    if((p->simtime>data[timecount][0]))
+    timecount_old=timecount;
+    
+	while(p->simtime>data[timecount][0])
+	++timecount;
+    
+    f0 = (p->simtime - data[timecount_old][0])/(data[timecount][0]-data[timecount_old][0]);
+
+
+    xwm1 = data[timecount][1]*f0 + data[timecount_old][1]*(1.0-f0); 
+    
+    uwm1 = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+    
+	xs = p->X170_xs + xwm1;
+    xe = p->X170_xe + xwm1;
 	
     ys = p->X170_ys;
     ye = p->X170_ye;

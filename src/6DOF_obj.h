@@ -66,6 +66,7 @@ public:
 	void initialize_cfd(lexer*,fdm*,ghostcell*);
     void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void initialize_shipwave(lexer*,ghostcell*,slice&,slice&);
+    void initialize_wavemaker(lexer*,ghostcell*,slice&,slice&);
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
@@ -338,6 +339,10 @@ private:
 	fieldint5 vertice, nodeflag;
     field5 eta;
     
+    int triangle_token,printnormal_count;
+    
+    double alpha[3],gamma[3],zeta[3];
+    
     
     // Parallel	
 	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
@@ -359,7 +364,6 @@ private:
     Eigen::Vector3d Ffb_, Mfb_;
     double Xe, Ye, Ze, Ke, Me, Ne;
 
-
     // Mooring
 	vector<double> X311_xen, X311_yen, X311_zen;
 	vector<mooring*> pmooring;
@@ -371,9 +375,22 @@ private:
     // Number
     int n6DOF;
     
-    int triangle_token,printnormal_count;
+    // Wavemaker
+    double xwm1,zwm1,xwm2,zwm2;
+    double uwm1;
     
-    double alpha[3],gamma[3],zeta[3];
+    void read_format_1(lexer*,ghostcell*);
+    void read_format_2(lexer*,ghostcell*);
+    
+    double ts,te;
+    double f0;
+    int timecount,timecount_old;
+    int rowcount,colcount;
+    int colnum;
+    int ptnum;
+    double **data;
+    
+    
 };
 
 #endif

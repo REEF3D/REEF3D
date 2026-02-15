@@ -37,9 +37,9 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        uf = uwm1;
+        vf = 0.0;
+        wf = 0.0;
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
@@ -53,9 +53,9 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        uf = uwm1;
+        vf = 0.0;
+        wf = 0.0;
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         

@@ -20,20 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_motionext_wavemaker.h"
+#include"6DOF_obj.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_motionext_wavemaker::read_format_1(lexer *p, ghostcell *pgc)
+void sixdof_obj::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
 	double val,val0,val1;
     double sign,beta,s;
-	int count;
-    
-    if(p->mpirank==0)
-    cout<<"6DOF_motion  wavemaker "<<endl;
+	int count,qn;
 	
 	sprintf(name,"6DOF_motion.dat");
 
@@ -42,7 +39,9 @@ void sixdof_motionext_wavemaker::read_format_1(lexer *p, ghostcell *pgc)
 	
 	if(!file)
 	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
-
+    
+    if(p->mpirank==0)
+    cout<<"6DOF WM DAT    001"<<endl;
     
     count=0;
 	while(!file.eof())
@@ -53,8 +52,13 @@ void sixdof_motionext_wavemaker::read_format_1(lexer *p, ghostcell *pgc)
 	}
 	ptnum=count;
     
+    if(p->mpirank==0)
+    cout<<"6DOF WM DAT    002"<<endl;
+    
 	file.close();
     
+    if(p->mpirank==0)
+    cout<<"6DOF WM DAT    003"<<endl;
 // allocate
     p->Darray(data,ptnum,colnum);
     
