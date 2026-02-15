@@ -66,7 +66,7 @@ void cfd_amr::sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bo
     {
         double *&t = tab[(size_t)m*ng+g+1];
         if(t==nullptr)
-        t = f[m](g).V;
+        t = f[m](g).data();
         return t;
     };
     cplan_run(X,(int)f.size(),F,F,add);
@@ -84,7 +84,7 @@ void cfd_amr::sh_zero(r3cplan &X, const std::function<field&(int)> &f)
 {
     for(size_t s=0; s<X.sp.size(); ++s)
     for(size_t q=0; q<X.sq[s].size(); ++q)
-    f(X.sg[s][q]).V[X.sq[s][q]] = 0.0;
+    f(X.sg[s][q]).data()[X.sq[s][q]] = 0.0;
 }
 
 // the up plans of the shadows (after pr_setup; collective)

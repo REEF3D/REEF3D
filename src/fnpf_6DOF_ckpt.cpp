@@ -57,10 +57,10 @@ void fnpf_6DOF::grid_fields(fnpf_6DOF_grid *G, const ckpt_fd &fd, const ckpt_fi 
         fd(name.c_str(),'F',(G!=nullptr && G->psib.size()>e) ? G->psib[e] : nullptr);
     }
     fi("fb_mark",'F',G!=nullptr ? G->mark : nullptr);
-    fd("fb_foot",'S',G!=nullptr ? G->foot->V : nullptr);
-    fd("fb_psiD",'S',G!=nullptr ? G->psiD->V : nullptr);
-    fd("fb_eta_ext",'S',G!=nullptr ? G->eta_ext->V : nullptr);
-    fd("fb_fi_ext",'S',G!=nullptr ? G->fi_ext->V : nullptr);
+    fd("fb_foot",'S',G!=nullptr ? G->foot->data() : nullptr);
+    fd("fb_psiD",'S',G!=nullptr ? G->psiD->data() : nullptr);
+    fd("fb_eta_ext",'S',G!=nullptr ? G->eta_ext->data() : nullptr);
+    fd("fb_fi_ext",'S',G!=nullptr ? G->fi_ext->data() : nullptr);
 }
 
 void fnpf_6DOF::ckpt_fields(const ckpt_fd &fd, const ckpt_fi &fi)
@@ -123,7 +123,7 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
         const double nan = std::numeric_limits<double>::quiet_NaN();
         const int n = pp->imax*pp->jmax;
         for(int q=0; q<n; ++q)
-        G.eta_ext->V[q] = nan;
+        G.eta_ext->data()[q] = nan;
     }
 }
 
@@ -320,8 +320,8 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
             
             const int n = p->imax*p->jmax;
             for(int q=0; q<n; ++q)
-            if(std::isnan(eta_ext.V[q]))
-            eta_ext.V[q] = 0.0;
+            if(std::isnan(eta_ext.data()[q]))
+            eta_ext.data()[q] = 0.0;
         }
         
         ckpt_grids = false;

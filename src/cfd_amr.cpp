@@ -126,7 +126,7 @@ public:
         {
             if(c!=0.0 && mk[q]>=0 && mk[q]!=3)
             {
-                rhsvec.V[n] -= c*f.V[q];
+                rhsvec.V[n] -= c*f.data()[q];
                 c = 0.0;
             }
         };
@@ -147,7 +147,7 @@ public:
                 M.p[n] = 1.0;
                 M.n[n] = M.s[n] = M.w[n] = M.e[n] = M.t[n] = M.b[n] = 0.0;
                 rhsvec.V[n] = v;
-                f.V[q] = v;
+                f.data()[q] = v;
                 ++n;
                 continue;
             }
@@ -293,9 +293,9 @@ void cfd_amr::net_forces()
         fdm *fa = CP(id)->a;
         const size_t n = size_t(pp->imax)*pp->jmax*pp->kmax;
 
-        std::fill(fa->Fext.V, fa->Fext.V + n, 0.0);
-        std::fill(fa->Gext.V, fa->Gext.V + n, 0.0);
-        std::fill(fa->Hext.V, fa->Hext.V + n, 0.0);
+        std::fill(fa->Fext.data(), fa->Fext.data() + n, 0.0);
+        std::fill(fa->Gext.data(), fa->Gext.data() + n, 0.0);
+        std::fill(fa->Hext.data(), fa->Hext.data() + n, 0.0);
 
         nets6->amr_net_forces(pp,fa);
     }
@@ -1008,7 +1008,7 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
                  if(kind==0)
                  {
                      for(int m=0; m<nv; ++m)
-                     v[m] = S(m,g).V[qs];
+                     v[m] = S(m,g).data()[qs];
                      return;
                  }
                  if(siblings_only)
@@ -1021,7 +1021,7 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
                  const int rd[3] = {r0,r1,r2};
                  for(int m=0; m<nv; ++m)
                  {
-                     const double *V = S(m,g).V;
+                     const double *V = S(m,g).data();
                      const int mode = fs[m].mode, d0 = fs[m].type;
                      if(d0==CELL)
                      {
@@ -1049,7 +1049,7 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
                  return;
                  const long qd = cix(c->pp,f.d[0],f.d[1],f.d[2]);
                  for(int m=0; m<nv; ++m)
-                 D(m,id).V[qd] = v[m];
+                 D(m,id).data()[qd] = v[m];
              },
              maxdepth);
 }
@@ -1292,8 +1292,8 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
             vector<double*> cdst(nc);
             for(size_t m=0; m<nc; ++m)
             {
-                csrc[m] = cells[m](id).V;
-                cdst[m] = cells[m](B.g).V;
+                csrc[m] = cells[m](id).data();
+                cdst[m] = cells[m](B.g).data();
             }
             field *fsrc[3] = {nullptr,nullptr,nullptr}, *fdst[3] = {nullptr,nullptr,nullptr};
             for(int d0=0; d0<3; ++d0)
@@ -1466,10 +1466,10 @@ void cfd_amr::patch_fields_ini(int id)
     const int na = pp->imax*pp->jmax*pp->kmax;
     for(int n=0; n<na; ++n)
     {
-        c->a->porosity.V[n] = 1.0;
-        c->a->fb.V[n] = 1.0;
-        c->a->topo.V[n] = 1.0;
-        c->a->solid.V[n] = 1.0e8;
+        c->a->porosity.data()[n] = 1.0;
+        c->a->fb.data()[n] = 1.0;
+        c->a->topo.data()[n] = 1.0;
+        c->a->solid.data()[n] = 1.0e8;
     }
 
     // porous structures (B 200 1): porosity, d50 and the resistance coefficients of every cell of
@@ -1602,7 +1602,7 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
     {
         double zb = 1.0e20;
         for(const cfd_amr_cf &F : cf)
-        if(F.d==2 && fabs(CP(F.pid)->a->phi.V[F.qf])<1.5*p->psi)
+        if(F.d==2 && fabs(CP(F.pid)->a->phi.data()[F.qf])<1.5*p->psi)
         zb = MIN(zb,CP(F.pid)->pp->ZP[F.fi[2]+marge]);
         zb = pgc->globalmin(zb);
         if(p->mpirank==0 && zb<1.0e19)

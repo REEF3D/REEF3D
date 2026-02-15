@@ -106,7 +106,7 @@ void sflow_amr::sub_snapshot(int g)
         continue;
         if(T.f[k]==nullptr)
         T.f[k] = new slice(G.q);
-        memcpy(T.f[k]->V,src[k]->V,n*sizeof(double));
+        memcpy(T.f[k]->data(),src[k]->data(),n*sizeof(double));
     }
     T.wet.assign(G.q->wet,G.q->wet+n);
 }

@@ -89,8 +89,8 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
     for(int q=0; q<n; ++q)
     {
-    m.V[q] = 0.0;
-    cx.V[q] = cy.V[q] = cz.V[q] = nofoot;
+    m.data()[q] = 0.0;
+    cx.data()[q] = cy.data()[q] = cz.data()[q] = nofoot;
     }
 
     LOOP
@@ -221,9 +221,9 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
         const int q = id(i,j,k);
         d2[q] = d0*d0;
         frozen[q] = 1;
-        cx.V[q] = fp[0];
-        cy.V[q] = fp[1];
-        cz.V[q] = fp[2];
+        cx.data()[q] = fp[0];
+        cy.data()[q] = fp[1];
+        cz.data()[q] = fp[2];
         ++nseed;
     }
 
@@ -273,7 +273,7 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
 
                     const int q = id(i,j,k);
 
-                    if(m.V[q]<0.5 || frozen[q])
+                    if(m.data()[q]<0.5 || frozen[q])
                     continue;
 
                     const double x = p->XP[IP];
@@ -289,12 +289,12 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
                     {
                         const int qn = q + oi*si + oj*sj + ok;
 
-                        if(qn==q || m.V[qn]<0.5 || cx.V[qn]>=0.5*nofoot)
+                        if(qn==q || m.data()[qn]<0.5 || cx.data()[qn]>=0.5*nofoot)
                         continue;
 
-                        const double ddx = x-cx.V[qn];
-                        const double ddy = y-cy.V[qn];
-                        const double ddz = z-cz.V[qn];
+                        const double ddx = x-cx.data()[qn];
+                        const double ddy = y-cy.data()[qn];
+                        const double ddz = z-cz.data()[qn];
                         const double dd = ddx*ddx + ddy*ddy + ddz*ddz;
 
                         if(dd<best)
@@ -307,9 +307,9 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
                     if(qbest>=0)
                     {
                         d2[q] = best;
-                        cx.V[q] = cx.V[qbest];
-                        cy.V[q] = cy.V[qbest];
-                        cz.V[q] = cz.V[qbest];
+                        cx.data()[q] = cx.data()[qbest];
+                        cy.data()[q] = cy.data()[qbest];
+                        cz.data()[q] = cz.data()[qbest];
                         ++changed;
                     }
                     }
@@ -340,7 +340,7 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
     {
         const int q = id(i,j,k);
 
-        if(m.V[q]>0.5 && d2[q]<0.5*nofoot)
+        if(m.data()[q]>0.5 && d2[q]<0.5*nofoot)
         f(i,j,k) = (f(i,j,k)>=0.0 ? 1.0 : -1.0)*sqrt(d2[q]);
     }
 

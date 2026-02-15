@@ -700,11 +700,11 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     }
 
-    double *E = nE.V, *Pp = nP.V, *Lp = nL.V;
-    const double *XEL = kxEL.V, *XER = kxER.V, *XPL = kxPL.V, *XPR = kxPR.V, *XB = nxB.V, *X1 = kx1.V, *X2 = kx2.V;
-    const double *YEL = kyEL.V, *YER = kyER.V, *YPL = kyPL.V, *YPR = kyPR.V, *YB = nyB.V, *Y1 = ky1.V, *Y2 = ky2.V;
-    const double *Ac = nA.V;
-    double *PW = nPW.V;
+    double *E = nE.data(), *Pp = nP.data(), *Lp = nL.data();
+    const double *XEL = kxEL.data(), *XER = kxER.data(), *XPL = kxPL.data(), *XPR = kxPR.data(), *XB = nxB.data(), *X1 = kx1.data(), *X2 = kx2.data();
+    const double *YEL = kyEL.data(), *YER = kyER.data(), *YPL = kyPL.data(), *YPR = kyPR.data(), *YB = nyB.data(), *Y1 = ky1.data(), *Y2 = ky2.data();
+    const double *Ac = nA.data();
+    double *PW = nPW.data();
 
     // wet pattern of the mass rows (A 243 > 0: Newton iteration on WL = max(eta + d, 0), Casulli 2009), all wet first
     SLICELOOP4
@@ -1136,8 +1136,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             const int q = cq[n];
             const double rm = v[2*n], rc = v[2*n+1];
             const bool a = Ac[q]>0.5;
-            E[q]  = nBE.V[q] = a ? rm - tdt*rc : 0.0;
-            Pp[q] = nBP.V[q] = a ? 0.0 : rc;
+            E[q]  = nBE.data()[q] = a ? rm - tdt*rc : 0.0;
+            Pp[q] = nBP.data()[q] = a ? 0.0 : rc;
             }
 
             exchange4(p,pgc,nE);
@@ -1158,7 +1158,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             }
 
             S.r1->V[n] = v[2*n] - (E[q] + tdt*dv);
-            nZ.V[q] = 0.0;
+            nZ.data()[q] = 0.0;
             }
 
             S.mg1->vcycle(p,pgc,nZ,M,*S.r1,rebuild);
@@ -1166,7 +1166,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             if(Bdisp>0.0)
             {
             for(int n=0; n<N; ++n)
-            S.r2->V[n] = nZ.V[cq[n]];
+            S.r2->V[n] = nZ.data()[cq[n]];
 
             S.mg2->vcycle(p,pgc,nZ,*S.M2,*S.r2,rebuild);
             }
@@ -1177,8 +1177,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
             for(int n=0; n<N; ++n)
             {
             const int q = cq[n];
-            z[2*n]   = nBE.V[q] + nAE.V[q]*nZ.V[q];
-            z[2*n+1] = nBP.V[q] + nAP.V[q]*nZ.V[q];
+            z[2*n]   = nBE.data()[q] + nAE.data()[q]*nZ.data()[q];
+            z[2*n+1] = nBP.data()[q] + nAP.data()[q]*nZ.data()[q];
             }
         };
 

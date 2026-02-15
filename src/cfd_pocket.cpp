@@ -213,7 +213,7 @@ void cfd_pocket_core(lexer *p0, std::vector<cfd_pocket_grid> &G, const std::vect
         field &L = G[g].s->lab;
         const int sz = p->imax*p->jmax*p->kmax;
         for(int q=0; q<sz; ++q)
-        L.V[q] = -1.0;
+        L.data()[q] = -1.0;
         for(const auto &c : G[g].cells)
         {
             const int n = node[g][fid(p,c[0],c[1],c[2])];

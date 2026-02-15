@@ -415,8 +415,8 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
 
         for(int n=0; n<size; ++n)
         {
-        a->ro.V[n] = p->W1;
-        a->visc.V[n] = p->W2;
+        a->ro.data()[n] = p->W1;
+        a->visc.data()[n] = p->W2;
         }
     }
 

@@ -56,9 +56,9 @@ void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
     if(sf[0]!=nullptr)
     {
     const int n = p->imax*p->jmax*p->kmax;
-    std::copy(a->fbh1.V, a->fbh1.V+n, sf[0]->V);
-    std::copy(a->fbh2.V, a->fbh2.V+n, sf[1]->V);
-    std::copy(a->fbh3.V, a->fbh3.V+n, sf[2]->V);
+    std::copy(a->fbh1.data(), a->fbh1.data()+n, sf[0]->data());
+    std::copy(a->fbh2.data(), a->fbh2.data()+n, sf[1]->data());
+    std::copy(a->fbh3.data(), a->fbh3.data()+n, sf[2]->data());
     }
     
     // Reset heaviside field

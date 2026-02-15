@@ -45,8 +45,8 @@ cfd_singlephase::cfd_singlephase(lexer *p) : km1(p), km2(p), km3(p), pid(p,p->F4
         const int size = p->imax*p->jmax*p->kmax;
         for(int n=0; n<size; ++n)
         {
-            pid.V[n] = -2.0;
-            pa.V[n] = 0.0;
+            pid.data()[n] = -2.0;
+            pa.data()[n] = 0.0;
         }
         pic_gfm_air_field(p,&pa);
     }
@@ -85,7 +85,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
     if(c==1 && p->j_dir==0)
     {
         for(int n=0; n<size; ++n)
-        dst.V[n] = 0.0;
+        dst.data()[n] = 0.0;
         return;
     }
 
@@ -131,7 +131,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
                 if(!known[g1])
                 return;
 
-                sum += dst.V[g1];
+                sum += dst.data()[g1];
                 ++cnt;
             };
 
@@ -145,7 +145,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
 
             if(cnt>0)
             {
-            dst.V[f] = sum/double(cnt);
+            dst.data()[f] = sum/double(cnt);
             next[f] = 1;
             }
         }
@@ -153,12 +153,12 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
         known.swap(next);
 
         for(int n=0; n<size; ++n)
-        km.V[n] = known[n] ? 1.0 : 0.0;
+        km.data()[n] = known[n] ? 1.0 : 0.0;
 
         pgc->gcparax(p,km,c+1);
 
         for(int n=0; n<size; ++n)
-        known[n] = km.V[n]>0.5 ? 1 : 0;
+        known[n] = km.data()[n]>0.5 ? 1 : 0;
 
         if(c==0)
         pgc->start1(p,dst,10);
@@ -173,7 +173,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
     for(int j=0; j<p->knoy; ++j)
     for(int k=0; k<p->knoz; ++k)
     if(!known[fid(p,i,j,k)])
-    dst.V[fid(p,i,j,k)] = 0.0;
+    dst.data()[fid(p,i,j,k)] = 0.0;
 
     if(c==0)
     pgc->start1(p,dst,10);
@@ -190,7 +190,7 @@ void cfd_singlephase::ext_begin(lexer *p, fdm *a, int c)
     field &km = marks(c);
     const int size = p->imax*p->jmax*p->kmax;
     for(int n=0; n<size; ++n)
-    km.V[n] = 1.0;
+    km.data()[n] = 1.0;
 
     if(c==1 && p->j_dir==0)
     return;
@@ -211,9 +211,9 @@ void cfd_singlephase::ext_begin(lexer *p, fdm *a, int c)
         const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
         const bool water = (f0>=0.0 && p->flag4[q0]>0) || (f1>=0.0 && p->flag4[q1]>0);
         if(inner)
-        km.V[q0] = water ? 1.0 : 0.0;
+        km.data()[q0] = water ? 1.0 : 0.0;
         else
-        km.V[q0] = (water || (p->flag4[q0]>0 && p->flag4[q1]>0)) ? 1.0 : 0.0;
+        km.data()[q0] = (water || (p->flag4[q0]>0 && p->flag4[q1]>0)) ? 1.0 : 0.0;
     }
 }
 
@@ -231,7 +231,7 @@ void cfd_singlephase::ext_layer(lexer *p, field &dst, int c)
     for(int k=0; k<p->knoz; ++k)
     {
         const int f = fid(p,i,j,k);
-        if(km.V[f]>0.5)
+        if(km.data()[f]>0.5)
         continue;
 
         double sum=0.0;
@@ -239,9 +239,9 @@ void cfd_singlephase::ext_layer(lexer *p, field &dst, int c)
         auto add = [&](int si, int sj, int sk)
         {
             const int g1 = fid(p,i+si,j+sj,k+sk);
-            if(km.V[g1]<=0.5)
+            if(km.data()[g1]<=0.5)
             return;
-            sum += dst.V[g1];
+            sum += dst.data()[g1];
             ++cnt;
         };
         add(-1,0,0); add(1,0,0);
@@ -257,8 +257,8 @@ void cfd_singlephase::ext_layer(lexer *p, field &dst, int c)
 
     for(const auto &q : set)
     {
-        dst.V[q.first] = q.second;
-        km.V[q.first] = 1.0;
+        dst.data()[q.first] = q.second;
+        km.data()[q.first] = 1.0;
     }
 }
 

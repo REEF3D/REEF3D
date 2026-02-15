@@ -817,7 +817,7 @@ void sflow_amr::nh_core(lexer *p)
         for(int k=0; k<MIN(nv,(int)NVEC); ++k)
         {
             slice &v = nh_vec(g,k);
-            std::fill(v.V,v.V+(size_t)q->imax*q->jmax,0.0);
+            std::fill(v.data(),v.data()+(size_t)q->imax*q->jmax,0.0);
         }
     }
 

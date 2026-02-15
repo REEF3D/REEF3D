@@ -38,7 +38,7 @@ reinidisc_f::~reinidisc_f()
 void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, int ipol)
 {	
     BASELOOP
-    L.V[IJK] = 0.0;
+    L(i,j,k) = 0.0;
     
 	if(ipol==5)
     LOOP
@@ -53,7 +53,7 @@ void reinidisc_f::start_mask(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
 {
     BASELOOP
     {
-        L.V[IJK] = 0.0;
+        L.data()[IJK] = 0.0;
 
         if(m[IJK])
         disc(p,a,pgc,f,L);
@@ -66,7 +66,7 @@ void reinidisc_f::start_box(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L
     for(j=b[2]; j<b[3]; ++j)
     for(k=b[4]; k<b[5]; ++k)
     {
-        L.V[IJK] = 0.0;
+        L.data()[IJK] = 0.0;
 
         if(p->flag4[IJK]>0)
         disc(p,a,pgc,f,L);
@@ -76,22 +76,22 @@ void reinidisc_f::start_box(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L
 void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 {
     if(fixed_interface)
-    if(!((f.V[IJK]>=0.0 && f.V[Ip1JK]>=0.0 && f.V[Im1JK]>=0.0 && f.V[IJp1K]>=0.0 && f.V[IJm1K]>=0.0 && f.V[IJKp1]>=0.0 && f.V[IJKm1]>=0.0) 
-	|| (f.V[IJK]<0.0  && f.V[Ip1JK]<0.0  && f.V[Im1JK]<0.0  && f.V[IJp1K]<0.0  && f.V[IJm1K]<0.0   && f.V[IJKp1]<0.0  && f.V[IJKm1]<0.0)))
+    if(!((f(i,j,k)>=0.0 && f(i+1,j,k)>=0.0 && f(i-1,j,k)>=0.0 && f(i,j+1,k)>=0.0 && f(i,j-1,k)>=0.0 && f(i,j,k+1)>=0.0 && f(i,j,k-1)>=0.0) 
+	|| (f(i,j,k)<0.0  && f(i+1,j,k)<0.0  && f(i-1,j,k)<0.0  && f(i,j+1,k)<0.0  && f(i,j-1,k)<0.0   && f(i,j,k+1)<0.0  && f(i,j,k-1)<0.0)))
     return;
     
 	dx=0.0;
 	dy=0.0;
 	dz=0.0;
-	lsv=f.V[IJK];
+	lsv=f(i,j,k);
     lsSig=lsv/sqrt(lsv*lsv);
 
     if(fabs(lsv)<1.0e-8)
     lsSig=1.0;
 
 // x	
-	xmin=(lsv-f.V[Im1JK])/p->DXP[IM1];
-	xplus=(f.V[Ip1JK]-lsv)/p->DXP[IP];
+	xmin=(lsv-f(i-1,j,k))/p->DXP[IM1];
+	xplus=(f(i+1,j,k)-lsv)/p->DXP[IP];
     
     if(fabs(xmin)<tie)
     xmin=0.0;
@@ -110,8 +110,8 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 // y
     if(p->j_dir==1)
     {
-	ymin=(lsv-f.V[IJm1K])/p->DYP[JM1];
-	yplus=(f.V[IJp1K]-lsv)/p->DYP[JP];
+	ymin=(lsv-f(i,j-1,k))/p->DYP[JM1];
+	yplus=(f(i,j+1,k)-lsv)/p->DYP[JP];
     
     if(fabs(ymin)<tie)
     ymin=0.0;
@@ -129,8 +129,8 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     }
 
 // z
-	zmin=(lsv-f.V[IJKm1])/p->DZP[KM1];
-	zplus=(f.V[IJKp1]-lsv)/p->DZP[KP];
+	zmin=(lsv-f(i,j,k-1))/p->DZP[KM1];
+	zplus=(f(i,j,k+1)-lsv)/p->DZP[KP];
     
     if(fabs(zmin)<tie)
     zmin=0.0;
@@ -161,5 +161,5 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     sign=1.0;
     
 
-	L.V[IJK] = -(sign*dnorm - sign);
+	L(i,j,k) = -(sign*dnorm - sign);
 }

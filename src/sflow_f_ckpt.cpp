@@ -192,7 +192,7 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             const double *pr = p6dof->ckpt_slice();
             
             for(int n=0; n<p->imax*p->jmax; ++n)
-            b->pbh.V[n] = pr[n]/rg;
+            b->pbh.data()[n] = pr[n]/rg;
             }
         }
 

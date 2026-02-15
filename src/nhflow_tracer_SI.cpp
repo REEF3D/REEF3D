@@ -1254,5 +1254,5 @@ void nhflow_tracer_SI::ckpt_fields(const std::function<void(const char*, char, d
     if(nt>1)
     fd("trc_thc1",'C',thc[1]);
     fd("trc_tht",'C',tht);
-    fd("trc_ini",'S',trini.V);
+    fd("trc_ini",'S',trini.data());
 }

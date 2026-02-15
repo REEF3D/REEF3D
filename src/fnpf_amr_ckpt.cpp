@@ -44,7 +44,7 @@ void fnpf_amr::patch_fields(reefamr_patch *q, const ckpt_visit &v)
         // the stage values and tendencies of the patch: the footprint of the body on a patch
         // (amr_surface) reads the cells around its piece before the fills of the stage set them
         fnpf_amr_patch *c = FP(q);
-        auto sl = [&](const char *n, slice4 *a){ fd(n,'S',a!=nullptr ? a->V : nullptr); };
+        auto sl = [&](const char *n, slice4 *a){ fd(n,'S',a!=nullptr ? a->data() : nullptr); };
         sl("amr_erk1",c->erk1); sl("amr_erk2",c->erk2); sl("amr_frk1",c->frk1); sl("amr_frk2",c->frk2);
         sl("amr_ek",c->ek); sl("amr_fk",c->fk);
     }

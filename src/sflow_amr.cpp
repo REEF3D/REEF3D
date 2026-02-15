@@ -315,7 +315,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // shoreline: restricted water surface of the covered level-0 cells
     sfs0 = new slice4(p);
-    std::fill(sfs0->V,sfs0->V+(size_t)p->imax*p->jmax,NAN);
+    std::fill(sfs0->data(),sfs0->data()+(size_t)p->imax*p->jmax,NAN);
 
     // multi-block grid: blocks 1.. as level-0 patches, their initial state, the fill plans
     if(p->geo_mb>0)
@@ -1591,7 +1591,7 @@ void sflow_amr::cache_stage(int s)
 double *sflow_amr::sfc_of(int g)
 {
     if(g<0)
-    return sfs0->V;
+    return sfs0->data();
     return SP(g)->sfc.data();
 }
 
@@ -1613,7 +1613,7 @@ void sflow_amr::sfc_stage(int l)
     };
 
     if(l==0)
-    shift(p0,b0,sfs0->V);
+    shift(p0,b0,sfs0->data());
 
     for(int n : lev[l])
     shift(SP(n)->pp,SP(n)->b,SP(n)->sfc.data());
@@ -1623,7 +1623,7 @@ void sflow_amr::sfc_stage(int l)
 void sflow_amr::sfc_reset(int l)
 {
     if(l==0)
-    std::fill(sfs0->V,sfs0->V+(size_t)p0->imax*p0->jmax,NAN);
+    std::fill(sfs0->data(),sfs0->data()+(size_t)p0->imax*p0->jmax,NAN);
 
     for(int n : lev[l])
     std::fill(SP(n)->sfc.begin(),SP(n)->sfc.end(),NAN);

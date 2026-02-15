@@ -60,7 +60,7 @@ public:
 
     // checkpoints (P 48, I 45): the footprint of the last stage and the harmonic extension (the start
     // of the next solve)
-    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd) { fd("fsfbody_Hb",'S',Hb.V); fd("fsfbody_etaext",'S',etaext.V); }
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd) { fd("fsfbody_Hb",'S',Hb.data()); fd("fsfbody_etaext",'S',etaext.data()); }
 
 private:
     void solve(lexer*, fdm_nhf*, ghostcell*);

@@ -232,7 +232,7 @@ field& cfd_amr::pfield(int g, int k)
 
 double* cfd_amr::pvec(int g, int k)
 {
-    return pfield(g,k).V;
+    return pfield(g,k).data();
 }
 
 // rows, leaf cells, the faces at the patch edges, vectors and multigrids
@@ -952,7 +952,7 @@ void cfd_amr::pr_level_mg_ovrows(int m, double dshift)
         const int qq = M.ovq[b];
         double cc[7];
         for(int n=0; n<7; ++n)
-        cc[n] = c->kc7[n]->V[qq];
+        cc[n] = c->kc7[n]->data()[qq];
         if(cc[0]==0.0)
         continue;
         const long q = L.idx(i,j,k);
@@ -1213,12 +1213,12 @@ void cfd_amr::pr_weights()
         int o[3] = {0,0,0};
         o[F.d] = F.dir;
         const double w = interface_width_face(c->pp,c->a->phi,F.fi[0],F.fi[1],F.fi[2],o[0],o[1],o[2]);
-        const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
+        const double H = heaviside(0.5*(c->a->phi.data()[F.qf] + c->a->phi.data()[F.qm]),w);
         F.rof = rmix(c->pp,H,0.5*(sval(F.pid,F.qf) + sval(F.pid,F.qm)));
 
         // porous structures: the face density divided by the porosity factor of the face (all
         // the fluxes of the face, kf, kc and the corrections, carry it as pjm_corr / poisson_pcorr)
-        F.rof /= porfac(c->pp,0.5*(c->a->porosity.V[F.qm] + c->a->porosity.V[F.qf]));
+        F.rof /= porfac(c->pp,0.5*(c->a->porosity.data()[F.qm] + c->a->porosity.data()[F.qf]));
     }
 
     for(cfd_amr_cf &F : cf)
@@ -1227,8 +1227,8 @@ void cfd_amr::pr_weights()
         fdm *ac = gfd(F.gc);
         const double e = qc->psi, row = qc->W1, roa = qc->W3;
         const double *dn[3] = {qc->DXN,qc->DYN,qc->DZN};
-        const double phC = ac->phi.V[F.qc];
-        const double phf = CP(F.pid)->a->phi.V[F.qf];
+        const double phC = ac->phi.data()[F.qc];
+        const double phf = CP(F.pid)->a->phi.data()[F.qf];
 
         F.ns = 1;
         F.sg[0] = F.gc;
@@ -1256,19 +1256,19 @@ void cfd_amr::pr_weights()
 
             if(qm>=0 && qp>=0)
             {
-                const double mm = rmass(ac->phi.V[qm],ac->phi.V[qp],2.0*h,e,row,roa);
+                const double mm = rmass(ac->phi.data()[qm],ac->phi.data()[qp],2.0*h,e,row,roa);
                 put(qp,mf/mm,t,1);
                 put(qm,-mf/mm,t,-1);
             }
             else if(qp>=0)
             {
-                const double mp = rmass(phC,ac->phi.V[qp],h,e,row,roa);
+                const double mp = rmass(phC,ac->phi.data()[qp],h,e,row,roa);
                 put(qp,mf/mp,t,1);
                 F.sw[0] -= mf/mp;
             }
             else if(qm>=0)
             {
-                const double mm = rmass(phC,ac->phi.V[qm],-h,e,row,roa);
+                const double mm = rmass(phC,ac->phi.data()[qm],-h,e,row,roa);
                 put(qm,mf/mm,t,-1);
                 F.sw[0] -= mf/mm;
             }
@@ -1288,13 +1288,13 @@ void cfd_amr::pr_weights()
         if(!gfm)
         continue;
 
-        const double phf = CP(F.pid)->a->phi.V[F.qf];
+        const double phf = CP(F.pid)->a->phi.data()[F.qf];
         double phs = 0.0;
         for(int m=0; m<F.ns; ++m)
-        phs += F.sw[m]*gfd(F.sg[m])->phi.V[F.sq[m]];
+        phs += F.sw[m]*gfd(F.sg[m])->phi.data()[F.sq[m]];
 
         F.fw = phf>=0.0;
-        F.cw = gfd(F.gc)->phi.V[F.qc]>=0.0;
+        F.cw = gfd(F.gc)->phi.data()[F.qc]>=0.0;
 
         if(phf>=0.0 && phs>=0.0)
         continue;
@@ -1461,7 +1461,7 @@ double cfd_amr::pr_ps(const cfd_amr_cf &F)
 {
     double v = 0.0;
     for(int m=0; m<F.ns; ++m)
-    v += F.sw[m]*gfd(F.sg[m])->press.V[F.sq[m]];
+    v += F.sw[m]*gfd(F.sg[m])->press.data()[F.sq[m]];
     return v;
 }
 
@@ -1621,7 +1621,7 @@ void cfd_amr::pr_predict(int s)
                     {
                         // the fine cell in the water: the pocket of a cell in the air of the coarse value
                         for(int m=0; m<F.ns; ++m)
-                        if(gfd(F.sg[m])->phi.V[F.sq[m]]<0.0)
+                        if(gfd(F.sg[m])->phi.data()[F.sq[m]]<0.0)
                         {
                             I = F.gf*pic_gfm_air(glex(F.sg[m]),F.sc[m][0],F.sc[m][1],F.sc[m][2]);
                             break;
@@ -1839,7 +1839,7 @@ void cfd_amr::pr_covered_coef()
         int o[3] = {0,0,0};
         o[d] = 1;
         const int qa = cix(q,I[0],I[1],I[2]), qb = cix(q,I[0]+o[0],I[1]+o[1],I[2]+o[2]);
-        const double H = heaviside_face(q,phi,0.5*(phi.V[qa]+phi.V[qb]),I[0],I[1],I[2],o[0],o[1],o[2]);
+        const double H = heaviside_face(q,phi,0.5*(phi.data()[qa]+phi.data()[qb]),I[0],I[1],I[2],o[0],o[1],o[2]);
         return rmix(q,H,0.5*(sval(g,qa)+sval(g,qb)));
     };
     auto getc = [](reefmg_core *U, sc_level &L, long lq, int m) -> double
@@ -2625,7 +2625,7 @@ void cfd_amr::pr_coef_fill(int l)
             lexer *pp = c->pp;
             const matrix_diag &M = c->a->M;
             for(field4 *f : c->kc7)
-            std::fill(f->V,f->V+(size_t)pp->imax*pp->jmax*pp->kmax,0.0);
+            std::fill(f->data(),f->data()+(size_t)pp->imax*pp->jmax*pp->kmax,0.0);
             for(int i=0; i<pp->knox; ++i)
             for(int j=0; j<pp->knoy; ++j)
             for(int k=0; k<pp->knoz; ++k)
@@ -2634,11 +2634,11 @@ void cfd_amr::pr_coef_fill(int l)
                 const int r = c->row[qq];
                 if(r<0)
                 continue;
-                c->kc7[0]->V[qq] = M.p[r]; c->kc7[1]->V[qq] = M.n[r]; c->kc7[2]->V[qq] = M.s[r];
-                c->kc7[3]->V[qq] = M.w[r]; c->kc7[4]->V[qq] = M.e[r]; c->kc7[5]->V[qq] = M.t[r]; c->kc7[6]->V[qq] = M.b[r];
+                c->kc7[0]->data()[qq] = M.p[r]; c->kc7[1]->data()[qq] = M.n[r]; c->kc7[2]->data()[qq] = M.s[r];
+                c->kc7[3]->data()[qq] = M.w[r]; c->kc7[4]->data()[qq] = M.e[r]; c->kc7[5]->data()[qq] = M.t[r]; c->kc7[6]->data()[qq] = M.b[r];
             }
         }
-        fill_cells(lv,7,[this](int m, int g) -> double* { return CP(g)->kc7[m]->V; },true);
+        fill_cells(lv,7,[this](int m, int g) -> double* { return CP(g)->kc7[m]->data(); },true);
     }
 }
 
@@ -2724,7 +2724,7 @@ void cfd_amr::pr_patch_mg(int id, double dshift)
         else if(row_o(i,j,k))
         {
             for(int m=0; m<7; ++m)
-            cc[m] = c->kc7[m]->V[qq];
+            cc[m] = c->kc7[m]->data()[qq];
         }
         else
         {
@@ -3082,20 +3082,20 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 
         lexer *pp = c->pp;
         lexer *qc = glex(F.gc), *qp = glex(F.gp);
-        const double pC = tsf(F.gc,tl_press).V[F.qc];
-        const double pP = tsf(F.gp,tl_press).V[F.qp];
+        const double pC = tsf(F.gc,tl_press).data()[F.qc];
+        const double pP = tsf(F.gp,tl_press).data()[F.qp];
         double pCs = -F.hs;
         for(int m=0; m<F.ns; ++m)
-        pCs += F.sw[m]*tsf(F.sg[m],tl_press).V[F.sq[m]];
-        const double pf = c->a->press.V[F.qf] - F.hf;
+        pCs += F.sw[m]*tsf(F.sg[m],tl_press).data()[F.sq[m]];
+        const double pf = c->a->press.data()[F.qf] - F.hf;
 
         field &lc = tsf(F.gc,tl_phi), &lp = tsf(F.gp,tl_phi);
         const double phC = lc(F.ci[0],F.ci[1],F.ci[2]);
         const double phP = lp(F.pi[0],F.pi[1],F.pi[2]);
         const double wc = 0.5*(interface_width(qc,lc,F.ci[0],F.ci[1],F.ci[2]) + interface_width(qp,lp,F.pi[0],F.pi[1],F.pi[2]));
         const double Hc = heaviside(0.5*(phC+phP),wc);
-        const double fpc = porfac(qc,0.5*(gfd(F.gc)->porosity.V[F.qc] + gfd(F.gp)->porosity.V[F.qp]));
-        const double roc = rmix(qc,Hc,scal ? 0.5*(tsf(F.gc,tl_s).V[F.qc] + tsf(F.gp,tl_s).V[F.qp]) : 0.0)/fpc;
+        const double fpc = porfac(qc,0.5*(gfd(F.gc)->porosity.data()[F.qc] + gfd(F.gp)->porosity.data()[F.qp]));
+        const double roc = rmix(qc,Hc,scal ? 0.5*(tsf(F.gc,tl_s).data()[F.qc] + tsf(F.gp,tl_s).data()[F.qp]) : 0.0)/fpc;
 
         lexer *ql = (F.dir>0) ? qp : qc;
         const double *dp[3] = {ql->DXP,ql->DYP,ql->DZP};
