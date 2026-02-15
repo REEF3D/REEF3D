@@ -337,10 +337,4 @@ Author: Hans Bihs
     
 #define NETLOOP for (int n=0; n<p->net_count; ++n)
 
-
-#define DT p->dt
-#define NDT p->dt_old
-
-
-
 #endif
