@@ -142,9 +142,9 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
 
     for(int n=0; n<size; ++n)
     {
-        uo->V[n] = uw->V[n];
-        vo->V[n] = vw->V[n];
-        wo->V[n] = ww->V[n];
+        uo->data()[n] = uw->data()[n];
+        vo->data()[n] = vw->data()[n];
+        wo->data()[n] = ww->data()[n];
     }
 }
 
@@ -198,6 +198,6 @@ void pic_f::mask_convection(lexer *p, fdm *a, int c, const double *before, field
     if(0.5*(a->phi(i,j,k) + a->phi(i+di,j+dj,k+dk)) >= 0.0)
     {
         const int g = fid(p,i,j,k);
-        F.V[g] = before[g];
+        F.data()[g] = before[g];
     }
 }

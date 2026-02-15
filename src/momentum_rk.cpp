@@ -395,9 +395,9 @@ void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 // CPM on the mesh refinement
 void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fx.data(), fx.data() + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fy.data(), fy.data() + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fz.data(), fz.data() + p->imax*p->jmax*p->kmax, 0.0);
 
     pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);
 
@@ -948,7 +948,7 @@ void momentum_rk::convection_start(lexer *p, fdm *a, int c, field &f, field &U, 
     if(ppic!=nullptr && ppic->flip())
     {
         field &F = FGH(a,c);
-        csave.assign(F.V, F.V + size_t(p->imax)*p->jmax*p->kmax);
+        csave.assign(F.data(), F.data() + size_t(p->imax)*p->jmax*p->kmax);
         pconvec->start(p,a,f,c+1,U,V,W);
         ppic->mask_convection(p,a,c,csave.data(),F);
         return;

@@ -55,8 +55,8 @@ public:
 
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
-        fd("pjm_quad_phi",'S',phi.V); fd("pjm_quad_Uest",'S',Uest.V); fd("pjm_quad_Vest",'S',Vest.V);
-        fd("pjm_quad_Ld",'S',Ld.V); fd("pjm_quad_Gx",'S',Gx.V); fd("pjm_quad_Gy",'S',Gy.V);
+        fd("pjm_quad_phi",'S',phi.data()); fd("pjm_quad_Uest",'S',Uest.data()); fd("pjm_quad_Vest",'S',Vest.data());
+        fd("pjm_quad_Ld",'S',Ld.data()); fd("pjm_quad_Gx",'S',Gx.data()); fd("pjm_quad_Gy",'S',Gy.data());
     }
     sflow_pjm_quad(lexer*, fdm2D*, ghostcell*, patchBC_interface*);
 	virtual ~sflow_pjm_quad();

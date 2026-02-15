@@ -62,7 +62,7 @@ void pic_f::redistance(lexer *p, fdm *a, const std::vector<char> &inband)
     const int fm = fmarg;
     const bool d3 = p->j_dir==1;
     const int size = p->imax*p->jmax*p->kmax;
-    const double *V = a->phi.V;
+    const double *V = a->phi.data();
 
     // surface cells: closest point and distance, over the cells of the subdomain and S around
     std::vector<char> iface(size,0);

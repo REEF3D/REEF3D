@@ -54,9 +54,9 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
     
         // Forcing: zero everywhere, halos included (only the interior is applied to u/v/w below,
         // the forcing modules that spread into fx/fy/fz update the halos themselves)
-        std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
-        std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
-        std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fx.data(), fx.data() + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fy.data(), fy.data() + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fz.data(), fz.data() + p->imax*p->jmax*p->kmax, 0.0);
          
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         

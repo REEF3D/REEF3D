@@ -145,7 +145,7 @@ void cfd_amr::save_old(int l)
         continue;
         const size_t n = asize(glex(g));
         for(int m=0; m<gts(g)->n; ++m)
-        std::copy(stf(g,m).V,stf(g,m).V+n,gts(g)->o[m]->V);
+        std::copy(stf(g,m).data(),stf(g,m).data()+n,gts(g)->o[m]->data());
     }
 }
 
@@ -165,8 +165,8 @@ void cfd_amr::interp(int l, double th)
         const size_t n = asize(glex(g));
         for(int m=0; m<gts(g)->n; ++m)
         {
-            const double *o = gts(g)->o[m]->V, *c = stf(g,m).V;
-            double *t = gts(g)->t[m]->V;
+            const double *o = gts(g)->o[m]->data(), *c = stf(g,m).data();
+            double *t = gts(g)->t[m]->data();
             // the pressure of a step belongs to its middle: linear between the middles of the
             // steps (the start value at -1/2, the end value at 1/2), beyond the middle extrapolated;
             // in the first step the end value (the initial pressure is not that of a step).  The
@@ -634,8 +634,8 @@ void cfd_amr::volume(double &V, double &dV)
             cdecode(q,qq,i,j,k);
             const double dv = q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
             const double e = interface_width(q,f,i,j,k);
-            V += dv*heaviside(f.V[qq],e);
-            dV += dv*heaviside_delta(f.V[qq],e);
+            V += dv*heaviside(f.data()[qq],e);
+            dV += dv*heaviside_delta(f.data()[qq],e);
         }
     }
     double s[2] = {V,dV};
@@ -671,7 +671,7 @@ void cfd_amr::volume_correct(lexer *p, ghostcell *pgc)
             field &f = gfd(g)->phi;
             const size_t na = asize(glex(g));
             for(size_t q=0; q<na; ++q)
-            f.V[q] += w;
+            f.data()[q] += w;
         }
     }
 

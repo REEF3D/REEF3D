@@ -773,15 +773,15 @@ void hydro_sflow::print_vtp(lexer *p, std::ostream &result)
 
 void hydro_sflow::ckpt_fields(const function<void(const char*, char, double*)> &fd, const function<void(const char*, char, int*)> &fi)
 {
-    fd("hydro_F",'S',F.V);
-    fd("hydro_Rc",'S',Rc.V);
+    fd("hydro_F",'S',F.data());
+    fd("hydro_Rc",'S',Rc.data());
 
     // coupled with the catchment model (R 100 2)
     if(cpl)
     {
-    fd("hydro_C",'S',C.V);
-    fd("hydro_Bq",'S',Bq.V);
-    fd("hydro_Fp",'S',Fp.V);
+    fd("hydro_C",'S',C.data());
+    fd("hydro_Bq",'S',Bq.data());
+    fd("hydro_Fp",'S',Fp.data());
     }
 }
 

@@ -63,7 +63,7 @@ void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
         if(c==1 && p->j_dir==0)
         {
         for(int n=0; n<size; ++n)
-        vw->V[n] = 0.0;
+        vw->data()[n] = 0.0;
         continue;
         }
 
@@ -72,7 +72,7 @@ void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
         const int di = c==0, dj = c==1, dk = c==2;
 
         for(int n=0; n<size; ++n)
-        dst.V[n] = src.V[n];
+        dst.data()[n] = src.data()[n];
 
         // the faces in the water, with the margin (phi is known there)
         std::vector<char> known(size,0);
@@ -115,9 +115,9 @@ void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
                                      && (p->j_dir==0 || (j2>=jlo && j2<=jhi));
 
                     if(inside && known[fid(p,i2,j2,k2)])
-                    sum += 2.0*dst.V[g1] - dst.V[fid(p,i2,j2,k2)];
+                    sum += 2.0*dst.data()[g1] - dst.data()[fid(p,i2,j2,k2)];
                     else
-                    sum += dst.V[g1];
+                    sum += dst.data()[g1];
 
                     ++cnt;
                 };
@@ -132,7 +132,7 @@ void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
 
                 if(cnt>0)
                 {
-                dst.V[f] = sum/double(cnt);
+                dst.data()[f] = sum/double(cnt);
                 next[f] = 1;
                 }
             }
@@ -140,12 +140,12 @@ void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
             known.swap(next);
 
             for(int n=0; n<size; ++n)
-            km.V[n] = known[n] ? 1.0 : 0.0;
+            km.data()[n] = known[n] ? 1.0 : 0.0;
 
             pgc->gcparax(p,km,c+1);
 
             for(int n=0; n<size; ++n)
-            known[n] = km.V[n]>0.5 ? 1 : 0;
+            known[n] = km.data()[n]>0.5 ? 1 : 0;
 
             if(c==0)
             pgc->start1(p,dst,10);

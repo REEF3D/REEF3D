@@ -129,7 +129,7 @@ double cfd_amr::sval(int g, int i, int j, int k)
 
 double cfd_amr::sval(int g, int q)
 {
-    return scal>0 ? sfield(g).V[q] : 0.0;
+    return scal>0 ? sfield(g).data()[q] : 0.0;
 }
 
 double cfd_amr::rmix(const lexer *q, double H, double s)
@@ -390,8 +390,8 @@ void cfd_amr::sc_save(int g)
 {
     lexer *q = glex(g);
     const size_t n = (size_t)q->imax*q->jmax*q->kmax;
-    const double *src = sfield(g).V;
-    double *dst = SG(g).s0->V;
+    const double *src = sfield(g).data();
+    double *dst = SG(g).s0->data();
     for(size_t c=0; c<n; ++c)
     dst[c] = src[c];
 }
@@ -410,7 +410,7 @@ void cfd_amr::sc_update(int g, int s, double dt)
         const int c = cix(q,i,j,k);
         if(q->flag4[c]<=0)
         continue;
-        S.V[c] = a0*S0.V[c] + b0*(S.V[c] + dt*L.V[c]);
+        S.data()[c] = a0*S0.data()[c] + b0*(S.data()[c] + dt*L.data()[c]);
     }
 }
 
@@ -427,8 +427,8 @@ void cfd_amr::sc_bc(int g)
     for(int k=0; k<q->knoz; ++k)
     {
         const int c = cix(q,i,j,k);
-        if(q->flag4[c]>0 && a->phi.V[c]<0.0)
-        S.V[c] = 0.0;
+        if(q->flag4[c]>0 && a->phi.data()[c]<0.0)
+        S.data()[c] = 0.0;
     }
     if(g<0)
     pgc0->start4(p0,S,80);
@@ -511,7 +511,7 @@ void cfd_amr::sc_reflux(int l)
         lexer *qc = glex(F.gc);
         const double V = qc->DXN[F.ci[0]+marge]*qc->DYN[F.ci[1]+marge]*qc->DZN[F.ci[2]+marge];
         field &S = (up && is_shadow(F.gc)) ? *SG(F.gc).L : sfield(F.gc);
-        S.V[F.qc] += double(F.dir)*(fr_f[m]-fr_c[m])/V;
+        S.data()[F.qc] += double(F.dir)*(fr_f[m]-fr_c[m])/V;
     }
 
     if(up)
@@ -686,9 +686,9 @@ double cfd_amr::sc_total(double &smin, double &smax)
             const int r = c%jk;
             const int j = r/q->kmax + q->jmin;
             const int k = r%q->kmax + q->kmin;
-            sum += S.V[c]*q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
-            smin = std::min(smin,S.V[c]);
-            smax = std::max(smax,S.V[c]);
+            sum += S.data()[c]*q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
+            smin = std::min(smin,S.data()[c]);
+            smax = std::max(smax,S.data()[c]);
         }
     }
     smin = pgc0->globalmin(smin);

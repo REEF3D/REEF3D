@@ -70,7 +70,7 @@ coefficients as N.
 void seastate_f::age_ini(lexer *p, ghostcell *pgc)
 {
     const int nbin = e->grid->nbin;
-    auto mk = [&]() {seastate_store *s = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704); s->build(e->wet.V); return s;};
+    auto mk = [&]() {seastate_store *s = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704); s->build(e->wet.data()); return s;};
     gM = mk();
     gM0 = mk();
     gMs = mk();
@@ -201,7 +201,7 @@ void seastate_f::gse_step(lexer *p, ghostcell *pgc)
     if(gNs==nullptr)
     {
     gNs = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
-    gNs->build(e->wet.V);
+    gNs->build(e->wet.data());
     }
     gNs->copy_from(*e->N);
 
@@ -276,7 +276,7 @@ void seastate_f::gse_age_step(lexer *p, ghostcell *pgc)
     if(gNs==nullptr)
     {
     gNs = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
-    gNs->build(e->wet.V);
+    gNs->build(e->wet.data());
     }
     gNs->copy_from(*e->N);
     gMs->copy_from(*gM);

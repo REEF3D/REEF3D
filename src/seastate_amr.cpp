@@ -511,7 +511,7 @@ void seastate_amr::regrid_static(ghostcell*)
     // spectral storage for the active cells of the interior and the ring around it (the inflow of the
     // sweeps); the outer rings of the patch arrays are never used by SEASTATE. Tiles of 2 x 2 cells, so
     // that small patches do not allocate whole 16 x 16 tiles
-    vector<int> mask(c->e->wet.V,c->e->wet.V+size_t(pp->imax)*pp->jmax);
+    vector<int> mask(c->e->wet.data(),c->e->wet.data()+size_t(pp->imax)*pp->jmax);
     const int rw = ring_width();
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
@@ -2050,20 +2050,20 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
         if(c->res==nullptr)
         {
         c->res = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nbin,2);
-        c->res->build(c->e->wet.V);
+        c->res->build(c->e->wet.data());
         }
     }
 
     if(fasT==nullptr)
     {
     fasT = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
-    fasT->build(L0.e->wet.V);
+    fasT->build(L0.e->wet.data());
     fasN = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
-    fasN->build(L0.e->wet.V);
+    fasN->build(L0.e->wet.data());
     fasR = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
-    fasR->build(L0.e->wet.V);
+    fasR->build(L0.e->wet.data());
     fasC = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
-    fasC->build(L0.e->wet.V);
+    fasC->build(L0.e->wet.data());
     }
 
     // 1: residuals of the uncovered patch cells of all levels at the latest spectra (ring cells filled first;
@@ -2724,7 +2724,7 @@ void seastate_amr::work_fields()
     seastate_amr_patch *c = SP(q);
     if(c->wk==nullptr)
     c->wk = new slice4(c->pp);
-    std::fill(c->wk->V,c->wk->V+size_t(c->pp->imax)*c->pp->jmax,0.0);
+    std::fill(c->wk->data(),c->wk->data()+size_t(c->pp->imax)*c->pp->jmax,0.0);
     c->solv->work_field(c->wk);
     }
 }

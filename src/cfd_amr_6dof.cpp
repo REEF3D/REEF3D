@@ -76,9 +76,9 @@ void cfd_amr_6dof::reset_fbh(lexer *p, fdm *a, ghostcell *pgc)
     if(sf[0]!=nullptr)
     {
     const int n = p->imax*p->jmax*p->kmax;
-    std::copy(a->fbh1.V, a->fbh1.V+n, sf[0]->V);
-    std::copy(a->fbh2.V, a->fbh2.V+n, sf[1]->V);
-    std::copy(a->fbh3.V, a->fbh3.V+n, sf[2]->V);
+    std::copy(a->fbh1.data(), a->fbh1.data()+n, sf[0]->data());
+    std::copy(a->fbh2.data(), a->fbh2.data()+n, sf[1]->data());
+    std::copy(a->fbh3.data(), a->fbh3.data()+n, sf[2]->data());
     }
     
     ULOOP
@@ -322,16 +322,16 @@ void cfd_amr_6dof::combine(lexer *p, fdm *a, int nb)
     const int n = p->imax*p->jmax*p->kmax;
     
     if(nb==0)
-    std::copy(a->fb.V, a->fb.V+n, fball->V);
+    std::copy(a->fb.data(), a->fb.data()+n, fball->data());
     
     if(nb>0)
     for(int q=0; q<n; ++q)
-    fball->V[q] = MIN(fball->V[q], a->fb.V[q]);
+    fball->data()[q] = MIN(fball->data()[q], a->fb.data()[q]);
 }
 
 void cfd_amr_6dof::finish(lexer *p, fdm *a, ghostcell *pgc)
 {
-    std::copy(fball->V, fball->V+p->imax*p->jmax*p->kmax, a->fb.V);
+    std::copy(fball->data(), fball->data()+p->imax*p->jmax*p->kmax, a->fb.data());
     
     pgc->start4a(p,a->fb,50);
 }

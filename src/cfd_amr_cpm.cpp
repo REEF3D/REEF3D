@@ -1059,7 +1059,7 @@ void cfd_amr::cpm_pull(bool ini)
     for(int t=0; t<nr; ++t)
     for(int f=0; f<nf; ++f)
     {
-        const double *V = src[f](C->sv_g[t]).V;
+        const double *V = src[f](C->sv_g[t]).data();
         if(C->sv_st[t]<0)
         sb[(size_t)t*nf+f] = V[C->sv_q[t]];
         else
@@ -1084,7 +1084,7 @@ void cfd_amr::cpm_pull(bool ini)
 
     for(size_t t=0; t<nm; ++t)
     for(int f=0; f<nf; ++f)
-    dst[f]->V[C->mine[t]] = rb[t*nf+f];
+    dst[f]->data()[C->mine[t]] = rb[t*nf+f];
 }
 
 // the bed of the grid of CPM onto the grids (the mean of its cells under every cell), restricted to level
@@ -1114,7 +1114,7 @@ void cfd_amr::cpm_push()
         const int *B = &C->bsv[6*(size_t)t];
         for(int f=0; f<nf; ++f)
         {
-            const double *V = fs[f]->V;
+            const double *V = fs[f]->data();
             double s = 0.0;
             for(int i=B[0]; i<=B[3]; ++i)
             for(int j=B[1]; j<=B[4]; ++j)
@@ -1150,7 +1150,7 @@ void cfd_amr::cpm_push()
     {
         const int g = C->tg[t];
         if(C->tleaf[t])
-        gfd(g)->topo.V[C->tq[t]] = ts[t*nf]/C->tcnt[t];
+        gfd(g)->topo.data()[C->tq[t]] = ts[t*nf]/C->tcnt[t];
         if(C->coupled)
         {
             auto &K = C->kf[glex(g)];
@@ -1237,7 +1237,7 @@ void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
     {
         const int c = cix(pp,i,j,k);
         if(pp->flag1[c]>0)
-        u.V[c] = (u.V[c] + adt*0.5*(Kx[c]+Kx[c+di]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+di]));
+        u.data()[c] = (u.data()[c] + adt*0.5*(Kx[c]+Kx[c+di]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+di]));
     }
 
     if(pp->j_dir==1)
@@ -1247,7 +1247,7 @@ void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
     {
         const int c = cix(pp,i,j,k);
         if(pp->flag2[c]>0)
-        v.V[c] = (v.V[c] + adt*0.5*(Ky[c]+Ky[c+dj]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+dj]));
+        v.data()[c] = (v.data()[c] + adt*0.5*(Ky[c]+Ky[c+dj]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+dj]));
     }
 
     for(int i=0; i<pp->knox; ++i)
@@ -1256,7 +1256,7 @@ void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
     {
         const int c = cix(pp,i,j,k);
         if(pp->flag3[c]>0)
-        w.V[c] = (w.V[c] + adt*0.5*(Kz[c]+Kz[c+1]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+1]));
+        w.data()[c] = (w.data()[c] + adt*0.5*(Kz[c]+Kz[c+1]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+1]));
     }
 }
 

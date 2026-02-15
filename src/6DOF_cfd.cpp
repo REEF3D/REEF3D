@@ -219,11 +219,11 @@ void sixdof_cfd::fb_combine(lexer *p, fdm *a, int nb)
     const int n = p->imax*p->jmax*p->kmax;
     
     if(nb==0)
-    std::copy(a->fb.V, a->fb.V+n, fball->V);
+    std::copy(a->fb.data(), a->fb.data()+n, fball->data());
     
     if(nb>0)
     for(int q=0; q<n; ++q)
-    fball->V[q] = MIN(fball->V[q], a->fb.V[q]);
+    fball->data()[q] = MIN(fball->data()[q], a->fb.data()[q]);
 }
 
 void sixdof_cfd::fb_finish(lexer *p, fdm *a, ghostcell *pgc)
@@ -231,7 +231,7 @@ void sixdof_cfd::fb_finish(lexer *p, fdm *a, ghostcell *pgc)
     if(fball==nullptr)
     return;
     
-    std::copy(fball->V, fball->V+p->imax*p->jmax*p->kmax, a->fb.V);
+    std::copy(fball->data(), fball->data()+p->imax*p->jmax*p->kmax, a->fb.data());
     
     pgc->start4a(p,a->fb,50);
 }

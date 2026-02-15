@@ -34,14 +34,14 @@ template<class FD, class FI>
 void fnpf_ckpt_fields(lexer *p, fdm_fnpf *c, FD &&fd, FI &&fi)
 {
     // slices of fdm_fnpf
-    fd("eta",'S',c->eta.V); fd("eta_n",'S',c->eta_n.V); fd("WL",'S',c->WL.V); fd("bed",'S',c->bed.V);
-    fd("depth",'S',c->depth.V); fd("Fifsf",'S',c->Fifsf.V); fd("Fz",'S',c->Fz.V); fd("K",'S',c->K.V);
-    fd("Fx",'S',c->Fx.V); fd("Fy",'S',c->Fy.V); fd("Ex",'S',c->Ex.V); fd("Ey",'S',c->Ey.V);
-    fd("Exu",'S',c->Exu.V); fd("Eyu",'S',c->Eyu.V); fd("Exx",'S',c->Exx.V); fd("Eyy",'S',c->Eyy.V);
-    fd("Bx",'S',c->Bx.V); fd("By",'S',c->By.V); fd("Bxx",'S',c->Bxx.V); fd("Byy",'S',c->Byy.V);
-    fd("coastline",'S',c->coastline.V); fd("vb",'S',c->vb.V); fd("Hs",'S',c->Hs.V); fd("breaking_print",'S',c->breaking_print.V);
-    fi("etaloc",'S',c->etaloc.V); fi("wet_n",'S',c->wet_n.V); fi("breaking",'S',c->breaking.V);
-    fi("breaklog",'S',c->breaklog.V); fi("bc",'S',c->bc.V);
+    fd("eta",'S',c->eta.data()); fd("eta_n",'S',c->eta_n.data()); fd("WL",'S',c->WL.data()); fd("bed",'S',c->bed.data());
+    fd("depth",'S',c->depth.data()); fd("Fifsf",'S',c->Fifsf.data()); fd("Fz",'S',c->Fz.data()); fd("K",'S',c->K.data());
+    fd("Fx",'S',c->Fx.data()); fd("Fy",'S',c->Fy.data()); fd("Ex",'S',c->Ex.data()); fd("Ey",'S',c->Ey.data());
+    fd("Exu",'S',c->Exu.data()); fd("Eyu",'S',c->Eyu.data()); fd("Exx",'S',c->Exx.data()); fd("Eyy",'S',c->Eyy.data());
+    fd("Bx",'S',c->Bx.data()); fd("By",'S',c->By.data()); fd("Bxx",'S',c->Bxx.data()); fd("Byy",'S',c->Byy.data());
+    fd("coastline",'S',c->coastline.data()); fd("vb",'S',c->vb.data()); fd("Hs",'S',c->Hs.data()); fd("breaking_print",'S',c->breaking_print.data());
+    fi("etaloc",'S',c->etaloc.data()); fi("wet_n",'S',c->wet_n.data()); fi("breaking",'S',c->breaking.data());
+    fi("breaklog",'S',c->breaklog.data()); fi("bc",'S',c->bc.data());
 
     // potential and velocities
     fd("Fi",'F',c->Fi); fd("Uin",'F',c->Uin); fd("U",'F',c->U); fd("V",'F',c->V); fd("W",'F',c->W);

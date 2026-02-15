@@ -843,9 +843,9 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     // physical boundaries: conserved variables from the ghost velocities and water depth
     // (flat indices: the cells of all slices of the grid share one layout)
     const int sx = p->jmax;
-    double *eta = b->eta.V, *dep = b->depth.V, *U = b->U.V, *V = b->V.V, *W = b->W.V;
-    double *wl = WL.V, *uh = UH.V, *vh = VH.V, *wh = WH.V;
-    double *mx = b->MX.V, *my = b->MY.V;
+    double *eta = b->eta.data(), *dep = b->depth.data(), *U = b->U.data(), *V = b->V.data(), *W = b->W.data();
+    double *wl = WL.data(), *uh = UH.data(), *vh = VH.data(), *wh = WH.data();
+    double *mx = b->MX.data(), *my = b->MY.data();
     const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
