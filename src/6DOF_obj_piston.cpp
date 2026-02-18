@@ -29,19 +29,19 @@ void sixdof_obj::piston(lexer *p, ghostcell *pgc, int id)
     uwm1 = 0.0;
     
     // find correct time step    
-    if((p->simtime>data[timecount][0]))
+    if((p->simtime>kinematics[timecount][0]))
     timecount_old=timecount;
     
-	while(p->simtime>data[timecount][0])
+	while(p->simtime>kinematics[timecount][0])
 	++timecount;
     
-    f0 = (p->simtime - data[timecount_old][0])/(data[timecount][0]-data[timecount_old][0]);
+    f0 = (p->simtime - kinematics[timecount_old][0])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
 
     if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-    xwm1 = data[timecount][1]*f0 + data[timecount_old][1]*(1.0-f0); 
+    xwm1 = kinematics[timecount][1]*f0 + kinematics[timecount_old][1]*(1.0-f0); 
     
     if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-    uwm1 = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+    uwm1 = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     
 	xs = p->X170_xs + xwm1;
     xe = p->X170_xe + xwm1;

@@ -33,7 +33,13 @@ void sixdof_obj::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     cout<<"6DOF_obj_ini_wavemaker "<<p->X170<<endl;
     
     if(p->X170==1)
-    read_format_1(p,pgc);
+    read_format_piston(p,pgc);
+    
+    if(p->X170==2)
+    read_format_flap(p,pgc);
+    
+    if(p->X170==3)
+    read_format_flap_double(p,pgc);
     
     // Initialise folder structure
     if(p->X50==1)
