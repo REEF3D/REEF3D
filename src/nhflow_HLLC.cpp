@@ -164,7 +164,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
     // HLLC flux
     ULOOP
     {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[Im1J]==1 && p->wet[Ip2J]==1)
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[Im1J]==1)
         {
             FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10)*SSxs[IJK];
             FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10)*SSxn[IJK];
@@ -184,7 +184,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
             d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - Un[IJK]);
         }
         
-        if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[Ip2J]==0)
+        if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0)
         {
             if(d->Ss[IJK]>=0.0)
             d->Fx[IJK] = d->Fs[IJK];
@@ -207,7 +207,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
     if(p->j_dir==1)
     VLOOP
     {
-        if(p->wet[IJ]==1 && p->wet[IJp1]==1 && p->wet[IJm1]==1 && p->wet[IJp2]==1)
+        if(p->wet[IJ]==1 && p->wet[IJp1]==1 && p->wet[IJm1]==1)
         {
             FeS = d->De(i,j)*(d->Se[IJK] - d->Ve[IJK] + 1.0e-10)/(d->Se[IJK] - d->SSy[IJK] + 1.0e-10)*SSye[IJK];
             FwS = d->Dw(i,j)*(d->Sw[IJK] - d->Vw[IJK] + 1.0e-10)/(d->Sw[IJK] - d->SSy[IJK] + 1.0e-10)*SSyw[IJK];
@@ -227,7 +227,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
             d->Fy[IJK] = d->Fw[IJK] + d->Sw[IJK]*(FwS - Uw[IJK]);
         }
         
-        if(p->wet[IJ]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->wet[IJp2]==0)
+        if(p->wet[IJ]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
         {
             if(d->Se[IJK]>=0.0)
             d->Fy[IJK] = d->Fe[IJK];
