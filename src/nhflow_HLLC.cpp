@@ -246,7 +246,6 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
             }
         }
 
-
     }
 }
 
