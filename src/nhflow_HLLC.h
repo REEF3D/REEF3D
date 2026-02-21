@@ -57,6 +57,7 @@ private:
     void HLLC_E(lexer*, fdm_nhf*);
     
     void HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
+    void HLL_E(lexer*&, fdm_nhf*&);
     
 	double dx,dy,dz;
 	double udir,vdir,wdir;
