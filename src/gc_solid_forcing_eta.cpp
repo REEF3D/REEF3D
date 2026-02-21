@@ -60,7 +60,7 @@ void ghostcell::solid_forcing_eta(lexer *p, slice &f)
 
 void ghostcell::solid_forcing_bed(lexer *p, slice &f)
 {   
-    if(p->A516==3 || p->A516==4)
+    //if(p->A516==3 || p->A516==4)
     GCSLDFBED4LOOP
     {
     i=p->gcsldfbed4[n][0];
