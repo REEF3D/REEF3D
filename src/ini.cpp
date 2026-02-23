@@ -727,6 +727,7 @@ void lexer::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S27=1;              // int number of inner iterations
     S28=1;              // int use S21 in roughness BC
+    S29=0;
     S30=0.047;          // double Shields parameter
     S31=2;              // int type of Exner formulation
     S32=1;              // int exner discretization

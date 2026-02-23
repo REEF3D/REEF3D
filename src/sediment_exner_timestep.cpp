@@ -45,6 +45,8 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
 	maxvz=pgc->globalmax(maxvz);
 	
+    if(p->S29==0)
+    {
 	if(p->S15==0)
     p->dtsed=MIN(p->S13, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
@@ -53,6 +55,14 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     if(p->S15==2)
     p->dtsed=p->S13;
+    }
+    
+    if(p->S29==1)
+    {
+    p->dtsed = (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15);
+    
+    p->dtsed = MIN(p->dtsed,ramp_dt(p));
+    }
 
     p->dtsed=pgc->timesync(p->dtsed);
     
@@ -61,4 +71,25 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 	
 	if(p->mpirank==0)
 	cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+}
+
+double sediment_exner::ramp_dt(lexer *p)
+{
+    double f=1.0;
+    double dt=p->S13;
+
+    if(p->sedtime>=p->S29_ts && p->sedtime<p->S29_te)
+    {
+    f = (p->sedtime-p->S29_ts)/(p->S29_te-p->S29_ts);
+    
+    dt = (1.0-f)*p->S29_dts + f*p->S29_dte;
+    }
+
+    if(p->sedtime<p->S29_ts)
+    dt=p->S29_dts;
+    
+    if(p->sedtime>p->S29_te)
+    dt=p->S29_dte;
+
+    return dt;
 }
