@@ -165,7 +165,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
     // HLLC flux
     ULOOP
     {
-        //if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[Im1J]==1)
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && p->wet[Im1J]==1)
         {
             FsS = d->Ds(i,j)*(d->Ss[IJK] - d->Us[IJK] + 1.0e-10)/(d->Ss[IJK] - d->SSx[IJK] + 1.0e-10)*SSxs[IJK];
             FnS = d->Dn(i,j)*(d->Sn[IJK] - d->Un[IJK] + 1.0e-10)/(d->Sn[IJK] - d->SSx[IJK] + 1.0e-10)*SSxn[IJK];
@@ -184,7 +184,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
             else
             d->Fx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - Un[IJK]);
         }
-        /*
+        
         if(p->wet[IJ]==0 || p->wet[Ip1J]==0 || p->wet[Im1J]==0)
         {
             if(d->Ss[IJK]>=0.0)
@@ -201,7 +201,7 @@ void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, 
             
             d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Un[IJK] - Us[IJK]))/denom;
             }
-        }*/
+        }
     }
         
     // HLLC flux y-dir
