@@ -161,7 +161,7 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         {
             if(p->DF[IJK]<0)
             {
-            d->M.p[n]  =   1.0;
+            d->M.p[n] = 1.0;
 
             d->M.n[n] = 0.0;
             d->M.s[n] = 0.0;
