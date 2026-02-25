@@ -379,8 +379,9 @@ private:
     double xwm1,zwm1,xwm2,zwm2;
     double uwm1;
     
-    void read_format_1(lexer*,ghostcell*);
-    void read_format_2(lexer*,ghostcell*);
+    void read_format_piston(lexer*,ghostcell*);
+    void read_format_flap(lexer*,ghostcell*);
+    void read_format_flap_double(lexer*,ghostcell*);
     
     double ts,te;
     double f0;
@@ -388,7 +389,7 @@ private:
     int rowcount,colcount;
     int colnum;
     int ptnum;
-    double **data;
+    double **kinematics;
     
     
 };

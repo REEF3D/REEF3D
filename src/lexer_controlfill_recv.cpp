@@ -1442,6 +1442,16 @@ void lexer::ctrlrecv()
 	ii++;
     S28 = ictrl[ii];
 	ii++;
+    S29 = ictrl[ii];
+	ii++;
+    S29_ts = dctrl[dd];
+	dd++;
+    S29_te = dctrl[dd];
+	dd++;
+    S29_dts = dctrl[dd];
+	dd++;
+    S29_dte = dctrl[dd];
+	dd++;
     S30 = dctrl[dd];
 	dd++;
     S31 = ictrl[ii];

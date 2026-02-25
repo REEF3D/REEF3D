@@ -1948,6 +1948,10 @@ void lexer::read_control()
                 case 28: control>>S28;
 						 clear(c,numint);
 						 break;
+                case 29: control>>S29_ts>>S29_te>>S29_dts>>S29_dte;
+                           S29=1;
+						 clear(c,numint);
+						 break;
                 case 30: control>>S30;
 						 clear(c,numint);
 						 break;

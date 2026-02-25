@@ -517,6 +517,7 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_FOU.h"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.h"/>
             <File Name="nhflow_scalar_ifou.h"/>
@@ -1837,6 +1838,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_FOU.cpp"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>

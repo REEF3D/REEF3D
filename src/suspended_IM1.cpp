@@ -159,7 +159,7 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         {
             if(p->flagsf4[IJK]<0)
             {
-            a->M.p[n]  =   1.0;
+            a->M.p[n] = 1.0;
 
             a->M.n[n] = 0.0;
             a->M.s[n] = 0.0;
@@ -178,14 +178,6 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 
 void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
-    double dist;
-    double d50=p->S20;
-    double adist=0.5*d50;
-    double deltab=3.0*d50;
-
-    double cx,cy;
-    
-
     GCDF4LOOP
     {
         i=p->gcdf4[n][0];
@@ -195,7 +187,6 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
         s->cb(i,j) = a->conc(i,j,k);
     }
     
-
     pgc->gcsl_start4(p,s->cb,1);
 }
 

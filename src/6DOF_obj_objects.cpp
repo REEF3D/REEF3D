@@ -87,6 +87,19 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
         ++entity_count;
     }
     
+    if(p->X172==1)
+    {
+        tstart[entity_count]=tricount;
+
+        piston(p,pgc,0);
+        tricount+=28;
+        
+        tend[entity_count]=tricount;
+        
+        
+        ++entity_count;
+    }
+    
     if(p->X180==1)
     {
         read_stl(p,pgc);
@@ -110,7 +123,7 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     triangle_switch_ray(p,pgc);
     
     // Refine triangles
-    if(p->X185>0 && p->X60==1 && entity_count>0 && p->X170==0)
+    if(p->X185>0 && p->X60==1 && entity_count>0 && p->X170==0 && p->X171==0 && p->X172==0)
 	geometry_refinement(p,pgc);	
 
     if(p->mpirank==0)

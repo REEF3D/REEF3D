@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_HLLC_H_
-#define NHFLOW_HLLC_H_
+#ifndef NHFLOW_FOU_H_
+#define NHFLOW_FOU_H_
 
 #include"nhflow_convection.h"
 #include"slice1.h"
@@ -35,37 +35,33 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_HLLC : public nhflow_convection, public increment
+class nhflow_FOU : public nhflow_convection, public increment
 {
 
 public:
 
-	nhflow_HLLC (lexer*,ghostcell*,patchBC_interface*);
-	virtual ~nhflow_HLLC();
+	nhflow_FOU (lexer*,ghostcell*,patchBC_interface*);
+	virtual ~nhflow_FOU();
 
     void start(lexer*&, fdm_nhf*&, int, slice&) override;
     void precalc(lexer*, fdm_nhf*, int, slice&) override;
 
 private:
 
-    void aij_U(lexer*, fdm_nhf*, int);
-    void aij_V(lexer*, fdm_nhf*, int);
-    void aij_W(lexer*, fdm_nhf*, int);
-    void aij_E(lexer*, fdm_nhf*, int);
+    void aij_U(lexer*&, fdm_nhf*&, int);
+    void aij_V(lexer*&, fdm_nhf*&, int);
+    void aij_W(lexer*&, fdm_nhf*&, int);
+    void aij_E(lexer*&, fdm_nhf*&, int);
     
-    void HLLC(lexer*, fdm_nhf*, double*, double*, double*, double*, double*, double*, double*, double*);
-    void HLLC_E(lexer*, fdm_nhf*);
-    
-    void HLL(lexer*, fdm_nhf*&, double*, double*, double*, double*);
-    void HLL_E(lexer*&, fdm_nhf*&);
+    void FOU(lexer*&, fdm_nhf*&, double*, double*, double*, double*);
+    void FOU_E(lexer*&, fdm_nhf*&);
     
 	double dx,dy,dz;
 	double udir,vdir,wdir;
 	double L;
     double denom;
 
-    
-    double FsS,FnS,FeS,FwS;
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
     ghostcell *pgc;
     patchBC_interface *pBC;
