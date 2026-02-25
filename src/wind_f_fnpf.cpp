@@ -42,7 +42,7 @@ void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, 
         
     windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*(p->XP[IP]-p->global_xmin) + sina*(p->YP[JP]-p->global_ymin));
     
-    K(i,j) += windforce;
+    K(i,j) -= windforce;
     
     c->test2D(i,j) = windforce;
     
@@ -78,7 +78,7 @@ void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, 
     if(p->A373==3 || eta(i,j)>0.0)
     windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*(p->XP[IP]-p->global_xmin)*Sx + sina*(p->YP[JP]-p->global_ymin)*Sy);
     
-    K(i,j) += windforce;
+    K(i,j) -= windforce;
     
     c->test2D(i,j) = windforce;
     
