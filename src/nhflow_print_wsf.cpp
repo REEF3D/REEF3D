@@ -55,7 +55,7 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100
     for(n=0;n<gauge_num;++n)
     wsfout<<"\tP"<<n+1;
 
-    wsfout<<endl<<endl;
+    wsfout<<endl;
     }
 	
 	//-------------------
