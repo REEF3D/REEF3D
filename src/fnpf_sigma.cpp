@@ -64,6 +64,16 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
     
+    
+    for(int qn=0; qn<p->A309;++qn)
+    {
+	SLICELOOP4
+	c->bed(i,j) = 0.5*c->bed(i,j) + 0.125*(c->bed(i-1,j) +c->bed(i+1,j) +c->bed(i,j-1) +c->bed(i,j+1) );
+    
+    pgc->gcsl_start4(p,c->bed,50);
+    }
+    
+    
     SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
     

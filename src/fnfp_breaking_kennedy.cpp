@@ -77,7 +77,7 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             c->breaking(i,j) = 2;
             t_break(i,j)  = p->simtime;
             
-            cout<<"BREAKING"<<endl;
+            //cout<<"BREAKING"<<endl;
         }
         
         // Check for breaking cessation
