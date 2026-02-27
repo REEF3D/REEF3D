@@ -76,8 +76,6 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
         {
             c->breaking(i,j) = 2;
             t_break(i,j)  = p->simtime;
-            
-            //cout<<"BREAKING"<<endl;
         }
         
         // Check for breaking cessation
@@ -98,7 +96,7 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 
     SLICELOOP4
     {
-        if(c->breaking(i,j)==1)
+        if(c->breaking(i,j)==1 || c->breaking(i,j)==2)
         {
    
             // Ramp-up timescale: T* = T_star_coeff * sqrt(h/g)
@@ -119,21 +117,22 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 
             // Eddy viscosity: c->vb = B * delta_b^2 * h * |eta_t|
             // Using |eta_t| to ensure positive viscosity
-            c->vb(i,j) = B_coeff(i, j) * delta_b * delta_b * c->WL(i,j) * fabs(eta_t(i, j));
+            //c->vb(i,j) = B_coeff(i,j) * delta_b * delta_b * c->WL(i,j) * fabs(eta_t(i, j));
+            c->vb(i,j) = B_coeff(i,j)*p->A365;
             
-            c->vb(i-1,j) = p->A365;
-            c->vb(i+1,j) = p->A365;
+            c->vb(i-1,j) = B_coeff(i,j)*p->A365;
+            c->vb(i+1,j) = B_coeff(i,j)*p->A365;
         
             if(p->j_dir==1)
             {
-            c->vb(i,j-1) = p->A365;
-            c->vb(i,j+1) = p->A365;
+            c->vb(i,j-1) = B_coeff(i,j)*p->A365;
+            c->vb(i,j+1) = B_coeff(i,j)*p->A365;
             }
             
             //cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  B_coeff(i, j): "<<B_coeff(i, j)<<" dt_break: "<<dt_break<<" t_break(i,j): "<<t_break(i,j)<<endl;
         }
         
-        else
+        /*else
         if(c->breaking(i,j)==2)
         {
         c->vb(i,j) = p->A365;
@@ -145,7 +144,7 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
         c->vb(i,j-1) = p->A365;
         c->vb(i,j+1) = p->A365;
         }
-        }
+        }*/
         
         else
         {
