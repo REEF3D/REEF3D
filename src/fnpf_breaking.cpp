@@ -30,7 +30,7 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
     // Default parameter values
     eta_I    = 0.65;    // onset threshold coefficient
     eta_F    = 0.15;    // cessation threshold coefficient
-    delta_b  = p->A365;     // mixing length coefficient
+    delta_b  = 1.2;     // mixing length coefficient
     T_star   = 5.0;     // ramp-up time coefficient
     alpha_eta = 0.0;    // KFSBC dissipation (0 = off)
 
