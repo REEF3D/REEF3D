@@ -79,7 +79,7 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
         }
         
         // Check for breaking cessation
-        if(c->breaking(i,j) == 2 && (fabs(c->Ex(i,j)) < p->A356*p->A355 || fabs(c->Ey(i,j)) < p->A356*p->A355))
+        if(c->breaking(i,j) == 2 && (fabs(c->Ex(i,j)) < p->A356*p->A355 && (fabs(c->Ey(i,j)) < p->A356*p->A355) || p->j_dir==0))
         {
             c->breaking(i,j) = 0;
             B_coeff(i,j)  = 0.0;
@@ -117,19 +117,34 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 
             // Eddy viscosity: c->vb = B * delta_b^2 * h * |eta_t|
             // Using |eta_t| to ensure positive viscosity
-            //c->vb(i,j) = B_coeff(i,j) * delta_b * delta_b * c->WL(i,j) * fabs(eta_t(i, j));
-            c->vb(i,j) = B_coeff(i,j)*p->A365;
+            //visc = B_coeff(i,j) * p->A365 * p->A365 * c->WL(i,j) * fabs(eta_t(i, j));
+            if(c->breaking(i,j)==1)
+            visc = p->A365 * p->A365 * c->WL(i,j) * fabs(eta_t(i, j));
             
-            c->vb(i-1,j) = B_coeff(i,j)*p->A365;
-            c->vb(i+1,j) = B_coeff(i,j)*p->A365;
+            if(c->breaking(i,j)==2)
+            visc = p->A365 * p->A365 * c->WL(i,j);
+            
+            c->vb(i,j) = MIN(c->vb(i,j), vb_max);
+            c->vb(i,j) = MAX(c->vb(i,j), 0.0);
+            
+            c->vb(i,j) = visc;
+            
+            //c->vb(i-1,j) = visc;
+            //c->vb(i+1,j) = visc;
+            
+            //c->vb(i-2,j) = visc;
+            //c->vb(i+2,j) = visc;
         
             if(p->j_dir==1)
             {
-            c->vb(i,j-1) = B_coeff(i,j)*p->A365;
-            c->vb(i,j+1) = B_coeff(i,j)*p->A365;
+            //c->vb(i,j-1) = visc;
+            //c->vb(i,j+1) = visc;
+            
+            //c->vb(i,j-2) = visc;
+            //c->vb(i,j+2) = visc;
             }
             
-            //cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  B_coeff(i, j): "<<B_coeff(i, j)<<" dt_break: "<<dt_break<<" t_break(i,j): "<<t_break(i,j)<<endl;
+            cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  breaking: "<<c->breaking(i, j)<<" eta_t: "<<eta_t(i, j)<<endl;
         }
         
         /*else
@@ -169,18 +184,6 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
     ++count;
     }
     
-    /*
-    LOOP
-    {
-    if(c->breaking(i,j)>0)
-    c->test[IJK] = 1.0;
-    
-    else
-    c->test[IJK] = 0.0;
-    }*/
-    
-    LOOP
-    c->test[IJK] = c->vb(i,j);
     
     count=pgc->globalisum(count);
     

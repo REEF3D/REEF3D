@@ -1773,10 +1773,19 @@ void lexer::read_control()
                 case 250: control>>P250;
 						 clear(c,numint);
 						 break;
-				case 351: ++P351;
+                case 310: control>>P310;
 						 clear(c,numint);
 						 break;
-				case 352: ++P352;
+                case 311: control>>P311;
+						 clear(c,numint);
+						 break;
+                case 312: control>>P312;
+						 clear(c,numint);
+						 break;
+                case 351: ++P351;
+						 clear(c,numint);
+						 break;
+                case 352: ++P352;
 						 clear(c,numint);
 						 break;
                          

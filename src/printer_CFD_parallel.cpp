@@ -119,7 +119,7 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
     result<<"<PCellData>\n";
 
     if(p->P72==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"VOF_C\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"VOF_C\"/>\n";
 
     result<<"</PCellData>\n";
 

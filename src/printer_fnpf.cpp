@@ -344,6 +344,20 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
                 offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
                 ++n;
             }
+            
+            // breaking
+            if(p->P310==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            
+            // breaking viscosity
+            if(p->P311==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
 
             // Hs
             if(p->P110==1)
@@ -385,6 +399,18 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         if(p->P23==1)
         {
             result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
+        
+        if(p->P310==1)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
+        
+        if(p->P311==1)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\"vb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
 
@@ -563,6 +589,34 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
             TPLOOP
             {
                 ffn=float(p->ipol4_a(c->test));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+        
+        // breaking
+        if(p->P310==1)
+        {
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                ffn=float(p->ipol4_a_sliceint(c->breaking));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+        
+        // breaking viscosity
+        if(p->P311==1)
+        {
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                ffn=float(p->ipol4_a_slice(c->vb));
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }

@@ -37,11 +37,15 @@ void printer_fnpf::parallel(lexer *p, int num)
     result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     if(p->P23==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    if(p->P310==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
+    if(p->P311==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"vb\"/>\n";
     if(p->P110==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P25==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
     result<<"</PPointData>\n";
 
     outputFormat->endingParallel(result,"FNPF",p->M10,num);

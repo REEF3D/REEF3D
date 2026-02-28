@@ -38,7 +38,7 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
     
     
     // Default parameters
-    a_coeff       = 0.4;
+    a_coeff       = 0.5;
     S0            = 0.08;
     alpha_L       = 0.35;
     T_star        = 3.0;
