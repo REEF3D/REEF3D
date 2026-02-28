@@ -57,8 +57,8 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
     m1 = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     m2 = (kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     
-	xe2 = xe +  p->B118*(kinematics[timecount_old][1] + m1*kinematics[timecount][0]);        
-	xe3 = xe2 + p->B118*(kinematics[timecount_old][2] + m2*kinematics[timecount][0]);
+	xe2 = xe  + p->B118*(kinematics[timecount_old][1] + m1*(p->simtime-kinematics[timecount_old][0]));        
+	xe3 = xe2 + p->B118*(kinematics[timecount_old][2] + m2*(p->simtime-kinematics[timecount_old][0]));
     }
 
     
