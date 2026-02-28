@@ -91,7 +91,7 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     {
         tstart[entity_count]=tricount;
 
-        piston(p,pgc,0);
+        flap_double(p,pgc,0);
         tricount+=28;
         
         tend[entity_count]=tricount;
@@ -173,6 +173,9 @@ void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
     
     // piston
     trisum+=12*p->X170;
+    
+    // piston
+    trisum+=28*p->X172;
     
     // STL
     if(p->X180==1)

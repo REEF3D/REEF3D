@@ -30,15 +30,15 @@ Author: Tobias Martin
 void sixdof_obj::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &WL)
 {
     if(p->mpirank==0)
-    cout<<"6DOF_obj_ini_wavemaker "<<p->X170<<endl;
+    cout<<"6DOF_obj_ini_wavemaker "<<p->X172<<endl;
     
     if(p->X170==1)
     read_format_piston(p,pgc);
     
-    if(p->X170==2)
+    if(p->X171==1)
     read_format_flap(p,pgc);
     
-    if(p->X170==3)
+    if(p->X172==1)
     read_format_flap_double(p,pgc);
     
     // Initialise folder structure
