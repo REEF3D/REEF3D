@@ -254,6 +254,9 @@ void lexer::read_control()
                case 365: control>>A365;
 						 clear(c,numint);
 						 break;
+               case 366: control>>A366;
+						 clear(c,numint);
+						 break;
                case 368: control>>A368;
 						 clear(c,numint);
 						 break;

@@ -73,7 +73,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    //pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
+    pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     
     SLICELOOP4
 	erk1(i,j) = c->eta(i,j) + p->dt*c->K(i,j);
@@ -116,7 +116,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 // Step 2
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    //pf->damping(p,c,pgc,erk1,gcval_eta,0.25);
+    pf->damping(p,c,pgc,erk1,gcval_eta,0.25);
     
     SLICELOOP4
 	erk2(i,j) = 0.75*c->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*c->K(i,j);
@@ -155,7 +155,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 // Step 3 
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    //pf->damping(p,c,pgc,erk2,gcval_eta,2.0/3.0);
+    pf->damping(p,c,pgc,erk2,gcval_eta,2.0/3.0);
     
     SLICELOOP4
 	c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*c->K(i,j);

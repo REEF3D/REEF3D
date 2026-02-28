@@ -99,6 +99,7 @@ void lexer::ini_default()
     A362=2;      // int breaking filter inner iter
     A363=1;      // int breaking filter width
     A365=1.86;   // double viscosity breaking wave
+    A366=0.1;   // double viscosity breaking wave eta alpha
     A368=0;      // int
     
     A370=0;      // int wind model
