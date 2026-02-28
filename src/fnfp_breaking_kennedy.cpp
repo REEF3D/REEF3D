@@ -124,8 +124,8 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             if(c->breaking(i,j)==2)
             visc = p->A365 * p->A365 * c->WL(i,j);
             
-            c->vb(i,j) = MIN(c->vb(i,j), vb_max);
-            c->vb(i,j) = MAX(c->vb(i,j), 0.0);
+            visc = MIN(visc, vb_max);
+            visc = MAX(visc, 0.0);
             
             c->vb(i,j) = visc;
             
