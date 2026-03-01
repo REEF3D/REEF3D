@@ -46,11 +46,11 @@ void sixdof_obj::piston(lexer *p, ghostcell *pgc, int id)
     f0 = (p->simtime - kinematics[timecount_old][0])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
 
     if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-    xwm1 = kinematics[timecount][1]*f0 + kinematics[timecount_old][1]*(1.0-f0); 
+    xwm1 = p->B118*kinematics[timecount][1]*f0 + kinematics[timecount_old][1]*(1.0-f0); 
     
     if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
     KLOOP
-    uwm[k] = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
+    uwm[k] = p->B118*(kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     
     //cout <<"uwm[0]: "<<uwm[0]<<" f0: "<<f0<<endl;
     }
