@@ -29,23 +29,47 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
 {
     // Calculate forcing fields
-    double H, uf, vf, wf;
+    double H, uf, vf, wf, pf, fac;
     double ef,efc;
+    
+    double x1,x2;
     
     if(p->X15==0)
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = uwm[k];
+        fac=1.0;
+        
+        if(p->X172==1)
+        {
+        x1 = (p->X172_xs + 0.5*(p->X172_xe-p->X172_xs));
+        x2 = (p->X172_xs + 0.75*(p->X172_xe-p->X172_xs));
+
+        fac = (p->XP[IP]-x1)*(1.0/(x2-x1));
+        
+        if(p->XP[IP] > x2)
+        fac=1.0;
+        
+        if(p->XP[IP] < x1)
+        fac=0.0;
+        }
+        
+        //cout <<"fac: "<<fac<<endl;
+        
+        uf = fac*uwm[k]; 
+        
         vf = 0.0;
         wf = 0.0;
+        pf = 0.0;
          //cout <<"UF: "<<uwm1<<endl;
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
+        
+        //d->P[FIJK] += H*(pf - d->P[FIJK]);
     }
     
     if(p->X15==1)
