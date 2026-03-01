@@ -35,25 +35,25 @@ void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
     colnum = 2;
 	
     if(p->mpirank==0)
-    cout<<"6DOF_motion  wavemaker "<<endl;
+    cout<<"6DOF_motion piston wavemaker "<<endl;
     
-	sprintf(name,"6DOF_motion.dat");
+	sprintf(name,"wavemaker.dat");
 
 // open file and count
 	ifstream file(name, ios_base::in);
 	
 	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+	cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
     
     count=0;
-	while(file.peek()!=EOF)
+	while(!file.eof())
 	{
-        for(qn=0;qn<colnum;++qn)
-        file>>val;
+	file>>val0>>val1;
+	if(val0>=p->B117)
 	++count;
 	}
-	ptnum=count;
-
+    ptnum=count;
+	
 	file.close();
 
 // allocate
@@ -64,7 +64,7 @@ void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
     file.open (name, ios_base::in);
 	
 	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+	cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
     
  // read file   
     rowcount=colcount=0;
@@ -72,6 +72,8 @@ void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
 	{
         for(qn=0;qn<colnum;++qn)
         file>>kinematics[rowcount][qn];
+        
+        //cout<<kinematics[rowcount][0]<<" "<<kinematics[rowcount][1]<<endl;
         
         ++rowcount;
 	}
@@ -87,7 +89,7 @@ void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
     }
     
     if(p->mpirank==0)
-    cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
+    cout<<"wavemaker.dat  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
     
 // add deltas
     for(qn=0;qn<ptnum;++qn)

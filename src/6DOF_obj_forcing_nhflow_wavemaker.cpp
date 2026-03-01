@@ -62,7 +62,7 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
         vf = 0.0;
         wf = 0.0;
         pf = 0.0;
-         //cout <<"UF: "<<uwm1<<endl;
+        //cout <<"UF: "<<uwm[k]<<endl;
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
         FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
