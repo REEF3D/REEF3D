@@ -126,6 +126,12 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
     }
+    
+    if(p->X10==4)
+    {
+    p->Darray(uwm,(p->kmax+2)); 
+    p->Darray(wwm,(p->kmax+2));   
+    }
 }
 
 sixdof_obj::~sixdof_obj()

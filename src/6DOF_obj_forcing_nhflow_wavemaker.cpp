@@ -37,7 +37,7 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = uwm1;
+        uf = uwm[k];
         vf = 0.0;
         wf = 0.0;
          //cout <<"UF: "<<uwm1<<endl;
@@ -53,7 +53,7 @@ void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = uwm1;
+        uf = uwm[k];
         vf = 0.0;
         wf = 0.0;
          

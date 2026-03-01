@@ -26,7 +26,11 @@ Author: Hans Bihs
 
 void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
 {
-    uwm1 = 0.0;
+    KLOOP
+    {
+    uwm[k] = 0.0;
+    wwm[k] = 0.0;
+    }
     
     double z1,z2; 
     double xe2,xe3,m1,m2;
@@ -51,7 +55,9 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
 	while(p->simtime>kinematics[timecount][0])
 	++timecount;
     
+    // position
     xe2 = xe3 = xe;
+    if(timecount>0)
     if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
     {
     m1 = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
@@ -61,14 +67,41 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
 	xe3 = xe2 + p->B118*(kinematics[timecount_old][2] + m2*(p->simtime-kinematics[timecount_old][0]));
     }
 
+    // velocity
+    double z,fac,dX,vel;
     
+    i=j=0;
+    if(timecount>0)
+    
+    KLOOP
+    {
+        i=p->posc_i(xe)+1;
+        z = p->ZSP[IJK];
+        dX=0.0;
+        
+        if(z>z1 && z<ze)
+        {
+        fac = (z-z1)/(z2-z1);
+        dX = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+        }
+        
+        if(z>=z2 && z<ze)
+        {
+        fac = (z-z2)/(ze-z2);
+        dX += fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+        }
+        
+        uwm[k] = dX*p->B118;
+        
+        //cout<<"uwm[k]: "<<uwm[k]<<" timecout: "<<timecount<<endl;
+    }
 	
 
     //cout<<"xs: "<<xs<<" xe: "<<xe<<" ys: "<<ys<<" ye: "<<ye<<"zs: "<<zs<<" ze: "<<ze<<endl;
     //cout<<"xe2: "<<xe2<<" xe3: "<<xe3<<" z1: "<<z1<<" z2: "<<z2<<endl;
     
-    if(p->mpirank==0)
-    cout<<"xe2: "<<xe2<<" xe3: "<<xe3<<endl;
+    //if(p->mpirank==0)
+    //cout<<"xe2: "<<xe2<<" xe3: "<<xe3<<endl;
 	
 // Lower part 5
 	// 3

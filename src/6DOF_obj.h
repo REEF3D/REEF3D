@@ -377,7 +377,7 @@ private:
     
     // Wavemaker
     double xwm1,zwm1,xwm2,zwm2;
-    double uwm1;
+    double *uwm,*wwm;
     
     void read_format_piston(lexer*,ghostcell*);
     void read_format_flap(lexer*,ghostcell*);

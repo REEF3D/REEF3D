@@ -26,7 +26,11 @@ Author: Hans Bihs
 
 void sixdof_obj::piston(lexer *p, ghostcell *pgc, int id)
 {
-    uwm1 = 0.0;
+    KLOOP
+    {
+    uwm[k] = 0.0;
+    wwm[k] = 0.0;
+    }
     
     // find correct time step    
     if((p->simtime>kinematics[timecount][0]))
@@ -41,7 +45,8 @@ void sixdof_obj::piston(lexer *p, ghostcell *pgc, int id)
     xwm1 = kinematics[timecount][1]*f0 + kinematics[timecount_old][1]*(1.0-f0); 
     
     if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-    uwm1 = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
+    KLOOP
+    uwm[k] = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     
 	xs = p->X170_xs + xwm1;
     xe = p->X170_xe + xwm1;
