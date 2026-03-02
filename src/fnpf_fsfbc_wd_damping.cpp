@@ -31,7 +31,7 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
     double starttime=pgc->timer();
     
     int check=0;
-    double alpha_eta;
+    double alpha_eta=1.0;
     
     // Fifsf damping
     if((gcval==60 || gcval==160) && (p->A357==1 || p->A357==2))
@@ -47,7 +47,7 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
     alpha_eta=p->A366;
     }
     
-    if(p->A350>0)
+    if(p->A350>0 && check==1)
     {
         n=0;
         SLICELOOP4
