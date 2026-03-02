@@ -85,11 +85,13 @@ void driver::loop_fnpf()
         
 
         // Shell-Printout
-        if(p->mpirank==0)
-        {
+        
         endtime=pgc->timer();
         
 		p->itertime=endtime-starttime;
+        
+        p->itertime = pgc->globalmax(p->itertime);
+        
 		p->totaltime+=p->itertime;
 		p->gctotaltime+=p->gctime;
 		p->Xtotaltime+=p->xtime;
@@ -97,7 +99,8 @@ void driver::loop_fnpf()
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
 		
-		
+        if(p->mpirank==0)
+        {
         if(p->count%p->P12==0)
         {
         if(p->B90>0)

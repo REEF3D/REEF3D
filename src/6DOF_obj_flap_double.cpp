@@ -71,8 +71,8 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
     double z,fac,dX,vel;
     
     i=j=0;
-    if(timecount>0)
     
+    if(timecount>0)
     KLOOP
     {
         i=p->posc_i(xe)+1;
