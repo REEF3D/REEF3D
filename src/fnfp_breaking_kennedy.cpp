@@ -144,7 +144,7 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             c->vb(i,j+2) = visc;
             }
             
-            cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  breaking: "<<c->breaking(i, j)<<" eta_t: "<<eta_t(i, j)<<endl;
+            //cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  breaking: "<<c->breaking(i, j)<<" eta_t: "<<eta_t(i, j)<<endl;
         }
         
         /*else
