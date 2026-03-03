@@ -303,7 +303,7 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         SLICELOOP4
         {
             
-            if(c->coastline(i,j)>=0.0 && p->A346>0.0)
+            if(c->coastline(i,j)>=0.0 && p->A346>0.0 && p->A343==1)
             {
                 db = c->coastline(i,j);
                 
