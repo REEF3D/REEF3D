@@ -78,8 +78,11 @@ fnpf_breaking::~fnpf_breaking()
 
 void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
-    if(p->A350==1)
+    if(p->A350==1 && p->A343==0)
     breaking_baquet(p, c, pgc, eta, eta_n, Fifsf, alpha);
+    
+    if(p->A350==1 && p->A343==0)
+    breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
     if(p->A350==2)
     breaking_kennedy(p, c, pgc, eta, eta_n, Fifsf, alpha);

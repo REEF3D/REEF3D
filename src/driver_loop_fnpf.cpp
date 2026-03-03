@@ -91,6 +91,8 @@ void driver::loop_fnpf()
 		p->itertime=endtime-starttime;
         
         p->itertime = pgc->globalmax(p->itertime);
+        p->gctime = pgc->globalmax(p->gctime);
+        p->xtime = pgc->globalmax(p->xtime);
         
 		p->totaltime+=p->itertime;
 		p->gctotaltime+=p->gctime;

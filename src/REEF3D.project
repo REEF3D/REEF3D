@@ -1994,10 +1994,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <VirtualDirectory Name="Breaking">
+          <File Name="fnfp_breaking_baquet_wd.cpp"/>
+          <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
-          <File Name="fnpf_breaking_f.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
           <File Name="fnpf_breaking.cpp"/>
         </VirtualDirectory>
