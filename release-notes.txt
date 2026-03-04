@@ -1,4 +1,21 @@
 
+26.02 
+x added sediment timestep ramp 
+x added physical piston wavemaker (NHFLOW)
+x added physical double-flap wavemaker (NHFLOW)
+x added wind facing forcing (NHFLOW)
+x added wind decay (NHFLOW)
+x added wind wave interaction (FNPF)
+x added Kennedy breaking wave model (FNPF)
+x added Romero breaking wave model (FNPF)
+x updated inflow boundary conditions (FNPF)
+x updated Laplace boundary conditions for stability (FNPF)
+x optimized wave decomposition memory usage
+x optimized solver setup (FNPF, NHFLOW)
+x optimized directforcing (NHFLOW)
+x updated VOF-PLIC (CFD)
+x updated a suspended sediment (CFD)
+
 26.01
 x fixed a suspended sediment unstability (CFD)
 x updated sediment filter algorithm 
