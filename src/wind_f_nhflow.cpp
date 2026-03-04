@@ -29,6 +29,7 @@ Author: Hans Bihs
 void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
 {
     k=p->knoz-1;
+    double psi, xpos; // wind decay
     
     if(p->A573<3)
     SLICELOOP4
@@ -36,7 +37,11 @@ void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     if( p->XP[IP]>xs && p->XP[IP]<xe)
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
     if(p->A573==1 || eta(i,j)>0.0)
-    F[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
+        {
+            psi = cos(0.5*PI*(p->XP[IP]-xs)/(xe-xs));
+            psi = psi*psi;
+            F[IJK] += psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
+        }
     
     if(p->A573==3 || p->A573==4)
     SLICELOOP4
@@ -45,18 +50,27 @@ void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
     {
     Sx = d->Ex(i,j);
+    xpos = p->XP[IP];
+    
+    psi = 1.0;
+    
+    if(p->A574==1)
+    {
+    psi = cos(0.5*PI*(xpos - xs)/(xe - xs));
+    psi = psi*psi;
+    }
     
     
     if(p->A573==3 || eta(i,j)>0.0)
     if(Sx*cosa>0.0)
-    F[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
+    F[IJK] += psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
     
     
     d->test2D(i,j) = 0.0;
     
     if(Sx*cosa>0.0)
     if(p->A573==3 || eta(i,j)>0.0)
-    d->test2D(i,j) = WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
+    d->test2D(i,j) = psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
     }
     
     LOOP

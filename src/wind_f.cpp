@@ -59,12 +59,12 @@ wind_f::wind_f(lexer *p)
         cosa = cos(p->A571_dir*(PI/180.0));
         sina = sin(p->A571_dir*(PI/180.0));
         
-        if(p->A372==1)
+        if(p->A572==1)
         {
-        xs = p->A372_xs;
-        xe = p->A372_xe;
-        ys = p->A372_ys;
-        ye = p->A372_ye;
+        xs = p->A572_xs;
+        xe = p->A572_xe;
+        ys = p->A572_ys;
+        ye = p->A572_ye;
         }
     }
     
