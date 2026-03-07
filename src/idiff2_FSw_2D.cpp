@@ -70,7 +70,7 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	 a->M.b[n] = -2.0*(visc_ijk+ev_ijk)/(p->DZN[KP]*p->DZP[KP]);
 	 a->M.t[n] = -2.0*(visc_i_j_kp+ev_i_j_kp)/(p->DZN[KP1]*p->DZP[KP]);
      
-     if(p->DF3[IJK]<0 && p->D22==1)
+     if(p->DF3[IJK]<0)
      {
         a->M.p[n]  =  1.0;
 
