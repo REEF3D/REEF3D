@@ -196,6 +196,11 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
+    
+    LOOP
+    {
+	c->test[IJK] = c->Fz(i,j);
+    }
 }
 
 void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
@@ -217,6 +222,7 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     }
     
     pflow->eta_relax(p,pgc,c->eta);
+    sigma_update(p,c,pgc,pf,c->eta);
     pflow->fivec_relax(p,pgc,c->Fi);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     

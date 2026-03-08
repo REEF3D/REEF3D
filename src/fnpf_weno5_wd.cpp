@@ -112,7 +112,6 @@ double fnpf_weno5_wd::sz(lexer *p, double *f)
       //    /(-(49.0/20.0)*p->ZN[KP] + 6.0*p->ZN[KM1] - 7.5*p->ZN[KM2] + (20.0/3.0)*p->ZN[KM3] - 3.75*p->ZN[KM4] + (6.0/5.0)*p->ZN[KM5] - (1.0/6.0)*p->ZN[KM6]);
    
     grad=0.0;
-    
 
     if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3] && p->flag7[FIJKm4]>0 && p->flag7[FIJKm5])
     {

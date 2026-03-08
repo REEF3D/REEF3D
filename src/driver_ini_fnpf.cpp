@@ -178,7 +178,6 @@ void driver::driver_ini_fnpf()
     // iowave ini - including fullini
     pflow->ini_fnpf(p,c,pgc);  
     
-    pgc->start7V(p,c->Fi,c->bc,250);
     
     // ini wetdry and coastline
     ppfsg->inidisc_step2(p,c,pgc,pflow,psolv);   // RK

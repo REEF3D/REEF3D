@@ -216,9 +216,6 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
 void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
-    if(p->mpirank==0)
-    cout<<"FSFDISC_INI"<<endl;
-    
     SLICELOOP4
     {
     c->Bx(i,j) = pdx->sx(p,c->depth,1.0);

@@ -60,10 +60,10 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
             if(phival>=0.0)
             {
                 if(p->pos_z()<=p->phimean)
-                    z=-(fabs(p->phimean-p->pos_z()));
+                z=-(fabs(p->phimean-p->pos_z()));
 		
                 if(p->pos_z()>p->phimean)
-                    z=(fabs(p->phimean-p->pos_z()));
+                z=(fabs(p->phimean-p->pos_z()));
             }
         
             if(phival<0.0)
@@ -160,10 +160,10 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
             if(phival>=0.0)
             {
                 if(p->pos_z()<=p->phimean)
-                    z=-(fabs(p->phimean-p->pos_z()));
+                z=-(fabs(p->phimean-p->pos_z()));
 		
                 if(p->pos_z()>p->phimean)
-                    z=(fabs(p->phimean-p->pos_z()));
+                z=(fabs(p->phimean-p->pos_z()));
             }
         
             if(phival<0.0)
@@ -259,14 +259,14 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
             if(phival>=0.0)
             {
                 if(p->pos_z()<=p->phimean)
-                    z=-(fabs(p->phimean-p->pos3_z()));
+                z=-(fabs(p->phimean-p->pos3_z()));
 		
                 if(p->pos_z()>p->phimean)
-                    z=(fabs(p->phimean-p->pos3_z()));
+                z=(fabs(p->phimean-p->pos3_z()));
             }
         
             if(phival<0.0)
-                z = eta(i,j);
+            z = eta(i,j);
         
      /*   else if(p->F80==4)
         {
@@ -401,12 +401,15 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     {
     dg = distgen(p);
     db = distbeach(p);
+    
     if(dg<1.0e20)
-        genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    
     else if (db<1.0e20)
-        genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    
     else
-        genheight(i,j)=vofheight(i,j);
+    genheight(i,j)=vofheight(i,j);
     }
     
     pgc->gcsl_start4(p,genheight,1);
@@ -423,9 +426,11 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
             if(dg<1.0e20)
             {
             if(p->pos_z()+0.5*p->DZN[KP]<=genheight(i,j))
-                f(i,j,k)=1.0;
+            f(i,j,k)=1.0;
+            
             else if(p->pos_z()-0.5*p->DZN[KP]>=genheight(i,j))
-                f(i,j,k)=0.0;
+            f(i,j,k)=0.0;
+            
             else
             {
                     f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
@@ -442,11 +447,13 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
             if(db<1.0e20)
             {
             if(p->pos_z()+0.5*p->DZN[KP]<=genheight(i,j))
-                f(i,j,k)=1.0;
+            f(i,j,k)=1.0;
+            
             else if(p->pos_z()-0.5*p->DZN[KP]>=genheight(i,j))
-                f(i,j,k)=0.0;
+            f(i,j,k)=0.0;
+            
             else
-                f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            f(i,j,k)=(genheight(i,j)-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
             }
         }
     }
@@ -491,11 +498,6 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 void iowave::fi_relax(lexer *p, ghostcell *pgc, field& f, field& phi)
 {
 }
-
-void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
-{
-}
-
 
 void iowave::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
