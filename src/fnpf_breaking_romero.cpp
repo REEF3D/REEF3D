@@ -107,8 +107,8 @@ void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     c->test[IJK] = 0.0;
     }*/
     
-    LOOP
-    c->test[IJK] = c->vb(i,j);
+    //LOOP
+    //c->test[IJK] = c->vb(i,j);
     
     count=pgc->globalisum(count);
     

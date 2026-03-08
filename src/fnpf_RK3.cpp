@@ -198,39 +198,53 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     velcalc_sig(p,c,pgc,c->Fi);
 }
 
-void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
+void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+    SLICELOOP4
+	c->eta(i,j) = 0.0;
+    
+    pgc->gcsl_start4(p,c->eta,50);
+    
+    sigma_ini(p,c,pgc,pf,c->eta);
+}
+
+void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    etaloc_sig(p,c,pgc);
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    sigma_ini(p,c,pgc,pf,c->eta);
-    pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
-    sigma_ini(p,c,pgc,pf,c->eta);
-    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
-    sigma_update(p,c,pgc,pf,c->eta);
-    
-    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    
-    for(int qn=0; qn<10; ++qn)
+    for(int qn=0;qn<20;++qn)
     {
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
     }
     
+    pflow->eta_relax(p,pgc,c->eta);
+    pflow->fivec_relax(p,pgc,c->Fi);
+    pflow->fifsf_relax(p,pgc,c->Fifsf);
     
+
+    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+    etaloc_sig(p,c,pgc);
+    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
+    
+    
+    pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
+    
+    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
+    sigma_update(p,c,pgc,pf,c->eta);
+    bedbc_sig(p,c,pgc,c->Fi,pf);
+    
+    
+    // velocity 
+    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     velcalc_sig(p,c,pgc,c->Fi);
     
     pgc->start7V(p,c->U,c->bc,210);
     pgc->start7V(p,c->V,c->bc,210);
     pgc->start7V(p,c->W,c->bc,210);
     
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
-    
-    
-
+    /*
     if(p->I40==1)
     {
     fnpf_restart(p,c,pgc);
@@ -250,7 +264,7 @@ void fnpf_RK3::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, sol
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     }
-    }
+    }*/
 }
 
 void fnpf_RK3::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
 {   
-    if(p->count<=2)
+    if(p->count==0)
     {
     SLICELOOP4
     wetcoast(i,j)=1;
@@ -44,11 +44,15 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     if(p->A343>=1)
     if(p->wd - c->bed(i,j) < c->wd_criterion)
     p->wet[IJ]=0;
+    
+    SLICELOOP4
+    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
+    
     }
     
     
     
-    if(p->count>2)
+    if(p->count>=1)
     {
     SLICELOOP4
     c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);

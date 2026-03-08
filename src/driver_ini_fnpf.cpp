@@ -167,49 +167,30 @@ void driver::driver_ini_fnpf()
 
     p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
     
+    // pre-ini - non-wd
+    ppfsg->inidisc_step1(p,c,pgc,pflow,psolv);  // RK
+	
     
-    // eta ini
-	SLICELOOP4
-	c->eta(i,j) = 0.0;
-
-    pgc->gcsl_start4(p,c->eta,50);
-    
-     SLICELOOP4
-    c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
-    
-    
-    
-    SLICELOOP4
-    p->sigz[IJ] = 1.0/WLVL;
-    
+    // ini
     ppfsg->ini_wetdry(p,c,pgc);    // ini wetdry and coastline
-    
     pflow->gcio_update(p,a,pgc);
-    pflow->ini_fnpf(p,c,pgc);  // including fullini
-
-    ppfsg->ini(p,c,pgc,pflow,preini);  // --- 
+    
+    // iowave ini - including fullini
+    pflow->ini_fnpf(p,c,pgc);  
     
     pgc->start7V(p,c->Fi,c->bc,250);
-    ppfsg->inidisc(p,c,pgc,pflow,psolv);    // ini wetdry and coastline
     
-    pflow->eta_relax(p,pgc,c->eta);
-    pflow->fivec_relax(p,pgc,c->Fi);
-    pflow->fifsf_relax(p,pgc,c->Fifsf);
+    // ini wetdry and coastline
+    ppfsg->inidisc_step2(p,c,pgc,pflow,psolv);   // RK
     
-    pgc->gcsl_start4(p,c->eta,50);
-    pgc->gcsl_start4(p,c->Fifsf,50);
-    pgc->start7V(p,c->Fi,c->bc,250);
     
     pftstep->ini(c,p,pgc);
-    
     pprint->start(p,c,pgc,pflow);
-    
     
     p->gctime=0.0;
     p->xtime=0.0;
 	p->wavecalctime=0.0;
 	p->field4time=0.0;
-
 }
 
 

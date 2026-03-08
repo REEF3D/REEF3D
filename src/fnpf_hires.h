@@ -33,7 +33,7 @@ using namespace std;
 class fnpf_hires : public fnpf_convection, public increment
 {
 public:
-    fnpf_hires(lexer*,fdm_fnpf*);
+    fnpf_hires(lexer*);
 	virtual ~fnpf_hires();
 
     double fx(lexer*, field&, double, double) override {return 0.0;};

@@ -36,12 +36,4 @@ void fnpf_void::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conv
 }
 
 
-void fnpf_void::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
-{	
-    
-}
-   
-void fnpf_void::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-    
-}
+

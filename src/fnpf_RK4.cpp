@@ -261,7 +261,11 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     velcalc_sig(p,c,pgc,c->Fi);
 }
 
-void fnpf_RK4::inidisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
+void fnpf_RK4::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+}
+
+void fnpf_RK4::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->start7V(p,c->Fi,c->bc,gcval);

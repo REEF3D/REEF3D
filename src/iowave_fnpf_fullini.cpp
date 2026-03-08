@@ -39,11 +39,10 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
 
-		c->eta(i,j) = wave_eta(p,pgc,xg,yg);
-
+        c->eta(i,j) = wave_eta(p,pgc,xg,yg);
     }
     
     // Fifsf
@@ -52,8 +51,8 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        dg = distgen(p);
+        db = distbeach(p);
         
         z = c->eta(i,j);
 
@@ -68,7 +67,7 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         xg = xgen(p);
         yg = ygen(p);
         dg = distgen(p);
-		db = distbeach(p);
+        db = distbeach(p);
         
         z=p->ZSN[FIJK]-p->phimean;
         

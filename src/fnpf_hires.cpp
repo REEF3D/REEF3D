@@ -25,9 +25,8 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"slice.h"
 
-fnpf_hires::fnpf_hires(lexer* p, fdm_fnpf *cc)
+fnpf_hires::fnpf_hires(lexer* p)
 {
-    c=cc;
 }
 
 fnpf_hires::~fnpf_hires()
