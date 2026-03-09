@@ -58,8 +58,8 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     
     // W
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
-    }
-    */
+    }*/
+    
     
     
     FLOOP
@@ -175,6 +175,5 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     c->eta_n(i,j) = c->eta(i,j);
 
     pgc->gcsl_start4(p,c->eta_n,1);   
-    
 }
 

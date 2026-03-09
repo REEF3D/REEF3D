@@ -264,9 +264,6 @@ void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
     p->wet[IJ]=1;
     
     pgc->gcsl_start4Vint(p,p->wet,50);
-    
-    SLICELOOP4
-    c->test2D(i,j) = double (p->wet[IJ]);
 }
 
 

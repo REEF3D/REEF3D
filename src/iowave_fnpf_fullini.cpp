@@ -69,12 +69,14 @@ void iowave::full_initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         dg = distgen(p);
         db = distbeach(p);
         
-        z=p->ZSN[FIJK]-p->phimean;
+        //z=p->ZSN[FIJK]-p->phimean;
         
         z = p->ZN[KP]*(c->eta(i,j) + p->wd - c->bed(i,j)) + c->bed(i,j)-p->phimean;
         
         c->Fi[FIJK] = wave_fi(p,pgc,xg,yg,z);
-      
+        
+        //if(k==p->knoz)
+        //cout<<c->Fi[FIJK]<<" "<<c->Fifsf(i,j)<<endl;
     }
     
     SLICELOOP4
