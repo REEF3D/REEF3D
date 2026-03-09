@@ -86,7 +86,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_hires(p);
+    pdx = new fnpf_cds2(p);
     }
     
     if(p->A312==3)
