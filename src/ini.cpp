@@ -76,14 +76,11 @@ void lexer::ini_default()
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int turn on wetting-drying
-    A344=1;      // int absolute wetting criterion
-    A344_val=0.001; // double absolute wetting criterion value
-    A345=0;      // int dx-based relative wetting citerion
-    A345_val=0.01; // double dx-based relative wetting citerion value
+    A344=0.001; // double wetting criterion value
     A346=1.86;    // double viscosity damping within the coastline
     A347=2;     // int coastline relaxation for Fi and eta
     A348=1;     // int beach relaxation for Fi and eta
-    A349=20.0;   // double initial coastline damping distance factor for dxm
+    A349=10.0;   // double initial coastline damping distance factor for dxm
     
     A350=0;      // int turn on breaking (which method)
     A351=0;      // int type of breaking detection (deep / shallow)

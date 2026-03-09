@@ -40,6 +40,10 @@ fnpf_sigma::~fnpf_sigma()
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
 {	
+    c->wd_criterion=p->A344;
+    
+    SLICELOOP4
+    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
     
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];

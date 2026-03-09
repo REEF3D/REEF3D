@@ -195,12 +195,10 @@ void lexer::read_control()
                case 343: control>>A343;
 						 clear(c,numint);
 						 break;
-               case 344: control>>A344_val;
-                        A344=1;
+               case 344: control>>A344;
 						 clear(c,numint);
 						 break;
-               case 345: control>>A345_val;
-                        A345=1;
+               case 345: control>>A345;
 						 clear(c,numint);
 						 break;
                case 346: control>>A346;

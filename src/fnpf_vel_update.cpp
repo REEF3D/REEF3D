@@ -30,7 +30,8 @@ Author: Hans Bihs
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
 void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
-{/*
+{
+    /*
     FLOOP
     {
     // U
@@ -57,8 +58,10 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     
     // W
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
-    }
-    */
+    }*/
+    
+    
+    
     FLOOP
     {
     // U
@@ -72,13 +75,6 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
     
                 + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
-              /*  
-    if(i+p->origin_i<=2)
-    c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIJK])/(p->DXP[IP])
-    
-                + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
-      */          
-    
      
     // V           
     if(k<p->knoz)
@@ -158,11 +154,26 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     pgc->start7V(p,c->W,c->bc,gcval);
     
     
+    /*
+    k = p->knoz;
+    
+    SLICELOOP4
+    if(fabs(c->W[FIJK])>100.0 && p->YP[JP]>9000 && p->YP[JP]<9400)
+    {
+    FKLOOP
+    {
+    cout<<c->Fi[FIJK]<<" "<<((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))<<" "<<p->sigz[IJ]<<" "<<c->WL(i,j)<<" "<<p->wd-c->bed(i,j)<<" "<<c->depth(i,j)<<endl;
+    }
+    cout<<endl;
+    }
+    
+    LOOP
+    c->test[IJK] = p->sigz[IJ];
+    */
     
     SLICELOOP4
     c->eta_n(i,j) = c->eta(i,j);
 
     pgc->gcsl_start4(p,c->eta_n,1);   
-    
 }
 

@@ -105,15 +105,10 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     }
     
     
-    c->wd_criterion=0.00005;
-    
     coastline_count = 0;
     
-    if(p->A344==1)
-    c->wd_criterion=p->A344_val;
-    
-    if(p->A345==1)
-    c->wd_criterion=p->A345_val*p->DXM;
+    c->wd_criterion=p->A344;
+
     
     pcoast = new fnpf_coastline(p);
     
@@ -167,7 +162,13 @@ fnpf_fsfbc_wd::~fnpf_fsfbc_wd()
 void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
+    {
     c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
+    
+    /*if(c->WL(i,j)<1.1*c->wd_criterion && p->YP[JP]>9000 && p->YP[JP]<9400 && p->wd - c->bed(i,j)>0.0)
+    cout<<p->count<<" WL: "<<c->WL(i,j)<<" "<<c->wd_criterion<<" eta: "<<c->eta(i,j)<<" "<<rb3(p,c->coastline(i,j))*c->eta(i,j)<<" "<<c->bed(i,j)<<" depth: "<<p->wd - c->bed(i,j)
+    <<" cl: "<<c->coastline(i,j)<<" dist3: "<<20.0*dist3<<" x: "<<p->XP[IP]<<" y: "<<p->YP[JP]<<endl;*/
+    }
     
     pgc->gcsl_start4(p,c->WL,50);
     
@@ -249,6 +250,10 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->Fz(i,j) = 0.0;
     }
     
+    coastline_Fz(p,c,pgc,c->Fz);
+    
+    if(p->count==0)
+    for(int qn=0;qn<20;++qn)
     coastline_Fz(p,c,pgc,c->Fz);
 }
 

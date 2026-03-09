@@ -29,10 +29,8 @@ Author: Hans Bihs
 
 void nhflow_sigma::sigma_ini(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta)
 {	
-
     d->wd_criterion=p->A544;
     
-
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
     

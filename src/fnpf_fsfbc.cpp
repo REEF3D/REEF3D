@@ -117,14 +117,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     c->Byy(i,j) = 0.0;
     }
     
-    
-    c->wd_criterion=0.00005;
-    
-    if(p->A344==1)
-    c->wd_criterion=p->A344_val;
-    
-    if(p->A345==1)
-    c->wd_criterion=p->A345_val*p->DXM;
+    c->wd_criterion=p->A344;
     
     if(p->A350>0)
     psolv =  new sflow_bicgstab(p,pgc);
@@ -264,9 +257,6 @@ void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
     p->wet[IJ]=1;
     
     pgc->gcsl_start4Vint(p,p->wet,50);
-    
-    SLICELOOP4
-    c->test2D(i,j) = double (p->wet[IJ]);
 }
 
 

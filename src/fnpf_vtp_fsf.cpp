@@ -63,9 +63,10 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     SLICELOOP4
     {
         if(c->breaking(i,j)>=1)
-            c->breaking_print(i,j)=double(c->breaking(i,j));
+        c->breaking_print(i,j)=double(c->breaking(i,j));
+        
         else if(c->breaking(i,j)==0)
-            c->breaking_print(i,j)=0.0;
+        c->breaking_print(i,j)=0.0;
     }
 
     pgc->gcsl_start4(p,c->breaking_print,50);
