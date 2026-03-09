@@ -210,45 +210,44 @@ void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     
     pgc->gcsl_start4(p,c->eta,50);
     
+    etaloc_sig(p,c,pgc);
     sigma_ini(p,c,pgc,pf,c->eta);
 }
 
 void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
-    etaloc_sig(p,c,pgc);
     
+    //FLOOP
+    //if(k==p->knoz)
+    //cout<<c->Fi[FIJK]<<" "<<c->Fifsf(i,j)<<endl;
+        
     for(int qn=0;qn<20;++qn)
     {
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
     }
     
-    pflow->eta_relax(p,pgc,c->eta);
-    sigma_update(p,c,pgc,pf,c->eta);
-    pflow->fivec_relax(p,pgc,c->Fi);
-    pflow->fifsf_relax(p,pgc,c->Fifsf);
-    
-
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
     
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
-    
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
+    
+    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     
+    pgc->start7V(p,c->Fi,c->bc,gcval);
     
     // velocity 
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     velcalc_sig(p,c,pgc,c->Fi);
     
+    
     /// -----
     /// -----
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    /*pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     etaloc_sig(p,c,pgc);
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
@@ -276,7 +275,7 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
-    
+    */
     /*
     if(p->I40==1)
     {
@@ -303,8 +302,5 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
 void fnpf_RK3::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   // coastline ini
-
-    pf->coastline_eta(p,c,pgc,c->eta);
-    pf->coastline_fi(p,c,pgc,c->Fifsf);
 }
 
