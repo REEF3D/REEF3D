@@ -38,15 +38,15 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     wavegen_precalc_fnpf(p,c,pgc);
     
-    if(p->I30==1)
-	full_initialize_fnpf(p,c,pgc);
-    
-    for(int qn=0;qn<10;++qn)
+    if(p->I30==0)
     {
 	fivec_relax(p,pgc,c->Fi);
     fifsf_relax(p,pgc,c->Fifsf);
     eta_relax(p,pgc,c->eta);
-    }    
+    }  
+    
+    if(p->I30==1)
+	full_initialize_fnpf(p,c,pgc);
     
     SLICELOOP4
     c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + c->depth(i,j));
