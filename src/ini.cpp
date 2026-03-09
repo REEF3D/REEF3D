@@ -78,7 +78,7 @@ void lexer::ini_default()
     A343=1;      // int turn on wetting-drying
     A344=0.001; // double wetting criterion value
     A346=1.86;    // double viscosity damping within the coastline
-    A347=2;     // int coastline relaxation for Fi and eta
+    A347=1;     // int coastline relaxation for Fi and eta
     A348=1;     // int beach relaxation for Fi and eta
     A349=10.0;   // double initial coastline damping distance factor for dxm
     
