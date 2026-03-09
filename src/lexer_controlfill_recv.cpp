@@ -122,14 +122,10 @@ void lexer::ctrlrecv()
 	dd++;
     A343 = ictrl[ii];
 	ii++;
-    A344 = ictrl[ii];
-	ii++;
-    A344_val = dctrl[dd];
+    A344 = dctrl[dd];
 	dd++;
     A345 = ictrl[ii];
 	ii++;
-    A345_val = dctrl[dd];
-	dd++;
     A346 = dctrl[dd];
 	dd++;
     A347 = ictrl[ii];
