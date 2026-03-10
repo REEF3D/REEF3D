@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"fnpf_weno7.h"
 #include"fnpf_weno5_wd.h"
 #include"fnpf_wenoflux.h"
+#include"fnpf_hires.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 #include"sflow_bicgstab.h"
@@ -97,7 +98,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_cds2(p);
+    pdx = new fnpf_hires(p);
     }
     
     if(p->A312==3)
