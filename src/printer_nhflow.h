@@ -43,6 +43,7 @@ class nhflow_vtp_bed;
 class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_probe_vel;
+class nhflow_probe_press;
 class nhflow_probe_vel_theory;
 class nhflow_print_Hs;
 class nhflow_turbulence;
@@ -94,6 +95,7 @@ private:
     nhflow_breaking_log *pbreaklog;
     nhflow_probe_vel *pvel;
     nhflow_probe_vel_theory *pveltheo;
+    nhflow_probe_press *ppressprobe;
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
