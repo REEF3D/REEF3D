@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_U_PROFILE_H_
-#define NHFLOW_U_PROFILE_H_
+#ifndef NHFLOW_PROFILE_U_H_
+#define NHFLOW_PROFILE_U_H_
 
 #include"boundarycheck.h"
 #include<iostream>
@@ -34,11 +34,11 @@ class slice;
 
 using namespace std;
 
-class nhflow_u_profile : public boundarycheck
+class nhflow_profile_u : public boundarycheck
 {
 public:
-    nhflow_u_profile(lexer*,fdm_nhf*);
-    virtual ~nhflow_u_profile();
+    nhflow_profile_u(lexer*,fdm_nhf*);
+    virtual ~nhflow_profile_u();
 
     void start(lexer*, fdm_nhf*, ghostcell*);
 

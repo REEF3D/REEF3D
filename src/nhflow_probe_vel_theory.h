@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_VEL_PROBE_H_
-#define NHFLOW_VEL_PROBE_H_
+#ifndef NHFLOW_PROBE_THEORY_VEL_H_
+#define NHFLOW_PROBE_THEORY_VEL_H_
 
 #include"boundarycheck.h"
 #include<iostream>
@@ -31,16 +31,17 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
+class ioflow;
 
 using namespace std;
 
-class nhflow_vel_probe : public boundarycheck
+class nhflow_probe_vel_theory : public boundarycheck
 {
 public:
-    nhflow_vel_probe(lexer*,fdm_nhf*);
-	virtual ~nhflow_vel_probe();
+    nhflow_probe_vel_theory(lexer*,fdm_nhf*);
+	virtual ~nhflow_probe_vel_theory();
 
-	void start(lexer*, fdm_nhf*, ghostcell*);
+	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*);
 
 
 private:

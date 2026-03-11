@@ -555,9 +555,10 @@
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
-            <File Name="nhflow_u_profile.h"/>
-            <File Name="nhflow_vel_probe.h"/>
-            <File Name="nhflow_vel_probe_theory.h"/>
+            <File Name="nhflow_probe_vel_theory.h"/>
+            <File Name="nhflow_probe_vel.h"/>
+            <File Name="nhflow_probe_press.h"/>
+            <File Name="nhflow_profile_u.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.h"/>
@@ -1886,9 +1887,10 @@
             <File Name="nhflow_state.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
-            <File Name="nhflow_u_profile.cpp"/>
-            <File Name="nhflow_vel_probe_theory.cpp"/>
-            <File Name="nhflow_vel_probe.cpp"/>
+            <File Name="nhflow_probe_vel_theory.cpp"/>
+            <File Name="nhflow_probe_vel.cpp"/>
+            <File Name="nhflow_profile_u.cpp"/>
+            <File Name="nhflow_probe_press.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Runup">
             <File Name="nhflow_print_runup_max_gage_x.cpp"/>
