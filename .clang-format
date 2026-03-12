@@ -1,0 +1,40 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+LineEnding: LF
+
+# General operator spacing - covers ||, &&, +, -, ==, !=, <=, >= etc.
+SpaceAroundOperators: true              # a||b → a || b
+SpaceBeforeAssignmentOperators: true    # a=b → a = b
+
+# Parenthesis and bracket spacing
+SpaceBeforeParens: NonEmptyParentheses  # if( → if (  AND  void foo (x) → void foo(x)
+SpacesInParentheses: false              # foo( x ) → foo(x)
+SpacesInSquareBrackets: false           # a[ i ] → a[i]
+SpaceBeforeSquareBrackets: false        # a [i] → a[i]
+SpaceInEmptyParentheses: false          # foo( ) → foo()
+
+# Cast spacing
+SpaceAfterCStyleCast: false             # (int) x → (int)x
+SpacesInCStyleCastParentheses: false    # ( int ) → (int)
+
+# Other mid-line spacing
+SpaceBeforeRangeBasedForLoopColon: true # for(auto x:v) → for(auto x : v)
+SpaceAfterTemplateKeyword: false        # template <typename T>
+SpacesBeforeTrailingComments: 2         # code  // comment
+
+# Trailing whitespace and blank lines
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+
+# No line length limit
+ColumnLimit: 0
+
+# Indentation
+IndentCaseLabels: true
+IndentPPDirectives: None
+NamespaceIndentation: None
+
+# Brace style
+BreakBeforeBraces: Attach               # K&R style: if (x) {
+
