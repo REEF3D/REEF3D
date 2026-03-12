@@ -170,7 +170,9 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         k=p->knoz;
 
         SLICELOOP4
-        if(p->DF[IJK]<0 && (p->DF[Im1JK]<0 || p->flag4[Im1JK]<0) && (p->DF[Ip1JK]<0 || p->flag4[Ip1JK]<0)  && (p->j_dir==0 || ((p->DF[IJm1K]<0 || p->flag4[IJm1K]<0) && (p->DF[IJp1K]<0 || p->flag4[IJp1K]<0))))
+        if(p->DF[IJK]<0 && (p->DF[Im1JK]<0 || p->flag4[Im1JK]<0) && (p->DF[Ip1JK]<0 || 
+        p->flag4[Ip1JK]<0) && (p->j_dir==0 || ((p->DF[IJm1K]<0 || 
+        p->flag4[IJm1K]<0) && (p->DF[IJp1K]<0 || p->flag4[IJp1K]<0))))
         {
         d->eta(i,j) = 0.0;
         WL(i,j) = d->depth(i,j);
