@@ -45,7 +45,7 @@ public:
 
 private:
 	const double kappa;
-	double uplus,ks_plus,dist,ks,ustar;
+	double uplus,ks_plus,ks,ustar,deltaZ,z0;
 	int ii,jj,kk;
 	double value;
 	int gcval_phi, bckin, wallfunc_type;
