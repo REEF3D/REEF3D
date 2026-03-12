@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
+#include"sliceint4.h"
 #include"flowfile_in.h"
 
 class vec;
@@ -94,6 +95,7 @@ public:
     void fi_relax(lexer*,ghostcell*,field&,field&) override;
     void fivec_relax(lexer*, ghostcell*, double*) override;
     void fifsf_relax(lexer*, ghostcell*, slice&) override;
+    void test_relax(lexer*, ghostcell*, slice&)override;
     void visc_relax(lexer*, ghostcell*, slice&) override;
     void eta_relax(lexer*,ghostcell*,slice&) override;
     void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
@@ -231,12 +233,15 @@ private:
     slice1 relax1_wg, relax1_nb;
     slice2 relax2_wg, relax2_nb;
     slice4 relax4_wg, relax4_nb;
+    sliceint4 wgflag;
 	
 	double rb1(lexer*,double);
     double rb3(lexer*,double);
     
     double rb1_ext(lexer*,int);
     double rb3_ext(lexer*,int);
+    
+    int rb1_flag(lexer*,int);
 
     double ramp(lexer*);
 	
@@ -295,14 +300,16 @@ private:
     int wave_comp;
     int upt_count,vpt_count,wpt_count,ppt_count,ept_count;
     double *uval,*vval,*wval,*lsval,*Fival,*Fioutval,*Fifsfval,*Fifsfval0,*Fifsfval1,*Fifsfoutval,*Uinval,*Uoutval;
-    double *rb1val,*rb3val;
     double *UHval,*VHval,*WHval;
     double *vofval;
 
+    // decomp space
+    double **etaval_S_sin,**Fifsfval_S_sin;
+    float **uval_S_sin,**vval_S_sin,**wval_S_sin,**Fival_S_sin;
+    double **etaval_S_cos,**Fifsfval_S_cos;
+    float **uval_S_cos,**vval_S_cos,**wval_S_cos,**Fival_S_cos;
     
-    double **uval_S_sin,**vval_S_sin,**wval_S_sin,**etaval_S_sin,**Fival_S_sin,**Fifsfval_S_sin;
-    double **uval_S_cos,**vval_S_cos,**wval_S_cos,**etaval_S_cos,**Fival_S_cos,**Fifsfval_S_cos;
-    
+    // decomp time
     double *uval_T_sin,*vval_T_sin,*wval_T_sin,*etaval_T_sin,*Fival_T_sin,*Fifsfval_T_sin;
     double *uval_T_cos,*vval_T_cos,*wval_T_cos,*etaval_T_cos,*Fival_T_cos,*Fifsfval_T_cos;
     
@@ -331,6 +338,9 @@ private:
     double b0,b1;
     
     linear_regression_cont *linreg;
+    
+    
+    double cosh_func(double);
     
 };
 

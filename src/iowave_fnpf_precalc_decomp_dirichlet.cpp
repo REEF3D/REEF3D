@@ -80,29 +80,6 @@ void iowave::wavegen_precalc_decomp_dirichlet_fnpf(lexer *p, ghostcell *pgc)
         }
         
     
-    // beach
-    count=0;
-    FILOOP 
-    FJLOOP 
-    {
-
-		db = distbeach(p);
-        
-        FKLOOP 
-        FPCHECK
-        {
-                    
-            if(p->B99==1||p->B99==2)
-            {
-                // Zone 2
-                if(db<dist2)
-                {
-                rb3val[count] = rb3(p,db);
-                ++count;
-                }
-            }
-        }
-    }
    
 
 }

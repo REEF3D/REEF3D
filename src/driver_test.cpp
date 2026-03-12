@@ -228,10 +228,168 @@ void driver::func_test(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	
 }
 
+void driver::pos_test(lexer *p, fdm *a, ghostcell *pgc)
+{	
+    int q;
+    i=0;
+    
+    if(p->mpirank==0)
+    {
+    for(q=0; q<25; ++q)
+    cout<<"POS_C "<<double(q)*0.1*p->DXN[IP]<<" : "<<p->posc_i(double(q)*0.1*p->DXN[IP])<<endl;
+    
+    cout<<endl<<endl;
+    
+    for(q=0; q<25; ++q)
+    cout<<"POS_F "<<double(q)*0.1*p->DXP[IP]<<" : "<<p->posf_i(double(q)*0.1*p->DXN[IP])<<endl;
+    }
+}
+
+void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
+{
+    
+    field1 g(p);
+    
+    LOOP
+    g(i,j,k) = p->XN[IP1];
+    
+    pgc->start1(p,g,1);
+    
+    if(p->mpirank==0)
+    ULOOP
+    if(j==1 && k==20)
+    cout<<"CCIPOL1_X: "<<i<<" "<<p->XN[IP1]+0.5*p->DXN[IP]<<" "<<p->ccipol1(g,p->XN[IP1]+0.5*p->DXN[IP],0.2,0.1)<<endl;
+    
+    
+    ULOOP
+    g(i,j,k) = p->YP[JP];
+    
+    pgc->start1(p,g,1);
+    
+    if(p->mpirank==0)
+    ULOOP
+    if(i==5 && k==20)
+    cout<<"CCIPOL1_Y: "<<p->YP[JP]+0.25*p->DYN[JP]<<" "<<p->ccipol1(g,0.2,p->YP[JP]+0.25*p->DYN[JP],0.1)<<endl;
+    
+    
+    
+    ULOOP
+    g(i,j,k) = p->ZP[KP];
+    
+    pgc->start1(p,g,1);
+    
+    if(p->mpirank==0)
+    ULOOP
+    if(i==5 && j==20)
+    cout<<"CCIPOL1_Z: "<<p->ZP[KP]+0.25*p->DZN[KP]<<" "<<p->ccipol1(g,0.2,0.1,p->ZP[KP]+0.25*p->DZN[KP])<<endl;
+    
+    // -------------------
+    cout<<endl<<endl;
+    
+    field4 f(p);
+    
+    LOOP
+    f(i,j,k) = p->XP[IP];
+    
+    pgc->start4(p,f,1);
+    
+    if(p->mpirank==0)
+    LOOP
+    if(j==1 && k==20)
+    cout<<"CCIPOL4_X: "<<i<<" "<<p->XP[IP]+0.25*p->DXN[IP]<<" "<<p->ccipol4(f,p->XP[IP]+0.25*p->DXN[IP],0.2,0.1)<<endl;
+    
+    cout<<endl;
+    
+    LOOP
+    f(i,j,k) = p->YP[JP];
+    
+    pgc->start4(p,f,1);
+    
+    if(p->mpirank==0)
+    LOOP
+    if(i==5 && k==20)
+    cout<<"CCIPOL4_Y: "<<p->YP[JP]+0.25*p->DYN[JP]<<" "<<p->ccipol4(f,0.2,p->YP[JP]+0.25*p->DYN[JP],0.1)<<endl;
+    
+    cout<<endl;
+    
+    
+    LOOP
+    f(i,j,k) = p->ZP[KP];
+    
+    pgc->start4(p,f,1);
+    
+    if(p->mpirank==0)
+    LOOP
+    if(i==5 && j==20)
+    cout<<"CCIPOL4_Z: "<<p->ZP[KP]+0.25*p->DZN[KP]<<" "<<p->ccipol4(f,0.2,0.1,p->ZP[KP]+0.25*p->DZN[KP])<<endl;
+
+    cout<<endl;
+}
+
 double driver::calc()
 {
 	
 	val = (9.0 + nom*5.0)/nom;
 	
 	return val;
+}
+
+void driver::bedslope_test(lexer *p, ghostcell *pgc)
+{
+    double uvel,vvel,beta;
+    
+    int num = 100;
+    
+    
+    if(p->mpirank==0)
+    {
+	beta = bedslope_angle(p,pgc,1.0,0.5);
+    beta = bedslope_angle(p,pgc,-1.0,0.5);
+    beta = bedslope_angle(p,pgc,-1.0,-0.5);
+    beta = bedslope_angle(p,pgc,1.0,-0.5);
+    }
+
+}
+
+
+double driver::bedslope_angle(lexer *p, ghostcell *pgc, double uvel, double vvel)
+{
+    double beta;
+    
+	// 1
+	if(uvel>0.0 && vvel>0.0 && fabs(uvel)>1.0e-10)
+	beta = atan(fabs(vvel/uvel));
+
+	// 2
+	if(uvel<0.0 && vvel>0.0 && fabs(vvel)>1.0e-10)
+	beta = PI*0.5 + atan(fabs(uvel/vvel));
+
+	// 3
+	if(uvel<0.0 && vvel<0.0 && fabs(uvel)>1.0e-10)
+	beta = PI + atan(fabs(vvel/uvel));
+
+	// 4
+	if(uvel>0.0 && vvel<0.0 && fabs(vvel)>1.0e-10)
+	beta = 1.5*PI + atan(fabs(uvel/vvel));
+
+	//------
+
+	if(uvel>0.0 && fabs(vvel)<=1.0e-10)
+	beta = 0.0;
+
+	if(fabs(uvel)<=1.0e-10 && vvel>0.0)
+	beta = PI*0.5;
+
+	if(uvel<0.0 && fabs(vvel)<=1.0e-10)
+	beta = PI;
+
+	if(fabs(uvel)<=1.0e-10 && vvel<0.0)
+	beta = PI*1.5;
+
+	if(fabs(uvel)<=1.0e-10 && fabs(vvel)<=1.0e-10)
+	beta = 0.0;
+    
+    cout<<"UVEL: "<<uvel<<" VVEL: "<<vvel<<" BETA: "<<180.0*beta/PI<<endl;
+   
+    return beta;
 }

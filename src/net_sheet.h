@@ -45,8 +45,8 @@ public:
 	net_sheet(int, lexer*);
 	virtual ~net_sheet();
     
-	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d) override;
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d) override;
+	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool) override;
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool) override;
     
 	void initialize_cfd(lexer*, fdm*, ghostcell*) override;
     void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;

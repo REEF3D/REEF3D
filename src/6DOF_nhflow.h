@@ -50,6 +50,7 @@ public:
     
     void start_twoway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
     void start_oneway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
+    void start_wavemaker(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
     void start_shipwave(lexer*,fdm_nhf*,ghostcell*,int,bool);
        
 	void ini(lexer*,ghostcell*) override;

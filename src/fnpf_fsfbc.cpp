@@ -39,12 +39,15 @@ Author: Hans Bihs
 #include"fnpf_weno7.h"
 #include"fnpf_weno5_wd.h"
 #include"fnpf_wenoflux.h"
+#include"fnpf_hires.h"
 #include"fnpf_ddx_cds2.h"
 #include"fnpf_ddx_cds4.h"
 #include"sflow_bicgstab.h"
 #include"hypre_struct2D.h"
+#include"wind_f.h"
+#include"wind_v.h"
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(1.0e-6)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6)
 {    
     if(p->A311==0)
     {
@@ -95,7 +98,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_cds2(p);
+    pdx = new fnpf_hires(p);
     }
     
     if(p->A312==3)
@@ -105,7 +108,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     }
     
     
-    FFILOOP4
+    SLICELOOP4
     {
     c->Fy(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
@@ -115,16 +118,9 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     c->Byy(i,j) = 0.0;
     }
     
+    c->wd_criterion=p->A344;
     
-    c->wd_criterion=0.00005;
-    
-    if(p->A344==1)
-    c->wd_criterion=p->A344_val;
-    
-    if(p->A345==1)
-    c->wd_criterion=p->A345_val*p->DXM;
-    
-    if(p->A350==1)
+    if(p->A350>0)
     psolv =  new sflow_bicgstab(p,pgc);
     
     
@@ -140,6 +136,13 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),eps(
     gcval_eta = 155;
     gcval_fifsf = 160;
     }
+    
+    // wind forcing
+    if(p->A370==0)
+    pwind = new wind_v(p);
+    
+    if(p->A370>0)
+    pwind = new wind_f(p);
 }
 
 fnpf_fsfbc::~fnpf_fsfbc()
@@ -156,7 +159,7 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
-    FFILOOP4
+    SLICELOOP4
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
@@ -173,7 +176,7 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     
     // 2D
     if(p->i_dir==1 && p->j_dir==0)
-    FFILOOP4
+    SLICELOOP4
     {
     ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);    
     
@@ -191,7 +194,7 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
 {
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
-    FFILOOP4
+    SLICELOOP4
     {
     c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
     c->By(i,j) = pconvec->sy(p,c->depth,1.0);
@@ -202,7 +205,7 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     
     // 2D
     if(p->i_dir==1 && p->j_dir==0)
-    FFILOOP4
+    SLICELOOP4
     {
     c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);    
     c->Bxx(i,j) = pddx->sxx(p,c->depth);
@@ -243,7 +246,9 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
-
+                 
+    
+    pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
 }
 
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
@@ -253,9 +258,6 @@ void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
     p->wet[IJ]=1;
     
     pgc->gcsl_start4Vint(p,p->wet,50);
-    
-    SLICELOOP4
-    c->test2D(i,j) = double (p->wet[IJ]);
 }
 
 

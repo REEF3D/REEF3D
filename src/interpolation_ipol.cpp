@@ -557,6 +557,40 @@ double interpolation::ipol4_a( field& b)
     return value;
 }
 
+double interpolation::ipol4_a_slice(slice& b)
+{
+    if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+    value=0.5*(b(i,j)+b(i+1,j));
+    j=jj;
+    }
+                 
+                 
+    if(p->j_dir==1)
+    value=0.25*(b(i,j)+b(i,j+1)+b(i+1,j)+b(i+1,j+1));
+                 
+    return value;
+}
+
+double interpolation::ipol4_a_sliceint(sliceint& b)
+{
+    if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+    value=0.5*double(b(i,j)+b(i+1,j));
+    j=jj;
+    }
+                 
+                 
+    if(p->j_dir==1)
+    value=0.25*double(b(i,j)+b(i,j+1)+b(i+1,j)+b(i+1,j+1));
+                 
+    return value;
+}
+
 double interpolation::ipol4topo(fdm *a, field& b)
 {
     double epphi=2.6*p->DXM;

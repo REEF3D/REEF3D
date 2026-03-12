@@ -26,6 +26,7 @@ Author: Hans Bihs
 
 class lexer;
 class fdm_nhf;
+class fdm_fnpf;
 class ghostcell;
 class slice;
 
@@ -36,6 +37,8 @@ class wind
 public:
     virtual void wind_forcing_nhf_x(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&)=0;
     virtual void wind_forcing_nhf_y(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&)=0;
+    
+    virtual void wind_forcing_fnpf(lexer*, fdm_fnpf*, ghostcell*,slice&,slice&)=0;
 
     virtual void wind_forcing_ini(lexer*, ghostcell*)=0;
     

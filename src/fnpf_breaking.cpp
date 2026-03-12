@@ -25,252 +25,69 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void fnpf_breaking::breaking_algorithm(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
+fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p),
+                 S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), eta_old(p), brk_flag(p),k_smooth(p)
+
 {
-    int ii,jj;
-    
-    if(p->A350>=0)
-    if(p->count>count_n)
-    {
-    SLICELOOP4
-    c->breaking(i,j)=0;
-    
-    count_n=p->count;
-    }
-    
-    if(p->A350>=0)
-    SLICELOOP4
-    {
-    bx(i,j)=0;
-    by(i,j)=0;
-    }
-    
-    pgc->gcsl_start4int(p,c->breaking,50);
-    pgc->gcsl_start4int(p,bx,50);
-    pgc->gcsl_start4int(p,by,50);
+    // Default parameter values
+    eta_I    = 0.65;    // onset threshold coefficient
+    eta_F    = 0.15;    // cessation threshold coefficient
+    delta_b  = 1.2;     // mixing length coefficient
+    T_star   = 5.0;     // ramp-up time coefficient
+    alpha_eta = 0.0;    // KFSBC dissipation (0 = off)
     
     
-    if((p->A351==2 || p->A351==3) && p->count>1)
-    {
+    // Default parameters
+    a_coeff       = 0.5;
+    S0            = 0.08;
+    alpha_L       = 0.35;
+    T_star        = 3.0;
+    alpha_eta     = 0.0;
+    vb_max      = 10.0;
+    eta_t_thresh  = 0.0;
+    steep_method   = 2;
+    cspeed_method  = 1;
+    
     SLICELOOP4
     {
-            // x
-            if(c->Ex(i,j)   < -p->A355)
-            {
-                ii=i;
-                
-                bx(i,j) = 10;
-                bx(i+1,j) = 10;
-                bx(i-1,j) = 10;
-                bx(i-2,j) = 10;
-
-                i=ii;
-            }
-            
-            if(c->Ex(i,j)   > p->A355)
-            {
-                ii=i;
-                
-                bx(i,j) = 20;
-                bx(i-1,j) = 20;
-                bx(i+1,j) = 20;
-                bx(i+2,j) = 20;
-
-                i=ii;
-            }
-            
-            // y
-            if(p->j_dir==1)
-            if( c->Ey(i,j)   < -p->A355)
-            {
-                jj=j;
-                
-                by(i,j) = 10;
-                by(i,j+1) = 10;
-                by(i,j-1) = 10;
-                by(i,j-2) = 10;
-
-                j=jj;
-            }
-            
-            if(p->j_dir==1)
-            if( c->Ey(i,j)   > p->A355)
-            {
-                jj=j;
-                
-                by(i,j) = 20;
-                by(i,j-1) = 20;
-                by(i,j+1) = 20;
-                by(i,j+2) = 20;
-
-                j=jj;
-            }
-            
+        c->vb(i,j)       = 0.0;
+        S_local(i,j)    = 0.0;
+        b_strength(i,j) = 0.0;
+        c_phase(i,j)    = 1.0;
+        k_local(i,j)    = 0.01;
+        L_break(i,j)    = 1.0;
+        B_ramp(i,j)     = 0.0;
+        t_break(i,j)    = -1.0e20;
+        eta_old(i,j)    = c->eta(i,j);
+        eta_t(i,j)      = 0.0;
+        brk_flag(i,j)   = 0;
     }
-    
-    pgc->gcsl_start4int(p,bx,50);
-    pgc->gcsl_start4int(p,by,50);
-    
-    
-        SLICELOOP4
-        if(bx(i,j)>0 || by(i,j)>0)
-        {
-        c->breaking(i,j)=1;
-        }
-    }
-    
-    
-    
-    
-    if((p->A351==1 || p->A351==3) && p->count>1)
-    SLICELOOP4
-    if(p->wet[IJ]==1)
-    {
-            
-            if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
-            {
 
-                c->breaking(i-1,j)=2;
-                c->breaking(i-2,j)=2;
-                c->breaking(i,j)=2;
-                c->breaking(i+1,j)=2;
-                c->breaking(i+2,j)=2;
-                
-                if(p->j_dir==1)
-                {
-                c->breaking(i,j-2)=2;
-                c->breaking(i,j-1)=2;
-                c->breaking(i,j+1)=2;
-                c->breaking(i,j+2)=2;
-                }
-            }
-    }
-    
-    
-    
-    // -------------------
-    if(p->A350==1)
-    {
-        SLICELOOP4
-        c->vb(i,j) = 0.0;
-        
-        // coastline
-        SLICELOOP4
-        {
-            
-            if(c->coastline(i,j)>=0.0 && p->A346>0.0)
-            {
-                db = c->coastline(i,j);
-                
-                if(db<dist3)
-                {
-                c->vb(i,j) = rb3(p,db)*p->A346;
-            
-                }
-            }
-        }
-        
-        if(p->j_dir==0)
-        SLICELOOP4
-        {   
-            
-            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1)
-            c->vb(i,j) = p->A365*double(c->breaking(i,j));
-            
-            
-            if(c->breaking(i,j)==0 &&(c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1))
-            c->vb(i,j) = 0.5*p->A365;
-        }
+    pgc->gcsl_start4(p, c->vb, 1);
+    pgc->gcsl_start4(p, S_local, 1);
+    pgc->gcsl_start4(p, c_phase, 1);
+    pgc->gcsl_start4(p, k_local, 1);
 
-        if(p->j_dir==1)
-        SLICELOOP4
-        {   
-            
-            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
-            c->vb(i,j) = p->A365*double(c->breaking(i,j));
-            
-            if(c->breaking(i,j)==0 &&( c->breaking(i-1,j-1)>=1 || c->breaking(i-1,j+1)>=1 || c->breaking(i+1,j-1)>=1 || c->breaking(i+1,j+1)>=1
-           || c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1 || c->breaking(i,j-2)>=1 || c->breaking(i,j+2)>=1))
-            c->vb(i,j) = 0.5*p->A365;
-        }
-        
-        if(p->A352==1)
-        SLICELOOP4
-        if(c->breaking(i,j)==2)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-        if(p->A352==2)
-        SLICELOOP4
-        if(c->breaking(i,j)==1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-        if(p->A352==3)
-        SLICELOOP4
-        if(c->breaking(i,j)>=1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-    pgc->gcsl_start4(p,c->vb,1);
-    }
+
+    ini_done = 0;
+}
+
+fnpf_breaking::~fnpf_breaking()
+{
+}
+
+void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
+{
+    if(p->A350==1 && p->A343==0)
+    breaking_baquet(p, c, pgc, eta, eta_n, Fifsf, alpha);
+    
+    if(p->A350==1 && p->A343==1)
+    breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
     if(p->A350==2)
-    SLICELOOP4
-    {
-        if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-    }
+    breaking_kennedy(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
-    SLICELOOP4
-    c->breaklog(i,j)=0;
-    
-    // breaklog
-    int count=0;
-    
-    SLICELOOP4
-    if(c->breaking(i,j)>0)
-    {
-    c->breaklog(i,j)=1;
-    ++count;
-    }
-    
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"breaking: "<<count<<endl;
+    if(p->A350==3)
+    breaking_romero(p, c, pgc, eta, eta_n, Fifsf, alpha);
 }
 
-
-double fnpf_breaking::rb3(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist3-fabs(x))/(dist3);
-    x=MAX(x,0.0);
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-
-	return r;
-}
-
-double fnpf_breaking::rb4(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist4-fabs(x))/(dist4);
-    x=MAX(x,0.0);
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-
-	return r;
-}

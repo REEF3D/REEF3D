@@ -26,8 +26,9 @@ Author: Hans Bihs, Alexander Hanke
 #include"sediment_fdm.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
-#include"sandslide_f3.h"
 #include"sandslide_pde.h"
+#include"sandslide_steepest_descent.h"
+#include"sandslide_weighted_multidir.h"
 #include"sandslide_v.h"
 #include"vrans_f.h"
 #include"vrans_v.h"
@@ -47,34 +48,52 @@ void sediment_part::sediment_logic(lexer *p, ghostcell *pgc)
 
     s = new sediment_fdm(p);
 
+
     if(p->S90==1)
-        pslide = new sandslide_f(p);
-    else if(p->S90==2)
-        pslide = new sandslide_f2(p);
-    else if(p->S90==3)
-        pslide = new sandslide_f3(p);
-    else if(p->S90==4)
-        pslide = new sandslide_pde(p);
+    pslide=new sandslide_f(p);
+    
     else
-        pslide = new sandslide_v(p);
+    if(p->S90==2)
+    pslide=new sandslide_f2(p);
+    
+    else
+    if(p->S90==3)
+    pslide=new sandslide_steepest_descent(p);
+    
+    else
+    if(p->S90==4)
+    pslide=new sandslide_weighted_multidir(p);
+    
+    else
+    if(p->S90==5)
+    pslide=new sandslide_pde(p);
+    
+    else
+    pslide = new sandslide_v(p);
+
 
     if(p->S10==2 && p->A10==6)
-        pvrans = new vrans_f(p,pgc);
+    pvrans = new vrans_f(p,pgc);
+    
     else
-        pvrans = new vrans_v(p,pgc);
+    pvrans = new vrans_v(p,pgc);
 
     pslope = new bedslope(p);
 
     if(p->S80==1)
-        preduce = new reduction_parker(p);
+    preduce = new reduction_parker(p);
+        
     else if(p->S80==2)
-        preduce = new reduction_deyemp(p);
+    preduce = new reduction_deyemp(p);
+        
     else if(p->S80==3)
-        preduce = new reduction_deyana(p);
+    preduce = new reduction_deyana(p);
+        
     else if(p->S80==4)
-        preduce = new reduction_FD(p);
+    preduce = new reduction_FD(p);
+        
     else
-        preduce = new reduction_void(p);
+    preduce = new reduction_void(p);
 
     ptopo = new sediment_exner(p,pgc);
 

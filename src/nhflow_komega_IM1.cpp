@@ -75,6 +75,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
     bcomega_matrix(p,d,KIN,EPS);
+    bckomega_start(p,d,KIN,EPS,gcval_eps);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
     bckomega_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);

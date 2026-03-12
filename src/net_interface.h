@@ -39,11 +39,14 @@ public:
 	net_interface(lexer*, ghostcell*);
 	virtual ~net_interface();
 
-    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d) {};
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d) {};
+    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, bool) {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, bool) {};
 
-    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
-    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, 
+                        vector<double>&, vector<double>&, vector<double>&, vector<double>&, bool);
+                        
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, 
+                        vector<double>&, vector<double>&, vector<double>&, vector<double>&, bool);
     
 
     void dlm_cfd(lexer*, fdm*, ghostcell*, int);

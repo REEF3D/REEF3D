@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -20,38 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SANDSLIDE_F4_H_
-#define SANDSLIDE_F4_H_
+#ifndef NHFLOW_PROBE_VEL_H_
+#define NHFLOW_PROBE_VEL_H_
 
-#include"norm_vec.h"
-#include"bedslope.h"
-#include"slice4.h"
-#include"sandslide.h"
+#include"boundarycheck.h"
+#include<iostream>
+#include<fstream>
+
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class slice;
 
 using namespace std;
 
-class sandslide_f4 :  public sandslide, public norm_vec, public bedslope
+class nhflow_probe_vel : public boundarycheck
 {
 public:
-    sandslide_f4(lexer*);
-    virtual ~sandslide_f4();
+    nhflow_probe_vel(lexer*,fdm_nhf*);
+	virtual ~nhflow_probe_vel();
 
-	void start(lexer*,ghostcell*, sediment_fdm*) override;
+	void start(lexer*, fdm_nhf*, ghostcell*);
+
 
 private:
+    void ini_location(lexer*, fdm_nhf*);
 
-    void slide(lexer*,ghostcell*, sediment_fdm*,slice&);
 
-    slice4 fh,fhtot,bedzh0;
+	char name[100];
+
+    int *iloc,*jloc,*kloc,*flag;
+    int n,q;
+	const int probenum;
+    ofstream *pout;
+	
+	double uval,vval,wval,pval,kval,eval,edval,etaval;
     
-    int gcval_topo,count;
+    
+    
 
-    double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-    double phi;
-}; 
+};
 
 #endif
-

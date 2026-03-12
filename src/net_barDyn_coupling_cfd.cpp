@@ -169,9 +169,12 @@ void net_barDyn::coupling_dlm_cfd(lexer *p, fdm *a, ghostcell *pgc)
             // Save directional forces at lagrangian points (w/o density since multiplied later)
 
             lagrangeForces[i] = 0.5*area*pow(v_mag_corr,2.0)*(cd*n_d + cl*n_l);
+            
+            //cout<<lagrangeForces[i]<<endl;
 
             //lagrangeForces[i] << tri_forces[i][0], tri_forces[i][1], tri_forces[i][2];
         }
+        
         else
         {
             lagrangeForces[i] << 0.0, 0.0, 0.0;   

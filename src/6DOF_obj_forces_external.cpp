@@ -27,7 +27,7 @@ Author: Tobias Martin
 #include"mooring.h"
 #include"net_interface.h"
 
-void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
+void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
     
@@ -37,10 +37,10 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
 
     // Net forces
 	if (p->X320>0)
-	netForces_cfd(p,a,pgc,alpha);
+	netForces_cfd(p,a,pgc,alpha,finalize);
 }
 
-void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha)
+void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
 
@@ -48,10 +48,9 @@ void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, dou
 	if (p->X310>0)
 	mooringForces(p,pgc,alpha);
 
-	
     // Net forces
 	if (p->X320>0)
-	netForces_nhflow(p,d,pgc,alpha);
+	netForces_nhflow(p,d,pgc,alpha,finalize);
 }
 
 void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
@@ -97,9 +96,9 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
     }
 }
 
-void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
+void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {    
-    pnetinter->netForces_cfd(p,a,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
+    pnetinter->netForces_cfd(p,a,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
     
     NETLOOP
     {
@@ -113,9 +112,9 @@ void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha)
     }
 }
 
-void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
+void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, bool finalize)
 {
-    pnetinter->netForces_nhflow(p,d,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
+    pnetinter->netForces_nhflow(p,d,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
     
     NETLOOP
     {

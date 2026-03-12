@@ -104,6 +104,88 @@ void resize_class::Darray(double**& field, int numi, int* numj)
     }
 }
 
+void resize_class::Farray(float*& field, int numi)
+{
+    if(numi > 0)
+    {
+        field = new float[numi] {0.0};
+    }
+}
+
+void resize_class::Farray(float**& field, int numi, int numj)
+{    
+    if(numi > 0)
+    {
+        field = new float*[numi];
+
+        if(numj > 0)
+            for(int n = 0; n < numi; ++n)
+            {
+                field[n] = new float[numj] {0.0};
+            }
+    }
+}
+
+void resize_class::Farray(float***& field, int numi, int numj, int numk)
+{
+    if(numi > 0)
+    {
+        field = new float**[numi];
+
+        if(numj > 0)
+            for(int n = 0; n < numi; ++n)
+            {
+                field[n] = new float*[numj];
+                
+                if(numk > 0)
+                    for(int m = 0; m < numj; ++m)
+                    {
+                        field[n][m] = new float[numk] {0.0};
+                    }
+            }
+    }
+}
+
+void resize_class::Farray(float****& field, int numi, int numj, int numk, int numl)
+{
+    if(numi>0)
+    {
+        field = new float***[numi];
+
+        if(numj > 0)
+            for(int n = 0; n<numi; ++n)
+            {
+                field[n] = new float**[numj];
+
+                if(numk > 0)
+                    for(int m = 0; m < numj; ++m)
+                    {
+                        field[n][m] = new float*[numk];
+                        
+                        if(numl > 0)
+                            for(int q = 0; q < numk; ++q)
+                            {
+                                field[n][m][q] = new float[numl] {0.0};
+                            }
+                    }
+            }
+    }
+}
+
+void resize_class::Farray(float**& field, int numi, int* numj)
+{
+    if(numi > 0)
+    {
+        field = new float*[numi];
+
+        for(int n = 0; n < numi; ++n)
+        {
+            if(numj[n] > 0)
+                field[n] = new float[numj[n]] {0.0};
+        }
+    }
+}
+
 void resize_class::Iarray(int*& field, int numi)
 {
     if(numi>0)

@@ -26,9 +26,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
-    externalForces_cfd(p, a, pgc, alpha[iter]);
+    externalForces_cfd(p, a, pgc, alpha[iter], finalize);
     
     update_forces(p);
     
@@ -42,9 +42,9 @@ void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
     rkls3(p,pgc,iter);
 }
 
-void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
 {
-    externalForces_nhflow(p, d, pgc, alpha[iter]);
+    externalForces_nhflow(p, d, pgc, alpha[iter], finalize);
 
     update_forces(p);
     
@@ -55,7 +55,7 @@ void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int
     rk3(p,pgc,iter);
 }
 
-void sixdof_obj::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
     update_forces(p);
     
@@ -66,7 +66,7 @@ void sixdof_obj::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter)
     rk3(p,pgc,iter);
 }
 
-void sixdof_obj::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
     if(p->A510==2)
     rk2(p,pgc,iter);
@@ -75,7 +75,7 @@ void sixdof_obj::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter
     rk3(p,pgc,iter);       
 }
 
-void sixdof_obj::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int iter)
+void sixdof_obj::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
     if(p->A210==2)
     rk2(p,pgc,iter);
@@ -162,7 +162,7 @@ void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
     dek_ = de_;
 }
 
-void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc)
+void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc, bool finalize)
 {
     get_trans(p, pgc, dp_, dc_, p_, c_);    
     get_rot(p, dh_, de_, h_, e_);

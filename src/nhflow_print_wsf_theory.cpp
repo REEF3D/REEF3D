@@ -61,7 +61,7 @@ nhflow_print_wsf_theory::nhflow_print_wsf_theory(lexer *p, fdm_nhf *d, ghostcell
     for(n=0;n<gauge_num;++n)
     wsfout<<"\t P"<<n+1;
 
-    wsfout<<endl<<endl;
+    wsfout<<endl;
     }
 }
 

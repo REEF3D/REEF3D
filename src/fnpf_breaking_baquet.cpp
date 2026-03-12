@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fsfbc_wd.h"
+#include"fnpf_breaking.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
+void fnpf_breaking::breaking_baquet(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
     int ii,jj;
     int count;
@@ -50,7 +50,6 @@ void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    //cout<<p->mpirank<<" A351: "<<p->A351<<endl;
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
     loopcount=0;
@@ -175,7 +174,7 @@ void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
     SLICELOOP4
     {
             // x
-            if( bx(i+1,j) == 10 && bx(i,j) == 0 && c->Ex(i,j)   < -p->A356*p->A355)
+            if( bx(i+1,j)==10 && bx(i,j)==0 && c->Ex(i,j)   < -p->A356*p->A355)
             {
                 ii=i;
                 
@@ -199,7 +198,7 @@ void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
                 i=ii;
             }
             
-            if( bx(i-1,j) == 20 && bx(i,j) == 0 && c->Ex(i,j)   > p->A356*p->A355)
+            if( bx(i-1,j)==20 && bx(i,j)==0 && c->Ex(i,j)   > p->A356*p->A355)
             {
                 ii=i;
                 
@@ -226,7 +225,7 @@ void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
             
             // y
             if(p->j_dir==1)
-            if(by(i,j+1) == 10 && by(i,j) == 0 && c->Ey(i,j)   < -p->A356*p->A355)
+            if(by(i,j+1)==10 && by(i,j)==0 && c->Ey(i,j)   < -p->A356*p->A355)
             {
                 jj=j;
                 
@@ -251,7 +250,7 @@ void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
             }
             
             if(p->j_dir==1)
-            if(by(i,j-1) == 20 && by(i,j) == 0 && c->Ey(i,j)   > p->A356*p->A355)
+            if(by(i,j-1)==20 && by(i,j)==0 && c->Ey(i,j)   > p->A356*p->A355)
             {
                 jj=j;
                 
@@ -389,4 +388,23 @@ void fnpf_fsfbc_wd::breaking0(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta,
          filter(p,c,pgc,Fifsf);
         }   
     }
+    
+    SLICELOOP4
+    c->breaklog(i,j)=0;
+    
+    // breaklog
+    count=0; 
+    
+    SLICELOOP4
+    if(c->breaking(i,j)>0)
+    {
+    c->breaklog(i,j)=1;
+    ++count;
+    }
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
 }
+

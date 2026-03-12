@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2026 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,46 +20,49 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_VEL_PROBE_THEORY_H_
-#define NHFLOW_VEL_PROBE_THEORY_H_
+#include"ghostcell.h"
+#include"lexer.h"
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
-
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class slice;
-class ioflow;
-
-using namespace std;
-
-class nhflow_vel_probe_theory : public boundarycheck
+void ghostcell::gcsync()
 {
-public:
-    nhflow_vel_probe_theory(lexer*,fdm_nhf*);
-	virtual ~nhflow_vel_probe_theory();
+    MPI_Barrier(mpi_comm);
+}
 
-	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*);
+void ghostcell::gcwait(lexer* p)
+{
+	if(p->gcpara1_count>0)
+    {
+    MPI_Wait(&sreq1,&status);
+	MPI_Wait(&rreq1,&status);
+    }
 
+    if(p->gcpara4_count>0)
+    {
+    MPI_Wait(&sreq4,&status);
+	MPI_Wait(&rreq4,&status);
+    }
 
-private:
-    void ini_location(lexer*, fdm_nhf*);
+    if(p->gcpara3_count>0)
+    {
+	MPI_Wait(&sreq3,&status);
+	MPI_Wait(&rreq3,&status);
+    }
 
+    if(p->gcpara2_count>0)
+    {
+    MPI_Wait(&sreq2,&status);
+	MPI_Wait(&rreq2,&status);
+    }
 
-	char name[100];
+    if(p->gcpara5_count>0)
+    {
+    MPI_Wait(&sreq5,&status);
+	MPI_Wait(&rreq5,&status);
+    }
 
-    int *iloc,*jloc,*kloc,*flag;
-    int n,q;
-	const int probenum;
-    ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
-    
-    
-    
-
-};
-
-#endif
+    if(p->gcpara6_count>0)
+    {
+    MPI_Wait(&sreq6,&status);
+	MPI_Wait(&rreq6,&status);
+    }
+}

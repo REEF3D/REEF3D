@@ -41,14 +41,18 @@ public:
     
     void wind_forcing_nhf_x(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&) override;
     void wind_forcing_nhf_y(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&) override;
+    
+    void wind_forcing_fnpf(lexer*, fdm_fnpf*, ghostcell*,slice&,slice&) override;
 
     void wind_forcing_ini(lexer*, ghostcell*) override;
     
 private:
-    void wind_forcing_drag_coeff(lexer*);
+    void wind_forcing_drag_coeff_fnpf(lexer*);
+    void wind_forcing_drag_coeff_nhflow(lexer*);
     
     double Cd;
     double cosa,sina;
+    double Sx,Sy;
     double xs,xe,ys,ye;
     
     double Uref;

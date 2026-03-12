@@ -306,6 +306,8 @@ private:
     void Sendrecv_1D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    
+    void gcwait(lexer*);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
@@ -326,7 +328,12 @@ private:
     
     MPI_Request sreq[6],rreq[6];
     MPI_Status status;
-
+    
+    MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
+	MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
+    
+    const int tag1,tag2,tag3,tag4,tag5,tag6;
+    
     double v1,v2,v3,v4;
     double wa,wb;
     double x1,x2;

@@ -41,20 +41,20 @@ void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbu
     result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
     pnhfturb->name_ParaView_parallel(p,result);
     if(p->P74==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     if(p->P23==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
     if(p->P110==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P25==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
     if(p->P25==1 || p->P28==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>\n";
     if(p->P26==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
     if(p->P28==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
     result<<"</PPointData>\n";
 
     outputFormat->endingParallel(result,"NHFLOW",p->M10,num);

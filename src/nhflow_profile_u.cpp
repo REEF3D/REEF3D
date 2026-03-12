@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_u_profile.h"
+#include"nhflow_profile_u.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_u_profile::nhflow_u_profile(lexer *p, fdm_nhf *d) : probenum(p->P67)
+nhflow_profile_u::nhflow_profile_u(lexer *p, fdm_nhf *d) : probenum(p->P67)
 {
     p->Iarray(iloc,probenum);
     p->Iarray(jloc,probenum);
@@ -42,7 +42,7 @@ nhflow_u_profile::nhflow_u_profile(lexer *p, fdm_nhf *d) : probenum(p->P67)
     ini_location(p,d);
 }
 
-nhflow_u_profile::~nhflow_u_profile()
+nhflow_profile_u::~nhflow_profile_u()
 {
     for(n=0;n<probenum;++n)
     pout[n].close();
@@ -50,7 +50,7 @@ nhflow_u_profile::~nhflow_u_profile()
     delete [] pout;
 }
 
-void nhflow_u_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // prepare
     if(probenum>0)
@@ -108,7 +108,7 @@ void nhflow_u_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 }
 
-void nhflow_u_profile::ini_location(lexer *p, fdm_nhf *d)
+void nhflow_profile_u::ini_location(lexer *p, fdm_nhf *d)
 {
     int check;
     int ii,jj;

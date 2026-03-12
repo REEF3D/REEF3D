@@ -31,30 +31,30 @@ void sediment_f::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int i
 	
 	for(int qn=0;qn<outer_iter;++qn)
 	{
-		SLICELOOP4
+		SLICEBASELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
 		h(i,j) = f(i,j);
 		
 		pgc->gcsl_start4(p,h,1);
 	
         // predictor
-		SLICELOOP4
+		SLICEBASELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-		f(i,j) = 0.5*h(i,j) + 0.125*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
+		f(i,j) = p->S102*h(i,j) + (1.0-p->S102)*0.25*(h(i-1,j) + h(i+1,j) + h(i,j-1) + h(i,j+1));
 		
         // corrector
 		for(int qqn=0;qqn<inner_iter;++qqn)
 		{
-            SLICELOOP4
+            SLICEBASELOOP
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
             dh(i,j) = h(i,j) - f(i,j);
             
             
-            SLICELOOP4
+            SLICEBASELOOP
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
-            dh(i,j) = 0.5*dh(i,j) + 0.125*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
+            dh(i,j) = p->S102*dh(i,j) + (1.0-p->S102)*0.25*(dh(i-1,j) + dh(i+1,j) + dh(i,j-1) + dh(i,j+1));
             
-            SLICELOOP4
+            SLICEBASELOOP
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
             f(i,j) += dh(i,j);
 		}

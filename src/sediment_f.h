@@ -98,6 +98,8 @@ public:
     void active_sflow(lexer*, fdm2D*, ghostcell*);
     void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
     
+    void active_zone(lexer*, ghostcell*);
+    
     
     // ---
 

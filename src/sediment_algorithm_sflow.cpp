@@ -78,8 +78,8 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
 	prelax->start(p,pgc,s);
 	
     // filter bedzh *******
-	if(p->S100>0)
-	filter(p,pgc,s->bedzh,p->S100,p->S101);
+	//if(p->S100>0)
+	//filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update sflow  --------
     update_sflow(p,b,pgc,pflow);

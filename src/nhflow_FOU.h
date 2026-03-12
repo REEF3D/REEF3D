@@ -20,38 +20,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SANDSLIDE_F3_H_
-#define SANDSLIDE_F3_H_
+#ifndef NHFLOW_FOU_H_
+#define NHFLOW_FOU_H_
 
-#include"norm_vec.h"
-#include"bedslope.h"
-#include"slice4.h"
-#include"sandslide.h"
+#include"nhflow_convection.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"increment.h"
+
+class nhflow_flux_build;
+
+class patchBC_interface;
+class ghostcell;
 
 using namespace std;
 
-class sandslide_f3 :  public sandslide, public norm_vec, public bedslope
+class nhflow_FOU : public nhflow_convection, public increment
 {
-public:
-    sandslide_f3(lexer*);
-    virtual ~sandslide_f3();
 
-	void start(lexer*,ghostcell*, sediment_fdm*) override;
+public:
+
+	nhflow_FOU (lexer*,ghostcell*,patchBC_interface*);
+	virtual ~nhflow_FOU();
+
+    void start(lexer*&, fdm_nhf*&, int, slice&) override;
+    void precalc(lexer*, fdm_nhf*, int, slice&) override;
 
 private:
 
-    void slide(lexer*,ghostcell*, sediment_fdm*);
-	
-    slice4 fh;
+    void aij_U(lexer*&, fdm_nhf*&, int);
+    void aij_V(lexer*&, fdm_nhf*&, int);
+    void aij_W(lexer*&, fdm_nhf*&, int);
+    void aij_E(lexer*&, fdm_nhf*&, int);
     
-    int gcval_topo,count;
+    void FOU(lexer*&, fdm_nhf*&, double*, double*, double*, double*);
+    void FOU_E(lexer*&, fdm_nhf*&);
+    
+	double dx,dy,dz;
+	double udir,vdir,wdir;
+	double L;
+    double denom;
 
-    double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-    double phi;
-}; 
+    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+
+    ghostcell *pgc;
+    patchBC_interface *pBC;
+    nhflow_flux_build *pflux;
+};
 
 #endif
-

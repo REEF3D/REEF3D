@@ -33,7 +33,8 @@ void lexer::lexer_ini()
     omegamax=0.0;
 
     utime=vtime=wtime=0.0;
-    kintime=epstime=poissontime=lsmtime=susptime=printouttime=dftime=0.0;
+    kintime=epstime=lsmtime=susptime=printouttime=dftime=0.0;
+    poissontime=laplacetime=matrixtime=ptime=0.0;
     recontime=fsftime=0.0;
 
     uiter=viter=witer=0;

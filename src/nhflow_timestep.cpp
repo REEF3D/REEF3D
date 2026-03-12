@@ -158,7 +158,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    double depthmax;
+    double depthmax,wdt;
     
 	p->umax = p->vmax = p->wmax = 0.0;
     depthmax = -1e19;
@@ -232,6 +232,12 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
+    
+    if(p->B94==0)
+	wdt=p->phimean;
+
+	if(p->B94==1)
+	wdt=p->B94_wdt;
 
     
     if(p->mpirank==0 && (p->count%p->P12==0))
@@ -239,7 +245,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	cout<<"umax: "<<setprecision(5)<<p->umax<<endl;
 	cout<<"vmax: "<<setprecision(5)<<p->vmax<<endl;
 	cout<<"wmax: "<<setprecision(5)<<p->wmax<<endl;
-    cout<<"dmax: "<<setprecision(5)<<depthmax<<endl;
+    cout<<"depth_max: "<<setprecision(3)<<depthmax<<" |  wave depth: "<<wdt<<endl;
     }
     
     if(p->N48==0) 

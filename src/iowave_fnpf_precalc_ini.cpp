@@ -83,34 +83,23 @@ void iowave::fnpf_precalc_relax_ini(lexer *p, ghostcell *pgc)
     
     // precalc array alloc
     p->Darray(Fival,ppt_count);
-    p->Darray(rb1val,ppt_count);
-    p->Darray(rb3val,dbcount);
     p->Darray(Fifsfval,ept_count);
     p->Darray(Fifsfval0,ept_count);
     p->Darray(Fifsfval1,ept_count);
     
-    
     if(p->B89==1) 
     {
     p->Darray(etaval_S_sin,ept_count,wave_comp);
-    p->Darray(Fival_S_sin,ppt_count,wave_comp);
     p->Darray(Fifsfval_S_sin,ept_count,wave_comp);
-    p->Darray(uval_S_sin,ppt_count,wave_comp);
     
     p->Darray(etaval_S_cos,ept_count,wave_comp);
-    p->Darray(Fival_S_cos,ppt_count,wave_comp);
     p->Darray(Fifsfval_S_cos,ept_count,wave_comp);
-    p->Darray(uval_S_cos,ppt_count,wave_comp);
-    
+
     p->Darray(etaval_T_sin,wave_comp);
-    p->Darray(Fival_T_sin,wave_comp);
     p->Darray(Fifsfval_T_sin,wave_comp);
-    p->Darray(uval_T_sin,wave_comp);
     
     p->Darray(etaval_T_cos,wave_comp);
-    p->Darray(Fival_T_cos,wave_comp);
     p->Darray(Fifsfval_T_cos,wave_comp);
-    p->Darray(uval_T_cos,wave_comp);
     }
 
 }
@@ -161,19 +150,17 @@ void iowave::fnpf_precalc_dirichlet_ini(lexer *p, ghostcell *pgc)
     p->Darray(Fifsfval1,ept_count);
     p->Darray(uval,upt_count);
     
-    p->Darray(rb3val,dbcount);
-    
     if(p->B89==1) 
     {
     p->Darray(etaval_S_sin,ept_count,wave_comp);
-    p->Darray(Fival_S_sin,ppt_count,wave_comp);
+    p->Farray(Fival_S_sin,ppt_count,wave_comp);
     p->Darray(Fifsfval_S_sin,ept_count,wave_comp);
-    p->Darray(uval_S_sin,ppt_count,wave_comp);
+    p->Farray(uval_S_sin,ppt_count,wave_comp);
     
     p->Darray(etaval_S_cos,ept_count,wave_comp);
-    p->Darray(Fival_S_cos,ppt_count,wave_comp);
+    p->Farray(Fival_S_cos,ppt_count,wave_comp);
     p->Darray(Fifsfval_S_cos,ept_count,wave_comp);
-    p->Darray(uval_S_cos,ppt_count,wave_comp);
+    p->Farray(uval_S_cos,ppt_count,wave_comp);
     
     p->Darray(etaval_T_sin,wave_comp);
     p->Darray(Fival_T_sin,wave_comp);

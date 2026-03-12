@@ -81,9 +81,6 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->X50==2)
     print_stl(p,pgc);
 
-
-
-
 	// Mooring
 	if(p->X310==0)
 	{

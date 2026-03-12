@@ -77,9 +77,9 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
                         dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
                         
-                        test = forcesI(0)*D/(dx*dy*dz);
-                        a->Fext(i_it,j_it,k_it) -= test;
-
+                        a->Fext(i_it,j_it,k_it) -= forcesI(0)*D/(dx*dy*dz);
+                        
+                        
                         dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
                         dist = sqrt(pow(p->YN[j_it + 1 + marge] - coordI(1), 2.0))/dy;
@@ -87,8 +87,8 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
                         dist = sqrt(pow(p->ZP[k_it + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
                             
-                        test = forcesI(1)*D/(dx*dy*dz);
-                        a->Gext(i_it,j_it,k_it) -= test;
+                        a->Gext(i_it,j_it,k_it) -= forcesI(1)*D/(dx*dy*dz);
+                        
                         
                         dist = sqrt(pow(p->XP[i_it + marge] - coordI(0), 2.0))/dx;
                         D = kernel_peskin(dist);
@@ -97,8 +97,7 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
                         dist = sqrt(pow(p->ZN[k_it + 1 + marge] - coordI(2), 2.0))/dz;
                         D *= kernel_peskin(dist);
                          
-                        test = forcesI(2)*D/(dx*dy*dz);
-                        a->Hext(i_it,j_it,k_it) -= test;
+                        a->Hext(i_it,j_it,k_it) -= forcesI(2)*D/(dx*dy*dz);
                         
                     }
                 }

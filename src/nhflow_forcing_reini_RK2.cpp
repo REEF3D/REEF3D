@@ -38,7 +38,7 @@ void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
     WETDRY
 	dt[IJK] = 0.45*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
 
-	reiniter=5;
+	reiniter=3;
 	
 	if(p->count==0 && p->mpirank==0)
 	cout<<endl<<"initializing reini forcing..."<<endl<<endl;

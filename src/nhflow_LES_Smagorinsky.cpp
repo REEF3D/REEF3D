@@ -55,8 +55,6 @@ void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_
         s12 = (dudy(d->U) + dvdx(d->V));
         s13 = (dudz(d->U) + dwdx(d->W));
         s23 = (dvdz(d->V) + dwdy(d->W));
-        
-    d->test[IJK]=s11;
     }
 
     pgc->start24V(p,d->EV,24);

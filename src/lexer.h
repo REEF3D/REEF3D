@@ -257,10 +257,13 @@ public:
     double A250;
     
     // FNPF
-    int A310,A311,A312,A313,A320,A321,A322,A323,A329,A343,A344,A345,A347,A348;
-    double A340,A341,A342,A344_val,A345_val,A346,A349;
+    int A309,A310,A311,A312,A313,A320,A321,A322,A323,A329,A343,A345,A347,A348;
+    double A340,A341,A342,A344,A346,A349;
     int A350,A351,A352,A353,A357,A358,A361,A362,A363,A368;
-    double A354,A355,A356,A365; 
+    double A354,A355,A356,A365,A366; 
+    int A370,A372,A373,A374;
+    double A371_u,A371_dir;
+    double A372_xs,A372_xe,A372_ys,A372_ye;
     
     // NSEWAVE
     int A410;
@@ -309,7 +312,7 @@ public:
     int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
 	int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
-	double B29,B50,B51,B52,B53,B54,B55,B56,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
+	double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
 	double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
 	double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
 	double *B106_b,*B106_x,*B106_y;
@@ -421,7 +424,11 @@ public:
     double F96_xs,F96_xe;
     int F97;
     double F97_ys,F97_ye;
+    int F98;
     int F112;
+    
+    int F100;
+    double F101_nx,F101_ny,F101_nz,F101_s,F101_e;
 
     double *F112_xs,*F112_xe,*F112_ys,*F112_ye,*F112_zs,*F112_ze;
     int F113;
@@ -484,7 +491,7 @@ public:
     // Print options
     int P10,P11,P12,P15,P16,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
     int P61,P62,P63,P64,P65,P66,P67,P68,P69,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P101,P120,P121,P122,P123,P124,P125,P126;
-    int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195,P351,P352;
+    int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195;
     double P22,P30,P34,P39,P42;
     double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
@@ -528,6 +535,7 @@ public:
     int *P194_its,*P194_ite,*P194_dit;
     double *P195_ts,*P195_te,*P195_dt;
     int P230,P240,P250;
+    int P310,P311,P312,P351,P352;
     double *P230_x,*P240_x;
 	double *P351_x,*P351_y;
 	double *P352_x,*P352_y;
@@ -577,9 +585,11 @@ public:
     
 
 	// Sediment Transport
-	int S10,S11,S12,S15,S16,S17,S25,S27,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101;
-	double S13,S14,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93;
+	int S10,S11,S12,S15,S16,S17,S25,S27,S28,S29,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S74,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101;
+	double S13,S14,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S102;
+    double S29_ts,S29_te,S29_dts,S29_dte;
 	double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
+    double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
     double S77_xs,S77_xe;
 
 	// Turbulence
@@ -627,7 +637,8 @@ public:
 	//Eigen::Matrix3d quatRotMat;	
     int X10,X12,X14,X15,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
-    int X100,X101,X102,X103,X141,X142,X143,X153,X180,X181,X182,X183,X210,X211;
+    int X100,X101,X102,X103,X141,X142,X143,X153,X170,X171,X172;
+    int X180,X181,X182,X183,X210,X211;
     int X310, X311, X312, X313, X314, X315, X320, X321, mooring_count, net_count;
     int X20;
     double X21_d,X22_m;
@@ -662,6 +673,9 @@ public:
     double *X164_x6,*X164_y6,*X164_z6;
     double *X164_x7,*X164_y7,*X164_z7;
     double *X164_x8,*X164_y8,*X164_z8;
+    double X170_xs,X170_xe,X170_ys,X170_ye,X170_zs,X170_ze;
+    double X171_xs,X171_xe,X171_ys,X171_ye,X171_zs,X171_z1,X171_ze;
+    double X172_xs,X172_xe,X172_ys,X172_ye,X172_zs,X172_z1,X172_z2,X172_ze;
     double X181_x,X181_y,X181_z;
     double X182_x,X182_y,X182_z;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
@@ -739,7 +753,7 @@ public:
     double recontime,fsftime;
     double dftime;
 	double kintime,epstime;
-	double poissontime, laplacetime;
+	double poissontime, laplacetime, matrixtime, ptime;
     double sftime,fbtime,fsitime;
     double fbdt,fbmax;
     double sfdt,sfmax;
@@ -759,7 +773,7 @@ public:
 
 	// wave coefficients
 	double wT,wV,wH,wA,wL,wd,ww,wk,wC;
-	double wHs,wAs,wwp,ww_s,ww_e,wTp;
+	double wHs,wAs,wwp,ww_s,ww_e,wTp,wLp;
 	int wN;
     double wts,wte;
     

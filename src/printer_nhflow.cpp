@@ -35,9 +35,10 @@ Author: Hans Bihs
 #include"nhflow_print_wsfline_y.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
-#include"nhflow_u_profile.h"
-#include"nhflow_vel_probe.h"
-#include"nhflow_vel_probe_theory.h"
+#include"nhflow_profile_u.h"
+#include"nhflow_probe_vel.h"
+#include"nhflow_probe_vel_theory.h"
+#include"nhflow_probe_press.h"
 #include"nhflow_print_Hs.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_force.h"
@@ -101,15 +102,18 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline = new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y = new nhflow_print_wsfline_y(p,d,pgc);
-
+    
+    if(p->P64>0)
+    ppressprobe=new nhflow_probe_press(p,d);
+    
     if(p->P65>0)
-        pvel=new nhflow_vel_probe(p,d);
+    pvel=new nhflow_probe_vel(p,d);
 
     if(p->P67>0)
-        puprofile = new nhflow_u_profile(p,d);
+    puprofile = new nhflow_profile_u(p,d);
 
     if(p->P66>0)
-        pveltheo = new nhflow_vel_probe_theory(p,d);
+    pveltheo = new nhflow_probe_vel_theory(p,d);
 
     prunupx = new nhflow_print_runup_gage_x(p,d,pgc);
 
@@ -138,10 +142,10 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     }
 
     if(p->P110==1)
-        phs = new nhflow_print_Hs(p,d->Hs);
+    phs = new nhflow_print_Hs(p,d->Hs);
 
     if(p->P180==1)
-        pfsf = new nhflow_vtp_fsf(p,d,pgc);
+    pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
     pbed = new nhflow_vtp_bed(p);
 }
@@ -150,25 +154,28 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
 {
     // Gages
     if(p->P51>0)
-        pwsf->height_gauge(p,d,pgc,d->eta);
+    pwsf->height_gauge(p,d,pgc,d->eta);
 
     if(p->P50>0)
-        pwsf_theory->height_gauge(p,d,pgc,pflow);
+    pwsf_theory->height_gauge(p,d,pgc,pflow);
 
     if(p->P110==1)
-        phs->start(p,pgc,d->eta,d->Hs);
+    phs->start(p,pgc,d->eta,d->Hs);
 
     if(p->P133>0)
-        prunupx->start(p,d,pgc,pflow,d->eta);
+    prunupx->start(p,d,pgc,pflow,d->eta);
 
     if(p->P134>0)
-        prunupmaxx->start(p,d,pgc,pflow,d->eta);
-
+    prunupmaxx->start(p,d,pgc,pflow,d->eta);
+    
+    if(p->P64>0)
+    ppressprobe->start(p,d,pgc);
+    
     if(p->P65>0)
-        pvel->start(p,d,pgc);
+    pvel->start(p,d,pgc);
 
     if(p->P66>0)
-        pveltheo->start(p,d,pgc,pflow);
+    pveltheo->start(p,d,pgc,pflow);
 
     pfsf->preproc(p,d,pgc);
 

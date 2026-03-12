@@ -75,31 +75,6 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
             ++count;
             }
         }
-        
-        
-    count=0;
-    FILOOP 
-    FJLOOP 
-    {
-
-		db = distbeach(p);
-        
-        FKLOOP 
-        FPCHECK
-        {
-                    
-            if(p->B99==1||p->B99==2)
-            {
-                // Zone 2
-                if(db<dist2)
-                {
-                rb3val[count] = rb3(p,db);
-                ++count;
-                }
-            }
-        }
-    }
-        
 }
 
 

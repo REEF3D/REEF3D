@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_vel_probe.h"
+#include"nhflow_probe_press.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_vel_probe::nhflow_vel_probe(lexer *p, fdm_nhf *d) : probenum(p->P65)
+nhflow_probe_press::nhflow_probe_press(lexer *p, fdm_nhf *d) : probenum(p->P64)
 {
 
     p->Iarray(iloc,probenum);
@@ -47,7 +47,7 @@ nhflow_vel_probe::nhflow_vel_probe(lexer *p, fdm_nhf *d) : probenum(p->P65)
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		sprintf(name,"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Vel-Probe-%i.dat",n+1);
+		sprintf(name,"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Probe_Press-%i.dat",n+1);
 		
 		pout[n].open(name);
         
@@ -56,7 +56,7 @@ nhflow_vel_probe::nhflow_vel_probe(lexer *p, fdm_nhf *d) : probenum(p->P65)
 	    pout[n]<<"Vel Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
-		pout[n]<<n+1<<"\t "<<p->P65_x[n]<<"\t "<<p->P65_y[n]<<"\t "<<p->P65_z[n]<<endl;
+		pout[n]<<n+1<<"\t "<<p->P64_x[n]<<"\t "<<p->P64_y[n]<<"\t "<<p->P64_z[n]<<endl;
 
 		pout[n]<<endl<<endl;
 		
@@ -67,7 +67,7 @@ nhflow_vel_probe::nhflow_vel_probe(lexer *p, fdm_nhf *d) : probenum(p->P65)
 	
 }
 
-nhflow_vel_probe::~nhflow_vel_probe()
+nhflow_probe_press::~nhflow_probe_press()
 {
     for(n=0;n<probenum;++n)
     pout[n].close();
@@ -75,7 +75,7 @@ nhflow_vel_probe::~nhflow_vel_probe()
     delete [] pout;
 }
 
-void nhflow_vel_probe::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double xp,yp,zp;
     
@@ -83,30 +83,34 @@ void nhflow_vel_probe::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	for(n=0;n<probenum;++n)
 	{
-	uval=vval=wval=-1.0e20;
+	pval=-1.0e20;
 	
 		if(flag[n]>0)
 		{
-		xp=p->P65_x[n];
-		yp=p->P65_y[n];
-		zp=p->P65_z[n];
+		xp=p->P64_x[n];
+		yp=p->P64_y[n];
+		zp=p->P64_z[n];
     
-		uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, zp);
-		vval = p->ccipol4V(d->V, d->WL, d->bed, xp, yp, zp);
-		wval = p->ccipol4V(d->W, d->WL, d->bed, xp, yp, zp);
+		pdyn = p->ccipol4V(d->P, d->WL, d->bed, xp, yp, zp);
+         etaval = p->ccslipol4(d->eta,xp,yp);  
+         phs = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
+         
+         pval = pdyn + phs;
+         
+         if(zp > p->wd + etaval)
+         pval = 0.0;
 		}
 	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
+	pval=pgc->globalmax(pval);
+
 
 	
 	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
+	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<pval<<endl;
 	}	
 }
 
-void nhflow_vel_probe::ini_location(lexer *p, fdm_nhf *d)
+void nhflow_probe_press::ini_location(lexer *p, fdm_nhf *d)
 {
     int check;
 
@@ -114,15 +118,15 @@ void nhflow_vel_probe::ini_location(lexer *p, fdm_nhf *d)
     {
     check=0;
     
-    iloc[n]=p->posc_i(p->P65_x[n]);
+    iloc[n]=p->posc_i(p->P64_x[n]);
     
     if(p->j_dir==0)
     jloc[n]=0;
     
     if(p->j_dir==1)
-    jloc[n]=p->posc_j(p->P65_y[n]);
+    jloc[n]=p->posc_j(p->P64_y[n]);
     
-	//kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P65_z[n]);
+	//kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P64_z[n]);
     //check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
     
     if(iloc[n]>=0 && iloc[n]<p->knox)

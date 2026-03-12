@@ -20,45 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_VEL_PROBE_H_
-#define NHFLOW_VEL_PROBE_H_
+#include"iowave.h"
+#include"lexer.h"
+#include"fdm.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
-
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class slice;
-
-using namespace std;
-
-class nhflow_vel_probe : public boundarycheck
+double iowave::cosh_func(double x)
 {
-public:
-    nhflow_vel_probe(lexer*,fdm_nhf*);
-	virtual ~nhflow_vel_probe();
-
-	void start(lexer*, fdm_nhf*, ghostcell*);
-
-
-private:
-    void ini_location(lexer*, fdm_nhf*);
-
-
-	char name[100];
-
-    int *iloc,*jloc,*kloc,*flag;
-    int n,q;
-	const int probenum;
-    ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
+    if(x<3.0)
+    {
+    double x2 = x * x;
+    double num = 1.0 + x2 * (115.0/252.0 + x2 * (313.0/15120.0));
+    double den = 1.0 + x2 * (-11.0/252.0 + x2 * (13.0/15120.0));
+    return num / den;
+    }
     
+    else if(x>=3.0 && x<20.0)
+    {
+    double e = exp(x);
+    return 0.5 * (e + 1.0/e);
+    }
     
-    
-
-};
-
-#endif
+    else if(x>20.0)
+    return 0.5 * exp(x);
+}

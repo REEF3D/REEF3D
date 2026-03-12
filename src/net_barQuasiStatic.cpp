@@ -33,7 +33,7 @@ net_barQuasiStatic::~net_barQuasiStatic()
 {    
 }
 
-void net_barQuasiStatic::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+void net_barQuasiStatic::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1=pgc->timer();     
     
@@ -98,6 +98,7 @@ void net_barQuasiStatic::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alph
     cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
     
 	//- Build and save net	
+    if(finalize==true)
 	print(p);	
  
     
@@ -108,7 +109,7 @@ void net_barQuasiStatic::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alph
     if (p->mpirank==0) cout<<"Net time: "<<endtime1<<endl;    
 }
 
-void net_barQuasiStatic::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+void net_barQuasiStatic::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1=pgc->timer();     
     
@@ -173,6 +174,7 @@ void net_barQuasiStatic::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
     cout<<"Number of iterations = "<<iter<<setprecision(5)<<" with error = "<<error<<endl;
     
 	//- Build and save net	
+    if(finalize==true)
 	print(p);	
  
     

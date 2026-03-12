@@ -54,7 +54,7 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     xip= p->XN[IP1];
 	yip= p->YP[JP];
-    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[KP];
     
     s->P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
     }
@@ -65,7 +65,7 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     xip= p->XP[IP];
 	yip= p->YN[JP1];
-    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[KP];
     
     s->Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
     }

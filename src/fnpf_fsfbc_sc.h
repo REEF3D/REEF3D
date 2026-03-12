@@ -49,7 +49,6 @@ public:
     void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
     void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override {};
     void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override {};
-    void breaking0(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override {};
     void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override {};
     void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override {};
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override {};

@@ -93,9 +93,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK2,VHRK2,WHRK2,WLRK1);
 		
 //Step 1
-//--------------------------------------------------------
-    p->RK_alpha = 1.0;
-    
+//--------------------------------------------------------    
     sigma_update(p,d,pgc,d->WL);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
@@ -104,11 +102,10 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     // FSF
     starttime=pgc->timer();
-    
     pconvec->start(p,d,4,d->eta);
+    
     pfsf->rk3_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
-    
     p->fsftime+=pgc->timer()-starttime;
     
 	// U

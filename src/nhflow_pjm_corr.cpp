@@ -63,10 +63,15 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 {
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<".";
+    
+        starttime=pgc->timer();
 
     rhs(p,d,pgc,d->U,d->V,d->W,alpha);
 
     ppois->start(p,d,PCORR);
+    
+        p->matrixtime+=pgc->timer()-starttime;
+
 
         starttime=pgc->timer();
 
@@ -85,10 +90,12 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
     p->poissoniter=p->solveriter;
 
-	p->poissontime=endtime-starttime;
+	p->ptime=endtime-starttime;
+    p->poissontime+=p->ptime;
+    
 
 	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
 }
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, double *PCORR, double alpha)
@@ -96,6 +103,10 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, doub
 	FLOOP
     WETDRYDEEP
     P[FIJK] += PCORR[FIJK];
+    
+    /*LOOP
+    WETDRYDEEP
+    d->test[IJK] = PCORR[FIJK];*/
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -110,7 +121,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     double dWdz;
     
     n=0;
-     FBASELOOP
+    FBASELOOP
     {
 	d->rhsvec.V[n]=0.0;
     PCORR[FIJK]=0.0;
@@ -228,7 +239,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-    d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
+    d->F[IJK] += PORVALNH*d->eta(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
                 
     LOOP
@@ -247,7 +258,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     if(p->j_dir==1)
     LOOP
     WETDRY
-	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
+	d->G[IJK] += PORVALNH*d->eta(i,j)*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
        
     if(p->j_dir==1) 

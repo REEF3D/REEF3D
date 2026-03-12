@@ -40,8 +40,8 @@ public:
     
     typedef vector<Eigen::Vector3d> EigenMat;
         
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool)=0;
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool)=0;
     
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*)=0;

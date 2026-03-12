@@ -144,18 +144,46 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.s[n] = 0.0;
             }
             
+            // pjm inflow
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==1)
+            {
+            //d->M.p[n] += d->M.s[n];
+            //d->M.s[n] = 0.0;
+            
+            if(p->B76==0)
             {
             pval=0.0;
             d->rhsvec.V[n] -= d->M.s[n]*pval;
             d->M.s[n] = 0.0;
             }
             
+            if(p->B76==1)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
+            d->M.s[n] = 0.0;
+            }
+            }
+            
+            // pcorr inflow
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==2)
+            {
+            //d->M.p[n] += d->M.s[n];
+            //d->M.s[n] = 0.0;
+            
+            if(p->B76==0)
             {
             pval=0.0;
             d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
             d->M.s[n] = 0.0;
+            }
+            
+            if(p->B76==1)
+            {
+            pval=d->P[FIJK];
+            
+            d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
+            d->M.s[n] = 0.0;
+            }
             }
             
             // North

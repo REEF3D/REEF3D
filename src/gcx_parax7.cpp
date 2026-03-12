@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 void ghostcell::gcparax7(lexer* p, double *&f, int gcv)
 {
+    starttime=timer();
+    
     paramargin=2;
 
     //  FILL SEND
@@ -134,4 +136,6 @@ void ghostcell::gcparax7(lexer* p, double *&f, int gcv)
         f[FIJp2K] = recv2[count];
         ++count;
     }
+    
+    p->xtime+=timer()-starttime;
 }

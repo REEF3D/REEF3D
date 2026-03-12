@@ -61,9 +61,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	
     if(p->S16==1)
     {
-    dist = 0.5*p->DZN[KP];
+    dist = p->DZN[KP];
     
-    zval = s->bedzh(i,j) + dist;
+    zval = s->bedzh(i,j) + 1.6*dist;
     
 
     uvel=p->ccipol1(a->u,xip,yip,zval);

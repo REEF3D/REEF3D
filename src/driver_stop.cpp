@@ -67,7 +67,13 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     {
     
         if(p->mpirank==0)
+        {
         cout<<endl<<"!!! EMERGENCY STOP  --  velocities exceeding critical value N 61  !!!"<<endl<<endl;
+        
+        cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
+        cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
+        cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+        }
     
         if(p->A10==3)
         pprint->print_stop(p,c,pgc);
@@ -89,8 +95,6 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
     {
         if(p->mpirank==0)
         cout<<endl<<"!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     "<<p->solver_error<<endl<<endl;
-        
-        printf("\a");
         
         if(p->A10==3)
         pprint->print_stop(p,c,pgc);

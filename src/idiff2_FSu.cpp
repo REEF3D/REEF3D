@@ -97,7 +97,7 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	 a->M.b[n] = -visc_ddz_m/(p->DZP[KM1]*p->DZN[KP]);
 	 a->M.t[n] = -visc_ddz_p/(p->DZP[KP]*p->DZN[KP]);
      
-     if(p->DF1[IJK]<0 && p->D22==1)
+     if(p->DF1[IJK]<0)
      {
         a->M.p[n]  =  1.0;
 

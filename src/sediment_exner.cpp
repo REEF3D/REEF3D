@@ -103,6 +103,9 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     if(p->S31==3)
     topovel3(p,pgc,s);
+    
+    if(p->S100>0)
+	filter(p,pgc,s->vz,p->S100,p->S101);
 
 	
     // Bedch
@@ -110,8 +113,10 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
 
     SEDSLICELOOP
-    s->dh(i,j) = (1.0/12.0)*(23.0*p->dtsed*s->vz(i,j) - 16.0*dh1(i,j) + 5.0*dh2(i,j));
+    s->dh(i,j) = p->dtsed*s->vz(i,j);
 
+    //SEDSLICELOOP
+    //s->dh(i,j) = (1.0/12.0)*(23.0*p->dtsed*s->vz(i,j) - 16.0*dh1(i,j) + 5.0*dh2(i,j));
 	
 	SEDSLICELOOP
     {

@@ -34,8 +34,11 @@ net_barDyn::~net_barDyn()
 {
 }
 
-void net_barDyn::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+void net_barDyn::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
+    if(p->mpirank==0)
+    cout<<"dynamic net"<<endl;
+    
     double starttime1 = pgc->timer();    
 
 	//- Set net time step
@@ -65,10 +68,11 @@ void net_barDyn::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen
     coupling_dlm_cfd(p,a,pgc);
 
 	//- Build and save net
+    if(finalize==true)
 	print(p);	
 }
 
-void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat)
+void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1 = pgc->timer();    
 
@@ -99,9 +103,9 @@ void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha
     coupling_dlm_nhflow(p,d,pgc);
 
 	//- Build and save net
+    if(finalize==true)
 	print(p);	
 }
-
 
 void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)
 {
@@ -129,6 +133,7 @@ void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)
 
         iter = 1;
     }
+
     else
     {
         //- Solve non-linear system

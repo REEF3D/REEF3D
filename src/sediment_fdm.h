@@ -50,7 +50,7 @@ public:
     slice4 shields_eff, shields_crit;
     
     slice4 alpha,teta,gamma,beta,phi;
-    slice4 active;
+    sliceint4 active;
     
     
     sliceint4 bedk;

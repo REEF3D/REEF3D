@@ -112,7 +112,7 @@ void nhflow_print_wsfline_y::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow 
 		wsfout<<"\t \t W "<<q+1;
 		}
 
-		wsfout<<endl<<endl;
+		wsfout<<endl;
     }
 
     //-------------------

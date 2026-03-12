@@ -27,10 +27,14 @@ Author: Hans Bihs
 
 double iowave::rb1_ext(lexer *p, int var)
 {
-    double x0,y0,denom,r;
-	double dist=1.0e20;
+    double x0,y0,denom,r,xdist;
+	double dist;
     int test1,test2,test_all;    
     int count;
+    
+    dist=1.0e20;
+    
+    x=-1.0e20;
     
     if(var==1)
     {
@@ -70,30 +74,70 @@ double iowave::rb1_ext(lexer *p, int var)
         denom = sqrt(pow(Ge[qn][1]-Gs[qn][1],2.0) + pow(Ge[qn][0]-Gs[qn][0],2.0));
         denom = denom>1.0e-20?denom:1.0e20;
         
-        x = MIN(fabs((Ge[qn][1]-Gs[qn][1])*x0 - (Ge[qn][0]-Gs[qn][0])*y0 
+        xdist = MIN(fabs((Ge[qn][1]-Gs[qn][1])*x0 - (Ge[qn][0]-Gs[qn][0])*y0 
                   + Ge[qn][0]*Gs[qn][1] - Ge[qn][1]*Gs[qn][0])/denom,dist);
         
         // relax
-        dist1 = p->B108_d[qn]; 
-        
-        x=1.0-x/dist1;
+        x=MAX(1.0-xdist/p->B108_d[qn],x);
         x=MAX(x,0.0);
-        
-        r += 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
 
         ++count;
+        }
+        
+        if(test_all==1)
+        {
+        r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
         }
     }  
     
     if(test_all==0)
     r=1.0;
      
-    if(test_all==1)
-    r/=double(count);
-
-    
-      
     return r;
+}
+
+int iowave::rb1_flag(lexer *p, int var)
+{
+    double x0,y0,denom,xdist;
+	double dist;
+    int test1,test2;    
+    
+    int flag;
+
+    if(var==1)
+    {
+    x0 = p->pos1_x();
+    y0 = p->pos1_y();
+    }
+    
+    if(var==2)
+    {
+    x0 = p->pos2_x();
+    y0 = p->pos2_y();
+    }
+    
+    if(var==3||var==4)
+    {
+    x0 = p->pos_x();
+    y0 = p->pos_y();
+    }
+    
+
+    flag = 0;
+    
+    for(int qn=0;qn<p->B108;++qn)
+    {
+    test1=0;
+    test2=0;
+    
+    test1=intriangle(p,G1[qn][0],G1[qn][1],G3[qn][0],G3[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+    test2=intriangle(p,G3[qn][0],G3[qn][1],G4[qn][0],G4[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+
+        if(test1==1||test2==1)
+        flag=1;
+    }  
+    
+    return flag;
 }
 
 double iowave::rb3_ext(lexer *p, int var)

@@ -56,8 +56,8 @@ void driver::loop_fnpf()
         cout<<"------------------------------------"<<endl;
         cout<<p->count<<endl;
         
-        cout<<"simtime: "<<p->simtime<<endl;
-		cout<<"timestep: "<<p->dt<<endl;
+        cout<<"simtime: "<<setprecision(6)<<p->simtime<<endl;
+        cout<<"timestep: "<<setprecision(4)<<p->dt<<endl;
         
 		if(p->B90>0 && p->B92<=11)
 		cout<<"t/T: "<<p->simtime/p->wT<<endl;
@@ -73,7 +73,7 @@ void driver::loop_fnpf()
         c->breaklog(i,j)=0;
 
 
-        // PFLOW
+        // FNPF
 		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
         
         // printer
@@ -85,11 +85,15 @@ void driver::loop_fnpf()
         
 
         // Shell-Printout
-        if(p->mpirank==0)
-        {
+        
         endtime=pgc->timer();
         
 		p->itertime=endtime-starttime;
+        
+        p->itertime = pgc->globalmax(p->itertime);
+        p->gctime = pgc->globalmax(p->gctime);
+        p->xtime = pgc->globalmax(p->xtime);
+        
 		p->totaltime+=p->itertime;
 		p->gctotaltime+=p->gctime;
 		p->Xtotaltime+=p->xtime;
@@ -97,12 +101,14 @@ void driver::loop_fnpf()
 		p->gcmeantime=(p->gctotaltime/double(p->count));
 		p->Xmeantime=(p->Xtotaltime/double(p->count));
 		
-		if(p->B90>0)
+        if(p->mpirank==0)
+        {
         if(p->count%p->P12==0)
         {
+        if(p->B90>0)
 		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
 		
-		cout<<"reinitime: "<<setprecision(3)<<p->reinitime<<endl;
+		cout<<"laplacetime: "<<setprecision(3)<<p->laplacetime<<"   laplace cost: "<<100.0*p->laplacetime/p->itertime<<" %"<<endl;
         cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
         cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
 		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
@@ -114,6 +120,7 @@ void driver::loop_fnpf()
     p->xtime=0.0;
 	p->reinitime=0.0;
 	p->wavecalctime=0.0;
+    p->laplacetime=0.0;
     
     stop(p,a,pgc);
 	}

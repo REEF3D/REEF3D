@@ -28,7 +28,12 @@ Author: Tobias Martin
 void net_barDyn::getForces(lexer *p)
 {
     // Reset matrix
-    forces_knot *= 0.0;
+    for (int i = 0; i < nK; i++)
+    {
+    forces_knot(i, 0) = 0.0;
+    forces_knot(i, 1) = 0.0;
+    forces_knot(i, 2) = 0.0;
+    }
 
     // Add gravity
     gravityForce(p); 
@@ -38,7 +43,7 @@ void net_barDyn::getForces(lexer *p)
     
     // Add drag
     dragForce(p);  
-    
+
     // Relax forces
     forces_knot.col(0) -= xdot_.col(0)*p->X325_relX;
     forces_knot.col(1) -= xdot_.col(1)*p->X325_relY;
@@ -54,7 +59,6 @@ void net_barDyn::gravityForce(lexer *p)
         forces_knot(i, 2) += -9.81*(mass_knot(i) - weight_knot(i));
     }
 }
-
 
 void net_barDyn::inertiaForce(lexer *p)
 {   
@@ -75,11 +79,11 @@ void net_barDyn::inertiaForce(lexer *p)
             forces_knot(kI,2) += (1.0 + c_a)*weight_knot(kI)*(coupledField[kI][2] - coupledFieldn[kI][2])/dt_;   
     
             index++;
+            
+            //cout<<weight_knot(kI)<<endl;
         }
-
     }
 }
-
 
 void net_barDyn::dragForce(lexer *p)
 {    
@@ -355,6 +359,7 @@ void net_barDyn::screenForceCoeff
         cl = a*theta*theta + b*theta;
     }
 }
+
 
 void net_barDyn::netForces(lexer *p, double& Xne, double& Yne, double& Zne, double& Kne, double& Mne, double& Nne)
 {

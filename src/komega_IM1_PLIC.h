@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2026 Hans Bihs
+Copyright 2008-2025 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -20,32 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wind_v.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"slice.h"
+#ifndef KOMEGA_IM1_PLIC_H_
+#define KOMEGA_IM1_PLIC_H_
 
-wind_v::wind_v(lexer *p) 
+#include"komega_func_PLIC.h"
+#include"field4.h"
+
+using namespace std;
+
+class komega_IM1_PLIC : public komega_func_PLIC
 {
+public:
+	komega_IM1_PLIC(lexer *, fdm*, ghostcell*);
+	virtual ~komega_IM1_PLIC();
+	virtual void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*);
+	virtual void ktimesave(lexer*, fdm*, ghostcell*);
+	virtual void etimesave(lexer*, fdm*, ghostcell*);
+	void timesource(lexer*,fdm*,field&);
+	void clearrhs(lexer*,fdm*);
 
-}
+private:
+    int gcval_kin, gcval_eps;
+    int count,q;
+    double aii;
+};
 
-wind_v::~wind_v()
-{
-}
+#endif
 
-void wind_v::wind_forcing_ini(lexer *p, ghostcell *pgc)
-{
-    
-}
-
-void wind_v::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
-{
-    
-}
-
-void wind_v::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)
-{
-    
-}

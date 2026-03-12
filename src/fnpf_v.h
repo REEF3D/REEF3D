@@ -34,8 +34,9 @@ public:
 	virtual ~fnpf_void();
     
     void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
-    void inidisc(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
-    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override;
+    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override {};
+    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override {};
+    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override {};
     
 
 };
