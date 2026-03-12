@@ -54,7 +54,7 @@ private:
 	const int probenum;
     ofstream *pout;
 	
-	double pval;
+	double pval,pdyn,phs,etaval;
     
     
     

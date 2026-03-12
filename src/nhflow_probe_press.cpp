@@ -91,7 +91,14 @@ void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		yp=p->P64_y[n];
 		zp=p->P64_z[n];
     
-		pval = p->ccipol4V(d->P, d->WL, d->bed, xp, yp, zp);
+		pdyn = p->ccipol4V(d->P, d->WL, d->bed, xp, yp, zp);
+         etaval = p->ccslipol4(d->eta,xp,yp);  
+         phs = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
+         
+         pval = pdyn + phs;
+         
+         if(zp > p->wd + etaval)
+         pval = 0.0;
 		}
 	
 	pval=pgc->globalmax(pval);

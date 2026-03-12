@@ -94,6 +94,11 @@ void nhflow_probe_vel::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, zp);
 		vval = p->ccipol4V(d->V, d->WL, d->bed, xp, yp, zp);
 		wval = p->ccipol4V(d->W, d->WL, d->bed, xp, yp, zp);
+        
+        etaval = p->ccslipol4(d->eta,xp,yp);
+        
+        if(zp > p->wd + etaval)
+         uval = vval = wval = 0.0;
 		}
 	
 	uval=pgc->globalmax(uval);

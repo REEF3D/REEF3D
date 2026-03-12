@@ -95,6 +95,11 @@ void nhflow_probe_vel_theory::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
 		uval = pflow->wave_xvel(p,pgc, xp, yp, zp);
 		vval = pflow->wave_yvel(p,pgc, xp, yp, zp);
 		wval = pflow->wave_zvel(p,pgc, xp, yp, zp);
+        
+        etaval = p->ccslipol4(d->eta,xp,yp);
+        
+        if(zp > p->wd + etaval)
+         uval = vval = wval = 0.0;
 		}
 	
 	uval=pgc->globalmax(uval);
