@@ -197,6 +197,7 @@ void lexer::ini_default()
 	B54=-1.0;		// double global wall roughness ks
 	B55=-1.0;		// double global wall roughness ks
 	B56=-1.0;		// double global wall roughness ks
+    B57=0.0001;       // double global side wall roughness
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
 	B71=0;       // double distance for use relaxation method for fixed water level ini

@@ -57,7 +57,7 @@ void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
 	if(fabs(dist*uplus)>1.0e-10)
-	F[IJK] -= (fabs(U[IJK])*U[IJK]*WL(i,j))/(uplus*uplus*dist);
+	F[IJK] -= (fabs(U[IJK])*U[IJK]*WL(i,j))/(uplus*uplus*2.0*dist);
     }
     }
 }
@@ -81,7 +81,7 @@ void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice
 		uplus = (1.0/kappa)*log(30.0*(dist/ks));
 
 	if(fabs(dist*uplus)>1.0e-10)
-	G[IJK] -= (fabs(V[IJK])*V[IJK]*WL(i,j))/(uplus*uplus*dist);
+	G[IJK] -= (fabs(V[IJK])*V[IJK]*WL(i,j))/(uplus*uplus*2.0*dist);
     }
     }
 	

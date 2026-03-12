@@ -60,43 +60,48 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && i+p->origin_i != 0)
             {
             dist = 0.5*p->DXN[IP];
+            ks=p->B57;
             check=1;
             }
 
             if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && i+p->origin_i != p->gknox-1)
             {
             dist = 0.5*p->DXN[IP];
+            ks=p->B57;
             check=1;
             }
 
             if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
+            ks=p->B57;
             check=1;
             }
                 
             if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
+            ks=p->B57;
             check=1;
             }
                 
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0 || k==0)
             {
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
+            ks=p->B50;
             check=1;
             }
 
             if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k!=p->knoz-1)
             {
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
+            ks=p->B57;
             check=1;
             }
         
         
             if(check==1)
             {
-                ks=p->B50;
             
                 uvel=d->U[IJK];
                 vvel=d->V[IJK];
@@ -185,7 +190,7 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
             check=1;
             }
     
-            if(check==1)
+            if(check>0)
             {
             eps_star = pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 

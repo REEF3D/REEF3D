@@ -204,7 +204,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             
             if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*UH[IJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*UH[IJK];
             d->M.t[n] = 0.0;
             }
         }

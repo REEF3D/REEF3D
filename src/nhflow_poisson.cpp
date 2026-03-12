@@ -144,6 +144,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.s[n] = 0.0;
             }
             
+            // pjm inflow
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==1)
             {
             //d->M.p[n] += d->M.s[n];
@@ -163,6 +164,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             }
             }
             
+            // pcorr inflow
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==2)
             {
             //d->M.p[n] += d->M.s[n];

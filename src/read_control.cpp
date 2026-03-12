@@ -505,6 +505,9 @@ void lexer::read_control()
 				case 56: control>>B56;
 						 clear(c,numint);
 						 break;
+                case 57: control>>B57;
+						 clear(c,numint);
+						 break;
                 case 60: control>>B60;
 						 clear(c,numint);
 						 break;
