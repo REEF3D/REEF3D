@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::sphere(lexer *p, ghostcell *pgc, int id)
+void nhflow_geometry::sphere(lexer *p, ghostcell *pgc, int id)
 {
     double U,ds,dt,phi,theta;
 	int snum;

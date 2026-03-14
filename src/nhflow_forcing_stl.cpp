@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::read_stl(lexer *p, ghostcell *pgc)
+void nhflow_geometry::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;
@@ -136,7 +136,7 @@ void nhflow_forcing::read_stl(lexer *p, ghostcell *pgc)
     }
 }
 
-void nhflow_forcing::rotation_tri(lexer *p,double phi_,double theta_,double psi_, 
+void nhflow_geometry::rotation_tri(lexer *p,double phi_,double theta_,double psi_, 
                                     double &xvec,double &yvec,double &zvec, 
                                     const double& x0, const double& y0, const double& z0)
 {

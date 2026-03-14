@@ -20,12 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
+void nhflow_geometry::objects_create(lexer *p, ghostcell *pgc)
+{
+    objects_create_forcing(p,pgc);
+}
+
+void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
 {
     int qn;
 
@@ -94,7 +99,76 @@ void nhflow_forcing::objects_create(lexer *p, ghostcell *pgc)
 	cout<<"Surface triangles: "<<tricount<<endl;
 }
 
-void nhflow_forcing::objects_allocate(lexer *p, ghostcell *pgc)
+void nhflow_geometry::objects_create_vrans(lexer *p, ghostcell *pgc)
+{
+    int qn;
+
+    objects_allocate(p,pgc);
+	
+    entity_count=0;
+	
+	for(qn=0;qn<p->A581;++qn)
+    {
+        box(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A583;++qn)
+    {
+        cylinder_y(p,pgc,qn);
+        ++entity_count;
+    }
+    
+	for(qn=0;qn<p->A584;++qn)
+    {
+        cylinder_z(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A585;++qn)
+    {
+        jacketmember(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A586;++qn)
+    {
+        sphere(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A587;++qn)
+    {
+        wedge_x(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A588;++qn)
+    {
+        wedge_y(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    for(qn=0;qn<p->A589;++qn)
+    {
+        wedge_z(p,pgc,qn);
+        ++entity_count;
+    }
+    
+    if(p->A590==1)
+    {
+        read_stl(p,pgc);
+		++entity_count;
+    }
+    
+    if(p->mpirank==0)
+    print_vtp(p);
+
+    if(p->mpirank==0)
+	cout<<"Surface triangles: "<<tricount<<endl;
+}
+
+void nhflow_geometry::objects_allocate(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     

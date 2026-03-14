@@ -558,6 +558,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Geometry"/>
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
@@ -1009,6 +1010,7 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_nhflow.h"/>
         <File Name="vrans_interface.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
@@ -1863,6 +1865,29 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Geometry">
+          <VirtualDirectory Name="Print VTP">
+            <File Name="nhflow_forcing_print_vtp.cpp"/>
+          </VirtualDirectory>
+          <File Name="nhflow_forcing_wedge_z.cpp"/>
+          <File Name="nhflow_forcing_wedge_y.cpp"/>
+          <File Name="nhflow_forcing_wedge_x.cpp"/>
+          <File Name="nhflow_forcing_stl.cpp"/>
+          <File Name="nhflow_forcing_sphere.cpp"/>
+          <File Name="nhflow_forcing_rotation.cpp"/>
+          <File Name="nhflow_forcing_objects.cpp"/>
+          <File Name="nhflow_forcing_jacketmember.cpp"/>
+          <File Name="nhflow_forcing_cylinder_z.cpp"/>
+          <File Name="nhflow_forcing_cylinder_y.cpp"/>
+          <File Name="nhflow_forcing_box.cpp"/>
+          <VirtualDirectory Name="Ray Casting">
+            <File Name="nhflow_forcing_reini_RK2.cpp"/>
+            <File Name="nhflow_forcing_raycast_z.cpp"/>
+            <File Name="nhflow_forcing_raycast_y.cpp"/>
+            <File Name="nhflow_forcing_raycast_x.cpp"/>
+            <File Name="nhflow_forcing_raycast_io.cpp"/>
+            <File Name="nhflow_forcing_raycast_direct.cpp"/>
+            <File Name="nhflow_forcing_raycast.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_geometry_ini.cpp"/>
           <File Name="nhflow_geometry.cpp"/>
         </VirtualDirectory>
@@ -1876,32 +1901,7 @@
           </VirtualDirectory>
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
-          <VirtualDirectory Name="Geometry">
-            <File Name="nhflow_forcing_jacketmember.cpp"/>
-            <VirtualDirectory Name="Print VTP">
-              <File Name="nhflow_forcing_print_vtp.cpp"/>
-            </VirtualDirectory>
-            <File Name="nhflow_forcing_rotation.cpp"/>
-            <File Name="nhflow_forcing_sphere.cpp"/>
-            <File Name="nhflow_forcing_stl.cpp"/>
-            <File Name="nhflow_forcing_wedge_z.cpp"/>
-            <File Name="nhflow_forcing_wedge_y.cpp"/>
-            <File Name="nhflow_forcing_wedge_x.cpp"/>
-            <File Name="nhflow_forcing_cylinder_y.cpp"/>
-            <VirtualDirectory Name="Ray Casting">
-              <File Name="nhflow_forcing_raycast_x.cpp"/>
-              <File Name="nhflow_forcing_reini_RK2.cpp"/>
-              <File Name="nhflow_forcing_raycast_y.cpp"/>
-              <File Name="nhflow_forcing_raycast_io.cpp"/>
-              <File Name="nhflow_forcing_raycast_direct.cpp"/>
-              <File Name="nhflow_forcing_raycast.cpp"/>
-              <File Name="nhflow_forcing_raycast_z.cpp"/>
-            </VirtualDirectory>
-            <File Name="nhflow_forcing_refinement.cpp"/>
-            <File Name="nhflow_forcing_objects.cpp"/>
-            <File Name="nhflow_forcing_cylinder_z.cpp"/>
-            <File Name="nhflow_forcing_box.cpp"/>
-          </VirtualDirectory>
+          <VirtualDirectory Name="Geometry"/>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
@@ -2694,6 +2694,9 @@
         <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="vrans_nhflow.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="VRANS Interface">
           <File Name="vrans_interface.cpp"/>
         </VirtualDirectory>

@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::wedge_z(lexer *p, ghostcell *pgc, int id)
+void nhflow_geometry::wedge_z(lexer *p, ghostcell *pgc, int id)
 {
     xs = p->A589_xs[id];
     xe = p->A589_xe[id];

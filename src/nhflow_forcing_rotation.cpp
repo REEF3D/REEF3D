@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 
-void nhflow_forcing::rotate_triangle(lexer* p, int ts, int te)
+void nhflow_geometry::rotate_triangle(lexer* p, int ts, int te)
 {
     double beta,xval,yval;
 
@@ -36,7 +36,7 @@ void nhflow_forcing::rotate_triangle(lexer* p, int ts, int te)
 	}
 }
 
-void nhflow_forcing::rotation(double &xvec,double &yvec,double &zvec,double phi, double theta, double psi)
+void nhflow_geometry::rotation(double &xvec,double &yvec,double &zvec,double phi, double theta, double psi)
 {
 	double a,b,c;
 
@@ -76,7 +76,7 @@ void nhflow_forcing::rotation(double &xvec,double &yvec,double &zvec,double phi,
 
 }
 
-void nhflow_forcing::angle_calc(double dX, double dY, double dZ, double &alpha, double &beta, double &gamma)
+void nhflow_geometry::angle_calc(double dX, double dY, double dZ, double &alpha, double &beta, double &gamma)
 {
     double ddX,ddY,ddZ;
     double eps = 1.0e-10;

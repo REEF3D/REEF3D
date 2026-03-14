@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 
-void nhflow_forcing::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     zmin = 1.0e1;
     zmax = -1.0e8;

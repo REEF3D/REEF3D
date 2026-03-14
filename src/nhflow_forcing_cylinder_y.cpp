@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_forcing::cylinder_y(lexer *p, ghostcell *pgc, int id)
+void nhflow_geometry::cylinder_y(lexer *p, ghostcell *pgc, int id)
 {
     double U,ds,phi;
 	double r1,y1,y2;

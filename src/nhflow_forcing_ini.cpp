@@ -67,10 +67,12 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     //cout<<"DSM: "<<DSM<<endl;
     
+    // ************************
     // start raycast
     objects_create(p, pgc);
     ray_cast(p, d, pgc);
     reini_RK2(p, d, pgc, d->SOLID);
+    // ************************
     
     SLICELOOP4
 	d->depth(i,j) = p->wd - d->bed(i,j);
@@ -102,9 +104,6 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->solid_forcing_eta(p,d->WL);
     pgc->solid_forcing_eta(p,d->eta);
     pgc->solid_forcing_bed(p,d->bed);
-    
-    
-    
     
 }
 

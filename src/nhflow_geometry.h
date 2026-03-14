@@ -24,44 +24,40 @@ Author: Hans Bihs
 #define NHFLOW_GEOMETRY_H_
 
 #include"increment.h"
-#include<vector>
 #include"slice4.h"
+#include"vtp3D.h"
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
-class sixdof;
-class mooring;
-class fsi;
 class nhflow_reinidisc_fsf;
 
 using namespace std;
 
-class nhflow_geometry : public increment
+class nhflow_geometry : public increment, private vtp3D
 {
 public:
-	nhflow_geometry(lexer*);
+	nhflow_geometry(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_geometry();
     
+    void ray_cast(lexer*, fdm_nhf*, ghostcell*);
+    void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     
     void objects_create(lexer*, ghostcell*);
+    
+    void objects_create_forcing(lexer*, ghostcell*);
+    void objects_create_vrans(lexer*, ghostcell*);
+    
+private:
     void objects_allocate(lexer*, ghostcell*);
     
-    void reset(lexer*, fdm_nhf*, ghostcell*);
-    
-    double Hsolidface(lexer*, fdm_nhf*, int, int, int);
-    
-    void ray_cast(lexer*, fdm_nhf*, ghostcell*);
     void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int);
     
-    void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
-    
-private:
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
@@ -74,7 +70,7 @@ private:
     void read_stl(lexer*, ghostcell*);
     
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    void geometry_refinement(lexer*, ghostcell*);
+
     void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     
     void rotation(double&,double&,double&,double,double,double);
@@ -84,17 +80,12 @@ private:
     
     void angle_calc(double,double,double,double&,double&,double&);
     
-    void print_vtp(lexer *p, ghostcell *pgc);
+    void print_vtp(lexer*);
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
-    double *FX,*FY,*FZ;
-    slice4 fe;
     
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
-    vector<vector<double> > tri_x_r;
-	vector<vector<double> > tri_y_r;
-	vector<vector<double> > tri_z_r;
     
     int *tstart,*tend;
     int tricount;
@@ -105,6 +96,7 @@ private:
     
     int reiniter;
     int forcing_flag,solid_flag,floating_flag;
+    int dlm_flag;
     
     const double epsi;
     
@@ -120,10 +112,9 @@ private:
     double phi,theta,psi;
     double xrot,yrot,zrot;
     
-    int q,iin;
-    float ffn;
-    int offset[100];
- 
+    double DSM;
+    
+
 };
 
 #endif

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include<sys/stat.h>
 #include<fstream>
 
-void nhflow_forcing::print_vtp(lexer *p)
+void nhflow_geometry::print_vtp(lexer *p)
 {
     int offset[100];
     int n=0;

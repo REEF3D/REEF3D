@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_reinidisc_fsf.h"
 
-void nhflow_forcing::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
+void nhflow_geometry::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	
     if(p->j_dir==0)
     LOOP
