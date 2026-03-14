@@ -26,14 +26,14 @@ Author: Hans Bihs
 
 void nhflow_geometry::wedge_y(lexer *p, ghostcell *pgc, int id)
 {
-    xs = p->A588_xs[id];
-    xe = p->A588_xe[id];
+    xs = wedgey_xs[id];
+    xe = wedgey_xe[id];
 	
-    ys = p->A588_ys[id];
-    ye = p->A588_ye[id];
+    ys = wedgey_ys[id];
+    ye = wedgey_ye[id];
 
-    zs = p->A588_zs[id];
-    ze = p->A588_ze[id];
+    zs = wedgey_zs[id];
+    ze = wedgey_ze[id];
     
 	// Face 3
 	// Tri 1

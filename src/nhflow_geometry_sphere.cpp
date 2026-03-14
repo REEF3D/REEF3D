@@ -31,10 +31,10 @@ void nhflow_geometry::sphere(lexer *p, ghostcell *pgc, int id)
     double xm,ym,zm,r;
     int q;
 
-	xm=p->A586_xm[id];
-    ym=p->A586_ym[id];
-    zm=p->A586_zm[id];
-    r=p->A586_r[id];
+	xm=sphere_xm[id];
+    ym=sphere_ym[id];
+    zm=sphere_zm[id];
+    r=sphere_r[id];
 
 
 	U = 2.0*PI*r;

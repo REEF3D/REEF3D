@@ -26,14 +26,14 @@ Author: Hans Bihs
 
 void nhflow_geometry::box(lexer *p, ghostcell *pgc, int id)
 {
-    xs = p->A581_xs[id];
-    xe = p->A581_xe[id];
+    xs = box_xs[id];
+    xe = box_xe[id];
 	
-    ys = p->A581_ys[id];
-    ye = p->A581_ye[id];
+    ys = box_ys[id];
+    ye = box_ye[id];
 
-    zs = p->A581_zs[id];
-    ze = p->A581_ze[id];
+    zs = box_zs[id];
+    ze = box_ze[id];
     
 	//cout<<p->mpirank<<" FORCING_CYLINDER  xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
 	// Face 3

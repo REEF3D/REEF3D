@@ -32,13 +32,13 @@ void nhflow_geometry::cylinder_y(lexer *p, ghostcell *pgc, int id)
     double xm,zm;
 	int snum;
 	
-	xm=p->A583_xc[id];
-    zm=p->A583_zc[id];
+	xm=cyly_xc[id];
+    zm=cyly_zc[id];
 	
-	y1=p->A583_ys[id];
-	y2=p->A583_ye[id];
+	y1=cyly_ys[id];
+	y2=cyly_ye[id];
 	
-    r1=p->A583_r[id];
+    r1=cyly_r[id];
 
 	U = 2.0*PI*r1;
 	ds = 0.5*(DSM);

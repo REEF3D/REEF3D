@@ -558,7 +558,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
-        <VirtualDirectory Name="Geometry"/>
+        <VirtualDirectory Name="Geometry">
+          <File Name="nhflow_geometry.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
@@ -650,9 +652,6 @@
           <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <VirtualDirectory Name="Geometry">
-            <File Name="nhflow_geometry.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.h"/>
             <File Name="nhflow_potential_f.h"/>
@@ -1865,13 +1864,14 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Geometry">
+          <File Name="nhflow_geometry_objects_forcing.cpp"/>
+          <File Name="nhflow_geometry_objects_vrans.cpp"/>
           <File Name="nhflow_geometry_wedge_z.cpp"/>
           <File Name="nhflow_geometry_wedge_y.cpp"/>
           <File Name="nhflow_geometry_wedge_x.cpp"/>
           <File Name="nhflow_geometry_stl.cpp"/>
           <File Name="nhflow_geometry_sphere.cpp"/>
           <File Name="nhflow_geometry_rotation.cpp"/>
-          <File Name="nhflow_geometry_objects.cpp"/>
           <File Name="nhflow_geometry_jacketmember.cpp"/>
           <File Name="nhflow_geometry_cylinder_z.cpp"/>
           <File Name="nhflow_geometry_cylinder_y.cpp"/>

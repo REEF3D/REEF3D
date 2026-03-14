@@ -50,7 +50,8 @@ public:
     void objects_create_vrans(lexer*, ghostcell*);
     
 private:
-    void objects_allocate(lexer*, ghostcell*);
+    void objects_allocate_forcing(lexer*, ghostcell*);
+    void objects_allocate_vrans(lexer*, ghostcell*);
     
     void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
@@ -113,6 +114,34 @@ private:
     double xrot,yrot,zrot;
     
     double DSM;
+    
+    
+    // -------------------------
+    int box_num;
+    double *box_xs,*box_xe,*box_ys,*box_ye,*box_zs,*box_ze;
+    int cyly_num;
+    double *cyly_xc,*cyly_zc,*cyly_ys,*cyly_ye,*cyly_r;
+    int cylz_num;
+    double *cylz_xc,*cylz_yc,*cylz_zs,*cylz_ze,*cylz_r;
+    int jacket_num;
+    double *jacket_xm1, *jacket_ym1, *jacket_zm1, *jacket_r1, *jacket_xm2, *jacket_ym2, *jacket_zm2, *jacket_r2;
+    int sphere_num;
+    double *sphere_xm,*sphere_ym,*sphere_zm,*sphere_r;
+    int wedgex_num;
+    double *wedgex_xs,*wedgex_xe,*wedgex_ys,*wedgex_ye,*wedgex_zs,*wedgex_ze;
+    int wedgey_num;
+    double *wedgey_xs,*wedgey_xe,*wedgey_ys,*wedgey_ye,*wedgey_zs,*wedgey_ze;
+    int wedgez_num;
+    double *wedgez_xs,*wedgez_xe,*wedgez_ys,*wedgez_ye,*wedgez_zs,*wedgez_ze;
+    
+    int stl_num;
+    double stl_scale_x,stl_scale_y,stl_scale_z;
+    double stl_trans_x,stl_trans_y,stl_trans_z;
+    double stl_orig_x,stl_orig_y,stl_orig_z,stl_phi,stl_orig_theta,stl_orig_psi;
+    int stl_invert,stl_dlm;
+    // -------------------------
+    
+    
     
 
 };

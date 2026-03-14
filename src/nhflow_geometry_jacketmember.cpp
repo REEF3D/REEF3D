@@ -46,15 +46,15 @@ void nhflow_geometry::jacketmember(lexer *p, ghostcell *pgc, int id)
 	zrot=0.0;
     
     
-    xm1 = p->A585_xm1[id];
-    ym1 = p->A585_ym1[id];
-    zm1 = p->A585_zm1[id];
-    r1  = p->A585_r1[id];
+    xm1 = jacket_xm1[id];
+    ym1 = jacket_ym1[id];
+    zm1 = jacket_zm1[id];
+    r1  = jacket_r1[id];
     
-    xm2 = p->A585_xm2[id];
-    ym2 = p->A585_ym2[id];
-    zm2 = p->A585_zm2[id];
-    r2  = p->A585_r2[id];
+    xm2 = jacket_xm2[id];
+    ym2 = jacket_ym2[id];
+    zm2 = jacket_zm2[id];
+    r2  = jacket_r2[id];
 
     dX = xm2-xm1;
     dY = ym2-ym1;
