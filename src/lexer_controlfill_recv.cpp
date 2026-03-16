@@ -224,6 +224,8 @@ void lexer::ctrlrecv()
 	dd++;
     A531 = dctrl[dd];
 	dd++;
+    A532 = ictrl[ii];
+	ii++;
     A540 = ictrl[ii];
 	ii++;
     A541 = dctrl[dd];
