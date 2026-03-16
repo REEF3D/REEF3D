@@ -57,6 +57,9 @@ void driver::logic_nhflow()
 // forcing
     pnhfdf=new nhflow_forcing(p,d,pgc);
     
+    if(p->mpirank==0)
+    cout<<"creating objects 002"<<endl;
+    
 // FSF
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
@@ -177,6 +180,9 @@ void driver::logic_nhflow()
     
     pprint = new printer_nhflow(p,d,pgc);
     
+    if(p->mpirank==0)
+    cout<<"creating objects 040"<<endl;
+    
 //VRANS
     if(p->B269==0)
 	pvrans = new vrans_v(p,pgc);
@@ -186,6 +192,9 @@ void driver::logic_nhflow()
 
     if(p->B269==2)
 	pvrans = new vrans_veg(p,pgc);
+    
+    if(p->mpirank==0)
+    cout<<"creating objects 050"<<endl;
     
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
@@ -200,12 +209,18 @@ void driver::logic_nhflow()
 	if(p->B180==1||p->B191==1||p->B192==1)
 	pflow = new ioflow_gravity(p,pgc,pBC);
     
+    if(p->mpirank==0)
+    cout<<"creating objects 051"<<endl;
+    
 //Potential Flow Solver
     if(p->I11==0)
     pnhfpot = new nhflow_potential_v;
 
     if(p->I11==1)
     pnhfpot = new nhflow_potential_f(p);
+    
+    if(p->mpirank==0)
+    cout<<"creating objects 052"<<endl;
     
 //6DOF
     if(p->X10==0)
@@ -214,18 +229,33 @@ void driver::logic_nhflow()
     if(p->X10>0)
     p6dof = new sixdof_nhflow(p,pgc);
     
+    if(p->mpirank==0)
+    cout<<"creating objects 053"<<endl;
+    
 // Sediment
     if(p->S10==0)
     psed = new sediment_void();
+    
+    if(p->mpirank==0)
+    cout<<"creating objects 054"<<endl;
 
     if(p->S10>0)
     psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
+    
+    if(p->mpirank==0)
+    cout<<"creating objects 055"<<endl;
     
 //Momentum
     if(p->A510==2)
 	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnhfdf);
     
+     if(p->mpirank==0)
+    cout<<"creating objects 056"<<endl;
+    
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnhfdf);    
+    
+    if(p->mpirank==0)
+    cout<<"creating objects 099"<<endl;
     
 }
