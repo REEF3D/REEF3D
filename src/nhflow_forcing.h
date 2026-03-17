@@ -72,7 +72,6 @@ private:
 	double phival_sf;
     double dirac;
     
-    double DSM;
     
     // DLM
     double *EL_L,*EL_dx;

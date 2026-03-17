@@ -79,12 +79,13 @@ public:
     double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
-    double *porosity;
+    double *POR;
     double *test;
     double *KIN;
     double *CONC;
     
     double *SOLID,*FB,*FHB;
+    double *PORSTRUC;
     
     double *Fx,*Fy,*Fz;
     double *Fs,*Fn,*Fe,*Fw;

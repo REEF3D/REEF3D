@@ -47,9 +47,11 @@ public:
     void objects_create_forcing(lexer*, ghostcell*);
     void objects_create_vrans(lexer*, ghostcell*);
     
+    void geometry_ini(lexer*, fdm_nhf*, ghostcell*);
     
     int forcing_flag,solid_flag,floating_flag;
     int dlm_flag;
+    
     
 private:
     void objects_allocate_forcing(lexer*, ghostcell*);
@@ -88,6 +90,8 @@ private:
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;
     
+    double DSM;
+    
     double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
     
     int *tstart,*tend;
@@ -114,7 +118,7 @@ private:
     double phi,theta,psi;
     double xrot,yrot,zrot;
     
-    double DSM;
+    
     
     
     // -------------------------

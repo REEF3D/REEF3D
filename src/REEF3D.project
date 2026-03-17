@@ -1864,6 +1864,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Geometry">
+          <File Name="nhflow_geometry_ini.cpp"/>
           <File Name="nhflow_geometry_objects_forcing.cpp"/>
           <File Name="nhflow_geometry_objects_vrans.cpp"/>
           <File Name="nhflow_geometry_wedge_z.cpp"/>

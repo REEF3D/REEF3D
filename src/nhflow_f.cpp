@@ -141,9 +141,9 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 
     
     ALOOP
-    d->porosity[IJK]=1.0;
+    d->POR[IJK]=1.0;
     
-    pgc->start4V(p,d->porosity,1);
+    pgc->start4V(p,d->POR,1);
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);

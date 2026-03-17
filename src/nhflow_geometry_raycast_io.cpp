@@ -68,8 +68,6 @@ void nhflow_geometry::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, 
 	Cy = tri_y[n][2];
 	Cz = tri_z[n][2];
     
-    cout<<Ax<<" "<<Ay<<" "<<Az<<endl;
-    
     checkin = 0;
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
