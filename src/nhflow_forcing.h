@@ -65,9 +65,6 @@ private:
     slice4 fe;
     double starttime;
     
-    int reiniter;
-    int forcing_flag,solid_flag,floating_flag;
-    int dlm_flag;
         
     double H,Ht, uf, vf, wf, ef;
     double efc;

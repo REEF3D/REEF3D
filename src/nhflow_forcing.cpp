@@ -30,32 +30,7 @@ Author: Hans Bihs
 
 nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), fe(p)
 {
-    forcing_flag=0;
-    solid_flag=0;
-    floating_flag=0;
-    dlm_flag=0;
     
-    if(p->A581>0 || p->A583>0 || p->A584>0   || p->A585>0  || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
-    {   
-    forcing_flag=1;
-    solid_flag=1;
-    }
-    
-    if(p->X10>0)
-    {
-    forcing_flag=1;
-    floating_flag=1;
-    }
-    
-    if(p->A599==1)
-    {
-    dlm_flag=1;
-    forcing_flag=0;
-    solid_flag=0;
-    floating_flag=0;
-    }
-    
-    // ----    
     p->Darray(FX,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FY,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FZ,p->imax*p->jmax*(p->kmax+2));

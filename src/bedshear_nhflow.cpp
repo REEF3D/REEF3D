@@ -80,10 +80,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         V = d->V[IJK];
         W = d->W[IJK];
         
-        /*U = 0.5*(d->U[IJK]+d->U[IJKp1]);
-        V = 0.5*(d->V[IJK]+d->V[IJKp1]);
-        W = 0.5*(d->W[IJK]+d->W[IJKp1]);*/
-        
         dist = 0.5*p->DZN[KP]*d->WL(i,j);
         
         uabs = sqrt(U*U + V*V + W*W);

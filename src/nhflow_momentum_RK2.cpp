@@ -47,6 +47,7 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
                                                       nhflow_forcing *ppnhfdf)
                                                     : nhflow_momentum_func(p,d,pgc), WLRK1(p)
 {
+    
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;

@@ -44,10 +44,12 @@ public:
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
     void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     
-    void objects_create(lexer*, ghostcell*);
-    
     void objects_create_forcing(lexer*, ghostcell*);
     void objects_create_vrans(lexer*, ghostcell*);
+    
+    
+    int forcing_flag,solid_flag,floating_flag;
+    int dlm_flag;
     
 private:
     void objects_allocate_forcing(lexer*, ghostcell*);
@@ -96,8 +98,7 @@ private:
     double starttime;
     
     int reiniter;
-    int forcing_flag,solid_flag,floating_flag;
-    int dlm_flag;
+    
     
     const double epsi;
     

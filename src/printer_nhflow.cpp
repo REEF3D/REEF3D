@@ -120,14 +120,14 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     prunupmaxx = new nhflow_print_runup_max_gage_x(p,d,pgc);
 
     if(p->P40>0)
-        pstate = new nhflow_state(p,d,pgc);
+    pstate = new nhflow_state(p,d,pgc);
 
     if(p->P81>0)
     {
         pforce = new nhflow_force*[p->P81];
 
         for(n=0;n<p->P81;++n)
-            pforce[n] = new nhflow_force(p,d,pgc,n);
+        pforce[n] = new nhflow_force(p,d,pgc,n);
     }
 
     if(p->P85>0)
@@ -135,10 +135,10 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
         pforce_ale = new nhflow_force_ale*[p->P85];
 
         for(n=0;n<p->P85;++n)
-            pforce_ale[n] = new nhflow_force_ale(p,d,pgc,n);
+        pforce_ale[n] = new nhflow_force_ale(p,d,pgc,n);
 
         for(n=0;n<p->P85;++n)
-            pforce_ale[n]->ini(p,d,pgc);
+        pforce_ale[n]->ini(p,d,pgc);
     }
 
     if(p->P110==1)

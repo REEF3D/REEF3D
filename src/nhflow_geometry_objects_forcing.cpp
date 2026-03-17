@@ -25,11 +25,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_geometry::objects_create(lexer *p, ghostcell *pgc)
-{
-    objects_create_forcing(p,pgc);
-}
-
 void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
 {
     int qn;
@@ -110,7 +105,7 @@ void nhflow_geometry::objects_allocate_forcing(lexer *p, ghostcell *pgc)
     
     // ----------------------
     // box
-    p->A581 = box_num;
+    box_num = p->A581;
     
     p->Darray(box_xs,box_num);
     p->Darray(box_xe,box_num);

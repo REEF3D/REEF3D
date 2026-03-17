@@ -65,11 +65,9 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     DSM = DSM/double(num);
     
-    //cout<<"DSM: "<<DSM<<endl;
-    
     // ************************
     // start raycast
-    objects_create(p, pgc);
+    objects_create_forcing(p, pgc);
     ray_cast(p, d, pgc);
     reini_RK2(p, d, pgc, d->SOLID);
     // ************************
@@ -97,7 +95,7 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // -------------
     if(dlm_flag==1)
-    objects_create(p, pgc);
+    objects_create_forcing(p, pgc);
     
     // DFSL slice
     pgc->gcsldf_update(p);

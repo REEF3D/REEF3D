@@ -1888,7 +1888,6 @@
             <File Name="nhflow_geometry_raycast_direct.cpp"/>
             <File Name="nhflow_geometry_raycast.cpp"/>
           </VirtualDirectory>
-          <File Name="nhflow_geometry_ini.cpp"/>
           <File Name="nhflow_geometry.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
@@ -1901,7 +1900,6 @@
           </VirtualDirectory>
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
-          <VirtualDirectory Name="Geometry"/>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">

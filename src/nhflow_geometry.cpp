@@ -67,8 +67,6 @@ nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.
 
     prdisc = new nhflow_reinidisc_fsf(p);
     }
-    
-
 }
 
 nhflow_geometry::~nhflow_geometry()

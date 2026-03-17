@@ -110,14 +110,8 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 
     finalize:
     
-    LOOP
-    {
-	d->test[IJK]=PSI[IJK];
-    }
-
     p->del_Iarray(BC,p->imax*p->jmax*(p->kmax+3));
     p->del_Darray(PSI,p->imax*p->jmax*(p->kmax+2));
-
 }
 
 void nhflow_potential_f::ucalc(lexer *p, fdm_nhf *d)
