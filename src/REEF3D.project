@@ -1009,6 +1009,7 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_nhflow_base.h"/>
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_interface.h"/>
         <File Name="vrans.h"/>
@@ -2694,6 +2695,12 @@
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="vrans_nhflow_source_vel.cpp"/>
+          <File Name="vrans_nhflow_source_omega.cpp"/>
+          <File Name="vrans_nhflow_source_k.cpp"/>
+          <File Name="vrans_nhflow_source_eps.cpp"/>
+          <File Name="vrans_nhflow_ini.cpp"/>
+          <File Name="vrans_nhflow_eddyv.cpp"/>
           <File Name="vrans_nhflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="VRANS Interface">
@@ -2703,8 +2710,8 @@
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Porous Structures">
+          <File Name="vrans_source_vel.cpp"/>
           <File Name="vrans_sed_update.cpp"/>
-          <File Name="vrans_velsource.cpp"/>
           <File Name="vrans_source_omega.cpp"/>
           <File Name="vrans_source_k.cpp"/>
           <File Name="vrans_source_eps.cpp"/>

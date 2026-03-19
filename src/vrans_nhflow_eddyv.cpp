@@ -22,18 +22,19 @@ Author: Hans Bihs
 
 #include"vrans_nhflow.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
+#include"fdm.h"
 #include"ghostcell.h"
 
-vrans_nhflow::vrans_nhflow(lexer *p, ghostcell *pgc) : Cval(p->B264)
+void vrans_nhflow::eddyv_func(lexer *p, fdm_nhf *d)
 {
-	p->Darray(NPOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DPOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(APOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(BPOR,p->imax*p->jmax*(p->kmax+2));
-}
+    /*
+    int count;
 
-vrans_nhflow::~vrans_nhflow()
-{
+    count=0;
+	if(p->B295==2)
+    LOOP
+    if(a->porosity(i,j,k)<1.0)
+    {
+	a->eddyv(i,j,k) = 0.001*a->visc(i,j,k);
+    }*/
 }
-

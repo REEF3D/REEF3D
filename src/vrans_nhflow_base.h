@@ -20,20 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
+#ifndef VRANS_NHFLOW_BASE_H_
+#define VRANS_NHFLOW_BASE_H_
 
-vrans_nhflow::vrans_nhflow(lexer *p, ghostcell *pgc) : Cval(p->B264)
+#include"vrans.h"
+#include"increment.h"
+
+class lexer;
+class fdm_nhf;
+class ghostcell;
+
+using namespace std;
+
+class vrans_nhflow_base
 {
-	p->Darray(NPOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DPOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(APOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(BPOR,p->imax*p->jmax*(p->kmax+2));
-}
+public:
+	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, int)=0;
 
-vrans_nhflow::~vrans_nhflow()
-{
-}
+	virtual void u_source(lexer*, fdm_nhf*)=0;
+	virtual void v_source(lexer*, fdm_nhf*)=0;
+	virtual void w_source(lexer*, fdm_nhf*)=0;
+    
+    virtual void ke_source(lexer*, fdm_nhf*, field&)=0;
+    virtual void kw_source(lexer*, fdm_nhf*, field&)=0;
+    virtual void eps_source(lexer*, fdm_nhf*, field&, field&)=0;
+    virtual void omega_source(lexer*, fdm_nhf*, field&, field&)=0;
+    
+    virtual void eddyv_func(lexer*, fdm_nhf*)=0;
+    
 
+};
+
+#endif

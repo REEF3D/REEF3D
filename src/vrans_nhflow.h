@@ -20,15 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef VRANS_F_H_
-#define VRANS_F_H_
+#ifndef VRANS_NHFLOW_H_
+#define VRANS_NHFLOW_H_
 
-#include"vrans.h"
+#include"vrans_nhflow_base.h"
 #include"increment.h"
 
 using namespace std;
 
-class vrans_nhflow : public vrans, public increment
+class vrans_nhflow : public vrans_nhflow_base, public increment
 {
 public:
 	vrans_nhflow(lexer*, ghostcell*);
@@ -36,8 +36,6 @@ public:
 
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override;	
 	void start(lexer*, fdm_nhf*, ghostcell*, int) override {};
-    void sed_update(lexer*, fdm_nhf*, ghostcell*) override;	
-    void sedpart_update(lexer*, fdm_nhf*, ghostcell*, field&, field&) override;
 	
 	void u_source(lexer*, fdm_nhf*) override;
 	void v_source(lexer*, fdm_nhf*) override;
