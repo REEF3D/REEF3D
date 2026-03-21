@@ -141,7 +141,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 	}
 	}
     
-    if(p->D22==2)
+    if(p->A513==2)
     {
     n=0;
 	LOOP
@@ -168,7 +168,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             
             if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*UH[IJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*UH[IJK];
             d->M.t[n] = 0.0;
             }
   
