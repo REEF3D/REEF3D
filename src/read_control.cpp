@@ -4037,3 +4037,9 @@ void lexer::read_control()
 
 	control.close();
 }
+
+void lexer::clear(char& b, int& j)
+{
+    b='a';
+    j=0;
+}
