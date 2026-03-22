@@ -25,9 +25,7 @@ Author: Hans Bihs
 
 #include"increment.h"
 
-class fdm;
 class lexer;
-class field;
 
 using namespace std;
 
@@ -35,7 +33,7 @@ class position : virtual public increment
 {
 public:
     position(lexer*);
-	virtual ~position();
+	virtual ~position() = default;
     
     // xyz
     double pos_x();
@@ -75,15 +73,15 @@ public:
     
 private:
     lexer *p;
-    
-    double pos;
-    int stop,count;
+
+    int count;
     int ii,jj,kk;
-    
+
     int is,ie,iloc;
     int js,je,jloc;
     int ks,ke,kloc;
 
+    bool stop;
 };
 
 #endif
