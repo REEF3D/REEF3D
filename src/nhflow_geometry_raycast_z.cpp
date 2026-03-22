@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void nhflow_geometry::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te)
+void nhflow_geometry::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te, double *LS)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -186,7 +186,7 @@ void nhflow_geometry::ray_cast_z(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, i
             
             if(distcheck==1)
             for(k=0;k<p->knoz;++k)
-            d->SOLID[IJK]=MIN(fabs(Rz-p->ZSP[IJK]),d->SOLID[IJK]);
+            LS[IJK]=MIN(fabs(Rz-p->ZSP[IJK]),LS[IJK]);
             }
             
 		}

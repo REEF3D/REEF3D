@@ -291,6 +291,25 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
     B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
+    
+    B210=0;      // int solid box
+    B212=0;      // int solid cylinder y
+    B213=0;      // int solid cylinder z
+    B214=0;      // int solid cylinder jacket member
+    B215=0;      // int solid sphere
+    B217=0;      // int solid wedge x
+    B218=0;      // int solid wedge y
+    B219=0;      // int solid wedge z
+    
+    B230=0;      // int STL
+    B231_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
+    B232=0;     // int translation on/off
+    B232_x=B232_y=B232_z=0.0;  // double translation of stl geometry
+    B233=0;
+    B233_x=B233_y=B233_z=B233_phi=B233_theta=B233_psi=0.0;
+    B234=0;     // int invert STL
+
+    
 	B240=0;			// int porous media
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
@@ -311,6 +330,7 @@ void lexer::ini_default()
     B310=0;         // int VRANS vegetation box
     B321=0;         // int VRANS vegetation wedge in x-direction
     B322=0;         // int VRANS vegetation wedge in y-direction
+    
     B411=0;        // int patchBC discharge
     B412=0;        // int patchBC pressure BC
     B413=0;        // int patchBC waterlevel

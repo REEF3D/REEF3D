@@ -41,7 +41,7 @@ public:
 	nhflow_geometry(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_geometry();
     
-    void ray_cast(lexer*, fdm_nhf*, ghostcell*);
+    void ray_cast(lexer*, fdm_nhf*, ghostcell*, double*);
     void reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
     
     void objects_create_forcing(lexer*, ghostcell*);
@@ -58,10 +58,10 @@ private:
     void objects_allocate_vrans(lexer*, ghostcell*);
     
     void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
+    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
+    void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
+    void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
     
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);

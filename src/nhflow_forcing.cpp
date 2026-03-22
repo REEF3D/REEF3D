@@ -75,7 +75,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     {
     // update direct forcing function
     // ************************
-    ray_cast(p, d, pgc);
+    ray_cast(p, d, pgc, d->SOLID);
     reini_RK2(p, d, pgc, d->SOLID);
     // ************************
     

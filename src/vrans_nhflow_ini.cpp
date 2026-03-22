@@ -27,6 +27,15 @@ Author: Hans Bihs
 
 void vrans_nhflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    
+    // ************************
+    // start raycast
+    geometry_ini(p, d, pgc);
+    objects_create_forcing(p, pgc);
+    ray_cast(p, d, pgc, d->PORSTRUC);
+    reini_RK2(p, d, pgc, d->PORSTRUC);
+    // ************************
+    
     /*
 	int qn;
     double zmin,zmax,slope;

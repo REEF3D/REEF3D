@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-vrans_nhflow::vrans_nhflow(lexer *p, ghostcell *pgc) : Cval(p->B264)
+vrans_nhflow::vrans_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), Cval(p->B264)
 {
 	p->Darray(NPOR,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DPOR,p->imax*p->jmax*(p->kmax+2));

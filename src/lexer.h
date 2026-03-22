@@ -335,6 +335,50 @@ public:
 	double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
 	double B194_s,B194_e;
     
+    int B210;
+    double *B210_xs,*B210_xe,*B210_ys,*B210_ye,*B210_zs,*B210_ze;
+    int B212;
+    double *B212_xc,*B212_zc,*B212_ys,*B212_ye,*B212_r;
+    int B213;
+    double *B213_xc,*B213_yc,*B213_zs,*B213_ze,*B213_r;
+    int B214;
+    double *B214_xm1, *B214_ym1, *B214_zm1, *B214_r1, *B214_xm2, *B214_ym2, *B214_zm2, *B214_r2;
+    int B215;
+    double *B215_xm,*B215_ym,*B215_zm,*B215_r;
+    int B217;
+    double *B217_xs,*B217_xe,*B217_ys,*B217_ye,*B217_zs,*B217_ze;
+    int B218;
+    double *B218_xs,*B218_xe,*B218_ys,*B218_ye,*B218_zs,*B218_ze;
+    int B219;
+    double *B219_xs,*B219_xe,*B219_ys,*B219_ye,*B219_zs,*B219_ze;
+    
+    int B230,B231,B232,B233,B234;
+    double B231_x,B231_y,B231_z;
+    double B232_x,B232_y,B232_z;
+    double B233_x,B233_y,B233_z,B233_phi,B233_theta,B233_psi;
+    
+    double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
+    double B260,B264,B267;
+    int B269,B270;
+    double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
+    int B274;
+    double *B274_xc,*B274_yc,*B274_zs,*B274_ze,*B274_r, *B274_n, *B274_d50, *B274_alpha, *B274_beta;
+    int B281;
+    double *B281_xs, *B281_xe, *B281_ys, *B281_ye, *B281_zs, *B281_ze, *B281_n, *B281_d50, *B281_alpha, *B281_beta;
+    int B282;
+    double *B282_xs, *B282_xe, *B282_ys, *B282_ye, *B282_zs, *B282_ze, *B282_n, *B282_d50, *B282_alpha, *B282_beta;
+	int B291;
+    double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
+    int B295;
+    int B307,B308,B310,B311;
+    double B309;
+    double *B310_xs, *B310_xe, *B310_ys, *B310_ye, *B310_zs, *B310_ze, *B310_N, *B310_D, *B310_Cd;
+    double *B311_xm, *B311_ym, *B311_r, *B311_zs, *B311ze, *B311_N, *B311_D, *B311_Cd;
+    int B321;
+    double *B321_xs, *B321_xe, *B321_ys, *B321_ye, *B321_zs, *B321_ze, *B321_N, *B321_D, *B321_Cd;
+    int B322;
+    double *B322_xs, *B322_xe, *B322_ys, *B322_ye, *B322_zs, *B322_ze, *B322_N, *B322_D, *B322_Cd;
+    
     int B411,B412,B413,B414,B415,B416,B417,B418,B421,B422;
     int *B411_ID;
     double *B411_Q;
@@ -364,27 +408,7 @@ public:
     int *B442_ID,*B442_face;
     double *B442_xm,*B442_ym,*B442_zm,*B442_r;
     
-	double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
-    double B260,B264,B267;
-    int B269,B270;
-    double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
-    int B274;
-    double *B274_xc,*B274_yc,*B274_zs,*B274_ze,*B274_r, *B274_n, *B274_d50, *B274_alpha, *B274_beta;
-    int B281;
-    double *B281_xs, *B281_xe, *B281_ys, *B281_ye, *B281_zs, *B281_ze, *B281_n, *B281_d50, *B281_alpha, *B281_beta;
-    int B282;
-    double *B282_xs, *B282_xe, *B282_ys, *B282_ye, *B282_zs, *B282_ze, *B282_n, *B282_d50, *B282_alpha, *B282_beta;
-	int B291;
-    double *B291_xs, *B291_xe, *B291_ys, *B291_ye, *B291_zs, *B291_ze, *B291_d, *B291_n, *B291_d50, *B291_alpha, *B291_beta;
-    int B295;
-    int B307,B308,B310,B311;
-    double B309;
-    double *B310_xs, *B310_xe, *B310_ys, *B310_ye, *B310_zs, *B310_ze, *B310_N, *B310_D, *B310_Cd;
-    double *B311_xm, *B311_ym, *B311_r, *B311_zs, *B311ze, *B311_N, *B311_D, *B311_Cd;
-    int B321;
-    double *B321_xs, *B321_xe, *B321_ys, *B321_ye, *B321_zs, *B321_ze, *B321_N, *B321_D, *B321_Cd;
-    int B322;
-    double *B322_xs, *B322_xe, *B322_ys, *B322_ye, *B322_zs, *B322_ze, *B322_N, *B322_D, *B322_Cd;
+	
 	
     // Concentration Options
 	double C1,C2,C3,C4,C5;

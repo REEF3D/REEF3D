@@ -24,14 +24,14 @@ Author: Hans Bihs
 #define VRANS_NHFLOW_H_
 
 #include"vrans_nhflow_base.h"
-#include"increment.h"
+#include"nhflow_geometry.h"
 
 using namespace std;
 
-class vrans_nhflow : public vrans_nhflow_base, public increment
+class vrans_nhflow : public vrans_nhflow_base, public nhflow_geometry
 {
 public:
-	vrans_nhflow(lexer*, ghostcell*);
+	vrans_nhflow(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~vrans_nhflow();
 
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override;	

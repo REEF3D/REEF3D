@@ -44,10 +44,13 @@ void lexer::lexer_read(ghostcell *pgc)
 		
 		if(mpirank>0)
 		ctrlrecv();
-        
-        
-    //cout<<mpirank<<" ii_send: "<<ii_send<<" ii_recv: "<<ii_recv<<endl;
-    //cout<<mpirank<<" dd_send: "<<dd_send<<" dd_recv: "<<dd_recv<<endl;
+    
+    /*
+    if(ii_send!=ii_recv)
+    cout<<mpirank<<" ii_send: "<<ii_send<<" ii_recv: "<<ii_recv<<endl;
+    
+    if(dd_send!=dd_recv)
+    cout<<mpirank<<" dd_send: "<<dd_send<<" dd_recv: "<<dd_recv<<endl;*/
     
     del_Iarray(ictrl,ctrlsize);
     del_Darray(dctrl,ctrlsize);

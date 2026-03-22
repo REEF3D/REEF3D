@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 
-void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
 {
     zmin = 1.0e1;
     zmax = -1.0e8;
@@ -41,7 +41,7 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
 	{
     IO[IJK]=1;
-	d->SOLID[IJK]=1.0e8;
+	LS[IJK]=1.0e8;
 	}
     
     	
@@ -56,10 +56,10 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             {
             pgc->startintV(p,IO,1);
             
-            ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
+            ray_cast_x(p,d,pgc,tstart[qn],tend[qn],LS);
             if(p->j_dir==1)
-            ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
-            ray_cast_z(p,d,pgc,tstart[qn],tend[qn]);
+            ray_cast_y(p,d,pgc,tstart[qn],tend[qn],LS);
+            ray_cast_z(p,d,pgc,tstart[qn],tend[qn],LS);
             }
         }
     }
@@ -68,29 +68,29 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     WETDRY
     {
         if(IO[IJK]==-1)
-        d->SOLID[IJK]=-fabs(d->SOLID[IJK]);
+        LS[IJK]=-fabs(LS[IJK]);
         
         
         if(IO[IJK]==1)
-        d->SOLID[IJK]=fabs(d->SOLID[IJK]);
+        LS[IJK]=fabs(LS[IJK]);
         
-        d->test[IJK] = d->SOLID[IJK];
+        d->test[IJK] = LS[IJK];
     }
 	
 	LOOP
     WETDRY
 	{
-		if(d->SOLID[IJK]>100.0*DSM)
-		d->SOLID[IJK]=100.0*DSM;
+		if(LS[IJK]>100.0*DSM)
+		LS[IJK]=100.0*DSM;
 		
-		if(d->SOLID[IJK]<-100.0*DSM)
-		d->SOLID[IJK]=-100.0*DSM;
+		if(LS[IJK]<-100.0*DSM)
+		LS[IJK]=-100.0*DSM;
 	}
     
     LOOP
     if(p->wet[IJ]==0)
-    d->SOLID[IJK]=100.0*DSM;
+    LS[IJK]=100.0*DSM;
     
     
-	pgc->start5V(p,d->SOLID,1); 
+	pgc->start5V(p,LS,1); 
 }
