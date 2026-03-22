@@ -25,126 +25,87 @@ Author: Hans Bihs
 
 double position::pos_x()
 {
-    pos = p->XP[IP];
-
-    return pos;
+    return p->XP[IP];
 }
 
 double position::pos_y()
 {
-    pos = p->YP[JP];
-
-    return pos;
+    return p->YP[JP];
 }
 
 double position::pos_z()
 {
     if(p->G2==0)
-    pos = p->ZP[KP];
-    
-    if(p->G2==1)
-    pos = p->ZSP[IJK];
+    return p->ZP[KP];
 
-    return pos;
+    if(p->G2==1)
+    return p->ZSP[IJK];
 }
 
 double position::pos1_x()
 {
-    pos = p->XN[IP1];
-
-    return pos;
+    return p->XN[IP1];
 }
 
 double position::pos1_y()
 {
-    pos = p->YP[JP];
-
-    return pos;
+    return pos_y();
 }
 
 double position::pos1_z()
 {
-    if(p->G2==0)
-    pos = p->ZP[KP];
-    
-    if(p->G2==1)
-    pos = p->ZSP[IJK];
-
-    return pos;
+    return pos_z();
 }
 
 double position::pos2_x()
 {
-    pos = p->XP[IP];
-
-    return pos;
+    return pos_x();
 }
 
 double position::pos2_y()
 {
-    pos = p->YN[JP1];
-
-    return pos;
+    return p->YN[JP1];
 }
 
 double position::pos2_z()
 {
-    if(p->G2==0)
-    pos = p->ZP[KP];
-    
-    if(p->G2==1)
-    pos = p->ZSP[IJK];
-    
-    return pos;
+    return pos_z();
 }
 
 double position::pos3_x()
 {
-    pos = p->XP[IP];
-
-    return pos;
+    return pos_x();
 }
 
 double position::pos3_y()
 {
-    pos = p->YP[JP];
-
-    return pos;
+    return pos_y();
 }
 
 double position::pos3_z()
 {
     if(p->G2==0)
-    pos = p->ZN[KP1];
-    
-    if(p->G2==1)
-    pos = p->ZSN[FIJKp1];
-    
-    return pos;
-}
+    return p->ZN[KP1];
 
+    if(p->G2==1)
+    return p->ZSN[FIJKp1];
+}
 
 double position::posnode_x()
 {
-    pos = p->XN[IP1];
-
-    return pos;
+    return p->XN[IP1];
 }
 
 double position::posnode_y()
 {
-    pos = p->YN[JP1];
-
-    return pos;
+    return p->YN[JP1];
 }
 
 double position::posnode_z()
 {
     if(p->G2==0)
-    pos = p->ZN[KP1];
-    
-    if(p->G2==1)
-    pos = p->ZSN[FIJKp1];
+    return p->ZN[KP1];
 
-    return pos;
+    if(p->G2==1)
+    return p->ZSN[FIJKp1];
 }
