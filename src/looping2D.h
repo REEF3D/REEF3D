@@ -23,62 +23,40 @@ Author: Hans Bihs
 #ifndef LOOPING2D_H_
 #define LOOPING2D_H_
 
-// LOOP
-
+// SLICE CONDITIONS
 #define PSLICECHECK1  if(p->flagslice1[IJ]>0)
-#define SLICELOOP1 IULOOP JULOOP  PSLICECHECK1
-
-#define IULOOPSFLOW for(i=0; i<p->knox-p->ulastsflow; ++i)
-
 #define PSLICECHECK2  if(p->flagslice2[IJ]>0)
-#define SLICELOOP2 IVLOOP JVLOOP  PSLICECHECK2
-
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
 #define SSLICECHECK4  if(p->flagslice4[IJ]<0)
-#define SLICELOOP4 ILOOP JLOOP  PSLICECHECK4
 
-#define SEDSLICECHECK  if(p->DFBED[IJ]>0)
-#define SEDSLICELOOP ILOOP JLOOP  PSLICECHECK4 SEDSLICECHECK
-
-#define SLICEBASELOOP ILOOP JLOOP
-
-#define SLICEREVLOOP4 IREVLOOP JREVLOOP  PSLICECHECK4
-
-#define IREVLOOP	for(i=p->knox-1; i>=0; --i)
-#define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
-#define SLICELOOPREV4 IREVLOOP JREVLOOP  PSLICECHECK4
-
-#define PSLICECHECK4E  if(p->flagslice4[IJ]>=-1)
-    
-#define SLICELOOP4E ILOOP JLOOP  PSLICECHECK4
-
-#define SLICEBASELOOP ILOOP JLOOP 
-
-
-#define TPSLICELOOP ITPLOOP JTPLOOP
-
-#define NSLICELOOP for(n=sizeS[0]; n<sizeS[1]; ++n)
-#define NSLICELOOP1 for(n=p->sizeS1[0]; n<p->sizeS1[1]; ++n)
-#define NSLICELOOP2 for(n=p->sizeS2[0]; n<p->sizeS2[1]; ++n)
-#define NSLICELOOP4 for(n=p->sizeS4[0]; n<p->sizeS4[1]; ++n)
-    
-#define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
-#define JFLEXLOOP	for(j=0; j<p->knoy-vlast; ++j)
-#define KFLEXLOOP	for(k=0; k<p->knoz-wlast; ++k)
-    
+#define WETDRYCHK if(p->wet[IJ]>0)
+#define SEDSLICECHECK if(p->DFBED[IJ]>0)
 #define SLICEFLEXCHECK  if(flagslice[IJ]>0)
-#define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
-    
-
 
 #define WETDRY1 if(b->wet1(i,j)==1)
-#define WETDRY2 if(b->wet2(i,j)==1)    
+#define WETDRY2 if(b->wet2(i,j)==1)
 #define WETDRYDEEP1 if(b->wet1(i,j)==1 && b->deep1(i,j)==1)
-#define WETDRYDEEP2 if(b->wet2(i,j)==1 && b->deep2(i,j)==1)    
+#define WETDRYDEEP2 if(b->wet2(i,j)==1 && b->deep2(i,j)==1)
 #define WETDRY if(p->wet[IJ]==1)
 #define WETDRYDEEP if(p->wet[IJ]==1 && p->deep[IJ]==1)
 #define WETDRYDEEPBREAK if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
 
+// SLICE BASE LOOPS
+#define SLICEBASELOOP ILOOP JLOOP
+#define JILOOP JLOOP ILOOP
+
+// SLICE LOOPS
+#define SLICELOOP1 IULOOP JLOOP  PSLICECHECK1
+#define SLICELOOP2 ILOOP JVLOOP  PSLICECHECK2
+#define SLICELOOP4 SLICEBASELOOP  PSLICECHECK4
+
+#define SEDSLICELOOP SLICEBASELOOP  PSLICECHECK4 SEDSLICECHECK
+
+#define TPSLICELOOP ITPLOOP JTPLOOP
+
+#define NSLICELOOP4 for(n=p->sizeS4[0]; n<p->sizeS4[1]; ++n)
+
+#define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
 
 // GCBSL
 

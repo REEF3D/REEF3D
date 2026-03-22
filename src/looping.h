@@ -23,172 +23,119 @@ Author: Hans Bihs
 #ifndef LOOPING_H_
 #define LOOPING_H_
 
-#include"iterators.h"
 #include"definitions.h"
+
 #include"looping2D.h"
-#include"iterators2D.h"
+
 #include"iterators1D.h"
+#include"iterators2D.h"
+#include"iterators.h"
 
-
-#define ILOOP	for(i=0; i<p->knox; ++i)
-#define JLOOP	for(j=0; j<p->knoy; ++j)
-#define KLOOP 	for(k=0; k<p->knoz; ++k)
-#define IREVLOOP	for(i=p->knox-1; i>=0; --i)
-#define JREVLOOP	for(j=p->knoy-1; j>=0; --j)
-#define KREVLOOP for(k=p->knoz-1; k>=0; --k)
-#define PCHECK  if(p->flag4[IJK]>0)
-#define LOOP ILOOP JLOOP KLOOP PCHECK
-
-#define FSCHECK  if(p->flag7[FIJK]<=0)
-#define FPCHECK  if(p->flag7[FIJK]>0)
-#define SCHECK  if(p->flag4[IJK]<0)
-#define SFLUIDCHECK  if(p->flag4[IJK]<AIR_FLAG)
-#define USCHECK  if(p->flag1[IJK]<0)
-#define VSCHECK  if(p->flag2[IJK]<0)
-#define WSCHECK  if(p->flag3[IJK]<0)
-
-#define KJILOOP KLOOP JLOOP ILOOP
-#define UKJILOOP KLOOP JLOOP IULOOP
-#define VKJILOOP KLOOP JVLOOP ILOOP
-#define WKJILOOP KWLOOP JLOOP ILOOP
-#define JILOOP JLOOP ILOOP
-
-#define FKJILOOP FKLOOP FJLOOP FILOOP
-
-#define WETDRYCHK if(p->wet[IJ]>0)
-#define FILOOPWD ILOOP JLOOP KLOOP WETDRYCHK PCHECK
-
-#define PLAINLOOP ILOOP JLOOP KLOOP
-
-#define IMALOOP	for(i=-p->margin; i<p->knox+p->margin; ++i)
-#define JMALOOP	for(j=-p->margin; j<p->knoy+p->margin; ++j)
-#define KMALOOP 	for(k=-p->margin; k<p->knoz+p->margin; ++k)
-#define MALOOP IMALOOP JMALOOP KMALOOP
-
-#define ILOOP	for(i=0; i<p->knox; ++i)
-#define JLOOP	for(j=0; j<p->knoy; ++j)
-#define KLOOP 	for(k=0; k<p->knoz; ++k)
-#define PCHECK  if(p->flag4[IJK]>0)
-#define LOOP ILOOP JLOOP KLOOP PCHECK
-
-#define IBLOOP	for(i=-1; i<p->knox+1; ++i)
-#define JBLOOP	for(j=-1; j<p->knoy+1; ++j)
-#define KBLOOP for(k=-1; k<p->knoz+1; ++k)
-#define BLOOP IBLOOP JBLOOP KBLOOP
-
-#define IBLOOP	for(i=-1; i<p->knox+1; ++i)
-#define JBLOOP	for(j=-1; j<p->knoy+1; ++j)
-#define KBLOOP for(k=-1; k<p->knoz+1; ++k)
-#define BBASELOOP IBLOOP JBLOOP KBLOOP PBASECHECK
+// LOOPs
+#define ILOOP for(i=0; i<p->knox; ++i)
+#define JLOOP for(j=0; j<p->knoy; ++j)
+#define KLOOP for(k=0; k<p->knoz; ++k)
 
 #define ITLOOP for(i=0; i<p->knox+1; ++i)
 #define JTLOOP for(j=0; j<p->knoy+1; ++j)
 #define KTLOOP for(k=0; k<p->knoz+1; ++k)
-#define TCHECK if(p->flag4[IJK]>OBJ_FLAG)
-#define TLOOP ITLOOP JTLOOP KTLOOP
-
-#define IFLEXLOOP	for(i=0; i<p->knox-ulast; ++i)
-#define JFLEXLOOP	for(j=0; j<p->knoy-vlast; ++j)
-#define KFLEXLOOP	for(k=0; k<p->knoz-wlast; ++k)
-#define FLEXCHECK  if(flag[IJK]>0)
-#define FLEXLOOP IFLEXLOOP JFLEXLOOP KFLEXLOOP FLEXCHECK
-
-#define IULOOP	for(i=0; i<p->knox-p->ulast; ++i)
-#define JULOOP	for(j=0; j<p->knoy; ++j)
-#define KULOOP	for(k=0; k<p->knoz; ++k)
-#define UCHECK  if(p->flag1[IJK]>0)
-#define ULOOP IULOOP JULOOP KULOOP UCHECK
-
-#define IVLOOP	for(i=0; i<p->knox; ++i)
-#define JVLOOP	for(j=0; j<p->knoy-p->vlast; ++j)
-#define KVLOOP	for(k=0; k<p->knoz; ++k)
-#define VCHECK  if(p->flag2[IJK]>0)
-#define VLOOP IVLOOP JVLOOP KVLOOP VCHECK
-
-#define IWLOOP	for(i=0; i<p->knox; ++i)
-#define JWLOOP	for(j=0; j<p->knoy; ++j)
-#define KWLOOP	for(k=0; k<p->knoz-p->wlast; ++k)
-#define WCHECK  if(p->flag3[IJK]>0)
-#define WLOOP IWLOOP JWLOOP KWLOOP WCHECK
-
-#define UBASECHECK  if(p->flag1[IJK]>OBJ_FLAG)
-#define VBASECHECK  if(p->flag2[IJK]>OBJ_FLAG)
-#define WBASECHECK  if(p->flag3[IJK]>OBJ_FLAG)
-#define PBASECHECK  if(p->flag4[IJK]>OBJ_FLAG)
-
-#define UBASELOOP IULOOP JULOOP KULOOP UBASECHECK
-#define VBASELOOP IVLOOP JVLOOP KVLOOP VBASECHECK
-#define WBASELOOP IWLOOP JWLOOP KWLOOP WBASECHECK
-#define BASELOOP ILOOP JLOOP KLOOP PBASECHECK
-#define BASEREVLOOP KLOOP JLOOP ILOOP PBASECHECK
-
-#define URAWLOOP IULOOP JULOOP KULOOP
-#define VRAWLOOP IVLOOP JVLOOP KVLOOP 
-#define WRAWLOOP IWLOOP JWLOOP KWLOOP 
-#define RAWLOOP ILOOP JLOOP KLOOP
-
-#define NHFWKLOOP for(k=1; k<=p->knoz; ++k)
-    
-#define NHFWLOOP NHFWKLOOP ILOOP JLOOP NHFWKLOOP PCHECK
-
-
-#define ALOOP ILOOP JLOOP KLOOP PSOLIDCHECK
-
-#define USOLIDCHECK  if(p->flag1[IJK]>SOLID_FLAG)
-#define VSOLIDCHECK  if(p->flag2[IJK]>SOLID_FLAG)
-#define WSOLIDCHECK  if(p->flag3[IJK]>SOLID_FLAG)
-#define PSOLIDCHECK  if(p->flag4[IJK]>SOLID_FLAG)
-
-#define USOLIDLOOP IULOOP JULOOP KULOOP USOLIDCHECK
-#define VSOLIDLOOP IVLOOP JVLOOP KVLOOP VSOLIDCHECK
-#define WSOLIDLOOP IWLOOP JWLOOP KWLOOP WSOLIDCHECK
-#define SOLIDLOOP ILOOP JLOOP KLOOP PSOLIDCHECK    
-
-#define UAIR_FLAGCHECK  if(p->flag1[IJK]==AIR_FLAG)
-#define VAIR_FLAGCHECK  if(p->flag2[IJK]==AIR_FLAG)
-#define WAIR_FLAGCHECK  if(p->flag3[IJK]==AIR_FLAG)
-#define PAIR_FLAGCHECK  if(p->flag4[IJK]==AIR_FLAG)
-
-#define UAIRLOOP IULOOP JULOOP KULOOP UAIR_FLAGCHECK
-#define VAIRLOOP IVLOOP JVLOOP KVLOOP VAIR_FLAGCHECK
-#define WAIRLOOP IWLOOP JWLOOP KWLOOP WAIR_FLAGCHECK
-#define AIRLOOP ILOOP JLOOP KLOOP PAIR_FLAGCHECK    
-
-#define UFLUIDCHECK  if(p->flag1[IJK]>=AIR_FLAG)
-#define VFLUIDCHECK  if(p->flag2[IJK]>=AIR_FLAG)
-#define WFLUIDCHECK  if(p->flag3[IJK]>=AIR_FLAG)
-#define PFLUIDCHECK  if(p->flag4[IJK]>=AIR_FLAG)
-    
-#define PWDFLUIDCHECK  if(p->flag4[IJK]>=AIR_FLAG && p->wet[IJ]>0)
-#define FSWDCHECK  if(p->flag7[FIJK]<=0 || p->wet[IJ]==0)
-#define FPWDCHECK  if(p->flag7[FIJK]>0  && p->wet[IJ]>0)
-
-#define UFLUIDLOOP IULOOP JULOOP KULOOP UFLUIDCHECK
-#define VFLUIDLOOP IVLOOP JVLOOP KVLOOP VFLUIDCHECK
-#define WFLUIDLOOP IWLOOP JWLOOP KWLOOP WFLUIDCHECK
-#define FLUIDLOOP ILOOP JLOOP KLOOP PFLUIDCHECK  
-
-#define FILOOP	for(i=0; i<p->knox; ++i)
-#define FJLOOP	for(j=0; j<p->knoy; ++j)
-#define FKLOOP for(k=0; k<p->knoz+1; ++k)
-#define FLOOP FILOOP FJLOOP FKLOOP FPCHECK  
-#define FBASELOOP FILOOP FJLOOP FKLOOP 
-    
-
-#define ETALOC for(k=a->etaloc(i,j); k<a->etaloc(i,j)+1; ++k)
-#define FILOOP4 ILOOP JLOOP ETALOC PFLUIDCHECK 
-
-#define FETALOC for(k=c->etaloc(i,j); k<c->etaloc(i,j)+1; ++k)
-#define FFILOOP4 ILOOP JLOOP FETALOC FPCHECK
-
 
 #define ITPLOOP for(i=-1; i<p->knox; ++i)
 #define JTPLOOP for(j=-1; j<p->knoy; ++j)
 #define KTPLOOP for(k=-1; k<p->knoz; ++k)
-#define TPLOOP KTPLOOP JTPLOOP ITPLOOP 
 
+#define IBLOOP for(i=-1; i<p->knox+1; ++i)
+#define JBLOOP for(j=-1; j<p->knoy+1; ++j)
+#define KBLOOP for(k=-1; k<p->knoz+1; ++k)
+
+#define IMALOOP for(i=-p->margin; i<p->knox+p->margin; ++i)
+#define JMALOOP for(j=-p->margin; j<p->knoy+p->margin; ++j)
+#define KMALOOP for(k=-p->margin; k<p->knoz+p->margin; ++k)
+
+#define IFLEXLOOP for(i=0; i<p->knox-ulast; ++i)
+#define JFLEXLOOP for(j=0; j<p->knoy-vlast; ++j)
+#define KFLEXLOOP for(k=0; k<p->knoz-wlast; ++k)
+
+#define IULOOP for(i=0; i<p->knox-p->ulast; ++i)
+#define JVLOOP for(j=0; j<p->knoy-p->vlast; ++j)
+#define KWLOOP for(k=0; k<p->knoz-p->wlast; ++k)
+
+#define FILOOP ILOOP
+#define FJLOOP JLOOP
+#define FKLOOP for(k=0; k<p->knoz+1; ++k)
+
+#define ETALOC  for(k=a->etaloc(i,j); k<a->etaloc(i,j)+1; ++k)
+#define FETALOC for(k=c->etaloc(i,j); k<c->etaloc(i,j)+1; ++k)
+
+// CONDITIONS
+#define FLEXCHECK   if(flag[IJK]>0)
+#define UCHECK      if(p->flag1[IJK]>0)
+#define UFLUIDCHECK if(p->flag1[IJK]>=AIR_FLAG)
+#define USCHECK     if(p->flag1[IJK]<0)
+#define VCHECK      if(p->flag2[IJK]>0)
+#define VFLUIDCHECK if(p->flag2[IJK]>=AIR_FLAG)
+#define VSCHECK     if(p->flag2[IJK]<0)
+#define WCHECK      if(p->flag3[IJK]>0)
+#define WFLUIDCHECK if(p->flag3[IJK]>=AIR_FLAG)
+#define WSCHECK     if(p->flag3[IJK]<0)
+#define PCHECK      if(p->flag4[IJK]>0)
+#define SCHECK      if(p->flag4[IJK]<0)
+#define PFLUIDCHECK if(p->flag4[IJK]>=AIR_FLAG)
+#define PAIR_CHECK  if(p->flag4[IJK]==AIR_FLAG)
+#define SFLUIDCHECK if(p->flag4[IJK]<AIR_FLAG)
+#define PSOLIDCHECK if(p->flag4[IJK]>SOLID_FLAG)
+#define PBASECHECK  if(p->flag4[IJK]>OBJ_FLAG)
+#define FPCHECK     if(p->flag7[FIJK]>0)
+#define FPWDCHECK   if(p->flag7[FIJK]>0 && p->wet[IJ]>0)
+#define FSCHECK     if(p->flag7[FIJK]<=0)
+#define FSWDCHECK   if(p->flag7[FIJK]<=0 || p->wet[IJ]==0)
+
+// COMBINDED LOOPS
+#define IJKLOOP ILOOP JLOOP KLOOP
+#define KJILOOP KLOOP JLOOP ILOOP
+
+// MAIN LOOPS
+#define PLAINLOOP IJKLOOP
+#define LOOP PLAINLOOP PCHECK
+#define BASELOOP PLAINLOOP PBASECHECK
+#define BASEREVLOOP KJILOOP PBASECHECK
+#define TPLOOP KTPLOOP JTPLOOP ITPLOOP
+
+#define ALOOP PLAINLOOP PSOLIDCHECK
+#define AIRLOOP PLAINLOOP PAIR_CHECK
+
+#define MALOOP IMALOOP JMALOOP KMALOOP
+
+// BOUNDARY LOOPS
+#define BLOOP IBLOOP JBLOOP KBLOOP
+#define BBASELOOP IBLOOP JBLOOP KBLOOP PBASECHECK
+
+// FLUID LOOPS
+#define ULOOP IULOOP JLOOP KLOOP UCHECK
+#define VLOOP ILOOP JVLOOP KLOOP VCHECK
+#define WLOOP ILOOP JLOOP KWLOOP WCHECK
+
+#define UFLUIDLOOP IULOOP JLOOP KLOOP UFLUIDCHECK
+#define VFLUIDLOOP ILOOP JVLOOP KLOOP VFLUIDCHECK
+#define WFLUIDLOOP ILOOP JLOOP KWLOOP WFLUIDCHECK
+#define FLUIDLOOP PLAINLOOP PFLUIDCHECK
+
+// SOLVER LOOPS
+#define FLEXLOOP IFLEXLOOP JFLEXLOOP KFLEXLOOP FLEXCHECK
+
+// FNPF LOOPS
+#define FKJILOOP FKLOOP JLOOP ILOOP
+#define FLOOP ILOOP JLOOP FKLOOP FPCHECK
+#define FBASELOOP ILOOP JLOOP FKLOOP
+#define FILOOP4 ILOOP JLOOP ETALOC PFLUIDCHECK
+#define FFILOOP4 ILOOP JLOOP FETALOC FPCHECK
+
+// FORCE LOOP
 #define NDBASELOOP ITPLOOP JTPLOOP KTPLOOP
 
+#define NETLOOP for (int n=0; n<p->net_count; ++n)
+
+//MAX, MIN, SIGN
 #define MAX(aAa,bBb) ((aAa)>(bBb)?(aAa):(bBb))
 #define MIN(aAa,bBb) ((aAa)<(bBb)?(aAa):(bBb))
 #define SIGN(aAa) ((aAa)>= 0.0 ? 1.0 : -1.0)
@@ -196,6 +143,7 @@ Author: Hans Bihs
 #define MAX3(aAa,bBb,cCc) (((aAa)>(bBb)?(aAa):(bBb))>cCc?((aAa)>(bBb)?(aAa):(bBb)):cCc)
 #define MIN3(aAa,bBb,cCc) (((aAa)<(bBb)?(aAa):(bBb))<cCc?((aAa)<(bBb)?(aAa):(bBb)):cCc)
 
+//GCB
 #define GCB1 for(n=0;n<p->gcb1_count;++n)
 #define GCB1CHECK if(p->gcb1[n][3]>0)
 #define GC1LOOP GCB1 GCB1CHECK
@@ -277,23 +225,21 @@ Author: Hans Bihs
 #define GCDF4CHECK if(p->gcdf4[n][3]>0)
 #define GCDF4LOOP GCDF4 GCDF4CHECK
 
-#define GC4A  for(n=0;n<p->gcb4a_count;++n)
+#define GC4A for(n=0;n<p->gcb4a_count;++n)
 #define GCB4ACHECK if(p->gcb4a[n][3]>0)
-#define GC4ALOOP  GC4A GCB4ACHECK
+#define GC4ALOOP GC4A GCB4ACHECK
 
-#define QGC4A  for(q=0;q<p->gcb4a_count;++q)
+#define QGC4A for(q=0;q<p->gcb4a_count;++q)
 #define QGCB4ACHECK if(p->gcb4a[q][3]>0)
-#define QGC4ALOOP  QGC4A QGCB4ACHECK
+#define QGC4ALOOP QGC4A QGCB4ACHECK
 
-#define QQGC4A  for(qq=0;qq<p->gcb4a_count;++qq)
+#define QQGC4A for(qq=0;qq<p->gcb4a_count;++qq)
 #define QQGCB4ACHECK if(p->gcb4a[qq][3]>0)
-#define QQGC4ALOOP  QQGC4A QQGCB4ACHECK
-        
-#define GC6LOOP  for(n=0;n<p->gcb_fix;++n)
+#define QQGC4ALOOP QQGC4A QQGCB4ACHECK
+
+#define GC6LOOP   for(n=0;n<p->gcb_fix;++n)
 #define QGC6LOOP  for(q=0;q<p->gcb_fix;++q)
-#define QQGC6LOOP  for(qq=0;qq<p->gcb_fix;++qq)
+#define QQGC6LOOP for(qq=0;qq<p->gcb_fix;++qq)
 #define GGC6LOOP  for(g=0;g<p->gcb_fix;++g)
-    
-#define NETLOOP for (int n=0; n<p->net_count; ++n)
 
 #endif
