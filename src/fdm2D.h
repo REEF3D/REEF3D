@@ -35,7 +35,6 @@ Author: Hans Bihs
 #include"vec2D.h"
 #include"matrix2D.h"
 #include"looping.h"
-#include"iterators.h"
 #include<iostream>
 
 class lexer;

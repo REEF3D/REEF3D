@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 #include"iterators1D.h"
 #include"iterators2D.h"
-#include"iterators.h"
+#include"iterators3D.h"
 
 // LOOPs
 #define ILOOP for(i=0; i<p->knox; ++i)
