@@ -1137,7 +1137,10 @@
       </VirtualDirectory>
       <File Name="lexer.h"/>
       <File Name="driver.h"/>
-      <VirtualDirectory Name="Lexer">
+      <VirtualDirectory Name="Control">
+        <File Name="control.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Resize">
         <File Name="resize.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -3037,24 +3040,27 @@
         <File Name="lexer_read.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>
+        <File Name="read_grid.cpp"/>
+        <File Name="lexer_gridsize.cpp"/>
+        <File Name="lexer_vectorsize.cpp"/>
+        <File Name="lexer_gridini.cpp"/>
+        <File Name="lexer_gridsize2D.cpp"/>
+        <File Name="lexer_gridini2D.cpp"/>
         <VirtualDirectory Name="Resize">
           <File Name="resize.cpp"/>
           <File Name="resize_delete.cpp"/>
           <File Name="resize_resize.cpp"/>
         </VirtualDirectory>
-        <File Name="read_control.cpp"/>
-        <File Name="read_grid.cpp"/>
-        <File Name="lexer_gridsize.cpp"/>
-        <File Name="lexer_vectorsize.cpp"/>
-        <File Name="lexer_gridini.cpp"/>
-        <File Name="lexer_controlfill_recv.cpp"/>
-        <File Name="lexer_controlfill_send.cpp"/>
-        <File Name="lexer_gridsize2D.cpp"/>
-        <File Name="lexer_gridini2D.cpp"/>
+        <VirtualDirectory Name="Control">
+          <File Name="control_parse.cpp"/>
+          <File Name="controlfill_recv.cpp"/>
+          <File Name="controlfill_send.cpp"/>
+          <File Name="read_control.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <File Name="main.cpp"/>
       <File Name="driver.cpp"/>
-      <File Name="lexer.cpp" ExcludeProjConfig=""/>
+      <File Name="lexer.cpp"/>
       <VirtualDirectory Name="Logic">
         <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>

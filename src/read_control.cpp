@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include "control.h"
+#include "lexer.h"
 #include <fstream>
 #include <ctype.h>
 
-void lexer::read_control()
+void control::read_control(lexer* p)
 {
     std::string line;
     char c;
@@ -32,14 +33,14 @@ void lexer::read_control()
     int count=0;
     int count2=0;
 
-    ifstream control("ctrl.txt", ios_base::in);
+    std::ifstream control("ctrl.txt", std::ios_base::in);
     if(!control)
     {
         cout<<endl<<("no 'ctrl.txt' file found")<<endl<<endl;
         exit(1);
     }
 
-    if(mpirank==0)
+    if(p->mpirank==0)
     cout<<"read ctrl"<<endl;
 
 
@@ -2618,11 +2619,7 @@ void lexer::read_control()
 
         if(count>1e7)
         {
-            cout<<endl;
-            cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
-            cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-
-            exit(1);
+            missing_parameter();
         }
     }
 
@@ -3288,7 +3285,7 @@ void lexer::read_control()
         Darray(X314_T,X311);
         Darray(X315_t,X311);
 
-        mooring_count = X311;
+        p->mooring_count = X311;
     }
     else
     {
@@ -3305,7 +3302,7 @@ void lexer::read_control()
         Darray(X314_T,X312);
         Darray(X315_t,X312);
 
-        mooring_count = X312;
+        p->mooring_count = X312;
     }
 
     if (X321 > 0)
@@ -3329,7 +3326,7 @@ void lexer::read_control()
         Darray(X322_theta,X321);
         Darray(X322_psi,X321);
 
-        net_count = X321;
+        p->net_count = X321;
     }
 
     Darray(X324_x,X324);
@@ -3352,7 +3349,7 @@ void lexer::read_control()
         Darray(Z11_nu,Z11);
         Darray(Z11_n,Z11);
 
-        FSI_count = Z11;
+        p->FSI_count = Z11;
     }
 
     int countA581=0;
@@ -3951,13 +3948,13 @@ void lexer::read_control()
                          clear(c,numint);
                          break;
                 case 314:
-                         for (int i = 0; i < mooring_count; i++)
+                         for (int i = 0; i < p->mooring_count; i++)
                          control>>X314_T[i];
 
                          clear(c,numint);
                          break;
                 case 315:
-                         for (int i = 0; i < mooring_count; i++)
+                         for (int i = 0; i < p->mooring_count; i++)
                          control>>X315_t[i];
 
                          clear(c,numint);
@@ -3999,11 +3996,7 @@ void lexer::read_control()
 
             if(count>1e7)
             {
-                cout<<endl;
-                cout<<"!!! missing input parameter in ctrl.txt !!!"<<endl<<endl;
-                cout<<"!!! please check the REEF3D User Guide !!!"<<endl<<endl<<endl<<endl;
-
-                exit(1);
+                missing_parameter();
             }
         }
     }
@@ -4011,8 +4004,17 @@ void lexer::read_control()
     control.close();
 }
 
-void lexer::clear(char& b, int& j)
+void control::clear(char& b, int& j)
 {
     b='a';
     j=0;
+}
+
+void control::missing_parameter()
+{
+    std::cout<<"\n"
+             <<"!!! missing input parameter in ctrl.txt !!!\n\n"
+             <<"!!! please check the REEF3D User Guide !!!\n\n\n"<<std::endl;
+
+    exit(1);
 }

@@ -21,9 +21,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include"control.h"
 
-void lexer::ctrlrecv()
+void control::ctrlrecv()
 {
     int n;
 
