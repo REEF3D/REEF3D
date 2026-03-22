@@ -1073,6 +1073,7 @@
           <File Name="boundary.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
+          <File Name="grid.h"/>
           <File Name="grid_helper.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
@@ -2957,6 +2958,7 @@
           <File Name="boundary.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
+          <File Name="grid.cpp"/>
           <VirtualDirectory Name="Grid Helper">
             <File Name="grid_helper.cpp"/>
             <File Name="grid_helper_dgc1.cpp"/>
@@ -3033,7 +3035,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
         <File Name="lexer_read.cpp"/>
-        <File Name="lexer_gridspacing.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>
         <VirtualDirectory Name="Resize">
