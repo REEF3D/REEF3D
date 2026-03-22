@@ -84,7 +84,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
 	prdisc->start(p,a,pgc,f,L,5);
 
 	ALOOP
-	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
+	frk1(i,j,k) = f(i,j,k) + dt(i,j,k)*L(i,j,k);
 
 	pgc->start4a(p,frk1,gcval);
     
@@ -93,7 +93,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
     prdisc->start(p,a,pgc,frk1,L,5);
 
 	ALOOP
-	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
+	frk2(i,j,k)=  0.75*f(i,j,k) + 0.25*frk1(i,j,k) + 0.25*dt(i,j,k)*L(i,j,k);
 
 	pgc->start4a(p,frk2,gcval);
 
@@ -102,7 +102,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
     prdisc->start(p,a,pgc,frk2,L,5);
 
 	ALOOP
-	f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
+	f(i,j,k) = (1.0/3.0)*f(i,j,k) + (2.0/3.0)*frk2(i,j,k) + (2.0/3.0)*dt(i,j,k)*L(i,j,k);
 
 	pgc->start4a(p,f,gcval);
 	}
@@ -119,7 +119,7 @@ void reinitopo_RK3::time_preproc(lexer* p)
     n=0;
 	ALOOP
 	{
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt(i,j,k) = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	++n;
 	}
 }

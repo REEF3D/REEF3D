@@ -199,7 +199,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     LOOP
     {
-	c->test[IJK] = c->Fz(i,j);
+	c->test(i,j,k) = c->Fz(i,j);
     }
 }
 

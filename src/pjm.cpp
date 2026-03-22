@@ -162,9 +162,9 @@ void pjm::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &w, do
     count=0;
     LOOP
     {
-    a->rhsvec.V[count] =  -(u.V[IJK] - u.V[Im1JK])/(alpha*p->dt*p->DXN[IP])
-                          -(v.V[IJK] - v.V[IJm1K])/(alpha*p->dt*p->DYN[JP])*p->y_dir
-                          -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
+    a->rhsvec.V[count] =  -(u(i,j,k) - u(i-1,j,k))/(alpha*p->dt*p->DXN[IP])
+                          -(v(i,j,k) - v(i,j-1,k))/(alpha*p->dt*p->DYN[JP])*p->y_dir
+                          -(w(i,j,k) - w(i,j,k-1))/(alpha*p->dt*p->DZN[KP]);
     
     ++count;
     }

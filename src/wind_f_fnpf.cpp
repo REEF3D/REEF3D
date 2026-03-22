@@ -86,7 +86,7 @@ void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, 
     }
     
     LOOP
-    c->test[IJK] = c->test2D(i,j);
+    c->test(i,j,k) = c->test2D(i,j);
 }
 
 
