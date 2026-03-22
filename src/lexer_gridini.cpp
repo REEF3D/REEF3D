@@ -29,7 +29,7 @@ void lexer::gridini(ghostcell *pgc)
     grid::sigma_coord_ini();
 
     grid::gridspacing(pgc);
-	parse();	
+
     gcd_ini(pgc);
 }
 
