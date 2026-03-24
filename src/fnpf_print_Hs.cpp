@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Dave Kelly, Hans Bihs
+Authors: Dave Kelly, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_print_Hs.h"
