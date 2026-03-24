@@ -35,7 +35,7 @@ public:
 	virtual ~vrans_nhflow();
 
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override;	
-	void start(lexer*, fdm_nhf*, ghostcell*, int) override {};
+	void start(lexer*, fdm_nhf*, ghostcell*, int) override;
 	
 	void u_source(lexer*, fdm_nhf*) override;
 	void v_source(lexer*, fdm_nhf*) override;

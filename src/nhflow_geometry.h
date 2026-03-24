@@ -85,7 +85,7 @@ private:
     
     void angle_calc(double,double,double,double&,double&,double&);
     
-    void print_vtp(lexer*);
+    void print_vtp(lexer*,int);
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;

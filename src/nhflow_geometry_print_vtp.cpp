@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<fstream>
 
-void nhflow_geometry::print_vtp(lexer *p)
+void nhflow_geometry::print_vtp(lexer *p, int mode)
 {
     int offset[100];
     int n=0;
@@ -36,11 +36,21 @@ void nhflow_geometry::print_vtp(lexer *p)
     offset[n]=offset[n-1]+sizeof(int)*tricount*3 + sizeof(int);
     ++n;
     //---------------------------------------------
-
+    char path[300];
+    
+    if(mode==1)
+    {
     mkdir("./REEF3D_NHFLOW_FORCING_VTP", 0777);
 
-    char path[300];
     sprintf(path,"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp");
+    }
+    
+    if(mode==2)
+    {
+    mkdir("./REEF3D_NHFLOW_VRANS_VTP", 0777);
+
+    sprintf(path,"./REEF3D_NHFLOW_VRANS_VTP/REEF3D-NHFLOW-VRANS.vtp");
+    }
 
     std::ofstream result;
     result.open(path, std::ios::binary);
