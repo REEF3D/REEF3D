@@ -33,19 +33,15 @@ void fnpf_breaking::breaking_baquet(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     
     maxloop = p->knox*p->knoy;
     
-    if(p->A350>=0)
     SLICELOOP4
     {
     bx(i,j)=0;
     by(i,j)=0;
     }
-    
-    if(p->A350>=0)
-    {
+
     SLICELOOP4
     c->breaking(i,j)=0;
-    }
-    
+
     pgc->gcsl_start4int(p,c->breaking,50);
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
