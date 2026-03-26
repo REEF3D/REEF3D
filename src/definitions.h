@@ -23,13 +23,18 @@ Author: Hans Bihs
 #ifndef DEFINITIONS_H_
 #define DEFINITIONS_H_
 
-#define WATER_FLAG      10
-#define AIR_FLAG       -1
-#define INFLOW_FLAG    -3
-#define OUTFLOW_FLAG   -4
-#define FLT_FLAG       -17
-#define TOPO_FLAG      -18
-#define SOLID_FLAG     -19
-#define OBJ_FLAG       -20
+enum {
+    WATER_FLAG = 10,
+    AIR_FLAG = -1,
+    INFLOW_FLAG = -3,
+    OUTFLOW_FLAG = -4,
+    FLT_FLAG = -17,
+    TOPO_FLAG = -18,
+    SOLID_FLAG = -19,
+    OBJ_FLAG = -20
+};
+
+const double PI = 3.14159265359;
+const double EE = 2.71828182846;
 
 #endif

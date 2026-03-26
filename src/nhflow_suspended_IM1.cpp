@@ -67,9 +67,9 @@ void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 
     LOOP
     {
-        d->M.p[count]+= 1.0/DT;
+        d->M.p[count]+= 1.0/p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/DT;
+        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/p->dt;
 
 	++count;
     }

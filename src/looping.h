@@ -31,8 +31,6 @@ Author: Hans Bihs
 #include"iterators2D.h"
 #include"iterators1D.h"
 
-#define PI 3.14159265359
-#define EE 2.71828182846
 
 #define ILOOP	for(i=0; i<p->knox; ++i)
 #define JLOOP	for(j=0; j<p->knoy; ++j)
@@ -336,11 +334,5 @@ Author: Hans Bihs
 #define GGC6LOOP  for(g=0;g<p->gcb_fix;++g)
     
 #define NETLOOP for (int n=0; n<p->net_count; ++n)
-
-
-#define DT p->dt
-#define NDT p->dt_old
-
-
 
 #endif

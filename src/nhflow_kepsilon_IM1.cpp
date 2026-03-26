@@ -115,9 +115,9 @@ void nhflow_kepsilon_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
     count=0;
     LOOP
     {
-        d->M.p[count] += 1.0/DT;
+        d->M.p[count] += 1.0/p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/DT;
+        d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/p->dt;
 
 	++count;
     }
