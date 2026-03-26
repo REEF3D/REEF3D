@@ -20,22 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"grid_helper.h"
 #include"lexer.h"
+#include"ghostcell.h"
 
-void lexer::control_calc()
+grid_helper::grid_helper(lexer *p)
 {
-	dt=dt_old=0.0;
-	simtime=I50;
-	sedtime=0.0;
-	dtsed=0.0;
-	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
-    fsitime=fbtime=0.0;
-    fbdt=fbmax=0.0;
-	printouttime=0.0;
-	xtime=0.0;
-	gctime=0.0;
-	totaltime=0.0;
-	meantime=0.0;
-	Xmeantime=Xtotaltime=0.0;
-	gcmeantime=gctotaltime=0.0;
+    imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
+    kmin=p->kmin;
+    kmax=p->kmax;
+}
+
+grid_helper::~grid_helper()
+{
+    delete[] hgc;
+}
+
+void grid_helper::make_dgc(lexer* p)
+{
+    p->dgc1_count=1;
+    p->dgc2_count=1;
+    p->dgc3_count=1;
+    p->dgc4_count=1;
+
+    p->Iarray(p->dgc1,p->dgc1_count,8);
+    p->Iarray(p->dgc2,p->dgc2_count,8);
+    p->Iarray(p->dgc3,p->dgc3_count,8);
+    p->Iarray(p->dgc4,p->dgc4_count,8);
+
+
+    p->Iarray(hgc,imax*jmax*kmax);
+
+    for(i=0;i<imax*jmax*kmax;++i)
+    hgc[i]=0;
 }

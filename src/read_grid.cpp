@@ -295,8 +295,7 @@ void lexer::read_grid()
     gcpara_sum=gcpara1_count+gcpara2_count+gcpara3_count+gcpara4_count+gcpara5_count+gcpara6_count;
     gcparaco_sum=gcparaco1_count+gcparaco2_count+gcparaco3_count+gcparaco4_count+gcparaco5_count+gcparaco6_count;
 
-    maxpara=maxparacount();
-    assign_margin();
+    grid::assign_margin();
 
     Iarray(flag4,imax*jmax*kmax);
 
@@ -919,10 +918,4 @@ void lexer::read_grid()
     gcout4a_count=gcout_count;
 
     grid.close();
-}
-
-void lexer::clear(char& b, int& j)
-{
-    b='a';
-    j=0;
 }

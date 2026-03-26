@@ -20,22 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"grid_helper.h"
 #include"lexer.h"
+#include"ghostcell.h"
+#include"fieldint4.h"
 
-void lexer::control_calc()
+void grid_helper::fillgcb4_wall(lexer *p)
 {
-	dt=dt_old=0.0;
-	simtime=I50;
-	sedtime=0.0;
-	dtsed=0.0;
-	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
-    fsitime=fbtime=0.0;
-    fbdt=fbmax=0.0;
-	printouttime=0.0;
-	xtime=0.0;
-	gctime=0.0;
-	totaltime=0.0;
-	meantime=0.0;
-	Xmeantime=Xtotaltime=0.0;
-	gcmeantime=gctotaltime=0.0;
+    int q,n;
+
+
+    fieldint4 cval(p);
+
+    int count=0;
+
+    BASELOOP
+    {
+    cval(i,j,k)=count;
+
+    ++count;
+    }
+
+    GC4LOOP
+    {
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+    p->gcb4[n][5]=cval(i,j,k);
+    }
+
 }

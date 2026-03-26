@@ -21,29 +21,25 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
-#include"ghostcell.h"
-
 
 lexer::lexer() : cmu(0.09), position(this), interpolation(this)
 {
     sigT=0.9;
     
-	ini_default();
-    mpirank=0;
+	control::ini_default();
+
+    solveriter=0;
+	mpirank=0;
+
+	simtime=0.0;
+	poissontime=0.0;
+	pressval=0;
+    alpha=0.0;
+    solidread=toporead=porousread=0;
+    net_count=0;
+    mooring_count=0;
 }
 
 lexer::~lexer()
 {
 }
-
-int lexer::xmax,lexer::ymax,lexer::zmax;
-int lexer::knox,lexer::knoy,lexer::knoz;
-int lexer::margin;
-
-
-
-
-
-
-
-
