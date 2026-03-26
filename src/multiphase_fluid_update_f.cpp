@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-multiphase_fluid_update_f::multiphase_fluid_update_f(lexer *p, fdm* a, ghostcell* pgc) :
+multiphase_fluid_update_f::multiphase_fluid_update_f(lexer *p, fdm* a, ghostcell* pgc) : dx(p->dx),
 												visc3(p->W7),visc2(p->W4),visc1(p->W2),ro3(p->W6),ro2(p->W3),ro1(p->W1)
 {
     gcval_ro=1;
