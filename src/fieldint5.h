@@ -20,47 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef INTFIELD_H_
-#define INTFIELD_H_
+#ifndef FIELDINT5_H_
+#define FIELDINT5_H_
 
-#include"increment.h"
 #include"fieldint.h"
 
-class lexer;
-
-using namespace std;
-
-class fieldint5 :  public fieldint, public increment
+class fieldint5 final : public fieldint
 {
 public:
-
-	fieldint5 (lexer *);
-	virtual ~fieldint5();
-
-    int& operator()(int, int , int) override;
-    
-    void resize(lexer*) override;
-
-private:
-
-	int di,dj,dk;
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-	void fieldgcalloc(lexer*);
-
-	int* feld;
-	int iter;
-
-	int imin,imax,jmax,jmin,kmin,kmax;
-	
-	lexer *pp;
-
+    fieldint5(lexer* p) : fieldint(p) {}
+    virtual ~fieldint5() = default;
 };
 
 #endif
-
-
-
-
-
-

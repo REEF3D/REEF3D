@@ -2974,13 +2974,6 @@
             <File Name="grid_helper_gcb4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint2.cpp"/>
-          <File Name="fieldint1.cpp"/>
-          <File Name="fieldint3.cpp"/>
-          <File Name="fieldint4.cpp"/>
-          <File Name="fieldint5.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
         </VirtualDirectory>
