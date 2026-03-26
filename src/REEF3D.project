@@ -1074,7 +1074,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
           <File Name="grid.h"/>
-          <File Name="grid_helper.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
@@ -1137,10 +1136,7 @@
       </VirtualDirectory>
       <File Name="lexer.h"/>
       <File Name="driver.h"/>
-      <VirtualDirectory Name="Control">
-        <File Name="control.h"/>
-      </VirtualDirectory>
-      <VirtualDirectory Name="Resize">
+      <VirtualDirectory Name="Lexer">
         <File Name="resize.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -2961,19 +2957,16 @@
           <File Name="boundary.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
+          <File Name="grid_gcb4.cpp"/>
+          <File Name="grid_gcb4a.cpp"/>
+          <File Name="grid_gcb3.cpp"/>
+          <File Name="grid_gcb2.cpp"/>
+          <File Name="grid_gcb1.cpp"/>
+          <File Name="grid_dgc4.cpp"/>
+          <File Name="grid_dgc3.cpp"/>
+          <File Name="grid_dgc2.cpp"/>
+          <File Name="grid_dgc1.cpp"/>
           <File Name="grid.cpp"/>
-          <VirtualDirectory Name="Grid Helper">
-            <File Name="grid_helper.cpp"/>
-            <File Name="grid_helper_dgc1.cpp"/>
-            <File Name="grid_helper_dgc2.cpp"/>
-            <File Name="grid_helper_dgc3.cpp"/>
-            <File Name="grid_helper_dgc4.cpp"/>
-            <File Name="grid_helper_gcb1.cpp"/>
-            <File Name="grid_helper_gcb2.cpp"/>
-            <File Name="grid_helper_gcb3.cpp"/>
-            <File Name="grid_helper_gcb4.cpp"/>
-            <File Name="grid_helper_gcb4a.cpp"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Field">
           <File Name="field1.cpp"/>
@@ -3038,29 +3031,27 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
         <File Name="lexer_read.cpp"/>
+        <File Name="lexer_gridspacing.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>
-        <File Name="read_grid.cpp"/>
-        <File Name="lexer_gridsize.cpp"/>
-        <File Name="lexer_vectorsize.cpp"/>
-        <File Name="lexer_gridini.cpp"/>
-        <File Name="lexer_gridsize2D.cpp"/>
-        <File Name="lexer_gridini2D.cpp"/>
         <VirtualDirectory Name="Resize">
           <File Name="resize.cpp"/>
           <File Name="resize_delete.cpp"/>
           <File Name="resize_resize.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Control">
-          <File Name="control_parse.cpp"/>
-          <File Name="controlfill_recv.cpp"/>
-          <File Name="controlfill_send.cpp"/>
-          <File Name="read_control.cpp"/>
-        </VirtualDirectory>
+        <File Name="read_control.cpp"/>
+        <File Name="read_grid.cpp"/>
+        <File Name="lexer_gridsize.cpp"/>
+        <File Name="lexer_vectorsize.cpp"/>
+        <File Name="lexer_gridini.cpp"/>
+        <File Name="lexer_controlfill_recv.cpp"/>
+        <File Name="lexer_controlfill_send.cpp"/>
+        <File Name="lexer_gridsize2D.cpp"/>
+        <File Name="lexer_gridini2D.cpp"/>
       </VirtualDirectory>
       <File Name="main.cpp"/>
       <File Name="driver.cpp"/>
-      <File Name="lexer.cpp"/>
+      <File Name="lexer.cpp" ExcludeProjConfig=""/>
       <VirtualDirectory Name="Logic">
         <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>

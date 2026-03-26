@@ -39,3 +39,37 @@ void lexer::control_calc()
 	Xmeantime=Xtotaltime=0.0;
 	gcmeantime=gctotaltime=0.0;
 }
+
+void lexer::assign_margin()
+{	
+    margin=3; 
+    
+    if(A311==7)
+	margin=4;
+    
+	imax=knox+2*margin;
+	jmax=knoy+2*margin;
+	kmax=knoz+2*margin;
+    kmaxF=knoz+1+2*margin;
+	
+	imin=-margin;
+	jmin=-margin;
+	kmin=-margin;
+}
+
+int lexer::maxparacount()
+{
+        maxpara=0;
+
+        maxpara=MAX(gcpara1_count,gcpara2_count);
+
+        maxpara=MAX(maxpara,gcpara3_count);
+        maxpara=MAX(maxpara,gcpara4_count);
+        maxpara=MAX(maxpara,gcpara5_count);
+        maxpara=MAX(maxpara,gcpara6_count);
+
+        return maxpara;
+}
+
+
+

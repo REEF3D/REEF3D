@@ -17,61 +17,36 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "control.h"
-#include "lexer.h"
+#include"grid.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"fieldint4.h"
 
-void control::parse(lexer* p)
+void grid::fillgcb4_wall(lexer *p)
 {
-    if(B98==1)
-    B98=2;
-    else if(B98==3 && A10==5)
-    B98=4;
+    int q,n;
+    
+    
+    fieldint4 cval(p);
+    
+    int count=0;
 
-    if(X10>0)
-    D22=2;
-
-    if(F80>0 && F35>0)
-    F35=0;
-
-    G1=0;
-    if(S10>0 || p->toporead>0 || p->solidread==1)
-    G1=1;
-
-    if(A10==3 || A10==5)
-    G2=1;
-
-    if(I10==1)
+    BASELOOP
+	{
+    cval(i,j,k)=count;
+    
+    ++count;
+	}
+    
+    GC4LOOP
     {
-        I11=1;
-        I12=2;
-        I13=1;
-    }
-    else if(I10==2)
-    {
-        I11=2;
-        I12=2;
-        I13=1;
-    }
-
-    if(I40>0)
-    {
-        I10=0;
-        I11=0;
-        I12=0;
-        I13=0;
-    }
-
-    if(T10==0)
-    I13=0;
-
-    if((N40==3 || N40==23 ) && X10>0)
-    N40=4;
-    else if(N40==13 && X10>0)
-    N40=14;
-
-    if(S10>=1 || p->toporead==1)
-    P27=1;
+    i=p->gcb4[n][0];
+    j=p->gcb4[n][1];
+    k=p->gcb4[n][2];
+	p->gcb4[n][5]=cval(i,j,k);
+	}
+	
 }

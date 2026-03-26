@@ -73,6 +73,7 @@ class nhflow_potential;
 class sflow;
 class fnpf_timestep;
 class nhflow_timestep;
+class grid;
 class patchBC_interface;
 class nhflow;
 class multiphase;
@@ -192,6 +193,7 @@ public:
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_timestep *pftstep;
+    grid *pgrid;
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
