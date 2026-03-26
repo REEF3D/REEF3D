@@ -1076,6 +1076,7 @@
           <File Name="grid.h"/>
           <File Name="grid_helper.h"/>
         </VirtualDirectory>
+        <File Name="field_base.h"/>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
           <File Name="field1.h"/>
