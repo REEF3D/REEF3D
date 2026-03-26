@@ -23,63 +23,6 @@ Author: Hans Bihs
 #ifndef ITERATORS_H_
 #define ITERATORS_H_
 
-#define NLOOP1 for(n=p->sizeM1[0]; n<p->sizeM1[1]; ++n)
-#define NLOOP2 for(n=p->sizeM2[0]; n<p->sizeM2[1]; ++n)
-#define NLOOP3 for(n=p->sizeM3[0]; n<p->sizeM3[1]; ++n)
-#define NLOOP4 for(n=p->sizeM4[0]; n<p->sizeM4[1]; ++n)
-#define NLOOP4A for(n=p->sizeM4a[0]; n<p->sizeM4a[1]; ++n)	
-#define NLOOP6 for(n=p->sizeM6[0]; n<p->sizeM6[1]; ++n)
-#define NLOOP9 for(n=p->sizeM9[0]; n<p->sizeM9[1]; ++n)
-#define NLOOP for(n=sizeM[0]; n<sizeM[1]; ++n)
-#define VECLOOP for(n=0; n<p->veclength; ++n)
-
-
-#define PORVAL1 (0.5*(a->porosity(i+1,j,k) + a->porosity(i,j,k)))
-#define PORVAL2 (0.5*(a->porosity(i,j+1,k) + a->porosity(i,j,k)))
-#define PORVAL3 (0.5*(a->porosity(i,j,k+1) + a->porosity(i,j,k)))
-#define PORVAL4 a->porosity(i,j,k)
-
-#define PORVAL4px a->porosity(i+1,j,k)
-#define PORVAL4py a->porosity(i,j+1,k)
-#define PORVAL4pz a->porosity(i,j,k+1)
-
-#define CPOR4px   (1.0/(1.0+(p->B260*(PORVAL4px<1.0?1.0:0.0))))
-#define CPOR4py   (1.0/(1.0+(p->B260*(PORVAL4py<1.0?1.0:0.0))))
-#define CPOR4pz   (1.0/(1.0+(p->B260*(PORVAL4pz<1.0?1.0:0.0))))
-
-#define CPOR1   (1.0/(1.0+(p->B260*(PORVAL1<1.0?1.0:0.0))))
-#define CPOR2   (1.0/(1.0+(p->B260*(PORVAL2<1.0?1.0:0.0))))
-#define CPOR3   (1.0/(1.0+(p->B260*(PORVAL3<1.0?1.0:0.0))))
-#define CPOR4   (1.0/(1.0+(p->B260*(PORVAL4<1.0?1.0:0.0))))
-
-#define PORVAL1m (0.5*(a->porosity(i,j,k) + a->porosity(i-1,j,k)))
-#define PORVAL2m (0.5*(a->porosity(i,j,k) + a->porosity(i,j-1,k)))
-#define PORVAL3m (0.5*(a->porosity(i,j,k) + a->porosity(i,j,k-1)))
-
-#define CPOR1m   (1.0/(1.0+(p->B260*(PORVAL1m<1.0?1.0:0.0))))
-#define CPOR2m   (1.0/(1.0+(p->B260*(PORVAL2m<1.0?1.0:0.0))))
-#define CPOR3m   (1.0/(1.0+(p->B260*(PORVAL3m<1.0?1.0:0.0))))
-
-#define PORVAL1p (0.5*(a->porosity(i+2,j,k) + a->porosity(i+1,j,k)))
-#define PORVAL2p (0.5*(a->porosity(i,j+2,k) + a->porosity(i,j+1,k)))
-#define PORVAL3p (0.5*(a->porosity(i,j,k+2) + a->porosity(i,j,k+1)))
-
-#define CPOR1p   (1.0/(1.0+(p->B260*(PORVAL1p<1.0?1.0:0.0))))
-#define CPOR2p   (1.0/(1.0+(p->B260*(PORVAL2p<1.0?1.0:0.0))))
-#define CPOR3p   (1.0/(1.0+(p->B260*(PORVAL3p<1.0?1.0:0.0))))
-
-
-#define PORVALNH d->POR[IJK]
-#define PORVALNHm d->POR[IJK]
-#define PORVALNHp d->POR[IJK]
-#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
-#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
-#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
-
-
-//-----------------------------------------------------------
-
-
 #define IJK  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
 
 #define Im1JK  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
@@ -100,9 +43,6 @@ Author: Hans Bihs
 #define IJp1Km1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin-1
 #define IJm1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin+1
 #define IJm1Km1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
-
-#define IJp1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin+1
-#define IJp1Kp1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin+1
 
 #define Im1Jm1Km1 (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
 #define Ip1Jm1Km1 (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
@@ -148,12 +88,6 @@ Author: Hans Bihs
 #define Im1Jm1K  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin
 #define Im1Jp1K  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
 #define Ip1Jm1K  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin
-#define Ip1Jp1K  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
-
-
-#define Im1JKm1  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin-1
-#define IJm1Km1  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
-#define Im1Jm1Km1  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin-1
 
 #define IJK6 (i-p->imin)*p->jmax6*p->kmax6 + (j-p->jmin)*p->kmax6 + k-p->kmin
 

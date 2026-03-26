@@ -44,7 +44,6 @@ Author: Hans Bihs
 #include"matrix_diag.h"
 #include"cpt.h"
 #include"looping.h"
-#include"iterators.h"
 #include<iostream>
 #include<vector>
 

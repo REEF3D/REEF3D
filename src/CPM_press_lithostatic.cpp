@@ -36,7 +36,7 @@ void CPM::press_lithostatic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     ILOOP
     JLOOP
     {    
-        KREVLOOP
+        KLOOP
         {
         //if(a->topo(i,j,k-2)<0.0)
         press(i,j,k) = fabs(p->W22) * (p->S22 - a->ro(i,j,k)) * (-a->topo(i,j,k));
