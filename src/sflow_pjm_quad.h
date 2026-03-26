@@ -34,7 +34,7 @@ class sflow_gradient_weno;
 
 using namespace std;
 
-class sflow_pjm_quad : public sflow_pressure, public increment
+class sflow_pjm_quad final : public sflow_pressure, public increment
 {
 public:
     sflow_pjm_quad(lexer*, fdm2D*,patchBC_interface*);

@@ -34,7 +34,7 @@ class ghostcell;
 
 using namespace std;
 
-class vorticity_f : public vorticity, public strain
+class vorticity_f final : public vorticity, public strain
 {
 public:
     vorticity_f(lexer*,fdm*);

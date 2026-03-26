@@ -49,7 +49,7 @@ using namespace std;
 #ifndef MOMENTUM_FC3_PLIC
 #define MOMENTUM_FC3_PLIC
 
-class momentum_FC3_PLIC : public momentum, public momentum_forcing, public bcmom
+class momentum_FC3_PLIC final : public momentum, public momentum_forcing, public bcmom
 {
     
 public:

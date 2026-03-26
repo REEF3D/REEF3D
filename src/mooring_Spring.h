@@ -38,7 +38,7 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_Spring : public mooring
+class mooring_Spring final : public mooring
 {
 public:
 	mooring_Spring(int);

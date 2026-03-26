@@ -34,7 +34,7 @@ class field;
 
 using namespace std;
 
-class fnpf_RK3 : public fnpf_ini, public fnpf_sigma
+class fnpf_RK3 final : public fnpf_ini, public fnpf_sigma
 {
 public:
 	fnpf_RK3(lexer*, fdm_fnpf*, ghostcell*);

@@ -38,7 +38,7 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_Catenary : public mooring
+class mooring_Catenary final : public mooring
 {
 public:
 	mooring_Catenary(int);

@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class cicsam : public convection,  public increment
+class cicsam final : public convection,  public increment
 {
 
 public:

@@ -36,7 +36,7 @@ class field;
 
 using namespace std;
 
-class sixdof_motionext_wavemaker : public sixdof_motionext
+class sixdof_motionext_wavemaker final : public sixdof_motionext
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;

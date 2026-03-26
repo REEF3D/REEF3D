@@ -32,7 +32,7 @@ class sediment_fdm;
 
 using namespace std;
 
-class reduction_deyana :  public bedshear_reduction, public bedslope
+class reduction_deyana final :  public bedshear_reduction, public bedslope
 {
 public:
     reduction_deyana(lexer*);

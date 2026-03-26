@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class umist : public fluxlim, public increment
+class umist final : public fluxlim, public increment
 {
 public:
 	umist (lexer *);

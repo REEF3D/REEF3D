@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sediment_cds_hj : public sediment_exnerdisc, public increment
+class sediment_cds_hj final : public sediment_exnerdisc, public increment
 {
 public:
 	sediment_cds_hj(lexer*);

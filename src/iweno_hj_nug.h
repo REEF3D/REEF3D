@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class iweno_hj_nug : public convection, public weno_nug_func
+class iweno_hj_nug final : public convection, public weno_nug_func
 {
 public:
 	iweno_hj_nug (lexer*);

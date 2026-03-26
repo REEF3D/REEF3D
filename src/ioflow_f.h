@@ -34,7 +34,7 @@ class fdm_fnpf;
 using namespace std;
 
 
-class ioflow_f : public ioflow, private resize_class, public increment
+class ioflow_f final : public ioflow, private resize_class, public increment
 {
 
 public:

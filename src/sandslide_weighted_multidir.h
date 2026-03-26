@@ -32,7 +32,7 @@ class sediment_fdm;
 
 using namespace std;
 
-class sandslide_weighted_multidir :  public sandslide, public norm_vec, public bedslope
+class sandslide_weighted_multidir final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_weighted_multidir(lexer*);

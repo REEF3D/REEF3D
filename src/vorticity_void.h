@@ -32,7 +32,7 @@ class ghostcell;
 
 using namespace std;
 
-class vorticity_void : public vorticity
+class vorticity_void final : public vorticity
 {
 public:
     vorticity_void(lexer*,fdm*);

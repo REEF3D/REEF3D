@@ -34,7 +34,7 @@ class field;
 
 using namespace std;
 
-class ptf_RK3 : public ptf, public ptf_fsfbc
+class ptf_RK3 final : public ptf, public ptf_fsfbc
 {
 public:
 	ptf_RK3(lexer*, fdm*, ghostcell*);

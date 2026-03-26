@@ -31,7 +31,7 @@ class fdm2D;
 
 using namespace std;
 
-class sflow_voidconv : public sflow_convection, public increment
+class sflow_voidconv final : public sflow_convection, public increment
 {
 public:
 	sflow_voidconv(lexer*);

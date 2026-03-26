@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class limo3 : public fluxlim, public increment
+class limo3 final : public fluxlim, public increment
 {
 
 public:

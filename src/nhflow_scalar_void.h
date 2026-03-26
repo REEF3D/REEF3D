@@ -30,7 +30,7 @@ class nhflow_scalar_advec;
 
 using namespace std;
 
-class nhflow_scalar_void : public nhflow_scalar_convection, public increment
+class nhflow_scalar_void final : public nhflow_scalar_convection, public increment
 {
 public:
 	nhflow_scalar_void (lexer*);

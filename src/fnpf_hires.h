@@ -30,7 +30,7 @@ class fdm_fnpf;
 
 using namespace std;
 
-class fnpf_hires : public fnpf_convection, public increment
+class fnpf_hires final : public fnpf_convection, public increment
 {
 public:
     fnpf_hires(lexer*);

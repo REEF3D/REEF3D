@@ -37,7 +37,7 @@ class field;
 
 using namespace std;
 
-class multiphase_v : public multiphase
+class multiphase_v final : public multiphase
 {
 public:
 	multiphase_v();

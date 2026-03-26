@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class solver_void : public solver
+class solver_void final : public solver
 {
 public:
 

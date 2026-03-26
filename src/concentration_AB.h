@@ -31,7 +31,7 @@ class concentration;
 
 using namespace std;
 
-class concentration_AB :public bc_concentration, public concentration_io
+class concentration_AB final :public bc_concentration, public concentration_io
 {
 public:
     concentration_AB(lexer *, fdm*, ghostcell*);

@@ -30,7 +30,7 @@ class multiphase;
 using namespace std;
 
 
-class EARSM_kw_IM1 : public komega_IM1, public EARSM
+class EARSM_kw_IM1 final : public komega_IM1, public EARSM
 {
 
 public:

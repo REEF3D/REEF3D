@@ -54,7 +54,7 @@ class bedshear_max;
 
 using namespace std;
 
-class printer_nhflow : public printer, public increment
+class printer_nhflow final : public printer, public increment
 {
 
 public:

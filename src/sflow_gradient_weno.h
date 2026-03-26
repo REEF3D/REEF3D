@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_gradient_weno : public sflow_gradient, public increment
+class sflow_gradient_weno final : public sflow_gradient, public increment
 {
 public:
     sflow_gradient_weno(lexer*);

@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class patchBC_void : public patchBC_interface
+class patchBC_void final : public patchBC_interface
 {
 public:
     patchBC_void(lexer*);

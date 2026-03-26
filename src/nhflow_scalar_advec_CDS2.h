@@ -31,7 +31,7 @@ class fdm_nhf;
 
 using namespace std;
 
-class nhflow_scalar_advec_CDS2 : public nhflow_scalar_advec, public increment
+class nhflow_scalar_advec_CDS2 final : public nhflow_scalar_advec, public increment
 {
 public:
     nhflow_scalar_advec_CDS2 (lexer *p);

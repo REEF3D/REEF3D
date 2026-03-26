@@ -39,7 +39,7 @@ class fluid_update;
 
 using namespace std;
 
-class VOF_PLIC : public freesurface, gradient, norm_vec
+class VOF_PLIC final : public freesurface, gradient, norm_vec
 {
 public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);

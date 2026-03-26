@@ -31,7 +31,7 @@ class ghostcell;
 
 using namespace std;
 
-class expdata_void : public expdata
+class expdata_void final : public expdata
 {
 public:
 	expdata_void(lexer*, fdm*, ghostcell*);

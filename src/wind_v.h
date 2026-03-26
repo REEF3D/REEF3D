@@ -33,7 +33,7 @@ class slice;
 
 using namespace std;
 
-class wind_v : public wind
+class wind_v final : public wind
 {
 public:
     wind_v(lexer*) {};

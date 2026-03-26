@@ -29,7 +29,7 @@ Author: Elyas Larkermani
 using namespace std;
 
 
-class idiff2_CN : public diffusion, public increment
+class idiff2_CN final : public diffusion, public increment
 {
 
 public:

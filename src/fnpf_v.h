@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_void : public fnpf
+class fnpf_void final : public fnpf
 {
 public:
 	fnpf_void();

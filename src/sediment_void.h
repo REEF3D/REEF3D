@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sediment_void : public sediment
+class sediment_void final : public sediment
 {
 public:
     sediment_void();

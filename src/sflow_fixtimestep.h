@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_fixtimestep : public sflow_timestep, public increment
+class sflow_fixtimestep final : public sflow_timestep, public increment
 {
 public:
 	sflow_fixtimestep(lexer*,fdm2D*);

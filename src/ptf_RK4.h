@@ -34,7 +34,7 @@ class ptf_bed_update;
 
 using namespace std;
 
-class ptf_RK4 : public ptf, public ptf_fsfbc
+class ptf_RK4 final : public ptf, public ptf_fsfbc
 {
 public:
 	ptf_RK4(lexer*, fdm*, ghostcell*);

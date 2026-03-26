@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_ddx_cds4 : public fnpf_ddx, public increment
+class fnpf_ddx_cds4 final : public fnpf_ddx, public increment
 {
 public:
     fnpf_ddx_cds4(lexer*);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class pressure_void : public pressure, public increment
+class pressure_void final : public pressure, public increment
 {
 
 public:

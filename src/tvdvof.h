@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class tvdvof : public fluxlim, public increment
+class tvdvof final : public fluxlim, public increment
 {
 
 public:

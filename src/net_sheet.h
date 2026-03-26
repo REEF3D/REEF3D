@@ -39,7 +39,7 @@ Authors: Tobias Martin, Hans Bihs
 
 using namespace std;
 
-class net_sheet : public net, public boundarycheck
+class net_sheet final : public net, public boundarycheck
 {
 public:
 	net_sheet(int, lexer*);

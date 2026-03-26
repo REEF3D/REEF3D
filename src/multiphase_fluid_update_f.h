@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class multiphase_fluid_update_f : public multiphase_fluid_update, increment
+class multiphase_fluid_update_f final : public multiphase_fluid_update, increment
 {
 public:
     multiphase_fluid_update_f(lexer*, fdm*, ghostcell*);

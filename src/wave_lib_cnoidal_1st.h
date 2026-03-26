@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_cnoidal_1st : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic,
+class wave_lib_cnoidal_1st final : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic,
                                  public increment
 {
 public:

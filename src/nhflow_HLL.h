@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_HLL : public nhflow_convection, public increment
+class nhflow_HLL final : public nhflow_convection, public increment
 {
 
 public:

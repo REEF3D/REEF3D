@@ -35,7 +35,7 @@ class turbulence;
 
 using namespace std;
 
-class fsi_strips : public fsi
+class fsi_strips final : public fsi
 {
 public:
 	

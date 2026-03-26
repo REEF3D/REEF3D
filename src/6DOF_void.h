@@ -38,7 +38,7 @@ class net_interface;
 
 using namespace std;
 
-class sixdof_void : public sixdof
+class sixdof_void final : public sixdof
 {
 public:
 	sixdof_void(lexer*,ghostcell*);

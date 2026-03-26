@@ -32,7 +32,7 @@ class sediment_fdm;
 
 using namespace std;
 
-class sandslide_steepest_descent :  public sandslide, public norm_vec, public bedslope
+class sandslide_steepest_descent final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_steepest_descent(lexer*);

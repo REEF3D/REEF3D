@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_suspended_IM1 : public nhflow_suspended, public increment
+class nhflow_suspended_IM1 final : public nhflow_suspended, public increment
 {
 public:
 	nhflow_suspended_IM1(lexer *);

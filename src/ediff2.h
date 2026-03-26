@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class ediff2 : public diffusion, public gradient
+class ediff2 final : public diffusion, public gradient
 {
 
 public:

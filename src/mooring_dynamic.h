@@ -40,7 +40,7 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_dynamic : public mooring, public beam
+class mooring_dynamic final : public mooring, public beam
 {
 public:
 	

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class ptf_void : public ptf
+class ptf_void final : public ptf
 {
 public:
 	ptf_void();

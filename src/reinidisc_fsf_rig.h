@@ -32,7 +32,7 @@ class cpt;
 
 using namespace std;
 
-class reinidisc_fsf_rig : public reinidisc, public ddweno_nug
+class reinidisc_fsf_rig final : public reinidisc, public ddweno_nug
 {
 public:
 	reinidisc_fsf_rig(lexer* p);

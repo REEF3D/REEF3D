@@ -32,7 +32,7 @@ class sflow_diffusion;
 
 using namespace std;
 
-class sflow_turb_kw_IM1 : public sflow_turb_io
+class sflow_turb_kw_IM1 final : public sflow_turb_io
 {
 
 public:

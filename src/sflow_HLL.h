@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class sflow_HLL : public sflow_convection, public increment
+class sflow_HLL final : public sflow_convection, public increment
 {
 
 public:

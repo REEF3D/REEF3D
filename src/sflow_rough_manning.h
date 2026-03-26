@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rough_manning : public sflow_roughness, public increment
+class sflow_rough_manning final : public sflow_roughness, public increment
 {
 
 public:

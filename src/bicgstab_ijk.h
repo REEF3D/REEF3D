@@ -29,7 +29,7 @@ Author: Hans Bihs
 using namespace std;
 
 
-class bicgstab_ijk : public solver, public increment
+class bicgstab_ijk final : public solver, public increment
 {
 public:
 	bicgstab_ijk(lexer*,fdm*,ghostcell*);

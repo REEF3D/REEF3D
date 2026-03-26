@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class LES_filter_f1 : public LES_filter, public strain
+class LES_filter_f1 final : public LES_filter, public strain
 {
 public:
 	LES_filter_f1(lexer *, fdm*);

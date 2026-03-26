@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_turb_void : public sflow_turbulence, public increment
+class sflow_turb_void final : public sflow_turbulence, public increment
 {
 
 public:

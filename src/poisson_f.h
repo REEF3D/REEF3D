@@ -32,7 +32,7 @@ class density;
 
 using namespace std;
 
-class poisson_f : public poisson, public increment
+class poisson_f final : public poisson, public increment
 {
 
 public:

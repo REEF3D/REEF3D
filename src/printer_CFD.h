@@ -58,7 +58,7 @@ class print_averaging;
 
 using namespace std;
 
-class printer_CFD : public printer, public increment
+class printer_CFD final : public printer, public increment
 {
 
 public:

@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_weno3 : public fnpf_convection, public increment, public ddweno3_f_nug
+class fnpf_weno3 final : public fnpf_convection, public increment, public ddweno3_f_nug
 {
 public:
 	fnpf_weno3(lexer*);

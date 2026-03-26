@@ -39,7 +39,7 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_void : public mooring
+class mooring_void final : public mooring
 {
 public:
 

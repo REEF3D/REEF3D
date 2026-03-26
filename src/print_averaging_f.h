@@ -33,7 +33,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class print_averaging_f : public print_averaging, public increment
+class print_averaging_f final : public print_averaging, public increment
 {
 public:
     print_averaging_f(lexer*,fdm*,ghostcell*);

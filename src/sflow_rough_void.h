@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rough_void : public sflow_roughness
+class sflow_rough_void final : public sflow_roughness
 {
 
 public:

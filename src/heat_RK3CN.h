@@ -30,7 +30,7 @@ Author: Elyas Larkermani
 class heat;
 using namespace std;
 
-class heat_RK3CN :public bcheat, public heat_print
+class heat_RK3CN final :public bcheat, public heat_print
 {
 public:
     heat_RK3CN(lexer *, fdm*, ghostcell*,heat*&);

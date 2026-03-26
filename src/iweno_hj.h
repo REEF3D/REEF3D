@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class iweno_hj : public convection, public increment
+class iweno_hj final : public convection, public increment
 {
 public:
 	iweno_hj (lexer*);

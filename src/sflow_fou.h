@@ -30,7 +30,7 @@ class sflow_flux;
 
 using namespace std;
 
-class sflow_fou : public sflow_convection, public increment
+class sflow_fou final : public sflow_convection, public increment
 {
 public:
 	sflow_fou(lexer*);

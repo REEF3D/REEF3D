@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sandslide_f2 :  public sandslide, public norm_vec, public bedslope
+class sandslide_f2 final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_f2(lexer*);

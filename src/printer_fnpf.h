@@ -48,7 +48,7 @@ class fnpf_print_kinematics;
 
 using namespace std;
 
-class printer_fnpf : public printer, public increment
+class printer_fnpf final : public printer, public increment
 {
 
 public:

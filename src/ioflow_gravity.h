@@ -31,7 +31,7 @@ class fdm_fnpf;
 using namespace std;
 
 
-class ioflow_gravity : public ioflow, public increment
+class ioflow_gravity final : public ioflow, public increment
 {
 
 public:

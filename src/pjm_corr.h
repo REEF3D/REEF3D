@@ -33,7 +33,7 @@ class density;
 
 using namespace std;
 
-class pjm_corr : public pressure, public pressure_reference
+class pjm_corr final : public pressure, public pressure_reference
 {
 
 public:

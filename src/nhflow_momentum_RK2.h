@@ -32,7 +32,7 @@ class vrans;
 
 using namespace std;
 
-class nhflow_momentum_RK2 : public nhflow_momentum_func
+class nhflow_momentum_RK2 final : public nhflow_momentum_func
 {
 public:
 	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, nhflow_forcing*);

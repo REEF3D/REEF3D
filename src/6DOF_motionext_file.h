@@ -36,7 +36,7 @@ class field;
 
 using namespace std;
 
-class sixdof_motionext_file : public sixdof_motionext
+class sixdof_motionext_file final : public sixdof_motionext
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;

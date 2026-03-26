@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class picard_void : public picard
+class picard_void final : public picard
 {
 public:
 

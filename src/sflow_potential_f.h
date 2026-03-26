@@ -31,7 +31,7 @@ class slice;
 
 using namespace std;
 
-class sflow_potential_f : public sflow_potential, public increment
+class sflow_potential_f final : public sflow_potential, public increment
 {
 
 public:

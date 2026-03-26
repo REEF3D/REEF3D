@@ -33,7 +33,7 @@ class heat;
 
 using namespace std;
 
-class fluid_update_fsf_heat_Bouss : public fluid_update, increment
+class fluid_update_fsf_heat_Bouss final : public fluid_update, increment
 {
 public:
     fluid_update_fsf_heat_Bouss(lexer*, fdm*, ghostcell*, heat*&);

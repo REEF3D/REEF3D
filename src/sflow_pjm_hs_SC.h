@@ -32,7 +32,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class sflow_pjm_hs : public sflow_pressure, public sflow_gradient
+class sflow_pjm_hs final : public sflow_pressure, public sflow_gradient
 {
 
 public:

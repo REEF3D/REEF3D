@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class bedload_EF : public bedload, public increment
+class bedload_EF final : public bedload, public increment
 {
 public:
 

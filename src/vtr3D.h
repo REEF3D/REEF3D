@@ -26,7 +26,7 @@ Author: Alexander Hanke
 #include "vtk3D.h"
 #include "increment.h"
 
-class vtr3D : public vtk3D , increment
+class vtr3D final : public vtk3D , increment
 {
     public:
         void folder(const char*) override final;

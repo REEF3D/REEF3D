@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class convection_void : public convection, public increment
+class convection_void final : public convection, public increment
 {
 
 public:

@@ -31,7 +31,7 @@ class heat;
 
 using namespace std;
 
-class heat_RK2 :public bcheat, public heat_print
+class heat_RK2 final :public bcheat, public heat_print
 {
 public:
     heat_RK2(lexer *, fdm*, ghostcell*,heat*&);

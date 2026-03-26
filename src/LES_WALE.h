@@ -33,7 +33,7 @@ class LES_filter;
 
 using namespace std;
 
-class LES_WALE : public LES
+class LES_WALE final : public LES
 {
 public:
 	LES_WALE(lexer *, fdm*);

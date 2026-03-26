@@ -32,7 +32,7 @@ class picard;
 
 using namespace std;
 
-class reini_walld : public reini, gradient
+class reini_walld final : public reini, gradient
 {
 public:
 	reini_walld(lexer* p, fdm *a);

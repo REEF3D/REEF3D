@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class ifou : public convection,  public increment
+class ifou final : public convection,  public increment
 {
 
 public:

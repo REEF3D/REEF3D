@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class flux_face_CDS2_vrans : public flux, public increment
+class flux_face_CDS2_vrans final : public flux, public increment
 {
 public:
 

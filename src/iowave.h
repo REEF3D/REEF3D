@@ -41,7 +41,7 @@ class linear_regression_cont;
 
 using namespace std;
 
-class iowave : public ioflow, public wave_interface, public increment, public flowfile_in
+class iowave final : public ioflow, public wave_interface, public increment, public flowfile_in
 {
 
 public:

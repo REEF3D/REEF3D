@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_linear : public wave_lib_precalc, public wave_lib_parameters, public increment
+class wave_lib_linear final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
     wave_lib_linear(lexer*, ghostcell*);

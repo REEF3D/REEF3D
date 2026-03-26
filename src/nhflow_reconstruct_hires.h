@@ -35,7 +35,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_reconstruct_hires : public nhflow_reconstruct, public nhflow_gradient
+class nhflow_reconstruct_hires final : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
 	nhflow_reconstruct_hires(lexer*,patchBC_interface*);

@@ -33,7 +33,7 @@ class concentration;
 
 using namespace std;
 
-class fluid_update_fsf_concentration : public fluid_update, increment
+class fluid_update_fsf_concentration final : public fluid_update, increment
 {
 public:
     fluid_update_fsf_concentration(lexer*, fdm*, ghostcell*, concentration*&);

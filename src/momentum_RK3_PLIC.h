@@ -46,7 +46,7 @@ class VOF_PLIC;
 
 using namespace std;
 
-class momentum_RK3_PLIC : public momentum, public momentum_forcing, public bcmom
+class momentum_RK3_PLIC final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK3_PLIC(lexer*, fdm*,ghostcell*, convection*, diffusion*, pressure*, poisson*, 

@@ -30,7 +30,7 @@ class turbulence;
 
 using namespace std;
 
-class pftimestep : public timestep, public increment
+class pftimestep final : public timestep, public increment
 {
 public:
 	pftimestep(lexer*);

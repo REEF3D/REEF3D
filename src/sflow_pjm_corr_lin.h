@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_pjm_corr_lin : public sflow_pressure, public increment
+class sflow_pjm_corr_lin final : public sflow_pressure, public increment
 {
 public:
     sflow_pjm_corr_lin(lexer*, fdm2D*,patchBC_interface*);

@@ -41,7 +41,7 @@ class reinidisc;
 
 using namespace std;
 
-class net_barDyn : public net, public boundarycheck
+class net_barDyn final : public net, public boundarycheck
 {
 public:
 	net_barDyn(int, lexer*);

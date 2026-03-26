@@ -31,7 +31,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sandslide_v :  public sandslide
+class sandslide_v final :  public sandslide
 {
 public:
     sandslide_v(lexer*);

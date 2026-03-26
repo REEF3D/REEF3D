@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_irregular_2nd_a : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_spectrum,
+class wave_lib_irregular_2nd_a final : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_spectrum,
                                public increment
 {
 public:

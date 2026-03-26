@@ -29,7 +29,7 @@ Author: Hans Bihs
 using namespace std;
 
 
-class idiff2 : public diffusion, public gradient
+class idiff2 final : public diffusion, public gradient
 {
 
 public:

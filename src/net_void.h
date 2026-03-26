@@ -37,7 +37,7 @@ Authors: Tobias Martin, Hans Bihs
 
 using namespace std;
 
-class net_void : public net
+class net_void final : public net
 {
 public:
 

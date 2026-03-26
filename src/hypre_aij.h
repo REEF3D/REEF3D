@@ -37,7 +37,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_aij : public solver, public increment
+class hypre_aij final : public solver, public increment
 {
 public:
 

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class concentration_void : public concentration
+class concentration_void final : public concentration
 {
 public:
     concentration_void(lexer *, fdm*, ghostcell*);

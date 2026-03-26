@@ -44,7 +44,7 @@ class concentration;
 
 using namespace std;
 
-class multiphase_f : public multiphase, public increment
+class multiphase_f final : public multiphase, public increment
 {
 public:
 	multiphase_f(lexer*, fdm*, ghostcell*);

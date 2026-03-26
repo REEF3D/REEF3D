@@ -32,7 +32,7 @@ class density;
 
 using namespace std;
 
-class pjm_hydrostatic : public pressure, public increment
+class pjm_hydrostatic final : public pressure, public increment
 {
 
 public:

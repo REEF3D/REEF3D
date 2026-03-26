@@ -39,7 +39,7 @@ using namespace std;
 #ifndef VOF_VOID_H
 #define VOF_VOID_H
 
-class VOF_void : public freesurface, gradient, norm_vec
+class VOF_void final : public freesurface, gradient, norm_vec
 {
 public:
     VOF_void(lexer*, fdm*, ghostcell*,heat*);

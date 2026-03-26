@@ -47,7 +47,7 @@ class fsi;
 
 using namespace std;
 
-class momentum_FC3 : public momentum, public momentum_forcing, public bcmom
+class momentum_FC3 final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_FC3(lexer*, fdm*, ghostcell*, convection*, convection*, diffusion*, pressure*, poisson*, 

@@ -36,7 +36,7 @@ Author: Hans Bihs
  
 using namespace std;
 
-class hypre_struct : public solver, public increment
+class hypre_struct final : public solver, public increment
 {
 public:
 

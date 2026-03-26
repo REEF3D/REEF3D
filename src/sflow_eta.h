@@ -32,7 +32,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class sflow_eta : public sflow_fsf, public increment
+class sflow_eta final : public sflow_fsf, public increment
 {
 public:    
 	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);

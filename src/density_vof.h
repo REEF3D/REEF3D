@@ -32,7 +32,7 @@ class lexer;
 
 using namespace std;
 
-class density_vof : public density, virtual public increment
+class density_vof final : public density, virtual public increment
 {
 
 public:

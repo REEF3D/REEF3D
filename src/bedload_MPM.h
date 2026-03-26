@@ -30,7 +30,7 @@ class turbulence;
 
 using namespace std;
 
-class bedload_MPM : public bedload, public increment
+class bedload_MPM final : public bedload, public increment
 {
 public:
 

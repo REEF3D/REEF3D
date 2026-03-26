@@ -29,7 +29,7 @@ using namespace std;
 #define IDIFF2_PLIC_2D_H_
 
 
-class idiff2_PLIC_2D : public diffusion, public increment
+class idiff2_PLIC_2D final : public diffusion, public increment
 {
 
 public:

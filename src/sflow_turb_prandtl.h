@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_turb_prandtl : public sflow_turb_io_void
+class sflow_turb_prandtl final : public sflow_turb_io_void
 {
 
 public:

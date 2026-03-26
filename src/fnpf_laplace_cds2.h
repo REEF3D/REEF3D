@@ -30,7 +30,7 @@ class fnpf_bed_update;
 
 using namespace std;
 
-class fnpf_laplace_cds2 : public fnpf_laplace, public increment
+class fnpf_laplace_cds2 final : public fnpf_laplace, public increment
 {
 public:
     fnpf_laplace_cds2 (lexer*);

@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_RK3 : public suspended, public increment
+class suspended_RK3 final : public suspended, public increment
 {
 public:
 	suspended_RK3(lexer *, fdm*);

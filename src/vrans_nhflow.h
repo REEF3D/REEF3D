@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class vrans_nhflow : public vrans_nhflow_base, public nhflow_geometry
+class vrans_nhflow final : public vrans_nhflow_base, public nhflow_geometry
 {
 public:
 	vrans_nhflow(lexer*, fdm_nhf*, ghostcell*);

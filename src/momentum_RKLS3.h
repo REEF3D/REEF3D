@@ -45,7 +45,7 @@ class fsi;
 
 using namespace std;
 
-class momentum_RKLS3 : public momentum, public momentum_forcing, public bcmom
+class momentum_RKLS3 final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 

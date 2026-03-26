@@ -30,7 +30,7 @@ Author: Hans Bihs
 class concentration;
 using namespace std;
 
-class concentration_RK3 :public bc_concentration, public concentration_io
+class concentration_RK3 final :public bc_concentration, public concentration_io
 {
 public:
     concentration_RK3(lexer *, fdm*, ghostcell*);

@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_wenoflux : public fnpf_etadisc, public increment, public weno_nug_func
+class fnpf_wenoflux final : public fnpf_etadisc, public increment, public weno_nug_func
 {
 public:
 	fnpf_wenoflux(lexer*);

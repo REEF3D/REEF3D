@@ -30,7 +30,7 @@ class LES_filter;
 
 using namespace std;
 
-class LES_smagorinsky : public LES
+class LES_smagorinsky final : public LES
 {
 public:
 	LES_smagorinsky(lexer *, fdm*);

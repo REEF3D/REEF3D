@@ -37,7 +37,7 @@ class wind;
 
 using namespace std;
 
-class fnpf_fsfbc_wd : public fnpf_breaking
+class fnpf_fsfbc_wd final : public fnpf_breaking
 {
 public:
 	fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);

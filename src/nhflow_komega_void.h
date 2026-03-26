@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_komega_func_void : public nhflow_turbulence, public increment
+class nhflow_komega_func_void final : public nhflow_turbulence, public increment
 {
 
 public:

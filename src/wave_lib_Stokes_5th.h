@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_Stokes_5th : public wave_lib, public increment
+class wave_lib_Stokes_5th final : public wave_lib, public increment
 {
 public:
     wave_lib_Stokes_5th(lexer*, ghostcell*);

@@ -41,7 +41,7 @@ class reinidisc;
 
 using namespace std;
 
-class net_barQuasiStatic : public net, public boundarycheck
+class net_barQuasiStatic final : public net, public boundarycheck
 {
 public:
 	net_barQuasiStatic(int, lexer*);

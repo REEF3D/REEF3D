@@ -33,7 +33,7 @@ class heat;
 
 using namespace std;
 
-class density_heat : public density, virtual public increment
+class density_heat final : public density, virtual public increment
 {
 
 public:

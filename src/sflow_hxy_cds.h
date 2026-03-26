@@ -30,7 +30,7 @@ class sflow_flux;
 
 using namespace std;
 
-class sflow_hxy_cds : public sflow_hxy_disc, public increment
+class sflow_hxy_cds final : public sflow_hxy_disc, public increment
 {
 public:
 	sflow_hxy_cds(lexer*,patchBC_interface*);

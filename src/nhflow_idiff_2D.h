@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_idiff_2D : public nhflow_diffusion, public increment
+class nhflow_idiff_2D final : public nhflow_diffusion, public increment
 {
 public:
     nhflow_idiff_2D(lexer*);

@@ -30,7 +30,7 @@ class turbulence;
 
 using namespace std;
 
-class etimestep : public timestep, public increment
+class etimestep final : public timestep, public increment
 {
 public:
 	etimestep(lexer*);

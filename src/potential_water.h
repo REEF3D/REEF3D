@@ -31,7 +31,7 @@ class field;
 
 using namespace std;
 
-class potential_water : public potential, public increment
+class potential_water final : public potential, public increment
 {
 
 public:

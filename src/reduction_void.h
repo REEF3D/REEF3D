@@ -32,7 +32,7 @@ class ghostcell;
 
 using namespace std;
 
-class reduction_void :  public bedshear_reduction, public increment
+class reduction_void final :  public bedshear_reduction, public increment
 {
 public:
     reduction_void(lexer*);

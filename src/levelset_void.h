@@ -31,7 +31,7 @@ class concentration;
 
 using namespace std;
 
-class levelset_void : public freesurface
+class levelset_void final : public freesurface
 {
 public:
 	levelset_void(lexer*, fdm*, ghostcell*, heat*&, concentration*&);

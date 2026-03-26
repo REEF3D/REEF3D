@@ -35,7 +35,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class sflow_reconstruct_weno : public sflow_reconstruct, public weno_nug_func
+class sflow_reconstruct_weno final : public sflow_reconstruct, public weno_nug_func
 {
 public:
 	sflow_reconstruct_weno(lexer*,patchBC_interface*);

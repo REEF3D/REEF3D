@@ -39,7 +39,7 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_barQuasiStatic : public mooring
+class mooring_barQuasiStatic final : public mooring
 {
 public:
 	mooring_barQuasiStatic(int);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class kepsilon_IM1 : public kepsilon_func
+class kepsilon_IM1 final : public kepsilon_func
 {
 public:
 	kepsilon_IM1(lexer*,fdm*,ghostcell*);

@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class reinitopo_void : public reinitopo
+class reinitopo_void final : public reinitopo
 {
 public:
 	reinitopo_void();

@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_void : public benchmark
+class benchmark_void final : public benchmark
 {
 
 public:

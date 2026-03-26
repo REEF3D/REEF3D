@@ -27,7 +27,7 @@ Authors: Tobias Martin, Hans Bihs
 
 using namespace std;
 
-class fsi_void : public fsi
+class fsi_void final : public fsi
 {
 public:
 	fsi_void(lexer*,ghostcell*){};

@@ -32,7 +32,7 @@ class ghostcell;
 
 using namespace std;
 
-class fluid_update_fsf_comp : public fluid_update, increment
+class fluid_update_fsf_comp final : public fluid_update, increment
 {
 public:
     fluid_update_fsf_comp(lexer*, fdm*, ghostcell*);

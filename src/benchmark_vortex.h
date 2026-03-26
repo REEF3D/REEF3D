@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_vortex : public benchmark, public increment
+class benchmark_vortex final : public benchmark, public increment
 {
 
 public:

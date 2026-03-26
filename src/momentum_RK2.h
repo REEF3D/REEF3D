@@ -41,7 +41,7 @@ class fsi;
 
 using namespace std;
 
-class momentum_RK2 : public momentum, public momentum_forcing, public bcmom
+class momentum_RK2 final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, 

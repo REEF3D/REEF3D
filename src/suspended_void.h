@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_void : public suspended
+class suspended_void final : public suspended
 {
 public:
 	suspended_void();

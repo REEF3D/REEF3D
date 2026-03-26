@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_IM1 : public suspended, public increment
+class suspended_IM1 final : public suspended, public increment
 {
 public:
 	suspended_IM1(lexer *, fdm*);

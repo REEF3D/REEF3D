@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class vrans_v : public vrans, public increment
+class vrans_v final : public vrans, public increment
 {
 public:
 	vrans_v(lexer*, ghostcell*);

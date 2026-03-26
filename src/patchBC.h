@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class patchBC : public patchBC_interface, public increment
+class patchBC final : public patchBC_interface, public increment
 {
 public:
 	patchBC(lexer*,ghostcell*);

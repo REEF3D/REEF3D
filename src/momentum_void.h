@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class momentum_void : public momentum
+class momentum_void final : public momentum
 {
 public:
 	momentum_void();

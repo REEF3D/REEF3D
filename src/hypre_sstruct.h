@@ -39,7 +39,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_sstruct : public solver, public increment
+class hypre_sstruct final : public solver, public increment
 {
 public:
 

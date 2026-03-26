@@ -35,7 +35,7 @@ class sliceint;
 
 using namespace std;
 
-class sflow_ediff : public sflow_diffusion, public increment
+class sflow_ediff final : public sflow_diffusion, public increment
 {
 public:
 	sflow_ediff(lexer*);

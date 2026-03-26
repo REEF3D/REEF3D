@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class kepsilon_void : public turbulence, public increment
+class kepsilon_void final : public turbulence, public increment
 {
 
 public:

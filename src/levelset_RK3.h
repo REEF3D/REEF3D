@@ -34,7 +34,7 @@ class fluid_update;
 
 using namespace std;
 
-class levelset_RK3 : public freesurface, gradient
+class levelset_RK3 final : public freesurface, gradient
 {
 public:
 	levelset_RK3(lexer*, fdm*, ghostcell*, heat*&, concentration*&);

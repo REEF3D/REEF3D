@@ -31,7 +31,7 @@ class field;
 
 using namespace std;
 
-class potential_f : public potential, public increment
+class potential_f final : public potential, public increment
 {
 
 public:

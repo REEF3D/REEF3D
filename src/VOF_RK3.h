@@ -36,7 +36,7 @@ class fluid_update;
 
 using namespace std;
 
-class VOF_RK3 : public freesurface, gradient
+class VOF_RK3 final : public freesurface, gradient
 {
 public:
 	VOF_RK3(lexer*, fdm*, ghostcell*,heat*);

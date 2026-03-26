@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sliceint5 : public sliceint, increment
+class sliceint5 final : public sliceint, increment
 {
 public:
 

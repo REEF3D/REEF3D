@@ -36,7 +36,7 @@ class ghostcell;
 
 using namespace std;
 
-class sediment_exner : public topo, public increment
+class sediment_exner final : public topo, public increment
 {
 public:
 	sediment_exner(lexer*, ghostcell*);

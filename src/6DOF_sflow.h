@@ -37,7 +37,7 @@ class fdm;
 
 using namespace std;
 
-class sixdof_sflow : public sixdof, public increment
+class sixdof_sflow final : public sixdof, public increment
 {
 public:
 	

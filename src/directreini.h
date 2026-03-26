@@ -37,7 +37,7 @@ class vec;
 
 using namespace std;
 
-class directreini : public reini, gradient, public resize_class, private vtp3D
+class directreini final : public reini, gradient, public resize_class, private vtp3D
 {
 public:
     directreini(lexer* p, fdm *a);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class heat_void : public heat
+class heat_void final : public heat
 {
 public:
     heat_void(lexer *, fdm*, ghostcell*);

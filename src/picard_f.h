@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class picard_f : public gradient, public picard
+class picard_f final : public gradient, public picard
 {
 public:
 

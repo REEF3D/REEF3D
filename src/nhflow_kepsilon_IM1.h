@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_kepsilon_IM1 : public nhflow_kepsilon_func
+class nhflow_kepsilon_IM1 final : public nhflow_kepsilon_func
 {
 public:
 	nhflow_kepsilon_IM1(lexer *, fdm_nhf*, ghostcell*);

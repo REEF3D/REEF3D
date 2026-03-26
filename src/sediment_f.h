@@ -56,7 +56,7 @@ class bedprobe_line_y;
 
 using namespace std;
 
-class sediment_f : public sediment, public increment
+class sediment_f final : public sediment, public increment
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);

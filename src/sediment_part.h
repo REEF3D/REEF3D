@@ -46,7 +46,7 @@ class CPM;
 
 using std::ofstream;
 
-class sediment_part : public sediment, public increment
+class sediment_part final : public sediment, public increment
 {
 public:
     sediment_part(lexer*, fdm*, ghostcell*, turbulence*, patchBC_interface*);

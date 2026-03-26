@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class flux_HJ_CDS2_2D : public flux, public increment
+class flux_HJ_CDS2_2D final : public flux, public increment
 {
 public:
 

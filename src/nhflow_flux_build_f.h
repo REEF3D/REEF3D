@@ -30,7 +30,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_flux_build_f : public nhflow_flux_build, public increment
+class nhflow_flux_build_f final : public nhflow_flux_build, public increment
 {
 
 public:

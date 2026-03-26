@@ -31,7 +31,7 @@ class fdm2D;
 
 using namespace std;
 
-class sflow_flux_face_HJ : public sflow_flux, public increment
+class sflow_flux_face_HJ final : public sflow_flux, public increment
 {
 public:
 

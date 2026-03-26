@@ -30,7 +30,7 @@ class turbulence;
 
 using namespace std;
 
-class bedload_einstein : public bedload, public increment
+class bedload_einstein final : public bedload, public increment
 {
 public:
 

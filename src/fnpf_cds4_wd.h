@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_cds4_wd : public fnpf_convection, public increment
+class fnpf_cds4_wd final : public fnpf_convection, public increment
 {
 public:
 	fnpf_cds4_wd(lexer*);

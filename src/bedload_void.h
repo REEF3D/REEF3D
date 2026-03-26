@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class bedload_void : public bedload
+class bedload_void final : public bedload
 {
 public:
 

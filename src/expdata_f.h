@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class expdata_f : public expdata, public increment
+class expdata_f final : public expdata, public increment
 {
 public:
 	expdata_f(lexer*, fdm*, ghostcell*);

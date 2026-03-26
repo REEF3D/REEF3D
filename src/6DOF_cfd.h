@@ -32,7 +32,7 @@ class ddweno_f_nug;
 
 using namespace std;
 
-class sixdof_cfd : public sixdof, public increment
+class sixdof_cfd final : public sixdof, public increment
 {
 public:
 	sixdof_cfd(lexer*, fdm*, ghostcell*);

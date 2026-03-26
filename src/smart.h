@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class smart : public fluxlim, public increment
+class smart final : public fluxlim, public increment
 {
 
 public:

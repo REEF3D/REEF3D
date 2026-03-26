@@ -34,7 +34,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_struct2D : public solver2D, public increment
+class hypre_struct2D final : public solver2D, public increment
 {
 public:
 

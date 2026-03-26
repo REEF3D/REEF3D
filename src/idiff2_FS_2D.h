@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class idiff2_FS_2D : public diffusion, public increment
+class idiff2_FS_2D final : public diffusion, public increment
 {
 
 public:

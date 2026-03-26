@@ -38,7 +38,7 @@ class sflow_forcing;
 
 using namespace std;
 
-class sflow_momentum_RK3 : public sflow_momentum, public increment
+class sflow_momentum_RK3 final : public sflow_momentum, public increment
 {
 public:
 	sflow_momentum_RK3(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 

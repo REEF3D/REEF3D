@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_convection : public benchmark, public increment
+class benchmark_convection final : public benchmark, public increment
 {
 
 public:

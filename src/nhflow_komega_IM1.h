@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_komega_IM1 : public nhflow_komega_func
+class nhflow_komega_IM1 final : public nhflow_komega_func
 {
 public:
 	nhflow_komega_IM1(lexer *, fdm_nhf*, ghostcell*);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_potential_f : public nhflow_potential, public increment
+class nhflow_potential_f final : public nhflow_potential, public increment
 {
 
 public:

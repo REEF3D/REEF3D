@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_v : public nhflow
+class nhflow_v final : public nhflow
 {
 public: 
 

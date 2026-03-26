@@ -34,7 +34,7 @@ class sliceint;
 
 using namespace std;
 
-class sflow_diffusion_void : public sflow_diffusion
+class sflow_diffusion_void final : public sflow_diffusion
 {
 public:
 	sflow_diffusion_void(lexer*);

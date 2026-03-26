@@ -32,7 +32,7 @@ class picard;
 
 using namespace std;
 
-class reinitopo_RK3 : public reinitopo, public increment
+class reinitopo_RK3 final : public reinitopo, public increment
 {
 public:
 	reinitopo_RK3(lexer* p);

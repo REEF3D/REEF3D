@@ -30,7 +30,7 @@ Author: Hans Bihs
 using namespace std;
 
 
-class diff_void : public diffusion, public increment
+class diff_void final : public diffusion, public increment
 {
 
 public:

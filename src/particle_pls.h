@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class particle_pls : public particle_corr, public norm_vec, public boundarycheck
+class particle_pls final : public particle_corr, public norm_vec, public boundarycheck
 {
 public:
 	particle_pls(lexer*, fdm*, ghostcell*);

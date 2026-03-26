@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class particle_pls_void : public particle_corr
+class particle_pls_void final : public particle_corr
 {
 public:
     particle_pls_void();

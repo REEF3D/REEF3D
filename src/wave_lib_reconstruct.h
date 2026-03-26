@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_reconstruct : public wave_lib_precalc,  public increment
+class wave_lib_reconstruct final : public wave_lib_precalc,  public increment
 {
 public:
     wave_lib_reconstruct(lexer*, ghostcell*);

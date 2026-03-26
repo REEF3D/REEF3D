@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_bicgstab : public solver2D, public increment
+class sflow_bicgstab final : public solver2D, public increment
 {
 public:
 

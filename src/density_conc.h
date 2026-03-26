@@ -33,7 +33,7 @@ class concentration;
 
 using namespace std;
 
-class density_conc : public density, virtual public increment
+class density_conc final : public density, virtual public increment
 {
 
 public:

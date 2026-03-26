@@ -31,7 +31,7 @@ class fluxlim;
 
 using namespace std;
 
-class ihires : public convection,  public increment
+class ihires final : public convection,  public increment
 {
 
 public:

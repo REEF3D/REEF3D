@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_LES_Smagorinsky : public nhflow_les_io
+class nhflow_LES_Smagorinsky final : public nhflow_les_io
 {
 public:
 	nhflow_LES_Smagorinsky(lexer *, fdm_nhf*, ghostcell*);
