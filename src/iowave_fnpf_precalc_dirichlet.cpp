@@ -44,8 +44,8 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         z = eta(i,j);
         
         time_1=time_0;
-        time_0=p->simtime;
-        time_n=p->simtime+p->dt;
+        time_0=time_n;
+        time_n=p->simtime;
         Fifsfval1[count] = Fifsfval0[count];
         Fifsfval0[count] = Fifsfval[count];
         

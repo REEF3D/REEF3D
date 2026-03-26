@@ -284,10 +284,7 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     c->breaklog(i,j)=1;
     ++count;
     }
-    
-    //SLICELOOP4
-    //c->test2D(i,j)=c->vb(i,j);
-    
+
     count=pgc->globalisum(count);
     
     if(p->mpirank==0 && (p->count%p->P12==0))
