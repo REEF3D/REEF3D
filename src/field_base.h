@@ -17,43 +17,40 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"fieldint1.h"
-#include"lexer.h"
+#ifndef FIELD_BASE_H_
+#define FIELD_BASE_H_
 
-fieldint1::fieldint1(lexer *p)
+#include "lexer.h"
+
+template<typename T>
+class field_base
 {
-    imin=p->imin;
-    imax=p->imax;
-    jmin=p->jmin;
-    jmax=p->jmax;
-    kmin=p->kmin;
-    kmax=p->kmax;
+public:
+    field_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
+    {
+        V = new T[imax*jkmax] {};
+    }
+    virtual ~field_base()
+    {
+        delete [] V;
+        V = nullptr;
+    }
 
-	fieldalloc(p);
+    field_base(const field_base&) = delete;
+    field_base& operator=(const field_base&) = delete;
+    field_base(field_base&&) = delete;
+    field_base& operator=(field_base&&) = delete;
 
-	pp=p;
-}
+    inline T& operator()(int ii, int jj, int kk) noexcept {return V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin];};
+    inline T& operator[](int n) noexcept {return V[n];};
 
-fieldint1::~fieldint1()
-{
-	delete [ ] V;
-}
+	T *V;
 
-void fieldint1::fieldalloc(lexer* p)
-{
-	int gridsize = p->imax*p->jmax*p->kmax;
-	p->Iarray(V,gridsize);
-}
+private:
+    const int imin,imax,jkmax,jmin,kmin,kmax;
+};
 
-void fieldint1::resize(lexer* p)
-{
-}
-
-int & fieldint1::operator()(int ii, int jj, int kk)
-{
-	return V[(ii-imin)*jmax*kmax + (jj-jmin)*kmax + kk-kmin];
-}
-
+#endif

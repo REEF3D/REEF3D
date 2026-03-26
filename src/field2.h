@@ -24,35 +24,12 @@ Author: Hans Bihs
 #define FIELD2_H_
 
 #include"field.h"
-#include"increment.h"
 
-using namespace std;
-
-class field2 : public field, public increment
+class field2 final : public field
 {
 public:
-
-	field2 (lexer*);
-	virtual ~field2();
-
-    double& operator()(int, int , int) override;
-	double& operator[](int) override;
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
-
-	int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-
-private:
-
-	void fieldalloc(lexer *);
-
-	int iter;
-	int feldsize;
-	
-	int rank, gcextra;
-	
-	lexer *pp;
+    field2(lexer* p) : field(p) {}
+    virtual ~field2() = default;
 };
 
 #endif

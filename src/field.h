@@ -23,26 +23,13 @@ Author: Hans Bihs
 #ifndef FIELD_H_
 #define FIELD_H_
 
-class lexer;
-class fdm;
+#include "field_base.h"
 
-using namespace std;
-
-class field
+class field : public field_base<double>
 {
 public:
-	virtual double& operator()(int, int, int)=0;
-	virtual double& operator[](int)=0;
-    virtual void resize(lexer*)=0;
-    virtual void dealloc(lexer*)=0;
-	
-	double *V;
+    field(lexer* p) : field_base<double>(p) {}
+    virtual ~field() = default;
 };
 
 #endif
-
-
-
-
-
-

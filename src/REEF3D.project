@@ -1076,6 +1076,7 @@
           <File Name="grid.h"/>
           <File Name="grid_helper.h"/>
         </VirtualDirectory>
+        <File Name="field_base.h"/>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
           <File Name="field1.h"/>
@@ -2972,21 +2973,6 @@
             <File Name="grid_helper_gcb4.cpp"/>
             <File Name="grid_helper_gcb4a.cpp"/>
           </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Field">
-          <File Name="field1.cpp"/>
-          <File Name="field2.cpp"/>
-          <File Name="field3.cpp"/>
-          <File Name="field4a.cpp"/>
-          <File Name="field5.cpp"/>
-          <File Name="field4.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint2.cpp"/>
-          <File Name="fieldint1.cpp"/>
-          <File Name="fieldint3.cpp"/>
-          <File Name="fieldint4.cpp"/>
-          <File Name="fieldint5.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
