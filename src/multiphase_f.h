@@ -38,6 +38,7 @@ class print_wsf;
 class concentration;
 
 #include"multiphase.h"
+#include"increment.h"
 #include"field4.h"
 #include<fstream>
 
