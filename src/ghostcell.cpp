@@ -38,7 +38,7 @@ ghostcell::ghostcell(int& argc, char **argv, lexer *p) : margin(p->margin)
     ghostcell::p=p;
 
     if(p->mpi_size==1)
-        do_comms = false;
+    do_comms = false;
 }
 
 

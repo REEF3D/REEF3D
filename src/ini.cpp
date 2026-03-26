@@ -83,8 +83,8 @@ void control::ini_default()
     A349=10.0;   // double initial coastline damping distance factor for dxm
     
     A350=0;      // int turn on breaking (which method)
-    A351=0;      // int type of breaking detection (deep / shallow)
-    A352=1;      // int additional filtering to viscosity based breaking
+    A351=3;      // int type of breaking detection (deep / shallow)
+    A352=0;      // int additional filtering to viscosity based breaking
     A353=1;      // int 
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha

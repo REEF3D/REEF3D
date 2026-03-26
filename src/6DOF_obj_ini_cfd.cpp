@@ -161,9 +161,10 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     // Print initial body 
     if(p->X50==1)
-        print_vtp(p,pgc);
+    print_vtp(p,pgc);
+    
     else if(p->X50==2)
-        print_stl(p,pgc);
+    print_stl(p,pgc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);

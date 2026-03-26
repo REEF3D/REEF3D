@@ -143,13 +143,13 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
                 //c->breaking(i+1,j)=2;
                 //c->breaking(i+2,j)=2;
                 
-                if(p->j_dir==1)
+                /*if(p->j_dir==1)
                 {
                 //c->breaking(i,j-2)=2;
                 //c->breaking(i,j-1)=2;
                 //c->breaking(i,j+1)=2;
                 //c->breaking(i,j+2)=2;
-                }
+                }*/
             }
     }
     
@@ -162,6 +162,7 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     c->breaking(i,j)=1;
     
     // y
+    if(p->j_dir==1)
     if(bx(i,j)==2 || bx(i,j-1)==2 || bx(i,j-2)==2 || bx(i,j+1)==2 || bx(i,j+2)==2)
     c->breaking(i,j)=1;
     
@@ -177,10 +178,11 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         c->vb(i,j) = 0.0;
         
         // coastline viscosity
+        if(p->A343==1)
         SLICELOOP4
         {
             
-            if(c->coastline(i,j)>=0.0 && p->A346>0.0 && p->A343==1)
+            if(c->coastline(i,j)>=0.0 && p->A346>0.0)
             {
                 db = c->coastline(i,j);
                 
