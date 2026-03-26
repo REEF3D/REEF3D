@@ -31,38 +31,11 @@ using namespace std;
 class slice5 final : public slice, increment
 {
 public:
+	slice5(lexer* p) : slice(p) {};
+	virtual ~slice5() = default;
 
-	slice5 (lexer*);
-	virtual ~slice5();
-
-    double& operator()(int, int) override final;
-	double& operator[](int) override final;
-    void ggcpol(lexer*) override final;
-    void resize(lexer*) override final;
-    void dealloc(lexer*) override final;
-    
-	int di,dj;
-	int imin,imax,jmax,jmin;
-
-
-
-private:
-
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
-
-    int iter;
-	int gcfeldsize,feldsize;
-	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
-
+    inline double& operator()(int ii, int jj) noexcept override final {return V[(ii-imin)*jmax + (jj-jmin)];};
+    void ggcpol(lexer*) override final {};
 };
 
 #endif
-
-

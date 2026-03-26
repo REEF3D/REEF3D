@@ -24,43 +24,12 @@ Author: Hans Bihs
 #define SLICEINT4_H_
 
 #include"sliceint.h"
-#include"increment.h"
 
-using namespace std;
-
-class sliceint4 final : public sliceint, increment
+class sliceint4 final : public sliceint
 {
 public:
-
-	sliceint4 (lexer*);
-	virtual ~sliceint4();
-
-    int& operator()(int, int) override final;
-
-    void resize(lexer*) override final;
-    
-	int di,dj;
-	int imin,imax,jmax,jmin;
-
-private:
-
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-
-    int iter;
-	int feldsize;
-	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
-
+    sliceint4(lexer* p) : sliceint(p) {};
+    virtual ~sliceint4() = default;
 };
 
 #endif
-
-
-
-
-

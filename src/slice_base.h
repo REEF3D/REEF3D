@@ -17,65 +17,39 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"slice5.h"
-#include"lexer.h"
-#include"fdm.h"
+#ifndef SLICE_BASE_H_
+#define SLICE_BASE_H_
 
-slice5::slice5(lexer *p)
+#include "lexer.h"
+
+template<typename T>
+class slice_base
 {
-    imin=p->imin;
-    imax=p->imax;
-    jmin=p->jmin;
-    jmax=p->jmax;
-    
-	fieldalloc(p);
-	fieldgcalloc(p);
-	
-	pp=p;
-}
+public:
+    slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
+    {
+        V = new T[imax*jmax] {};
+    }
+    virtual ~slice_base()
+    {
+        delete [] V;
+        V = nullptr;
+    }
 
-slice5::~slice5()
-{
-	delete [ ] V;
-}
+    slice_base(const slice_base&) = delete;
+    slice_base& operator=(const slice_base&) = delete;
+    slice_base(slice_base&&) = delete;
+    slice_base& operator=(slice_base&&) = delete;
 
-void slice5::fieldalloc(lexer* p)
-{
-	int gridsize = imax*jmax;
-	p->Darray(V,gridsize);
-}
+    virtual T& operator()(int, int) = 0;
+    inline T& operator[](int n) noexcept {return V[n];};
 
-void slice5::dealloc(lexer* p)
-{
-	delete [ ] V;
-}
+    T *V;
+protected:
+    const int imin,imax,jmin,jmax;
+};
 
-void slice5::resize(lexer* p)
-{
-    if(p->gcsl_extra4*p->margin>gcfeldsize)
-    cout<<p->mpirank<<" Slice4 Resize: "<<gcfeldsize<<" "<<p->gcsl_extra4*3<<endl;
-}
-
-void slice5::fieldgcalloc(lexer* p)
-{
-
-}
-
-double & slice5::operator[](int n)
-{
-	return V[n];
-}
-
-double & slice5::operator()(int ii, int jj)
-{			
-
-	return V[(ii-imin)*jmax + (jj-jmin)];
-	
-}
-
-void slice5::ggcpol(lexer* p)
-{
-}
+#endif

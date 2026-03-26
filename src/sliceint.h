@@ -23,25 +23,15 @@ Author: Hans Bihs
 #ifndef SLICEINT_H_
 #define SLICEINT_H_
 
-class lexer;
-class fdm;
+#include "slice_base.h"
 
-using namespace std;
-
-class sliceint
+class sliceint : public slice_base<int>
 {
 public:
-	virtual int& operator()(int, int)=0;
-    virtual void resize(lexer*)=0;
-    
-    int *V;
+    sliceint(lexer* p) : slice_base<int>(p) {};
+    virtual ~sliceint() = default;
 
+    inline int& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
 };
 
 #endif
-
-
-
-
-
-

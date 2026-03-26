@@ -26,46 +26,26 @@ Author: Hans Bihs
 #include"slice.h"
 #include"increment.h"
 
-using namespace std;
-
 class slice1 final : public slice, increment
 {
 public:
-
-	slice1 (lexer*);
+	slice1(lexer*);
 	virtual ~slice1();
 
-    double& operator()(int, int) override final;
-	double& operator[](int) override final;
+    inline double& operator()(int, int) override final;
     void ggcpol(lexer*) override final;
-    void resize(lexer*) override final;
-    void dealloc(lexer*) override final;
-    
-	int di,dj;
-	int imin,imax,jmax,jmin;
-
-	double ***gcfeld;
 
 private:
-
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
+    void fieldgcalloc(lexer*);
 
     int iter;
-	int gcfeldsize,feldsize;
-	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
+    int gcfeldsize;
 
+    int di,dj;
+
+    lexer *pp;
+
+    double ***gcfeld;
 };
 
 #endif
-
-
-
-
-
