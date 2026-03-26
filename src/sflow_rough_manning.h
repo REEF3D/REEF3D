@@ -29,15 +29,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rough_manning : public sflow_roughness, public increment
+class sflow_rough_manning final : public sflow_roughness, public increment
 {
 
 public:
     sflow_rough_manning(lexer*);
 	virtual ~sflow_rough_manning();
     
-	void u_source(lexer*, fdm2D*, slice&) override;
-    void v_source(lexer*, fdm2D*, slice&) override;
+	void u_source(lexer*, fdm2D*, slice&) override final;
+    void v_source(lexer*, fdm2D*, slice&) override final;
 
 private:
     

@@ -32,17 +32,17 @@ class ghostcell;
 
 using namespace std;
 
-class vorticity_void : public vorticity
+class vorticity_void final : public vorticity
 {
 public:
     vorticity_void(lexer*,fdm*);
 	virtual ~vorticity_void();
 
-    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
-    void offset_ParaView(lexer*, int*, int &) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
 
 };
 

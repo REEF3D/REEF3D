@@ -31,14 +31,14 @@ class concentration;
 
 using namespace std;
 
-class concentration_RK2 :public bc_concentration, public concentration_io
+class concentration_RK2 final :public bc_concentration, public concentration_io
 {
 public:
     concentration_RK2(lexer *, fdm*, ghostcell*);
 	virtual ~concentration_RK2();
 
-	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
 
 
 private:

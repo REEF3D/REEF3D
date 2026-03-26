@@ -28,18 +28,18 @@ Author: Hans Bihs
 
 using namespace std;
 
-class slice5 : public slice, increment
+class slice5 final : public slice, increment
 {
 public:
 
 	slice5 (lexer*);
 	virtual ~slice5();
 
-    double& operator()(int, int) override;
-	double& operator[](int) override;
-    void ggcpol(lexer*) override;
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
+    double& operator()(int, int) override final;
+	double& operator[](int) override final;
+    void ggcpol(lexer*) override final;
+    void resize(lexer*) override final;
+    void dealloc(lexer*) override final;
     
 	int di,dj;
 	int imin,imax,jmax,jmin;

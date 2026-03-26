@@ -27,17 +27,17 @@ Author: Hans Bihs
 
 using namespace std;
 
-class solver_void : public solver
+class solver_void final : public solver
 {
 public:
 
 	solver_void(lexer*,fdm*,ghostcell*);
 	virtual ~solver_void();
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
-    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
-    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
 };
 
 #endif

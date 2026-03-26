@@ -31,13 +31,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sandslide_v :  public sandslide
+class sandslide_v final :  public sandslide
 {
 public:
     sandslide_v(lexer*);
     virtual ~sandslide_v();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 }; 
 

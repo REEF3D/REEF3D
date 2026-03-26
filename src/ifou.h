@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class ifou : public convection,  public increment
+class ifou final : public convection,  public increment
 {
 
 public:
@@ -38,7 +38,7 @@ public:
 	ifou (lexer *);
 	virtual ~ifou();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double udir,vdir,wdir;

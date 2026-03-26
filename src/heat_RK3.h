@@ -30,15 +30,15 @@ Author: Hans Bihs
 class heat;
 using namespace std;
 
-class heat_RK3 :public bcheat, public heat_print
+class heat_RK3 final :public bcheat, public heat_print
 {
 public:
     heat_RK3(lexer *, fdm*, ghostcell*,heat*&);
 	virtual ~heat_RK3();
     
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
-    void diff_update(lexer*, fdm*, ghostcell*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
+    void diff_update(lexer*, fdm*, ghostcell*) override final;
     
     field4 thermdiff;
     field4 ark1,ark2,Tdiff;

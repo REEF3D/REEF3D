@@ -35,9 +35,9 @@ class nhflow_komega_func : public nhflow_rans_io, public nhflow_komega_bc
 public:
 	nhflow_komega_func(lexer *, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_komega_func();
-	void isource(lexer*,fdm_nhf*) override;
-	void jsource(lexer*,fdm_nhf*) override;
-	void ksource(lexer*,fdm_nhf*) override;
+	void isource(lexer*,fdm_nhf*) override final;
+	void jsource(lexer*,fdm_nhf*) override final;
+	void ksource(lexer*,fdm_nhf*) override final;
 	void kinsource(lexer*,fdm_nhf*,vrans*);
 	void epssource(lexer*,fdm_nhf*,vrans*);
 	void epsfsf(lexer*,fdm_nhf*,ghostcell*);

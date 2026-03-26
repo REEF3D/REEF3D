@@ -32,12 +32,12 @@ class picard;
 
 using namespace std;
 
-class reini_walld : public reini, gradient
+class reini_walld final : public reini, gradient
 {
 public:
 	reini_walld(lexer* p, fdm *a);
 	virtual ~reini_walld();
-	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
+	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override final;
 
     field4 dab;
 	reinidisc *prdisc;

@@ -33,13 +33,13 @@ class fluid_update;
 
 using namespace std;
 
-class levelset_RK2 : public freesurface, gradient
+class levelset_RK2 final : public freesurface, gradient
 {
 public:
 	levelset_RK2(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~levelset_RK2();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
-    void update(lexer*,fdm*,ghostcell*,field&) override;
+	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
+    void update(lexer*,fdm*,ghostcell*,field&) override final;
 
 private:
     fluid_update *pupdate;

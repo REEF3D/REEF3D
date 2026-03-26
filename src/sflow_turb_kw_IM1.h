@@ -32,16 +32,16 @@ class sflow_diffusion;
 
 using namespace std;
 
-class sflow_turb_kw_IM1 : public sflow_turb_io
+class sflow_turb_kw_IM1 final : public sflow_turb_io
 {
 
 public:
     sflow_turb_kw_IM1(lexer*);
 	virtual ~sflow_turb_kw_IM1();
     
-	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
-	void ktimesave(lexer*, fdm2D*, ghostcell*) override;
-	void etimesave(lexer*, fdm2D*, ghostcell*) override;
+	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override final;
+	void ktimesave(lexer*, fdm2D*, ghostcell*) override final;
+	void etimesave(lexer*, fdm2D*, ghostcell*) override final;
     
 private:
     void Pk_update(lexer*, fdm2D*, ghostcell*);

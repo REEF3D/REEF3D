@@ -27,14 +27,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_convection_void : public nhflow_convection
+class nhflow_convection_void final : public nhflow_convection
 {
 public:
 	nhflow_convection_void(lexer*);
 	virtual ~nhflow_convection_void();
 
-	void start(lexer*&, fdm_nhf*&, int, slice&) override;
-    void precalc(lexer*, fdm_nhf*, int, slice&) override;
+	void start(lexer*&, fdm_nhf*&, int, slice&) override final;
+    void precalc(lexer*, fdm_nhf*, int, slice&) override final;
 
 };
 

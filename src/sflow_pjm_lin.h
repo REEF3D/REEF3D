@@ -29,21 +29,21 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_pjm_lin : public sflow_pressure, public increment
+class sflow_pjm_lin final : public sflow_pressure, public increment
 {
 public:
     sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_lin();
     
-	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override;
-	void upgrad(lexer*, fdm2D*, slice&, slice&) override;
-	void vpgrad(lexer*, fdm2D*, slice&, slice&) override;
-    void wpgrad(lexer*, fdm2D*, slice&, slice&) override;
+	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void upgrad(lexer*, fdm2D*, slice&, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&, slice&) override final;
     
-    void ucorr(lexer*,fdm2D*,slice&,slice&,double) override;
-	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override;
-	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
-    void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override;
+    void ucorr(lexer*,fdm2D*,slice&,slice&,double) override final;
+	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override final;
+	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
+    void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
     
     void rhs(lexer*, fdm2D*, slice&, slice&, slice&, double);
     

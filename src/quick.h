@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class quick : public convection,  public increment
+class quick final : public convection,  public increment
 {
 
 public:
@@ -38,7 +38,7 @@ public:
 	quick (lexer *);
 	virtual ~quick();
 
-	void start(lexer*,fdm*, field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*, field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);

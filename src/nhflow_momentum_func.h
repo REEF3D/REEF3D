@@ -41,7 +41,7 @@ public:
 	virtual ~nhflow_momentum_func();
     
 
-    void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*) override;
+    void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*) override final;
     void reconstruct(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*, nhflow_signal_speed*, nhflow_reconstruct*,slice&,double*,double*,double*,double*,double*,double*);
     void velcalc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,slice&);
     

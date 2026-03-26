@@ -30,13 +30,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sandslide_pde :  public sandslide, public norm_vec, public bedslope
+class sandslide_pde final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_pde(lexer*);
     virtual ~sandslide_pde();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
 

@@ -28,19 +28,19 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_cds6 : public fnpf_convection, public increment
+class fnpf_cds6 final : public fnpf_convection, public increment
 {
 public:
 	fnpf_cds6(lexer*);
 	virtual ~fnpf_cds6();
 
-    double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
+    double fx(lexer*, field&, double, double) override final;
+	double fy(lexer*, field&, double, double) override final;
+	double fz(lexer*, field&, double, double) override final;
     
-    double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
-    double sz(lexer*, double*) override;
+    double sx(lexer*, slice&, double) override final;
+	double sy(lexer*, slice&, double) override final;
+    double sz(lexer*, double*) override final;
 
 private:
 	

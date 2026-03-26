@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_etimestep : public sflow_timestep, public increment
+class sflow_etimestep final : public sflow_timestep, public increment
 {
 public:
 	sflow_etimestep(lexer*,fdm2D*);
 	virtual ~sflow_etimestep();
 	
-    void start(lexer*,fdm2D*,ghostcell*) override;
-	void ini(lexer*,fdm2D*,ghostcell*) override;
+    void start(lexer*,fdm2D*,ghostcell*) override final;
+	void ini(lexer*,fdm2D*,ghostcell*) override final;
 	
 private:
 	double cu,cv,velmax,wd_criterion;

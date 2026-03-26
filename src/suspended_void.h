@@ -28,13 +28,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_void : public suspended
+class suspended_void final : public suspended
 {
 public:
 	suspended_void();
 	virtual ~suspended_void();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override final;
+	void ctimesave(lexer*, fdm*) override final;
 
 };
 

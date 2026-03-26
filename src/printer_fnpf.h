@@ -48,14 +48,14 @@ class fnpf_print_kinematics;
 
 using namespace std;
 
-class printer_fnpf : public printer, public increment
+class printer_fnpf final : public printer, public increment
 {
 
 public:
     printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual ~printer_fnpf() = default;
-    void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override;
-    void print_stop(lexer*,fdm_fnpf*,ghostcell*) override;
+    void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
+    void print_stop(lexer*,fdm_fnpf*,ghostcell*) override final;
 
 private:
     void print(lexer*,fdm_fnpf*,ghostcell*);

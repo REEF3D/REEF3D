@@ -32,12 +32,12 @@ class picard;
 
 using namespace std;
 
-class reinisolid_RK3 : public reinitopo, public increment
+class reinisolid_RK3 final : public reinitopo, public increment
 {
 public:
 	reinisolid_RK3(lexer* p);
 	virtual ~reinisolid_RK3();
-	void start(lexer*,fdm*,ghostcell*,field&) override;
+	void start(lexer*,fdm*,ghostcell*,field&) override final;
 
 	int *sizeM;
 	field4a f,frk1,frk2,L,dt;

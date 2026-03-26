@@ -32,13 +32,13 @@ class sediment_fdm;
 
 using namespace std;
 
-class sandslide_f :  public sandslide, public norm_vec, public bedslope
+class sandslide_f final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_f(lexer*);
     virtual ~sandslide_f();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
 

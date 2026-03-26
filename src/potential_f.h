@@ -31,14 +31,14 @@ class field;
 
 using namespace std;
 
-class potential_f : public potential, public increment
+class potential_f final : public potential, public increment
 {
 
 public:
 	potential_f(lexer*);
 	virtual ~potential_f();
 
-	void start(lexer*,fdm*, solver*, ghostcell*) override;
+	void start(lexer*,fdm*, solver*, ghostcell*) override final;
 
 
 private:

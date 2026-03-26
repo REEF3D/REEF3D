@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class sflow_HLL : public sflow_convection, public increment
+class sflow_HLL final : public sflow_convection, public increment
 {
 
 public:
@@ -43,7 +43,7 @@ public:
 	sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_HLL();
 
-    void start(lexer*&, fdm2D*&, int, slice&); // override, but different number of parameters
+    void start(lexer*&, fdm2D*&, int, slice&); // override final, but different number of parameters
     void precalc(lexer*, fdm2D*, int, slice&);
 
 private:

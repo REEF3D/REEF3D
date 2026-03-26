@@ -30,13 +30,13 @@ class turbulence;
 
 using namespace std;
 
-class fixtimestep : public timestep, public increment
+class fixtimestep final : public timestep, public increment
 {
 public:
 	fixtimestep(lexer*);
 	virtual ~fixtimestep();
-	void start(fdm*,lexer*,ghostcell*,turbulence*) override;
-	void ini(fdm*,lexer*,ghostcell*) override;
+	void start(fdm*,lexer*,ghostcell*,turbulence*) override final;
+	void ini(fdm*,lexer*,ghostcell*) override final;
 
 
 };

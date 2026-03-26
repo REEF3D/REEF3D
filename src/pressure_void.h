@@ -28,22 +28,22 @@ Author: Hans Bihs
 
 using namespace std;
 
-class pressure_void : public pressure, public increment
+class pressure_void final : public pressure, public increment
 {
 
 public:
 	pressure_void(lexer* p);
 	virtual ~pressure_void();
 
-	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double) override;
-    void ini(lexer*,fdm*,ghostcell*) override;
+	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double) override final;
+    void ini(lexer*,fdm*,ghostcell*) override final;
 	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void ucorr(lexer*p,fdm*,field&,double) override;
-	void vcorr(lexer*p,fdm*,field&,double) override;
-	void wcorr(lexer*p,fdm*,field&,double) override;
-	void upgrad(lexer*,fdm*,slice&,slice&) override;
-	void vpgrad(lexer*,fdm*,slice&,slice&) override;
-	void wpgrad(lexer*,fdm*,slice&,slice&) override;
+	void ucorr(lexer*p,fdm*,field&,double) override final;
+	void vcorr(lexer*p,fdm*,field&,double) override final;
+	void wcorr(lexer*p,fdm*,field&,double) override final;
+	void upgrad(lexer*,fdm*,slice&,slice&) override final;
+	void vpgrad(lexer*,fdm*,slice&,slice&) override final;
+	void wpgrad(lexer*,fdm*,slice&,slice&) override final;
 };
 
 #endif

@@ -32,13 +32,13 @@ class sediment_fdm;
 
 using namespace std;
 
-class sandslide_steepest_descent :  public sandslide, public norm_vec, public bedslope
+class sandslide_steepest_descent final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_steepest_descent(lexer*);
     virtual ~sandslide_steepest_descent();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     void find_steepest_neighbor(lexer* p, slice& topo, int i, int j,

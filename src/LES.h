@@ -33,9 +33,9 @@ class LES : public les_io
 public:
 	LES(lexer *, fdm*);
 	virtual ~LES();
-	void isource(lexer*, fdm*) override;
-	void jsource(lexer*, fdm*) override;
-	void ksource(lexer*, fdm*) override;
+	void isource(lexer*, fdm*) override final;
+	void jsource(lexer*, fdm*) override final;
+	void ksource(lexer*, fdm*) override final;
 
 	double starttime;
 

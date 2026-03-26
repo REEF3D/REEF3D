@@ -28,13 +28,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class multiphase_fluid_update_f : public multiphase_fluid_update, increment
+class multiphase_fluid_update_f final : public multiphase_fluid_update, increment
 {
 public:
     multiphase_fluid_update_f(lexer*, fdm*, ghostcell*);
 	virtual ~multiphase_fluid_update_f();
 
-	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override;
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override final;
 
 private:
     static int iocheck,iter;

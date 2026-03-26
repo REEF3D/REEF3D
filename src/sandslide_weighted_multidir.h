@@ -32,13 +32,13 @@ class sediment_fdm;
 
 using namespace std;
 
-class sandslide_weighted_multidir :  public sandslide, public norm_vec, public bedslope
+class sandslide_weighted_multidir final :  public sandslide, public norm_vec, public bedslope
 {
 public:
     sandslide_weighted_multidir(lexer*);
     virtual ~sandslide_weighted_multidir();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     void slide(lexer*,ghostcell*,sediment_fdm*);

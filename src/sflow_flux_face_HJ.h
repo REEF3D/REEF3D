@@ -31,15 +31,15 @@ class fdm2D;
 
 using namespace std;
 
-class sflow_flux_face_HJ : public sflow_flux, public increment
+class sflow_flux_face_HJ final : public sflow_flux, public increment
 {
 public:
 
 	sflow_flux_face_HJ (lexer *p);
 	virtual ~sflow_flux_face_HJ();
 
-	void u_flux(int,slice&,double&,double&) override;
-	void v_flux(int,slice&,double&,double&) override;
+	void u_flux(int,slice&,double&,double&) override final;
+	void v_flux(int,slice&,double&,double&) override final;
 
 private:
     lexer *p;

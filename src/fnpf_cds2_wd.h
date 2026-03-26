@@ -30,19 +30,19 @@ class fdm_fnpf;
 
 using namespace std;
 
-class fnpf_cds2_wd : public fnpf_convection, public increment
+class fnpf_cds2_wd final : public fnpf_convection, public increment
 {
 public:
 	fnpf_cds2_wd(lexer*,fdm_fnpf*);
 	virtual ~fnpf_cds2_wd();
 
-    double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
+    double fx(lexer*, field&, double, double) override final;
+	double fy(lexer*, field&, double, double) override final;
+	double fz(lexer*, field&, double, double) override final;
     
-    double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
-    double sz(lexer*, double*) override;
+    double sx(lexer*, slice&, double) override final;
+	double sy(lexer*, slice&, double) override final;
+    double sz(lexer*, double*) override final;
 
 private:
     fdm_fnpf *c;

@@ -36,12 +36,12 @@ class ghostcell;
 
 using namespace std;
 
-class sediment_exner : public topo, public increment
+class sediment_exner final : public topo, public increment
 {
 public:
 	sediment_exner(lexer*, ghostcell*);
 	virtual ~sediment_exner();
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 
 private:

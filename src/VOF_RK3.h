@@ -36,13 +36,13 @@ class fluid_update;
 
 using namespace std;
 
-class VOF_RK3 : public freesurface, gradient
+class VOF_RK3 final : public freesurface, gradient
 {
 public:
 	VOF_RK3(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_RK3();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
-	void update(lexer*,fdm*,ghostcell*,field&) override;
+	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
+	void update(lexer*,fdm*,ghostcell*,field&) override final;
 
 	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
 

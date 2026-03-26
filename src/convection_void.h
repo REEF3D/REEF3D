@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class convection_void : public convection, public increment
+class convection_void final : public convection, public increment
 {
 
 public:
@@ -36,7 +36,7 @@ public:
 	convection_void (lexer *);
 	virtual ~convection_void();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
 

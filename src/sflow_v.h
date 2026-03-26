@@ -31,13 +31,13 @@ class ghostcell;
 
 using namespace std;
 
-class sflow_v : public sflow
+class sflow_v final : public sflow
 {
 public:
 	sflow_v(lexer*, fdm2D*);
 	virtual ~sflow_v();
 
-	void start(lexer*, fdm2D*, ghostcell*) override;
+	void start(lexer*, fdm2D*, ghostcell*) override final;
 };
 
 #endif

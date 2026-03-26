@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class hric_mod : public convection,  public increment
+class hric_mod final : public convection,  public increment
 {
 
 public:
@@ -38,7 +38,7 @@ public:
 	hric_mod (lexer *);
 	virtual ~hric_mod();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);

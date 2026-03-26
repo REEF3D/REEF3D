@@ -28,25 +28,25 @@ Author: Hans Bihs
 
 using namespace std;
 
-class vrans_nhflow : public vrans_nhflow_base, public nhflow_geometry
+class vrans_nhflow final : public vrans_nhflow_base, public nhflow_geometry
 {
 public:
 	vrans_nhflow(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~vrans_nhflow();
 
-	void initialize(lexer*, fdm_nhf*, ghostcell*) override;	
-	void start(lexer*, fdm_nhf*, ghostcell*, int) override;
+	void initialize(lexer*, fdm_nhf*, ghostcell*) override final;	
+	void start(lexer*, fdm_nhf*, ghostcell*, int) override final;
 	
-	void u_source(lexer*, fdm_nhf*) override;
-	void v_source(lexer*, fdm_nhf*) override;
-	void w_source(lexer*, fdm_nhf*) override;
+	void u_source(lexer*, fdm_nhf*) override final;
+	void v_source(lexer*, fdm_nhf*) override final;
+	void w_source(lexer*, fdm_nhf*) override final;
     
-    void ke_source(lexer*, fdm_nhf*, field&) override;
-    void kw_source(lexer*, fdm_nhf*, field&) override;
-    void eps_source(lexer*, fdm_nhf*, field&, field&) override;
-    void omega_source(lexer*, fdm_nhf*, field&, field&) override;
+    void ke_source(lexer*, fdm_nhf*, field&) override final;
+    void kw_source(lexer*, fdm_nhf*, field&) override final;
+    void eps_source(lexer*, fdm_nhf*, field&, field&) override final;
+    void omega_source(lexer*, fdm_nhf*, field&, field&) override final;
     
-    void eddyv_func(lexer*, fdm_nhf*) override;
+    void eddyv_func(lexer*, fdm_nhf*) override final;
     
 	
 private:

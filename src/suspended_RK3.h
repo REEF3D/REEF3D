@@ -29,13 +29,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_RK3 : public suspended, public increment
+class suspended_RK3 final : public suspended, public increment
 {
 public:
 	suspended_RK3(lexer *, fdm*);
 	virtual ~suspended_RK3();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override final;
+	void ctimesave(lexer*, fdm*) override final;
 
     void suspsource(lexer*,fdm*,field&,sediment_fdm*);
     void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);

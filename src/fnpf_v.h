@@ -27,16 +27,16 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_void : public fnpf
+class fnpf_void final : public fnpf
 {
 public:
 	fnpf_void();
 	virtual ~fnpf_void();
     
-    void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
-    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override {};
-    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override {};
-    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override {};
+    void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override final;
+    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final {};
+    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final {};
+    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final {};
     
 
 };

@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class hcds6 : public convection,  public increment
+class hcds6 final : public convection,  public increment
 {
 
 public:
@@ -38,7 +38,7 @@ public:
 	hcds6 (lexer *);
 	virtual ~hcds6();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*,double*,double*,double*);

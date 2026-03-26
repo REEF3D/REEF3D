@@ -30,16 +30,16 @@ class lexer;
 
 using namespace std;
 
-class flux_face_FOU : public flux, public increment
+class flux_face_FOU final : public flux, public increment
 {
 public:
 
 	flux_face_FOU (lexer *p);
 	virtual ~flux_face_FOU();
 
-	void u_flux(fdm* a,int,field&,double&,double&) override;
-	void v_flux(fdm* a,int,field&,double&,double&) override;
-	void w_flux(fdm* a,int,field&,double&,double&) override;
+	void u_flux(fdm* a,int,field&,double&,double&) override final;
+	void v_flux(fdm* a,int,field&,double&,double&) override final;
+	void w_flux(fdm* a,int,field&,double&,double&) override final;
 
 private:
     lexer *p;

@@ -35,19 +35,19 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_reconstruct_hires : public nhflow_reconstruct, public nhflow_gradient
+class nhflow_reconstruct_hires final : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
 	nhflow_reconstruct_hires(lexer*,patchBC_interface*);
 	virtual ~nhflow_reconstruct_hires();
 
-    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
-    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
-    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override;
+    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
     
-    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
+    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
     
     slice4 dfdx,dfdy;
     double *DFDX;

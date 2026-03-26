@@ -39,18 +39,18 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_sstruct : public solver, public increment
+class hypre_sstruct final : public solver, public increment
 {
 public:
 
 	hypre_sstruct(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_sstruct();
     
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
-    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
-    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&, int);
     void start_solver5(lexer*,fdm*, ghostcell*, field&, vec&,int);

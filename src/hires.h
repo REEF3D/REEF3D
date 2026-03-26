@@ -31,7 +31,7 @@ class fluxlim;
 
 using namespace std;
 
-class hires : public convection, public increment
+class hires final : public convection, public increment
 {
 
 public:
@@ -39,7 +39,7 @@ public:
 	hires (lexer*,int);
 	virtual ~hires();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 	
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);

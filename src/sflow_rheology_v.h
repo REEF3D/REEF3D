@@ -29,15 +29,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rheology_v : public sflow_rheology, public increment
+class sflow_rheology_v final : public sflow_rheology, public increment
 {
 
 public:
     sflow_rheology_v(lexer*);
 	virtual ~sflow_rheology_v();
     
-	void u_source(lexer*, fdm2D*, slice&, slice&) override;
-    void v_source(lexer*, fdm2D*, slice&, slice&) override;
+	void u_source(lexer*, fdm2D*, slice&, slice&) override final;
+    void v_source(lexer*, fdm2D*, slice&, slice&) override final;
 
 private:
     

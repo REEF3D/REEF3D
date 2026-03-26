@@ -30,15 +30,15 @@ class lexer;
 
 using namespace std;
 
-class sflow_flux_face_FOU : public sflow_flux, public increment
+class sflow_flux_face_FOU final : public sflow_flux, public increment
 {
 public:
 
 	sflow_flux_face_FOU (lexer *p);
 	virtual ~sflow_flux_face_FOU();
 
-	void u_flux(int,slice&,double&,double&) override;
-	void v_flux(int,slice&,double&,double&) override;
+	void u_flux(int,slice&,double&,double&) override final;
+	void v_flux(int,slice&,double&,double&) override final;
 
 private:
     lexer *p;

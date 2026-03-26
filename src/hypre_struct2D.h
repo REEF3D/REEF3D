@@ -34,13 +34,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_struct2D : public solver2D, public increment
+class hypre_struct2D final : public solver2D, public increment
 {
 public:
 
 	hypre_struct2D(lexer*,ghostcell*);
 	virtual ~hypre_struct2D();
-	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override;
+	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
 	void fillbackvec(lexer*,slice&,vec2D&,int);
     

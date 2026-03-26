@@ -34,9 +34,9 @@ class kepsilon_func : public rans_io, public kepsilon_bc
 public:
 	kepsilon_func(lexer*,fdm*,ghostcell*);
 	virtual ~kepsilon_func();
-	void isource(lexer*,fdm*) override;
-	void jsource(lexer*,fdm*) override;
-	void ksource(lexer*,fdm*) override;
+	void isource(lexer*,fdm*) override final;
+	void jsource(lexer*,fdm*) override final;
+	void ksource(lexer*,fdm*) override final;
 	void kinsource(lexer*,fdm*,vrans*);
 	void epssource(lexer*,fdm*,vrans*);
 	void epsfsf(lexer*,fdm*,ghostcell*);

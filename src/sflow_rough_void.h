@@ -29,15 +29,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rough_void : public sflow_roughness
+class sflow_rough_void final : public sflow_roughness
 {
 
 public:
     sflow_rough_void(lexer*);
 	virtual ~sflow_rough_void();
     
-	void u_source(lexer*, fdm2D*, slice&) override;
-    void v_source(lexer*, fdm2D*, slice&) override;
+	void u_source(lexer*, fdm2D*, slice&) override final;
+    void v_source(lexer*, fdm2D*, slice&) override final;
 
 };
 

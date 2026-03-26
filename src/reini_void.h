@@ -28,12 +28,12 @@ Author: Hans Bihs
 
 using namespace std;
 
-class reini_void : public reini
+class reini_void final : public reini
 {
 public:
 	reini_void(lexer* p);
 	virtual ~reini_void();
-	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override;
+	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override final;
 };
 
 #endif

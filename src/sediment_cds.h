@@ -29,14 +29,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sediment_cds : public sediment_exnerdisc, public increment
+class sediment_cds final : public sediment_exnerdisc, public increment
 {
 public:
 	sediment_cds(lexer*);
 	virtual ~sediment_cds();
 
-    double sx(lexer*, slice&, double, double) override;
-	double sy(lexer*, slice&, double, double) override;
+    double sx(lexer*, slice&, double, double) override final;
+	double sy(lexer*, slice&, double, double) override final;
 
 private:
 

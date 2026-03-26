@@ -30,13 +30,13 @@ class flux;
 
 using namespace std;
 
-class weno3_flux : public convection, public weno3_nug_func
+class weno3_flux final : public convection, public weno3_nug_func
 {
 public:
 	weno3_flux(lexer*);
 	virtual ~weno3_flux();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);

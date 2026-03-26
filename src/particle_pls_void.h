@@ -27,16 +27,16 @@ Author: Hans Bihs
 
 using namespace std;
 
-class particle_pls_void : public particle_corr
+class particle_pls_void final : public particle_corr
 {
 public:
     particle_pls_void();
 	virtual ~particle_pls_void();
 
-    void start(lexer*,fdm*,ghostcell*,ioflow*) override;
-	void setup(lexer*,fdm*,ghostcell*) override;
-	void correct(lexer*, fdm*, ghostcell*,ioflow*) override;
-	void picardmove(lexer*, fdm*, ghostcell*) override;
+    void start(lexer*,fdm*,ghostcell*,ioflow*) override final;
+	void setup(lexer*,fdm*,ghostcell*) override final;
+	void correct(lexer*, fdm*, ghostcell*,ioflow*) override final;
+	void picardmove(lexer*, fdm*, ghostcell*) override final;
 };
 
 #endif

@@ -38,15 +38,15 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_Catenary : public mooring
+class mooring_Catenary final : public mooring
 {
 public:
 	mooring_Catenary(int);
 	virtual ~mooring_Catenary();
 	
-	void start(lexer*, ghostcell*) override;
-	void initialize(lexer*, ghostcell*) override;
-	void mooringForces(double&, double&, double&) override;
+	void start(lexer*, ghostcell*) override final;
+	void initialize(lexer*, ghostcell*) override final;
+	void mooringForces(double&, double&, double&) override final;
 	
 	void getForce(lexer*, ghostcell*, double&, double&);
 	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);

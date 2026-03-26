@@ -30,13 +30,13 @@ class sflow_flux;
 
 using namespace std;
 
-class sflow_weno_flux : public sflow_convection, public increment
+class sflow_weno_flux final : public sflow_convection, public increment
 {
 public:
 	sflow_weno_flux(lexer*);
 	virtual ~sflow_weno_flux();
 
-	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override final;
 
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);

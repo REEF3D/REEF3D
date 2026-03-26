@@ -28,25 +28,25 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_turb_void : public sflow_turbulence, public increment
+class sflow_turb_void final : public sflow_turbulence, public increment
 {
 
 public:
     sflow_turb_void(lexer*);
 	virtual ~sflow_turb_void();
     
-	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
-	void ktimesave(lexer*, fdm2D*, ghostcell*) override;
-	void etimesave(lexer*, fdm2D*, ghostcell*) override;
+	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override final;
+	void ktimesave(lexer*, fdm2D*, ghostcell*) override final;
+	void etimesave(lexer*, fdm2D*, ghostcell*) override final;
     
-    void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&) override;
-    void kinget(int,int,double) override;
-    void epsget(int,int,double) override;
-    double kinval(int,int) override;
-    double epsval(int,int) override;
-	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override;
-    void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override;
-    void offset_ParaView_2D(lexer*, int*, int &) override;
+    void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
+    void kinget(int,int,double) override final;
+    void epsget(int,int,double) override final;
+    double kinval(int,int) override final;
+    double epsval(int,int) override final;
+	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
+    void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override final;
+    void offset_ParaView_2D(lexer*, int*, int &) override final;
     
 private:
     double val;

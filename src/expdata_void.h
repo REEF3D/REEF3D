@@ -31,17 +31,17 @@ class ghostcell;
 
 using namespace std;
 
-class expdata_void : public expdata
+class expdata_void final : public expdata
 {
 public:
 	expdata_void(lexer*, fdm*, ghostcell*);
 	virtual ~expdata_void();
-	void start(lexer*, fdm*, ghostcell*) override;
+	void start(lexer*, fdm*, ghostcell*) override final;
 	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-	void name_ParaView_parallel(lexer*, ofstream&) override;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
-    void offset_ParaView(lexer*, int*, int &) override;
+	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
+	void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
 };
 
 #endif

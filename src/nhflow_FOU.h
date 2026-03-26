@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_FOU : public nhflow_convection, public increment
+class nhflow_FOU final : public nhflow_convection, public increment
 {
 
 public:
@@ -43,8 +43,8 @@ public:
 	nhflow_FOU (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_FOU();
 
-    void start(lexer*&, fdm_nhf*&, int, slice&) override;
-    void precalc(lexer*, fdm_nhf*, int, slice&) override;
+    void start(lexer*&, fdm_nhf*&, int, slice&) override final;
+    void precalc(lexer*, fdm_nhf*, int, slice&) override final;
 
 private:
 

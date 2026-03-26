@@ -31,14 +31,14 @@ class slice;
 
 using namespace std;
 
-class sflow_potential_f : public sflow_potential, public increment
+class sflow_potential_f final : public sflow_potential, public increment
 {
 
 public:
 	sflow_potential_f(lexer*);
 	virtual ~sflow_potential_f();
 
-	void start(lexer*,fdm2D*, solver2D*, ghostcell*) override;
+	void start(lexer*,fdm2D*, solver2D*, ghostcell*) override final;
 
 
 private:

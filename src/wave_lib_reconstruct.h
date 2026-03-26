@@ -28,20 +28,20 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_reconstruct : public wave_lib_precalc,  public increment
+class wave_lib_reconstruct final : public wave_lib_precalc,  public increment
 {
 public:
     wave_lib_reconstruct(lexer*, ghostcell*);
 	virtual ~wave_lib_reconstruct();
 
-    double wave_u(lexer*,double,double,double) override;
-    double wave_v(lexer*,double,double,double) override;
-    double wave_w(lexer*,double,double,double) override;
-    double wave_eta(lexer*,double,double) override;
-    double wave_fi(lexer*,double,double,double) override;
+    double wave_u(lexer*,double,double,double) override final;
+    double wave_v(lexer*,double,double,double) override final;
+    double wave_w(lexer*,double,double,double) override final;
+    double wave_eta(lexer*,double,double) override final;
+    double wave_fi(lexer*,double,double,double) override final;
         
-    void parameters(lexer*,ghostcell*) override;
-    void wave_prestep(lexer*,ghostcell*) override;
+    void parameters(lexer*,ghostcell*) override final;
+    void wave_prestep(lexer*,ghostcell*) override final;
     
 private:
 	wave_lib *ppwave;

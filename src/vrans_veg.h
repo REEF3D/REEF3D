@@ -32,29 +32,29 @@ Author: Hans Bihs
 
 using namespace std;
 
-class vrans_veg : public vrans, public increment
+class vrans_veg final : public vrans, public increment
 {
 public:
 	vrans_veg(lexer*, ghostcell*);
 	virtual ~vrans_veg();
 
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;	
-	void start(lexer*, fdm*, ghostcell*, int) override {};
-    void sed_update(lexer*, fdm*, ghostcell*) override;
-	void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override {};	
+	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;	
+	void start(lexer*, fdm*, ghostcell*, int) override final {};
+    void sed_update(lexer*, fdm*, ghostcell*) override final;
+	void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override final {};	
     
-	void u_source(lexer*, fdm*) override;
-	void v_source(lexer*, fdm*) override;
-	void w_source(lexer*, fdm*) override;
+	void u_source(lexer*, fdm*) override final;
+	void v_source(lexer*, fdm*) override final;
+	void w_source(lexer*, fdm*) override final;
     
-    void ke_source(lexer*, fdm*, field&) override;
-    void kw_source(lexer*, fdm*, field&) override;
-    void eps_source(lexer*, fdm*, field&, field&) override;
-    void omega_source(lexer*, fdm*, field&, field&) override;
+    void ke_source(lexer*, fdm*, field&) override final;
+    void kw_source(lexer*, fdm*, field&) override final;
+    void eps_source(lexer*, fdm*, field&, field&) override final;
+    void omega_source(lexer*, fdm*, field&, field&) override final;
     
-    void eddyv_func(lexer*, fdm*) override;
+    void eddyv_func(lexer*, fdm*) override final;
     
-    void veltimesave(lexer*,fdm*,ghostcell*) override;
+    void veltimesave(lexer*,fdm*,ghostcell*) override final;
 	
 private:
 	

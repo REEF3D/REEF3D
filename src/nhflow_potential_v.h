@@ -27,13 +27,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_potential_v : public nhflow_potential
+class nhflow_potential_v final : public nhflow_potential
 {
 public:
     nhflow_potential_v();
 	virtual ~nhflow_potential_v();
 
-	void start(lexer*, fdm_nhf*, solver*, ghostcell* pgc) override;
+	void start(lexer*, fdm_nhf*, solver*, ghostcell* pgc) override final;
 
 };
 

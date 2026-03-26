@@ -39,13 +39,13 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_void : public mooring
+class mooring_void final : public mooring
 {
 public:
 
-	void start(lexer*, ghostcell*) override;
-	void initialize(lexer*, ghostcell*) override;
-	void mooringForces(double&, double&, double&) override;
+	void start(lexer*, ghostcell*) override final;
+	void initialize(lexer*, ghostcell*) override final;
+	void mooringForces(double&, double&, double&) override final;
 };
 
 #endif

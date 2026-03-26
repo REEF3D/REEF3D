@@ -37,21 +37,21 @@ Authors: Tobias Martin, Hans Bihs
 
 using namespace std;
 
-class net_void : public net
+class net_void final : public net
 {
 public:
 
-	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool) override;
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool) override;
+	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool) override final;
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool) override final;
     
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;
-    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
-	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
+	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;
+    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
+	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override final;
     
-    const EigenMat& getLagrangePoints() override {return lagrangePoints;}
-    const EigenMat& getLagrangeForces() override {return lagrangeForces;}
-    const EigenMat& getCollarVel() override {return collarVel;}
-    const EigenMat& getCollarPoints() override {return collarPoints;}
+    const EigenMat& getLagrangePoints() override final {return lagrangePoints;}
+    const EigenMat& getLagrangeForces() override final {return lagrangeForces;}
+    const EigenMat& getCollarVel() override final {return collarVel;}
+    const EigenMat& getCollarPoints() override final {return collarPoints;}
  
 
 private:

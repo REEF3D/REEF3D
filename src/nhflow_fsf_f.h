@@ -33,37 +33,37 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_fsf_f : public nhflow_fsf, public increment
+class nhflow_fsf_f final : public nhflow_fsf, public increment
 {
 public:
     nhflow_fsf_f(lexer*, fdm_nhf*, ghostcell*,ioflow*,patchBC_interface*);
 	virtual ~nhflow_fsf_f();
     
-    void start(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
-    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*) override;
+    void start(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
+    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*) override final;
     
-    void rk2_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
-    void rk2_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
+    void rk2_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override final;
+    void rk2_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override final;
     
-    void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
-    void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
-    void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override;
+    void rk3_step1(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override final;
+    void rk3_step2(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override final;
+    void rk3_step3(lexer*, fdm_nhf*, ghostcell*, ioflow*, double*, double*, double*, slice&, slice&, double) override final;
 
-    void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&) override;
-    void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*) override;
+    void kinematic_fsf(lexer*, fdm_nhf*, double*, double*, double*,slice&) override final;
+    void kinematic_bed(lexer*, fdm_nhf*, double*, double*, double*) override final;
     
-    void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&) override;
-    void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*) override;
+    void wetdry(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&) override final;
+    void wetdry_fluxes(lexer*, fdm_nhf*, ghostcell*,slice&,double*,double*,double*,double*,double*,double*) override final;
 
-    void ucorr(lexer*, fdm_nhf*, double*, slice&, double) override;
-    void vcorr(lexer*, fdm_nhf*, double*, slice&, double) override;
+    void ucorr(lexer*, fdm_nhf*, double*, slice&, double) override final;
+    void vcorr(lexer*, fdm_nhf*, double*, slice&, double) override final;
     
-    void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
+    void depth_update(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
     
     void update(lexer*,fdm_nhf*,ghostcell*,slice&);
     
-    void coastline_eta(lexer*,fdm_nhf*,ghostcell*,slice&) override;
-    void coastline_fi(lexer*,fdm_nhf*,ghostcell*,slice&) override;
+    void coastline_eta(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void coastline_fi(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
     
 private: 
     double limiter(double, double);

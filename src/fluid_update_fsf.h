@@ -32,13 +32,13 @@ class ghostcell;
 
 using namespace std;
 
-class fluid_update_fsf : public fluid_update, increment
+class fluid_update_fsf final : public fluid_update, increment
 {
 public:
     fluid_update_fsf(lexer*, fdm*, ghostcell*);
 	virtual ~fluid_update_fsf();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
 private:
     static int iocheck,iter;

@@ -32,14 +32,14 @@ class lexer;
 
 using namespace std;
 
-class density_rheo : public density, virtual public increment
+class density_rheo final : public density, virtual public increment
 {
 
 public:
     density_rheo(lexer*);
 	virtual ~density_rheo();
 
-	double roface(lexer*,fdm*,int,int,int) override;
+	double roface(lexer*,fdm*,int,int,int) override final;
 	
 	double H,roval,phival;
 

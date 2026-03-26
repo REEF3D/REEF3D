@@ -32,13 +32,13 @@ class sediment_fdm;
 
 using namespace std;
 
-class reduction_FD :  public bedshear_reduction, public bedslope
+class reduction_FD final :  public bedshear_reduction, public bedslope
 {
 public:
     reduction_FD(lexer*);
     virtual ~reduction_FD();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     double u_abs,u_plus,dist;

@@ -30,13 +30,13 @@ class flux;
 
 using namespace std;
 
-class iweno_hj : public convection, public increment
+class iweno_hj final : public convection, public increment
 {
 public:
 	iweno_hj (lexer*);
 	virtual ~iweno_hj();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     void wenoloop1(lexer*,fdm*,field&,int,field&,field&,field&);

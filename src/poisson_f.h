@@ -32,7 +32,7 @@ class density;
 
 using namespace std;
 
-class poisson_f : public poisson, public increment
+class poisson_f final : public poisson, public increment
 {
 
 public:
@@ -40,7 +40,7 @@ public:
 	poisson_f (lexer*, heat*&, concentration*&);
 	virtual ~poisson_f();
 
-	void start(lexer *,fdm*,field&) override;
+	void start(lexer *,fdm*,field&) override final;
 
 private:
 

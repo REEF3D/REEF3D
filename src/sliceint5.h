@@ -28,16 +28,16 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sliceint5 : public sliceint, increment
+class sliceint5 final : public sliceint, increment
 {
 public:
 
 	sliceint5 (lexer*);
 	virtual ~sliceint5();
 
-    int& operator()(int, int) override;
+    int& operator()(int, int) override final;
 
-    void resize(lexer*) override;
+    void resize(lexer*) override final;
     
 	int di,dj;
 	int imin,imax,jmax,jmin;

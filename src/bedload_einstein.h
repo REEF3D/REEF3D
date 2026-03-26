@@ -30,13 +30,13 @@ class turbulence;
 
 using namespace std;
 
-class bedload_einstein : public bedload, public increment
+class bedload_einstein final : public bedload, public increment
 {
 public:
 
     bedload_einstein(lexer*);
 	virtual ~bedload_einstein();
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
     double rhosed,rhowat;

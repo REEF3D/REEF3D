@@ -31,15 +31,15 @@ class heat;
 
 using namespace std;
 
-class heat_AB :public bcheat, public heat_print
+class heat_AB final :public bcheat, public heat_print
 {
 public:
     heat_AB(lexer *, fdm*, ghostcell*,heat*&);
 	virtual ~heat_AB();
 
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
-    void diff_update(lexer*, fdm*, ghostcell*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
+    void diff_update(lexer*, fdm*, ghostcell*) override final;
     
     field4 thermdiff;
 private:
