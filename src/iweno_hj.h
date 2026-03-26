@@ -36,7 +36,7 @@ public:
 	iweno_hj (lexer*);
 	virtual ~iweno_hj();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     void wenoloop1(lexer*,fdm*,field&,int,field&,field&,field&);

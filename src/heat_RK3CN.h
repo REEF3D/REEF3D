@@ -36,9 +36,9 @@ public:
     heat_RK3CN(lexer *, fdm*, ghostcell*,heat*&);
 	virtual ~heat_RK3CN();
     
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
-    void diff_update(lexer*, fdm*, ghostcell*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
+    void diff_update(lexer*, fdm*, ghostcell*) override final;
     
     field4 thermdiff;
     field4 ark1,ark2,Tdiff;

@@ -38,7 +38,7 @@ public:
 	hcds6 (lexer *);
 	virtual ~hcds6();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*,double*,double*,double*);

@@ -40,7 +40,7 @@ public:
 
 	hypre_struct2D(lexer*,ghostcell*);
 	virtual ~hypre_struct2D();
-	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override;
+	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
 	void fillbackvec(lexer*,slice&,vec2D&,int);
     

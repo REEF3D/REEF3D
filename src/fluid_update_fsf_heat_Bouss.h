@@ -39,7 +39,7 @@ public:
     fluid_update_fsf_heat_Bouss(lexer*, fdm*, ghostcell*, heat*&);
 	virtual ~fluid_update_fsf_heat_Bouss();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
 private:
     void material(lexer*, fdm*, ghostcell*);

@@ -31,7 +31,7 @@ class bedload_void : public bedload
 {
 public:
 
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 	
 	bedload_void();
     virtual ~bedload_void();

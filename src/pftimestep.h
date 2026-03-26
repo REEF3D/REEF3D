@@ -35,8 +35,8 @@ class pftimestep : public timestep, public increment
 public:
 	pftimestep(lexer*);
 	virtual ~pftimestep();
-	void start(fdm*, lexer*,ghostcell*,turbulence*) override;
-	void ini(fdm*, lexer*,ghostcell*) override;
+	void start(fdm*, lexer*,ghostcell*,turbulence*) override final;
+	void ini(fdm*, lexer*,ghostcell*) override final;
 
 
 private:

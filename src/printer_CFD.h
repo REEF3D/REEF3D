@@ -64,8 +64,8 @@ class printer_CFD : public printer, public increment
 public:
     printer_CFD(lexer*,fdm*,ghostcell*);
     virtual ~printer_CFD() = default;
-    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
-    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override;
+    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
 
 private:
     void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);

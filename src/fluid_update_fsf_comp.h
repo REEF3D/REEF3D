@@ -38,7 +38,7 @@ public:
     fluid_update_fsf_comp(lexer*, fdm*, ghostcell*);
 	virtual ~fluid_update_fsf_comp();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
 private:
     static int iocheck,iter;

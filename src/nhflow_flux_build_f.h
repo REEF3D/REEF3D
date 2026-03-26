@@ -38,10 +38,10 @@ public:
 	nhflow_flux_build_f(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_flux_build_f();
 
-    void start_E(lexer*, fdm_nhf*, ghostcell*) override;
-    void start_U(lexer*, fdm_nhf*, ghostcell*) override;
-    void start_V(lexer*, fdm_nhf*, ghostcell*) override;
-    void start_W(lexer*, fdm_nhf*, ghostcell*) override;
+    void start_E(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_U(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_V(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_W(lexer*, fdm_nhf*, ghostcell*) override final;
 
 private:
     patchBC_interface *pBC;

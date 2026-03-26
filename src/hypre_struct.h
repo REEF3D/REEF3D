@@ -43,11 +43,11 @@ public:
 	hypre_struct(lexer*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
-    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
-    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);

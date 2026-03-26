@@ -35,7 +35,7 @@ public:
     ptf_laplace_cds2(lexer*,fdm*,ghostcell*);
 	virtual ~ptf_laplace_cds2();
 
-    void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&) override;
+    void start(lexer *,fdm*,ghostcell*,solver*,field&,slice&) override final;
     
 private:
     

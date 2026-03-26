@@ -38,7 +38,7 @@ public:
     reduction_FD(lexer*);
     virtual ~reduction_FD();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     double u_abs,u_plus,dist;

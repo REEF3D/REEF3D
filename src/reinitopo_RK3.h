@@ -37,7 +37,7 @@ class reinitopo_RK3 : public reinitopo, public increment
 public:
 	reinitopo_RK3(lexer* p);
 	virtual ~reinitopo_RK3();
-	void start(lexer*,fdm*,ghostcell*,field&) override;
+	void start(lexer*,fdm*,ghostcell*,field&) override final;
 
 	field4a f,frk1,frk2,L,dt;
 

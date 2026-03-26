@@ -34,9 +34,9 @@ public:
 	ptf_void();
 	virtual ~ptf_void();
     
-    void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
-    void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*) override;
-    void inidisc(lexer*, fdm*, ghostcell*) override;
+    void start(lexer*, fdm*, ghostcell*, solver*, convection*, ioflow*, reini*) override final;
+    void ini(lexer*, fdm*, ghostcell*, ioflow*, reini*) override final;
+    void inidisc(lexer*, fdm*, ghostcell*) override final;
     
 
 };

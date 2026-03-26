@@ -36,7 +36,7 @@ public:
 	sflow_hxy_weno(lexer*,patchBC_interface*);
 	virtual ~sflow_hxy_weno();
 
-	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
+	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override final;
 
 private:
 

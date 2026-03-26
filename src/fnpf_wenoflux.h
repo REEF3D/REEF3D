@@ -35,8 +35,8 @@ public:
 	fnpf_wenoflux(lexer*);
 	virtual ~fnpf_wenoflux();
 
-    double sx(lexer*, slice&, slice&) override;
-	double sy(lexer*, slice&, slice&) override;
+    double sx(lexer*, slice&, slice&) override final;
+	double sy(lexer*, slice&, slice&) override final;
 
 
 private:

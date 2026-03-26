@@ -40,9 +40,9 @@ public:
     sflow_turb_ke_IM1(lexer*);
 	virtual ~sflow_turb_ke_IM1();
     
-	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override;
-	void ktimesave(lexer*, fdm2D*, ghostcell*) override;
-	void etimesave(lexer*, fdm2D*, ghostcell*) override;
+	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override final;
+	void ktimesave(lexer*, fdm2D*, ghostcell*) override final;
+	void etimesave(lexer*, fdm2D*, ghostcell*) override final;
     
 private:
     void Pk_update(lexer*, fdm2D*, ghostcell*);

@@ -40,7 +40,7 @@ public:
     benchmark_vortex(lexer*,fdm*);
 	virtual ~benchmark_vortex();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+	void start(lexer*, fdm*, ghostcell*, convection*) override final;
 
 
 };

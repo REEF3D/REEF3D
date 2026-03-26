@@ -39,7 +39,7 @@ public:
     reduction_parker(lexer*);
     virtual ~reduction_parker();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
 

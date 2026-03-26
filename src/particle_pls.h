@@ -35,7 +35,7 @@ class particle_pls : public particle_corr, public norm_vec, public boundarycheck
 public:
 	particle_pls(lexer*, fdm*, ghostcell*);
 	virtual ~particle_pls();
-	void start(lexer*,fdm*,ghostcell*,ioflow*) override;
+	void start(lexer*,fdm*,ghostcell*,ioflow*) override final;
 	void advect(lexer*,fdm*,ghostcell*,double**,int*,int);
 	void seed(lexer*,fdm*,ghostcell*,double,double);
 	void reseed(lexer*,fdm*,ghostcell*,double);
@@ -44,11 +44,11 @@ public:
 	void parcount(lexer*,fdm*,ghostcell*);
 	void particlex(lexer*, fdm*, ghostcell*);
 	void xupdate(lexer*,fdm*,ghostcell*);
-	void correct(lexer*, fdm*, ghostcell*,ioflow*) override;
+	void correct(lexer*, fdm*, ghostcell*,ioflow*) override final;
 	void parcorr(lexer*,fdm*,ioflow*,double,double*,int,int,int,int,int,int);
-	void picardmove(lexer*, fdm*, ghostcell*) override;
+	void picardmove(lexer*, fdm*, ghostcell*) override final;
 
-	void setup(lexer*,fdm*,ghostcell*) override;
+	void setup(lexer*,fdm*,ghostcell*) override final;
 	void setradius(lexer*,fdm*);
 	void posradius(lexer*,fdm*,int);
 	void negradius(lexer*,fdm*,int);

@@ -35,13 +35,13 @@ public:
 	fnpf_weno3(lexer*);
 	virtual ~fnpf_weno3();
 
-    double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
+    double fx(lexer*, field&, double, double) override final;
+	double fy(lexer*, field&, double, double) override final;
+	double fz(lexer*, field&, double, double) override final;
     
-    double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
-    double sz(lexer*, double*) override;
+    double sx(lexer*, slice&, double) override final;
+	double sy(lexer*, slice&, double) override final;
+    double sz(lexer*, double*) override final;
 
 private:
     double **ckz;

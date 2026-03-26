@@ -32,7 +32,7 @@ class momentum_void : public momentum
 public:
 	momentum_void();
 	virtual ~momentum_void();
-	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override;
+	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override final;
 
 private:
 };

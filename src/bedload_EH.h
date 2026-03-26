@@ -35,7 +35,7 @@ public:
     bedload_EH(lexer*);
     virtual ~bedload_EH();
 
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
     double rhosed,rhowat,Rstar,Ds;

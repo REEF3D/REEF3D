@@ -41,13 +41,13 @@ public:
 	nhflow_pjm_corr(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
 	virtual ~nhflow_pjm_corr();
 
-	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
-	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void upgrad(lexer*,fdm_nhf*,slice&) override;
-	void vpgrad(lexer*,fdm_nhf*,slice&) override;
-    void wpgrad(lexer*,fdm_nhf*,slice&) override;
+	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override final;
+	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
+	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
+	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
+	void upgrad(lexer*,fdm_nhf*,slice&) override final;
+	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
+    void wpgrad(lexer*,fdm_nhf*,slice&) override final;
     
     void presscorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
     

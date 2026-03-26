@@ -34,17 +34,17 @@ public:
     concentration_void(lexer *, fdm*, ghostcell*);
 	virtual ~concentration_void();
 
-	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
-	void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
-	void ttimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
+	void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override final;
+	void ttimesave(lexer*, fdm*) override final;
 
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
+	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
     void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
-    double val(int,int,int) override;
+    double val(int,int,int) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override;
-    void name_ParaView(lexer*, ostream&, int*, int &) override;
-    void offset_ParaView(lexer*, int*, int &) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, ostream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
 };
 
 #endif

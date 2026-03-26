@@ -60,7 +60,7 @@ public:
 	sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_f();
 	
-	void start(lexer*, fdm2D*, ghostcell*) override;
+	void start(lexer*, fdm2D*, ghostcell*) override final;
 	
 private:
 	void logic(lexer*, fdm2D*, ghostcell*);

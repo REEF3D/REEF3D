@@ -36,7 +36,7 @@ public:
 	sflow_iweno_hj(lexer*);
 	virtual ~sflow_iweno_hj();
 
-	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override final;
 
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);

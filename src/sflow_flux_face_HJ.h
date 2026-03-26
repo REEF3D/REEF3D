@@ -38,8 +38,8 @@ public:
 	sflow_flux_face_HJ (lexer *p);
 	virtual ~sflow_flux_face_HJ();
 
-	void u_flux(int,slice&,double&,double&) override;
-	void v_flux(int,slice&,double&,double&) override;
+	void u_flux(int,slice&,double&,double&) override final;
+	void v_flux(int,slice&,double&,double&) override final;
 
 private:
     lexer *p;

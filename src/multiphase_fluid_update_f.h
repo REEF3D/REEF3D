@@ -34,7 +34,7 @@ public:
     multiphase_fluid_update_f(lexer*, fdm*, ghostcell*);
 	virtual ~multiphase_fluid_update_f();
 
-	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override;
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override final;
 
 private:
     static int iocheck,iter;

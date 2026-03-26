@@ -33,25 +33,25 @@ public:
 	patchBC_2D(lexer*,ghostcell*);
 	virtual ~patchBC_2D();
     
-    void patchBC_ini(lexer *p, ghostcell *pgc) override;
+    void patchBC_ini(lexer *p, ghostcell *pgc) override final;
     
     // BC update ::CFD
-    void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override;
-    void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override;
-    void patchBC_discharge(lexer*, fdm*, ghostcell*) override;
-    void patchBC_pressure(lexer*, fdm*, ghostcell*, field&) override;
-    void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&) override;
+    void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_rkioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
+    void patchBC_discharge(lexer*, fdm*, ghostcell*) override final;
+    void patchBC_pressure(lexer*, fdm*, ghostcell*, field&) override final;
+    void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&) override final;
     
     // BC update ::SFLOW
-    void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override;
-    void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override;
-    void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override;
-    void patchBC_pressure2D(lexer*, ghostcell*, slice&) override;
-    void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&) override;
-    void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&) override;
-    void patchBC_waterlevel2D(lexer*, fdm2D*,  ghostcell*, slice&) override;
+    void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
+    void patchBC_pressure2D(lexer*, ghostcell*, slice&) override final;
+    void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&) override final;
+    void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&) override final;
+    void patchBC_waterlevel2D(lexer*, fdm2D*,  ghostcell*, slice&) override final;
 
-    void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&) override;
+    void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&) override final;
         
 private:
      // ini

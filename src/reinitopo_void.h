@@ -32,7 +32,7 @@ class reinitopo_void : public reinitopo
 public:
 	reinitopo_void();
 	virtual ~reinitopo_void();
-	void start(lexer*,fdm*,ghostcell*,field&) override;
+	void start(lexer*,fdm*,ghostcell*,field&) override final;
 };
 
 #endif

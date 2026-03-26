@@ -34,8 +34,8 @@ public:
 	sflow_etimestep(lexer*,fdm2D*);
 	virtual ~sflow_etimestep();
 	
-    void start(lexer*,fdm2D*,ghostcell*) override;
-	void ini(lexer*,fdm2D*,ghostcell*) override;
+    void start(lexer*,fdm2D*,ghostcell*) override final;
+	void ini(lexer*,fdm2D*,ghostcell*) override final;
 	
 private:
 	double cu,cv,velmax,wd_criterion;

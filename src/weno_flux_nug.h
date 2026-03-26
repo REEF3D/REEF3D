@@ -36,7 +36,7 @@ public:
 	weno_flux_nug(lexer*);
 	virtual ~weno_flux_nug();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);

@@ -35,9 +35,9 @@ public:
 	sliceint4 (lexer*);
 	virtual ~sliceint4();
 
-    int& operator()(int, int) override;
+    int& operator()(int, int) override final;
 
-    void resize(lexer*) override;
+    void resize(lexer*) override final;
     
 	int di,dj;
 	int imin,imax,jmax,jmin;

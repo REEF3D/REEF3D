@@ -41,7 +41,7 @@ public:
 	LES_filter_f2(lexer *, fdm*);
 	virtual ~LES_filter_f2();
     
-	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int) override;
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int) override final;
 
 };
 

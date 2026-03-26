@@ -36,8 +36,8 @@ public:
     concentration_RK3(lexer *, fdm*, ghostcell*);
 	virtual ~concentration_RK3();
 
-	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);

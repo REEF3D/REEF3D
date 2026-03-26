@@ -37,9 +37,9 @@ public:
 	flux_face_FOU_2D (lexer *p);
 	virtual ~flux_face_FOU_2D();
 
-	void u_flux(fdm* a,int,field&,double&,double&) override;
-	void v_flux(fdm* a,int,field&,double&,double&) override;
-	void w_flux(fdm* a,int,field&,double&,double&) override;
+	void u_flux(fdm* a,int,field&,double&,double&) override final;
+	void v_flux(fdm* a,int,field&,double&,double&) override final;
+	void w_flux(fdm* a,int,field&,double&,double&) override final;
 
 private:
     lexer *p;

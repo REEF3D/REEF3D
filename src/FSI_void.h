@@ -32,9 +32,9 @@ class fsi_void : public fsi
 public:
 	fsi_void(lexer*,ghostcell*){};
 	virtual ~fsi_void(){};
-	void start(lexer*,fdm*,ghostcell*) override {};
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override {};
-    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override {};
+	void start(lexer*,fdm*,ghostcell*) override final {};
+	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override final {};
+    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override final {};
     
 private:
 };

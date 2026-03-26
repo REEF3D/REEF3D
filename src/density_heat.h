@@ -40,7 +40,7 @@ public:
     density_heat(lexer*,heat*&);
 	virtual ~density_heat();
 
-	double roface(lexer*,fdm*,int,int,int) override;
+	double roface(lexer*,fdm*,int,int,int) override final;
 	
 	double H,roval,phival;
 	int ii,jj,kk;

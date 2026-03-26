@@ -42,8 +42,8 @@ class VOF_AB : public freesurface, gradient
 public:
 	VOF_AB(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_AB();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
-	void update(lexer*,fdm*,ghostcell*,field&) override;
+	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
+	void update(lexer*,fdm*,ghostcell*,field&) override final;
 
 	void compression(lexer*,fdm*,ghostcell*,convection*,field&,double);
 	

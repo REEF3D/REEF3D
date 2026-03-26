@@ -38,7 +38,7 @@ public:
     sandslide_steepest_descent(lexer*);
     virtual ~sandslide_steepest_descent();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     void find_steepest_neighbor(lexer* p, slice& topo, int i, int j,

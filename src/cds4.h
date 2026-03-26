@@ -38,7 +38,7 @@ public:
 	cds4 (lexer *);
 	virtual ~cds4();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);

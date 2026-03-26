@@ -35,9 +35,9 @@ public:
 	flux_face_CDS2_2D (lexer *p);
 	virtual ~flux_face_CDS2_2D();
 
-	void u_flux(fdm* a,int,field&,double&,double&) override;
-	void v_flux(fdm* a,int,field&,double&,double&) override;
-	void w_flux(fdm* a,int,field&,double&,double&) override;
+	void u_flux(fdm* a,int,field&,double&,double&) override final;
+	void v_flux(fdm* a,int,field&,double&,double&) override final;
+	void w_flux(fdm* a,int,field&,double&,double&) override final;
 
     
 private:

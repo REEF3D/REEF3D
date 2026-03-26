@@ -36,7 +36,7 @@ public:
 	nhflow_scalar_ifou (lexer*);
 	virtual ~nhflow_scalar_ifou();
 
-	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override;
+	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override final;
 
 private:
 

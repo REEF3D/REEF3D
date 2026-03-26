@@ -49,12 +49,12 @@ public:
     mooring_dynamic(int);
 	virtual ~mooring_dynamic();
 	
-	void start(lexer*, ghostcell*) override;
-	void initialize(lexer*, ghostcell*) override;
-	void mooringForces(double&, double&, double&) override;
+	void start(lexer*, ghostcell*) override final;
+	void initialize(lexer*, ghostcell*) override final;
+	void mooringForces(double&, double&, double&) override final;
     
-    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&) override;
-    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int) override;
+    void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&) override final;
+    void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int) override final;
     
 private:
 

@@ -38,7 +38,7 @@ public:
     sandslide_weighted_multidir(lexer*);
     virtual ~sandslide_weighted_multidir();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     void slide(lexer*,ghostcell*,sediment_fdm*);

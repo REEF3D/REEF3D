@@ -40,10 +40,10 @@ public:
 	fnpf_RK4(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_RK4();
     
-    void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override;
-    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
-    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override;
-    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override;
+    void start(lexer*, fdm_fnpf*, ghostcell*, solver*, convection*, ioflow*, reini*) override final;
+    void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
+    void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
+    void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
     
 private:
 

@@ -38,7 +38,7 @@ public:
 	hric_mod (lexer *);
 	virtual ~hric_mod();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&);

@@ -36,7 +36,7 @@ public:
 	weno_hj_nug(lexer*);
 	virtual ~weno_hj_nug();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);

@@ -35,8 +35,8 @@ class ietimestep : public timestep, public increment
 public:
 	ietimestep(lexer*);
 	virtual ~ietimestep();
-	void start(fdm*,lexer*,ghostcell*,turbulence*) override;
-	void ini(fdm*,lexer*,ghostcell*) override;
+	void start(fdm*,lexer*,ghostcell*,turbulence*) override final;
+	void ini(fdm*,lexer*,ghostcell*) override final;
 
 
 private:
