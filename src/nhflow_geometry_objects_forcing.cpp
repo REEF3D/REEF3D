@@ -162,7 +162,7 @@ void nhflow_geometry::objects_allocate_forcing(lexer *p, ghostcell *pgc)
     
     // ----------------------
     // cylinder_z
-    cyly_num = p->A584;
+    cylz_num = p->A584;
     
     p->Darray(cylz_xc,cylz_num);
     p->Darray(cylz_yc,cylz_num);

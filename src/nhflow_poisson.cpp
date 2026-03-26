@@ -200,6 +200,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.n[n] = 0.0;
             }
             
+            // pcorr outflow
             if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==2)
             {
             pval = 0.0;

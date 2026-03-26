@@ -254,8 +254,8 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     if(p->j_dir==1)
     value = lint4V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
     
-    if(value != value)
-    cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
+    //if(value != value)
+    //cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
 
     i=ii;
     j=jj;
