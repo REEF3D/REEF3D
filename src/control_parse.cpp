@@ -17,29 +17,61 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include "control.h"
+#include "lexer.h"
 
-lexer::lexer() : cmu(0.09), position(this), interpolation(this)
+void control::parse(lexer* p)
 {
-    sigT=0.9;
-    
-	control::ini_default();
+    if(B98==1)
+    B98=2;
+    else if(B98==3 && A10==5)
+    B98=4;
 
-    solveriter=0;
-	mpirank=0;
+    if(X10>0)
+    D22=2;
 
-	simtime=0.0;
-	poissontime=0.0;
-	pressval=0;
-    alpha=0.0;
-    solidread=toporead=porousread=0;
-    net_count=0;
-    mooring_count=0;
-}
+    if(F80>0 && F35>0)
+    F35=0;
 
-lexer::~lexer()
-{
+    G1=0;
+    if(S10>0 || p->toporead>0 || p->solidread==1)
+    G1=1;
+
+    if(A10==3 || A10==5)
+    G2=1;
+
+    if(I10==1)
+    {
+        I11=1;
+        I12=2;
+        I13=1;
+    }
+    else if(I10==2)
+    {
+        I11=2;
+        I12=2;
+        I13=1;
+    }
+
+    if(I40>0)
+    {
+        I10=0;
+        I11=0;
+        I12=0;
+        I13=0;
+    }
+
+    if(T10==0)
+    I13=0;
+
+    if((N40==3 || N40==23 ) && X10>0)
+    N40=4;
+    else if(N40==13 && X10>0)
+    N40=14;
+
+    if(S10>=1 || p->toporead==1)
+    P27=1;
 }
