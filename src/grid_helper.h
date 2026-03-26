@@ -20,24 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"grid.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#ifndef GRID_HELPER_H_
+#define GRID_HELPER_H_
 
-void grid::fillgcb4a(lexer *p)
+#include"increment.h"
+
+class lexer;
+
+class grid_helper : public increment
 {
-    int q;
-    
-    p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
-    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count); 
-    
-    p->gcb4a_count=p->gcb4_count;
+public:
+    grid_helper(lexer*);
+    virtual ~grid_helper();
 
-    QGCB4
-	{
-	for(n=0;n<5;++n)
-	p->gcb4a[q][n]=p->gcb4[q][n];
-    
-    p->gcd4a[q]=p->gcd4[q];
-	}
-}
+    // gcb
+    void fillgcb1(lexer*);
+    void fillgcb2(lexer*);
+    void fillgcb3(lexer*);
+    void fillgcb4a(lexer*);
+
+    void fillgcb4_wall(lexer*);
+
+    // dgc
+    void make_dgc(lexer*);
+    void fill_dgc1(lexer*);
+    void fill_dgc2(lexer*);
+    void fill_dgc3(lexer*);
+    void fill_dgc4(lexer*);
+
+private:
+    int imin,imax,jmax,jmin,kmin,kmax;
+
+    int *hgc;
+    int **fgc;
+};
+
+#endif

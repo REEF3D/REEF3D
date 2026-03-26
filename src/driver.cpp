@@ -90,7 +90,6 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3)
     {
         p->flagini();
-        p->gridini_patchBC();
         pgc->flagfield(p);
         makegrid_sigma(p,pgc);
         makegrid2D_basic(p,pgc);
@@ -106,7 +105,6 @@ driver::driver(int& argc, char **argv)
         p->flag4[IJK]=-10;
 
         p->flagini();
-        p->gridini_patchBC();
         pgc->flagfield(p);
         makegrid_sigma(p,pgc);
         makegrid2D(p,pgc);
@@ -118,7 +116,6 @@ driver::driver(int& argc, char **argv)
     if(p->A10==4 || p->A10==6)
     {
         p->flagini();
-        p->gridini_patchBC();
         pgc->flagfield(p);
         makegrid(p,pgc);
         makegrid2D(p,pgc);

@@ -20,22 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"grid_helper.h"
 #include"lexer.h"
+#include"ghostcell.h"
 
-void lexer::control_calc()
+void grid_helper::fillgcb4a(lexer *p)
 {
-	dt=dt_old=0.0;
-	simtime=I50;
-	sedtime=0.0;
-	dtsed=0.0;
-	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
-    fsitime=fbtime=0.0;
-    fbdt=fbmax=0.0;
-	printouttime=0.0;
-	xtime=0.0;
-	gctime=0.0;
-	totaltime=0.0;
-	meantime=0.0;
-	Xmeantime=Xtotaltime=0.0;
-	gcmeantime=gctotaltime=0.0;
+    int q;
+
+    p->Iresize(p->gcb4a,p->gcb4a_count, p->gcb4_count, 6, 6);
+    p->Dresize(p->gcd4a,p->gcb4a_count, p->gcb4_count);
+
+    p->gcb4a_count=p->gcb4_count;
+
+    QGCB4
+    {
+    for(n=0;n<5;++n)
+    p->gcb4a[q][n]=p->gcb4[q][n];
+
+    p->gcd4a[q]=p->gcd4[q];
+    }
 }

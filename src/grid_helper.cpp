@@ -20,33 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"grid.h"
+#include"grid_helper.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"fieldint4.h"
 
-void grid::fillgcb4_wall(lexer *p)
+grid_helper::grid_helper(lexer *p)
 {
-    int q,n;
-    
-    
-    fieldint4 cval(p);
-    
-    int count=0;
+    imin=p->imin;
+    imax=p->imax;
+    jmin=p->jmin;
+    jmax=p->jmax;
+    kmin=p->kmin;
+    kmax=p->kmax;
+}
 
-    BASELOOP
-	{
-    cval(i,j,k)=count;
-    
-    ++count;
-	}
-    
-    GC4LOOP
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-	p->gcb4[n][5]=cval(i,j,k);
-	}
-	
+grid_helper::~grid_helper()
+{
+    delete[] hgc;
+}
+
+void grid_helper::make_dgc(lexer* p)
+{
+    p->dgc1_count=1;
+    p->dgc2_count=1;
+    p->dgc3_count=1;
+    p->dgc4_count=1;
+
+    p->Iarray(p->dgc1,p->dgc1_count,8);
+    p->Iarray(p->dgc2,p->dgc2_count,8);
+    p->Iarray(p->dgc3,p->dgc3_count,8);
+    p->Iarray(p->dgc4,p->dgc4_count,8);
+
+
+    p->Iarray(hgc,imax*jmax*kmax);
+
+    for(i=0;i<imax*jmax*kmax;++i)
+    hgc[i]=0;
 }
