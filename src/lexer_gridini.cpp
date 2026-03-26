@@ -26,9 +26,9 @@ Author: Hans Bihs
 void lexer::gridini(ghostcell *pgc)
 {        
     if(G2==1)
-    sigma_coord_ini();
-    
-    lexer_gridspacing(pgc);
+    grid::sigma_coord_ini();
+
+    grid::gridspacing(pgc);
 	parse();	
     gcd_ini(pgc);
 }
@@ -123,10 +123,6 @@ void lexer::flagini()
     Iarray(gcsldfeta4,gcsldfeta4_count,6);
 }
 
-void lexer::gridini_patchBC()
-{
-}
-
 int lexer::conv(double a)
 {
 	int b,c;
@@ -148,32 +144,23 @@ int lexer::conv(double a)
 }
 
 void lexer::gcd_ini(ghostcell *pgc)
-{  
-    for(int q=0;q<gcb4_count;++q)
-	{
-        i=gcb4[q][0];
-		j=gcb4[q][1];
-		k=gcb4[q][2];
-	
-    if(gcb4[q][3]==1 || gcb4[q][3]==4)
-    gcd4[q] = 0.5*DXP[IP];
-    
-    if(gcb4[q][3]==2 || gcb4[q][3]==3)
-    gcd4[q] = 0.5*DYP[JP];
-    
-    if(gcb4[q][3]==5 || gcb4[q][3]==6)
-    gcd4[q] = 0.5*DZP[KP];
-	}
-}
-
-void lexer::sigma_coord_ini()
 {
-    double L, ZN0temp;
-    
-    L = ZN[knoz+marge] - ZN[0+marge];
-    
-    ZN0temp = ZN[0+marge];
-    
-    for(k=-marge;k<knoz+marge;++k)
-    ZN[KP] = (ZN[KP]-ZN0temp)/L;
+    for(int q=0;q<gcb4_count;++q)
+    {
+        if(gcb4[q][3]==1 || gcb4[q][3]==4)
+        {
+            i=gcb4[q][0];
+            gcd4[q] = 0.5*DXP[IP];
+        }
+        else if(gcb4[q][3]==2 || gcb4[q][3]==3)
+        {
+            j=gcb4[q][1];
+            gcd4[q] = 0.5*DYP[JP];
+        }
+        else if(gcb4[q][3]==5 || gcb4[q][3]==6)
+        {
+            k=gcb4[q][2];
+            gcd4[q] = 0.5*DZP[KP];
+        }
+    }
 }

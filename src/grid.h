@@ -17,56 +17,70 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #ifndef GRID_H_
 #define GRID_H_
 
-#include"increment.h"
+#include "increment.h"
 
-class lexer;
+class ghostcell;
 
-using namespace std;
-
-class grid :  public increment
+class grid : virtual public increment
 {
 public:
+    grid() = default;
+    virtual ~grid() = default;
 
-	grid (lexer *);
-	virtual ~grid();
-    
-    // gcb
-    void fillgcb1(lexer*);
-    void fillgcb2(lexer*);
-    void fillgcb3(lexer*);
-    void fillgcb4a(lexer*);
-    
-    void fillgcb4_wall(lexer*);
+    void assign_margin();
+    void sigma_coord_ini();
 
-    // dgc
-    void make_dgc(lexer*);
-    void unmake_dgc(lexer*);
-    void fill_dgc1(lexer*);
-    void fill_dgc2(lexer*);
-    void fill_dgc3(lexer*);
-    void fill_dgc4(lexer*);
-    
-    int imin,imax,jmax,jmin,kmin,kmax;
-    
-private:
-	int di,dj,dk;
-	int qn;
-    
-    int *hgc;
-	
+    void gridspacing(ghostcell *pgc);
+
+    // Non-Uniform Mesh
+    double *XN,*YN,*ZN; // Nodal coordinates
+    double *XP,*YP,*ZP; // Cell center coordinates
+    double *DXN,*DYN,*DZN; // Nodal grid spacing
+    double *DXP,*DYP,*DZP; // Cell center grid spacing
+    double *ZSN,*ZSP;
+    double DXM,DYD,DXD;
+    double DYM,DZM;
+
+    double *RN,*SN,*TN; // Temporary arrays
+    double *RP,*SP,*TP; // Temporary arrays
+    double DRM,DSM,DTM;
+    double *DRDXN,*DSDYN,*DTDZN;
+    double *DRDXP,*DSDYP,*DTDZP;
+
+    // boundary conditions
+    int *IO,*IOSL;
+    int *DF,*DF1,*DF2,*DF3;
+    int *DFBED;
+
+    bool i_dir,j_dir,k_dir;
+    double x_dir,y_dir,z_dir;
+
+    int **gcin, **gcout;
+    int gcin_count, gcout_count;
+
+    // maxcoor
+    double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;
+    double maxlength;
+
+    int knox,knoy,knoz;
+    const int margin = 3;
+
+    double originx,originy,originz;
+    double endx,endy,endz;
+    double global_xmin,global_ymin,global_zmin;
+    double global_xmax,global_ymax,global_zmax;
+    int origin_i, origin_j, origin_k;
+    int gknox,gknoy,gknoz;
+
+    int imin,imax,jmin,jmax,kmin,kmax,kmaxF;
+
+    double dx,dy,dz;
 };
 
 #endif
-
-
-
-
-
-
-
