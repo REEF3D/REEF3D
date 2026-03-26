@@ -24,46 +24,12 @@ Author: Hans Bihs
 #define FIELD4_H_
 
 #include"field.h"
-#include"increment.h"
 
-using namespace std;
-
-class field4 : public field, increment
+class field4 final : public field
 {
 public:
-
-	field4 (lexer*);
-	virtual ~field4();
-
-    double& operator()(int, int , int) override;
-	double& operator[](int) override;
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
-    
-	int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-
-private:
-
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-
-    int iter;
-	int feldsize;
-    
-    int level[12];
-	
-	int rank, gcextra;
-	
-	double starttime;
-	
-	lexer *pp;
-
+    field4(lexer* p) : field(p) {}
+    virtual ~field4() = default;
 };
 
 #endif
-
-
-
-
-

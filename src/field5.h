@@ -24,43 +24,12 @@ Author: Hans Bihs
 #define FIELD5_H_
 
 #include"field.h"
-#include"increment.h"
 
-using namespace std;
-
-class field5 :   public field, public increment
+class field5 final : public field
 {
 public:
-
-	field5 (lexer *);
-	virtual ~field5();
-
-    double& operator()(int, int , int) override;
-	double& operator[](int) override;
-
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
-
-private:
-
-	static int a,b,c;
-	int di,dj,dk;
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-
-	double* feld;
-	int iter;
-	int feldsize;
-
-	int imin,imax,jmax,jmin,kmin,kmax;
-	
-	lexer *pp;
+    field5(lexer* p) : field(p) {}
+    virtual ~field5() = default;
 };
 
 #endif
-
-
-
-
-
-
