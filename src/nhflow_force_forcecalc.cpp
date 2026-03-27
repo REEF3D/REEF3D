@@ -178,6 +178,25 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     A_tot+=A;
     }
     
+    /*
+    FLOOP
+    d->test[FIJK] = p->ZSN[FIJK];
+    
+    pgc->start7P(p,d->test,1);
+    
+    
+    if(p->mpirank==0)
+    {
+    double val = p->ccipol7P(d->test, d->WL, d->bed, 3.2, 0.95, 0.3);
+    
+    cout<<"CCIPOL7P: "<<val<<endl;
+    
+    i=j=0;
+    k = p->posc_sig(i,j,0.3);
+    
+    cout<<"posc_sig: "<<k<<endl;
+    }*/
+    
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);

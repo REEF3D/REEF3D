@@ -74,7 +74,7 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
         if(IO[IJK]==1)
         LS[IJK]=fabs(LS[IJK]);
         
-        d->test[IJK] = LS[IJK];
+        //d->test[IJK] = LS[IJK];
     }
 	
 	LOOP

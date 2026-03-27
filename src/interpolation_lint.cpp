@@ -440,16 +440,15 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
     x3 = wa*v5 + (1.0-wa)*v7;
     x4 = wa*v6 + (1.0-wa)*v8;
 
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
+    y1 = wb*x1 + (1.0-wb)*x2;
+    y2 = wb*x3 + (1.0-wb)*x4;
 
 
-    value = wc*y1 +(1.0-wc)*y2;
+    value = wc*y1 + (1.0-wc)*y2;
 
  return value;
 
 }
-
 
 double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
@@ -526,40 +525,30 @@ double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double
 }
 
 
-double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double wb, double wc1, double wc2, double wc3, double wc4)
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
   
     v1=f[FIJK];
-
     v2=f[FIJp1K];
-
     v3=f[FIp1JK];
-
     v4=f[FIp1Jp1K];
   
     v5=f[FIJKp1];
-    
     v6=f[FIJp1Kp1];
-
     v7=f[FIp1JKp1];
- 
     v8=f[FIp1Jp1Kp1];
-  
 
-
-    x1 = wa*v1 + (1.0-wa)*v3;
-    x2 = wa*v2 + (1.0-wa)*v4;
-
-    x3 = wa*v5 + (1.0-wa)*v7;
-    x4 = wa*v6 + (1.0-wa)*v8;
-
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
-
-
-    value = wc*y1 +(1.0-wc)*y2;
+    z1 = wc1*v1 +(1.0-wc1)*v5;
+    z2 = wc2*v2 +(1.0-wc2)*v6;
+    z3 = wc3*v3 +(1.0-wc3)*v7;
+    z4 = wc4*v4 +(1.0-wc4)*v8;
+    
+    y1 = wb*z1 +(1.0-wb)*z2;
+    y2 = wb*z3 +(1.0-wb)*z4;
+    
+    value = wa*y1 +(1.0-wa)*y2;
 
  return value;
 

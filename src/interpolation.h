@@ -88,7 +88,7 @@ public:
     double lint4(field&,int&,int&,int&,double,double,double);
     double lint4c(field&,int&,int&,int&,double,double,double);
     double lint4V(double*,int&,int&,int&,double,double,double,double,double,double);
-    double lint7V(double*,int&,int&,int&,double,double,double);
+    double lint7V(double*,int&,int&,int&,double,double,double,double,double,double);
     double lint4c(double*,int&,int&,int&,double,double,double);
     double lint4phi(fdm*,field&,int&,int&,int&,double,double,double);
     double lint_a(field&,int&,int&,int&,double,double,double);
@@ -100,7 +100,7 @@ public:
     double lint3_2D(field&,int&,int&,int&,double,double,double);
     double lint4_2D(field&,int&,int&,int&,double,double,double);
     double lint4V_2D(double*,int&,int&,int&,double,double,double,double);
-    double lint7V_2D(double*,int&,int&,int&,double,double,double);
+    double lint7V_2D(double*,int&,int&,int&,double,double,double,double);
     double lint_a_2D(field&,int&,int&,int&,double,double,double);
     double lint4phi_2D(fdm*,field&,int&,int&,int&,double,double,double);
     
