@@ -1450,7 +1450,6 @@
             <File Name="diff_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DDWENO">
-            <File Name="weno_nug_func_weights.cpp"/>
             <File Name="weno_nug_func_precalc_qf.cpp"/>
             <File Name="weno_nug_func_precalc_isf.cpp"/>
             <File Name="weno_nug_func_precalc_cf.cpp"/>

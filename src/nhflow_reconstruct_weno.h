@@ -41,30 +41,30 @@ public:
 	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
 	virtual ~nhflow_reconstruct_weno();
 
-    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
-    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
-    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
+    inline void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    inline void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    inline void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
     
-    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
-    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
-    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
     
     slice4 dfdx,dfdy;
 
 private:
-    void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
+    inline void iqmin(lexer*, double*);
+	inline void jqmin(lexer*, double*);
+	inline void kqmin(lexer*, double*);
+	inline void iqmax(lexer*, double*);
+	inline void jqmax(lexer*, double*);
+	inline void kqmax(lexer*, double*);
     
-    void iqmin_sl(lexer*, slice&);
-    void iqmax_sl(lexer*, slice&);
-    void jqmin_sl(lexer*, slice&);
-    void jqmax_sl(lexer*, slice&);
+    inline void iqmin_sl(lexer*, slice&);
+    inline void iqmax_sl(lexer*, slice&);
+    inline void jqmin_sl(lexer*, slice&);
+    inline void jqmax_sl(lexer*, slice&);
     
-    double limiter(double, double);
+    inline double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;
