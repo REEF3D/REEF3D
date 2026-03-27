@@ -1125,6 +1125,7 @@
           <File Name="reinisolid_RK3.h"/>
           <File Name="solid.h"/>
         </VirtualDirectory>
+        <File Name="slice_base.h"/>
         <VirtualDirectory Name="Sliceint">
           <File Name="sliceint.h"/>
           <File Name="sliceint1.h"/>
@@ -2984,7 +2985,6 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
           <File Name="slice4.cpp"/>
@@ -3010,13 +3010,6 @@
         <VirtualDirectory Name="Solid">
           <File Name="reinisolid_RK3.cpp"/>
           <File Name="solid.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Sliceint">
-          <File Name="sliceint1.cpp"/>
-          <File Name="sliceint2.cpp"/>
-          <File Name="sliceint4.cpp"/>
-          <File Name="sliceint4a.cpp"/>
-          <File Name="sliceint5.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">

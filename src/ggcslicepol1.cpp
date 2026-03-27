@@ -26,64 +26,55 @@ Author: Hans Bihs
 void slice1::ggcpol(lexer* p)
 {
     double val=0.0;
-    int a,n,q,count;
+    int q,count;
 
-	 for(n=0;n<p->ggcslcount1;n++)
-	 {
-		 i=p->ggcsl1[n][0];
-		 j=p->ggcsl1[n][1];
-   
+    for(int n=0; n<p->ggcslcount1; n++)
+    {
+        i=p->ggcsl1[n][0];
+        j=p->ggcsl1[n][1];
+
         val=0.0;
         count=0;
-        
+
         iter=IJ;
 
         // 1
         for(q=1;q<=3;++q)
         if(p->gcslorig1[p->mgcsl1[iter]-10][0][q]==1)
         {
-        val+=gcfeld[p->mgcsl1[iter]-10][0][q];
-        ++count;
+            val+=gcfeld[p->mgcsl1[iter]-10][0][q];
+            ++count;
         }
-        
+
         // 4
         for(q=1;q<=3;++q)
         if(p->gcslorig1[p->mgcsl1[iter]-10][3][q]==1)
         {
-        val+=gcfeld[p->mgcsl1[iter]-10][3][q];
-        ++count;
+            val+=gcfeld[p->mgcsl1[iter]-10][3][q];
+            ++count;
         }
-        
+
         // 3
         for(q=1;q<=3;++q)
         if(p->gcslorig1[p->mgcsl1[iter]-10][2][q]==1)
         {
-        val+=gcfeld[p->mgcsl1[iter]-10][2][q];
-        ++count;
+            val+=gcfeld[p->mgcsl1[iter]-10][2][q];
+            ++count;
         }
-        
+
         // 2
         for(q=1;q<=3;++q)
         if(p->gcslorig1[p->mgcsl1[iter]-10][1][q]==1)
         {
-        val+=gcfeld[p->mgcsl1[iter]-10][1][q];
-        ++count;
+            val+=gcfeld[p->mgcsl1[iter]-10][1][q];
+            ++count;
         }
-		 
+
         if(count>0)
         val/=double(count);
-    
 
-        V[iter]=val; 
-        
-	 }
+
+        V[iter]=val;
+
+    }
 }
-
-
-
-
-
-
-
-
-

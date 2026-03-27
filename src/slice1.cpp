@@ -22,199 +22,148 @@ Author: Hans Bihs
 
 #include"slice1.h"
 #include"lexer.h"
-#include"fdm.h"
 
-slice1::slice1(lexer *p)
+slice1::slice1(lexer *p) : slice(p)
 {
-    imin=p->imin;
-    imax=p->imax;
-    jmin=p->jmin;
-    jmax=p->jmax;
-    
-	fieldalloc(p);
-	fieldgcalloc(p);
-	
-	pp=p;
+    fieldgcalloc(p);
+
+    pp=p;
 }
 
 slice1::~slice1()
 {
-    int a,b;
-    
-    for(a=0;a<gcfeldsize;++a)
-    for(b=0;b<4;++b)
-	delete [ ] gcfeld[a][b];
-    
-	for(a=0;a<gcfeldsize;++a)
-	delete [ ] gcfeld[a];
+    for(int a=0; a<gcfeldsize; ++a)
+    for(int b=0;b<4; ++b)
+    delete [ ] gcfeld[a][b];
 
-	delete [ ] gcfeld;
+    for(int a=0; a<gcfeldsize; ++a)
+    delete [ ] gcfeld[a];
 
-	delete [ ] V;
-}
-
-void slice1::fieldalloc(lexer* p)
-{
-	int gridsize = imax*jmax;
-	p->Darray(V,gridsize);
-}
-
-void slice1::dealloc(lexer* p)
-{
-    int a,b;
-    
-    for(a=0;a<gcfeldsize;++a)
-    for(b=0;b<4;++b)
-	delete [ ] gcfeld[a][b];
-    
-	for(a=0;a<gcfeldsize;++a)
-	delete [ ] gcfeld[a];
-
-	delete [ ] gcfeld;
-
-	delete [ ] V;
-    
-    gcfeldsize=feldsize=0;
-}
-
-void slice1::resize(lexer* p)
-{
-    if(p->gcsl_extra1*p->margin>gcfeldsize)
-    cout<<p->mpirank<<" Slice4 Resize: "<<gcfeldsize<<" "<<p->gcsl_extra1*p->margin<<endl;
+    delete [ ] gcfeld;
 }
 
 void slice1::fieldgcalloc(lexer* p)
 {
     gcfeldsize=p->gcsl_extra1*p->margin;
-	gcsl_extra=gcfeldsize;
-    
-	gcfeldsize+=(p->gcbsl1_count);
-	
-	p->Darray(gcfeld,gcfeldsize,4,4);
+
+    gcfeldsize+=(p->gcbsl1_count);
+
+    p->Darray(gcfeld,gcfeldsize,4,4);
 }
 
-double & slice1::operator[](int n)
+inline double & slice1::operator()(int ii, int jj)
 {
-	return V[n];
-}
+    if(pp->mgcsl1[(ii-imin)*jmax + (jj-jmin)]<2)
+    return V[(ii-imin)*jmax + (jj-jmin)];
 
-double & slice1::operator()(int ii, int jj)
-{			
-	if(pp->mgcsl1[(ii-imin)*jmax + (jj-jmin)]<2)
-	return V[(ii-imin)*jmax + (jj-jmin)];
-	
-	
-	iter=(ii-imin)*jmax + (jj-jmin);
-	
-		di=ii-i;
-		dj=jj-j;
 
-		if(pip==4)
-		return V[iter];
-		
-        if(di==0 && dj==0 && pip!=1)
-		return V[iter];
-        
-        if(di==0 && dj==0 && pip==1)
-		di=1;
+    iter=(ii-imin)*jmax + (jj-jmin);
 
-	  
-//1
-		if(di<0 && (dj==0||pip==1))
-		{
-			if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di]==0)
-            {
+    di=ii-i;
+    dj=jj-j;
+
+    if(pip==4)
+    return V[iter];
+
+    if(di==0 && dj==0 && pip!=1)
+    return V[iter];
+
+    if(di==0 && dj==0 && pip==1)
+    di=1;
+
+
+    //1
+    if(di<0 && (dj==0||pip==1))
+    {
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di]==0)
+        {
             if(di<-2)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][0][-di-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][0][-di-1];
+
             if(di<-2)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di-2]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][0][-di-2];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][0][-di-2];
+
             if(di<-1)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][0][-di-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][0][-di-1];
+
             return V[iter];
-            }
-			
-			if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][0][-di];
-		}
-//4
-		if(di>0 && (dj==0||pip==1))
-		{
-            if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di]==0)
-            {
+        }
+
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][0][-di]==1)
+        return gcfeld[pp->mgcsl1[iter]-10][0][-di];
+    }
+    //4
+    if(di>0 && (dj==0||pip==1))
+    {
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di]==0)
+        {
             if(di>2)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][3][di-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][3][di-1];
+
             if(di>2)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di-2]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][3][di-2];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][3][di-2];
+
             if(di>1)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][3][di-1];
-            
-            return V[iter];
-            }
-			
-			if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][3][di];
-		}
+            return gcfeld[pp->mgcsl1[iter]-10][3][di-1];
 
-//3
-		if(dj<0 && (di==0||pip==2))
-		{
-            if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj]==0)
-            {
+            return V[iter];
+        }
+
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][3][di]==1)
+        return gcfeld[pp->mgcsl1[iter]-10][3][di];
+    }
+    //3
+    if(dj<0 && (di==0||pip==2))
+    {
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj]==0)
+        {
             if(dj<-2)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][2][-dj-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][2][-dj-1];
+
             if(dj<-2)
-            if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj-2]==1) 
-			return gcfeld[pp->mgcsl1[iter]-10][2][-dj-2];
-            
+            if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj-2]==1)
+            return gcfeld[pp->mgcsl1[iter]-10][2][-dj-2];
+
             if(dj<-1)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][2][-dj-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][2][-dj-1];
+
             return V[iter];
-            }
-			
-			if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][2][-dj];
-		}
-//2
-		if(dj>0 && (di==0||pip==2))
-		{
-            if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj]==0)
-            {
+        }
+
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][2][-dj]==1)
+        return gcfeld[pp->mgcsl1[iter]-10][2][-dj];
+    }
+    //2
+    if(dj>0 && (di==0||pip==2))
+    {
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj]==0)
+        {
             if(dj>2)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][1][dj-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][1][dj-1];
+
             if(dj>2)
-            if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj-2]==1) 
-			return gcfeld[pp->mgcsl1[iter]-10][1][dj-2];
-            
+            if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj-2]==1)
+            return gcfeld[pp->mgcsl1[iter]-10][1][dj-2];
+
             if(dj>1)
             if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj-1]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][1][dj-1];
-            
+            return gcfeld[pp->mgcsl1[iter]-10][1][dj-1];
+
             return V[iter];
-            }
-			
-			if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj]==1)
-			return gcfeld[pp->mgcsl1[iter]-10][1][dj];
-		}
+        }
 
+        if(pp->gcslorig1[pp->mgcsl1[iter]-10][1][dj]==1)
+        return gcfeld[pp->mgcsl1[iter]-10][1][dj];
+    }
 
-	return V[iter];
-	
+    return V[iter];
 }
-

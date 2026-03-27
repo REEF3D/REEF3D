@@ -23,27 +23,15 @@ Author: Hans Bihs
 #ifndef SLICE_H_
 #define SLICE_H_
 
-class lexer;
-class fdm;
+#include "slice_base.h"
 
-using namespace std;
-
-class slice
+class slice : public slice_base<double>
 {
 public:
-	virtual double& operator()(int, int)=0;
-	virtual double& operator[](int)=0;
-	virtual void ggcpol(lexer*)=0;
-    virtual void resize(lexer*)=0;
-    virtual void dealloc(lexer*)=0;
-	
-	double *V;
+    slice(lexer* p) : slice_base<double>(p) {};
+    virtual ~slice() = default;
+
+    virtual void ggcpol(lexer*) = 0;
 };
 
 #endif
-
-
-
-
-
-
