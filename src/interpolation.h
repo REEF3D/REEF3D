@@ -129,6 +129,8 @@ public:
     double lintsl2(slice&,int&,int&,double,double);
     double lintsl4(slice&,int&,int&,double,double);
     
+    double lintsl4_2D(slice&,int&,int&,double,double);
+    
     
 
 private:

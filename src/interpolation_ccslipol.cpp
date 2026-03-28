@@ -123,43 +123,22 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
     ii=i;
     jj=j;
     
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
-    
-    
+    i = p->posf_i(xp);
+    j = p->posf_j(yp);
 		
     // wa
-    wa = (p->XP[IP1]-xp)/p->DXN[IP];
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
-    {
-    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
-    ++i;
-    }
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
-    {
-    wa = (p->XP[IP]-xp)/p->DXN[IM1];
-    --i;
-    }
-    
+    wa = (p->XP[IP1]-xp)/p->DXP[IP];
 
     // wb
-    wb = (p->YP[JP1]-yp)/p->DYN[JP];
+    wb = (p->YP[JP1]-yp)/p->DYP[JP];
     
-    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
+    if(p->j_dir==0)
     {
-    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
-    ++j;
+    j=0;
+    value =  lintsl4_2D(f,i,j,wa,wb);
     }
     
-    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
-    {
-    wb = (p->YP[JP]-yp)/p->DYN[JM1];
-    --j;
-    }
-    
-    
+    if(p->j_dir==1)
     value =  lintsl4(f,i,j,wa,wb);
 
     i=ii;
