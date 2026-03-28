@@ -294,10 +294,7 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
 
     if(p->j_dir==0)
     j=0;
-    
-    //wc
-    //wc = ((p->ZSN[FIJKp1])-zp)/(p->DZN[KP]*WL(i,j));
-    
+
     //wc
     wc1 = ((p->ZSN[FIJKp1]) - zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK]);
     
@@ -370,9 +367,6 @@ double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, doub
 
     if(p->j_dir==0)
     j=0;
-    
-    ////wc
-    //wc = ((p->ZSN[FIJKp1])-zp)/(p->DZN[KP]*WL(i,j) + bed(i,j));
     
     
     //wc
