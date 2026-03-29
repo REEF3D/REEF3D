@@ -2876,6 +2876,7 @@
           <File Name="position.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interpolation">
+          <File Name="interpolation_ccipol_V.cpp"/>
           <File Name="interpolation_tricubic.cpp"/>
           <File Name="interpolation_slipol.cpp"/>
           <File Name="interpolation_lintsl.cpp"/>
