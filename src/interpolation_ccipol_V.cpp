@@ -139,7 +139,7 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     ZSN_FIp1JKp1 = p->ZN[KP1]*WL(i+1,j) + bed(i+1,j);
     
     
-    ZSN_FIJp1K = p->ZN[KP]*WL(i,j+1) + bed(i,j)+1;
+    ZSN_FIJp1K = p->ZN[KP]*WL(i,j+1) + bed(i,j+1);
     
     ZSN_FIp1Jp1K = p->ZN[KP]*WL(i+1,j+1) + bed(i+1,j+1);
     
