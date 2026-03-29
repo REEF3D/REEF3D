@@ -130,6 +130,7 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     if(p->j_dir==0)
     j=0;
 
+    //wc
     ZSN_FIJK = p->ZN[KP]*WL(i,j) + bed(i,j);
     
     ZSN_FIp1JK = p->ZN[KP]*WL(i+1,j) + bed(i+1,j);
@@ -148,16 +149,15 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     ZSN_FIp1Jp1Kp1 = p->ZN[KP1]*WL(i+1,j+1) + bed(i+1,j+1);
     
 
-    //wc
-    wc1 = ((ZSN_FIJKp1) - zp)/(ZSN_FIJKp1-ZSN_FIJK);
+    wc1 = (ZSN_FIJKp1 - zp)/(ZSN_FIJKp1-ZSN_FIJK);
     
-    wc2 = ((ZSN_FIp1JKp1) - zp)/(ZSN_FIp1JKp1-ZSN_FIp1JK);
+    wc2 = (ZSN_FIp1JKp1 - zp)/(ZSN_FIp1JKp1-ZSN_FIp1JK);
     
     if(p->j_dir==1)
     {
-    wc3 = ((ZSN_FIJp1Kp1) - zp)/(ZSN_FIJp1Kp1-ZSN_FIJp1K);
+    wc3 = (ZSN_FIJp1Kp1 - zp)/(ZSN_FIJp1Kp1-ZSN_FIJp1K);
     
-    wc4 = ((ZSN_FIp1Jp1Kp1) - zp)/(ZSN_FIp1Jp1Kp1-ZSN_FIp1Jp1K);
+    wc4 = (ZSN_FIp1Jp1Kp1 - zp)/(ZSN_FIp1Jp1Kp1-ZSN_FIp1Jp1K);
     }
     
     i = MAX(i,0);

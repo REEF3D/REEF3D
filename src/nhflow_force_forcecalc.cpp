@@ -160,6 +160,9 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
             
+            //if(zc>p->wd + etaval)
+            //pval = hspval = 0.0;
+            
             /*double Fval = -(pval + hspval)*A*nx;
             
             if(Fval != Fval)
