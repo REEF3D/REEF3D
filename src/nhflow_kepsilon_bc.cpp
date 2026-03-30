@@ -132,7 +132,7 @@ void nhflow_kepsilon_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, doubl
     
     
     count=0;
-    if(p->B11>0)
+    //if(p->B11>0)
     LOOP
     {
         check=0;

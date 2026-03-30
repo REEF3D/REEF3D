@@ -158,9 +158,8 @@ pip=0;
 
     value = wb*x1 + (1.0-wb)*x2;
     
- return value;
+    return value;
 }
-
 
 double interpolation::lintsl4(slice& f, int& i,int& j, double wa, double wb)
 {

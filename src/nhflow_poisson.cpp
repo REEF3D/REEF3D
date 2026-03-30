@@ -150,14 +150,14 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             //d->M.p[n] += d->M.s[n];
             //d->M.s[n] = 0.0;
             
-            if(p->B76==0)
+            if(p->B76==0 || p->B90==1)
             {
             pval=0.0;
             d->rhsvec.V[n] -= d->M.s[n]*pval;
             d->M.s[n] = 0.0;
             }
             
-            if(p->B76==1)
+            if(p->B76==1 && p->B90==0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
             d->M.s[n] = 0.0;
@@ -170,14 +170,14 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             //d->M.p[n] += d->M.s[n];
             //d->M.s[n] = 0.0;
             
-            if(p->B76==0)
+            if(p->B76==0 || p->B90==1)
             {
             pval=0.0;
             d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
             d->M.s[n] = 0.0;
             }
             
-            if(p->B76==1)
+            if(p->B76==1 && p->B90==0)
             {
             pval=d->P[FIJK];
             
