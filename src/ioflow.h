@@ -125,9 +125,9 @@ public:
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&)=0;
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&)=0;
     virtual void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*)=0;
-    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*)=0;
-    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*)=0;
-    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*)=0;
+    virtual void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&)=0;
+    virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&)=0;
+    virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&)=0;
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
     virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*)=0;
 
