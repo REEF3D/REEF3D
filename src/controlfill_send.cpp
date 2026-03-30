@@ -581,6 +581,18 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B194_e;
     dd++;
+    ictrl[ii] = B200;
+    ii++;
+    ictrl[ii] = B201;
+    ii++;
+    dctrl[dd] = B201_n;
+    dd++;
+    dctrl[dd] = B201_d50;
+    dd++;
+    dctrl[dd] = B201_alpha;
+    dd++;
+    dctrl[dd] = B201_beta;
+    dd++;
     ictrl[ii] = B210;
     ii++;
     ictrl[ii] = B212;
@@ -645,8 +657,6 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B267;
     dd++;
-    ictrl[ii] = B269;
-    ii++;
     ictrl[ii] = B270;
     ii++;
     ictrl[ii] = B274;

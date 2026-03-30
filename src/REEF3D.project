@@ -1009,6 +1009,7 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_nhflow_v.h"/>
         <File Name="vrans_nhflow_base.h"/>
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_interface.h"/>
@@ -2697,6 +2698,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="vrans_nhflow_interface.cpp"/>
           <File Name="vrans_nhflow_source_vel.cpp"/>
           <File Name="vrans_nhflow_source_omega.cpp"/>
           <File Name="vrans_nhflow_source_k.cpp"/>

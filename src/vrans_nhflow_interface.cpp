@@ -24,17 +24,32 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_reinidisc_fsf.h"
 
-void vrans_nhflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
+double vrans_nhflow::Hporface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
+    double psi, H, phival_sf,dirac;
     
-    // ************************
-    // start raycast
-    geometry_ini(p, d, pgc);
-    objects_create_forcing(p, pgc);
-    update(p, d, pgc, 0);
-    // ************************
-    
-    
-}
+    if (p->j_dir==0)
+    psi = 0.6*(1.0/1.0)*(p->DXN[IP]);
+	
+    if (p->j_dir==1)
+    psi = 0.6*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
 
+
+    // Construct solid heaviside function
+    phival_sf = d->PORSTRUC[IJK];
+    
+	
+    if(-phival_sf > psi)
+    H = 1.0;
+
+    if(-phival_sf < -psi)
+    H = 0.0;
+
+    if(fabs(phival_sf)<=psi)
+    H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
+        
+
+    return H;
+}

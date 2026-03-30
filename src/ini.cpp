@@ -292,6 +292,12 @@ void control::ini_default()
     B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
     
+    B200=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
+    B201=0;             // int porosity
+    B201_n=1.0;         // double porosity n
+    B201_d50=0.01;      // double porosity d50
+    B201_alpha=0.0;     // double porosity alpha
+    B201_beta=0.0;      // double porosity beta
     B210=0;      // int solid box
     B212=0;      // int solid cylinder y
     B213=0;      // int solid cylinder z
@@ -317,7 +323,6 @@ void control::ini_default()
     B260=0.0;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B267=0.001;     // double d50 for VRANS
-	B269=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction

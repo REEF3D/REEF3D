@@ -79,7 +79,7 @@ public:
     double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
-    double *POR;
+    double *POR,*PORPART;
     double *test;
     double *KIN;
     double *CONC;

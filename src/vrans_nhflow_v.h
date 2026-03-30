@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef VRANS_NHFLOW_BASE_H_
-#define VRANS_NHFLOW_BASE_H_
+#ifndef VRANS_NHFLOW_V_H_
+#define VRANS_NHFLOW_V_H_
 
-#include"vrans.h"
+#include"vrans_nhflow_base.h"
 #include"increment.h"
 
 class lexer;
@@ -33,22 +33,25 @@ class slice;
 
 using namespace std;
 
-class vrans_nhflow_base
+class vrans_nhflow_v : public vrans_nhflow_base
 {
 public:
-	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
-	virtual void update(lexer*, fdm_nhf*, ghostcell*, int)=0;
+    vrans_nhflow_v(lexer*, fdm_nhf*, ghostcell*) {};
+	virtual ~vrans_nhflow_v() {};
+    
+	void initialize(lexer*, fdm_nhf*, ghostcell*) override final {};	
+	void update(lexer*, fdm_nhf*, ghostcell*, int) override final {};
 
-	virtual void u_source(lexer*, fdm_nhf*, slice&)=0;
-	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
-	virtual void w_source(lexer*, fdm_nhf*, slice&)=0;
+	void u_source(lexer*, fdm_nhf*, slice&) override final {};
+	void v_source(lexer*, fdm_nhf*, slice&) override final {};
+	void w_source(lexer*, fdm_nhf*, slice&) override final {};
     
-    virtual void ke_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void kw_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void eps_source(lexer*, fdm_nhf*, field&, field&)=0;
-    virtual void omega_source(lexer*, fdm_nhf*, field&, field&)=0;
+    void ke_source(lexer*, fdm_nhf*, field&) override final {};
+    void kw_source(lexer*, fdm_nhf*, field&) override final {};
+    void eps_source(lexer*, fdm_nhf*, field&, field&) override final {};
+    void omega_source(lexer*, fdm_nhf*, field&, field&) override final {};
     
-    virtual void eddyv_func(lexer*, fdm_nhf*)=0;
+    void eddyv_func(lexer*, fdm_nhf*) override final {};
     
 
 };

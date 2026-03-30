@@ -131,7 +131,9 @@ public:
     double B181_1,B181_2,B181_3,B182_1,B182_2,B182_3,B183_1,B183_2,B183_3;
     double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
     double B194_s,B194_e;
-
+    
+    int B200,B201;
+    double B201_n, B201_d50, B201_alpha, B201_beta;
     int B210;
     double *B210_xs,*B210_xe,*B210_ys,*B210_ye,*B210_zs,*B210_ze;
     int B212;
@@ -156,7 +158,7 @@ public:
     
     double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
-    int B269,B270;
+    int B270;
     double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
     int B274;
     double *B274_xc,*B274_yc,*B274_zs,*B274_ze,*B274_r, *B274_n, *B274_d50, *B274_alpha, *B274_beta;

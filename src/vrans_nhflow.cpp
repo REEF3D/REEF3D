@@ -37,8 +37,34 @@ vrans_nhflow::~vrans_nhflow()
 {
 }
 
-void vrans_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
+void vrans_nhflow::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 {
+    ray_cast(p, d, pgc, d->PORSTRUC);
+    reini_RK2(p, d, pgc, d->PORSTRUC);
     
+
+    LOOP
+    {
+    H = Hporface(p,d,0,0,0);   
+    
+    d->POR[IJK]     = H*p->B201_n;
+	d->PORPART[IJK] = H*p->B201_d50;
+	APOR[IJK]       = H*p->B201_alpha;
+	BPOR[IJK]       = H*p->B201_beta;
+    }
+    
+    pgc->start4V(p,d->POR,1);
+    pgc->start4V(p,d->PORPART,1);
+    pgc->start4V(p,APOR,1);
+    pgc->start4V(p,BPOR,1);
     
 }
+
+/*
+#define PORVALNH d->POR[IJK]
+#define PORVALNHm d->POR[IJK]
+#define PORVALNHp d->POR[IJK]
+#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
+#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
+*/

@@ -178,14 +178,11 @@ void driver::logic_nhflow()
     pprint = new printer_nhflow(p,d,pgc);
 
 //VRANS
-    if(p->B269==0)
-	pvrans = new vrans_v(p,pgc);
+    if(p->B200==0)
+	pnhfvrans = new vrans_nhflow_v(p,d,pgc);
 
-	if(p->B269==1)
-	pvrans = new vrans_f(p,pgc);
-
-    if(p->B269==2)
-	pvrans = new vrans_veg(p,pgc);
+	if(p->B200==1)
+	pnhfvrans = new vrans_nhflow(p,d,pgc);
 
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)

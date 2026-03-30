@@ -33,55 +33,55 @@ void nhflow_geometry::objects_create_vrans(lexer *p, ghostcell *pgc)
 	
     entity_count=0;
 	
-	for(qn=0;qn<p->A581;++qn)
+	for(qn=0;qn<p->B210;++qn)
     {
         box(p,pgc,qn);
         ++entity_count;
     }
     
-    for(qn=0;qn<p->A583;++qn)
+    for(qn=0;qn<p->B212;++qn)
     {
         cylinder_y(p,pgc,qn);
         ++entity_count;
     }
     
-	for(qn=0;qn<p->A584;++qn)
+	for(qn=0;qn<p->B213;++qn)
     {
         cylinder_z(p,pgc,qn);
         ++entity_count;
     }
     
-    for(qn=0;qn<p->A585;++qn)
+    for(qn=0;qn<p->B214;++qn)
     {
         jacketmember(p,pgc,qn);
         ++entity_count;
     }
     
-    for(qn=0;qn<p->A586;++qn)
+    for(qn=0;qn<p->B215;++qn)
     {
         sphere(p,pgc,qn);
         ++entity_count;
     }
     
-    for(qn=0;qn<p->A587;++qn)
+    for(qn=0;qn<p->B217;++qn)
     {
         wedge_x(p,pgc,qn);
         ++entity_count;
     }
     
-    for(qn=0;qn<p->A588;++qn)
+    for(qn=0;qn<p->B218;++qn)
     {
         wedge_y(p,pgc,qn);
         ++entity_count;
     }
     
-    for(qn=0;qn<p->A589;++qn)
+    for(qn=0;qn<p->B219;++qn)
     {
         wedge_z(p,pgc,qn);
         ++entity_count;
     }
     
-    if(p->A590==1)
+    if(p->B230==1)
     {
         read_stl(p,pgc);
 		++entity_count;
@@ -98,17 +98,17 @@ void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
 {
     double U,ds,phi,r,snum,trisum;
     
-    entity_sum = p->A581 + p->A583 + p->A584 + p->A585 + p->A586 + p->A587 + p->A588 + p->A589;
+    entity_sum = p->B210 + p->B212 + p->B213 + p->B214 + p->B215 + p->B217 + p->B218 + p->B219;
 	tricount=0;
     trisum=0;
     
     // box
-    trisum+=12*p->A581;
+    trisum+=12*p->B210;
     
     // cylinder_y
-    for(n=0; n<p->A583;++n)
+    for(n=0; n<p->B212;++n)
 	{
-	r = p->A583_r[n];
+	r = p->B212_r[n];
 	U = 2.0*PI*r;
 	ds = 0.5*(DSM);
     snum = MAX(int(U/ds), 40);
@@ -116,9 +116,9 @@ void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
 	}
     
     // cylinder_z
-    for(n=0; n<p->A584;++n)
+    for(n=0; n<p->B213;++n)
 	{
-	r = p->A584_r[n];
+	r = p->B213_r[n];
 	U = 2.0*PI*r;
 	ds = 0.5*(DSM);
     snum = MAX(int(U/ds), 40);
@@ -126,9 +126,9 @@ void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
 	}
     
     // cylinder_member
-    for(n=0; n<p->A585;++n)
+    for(n=0; n<p->B214;++n)
 	{
-	r = MAX(p->A585_r1[n],p->A585_r2[n]);
+	r = MAX(p->B214_r1[n],p->B214_r2[n]);
 	U = 2.0*PI*r;
 	ds = 0.5*(DSM);
     snum = MAX(int(U/ds), 40);
@@ -136,9 +136,9 @@ void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
 	}
     
     // sphere
-    for(n=0; n<p->A586;++n)
+    for(n=0; n<p->B215;++n)
     {
-	r = p->A586_r[n];
+	r = p->B215_r[n];
 	U = 2.0*PI*r;
 	ds = 0.85*(DSM);
     snum = MAX(int(U/ds), 40);
@@ -146,16 +146,16 @@ void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
     }
     
     // wedge
-    trisum+=8*p->A587;
+    trisum+=8*p->B217;
     
     // wedge
-    trisum+=8*p->A588;
+    trisum+=8*p->B218;
     
     // wedge
-    trisum+=8*p->A589;
+    trisum+=8*p->B219;
 
     // STL
-    if(p->A590==1)
+    if(p->B230==1)
     entity_sum+=1;
 
     p->Darray(tri_x,trisum,3);

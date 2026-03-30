@@ -577,6 +577,18 @@ void control::ctrlrecv()
     dd++;
     B194_e = dctrl[dd];
     dd++;
+    B200 = ictrl[ii];
+    ii++;
+    B201 = ictrl[ii];
+    ii++;
+    B201_n = dctrl[dd];
+    dd++;
+    B201_d50 = dctrl[dd];
+    dd++;
+    B201_alpha = dctrl[dd];
+    dd++;
+    B201_beta = dctrl[dd];
+    dd++;
     B210 = ictrl[ii];
     ii++;
     B212 = ictrl[ii];
@@ -641,8 +653,6 @@ void control::ctrlrecv()
     dd++;
     B267 = dctrl[dd];
     dd++;
-    B269 = ictrl[ii];
-    ii++;
     B270 = ictrl[ii];
     ii++;
     B274 = ictrl[ii];

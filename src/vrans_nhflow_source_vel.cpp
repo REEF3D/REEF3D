@@ -24,8 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"slice.h"
 
-void vrans_nhflow::u_source(lexer *p, fdm_nhf *d)
+void vrans_nhflow::u_source(lexer *p, fdm_nhf *d, slice &WL)
 {
     /*
 	// VRANS porosity
@@ -52,7 +53,7 @@ void vrans_nhflow::u_source(lexer *p, fdm_nhf *d)
 	*/
 }
 
-void vrans_nhflow::v_source(lexer *p, fdm_nhf *d)
+void vrans_nhflow::v_source(lexer *p, fdm_nhf *d, slice &WL)
 {
 	/*
 	// VRANS porosity
@@ -78,7 +79,7 @@ void vrans_nhflow::v_source(lexer *p, fdm_nhf *d)
 	*/
 }
 
-void vrans_nhflow::w_source(lexer *p, fdm_nhf *d)
+void vrans_nhflow::w_source(lexer *p, fdm_nhf *d, slice &WL)
 {/*
 	// VRANS porosity
     count=0;

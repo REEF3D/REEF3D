@@ -28,4 +28,7 @@ Author: Hans Bihs
 #include"vrans_f.h"
 #include"vrans_veg.h"
 
+#include"vrans_nhflow.h"
+#include"vrans_nhflow_v.h"
+
 #endif

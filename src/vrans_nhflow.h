@@ -35,11 +35,11 @@ public:
 	virtual ~vrans_nhflow();
 
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override final;	
-	void start(lexer*, fdm_nhf*, ghostcell*, int) override final;
+	void update(lexer*, fdm_nhf*, ghostcell*, int) override final;
 	
-	void u_source(lexer*, fdm_nhf*) override final;
-	void v_source(lexer*, fdm_nhf*) override final;
-	void w_source(lexer*, fdm_nhf*) override final;
+	void u_source(lexer*, fdm_nhf*, slice&) override final;
+	void v_source(lexer*, fdm_nhf*, slice&) override final;
+	void w_source(lexer*, fdm_nhf*, slice&) override final;
     
     void ke_source(lexer*, fdm_nhf*, field&) override final;
     void kw_source(lexer*, fdm_nhf*, field&) override final;
@@ -50,6 +50,8 @@ public:
     
 	
 private:
+    
+    double Hporface(lexer*, fdm_nhf*, int, int, int);
 	
 	double *NPOR,*DPOR,*APOR,*BPOR;
 	
@@ -57,6 +59,8 @@ private:
 	double Bpor(double,double,double);
 	
 	int count;
+    
+    double H;
     
     double Aporval,Bporval,porval,partval,alphaval,betaval,viscval;
 	double val;
