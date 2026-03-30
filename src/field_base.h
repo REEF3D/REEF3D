@@ -45,8 +45,8 @@ public:
     field_base& operator=(field_base&&) = delete;
 
     inline T& operator()(int ii, int jj, int kk) noexcept {return V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin];};
-    inline T& operator[](int n) noexcept {return V[n];};
 
+protected:
 	T *V;
 
 private:
