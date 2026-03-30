@@ -182,7 +182,7 @@ void driver::logic_nhflow()
 	pnhfvrans = new vrans_nhflow_v(p,d,pgc);
 
 	if(p->B200==1)
-	pnhfvrans = new vrans_nhflow(p,d,pgc);
+	pnhfvrans = new vrans_nhflow_f(p,d,pgc);
 
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
@@ -220,9 +220,9 @@ void driver::logic_nhflow()
       
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnhfdf);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
 
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnhfdf);    
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
     
 }

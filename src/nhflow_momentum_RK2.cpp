@@ -35,7 +35,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"nhflow_fsf.h"
 #include"nhflow_turbulence.h"
-#include"vrans.h"
+#include"vrans_nhflow.h"
 #include"6DOF.h"
 #include"nhflow_forcing.h"
 #include"wind_f.h"
@@ -43,7 +43,7 @@ Author: Hans Bihs
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
-nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof,vrans* ppvrans, 
+nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof,vrans_nhflow* ppvrans, 
                                                       nhflow_forcing *ppnhfdf)
                                                     : nhflow_momentum_func(p,d,pgc), WLRK1(p)
 {
@@ -85,7 +85,7 @@ nhflow_momentum_RK2::~nhflow_momentum_RK2()
 void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, 
                                      nhflow_reconstruct *precon, nhflow_convection *pconvec, nhflow_diffusion *pnhfdiff, 
                                      nhflow_pressure *ppress, solver *ppoissonsolv, solver *psolv, nhflow *pnhf, nhflow_fsf *pfsf,
-                                     nhflow_turbulence *pnhfturb, vrans *pvrans)
+                                     nhflow_turbulence *pnhfturb, vrans_nhflow *pvrans)
 {	
 
     pflow->discharge_nhflow(p,d,pgc);

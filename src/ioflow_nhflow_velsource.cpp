@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"vrans.h"
 
-void  ioflow_f::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void  ioflow_f::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans)
 {
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
@@ -56,7 +56,7 @@ void  ioflow_f::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvra
    //pvrans->u_source(p,a);
 }
 
-void  ioflow_f::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void  ioflow_f::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans)
 {
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
@@ -85,7 +85,7 @@ void  ioflow_f::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvra
     //pvrans->v_source(p,a);
 }
 
-void  ioflow_f::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void  ioflow_f::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans)
 {
 	NLOOP4
 	d->rhsvec.V[n]=0.0;

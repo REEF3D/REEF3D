@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow.h"
+#include"vrans_nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void vrans_nhflow::eps_source(lexer *p, fdm_nhf *d, field &kin, field &eps)
+void vrans_nhflow_f::eps_source(lexer *p, fdm_nhf *d, field &kin, field &eps)
 {
     /*
 	int count;
