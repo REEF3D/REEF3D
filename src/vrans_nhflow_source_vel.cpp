@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow.h"
+#include"vrans_nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void vrans_nhflow::u_source(lexer *p, fdm_nhf *d, slice &WL)
+void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
 {
     /*
 	// VRANS porosity
@@ -53,7 +53,7 @@ void vrans_nhflow::u_source(lexer *p, fdm_nhf *d, slice &WL)
 	*/
 }
 
-void vrans_nhflow::v_source(lexer *p, fdm_nhf *d, slice &WL)
+void vrans_nhflow_f::v_source(lexer *p, fdm_nhf *d, slice &WL)
 {
 	/*
 	// VRANS porosity
@@ -79,7 +79,7 @@ void vrans_nhflow::v_source(lexer *p, fdm_nhf *d, slice &WL)
 	*/
 }
 
-void vrans_nhflow::w_source(lexer *p, fdm_nhf *d, slice &WL)
+void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
 {/*
 	// VRANS porosity
     count=0;
@@ -105,14 +105,14 @@ void vrans_nhflow::w_source(lexer *p, fdm_nhf *d, slice &WL)
 		*/
 }
 
-double vrans_nhflow::Apor(double por, double part, double alpha, double visc)
+double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 {
 	val = alpha*(pow(1.0-por,2.0)/pow(por,3.0))*(viscval/pow(part,2.0));
 	
 	return val;
 }
 
-double vrans_nhflow::Bpor(double por, double part, double beta)
+double vrans_nhflow_f::Bpor(double por, double part, double beta)
 {
 	val = beta*(1.0 + 7.5/Cval)*((1.0-por)/pow(por,3.0))*(1.0/part);
 	

@@ -1009,9 +1009,9 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
-        <File Name="vrans_nhflow_v.h"/>
-        <File Name="vrans_nhflow_base.h"/>
         <File Name="vrans_nhflow.h"/>
+        <File Name="vrans_nhflow_f.h"/>
+        <File Name="vrans_nhflow_v.h"/>
         <File Name="vrans_interface.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>

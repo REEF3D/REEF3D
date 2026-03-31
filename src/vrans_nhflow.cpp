@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow.h"
+#include"vrans_nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-vrans_nhflow::vrans_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), Cval(p->B264)
+vrans_nhflow_f::vrans_nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), Cval(p->B264)
 {
 	p->Darray(NPOR,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DPOR,p->imax*p->jmax*(p->kmax+2));
@@ -33,11 +33,11 @@ vrans_nhflow::vrans_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geomet
     p->Darray(BPOR,p->imax*p->jmax*(p->kmax+2));
 }
 
-vrans_nhflow::~vrans_nhflow()
+vrans_nhflow_f::~vrans_nhflow_f()
 {
 }
 
-void vrans_nhflow::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
+void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 {
     ray_cast(p, d, pgc, d->PORSTRUC);
     reini_RK2(p, d, pgc, d->PORSTRUC);
@@ -60,11 +60,3 @@ void vrans_nhflow::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
     
 }
 
-/*
-#define PORVALNH d->POR[IJK]
-#define PORVALNHm d->POR[IJK]
-#define PORVALNHp d->POR[IJK]
-#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
-#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
-#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
-*/

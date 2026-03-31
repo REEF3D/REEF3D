@@ -23,49 +23,34 @@ Author: Hans Bihs
 #ifndef VRANS_NHFLOW_H_
 #define VRANS_NHFLOW_H_
 
-#include"vrans_nhflow_base.h"
-#include"nhflow_geometry.h"
+#include"vrans.h"
+#include"increment.h"
+
+class lexer;
+class fdm_nhf;
+class ghostcell;
+class slice;
 
 using namespace std;
 
-class vrans_nhflow final : public vrans_nhflow_base, public nhflow_geometry
+class vrans_nhflow
 {
 public:
-	vrans_nhflow(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~vrans_nhflow();
+	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
+	virtual void update(lexer*, fdm_nhf*, ghostcell*, int)=0;
 
-	void initialize(lexer*, fdm_nhf*, ghostcell*) override final;	
-	void update(lexer*, fdm_nhf*, ghostcell*, int) override final;
-	
-	void u_source(lexer*, fdm_nhf*, slice&) override final;
-	void v_source(lexer*, fdm_nhf*, slice&) override final;
-	void w_source(lexer*, fdm_nhf*, slice&) override final;
+	virtual void u_source(lexer*, fdm_nhf*, slice&)=0;
+	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
+	virtual void w_source(lexer*, fdm_nhf*, slice&)=0;
     
-    void ke_source(lexer*, fdm_nhf*, field&) override final;
-    void kw_source(lexer*, fdm_nhf*, field&) override final;
-    void eps_source(lexer*, fdm_nhf*, field&, field&) override final;
-    void omega_source(lexer*, fdm_nhf*, field&, field&) override final;
+    virtual void ke_source(lexer*, fdm_nhf*, field&)=0;
+    virtual void kw_source(lexer*, fdm_nhf*, field&)=0;
+    virtual void eps_source(lexer*, fdm_nhf*, field&, field&)=0;
+    virtual void omega_source(lexer*, fdm_nhf*, field&, field&)=0;
     
-    void eddyv_func(lexer*, fdm_nhf*) override final;
+    virtual void eddyv_func(lexer*, fdm_nhf*)=0;
     
-	
-private:
-    
-    double Hporface(lexer*, fdm_nhf*, int, int, int);
-	
-	double *NPOR,*DPOR,*APOR,*BPOR;
-	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
-	
-	int count;
-    
-    double H;
-    
-    double Aporval,Bporval,porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
-	const double Cval;
+
 };
 
 #endif

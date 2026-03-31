@@ -70,7 +70,7 @@ class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
 class nhflow_potential;
-class vrans_nhflow_base;
+class vrans_nhflow;
 class sflow;
 class fnpf_timestep;
 class nhflow_timestep;
@@ -207,7 +207,7 @@ public:
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
     nhflow_forcing *pnhfdf;
-    vrans_nhflow_base *pnhfvrans;
+    vrans_nhflow *pnhfvrans;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;

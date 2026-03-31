@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow.h"
+#include"vrans_nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_reinidisc_fsf.h"
 
-double vrans_nhflow::Hporface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
+double vrans_nhflow_f::Hporface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
     double psi, H, phival_sf,dirac;
     

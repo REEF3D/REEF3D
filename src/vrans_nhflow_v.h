@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef VRANS_NHFLOW_V_H_
 #define VRANS_NHFLOW_V_H_
 
-#include"vrans_nhflow_base.h"
+#include"vrans_nhflow.h"
 #include"increment.h"
 
 class lexer;
@@ -33,7 +33,7 @@ class slice;
 
 using namespace std;
 
-class vrans_nhflow_v : public vrans_nhflow_base
+class vrans_nhflow_v : public vrans_nhflow
 {
 public:
     vrans_nhflow_v(lexer*, fdm_nhf*, ghostcell*) {};

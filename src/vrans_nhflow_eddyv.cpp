@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow.h"
+#include"vrans_nhflow_f.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void vrans_nhflow::eddyv_func(lexer *p, fdm_nhf *d)
+void vrans_nhflow_f::eddyv_func(lexer *p, fdm_nhf *d)
 {
     /*
     int count;

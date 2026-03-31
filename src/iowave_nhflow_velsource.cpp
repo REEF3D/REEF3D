@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"vrans.h"
 
-void iowave::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void iowave::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
@@ -56,7 +56,7 @@ void iowave::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
    //pvrans->u_source(p,a);
 }
 
-void iowave::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void iowave::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
@@ -85,7 +85,7 @@ void iowave::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
     //pvrans->v_source(p,a);
 }
 
-void iowave::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void iowave::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
 	NLOOP4
 	d->rhsvec.V[n]=0.0;

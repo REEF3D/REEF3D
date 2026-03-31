@@ -201,9 +201,9 @@ public:
     void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
     void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
     void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*) override final;
-    void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override final;
-    void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override final;
-    void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans*) override final;
+    void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
+    void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
+    void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
     void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override final;
     
