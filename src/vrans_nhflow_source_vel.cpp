@@ -32,6 +32,8 @@ void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
     if(p->B200>0)
     LOOP
 	{
+        H = Hporface(p,d,0,0,0);  
+        
         porval   = d->POR[IJK];
         partval  = d->PORPART[IJK];
         alphaval = APOR[IJK];
@@ -45,7 +47,9 @@ void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
 
         porousterm = Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]); 
     	
-    d->F[IJK] -= WL(i,j)*porousterm;
+    d->F[IJK] -= H*WL(i,j)*porousterm;
+    
+    d->test[IJK]    = Aporval;
 	}
 }
 
@@ -55,6 +59,8 @@ void vrans_nhflow_f::v_source(lexer *p, fdm_nhf *d, slice &WL)
     if(p->B200>0)
     LOOP
 	{
+        H = Hporface(p,d,0,0,0);  
+        
         porval   = d->POR[IJK];
         partval  = d->PORPART[IJK];
         alphaval = APOR[IJK];
@@ -68,7 +74,7 @@ void vrans_nhflow_f::v_source(lexer *p, fdm_nhf *d, slice &WL)
 
         porousterm = Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]); 
     	
-    d->G[IJK] -= WL(i,j)*porousterm;
+    d->G[IJK] -= H*WL(i,j)*porousterm;
 	}
 }
 
@@ -78,6 +84,8 @@ void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
     if(p->B200>0)
     LOOP
 	{
+        H = Hporface(p,d,0,0,0);  
+        
         porval   = d->POR[IJK];
         partval  = d->PORPART[IJK];
         alphaval = APOR[IJK];
@@ -91,13 +99,16 @@ void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
 
         porousterm = Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]); 
     	
-    d->H[IJK] -= WL(i,j)*porousterm;
+    d->H[IJK] -= H*WL(i,j)*porousterm;
 	}
 }
 
 double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 {
 	val = alpha*(pow(1.0-por,2.0)/pow(por,3.0))*(viscval/pow(part,2.0));
+    
+    if(val!=val)
+    val=0.0;
 	
 	return val;
 }
@@ -105,6 +116,9 @@ double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 double vrans_nhflow_f::Bpor(double por, double part, double beta)
 {
 	val = beta*(1.0 + 7.5/Cval)*((1.0-por)/pow(por,3.0))*(1.0/part);
+    
+    if(val!=val)
+    val=0.0;
 	
 	return val;
 }

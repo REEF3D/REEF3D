@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"vrans_nhflow.h"
 #include"patchBC_interface.h"
 
 ioflow_gravity::ioflow_gravity(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) 
@@ -248,6 +249,9 @@ void  ioflow_gravity::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans
 		
 	d->gi = sin(theta_y*sin(omega_y*p->simtime))*p->W22;
 	}
+    
+    //VRANS
+    pvrans->u_source(p,d,WL);
 }
 
 void  ioflow_gravity::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
@@ -257,6 +261,9 @@ void  ioflow_gravity::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans
 	
 	if(p->B191==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)	
 	d->gj = sin(theta_x*sin(omega_x*p->simtime))*p->W22;
+    
+    //VRANS
+    pvrans->v_source(p,d,WL);
 }
 
 void  ioflow_gravity::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
@@ -300,6 +307,9 @@ void  ioflow_gravity::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans
 							+ 0.13*sin(omega_y*p->simtime) - 0.004*sin(3.0*omega_y*p->simtime)));*/
 
 	}
+    
+    //VRANS
+    pvrans->w_source(p,d,WL);
 }
 
 

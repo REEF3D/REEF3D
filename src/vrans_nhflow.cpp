@@ -50,8 +50,6 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 	d->PORPART[IJK] = H*p->B201_d50;
 	APOR[IJK]       = H*p->B201_alpha;
 	BPOR[IJK]       = H*p->B201_beta;
-    
-    d->test[IJK]    = d->POR[IJK];
     }
     
     pgc->start4V(p,d->POR,1);

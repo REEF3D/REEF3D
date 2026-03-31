@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"vrans.h"
+#include"vrans_nhflow.h"
 
 void  ioflow_f::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
@@ -52,8 +52,8 @@ void  ioflow_f::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflo
 	++count;
 	}
 	
-	//VRANS
-   //pvrans->u_source(p,a);
+    //VRANS
+    pvrans->u_source(p,d,WL);
 }
 
 void  ioflow_f::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
@@ -82,7 +82,7 @@ void  ioflow_f::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflo
 	}
     
     //VRANS
-    //pvrans->v_source(p,a);
+    pvrans->v_source(p,d,WL);
 }
 
 void  ioflow_f::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
@@ -111,7 +111,7 @@ void  ioflow_f::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflo
 	}
     
     //VRANS
-    //pvrans->w_source(p,a);
+    pvrans->w_source(p,d,WL);
 }
 
 
