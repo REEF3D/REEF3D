@@ -1,4 +1,23 @@
 
+26.03 
+x added VRANS for porous structures (NHFLOW)
+x fixed a 2D diffusion bug (NHFLOW)
+x updated breaking algorithm (FNPF)
+x updated array interpolation (NHFLOW)
+x optimized performance (NHFLOW)
+x added Froude limiter region (NHFLOW)
+x updated forcing geometry handling (NHFLOW)
+x updated momentum roughness (NHFLOW, CFD)
+x added pressure gages (NHFLOW)
+x added bed/side wall roughness separation (NHFLOW)
+x updated inflow pressure condition (NHFLOW)
+x improved wind wave interaction (FNPF)
+x updated coastline relaxation (FNPF)
+x updated bedslope calculation (FNPF)
+x fixed diffusion wall crash (CFD)
+x improved fullini waves (FNPF)
+x improved coastline waves (FNPF)
+
 26.02 
 x added sediment timestep ramp 
 x added physical piston wavemaker (NHFLOW)
