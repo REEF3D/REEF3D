@@ -27,8 +27,6 @@ Author: Hans Bihs
 
 vrans_nhflow_f::vrans_nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), Cval(p->B264)
 {
-	p->Darray(NPOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DPOR,p->imax*p->jmax*(p->kmax+2));
     p->Darray(APOR,p->imax*p->jmax*(p->kmax+2));
     p->Darray(BPOR,p->imax*p->jmax*(p->kmax+2));
 }
@@ -39,18 +37,21 @@ vrans_nhflow_f::~vrans_nhflow_f()
 
 void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 {
+
     ray_cast(p, d, pgc, d->PORSTRUC);
     reini_RK2(p, d, pgc, d->PORSTRUC);
-    
+
 
     LOOP
     {
     H = Hporface(p,d,0,0,0);   
     
-    d->POR[IJK]     = H*p->B201_n;
+    d->POR[IJK]     = H*p->B201_n + (1.0-H)*1.0;
 	d->PORPART[IJK] = H*p->B201_d50;
 	APOR[IJK]       = H*p->B201_alpha;
 	BPOR[IJK]       = H*p->B201_beta;
+    
+    d->test[IJK]    = d->POR[IJK];
     }
     
     pgc->start4V(p,d->POR,1);

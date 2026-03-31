@@ -27,11 +27,12 @@ Author: Hans Bihs
 
 void vrans_nhflow_f::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    if(p->mpirank==0)
+    cout<<"VRANS ini"<<endl;
     
     // ************************
-    // start raycast
     geometry_ini(p, d, pgc);
-    objects_create_forcing(p, pgc);
+    objects_create_vrans(p, pgc);
     update(p, d, pgc, 0);
     // ************************
     

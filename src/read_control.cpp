@@ -2719,7 +2719,60 @@ void control::read_control(lexer* p)
     Darray(B108_ys,B108);
     Darray(B108_ye,B108);
     Darray(B108_d,B108);
+    
+    Darray(B210_xs,B210);
+    Darray(B210_xe,B210);
+    Darray(B210_ys,B210);
+    Darray(B210_ye,B210);
+    Darray(B210_zs,B210);
+    Darray(B210_ze,B210);
 
+    Darray(B212_xc,B212);
+    Darray(B212_zc,B212);
+    Darray(B212_ys,B212);
+    Darray(B212_ye,B212);
+    Darray(B212_r,B212);
+
+    Darray(B213_xc,B213);
+    Darray(B213_yc,B213);
+    Darray(B213_zs,B213);
+    Darray(B213_ze,B213);
+    Darray(B213_r,B213);
+
+    Darray(B214_xm1,B214);
+    Darray(B214_ym1,B214);
+    Darray(B214_zm1,B214);
+    Darray(B214_r1,B214);
+    Darray(B214_xm2,B214);
+    Darray(B214_ym2,B214);
+    Darray(B214_zm2,B214);
+    Darray(B214_r2,B214);
+
+    Darray(B215_xm,B215);
+    Darray(B215_ym,B215);
+    Darray(B215_zm,B215);
+    Darray(B215_r,B215);
+
+    Darray(B217_xs,B217);
+    Darray(B217_xe,B217);
+    Darray(B217_ys,B217);
+    Darray(B217_ye,B217);
+    Darray(B217_zs,B217);
+    Darray(B217_ze,B217);
+
+    Darray(B218_xs,B218);
+    Darray(B218_xe,B218);
+    Darray(B218_ys,B218);
+    Darray(B218_ye,B218);
+    Darray(B218_zs,B218);
+    Darray(B218_ze,B218);
+
+    Darray(B219_xs,B219);
+    Darray(B219_xe,B219);
+    Darray(B219_ys,B219);
+    Darray(B219_ye,B219);
+    Darray(B219_zs,B219);
+    Darray(B219_ze,B219);
 
     Darray(B240_C,B240);
     Darray(B240_D,B240);
@@ -3377,6 +3430,14 @@ void control::read_control(lexer* p)
     int countB106=0;
     int countB107=0;
     int countB108=0;
+    int countB210=0;
+    int countB212=0;
+    int countB213=0;
+    int countB214=0;
+    int countB215=0;
+    int countB217=0;
+    int countB218=0;
+    int countB219=0;
     int countB231=0;
     int countB232=0;
     int countB240=0;
@@ -3544,6 +3605,38 @@ void control::read_control(lexer* p)
                          break;
                 case 108: control>>B108_xs[countB108]>>B108_xe[countB108]>>B108_ys[countB108]>>B108_ye[countB108]>>B108_d[countB108];
                          ++countB108;
+                         clear(c,numint);
+                         break;
+                case 210: control>>B210_xs[countB210]>>B210_xe[countB210]>>B210_ys[countB210]>>B210_ye[countB210]>>B210_zs[countB210]>>B210_ze[countB210];
+                         ++countB210;
+                         clear(c,numint);
+                         break;
+                case 212: control>>B212_xc[countB212]>>B212_zc[countB212]>>B212_ys[countB212]>>B212_ye[countB212]>>B212_r[countB212];
+                         ++countB212;
+                         clear(c,numint);
+                         break;
+                case 213: control>>B213_xc[countB213]>>B213_yc[countB213]>>B213_zs[countB213]>>B213_ze[countB213]>>B213_r[countB213];
+                         ++countB213;
+                         clear(c,numint);
+                         break;
+                case 214: control>>B214_xm1[countB214]>>B214_ym1[countB214]>>B214_zm1[countB214]>>B214_r1[countB214]>>B214_xm2[countB214]>>B214_ym2[countB214]>>B214_zm2[countB214]>>B214_r2[countB214];
+                           ++countB214;
+                         clear(c,numint);
+                         break;
+                case 215: control>>B215_xm[countB215]>>B215_ym[countB215]>>B215_zm[countB215]>>B215_r[countB215];
+                         ++countB215;
+                         clear(c,numint);
+                         break;
+                case 587: control>>B217_xs[countB217]>>B217_xe[countB217]>>B217_ys[countB217]>>B217_ye[countB217]>>B217_zs[countB217]>>B217_ze[countB217];
+                         ++countB217;
+                         clear(c,numint);
+                         break;
+                case 218: control>>B218_xs[countB218]>>B218_xe[countB218]>>B218_ys[countB218]>>B218_ye[countB218]>>B218_zs[countB218]>>B218_ze[countB218];
+                         ++countB218;
+                         clear(c,numint);
+                         break;
+                case 219: control>>B219_xs[countB219]>>B219_xe[countB219]>>B219_ys[countB219]>>B219_ye[countB219]>>B219_zs[countB219]>>B219_ze[countB219];
+                         ++countB219;
                          clear(c,numint);
                          break;
                 case 240: control>>B240_C[countB240]>>B240_D[countB240]>>B240_xs[countB240]>>B240_xe[countB240]>>B240_ys[countB240]>>B240_ye[countB240]>>B240_zs[countB240]>>B240_ze[countB240];

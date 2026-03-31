@@ -65,10 +65,7 @@ void nhflow_geometry::read_stl(lexer *p, ghostcell *pgc)
 	// create vecs
 	p->Dresize(tri_x,tricount,count,3,3);
 	p->Dresize(tri_y,tricount,count,3,3);
-	p->Dresize(tri_z,tricount,count,3,3);
-	p->Dresize(tri_x0,tricount,count,3,3);
-	p->Dresize(tri_y0,tricount,count,3,3);
-	p->Dresize(tri_z0,tricount,count,3,3);		
+	p->Dresize(tri_z,tricount,count,3,3);	
 	
 	tricount=count;
 	

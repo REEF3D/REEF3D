@@ -150,20 +150,11 @@ void nhflow_FOU::FOU(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, 
     // FOU flux
     ULOOP
     {
-        if(d->Ss[IJK]>=0.0)
+        if(d->U[IJK]>=0.0)
         d->Fx[IJK] = d->Fs[IJK];
         
-        else
-        if(d->Sn[IJK]<=0.0)
+        if(d->U[IJK]<0.0)
         d->Fx[IJK] = d->Fn[IJK];
-        
-        else
-        {
-        denom = d->Sn[IJK]-d->Ss[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Un[IJK] - Us[IJK]))/denom;
-        }
     }
     
     // FOU flux y-dir
@@ -171,20 +162,11 @@ void nhflow_FOU::FOU(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, 
     {
     VLOOP
     {
-        if(d->Se[IJK]>=0.0)
+        if(d->V[IJK]>=0.0)
         d->Fy[IJK] = d->Fe[IJK];
         
-        else
-        if(d->Sw[IJK]<=0.0)
+        if(d->V[IJK]<0.0)
         d->Fy[IJK] = d->Fw[IJK];
-        
-        else
-        {
-        denom = d->Sw[IJK]-d->Se[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Uw[IJK] - Ue[IJK]))/denom;
-        }
     }
     }
 }
@@ -194,39 +176,22 @@ void nhflow_FOU::FOU_E(lexer *&p, fdm_nhf *&d)
     // FOU flux
     ULOOP
     {
-        if(d->Ss[IJK]>=0.0)
+        if(d->U[IJK]>=0.0)
         d->Fx[IJK] = d->Fs[IJK];
         
         else
-        if(d->Sn[IJK]<=0.0)
+        if(d->U[IJK]<0.0)
         d->Fx[IJK] = d->Fn[IJK];
-        
-        else
-        {
-        denom = d->Sn[IJK]-d->Ss[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
-        }
     }
     
     // FOU flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
-        if(d->Se[IJK]>=0.0)
+        if(d->V[IJK]>=0.0)
         d->Fy[IJK] = d->Fe[IJK];
         
-        else
-        if(d->Sw[IJK]<=0.0)
+        if(d->V[IJK]<0.0)
         d->Fy[IJK] = d->Fw[IJK];
-        
-        else
-        {
-        denom = d->Sw[IJK]-d->Se[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
-        }
     }
 }

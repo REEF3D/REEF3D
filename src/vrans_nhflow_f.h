@@ -53,7 +53,7 @@ private:
     
     double Hporface(lexer*, fdm_nhf*, int, int, int);
 	
-	double *NPOR,*DPOR,*APOR,*BPOR;
+	double *APOR,*BPOR;
 	
 	double Apor(double,double,double,double);
 	double Bpor(double,double,double);

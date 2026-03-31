@@ -320,7 +320,7 @@ void control::ini_default()
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
 	B243=1;			// int porous media in z-direction
-    B260=0.0;       // double C coefficient for VRANS
+    B260=0.34;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B267=0.001;     // double d50 for VRANS
     B270=0;         // int VRANS porous media box

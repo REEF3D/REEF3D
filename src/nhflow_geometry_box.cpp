@@ -35,7 +35,6 @@ void nhflow_geometry::box(lexer *p, ghostcell *pgc, int id)
     zs = box_zs[id];
     ze = box_ze[id];
     
-	//cout<<p->mpirank<<" FORCING_CYLINDER  xs: "<<xs<<" xe: "<<xe<<" id: "<<id<<endl;
 	// Face 3
 	// Tri 1
 	tstart[entity_count]=tricount;

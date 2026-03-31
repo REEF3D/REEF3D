@@ -92,7 +92,7 @@ private:
     
     double DSM;
     
-    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
+    double **tri_x,**tri_y,**tri_z;
     
     int *tstart,*tend;
     int tricount;
@@ -103,22 +103,13 @@ private:
     
     int reiniter;
     
-    
     const double epsi;
     
     nhflow_reinidisc_fsf *prdisc;
 
     
-    double H,Ht, uf, vf, wf, ef;
-    double efc;
-	double nx, ny, nz,norm ;
-	double phival_sf;
-    double dirac;
-    
     double phi,theta,psi;
     double xrot,yrot,zrot;
-    
-    
     
     
     // -------------------------

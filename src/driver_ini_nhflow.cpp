@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"vrans_header.h"
 #include"nhflow_header.h"
 #include"lexer.h"
 #include<sys/stat.h>
@@ -131,11 +132,14 @@ void driver::driver_ini_nhflow()
     // turbulence ini
     pnhfturb->ini(p, d, pgc);
     
-    //sediment ini
+    // sediment ini
     psed->ini_nhflow(p,d,pgc);
     
-    //6DOF ini
+    // 6DOF ini
     p6dof->initialize(p, d, pgc);
+    
+    // VRANS ini
+    pnhfvrans->initialize(p,d,pgc);
     
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
 

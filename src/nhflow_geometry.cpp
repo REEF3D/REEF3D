@@ -55,7 +55,7 @@ nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.
     }
     
     // ----
-    if(forcing_flag==1)
+    if(forcing_flag==1 || p->B200>=1)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
