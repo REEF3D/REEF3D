@@ -48,8 +48,6 @@ void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
         porousterm = Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]); 
     	
     d->F[IJK] -= H*WL(i,j)*porousterm;
-    
-    d->test[IJK]    = Aporval;
 	}
 }
 
