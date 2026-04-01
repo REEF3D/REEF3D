@@ -113,14 +113,14 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     starttime=pgc->timer();
 
     LOOP
-	a->L.V[IJK]=0.0;
+	a->L(i,j,k)=0.0;
 
 	pconvec->start(p,a,ls,4,a->u,a->v,a->w);
 	
 
 	LOOP
-	ark1.V[IJK] = ls.V[IJK]
-				+ p->dt*a->L.V[IJK];
+	ark1(i,j,k) = ls(i,j,k)
+				+ p->dt*a->L(i,j,k);
 	
 	pflow->phi_relax(p,pgc,ark1);
 	
@@ -130,14 +130,14 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     
 // Step 2
     LOOP
-	a->L.V[IJK]=0.0;
+	a->L(i,j,k)=0.0;
 
 	pconvec->start(p,a,ark1,4,a->u,a->v,a->w);
 
 	LOOP
-	ark2.V[IJK] =     0.75*ls.V[IJK]
-				   + 0.25*ark1.V[IJK]
-				   + 0.25*p->dt*a->L.V[IJK];
+	ark2(i,j,k) =     0.75*ls(i,j,k)
+				   + 0.25*ark1(i,j,k)
+				   + 0.25*p->dt*a->L(i,j,k);
 				
 	pflow->phi_relax(p,pgc,ark2);
 	
@@ -146,14 +146,14 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
     
 // Step 3
     LOOP
-	a->L.V[IJK]=0.0;
+	a->L(i,j,k)=0.0;
 
 	pconvec->start(p,a,ark2,4,a->u,a->v,a->w);
 
 	LOOP
-	ls.V[IJK] =      (1.0/3.0)*ls.V[IJK]
-				  + (2.0/3.0)*ark2.V[IJK]
-				  + (2.0/3.0)*p->dt*a->L.V[IJK];
+	ls(i,j,k) =      (1.0/3.0)*ls(i,j,k)
+				  + (2.0/3.0)*ark2(i,j,k)
+				  + (2.0/3.0)*p->dt*a->L(i,j,k);
 
     pflow->phi_relax(p,pgc,ls);
 	pgc->start4(p,ls,gcval_phi);

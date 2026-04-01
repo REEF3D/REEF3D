@@ -39,7 +39,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
 	if(ipol==4)
     {
         BASELOOP
-        L.V[IJK] = 0.0;
+        L(i,j,k) = 0.0;
 
         BASELOOP
         disc(p,a,pgc,f,L);
@@ -48,7 +48,7 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
 	if(ipol==5)
     {
         BASELOOP
-        L.V[IJK] = 0.0;
+        L(i,j,k) = 0.0;
         
         BASELOOP
         disc(p,a,pgc,f,L);
@@ -60,15 +60,15 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 	dx=0.0;
 	dy=0.0;
 	dz=0.0;
-	lsv=f.V[IJK];
+	lsv=f(i,j,k);
     lsSig=lsv/sqrt(lsv*lsv);
 
     if(fabs(lsv)<1.0e-8)
     lsSig=1.0;
 
 // x	
-	xmin=(lsv-f.V[Im1JK])/p->DXP[IM1];
-	xplus=(f.V[Ip1JK]-lsv)/p->DXP[IP];
+	xmin=(lsv-f(i-1,j,k))/p->DXP[IM1];
+	xplus=(f(i+1,j,k)-lsv)/p->DXP[IP];
 	
 	if(xmin*lsSig>0.0 && xplus*lsSig>-xmin*lsSig)
 	dx=ddwenox(a,f,1.0);
@@ -82,8 +82,8 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 // y
     if(p->j_dir==1)
     {
-	ymin=(lsv-f.V[IJm1K])/p->DYP[JM1];
-	yplus=(f.V[IJp1K]-lsv)/p->DYP[JP];
+	ymin=(lsv-f(i,j-1,k))/p->DYP[JM1];
+	yplus=(f(i,j+1,k)-lsv)/p->DYP[JP];
 	
 	if(ymin*lsSig>0.0 && yplus*lsSig>-ymin*lsSig)
 	dy=ddwenoy(a,f,1.0);
@@ -96,8 +96,8 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     }
 
 // z
-	zmin=(lsv-f.V[IJKm1])/p->DZP[KM1];
-	zplus=(f.V[IJKp1]-lsv)/p->DZP[KP];
+	zmin=(lsv-f(i,j,k-1))/p->DZP[KM1];
+	zplus=(f(i,j,k+1)-lsv)/p->DZP[KP];
 	
 	if(zmin*lsSig>0.0 && zplus*lsSig>-zmin*lsSig)
 	dz=ddwenoz(a,f,1.0);
@@ -123,5 +123,5 @@ void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
     sign=1.0;
     
 
-	L.V[IJK] = -(sign*dnorm - sign);
+	L(i,j,k) = -(sign*dnorm - sign);
 }

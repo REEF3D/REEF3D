@@ -116,7 +116,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         prdisc->start(p,a,pgc,f,a->L,4);
 
         BASELOOP
-        frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*a->L.V[IJK];
+        frk1(i,j,k) = f(i,j,k) + dt(i,j,k)*a->L(i,j,k);
         
         pgc->start4(p,frk1,gcval);
 
@@ -124,7 +124,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         prdisc->start(p,a,pgc,frk1,a->L,4);
 
         BASELOOP
-        frk2.V[IJK] = 0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*a->L.V[IJK];
+        frk2(i,j,k) = 0.75*f(i,j,k) + 0.25*frk1(i,j,k) + 0.25*dt(i,j,k)*a->L(i,j,k);
 
         pgc->start4(p,frk2,gcval);
 
@@ -132,7 +132,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         prdisc->start(p,a,pgc,frk2,a->L,4);
 
         BASELOOP
-        f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*a->L.V[IJK];
+        f(i,j,k) = (1.0/3.0)*f(i,j,k) + (2.0/3.0)*frk2(i,j,k) + (2.0/3.0)*dt(i,j,k)*a->L(i,j,k);
 
         pgc->start4(p,f,gcval);
 	}
@@ -152,10 +152,10 @@ void reini_RK3::time_preproc(lexer* p)
 	LOOP
 	{
     if(p->j_dir==0)
-    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    dt(i,j,k) = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
     if(p->j_dir==1)
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt(i,j,k) = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 }
 

@@ -32,10 +32,10 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
     LOOP
 	{
     if(p->j_dir==0)
-    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    dt(i,j,k) = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
     if(p->j_dir==1)
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt(i,j,k) = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 	
 	reiniter=5;
@@ -53,7 +53,7 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
 		prdisc->start(p,a,pgc,f,L,5);
 
 		ALOOP
-		frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
+		frk1(i,j,k) = f(i,j,k) + dt(i,j,k)*L(i,j,k);
 
          pgc->start4a(p,frk1,50);
         
@@ -62,7 +62,7 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
 		prdisc->start(p,a,pgc,frk1,L,5);
 
 		ALOOP
-		f.V[IJK] = 0.5*f.V[IJK] + 0.5*frk1.V[IJK] + 0.5*dt.V[IJK]*L.V[IJK];
+		f(i,j,k) = 0.5*f(i,j,k) + 0.5*frk1(i,j,k) + 0.5*dt(i,j,k)*L(i,j,k);
 
         pgc->start4a(p,f,50);
 	}
