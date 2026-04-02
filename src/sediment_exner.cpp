@@ -83,12 +83,12 @@ sediment_exner::~sediment_exner()
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
     // eq.
-    if(p->S17==0)
+    if(p->S33==0)
     SEDSLICELOOP
     s->qb(i,j)=s->qbe(i,j);
     
     // non-eq.
-    if(p->S17==1)
+    if(p->S33==1)
     non_equillibrium_solve(p,pgc,s); 
     
     pgc->gcsl_start4(p,s->qb,1);
@@ -127,12 +127,12 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
     // eq.
-    if(p->S17==0)
+    if(p->S33==0)
     SEDSLICELOOP
     s->qb(i,j)=s->qbe(i,j);
     
     // non-eq.
-    if(p->S17==1)
+    if(p->S33==1)
     non_equillibrium_solve(p,pgc,s); 
     
     pgc->gcsl_start4(p,s->qb,1);

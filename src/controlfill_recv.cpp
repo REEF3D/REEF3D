@@ -1482,8 +1482,8 @@ void control::ctrlrecv()
     ii++;
     S16 = ictrl[ii];
     ii++;
-    S17 = ictrl[ii];
-    ii++;
+    S17 = dctrl[dd];
+    dd++;
     S18 = dctrl[dd];
     dd++;
     S19 = dctrl[dd];

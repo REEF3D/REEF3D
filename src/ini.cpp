@@ -743,7 +743,7 @@ void control::ini_default()
 	S14=0.3;               // double relaxation timestep size for sediment transport
 	S15=0;                  // int synchronize sediment time step with main solver
 	S16=1;                  // int bed shear stress formulation
-    S17=0;                  // int non-equillibrium bedload 
+    S17=1.0;                  // double decoupling factor dtsed
     S18=0.823;                // double mu_d
 	S19=1.0e+19; 			// double total time sediment
 	S20=0.001;          // double sediment d50
@@ -760,7 +760,7 @@ void control::ini_default()
     S30=0.047;          // double Shields parameter
     S31=2;              // int type of Exner formulation
     S32=1;              // int exner discretization
-    S33=1;              // int type of near bead velocity interpolation
+    S33=1;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
