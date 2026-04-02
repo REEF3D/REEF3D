@@ -42,10 +42,7 @@ Author: Hans Bihs
 
 sediment_RK2::sediment_RK2(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC) : sediment_f(p,pgc,pturb,ppBC), bedzh_n(p)
 {
-
     pBC = ppBC;
-    
-
     
     psed = this;
 }
@@ -91,10 +88,11 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     
     // Exner *******
     ptopo->start_RK(p,pgc,s);
+    ptopo->timestep(p,pgc,s);
     p->sedtime+=p->dtsed;
     
     // RK Step 1
-    SLICELOOP4
+    SEDSLICELOOP
     s->bedzh(i,j) += p->dtsed*s->vz(i,j);
     
     // sandslide ********
@@ -106,13 +104,7 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);
-    
-    // sediment print
-    print_probes(p,pgc,s,pflow);
-    
-    // sediment log
-    sedimentlog(p);
-    
+
     
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Iter RK1: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
@@ -124,8 +116,6 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
 void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
     starttime=pgc->timer();
-    
-    ++p->sediter;
     
     // prep NHFLOW -------
     prep_nhflow(p,d,pgc);
@@ -154,10 +144,9 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     
     // Exner *******
     ptopo->start_RK(p,pgc,s);
-    p->sedtime+=p->dtsed;
     
     // RK Step 2
-    SLICELOOP4
+    SEDSLICELOOP
     s->bedzh(i,j) = 0.5*bedzh_n(i,j) +  0.5*s->bedzh(i,j) + 0.5*p->dtsed*s->vz(i,j);
     
     // sandslide ********

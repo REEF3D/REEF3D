@@ -45,18 +45,20 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
 	maxvz=pgc->globalmax(maxvz);
 	
+    // 
     if(p->S29==0)
     {
 	if(p->S15==0)
-    p->dtsed=MIN(p->S13, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+    p->dtsed=p->S17*MIN(p->S13, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
 
     if(p->S15==1)
-    p->dtsed=MIN(p->dt, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+    p->dtsed=MIN(p->S17*p->dt, (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
     
     if(p->S15==2)
-    p->dtsed=p->S13;
+    p->dtsed=p->S17*p->S13;
     }
     
+    // ramp up
     if(p->S29==1)
     {
     p->dtsed = (p->S14*dx)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15);
