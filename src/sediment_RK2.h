@@ -30,7 +30,7 @@ using namespace std;
 class sediment_RK2 : public sediment_f, public increment
 {
 public:
-    sediment_RK2(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
+    sediment_RK2(lexer*,ghostcell*,turbulence*, patchBC_interface*);
 	virtual ~sediment_RK2();
     
     // NHFLOW interface
@@ -39,7 +39,7 @@ public:
     void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
 
 private:
-    
+    sediment_RK2 *psed;
    
 	
 };

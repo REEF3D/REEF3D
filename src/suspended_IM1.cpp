@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-suspended_IM1::suspended_IM1(lexer* p, fdm* a) : concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer* p) : concn(p),wvel(p)
 {
 	gcval_susp=60;
 }

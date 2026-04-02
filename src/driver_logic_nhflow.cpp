@@ -218,8 +218,11 @@ void driver::logic_nhflow()
     if(p->S10==0)
     psed = new sediment_void();
 
-    if(p->S10>0)
-    psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
+    if(p->S10==1)
+    psed = new sediment_f(p,pgc,pturbcfd,pBC);
+    
+    if(p->S10==12)
+    psed = new sediment_RK2(p,pgc,pturbcfd,pBC);
       
 //Momentum
     if(p->A510==2)
