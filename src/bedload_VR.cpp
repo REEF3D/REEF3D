@@ -55,7 +55,7 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
         Ti=MAX((Tb-Ts)/(Ts),0.0);
         
-        if(s->active(i,j)==1 && Tb>=Ts)
+        if(s->active(i,j)==1 && Tb>Ts)
         qb = (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
 
 

@@ -53,6 +53,9 @@ sediment_RK2::~sediment_RK2()
 
 void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
+    if(p->count>=p->S43)
+    {
+        
     starttime=pgc->timer();
     
     ++p->sediter;
@@ -111,10 +114,13 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    }
 }
 
 void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
+    if(p->count>=p->S43)
+    {
     starttime=pgc->timer();
     
     // prep NHFLOW -------
@@ -172,5 +178,5 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
     
-    
+    }
 }

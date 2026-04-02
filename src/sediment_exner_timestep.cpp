@@ -56,6 +56,9 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     if(p->S15==2)
     p->dtsed=p->S17*p->S13;
+    
+    if(p->S15==3)
+    p->dtsed=p->S17*p->dt;
     }
     
     // ramp up
