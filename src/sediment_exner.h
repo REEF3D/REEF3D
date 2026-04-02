@@ -42,6 +42,7 @@ public:
 	sediment_exner(lexer*, ghostcell*);
 	virtual ~sediment_exner();
 	void start(lexer*, ghostcell*, sediment_fdm*) override final;
+    void start_RK(lexer*, ghostcell*, sediment_fdm*) override final;
 
 
 private:
@@ -60,7 +61,7 @@ private:
         vec2D xvec,rhsvec;
 
 	matrix2D M;
-    slice4 qbx,qby,vztemp,dh1,dh2;
+    slice4 qbx,qby,vztemp;
     
 	int gcval_topo;
 	double starttime;

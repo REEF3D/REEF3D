@@ -35,13 +35,13 @@ public:
     
     // NHFLOW interface
 
-    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
-    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
+    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
+    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
 
 private:
     sediment_RK2 *psed;
    
-	
+	slice4 bedzh_n;
 };
 
 #endif

@@ -39,6 +39,7 @@ class topo
 public:
 
 	virtual void start(lexer*, ghostcell*, sediment_fdm*)=0;
+    virtual void start_RK(lexer*, ghostcell*, sediment_fdm*)=0;
 
 };
 
