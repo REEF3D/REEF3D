@@ -56,7 +56,7 @@ class bedprobe_line_y;
 
 using namespace std;
 
-class sediment_f final : public sediment, public increment
+class sediment_f : public sediment, public increment
 {
 public:
     sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
@@ -81,6 +81,9 @@ public:
     void ini_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
     void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*) override final;
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override final;
+    
+    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
+    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
     
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -160,8 +163,6 @@ public:
     void name_ParaView_CPM(lexer*, ostream&, int*, int &) override final {};
     void offset_ParaView_CPM(lexer*, int*, int &) override final {};
     
-
-private:
     
     void log_ini(lexer*);
     void sedimentlog(lexer*);
@@ -198,6 +199,8 @@ private:
     int volume_token,sedcalc;
     int gcval_eta;
     double volume0;
+    
+private:
 	
 };
 

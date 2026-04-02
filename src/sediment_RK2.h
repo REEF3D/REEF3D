@@ -20,18 +20,28 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SEDIMENT_HEADER_H_
-#define SEDIMENT_HEADER_H_
+#ifndef SEDIMENT_RK2_H_
+#define SEDIMENT_RK2_H_
 
 #include"sediment_f.h"
-#include"sediment_RK2.h"
-#include"sediment_void.h"
 
-#include"sediment_exner.h"
+using namespace std;
 
-#include"reinitopo_RK3.h"
-#include"reinitopo_void.h"
+class sediment_RK2 : public sediment_f, public increment
+{
+public:
+    sediment_RK2(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
+	virtual ~sediment_RK2();
+    
+    // NHFLOW interface
 
-#include"sediment_part.h"
+    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
+    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
+
+private:
+    
+   
+	
+};
 
 #endif

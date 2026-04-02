@@ -42,6 +42,8 @@ public:
     void ini_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
     void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*) override final;
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override final;
+    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override final {};
+    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override final {};
     
     void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override final;
     void ini_sflow(lexer*, fdm2D*, ghostcell*) override final;
