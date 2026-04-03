@@ -28,6 +28,7 @@ Author: Hans Bihs
 
 void iowave::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
+    /*
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
 	
@@ -50,7 +51,7 @@ void iowave::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *
 	
     d->rhsvec.V[count] -= porousterm;
 	++count;
-	}
+	}*/
 	
 	//VRANS
    pvrans->u_source(p,d,WL);
@@ -58,6 +59,7 @@ void iowave::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *
 
 void iowave::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
+    /*
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
 	
@@ -79,7 +81,7 @@ void iowave::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *
 	
     d->rhsvec.V[count] -= porousterm;
 	++count;
-	}
+	}*/
     
     //VRANS
     pvrans->v_source(p,d,WL);
@@ -87,6 +89,7 @@ void iowave::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *
 
 void iowave::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
+    /*
 	NLOOP4
 	d->rhsvec.V[n]=0.0;
 	
@@ -108,7 +111,7 @@ void iowave::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *
 
     d->rhsvec.V[count] -= porousterm;
 	++count;
-	}
+	}*/
     
     //VRANS
     pvrans->w_source(p,d,WL);

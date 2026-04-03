@@ -42,13 +42,14 @@ public:
 	sediment_exner(lexer*, ghostcell*);
 	virtual ~sediment_exner();
 	void start(lexer*, ghostcell*, sediment_fdm*) override final;
-
+    void start_RK(lexer*, ghostcell*, sediment_fdm*) override final;
+    void  timestep(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     void topovel1(lexer*,ghostcell*,sediment_fdm*);
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
-    void  timestep(lexer*,ghostcell*,sediment_fdm*);
+    
     double ramp_dt(lexer*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
     double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
@@ -60,7 +61,7 @@ private:
         vec2D xvec,rhsvec;
 
 	matrix2D M;
-    slice4 qbx,qby,vztemp,dh1,dh2;
+    slice4 qbx,qby,vztemp;
     
 	int gcval_topo;
 	double starttime;

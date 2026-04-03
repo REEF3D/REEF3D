@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-suspended_IM1::suspended_IM1(lexer* p, fdm* a) : concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer* p) : concn(p),wvel(p)
 {
 	gcval_susp=60;
 }
@@ -98,7 +98,7 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
         if(p->DF[IJK]>0)
         if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
         {
-        zdist = 0.5*p->DZN[KP];
+        zdist = p->DZN[KP];
         
         a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
         //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);

@@ -1491,8 +1491,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = S16;
     ii++;
-    ictrl[ii] = S17;
-    ii++;
+    dctrl[dd] = S17;
+    dd++;
     dctrl[dd] = S18;
     dd++;
     dctrl[dd] = S19;

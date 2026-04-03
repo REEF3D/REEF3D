@@ -40,11 +40,12 @@ Author: Hans Bihs
 #include"nhflow_forcing.h"
 #include"wind_f.h"
 #include"wind_v.h"
+#include"sediment_f.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
 nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof,vrans_nhflow* ppvrans, 
-                                                      nhflow_forcing *ppnhfdf)
+                                                      nhflow_forcing *ppnhfdf, sediment *ppsed)
                                                     : nhflow_momentum_func(p,d,pgc), WLRK1(p)
 {
 	gcval_u=10;
@@ -68,6 +69,7 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     p6dof = pp6dof;
     pnhfdf = ppnhfdf;
     pvrans = ppvrans;
+    psed = ppsed;
     
     // wind forcing
     if(p->A570==0)
@@ -180,6 +182,9 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     clearrhs(p,d,pgc);
     
+    psed->RK2_step1_nhflow(p,d,pgc,pflow);
+    pfsf->depth_update(p,d,pgc,pflow);
+    
 //Step 2
 //--------------------------------------------------------
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
@@ -274,5 +279,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pgc->start4V(p,d->WH,gcval_wh);
     
     clearrhs(p,d,pgc);
+    
+    psed->RK2_step2_nhflow(p,d,pgc,pflow);
+    pfsf->depth_update(p,d,pgc,pflow);
 }
 
