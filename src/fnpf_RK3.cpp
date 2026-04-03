@@ -84,9 +84,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     SLICELOOP4
 	frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
-    
-    //SLICELOOP4
-    //c->test2D(i,j) = 0.0;
    
     pflow->eta_relax(p,pgc,erk1);
     pf->wetdry(p,c,pgc,erk1,frk1);
@@ -94,7 +91,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->coastline_eta(p,c,pgc,erk1);
     pf->coastline_fi(p,c,pgc,frk1);
     pflow->fifsf_relax(p,pgc,frk1);
-    //pflow->test_relax(p,pgc,c->test2D);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
     // fsfdisc and sigma update
@@ -190,17 +186,11 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    
 
     //---------------------------------
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
-    
-    LOOP
-    {
-	c->test[IJK] = c->Fz(i,j);
-    }
 }
 
 void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
@@ -216,11 +206,6 @@ void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
 
 void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {	
-    
-    //FLOOP
-    //if(k==p->knoz)
-    //cout<<c->Fi[FIJK]<<" "<<c->Fifsf(i,j)<<endl;
-        
     for(int qn=0;qn<20;++qn)
     {
     pf->coastline_eta(p,c,pgc,c->eta);
@@ -243,60 +228,6 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     // velocity 
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     velcalc_sig(p,c,pgc,c->Fi);
-    
-    
-    /// -----
-    /// -----
-    /*pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    etaloc_sig(p,c,pgc);
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    sigma_ini(p,c,pgc,pf,c->eta);
-    pf->fsfdisc_ini(p,c,pgc,c->eta,c->Fifsf);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
-    sigma_ini(p,c,pgc,pf,c->eta);
-    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
-    sigma_update(p,c,pgc,pf,c->eta);
-    
-    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    
-    for(int qn=0; qn<10; ++qn)
-    {
-    pf->coastline_eta(p,c,pgc,c->eta);
-    pf->coastline_fi(p,c,pgc,c->Fifsf);
-    }
-    
-    
-    velcalc_sig(p,c,pgc,c->Fi);
-    
-    pgc->start7V(p,c->U,c->bc,210);
-    pgc->start7V(p,c->V,c->bc,210);
-    pgc->start7V(p,c->W,c->bc,210);
-    
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
-    */
-    /*
-    if(p->I40==1)
-    {
-    fnpf_restart(p,c,pgc);
-    
-    
-    sigma_update(p,c,pgc,pf,c->eta);
-    
-  
-    for(int qn=0;qn<0;++qn)
-    {
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    
-    // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
-    }
-    }*/
 }
 
 void fnpf_RK3::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
