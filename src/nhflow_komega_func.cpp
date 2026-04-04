@@ -202,7 +202,14 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     k=p->knoz-1;
     
-	if(p->A567==1)
+	if(p->A567==1 || p->A567==2)
+	SLICELOOP4
+	{
+	if(p->DF[IJK]>0)
+	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37));
+	}
+    
+    if(p->A567==3)
 	SLICELOOP4
 	{
 	if(p->DF[IJK]>0)
