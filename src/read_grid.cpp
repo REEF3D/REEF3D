@@ -283,6 +283,18 @@ void lexer::read_grid()
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
+    
+    grid.read((char*)&ddn, sizeof (double));
+    global_orig_x=ddn;
+    grid.read((char*)&ddn, sizeof (double));
+    global_orig_y=ddn;
+    grid.read((char*)&ddn, sizeof (double));
+    alpha_grid=ddn;
+    
+    grid.read((char*)&ddn, sizeof (double));
+    grid.read((char*)&ddn, sizeof (double));
+    grid.read((char*)&ddn, sizeof (double));
+
 
 
     // ---------------------------------------------------------------------------------------------------------------------

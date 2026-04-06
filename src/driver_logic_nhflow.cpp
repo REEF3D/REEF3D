@@ -81,8 +81,14 @@ void driver::logic_nhflow()
     pnhfscalarconvec = new nhflow_scalar_ifou(p);
     
 //Diffusion
-    if(p->A512==0)
+    if(p->A512==0 && p->A560==0)
     pnhfdiff = new nhflow_diff_void(p);
+    
+    if(p->A512==0 && p->A560>0 && p->j_dir==1)
+    pnhfdiff = new nhflow_idiff(p);
+    
+    if(p->A512==0 && p->A560>0 && p->j_dir==0)
+    pnhfdiff = new nhflow_idiff_2D(p);
     
     if(p->A512==1)
     pnhfdiff = new nhflow_ediff(p);

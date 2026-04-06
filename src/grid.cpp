@@ -34,6 +34,9 @@ void grid::assign_margin()
     imin=-margin;
     jmin=-margin;
     kmin=-margin;
+    
+    global_orig_x = global_orig_y = 0.0;
+    alpha_grid = 0.0;
 }
 
 void grid::sigma_coord_ini()

@@ -1027,6 +1027,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Tools">
+        <VirtualDirectory Name="Coordinates">
+          <File Name="coordinates.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Position">
           <File Name="position.h"/>
         </VirtualDirectory>
@@ -2871,6 +2874,9 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <VirtualDirectory Name="Tools">
+        <VirtualDirectory Name="Coordinates">
+          <File Name="coordinates.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Position">
           <File Name="position_xyz.cpp"/>
           <File Name="position_ijk_face.cpp"/>

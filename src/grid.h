@@ -52,6 +52,10 @@ public:
     double DRM,DSM,DTM;
     double *DRDXN,*DSDYN,*DTDZN;
     double *DRDXP,*DSDYP,*DTDZP;
+    
+    // origin and rotation
+    double global_orig_x,global_orig_y;
+    double alpha_grid;
 
     // boundary conditions
     int *IO,*IOSL;

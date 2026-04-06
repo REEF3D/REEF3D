@@ -36,13 +36,15 @@ Author: Hans Bihs
 #include<vector>
 #include"grid.h"
 #include"control.h"
+#include"coordinates.h"
 
 class weno_nug_func;
 class ghostcell;
 
 using namespace std;
 
-class lexer : virtual public resize_class, public position, public interpolation, public grid, public control
+class lexer : virtual public resize_class, public grid, public control,
+              public position, public interpolation, public coordinates
 {
 public:
 
