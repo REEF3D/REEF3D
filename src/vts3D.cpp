@@ -129,11 +129,11 @@ void vts3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
         JTLOOP
             ITLOOP
             {
-                ffn=float(p->XN[IP]);
+                ffn=float(p->xout(p->XN[IP]));
                 std::memcpy(&buffer[m],&ffn,sizeof(float));
                 m+=sizeof(float);
 
-                ffn=float(p->YN[JP]);
+                ffn=float(p->yout(p->YN[JP]));
                 std::memcpy(&buffer[m],&ffn,sizeof(float));
                 m+=sizeof(float);
 

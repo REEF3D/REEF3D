@@ -52,8 +52,8 @@ void fnpf_breaking_log::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     SLICELOOP4
     if(c->breaklog(i,j)>0)
     {
-    result<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
-    //cout<<p->simtime<<" "<<p->XP[IP]<<" "<<p->YP[JP]<<endl;
+    result<<p->simtime<<" "<<p->xout(p->XP[IP])<<" "<<p->yout(p->YP[JP])<<endl;
+    //cout<<p->simtime<<" "<<p->xout(p->XP[IP])<<" "<<p->yout(p->YP[JP])<<endl;
     } 
 
 

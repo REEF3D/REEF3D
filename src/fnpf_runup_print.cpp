@@ -42,7 +42,7 @@ void fnpf_runup::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         fout.open(name);
 
         fout<<"x \t y"<<endl;
-        fout<<p->P140_x[ID]<<" \t "<<p->P140_y[ID]<<" \t "<<endl;
+        fout<<p->xout(p->P140_x[ID])<<" \t "<<p->yout(p->P140_y[ID])<<" \t "<<endl;
         fout<<endl<<endl;
      
         fout<<"it \t time \t R1 \t R2 \t R3 \t R4 \t R5 \t R6";
