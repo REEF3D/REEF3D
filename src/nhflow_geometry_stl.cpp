@@ -115,9 +115,9 @@ void nhflow_geometry::read_stl(lexer *p, ghostcell *pgc)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{
-		tri_x[n][q] += p->A592_x;
-		tri_y[n][q] += p->A592_y;
-		tri_z[n][q] += p->A592_z;
+		tri_x[n][q] += p->A592_dx;
+		tri_y[n][q] += p->A592_dy;
+		tri_z[n][q] += p->A592_dz;
 	}
     
     // rotate STL model

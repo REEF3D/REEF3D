@@ -100,7 +100,7 @@ public:
 
     int A590,A591,A592,A593,A594,A599;
     double A591_x,A591_y,A591_z;
-    double A592_x,A592_y,A592_z;
+    double A592_dx,A592_dy,A592_dz;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
 
     // boundary conditions
@@ -153,7 +153,7 @@ public:
     
     int B230,B231,B232,B233,B234;
     double B231_x,B231_y,B231_z;
-    double B232_x,B232_y,B232_z;
+    double B232_dx,B232_dy,B232_dz;
     double B233_x,B233_y,B233_z,B233_phi,B233_theta,B233_psi;
     
     double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
@@ -488,7 +488,7 @@ public:
     double X171_xs,X171_xe,X171_ys,X171_ye,X171_zs,X171_z1,X171_ze;
     double X172_xs,X172_xe,X172_ys,X172_ye,X172_zs,X172_z1,X172_z2,X172_ze;
     double X181_x,X181_y,X181_z;
-    double X182_x,X182_y,X182_z;
+    double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
     int X185,X188;
     double X186;
