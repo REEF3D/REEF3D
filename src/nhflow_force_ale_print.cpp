@@ -48,7 +48,7 @@ void nhflow_force_ale::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
         fout<<"x \t y \t Cd \t Cm"<<endl;
 
-        fout<<p->P85_x[ID]<<" \t "<<p->P85_y[ID]<<" \t "<<p->P85_cd[ID]<<" \t "<<p->P85_cm[ID] <<endl;
+        fout<<p->xout(p->P85_x[ID])<<" \t "<<p->yout(p->P85_y[ID])<<" \t "<<p->P85_cd[ID]<<" \t "<<p->P85_cm[ID] <<endl;
         fout<<endl<<endl;
      
         fout<<"it \t time \t Fx \t Fy ";
