@@ -46,12 +46,6 @@ public:
     double *ZSN,*ZSP;
     double DXM,DYD,DXD;
     double DYM,DZM;
-
-    double *RN,*SN,*TN; // Temporary arrays
-    double *RP,*SP,*TP; // Temporary arrays
-    double DRM,DSM,DTM;
-    double *DRDXN,*DSDYN,*DTDZN;
-    double *DRDXP,*DSDYP,*DTDZP;
     
     // origin and rotation
     double global_orig_x,global_orig_y;

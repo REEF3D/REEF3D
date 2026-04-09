@@ -99,11 +99,11 @@ void lexer::read_grid()
     dx=ddn;
 
     grid.read((char*)&ddn, sizeof (double));
-    DRM=ddn;
+    DXM=ddn;
     grid.read((char*)&ddn, sizeof (double));
-    DSM=ddn;
+    DYM=ddn;
     grid.read((char*)&ddn, sizeof (double));
-    DTM=ddn;
+    DZM=ddn;
 
 
     grid.read((char*)&ddn, sizeof (double));
@@ -398,10 +398,6 @@ void lexer::read_grid()
     Darray(YN,knoy+1+4*marge);
     Darray(ZN,knoz+1+4*marge);
 
-    Darray(RN,knox+1+4*marge);
-    Darray(SN,knoy+1+4*marge);
-    Darray(TN,knoz+1+4*marge);
-
 
     // ---------------------------------------------------------------------------------------------------------------------
     // ---------------------------------------------------------------------------------------------------------------------
@@ -432,25 +428,6 @@ void lexer::read_grid()
     {
         grid.read((char*)&ddn, sizeof (double));
         ZN[KP]=ddn;
-    }
-
-    // Nodes RST
-    for(i=-marge;i<knox+1+marge;++i)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        RN[IP]=ddn;
-    }
-
-    for(j=-marge;j<knoy+1+marge;++j)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        SN[JP]=ddn;
-    }
-
-    for(k=-marge;k<knoz+1+marge;++k)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        TN[KP]=ddn;
     }
 
     //  Solid

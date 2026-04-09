@@ -35,10 +35,10 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
     
     // epsi
     if(p->j_dir==0)        
-    epsi = 2.1*(1.0/2.0)*(p->DRM+p->DTM);
+    epsi = 2.1*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    epsi = 2.1*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = 2.1*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
 
     // pressval dirac

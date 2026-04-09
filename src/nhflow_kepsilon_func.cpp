@@ -29,10 +29,10 @@ Author: Hans Bihs
 nhflow_kepsilon_func::nhflow_kepsilon_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_kepsilon_bc(p)
 {
     if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
+    epsi = p->T38*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = p->T38*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 }
 
 nhflow_kepsilon_func::~nhflow_kepsilon_func()

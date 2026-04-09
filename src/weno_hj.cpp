@@ -63,7 +63,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		ULOOP
 		{
-		a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel,p->DRDXN,p->DSDYP,p->DTDZP);
+		a->F(i,j,k)+=aij(p,a,b,1,uvel,vvel,wvel);
 		++n;
 		}
 	}
@@ -74,7 +74,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		VLOOP
 		{
-		a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel,p->DRDXP,p->DSDYN,p->DTDZP);
+		a->G(i,j,k)+=aij(p,a,b,2,uvel,vvel,wvel);
 		++n;
 		}
 	}
@@ -84,7 +84,7 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		WLOOP
 		{
-		a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel,p->DRDXP,p->DSDYP,p->DTDZN);
+		a->H(i,j,k)+=aij(p,a,b,3,uvel,vvel,wvel);
 		++n;
 		}
 	}
@@ -94,20 +94,20 @@ void weno_hj::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vv
 		n=0;
 		LOOP
 		{
-		a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel,p->DRDXP,p->DSDYP,p->DTDZP);
+		a->L(i,j,k)+=aij(p,a,b,4,uvel,vvel,wvel);
 		++n;
 		}
 	}
 }
 
-double weno_hj::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DRDX, double *DSDY, double *DTDZ)
+double weno_hj::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel)
 {
 
 		pflux->u_flux(a,ipol,uvel,iadvec,ivel2);
         pflux->v_flux(a,ipol,vvel,jadvec,jvel2);
         pflux->w_flux(a,ipol,wvel,kadvec,kvel2);
 		
-		L = -iadvec*ddx(p,a,b)*DRDX[IP]  - jadvec*ddy(p,a,b)*DSDY[JP]  - kadvec*ddz(p,a,b)*DTDZ[KP] ;
+		L = -iadvec*ddx(p,a,b) - jadvec*ddy(p,a,b)  - kadvec*ddz(p,a,b);
 
 		return L;
 }
@@ -118,7 +118,7 @@ double weno_hj::ddx(lexer* p,fdm* a, field& b)
 	
 	if(iadvec>0.0)
 	{
-	iqmin(b,p->DRM,p->DRDXN);
+	iqmin(b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -131,7 +131,7 @@ double weno_hj::ddx(lexer* p,fdm* a, field& b)
 
 	if(iadvec<0.0)
 	{
-	iqmax(b,p->DRM,p->DRDXN);
+	iqmax(b,p->DXM);
 	is();
 	alpha();
 	weight();
@@ -150,7 +150,7 @@ double weno_hj::ddy(lexer* p,fdm* a, field& b)
 	
 	if(jadvec>0.0)
 	{
-	jqmin(b,p->DSM,p->DSDYN);
+	jqmin(b,p->DYM);
 	is();
 	alpha();
 	weight();
@@ -164,7 +164,7 @@ double weno_hj::ddy(lexer* p,fdm* a, field& b)
 
 	if(jadvec<0.0)
 	{
-	jqmax(b,p->DSM,p->DSDYN);
+	jqmax(b,p->DYM);
 	is();
 	alpha();
 	weight();
@@ -184,7 +184,7 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b)
 	
 	if(kadvec>0.0)
 	{
-	kqmin(b,p->DTM,p->DTDZN);
+	kqmin(b,p->DZM);
 	is();
 	alpha();
 	weight();
@@ -197,7 +197,7 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b)
 	
 	if(kadvec<0.0)
 	{
-	kqmax(b,p->DTM,p->DTDZN);
+	kqmax(b,p->DZM);
 	is();
 	alpha();
 	weight();
@@ -210,58 +210,58 @@ double weno_hj::ddz(lexer* p,fdm* a, field& b)
 	return grad;
 }
 
-void weno_hj::iqmin(field& f, double DRM, double *DRDX)
+void weno_hj::iqmin(field& f, double DXM)
 {	
-	q1 = (f(i-2,j,k) - f(i-3,j,k))/DRM;
-	q2 = (f(i-1,j,k) - f(i-2,j,k))/DRM;
-	q3 = (f(i,j,k)   - f(i-1,j,k))/DRM;
-	q4 = (f(i+1,j,k) - f(i,j,k)  )/DRM;
-	q5 = (f(i+2,j,k) - f(i+1,j,k))/DRM;
+	q1 = (f(i-2,j,k) - f(i-3,j,k))/DXM;
+	q2 = (f(i-1,j,k) - f(i-2,j,k))/DXM;
+	q3 = (f(i,j,k)   - f(i-1,j,k))/DXM;
+	q4 = (f(i+1,j,k) - f(i,j,k)  )/DXM;
+	q5 = (f(i+2,j,k) - f(i+1,j,k))/DXM;
 }
 
-void weno_hj::jqmin(field& f, double DSM, double *DSDY)
+void weno_hj::jqmin(field& f, double DYM)
 {	
-	q1 = (f(i,j-2,k) - f(i,j-3,k))/DSM;
-	q2 = (f(i,j-1,k) - f(i,j-2,k))/DSM;
-	q3 = (f(i,j,k)   - f(i,j-1,k))/DSM;
-	q4 = (f(i,j+1,k) - f(i,j,k)  )/DSM;
-	q5 = (f(i,j+2,k) - f(i,j+1,k))/DSM;
+	q1 = (f(i,j-2,k) - f(i,j-3,k))/DYM;
+	q2 = (f(i,j-1,k) - f(i,j-2,k))/DYM;
+	q3 = (f(i,j,k)   - f(i,j-1,k))/DYM;
+	q4 = (f(i,j+1,k) - f(i,j,k)  )/DYM;
+	q5 = (f(i,j+2,k) - f(i,j+1,k))/DYM;
 }
 
-void weno_hj::kqmin(field& f, double DTM, double *DTDZ)
+void weno_hj::kqmin(field& f, double DZM)
 {	
-	q1 = (f(i,j,k-2) - f(i,j,k-3))/DTM;
-	q2 = (f(i,j,k-1) - f(i,j,k-2))/DTM;
-	q3 = (f(i,j,k)   - f(i,j,k-1))/DTM;
-	q4 = (f(i,j,k+1) - f(i,j,k)  )/DTM;
-	q5 = (f(i,j,k+2) - f(i,j,k+1))/DTM;
+	q1 = (f(i,j,k-2) - f(i,j,k-3))/DZM;
+	q2 = (f(i,j,k-1) - f(i,j,k-2))/DZM;
+	q3 = (f(i,j,k)   - f(i,j,k-1))/DZM;
+	q4 = (f(i,j,k+1) - f(i,j,k)  )/DZM;
+	q5 = (f(i,j,k+2) - f(i,j,k+1))/DZM;
 }
 
-void weno_hj::iqmax(field& f, double DRM, double *DRDX)
+void weno_hj::iqmax(field& f, double DXM)
 {	
-	q1 = (f(i+3,j,k) - f(i+2,j,k))/DRM;
-	q2 = (f(i+2,j,k) - f(i+1,j,k))/DRM;
-	q3 = (f(i+1,j,k) - f(i,j,k)  )/DRM;
-	q4 = (f(i,j,k)   - f(i-1,j,k))/DRM;
-	q5 = (f(i-1,j,k) - f(i-2,j,k))/DRM;
+	q1 = (f(i+3,j,k) - f(i+2,j,k))/DXM;
+	q2 = (f(i+2,j,k) - f(i+1,j,k))/DXM;
+	q3 = (f(i+1,j,k) - f(i,j,k)  )/DXM;
+	q4 = (f(i,j,k)   - f(i-1,j,k))/DXM;
+	q5 = (f(i-1,j,k) - f(i-2,j,k))/DXM;
 }
 
-void weno_hj::jqmax(field& f, double DSM, double *DSDY)
+void weno_hj::jqmax(field& f, double DYM)
 {	
-	q1 = (f(i,j+3,k) - f(i,j+2,k))/DSM;
-	q2 = (f(i,j+2,k) - f(i,j+1,k))/DSM;
-	q3 = (f(i,j+1,k) - f(i,j,k)  )/DSM;
-	q4 = (f(i,j,k)   - f(i,j-1,k))/DSM;
-	q5 = (f(i,j-1,k) - f(i,j-2,k))/DSM;
+	q1 = (f(i,j+3,k) - f(i,j+2,k))/DYM;
+	q2 = (f(i,j+2,k) - f(i,j+1,k))/DYM;
+	q3 = (f(i,j+1,k) - f(i,j,k)  )/DYM;
+	q4 = (f(i,j,k)   - f(i,j-1,k))/DYM;
+	q5 = (f(i,j-1,k) - f(i,j-2,k))/DYM;
 }
 
-void weno_hj::kqmax(field& f, double DTM, double *DTDZ)
+void weno_hj::kqmax(field& f, double DZM)
 {
-	q1 = (f(i,j,k+3) - f(i,j,k+2))/DTM;
-	q2 = (f(i,j,k+2) - f(i,j,k+1))/DTM;
-	q3 = (f(i,j,k+1) - f(i,j,k)  )/DTM;
-	q4 = (f(i,j,k)   - f(i,j,k-1))/DTM;
-	q5 = (f(i,j,k-1) - f(i,j,k-2))/DTM;
+	q1 = (f(i,j,k+3) - f(i,j,k+2))/DZM;
+	q2 = (f(i,j,k+2) - f(i,j,k+1))/DZM;
+	q3 = (f(i,j,k+1) - f(i,j,k)  )/DZM;
+	q4 = (f(i,j,k)   - f(i,j,k-1))/DZM;
+	q5 = (f(i,j,k-1) - f(i,j,k-2))/DZM;
 }
 
 void weno_hj::is()

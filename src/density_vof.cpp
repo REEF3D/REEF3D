@@ -34,10 +34,10 @@ density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
     int count;
     
     if(p->j_dir==0)        
-    p->psi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+    p->psi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    p->psi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    p->psi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
     
     
     p->psi0=p->psi;

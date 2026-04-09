@@ -55,10 +55,10 @@ void multiphase_fluid_update_f::start(lexer *p, fdm* a, ghostcell* pgc, field &l
 	iter=p->count;
     
     if(p->j_dir==0)        
-    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
 	LOOP
 	{
