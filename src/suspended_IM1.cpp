@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"sediment_fdm.h"
 
-suspended_IM1::suspended_IM1(lexer* p, fdm* a) : concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer* p) : concn(p),wvel(p)
 {
 	gcval_susp=60;
 }
@@ -66,9 +66,9 @@ void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
 
     LOOP
     {
-        a->M.p[count]+= 1.0/DT;
+        a->M.p[count]+= 1.0/p->dt;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + a->conc(i,j,k)/DT;
+        a->rhsvec.V[count] += a->L(i,j,k) + a->conc(i,j,k)/p->dt;
 
 	++count;
     }
@@ -98,7 +98,7 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
         if(p->DF[IJK]>0)
         if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
         {
-        zdist = 0.5*p->DZN[KP];
+        zdist = p->DZN[KP];
         
         a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
         //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -23,25 +23,15 @@ Author: Hans Bihs
 #ifndef SLICEINT_H_
 #define SLICEINT_H_
 
-class lexer;
-class fdm;
+#include "slice_base.h"
 
-using namespace std;
-
-class sliceint
+class sliceint : public slice_base<int>
 {
 public:
-	virtual int& operator()(int, int)=0;
-    virtual void resize(lexer*)=0;
-    
-    int *V;
+    sliceint(lexer* p) : slice_base<int>(p) {};
+    virtual ~sliceint() = default;
 
+    inline int& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
 };
 
 #endif
-
-
-
-
-
-

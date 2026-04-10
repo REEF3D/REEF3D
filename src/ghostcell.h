@@ -330,9 +330,7 @@ private:
     MPI_Status status;
     
     MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
-	MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
-    
-    const int tag1,tag2,tag3,tag4,tag5,tag6;
+    MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
     
     double v1,v2,v3,v4;
     double wa,wb;

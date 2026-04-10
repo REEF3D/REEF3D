@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs, Tobias Martin
+Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #ifndef SIXDOF_OBJ_H_
@@ -72,7 +72,7 @@ public:
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
-    void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,bool);
+    void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,bool);
 	
     void quat_matrices(lexer*);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
@@ -274,7 +274,7 @@ private:
 
     // Force NHFLOW
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    void force_calc_stl(lexer*, fdm_nhf*, ghostcell*,bool);
+    void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);

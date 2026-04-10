@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,12 +31,12 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"patchBC_interface.h"
 
-sediment_f::sediment_f(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
+sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
 {
 
     pBC = ppBC;
     
-    sediment_logic(p,a,pgc,pturb);
+    sediment_logic(p,pgc,pturb);
 
 	p->gcin4a_count=p->gcin_count;
 	p->gcout4a_count=p->gcout_count;

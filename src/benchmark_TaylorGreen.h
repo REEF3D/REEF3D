@@ -34,14 +34,14 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_TaylorGreen : public benchmark, public increment, public gradient
+class benchmark_TaylorGreen final : public benchmark, public increment, public gradient
 {
 
 public:
     benchmark_TaylorGreen(lexer*,fdm*);
 	virtual ~benchmark_TaylorGreen();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+	void start(lexer*, fdm*, ghostcell*, convection*) override final;
 private:
 	
 	field4 vx,vy,vz;

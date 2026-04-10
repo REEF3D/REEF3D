@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_ddx_cds4 : public fnpf_ddx, public increment
+class fnpf_ddx_cds4 final : public fnpf_ddx, public increment
 {
 public:
     fnpf_ddx_cds4(lexer*);
 	virtual ~fnpf_ddx_cds4();
 
-    double sxx(lexer*, slice&) override;
-	double syy(lexer*, slice&) override;
+    double sxx(lexer*, slice&) override final;
+	double syy(lexer*, slice&) override final;
     
 private:
     double X1,X2,X3,X4,X0;

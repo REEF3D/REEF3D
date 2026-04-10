@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -32,13 +32,13 @@ class ghostcell;
 
 using namespace std;
 
-class reduction_void :  public bedshear_reduction, public increment
+class reduction_void final :  public bedshear_reduction, public increment
 {
 public:
     reduction_void(lexer*);
     virtual ~reduction_void();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 };
 

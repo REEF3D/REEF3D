@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,7 +33,7 @@ class density;
 
 using namespace std;
 
-class pjm_corr : public pressure, public pressure_reference
+class pjm_corr final : public pressure, public pressure_reference
 {
 
 public:
@@ -41,17 +41,17 @@ public:
 	pjm_corr(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~pjm_corr();
 
-	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override;
-    void ini(lexer*,fdm*,ghostcell*) override;
+	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override final;
+    void ini(lexer*,fdm*,ghostcell*) override final;
 	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
     void presscorr(lexer*p,fdm *a,field&,field&,field&,field&, double);
-	void ucorr(lexer*p,fdm*,field&,double) override;
-	void vcorr(lexer*p,fdm*,field&,double) override;
-	void wcorr(lexer*p,fdm*,field&,double) override;
-	void upgrad(lexer*,fdm*,slice&,slice&) override;
-	void vpgrad(lexer*,fdm*,slice&,slice&) override;
-    void wpgrad(lexer*,fdm*,slice&,slice&) override;
+	void ucorr(lexer*p,fdm*,field&,double) override final;
+	void vcorr(lexer*p,fdm*,field&,double) override final;
+	void wcorr(lexer*p,fdm*,field&,double) override final;
+	void upgrad(lexer*,fdm*,slice&,slice&) override final;
+	void vpgrad(lexer*,fdm*,slice&,slice&) override final;
+    void wpgrad(lexer*,fdm*,slice&,slice&) override final;
 
     field4 pcorr;
 

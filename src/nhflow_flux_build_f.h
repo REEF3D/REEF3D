@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,7 +30,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_flux_build_f : public nhflow_flux_build, public increment
+class nhflow_flux_build_f final : public nhflow_flux_build, public increment
 {
 
 public:
@@ -38,10 +38,10 @@ public:
 	nhflow_flux_build_f(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_flux_build_f();
 
-    void start_E(lexer*, fdm_nhf*, ghostcell*) override;
-    void start_U(lexer*, fdm_nhf*, ghostcell*) override;
-    void start_V(lexer*, fdm_nhf*, ghostcell*) override;
-    void start_W(lexer*, fdm_nhf*, ghostcell*) override;
+    void start_E(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_U(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_V(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_W(lexer*, fdm_nhf*, ghostcell*) override final;
 
 private:
     patchBC_interface *pBC;

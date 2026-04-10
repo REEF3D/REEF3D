@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,14 +31,14 @@ class field;
 
 using namespace std;
 
-class potential_f : public potential, public increment
+class potential_f final : public potential, public increment
 {
 
 public:
 	potential_f(lexer*);
 	virtual ~potential_f();
 
-	void start(lexer*,fdm*, solver*, ghostcell*) override;
+	void start(lexer*,fdm*, solver*, ghostcell*) override final;
 
 
 private:

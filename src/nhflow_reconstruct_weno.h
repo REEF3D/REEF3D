@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -35,36 +35,36 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_reconstruct_weno : public nhflow_reconstruct, public weno_nug_func
+class nhflow_reconstruct_weno final : public nhflow_reconstruct, public weno_nug_func
 {
 public:
 	nhflow_reconstruct_weno(lexer*,patchBC_interface*);
 	virtual ~nhflow_reconstruct_weno();
 
-    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
-    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
-    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override;
+    inline void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    inline void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    inline void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
     
-    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
+    inline void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
     
     slice4 dfdx,dfdy;
 
 private:
-    void iqmin(lexer*, double*);
-	void jqmin(lexer*, double*);
-	void kqmin(lexer*, double*);
-	void iqmax(lexer*, double*);
-	void jqmax(lexer*, double*);
-	void kqmax(lexer*, double*);
+    inline void iqmin(lexer*, double*);
+	inline void jqmin(lexer*, double*);
+	inline void kqmin(lexer*, double*);
+	inline void iqmax(lexer*, double*);
+	inline void jqmax(lexer*, double*);
+	inline void kqmax(lexer*, double*);
     
-    void iqmin_sl(lexer*, slice&);
-    void iqmax_sl(lexer*, slice&);
-    void jqmin_sl(lexer*, slice&);
-    void jqmax_sl(lexer*, slice&);
+    inline void iqmin_sl(lexer*, slice&);
+    inline void iqmax_sl(lexer*, slice&);
+    inline void jqmin_sl(lexer*, slice&);
+    inline void jqmax_sl(lexer*, slice&);
     
-    double limiter(double, double);
+    inline double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;

@@ -31,15 +31,15 @@ class fdm_nhf;
 
 using namespace std;
 
-class nhflow_scalar_advec_CDS2 : public nhflow_scalar_advec, public increment
+class nhflow_scalar_advec_CDS2 final : public nhflow_scalar_advec, public increment
 {
 public:
     nhflow_scalar_advec_CDS2 (lexer *p);
 	virtual ~nhflow_scalar_advec_CDS2();
 
-    void uadvec(int,double*,double&,double&) override;
-	void vadvec(int,double*,double&,double&) override;
-	void wadvec(int,double*,double&,double&) override;
+    void uadvec(int,double*,double&,double&) override final;
+	void vadvec(int,double*,double&,double&) override final;
+	void wadvec(int,double*,double&,double&) override final;
     
 private:
     lexer *p;

@@ -49,7 +49,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     int check;
     
     count=0;
-    if(p->B11>0)
+    if(p->B11==1)
     LOOP
     {
             check=0;
@@ -147,7 +147,7 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
     
     
     count=0;
-    if(p->B11>0)
+    if(p->B11==1)
     LOOP
     {
         check=0;

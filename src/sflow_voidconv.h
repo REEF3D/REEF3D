@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,13 +31,13 @@ class fdm2D;
 
 using namespace std;
 
-class sflow_voidconv : public sflow_convection, public increment
+class sflow_voidconv final : public sflow_convection, public increment
 {
 public:
 	sflow_voidconv(lexer*);
 	virtual ~sflow_voidconv();
 
-	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override final;
 
 
 

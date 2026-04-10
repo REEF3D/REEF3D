@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class kepsilon_IM1 : public kepsilon_func
+class kepsilon_IM1 final : public kepsilon_func
 {
 public:
 	kepsilon_IM1(lexer*,fdm*,ghostcell*);
 	virtual ~kepsilon_IM1();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void ktimesave(lexer*, fdm*, ghostcell*) override;
-	void etimesave(lexer*, fdm*, ghostcell*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override final;
+	void ktimesave(lexer*, fdm*, ghostcell*) override final;
+	void etimesave(lexer*, fdm*, ghostcell*) override final;
 	void timesource(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
 	field4 kn,en;

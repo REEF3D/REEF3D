@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -34,13 +34,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_struct2D : public solver2D, public increment
+class hypre_struct2D final : public solver2D, public increment
 {
 public:
 
 	hypre_struct2D(lexer*,ghostcell*);
 	virtual ~hypre_struct2D();
-	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override;
+	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
 	void fillbackvec(lexer*,slice&,vec2D&,int);
     

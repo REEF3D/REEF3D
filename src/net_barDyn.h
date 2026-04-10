@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -41,23 +41,23 @@ class reinidisc;
 
 using namespace std;
 
-class net_barDyn : public net, public boundarycheck
+class net_barDyn final : public net, public boundarycheck
 {
 public:
 	net_barDyn(int, lexer*);
 	virtual ~net_barDyn();
     
-	void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d&, bool) override;
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d&, bool) override;
+	void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d&, bool) override final;
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d&, bool) override final;
     
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override;
-    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override;
-	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override;
+	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;
+    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
+	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override final;
     
-    const EigenMat& getLagrangePoints() override {return lagrangePoints;}
-    const EigenMat& getLagrangeForces() override {return lagrangeForces;}
-    const EigenMat& getCollarVel() override {return collarVel;}
-    const EigenMat& getCollarPoints() override {return collarPoints;}
+    const EigenMat& getLagrangePoints() override final {return lagrangePoints;}
+    const EigenMat& getLagrangeForces() override final {return lagrangeForces;}
+    const EigenMat& getCollarVel() override final {return collarVel;}
+    const EigenMat& getCollarPoints() override final {return collarPoints;}
 
     
 private:

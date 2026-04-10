@@ -33,13 +33,13 @@ class concentration;
 
 using namespace std;
 
-class fluid_update_fsf_concentration : public fluid_update, increment
+class fluid_update_fsf_concentration final : public fluid_update, increment
 {
 public:
     fluid_update_fsf_concentration(lexer*, fdm*, ghostcell*, concentration*&);
 	virtual ~fluid_update_fsf_concentration();
 
-	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
+	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
 private:
 

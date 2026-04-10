@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -67,9 +67,9 @@ void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 
     LOOP
     {
-        d->M.p[count]+= 1.0/DT;
+        d->M.p[count]+= 1.0/p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/DT;
+        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/p->dt;
 
 	++count;
     }
@@ -96,7 +96,7 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     {   
         if(k==0)
         {
-        zdist = 0.5*p->DZN[KP]*d->WL(i,j);
+        zdist = p->DZN[KP]*d->WL(i,j);
         d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
         
         //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);

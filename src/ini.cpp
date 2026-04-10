@@ -20,9 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include "control.h"
 
-void lexer::ini_default()
+void control::ini_default()
 {
     // Hydrodynamic Models
     A10=6;       // int hydrodynamic models
@@ -83,8 +83,8 @@ void lexer::ini_default()
     A349=10.0;   // double initial coastline damping distance factor for dxm
     
     A350=0;      // int turn on breaking (which method)
-    A351=0;      // int type of breaking detection (deep / shallow)
-    A352=1;      // int additional filtering to viscosity based breaking
+    A351=3;      // int type of breaking detection (deep / shallow)
+    A352=0;      // int additional filtering to viscosity based breaking
     A353=1;      // int 
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
@@ -130,6 +130,7 @@ void lexer::ini_default()
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
+    A532=1;      // int  Froude number limiter area
     A540=1;      // int NFHLOW wetdry scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
@@ -290,14 +291,38 @@ void lexer::ini_default()
 	B192_4=0.0;		// double z-coordinate for rotation around y-axis
     B194_s=-1.0e9; // double start rotation
 	B194_e= 1.0e9; // double end rotation
+    
+    B200=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
+    B201=0;             // int porosity
+    B201_n=1.0;         // double porosity n
+    B201_d50=0.01;      // double porosity d50
+    B201_alpha=0.0;     // double porosity alpha
+    B201_beta=0.0;      // double porosity beta
+    B210=0;      // int solid box
+    B212=0;      // int solid cylinder y
+    B213=0;      // int solid cylinder z
+    B214=0;      // int solid cylinder jacket member
+    B215=0;      // int solid sphere
+    B217=0;      // int solid wedge x
+    B218=0;      // int solid wedge y
+    B219=0;      // int solid wedge z
+    
+    B230=0;      // int STL
+    B231_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
+    B232=0;     // int translation on/off
+    B232_x=B232_y=B232_z=0.0;  // double translation of stl geometry
+    B233=0;
+    B233_x=B233_y=B233_z=B233_phi=B233_theta=B233_psi=0.0;
+    B234=0;     // int invert STL
+
+    
 	B240=0;			// int porous media
 	B241=1;			// int porous media in x-direction
 	B242=1;			// int porous media in y-direction
 	B243=1;			// int porous media in z-direction
-    B260=0.0;       // double C coefficient for VRANS
+    B260=0.34;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B267=0.001;     // double d50 for VRANS
-	B269=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction
@@ -310,6 +335,7 @@ void lexer::ini_default()
     B310=0;         // int VRANS vegetation box
     B321=0;         // int VRANS vegetation wedge in x-direction
     B322=0;         // int VRANS vegetation wedge in y-direction
+    
     B411=0;        // int patchBC discharge
     B412=0;        // int patchBC pressure BC
     B413=0;        // int patchBC waterlevel
@@ -717,7 +743,7 @@ void lexer::ini_default()
 	S14=0.3;               // double relaxation timestep size for sediment transport
 	S15=0;                  // int synchronize sediment time step with main solver
 	S16=1;                  // int bed shear stress formulation
-    S17=0;                  // int non-equillibrium bedload 
+    S17=1.0;                  // double decoupling factor dtsed
     S18=0.823;                // double mu_d
 	S19=1.0e+19; 			// double total time sediment
 	S20=0.001;          // double sediment d50
@@ -730,11 +756,11 @@ void lexer::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S27=1;              // int number of inner iterations
     S28=1;              // int use S21 in roughness BC
-    S29=0;
+    S29=0;              // int sediment time step ramp up
     S30=0.047;          // double Shields parameter
     S31=2;              // int type of Exner formulation
     S32=1;              // int exner discretization
-    S33=1;              // int type of near bead velocity interpolation
+    S33=0;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
@@ -983,15 +1009,4 @@ void lexer::ini_default()
 	// FSI
 	Z10=0;		// int turn FSI on
     Z12_ckx=Z12_cky=Z12_ckz=Z12_cdx=Z12_cdy=Z12_cdz=0.0;   // double fsi beam structural damping coefficients
-
-	solveriter=0;
-	mpirank=0;
-
-	simtime=0.0;
-	poissontime=0.0;
-	pressval=0;
-    alpha=0.0;
-    solidread=toporead=porousread=0;
-    net_count=0;
-    mooring_count=0;
 }

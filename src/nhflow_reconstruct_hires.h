@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -35,26 +35,26 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_reconstruct_hires : public nhflow_reconstruct, public nhflow_gradient
+class nhflow_reconstruct_hires final : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
 	nhflow_reconstruct_hires(lexer*,patchBC_interface*);
 	virtual ~nhflow_reconstruct_hires();
 
-    void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
-    void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override;
-    void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override;
+    inline void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    inline void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
+    inline void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
     
-    void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
-    void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override;
+    inline void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
+    inline void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
     
     slice4 dfdx,dfdy;
     double *DFDX;
 
 
 private:
-    double limiter(double, double);
+    inline double limiter(double, double);
 
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;

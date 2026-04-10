@@ -42,12 +42,12 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
 
     plain_wallfunc(p,a,pgc);*/
     
-    if(p->B90==1)
+    /*if(p->B90==1)
     LOOP
     {
     KIN[IJK] = 0.0001;
     EPS[IJK] = 1000.0001;
-    }
+    }*/
     
     
     if(p->B60==1)

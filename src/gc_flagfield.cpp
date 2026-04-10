@@ -32,7 +32,7 @@ void ghostcell::flagfield(lexer *p)
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
     {
     if(p->flag4[i]==1)
-    p->flag4[i]=10;
+    p->flag4[i]=WATER_FLAG;
 
     if(p->flag4[i]==-1)
     p->flag4[i]=OBJ_FLAG;

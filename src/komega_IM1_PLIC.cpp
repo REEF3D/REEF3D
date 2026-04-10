@@ -1,6 +1,6 @@
 /*--------------------------------------------------------------------
 REEF3D
-Copyright 2008-2025 Hans Bihs
+Copyright 2008-2026 Hans Bihs
 
 This file is part of REEF3D.
 
@@ -99,9 +99,9 @@ void komega_IM1_PLIC::timesource(lexer* p, fdm* a, field& fn)
     count=0;
     LOOP
     {
-        a->M.p[count] += 1.0/DT;
+        a->M.p[count] += 1.0/p->dt;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/DT;
+        a->rhsvec.V[count] += a->L(i,j,k) + fn(i,j,k)/p->dt;
 
 	++count;
     }

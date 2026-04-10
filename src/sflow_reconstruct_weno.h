@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -35,15 +35,15 @@ class patchBC_interface;
 
 using namespace std;
 
-class sflow_reconstruct_weno : public sflow_reconstruct, public weno_nug_func
+class sflow_reconstruct_weno final : public sflow_reconstruct, public weno_nug_func
 {
 public:
 	sflow_reconstruct_weno(lexer*,patchBC_interface*);
 	virtual ~sflow_reconstruct_weno();
 
-    void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override;
-    void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override;
-    void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override;
+    void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
+    void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
+    void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override final;
     
     slice4 dfdx,dfdy;
 

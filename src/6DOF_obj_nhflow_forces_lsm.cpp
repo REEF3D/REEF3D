@@ -29,11 +29,11 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
+void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
     if(p->X60==1)
-    force_calc_stl(p,d,pgc,finalize);
+    force_calc_stl(p,d,pgc,WL,finalize);
         
     
     if(p->X60==2)

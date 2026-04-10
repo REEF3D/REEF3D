@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include<sstream>
 
-ghostcell::ghostcell(int& argc, char **argv, lexer *p) : tag1(1),tag2(2),tag3(3),tag4(4),tag5(5),tag6(6)
+ghostcell::ghostcell(int& argc, char **argv, lexer *p) : margin(p->margin)
 {
     MPI_Init(&argc,&argv);
     MPI_Comm_dup(MPI_COMM_WORLD,&mpi_comm);
@@ -38,14 +38,13 @@ ghostcell::ghostcell(int& argc, char **argv, lexer *p) : tag1(1),tag2(2),tag3(3)
     ghostcell::p=p;
 
     if(p->mpi_size==1)
-        do_comms = false;
+    do_comms = false;
 }
 
 
 void ghostcell::gc_ini(lexer* p)
 {
-    margin=p->margin;
-    paramargin=p->margin;
+    paramargin=margin;
     gamma=p->B29;
 
     if(p->B23==1)

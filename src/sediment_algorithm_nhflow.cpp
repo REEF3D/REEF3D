@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -81,10 +81,6 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // relax *******
 	prelax->start(p,pgc,s);
-	
-    // filter bedzh *******
-	//if(p->S100>0)
-	//filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);
@@ -101,10 +97,6 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-    
-    k=0;
-    SLICELOOP4
-    d->test2D(i,j) = d->KIN[IJK];
 }
 
 void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)

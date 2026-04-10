@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -67,7 +67,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,finalize);
+        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);

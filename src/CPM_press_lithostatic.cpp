@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -36,7 +36,7 @@ void CPM::press_lithostatic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     ILOOP
     JLOOP
     {    
-        KREVLOOP
+        KLOOP
         {
         //if(a->topo(i,j,k-2)<0.0)
         press(i,j,k) = fabs(p->W22) * (p->S22 - a->ro(i,j,k)) * (-a->topo(i,j,k));

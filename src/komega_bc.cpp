@@ -46,7 +46,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         QGCDF4LOOP
 		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
-        if(p->S10==2 || p->B269==1 || p->B269==2)
+        if(p->S10==2 || p->B200==1 || p->B200==2)
         vrans_wall_law_kin(p,a,kin,eps);
 	}
 
@@ -60,7 +60,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         QGCDF4LOOP
 		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
-        if(p->S10==2 || p->B269==1 || p->B269==2)
+        if(p->S10==2 || p->B200==1 || p->B200==2)
         vrans_wall_law_omega(p,a,kin,eps);
 	}
 }

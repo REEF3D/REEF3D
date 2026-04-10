@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -36,18 +36,18 @@ Author: Hans Bihs
  
 using namespace std;
 
-class hypre_struct : public solver, public increment
+class hypre_struct final : public solver, public increment
 {
 public:
 
 	hypre_struct(lexer*,ghostcell*,int,int);
 	virtual ~hypre_struct();
     
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
-    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
-    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
-    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
     
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);

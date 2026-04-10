@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -35,13 +35,13 @@ class ghostcell;
 
 using namespace std;
 
-class LES_filter_f1 : public LES_filter, public strain
+class LES_filter_f1 final : public LES_filter, public strain
 {
 public:
 	LES_filter_f1(lexer *, fdm*);
 	virtual ~LES_filter_f1();
     
-	void start(lexer*, fdm*, ghostcell*,field&,field&,field&, int) override;
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&, int) override final;
     
 //    int veleval(lexer*,int);
 

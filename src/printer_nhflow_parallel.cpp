@@ -55,6 +55,9 @@ void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbu
     result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
     if(p->P28==1)
     result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
+    if(p->B200==1)
+    result<<"<PDataArray type=\"Float32\" Name=\"porstruc\"/>\n";
+
     result<<"</PPointData>\n";
 
     outputFormat->endingParallel(result,"NHFLOW",p->M10,num);

@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class smart : public fluxlim, public increment
+class smart final : public fluxlim, public increment
 {
 
 public:
@@ -36,9 +36,9 @@ public:
 	smart (lexer *);
 	virtual ~smart();
 	
-	double iphi(field&,int,int,int,int) override;
-	double jphi(field&,int,int,int,int) override;
-	double kphi(field&,int,int,int,int) override;
+	double iphi(field&,int,int,int,int) override final;
+	double jphi(field&,int,int,int,int) override final;
+	double kphi(field&,int,int,int,int) override final;
 	
 private:
 

@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
-#include"vrans.h"
+#include"vrans_nhflow.h"
 #include"rheology_v.h"
 #include"rheology_f.h"
 #include"turbulence.h"
@@ -426,7 +426,7 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     prheo->w_source(p,a);
 }
 
-void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
     double porousterm;
     
@@ -451,12 +451,12 @@ void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
     d->rhsvec.V[count] -= porousterm;
 	++count;
 	}
-	
-	//VRANS
-   //pvrans->u_source(p,a);
+    
+    //VRANS
+    pvrans->u_source(p,d,WL);
 }
 
-void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
     double porousterm;
     
@@ -482,10 +482,10 @@ void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 	}
     
     //VRANS
-    //pvrans->v_source(p,a);
+    pvrans->v_source(p,d,WL);
 }
 
-void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
     double porousterm;
     
@@ -511,7 +511,7 @@ void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvran
 	}
     
     //VRANS
-    //pvrans->w_source(p,a);
+    pvrans->w_source(p,d,WL);
 }
 
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)

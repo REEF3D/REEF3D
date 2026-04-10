@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -24,35 +24,12 @@ Author: Hans Bihs
 #define FIELD2_H_
 
 #include"field.h"
-#include"increment.h"
 
-using namespace std;
-
-class field2 : public field, public increment
+class field2 final : public field
 {
 public:
-
-	field2 (lexer*);
-	virtual ~field2();
-
-    double& operator()(int, int , int) override;
-	double& operator[](int) override;
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
-
-	int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-
-private:
-
-	void fieldalloc(lexer *);
-
-	int iter;
-	int feldsize;
-	
-	int rank, gcextra;
-	
-	lexer *pp;
+    field2(lexer* p) : field(p) {}
+    virtual ~field2() = default;
 };
 
 #endif

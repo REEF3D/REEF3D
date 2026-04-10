@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,14 +31,14 @@ class concentration;
 
 using namespace std;
 
-class concentration_AB :public bc_concentration, public concentration_io
+class concentration_AB final :public bc_concentration, public concentration_io
 {
 public:
     concentration_AB(lexer *, fdm*, ghostcell*);
 	virtual ~concentration_AB();
 
-	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
 
 private:
     void clearrhs(lexer*,fdm*,ghostcell*);

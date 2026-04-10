@@ -103,10 +103,6 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, doub
 	FLOOP
     WETDRYDEEP
     P[FIJK] += PCORR[FIJK];
-    
-    /*LOOP
-    WETDRYDEEP
-    d->test[IJK] = PCORR[FIJK];*/
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)

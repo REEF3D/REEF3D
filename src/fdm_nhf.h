@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -79,12 +79,13 @@ public:
     double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
-    double *porosity;
+    double *POR,*PORPART;
     double *test;
     double *KIN;
     double *CONC;
     
     double *SOLID,*FB,*FHB;
+    double *PORSTRUC;
     
     double *Fx,*Fy,*Fz;
     double *Fs,*Fn,*Fe,*Fw;

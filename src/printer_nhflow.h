@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -54,14 +54,14 @@ class bedshear_max;
 
 using namespace std;
 
-class printer_nhflow : public printer, public increment
+class printer_nhflow final : public printer, public increment
 {
 
 public:
     printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual ~printer_nhflow() = default;
-    void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
-    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override;
+    void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
 
 private:
     void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"rheology_f.h"
 
-multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p) : dx(p->dx),
+multiphase_fluid_update_rheology::multiphase_fluid_update_rheology(lexer *p) :
                                                 visc3(p->W7),visc2(p->W4),visc1(p->W2),ro3(p->W6),ro2(p->W3),ro1(p->W1)
 {
     gcval_ro=1;

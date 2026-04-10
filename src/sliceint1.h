@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -25,43 +25,12 @@ Author: Hans Bihs
 #define SLICEINT1_H_
 
 #include"sliceint.h"
-#include"increment.h"
 
-using namespace std;
-
-class sliceint1 : public sliceint, increment
+class sliceint1 final : public sliceint
 {
 public:
-
-	sliceint1 (lexer*);
-	virtual ~sliceint1();
-
-    int& operator()(int, int) override;
-
-    void resize(lexer*) override;
-    
-	int di,dj;
-	int imin,imax,jmax,jmin;
-
-private:
-
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-
-    int iter;
-	int feldsize;
-	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
-
+    sliceint1(lexer* p) : sliceint(p) {};
+    virtual ~sliceint1() = default;
 };
 
 #endif
-
-
-
-
-

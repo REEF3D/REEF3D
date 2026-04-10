@@ -54,7 +54,7 @@ nhflow_probe_vel_theory::nhflow_probe_vel_theory(lexer *p, fdm_nhf *d) : probenu
         
         //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
-	    pout[n]<<"Vel Probe Theory ID:  "<<n<<endl<<endl;
+	    pout[n]<<"Vel Probe Theory ID:  "<<n+1<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
 		pout[n]<<n+1<<"\t "<<p->P66_x[n]<<"\t "<<p->P66_y[n]<<"\t "<<p->P66_z[n]<<endl;

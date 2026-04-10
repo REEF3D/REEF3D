@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,13 +28,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_void : public suspended
+class suspended_void final : public suspended
 {
 public:
 	suspended_void();
 	virtual ~suspended_void();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override final;
+	void ctimesave(lexer*, fdm*) override final;
 
 };
 

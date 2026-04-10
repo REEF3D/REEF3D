@@ -29,7 +29,7 @@ Author: Elyas Larkermani
 using namespace std;
 
 
-class idiff2_CN : public diffusion, public increment
+class idiff2_CN final : public diffusion, public increment
 {
 
 public:
@@ -37,13 +37,13 @@ public:
 	idiff2_CN(lexer*);
 	virtual ~idiff2_CN();
 
-	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override;
-	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override;
-    void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override;
+	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override final;
+	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override final;
+    void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override final;
 
-    void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
-	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
-	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
+    void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
+	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
+	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
 	
 private:    
 	double D;

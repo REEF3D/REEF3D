@@ -39,7 +39,7 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 
         phases_irregular(p);
 
-        pgc->bcast_double(ei,p->wN);
+        pgc->bcast_double(ei,p->wN,0);
         }
         
         if(p->B92==41)

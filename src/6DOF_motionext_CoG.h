@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -36,15 +36,15 @@ class field;
 
 using namespace std;
 
-class sixdof_motionext_file_CoG : public sixdof_motionext
+class sixdof_motionext_file_CoG final : public sixdof_motionext
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     
-    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override;
-    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override;
+    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override final;
+    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override final;
 
-    void ini(lexer*,ghostcell*) override;
+    void ini(lexer*,ghostcell*) override final;
     
     
     

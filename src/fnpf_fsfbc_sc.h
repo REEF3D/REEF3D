@@ -36,22 +36,22 @@ class solver2D;
 
 using namespace std;
 
-class fnpf_fsfbc_sc : public fnpf_fsf, public increment 
+class fnpf_fsfbc_sc final : public fnpf_fsf, public increment 
 {
 public:
 	fnpf_fsfbc_sc(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_fsfbc_sc();
     
-    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override;
-    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
-    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override {};
-    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override {};
-    void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override {};
-    void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override {};
-    void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override {};
+    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final {};
+    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override final {};
+    void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override final {};
+    void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override final {};
+    void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final {};
     
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);

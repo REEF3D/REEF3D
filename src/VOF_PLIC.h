@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin, Fabian Knoblauch
+Authors: Tobias Martin, Fabian Knoblauch
 --------------------------------------------------------------------*/
 
 #ifndef VOF_PLIC_H_
@@ -39,14 +39,14 @@ class fluid_update;
 
 using namespace std;
 
-class VOF_PLIC : public freesurface, gradient, norm_vec
+class VOF_PLIC final : public freesurface, gradient, norm_vec
 {
 public:
 	VOF_PLIC(lexer*, fdm*, ghostcell*,heat*);
 	virtual ~VOF_PLIC();
-	void update(lexer*,fdm*,ghostcell*,field&) override;
+	void update(lexer*,fdm*,ghostcell*,field&) override final;
     
-    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override;
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
     void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
     void updatePhasemarkers(lexer*,fdm*,ghostcell*,field&);

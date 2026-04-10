@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,13 +28,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class potential_v : public potential, public increment
+class potential_v final : public potential, public increment
 {
 public:
     potential_v();
 	virtual ~potential_v();
 
-	void start(lexer*,fdm*, solver*, ghostcell* pgc) override;
+	void start(lexer*,fdm*, solver*, ghostcell* pgc) override final;
 
 };
 

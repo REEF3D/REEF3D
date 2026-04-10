@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_gradient_weno : public sflow_gradient, public increment
+class sflow_gradient_weno final : public sflow_gradient, public increment
 {
 public:
     sflow_gradient_weno(lexer*);
 	virtual ~sflow_gradient_weno();
 
-    double ddx(lexer*,fdm2D*,slice&,int,double) override;
-    double ddy(lexer*,fdm2D*,slice&,int,double) override;
+    double ddx(lexer*,fdm2D*,slice&,int,double) override final;
+    double ddy(lexer*,fdm2D*,slice&,int,double) override final;
 
 private:
 

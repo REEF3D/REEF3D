@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,13 +30,13 @@ class nhflow_scalar_advec;
 
 using namespace std;
 
-class nhflow_scalar_ifou : public nhflow_scalar_convection, public increment
+class nhflow_scalar_ifou final : public nhflow_scalar_convection, public increment
 {
 public:
 	nhflow_scalar_ifou (lexer*);
 	virtual ~nhflow_scalar_ifou();
 
-	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override;
+	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override final;
 
 private:
 

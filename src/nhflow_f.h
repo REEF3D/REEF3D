@@ -28,13 +28,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_f : public nhflow, public increment
+class nhflow_f final : public nhflow, public increment
 {
 public:    
     nhflow_f(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_f();
 
-    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
+    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
     
 private:
     int q,margin;

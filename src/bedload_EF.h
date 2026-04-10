@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class bedload_EF : public bedload, public increment
+class bedload_EF final : public bedload, public increment
 {
 public:
 
     bedload_EF(lexer*);
     virtual ~bedload_EF();
 
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
     double rhosed,rhowat,Rstar,Ds;

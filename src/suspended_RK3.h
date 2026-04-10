@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -29,13 +29,13 @@ Author: Hans Bihs
 
 using namespace std;
 
-class suspended_RK3 : public suspended, public increment
+class suspended_RK3 final : public suspended, public increment
 {
 public:
 	suspended_RK3(lexer *, fdm*);
 	virtual ~suspended_RK3();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override;
-	void ctimesave(lexer*, fdm*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override final;
+	void ctimesave(lexer*, fdm*) override final;
 
     void suspsource(lexer*,fdm*,field&,sediment_fdm*);
     void bcsusp_start(lexer*,fdm*,ghostcell*,sediment_fdm*,field&);

@@ -183,7 +183,7 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     }
     
     // NHFLOW
-    if(precon_type==11 && p->A10==5)
+    /*if(precon_type==11 && p->A10==5)
     {
     HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
 	HYPRE_StructPFMGSetMaxIter(precond, 1);
@@ -202,6 +202,22 @@ void hypre_struct::create_solver5(lexer* p, ghostcell* pgc)
     
     //HYPRE_StructPFMGSetMaxLevels(precond, 15); // More levels
     HYPRE_StructPFMGSetRAPType(precond, 1); // Galerkin coarsening
+    }*/
+    
+    // NHFLOW
+    if(precon_type==11 && p->A10==5)
+    {
+    HYPRE_StructPFMGCreate(pgc->mpi_comm, &precond);
+	HYPRE_StructPFMGSetMaxIter(precond, 1);
+	HYPRE_StructPFMGSetTol(precond, 1.0e-06);
+	HYPRE_StructPFMGSetZeroGuess(precond);		
+	HYPRE_StructPFMGSetRAPType(precond, 0);    // now: 0; before: 0
+	HYPRE_StructPFMGSetRelaxType(precond, 3);  // now: 3; before: 1
+	HYPRE_StructPFMGSetNumPreRelax(precond, 1);
+	HYPRE_StructPFMGSetNumPostRelax(precond, 2);
+	HYPRE_StructPFMGSetSkipRelax(precond, 0);  // now: 0; before: 0
+	HYPRE_StructPFMGSetPrintLevel(precond, 0);
+	HYPRE_StructPFMGSetLogging(precond, 0);
     }
     
     // CFD

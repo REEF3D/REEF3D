@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -87,7 +87,7 @@ Author: Hans Bihs
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
 
-void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
+void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
     
@@ -233,7 +233,7 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     psusp = new suspended_RK3(p,a);*/
 
     if(p->S12>=1)
-    psusp = new suspended_IM1(p,a);
+    psusp = new suspended_IM1(p);
     }
     
     if(p->S85==0)

@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool finalize)
+void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
     double xs0,xs1,xs2,ys0,ys1,ys2,zs0,zs1,zs2;
@@ -105,9 +105,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             
             
             // Position of triangle
-            i = p->posc_i(xc);
+            /*i = p->posc_i(xc);
             j = p->posc_j(yc);
-            k = p->posc_sig(i,j,zc);
+            k = p->posc_sig(i,j,zc);*/
             
             etaval = p->ccslipol4(d->eta,xc,yc);  
             
@@ -283,17 +283,16 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, bool final
             /*
             double p0,p1,p2,pc;
             
-            p0   = p->ccipol7P(d->P, d->WL, d->bed, x0, y0, z0);
-            p1   = p->ccipol7P(d->P, d->WL, d->bed, x1, y1, z1);
-            p2   = p->ccipol7P(d->P, d->WL, d->bed, x2, y2, z2);
+            p0   = p->ccipol7P(d->P, WL, d->bed, x0, y0, z0);
+            p1   = p->ccipol7P(d->P, WL, d->bed, x1, y1, z1);
+            p2   = p->ccipol7P(d->P, WL, d->bed, x2, y2, z2);
             
-            pc   = p->ccipol7P(d->P, d->WL, d->bed, xc, yc, zc);
+            pc   = p->ccipol7P(d->P, WL, d->bed, xc, yc, zc);
             
             pval = (1.0/4.0)*(p0 + p1 + p2 + pc);*/
-            
 
             // pressure
-            pval   = p->ccipol7P(d->P, d->WL, d->bed, xp, yp, zp);// - p->pressgage;
+            pval   = p->ccipol7P(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xp,yp);  
             hspval = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
 

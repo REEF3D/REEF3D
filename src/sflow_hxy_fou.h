@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,13 +31,13 @@ class sflow_flux;
 
 using namespace std;
 
-class sflow_hxy_fou : public sflow_hxy_disc, public increment
+class sflow_hxy_fou final : public sflow_hxy_disc, public increment
 {
 public:
 	sflow_hxy_fou(lexer*,patchBC_interface*);
 	virtual ~sflow_hxy_fou();
 
-	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override;
+	void start(lexer*,slice&,slice&,slice&,int*,slice&,slice&,slice&) override final;
 
 private:
 

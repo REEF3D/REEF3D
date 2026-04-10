@@ -28,16 +28,16 @@ Author: Hans Bihs
 
 using namespace std;
 
-class flux_HJ_CDS2_vrans : public flux, public increment
+class flux_HJ_CDS2_vrans final : public flux, public increment
 {
 public:
 
 	flux_HJ_CDS2_vrans (lexer *p);
 	virtual ~flux_HJ_CDS2_vrans();
 
-	void u_flux(fdm* a,int,field&,double&,double&) override;
-	void v_flux(fdm* a,int,field&,double&,double&) override;
-	void w_flux(fdm* a,int,field&,double&,double&) override;
+	void u_flux(fdm* a,int,field&,double&,double&) override final;
+	void v_flux(fdm* a,int,field&,double&,double&) override final;
+	void w_flux(fdm* a,int,field&,double&,double&) override final;
 
 };
 

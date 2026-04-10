@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -41,13 +41,13 @@ public:
     heat_print(lexer*,fdm*);
 	virtual ~heat_print();
 
-    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-    void heat_ini(lexer*, fdm*, ghostcell*, heat*) override;
-    double val(int,int,int) override;
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
+    void heat_ini(lexer*, fdm*, ghostcell*, heat*) override final;
+    double val(int,int,int) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
-    void offset_ParaView(lexer*, int*, int &) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
 
     field4 T;
 	fluid_update *pupdate;

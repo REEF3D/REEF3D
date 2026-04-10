@@ -129,7 +129,6 @@ void  kepsilon_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
 void  kepsilon_func::epssource(lexer *p, fdm* a, vrans* pvrans)
 {
-	double epsi = 1.6*p->dx;
 	double dirac;
     count=0;
 

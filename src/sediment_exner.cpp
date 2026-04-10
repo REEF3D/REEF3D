@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),vztemp(p),dh1(p),dh2(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),vztemp(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -83,12 +83,12 @@ sediment_exner::~sediment_exner()
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
     // eq.
-    if(p->S17==0)
+    if(p->S33==0)
     SEDSLICELOOP
     s->qb(i,j)=s->qbe(i,j);
     
     // non-eq.
-    if(p->S17==1)
+    if(p->S33==1)
     non_equillibrium_solve(p,pgc,s); 
     
     pgc->gcsl_start4(p,s->qb,1);
@@ -115,14 +115,6 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     SEDSLICELOOP
     s->dh(i,j) = p->dtsed*s->vz(i,j);
 
-    //SEDSLICELOOP
-    //s->dh(i,j) = (1.0/12.0)*(23.0*p->dtsed*s->vz(i,j) - 16.0*dh1(i,j) + 5.0*dh2(i,j));
-	
-	SEDSLICELOOP
-    {
-    dh2(i,j) = dh1(i,j);
-    dh1(i,j) = p->dtsed*s->vz(i,j);
-    }
 	
 	SEDSLICELOOP
     WETDRY
@@ -132,7 +124,40 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 }
 
 
+void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{   
+    // eq.
+    if(p->S33==0)
+    SEDSLICELOOP
+    s->qb(i,j)=s->qbe(i,j);
+    
+    // non-eq.
+    if(p->S33==1)
+    non_equillibrium_solve(p,pgc,s); 
+    
+    pgc->gcsl_start4(p,s->qb,1);
+    
+    
+    // Exner
+    if(p->S31==1)
+    topovel1(p,pgc,s);
+    
+    if(p->S31==2)
+    topovel2(p,pgc,s);
+    
+    if(p->S31==3)
+    topovel3(p,pgc,s);
+    
+    if(p->S100>0)
+	filter(p,pgc,s->vz,p->S100,p->S101);
 
+	
+    // Bedch
+    timestep(p,pgc,s);
+
+    //SEDSLICELOOP
+    //s->dh(i,j) = p->dtsed*s->vz(i,j);
+}
 
 
 

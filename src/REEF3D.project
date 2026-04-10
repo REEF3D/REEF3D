@@ -558,6 +558,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <VirtualDirectory Name="Geometry">
+          <File Name="nhflow_geometry.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing.h"/>
         </VirtualDirectory>
@@ -649,9 +652,6 @@
           <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
-          <VirtualDirectory Name="Geometry">
-            <File Name="nhflow_geometry.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.h"/>
             <File Name="nhflow_potential_f.h"/>
@@ -846,6 +846,7 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <File Name="sediment_RK2.h"/>
         <VirtualDirectory Name="Print">
           <File Name="bedshear_probe.h"/>
           <File Name="bedshear_max.h"/>
@@ -1009,6 +1010,9 @@
         <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_nhflow.h"/>
+        <File Name="vrans_nhflow_f.h"/>
+        <File Name="vrans_nhflow_v.h"/>
         <File Name="vrans_interface.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
@@ -1072,7 +1076,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
           <File Name="grid.h"/>
+          <File Name="grid_helper.h"/>
         </VirtualDirectory>
+        <File Name="field_base.h"/>
         <VirtualDirectory Name="Field">
           <File Name="field.h"/>
           <File Name="field1.h"/>
@@ -1094,15 +1100,13 @@
           <File Name="geotopo.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
-          <File Name="looping_part.h"/>
-          <File Name="iterators1D.h"/>
           <File Name="increment.h"/>
-          <File Name="looping.h"/>
-          <File Name="iterators.h"/>
-          <File Name="boundcheck.h"/>
           <File Name="definitions.h"/>
           <File Name="looping2D.h"/>
+          <File Name="looping.h"/>
+          <File Name="iterators1D.h"/>
           <File Name="iterators2D.h"/>
+          <File Name="iterators3D.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Util">
           <File Name="boundarycheck.h"/>
@@ -1123,6 +1127,7 @@
           <File Name="reinisolid_RK3.h"/>
           <File Name="solid.h"/>
         </VirtualDirectory>
+        <File Name="slice_base.h"/>
         <VirtualDirectory Name="Sliceint">
           <File Name="sliceint.h"/>
           <File Name="sliceint1.h"/>
@@ -1134,7 +1139,10 @@
       </VirtualDirectory>
       <File Name="lexer.h"/>
       <File Name="driver.h"/>
-      <VirtualDirectory Name="Lexer">
+      <VirtualDirectory Name="Control">
+        <File Name="control.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Resize">
         <File Name="resize.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
@@ -1445,11 +1453,9 @@
             <File Name="diff_void.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DDWENO">
-            <File Name="weno_nug_func_weights.cpp"/>
             <File Name="weno_nug_func_precalc_qf.cpp"/>
             <File Name="weno_nug_func_precalc_isf.cpp"/>
             <File Name="weno_nug_func_precalc_cf.cpp"/>
-            <File Name="weno_nug_func_is.cpp"/>
             <File Name="weno_nug_func.cpp"/>
             <File Name="weno3_nug_func_precalc_weights.cpp"/>
             <File Name="weno3_nug_func_precalc_qf.cpp"/>
@@ -1864,6 +1870,30 @@
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Geometry">
           <File Name="nhflow_geometry_ini.cpp"/>
+          <File Name="nhflow_geometry_objects_forcing.cpp"/>
+          <File Name="nhflow_geometry_objects_vrans.cpp"/>
+          <File Name="nhflow_geometry_wedge_z.cpp"/>
+          <File Name="nhflow_geometry_wedge_y.cpp"/>
+          <File Name="nhflow_geometry_wedge_x.cpp"/>
+          <File Name="nhflow_geometry_stl.cpp"/>
+          <File Name="nhflow_geometry_sphere.cpp"/>
+          <File Name="nhflow_geometry_rotation.cpp"/>
+          <File Name="nhflow_geometry_jacketmember.cpp"/>
+          <File Name="nhflow_geometry_cylinder_z.cpp"/>
+          <File Name="nhflow_geometry_cylinder_y.cpp"/>
+          <File Name="nhflow_geometry_box.cpp"/>
+          <VirtualDirectory Name="Print VTP">
+            <File Name="nhflow_geometry_print_vtp.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Ray Casting">
+            <File Name="nhflow_geometry_reini_RK2.cpp"/>
+            <File Name="nhflow_geometry_raycast_z.cpp"/>
+            <File Name="nhflow_geometry_raycast_y.cpp"/>
+            <File Name="nhflow_geometry_raycast_x.cpp"/>
+            <File Name="nhflow_geometry_raycast_io.cpp"/>
+            <File Name="nhflow_geometry_raycast_direct.cpp"/>
+            <File Name="nhflow_geometry_raycast.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_geometry.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
@@ -1876,32 +1906,6 @@
           </VirtualDirectory>
           <File Name="nhflow_forcing_solid.cpp"/>
           <File Name="nhflow_forcing_interface.cpp"/>
-          <VirtualDirectory Name="Geometry">
-            <File Name="nhflow_forcing_jacketmember.cpp"/>
-            <VirtualDirectory Name="Print VTP">
-              <File Name="nhflow_forcing_print_vtp.cpp"/>
-            </VirtualDirectory>
-            <File Name="nhflow_forcing_rotation.cpp"/>
-            <File Name="nhflow_forcing_sphere.cpp"/>
-            <File Name="nhflow_forcing_stl.cpp"/>
-            <File Name="nhflow_forcing_wedge_z.cpp"/>
-            <File Name="nhflow_forcing_wedge_y.cpp"/>
-            <File Name="nhflow_forcing_wedge_x.cpp"/>
-            <File Name="nhflow_forcing_cylinder_y.cpp"/>
-            <VirtualDirectory Name="Ray Casting">
-              <File Name="nhflow_forcing_raycast_x.cpp"/>
-              <File Name="nhflow_forcing_reini_RK2.cpp"/>
-              <File Name="nhflow_forcing_raycast_y.cpp"/>
-              <File Name="nhflow_forcing_raycast_io.cpp"/>
-              <File Name="nhflow_forcing_raycast_direct.cpp"/>
-              <File Name="nhflow_forcing_raycast.cpp"/>
-              <File Name="nhflow_forcing_raycast_z.cpp"/>
-            </VirtualDirectory>
-            <File Name="nhflow_forcing_refinement.cpp"/>
-            <File Name="nhflow_forcing_objects.cpp"/>
-            <File Name="nhflow_forcing_cylinder_z.cpp"/>
-            <File Name="nhflow_forcing_box.cpp"/>
-          </VirtualDirectory>
           <File Name="nhflow_forcing.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Turbulence">
@@ -2348,6 +2352,7 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <File Name="sediment_RK2.cpp"/>
         <VirtualDirectory Name="Print">
           <File Name="bedshear_probe.cpp"/>
           <File Name="bedshear_max.cpp"/>
@@ -2694,6 +2699,16 @@
         <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="vrans_nhflow_interface.cpp"/>
+          <File Name="vrans_nhflow_source_vel.cpp"/>
+          <File Name="vrans_nhflow_source_omega.cpp"/>
+          <File Name="vrans_nhflow_source_k.cpp"/>
+          <File Name="vrans_nhflow_source_eps.cpp"/>
+          <File Name="vrans_nhflow_ini.cpp"/>
+          <File Name="vrans_nhflow_eddyv.cpp"/>
+          <File Name="vrans_nhflow.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="VRANS Interface">
           <File Name="vrans_interface.cpp"/>
         </VirtualDirectory>
@@ -2701,8 +2716,8 @@
           <File Name="vrans_v.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Porous Structures">
+          <File Name="vrans_source_vel.cpp"/>
           <File Name="vrans_sed_update.cpp"/>
-          <File Name="vrans_velsource.cpp"/>
           <File Name="vrans_source_omega.cpp"/>
           <File Name="vrans_source_k.cpp"/>
           <File Name="vrans_source_eps.cpp"/>
@@ -2865,6 +2880,7 @@
           <File Name="position.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interpolation">
+          <File Name="interpolation_ccipol_V.cpp"/>
           <File Name="interpolation_tricubic.cpp"/>
           <File Name="interpolation_slipol.cpp"/>
           <File Name="interpolation_lintsl.cpp"/>
@@ -2948,31 +2964,19 @@
           <File Name="boundary.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid">
-          <File Name="grid_gcb4.cpp"/>
-          <File Name="grid_gcb4a.cpp"/>
-          <File Name="grid_gcb3.cpp"/>
-          <File Name="grid_gcb2.cpp"/>
-          <File Name="grid_gcb1.cpp"/>
-          <File Name="grid_dgc4.cpp"/>
-          <File Name="grid_dgc3.cpp"/>
-          <File Name="grid_dgc2.cpp"/>
-          <File Name="grid_dgc1.cpp"/>
           <File Name="grid.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Field">
-          <File Name="field1.cpp"/>
-          <File Name="field2.cpp"/>
-          <File Name="field3.cpp"/>
-          <File Name="field4a.cpp"/>
-          <File Name="field5.cpp"/>
-          <File Name="field4.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Fieldint">
-          <File Name="fieldint2.cpp"/>
-          <File Name="fieldint1.cpp"/>
-          <File Name="fieldint3.cpp"/>
-          <File Name="fieldint4.cpp"/>
-          <File Name="fieldint5.cpp"/>
+          <VirtualDirectory Name="Grid Helper">
+            <File Name="grid_helper.cpp"/>
+            <File Name="grid_helper_dgc1.cpp"/>
+            <File Name="grid_helper_dgc2.cpp"/>
+            <File Name="grid_helper_dgc3.cpp"/>
+            <File Name="grid_helper_dgc4.cpp"/>
+            <File Name="grid_helper_gcb1.cpp"/>
+            <File Name="grid_helper_gcb2.cpp"/>
+            <File Name="grid_helper_gcb3.cpp"/>
+            <File Name="grid_helper_gcb4.cpp"/>
+            <File Name="grid_helper_gcb4a.cpp"/>
+          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
@@ -2985,7 +2989,6 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slice5.cpp"/>
           <File Name="slice1.cpp"/>
           <File Name="slice2.cpp"/>
           <File Name="slice4.cpp"/>
@@ -3012,37 +3015,32 @@
           <File Name="reinisolid_RK3.cpp"/>
           <File Name="solid.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Sliceint">
-          <File Name="sliceint1.cpp"/>
-          <File Name="sliceint2.cpp"/>
-          <File Name="sliceint4.cpp"/>
-          <File Name="sliceint4a.cpp"/>
-          <File Name="sliceint5.cpp"/>
-        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
         <File Name="lexer_read.cpp"/>
-        <File Name="lexer_gridspacing.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>
+        <File Name="read_grid.cpp"/>
+        <File Name="lexer_gridsize.cpp"/>
+        <File Name="lexer_vectorsize.cpp"/>
+        <File Name="lexer_gridini.cpp"/>
+        <File Name="lexer_gridsize2D.cpp"/>
+        <File Name="lexer_gridini2D.cpp"/>
         <VirtualDirectory Name="Resize">
           <File Name="resize.cpp"/>
           <File Name="resize_delete.cpp"/>
           <File Name="resize_resize.cpp"/>
         </VirtualDirectory>
-        <File Name="read_control.cpp"/>
-        <File Name="read_grid.cpp"/>
-        <File Name="lexer_gridsize.cpp"/>
-        <File Name="lexer_vectorsize.cpp"/>
-        <File Name="lexer_gridini.cpp"/>
-        <File Name="lexer_controlfill_recv.cpp"/>
-        <File Name="lexer_controlfill_send.cpp"/>
-        <File Name="lexer_gridsize2D.cpp"/>
-        <File Name="lexer_gridini2D.cpp"/>
+        <VirtualDirectory Name="Control">
+          <File Name="control_parse.cpp"/>
+          <File Name="controlfill_recv.cpp"/>
+          <File Name="controlfill_send.cpp"/>
+          <File Name="read_control.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <File Name="main.cpp"/>
       <File Name="driver.cpp"/>
-      <File Name="lexer.cpp" ExcludeProjConfig=""/>
+      <File Name="lexer.cpp"/>
       <VirtualDirectory Name="Logic">
         <File Name="driver_logic_nhflow.cpp"/>
         <File Name="driver_logic_fnpf.cpp"/>

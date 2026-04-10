@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -688,7 +688,7 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	
 	TPSLICELOOP
 	{
-    ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
+    ffn=float(p->sl_ipol4(s->bedch));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -772,7 +772,7 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, std::vector<char>
 	
 	TPLOOP
 	{
-    ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
+    ffn=float(p->sl_ipol4(s->bedch));
 	std::memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}

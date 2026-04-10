@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -32,12 +32,12 @@ class cpt;
 
 using namespace std;
 
-class reinidisc_fsf_rig : public reinidisc, public ddweno_nug
+class reinidisc_fsf_rig final : public reinidisc, public ddweno_nug
 {
 public:
 	reinidisc_fsf_rig(lexer* p);
 	virtual ~reinidisc_fsf_rig();
-	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override;
+	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
 	
 private:
 	void disc(lexer*, fdm*, ghostcell*, field&, field&);

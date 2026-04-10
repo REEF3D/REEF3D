@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -37,16 +37,16 @@ Author: Hans Bihs
 
 using namespace std;
 
-class hypre_aij : public solver, public increment
+class hypre_aij final : public solver, public increment
 {
 public:
 
 	hypre_aij(lexer*,fdm*,ghostcell*);
 	virtual ~hypre_aij();
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override;
-    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override;
-    void startM(lexer*, ghostcell*, double*, double*, double*, int) override;
-    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
+    void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
+    void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
     
 	void solve(lexer*,fdm*, ghostcell*, vec&, vec&, int, int, int&);
 
@@ -69,7 +69,7 @@ public:
     void delete_solvers(lexer*,ghostcell*);
     
     // FNPF Laplace solver 
-    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override;
+    void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
     void make_grid_F(lexer*, ghostcell*);
     void fill_matrix_F_7p(lexer*,ghostcell*, matrix_diag&,double*,double*,vec&);
 

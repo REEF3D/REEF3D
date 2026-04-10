@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,13 +30,13 @@ class fnpf_bed_update;
 
 using namespace std;
 
-class fnpf_laplace_cds2 : public fnpf_laplace, public increment
+class fnpf_laplace_cds2 final : public fnpf_laplace, public increment
 {
 public:
     fnpf_laplace_cds2 (lexer*);
 	virtual ~fnpf_laplace_cds2();
 
-    void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&) override;
+    void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&) override final;
     
 private:
     

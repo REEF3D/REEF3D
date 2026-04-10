@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,12 +30,12 @@ Author: Hans Bihs
 
 using namespace std;
 
-class particle_pls : public particle_corr, public norm_vec, public boundarycheck
+class particle_pls final : public particle_corr, public norm_vec, public boundarycheck
 {
 public:
 	particle_pls(lexer*, fdm*, ghostcell*);
 	virtual ~particle_pls();
-	void start(lexer*,fdm*,ghostcell*,ioflow*) override;
+	void start(lexer*,fdm*,ghostcell*,ioflow*) override final;
 	void advect(lexer*,fdm*,ghostcell*,double**,int*,int);
 	void seed(lexer*,fdm*,ghostcell*,double,double);
 	void reseed(lexer*,fdm*,ghostcell*,double);
@@ -44,11 +44,11 @@ public:
 	void parcount(lexer*,fdm*,ghostcell*);
 	void particlex(lexer*, fdm*, ghostcell*);
 	void xupdate(lexer*,fdm*,ghostcell*);
-	void correct(lexer*, fdm*, ghostcell*,ioflow*) override;
+	void correct(lexer*, fdm*, ghostcell*,ioflow*) override final;
 	void parcorr(lexer*,fdm*,ioflow*,double,double*,int,int,int,int,int,int);
-	void picardmove(lexer*, fdm*, ghostcell*) override;
+	void picardmove(lexer*, fdm*, ghostcell*) override final;
 
-	void setup(lexer*,fdm*,ghostcell*) override;
+	void setup(lexer*,fdm*,ghostcell*) override final;
 	void setradius(lexer*,fdm*);
 	void posradius(lexer*,fdm*,int);
 	void negradius(lexer*,fdm*,int);

@@ -36,7 +36,7 @@ wave_lib_irregular_2nd_b::wave_lib_irregular_2nd_b(lexer *p, ghostcell *pgc) : w
         {
         amplitudes_irregular(p);
         phases_irregular(p);
-        pgc->bcast_double(ei,p->wN);
+        pgc->bcast_double(ei,p->wN,0);
         }
         
         if(p->B92==43)

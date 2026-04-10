@@ -34,9 +34,9 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         j=p->gcb1[n][1];
         k=p->gcb1[n][2];
         
-        p->flag1[Im1JK] =-3;
-        p->flag1[Im2JK] =-3;
-        p->flag1[Im3JK] =-3;
+        p->flag1[Im1JK] = INFLOW_FLAG;
+        p->flag1[Im2JK] = INFLOW_FLAG;
+        p->flag1[Im3JK] = INFLOW_FLAG;
         }
         
         if(p->gcb1[n][4]==2)
@@ -45,9 +45,9 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         j=p->gcb1[n][1];
         k=p->gcb1[n][2];
         
-        p->flag1[Ip1JK] =-4;
-        p->flag1[Ip2JK] =-4;
-        p->flag1[Ip3JK] =-4;
+        p->flag1[Ip1JK] = OUTFLOW_FLAG;
+        p->flag1[Ip2JK] = OUTFLOW_FLAG;
+        p->flag1[Ip3JK] = OUTFLOW_FLAG;
         }    
     }
     
@@ -60,9 +60,9 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         j=p->gcb2[n][1];
         k=p->gcb2[n][2];
         
-        p->flag2[Im1JK] =-3;
-        p->flag2[Im2JK] =-3;
-        p->flag2[Im3JK] =-3;
+        p->flag2[Im1JK] = INFLOW_FLAG;
+        p->flag2[Im2JK] = INFLOW_FLAG;
+        p->flag2[Im3JK] = INFLOW_FLAG;
         }
         
         if(p->gcb2[n][4]==2)
@@ -71,9 +71,9 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         j=p->gcb2[n][1];
         k=p->gcb2[n][2];
         
-        p->flag2[Ip1JK] =-4;
-        p->flag2[Ip2JK] =-4;
-        p->flag2[Ip3JK] =-4;
+        p->flag2[Ip1JK] = OUTFLOW_FLAG;
+        p->flag2[Ip2JK] = OUTFLOW_FLAG;
+        p->flag2[Ip3JK] = OUTFLOW_FLAG;
         }    
     }
     
@@ -86,9 +86,9 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         j=p->gcb3[n][1];
         k=p->gcb3[n][2];
         
-        p->flag3[Im1JK] =-3;
-        p->flag3[Im2JK] =-3;
-        p->flag3[Im3JK] =-3;
+        p->flag3[Im1JK] = INFLOW_FLAG;
+        p->flag3[Im2JK] = INFLOW_FLAG;
+        p->flag3[Im3JK] = INFLOW_FLAG;
         }
         
         if(p->gcb3[n][4]==2)
@@ -97,9 +97,9 @@ void ghostcell::gcb_velflagio(lexer *p, fdm *a)
         j=p->gcb3[n][1];
         k=p->gcb3[n][2];
         
-        p->flag3[Ip1JK] =-4;
-        p->flag3[Ip2JK] =-4;
-        p->flag3[Ip3JK] =-4;
+        p->flag3[Ip1JK] = OUTFLOW_FLAG;
+        p->flag3[Ip2JK] = OUTFLOW_FLAG;
+        p->flag3[Ip3JK] = OUTFLOW_FLAG;
         }    
     }
 }

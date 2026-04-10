@@ -33,18 +33,18 @@ Author: Hans Bihs
 
 using namespace std;
 
-class print_averaging_f : public print_averaging, public increment
+class print_averaging_f final : public print_averaging, public increment
 {
 public:
     print_averaging_f(lexer*,fdm*,ghostcell*);
 	virtual ~print_averaging_f();
     
-    void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*) override;
+    void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*) override final;
     
-    void name_ParaView_parallel(lexer *p, ofstream &result) override;
-    void name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n) override;
-    void offset_ParaView(lexer *p, int *offset, int &n) override;
-    void print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char>&, size_t&) override;
+    void name_ParaView_parallel(lexer *p, ofstream &result) override final;
+    void name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n) override final;
+    void offset_ParaView(lexer *p, int *offset, int &n) override final;
+    void print_3D(lexer* p, fdm *a, ghostcell *pgc,  std::vector<char>&, size_t&) override final;
 
 
 private:

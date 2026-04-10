@@ -32,13 +32,14 @@ class vrans;
 
 using namespace std;
 
-class nhflow_momentum_RK3 : public nhflow_momentum_func
+class nhflow_momentum_RK3 final : public nhflow_momentum_func
 {
 public:
-	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans*, nhflow_forcing*);
+	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans_nhflow*, nhflow_forcing*);
 	virtual ~nhflow_momentum_RK3();
     
-	void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*,  vrans*) override;
+	void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, 
+                nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans_nhflow*) override final;
 
     double *UHDIFF;
     double *VHDIFF;
@@ -59,7 +60,7 @@ private:
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
-    vrans* pvrans;
+    vrans_nhflow* pvrans;
 };
 
 #endif

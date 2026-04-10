@@ -673,6 +673,7 @@ void wave_lib_spectrum::phases_irregular(lexer *p)
     srand((unsigned)time(0));
 
     // make phases
+    if(p->mpirank==0)
 	for(int n=0;n<p->wN;++n)
 	ei[n]  = double(rand() % 628)/100.0;
 }

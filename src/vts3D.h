@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -26,23 +26,23 @@ Author: Alexander Hanke
 #include "vtk3D.h"
 #include "increment.h"
 
-class vts3D : public vtk3D , increment
+class vts3D final : public vtk3D , increment
 {
     public:
-        void folder(const char*) override;
-        void fileName(char*, const unsigned int, const char*, const int, const int) override;
-        void parallelFileName(char*, const unsigned int, const char*, const int) override;
-        void extent(lexer* ,ghostcell*) override;
+        void folder(const char*) override final;
+        void fileName(char*, const unsigned int, const char*, const int, const int) override final;
+        void parallelFileName(char*, const unsigned int, const char*, const int) override final;
+        void extent(lexer* ,ghostcell*) override final;
 
-        void offset(lexer*, int*, int&) override;
-        void beginning(lexer*, std::ostream&) override;
-        void beginningParallel(lexer*, std::ostream&) override;
-        void ending(std::ostream&, const int*, int&) override;
-        void endingParallel(std::ostream&, const char*, const int, const int) override;
+        void offset(lexer*, int*, int&) override final;
+        void beginning(lexer*, std::ostream&) override final;
+        void beginningParallel(lexer*, std::ostream&) override final;
+        void ending(std::ostream&, const int*, int&) override final;
+        void endingParallel(std::ostream&, const char*, const int, const int) override final;
 
-        void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) override;
-        void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&) override;
-        void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&) override;
+        void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) override final;
+        void structureWrite(lexer*, fdm_fnpf*, std::vector<char>&, size_t&) override final;
+        void structureWrite(lexer*, fdm_nhf*, std::vector<char>&, size_t&) override final;
     private:
         int *piextent;
         char pname[50];

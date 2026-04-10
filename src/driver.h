@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -70,10 +70,10 @@ class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
 class nhflow_potential;
+class vrans_nhflow;
 class sflow;
 class fnpf_timestep;
 class nhflow_timestep;
-class grid;
 class patchBC_interface;
 class nhflow;
 class multiphase;
@@ -193,7 +193,6 @@ public:
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_timestep *pftstep;
-    grid *pgrid;
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
@@ -208,6 +207,7 @@ public:
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
     nhflow_forcing *pnhfdf;
+    vrans_nhflow *pnhfvrans;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;

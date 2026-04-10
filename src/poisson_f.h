@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -32,7 +32,7 @@ class density;
 
 using namespace std;
 
-class poisson_f : public poisson, public increment
+class poisson_f final : public poisson, public increment
 {
 
 public:
@@ -40,7 +40,7 @@ public:
 	poisson_f (lexer*, heat*&, concentration*&);
 	virtual ~poisson_f();
 
-	void start(lexer *,fdm*,field&) override;
+	void start(lexer *,fdm*,field&) override final;
 
 private:
 

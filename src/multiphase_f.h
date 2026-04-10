@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -38,32 +38,33 @@ class print_wsf;
 class concentration;
 
 #include"multiphase.h"
+#include"increment.h"
 #include"field4.h"
 #include<fstream>
 
 using namespace std;
 
-class multiphase_f : public multiphase, public increment
+class multiphase_f final : public multiphase, public increment
 {
 public:
 	multiphase_f(lexer*, fdm*, ghostcell*);
 	virtual ~multiphase_f();
-	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override;
-	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override;
-	void update(lexer*,fdm*,ghostcell*) override;
+	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override final;
+	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override final;
+	void update(lexer*,fdm*,ghostcell*) override final;
 	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-	void print_file(lexer*, fdm*, ghostcell*) override;
-    double ls1val(int,int,int) override;
-    double ls2val(int,int,int) override;
-	double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override;
-	double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override;
-    void ls1get(int,int,int,double) override;
-    void ls2get(int,int,int,double) override;
+	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
+	void print_file(lexer*, fdm*, ghostcell*) override final;
+    double ls1val(int,int,int) override final;
+    double ls2val(int,int,int) override final;
+	double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override final;
+	double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override final;
+    void ls1get(int,int,int,double) override final;
+    void ls2get(int,int,int,double) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override;
-    void offset_ParaView(lexer*, int*, int &) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
     
     void logic(lexer*,fdm*,ghostcell*);
     

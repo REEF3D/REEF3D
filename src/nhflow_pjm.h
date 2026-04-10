@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,7 +33,7 @@ class patchBC_interface;
 
 using namespace std;
 
-class nhflow_pjm : public nhflow_pressure, public increment
+class nhflow_pjm final : public nhflow_pressure, public increment
 {
 
 public:
@@ -41,13 +41,13 @@ public:
 	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
 	virtual ~nhflow_pjm();
 
-	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override;
-	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override;
-	void upgrad(lexer*,fdm_nhf*,slice&) override;
-	void vpgrad(lexer*,fdm_nhf*,slice&) override;
-    void wpgrad(lexer*,fdm_nhf*,slice&) override;
+	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override final;
+	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
+	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
+	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
+	void upgrad(lexer*,fdm_nhf*,slice&) override final;
+	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
+    void wpgrad(lexer*,fdm_nhf*,slice&) override final;
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);

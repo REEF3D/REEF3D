@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,14 +33,14 @@ class concentration;
 
 using namespace std;
 
-class density_conc : public density, virtual public increment
+class density_conc final : public density, virtual public increment
 {
 
 public:
     density_conc(lexer*,concentration*&);
 	virtual ~density_conc();
 
-	double roface(lexer*,fdm*,int,int,int) override;
+	double roface(lexer*,fdm*,int,int,int) override final;
 	
 private:
 	double H,roval,phival;

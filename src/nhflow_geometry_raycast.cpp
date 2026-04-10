@@ -1,0 +1,96 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Hans Bihs
+--------------------------------------------------------------------*/
+
+#include"nhflow_geometry.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
+
+void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
+{
+    zmin = 1.0e1;
+    zmax = -1.0e8;
+    
+    LOOP
+    WETDRY
+    {
+    zmin = MIN(zmin, p->ZSP[IJK]);
+    zmax = MAX(zmax, p->ZSP[IJK]);
+    }
+    
+    LOOP
+	{
+    IO[IJK]=1;
+	LS[IJK]=1.0e8;
+	}
+    
+    	
+    for(int rayiter=0; rayiter<2; ++rayiter)
+    {
+        for(int qn=0;qn<entity_sum;++qn)
+        {
+            if(rayiter==0)
+            ray_cast_io(p,d,pgc,tstart[qn],tend[qn]);
+
+            if(rayiter==1)
+            {
+            pgc->startintV(p,IO,1);
+            
+            ray_cast_x(p,d,pgc,tstart[qn],tend[qn],LS);
+            if(p->j_dir==1)
+            ray_cast_y(p,d,pgc,tstart[qn],tend[qn],LS);
+            ray_cast_z(p,d,pgc,tstart[qn],tend[qn],LS);
+            }
+        }
+    }
+    
+    LOOP
+    WETDRY
+    {
+        if(IO[IJK]==-1)
+        LS[IJK]=-fabs(LS[IJK]);
+        
+        
+        if(IO[IJK]==1)
+        LS[IJK]=fabs(LS[IJK]);
+        
+        //d->test[IJK] = LS[IJK];
+    }
+	
+	LOOP
+    WETDRY
+	{
+		if(LS[IJK]>100.0*DSM)
+		LS[IJK]=100.0*DSM;
+		
+		if(LS[IJK]<-100.0*DSM)
+		LS[IJK]=-100.0*DSM;
+	}
+    
+    LOOP
+    if(p->wet[IJ]==0)
+    LS[IJK]=100.0*DSM;
+    
+    
+	pgc->start5V(p,LS,1); 
+}

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -38,15 +38,15 @@ Author: Tobias Martin
 
 using namespace std;
 
-class mooring_Catenary : public mooring
+class mooring_Catenary final : public mooring
 {
 public:
 	mooring_Catenary(int);
 	virtual ~mooring_Catenary();
 	
-	void start(lexer*, ghostcell*) override;
-	void initialize(lexer*, ghostcell*) override;
-	void mooringForces(double&, double&, double&) override;
+	void start(lexer*, ghostcell*) override final;
+	void initialize(lexer*, ghostcell*) override final;
+	void mooringForces(double&, double&, double&) override final;
 	
 	void getForce(lexer*, ghostcell*, double&, double&);
 	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);
