@@ -159,6 +159,7 @@
             <File Name="kepsilon_bc.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
+            <File Name="les_io.h"/>
             <File Name="rans_io.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="EARSM">
@@ -442,6 +443,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment"/>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_print_wsf_theory.h"/>
           <File Name="sflow_vtp_fsf.h"/>
           <File Name="sflow_print_bed.h"/>
           <File Name="sflow_print_bedline_y.h"/>
