@@ -123,6 +123,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
     
+    cu = MIN(cu, 1.0/(0.00001
+    
+            + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
+    
     //co = MIN(co, 1.0/((fabs(p->omegamax)/dz)));
     }
     
@@ -154,6 +158,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->recontime=0.0;
     p->fsftime=0.0;
     p->dftime=0.0;
+    
+    d->maxF=0.0;
+	d->maxG=0.0;
+	d->maxH=0.0;
 }
 
 void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -229,6 +237,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
    	p->dt=0.75*p->N47*cu;
     
+    //if(p->B201==1)
+    //p->dt = 0.1*p->dt;
+    
 	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
@@ -257,5 +268,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // reini
     p->recontime=0.0;
     p->fsftime=0.0;
+    
+    d->maxF=0.0;
+	d->maxG=0.0;
+	d->maxH=0.0;
 }
 
