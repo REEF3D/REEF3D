@@ -4,7 +4,9 @@ TARGET       := REEF3D
 APP          := $(APP_DIR)/$(TARGET)
 CXX          := mpicxx
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_VERSION  := "$(shell git rev-parse --short HEAD)"
+GIT_COMMIT   := "$(shell git rev-parse --short=7 HEAD)"
+GIT_DIRTY    := "$(shell git diff --quiet --ignore-submodules HEAD -- || echo -dirty)"
+GIT_VERSION  := $(GIT_COMMIT)$(GIT_DIRTY)
 HYPRE_DIR    := /usr/local/hypre
 EIGEN_DIR    := ThirdParty/eigen-3.3.8 
 CXXFLAGS     := -std=c++17 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
