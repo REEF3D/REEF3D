@@ -47,7 +47,7 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    
+    // steepness induced breaking
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
     SLICELOOP4
@@ -128,6 +128,7 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     
     pgc->gcsl_start4int(p,bx,50);
     
+    // depth induced breaking
     if((p->A351==1 || p->A351==3) && p->count>1)
     {
     SLICELOOP4

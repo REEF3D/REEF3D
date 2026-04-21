@@ -140,10 +140,10 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->XN[IP1]);
+        ffn=float(p->xout(p->XN[IP1]));
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=float(p->YN[JP1]);
+        ffn=float(p->yout(p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->sl_ipol4(d->bed));

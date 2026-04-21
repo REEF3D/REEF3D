@@ -29,10 +29,10 @@ Author: Hans Bihs
 nhflow_komega_func::nhflow_komega_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_komega_bc(p)
 {
     if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
+    epsi = p->T38*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = p->T38*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 }
 
 nhflow_komega_func::~nhflow_komega_func()
@@ -202,7 +202,14 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     k=p->knoz-1;
     
-	if(p->A567==1)
+	if(p->A567==1 || p->A567==2)
+	SLICELOOP4
+	{
+	if(p->DF[IJK]>0)
+	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37));
+	}
+    
+    if(p->A567==3)
 	SLICELOOP4
 	{
 	if(p->DF[IJK]>0)

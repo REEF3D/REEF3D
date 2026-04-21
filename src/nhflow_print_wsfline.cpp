@@ -97,7 +97,7 @@ void nhflow_print_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *p
 		wsfout<<"number of wsf-lines:  "<<p->P52<<endl<<endl;
 		wsfout<<"line_No     y_coord"<<endl;
 		for(q=0;q<p->P52;++q)
-		wsfout<<q+1<<"\t "<<p->P52_y[q]<<endl;
+		wsfout<<q+1<<"\t "<<p->yout(p->P52_y[q])<<endl;
 
 		if(p->P53==1)
 		wsfout<<q+1<<"\t "<<" Wave Theory "<<endl;
@@ -184,7 +184,7 @@ void nhflow_print_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *p
 			{
 				if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
 				{
-				wsfout<<setprecision(12)<<xloc_all[q][n]<<" \t ";
+				wsfout<<setprecision(12)<<p->xout(xloc_all[q][n])<<" \t ";
 				wsfout<<setprecision(12)<<wsf_all[q][n]<<" \t  ";
 				
 				

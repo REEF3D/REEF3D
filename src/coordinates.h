@@ -20,22 +20,46 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_f.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"ioflow.h"
+#ifndef COORDINATES_H_
+#define COORDINATES_H_
 
-void nhflow_fsf_f::depth_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
+#include"increment.h"
+
+class fdm;
+class lexer;
+class field;
+
+using namespace std;
+
+class coordinates : virtual public increment
 {
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
+public:
+    coordinates(lexer*);
+	virtual ~coordinates();
     
-    //SLICELOOP4
-    //d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
+    // world to model
+    double xin(double);
+    double yin(double);
     
-    pgc->gcsl_start4(p,d->depth,50);
-    //pgc->gcsl_start4(p,d->WL,gcval_eta);   
+    // model to world
+    double xout(double);
+    double yout(double);
     
-    //wetdry(p,d,pgc,d->U,d->V,d->W,d->WL); 
-}
+
+    
+    
+private:
+    lexer *p;
+    
+    double pos;
+    
+    int stop,count;
+    int ii,jj,kk;
+    
+    int is,ie,iloc;
+    int js,je,jloc;
+    int ks,ke,kloc;
+
+};
+
+#endif

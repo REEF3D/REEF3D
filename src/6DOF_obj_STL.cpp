@@ -133,9 +133,9 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 	for(n=0; n<tricount; ++n)
 	for(int q=0; q<3; ++q)
 	{
-		tri_x[n][q] += p->X182_x;
-		tri_y[n][q] += p->X182_y;
-		tri_z[n][q] += p->X182_z;
+		tri_x[n][q] += p->X182_dx;
+		tri_y[n][q] += p->X182_dy;
+		tri_z[n][q] += p->X182_dz;
 	}
     
     // rotate STL model

@@ -48,6 +48,8 @@ void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
         porousterm = Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]); 
     	
     d->F[IJK] -= H*WL(i,j)*porousterm;
+    
+    d->maxF = MAX(fabs(d->maxF),fabs(H*WL(i,j)*porousterm));
 	}
 }
 
@@ -73,6 +75,8 @@ void vrans_nhflow_f::v_source(lexer *p, fdm_nhf *d, slice &WL)
         porousterm = Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]); 
     	
     d->G[IJK] -= H*WL(i,j)*porousterm;
+    
+    d->maxG = MAX(fabs(d->maxG),fabs(H*WL(i,j)*porousterm));
 	}
 }
 
@@ -98,6 +102,8 @@ void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
         porousterm = Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]); 
     	
     d->H[IJK] -= H*WL(i,j)*porousterm;
+    
+    d->maxH = MAX(fabs(d->maxH),fabs(H*WL(i,j)*porousterm));
 	}
 }
 

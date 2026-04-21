@@ -146,7 +146,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     {
     wsfout<<setprecision(9)<<p->simtime<<"\t";
     for(q=0;q<p->P133;++q)
-    wsfout<<setprecision(9)<<xloc[q]<<"  \t  "<<zloc[q];
+    wsfout<<setprecision(9)<<p->xout(xloc[q])<<"  \t  "<<zloc[q];
     wsfout<<endl;
     }
 }

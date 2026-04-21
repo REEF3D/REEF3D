@@ -20,22 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_f.h"
+#include"coordinates.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"ioflow.h"
 
-void nhflow_fsf_f::depth_update(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
+coordinates::coordinates(lexer *pp) 
+{	
+    p=pp;
+}
+
+coordinates::~coordinates()
 {
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
+}
+
+double coordinates::xin(double xworld)
+{
+    double xmodel=xworld;
     
-    //SLICELOOP4
-    //d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
     
-    pgc->gcsl_start4(p,d->depth,50);
-    //pgc->gcsl_start4(p,d->WL,gcval_eta);   
     
-    //wetdry(p,d,pgc,d->U,d->V,d->W,d->WL); 
+    return xmodel;
+}
+
+double coordinates::yin(double yworld)
+{
+    double ymodel=yworld;
+    
+    
+    
+    return ymodel;
+}
+
+double coordinates::xout(double xmodel)
+{
+    double xworld=xmodel;
+    
+    
+    
+    return xworld;
+}
+
+double coordinates::yout(double ymodel)
+{
+    double yworld=ymodel;
+    
+    
+    
+    return yworld;
 }

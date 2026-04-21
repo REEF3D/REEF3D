@@ -171,7 +171,7 @@ void control::ini_default()
     A590=0;      // int STL
     A591_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
     A592=0;     // int translation on/off
-    A592_x=A592_y=A592_z=0.0;  // double translation of stl geometry
+    A592_dx=A592_dy=A592_dz=0.0;  // double translation of stl geometry
     A593=0;
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
@@ -310,7 +310,7 @@ void control::ini_default()
     B230=0;      // int STL
     B231_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
     B232=0;     // int translation on/off
-    B232_x=B232_y=B232_z=0.0;  // double translation of stl geometry
+    B232_dx=B232_dy=B232_dz=0.0;  // double translation of stl geometry
     B233=0;
     B233_x=B233_y=B233_z=B233_phi=B233_theta=B233_psi=0.0;
     B234=0;     // int invert STL
@@ -950,7 +950,7 @@ void control::ini_default()
     X181=0;     // int scale .stl geometry on/off
     X181_x=X181_y=X181_z=1.0;  // double scaling of stl geometry
     X182=0;     // int translation on/off
-    X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
+    X182_dx=X182_dy=X182_dz=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
     X185=1;     // int stl refinement
@@ -984,6 +984,7 @@ void control::ini_default()
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step
+    X324=0;     // int number of nets
 	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
 	X400=0;         // sflow external pressure term
     X401_p0=0.0;    // sflow external pressure term p0

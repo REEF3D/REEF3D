@@ -52,6 +52,8 @@ void driver::log_ini()
     {
     mainlogout.open("./REEF3D_Log/REEF3D_mainlog.dat");
     mainlogout<<"REEF3D version:  "<<version<<endl<<endl;
+    mainlogout<<endl<<"github branch: "<<BRANCH<<endl;
+    mainlogout<<endl<<"github version: "<<VERSION<<endl<<endl;
     mainlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Volume 1 \t #Volume2 \t #Inflow \t #Outflow \t #Ui \t #Phimean \t #Phiout "<<endl;
     }

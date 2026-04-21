@@ -108,7 +108,6 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     sigma_update(p,c,pgc,pf,erk);
     
     // Set Boundary Conditions
-
     fsfbc_sig(p,c,pgc,frk,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);
     

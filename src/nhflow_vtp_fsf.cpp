@@ -67,10 +67,6 @@ void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 
 void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
 {
-    //pgc->gcsl_start4(p,d->eta,gcval_eta);
-    //pgc->gcsl_start4(p,d->Fifsf,gcval_fifsf);
-    //pgc->gcsl_start4(p,d->test2D,1);
-
     SLICELOOP4
     {
         if(d->breaking(i,j)>=1)
@@ -78,8 +74,6 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         else if(d->breaking(i,j)==0)
             d->breaking_print(i,j)=0.0;
     }
-
-    //pgd->gcsl_start4(p,d->breaking_print,50);
 
     int num = 0;
     if(p->P15==1)
@@ -215,10 +209,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=p->XN[IP1];
+        ffn=float(p->xout(p->XN[IP1]));
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=p->YN[JP1];
+        ffn=float(p->xout(p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
         ffn=p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd;
