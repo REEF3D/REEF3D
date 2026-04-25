@@ -47,7 +47,7 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<p->Xout(x[n])<<"\t "<<p->Yout(y[n])<<endl;
+    wsfout<<n+1<<"\t "<<p->Xout(x[n],y[n])<<"\t "<<p->Yout(x[n],y[n])<<endl;
 
     wsfout<<endl<<endl;
 

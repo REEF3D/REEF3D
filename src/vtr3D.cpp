@@ -137,7 +137,7 @@ void vtr3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
     m+=sizeof(int);
     ITLOOP
     {
-        ffn=float(p->Xout(p->XN[IP]));
+        ffn=float(p->Xout(p->XN[IP],p->YN[JP]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
     }
@@ -147,7 +147,7 @@ void vtr3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
     m+=sizeof(int);
     JTLOOP
     {
-        ffn=float(p->Yout(p->YN[JP]));
+        ffn=float(p->Yout(p->XN[IP],p->YN[JP]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
     }

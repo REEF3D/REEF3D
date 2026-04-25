@@ -54,7 +54,7 @@ void nhflow_force::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     fout<<"x_start xend     y_start y_end     z_start z_end"<<endl;
 
-    fout<<p->Xout(p->P81_xs[ID])<<" "<<p->Xout(p->P81_xe[ID])<<" . "<<p->Yout(p->P81_ys[ID])<<" "<<p->Yout(p->P81_ye[ID])<<" . "<<p->P81_zs[ID]<<" "<<p->P81_ze[ID]<<endl;
+    fout<<p->Xout(p->P81_xs[ID],p->P81_ys[ID])<<" "<<p->Xout(p->P81_xe[ID],p->P81_xe[ID])<<" . "<<p->Yout(p->P81_xs[ID],p->P81_ys[ID])<<" "<<p->Yout(p->P81_xe[ID],p->P81_ye[ID])<<" . "<<p->P81_zs[ID]<<" "<<p->P81_ze[ID]<<endl;
     fout<<endl<<endl;
     
     fout<<"it \t time \t Fx \t Fy \t Fz ";

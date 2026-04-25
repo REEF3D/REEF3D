@@ -1171,8 +1171,8 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 96: control>>F96_xs>>F96_xe;
-                         F96_xs = p->Xin(F96_xs,global_ymin);
-                         F96_xe = p->Xin(F96_xe,global_ymax);
+                         F96_xs = p->Xin(F96_xs,p->global_ymin);
+                         F96_xe = p->Xin(F96_xe,p->global_ymax);
                          F96=1;
                          clear(c,numint);
                          break;
@@ -3631,8 +3631,8 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 586: control>>A586_xm[countA586]>>A586_ym[countA586]>>A586_zm[countA586]>>A586_r[countA586];
-                         A586_xm[countA586] = p->Xin(A586_xm[countA586]);
-                         A586_ym[countA586] = p->Yin(A586_ym[countA586]);
+                         A586_xm[countA586] = p->Xin(A586_xm[countA586],A586_ym[countA586]);
+                         A586_ym[countA586] = p->Yin(A586_xm[countA586],A586_ym[countA586]);
                          ++countA586;
                          clear(c,numint);
                          break;
@@ -3695,8 +3695,8 @@ void control::read_control(lexer* p)
                 case 210: control>>B210_xs[countB210]>>B210_xe[countB210]>>B210_ys[countB210]>>B210_ye[countB210]>>B210_zs[countB210]>>B210_ze[countB210];
                          B210_xs[countB210] = p->Xin(B210_xs[countB210],B210_ys[countB210]);
                          B210_xe[countB210] = p->Xin(B210_xe[countB210],B210_ye[countB210]);
-                         B210_ys[countB210] = p->Yin(B210_xs[countB210]B210_ys[countB210]);
-                         B210_ye[countB210] = p->Yin(B210_xe[countB210]B210_ye[countB210]);
+                         B210_ys[countB210] = p->Yin(B210_xs[countB210],B210_ys[countB210]);
+                         B210_ye[countB210] = p->Yin(B210_xe[countB210],B210_ye[countB210]);
                          ++countB210;
                          clear(c,numint);
                          break;
@@ -3754,8 +3754,8 @@ void control::read_control(lexer* p)
                 case 240: control>>B240_C[countB240]>>B240_D[countB240]>>B240_xs[countB240]>>B240_xe[countB240]>>B240_ys[countB240]>>B240_ye[countB240]>>B240_zs[countB240]>>B240_ze[countB240];
                          B240_xs[countB240] = p->Xin(B240_xs[countB240],B240_ys[countB240]);
                          B240_xe[countB240] = p->Xin(B240_xe[countB240],B240_ye[countB240]);
-                         B240_ys[countB240] = p->Yin(B240_xs[countB240]B240_ys[countB240]);
-                         B240_ye[countB240] = p->Yin(B240_xe[countB240]B240_ye[countB240]);
+                         B240_ys[countB240] = p->Yin(B240_xs[countB240],B240_ys[countB240]);
+                         B240_ye[countB240] = p->Yin(B240_xe[countB240],B240_ye[countB240]);
                          ++countB240;
                          clear(c,numint);
                          break;
@@ -3903,7 +3903,7 @@ void control::read_control(lexer* p)
                 case 70: control>>F70_xs[countF70]>>F70_xe[countF70]>>F70_ys[countF70]>>F70_ye[countF70]>>F70_zs[countF70]>>F70_ze[countF70];
                          F70_xs[countF70] =  p->Xin(F70_xs[countF70],F70_ys[countF70]);
                          F70_xe[countF70] =  p->Xin(F70_xe[countF70],F70_ye[countF70]);
-                         F70_ys[countF70] =  p->Yin(F70_xs[countF70],F70_ys[countF70],);
+                         F70_ys[countF70] =  p->Yin(F70_xs[countF70],F70_ys[countF70]);
                          F70_ye[countF70] =  p->Yin(F70_xe[countF70],F70_ye[countF70]);
                          ++countF70;
                          clear(c,numint);
@@ -3951,7 +3951,7 @@ void control::read_control(lexer* p)
                 case 115: control>>F115_xs[countF115]>>F115_xe[countF115]>>F115_ys[countF115]>>F115_ye[countF115]>>F115_zs[countF115]>>F115_ze[countF115];
                          F115_xs[countF115] =  p->Xin(F115_xs[countF115],F115_ys[countF115]);
                          F115_xe[countF115] =  p->Xin(F115_xe[countF115],F115_ye[countF115]);
-                         F115_ys[countF115] =  p->Yin(F115_xs[countF115],F115_ys[countF115],);
+                         F115_ys[countF115] =  p->Yin(F115_xs[countF115],F115_ys[countF115]);
                          F115_ye[countF115] =  p->Yin(F115_xe[countF115],F115_ye[countF115]);
                          ++countF115;
                          clear(c,numint);
@@ -4190,7 +4190,7 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 167: control>>P167_x[countP167];
-                         P167_x[countP167] = p->Xin(P167_x[countP167],P167_y[countP167]);
+                         P167_x[countP167] = p->Xin(P167_x[countP167],0.0);
                          ++countP167;
                          clear(c,numint);
                          break;
@@ -4325,41 +4325,41 @@ void control::read_control(lexer* p)
                                  >>X164_x3[countX164]>>X164_y3[countX164]>>X164_z3[countX164]>>X164_x4[countX164]>>X164_y4[countX164]>>X164_z4[countX164]
                                  >>X164_x5[countX164]>>X164_y5[countX164]>>X164_z5[countX164]>>X164_x6[countX164]>>X164_y6[countX164]>>X164_z6[countX164]
                                  >>X164_x7[countX164]>>X164_y7[countX164]>>X164_z7[countX164]>>X164_x8[countX164]>>X164_y8[countX164]>>X164_z8[countX164];
-                         X164_x1[countX164] = p->Xin(X164_x1[countX164]);
-                         X164_x2[countX164] = p->Xin(X164_x2[countX164]);
-                         X164_x3[countX164] = p->Xin(X164_x3[countX164]);
-                         X164_x4[countX164] = p->Xin(X164_x4[countX164]);
-                         X164_x5[countX164] = p->Xin(X164_x5[countX164]);
-                         X164_x6[countX164] = p->Xin(X164_x6[countX164]);
-                         X164_x7[countX164] = p->Xin(X164_x7[countX164]);
-                         X164_x8[countX164] = p->Xin(X164_x8[countX164]);
-                         X164_y1[countX164] = p->Yin(X164_y1[countX164]);
-                         X164_y2[countX164] = p->Yin(X164_y2[countX164]);
-                         X164_y3[countX164] = p->Yin(X164_y3[countX164]);
-                         X164_y4[countX164] = p->Yin(X164_y4[countX164]);
-                         X164_y5[countX164] = p->Yin(X164_y5[countX164]);
-                         X164_y6[countX164] = p->Yin(X164_y6[countX164]);
-                         X164_y7[countX164] = p->Yin(X164_y7[countX164]);
-                         X164_y8[countX164] = p->Yin(X164_y8[countX164]);
+                         X164_x1[countX164] = p->Xin(X164_x1[countX164],X164_y1[countX164]);
+                         X164_x2[countX164] = p->Xin(X164_x2[countX164],X164_y2[countX164]);
+                         X164_x3[countX164] = p->Xin(X164_x3[countX164],X164_y3[countX164]);
+                         X164_x4[countX164] = p->Xin(X164_x4[countX164],X164_y4[countX164]);
+                         X164_x5[countX164] = p->Xin(X164_x5[countX164],X164_y5[countX164]);
+                         X164_x6[countX164] = p->Xin(X164_x6[countX164],X164_y6[countX164]);
+                         X164_x7[countX164] = p->Xin(X164_x7[countX164],X164_y7[countX164]);
+                         X164_x8[countX164] = p->Xin(X164_x8[countX164],X164_y8[countX164]);
+                         X164_y1[countX164] = p->Yin(X164_x1[countX164],X164_y1[countX164]);
+                         X164_y2[countX164] = p->Yin(X164_x2[countX164],X164_y2[countX164]);
+                         X164_y3[countX164] = p->Yin(X164_x3[countX164],X164_y3[countX164]);
+                         X164_y4[countX164] = p->Yin(X164_x4[countX164],X164_y4[countX164]);
+                         X164_y5[countX164] = p->Yin(X164_x5[countX164],X164_y5[countX164]);
+                         X164_y6[countX164] = p->Yin(X164_x6[countX164],X164_y6[countX164]);
+                         X164_y7[countX164] = p->Yin(X164_x7[countX164],X164_y7[countX164]);
+                         X164_y8[countX164] = p->Yin(X164_x8[countX164],X164_y8[countX164]);
                          ++countX164;
                          clear(c,numint);
                          break;
                 case 311: control>>X311_xs[countX311]>>X311_xe[countX311]>>X311_ys[countX311]>>X311_ye[countX311]>>X311_zs[countX311]>>X311_ze[countX311]
                                  >>X311_w[countX311]>>X311_rho_c[countX311]>>X311_EA[countX311]>>X311_d[countX311]>>X311_l[countX311]>>X311_H[countX311]
                                  >>X311_P[countX311]>>X311_facT[countX311];
-                         X311_xs[countX311] =  p->Xin(X311_xs[countX311]);
-                         X311_xe[countX311] =  p->Xin(X311_xe[countX311]);
-                         X311_ys[countX311] =  p->Yin(X311_ys[countX311]);
-                         X311_ye[countX311] =  p->Yin(X311_ye[countX311]);
+                         X311_xs[countX311] =  p->Xin(X311_xs[countX311],X311_ys[countX311]);
+                         X311_xe[countX311] =  p->Xin(X311_xe[countX311],X311_ye[countX311]);
+                         X311_ys[countX311] =  p->Yin(X311_xs[countX311],X311_ys[countX311]);
+                         X311_ye[countX311] =  p->Yin(X311_xe[countX311],X311_ye[countX311]);
                          ++countX311;
                          clear(c,numint);
                          break;
                 case 312: control>>X311_xs[countX312]>>X311_xe[countX312]>>X311_ys[countX312]>>X311_ye[countX312]>>X311_zs[countX312]>>X311_ze[countX312]
                                  >>X312_k[countX312]>>X312_T0[countX312];
-                         X311_xs[countX312] =  p->Xin(X311_xs[countX312]);
-                         X311_xe[countX312] =  p->Xin(X311_xe[countX312]);
-                         X311_ys[countX312] =  p->Yin(X311_ys[countX312]);
-                         X311_ye[countX312] =  p->Yin(X311_ye[countX312]);
+                         X311_xs[countX312] =  p->Xin(X311_xs[countX312],X311_ys[countX312]);
+                         X311_xe[countX312] =  p->Xin(X311_xe[countX312],X311_ye[countX312]);
+                         X311_ys[countX312] =  p->Yin(X311_xs[countX312],X311_ys[countX312]);
+                         X311_ye[countX312] =  p->Yin(X311_xe[countX312],X311_ye[countX312]);
                          ++countX312;
                          clear(c,numint);
                          break;
@@ -4384,14 +4384,14 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 322: control>>X322_D[countX322]>>X322_L[countX322]>>X322_x0[countX322]>>X322_y0[countX322]>>X322_z0[countX322]>>X322_phi[countX322]>>X322_theta[countX322]>>X322_psi[countX322];
-                         X322_x0[countX322] =  p->Xin(X322_x0[countX322]);
-                         X322_y0[countX322] =  p->Yin(X322_y0[countX322]);
+                         X322_x0[countX322] =  p->Xin(X322_x0[countX322],X322_y0[countX322]);
+                         X322_y0[countX322] =  p->Yin(X322_x0[countX322],X322_y0[countX322]);
                          ++countX322;
                          clear(c,numint);
                          break;
                 case 324: control>>X324_x[countX324]>>X324_y[countX324]>>X324_z[countX324];
-                         X324_x[countX324] = p->Xin(X324_x[countX324]);
-                         X324_y[countX324] = p->Yin(X324_y[countX324]);
+                         X324_x[countX324] = p->Xin(X324_x[countX324],X324_y[countX324]);
+                         X324_y[countX324] = p->Yin(X324_x[countX324],X324_y[countX324]);
                          ++countX324;
                          clear(c,numint);
                          break;
@@ -4402,8 +4402,8 @@ void control::read_control(lexer* p)
                 switch(numint)
                 {
                 case 11: control>>Z11_x[countZ11]>>Z11_y[countZ11]>>Z11_z[countZ11]>>Z11_l[countZ11]>>Z11_w[countZ11]>>Z11_t[countZ11]>>Z11_rho[countZ11]>>Z11_e[countZ11]>>Z11_ix[countZ11]>>Z11_iy[countZ11]>>Z11_iz[countZ11]>>Z11_nu[countZ11]>>Z11_n[countZ11];
-                         Z11_x[countZ11] = p->Xin(Z11_x[countZ11]);
-                         Z11_y[countZ11] = p->Yin(Z11_y[countZ11]);
+                         Z11_x[countZ11] = p->Xin(Z11_x[countZ11],Z11_y[countZ11]);
+                         Z11_y[countZ11] = p->Yin(Z11_x[countZ11],Z11_y[countZ11]);
                          ++countZ11;
                          clear(c,numint);
                          break;

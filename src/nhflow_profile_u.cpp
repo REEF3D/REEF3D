@@ -70,7 +70,7 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         pout[n]<<"U-Profile ID:  "<<n+1<<endl<<endl;
         pout[n]<<"x_coord     y_coord"<<endl;
-        pout[n]<<n+1<<"\t "<<p->Xout(p->P67_x[n])<<"\t "<<p->Yout(p->P67_y[n])<<"\t "<<endl;
+        pout[n]<<n+1<<"\t "<<p->Xout(p->P67_x[n],p->P67_y[n])<<"\t "<<p->Yout(p->P67_x[n],p->P67_y[n])<<"\t "<<endl;
         pout[n]<<"simtime:  "<<p->simtime<<endl<<endl;
 
         pout[n]<<endl<<endl;

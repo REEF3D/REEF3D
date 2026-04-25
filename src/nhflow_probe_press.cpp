@@ -56,7 +56,7 @@ nhflow_probe_press::nhflow_probe_press(lexer *p, fdm_nhf *d) : probenum(p->P64)
 	    pout[n]<<"Vel Probe ID:  "<<n+1<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
-		pout[n]<<n+1<<"\t "<<p->Xout(p->P64_x[n])<<"\t "<<p->Yout(p->P64_y[n])<<"\t "<<p->P64_z[n]<<endl;
+		pout[n]<<n+1<<"\t "<<p->Xout(p->P64_x[n],p->P64_y[n])<<"\t "<<p->Yout(p->P64_x[n],p->P64_y[n])<<"\t "<<p->P64_z[n]<<endl;
 
 		pout[n]<<endl<<endl;
 		
