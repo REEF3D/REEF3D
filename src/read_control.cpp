@@ -3909,10 +3909,10 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 71: control>>F71_xs[countF71]>>F71_xe[countF71]>>F71_ys[countF71]>>F71_ye[countF71]>>F71_zs[countF71]>>F71_ze[countF71];
-                         F71_xs[countF71] =  p->Xin(F71_xs[countF71]);
-                         F71_xe[countF71] =  p->Xin(F71_xe[countF71]);
-                         F71_ys[countF71] =  p->Yin(F71_ys[countF71]);
-                         F71_ye[countF71] =  p->Yin(F71_ye[countF71]);
+                         F71_xs[countF71] =  p->Xin(F71_xs[countF71],F71_ys[countF71]);
+                         F71_xe[countF71] =  p->Xin(F71_xe[countF71],F71_ye[countF71]);
+                         F71_ys[countF71] =  p->Yin(F71_xs[countF71],F71_ys[countF71]);
+                         F71_ye[countF71] =  p->Yin(F71_xe[countF71],F71_ye[countF71]);
                          ++countF71;
                          clear(c,numint);
                          break;
