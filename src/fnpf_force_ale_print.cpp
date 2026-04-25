@@ -48,7 +48,7 @@ void fnpf_force_ale::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
         fout<<"x \t y \t Cd \t Cm"<<endl;
 
-        fout<<p->xout(p->P85_x[ID])<<" \t "<<p->yout(p->P85_y[ID])<<" \t "<<p->P85_cd[ID]<<" \t "<<p->P85_cm[ID] <<endl;
+        fout<<p->Xout(p->P85_x[ID])<<" \t "<<p->Yout(p->P85_y[ID])<<" \t "<<p->P85_cd[ID]<<" \t "<<p->P85_cm[ID] <<endl;
         fout<<endl<<endl;
      
         fout<<"it \t time \t Fx \t Fy ";

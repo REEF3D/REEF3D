@@ -56,7 +56,7 @@ nhflow_probe_vel::nhflow_probe_vel(lexer *p, fdm_nhf *d) : probenum(p->P65)
 	    pout[n]<<"Vel Probe ID:  "<<n+1<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
-		pout[n]<<n+1<<"\t "<<p->xout(p->P65_x[n])<<"\t "<<p->yout(p->P65_y[n])<<"\t "<<p->P65_z[n]<<endl;
+		pout[n]<<n+1<<"\t "<<p->Xout(p->P65_x[n])<<"\t "<<p->Yout(p->P65_y[n])<<"\t "<<p->P65_z[n]<<endl;
 
 		pout[n]<<endl<<endl;
 		

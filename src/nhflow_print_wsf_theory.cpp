@@ -53,7 +53,7 @@ nhflow_print_wsf_theory::nhflow_print_wsf_theory(lexer *p, fdm_nhf *d, ghostcell
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<p->xout(x[n])<<"\t "<<p->yout(y[n])<<endl;
+    wsfout<<n+1<<"\t "<<p->Xout(x[n])<<"\t "<<p->Yout(y[n])<<endl;
 
     wsfout<<endl<<endl;
 

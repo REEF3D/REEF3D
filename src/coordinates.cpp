@@ -32,7 +32,7 @@ coordinates::~coordinates()
 {
 }
 
-double coordinates::xin(double xworld)
+double coordinates::Xin(double xworld, double yworld)
 {
     double xmodel=xworld;
     
@@ -41,7 +41,7 @@ double coordinates::xin(double xworld)
     return xmodel;
 }
 
-double coordinates::yin(double yworld)
+double coordinates::Yin(double xworld, double yworld)
 {
     double ymodel=yworld;
     
@@ -50,7 +50,7 @@ double coordinates::yin(double yworld)
     return ymodel;
 }
 
-double coordinates::xout(double xmodel)
+double coordinates::Xout(double xmodel, double ymodel)
 {
     double xworld=xmodel;
     
@@ -59,7 +59,7 @@ double coordinates::xout(double xmodel)
     return xworld;
 }
 
-double coordinates::yout(double ymodel)
+double coordinates::Yout(double xmodel, double ymodel)
 {
     double yworld=ymodel;
     

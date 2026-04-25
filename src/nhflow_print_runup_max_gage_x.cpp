@@ -152,7 +152,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     {
     wsfout<<setprecision(9)<<T<<"\t";
     for(q=0;q<p->P134;++q)
-    wsfout<<setprecision(9)<<p->xout(xloc[q])<<"  \t  "<<zloc[q];
+    wsfout<<setprecision(9)<<p->Xout(xloc[q])<<"  \t  "<<zloc[q];
     wsfout<<endl;
     }
     
