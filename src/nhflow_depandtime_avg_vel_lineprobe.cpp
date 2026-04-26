@@ -29,7 +29,7 @@ Author: Thomas Becker
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *p, fdm_nhf *d) : probenum(p->P94)
+nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *p, fdm_nhf *d) : probenum(p->P145)
 {
     p->Iarray(flag,probenum);
     p->Darray(line_length,probenum);
@@ -42,7 +42,7 @@ nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *
     max_points = 1;
     for(n=0;n<probenum;++n)
     {
-        point_count[n] = MAX(1,p->P94_n[n]);
+        point_count[n] = MAX(1,p->P145_n[n]);
         max_points = MAX(max_points,point_count[n]);
     }
 
@@ -57,7 +57,7 @@ nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *
     for(n=0;n<probenum;++n)
     {
         time_accum[n] = 0.0;
-        next_print_time[n] = p->P94_transient[n] + (p->P94_dt[n]>0.0?p->P94_dt[n]:1.0e20);
+        next_print_time[n] = p->P145_transient[n] + (p->P145_dt[n]>0.0?p->P145_dt[n]:1.0e20);
 
         for(q=0;q<max_points;++q)
         {
@@ -92,7 +92,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         if(flag[n]!=1)
             continue;
 
-        const double tstart = p->P94_transient[n];
+        const double tstart = p->P145_transient[n];
         const double t0 = p->simtime - p->dt_old;
         const double t1 = p->simtime;
 
@@ -157,7 +157,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
 
         time_accum[n] += effective_dt;
 
-        if(p->P94_dt[n]<=0.0 || time_accum[n]<=0.0)
+        if(p->P145_dt[n]<=0.0 || time_accum[n]<=0.0)
             continue;
 
         if(p->simtime + 1.0e-12 < next_print_time[n])
@@ -179,8 +179,8 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
 
             pout[n]<<setprecision(12)
                    <<dist[n][q]<<" "
-                   <<p->xout(xpt[n][q])<<" "
-                   <<p->yout(ypt[n][q])<<" "
+                   <<p->Xout(xpt[n][q],ypt[n][q])<<" "
+                   <<p->Yout(xpt[n][q],ypt[n][q])<<" "
                    <<uavg<<" "
                    <<vavg<<" "
                    <<nvel<<endl;
@@ -189,7 +189,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         pout[n].close();
 
         while(next_print_time[n] <= p->simtime + 1.0e-12)
-            next_print_time[n] += p->P94_dt[n];
+            next_print_time[n] += p->P145_dt[n];
     }
 }
 
@@ -199,10 +199,10 @@ void nhflow_depandtime_avg_vel_lineprobe::ini_location(lexer *p, fdm_nhf *d)
     {
         flag[n] = 1;
 
-        const double xs = p->P94_xs[n];
-        const double xe = p->P94_xe[n];
-        const double ys = p->P94_ys[n];
-        const double ye = p->P94_ye[n];
+        const double xs = p->P145_xs[n];
+        const double xe = p->P145_xe[n];
+        const double ys = p->P145_ys[n];
+        const double ye = p->P145_ye[n];
 
         const double dx = xe - xs;
         const double dy = ye - ys;

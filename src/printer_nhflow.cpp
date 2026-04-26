@@ -114,10 +114,10 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P67>0)
     puprofile = new nhflow_profile_u(p,d);
 
-    if(p->P93>0)
+    if(p->P144>0)
     pdepavgline = new nhflow_depavg_vel_lineprobe(p,d);
 
-    if(p->P94>0)
+    if(p->P145>0)
     pdepandtimeavgline = new nhflow_depandtime_avg_vel_lineprobe(p,d);
 
     if(p->P66>0)
@@ -287,10 +287,10 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         puprofile->start(p,d,pgc);
 
-    if(p->P93>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    if(p->P144>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         pdepavgline->start(p,d,pgc);
 
-    if(p->P94>0)
+    if(p->P145>0)
         pdepandtimeavgline->start(p,d,pgc);
 
 

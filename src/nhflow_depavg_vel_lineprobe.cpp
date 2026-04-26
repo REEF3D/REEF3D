@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_depavg_vel_lineprobe::nhflow_depavg_vel_lineprobe(lexer *p, fdm_nhf *d) : probenum(p->P93)
+nhflow_depavg_vel_lineprobe::nhflow_depavg_vel_lineprobe(lexer *p, fdm_nhf *d) : probenum(p->P144)
 {
     p->Iarray(flag,probenum);
     p->Darray(line_length,probenum);
@@ -40,7 +40,7 @@ nhflow_depavg_vel_lineprobe::nhflow_depavg_vel_lineprobe(lexer *p, fdm_nhf *d) :
     max_points = 1;
     for(n=0;n<probenum;++n)
     {
-        point_count[n] = MAX(1,p->P93_n[n]);
+        point_count[n] = MAX(1,p->P144_n[n]);
         max_points = MAX(max_points,point_count[n]);
     }
 
@@ -125,8 +125,8 @@ void nhflow_depavg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
             {
                 pout[n]<<setprecision(12)
                        <<dist[n][q]<<" "
-                       <<p->xout(xpt[n][q])<<" "
-                       <<p->yout(ypt[n][q])<<" "
+                       <<p->Xout(xpt[n][q],ypt[n][q])<<" "
+                       <<p->Yout(xpt[n][q],ypt[n][q])<<" "
                        <<uavg<<" "
                        <<vavg<<" "
                        <<nvel<<endl;
@@ -143,10 +143,10 @@ void nhflow_depavg_vel_lineprobe::ini_location(lexer *p, fdm_nhf *d)
     {
         flag[n] = 1;
 
-        const double xs = p->P93_xs[n];
-        const double xe = p->P93_xe[n];
-        const double ys = p->P93_ys[n];
-        const double ye = p->P93_ye[n];
+        const double xs = p->P144_xs[n];
+        const double xe = p->P144_xe[n];
+        const double ys = p->P144_ys[n];
+        const double ye = p->P144_ye[n];
 
         const double dx = xe - xs;
         const double dy = ye - ys;

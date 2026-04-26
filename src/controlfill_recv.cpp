@@ -1308,10 +1308,6 @@ void control::ctrlrecv()
     dd++;
     P92 = ictrl[ii];
     ii++;
-    P93 = ictrl[ii];
-    ii++;
-    P94 = ictrl[ii];
-    ii++;
     P101 = ictrl[ii];
     ii++;
     P101_xm = dctrl[dd];
@@ -1356,6 +1352,10 @@ void control::ctrlrecv()
     ii++;
     P141 = dctrl[dd];
     dd++;
+    P144 = ictrl[ii];
+    ii++;
+    P145 = ictrl[ii];
+    ii++;
     P151 = ictrl[ii];
     ii++;
     P152 = ictrl[ii];
@@ -2892,26 +2892,6 @@ void control::ctrlrecv()
         Darray(P69_y,P69);
     }
 
-    if(P93>0)
-    {
-        Darray(P93_xs,P93);
-        Darray(P93_xe,P93);
-        Darray(P93_ys,P93);
-        Darray(P93_ye,P93);
-        Iarray(P93_n,P93);
-    }
-
-    if(P94>0)
-    {
-        Darray(P94_xs,P94);
-        Darray(P94_xe,P94);
-        Darray(P94_ys,P94);
-        Darray(P94_ye,P94);
-        Iarray(P94_n,P94);
-        Darray(P94_transient,P94);
-        Darray(P94_dt,P94);
-    }
-
     if(P81>0)
     {
         Darray(P81_xs,P81);
@@ -2967,6 +2947,26 @@ void control::ctrlrecv()
     {
         Darray(P140_x,P140);
         Darray(P140_y,P140);
+    }
+    
+    if(P144>0)
+    {
+        Darray(P144_xs,P144);
+        Darray(P144_xe,P144);
+        Darray(P144_ys,P144);
+        Darray(P144_ye,P144);
+        Iarray(P144_n,P144);
+    }
+
+    if(P145>0)
+    {
+        Darray(P145_xs,P145);
+        Darray(P145_xe,P145);
+        Darray(P145_ys,P145);
+        Darray(P145_ye,P145);
+        Iarray(P145_n,P145);
+        Darray(P145_transient,P145);
+        Darray(P145_dt,P145);
     }
 
     if(P167>0)
@@ -4329,38 +4329,6 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P93;++n)
-    {
-        P93_xs[n] = dctrl[dd];
-        dd++;
-        P93_xe[n] = dctrl[dd];
-        dd++;
-        P93_ys[n] = dctrl[dd];
-        dd++;
-        P93_ye[n] = dctrl[dd];
-        dd++;
-        P93_n[n] = ictrl[ii];
-        ii++;
-    }
-
-    for(n=0;n<P94;++n)
-    {
-        P94_xs[n] = dctrl[dd];
-        dd++;
-        P94_xe[n] = dctrl[dd];
-        dd++;
-        P94_ys[n] = dctrl[dd];
-        dd++;
-        P94_ye[n] = dctrl[dd];
-        dd++;
-        P94_n[n] = ictrl[ii];
-        ii++;
-        P94_transient[n] = dctrl[dd];
-        dd++;
-        P94_dt[n] = dctrl[dd];
-        dd++;
-    }
-
     for(n=0;n<P81;++n)
     {
         P81_xs[n] = dctrl[dd];
@@ -4444,6 +4412,38 @@ void control::ctrlrecv()
         P140_x[n] = dctrl[dd];
         dd++;
         P140_y[n] = dctrl[dd];
+        dd++;
+    }
+    
+    for(n=0;n<P144;++n)
+    {
+        P144_xs[n] = dctrl[dd];
+        dd++;
+        P144_xe[n] = dctrl[dd];
+        dd++;
+        P144_ys[n] = dctrl[dd];
+        dd++;
+        P144_ye[n] = dctrl[dd];
+        dd++;
+        P144_n[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n=0;n<P145;++n)
+    {
+        P145_xs[n] = dctrl[dd];
+        dd++;
+        P145_xe[n] = dctrl[dd];
+        dd++;
+        P145_ys[n] = dctrl[dd];
+        dd++;
+        P145_ye[n] = dctrl[dd];
+        dd++;
+        P145_n[n] = ictrl[ii];
+        ii++;
+        P145_transient[n] = dctrl[dd];
+        dd++;
+        P145_dt[n] = dctrl[dd];
         dd++;
     }
 
