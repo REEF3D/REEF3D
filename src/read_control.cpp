@@ -1745,6 +1745,12 @@ void control::read_control(lexer* p)
                 case 92: control>>P92;
                          clear(c,numint);
                          break;
+                case 93: ++P93;
+                         clear(c,numint);
+                         break;
+                case 94: ++P94;
+                         clear(c,numint);
+                         break;
                 case 101: control>>P101_xm>>P101_ym>>P101_zs>>P101_ze>>P101_r1>>P101_r2;
                          P101_xm = p->xin(P101_xm);
                          P101_ym = p->yin(P101_ym);
@@ -3216,6 +3222,20 @@ void control::read_control(lexer* p)
     Darray(P69_x,P69);
     Darray(P69_y,P69);
 
+    Darray(P93_xs,P93);
+    Darray(P93_xe,P93);
+    Darray(P93_ys,P93);
+    Darray(P93_ye,P93);
+    Iarray(P93_n,P93);
+
+    Darray(P94_xs,P94);
+    Darray(P94_xe,P94);
+    Darray(P94_ys,P94);
+    Darray(P94_ye,P94);
+    Iarray(P94_n,P94);
+    Darray(P94_transient,P94);
+    Darray(P94_dt,P94);
+
     Darray(P167_x,P167);
 
     Darray(P168_x,P168);
@@ -3546,6 +3566,8 @@ void control::read_control(lexer* p)
     int countP67=0;
     int countP68=0;
     int countP69=0;
+    int countP93=0;
+    int countP94=0;
     int countP167=0;
     int countP168=0;
     int countP81=0;
@@ -4127,6 +4149,22 @@ void control::read_control(lexer* p)
                          P69_x[countP69] = p->xin(P69_x[countP69]);
                          P69_y[countP69] = p->yin(P69_y[countP69]);
                          ++countP69;
+                         clear(c,numint);
+                         break;
+                case 93: control>>P93_xs[countP93]>>P93_xe[countP93]>>P93_ys[countP93]>>P93_ye[countP93]>>P93_n[countP93];
+                         P93_xs[countP93] = p->xin(P93_xs[countP93]);
+                         P93_xe[countP93] = p->xin(P93_xe[countP93]);
+                         P93_ys[countP93] = p->yin(P93_ys[countP93]);
+                         P93_ye[countP93] = p->yin(P93_ye[countP93]);
+                         ++countP93;
+                         clear(c,numint);
+                         break;
+                case 94: control>>P94_xs[countP94]>>P94_xe[countP94]>>P94_ys[countP94]>>P94_ye[countP94]>>P94_n[countP94]>>P94_transient[countP94]>>P94_dt[countP94];
+                         P94_xs[countP94] = p->xin(P94_xs[countP94]);
+                         P94_xe[countP94] = p->xin(P94_xe[countP94]);
+                         P94_ys[countP94] = p->yin(P94_ys[countP94]);
+                         P94_ye[countP94] = p->yin(P94_ye[countP94]);
+                         ++countP94;
                          clear(c,numint);
                          break;
                 case 81: control>>P81_xs[countP81]>>P81_xe[countP81]>>P81_ys[countP81]>>P81_ye[countP81]>>P81_zs[countP81]>>P81_ze[countP81];

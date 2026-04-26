@@ -658,6 +658,8 @@ void control::ini_default()
     P88=0;            // int kinematics print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
+    P93=0;           // int print NHFLOW depth-averaged velocity line probes
+    P94=0;           // int print NHFLOW depth and time-averaged velocity line probes
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
