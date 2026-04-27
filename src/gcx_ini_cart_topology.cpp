@@ -22,10 +22,6 @@ Authors: Hans Bihs, Alexander Hanke
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm_fnpf.h"
-#include"fdm_nhf.h"
-#include<sstream>
 
 void ghostcell::gcx_cart_topology(lexer* p)
 {
