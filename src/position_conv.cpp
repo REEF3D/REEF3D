@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 int position::conv(double a)
 {
-
     int b,c;
     double d,diff;
 
@@ -37,10 +36,8 @@ int position::conv(double a)
 
     if(diff>0.5)
     b=c+1;
-
-    if(diff<=-0.5)
+    else if(diff<=-0.5)
     b=c-1;
 
     return b;
-
 }
