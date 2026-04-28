@@ -226,9 +226,12 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
    
    
    
+
    
    // Forcing Fluxes
    // U,UH
+    if(p->A521==0)
+    {
     ULOOP
     {
         if((p->DF[IJK]==1 && p->DF[Ip1JK]==-1))
@@ -416,11 +419,7 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         d->WHb[IJK] = 0.0;
         }
     }
+    }
     
-   /* 
-    uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-    vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-    wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
-*/
     
 }

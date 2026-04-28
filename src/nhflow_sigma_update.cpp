@@ -153,10 +153,22 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
     }
+    /*
+    FLOOP
+    if(p->wet[IJ]==1)
+    {
+        p->sigxx[FIJK] = MAX(p->sigxx[FIJK],-100.0);
+        p->sigxx[FIJK] = MIN(p->sigxx[FIJK],100.0);
+        
+        
+    }*/
     
     FLOOP
     if(p->wet[IJ]==0)
     p->sigxx[FIJK]=0.0;
+    
+    LOOP
+    d->test[IJK] = p->sigxx[FIJKp1];
     
     // sig BC
     SLICELOOP4
