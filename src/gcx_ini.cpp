@@ -78,30 +78,6 @@ void ghostcell::gcx_ini(lexer* p)
 
     // MPI_CART_TOPOLOGY
     gcx_cart_topology(p);
-
-
-    // Topology Test
-    bool error = false;
-    const int nb[6] = {p->nb1, p->nb4, p->nb3, p->nb2, p->nb5, p->nb6};
-
-    for (int dir = 0; dir < 6; ++dir)
-    {
-        const int expected = (nb[dir] == -2) ? MPI_PROC_NULL : nb[dir];
-        if (neighbors[dir] != expected) {
-            error = true;
-            std::cerr << "Rank " << p->mpirank << " mismatch dir " << dir
-                      << " cart=" << neighbors[dir] << " nb=" << expected << std::endl;
-        }
-    }
-    if(cart_comm == MPI_COMM_NULL)
-        error = true;
-
-    if(error)
-    {
-        std::cerr << "MPI Cartesian topology does not match user-specified neighbours or doesn't exist. Exiting." << std::endl;
-        exit(1);
-    }
-    
     
     // nb
     nb0[0] = p->nb1;

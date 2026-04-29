@@ -17,44 +17,47 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Thomas Becker
 --------------------------------------------------------------------*/
 
-#include"fnpf_breaking_log.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
+#ifndef NHFLOW_DEPANDTIME_AVG_VEL_LINEPROBE_H_
+#define NHFLOW_DEPANDTIME_AVG_VEL_LINEPROBE_H_
+
+#include"boundarycheck.h"
 #include<iostream>
 #include<fstream>
-#include<sys/stat.h>
-#include<sys/types.h>
 
-fnpf_breaking_log::fnpf_breaking_log(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{	
-	// Create Folder
-	mkdir("./REEF3D_FNPF_Breaking_Log",0777);
-	
-	// result file
-    filename(p,c,pgc);
-	
-	result.open(name);
-}
+class lexer;
+class fdm_nhf;
+class ghostcell;
 
-fnpf_breaking_log::~fnpf_breaking_log()
+using namespace std;
+
+class nhflow_depandtime_avg_vel_lineprobe : public boundarycheck
 {
-    result.close();
-}
+public:
+    nhflow_depandtime_avg_vel_lineprobe(lexer*,fdm_nhf*);
+    virtual ~nhflow_depandtime_avg_vel_lineprobe();
 
-void fnpf_breaking_log::write(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-    
-    // result section
-    SLICELOOP4
-    if(c->breaklog(i,j)>0)
-    {
-    result<<p->simtime<<" "<<p->Xout(p->XP[IP],p->YP[JP])<<" "<<p->Yout(p->XP[IP],p->YP[JP])<<endl;
-    //cout<<p->simtime<<" "<<p->Xout(p->XP[IP],p->YP[JP])<<" "<<p->Yout(p->XP[IP],p->YP[JP])<<endl;
-    } 
+    void start(lexer*, fdm_nhf*, ghostcell*);
 
+private:
+    void ini_location(lexer*, fdm_nhf*);
 
-}
+    char name[220];
+
+    int *flag;
+    int **iloc, **jloc, *point_count;
+    int max_points;
+    int n,q;
+    const int probenum;
+
+    double *line_length, *normal_x, *normal_y;
+    double *time_accum, *next_print_time;
+    double **xpt, **ypt, **dist;
+    double **u_timeint, **v_timeint;
+
+    ofstream *pout;
+};
+
+#endif

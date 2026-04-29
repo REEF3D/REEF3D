@@ -73,8 +73,8 @@ void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U,
     d->test2D(i,j) = psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
     }
     
-    LOOP
-    d->test[IJK] = d->test2D(i,j);
+    //LOOP
+    //d->test[IJK] = d->test2D(i,j);
 }
 
 void wind_f::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)

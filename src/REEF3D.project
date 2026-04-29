@@ -628,6 +628,8 @@
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_depavg_vel_lineprobe.h"/>
+            <File Name="nhflow_depandtime_avg_vel_lineprobe.h"/>
             <File Name="nhflow_probe_vel_theory.h"/>
             <File Name="nhflow_probe_vel.h"/>
             <File Name="nhflow_probe_press.h"/>
@@ -1993,6 +1995,8 @@
             <File Name="nhflow_state.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_depavg_vel_lineprobe.cpp"/>
+            <File Name="nhflow_depandtime_avg_vel_lineprobe.cpp"/>
             <File Name="nhflow_probe_vel_theory.cpp"/>
             <File Name="nhflow_probe_vel.cpp"/>
             <File Name="nhflow_profile_u.cpp"/>

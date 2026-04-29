@@ -91,10 +91,10 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
     result.write((char*)&iin, sizeof(int));
     for(n=0;n<vertice_num;++n)
     {
-        ffn=p->xout(ccpt[n][0]);
+        ffn=p->Xout(ccpt[n][0],ccpt[n][1]);
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=p->yout(ccpt[n][1]);
+        ffn=p->Yout(ccpt[n][0],ccpt[n][1]);
         result.write((char*)&ffn, sizeof(float));
 
         ffn=ccpt[n][2];
