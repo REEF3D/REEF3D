@@ -199,15 +199,8 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     }
         
         // additional breaking filter
+        // shallow
         if(p->A352==1)
-        SLICELOOP4
-        if(c->breaking(i,j)==1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-        if(p->A352==2)
         SLICELOOP4
         if(c->breaking(i,j)==2)
         {
@@ -215,6 +208,16 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
          filter(p,c,pgc,Fifsf);
         }   
         
+        // deep
+        if(p->A352==2)
+        SLICELOOP4
+        if(c->breaking(i,j)==1)
+        {
+         filter(p,c,pgc,eta);
+         filter(p,c,pgc,Fifsf);
+        }   
+        
+        // all
         if(p->A352==3)
         SLICELOOP4
         if(c->breaking(i,j)>=1)
