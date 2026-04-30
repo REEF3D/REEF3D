@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef ITERATORS_H_
-#define ITERATORS_H_
+#ifndef ITERATORS3_H_
+#define ITERATORS3_H_
 
 #define IJK  (i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin
 
