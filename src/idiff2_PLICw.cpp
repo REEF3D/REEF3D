@@ -46,7 +46,7 @@ void idiff2_PLIC::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
     WLOOP
     {
     
-    if(p->F92==22||p->F92==32)
+    /*if(p->F92==22||p->F92==32)
     {
         ev_ijk=a->vof(i,j,k)*a->eddyv(i,j,k);
         ev_im_j_k=a->vof(i-1,j,k)*a->eddyv(i-1,j,k);
@@ -60,7 +60,7 @@ void idiff2_PLIC::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         ev_i_jm_kp=a->vof(i,j-1,k+1)*a->eddyv(i,j-1,k+1);
     }
     else
-    {
+    {*/
         ev_ijk=a->eddyv(i,j,k);
         ev_im_j_k=a->eddyv(i-1,j,k);
         ev_ip_j_k=a->eddyv(i+1,j,k);
@@ -71,7 +71,7 @@ void idiff2_PLIC::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         ev_im_j_kp=a->eddyv(i-1,j,k+1);
         ev_i_jp_kp=a->eddyv(i,j+1,k+1);
         ev_i_jm_kp=a->eddyv(i,j-1,k+1);
-    }
+   // }
 	
 	visc_ijk=a->visc(i,j,k);
 	visc_im_j_k=a->visc(i-1,j,k);

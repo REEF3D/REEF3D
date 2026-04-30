@@ -55,7 +55,7 @@ void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
 	ULOOP // 
 	{
     
-    if(p->F92==22||p->F92==32)
+   /* if(p->F92==22||p->F92==32)
     {
         ev_ijk=a->vof(i,j,k)*a->eddyv(i,j,k);
         ev_ip_j_k=a->vof(i+1,j,k)*a->eddyv(i+1,j,k);
@@ -69,7 +69,7 @@ void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         ev_ip_j_km=a->vof(i+1,j,k-1)*a->eddyv(i+1,j,k-1);
     }
     else
-    {
+    {*/
         ev_ijk=a->eddyv(i,j,k);
         ev_ip_j_k=a->eddyv(i+1,j,k);
         ev_i_jm_k=a->eddyv(i,j-1,k);
@@ -80,7 +80,7 @@ void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         ev_ip_jm_k=a->eddyv(i+1,j-1,k);
         ev_ip_j_kp=a->eddyv(i+1,j,k+1);
         ev_ip_j_km=a->eddyv(i+1,j,k-1);
-	}
+//	}
 	visc_ijk=a->visc(i,j,k);
 	visc_ip_j_k=a->visc(i+1,j,k);
 	visc_i_jm_k=a->visc(i,j-1,k);

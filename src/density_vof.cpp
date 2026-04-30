@@ -103,7 +103,7 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
                 cout<<"density case missing, d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<endl;
             }
     }
-    else if(p->F92==3||p->F92==32)
+    else if(p->F92==3)
     {
         double H;
         int excepcheck;
@@ -212,7 +212,114 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
                     cout<<"density case missing 3D d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<" exepcheck 0"<<endl;
             }
         }
-        roval=roval = p->W1*H + p->W3*(1.0-H);
+        roval = p->W1*H + p->W3*(1.0-H);
+    }
+    else if(p->F92==32)
+    {
+        double weight2,weight3;
+        weight2=0.5;
+        weight3=0.5;
+        double H2,H3;
+        double rho2,rho3;
+        
+        if(a->vof(i,j,k)>p->F94 && a->vof(i+d_i,j+d_j,k+d_k)>p->F94)
+            rho2=p->W1;
+        else if(a->vof(i,j,k)<p->F93 && a->vof(i+d_i,j+d_j,k+d_k)<p->F93)
+            rho2=p->W3;
+        else
+        {
+            if(d_i==1)
+                rho2=(0.5*p->DXN[IP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    +0.5*p->DXN[IP1]*(a->vof(i+d_i,j+d_j,k+d_k)*p->W1+(1.0-a->vof(i+d_i,j+d_j,k+d_k))*p->W3)
+                    )/p->DXP[IP];
+            else if(d_i==-1)
+                rho2=(0.5*p->DXN[IP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    +0.5*p->DXN[IM1]*(a->vof(i+d_i,j+d_j,k+d_k)*p->W1+(1.0-a->vof(i+d_i,j+d_j,k+d_k))*p->W3)
+                    )/p->DXP[IM1];
+            else if(d_k==1)
+                rho2=(0.5*p->DZN[KP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    +0.5*p->DZN[KP1]*(a->vof(i+d_i,j+d_j,k+d_k)*p->W1+(1.0-a->vof(i+d_i,j+d_j,k+d_k))*p->W3)
+                    )/p->DZP[KP];
+            else if(d_k==-1)
+                rho2=(0.5*p->DZN[KP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    +0.5*p->DZN[KM1]*(a->vof(i+d_i,j+d_j,k+d_k)*p->W1+(1.0-a->vof(i+d_i,j+d_j,k+d_k))*p->W3)
+                    )/p->DZP[KM1];
+            else if(d_j==1)
+                rho2=(0.5*p->DYN[JP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    +0.5*p->DYN[JP1]*(a->vof(i+d_i,j+d_j,k+d_k)*p->W1+(1.0-a->vof(i+d_i,j+d_j,k+d_k))*p->W3)
+                    )/p->DYP[JP];
+            else if(d_j==-1)
+                rho2=(0.5*p->DYN[JP]*(a->vof(i,j,k)*p->W1+(1.0-a->vof(i,j,k))*p->W3)
+                    +0.5*p->DYN[JM1]*(a->vof(i+d_i,j+d_j,k+d_k)*p->W1+(1.0-a->vof(i+d_i,j+d_j,k+d_k))*p->W3)
+                    )/p->DYP[JM1];
+            else
+                cout<<"density case missing, d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<endl;
+        }
+        
+        if(p->j_dir<1)
+        {
+            if(d_i==1)
+                H3=(0.25*p->DXN[IP]*a->vof_nt(i,j,k)+0.25*p->DXN[IP]*a->vof_nb(i,j,k)+0.25*p->DXN[IP1]*a->vof_st(i+1,j,k)+0.25*p->DXN[IP1]*a->vof_sb(i+1,j,k))/p->DXP[IP];
+            else if(d_i==-1)
+                H3=(0.25*p->DXN[IP]*a->vof_st(i,j,k)+0.25*p->DXN[IP]*a->vof_sb(i,j,k)+0.25*p->DXN[IM1]*a->vof_nt(i-1,j,k)+0.25*p->DXN[IM1]*a->vof_nb(i-1,j,k))/p->DXP[IM1];
+            else if(d_j==1)
+                H3=a->vof(i,j,k);
+            else if(d_j==-1)
+                H3=a->vof(i,j,k);
+            else if(d_k==1)
+                H3=(0.25*p->DZN[KP]*a->vof_nt(i,j,k)+0.25*p->DZN[KP]*a->vof_st(i,j,k)+0.25*p->DZN[KP1]*a->vof_nb(i,j,k+1)+0.25*p->DZN[KP1]*a->vof_sb(i,j,k+1))/p->DZP[KP];
+            else if(d_k==-1)
+                H3=(0.25*p->DZN[KP]*a->vof_nb(i,j,k)+0.25*p->DZN[KP]*a->vof_sb(i,j,k)+0.25*p->DZN[KM1]*a->vof_nt(i,j,k-1)+0.25*p->DZN[KM1]*a->vof_st(i,j,k-1))/p->DZP[KM1];
+            else
+                cout<<"density case missing 2D, d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<" exepcheck 0"<<endl;;
+        }
+        else
+        {
+            if(d_i==1)
+            {
+                H3=(0.5*p->DXN[IP]*(0.25*a->vof_nte(i,j,k)+0.25*a->vof_ntw(i,j,k)+0.25*a->vof_nbe(i,j,k)+0.25*a->vof_nbw(i,j,k))
+                        +0.5*p->DXN[IP1]*(0.25*a->vof_ste(i+1,j,k)+0.25*a->vof_stw(i+1,j,k)+0.25*a->vof_sbe(i+1,j,k)+0.25*a->vof_sbw(i+1,j,k))
+                        )/p->DXP[IP];
+                
+            }
+            else if(d_i==-1)
+            {
+                H3=(0.5*p->DXN[IP]*(0.25*a->vof_ste(i,j,k)+0.25*a->vof_stw(i,j,k)+0.25*a->vof_sbe(i,j,k)+0.25*a->vof_sbw(i,j,k))
+                        +0.5*p->DXN[IM1]*(0.25*a->vof_nte(i-1,j,k)+0.25*a->vof_ntw(i-1,j,k)+0.25*a->vof_nbe(i-1,j,k)+0.25*a->vof_nbw(i-1,j,k))
+                        )/p->DXP[IM1];
+            }
+            else if(d_j==1)
+            {
+                H3=(0.5*p->DYN[JP]*(0.25*a->vof_ntw(i,j,k)+0.25*a->vof_nbw(i,j,k)+0.25*a->vof_stw(i,j,k)+0.25*a->vof_sbw(i,j,k))
+                        +0.5*p->DYN[JP1]*(0.25*a->vof_nte(i,j+1,k)+0.25*a->vof_nbe(i,j+1,k)+0.25*a->vof_ste(i,j+1,k)+0.25*a->vof_sbe(i,j+1,k))
+                        )/p->DYP[JP];
+            }
+            else if(d_j==-1)
+            {
+                H3=(0.5*p->DYN[JP]*(0.25*a->vof_nte(i,j,k)+0.25*a->vof_nbe(i,j,k)+0.25*a->vof_ste(i,j,k)+0.25*a->vof_sbe(i,j,k))
+                        +0.5*p->DYN[JM1]*(0.25*a->vof_ntw(i,j-1,k)+0.25*a->vof_nbw(i,j-1,k)+0.25*a->vof_stw(i,j-1,k)+0.25*a->vof_sbw(i,j-1,k))
+                        )/p->DYP[JM1];
+            }
+            else if(d_k==1)
+            {
+                H3=(0.5*p->DZN[KP]*(0.25*a->vof_nte(i,j,k)+0.25*a->vof_ntw(i,j,k)+0.25*a->vof_ste(i,j,k)+0.25*a->vof_stw(i,j,k))
+                        +0.5*p->DZN[KP1]*(0.25*a->vof_nbe(i,j,k+1)+0.25*a->vof_nbw(i,j,k+1)+0.25*a->vof_sbe(i,j,k+1)+0.25*a->vof_sbw(i,j,k+1))
+                        )/p->DZP[KP];
+            }
+            else if(d_k==-1)
+            {
+                H3=(0.5*p->DZN[KP]*(0.25*a->vof_nbe(i,j,k)+0.25*a->vof_nbw(i,j,k)+0.25*a->vof_sbe(i,j,k)+0.25*a->vof_sbw(i,j,k))
+                        +0.5*p->DZN[KM1]*(0.25*a->vof_nte(i,j,k-1)+0.25*a->vof_ntw(i,j,k-1)+0.25*a->vof_ste(i,j,k-1)+0.25*a->vof_stw(i,j,k-1))
+                        )/p->DZP[KM1];
+            }
+            else
+                    cout<<"density case missing 3D d_i:"<<d_i<<" d_j:"<<d_j<<" d_k:"<<d_k<<" exepcheck 0"<<endl;
+        }
+        
+        rho3= p->W1*H3 + p->W3*(1.0-H3);
+        
+        roval=(weight2*rho2+weight3*rho3)/(weight2+weight3);
+        
     }
     
     return roval;
