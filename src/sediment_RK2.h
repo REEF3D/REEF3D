@@ -34,7 +34,11 @@ public:
 	virtual ~sediment_RK2();
     
     // NHFLOW interface
-
+    
+    void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override {};
+    void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override {};
+    
     void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
     void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override;
 
