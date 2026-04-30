@@ -216,6 +216,7 @@ public:
 private:
     double starttime, endtime;
     ofstream mainlogout;
+    ofstream versionlogout;
     ofstream maxlogout;
     ofstream solvlogout;
 	

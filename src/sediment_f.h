@@ -63,7 +63,7 @@ public:
 	virtual ~sediment_f();
     
     // CFD interface
-    void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override final;
+    void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override;
     void ini_cfd(lexer*,fdm*,ghostcell*) override final;
     void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*) override final;
     void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*) override final;
@@ -77,7 +77,7 @@ public:
     void bedchange_update(lexer*, ghostcell*);
     
     // NHFLOW interface
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
     void ini_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
     void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*) override final;
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override final;
@@ -92,7 +92,7 @@ public:
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
     // SFLOW interface
-    void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override final;
+    void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override;
     void ini_sflow(lexer*, fdm2D*, ghostcell*) override final;
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*) override final;
     void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);

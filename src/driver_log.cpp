@@ -47,6 +47,15 @@ void driver::log_ini()
 	// Create Folder
 	if(p->mpirank==0)
 	mkdir("./REEF3D_Log",0777);
+    
+    if(p->mpirank==0)
+    {
+    versionlogout.open("./REEF3D_Log/REEF3D_Version.dat");
+    versionlogout<<"REEF3D version:  "<<version<<endl;
+    versionlogout<<endl<<"github branch: "<<BRANCH<<endl;
+    versionlogout<<endl<<"github version: "<<VERSION<<endl<<endl;
+    }
+    
 
     if(p->mpirank==0)
     {
