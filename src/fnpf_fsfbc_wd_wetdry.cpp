@@ -46,7 +46,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     p->wet[IJ]=0;
     
     SLICELOOP4
-    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
+    c->WL(i,j) = MAX(c->wd_criterion, eta(i,j) + p->wd - c->bed(i,j));
     }
     
     
@@ -98,20 +98,6 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
     SLICELOOP4
     if(wetcoast(i,j)==1)
     p->wet[IJ] = temp[IJ];
-    
-    
-    /*
-    SLICELOOP4
-    {
-          if(c->WL(i,j) >= c->wd_criterion)
-          p->wet[IJ]=1;
-              
-          if(c->WL(i,j) < c->wd_criterion)
-          {
-           p->wet[IJ]=0;
-           Fifsf(i,j) = 0.0;
-          }
-    }*/
     }
     
     //----
@@ -125,6 +111,12 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         eta(i,j) = 1.1*c->wd_criterion - c->depth(i,j);
         c->WL(i,j) = eta(i,j) + c->depth(i,j);
         //Fifsf(i,j) = 0.0;
+        
+        if(p->j_dir==0)
+        Fifsf(i,j) = 0.5*(Fifsf(i-1,j) + Fifsf(i+1,j));
+        
+        if(p->j_dir==1)
+        Fifsf(i,j) = 0.25*(Fifsf(i-1,j) + Fifsf(i+1,j) + Fifsf(i,j-1) + Fifsf(i,j+1));
     }
     
     //----
