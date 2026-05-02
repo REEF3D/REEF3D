@@ -45,6 +45,7 @@ void driver::loop_nhflow()
     cout<<"starting mainloop.NHFLOW"<<endl;
     
     //bedslope_test(p,pgc);
+    //ipol_test(p,d,pgc);
     
 //-----------MAINLOOP NHFLOW----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)

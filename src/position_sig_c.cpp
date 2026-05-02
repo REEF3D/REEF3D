@@ -23,6 +23,115 @@ Author: Hans Bihs
 #include"position.h"
 #include"lexer.h"
 
+int position::posc_sig(int ii, int jj, double xp, double yp, double zs)
+{
+    double Z0,Z1,Z2;
+    
+    i = ii;
+    j = jj;
+    
+    i = MAX(i,0);
+	i = MIN(i,p->knox-1);
+    
+	j = MAX(j,0);
+	j = MIN(j,p->knoy-1);
+    
+    k = 0;
+    int FIJK_start = FIJK;
+    
+    k = p->knoz;
+    int FIJK_end = FIJK;
+    
+    stop=0;
+    
+    ks = 0;
+    ke = p->knoz+1;
+
+    count=0;
+    do{
+    kloc = ihalf(ks,ke);
+    
+    if(count%3==0)
+    kloc+=1;
+    
+    k=kloc;
+    
+    // ---------
+    
+    Z0 = ((p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1])/p->DXP[IP])*(xp - p->XP[IP]) + p->ZSN[FIJKm1];
+    
+    Z1 = ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) + p->ZSN[FIJK];
+    
+    Z2 = ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) + p->ZSN[FIJKp1];
+    
+    //cout<<" Z0 "<<Z0<<" Z1 "<<Z1<<" Z2 "<<Z2<<endl;
+    
+    // ---------
+        
+        // out of bounds
+        if(zs<p->ZSN[FIJK_start])
+        {
+            kk = -1;
+            
+            //cout<<"EXIT 0m"<<endl;
+   
+         stop=1;
+         break;   
+        }
+        
+        // out of bounds
+        if(zs>p->ZSN[FIJK_end])
+        {
+            kk = p->knoz+1;
+            
+            //cout<<"EXIT 0p "<<" zs: "<<zs<<" p->ZSP[IJK_end]: "<<p->ZSP[IJK_end]<<" i: "<<i<<" j: "<<j<<endl;
+   
+         stop=1;
+         break;   
+        }
+        
+        // matching criterion
+        if(zs<Z1 && zs>=Z0 && stop==0)
+        {
+            kk = kloc-1;
+            
+            //cout<<"EXIT 1"<<endl;
+            
+         stop=1;
+         break;   
+        }
+        
+        if(zs>=Z1 && zs<Z2 && stop==0)
+        {
+            kk = kloc;
+            
+            //cout<<"EXIT 2"<<endl;
+   
+         stop=1;
+         break;   
+        }
+        
+        // further divksion
+        if(zs<Z1 && zs<Z0)
+        ke=kloc;
+        
+        if(zs>Z1 && zs>Z2)
+        ks=kloc;
+        
+        
+        ++count;
+    }while(stop==0 && count<1000);
+    
+    kk=MAX(kk,-1);
+    kk=MIN(kk,p->knoz+1);
+    
+    
+    return kk;
+}
+
+
+
+
 int position::posc_sig(int ii, int jj, double zs)
 {
     i = ii;

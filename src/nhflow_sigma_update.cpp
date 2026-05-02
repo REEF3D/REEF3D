@@ -167,9 +167,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     if(p->wet[IJ]==0)
     p->sigxx[FIJK]=0.0;
     
-    LOOP
-    d->test[IJK] = p->sigxx[FIJKp1];
-    
     // sig BC
     SLICELOOP4
     {
