@@ -126,7 +126,7 @@ void control::ini_default()
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=1;		// int
+    A521=0;		// int
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
@@ -674,6 +674,8 @@ void control::ini_default()
     P134=0;             // int runup gage y-crossection
     P140=0;             // int runup gage cylinder
     P141=0;             // int runup cylinder radius
+    P144=0;           // int print NHFLOW depth-averaged velocity line probes
+    P145=0;           // int print NHFLOW depth and time-averaged velocity line probes
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data

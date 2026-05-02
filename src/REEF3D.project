@@ -628,6 +628,8 @@
             <File Name="nhflow_state.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_depavg_vel_lineprobe.h"/>
+            <File Name="nhflow_depandtime_avg_vel_lineprobe.h"/>
             <File Name="nhflow_probe_vel_theory.h"/>
             <File Name="nhflow_probe_vel.h"/>
             <File Name="nhflow_probe_press.h"/>
@@ -997,17 +999,25 @@
         <File Name="6DOF_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
-        <File Name="concentration.h"/>
-        <File Name="concentration_AB.h"/>
-        <File Name="concentration_RK2.h"/>
-        <File Name="concentration_RK3.h"/>
-        <VirtualDirectory Name="BC">
-          <File Name="bc_concentration.h"/>
+        <VirtualDirectory Name="NHFLOW">
+          <VirtualDirectory Name="BC"/>
+          <VirtualDirectory Name="IO"/>
+          <File Name="nhflow_concentration_RK2.h"/>
+          <File Name="nhflow_concentration.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="IO">
-          <File Name="concentration_io.h"/>
+        <VirtualDirectory Name="CFD">
+          <VirtualDirectory Name="BC">
+            <File Name="bc_concentration.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="IO">
+            <File Name="concentration_io.h"/>
+          </VirtualDirectory>
+          <File Name="concentration_void.h"/>
+          <File Name="concentration_RK3.h"/>
+          <File Name="concentration_RK2.h"/>
+          <File Name="concentration_AB.h"/>
+          <File Name="concentration.h"/>
         </VirtualDirectory>
-        <File Name="concentration_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <File Name="vrans_nhflow.h"/>
@@ -1985,6 +1995,8 @@
             <File Name="nhflow_state.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="nhflow_depavg_vel_lineprobe.cpp"/>
+            <File Name="nhflow_depandtime_avg_vel_lineprobe.cpp"/>
             <File Name="nhflow_probe_vel_theory.cpp"/>
             <File Name="nhflow_probe_vel.cpp"/>
             <File Name="nhflow_profile_u.cpp"/>
@@ -2689,17 +2701,24 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
-        <File Name="concentration_AB.cpp"/>
-        <File Name="concentration_RK2.cpp"/>
-        <File Name="concentration_RK3.cpp"/>
-        <VirtualDirectory Name="BC">
-          <File Name="bc_concentration.cpp"/>
+        <VirtualDirectory Name="NHFLOW">
+          <VirtualDirectory Name="IO"/>
+          <VirtualDirectory Name="BC"/>
+          <File Name="nhflow_concentration_RK2.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Print">
-          <File Name="concentration_ini.cpp"/>
-          <File Name="concentration_io.cpp"/>
+        <VirtualDirectory Name="CFD">
+          <VirtualDirectory Name="IO">
+            <File Name="concentration_io.cpp"/>
+            <File Name="concentration_ini.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="BC">
+            <File Name="bc_concentration.cpp"/>
+          </VirtualDirectory>
+          <File Name="concentration_void.cpp"/>
+          <File Name="concentration_RK3.cpp"/>
+          <File Name="concentration_RK2.cpp"/>
+          <File Name="concentration_AB.cpp"/>
         </VirtualDirectory>
-        <File Name="concentration_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="VRANS NHFLOW">
@@ -3167,6 +3186,7 @@
             <File Name="iowave_sflow_active-beach.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="NHFLOW">
+            <File Name="iowave_nhflow_discharge.cpp"/>
             <File Name="iowave_nhflow_ini.cpp"/>
             <File Name="iowave_nhflow_precalc.cpp"/>
             <File Name="iowave_nhflow_relax.cpp"/>

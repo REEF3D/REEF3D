@@ -36,6 +36,8 @@ Author: Hans Bihs
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
 #include"nhflow_profile_u.h"
+#include"nhflow_depavg_vel_lineprobe.h"
+#include"nhflow_depandtime_avg_vel_lineprobe.h"
 #include"nhflow_probe_vel.h"
 #include"nhflow_probe_vel_theory.h"
 #include"nhflow_probe_press.h"
@@ -111,6 +113,12 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->P67>0)
     puprofile = new nhflow_profile_u(p,d);
+
+    if(p->P144>0)
+    pdepavgline = new nhflow_depavg_vel_lineprobe(p,d);
+
+    if(p->P145>0)
+    pdepandtimeavgline = new nhflow_depandtime_avg_vel_lineprobe(p,d);
 
     if(p->P66>0)
     pveltheo = new nhflow_probe_vel_theory(p,d);
@@ -278,6 +286,12 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     // Vel Profile
     if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         puprofile->start(p,d,pgc);
+
+    if(p->P144>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+        pdepavgline->start(p,d,pgc);
+
+    if(p->P145>0)
+        pdepandtimeavgline->start(p,d,pgc);
 
 
     // Print state out based on iteration

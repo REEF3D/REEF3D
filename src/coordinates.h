@@ -38,15 +38,12 @@ public:
 	virtual ~coordinates();
     
     // world to model
-    double xin(double);
-    double yin(double);
+    double Xin(double,double);
+    double Yin(double,double);
     
     // model to world
-    double xout(double);
-    double yout(double);
-    
-
-    
+    double Xout(double,double);
+    double Yout(double,double);
     
 private:
     lexer *p;

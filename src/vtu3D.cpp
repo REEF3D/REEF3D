@@ -312,11 +312,11 @@ void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size
             zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
 
         // -- 
-        ffn=float(p->xout(p->XN[IP1]));
+        ffn=float(p->Xout(p->XN[IP1],p->YN[JP]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 
-        ffn=float(p->yout(p->YN[JP1]));
+        ffn=float(p->Yout(p->XN[IP],p->YN[JP1]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 

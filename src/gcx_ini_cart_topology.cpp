@@ -22,79 +22,27 @@ Authors: Hans Bihs, Alexander Hanke
 
 #include"ghostcell.h"
 #include"lexer.h"
-#include"fdm.h"
-#include"fdm_fnpf.h"
-#include"fdm_nhf.h"
-#include<sstream>
 
 void ghostcell::gcx_cart_topology(lexer* p)
 {
-    // 1D
-    if(p->mx>=1 && p->my==1 && p->mz==1)
+    // Topology Setup
+    if (p->mz>1) // 3D
     {
-    ndims = 1;
-    
-    if(cart_comm != MPI_COMM_NULL)
-    MPI_Comm_free(&cart_comm);
-
-    int dims[1] = {p->mx};
-    MPI_Dims_create(p->mpi_size, ndims, dims);
-
-    int periods[1] = {p->periodic1};
-    MPI_Cart_create(mpi_comm, ndims, dims, periods, false, &cart_comm);
-
-    int cart_neg = MPI_PROC_NULL;
-    int cart_pos = MPI_PROC_NULL;
-
-    MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
-    neighbors[0] = cart_neg;
-    neighbors[1] = cart_pos;
-
-    neighbors[2] = MPI_PROC_NULL;
-    neighbors[3] = MPI_PROC_NULL;
-
-    neighbors[4] = MPI_PROC_NULL;
-    neighbors[5] = MPI_PROC_NULL;
+        ndims = 3;
     }
-    
-    
-    // 2D
-    if(p->mx>1 && p->my>1 && p->mz==1)
+    else if (p->my>1) // 2D
     {
-    ndims = 2;
-    
-    if(cart_comm != MPI_COMM_NULL)
-    MPI_Comm_free(&cart_comm);
-
-    int dims[2] = {p->mx, p->my};
-    MPI_Dims_create(p->mpi_size, ndims, dims);
-
-    int periods[2] = {p->periodic1,p->periodic2};
-    MPI_Cart_create(mpi_comm, ndims, dims, periods, false, &cart_comm);
-
-    int cart_neg = MPI_PROC_NULL;
-    int cart_pos = MPI_PROC_NULL;
-
-    MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
-    neighbors[0] = cart_neg;
-    neighbors[1] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
-    neighbors[2] = cart_neg;
-    neighbors[3] = cart_pos;
-
-    neighbors[4] = MPI_PROC_NULL;
-    neighbors[5] = MPI_PROC_NULL;
+        ndims = 2;
     }
-    
-    
-    // 3D
-    if(p->mx>1 && p->my>1 && p->mz>1)
+    else // 1D
     {
-    ndims = 3;
-    
-    if(cart_comm != MPI_COMM_NULL)
-    MPI_Comm_free(&cart_comm);
+        ndims = 1;
+    }
+
+    if (cart_comm != MPI_COMM_NULL)
+    {
+        MPI_Comm_free(&cart_comm);
+    }
 
     int dims[3] = {p->mx, p->my, p->mz};
     MPI_Dims_create(p->mpi_size, ndims, dims);
@@ -105,18 +53,46 @@ void ghostcell::gcx_cart_topology(lexer* p)
     int cart_neg = MPI_PROC_NULL;
     int cart_pos = MPI_PROC_NULL;
 
-    MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
-    neighbors[0] = cart_neg;
-    neighbors[1] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
-    neighbors[2] = cart_neg;
-    neighbors[3] = cart_pos;
-
-    MPI_Cart_shift(cart_comm, 2, 1, &cart_neg, &cart_pos);
-    neighbors[4] = cart_neg;
-    neighbors[5] = cart_pos;
+    if (p->mx>1)
+    {
+        MPI_Cart_shift(cart_comm, 0, 1, &cart_neg, &cart_pos);
+        neighbors[0] = cart_neg;
+        neighbors[1] = cart_pos;
     }
 
-    
+    if (p->my>1)
+    {
+        MPI_Cart_shift(cart_comm, 1, 1, &cart_neg, &cart_pos);
+        neighbors[2] = cart_neg;
+        neighbors[3] = cart_pos;
+    }
+
+    if (p->mz>1)
+    {
+        MPI_Cart_shift(cart_comm, 2, 1, &cart_neg, &cart_pos);
+        neighbors[4] = cart_neg;
+        neighbors[5] = cart_pos;
+    }
+
+    // Topology Test
+    bool error = false;
+    const int nb[6] = {p->nb1, p->nb4, p->nb3, p->nb2, p->nb5, p->nb6};
+
+    for (int dir = 0; dir < 6; ++dir)
+    {
+        const int expected = (nb[dir] == -2) ? MPI_PROC_NULL : nb[dir];
+        if (neighbors[dir] != expected) {
+            error = true;
+            std::cerr << "Rank " << p->mpirank << " mismatch dir " << dir
+                      << " cart=" << neighbors[dir] << " nb=" << expected << std::endl;
+        }
+    }
+    if(cart_comm == MPI_COMM_NULL)
+        error = true;
+
+    if(error)
+    {
+        std::cerr << "MPI Cartesian topology does not match user-specified neighbours or doesn't exist. Exiting." << std::endl;
+        exit(1);
+    }
 }

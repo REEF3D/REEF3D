@@ -38,6 +38,8 @@ class nhflow_print_wsfline_y;
 class nhflow_print_runup_gage_x;
 class nhflow_print_runup_max_gage_x;
 class nhflow_profile_u;
+class nhflow_depavg_vel_lineprobe;
+class nhflow_depandtime_avg_vel_lineprobe;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
 class nhflow_state;
@@ -89,6 +91,8 @@ private:
     nhflow_print_runup_gage_x *prunupx;
     nhflow_print_runup_max_gage_x *prunupmaxx;
     nhflow_profile_u *puprofile;
+    nhflow_depavg_vel_lineprobe *pdepavgline;
+    nhflow_depandtime_avg_vel_lineprobe *pdepandtimeavgline;
     nhflow_vtp_fsf *pfsf;
     nhflow_vtp_bed *pbed;
     nhflow_state *pstate;

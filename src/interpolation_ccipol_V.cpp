@@ -168,10 +168,6 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     
     k = MAX(k,0);
     k = MIN(k,p->knoz);
-    
-    
-    wc = MAX(wc,0);
-    wc = MIN(wc,1.0);
 
     if(p->j_dir==0)
     value = lint7V_2D(f,i,j,k,wa,wb,wc1,wc2);
