@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-#define WLVL (fabs(WL(i,j))>1.0e-5?WL(i,j):1.0e-5)
+#define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
 void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
