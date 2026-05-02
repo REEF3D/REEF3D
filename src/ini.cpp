@@ -131,6 +131,7 @@ void control::ini_default()
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
+    A533=0;      // int  add veritcal velocity to CFL 
     A540=1;      // int NFHLOW wetdry scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance

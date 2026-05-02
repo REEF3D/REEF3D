@@ -142,6 +142,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cu = MIN(cu,cv);
     }
     
+    if(p->A533==1)
     cu = MIN(cu,cw);
     
     //cu = MIN(cu,co);
