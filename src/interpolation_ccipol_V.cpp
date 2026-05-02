@@ -108,6 +108,7 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     jj=j;
     kk=k;
     
+    // find ijk position for interpolation cell
     i = p->posf_i(xp);
     j = p->posf_j(yp);
     k = p->posc_sig(i,j,zp);

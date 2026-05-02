@@ -2897,9 +2897,11 @@
           <File Name="coordinates.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Position">
+          <File Name="position_ijk_f.cpp"/>
+          <File Name="position_ijk_c.cpp"/>
+          <File Name="position_sig_c.cpp"/>
+          <File Name="position_sig_f.cpp"/>
           <File Name="position_xyz.cpp"/>
-          <File Name="position_ijk_face.cpp"/>
-          <File Name="position_ijk_center.cpp"/>
           <File Name="position_ihalf.cpp"/>
           <File Name="position_conv.cpp"/>
           <File Name="position.cpp"/>
