@@ -128,6 +128,7 @@ public:
 	void log_ini();
 	void mainlog(lexer*);
 	void maxlog(lexer*);
+    void volumelog(lexer*);
 	void solverlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
@@ -219,6 +220,7 @@ private:
     ofstream mainlogout;
     ofstream versionlogout;
     ofstream maxlogout;
+    ofstream vollogout;
     ofstream solvlogout;
 	
 	double nom,val;

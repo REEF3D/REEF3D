@@ -247,6 +247,7 @@ public:
 	double susptime,maxtopovel;
 	double gctime, xtime;
 	double volume1,volume2,volume3;
+    double tank_vol;
 	double Qi,Qo;
 	double dtsed,sedtime,slidecells;
 	double bedmax,bedmin;

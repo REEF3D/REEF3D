@@ -127,6 +127,9 @@ void driver::loop_nhflow()
         maxlog(p);
         solverlog(p);
         }
+        
+    volumelog(p);
+    
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
@@ -148,6 +151,7 @@ void driver::loop_nhflow()
 
     mainlogout.close();
     maxlogout.close();
+    vollogout.close();
     solvlogout.close();
 	}
 

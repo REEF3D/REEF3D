@@ -4085,7 +4085,7 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 52: control>>P52_y[countP52];
-                         P52_y[countP52] = p->Yin(P52_y[countP52],0.0);
+                         P52_y[countP52] = p->Yin(0.0,P52_y[countP52]);
                          ++countP52;
                          clear(c,numint);
                          break;
