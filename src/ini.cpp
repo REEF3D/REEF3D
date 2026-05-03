@@ -295,6 +295,7 @@ void control::ini_default()
     
     B200=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
     B201=0;             // int porosity
+    B202=1.1;             // // double eps for porous heaviside
     B201_n=1.0;         // double porosity n
     B201_d50=0.01;      // double porosity d50
     B201_alpha=0.0;     // double porosity alpha

@@ -774,6 +774,9 @@ void control::read_control(lexer* p)
                          B201=1;
                          clear(c,numint);
                          break;
+                case 202: control>>B202;
+                         clear(c,numint);
+                         break;
                 case 210: ++B210;
                          B200=1;
                          clear(c,numint);
