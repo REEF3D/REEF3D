@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ── Dependency versions ───────────────────────────────────────────────────────
 set(REEF3D_HYPRE_VERSION  "3.2.0")
-set(REEF3D_EIGEN_VERSION  "3.3.8")
+set(REEF3D_EIGEN_VERSION  "5.0.0")
 
 # Default build type mirrors Makefile's .DEFAULT_GOAL = release
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
