@@ -661,6 +661,9 @@ void control::read_control(lexer* p)
                          break;
                 case 105: control>>B105_1>>B105_2>>B105_3;
                          B105=1;
+                         B105_1 = p->Alpha_deg_in(B105_1);
+                         B105_2 = p->Xin(B105_2,B105_3);
+                         B105_3 = p->Yin(B105_2,B105_3);
                          clear(c,numint);
                          break;
                 case 106: ++B106;
