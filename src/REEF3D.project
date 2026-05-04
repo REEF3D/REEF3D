@@ -3330,6 +3330,8 @@
     <GlobalSettings>
       <Compiler Options="-std=c++17; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
         <IncludePath Value="."/>
+        <IncludePath Value="/usr/local/hypre/include"/>
+        <IncludePath Value="../ThirdParty/eigen-3.3.8"/>
       </Compiler>
       <Linker Options="-lm">
         <LibraryPath Value="/usr/local/hypre/lib"/>
