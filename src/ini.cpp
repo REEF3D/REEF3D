@@ -140,9 +140,13 @@ void control::ini_default()
     A545=10.0;   // double deep criterion
     
     A550=0;      // int turn on breaking (which method)
-    A551=0;      // int type of breaking detection (deep / shallow)
+    A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
+
+    A554=0.6;    // double breaking parameter alpha
+    A555=1.25;   // double breaking parameter slope alpha
+    A556=0.1;   // double breaking parameter slope beta
     
     A560=0;      // int turbulence model
     A564=1;      // int eddyv limiter

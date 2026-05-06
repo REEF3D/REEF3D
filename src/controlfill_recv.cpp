@@ -248,6 +248,12 @@ void control::ctrlrecv()
     ii++;
     A553 = ictrl[ii];
     ii++;
+    A554 = dctrl[dd];
+    dd++;
+    A555 = dctrl[dd];
+    dd++;
+    A556 = dctrl[dd];
+    dd++;
     A560 = ictrl[ii];
     ii++;
     A564 = ictrl[ii];

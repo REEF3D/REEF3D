@@ -700,6 +700,9 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Breaking">
+            <File Name="nhflow_breaking.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf_v.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -2077,6 +2080,10 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Breaking">
+            <File Name="nhflow_breaking_filter.cpp"/>
+            <File Name="nhflow_breaking.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
           <File Name="nhflow_fsf_update.cpp"/>

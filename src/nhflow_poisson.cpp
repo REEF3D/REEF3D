@@ -63,7 +63,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	n=0;
     LOOP
 	{
-        WETDRYDEEP
+        WETDRYDEEPBREAK
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
@@ -135,7 +135,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
     n=0;
 	LOOP
 	{
-        WETDRYDEEP 
+        WETDRYDEEPBREAK 
         {
             // South
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)

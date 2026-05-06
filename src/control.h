@@ -75,6 +75,7 @@ public:
     int A540,A543;
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
+    double A554,A555,A556;
     int A560;
     int A564,A565,A566,A567,A569;
     int A570,A573,A574;
