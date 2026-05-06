@@ -95,6 +95,7 @@ public:
     int *deep;
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
+    int cms_flag;
 
 
     //GHOSTCELL
