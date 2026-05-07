@@ -229,7 +229,7 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
         SLICELOOP4
         if(brkflag(i,j)==2)
         {
-         filter(p,d,pgc,eta);
+         filter(p,d,pgc,WL);
         }   
         
         // deep
@@ -237,7 +237,7 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
         SLICELOOP4
         if(brkflag(i,j)==1)
         {
-         filter(p,d,pgc,eta);
+         filter(p,d,pgc,WL);
         }   
         
         // all
@@ -245,7 +245,7 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
         SLICELOOP4
         if(brkflag(i,j)>=1)
         {
-         filter(p,d,pgc,eta);
+         filter(p,d,pgc,WL);
         }   
         
         // coastline filter

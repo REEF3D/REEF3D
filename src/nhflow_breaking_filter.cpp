@@ -30,8 +30,8 @@ void nhflow_breaking::filter(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;
     
-    int outer_iter = p->A361;
-    int inner_iter = p->A362;
+    int outer_iter = 5;
+    int inner_iter = 2;
     
     if(p->j_dir==0)
 	for(int qn=0;qn<outer_iter;++qn)
