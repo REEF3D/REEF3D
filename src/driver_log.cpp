@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"lexer.h"
+#include"print_gage_location.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -92,7 +93,11 @@ void driver::log_ini()
     solvlogout<<"#kiter \t #ktime \t| #eiter \t #etime \t|";
     solvlogout<<"#liter \t #ltime \t| #reiniiter \t #reinitime"<<endl;
     }
-
+    
+    // print gage location
+    print_gage_location p_gage;
+    
+    p_gage.print_wsf_gage_location(p);
 }
 
 void driver::mainlog(lexer *p)
