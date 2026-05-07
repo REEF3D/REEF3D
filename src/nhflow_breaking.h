@@ -35,9 +35,9 @@ public:
 	nhflow_breaking(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_breaking();
     
-    void breaking(lexer*,fdm_nhf*,ghostcell*,slice&,slice&,double);
+    void breaking(lexer*,fdm_nhf*,ghostcell*,slice&,slice&,slice&,double);
     
-    void breaking_baquet(lexer*,fdm_nhf*,ghostcell*,slice&,slice&,double);
+    void breaking_baquet(lexer*,fdm_nhf*,ghostcell*,slice&,slice&,slice&,double);
 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
 

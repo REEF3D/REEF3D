@@ -35,13 +35,13 @@ nhflow_breaking::~nhflow_breaking()
 {
 }
 
-void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
+void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, slice &WL, double alpha)
 {
     if(p->A550==1)
-    breaking_baquet(p, d, pgc, eta, eta_n, alpha);
+    breaking_baquet(p, d, pgc, eta, eta_n, WL, alpha);
 }
 
-void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, double alpha)
+void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, slice &WL, double alpha)
 {
     int ii,jj;
     
