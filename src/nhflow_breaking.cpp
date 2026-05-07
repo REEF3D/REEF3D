@@ -163,7 +163,7 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     // ------------------------
     // fill flag
     // ------------------------
-    if(p->j_dir==0)
+    /*if(p->j_dir==0)
     SLICELOOP4
     {   
         if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0)
@@ -181,41 +181,47 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
         d->breaking(i,j) = 1;
             
         if(brkflag(i,j)==0 && 
-        ( brkflag(i-1,j-1)>0 || brkflag(i-1,j+1)>0 || brkflag(i+1,j-1)>0 || brkflag(i+1,j+1)>0
+        (brkflag(i-1,j-1)>0 || brkflag(i-1,j+1)>0 || brkflag(i+1,j-1)>0 || brkflag(i+1,j+1)>0
         || brkflag(i-2,j)>0 || brkflag(i+2,j)>0 || brkflag(i,j-2)>0 || brkflag(i,j+2)>0))
         d->breaking(i,j) = 1;
     }
+    */
+    
+    
     
     
     // ------------------------
     // fill breaking viscosity
     // ------------------------
-    /*
-        SLICELOOP4
-        d->vb(i,j) = 0.0;
+    
+    SLICELOOP4
+    d->vb(i,j) = 0.0;
         
     if(p->j_dir==0)
     SLICELOOP4
     {   
         if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0)
-        d->vb(i,j) = p->A565;
+        d->vb(i,j) = p->A557;
             
         if(brkflag(i,j)==0 && 
         (brkflag(i-1,j)>0 || brkflag(i+1,j)>0 || brkflag(i-2,j)>0 || brkflag(i+2,j)>0))
-        d->vb(i,j) = 0.5*p->A565;
+        d->vb(i,j) = 0.5*p->A557;
     }
 
     if(p->j_dir==1)
     SLICELOOP4
     {   
         if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0 || brkflag(i,j-1)>0 || brkflag(i,j+1)>0)
-        d->vb(i,j) = p->A565;
+        d->vb(i,j) = p->A557;
             
         if(brkflag(i,j)==0 && 
         ( brkflag(i-1,j-1)>0 || brkflag(i-1,j+1)>0 || brkflag(i+1,j-1)>0 || brkflag(i+1,j+1)>0
         || brkflag(i-2,j)>0 || brkflag(i+2,j)>0 || brkflag(i,j-2)>0 || brkflag(i,j+2)>0))
-        d->vb(i,j) = 0.5*p->A565;
-    }*/
+        d->vb(i,j) = 0.5*p->A557;
+    }
+    
+    LOOP
+    d->test[IJK] = d->vb(i,j);
         
         // additional breaking filter
         // shallow

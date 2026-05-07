@@ -59,7 +59,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     {
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-            visc = d->VISC[IJK] + d->EV[IJK];
+            visc = d->VISC[IJK] + d->EV[IJK] + d->vb(i,j);
             
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             

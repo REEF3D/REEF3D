@@ -147,6 +147,7 @@ void control::ini_default()
     A554=0.6;    // double breaking parameter alpha
     A555=1.25;   // double breaking parameter slope alpha
     A556=0.1;   // double breaking parameter slope beta
+    A557=1.86;   // double viscosity breaking wave
     
     A560=0;      // int turbulence model
     A564=1;      // int eddyv limiter
