@@ -20,38 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_CONCENTRATION_H_
-#define NHFLOW_CONCENTRATION_H_
+#ifndef NHFLOW_CONCENTRATION_IO_H_
+#define NHFLOW_CONCENTRATION_IO_H_
 
-class fdm_nhf;
+#include"nhflow_concentration.h"
+#include"increment.h"
+#include"field4.h"
+#include"fluid_update.h"
+
 class lexer;
-class convection;
-class diffusion;
-class solver;
+class fdm;
 class ghostcell;
-class ioflow;
-class turbulence;
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<vector>
 
 using namespace std;
 
-class nhflow_concentration
+class nhflow_concentration_io : public nhflow_concentration, increment
 {
 public:
+    nhflow_concentration_io(lexer*,fdm_nhf*);
+	virtual ~nhflow_concentration_io();
 
-	virtual void start(lexer*, fdm_nhf*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
-	virtual void ini(lexer*, fdm_nhf*, ghostcell*, nhflow_concentration*)=0;
-	virtual void ttimesave(lexer*, fdm_nhf*)=0;
+    void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override final;
+    void ini(lexer*, fdm_nhf*, ghostcell*, nhflow_concentration *pnhflow_concentration) override final;
+    double val(int,int,int) override final;
 
-	virtual void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&)=0;
-	virtual double val(int,int,int)=0;
+    void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, ostream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
+    
+    double *C;
 
-    virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
-    virtual void name_ParaView(lexer*, ostream&, int*, int &)=0;
-    virtual void offset_ParaView(lexer*, int*, int &)=0;
+private:
+
+	float ffn;
+	double ddn;
+	int n,iin;
+	
+	double fx(double,double,double,double,double);
+	double fz(double,double,double,double,double);
 };
 
 #endif
+

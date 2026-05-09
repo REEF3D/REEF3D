@@ -57,5 +57,8 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
     pgc->start4V(p,APOR,1);
     pgc->start4V(p,BPOR,1);
     
+    
+    // print force
+    
 }
 
