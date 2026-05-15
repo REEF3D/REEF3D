@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"driver.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"field4.h"
 #include"vec.h"
@@ -324,6 +325,30 @@ void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
     cout<<"CCIPOL4_Z: "<<p->ZP[KP]+0.25*p->DZN[KP]<<" "<<p->ccipol4(f,0.2,0.1,p->ZP[KP]+0.25*p->DZN[KP])<<endl;
 
     cout<<endl;
+}
+
+void driver::ipol_test(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    
+    double xc,yc,zc;
+
+
+    FLOOP
+    d->test[FIJK] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
+    
+    pgc->start7P(p,d->test,1);
+    
+    if(p->mpirank==0)
+    {
+    xc = 0.1;
+    yc = 0.1;
+    zc = 0.203;
+    cout<<"CCIPOL_Z: "<<p->ccipol7P(d->test, d->WL, d->bed, xc, yc, zc)<<endl;
+    
+    cout<<endl;
+    }
+    
+    
 }
 
 double driver::calc()

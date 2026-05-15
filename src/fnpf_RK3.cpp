@@ -85,6 +85,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	frk1(i,j) = c->Fifsf(i,j) + p->dt*c->K(i,j);
    
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,erk1);
     pf->wetdry(p,c,pgc,erk1,frk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
@@ -123,7 +124,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     SLICELOOP4
 	frk2(i,j) = 0.75*c->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*c->K(i,j);
-
+    
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,erk2);
     pf->wetdry(p,c,pgc,erk2,frk2);
     pgc->gcsl_start4(p,erk2,gcval_eta);
@@ -163,6 +165,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*c->K(i,j);
     
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,c->eta);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);

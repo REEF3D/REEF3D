@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"slice4.h"
 #include"nhflow_momentum_func.h"
+#include"nhflow_breaking.h"
 #include<vector>
 
 class wind;
@@ -33,7 +34,7 @@ class sediment;
 
 using namespace std;
 
-class nhflow_momentum_RK2 final : public nhflow_momentum_func
+class nhflow_momentum_RK2 final : public nhflow_momentum_func, public nhflow_breaking
 {
 public:
 	nhflow_momentum_RK2(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans_nhflow*, nhflow_forcing*, sediment*);
@@ -42,12 +43,8 @@ public:
 	void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, 
                 nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans_nhflow*) override final;
 
-    double *UHDIFF;
-    double *VHDIFF;
-    double *WHDIFF;
-    double *UHRK1;
-    double *VHRK1;
-    double *WHRK1;
+    double *UHDIFF,*VHDIFF,*WHDIFF;
+    double *UHRK1,*VHRK1,*WHRK1;
     
     slice4 WLRK1;
 

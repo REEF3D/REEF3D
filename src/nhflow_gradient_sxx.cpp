@@ -27,8 +27,8 @@ Author: Hans Bihs
 
 double nhflow_gradient::sxx(slice &f)
 {
-    //return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
-    
+    return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
+    /*
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
@@ -41,13 +41,13 @@ double nhflow_gradient::sxx(slice &f)
     
     grad =  (grad1 - grad2)/p->DXN[IP];
     
-    return grad;
+    return grad;*/
 }
 
 double nhflow_gradient::syy(slice &f)
 {
-    //return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
-
+    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
+/*
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
     
@@ -60,5 +60,5 @@ double nhflow_gradient::syy(slice &f)
     
     grad =  (grad1 - grad2)/p->DYN[JP];
     
-    return grad;
+    return grad;*/
 }

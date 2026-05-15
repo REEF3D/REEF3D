@@ -88,6 +88,9 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
     
+    // sigma ini
+    pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
     LOOP
     {
     d->RO[IJK] = p->W1;

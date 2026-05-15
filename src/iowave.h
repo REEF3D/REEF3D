@@ -71,7 +71,7 @@ public:
     
     void hydrograph_in_read(lexer*,fdm*,ghostcell*);
 	void hydrograph_out_read(lexer*,fdm*,ghostcell*);
-	double hydrograph_ipol(lexer*,fdm*,ghostcell*,double**,int);
+	double hydrograph_ipol(lexer*,ghostcell*,double**,int);
 	
     
     void wavegen_precalc_space(lexer*,ghostcell*);
@@ -223,6 +223,9 @@ public:
     void nhflow_wavegen_precalc_decomp_time(lexer*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_relax(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
+    
+    void Qin_nhf(lexer*,fdm_nhf*,ghostcell*);
+	void Qout_nhf(lexer*,fdm_nhf*,ghostcell*);
     
     
     void timeseries(lexer*,ghostcell*);

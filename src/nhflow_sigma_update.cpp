@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-#define WLVL (fabs(WL(i,j))>1.0e-5?WL(i,j):1.0e-5)
+#define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
 void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
@@ -134,8 +134,11 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
     // sigxx
     FLOOP
-    if(p->wet[IJ]==1)
     {
+    p->sigxx[FIJK] = 0.0;
+    
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->DF[IJKp1]>0)
+        {
         p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
         
                       - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
@@ -152,6 +155,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
                       - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
+        }
+    
     }
     /*
     FLOOP
@@ -163,12 +168,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         
     }*/
     
-    FLOOP
-    if(p->wet[IJ]==0)
-    p->sigxx[FIJK]=0.0;
-    
-    LOOP
-    d->test[IJK] = p->sigxx[FIJKp1];
     
     // sig BC
     SLICELOOP4

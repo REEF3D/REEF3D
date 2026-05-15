@@ -41,9 +41,15 @@ public:
     double Xin(double,double);
     double Yin(double,double);
     
+    double Alpha_rad_in(double);
+    double Alpha_deg_in(double);
+   
     // model to world
     double Xout(double,double);
     double Yout(double,double);
+    
+    double Alpha_rad_out(double);
+    double Alpha_deg_out(double);
     
 private:
     lexer *p;

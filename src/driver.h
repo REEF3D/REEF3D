@@ -128,6 +128,7 @@ public:
 	void log_ini();
 	void mainlog(lexer*);
 	void maxlog(lexer*);
+    void volumelog(lexer*);
 	void solverlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
@@ -142,6 +143,7 @@ public:
 	void func_test(lexer*,fdm*,ghostcell*,field&);
     void pos_test(lexer*,fdm*,ghostcell*);
     void ipol_test(lexer*,fdm*,ghostcell*);
+    void ipol_test(lexer*,fdm_nhf*,ghostcell*);
     void bedslope_test(lexer*,ghostcell*);
     double bedslope_angle(lexer*,ghostcell*,double,double);
 	double calc();
@@ -218,6 +220,7 @@ private:
     ofstream mainlogout;
     ofstream versionlogout;
     ofstream maxlogout;
+    ofstream vollogout;
     ofstream solvlogout;
 	
 	double nom,val;

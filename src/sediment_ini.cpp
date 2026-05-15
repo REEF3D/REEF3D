@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"patchBC_interface.h"
+#include"bedslope.h"
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
@@ -85,11 +86,16 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     s->bedzh0(i,j)=d->bed(i,j);
     }
     
+    pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh0,1);
+    
     active_ini_nhflow(p,d,pgc);
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
     log_ini(p);
+    
+    pslope->slope_cds(p,pgc,s);
 }
 
 void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)

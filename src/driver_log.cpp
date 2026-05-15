@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm_nhf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"
@@ -38,6 +39,7 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"lexer.h"
+#include"print_gage_location.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -74,6 +76,13 @@ void driver::log_ini()
     maxlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     maxlogout<<"#iteration \t #umax \t\t #vmax \t\t #wmax \t\t #viscmax \t\t #kinmax \t\t #epsmax \t\t #pressmax "<<endl;
     }
+    
+    if(p->mpirank==0)
+    {
+    vollogout.open("./REEF3D_Log/REEF3D_volumelog.dat");
+
+    vollogout<<"#simetime \t #Volume \t"<<endl;
+    }
 
     if(p->mpirank==0)
     {
@@ -84,7 +93,11 @@ void driver::log_ini()
     solvlogout<<"#kiter \t #ktime \t| #eiter \t #etime \t|";
     solvlogout<<"#liter \t #ltime \t| #reiniiter \t #reinitime"<<endl;
     }
-
+    
+    // print gage location
+    print_gage_location p_gage;
+    
+    p_gage.print_wsf_gage_location(p);
 }
 
 void driver::mainlog(lexer *p)
@@ -109,6 +122,22 @@ void driver::maxlog(lexer *p)
      maxlogout<<setprecision(4)<<p->viscmax<<" \t "<<setprecision(4)<<p->kinmax<<" \t "<<setprecision(4)<<p->epsmax<<" \t ";
      maxlogout<<setprecision(4)<<p->pressmax<<endl;
 	 }
+}
+
+void driver::volumelog(lexer *p)
+{
+    p->tank_vol = 0.0;
+    SLICELOOP4
+    {
+    p->tank_vol += p->DXN[IP]*p->DYN[JP]*d->WL(i,j);
+    }
+    
+    p->tank_vol = pgc->globalsum(p->tank_vol);
+    
+    if(p->mpirank==0 && p->count%p->P12==0)
+    {
+    vollogout<<p->simtime<<"\t \t"<<setprecision(4)<<p->tank_vol<<endl;
+    }
 }
 
 void driver::solverlog(lexer* p)

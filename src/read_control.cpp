@@ -341,6 +341,9 @@ void control::read_control(lexer* p)
                 case 532: control>>A532;
                          clear(c,numint);
                          break;
+                case 533: control>>A533;
+                         clear(c,numint);
+                         break;
                 case 540: control>>A540;
                          clear(c,numint);
                          break;
@@ -369,6 +372,18 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 553: control>>A553;
+                         clear(c,numint);
+                         break;
+                case 554: control>>A554;
+                         clear(c,numint);
+                         break;
+                case 555: control>>A555;
+                         clear(c,numint);
+                         break;
+                case 556: control>>A556;
+                         clear(c,numint);
+                         break;
+                case 557: control>>A557;
                          clear(c,numint);
                          break;
                 case 560: control>>A560;
@@ -658,6 +673,9 @@ void control::read_control(lexer* p)
                          break;
                 case 105: control>>B105_1>>B105_2>>B105_3;
                          B105=1;
+                         B105_1 = p->Alpha_deg_in(B105_1);
+                         B105_2 = p->Xin(B105_2,B105_3);
+                         B105_3 = p->Yin(B105_2,B105_3);
                          clear(c,numint);
                          break;
                 case 106: ++B106;
@@ -769,6 +787,9 @@ void control::read_control(lexer* p)
                          break;
                 case 201: control>>B201_n>>B201_d50>>B201_alpha>>B201_beta;
                          B201=1;
+                         clear(c,numint);
+                         break;
+                case 202: control>>B202;
                          clear(c,numint);
                          break;
                 case 210: ++B210;
@@ -4082,7 +4103,7 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 52: control>>P52_y[countP52];
-                         P52_y[countP52] = p->Yin(P52_y[countP52],0.0);
+                         P52_y[countP52] = p->Yin(0.0,P52_y[countP52]);
                          ++countP52;
                          clear(c,numint);
                          break;

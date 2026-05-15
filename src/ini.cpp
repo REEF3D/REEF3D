@@ -131,6 +131,7 @@ void control::ini_default()
     A523=1.0;    // double p_gamma
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
+    A533=0;      // int  add veritcal velocity to CFL 
     A540=1;      // int NFHLOW wetdry scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
@@ -139,9 +140,14 @@ void control::ini_default()
     A545=10.0;   // double deep criterion
     
     A550=0;      // int turn on breaking (which method)
-    A551=0;      // int type of breaking detection (deep / shallow)
+    A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
+
+    A554=0.6;    // double breaking parameter alpha
+    A555=1.25;   // double breaking parameter slope alpha
+    A556=0.1;   // double breaking parameter slope beta
+    A557=1.86;   // double viscosity breaking wave
     
     A560=0;      // int turbulence model
     A564=1;      // int eddyv limiter
@@ -294,6 +300,7 @@ void control::ini_default()
     
     B200=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
     B201=0;             // int porosity
+    B202=1.1;             // // double eps for porous heaviside
     B201_n=1.0;         // double porosity n
     B201_d50=0.01;      // double porosity d50
     B201_alpha=0.0;     // double porosity alpha

@@ -35,8 +35,9 @@ coordinates::~coordinates()
 double coordinates::Xin(double xworld, double yworld)
 {
     double xmodel=xworld;
-    
-    
+
+    if(p->cms_flag==1)
+    xmodel = (xworld-p->global_orig_x)*cos(-p->alpha_grid) - (yworld-p->global_orig_y)*sin(-p->alpha_grid);
     
     return xmodel;
 }
@@ -45,7 +46,8 @@ double coordinates::Yin(double xworld, double yworld)
 {
     double ymodel=yworld;
     
-    
+    if(p->cms_flag==1)
+    ymodel = (xworld-p->global_orig_x)*sin(-p->alpha_grid) + (yworld-p->global_orig_y)*cos(-p->alpha_grid);
     
     return ymodel;
 }
@@ -54,7 +56,8 @@ double coordinates::Xout(double xmodel, double ymodel)
 {
     double xworld=xmodel;
     
-    
+    if(p->cms_flag==1)
+    xworld = (xmodel)*cos(p->alpha_grid) - (ymodel)*sin(p->alpha_grid) + p->global_orig_x;
     
     return xworld;
 }
@@ -63,7 +66,42 @@ double coordinates::Yout(double xmodel, double ymodel)
 {
     double yworld=ymodel;
     
-    
+    if(p->cms_flag==1)
+    yworld = (xmodel)*sin(p->alpha_grid) + (ymodel)*cos(p->alpha_grid) + p->global_orig_y;
     
     return yworld;
+}
+
+// 
+
+double coordinates::Alpha_rad_in(double alpha_world)
+{
+    if(p->cms_flag==1)
+    alpha_world -= p->alpha_grid;
+    
+    return alpha_world;
+}
+
+double coordinates::Alpha_rad_out(double alpha_model)
+{
+    if(p->cms_flag==1)
+    alpha_model += p->alpha_grid;
+    
+    return alpha_model;
+}
+
+double coordinates::Alpha_deg_in(double alpha_world)
+{
+    if(p->cms_flag==1)
+    alpha_world -= p->alpha_grid*180.0/PI;
+    
+    return alpha_world;
+}
+
+double coordinates::Alpha_deg_out(double alpha_model)
+{
+    if(p->cms_flag==1)
+    alpha_model += p->alpha_grid*180.0/PI;
+    
+    return alpha_model;
 }

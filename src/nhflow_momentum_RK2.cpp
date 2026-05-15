@@ -46,7 +46,7 @@ Author: Hans Bihs
 
 nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof,vrans_nhflow* ppvrans, 
                                                       nhflow_forcing *ppnhfdf, sediment *ppsed)
-                                                    : nhflow_momentum_func(p,d,pgc), WLRK1(p)
+                                                    : nhflow_momentum_func(p,d,pgc), nhflow_breaking(p,d,pgc), WLRK1(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -109,6 +109,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     //sigma_update(p,d,pgc,WLRK1);
+    breaking(p,d,pgc,d->eta,d->eta_n,WLRK1,1.0);
     p->fsftime+=pgc->timer()-starttime;
     
 	// U
@@ -204,6 +205,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     pconvec->start(p,d,4,WLRK1);
     pfsf->rk2_step2(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 0.5);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,d->WL,0.5);
     //sigma_update(p,d,pgc,d->WL);
     
     p->fsftime+=pgc->timer()-starttime;

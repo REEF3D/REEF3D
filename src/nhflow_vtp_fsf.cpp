@@ -218,7 +218,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         ffn=p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd;
         result.write((char*)&ffn, sizeof(float));
     }
-
+    
     //  Velocities
     iin=sizeof(float)*p->pointnum2D*3;
     result.write((char*)&iin, sizeof(int));

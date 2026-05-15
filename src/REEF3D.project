@@ -89,7 +89,6 @@
             <File Name="probe_line.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Printer CFD">
-            <File Name="printer.h"/>
             <File Name="printer_CFD.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
@@ -100,14 +99,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Porous Geometry">
             <File Name="print_porous.h"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="ParaView">
-            <File Name="vtu3D.h"/>
-            <File Name="vts3D.h"/>
-            <File Name="vtr3D.h"/>
-            <File Name="vtp3D.h"/>
-            <File Name="vtks.h"/>
-            <File Name="vtk3D.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FSF">
             <File Name="fsf_vtp.h"/>
@@ -700,6 +691,9 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Breaking">
+            <File Name="nhflow_breaking.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf_v.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -1036,6 +1030,20 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Probes">
+          <File Name="print_gage_location.h"/>
+        </VirtualDirectory>
+        <File Name="printer.h"/>
+        <VirtualDirectory Name="Paraview">
+          <File Name="vtu3D.h"/>
+          <File Name="vts3D.h"/>
+          <File Name="vtr3D.h"/>
+          <File Name="vtp3D.h"/>
+          <File Name="vtks.h"/>
+          <File Name="vtk3D.h"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="Tools">
         <VirtualDirectory Name="Coordinates">
           <File Name="coordinates.h"/>
@@ -1315,7 +1323,6 @@
             <File Name="probe_line.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Printer CFD">
-            <File Name="printer.cpp"/>
             <File Name="printer_CFD_parallel.cpp"/>
             <File Name="printer_CFD.cpp"/>
           </VirtualDirectory>
@@ -1323,12 +1330,6 @@
             <File Name="print_porous_vtp.cpp"/>
             <File Name="print_porous_obj.cpp"/>
             <File Name="print_porous.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="ParaView">
-            <File Name="vtu3D.cpp"/>
-            <File Name="vts3D.cpp"/>
-            <File Name="vtr3D.cpp"/>
-            <File Name="vtp3D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="FSF">
             <File Name="fsf_vtp_print.cpp"/>
@@ -2077,6 +2078,10 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <VirtualDirectory Name="Breaking">
+            <File Name="nhflow_breaking_filter.cpp"/>
+            <File Name="nhflow_breaking.cpp"/>
+          </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
           <File Name="nhflow_fsf_update.cpp"/>
@@ -2892,14 +2897,28 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Probes">
+          <File Name="print_gage_location.cpp"/>
+        </VirtualDirectory>
+        <File Name="printer.cpp"/>
+        <VirtualDirectory Name="Paraview">
+          <File Name="vtu3D.cpp"/>
+          <File Name="vts3D.cpp"/>
+          <File Name="vtr3D.cpp"/>
+          <File Name="vtp3D.cpp"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="Tools">
         <VirtualDirectory Name="Coordinates">
           <File Name="coordinates.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Position">
+          <File Name="position_ijk_f.cpp"/>
+          <File Name="position_ijk_c.cpp"/>
+          <File Name="position_sig_c.cpp"/>
+          <File Name="position_sig_f.cpp"/>
           <File Name="position_xyz.cpp"/>
-          <File Name="position_ijk_face.cpp"/>
-          <File Name="position_ijk_center.cpp"/>
           <File Name="position_ihalf.cpp"/>
           <File Name="position_conv.cpp"/>
           <File Name="position.cpp"/>

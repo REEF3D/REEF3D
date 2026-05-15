@@ -280,6 +280,7 @@ void lexer::read_grid()
 
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
+    cms_flag=iin;
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
