@@ -52,10 +52,10 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 	BPOR[IJK]       = H*p->B201_beta;
     }
     
-    pgc->start4V(p,d->POR,1);
-    pgc->start4V(p,d->PORPART,1);
-    pgc->start4V(p,APOR,1);
-    pgc->start4V(p,BPOR,1);
+    pgc->start5V(p,d->POR,1);
+    pgc->start5V(p,d->PORPART,1);
+    pgc->start5V(p,APOR,1);
+    pgc->start5V(p,BPOR,1);
     
     
     // print force
