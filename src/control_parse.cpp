@@ -75,6 +75,6 @@ void control::parse(lexer* p)
     if(S10>=1 || p->toporead==1)
     P27=1;
     
-    if(A550>1 || A560>0)
+    if(A550>1 || A560>0)
     A512=2;
 }
