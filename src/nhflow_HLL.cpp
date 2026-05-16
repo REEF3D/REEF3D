@@ -76,7 +76,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     {
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP])*PORVALNH;
     }    
 }
 
@@ -95,7 +95,7 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     {
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP])*PORVALNH;
     }    
 }
 
@@ -114,7 +114,7 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     {
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP])*PORVALNH;
     }    
 }
 

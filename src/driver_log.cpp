@@ -136,7 +136,7 @@ void driver::volumelog(lexer *p)
     
     if(p->mpirank==0 && p->count%p->P12==0)
     {
-    vollogout<<p->simtime<<"\t \t"<<setprecision(4)<<p->tank_vol<<endl;
+    vollogout<<p->simtime<<" \t "<<setprecision(4)<<p->tank_vol<<endl;
     }
 }
 

@@ -144,9 +144,16 @@ Author: Hans Bihs
 */
 #define PORVALNHm d->POR[IJK]
 #define PORVALNHp d->POR[IJK]
-#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
-#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
-#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
+#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH<1.0?1.0:0.0)/PORVALNH)))
+
+#define CPORNH1m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1m<1.0?1.0:0.0)/PORVALNH1m)))
+#define CPORNH1  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1<1.0?1.0:0.0)/PORVALNH1)))
+
+#define CPORNH2m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2m<1.0?1.0:0.0)/PORVALNH2m)))
+#define CPORNH2  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2<1.0?1.0:0.0)/PORVALNH2)))
+
+#define CPORNH3m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3m<1.0?1.0:0.0)/PORVALNH3m)))
+#define CPORNH3  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3<1.0?1.0:0.0)/PORVALNH3)))
 
 
 // COMBINDED LOOPS

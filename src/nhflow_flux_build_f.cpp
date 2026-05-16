@@ -41,27 +41,27 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     // flux x-dir
     ULOOP
     {
-    d->Fs[IJK] = d->UHs[IJK]*d->Us[IJK]/PORVALNH1m
-            + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j)*PORVALNH1m
-            + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j)*PORVALNH1m;
+    d->Fs[IJK] = d->UHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m)
+            + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j)
+            + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
     
-    d->Fn[IJK] = d->UHn[IJK]*d->Un[IJK]/PORVALNH1
-            + 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j)*PORVALNH1
-            + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j)*PORVALNH1;
+    d->Fn[IJK] = d->UHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1)
+            + 0.5*fabs(p->W22)*d->ETAn(i,j)*d->ETAn(i,j)
+            + fabs(p->W22)*d->ETAn(i,j)*d->dfx(i,j);
     }
     
     // flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
-    d->Fe[IJK] = d->Ve[IJK]*d->UHe[IJK]/PORVALNH2m;
+    d->Fe[IJK] = d->Ve[IJK]*d->UHe[IJK]/(PORVALNH2m*PORVALNH2m);
     
-    d->Fw[IJK] = d->Vw[IJK]*d->UHw[IJK]/PORVALNH2;
+    d->Fw[IJK] = d->Vw[IJK]*d->UHw[IJK]/(PORVALNH2*PORVALNH2);
     }
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]))/PORVALNH - 0.5*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK])/PORVALNH;
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK])/(PORVALNH*PORVALNH);
 }
 
 void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
@@ -71,26 +71,26 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     // flux x-dir
     ULOOP
     {
-    d->Fs[IJK] = d->Us[IJK]*d->VHs[IJK]/PORVALNH1m;
+    d->Fs[IJK] = d->Us[IJK]*d->VHs[IJK]/(PORVALNH1m*PORVALNH1m);
     
-    d->Fn[IJK] = d->Un[IJK]*d->VHn[IJK]/PORVALNH1;
+    d->Fn[IJK] = d->Un[IJK]*d->VHn[IJK]/(PORVALNH1*PORVALNH1);
     }
     
     // flux y-dir
     VLOOP
     {
-    d->Fe[IJK] = d->VHe[IJK]*d->Ve[IJK]/PORVALNH2m 
-            + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j)*PORVALNH2m
-            + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j)*PORVALNH2m;
+    d->Fe[IJK] = d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m)
+            + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j)
+            + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
     
-    d->Fw[IJK] = d->VHw[IJK]*d->Vw[IJK]/PORVALNH2 
-            + 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j)*PORVALNH2 
-            + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j)*PORVALNH2;
+    d->Fw[IJK] = d->VHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2)
+            + 0.5*fabs(p->W22)*d->ETAw(i,j)*d->ETAw(i,j)
+            + fabs(p->W22)*d->ETAw(i,j)*d->dfy(i,j);
     }
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]))/PORVALNH - 0.5*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK])/PORVALNH;
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK])/(PORVALNH*PORVALNH);
     }
 }
 
@@ -99,23 +99,23 @@ void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // flux x-dir
     ULOOP
     {
-    d->Fs[IJK] = d->Us[IJK]*d->WHs[IJK]/PORVALNH1m;
+    d->Fs[IJK] = d->Us[IJK]*d->WHs[IJK]/(PORVALNH1m*PORVALNH1m);
     
-    d->Fn[IJK] = d->Un[IJK]*d->WHn[IJK]/PORVALNH1;
+    d->Fn[IJK] = d->Un[IJK]*d->WHn[IJK]/(PORVALNH1*PORVALNH1);
     }
     
     // flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
-    d->Fe[IJK] = d->Ve[IJK]*d->WHe[IJK]/PORVALNH2m;
+    d->Fe[IJK] = d->Ve[IJK]*d->WHe[IJK]/(PORVALNH2m*PORVALNH2m);
     
-    d->Fw[IJK] = d->Vw[IJK]*d->WHw[IJK]/PORVALNH2;
+    d->Fw[IJK] = d->Vw[IJK]*d->WHw[IJK]/(PORVALNH2*PORVALNH2);
     }
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]))/PORVALNH - 0.5*fabs(d->omegaF[FIJKp1])*(d->Wt[IJK] - d->Wb[IJK])/PORVALNH;
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Wt[IJK] - d->Wb[IJK])/(PORVALNH*PORVALNH);
 }
 
 void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
@@ -123,18 +123,18 @@ void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
     // flux x-dir
     ULOOP
     {
-    d->Fs[IJK] = d->UHs[IJK]/PORVALNH1m;
+    d->Fs[IJK] = d->UHs[IJK]/(PORVALNH1m);
     
-    d->Fn[IJK] = d->UHn[IJK]/PORVALNH1;
+    d->Fn[IJK] = d->UHn[IJK]/(PORVALNH1);
     }
     
     // flux y-dir
     if(p->j_dir==1)
     VLOOP
     {
-    d->Fe[IJK] = d->VHe[IJK]/PORVALNH2m;
+    d->Fe[IJK] = d->VHe[IJK]/(PORVALNH2m);
     
-    d->Fw[IJK] = d->VHw[IJK]/PORVALNH2;
+    d->Fw[IJK] = d->VHw[IJK]/(PORVALNH2);
     }
 }
 

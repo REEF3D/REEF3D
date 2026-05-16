@@ -68,27 +68,27 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
-            d->M.p[n]  =  (CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP])
-                        + (CPORNHm*PORVALNHm)/(p->W1*p->DXP[IM1]*p->DXN[IP])
+            d->M.p[n]  =  (CPORNH1*PORVALNH1)/(p->W1*p->DXP[IP]*p->DXN[IP])
+                        + (CPORNH1m*PORVALNH1m)/(p->W1*p->DXP[IM1]*p->DXN[IP])
                         
-                        + (CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        + (CPORNH2*PORVALNH2)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + (CPORNH2m*PORVALNH2m)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + (sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
+                        + (sigxyz2*CPORNH3*PORVALNH3)/(p->W1*p->DZP[KM1]*p->DZN[KP])
+                        + (sigxyz2*CPORNH3m*PORVALNH3m)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
 
 
-            d->M.n[n] = -(CPORNH*PORVALNH)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
+            d->M.n[n] = -(CPORNH1*PORVALNH1)/(p->W1*p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -(CPORNH1m*PORVALNH1m)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.w[n] = -(CPORNH*PORVALNH)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -(CPORNHm*PORVALNHm)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            d->M.w[n] = -(CPORNH2*PORVALNH2)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            d->M.e[n] = -(CPORNH2m*PORVALNH2m)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(sigxyz2*CPORNH*PORVALNH)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - CPORNH*PORVALNH*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.t[n] = -(sigxyz2*CPORNH3*PORVALNH3)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
+                        - CPORNH3*PORVALNH3*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -(sigxyz2*CPORNHm*PORVALNHm)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + CPORNH*PORVALNH*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.b[n] = -(sigxyz2*CPORNH3m*PORVALNH3m)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
+                        + CPORNH3m*PORVALNH3m*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
             if(p->D33==0)
