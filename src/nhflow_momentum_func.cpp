@@ -171,7 +171,7 @@ void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	LOOP
 	{
-	d->F[IJK] = (d->F[IJK] + d->Fext[IJK])*PORVALNH;
+	d->F[IJK] = (d->F[IJK] + d->Fext[IJK]);
 	d->Fext[IJK]=0.0;
 	}
 }
@@ -180,7 +180,7 @@ void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
 	{
-	d->G[IJK] = (d->G[IJK] + d->Gext[IJK])*PORVALNH;
+	d->G[IJK] = (d->G[IJK] + d->Gext[IJK]);
 	d->Gext[IJK]=0.0;
 	}
 }
@@ -189,7 +189,7 @@ void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
 	{
-	d->H[IJK] = (d->H[IJK] + d->Hext[IJK])*PORVALNH;
+	d->H[IJK] = (d->H[IJK] + d->Hext[IJK]);
 	d->Hext[IJK]=0.0;
 	}
 }

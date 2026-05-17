@@ -30,16 +30,16 @@ Author: Hans Bihs
 #define PORVALNH3  (0.5*(d->POR[IJK] + d->POR[IJKp1]))
 #define PORVALNH3m  (0.5*(d->POR[IJK] + d->POR[IJKm1]))
 
-#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH<1.0?1.0:0.0)/PORVALNH)))
+#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH)/(PORVALNH*PORVALNH))))
 
-#define CPORNH1m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1m<1.0?1.0:0.0)/PORVALNH1m)))
-#define CPORNH1  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1<1.0?1.0:0.0)/PORVALNH1)))
+#define CPORNH1m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1m)/(PORVALNH1m*PORVALNH1m))))
+#define CPORNH1  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1)/(PORVALNH1*PORVALNH1))))
 
-#define CPORNH2m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2m<1.0?1.0:0.0)/PORVALNH2m)))
-#define CPORNH2  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2<1.0?1.0:0.0)/PORVALNH2)))
+#define CPORNH2m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2m)/(PORVALNH2m*PORVALNH2m))))
+#define CPORNH2  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2)/(PORVALNH2*PORVALNH2))))
 
-#define CPORNH3m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3m<1.0?1.0:0.0)/PORVALNH3m)))
-#define CPORNH3  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3<1.0?1.0:0.0)/PORVALNH3)))
+#define CPORNH3m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3m)/(PORVALNH3m*PORVALNH3m))))
+#define CPORNH3  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3)/(PORVALNH3*PORVALNH3))))
 
 
 /*
@@ -53,6 +53,18 @@ Author: Hans Bihs
 #define PORVALNHm d->POR[IJK]
 #define PORVALNHp d->POR[IJK]
 
+#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH<1.0?1.0:0.0)/PORVALNH)))
+
+#define CPORNH1m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1m<1.0?1.0:0.0)/PORVALNH1m)))
+#define CPORNH1  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1<1.0?1.0:0.0)/PORVALNH1)))
+
+#define CPORNH2m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2m<1.0?1.0:0.0)/PORVALNH2m)))
+#define CPORNH2  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2<1.0?1.0:0.0)/PORVALNH2)))
+
+#define CPORNH3m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3m<1.0?1.0:0.0)/PORVALNH3m)))
+#define CPORNH3  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3<1.0?1.0:0.0)/PORVALNH3)))
+*/
+/*
 
 #define CPORNH   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
 #define CPORNH1m   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
