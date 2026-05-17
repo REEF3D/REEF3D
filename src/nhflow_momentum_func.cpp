@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"solver.h"
 #include"nhflow_fsf.h"
+#include"vrans.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 

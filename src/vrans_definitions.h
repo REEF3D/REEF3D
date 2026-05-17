@@ -29,19 +29,8 @@ Author: Hans Bihs
 #define PORVALNH2m  (0.5*(d->POR[IJK] + d->POR[IJm1K]))
 #define PORVALNH3  (0.5*(d->POR[IJK] + d->POR[IJKp1]))
 #define PORVALNH3m  (0.5*(d->POR[IJK] + d->POR[IJKm1]))
-/*
-#define PORVALNH1  d->POR[IJK]
-#define PORVALNH1m  d->POR[IJK]
-#define PORVALNH2  d->POR[IJK]
-#define PORVALNH2m  d->POR[IJK]
-#define PORVALNH3  d->POR[IJK]
-#define PORVALNH3m  d->POR[IJK]
-*/
-#define PORVALNHm d->POR[IJK]
-#define PORVALNHp d->POR[IJK]
-#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH<1.0?1.0:0.0)/PORVALNH)))
 
-//#define CPORNH   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH<1.0?1.0:0.0)/PORVALNH)))
 
 #define CPORNH1m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1m<1.0?1.0:0.0)/PORVALNH1m)))
 #define CPORNH1  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1<1.0?1.0:0.0)/PORVALNH1)))
@@ -52,3 +41,26 @@ Author: Hans Bihs
 #define CPORNH3m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3m<1.0?1.0:0.0)/PORVALNH3m)))
 #define CPORNH3  (1.0/(1.0 + (p->B260*(1.0-PORVALNH3<1.0?1.0:0.0)/PORVALNH3)))
 
+
+/*
+#define PORVALNH1  d->POR[IJK]
+#define PORVALNH1m  d->POR[IJK]
+#define PORVALNH2  d->POR[IJK]
+#define PORVALNH2m  d->POR[IJK]
+#define PORVALNH3  d->POR[IJK]
+#define PORVALNH3m  d->POR[IJK]
+
+#define PORVALNHm d->POR[IJK]
+#define PORVALNHp d->POR[IJK]
+
+
+#define CPORNH   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNH1m   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNH1   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+
+#define CPORNH2m   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNH2   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+
+#define CPORNH3m   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+#define CPORNH3   (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
+*/

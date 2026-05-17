@@ -109,7 +109,7 @@ void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
 
 double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 {
-	val = alpha*(pow(1.0-por,2.0)/pow(por,2.0))*(viscval/pow(part,2.0));
+	val = alpha*(pow(1.0-por,2.0)/pow(por,3.0))*(viscval/pow(part,2.0));
     
     if(val!=val)
     val=0.0;
@@ -119,7 +119,7 @@ double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 
 double vrans_nhflow_f::Bpor(double por, double part, double beta)
 {
-	val = beta*(1.0 + 7.5/Cval)*((1.0-por)/pow(por,3.0))*(1.0/part);
+	val = beta*(1.0 + 7.5/Cval)*((1.0-por)/pow(por,4.0))*(1.0/part);
     
     if(val!=val)
     val=0.0;
