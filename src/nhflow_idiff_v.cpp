@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"solver.h"
+#include"vrans.h"
 
 void nhflow_idiff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
+#include"vrans.h"
 
 nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6),P(p),Q(p),K(p)
 {

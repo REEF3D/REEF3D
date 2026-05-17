@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 #include"nhflow_flux_build_f.h"
+#include"vrans.h"
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -76,7 +77,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     {
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP])*PORVALNH;
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
 }
 
@@ -95,7 +96,7 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     {
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP])*PORVALNH;
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
 }
 
@@ -114,7 +115,7 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     {
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP])*PORVALNH;
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
 }
 

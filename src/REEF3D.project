@@ -1016,6 +1016,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_definitions.h"/>
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_nhflow_f.h"/>
         <File Name="vrans_nhflow_v.h"/>

@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"nhflow_geometry.h"
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
+#include"vrans.h"
 
 nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), fe(p)
 {
