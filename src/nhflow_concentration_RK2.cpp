@@ -77,7 +77,7 @@ void nhflow_concentration_RK2::start(lexer *p, fdm_nhf *d, convection* pconvec, 
 
 }
 
-void nhflow_concentration_RK2::ttimesave(lexer *p, fdm_nhf *d)
+void nhflow_concentration_RK2::ctimesave(lexer *p, fdm_nhf *d)
 {
 }
 

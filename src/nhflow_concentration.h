@@ -44,7 +44,7 @@ public:
 
 	virtual void start(lexer*, fdm_nhf*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ini(lexer*, fdm_nhf*, ghostcell*, nhflow_concentration*)=0;
-	virtual void ttimesave(lexer*, fdm_nhf*)=0;
+	virtual void ctimesave(lexer*, fdm_nhf*)=0;
 
 	virtual void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&)=0;
 	virtual double val(int,int,int)=0;

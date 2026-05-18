@@ -20,28 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_CONCENTRATION_RK2_H_
-#define NHFLOW_CONCENTRATION_RK2_H_
+#ifndef NHFLOW_CONCENTRATION_IM1_H_
+#define NHFLOW_CONCENTRATION_IM1_H_
 
 #include"nhflow_concentration_io.h"
+#include"increment.h"
 
 using namespace std;
 
-class nhflow_concentration_RK2 final : public nhflow_concentration_io
+class nhflow_concentration_IM1 final : public nhflow_concentration_io
 {
 public:
-    nhflow_concentration_RK2(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_concentration_RK2();
-
+	nhflow_concentration_IM1(lexer*, fdm_nhf*, ghostcell*);
+	virtual ~nhflow_concentration_IM1();
 	void start(lexer*, fdm_nhf*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
 	void ctimesave(lexer*, fdm_nhf*) override final;
+    
+    void concsource(lexer*,fdm_nhf*,double*);
+    void bcconc_start(lexer*,fdm_nhf*,ghostcell*,double*);
+	void clearrhs(lexer*,fdm_nhf*);
 
+	int gcval_conc;
 
 private:
-    void clearrhs(lexer*,fdm_nhf*,ghostcell*);
+    void timesource(lexer*, fdm_nhf*, double*);
+    double starttime;
     
-	int gcval_concentration;
-	double starttime, endtime;
+    int count,q;
 };
 
 #endif

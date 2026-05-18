@@ -994,6 +994,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
         <VirtualDirectory Name="NHFLOW">
+          <File Name="nhflow_concentration_IM1.h"/>
           <VirtualDirectory Name="BC"/>
           <VirtualDirectory Name="IO">
             <File Name="nhflow_concentration_io.h"/>
@@ -2710,6 +2711,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
         <VirtualDirectory Name="NHFLOW">
+          <File Name="nhflow_concentration_IM1.cpp"/>
           <VirtualDirectory Name="IO">
             <File Name="nhflow_concentration_ini.cpp"/>
             <File Name="nhflow_concentration_io.cpp"/>
