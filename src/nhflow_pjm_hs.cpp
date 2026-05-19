@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"density_f.h"
 #include"patchBC_interface.h"
+#include"vrans.h"
 
 #define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
 #define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
@@ -78,7 +79,7 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-    d->F[IJK] += PORVALNH*d->eta(i,j)*fabs(p->W22)*
+    d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
 }
 
@@ -86,7 +87,7 @@ void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-	d->G[IJK] += PORVALNH*d->eta(i,j)*fabs(p->W22)*
+	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 

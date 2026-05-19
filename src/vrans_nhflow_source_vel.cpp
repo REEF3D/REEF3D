@@ -47,7 +47,7 @@ void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
 
         porousterm = Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]); 
     	
-    d->F[IJK] -= H*WL(i,j)*porousterm;
+    d->Fext[IJK] -= H*WL(i,j)*porousterm;
     
     d->maxF = MAX(fabs(d->maxF),fabs(H*WL(i,j)*porousterm));
 	}
@@ -74,7 +74,7 @@ void vrans_nhflow_f::v_source(lexer *p, fdm_nhf *d, slice &WL)
 
         porousterm = Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]); 
     	
-    d->G[IJK] -= H*WL(i,j)*porousterm;
+    d->Gext[IJK] -= H*WL(i,j)*porousterm;
     
     d->maxG = MAX(fabs(d->maxG),fabs(H*WL(i,j)*porousterm));
 	}
@@ -101,7 +101,7 @@ void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
 
         porousterm = Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]); 
     	
-    d->H[IJK] -= H*WL(i,j)*porousterm;
+    d->Hext[IJK] -= H*WL(i,j)*porousterm;
     
     d->maxH = MAX(fabs(d->maxH),fabs(H*WL(i,j)*porousterm));
 	}
@@ -119,7 +119,7 @@ double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 
 double vrans_nhflow_f::Bpor(double por, double part, double beta)
 {
-	val = beta*(1.0 + 7.5/Cval)*((1.0-por)/pow(por,3.0))*(1.0/part);
+	val = beta*(1.0 + 7.5/Cval)*((1.0-por)/pow(por,4.0))*(1.0/part);
     
     if(val!=val)
     val=0.0;

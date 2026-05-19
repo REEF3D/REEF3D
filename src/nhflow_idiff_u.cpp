@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"slice.h"
+#include"vrans.h"
 
 nhflow_idiff::nhflow_idiff(lexer* p)
 {

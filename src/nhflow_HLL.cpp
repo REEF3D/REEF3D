@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 #include"nhflow_flux_build_f.h"
+#include"vrans.h"
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {

@@ -125,13 +125,6 @@ Author: Hans Bihs
 #define CPOR2p   (1.0/(1.0+(p->B260*(PORVAL2p<1.0?1.0:0.0))))
 #define CPOR3p   (1.0/(1.0+(p->B260*(PORVAL3p<1.0?1.0:0.0))))
 
-#define PORVALNH  d->POR[IJK]
-#define PORVALNHm d->POR[IJK]
-#define PORVALNHp d->POR[IJK]
-#define CPORNH  (1.0/(1.0+(p->B260*(PORVALNH<1.0?1.0:0.0))))
-#define CPORNHm (1.0/(1.0+(p->B260*(PORVALNHm<1.0?1.0:0.0))))
-#define CPORNHp (1.0/(1.0+(p->B260*(PORVALNHp<1.0?1.0:0.0))))
-
 // COMBINDED LOOPS
 #define IJKLOOP ILOOP JLOOP KLOOP
 #define KJILOOP KLOOP JLOOP ILOOP

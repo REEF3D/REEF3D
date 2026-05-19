@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"slice.h"
+#include"vrans.h"
 
 void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {

@@ -994,8 +994,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
         <VirtualDirectory Name="NHFLOW">
+          <File Name="nhflow_concentration_IM1.h"/>
           <VirtualDirectory Name="BC"/>
-          <VirtualDirectory Name="IO"/>
+          <VirtualDirectory Name="IO">
+            <File Name="nhflow_concentration_io.h"/>
+          </VirtualDirectory>
           <File Name="nhflow_concentration_RK2.h"/>
           <File Name="nhflow_concentration.h"/>
         </VirtualDirectory>
@@ -1014,6 +1017,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
+        <File Name="vrans_definitions.h"/>
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_nhflow_f.h"/>
         <File Name="vrans_nhflow_v.h"/>
@@ -2707,7 +2711,11 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Concentration">
         <VirtualDirectory Name="NHFLOW">
-          <VirtualDirectory Name="IO"/>
+          <File Name="nhflow_concentration_IM1.cpp"/>
+          <VirtualDirectory Name="IO">
+            <File Name="nhflow_concentration_ini.cpp"/>
+            <File Name="nhflow_concentration_io.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="BC"/>
           <File Name="nhflow_concentration_RK2.cpp"/>
         </VirtualDirectory>

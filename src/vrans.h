@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define VRANS_H_
 
 #include<vector>
+#include"vrans_definitions.h"
 
 class lexer;
 class fdm;

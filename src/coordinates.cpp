@@ -32,6 +32,32 @@ coordinates::~coordinates()
 {
 }
 
+void coordinates::XYin(double &Xcoor, double &Ycoor)
+{
+    if(p->cms_flag==1)
+    {
+    Xtemp = (Xcoor-p->global_orig_x)*cos(-p->alpha_grid) - (Ycoor-p->global_orig_y)*sin(-p->alpha_grid);
+    Ytemp = (Xcoor-p->global_orig_x)*cos(-p->alpha_grid) - (Ycoor-p->global_orig_y)*sin(-p->alpha_grid);
+    
+    Xcoor = Xtemp;
+    Ycoor = Ytemp;
+    }
+}
+
+void coordinates::XYout(double &Xcoor, double &Ycoor)
+{
+    if(p->cms_flag==1)
+    {
+    Xtemp = (Xcoor)*cos(p->alpha_grid) - (Ycoor)*sin(p->alpha_grid) + p->global_orig_x;
+    Ytemp = (Xcoor)*sin(p->alpha_grid) + (Ycoor)*cos(p->alpha_grid) + p->global_orig_y;
+    
+    Xcoor = Xtemp;
+    Ycoor = Ytemp;
+    }
+}
+
+// ----------------
+
 double coordinates::Xin(double xworld, double yworld)
 {
     double xmodel=xworld;
