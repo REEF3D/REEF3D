@@ -339,6 +339,7 @@ private:
     double netQ,netQ_n,netV;
     double netV_corr,netV_corr_n;
     double b0,b1;
+    double timemeter;
     
     linear_regression_cont *linreg;
     

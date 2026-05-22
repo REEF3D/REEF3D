@@ -90,7 +90,7 @@ public:
     // flag
     double *flag_solid,*flag_topo;
     double *data;
-	double *topobed,*solidbed,*bed,*depth;
+	double *topobed,*solidbed,*bed,*depth,*WL;
     int *wet,*wet_n;
     int *deep;
     int gcbextra;

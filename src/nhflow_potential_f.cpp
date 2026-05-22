@@ -107,6 +107,9 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
 
     p->N46=itermem;
     
+    LOOP
+    d->test[IJK] = PSI[IJK];
+    pgc->start49V(p,d->test,gcval_pot);
 
     finalize:
     

@@ -126,6 +126,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/WLVL;
+    
+    p->WL[IJ] = WL(i,j);
     }
 
     // sigt
