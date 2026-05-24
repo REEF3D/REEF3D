@@ -63,19 +63,17 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     Ds = Ds>1.0e-10?Ds:1.0e10;
     
-    if(p->A10==5)
-    {
-    k=0;
-    adist = 0.5*p->DZN[KP]*p->WL[IJ];
-    }
-    
-    if(p->A10==6)
-    {
-    k=s->bedk(i,j);
-    adist = 0.5*p->DZN[KP];
-    }
-    
-    //adist = 0.5*p->DZP[KP];
+        if(p->A10==5)
+        {
+        k=0;
+        adist = 0.5*p->DZN[KP]*p->WL[IJ];
+        }
+        
+        if(p->A10==6)
+        {
+        k=s->bedk(i,j);
+        adist = 0.5*p->DZN[KP];
+        }
     
     s->cbe(i,j) =  MIN((0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.1);
     }
