@@ -23,14 +23,14 @@ Author: Hans Bihs
 #ifndef NHFLOW_CONCENTRATION_H_
 #define NHFLOW_CONCENTRATION_H_
 
-class fdm_nhf;
 class lexer;
-class convection;
-class diffusion;
+class fdm_nhf;
+class nhflow_scalar_convection;
+class nhflow_diffusion;
 class solver;
 class ghostcell;
 class ioflow;
-class turbulence;
+class nhflow_turbulence;
 #include<iostream>
 #include<fstream>
 #include<sstream>
@@ -42,7 +42,7 @@ class nhflow_concentration
 {
 public:
 
-	virtual void start(lexer*, fdm_nhf*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
+	virtual void start(lexer*, fdm_nhf*, nhflow_scalar_convection*, nhflow_diffusion*, nhflow_turbulence*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ini(lexer*, fdm_nhf*, ghostcell*, nhflow_concentration*)=0;
 	virtual void ctimesave(lexer*, fdm_nhf*)=0;
 

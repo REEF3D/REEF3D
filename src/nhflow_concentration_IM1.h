@@ -33,7 +33,7 @@ class nhflow_concentration_IM1 final : public nhflow_concentration_io
 public:
 	nhflow_concentration_IM1(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_concentration_IM1();
-	void start(lexer*, fdm_nhf*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
+	void start(lexer*, fdm_nhf*, nhflow_scalar_convection*, nhflow_diffusion*, nhflow_turbulence*, solver*, ghostcell*, ioflow*) override final;
 	void ctimesave(lexer*, fdm_nhf*) override final;
     
     void concsource(lexer*,fdm_nhf*,double*);
