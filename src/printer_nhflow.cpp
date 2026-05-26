@@ -360,7 +360,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         pgc->gcsl_start4(p,d->bed,50);
         pgc->gcsl_start4(p,d->breaking_print,50);
-        pgc->start4V(p,d->test,50);
+        pgc->start5V(p,d->test,1);
 
         pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
         pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);

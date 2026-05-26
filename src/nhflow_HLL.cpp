@@ -130,20 +130,20 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     WETDRY
     {
     if(p->wet[Ip1J]==0)
-    d->Fx[IJK] = 0.0;
+    d->FEx[IJK] = 0.0;
     
     if(p->wet[Im1J]==0)
-    d->Fx[Im1JK] = 0.0;
+    d->FEx[Im1JK] = 0.0;
     
     if(p->wet[IJp1]==0)
-    d->Fy[IJK] = 0.0;
+    d->FEy[IJK] = 0.0;
     
     if(p->wet[IJm1]==0)
-    d->Fy[IJm1K] = 0.0;
+    d->FEy[IJm1K] = 0.0;
     }
     
-    pgc->start1V(p,d->Fx,14);
-    pgc->start2V(p,d->Fy,14); 
+    pgc->start1V(p,d->FEx,14);
+    pgc->start2V(p,d->FEy,14); 
 }
 
 void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
@@ -196,18 +196,18 @@ void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
     ULOOP
     {
         if(d->Ss[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK];
+        d->FEx[IJK] = d->Fs[IJK];
         
         else
         if(d->Sn[IJK]<=0.0)
-        d->Fx[IJK] = d->Fn[IJK];
+        d->FEx[IJK] = d->Fn[IJK];
         
         else
         {
         denom = d->Sn[IJK]-d->Ss[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
+        d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
         }
     }
     
@@ -216,18 +216,18 @@ void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
     VLOOP
     {
         if(d->Se[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK];
+        d->FEy[IJK] = d->Fe[IJK];
         
         else
         if(d->Sw[IJK]<=0.0)
-        d->Fy[IJK] = d->Fw[IJK];
+        d->FEy[IJK] = d->Fw[IJK];
         
         else
         {
         denom = d->Sw[IJK]-d->Se[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
+        d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
     }
 }

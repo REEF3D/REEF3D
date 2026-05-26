@@ -88,6 +88,7 @@ public:
     double *PORSTRUC;
     
     double *Fx,*Fy,*Fz;
+    double *FEx,*FEy;
     double *Fs,*Fn,*Fe,*Fw;
     double *Ss,*Sn,*Se,*Sw;
     double *SSx,*SSy;

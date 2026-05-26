@@ -70,6 +70,7 @@ private:
     ghostcell *pgc;
     patchBC_interface *pBC;
     nhflow_flux_build *pflux;
+    double r;
 };
 
 #endif

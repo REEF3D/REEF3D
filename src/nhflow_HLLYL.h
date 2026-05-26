@@ -56,10 +56,12 @@ private:
     void HLL(lexer*&, fdm_nhf*&, double*, double*, double*, double*);
     void HLL_E(lexer*&, fdm_nhf*&);
     
+    double limiter(double, double);
+    
 	double dx,dy,dz;
 	double udir,vdir,wdir;
 	double L;
-    double denom;
+    double denom,r,val,phi;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
 
