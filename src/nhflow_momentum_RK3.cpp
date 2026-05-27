@@ -164,12 +164,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime=pgc->timer()-starttime;
     
-    velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
+    velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1,1.0);
     
     pnhfdf->forcing(p, d, pgc, p6dof, 0, 1.0, UHRK1, VHRK1, WHRK1, WLRK1, 0);
     
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
-    velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1);
+    velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1,1.0);
     
     pflow->U_relax(p,pgc,d->U,UHRK1);
     pflow->V_relax(p,pgc,d->V,VHRK1);
@@ -257,12 +257,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     p->wtime+=pgc->timer()-starttime;
     
-    velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
+    velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2,0.25);
     
     pnhfdf->forcing(p, d, pgc, p6dof, 1, 0.25, UHRK2, VHRK2, WHRK2, WLRK2, 0);
     
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK2,UHRK2,VHRK2,WHRK2,0.25);
-    velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2);
+    velcalc(p,d,pgc,UHRK2,VHRK2,WHRK2,WLRK2,0.25);
     
 	pflow->U_relax(p,pgc,d->U,UHRK2);
     pflow->V_relax(p,pgc,d->V,VHRK2);
@@ -349,12 +349,12 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime+=pgc->timer()-starttime;
     
-    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
+    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,2.0/3.0);
     
     pnhfdf->forcing(p, d, pgc, p6dof, 2, 2.0/3.0, d->UH, d->VH, d->WH, d->WL, 1);
     
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,2.0/3.0);
-    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
+    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,2.0/3.0);
     
 	pflow->U_relax(p,pgc,d->U,d->UH);
     pflow->V_relax(p,pgc,d->V,d->VH);

@@ -100,7 +100,7 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
     p->recontime+=pgc->timer()-starttime;
 }
 
-void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
+void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
     // Fr nuber limiter
     if(p->A532==1)
@@ -144,6 +144,11 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     WH[IJK] = MAX(WH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
     }
     
+    LOOP
+    WETDRY
+    {
+    d->DWDT[IJK] = d->W[IJK];
+    }
     
     LOOP
     WETDRY
@@ -160,6 +165,12 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     d->U[IJK] = 0.0;
     d->V[IJK] = 0.0;
     d->W[IJK] = 0.0;
+    }
+    
+    LOOP
+    WETDRY
+    {
+    d->DWDT[IJK] = (d->W[IJK]-d->DWDT[IJK])/(alpha*p->dt);
     }
     
     pgc->start4V(p,d->U,gcval_u);
@@ -210,7 +221,7 @@ void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     sigma_update(p,d,pgc,d->WL);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL);
+    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,1.0);
 }
      
 

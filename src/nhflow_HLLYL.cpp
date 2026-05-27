@@ -106,6 +106,25 @@ void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
     
+
+    // HLL W flux sum
+    pflux->start_W(p,d,pgc);
+    HLL(p,d,d->WHs,d->WHn,d->WHe,d->WHw);
+    
+    pgc->start1V(p,d->Fx,12);
+    pgc->start2V(p,d->Fy,12);
+    pgc->start3V(p,d->Fz,12);
+    
+    LOOP
+    WETDRY
+    {
+    d->FSW[IJK] = ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
+                +  (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                +  (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    }    
+    
+    
+    // WCALC
     LOOP
     WETDRY
     if(k<p->knoz-1)
