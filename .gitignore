@@ -10,6 +10,8 @@ src/*.mk
 # GNUMake build files
 bin
 build
+# Ctags files
+src/.ctagsd
 # Temp files
 *.d
 *.o
