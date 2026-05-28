@@ -33,7 +33,7 @@ public:
 	nhflow_convection_void(lexer*);
 	virtual ~nhflow_convection_void();
 
-	void start(lexer*&, fdm_nhf*&, int, slice&) override final;
+	void start(lexer*&, fdm_nhf*&, int, slice&, double*) override final;
     void precalc(lexer*, fdm_nhf*, int, slice&) override final;
 
 };

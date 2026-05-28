@@ -43,7 +43,7 @@ public:
 	nhflow_FOU (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~nhflow_FOU();
 
-    void start(lexer*&, fdm_nhf*&, int, slice&) override final;
+    void start(lexer*&, fdm_nhf*&, int, slice&, double*) override final;
     void precalc(lexer*, fdm_nhf*, int, slice&) override final;
 
 private:

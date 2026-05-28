@@ -47,7 +47,7 @@ void nhflow_HLLYL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)
 {
 }
 
-void nhflow_HLLYL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta)
+void nhflow_HLLYL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta, double *FH)
 {
     if(ipol==1)
     aij_U(p,d,1);
@@ -56,7 +56,7 @@ void nhflow_HLLYL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta)
     aij_V(p,d,2);
 
     if(ipol==3)
-    aij_W(p,d,3);
+    aij_W(p,d,3,FH);
     
     if(ipol==4)
     aij_E(p,d,4);
@@ -100,12 +100,15 @@ void nhflow_HLLYL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     }    
 }
 
-void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
+void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol, double *WH)
 {
     double Pval,Qval,wvalbed;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
     double detadx,detady;
     
+    LOOP
+    WETDRY
+    WH[IJK] = 0.0;
 
     // HLL W flux sum
     pflux->start_W(p,d,pgc);
@@ -152,18 +155,19 @@ void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
                     - Qval*detady;
         }
                
-        d->test[IJKp1] = d->test[IJK] +  p->WL[IJ]*wvalbed
+        WH[IJKp1] = WH[IJK] +  p->WL[IJ]*wvalbed
                             
                     - p->DZN[KP]*(
                             
                     + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)
                             
-                    + p->WL[IJ]*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP])
+                    + p->WL[IJ]*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->U[FIJKp1]-d->U[FIJK])/p->DZN[KP])
                             
-                    + p->WL[IJ]*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]);
+                    + p->WL[IJ]*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->V[FIJKp1]-d->V[FIJK])/p->DZN[KP]);
     }
+    
 
-    pgc->start5V(p,d->test,1);
+    pgc->start4V(p,WH,16);
 }
 
 void nhflow_HLLYL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)

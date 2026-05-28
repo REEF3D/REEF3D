@@ -49,9 +49,9 @@ public:
 	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
     void wpgrad(lexer*,fdm_nhf*,slice&) override final;
     
-    void presscorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+    void press_corr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
     
-    void integral(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void press_integral(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
