@@ -34,6 +34,10 @@ Author: Hans Bihs
 
 nhflow_poisson::nhflow_poisson(lexer *p) 
 {
+    sigfac=1.0;
+    
+    if(p->A524==0)
+    sigfac=0.0;
 }
 
 nhflow_poisson::~nhflow_poisson()
@@ -86,10 +90,10 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.e[n] = -(1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
             d->M.t[n] = -(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+                        - sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
             d->M.b[n] = -(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+                        + sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
             if(p->D33==0)

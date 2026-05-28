@@ -129,6 +129,7 @@ void control::ini_default()
     A521=0;		// int
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
+    A524=1;      // int second order sigma terms for Poisson equation
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
