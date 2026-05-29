@@ -32,7 +32,7 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
     FLOOP
     {
-        CVAL4[FIJK]=count;
+        CVAL4(i,j,k)=count;
         ++count;
     }
 
@@ -44,22 +44,22 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
     FKJILOOP
     {
-            n=CVAL4[FIJK];
+        n=CVAL4(i,j,k);
 
-            values[count]=M.p[n];
-            ++count;
+        values[count]=M.p[n];
+        ++count;
 
-            values[count]=M.s[n];
-            ++count;
+        values[count]=M.s[n];
+        ++count;
 
-            values[count]=M.n[n];
-            ++count;
+        values[count]=M.n[n];
+        ++count;
 
-            values[count]=M.b[n];
-            ++count;
+        values[count]=M.b[n];
+        ++count;
 
-            values[count]=M.t[n];
-            ++count;
+        values[count]=M.t[n];
+        ++count;
     }
 
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
@@ -80,8 +80,8 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     count=0;
     FKJILOOP
     {
-            n=CVAL4[FIJK];
-            values[count] = rhs.V[n];
+        n=CVAL4(i,j,k);
+        values[count] = rhs.V[n];
 
         ++count;
     }
