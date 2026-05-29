@@ -175,7 +175,7 @@ void nhflow_pjm_yl::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P
 {
     /*LOOP
     WETDRYDEEP
-	WH[IJK] -= alpha*p->dt*PORVALNH*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));*/
+	WH[IJK] -= alpha*p->dt*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));*/
 }
 
 void nhflow_pjm_yl::upgrad(lexer*p, fdm_nhf *d, slice &WL)
