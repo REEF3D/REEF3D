@@ -109,7 +109,7 @@ void nhflow_pjm_yl::press_integral(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     k=p->knoz;
     SLICELOOP4
     {
-    d->P[FIJK]=0.0;
+    d->P[IJK]=0.0;
     ++n;
     }
     
@@ -118,18 +118,18 @@ void nhflow_pjm_yl::press_integral(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     YLLOOP
     WETDRYDEEP
     {
-    d->P[FIJK] =      d->P[FIJKp1] 
+    d->test[IJK] =       d->test[IJKp1] 
     
-                    + p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  
+                    + (p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  
                     
-                    + p->WL[IJ]*(W[IJK]-W[IJKm1])*p->sigt[FIJK]
+                    +  p->WL[IJ]*(W[IJK]-W[IJKm1])*p->sigt[FIJK]
                     
-                    + p->DZN[KP]*d->FSW[IJK];
+                    +  p->DZN[KP]*d->FSW[IJK])*p->W1;
                     
                     
-    d->test[IJK] =    d->test[IJKp1]
+    /*d->test[IJK] =    d->test[IJKp1]
                     
-                    + p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  ;
+                    + p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK];*/
                     
     }
     
