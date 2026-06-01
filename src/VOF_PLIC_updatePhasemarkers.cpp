@@ -251,11 +251,11 @@ void VOF_PLIC::updatePhasemarkersCompression( lexer* p, fdm* a, ghostcell* pgc,f
 
 void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,field& voffield)
 {
-    LOOP
-        a->phasemarker(i,j,k)=-1.0;
+    //LOOP
+       // a->phasemarker(i,j,k)=-1.0;
       
-   // LOOP
-      //  a->phasemarker(i,j,k)=0.0;
+    LOOP
+        a->phasemarker(i,j,k)=0.0;
         
     LOOP
     {

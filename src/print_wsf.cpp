@@ -168,9 +168,9 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
 	
         KLOOP
         {
-            if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
+            if(f(i,j,k)>p->F94 && f(i,j,k+1)<0.1)
                 wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
-            else if(f(i,j,k)<=p->F94 && f(i,j,k)>=p->F93)
+            else if(f(i,j,k)<=p->F94 && f(i,j,k)>=0.1)
             {
                 /*if(a->Alpha(i,j,k)<1E05)
                 {
