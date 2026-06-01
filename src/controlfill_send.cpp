@@ -1377,6 +1377,12 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P145;
     ii++;
+    ictrl[ii] = P146;
+    ii++;
+    ictrl[ii] = P147;
+    ii++;
+    ictrl[ii] = P148;
+    ii++;
     ictrl[ii] = P151;
     ii++;
     ictrl[ii] = P152;
@@ -3403,9 +3409,41 @@ void control::ctrlsend()
         dd++;
         ictrl[ii] = P145_n[n];
         ii++;
-        dctrl[dd] = P145_transient[n];
+        dctrl[dd] = P145_tbegin[n];
         dd++;
-        dctrl[dd] = P145_dt[n];
+        dctrl[dd] = P145_tend[n];
+        dd++;
+    }
+
+    for(n=0;n<P146;++n)
+    {
+        dctrl[dd] = P146_y[n];
+        dd++;
+        dctrl[dd] = P146_tbegin[n];
+        dd++;
+        dctrl[dd] = P146_tend[n];
+        dd++;
+    }
+
+    for(n=0;n<P147;++n)
+    {
+        dctrl[dd] = P147_x[n];
+        dd++;
+        dctrl[dd] = P147_tbegin[n];
+        dd++;
+        dctrl[dd] = P147_tend[n];
+        dd++;
+    }
+
+    for(n=0;n<P148;++n)
+    {
+        dctrl[dd] = P148_x[n];
+        dd++;
+        dctrl[dd] = P148_y[n];
+        dd++;
+        dctrl[dd] = P148_tbegin[n];
+        dd++;
+        dctrl[dd] = P148_tend[n];
         dd++;
     }
 

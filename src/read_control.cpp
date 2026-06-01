@@ -1784,12 +1784,6 @@ void control::read_control(lexer* p)
                 case 124: ++P124;
                          clear(c,numint);
                          break;
-                case 125: ++P125;
-                         clear(c,numint);
-                         break;
-                case 126: control>>P126;
-                         clear(c,numint);
-                         break;
                 case 131: control>>P131;
                          clear(c,numint);
                          break;
@@ -1812,6 +1806,15 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 145: ++P145;
+                         clear(c,numint);
+                         break;
+                case 146: ++P146;
+                         clear(c,numint);
+                         break;
+                case 147: ++P147;
+                         clear(c,numint);
+                         break;
+                case 148: ++P148;
                          clear(c,numint);
                          break;
                 case 166: control>>P166;
@@ -3098,6 +3101,28 @@ void control::read_control(lexer* p)
         Darray(F375_r,F375);
     }
 
+    if(P146>0)
+    {
+        Darray(P146_y,P146);
+        Darray(P146_tbegin,P146);
+        Darray(P146_tend,P146);
+    }
+
+    if(P147>0)
+    {
+        Darray(P147_x,P147);
+        Darray(P147_tbegin,P147);
+        Darray(P147_tend,P147);
+    }
+
+    if(P148>0)
+    {
+        Darray(P148_x,P148);
+        Darray(P148_y,P148);
+        Darray(P148_tbegin,P148);
+        Darray(P148_tend,P148);
+    }
+
     if(F378>0)
     {
         Darray(F378_xc,F378);
@@ -3270,8 +3295,8 @@ void control::read_control(lexer* p)
     Darray(P145_ys,P145);
     Darray(P145_ye,P145);
     Iarray(P145_n,P145);
-    Darray(P145_transient,P145);
-    Darray(P145_dt,P145);
+    Darray(P145_tbegin,P145);
+    Darray(P145_tend,P145);
 
     Iarray(P184_its,P184);
     Iarray(P184_ite,P184);
@@ -3579,6 +3604,9 @@ void control::read_control(lexer* p)
     int countP140=0;
     int countP144=0;
     int countP145=0;
+    int countP146=0;
+    int countP147=0;
+    int countP148=0;
     int countP184=0;
     int countP185=0;
     int countP194=0;
@@ -4119,10 +4147,25 @@ void control::read_control(lexer* p)
                          ++countP144;
                          clear(c,numint);
                          break;
-                case 145: control>>P145_xs[countP145]>>P145_xe[countP145]>>P145_ys[countP145]>>P145_ye[countP145]>>P145_n[countP145]>>P145_transient[countP145]>>P145_dt[countP145];
+                case 145: control>>P145_xs[countP145]>>P145_xe[countP145]>>P145_ys[countP145]>>P145_ye[countP145]>>P145_n[countP145]>>P145_tbegin[countP145]>>P145_tend[countP145];
                          p->XYin(P145_xs[countP145],P145_ys[countP145]);
                          p->XYin(P145_xe[countP145],P145_ye[countP145]);
                          ++countP145;
+                         clear(c,numint);
+                         break;
+                case 146: control>>P146_y[countP146]>>P146_tbegin[countP146]>>P146_tend[countP146];
+                         P146_y[countP146] = p->Yin(0.0,P146_y[countP146]);
+                         ++countP146;
+                         clear(c,numint);
+                         break;
+                case 147: control>>P147_x[countP147]>>P147_tbegin[countP147]>>P147_tend[countP147];
+                         P147_x[countP147] = p->Xin(P147_x[countP147],0.0);
+                         ++countP147;
+                         clear(c,numint);
+                         break;
+                case 148: control>>P148_x[countP148]>>P148_y[countP148]>>P148_tbegin[countP148]>>P148_tend[countP148];
+                         p->XYin(P148_x[countP148],P148_y[countP148]);
+                         ++countP148;
                          clear(c,numint);
                          break;
                 case 167: control>>P167_x[countP167];
