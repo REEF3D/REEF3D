@@ -23,7 +23,7 @@ Author: Thomas Becker
 #ifndef NHFLOW_DEPAVG_VEL_LINEPROBE_H_
 #define NHFLOW_DEPAVG_VEL_LINEPROBE_H_
 
-#include"boundarycheck.h"
+#include"increment.h"
 #include<iostream>
 #include<fstream>
 
@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_depavg_vel_lineprobe : public boundarycheck
+class nhflow_depavg_vel_lineprobe : public increment
 {
 public:
     nhflow_depavg_vel_lineprobe(lexer*,fdm_nhf*);

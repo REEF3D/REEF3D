@@ -23,7 +23,7 @@ Author: Thomas Becker
 #ifndef NHFLOW_TIMEAVG_VEL_PROFILE_H_
 #define NHFLOW_TIMEAVG_VEL_PROFILE_H_
 
-#include"boundarycheck.h"
+#include"increment.h"
 #include<iostream>
 #include<fstream>
 
@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_timeavg_vel_profile : public boundarycheck
+class nhflow_timeavg_vel_profile : public increment
 {
 public:
     nhflow_timeavg_vel_profile(lexer*,fdm_nhf*);

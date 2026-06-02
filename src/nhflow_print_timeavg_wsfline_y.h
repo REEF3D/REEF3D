@@ -23,7 +23,7 @@ Author: Thomas Becker
 #ifndef NHFLOW_PRINT_TIMEAVG_WSFLINE_Y_H_
 #define NHFLOW_PRINT_TIMEAVG_WSFLINE_Y_H_
 
-#include"boundarycheck.h"
+#include"increment.h"
 #include<iostream>
 #include<fstream>
 
@@ -35,7 +35,7 @@ class slice;
 
 using namespace std;
 
-class nhflow_print_timeavg_wsfline_y : public boundarycheck
+class nhflow_print_timeavg_wsfline_y : public increment
 {
 public:
     nhflow_print_timeavg_wsfline_y(lexer*,fdm_nhf*,ghostcell*);
