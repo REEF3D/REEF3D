@@ -192,7 +192,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         if(time_accum[n]<=0.0)
             continue;
 
-        sprintf(name,"./REEF3D_NHFLOW_DEP-TIME-AVG-VEL-LINE/REEF3D-NHFLOW-DepTimeAvgVel-LineProbe-%i-%i.dat",n+1,p->count);
+        sprintf(name,"./REEF3D_NHFLOW_DEP_TIME_AVG_VEL_LINE/REEF3D-NHFLOW-DepTimeAvgVel-LineProbe-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
         pout[n]<<"Depth-and-Time-Averaged Velocity Lineprobe ID:  "<<n+1<<endl<<endl;
