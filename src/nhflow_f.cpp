@@ -145,7 +145,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     d->POR[IJK]=1.0;
     
     pgc->start5Vfull(p,d->POR,1);
-    
+    /*
     ULOOP
     if(PORVALNH1<0.99 || PORVALNH1m<0.99 || CPORNH1<0.99 || CPORNH1m<0.99)
     cout<<"EMERGENCY PORVAL1"<<endl;
@@ -167,7 +167,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     LOOP
     if(PORVALNH<0.99 || CPORNH<0.99)
-    cout<<"EMERGENCY PORVAL"<<endl;
+    cout<<"EMERGENCY PORVAL"<<endl;*/
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
