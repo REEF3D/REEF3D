@@ -46,20 +46,18 @@ private:
 
     char name[100];
     int *iloc,*jloc,*flag;
-    int n,q,k;
+    int n,q;
     const int probenum;
     ofstream *pout;
 
     double *time_accum,*start_time;
-    int *started,*printed;
+    bool *started,*printed;
     int max_points;
 
     double **z_timeint;
     double **u_timeint;
     double **v_timeint;
     double **vel_timeint;
-
-    double zval,uval,vval,velval;
 };
 
 #endif

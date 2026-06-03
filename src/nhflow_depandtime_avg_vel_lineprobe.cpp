@@ -37,8 +37,8 @@ nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *
     p->Darray(normal_y,probenum);
     p->Darray(time_accum,probenum);
     p->Darray(start_time,probenum);
-    p->Iarray(started,probenum);
-    p->Iarray(printed,probenum);
+    started = new bool[probenum];
+    printed = new bool[probenum];
     p->Iarray(point_count,probenum);
 
     max_points = 1;
@@ -60,8 +60,8 @@ nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *
     {
         time_accum[n] = 0.0;
         start_time[n] = 0.0;
-        started[n] = 0;
-        printed[n] = 0;
+        started[n] = false;
+        printed[n] = false;
 
         for(q=0;q<max_points;++q)
         {
@@ -71,7 +71,7 @@ nhflow_depandtime_avg_vel_lineprobe::nhflow_depandtime_avg_vel_lineprobe(lexer *
     }
 
     if(p->mpirank==0)
-        mkdir("./REEF3D_NHFLOW_DEP-TIME-AVG-VEL-LINE",0777);
+        mkdir("./REEF3D_NHFLOW_DEP_TIME_AVG_VEL_LINE",0777);
 
     pout = new ofstream[probenum];
 
@@ -96,7 +96,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         if(flag[n]!=1)
             continue;
 
-        if(printed[n]==1)
+        if(printed[n])
             continue;
 
         const double tstart = p->P145_tbegin[n];
@@ -106,7 +106,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
 
         if(tend<=tstart)
         {
-            printed[n] = 1;
+            printed[n] = true;
             continue;
         }
 
@@ -119,7 +119,7 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         if(effective_dt<=0.0)
         {
             if(t1>=tend-1.0e-12)
-                printed[n] = 1;
+                printed[n] = true;
 
             continue;
         }
@@ -187,19 +187,17 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         if(t1<tend-1.0e-12)
             continue;
 
-        printed[n] = 1;
-
         if(time_accum[n]<=0.0)
             continue;
 
         sprintf(name,"./REEF3D_NHFLOW_DEP_TIME_AVG_VEL_LINE/REEF3D-NHFLOW-DepTimeAvgVel-LineProbe-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
-        pout[n]<<"Depth-and-Time-Averaged Velocity Lineprobe ID:  "<<n+1<<endl<<endl;
-        pout[n]<<"simtime:  "<<p->simtime<<endl;
-        pout[n]<<"starttime:  "<<start_time[n]<<endl;
-        pout[n]<<"averaging_time:  "<<time_accum[n]<<endl<<endl;
-        pout[n]<<"dist_along_the_line x_point y_point u_depth_avg v_depth_avg norm_vel_depth_avg"<<endl;
+        pout[n]<<"Depth-and-Time-Averaged Velocity Lineprobe ID:  "<<n+1<<"\n\n"
+               <<"simtime:  "<<p->simtime<<"\n"
+               <<"starttime:  "<<start_time[n]<<"\n"
+               <<"averaging_time:  "<<time_accum[n]<<"\n\n"
+               <<"dist_along_the_line x_point y_point u_depth_avg v_depth_avg norm_vel_depth_avg"<<endl;
 
         for(q=0;q<point_count[n];++q)
         {
@@ -217,6 +215,8 @@ void nhflow_depandtime_avg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell 
         }
 
         pout[n].close();
+
+        printed[n] = 1;
     }
 }
 

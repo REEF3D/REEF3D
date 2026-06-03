@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Thomas Becker
 --------------------------------------------------------------------*/
 
-#include<iomanip>
 #include"nhflow_print_timeavg_wsfline.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"wave_interface.h"
+#include<iomanip>
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -37,31 +37,29 @@ nhflow_print_timeavg_wsfline::nhflow_print_timeavg_wsfline(lexer *p, fdm_nhf *d,
     maxknox=pgc->globalimax(p->knox);
     sumknox=pgc->globalisum(maxknox);
 
-    p->Darray(xloc,p->P146+1,maxknox);
-    p->Darray(wsf,p->P146+1,maxknox);
-    p->Iarray(flag,p->P146+1,maxknox);
-    p->Iarray(wsfpoints,p->P146+1);
+    p->Darray(xloc,p->P146,maxknox);
+    p->Darray(wsf,p->P146,maxknox);
+    p->Iarray(flag,p->P146,maxknox);
+    p->Iarray(wsfpoints,p->P146);
 
-    p->Darray(xloc_all,p->P146+1,sumknox);
-    p->Darray(wsf_all,p->P146+1,sumknox);
-    p->Iarray(flag_all,p->P146+1,sumknox);
-    p->Iarray(rowflag,sumknox);
+    p->Darray(xloc_all,p->P146,sumknox);
+    p->Darray(wsf_all,p->P146,sumknox);
+    p->Iarray(flag_all,p->P146,sumknox);
 
-    p->Darray(yloc,p->P146);
     p->Darray(time_accum,p->P146);
     p->Darray(start_time,p->P146);
-    p->Iarray(started,p->P146);
-    p->Iarray(printed,p->P146);
+    started = new bool[p->P146];
+    printed = new bool[p->P146];
 
     for(q=0;q<p->P146;++q)
     {
         time_accum[q] = 0.0;
         start_time[q] = 0.0;
-        started[q] = 0;
-        printed[q] = 0;
+        started[q] = false;
+        printed[q] = false;
     }
 
-    for(q=0;q<p->P146+1;++q)
+    for(q=0;q<p->P146;++q)
     for(n=0;n<maxknox;++n)
     {
         xloc[q][n] = 1.0e20;
@@ -69,22 +67,18 @@ nhflow_print_timeavg_wsfline::nhflow_print_timeavg_wsfline(lexer *p, fdm_nhf *d,
         flag[q][n] = 0;
     }
 
-    for(q=0;q<p->P146+1;++q)
+    for(q=0;q<p->P146;++q)
     for(n=0;n<sumknox;++n)
     {
         xloc_all[q][n] = 0.0;
         wsf_all[q][n] = 0.0;
         flag_all[q][n] = 0;
-        rowflag[n] = 0;
     }
-
-    for(q=0;q<p->P146;++q)
-        yloc[q] = 0.0;
 
     location_ready = 0;
 
     if(p->mpirank==0)
-        mkdir("./REEF3D_NHFLOW_TIME-AVG-WSFLINE",0777);
+        mkdir("./REEF3D_NHFLOW_TIME_AVG_WSFLINE",0777);
 
 }
 
@@ -96,61 +90,59 @@ nhflow_print_timeavg_wsfline::~nhflow_print_timeavg_wsfline()
 void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, slice &f)
 {
     char name[250];
-    int num,check;
 
     if(location_ready==0)
     {
-        int ready=0;
+        bool ready=false;
 
         for(q=0;q<p->P146;++q)
-            if(p->simtime>=p->P146_tbegin[q] && printed[q]==0)
+            if(p->simtime>=p->P146_tbegin[q] && printed[q]==false)
             {
-                ready=1;
+                ready=true;
                 break;
             }
 
-        if(ready==0)
+        if(ready==false)
             return;
 
         ini_location(p,d,pgc);
         location_ready = 1;
     }
 
-    num = p->count;
-
     for(q=0;q<p->P146;++q)
     {
-        if(flag[q][0]<0 || printed[q]==1)
+        if(flag[q][0]<0 || printed[q]==true)
             continue;
 
-        const double tstart = p->P146_tbegin[q];
+        const double tbegin = p->P146_tbegin[q];
         const double tend = p->P146_tend[q];
         const double t0 = p->simtime - p->dt_old;
         const double t1 = p->simtime;
 
-        if(tend<=tstart)
+        if(tend<=tbegin)
         {
-            printed[q] = 1;
+            printed[q] = true;
             continue;
         }
 
-        if(t1<=tstart)
+        if(t1<=tbegin)
             continue;
 
-        const double effective_t0 = MAX(t0,tstart);
+        const double effective_t0 = MAX(t0,tbegin);
         const double effective_t1 = MIN(t1,tend);
         const double effective_dt = effective_t1 - effective_t0;
+
         if(effective_dt<=0.0)
         {
             if(t1>=tend-1.0e-12)
-                printed[q] = 1;
+                printed[q] = true;
 
             continue;
         }
 
-        if(started[q]==0)
+        if(started[q]==false)
         {
-            started[q] = 1;
+            started[q] = true;
             start_time[q] = effective_t0;
         }
 
@@ -176,73 +168,54 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
         if(t1<tend-1.0e-12)
             continue;
 
-        printed[q] = 1;
-
         if(time_accum[q]<=0.0)
             continue;
 
-        sprintf(name,"./REEF3D_NHFLOW_TIME-AVG-WSFLINE/REEF3D-NHFLOW-TimeAvgWsfLine-%i-%i.dat",q+1,p->count);
-        wsfout.open(name);
-
-        wsfout<<"Time-Averaged Water Surface Lineprobe ID:  "<<q+1<<endl<<endl;
-        wsfout<<"simtime:  "<<p->simtime<<endl;
-        wsfout<<"starttime:  "<<start_time[q]<<endl;
-        wsfout<<"averaging_time:  "<<time_accum[q]<<endl<<endl;
-        wsfout<<"line_No     y_coord"<<endl;
-        wsfout<<q+1<<"\t "<<p->Yout(0.0,yline)<<endl;
-
-        wsfout<<endl<<endl;
-
-        wsfout<<"X "<<q+1;
-        wsfout<<"\t P "<<q+1<<endl;
-        wsfout<<endl;
-
         wsfpoints[q]=sumknox;
 
-            pgc->gather_double(xloc[q],maxknox,xloc_all[q],maxknox);
-            pgc->gather_double(wsf[q],maxknox,wsf_all[q],maxknox);
-            pgc->gather_int(flag[q],maxknox,flag_all[q],maxknox);
+        pgc->gather_double(xloc[q],maxknox,xloc_all[q],maxknox);
+        pgc->gather_double(wsf[q],maxknox,wsf_all[q],maxknox);
+        pgc->gather_int(flag[q],maxknox,flag_all[q],maxknox);
 
         if(p->mpirank==0)
         {
-                sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
-                remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]);
-        }
+            sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
+            remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]);
 
-        if(p->mpirank==0)
-        {
+            sprintf(name,"./REEF3D_NHFLOW_TIME_AVG_WSFLINE/REEF3D-NHFLOW-TimeAvgWsfLine-%i-%i.dat",q+1,p->count);
+            wsfout.open(name);
+
+            wsfout<<"Time-Averaged Water Surface Lineprobe ID:  "<<q+1<<"\n\n"
+                  <<"simtime:  "<<p->simtime<<"\n"
+                  <<"starttime:  "<<start_time[q]<<"\n"
+                  <<"averaging_time:  "<<time_accum[q]<<"\n\n"
+                  <<"line_No     y_coord\n"
+                  <<q+1<<"\t "<<p->Yout(0.0,yline)<<"\n\n"
+                  <<"X "<<q+1
+                  <<"\t P "<<q+1<<"\n"<<endl;
+
             for(n=0;n<sumknox;++n)
             {
-                check=0;
-                    if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
-                {
-                        wsfout<<setprecision(12)<<p->Xout(xloc_all[q][n],0.0)<<" \t ";
-                        wsfout<<setprecision(12)<<(wsf_all[q][n]/time_accum[q])<<endl;
-                    check=1;
-                }
-
-                if(check==1)
-                    continue;
+                if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
+                    wsfout<<setprecision(12)<<p->Xout(xloc_all[q][n],0.0)<<" \t "<<(wsf_all[q][n]/time_accum[q])<<endl;
             }
 
             wsfout.close();
+            printed[q] = true;
         }
     }
 }
 
 void nhflow_print_timeavg_wsfline::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    int count;
-
     for(q=0;q<p->P146;++q)
     {
-        count=0;
+        int count=0;
         ILOOP
         {
             if(p->j_dir==0)
                 jloc[q]=0;
-
-            if(p->j_dir==1)
+            else if(p->j_dir==1)
                 jloc[q]=p->posc_j(p->P146_y[q]);
 
             if(jloc[q]>=0 && jloc[q]<p->knoy)

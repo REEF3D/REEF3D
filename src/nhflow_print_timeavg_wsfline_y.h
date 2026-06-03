@@ -48,13 +48,12 @@ private:
     void sort(double*, double*, int*, int,int);
     void remove_multientry(lexer*,double*, double*, int*, int&);
 
-    int *iloc,**flag,**flag_all,*rowflag,*wsfpoints;
+    int *iloc,**flag,**flag_all,*wsfpoints;
     double **wsf,**wsf_all;
     double **yloc, **yloc_all;
-    double *xloc;
     double *time_accum, *start_time;
-    int *started, *printed;
-    int location_ready;
+    bool *started, *printed;
+    bool location_ready;
     int n,q;
     ofstream wsfout;
 

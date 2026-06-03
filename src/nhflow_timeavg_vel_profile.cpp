@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>
 Author: Thomas Becker
 --------------------------------------------------------------------*/
 
-#include<iomanip>
-#include<cmath>
 #include"nhflow_timeavg_vel_profile.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include<iomanip>
+#include<cmath>
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -36,8 +36,8 @@ nhflow_timeavg_vel_profile::nhflow_timeavg_vel_profile(lexer *p, fdm_nhf *d) : p
     p->Iarray(flag,probenum);
     p->Darray(time_accum,probenum);
     p->Darray(start_time,probenum);
-    p->Iarray(started,probenum);
-    p->Iarray(printed,probenum);
+    started = new bool[probenum];
+    printed = new bool[probenum];
 
     max_points = MAX(1,p->knoz);
 
@@ -50,8 +50,8 @@ nhflow_timeavg_vel_profile::nhflow_timeavg_vel_profile(lexer *p, fdm_nhf *d) : p
     {
         time_accum[n] = 0.0;
         start_time[n] = 0.0;
-        started[n] = 0;
-        printed[n] = 0;
+        started[n] = false;
+        printed[n] = false;
 
         for(q=0;q<max_points;++q)
         {
@@ -65,7 +65,7 @@ nhflow_timeavg_vel_profile::nhflow_timeavg_vel_profile(lexer *p, fdm_nhf *d) : p
     pout = new ofstream[probenum];
 
     if(p->mpirank==0)
-        mkdir("./REEF3D_NHFLOW_TIME-AVG-VEL-PROFILE",0777);
+        mkdir("./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE",0777);
 
     ini_location(p,d);
 }
@@ -85,7 +85,7 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     for(n=0;n<probenum;++n)
     {
-        if(flag[n]!=1 || printed[n]==1)
+        if(flag[n]!=1 || printed[n]==true)
             continue;
 
         const double tbegin = p->P148_tbegin[n];
@@ -95,7 +95,7 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(tend<=tbegin)
         {
-            printed[n] = 1;
+            printed[n] = true;
             continue;
         }
 
@@ -109,26 +109,26 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(effective_dt<=0.0)
         {
             if(t1>=tend-1.0e-12)
-                printed[n] = 1;
+                printed[n] = true;
 
             continue;
         }
 
-        if(started[n]==0)
+        if(started[n]==false)
         {
-            started[n] = 1;
+            started[n] = true;
             start_time[n] = effective_t0;
         }
 
         i = iloc[n];
         j = jloc[n];
 
-        for(k=0;k<p->knoz;++k)
+        KLOOP
         {
-            zval = p->ZSP[IJK];
-            uval = p->ccipol4V(d->U, d->WL, d->bed, p->P148_x[n], p->P148_y[n], zval);
-            vval = p->ccipol4V(d->V, d->WL, d->bed, p->P148_x[n], p->P148_y[n], zval);
-            velval = sqrt(uval*uval + vval*vval);
+            double zval = p->ZSP[IJK];
+            double uval = p->ccipol4V(d->U, d->WL, d->bed, p->P148_x[n], p->P148_y[n], zval);
+            double vval = p->ccipol4V(d->V, d->WL, d->bed, p->P148_x[n], p->P148_y[n], zval);
+            double velval = sqrt(uval*uval + vval*vval);
 
             z_timeint[n][k] += effective_dt*zval;
             u_timeint[n][k] += effective_dt*uval;
@@ -141,23 +141,21 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(t1<tend-1.0e-12)
             continue;
 
-        printed[n] = 1;
-
         if(time_accum[n]<=0.0)
             continue;
 
-        sprintf(name,"./REEF3D_NHFLOW_TIME-AVG-VEL-PROFILE/REEF3D-NHFLOW-TimeAvgVelProfile-%i-%i.dat",n+1,p->count);
+        sprintf(name,"./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE/REEF3D-NHFLOW-TimeAvgVelProfile-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
-        pout[n]<<"TIME-AVG-VEL-Profile ID:  "<<n+1<<endl<<endl;
-        pout[n]<<"x_coord     y_coord"<<endl;
-        pout[n]<<n+1<<"\t "<<p->Xout(p->P148_x[n],p->P148_y[n])<<"\t "<<p->Yout(p->P148_x[n],p->P148_y[n])<<endl<<endl;
-        pout[n]<<"simtime:  "<<p->simtime<<endl;
-        pout[n]<<"starttime:  "<<start_time[n]<<endl;
-        pout[n]<<"averaging_time:  "<<time_accum[n]<<endl<<endl;
-        pout[n]<<"z\t U_avg\t V_avg\t VEL_avg"<<endl;
+        pout[n]<<"TIME-AVG-VEL-Profile ID:  "<<n+1<<"\n\n"
+               <<"x_coord     y_coord"<<endl
+               <<n+1<<"\t "<<p->Xout(p->P148_x[n],p->P148_y[n])<<"\t "<<p->Yout(p->P148_x[n],p->P148_y[n])<<"\n\n"
+               <<"simtime:  "<<p->simtime<<"\n"
+               <<"starttime:  "<<start_time[n]<<"\n"
+               <<"averaging_time:  "<<time_accum[n]<<"\n\n"
+               <<"z\t U_avg\t V_avg\t VEL_avg"<<endl;
 
-        for(q=0;q<p->knoz;++q)
+        for(q=0;q<max_points;++q)
         {
             pout[n]<<setprecision(12)
                    <<z_timeint[n][q]/time_accum[n]<<"\t "
@@ -167,6 +165,7 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
 
         pout[n].close();
+        printed[n] = true;
     }
 }
 
@@ -183,8 +182,7 @@ void nhflow_timeavg_vel_profile::ini_location(lexer *p, fdm_nhf *d)
             jloc[n]=0;
             p->P148_y[n] = 0.5*p->YP[JP];
         }
-
-        if(p->j_dir==1)
+        else if(p->j_dir==1)
             jloc[n]=p->posc_j(p->P148_y[n]);
 
         ii=iloc[n];

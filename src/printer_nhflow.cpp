@@ -109,17 +109,13 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline_y = new nhflow_print_wsfline_y(p,d,pgc);
 
     if(p->P146>0)
-    {
-        ptimeavgwsfline = new nhflow_print_timeavg_wsfline(p,d,pgc);
-    }
+    ptimeavgwsfline = new nhflow_print_timeavg_wsfline(p,d,pgc);
 
     if(p->P147>0)
-    {
-        ptimeavgwsfline_y = new nhflow_print_timeavg_wsfline_y(p,d,pgc);
-    }
+    ptimeavgwsfline_y = new nhflow_print_timeavg_wsfline_y(p,d,pgc);
 
     if(p->P148>0)
-        ptimeavgvelprofile = new nhflow_timeavg_vel_profile(p,d);
+    ptimeavgvelprofile = new nhflow_timeavg_vel_profile(p,d);
     
     if(p->P64>0)
     ppressprobe=new nhflow_probe_press(p,d);

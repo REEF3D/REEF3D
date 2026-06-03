@@ -79,9 +79,9 @@ void nhflow_depavg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         sprintf(name,"./REEF3D_NHFLOW_DEP-AVG-VEL-LINE/REEF3D-NHFLOW-DepAvgVel-LineProbe-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
-        pout[n]<<"Depth-Averaged Velocity Lineprobe ID:  "<<n+1<<endl<<endl;
-        pout[n]<<"simtime:  "<<p->simtime<<endl<<endl;
-        pout[n]<<"dist_along_the_line x_point y_point u_depth_avg v_depth_avg norm_vel_depth_avg"<<endl;
+        pout[n]<<"Depth-Averaged Velocity Lineprobe ID:  "<<n+1<<"\n\n"
+               <<"simtime:  "<<p->simtime<<"\n\n"
+               <<"dist_along_the_line x_point y_point u_depth_avg v_depth_avg norm_vel_depth_avg"<<endl;
 
         for(q=0;q<point_count[n];++q)
         {

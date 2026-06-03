@@ -54,7 +54,7 @@ private:
 
     double *line_length, *normal_x, *normal_y;
     double *time_accum, *start_time;
-    int *started, *printed;
+    bool *started, *printed;
     double **xpt, **ypt, **dist;
     double **u_timeint, **v_timeint;
 
