@@ -106,7 +106,7 @@ void driver::logic_nhflow()
     if(p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
     
-    if(p->A514==4)
+    if(p->A514==4 || p->A514==5)
     precon = new nhflow_reconstruct_weno(p,pBC);
     
 //pressure scheme
