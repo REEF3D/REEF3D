@@ -278,60 +278,63 @@ inline void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, 
 
 inline void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {
-    // gradient
-    LOOP
-    DFDX[IJK] = 0.0;
-    
-    LOOP
-    WETDRY
+    if(p->A514==4)
     {
-    dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
-    dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];
-    
-    DFDX[IJK] = limiter(dfdz_plus,dfdz_min);
+        // gradient
+        LOOP
+        DFDX[IJK] = 0.0;
+        
+        LOOP
+        WETDRY
+        {
+        dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
+        dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];
+        
+        DFDX[IJK] = limiter(dfdz_plus,dfdz_min);
+        }
+        
+        pgc->start3V(p,DFDX,1);
+        
+        // reconstruct
+        WLOOP 
+        {
+        Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
+        Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
+        }
     }
-    
-    pgc->start3V(p,DFDX,1);
-    
-    // reconstruct
-    WLOOP 
+   
+    if(p->A514==5)
     {
-    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
-    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
-    }
-}
-/*
-void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
-{    
-    WLOOP
-    {
-    // left
-	kqmin(p,Fz);
-	is_min_z();
-	weight_min_z();
+        WLOOP
+        {
+        // left
+        kqmin(p,Fz);
+        is_min_z();
+        weight_min_z();
 
-	Fb[IJK] =     w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
-    
-                + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
-          
-                + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
-	
-    // right
-	kqmax(p,Fz);
-	is_max_z();
-	weight_max_z();
-    
-	Ft[IJK] =     w1x*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
-    
-                + w2x*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
-          
-                + w3x*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
-	}
+        Fb[IJK] =     w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
+        
+                    + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
+              
+                    + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
+        
+        // right
+        kqmax(p,Fz);
+        is_max_z();
+        weight_max_z();
+        
+        Ft[IJK] =     w1x*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
+        
+                    + w2x*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
+              
+                    + w3x*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
+        }
+    }
     
     pgc->start3V(p,Fb,1);
     pgc->start3V(p,Ft,1);
 }
-*/
+
 inline void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
 {	 
     q1 = F[Im2JK];
