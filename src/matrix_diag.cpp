@@ -20,39 +20,29 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"matrix_diag.h"
-#include"lexer.h"
+#include "matrix_diag.h"
+#include "lexer.h"
+
+#include <algorithm>
 
 matrix_diag::matrix_diag(lexer *pp)
 {
-	pp->Darray(n,pp->veclength);
-	pp->Darray(s,pp->veclength);
-	pp->Darray(e,pp->veclength);
-	pp->Darray(w,pp->veclength);
-	pp->Darray(t,pp->veclength);
-	pp->Darray(b,pp->veclength);
-	pp->Darray(p,pp->veclength);
-    
+	n.resize(pp->veclength);
+	s.resize(pp->veclength);
+	e.resize(pp->veclength);
+	w.resize(pp->veclength);
+	t.resize(pp->veclength);
+	b.resize(pp->veclength);
+	p.resize(pp->veclength);
 }
 
-matrix_diag::~matrix_diag()
+void matrix_diag::resize(lexer *pp, int size_new)
 {
-    delete [] n;
-	delete [] s;
-	delete [] w;
-	delete [] e;
-	delete [] t;
-	delete [] b;
-	delete [] p;
-}
-
-void matrix_diag::resize(lexer *pp, int size_old, int size_new)
-{
-    pp->Dresize(n,size_old,size_new);
-    pp->Dresize(s,size_old,size_new);
-    pp->Dresize(e,size_old,size_new);
-    pp->Dresize(w,size_old,size_new);
-    pp->Dresize(t,size_old,size_new);
-    pp->Dresize(b,size_old,size_new);
-    pp->Dresize(p,size_old,size_new);
+    n.resize(size_new);
+    s.resize(size_new);
+    e.resize(size_new);
+    w.resize(size_new);
+    t.resize(size_new);
+    b.resize(size_new);
+    p.resize(size_new);
 }

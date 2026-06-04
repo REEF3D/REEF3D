@@ -23,23 +23,19 @@ Author: Hans Bihs
 #ifndef MATRIX_DIAG_H_
 #define MATRIX_DIAG_H_
 
-class lexer;
+#include <vector>
 
-using namespace std;
+class lexer;
 
 class matrix_diag
 {
 public:
-
     matrix_diag(lexer*);
-    virtual ~matrix_diag();
-    
-    void resize(lexer*,int,int);
+    virtual ~matrix_diag() = default;
 
-	double *n,*s,*e,*w,*b,*t,*p;
+    void resize(lexer*,int);
 
+    std::vector<double> n,s,e,w,b,t,p;
 };
 
 #endif
-
-

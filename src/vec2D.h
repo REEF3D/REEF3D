@@ -23,21 +23,20 @@ Author: Hans Bihs
 #ifndef VEC2D_H_
 #define VEC2D_H_
 
-class lexer;
+#include <algorithm>
+#include <vector>
 
-using namespace std;
+class lexer;
 
 class vec2D
 {
 public:
-
     vec2D(lexer*);
-    virtual ~vec2D();
-    
-    void resize(lexer*,int,int);
-    
-	double *V;
+    virtual ~vec2D() = default;
 
+    void resize(int);
+
+    std::vector<double> V;
 };
 
 #endif

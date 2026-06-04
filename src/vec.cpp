@@ -20,20 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vec.h"
-#include"lexer.h"
+#include "vec.h"
+#include "lexer.h"
 
 vec::vec(lexer* p)
 {
-    p->Darray(V,p->veclength);
+    V.resize(p->veclength);
 }
 
-vec::~vec()
+void vec::resize(int size_new)
 {
-    delete [] V;
-}
-
-void vec::resize(lexer *pp, int size_old, int size_new)
-{
-    pp->Dresize(V,size_old,size_new);
+    V.resize(size_new);
 }

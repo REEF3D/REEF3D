@@ -54,14 +54,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     const double *const __restrict sigxx = p->sigxx;
     const double *const __restrict Uin   = c->Uin;
     
-    double *const __restrict Mp = c->M.p;
-    double *const __restrict Mn = c->M.n;
-    double *const __restrict Ms = c->M.s;
-    double *const __restrict Mw = c->M.w;
-    double *const __restrict Me = c->M.e;
-    double *const __restrict Mt = c->M.t;
-    double *const __restrict Mb = c->M.b;
-    double *const __restrict rhs = c->rhsvec.V;
+    double *const __restrict Mp = c->M.p.data();
+    double *const __restrict Mn = c->M.n.data();
+    double *const __restrict Ms = c->M.s.data();
+    double *const __restrict Mw = c->M.w.data();
+    double *const __restrict Me = c->M.e.data();
+    double *const __restrict Mt = c->M.t.data();
+    double *const __restrict Mb = c->M.b.data();
+    double *const __restrict rhs = c->rhsvec.V.data();
     
     const double ydir = p->y_dir;
     const double xdir = p->x_dir;

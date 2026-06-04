@@ -23,22 +23,18 @@ Author: Hans Bihs
 #ifndef MATRIX2D_H_
 #define MATRIX2D_H_
 
-class lexer;
+#include <vector>
 
-using namespace std;
+class lexer;
 
 class matrix2D
 {
 public:
-
     matrix2D(lexer*);
-    virtual ~matrix2D();
-    
-    void resize(lexer*,int,int);
 
-	double *n,*s,*e,*w,*p;
+    void resize(int);
+
+    std::vector<double> n, s, e, w, p;
 };
 
 #endif
-
-

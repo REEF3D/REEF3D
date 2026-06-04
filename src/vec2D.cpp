@@ -20,20 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vec2D.h"
-#include"lexer.h"
+#include "vec2D.h"
+#include "lexer.h"
 
 vec2D::vec2D(lexer* p)
 {
-    p->Darray(V,p->vec2Dlength);
+    V.resize(p->veclength);
 }
 
-vec2D::~vec2D()
+void vec2D::resize(int size_new)
 {
-    delete [] V;
-}
-
-void vec2D::resize(lexer *pp, int size_old, int size_new)
-{
-    pp->Dresize(V,size_old,size_new);
+    V.resize(size_new);
 }
