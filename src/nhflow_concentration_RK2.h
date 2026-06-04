@@ -33,9 +33,10 @@ public:
     nhflow_concentration_RK2(lexer*, fdm_nhf*, ghostcell*);
 	virtual ~nhflow_concentration_RK2();
 
-	void start(lexer*, fdm_nhf*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*) override final;
+	void start(lexer*, fdm_nhf*, nhflow_scalar_convection*, nhflow_diffusion*, nhflow_turbulence*, solver*, ghostcell*, ioflow*) override final;
 	void ctimesave(lexer*, fdm_nhf*) override final;
-
+    
+    double *CRK1;
 
 private:
     void clearrhs(lexer*,fdm_nhf*,ghostcell*);

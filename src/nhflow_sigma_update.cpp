@@ -36,6 +36,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     double wl,sigval;
     double bx,by,ex,ey;
     
+    
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
@@ -126,6 +127,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/WLVL;
+    
+    p->WL[IJ] = WL(i,j);
     }
 
     // sigt

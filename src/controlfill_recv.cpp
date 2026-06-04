@@ -222,6 +222,8 @@ void control::ctrlrecv()
     dd++;
     A523 = dctrl[dd];
     dd++;
+    A524 = ictrl[ii];
+    ii++;
     A531 = dctrl[dd];
     dd++;
     A532 = ictrl[ii];
@@ -1367,6 +1369,12 @@ void control::ctrlrecv()
     P144 = ictrl[ii];
     ii++;
     P145 = ictrl[ii];
+    ii++;
+    P146 = ictrl[ii];
+    ii++;
+    P147 = ictrl[ii];
+    ii++;
+    P148 = ictrl[ii];
     ii++;
     P151 = ictrl[ii];
     ii++;
@@ -2977,8 +2985,30 @@ void control::ctrlrecv()
         Darray(P145_ys,P145);
         Darray(P145_ye,P145);
         Iarray(P145_n,P145);
-        Darray(P145_transient,P145);
-        Darray(P145_dt,P145);
+        Darray(P145_tbegin,P145);
+        Darray(P145_tend,P145);
+    }
+
+    if(P146>0)
+    {
+        Darray(P146_y,P146);
+        Darray(P146_tbegin,P146);
+        Darray(P146_tend,P146);
+    }
+
+    if(P147>0)
+    {
+        Darray(P147_x,P147);
+        Darray(P147_tbegin,P147);
+        Darray(P147_tend,P147);
+    }
+
+    if(P148>0)
+    {
+        Darray(P148_x,P148);
+        Darray(P148_y,P148);
+        Darray(P148_tbegin,P148);
+        Darray(P148_tend,P148);
     }
 
     if(P167>0)
@@ -4453,9 +4483,41 @@ void control::ctrlrecv()
         dd++;
         P145_n[n] = ictrl[ii];
         ii++;
-        P145_transient[n] = dctrl[dd];
+        P145_tbegin[n] = dctrl[dd];
         dd++;
-        P145_dt[n] = dctrl[dd];
+        P145_tend[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P146;++n)
+    {
+        P146_y[n] = dctrl[dd];
+        dd++;
+        P146_tbegin[n] = dctrl[dd];
+        dd++;
+        P146_tend[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P147;++n)
+    {
+        P147_x[n] = dctrl[dd];
+        dd++;
+        P147_tbegin[n] = dctrl[dd];
+        dd++;
+        P147_tend[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P148;++n)
+    {
+        P148_x[n] = dctrl[dd];
+        dd++;
+        P148_y[n] = dctrl[dd];
+        dd++;
+        P148_tbegin[n] = dctrl[dd];
+        dd++;
+        P148_tend[n] = dctrl[dd];
         dd++;
     }
 

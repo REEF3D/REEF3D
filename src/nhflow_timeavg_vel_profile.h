@@ -9,19 +9,19 @@ under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-for more details.
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program; if not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, see <http://www.gnu.org/licenses/>
 --------------------------------------------------------------------
 Author: Thomas Becker
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_DEPAVG_VEL_LINEPROBE_H_
-#define NHFLOW_DEPAVG_VEL_LINEPROBE_H_
+#ifndef NHFLOW_TIMEAVG_VEL_PROFILE_H_
+#define NHFLOW_TIMEAVG_VEL_PROFILE_H_
 
 #include"increment.h"
 #include<iostream>
@@ -33,29 +33,31 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_depavg_vel_lineprobe : public increment
+class nhflow_timeavg_vel_profile : public increment
 {
 public:
-    nhflow_depavg_vel_lineprobe(lexer*,fdm_nhf*);
-    virtual ~nhflow_depavg_vel_lineprobe();
+    nhflow_timeavg_vel_profile(lexer*,fdm_nhf*);
+    virtual ~nhflow_timeavg_vel_profile();
 
     void start(lexer*, fdm_nhf*, ghostcell*);
 
 private:
     void ini_location(lexer*, fdm_nhf*);
 
-    char name[200];
-
-    int *flag;
-    int **iloc, **jloc, *point_count;
-    int max_points;
+    char name[100];
+    int *iloc,*jloc,*flag;
     int n,q;
     const int probenum;
-
-    double *line_length, *normal_x, *normal_y;
-    double **xpt, **ypt, **dist;
-
     ofstream *pout;
+
+    double *time_accum,*start_time;
+    bool *started,*printed;
+    int max_points;
+
+    double **z_timeint;
+    double **u_timeint;
+    double **v_timeint;
+    double **vel_timeint;
 };
 
 #endif

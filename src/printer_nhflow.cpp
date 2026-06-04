@@ -33,6 +33,9 @@ Author: Hans Bihs
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
+#include"nhflow_print_timeavg_wsfline.h"
+#include"nhflow_print_timeavg_wsfline_y.h"
+#include"nhflow_timeavg_vel_profile.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
 #include"nhflow_profile_u.h"
@@ -104,6 +107,15 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline = new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y = new nhflow_print_wsfline_y(p,d,pgc);
+
+    if(p->P146>0)
+    ptimeavgwsfline = new nhflow_print_timeavg_wsfline(p,d,pgc);
+
+    if(p->P147>0)
+    ptimeavgwsfline_y = new nhflow_print_timeavg_wsfline_y(p,d,pgc);
+
+    if(p->P148>0)
+    ptimeavgvelprofile = new nhflow_timeavg_vel_profile(p,d);
     
     if(p->P64>0)
     ppressprobe=new nhflow_probe_press(p,d);
@@ -283,6 +295,15 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         pwsfline_y->start(p,d,pgc,pflow,d->eta);
 
+    if(p->P146>0)
+        ptimeavgwsfline->start(p,d,pgc,pflow,d->eta);
+
+    if(p->P147>0)
+        ptimeavgwsfline_y->start(p,d,pgc,pflow,d->eta);
+
+    if(p->P148>0)
+        ptimeavgvelprofile->start(p,d,pgc);
+
     // Vel Profile
     if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         puprofile->start(p,d,pgc);
@@ -360,7 +381,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         pgc->gcsl_start4(p,d->bed,50);
         pgc->gcsl_start4(p,d->breaking_print,50);
-        pgc->start4V(p,d->test,50);
+        pgc->start5V(p,d->test,1);
 
         pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
         pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);

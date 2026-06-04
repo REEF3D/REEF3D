@@ -26,8 +26,10 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<cstring>
 
-nhflow_concentration_io::nhflow_concentration_io(lexer *p, fdm_nhf *d)
+nhflow_concentration_io::nhflow_concentration_io(lexer *pp, fdm_nhf *d)
 {
+    p = pp;
+    
     p->Darray(C,p->imax*p->jmax*(p->kmax+2));
 }
 
@@ -37,37 +39,61 @@ nhflow_concentration_io::~nhflow_concentration_io()
 
 void nhflow_concentration_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {
-	/*
-	iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
 	
-	TPLOOP
-	{
-	ffn=float(p->ipol4(C));
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}	
-	
-	iin=4*(p->pointnum);
+	// eddyv
+    iin=4*(p->pointnum);
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
 
-	TPLOOP
+    TPLOOP
 	{
-	ffn=float(p->ipol4(a->ro));
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(C[IJK]+C[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(C[IJK]+C[IJKp1]+C[IJp1K]+C[IJp1Kp1]));
+        
+        
 	std::memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
-	}*/
+	}
+    
+    // ro
+    iin=4*(p->pointnum);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+
+    TPLOOP
+	{
+	if(p->j_dir==0)
+    {
+    jj=j;
+    j=0;
+	ffn=float(0.5*(d->RO[IJK]+d->RO[IJKp1]));
+    j=jj;
+    }
+    
+    if(p->j_dir==1)
+	ffn=float(0.25*(d->RO[IJK]+d->RO[IJKp1]+d->RO[IJp1K]+d->RO[IJp1Kp1]));
+        
+        
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
+	}
 }
 
 double nhflow_concentration_io::val(int ii, int jj, int kk)
 {
-    /*double val;
+    double val;
 
-    val=C(ii,jj,kk);
+    val=C[IJK];
 
-    return val;*/
+    return val;
 }
 
 void nhflow_concentration_io::name_ParaView_parallel(lexer *p, ofstream &result)

@@ -106,7 +106,7 @@ void suspended_RK2::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
     zdist = p->DZN[KP];
     
-	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
     //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
     }
 	

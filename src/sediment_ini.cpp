@@ -155,8 +155,6 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
     SLICELOOP4
     s->guard(i,j)=1.0;
     
-    
-    
     if(p->S78==1)
     {
         for(n=0;n<p->gcin_count;++n)

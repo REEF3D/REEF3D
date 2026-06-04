@@ -29,12 +29,12 @@ Author: Hans Bihs
 #include"fluid_update.h"
 
 class lexer;
-class fdm;
+class fdm_nhf;
 class ghostcell;
 
 using namespace std;
 
-class nhflow_concentration_io : public nhflow_concentration, increment
+class nhflow_concentration_io : public nhflow_concentration, public increment
 {
 public:
     nhflow_concentration_io(lexer*,fdm_nhf*);
@@ -52,9 +52,11 @@ public:
 
 private:
 
+    lexer *p;
 	float ffn;
 	double ddn;
 	int n,iin;
+    int ii,jj,kk;
 	
 	double fx(double,double,double,double,double);
 	double fz(double,double,double,double,double);

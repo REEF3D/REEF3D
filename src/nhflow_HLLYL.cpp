@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_HLL.h"
+#include"nhflow_HLLYL.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"nhflow_flux_build_f.h"
 #include"vrans.h"
 
-nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
+nhflow_HLLYL::nhflow_HLLYL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
     pgc = ppgc;
     pBC = ppBC;
@@ -39,15 +39,15 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
     pflux = new nhflow_flux_build_f(p,pgc,pBC);
 }
 
-nhflow_HLL::~nhflow_HLL()
+nhflow_HLLYL::~nhflow_HLLYL()
 {
 }
 
-void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)
+void nhflow_HLLYL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)
 {
 }
 
-void nhflow_HLL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta, double *FH)
+void nhflow_HLLYL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta, double *FH)
 {
     if(ipol==1)
     aij_U(p,d,1);
@@ -56,13 +56,13 @@ void nhflow_HLL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta, double *FH)
     aij_V(p,d,2);
 
     if(ipol==3)
-    aij_W(p,d,3);
+    aij_W(p,d,3,FH);
     
     if(ipol==4)
     aij_E(p,d,4);
 }
 
-void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
+void nhflow_HLLYL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_U(p,d,pgc);
@@ -81,7 +81,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     }    
 }
 
-void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
+void nhflow_HLLYL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_V(p,d,pgc);
@@ -100,9 +100,17 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     }    
 }
 
-void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
+void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol, double *WH)
 {
-    // HLL flux 
+    double Pval,Qval,wvalbed;
+    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus;
+    double detadx,detady;
+    
+    LOOP
+    WETDRY
+    WH[IJK] = 0.0;
+
+    // HLL W flux sum
     pflux->start_W(p,d,pgc);
     HLL(p,d,d->WHs,d->WHn,d->WHe,d->WHw);
     
@@ -113,13 +121,56 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     LOOP
     WETDRY
     {
-    d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
-                + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
-                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    d->FSW[IJK] = ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
+                +  (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                +  (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
     }    
+    
+    
+    // WCALC
+    LOOP
+    WETDRY
+    if(k<p->knoz-1)
+    {
+    Pval = d->U[IJK];
+    Qval = d->V[IJK];
+    
+    wvalbed=0.0;    
+    
+        if(k==1)
+        {
+        dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
+        dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
+    
+        detadx = limiter(dfdx_plus,dfdx_min);
+        
+        dfdy_plus = (d->depth(i,j+1)-d->depth(i,j))/p->DYP[JP];
+        dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
+    
+        detady = limiter(dfdy_plus,dfdy_min);
+        
+        
+        wvalbed =   - Pval*detadx
+
+                    - Qval*detady;
+        }
+               
+        WH[IJKp1] = WH[IJK] +  p->WL[IJ]*wvalbed
+                            
+                    - p->DZN[KP]*(
+                            
+                    + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)
+                            
+                    + p->WL[IJ]*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->U[FIJKp1]-d->U[FIJK])/p->DZN[KP])
+                            
+                    + p->WL[IJ]*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->V[FIJKp1]-d->V[FIJK])/p->DZN[KP]);
+    }
+    
+
+    pgc->start4V(p,WH,16);
 }
 
-void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
+void nhflow_HLLYL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     pflux->start_E(p,d,pgc);
@@ -146,7 +197,7 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     pgc->start2V(p,d->FEy,14); 
 }
 
-void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
+void nhflow_HLLYL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
 {    
     // HLL flux
     ULOOP
@@ -190,7 +241,7 @@ void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, 
     }
 }
 
-void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
+void nhflow_HLLYL::HLL_E(lexer *&p, fdm_nhf *&d)
 {
     // HLL flux
     ULOOP
@@ -231,3 +282,29 @@ void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
         }
     }
 }
+
+
+inline double nhflow_HLLYL::limiter(double v1, double v2)
+{
+    val=0.0;
+    
+    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
+
+    if(r<0.0)
+    phi = 0.0;
+    
+    if(r>=0.0 && r<0.5)
+    phi = 2.0*r;
+    
+    if(r>=0.5 && r<1.0)
+    phi = 1.0;
+    
+    if(r>=1.0)
+    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
+    
+    val = 0.5*phi*(v1+v2);
+
+    
+    return val;
+}
+
