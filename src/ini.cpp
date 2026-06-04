@@ -637,7 +637,7 @@ void control::ini_default()
 	P53=0;            // int print out wsfline for wave theory
 	P54=10;			  // int ith iteration wsfline file  print out
 	P55=-1.0;		  // double ith second wsfline files print out
-	P56=0;            // int print out wsf line in y-dir
+	P56=0;            // int print out wsfline in y-dir
     P57=0;            // int add aditional info to WSF gage in FNPF
     P58=0;            // int print wave time series
     P59=0;              // int print breaking wave log FNPF
@@ -684,6 +684,9 @@ void control::ini_default()
     P141=0;             // int runup cylinder radius
     P144=0;           // int print NHFLOW depth-averaged velocity line probes
     P145=0;           // int print NHFLOW depth and time-averaged velocity line probes
+    P146=0;           // int print NHFLOW time-averaged wsf line in x-direction
+    P147=0;           // int print NHFLOW time-averaged wsf line in y-direction
+    P148=0;           // int print NHFLOW time-averaged horizontal velocity profile
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data

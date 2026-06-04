@@ -23,7 +23,7 @@ Author: Thomas Becker
 #ifndef NHFLOW_DEPANDTIME_AVG_VEL_LINEPROBE_H_
 #define NHFLOW_DEPANDTIME_AVG_VEL_LINEPROBE_H_
 
-#include"boundarycheck.h"
+#include"increment.h"
 #include<iostream>
 #include<fstream>
 
@@ -33,7 +33,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_depandtime_avg_vel_lineprobe : public boundarycheck
+class nhflow_depandtime_avg_vel_lineprobe : public increment
 {
 public:
     nhflow_depandtime_avg_vel_lineprobe(lexer*,fdm_nhf*);
@@ -53,7 +53,8 @@ private:
     const int probenum;
 
     double *line_length, *normal_x, *normal_y;
-    double *time_accum, *next_print_time;
+    double *time_accum, *start_time;
+    bool *started, *printed;
     double **xpt, **ypt, **dist;
     double **u_timeint, **v_timeint;
 
