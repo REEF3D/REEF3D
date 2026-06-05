@@ -42,6 +42,9 @@ public:
     void start_U(lexer*, fdm_nhf*, ghostcell*) override final;
     void start_V(lexer*, fdm_nhf*, ghostcell*) override final;
     void start_W(lexer*, fdm_nhf*, ghostcell*) override final;
+    
+    void start_U_yl(lexer*, fdm_nhf*, ghostcell*) override final;
+    void start_V_yl(lexer*, fdm_nhf*, ghostcell*) override final;
 
 private:
     patchBC_interface *pBC;

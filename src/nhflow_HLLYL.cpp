@@ -108,9 +108,46 @@ void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol, double *WH)
     
     LOOP
     WETDRY
+    {
     WH[IJK] = 0.0;
+    d->FSW[IJK] = 0.0;
+    }
 
     // HLL W flux sum
+    
+    // U
+    pflux->start_U_yl(p,d,pgc);
+    HLL(p,d,d->UHs,d->UHn,d->UHe,d->UHw);
+    
+    pgc->start1V(p,d->Fx,12);
+    pgc->start2V(p,d->Fy,12);
+    pgc->start3V(p,d->Fz,12);
+    
+    LOOP
+    WETDRY
+    {
+    d->FSW[IJK] += ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
+                +  (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                +  (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    } 
+    
+    // V
+    pflux->start_V_yl(p,d,pgc);
+    HLL(p,d,d->VHs,d->VHn,d->VHe,d->VHw);
+    
+    pgc->start1V(p,d->Fx,12);
+    pgc->start2V(p,d->Fy,12);
+    pgc->start3V(p,d->Fz,12);
+    
+    LOOP
+    WETDRY
+    {
+    d->FSW[IJK] += ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
+                +  (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
+                +  (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    } 
+    
+    // W
     pflux->start_W(p,d,pgc);
     HLL(p,d,d->WHs,d->WHn,d->WHe,d->WHw);
     
@@ -121,10 +158,14 @@ void nhflow_HLLYL::aij_W(lexer *&p,fdm_nhf *&d, int ipol, double *WH)
     LOOP
     WETDRY
     {
-    d->FSW[IJK] = ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
+    d->FSW[IJK] += ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 +  (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 +  (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    } 
+    
+    
+    
+       
     
     
     // WCALC

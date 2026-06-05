@@ -31,7 +31,7 @@ fdm::fdm(lexer *p) :
             Fi(p),
             eddyv(p),
             L(p),
-            ro(p),dro(p),visc(p),
+            ro(p),visc(p),
             phi(p),
             vof(p),vof_nt(p),vof_nb(p),vof_st(p),vof_sb(p),phasemarker(p),
             vof_nte(p),vof_ntw(p),vof_nbe(p),vof_nbw(p),vof_ste(p),vof_stw(p),vof_sbe(p),vof_sbw(p),

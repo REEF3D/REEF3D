@@ -109,7 +109,7 @@ void nhflow_pjm_yl::press_integral(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     k=p->knoz;
     SLICELOOP4
     {
-    d->P[IJK]=0.0;
+    d->P[FIJK]=0.0;
     ++n;
     }
     
@@ -118,22 +118,26 @@ void nhflow_pjm_yl::press_integral(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     YLLOOP
     WETDRYDEEP
     {
-    d->test[IJK] =       d->test[IJKp1] 
+    d->P[FIJK] =       d->P[FIJKp1] 
     
+                    + (p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  
+                    
+                    +  p->WL[IJ]*(W[IJK]-W[IJKm1])*p->sigt[FIJK]
+                    
+                    +  p->DZN[KP]*d->FSW[IJK])*p->W1*.01;
+                    
+                    
+    d->test[IJK] =    d->test[IJKp1]
+                    
                     + (p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  
                     
                     +  p->WL[IJ]*(W[IJK]-W[IJKm1])*p->sigt[FIJK]
                     
                     +  p->DZN[KP]*d->FSW[IJK])*p->W1;
                     
-                    
-    /*d->test[IJK] =    d->test[IJKp1]
-                    
-                    + p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK];*/
-                    
     }
     
-    pgc->start7P(p,PCORR,gcval_press);
+    pgc->start7P(p,d->P,gcval_press);
 }
 
 void nhflow_pjm_yl::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
