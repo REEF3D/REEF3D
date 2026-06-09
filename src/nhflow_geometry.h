@@ -57,7 +57,10 @@ private:
     void objects_allocate_forcing(lexer*, ghostcell*);
     void objects_allocate_vrans(lexer*, ghostcell*);
     
-    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_x(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_ycorr(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_zcorr(lexer*, fdm_nhf*, ghostcell*,int,int);
+    
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int,double*);

@@ -1909,11 +1909,13 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
+            <File Name="nhflow_geometry_raycast_io_ycorr.cpp"/>
+            <File Name="nhflow_geometry_raycast_io_x.cpp"/>
+            <File Name="nhflow_geometry_raycast_io_zcorr.cpp"/>
             <File Name="nhflow_geometry_reini_RK2.cpp"/>
             <File Name="nhflow_geometry_raycast_z.cpp"/>
             <File Name="nhflow_geometry_raycast_y.cpp"/>
             <File Name="nhflow_geometry_raycast_x.cpp"/>
-            <File Name="nhflow_geometry_raycast_io.cpp"/>
             <File Name="nhflow_geometry_raycast_direct.cpp"/>
             <File Name="nhflow_geometry_raycast.cpp"/>
           </VirtualDirectory>
@@ -2615,7 +2617,9 @@
               <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
-              <File Name="6DOF_nhflow_forcing_raycast_io.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_io_zcorr.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_io_ycorr.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_io_x.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_z.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_y.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_x.cpp"/>

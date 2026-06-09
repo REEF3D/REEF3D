@@ -53,6 +53,10 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
+    Fv_x = 0.0;
+    Fv_y = 0.0;
+    Fv_z = 0.0;
+    
     // Set new time
     curr_time = p->simtime;
 
@@ -103,12 +107,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             if(fabs(ny)>0.9 && p->j_dir==0)
             f_jdir=0.0;
             
-            
-            // Position of triangle
-            /*i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_sig(i,j,zc);*/
-            
             etaval = p->ccslipol4(d->eta,xc,yc);  
             
             fsf_z = p->wd + etaval;
@@ -120,7 +118,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             // Area of triangle using Heron's formula
 			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
             
-
+    // --------------
+    // cut triangles
+    
         // peak up 0
             if(z0>fsf_z && z1<fsf_z  && z2<fsf_z)
             {
@@ -194,8 +194,8 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 
             A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
             }
-        
-        // -----
+       
+    // -----
         
          // peak down 0
             if(z0<fsf_z && z1>fsf_z  && z2>fsf_z)
@@ -279,17 +279,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             xlocp = xc + p->X42*nx*p->DXP[IP];
             ylocp = yc + p->X42*ny*p->DYP[JP];
             zlocp = zc + p->X42*nz*p->DZP[KP];
-            
-            /*
-            double p0,p1,p2,pc;
-            
-            p0   = p->ccipol7P(d->P, WL, d->bed, x0, y0, z0);
-            p1   = p->ccipol7P(d->P, WL, d->bed, x1, y1, z1);
-            p2   = p->ccipol7P(d->P, WL, d->bed, x2, y2, z2);
-            
-            pc   = p->ccipol7P(d->P, WL, d->bed, xc, yc, zc);
-            
-            pval = (1.0/4.0)*(p0 + p1 + p2 + pc);*/
+    
 
             // pressure
             pval   = p->ccipol7P(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
@@ -371,7 +361,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
     }
 }
-
 
 double sixdof_obj::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
 {

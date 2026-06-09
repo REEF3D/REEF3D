@@ -40,13 +40,13 @@ void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     {
     triangulation(p,d,pgc);
 	reconstruct(p,d);
-    force_calc_lsm(p,d,pgc);
+    force_calc_lsm(p,d,pgc,WL);
         
     deallocate(p,d,pgc);
     }
 } 
 
-void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {  
     Ax=0.0;
     Ay=0.0;
@@ -183,7 +183,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
             
             // pressure
-            pval   = p->ccipol7P(d->P, d->WL, d->bed, xc, yc, zc);// - p->pressgage;
+            pval   = p->ccipol7P(d->P, WL, d->bed, xc, yc, zc);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
     

@@ -49,7 +49,14 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(int qn=0;qn<entity_sum;++qn)
         {
             if(rayiter==0)
-            ray_cast_io(p,d,pgc,tstart[qn],tend[qn]);
+            {
+            ray_cast_io_x(p,d,pgc,tstart[qn],tend[qn]);
+            
+            if(p->j_dir==1)
+            ray_cast_io_ycorr(p,d,pgc,tstart[qn],tend[qn]);
+            ray_cast_io_zcorr(p,d,pgc,tstart[qn],tend[qn]);
+            
+            }
 
             if(rayiter==1)
             {
