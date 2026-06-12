@@ -39,7 +39,7 @@ void sixdof_obj::ray_cast_io_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int
 	double PBx,PBy,PBz;
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
-	int is,ie,js,je,ks,ke;
+	int is,ie,js,je,ks,ke,im;
 	int ir;
     int checkin;
 	double u,v,w;

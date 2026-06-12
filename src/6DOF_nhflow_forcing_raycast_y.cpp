@@ -41,7 +41,7 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
     double zs_x,zs_y,ze_x,ze_y;
-    int checkin,jj;
+    int checkin,jj,jm;
     int i_zs,i_ze,j_zs,j_ze;
 	double u,v,w;
 	double denom;
@@ -158,8 +158,10 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
     ks = p->posc_sig(i_zs,j_zs,zs);
 	ke = p->posc_sig(i_ze,j_ze,ze);
     
+    jm = p->posc_j(zs_y + 0.5*(ze_y-zs_y));
+    
     i=i_zs;
-    j=j_zs;
+    j=jm;
     k=ks;
     
     
@@ -182,10 +184,10 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 	ke = MIN(ke,p->knoz);
     
     for(i=is;i<ie;i++)
-    for(j=js;j<je;j++)
     for(k=ks;k<ke;k++)
     if((IO[IJK] != IO[IJp1K]) || (IO[IJK] != IO[IJm1K]))
     {
+        j = jm;
         
         if(IO[IJK] != IO[IJp1K])
         {

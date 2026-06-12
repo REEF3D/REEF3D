@@ -625,11 +625,11 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
             {
                 jj=j;
                 j=0;
-                ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
+                ffn=float(0.5*(d->P[FIJKp1]+d->P[FIp1JKp1]));
                 j=jj;
             }
             else if(p->j_dir==1)
-                ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
+                ffn=float(0.25*(d->P[FIJKp1]+d->P[FIp1JKp1] + d->P[FIJp1Kp1]+d->P[FIp1Jp1Kp1]));
 
             std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);

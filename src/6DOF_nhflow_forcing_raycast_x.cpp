@@ -41,11 +41,11 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
     double zs_x,zs_y,ze_x,ze_y;
-    int checkin,ii;
+    int checkin,ii,im;
     int i_zs,i_ze,j_zs,j_ze;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-8*p->DXM;
+	double psi = 1.0e-8*DSM;
     int margin=3;
     
 	for(n=ts; n<te; ++n)
@@ -136,7 +136,7 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
     // i,j
     is = p->posc_i(xs);
 	ie = p->posc_i(xe);
-	
+    
 	js = p->posc_j(ys);
 	je = p->posc_j(ye);
 	
@@ -158,7 +158,9 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
     ks = p->posc_sig(i_zs,j_zs,zs);
 	ke = p->posc_sig(i_ze,j_ze,ze);
     
-    i=i_zs;
+    im = p->posc_i(zs_x + 0.5*(ze_x-zs_x));
+    
+    i=im;
     j=j_zs;
     k=ks;
     
@@ -183,12 +185,13 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 	ke = MIN(ke,p->knoz);
     
 
-    for(i=is;i<ie;i++)
+    //for(i=is;i<ie;i++)
     for(j=js;j<je;j++)
     for(k=ks;k<ke;k++)
     if((IO[IJK] != IO[Im1JK]) || (IO[IJK] != IO[Ip1JK]))
     {
-        /*
+        i=im;
+        
         if(IO[IJK] != IO[Ip1JK])
         {
 		Px = p->global_xmin-10.0*p->DXM;
@@ -209,16 +212,16 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 		Qx = p->global_xmin-10.0*p->DXM;
 		Qy = p->YP[JP]+psi;
 		Qz = p->ZSP[Im1JK]-psi;
-        }*/
+        }
         
-        
+        /*
         Px = p->global_xmin-10.0*p->DXM;
 		Py = p->YP[JP]-psi;
 		Pz = p->ZSP[IJK]+psi;
 		
 		Qx = p->global_xmax+10.0*p->DXM;
 		Qy = p->YP[JP]+psi;
-		Qz = p->ZSP[IJK]-psi;
+		Qz = p->ZSP[IJK]-psi;*/
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
@@ -252,10 +255,10 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 		  + Mx*(Bx-Ax) + My*(By-Ay) + Mz*(Bz-Az);
         
         int check=1;
-		if(fabs(u)<=1.0e-20 && fabs(v)<=1.0e-20 && fabs(w)<=1.0e-20)
+		if(u==0.0 && v==0.0 && w==0.0)
 		check = 0;
 
-			if(((u>1.0e-20 && v>1.0e-20 && w>1.0e-20) || (u<-1.0e-20 && v<-1.0e-20 && w<-1.0e-20)) && check==1)
+			if(((u>0.0 && v>0.0 && w>0.0) || (u<0.0 && v<0.0 && w<0.0)) && check==1)
 			{
 			denom = 1.0/(u+v+w);
             
@@ -266,12 +269,12 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 			Rx = u*Ax + v*Bx + w*Cx;
             
 
-            ii=i;
+            //ii=i;
 
             for(i=0;i<p->knox;++i)
             d->FB[IJK]=MIN(fabs(Rx-p->XP[IP]),d->FB[IJK]);
             
-            i=ii;
+            //i=ii;
             }
 		
 		}
