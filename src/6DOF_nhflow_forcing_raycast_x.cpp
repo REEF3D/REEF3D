@@ -185,12 +185,12 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 	ke = MIN(ke,p->knoz);
     
 
-    //for(i=is;i<ie;i++)
+    for(i=is;i<ie;i++)
     for(j=js;j<je;j++)
     for(k=ks;k<ke;k++)
     if((IO[IJK] != IO[Im1JK]) || (IO[IJK] != IO[Ip1JK]))
     {
-        i=im;
+        //i=im;
         
         if(IO[IJK] != IO[Ip1JK])
         {
@@ -269,12 +269,12 @@ void sixdof_obj::ray_cast_x(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
 			Rx = u*Ax + v*Bx + w*Cx;
             
 
-            //ii=i;
+            ii=i;
 
             for(i=0;i<p->knox;++i)
             d->FB[IJK]=MIN(fabs(Rx-p->XP[IP]),d->FB[IJK]);
             
-            //i=ii;
+            i=ii;
             }
 		
 		}
