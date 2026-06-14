@@ -176,8 +176,8 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     if(p->j_dir==1)
     value = lint7V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
     
-    //if(zp > WL(i,j) + bed(i,j))
-    //value=0.0;
+    if(zp > WL(i,j) + bed(i,j))
+    value=0.0;
     
     if(value != value)
     cout<<i<<" "<<j<<" 7P "<<zp<<" "<<k<<" | "<<p->ZSN[FIJKp1]<<" "<<p->ZSN[FIJK]<<" . "<<ZSN_FIJKp1<<" "<<ZSN_FIJK<<"   SIG: "<<value<<" "<<wa<<" "<<wb<<" || "<<wc1<<" "<<wc2<<" | "<<(ZSN_FIJKp1 - zp)/(ZSN_FIJKp1-ZSN_FIJK)<<" "<<wc4<<endl;

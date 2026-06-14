@@ -85,6 +85,47 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     
     pgc->start7S(p,d->omegaF,17);
     
+    // ZSN
+    FLOOP
+    p->ZSN[FIJK] = p->ZN[KP]*WL(i,j) + d->bed(i,j);
+    
+    LOOP
+    p->ZSP[IJK]  = p->ZP[KP]*WL(i,j) + d->bed(i,j);
+    
+    pgc->start7S(p,p->ZSN,1);
+    pgc->start5V(p,p->ZSP,1);
+    
+    SLICELOOP4
+    {
+        k=0;
+
+            p->ZSN[FIJKm1] = p->ZN[KM1]*WL(i,j) + d->bed(i,j);
+            p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
+            p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
+        
+        k=p->knoz;
+
+            p->ZSN[FIJKp1] = p->ZN[KP1]*WL(i,j) + d->bed(i,j);
+            p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
+            p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
+    }
+    
+    
+    SLICELOOP4
+    {
+        k=0;
+
+            p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
+            p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
+            p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
+        
+        k=p->knoz-1;
+
+            p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
+            p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
+            p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
+    }
+    
 }
 
 

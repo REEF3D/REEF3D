@@ -185,10 +185,10 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
     
     for(i=is;i<ie;i++)
     for(k=ks;k<ke;k++)
-    if((IO[IJK] != IO[IJp1K]) || (IO[IJK] != IO[IJm1K]))
+    //if((IO[IJK] != IO[IJp1K]) || (IO[IJK] != IO[IJm1K]))
     {
         j = jm;
-        
+        /*
         if(IO[IJK] != IO[IJp1K])
         {
         Px = p->XP[IP]-psi;
@@ -209,7 +209,15 @@ void sixdof_obj::ray_cast_y(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te
         Qx = p->XP[IP]+psi;
 		Qy = p->global_ymin-10.0*p->DXM;
 		Qz = p->ZSP[IJm1K]-psi;
-        }
+        }*/
+        
+        Px = p->XP[IP]-psi;
+        Py = p->global_ymax+10.0*p->DXM;
+        Pz = p->ZSP[IJK]+psi;
+		
+        Qx = p->XP[IP]+psi;
+        Qy = p->global_ymin-10.0*p->DXM;
+        Qz = p->ZSP[IJK]-psi;
         
 
 		PQx = Qx-Px;

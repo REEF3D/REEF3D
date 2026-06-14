@@ -37,10 +37,8 @@ vrans_nhflow_f::~vrans_nhflow_f()
 
 void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 {
-
     ray_cast(p, d, pgc, d->PORSTRUC);
     reini_RK2(p, d, pgc, d->PORSTRUC);
-
 
     LOOP
     {
@@ -57,8 +55,6 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
     pgc->start5Vfull(p,APOR,1);
     pgc->start5Vfull(p,BPOR,1);
     
-    
     // print force
-    
 }
 
