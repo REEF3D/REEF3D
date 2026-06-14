@@ -601,6 +601,8 @@ void control::ctrlrecv()
     dd++;
     B201_beta = dctrl[dd];
     dd++;
+    B208 = ictrl[ii];
+    ii++;
     B209 = dctrl[dd];
     dd++;
     B210 = ictrl[ii];

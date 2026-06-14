@@ -20,37 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef VRANS_NHFLOW_H_
-#define VRANS_NHFLOW_H_
+#include"vrans_nhflow_f.h"
+#include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
-#include"vrans.h"
-#include"increment.h"
-
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class slice;
-
-using namespace std;
-
-class vrans_nhflow
+void vrans_nhflow_f::print_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
-public:
-	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
-	virtual void update(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
+    // write to surf file
+    fout<<p->simtime<<"\t";
+    fout<<Fx<<" \t ";
+    fout<<Fy<<" \t ";
+	fout<<Fz;
 
-	virtual void u_source(lexer*, fdm_nhf*, slice&)=0;
-	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
-	virtual void w_source(lexer*, fdm_nhf*, slice&)=0;
-    
-    virtual void ke_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void kw_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void eps_source(lexer*, fdm_nhf*, field&, field&)=0;
-    virtual void omega_source(lexer*, fdm_nhf*, field&, field&)=0;
-    
-    virtual void eddyv_func(lexer*, fdm_nhf*)=0;
-    
-    virtual void force_calc(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
-};
+    fout<<endl;
+}
 
-#endif
+void vrans_nhflow_f::print_force_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{
+    // Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_VRANS_Force",0777);
+	
+    if(p->mpirank==0)
+    {
+    // open force surf file
+	sprintf(name,"./REEF3D_NHFLOW_VRANS_Force/REEF3D_VRANS_NHFLOW_Force.dat");
+	
+	fout.open(name);
+
+    
+    fout<<"time \t Fx \t Fy \t Fz ";
+
+    fout<<endl;
+	}
+}

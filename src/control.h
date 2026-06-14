@@ -133,7 +133,7 @@ public:
     double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
     double B194_s,B194_e;
     
-    int B200,B201;
+    int B200,B201,B208;
     double B201_n, B201_d50, B201_alpha, B201_beta;
     double B209;
     int B210;

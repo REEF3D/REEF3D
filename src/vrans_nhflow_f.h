@@ -35,7 +35,7 @@ public:
 	virtual ~vrans_nhflow_f();
 
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override final;	
-	void update(lexer*, fdm_nhf*, ghostcell*, int) override final;
+	void update(lexer*, fdm_nhf*, ghostcell*, double, int) override final;
 	
 	void u_source(lexer*, fdm_nhf*, slice&) override final;
 	void v_source(lexer*, fdm_nhf*, slice&) override final;
@@ -48,12 +48,21 @@ public:
     
     void eddyv_func(lexer*, fdm_nhf*) override final;
     
+    void force_calc(lexer*, fdm_nhf*, ghostcell*, double, int) override final;
 	
 private:
+    void print_force_ini(lexer*, fdm_nhf*, ghostcell*);
+    void print_force(lexer*, fdm_nhf*, ghostcell*);
     
     double Hporface(lexer*, fdm_nhf*, int, int, int);
 	
 	double *APOR,*BPOR;
+    
+    double *UN,*VN,*WN;
+    double *P;
+    
+    ofstream fout;
+    char name[100];
 	
 	double Apor(double,double,double,double);
 	double Bpor(double,double,double);
@@ -66,6 +75,10 @@ private:
 	double val;
 	double porousterm;
 	const double Cval;
+    
+    
+    double Fx,Fy,Fz,dV;
+    double cmfac;
 };
 
 #endif
