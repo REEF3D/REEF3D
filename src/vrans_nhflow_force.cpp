@@ -62,7 +62,7 @@ void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
         
         Fy += dV*H*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK])
         
-                //+ d->RO[IJK]*p->B260*(d->V[IJK]-VN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
+                + d->RO[IJK]*p->B260*(d->V[IJK]-VN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
                 
                 + (1.0-PORVALNH)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
                 
@@ -71,7 +71,7 @@ void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
         
         Fz += dV*H*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK])
         
-                //+ d->RO[IJK]*p->B260*(d->W[IJK]-WN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
+                + d->RO[IJK]*p->B260*(d->W[IJK]-WN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
                 
                 - (1.0-PORVALNH)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
 	}
