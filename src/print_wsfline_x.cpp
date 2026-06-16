@@ -144,6 +144,29 @@ void print_wsfline_x::wsfline(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow)
             }
         }
     }
+    
+    if(p->A10==6 && p->F80 ==4)
+    {
+        for(q=0;q<p->P52;++q)
+        {
+            ILOOP
+            if(flag[q][i]>0)
+            {
+                j=jloc[q];
+
+                KLOOP
+                {
+                    if(a->vof(i,j,k)>p->F94 && a->vof(i,j,k+1)<0.1)
+                        wsf[q][i]=MAX(wsf[q][i],p->pos_z()+0.5*p->DZN[KP]);
+                    else if(a->vof(i,j,k)<=p->F94 && a->vof(i,j,k)>=0.1)
+                    {
+                        wsf[q][i]=MAX(wsf[q][i],(p->pos_z()-0.5*p->DZN[KP])+a->vof(i,j,k)*p->DZN[KP]);
+               
+                    }
+                }
+            }
+        }
+    }
 	
 	
 	for(q=0;q<p->P52;++q)

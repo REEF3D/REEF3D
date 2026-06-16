@@ -38,7 +38,11 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
         vvel=vval[count]*ramp(p);
         wvel=wval[count]*ramp(p);
         
-        phival = a->phi(i-1,j,k);
+        if(p->F80!=4)
+            phival = a->phi(i-1,j,k);
+            
+        if(p->F80==4)
+            phival = eta(i-1,j)+p->phimean-p->pos_z();
 
         if(phival>=-psi)
 		H=1.0;
@@ -70,6 +74,29 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
             u(i-1,j,k)+=p->W50;
             u(i-2,j,k)+=p->W50;
             u(i-3,j,k)+=p->W50;
+            }
+            
+            if(p->F80==4)
+            {
+                if(eta(i-1,j)+p->phimean>=p->pos_z()-0.5*p->DZN[KP])
+                {
+                    a->vof(i-1,j,k)=1.0;
+                    a->vof(i-2,j,k)=1.0;
+                    a->vof(i-3,j,k)=1.0;
+                }
+                else if(eta(i-1,j)+p->phimean<=p->pos_z()+0.5*p->DZN[KP])
+                {
+                    a->vof(i-1,j,k)=0.0;
+                    a->vof(i-2,j,k)=0.0;
+                    a->vof(i-3,j,k)=0.0;
+                }
+                else
+                {
+                    a->vof(i-1,j,k)=(eta(i-1,j)+p->phimean - (p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+                    a->vof(i-2,j,k)=a->vof(i-1,j,k)*1.0;
+                    a->vof(i-3,j,k)=a->vof(i-1,j,k)*1.0;
+                }
+                
             }
             
             /*

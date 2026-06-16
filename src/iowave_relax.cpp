@@ -36,7 +36,10 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
         dg = distgen(p);    
         db = distbeach(p);
         
-        phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        if(p->F80!=4)   
+            phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        if(p->F80==4)
+            phival = 0.5*(eta(i,j)+eta(i+1,j))+p->phimean-p->pos_z();
 
         if(phival>=-psi)
 		{
@@ -135,7 +138,10 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
         dg = distgen(p);    
         db = distbeach(p);
         
-        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
+        if(p->F80!=4)   
+            phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
+        if(p->F80==4)
+            phival = 0.5*(eta(i,j)+eta(i,j+1))+p->phimean-p->pos_z();
 
         if(phival>=-psi)
 		{
@@ -232,7 +238,10 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
         db = distbeach(p);
         
 
-        phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        if(p->F80!=4)   
+            phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        if(p->F80==4)
+            phival = eta(i,j)+p->phimean-p->pos_z()+0.5*p->DZN[KP];
 
         if(phival>=-psi)
 		{
@@ -253,9 +262,6 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
 		G=H;
 		}
 		
-        if(phival>=0.0)
-
-		
             if(phival>=0.0)
             {
                 if(p->pos_z()<=p->phimean)
@@ -267,7 +273,7 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
         
             if(phival<0.0)
                 z = eta(i,j);
-        
+    
      /*   else if(p->F80==4)
         {
             if(p->F92==3||p->F92==32)
@@ -464,8 +470,11 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
     {
         dg = distgen(p);    
         db = distbeach(p);
-
-        phival = -a->phi(i,j,k);
+        
+        if(p->F80!=4)
+            phival = -a->phi(i,j,k);
+        if(p->F80==4)
+            phival = -(eta(i,j)+p->phimean-p->pos_z());
 
         if(phival>=-psi)
 		 H=1.0;
