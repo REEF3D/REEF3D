@@ -177,11 +177,11 @@ void nhflow_FOU::FOU_E(lexer *&p, fdm_nhf *&d)
     ULOOP
     {
         if(d->U[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK];
+        d->FEx[IJK] = d->Fs[IJK];
         
         else
         if(d->U[IJK]<0.0)
-        d->Fx[IJK] = d->Fn[IJK];
+        d->FEx[IJK] = d->Fn[IJK];
     }
     
     // FOU flux y-dir
@@ -189,9 +189,9 @@ void nhflow_FOU::FOU_E(lexer *&p, fdm_nhf *&d)
     VLOOP
     {
         if(d->V[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK];
+        d->FEy[IJK] = d->Fe[IJK];
         
         if(d->V[IJK]<0.0)
-        d->Fy[IJK] = d->Fw[IJK];
+        d->FEy[IJK] = d->Fw[IJK];
     }
 }
