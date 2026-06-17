@@ -377,7 +377,7 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
         }
             
         // Numerical Beach    
-        if(p->B99==2)
+        if(p->B99==2 || p->B99==1)
         {
             // Zone 2
             if(db<1.0e20)
@@ -410,7 +410,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     if(dg<1.0e20)
         genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
     else if (db<1.0e20)
-        genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+        genheight(i,j) = (1.0-relax4_nb(i,j))*ramp(p) * (p->phimean) + relax4_nb(i,j)*vofheight(i,j);
     else
         genheight(i,j)=vofheight(i,j);
     }
@@ -442,7 +442,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         }
             
         // Numerical Beach    
-        if(p->B99==2)
+        if(p->B99==2 || p->B99==1)
         {
             // Zone 2
             if(db<1.0e20)
