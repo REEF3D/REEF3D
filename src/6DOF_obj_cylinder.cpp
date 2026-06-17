@@ -39,8 +39,8 @@ void sixdof_obj::cylinder_x(lexer *p, ghostcell *pgc, int id)
 	ym=p->X131_yc;
     zm=p->X131_zc;
 	
-	x1=xm-p->X131_h;
-	x2=xm+p->X131_h;
+	x1=xm-0.5*p->X131_h;
+	x2=xm+0.5*p->X131_h;
 	
     r=p->X131_rad;
 	
