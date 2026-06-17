@@ -371,7 +371,7 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
         }
             
         // Numerical Beach    
-        if(p->B99==2)
+        if(p->B99==1||p->B99==2)
         {
             // Zone 2
             if(db<1.0e20)
@@ -441,7 +441,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
         }
             
         // Numerical Beach    
-        if(p->B99==2)
+        if(p->B99==1||p->B99==2)
         {
             // Zone 2
             if(db<1.0e20)
