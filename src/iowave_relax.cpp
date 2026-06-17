@@ -406,7 +406,7 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
     
     else if (db<1.0e20)
-    genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    genheight(i,j) = (1.0-relax4_nb(i,j))*ramp(p) * (p->phimean) + relax4_nb(i,j)*vofheight(i,j);
     
     else
     genheight(i,j)=vofheight(i,j);
