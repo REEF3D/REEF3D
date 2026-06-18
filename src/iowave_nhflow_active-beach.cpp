@@ -88,9 +88,9 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
                 U[Ip2JK] = Uc*fx;
                 U[Ip3JK] = Uc*fx;
                 
-                UH[Ip1JK] = (d->depth(i,j))*Uc*fx;
-                UH[Ip2JK] = (d->depth(i,j))*Uc*fx;
-                UH[Ip3JK] = (d->depth(i,j))*Uc*fx;
+                UH[Ip1JK] = p->WL[IJ]*Uc*fx;
+                UH[Ip2JK] = p->WL[IJ]*Uc*fx;
+                UH[Ip3JK] = p->WL[IJ]*Uc*fx;
                 
 			}
 		}
@@ -202,14 +202,12 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		bb=-1;
 		
 		if(p->gcslout[n][3]==2)
-		bb=1;
-                    
+		bb=1;         
         
         eta_T = 0.0;
         eta_M = d->eta(i,j); 
         eta_R = fabs(eta_M-eta_T);
-        
-/*
+
             if(p->wet[IJ]==1)
 			KLOOP 
 			{
@@ -224,6 +222,6 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
              WH[(i-p->imin+1*aa)*p->jmax*p->kmax + (j-p->jmin+1*bb)*p->kmax + k-p->kmin] = 0.0;
              WH[(i-p->imin+2*aa)*p->jmax*p->kmax + (j-p->jmin+2*bb)*p->kmax + k-p->kmin] = 0.0;
              WH[(i-p->imin+3*aa)*p->jmax*p->kmax + (j-p->jmin+3*bb)*p->kmax + k-p->kmin] = 0.0;
-            }*/
+            }
         }
 }
