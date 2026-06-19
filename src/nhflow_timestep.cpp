@@ -124,7 +124,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // vertical velocity
     cw = MIN(cw, dx/(p->wmax));
     
-    if(p->A533==1)
+    //if(p->A533==1)
     cw = MIN(cw, dz/(p->wmax));
     
     //cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
