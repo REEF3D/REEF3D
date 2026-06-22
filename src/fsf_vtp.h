@@ -44,12 +44,15 @@ public:
 
 private:
     void triangulation(lexer*, fdm*, ghostcell*, field&);
+    void triangulation_PLIC(lexer*, fdm*, ghostcell*, field&);
     void reconstruct(lexer*, fdm*, field&);
+    void reconstruct_PLIC(lexer*, fdm*, field&);
     void addpoint(lexer*,fdm*,int,int);
+    void addpoint_PLIC(lexer*,fdm*,int,int);
     void finalize(lexer*,fdm*);
 
     int **tri, **facet, *confac, *numfac,*numpt;
-    double **ccpt, **pt, *ls;
+    double **ccpt, **pt, *ls, *VF;
     double   dV1,dV2,C1,C2,mi;
     int numtri,numvert, numtri_mem, numvert_mem;
     int count,countM,n,nn,q;
@@ -59,7 +62,7 @@ private:
     double epsi;
 
     fieldint5 vertice, nodeflag;
-    field5 eta;
+    field5 eta, vofpol;
 
     void print(lexer*,fdm*);
     void pvtp(lexer*,int);

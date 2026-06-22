@@ -2995,6 +2995,8 @@
           <File Name="gage_discharge_x.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="fsf_reconstruct_PLIC.cpp"/>
+          <File Name="fsf_triangulation_PLIC.cpp"/>
           <File Name="fsf_vtp.cpp"/>
           <File Name="fsf_pvtp.cpp"/>
           <File Name="fsf_triangulation.cpp"/>

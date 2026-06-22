@@ -1,0 +1,89 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more detaiVF.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Fabian Knoblauch
+--------------------------------------------------------------------*/
+
+#include"fsf_vtp.h"
+#include"lexer.h"
+#include"fdm.h"
+
+void fsf_vtp::reconstruct_PLIC(lexer *p,fdm* a, field& b)
+{
+    ccptcount=0;
+
+    for(n=0;n<numtri; ++n)
+    confac[n]=-1;
+    facount=ccptcount=0;
+
+
+    for(n=0;n<numtri; ++n)
+    {
+        if((VF[tri[n][0]] >= 0.5 && VF[tri[n][1]] < 0.5)  ||  (VF[tri[n][0]] < 0.5 && VF[tri[n][1]] >= 0.5))
+        addpoint_PLIC(p,a,tri[n][0],tri[n][1]);
+
+        if((VF[tri[n][0]] >= 0.5 && VF[tri[n][2]] < 0.5)  ||  (VF[tri[n][0]] < 0.5 && VF[tri[n][2]] >= 0.5))
+        addpoint_PLIC(p,a,tri[n][0],tri[n][2]);
+
+        if((VF[tri[n][0]] >= 0.5 && VF[tri[n][3]] < 0.5)  ||  (VF[tri[n][0]] < 0.5 && VF[tri[n][3]] >= 0.5))
+        addpoint_PLIC(p,a,tri[n][0],tri[n][3]);
+
+        if((VF[tri[n][1]] >= 0.5 && VF[tri[n][2]] < 0.5)  ||  (VF[tri[n][1]] < 0.5 && VF[tri[n][2]] >= 0.5))
+        addpoint_PLIC(p,a,tri[n][1],tri[n][2]);
+
+        if((VF[tri[n][1]] >= 0.5 && VF[tri[n][3]] < 0.5)  ||  (VF[tri[n][1]] < 0.5 && VF[tri[n][3]] >= 0.5))
+        addpoint_PLIC(p,a,tri[n][1],tri[n][3]);
+
+        if((VF[tri[n][2]] >= 0.5 && VF[tri[n][3]] < 0.5)  ||  (VF[tri[n][2]] < 0.5 && VF[tri[n][3]] >= 0.5))
+        addpoint_PLIC(p,a,tri[n][2],tri[n][3]);
+    }
+}
+
+void fsf_vtp::addpoint_PLIC(lexer *p, fdm *a, int q1, int q2)
+{
+	// p. 917
+	
+    double dist,xd,dnom;
+
+   dnom=ls[q2]-ls[q1];
+    dnom=fabs(dnom)>1.0e-20?dnom:1.0e-20;
+
+    xd = -(ls[q1]/(dnom));
+
+    ccpt[ccptcount][0] = (pt[q2][0]-pt[q1][0])*xd + pt[q1][0];
+    ccpt[ccptcount][1] = (pt[q2][1]-pt[q1][1])*xd + pt[q1][1];
+    ccpt[ccptcount][2] = (pt[q2][2]-pt[q1][2])*xd + pt[q1][2];
+
+    if(confac[n]>-1)
+    nn=confac[n];
+
+    if(confac[n]==-1)
+    {
+        confac[n]=facount;
+        nn=facount;
+        ++facount;
+    }
+
+    facet[nn][numpt[nn]] = ccptcount;
+	++numpt[nn];
+    ++numfac[n];
+
+    ++ccptcount;
+}
+

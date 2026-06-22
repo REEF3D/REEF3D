@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):vertice(p),nodeflag(p),eta(p),interfac(1.6),zero(0.0)
+fsf_vtp::fsf_vtp(lexer* p, fdm *a, ghostcell *pgc):vertice(p),nodeflag(p),eta(p),interfac(1.6),zero(0.0),vofpol(p)
 {
 	// Create Folder
 	if(p->mpirank==0)
@@ -43,6 +43,8 @@ fsf_vtp::~fsf_vtp()
 
 void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
 {	
+    if(p->F80!=4)
+    {
 	triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
 	
@@ -50,5 +52,17 @@ void fsf_vtp::start(lexer *p, fdm *a, ghostcell *pgc)
 	++fsfprintcount;
 	
 	finalize(p,a);
+    }
+    
+    if(p->F80==4)
+    {
+    triangulation_PLIC(p,a,pgc,a->vof);
+	reconstruct_PLIC(p,a,a->vof);
+	
+	print(p,a);
+	++fsfprintcount;
+	
+	finalize(p,a);
+    }
 } 
 
