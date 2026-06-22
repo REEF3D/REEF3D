@@ -84,7 +84,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     d->omegaF[FIJK] = 0.0;
     
     pgc->start7S(p,d->omegaF,17);
-    
+    /*
     // ZSN
     FLOOP
     p->ZSN[FIJK] = p->ZN[KP]*WL(i,j) + d->bed(i,j);
@@ -125,7 +125,7 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
             p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
     }
-    
+    */
 }
 
 
