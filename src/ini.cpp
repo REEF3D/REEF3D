@@ -777,6 +777,7 @@ void control::ini_default()
     S33=0;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor
+    S36=0;              // int alluvial/bedform/effective roughness
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion

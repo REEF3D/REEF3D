@@ -847,6 +847,9 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Grain Fractions">
+          <File Name="sediment_roughness.h"/>
+        </VirtualDirectory>
         <File Name="sediment_RK2.h"/>
         <VirtualDirectory Name="Print">
           <File Name="bedshear_probe.h"/>
@@ -2388,6 +2391,9 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Grain Fractions">
+          <File Name="sediment_roughness.cpp"/>
+        </VirtualDirectory>
         <File Name="sediment_RK2.cpp"/>
         <VirtualDirectory Name="Print">
           <File Name="bedshear_probe.cpp"/>
