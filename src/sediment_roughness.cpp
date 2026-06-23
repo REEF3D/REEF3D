@@ -37,26 +37,28 @@ sediment_roughness::~sediment_roughness()
 
 void sediment_roughness::start(lexer* p, ghostcell* pgc, sediment_fdm *s, slice &WL)
 {
-    double Delta,lambda;
+    double Delta,lambda,Ti;
     
     if(p->S36==0)
     SLICELOOP4
-    s->ks(i,j) = p->S21*p->S20;
+    s->ks_eff(i,j) = p->S21*p->S20;
     
     
     if(p->S36==1)
     SLICELOOP4
     {
-    Delta = WL(i,j) * 0.11 * pow(p->S20/WL(i,j),0.3) * (1.0 - pow(EE,-0.5*s->MOB(i,j))) * (25.0 - s->MOB(i,j));
+    Ti  = (s->tau_i(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j);
+    
+    Delta = WL(i,j) * 0.11 * pow(p->S20/WL(i,j),0.3) * (1.0 - pow(EE,-0.5*Ti)) * (25.0 - Ti);
      
     lambda = 7.3 * WL(i,j);
     
-    if(s->MOB(i,j) < 25.0)
-    s->ks(i,j) = p->S21*p->S20 + 1.1 * Delta*(1.0-pow(EE,-25.0*Delta/lambda));
+    if(Ti < 25.0 && Ti>0.0)
+    s->ks_eff(i,j) = p->S21*p->S20 + 1.1 * Delta*(1.0-pow(EE,-25.0*Delta/lambda));
     
      
      
-    if(s->MOB(i,j) >= 25.0)
-    s->ks(i,j) = p->S21*p->S20;
+    if(Ti >= 25.0 && Ti<=0.0)
+    s->ks_eff(i,j) = p->S21*p->S20;
     }
 }
