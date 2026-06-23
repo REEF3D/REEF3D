@@ -1563,6 +1563,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = S34;
     ii++;
+    dctrl[dd] = S35;
+    dd++;
     ictrl[ii] = S37;
     ii++;
     ictrl[ii] = S41;

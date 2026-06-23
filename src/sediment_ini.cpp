@@ -50,6 +50,7 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         s->bedzh0(i,j)=h;
 	}
     
+    // ks ini
     SLICELOOP4
     s->ks(i,j) = p->S21*p->S20;
 	

@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"sliceint.h"
 
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), ks(p->S20*p->S21), kappa(0.4)
+bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4)
 {
     tau=0.0;
     tauc=0.0;
@@ -72,7 +72,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
 
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
 
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
@@ -90,7 +90,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
     u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
 
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
     
     
     zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
@@ -137,7 +137,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 			   
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
 
 
     tauvel=density*(u_abs*u_abs)/pow((u_plus)>(0.0)?(u_plus):(1.0e20),2.0);
@@ -168,7 +168,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         uvel=uvel/double(count);
         vvel=vvel/double(count);
 
-        Cval=18.0*log10((12.0*wh)/ks);
+        Cval=18.0*log10((12.0*wh)/s->ks(i,j));
 
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 	
@@ -184,7 +184,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     u_abs = sqrt(uvel*uvel + vvel*vvel);
 
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
 
     tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     }
@@ -209,7 +209,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
     // predictor    
     u_abs = sqrt(uvel*uvel + vvel*vvel);
-    u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
     tau0=tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
     ustar=sqrt(tau/density);
     
@@ -221,7 +221,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         {
         y_plus = ustar*dist;
         
-        ks_plus = visc + 0.246*ustar*ks;
+        ks_plus = visc + 0.246*ustar*s->ks(i,j);
         
         u_plus = (1.0/kappa)*(log(MAX(y_plus/ks_plus,1.0)) + 5.0);
 

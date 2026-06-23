@@ -51,7 +51,7 @@ public:
     void taubed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
     void taucritbed(lexer*, fdm2D*,ghostcell*,sediment_fdm*);
 
-	const double ks,kappa;
+	const double kappa;
     
 
 private:
