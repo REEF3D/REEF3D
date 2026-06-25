@@ -35,18 +35,18 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     double wval,Pval,Qval,Rval,fac;
     
 
-        FLOOP
-        d->omegaF[FIJK] = 0.0;
+    FLOOP
+    d->omegaF[FIJK] = 0.0;
         
         
-        LOOP
-        {
-        d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+    LOOP
+    {
+    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
                             
-                            - p->DZN[KP]*(d->detadt(i,j) 
+                        - p->DZN[KP]*(d->detadt(i,j) 
                             
-                            + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
-        }
+                        + (d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    }
     
       
     GC4LOOP

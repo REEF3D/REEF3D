@@ -156,7 +156,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
         pgc->solid_forcing_eta(p,WL);
         pgc->solid_forcing_eta(p,d->eta);
         pgc->solid_forcing_bed(p,d->bed);
-        }
+    }
     }
 
     // DLM

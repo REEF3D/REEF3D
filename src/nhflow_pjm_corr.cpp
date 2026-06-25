@@ -236,7 +236,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-    d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
+    d->F[IJK] += d->eta_n(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
                 
     LOOP
@@ -255,7 +255,7 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     if(p->j_dir==1)
     LOOP
     WETDRY
-	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*
+	d->G[IJK] += d->eta_n(i,j)*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
        
     if(p->j_dir==1) 
