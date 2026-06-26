@@ -46,6 +46,10 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         {
         etaval = eta(i,j);
         
+      /*WL(i-1,j) = etaval + d->depth(i,j);
+        WL(i-2,j) = etaval + d->depth(i,j);
+        WL(i-3,j) = etaval + d->depth(i,j);*/
+        
         WL(i-1,j) = WL(i,j);
         WL(i-2,j) = WL(i,j);
         WL(i-3,j) = WL(i,j);
