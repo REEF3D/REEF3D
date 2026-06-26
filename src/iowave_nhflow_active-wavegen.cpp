@@ -42,7 +42,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         etaval = d->eta(i,j);
         
         if(p->A515>=2)
-        etaval = eta(i,j);
+        etaval = eta(i-1,j);
         
         d->eta(i-1,j) = etaval;
         d->eta(i-2,j) = etaval;
