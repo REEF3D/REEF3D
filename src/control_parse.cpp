@@ -28,7 +28,7 @@ void control::parse(lexer* p)
     if(B98==1)
     B98=2;
     
-    else if(B98==3 && A10==5 && p->B92<20 && p->B92>29) 
+    else if(B98==3 && A10==5)// && p->B92<20 && p->B92>29) 
     B98=4;
     
     else if(B98==5 && A10==5)

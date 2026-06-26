@@ -39,11 +39,11 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         xg=xgen(p);
         yg=ygen(p);
         
-        //eta(i,j) = wave_eta(p,pgc,xg,yg);
+        etaval = wave_eta(p,pgc,xg,yg);
         
-        eta(i-1,j) =  eta(i,j);
-        eta(i-2,j) =  eta(i,j);
-        eta(i-3,j) =  eta(i,j);
+        eta(i-1,j) =  etaval;
+        eta(i-2,j) =  etaval;
+        eta(i-3,j) =  etaval;
         }
         
         count=0;
@@ -61,7 +61,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         etaval = 0.0;
         
         if(p->A515==2)
-        etaval = eta(i,j);
+        etaval = d->eta(i,j);
         
         if(p->A515==3)
         etaval = eta(i-1,j);
