@@ -636,6 +636,8 @@ void driver::logic_cfd()
     if(p->N40==33 && p->F80==4)
     pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
+    if(p->N40==303 && p->F80==4)
+    pmom = new momentum_FCC2_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
     if(p->N40==44)
     pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi); 

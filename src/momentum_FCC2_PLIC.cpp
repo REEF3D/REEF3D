@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"momentum_FCC3_PLIC.h"
+#include"momentum_FCC2_PLIC.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -44,15 +44,15 @@ Author: Fabian Knoblauch
 #include"density_vof.h"
 #include"VOF_PLIC.h"
 
-momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
+momentum_FCC2_PLIC::momentum_FCC2_PLIC(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, ioflow *pioflow,
                                                     heat *&pheat, concentration *&pconc, reini *ppreini,
                                                     fsi *ppfsi)
-                                                    :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),ur(p),vr(p),wr(p),urk1(p),urk2(p),vrk1(p),vrk2(p),wrk1(p),wrk2(p),ls(p),frk1(p),frk2(p),
+                                                    :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),ur(p),vr(p),wr(p),urk1(p),vrk1(p),wrk1(p),ls(p),frk1(p),
                                                     Mx(p),rox(p),My(p),roy(p),Mz(p),roz(p),
-                                                    Mx_rk1(p),Mx_rk2(p),My_rk1(p),My_rk2(p),Mz_rk1(p),Mz_rk2(p),
-                                                    rox_rk1(p),rox_rk2(p),roy_rk1(p),roy_rk2(p),roz_rk1(p),roz_rk2(p),
-                                                    fx(p),fy(p),fz(p),VoF(p),vof_rk1(p),vof_rk2(p),vof_rk3(p)
+                                                    Mx_rk1(p),My_rk1(p),Mz_rk1(p),
+                                                    rox_rk1(p),roy_rk1(p),roz_rk1(p),
+                                                    fx(p),fy(p),fz(p),VoF(p),vof_rk1(p)
                                                     
 {
 	gcval_u=10;
@@ -100,16 +100,15 @@ momentum_FCC3_PLIC::momentum_FCC3_PLIC(lexer *p, fdm *a, ghostcell *pgc, convect
    ro_threshold = p->F91*p->W1 + p->W3;
 }
 
-momentum_FCC3_PLIC::~momentum_FCC3_PLIC()
+momentum_FCC2_PLIC::~momentum_FCC2_PLIC()
 {
 }
 
-void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
+void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {	
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
-	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
     
 //********************************************************
 //Step 1
@@ -358,239 +357,18 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 //********************************************************
 //Step 2
 //********************************************************
+ 
+    
     face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1); 
     //-------------------------------------------
     // FSF
-    
     pplic->RKcalcL(a,p,pgc,urk1,vrk1,wrk1);
 	
 	LOOP
     {
-        vof_rk2(i,j,k) = 0.75*VoF(i,j,k) + 0.25*vof_rk1(i,j,k)+0.25*a->L(i,j,k);
-        
-        if(vof_rk2(i,j,k)<0.0)
-            vof_rk2(i,j,k)=0.0;
-        if(vof_rk2(i,j,k)>1.0)
-            vof_rk2(i,j,k)=1.0;
-    }
-    
-   // pplic->updatePlaneData(p,a,pgc,vof_rk2);
-	pflow->vof_relax(p,a,pgc,vof_rk2);
-    pgc->start4(p,vof_rk2,gcval_vof);
-    
-    LOOP
-    {
-        a->vof(i,j,k) = vof_rk2(i,j,k);
-        a->L(i,j,k) = 0.0;
-    }
-    pgc->start4(p,a->vof,gcval_vof);
-    
-     if(p->F92==1)
-    {
-        pplic->RK_redistance(a,p,pgc);
-        pgc->start4(p,a->phi,gcval_phi);
-        
-        p->F44=3;
-        preini->start(a,p,a->phi, pgc, pflow);
-        ppicard->correct_ls(p,a,pgc,a->phi);
-    }
-    
-    // advect U
-    pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-    pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
-    pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
-    
-    ULOOP
-	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*urk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
-                
-    VLOOP
-	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vrk1(i,j,k)
-				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
-                
-    WLOOP
-	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wrk1(i,j,k)
-				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
-                
-    clear_FGH(p,a);
-        
-    ULOOP
-    Mx_rk1(i,j,k) = rox_rk1(i,j,k)*urk1(i,j,k);
-    
-    VLOOP
-    My_rk1(i,j,k) = roy_rk1(i,j,k)*vrk1(i,j,k);
-    
-    WLOOP
-    Mz_rk1(i,j,k) = roz_rk1(i,j,k)*wrk1(i,j,k);
-    
-    pgc->start1(p,Mx_rk1,gcval_u);
-	pgc->start2(p,My_rk1,gcval_v);
-	pgc->start3(p,Mz_rk1,gcval_w);
-      
-    pconvec->start(p,a,Mx_rk1,1,urk1,vrk1,wrk1);
-    pconvec->start(p,a,My_rk1,2,urk1,vrk1,wrk1);
-    pconvec->start(p,a,Mz_rk1,3,urk1,vrk1,wrk1);
-    
-    ULOOP
-	Mx_rk2(i,j,k) = 0.75*Mx(i,j,k) + 0.25*Mx_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
-                
-    VLOOP
-	My_rk2(i,j,k) = 0.75*My(i,j,k) + 0.25*My_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
-                
-    WLOOP
-	Mz_rk2(i,j,k) = 0.75*Mz(i,j,k) + 0.25*Mz_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
-    
-    clear_FGH(p,a);
-
-    pgc->start1(p,rox_rk1,gcval_u);
-	pgc->start2(p,roy_rk1,gcval_v);
-	pgc->start3(p,roz_rk1,gcval_w);
-    
-    pconvec->start(p,a,rox_rk1,1,urk1,vrk1,wrk1);
-    pconvec->start(p,a,roy_rk1,2,urk1,vrk1,wrk1);
-    pconvec->start(p,a,roz_rk1,3,urk1,vrk1,wrk1);
-    
-    ULOOP
-	rox_rk2(i,j,k) = 0.75*rox(i,j,k) + 0.25*rox_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
-                
-    VLOOP
-	roy_rk2(i,j,k) = 0.75*roy(i,j,k) + 0.25*roy_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->G(i,j,k);
-                
-    WLOOP
-	roz_rk2(i,j,k) = 0.75*roz(i,j,k) + 0.25*roz_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->H(i,j,k);
-    
-    clear_FGH(p,a);
-    
-    ULOOP
-    ur(i,j,k) = vel_limiter(p,a,urk2,Mx_rk2,rox_rk2,rox_rk1);
-    
-    VLOOP
-    vr(i,j,k) = vel_limiter(p,a,vrk2,My_rk2,roy_rk2,roy_rk1);
-    
-    WLOOP
-    wr(i,j,k) = vel_limiter(p,a,wrk2,Mz_rk2,roz_rk2,roz_rk1);
-    
-    pgc->start1(p,ur,gcval_u);
-	pgc->start2(p,vr,gcval_v);
-	pgc->start3(p,wr,gcval_w);
-    
-    //-------------------------------------------
-	// U
-	starttime=pgc->timer();
-
-	pturb->isource(p,a);
-	pflow->isource(p,a,pgc,pvrans);
-	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->u,gcval_u);
-	ppress->upgrad(p,a,a->eta,a->eta_n);
-	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk1,vrk1,wrk1,0.25);
-
-	ULOOP
-	urk2(i,j,k) = udiff(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
-                
-    p->utime+=pgc->timer()-starttime;
-	
-    //-------------------------------------------
-	// V
-	starttime=pgc->timer();
-
-	pturb->jsource(p,a);
-	pflow->jsource(p,a,pgc,pvrans);
-	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->v,gcval_v);
-	ppress->vpgrad(p,a,a->eta,a->eta_n);
-	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk1,vrk1,wrk1,0.25);
-
-	VLOOP
-	vrk2(i,j,k) = vdiff(i,j,k)
-				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
-	
-    p->vtime+=pgc->timer()-starttime;
-    
-    //-------------------------------------------
-	// W
-	starttime=pgc->timer();
-
-	pturb->ksource(p,a);
-	pflow->ksource(p,a,pgc,pvrans);
-	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
-	ppress->wpgrad(p,a,a->eta,a->eta_n);
-	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk1,vrk1,wrk1,0.25);
-
-	WLOOP
-	wrk2(i,j,k) = wdiff(i,j,k)
-				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
-
-    p->wtime+=pgc->timer()-starttime;
-    
-    pgc->start1(p,urk2,gcval_u);
-	pgc->start2(p,vrk2,gcval_v);
-    pgc->start3(p,wrk2,gcval_w);
-    clear_FGH(p,a);
-    
-    if(p->F92==3||p->F92==32)
-    {
-        pplic->calculateSubFractions(p,a,pgc,a->vof);
-    }
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    pgc->start4(p,a->ro,gcval_ro);
-    pgc->start4(p,a->visc,gcval_visc);
-    
-    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
-                           urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
-
-    pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
-	
-	pflow->u_relax(p,a,pgc,urk2);
-	pflow->v_relax(p,a,pgc,vrk2);
-	pflow->w_relax(p,a,pgc,wrk2);
-	pflow->p_relax(p,a,pgc,a->press);
-	
-	pgc->start1(p,urk2,gcval_u);
-	pgc->start2(p,vrk2,gcval_v);
-	pgc->start3(p,wrk2,gcval_w);
-    clear_FGH(p,a);
-    
-    if(p->F98==1)
-    {
-        // pplic->updatePhasemarkersCompression(p,a,pgc,vof_rk2);
-        pplic->updatePhasemarkersCorrection(p,a,pgc,vof_rk2);
-        pgc->start4(p,vof_rk2,gcval_vof);
-        LOOP
-            a->vof(i,j,k)=vof_rk2(i,j,k);
-        pgc->start4(p,a->vof,gcval_vof);
-        if(p->F92==3||p->F92==32)
-        {
-            pplic->calculateSubFractions(p,a,pgc,a->vof);
-        }
-        pupdate->start(p,a,pgc,a->u,a->v,a->w);
-        pgc->start4(p,a->ro,gcval_ro);
-        pgc->start4(p,a->visc,gcval_visc);
-    }
-
-//********************************************************
-//Step 3
-//********************************************************
-    
-    face_density(p,a,pgc,rox_rk2,roy_rk2,roz_rk2); 
-    //-------------------------------------------
-    // FSF
-    pplic->RKcalcL(a,p,pgc,urk2,vrk2,wrk2);
-	
-	LOOP
-    {
-        a->vof(i,j,k) = (1.0/3.0)*VoF(i,j,k)
-                            + (2.0/3.0)*vof_rk2(i,j,k)
-                            + (2.0/3.0)*a->L(i,j,k);
+        a->vof(i,j,k) = 0.5*VoF(i,j,k)
+                            + 0.5*vof_rk1(i,j,k)
+                            + 0.5*a->L(i,j,k);
         
         if(a->vof(i,j,k)<0.0)
             a->vof(i,j,k)=0.0;
@@ -616,85 +394,85 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     }
     
     //-------------------------------------------
-    pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-    pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
-    pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
+    pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
+    pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
+    pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
     
     ULOOP
-	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*urk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+	a->u(i,j,k) = 0.5*a->u(i,j,k) + 0.5*urk1(i,j,k)
+				+ 0.5*p->dt*CPOR1*a->F(i,j,k);
                 
     VLOOP
-	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vrk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
+	a->v(i,j,k) = 0.5*a->v(i,j,k) + 0.5*vrk1(i,j,k)
+				+ 0.5*p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
-	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wrk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+	a->w(i,j,k) = 0.5*a->w(i,j,k) + 0.5*wrk1(i,j,k)
+				+ 0.5*p->dt*CPOR3*a->H(i,j,k);
                 
     clear_FGH(p,a);
 
     ULOOP
-    Mx_rk2(i,j,k) = rox_rk2(i,j,k)*urk2(i,j,k);
+    Mx_rk1(i,j,k) = rox_rk1(i,j,k)*urk1(i,j,k);
     
     VLOOP
-    My_rk2(i,j,k) = roy_rk2(i,j,k)*vrk2(i,j,k);
+    My_rk1(i,j,k) = roy_rk1(i,j,k)*vrk1(i,j,k);
     
     WLOOP
-    Mz_rk2(i,j,k) = roz_rk2(i,j,k)*wrk2(i,j,k);
+    Mz_rk1(i,j,k) = roz_rk1(i,j,k)*wrk1(i,j,k);
     
-    pgc->start1(p,Mx_rk2,gcval_u);
-	pgc->start2(p,My_rk2,gcval_v);
-	pgc->start3(p,Mz_rk2,gcval_w);
+    pgc->start1(p,Mx_rk1,gcval_u);
+	pgc->start2(p,My_rk1,gcval_v);
+	pgc->start3(p,Mz_rk1,gcval_w);
     
-    pconvec->start(p,a,Mx_rk2,1,urk2,vrk2,wrk2);
-    pconvec->start(p,a,My_rk2,2,urk2,vrk2,wrk2);
-    pconvec->start(p,a,Mz_rk2,3,urk2,vrk2,wrk2);
+    pconvec->start(p,a,Mx_rk1,1,urk1,vrk1,wrk1);
+    pconvec->start(p,a,My_rk1,2,urk1,vrk1,wrk1);
+    pconvec->start(p,a,Mz_rk1,3,urk1,vrk1,wrk1);
     
     ULOOP
-    Mx(i,j,k) = (1.0/3.0)*Mx(i,j,k) + (2.0/3.0)*Mx_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+    Mx(i,j,k) = 0.5*Mx(i,j,k) + 0.5*Mx_rk1(i,j,k)
+				+ 0.5*p->dt*CPOR1*a->F(i,j,k);
     
     VLOOP
-    My(i,j,k) = (1.0/3.0)*My(i,j,k) + (2.0/3.0)*My_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->G(i,j,k);
+    My(i,j,k) = 0.5*My(i,j,k) + 0.5*My_rk1(i,j,k)
+				+ 0.5*p->dt*CPOR3*a->G(i,j,k);
     
     WLOOP
-    Mz(i,j,k) = (1.0/3.0)*Mz(i,j,k) + (2.0/3.0)*Mz_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+    Mz(i,j,k) = 0.5*Mz(i,j,k) + 0.5*Mz_rk1(i,j,k)
+				+ 0.5*p->dt*CPOR3*a->H(i,j,k);
     
     clear_FGH(p,a);
     
-    pgc->start1(p,rox_rk2,gcval_u);
-	pgc->start2(p,roy_rk2,gcval_v);
-	pgc->start3(p,roz_rk2,gcval_w);
+    pgc->start1(p,rox_rk1,gcval_u);
+	pgc->start2(p,roy_rk1,gcval_v);
+	pgc->start3(p,roz_rk1,gcval_w);
     
-    pconvec->start(p,a,rox_rk2,1,urk2,vrk2,wrk2);
-    pconvec->start(p,a,roy_rk2,2,urk2,vrk2,wrk2);
-    pconvec->start(p,a,roz_rk2,3,urk2,vrk2,wrk2);
+    pconvec->start(p,a,rox_rk1,1,urk1,vrk1,wrk1);
+    pconvec->start(p,a,roy_rk1,2,urk1,vrk1,wrk1);
+    pconvec->start(p,a,roz_rk1,3,urk1,vrk1,wrk1);
     
     ULOOP
-	rox(i,j,k) = (1.0/3.0)*rox(i,j,k) + (2.0/3.0)*rox_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+	rox(i,j,k) = 0.5*rox(i,j,k) + 0.5*rox_rk1(i,j,k)
+				+ 0.5*p->dt*CPOR1*a->F(i,j,k);
                 
     VLOOP
-	roy(i,j,k) = (1.0/3.0)*roy(i,j,k) + (2.0/3.0)*roy_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
+	roy(i,j,k) = 0.5*roy(i,j,k) + 0.5*roy_rk1(i,j,k)
+				+ 0.5*p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
-	roz(i,j,k) = (1.0/3.0)*roz(i,j,k) + (2.0/3.0)*roz_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+	roz(i,j,k) = 0.5*roz(i,j,k) + 0.5*roz_rk1(i,j,k)
+				+ 0.5*p->dt*CPOR3*a->H(i,j,k);
 
     clear_FGH(p,a);
     
     ULOOP
-    ur(i,j,k) = vel_limiter(p,a,a->u,Mx,rox,rox_rk2);
+    ur(i,j,k) = vel_limiter(p,a,a->u,Mx,rox,rox_rk1);
     
     VLOOP
-    vr(i,j,k) = vel_limiter(p,a,a->v,My,roy,roy_rk2);
+    vr(i,j,k) = vel_limiter(p,a,a->v,My,roy,roy_rk1);
     
     WLOOP
-    wr(i,j,k) = vel_limiter(p,a,a->w,Mz,roz,roz_rk2);
+    wr(i,j,k) = vel_limiter(p,a,a->w,Mz,roz,roz_rk1);
     
     pgc->start1(p,ur,gcval_u);
 	pgc->start2(p,vr,gcval_v);
@@ -708,12 +486,12 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pflow->isource(p,a,pgc,pvrans);
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->u,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
-	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk2,vrk2,wrk2,2.0/3.0);
+	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.5);
+	pdiff->diff_u(p,a,pgc,psolv,udiff,ur,urk1,vrk1,wrk1,0.5);
 
 	ULOOP
 	a->u(i,j,k) = udiff(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+				+ (0.5)*p->dt*CPOR1*a->F(i,j,k);
 	
     p->utime+=pgc->timer()-starttime;
     
@@ -725,12 +503,12 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pflow->jsource(p,a,pgc,pvrans);
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->v,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
-	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk2,vrk2,wrk2,2.0/3.0);
+	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.5);
+	pdiff->diff_v(p,a,pgc,psolv,vdiff,vr,urk1,vrk1,wrk1,0.5);
 
 	VLOOP
 	a->v(i,j,k) = vdiff(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
+				+ (0.5)*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
     
@@ -742,12 +520,12 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pflow->ksource(p,a,pgc,pvrans);
 	bcmomPLIC_start(a,p,pgc,pturb,pplic,a->w,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
-	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk2,vrk2,wrk2,2.0/3.0);
+	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.5);
+	pdiff->diff_w(p,a,pgc,psolv,wdiff,wr,urk1,vrk1,wrk1,0.5);
 
 	WLOOP
 	a->w(i,j,k) = wdiff(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+				+ (0.5)*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
     
@@ -763,10 +541,10 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start4(p,a->visc,gcval_visc);
     
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
-                           a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
+                           a->u, a->v, a->w, fx, fy, fz, 2, 0.5, true);
 
 	pflow->pressure_io(p,a,pgc);
-	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,2.0/3.0);
+	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v,a->w,0.5);
 	
 	pflow->u_relax(p,a,pgc,a->u);
 	pflow->v_relax(p,a,pgc,a->v);
@@ -811,7 +589,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
 }
 
-void momentum_FCC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCC2_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	ULOOP
@@ -823,7 +601,7 @@ void momentum_FCC3_PLIC::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field 
 	}
 }
 
-void momentum_FCC3_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCC2_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	VLOOP
@@ -835,7 +613,7 @@ void momentum_FCC3_PLIC::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field 
 	}
 }
 
-void momentum_FCC3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
+void momentum_FCC2_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uvel, field &vvel, field &wvel, double alpha)
 {
 	n=0;
 	WLOOP
@@ -848,19 +626,19 @@ void momentum_FCC3_PLIC::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field 
 }
 
 
-void momentum_FCC3_PLIC::utimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_FCC2_PLIC::utimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_FCC3_PLIC::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_FCC2_PLIC::vtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_FCC3_PLIC::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
+void momentum_FCC2_PLIC::wtimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void momentum_FCC3_PLIC::clear_FGH(lexer *p, fdm *a)
+void momentum_FCC2_PLIC::clear_FGH(lexer *p, fdm *a)
 {
     ULOOP
     a->F(i,j,k) = 0.0;
@@ -872,7 +650,7 @@ void momentum_FCC3_PLIC::clear_FGH(lexer *p, fdm *a)
     a->H(i,j,k) = 0.0;
 }
 
-void momentum_FCC3_PLIC::face_density(lexer *p, fdm *a, ghostcell *pgc, field &rox, field &roy, field &roz)
+void momentum_FCC2_PLIC::face_density(lexer *p, fdm *a, ghostcell *pgc, field &rox, field &roy, field &roz)
 {
     ULOOP
     rox(i,j,k) = pd->roface(p,a,1,0,0);
@@ -888,7 +666,7 @@ void momentum_FCC3_PLIC::face_density(lexer *p, fdm *a, ghostcell *pgc, field &r
 	pgc->start3(p,roz,50);
 }
 
-double momentum_FCC3_PLIC::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field &ro,field &ro_n)
+double momentum_FCC2_PLIC::vel_limiter(lexer *p, fdm *a, field &vel, field &M, field &ro,field &ro_n)
 {
     if(ro(i,j,k)>=ro_threshold)
     val = M(i,j,k)/ro(i,j,k);
@@ -903,7 +681,7 @@ double momentum_FCC3_PLIC::vel_limiter(lexer *p, fdm *a, field &vel, field &M, f
     return val;
 }
 
-double momentum_FCC3_PLIC::ro_filter(lexer *p, fdm *a, field &ro)
+double momentum_FCC2_PLIC::ro_filter(lexer *p, fdm *a, field &ro)
 {
     if(ro(i,j,k)<p->W3)
     val = p->W3;

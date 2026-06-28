@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"momentum_FC3_PLIC.h"
 #include"momentum_FCC3.h"
 #include"momentum_FCC3_PLIC.h"
+#include"momentum_FCC2_PLIC.h"
 #include"momentum_void.h"
 #include"momentum_RKLS3_df.h"
 #include"momentum_RKLS3_sf.h"
