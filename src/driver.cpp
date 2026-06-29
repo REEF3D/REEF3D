@@ -117,17 +117,23 @@ driver::driver(int& argc, char **argv)
     // fixed grid - PTF & NSEWAVE & CFD
     if(p->A10==4 || p->A10==6)
     {
+        cout<<"a"<<endl;
         p->flagini();
+        cout<<"b"<<endl;
         p->gridini_patchBC();
+        cout<<"c"<<endl;
         pgc->flagfield(p);
+        cout<<"d"<<endl;
         makegrid(p,pgc);
+        cout<<"e"<<endl;
         makegrid2D(p,pgc);
+        cout<<"f"<<endl;
 
         if(p->A10==4)
-        ptf_driver();
+            ptf_driver();
 
         if(p->A10==6)
-        cfd_driver();
+            cfd_driver();
     }
 }
 
