@@ -110,6 +110,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
     
+    
 //********************************************************
 //Step 1
 //********************************************************
@@ -139,6 +140,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             vof_rk1(i,j,k)=1.0;
     }
     
+    
    // pplic->updatePlaneData(p,a,pgc,vof_rk1);
 	pflow->vof_relax(p,a,pgc,vof_rk1);
 	pgc->start4(p,vof_rk1,gcval_vof);
@@ -163,7 +165,6 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     }
     
     //-------------------------------------------
-    
     pgc->start1(p,a->u,gcval_u);
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
@@ -315,6 +316,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start3(p,wrk1,gcval_w);
     clear_FGH(p,a);
     //update rho(vof) after diffusion but before pressure
+    
     if(p->F92==3||p->F92==32)
         pplic->calculateSubFractions(p,a,pgc,a->vof);
     
@@ -338,6 +340,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 	pgc->start3(p,wrk1,gcval_w);
     
     clear_FGH(p,a);
+    
     
     if(p->F98==1)
     {
@@ -568,6 +571,8 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
         pgc->start4(p,a->ro,gcval_ro);
         pgc->start4(p,a->visc,gcval_visc); 
     }
+    
+    
     LOOP
     {
         if(a->vof(i,j,k)>p->F94)
@@ -578,6 +583,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
     }
     pgc->start4(p,a->phi,1);
+    
     
     /*double vofchecksum;
     vofchecksum=0.0;

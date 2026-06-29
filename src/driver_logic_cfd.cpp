@@ -401,7 +401,7 @@ void driver::logic_cfd()
 	if(p->F80==3)
 	pfsf = new VOF_RK3(p,a,pgc,pheat);
     
-    if(p->F80>0 && (p->N40==2||p->N40==3||p->N40==22||p->N40==23||p->N40==33))
+    if(p->F80>0 && (p->N40==2||p->N40==3||p->N40==22||p->N40==23||p->N40==33||p->N40==303))
     pfsf = new VOF_void(p,a,pgc,pheat);
 
 	if(p->F80==4 &&  (p->N40==12||p->N40==13))
