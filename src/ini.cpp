@@ -126,10 +126,11 @@ void control::ini_default()
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=0;		// int wetdry/forcing flux and signal speed
+    A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A524=1;      // int second order sigma terms for Poisson equation
+    A525=1;      // int wetdry/forcing signal speed
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
