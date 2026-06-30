@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+/*
 #define PORVALNH  d->POR[IJK]
-
 
 #define PORVALNH1  (0.5*(d->POR[IJK] + d->POR[Ip1JK]))
 #define PORVALNH1m  (0.5*(d->POR[IJK] + d->POR[Im1JK]))
@@ -35,5 +35,19 @@ Author: Hans Bihs
 
 #define CPORNH2m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2m)/(PORVALNH2m*PORVALNH2m))))
 #define CPORNH2  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2)/(PORVALNH2*PORVALNH2))))
+*/
 
+#define PORVALNH  1.0
 
+#define PORVALNH1  1.0
+#define PORVALNH1m  1.0
+#define PORVALNH2  1.0
+#define PORVALNH2m  1.0
+
+#define CPORNH  1.0
+
+#define CPORNH1m  1.0
+#define CPORNH1  1.0
+
+#define CPORNH2m  1.0
+#define CPORNH2  1.0
