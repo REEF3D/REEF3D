@@ -29,7 +29,12 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
 { 
     // read header
     read_header(p,pgc);
-    allocate(p,pgc);
+    
+    if(p->A10==3)
+    allocate_fnpf(p,pgc);
+    
+    if(p->A10==6)
+    allocate_cfd(p,pgc);
     
     // time_interpol
     if(p->mpirank==0)
@@ -105,6 +110,12 @@ double wave_lib_hdc::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi=0.0;
     
+    if(p->B125==1)
+    y=p->B125_y;
+    
+    if(endseries==0)
+    fi = plane_interpol(p,F,x,y);
+    
     return fi;
 }
 
@@ -114,112 +125,9 @@ void wave_lib_hdc::parameters(lexer *p, ghostcell *pgc)
 
 void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
 {
-    // only at startup
-    if(startup==0)
-    {
-        deltaT = simtime[1]-simtime[0];
-        
-        deltaT = deltaT>0.0?deltaT:1.0e20;
-        
-        t1 = (simtime[1]-(p->wavetime+p->I241))/deltaT;
-        t2 = ((p->wavetime+p->I241)-simtime[0])/deltaT;
-        
-        q1 = diter;
-        q2 = diter+1;
-        
-        if(file_conti==2)
-        {
-        filename_continuous(p,pgc);
-        result.open(name, ios::binary);
-        }
+    if(p->A10==3)
+    wave_prestep_fnpf(p,pgc);
     
-        read_result(p,pgc,E1,U1,V1,W1,q1);
-        read_result(p,pgc,E2,U2,V2,W2,q2);
-        startup=1;
-        
-        
-        // find q1
-        while(simtime[q1+1-diter]<=p->wavetime+p->I241)
-        {
-        ++q1;
-        
-        if(file_conti==2)
-        read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
-        }
-            
-        // find q2
-        while(simtime[q2-diter]<p->wavetime+p->I241)
-        {
-        ++q2;
-        
-        if(file_conti==2 )
-        read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
-        }
-    }
-    
-    q1n=q1;
-    q2n=q2;
-    
-    // check: open next timestep
-           
-    // find q1
-    while(simtime[q1+1-diter]<=p->wavetime+p->I241)
-    ++q1;
-        
-    // find q2
-    while(simtime[q2-diter]<p->wavetime+p->I241)
-    ++q2;
-    
-    if(q2>=numiter+diter)
-    endseries=1;
-        
-    q1=MIN(q1,numiter+diter);
-    q2=MIN(q2,numiter+diter);
-    
-    if(q1==q2)
-    ++q2;
-    
-    
-    // single file read 
-    if(file_conti==1)
-    {
-        if(q1!=q1n)
-        {
-        // Open File 1
-        filename_single(p,pgc,q1);
-        read_result(p,pgc,E1,U1,V1,W1,q1);
-        }
-        
-        if(q2!=q2n)
-        {
-        // Open File 2
-        filename_single(p,pgc,q2);
-        read_result(p,pgc,E2,U2,V2,W2,q2);
-        }
-    }
-        
-    // contiuous file read
-    if(file_conti==2)
-    {
-        if(q1!=q1n)
-        fill_result_continuous(p,pgc);
-        
-        if(q2!=q2n)
-        read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
-    }
-        
-
-        deltaT = simtime[q2-diter]-simtime[q1-diter];
-        
-        if(p->mpirank==0)
-        cout<<"HDC  q1: "<<q1<<" q2: "<<q2<<" t1: "<<t1<<" t2: "<<t2<<" deltaT: "<<deltaT<<" simtime[q1]: "<<simtime[q1-diter]<<" simtime[q2]: "<<simtime[q2-diter]<<endl;
-
-        t1 = (simtime[q2-diter]-(p->wavetime+p->I241))/deltaT;
-        t2 = ((p->wavetime+p->I241)-simtime[q1-diter])/deltaT;
-        
-        
-    // time interpolation
-    //if(q1!=q1n || q2!=q2n)
-    time_interpol(p);
-    
+    if(p->A10==6)
+    wave_prestep_cfd(p,pgc);
 }

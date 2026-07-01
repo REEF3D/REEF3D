@@ -23,9 +23,15 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::read_result_continuous(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
+void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, double **F0, int q0)
 {
-
+    // open
+    if(file_conti==1)
+    {
+    filename_single(p,pgc,q0);
+	result.open(name, ios::binary);
+    }
+    
     // read file_iter
     result.read((char*)&iin, sizeof (int));
     file_iter=iin;
@@ -37,33 +43,22 @@ void wave_lib_hdc::read_result_continuous(lexer *p, ghostcell *pgc, double **E0,
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
     {
-        result.read((char*)&ffn, sizeof (float));
+        result.read((char*)&ffn, sizeof (float)); 
         E0[i][j]=double(ffn);
     } 
     
+    // read
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
     {
         result.read((char*)&ffn, sizeof (float)); 
-        U0[i][j][k]=double(ffn);
+        F0[i][j]=double(ffn);
     } 
     
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    {
-        result.read((char*)&ffn, sizeof (float)); 
-        V0[i][j][k]=double(ffn);
-    } 
+    // close
+    if(file_conti==1)
+    result.close();
     
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    {
-        result.read((char*)&ffn, sizeof (float)); 
-        W0[i][j][k]=double(ffn);
-    }  
 }
 
 
