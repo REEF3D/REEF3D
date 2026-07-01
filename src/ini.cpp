@@ -113,7 +113,6 @@ void control::ini_default()
     
     
     // NHFLOW
-    A501=1;      // int nhf mode
     A509=1;      // int interpolation sweeps for bed
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
