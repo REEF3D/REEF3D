@@ -629,7 +629,7 @@ void control::ini_default()
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // int state print out components for FNPF
+    P44=1;             // int state print out components for FNPF
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window

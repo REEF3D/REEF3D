@@ -127,7 +127,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         q1 = diter;
         q2 = diter+1;
         
-        if(file_type==2)
+        if(file_conti==2)
         {
         filename_continuous(p,pgc);
         result.open(name, ios::binary);
@@ -143,7 +143,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         {
         ++q1;
         
-        if(file_type==2)
+        if(file_conti==2)
         read_result_continuous(p,pgc,E1,U1,V1,W1,q1);
         }
             
@@ -152,7 +152,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
         {
         ++q2;
         
-        if(file_type==2 )
+        if(file_conti==2 )
         read_result_continuous(p,pgc,E2,U2,V2,W2,q2);
         }
     }
@@ -181,7 +181,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     
     
     // single file read 
-    if(file_type==1)
+    if(file_conti==1)
     {
         if(q1!=q1n)
         {
@@ -199,7 +199,7 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     }
         
     // contiuous file read
-    if(file_type==2)
+    if(file_conti==2)
     {
         if(q1!=q1n)
         fill_result_continuous(p,pgc);

@@ -106,7 +106,7 @@ private:
 	char name[200];
     ifstream result;
     
-    int file_version,file_type;
+    int file_version,file_type,file_conti;
     int ip1,jp1,kp1;
     int ii,jj,kk;
     int iii,jjj,kkk;

@@ -39,7 +39,9 @@ nhflow_state::nhflow_state(lexer *p, fdm_nhf *c, ghostcell *pgc)
     
     file_version=5;
     
-    file_type=p->P45;
+    file_type=p->P44;
+    
+    file_conti=p->P45;
     
     ini_token=0;
     
