@@ -130,7 +130,7 @@ void control::ini_default()
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
     A524=1;      // int second order sigma terms for Poisson equation
-    A525=1;      // int wetdry/forcing signal speed
+    A525=0;      // int wetdry/forcing signal speed
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
@@ -629,7 +629,7 @@ void control::ini_default()
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // int print out 3D potential for FNPF
+    P44=0;             // int state print out components for FNPF
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
