@@ -132,6 +132,6 @@ void wave_lib_hdc::wave_prestep_cfd(lexer *p, ghostcell *pgc)
         
     // time interpolation
     //if(q1!=q1n || q2!=q2n)
-    time_interpol(p);
+    time_interpol_cfd(p);
     
 }

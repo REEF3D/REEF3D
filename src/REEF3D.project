@@ -3318,8 +3318,9 @@
           <File Name="wave_lib_hdc_prestep_fnpf.cpp"/>
           <File Name="wave_lib_hdc_prestep_cfd.cpp"/>
           <VirtualDirectory Name="Interpolation">
+            <File Name="wave_lib_hdc_time_interpol_cfd.cpp"/>
+            <File Name="wave_lib_hdc_time_interpol_fnpf.cpp"/>
             <File Name="wave_lib_hdc_coordinate_shift.cpp"/>
-            <File Name="wave_lib_hdc_time_interpol.cpp"/>
             <File Name="wave_lib_hdc_space_interpol_2D.cpp"/>
             <File Name="wave_lib_hdc_space_interpol.cpp"/>
           </VirtualDirectory>

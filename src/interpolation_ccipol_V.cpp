@@ -179,8 +179,8 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     if(zp > WL(i,j) + bed(i,j))
     value=0.0;
     
-    if(value != value)
-    cout<<i<<" "<<j<<" 7P "<<zp<<" "<<k<<" | "<<p->ZSN[FIJKp1]<<" "<<p->ZSN[FIJK]<<" . "<<ZSN_FIJKp1<<" "<<ZSN_FIJK<<"   SIG: "<<value<<" "<<wa<<" "<<wb<<" || "<<wc1<<" "<<wc2<<" | "<<(ZSN_FIJKp1 - zp)/(ZSN_FIJKp1-ZSN_FIJK)<<" "<<wc4<<endl;
+    //if(value != value)
+    //cout<<i<<" "<<j<<" 7P "<<zp<<" "<<k<<" | "<<p->ZSN[FIJKp1]<<" "<<p->ZSN[FIJK]<<" . "<<ZSN_FIJKp1<<" "<<ZSN_FIJK<<"   SIG: "<<value<<" "<<wa<<" "<<wb<<" || "<<wc1<<" "<<wc2<<" | "<<(ZSN_FIJKp1 - zp)/(ZSN_FIJKp1-ZSN_FIJK)<<" "<<wc4<<endl;
     
     i=ii;
     j=jj;
@@ -250,8 +250,8 @@ double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, doub
     if(p->j_dir==1)
     value = lint7V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
     
-    if(value != value)
-    cout<<i<<" 7V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
+    //if(value != value)
+    //cout<<i<<" 7V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
     
     i=ii;
     j=jj;

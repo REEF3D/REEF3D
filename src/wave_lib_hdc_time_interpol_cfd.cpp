@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::time_interpol(lexer *p)
+void wave_lib_hdc::time_interpol_cfd(lexer *p)
 {
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)

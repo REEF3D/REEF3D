@@ -66,7 +66,8 @@ private:
     void allocate_cfd(lexer*,ghostcell*);
     
     
-    void time_interpol(lexer*);
+    void time_interpol_fnpf(lexer*);
+    void time_interpol_cfd(lexer*);
     
     // interpolation
     double ccpol3D(lexer*,double***,double,double,double);

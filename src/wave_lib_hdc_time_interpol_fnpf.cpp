@@ -23,44 +23,18 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, double **F0, int q0)
+void wave_lib_hdc::time_interpol_fnpf(lexer *p)
 {
-    // open
-    if(file_conti==1)
-    {
-    filename_single(p,pgc,q0);
-	result.open(name, ios::binary);
-    }
-    
-    // read file_iter
-    result.read((char*)&iin, sizeof (int));
-    file_iter=iin;
-    
-    if(p->mpirank==0)
-    cout<<"HDC file_iter: "<<file_iter<<endl;
-    
-    // read
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
-    {
-        result.read((char*)&ffn, sizeof (float)); 
-        E0[i][j]=double(ffn);
-        cout<<"E0[i][j]: "<<E0[i][j]<<" "<<ffn<<endl;
-    } 
+    E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
     
-    // read
     for(i=0; i<Nx; ++i)
     for(j=0; j<Ny; ++j)
-    {
-        result.read((char*)&ffn, sizeof (float)); 
-        F0[i][j]=double(ffn);
-    } 
+    F[i][j] = F1[i][j]*t1 + F2[i][j]*t2;
     
-    // close
-    if(file_conti==1)
-    result.close();
-    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    for(k=0; k<Nz; ++k)
+    Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]) + B[i][j];
 }
-
-
-        
