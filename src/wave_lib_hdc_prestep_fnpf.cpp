@@ -114,7 +114,7 @@ void wave_lib_hdc::wave_prestep_fnpf(lexer *p, ghostcell *pgc)
     if(file_conti==2)
     {
         if(q1!=q1n)
-        fill_conti(p,pgc);
+        fill_conti_fnpf(p,pgc);
         
         if(q2!=q2n)
         read_result_fnpf(p,pgc,E2,F2,q2);

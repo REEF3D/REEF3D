@@ -23,7 +23,19 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::fill_conti(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::fill_conti_fnpf(lexer *p, ghostcell *pgc)
+{
+    // fill
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    E1[i][j]=E2[i][j];
+    
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    F1[i][j]=F2[i][j];
+}
+
+void wave_lib_hdc::fill_conti_cfd(lexer *p, ghostcell *pgc)
 {
     // fill
     for(i=0; i<Nx; ++i)
@@ -44,8 +56,6 @@ void wave_lib_hdc::fill_conti(lexer *p, ghostcell *pgc)
     for(j=0; j<Ny; ++j)
     for(k=0; k<Nz; ++k)
     W1[i][j][k]=W2[i][j][k];
-    
-    
 }
 
 

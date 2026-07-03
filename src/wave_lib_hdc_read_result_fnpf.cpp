@@ -54,6 +54,7 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
     {
         result.read((char*)&ffn, sizeof (float)); 
         F0[i][j]=double(ffn);
+        cout<<"F0[i][j]: "<<F0[i][j]<<" "<<ffn<<endl;
     } 
     
     // close

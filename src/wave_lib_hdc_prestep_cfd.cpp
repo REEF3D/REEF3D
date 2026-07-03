@@ -114,7 +114,7 @@ void wave_lib_hdc::wave_prestep_cfd(lexer *p, ghostcell *pgc)
     if(file_conti==2)
     {
         if(q1!=q1n)
-        fill_conti(p,pgc);
+        fill_conti_cfd(p,pgc);
         
         if(q2!=q2n)
         read_result_cfd(p,pgc,E2,U2,V2,W2,q2);

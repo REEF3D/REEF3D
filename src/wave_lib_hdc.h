@@ -55,7 +55,8 @@ private:
     void read_result_cfd(lexer*,ghostcell*,double**,double***,double***,double***,int);
     void read_result_fnpf(lexer*,ghostcell*,double**,double**,int);
     
-    void fill_conti(lexer*,ghostcell*);
+    void fill_conti_fnpf(lexer*,ghostcell*);
+    void fill_conti_cfd(lexer*,ghostcell*);
     
     void filename_header(lexer*,ghostcell*);
     void filename_single(lexer*,ghostcell*,int);
