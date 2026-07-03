@@ -23,7 +23,18 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::allocate(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::allocate_fnpf(lexer *p, ghostcell *pgc)
+{
+    p->Darray(E1,Nx,Ny);
+    p->Darray(E2,Nx,Ny);
+    p->Darray(E,Nx,Ny);
+    
+    p->Darray(F1,Nx,Ny);
+    p->Darray(F2,Nx,Ny);
+    p->Darray(F,Nx,Ny);
+}
+
+void wave_lib_hdc::allocate_cfd(lexer *p, ghostcell *pgc)
 {
     p->Darray(U1,Nx,Ny,Nz);
     p->Darray(U2,Nx,Ny,Nz);

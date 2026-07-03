@@ -23,28 +23,41 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
+void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, double **F0, int q0)
 {
-    // fill
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    E1[i][j]=E2[i][j];
+    // open
+    if(file_conti==1)
+    {
+    filename_single(p,pgc,q0);
+	result.open(name, ios::binary);
+    }
     
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    U1[i][j][k]=U2[i][j][k];
+    // read file_iter
+    result.read((char*)&iin, sizeof (int));
+    file_iter=iin;
     
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    V1[i][j][k]=V2[i][j][k];
-
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    W1[i][j][k]=W2[i][j][k];
+    if(p->mpirank==0)
+    cout<<"HDC file_iter: "<<file_iter<<endl;
     
+    // read
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        E0[i][j]=double(ffn);
+    } 
+    
+    // read
+    for(i=0; i<Nx; ++i)
+    for(j=0; j<Ny; ++j)
+    {
+        result.read((char*)&ffn, sizeof (float)); 
+        F0[i][j]=double(ffn);
+    } 
+    
+    // close
+    if(file_conti==1)
+    result.close();
     
 }
 

@@ -194,8 +194,6 @@ void control::ctrlsend()
     dctrl[dd] = A440;
     dd++;
 
-    ictrl[ii] = A501;
-    ii++;
     ictrl[ii] = A509;
     ii++;
     ictrl[ii] = A510;
