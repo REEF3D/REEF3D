@@ -72,11 +72,11 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            sigxyz2_m = pow(0.5*(p->sigx[FIJK] + p->sigx[FIJKm1]),2.0) 
+            /*sigxyz2_m = pow(0.5*(p->sigx[FIJK] + p->sigx[FIJKm1]),2.0) 
                       + pow(0.5*(p->sigy[FIJK] + p->sigy[FIJKm1]),2.0) + pow(p->sigz[IJ],2.0);
                       
             sigxyz2_p = pow(0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]),2.0) 
-                      + pow(0.5*(p->sigy[FIJK] + p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
+                      + pow(0.5*(p->sigy[FIJK] + p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);*/
             
             /*
             dfdz_plus = (P[FIJKp1] - [IJK])/p->DZP[KP];
@@ -91,8 +91,8 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                         + (1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
                         + (1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2_p)/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + (sigxyz2_m)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
+                        + (sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])
+                        + (sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
 
 
             d->M.n[n] = -(1.0)/(p->W1*p->DXP[IP]*p->DXN[IP]);
@@ -101,10 +101,10 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.w[n] = -(1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
             d->M.e[n] = -(1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(sigxyz2_p)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
+            d->M.t[n] = -(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
                         - sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -(sigxyz2_m)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
+            d->M.b[n] = -(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
                         + sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
