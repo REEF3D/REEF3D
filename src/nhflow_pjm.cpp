@@ -67,7 +67,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
     rhs(p,d,pgc,d->U,d->V,d->W,alpha);
 
-    ppois->start(p,d,d->P);
+    ppois->start(p,d,d->P,d->P);
 
         starttime=pgc->timer();
 
@@ -212,7 +212,7 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-    d->F[IJK] += d->eta_n(i,j)*fabs(p->W22)*
+    d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
 }
 
@@ -220,7 +220,7 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &WL)
 {
     LOOP
     WETDRY
-	d->G[IJK] += d->eta_n(i,j)*fabs(p->W22)*
+	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 

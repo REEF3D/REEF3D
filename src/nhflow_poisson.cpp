@@ -36,7 +36,7 @@ nhflow_poisson::nhflow_poisson(lexer *p)
 {
     sigfac=1.0;
     
-    //if(p->A524==0)
+    if(p->A524==0 || p->A524==2)
     sigfac=0.0;
 }
 
@@ -44,7 +44,7 @@ nhflow_poisson::~nhflow_poisson()
 {
 }
 
-void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
+void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
 {	
     double ab,denom;
     
@@ -72,18 +72,6 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
-            /*sigxyz2_m = pow(0.5*(p->sigx[FIJK] + p->sigx[FIJKm1]),2.0) 
-                      + pow(0.5*(p->sigy[FIJK] + p->sigy[FIJKm1]),2.0) + pow(p->sigz[IJ],2.0);
-                      
-            sigxyz2_p = pow(0.5*(p->sigx[FIJK] + p->sigx[FIJKp1]),2.0) 
-                      + pow(0.5*(p->sigy[FIJK] + p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);*/
-            
-            /*
-            dfdz_plus = (P[FIJKp1] - [IJK])/p->DZP[KP];
-            dfdz_min  = (P[IJK] - Fz[IJKm1])/p->DZP[KM1];
-            
-            phi = limter(dfdz_plus,dfdz_min);
-            */
             
             d->M.p[n]  =  (1.0)/(p->W1*p->DXP[IP]*p->DXN[IP])
                         + (1.0)/(p->W1*p->DXP[IM1]*p->DXN[IP])
@@ -101,24 +89,28 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.w[n] = -(1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
             d->M.e[n] = -(1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])     
+            d->M.t[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])     
                         - sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
+            d->M.b[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
                         + sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
             if(p->D33==0)
-            d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
+            d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(PN[FIp1JKp1] - PN[FIm1JKp1] - PN[FIp1JKm1] + PN[FIm1JKm1])
                             /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                            + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
+                            + 2.0*p->sigy[FIJK]*(PN[FIJp1Kp1] - PN[FIJm1Kp1] - PN[FIJp1Km1] + PN[FIJm1Km1])
                             /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
             
-            dfdz_plus = (P[FIJKp1]  - P[FIJK])/p->DZN[KP];
-            dfdz_min  = (P[FIJK] - P[FIJKm1])/p->DZN[KM1];
-    
-            d->rhsvec.V[n] -=  (1.0/p->W1) * p->sigxx[FIJK] * limiter(dfdz_plus,dfdz_min);
+            if(p->A524==2)
+            {
+            dfdz_plus = (PN[FIJKp1] - PN[FIJK])/p->DZN[KP];
+            dfdz_min  = (PN[FIJK] - PN[FIJKm1])/p->DZN[KM1];
+            
+            
+            d->rhsvec.V[n] +=  (1.0/p->W1) * p->sigxx[FIJK] * limiter(dfdz_plus,dfdz_min);
+            }
 
             if(p->D33==1)
             {
@@ -162,7 +154,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             // South
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*0.0;
+            d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
             d->M.s[n] = 0.0;
             }
             
@@ -181,7 +173,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             
             if(p->B76==1 && p->B90==0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*0.0;
+            d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
             d->M.s[n] = 0.0;
             }
             }
@@ -195,15 +187,15 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             if(p->B76==0 || p->B90==1)
             {
             pval=0.0;
-            d->rhsvec.V[n] -= d->M.s[n]*(-0.0+pval);
+            d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
             d->M.s[n] = 0.0;
             }
             
             if(p->B76==1 && p->B90==0)
             {
-            pval=0.0;
+            pval=d->P[FIJK];
             
-            d->rhsvec.V[n] -= d->M.s[n]*(-0.0+pval);
+            d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
             d->M.s[n] = 0.0;
             }
             }
@@ -211,7 +203,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             // North
             if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*0.0;
+            d->rhsvec.V[n] -= d->M.n[n]*P[FIJK];
             d->M.n[n] = 0.0;
             }
             
@@ -226,28 +218,28 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==2)
             {
             pval = 0.0;
-            d->rhsvec.V[n] -= d->M.n[n]*(-0.0+pval);
+            d->rhsvec.V[n] -= d->M.n[n]*(-d->P[FIJK]+pval);
             d->M.n[n] = 0.0;
             }
             
             // East
             if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0 || p->deep[IJm1]==0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*0.0*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*P[FIJK]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             // West
             if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0 || p->deep[IJp1]==0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*0.0*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*P[FIJK]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
             // BED
             if(p->flag7[FIJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*0.0;
+            d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
             d->M.b[n] = 0.0;
             }
             
@@ -319,21 +311,11 @@ inline double nhflow_poisson::limiter(double v1, double v2)
 {
     val=0.0;
     
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
-
-    if(r<0.0)
-    phi = 0.0;
+    denom = fabs(v1) + fabs(v2);
     
-    if(r>=0.0 && r<0.5)
-    phi = 2.0*r;
+    denom = fabs(denom)>1.0e-10?denom:1.0e10;
     
-    if(r>=0.5 && r<1.0)
-    phi = 1.0;
-    
-    if(r>=1.0)
-    phi = MIN(MIN(r,2.0), 2.0/(1.0+r));
-    
-    val = 0.5*phi*(v1+v2);
+    val =  (v1*fabs(v2) + fabs(v1)*v2)/denom;
     
     return val;
     

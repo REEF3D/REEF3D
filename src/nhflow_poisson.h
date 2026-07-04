@@ -43,11 +43,11 @@ public:
 	nhflow_poisson (lexer *);
 	virtual ~nhflow_poisson();
 
-	void start(lexer *,fdm_nhf*,double*);
+	void start(lexer *,fdm_nhf*,double*,double*);
 
 private:
     inline double limiter(double, double);
-    double r, phi,val;
+    double r, phi,val, denom;
     double dfdz_plus, dfdz_min;
     
 	int count,n,q;
