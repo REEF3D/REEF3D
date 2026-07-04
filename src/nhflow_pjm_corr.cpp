@@ -43,6 +43,7 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     ppois = new nhflow_poisson(p);
     
     p->Darray(PCORR,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(PCORR_N,p->imax*p->jmax*(p->kmax+2));
     
     gcval_press=540;
     
@@ -69,7 +70,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
     rhs(p,d,pgc,d->U,d->V,d->W,alpha);
 
-    ppois->start(p,d,PCORR);
+    ppois->start(p,d,PCORR_N);
     
         p->matrixtime+=pgc->timer()-starttime;
 
@@ -80,7 +81,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
         endtime=pgc->timer();
     
-    presscorr(p,d,WL,d->P,PCORR,alpha);
+    presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
     
     pgc->start7P(p,d->P,gcval_press);
     pgc->start7P(p,PCORR,gcval_press);
@@ -94,16 +95,24 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 	p->ptime=endtime-starttime;
     p->poissontime+=p->ptime;
     
+    LOOP
+    d->test[IJK] = PCORR[FIJK];
+    
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
 }
 
-void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, slice &WL, double *P, double *PCORR, double alpha)
+void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
 {
 	FLOOP
     WETDRYDEEP
+    {
     P[FIJK] += PCORR[FIJK];
+    PCORR_N[FIJK] = PCORR[FIJK];
+    }
+    
+    pgc->start7P(p,PCORR_N,gcval_press);
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)

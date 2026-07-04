@@ -49,7 +49,7 @@ public:
 	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
     void wpgrad(lexer*,fdm_nhf*,slice&) override final;
     
-    void presscorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+    void presscorr(lexer*p,fdm_nhf*,ghostcell*,slice&,double*,double*,double);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
@@ -65,7 +65,7 @@ private:
     int solver_id;
     double val, denom;
     double gamma;
-    double *PCORR;
+    double *PCORR,*PCORR_N;
     double dPdx,dPdy,dPdz;
 
     density *pd;

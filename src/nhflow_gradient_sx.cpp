@@ -30,8 +30,6 @@ double nhflow_gradient::sx(slice &f)
     grad = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
 	return grad;
-    
-    
 */
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
