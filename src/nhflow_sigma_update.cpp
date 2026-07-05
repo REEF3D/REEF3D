@@ -148,7 +148,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         
                       - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
                       
-                      - (p->sigx[FIJK]/WLVL)*(d->Bx(i,j) + d->Ex(i,j))
+                      - (p->sigx[FIJK]/WLVL)*(d->Bx(i,j) - d->Ex(i,j))
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->Bx(i,j)*d->Ex(i,j))
                       
@@ -157,7 +157,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         
                       - (p->sig[FIJK]/WLVL)*(d->Eyy(i,j) - pow(d->Ey(i,j),2.0)/WLVL)
                       
-                      - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
+                      - (p->sigy[FIJK]/WLVL)*(d->By(i,j) - d->Ey(i,j))
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
         }
