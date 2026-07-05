@@ -27,10 +27,10 @@ Author: Hans Bihs
 
 double nhflow_gradient::sxx(slice &f)
 {
-    //return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
+    return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
     
-    return (-f(i+2,j) + 8.0*f(i+1,j) - 8.0*f(i-1,j) + f(i-2,j))
-          /(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
+    /*return (-f(i+2,j) + 8.0*f(i+1,j) - 8.0*f(i-1,j) + f(i-2,j))
+          /(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);*7
     /*
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
@@ -49,10 +49,10 @@ double nhflow_gradient::sxx(slice &f)
 
 double nhflow_gradient::syy(slice &f)
 {
-    //return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
+    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
     
-    return (-f(i,j+2) + 8.0*f(i,j+1) - 8.0*f(i,j-1) + f(i,j-2))
-          /(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);
+    /*return (-f(i,j+2) + 8.0*f(i,j+1) - 8.0*f(i,j-1) + f(i,j-2))
+          /(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);*/
 /*
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
