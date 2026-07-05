@@ -140,7 +140,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     {
     p->sigxx[FIJK] = 0.0;
     
-        if(p->wet[IJ]==1)// && p->DF[IJK]>0 && p->DF[IJKm1]>0) 
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->DF[IJKm1]>0) 
         //&& p->DF[Im1JK]>0 && p->DF[Im1JKm1]>0 && p->DF[Ip1JK]>0 && p->DF[Ip1JKm1]>0
         //&& ((p->DF[IJm1K]>0 && p->DF[IJm1Km1]>0 && p->DF[IJp1K]>0 && p->DF[IJp1Km1]>0)||p->j_dir==0) )
         {
@@ -160,6 +160,9 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
                       - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
+                      
+                      
+        d->test[IJK] = p->sigxx[FIJK];
         }
     
     }
