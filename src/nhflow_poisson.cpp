@@ -68,7 +68,6 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
 	n=0;
     LOOP
 	{
-        if(p->DF[IJK]>0) 
         WETDRYDEEP
         {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
@@ -127,7 +126,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
             }
         }
         
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0 || p->DF[IJK]<0)
+        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)
         {
         d->M.p[n]  =  1.0;
 
@@ -150,11 +149,10 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
     n=0;
 	LOOP
 	{
-        if(p->DF[IJK]>0) 
         WETDRYDEEP 
         {
             // South
-            if((p->flag7[FIm1JK]<0 || p->DF[Im1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
+            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
             d->M.s[n] = 0.0;
@@ -203,7 +201,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
             }
             
             // North
-            if((p->flag7[FIp1JK]<0 || p->DF[Ip1JK]<0  || p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
+            if((p->flag7[FIp1JK]<0|| p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
             {
             d->rhsvec.V[n] -= d->M.n[n]*P[FIJK];
             d->M.n[n] = 0.0;
@@ -225,28 +223,28 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
             }
             
             // East
-            if(p->flag7[FIJm1K]<0 || p->DF[IJm1K]<0  || p->wet[IJm1]==0 || p->deep[IJm1]==0)
+            if(p->flag7[FIJm1K]<0  || p->wet[IJm1]==0 || p->deep[IJm1]==0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*P[FIJK]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             // West
-            if(p->flag7[FIJp1K]<0 || p->DF[IJp1K]<0  || p->wet[IJp1]==0 || p->deep[IJp1]==0)
+            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0 || p->deep[IJp1]==0)
             {
             d->rhsvec.V[n] -= d->M.w[n]*P[FIJK]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
             // BED
-            if(p->flag7[FIJKm1]<0 || p->DF[IJKm1]<0 )
+            if(p->flag7[FIJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
             d->M.b[n] = 0.0;
             }
             
             // FSFBC
-            if(p->flag7[FIJKp2]<0 || p->DF[IJKp1]<0  && p->flag7[FIJKp1]>0)
+            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
             {
             d->rhsvec.V[n] -= 0.0; // fsf: p=0
             d->M.t[n] = 0.0;
