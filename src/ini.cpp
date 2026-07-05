@@ -395,7 +395,6 @@ void control::ini_default()
     D22=1;            // int diffusion wall boundary condition
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
-    D33=0;			// int corner cells sigma grid Poisson matrix
     D37=0;          // int type of FSFBC for single fluid flow
 
     // Free Surface

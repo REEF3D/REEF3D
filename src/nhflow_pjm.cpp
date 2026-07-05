@@ -46,13 +46,7 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
     
     gamma=0.5;
     
-    
-    if(p->D33==0)
     solver_id = 8;
-    
-    if(p->D33==1)
-    solver_id = 9;
-    
 }
 
 nhflow_pjm::~nhflow_pjm()

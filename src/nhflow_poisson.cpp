@@ -96,7 +96,6 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
                         + sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-            if(p->D33==0)
             d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(PN[FIp1JKp1] - PN[FIm1JKp1] - PN[FIp1JKm1] + PN[FIm1JKm1])
                             /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
@@ -110,19 +109,6 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
             
             
             d->rhsvec.V[n] +=  (1.0/p->W1) * p->sigxx[FIJK] * limiter(dfdz_plus,dfdz_min);
-            }
-
-            if(p->D33==1)
-            {
-            d->M.sb[n] = -2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            d->M.st[n] =  2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            d->M.nb[n] =  2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            d->M.nt[n] = -2.0*p->sigx[FIJK]/(p->W1*(p->DXN[IP]+p->DXN[IM1])*(p->DZN[KP]+p->DZN[KM1]));
-            
-            d->M.eb[n] = -2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            d->M.et[n] =  2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            d->M.wb[n] =  2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-            d->M.wt[n] = -2.0*p->sigy[FIJK]/(p->W1*(p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
             }
         }
         
@@ -161,43 +147,37 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
             // pjm inflow
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==1)
             {
-            //d->M.p[n] += d->M.s[n];
-            //d->M.s[n] = 0.0;
-            
-            if(p->B76==0 || p->B90==1)
-            {
-            pval=0.0;
-            d->rhsvec.V[n] -= d->M.s[n]*pval;
-            d->M.s[n] = 0.0;
-            }
-            
-            if(p->B76==1 && p->B90==0)
-            {
-            d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
-            d->M.s[n] = 0.0;
-            }
+                if(p->B76==0 || p->B90==1)
+                {
+                pval=0.0;
+                d->rhsvec.V[n] -= d->M.s[n]*pval;
+                d->M.s[n] = 0.0;
+                }
+                
+                if(p->B76==1 && p->B90==0)
+                {
+                d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
+                d->M.s[n] = 0.0;
+                }
             }
             
             // pcorr inflow
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 && p->A520==2)
             {
-            //d->M.p[n] += d->M.s[n];
-            //d->M.s[n] = 0.0;
-            
-            if(p->B76==0 || p->B90==1)
-            {
-            pval=0.0;
-            d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
-            d->M.s[n] = 0.0;
-            }
-            
-            if(p->B76==1 && p->B90==0)
-            {
-            pval=d->P[FIJK];
-            
-            d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
-            d->M.s[n] = 0.0;
-            }
+                if(p->B76==0 || p->B90==1)
+                {
+                pval=0.0;
+                d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
+                d->M.s[n] = 0.0;
+                }
+                
+                if(p->B76==1 && p->B90==0)
+                {
+                pval=d->P[FIJK];
+                
+                d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
+                d->M.s[n] = 0.0;
+                }
             }
             
             // North
@@ -250,58 +230,6 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P, double *PN)
             d->M.t[n] = 0.0;
             }
             
-            // ---------------------------------------------
-            if(p->D33==1)
-            {
-            if(p->flag7[FIm1JKm1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.sb[n]*P[FIm1JKm1];
-            d->M.sb[n] = 0.0;
-            }
-            
-            if(p->flag7[FIm1JKp1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.st[n]*P[FIm1JKp1];
-            d->M.st[n] = 0.0;
-            }
-            
-            if(p->flag7[FIp1JKm1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.nb[n]*P[FIp1JKm1];
-            d->M.nb[n] = 0.0;
-            }
-            
-            if(p->flag7[FIp1JKp1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.nt[n]*P[FIp1JKp1];
-            d->M.nt[n] = 0.0;
-            }
-            
-            if(p->flag7[FIJm1Km1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.eb[n]*P[FIm1JKm1]*p->y_dir;
-            d->M.eb[n] = 0.0;
-            }
-            
-            if(p->flag7[FIJm1Kp1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.et[n]*P[FIJm1Kp1]*p->y_dir;
-            d->M.et[n] = 0.0;
-            }
-            
-            if(p->flag7[FIJp1Km1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.wb[n]*P[FIJp1Km1]*p->y_dir;
-            d->M.wb[n] = 0.0;
-            }
-            
-            if(p->flag7[FIJp1Kp1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.wt[n]*P[FIJp1Kp1]*p->y_dir;
-            d->M.wt[n] = 0.0;
-            }
-            
-            }
         }
 	++n;
 	}

@@ -47,11 +47,7 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     
     gcval_press=540;
     
-    if(p->D33==0)
     solver_id = 8;
-    
-    if(p->D33==1)
-    solver_id = 9;
     
     gamma=0.5;
 }
