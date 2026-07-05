@@ -33,9 +33,6 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"vrans.h"
 
-#define HX (fabs(d->hx(i,j))>1.0e-20?d->hx(i,j):1.0e20)
-#define HXP (fabs(0.5*(d->WL(i,j)+d->WL(i+1,j)))>1.0e-20?0.5*(d->WL(i,j)+d->WL(i+1,j)):1.0e20)
-#define HY (fabs(d->hy(i,j))>1.0e-20?d->hy(i,j):1.0e20)
 #define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0e20)
  
 nhflow_pjm_hs::nhflow_pjm_hs(lexer* p, fdm_nhf *d, patchBC_interface *ppBC) : nhflow_gradient(p)

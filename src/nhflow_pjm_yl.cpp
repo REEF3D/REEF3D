@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
-
 #include"nhflow_pjm_yl.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -33,6 +31,8 @@ Author: Hans Bihs
 #include"density_f.h"
 #include"patchBC_interface.h"
 #include"vrans.h"
+
+#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
 nhflow_pjm_yl::nhflow_pjm_yl(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(1.0)
 {

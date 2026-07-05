@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
-
 #include"nhflow_pjm_corr.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -34,7 +32,9 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"vrans.h"
 
-nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(1.0)
+#define WLVL (fabs(WL(i,j))>(p->A544)?WL(i,j):1.0e20)
+
+nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC)
 {
     pBC = ppBC;
     
@@ -43,7 +43,6 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     ppois = new nhflow_poisson(p);
     
     p->Darray(PCORR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(PCORR_N,p->imax*p->jmax*(p->kmax+2));
     
     gcval_press=540;
     
@@ -66,7 +65,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
     rhs(p,d,pgc,d->U,d->V,d->W,alpha);
 
-    ppois->start(p,d,PCORR,PCORR);
+    ppois->start(p,d,PCORR);
     
         p->matrixtime+=pgc->timer()-starttime;
 
@@ -76,6 +75,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
     psolv->startF(p,pgc,PCORR,d->rhsvec,d->M,solver_id);
 
         endtime=pgc->timer();
+        
     
     presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
     
@@ -89,11 +89,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
     p->poissoniter=p->solveriter;
 
 	p->ptime=endtime-starttime;
-    p->poissontime+=p->ptime;
-    
-    LOOP
-    d->test[IJK] = PCORR[FIJK];
-    
+    p->poissontime+=p->ptime;    
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
@@ -103,12 +99,7 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 {
 	FLOOP
     WETDRYDEEP
-    {
     P[FIJK] += PCORR[FIJK];
-    PCORR_N[FIJK] = PCORR[FIJK];
-    }
-    
-    pgc->start7P(p,PCORR_N,gcval_press);
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)

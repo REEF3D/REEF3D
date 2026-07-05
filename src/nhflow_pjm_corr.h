@@ -58,14 +58,13 @@ public:
 private:
     
 	double starttime,endtime;
-    const double teta;
     int check;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
     int solver_id;
     double val, denom;
     double gamma;
-    double *PCORR,*PCORR_N;
+    double *PCORR;
     double dPdx,dPdy,dPdz;
 
     density *pd;

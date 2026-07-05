@@ -43,7 +43,7 @@ public:
 	nhflow_poisson (lexer *);
 	virtual ~nhflow_poisson();
 
-	void start(lexer *,fdm_nhf*,double*,double*);
+	void start(lexer *,fdm_nhf*,double*);
 
 private:
     inline double limiter(double, double);
