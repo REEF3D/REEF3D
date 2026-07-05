@@ -45,14 +45,9 @@ public:
 
 	void start(lexer *,fdm_nhf*,double*);
 
-private:
-    inline double limiter(double, double);
-    double r, phi,val, denom;
-    double dfdz_plus, dfdz_min;
-    
+private:    
 	int count,n,q;
     double sigxyz2;
-    double sigxyz2_m,sigxyz2_p;
     double pval;
     double sigfac;
 
