@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define NHFLOW_SIGMA_H_
 
 #include"fnpf.h"
+#include"slice4.h"
 #include"nhflow_gradient.h"
 
 class lexer;
@@ -47,8 +48,11 @@ public:
     
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
 
-        
+    void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
+
 private:
+    
+    slice4 ef;
     
     void disc_bed(lexer*, fdm_nhf*, ghostcell*);
     void disc_eta(lexer*, fdm_nhf*, ghostcell*);

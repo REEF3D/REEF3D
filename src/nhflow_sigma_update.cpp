@@ -36,6 +36,14 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     double wl,sigval;
     double bx,by,ex,ey;
     
+    SLICELOOP4
+    ef(i,j) = d->eta(i,j);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    filter(p,d,pgc,ef);
+    
+    pgc->gcsl_start4(p,ef,1);
     
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
@@ -45,8 +53,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     d->Ex(i,j) = sx(d->eta);
     d->Ey(i,j) = sy(d->eta);
     
-    d->Exx(i,j) = sxx(d->eta);
-    d->Eyy(i,j) = syy(d->eta);
+    d->Exx(i,j) = sxx(ef);
+    d->Eyy(i,j) = syy(ef);
     }
     
     // 2D
@@ -54,7 +62,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     SLICELOOP4
     {
     d->Ex(i,j) = sx(d->eta);    
-    d->Exx(i,j) = sxx(d->eta);
+    d->Exx(i,j) = sxx(ef);
     }
     
     SLICELOOP4

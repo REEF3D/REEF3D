@@ -36,7 +36,7 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
     result.read((char*)&iin, sizeof (int));
     file_iter=iin;
     
-    if(p->mpirank==0)
+    //if(p->mpirank==0)
     cout<<"HDC file_iter: "<<file_iter<<endl;
     
     // read
@@ -45,7 +45,7 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
     {
         result.read((char*)&ffn, sizeof (float)); 
         E0[i][j]=double(ffn);
-        cout<<"E0[i][j]: "<<E0[i][j]<<" "<<ffn<<endl;
+        cout<<p->mpirank<<" E0[i][j]: "<<E0[i][j]<<" "<<ffn<<endl;
     } 
     
     // read
@@ -54,7 +54,7 @@ void wave_lib_hdc::read_result_fnpf(lexer *p, ghostcell *pgc, double **E0, doubl
     {
         result.read((char*)&ffn, sizeof (float)); 
         F0[i][j]=double(ffn);
-        cout<<"F0[i][j]: "<<F0[i][j]<<" "<<ffn<<endl;
+        cout<<p->mpirank<<" F0[i][j]: "<<F0[i][j]<<" "<<ffn<<endl;
     } 
     
     // close
