@@ -20,43 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_SIGMA_H_
-#define NHFLOW_SIGMA_H_
-
-#include"fnpf.h"
-#include"slice4.h"
-#include"nhflow_gradient.h"
 #include"nhflow_filter.h"
+#include"lexer.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include<cmath>
+#include<cstdio>
 
-class lexer;
-class fdm_nhf;
-class ghostcell;
-class field;
-class nhflow_sigma_data;
-class slice;
-
-using namespace std;
-
-class nhflow_sigma : public nhflow_gradient, public nhflow_filter
+nhflow_filter::nhflow_filter(lexer *p)
 {
-public:
-	nhflow_sigma(lexer*);
-	virtual ~nhflow_sigma();
+    int poly_order = 2; 
+    int half_width = 2;
     
-    void sigma_coord_ini(lexer*);
-    void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
-    void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
-    
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
-    
-private:
-    
-    slice4 ef;
-    
-    void disc_bed(lexer*, fdm_nhf*, ghostcell*);
-    void disc_eta(lexer*, fdm_nhf*, ghostcell*);
-    
-    double sig;
-};
+    order = poly_order;
+    hw    = half_width;
+    nw    = 2*hw + 1;
 
-#endif
+    build_coeffs(p);
+}
+
+nhflow_filter::~nhflow_filter()
+{
+}

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_sigma.h"
+#include"nhflow_filter.h"
 #include"lexer.h"
-#include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"slice.h"
 
-void nhflow_sigma::filter(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
+void nhflow_filter::filter_pc(lexer *p, ghostcell *pgc, slice &f)
 {
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;

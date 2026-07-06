@@ -41,7 +41,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     pgc->gcsl_start4(p,ef,1);
     
-    filter(p,d,pgc,ef);
+    filter_pc(p,pgc,ef);
     
     pgc->gcsl_start4(p,ef,1);
     

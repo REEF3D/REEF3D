@@ -649,6 +649,9 @@
           <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Filter">
+            <File Name="nhflow_filter.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.h"/>
             <File Name="nhflow_potential_f.h"/>
@@ -2043,6 +2046,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Filter">
+            <File Name="nhflow_filter_sg.cpp"/>
+            <File Name="nhflow_filter_pc.cpp"/>
+            <File Name="nhflow_filter.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.cpp"/>
             <File Name="nhflow_potential_f.cpp"/>
@@ -2056,7 +2064,6 @@
             <File Name="nhflow_coastline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
-            <File Name="nhflow_sigma_filter.cpp"/>
             <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>
             <File Name="nhflow_sigma_update.cpp"/>
