@@ -23,8 +23,9 @@ Author: Hans Bihs
 #ifndef FNPF_FSFBC_SC_H_
 #define FNPF_FSFBC_SC_H_
 
-#include"fnpf_fsf.h"
+#include"fnpf_breaking.h"
 #include"sliceint4.h"
+#include"slice4.h"
 
 class fnpf_laplace;
 class field;
@@ -36,7 +37,7 @@ class solver2D;
 
 using namespace std;
 
-class fnpf_fsfbc_sc final : public fnpf_fsf, public increment 
+class fnpf_fsfbc_sc final : public fnpf_breaking
 {
 public:
 	fnpf_fsfbc_sc(lexer*, fdm_fnpf*, ghostcell*);
@@ -52,9 +53,7 @@ public:
     void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override final {};
     void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override final {};
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final {};
-    
-    
-    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
+
 
     fnpf_convection *pconvec;
     fnpf_convection *pconeta;
@@ -80,6 +79,8 @@ private:
     
     sliceint4 bx,by;
     sliceint4 wetcoast;
+    slice4 ef;
+    
     int count_n;
     
 };

@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"fnpf_breaking.h"
 #include"sliceint4.h"
+#include"slice4.h"
 
 class fnpf_laplace;
 class field;
@@ -55,7 +56,6 @@ public:
     
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
     
-    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
     fnpf_convection *pconeta;
@@ -82,6 +82,8 @@ private:
     const double eps;
     
     sliceint4 wetcoast;
+    slice4 ef;
+    
     int count_n;
     int coastline_count;
 };

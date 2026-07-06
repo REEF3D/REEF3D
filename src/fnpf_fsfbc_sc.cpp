@@ -49,7 +49,7 @@ Author: Hans Bihs
 #include"fnpf_coastline.h"
 #include"sflow_bicgstab.h"
 
-fnpf_fsfbc_sc::fnpf_fsfbc_sc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p),by(p),wetcoast(p),eps(1.0e-6)
+fnpf_fsfbc_sc::fnpf_fsfbc_sc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),bx(p),by(p),wetcoast(p),eps(1.0e-6),ef(p)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -151,6 +151,16 @@ void fnpf_fsfbc_sc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
     
     pgc->gcsl_start4(p,c->WL,50);
+    
+    // ef
+    SLICELOOP4
+    ef(i,j) = eta(i,j);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    filter(p,c,pgc,ef,5,2);
+    
+    pgc->gcsl_start4(p,ef,1);
     
     // 3D
     if(p->i_dir==1 && p->j_dir==1)

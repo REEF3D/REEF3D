@@ -204,8 +204,8 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         SLICELOOP4
         if(c->breaking(i,j)==2)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         }   
         
         // deep
@@ -213,8 +213,8 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         SLICELOOP4
         if(c->breaking(i,j)==1)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         }   
         
         // all
@@ -222,25 +222,10 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         SLICELOOP4
         if(c->breaking(i,j)>=1)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         }   
         
-        // coastline filter
-        /*SLICELOOP4
-        {
-            
-            if(c->coastline(i,j)>=0.0)
-            {
-                db = c->coastline(i,j);
-                
-                if(db<dist3)
-                {
-                filter(p,c,pgc,eta);
-                filter(p,c,pgc,Fifsf);
-                }
-            }
-        }*/
         
     pgc->gcsl_start4(p,c->vb,1);
     

@@ -47,7 +47,7 @@ Author: Hans Bihs
 #include"wind_f.h"
 #include"wind_v.h"
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6),ef(p)
 {    
     if(p->A311==0)
     {
@@ -154,8 +154,17 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     SLICELOOP4
     c->WL(i,j) = MAX(0.0, eta(i,j) + p->wd - c->bed(i,j));
 
-    
     pgc->gcsl_start4(p,c->WL,50);
+    
+    // ef
+    SLICELOOP4
+    ef(i,j) = eta(i,j);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    filter(p,c,pgc,ef,5,2);
+    
+    pgc->gcsl_start4(p,ef,1);
     
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
