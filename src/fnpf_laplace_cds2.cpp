@@ -239,6 +239,10 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"Fi_iter: "<<p->poissoniter<<" Final_residual: "<<p->final_res<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
+    {
+	cout<<"Fi_iter: "<<p->poissoniter;
+    //cout<<" Final_residual: "<<p->final_res;
+    cout<<"  Fi_time: "<<setprecision(3)<<p->poissontime<<endl;
+    }
 }
 
