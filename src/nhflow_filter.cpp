@@ -29,8 +29,8 @@ Author: Hans Bihs
 
 nhflow_filter::nhflow_filter(lexer *p)
 {
-    int poly_order = 2; 
-    int half_width = 2;
+    int poly_order = 1; 
+    int half_width = 1;
     
     order = poly_order;
     hw    = half_width;
