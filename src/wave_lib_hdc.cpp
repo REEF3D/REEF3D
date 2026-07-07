@@ -48,6 +48,21 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     
     startup=0;
     endseries=0;
+    
+    /*
+    // testfile
+    if(p->mpirank==0)
+    {
+    ifstream testfile;
+    
+    testfile.open("testfile.dat", ios::binary);
+    
+        for(int qn=0;qn<100;++qn)
+        {
+        testfile.read((char*)&ffn, sizeof (float));
+        cout<<"ffn: "<<ffn<<endl;
+        }
+    }*/
 }
 
 wave_lib_hdc::~wave_lib_hdc()

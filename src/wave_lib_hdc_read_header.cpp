@@ -142,7 +142,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         }
         
         
-        
         if(Ny==0)
         {
         Ystart=1.0;
