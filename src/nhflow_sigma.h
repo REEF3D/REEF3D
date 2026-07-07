@@ -51,7 +51,7 @@ public:
     
 private:
     
-    slice4 ef;
+    slice4 ef,df;
     
     void disc_bed(lexer*, fdm_nhf*, ghostcell*);
     void disc_eta(lexer*, fdm_nhf*, ghostcell*);
