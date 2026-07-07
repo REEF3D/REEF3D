@@ -50,8 +50,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(d->eta);
-    d->Ey(i,j) = sy(d->eta);
+    d->Ex(i,j) = sx(ef);
+    d->Ey(i,j) = sy(ef);
     
     d->Exx(i,j) = sxx(ef);
     d->Eyy(i,j) = syy(ef);
@@ -61,7 +61,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(d->eta);    
+    d->Ex(i,j) = sx(ef);    
     d->Exx(i,j) = sxx(ef);
     }
     
