@@ -111,7 +111,7 @@ private:
     int iin;
     float ffn;
     double ddn;
-	char name[200];
+	char name[300];
     ifstream result;
     
     int file_version,file_type,file_conti;
