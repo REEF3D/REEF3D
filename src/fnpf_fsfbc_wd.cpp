@@ -52,7 +52,8 @@ Author: Hans Bihs
 #include"wind_f.h"
 #include"wind_v.h"
 
-fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),eps(1.0e-6),ef(p)
+fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
+                                                                      eps(1.0e-6),ef(p),df(p)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -102,6 +103,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     c->Ey(i,j) = 0.0;
     c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
+    c->Byy(i,j) = 0.0;
     }
     
     
@@ -176,8 +178,18 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     
     pgc->gcsl_start4(p,ef,1);
     
+    // df
+    SLICELOOP4
+    df(i,j) = c->depth(i,j);
+    
+    pgc->gcsl_start4(p,df,1);
+    
+    filter(p,c,pgc,df,5,2);
+    
+    pgc->gcsl_start4(p,df,1);
+    
     // 3D
-    if(p->i_dir==1 && p->j_dir==1)
+    if(p->j_dir==1)
     SLICELOOP4
     WETDRY
     {
@@ -198,7 +210,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     }
     
     // 2D
-    if(p->i_dir==1 && p->j_dir==0)
+    if(p->j_dir==0)
     SLICELOOP4
     WETDRY
     {
@@ -217,12 +229,6 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
 {
     SLICELOOP4
     {
-    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
-    c->By(i,j) = pdx->sy(p,c->depth,1.0);
-    
-    c->Bxx(i,j) = pddx->sxx(p,c->depth);
-    c->Byy(i,j) = pddx->syy(p,c->depth);
-    
     c->Ex(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
     
@@ -230,6 +236,25 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     c->Fy(i,j) = 0.0;
     
     c->K(i,j) = 0.0;
+    }
+    
+    // 3D
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
+    c->By(i,j) = pconvec->sy(p,c->depth,1.0);
+    
+    c->Bxx(i,j) = pddx->sxx(p,df);
+    c->Byy(i,j) = pddx->syy(p,df);
+    }
+    
+    // 2D
+    if(p->j_dir==0)
+    SLICELOOP4
+    {
+    c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);    
+    c->Bxx(i,j) = pddx->sxx(p,df);
     }
     
     pgc->gcsl_start4(p,c->Bx,1);

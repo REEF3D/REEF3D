@@ -47,7 +47,7 @@ Author: Hans Bihs
 #include"wind_f.h"
 #include"wind_v.h"
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6),ef(p)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),eps(1.0e-6),ef(p),df(p)
 {    
     if(p->A311==0)
     {
@@ -98,7 +98,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     if(p->A312==2)
     {
     pddx = new fnpf_ddx_cds2(p);
-    pdx = new fnpf_hires(p);
+    pdx = new fnpf_cds2(p);
     }
     
     if(p->A312==3)
@@ -166,6 +166,17 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     
     pgc->gcsl_start4(p,ef,1);
     
+    
+    // df
+    SLICELOOP4
+    df(i,j) = c->depth(i,j);
+    
+    pgc->gcsl_start4(p,df,1);
+    
+    filter(p,c,pgc,df,5,2);
+    
+    pgc->gcsl_start4(p,df,1);
+    
     // 3D
     if(p->i_dir==1 && p->j_dir==1)
     SLICELOOP4
@@ -202,22 +213,22 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     // 3D
-    if(p->i_dir==1 && p->j_dir==1)
+    if(p->j_dir==1)
     SLICELOOP4
     {
     c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
     c->By(i,j) = pconvec->sy(p,c->depth,1.0);
     
-    c->Bxx(i,j) = pddx->sxx(p,c->depth);
-    c->Byy(i,j) = pddx->syy(p,c->depth);
+    c->Bxx(i,j) = pddx->sxx(p,df);
+    c->Byy(i,j) = pddx->syy(p,df);
     }
     
     // 2D
-    if(p->i_dir==1 && p->j_dir==0)
+    if(p->j_dir==0)
     SLICELOOP4
     {
     c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);    
-    c->Bxx(i,j) = pddx->sxx(p,c->depth);
+    c->Bxx(i,j) = pddx->sxx(p,df);
     }
     
     pgc->gcsl_start4(p,c->Bx,1);

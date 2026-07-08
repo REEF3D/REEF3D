@@ -82,7 +82,7 @@ private:
     const double eps;
     
     sliceint4 wetcoast;
-    slice4 ef;
+    slice4 ef,df;
     
     int count_n;
     int coastline_count;

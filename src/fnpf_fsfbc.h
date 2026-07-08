@@ -69,7 +69,7 @@ private:
     double visc;
     const double eps;
 
-    slice4 ef;
+    slice4 ef,df;
 
     int *temp;
     int gcval_eta,gcval_fifsf;
