@@ -128,7 +128,7 @@ void control::ini_default()
     A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
-    A524=1;      // int second order sigma terms for Poisson equation
+    A524=1;      // int sigma gradients
     A525=0;      // int wetdry/forcing signal speed
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area

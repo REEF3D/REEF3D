@@ -27,30 +27,34 @@ Author: Hans Bihs
 
 double nhflow_gradient::sx(slice &f)
 {
+    if(p->A524==1)
     grad = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-
-	return grad;
-/*
+    
+    if(p->A524>=2)
+    {
     dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
     dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
     
     grad = limiter(dfdx_plus,dfdx_min);
+    }
     
-    return grad;*/
+    return grad;
 }
 
 double nhflow_gradient::sy(slice &f)
 {
+    if(p->A524==1)
     grad = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-	return grad;
-    /*
+    if(p->A524>=2)
+    {
     dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
     dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
     
     grad = limiter(dfdy_plus,dfdy_min);
+    }   
     
-    return grad;*/
+    return grad;
 }
 
 double nhflow_gradient::limiter(double v1, double v2)

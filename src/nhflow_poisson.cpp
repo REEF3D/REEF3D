@@ -34,10 +34,6 @@ Author: Hans Bihs
 
 nhflow_poisson::nhflow_poisson(lexer *p) 
 {
-    sigfac=1.0;
-    
-    if(p->A524==0 || p->A524==2)
-    sigfac=0.0;
 }
 
 nhflow_poisson::~nhflow_poisson()

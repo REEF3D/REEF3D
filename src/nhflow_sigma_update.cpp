@@ -57,11 +57,20 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
-    if(p->i_dir==1 && p->j_dir==1)
+    if(p->j_dir==1)
     SLICELOOP4
+    {
+    if(p->A524<=2)
     {
     d->Ex(i,j) = sx(d->eta);
     d->Ey(i,j) = sy(d->eta);
+    }
+    
+    if(p->A524==3)
+    {
+    d->Ex(i,j) = sx(ef);
+    d->Ey(i,j) = sy(ef);
+    }
     
     d->Exx(i,j) = sxx(ef);
     d->Eyy(i,j) = syy(ef);
@@ -71,7 +80,12 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(d->eta);    
+    if(p->A524<=2)
+    d->Ex(i,j) = sx(d->eta);  
+
+    if(p->A524==3)
+    d->Ex(i,j) = sx(ef);  
+    
     d->Exx(i,j) = sxx(ef);
     }
     
@@ -159,8 +173,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     p->sigxx[FIJK] = 0.0;
     
         if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->DF[IJKm1]>0) 
-        //&& p->DF[Im1JK]>0 && p->DF[Im1JKm1]>0 && p->DF[Ip1JK]>0 && p->DF[Ip1JKm1]>0
-        //&& ((p->DF[IJm1K]>0 && p->DF[IJm1Km1]>0 && p->DF[IJp1K]>0 && p->DF[IJp1Km1]>0)||p->j_dir==0) )
         {
         p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
         
@@ -179,8 +191,6 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
                       
-                      
-        d->test[IJK] = p->sigxx[FIJK];
         }
     
     }
