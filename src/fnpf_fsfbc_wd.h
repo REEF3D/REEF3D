@@ -52,6 +52,7 @@ public:
     void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
     void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final;
     
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);

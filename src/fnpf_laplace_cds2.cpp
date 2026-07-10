@@ -164,6 +164,9 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             {
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
+            
+            //c->rhsvec.V[n] -= c->M.n[n]*f[FIJK];
+            //c->M.n[n] = 0.0;
             }
             
             if(p->B99>2)

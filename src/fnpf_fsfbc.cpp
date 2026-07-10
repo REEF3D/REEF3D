@@ -288,3 +288,7 @@ void fnpf_fsfbc::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 void fnpf_fsfbc::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {   
 }
+
+void fnpf_fsfbc::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{   
+}

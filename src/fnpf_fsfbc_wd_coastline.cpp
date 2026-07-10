@@ -74,6 +74,32 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
     }
 }
 
+void fnpf_fsfbc_wd::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
+{
+    double fac=1.0;
+    
+    if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
+    FLOOP
+    {
+    
+    if(p->I30==1 && p->count==0)
+    fac=p->A349;
+    
+        if(c->coastline(i,j)>=0.0)
+        {
+            db = c->coastline(i,j);
+            
+            if(db<fac*dist4)
+            {
+            c->Fi[FIJK] = rb4(p,db)*c->Fi[FIJK];
+            }
+        }
+        
+        if(c->coastline(i,j)<0.0 && p->A343>=1)
+        c->Fi[FIJK]=0.0;
+    }
+}
+
 void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f) 
 {
     double fac=1.0;

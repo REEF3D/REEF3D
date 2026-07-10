@@ -278,12 +278,14 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     if(p->wet[IJ]==0)
     c->Fz(i,j) = 0.0;
     }
-    
+        
+    if(p->count>0)
     coastline_Fz(p,c,pgc,c->Fz);
     
+    /*
     if(p->count==0)
     for(int qn=0;qn<20;++qn)
-    coastline_Fz(p,c,pgc,c->Fz);
+    coastline_Fz(p,c,pgc,c->Fz);*/
 }
 
 void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

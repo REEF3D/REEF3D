@@ -62,7 +62,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
     starttime=pgc->timer();
     
     count=0;
-    LOOP
+    SLICELOOP4
     {
         xg=xgen(p);
         yg=ygen(p);
@@ -72,7 +72,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
         FKLOOP
         {
         z=p->ZSN[FIJK]-p->phimean;
-        
+        /*
 		// Wave Generation
 		if(p->B98==2 && f_switch==1)
         {
@@ -82,7 +82,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
             ++count;
             }
 		}
-		
+		*/
 		// Numerical Beach
         if(p->A10!=3 || p->A348==1 || p->A348==3)
         if(p->B99==1||p->B99==2||beach_relax==1)
