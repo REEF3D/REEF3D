@@ -41,7 +41,10 @@ public:
 private:
     
     fnpf_bed_update *pbed;
-    double denom;
+    
+    double sigxyz2;
+    double ab,denom;
+    double starttime,endtime;
 
 };
 

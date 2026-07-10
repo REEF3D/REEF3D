@@ -37,13 +37,8 @@ fnpf_laplace_cds2::~fnpf_laplace_cds2()
 
 void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
-    double sigxyz2;
-    double ab,denom;
-    double fbxm,fbxp,fbym,fbyp;
     p->poissoniter=0;
     p->poissontime=0.0;
-    double starttime,endtime;
-
     
     starttime=pgc->timer();
     
@@ -102,7 +97,6 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 	}
     
     
-    
     n=0;
 	LOOP
 	{
@@ -131,7 +125,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             // south
             if(p->B98<=2)
-            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)) && c->bc(i-1,j)==0)// || k==0))
+            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)))// && c->bc(i-1,j)==0)// || k==0))
             {
             c->M.p[n] += c->M.s[n];
             c->M.s[n] = 0.0;
@@ -139,6 +133,13 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(p->B98>2)
             {
+            if(p->B98<=2)
+            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)) && c->bc(i-1,j)==0)// || k==0))
+            {
+            c->M.p[n] += c->M.s[n];
+            c->M.s[n] = 0.0;
+            }
+            
             if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1)// && k>0)
             {
             c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
@@ -159,7 +160,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             // north
             if(p->B99<=2)
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0))// && c->bc(i+1,j)==0)
             {
             c->M.p[n] += c->M.n[n];
             c->M.n[n] = 0.0;
@@ -167,6 +168,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(p->B99>2)
             {
+                
+            if(p->B99<=2)
+            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            {
+            c->M.p[n] += c->M.n[n];
+            c->M.n[n] = 0.0;
+            }
+            
             if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329==1)
             {
             c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
