@@ -107,6 +107,12 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             if(fabs(ny)>0.9 && p->j_dir==0)
             f_jdir=0.0;
             
+            
+            // Position of triangle
+            i = p->posc_i(xc);
+            j = p->posc_j(yc);
+            k = p->posc_sig(i,j,zc);
+            
             etaval = p->ccslipol4(d->eta,xc,yc);  
             
             fsf_z = p->wd + etaval;

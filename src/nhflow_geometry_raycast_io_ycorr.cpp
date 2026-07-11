@@ -40,12 +40,14 @@ void nhflow_geometry::ray_cast_io_ycorr(lexer *p, fdm_nhf *d, ghostcell *pgc, in
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
+    double zs_x,zs_y,ze_x,ze_y;
+    int checkin,ii,im;
+    int i_zs,i_ze,j_zs,j_ze;
 	int ir;
-    int checkin;
 	double u,v,w;
 	double denom;
-	double psi = 1.0e-8*DSM;
-    double margin = 2.0*DSM;
+	double psi = 1.0e-8*p->DXM;
+    double margin = 2.0*p->DXM;
     
     LOOP
 	{
@@ -89,37 +91,86 @@ void nhflow_geometry::ray_cast_io_ycorr(lexer *p, fdm_nhf *d, ghostcell *pgc, in
         
     if(checkin==1)
     {
-	xs = MIN3(Ax,Bx,Cx); 
+    xs = MIN3(Ax,Bx,Cx); 
 	xe = MAX3(Ax,Bx,Cx);
-	
+    
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posc_i(xs);
+    // zs
+    if(Az<=Bz)
+    {
+    zs = Az;
+    zs_x = Ax;
+    zs_y = Ay;
+    }
+    
+    if(Bz<Cz)
+    {
+    zs = Bz;
+    zs_x = Bx;
+    zs_y = By;
+    }
+    
+    if(Cz<Bz)
+    {
+    zs = Cz;
+    zs_x = Cx;
+    zs_y = Cy;
+    }
+    
+    // ze
+    if(Az>=Bz)
+    {
+    ze = Az;
+    ze_x = Ax;
+    ze_y = Ay;
+    }
+    
+    if(Bz>Cz)
+    {
+    ze = Bz;
+    ze_x = Bx;
+    ze_y = By;
+    }
+    
+    if(Cz>Bz)
+    {
+    ze = Cz;
+    ze_x = Cx;
+    ze_y = Cy;
+    }
+    
+    // i,j
+    is = p->posc_i(xs);
 	ie = p->posc_i(xe);
-	
+    
 	js = p->posc_j(ys);
 	je = p->posc_j(ye);
-		
 	
-    xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
+    
+    // k
+    i_zs = p->posc_i(zs_x);
+	i_ze = p->posc_i(ze_x);
 	
-	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
-	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
-
-	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	js = p->posc_j(ys);
-	je = p->posc_j(ye);
-	
-	is = MAX(is,0);
-	ie = MIN(ie,p->knox);
-	
-	js = MAX(js,0);
-	je = MIN(je,p->knoy);
+	j_zs = p->posc_j(zs_y);
+	j_ze = p->posc_j(ze_y);
+    
+    i_zs = MAX(is,0);
+	i_ze = MIN(ie,p->knox-1);
+    
+	j_zs = MAX(js,0);
+	j_ze = MIN(je,p->knoy-1);
+    
+    
+    ks = p->posc_sig(i_zs,j_zs,zs);
+	ke = p->posc_sig(i_ze,j_ze,ze);
+    
+    im = p->posc_i(zs_x + 0.5*(ze_x-zs_x));
+    
+    i=im;
+    j=j_zs;
+    k=ks;
 	
 		for(i=is;i<ie;i++)
 		for(k=ks;k<ke;k++)

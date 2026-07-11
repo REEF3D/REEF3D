@@ -86,10 +86,10 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             d->M.e[n] = -(1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
             d->M.t[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+                        - p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
             d->M.b[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + sigfac*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+                        + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
             d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])

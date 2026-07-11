@@ -74,7 +74,7 @@ int position::posc_sig(int ii, int jj, double xp, double yp, double zs)
     
     Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
     
-        + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])/p->DYP[JP])*(yp - p->XP[IP]) 
+        + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])/p->DYP[JP])*(yp - p->YP[JP]) 
     
         + p->ZSN[FIJKp1];
     
