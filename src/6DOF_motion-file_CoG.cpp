@@ -65,19 +65,22 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
     
     
         Uext = 0.0;
+        Vext = 0.0;
         
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-        Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+        if(timecount == timecount_old)
+        {
+            Uext = 0.0;
+            Vext = 0.0;
+        }
+        else if(p->simtime>=ts && p->simtime<=te && timecount<ptnum && timecount_old<ptnum)
+        {
+            Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+            Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
+        }
         
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
 
- 
-        Vext = 0.0;
-        
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-        Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
-        
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
         
@@ -89,10 +92,15 @@ void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Ei
 {
         Rext = 0.0;
         
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-        Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
+        if(timecount == timecount_old)
+        {
+            Rext = 0.0;
+        }
+        else if(p->simtime>=ts && p->simtime<=te && timecount<ptnum && timecount_old<ptnum)
+        {
+            Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
+        }
     
-        //cout<<p->mpirank<<" Rext: "<<Rext*(180.0/PI)<<endl;
     
         dh_ << 0.0,0.0,0.0;
         
