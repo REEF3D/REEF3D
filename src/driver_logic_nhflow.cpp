@@ -75,9 +75,6 @@ void driver::logic_nhflow()
     if(p->A511==2 && p->A520!=3)
 	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
     
-    if(p->A511==3 && p->A520!=3)
-	pnhfconvec = new nhflow_FOU(p,pgc,pBC);
-    
     if(p->A520==3)
 	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
     
