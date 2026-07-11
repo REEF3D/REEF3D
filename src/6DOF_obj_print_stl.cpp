@@ -42,21 +42,53 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
 	if(num<0)
 	num=0;
 
-    if(((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || (p->count==0 && p->P35==0))
-    printflag=1;
-    
-    if(p->P35>0)
-    for(int qn=0; qn<p->P35; ++qn)
-    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+    // CFD
+    if(p->A10==2 || p->A10==5)
     {
-    printflag=1;
-    
-    printtime_wT[qn]+=p->P35_dt[qn];
+        if(((p->count%p->P181==0) && p->P182<0.0) 
+            || (p->simtime>printtime && p->P182>0.0) 
+            || (p->count==0 && p->P185==0))
+            printflag=true;
+
+        if(p->P185>0)
+        for(int qn=0; qn<p->P185; ++qn)
+        if(p->simtime>printtime_wT[qn] 
+            && p->simtime>=p->P185_ts[qn] 
+            && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+        {
+            printflag=true;
+
+            printtime_wT[qn]+=p->P185_dt[qn];
+        }
+    }
+
+    // CFD
+    if(p->A10==6)
+    {
+        if(((p->count%p->P20==0) && p->P30<0.0) 
+            || (p->simtime>printtime && p->P30>0.0) 
+            || (p->count==0 && p->P35==0))
+            printflag=true;
+
+        if(p->P35>0)
+        for(int qn=0; qn<p->P35; ++qn)
+        if(p->simtime>printtime_wT[qn] 
+            && p->simtime>=p->P35_ts[qn] 
+            && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+        {
+            printflag=true;
+
+            printtime_wT[qn]+=p->P35_dt[qn];
+        }
     }
     
     if(p->mpirank==0 && printflag==1)
     {
+        if(p->A10==6)
         printtime+=p->P30;
+        
+        if(p->A10==2 || p->A10==5)
+        printtime+=p->P182;
         
         char path[300];
         

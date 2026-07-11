@@ -73,17 +73,17 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
     // Print out based on iteration
-    if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10==1 && p->P181>0)  || (p->count==0 &&  p->P182<0.0))
     {
         print2D(p,b,pgc,pturb,psed);
     }
 
     // Print out based on time
-    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
+    if((p->simtime>p->printtime && p->P182>0.0 && p->P10==1) || (p->count==0 &&  p->P182>0.0))
     {
         print2D(p,b,pgc,pturb,psed);
 
-        p->printtime+=p->P30;
+        p->printtime+=p->P182;
     }
 
     // WSF Gages
