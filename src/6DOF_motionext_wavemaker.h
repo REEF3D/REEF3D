@@ -66,7 +66,7 @@ private:
     int rowcount,colcount;
     int colnum;
     double val;
-    double **data;
+    std::vector<std::vector<double>> data;
     double ts,te;
     int timecount,timecount_old;
     

@@ -34,43 +34,16 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
 	
 	sprintf(name,"6DOF_motion.dat");
 
-// open file and count
-	ifstream file(name, ios_base::in);
-	
-	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
-
-    
-    count=0;
-	while(!file.eof())
-	{
-        for(qn=0;qn<colnum;++qn)
-        file>>val;
-	++count;
-	}
-	ptnum=count;
-    
-	file.close();
-    
-// allocate
-    p->Darray(data,ptnum,colnum);
-    
-
-// re.open file
-    file.open (name, ios_base::in);
-	
-	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
-    
- // read file   
-    rowcount=colcount=0;
-	while(!file.eof())
-	{
-        for(qn=0;qn<colnum;++qn)
-        file>>data[rowcount][qn];
+    try {
+        auto table = readTable(name, colnum);
+        ptnum = table.size();
         
-        ++rowcount;
-	}
+        // copy data directly
+        data = std::move(table);
+    } catch(const std::exception& e) {
+        cout << "Error: " << e.what() << endl;
+        pgc->final(EXIT_FAILURE);
+    }
     
     ts = data[0][0];
     te = data[ptnum-1][0];
@@ -92,7 +65,7 @@ void sixdof_motionext_file_CoG::read_format_1(lexer *p, ghostcell *pgc)
 // convert rotation
     for(qn=0;qn<ptnum;++qn)
     {
-    data[qn][3] = (90.0-data[qn][3])*(PI/180.0);
+    data[qn][3] = data[qn][3]*(PI/180.0);
     }
     
 }
