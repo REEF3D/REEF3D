@@ -65,7 +65,7 @@ int position::posf_i(double xs)
         }
         
         // out of bounds
-        if(xs>p->XP[p->knox-1+marge])
+        if(xs>p->XP[p->knox-p->ulast+marge])
         {
             ii = p->knox;
             
@@ -96,6 +96,12 @@ int position::posf_j(double ys)
     js = 0;
     je = p->knoy;
     
+    if(p->j_dir==0)
+    {
+    jj=0;
+    return jj;
+    }
+    
     count=0;
     do{
     jloc = ihalf(js,je);
@@ -115,7 +121,7 @@ int position::posf_j(double ys)
         }
         
         // out of bounds
-        if(ys>p->YP[p->knoy-1+marge])
+        if(ys>p->YP[p->knoy-p->vlast+marge])
         {
             jj = p->knoy;
             
@@ -253,7 +259,7 @@ int position::posf_k(double zs)
         }
         
         // out of bounds
-        if(zs>p->ZSP[p->knoz-1+marge])
+        if(zs>p->ZSP[p->knoz-p->wlast+marge])
         {
             kk = p->knoz;
 

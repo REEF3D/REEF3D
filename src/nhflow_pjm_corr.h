@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 class density;
 class solver;
-class nhflow_poisson;
+class nhflow_poisson_pcorr;
 class patchBC_interface;
 
 using namespace std;
@@ -56,6 +56,8 @@ public:
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
+    double Hsolidface(lexer*, fdm_nhf*);
+    double Hsolidface_zero(lexer*, fdm_nhf*);
     
 	double starttime,endtime;
     int check;
@@ -66,9 +68,10 @@ private:
     double gamma;
     double *PCORR;
     double dPdx,dPdy,dPdz;
+    double H;
 
     density *pd;
-    nhflow_poisson *ppois;
+    nhflow_poisson_pcorr *ppois;
     patchBC_interface *pBC;
 
 };

@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"nhflow_poisson.h"
+#include"nhflow_poisson_pcorr.h"
 #include"solver.h"
 #include"ioflow.h"
 #include"nhflow_poisson.h"
@@ -40,7 +40,7 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     
 	pd = new density_f(p);
 
-    ppois = new nhflow_poisson(p);
+    ppois = new nhflow_poisson_pcorr(p);
     
     p->Darray(PCORR,p->imax*p->jmax*(p->kmax+2));
     
@@ -97,9 +97,19 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
 {
+    double psi, phival_fb;
+    
 	FLOOP
     WETDRYDEEP
     P[FIJK] += PCORR[FIJK];
+    
+    FLOOP
+    WETDRYDEEP
+    {
+    H = Hsolidface_zero(p,d);
+    
+    P[FIJK] = H*P[FIJK];
+    }
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -126,6 +136,7 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     n=0;
     LOOP
     {
+
         WETDRYDEEP
         {
         fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
@@ -172,8 +183,10 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
         dUdz = (U[IJK] - Up)/p->DZN[KP];
         dVdz = (V[IJK] - Vp)/p->DZN[KP];
         dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
+        
+        H = Hsolidface(p,d);
          
-        d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
+        d->rhsvec.V[n] =      -  H*((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                                 + p->sigx[FIJK]*dUdz
                                 
                                 + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
@@ -234,7 +247,7 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     WETDRY
     d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
-                
+               
     LOOP
     WETDRYDEEP
     {
@@ -274,3 +287,58 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 }
 
 
+double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
+{
+    double psi, H, phival_fb,phival_solid,dirac;
+    
+    if (p->j_dir==0)
+    psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
+	
+    if (p->j_dir==1)
+    psi = p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
+
+
+    // Construct solid heaviside function
+    phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
+    phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
+    
+    if(phival_fb > psi)
+    H = 1.0;
+
+    if(phival_fb < -psi)
+    H = 0.0;
+
+    if(fabs(phival_fb)<=psi)
+    H = 0.5*(1.0 + (phival_fb)/psi + (1.0/PI)*sin((PI*(phival_fb))/psi));
+
+
+    return H;
+}
+
+double nhflow_pjm_corr::Hsolidface_zero(lexer *p, fdm_nhf *d)
+{
+    double psi, H, phival_fb,dirac, phival_solid;
+    
+    if (p->j_dir==0)
+    psi = 3.0*p->X41*(1.0/1.0)*(p->DXN[IP]);
+	
+    if (p->j_dir==1)
+    psi = 3.0*p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
+
+
+    // Construct solid heaviside function
+    phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
+    phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
+    
+    //if(phival_fb > psi)
+    H = 1.0;
+
+    if(phival_fb < -psi)
+    H = 0.0;
+
+    //if(fabs(phival_fb)<=psi)
+    //H = 0.5*(1.0 + (phival_fb)/psi + (1.0/PI)*sin((PI*(phival_fb))/psi));
+
+
+    return H;
+}

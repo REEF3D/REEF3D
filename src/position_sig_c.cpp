@@ -30,11 +30,8 @@ int position::posc_sig(int ii, int jj, double xp, double yp, double zs)
     i = ii;
     j = jj;
     
-    i = MAX(i,0);
-	i = MIN(i,p->knox-1);
-    
-	j = MAX(j,0);
-	j = MIN(j,p->knoy-1);
+    if(p->j_dir==0)
+    j=0;
     
     k = 0;
     int FIJK_start = FIJK;
