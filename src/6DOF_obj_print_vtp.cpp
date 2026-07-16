@@ -32,13 +32,41 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 
     bool printflag=false;
     
-    // CFD
-    if(p->A10==2 || p->A10==5)
+    // SFFLOW
+    if(p->A10==2)
     {
         if(((p->count%p->P181==0) && p->P182<0.0) 
             || (p->simtime>printtime && p->P182>0.0) 
             || (p->count==0 && p->P185==0))
             printflag=true;
+
+        if(p->P185>0)
+        for(int qn=0; qn<p->P185; ++qn)
+        if(p->simtime>printtime_wT[qn] 
+            && p->simtime>=p->P185_ts[qn] 
+            && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
+        {
+            printflag=true;
+
+            printtime_wT[qn]+=p->P185_dt[qn];
+        }
+    }
+    
+    // NHFLOW
+    if(p->A10==5)
+    {
+        if(p->P19==1)
+        if(((p->count%p->P20==0) && p->P30<0.0) 
+            || (p->simtime>printtime && p->P30>0.0) 
+            || (p->count==0 && p->P35==0))
+            printflag=true;
+            
+        if(p->P19==2)
+        if(((p->count%p->P181==0) && p->P182<0.0) 
+            || (p->simtime>printtime && p->P182>0.0) 
+            || (p->count==0 && p->P185==0))
+            printflag=true;
+        
 
         if(p->P185>0)
         for(int qn=0; qn<p->P185; ++qn)

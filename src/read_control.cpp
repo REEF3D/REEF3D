@@ -1576,6 +1576,9 @@ void control::read_control(lexer* p)
                 case 16: control>>P16;
                          clear(c,numint);
                          break;
+                case 19: control>>P19;
+                         clear(c,numint);
+                         break;
                 case 20: control>>P20;
                          clear(c,numint);
                          break;
