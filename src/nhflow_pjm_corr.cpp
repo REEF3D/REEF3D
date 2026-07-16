@@ -289,7 +289,7 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
 
 double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
 {
-    double psi, H, phival_fb,phival_solid,dirac;
+    double psi, H, phival_fb,phival_solid,dirac,phival;
     
     if (p->j_dir==0)
     psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
@@ -302,14 +302,21 @@ double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
     phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
     phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
     
-    if(phival_fb > psi)
+    if(fabs(phival_fb)<fabs(phival_solid))
+    phival = phival_fb;
+    
+    else
+    phival = phival_solid;
+    
+    
+    if(phival > psi)
     H = 1.0;
 
-    if(phival_fb < -psi)
+    if(phival < -psi)
     H = 0.0;
 
-    if(fabs(phival_fb)<=psi)
-    H = 0.5*(1.0 + (phival_fb)/psi + (1.0/PI)*sin((PI*(phival_fb))/psi));
+    if(fabs(phival)<=psi)
+    H = 0.5*(1.0 + (phival)/psi + (1.0/PI)*sin((PI*(phival))/psi));
 
 
     return H;
@@ -317,7 +324,7 @@ double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
 
 double nhflow_pjm_corr::Hsolidface_zero(lexer *p, fdm_nhf *d)
 {
-    double psi, H, phival_fb,dirac, phival_solid;
+    double psi, H, phival_fb,dirac, phival_solid, phival;
     
     if (p->j_dir==0)
     psi = 3.0*p->X41*(1.0/1.0)*(p->DXN[IP]);
@@ -330,10 +337,16 @@ double nhflow_pjm_corr::Hsolidface_zero(lexer *p, fdm_nhf *d)
     phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
     phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
     
+    if(fabs(phival_fb)<fabs(phival_solid))
+    phival = phival_fb;
+    
+    else
+    phival = phival_solid;
+    
     //if(phival_fb > psi)
     H = 1.0;
 
-    if(phival_fb < -psi)
+    if(phival < -psi)
     H = 0.0;
 
     //if(fabs(phival_fb)<=psi)
