@@ -90,7 +90,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->wetdry(p,c,pgc,erk1,frk1);
     pgc->gcsl_start4(p,erk1,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk1);
-    pf->coastline_fi(p,c,pgc,frk1);
+    //pf->coastline_fi(p,c,pgc,frk1);
     pflow->fifsf_relax(p,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     
@@ -100,6 +100,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     pflow->test_relax(p,pgc,c->Fx);
     pflow->test_relax(p,pgc,c->Fy);
+    pf->coastline_fi(p,c,pgc,c->Fx);
+    pf->coastline_fi(p,c,pgc,c->Fy);
     sigma_update(p,c,pgc,pf,erk1);
   
     // Set Boundary Conditions Fi
@@ -132,7 +134,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->wetdry(p,c,pgc,erk2,frk2);
     pgc->gcsl_start4(p,erk2,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk2);
-    pf->coastline_fi(p,c,pgc,frk2);
+    //pf->coastline_fi(p,c,pgc,frk2);
     pflow->fifsf_relax(p,pgc,frk2);
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     
@@ -142,6 +144,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     pflow->test_relax(p,pgc,c->Fx);
     pflow->test_relax(p,pgc,c->Fy);
+    pf->coastline_fi(p,c,pgc,c->Fx);
+    pf->coastline_fi(p,c,pgc,c->Fy);
     sigma_update(p,c,pgc,pf,erk2);
     
     // Set Boundary Conditions Fi
@@ -174,7 +178,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pf->coastline_eta(p,c,pgc,c->eta);
-    pf->coastline_fi(p,c,pgc,c->Fifsf);
+    //pf->coastline_fi(p,c,pgc,c->Fifsf);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
@@ -184,6 +188,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     pflow->test_relax(p,pgc,c->Fx);
     pflow->test_relax(p,pgc,c->Fy);
+    pf->coastline_fi(p,c,pgc,c->Fx);
+    pf->coastline_fi(p,c,pgc,c->Fy);
     sigma_update(p,c,pgc,pf,c->eta);
     
     // Set Boundary Conditions Fi
