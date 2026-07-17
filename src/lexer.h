@@ -255,7 +255,6 @@ public:
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double wavetime;
-    double RK_alpha;
 
 	// solver watch
 	int uiter,viter,witer;

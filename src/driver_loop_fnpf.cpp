@@ -66,7 +66,7 @@ void driver::loop_fnpf()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
-        //pflow->wavegen_precalc_fnpf(p,c,pgc);
+        pflow->wavegen_precalc_fnpf(p,c,pgc);
         
         
         SLICELOOP4

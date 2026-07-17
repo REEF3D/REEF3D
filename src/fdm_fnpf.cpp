@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"lexer.h"
 
-fdm_fnpf::fdm_fnpf(lexer *p) : press(p),test(p),Fifsf(p),Fibed(p),
+fdm_fnpf::fdm_fnpf(lexer *p) : test(p),Fifsf(p),
                               nodeval(p),eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),

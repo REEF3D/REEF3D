@@ -47,12 +47,12 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field5 press,test;
+    field5 test;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;
     slice4 bed,depth;
-    slice4 Fifsf,Fibed,Fz;
+    slice4 Fifsf,Fz;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc;
     
