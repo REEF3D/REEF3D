@@ -101,7 +101,6 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     {
     c->Fy(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
-    c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
     c->Byy(i,j) = 0.0;
     }
@@ -281,11 +280,6 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
         
     if(p->count>0)
     coastline_Fz(p,c,pgc,c->Fz);
-    
-    /*
-    if(p->count==0)
-    for(int qn=0;qn<20;++qn)
-    coastline_Fz(p,c,pgc,c->Fz);*/
 }
 
 void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

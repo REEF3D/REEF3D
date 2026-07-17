@@ -1331,6 +1331,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = P92;
     ii++;
+    ictrl[ii] = P99;
+    ii++;
     ictrl[ii] = P101;
     ii++;
     dctrl[dd] = P101_xm;

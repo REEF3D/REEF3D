@@ -97,7 +97,6 @@ fnpf_fsfbc_sc::fnpf_fsfbc_sc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     {
     c->Fy(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
-    c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
     }
     

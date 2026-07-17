@@ -1761,6 +1761,9 @@ void control::read_control(lexer* p)
                 case 92: control>>P92;
                          clear(c,numint);
                          break;
+                case 99: control>>P99;
+                         clear(c,numint);
+                         break;
                 case 101: control>>P101_xm>>P101_ym>>P101_zs>>P101_ze>>P101_r1>>P101_r2;
                          p->XYin(P101_xm,P101_ym);
                          P101=1;

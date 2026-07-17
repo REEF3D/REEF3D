@@ -112,7 +112,6 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     {
     c->Fy(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
-    c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
     c->By(i,j) = 0.0;
     c->Byy(i,j) = 0.0;
@@ -266,8 +265,9 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
+
                  
-    
+    // Wind
     pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
 }
 

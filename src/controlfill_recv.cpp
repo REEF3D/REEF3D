@@ -1324,6 +1324,8 @@ void control::ctrlrecv()
     dd++;
     P92 = ictrl[ii];
     ii++;
+    P99 = ictrl[ii];
+    ii++;
     P101 = ictrl[ii];
     ii++;
     P101_xm = dctrl[dd];
