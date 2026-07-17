@@ -104,7 +104,6 @@ void iowave::test_relax(lexer *p, ghostcell *pgc, slice& f)
     count=0;
     SLICELOOP4
     {
-        f(i,j) = (0.0);
         dg = distgen(p);    
         db = distbeach(p);
         
