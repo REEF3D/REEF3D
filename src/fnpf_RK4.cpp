@@ -258,6 +258,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
+    pf->coastline_vel(p,c,pgc,c->U);
+    pf->coastline_vel(p,c,pgc,c->V);
+    pf->coastline_vel(p,c,pgc,c->W);
 }
 
 void fnpf_RK4::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
