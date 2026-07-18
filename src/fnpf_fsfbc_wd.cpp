@@ -305,7 +305,7 @@ void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     
                  + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) 
                  
-                 + c->Fx(i,j)*c->Fz(i,j)*c->Ex(i,j) + c->Fy(i,j)*c->Fz(i,j)*c->Ey(i,j)
+                 //+ c->Fx(i,j)*c->Fz(i,j)*c->Ex(i,j) + c->Fy(i,j)*c->Fz(i,j)*c->Ey(i,j)
                  
                  - fabs(p->W22)*eta(i,j);
                  
