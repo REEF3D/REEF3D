@@ -98,10 +98,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->breaking(p, c, pgc, erk1, c->eta, frk1,1.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
     pf->fsfdisc(p,c,pgc,erk1,frk1);
-    pflow->test_relax(p,pgc,c->Fx);
-    pflow->test_relax(p,pgc,c->Fy);
-    pf->coastline_fi(p,c,pgc,c->Fx);
-    pf->coastline_fi(p,c,pgc,c->Fy);
     sigma_update(p,c,pgc,pf,erk1);
   
     // Set Boundary Conditions Fi
@@ -142,10 +138,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->breaking(p, c, pgc, erk2, erk1, frk2, 0.25);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
     pf->fsfdisc(p,c,pgc,erk2,frk2);
-    pflow->test_relax(p,pgc,c->Fx);
-    pflow->test_relax(p,pgc,c->Fy);
-    pf->coastline_fi(p,c,pgc,c->Fx);
-    pf->coastline_fi(p,c,pgc,c->Fy);
     sigma_update(p,c,pgc,pf,erk2);
     
     // Set Boundary Conditions Fi
@@ -186,10 +178,6 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->breaking(p, c, pgc, c->eta, erk2,c->Fifsf,2.0/3.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
-    pflow->test_relax(p,pgc,c->Fx);
-    pflow->test_relax(p,pgc,c->Fy);
-    pf->coastline_fi(p,c,pgc,c->Fx);
-    pf->coastline_fi(p,c,pgc,c->Fy);
     sigma_update(p,c,pgc,pf,c->eta);
     
     // Set Boundary Conditions Fi
