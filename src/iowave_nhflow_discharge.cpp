@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void iowave::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
-{/*
+{
     Qin_nhf(p,d,pgc);
     Qout_nhf(p,d,pgc);
 
@@ -45,7 +45,7 @@ void iowave::discharge_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc)
     }
     
     // patchBC
-    //pBC->patchBC_discharge(p,a,pgc);*/
+    //pBC->patchBC_discharge(p,a,pgc);
 }
 
 void iowave::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
@@ -79,7 +79,7 @@ void iowave::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     Ai=pgc->globalsum(Ai);
     p->Qi=pgc->globalsum(p->Qi);
     
-    if(p->B60==1)
+    //if(p->B60==1)
     p->Ui=p->W10/(Ai>1.0e-20?Ai:1.0e20); 
     
     
@@ -121,13 +121,12 @@ void iowave::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     Ao=pgc->globalsum(Ao);
     p->Qo=pgc->globalsum(p->Qo);
 	
-	if(p->B60==1)
-    {
+
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
     
     if(p->count==0 && p->I11==1)
     p->Uo=p->W10/(Ao>1.0e-20?Ao:1.0e20);
-    }
+    
 	
 	if(p->B60==2)
 	p->Uo=p->Qo/(Ao>1.0e-20?Ao:1.0e20);
