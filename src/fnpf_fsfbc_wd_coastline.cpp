@@ -78,7 +78,7 @@ void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
 {
     double fac=1.0;
     
-    if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
+
     SLICELOOP4
     {
     
@@ -89,11 +89,10 @@ void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         {
             db = c->coastline(i,j);
             
-            if(db<fac*dist4)
+            if(db<fac*dist5)
             FKLOOP
-            {
-            F[FIJK] = rb4(p,db)*F[FIJK];
-            }
+            F[FIJK] = rb5(p,db)*F[FIJK];
+
         }
         
         if(c->coastline(i,j)<0.0 && p->A343>=1)
