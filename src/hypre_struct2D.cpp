@@ -20,42 +20,46 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"hypre_struct2D.h"
+#include "hypre_struct2D.h"
 
 #ifdef HYPRE_COMPILATION
-#include"lexer.h"
-#include"ghostcell.h"
-#include"field.h"
-#include"vec2D.h"
+#include "lexer.h"
+#include "ghostcell.h"
+#include "field.h"
+#include "vec2D.h"
 
 hypre_struct2D::hypre_struct2D(lexer* p,ghostcell *pgc)
-{	
-    int vecsize=p->knox*p->knoy; 
-    
+{
+    int vecsize=p->knox*p->knoy;
+
     p->Iarray(ilower,2);
     p->Iarray(iupper,2);
     p->Darray(values,vecsize*5);
-    
-    make_grid(p,pgc);	  
+
+    make_grid(p,pgc);
 }
 
 hypre_struct2D::~hypre_struct2D()
 {
+    HYPRE_StructVectorDestroy(rhs);
+    HYPRE_StructVectorDestroy(x);
+    HYPRE_StructMatrixDestroy(A);
+    HYPRE_StructStencilDestroy(stencil);
+    HYPRE_StructGridDestroy(grid);
 }
 
 void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2D& xvec, vec2D& rhsvec, int var)
-{    
-	create_solvers(p,pgc);
-    
+{
+    create_solvers(p,pgc);
+
     // fill for cfd
     fill_matrix(p,pgc,M,f,rhsvec);
-    
-    solve(p,pgc);
-        
-    fillbackvec(p,f,xvec,var);
-	
-	delete_solvers(p,pgc);
-}
 
+    solve(p,pgc);
+
+    fillbackvec(p,f,xvec,var);
+
+    delete_solvers(p,pgc);
+}
 
 #endif
