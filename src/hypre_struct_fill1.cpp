@@ -20,141 +20,139 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"hypre_struct.h"
+#include "hypre_struct.h"
 
 #ifdef HYPRE_COMPILATION
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
 void hypre_struct::fill_matrix1(lexer* p,fdm* a, ghostcell* pgc, field &f)
 {
     count=0;
     UFLUIDLOOP
     {
-    CVAL4[IJK]=count;
-    ++count;
+        CVAL4[IJK]=count;
+        ++count;
     }
-    
+
     nentries=7;
-    
+
     for (j = 0; j < nentries; j++)
     stencil_indices[j] = j;
 
     count=0;
     KJILOOP
     {
-		UCHECK
-		{
-		n=CVAL4[IJK];
-        
-		values[count]=a->M.p[n];
-		++count;
-		
-		values[count]=a->M.s[n];
-		++count;
-		
-		values[count]=a->M.n[n];
-		++count;
-		
-		values[count]=a->M.e[n];
-		++count;
-		
-		values[count]=a->M.w[n];
-		++count;
-		
-		values[count]=a->M.b[n];
-		++count;
-		
-		values[count]=a->M.t[n];
-		++count; 
-		}     
-		
-		USCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}    
+        UCHECK
+        {
+            n=CVAL4[IJK];
+
+            values[count]=a->M.p[n];
+            ++count;
+
+            values[count]=a->M.s[n];
+            ++count;
+
+            values[count]=a->M.n[n];
+            ++count;
+
+            values[count]=a->M.e[n];
+            ++count;
+
+            values[count]=a->M.w[n];
+            ++count;
+
+            values[count]=a->M.b[n];
+            ++count;
+
+            values[count]=a->M.t[n];
+            ++count;
+        }
+
+        USCHECK
+        {
+            values[count]=1.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+        }
     }
-	
+
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
-    
-    
+
     // vec
     count=0;
-	KJILOOP
-	{
-		UCHECK
+    KJILOOP
+    {
+        UCHECK
         {
-		values[count] = f(i,j,k);
-        
-        if(values[count] != values[count])
-        p->solver_error=1;
+            values[count] = f(i,j,k);
+
+            if(values[count] != values[count])
+            p->solver_error=1;
         }
-		
-		USCHECK
-		values[count] = 0.0;
-	
-    ++count;
+
+        USCHECK
+        values[count] = 0.0;
+
+        ++count;
     }
 
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
-    
-    
-    count=0; 
-	KJILOOP
-	{
-		UCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = a->rhsvec.V[n];
-        
-        if(values[count] != values[count])
-        p->solver_error=1;
-		}
-		
-		USCHECK
-		values[count] = 0.0;
 
-    ++count;
+    count=0;
+    KJILOOP
+    {
+        UCHECK
+        {
+            n=CVAL4[IJK];
+            values[count] = a->rhsvec.V[n];
+
+            if(values[count] != values[count])
+            p->solver_error=1;
+        }
+
+        USCHECK
+        values[count] = 0.0;
+
+        ++count;
     }
-    
+
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
 }
 
 void hypre_struct::fillbackvec1(lexer *p, field &f, int var)
 {
-	HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
-	
-        count=0;
-        KJILOOP
-        {
-		UCHECK
+    HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
+
+    count=0;
+    KJILOOP
+    {
+        UCHECK
         f(i,j,k)=values[count];
-		
+
         ++count;
-        }
+    }
 }
 
 #endif
