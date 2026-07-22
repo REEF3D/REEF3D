@@ -108,15 +108,12 @@ void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Ei
         if(p->X11_p == 2) dh_(0) = 0.0;
         if(p->X11_q == 2) dh_(1) = 0.0;
         if(p->X11_r == 2) dh_(2) = 0.0;
-        // Extract current real angular velocity from the solver's momentum
         omega_ = I_.inverse() * h_;
 
-        // Override only the prescribed angular velocities
         if(p->X11_p == 2) omega_(0) = 0.0;
         if(p->X11_q == 2) omega_(1) = 0.0;
-        if(p->X11_r == 2) omega_(2) = Rext*ramp_vel(p);
+        if(p->X11_r == 2) omega_(2) = Rext * ramp_vel(p); // Rext is already in rad/s
 
-        // Feed the corrected angular velocity back to the solver
         h_ = I_*omega_;
 
         de_ = 0.5*G_.transpose()*omega_;
@@ -143,10 +140,10 @@ double sixdof_motionext_file_CoG::ramp_draft(lexer *p)
     double f=1.0;
 
     if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    f = p->simtime/(p->X207_te-p->X207_ts);
+    f = (p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts);
 
     if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
+    f = (p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*((p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts)));
 
     if(p->X207==1 && p->simtime<p->X207_ts)
     f=0.0;

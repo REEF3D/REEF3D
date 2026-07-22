@@ -85,7 +85,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         Uext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te)
-        Uext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
+        Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
         
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
@@ -96,7 +96,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         Vext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te)
-        Vext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+        Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
         
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
@@ -107,7 +107,7 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
         Wext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te)
-        Wext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
+        Wext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
         
         dp_(2) = 0.0;
         dc_(2) = Wext*ramp_vel(p);
@@ -129,7 +129,7 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         Qext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te)
-        Qext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+        Qext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
     }
 
     if(p->X11_r==2)
@@ -137,7 +137,7 @@ void sixdof_motionext_file::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen:
         Rext = 0.0;
         
         if(p->simtime>=ts && p->simtime<=te)
-        Rext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+        Rext = (data[timecount][3]-data[timecount_old][3])/(data[timecount][0]-data[timecount_old][0]);
     }
     
     if(p->X11_p == 2) dh_(0) = 0.0;
@@ -176,10 +176,10 @@ double sixdof_motionext_file::ramp_draft(lexer *p)
     double f=1.0;
 
     if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    f = p->simtime/(p->X207_te-p->X207_ts);
+    f = (p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts);
 
     if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
+    f = (p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*((p->simtime-p->X207_ts)/(p->X207_te-p->X207_ts)));
 
     if(p->X207==1 && p->simtime<p->X207_ts)
     f=0.0;
