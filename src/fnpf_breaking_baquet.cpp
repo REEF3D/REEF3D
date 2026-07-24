@@ -354,24 +354,24 @@ void fnpf_breaking::breaking_baquet(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
         SLICELOOP4
         if(c->breaking(i,j)==2)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         }   
         
         if(p->A352==2)
         SLICELOOP4
         if(c->breaking(i,j)==1)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         }   
         
         if(p->A352==3)
         SLICELOOP4
         if(c->breaking(i,j)>=1)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         } 
     }
     
@@ -380,8 +380,8 @@ void fnpf_breaking::breaking_baquet(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     {
         if(c->breaking(i,j)==1 || c->breaking(i-1,j)==1 || c->breaking(i+1,j)==1 || c->breaking(i,j-1)==1 || c->breaking(i,j+1)==1)
         {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
         }   
     }
     

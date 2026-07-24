@@ -43,7 +43,7 @@ public:
     
     slice4 bedzh,bedzh0,bedch,bedsole;
     slice4 vz,dh,reduce;
-    slice4 ks;
+    slice4 ks,ks_eff;
     
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;
@@ -61,7 +61,7 @@ public:
     
     slice4 waterlevel;
     slice4 guard;
-    slice4 MOB;
+    slice4 MOB,tau_i;
     
     double ws;
 

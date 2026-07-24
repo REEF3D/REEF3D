@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"nhflow_geometry.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te)
+void nhflow_geometry::ray_cast_io_ycorr(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;
@@ -40,8 +40,10 @@ void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int t
 	double PCx,PCy,PCz;
 	double Mx,My,Mz;
 	int is,ie,js,je,ks,ke;
+    double zs_x,zs_y,ze_x,ze_y;
+    int checkin,ii,im;
+    int i_zs,i_ze,j_zs,j_ze;
 	int ir;
-    int checkin;
 	double u,v,w;
 	double denom;
 	double psi = 1.0e-8*p->DXM;
@@ -71,66 +73,115 @@ void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int t
     checkin = 0;
     
 	if(Ax>=p->global_xmin && Ax<=p->global_xmax 
-    && ((Ay>=p->global_ymin && Ay<=p->global_ymax) || p->j_dir==0)
-    && Az>=p->global_zmin && Az<=p->global_zmax)
+    && Ay>=p->global_ymin && Ay<=p->global_ymax
+    && Az>=zmin-margin && Az<=zmax)
     checkin=1;
     
     if(Bx>=p->global_xmin && Bx<=p->global_xmax 
-    && ((By>=p->global_ymin && By<=p->global_ymax) || p->j_dir==0)
-    && Bz>=p->global_zmin && Bz<=p->global_zmax)
+    && By>=p->global_ymin && By<=p->global_ymax
+    && Bz>=zmin-margin && Bz<=zmax)
     checkin=1;
     
     if(Cx>=p->global_xmin && Cx<=p->global_xmax 
-    && ((Cy>=p->global_ymin && Cy<=p->global_ymax) || p->j_dir==0)
-    && Cz>=p->global_zmin && Cz<=p->global_zmax)
+    && Cy>=p->global_ymin && Cy<=p->global_ymax
+    && Cz>=zmin-margin && Cz<=zmax)
     checkin=1;
     
     checkin=1;
         
     if(checkin==1)
     {
-	xs = MIN3(Ax,Bx,Cx); 
+    xs = MIN3(Ax,Bx,Cx); 
 	xe = MAX3(Ax,Bx,Cx);
-	
+    
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 	
-	is = p->posc_i(xs);
+    // zs
+    if(Az<=Bz)
+    {
+    zs = Az;
+    zs_x = Ax;
+    zs_y = Ay;
+    }
+    
+    if(Bz<Cz)
+    {
+    zs = Bz;
+    zs_x = Bx;
+    zs_y = By;
+    }
+    
+    if(Cz<Bz)
+    {
+    zs = Cz;
+    zs_x = Cx;
+    zs_y = Cy;
+    }
+    
+    // ze
+    if(Az>=Bz)
+    {
+    ze = Az;
+    ze_x = Ax;
+    ze_y = Ay;
+    }
+    
+    if(Bz>Cz)
+    {
+    ze = Bz;
+    ze_x = Bx;
+    ze_y = By;
+    }
+    
+    if(Cz>Bz)
+    {
+    ze = Cz;
+    ze_x = Cx;
+    ze_y = Cy;
+    }
+    
+    // i,j
+    is = p->posc_i(xs);
 	ie = p->posc_i(xe);
-	
+    
 	js = p->posc_j(ys);
 	je = p->posc_j(ye);
-		
 	
-    xs = MIN3(Ax,Bx,Cx) - epsi*p->DXP[is + marge];
-	xe = MAX3(Ax,Bx,Cx) + epsi*p->DXP[ie + marge];
+    
+    // k
+    i_zs = p->posc_i(zs_x);
+	i_ze = p->posc_i(ze_x);
 	
-	ys = MIN3(Ay,By,Cy) - epsi*p->DYP[js + marge];
-	ye = MAX3(Ay,By,Cy) + epsi*p->DYP[je + marge];
-
-	
-	is = p->posc_i(xs);
-	ie = p->posc_i(xe);
-	
-	js = p->posc_j(ys);
-	je = p->posc_j(ye);
-	
-	is = MAX(is,0);
-	ie = MIN(ie,p->knox);
-	
-	js = MAX(js,0);
-	je = MIN(je,p->knoy);
+	j_zs = p->posc_j(zs_y);
+	j_ze = p->posc_j(ze_y);
+    
+    i_zs = MAX(is,0);
+	i_ze = MIN(ie,p->knox-1);
+    
+	j_zs = MAX(js,0);
+	j_ze = MIN(je,p->knoy-1);
+    
+    
+    ks = p->posc_sig(i_zs,j_zs,zs);
+	ke = p->posc_sig(i_ze,j_ze,ze);
+    
+    im = p->posc_i(zs_x + 0.5*(ze_x-zs_x));
+    
+    i=im;
+    j=j_zs;
+    k=ks;
 	
 		for(i=is;i<ie;i++)
-		for(j=js;j<je;j++)
+		for(k=ks;k<ke;k++)
 		{
 		Px = p->XP[IP]-psi;
-		Py = p->YP[JP]+psi;
-		Pz = zmin-10.0*p->DXM ;
+		Py = p->global_ymin-10.0*DSM;
+		Pz = p->ZSP[IJK]+psi;
 		
-		Qx = p->XP[IP]+psi;
-		Qy = p->YP[JP]-psi;
-		Qz = zmax+10.0*p->DXM ;
+         Qx = p->XP[IP]+psi;
+		Qy = p->global_ymax+10.0*DSM;
+		Qz = p->ZSP[IJK]-psi;
 		
 		PQx = Qx-Px;
 		PQy = Qy-Py;
@@ -174,14 +225,15 @@ void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int t
 			v *= denom;
 			w *= denom;
 			
-			Rz = u*Az + v*Bz + w*Cz;
-			
-            for(k=0;k<p->knoz;++k)
+			Ry = u*Ay + v*By + w*Cy;
+            
+            
+            for(j=0;j<p->knoy;++j)
             {
-				if(p->ZSP[IJK]<Rz)
+				if(p->YP[JP]<Ry)
 				CL[IJK] += 1;
 				
-				if(p->ZSP[IJK]>=Rz)
+				if(p->YP[JP]>=Ry)
 				CR[IJK] += 1;
             }
             }
@@ -190,7 +242,6 @@ void sixdof_obj::ray_cast_io(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts, int t
     }
     
     LOOP
-    WETDRY
 	if((CL[IJK]+1)%2==0  && (CR[IJK]+1)%2==0)
 	IO[IJK]=-1;
 }

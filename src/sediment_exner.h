@@ -61,7 +61,7 @@ private:
         vec2D xvec,rhsvec;
 
 	matrix2D M;
-    slice4 qbx,qby,vztemp;
+    slice4 qbx,qby;
     
 	int gcval_topo;
 	double starttime;

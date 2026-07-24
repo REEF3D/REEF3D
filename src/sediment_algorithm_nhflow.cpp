@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"bedslope.h"
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
+#include"sediment_roughness.h"
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
@@ -54,6 +55,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);
+    
+    // bed roughness -------
+    pks->start(p,pgc,s,d->WL);
     
     // bedshear stress -------
 	pbedshear->taubed(p,d,pgc,s);

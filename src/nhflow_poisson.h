@@ -45,12 +45,10 @@ public:
 
 	void start(lexer *,fdm_nhf*,double*);
 
-private:
-
+private:    
 	int count,n,q;
     double sigxyz2;
     double pval;
-    double sigfac;
 
 };
 

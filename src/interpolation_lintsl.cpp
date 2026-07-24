@@ -231,13 +231,13 @@ double interpolation::lintsl4_2D(slice& f, int& i,int& j, double wa, double wb)
     c1=c3=0;
 
 
-    //if(p->flagslice4[IJ]>0)
+    if(p->flagslice4[IJ]>0)
     {
     v1=f(i,j);
     c1=1;
     }
     
-    //if(p->flagslice4[Ip1J]>0)
+    if(p->flagslice4[Ip1J]>0)
     {
     v3=f(i+1,j);
     c3=1;
@@ -255,8 +255,10 @@ double interpolation::lintsl4_2D(slice& f, int& i,int& j, double wa, double wb)
     value = v3;
     
     //cout<<"value: "<<value<<" v1: "<<v1<<" v3: "<<v3<<" c1: "<<c1<<" c3: "<<c3<<" j: "<<j<<endl;
-    
 
- return value;
-
+    return value;
 }
+
+
+
+

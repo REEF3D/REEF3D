@@ -39,21 +39,26 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        if(p->A515==1)
-        etaval = d->eta(i,j);
-        
-        if(p->A515>=2)
-        {
-        etaval = eta(i,j);
-        
-      /*WL(i-1,j) = etaval + d->depth(i,j);
-        WL(i-2,j) = etaval + d->depth(i,j);
-        WL(i-3,j) = etaval + d->depth(i,j);*/
-        
-        WL(i-1,j) = WL(i,j);
-        WL(i-2,j) = WL(i,j);
-        WL(i-3,j) = WL(i,j);
-        }
+            if(p->A515==1)
+            etaval = d->eta(i,j);
+            
+            if(p->A515==2)
+            {
+            etaval = d->eta(i,j);
+            /*
+            WL(i-1,j) = WL(i,j);
+            WL(i-2,j) = WL(i,j);
+            WL(i-3,j) = WL(i,j);*/
+            }
+            
+            if(p->A515==3)
+            {
+            etaval = eta(i-1,j);
+            
+            WL(i-1,j) = etaval + d->depth(i,j);
+            WL(i-2,j) = etaval + d->depth(i,j);
+            WL(i-3,j) = etaval + d->depth(i,j);
+            }
         
         d->eta(i-1,j) = etaval;
         d->eta(i-2,j) = etaval;
@@ -67,12 +72,26 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
         
-        if(p->A515==1)
-        etaval = d->eta(i,j);
-        
-        if(p->A515>=2)
-        etaval = d->eta(i,j);
-        
+            if(p->A515==1)
+            etaval = d->eta(i,j);
+            
+            if(p->A515==2)
+            {
+            etaval = d->eta(i,j);
+            /*
+            WL(i-1,j) = WL(i,j);
+            WL(i-2,j) = WL(i,j);
+            WL(i-3,j) = WL(i,j);*/
+            }
+            
+            if(p->A515==3)
+            {
+            etaval = eta(i-1,j);
+            
+            WL(i-1,j) = etaval + d->depth(i,j);
+            WL(i-2,j) = etaval + d->depth(i,j);
+            WL(i-3,j) = etaval + d->depth(i,j);
+            }
         d->eta(i-1,j) = etaval;
         d->eta(i-2,j) = etaval;
         d->eta(i-3,j) = etaval;

@@ -37,7 +37,7 @@ class vrans_nhflow
 {
 public:
 	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
-	virtual void update(lexer*, fdm_nhf*, ghostcell*, int)=0;
+	virtual void update(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
 
 	virtual void u_source(lexer*, fdm_nhf*, slice&)=0;
 	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
@@ -50,7 +50,7 @@ public:
     
     virtual void eddyv_func(lexer*, fdm_nhf*)=0;
     
-
+    virtual void force_calc(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
 };
 
 #endif

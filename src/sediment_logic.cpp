@@ -86,6 +86,7 @@ Author: Hans Bihs
 #include"bedshear_max.h"
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
+#include"sediment_roughness.h"
 
 void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
@@ -273,6 +274,6 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 	if(p->P126>0)
 	pbedshearmax = new bedshear_max(p,pgc);
     
-    
+    pks = new sediment_roughness(p);
     
 }

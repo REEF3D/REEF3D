@@ -81,7 +81,10 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
     {
         Uext = 0.0;
         
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
+        if(timecount == timecount_old)
+        Uext = 0.0;
+        
+        else if(p->simtime>=ts && p->simtime<=te && timecount<ptnum && timecount_old<ptnum)
         Uext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
         
         dp_(0) = 0.0;
@@ -92,7 +95,10 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
     {
         Vext = 0.0;
         
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
+        if(timecount == timecount_old)
+        Vext = 0.0;
+        
+        else if(p->simtime>=ts && p->simtime<=te && timecount<ptnum && timecount_old<ptnum)
         Vext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
         
         dp_(1) = 0.0;
@@ -103,7 +109,10 @@ void sixdof_motionext_file::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vec
     {
         Wext = 0.0;
         
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
+        if(timecount == timecount_old)
+        Wext = 0.0;
+        
+        else if(p->simtime>=ts && p->simtime<=te && timecount<ptnum && timecount_old<ptnum)
         Wext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
         
         dp_(2) = 0.0;

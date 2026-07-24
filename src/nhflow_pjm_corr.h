@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 class density;
 class solver;
-class nhflow_poisson;
+class nhflow_poisson_pcorr;
 class patchBC_interface;
 
 using namespace std;
@@ -49,16 +49,17 @@ public:
 	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
     void wpgrad(lexer*,fdm_nhf*,slice&) override final;
     
-    void presscorr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
+    void presscorr(lexer*p,fdm_nhf*,ghostcell*,slice&,double*,double*,double);
     
     void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
+    double Hsolidface(lexer*, fdm_nhf*);
+    double Hsolidface_zero(lexer*, fdm_nhf*);
     
 	double starttime,endtime;
-    const double teta;
     int check;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
@@ -67,9 +68,10 @@ private:
     double gamma;
     double *PCORR;
     double dPdx,dPdy,dPdz;
+    double H;
 
     density *pd;
-    nhflow_poisson *ppois;
+    nhflow_poisson_pcorr *ppois;
     patchBC_interface *pBC;
 
 };

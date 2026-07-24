@@ -96,7 +96,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 //Step 1
 //--------------------------------------------------------
     sigma_update(p,d,pgc,d->WL);
-    pvrans->update(p,d,pgc,0);
+    pvrans->update(p,d,pgc,0.5,0);
     reconstruct(p,d,pgc,pfsf,pss,precon,d->WL,d->U,d->V,d->W,d->UH,d->VH,d->WH);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);   
@@ -166,11 +166,13 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 	
     p->wtime=pgc->timer()-starttime;
     
+    
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1,1.0);
     
     pnhfdf->forcing(p, d, pgc, p6dof, 0, 1.0, UHRK1, VHRK1, WHRK1, WLRK1, 0);
     
 	ppress->start(p,d,ppoissonsolv,pgc,pflow,WLRK1,UHRK1,VHRK1,WHRK1,1.0);
+    
     velcalc(p,d,pgc,UHRK1,VHRK1,WHRK1,WLRK1,1.0);
 
     pflow->U_relax(p,pgc,d->U,UHRK1);
@@ -189,11 +191,9 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
 //Step 2
 //--------------------------------------------------------
-    pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
-    pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1,WLRK1);
-    
+
     sigma_update(p,d,pgc,WLRK1);
-    pvrans->update(p,d,pgc,1);
+    pvrans->update(p,d,pgc,1.0,1);
     reconstruct(p,d,pgc,pfsf,pss,precon,WLRK1,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1);
     
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
@@ -207,8 +207,7 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     breaking(p,d,pgc,d->eta,d->eta_n,d->WL,0.5);
     p->fsftime+=pgc->timer()-starttime;
-
-    
+     
 	// U
 	starttime=pgc->timer();
 
@@ -263,12 +262,14 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 				+ 0.5*p->dt*CPORNH*d->H[IJK];
 	
     p->wtime+=pgc->timer()-starttime;
+
     
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,0.5);
     
     pnhfdf->forcing(p, d, pgc, p6dof, 1, 0.5, d->UH, d->VH, d->WH, d->WL, 1);
     
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
+    
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,0.5);
 
 	pflow->U_relax(p,pgc,d->U,d->UH);

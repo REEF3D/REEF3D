@@ -224,8 +224,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
    }
    
    
-   
-   
 
    
    // Forcing Fluxes
@@ -296,7 +294,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     
     VLOOP
     {
-
         if((p->DF[IJK]==1 && p->DF[IJp1K]==-1))
         {
         d->Uw[IJK] = 0.0;
@@ -359,7 +356,6 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     
     WLOOP
     {
-
         if((p->DF[IJK]==1 && p->DF[IJKp1]==-1))
         {
         d->Ut[IJK] = 0.0;

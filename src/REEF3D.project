@@ -582,7 +582,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="nhflow_HLLYL.h"/>
-          <File Name="nhflow_FOU.h"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.h"/>
             <File Name="nhflow_scalar_ifou.h"/>
@@ -649,6 +648,9 @@
           <File Name="printer_nhflow.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Filter">
+            <File Name="nhflow_filter.h"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.h"/>
             <File Name="nhflow_potential_f.h"/>
@@ -680,6 +682,7 @@
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson_pcorr.h"/>
             <File Name="nhflow_poisson.h"/>
           </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
@@ -764,7 +767,6 @@
           <File Name="fnpf_ini.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_fsfbc_sc.h"/>
           <File Name="fnpf_fsfbc_wd.h"/>
           <File Name="fnpf_fsfbc.h"/>
           <File Name="fnpf_fsf.h"/>
@@ -847,6 +849,9 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Grain Fractions">
+          <File Name="sediment_roughness.h"/>
+        </VirtualDirectory>
         <File Name="sediment_RK2.h"/>
         <VirtualDirectory Name="Print">
           <File Name="bedshear_probe.h"/>
@@ -1260,8 +1265,6 @@
       <VirtualDirectory Name="Hypre Struct">
         <File Name="hypre_struct_solve.cpp"/>
         <File Name="hypre_struct_grid.cpp"/>
-        <File Name="hypre_struct_fill9_2D.cpp"/>
-        <File Name="hypre_struct_fill9.cpp"/>
         <File Name="hypre_struct_fill8_2D.cpp"/>
         <File Name="hypre_struct_fill8.cpp"/>
         <File Name="hypre_struct_fill7_2D.cpp"/>
@@ -1909,11 +1912,13 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
+            <File Name="nhflow_geometry_raycast_io_ycorr.cpp"/>
+            <File Name="nhflow_geometry_raycast_io_x.cpp"/>
+            <File Name="nhflow_geometry_raycast_io_zcorr.cpp"/>
             <File Name="nhflow_geometry_reini_RK2.cpp"/>
             <File Name="nhflow_geometry_raycast_z.cpp"/>
             <File Name="nhflow_geometry_raycast_y.cpp"/>
             <File Name="nhflow_geometry_raycast_x.cpp"/>
-            <File Name="nhflow_geometry_raycast_io.cpp"/>
             <File Name="nhflow_geometry_raycast_direct.cpp"/>
             <File Name="nhflow_geometry_raycast.cpp"/>
           </VirtualDirectory>
@@ -1958,7 +1963,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="nhflow_HLLYL.cpp"/>
-          <File Name="nhflow_FOU.cpp"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>
@@ -2040,6 +2044,11 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <VirtualDirectory Name="Filter">
+            <File Name="nhflow_filter_sg.cpp"/>
+            <File Name="nhflow_filter_pc.cpp"/>
+            <File Name="nhflow_filter.cpp"/>
+          </VirtualDirectory>
           <VirtualDirectory Name="Potential Flow">
             <File Name="nhflow_potential_v.cpp"/>
             <File Name="nhflow_potential_f.cpp"/>
@@ -2078,6 +2087,7 @@
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>
           <VirtualDirectory Name="Poisson">
+            <File Name="nhflow_poisson_pcorr.cpp"/>
             <File Name="nhflow_poisson.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -2209,7 +2219,6 @@
           <File Name="fnpf_ini.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSFBC">
-          <File Name="fnpf_fsfbc_sc.cpp"/>
           <File Name="fnpf_fsfbc_wd_coastline.cpp"/>
           <File Name="fnpf_fsfbc_wd_wetdry.cpp"/>
           <File Name="fnpf_fsfbc_wd_damping.cpp"/>
@@ -2386,6 +2395,9 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Grain Fractions">
+          <File Name="sediment_roughness.cpp"/>
+        </VirtualDirectory>
         <File Name="sediment_RK2.cpp"/>
         <VirtualDirectory Name="Print">
           <File Name="bedshear_probe.cpp"/>
@@ -2615,7 +2627,9 @@
               <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
-              <File Name="6DOF_nhflow_forcing_raycast_io.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_io_zcorr.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_io_ycorr.cpp"/>
+              <File Name="6DOF_nhflow_forcing_raycast_io_x.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_z.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_y.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_x.cpp"/>
@@ -2745,6 +2759,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="vrans_nhflow_force_print.cpp"/>
+          <File Name="vrans_nhflow_force.cpp"/>
           <File Name="vrans_nhflow_interface.cpp"/>
           <File Name="vrans_nhflow_source_vel.cpp"/>
           <File Name="vrans_nhflow_source_omega.cpp"/>
@@ -3300,15 +3316,18 @@
         <File Name="wave_lib_hdc.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
+          <File Name="wave_lib_hdc_read_result_fnpf.cpp"/>
+          <File Name="wave_lib_hdc_read_result_cfd.cpp"/>
+          <File Name="wave_lib_hdc_fill_conti.cpp"/>
+          <File Name="wave_lib_hdc_prestep_fnpf.cpp"/>
+          <File Name="wave_lib_hdc_prestep_cfd.cpp"/>
           <VirtualDirectory Name="Interpolation">
+            <File Name="wave_lib_hdc_time_interpol_cfd.cpp"/>
+            <File Name="wave_lib_hdc_time_interpol_fnpf.cpp"/>
             <File Name="wave_lib_hdc_coordinate_shift.cpp"/>
-            <File Name="wave_lib_hdc_time_interpol.cpp"/>
             <File Name="wave_lib_hdc_space_interpol_2D.cpp"/>
             <File Name="wave_lib_hdc_space_interpol.cpp"/>
           </VirtualDirectory>
-          <File Name="wave_lib_hdc_fill_continuous.cpp"/>
-          <File Name="wave_lib_hdc_read_result_continuous.cpp"/>
-          <File Name="wave_lib_hdc_read_result.cpp"/>
           <File Name="wave_lib_hdc_read_header.cpp"/>
           <File Name="wave_lib_hdc_pos_ijk.cpp"/>
           <File Name="wave_lib_hdc_filename.cpp"/>

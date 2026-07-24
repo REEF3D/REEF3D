@@ -38,11 +38,11 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4(p,d->detadt,1);
     
     LOOP
-    d->detadt(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    d->detadt(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     pgc->gcsl_start4(p,d->detadt,1);
     
-    pgc->start1V(p,d->Fx,10);
+    pgc->start1V(p,d->FEx,10);
     
     pgc->start4V(p,d->test,1);
     
@@ -81,6 +81,6 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4Vint(p,p->wet,50);
     
     
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,10);
+    pgc->start1V(p,d->FEx,10);
+    pgc->start2V(p,d->FEy,10);
 }

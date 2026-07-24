@@ -55,7 +55,7 @@ public:
 
     
     
-    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
+    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&, int, int);
 
     double ivel,jvel,kvel;
     

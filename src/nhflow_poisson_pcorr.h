@@ -20,52 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef NHFLOW_FOU_H_
-#define NHFLOW_FOU_H_
+#ifndef NHFLOW_POISSON_PCORR_H_
+#define NHFLOW_POISSON_PCORR_H_
 
-#include"nhflow_convection.h"
-#include"slice1.h"
-#include"slice2.h"
 #include"increment.h"
 
-class nhflow_flux_build;
-
-class patchBC_interface;
+class lexer;
+class fdm_nhf;
 class ghostcell;
+class ioflow;
+class poisson;
+class solver;
 
 using namespace std;
 
-class nhflow_FOU final : public nhflow_convection, public increment
+
+class nhflow_poisson_pcorr : public increment
 {
 
 public:
 
-	nhflow_FOU (lexer*,ghostcell*,patchBC_interface*);
-	virtual ~nhflow_FOU();
+	nhflow_poisson_pcorr (lexer *);
+	virtual ~nhflow_poisson_pcorr();
 
-    void start(lexer*&, fdm_nhf*&, int, slice&, double*) override final;
-    void precalc(lexer*, fdm_nhf*, int, slice&) override final;
+	void start(lexer *,fdm_nhf*,double*);
 
-private:
+private:    
+	int count,n,q;
+    double sigxyz2;
+    double pval;
 
-    void aij_U(lexer*&, fdm_nhf*&, int);
-    void aij_V(lexer*&, fdm_nhf*&, int);
-    void aij_W(lexer*&, fdm_nhf*&, int);
-    void aij_E(lexer*&, fdm_nhf*&, int);
-    
-    void FOU(lexer*&, fdm_nhf*&, double*, double*, double*, double*);
-    void FOU_E(lexer*&, fdm_nhf*&);
-    
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
-    double denom;
-
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
-
-    ghostcell *pgc;
-    patchBC_interface *pBC;
-    nhflow_flux_build *pflux;
 };
 
 #endif
+
+
+

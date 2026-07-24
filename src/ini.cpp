@@ -113,7 +113,6 @@ void control::ini_default()
     
     
     // NHFLOW
-    A501=1;      // int nhf mode
     A509=1;      // int interpolation sweeps for bed
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
@@ -126,10 +125,11 @@ void control::ini_default()
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=0;		// int
+    A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
-    A524=1;      // int second order sigma terms for Poisson equation
+    A524=1;      // int sigma gradients
+    A525=0;      // int 
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
@@ -300,8 +300,9 @@ void control::ini_default()
 	B194_e= 1.0e9; // double end rotation
     
     B200=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
-    B201=0;             // int porosity
-    B202=1.1;             // // double eps for porous heaviside
+    B201=0;          // int porosity
+    B208=0;          // int print porous force
+    B209=1.1;             // double eps for porous heaviside
     B201_n=1.0;         // double porosity n
     B201_d50=0.01;      // double porosity d50
     B201_alpha=0.0;     // double porosity alpha
@@ -394,7 +395,6 @@ void control::ini_default()
     D22=1;            // int diffusion wall boundary condition
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
-    D33=0;			// int corner cells sigma grid Poisson matrix
     D37=0;          // int type of FSFBC for single fluid flow
 
     // Free Surface
@@ -607,6 +607,7 @@ void control::ini_default()
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
     P16=0;          // int add timestamp to paraview files
+    P19=2;          // int print NHFLOW floating  based on vtp or vtu interval
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
     P22=0.0;         // double start averging after transients
@@ -627,7 +628,7 @@ void control::ini_default()
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // int print out 3D potential for FNPF
+    P44=1;             // int state print out components for FNPF
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
@@ -666,6 +667,7 @@ void control::ini_default()
     P88=0;            // int kinematics print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
+    P99=0;              // int print wave generation and beach relaxation zone flag to vtp
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
@@ -775,6 +777,8 @@ void control::ini_default()
     S32=1;              // int exner discretization
     S33=0;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
+    S35=1.0;            // double Exner magnification factor
+    S36=0;              // int alluvial/bedform/effective roughness
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion

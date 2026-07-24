@@ -194,6 +194,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
+    
+    pf->coastline_vel(p,c,pgc,c->U);
+    pf->coastline_vel(p,c,pgc,c->V);
+    pf->coastline_vel(p,c,pgc,c->W);
 }
 
 void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
@@ -213,6 +217,7 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     {
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
+    pf->coastline_fi_ini(p,c,pgc,c->Fifsf);
     }
     
     pgc->gcsl_start4(p,c->eta,gcval_eta);
@@ -229,8 +234,11 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
     // velocity 
+    if(p->I30==1)
+    {
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     velcalc_sig(p,c,pgc,c->Fi);
+    }
 }
 
 void fnpf_RK3::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)

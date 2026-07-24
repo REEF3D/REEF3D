@@ -38,6 +38,8 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
     // Net forces
 	if (p->X320>0)
 	netForces_cfd(p,a,pgc,alpha,finalize);
+    
+    // VRANS forces
 }
 
 void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha, bool finalize)
@@ -51,6 +53,8 @@ void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, dou
     // Net forces
 	if (p->X320>0)
 	netForces_nhflow(p,d,pgc,alpha,finalize);
+    
+    // VRANS forces
 }
 
 void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)

@@ -53,6 +53,7 @@ class bedshear_probe;
 class bedshear_max;
 class bedprobe_line_x;
 class bedprobe_line_y;
+class sediment_roughness;
 
 using namespace std;
 
@@ -193,6 +194,7 @@ public:
 	bedshear_max *pbedshearmax;
     sediment_f *psed;
     ofstream sedlogout;
+    sediment_roughness *pks; 
     
     double starttime;
     

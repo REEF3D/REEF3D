@@ -20,33 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib_hdc.h"
+#include"nhflow_filter.h"
 #include"lexer.h"
+#include"ghostcell.h"
+#include"slice.h"
+#include<cmath>
+#include<cstdio>
 
-void wave_lib_hdc::fill_result_continuous(lexer *p, ghostcell *pgc)
+nhflow_filter::nhflow_filter(lexer *p)
 {
-    // fill
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    E1[i][j]=E2[i][j];
+    int poly_order = 1; 
+    int half_width = 1;
     
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    U1[i][j][k]=U2[i][j][k];
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    V1[i][j][k]=V2[i][j][k];
+    order = poly_order;
+    hw    = half_width;
+    nw    = 2*hw + 1;
 
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    W1[i][j][k]=W2[i][j][k];
-    
-    
+    build_coeffs(p);
 }
 
-
-        
+nhflow_filter::~nhflow_filter()
+{
+}

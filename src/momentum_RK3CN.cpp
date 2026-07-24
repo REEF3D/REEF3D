@@ -40,7 +40,7 @@ momentum_RK3CN::momentum_RK3CN(lexer *p, fdm *a, convection *pconvection, diffus
                                                     turbulence *pturbulence, solver *psolver, solver *ppoissonsolver, 
                                                     ioflow *pioflow, fsi *ppfsi)
                                                     :momentum_forcing(p),bcmom(p),udiff(p),vdiff(p),wdiff(p),urk1(p),urk2(p),vrk1(p),
-                                                    vrk2(p),wrk1(p),wrk2(p),fx(p),fy(p),fz(p)
+                                                    vrk2(p),wrk1(p),wrk2(p),fx(p),fy(p),fz(p),dro(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -309,7 +309,7 @@ void momentum_RK3CN::irhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
 	{
         a->maxF=MAX(fabs(a->rhsvec.V[n] + a->gi),a->maxF);
         if (p->H10>0 && p->W90==0 && p->H3==2){
-            dens = ((a->dro(i+1,j,k)+a->dro(i,j,k))/(a->ro(i+1,j,k)+a->ro(i,j,k)));}
+            dens = ((dro(i+1,j,k)+dro(i,j,k))/(a->ro(i+1,j,k)+a->ro(i,j,k)));}
         else {
             dens = 1.0;
         }
@@ -340,7 +340,7 @@ void momentum_RK3CN::jrhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
 	{
         a->maxG=MAX(fabs(a->rhsvec.V[n] + a->gj),a->maxG);
         if (p->H10>0 && p->W90==0 && p->H3==2){
-            dens = ((a->dro(i,j+1,k)+a->dro(i,j,k))/(a->ro(i,j+1,k)+a->ro(i,j,k)));}
+            dens = ((dro(i,j+1,k)+dro(i,j,k))/(a->ro(i,j+1,k)+a->ro(i,j,k)));}
         else {
             dens = 1.0;
         }
@@ -371,7 +371,7 @@ void momentum_RK3CN::krhs(lexer *p, fdm *a, ghostcell *pgc, field &f, field &uve
 	{
         a->maxH=MAX(fabs(a->rhsvec.V[n] + a->gk),a->maxH);
         if (p->H10>0 && p->W90==0 && p->H3==2){
-            dens = ((a->dro(i,j,k+1)+a->dro(i,j,k))/(a->ro(i,j,k+1)+a->ro(i,j,k)));}
+            dens = ((dro(i,j,k+1)+dro(i,j,k))/(a->ro(i,j,k+1)+a->ro(i,j,k)));}
         else {
             dens = 1.0;
         }

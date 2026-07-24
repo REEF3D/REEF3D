@@ -72,7 +72,7 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
         
 
     // Exner equations
-        s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
+        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
         
         if(p->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
@@ -150,20 +150,9 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         
 
     // Exner equations
-        s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
+        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_qb(p,pgc,s));
 	}
-    
-    
-    
-    
-    SEDSLICELOOP
-    vztemp(i,j) = s->vz(i,j);
-    
-    pgc->gcsl_start4(p,vztemp,1);
-    
-    SEDSLICELOOP
-    s->vz(i,j) = 0.5*vztemp(i,j) + 0.125*(vztemp(i-1,j)+vztemp(i+1,j)+vztemp(i,j-1)+vztemp(i,j+1));
-    
+
     filter(p,pgc,s->vz,3,5);
     
     pgc->gcsl_start4(p,s->vz,1);
@@ -192,7 +181,7 @@ void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
         dqy = pdx->sy(p,s->qb,signy,signy);
 
         // Exner equations
-        s->vz(i,j) =  -s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy + susp_qb(p,pgc,s));
+        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy + susp_qb(p,pgc,s));
         
         if(p->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;

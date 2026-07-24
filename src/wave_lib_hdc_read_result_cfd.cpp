@@ -23,10 +23,10 @@ Author: Hans Bihs
 #include"wave_lib_hdc.h"
 #include"lexer.h"
 
-void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
+void wave_lib_hdc::read_result_cfd(lexer *p, ghostcell *pgc, double **E0, double ***U0, double ***V0, double ***W0, int q0)
 {
     // open
-    if(file_type==1)
+    if(file_conti==1)
     {
     filename_single(p,pgc,q0);
 	result.open(name, ios::binary);
@@ -72,7 +72,7 @@ void wave_lib_hdc::read_result(lexer *p, ghostcell *pgc, double **E0, double ***
     } 
     
     // close
-    if(file_type==1)
+    if(file_conti==1)
     result.close();
     
 }

@@ -89,6 +89,8 @@ void fnpf_state::write_result(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     result.write((char*)&ffn, sizeof (float));
     } 
     
+    if(p->P44==1 || p->P44==2)
+    {
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     for(k=0; k<p->knoz+1; ++k)
@@ -115,8 +117,9 @@ void fnpf_state::write_result(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     ffn=float(c->W[FIJK]);
     result.write((char*)&ffn, sizeof (float));
     } 
+    }
     
-    if(p->P44==1)
+    if(p->P44==2)
     for(i=is;i<ie;++i)
     for(j=js;j<je;++j)
     for(k=0; k<p->knoz+1; ++k)

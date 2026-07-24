@@ -20,32 +20,40 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib_hdc.h"
+#include"vrans_nhflow_f.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
+#include"ghostcell.h"
+#include<sys/stat.h>
+#include<sys/types.h>
 
-void wave_lib_hdc::time_interpol(lexer *p)
+void vrans_nhflow_f::print_force(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    E[i][j] = E1[i][j]*t1 + E2[i][j]*t2;
+    // write to surf file
+    fout<<p->simtime<<"\t";
+    fout<<Fx<<" \t ";
+    fout<<Fy<<" \t ";
+	fout<<Fz;
 
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    U[i][j][k] = U1[i][j][k]*t1 + U2[i][j][k]*t2;
+    fout<<endl;
+}
+
+void vrans_nhflow_f::print_force_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{
+    // Create Folder
+	if(p->mpirank==0)
+	mkdir("./REEF3D_NHFLOW_VRANS_Force",0777);
+	
+    if(p->mpirank==0)
+    {
+    // open force surf file
+	sprintf(name,"./REEF3D_NHFLOW_VRANS_Force/REEF3D_VRANS_NHFLOW_Force.dat");
+	
+	fout.open(name);
+
     
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    V[i][j][k] = V1[i][j][k]*t1 + V2[i][j][k]*t2;
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    W[i][j][k] = W1[i][j][k]*t1 + W2[i][j][k]*t2;
-    
-    for(i=0; i<Nx; ++i)
-    for(j=0; j<Ny; ++j)
-    for(k=0; k<Nz; ++k)
-    Z[i][j][k] = Zsig[k]*(E[i][j]+p->wd-B[i][j]) + B[i][j];
+    fout<<"time \t Fx \t Fy \t Fz ";
+
+    fout<<endl;
+	}
 }

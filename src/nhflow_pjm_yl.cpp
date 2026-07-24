@@ -20,8 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
-
 #include"nhflow_pjm_yl.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -33,6 +31,8 @@ Author: Hans Bihs
 #include"density_f.h"
 #include"patchBC_interface.h"
 #include"vrans.h"
+
+#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
 nhflow_pjm_yl::nhflow_pjm_yl(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC) : teta(1.0)
 {
@@ -46,11 +46,7 @@ nhflow_pjm_yl::nhflow_pjm_yl(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_inter
     
     gcval_press=540;
     
-    if(p->D33==0)
     solver_id = 8;
-    
-    if(p->D33==1)
-    solver_id = 9;
     
     gamma=0.5;
 }
@@ -109,7 +105,7 @@ void nhflow_pjm_yl::press_integral(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     k=p->knoz;
     SLICELOOP4
     {
-    d->P[IJK]=0.0;
+    d->P[FIJK]=0.0;
     ++n;
     }
     
@@ -118,22 +114,26 @@ void nhflow_pjm_yl::press_integral(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     YLLOOP
     WETDRYDEEP
     {
-    d->test[IJK] =       d->test[IJKp1] 
+    d->P[FIJK] =       d->P[FIJKp1] 
     
+                    + (p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  
+                    
+                    +  p->WL[IJ]*(W[IJK]-W[IJKm1])*p->sigt[FIJK]
+                    
+                    +  p->DZN[KP]*d->FSW[IJK])*p->W1*.01;
+                    
+                    
+    d->test[IJK] =    d->test[IJKp1]
+                    
                     + (p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK]  
                     
                     +  p->WL[IJ]*(W[IJK]-W[IJKm1])*p->sigt[FIJK]
                     
                     +  p->DZN[KP]*d->FSW[IJK])*p->W1;
                     
-                    
-    /*d->test[IJK] =    d->test[IJKp1]
-                    
-                    + p->WL[IJ]*p->DZN[KP]*d->DWDT[IJK];*/
-                    
     }
     
-    pgc->start7P(p,PCORR,gcval_press);
+    pgc->start7P(p,d->P,gcval_press);
 }
 
 void nhflow_pjm_yl::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)

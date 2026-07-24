@@ -47,7 +47,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 
 // maximum velocities
-
     SLICELOOP4
 	depthmax=MAX(depthmax,d->WL(i,j));
 	
@@ -94,10 +93,8 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->vmax=MAX(p->vmax,p->vfbmax);
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
-
     cu=cv=cw=co=1.0e10;
     
-
     LOOP
     WETDRY
     {
@@ -108,13 +105,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     dx = p->DXN[IP];
     
     dz = p->DZN[KP]*d->WL(i,j);
-    
-    /*cu = MIN(cu, 1.0/(MAX(fabs(p->umax), sqrt(9.81*depthmax))/dx));
-    
-    if(p->j_dir==1 )
-    cv = MIN(cv, 1.0/(MAX(fabs(p->vmax), sqrt(9.81*depthmax))/dx));
-    
-    cw = MIN(cw, 1.0/((fabs(p->wmax)/dz)));*/
     
     cu = MIN(cu, dx/(p->umax + sqrt(9.81*depthmax)));
     
@@ -127,14 +117,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A533==1)
     cw = MIN(cw, dz/(p->wmax));
     
-    //cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
-    
     if(p->B200==1 || p->A533==1)
     cu = MIN(cu, 1.0/(0.00001
     
             + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
-    
-    //co = MIN(co, 1.0/((fabs(p->omegamax)/dz)));
     }
     
     cu = pgc->globalmin(cu);

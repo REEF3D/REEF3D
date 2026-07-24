@@ -111,7 +111,6 @@ double wave_lib_hdc::ccpol2D(lexer *p, double **F, double x, double y)
     wb=1.0;
     }
     
-    //cout<<"wb2D: "<<wb<<endl;
 
 
     v1=v2=v3=v4=0.0;

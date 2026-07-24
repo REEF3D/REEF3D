@@ -33,7 +33,7 @@ void vrans_nhflow_f::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // ************************
     geometry_ini(p, d, pgc);
     objects_create_vrans(p, pgc);
-    update(p, d, pgc, 0);
+    update(p, d, pgc, 1.0, 0);
     // ************************
     
     
