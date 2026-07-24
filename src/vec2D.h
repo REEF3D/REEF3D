@@ -36,6 +36,8 @@ public:
 
     void resize(int);
 
+    void reset() {std::fill(V.begin(), V.end(), 0.0);};
+
     std::vector<double> V;
 };
 

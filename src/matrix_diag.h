@@ -33,7 +33,9 @@ public:
     matrix_diag(lexer*);
     virtual ~matrix_diag() = default;
 
-    void resize(lexer*,int);
+    void resize(int);
+
+    void reset();
 
     std::vector<double> n,s,e,w,b,t,p;
 };

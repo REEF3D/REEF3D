@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"momentum.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
+#include <algorithm>
 
 #define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
 #define HXIMJ (fabs(b->hx(i-1,j))>1.0e-20?b->hx(i-1,j):1.0e20)
@@ -151,9 +152,8 @@ void sflow_pjm_corr_lin::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice 
 
 void sflow_pjm_corr_lin::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &w, double alpha)
 {
-    NSLICELOOP4
-	b->rhsvec.V[n]=0.0;
-    
+    b->rhsvec.reset();
+
     SLICELOOP4
     pcorr(i,j)=0.0;
     

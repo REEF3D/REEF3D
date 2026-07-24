@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 vec2D::vec2D(lexer* p)
 {
-    V.resize(p->veclength);
+    resize(p->veclength);
 }
 
 void vec2D::resize(int size_new)

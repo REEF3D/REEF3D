@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 vec::vec(lexer* p)
 {
-    V.resize(p->veclength);
+    resize(p->veclength);
 }
 
 void vec::resize(int size_new)

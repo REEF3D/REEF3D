@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"sflow_weno_hj.h"
 #include"sflow_gradient_weno.h"
 #include"patchBC_interface.h"
+#include <algorithm>
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
@@ -149,8 +150,7 @@ void sflow_pjm_quad::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, 
 
 void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &ws, double alpha)
 {
-    NSLICELOOP4
-	b->rhsvec.V[n]=0.0;
+    b->rhsvec.reset();
 
     count=0;
     SLICELOOP4

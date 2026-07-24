@@ -27,16 +27,10 @@ Author: Hans Bihs
 
 matrix_diag::matrix_diag(lexer *pp)
 {
-	n.resize(pp->veclength);
-	s.resize(pp->veclength);
-	e.resize(pp->veclength);
-	w.resize(pp->veclength);
-	t.resize(pp->veclength);
-	b.resize(pp->veclength);
-	p.resize(pp->veclength);
+    resize(pp->veclength);
 }
 
-void matrix_diag::resize(lexer *pp, int size_new)
+void matrix_diag::resize(int size_new)
 {
     n.resize(size_new);
     s.resize(size_new);
@@ -45,4 +39,16 @@ void matrix_diag::resize(lexer *pp, int size_new)
     t.resize(size_new);
     b.resize(size_new);
     p.resize(size_new);
+}
+
+void matrix_diag::reset()
+{
+    std::fill(p.begin(), p.end(), 1.0);
+
+    std::fill(n.begin(), n.end(), 0.0);
+    std::fill(s.begin(), s.end(), 0.0);
+    std::fill(e.begin(), e.end(), 0.0);
+    std::fill(w.begin(), w.end(), 0.0);
+    std::fill(t.begin(), t.end(), 0.0);
+    std::fill(b.begin(), b.end(), 0.0);
 }
