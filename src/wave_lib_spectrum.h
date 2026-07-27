@@ -45,8 +45,10 @@ public:
     double TMA(lexer*, double);
 	  double Torsethaugen(lexer*, double);
 	  double spectrum_file(lexer*, double);
+	  double spectrum_file_2d(lexer*, double, double);
 
 	  void spectrum_file_read(lexer*);
+	  void spectrum_file_2d_read(lexer*);
 
     void amplitudes_irregular(lexer*);
     void amplitudes_focused(lexer*);
@@ -61,6 +63,8 @@ public:
     void print_amplitude_spectrum(lexer*);
     void print_components(lexer*);
     void print_spreading(lexer*);
+    void print_spectrum_2d(lexer*);
+    void print_components_2d(lexer*);
 
     double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
     int NN, ND;
@@ -86,6 +90,12 @@ private:
 	int ptnum;
     int numcomp;
 
+    // 2D spectrum file
+    int ptnum_freq_2d;
+    int ptnum_dir_2d;
+    double *spectrum_2d_1d;  // Changed from 2D to 1D array for proper alignment
+    double *freq_2d;
+    double *dir_2d;
 
 	double **spectrum;
 };

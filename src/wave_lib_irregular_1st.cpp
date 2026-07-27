@@ -58,7 +58,11 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 	if(p->B85==4 || p->B85==5 || p->B85==6)
 	wavepackets_parameters(p);
 
-    print_components(p);
+    // Print components based on spectrum type
+    if(p->B85==11)
+        print_components_2d(p);
+    else
+        print_components(p);
     
     
     if(p->mpirank==0)
@@ -76,9 +80,9 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
-    
+
     p->Darray(sinhkd,p->wN);
-   
+
     for(n=0;n<p->wN;++n)
     sinhkd[n] = sinh(ki[n]*wdt);
 }
