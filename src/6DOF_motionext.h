@@ -30,6 +30,11 @@ class fdm2D;
 class ghostcell;
 class field;
 #include <Eigen/Dense>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -40,6 +45,37 @@ public:
     virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&)=0;
 
     virtual void ini(lexer*,ghostcell*)=0;
+
+protected:
+    inline std::vector<std::vector<double>> readTable(const std::string& path, size_t M) {
+        std::ifstream file(path);
+        if (!file) {
+            throw std::runtime_error("Could not open file: " + path);
+        }
+
+        std::vector<std::vector<double>> table_data;
+        std::string line;
+
+        while (std::getline(file, line)) {
+            if (line.empty()) continue; // skip blank lines
+
+            std::istringstream iss(line);
+            std::vector<double> row;
+            row.reserve(M);
+            double value;
+            while (iss >> value) {
+                row.push_back(value);
+            }
+
+            if (row.size() != M) {
+                throw std::runtime_error("Row has " + std::to_string(row.size()) +
+                                          " columns, expected " + std::to_string(M));
+            }
+            table_data.push_back(std::move(row));
+        }
+
+        return table_data;
+    }
 };
 
 #endif
