@@ -32,11 +32,6 @@ bedload_EH::bedload_EH(lexer *p)
     rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    visc=p->W2;
-    kappa=0.4;
-    ks=p->S21*d50;
-    Rstar=(rhosed-rhowat)/rhowat;
-    Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     fh= 1.0e-8;
 }
 
@@ -50,6 +45,8 @@ void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	
 	SEDSLICELOOP
     {
+        rhowat = s->ro(i,j);
+        
         Ts = s->shields_crit(i,j);
         Tb = s->shields_eff(i,j);
 

@@ -38,10 +38,8 @@ public:
 	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
-    double rhosed,rhowat,Rstar,Ds;
     double g,d50;
     double visc;
-    double kappa,u_plus,ks;
     double mu_d;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;

@@ -44,6 +44,7 @@ public:
     slice4 bedzh,bedzh0,bedch,bedsole;
     slice4 vz,dh,reduce;
     slice4 ks,ks_eff;
+    slice4 ro;
     
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;

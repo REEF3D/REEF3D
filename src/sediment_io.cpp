@@ -70,8 +70,16 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     s->Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
     }
     
+    SLICELOOP4
+    {
+    k=s->bedk(i,j);
+    
+    s->ro(i,j) = a->ro(i,j,k);
+    }
+    
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
+    pgc->gcsl_start4(p,s->ro,1);
 }
 
 void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

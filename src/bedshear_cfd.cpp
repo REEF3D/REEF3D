@@ -57,7 +57,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	yip= p->YP[JP];
     dist = p->DZN[KP];
 		
-    density = p->W1;
+    density = s->ro(i,j);
     
 	
     if(p->S16==1)

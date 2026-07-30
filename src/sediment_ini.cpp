@@ -55,6 +55,7 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     {
     s->ks(i,j) = p->S21*p->S20;
     s->ks_eff(i,j) = p->S21*p->S20;
+    s->ro(i,j) = p->W1;
     }
 	
 	pgc->gcsl_start4(p,s->bedzh,1);
