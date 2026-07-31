@@ -70,6 +70,19 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
 
 
     ini_done = 0;
+    
+    
+    
+    dist3=0.0;
+    
+    if(p->A341>0.0 && p->j_dir==0)
+    dist3=p->A341*(p->DXD);
+    
+    if(p->A341>0.0 && p->j_dir==1)
+    dist3=p->A341*0.5*(p->DXD+p->DYD);
+    
+    if(p->A342>0.0)
+    dist3=p->A342;
 }
 
 fnpf_breaking::~fnpf_breaking()

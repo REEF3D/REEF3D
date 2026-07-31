@@ -171,7 +171,12 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
                 db = c->coastline(i,j);
                 
                 if(db<dist3)
+                {
                 c->vb(i,j) = rb3(p,db)*p->A346;
+                
+                filter(p,c,pgc,eta,p->A361,p->A362);
+                filter(p,c,pgc,Fifsf,p->A361,p->A362);
+                }
             }
         }
         
