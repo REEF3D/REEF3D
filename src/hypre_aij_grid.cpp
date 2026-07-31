@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_aij.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -57,5 +55,3 @@ void hypre_aij::delete_grid(lexer* p, ghostcell* pgc)
     HYPRE_IJVectorDestroy(b);
     HYPRE_IJVectorDestroy(x);
 }
-
-#endif

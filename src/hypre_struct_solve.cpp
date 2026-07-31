@@ -21,9 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_struct.h"
-
-#ifdef HYPRE_COMPILATION
-
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -130,5 +127,3 @@ void hypre_struct::solve44(lexer* p)
     p->solveriter=num_iterations;
     p->final_res = final_res_norm;
 }
-
-#endif

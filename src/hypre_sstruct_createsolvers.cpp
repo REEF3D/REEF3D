@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_sstruct.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -181,5 +179,3 @@ void hypre_sstruct::delete_solver5(lexer* p,ghostcell* pgc)
     else if(p->N11==33)
     HYPRE_SStructSplitDestroy(precond);
 }
-
-#endif

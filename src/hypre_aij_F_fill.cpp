@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_aij.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -97,5 +95,3 @@ void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, doubl
 
     p->del_Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 }
-
-#endif
