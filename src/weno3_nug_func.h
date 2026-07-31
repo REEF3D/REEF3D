@@ -24,6 +24,8 @@ Author: Hans Bihs
 #define WENO3_NUG_FUNC_H_
 
 #include "increment.h"
+#include <array>
+#include <vector>
 
 class lexer;
 class fdm;
@@ -35,7 +37,7 @@ class weno3_nug_func : public increment
 {
 public:
     weno3_nug_func(lexer*);
-    virtual ~weno3_nug_func();
+    virtual ~weno3_nug_func() = default;
 
     void precalc_qf(lexer*);
     void precalc_cf(lexer*);
@@ -59,9 +61,9 @@ public:
     void weight_max_y();
     void weight_max_z();
 
-    static double ****qfx,****qfy,****qfz;
-    static double ***cfx,***cfy,***cfz;
-    static double ***isfx,***isfy,***isfz;
+    static inline std::vector<std::array<std::array<std::array<double, 2>, 4>, 2>> qfx, qfy, qfz;
+    static inline std::vector<std::array<std::array<double, 4>, 2>> cfx, cfy, cfz;
+    static inline std::vector<std::array<std::array<double, 4>, 2>> isfx, isfy, isfz;
 
     double q1,q2,q3;
 
