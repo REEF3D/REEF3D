@@ -28,25 +28,21 @@ weno3_nug_func::weno3_nug_func(lexer *p)
     ini(p);
 }
 
-weno3_nug_func::~weno3_nug_func()
-{
-}
-
 void weno3_nug_func::ini(lexer* p)
 {
     if(!iniflag)
     {
-        p->Darray(qfx,p->knox+2*marge,2,4,2);
-        p->Darray(qfy,p->knoy+2*marge,2,4,2);
-        p->Darray(qfz,p->knoz+2*marge,2,4,2);
+        qfx.resize(p->knox+2*marge);
+        qfy.resize(p->knoy+2*marge);
+        qfz.resize(p->knoz+2*marge);
 
-        p->Darray(cfx,p->knox+2*marge,2,4);
-        p->Darray(cfy,p->knoy+2*marge,2,4);
-        p->Darray(cfz,p->knoz+2*marge,2,4);
+        cfx.resize(p->knox+2*marge);
+        cfy.resize(p->knoy+2*marge);
+        cfz.resize(p->knoz+2*marge);
 
-        p->Darray(isfx,p->knox+2*marge,2,4);
-        p->Darray(isfy,p->knoy+2*marge,2,4);
-        p->Darray(isfz,p->knoz+2*marge,2,4);
+        isfx.resize(p->knox+2*marge);
+        isfy.resize(p->knoy+2*marge);
+        isfz.resize(p->knoz+2*marge);
 
         precalc_qf(p);
         precalc_cf(p);
@@ -55,7 +51,3 @@ void weno3_nug_func::ini(lexer* p)
         iniflag = true;
     }
 }
-
-double ****weno3_nug_func::qfx,****weno3_nug_func::qfy,****weno3_nug_func::qfz;
-double ***weno3_nug_func::cfx,***weno3_nug_func::cfy,***weno3_nug_func::cfz;
-double ***weno3_nug_func::isfx,***weno3_nug_func::isfy,***weno3_nug_func::isfz;
