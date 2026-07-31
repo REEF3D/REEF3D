@@ -59,6 +59,8 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     }
 	
 	pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh0,1);
+    pgc->gcsl_start4(p,s->ro,1);
     
     if(p->S10==1)
     {
@@ -90,10 +92,13 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     s->bedzh(i,j)=d->bed(i,j);
     s->bedzh0(i,j)=d->bed(i,j);
+    
+    s->ro(i,j) = p->W1;
     }
     
     pgc->gcsl_start4(p,s->bedzh,1);
     pgc->gcsl_start4(p,s->bedzh0,1);
+    pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_nhflow(p,d,pgc);
     
@@ -114,10 +119,16 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     
     s->bedzh(i,j)=b->topobed(i,j);
     s->bedzh0(i,j)=b->topobed(i,j);
+    
+    s->ro(i,j) = p->W1;
     }
     
     SLICELOOP4
     b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+    
+    pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh0,1);
+    pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_sflow(p,b,pgc);
     

@@ -61,7 +61,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             if(rayiter==1)
             {
-            pgc->gcparaxintV(p,IO,1);
+            pgc->gcparaxintV(p,IO,4);
      
             ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
             if(p->j_dir==1)
