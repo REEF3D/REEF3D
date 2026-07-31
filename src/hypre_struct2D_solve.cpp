@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_struct2D.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -94,5 +92,3 @@ void hypre_struct2D::solve(lexer* p, ghostcell *pgc)
 
     feedback = pgc->globalimax(feedback);
 }
-
-#endif

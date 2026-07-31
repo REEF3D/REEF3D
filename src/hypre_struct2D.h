@@ -23,9 +23,6 @@ Author: Hans Bihs
 #ifndef HYPRE_STRUCT2D_H_
 #define HYPRE_STRUCT2D_H_
 
-#define HYPRE_COMPILATION
-#ifdef  HYPRE_COMPILATION
-
 #include "solver2D.h"
 #include "increment.h"
 #include "vec2D.h"
@@ -71,7 +68,5 @@ private:
     int numiter,count,q;
 
 };
-
-#endif
 
 #endif

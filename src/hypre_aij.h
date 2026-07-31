@@ -23,9 +23,6 @@ Author: Hans Bihs
 #ifndef HYPRE_AIJ_H_
 #define HYPRE_AIJ_H_
 
-#define HYPRE_COMPILATION
-#ifdef HYPRE_COMPILATION
-
 #include "solver.h"
 #include "increment.h"
 #include "vec.h"
@@ -86,7 +83,5 @@ private:
 
     int count;
 };
-
-#endif
 
 #endif

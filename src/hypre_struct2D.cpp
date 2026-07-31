@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_struct2D.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "ghostcell.h"
 #include "field.h"
@@ -61,5 +59,3 @@ void hypre_struct2D::start(lexer* p, ghostcell* pgc, slice &f, matrix2D &M, vec2
 
     delete_solvers(p,pgc);
 }
-
-#endif

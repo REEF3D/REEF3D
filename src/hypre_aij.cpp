@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_aij.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -111,5 +109,3 @@ void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
         ++n;
     }
 }
-
-#endif

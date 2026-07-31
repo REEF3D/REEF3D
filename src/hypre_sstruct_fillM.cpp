@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_sstruct.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm.h"
 #include "ghostcell.h"
@@ -71,5 +69,3 @@ void hypre_sstruct::fillbackvecM(lexer *p, double *f)
 {
     HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
 }
-
-#endif

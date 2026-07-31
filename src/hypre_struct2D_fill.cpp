@@ -21,8 +21,6 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "hypre_struct2D.h"
-
-#ifdef HYPRE_COMPILATION
 #include "lexer.h"
 #include "fdm2D.h"
 #include "ghostcell.h"
@@ -145,5 +143,3 @@ void hypre_struct2D::fillbackvec(lexer *p, slice &f, vec2D &xvec, int var)
         ++count;
     }
 }
-
-#endif
