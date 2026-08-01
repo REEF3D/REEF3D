@@ -825,8 +825,6 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = F47;
     ii++;
-    ictrl[ii] = F49;
-    ii++;
     ictrl[ii] = F50;
     ii++;
     ictrl[ii] = F50_flag;

@@ -413,7 +413,6 @@ void control::ini_default()
 	F45=2.1;         // factor for calculation of epsi
 	F46=0;            // int picard iteration for lsm or reini
 	F47=10;            // int number of picard iterations
-	F49=1;            // int no reinitialization for interface nodes
 	F50=2;            // int bc phi, 1: inflow or 2: outflow
     F50_flag=0;       // int flag for lsm description
 	F51=-1.0e20;		    // double i-dir zero level set start

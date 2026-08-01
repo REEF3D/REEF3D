@@ -63,7 +63,6 @@ directreini::directreini(lexer* p, fdm *a):gradient(p),vertice(p), nodeflag(p),d
 
 	ppreini = new reini_RK3(p,1);
 	
-	p->F49=0;
 	p->F44=2;
 	
 	dT = p->F43*p->DXM;
