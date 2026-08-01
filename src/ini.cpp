@@ -68,7 +68,7 @@ void control::ini_default()
     A313=3;      // int discretization for bed bc
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
-    A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
+    A322=0;      // int 
     A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
     

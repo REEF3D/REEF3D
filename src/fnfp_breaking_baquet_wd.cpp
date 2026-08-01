@@ -54,40 +54,19 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     {
             // x
             if(c->Ex(i,j)   < -p->A355)
-            {
-                bx(i,j) = 10;
-                /*bx(i+1,j) = 10;
-                bx(i-1,j) = 10;
-                bx(i-2,j) = 10;*/
-            }
+            bx(i,j) = 10;
             
             if(c->Ex(i,j)   > p->A355)
-            {
-                bx(i,j) = 20;
-                /*bx(i-1,j) = 20;
-                bx(i+1,j) = 20;
-                bx(i+2,j) = 20;*/
-            }
-            
+            bx(i,j) = 20;
+
             // y
             if(p->j_dir==1)
             if( c->Ey(i,j)   < -p->A355)
-            {
-                by(i,j) = 10;
-                /*by(i,j+1) = 10;
-                by(i,j-1) = 10;
-                by(i,j-2) = 10;*/
-            }
+            by(i,j) = 10;
             
             if(p->j_dir==1)
             if( c->Ey(i,j)   > p->A355)
-            {
-                by(i,j) = 20;
-                /*by(i,j-1) = 20;
-                by(i,j+1) = 20;
-                by(i,j+2) = 20;*/
-            }
-            
+            by(i,j) = 20;
     }
     
     pgc->gcsl_start4int(p,bx,50);
@@ -158,11 +137,11 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     // fill breaking viscosity
     // ------------------------
     
-        SLICELOOP4
-        c->vb(i,j) = 0.0;
+    SLICELOOP4
+    c->vb(i,j) = 0.0;
         
         // coastline viscosity
-        if(p->A343==1)
+        /*if(p->A343==1)
         SLICELOOP4
         {
             
@@ -178,7 +157,7 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
                 filter(p,c,pgc,Fifsf,p->A361,p->A362);
                 }
             }
-        }
+        }*/
         
     if(p->j_dir==0)
     SLICELOOP4
