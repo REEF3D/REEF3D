@@ -100,7 +100,7 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
         c_ = ck_ + p->dt*dc_;
         h_ = hk_ + p->dt*dh_;
         e_ = ek_ + p->dt*de_;
-        e_.normalize();
+        //e_.normalize();
     }
     
     if(iter==1)
@@ -109,7 +109,7 @@ void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
         e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;    
-        e_.normalize();
+        //e_.normalize();
     }
 }
 
@@ -129,7 +129,7 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
         c_ = ck_ + p->dt*dc_;
         h_ = hk_ + p->dt*dh_;
         e_ = ek_ + p->dt*de_;
-        e_.normalize();
+        //e_.normalize();
     }
     
     if(iter==1)
@@ -138,7 +138,7 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
         c_ = 0.75*ck_ + 0.25*c_ + 0.25*p->dt*dc_;
         h_ = 0.75*hk_ + 0.25*h_ + 0.25*p->dt*dh_;
         e_ = 0.75*ek_ + 0.25*e_ + 0.25*p->dt*de_;
-        e_.normalize();
+        //e_.normalize();
     }  
     
     if(iter==2)
@@ -147,7 +147,7 @@ void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
         c_ = (1.0/3.0)*ck_ + (2.0/3.0)*c_ + (2.0/3.0)*p->dt*dc_;
         h_ = (1.0/3.0)*hk_ + (2.0/3.0)*h_ + (2.0/3.0)*p->dt*dh_;
         e_ = (1.0/3.0)*ek_ + (2.0/3.0)*e_ + (2.0/3.0)*p->dt*de_;
-        e_.normalize();
+        //e_.normalize();
     }
 }
 
@@ -160,7 +160,7 @@ void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
     c_ = c_ + gamma[iter]*p->dt*dc_ + zeta[iter]*p->dt*dck_;
     h_ = h_ + gamma[iter]*p->dt*dh_ + zeta[iter]*p->dt*dhk_;
     e_ = e_ + gamma[iter]*p->dt*de_ + zeta[iter]*p->dt*dek_;
-    e_.normalize();
+    //e_.normalize();
     
     dpk_ = dp_;
     dck_ = dc_;
@@ -182,13 +182,13 @@ void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc, bool fi
         c_ = c_ + p->dt*dc_;
         h_ = h_ + p->dt*dh_;
         e_ = e_ + p->dt*de_;
-        e_.normalize();
+        //e_.normalize();
 
         p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dp_;
         c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
         h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
         e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
-        e_.normalize();
+        //e_.normalize();
 }
 
 
