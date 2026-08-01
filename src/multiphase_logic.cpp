@@ -61,12 +61,6 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->F310==11 || p->F310==13 || p->F310==14)
 	preini = new directreini(p,a);
 	
-
-	if(p->F31==0)
-	ppls = new particle_pls_void();
-
-	if(p->F31==1 || p->F31==2)
-	ppls = new particle_pls(p,a,pgc);
 	
 	if(p->W90==0)
 	pupdate = new multiphase_fluid_update_f(p,a,pgc);

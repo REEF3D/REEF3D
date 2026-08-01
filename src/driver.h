@@ -45,7 +45,6 @@ class ghostcell;
 class timestep;
 class freesurface;
 class reini;
-class particle_corr;
 class sediment;
 class bedload;
 class reinitopo;
@@ -179,7 +178,6 @@ public:
 	timestep* ptstep;
 	freesurface* pfsf;
 	reini* preini;
-	particle_corr* ppls; 
 	sediment* psed;
 	reinitopo* preto;
     reinitopo* preso;

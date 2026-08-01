@@ -387,14 +387,6 @@ void driver::logic_cfd()
 	if(p->F40==11)
 	preini = new directreini(p,a);
 
-
-	if(p->F31==0)
-	ppls = new particle_pls_void();
-
-	if(p->F31==1 || p->F31==2)
-	ppls = new particle_pls(p,a,pgc);
-
-
 	if(p->F80==1)
 	pfsf = new VOF_AB(p,a,pgc,pheat);
 

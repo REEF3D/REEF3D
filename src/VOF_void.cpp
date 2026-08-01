@@ -75,7 +75,6 @@ void VOF_void::start
     ghostcell* pgc,
     ioflow* pflow,
     reini* preini,
-    particle_corr* ppls,
     field &F
 )
 {

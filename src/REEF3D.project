@@ -234,11 +234,7 @@
               <File Name="reinidisc.h"/>
             </VirtualDirectory>
           </VirtualDirectory>
-          <VirtualDirectory Name="Particle">
-            <File Name="particle_pls_void.h"/>
-            <File Name="particle_pls.h"/>
-            <File Name="particle_corr.h"/>
-          </VirtualDirectory>
+          <VirtualDirectory Name="Particle"/>
           <VirtualDirectory Name="Level Set">
             <File Name="levelset_void.h"/>
             <File Name="levelset_RK3.h"/>
@@ -1656,29 +1652,7 @@
               <File Name="reinidisc_f.cpp"/>
             </VirtualDirectory>
           </VirtualDirectory>
-          <VirtualDirectory Name="Particle">
-            <File Name="pls_xupdate.cpp"/>
-            <File Name="pls_util.cpp"/>
-            <File Name="pls_setup.cpp"/>
-            <File Name="pls_seed.cpp"/>
-            <File Name="pls_reseed.cpp"/>
-            <File Name="pls_remove.cpp"/>
-            <File Name="pls_radius.cpp"/>
-            <File Name="pls_printvtu.cpp"/>
-            <File Name="pls_printpvtu.cpp"/>
-            <File Name="pls_printascii.cpp"/>
-            <File Name="pls_picard.cpp"/>
-            <File Name="pls_particlex.cpp"/>
-            <File Name="pls_normal.cpp"/>
-            <File Name="pls_ipol.cpp"/>
-            <File Name="pls_delete.cpp"/>
-            <File Name="pls_count.cpp"/>
-            <File Name="pls_correct.cpp"/>
-            <File Name="pls_allocate.cpp"/>
-            <File Name="pls_advect.cpp"/>
-            <File Name="particle_void.cpp"/>
-            <File Name="particle.cpp"/>
-          </VirtualDirectory>
+          <VirtualDirectory Name="Particle"/>
           <VirtualDirectory Name="Level Set">
             <File Name="levelset_void.cpp"/>
             <File Name="levelset_RK3.cpp"/>

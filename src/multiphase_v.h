@@ -42,7 +42,7 @@ class multiphase_v final : public multiphase
 public:
 	multiphase_v();
 	virtual ~multiphase_v();
-	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override final;
+	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*) override final;
 	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override final;
 	void update(lexer*,fdm*,ghostcell*) override final;
 	
