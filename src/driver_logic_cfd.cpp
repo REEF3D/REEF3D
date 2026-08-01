@@ -384,9 +384,6 @@ void driver::logic_cfd()
     if(p->F40==3 || p->F40==23)
     preini = new reini_RK3(p,1);
 
-	if(p->F40==11)
-	preini = new directreini(p,a);
-
 	if(p->F80==1)
 	pfsf = new VOF_AB(p,a,pgc,pheat);
 

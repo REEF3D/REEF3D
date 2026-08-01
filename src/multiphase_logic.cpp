@@ -49,17 +49,12 @@ void multiphase_f::logic(lexer *p, fdm *a, ghostcell *pgc)
 	pfsf1 = new levelset_RK3(p,a,pgc,pheat,pconc);
 	pfsf2 = new levelset_RK3(p,a,pgc,pheat,pconc);
 	}
-	
     
 	if(p->F310==0)
 	preini = new reini_void(p);
 	
 	if(p->F310==3)
 	preini = new reini_RK3(p,1);
-
-	
-	if(p->F310==11 || p->F310==13 || p->F310==14)
-	preini = new directreini(p,a);
 	
 	
 	if(p->W90==0)

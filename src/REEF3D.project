@@ -234,7 +234,6 @@
               <File Name="reinidisc.h"/>
             </VirtualDirectory>
           </VirtualDirectory>
-          <VirtualDirectory Name="Particle"/>
           <VirtualDirectory Name="Level Set">
             <File Name="levelset_void.h"/>
             <File Name="levelset_RK3.h"/>
@@ -245,9 +244,6 @@
               <File Name="picard_f.h"/>
               <File Name="picard.h"/>
             </VirtualDirectory>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Directreini">
-            <File Name="directreini.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
@@ -1652,7 +1648,6 @@
               <File Name="reinidisc_f.cpp"/>
             </VirtualDirectory>
           </VirtualDirectory>
-          <VirtualDirectory Name="Particle"/>
           <VirtualDirectory Name="Level Set">
             <File Name="levelset_void.cpp"/>
             <File Name="levelset_RK3.cpp"/>
@@ -1662,18 +1657,6 @@
               <File Name="picard_lsm.cpp"/>
               <File Name="picard_f.cpp"/>
             </VirtualDirectory>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Directreini">
-            <File Name="directreini_vtp_pvtp.cpp"/>
-            <File Name="directreini_vtp.cpp"/>
-            <File Name="directreini_triangulation.cpp"/>
-            <File Name="directreini_reini.cpp"/>
-            <File Name="directreini_reconstruct.cpp"/>
-            <File Name="directreini_finalize.cpp"/>
-            <File Name="directreini_debug.cpp"/>
-            <File Name="directreini_correction.cpp"/>
-            <File Name="directreini_constraint.cpp"/>
-            <File Name="directreini.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
       </VirtualDirectory>
