@@ -105,7 +105,13 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
         if(p->A10==6)
         printtime+=p->P30;
         
-        if(p->A10==2 || p->A10==5)
+        if(p->A10==2)
+        printtime+=p->P182;
+        
+        if(p->A10==5 && p->P19==1)
+        printtime+=p->P30;
+        
+        if(p->A10==5 && p->P19==2)
         printtime+=p->P182;
 
         int num=0;
