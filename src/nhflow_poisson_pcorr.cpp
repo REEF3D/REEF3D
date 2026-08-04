@@ -154,14 +154,12 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             // North
             if((p->flag7[FIp1JK]<0|| p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
             {
-            //d->rhsvec.V[n] -= d->M.n[n]*P[FIJK];
             d->M.n[n] = 0.0;
             }
             
             if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==1)
             {
             pval = 0.0;
-            //d->rhsvec.V[n] -= d->M.n[n]*pval;
             d->M.n[n] = 0.0;
             }
             
@@ -176,21 +174,18 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             // East
             if(p->flag7[FIJm1K]<0  || p->wet[IJm1]==0 || p->deep[IJm1]==0)
             {
-            //d->rhsvec.V[n] -= d->M.e[n]*P[FIJK]*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             // West
             if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0 || p->deep[IJp1]==0)
             {
-            //d->rhsvec.V[n] -= d->M.w[n]*P[FIJK]*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
             // BED
             if(p->flag7[FIJKm1]<0)
             {
-            //d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
             d->M.b[n] = 0.0;
             }
             
