@@ -62,7 +62,6 @@ protected:
 
 private:
     const int imin,jmin,jmax;
-    const std::size_t n;
 };
 
 #endif

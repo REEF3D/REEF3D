@@ -1158,6 +1158,8 @@
           <File Name="field7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
+          <File Name="ArrayWrapper3D.h"/>
+          <File Name="ArrayWrapper3D_imp.h"/>
           <File Name="fieldint.h"/>
           <File Name="fieldint1.h"/>
           <File Name="fieldint2.h"/>
@@ -3082,7 +3084,8 @@
             <File Name="grid_helper_gcb4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
-        <VirtualDirectory Name="Fieldint">
+        <VirtualDirectory Name="Field">
+          <File Name="ArrayWrapper3D.cpp"/>
           <File Name="fields.cpp"/>
           <File Name="fieldints.cpp"/>
         </VirtualDirectory>
