@@ -23,6 +23,8 @@ Architect: Hans Bihs
 #ifndef LEXER_H_
 #define LEXER_H_
 
+#include "ArrayWrapper2D.h"
+#include "ArrayWrapper3D.h"
 #include<iostream>
 #include<cstdlib>
 #include<iomanip>
@@ -341,5 +343,11 @@ public:
     double *sigx,*sigy,*sigz,*sigt;
     double *sigxx;
 };
+
+// The ArrayWrapper accessors are defined inline here, not in their own headers,
+// because their bodies need the complete lexer; the headers above only
+// forward-declare it. Keep these includes after the class definition.
+#include "ArrayWrapper2D_imp.h"
+#include "ArrayWrapper3D_imp.h"
 
 #endif
