@@ -80,8 +80,6 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         if(IO[IJK]==1)
         d->FB[IJK]=fabs(d->FB[IJK]);
-        
-        d->test[IJK] = IO[IJK];
     }
 	
 	LOOP

@@ -92,7 +92,7 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
                         + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
+            d->rhsvec.V[n] += 2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
                             /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
                             + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
@@ -157,14 +157,8 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             d->M.n[n] = 0.0;
             }
             
-            if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==1)
-            {
-            pval = 0.0;
-            d->M.n[n] = 0.0;
-            }
-            
             // pcorr outflow
-            if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==2)
+            if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2)
             {
             pval = 0.0;
             d->rhsvec.V[n] -= d->M.n[n]*(-d->P[FIJK]+pval);

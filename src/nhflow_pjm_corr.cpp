@@ -98,6 +98,16 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
 {
     double psi, phival_fb;
+/*
+    FLOOP
+    WETDRYDEEP
+    {
+    H = Hsolidface_zero(p,d);
+    
+    P[FIJK] = H*P[FIJK];
+    
+    //d->test[IJK] = H;
+    }*/
     
 	FLOOP
     WETDRYDEEP
@@ -110,16 +120,6 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     d->test[IJK] = PCORR[FIJK];
     }
     
-    /*
-    FLOOP
-    WETDRYDEEP
-    {
-    H = Hsolidface_zero(p,d);
-    
-    P[FIJK] = H*P[FIJK];
-    
-    d->test[IJK] = H;
-    }*/
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -296,7 +296,6 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
     d->H[IJK] -= (1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
-
 double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
 {
     double psi, H, phival_fb,phival_solid,dirac,phival;
@@ -346,10 +345,10 @@ double nhflow_pjm_corr::Hsolidface_zero(lexer *p, fdm_nhf *d)
     double psi, H, phival_fb,dirac, phival_solid, phival;
     
     if(p->j_dir==0)
-    psi = 3.0*p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*p->WL[IJ]);
+    psi = 4.0*p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*p->WL[IJ]);
     
     if(p->j_dir==1)
-    psi = 3.0*p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*p->WL[IJ]);
+    psi = 4.0*p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*p->WL[IJ]);
 
 
     // Construct solid heaviside function

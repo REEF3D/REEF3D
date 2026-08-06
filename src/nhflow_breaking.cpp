@@ -220,8 +220,6 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
         d->vb(i,j) = 0.5*p->A557;
     }
     
-    LOOP
-    d->test[IJK] = d->vb(i,j);
         
         // additional breaking filter
         // shallow
