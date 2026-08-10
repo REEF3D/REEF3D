@@ -188,6 +188,8 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
                                 + p->sigy[FIJK]*dVdz
 
                                 + dWdz)/(alpha*p->dt);
+                                
+        d->test[IJK] = d->rhsvec.V[n];
         }
                             
     ++n;

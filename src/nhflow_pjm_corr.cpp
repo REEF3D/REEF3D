@@ -98,28 +98,17 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
 {
     double psi, phival_fb;
-/*
-    FLOOP
-    WETDRYDEEP
-    {
-    H = Hsolidface_zero(p,d);
-    
-    P[FIJK] = H*P[FIJK];
-    
-    //d->test[IJK] = H;
-    }*/
-    
+
 	FLOOP
     WETDRYDEEP
     P[FIJK] += PCORR[FIJK];
-    
-    
+
+    /*
     FLOOP
     WETDRYDEEP
     {
     d->test[IJK] = PCORR[FIJK];
-    }
-    
+    }*/
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -203,6 +192,8 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
                                 + p->sigy[FIJK]*dVdz
 
                                 + dWdz)/(alpha*p->dt);
+                                
+        d->test[IJK] = d->rhsvec.V[n];
         }
                             
     ++n;

@@ -204,3 +204,93 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     p->dftime+=pgc->timer()-starttime;
 }
 
+
+
+void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
+                             int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
+{
+    starttime=pgc->timer();
+    
+    if(solid_flag==1)
+    {
+    // solid forcing
+    solid_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+    }
+    
+    // 6DOF forcing
+    p6dof->reforce_nhflow(p,d,pgc,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
+
+    if(forcing_flag==1)
+    {
+    // add forcing term to RHS
+    LOOP
+    {
+        UH[IJK]   += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+        
+        d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
+        
+        d->maxF = MAX(fabs(d->maxF),alpha*p->dt*CPORNH*FX[IJK]);
+    }
+    
+    LOOP
+    {
+        VH[IJK]   += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+        
+        d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
+        
+        d->maxH = MAX(fabs(d->maxH),alpha*p->dt*CPORNH*FY[IJK]);
+    }
+    
+    LOOP
+    {
+        WH[IJK]   += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+        
+        d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
+        
+        d->maxG = MAX(fabs(d->maxG),alpha*p->dt*CPORNH*FZ[IJK]);
+    }
+    }
+
+    // DLM
+    if(dlm_flag==1)
+    {
+        
+        LOOP
+        {
+            UH[IJK] += alpha*p->dt*CPORNH*FX[IJK]*WL(i,j);
+            
+            d->U[IJK] += alpha*p->dt*CPORNH*FX[IJK];
+        }
+        
+        LOOP
+        {
+            VH[IJK] += alpha*p->dt*CPORNH*FY[IJK]*WL(i,j);
+            
+            d->V[IJK] += alpha*p->dt*CPORNH*FY[IJK];
+        }
+        
+        LOOP
+        {
+            WH[IJK] += alpha*p->dt*CPORNH*FZ[IJK]*WL(i,j);
+            
+            d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
+        }
+    }
+    
+    pgc->gcsl_start4(p,d->eta,gcval_eta);
+    pgc->gcsl_start4(p,WL,gcval_eta);
+    pgc->gcsl_start4(p,d->bed,1);
+    
+    pgc->start4V(p,d->U,gcval_u);
+    pgc->start4V(p,d->V,gcval_v);
+    pgc->start4V(p,d->W,gcval_w);
+    
+    pgc->start4V(p,UH,gcval_uh);
+    pgc->start4V(p,VH,gcval_vh);
+    pgc->start4V(p,WH,gcval_wh);
+    
+    pgc->gciobc_update(p,d);
+    
+    p->dftime+=pgc->timer()-starttime;
+}
+

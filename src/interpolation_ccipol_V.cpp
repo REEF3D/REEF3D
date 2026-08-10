@@ -117,7 +117,6 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
 
 double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double wc1,wc2;
     double ZSN_FIp1JK,ZSN_FIJK,ZSN_FIJKp1,ZSN_FIp1JKp1;
     double ZSN_FIp1Jp1K,ZSN_FIJp1K,ZSN_FIJp1Kp1,ZSN_FIp1Jp1Kp1;
     double WLval,bedval;
@@ -144,15 +143,6 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     return value;
     }
     // -------------------------------------
-    
-    
-    // in cell check
-    /*if((xp<p->XP[IP] ) || (xp>p->XP[IP1]))
-    cout<<"CELL xp: "<<zp<<" p->XP[IP]: "<<p->XP[IP]<<" p->XP[IP1]: "<<p->XP[IP1]<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" knox: "<<p->knox<<endl;
-    
-    if((zp<p->ZSN[FIJK] && zp<p->ZSN[FIp1JK]) || (zp>p->ZSN[FIJKp1] && zp>p->ZSN[FIp1JKp1]))
-    cout<<"CELL zp: "<<zp<<" ZN[KP]: "<<p->ZSN[FIJK]<<" ZSN[KP1]: "<<p->ZSN[FIJKp1]<<" i: "<<i<<" j: "<<j<<" k: "<<k<<" knox: "<<p->knox<<endl;
-    */
     
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
@@ -192,10 +182,6 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
         
     wc = (Z2-zp)/(Z2-Z1);
     
-    
-    //if(wc1<0.0 || wc1>1.0 || wc2<0.0 || wc2>1.0)    
-    //cout<<"wc: "<<(Z2-zp)/(Z2-Z1)<<" Z1: "<<Z1<<" Z2: "<<Z2<<" | ZSN_FIJp1K: "<<ZSN_FIJp1K<<endl;
-    
     // ----------------------------------------------------------
 
     if(p->j_dir==0)
@@ -204,14 +190,7 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     if(p->j_dir==1)
     value = lint7V(f,i,j,k,wa,wb,wc);
     
-    
-    //if(value != value)
-    //if(wc1<0.0 || wc1>1.0 || wc2<0.0 || wc2>1.0) 
-    //cout<<i<<" "<<j<<" 7P "<<zp<<" "<<k<<" | "<<p->ZSN[FIJK]<<" "<<p->ZSN[FIJKp1]<<" . "<<ZSN_FIJp1K<<" "<<ZSN_FIJp1Kp1<<"   SIG: "<<value<<" "<<wa<<" "<<wb<<" || "<<wc1<<" "<<wc2<<" | "<<(ZSN_FIJKp1 - zp)/(ZSN_FIJKp1-ZSN_FIJK)<<" "<<wc4<<endl;
-    
-    //if(wa<0.0 || wa>1.0) 
-    //cout<<i<<" "<<j<<" 7P "<<zp<<" "<<k<<" | "<<p->ZSN[FIJK]<<" "<<p->ZSN[FIJKp1]<<" . "<<ZSN_FIJp1K<<" "<<ZSN_FIJp1Kp1<<"   wav: "<<wa<<" wb: "<<wb<<endl;
-    
+
     i=ii;
     j=jj;
     k=kk;
