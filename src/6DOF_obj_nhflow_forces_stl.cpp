@@ -48,8 +48,10 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
     double fsf_z;
     double f_jdir;
+    double A0;
+    int cut;
 
-    A=0.0;
+    A0=A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
@@ -83,6 +85,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         xp = xc;
         yp = yc;
         zp = zc;
+        
+    A0=A_triang=0.0;
+    f=0.0;
     
  
 		if (xc >= p->originx && xc < p->endx &&
@@ -124,6 +129,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             // Area of triangle using Heron's formula
 			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
             
+            A0 = A_triang;
     // ----------------
     // cut triangles
     // ----------------
@@ -276,9 +282,14 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 
             A_triang = triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
             }
+            /*
+            cut=0;
+            if(z0>f sf_z || z1>fsf_z  || z2>fsf_z)
+            cut=1;
             
-            //if(z0>fsf_z || z1>fsf_z  || z2>fsf_z)
-            //cout<<"A_0: "<<A_triang<<" A_triang: "<<triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2)<<" f: "<<f<<endl;
+            if(z0>fsf_z || z1>fsf_z  || z2>fsf_z)
+            if(f_jdir>0.1)
+            cout<<"cut: "<<cut<<" A_0: "<<A0<<" A_triang: "<<A_triang<<" f: "<<f<<" | f_jdir: "<<f_jdir<<endl;*/
    
             if(p->j_dir==0)
             ny=0.0;
