@@ -56,8 +56,6 @@ public:
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
-    double Hsolidface(lexer*, fdm_nhf*);
-    double Hsolidface_zero(lexer*, fdm_nhf*);
     
 	double starttime,endtime;
     int check;

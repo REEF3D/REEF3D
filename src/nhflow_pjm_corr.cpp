@@ -102,13 +102,12 @@ void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 	FLOOP
     WETDRYDEEP
     P[FIJK] += PCORR[FIJK];
-
-    /*
+    
     FLOOP
     WETDRYDEEP
     {
-    d->test[IJK] = PCORR[FIJK];
-    }*/
+    d->test[IJK] = PCORR[FIJKp1];
+    }
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
@@ -135,7 +134,6 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     n=0;
     LOOP
     {
-
         WETDRYDEEP
         {
         fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
@@ -182,8 +180,6 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
         dUdz = (U[IJK] - Up)/p->DZN[KP];
         dVdz = (V[IJK] - Vp)/p->DZN[KP];
         dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
-        
-        H = Hsolidface(p,d);
          
         d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                                 + p->sigx[FIJK]*dUdz
@@ -192,8 +188,6 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
                                 + p->sigy[FIJK]*dVdz
 
                                 + dWdz)/(alpha*p->dt);
-                                
-        d->test[IJK] = d->rhsvec.V[n];
         }
                             
     ++n;
@@ -285,94 +279,4 @@ void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
     LOOP
     WETDRYDEEP
     d->H[IJK] -= (1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
-}
-
-double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
-{
-    double psi, H, phival_fb,phival_solid,dirac,phival;
-    
-    if(p->j_dir==0)
-    psi = 3.0*p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*p->WL[IJ]);
-    
-    if(p->j_dir==1)
-    psi = 3.0*p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*p->WL[IJ]);
-
-
-    // Construct solid heaviside function
-    phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
-    phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
-    
-    if(p->solidread==0)
-    phival = phival_fb;
-    
-    if(p->solidread==1)
-    {
-    if(fabs(phival_fb)<fabs(phival_solid))
-    phival = phival_fb;
-    
-    if(fabs(phival_fb)>=fabs(phival_solid))
-    phival = phival_solid;
-    }
-    
-    
-    if(phival > psi)
-    H = 1.0;
-
-    if(phival < -psi)
-    H = 0.0;
-
-    if(fabs(phival)<=psi)
-    H = 0.5*(1.0 + (phival)/psi + (1.0/PI)*sin((PI*(phival))/psi));
-    
-    
-    if(p->solidread==0 && p->X10==0)
-    H=1.0;
-
-    return H;
-}
-
-double nhflow_pjm_corr::Hsolidface_zero(lexer *p, fdm_nhf *d)
-{
-    double psi, H, phival_fb,dirac, phival_solid, phival;
-    
-    if(p->j_dir==0)
-    psi = 4.0*p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*p->WL[IJ]);
-    
-    if(p->j_dir==1)
-    psi = 4.0*p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*p->WL[IJ]);
-
-
-    // Construct solid heaviside function
-    phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
-    phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
-    
-    if(p->solidread==0)
-    phival = phival_fb;
-    
-    if(p->solidread==1)
-    {
-    if(fabs(phival_fb)<fabs(phival_solid))
-    phival = phival_fb;
-    
-    if(fabs(phival_fb)>=fabs(phival_solid))
-    phival = phival_solid;
-    }
-    
-    
-    if(phival > psi)
-    H = 1.0;
-
-    if(phival < -psi)
-    H = 0.0;
-
-    if(fabs(phival)<=psi)
-    H = 0.5*(1.0 + (phival)/psi + (1.0/PI)*sin((PI*(phival))/psi));
-    
-    
-    
-    if(p->solidread==0 && p->X10==0)
-    H=1.0;
-
-
-    return H;
 }

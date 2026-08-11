@@ -301,7 +301,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     
 
             // pressure
-            pval   = p->ccipol7P(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
+            pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xp,yp);  
             hspval = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
 

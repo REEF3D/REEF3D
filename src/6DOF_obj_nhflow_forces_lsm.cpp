@@ -183,7 +183,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             viscosity += p->ccipol4V(d->EV, d->WL, d->bed,xloc,yloc,zloc);
             
             // pressure
-            pval   = p->ccipol7P(d->P, WL, d->bed, xc, yc, zc);// - p->pressgage;
+            pval   = p->ccipol7V(d->P, WL, d->bed, xc, yc, zc);// - p->pressgage;
             etaval = p->ccslipol4(d->eta,xc,yc);  
             hspval = (p->wd + etaval - zc)*p->W1*fabs(p->W22);
     

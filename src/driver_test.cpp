@@ -329,7 +329,6 @@ void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
 
 void driver::ipol_test(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    
     double xc,yc,zc;
 
 
@@ -340,20 +339,17 @@ void driver::ipol_test(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->mpirank==0)
     {
-    xc = 0.1;
+    xc = 5.4;
     yc = 0.1;
     zc = 0.203;
-    cout<<"CCIPOL_Z: "<<p->ccipol7P(d->test, d->WL, d->bed, xc, yc, zc)<<endl;
+    cout<<"CCIPOL_Z: "<<p->ccipol7V(d->test, d->WL, d->bed, xc, yc, zc)<<endl;
     
     cout<<endl;
     }
-    
-    
 }
 
 double driver::calc()
 {
-	
 	val = (9.0 + nom*5.0)/nom;
 	
 	return val;
