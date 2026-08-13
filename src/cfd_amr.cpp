@@ -473,7 +473,7 @@ void del_diff(diffusion *&b)
 // the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
 void free_lexer_cells(lexer *q)
 {
-    int **ia[] = {&q->flag1,&q->flag2,&q->flag3,&q->flag4,&q->flag5,&q->flagsf1,&q->flagsf2,&q->flagsf3,&q->flagsf4,
+    int **ia[] = {&q->flag1,&q->flag2,&q->flag3,&q->flag4,&q->flag5,
                   &q->IO,&q->DF,&q->DF1,&q->DF2,&q->DF3,&q->DFF};
     for(int **a : ia)
     {
