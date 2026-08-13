@@ -97,28 +97,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     }
     
     flagx(p,p->flagsf4);
-    
-    BASELOOP
-    {
-    p->flagsf1[IJK]=p->flagsf4[IJK];
-    p->flagsf2[IJK]=p->flagsf4[IJK];
-    p->flagsf3[IJK]=p->flagsf4[IJK];
-    
-    if(p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0)
-    p->flagsf1[IJK]=-1;
-    
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)
-    p->flagsf2[IJK]=-1;
-    
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)
-    p->flagsf3[IJK]=-1;
-    }
-    
-    flagx(p,p->flagsf1);
-    flagx(p,p->flagsf2);
-    flagx(p,p->flagsf3);
-    
-    
+
     // -----------------------------------------------------------
     // count gcdf entries
     count=0;
@@ -252,12 +231,36 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         p->gcdf4[n][5]=cval(i,j,k);
     }
 
-    gcdf_update_impl(p, p->flagsf1, p->gcdf1, p->gcdf1_count);
-    gcdf_update_impl(p, p->flagsf2, p->gcdf2, p->gcdf2_count);
-    gcdf_update_impl(p, p->flagsf3, p->gcdf3, p->gcdf3_count);
+    // flagsf1/2/3 are the staggered-face versions of flagsf4 (same convention as
+    // flag1-3 vs flag4): open unless the face's neighbor cell is blocked. Since
+    // that's a pure function of flagsf4 -- which already carries a p->margin-deep
+    // synced halo -- they're computed on the fly here instead of as separate
+    // arrays; gcdf_update_impl never reaches more than 2 cells from flagsf4.
+    auto flagsf1 = [p](int i, int j, int k) -> int
+    {
+        int v = p->flagsf4[IJK];
+        return (v>0 && p->flagsf4[Ip1JK]<0) ? -1 : v;
+    };
+
+    auto flagsf2 = [p](int i, int j, int k) -> int
+    {
+        int v = p->flagsf4[IJK];
+        return (v>0 && p->flagsf4[IJp1K]<0) ? -1 : v;
+    };
+
+    auto flagsf3 = [p](int i, int j, int k) -> int
+    {
+        int v = p->flagsf4[IJK];
+        return (v>0 && p->flagsf4[IJKp1]<0) ? -1 : v;
+    };
+
+    gcdf_update_impl(p, flagsf1, p->gcdf1, p->gcdf1_count);
+    gcdf_update_impl(p, flagsf2, p->gcdf2, p->gcdf2_count);
+    gcdf_update_impl(p, flagsf3, p->gcdf3, p->gcdf3_count);
 }
 
-void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &gcdf_count)
+template<typename FlagT>
+void ghostcell::gcdf_update_impl(lexer *p, FlagT &flagsf, int **&gcdf, int &gcdf_count)
 {
     // -----------------------
     // flagsf
@@ -265,24 +268,24 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
     count = 0;
 
     BASELOOP
-    if(flagsf[IJK]>0)
+    if(flagsf(i,j,k)>0)
     {
-        if(flagsf[Im1JK]<0)
+        if(flagsf(i-1,j,k)<0)
             ++count;
 
-        if(flagsf[Ip1JK]<0)
+        if(flagsf(i+1,j,k)<0)
             ++count;
 
-        if(flagsf[IJm1K]<0)
+        if(flagsf(i,j-1,k)<0)
             ++count;
 
-        if(flagsf[IJp1K]<0)
+        if(flagsf(i,j+1,k)<0)
             ++count;
 
-        if(flagsf[IJKm1]<0)
+        if(flagsf(i,j,k-1)<0)
             ++count;
 
-        if(flagsf[IJKp1]<0)
+        if(flagsf(i,j,k+1)<0)
             ++count;
     }
 
@@ -299,9 +302,9 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
     count=0;
     
     BASELOOP
-    if(flagsf[IJK]>0)
+    if(flagsf(i,j,k)>0)
     {
-        if(flagsf[Im1JK]<0)
+        if(flagsf(i-1,j,k)<0)
         {
             gcdf[count][0]=i;
             gcdf[count][1]=j;
@@ -311,7 +314,7 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
             ++count;
         }
 
-        if(flagsf[Ip1JK]<0)
+        if(flagsf(i+1,j,k)<0)
         {
             gcdf[count][0]=i;
             gcdf[count][1]=j;
@@ -321,7 +324,7 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
             ++count;
         }
 
-        if(flagsf[IJm1K]<0)
+        if(flagsf(i,j-1,k)<0)
         {
             gcdf[count][0]=i;
             gcdf[count][1]=j;
@@ -331,7 +334,7 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
             ++count;
         }
 
-        if(flagsf[IJp1K]<0)
+        if(flagsf(i,j+1,k)<0)
         {
             gcdf[count][0]=i;
             gcdf[count][1]=j;
@@ -341,7 +344,7 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
             ++count;
         }
 
-        if(flagsf[IJKm1]<0)
+        if(flagsf(i,j,k-1)<0)
         {
             gcdf[count][0]=i;
             gcdf[count][1]=j;
@@ -351,7 +354,7 @@ void ghostcell::gcdf_update_impl(lexer *p, const int *flagsf, int **&gcdf, int &
             ++count;
         }
 
-        if(flagsf[IJKp1]<0)
+        if(flagsf(i,j,k+1)<0)
         {
             gcdf[count][0]=i;
             gcdf[count][1]=j;
