@@ -83,8 +83,10 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 	double factor;
 	double H;
 	int n;
-        
-        
+    
+    // RANS
+    if(p->A560==2)
+    {
         if(p->A564==0)
         LOOP
 		d->EV0[IJK] = MAX(KIN[IJK]
@@ -110,7 +112,8 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
 		}
-	
+	}
+    
     // URANS
 	if(p->A560==22)
 	LOOP

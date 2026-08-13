@@ -177,7 +177,7 @@ void nhflow_timeavg_vel_profile::ini_location(lexer *p, fdm_nhf *d)
     {
         iloc[n]=p->posc_i(p->P148_x[n]);
 
-        if(p->j_dir==0)
+        if(p->j_dir==0 || p->knoy==1)
         {
             jloc[n]=0;
             p->P148_y[n] = 0.5*p->YP[JP];
