@@ -48,12 +48,10 @@ public:
     slice4 dfdx,dfdy;
 
 private:
-    void iqmin(lexer*, slice&);
-    void iqmax(lexer*, slice&);
-    void jqmin(lexer*, slice&);
-    void jqmax(lexer*, slice&);
-    
-    double limiter(double, double);
+    inline void iqmin(lexer*, slice&);
+    inline void iqmax(lexer*, slice&);
+    inline void jqmin(lexer*, slice&);
+    inline void jqmax(lexer*, slice&);
 
     double ivel1,ivel2,jvel1,jvel2;
     int qq;
