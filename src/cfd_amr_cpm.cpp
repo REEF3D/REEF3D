@@ -608,9 +608,6 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
 
     q->flagini();
     g->flagfield(q);
-    g->flagx(q,q->flagsf1);
-    g->flagx(q,q->flagsf2);
-    g->flagx(q,q->flagsf3);
     g->flagx(q,q->flagsf4);
     g->flagx(q,q->flag1);
     g->flagx(q,q->flag2);

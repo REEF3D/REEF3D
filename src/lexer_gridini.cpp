@@ -58,18 +58,12 @@ void lexer::flagini()
 	Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
 
-    Iarray(flagsf1,imax*jmax*kmax);
-	Iarray(flagsf2,imax*jmax*kmax);
-	Iarray(flagsf3,imax*jmax*kmax);
 	Iarray(flagsf4,imax*jmax*kmax);
 
     for(i=0; i<knox; ++i)
     for(j=0; j<knoy; ++j)
     for(k=0; k<knoz; ++k)
     {
-    flagsf1[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
-    flagsf2[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
-    flagsf3[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
     flagsf4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
     }
 
@@ -265,9 +259,6 @@ void lexer::flagfree_fnpf()
     del_Iarray(flag2,n3);
     del_Iarray(flag3,n3);
     
-    del_Iarray(flagsf1,n3);
-    del_Iarray(flagsf2,n3);
-    del_Iarray(flagsf3,n3);
     del_Iarray(flagsf4,n3);
     
     del_Iarray(IO,n3);
