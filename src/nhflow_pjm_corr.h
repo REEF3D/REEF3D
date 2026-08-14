@@ -78,7 +78,5 @@ private:
 
 };
 
-
-
 #endif
 

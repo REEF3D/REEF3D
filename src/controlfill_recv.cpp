@@ -224,6 +224,8 @@ void control::ctrlrecv()
     ii++;
     A525 = ictrl[ii];
     ii++;
+    A526 = dctrl[dd];
+    dd++;
     A531 = dctrl[dd];
     dd++;
     A532 = ictrl[ii];

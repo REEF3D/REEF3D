@@ -218,16 +218,6 @@ void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double 
 	LOOP
     WETDRYDEEP
     {
-    /*PP1 = 0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK]);
-    P0 = 0.5*(PCORR[FIJKp1]+PCORR[FIJK]);
-    PM1 = 0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]);
-    
-    dfdx_plus = (PP1 - P0)/p->DXP[IP];
-    dfdx_min  = (P0 - PM1)/p->DXP[IM1];
-    
-    dPdx = limiter(dfdx_plus,dfdx_min);
-    
-    if(i-p->origin_i==0)*/
     dPdx = (0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
 	UH[IJK] -= alpha*p->dt*WL(i,j)*(1.0/p->W1)*
@@ -244,18 +234,7 @@ void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double 
     LOOP
     WETDRYDEEP
     {
-    /*PP1 = 0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K]);
-    P0 = 0.5*(PCORR[FIJKp1]+PCORR[FIJK]);
-    PM1 = 0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]);
-    
-    dfdy_plus = (PP1 - P0)/p->DYP[JP];
-    dfdy_min  = (P0 - PM1)/p->DYP[JM1];
-    
-    dPdy = limiter(dfdy_plus,dfdy_min);
-    
-    if(i-p->origin_i==0)*/
     dPdy = (0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
-    
     
     VH[IJK] -= alpha*p->dt*WL(i,j)*(1.0/p->W1)*
     
@@ -282,16 +261,6 @@ void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     LOOP
     WETDRYDEEP
     {
-    /*PP1 = 0.5*(d->P[FIp1JKp1]+d->P[FIp1JK]);
-    P0 = 0.5*(d->P[FIJKp1]+d->P[FIJK]);
-    PM1 = 0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]);
-    
-    dfdx_plus = (PP1 - P0)/p->DXP[IP];
-    dfdx_min  = (P0 - PM1)/p->DXP[IM1];
-    
-    dPdx = limiter(dfdx_plus,dfdx_min);
-    
-    if(i-p->origin_i==0)*/
     dPdx = (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
     
     d->F[IJK] -= (1.0/p->W1)*WL(i,j)*
@@ -312,16 +281,6 @@ void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
     LOOP
     WETDRYDEEP
     {
-    /*PP1 = 0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K]);
-    P0 = 0.5*(d->P[FIJKp1]+d->P[FIJK]);
-    PM1 = 0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]);
-    
-    dfdy_plus = (PP1 - P0)/p->DYP[JP];
-    dfdy_min  = (P0 - PM1)/p->DYP[JM1];
-    
-    dPdy = limiter(dfdy_plus,dfdy_min);
-    
-    if(i-p->origin_i==0)*/
     dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
     
 	d->G[IJK] -= (1.0/p->W1)*WL(i,j)*

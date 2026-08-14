@@ -128,8 +128,9 @@ void control::ini_default()
     A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
-    A524=1;      // int sigma gradients
+    A524=2;      // int sigma gradients
     A525=0;      // int 
+    A526=1.1;    // double direct forcing factor
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
@@ -909,7 +910,7 @@ void control::ini_default()
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity cfd
-    X15=0;      // int tangential velocity nhflow
+    X15=1;      // int tangential velocity nhflow
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body
