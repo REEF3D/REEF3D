@@ -37,7 +37,7 @@ nhflow_reconstruct_hires::~nhflow_reconstruct_hires()
 {
 }
 
-inline void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
+void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
 {
     SLICELOOP4
     dfdx(i,j) = 0.0;
@@ -65,7 +65,7 @@ inline void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc,
     pgc->gcsl_start1(p,fn,1);
 }
 
-inline void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
+void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
 {
     if(p->j_dir==1)
     {
@@ -97,7 +97,7 @@ inline void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc,
     }
 }
 
-inline void nhflow_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
+void nhflow_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
 {
     // water level  
     SLICELOOP1
@@ -129,7 +129,7 @@ inline void nhflow_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc
         
 }
 
-inline void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
+void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
 {
     // gradient
     LOOP
@@ -157,7 +157,7 @@ inline void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc,
     pgc->start1V(p,Fn,1);
 }
 
-inline void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
+void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
 {
     // gradient
     if(p->j_dir==1)
@@ -188,7 +188,7 @@ inline void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc,
     }
 }
 
-inline void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
+void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
 {
     // gradient
     LOOP
@@ -216,7 +216,7 @@ inline void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc,
     pgc->start3V(p,Ft,1);
 }
 
-inline double nhflow_reconstruct_hires::limiter(double v1, double v2)
+double nhflow_reconstruct_hires::limiter(double v1, double v2)
 {
     val=0.0;
     

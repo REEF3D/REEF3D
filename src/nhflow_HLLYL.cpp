@@ -325,7 +325,7 @@ void nhflow_HLLYL::HLL_E(lexer *&p, fdm_nhf *&d)
 }
 
 
-inline double nhflow_HLLYL::limiter(double v1, double v2)
+double nhflow_HLLYL::limiter(double v1, double v2)
 {
     val=0.0;
     

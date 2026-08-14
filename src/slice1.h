@@ -32,7 +32,7 @@ public:
 	slice1(lexer*);
 	virtual ~slice1();
 
-    inline double& operator()(int, int) override final;
+    double& operator()(int, int) override final;
     void ggcpol(lexer*) override final;
 
 private:

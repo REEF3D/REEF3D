@@ -34,7 +34,7 @@ public:
     slice4(lexer*);
     virtual ~slice4();
 
-    inline double& operator()(int, int) override final;
+    double& operator()(int, int) override final;
     void ggcpol(lexer*) override final;
 
 private:
