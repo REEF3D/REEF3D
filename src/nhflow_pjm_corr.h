@@ -56,6 +56,7 @@ public:
     void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
 
 private:
+    double limiter(double,double);
     
 	double starttime,endtime;
     int check;
@@ -65,8 +66,11 @@ private:
     double val, denom;
     double gamma;
     double *PCORR;
+    
     double dPdx,dPdy,dPdz;
-    double H;
+    double dfdx_plus,dfdx_min;
+    double dfdy_plus,dfdy_min;
+    double PM1,P0,PP1;
 
     density *pd;
     nhflow_poisson_pcorr *ppois;

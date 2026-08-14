@@ -62,7 +62,16 @@ void nhflow_flux_build_f::start_U(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK])/(PORVALNH*PORVALNH);
+    {
+    if(d->omegaF[FIJKp1]>=0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(d->Ub[IJK]))/(PORVALNH*PORVALNH);
+    
+    if(d->omegaF[FIJKp1]<0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(d->Ut[IJK]))/(PORVALNH*PORVALNH);
+    }
+    
+    //WLOOP
+    //d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK])/(PORVALNH*PORVALNH);
 }
 
 void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
@@ -91,7 +100,16 @@ void nhflow_flux_build_f::start_V(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK])/(PORVALNH*PORVALNH);
+    {
+    if(d->omegaF[FIJKp1]>=0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(d->Vb[IJK]))/(PORVALNH*PORVALNH);
+    
+    if(d->omegaF[FIJKp1]<0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(d->Vt[IJK]))/(PORVALNH*PORVALNH);
+    }
+    
+    //WLOOP
+    //d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK])/(PORVALNH*PORVALNH);
     }
 }
 
@@ -116,7 +134,16 @@ void nhflow_flux_build_f::start_W(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Wt[IJK] - d->Wb[IJK])/(PORVALNH*PORVALNH);
+    {
+    if(d->omegaF[FIJKp1]>=0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(d->Wb[IJK]))/(PORVALNH*PORVALNH);
+    
+    if(d->omegaF[FIJKp1]<0.0)
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(d->Wt[IJK]))/(PORVALNH*PORVALNH);
+    }
+    
+    //WLOOP
+    //d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Wb[IJK] + d->Wt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Wt[IJK] - d->Wb[IJK])/(PORVALNH*PORVALNH);
 }
 
 void nhflow_flux_build_f::start_E(lexer* p, fdm_nhf *d, ghostcell *pgc)
