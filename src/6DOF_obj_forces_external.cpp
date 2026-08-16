@@ -38,6 +38,16 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
     // Net forces
 	if (p->X320>0)
 	netForces_cfd(p,a,pgc,alpha,finalize);
+
+	if (p->X330>0){
+        pforce->forcesext_trans(p, pgc);
+        auto forces = pforce->get_forces();
+        Xext += forces(0);
+        Yext += forces(1);
+        Zext += forces(2);
+	}
+
+
 }
 
 void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha, bool finalize)
@@ -126,5 +136,4 @@ void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
         Mext += Mne[n];
         Next += Nne[n];
     }
-}	
-
+}

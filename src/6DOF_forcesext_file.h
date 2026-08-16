@@ -1,0 +1,72 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Hans Bihs
+--------------------------------------------------------------------*/
+
+#ifndef SIXDOF_FORCESEXT_FILE_H_
+#define SIXDOF_FORCESEXT_FILE_H_
+
+#include"6DOF_forcesext.h"
+#include<fstream>
+#include <Eigen/Dense>
+
+class lexer;
+class fdm;
+class fdm_nhf;
+class fdm2D;
+class ghostcell;
+class field;
+
+using namespace std;
+
+class sixdof_forcesext_file final : public sixdof_forcesext
+{
+public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+
+    void forcesext_trans(lexer*, ghostcell*) override final;
+    void forcesext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override final;
+
+    void ini(lexer*,ghostcell*) override final;
+
+
+
+
+    sixdof_forcesext_file(lexer*, ghostcell*);
+	// virtual ~sixdof_forcesext_file();
+
+private:
+
+    void read_format(lexer*,ghostcell*);
+
+
+    ofstream file;
+    char name[200];
+    int qn,count,ptnum;
+    int rowcount,colcount;
+    int colnum;
+    double val;
+    double **data;
+    double ts,te;
+    int timecount,timecount_old;
+
+};
+
+#endif

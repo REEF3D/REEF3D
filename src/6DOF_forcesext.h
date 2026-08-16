@@ -1,0 +1,52 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Author: Hans Bihs
+--------------------------------------------------------------------*/
+
+#ifndef SIXDOF_FORCESEXT_H_
+#define SIXDOF_FORCESEXT_H_
+
+class lexer;
+class fdm;
+class fdm_nhf;
+class fdm2D;
+class ghostcell;
+class field;
+#include <Eigen/Dense>
+
+using namespace std;
+
+class sixdof_forcesext
+{
+public:
+    virtual void forcesext_trans(lexer*, ghostcell*)=0;
+    virtual void forcesext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&)=0;
+
+    virtual void ini(lexer*,ghostcell*)=0;
+    Eigen::Vector3d get_forces(){
+        return Eigen::Vector3d{Xext, Yext, Zext};
+    };
+
+    protected:
+        double Xext, Yext, Zext, Kext, Mext, Next;
+
+};
+
+#endif

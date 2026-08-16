@@ -23,6 +23,7 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_OBJ_H_
 #define SIXDOF_OBJ_H_
 
+#include "6DOF_forcesext.h"
 #include"ddweno_f_nug.h"
 #include"field1.h"
 #include"field2.h"
@@ -315,7 +316,7 @@ private:
     
     // extmotion
     sixdof_motionext *pmotion;
-    
+    sixdof_forcesext *pforce;
     // forces
     int **tri, **facet, *confac, *numfac,*numpt;
 	double **ccpt, **pt, *ls;
