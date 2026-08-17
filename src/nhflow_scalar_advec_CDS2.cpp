@@ -36,8 +36,8 @@ void nhflow_scalar_advec_CDS2::uadvec(int ipol, double *U, double &uflux1, doubl
 {
 	if(ipol==4)
 	{
-	uflux1 = U[IJK];
-	uflux2 = U[IJK];
+	uflux1 = 0.5*(U[IJK]+U[Im1JK]);
+	uflux2 = 0.5*(U[IJK]+U[Ip1JK]);
 	}
 }
 
@@ -45,8 +45,8 @@ void nhflow_scalar_advec_CDS2::vadvec(int ipol, double *V, double &vflux1, doubl
 {
 	if(ipol==4)
 	{
-	vflux1 = V[IJK];
-	vflux2 = V[IJK];
+	vflux1 = 0.5*(V[IJK]+V[IJm1K]);
+	vflux2 = 0.5*(V[IJK]+V[IJp1K]);
 	}
 }
 
@@ -54,8 +54,8 @@ void nhflow_scalar_advec_CDS2::wadvec(int ipol, double *W, double &wflux1, doubl
 {
 	if(ipol==4)
 	{
-	wflux1 = 0.5*(W[FIJK]+W[FIJKp1]);
-	wflux2 = 0.5*(W[FIJK]+W[FIJKp1]);
+	wflux1 = W[FIJK];
+	wflux2 = W[FIJKp1];
 	}
 }
 

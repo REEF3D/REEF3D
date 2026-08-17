@@ -103,8 +103,8 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         }
         
         /*if(p->mpirank==0)
-        if(i==50 && k==p->knoz-1)
-        d->rhsvec.V[count] += 0.0001;*/
+        if(i==10 && k==p->knoz-1)
+        d->rhsvec.V[count] += 0.000001;*/
 
 	++count;
     }
