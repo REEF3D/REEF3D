@@ -48,8 +48,6 @@ public:
 	double starttime;
     
 private:
-    double epsi;
-	double dirac;
     double dxm,f;
 };
 
