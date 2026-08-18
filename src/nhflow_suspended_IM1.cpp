@@ -63,7 +63,6 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 {
     int count=0;
-    int q;
 
     LOOP
     {
@@ -82,9 +81,9 @@ void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
     FLOOP
-    WVEL[FIJK] = d->omegaF[FIJK] - s->ws;
+    WVEL[IJK] = d->W[IJK] - s->ws;
     
-    pgc->start7S(p,WVEL,17);
+    pgc->start4V(p,WVEL,12);
 }
 
 void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sediment_fdm *s)
@@ -100,11 +99,18 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
         
         //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/zdist;
+        
+        
+        /*if(s->cbe(i,j)>s->cb(i,j))
+        d->rhsvec.V[count]  += s->ws*s->cb(i,j)/zdist;
+        
+        if(s->cbe(i,j)<=s->cb(i,j))
+        d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/zdist;*/
         }
         
         /*if(p->mpirank==0)
         if(i==10 && k==p->knoz-1)
-        d->rhsvec.V[count] += 0.000001;*/
+        d->rhsvec.V[count] += 0.00001;*/
 
 	++count;
     }

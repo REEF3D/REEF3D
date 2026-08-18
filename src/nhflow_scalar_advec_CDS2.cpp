@@ -54,8 +54,8 @@ void nhflow_scalar_advec_CDS2::wadvec(int ipol, double *W, double &wflux1, doubl
 {
 	if(ipol==4)
 	{
-	wflux1 = W[FIJK];
-	wflux2 = W[FIJKp1];
+	wflux1 = 0.5*(W[IJK]+W[IJm1K]);
+	wflux2 = 0.5*(W[IJK]+W[IJp1K]);
 	}
 }
 
