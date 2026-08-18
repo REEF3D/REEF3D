@@ -59,7 +59,7 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
 	 
 	 d->M.p[count] =    udir*ivel2/p->DXN[IM1] - (1.0-udir)*ivel1/p->DXN[IP]
 					+ (vdir*jvel2/p->DYN[JM1] - (1.0-vdir)*jvel1/p->DYN[JP])*p->y_dir
-					+  wdir*kvel2/p->DZN[KM1] - (1.0-wdir)*kvel1/p->DZN[KP];
+					+  wdir*kvel2/(p->DZN[KM1]*p->WL[IJ]) - (1.0-wdir)*kvel1/(p->DZN[KP]*p->WL[IJ]);
 	 
 	 d->M.s[count] = -udir*ivel1/p->DXN[IM1];
 	 d->M.n[count] =  (1.0-udir)*ivel2/p->DXN[IP];
@@ -67,8 +67,8 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
 	 d->M.e[count] = -vdir*jvel1/p->DYN[JM1]*p->y_dir;
 	 d->M.w[count] =  (1.0-vdir)*jvel2/p->DYN[JP]*p->y_dir;
 	 
-	 d->M.b[count] = -wdir*kvel1/p->DZN[KM1];
-	 d->M.t[count] =  (1.0-wdir)*kvel2/p->DZN[KP];
+	 d->M.b[count] = -wdir*kvel1/(p->DZN[KM1]*p->WL[IJ]);
+	 d->M.t[count] =  (1.0-wdir)*kvel2/(p->DZN[KP]*p->WL[IJ]);
      
 	 ++count;
     }
