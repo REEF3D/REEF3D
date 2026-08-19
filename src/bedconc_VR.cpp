@@ -52,10 +52,10 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     s->cbn(i,j) = s->cbe(i,j);
     
     // cb* van Rijn
-    SLICELOOP4
+    SEDSLICELOOP
     {
-    Ts = s->shields_crit(i,j);
-    Tb = s->shields_eff(i,j);
+    Ts = s->tau_crit(i,j);
+    Tb = s->tau_eff(i,j);
     
     Ti=MAX((Tb-Ts)/(Ts),0.0);
         

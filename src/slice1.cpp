@@ -53,10 +53,10 @@ void slice1::fieldgcalloc(lexer* p)
 
 double & slice1::operator()(int ii, int jj)
 {
-    if(pp->mgcsl1[(ii-imin)*jmax + (jj-jmin)]<2)
+    //if(pp->mgcsl1[(ii-imin)*jmax + (jj-jmin)]<2)
     return V[(ii-imin)*jmax + (jj-jmin)];
 
-
+/*
     iter=(ii-imin)*jmax + (jj-jmin);
 
     di=ii-i;
@@ -165,5 +165,5 @@ double & slice1::operator()(int ii, int jj)
         return gcfeld[pp->mgcsl1[iter]-10][1][dj];
     }
 
-    return V[iter];
+    return V[iter];*/
 }

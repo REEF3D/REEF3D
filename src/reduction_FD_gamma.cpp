@@ -53,7 +53,7 @@ void reduction_FD_gamma::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     r = fx*cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j))) + (1.0-fx);
     
-    r*= (fy*cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0))  + (1.0-fy));
+    r*= (fy*cos(s->alpha(i,j))*sqrt(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0))  + (1.0-fy));
         
         // limiter
         if( 1.0-s->gamma(i,j)/s->phi(i,j) < 0.0)

@@ -112,7 +112,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     }
 
     // 2D
-    if(p->j_dir==0 && p->A312!=1)
+    if(p->j_dir==0)
     SLICELOOP4
     {
     d->Bx(i,j) = sx(d->depth);    
