@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"slice.h"
 #include"patchBC_interface.h"
-#include"sflow_reconstruct_hires.h"
 #include"sflow_signal_speed.h"
 #include"sflow_flux_build_f.h"
 
