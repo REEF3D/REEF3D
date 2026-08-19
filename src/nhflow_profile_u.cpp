@@ -81,6 +81,7 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // print 
     double xp,yp;
+    double uipol;
     
     for(n=0;n<probenum;++n)
     if(flag[n]==1)
@@ -95,10 +96,11 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i = iloc[n];
         j = jloc[n];
     
-        uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, p->ZSP[IJK]);
+        uval = d->U[IJK];
+        uipol = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, p->ZSP[IJK]);
         }
  
-    pout[n]<<setprecision(9)<<p->ZSP[IJK]<<" \t "<<uval<<endl;
+    pout[n]<<setprecision(9)<<p->ZSP[IJK]<<" \t "<<uipol<<endl;//<<" :  "<<uipol<<endl;
     } 
     
     for(n=0;n<probenum;++n)

@@ -75,7 +75,7 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
         
     wc = (Z2-zp)/(Z2-Z1);
         
-    
+    /*
     i = MAX(i,0);
     i = MIN(i,p->knox-1);
     
@@ -84,7 +84,7 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     
     k = MAX(k,0);
     k = MIN(k,p->knoz-1);
-    
+    */
     
     wc = MAX(wc,0);
     wc = MIN(wc,1.0);
