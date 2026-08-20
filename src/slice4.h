@@ -23,30 +23,13 @@ Author: Hans Bihs
 #ifndef SLICE4_H_
 #define SLICE4_H_
 
-#include"slice.h"
-#include"increment.h"
+#include "slice.h"
 
-using namespace std;
-
-class slice4 final : public slice, increment
+class slice4 final : public slice
 {
 public:
-    slice4(lexer*);
-    virtual ~slice4();
-
-    double& operator()(int, int) override final;
-
-private:
-    void fieldgcalloc(lexer*);
-
-    int iter;
-    int gcfeldsize;
-
-    int di,dj;
-
-    lexer *pp;
-
-    double ***gcfeld;
+    slice4(lexer *p) : slice(p) {};
+    virtual ~slice4() = default;
 };
 
 #endif

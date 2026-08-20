@@ -61,8 +61,6 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     double kin;
     double turb_force_fac = 50.0;
     
-    pip=4;
-    
     LOOP
     eps0(i,j,k) = 0.0;
     
@@ -143,10 +141,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
             }     
         }
     }
-    
-    
-    pip=0;
-    
+
     if(p->T10==2)
     LOOP
     if(eps0(i,j,k)>1.0e-8)
