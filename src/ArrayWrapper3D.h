@@ -28,6 +28,24 @@ Author: Alexander Hanke
 
 class lexer;
 
+/*!
+    * @brief Values for the data_location constructor argument.
+    *
+    * 1/2/3 select the staggered direction for the boundary shift; 4 is
+    * cell-centred, the default. Without AMReX 1/2/3 have the same layout as 4
+    * and setVal() treats them as cell-centred (LOOP), like field1-3 do; the
+    * staggered box types only exist on the USE_AMREX path. 7 is the sigma-grid vertical-node layout:
+    * vertical stride p->kmaxF instead of p->kmax, one plane more than there
+    * are cells, which reproduces the FIJK addressing in iterators3D.h. It is
+    * the integer counterpart of field7 and the "7" in flag7 / gcx_flagx7 /
+    * gcx_parax7co.
+    *
+    * The extent is a constructor argument rather than a distinct type on
+    * purpose: this class is final and its accessors are hot (see
+    * cache_addressing on why the strides are long), so a subclass would cost
+    * a vtable on every flag test for no expressive gain.
+*/
+
 class ArrayWrapper3D final
 {
 public:
@@ -66,6 +84,14 @@ public:
     const int *end() const noexcept {return m_data.data()+m_data.size();}
 
 private:
+    /// Vertical extent for this wrapper's data location: p->kmaxF for the
+    /// vertical-node layout (7), p->kmax otherwise. Resolved on demand rather
+    /// than cached at construction — grid::assign_margin sets kmax and kmaxF
+    /// together and both are final by the time resize() runs, but not
+    /// necessarily by the time the ctor does (lexer builds its own wrappers in
+    /// its initialiser list).
+    int kz() const noexcept;
+
     /// Recomputes the cached addressing below from @p m_data and the lexer grid
     /// metrics. Must be called after anything that resizes @p m_data.
     void cache_addressing() noexcept;
