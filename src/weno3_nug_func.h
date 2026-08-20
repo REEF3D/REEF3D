@@ -62,8 +62,6 @@ public:
     void weight_max_z();
     
     
-    static int* ggcmem;
-    
     static double ****qfx,****qfy,****qfz;
     static double ***cfx,***cfy,***cfz;
     static double ***isfx,***isfy,***isfz;

@@ -35,7 +35,6 @@ public:
     virtual ~slice4();
 
     double& operator()(int, int) override final;
-    void ggcpol(lexer*) override final;
 
 private:
     void fieldgcalloc(lexer*);

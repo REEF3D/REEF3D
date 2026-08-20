@@ -3032,14 +3032,7 @@
             <File Name="mgcslice2.cpp"/>
             <File Name="mgcslice1.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="GGC">
-            <File Name="ggcslicepol4.cpp"/>
-            <File Name="ggcslicepol2.cpp"/>
-            <File Name="ggcslicepol1.cpp"/>
-            <File Name="ggcslice4.cpp"/>
-            <File Name="ggcslice2.cpp"/>
-            <File Name="ggcslice1.cpp"/>
-          </VirtualDirectory>
+          <VirtualDirectory Name="GGC"/>
           <VirtualDirectory Name="GCB">
             <File Name="gcbslice4.cpp"/>
             <File Name="gcbslice2.cpp"/>

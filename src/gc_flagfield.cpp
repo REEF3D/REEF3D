@@ -26,10 +26,6 @@ Author: Hans Bihs
 void ghostcell::flagfield(lexer *p)
 {
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
-    p->flag[i]=1;
-
-        
-    for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
     {
     if(p->flag4[i]==1)
     p->flag4[i]=WATER_FLAG;

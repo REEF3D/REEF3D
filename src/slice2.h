@@ -33,7 +33,6 @@ public:
     virtual ~slice2();
 
     double& operator()(int, int) override final;
-    void ggcpol(lexer*) override final;
 
 private:
     void fieldgcalloc(lexer*);

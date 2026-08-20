@@ -35,7 +35,6 @@ public:
 	virtual ~slice5() = default;
 
     inline double& operator()(int ii, int jj) noexcept override final {return V[(ii-imin)*jmax + (jj-jmin)];};
-    void ggcpol(lexer*) override final {};
 };
 
 #endif
