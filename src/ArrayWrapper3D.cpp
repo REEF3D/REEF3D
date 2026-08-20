@@ -33,15 +33,28 @@ ArrayWrapper3D::ArrayWrapper3D(lexer *pp, unsigned int loc) : p(pp), data_locati
 
 ArrayWrapper3D::~ArrayWrapper3D() = default;
 
+int ArrayWrapper3D::kz() const noexcept
+{
+    return data_location == 7 ? p->kmaxF : p->kmax;
+}
+
 // Call after the grid metrics are final. Safe to repeat: every call refills the whole
 // array (ghosts included) with default_value, so no value from an earlier size
 // survives at the wrong strides.
 void ArrayWrapper3D::resize(int default_value)
 {
     // Single level: one flat array, sized from the same lexer metrics the IJK
-    // macro reads. grid::assign_margin sets imax/jmax/kmax and imin/jmin/kmin
-    // together, so both are final by the time resize runs.
-    m_data.assign(static_cast<std::size_t>(p->imax)*p->jmax*p->kmax, default_value);
+    // (or, for the vertical-node layout, FIJK) macro reads.
+    // grid::assign_margin sets imax/jmax/kmax/kmaxF and imin/jmin/kmin
+    // together, so all are final by the time resize runs.
+    //
+    // The slack plane matches the imax*jmax*(kmax+2) allocation this replaces
+    // in driver_makegrid_sigma.cpp: the stride is kmaxF = kmax+1, and the
+    // forward-stencil macros (FIJKp3/p4) reach past the last in-stride slot in
+    // the final column. See field7 for the same reasoning.
+    const std::size_t plane = static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax);
+    const std::size_t slack = (data_location == 7) ? plane : 0;
+    m_data.assign(plane*static_cast<std::size_t>(kz()) + slack, default_value);
     cache_addressing();
 }
 
@@ -54,30 +67,26 @@ void ArrayWrapper3D::release() noexcept
 }
 
 /*!
-    * @brief Precomputes the flat addressing used by operator() and operator[].
-    *
-    * The origin and both strides are folded into m_base, so that
-    *
-    *   m_data[(i-imin)*jmax*kz + (j-jmin)*kz + (k-kmin)]  ==  m_base[i*m_js + j*m_ks + k]
-    *
-    * and operator() needs no lexer dereference at all. That is what lets the
-    * index be shared with neighbouring accesses instead of being rebuilt from
-    * p on every one — the wrapper's own p is a different pointer to the
-    * compiler than the p at the call site, so nothing computed through it can
-    * be reused.
-    *
-    * m_base is not a pointer formed before the array: imin/jmin/kmin are all
-    * -margin, so it lands at data.data() + margin*(m_js + m_ks + 1).
-    *
-    * The strides are long deliberately. An int store through the reference
-    * returned by operator() may alias an int member under TBAA, which forces a
-    * reload of the strides on every iteration of a writing loop; as longs they
-    * stay in registers and the address strength-reduces to an induction
-    * variable.
-*/
+ * @brief Precomputes the flat addressing used by operator() and operator[].
+ *
+ * See field_base::cache_addressing for the rationale (origin folding, why
+ * m_base stays inside the allocation, stride width). Here
+ *
+ *   m_data[(i-imin)*jmax*kz + (j-jmin)*kz + (k-kmin)]  ==  m_base[i*m_js + j*m_ks + k]
+ *
+ * with kz = kz(): p->kmax, or p->kmaxF for the vertical-node layout (7),
+ * where this is the FIJK addressing.
+ *
+ * Specific to this class: operator() needs no lexer dereference at all. The
+ * wrapper's own p is a different pointer to the compiler than the p at the
+ * call site, so nothing computed through it could be shared with neighbouring
+ * accesses; the cached strides can.
+ */
 void ArrayWrapper3D::cache_addressing() noexcept
 {
-    m_ks   = p->kmax;
-    m_js   = static_cast<long>(p->jmax) * p->kmax;
+    assert(p->imin<=0 && p->jmin<=0 && p->kmin<=0); // keeps m_base inside the allocation
+
+    m_ks   = kz();
+    m_js   = static_cast<stride_t>(p->jmax) * kz();
     m_base = m_data.data() - p->imin*m_js - p->jmin*m_ks - p->kmin;
 }
