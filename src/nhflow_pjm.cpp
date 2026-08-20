@@ -83,9 +83,6 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
     p->poissoniter=p->solveriter;
 
 	p->poissontime=endtime-starttime;
-    
-    FLOOP
-    d->test[IJK] = d->P[FIJK] - P0[FIJK];
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
@@ -197,7 +194,6 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
 
                                 + dWdz)/(alpha*p->dt);
                                 
-        //d->test[IJK] = d->rhsvec.V[n];
         }
                             
     ++n;

@@ -39,7 +39,6 @@ nhflow_strain::~nhflow_strain()
 
 void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALLF)
 {
-
 	LOOP
 	WALLF[IJK]=0;
     

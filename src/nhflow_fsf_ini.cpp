@@ -44,8 +44,6 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     
     pgc->start1V(p,d->FEx,10);
     
-    pgc->start4V(p,d->test,1);
-    
     
     // FSF Box
     if(p->F72>0)
