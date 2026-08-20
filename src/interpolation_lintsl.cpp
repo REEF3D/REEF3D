@@ -30,7 +30,6 @@ double interpolation::lintsl1(slice &f, int& i,int& j, double wa, double wb)
     v1=v2=v3=v4=0.0;
     c1=c2=c3=c4=0;
 
-pip=4;
     if(p->flagslice1[IJ]>0)
     {
     v1=f(i,j);
@@ -54,8 +53,7 @@ pip=4;
     v4=f(i+1,j+1);
     c4=1;
     }
-pip=0;
-    
+
     // x1
     if(c1==1 && c3==1)
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -98,7 +96,6 @@ double interpolation::lintsl2(slice &f, int& i,int& j, double wa, double wb)
         v1=v2=v3=v4=0.0;
     c1=c2=c3=c4=0;
 
-pip=4;
     if(p->flagslice2[IJ]>0)
     {
     v1=f(i,j);
@@ -122,8 +119,7 @@ pip=4;
     v4=f(i+1,j+1);
     c4=1;
     }
-pip=0;
-    
+
     // x1
     if(c1==1 && c3==1)
     x1 = wa*v1 + (1.0-wa)*v3;
@@ -166,7 +162,6 @@ double interpolation::lintsl4(slice& f, int& i,int& j, double wa, double wb)
     v1=v2=v3=v4=0.0;
     c1=c2=c3=c4=0;
 
-pip=4;
     if(p->flagslice4[IJ]>0)
     {
     v1=f(i,j);
@@ -190,8 +185,7 @@ pip=4;
     v4=f(i+1,j+1);
     c4=1;
     }
-pip=0;
-    
+
     // x1
     if(c1==1 && c3==1)
     x1 = wa*v1 + (1.0-wa)*v3;
