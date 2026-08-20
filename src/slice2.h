@@ -23,28 +23,13 @@ Author: Hans Bihs
 #ifndef SLICE2_H_
 #define SLICE2_H_
 
-#include"slice.h"
-#include"increment.h"
+#include "slice.h"
 
-class slice2 final : public slice, increment
+class slice2 final : public slice
 {
 public:
-    slice2(lexer*);
-    virtual ~slice2();
-
-    double& operator()(int, int) override final;
-
-private:
-    void fieldgcalloc(lexer*);
-
-    int iter;
-    int gcfeldsize;
-
-    int di,dj;
-
-    lexer *pp;
-
-    double ***gcfeld;
+    slice2(lexer *p) : slice(p) {};;
+    virtual ~slice2() = default;
 };
 
 #endif

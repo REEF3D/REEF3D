@@ -186,8 +186,6 @@ public:
 	int **gcslin, **gcslout;
     int **gcslawa1, **gcslawa2;
 
-    int gcsl_extra1,gcsl_extra2,gcsl_extra3,gcsl_extra4,gcsl_extra4a;
-
 	int **dgcsl1,**dgcsl2,**dgcsl3,**dgcsl4;
 	int dgcsl1_count,dgcsl2_count,dgcsl3_count,dgcsl4_count;
 

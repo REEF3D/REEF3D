@@ -3024,9 +3024,6 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
-          <File Name="slice1.cpp"/>
-          <File Name="slice2.cpp"/>
-          <File Name="slice4.cpp"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice4.cpp"/>
             <File Name="mgcslice2.cpp"/>
