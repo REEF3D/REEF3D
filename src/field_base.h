@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs, Alexander Hanke
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #ifndef FIELD_BASE_H_
@@ -31,17 +31,18 @@ template<typename T>
 class field_base
 {
 public:
-    field_base(lexer* p, bool allocate=true) : field_base(p, p->kmax, 0, allocate) {}
-    virtual ~field_base()
-    {
-        delete [] V;
-        V = nullptr;
-    }
+    field_base(lexer *p, bool allocate=true) : field_base(p, p->kmax, 0, allocate) {}
 
     field_base(const field_base&) = delete;
     field_base& operator=(const field_base&) = delete;
     field_base(field_base&&) = delete;
     field_base& operator=(field_base&&) = delete;
+
+    virtual ~field_base()
+    {
+        delete [] V;
+        V = nullptr;
+    }
 
     inline T& operator()(int ii, int jj, int kk) noexcept {return V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin];};
     inline T& operator[](int n) noexcept {return V[n];};
@@ -55,13 +56,13 @@ protected:
     // in iterators3D.h exactly. slack is extra trailing elements, for layouts
     // whose forward-stencil macros reach past the last in-stride slot. See field7.
     field_base(lexer* p, int kz, std::size_t slack, bool allocate=true) :
-        imin(p->imin), imax(p->imax), jkmax(p->jmax*kz), jmin(p->jmin), kmin(p->kmin), kmax(kz)
+        imin(p->imin), jkmax(p->jmax*kz), jmin(p->jmin), kmin(p->kmin), kmax(kz)
     {
-        V = allocate ? new T[static_cast<std::size_t>(imax)*jkmax + slack] {} : nullptr;
+        V = allocate ? new T[static_cast<std::size_t>(p->imax)*jkmax + slack] {} : nullptr;
     }
 
 private:
-    const int imin,imax,jkmax,jmin,kmin,kmax;
+    const int imin,jkmax,jmin,kmin,kmax;
 };
 
 #endif

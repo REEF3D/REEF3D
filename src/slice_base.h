@@ -29,14 +29,9 @@ template<typename T>
 class slice_base
 {
 public:
-    slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
+    slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax)
     {
-        V = new T[imax*jmax] {};
-    }
-    virtual ~slice_base()
-    {
-        delete [] V;
-        V = nullptr;
+        V = new T[p->imax*jmax] {};
     }
 
     slice_base(const slice_base&) = delete;
@@ -44,12 +39,19 @@ public:
     slice_base(slice_base&&) = delete;
     slice_base& operator=(slice_base&&) = delete;
 
+    virtual ~slice_base()
+    {
+        delete [] V;
+        V = nullptr;
+    }
+
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
     inline T& operator[](int n) noexcept {return V[n];};
 
     T *V;
-protected:
-    const int imin,imax,jmin,jmax;
+
+private:
+    const int imin,jmin,jmax;
 };
 
 #endif
