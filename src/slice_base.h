@@ -26,42 +26,39 @@ Author: Alexander Hanke
 #include "lexer.h"
 
 #include <cstddef>
+#include <vector>
 
 template<typename T>
 class slice_base
 {
 public:
-    slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax),
-        n(static_cast<std::size_t>(p->imax)*jmax)
-    {
-        V = new T[n] {};
-    }
+    slice_base(lexer *p) :
+        V(static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax), T{}),
+        imin(p->imin), jmin(p->jmin),
+        jmax(p->jmax)
+    {};
 
     slice_base(const slice_base&) = delete;
     slice_base& operator=(const slice_base&) = delete;
     slice_base(slice_base&&) = delete;
     slice_base& operator=(slice_base&&) = delete;
 
-    virtual ~slice_base()
-    {
-        delete [] V;
-        V = nullptr;
-    }
+    virtual ~slice_base() = default;
 
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
 
-    T *data() noexcept {return V;}
-    const T *data() const noexcept {return V;}
+    T *data() noexcept {return V.data();}
+    const T *data() const noexcept {return V.data();}
 
     // whole array including ghost cells
-    std::size_t size() const noexcept {return n;}
-    T *begin() noexcept {return V;}
-    const T *begin() const noexcept {return V;}
-    T *end() noexcept {return V+n;}
-    const T *end() const noexcept {return V+n;}
+    std::size_t size() const noexcept {return V.size();}
+    T *begin() noexcept {return V.data();}
+    const T *begin() const noexcept {return V.data();}
+    T *end() noexcept {return V.data()+V.size();}
+    const T *end() const noexcept {return V.data()+V.size();}
 
 protected:
-    T *V;
+    std::vector<T> V;
 
 private:
     const int imin,jmin,jmax;
