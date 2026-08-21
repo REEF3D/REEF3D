@@ -108,9 +108,10 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     if(p->X240==21)
     pmotion = new sixdof_motionext_wavemaker(p,pgc);
 
-    if (p->X330 == 1)
-    pforce = new sixdof_forcesext_file(p, pgc);
-
+    if (p->X330 == 1){
+        std::cout << "x330 " << p->X330;
+        pforce = new sixdof_forcesext_file(p, pgc);
+    }
     Mass_fb = Rfb = Vfb = 1.0;
 
     if(p->A10==5)

@@ -41,10 +41,17 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
 
 	if (p->X330>0){
         pforce->forcesext_trans(p, pgc);
+        pforce->forcesext_rot(p, pgc);
+        
         auto forces = pforce->get_forces();
         Xext += forces(0);
         Yext += forces(1);
         Zext += forces(2);
+        auto moments = pforce->get_moments();
+        Kext += moments(0);
+        Mext += moments(1);
+        Next += moments(2);
+        
 	}
 
 

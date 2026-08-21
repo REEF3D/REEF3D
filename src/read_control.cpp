@@ -2561,7 +2561,7 @@ void control::read_control(lexer* p)
                 case  325: control>>X325_dt>>X325_relX>>X325_relY>>X325_relZ;
                          clear(c,numint);
                          break;
-                case  330: ++X330;
+                case  330: control>>X330;
                         clear(c,numint);
                         break;
                 case  400: control>>X400;

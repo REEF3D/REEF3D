@@ -42,7 +42,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     void forcesext_trans(lexer*, ghostcell*) override final;
-    void forcesext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override final;
+    void forcesext_rot(lexer*, ghostcell*) override final;
 
     void ini(lexer*,ghostcell*) override final;
 
