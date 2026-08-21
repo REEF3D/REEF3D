@@ -791,6 +791,7 @@ void control::ini_default()
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
+    S61=2;              // int reference height for cb
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed

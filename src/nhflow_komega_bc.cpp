@@ -269,7 +269,7 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {   
             KIN[IJK] = 0.0;
             
@@ -364,7 +364,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {
             EPS[IJK] = 0.0;
             

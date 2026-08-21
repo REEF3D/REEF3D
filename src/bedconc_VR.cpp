@@ -34,7 +34,6 @@ bedconc_VR::bedconc_VR(lexer *p)
     shields=p->S30;
     visc=p->W2;
     kappa=0.4;
-    ks=2.5*d50;
     adist=3.0*d50;
     deltab=3.0*d50;
     Rstar=(rhosed-rhowat)/rhowat;
@@ -63,6 +62,8 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     Ds = Ds>1.0e-10?Ds:1.0e10;
     
+    if(p->S61==1)
+    {
         if(p->A10==5)
         {
         k=0;
@@ -74,6 +75,12 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
         k=s->bedk(i,j);
         adist = 0.5*p->DZN[KP];
         }
+    }
+    
+    if(p->S61==2)
+    {
+        adist = 2.0*d50;
+    }
     
     s->cbe(i,j) =  MIN((0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.1);
     }

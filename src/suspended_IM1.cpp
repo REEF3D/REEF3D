@@ -184,10 +184,38 @@ void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
         j=p->gcdf4[n][1];
         k=p->gcdf4[n][2];
         
+        if(p->S61==1)
         s->cb(i,j) = a->conc(i,j,k);
+        
+        if(p->S61==2)
+        s->cb(i,j) = Rouse_formula(p,a,s,a->conc(i,j,k));
     }
     
     pgc->gcsl_start4(p,s->cb,1);
+}
+
+double suspended_IM1::Rouse_formula(lexer* p, fdm *a, sediment_fdm *s, double Cc)
+{
+    double Ca;    
+    double za,zc,P;
+    
+    za = 2.0*p->S20;
+    
+    zc = 0.5*p->DZN[KP]*p->WL[IJ];
+    
+    P = s->ws/(0.4* (s->shearvel_eff(i,j)>0.0?s->shearvel_eff(i,j):1.0e-6) );
+    
+    P = MAX(P,0.8);
+    P = MIN(P,2.5);
+    
+    
+    Ca = Cc * pow( ((p->WL[IJ]-za)/za) / ((p->WL[IJ]-zc)/zc), P);
+    
+    Ca = MIN(Ca,0.1);
+    
+    //cout<<"Cc: "<<Cc<<" Ca: "<<Ca<<" | P: "<<P<<" "<<s->shearvel_eff(i,j)<<endl;
+
+    return Ca;
 }
 
 void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)

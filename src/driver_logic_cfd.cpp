@@ -228,9 +228,6 @@ void driver::logic_cfd()
 
 	if(p->S12>=1)
 	pconcdisc=new iweno_hj(p);
-
-	//if(p->S60>0&&p->S60<10)
-	//pconcdisc=new weno_hj(p);
     
   
 //turbulence model

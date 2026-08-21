@@ -49,6 +49,8 @@ public:
 	field4 concn;
 
 private:
+    double Rouse_formula(lexer*,fdm*,sediment_fdm*,double); 
+    
     void timesource(lexer* p, fdm* a, field& fn);
     double starttime;
     void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 
