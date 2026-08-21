@@ -31,29 +31,34 @@ template<typename T>
 class slice_base
 {
 public:
-    slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
+    slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax)
     {
-        V = new T[imax*jmax] {};
+        V = new T[p->imax*jmax] {};
+
         ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
-    }
-    virtual ~slice_base()
-    {
-        ckpt_registry::remove(ckid);
-        delete [] V;
-        V = nullptr;
     }
 
     slice_base(const slice_base&) = delete;
-    slice_base& operator=(const slice_base&) = delete;
+    slice_base &operator=(const slice_base&) = delete;
     slice_base(slice_base&&) = delete;
-    slice_base& operator=(slice_base&&) = delete;
+    slice_base &operator=(slice_base&&) = delete;
+
+    virtual ~slice_base()
+    {
+        ckpt_registry::remove(ckid);
+
+        delete [] V;
+        V = nullptr;
+    }
 
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
     inline T& operator[](int n) noexcept {return V[n];};
 
     T *V;
-protected:
-    const int imin,imax,jmin,jmax;
+
+private:
+    const int imin,jmin,jmax;
+
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
 

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs, Alexander Hanke
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #ifndef FIELD_BASE_H_
@@ -25,6 +25,7 @@ Author: Hans Bihs, Alexander Hanke
 
 #include "lexer.h"
 #include "ckpt_registry.h"
+
 #include <type_traits>
 
 template<typename T>
@@ -32,23 +33,25 @@ class field_base
 {
 public:
     // allocate=false: the field is not used in this run (V stays nullptr, any access fails at once)
-    field_base(lexer* p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
+    field_base(lexer *p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
     {
         V = allocate ? new T[imax*jkmax] {} : nullptr;
         if(V!=nullptr)
         ckid = ckpt_registry::add(p,'C',std::is_same<T,int>::value,V);
     }
+
+    field_base(const field_base&) = delete;
+    field_base &operator=(const field_base&) = delete;
+    field_base(field_base&&) = delete;
+    field_base &operator=(field_base&&) = delete;
+
     virtual ~field_base()
     {
         ckpt_registry::remove(ckid);
+
         delete [] V;
         V = nullptr;
     }
-
-    field_base(const field_base&) = delete;
-    field_base& operator=(const field_base&) = delete;
-    field_base(field_base&&) = delete;
-    field_base& operator=(field_base&&) = delete;
 
     inline T& operator()(int ii, int jj, int kk) noexcept {return V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin];};
     inline T& operator[](int n) noexcept {return V[n];};
@@ -56,7 +59,8 @@ public:
 	T *V;
 
 private:
-    const int imin,imax,jkmax,jmin,kmin,kmax;
+    const int imin,jkmax,jmin,kmin,kmax;
+
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
 
