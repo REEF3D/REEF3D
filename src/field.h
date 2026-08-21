@@ -29,7 +29,7 @@ class field : public field_base<double>
 {
 public:
     field(lexer* p, bool allocate=true) : field_base<double>(p,allocate) {}
-    virtual ~field() = default;
+    ~field() override;
 
 protected:
     field(lexer* p, int kz, std::size_t slack) : field_base<double>(p, kz, slack) {}

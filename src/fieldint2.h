@@ -29,7 +29,7 @@ class fieldint2 final : public fieldint
 {
 public:
     fieldint2(lexer* p) : fieldint(p) {}
-    virtual ~fieldint2() = default;
+    ~fieldint2() override;
 };
 
 #endif
