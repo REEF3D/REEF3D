@@ -29,7 +29,7 @@ class fieldint5 final : public fieldint
 {
 public:
     explicit fieldint5(lexer *p, bool allocate=true) : fieldint(p,allocate) {}
-    virtual ~fieldint5() = default;
+    ~fieldint5() override;
 };
 
 #endif
