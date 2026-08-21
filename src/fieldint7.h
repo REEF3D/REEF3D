@@ -32,7 +32,7 @@ class fieldint7 final : public fieldint
 public:
     fieldint7(lexer *p) : fieldint(p, p->kmaxF,
                                    static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
-    virtual ~fieldint7() = default;
+    ~fieldint7() override;
 };
 
 #endif

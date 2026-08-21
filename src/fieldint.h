@@ -29,7 +29,7 @@ class fieldint : public field_base<int>
 {
 public:
     fieldint(lexer* p) : field_base<int>(p) {}
-    virtual ~fieldint() = default;
+    ~fieldint() override;
 
 protected:
     fieldint(lexer* p, int kz, std::size_t slack) : field_base<int>(p, kz, slack) {}

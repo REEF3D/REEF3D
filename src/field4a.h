@@ -29,7 +29,7 @@ class field4a final : public field
 {
 public:
     field4a(lexer* p) : field(p) {}
-    virtual ~field4a() = default;
+    ~field4a() override;
 };
 
 #endif

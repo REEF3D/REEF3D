@@ -43,7 +43,7 @@ public:
     // auditing FIJKp3/p4.
     field7(lexer *p) : field(p, p->kmaxF,
                              static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
-    virtual ~field7() = default;
+    ~field7() override;
 };
 
 #endif
