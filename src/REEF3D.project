@@ -3544,6 +3544,10 @@
             <File Name="grid_helper_gcb4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
+        <VirtualDirectory Name="Fieldint">
+          <File Name="fields.cpp"/>
+          <File Name="fieldints.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
         </VirtualDirectory>
@@ -3555,6 +3559,8 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
+          <File Name="slices.cpp"/>
+          <File Name="sliceints.cpp"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice4.cpp"/>
             <File Name="mgcslice2.cpp"/>
