@@ -122,9 +122,7 @@ void sixdof_forcesext_file::forcesext_trans(
     Xext = 0.0;
     Yext = 0.0;
     Zext = 0.0;
-    std::cout << "simtime: " << p->simtime << "\n";
     if (p->simtime < ts || p->simtime > te){
-        std::cout << "returned here\n";
         return;
 
     }
@@ -182,9 +180,7 @@ ghostcell *pgc){
         return;
     
 
-    std::cout << "simtime: " << p->simtime << "\n";
     if (p->simtime < ts || p->simtime > te){
-        std::cout << "returned here\n";
         return;
 
     }
