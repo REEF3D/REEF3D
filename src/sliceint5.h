@@ -29,7 +29,7 @@ class sliceint5 final : public sliceint
 {
 public:
     sliceint5(lexer* p) : sliceint(p) {};
-    virtual ~sliceint5() = default;
+    ~sliceint5() override;
 };
 
 #endif

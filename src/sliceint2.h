@@ -29,7 +29,7 @@ class sliceint2 final : public sliceint
 {
 public:
     sliceint2(lexer* p) : sliceint(p) {};
-    virtual ~sliceint2() = default;
+    ~sliceint2() override;
 };
 
 #endif

@@ -29,7 +29,7 @@ class slice1 final : public slice
 {
 public:
     slice1(lexer *p) : slice(p) {};
-    virtual ~slice1() = default;
+    ~slice1() override;
 };
 
 #endif
