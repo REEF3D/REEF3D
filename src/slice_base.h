@@ -28,17 +28,18 @@ Author: Alexander Hanke
 
 #include <cstddef>
 #include <type_traits>
+#include <vector>
 
 template<typename T>
 class slice_base
 {
 public:
-    explicit slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax),
-        m_size(static_cast<std::size_t>(p->imax)*jmax)
+    explicit slice_base(lexer *p) :
+        V(static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax), T{}),
+        imin(p->imin), jmin(p->jmin),
+        jmax(p->jmax)
     {
-        V = new T[m_size] {};
-
-        ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
+        ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V.data());
     }
 
     slice_base(const slice_base&) = delete;
@@ -49,29 +50,25 @@ public:
     virtual ~slice_base()
     {
         ckpt_registry::remove(ckid);
-
-        delete [] V;
-        V = nullptr;
     }
 
     inline T& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
 
-    T *data() noexcept {return V;}
-    const T *data() const noexcept {return V;}
+    T *data() noexcept {return V.data();}
+    const T *data() const noexcept {return V.data();}
 
     // whole array including ghost cells
-    std::size_t size() const noexcept {return m_size;}
-    T *begin() noexcept {return V;}
-    const T *begin() const noexcept {return V;}
-    T *end() noexcept {return V+m_size;}
-    const T *end() const noexcept {return V+m_size;}
+    std::size_t size() const noexcept {return V.size();}
+    T *begin() noexcept {return V.data();}
+    const T *begin() const noexcept {return V.data();}
+    T *end() noexcept {return V.data()+V.size();}
+    const T *end() const noexcept {return V.data()+V.size();}
 
 protected:
-    T *V;
+    std::vector<T> V;
 
 private:
     const int imin,jmin,jmax;
-    const std::size_t m_size;
 
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
