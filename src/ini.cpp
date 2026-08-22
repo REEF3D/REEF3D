@@ -68,7 +68,7 @@ void control::ini_default()
     A313=3;      // int discretization for bed bc
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
-    A322=5;      // int maxiter for 4th-order Laplace after 2nd-order solution
+    A322=0;      // int 
     A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
     
@@ -113,7 +113,6 @@ void control::ini_default()
     
     
     // NHFLOW
-    A501=1;      // int nhf mode
     A509=1;      // int interpolation sweeps for bed
     A510=2;      // int NFHLOW time scheme
     A511=1;		// int NHFLOW HLL scheme
@@ -126,11 +125,15 @@ void control::ini_default()
     A518=2;      // int NHFLOW bed BC
     A519=0;      // int turn on bed roughness
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
-    A521=1;		// int
+    A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
     A523=1.0;    // double p_gamma
+    A524=2;      // int sigma gradients
+    A525=0;      // int 
+    A526=1.1;    // double direct forcing factor
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
+    A533=0;      // int  add veritcal velocity to CFL 
     A540=1;      // int NFHLOW wetdry scheme
     A541=0.0;    // double coastline damping distance factor for dxm
     A542=0.0;    // double coastline damping absolute distance
@@ -139,9 +142,14 @@ void control::ini_default()
     A545=10.0;   // double deep criterion
     
     A550=0;      // int turn on breaking (which method)
-    A551=0;      // int type of breaking detection (deep / shallow)
+    A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
     A553=0;      // int breaking in very shallow regions turned onf
+
+    A554=0.6;    // double breaking parameter alpha
+    A555=1.25;   // double breaking parameter slope alpha
+    A556=0.1;   // double breaking parameter slope beta
+    A557=1.86;   // double viscosity breaking wave
     
     A560=0;      // int turbulence model
     A564=1;      // int eddyv limiter
@@ -171,7 +179,7 @@ void control::ini_default()
     A590=0;      // int STL
     A591_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
     A592=0;     // int translation on/off
-    A592_x=A592_y=A592_z=0.0;  // double translation of stl geometry
+    A592_dx=A592_dy=A592_dz=0.0;  // double translation of stl geometry
     A593=0;
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
@@ -293,7 +301,9 @@ void control::ini_default()
 	B194_e= 1.0e9; // double end rotation
     
     B200=0;			// int VRANS on/off -> assigned as 1 for VRANS Structure, 2 for Vegetation, 3 for Net interaction
-    B201=0;             // int porosity
+    B201=0;          // int porosity
+    B208=0;          // int print porous force
+    B209=1.1;             // double eps for porous heaviside
     B201_n=1.0;         // double porosity n
     B201_d50=0.01;      // double porosity d50
     B201_alpha=0.0;     // double porosity alpha
@@ -310,7 +320,7 @@ void control::ini_default()
     B230=0;      // int STL
     B231_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
     B232=0;     // int translation on/off
-    B232_x=B232_y=B232_z=0.0;  // double translation of stl geometry
+    B232_dx=B232_dy=B232_dz=0.0;  // double translation of stl geometry
     B233=0;
     B233_x=B233_y=B233_z=B233_phi=B233_theta=B233_psi=0.0;
     B234=0;     // int invert STL
@@ -386,7 +396,6 @@ void control::ini_default()
     D22=1;            // int diffusion wall boundary condition
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
-    D33=0;			// int corner cells sigma grid Poisson matrix
     D37=0;          // int type of FSFBC for single fluid flow
 
     // Free Surface
@@ -405,7 +414,6 @@ void control::ini_default()
 	F45=2.1;         // factor for calculation of epsi
 	F46=0;            // int picard iteration for lsm or reini
 	F47=10;            // int number of picard iterations
-	F49=1;            // int no reinitialization for interface nodes
 	F50=2;            // int bc phi, 1: inflow or 2: outflow
     F50_flag=0;       // int flag for lsm description
 	F51=-1.0e20;		    // double i-dir zero level set start
@@ -599,6 +607,7 @@ void control::ini_default()
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
     P16=0;          // int add timestamp to paraview files
+    P19=2;          // int print NHFLOW floating  based on vtp or vtu interval
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
     P22=0.0;         // double start averging after transients
@@ -619,7 +628,7 @@ void control::ini_default()
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
     P43=0;             // int state print out selected area
-    P44=0;             // int print out 3D potential for FNPF
+    P44=1;             // int state print out components for FNPF
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
@@ -629,7 +638,7 @@ void control::ini_default()
 	P53=0;            // int print out wsfline for wave theory
 	P54=10;			  // int ith iteration wsfline file  print out
 	P55=-1.0;		  // double ith second wsfline files print out
-	P56=0;            // int print out wsf line in y-dir
+	P56=0;            // int print out wsfline in y-dir
     P57=0;            // int add aditional info to WSF gage in FNPF
     P58=0;            // int print wave time series
     P59=0;              // int print breaking wave log FNPF
@@ -658,6 +667,7 @@ void control::ini_default()
     P88=0;            // int kinematics print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
+    P99=0;              // int print wave generation and beach relaxation zone flag to vtp
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
@@ -674,6 +684,11 @@ void control::ini_default()
     P134=0;             // int runup gage y-crossection
     P140=0;             // int runup gage cylinder
     P141=0;             // int runup cylinder radius
+    P144=0;           // int print NHFLOW depth-averaged velocity line probes
+    P145=0;           // int print NHFLOW depth and time-averaged velocity line probes
+    P146=0;           // int print NHFLOW time-averaged wsf line in x-direction
+    P147=0;           // int print NHFLOW time-averaged wsf line in y-direction
+    P148=0;           // int print NHFLOW time-averaged horizontal velocity profile
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
@@ -743,7 +758,7 @@ void control::ini_default()
 	S14=0.3;               // double relaxation timestep size for sediment transport
 	S15=0;                  // int synchronize sediment time step with main solver
 	S16=1;                  // int bed shear stress formulation
-    S17=0;                  // int non-equillibrium bedload 
+    S17=1.0;                  // double decoupling factor dtsed
     S18=0.823;                // double mu_d
 	S19=1.0e+19; 			// double total time sediment
 	S20=0.001;          // double sediment d50
@@ -756,12 +771,14 @@ void control::ini_default()
     S26_b=2.2;            // double beta for VRANS sediment
     S27=1;              // int number of inner iterations
     S28=1;              // int use S21 in roughness BC
-    S29=0;
+    S29=0;              // int sediment time step ramp up
     S30=0.047;          // double Shields parameter
     S31=2;              // int type of Exner formulation
     S32=1;              // int exner discretization
-    S33=1;              // int type of near bead velocity interpolation
+    S33=0;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
+    S35=1.0;            // double Exner magnification factor
+    S36=0;              // int alluvial/bedform/effective roughness
 	S37=2;		        // int number reini time step
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
@@ -774,6 +791,7 @@ void control::ini_default()
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
+    S61=1;              // int reference height for cb
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed
@@ -893,7 +911,7 @@ void control::ini_default()
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity cfd
-    X15=0;      // int tangential velocity nhflow
+    X15=1;      // int tangential velocity nhflow
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body
@@ -950,7 +968,7 @@ void control::ini_default()
     X181=0;     // int scale .stl geometry on/off
     X181_x=X181_y=X181_z=1.0;  // double scaling of stl geometry
     X182=0;     // int translation on/off
-    X182_x=X182_y=X182_z=0.0;  // double translation of stl geometry
+    X182_dx=X182_dy=X182_dz=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
     X185=1;     // int stl refinement
@@ -984,6 +1002,7 @@ void control::ini_default()
     X321=0;     // int number of nets
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step
+    X324=0;     // int number of nets
 	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
 	X400=0;         // sflow external pressure term
     X401_p0=0.0;    // sflow external pressure term p0

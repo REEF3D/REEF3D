@@ -33,9 +33,14 @@ Author: Hans Bihs
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
+#include"nhflow_print_timeavg_wsfline.h"
+#include"nhflow_print_timeavg_wsfline_y.h"
+#include"nhflow_timeavg_vel_profile.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
 #include"nhflow_profile_u.h"
+#include"nhflow_depavg_vel_lineprobe.h"
+#include"nhflow_depandtime_avg_vel_lineprobe.h"
 #include"nhflow_probe_vel.h"
 #include"nhflow_probe_vel_theory.h"
 #include"nhflow_probe_press.h"
@@ -102,6 +107,15 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pwsfline = new nhflow_print_wsfline(p,d,pgc);
 
     pwsfline_y = new nhflow_print_wsfline_y(p,d,pgc);
+
+    if(p->P146>0)
+    ptimeavgwsfline = new nhflow_print_timeavg_wsfline(p,d,pgc);
+
+    if(p->P147>0)
+    ptimeavgwsfline_y = new nhflow_print_timeavg_wsfline_y(p,d,pgc);
+
+    if(p->P148>0)
+    ptimeavgvelprofile = new nhflow_timeavg_vel_profile(p,d);
     
     if(p->P64>0)
     ppressprobe=new nhflow_probe_press(p,d);
@@ -111,6 +125,12 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->P67>0)
     puprofile = new nhflow_profile_u(p,d);
+
+    if(p->P144>0)
+    pdepavgline = new nhflow_depavg_vel_lineprobe(p,d);
+
+    if(p->P145>0)
+    pdepandtimeavgline = new nhflow_depandtime_avg_vel_lineprobe(p,d);
 
     if(p->P66>0)
     pveltheo = new nhflow_probe_vel_theory(p,d);
@@ -275,9 +295,24 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         pwsfline_y->start(p,d,pgc,pflow,d->eta);
 
+    if(p->P146>0)
+        ptimeavgwsfline->start(p,d,pgc,pflow,d->eta);
+
+    if(p->P147>0)
+        ptimeavgwsfline_y->start(p,d,pgc,pflow,d->eta);
+
+    if(p->P148>0)
+        ptimeavgvelprofile->start(p,d,pgc);
+
     // Vel Profile
     if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         puprofile->start(p,d,pgc);
+
+    if(p->P144>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+        pdepavgline->start(p,d,pgc);
+
+    if(p->P145>0)
+        pdepandtimeavgline->start(p,d,pgc);
 
 
     // Print state out based on iteration
@@ -346,14 +381,11 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         pgc->gcsl_start4(p,d->bed,50);
         pgc->gcsl_start4(p,d->breaking_print,50);
-        pgc->start4V(p,d->test,50);
+        pgc->start5V(p,d->test,1);
 
         pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
         pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
         pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-        d->WL.ggcpol(p);
-        d->breaking_print.ggcpol(p);
 
         i=-1;
         j=-1;
@@ -590,11 +622,11 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
             {
                 jj=j;
                 j=0;
-                ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
+                ffn=float(0.5*(d->P[FIJKp1]+d->P[FIp1JKp1]));
                 j=jj;
             }
             else if(p->j_dir==1)
-                ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
+                ffn=float(0.25*(d->P[FIJKp1]+d->P[FIp1JKp1] + d->P[FIJp1Kp1]+d->P[FIp1Jp1Kp1]));
 
             std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);

@@ -51,7 +51,6 @@ public:
     double ccipol4V(double*,slice&,slice&,double,double,double);
     double ccipol4c(double*,double,double,double);
     double ccipol7V(double*,slice&,slice&,double,double,double);
-    double ccipol7P(double*,slice&,slice&,double,double,double);
 	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
     double ccipol3_a(field&,double,double,double);
@@ -87,8 +86,8 @@ public:
     double lint3c(field&,int&,int&,int&,double,double,double);
     double lint4(field&,int&,int&,int&,double,double,double);
     double lint4c(field&,int&,int&,int&,double,double,double);
-    double lint4V(double*,int&,int&,int&,double,double,double,double,double,double);
-    double lint7V(double*,int&,int&,int&,double,double,double,double,double,double);
+    double lint4V(double*,int&,int&,int&,double,double,double);
+    double lint7V(double*,int&,int&,int&,double,double,double);
     double lint4c(double*,int&,int&,int&,double,double,double);
     double lint4phi(fdm*,field&,int&,int&,int&,double,double,double);
     double lint_a(field&,int&,int&,int&,double,double,double);
@@ -99,8 +98,8 @@ public:
     double lint2_2D(field&,int&,int&,int&,double,double,double);
     double lint3_2D(field&,int&,int&,int&,double,double,double);
     double lint4_2D(field&,int&,int&,int&,double,double,double);
-    double lint4V_2D(double*,int&,int&,int&,double,double,double,double);
-    double lint7V_2D(double*,int&,int&,int&,double,double,double,double);
+    double lint4V_2D(double*,int&,int&,int&,double,double,double);
+    double lint7V_2D(double*,int&,int&,int&,double,double,double);
     double lint_a_2D(field&,int&,int&,int&,double,double,double);
     double lint4phi_2D(fdm*,field&,int&,int&,int&,double,double,double);
     

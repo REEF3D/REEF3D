@@ -47,47 +47,26 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
-    
+    // steepness induced breaking
     if((p->A351==2 || p->A351==3) && p->count>1)
     {
     SLICELOOP4
     {
             // x
             if(c->Ex(i,j)   < -p->A355)
-            {
-                bx(i,j) = 10;
-                /*bx(i+1,j) = 10;
-                bx(i-1,j) = 10;
-                bx(i-2,j) = 10;*/
-            }
+            bx(i,j) = 10;
             
             if(c->Ex(i,j)   > p->A355)
-            {
-                bx(i,j) = 20;
-                /*bx(i-1,j) = 20;
-                bx(i+1,j) = 20;
-                bx(i+2,j) = 20;*/
-            }
-            
+            bx(i,j) = 20;
+
             // y
             if(p->j_dir==1)
             if( c->Ey(i,j)   < -p->A355)
-            {
-                by(i,j) = 10;
-                /*by(i,j+1) = 10;
-                by(i,j-1) = 10;
-                by(i,j-2) = 10;*/
-            }
+            by(i,j) = 10;
             
             if(p->j_dir==1)
             if( c->Ey(i,j)   > p->A355)
-            {
-                by(i,j) = 20;
-                /*by(i,j-1) = 20;
-                by(i,j+1) = 20;
-                by(i,j+2) = 20;*/
-            }
-            
+            by(i,j) = 20;
     }
     
     pgc->gcsl_start4int(p,bx,50);
@@ -128,29 +107,14 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     
     pgc->gcsl_start4int(p,bx,50);
     
+    // depth induced breaking
     if((p->A351==1 || p->A351==3) && p->count>1)
     {
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
-            
-            if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
-            {
-
-                //c->breaking(i-1,j)=2;
-                //c->breaking(i-2,j)=2;
-                bx(i,j)=2;
-                //c->breaking(i+1,j)=2;
-                //c->breaking(i+2,j)=2;
-                
-                /*if(p->j_dir==1)
-                {
-                //c->breaking(i,j-2)=2;
-                //c->breaking(i,j-1)=2;
-                //c->breaking(i,j+1)=2;
-                //c->breaking(i,j+2)=2;
-                }*/
-            }
+        if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A354*sqrt(9.81*c->WL(i,j)))
+        bx(i,j)=2;
     }
     
     pgc->gcsl_start4int(p,bx,50);
@@ -159,26 +123,25 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
     {
     // x
     if(bx(i,j)==2 || bx(i-1,j)==2 || bx(i-2,j)==2 || bx(i+1,j)==2 || bx(i+2,j)==2)
-    c->breaking(i,j)=1;
+    c->breaking(i,j)=2;
     
     // y
     if(p->j_dir==1)
     if(bx(i,j)==2 || bx(i,j-1)==2 || bx(i,j-2)==2 || bx(i,j+1)==2 || bx(i,j+2)==2)
-    c->breaking(i,j)=1;
-    
-        
+    c->breaking(i,j)=2;    
     }
     }
     
     
-    // -------------------
-    if(p->A350==1)
-    {
-        SLICELOOP4
-        c->vb(i,j) = 0.0;
+    // ------------------------
+    // fill breaking viscosity
+    // ------------------------
+    
+    SLICELOOP4
+    c->vb(i,j) = 0.0;
         
         // coastline viscosity
-        if(p->A343==1)
+        /*if(p->A343==1)
         SLICELOOP4
         {
             
@@ -189,87 +152,66 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
                 if(db<dist3)
                 {
                 c->vb(i,j) = rb3(p,db)*p->A346;
-            
-                }
-            }
-        }
-        
-        if(p->j_dir==0)
-        SLICELOOP4
-        {   
-            
-            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1)
-            c->vb(i,j) = p->A365*double(c->breaking(i,j));
-            
-            
-            if(c->breaking(i,j)==0 &&(c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1))
-            c->vb(i,j) = 0.5*p->A365;
-        }
-
-        if(p->j_dir==1)
-        SLICELOOP4
-        {   
-            
-            if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
-            c->vb(i,j) = p->A365*double(c->breaking(i,j));
-            
-            if(c->breaking(i,j)==0 &&( c->breaking(i-1,j-1)>=1 || c->breaking(i-1,j+1)>=1 || c->breaking(i+1,j-1)>=1 || c->breaking(i+1,j+1)>=1
-           || c->breaking(i-2,j)>=1 || c->breaking(i+2,j)>=1 || c->breaking(i,j-2)>=1 || c->breaking(i,j+2)>=1))
-            c->vb(i,j) = 0.5*p->A365;
-        }
-        
-        if(p->A352==1)
-        SLICELOOP4
-        if(c->breaking(i,j)==2)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-        if(p->A352==2)
-        SLICELOOP4
-        if(c->breaking(i,j)==1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-        if(p->A352==3)
-        SLICELOOP4
-        if(c->breaking(i,j)>=1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
-        
-        // coastline filter
-        /*SLICELOOP4
-        {
-            
-            if(c->coastline(i,j)>=0.0)
-            {
-                db = c->coastline(i,j);
                 
-                if(db<dist3)
-                {
-                filter(p,c,pgc,eta);
-                filter(p,c,pgc,Fifsf);
+                filter(p,c,pgc,eta,p->A361,p->A362);
+                filter(p,c,pgc,Fifsf,p->A361,p->A362);
                 }
             }
         }*/
         
-    pgc->gcsl_start4(p,c->vb,1);
-    }
-    
-    if(p->A350==2)
+    if(p->j_dir==0)
     SLICELOOP4
-    {
-        if(c->breaking(i,j)>=1 || c->breaking(i-1,j)>=1 || c->breaking(i+1,j)>=1 || c->breaking(i,j-1)>=1 || c->breaking(i,j+1)>=1)
-        {
-         filter(p,c,pgc,eta);
-         filter(p,c,pgc,Fifsf);
-        }   
+    {   
+        if(c->breaking(i,j)>0 || c->breaking(i-1,j)>0 || c->breaking(i+1,j)>0)
+        c->vb(i,j) = p->A365;
+            
+        if(c->breaking(i,j)==0 && 
+        (c->breaking(i-1,j)>0 || c->breaking(i+1,j)>0 || c->breaking(i-2,j)>0 || c->breaking(i+2,j)>0))
+        c->vb(i,j) = 0.5*p->A365;
     }
+
+    if(p->j_dir==1)
+    SLICELOOP4
+    {   
+        if(c->breaking(i,j)>0 || c->breaking(i-1,j)>0 || c->breaking(i+1,j)>0 || c->breaking(i,j-1)>0 || c->breaking(i,j+1)>0)
+        c->vb(i,j) = p->A365;
+            
+        if(c->breaking(i,j)==0 && 
+        ( c->breaking(i-1,j-1)>0 || c->breaking(i-1,j+1)>0 || c->breaking(i+1,j-1)>0 || c->breaking(i+1,j+1)>0
+        || c->breaking(i-2,j)>0 || c->breaking(i+2,j)>0 || c->breaking(i,j-2)>0 || c->breaking(i,j+2)>0))
+        c->vb(i,j) = 0.5*p->A365;
+    }
+        
+        // additional breaking filter
+        // shallow
+        if(p->A352==1)
+        SLICELOOP4
+        if(c->breaking(i,j)==2)
+        {
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
+        }   
+        
+        // deep
+        if(p->A352==2)
+        SLICELOOP4
+        if(c->breaking(i,j)==1)
+        {
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
+        }   
+        
+        // all
+        if(p->A352==3)
+        SLICELOOP4
+        if(c->breaking(i,j)>=1)
+        {
+         filter(p,c,pgc,eta,p->A361,p->A362);
+         filter(p,c,pgc,Fifsf,p->A361,p->A362);
+        }   
+        
+        
+    pgc->gcsl_start4(p,c->vb,1);
     
     
     SLICELOOP4

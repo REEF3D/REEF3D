@@ -65,7 +65,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
-        area=p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+        area=p->DYN[JP]*p->DZN[KP]*d->WL(i-1,j);
         
         //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
 

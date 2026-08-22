@@ -29,18 +29,26 @@ vrans_nhflow_f::vrans_nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
 {
     p->Darray(APOR,p->imax*p->jmax*(p->kmax+2));
     p->Darray(BPOR,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(UN,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VN,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WN,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(P,p->imax*p->jmax*(p->kmax+2));
+    
+    print_force_ini(p,d,pgc);
+    
+    cmfac=1.0;
 }
 
 vrans_nhflow_f::~vrans_nhflow_f()
 {
 }
 
-void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
+void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, int val)
 {
-
     ray_cast(p, d, pgc, d->PORSTRUC);
     reini_RK2(p, d, pgc, d->PORSTRUC);
-
 
     LOOP
     {
@@ -52,10 +60,13 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, int val)
 	BPOR[IJK]       = H*p->B201_beta;
     }
     
-    pgc->start4V(p,d->POR,1);
-    pgc->start4V(p,d->PORPART,1);
-    pgc->start4V(p,APOR,1);
-    pgc->start4V(p,BPOR,1);
+    pgc->start5Vfull(p,d->POR,1);
+    pgc->start5Vfull(p,d->PORPART,1);
+    pgc->start5Vfull(p,APOR,1);
+    pgc->start5Vfull(p,BPOR,1);
     
+    // print force
+    if(p->B208==1)
+    force_calc(p, d, pgc, alpha, val);
 }
 

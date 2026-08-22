@@ -63,6 +63,9 @@ void sflow_state::ini_mainheader(lexer *p, fdm2D *b, ghostcell *pgc)
     iin=file_type;
     mainout.write((char*)&iin, sizeof (int));
     
+    iin=file_conti;
+    mainout.write((char*)&iin, sizeof (int));
+    
     ddn=p->wd;
     mainout.write((char*)&ddn, sizeof (double));
     

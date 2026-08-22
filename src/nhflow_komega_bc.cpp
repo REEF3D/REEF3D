@@ -48,6 +48,11 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     double zval;
     int check;
     
+    LOOP
+    {
+    d->test[IJK] = 0.0;
+    }
+    
     count=0;
     if(p->B11==1)
     LOOP
@@ -99,26 +104,14 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             check=1;
             }
         
-        
             if(check==1)
             {
-            
                 uvel=d->U[IJK];
                 vvel=d->V[IJK];
                 wvel=d->W[IJK];
 
                 if(k==0 && p->S10>0)
-                {
                 ks = p->S20*p->S21;
-                
-                uvel=d->U[IJK];
-                vvel=d->V[IJK];
-                wvel=d->W[IJK];
-                /*
-                uvel = 0.5*(d->U[IJK]+d->U[IJKp1]);
-                vvel = 0.5*(d->V[IJK]+d->V[IJKp1]);
-                wvel = 0.5*(d->W[IJK]+d->W[IJKp1]);*/
-                }
 
                 u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
@@ -126,6 +119,8 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
                 dist=ks/30.0;
                 
                 uplus = (1.0/kappa)*log(30.0*(dist/ks));
+                
+                uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
 
                 tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
                 
@@ -133,6 +128,8 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             
             d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
             d->rhsvec.V[count] += (tau*u_abs)/dist;
+            
+            d->test[IJK] = dist;
             }
             
         }
@@ -272,7 +269,7 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {   
             KIN[IJK] = 0.0;
             
@@ -367,7 +364,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {
             EPS[IJK] = 0.0;
             

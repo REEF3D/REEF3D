@@ -28,11 +28,6 @@ Author: Hans Bihs
 
 nhflow_kepsilon_func::nhflow_kepsilon_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_kepsilon_bc(p)
 {
-    if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 nhflow_kepsilon_func::~nhflow_kepsilon_func()
@@ -84,7 +79,9 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
 	double H;
 	int n;
         
-        
+    // RANS
+    if(p->A560==1)
+    {
         if(p->A564==0)
         LOOP
 		d->EV0[IJK] = p->cmu*MAX(MAX(KIN[IJK]*KIN[IJK]
@@ -109,9 +106,10 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
 		}
+    }
 	
     // URANS
-	if(p->A560==22)
+	if(p->A560==21)
 	LOOP
     {
     if(p->j_dir==0)
@@ -120,17 +118,17 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
     if(p->j_dir==1)
     dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
     
-	f = MIN(1.0, dxm*p->A568*p->cmu*EPS[IJK]/   pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
+	f = MIN(1.0, dxm*p->A568*EPS[IJK]/pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),1.5));
     
     
     
         if(p->A564==0)
-		d->EV0[IJK] = f*MAX(MAX(KIN[IJK]*KIN[IJK]
+		d->EV0[IJK] = p->cmu*f*MAX(MAX(KIN[IJK]*KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
 						  0.00001*d->VISC[IJK]);
                           
         if(p->A564==1)
-		d->EV0[IJK] = f*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
+		d->EV0[IJK] = p->cmu*f*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
                           
@@ -167,6 +165,7 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 	++count;
     }
     
+    count=0;
     if(p->A566==1)
     LOOP
     {

@@ -27,10 +27,13 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"slice.h"
+#include"vrans.h"
 
 void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
 	starttime=pgc->timer();
+    
+    double visc_IP,visc_IM1,visc_IP1,visc_JM1,visc_JP1,visc_KM1,visc_KP1;
     
     LOOP
     WHdiff[IJK] = WHin[IJK];
@@ -45,36 +48,42 @@ void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 	{
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-            visc = d->VISC[IJK] + d->EV[IJK];
+            visc_IP = d->VISC[IJK] + d->EV[IJK] + d->vb(i,j);
+            
+            visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK] + d->vb(i-1,j));
+            visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK] + d->vb(i+1,j));
+            
+            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i,j));
+            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i,j));
             
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
-            d->M.p[n]  =  visc/(p->DXP[IP]*p->DXN[IP])
-                        + visc/(p->DXP[IM1]*p->DXN[IP])
+            d->M.p[n]  =  visc_IP1/(p->DXP[IP]*p->DXN[IP])
+                        + visc_IM1/(p->DXP[IM1]*p->DXN[IP])
                         
-                        + 2.0*(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
-                        + 2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
+                        + 2.0*(visc_KP1*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
+                        + 2.0*(visc_KM1*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
                         
                         + CPORNH/(alpha*p->dt);
 
 
-            d->M.n[n] = -visc/(p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -visc/(p->DXP[IM1]*p->DXN[IP]);
+            d->M.n[n] = -visc_IP1/(p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -visc_IM1/(p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.t[n] = -2.0*(visc*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])     
-                        - 0.0*2.0*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+            d->M.t[n] = -2.0*(visc_KP1*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])     
+                        -2.0*visc_KP1*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = -2.0*(visc*sigxyz2)/(p->DZP[KP]*p->DZN[KP]) 
-                        + 0.0*2.0*p->sigxx[FIJK]/((p->DZN[KM1]+p->DZN[KP]));
+            d->M.b[n] = -2.0*(visc_KM1*sigxyz2)/(p->DZP[KP]*p->DZN[KP]) 
+                        +2.0*visc_KM1*p->sigxx[FIJK]/((p->DZN[KM1]+p->DZN[KP]));
             
             
-            d->rhsvec.V[n] = visc*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))
+            d->rhsvec.V[n] = visc_IP*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))
 
 						 + (CPORNH*WHin[IJK])/(alpha*p->dt)
 
                             
-                            + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1])
+                            + visc_IP*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]));
         }
         

@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double wc1,wc2;
+    double Z1,Z2;
     
     ii=i;
     jj=j;
@@ -36,15 +36,6 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     i = p->posf_i(xp);
     j = p->posf_j(yp);
     k = p->posf_sig(i,j,zp);
-
-    i = MAX(i,0);
-    i = MIN(i,p->knox-1);
-    
-    j = MAX(j,0);
-    j = MIN(j,p->knoy-1);
-    
-    k = MAX(k,0);
-    k = MIN(k,p->knoz);
     
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
@@ -56,18 +47,35 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     j=0;
     
     //wc
-    wc1 = ((p->ZSP[IJKp1]) - zp)/(p->ZSP[IJKp1]-p->ZSP[IJK]);
+    if(p->j_dir==0)
+    {
+    Z1 =  ((p->ZSP[Ip1JK] - p->ZSP[IJK])/p->DXP[IP])*(xp - p->XP[IP]) 
     
-    wc2 = ((p->ZSP[Ip1JKp1]) - zp)/(p->ZSP[Ip1JKp1]-p->ZSP[Ip1JK]);
+        + p->ZSP[IJK];
+    
+    Z2 =  ((p->ZSP[Ip1JKp1] - p->ZSP[IJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + p->ZSP[IJKp1];
+    }
     
     if(p->j_dir==1)
     {
-    wc3 = ((p->ZSP[IJp1Kp1]) - zp)/(p->ZSP[IJp1Kp1]-p->ZSP[IJp1K]);
+    Z1 =  ((p->ZSP[Ip1JK] - p->ZSP[IJK])/p->DXP[IP])*(xp - p->XP[IP]) 
     
-    wc4 = ((p->ZSP[Ip1Jp1Kp1]) - zp)/(p->ZSP[Ip1Jp1Kp1]-p->ZSP[Ip1Jp1K]);
+        + ((p->ZSP[IJp1K] - p->ZSP[IJK])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSP[IJK];
+    
+    Z2 =  ((p->ZSP[Ip1JKp1] - p->ZSP[IJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSP[IJp1Kp1] - p->ZSP[IJKp1])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSP[IJKp1];
     }
         
-    
+    wc = (Z2-zp)/(Z2-Z1);
+        
+    /*
     i = MAX(i,0);
     i = MIN(i,p->knox-1);
     
@@ -76,16 +84,16 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     
     k = MAX(k,0);
     k = MIN(k,p->knoz-1);
-    
+    */
     
     wc = MAX(wc,0);
     wc = MIN(wc,1.0);
 
     if(p->j_dir==0)
-    value = lint4V_2D(f,i,j,k,wa,wb,wc1,wc2);
+    value = lint4V_2D(f,i,j,k,wa,wb,wc);
     
     if(p->j_dir==1)
-    value = lint4V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
+    value = lint4V(f,i,j,k,wa,wb,wc);
     
     //if(value != value)
     //cout<<i<<" 4V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
@@ -98,28 +106,34 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
 }
 
 
-double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
+double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
 {
-    double wc1,wc2;
     double ZSN_FIp1JK,ZSN_FIJK,ZSN_FIJKp1,ZSN_FIp1JKp1;
     double ZSN_FIp1Jp1K,ZSN_FIJp1K,ZSN_FIJp1Kp1,ZSN_FIp1Jp1Kp1;
+    double WLval,bedval;
+    double Z1,Z2;
     
     ii=i;
     jj=j;
     kk=k;
     
+    // find ijk position for interpolation cell
     i = p->posf_i(xp);
     j = p->posf_j(yp);
-    k = p->posc_sig(i,j,zp);
-
-    i = MAX(i,0);
-    i = MIN(i,p->knox-1);
+    k = p->posc_sig(i,j,xp,yp,zp);
     
-    j = MAX(j,0);
-    j = MIN(j,p->knoy-1);
+    // -------------------------------------
+    // above FSF
+    WLval = p->ccslipol4(WL,xp,yp); 
+    bedval = p->ccslipol4(bed,xp,yp); 
     
-    k = MAX(k,0);
-    k = MIN(k,p->knoz);
+    if((zp >= WLval + bedval) || k>p->knoz)
+    {
+    value=0.0;
+    
+    return value;
+    }
+    // -------------------------------------
     
     // wa
     wa = (p->XP[IP1]-xp)/p->DXP[IP];
@@ -130,61 +144,44 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
     if(p->j_dir==0)
     j=0;
 
-    //wc
-    ZSN_FIJK = p->ZN[KP]*WL(i,j) + bed(i,j);
+    // ----------------------------------------------------------
+    if(p->j_dir==0)
+    {
+    Z1 =  ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) 
     
-    ZSN_FIp1JK = p->ZN[KP]*WL(i+1,j) + bed(i+1,j);
+        + p->ZSN[FIJK];
     
-    ZSN_FIJKp1 = p->ZN[KP1]*WL(i,j) + bed(i,j);
+    Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
     
-    ZSN_FIp1JKp1 = p->ZN[KP1]*WL(i+1,j) + bed(i+1,j);
-    
-    
-    ZSN_FIJp1K = p->ZN[KP]*WL(i,j+1) + bed(i,j+1);
-    
-    ZSN_FIp1Jp1K = p->ZN[KP]*WL(i+1,j+1) + bed(i+1,j+1);
-    
-    ZSN_FIJp1Kp1 = p->ZN[KP1]*WL(i,j+1) + bed(i,j+1);
-    
-    ZSN_FIp1Jp1Kp1 = p->ZN[KP1]*WL(i+1,j+1) + bed(i+1,j+1);
-    
-
-    wc1 = (ZSN_FIJKp1 - zp)/(ZSN_FIJKp1-ZSN_FIJK);
-    
-    wc2 = (ZSN_FIp1JKp1 - zp)/(ZSN_FIp1JKp1-ZSN_FIp1JK);
+        + p->ZSN[FIJKp1];
+    }
     
     if(p->j_dir==1)
     {
-    wc3 = (ZSN_FIJp1Kp1 - zp)/(ZSN_FIJp1Kp1-ZSN_FIJp1K);
+    Z1 =  ((p->ZSN[FIp1JK] - p->ZSN[FIJK])/p->DXP[IP])*(xp - p->XP[IP]) 
     
-    wc4 = (ZSN_FIp1Jp1Kp1 - zp)/(ZSN_FIp1Jp1Kp1-ZSN_FIp1Jp1K);
+        + ((p->ZSN[FIJp1K] - p->ZSN[FIJK])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJK];
+    
+    Z2 =  ((p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])/p->DXP[IP])*(xp - p->XP[IP]) 
+    
+        + ((p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])/p->DYP[JP])*(yp - p->YP[JP]) 
+    
+        + p->ZSN[FIJKp1];
     }
+        
+    wc = (Z2-zp)/(Z2-Z1);
     
-    i = MAX(i,0);
-    i = MIN(i,p->knox-1);
-    
-    j = MAX(j,0);
-    j = MIN(j,p->knoy-1);
-    
-    k = MAX(k,0);
-    k = MIN(k,p->knoz);
-    
-    
-    wc = MAX(wc,0);
-    wc = MIN(wc,1.0);
+    // ----------------------------------------------------------
 
     if(p->j_dir==0)
-    value = lint7V_2D(f,i,j,k,wa,wb,wc1,wc2);
+    value = lint7V_2D(f,i,j,k,wa,wb,wc);
     
     if(p->j_dir==1)
-    value = lint7V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
+    value = lint7V(f,i,j,k,wa,wb,wc);
     
-    if(zp > WL(i,j) + bed(i,j))
-    value=0.0;
-    
-    if(value != value)
-    cout<<i<<" "<<j<<" 7P "<<zp<<" "<<k<<" "<<p->ZSN[FIp1JKp1]<<" "<<p->ZSN[FIp1JK]<<"   SIG: "<<value<<" "<<wa<<" "<<wb<<" || "<<wc1<<" "<<wc2<<" | "<<wc3<<" "<<wc4<<endl;
-    
+
     i=ii;
     j=jj;
     k=kk;
@@ -193,72 +190,3 @@ double interpolation::ccipol7P(double *f, slice &WL, slice &bed, double xp, doub
 }
 
 
-double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, double yp, double zp)
-{
-    ii=i;
-    jj=j;
-    kk=k;
-    
-    i = p->posf_i(xp);
-    j = p->posf_j(yp);
-    k = p->posc_sig(i,j,zp);
-
-    i = MAX(i,0);
-    i = MIN(i,p->knox-1);
-    
-    j = MAX(j,0);
-    j = MIN(j,p->knoy-1);
-    
-    k = MAX(k,0);
-    k = MIN(k,p->knoz);
-    
-    // wa
-    wa = (p->XP[IP1]-xp)/p->DXP[IP];
-    
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYP[JP];
-
-    if(p->j_dir==0)
-    j=0;
-    
-    
-    //wc
-    wc1 = ((p->ZSN[FIJKp1]) - zp)/(p->ZSN[FIJKp1]-p->ZSN[FIJK]);
-    
-    wc2 = ((p->ZSN[FIp1JKp1]) - zp)/(p->ZSN[FIp1JKp1]-p->ZSN[FIp1JK]);
-    
-    if(p->j_dir==1)
-    {
-    wc3 = ((p->ZSN[FIJp1Kp1]) - zp)/(p->ZSN[FIJp1Kp1]-p->ZSN[FIJp1K]);
-    
-    wc4 = ((p->ZSN[FIp1Jp1Kp1]) - zp)/(p->ZSN[FIp1Jp1Kp1]-p->ZSN[FIp1Jp1K]);
-    }
-    
-    i = MAX(i,0);
-    i = MIN(i,p->knox-1);
-    
-    j = MAX(j,0);
-    j = MIN(j,p->knoy-1);
-    
-    k = MAX(k,0);
-    k = MIN(k,p->knoz);
-    
-    
-    wc = MAX(wc,0);
-    wc = MIN(wc,1.0);
-
-    if(p->j_dir==0)
-    value = lint7V_2D(f,i,j,k,wa,wb,wc1,wc2);
-    
-    if(p->j_dir==1)
-    value = lint7V(f,i,j,k,wa,wb,wc1,wc2,wc3,wc4);
-    
-    if(value != value)
-    cout<<i<<" 7V "<<j<<" "<<k<<"   SIG: "<<value<<" "<<wc<<" "<<(p->ZSP[IJKp1]-zp)<<" | "<<(p->ZSN[FIJKp1]-p->ZSN[FIJK])<<" | "<<(p->ZSN[FIJK]-p->ZSN[FIJKm1])<<endl;
-    
-    i=ii;
-    j=jj;
-    k=kk;
-    
-    return value;
-}

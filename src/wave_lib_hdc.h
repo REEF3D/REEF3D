@@ -48,20 +48,27 @@ public:
 private:
     
     // functions
-    void read_header(lexer*,ghostcell*);
-    void read_result(lexer*,ghostcell*,double**,double***,double***,double***,int);
-    void read_result_continuous(lexer*,ghostcell*,double**,double***,double***,double***,int);
+    void wave_prestep_cfd(lexer*,ghostcell*);
+    void wave_prestep_fnpf(lexer*,ghostcell*);
     
-    void fill_result_continuous(lexer*,ghostcell*);
+    void read_header(lexer*,ghostcell*);
+    void read_result_cfd(lexer*,ghostcell*,double**,double***,double***,double***,int);
+    void read_result_fnpf(lexer*,ghostcell*,double**,double**,int);
+    
+    void fill_conti_fnpf(lexer*,ghostcell*);
+    void fill_conti_cfd(lexer*,ghostcell*);
     
     void filename_header(lexer*,ghostcell*);
     void filename_single(lexer*,ghostcell*,int);
     void filename_continuous(lexer*,ghostcell*);
     
     
-    void allocate(lexer*,ghostcell*);
+    void allocate_fnpf(lexer*,ghostcell*);
+    void allocate_cfd(lexer*,ghostcell*);
     
-    void time_interpol(lexer*);
+    
+    void time_interpol_fnpf(lexer*);
+    void time_interpol_cfd(lexer*);
     
     // interpolation
     double ccpol3D(lexer*,double***,double,double,double);
@@ -88,6 +95,7 @@ private:
     double ***V1,***V2,***V;
     double ***W1,***W2,***W;
     double **E1,**E2,**E;
+    double **F1,**F2,**F;
     
     
     
@@ -103,10 +111,10 @@ private:
     int iin;
     float ffn;
     double ddn;
-	char name[200];
+	char name[300];
     ifstream result;
     
-    int file_version,file_type;
+    int file_version,file_type,file_conti;
     int ip1,jp1,kp1;
     int ii,jj,kk;
     int iii,jjj,kkk;

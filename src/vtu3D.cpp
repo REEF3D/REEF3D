@@ -145,17 +145,17 @@ void vtu3D::structureWrite(lexer *p, fdm *a, std::vector<char> &buffer, size_t &
 
         zcoor=p->ZN[KP1];
 
-        ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
+        ffn=float((p->Xout(p->XN[IP1],p->YN[JP1])-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3 
                     + p->B181_1*sin((2.0*PI*p->B181_2)*p->simtime + p->B181_3));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 
-        ffn=float(p->YN[JP1]) + p->B182_1*std::sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3);
+        ffn=float(p->Yout(p->XN[IP1],p->YN[JP1]) + p->B182_1*std::sin((2.0*PI*p->B182_2)*p->simtime + p->B182_3));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
         
 
-        ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4
+        ffn=float((p->Xout(p->XN[IP1],p->YN[JP1])-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4
                     + p->B183_1*sin((2.0*PI*p->B183_2)*p->simtime + p->B183_3));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
@@ -312,11 +312,11 @@ void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size
             zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
 
         // -- 
-        ffn=float(p->XN[IP1]);
+        ffn=float(p->Xout(p->XN[IP1],p->YN[JP]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 
-        ffn=float(p->YN[JP1]);
+        ffn=float(p->Yout(p->XN[IP],p->YN[JP1]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 

@@ -39,17 +39,16 @@ nhflow_strain::~nhflow_strain()
 
 void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALLF)
 {
-
 	LOOP
 	WALLF[IJK]=0;
     
     LOOP
     if(p->DF[IJK]>0)
     {  
-        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
+        if((p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)  || p->DF[Im1JK]<0)
         WALLF[IJK]=1;
 
-        if(p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)
+        if((p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)  || p->DF[Ip1JK]<0)
         WALLF[IJK]=1;
         
         if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)

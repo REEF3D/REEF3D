@@ -44,7 +44,9 @@ sflow_state::sflow_state(lexer *p, fdm2D *b, ghostcell *pgc, int state_restart)
     
     file_version=2;
     
-    file_type=p->P45;
+    file_type=p->P44;
+    
+    file_conti=p->P45;
     
     ini_token=0;
     

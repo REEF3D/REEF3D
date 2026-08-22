@@ -47,6 +47,8 @@ public:
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double)=0;
     virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
+    virtual void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
+    virtual void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*)=0;
     virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double)=0;
     
 };

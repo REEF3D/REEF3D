@@ -41,6 +41,33 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
     mkdir("./REEF3D_NHFLOW_6DOF",0777);
     
+    
+    //DSM
+    int num=0;
+    DSM=0.0;
+    
+    if(p->j_dir==0)
+    SLICELOOP4
+    {
+    DSM += p->DXN[IP];
+        
+    ++num;
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
+        
+    ++num;
+    }
+    
+    pgc->globalsum(DSM);
+    pgc->globalisum(num);
+    
+    DSM = DSM/double(num);
+    
+    
     // Initialise folder structure
     if(p->X50==1)
 	print_ini_vtp(p,pgc);

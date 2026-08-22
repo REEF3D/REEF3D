@@ -24,7 +24,6 @@ Author: Hans Bihs
 #define REINI_VOID_H_
 
 #include"reini.h"
-#include"particle_corr.h"
 
 using namespace std;
 

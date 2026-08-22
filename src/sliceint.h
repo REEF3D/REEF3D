@@ -30,8 +30,6 @@ class sliceint : public slice_base<int>
 public:
     sliceint(lexer* p) : slice_base<int>(p) {};
     virtual ~sliceint() = default;
-
-    inline int& operator()(int ii, int jj) noexcept {return V[(ii-imin)*jmax + (jj-jmin)];};
 };
 
 #endif

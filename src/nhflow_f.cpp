@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"vrans.h"
 
 nhflow_f::nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
@@ -140,10 +141,10 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     pgc->gcsl_start4(p,d->eta,50);
 
     
-    ALOOP
+    LOOP
     d->POR[IJK]=1.0;
     
-    pgc->start4V(p,d->POR,1);
+    pgc->start5Vfull(p,d->POR,1);
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);

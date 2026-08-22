@@ -62,7 +62,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
     starttime=pgc->timer();
     
     count=0;
-    LOOP
+    SLICELOOP4
     {
         xg=xgen(p);
         yg=ygen(p);
@@ -72,7 +72,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
         FKLOOP
         {
         z=p->ZSN[FIJK]-p->phimean;
-        
+        /*
 		// Wave Generation
 		if(p->B98==2 && f_switch==1)
         {
@@ -82,7 +82,7 @@ void iowave::fivec_relax(lexer *p, ghostcell *pgc, double *f)
             ++count;
             }
 		}
-		
+		*/
 		// Numerical Beach
         if(p->A10!=3 || p->A348==1 || p->A348==3)
         if(p->B99==1||p->B99==2||beach_relax==1)
@@ -108,23 +108,22 @@ void iowave::test_relax(lexer *p, ghostcell *pgc, slice& f)
         db = distbeach(p);
         
 		// Wave Generation
-		if(p->B98==2 && f_switch==1)
+		/*if(p->B98==2 && f_switch==1)
         {
             if(dg<1.0e20)
             {
-            f(i,j) =  Fifsfval[count];// (relax4_wg(i,j));//  (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
+            f(i,j) =  (1.0-relax4_wg(i,j))*ramp(p);
             ++count;
             }
-		}
-		/*
+		}*/
+		
 		// Numerical Beach
-        if(p->A10!=3 || p->A348==1 || p->A348==3)
         if(p->B99==1||p->B99==2||beach_relax==1)
 		{
             // Zone 2
             if(db<1.0e20)
-            f(i,j) = relax4_nb(i,j);
-        }*/
+            f(i,j) = relax4_nb(i,j)*f(i,j);
+        }
     }
     
     p->wavecalctime+=pgc->timer()-starttime;

@@ -38,6 +38,9 @@ public:
     virtual void start_U(lexer*, fdm_nhf*, ghostcell*)=0;
     virtual void start_V(lexer*, fdm_nhf*, ghostcell*)=0;
     virtual void start_W(lexer*, fdm_nhf*, ghostcell*)=0;
+    
+    virtual void start_U_yl(lexer*, fdm_nhf*, ghostcell*)=0;
+    virtual void start_V_yl(lexer*, fdm_nhf*, ghostcell*)=0;
 
 };
 

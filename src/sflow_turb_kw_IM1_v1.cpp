@@ -236,13 +236,9 @@ void sflow_turb_kw_IM1_v1::wall_law_kin(lexer* p, fdm2D *b)
     n=0;
 	SLICELOOP4
 	{
-        pip=1;
         uvel=0.5*(b->P(i,j)+b->P(i-1,j));
-        pip=0;
 
-        pip=2;
         vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
-        pip=0;
 
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 

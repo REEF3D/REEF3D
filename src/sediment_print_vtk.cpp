@@ -688,7 +688,7 @@ void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
 	
 	TPSLICELOOP
 	{
-    ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
+    ffn=float(p->sl_ipol4(s->bedch));
 	result.write((char*)&ffn, sizeof (float));
 	}
     
@@ -772,7 +772,7 @@ void sediment_f::print_3D_parameter2(lexer* p, ghostcell *pgc, std::vector<char>
 	
 	TPLOOP
 	{
-    ffn=float(p->dtsed*p->sl_ipol4(s->bedch));
+    ffn=float(p->sl_ipol4(s->bedch));
 	std::memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}

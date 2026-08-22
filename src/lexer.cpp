@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"lexer.h"
 
-lexer::lexer() : cmu(0.09), position(this), interpolation(this)
+lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(this)
 {
     sigT=0.9;
     

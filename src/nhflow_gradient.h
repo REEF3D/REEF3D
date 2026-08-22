@@ -68,27 +68,15 @@ public:
 	 double dudy(double*);
 	 double dudz(double*);
 
-	 double dudxx(double*);
-	 double dudyy(double*);
-	 double dudzz(double*);
-
 	//v
 	 double dvdx(double*);
 	 double dvdy(double*);
 	 double dvdz(double*);
 
-	 double dvdxx(double*);
-	 double dvdyy(double*);
-	 double dvdzz(double*);
-
 	//w
 	 double dwdx(double*);
 	 double dwdy(double*);
 	 double dwdz(double*);
-
-	 double dwdxx(double*);
-	 double dwdyy(double*);
-	 double dwdzz(double*);
 	 
 
 	double grad1,grad2;

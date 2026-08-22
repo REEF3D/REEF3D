@@ -68,6 +68,7 @@ public:
     void start4V(lexer*,double*,int);
     void start4V_par(lexer*,double*,int);
     void start5V(lexer*,double*,int);
+    void start5Vfull(lexer*,double*,int);
     
     void start20V(lexer*,double*,int);
     void start24V(lexer*,double*,int);

@@ -68,6 +68,7 @@ public:
     int posc_j(double);
     int posc_k(double);
     int posc_sig(int,int,double);
+    int posc_sig(int,int,double,double,double);
     
     int ihalf(int,int);
     

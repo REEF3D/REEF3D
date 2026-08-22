@@ -55,7 +55,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	depthmax=pgc->globalmax(depthmax);
 
 	SLICELOOP4
-    if(i+p->origin_i<=5)
+    if(i+p->origin_i>=5 || p->j_dir==1)
     {
 	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
     p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));

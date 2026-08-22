@@ -29,6 +29,7 @@ Author: Elyas Larkermani
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"field4.h"
 
 class convection;
 class diffusion;
@@ -53,6 +54,7 @@ public:
     field1 udiff,urk1,urk2,fx;
 	field2 vdiff,vrk1,vrk2,fy;
 	field3 wdiff,wrk1,wrk2,fz;
+    field4 dro;
 
 private:
         fluid_update *pupdate;

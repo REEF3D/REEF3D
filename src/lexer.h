@@ -36,13 +36,15 @@ Author: Hans Bihs
 #include<vector>
 #include"grid.h"
 #include"control.h"
+#include"coordinates.h"
 
 class weno_nug_func;
 class ghostcell;
 
 using namespace std;
 
-class lexer : virtual public resize_class, public position, public interpolation, public grid, public control
+class lexer : virtual public resize_class, public grid, public control,
+              public position, public interpolation, public coordinates
 {
 public:
 
@@ -82,17 +84,18 @@ public:
     int N4,N4_row,N4_col;
     int N7,N7_row,N7_col;
 	int surf_tot;
-	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7,*flag;
+	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7;
     int *flagsf1,*flagsf2,*flagsf3,*flagsf4;
 
     // flag
     double *flag_solid,*flag_topo;
     double *data;
-	double *topobed,*solidbed,*bed,*depth;
+	double *topobed,*solidbed,*bed,*depth,*WL;
     int *wet,*wet_n;
     int *deep;
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
+    int cms_flag;
 
 
     //GHOSTCELL
@@ -170,9 +173,6 @@ public:
 
     //SLICE
     int *flagslice1,*flagslice2,*flagslice4;
-    int *mgcsl1,*mgcsl2,*mgcsl3,*mgcsl4,*mgcsl4a;
-    int ***gcslorig1,***gcslorig2,***gcslorig3,***gcslorig4,***gcslorig4a;
-	int gcsldirsize1,gcsldirsize2,gcsldirsize3,gcsldirsize4,gcsldirsize4a;
 
     int slicenum,vec2Dlength;
 
@@ -186,15 +186,8 @@ public:
 	int **gcslin, **gcslout;
     int **gcslawa1, **gcslawa2;
 
-    int gcsl_extra1,gcsl_extra2,gcsl_extra3,gcsl_extra4,gcsl_extra4a;
-
 	int **dgcsl1,**dgcsl2,**dgcsl3,**dgcsl4;
 	int dgcsl1_count,dgcsl2_count,dgcsl3_count,dgcsl4_count;
-
-    int **ggcsl1,**ggcsl2,**ggcsl3,**ggcsl4,**ggcsl4a;
-    int *ggcslmem1,*ggcslmem2,*ggcslmem3,*ggcslmem4,*ggcslmem4a;
-    int ggcslcount1,ggcslcount2,ggcslcount3,ggcslcount4,ggcslcount4a;
-    int ggcslsize1,ggcslsize2,ggcslsize3,ggcslsize4,ggcslsize4a;
 
     // SLICE parallel
 	int** gcslpara1;
@@ -245,13 +238,13 @@ public:
 	double susptime,maxtopovel;
 	double gctime, xtime;
 	double volume1,volume2,volume3;
+    double tank_vol;
 	double Qi,Qo;
 	double dtsed,sedtime,slidecells;
 	double bedmax,bedmin;
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double wavetime;
-    double RK_alpha;
 
 	// solver watch
 	int uiter,viter,witer;

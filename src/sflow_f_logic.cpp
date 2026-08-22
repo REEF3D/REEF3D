@@ -104,7 +104,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sediment_void();
 
     if(p->S10>0)
-    psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
+    psed = new sediment_f(p,pgc,pturbcfd,pBC);
 	
 	// solver
 	ppoissonsolv = new hypre_struct2D(p,pgc);

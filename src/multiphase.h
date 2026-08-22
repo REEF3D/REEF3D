@@ -31,7 +31,6 @@ class ghostcell;
 class ioflow;
 class reini;
 class field;
-class particle_corr;
 
 #include<fstream>
 #include<sstream>
@@ -43,7 +42,7 @@ class multiphase
 {
 public:
 
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*)=0;
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*)=0;
 	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*)=0;
 	virtual void update(lexer*,fdm*,ghostcell*)=0;
 	

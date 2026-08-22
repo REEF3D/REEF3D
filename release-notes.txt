@@ -1,4 +1,25 @@
 
+26.05
+x added wave gage location paraview file 
+x added breaking wave model (NHFLOW)
+x added CMS grid system (grid rotation and translation) 
+x added vertical velocity timestep control (NHFLOW)
+x improved force calculation (NHFLOW)
+x added tank volume log (NHFLOW)
+x updated VRANS (NHFLOW)
+x added porous structure interface control (NHFLOW)
+x updated sigma functions (FNPF, NHFLOW)
+x added separate version log file 
+x improved performance for larger vertical cell count (NHFLOW)
+x fixed a wetting and drying issue (FNPF)
+x fixed y-dir parallel decomposition
+x added depth-averaged line probes (NHFLOW)
+x updated Baquet breaking model (FNPF)
+x added porous source to the time step calculation (NHFLOW)
+x added the github branch and commit number to the mainlog
+x added fully-coupled sediment transport (NHFLOW)
+x updated wave timeseries file in wave log folder
+
 26.03 
 x added VRANS for porous structures (NHFLOW)
 x fixed a 2D diffusion bug (NHFLOW)

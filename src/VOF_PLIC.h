@@ -46,7 +46,7 @@ public:
 	virtual ~VOF_PLIC();
 	void update(lexer*,fdm*,ghostcell*,field&) override final;
     
-    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, field&) override final;
     void RKcalcL(fdm*,lexer*,ghostcell*, field&, field&, field&);
     void RK_redistance(fdm*,lexer*,ghostcell*);
     void updatePhasemarkers(lexer*,fdm*,ghostcell*,field&);

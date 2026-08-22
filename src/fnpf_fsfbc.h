@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"fnpf_breaking.h"
 #include"sliceint4.h"
+#include"slice4.h"
 
 class fnpf_laplace;
 class field;
@@ -50,10 +51,10 @@ public:
     void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
     void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*) override final;
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final;
     
-    
-    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
     fnpf_convection *pconeta;
@@ -70,6 +71,7 @@ private:
     double visc;
     const double eps;
 
+    slice4 ef,df;
 
     int *temp;
     int gcval_eta,gcval_fifsf;

@@ -69,20 +69,26 @@ void driver::logic_nhflow()
     pss = new nhflow_signal_speed(p);
     
 //Convection	
-    if(p->A511==1)
+    if(p->A511==1 && p->A520!=3)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
-    if(p->A511==2)
+    if(p->A511==2 && p->A520!=3)
 	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
     
-    if(p->A511==3)
-	pnhfconvec = new nhflow_FOU(p,pgc,pBC);
+    if(p->A520==3)
+	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
     
     pnhfscalarconvec = new nhflow_scalar_ifou(p);
     
 //Diffusion
-    if(p->A512==0)
+    if(p->A512==0 && p->A560==0)
     pnhfdiff = new nhflow_diff_void(p);
+    
+    if(p->A512==0 && p->A560>0 && p->j_dir==1)
+    pnhfdiff = new nhflow_idiff(p);
+    
+    if(p->A512==0 && p->A560>0 && p->j_dir==0)
+    pnhfdiff = new nhflow_idiff_2D(p);
     
     if(p->A512==1)
     pnhfdiff = new nhflow_ediff(p);
@@ -97,7 +103,7 @@ void driver::logic_nhflow()
     if(p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
     
-    if(p->A514==4)
+    if(p->A514==4 || p->A514==5)
     precon = new nhflow_reconstruct_weno(p,pBC);
     
 //pressure scheme
@@ -109,6 +115,9 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
+    
+    if(p->A520==3)
+    pnhpress = new nhflow_pjm_yl(p,d,pgc,pBC);
 
 //Turbulence
     if(p->A560==0)
@@ -218,12 +227,15 @@ void driver::logic_nhflow()
     if(p->S10==0)
     psed = new sediment_void();
 
-    if(p->S10>0)
-    psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
+    if(p->S10==1)
+    psed = new sediment_f(p,pgc,pturbcfd,pBC);
+    
+    if(p->S10==12)
+    psed = new sediment_RK2(p,pgc,pturbcfd,pBC);
       
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfvrans,pnhfdf,psed);
 
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    

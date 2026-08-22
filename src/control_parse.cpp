@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke
+Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "control.h"
@@ -27,8 +27,12 @@ void control::parse(lexer* p)
 {
     if(B98==1)
     B98=2;
-    else if(B98==3 && A10==5)
+    
+    else if(B98==3 && A10==5)// && p->B92<20 && p->B92>29) 
     B98=4;
+    
+    else if(B98==5 && A10==5)
+    B98=3;
 
     if(X10>0)
     D22=2;
@@ -74,4 +78,7 @@ void control::parse(lexer* p)
 
     if(S10>=1 || p->toporead==1)
     P27=1;
+    
+    if(A550>1 || A560>0)
+    A512=2;
 }

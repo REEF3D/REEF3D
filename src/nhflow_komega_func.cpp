@@ -28,11 +28,6 @@ Author: Hans Bihs
 
 nhflow_komega_func::nhflow_komega_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_komega_bc(p)
 {
-    if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 nhflow_komega_func::~nhflow_komega_func()
@@ -83,8 +78,10 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 	double factor;
 	double H;
 	int n;
-        
-        
+    
+    // RANS
+    if(p->A560==2)
+    {
         if(p->A564==0)
         LOOP
 		d->EV0[IJK] = MAX(KIN[IJK]
@@ -110,7 +107,8 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
 						  0.00001*d->VISC[IJK]);
 		}
-	
+	}
+    
     // URANS
 	if(p->A560==22)
 	LOOP
@@ -161,7 +159,7 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 
     LOOP
     {
-        //if(WALLF[IJK]==0)
+        if(WALLF[IJK]==0)
         {
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
@@ -170,6 +168,7 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 	++count;
     }
     
+    count=0;
     if(p->A566==1)
     LOOP
     {
@@ -202,7 +201,14 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     k=p->knoz-1;
     
-	if(p->A567==1)
+	if(p->A567==1 || p->A567==2)
+	SLICELOOP4
+	{
+	if(p->DF[IJK]>0)
+	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37));
+	}
+    
+    if(p->A567==3)
 	SLICELOOP4
 	{
 	if(p->DF[IJK]>0)

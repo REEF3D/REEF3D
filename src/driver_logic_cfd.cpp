@@ -228,9 +228,6 @@ void driver::logic_cfd()
 
 	if(p->S12>=1)
 	pconcdisc=new iweno_hj(p);
-
-	//if(p->S60>0&&p->S60<10)
-	//pconcdisc=new weno_hj(p);
     
   
 //turbulence model
@@ -383,17 +380,6 @@ void driver::logic_cfd()
 
     if(p->F40==3 || p->F40==23)
     preini = new reini_RK3(p,1);
-
-	if(p->F40==11)
-	preini = new directreini(p,a);
-
-
-	if(p->F31==0)
-	ppls = new particle_pls_void();
-
-	if(p->F31==1 || p->F31==2)
-	ppls = new particle_pls(p,a,pgc);
-
 
 	if(p->F80==1)
 	pfsf = new VOF_AB(p,a,pgc,pheat);
@@ -563,7 +549,7 @@ void driver::logic_cfd()
     if(p->S10>0)
     {
         if(p->Q10==0)
-        psed = new sediment_f(p,a,pgc,pturb,pBC);
+        psed = new sediment_f(p,pgc,pturb,pBC);
         
 		if(p->Q10==1)
         psed = new sediment_part(p,a,pgc,pturb,pBC);

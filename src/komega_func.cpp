@@ -30,10 +30,10 @@ Author: Hans Bihs
 komega_func::komega_func(lexer* p, fdm* a, ghostcell *pgc) : rans_io(p,a),komega_bc(p)
 {
     if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
+    epsi = p->T38*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = p->T38*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 }
 
 komega_func::~komega_func()

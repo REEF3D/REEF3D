@@ -33,7 +33,7 @@ using namespace std;
 class suspended_IM1 final : public suspended, public increment
 {
 public:
-	suspended_IM1(lexer *, fdm*);
+	suspended_IM1(lexer*);
 	virtual ~suspended_IM1();
 	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, sediment_fdm*) override final;
 	void ctimesave(lexer*, fdm*) override final;
@@ -49,6 +49,8 @@ public:
 	field4 concn;
 
 private:
+    double Rouse_formula(lexer*,fdm*,sediment_fdm*,double); 
+    
     void timesource(lexer* p, fdm* a, field& fn);
     double starttime;
     void fill_wvel(lexer*,fdm*,ghostcell*,sediment_fdm*); 

@@ -58,7 +58,7 @@ void reduction_deyana::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         if(p->S84==1)
         {
         r = cos(tetaval)*(1.0 - tan(tetaval/tanphi));
-        r*= cos(alphaval)*(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
+        r*= cos(alphaval)*sqrt(1.0 - pow(tan(alphaval),2.0)/pow(tanphi,2.0));
         }
         
         if(p->S84==2)

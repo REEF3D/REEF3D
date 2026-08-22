@@ -50,7 +50,13 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
         for(int qn=0;qn<entity_sum;++qn)
         {
             if(rayiter==0)
-            ray_cast_io(p,d,pgc,tstart[qn],tend[qn]);
+            {
+            //ray_cast_io_x(p,d,pgc,tstart[qn],tend[qn]);
+            
+            //if(p->j_dir==1)
+            //ray_cast_io_ycorr(p,d,pgc,tstart[qn],tend[qn]);
+            ray_cast_io_zcorr(p,d,pgc,tstart[qn],tend[qn]);
+            }
 
             if(rayiter==1)
             {
@@ -73,8 +79,6 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
         
         if(IO[IJK]==1)
         LS[IJK]=fabs(LS[IJK]);
-        
-        //d->test[IJK] = LS[IJK];
     }
 	
 	LOOP

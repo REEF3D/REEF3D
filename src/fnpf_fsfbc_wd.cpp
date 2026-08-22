@@ -52,7 +52,8 @@ Author: Hans Bihs
 #include"wind_f.h"
 #include"wind_v.h"
 
-fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),eps(1.0e-6)
+fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
+                                                                      eps(1.0e-6),ef(p),df(p)
 {    
     if(p->A311==0)
     pconvec = pconeta = new fnpf_voiddisc(p);
@@ -100,8 +101,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     {
     c->Fy(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
-    c->Hy(i,j) = 0.0;
     c->Eyy(i,j) = 0.0;
+    c->Byy(i,j) = 0.0;
     }
     
     
@@ -162,18 +163,32 @@ fnpf_fsfbc_wd::~fnpf_fsfbc_wd()
 void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     SLICELOOP4
-    {
-    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
-    
-    /*if(c->WL(i,j)<1.1*c->wd_criterion && p->YP[JP]>9000 && p->YP[JP]<9400 && p->wd - c->bed(i,j)>0.0)
-    cout<<p->count<<" WL: "<<c->WL(i,j)<<" "<<c->wd_criterion<<" eta: "<<c->eta(i,j)<<" "<<rb3(p,c->coastline(i,j))*c->eta(i,j)<<" "<<c->bed(i,j)<<" depth: "<<p->wd - c->bed(i,j)
-    <<" cl: "<<c->coastline(i,j)<<" dist3: "<<20.0*dist3<<" x: "<<p->XP[IP]<<" y: "<<p->YP[JP]<<endl;*/
-    }
+    c->WL(i,j) = MAX(c->wd_criterion, eta(i,j) + p->wd - c->bed(i,j));
     
     pgc->gcsl_start4(p,c->WL,50);
     
+    // ef
+    SLICELOOP4
+    ef(i,j) = eta(i,j);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    filter(p,c,pgc,ef,5,2);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    // df
+    SLICELOOP4
+    df(i,j) = c->depth(i,j);
+    
+    pgc->gcsl_start4(p,df,1);
+    
+    filter(p,c,pgc,df,5,2);
+    
+    pgc->gcsl_start4(p,df,1);
+    
     // 3D
-    if(p->i_dir==1 && p->j_dir==1)
+    if(p->j_dir==1)
     SLICELOOP4
     WETDRY
     {
@@ -194,7 +209,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     }
     
     // 2D
-    if(p->i_dir==1 && p->j_dir==0)
+    if(p->j_dir==0)
     SLICELOOP4
     WETDRY
     {
@@ -213,12 +228,6 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
 {
     SLICELOOP4
     {
-    c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
-    c->By(i,j) = pdx->sy(p,c->depth,1.0);
-    
-    c->Bxx(i,j) = pddx->sxx(p,c->depth);
-    c->Byy(i,j) = pddx->syy(p,c->depth);
-    
     c->Ex(i,j) = 0.0;
     c->Ey(i,j) = 0.0;
     
@@ -226,6 +235,25 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
     c->Fy(i,j) = 0.0;
     
     c->K(i,j) = 0.0;
+    }
+    
+    // 3D
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
+    c->By(i,j) = pconvec->sy(p,c->depth,1.0);
+    
+    c->Bxx(i,j) = pddx->sxx(p,df);
+    c->Byy(i,j) = pddx->syy(p,df);
+    }
+    
+    // 2D
+    if(p->j_dir==0)
+    SLICELOOP4
+    {
+    c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);    
+    c->Bxx(i,j) = pddx->sxx(p,df);
     }
     
     pgc->gcsl_start4(p,c->Bx,1);
@@ -249,11 +277,8 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     if(p->wet[IJ]==0)
     c->Fz(i,j) = 0.0;
     }
-    
-    coastline_Fz(p,c,pgc,c->Fz);
-    
-    if(p->count==0)
-    for(int qn=0;qn<20;++qn)
+        
+    if(p->count>0)
     coastline_Fz(p,c,pgc,c->Fz);
 }
 
@@ -278,7 +303,11 @@ void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     if(p->wet[IJ]==1)
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     
-                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) - fabs(p->W22)*eta(i,j);
+                 + 0.5*pow(c->Fz(i,j),2.0)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0)) 
+                 
+                 //+ c->Fx(i,j)*c->Fz(i,j)*c->Ex(i,j) + c->Fy(i,j)*c->Fz(i,j)*c->Ey(i,j)
+                 
+                 - fabs(p->W22)*eta(i,j);
                  
     if(p->wet[IJ]==0)
     c->K(i,j) = 0.0;

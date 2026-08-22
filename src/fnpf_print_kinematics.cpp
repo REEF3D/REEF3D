@@ -74,6 +74,9 @@ void fnpf_print_kinematics::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
         i = p->posc_i(xc);
         j = p->posc_j(yc);
+        
+        if(p->j_dir==0) 
+        j=0;
 
         // calculate kinematics
         kinematics_calc(p,c,pgc);

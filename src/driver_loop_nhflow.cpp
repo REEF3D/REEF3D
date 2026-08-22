@@ -45,6 +45,7 @@ void driver::loop_nhflow()
     cout<<"starting mainloop.NHFLOW"<<endl;
     
     //bedslope_test(p,pgc);
+    //ipol_test(p,d,pgc);
     
 //-----------MAINLOOP NHFLOW----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
@@ -126,6 +127,9 @@ void driver::loop_nhflow()
         maxlog(p);
         solverlog(p);
         }
+        
+    volumelog(p);
+    
     p->gctime=0.0;
     p->xtime=0.0;
 	p->reinitime=0.0;
@@ -147,6 +151,7 @@ void driver::loop_nhflow()
 
     mainlogout.close();
     maxlogout.close();
+    vollogout.close();
     solvlogout.close();
 	}
 

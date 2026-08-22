@@ -147,7 +147,7 @@ void VOF_PLIC::update
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
-void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
+void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, field &ls)
 {	
     
 //********************************************************

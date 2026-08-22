@@ -29,31 +29,64 @@ Author: Hans Bihs
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
-#define WLVL (fabs(WL(i,j))>0.00005?WL(i,j):1.0e20)
+#define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
 void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     double wl,sigval;
     double bx,by,ex,ey;
     
+    SLICELOOP4
+    ef(i,j) = d->eta(i,j);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    filter_sg(p,pgc,ef);
+    
+    pgc->gcsl_start4(p,ef,1);
+    
+    
+    SLICELOOP4
+    df(i,j) = d->depth(i,j);
+    
+    pgc->gcsl_start4(p,df,1);
+    
+    filter_sg(p,pgc,df);
+    
+    pgc->gcsl_start4(p,df,1);
+    
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
-    if(p->i_dir==1 && p->j_dir==1)
+    if(p->j_dir==1)
     SLICELOOP4
+    {
+    if(p->A524<=2)
     {
     d->Ex(i,j) = sx(d->eta);
     d->Ey(i,j) = sy(d->eta);
+    }
     
-    d->Exx(i,j) = sxx(d->eta);
-    d->Eyy(i,j) = syy(d->eta);
+    if(p->A524==3)
+    {
+    d->Ex(i,j) = sx(ef);
+    d->Ey(i,j) = sy(ef);
+    }
+    
+    d->Exx(i,j) = sxx(ef);
+    d->Eyy(i,j) = syy(ef);
     }
     
     // 2D
     if(p->j_dir==0)
     SLICELOOP4
     {
-    d->Ex(i,j) = sx(d->eta);    
-    d->Exx(i,j) = sxx(d->eta);
+    if(p->A524<=2)
+    d->Ex(i,j) = sx(d->eta);  
+
+    if(p->A524==3)
+    d->Ex(i,j) = sx(ef);  
+    
+    d->Exx(i,j) = sxx(ef);
     }
     
     SLICELOOP4
@@ -74,16 +107,16 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     d->Bx(i,j) = sx(d->depth);
     d->By(i,j) = sy(d->depth);
     
-    d->Bxx(i,j) = sxx(d->depth);
-    d->Byy(i,j) = syy(d->depth);
+    d->Bxx(i,j) = sxx(df);
+    d->Byy(i,j) = syy(df);
     }
 
     // 2D
-    if(p->j_dir==0 && p->A312!=1)
+    if(p->j_dir==0)
     SLICELOOP4
     {
     d->Bx(i,j) = sx(d->depth);    
-    d->Bxx(i,j) = sxx(d->depth);
+    d->Bxx(i,j) = sxx(df);
     }
     
     SLICELOOP4
@@ -126,6 +159,8 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     if(p->wet[IJ]==1)
     p->sigz[IJ] = 1.0/WLVL;
+    
+    p->WL[IJ] = WL(i,j);
     }
 
     // sigt
@@ -134,8 +169,11 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
     // sigxx
     FLOOP
-    if(p->wet[IJ]==1)
     {
+    p->sigxx[FIJK] = 0.0;
+    
+        if(p->wet[IJ]==1 && d->SOLID[IJK]>0 && d->SOLID[IJKm1]>0) 
+        {
         p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
         
                       - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
@@ -152,11 +190,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
                       - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
                       
                       - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
-    }
+                      
+        }
     
-    FLOOP
-    if(p->wet[IJ]==0)
-    p->sigxx[FIJK]=0.0;
+    }
     
     // sig BC
     SLICELOOP4

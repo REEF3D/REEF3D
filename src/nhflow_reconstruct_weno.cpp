@@ -38,7 +38,7 @@ nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
 {
 }
 
-inline void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
+void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)
 {
     uf=1;
     vf=0;
@@ -106,7 +106,7 @@ inline void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, 
     }*/
 }
 
-inline void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
+void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
 {
     uf=0;
     vf=1;
@@ -140,7 +140,7 @@ inline void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, 
     pgc->gcsl_start2(p,fw,1);
 }
 
-inline void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
+void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_nhf *d)
 {
     // water level  
     SLICELOOP1
@@ -171,7 +171,7 @@ inline void nhflow_reconstruct_weno::reconstruct_2D_WL(lexer* p, ghostcell *pgc,
     pgc->gcsl_start2(p,d->Dw,1);
 }
 
-inline void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
+void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fx, double *Fs, double *Fn)
 {
     uf=1;
     vf=0;
@@ -242,7 +242,7 @@ inline void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, 
     }*/
 }
 
-inline void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
+void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
 {
     uf=0;
     vf=1;
@@ -276,63 +276,66 @@ inline void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, 
     pgc->start2V(p,Fw,1);
 }
 
-inline void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
-{
-    // gradient
-    LOOP
-    DFDX[IJK] = 0.0;
-    
-    LOOP
-    WETDRY
-    {
-    dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
-    dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];
-    
-    DFDX[IJK] = limiter(dfdz_plus,dfdz_min);
-    }
-    
-    pgc->start3V(p,DFDX,1);
-    
-    // reconstruct
-    WLOOP 
-    {
-    Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
-    Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
-    }
-}
-/*
 void nhflow_reconstruct_weno::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fz, double *Fb, double *Ft)
-{    
-    WLOOP
+{
+    if(p->A514==4)
     {
-    // left
-	kqmin(p,Fz);
-	is_min_z();
-	weight_min_z();
+        // gradient
+        LOOP
+        DFDX[IJK] = 0.0;
+        
+        LOOP
+        WETDRY
+        {
+        dfdz_plus = (Fz[IJKp1] - Fz[IJK])/p->DZP[KP];
+        dfdz_min  = (Fz[IJK] - Fz[IJKm1])/p->DZP[KM1];
+        
+        DFDX[IJK] = limiter(dfdz_plus,dfdz_min);
+        }
+        
+        pgc->start3V(p,DFDX,1);
+        
+        // reconstruct
+        WLOOP 
+        {
+        Fb[IJK] = (Fz[IJK]    + 0.5*p->DZN[KP]*DFDX[IJK]); 
+        Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
+        }
+    }
+   
+    if(p->A514==5)
+    {
+        WLOOP
+        {
+        // left
+        kqmin(p,Fz);
+        is_min_z();
+        weight_min_z();
 
-	Fb[IJK] =     w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
-    
-                + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
-          
-                + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
-	
-    // right
-	kqmax(p,Fz);
-	is_max_z();
-	weight_max_z();
-    
-	Ft[IJK] =     w1x*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
-    
-                + w2x*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
-          
-                + w3x*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
-	}
+        Fb[IJK] =     w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
+        
+                    + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
+              
+                    + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
+        
+        // right
+        kqmax(p,Fz);
+        is_max_z();
+        weight_max_z();
+        
+        Ft[IJK] =     w1x*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
+        
+                    + w2x*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
+              
+                    + w3x*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
+        }
+    }
     
     pgc->start3V(p,Fb,1);
     pgc->start3V(p,Ft,1);
 }
-*/
-inline void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
+
+void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
 {	 
     q1 = F[Im2JK];
     q2 = F[Im1JK];
@@ -341,7 +344,7 @@ inline void nhflow_reconstruct_weno::iqmin(lexer *p, double *F)
     q5 = F[Ip2JK];
 }
 
-inline void nhflow_reconstruct_weno::jqmin(lexer *p, double *F)
+void nhflow_reconstruct_weno::jqmin(lexer *p, double *F)
 {
     q1 = F[IJm2K];
     q2 = F[IJm1K];
@@ -350,7 +353,7 @@ inline void nhflow_reconstruct_weno::jqmin(lexer *p, double *F)
     q5 = F[IJp2K];
 }
 
-inline void nhflow_reconstruct_weno::kqmin(lexer *p, double *F)
+void nhflow_reconstruct_weno::kqmin(lexer *p, double *F)
 {
     q1 = F[IJKm2];
     q2 = F[IJKm1];
@@ -359,7 +362,7 @@ inline void nhflow_reconstruct_weno::kqmin(lexer *p, double *F)
     q5 = F[IJKp2];
 }
 
-inline void nhflow_reconstruct_weno::iqmax(lexer *p, double *F)
+void nhflow_reconstruct_weno::iqmax(lexer *p, double *F)
 {
     q1 = F[Im1JK];
     q2 = F[IJK];
@@ -368,7 +371,7 @@ inline void nhflow_reconstruct_weno::iqmax(lexer *p, double *F)
     q5 = F[Ip3JK];
 }
 
-inline void nhflow_reconstruct_weno::jqmax(lexer *p, double *F)
+void nhflow_reconstruct_weno::jqmax(lexer *p, double *F)
 {
     q1 = F[IJm1K];
     q2 = F[IJK];
@@ -377,7 +380,7 @@ inline void nhflow_reconstruct_weno::jqmax(lexer *p, double *F)
     q5 = F[IJp3K];
 }
 
-inline void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
+void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
 {
 	q1 = F[IJKm1];
     q2 = F[IJK];
@@ -386,7 +389,7 @@ inline void nhflow_reconstruct_weno::kqmax(lexer *p, double *F)
     q5 = F[IJKp3];
 }
 
-inline void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
+void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
 {	
 	q1 = f(i-2,j);
 	q2 = f(i-1,j);
@@ -395,7 +398,7 @@ inline void nhflow_reconstruct_weno::iqmin_sl(lexer *p, slice& f)
 	q5 = f(i+2,j);
 }
 
-inline void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
+void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
 {
 	q1 = f(i,j-2);
 	q2 = f(i,j-1);
@@ -404,7 +407,7 @@ inline void nhflow_reconstruct_weno::jqmin_sl(lexer *p, slice& f)
 	q5 = f(i,j+2);
 }
 
-inline void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
+void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
 {
 	q1 = f(i-1,j);
 	q2 = f(i,j);
@@ -413,7 +416,7 @@ inline void nhflow_reconstruct_weno::iqmax_sl(lexer *p, slice& f)
 	q5 = f(i+3,j);
 }
 
-inline void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
+void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
 {
 	q1 = f(i,j-1);
 	q2 = f(i,j);
@@ -422,7 +425,7 @@ inline void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
 	q5 = f(i,j+3);
 }
 
-inline double nhflow_reconstruct_weno::limiter(double v1, double v2)
+double nhflow_reconstruct_weno::limiter(double v1, double v2)
 {
     val=0.0;
     

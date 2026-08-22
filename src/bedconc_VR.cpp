@@ -34,7 +34,6 @@ bedconc_VR::bedconc_VR(lexer *p)
     shields=p->S30;
     visc=p->W2;
     kappa=0.4;
-    ks=2.5*d50;
     adist=3.0*d50;
     deltab=3.0*d50;
     Rstar=(rhosed-rhowat)/rhowat;
@@ -52,23 +51,38 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     s->cbn(i,j) = s->cbe(i,j);
     
     // cb* van Rijn
-    SLICELOOP4
+    SEDSLICELOOP
     {
-    Ts = s->shields_crit(i,j);
-    Tb = s->shields_eff(i,j);
+    Ts = s->tau_crit(i,j);
+    Tb = s->tau_eff(i,j);
     
     Ti=MAX((Tb-Ts)/(Ts),0.0);
         
-
     Ds = d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     
     Ds = Ds>1.0e-10?Ds:1.0e10;
     
-    adist = 0.5*p->DZP[KP];
+    if(p->S61==1)
+    {
+        if(p->A10==5)
+        {
+        k=0;
+        adist = 0.5*p->DZN[KP]*p->WL[IJ];
+        }
+        
+        if(p->A10==6)
+        {
+        k=s->bedk(i,j);
+        adist = 0.5*p->DZN[KP];
+        }
+    }
+    
+    if(p->S61==2)
+    {
+        adist = 2.0*d50;
+    }
     
     s->cbe(i,j) =  MIN((0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.1);
-     
-    //s->cbe(i,j) =  (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
     }
     
     pgc->gcsl_start4(p,s->qbe,1);

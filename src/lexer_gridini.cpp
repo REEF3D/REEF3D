@@ -42,7 +42,6 @@ void lexer::flagini()
 	Iarray(flag2,imax*jmax*kmax);
 	Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
-    Iarray(flag,imax*jmax*kmax);
 
     Iarray(flagsf1,imax*jmax*kmax);
 	Iarray(flagsf2,imax*jmax*kmax);

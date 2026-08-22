@@ -47,8 +47,6 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
     if(p->Y40==1 || p->Y40==3)
     dgcslpol1(p,f);
 
-    if(p->Y40==2 || p->Y40==3)
-    f.ggcpol(p);
 }
 
 void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
@@ -74,8 +72,6 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
     if(p->Y40==1  || p->Y40==3)
     dgcslpol2(p,f);
 
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
 }
 
 void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
@@ -100,9 +96,6 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 
     if(p->Y40==1  || p->Y40==3)
     dgcslpol4(p,f);
-
-    if(p->Y40==2  || p->Y40==3)
-    f.ggcpol(p);
 }
 
 void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
@@ -213,7 +206,4 @@ void ghostcell::gcsl_start4a(lexer *p, slice &f, int gcv)
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
-
-    if(p->Y40==2 || p->Y40==3)
-    f.ggcpol(p);
 }

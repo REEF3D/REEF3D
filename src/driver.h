@@ -45,7 +45,6 @@ class ghostcell;
 class timestep;
 class freesurface;
 class reini;
-class particle_corr;
 class sediment;
 class bedload;
 class reinitopo;
@@ -128,6 +127,7 @@ public:
 	void log_ini();
 	void mainlog(lexer*);
 	void maxlog(lexer*);
+    void volumelog(lexer*);
 	void solverlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
@@ -142,6 +142,7 @@ public:
 	void func_test(lexer*,fdm*,ghostcell*,field&);
     void pos_test(lexer*,fdm*,ghostcell*);
     void ipol_test(lexer*,fdm*,ghostcell*);
+    void ipol_test(lexer*,fdm_nhf*,ghostcell*);
     void bedslope_test(lexer*,ghostcell*);
     double bedslope_angle(lexer*,ghostcell*,double,double);
 	double calc();
@@ -177,7 +178,6 @@ public:
 	timestep* ptstep;
 	freesurface* pfsf;
 	reini* preini;
-	particle_corr* ppls; 
 	sediment* psed;
 	reinitopo* preto;
     reinitopo* preso;
@@ -216,7 +216,9 @@ public:
 private:
     double starttime, endtime;
     ofstream mainlogout;
+    ofstream versionlogout;
     ofstream maxlogout;
+    ofstream vollogout;
     ofstream solvlogout;
 	
 	double nom,val;

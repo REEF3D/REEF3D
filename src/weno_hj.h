@@ -40,17 +40,17 @@ public:
 	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
     
 	double ddx(lexer*, fdm*, field&);
 	double ddy(lexer*, fdm*, field&);
 	double ddz(lexer*, fdm*, field&);
-	void iqmin(field&, double, double*);
-	void jqmin(field&, double, double*);
-	void kqmin(field&, double, double*);
-	void iqmax(field&, double, double*);
-	void jqmax(field&, double, double*);
-	void kqmax(field&, double, double*);
+	void iqmin(field&, double);
+	void jqmin(field&, double);
+	void kqmin(field&, double);
+	void iqmax(field&, double);
+	void jqmax(field&, double);
+	void kqmax(field&, double);
 
 	double L,grad;
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;

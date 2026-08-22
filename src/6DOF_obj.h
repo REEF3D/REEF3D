@@ -230,7 +230,9 @@ private:
     
     // ray cast NHFLOW
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_x(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_ycorr(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_zcorr(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
@@ -276,7 +278,7 @@ private:
     // Force NHFLOW
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
-    void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*);
+    void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);
 	void addpoint(lexer*,fdm_nhf*,int,int);
@@ -392,7 +394,7 @@ private:
     int ptnum;
     double **kinematics;
     
-    
+    double DSM;
 };
 
 #endif

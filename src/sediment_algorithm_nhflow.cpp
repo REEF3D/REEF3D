@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"bedslope.h"
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
+#include"sediment_roughness.h"
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
@@ -54,6 +55,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);
+    
+    // bed roughness -------
+    pks->start(p,pgc,s,d->WL);
     
     // bedshear stress -------
 	pbedshear->taubed(p,d,pgc,s);
@@ -81,10 +85,6 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // relax *******
 	prelax->start(p,pgc,s);
-	
-    // filter bedzh *******
-	//if(p->S100>0)
-	//filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);
@@ -101,10 +101,6 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 
 	if(p->mpirank==0)
     cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
-    
-    k=0;
-    SLICELOOP4
-    d->test2D(i,j) = d->KIN[IJK];
 }
 
 void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)

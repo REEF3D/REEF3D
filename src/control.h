@@ -67,14 +67,15 @@ public:
     double A440;
 
     // NHFLOW
-    int A501,A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
-    int A520,A521;
-    double A522,A523;
+    int A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
+    int A520,A521,A524,A525;
+    double A522,A523,A526;
     double A531;
-    int A532;
+    int A532,A533;
     int A540,A543;
     double A541,A542,A544,A545;
     int A550,A551,A552,A553;
+    double A554,A555,A556,A557;
     int A560;
     int A564,A565,A566,A567,A569;
     int A570,A573,A574;
@@ -100,7 +101,7 @@ public:
 
     int A590,A591,A592,A593,A594,A599;
     double A591_x,A591_y,A591_z;
-    double A592_x,A592_y,A592_z;
+    double A592_dx,A592_dy,A592_dz;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
 
     // boundary conditions
@@ -132,8 +133,9 @@ public:
     double B191_1,B191_2,B191_3,B191_4,B192_1,B192_2,B192_3,B192_4;
     double B194_s,B194_e;
     
-    int B200,B201;
+    int B200,B201,B208;
     double B201_n, B201_d50, B201_alpha, B201_beta;
+    double B209;
     int B210;
     double *B210_xs,*B210_xe,*B210_ys,*B210_ye,*B210_zs,*B210_ze;
     int B212;
@@ -153,7 +155,7 @@ public:
     
     int B230,B231,B232,B233,B234;
     double B231_x,B231_y,B231_z;
-    double B232_x,B232_y,B232_z;
+    double B232_dx,B232_dy,B232_dz;
     double B233_x,B233_y,B233_z,B233_phi,B233_theta,B233_psi;
     
     double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
@@ -218,10 +220,10 @@ public:
     double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
     // discretization
-    int D10,D11,D20,D21,D22,D30,D31,D33,D37;
+    int D10,D11,D20,D21,D22,D30,D31,D37;
 
     // Free Surface
-    int F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F49,F50,F150,F151;
+    int F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F50,F150,F151;
     double F33,F39,F42,F43,F45;
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
@@ -311,9 +313,9 @@ public:
     int M10;
 
     // Print options
-    int P10,P11,P12,P15,P16,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
-    int P61,P62,P63,P64,P65,P66,P67,P68,P69,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P101,P120,P121,P122,P123,P124,P125,P126;
-    int P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195;
+    int P10,P11,P12,P15,P16,P19,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
+    int P61,P62,P63,P64,P65,P66,P67,P68,P69,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P99,P101,P120,P121,P122,P123,P124,P125,P126;
+    int P144,P145,P146,P147,P148,P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P190,P191,P194,P195;
     double P22,P30,P34,P39,P42;
     double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
@@ -347,8 +349,15 @@ public:
     double *P133_y;
     double *P134_y;
     double *P140_x,*P140_y;
-    double *P167_x;
     double P141;
+    double *P144_xs,*P144_xe,*P144_ys,*P144_ye;
+    int *P144_n;
+    double *P145_xs,*P145_xe,*P145_ys,*P145_ye,*P145_tbegin,*P145_tend;
+    int *P145_n;
+    double *P146_y,*P146_tbegin,*P146_tend;
+    double *P147_x,*P147_tbegin,*P147_tend;
+    double *P148_x,*P148_y,*P148_tbegin,*P148_tend;
+    double *P167_x;
     double *P168_x,*P168_zs,*P168_ze;
     double P182,P183;
     int *P184_its,*P184_ite,*P184_dit;
@@ -405,8 +414,8 @@ public:
     int Q202;
 
     // Sediment Transport
-    int S10,S11,S12,S15,S16,S17,S25,S27,S28,S29,S31,S32,S33,S34,S37,S41,S42,S43,S44,S50,S60,S73,S74,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101;
-    double S13,S14,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S102;
+    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S41,S42,S43,S44,S50,S60,S61,S73,S74,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S102;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
@@ -488,7 +497,7 @@ public:
     double X171_xs,X171_xe,X171_ys,X171_ye,X171_zs,X171_z1,X171_ze;
     double X172_xs,X172_xe,X172_ys,X172_ye,X172_zs,X172_z1,X172_z2,X172_ze;
     double X181_x,X181_y,X181_z;
-    double X182_x,X182_y,X182_z;
+    double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
     int X185,X188;
     double X186;

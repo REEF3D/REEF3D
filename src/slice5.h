@@ -23,19 +23,13 @@ Author: Hans Bihs
 #ifndef SLICE5_H_
 #define SLICE5_H_
 
-#include"slice.h"
-#include"increment.h"
+#include "slice.h"
 
-using namespace std;
-
-class slice5 final : public slice, increment
+class slice5 final : public slice
 {
 public:
-	slice5(lexer* p) : slice(p) {};
+	slice5(lexer *p) : slice(p) {};
 	virtual ~slice5() = default;
-
-    inline double& operator()(int ii, int jj) noexcept override final {return V[(ii-imin)*jmax + (jj-jmin)];};
-    void ggcpol(lexer*) override final {};
 };
 
 #endif

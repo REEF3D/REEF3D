@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"patchBC_interface.h"
+#include"bedslope.h"
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
@@ -49,10 +50,17 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
         s->bedzh0(i,j)=h;
 	}
     
+    // ks ini
     SLICELOOP4
+    {
     s->ks(i,j) = p->S21*p->S20;
+    s->ks_eff(i,j) = p->S21*p->S20;
+    s->ro(i,j) = p->W1;
+    }
 	
 	pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh0,1);
+    pgc->gcsl_start4(p,s->ro,1);
     
     if(p->S10==1)
     {
@@ -80,16 +88,25 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
     {
     s->ks(i,j) = p->S21*p->S20;
+    s->ks_eff(i,j) = p->S21*p->S20;
     
     s->bedzh(i,j)=d->bed(i,j);
     s->bedzh0(i,j)=d->bed(i,j);
+    
+    s->ro(i,j) = p->W1;
     }
+    
+    pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh0,1);
+    pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_nhflow(p,d,pgc);
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
     log_ini(p);
+    
+    pslope->slope_cds(p,pgc,s);
 }
 
 void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -98,13 +115,20 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     s->ks(i,j) = p->S21*p->S20;
+    s->ks_eff(i,j) = p->S21*p->S20;
     
     s->bedzh(i,j)=b->topobed(i,j);
     s->bedzh0(i,j)=b->topobed(i,j);
+    
+    s->ro(i,j) = p->W1;
     }
     
     SLICELOOP4
     b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
+    
+    pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,s->bedzh0,1);
+    pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_sflow(p,b,pgc);
     
@@ -148,8 +172,6 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
 {
     SLICELOOP4
     s->guard(i,j)=1.0;
-    
-    
     
     if(p->S78==1)
     {

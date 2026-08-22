@@ -152,7 +152,7 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 	
 	ks=ks_val(p,a,ii,jj,kk,cs,bc);
 
-		if(30.0*dist<ks)
+		if(30.0*z0<ks)
 		z0=ks/30.0;
 
 		uplus = (1.0/kappa)*log(30.0*(z0/ks));

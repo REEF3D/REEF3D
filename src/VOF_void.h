@@ -44,7 +44,7 @@ class VOF_void final : public freesurface, gradient, norm_vec
 public:
     VOF_void(lexer*, fdm*, ghostcell*,heat*);
     virtual ~VOF_void();
-    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
+    void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, field&) override final;
     void update(lexer*,fdm*,ghostcell*,field&) override final;
     
 private:

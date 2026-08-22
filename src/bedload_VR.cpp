@@ -29,14 +29,9 @@ Author: Hans Bihs
 bedload_VR::bedload_VR(lexer *p)
 {
     rhosed=p->S22;
-    rhowat=p->W1;
     g=9.81;
     d50=p->S20;
     visc=p->W2;
-    kappa=0.4;
-    ks=p->S21*d50;
-    Rstar=(rhosed-rhowat)/rhowat;
-    Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
 }
 
 bedload_VR::~bedload_VR()
@@ -52,10 +47,14 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     {
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);
+        
+        rhowat = s->ro(i,j);
+        Rstar=(rhosed-rhowat)/rhowat;
+        Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
 
         Ti=MAX((Tb-Ts)/(Ts),0.0);
         
-        if(s->active(i,j)==1 && Tb>=Ts)
+        if(s->active(i,j)==1 && Tb>Ts)
         qb = (0.053*pow(d50,1.5)*sqrt(g*Rstar)*pow(Ti,2.1))/pow(Ds,0.3);
 
 

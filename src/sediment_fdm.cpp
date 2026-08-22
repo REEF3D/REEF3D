@@ -26,14 +26,14 @@ Author: Hans Bihs
 sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        bedzh(p),bedzh0(p),bedch(p),bedsole(p),
                                        vz(p),dh(p),reduce(p),
-                                       ks(p),
+                                       ks(p),ks_eff(p),ro(p),
                                        tau_eff(p),tau_crit(p),shearvel_eff(p),shearvel_crit(p),shields_eff(p),shields_crit(p),
                                        qb(p),qbe(p),
                                        alpha(p),teta(p),gamma(p),beta(p),phi(p),
                                        active(p),
                                        bedk(p),slide_fh(p),
                                        cbe(p),cb(p),cbn(p),conc(p),
-                                       waterlevel(p),guard(p),MOB(p)
+                                       waterlevel(p),guard(p),MOB(p),tau_i(p)
 {
 
 }

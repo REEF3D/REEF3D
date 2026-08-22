@@ -40,7 +40,7 @@ public:
 	virtual ~vrans_nhflow_v() {};
     
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override final {};	
-	void update(lexer*, fdm_nhf*, ghostcell*, int) override final {};
+	void update(lexer*, fdm_nhf*, ghostcell*, double, int) override final {};
 
 	void u_source(lexer*, fdm_nhf*, slice&) override final {};
 	void v_source(lexer*, fdm_nhf*, slice&) override final {};
@@ -52,6 +52,8 @@ public:
     void omega_source(lexer*, fdm_nhf*, field&, field&) override final {};
     
     void eddyv_func(lexer*, fdm_nhf*) override final {};
+    
+    void force_calc(lexer*, fdm_nhf*, ghostcell*, double, int) override final {};
     
 
 };

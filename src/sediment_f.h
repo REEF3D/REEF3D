@@ -53,22 +53,23 @@ class bedshear_probe;
 class bedshear_max;
 class bedprobe_line_x;
 class bedprobe_line_y;
+class sediment_roughness;
 
 using namespace std;
 
-class sediment_f final : public sediment, public increment
+class sediment_f : public sediment, public increment
 {
 public:
-    sediment_f(lexer*,fdm*,ghostcell*,turbulence*, patchBC_interface*);
+    sediment_f(lexer*,ghostcell*,turbulence*,patchBC_interface*);
 	virtual ~sediment_f();
     
     // CFD interface
-    void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override final;
+    void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override;
     void ini_cfd(lexer*,fdm*,ghostcell*) override final;
     void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*) override final;
     void update_cfd(lexer*,fdm*,ghostcell*,ioflow*,reinitopo*) override final;
     
-    void sediment_logic(lexer*,fdm*,ghostcell*,turbulence*);
+    void sediment_logic(lexer*,ghostcell*,turbulence*);
     void sediment_algorithm_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*);
     void prep_cfd(lexer*,fdm*,ghostcell*);
     void fill_PQ_cfd(lexer*,fdm*,ghostcell*);
@@ -77,10 +78,13 @@ public:
     void bedchange_update(lexer*, ghostcell*);
     
     // NHFLOW interface
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*) override;
     void ini_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
     void start_susp_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*) override final;
     void update_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override final;
+    
+    void RK2_step1_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
+    void RK2_step2_nhflow(lexer*,fdm_nhf*,ghostcell*,ioflow*) override {};
     
     void sediment_algorithm_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
     void prep_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -89,7 +93,7 @@ public:
     void active_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
     // SFLOW interface
-    void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override final;
+    void start_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&) override;
     void ini_sflow(lexer*, fdm2D*, ghostcell*) override final;
     void update_sflow(lexer*,fdm2D*,ghostcell*,ioflow*) override final;
     void sediment_algorithm_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&);
@@ -160,8 +164,6 @@ public:
     void name_ParaView_CPM(lexer*, ostream&, int*, int &) override final {};
     void offset_ParaView_CPM(lexer*, int*, int &) override final {};
     
-
-private:
     
     void log_ini(lexer*);
     void sedimentlog(lexer*);
@@ -192,12 +194,15 @@ private:
 	bedshear_max *pbedshearmax;
     sediment_f *psed;
     ofstream sedlogout;
+    sediment_roughness *pks; 
     
     double starttime;
     
     int volume_token,sedcalc;
     int gcval_eta;
     double volume0;
+    
+private:
 	
 };
 

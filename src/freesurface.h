@@ -30,7 +30,6 @@ class solver;
 class ghostcell;
 class ioflow;
 class reini;
-class particle_corr;
 class field;
 
 using namespace std;
@@ -39,7 +38,7 @@ class freesurface
 {
 public:
 
-	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&)=0;
+	virtual void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*,field&)=0;
     virtual void update(lexer*,fdm*,ghostcell*,field&)=0;
 
 };

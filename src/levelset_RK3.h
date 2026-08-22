@@ -39,7 +39,7 @@ class levelset_RK3 final : public freesurface, gradient
 public:
 	levelset_RK3(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
 	virtual ~levelset_RK3();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
+	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*,field&) override final;
     void update(lexer*,fdm*,ghostcell*,field&) override final;
 
 private:

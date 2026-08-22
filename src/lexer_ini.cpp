@@ -54,7 +54,6 @@ void lexer::lexer_ini()
     solver_error=0;
 	
 	maxdt=mindt=0.0;
-    RK_alpha=0.0;
     wavetime=0.0;
 
     wT=0.0;

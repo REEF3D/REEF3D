@@ -61,40 +61,58 @@ void sixdof_motionext_wavemaker::ini(lexer *p, ghostcell *pgc)
 void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
     // find correct time step
-    if((p->simtime>data[timecount][0]))
-    timecount_old=timecount;
-    
-	while(p->simtime>data[timecount][0])
-	++timecount;
-    
-    
-        Uext = 0.0;
+    if (p->simtime <= te)
+    {
+        if(p->simtime>data[timecount][0])
+        timecount_old=timecount;
         
-        if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-        Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
-        
-        if(p->mpirank==0)
-        cout<<"6DOF_motion  Uext "<<Uext<<endl;
-        
-        dp_(0) = 0.0;
-        dc_(0) = Uext*ramp_vel(p);
+        while(p->simtime>data[timecount][0])
+        ++timecount;
+    }
+    
+    
+        if (p->X11_u == 2)
+        {
+            Uext = 0.0;
+            
+            if(p->simtime>=ts && p->simtime<=te)
+            Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
+            
+            if(p->mpirank==0)
+            cout<<"6DOF_motion  Uext "<<Uext<<endl;
+            
+            dp_(0) = 0.0;
+            dc_(0) = Uext*ramp_vel(p);
+        }
 
-        dp_(1) = 0.0;
-        dc_(1) = 0.0;
+        if (p->X11_v == 2)
+        {
+            dp_(1) = 0.0;
+            dc_(1) = 0.0;
+        }
         
-        dp_(2) = 0.0;
-        dc_(2) = 0.0;
+        if (p->X11_w == 2)
+        {
+            dp_(2) = 0.0;
+            dc_(2) = 0.0;
+        }
 }
 
 void sixdof_motionext_wavemaker::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
-        dh_ << 0.0,0.0,0.0;
+        if (p->X11_p == 2) dh_(0) = 0.0;
+        if (p->X11_q == 2) dh_(1) = 0.0;
+        if (p->X11_r == 2) dh_(2) = 0.0;
         
-        omega_ << 0.0, 0.0, 0.0;
+        omega_ = I_.inverse() * h_;
+        
+        if (p->X11_p == 2) omega_(0) = 0.0;
+        if (p->X11_q == 2) omega_(1) = 0.0;
+        if (p->X11_r == 2) omega_(2) = 0.0;
         
         h_ = I_*omega_;
         
-        de_ = 0.5*G_.transpose()*I_.inverse()*h_;
+        de_ = 0.5*G_.transpose()*omega_;
 }
 
 double sixdof_motionext_wavemaker::ramp_vel(lexer *p)

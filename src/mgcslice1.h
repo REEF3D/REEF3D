@@ -39,18 +39,10 @@ public:
 
     //mgcslice1
 	void makemgc(lexer*);
-	void mgcsetup(lexer*);
-	void gcdirfill(lexer*);
-	void fillmgc(lexer*);
-	void make_ggc(lexer*);
-	void fill_ggc(lexer*);
-
     
     void gcb_seed(lexer*);
 	
 	int imin,imax,jmax,jmin,kmin,kmax;
-	int gcdirsize;
-	int ggcsize;
 	
 private:
 	int di,dj;

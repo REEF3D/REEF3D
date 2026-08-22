@@ -30,8 +30,6 @@ class slice : public slice_base<double>
 public:
     slice(lexer* p) : slice_base<double>(p) {};
     virtual ~slice() = default;
-
-    virtual void ggcpol(lexer*) = 0;
 };
 
 #endif

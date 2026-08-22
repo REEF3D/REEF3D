@@ -345,12 +345,6 @@ void driver::makegrid2D_basic(lexer *p, ghostcell *pgc)
     
     msl4.makemgc(p);
     msl4.gcb_seed(p);
-    msl4.mgcsetup(p);
-    msl4.fillmgc(p);
-    msl4.gcdirfill(p);
-    
-    msl4.make_ggc(p);
-    msl4.fill_ggc(p);
     
     pgc->gcsl_setbc4(p);
     pgc->gcsl_setbcio(p);

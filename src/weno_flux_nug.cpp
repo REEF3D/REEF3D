@@ -291,7 +291,7 @@ void weno_flux_nug::iqmax(lexer *p, field& f, field& uvel, int ipol)
 	q2 = f.V[IJK];
 	q3 = f.V[Ip1JK];
 	q4 = f.V[Ip2JK];
-	q5 = f.V[Ip2JK];
+	q5 = f.V[Ip3JK];
 }
 
 void weno_flux_nug::jqmax(lexer *p, field& f, field& vvel, int ipol)

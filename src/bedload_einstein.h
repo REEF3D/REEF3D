@@ -41,10 +41,7 @@ public:
 private:
     double rhosed,rhowat;
     double g,d50,sval;
-    double shields,eta,visc;
-    double kappa,u_plus,ks;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
+    double tau_eff;
 
 };
 

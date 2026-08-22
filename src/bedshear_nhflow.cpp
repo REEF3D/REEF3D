@@ -31,7 +31,7 @@ Author: Hans Bihs
 // NHFLOW
 void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 {
-    double uabs,cf,manning,tau;
+    double uabs,cf,manning,tau_i,tau_eff;
     double density=p->W1;
     double visc=p->W2;
     double us, usn;
@@ -41,7 +41,6 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     {
     s->tau_eff(i,j) = 0.0;
     s->tau_crit(i,j) = 0.0;
-    s->MOB(i,j) = 0.0;
     }
     
     k=0;
@@ -57,9 +56,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
 
-        tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau_eff=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
         
         us = 1.0e-6;
         
@@ -71,7 +70,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         us += 0.5*(usn - us);
         }
-        tau = density * us * us;
+        tau_eff = density * us * us;
         }
         
         if(p->S16==1 && p->B22==2)
@@ -84,9 +83,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
 
-        tau=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau_eff = density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
         }
         
         if(p->S16==2)
@@ -99,9 +98,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/ks));
+        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
 
-        tau = MAX(density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*d->KIN[IJK]*0.3);
+        tau_eff = MAX(density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*d->KIN[IJK]*0.3);
         }
         
         if(p->S16==3)
@@ -119,11 +118,11 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
     
-        tau=density*(v_d + v_t)*(uabs/dist);
+        tau_eff = density*(v_d + v_t)*(uabs/dist);
         }
         
         if(p->S16==4)
-        tau=density*d->KIN[IJK]*0.3;
+        tau_eff = density*d->KIN[IJK]*0.3;
         
         if(p->S16==6)
         {
@@ -143,16 +142,31 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         U=U/double(count);
         U=V/double(count);
 
-        Cval=18.0*log10((12.0*wh)/ks);
+        Cval=18.0*log10((12.0*wh)/s->ks_eff(i,j));
 
         u_abs = sqrt(U*U + V*V);
 	
-        tau = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
+        tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
         }
+        
+        // tau_i for Ti
+        U = d->U[IJK];
+        V = d->V[IJK];
+        W = d->W[IJK];
+        
+        dist = 0.5*p->DZN[KP]*d->WL(i,j);
+        
+        uabs = sqrt(U*U + V*V + W*W);
+        
+        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
 
-    s->tau_eff(i,j) = tau;
-    s->shearvel_eff(i,j) = sqrt(tau/density);
-    s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
+        tau_i = density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+
+
+    s->tau_eff(i,j) = tau_eff;
+    s->tau_i(i,j) = tau_i;
+    s->shearvel_eff(i,j) = sqrt(tau_eff/density);
+    s->shields_eff(i,j) = tau_eff/((p->S22-density)*fabs(p->W22)*p->S20);
     }
 }
 

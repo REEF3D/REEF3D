@@ -76,7 +76,7 @@ void driver::loop_cfd_df(fdm* a)
         // Benchmark cases
         pbench->start(p,a,pgc,pconvec);
 
-        pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
+        pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,a->phi);
         
         // Turbulence computation
         pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);

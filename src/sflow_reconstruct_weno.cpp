@@ -137,7 +137,7 @@ void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
     pgc->gcsl_start2(p,b->Dw,1);
 }
 
-inline void sflow_reconstruct_weno::iqmin(lexer *p, slice& f)
+void sflow_reconstruct_weno::iqmin(lexer *p, slice& f)
 {	
 	q1 = f(i-2,j);
 	q2 = f(i-1,j);
@@ -146,7 +146,7 @@ inline void sflow_reconstruct_weno::iqmin(lexer *p, slice& f)
 	q5 = f(i+2,j);
 }
 
-inline void sflow_reconstruct_weno::jqmin(lexer *p, slice& f)
+void sflow_reconstruct_weno::jqmin(lexer *p, slice& f)
 {
 	q1 = f(i,j-2);
 	q2 = f(i,j-1);
@@ -155,7 +155,7 @@ inline void sflow_reconstruct_weno::jqmin(lexer *p, slice& f)
 	q5 = f(i,j+2);
 }
 
-inline void sflow_reconstruct_weno::iqmax(lexer *p, slice& f)
+void sflow_reconstruct_weno::iqmax(lexer *p, slice& f)
 {
 	q1 = f(i-1,j);
 	q2 = f(i,j);
@@ -164,7 +164,7 @@ inline void sflow_reconstruct_weno::iqmax(lexer *p, slice& f)
 	q5 = f(i+3,j);
 }
 
-inline void sflow_reconstruct_weno::jqmax(lexer *p, slice& f)
+void sflow_reconstruct_weno::jqmax(lexer *p, slice& f)
 {
 	q1 = f(i,j-1);
 	q2 = f(i,j);

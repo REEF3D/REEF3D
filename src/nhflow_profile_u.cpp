@@ -70,7 +70,7 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         pout[n]<<"U-Profile ID:  "<<n+1<<endl<<endl;
         pout[n]<<"x_coord     y_coord"<<endl;
-        pout[n]<<n+1<<"\t "<<p->P67_x[n]<<"\t "<<p->P67_y[n]<<"\t "<<endl;
+        pout[n]<<n+1<<"\t "<<p->Xout(p->P67_x[n],p->P67_y[n])<<"\t "<<p->Yout(p->P67_x[n],p->P67_y[n])<<"\t "<<endl;
         pout[n]<<"simtime:  "<<p->simtime<<endl<<endl;
 
         pout[n]<<endl<<endl;
@@ -81,6 +81,7 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // print 
     double xp,yp;
+    double uipol;
     
     for(n=0;n<probenum;++n)
     if(flag[n]==1)
@@ -95,10 +96,11 @@ void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i = iloc[n];
         j = jloc[n];
     
-        uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, p->ZSP[IJK]);
+        uval = d->U[IJK];
+        uipol = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, p->ZSP[IJK]);
         }
  
-    pout[n]<<setprecision(9)<<p->ZSP[IJK]<<" \t "<<uval<<endl;
+    pout[n]<<setprecision(9)<<p->ZSP[IJK]<<" \t "<<uipol<<endl;//<<" :  "<<uipol<<endl;
     } 
     
     for(n=0;n<probenum;++n)

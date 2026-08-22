@@ -47,7 +47,6 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
 
 // maximum velocities
-
     SLICELOOP4
 	depthmax=MAX(depthmax,d->WL(i,j));
 	
@@ -94,10 +93,8 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	p->vmax=MAX(p->vmax,p->vfbmax);
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
-
     cu=cv=cw=co=1.0e10;
     
-
     LOOP
     WETDRY
     {
@@ -109,34 +106,36 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     dz = p->DZN[KP]*d->WL(i,j);
     
-    /*cu = MIN(cu, 1.0/(MAX(fabs(p->umax), sqrt(9.81*depthmax))/dx));
-    
-    if(p->j_dir==1 )
-    cv = MIN(cv, 1.0/(MAX(fabs(p->vmax), sqrt(9.81*depthmax))/dx));
-    
-    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));*/
-    
     cu = MIN(cu, dx/(p->umax + sqrt(9.81*depthmax)));
     
     if(p->j_dir==1 )
     cv = MIN(cv, dx/(p->vmax + sqrt(9.81*depthmax)));
     
-    cw = MIN(cw, 1.0/((fabs(p->wmax)/dx)));
+    // vertical velocity
+    cw = MIN(cw, dx/(p->wmax));
     
-    //co = MIN(co, 1.0/((fabs(p->omegamax)/dz)));
+    if(p->A533==1)
+    cw = MIN(cw, dz/(p->wmax));
+    
+    if(p->B200==1 || p->A533==1)
+    cu = MIN(cu, 1.0/(0.00001
+    
+            + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
     }
     
     cu = pgc->globalmin(cu);
     cw = pgc->globalmin(cw);
     
     
-    if(p->j_dir==1 )
+    if(p->j_dir==1)
+    {
+    cv = pgc->globalmin(cv);
     cu = MIN(cu,cv);
+    }
+    
     
     cu = MIN(cu,cw);
-    
-    //cu = MIN(cu,co);
-    
+
    	p->dt=p->N47*cu;
     
 	p->dt=pgc->timesync(p->dt);
@@ -154,6 +153,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->recontime=0.0;
     p->fsftime=0.0;
     p->dftime=0.0;
+    
+    d->maxF=0.0;
+	d->maxG=0.0;
+	d->maxH=0.0;
 }
 
 void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -171,12 +174,12 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	
 	depthmax=pgc->globalmax(depthmax);
 	
-    ULOOP
+    LOOP
 	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
 	p->umax=pgc->globalmax(p->umax);
 
-	VLOOP
+	LOOP
 	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
 	p->vmax=pgc->globalmax(p->vmax);
@@ -185,7 +188,7 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->vmax=0.0;
 
 
-	WLOOP
+	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
 
 	p->wmax=pgc->globalmax(p->wmax);
@@ -229,6 +232,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
    	p->dt=0.75*p->N47*cu;
     
+    //if(p->B201==1)
+    //p->dt = 0.1*p->dt;
+    
 	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
 	p->dt_old=p->dt;
@@ -257,5 +263,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // reini
     p->recontime=0.0;
     p->fsftime=0.0;
+    
+    d->maxF=0.0;
+	d->maxG=0.0;
+	d->maxH=0.0;
 }
 

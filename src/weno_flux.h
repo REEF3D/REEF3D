@@ -39,7 +39,7 @@ public:
 	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
     
 	double fx(lexer*, fdm*, field&, field&, int, double);
 	double fy(lexer*, fdm*, field&, field&, int, double);

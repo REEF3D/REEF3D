@@ -48,6 +48,7 @@ private:
     double starttime;
     void fill_wvel(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*); 
     double *WVEL;
+    double Rouse_formula(lexer*,fdm_nhf*,sediment_fdm*,double); 
     
     int count,q;
 };

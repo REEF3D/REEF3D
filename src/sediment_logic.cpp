@@ -86,8 +86,9 @@ Author: Hans Bihs
 #include"bedshear_max.h"
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
+#include"sediment_roughness.h"
 
-void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
+void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
     
@@ -206,34 +207,15 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	psuspdisc=new convection_void(p);
     
     
-    /*if(p->S60<11 && p->S60>0 && p->j_dir==0)
-	psuspdiff=new idiff2_FS_2D(p);
-    
-    if(p->S60<11 && p->S60>0 && p->j_dir==1)
-	psuspdiff=new idiff2_FS(p);
-	
-	if(p->S60>10)
-	
-    
-    // suspended conv
-	if(p->S60<11 && p->S60>0)
-	psuspdisc=new weno_hj_nug(p);*/
-    
     if(p->S12>=1)
     psuspdiff=new idiff2(p);
     
     if(p->S12>=1)
 	psuspdisc=new iweno_hj_nug(p);
     
-    /*
-    if(p->S60==2)
-    psusp = new suspended_RK2(p,a);
-
-    if(p->S60==3)
-    psusp = new suspended_RK3(p,a);*/
 
     if(p->S12>=1)
-    psusp = new suspended_IM1(p,a);
+    psusp = new suspended_IM1(p);
     }
     
     if(p->S85==0)
@@ -273,6 +255,6 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	if(p->P126>0)
 	pbedshearmax = new bedshear_max(p,pgc);
     
-    
+    pks = new sediment_roughness(p);
     
 }

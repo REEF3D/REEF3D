@@ -24,7 +24,9 @@ Author: Hans Bihs
 #define NHFLOW_SIGMA_H_
 
 #include"fnpf.h"
+#include"slice4.h"
 #include"nhflow_gradient.h"
+#include"nhflow_filter.h"
 
 class lexer;
 class fdm_nhf;
@@ -35,7 +37,7 @@ class slice;
 
 using namespace std;
 
-class nhflow_sigma : public nhflow_gradient
+class nhflow_sigma : public nhflow_gradient, public nhflow_filter
 {
 public:
 	nhflow_sigma(lexer*);
@@ -46,9 +48,10 @@ public:
     void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
     
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
-
-        
+    
 private:
+    
+    slice4 ef,df;
     
     void disc_bed(lexer*, fdm_nhf*, ghostcell*);
     void disc_eta(lexer*, fdm_nhf*, ghostcell*);

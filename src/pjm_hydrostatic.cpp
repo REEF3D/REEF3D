@@ -137,10 +137,10 @@ void pjm_hydrostatic::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, 
     
     
     if(p->j_dir==0)        
-    psi = 1.6*(1.0/2.0)*(p->DRM+p->DTM);
+    psi = 1.6*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    psi = 1.6*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    psi = 1.6*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
     LOOP
     {
