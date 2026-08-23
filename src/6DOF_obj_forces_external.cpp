@@ -25,7 +25,6 @@ Author: Tobias Martin
 #include"fdm.h"
 #include"ghostcell.h"
 #include"mooring.h"
-#include"net_interface.h"
 
 void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {
@@ -53,7 +52,6 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
         Kext += moments(0);
         Mext += moments(1);
         Next += moments(2);
-        
 	}
 
 	// VRANS forces

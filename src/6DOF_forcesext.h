@@ -25,7 +25,7 @@ Author: Filip Hahs
 
 class lexer;
 class field;
-#include <Eigen/Dense>
+#include<Eigen/Dense>
 
 using namespace std;
 

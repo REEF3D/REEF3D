@@ -20,15 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Filip Hahs
 --------------------------------------------------------------------*/
 
-#include "6DOF_forcesext_file.h"
-#include "fdm.h"
-#include "ghostcell.h"
-#include "lexer.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
+#include"6DOF_forcesext_file.h"
+#include"fdm.h"
+#include"ghostcell.h"
+#include"lexer.h"
+#include<fstream>
+#include<iostream>
+#include<sstream>
+#include<string>
 
 void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc) {
   char name[100];
