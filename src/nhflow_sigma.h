@@ -49,6 +49,8 @@ public:
     
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
     
+    void bed_acceleration(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
+    
 private:
     
     slice4 ef,df;

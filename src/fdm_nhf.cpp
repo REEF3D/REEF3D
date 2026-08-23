@@ -26,7 +26,7 @@ Author: Hans Bihs
 fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               nodeval2D(p),eta_n(p),WL(p),
-                              detadt(p),detadt_n(p),
+                              detadt(p),detadt_n(p),un(p),vn(p),dudt(p),
                               bed(p),depth(p),K(p),
                               solidbed(p),topobed(p),
                               Ex(p),Ey(p),Exx(p),Eyy(p),
