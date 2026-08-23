@@ -318,7 +318,10 @@ private:
     
     // extmotion
     sixdof_motionext *pmotion;
+
+    // extforces
     sixdof_forcesext *pforce;
+    
     // forces
     int **tri, **facet, *confac, *numfac,*numpt;
 	double **ccpt, **pt, *ls;

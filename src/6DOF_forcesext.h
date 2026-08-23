@@ -24,10 +24,6 @@ Author: Filip Hahs
 #define SIXDOF_FORCESEXT_H_
 
 class lexer;
-class fdm;
-class fdm_nhf;
-class fdm2D;
-class ghostcell;
 class field;
 #include <Eigen/Dense>
 

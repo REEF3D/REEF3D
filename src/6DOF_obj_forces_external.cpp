@@ -39,8 +39,9 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
 	if (p->X320>0)
 	netForces_cfd(p,a,pgc,alpha,finalize);
 
-
-	if (p->X330>0){
+	// External forces
+	if (p->X330>0)
+	{
         pforce->forcesext_trans(p, pgc);
         pforce->forcesext_rot(p, pgc);
         
@@ -55,6 +56,7 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
         
 	}
 
+	// VRANS forces
 
 }
 
