@@ -23,35 +23,36 @@ Author: Filip Hahs
 #ifndef SIXDOF_FORCESEXT_FILE_H_
 #define SIXDOF_FORCESEXT_FILE_H_
 
-#include"6DOF_forcesext.h"
-#include<Eigen/Dense>
-#include<fstream>
+#include "6DOF_forcesext.h"
+#include <Eigen/Dense>
+#include <fstream>
 
 class lexer;
 class ghostcell;
 
 using namespace std;
 
-class sixdof_forcesext_file final : public sixdof_forcesext {
+class sixdof_forcesext_file final : public sixdof_forcesext
+{
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-  void forcesext_trans(lexer *, ghostcell *) override final;
-  void forcesext_rot(lexer *, ghostcell *) override final;
-  void ini(lexer *, ghostcell *) override final;
-  sixdof_forcesext_file(lexer *, ghostcell *);
-  // virtual ~sixdof_forcesext_file();
+    void forcesext_trans(lexer *, ghostcell *) override final;
+    void forcesext_rot(lexer *, ghostcell *) override final;
+    void ini(lexer *, ghostcell *) override final;
+    sixdof_forcesext_file(lexer *, ghostcell *);
+    // virtual ~sixdof_forcesext_file();
 
 private:
-  void read_format(lexer *, ghostcell *);
-  ofstream file;
-  char name[200];
-  int qn, count, ptnum;
-  int rowcount, colcount;
-  int colnum;
-  double val;
-  double **data;
-  double ts, te;
-  int timecount, timecount_old;
+    void read_format(lexer *, ghostcell *);
+    ofstream file;
+    char name[200];
+    int qn, count, ptnum;
+    int rowcount, colcount;
+    int colnum;
+    double val;
+    double **data;
+    double ts, te;
+    int timecount, timecount_old;
 };
 #endif

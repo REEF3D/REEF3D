@@ -25,21 +25,22 @@ Author: Filip Hahs
 
 class lexer;
 class field;
-#include<Eigen/Dense>
+#include <Eigen/Dense>
 
 using namespace std;
 
-class sixdof_forcesext {
+class sixdof_forcesext
+{
 public:
-  virtual void forcesext_trans(lexer *, ghostcell *) = 0;
-  virtual void forcesext_rot(lexer *, ghostcell *) = 0;
+    virtual void forcesext_trans(lexer *, ghostcell *) = 0;
+    virtual void forcesext_rot(lexer *, ghostcell *) = 0;
 
-  virtual void ini(lexer *, ghostcell *) = 0;
-  Eigen::Vector3d get_forces() { return Eigen::Vector3d{Xext, Yext, Zext}; };
-  Eigen::Vector3d get_moments() { return Eigen::Vector3d{Kext, Mext, Next}; };
+    virtual void ini(lexer *, ghostcell *) = 0;
+    Eigen::Vector3d get_forces() { return Eigen::Vector3d{Xext, Yext, Zext}; };
+    Eigen::Vector3d get_moments() { return Eigen::Vector3d{Kext, Mext, Next}; };
 
 protected:
-  double Xext, Yext, Zext, Kext, Mext, Next;
+    double Xext, Yext, Zext, Kext, Mext, Next;
 };
 
 #endif
