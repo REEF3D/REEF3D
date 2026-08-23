@@ -971,6 +971,9 @@
           <File Name="6DOF_motionext_fixed.h"/>
           <File Name="6DOF_motionext_coupling.h"/>
           <File Name="6DOF_motionext.h"/>
+          <File Name="6DOF_motionext.h"/>
+          <File Name="6DOF_forcesext.h"/>
+          <File Name="6DOF_forcesext_file.h"/>
         </VirtualDirectory>
         <File Name="6DOF_obj.h"/>
         <File Name="6DOF_nhflow.h"/>
@@ -2492,6 +2495,9 @@
           <VirtualDirectory Name="Motion Fixed">
             <File Name="6DOF_motionext_fixed.cpp"/>
             <File Name="6DOF_motionext_void.cpp"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Forces File">
+            <File Name="6DOF_forcesext_file.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_motion-file_read.cpp"/>
