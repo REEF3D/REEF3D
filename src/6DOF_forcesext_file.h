@@ -28,11 +28,7 @@ Author: Filip Hahs
 #include <fstream>
 
 class lexer;
-class fdm;
-class fdm_nhf;
-class fdm2D;
 class ghostcell;
-class field;
 
 using namespace std;
 
