@@ -23,9 +23,9 @@ Author: Filip Hahs
 #ifndef SIXDOF_FORCESEXT_FILE_H_
 #define SIXDOF_FORCESEXT_FILE_H_
 
-#include "6DOF_forcesext.h"
-#include <Eigen/Dense>
-#include <fstream>
+#include"6DOF_forcesext.h"
+#include<Eigen/Dense>
+#include<fstream>
 
 class lexer;
 class ghostcell;
