@@ -38,15 +38,12 @@ public:
 
   void forcesext_trans(lexer *, ghostcell *) override final;
   void forcesext_rot(lexer *, ghostcell *) override final;
-
   void ini(lexer *, ghostcell *) override final;
-
   sixdof_forcesext_file(lexer *, ghostcell *);
   // virtual ~sixdof_forcesext_file();
 
 private:
   void read_format(lexer *, ghostcell *);
-
   ofstream file;
   char name[200];
   int qn, count, ptnum;
@@ -57,5 +54,4 @@ private:
   double ts, te;
   int timecount, timecount_old;
 };
-
 #endif
