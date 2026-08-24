@@ -27,6 +27,7 @@ Author: Hans Bihs
 
 void nhflow_sigma::bed_acceleration(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W)
 { 
+    
     double du,dv;
     k=0;
     
@@ -71,7 +72,7 @@ void nhflow_sigma::bed_acceleration(lexer *p, fdm_nhf *d, ghostcell *pgc, slice 
    
     d->un(i,j) = Uda;
     d->vn(i,j) = Vda;
-    }
-    */
+    }*/
+    
     
 }
