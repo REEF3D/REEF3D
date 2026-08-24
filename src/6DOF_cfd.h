@@ -25,6 +25,8 @@ Authors: Hans Bihs, Tobias Martin
 
 #include"6DOF.h"
 #include"6DOF_obj.h"
+#include"increment.h"
+#include"field4a.h"
 #include<vector>
 
 class mooring;
@@ -62,9 +64,11 @@ public:
 
 private:
    void setup(lexer*,fdm*,ghostcell*);
+   void union_solid_field(lexer*,fdm*,ghostcell*);
    
     int number6DOF;
     vector<sixdof_obj*> fb_obj;
+    field4a fb_union;
 
 };
 

@@ -908,6 +908,7 @@ void control::ini_default()
 	X10=0;		// int turn 6DOF on
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
+    X13=0;      // int 0 native 6DOF integration, 1 external kinematics (Chrono/preCICE)
     X14=1;      // int tangential velocity cfd
     X15=0;      // int tangential velocity nhflow
     X19=1;        // int print out interval 6DOF log files

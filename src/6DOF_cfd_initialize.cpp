@@ -29,6 +29,31 @@ void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_cfd(p, a, pgc);
+
+    if(number6DOF>1)
+    {
+        setup(p,a,pgc);
+
+        ALOOP
+        fb_union(i,j,k) = 1.0e8;
+
+        for (int nb = 0; nb < number6DOF; nb++)
+        {
+            fb_obj[nb]->quat_matrices(p);
+            fb_obj[nb]->update_position_3D(p,a,pgc,false);
+            fb_obj[nb]->add_solid_heaviside(p,a,pgc);
+            fb_obj[nb]->union_fb(p,a,fb_union);
+        }
+
+        union_solid_field(p,a,pgc);
+
+        pgc->start1(p,a->fbh1,10);
+        pgc->start2(p,a->fbh2,11);
+        pgc->start3(p,a->fbh3,12);
+        pgc->start4(p,a->fbh4,40);
+
+        pgc->gcdf_update(p,a);
+    }
 }
 
 void sixdof_cfd::initialize(lexer *p, fdm2D *b, ghostcell *pgc)

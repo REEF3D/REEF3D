@@ -36,10 +36,10 @@ void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
         char str[1000];
         
         
-        printpos<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
+        printpos<<p->simtime<<" \t "<<c_(0)<<" \t "<<c_(1)<<" \t "<<c_(2)<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
 
 
-        printvel<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
+        printvel<<p->simtime<<" \t "<<u_fb(0)<<" \t "<<u_fb(1)<<" \t "<<u_fb(2)<<" \t "<<omega_I(0)<<" \t "<<omega_I(1)<<" \t "<<omega_I(2)<<endl;
 
     }
 }

@@ -76,8 +76,10 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     // Initialise global variables
 	update_fbvel(p,pgc);
-   
-    // Initialise floating fields
+
+    // Single-body heaviside. Multi-body union is assembled in sixdof_cfd::initialize.
+    if(p->X20<=1)
+    {
      ULOOP
      a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
 
@@ -94,6 +96,7 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
      pgc->start2(p,a->fbh2,11);
      pgc->start3(p,a->fbh3,12);
      pgc->start4(p,a->fbh4,40);
+    }
 
 	// Mooring
 	if(p->X310==0)
@@ -166,7 +169,8 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     else if(p->X50==2)
     print_stl(p,pgc);
     
-    // ghostcell update
+    // ghostcell update (multi-body: once after the union pass)
+    if(p->X20<=1)
     pgc->gcdf_update(p,a);
 }
 

@@ -139,17 +139,24 @@ void sixdof_obj::saveTimeStep(lexer *p, int iter)
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
 {
-	p->ufbmax = p->ufbi;
-    p->vfbmax = p->vfbi; 
-    p->wfbmax = p->wfbi;
+    if(n6DOF==0)
+    {
+	p->ufbmax = 0.0;
+    p->vfbmax = 0.0; 
+    p->wfbmax = 0.0;
+    }
+
+    p->ufbmax = MAX(p->ufbmax, fabs(u_fb(0)));
+    p->vfbmax = MAX(p->vfbmax, fabs(u_fb(1)));
+    p->wfbmax = MAX(p->wfbmax, fabs(u_fb(2)));
     
     double uvel,vvel,wvel;
 
 	ALOOP
 	{
-        uvel = p->ufbi + (p->pos_z() - p->zg)*p->qfbi - (p->pos_y() - p->yg)*p->rfbi;
-        vvel = p->vfbi + (p->pos_x() - p->xg)*p->rfbi - (p->pos_z() - p->zg)*p->pfbi;
-        wvel = p->wfbi + (p->pos_y() - p->yg)*p->pfbi - (p->pos_x() - p->xg)*p->qfbi;
+        uvel = u_fb(0) + (p->pos_z() - c_(2))*u_fb(4) - (p->pos_y() - c_(1))*u_fb(5);
+        vvel = u_fb(1) + (p->pos_x() - c_(0))*u_fb(5) - (p->pos_z() - c_(2))*u_fb(3);
+        wvel = u_fb(2) + (p->pos_y() - c_(1))*u_fb(3) - (p->pos_x() - c_(0))*u_fb(4);
         
         p->ufbmax = MAX(p->ufbmax, fabs(uvel));
         p->vfbmax = MAX(p->vfbmax, fabs(vvel));

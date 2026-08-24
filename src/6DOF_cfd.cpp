@@ -27,15 +27,28 @@ Authors: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 #include"ddweno_f_nug.h"
 
-sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
+sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc) : fb_union(p)
 {
     if(p->mpirank==0)
-    cout<<"6DOF startup ..."<<endl;
+    {
+        cout<<"6DOF startup ..."<<endl;
+        cout<<"6DOF bodies: "<<p->X20;
+        if(p->X13==1)
+        cout<<"  motion: external";
+        else
+        cout<<"  motion: native";
+        cout<<endl;
+    }
     
     number6DOF = p->X20;
+    if(number6DOF<1)
+    number6DOF=1;
     
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj(p,pgc,nb));
+
+    if(p->mpirank==0 && number6DOF>1 && p->X60==2)
+    cout<<"Warning: X 60 2 (LSM forces) mixes bodies; use X 60 1 (STL) for multibody."<<endl;
 }
     
 sixdof_cfd::~sixdof_cfd()
@@ -45,13 +58,21 @@ sixdof_cfd::~sixdof_cfd()
 void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
     setup(p,a,pgc);
+
+    const bool union_fb = (number6DOF>1);
+    if(union_fb)
+    {
+    ALOOP
+    fb_union(i,j,k) = 1.0e8;
+    }
     
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // Calculate forces
+        // Calculate forces on this body's own surface
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
-        // Advance body in time
+        // Advance body in time, or keep kinematics from an external solver
+        if(p->X13==0)
         fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
          
         // Update transformation matrices
@@ -63,8 +84,11 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         // Save
         fb_obj[nb]->update_fbvel(p,pgc);
         
-        // Update forcing terms
+        // Update forcing terms from this body's signed distance
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+
+        if(union_fb)
+        fb_obj[nb]->union_fb(p,a,fb_union);
         
         // Print
         if(finalize==true)
@@ -80,9 +104,20 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
             fb_obj[nb]->print_parameter(p,pgc);
         }
     }
+
+    if(union_fb)
+    union_solid_field(p,a,pgc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);
+}
+
+void sixdof_cfd::union_solid_field(lexer *p, fdm *a, ghostcell *pgc)
+{
+    ALOOP
+    a->fb(i,j,k) = fb_union(i,j,k);
+
+    fb_obj[0]->reini_fb(p,a,pgc);
 }
 
 void sixdof_cfd::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)

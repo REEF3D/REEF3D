@@ -32,15 +32,25 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 	
 	// read and count number of triangles
     ifstream stl;
+    char str[1000];
     if (n6DOF==0)
-    {
-	    stl.open("floating.stl", ios_base::in);
-    }
+    sprintf(str,"floating.stl");
     else
+    sprintf(str,"floating-%i.stl",n6DOF);
+
+    stl.open(str, ios_base::in);
+    if(!stl.is_open() && n6DOF==0 && p->X20>1)
     {
-        char str[1000];
-        sprintf(str,"floating-%i.stl",n6DOF);
-	    stl.open(str, ios_base::in);
+        stl.clear();
+        sprintf(str,"floating-0.stl");
+        stl.open(str, ios_base::in);
+    }
+
+    if(!stl.is_open())
+    {
+        if(p->mpirank==0)
+        cout<<"Cannot open STL file "<<str<<" for 6DOF body "<<n6DOF<<endl;
+        pgc->final(true);
     }
     
     tstart[entity_count]=tricount;
@@ -80,16 +90,7 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 	tricount=count;
 	
 	// reopen and read triangles
-    if (n6DOF==0)
-    {
-	    stl.open("floating.stl", ios_base::in);
-    }
-    else
-    {
-        char str[1000];
-        sprintf(str,"floating-%i.stl",n6DOF);
-	    stl.open(str, ios_base::in);
-    }
+    stl.open(str, ios_base::in);
 	
 	count=-1;
 	while(!stl.eof())
@@ -138,16 +139,16 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 		tri_z[n][q] += p->X182_dz;
 	}
     
-    // rotate STL model
-    p->X183_phi *= -(PI/180.0);
-    p->X183_theta *= -(PI/180.0);
-    p->X183_psi *= -(PI/180.0);
+    // rotate STL model (do not mutate global X183, needed for every body)
+    double phi0 = p->X183_phi * -(PI/180.0);
+    double theta0 = p->X183_theta * -(PI/180.0);
+    double psi0 = p->X183_psi * -(PI/180.0);
 
     for(int qr=0;qr<tricount;++qr)
     {
-        rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
-        rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
-        rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
+        rotation_tri(p,phi0,theta0,psi0,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
+        rotation_tri(p,phi0,theta0,psi0,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
+        rotation_tri(p,phi0,theta0,psi0,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
     }
 }
 

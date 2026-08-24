@@ -73,6 +73,7 @@ void sixdof_obj::geometry_stl(lexer *p, ghostcell *pgc)
         {
             Rfb = p->X21_d;
             Mass_fb = Vfb*Rfb;
+            if(p->X20<=1)
             p->X22_m = Mass_fb;
         }
     }
@@ -96,6 +97,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 	{
 	Rfb = p->X21_d;
 	Mass_fb = Vfb*Rfb;
+    if(p->X20<=1)
     p->X22_m = Mass_fb;
 	}
 	
@@ -249,6 +251,7 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	{
 	Rfb = p->X21_d;
 	Mass_fb = Vfb*Rfb;
+    if(p->X20<=1)
     p->X22_m = Mass_fb;
 	}
 	

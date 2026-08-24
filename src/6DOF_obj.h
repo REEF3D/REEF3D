@@ -99,6 +99,12 @@ public:
     void print_ini_stl(lexer*,ghostcell*);
 	void print_stl(lexer*,ghostcell*);
 	void update_fbvel(lexer*,ghostcell*);
+
+    // Multibody / external kinematics (Chrono, preCICE)
+    void apply_kinematics(lexer*, const Eigen::Vector3d&, const Eigen::Vector4d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void union_fb(lexer*, fdm*, field&);
+    void reini_fb(lexer*, fdm*, ghostcell*);
+    void add_solid_heaviside(lexer*, fdm*, ghostcell*);
     
     // SFLOW
     double Hsolidface_2D(lexer*, int,int);
