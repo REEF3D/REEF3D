@@ -254,7 +254,7 @@ void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
     LOOP
     g(i,j,k) = p->XN[IP1];
     
-    pgc->start1(p,g,1);
+    pgc->start1(p,g,10);
     
     if(p->mpirank==0)
     ULOOP
@@ -265,7 +265,7 @@ void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
     ULOOP
     g(i,j,k) = p->YP[JP];
     
-    pgc->start1(p,g,1);
+    pgc->start1(p,g,10);
     
     if(p->mpirank==0)
     ULOOP
@@ -277,7 +277,7 @@ void driver::ipol_test(lexer *p, fdm *a, ghostcell *pgc)
     ULOOP
     g(i,j,k) = p->ZP[KP];
     
-    pgc->start1(p,g,1);
+    pgc->start1(p,g,10);
     
     if(p->mpirank==0)
     ULOOP
