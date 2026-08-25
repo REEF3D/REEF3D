@@ -93,6 +93,9 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->qb,1);
     
+    // suspended qs
+    if(p->S62==2)
+    susp_qs(p,pgc,s);
     
     // Exner
     if(p->S31==1)
@@ -137,6 +140,9 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->qb,1);
     
+    // suspended qs
+    if(p->S62==2)
+    susp_qs(p,pgc,s);
     
     // Exner
     if(p->S31==1)

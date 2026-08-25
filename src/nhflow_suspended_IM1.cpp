@@ -212,8 +212,23 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
         s->cb(i,j) = Rouse_formula(p,d,s,d->CONC[IJK]);
         }
     }    
-    
     pgc->gcsl_start4(p,s->cb,1);
+    
+    
+    double Uh;
+    
+    SEDSLICELOOP
+    s->qbs(i,j) = 0.0;
+    
+    SEDSLICELOOP
+    KLOOP
+    {
+        Uh = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]);
+        
+        s->qbs(i,j) += Uh*d->CONC[IJK]*p->DZN[KP]*d->WL(i,j);
+    }
+    
+    pgc->gcsl_start4(p,s->qbs,1);
 }
 
 double nhflow_suspended_IM1::Rouse_formula(lexer* p, fdm_nhf *d, sediment_fdm *s, double Cc)

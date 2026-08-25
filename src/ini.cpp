@@ -795,6 +795,7 @@ void control::ini_default()
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
     S61=1;              // int reference height for cb
+    S62=1;              // int type of suspended Exner solution
     S66=0;              // int 
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion

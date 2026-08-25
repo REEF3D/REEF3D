@@ -32,6 +32,7 @@ void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qbe\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qb\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_qbs\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cbe\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cb\"/>\n";
 }
@@ -41,6 +42,8 @@ void sediment_f::name_ParaView_bedload(lexer *p, ostream &result, int *offset, i
     result<<"<DataArray type=\"Float32\" Name=\"ST_qbe\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_qb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_qbs\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_cbe\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
@@ -58,10 +61,14 @@ void sediment_f::offset_ParaView_2D_bedload(lexer *p, int *offset, int &n)
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
 }
 
 void sediment_f::offset_ParaView_bedload(lexer *p, int *offset, int &n)
 {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -101,6 +108,20 @@ void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, std::vector<char> &b
 	TPLOOP
 	{
     ffn=float(p->sl_ipol4(s->qb));
+	std::memcpy(&buffer[m],&ffn,sizeof(float));
+	m+=sizeof(float);
+	}
+    
+    // qbs
+    pgc->gcsl_start4(p,s->qbs,1);
+    
+	iin=4*(p->pointnum);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+	
+	TPLOOP
+	{
+    ffn=float(p->sl_ipol4(s->qbs));
 	std::memcpy(&buffer[m],&ffn,sizeof(float));
 	m+=sizeof(float);
 	}
@@ -161,6 +182,18 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 	TPSLICELOOP
 	{
     ffn=float(p->sl_ipol4(s->qb));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    
+    // qbs
+    pgc->gcsl_start4(p,s->qbs,1);
+    
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPSLICELOOP
+	{
+    ffn=float(p->sl_ipol4(s->qbs));
 	result.write((char*)&ffn, sizeof (float));
 	}
     

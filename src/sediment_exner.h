@@ -52,7 +52,8 @@ private:
     
     double ramp_dt(lexer*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
-    double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
+    double  susp_ED(lexer*,ghostcell*,sediment_fdm*);
+    void  susp_qs(lexer*,ghostcell*,sediment_fdm*);
     
     void filter(lexer*,ghostcell*,slice&,int,int);   
     topo_relax *prelax;
