@@ -159,6 +159,7 @@
             <File Name="kepsilon_bc.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
+            <File Name="les_io.h"/>
             <File Name="rans_io.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="EARSM">
@@ -442,6 +443,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment"/>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_print_wsf_theory.h"/>
           <File Name="sflow_vtp_fsf.h"/>
           <File Name="sflow_print_bed.h"/>
           <File Name="sflow_print_bedline_y.h"/>
@@ -3330,6 +3332,8 @@
     <GlobalSettings>
       <Compiler Options="-std=c++17; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
         <IncludePath Value="."/>
+        <IncludePath Value="/usr/local/hypre/include"/>
+        <IncludePath Value="../ThirdParty/eigen-3.3.8"/>
       </Compiler>
       <Linker Options="-lm">
         <LibraryPath Value="/usr/local/hypre/lib"/>
