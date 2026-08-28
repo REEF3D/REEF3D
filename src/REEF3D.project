@@ -1392,7 +1392,6 @@
             <File Name="mgcslice2.h"/>
             <File Name="mgcslice1.h"/>
           </VirtualDirectory>
-          <File Name="slice5.h"/>
           <File Name="slice.h"/>
           <File Name="slice1.h"/>
           <File Name="slice2.h"/>
@@ -1409,7 +1408,6 @@
           <File Name="sliceint1.h"/>
           <File Name="sliceint2.h"/>
           <File Name="sliceint4.h"/>
-          <File Name="sliceint5.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Decomp">
           <File Name="dmpart_api.h"/>

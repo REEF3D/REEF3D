@@ -29,7 +29,6 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"vec2D.h"
@@ -69,7 +68,7 @@ public:
     slice4 test2D;
     slice4 Hs;
     
-    sliceint5 nodeval2D;
+    sliceint4 nodeval2D;
     slice4 breaking_print;
     
     // U, V, W of the surface node when the 3D velocities are not stored (fnpf_memory.h): the time
