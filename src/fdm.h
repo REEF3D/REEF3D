@@ -32,7 +32,6 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
@@ -69,7 +68,7 @@ public:
 	field4 walld;
 	 
 	fieldint4 nodeval;
-    sliceint5 nodeval2D;
+    sliceint4 nodeval2D;
    
     // 6DOF
     field1 fbh1;
