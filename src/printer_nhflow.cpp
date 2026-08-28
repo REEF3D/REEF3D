@@ -164,7 +164,7 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P110==1)
     phs = new nhflow_print_Hs(p,d->Hs);
 
-    if(p->P180==1)
+    if(p->P180==1 || p->P186>0)
     pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
     pbed = new nhflow_vtp_bed(p);
@@ -198,6 +198,9 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     pveltheo->start(p,d,pgc,pflow);
 
     pfsf->preproc(p,d,pgc);
+
+    if(p->P186>0)
+    pfsf->start_avg(p,d,pgc,psed);
 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
