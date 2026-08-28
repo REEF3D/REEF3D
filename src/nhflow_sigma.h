@@ -31,7 +31,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class field;
 class nhflow_sigma_data;
 class slice;
 

@@ -34,10 +34,6 @@ nhflow_bcmom::~nhflow_bcmom()
 {
 }
 
-void nhflow_bcmom::nhflow_bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field& b,int gcval)
-{
-}
-
 void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice &WL)
 {
     if(p->A519==1)
