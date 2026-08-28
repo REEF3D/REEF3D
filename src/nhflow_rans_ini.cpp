@@ -132,8 +132,14 @@ void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
     
     evval = ev_fac*shearvel*beddist;
     kinval = kinbed * (1.0 - 0.5*(beddist/(d->WL(i,j)>0.0?d->WL(i,j):1.0e20)));
-    epsval = kinval/evval;
     
+    if(p->A560==1 || p->A560==21)
+    epsval = p->cmu*kinval*kinval/(evval>1.0e-20?evval:1.0e20);  
+    
+    else
+    epsval = kinval/(evval>1.0e-20?evval:1.0e20);                
+
+
     d->EV[Im1JK] = evval;
     d->EV[Im2JK] = evval;
     d->EV[Im3JK] = evval;
