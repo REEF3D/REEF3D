@@ -105,6 +105,13 @@ public:
     void union_fb(lexer*, fdm*, field&);
     void reini_fb(lexer*, fdm*, ghostcell*);
     void add_solid_heaviside(lexer*, fdm*, ghostcell*);
+    void prepare_external_loads(lexer*, fdm*, ghostcell*, bool);
+    void get_pose_vel(Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector3d&) const;
+    void get_wrench(Eigen::Vector3d&, Eigen::Vector3d&) const;
+    void collision_extents(double&, double&, double&) const;
+    int copy_collision_mesh(std::vector<double>&) const;
+    const Eigen::Matrix3d& inertia_body() const { return I_; }
+    int body_index() const { return n6DOF; }
     
     // SFLOW
     double Hsolidface_2D(lexer*, int,int);
@@ -123,6 +130,8 @@ private:
 
 	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
     void ini_fbvel(lexer*, ghostcell*);
+    void apply_ini_momentum(lexer*);
+    void add_constant_force(lexer*);
     void maxvel(lexer*, ghostcell*);
     
     void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);

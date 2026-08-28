@@ -25,6 +25,7 @@ Authors: Hans Bihs, Tobias Martin
 
 #include"6DOF.h"
 #include"6DOF_obj.h"
+#include"6DOF_chrono.h"
 #include"increment.h"
 #include"field4a.h"
 #include<vector>
@@ -69,6 +70,7 @@ private:
     int number6DOF;
     vector<sixdof_obj*> fb_obj;
     field4a fb_union;
+    sixdof_chrono *pchrono;
 
 };
 

@@ -30,6 +30,8 @@ Author: Tobias Martin
 void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
+
+    add_constant_force(p);
     
     // Mooring forces
 	if (p->X310>0)
@@ -46,9 +48,11 @@ void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, dou
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
 
+    add_constant_force(p);
+
     // Mooring forces
-	if (p->X310>0)
-	mooringForces(p,pgc,alpha);
+    if (p->X310>0)
+    mooringForces(p,pgc,alpha);
 
     // Net forces
 	if (p->X320>0)
@@ -130,5 +134,29 @@ void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
         Mext += Mne[n];
         Next += Nne[n];
     }
-}	
+}
+
+void sixdof_obj::add_constant_force(lexer *p)
+{
+    if(p->X104<=0)
+    return;
+
+    // X 20 1: sum every X 104 token (compound body).
+    // X 20 N: body n uses only X 104 token n.
+    if(p->X20<=1)
+    {
+        for(int qn=0;qn<p->X104;++qn)
+        {
+            Xext += p->X104_x[qn];
+            Yext += p->X104_y[qn];
+            Zext += p->X104_z[qn];
+        }
+    }
+    else if(n6DOF < p->X104)
+    {
+        Xext += p->X104_x[n6DOF];
+        Yext += p->X104_y[n6DOF];
+        Zext += p->X104_z[n6DOF];
+    }
+}
 

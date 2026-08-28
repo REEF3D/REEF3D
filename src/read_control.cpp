@@ -2402,6 +2402,9 @@ void control::read_control(lexer* p)
                 case  15: control>>X15;
                          clear(c,numint);
                          break;
+                case  16: control>>X16;
+                         clear(c,numint);
+                         break;
                 case  19: control>>X19;
                          clear(c,numint);
                          break;
@@ -2492,6 +2495,9 @@ void control::read_control(lexer* p)
                          break;
                 case  103: control>>X103_p>>X103_q>>X103_r;
                          X103=1;
+                         clear(c,numint);
+                         break;
+                case  104: ++X104;
                          clear(c,numint);
                          break;
                 case  110: ++X110;
@@ -3388,6 +3394,9 @@ void control::read_control(lexer* p)
     Darray(X102_u,X102);
     Darray(X102_v,X102);
     Darray(X102_w,X102);
+    Darray(X104_x,X104);
+    Darray(X104_y,X104);
+    Darray(X104_z,X104);
 
     Darray(X110_xs,X110);
     Darray(X110_ys,X110);
@@ -3641,6 +3650,7 @@ void control::read_control(lexer* p)
     int countS74=0;
     int countW41=0;
     int countX102=0;
+    int countX104=0;
     int countX110=0;
     int countX163=0;
     int countX164=0;
@@ -4287,6 +4297,10 @@ void control::read_control(lexer* p)
                 {
                 case 102: control>>X102_u[countX102]>>X102_v[countX102]>>X102_w[countX102];
                          ++countX102;
+                         clear(c,numint);
+                         break;
+                case 104: control>>X104_x[countX104]>>X104_y[countX104]>>X104_z[countX104];
+                         ++countX104;
                          clear(c,numint);
                          break;
                 case 110: control>>X110_xs[countX110]>>X110_xe[countX110]>>X110_ys[countX110]>>X110_ye[countX110]>>X110_zs[countX110]>>X110_ze[countX110];

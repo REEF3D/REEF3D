@@ -35,6 +35,12 @@ void sixdof_obj::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,field&
     forces_lsm(p,a,pgc,uvel,vvel,wvel,iter,finalize);
 }
 
+void sixdof_obj::prepare_external_loads(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
+{
+    externalForces_cfd(p, a, pgc, 1.0, finalize);
+    update_forces(p);
+}
+
 void sixdof_obj::update_forces(lexer *p)
 {
     // Forces in inertial system

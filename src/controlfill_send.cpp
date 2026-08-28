@@ -1832,6 +1832,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X15;
     ii++;
+    ictrl[ii] = X16;
+    ii++;
     ictrl[ii] = X19;
     ii++;
     ictrl[ii] = X20;
@@ -1923,6 +1925,8 @@ void control::ctrlsend()
     ictrl[ii] = X102;
     ii++;
     ictrl[ii] = X103;
+    ii++;
+    ictrl[ii] = X104;
     ii++;
     dctrl[dd] = X103_p;
     dd++;
@@ -3616,6 +3620,16 @@ void control::ctrlsend()
         dctrl[dd] = X102_v[n];
         dd++;
         dctrl[dd] = X102_w[n];
+        dd++;
+    }
+
+    for(n=0;n<X104;++n)
+    {
+        dctrl[dd] = X104_x[n];
+        dd++;
+        dctrl[dd] = X104_y[n];
+        dd++;
+        dctrl[dd] = X104_z[n];
         dd++;
     }
 

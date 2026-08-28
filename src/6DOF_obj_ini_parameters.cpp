@@ -63,11 +63,27 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     
     
     
-    for(int qn=0;qn<p->X102;++qn)
+    apply_ini_momentum(p);
+
+    if(p->mpirank==0 && p->X104>0)
     {
-            p_(0) += p->X102_u[qn]*Mass_fb;
-            p_(1) += p->X102_v[qn]*Mass_fb;
-            p_(2) += p->X102_w[qn]*Mass_fb;
+        double fx=0.0, fy=0.0, fz=0.0;
+        if(p->X20<=1)
+        {
+            for(int qn=0;qn<p->X104;++qn)
+            {
+                fx += p->X104_x[qn];
+                fy += p->X104_y[qn];
+                fz += p->X104_z[qn];
+            }
+        }
+        else if(n6DOF < p->X104)
+        {
+            fx = p->X104_x[n6DOF];
+            fy = p->X104_y[n6DOF];
+            fz = p->X104_z[n6DOF];
+        }
+        cout<<"6DOF body "<<n6DOF<<"  constant force  "<<fx<<" "<<fy<<" "<<fz<<endl;
     }
     
     if (p->X103==1)
@@ -116,6 +132,35 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
 	printtime = 0.0;
     printtimenormal = 0.0;
     p->printcount_sixdof = 0;
+}
+
+void sixdof_obj::apply_ini_momentum(lexer *p)
+{
+    p_ << 0.0, 0.0, 0.0;
+
+    if(p->X102<=0)
+    return;
+
+    // Store X 102 as velocity. geometry_parameters converts p_ to momentum
+    // once Mass_fb is known. Multiplying here as well double-counts mass for STL
+    // (geometry_stl already set Mass_fb before ini_fbvel).
+    // X 20 1: every X 102 token is added (original compound-body behaviour).
+    // X 20 N: body n uses only X 102 token n, so ships can start with opposite surge.
+    if(p->X20<=1)
+    {
+        for(int qn=0;qn<p->X102;++qn)
+        {
+            p_(0) += p->X102_u[qn];
+            p_(1) += p->X102_v[qn];
+            p_(2) += p->X102_w[qn];
+        }
+    }
+    else if(n6DOF < p->X102)
+    {
+        p_(0) = p->X102_u[n6DOF];
+        p_(1) = p->X102_v[n6DOF];
+        p_(2) = p->X102_w[n6DOF];
+    }
 }
 
 void sixdof_obj::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)

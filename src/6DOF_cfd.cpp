@@ -27,14 +27,14 @@ Authors: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 #include"ddweno_f_nug.h"
 
-sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc) : fb_union(p)
+sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc) : fb_union(p), pchrono(0)
 {
     if(p->mpirank==0)
     {
         cout<<"6DOF startup ..."<<endl;
         cout<<"6DOF bodies: "<<p->X20;
         if(p->X13==1)
-        cout<<"  motion: external";
+        cout<<"  motion: Chrono"<<(p->X16==1?" SMC":" NSC");
         else
         cout<<"  motion: native";
         cout<<endl;
@@ -49,10 +49,14 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc) : fb_union(p)
 
     if(p->mpirank==0 && number6DOF>1 && p->X60==2)
     cout<<"Warning: X 60 2 (LSM forces) mixes bodies; use X 60 1 (STL) for multibody."<<endl;
+
+    if(p->X13==1)
+    pchrono = new sixdof_chrono();
 }
     
 sixdof_cfd::~sixdof_cfd()
 {
+    delete pchrono;
 }
 
 void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
@@ -70,11 +74,18 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
     {
         // Calculate forces on this body's own surface
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
-        
-        // Advance body in time, or keep kinematics from an external solver
-        if(p->X13==0)
+    }
+
+    if(p->X13==0)
+    {
+        for (int nb=0; nb<number6DOF;++nb)
         fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
-         
+    }
+    else if(pchrono)
+    pchrono->advance(p,a,pgc,fb_obj,iter,finalize);
+
+    for (int nb=0; nb<number6DOF;++nb)
+    {
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
         

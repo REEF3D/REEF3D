@@ -24,6 +24,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<algorithm>
 
 void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
@@ -131,5 +132,60 @@ void sixdof_obj::apply_kinematics(lexer *p, const Eigen::Vector3d& c, const Eige
     omega_I = omegaI;
     omega_B = Rinv_ * omega_I;
     h_ = I_ * omega_B;
+}
+
+void sixdof_obj::get_pose_vel(Eigen::Vector3d& c, Eigen::Vector4d& e, Eigen::Vector3d& v, Eigen::Vector3d& omegaI) const
+{
+    c = c_;
+    e = e_;
+    if(Mass_fb>1.0e-14)
+    v = p_/Mass_fb;
+    else
+    v.setZero();
+    omegaI = omega_I;
+}
+
+void sixdof_obj::get_wrench(Eigen::Vector3d& F, Eigen::Vector3d& M) const
+{
+    F = Ffb_;
+    M = Mfb_;
+}
+
+void sixdof_obj::collision_extents(double& dx, double& dy, double& dz) const
+{
+    double xmin=1.0e20, xmax=-1.0e20;
+    double ymin=1.0e20, ymax=-1.0e20;
+    double zmin=1.0e20, zmax=-1.0e20;
+
+    for(int n=0; n<tricount; ++n)
+    for(int q=0; q<3; ++q)
+    {
+        xmin = std::min(xmin, tri_x0[n][q]);
+        xmax = std::max(xmax, tri_x0[n][q]);
+        ymin = std::min(ymin, tri_y0[n][q]);
+        ymax = std::max(ymax, tri_y0[n][q]);
+        zmin = std::min(zmin, tri_z0[n][q]);
+        zmax = std::max(zmax, tri_z0[n][q]);
+    }
+
+    dx = std::max(xmax-xmin, 1.0e-4);
+    dy = std::max(ymax-ymin, 1.0e-4);
+    dz = std::max(zmax-zmin, 1.0e-4);
+}
+
+int sixdof_obj::copy_collision_mesh(std::vector<double>& xyz) const
+{
+    xyz.resize(size_t(std::max(tricount, 0)) * 9);
+
+    for(int n=0; n<tricount; ++n)
+    for(int q=0; q<3; ++q)
+    {
+        const size_t i = size_t(n)*9 + size_t(q)*3;
+        xyz[i+0] = tri_x0[n][q];
+        xyz[i+1] = tri_y0[n][q];
+        xyz[i+2] = tri_z0[n][q];
+    }
+
+    return tricount;
 }
 

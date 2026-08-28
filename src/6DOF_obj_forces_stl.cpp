@@ -137,6 +137,10 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
              
             if(p->j_dir==0)
             Fp_y = 0.0;
+
+            Fv_x = 0.0;
+            Fv_y = 0.0;
+            Fv_z = 0.0;
              
 		   
     // Add viscous stress contributions
@@ -164,7 +168,11 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
              i = p->posc_i(xlocvel);
 			j = p->posc_j(ylocvel);
 			k = p->posc_k(zlocvel);
-            
+
+            const bool visc_ok = (i>0 && i<p->knox-1 && k>0 && k<p->knoz-1
+                                  && (p->j_dir==0 || (j>0 && j<p->knoy-1)));
+            if(visc_ok)
+            {
             dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
             dudy = (uvel(i,j+1,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
             dudz = (uvel(i,j,k+1) - uvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
@@ -180,6 +188,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
             Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
             Fv_z = rho_int*(nu_int + enu_int)*A_triang*((dudz + dwdx)*nx + (dvdz + dwdy)*ny + 2.0*dwdz*nz);
+            }
             }
             
             
@@ -326,6 +335,10 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             //tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
             }
 
+
+            if(Fv_x!=Fv_x) Fv_x=0.0;
+            if(Fv_y!=Fv_y) Fv_y=0.0;
+            if(Fv_z!=Fv_z) Fv_z=0.0;
 
             // Total forces
             Fx = Fp_x + Fv_x;

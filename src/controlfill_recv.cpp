@@ -1823,6 +1823,8 @@ void control::ctrlrecv()
     ii++;
     X15 = ictrl[ii];
     ii++;
+    X16 = ictrl[ii];
+    ii++;
     X19 = ictrl[ii];
     ii++;
     X20 = ictrl[ii];
@@ -1914,6 +1916,8 @@ void control::ctrlrecv()
     X102 = ictrl[ii];
     ii++;
     X103 = ictrl[ii];
+    ii++;
+    X104 = ictrl[ii];
     ii++;
     X103_p = dctrl[dd];
     dd++;
@@ -3151,6 +3155,13 @@ void control::ctrlrecv()
         Darray(X102_u,X102);
         Darray(X102_v,X102);
         Darray(X102_w,X102);
+    }
+
+    if(X104>0)
+    {
+        Darray(X104_x,X104);
+        Darray(X104_y,X104);
+        Darray(X104_z,X104);
     }
 
     if(X110>0)
@@ -4719,6 +4730,16 @@ void control::ctrlrecv()
         X102_v[n] = dctrl[dd];
         dd++;
         X102_w[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<X104;++n)
+    {
+        X104_x[n] = dctrl[dd];
+        dd++;
+        X104_y[n] = dctrl[dd];
+        dd++;
+        X104_z[n] = dctrl[dd];
         dd++;
     }
 

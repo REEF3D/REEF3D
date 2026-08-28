@@ -30,6 +30,9 @@ void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj[nb]->initialize_cfd(p, a, pgc);
 
+    if(pchrono)
+    pchrono->initialize(p, fb_obj);
+
     if(number6DOF>1)
     {
         setup(p,a,pgc);

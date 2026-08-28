@@ -185,8 +185,6 @@ void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
         p->yg = c_(1);
         p->zg = c_(2);
 
-        p_ *= Mass_fb;
-
 		if(p->mpirank==0)
 		{
 			cout<<"Center of Gravity xg: "<<c_(0)<<" yg: "<<c_(1)<<" zg: "<<c_(2)<<endl;
@@ -198,6 +196,8 @@ void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 		
 		p->del_Darray(integ, 10);	
 	}
+
+    p_ *= Mass_fb;
 }
 
 void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -360,8 +360,6 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
         p->yg = c_(1);
         p->zg = c_(2);
 
-        p_ *= Mass_fb;
-
 		if(p->mpirank==0)
 		{
 			cout<<"Center of Gravity xg: "<<c_(0)<<" yg: "<<c_(1)<<" zg: "<<c_(2)<<endl;
@@ -373,6 +371,8 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 		
 		p->del_Darray(integ, 10);	
 	}
+
+    p_ *= Mass_fb;
 }
 
 

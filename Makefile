@@ -8,10 +8,20 @@ GIT_COMMIT   := "$(shell git rev-parse --short=7 HEAD)"
 GIT_DIRTY    := "$(shell git diff --quiet --ignore-submodules HEAD -- || echo -dirty)"
 GIT_VERSION  := $(GIT_COMMIT)$(GIT_DIRTY)
 HYPRE_DIR    := /usr/local/hypre
-EIGEN_DIR    := ThirdParty/eigen-3.3.8 
+EIGEN_DIR    := ThirdParty/eigen-3.3.8
+CHRONO_DIR   ?= $(HOME)/chrono
 CXXFLAGS     := -std=c++17 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
 LDFLAGS      := -L ${HYPRE_DIR}/lib/ -lHYPRE
-INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
+INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY
+
+ifeq ($(wildcard $(CHRONO_DIR)/include/chrono/physics/ChSystemNSC.h),$(CHRONO_DIR)/include/chrono/physics/ChSystemNSC.h)
+CXXFLAGS     += -DREEF3D_CHRONO -DCH_IGNORE_DEPRECATED
+INCLUDE      += -I $(CHRONO_DIR)/include \
+                -I $(CHRONO_DIR)/include/chrono \
+                -I $(CHRONO_DIR)/include/chrono/collision/bullet \
+                -I $(CHRONO_DIR)/include/chrono_thirdparty/yaml-cpp/include
+LDFLAGS      += -L $(CHRONO_DIR)/lib -lChrono_core -lyaml-cpp -lpthread -Wl,-rpath,$(CHRONO_DIR)/lib
+endif 
 SRC          := $(wildcard src/*.cpp)
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
