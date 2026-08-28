@@ -29,7 +29,6 @@ class pressure;
 class solver;
 class fdm_nhf;
 class lexer;
-class field;
 class ghostcell;
 class fluid_update;
 class heat;

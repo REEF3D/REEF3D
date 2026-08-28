@@ -155,6 +155,6 @@ void benchmark_vortex::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconv
 
     pgc->start1(p,a->u,10);
     pgc->start2(p,a->v,11);
-	pgc->start2(p,a->w,12);
+	pgc->start3(p,a->w,12);
 
 }

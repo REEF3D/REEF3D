@@ -20,120 +20,110 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"hypre_struct.h"
-
-#ifdef HYPRE_COMPILATION
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "hypre_struct.h"
+#include "lexer.h"
+#include "fdm.h"
+#include "ghostcell.h"
 
 void hypre_struct::fill_matrix4f(lexer* p, ghostcell* pgc, field &f, vec &rhs, matrix_diag &M)
 {
-    
     count=0;
     LOOP
     {
-    CVAL4[IJK]=count;
-    ++count;
+        CVAL4[IJK]=count;
+        ++count;
     }
-    
+
     nentries=7;
-    
+
     for (j = 0; j < nentries; j++)
     stencil_indices[j] = j;
 
     count=0;
     KJILOOP
     {
-		PFLUIDCHECK
-		{
-		n=CVAL4[IJK];
-        
-		values[count]=M.p[n];
-		++count;
-		
-		values[count]=M.s[n];
-		++count;
-		
-		values[count]=M.n[n];
-		++count;
-		
-		values[count]=M.e[n];
-		++count;
-		
-		values[count]=M.w[n];
-		++count;
-		
-		values[count]=M.b[n];
-		++count;
-		
-		values[count]=M.t[n];
-		++count; 
-		}     
-		
-		SFLUIDCHECK
-		{
-		values[count]=1.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;
-		
-		values[count]=0.0;
-		++count;  
-		}    
+        PFLUIDCHECK
+        {
+            n=CVAL4[IJK];
+
+            values[count]=M.p[n];
+            ++count;
+
+            values[count]=M.s[n];
+            ++count;
+
+            values[count]=M.n[n];
+            ++count;
+
+            values[count]=M.e[n];
+            ++count;
+
+            values[count]=M.w[n];
+            ++count;
+
+            values[count]=M.b[n];
+            ++count;
+
+            values[count]=M.t[n];
+            ++count;
+        }
+        SFLUIDCHECK
+        {
+            values[count]=1.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+        }
     }
-	
+
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
     HYPRE_StructMatrixAssemble(A);
-    
-    
+
     // vec
     count=0;
-	KJILOOP
-	{
-		PFLUIDCHECK
-		values[count] = f(i,j,k);
-		
-		SFLUIDCHECK
-		values[count] = 0.0;
-	
-    ++count;
+    KJILOOP
+    {
+        PFLUIDCHECK
+        values[count] = f(i,j,k);
+        SFLUIDCHECK
+        values[count] = 0.0;
+
+        ++count;
     }
 
     HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
     HYPRE_StructVectorAssemble(x);
-    
-    
-    count=0; 
-	KJILOOP
-	{
-		PFLUIDCHECK
-		{
-		n=CVAL4[IJK];
-		values[count] = rhs.V[n];
-		}
-		
-		SFLUIDCHECK
-		values[count] = 0.0;
 
-    ++count;
+    count=0;
+    KJILOOP
+    {
+        PFLUIDCHECK
+        {
+            n=CVAL4[IJK];
+            values[count] = rhs.V[n];
+        }
+        SFLUIDCHECK
+        values[count] = 0.0;
+
+        ++count;
     }
-    
+
     HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
     HYPRE_StructVectorAssemble(b);
 }
-
-#endif

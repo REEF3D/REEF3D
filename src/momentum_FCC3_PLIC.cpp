@@ -649,7 +649,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     pconvec->start(p,a,Mx_rk2,1,urk2,vrk2,wrk2);
     pconvec->start(p,a,My_rk2,2,urk2,vrk2,wrk2);
-    pconvec->start(p,a,Mz_rk2,3,urk1,vrk1,wrk1);
+    pconvec->start(p,a,Mz_rk2,3,urk2,vrk2,wrk2);
     
     ULOOP
     Mx(i,j,k) = (1.0/3.0)*Mx(i,j,k) + (2.0/3.0)*Mx_rk2(i,j,k)
