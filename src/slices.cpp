@@ -24,7 +24,6 @@ Author: Alexander Hanke
 #include"slice1.h"
 #include"slice2.h"
 #include"slice4.h"
-#include"slice5.h"
 
 // Out-of-line destructors: each is its class's key function, so the vtable
 // is emitted once, here, instead of in every translation unit that includes
@@ -34,4 +33,3 @@ slice::~slice() = default;
 slice1::~slice1() = default;
 slice2::~slice2() = default;
 slice4::~slice4() = default;
-slice5::~slice5() = default;

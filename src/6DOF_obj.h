@@ -28,7 +28,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"field_header.h"
 #include"fieldint4.h"
 #include"slice4.h"
-#include"sliceint5.h"
+#include"sliceint4.h"
 #include"vtp3D.h"
 #include"geo_raycast.h"
 #include"6DOF_pto.h"

@@ -26,7 +26,6 @@ Architect: Hans Bihs
 #include"increment.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint5.h"
 
 class lexer;
 class seastate_grid;
@@ -70,7 +69,7 @@ public:
     slice4 ddx,ddy,dUdx,dUdy,dVdx,dVdy,dddt,depth_n;
 
     sliceint4 wet,wet0,refr;
-    sliceint5 nodeval;
+    sliceint4 nodeval;
 
     seastate_grid *grid = nullptr;
     seastate_store *N = nullptr;
