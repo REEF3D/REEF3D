@@ -97,5 +97,5 @@ void benchmark_vortex3D::start(lexer* p, fdm *a, ghostcell *pgc, convection *pco
 
     pgc->start1(p,a->u,10);
     pgc->start2(p,a->v,11);
-	pgc->start2(p,a->v,12);
+	pgc->start3(p,a->w,12);
 }
