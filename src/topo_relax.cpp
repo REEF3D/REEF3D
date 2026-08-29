@@ -68,12 +68,12 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
             tauval = s->tau_eff(i,j);
             shearvelval = s->shearvel_eff(i,j);
             shieldsval = s->shields_eff(i,j);
-			/*s->bedzh(i,j)=0.0;
+			s->bedzh(i,j)=0.0;
             s->qbe(i,j)=0.0;
             s->cbe(i,j)=0.0;
             s->tau_eff(i,j)=0.0;
             s->shearvel_eff(i,j)=0.0;
-            s->shields_eff(i,j)=0.0;*/
+            s->shields_eff(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
