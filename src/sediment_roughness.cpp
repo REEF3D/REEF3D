@@ -58,7 +58,7 @@ void sediment_roughness::start(lexer* p, ghostcell* pgc, sediment_fdm *s, slice 
     
      
      
-    if(Ti >= 25.0 && Ti<=0.0)
+    if(Ti >= 25.0 || Ti<=0.0)
     s->ks_eff(i,j) = p->S21*p->S20;
     }
 }

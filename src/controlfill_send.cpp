@@ -1613,6 +1613,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = S74;
     ii++;
+    ictrl[ii] = S75;
+    ii++;
     ictrl[ii] = S77;
     ii++;
     dctrl[dd] = S77_xs;
@@ -3602,6 +3604,14 @@ void control::ctrlsend()
         dctrl[dd] = S74_ys[n];
         dd++;
         dctrl[dd] = S74_ye[n];
+        dd++;
+    }
+    
+    for(n=0;n<S75;++n)
+    {
+        dctrl[dd] = S75_x[n];
+        dd++;
+        dctrl[dd] = S75_dist[n];
         dd++;
     }
 

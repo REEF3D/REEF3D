@@ -50,7 +50,6 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     SEDSLICELOOP
     {
-    
     k = s->bedk(i,j);
     
     xip= p->XP[IP];
@@ -259,8 +258,6 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     SEDSLICELOOP
     {
-    k = s->bedk(i,j);
-    
     density = a->ro(i,j,k);
     
     tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*p->S20;

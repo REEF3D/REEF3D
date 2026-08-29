@@ -171,14 +171,12 @@ void bedslope::slope_analytical(lexer *p, ghostcell *pgc, sediment_fdm *s)
 void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double uvel,vvel;
-    double nx,ny,nz,norm;
+    double nx,ny,nz;
     double nx0,ny0;
     double nz0,bx0,by0;
     
     SEDSLICELOOP
     {
-    k = s->bedk(i,j);
-    
     // beta
     uvel=0.5*(s->P(i,j)+s->P(i-1,j));
 
@@ -244,13 +242,6 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
     nz0 = 1.0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      
-    norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
-     
-     
-    /*nx0/=norm>1.0e-20?norm:1.0e20;
-	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz0/=norm>1.0e-20?norm:1.0e20;*/
-	
     // rotate bed normal
 	beta=-beta;
     nx = (cos(beta)*nx0-sin(beta)*ny0);

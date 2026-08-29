@@ -30,6 +30,8 @@ topo_relax::topo_relax(lexer *p)
 	p->Darray(betaS73,p->S73);
 	p->Darray(tan_betaS73,p->S73);
 	p->Darray(dist_S73,p->S73);
+    
+    p->Darray(dist_S75,p->S75);
 
 
 	for(n=0;n<p->S73;++n)
@@ -66,12 +68,12 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
             tauval = s->tau_eff(i,j);
             shearvelval = s->shearvel_eff(i,j);
             shieldsval = s->shields_eff(i,j);
-			s->bedzh(i,j)=0.0;
+			/*s->bedzh(i,j)=0.0;
             s->qbe(i,j)=0.0;
             s->cbe(i,j)=0.0;
             s->tau_eff(i,j)=0.0;
             s->shearvel_eff(i,j)=0.0;
-            s->shields_eff(i,j)=0.0;
+            s->shields_eff(i,j)=0.0;*/
 			distot += dist_S73[n];
 			++distcount;
 			}
@@ -105,6 +107,29 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 			}
 			
 			}
+		}
+    }
+    
+    
+    if(p->S75>0)
+	SLICELOOP4
+    {
+		for(n=0;n<p->S75;++n)
+		dist_S75[n] =  fabs(p->S75_x[n] - p->pos_x());
+		
+		for(n=0;n<p->S75;++n)
+		{
+            if(dist_S75[n]<p->S75_dist[n])
+            {
+            relax = r1(p,dist_S75[n],p->S75_dist[n]);
+
+            s->bedzh(i,j) = (1.0-relax)*s->bedzh0(i,j) + relax*s->bedzh(i,j);
+            s->qbe(i,j) *=  relax;
+            s->cbe(i,j) *=  relax;
+            s->tau_eff(i,j) *=  relax;
+            s->shearvel_eff(i,j) *=  relax;
+            s->shields_eff(i,j) *=  relax;
+            }
 		}
     }
 	
@@ -141,8 +166,7 @@ double topo_relax::rf(lexer *p, ghostcell *pgc)
                 
 			if(distcount>1)
             val += (relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            
-            //cout<<p->XP[IP]<<" "<<val<<endl;
+
 			}
 		}
         

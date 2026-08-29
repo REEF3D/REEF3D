@@ -120,7 +120,6 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 	
 	SEDSLICELOOP
-    WETDRY
     s->bedzh(i,j) += s->dh(i,j);
 
 	pgc->gcsl_start4(p,s->bedzh,1);

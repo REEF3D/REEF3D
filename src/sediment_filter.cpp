@@ -49,6 +49,7 @@ void sediment_f::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int i
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
             dh(i,j) = h(i,j) - f(i,j);
             
+            pgc->gcsl_start4(p,dh,1);
             
             SLICEBASELOOP
             if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)

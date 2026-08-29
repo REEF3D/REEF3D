@@ -146,6 +146,9 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
     // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_ED(p,pgc,s));
+        
+        if(p->DFBED[IJ]<0)
+        s->vz(i,j) = 0.0;
 	}
 
     filter(p,pgc,s->vz,3,5);
