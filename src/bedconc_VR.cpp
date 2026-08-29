@@ -51,6 +51,7 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     s->cbn(i,j) = s->cbe(i,j);
     
     // cb* van Rijn
+    k=0;
     SEDSLICELOOP
     {
     Ts = s->tau_crit(i,j);
@@ -85,7 +86,7 @@ void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
     s->cbe(i,j) =  MIN((0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.1);
     }
     
-    pgc->gcsl_start4(p,s->qbe,1);
+    pgc->gcsl_start4(p,s->cbe,1);
 }
 
 

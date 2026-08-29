@@ -224,8 +224,6 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     
-    //bx0 = dswenox(s->bedzh, 1.0);
-     
     if(p->DFBED[Im1J]<0)
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
     
@@ -234,8 +232,6 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
      
      
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-    
-    //by0 = dswenoy(s->bedzh, 1.0);
     
     if(p->DFBED[IJm1]<0)
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
@@ -246,14 +242,14 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
     ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
-    nz0 = 1.0;
+    nz0 = 1.0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      
     norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
      
      
-    nx0/=norm>1.0e-20?norm:1.0e20;
+    /*nx0/=norm>1.0e-20?norm:1.0e20;
 	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz0/=norm>1.0e-20?norm:1.0e20;
+	nz0/=norm>1.0e-20?norm:1.0e20;*/
 	
     // rotate bed normal
 	beta=-beta;
