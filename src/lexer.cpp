@@ -24,7 +24,6 @@ Author: Hans Bihs
 
 lexer::lexer() : position(this), interpolation(this), coordinates(this)
 {
-    sigT=0.9;
     veclength=0;
     vec2Dlength=0;
     
@@ -51,7 +50,6 @@ lexer::lexer() : position(this), interpolation(this), coordinates(this)
 
 lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this)
 {
-    sigT=0.9;
     veclength=0;
     vec2Dlength=0;
 

@@ -91,8 +91,6 @@ fdm2D::fdm2D(lexer *p)
 	maxK=0.0;
 	maxE=0.0;
 
-	sigT=0.9;
-
 	gi=p->W20;
 	gj=p->W21;
 	gk=p->W22;
