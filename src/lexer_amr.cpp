@@ -111,7 +111,6 @@ void lexer::amr_inherit(const lexer &b)
     phi_fb=theta_fb=psi_fb=0.0;
     fbdt=fbmax=sfdt=sfmax=0.0;
     volume1=volume2=volume3=0.0;
-    tank_vol=0.0;           // the water volume of the NHFLOW log (driver_log, level 0)
     slidecells=0.0;
     maxtopovel=0.0;
     final_res=0.0;
