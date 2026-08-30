@@ -269,7 +269,7 @@ public:
     double dftime;
 	double kintime,epstime;
 	double poissontime, laplacetime, matrixtime, ptime;
-    double sftime,fbtime,fsitime;
+    double sftime,fbtime;
     double fbdt,fbmax;
     double sfdt,sfmax;
 	double lsmtime,concentrationtime;
