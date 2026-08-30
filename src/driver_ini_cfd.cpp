@@ -47,7 +47,6 @@ void driver::driver_ini_cfd()
     p->count=0;
 
     p->cellnumtot=pgc->globalisum(p->cellnum);
-    p->pointnumtot=pgc->globalisum(p->pointnum);
 
     if(p->mpirank==0)
     cout<<"number of cells: "<<p->cellnumtot<<endl;

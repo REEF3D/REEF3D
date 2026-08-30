@@ -88,7 +88,7 @@ public:
 
 	int pointnum,cellnum,tpcellnum;
 	int cellnum1,cellnum2,cellnum3;
-    int pointnumtot,cellnumtot;
+    int cellnumtot;
     int N4,N4_row,N4_col;
     int N7,N7_row,N7_col;
 	int surf_tot;
