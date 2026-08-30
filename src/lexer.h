@@ -283,7 +283,7 @@ public:
     double Qi,Qo;
     double dtsed,sedtime,slidecells;
     double field4time;
-    double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
+    double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime;
     double wavetime;
     int open_xm,open_xp,open_ym,open_yp;    // iowave Riemann / Flather edge on x- / x+ / y- / y+ (NHFLOW): ghost cells set by iowave
     int river_xm = 1, river_xp = 1;         // NHFLOW B 60: the -i / +i walls are in- / outflow faces (0: walls; a block with one open face, G 54)
