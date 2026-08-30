@@ -68,7 +68,7 @@ Architect: Hans Bihs
     X(RK_alpha) X(mindt) X(maxdt) X(deltax)
 #define LEXER_AMR_ONCE_I(X) X(velcorr)
 
-#define LEXER_AMR_BUILD_D(X) X(phimean) X(psi) X(psi0) X(dtsed) X(bedmax) X(bedmin) X(maxbed) X(minbed)
+#define LEXER_AMR_BUILD_D(X) X(phimean) X(psi) X(psi0) X(dtsed) X(maxbed) X(minbed)
 #define LEXER_AMR_BUILD_I(X) X(reini_iter)
 
 #define LEXER_AMR_TIME_D(X) X(simtime) X(dt) X(dt_old)

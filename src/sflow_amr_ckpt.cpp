@@ -66,12 +66,12 @@ void sed_registry(lexer *pp, const std::set<const void*> &listed, F &&f)
     });
 }
 
-// the run scalars of a patch lexer
+// the run scalars of a patch lexer (the bed range: sediment_f::ckpt_state)
 template<class F>
 void lexer_scalars(lexer *q, F &&f)
 {
     f(q->simtime); f(q->dt); f(q->dt_old); f(q->sedtime); f(q->dtsed); f(q->sedsimtime); f(q->sedwavetime);
-    f(q->wavetime); f(q->bedmin); f(q->bedmax); f(q->slidecells);
+    f(q->wavetime); f(q->slidecells);
     double c = q->count;
     f(c);
     q->count = int(c);

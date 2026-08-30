@@ -213,14 +213,15 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 
 // ---------------------------------------------------------------------------------------------
 // checkpoints (P 48, I 45): the scalars of the bed update (sediment_exner), of the wave-averaged bed shear
-// (S 16 9), of the multi-fraction bed (S 51) and of the NHFLOW suspended load; the slices and fields of
+// (S 16 9), of the multi-fraction bed (S 51), of the NHFLOW suspended load and the bed
+// range of the log; the slices and fields of
 // all sediment objects are in the registry of the grid (CFD: cfd_ckpt; NHFLOW, SFLOW: under the tag "reg")
 // ---------------------------------------------------------------------------------------------
 
 void sediment_f::ckpt_state(lexer *p, std::vector<double> &v)
 {
     ckpt_put w{v};
-    w.d(1.0);   // version
+    w.d(2.0);   // version
     w.i(volume_token); w.d(volume0);
     std::vector<double> ex;
     exner()->ckpt_state(ex);
@@ -232,6 +233,7 @@ void sediment_f::ckpt_state(lexer *p, std::vector<double> &v)
     w.i(s->pmix->noneq_ini_k[q]);
     int *wl = (pnhfsusp!=nullptr) ? pnhfsusp->ckpt_wlini() : nullptr;
     w.i(wl!=nullptr ? *wl : 0);
+    w.d(s->bedmin); w.d(s->bedmax);
 }
 
 bool sediment_f::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -239,7 +241,7 @@ bool sediment_f::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     ckpt_get r{v};
     double version=0.0;
     r.d(version);
-    if(!r.ok || int(version)!=1)
+    if(!r.ok || (int(version)!=1 && int(version)!=2))
     return false;
     r.i(volume_token); r.d(volume0);
     std::vector<double> ex;
@@ -257,6 +259,11 @@ bool sediment_f::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     r.i(wl);
     if(pnhfsusp!=nullptr && pnhfsusp->ckpt_wlini()!=nullptr)
     *pnhfsusp->ckpt_wlini() = wl;
+    // version 1 kept the bed range with the scalars of the run (lexer): it starts from 0
+    if(int(version)>=2)
+    {
+    r.d(s->bedmin); r.d(s->bedmax);
+    }
     return r.ok && k==ex.size();
 }
 
