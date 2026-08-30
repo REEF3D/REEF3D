@@ -29,7 +29,6 @@ lexer::lexer() : position(this), interpolation(this), coordinates(this)
     // lexer_amr.cpp)
     fsfinval=fsfoutval=0.0;
     wts=wte=0.0;
-    sedsimtime=sedwavetime=0.0;
     deltax=0.0;
     veclength=0;
     vec2Dlength=0;

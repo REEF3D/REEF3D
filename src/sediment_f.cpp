@@ -140,16 +140,16 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
 		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		if(p->S42==2 && p->simtime>=sedsimtime)
 		{
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		p->sedsimtime = p->simtime + p->S46;
+		sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
+		if(p->S42==3  && p->simtime/p->wT>=sedwavetime)
 		{            
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
+		sedwavetime = p->simtime/p->wT + p->S48;
 		}
     
     sedcalc=1;
@@ -170,16 +170,16 @@ void sediment_f::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflo
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_nhflow(p,d,pgc,pflow);
 		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		if(p->S42==2 && p->simtime>=sedsimtime)
 		{
 		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		p->sedsimtime = p->simtime + p->S46;
+		sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
+		if(p->S42==3  && p->simtime/p->wT>=sedwavetime )
 		{
 		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
+		sedwavetime = p->simtime/p->wT + p->S48;
 		}
 	}
 }
@@ -195,16 +195,16 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
 		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		if(p->S42==2 && p->simtime>=sedsimtime)
 		{
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		p->sedsimtime = p->simtime + p->S46;
+		sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
+		if(p->S42==3  && p->simtime/p->wT>=sedwavetime )
 		{
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
+		sedwavetime = p->simtime/p->wT + p->S48;
 		}
 	}
 }
@@ -215,8 +215,8 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 
 // ---------------------------------------------------------------------------------------------
 // checkpoints (P 48, I 45): the scalars of the bed update (sediment_exner), of the wave-averaged bed shear
-// (S 16 9), of the multi-fraction bed (S 51), of the NHFLOW suspended load and the bed
-// range of the log; the slices and fields of
+// (S 16 9), of the multi-fraction bed (S 51), of the NHFLOW suspended load, the morphological times (S 42) and
+// the bed range of the log; the slices and fields of
 // all sediment objects are in the registry of the grid (CFD: cfd_ckpt; NHFLOW, SFLOW: under the tag "reg")
 // ---------------------------------------------------------------------------------------------
 
@@ -235,6 +235,7 @@ void sediment_f::ckpt_state(lexer *p, std::vector<double> &v)
     w.i(s->pmix->noneq_ini_k[q]);
     int *wl = (pnhfsusp!=nullptr) ? pnhfsusp->ckpt_wlini() : nullptr;
     w.i(wl!=nullptr ? *wl : 0);
+    w.d(sedsimtime); w.d(sedwavetime);
     w.d(s->bedmin); w.d(s->bedmax);
 }
 
@@ -261,9 +262,11 @@ bool sediment_f::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     r.i(wl);
     if(pnhfsusp!=nullptr && pnhfsusp->ckpt_wlini()!=nullptr)
     *pnhfsusp->ckpt_wlini() = wl;
-    // version 1 kept the bed range with the scalars of the run (lexer): it starts from 0
+    // version 1 kept the morphological times and the bed range with the scalars of the run (lexer): they
+    // start from 0 (S 42: the next step updates the bed)
     if(int(version)>=2)
     {
+    r.d(sedsimtime); r.d(sedwavetime);
     r.d(s->bedmin); r.d(s->bedmax);
     }
     return r.ok && k==ex.size();

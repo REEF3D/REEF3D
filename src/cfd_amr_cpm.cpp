@@ -1430,7 +1430,7 @@ inline int nk_of(char k, int kmax)
 template<class F>
 void cpm_run_scalars(lexer *q, F &&f)
 {
-    f(q->sedtime); f(q->dtsed); f(q->sedsimtime); f(q->sedwavetime);
+    f(q->sedtime); f(q->dtsed);
     f(q->slidecells); f(q->sedprinttime); f(q->printtime);
     double it = q->sediter;
     f(it);
