@@ -125,17 +125,17 @@ void driver::maxlog(lexer *p)
 
 void driver::volumelog(lexer *p)
 {
-    p->tank_vol = 0.0;
+    double tank_vol = 0.0;
     SLICELOOP4
     {
-    p->tank_vol += p->DXN[IP]*p->DYN[JP]*d->WL(i,j);
+        tank_vol += p->DXN[IP]*p->DYN[JP]*d->WL(i,j);
     }
     
-    p->tank_vol = pgc->globalsum(p->tank_vol);
+    tank_vol = pgc->globalsum(tank_vol);
     
     if(p->mpirank==0 && p->count%p->P12==0)
     {
-    vollogout<<p->simtime<<" \t "<<setprecision(4)<<p->tank_vol<<endl;
+        vollogout<<p->simtime<<" \t "<<setprecision(4)<<tank_vol<<endl;
     }
 }
 
