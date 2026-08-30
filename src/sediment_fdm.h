@@ -68,6 +68,7 @@ public:
     slice4 MOB,tau_i;
     
     double ws;
+    double bedmax, bedmin;
     
     // grain diameter used by the bedload formulas; S20 for single-fraction runs,
     // set to d_k by sediment_mixture while the bedload of fraction k is evaluated

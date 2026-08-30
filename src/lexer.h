@@ -252,10 +252,9 @@ public:
 	double gctime, xtime;
 	double volume1,volume2,volume3;
     double tank_vol;
-	double Qi,Qo;
-	double dtsed,sedtime,slidecells;
-	double bedmax,bedmin;
-	double field4time;
+    double Qi,Qo;
+    double dtsed,sedtime,slidecells;
+    double field4time;
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double wavetime;
     int open_xm,open_xp,open_ym,open_yp;    // iowave Riemann / Flather edge on x- / x+ / y- / y+ (NHFLOW): ghost cells set by iowave
