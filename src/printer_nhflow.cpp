@@ -78,7 +78,6 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
         p->fsfsedprinttime=0.0;
         p->probeprinttime=0.0;
         p->stateprinttime=0.0;
-        p->exportprinttime=0.0;
     }
 
     printcount=0;

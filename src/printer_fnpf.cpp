@@ -69,7 +69,6 @@ printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         p->fsfprinttime=0.0;
         p->probeprinttime=0.0;
         p->stateprinttime=0.0;
-        p->exportprinttime=0.0;
     }
 
     printcount=0;
