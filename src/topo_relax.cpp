@@ -126,6 +126,7 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
             s->bedzh(i,j) = (1.0-relax)*s->bedzh0(i,j) + relax*s->bedzh(i,j);
             s->qbe(i,j) *=  relax;
             s->cbe(i,j) *=  relax;
+            s->cb(i,j) *=  relax;
             s->tau_eff(i,j) *=  relax;
             s->shearvel_eff(i,j) *=  relax;
             s->shields_eff(i,j) *=  relax;
