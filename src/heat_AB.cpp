@@ -68,7 +68,7 @@ void heat_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, sol
 	pgc->start4(p,T,gcval_heat);
 	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
-	p->heattime=pgc->timer()-starttime;
+	double heattime=pgc->timer()-starttime;
 }
 
 void heat_AB::ttimesave(lexer *p, fdm* a)
