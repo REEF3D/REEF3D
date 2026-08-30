@@ -59,7 +59,7 @@ Architect: Hans Bihs
 #define LEXER_AMR_IO_D(X) X(Ui) X(Ua) X(Uo) X(Qi) X(Qo) X(Hi) X(Ho) \
     X(fsfin) X(fsfout) X(fsfinval) X(fsfoutval)
 #define LEXER_AMR_RUN_D(X) X(phiin) X(phiout) X(pressgage) \
-    X(wavetime) X(wts) X(wte) X(sedtime) X(sedsimtime) X(sedwavetime) \
+    X(wavetime) X(wts) X(wte) X(sedtime) \
     X(wT) X(wV) X(wH) X(wA) X(wL) X(wd) X(ww) X(wk) X(wC) X(wHs) X(wAs) X(wwp) X(ww_s) X(ww_e) X(wTp) X(wLp)
 // count_statestart: the restart from a checkpoint (I 45) sets it after the grids are built
 #define LEXER_AMR_RUN_I(X) X(wN) X(count_statestart)

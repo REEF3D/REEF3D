@@ -124,7 +124,7 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
 }
 
 // checkpoints (P 48, I 45): the scalars of the bed update, of the wave-averaged bed shear (S 16 9), the
-// bed range of the log;
+// sediment times and the bed range of the log;
 // the fields and slices (the CPM fields, the bed) are in the registry of the grid, the parcels in the
 // rank blob (CPM::ckpt_rank_state)
 void sediment_part::ckpt_state(lexer *p, std::vector<double> &v)
@@ -135,6 +135,7 @@ void sediment_part::ckpt_state(lexer *p, std::vector<double> &v)
     static_cast<sediment_exner*>(ptopo)->ckpt_state(ex);
     w.vd(ex);
     w.d(*pbedshear->ckpt_tw_old()); w.d(*pbedshear->ckpt_tw_dt()); w.i(*pbedshear->ckpt_tw_count());
+    w.d(sedsimtime); w.d(sedwavetime);
     w.d(s->bedmin); w.d(s->bedmax);
 }
 
@@ -150,9 +151,10 @@ bool sediment_part::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<dou
     size_t k=0;
     static_cast<sediment_exner*>(ptopo)->ckpt_restore(ex,k);
     r.d(*pbedshear->ckpt_tw_old()); r.d(*pbedshear->ckpt_tw_dt()); r.i(*pbedshear->ckpt_tw_count());
-    // version 1 kept the bed range with the scalars of the run (lexer): it starts from 0
+    // version 1 kept the sediment times and the bed range with the scalars of the run (lexer): they start from 0
     if(int(version)>=2)
     {
+    r.d(sedsimtime); r.d(sedwavetime);
     r.d(s->bedmin); r.d(s->bedmax);
     }
     return r.ok && k==ex.size();
