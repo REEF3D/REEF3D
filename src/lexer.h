@@ -220,7 +220,7 @@ public:
 
 
     // flow parameters
-    const double cmu;
+    static constexpr double cmu = 0.09;
     double deltax,sigT,Ui,Ua,Uo;
     double Ho,Hi;
 

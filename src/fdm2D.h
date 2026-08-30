@@ -132,7 +132,6 @@ public:
 
     double maxF,maxG,maxH,maxK,maxE;
 	double inverse,sigT,Ui,Ua,Uo;
-	const double cmu;
 	
 	double t1,t2,t3,t4,t5;
     
