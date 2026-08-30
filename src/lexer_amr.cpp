@@ -126,7 +126,7 @@ void lexer::amr_inherit(const lexer &b)
     susptime=gctime=xtime=field4time=0.0;
     utime=vtime=wtime=recontime=fsftime=dftime=kintime=epstime=0.0;
     poissontime=laplacetime=matrixtime=ptime=sftime=fbtime=fsitime=0.0;
-    lsmtime=heattime=concentrationtime=printouttime=0.0;
+    lsmtime=concentrationtime=printouttime=0.0;
     printtime=sedprinttime=fsfprinttime=fsfsedprinttime=probeprinttime=stateprinttime=exportprinttime=0.0;
     printcount=printcount_sixdof=0;
 
