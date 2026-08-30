@@ -1,4 +1,57 @@
 
+26.08
+x fixed various sediment transport bugs (e.g. bedslope, alluvial roughnes, etc.)
+x added simpler no-erosion relaxation functions (sediment)
+x upgraded to C++20
+x upgraded eigen from 3.3.8 to 5.0.0 
+x added depth integrated suspended sediment Exner solution (NHFLOW)
+x added inertia bed shear for sediment transport (NHFLOW)
+x added shallow water bed shear formulation (NHFLOW)
+x added reference height for bed sediment concentration
+x updated suspended load discretization (NHFLOW)
+x updated slice data structure to direct forcing approach
+x updated scalar advection terms (NHFLOW)
+x fixed RANS turbulence buoyancy term (NHFLOW)
+x updated viscosity calculation for implicit diffusion (NHFLOW)
+x updated 6DOF forces and forcing(NHFLOW)
+x fixed URANS turbulence model (NHFLOW)
+x fixed 6DOF vtp print out time sync for NHFLOW
+x updated force calculation (NHFLOW)
+x updated sediment transport to include the correct fluid phase density for air (CFD)
+x removed particle level set method (CFD)
+x removed geometric level set reinitialization (CFD)
+x various bug fixes
+x added reading 2D wave spectrum from SWAN
+x fixed a WENO_flux_nug bug (CFD)
+x updated Fredsøe’s bedshear reduction algorithm (sediment)
+x added custom 6DOF fixes for rotational kinematics, especially for constrained motion
+x added safeguards for prescribed 6DOF motion
+x fixed 6DOF integration math and unit conversions
+x added wave-current generation (NHFLOW)
+x updated coastline algorithm (FNPF)
+x updated full wave initialization (FNPF)
+x fixed a diffusion boundary condition problem affecting 6DOF (CFD)
+x improved interpolation 
+x improved NHFLOW solid and floating force calculation
+x changed 6DOF vtp print out time sync for SFLOW and NHFLOW
+x changed SFLOW print input parameter from vtu to vtp
+x updated 6DOF ray-casting (NHFLOW)
+x fixed external 6DOF motion (NHFLOW)
+x fixed 2nd-order Dirichlet wavegen and wavemaker  (FNPF)
+x added FNPF nesting through the HDC framework
+x updated sigma transformation (FNPF, NHFLOW)
+x fixed umax calculation (FNPF)
+x updated active beach (NHFLOW)
+x updated Dirichlet and active wave generation (NHFLOW)
+x added van Rijn’s effective bedform roughness (sediment)
+x added Exner magnification factor (sediment)
+x updated relaxation beach for VOF-PLIC (CFD)
+x added VRANS forces print out (NHFLOW)
+x fixed vtu pressure print out (NHFLOW)
+x updated sigma functions for Poisson equation (NHFLOW) 
+x updated time-averaged print-outs (NHFLOW)
+x fixed a ghostcell issue (NHFLOW)
+
 26.05
 x added wave gage location paraview file 
 x added breaking wave model (NHFLOW)
