@@ -49,8 +49,8 @@ void sediment_f::sedimentlog(lexer *p)
     sedlogout<<setprecision(4)<<p->sediter<<" \t ";
     sedlogout<<setprecision(4)<<p->slidecells<<" \t ";
 
-    sedlogout<<setprecision(4)<<p->bedmin<<" \t ";
-    sedlogout<<setprecision(4)<<p->bedmax<<" \t "<<endl;
+    sedlogout<<setprecision(4)<<s->bedmin<<" \t ";
+    sedlogout<<setprecision(4)<<s->bedmax<<" \t "<<endl;
     }
     
 }
