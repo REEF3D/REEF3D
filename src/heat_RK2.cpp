@@ -77,8 +77,7 @@ void heat_RK2::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, so
 
 	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
-	p->heattime=pgc->timer()-starttime;
-
+	double heattime=pgc->timer()-starttime;
 }
 
 void heat_RK2::ttimesave(lexer *p, fdm* a)

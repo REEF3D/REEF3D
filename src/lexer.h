@@ -274,7 +274,7 @@ public:
     double sftime,fbtime,fsitime;
     double fbdt,fbmax;
     double sfdt,sfmax;
-	double lsmtime,heattime,concentrationtime;
+	double lsmtime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;
     double fsfin,fsfout;
