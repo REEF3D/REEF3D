@@ -211,7 +211,6 @@ void driver::driver_ini_fnpf()
     p->gctime=0.0;
     p->xtime=0.0;
 	p->wavecalctime=0.0;
-	p->field4time=0.0;
 }
 
 
