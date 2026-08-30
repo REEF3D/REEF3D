@@ -242,7 +242,6 @@ public:
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
-	double sedsimtime,sedwavetime;
 	double wavecalctime;
 	double meantime,totaltime;
 	double gcmeantime,gctotaltime;

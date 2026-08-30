@@ -128,6 +128,8 @@ public:
     virtual void name_ParaView_CPM(lexer*, ostream&, int*, int &) {};
     virtual void offset_ParaView_CPM(lexer*, int*, int &) {};
 
+protected:
+    double sedsimtime = 0,sedwavetime = 0;
 };
 
 #endif

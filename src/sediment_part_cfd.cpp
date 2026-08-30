@@ -51,7 +51,7 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     if(p->Q44!=1)
     update_cfd(p,a,pgc,pflow,preto);
 
-    p->sedsimtime=pgc->timer()-starttime;
+    sedsimtime=pgc->timer()-starttime;
 
     ++p->sediter;
 }
