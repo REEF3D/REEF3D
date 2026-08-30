@@ -178,9 +178,9 @@ void run_scalars(lexer *p, F &&f)
     // the pressure reference of the last step (B 30; the loads of the 6DOF bodies take it off)
     f("pressgage",p->pressgage);
     // sediment (S 10): the sediment time and step (S 19, S 29, outputs), the morphological times (S 42),
-    // the bed range and the slide cells of the log
+    // the slide cells of the log (the bed range: sediment_f::ckpt_state)
     f("sedtime",p->sedtime); f("dtsed",p->dtsed); f("sedsimtime",p->sedsimtime); f("sedwavetime",p->sedwavetime);
-    f("bedmin",p->bedmin); f("bedmax",p->bedmax); f("slidecells",p->slidecells);
+    f("slidecells",p->slidecells);
 }
 }
 
