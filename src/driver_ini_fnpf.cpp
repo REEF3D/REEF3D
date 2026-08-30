@@ -69,7 +69,6 @@ void driver::driver_ini_fnpf()
     
 // --
     p->cellnumtot=pgc->globalisum(p->cellnum);
-    p->pointnumtot=pgc->globalisum(p->pointnum);
 
 
     if(p->mpirank==0)
