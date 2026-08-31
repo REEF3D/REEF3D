@@ -57,7 +57,7 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
 		nx = -(d->SOLID[Ip1JK] - d->SOLID[Im1JK])/(p->DXP[IP] + p->DXP[IM1])
             - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
             
-		ny = -(d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYP[JP] + p->DYN[JM1])
+		ny = -(d->SOLID[IJp1K] - d->SOLID[IJm1K])/(p->DYP[JP] + p->DYP[JM1])
             - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
             
 		nz = -(d->SOLID[IJKp1] - d->SOLID[IJKm1])/(p->DZP[KP]*WL(i,j) + p->DZP[KM1]*WL(i,j));

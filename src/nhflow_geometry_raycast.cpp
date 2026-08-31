@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
 {
-    zmin = 1.0e1;
+    zmin = 1.0e8;
     zmax = -1.0e8;
     
     LOOP
