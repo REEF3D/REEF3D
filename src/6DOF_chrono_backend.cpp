@@ -224,7 +224,7 @@ int reef3d_chrono_add_mesh(void* ptr,
     const double charlen = std::min({std::max(xmax-xmin, 1.0e-4),
                                      std::max(ymax-ymin, 1.0e-4),
                                      std::max(zmax-zmin, 1.0e-4)});
-    const double swept = std::min(8.0e-3, std::max(3.0e-3, 0.02*charlen));
+    const double swept = std::min(8.0e-3, std::max(1.0e-5, 0.02*charlen));
 
     auto body = chrono_types::make_shared<::chrono::ChBody>();
     body->SetName(std::string("body") + std::to_string(int(b->bodies.size())));
