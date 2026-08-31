@@ -63,8 +63,10 @@ private:
 
 	matrix2D M;
     slice4 qbx,qby;
+    slice4 qbn;
     
 	int gcval_topo;
+    int noneq_ini;    
 	double starttime;
     double maxdh,maxvz,maxdhnet,maxvznet;
     double dtsed0;

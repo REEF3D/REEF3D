@@ -26,158 +26,150 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"solver2D.h"
 #include"sediment_exnerdisc.h"
+#include<math.h>
+
+/*--------------------------------------------------------------------
+Non-equilibrium (non-capacity) bedload transport.
+
+The bedload flux does not adjust instantaneously to the local transport
+capacity qbe: grains entrained at one location travel a finite distance
+before they are deposited again. The transport rate therefore relaxes
+towards the capacity over the adaptation length Ls along the transport
+path
+
+        qb + Ls*( s_hat . grad(qb) ) = qbe ,     s_hat = (u,v)/|U|
+
+with Ls -> 0 recovering the equilibrium closure qb = qbe.
+
+Discretisation: first-order upwind along s_hat, solved for the diagonal
+
+        qb_P = ( qbe_P + cx*qb_upwind + cy*qb_upwind )/( 1 + cx + cy )
+
+with cx = Ls*|sgx|/dx_upwind >= 0. Each update is a convex combination
+of qbe and the upwind neighbours, so the sweep is unconditionally stable
+for any Ls/dx, satisfies a maximum principle and cannot generate
+negative qb. Jacobi sweeps propagate the information one cell per sweep
+with a ghostcell exchange in between; the solution of the previous
+sediment time step (qbn) is used as the initial guess.
+
+The relaxation is carried out on the bedload-only field qbn. s->qb is
+only written at the end, because susp_qs() later adds the suspended load
+qbs to s->qb, which must not re-enter the bedload relaxation.
+
+Control:
+  S33   0: equilibrium
+        1: non-equilibrium, constant adaptation length Ls = S40
+        2: non-equilibrium, van Rijn saltation length
+        3: non-equilibrium, Phillips & Sutherland
+  S40   adaptation length [m], used for S33 = 1
+  S49   number of relaxation sweeps per sediment time step
+--------------------------------------------------------------------*/
 
 void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    double rhosed=p->S22;
-    double rhowat=p->W1;
-    double g=9.81;
-    double d50=p->S20;
-    double visc=p->W2;
-    double kappa=0.4;
-    double ks=p->S21*d50;
-    double Rstar=(rhosed-rhowat)/rhowat;
-    double Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
-    double Ti;
-    double time,starttime;
-    
-    double dqx,dqy;
-    double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
-    double sgx1,sgx2,sgy1,sgy2;
-    double ux1_abs,ux2_abs,uy1_abs,uy2_abs;
-    
-    /*SEDSLICELOOP
-    s->qb(i,j) = s->qbe(i,j);
-    
-    pgc->gcsl_start4(p,s->qb,1);*/
-    
-    for(int qn=0;qn<1;++qn)
+    const double d50 = p->S20;
+    const double visc = p->W2;
+    const double grav = 9.81;
+    const double Rstar = (p->S22 - p->W1)/p->W1;
+    const double Dstar = d50*pow(fabs(Rstar)*grav/(visc*visc),1.0/3.0);
+    const double ydir = p->y_dir;
+    const int itermax = 10;
+
+    double uvel,vvel,umag;
+    double sgx,sgy;
+    double dxu,dyu,qxu,qyu,cx,cy;
+    double ustar2,ucrit2,Ti;
+    double Ls;
+
+
+    // initial guess: equilibrium
+    if(noneq_ini==0)
     {
-    
     SEDSLICELOOP
-    q0(i,j) = s->qb(i,j);
-    
+    qbn(i,j) = s->qbe(i,j);
+
+    pgc->gcsl_start4(p,qbn,1);
+
+    noneq_ini=1;
+    }
+
+    SEDSLICELOOP
+    q0(i,j) = qbn(i,j);
+
     pgc->gcsl_start4(p,q0,1);
-    
+
+
+    for(int qn=0; qn<itermax; ++qn)
+    {
     SEDSLICELOOP
     {
-        ux1=s->P(i-1,j);
-        vx1=0.25*(s->Q(i,j)+s->Q(i-1,j)+s->Q(i,j-1)+s->Q(i-1,j-1)); 
-        
-        ux2=s->P(i,j);
-        vx2=0.25*(s->Q(i,j)+s->Q(i+1,j)+s->Q(i,j-1)+s->Q(i+1,j-1)); 
-        
-        
-        uy1=0.25*(s->P(i,j-1)+s->P(i,j)+s->P(i-1,j-1)+s->P(i-1,j));
-        vy1=s->Q(i,j-1); 
-        
-        uy2=0.25*(s->P(i,j)+s->P(i,j+1)+s->P(i-1,j)+s->P(i-1,j+1));
-        vy2=s->Q(i,j); 
-        
-        
-        ux1_abs = sqrt(ux1*ux1 + vx1*vx1);
-        ux2_abs = sqrt(ux2*ux2 + vx2*vx2);
-        
-        uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
-        uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
-            
-        sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
-        sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
-        
-        sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
-        sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+        // transport direction
+        uvel = 0.5*(s->P(i,j) + s->P(i-1,j));
+        vvel = 0.5*(s->Q(i,j) + s->Q(i,j-1))*ydir;
 
-        // complete q
-        dqx = pdx->sx(p,q0,sgx1,sgx2);
-        dqy = pdx->sy(p,q0,sgy1,sgy2);
-        
-    Ti=MAX((s->shearvel_eff(i,j)*s->shearvel_eff(i,j)-s->shearvel_crit(i,j)*s->shearvel_crit(i,j))/(s->shearvel_crit(i,j)*s->shearvel_crit(i,j)),0.0);
-        
-    //Ls = 3.0*d50*pow(Ds,0.6)*pow(Ti,0.9);
-    
-    //Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 0.0)*d50;
-    
-    //Ls = p->dtsed/p->DXM*sqrt(pow(0.5*(s->P(i,j)+s->P(i+1,j)),2.0) +  pow(0.5*(s->Q(i,j)+s->Q(i,j+1)),2.0));
-    
-    Ls = MAX(Ls,0.0);
-    Ls = MIN(Ls,1.0);
-    
-    //Ls = 100.0*p->S20; 
-    
-    Ls = 0.1;
-    
-    //if(p->mpirank==0)
-    //cout<<"LS: "<<Ls<<endl;
+        umag = sqrt(uvel*uvel + vvel*vvel);
 
-    s->qb(i,j) = 0.5*s->qb(i,j) + 0.5*(s->qbe(i,j) - Ls*(dqx + dqy));
+        sgx = umag>1.0e-10?uvel/umag:0.0;
+        sgy = umag>1.0e-10?vvel/umag:0.0;
+
+
+        // adaptation length
+        ucrit2 = s->shearvel_crit(i,j)*s->shearvel_crit(i,j);
+        ustar2 = s->shearvel_eff(i,j)*s->shearvel_eff(i,j);
+
+        Ti = ucrit2>1.0e-20?MAX((ustar2-ucrit2)/ucrit2,0.0):0.0;
+
+        Ls = 0.1;
+
+        if(p->S33==2)
+        Ls = 3.0*d50*pow(Dstar,0.6)*pow(Ti,0.9);
+
+        if(p->S33==3)
+        Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j),0.0)*d50;
+
+        Ls = MAX(Ls,0.0);
+
+
+        // upwind neighbors along s_hat; fall back to the local value
+        // where there is no sediment bed (zero gradient)
+        if(sgx>=0.0)
+        {
+        dxu = p->DXP[IM1];
+        qxu = p->DFBED[Im1J]>0?q0(i-1,j):q0(i,j);
+        }
+
+        if(sgx<0.0)
+        {
+        dxu = p->DXP[IP];
+        qxu = p->DFBED[Ip1J]>0?q0(i+1,j):q0(i,j);
+        }
+
+        if(sgy>=0.0)
+        {
+        dyu = p->DYP[JM1];
+        qyu = p->DFBED[IJm1]>0?q0(i,j-1):q0(i,j);
+        }
+
+        if(sgy<0.0)
+        {
+        dyu = p->DYP[JP];
+        qyu = p->DFBED[IJp1]>0?q0(i,j+1):q0(i,j);
+        }
+
+        cx = dxu>1.0e-20?Ls*fabs(sgx)/dxu:0.0;
+        cy = dyu>1.0e-20?Ls*fabs(sgy)/dyu:0.0;
+
+
+        qbn(i,j) = (s->qbe(i,j) + cx*qxu + cy*qyu)/(1.0 + cx + cy);
     }
-    pgc->gcsl_start4(p,s->qb,1);
-    
+
+    SEDSLICELOOP
+    q0(i,j) = qbn(i,j);
+
+    pgc->gcsl_start4(p,q0,1);
     }
-    
-    
-// Implicit Solution
 
-/*
-starttime=pgc->timer();
 
-    n=0;
-    SLICEBASELOOP
-	{
-    Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j), 1.0e-6)*d50;
-    
-	M.p[n]  =  1.0;     
-               
-
-   	M.n[n] = Ls/(p->DXP[IP]+p->DXP[IM1]);
-	M.s[n] = -Ls/(p->DXP[IP]+p->DXP[IM1]);
-
-	M.w[n] = Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
-	M.e[n] = -Ls/(p->DYP[JP]+p->DYP[JM1])*p->y_dir;
-    
-    rhsvec.V[n] = s->qbe(i,j);
-    s->qb(i,j)  = s->qbe(i,j);
-    
-	++n;
-	}
-	
-	
-    n=0;
-	SLICEBASELOOP
-	{
-		if(p->flagslice4[Im1J]<0)
-		{
-		rhsvec.V[n] -= M.s[n]*s->qb(i-1,j);
-		M.s[n] = 0.0;
-		}
-		
-		if(p->flagslice4[Ip1J]<0)
-		{
-		rhsvec.V[n] -= M.n[n]*s->qb(i+1,j);
-		M.n[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJm1]<0)
-		{
-		rhsvec.V[n] -= M.e[n]*s->qb(i,j-1);
-		M.e[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJp1]<0)
-		{
-		rhsvec.V[n] -= M.w[n]*s->qb(i,j+1);
-		M.w[n] = 0.0;
-		}
-		
-	++n;
-	}
-    
-    psolv->start(p,pgc,qb,M,xvec,rhsvec,4);
-    
-    pgc->gcsl_start4(p,qb,1);
-    
-	time=pgc->timer()-starttime;
-	p->uiter=p->solveriter;
-	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"qb_iter: "<<p->uiter<<"  qb_time: "<<setprecision(3)<<time<<endl;*/
+    SEDSLICELOOP
+    s->qb(i,j) = qbn(i,j);
 }
