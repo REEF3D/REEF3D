@@ -29,6 +29,9 @@ class lexer;
 
 class vtp3D : public vtk3D
 {
+    public:
+        virtual ~vtp3D() = default;
+
     protected:
         void beginning(lexer*, std::ostream&, int, int, int, int, int) override final;
         void beginningParallel(lexer*, std::ostream&) override final;

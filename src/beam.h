@@ -50,7 +50,7 @@ public:
     typedef Eigen::Matrix<double,4,Eigen::Dynamic> Matrix4Xd;
 
     beam(int);
-    ~beam();
+    virtual ~beam();
     
     void iniMaterial();
     void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&);

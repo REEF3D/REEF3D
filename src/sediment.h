@@ -50,6 +50,7 @@ using namespace std;
 class sediment
 {
 public:
+    virtual ~sediment() = default;
 
 	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*)=0;
     virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;

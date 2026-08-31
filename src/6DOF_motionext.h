@@ -41,6 +41,8 @@ using namespace std;
 class sixdof_motionext
 {
 public:
+    virtual ~sixdof_motionext() = default;
+
     virtual void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&)=0;
     virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&)=0;
 

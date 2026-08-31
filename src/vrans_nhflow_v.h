@@ -37,7 +37,7 @@ class vrans_nhflow_v : public vrans_nhflow
 {
 public:
     vrans_nhflow_v(lexer*, fdm_nhf*, ghostcell*) {};
-	virtual ~vrans_nhflow_v() {};
+	virtual ~vrans_nhflow_v() = default;
     
 	void initialize(lexer*, fdm_nhf*, ghostcell*) override final {};	
 	void update(lexer*, fdm_nhf*, ghostcell*, double, int) override final {};

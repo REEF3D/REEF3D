@@ -48,6 +48,7 @@ using namespace std;
 class nhflow_momentum
 {
 public:
+    virtual ~nhflow_momentum() = default;
 
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, 
                         nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans_nhflow*)=0;

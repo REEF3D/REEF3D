@@ -37,6 +37,8 @@ using namespace std;
 class print_averaging
 {
 public:
+    virtual ~print_averaging() = default;
+
     virtual void averaging(lexer *p, fdm *a, ghostcell *pgc, heat*)=0;
     
     virtual void name_ParaView_parallel(lexer *p, ofstream &result)=0;

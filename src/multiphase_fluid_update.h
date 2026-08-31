@@ -33,6 +33,7 @@ using namespace std;
 class multiphase_fluid_update
 {
 public:
+    virtual ~multiphase_fluid_update() = default;
 
 	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&)=0;
 

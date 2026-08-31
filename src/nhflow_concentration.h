@@ -41,6 +41,7 @@ using namespace std;
 class nhflow_concentration
 {
 public:
+    virtual ~nhflow_concentration() = default;
 
 	virtual void start(lexer*, fdm_nhf*, nhflow_scalar_convection*, nhflow_diffusion*, nhflow_turbulence*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ini(lexer*, fdm_nhf*, ghostcell*, nhflow_concentration*)=0;

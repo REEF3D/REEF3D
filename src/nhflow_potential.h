@@ -33,6 +33,8 @@ using namespace std;
 class nhflow_potential
 {
 public:
+    virtual ~nhflow_potential() = default;
+
 	virtual void start(lexer*, fdm_nhf*, solver*, ghostcell *pgc)=0;
 };
 

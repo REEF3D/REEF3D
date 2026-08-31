@@ -40,8 +40,7 @@ public:
 class nhflow_convection
 {
 public:
-
-    virtual ~nhflow_convection() {}
+    virtual ~nhflow_convection() = default;
 
     virtual void start(lexer*&, fdm_nhf*&, int, slice&, double*)=0;
     virtual void precalc(lexer*, fdm_nhf*, int, slice&)=0;

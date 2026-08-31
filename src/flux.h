@@ -32,6 +32,7 @@ using namespace std;
 class flux 
 {
 public:
+    virtual ~flux() = default;
 
     virtual void u_flux(fdm*,int,field&,double&,double&)=0;
 	virtual void v_flux(fdm*,int,field&,double&,double&)=0;

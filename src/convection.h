@@ -33,6 +33,7 @@ using namespace std;
 class convection
 {
 public:
+    virtual ~convection() = default;
 
 virtual void start(lexer*,fdm*,field&,int,field&,field&,field&)=0;
 

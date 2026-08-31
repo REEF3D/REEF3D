@@ -37,6 +37,7 @@ using namespace std;
 class sflow_reconstruct
 {
 public:
+    virtual ~sflow_reconstruct() = default;
 
     virtual void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&)=0;
     virtual void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&)=0;

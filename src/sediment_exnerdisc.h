@@ -32,6 +32,8 @@ using namespace std;
 class sediment_exnerdisc
 {
 public:
+    virtual ~sediment_exnerdisc() = default;
+
     virtual double sx(lexer*, slice&, double, double)=0;
 	virtual double sy(lexer*, slice&, double, double)=0;
 
