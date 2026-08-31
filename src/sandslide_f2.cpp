@@ -149,8 +149,7 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         // 4
         dh = s->bedzh(i,j) - s->bedzh(i,j+1);
-		dh_corr = dh + tan(p->S93*(PI/180.0))*p->DYP[JP];
-        
+
         maxdh = tan(s->phi(i,j))*p->DYP[JP];
         
         if(dh>maxdh && fabs(dh)<1.0e15)

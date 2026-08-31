@@ -62,16 +62,16 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 
         tau_eff=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
         
-        us = 1.0e-6;
+        us = sqrt(tau_eff/density);
         
-        for(int qn=0; qn<10; ++qn)
-        {
-        usn = us;
-        
-        us = uabs/((1.0/kappa) * log(dist*us/visc) + 5.5);
-        
-        us += 0.5*(usn - us);
-        }
+            for(int qn=0; qn<10; ++qn)
+            {
+            usn = us;
+            
+            us = uabs/((1.0/kappa) * log(dist*(us>1.0e-10?us:1.0e-10)/visc) + 5.5);
+            
+            us += 0.5*(usn - us);
+            }
         tau_eff = density * us * us;
         }
         
@@ -89,6 +89,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
 
         tau_eff = density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
         }
+        
         
         if(p->S16==2)
         {
@@ -250,9 +251,8 @@ void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
     s->tau_crit(i,j) = tauc;
     s->shearvel_crit(i,j) = sqrt(tauc/density);
     s->shields_crit(i,j) = p->S30*s->reduce(i,j);
-    
-    
-    
-    s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
     }
+    
+    SEDSLICELOOP
+    s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
 }
