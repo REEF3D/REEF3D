@@ -42,6 +42,7 @@ using namespace std;
 class sandslide  
 {
 public:
+    virtual ~sandslide() = default;
 
 	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
 };

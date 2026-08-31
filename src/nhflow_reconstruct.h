@@ -37,8 +37,7 @@ using namespace std;
 class nhflow_reconstruct
 {
 public:
-
-    virtual ~nhflow_reconstruct() {}
+    virtual ~nhflow_reconstruct() = default;
 
     virtual void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&)=0;
     virtual void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&)=0;

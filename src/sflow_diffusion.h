@@ -40,8 +40,10 @@ using namespace std;
 class sflow_diffusion
 {
 public:
-	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
-	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
+    virtual ~sflow_diffusion() = default;
+
+    virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
+    virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
     virtual void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, slice&, double)=0;
     virtual void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double)=0;
 };

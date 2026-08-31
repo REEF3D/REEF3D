@@ -43,7 +43,7 @@ class sliceint;
 // nullptr: the spectrum of the cell
 struct seastate_faces
 {
-    virtual ~seastate_faces() {}
+    virtual ~seastate_faces() = default;
     virtual const float *face(int i, int j, int s) const = 0;
 };
 

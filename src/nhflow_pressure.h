@@ -35,8 +35,7 @@ using namespace std;
 class nhflow_pressure
 {
 public:
-
-    virtual ~nhflow_pressure() {}
+    virtual ~nhflow_pressure() = default;
 
 	virtual void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double)=0;
 	virtual void upgrad(lexer*,fdm_nhf*,slice&)=0;

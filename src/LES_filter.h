@@ -33,6 +33,8 @@ using namespace std;
 class LES_filter 
 {
 public:    
+    virtual ~LES_filter() = default;
+
 	virtual void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int)=0;
 
 
