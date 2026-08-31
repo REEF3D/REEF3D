@@ -66,7 +66,7 @@ private:
     slice4 qbn;
     
 	int gcval_topo;
-    int noneq_ini;
+    int noneq_ini;    
 	double starttime;
     double maxdh,maxvz,maxdhnet,maxvznet;
     double dtsed0;

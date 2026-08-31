@@ -20,40 +20,32 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_cds_hj.h"
-#include"lexer.h"
-#include"slice.h"
-#include"vec.h"
-#include"fnpf_discrete_weights.h"
+#ifndef LAPLACE_FNPF_CDS2_V2_H_
+#define LAPLACE_FNPF_CDS2_V2_H_
 
-sediment_cds_hj::sediment_cds_hj(lexer* p) 
+#include"fnpf_laplace.h"
+#include"increment.h"
+
+class fnpf_bed_update;
+
+using namespace std;
+
+class fnpf_laplace_cds2_v2 final : public fnpf_laplace, public increment
 {
+public:
+    fnpf_laplace_cds2_v2 (lexer*);
+	virtual ~fnpf_laplace_cds2_v2();
 
-}
-
-sediment_cds_hj::~sediment_cds_hj()
-{
-}
-
-double sediment_cds_hj::sx(lexer *p, slice &f, double ivel1, double ivel2)
-{   
-    if(p->S31==1)
-    grad = 0.5*(ivel1+ivel2)*(f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&) override final;
     
-    if(p->S31>=2)
-    grad = 0.5*(f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-        
-    return grad;
-}
-
-double sediment_cds_hj::sy(lexer *p, slice &f, double jvel1, double jvel2)
-{
-    if(p->S31==1)
-    grad = 0.5*(jvel1+jvel2)*(f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+private:
     
-    if(p->S31>=2)
-    grad = 0.5*(f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-			  
-    return grad;  
-}
+    fnpf_bed_update *pbed;
+    
+    double sigxyz2;
+    double ab,denom;
+    double starttime,endtime;
 
+};
+
+#endif

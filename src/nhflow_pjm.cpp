@@ -46,8 +46,6 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
     
     gamma=0.5;
     
-    solver_id = 8;
-    
     p->Darray(P0,p->imax*p->jmax*(p->kmax+2));
 }
 
@@ -70,7 +68,7 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 
         starttime=pgc->timer();
 
-    psolv->startF(p,pgc,d->P,d->rhsvec,d->M,solver_id);
+    psolv->startF(p,pgc,d->P,d->rhsvec,d->M,8);
 
         endtime=pgc->timer();
 

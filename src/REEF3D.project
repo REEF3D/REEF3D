@@ -392,8 +392,7 @@
         <VirtualDirectory Name="Pressure SC">
           <File Name="sflow_pjm_hs_SC.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="FSF SC">
-        </VirtualDirectory>
+        <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
           <File Name="sflow_flux_build.h"/>
@@ -747,6 +746,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_laplace_cds2_v2.h"/>
           <File Name="fnpf_laplace_cds2.h"/>
           <File Name="fnpf_laplace.h"/>
         </VirtualDirectory>
@@ -835,6 +835,9 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Bedslope">
+          <File Name="bedslope.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_roughness.h"/>
         </VirtualDirectory>
@@ -866,7 +869,6 @@
           <File Name="reduction_FD_gamma.h"/>
           <File Name="bedshear.h"/>
           <File Name="bedshear_reduction.h"/>
-          <File Name="bedslope.h"/>
           <File Name="reduction_deyana.h"/>
           <File Name="reduction_deyemp.h"/>
           <File Name="reduction_parker.h"/>
@@ -2139,6 +2141,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_laplace_cds2_v2.cpp"/>
           <File Name="fnpf_laplace_cds2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Initialize">
@@ -2321,6 +2324,9 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Bedslope">
+          <File Name="bedslope.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_roughness.cpp"/>
         </VirtualDirectory>
@@ -2354,7 +2360,6 @@
           <File Name="bedshear_cfd.cpp"/>
           <File Name="bedshear_sflow.cpp"/>
           <File Name="bedshear_nhflow.cpp"/>
-          <File Name="bedslope.cpp"/>
           <File Name="reduction_deyana.cpp"/>
           <File Name="reduction_deyemp.cpp"/>
           <File Name="reduction_parker.cpp"/>

@@ -73,7 +73,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     const double Rstar = (p->S22 - p->W1)/p->W1;
     const double Dstar = d50*pow(fabs(Rstar)*grav/(visc*visc),1.0/3.0);
     const double ydir = p->y_dir;
-    const int itermax = MAX(p->S49,1);
+    const int itermax = 10;
 
     double uvel,vvel,umag;
     double sgx,sgy;
@@ -119,7 +119,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
 
         Ti = ucrit2>1.0e-20?MAX((ustar2-ucrit2)/ucrit2,0.0):0.0;
 
-        Ls = p->S40;
+        Ls = 0.1;
 
         if(p->S33==2)
         Ls = 3.0*d50*pow(Dstar,0.6)*pow(Ti,0.9);
