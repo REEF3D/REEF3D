@@ -38,7 +38,7 @@ using namespace std;
 class sixdof
 {
 public:
-    virtual ~sixdof() {}
+    virtual ~sixdof() = default;
 
     virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;

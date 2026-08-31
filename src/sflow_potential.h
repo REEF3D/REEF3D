@@ -33,6 +33,8 @@ using namespace std;
 class sflow_potential
 {
 public:
+    virtual ~sflow_potential() = default;
+
 	virtual void start(lexer*,fdm2D*, solver2D*, ghostcell* pgc)=0;
 
 

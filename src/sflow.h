@@ -32,6 +32,7 @@ using namespace std;
 class sflow
 {
 public:
+    virtual ~sflow() = default;
 
 	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
 };

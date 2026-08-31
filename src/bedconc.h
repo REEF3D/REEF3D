@@ -32,8 +32,8 @@ using namespace std;
 class bedconc 
 {
 public:
+    virtual ~bedconc() = default;
 
-    virtual ~bedconc(){}
 	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
 
 

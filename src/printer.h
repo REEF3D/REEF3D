@@ -43,6 +43,8 @@ class sediment;
 class printer
 {
 public:
+    virtual ~printer() = default;
+
     // CFD
     virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
     virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};

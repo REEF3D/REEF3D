@@ -31,6 +31,7 @@ class vec;
 class fnpf_convection
 {
 public:
+    virtual ~fnpf_convection() = default;
 
     virtual double fx(lexer*, field&, double, double)=0;
     virtual double fy(lexer*, field&, double, double)=0;
