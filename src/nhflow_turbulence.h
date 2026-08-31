@@ -44,9 +44,10 @@ class nhflow_turbulence
 {
 
 public:
+    virtual ~nhflow_turbulence() = default;
+
     // checkpoints (P 48, I 45): the arrays of the model (KIN, EPS, ...): fd(name, kind, double*), fi(.., int*)
     virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
-    virtual ~nhflow_turbulence() {}
 
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*)=0;
     // the step in parts (k-epsilon, k-omega: 0 k, 1 epsilon/omega, 2 eddy viscosity); other models make the whole

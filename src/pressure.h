@@ -39,7 +39,6 @@ class pressure
 public:
     virtual ~pressure() = default;
 
-
 	virtual void start(fdm*,lexer*, poisson*, solver*, ghostcell*,ioflow*,field&,field&,field&,double)=0;
     virtual void ini(lexer*,fdm*,ghostcell*)=0;
 	virtual void upgrad(lexer*,fdm*,slice&,slice&)=0;

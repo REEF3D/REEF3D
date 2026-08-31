@@ -60,6 +60,8 @@ struct nhflow_stage_obj
 class nhflow_stage_runner
 {
 public:
+    virtual ~nhflow_stage_runner() = default;
+
     virtual void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) = 0;
 };
 

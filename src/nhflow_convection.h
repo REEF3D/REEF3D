@@ -34,14 +34,15 @@ using namespace std;
 class nhflow_flux_hook
 {
 public:
+    virtual ~nhflow_flux_hook() = default;
+
     virtual void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*)=0;
 };
 
 class nhflow_convection
 {
 public:
-
-    virtual ~nhflow_convection() {}
+    virtual ~nhflow_convection() = default;
 
     virtual void start(lexer*&, fdm_nhf*&, int, slice&, double*)=0;
     virtual void precalc(lexer*, fdm_nhf*, int, slice&)=0;

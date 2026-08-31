@@ -34,10 +34,6 @@ nhflow_timestep::nhflow_timestep(lexer* p):epsi(1.0e-3),maxtimestep(p->N49),c0_o
 {
 }
 
-nhflow_timestep::~nhflow_timestep()
-{
-}
-
 void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double depthmax=0.0;
