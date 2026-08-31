@@ -28,9 +28,9 @@ Author: Hans Bihs
 void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
 {
     count=0;
-    LOOP
+    FLOOP
     {
-        CVAL4[IJK]=count;
+        CVAL4[FIJK]=count;
         ++count;
     }
 
@@ -40,11 +40,9 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     stencil_indices[j] = j;
 
     count=0;
-    KJILOOP
+    FKJILOOP
     {
-        PCHECK
-        {
-            n=CVAL4[IJK];
+            n=CVAL4[FIJK];
 
             values[count]=M.p[n];
             ++count;
@@ -60,25 +58,6 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
 
             values[count]=M.t[n];
             ++count;
-        }
-
-        SCHECK
-        {
-            values[count]=1.0;
-            ++count;
-
-            values[count]=0.0;
-            ++count;
-
-            values[count]=0.0;
-            ++count;
-
-            values[count]=0.0;
-            ++count;
-
-            values[count]=0.0;
-            ++count;
-        }
     }
 
     HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
@@ -86,13 +65,9 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
 
     // vec
     count=0;
-    KJILOOP
+    FKJILOOP
     {
-        PCHECK
-        values[count] = f[IJK];
-
-        SCHECK
-        values[count] = 0.0;
+        values[count] = f[FIJK];
 
         ++count;
     }
@@ -101,16 +76,10 @@ void hypre_struct::fill_matrix7_2Dvert(lexer* p, ghostcell* pgc, double *f, vec 
     HYPRE_StructVectorAssemble(x);
 
     count=0;
-    KJILOOP
+    FKJILOOP
     {
-        PCHECK
-        {
-            n=CVAL4[IJK];
+            n=CVAL4[FIJK];
             values[count] = rhs.V[n];
-        }
-
-        SCHECK
-        values[count] = 0.0;
 
         ++count;
     }

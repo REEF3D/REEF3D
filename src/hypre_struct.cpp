@@ -29,10 +29,10 @@ Author: Hans Bihs
 
 hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_input)
 {
-    int vecsize=p->knox*p->knoy*p->knoz;
-
     p->Iarray(CVAL4,p->imax*p->jmax*(p->kmax+2));
-
+    
+    int vecsize=p->knox*p->knoy*p->knoz;
+    
     if(p->A10==3)
     vecsize=p->knox*p->knoy*(p->knoz+1);
 
@@ -46,12 +46,6 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     else
     make_grid_2Dvert(p,pgc);
 
-    count=0;
-    LOOP
-    {
-        CVAL4[IJK]=count;
-        ++count;
-    }
 
     solve_type = solve_input;
     precon_type = precon_input;
@@ -86,9 +80,10 @@ void hypre_struct::startf(lexer* p, ghostcell* pgc, field &f, vec& rhs, matrix_d
 
 void hypre_struct::startF(lexer* p, ghostcell* pgc, double *f, vec& rhs, matrix_diag &M, int var)
 {
-    if(var==7)
+    if(var==7) // FLOOP
     start_solver7(p,pgc,f,rhs,M,var);
-    else if(var==8)
+    
+    else if(var==8) // LOOP
     start_solver8(p,pgc,f,rhs,M,var);
 }
 

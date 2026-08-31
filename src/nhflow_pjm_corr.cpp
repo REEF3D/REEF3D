@@ -46,8 +46,6 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
     
     gcval_press=540;
     
-    solver_id = 8;
-    
     gamma=0.5;
 }
 
@@ -72,7 +70,7 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
         starttime=pgc->timer();
 
-    psolv->startF(p,pgc,PCORR,d->rhsvec,d->M,solver_id);
+    psolv->startF(p,pgc,PCORR,d->rhsvec,d->M,8);
 
         endtime=pgc->timer();
         

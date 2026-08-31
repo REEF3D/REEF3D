@@ -35,6 +35,10 @@ void hypre_struct::make_grid(lexer* p, ghostcell* pgc)
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoy+p->origin_j-1;
     iupper[2] = p->knoz+p->origin_k-1;
+    
+    if(p->A320==2)
+    iupper[2] = p->knoz+p->origin_k;
+    
 
     // periodic BC
     periodic[0]=0;
@@ -84,6 +88,9 @@ void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
 
     iupper[0] = p->knox+p->origin_i-1;
     iupper[1] = p->knoz+p->origin_k-1;
+    
+    if(p->A320==2)
+    iupper[2] = p->knoz+p->origin_k;
 
     // periodic BC
     periodic[0]=0;
