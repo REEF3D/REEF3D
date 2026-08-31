@@ -783,6 +783,7 @@ void control::ini_default()
 	S37=0;		        // int inertia bedshear stress
     S38=0;              // int shallow water bedshear calculation
     S39=100.0;            // double blend factor
+    S40=0.1;            // double bedload adaptation length for non-equillibrium transport
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
@@ -791,6 +792,7 @@ void control::ini_default()
 	S46=1.0;			// double flow simulation time between bed calculation
 	S47=1.0;			// double t/T, before sediment transport starts
 	S48=0.1;			// int nt/T between bed calculation
+    S49=5;              // int number of non-equillibrium relaxation sweeps
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
