@@ -39,9 +39,8 @@ using namespace std;
 class patchBC_interface
 {
 public:
-    
     virtual ~patchBC_interface() = default;
-    
+
     virtual void patchBC_ini(lexer*, ghostcell*)=0;
     
     // BC update ::CFD

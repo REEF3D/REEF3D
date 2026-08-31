@@ -52,8 +52,8 @@ using namespace std;
 class sandslide  
 {
 public:
+    virtual ~sandslide() = default;
 
-    virtual ~sandslide(){}
 	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
 
     // mesh refinement and multi-block grids: one iteration of start() in steps, run by the driver over all

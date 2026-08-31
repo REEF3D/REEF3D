@@ -39,6 +39,8 @@ class ghostcell;
 class vtk3D
 {
     public:
+        virtual ~vtk3D() = default;
+
         virtual void folder(const char*) {};
         virtual void fileName(char*, const unsigned int, const char*, const int, const int) {};
         virtual void parallelFileName(char*, const unsigned int, const char*, const int) {};

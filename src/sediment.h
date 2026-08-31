@@ -64,7 +64,6 @@ public:
     // the load map for the weighted partition at a rebalance (G 46; CPM: its parcels per cell), collective
     virtual void loadmap(lexer*, fdm*, ghostcell*) {}
 
-
 	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*)=0;
     virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;
     virtual void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*)=0;
