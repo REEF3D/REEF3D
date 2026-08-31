@@ -206,7 +206,7 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
         if(p->DF[IJK]>0 && p->wet[IJ]==1)
         {
             if(p->S61==1)
-            s->cb(i,j) = MAX(MIN(d->CONC[IJK],0.1),0.0)
+            s->cb(i,j) = MAX(MIN(d->CONC[IJK],0.1),0.0);
 
             if(p->S61==2)
             s->cb(i,j) = Rouse_formula(p,d,s,d->CONC[IJK]);
