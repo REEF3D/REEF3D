@@ -1860,6 +1860,7 @@
           <File Name="nhflow_geometry.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing_reforce.cpp"/>
           <File Name="nhflow_forcing_ini.cpp"/>
           <VirtualDirectory Name="DLM">
             <File Name="nhflow_forcing_dlm_force.cpp"/>
