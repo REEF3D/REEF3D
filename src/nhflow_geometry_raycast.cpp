@@ -51,14 +51,14 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
         {
             if(rayiter==0)
             {
-            //ray_cast_io_x(p,d,pgc,tstart[qn],tend[qn]);
+            ray_cast_io_x(p,d,pgc,tstart[qn],tend[qn]);
             
-            //if(p->j_dir==1)
-            //ray_cast_io_ycorr(p,d,pgc,tstart[qn],tend[qn]);
+            if(p->j_dir==1)
+            ray_cast_io_ycorr(p,d,pgc,tstart[qn],tend[qn]);
             ray_cast_io_zcorr(p,d,pgc,tstart[qn],tend[qn]);
             }
 
-            if(rayiter==1)
+            /*if(rayiter==1)
             {
             pgc->startintV(p,IO,1);
             
@@ -66,6 +66,12 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
             if(p->j_dir==1)
             ray_cast_y(p,d,pgc,tstart[qn],tend[qn],LS);
             ray_cast_z(p,d,pgc,tstart[qn],tend[qn],LS);
+            }*/
+            
+            if(rayiter==1)
+            {
+            pgc->startintV(p,IO,1);
+            band_distance(p,d,pgc,LS,tstart[qn],tend[qn]);
             }
         }
     }

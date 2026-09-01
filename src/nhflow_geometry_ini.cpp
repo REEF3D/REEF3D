@@ -59,5 +59,7 @@ void nhflow_geometry::geometry_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->globalisum(num);
     
     DSM = DSM/double(num);
+    
+    NB = 4.0;
 }
 

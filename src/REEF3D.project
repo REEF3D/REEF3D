@@ -1847,6 +1847,7 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
+            <File Name="nhflow_geometry_distance.cpp"/>
             <File Name="nhflow_geometry_raycast_io_ycorr.cpp"/>
             <File Name="nhflow_geometry_raycast_io_x.cpp"/>
             <File Name="nhflow_geometry_raycast_io_zcorr.cpp"/>
