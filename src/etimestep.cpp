@@ -41,7 +41,8 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     p->epsmax=p->kinmax=p->pressmax=0.0;
 
 	p->umax=p->vmax=p->wmax=p->viscmax=0.0;
-    
+    p->dt_old=p->dt;
+
     p->umax=MAX(p->W11_u,p->umax);
     p->umax=MAX(p->W12_u,p->umax);
     p->umax=MAX(p->W13_u,p->umax);
@@ -188,7 +189,6 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 
 	p->dt=p->N47*cu;
    // p->dt = MIN(p->dt,10.0*p->dt_old);
-    p->dt_old=p->dt;
     
 	a->maxF=0.0;
 	a->maxG=0.0;
@@ -278,6 +278,10 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 
 	p->dt=p->N47*cu*0.25;
 	p->dt_old=p->dt;
+
+    a->maxF = fabs(a->gi);
+    a->maxG = fabs(a->gj);
+    a->maxH = fabs(a->gk);
 }
 
 double etimestep::max(double val1,double val2,double val3)

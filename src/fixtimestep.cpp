@@ -37,7 +37,7 @@ fixtimestep::~fixtimestep()
 
 void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 {
-   	p->dt=p->N49;
+    p->dt=p->dt_old=p->N49;
 
    	// maximum values: local first, then one reduction over all ranks
 	ULOOP
@@ -92,6 +92,5 @@ void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 
 void fixtimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
-    p->dt=p->N49;
-
+    p->dt=p->dt_old=p->N49;
 }
