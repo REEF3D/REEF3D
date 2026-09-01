@@ -28,7 +28,6 @@ class fdm_nhf;
 class ghostcell;
 class ioflow;
 class solver;
-class field;
 class slice;
 
 using namespace std;

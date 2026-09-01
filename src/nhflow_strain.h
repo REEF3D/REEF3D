@@ -24,13 +24,8 @@ Author: Hans Bihs
 #define NHFLOW_STRAIN_H_
 
 #include"nhflow_gradient.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
 
 class ghostcell;
-class fieldint;
 
 using namespace std;
 

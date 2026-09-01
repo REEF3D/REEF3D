@@ -1,0 +1,46 @@
+REEF3D
+Copyright (c) 2026 Hans Bihs
+
+This product is licensed under the GNU General Public License, version 3
+or (at your option) any later version (GPL-3.0-or-later). See the file
+COPYING (or LICENSE) for the full license text.
+
+This product bundles and/or links against the following third-party
+software. These components retain their own copyright and license terms,
+which are not affected by REEF3D's GPL-3.0-or-later license.
+
+------------------------------------------------------------------------
+hypre
+------------------------------------------------------------------------
+Copyright (c) 1998 Lawrence Livermore National Security, LLC and other
+HYPRE Project Developers.
+
+hypre is dual-licensed under the MIT License and the Apache License,
+Version 2.0. REEF3D uses hypre under the terms of the MIT License.
+
+Full text: https://github.com/hypre-space/hypre/blob/master/LICENSE-MIT
+See also: https://github.com/hypre-space/hypre/blob/master/COPYRIGHT
+(hypre in turn bundles some external code under separate permissive
+licenses; see hypre's own COPYRIGHT file for details if redistributing
+hypre's source.)
+
+------------------------------------------------------------------------
+Eigen
+------------------------------------------------------------------------
+Eigen is a C++ template library for linear algebra. The Core, Dense, and
+Geometry modules used by REEF3D are licensed under the Mozilla Public
+License 2.0 (MPL2). Individual Eigen source files carry their own
+copyright notices from multiple contributors; see the source headers
+and https://gitlab.com/libeigen/eigen/-/blob/master/COPYING.MPL2 for the
+full license text.
+
+Per the MPL 2.0, source code for any modified Eigen (MPL2-covered)
+files must remain available under MPL 2.0 terms. REEF3D does not modify
+Eigen; unmodified upstream source is used as-is.
+
+------------------------------------------------------------------------
+
+The full license texts for the above components can be found at:
+  - GNU GPL v3:          https://www.gnu.org/licenses/gpl-3.0.html
+  - MIT License:        https://opensource.org/license/mit/
+  - Mozilla Public License 2.0: https://www.mozilla.org/MPL/2.0/

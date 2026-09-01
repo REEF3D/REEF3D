@@ -31,7 +31,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class field;
 class nhflow_sigma_data;
 class slice;
 
@@ -48,6 +47,8 @@ public:
     void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
     
     void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
+    
+    void bed_acceleration(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
     
 private:
     

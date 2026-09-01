@@ -20,35 +20,30 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
 #ifndef HYPRE_STRUCT_H_
 #define HYPRE_STRUCT_H_
 
-#define HYPRE_COMPILATION
+#include "solver.h"
+#include "increment.h"
+#include "vec.h"
+#include <_hypre_utilities.h>
+#include <HYPRE_sstruct_ls.h>
 
-#ifdef HYPRE_COMPILATION
-
-#include"solver.h"
-#include"increment.h"
-#include"vec.h"
-#include"_hypre_utilities.h"
-#include"HYPRE_sstruct_ls.h"
- 
 using namespace std;
 
 class hypre_struct final : public solver, public increment
 {
 public:
 
-	hypre_struct(lexer*,ghostcell*,int,int);
-	virtual ~hypre_struct();
-    
-	void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
+    hypre_struct(lexer*,ghostcell*,int,int);
+    virtual ~hypre_struct();
+
+    void start(lexer*,fdm*, ghostcell*, field&, vec&, int) override final;
     void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
     void startF(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
     void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
     void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
-    
+
     void start_solver1234(lexer*,fdm*, ghostcell*, field&, vec&,int);
     void start_solver4f(lexer*, ghostcell*, field&, vec&, matrix_diag&, int);
     void start_solver4V(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
@@ -57,21 +52,19 @@ public:
     void start_solver7(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver8(lexer*, ghostcell*, double*, vec&, matrix_diag&, int);
     void start_solver44(lexer*,fdm*, ghostcell*, field&, vec&,int);
-    
+
     void solve(lexer*,ghostcell*);
     void solve1234(lexer*);
     void solve44(lexer*);
-    
-	void fillxvec1(lexer*,fdm*,field&);
+
+    void fillxvec1(lexer*,fdm*,field&);
     void fillxvec2(lexer*,fdm*,field&);
     void fillxvec3(lexer*,fdm*,field&);
     void fillxvec4(lexer*,fdm*,field&);
-    
-    
-    
+
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
-    
+
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix1_2Dvert(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix2(lexer*,fdm*, ghostcell*,field&);
@@ -88,7 +81,7 @@ public:
     void fill_matrix7_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
-    
+
     void fillbackvec1(lexer*,field&,int);
     void fillbackvec2(lexer*,field&,int);
     void fillbackvec3(lexer*,field&,int);
@@ -98,53 +91,45 @@ public:
     void fillbackvec7(lexer*,double*,int);
     void fillbackvec8(lexer*,double*,int);
     void fillbackvec9(lexer*,double*,int);
-	
-	void create_solver1234(lexer*,ghostcell*);
+
+    void create_solver1234(lexer*,ghostcell*);
     void delete_solver1234(lexer*,ghostcell*);
 
     void create_solver5(lexer*,ghostcell*);
     void delete_solver5(lexer*,ghostcell*);
-    
+
     void create_solver44(lexer*,ghostcell*);
     void delete_solver44(lexer*,ghostcell*);
-    
+
     void precon_switch(lexer*,ghostcell*);
-    
 
 private:
-    
-// HYPRE 
-   HYPRE_StructGrid     grid;
-   HYPRE_StructStencil  stencil;
-   HYPRE_SStructGraph   graph;
-   HYPRE_StructMatrix   A;
-   HYPRE_StructVector   b;
-   HYPRE_StructVector   x;
-   HYPRE_StructSolver   solver;
-   HYPRE_StructSolver   precond;
-   
+    // HYPRE
+    HYPRE_StructGrid     grid;
+    HYPRE_StructStencil  stencil;
+    HYPRE_SStructGraph   graph;
+    HYPRE_StructMatrix   A;
+    HYPRE_StructVector   b;
+    HYPRE_StructVector   x;
+    HYPRE_StructSolver   solver;
+    HYPRE_StructSolver   precond;
 
-	int *ilower,*iupper;
+    int *ilower,*iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[15];
+    int stencil_indices[15];
     int periodic[3];
-	int nentries;
+    int nentries;
     int error_flag;
-    
-    double starttime, hypretime;
-   
-	int numiter,count,q;
-    
-    int solve_type,precon_type;
-    
-    
-    int *CVAL4;
 
+    double starttime, hypretime;
+
+    int numiter,count,q;
+
+    int solve_type,precon_type;
+
+    int *CVAL4;
 };
 
 #endif
-
-#endif
-

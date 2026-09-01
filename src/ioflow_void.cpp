@@ -102,7 +102,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         u(i,j+3,k) = p->W12_u;
         }
         
-        if(p->W13==3)
+        if(p->W13==1)
         if(p->gcb1[n][3]==3 && p->gcb1[n][4]==1)
         {
         i=p->gcb1[n][0];
@@ -178,7 +178,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         v(i,j+3,k) = p->W12_v;
         }
         
-        if(p->W13==3)
+        if(p->W13==1)
         if(p->gcb2[n][3]==3 && p->gcb2[n][4]==1)
         {
         i=p->gcb2[n][0];
@@ -258,7 +258,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         w(i,j+3,k) = p->W12_w;
         }
         
-        if(p->W13==3)
+        if(p->W13==1)
         if(p->gcb3[n][3]==3 && p->gcb3[n][4]==1)
         {
         i=p->gcb3[n][0];

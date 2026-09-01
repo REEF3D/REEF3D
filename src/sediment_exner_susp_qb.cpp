@@ -28,15 +28,23 @@ Author: Hans Bihs
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
 
-double sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
+double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     double val=0.0;
     
-    if(p->count>p->S43)
+    if(p->S62==1 && p->count>p->S43)
     val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
     
     // E: cbe
     // D: conc
     
     return val;
+}
+
+void sediment_exner::susp_qs(lexer* p, ghostcell *pgc, sediment_fdm *s)
+{
+    SEDSLICELOOP
+    s->qb(i,j) += s->qbs(i,j);
+    
+    pgc->gcsl_start4(p,s->qb,1);
 }

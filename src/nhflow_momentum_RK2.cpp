@@ -290,5 +290,6 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     
     psed->RK2_step2_nhflow(p,d,pgc,pflow);
     pfsf->depth_update(p,d,pgc,pflow);
+    bed_acceleration(p,d,pgc,d->WL,d->U,d->V,d->W);
 }
 

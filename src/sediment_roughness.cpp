@@ -37,17 +37,20 @@ sediment_roughness::~sediment_roughness()
 
 void sediment_roughness::start(lexer* p, ghostcell* pgc, sediment_fdm *s, slice &WL)
 {
-    double Delta,lambda,Ti;
+    double Delta,lambda,Ti,tauc;
+    double density = p->W1;
     
     if(p->S36==0)
     SLICELOOP4
     s->ks_eff(i,j) = p->S21*p->S20;
     
-    
+    // bedform roughness
     if(p->S36==1)
     SLICELOOP4
     {
-    Ti  = (s->tau_i(i,j)-s->tau_crit(i,j))/s->tau_crit(i,j);
+    tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*p->S20;
+    
+    Ti  = (s->tau_i(i,j)-tauc)/tauc;
     
     Delta = WL(i,j) * 0.11 * pow(p->S20/WL(i,j),0.3) * (1.0 - pow(EE,-0.5*Ti)) * (25.0 - Ti);
      
@@ -56,9 +59,8 @@ void sediment_roughness::start(lexer* p, ghostcell* pgc, sediment_fdm *s, slice 
     if(Ti < 25.0 && Ti>0.0)
     s->ks_eff(i,j) = p->S21*p->S20 + 1.1 * Delta*(1.0-pow(EE,-25.0*Delta/lambda));
     
-     
-     
-    if(Ti >= 25.0 && Ti<=0.0)
+
+    if(Ti >= 25.0 || Ti<=0.0)
     s->ks_eff(i,j) = p->S21*p->S20;
     }
 }

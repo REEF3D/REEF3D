@@ -52,7 +52,8 @@ private:
     
     double ramp_dt(lexer*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
-    double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
+    double  susp_ED(lexer*,ghostcell*,sediment_fdm*);
+    void  susp_qs(lexer*,ghostcell*,sediment_fdm*);
     
     void filter(lexer*,ghostcell*,slice&,int,int);   
     topo_relax *prelax;
@@ -62,8 +63,10 @@ private:
 
 	matrix2D M;
     slice4 qbx,qby;
+    slice4 qbn;
     
 	int gcval_topo;
+    int noneq_ini;    
 	double starttime;
     double maxdh,maxvz,maxdhnet,maxvznet;
     double dtsed0;

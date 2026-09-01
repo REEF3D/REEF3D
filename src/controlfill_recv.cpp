@@ -1015,6 +1015,8 @@ void control::ctrlrecv()
     ii++;
     G40 = ictrl[ii];
     ii++;
+    G41 = ictrl[ii];
+    ii++;
 
     H1 = dctrl[dd];
     dd++;
@@ -1562,6 +1564,10 @@ void control::ctrlrecv()
     ii++;
     S37 = ictrl[ii];
     ii++;
+    S38 = ictrl[ii];
+    ii++;
+    S39 = dctrl[dd];
+    dd++;
     S41 = ictrl[ii];
     ii++;
     S42 = ictrl[ii];
@@ -1586,6 +1592,10 @@ void control::ctrlrecv()
     ii++;
     S61 = ictrl[ii];
     ii++;
+    S62 = ictrl[ii];
+    ii++;
+    S66 = ictrl[ii];
+    ii++;
     S71 = dctrl[dd];
     dd++;
     S72 = dctrl[dd];
@@ -1593,6 +1603,8 @@ void control::ctrlrecv()
     S73 = ictrl[ii];
     ii++;
     S74 = ictrl[ii];
+    ii++;
+    S75 = ictrl[ii];
     ii++;
     S77 = ictrl[ii];
     ii++;
@@ -3138,6 +3150,12 @@ void control::ctrlrecv()
         Darray(S74_xe,S74);
         Darray(S74_ys,S74);
         Darray(S74_ye,S74);
+    }
+    
+    if(S75>0)
+    {
+        Darray(S75_x,S75);
+        Darray(S75_dist,S75);
     }
 
     if(W41>0)
@@ -4697,6 +4715,14 @@ void control::ctrlrecv()
         S74_ys[n]  = dctrl[dd];
         dd++;
         S74_ye[n]  = dctrl[dd];
+        dd++;
+    }
+    
+    for(n=0;n<S75;++n)
+    {
+        S75_x[n]  = dctrl[dd];
+        dd++;
+        S75_dist[n]= dctrl[dd];
         dd++;
     }
 

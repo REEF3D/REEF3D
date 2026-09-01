@@ -53,7 +53,7 @@ void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
         by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-        s->qbe(i,j) = s->qbe(i,j)*(1.0 - beta*(cosa*bx0 + sina*by0));
+        s->qbe(i,j) = s->qbe(i,j)*(1.0 - MIN(1.0, beta*(cosa*bx0 + sina*by0)));
 	}
     
     pgc->gcsl_start4(p,s->qbe,1);

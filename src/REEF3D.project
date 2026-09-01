@@ -29,7 +29,7 @@
   <Reconciliation>
     <Regexes/>
     <Excludepaths>
-      <Path>eigen-3.3.8/</Path>
+      <Path>eigen-5.0.0/</Path>
     </Excludepaths>
     <Ignorefiles/>
     <Extensions>
@@ -159,6 +159,7 @@
             <File Name="kepsilon_bc.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="IO">
+            <File Name="les_io.h"/>
             <File Name="rans_io.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="EARSM">
@@ -389,26 +390,19 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Pressure SC">
-          <File Name="sflow_pjm_quad_SC.h"/>
           <File Name="sflow_pjm_hs_SC.h"/>
-          <File Name="sflow_pressure_SC.h"/>
-          <File Name="sflow_pjm_lin_SC.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="FSF SC">
-          <File Name="sflow_fsf_f.h"/>
-        </VirtualDirectory>
+        <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
           <File Name="sflow_flux_build.h"/>
           <File Name="sflow_flux_build_f.h"/>
-          <File Name="sflow_convection_SC.h"/>
           <VirtualDirectory Name="Scalar"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="sflow_signal_speed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
             <File Name="sflow_reconstruct_weno.h"/>
-            <File Name="sflow_reconstruct_hires.h"/>
             <File Name="sflow_reconstruct.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -442,6 +436,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sediment"/>
         <VirtualDirectory Name="Print">
+          <File Name="sflow_print_wsf_theory.h"/>
           <File Name="sflow_vtp_fsf.h"/>
           <File Name="sflow_print_bed.h"/>
           <File Name="sflow_print_bedline_y.h"/>
@@ -695,7 +690,6 @@
             <File Name="nhflow_breaking.h"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_f.h"/>
-          <File Name="nhflow_fsf_v.h"/>
           <File Name="nhflow_fsf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
@@ -787,7 +781,6 @@
           <File Name="fnpf_weno5.h"/>
           <File Name="fnpf_weno3.h"/>
           <File Name="fnpf_wenoflux.h"/>
-          <File Name="fnpf_weno7.h"/>
           <File Name="fnpf_voiddisc.h"/>
           <File Name="fnpf_etadisc.h"/>
           <File Name="fnpf_convection.h"/>
@@ -841,6 +834,9 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Bedslope">
+          <File Name="bedslope.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_roughness.h"/>
         </VirtualDirectory>
@@ -872,7 +868,6 @@
           <File Name="reduction_FD_gamma.h"/>
           <File Name="bedshear.h"/>
           <File Name="bedshear_reduction.h"/>
-          <File Name="bedslope.h"/>
           <File Name="reduction_deyana.h"/>
           <File Name="reduction_deyemp.h"/>
           <File Name="reduction_parker.h"/>
@@ -969,7 +964,6 @@
           <File Name="6DOF_motionext_void.h"/>
           <File Name="6DOF_motionext_file.h"/>
           <File Name="6DOF_motionext_fixed.h"/>
-          <File Name="6DOF_motionext_coupling.h"/>
           <File Name="6DOF_motionext.h"/>
           <File Name="6DOF_motionext.h"/>
           <File Name="6DOF_forcesext.h"/>
@@ -1026,7 +1020,6 @@
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_nhflow_f.h"/>
         <File Name="vrans_nhflow_v.h"/>
-        <File Name="vrans_interface.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
         <File Name="vrans_v.h"/>
@@ -1066,9 +1059,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
         <VirtualDirectory Name="Geo_Func">
-          <File Name="geo_func_sflow.h"/>
-          <File Name="geo_func_nhflow.h"/>
-          <File Name="geo_func_cfd.h"/>
           <File Name="geo_func.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Container">
@@ -1685,28 +1675,16 @@
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Pressure SC">
           <File Name="sflow_pjm_hs_SC.cpp"/>
-          <File Name="sflow_pjm_quad_SC.cpp"/>
-          <File Name="sflow_pjm_SC.cpp"/>
-          <File Name="sflow_pjm_lin_SC.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSF SC">
-          <File Name="sflow_fsf_ini.cpp"/>
-          <File Name="sflow_fsf_wetdry_fluxes.cpp"/>
-          <File Name="sflow_fsf_wetdry.cpp"/>
-          <File Name="sflow_fsf_rk2.cpp"/>
-          <File Name="sflow_fsf_f.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
-          <File Name="sflow_convection_SC.cpp"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="sflow_signal_speed.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Scalar"/>
           <VirtualDirectory Name="Reconstruct">
             <File Name="sflow_reconstruct_weno.cpp"/>
-            <File Name="sflow_reconstruct_hires.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
@@ -1818,7 +1796,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Rheology">
             <File Name="sflow_rheology_bingham.cpp"/>
-            <File Name="sflow_rheology_Herschel-Bulkley.cpp"/>
             <File Name="sflow_rheology_v.cpp"/>
             <File Name="sflow_rheology_f.cpp"/>
           </VirtualDirectory>
@@ -1962,7 +1939,6 @@
             <File Name="nhflow_print_Hs.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
-            <File Name="nhflow_state_read.cpp"/>
             <File Name="nhflow_state_write.cpp"/>
             <File Name="nhflow_state_mainheader.cpp"/>
             <File Name="nhflow_state_header.cpp"/>
@@ -2022,6 +1998,7 @@
             <File Name="nhflow_coastline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
+            <File Name="nhflow_sigma_bedacc.cpp"/>
             <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>
             <File Name="nhflow_sigma_update.cpp"/>
@@ -2076,9 +2053,6 @@
           <File Name="nhflow_fsf_ini.cpp"/>
           <File Name="nhflow_fsf_rk3.cpp"/>
           <File Name="nhflow_fsf_rk2.cpp"/>
-          <VirtualDirectory Name="Void">
-            <File Name="nhflow_fsf_v.cpp"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Diffusion">
           <File Name="nhflow_idiff_scalar_2D.cpp"/>
@@ -2211,7 +2185,6 @@
           <File Name="fnpf_weno5.cpp"/>
           <File Name="fnpf_weno3.cpp"/>
           <File Name="fnpf_wenoflux.cpp"/>
-          <File Name="fnpf_weno7.cpp"/>
           <File Name="fnpf_voiddisc.cpp"/>
           <File Name="fnpf_cds6_wd.cpp"/>
           <File Name="fnpf_cds6.cpp"/>
@@ -2241,7 +2214,6 @@
           <File Name="CPM_wallbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
-          <File Name="CPM_sandslide.cpp"/>
           <File Name="CPM_bedchange.cpp"/>
           <File Name="CPM_update.cpp"/>
         </VirtualDirectory>
@@ -2265,8 +2237,6 @@
           <File Name="CPM_print_pvtp.cpp"/>
           <File Name="CPM_print_vtp.cpp"/>
           <File Name="CPM_print_vtu.cpp"/>
-          <File Name="CPM_print_inactive_vtp.cpp"/>
-          <File Name="CPM_print_inactive_pvtp.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Ini">
           <File Name="CPM_seed.cpp"/>
@@ -2355,6 +2325,9 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Bedslope">
+          <File Name="bedslope.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_roughness.cpp"/>
         </VirtualDirectory>
@@ -2388,7 +2361,6 @@
           <File Name="bedshear_cfd.cpp"/>
           <File Name="bedshear_sflow.cpp"/>
           <File Name="bedshear_nhflow.cpp"/>
-          <File Name="bedslope.cpp"/>
           <File Name="reduction_deyana.cpp"/>
           <File Name="reduction_deyemp.cpp"/>
           <File Name="reduction_parker.cpp"/>
@@ -2501,7 +2473,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Motion File">
             <File Name="6DOF_motion-file_read.cpp"/>
-            <File Name="6DOF_motion-file_ipol.cpp"/>
             <File Name="6DOF_motion-file.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -2578,7 +2549,6 @@
             <VirtualDirectory Name="Objects">
               <File Name="6DOF_obj_flap_double.cpp"/>
               <File Name="6DOF_obj_piston.cpp"/>
-              <File Name="6DOF_obj_flap.cpp"/>
               <File Name="6DOF_obj_STL.cpp"/>
               <File Name="6DOF_obj_wedge_sym.cpp"/>
               <File Name="6DOF_obj_wedge.cpp"/>
@@ -2732,9 +2702,6 @@
           <File Name="vrans_nhflow_ini.cpp"/>
           <File Name="vrans_nhflow_eddyv.cpp"/>
           <File Name="vrans_nhflow.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="VRANS Interface">
-          <File Name="vrans_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Void">
           <File Name="vrans_v.cpp"/>
@@ -2941,50 +2908,12 @@
           <File Name="geo_interface.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Create">
-          <File Name="geo_create_wedge_z.cpp"/>
-          <File Name="geo_create_wedge_y.cpp"/>
-          <File Name="geo_create_wedge_x.cpp"/>
-          <File Name="geo_create_stl.cpp"/>
-          <File Name="geo_create_sphere.cpp"/>
-          <File Name="geo_create_rotation.cpp"/>
-          <File Name="geo_create_refinement.cpp"/>
-          <File Name="geo_create_jacketmember.cpp"/>
           <File Name="geo_create_cylinder_z.cpp"/>
           <File Name="geo_create_cylinder_y.cpp"/>
           <File Name="geo_create_box.cpp"/>
-          <File Name="geo_create.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Func">
-          <VirtualDirectory Name="Geo_Func_SFLOW">
-            <File Name="geo_func_sflow_raycast_y.cpp"/>
-            <File Name="geo_func_sflow_raycast_x.cpp"/>
-            <File Name="geo_func_sflow_raycast_io.cpp"/>
-            <File Name="geo_func_sflow_raycast.cpp"/>
-            <File Name="geo_func_sflow.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Geo_Func_NHFLOW">
-            <File Name="geo_func_nhflow_reini_RK2.cpp"/>
-            <File Name="geo_func_nhflow_raycast_z.cpp"/>
-            <File Name="geo_func_nhflow_raycast_y.cpp"/>
-            <File Name="geo_func_nhflow_raycast_x.cpp"/>
-            <File Name="geo_func_nhflow_raycast_io.cpp"/>
-            <File Name="geo_func_nhflow_raycast.cpp"/>
-            <File Name="geo_func_nhflow.cpp"/>
-          </VirtualDirectory>
-          <VirtualDirectory Name="Geo_Func_CFD">
-            <File Name="geo_func_cfd_reini_RK2.cpp"/>
-            <File Name="geo_func_cfd_raycast_z.cpp"/>
-            <File Name="geo_func_cfd_raycast_y.cpp"/>
-            <File Name="geo_func_cfd_raycast_x.cpp"/>
-            <File Name="geo_func_cfd_raycast_io.cpp"/>
-            <File Name="geo_func_cfd_raycast.cpp"/>
-            <File Name="geo_func_cfd.cpp"/>
-          </VirtualDirectory>
-          <File Name="geo_func.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Ini">
-        <File Name="driver_ini_sflow.cpp"/>
         <File Name="driver_ini_ptf.cpp"/>
         <File Name="driver_ini_nhflow.cpp"/>
         <File Name="driver_ini_fnpf.cpp"/>
@@ -2992,7 +2921,6 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Driver">
         <File Name="driver_makegrid_sigma.cpp"/>
-        <File Name="driver_memory.cpp"/>
         <File Name="driver_log.cpp"/>
         <File Name="driver_test.cpp"/>
         <File Name="driver_makegrid.cpp"/>
@@ -3147,7 +3075,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
           <File Name="iowave_mathfunc.cpp"/>
-          <File Name="iowave_precalc_parallel_relax.cpp"/>
           <File Name="iowave_PLICcalc.cpp"/>
           <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
@@ -3204,7 +3131,6 @@
             <File Name="iowave_nhflow_precalc_decomp_relax.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_dirichlet.cpp"/>
             <File Name="iowave_nhflow_precalc_ini.cpp"/>
-            <File Name="iowave_nhflow_precalc_inflow.cpp"/>
             <File Name="iowave_nhflow_precalc_dirichlet.cpp"/>
             <File Name="iowave_nhflow_inflow.cpp"/>
             <File Name="iowave_nhflow_fullini.cpp"/>
@@ -3277,7 +3203,6 @@
           <VirtualDirectory Name="Interpolation">
             <File Name="wave_lib_hdc_time_interpol_cfd.cpp"/>
             <File Name="wave_lib_hdc_time_interpol_fnpf.cpp"/>
-            <File Name="wave_lib_hdc_coordinate_shift.cpp"/>
             <File Name="wave_lib_hdc_space_interpol_2D.cpp"/>
             <File Name="wave_lib_hdc_space_interpol.cpp"/>
           </VirtualDirectory>
@@ -3333,8 +3258,10 @@
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="-std=c++17; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
+      <Compiler Options="-std=c++20; -DVERSION=\&quot;$(shell git describe --abbrev=8 --dirty --always --tags)\&quot;; -DBRANCH=\&quot;$(shell git rev-parse --abbrev-ref HEAD)\&quot;" C_Options="" Assembler="">
         <IncludePath Value="."/>
+        <IncludePath Value="/usr/local/hypre/include"/>
+        <IncludePath Value="../ThirdParty/eigen-5.0.0"/>
       </Compiler>
       <Linker Options="-lm">
         <LibraryPath Value="/usr/local/hypre/lib"/>

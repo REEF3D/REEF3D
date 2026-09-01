@@ -512,7 +512,8 @@ void control::ini_default()
 	G21=3;			// int ymargin left
 	G22=3;			// int zmargin top
 	G30=3;			// int extrapolated ghost cells
-    G40=3;         // int reini scheme for topo
+    G40=3;         // int reini scheme for topo/solid/floating
+    G41=2;          // int reini iterations
 
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
@@ -779,7 +780,9 @@ void control::ini_default()
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor
     S36=0;              // int alluvial/bedform/effective roughness
-	S37=2;		        // int number reini time step
+	S37=0;		        // int inertia bedshear stress
+    S38=0;              // int shallow water bedshear calculation
+    S39=100.0;            // double blend factor
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
@@ -792,10 +795,13 @@ void control::ini_default()
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
     S61=1;              // int reference height for cb
+    S62=1;              // int type of suspended Exner solution
+    S66=0;              // int 
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed
     S74=0;           // int no erosion zone
+    S75=0;       // double distance for use relaxation method for the sediment bed
     S77=0;          // int active sediment domain in x-direction
     S77_xs=-1.0e20; // double active sediment domain x_start
     S77_xe= 1.0e20; // double active sediment domain x_end

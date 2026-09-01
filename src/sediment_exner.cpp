@@ -33,7 +33,7 @@ Author: Hans Bihs
 #include"sflow_bicgstab.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p)
 {
 	if(p->S50==1)
 	gcval_topo=151;
@@ -88,11 +88,14 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     s->qb(i,j)=s->qbe(i,j);
     
     // non-eq.
-    if(p->S33==1)
+    if(p->S33>0)
     non_equillibrium_solve(p,pgc,s); 
     
     pgc->gcsl_start4(p,s->qb,1);
     
+    // suspended qs
+    if(p->S62==2)
+    susp_qs(p,pgc,s);
     
     // Exner
     if(p->S31==1)
@@ -117,7 +120,6 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 	
 	SEDSLICELOOP
-    WETDRY
     s->bedzh(i,j) += s->dh(i,j);
 
 	pgc->gcsl_start4(p,s->bedzh,1);
@@ -137,6 +139,9 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->qb,1);
     
+    // suspended qs
+    if(p->S62==2)
+    susp_qs(p,pgc,s);
     
     // Exner
     if(p->S31==1)

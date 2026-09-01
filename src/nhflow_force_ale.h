@@ -24,8 +24,6 @@ Author: Hans Bihs
 #define NHFLOW_FORCE_ALE_H_
 
 #include"nhflow_gradient.h"
-#include"fieldint5.h"
-#include"field5.h"
 #include<iostream>
 #include<fstream>
 

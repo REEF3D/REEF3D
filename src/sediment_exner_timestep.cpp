@@ -27,17 +27,20 @@ Author: Hans Bihs
 
 void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    double dx;
+    double dx=1.0e8;
 	maxvz=maxdh=0.0;
     
     
     SEDSLICELOOP
     {
-    if(p->j_dir==1 && p->knoy>1)
-    dx = MIN(p->DXN[IP],p->DYN[JP]);
-    
-    if(p->j_dir==0 || p->knoy==1)
-    dx = p->DXN[IP];
+        if(p->j_dir==1 && p->knoy>1)
+        {
+        dx = MIN(dx,p->DXN[IP]);
+        dx = MIN(dx,p->DYN[JP]);
+        }
+        
+        if(p->j_dir==0 || p->knoy==1)
+        dx = MIN(dx,p->DXN[IP]);
     }
     
 	SEDSLICELOOP
