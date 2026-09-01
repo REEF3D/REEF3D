@@ -61,8 +61,8 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     
     // Set new time
     curr_time = p->simtime;
-
-    for (int n = 0; n < tricount; ++n)
+    
+        for (int n = 0; n < tricount; ++n)
     {     
 		// Vertices of triangle
         x0 = tri_x[n][0];
@@ -81,21 +81,13 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 		xc = (x0 + x1 + x2)/3.0;
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
-        
-        xp = xc;
-        yp = yc;
-        zp = zc;
-        
-    A0=A_triang=0.0;
-    f=0.0;
-    
- 
+
+		// Ownership on the raw centroid: pure geometry, so every rank agrees.
+		// Half-open intervals partition the domain exactly. No z test - NHFLOW
+		// holds the full sigma column on every rank.
 		if (xc >= p->originx && xc < p->endx &&
-			yc >= p->originy && yc < p->endy &&
-			zc >= p->originz && zc < p->endz)
+		   (p->j_dir==0 || (yc >= p->originy && yc < p->endy)))
 		{
-            
-            
             // Normal vectors (always pointing outwards)     
 			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
 			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
@@ -112,205 +104,32 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             if(fabs(ny)>0.9 && p->j_dir==0)
             f_jdir=0.0;
             
-            
-            // Position of triangle
-            i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_sig(i,j,zc);
-            
-            etaval = p->ccslipol4(d->eta,xc,yc);  
-            
-            fsf_z = p->wd + etaval;
-            
-
-            //if(zc<fsf_z)
-            if(z0<fsf_z || z1<fsf_z || z2<fsf_z)
-            {
-            // Area of triangle using Heron's formula
-			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
-            
-            A0 = A_triang;
-    // ----------------
-    // cut triangles
-    // ----------------
-    
-        // peak up 0
-            if(z0>fsf_z && z1<fsf_z  && z2<fsf_z)
-            {
-            // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?fabs(z0-z1):1.0e10);
-
-             xs1 = x1 + f*(x0-x1);
-             ys1 = y1 + f*(y0-y1);
-             zs1 = z1 + f*(z0-z1);
-             
-             // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?fabs(z0-z2):1.0e10);
-
-             xs2 = x2 + f*(x0-x2);
-             ys2 = y2 + f*(y0-y2);
-             zs2 = z2 + f*(z0-z2);
-             
-             xp = (x1 + x2 + xs1 + xs2)/4.0;
-             yp = (y1 + y2 + ys1 + ys2)/4.0;
-             zp = (z1 + z2 + zs1 + zs2)/4.0;
-             
-             //cout<<"A_triang: "<<A_triang<<" A: "<<triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2)<<endl;
-                
-            A_triang = A_triang - triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
-            }
-            
-        // peak up 1
-            if(z1>fsf_z && z0<fsf_z  && z2<fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?fabs(z1-z0):1.0e10);
-            
-             xs0 = x0 + f*(x1-x0);
-             ys0 = y0 + f*(y1-y0);
-             zs0 = z0 + f*(z1-z0);
-             
-             // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-             
-             xs2 = x2 + f*(x1-x2);
-             ys2 = y2 + f*(y1-y2);
-             zs2 = z2 + f*(z1-z2);
-             
-             xp = (x0 + x2 + xs0 + xs2)/4.0;
-             yp = (y0 + y2 + ys0 + ys2)/4.0;
-             zp = (z0 + z2 + zs0 + zs2)/4.0;
-                
-            A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
-            }
-            
-        // peak up 2
-            if(z2>fsf_z && z0<fsf_z  && z1<fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?fabs(z2-z0):1.0e10);
-
-             xs0 = x0 + f*(x2-x0);
-             ys0 = y0 + f*(y2-y0);
-             zs0 = z0 + f*(z2-z0);
-             
-             // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-             
-             xs1 = x1 + f*(x2-x1);
-             ys1 = y1 + f*(y2-y1);
-             zs1 = z1 + f*(z2-z1);
-             
-             xp = (x0 + x1 + xs0 + xs1)/4.0;
-             yp = (y0 + y1 + ys0 + ys1)/4.0;
-             zp = (z0 + z1 + zs0 + zs1)/4.0;
-                
-            A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
-            }
-       
-    // -----
-        
-         // peak down 0
-            if(z0<fsf_z && z1>fsf_z  && z2>fsf_z)
-            {
-            // Ps1
-             f = fabs(fsf_z - z0)/(fabs(z0-z1)>1.0e-10?fabs(z0-z1):1.0e10);
-             
-             xs1 = x0 + f*(x1-x0);
-             ys1 = y0 + f*(y1-y0);
-             zs1 = z0 + f*(z1-z0);
-             
-             // Ps2
-             f = fabs(fsf_z - z0)/(fabs(z0-z2)>1.0e-10?fabs(z0-z2):1.0e10);
-             
-             xs2 = x0 + f*(x2-x0);
-             ys2 = y0 + f*(y2-y0);
-             zs2 = z0 + f*(z2-z0);
-             
-             xp = (x0 + xs1 + xs2)/3.0;
-             yp = (y0 + ys1 + ys2)/3.0;
-             zp = (z0 + zs1 + zs2)/3.0;
-                
-            A_triang = triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
-            }
-            
-            
-            // peak down 1
-            if(z1<fsf_z && z0>fsf_z  && z2>fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z1)/(fabs(z1-z0)>1.0e-10?fabs(z1-z0):1.0e10);
-             
-             xs0 = x1 + f*(x0-x1);
-             ys0 = y1 + f*(y0-y1);
-             zs0 = z1 + f*(z0-z1);
-             
-             // Ps2
-             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-             
-             xs2 = x1 + f*(x2-x1);
-             ys2 = y1 + f*(y2-y1);
-             zs2 = z1 + f*(z2-z1);
-             
-             xp = (xs0 + x1 + xs2)/3.0;
-             yp = (ys0 + y1 + ys2)/3.0;
-             zp = (zs0 + z1 + zs2)/3.0;
-            
-            A_triang = triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
-            }
-            
-        // peak down 2
-            if(z2<fsf_z && z0>fsf_z  && z1>fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z2)/(fabs(z2-z0)>1.0e-10?fabs(z2-z0):1.0e10);
-               
-             xs0 = x2 + f*(x0-x2);
-             ys0 = y2 + f*(y0-y2);
-             zs0 = z2 + f*(z0-z2);
-             
-             // Ps1
-             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-
-             xs1 = x2 + f*(x1-x2);
-             ys1 = y2 + f*(y1-y2);
-             zs1 = z2 + f*(z1-z2);
-             
-             xp = (xs0 + xs1 + x2)/3.0;
-             yp = (ys0 + ys1 + y2)/3.0;
-             zp = (zs0 + zs1 + z2)/3.0;
-                
-            A_triang = triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
-            }
-            /*
-            cut=0;
-            if(z0>f sf_z || z1>fsf_z  || z2>fsf_z)
-            cut=1;
-            
-            if(z0>fsf_z || z1>fsf_z  || z2>fsf_z)
-            if(f_jdir>0.1)
-            cout<<"cut: "<<cut<<" A_0: "<<A0<<" A_triang: "<<A_triang<<" f: "<<f<<" | f_jdir: "<<f_jdir<<endl;*/
-   
             if(p->j_dir==0)
             ny=0.0;
-            
-            // Add normal stress contributions
-            xlocp = xc + p->X42*nx*p->DXP[IP];
-            ylocp = yc + p->X42*ny*p->DYP[JP];
-            zlocp = zc + p->X42*nz*p->DZP[KP];
-    
 
-            // pressure
-            pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
-            etaval = p->ccslipol4(d->eta,xp,yp);  
-            hspval = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
+            // ---- predictor clip: free surface at the raw centroid
+            fsf_z = p->wd + p->ccslipol4(d->eta,xc,yc);
+
+            if(clip_facet(p,x0,y0,z0,x1,y1,z1,x2,y2,z2,fsf_z,A_triang,xp,yp,zp)==false)
+            continue;
+
+            // ---- corrector clip: resample eta at the wetted centroid and
+            //      re-clip the ORIGINAL facet against the updated plane
+            //if(p->X61==1)
+            {
+            /*fsf_z = p->wd + p->ccslipol4(d->eta,xp,yp);
+
+                if(clip_facet(p,x0,y0,z0,x1,y1,z1,x2,y2,z2,fsf_z,A_triang,xp,yp,zp)==false)
+                continue;*/
+            }
+
+            // pressure: one free surface for both the clip and the head
+            pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);
+            hspval = (fsf_z - zp)*p->W1*fabs(p->W22);
 
             Fp_x = -(pval + hspval)*A_triang*nx*f_jdir;
             Fp_y = -(pval + hspval)*A_triang*ny*f_jdir;
             Fp_z = -(pval + hspval)*A_triang*nz*f_jdir;
-             
-            if(p->j_dir==0)
-            Fp_y = 0.0;
              
             // Total forces
             Fx = Fp_x;// + Fv_x;
@@ -335,7 +154,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             Ze_v += Fv_z;
 							
             A += A_triang;
-            }
 		}
 	}		
  
@@ -383,17 +201,157 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 
 double sixdof_obj::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
 {
-    double at,bt,ct,st,A;
+    double ax,ay,az;
+    double bx,by,bz;
+    double cx,cy,cz;
     
-    at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-    bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-    ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-				
-    st = 0.5*(at+bt+ct);
-				
-    A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+    ax = x1-x0;
+    ay = y1-y0;
+    az = z1-z0;
     
-    return A;
-            
+    bx = x2-x0;
+    by = y2-y0;
+    bz = z2-z0;
+    
+    // twice the area is the norm of the cross product
+    cx = ay*bz - az*by;
+    cy = az*bx - ax*bz;
+    cz = ax*by - ay*bx;
+    
+    return 0.5*sqrt(cx*cx + cy*cy + cz*cz);
 }
-  
+
+// Parameter along the segment a->b where z crosses fsf_z.
+double sixdof_obj::clip_edge(double za, double zb, double fsf_z)
+{
+    double dz,f;
+    
+    dz = zb - za;
+    
+    if(fabs(dz) < 1.0e-12)
+    return 0.0;
+    
+    f = (fsf_z - za)/dz;
+    
+    return MIN(MAX(f,0.0),1.0);
+}
+
+
+// Clip a facet against the horizontal plane z = fsf_z and return the wetted
+// area together with its area-weighted centroid.
+// Returns false when the facet is entirely dry.
+bool sixdof_obj::clip_facet(lexer *p,
+                            double x0,double y0,double z0,
+                            double x1,double y1,double z1,
+                            double x2,double y2,double z2,
+                            double fsf_z,
+                            double &A_triang, double &xp, double &yp, double &zp)
+{
+    double xA,yA,zA,xB,yB,zB,xC,yC,zC;
+    double xSb,ySb,zSb,xSc,ySc,zSc;
+    double A1,A2,f;
+    int nabove;
+
+    A_triang = 0.0;
+    xp = yp = zp = 0.0;
+
+    nabove = 0;
+
+    if(z0 > fsf_z)
+    ++nabove;
+
+    if(z1 > fsf_z)
+    ++nabove;
+
+    if(z2 > fsf_z)
+    ++nabove;
+
+    // fully dry
+    if(nabove==3)
+    return false;
+
+    // fully wet
+    if(nabove==0)
+    {
+    A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
+
+    xp = (x0 + x1 + x2)/3.0;
+    yp = (y0 + y1 + y2)/3.0;
+    zp = (z0 + z1 + z2)/3.0;
+
+    return true;
+    }
+
+    // Relabel so that A is the odd vertex out: the single dry one when
+    // nabove==1, the single wet one when nabove==2. The cut points then
+    // always lie on edges A->B and A->C. The cyclic order 0,1,2 -> 1,2,0
+    // -> 2,0,1 preserves the facet winding.
+    if(nabove==1)
+    {
+        if(z0 > fsf_z)
+        {xA=x0;yA=y0;zA=z0; xB=x1;yB=y1;zB=z1; xC=x2;yC=y2;zC=z2;}
+
+        else if(z1 > fsf_z)
+        {xA=x1;yA=y1;zA=z1; xB=x2;yB=y2;zB=z2; xC=x0;yC=y0;zC=z0;}
+
+        else
+        {xA=x2;yA=y2;zA=z2; xB=x0;yB=y0;zB=z0; xC=x1;yC=y1;zC=z1;}
+    }
+
+    else
+    {
+        if(z0 <= fsf_z)
+        {xA=x0;yA=y0;zA=z0; xB=x1;yB=y1;zB=z1; xC=x2;yC=y2;zC=z2;}
+
+        else if(z1 <= fsf_z)
+        {xA=x1;yA=y1;zA=z1; xB=x2;yB=y2;zB=z2; xC=x0;yC=y0;zC=z0;}
+
+        else
+        {xA=x2;yA=y2;zA=z2; xB=x0;yB=y0;zB=z0; xC=x1;yC=y1;zC=z1;}
+    }
+
+    // cut points on A->B and A->C
+    f = clip_edge(zA,zB,fsf_z);
+
+    xSb = xA + f*(xB-xA);
+    ySb = yA + f*(yB-yA);
+    zSb = zA + f*(zB-zA);
+
+    f = clip_edge(zA,zC,fsf_z);
+
+    xSc = xA + f*(xC-xA);
+    ySc = yA + f*(yC-yA);
+    zSc = zA + f*(zC-zA);
+
+
+    // two vertices dry: the wet part is the triangle A-Sb-Sc
+    if(nabove==2)
+    {
+    A_triang = triangle_area(p,xA,yA,zA,xSb,ySb,zSb,xSc,ySc,zSc);
+
+        if(A_triang < 1.0e-20)
+        return false;
+
+    xp = (xA + xSb + xSc)/3.0;
+    yp = (yA + ySb + ySc)/3.0;
+    zp = (zA + zSb + zSc)/3.0;
+
+    return true;
+    }
+
+
+    // one vertex dry: the wet part is the quad B-C-Sc-Sb, fanned from B
+    A1 = triangle_area(p,xB,yB,zB,xC,yC,zC,xSc,ySc,zSc);
+    A2 = triangle_area(p,xB,yB,zB,xSc,ySc,zSc,xSb,ySb,zSb);
+
+    A_triang = A1 + A2;
+
+    if(A_triang < 1.0e-20)
+    return false;
+
+    xp = (A1*(xB + xC + xSc) + A2*(xB + xSc + xSb))/(3.0*A_triang);
+    yp = (A1*(yB + yC + ySc) + A2*(yB + ySc + ySb))/(3.0*A_triang);
+    zp = (A1*(zB + zC + zSc) + A2*(zB + zSc + zSb))/(3.0*A_triang);
+
+    return true;
+}

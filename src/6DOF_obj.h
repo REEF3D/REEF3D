@@ -283,6 +283,9 @@ private:
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
+    double clip_edge(double,double,double);
+    bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double,
+                    double,double&,double&,double&,double&);
     
     // -----
     

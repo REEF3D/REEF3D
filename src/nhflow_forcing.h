@@ -68,13 +68,11 @@ private:
     slice4 fe;
     double starttime;
     
-        
     double H,Ht, uf, vf, wf, ef;
     double efc;
 	double nx, ny, nz,norm ;
 	double phival_sf;
     double dirac;
-    
     
     // DLM
     double *EL_L,*EL_dx;
