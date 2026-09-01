@@ -64,15 +64,15 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                 double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
-    for (int nb=0; nb<number6DOF;++nb)
-    fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+    //for (int nb=0; nb<number6DOF;++nb)
+    //fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
     
     
-    /*
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
+        //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
@@ -102,7 +102,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
             
             fb_obj[nb]->print_parameter(p,pgc);
         }
-    }*/
+    }
 }
 
 void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
@@ -216,13 +216,13 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     for (int nb=0; nb<number6DOF;++nb)
     {
         // 1. re-impose no-slip at the position the fluid was solved with
-        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        //fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
 
         // 2. load from the pressure that was just solved
         fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
 
         // 3. advance the body for the next substage
-        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
+        /*fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
         fb_obj[nb]->quat_matrices(p);
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);
         fb_obj[nb]->update_fbvel(p,pgc);
@@ -233,6 +233,6 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
             if(p->X50==1) fb_obj[nb]->print_vtp(p,pgc);
             if(p->X50==2) fb_obj[nb]->print_stl(p,pgc);
             fb_obj[nb]->print_parameter(p,pgc);
-        }
+        }*/
     }
 }
