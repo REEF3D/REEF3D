@@ -2736,6 +2736,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Parallel Comm">
+        <File Name="gcx_parax7int.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_flagx7.cpp"/>

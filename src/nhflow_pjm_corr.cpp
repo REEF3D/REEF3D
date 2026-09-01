@@ -151,26 +151,9 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
         V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
         }
      
-        // dz
-        z0 = p->ZP[KM2];
-        z1 = p->ZP[KM1];
-        z2 = p->ZP[KP];
-        z  = p->ZP[KP] - p->DZN[KP];
-        
-        f0 = U[IJKm2];
-        f1 = U[IJKm1];
-        f2 = U[IJK];
-        
-        Up = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-        
-        f0 = V[IJKm2];
-        f1 = V[IJKm1];
-        f2 = V[IJK];
-        
-        Vp = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-        
-        dUdz = (U[IJK] - Up)/p->DZN[KP];
-        dVdz = (V[IJK] - Vp)/p->DZN[KP];
+
+        dUdz = (U[IJK] - U[IJKm1])/p->DZP[KM1];
+        dVdz = (V[IJK] - V[IJKm1])/p->DZP[KM1];
         dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
          
         d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])

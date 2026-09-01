@@ -135,6 +135,18 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     pgc->startintV(p,p->DF,1);
     
+    
+    // DFF
+    FLOOP
+    p->DFF[FIJK] = 1;
+
+    FLOOP
+    if(k>0 && k<=p->knoz)
+    if(p->DF[IJKm1]<0 && p->DF[IJK]<0)
+    p->DFF[FIJK] = -1;
+    
+    pgc->startintVF(p,p->DFF,1);
+    
     // WL and eta
     
     if(p->A516==2 || p->A516==4 || p->X240==21 || p->X10==4)

@@ -188,8 +188,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 
     clearrhs(p,d,pgc);
     
-    //psed->RK2_step1_nhflow(p,d,pgc,pflow);
-    //pfsf->depth_update(p,d,pgc,pflow);
+    psed->RK2_step1_nhflow(p,d,pgc,pflow);
+    pfsf->depth_update(p,d,pgc,pflow);
     
 //Step 2
 //--------------------------------------------------------
@@ -273,8 +273,8 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     ppress->start(p,d,ppoissonsolv,pgc,pflow,d->WL,d->UH,d->VH,d->WH,0.5);
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,0.5);
     
-    //pnhfdf->reforcing(p, d, pgc, p6dof, 1, 0.5, d->UH, d->VH, d->WH, d->WL, 1);
-    //velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,0.5);
+    pnhfdf->reforcing(p, d, pgc, p6dof, 1, 0.5, d->UH, d->VH, d->WH, d->WL, 1);
+    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,0.5);
 
 	pflow->U_relax(p,pgc,d->U,d->UH);
     pflow->V_relax(p,pgc,d->V,d->VH);

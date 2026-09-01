@@ -923,7 +923,7 @@ void control::ini_default()
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body
-    X21_d=900.0;        // double presribe homogeneous density floating body
+    X21_d=900.0;  // double presribe homogeneous density floating body
     X22=0;        // int prescribe mass floating body
     X22_m=0;    // double prescribe mass floating body
     X23=0;        // int prescribe center of gravity

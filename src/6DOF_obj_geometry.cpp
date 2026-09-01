@@ -173,6 +173,8 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 // Moments of Inertia
 
     double Ix,Iy,Iz;	
+    
+    I_.setZero();
         
 	if(p->X24==0)
 	{
@@ -328,6 +330,8 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 // Moments of Inertia
 
     double Ix,Iy,Iz;	
+    
+    I_.setZero();
         
 	if(p->X24==0)
 	{

@@ -32,6 +32,16 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     double H, uf, vf, wf;
     double ef,efc;
     
+    double du,dv,dw,udotn;
+    double beta;   // 0.0 = free slip (tangential preserved), 1.0 = no slip
+    
+    if(p->X15==0)
+    beta=1.0;
+    
+    if(p->X15==1)
+    beta=0.0;
+    
+    
     if(p->X15==0)
     LOOP
     {
@@ -53,40 +63,61 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
+        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
+        
         uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
         vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
         wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
-         
-        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
-    // Normal vectors calculation 
-		nx = -(d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1])
-            - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
-            
-		ny = -(d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1])
-            - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
-            
-		nz = -(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP]*WL(i,j) + p->DZP[KM1]*WL(i,j));
-
-		norm = sqrt(nx*nx + ny*ny + nz*nz);
-                
-		nx /= norm > 1.0e-20 ? norm : 1.0e20;
-		ny /= norm > 1.0e-20 ? norm : 1.0e20;
-		nz /= norm > 1.0e-20 ? norm : 1.0e20;
+        du = uf - U[IJK];
+        dv = vf - V[IJK];
+        dw = wf - W[IJK];
         
-        
-        if(d->FB[IJK]<=0.0)
+        if(d->FB[IJK] <= 0.0)
         {
-        FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
-        FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
-        FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
+            // interior of the body: enforce the full rigid-body velocity
+            FX[IJK] += H*du/(alpha[iter]*p->dt);
+            FY[IJK] += H*dv/(alpha[iter]*p->dt);
+            FZ[IJK] += H*dw/(alpha[iter]*p->dt);
         }
-
-        if(d->FB[IJK]>0.0)
+         
+        else
         {
-        FX[IJK] += fabs(nx)*H*(uf - U[IJK])/(alpha[iter]*p->dt);
-        FY[IJK] += fabs(ny)*H*(vf - V[IJK])/(alpha[iter]*p->dt);
-        FZ[IJK] += fabs(nz)*H*(wf - W[IJK])/(alpha[iter]*p->dt);
+            // Normal vectors calculation 
+            nx = -(d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1])
+                - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+                
+            if(p->j_dir==0)
+            ny = 0.0;
+            
+            if(p->j_dir==1)
+            ny = -(d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1])
+                - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+                
+            nz = -(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP]*WL(i,j) + p->DZP[KM1]*WL(i,j));
+
+            norm = sqrt(nx*nx + ny*ny + nz*nz);
+                    
+            if(norm > 1.0e-10)
+            {
+            nx /= norm;
+            ny /= norm;
+            nz /= norm;
+            
+            udotn = nx*du + ny*dv + nz*dw;
+            
+            FX[IJK] += H*(beta*du + (1.0-beta)*udotn*nx)/(alpha[iter]*p->dt);
+            FY[IJK] += H*(beta*dv + (1.0-beta)*udotn*ny)/(alpha[iter]*p->dt);
+            FZ[IJK] += H*(beta*dw + (1.0-beta)*udotn*nz)/(alpha[iter]*p->dt);
+            }
+            
+            else
+            {
+            // degenerate gradient (flat level set): fall back to full forcing
+            FX[IJK] += H*du/(alpha[iter]*p->dt);
+            FY[IJK] += H*dv/(alpha[iter]*p->dt);
+            FZ[IJK] += H*dw/(alpha[iter]*p->dt);
+            }
         }
     
     }
