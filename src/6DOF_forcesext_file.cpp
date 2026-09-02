@@ -28,7 +28,8 @@ Author: Filip Hahs
 #include <iostream>
 #include <sstream>
 #include <string>
-
+class lexer;
+class ghostcell;
 void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc)
 {
     char name[100];

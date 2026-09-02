@@ -25,6 +25,7 @@ Author: Filip Hahs
 
 class lexer;
 class field;
+class ghostcell;
 #include <Eigen/Dense>
 
 using namespace std;

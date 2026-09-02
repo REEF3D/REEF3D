@@ -27,8 +27,6 @@ Author: Filip Hahs
 #include <Eigen/Dense>
 #include <fstream>
 
-class lexer;
-class ghostcell;
 
 using namespace std;
 
