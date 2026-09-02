@@ -240,6 +240,8 @@ private:
                  const double,const double,const double,
                  const double,const double,const double,
                  const double,const double,const double);
+    int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double,
+                         double,double*,double*,double*);
     
     double zmin,zmax;
     double NB;
