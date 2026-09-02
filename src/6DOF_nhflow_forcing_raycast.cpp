@@ -28,8 +28,14 @@ Author: Hans Bihs
 
 void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {    
-    zmin = 1.0e1;
+    zmin = 1.0e8;
     zmax = -1.0e8;
+    
+    LOOP
+    p->ZSP[IJK] = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+
+    pgc->start5V(p,p->ZSP,1);
+    
     
     LOOP
     WETDRY
@@ -78,6 +84,8 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
     
+    int nband=0;
+
     LOOP
     WETDRY
     {
@@ -90,14 +98,11 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         d->test[IJK] = IO[IJK];
     }
 	
-	LOOP
+    LOOP
     WETDRY
 	{
-		if(d->FB[IJK]>100.0*p->DXM)
-		d->FB[IJK]=100.0*p->DXM;
-		
-		if(d->FB[IJK]<-100.0*p->DXM)
-		d->FB[IJK]=-100.0*p->DXM;
+		if(d->FB[IJK] >  NB*DSM) d->FB[IJK] =  NB*DSM;
+		if(d->FB[IJK] < -NB*DSM) d->FB[IJK] = -NB*DSM;
 	}
     
     LOOP

@@ -51,6 +51,7 @@ void nhflow_geometry::ray_cast_io_zcorr(lexer *p, fdm_nhf *d, ghostcell *pgc, in
 
     const double eps_area = 1.0e-20*DSM*DSM;
     const double margin   = 2.0*DSM;
+    const double psi      = 1.0e-8*DSM;
 
     LOOP
 	{
@@ -124,8 +125,8 @@ void nhflow_geometry::ray_cast_io_zcorr(lexer *p, fdm_nhf *d, ghostcell *pgc, in
 		for(i=is;i<ie;i++)
 		for(j=js;j<je;j++)
 		{
-		Px = p->XP[IP];
-		Py = p->YP[JP];
+		Px = p->XP[IP] - psi;
+		Py = p->YP[JP] + psi;
 
         // projected edge functions: e0 opposite C, e1 opposite A, e2 opposite B
         e0 = sgn*(abx*(Py-Ay) - aby*(Px-Ax));

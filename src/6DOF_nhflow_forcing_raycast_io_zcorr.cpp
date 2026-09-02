@@ -211,6 +211,8 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts,
 
     const double eps_area = 1.0e-20*DSM*DSM;
     const double margin   = 2.0*DSM;
+    const double psi      = 1.0e-8*DSM;
+    
 
     LOOP
 	{
@@ -284,8 +286,9 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts,
 		for(i=is;i<ie;i++)
 		for(j=js;j<je;j++)
 		{
-		Px = p->XP[IP];
-		Py = p->YP[JP];
+
+		Px = p->XP[IP] - psi;
+		Py = p->YP[JP] + psi;
 
         // projected edge functions: e0 opposite C, e1 opposite A, e2 opposite B
         e0 = sgn*(abx*(Py-Ay) - aby*(Px-Ax));
@@ -313,4 +316,6 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm_nhf *d, ghostcell *pgc, int ts,
     LOOP
 	if((CL[IJK]+1)%2==0  && (CR[IJK]+1)%2==0)
 	IO[IJK]=-1;
+    
+
 }
