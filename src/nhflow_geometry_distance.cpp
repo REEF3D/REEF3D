@@ -110,6 +110,22 @@ void nhflow_geometry::band_distance(lexer *p, fdm_nhf *d, ghostcell *pgc, double
         double Ax=tri_x[n][0], Ay=tri_y[n][0], Az=tri_z[n][0];
         double Bx=tri_x[n][1], By=tri_y[n][1], Bz=tri_z[n][1];
         double Cx=tri_x[n][2], Cy=tri_y[n][2], Cz=tri_z[n][2];
+        
+        // <<<< INSERT HERE >>>>
+        // 2D: skip the y-normal end caps. In a one-cell-wide domain they sit
+        // DYN/2 from every interior cell and win every distance comparison,
+        // flattening the interior to a constant. Matches ray_cast_z and
+        // force_calc_stl, which both drop |ny|>0.9 facets when j_dir==0.
+        if(p->j_dir==0)
+        {
+            double enx = (By-Ay)*(Cz-Az) - (Cy-Ay)*(Bz-Az);
+            double eny = (Cx-Ax)*(Bz-Az) - (Bx-Ax)*(Cz-Az);
+            double enz = (Bx-Ax)*(Cy-Ay) - (Cx-Ax)*(By-Ay);
+            double enm = sqrt(enx*enx + eny*eny + enz*enz);
+
+            if(enm > 1.0e-20 && fabs(eny)/enm > 0.9)
+            continue;
+        }
 
         double txs=MIN3(Ax,Bx,Cx)-band, txe=MAX3(Ax,Bx,Cx)+band;
         double tys=MIN3(Ay,By,Cy)-band, tye=MAX3(Ay,By,Cy)+band;
