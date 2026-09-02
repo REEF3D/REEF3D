@@ -235,8 +235,14 @@ private:
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
+    double dist2_tri(const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double);
     
     double zmin,zmax;
+    double NB;
     
     // Reini NHFLOW
     void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);

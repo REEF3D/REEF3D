@@ -2558,6 +2558,7 @@
               <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
+              <File Name="6DOF_nhflow_forcing_distance.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_io_zcorr.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_io_ycorr.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_io_x.cpp"/>

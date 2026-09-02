@@ -58,7 +58,8 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             ray_cast_io_zcorr(p,d,pgc,tstart[qn],tend[qn]);
             
             }
-
+            
+            /*
             if(rayiter==1)
             {
             pgc->gcparaxintV(p,IO,4);
@@ -67,7 +68,12 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(p->j_dir==1)
             ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
             ray_cast_z(p,d,pgc,tstart[qn],tend[qn]);
-
+            }*/
+            
+            if(rayiter==1)
+            {
+            pgc->startintV(p,IO,1);
+            band_distance(p,d,pgc,d->FB,tstart[qn],tend[qn]);
             }
         }
     }
@@ -80,6 +86,8 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         if(IO[IJK]==1)
         d->FB[IJK]=fabs(d->FB[IJK]);
+        
+        d->test[IJK] = IO[IJK];
     }
 	
 	LOOP

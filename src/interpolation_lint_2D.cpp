@@ -194,16 +194,10 @@ double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, dou
 
     return value;
 }
-
+/*
 double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
-    
-    wa = MAX(wa,0.0);
-    wa = MIN(wa,1.0);
-    
-    wc = MAX(wc,0.0);
-    wc = MIN(wc,1.0);
-    
+
     v1=v2=v3=v4=0.0;
     
     jj=j;
@@ -226,9 +220,9 @@ double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, dou
     value = wc*x1 +(1.0-wc)*x2;
 
     return value;
-}
+}*/
 
-/*
+
 double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
     double w1,w2,w3,w4,wsum;
@@ -246,6 +240,8 @@ double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, dou
     //if(p->DFF[FIJKp1]   < 0) w2 = 0.0;
     //if(p->DFF[FIp1JK]   < 0) w3 = 0.0;
     //if(p->DFF[FIp1JKp1] < 0) w4 = 0.0;
+    
+    //cout<<"w1: "<<w1<<" w2: "<<w2<<" w3: "<<w3<<" w4: "<<w4<<endl;
 
     wsum = w1 + w2 + w3 + w4;
 
@@ -258,4 +254,4 @@ double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, dou
     j=jj;
 
     return value;
-}*/
+}
