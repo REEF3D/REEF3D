@@ -236,10 +236,10 @@ double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, dou
     w4 = (1.0-wa) *(1.0-wc);      // (i+1, k+1)
 
     // drop nodes inside the body and renormalise: zero-gradient fill
-    //if(p->DFF[FIJK]     < 0) w1 = 0.0;
-    //if(p->DFF[FIJKp1]   < 0) w2 = 0.0;
-    //if(p->DFF[FIp1JK]   < 0) w3 = 0.0;
-    //if(p->DFF[FIp1JKp1] < 0) w4 = 0.0;
+    if(p->DFF[FIJK]     < 0) w1 = 0.0;
+    if(p->DFF[FIJKp1]   < 0) w2 = 0.0;
+    if(p->DFF[FIp1JK]   < 0) w3 = 0.0;
+    if(p->DFF[FIp1JKp1] < 0) w4 = 0.0;
     
     //cout<<"w1: "<<w1<<" w2: "<<w2<<" w3: "<<w3<<" w4: "<<w4<<endl;
 

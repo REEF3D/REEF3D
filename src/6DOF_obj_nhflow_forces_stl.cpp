@@ -124,14 +124,14 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             }
 
             // pressure: one free surface for both the clip and the head
-            double off = 0.1;
+            double off = 1.1;
             double xprobe = xp + off*nx*p->DXP[IP];
-            double yprobe = yp + off*ny*p->DYP[JP];
+            double yprobe = yp + off*ny*p->DYP[JP]*p->y_dir;
             double zprobe = zp + off*nz*p->DZP[KP]*WL(i,j);
 
-            pval  = p->ccipol7V(d->P, WL, d->bed, xprobe, yprobe, zprobe);
+            //pval  = p->ccipol7V(d->P, WL, d->bed, xprobe, yprobe, zprobe);
 
-            //pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);
+            pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);
             hspval = (fsf_z - zp)*p->W1*fabs(p->W22);
 
             Fp_x = -(pval + hspval)*A_triang*nx*f_jdir;
