@@ -174,6 +174,15 @@ double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, doub
     wc = (Z2-zp)/(Z2-Z1);
     
     // ----------------------------------------------------------
+    
+    wa = MAX(wa,0.0);
+    wa = MIN(wa,1.0);
+    
+    wb = MAX(wb,0.0);
+    wb = MIN(wb,1.0);
+    
+    wc = MAX(wc,0.0);
+    wc = MIN(wc,1.0);
 
     if(p->j_dir==0)
     value = lint7V_2D(f,i,j,k,wa,wb,wc);
