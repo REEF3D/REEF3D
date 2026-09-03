@@ -87,17 +87,22 @@ public:
     const T *end() const noexcept {return V.data()+V.size();}
 
 protected:
-    // Vertical-extent-parameterised constructor. operator() folds kz into both
-    // the j- and k-strides, so a field with a different number of z-planes needs
-    // nothing but a different kz: passing p->kmaxF reproduces the FIJK addressing
-    // in iterators3D.h exactly. slack is extra trailing elements, for layouts
-    // whose forward-stencil macros reach past the last in-stride slot. See field7.
-    // allocate=false: the field is not used in this run (V stays empty)
+    /*!
+     * @brief Vertical-extent-parameterised constructor.
+     *
+     * The whole class is agnostic about the vertical stride — cache_addressing()
+     * folds whatever @p kz is into m_ks/m_js — so a field with a different number
+     * of z-planes needs nothing but a different kz. @p slack is extra trailing
+     * elements. The only user of both is field7 (sigma-grid layout); its class
+     * documentation is the canonical description of that layout and the slack plane.
+     *
+     * allocate=false: the field is not used in this run (V stays empty)
+     */
     field_base(lexer *pp, int kz, std::size_t slack, bool allocate=true) :
         V(allocate ? static_cast<std::size_t>(pp->imax)*static_cast<std::size_t>(pp->jmax)*static_cast<std::size_t>(kz) + slack : 0, T{}),
         imin(pp->imin), jmin(pp->jmin),
         kmin(pp->kmin), kmax(kz),
-        jkmax(pp->jmax*kz)
+        jkmax(static_cast<stride_t>(pp->jmax)*kz)
     {
         if(V.size() > 0)
         {
@@ -154,7 +159,8 @@ private:
     stride_t m_js   = 0;
     stride_t m_ks   = 0;
 
-    const int imin,jmin,kmin,kmax,jkmax;
+    const int imin,jmin,kmin,kmax;
+    const stride_t jkmax; ///< i-stride; stride_t like m_js, which it seeds
 
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };

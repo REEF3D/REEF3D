@@ -25,24 +25,28 @@ Author: Alexander Hanke
 
 #include "field.h"
 
-// Sigma-grid vertical-node field: n*m*(o+1) planes, vertical stride p->kmaxF.
-//
-// Same (i,j,k) accessor as field1-4 - only the vertical extent differs. The
-// vertical index runs 0..knoz+1 (FKLOOP) rather than 0..knoz (KLOOP), i.e. one
-// plane per cell plus a closing top plane, which is what the sigma-grid solvers
-// (FNPF, NHFLOW) need. The flat-array equivalent is the FIJK family in
-// iterators3D.h; field7 exists so those call sites can drop the flat index and
-// address by (i,j,k) like every other field.
+/*!
+ * @brief Sigma-grid vertical-node field: n*m*(o+1) planes, vertical stride p->kmaxF.
+ *
+ * Same (i,j,k) accessor as field1-4 — only the vertical extent differs. The
+ * vertical index runs 0..knoz+1 (FKLOOP) rather than 0..knoz (KLOOP),
+ * i.e. one plane per cell plus a closing top plane, which is what the sigma-grid
+ * solvers (FNPF, NHFLOW) need. The flat-array equivalent is the FIJK family in
+ * iterators3D.h; field7 exists so those call sites can drop the flat index and
+ * address by (i,j,k) like every other field.
+ */
 class field7 final : public field
 {
 public:
-    // The slack plane mirrors the imax*jmax*(kmax+2) allocation the sigma grid
-    // makes against a kmaxF = kmax+1 stride. FIJKp3 at the top node of the last
-    // column lands on the very last in-stride slot, so the spare plane is the
-    // only headroom the forward-stencil macros have. Drop it only after
-    // auditing FIJKp3/p4.
+    /*!
+     * The slack plane mirrors the imax*jmax*(kmax+2) allocation in
+     * driver_makegrid_sigma.cpp against a kmaxF = kmax+1 stride. FIJKp3 at the
+     * top node of the last column (fnpf_fsf_update.cpp, inside FFILOOP4) lands
+     * on the very last in-stride slot, so the spare plane is the only headroom
+     * the forward-stencil macros have. Drop it only after auditing FIJKp3/p4.
+     */
     explicit field7(lexer *p) : field(p, p->kmaxF,
-                             static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
+                                static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
     ~field7() override;
 };
 
