@@ -17,22 +17,22 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef FIELDINT_H_
-#define FIELDINT_H_
+#ifndef FIELDINT7_H_
+#define FIELDINT7_H_
 
-#include "field_base.h"
+#include "fieldint.h"
 
-class fieldint : public field_base<int>
+// Integer counterpart of field7: sigma-grid vertical-node layout, stride
+// p->kmaxF, addressed with the FIJK family. See field7.h for the slack plane.
+class fieldint7 final : public fieldint
 {
 public:
-    fieldint(lexer* p) : field_base<int>(p) {}
-    virtual ~fieldint() = default;
-
-protected:
-    fieldint(lexer* p, int kz, std::size_t slack) : field_base<int>(p, kz, slack) {}
+    fieldint7(lexer *p) : fieldint(p, p->kmaxF,
+                                   static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
+    virtual ~fieldint7() = default;
 };
 
 #endif
