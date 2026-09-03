@@ -478,10 +478,10 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             //      re-clip the ORIGINAL facet against the updated plane
             //if(p->X61==1)
             {
-            //fsf_z = p->wd + p->ccslipol4(d->eta,xp,yp);
+                fsf_z = p->wd + p->ccslipol4(d->eta,xp,yp);
 
-                //if(clip_facet(p,x0,y0,z0,x1,y1,z1,x2,y2,z2,fsf_z,A_triang,xp,yp,zp)==false)
-                //continue;
+                if(clip_facet(p,x0,y0,z0,x1,y1,z1,x2,y2,z2,fsf_z,A_triang,xp,yp,zp)==false)
+                continue;
             }
 
             // pressure: one free surface for both the clip and the head

@@ -216,7 +216,7 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     for (int nb=0; nb<number6DOF;++nb)
     {
         // 1. re-impose no-slip at the position the fluid was solved with
-        //fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
 
         // 2. load from the pressure that was just solved
         fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);

@@ -62,10 +62,12 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ++num;
     }
     
-    pgc->globalsum(DSM);
-    pgc->globalisum(num);
+    DSM = pgc->globalsum(DSM);
+    num = pgc->globalisum(num);
     
     DSM = DSM/double(num);
+    
+    NB = 4.0;
     
     
     // Initialise folder structure

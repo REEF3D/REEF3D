@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void nhflow_geometry::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	
-    if(p->j_dir==0)
+    /*if(p->j_dir==0)
     LOOP
     WETDRY
 	dt[IJK] = 0.45*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
@@ -64,7 +64,7 @@ void nhflow_geometry::reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*dt[IJK]*L[IJK];
 
         pgc->start5V(p,F,1);
-	}
+	}*/
 }
 
 

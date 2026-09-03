@@ -242,7 +242,7 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	ALOOP
 	{
         H = Hsolidface_nhflow(p,d,0,0,0);
-		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
+		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*d->WL(i,j);
 	}
 	Vfb=pgc->globalsum(Vfb);
    
