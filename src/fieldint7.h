@@ -25,14 +25,37 @@ Author: Alexander Hanke
 
 #include "fieldint.h"
 
-// Integer counterpart of field7: sigma-grid vertical-node layout, stride
-// p->kmaxF, addressed with the FIJK family. See field7.h for the slack plane.
+/*!
+ * @brief Integer counterpart of field7.
+ *
+ * Sigma-grid vertical-node layout, stride p->kmaxF, addressed with the FIJK
+ * family. See field7.h for what the slack plane is for.
+ */
 class fieldint7 final : public fieldint
 {
 public:
-    fieldint7(lexer *p) : fieldint(p, p->kmaxF,
-                                   static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
+    fieldint7(lexer *pp) : fieldint(pp, pp->kmaxF,
+                                    static_cast<std::size_t>(pp->imax)*static_cast<std::size_t>(pp->jmax)) {}
     ~fieldint7() override;
+
+    /*!
+     * FBASELOOP rather than LOOP, as in field7: LOOP stops at KMAX_LOOP and
+     * would leave the top node plane untouched, and its PCHECK reads the
+     * IJK-strided flag4. Shadows the non-virtual field_base::setVal — hold
+     * fieldint7 by concrete type, never through a fieldint&.
+     */
+    void setVal(int val, bool includeGhost = false)
+    {
+        if(includeGhost)
+        {
+            std::fill(V.begin(), V.end(), val);
+            return;
+        }
+
+        int i,j,k;
+        FBASELOOP
+        operator()(i,j,k) = val;
+    }
 };
 
 #endif

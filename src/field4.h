@@ -28,7 +28,7 @@ Author: Hans Bihs
 class field4 final : public field
 {
 public:
-    field4(lexer* p, bool allocate=true) : field(p,allocate) {}
+    field4(lexer* pp, bool allocate=true) : field(pp,allocate) {}
     ~field4() override;
 };
 
