@@ -28,7 +28,7 @@ Author: Hans Bihs
 class field2 final : public field
 {
 public:
-    field2(lexer* p) : field(p) {}
+    field2(lexer* pp) : field(pp) {}
     ~field2() override;
 };
 

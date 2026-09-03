@@ -34,7 +34,7 @@ template<typename T>
 class field_base
 {
 public:
-    field_base(lexer *p, bool allocate=true) : field_base(p, p->kmax, 0, allocate) {}
+    field_base(lexer *pp, bool allocate=true) : field_base(pp, pp->kmax, 0, allocate) {}
 
     field_base(const field_base&) = delete;
     field_base& operator=(const field_base&) = delete;
@@ -133,18 +133,28 @@ public:
     const T *end() const noexcept {return V.data()+V.size();}
 
 protected:
-    // Vertical-extent-parameterised constructor. operator() folds kz into both
-    // the j- and k-strides, so a field with a different number of z-planes needs
-    // nothing but a different kz: passing p->kmaxF reproduces the FIJK addressing
-    // in iterators3D.h exactly. slack is extra trailing elements, for layouts
-    // whose forward-stencil macros reach past the last in-stride slot. See field7.
-    // allocate=false: the field is not used in this run (V stays empty)
+    /*!
+     * @brief Vertical-extent-parameterised constructor.
+     *
+     * The whole class is agnostic about the vertical stride — cache_addressing()
+     * folds whatever @p kz is into m_ks/m_js — so a field with a different number
+     * of z-planes needs nothing but a different kz. field7 passes p->kmaxF to get
+     * the sigma-grid vertical-node layout (one plane more than p->kmax), which
+     * reproduces the FIJK addressing in iterators3D.h exactly:
+     *
+     *   V[(i-imin)*jmax*kmaxF + (j-jmin)*kmaxF + k-kmin] == m_base[i*m_js + j*m_ks + k]
+     *
+     * @p slack is extra trailing elements, for layouts whose forward-stencil
+     * macros reach past the last in-stride slot. See field7.
+     * 
+     * allocate=false: the field is not used in this run (V stays empty)
+     */
     field_base(lexer *pp, int kz, std::size_t slack, bool allocate=true) :
         V(allocate ? static_cast<std::size_t>(pp->imax)*static_cast<std::size_t>(pp->jmax)*static_cast<std::size_t>(kz) + slack : 0, T{}),
-        imin(pp->imin), jmin(pp->jmin),
-        kmin(pp->kmin), kmax(kz),
-        jkmax(pp->jmax*kz),
-        p(pp)
+        p(pp),
+        imin(p->imin), jmin(p->jmin),
+        kmin(p->kmin), kmax(kz),
+        jkmax(static_cast<stride_t>(p->jmax)*kz)
     {cache_addressing();}
 
     /*!
@@ -181,9 +191,11 @@ protected:
 
     std::vector<T> V;
 
-private:
-    const int imin,jmin,kmin,kmax,jkmax;
     lexer *const p;
+
+private:
+    const int imin,jmin,kmin,kmax;
+    const stride_t jkmax; ///< i-stride; stride_t like m_js, which it seeds
 
     T       *m_base = nullptr;
     stride_t m_js   = 0;
