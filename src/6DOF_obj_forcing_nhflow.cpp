@@ -30,7 +30,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
 {
     // Calculate forcing fields
-    double D,H, uf, vf, wf;
+    double H, uf, vf, wf;
     double ef,efc;
     
     double du,dv,dw,udotn;

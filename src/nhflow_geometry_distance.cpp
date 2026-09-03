@@ -26,11 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 
-#include"nhflow_geometry.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-
 // squared distance from P to triangle ABC
 double nhflow_geometry::dist2_tri(const double Px,const double Py,const double Pz,
                                   const double Ax,const double Ay,const double Az,

@@ -78,13 +78,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             yc = (1.0/3.0)*(y1 + y2 + y3);
             zc = (1.0/3.0)*(z1 + z2 + z3);
             
-            at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-            bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
-            ct = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-            
-            A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             }
             
             //quadrilidral
@@ -111,22 +105,10 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             zc = (1.0/4.0)*(z1 + z2 + z3 + z4);
             
             //tri1
-            at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-            bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
-            ct = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-
-            A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             
             //tri2
-            at = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            bt = sqrt(pow(x4-x3,2.0) + pow(y4-y3,2.0) + pow(z4-z3,2.0));
-            ct = sqrt(pow(x4-x1,2.0) + pow(y4-y1,2.0) + pow(z4-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-
-            A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A += triangle_area(p,x1,y1,z1,x3,y3,z3,x4,y4,z4);
             }
             
             xp1 = x2-x1;

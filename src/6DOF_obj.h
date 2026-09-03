@@ -286,15 +286,16 @@ private:
     // Force NHFLOW
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
+    void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
-    double clip_edge(double,double,double);
+    double clip_edge(double,double);
     bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double,
-                    double,double&,double&,double&,double&);
+                double,double,double,double&,double&,double&,double&);
     
     // -----
     

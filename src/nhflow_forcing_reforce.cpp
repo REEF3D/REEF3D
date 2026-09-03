@@ -35,17 +35,17 @@ void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6d
     starttime=pgc->timer();
     
     // ini forcing terms
-    //reset(p,d,pgc);
+    reset(p,d,pgc);
     
     if(solid_flag==1)
     {
     // solid forcing
-    //solid_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
+    solid_forcing(p,d,pgc,alpha,d->U,d->V,d->W,WL);
     }
     
     // 6DOF forcing
     p6dof->reforce_nhflow(p,d,pgc,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
-/*
+
     if(forcing_flag==1)
     {
     // add forcing term to RHS
@@ -117,6 +117,6 @@ void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6d
     
     pgc->gciobc_update(p,d);
     
-    p->dftime+=pgc->timer()-starttime;*/
+    p->dftime+=pgc->timer()-starttime;
 }
 

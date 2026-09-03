@@ -97,7 +97,6 @@ done:
 
 void sixdof_obj::band_distance(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS, int ts, int te)
 {
-    NB = 4.0;
     const double band = NB*DSM;      // NB ~ 4 cells; must exceed A526 by 2-3
     const double band2 = band*band;
 
