@@ -26,19 +26,14 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "ckpt_registry.h"
 
+#include <cstddef>
 #include <type_traits>
 
 template<typename T>
 class field_base
 {
 public:
-    // allocate=false: the field is not used in this run (V stays nullptr, any access fails at once)
-    explicit field_base(lexer *p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
-    {
-        V = allocate ? new T[imax*jkmax] {} : nullptr;
-        if(V!=nullptr)
-        ckid = ckpt_registry::add(p,'C',std::is_same<T,int>::value,V);
-    }
+    explicit field_base(lexer *p, bool allocate=true) : field_base(p, p->kmax, 0, allocate) {}
 
     field_base(const field_base&) = delete;
     field_base &operator=(const field_base&) = delete;
@@ -57,6 +52,32 @@ public:
     inline T& operator[](int n) noexcept {return V[n];};
 
 	T *V;
+
+protected:
+    // Vertical-extent-parameterised constructor. operator() folds kz into both
+    // the j- and k-strides, so a field with a different number of z-planes needs
+    // nothing but a different kz: passing p->kmaxF reproduces the FIJK addressing
+    // in iterators3D.h exactly. slack is extra trailing elements, for layouts
+    // whose forward-stencil macros reach past the last in-stride slot. See field7.
+    field_base(lexer* p, int kz, std::size_t slack, bool allocate=true) :
+        imin(p->imin), jkmax(p->jmax*kz), jmin(p->jmin), kmin(p->kmin), kmax(kz)
+    {
+        size_t _size = static_cast<std::size_t>(p->imax)*jkmax + slack;
+        V = allocate ? new T[_size] {} : nullptr;
+
+        if(V!=nullptr)
+        {
+            if(kmax==p->kmax && slack==0)
+            {
+                ckid = ckpt_registry::add(p,'C',std::is_same<T,int>::value,V);
+            }
+            else if(kmax==p->kmaxF)
+            {
+                // Placeholder for future use, e.g. for a field7 with kmaxF
+                // ckid = ckpt_registry::add(p,'F',std::is_same<T,int>::value,V);
+            }
+        }
+    }
 
 private:
     const int imin,jkmax,jmin,kmin,kmax;
