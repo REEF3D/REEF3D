@@ -30,6 +30,9 @@ class fieldint : public field_base<int>
 public:
     explicit fieldint(lexer *p, bool allocate=true) : field_base<int>(p,allocate) {}
     virtual ~fieldint() = default;
+
+protected:
+    fieldint(lexer *p, int kz, std::size_t slack) : field_base<int>(p, kz, slack) {}
 };
 
 #endif
