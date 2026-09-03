@@ -89,6 +89,7 @@ public:
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+    double Dsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     
     // print
     void saveTimeStep(lexer*,int);
