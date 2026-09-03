@@ -25,8 +25,11 @@ Author: Alexander Hanke
 
 #include "fieldint.h"
 
-// Integer counterpart of field7: sigma-grid vertical-node layout, stride
-// p->kmaxF, addressed with the FIJK family. See field7.h for the slack plane.
+/*!
+ * @brief Integer counterpart of field7.
+ *
+ * Same layout as field7 (stride p->kmaxF, slack plane); see field7.h.
+ */
 class fieldint7 final : public fieldint
 {
 public:
