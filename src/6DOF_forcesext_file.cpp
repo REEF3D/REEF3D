@@ -122,7 +122,7 @@ void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc)
 
         ++rowcount;
     }
-
+    timecount = 0;
     ts = data[0][0];
     te = data[ptnum - 1][0];
 }
