@@ -29,8 +29,8 @@ Author: Hans Bihs
 void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
-    //if(p->X60==1)
-    //force_calc_stl2(p,d,pgc,WL,finalize);
+    if(p->X60==1)
+    force_calc_stl2(p,d,pgc,WL,finalize);
     
     
     if(p->X60==2)
@@ -96,9 +96,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
 
-		// Ownership on the raw centroid: pure geometry, so every rank agrees.
-		// Half-open intervals partition the domain exactly. No z test - NHFLOW
-		// holds the full sigma column on every rank.
 		if (xc >= p->originx && xc < p->endx &&
 		   (p->j_dir==0 || (yc >= p->originy && yc < p->endy)))
 		{

@@ -60,6 +60,6 @@ void nhflow_geometry::geometry_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     DSM = DSM/double(num);
     
-    NB = MAX(4.0, 2.0*p->A526 + 1.0);
+    NB = MAX(3.0, 2.0*p->A526 + 1.0);
 }
 

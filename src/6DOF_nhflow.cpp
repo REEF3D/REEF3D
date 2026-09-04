@@ -64,11 +64,6 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                 double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
-    //for (int nb=0; nb<number6DOF;++nb)
-    //fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
-    
-    
-    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
@@ -217,9 +212,7 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
 
         // 2. load from the pressure that was just solved
-        //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
-        
-        fb_obj[nb]->hydrodynamic_forces_nhflow_volume(p,d,pgc,FX,FY,FZ,WL,iter,finalize);
+        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
 
         // 3. advance the body for the next substage
         /*fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);

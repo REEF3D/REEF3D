@@ -31,6 +31,7 @@ Author: Hans Bihs
 
 void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {  
+    double f_jdir;
     Ax=0.0;
     Ay=0.0;
     Az=0.0;
@@ -126,9 +127,14 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
-            xloc = xc + nx*p->DXP[IP]*p->P91;
-            yloc = yc + ny*p->DYP[JP]*p->P91;
-            zloc = zc + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
+            f_jdir=1.0;
+            
+            if(fabs(ny)>0.9 && p->j_dir==0)
+            f_jdir=0.0;
+            
+            xloc = xc;// + nx*p->DXP[IP]*p->P91;
+            yloc = yc;// + ny*p->DYP[JP]*p->P91;
+            zloc = zc;// + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
             
             xlocvel = xc + nx*p->DXP[IP];
             ylocvel = yc + ny*p->DYP[JP];
@@ -154,14 +160,14 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
             
             // Force
-            Fx = -(pval + hspval)*A*nx;
+            Fx = -(pval + hspval)*A*nx*f_jdir;
                        //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
             if(p->j_dir==1)
-            Fy = -(pval + hspval)*A*ny;
+            Fy = -(pval + hspval)*A*ny*f_jdir;
                       // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
-            Fz = -(pval + hspval)*A*nz;
+            Fz = -(pval + hspval)*A*nz*f_jdir;
                       // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
                       
                       
