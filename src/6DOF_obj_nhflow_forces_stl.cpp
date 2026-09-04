@@ -29,9 +29,9 @@ Author: Hans Bihs
 void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
-    if(p->X60==1)
-    force_calc_stl2(p,d,pgc,WL,finalize);
-        
+    //if(p->X60==1)
+    //force_calc_stl2(p,d,pgc,WL,finalize);
+    
     
     if(p->X60==2)
     {

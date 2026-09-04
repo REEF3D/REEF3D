@@ -87,9 +87,13 @@ public:
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
-    
+    void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*,
+                                           double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
-    double Dsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+                         
+                         
+    double Sfx_n,Sfy_n,Sfz_n,SKx_n,SKy_n,SKz_n;
+    int fictmass_ini;
     
     // print
     void saveTimeStep(lexer*,int);
@@ -294,8 +298,11 @@ private:
 	void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
     double clip_edge(double,double);
+    double clip_edge_vol(double,double,double);
     bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double,
                 double,double,double,double&,double&,double&,double&);
+    void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double,
+                         double&, double&, double&, double&);
     
     // -----
     

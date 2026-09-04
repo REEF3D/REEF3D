@@ -217,7 +217,9 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
 
         // 2. load from the pressure that was just solved
-        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
+        //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
+        
+        fb_obj[nb]->hydrodynamic_forces_nhflow_volume(p,d,pgc,FX,FY,FZ,WL,iter,finalize);
 
         // 3. advance the body for the next substage
         /*fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
