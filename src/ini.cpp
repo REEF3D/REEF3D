@@ -702,6 +702,7 @@ void control::ini_default()
     P183=-1.0;       // double time between vtp (fsf, bed) file printout in seconds for sediment time
     P184=0;       // int time between file printout in iterations
 	P185=0;        	// int time between file printout in seconds
+    P186=0;       // int time-averaged fsf vtp printouts
     P190=0;			  // int print topo
 	P191=-10;		  // int ith iteration topo printed
 	P192=-1.0;       // double time between topo file printout in seconds

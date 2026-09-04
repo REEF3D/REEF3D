@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"vtp3D.h"
 #include<fstream>
+#include<vector>
 
 class lexer;
 class fdm_nhf;
@@ -41,11 +42,15 @@ public:
     virtual ~nhflow_vtp_fsf() = default;
 
     void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void start_avg(lexer*,fdm_nhf*,ghostcell*,sediment*);
     void preproc(lexer*,fdm_nhf*,ghostcell*);
 
 private:
+    void initialize_avg_arrays(lexer *p);
     void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void print2D_avg(lexer*,fdm_nhf*,ghostcell*,sediment*,int);
     void pvtp(lexer*,int);
+    void pvtp_avg(lexer*,int);
 
     char name[200];
     int n,offset[200];
@@ -55,6 +60,10 @@ private:
     int jj;
 
     int *wetmax;
+    std::vector<bool> avg_started, avg_printed;
+    std::vector<double> avg_time, avg_tstart, avg_tend;
+    std::vector<double> uavg, vavg, wavg, zavg, wlavg, etaavg;
+    int avg_npt, avg_count;
 };
 
 #endif

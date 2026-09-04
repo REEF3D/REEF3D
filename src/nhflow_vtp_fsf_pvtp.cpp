@@ -62,3 +62,30 @@ void nhflow_vtp_fsf::pvtp(lexer *p, int num)
 
     result.close();
 }
+
+void nhflow_vtp_fsf::pvtp_avg(lexer *p, int num)
+{
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTP_TIME_AVG_FSF/REEF3D-NHFLOW-FSF-TIMEAVG-%08i.pvtp",num);
+
+    ofstream result;
+    result.open(name);
+
+    vtp3D::beginningParallel(p,result);
+    vtp3D::pointsParallel(result);
+
+    result<<"<PPointData>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"WL\"/>\n";
+    result<<"</PPointData>\n";
+
+    char pname[200];
+    for(n=0; n<p->M10; ++n)
+    {
+        sprintf(pname,"REEF3D-NHFLOW-FSF-TIMEAVG-%08i-%06i.vtp",num,n+1);
+        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+    }
+
+    vtp3D::endingParallel(result);
+    result.close();
+}

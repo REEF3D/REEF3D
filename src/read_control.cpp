@@ -1865,6 +1865,9 @@ void control::read_control(lexer* p)
                 case 185: ++P185;
                          clear(c,numint);
                          break;
+                case 186: ++P186;
+                         clear(c,numint);
+                         break;
                 case 190: control>>P190;
                          clear(c,numint);
                          break;
@@ -3351,6 +3354,9 @@ void control::read_control(lexer* p)
     Darray(P185_te,P185);
     Darray(P185_dt,P185);
 
+    Darray(P186_tstart,P186);
+    Darray(P186_tend,P186);
+
     Iarray(P194_its,P194);
     Iarray(P194_ite,P194);
     Iarray(P194_dit,P194);
@@ -3656,6 +3662,7 @@ void control::read_control(lexer* p)
     int countP148=0;
     int countP184=0;
     int countP185=0;
+    int countP186=0;
     int countP194=0;
     int countP195=0;
     int countP230=0;
@@ -4232,6 +4239,10 @@ void control::read_control(lexer* p)
                          break;
                 case 185: control>>P185_ts[countP185]>>P185_te[countP185]>>P185_dt[countP185];
                          ++countP185;
+                         clear(c,numint);
+                         break;
+                case 186: control>>P186_tstart[countP186]>>P186_tend[countP186];
+                         ++countP186;
                          clear(c,numint);
                          break;
                 case 194: control>>P194_its[countP194]>>P194_ite[countP194]>>P194_dit[countP194];

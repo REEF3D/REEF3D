@@ -1404,6 +1404,8 @@ void control::ctrlrecv()
     ii++;
     P185 = ictrl[ii];
     ii++;
+    P186 = ictrl[ii];
+    ii++;
     P190 = ictrl[ii];
     ii++;
     P191 = ictrl[ii];
@@ -3061,6 +3063,12 @@ void control::ctrlrecv()
         Darray(P185_dt,P185);
     }
 
+    if(P186>0)
+    {
+        Darray(P186_tstart,P186);
+        Darray(P186_tend,P186);
+    }
+
     if(P194>0)
     {
         Iarray(P194_its,P194);
@@ -4586,6 +4594,14 @@ void control::ctrlrecv()
         P185_te[n] = dctrl[dd];
         dd++;
         P185_dt[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P186;++n)
+    {
+        P186_tstart[n] = dctrl[dd];
+        dd++;
+        P186_tend[n] = dctrl[dd];
         dd++;
     }
 
