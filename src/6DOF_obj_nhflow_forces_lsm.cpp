@@ -29,23 +29,6 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
-{
-	// forcecalc
-    if(p->X60==1)
-    force_calc_stl(p,d,pgc,WL,finalize);
-        
-    
-    if(p->X60==2)
-    {
-    triangulation(p,d,pgc);
-	reconstruct(p,d);
-    force_calc_lsm(p,d,pgc,WL);
-        
-    deallocate(p,d,pgc);
-    }
-} 
-
 void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {  
     Ax=0.0;

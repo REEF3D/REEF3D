@@ -46,7 +46,7 @@ void sixdof_obj::ray_cast_io_ycorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 	double denom;
 	double psi = 1.0e-8*p->DXM;
 
-    ALOOP
+    LOOP
 	{
 	cutl(i,j,k)=0;
 	cutr(i,j,k)=0;
@@ -191,7 +191,7 @@ void sixdof_obj::ray_cast_io_ycorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 	}
     }
     
-    ALOOP
+    LOOP
 	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
 	fbio(i,j,k)=-1;
 

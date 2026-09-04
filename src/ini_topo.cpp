@@ -29,7 +29,7 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
 {
     double dx=p->DXM;
 
-    ALOOP
+    LOOP
 	a->topo(i,j,k)=1.0;
     
     p->topoforcing=1;
@@ -37,7 +37,7 @@ void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
 
     if(p->S57>-1.0e20)
     {
-    ALOOP
+    LOOP
     a->topo(i,j,k)=-p->S57+p->ZP[KP];
     
     p->toporead=1;

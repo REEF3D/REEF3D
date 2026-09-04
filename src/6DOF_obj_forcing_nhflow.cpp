@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"vrans.h"
 
 void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
@@ -122,7 +121,7 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
         dv = vf - V[IJK];
         dw = wf - W[IJK];
         
-        if(d->FB[IJK] <= 0.0)
+        if(d->FB[IJK] < 0.0)
         {
             // interior of the body: enforce the full rigid-body velocity
             FX[IJK] += H*du/(alpha[iter]*p->dt);

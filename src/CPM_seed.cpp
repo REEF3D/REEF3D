@@ -35,7 +35,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     
     // estimate number particles
     int count=0;
-    ALOOP
+    LOOP
     if(a->topo(i,j,k)<=0)
         ++count;
 
@@ -53,7 +53,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(p->Q29==1)
     {
         n=0;
-        ALOOP
+        LOOP
         if(a->topo(i,j,k)<=0)
         {
         int particles_per_cell = p->Q24;  
@@ -83,7 +83,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(p->Q29==2)
     {
         n=0;
-        ALOOP
+        LOOP
         if(a->topo(i,j,k)<=0)
         {
         int particles_per_cell = p->Q24; 
@@ -115,7 +115,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(p->Q29==3)
     {
         n=0;
-        ALOOP
+        LOOP
         if(a->topo(i,j,k)<=0)
         {
             for(int qn=0;qn<p->Q24;++qn)

@@ -27,7 +27,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *ptopo)
 {
-    ALOOP
+    LOOP
     if(a->topo(i,j,k)<0.0)
     {
         por(i,j,k)= p->S24; //porosity

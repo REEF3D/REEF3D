@@ -32,7 +32,7 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     double xs,xe,ys,ye;
 	
 	
-	ALOOP
+	LOOP
 	{
 	N(i,j,k)=0.0;
 	D(i,j,k)=0.0;
@@ -49,7 +49,7 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 	
 	// Box
     for(qn=0;qn<p->B310;++qn)
-    ALOOP
+    LOOP
 	if(p->XN[IP]>=p->B310_xs[qn] && p->XN[IP]<p->B310_xe[qn]
 	&& p->YN[JP]>=p->B310_ys[qn] && p->YN[JP]<p->B310_ye[qn]
 	&& p->ZN[KP]>=p->B310_zs[qn] && p->ZN[KP]<p->B310_ze[qn])
@@ -81,7 +81,7 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
 		slope=(p->B321_ze[qn]-p->B321_zs[qn])/(p->B321_xe[qn]-p->B321_xs[qn]);
 
-		ALOOP
+		LOOP
 		if(p->pos_x()>=xs && p->pos_x()<xe
 		&& p->pos_y()>=p->B321_ys[qn] && p->pos_y()<p->B321_ye[qn]
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B321_xs[qn])+p->B321_zs[qn] )
@@ -114,7 +114,7 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
 		slope=(p->B322_ze[qn]-p->B322_zs[qn])/(p->B322_ye[qn]-p->B322_ys[qn]);
 
-		ALOOP
+		LOOP
 		if(p->pos_x()>=p->B322_xs[qn] && p->pos_x()<p->B322_xe[qn]
 		&& p->pos_y()>=ys && p->pos_y()<ye
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B322_ys[qn])+p->B322_zs[qn] )
@@ -131,7 +131,7 @@ void vrans_veg::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     if(p->B307>0)
     for(int qn=0; qn<p->B307; ++qn)
     {
-        ALOOP 
+        LOOP 
         {
         N(i,j,k) = 0.5*N(i,j,k) + 0.5*(1.0/6.0)*(N(i,j,k) + N(i,j,k) + N(i,j,k) + N(i,j,k) + N(i,j,k) + N(i,j,k));
         D(i,j,k) = 0.5*D(i,j,k) + 0.5*(1.0/6.0)*(D(i,j,k) + D(i,j,k) + D(i,j,k) + D(i,j,k) + D(i,j,k) + D(i,j,k));

@@ -38,7 +38,7 @@ void CPM::stress_schaeffer(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     double maxTau = 1.0e7;
 
-    ALOOP
+    LOOP
     {        
     if(Ts(i,j,k)<=Tc)
     Tau(i,j,k) = 0.0;

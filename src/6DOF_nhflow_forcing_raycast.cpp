@@ -31,11 +31,6 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     zmin = 1.0e8;
     zmax = -1.0e8;
     
-    LOOP
-    p->ZSP[IJK] = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
-
-    pgc->start5V(p,p->ZSP,1);
-    
     
     LOOP
     WETDRY

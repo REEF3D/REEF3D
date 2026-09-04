@@ -145,7 +145,7 @@ void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
     
     double uvel,vvel,wvel;
 
-	ALOOP
+	LOOP
 	{
         uvel = p->ufbi + (p->pos_z() - p->zg)*p->qfbi - (p->pos_y() - p->yg)*p->rfbi;
         vvel = p->vfbi + (p->pos_x() - p->xg)*p->rfbi - (p->pos_z() - p->zg)*p->pfbi;

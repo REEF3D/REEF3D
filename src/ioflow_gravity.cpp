@@ -485,7 +485,7 @@ void ioflow_gravity::jsource2D(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void ioflow_gravity::ini(lexer *p, fdm* a, ghostcell* pgc)
 {
-    ALOOP
+    LOOP
 	a->porosity(i,j,k)=1.0;
 	
 	pgc->start4a(p,a->porosity,1);

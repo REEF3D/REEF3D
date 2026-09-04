@@ -35,7 +35,7 @@ void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     
     pressure_gradient(p,a,pgc,s);
     
-    ALOOP
+    LOOP
     test(i,j,k) = dTz(i,j,k);
     
     // stress and cellSum update

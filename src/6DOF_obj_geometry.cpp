@@ -84,7 +84,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 	double H;
 	Vfb=0.0;
    
-	ALOOP
+	LOOP
 	{
         H = Hsolidface(p,a,0,0,0);
 		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
@@ -239,11 +239,12 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	double H;
 	Vfb=0.0;
    
-	ALOOP
+	LOOP
 	{
         H = Hsolidface_nhflow(p,d,0,0,0);
 		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*d->WL(i,j);
 	}
+    
 	Vfb=pgc->globalsum(Vfb);
    
     // Mass and density calculation
