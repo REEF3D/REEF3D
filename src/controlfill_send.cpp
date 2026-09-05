@@ -1898,6 +1898,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X34;
     ii++;
+    ictrl[ii] = X38;
+    ii++;
     ictrl[ii] = X39;
     ii++;
     ictrl[ii] = X40;
