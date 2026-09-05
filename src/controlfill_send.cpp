@@ -2176,6 +2176,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = X325_relZ;
     dd++;
+    ictrl[ii] = X330;
+    ii++;
     ictrl[ii] = X400;
     ii++;
     dctrl[dd] = X401_p0;

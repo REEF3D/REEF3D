@@ -2167,6 +2167,8 @@ void control::ctrlrecv()
     dd++;
     X325_relZ = dctrl[dd];
     dd++;
+    X330 = ictrl[ii];
+    ii++;
     X400 = ictrl[ii];
     ii++;
     X401_p0 = dctrl[dd];
