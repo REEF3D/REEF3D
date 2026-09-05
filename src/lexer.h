@@ -167,8 +167,6 @@ public:
 
 	// SMO
 	int veclength;
-    int C4_size,C4a_size,C6_size;
-    int C1_2D_size,C2_2D_size,C4_2D_size;
     int M_size,M_2D_size;
 
     //SLICE

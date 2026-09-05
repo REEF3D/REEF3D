@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
-	ALOOP
+	LOOP
 	{
     fbio(i,j,k)=1;
 	a->fb(i,j,k)=1.0e8;
@@ -70,7 +70,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
     
-    ALOOP
+    LOOP
     {
         if(fbio(i,j,k)==-1)
         a->fb(i,j,k)=-fabs(a->fb(i,j,k));
@@ -81,7 +81,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
     }
     
 	
-	ALOOP
+	LOOP
 	{
 		if(a->fb(i,j,k)>10.0*p->DXM)
 		a->fb(i,j,k)=10.0*p->DXM;

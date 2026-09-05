@@ -28,7 +28,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    ALOOP
+    LOOP
     {
         HS = heaviside(a->topo(i,j,k));
         
@@ -42,7 +42,7 @@ void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     pgc->start4a(p,dTz,1);
     
     // Smoothing
-    /*ALOOP
+    /*LOOP
     {
         dTx(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTx(i-1,j,k)+dTx(i+1,j,k)+dTx(i,j-1,k)+dTx(i,j+1,k)+dTx(i,j,k-1)+dTx(i,j,k+1));
         dTy(i,j,k) = 0.5* dTx(i,j,k) + (1.0/12.0)*(dTy(i-1,j,k)+dTy(i+1,j,k)+dTy(i,j-1,k)+dTy(i,j+1,k)+dTy(i,j,k-1)+dTy(i,j,k+1));
@@ -56,7 +56,7 @@ void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
 void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    ALOOP
+    LOOP
     {
         dPx(i,j,k) = (a->press(i+1,j,k) - a->press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]) 
                    + (press(i+1,j,k) - press(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP]); 

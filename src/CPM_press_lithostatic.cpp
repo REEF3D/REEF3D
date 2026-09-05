@@ -28,7 +28,7 @@ Authors: Hans Bihs
 
 void CPM::press_lithostatic(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    ALOOP
+    LOOP
     press(i,j,k) = 0.0;
     
     pgc->start4a(p,press,1);

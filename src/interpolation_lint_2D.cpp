@@ -194,9 +194,10 @@ double interpolation::lint4V_2D(double *f, int& i,int& j, int& k, double wa, dou
 
     return value;
 }
-
+/*
 double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
+
     v1=v2=v3=v4=0.0;
     
     jj=j;
@@ -217,6 +218,40 @@ double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, dou
     x2 = wa*v2 + (1.0-wa)*v4;
     
     value = wc*x1 +(1.0-wc)*x2;
+
+    return value;
+}*/
+
+
+double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    double w1,w2,w3,w4,wsum;
+
+    jj=j;
+    j=0;
+
+    w1 =      wa  *      wc;      // (i,   k  )
+    w2 =      wa  *(1.0-wc);      // (i,   k+1)
+    w3 = (1.0-wa) *      wc;      // (i+1, k  )
+    w4 = (1.0-wa) *(1.0-wc);      // (i+1, k+1)
+
+    // drop nodes inside the body and renormalise: zero-gradient fill
+    //if(p->DFF[FIJK]     < 0) w1 = 0.0;
+    //if(p->DFF[FIJKp1]   < 0) w2 = 0.0;
+    //if(p->DFF[FIp1JK]   < 0) w3 = 0.0;
+    //if(p->DFF[FIp1JKp1] < 0) w4 = 0.0;
+    
+    //cout<<"w1: "<<w1<<" w2: "<<w2<<" w3: "<<w3<<" w4: "<<w4<<endl;
+
+    wsum = w1 + w2 + w3 + w4;
+
+    if(wsum > 1.0e-10)
+    value = (w1*f[FIJK] + w2*f[FIJKp1] + w3*f[FIp1JK] + w4*f[FIp1JKp1])/wsum;
+
+    else
+    value = 0.0;
+
+    j=jj;
 
     return value;
 }

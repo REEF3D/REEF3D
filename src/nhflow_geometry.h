@@ -66,6 +66,12 @@ private:
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
     void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
     
+    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
+    double dist2_tri(const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double);
+    
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);
     void cylinder_z(lexer*, ghostcell*, int);
@@ -89,6 +95,8 @@ private:
     void angle_calc(double,double,double,double&,double&,double&);
     
     void print_vtp(lexer*,int);
+    
+    double NB;
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;

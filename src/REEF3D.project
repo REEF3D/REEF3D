@@ -1849,6 +1849,7 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
+            <File Name="nhflow_geometry_distance.cpp"/>
             <File Name="nhflow_geometry_raycast_io_ycorr.cpp"/>
             <File Name="nhflow_geometry_raycast_io_x.cpp"/>
             <File Name="nhflow_geometry_raycast_io_zcorr.cpp"/>
@@ -1862,6 +1863,7 @@
           <File Name="nhflow_geometry.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
+          <File Name="nhflow_forcing_reforce.cpp"/>
           <File Name="nhflow_forcing_ini.cpp"/>
           <VirtualDirectory Name="DLM">
             <File Name="nhflow_forcing_dlm_force.cpp"/>
@@ -2505,6 +2507,9 @@
           </VirtualDirectory>
           <File Name="6DOF_obj_update_pos_nhflow.cpp"/>
           <VirtualDirectory Name="Forces NHFLOW">
+            <File Name="6DOF_obj_nhflow_forces_viscous.cpp"/>
+            <File Name="6DOF_obj_nhflow_forces_volume.cpp"/>
+            <File Name="6DOF_obj_nhflow_forces_stl2.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_lsm.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_stl.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_reconstruction.cpp"/>
@@ -2560,6 +2565,7 @@
               <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
+              <File Name="6DOF_nhflow_forcing_distance.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_io_zcorr.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_io_ycorr.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast_io_x.cpp"/>
@@ -2738,6 +2744,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <VirtualDirectory Name="Parallel Comm">
+        <File Name="gcx_parax7int.cpp"/>
         <File Name="gcx_wait.cpp"/>
         <File Name="gcx_gcparaxintV.cpp"/>
         <File Name="gcx_flagx7.cpp"/>

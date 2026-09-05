@@ -65,6 +65,7 @@ void lexer::flagini()
     Iarray(DF1,imax*jmax*kmax);
     Iarray(DF2,imax*jmax*kmax);
     Iarray(DF3,imax*jmax*kmax);
+    Iarray(DFF,imax*jmax*(kmax+1));
 
     Iarray(DFBED,imax*jmax);
 

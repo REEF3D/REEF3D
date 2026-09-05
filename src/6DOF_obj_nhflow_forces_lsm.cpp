@@ -29,25 +29,9 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
-{
-	// forcecalc
-    if(p->X60==1)
-    force_calc_stl(p,d,pgc,WL,finalize);
-        
-    
-    if(p->X60==2)
-    {
-    triangulation(p,d,pgc);
-	reconstruct(p,d);
-    force_calc_lsm(p,d,pgc,WL);
-        
-    deallocate(p,d,pgc);
-    }
-} 
-
 void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {  
+    double f_jdir;
     Ax=0.0;
     Ay=0.0;
     Az=0.0;
@@ -78,13 +62,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             yc = (1.0/3.0)*(y1 + y2 + y3);
             zc = (1.0/3.0)*(z1 + z2 + z3);
             
-            at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-            bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
-            ct = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-            
-            A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             }
             
             //quadrilidral
@@ -111,22 +89,10 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             zc = (1.0/4.0)*(z1 + z2 + z3 + z4);
             
             //tri1
-            at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-            bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
-            ct = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-
-            A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             
             //tri2
-            at = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            bt = sqrt(pow(x4-x3,2.0) + pow(y4-y3,2.0) + pow(z4-z3,2.0));
-            ct = sqrt(pow(x4-x1,2.0) + pow(y4-y1,2.0) + pow(z4-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-
-            A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A += triangle_area(p,x1,y1,z1,x3,y3,z3,x4,y4,z4);
             }
             
             xp1 = x2-x1;
@@ -161,9 +127,14 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
             ny = ny*sgny/fabs(fabs(sgny)>1.0e-20?sgny:1.0e20);
             nz = nz*sgnz/fabs(fabs(sgnz)>1.0e-20?sgnz:1.0e20);
             
-            xloc = xc - nx*p->DXP[IP]*p->P91;
-            yloc = yc - ny*p->DYP[JP]*p->P91;
-            zloc = zc - nz*p->DZP[KP]*d->WL(i,j)*p->P91;
+            f_jdir=1.0;
+            
+            if(fabs(ny)>0.9 && p->j_dir==0)
+            f_jdir=0.0;
+            
+            xloc = xc;// + nx*p->DXP[IP]*p->P91;
+            yloc = yc;// + ny*p->DYP[JP]*p->P91;
+            zloc = zc;// + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
             
             xlocvel = xc + nx*p->DXP[IP];
             ylocvel = yc + ny*p->DYP[JP];
@@ -189,14 +160,14 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
             
             // Force
-            Fx = -(pval + hspval)*A*nx;
+            Fx = -(pval + hspval)*A*nx*f_jdir;
                        //+ 0.0*density*viscosity*A*(du*ny+du*nz);
                        
             if(p->j_dir==1)
-            Fy = -(pval + hspval)*A*ny;
+            Fy = -(pval + hspval)*A*ny*f_jdir;
                       // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
                     
-            Fz = -(pval + hspval)*A*nz;
+            Fz = -(pval + hspval)*A*nz*f_jdir;
                       // + 0.0*density*viscosity*A*(dw*nx+dw*ny); 
                       
                       

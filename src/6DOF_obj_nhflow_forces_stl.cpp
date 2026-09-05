@@ -25,9 +25,24 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"ioflow.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+
+void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
+{
+	// forcecalc
+    if(p->X60==1)
+    force_calc_stl(p,d,pgc,WL,finalize);
+    
+    
+    if(p->X60==2)
+    {
+    triangulation(p,d,pgc);
+	reconstruct(p,d);
+    force_calc_lsm(p,d,pgc,WL);
+        
+    deallocate(p,d,pgc);
+    }
+} 
+
 
 void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
@@ -48,16 +63,10 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
     double fsf_z;
     double f_jdir;
-    double A0;
-    int cut;
 
-    A0=A=0.0;
+    A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
-    
-    Fv_x = 0.0;
-    Fv_y = 0.0;
-    Fv_z = 0.0;
     
     // Set new time
     curr_time = p->simtime;
@@ -85,9 +94,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         xp = xc;
         yp = yc;
         zp = zc;
-        
-    A0=A_triang=0.0;
-    f=0.0;
     
  
 		if (xc >= p->originx && xc < p->endx &&
@@ -114,9 +120,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             
             
             // Position of triangle
-            i = p->posc_i(xc);
+            /*i = p->posc_i(xc);
             j = p->posc_j(yc);
-            k = p->posc_sig(i,j,zc);
+            k = p->posc_sig(i,j,zc);*/
             
             etaval = p->ccslipol4(d->eta,xc,yc);  
             
@@ -129,11 +135,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             // Area of triangle using Heron's formula
 			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
             
-            A0 = A_triang;
-    // ----------------
-    // cut triangles
-    // ----------------
-    
+
         // peak up 0
             if(z0>fsf_z && z1<fsf_z  && z2<fsf_z)
             {
@@ -207,8 +209,8 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 
             A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
             }
-       
-    // -----
+        
+        // -----
         
          // peak down 0
             if(z0<fsf_z && z1>fsf_z  && z2>fsf_z)
@@ -255,6 +257,8 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
              xp = (xs0 + x1 + xs2)/3.0;
              yp = (ys0 + y1 + ys2)/3.0;
              zp = (zs0 + z1 + zs2)/3.0;
+                
+            //cout<<"A_0: "<<A_triang<<" A_triang: "<<triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2)<<" f: "<<f<<endl;
             
             A_triang = triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
             }
@@ -282,14 +286,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 
             A_triang = triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
             }
-            /*
-            cut=0;
-            if(z0>f sf_z || z1>fsf_z  || z2>fsf_z)
-            cut=1;
-            
-            if(z0>fsf_z || z1>fsf_z  || z2>fsf_z)
-            if(f_jdir>0.1)
-            cout<<"cut: "<<cut<<" A_0: "<<A0<<" A_triang: "<<A_triang<<" f: "<<f<<" | f_jdir: "<<f_jdir<<endl;*/
    
             if(p->j_dir==0)
             ny=0.0;
@@ -298,7 +294,17 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             xlocp = xc + p->X42*nx*p->DXP[IP];
             ylocp = yc + p->X42*ny*p->DYP[JP];
             zlocp = zc + p->X42*nz*p->DZP[KP];
-    
+            
+            /*
+            double p0,p1,p2,pc;
+            
+            p0   = p->ccipol7P(d->P, WL, d->bed, x0, y0, z0);
+            p1   = p->ccipol7P(d->P, WL, d->bed, x1, y1, z1);
+            p2   = p->ccipol7P(d->P, WL, d->bed, x2, y2, z2);
+            
+            pc   = p->ccipol7P(d->P, WL, d->bed, xc, yc, zc);
+            
+            pval = (1.0/4.0)*(p0 + p1 + p2 + pc);*/
 
             // pressure
             pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
@@ -311,20 +317,23 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
              
             if(p->j_dir==0)
             Fp_y = 0.0;
+            
+            // Viscous forces
+            hydrodynamic_viscous_forces_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, A_triang, xp, yp, zp, nx, ny, nz);
              
             // Total forces
-            Fx = Fp_x;// + Fv_x;
-            Fy = Fp_y;// + Fv_y;
-            Fz = Fp_z;// + Fv_z;
-
+            Fx = Fp_x + Fv_x;
+            Fy = Fp_y + Fv_y;
+            Fz = Fp_z + Fv_z;
+             
             // Add forces to global forces
             Xe += Fx;
             Ye += Fy;
             Ze += Fz;
 
-            Ke += (yp - c_(1))*Fz - (zp - c_(2))*Fy;
-            Me += (zp - c_(2))*Fx - (xp - c_(0))*Fz;
-            Ne += (xp - c_(0))*Fy - (yp - c_(1))*Fx;
+            Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
+            Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
+            Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
             
             Xe_p += Fp_x;
             Ye_p += Fp_y;
@@ -381,19 +390,3 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     }
 }
 
-double sixdof_obj::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
-{
-    double at,bt,ct,st,A;
-    
-    at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-    bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-    ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-				
-    st = 0.5*(at+bt+ct);
-				
-    A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
-    
-    return A;
-            
-}
-  

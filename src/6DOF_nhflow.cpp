@@ -67,7 +67,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
+        //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
         
         // Advance body in time
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
@@ -141,11 +141,9 @@ void sixdof_nhflow::start_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, int it
     for (int nb=0; nb<number6DOF;++nb)
     {
 
-        // ++++++++++++++++
         // Update position and trimesh
         fb_obj[nb]->update_wavemaker_nhflow(p,d,pgc,d->fs,finalize);  
         
-        // ++++++++++++++++
         // Update forcing terms
         fb_obj[nb]->update_forcing_nhflow_wavemaker(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
         
@@ -210,7 +208,24 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
-    // Update forcing terms
+        // 1. re-impose no-slip at the position the fluid was solved with
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+
+        // 2. load from the pressure that was just solved
+        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
+
+        // 3. advance the body for the next substage
+        /*fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
+        fb_obj[nb]->quat_matrices(p);
+        fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);
+        fb_obj[nb]->update_fbvel(p,pgc);
+
+        if(finalize==true)
+        {
+            fb_obj[nb]->saveTimeStep(p,iter);
+            if(p->X50==1) fb_obj[nb]->print_vtp(p,pgc);
+            if(p->X50==2) fb_obj[nb]->print_stl(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc);
+        }*/
     }
 }

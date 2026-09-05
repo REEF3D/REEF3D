@@ -1025,6 +1025,37 @@ void ghostcell::startintV(lexer *p, int *f, int gcv)
     gcparaxintV(p, f, gcv);
 }
 
+void ghostcell::startintVF(lexer *p, int *f, int gcv)
+{
+    FLOOP
+    {
+        if(p->flag7[FIm1JK]<0)
+        f[FIm1JK] = f[FIJK];
+
+        if(p->flag7[FIp1JK]<0)
+        f[FIp1JK] = f[FIJK];
+
+        if(p->flag7[FIJm1K]<0)
+        f[FIJm1K] = f[FIJK];
+
+        if(p->flag7[FIJp1K]<0)
+        f[FIJp1K] = f[FIJK];
+
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
+
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = f[FIJK];
+    }
+    
+    
+    if(do_comms)
+    {
+        gcparax7int(p,f,7);
+        
+    }
+}
+
 void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 {
     if(do_comms)

@@ -102,7 +102,7 @@ void CPM::mppic_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
     stress_snider(p,pgc,s);
     stress_gradient(p,a,pgc,s);
     
-    ALOOP
+    LOOP
     a->test(i,j,k) = Tau(i,j,k);
 
     for(n=0;n<P.index;++n)

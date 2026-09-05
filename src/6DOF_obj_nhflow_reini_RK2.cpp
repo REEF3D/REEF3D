@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"nhflow_reinidisc_fsf.h"
 
 void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
-{	
+{	/*
     if(p->j_dir==0)
     LOOP
     WETDRY
@@ -64,7 +64,7 @@ void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *
 		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*DTT[IJK]*LL[IJK];
 
         pgc->start5V(p,F,1);
-	}
+	}*/
 }
 
 

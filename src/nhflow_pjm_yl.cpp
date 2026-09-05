@@ -46,8 +46,6 @@ nhflow_pjm_yl::nhflow_pjm_yl(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_inter
     
     gcval_press=540;
     
-    solver_id = 8;
-    
     gamma=0.5;
 }
 

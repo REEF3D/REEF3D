@@ -51,6 +51,8 @@ private:
     
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
+    
+    double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
 
     int *vertice,*nodeflag;
     double *eta;

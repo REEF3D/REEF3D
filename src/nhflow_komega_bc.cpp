@@ -47,12 +47,7 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     double uvel,vvel,wvel;
     double zval;
     int check;
-    
-    LOOP
-    {
-    d->test[IJK] = 0.0;
-    }
-    
+
     count=0;
     if(p->B11==1)
     LOOP
@@ -128,8 +123,6 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             
             d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
             d->rhsvec.V[count] += (tau*u_abs)/dist;
-            
-            d->test[IJK] = dist;
             }
             
         }

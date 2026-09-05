@@ -31,7 +31,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     double zmin,zmax,slope;
     double xs,xe,ys,ye;
 	
-	ALOOP
+	LOOP
 	{
 	a->porosity(i,j,k)=1.0;
 	a->porpart(i,j,k)=0.01;
@@ -47,7 +47,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 	
 	// Box
     for(qn=0;qn<p->B270;++qn)
-    ALOOP
+    LOOP
 	if(p->XN[IP]>=p->B270_xs[qn] && p->XN[IP]<p->B270_xe[qn]
 	&& p->YN[JP]>=p->B270_ys[qn] && p->YN[JP]<p->B270_ye[qn]
 	&& p->ZN[KP]>=p->B270_zs[qn] && p->ZN[KP]<p->B270_ze[qn])
@@ -60,7 +60,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     // Vertical Cylinder
     for(qn=0;qn<p->B274;++qn)
-    ALOOP
+    LOOP
     {
         double  r = sqrt( pow(p->XP[IP]-p->B274_xc[qn],2.0)+pow(p->YP[JP]-p->B274_yc[qn],2.0));
         
@@ -93,7 +93,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
 		slope=(p->B281_ze[qn]-p->B281_zs[qn])/(p->B281_xe[qn]-p->B281_xs[qn]);
 
-		ALOOP
+		LOOP
 		if(p->pos_x()>=xs && p->pos_x()<xe
 		&& p->pos_y()>=p->B281_ys[qn] && p->pos_y()<p->B281_ye[qn]
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B281_xs[qn])+p->B281_zs[qn] )
@@ -124,7 +124,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
 		slope=(p->B282_ze[qn]-p->B282_zs[qn])/(p->B282_ye[qn]-p->B282_ys[qn]);
 
-		ALOOP
+		LOOP
 		if(p->pos_x()>=p->B282_xs[qn] && p->pos_x()<p->B282_xe[qn]
 		&& p->pos_y()>=ys && p->pos_y()<ye
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B282_ys[qn])+p->B282_zs[qn] )
@@ -156,7 +156,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
 		slope=(p->B291_ze[qn]-p->B291_zs[qn])/(p->B291_xe[qn]-p->B291_xs[qn]);
 
-		ALOOP
+		LOOP
 		if(p->pos_x()>=xs && p->pos_x()<xe
 		&& p->pos_y()>=p->B291_ys[qn] && p->pos_y()<p->B291_ye[qn]
         

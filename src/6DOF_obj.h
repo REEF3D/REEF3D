@@ -88,8 +88,13 @@ public:
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
-    
+    void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*,
+                                           double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+                         
+                         
+    double Sfx_n,Sfy_n,Sfz_n,SKx_n,SKy_n,SKz_n;
+    int fictmass_ini;
     
     // print
     void saveTimeStep(lexer*,int);
@@ -236,8 +241,16 @@ private:
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
+    double dist2_tri(const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double);
+    int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double,
+                         double,double*,double*,double*);
     
     double zmin,zmax;
+    double NB;
     
     // Reini NHFLOW
     void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
@@ -278,12 +291,21 @@ private:
     // Force NHFLOW
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
+    void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
+    void hydrodynamic_viscous_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,
+            double&,double&,double&,double,double,double,double,double,double,double);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
+    double clip_edge(double,double);
+    double clip_edge_vol(double,double,double);
+    bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double,
+                double,double,double,double&,double&,double&,double&);
+    void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double,
+                         double&, double&, double&, double&);
     
     // -----
     

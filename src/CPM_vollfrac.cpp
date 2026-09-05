@@ -28,7 +28,7 @@ Authors: Alexander Hanke, Hans Bihs
 
 void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ)
 {
-    ALOOP
+    LOOP
     cellSum(i,j,k) = 0.0;
     
     pgc->start4a(p,cellSum,1);
@@ -61,7 +61,7 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
     
     pgc->start4a_sum(p,cellSum,1);
     
-    ALOOP
+    LOOP
     Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
     pgc->start4a(p,Ts,1);

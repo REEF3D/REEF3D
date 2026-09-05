@@ -63,7 +63,7 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             
             st = 0.5*(at+bt+ct);
             
-            A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             }
             
             //quadrilidral
@@ -90,22 +90,10 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             zc = (1.0/4.0)*(z1 + z2 + z3 + z4);
             
             //tri1
-            at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-            bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
-            ct = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-
-            A = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             
             //tri2
-            at = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            bt = sqrt(pow(x4-x3,2.0) + pow(y4-y3,2.0) + pow(z4-z3,2.0));
-            ct = sqrt(pow(x4-x1,2.0) + pow(y4-y1,2.0) + pow(z4-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-
-            A += sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
+            A += triangle_area(p,x1,y1,z1,x3,y3,z3,x4,y4,z4);
             }
             
             xp1 = x2-x1;
@@ -196,7 +184,26 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     A_tot = pgc->globalsum(A_tot);
 }
 
-
-
+double nhflow_force::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
+{
+    double ax,ay,az;
+    double bx,by,bz;
+    double cx,cy,cz;
+    
+    ax = x1-x0;
+    ay = y1-y0;
+    az = z1-z0;
+    
+    bx = x2-x0;
+    by = y2-y0;
+    bz = z2-z0;
+    
+    // twice the area is the norm of the cross product
+    cx = ay*bz - az*by;
+    cy = az*bx - ax*bz;
+    cz = ax*by - ay*bx;
+    
+    return 0.5*sqrt(cx*cx + cy*cy + cz*cz);
+}
 
 

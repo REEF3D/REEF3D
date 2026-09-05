@@ -81,6 +81,7 @@ public:
     void start7P(lexer*,double*, int);
     
     void startintV(lexer*,int*,int);
+    void startintVF(lexer*,int*,int);
     
     void dgcpol1(lexer*,field&, int);
     void dgcpol2(lexer*,field&, int);
@@ -140,6 +141,7 @@ public:
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
     void gcparax7co(lexer*, double*, int);
+    void gcparax7int(lexer*, int*&, int);
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
     void gcparacox4a_sum(lexer*, field&, int);

@@ -29,7 +29,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 void CPM::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &por, field &d50)
 {
-    ALOOP
+    LOOP
     {
         por(i,j,k)=p->S24;
         d50(i,j,k)=p->S20;

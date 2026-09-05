@@ -55,9 +55,11 @@ void nhflow_geometry::geometry_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ++num;
     }
     
-    pgc->globalsum(DSM);
-    pgc->globalisum(num);
+    DSM = pgc->globalsum(DSM);
+    num = pgc->globalisum(num);
     
     DSM = DSM/double(num);
+    
+    NB = MAX(3.0, 2.0*p->A526 + 1.0);
 }
 

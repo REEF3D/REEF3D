@@ -63,7 +63,7 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
     
 	pgc->gcsl_start4(p,s->bedzh,1);
 	
-    ALOOP
+    LOOP
     {
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
@@ -93,7 +93,7 @@ void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 	double volume=0.0;
     double epsi;
 
-	ALOOP
+	LOOP
 	{
        epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         

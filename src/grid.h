@@ -53,7 +53,7 @@ public:
 
     // boundary conditions
     int *IO,*IOSL;
-    int *DF,*DF1,*DF2,*DF3;
+    int *DF,*DF1,*DF2,*DF3,*DFF;
     int *DFBED;
 
     bool i_dir,j_dir,k_dir;

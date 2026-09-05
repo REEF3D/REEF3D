@@ -557,3 +557,45 @@ double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double
  return value;
 
 }
+
+
+/*
+double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    double w1,w2,w3,w4,w5,w6,w7,w8,wsum;
+
+    w1 =      wa  *      wb  *      wc;      // (i,   j,   k  )
+    w2 =      wa  *(1.0-wb) *      wc;      // (i,   j+1, k  )
+    w3 = (1.0-wa) *      wb  *      wc;      // (i+1, j,   k  )
+    w4 = (1.0-wa) *(1.0-wb) *      wc;      // (i+1, j+1, k  )
+
+    w5 =      wa  *      wb  *(1.0-wc);      // (i,   j,   k+1)
+    w6 =      wa  *(1.0-wb) *(1.0-wc);      // (i,   j+1, k+1)
+    w7 = (1.0-wa) *      wb  *(1.0-wc);      // (i+1, j,   k+1)
+    w8 = (1.0-wa) *(1.0-wb) *(1.0-wc);      // (i+1, j+1, k+1)
+
+
+    // drop nodes inside the body and renormalise the rest:
+    // equivalent to filling them by zero-gradient from the fluid side
+    //if(p->DFF[FIJK]       < 0) w1 = 0.0;
+    //if(p->DFF[FIJp1K]     < 0) w2 = 0.0;
+    //if(p->DFF[FIp1JK]     < 0) w3 = 0.0;
+    //if(p->DFF[FIp1Jp1K]   < 0) w4 = 0.0;
+
+    //if(p->DFF[FIJKp1]     < 0) w5 = 0.0;
+    //if(p->DFF[FIJp1Kp1]   < 0) w6 = 0.0;
+    //if(p->DFF[FIp1JKp1]   < 0) w7 = 0.0;
+    //if(p->DFF[FIp1Jp1Kp1] < 0) w8 = 0.0;
+
+
+    wsum = w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8;
+
+    if(wsum > 1.0e-10)
+    value = ( w1*f[FIJK]     + w2*f[FIJp1K]     + w3*f[FIp1JK]     + w4*f[FIp1Jp1K]
+            + w5*f[FIJKp1]   + w6*f[FIJp1Kp1]   + w7*f[FIp1JKp1]   + w8*f[FIp1Jp1Kp1] )/wsum;
+
+    else
+    value = 0.0;
+
+    return value;
+}*/

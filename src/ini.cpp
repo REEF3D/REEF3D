@@ -783,6 +783,7 @@ void control::ini_default()
 	S37=0;		        // int inertia bedshear stress
     S38=0;              // int shallow water bedshear calculation
     S39=100.0;            // double blend factor
+    S40=0.1;            // double bedload adaptation length for non-equillibrium transport
 	S41=1;				// int type of sediment start criterion
 	S42=1;				// int type of sediment interval criterion
     S43=1000;          // int number of water iteration, before sediment transport starts
@@ -791,6 +792,7 @@ void control::ini_default()
 	S46=1.0;			// double flow simulation time between bed calculation
 	S47=1.0;			// double t/T, before sediment transport starts
 	S48=0.1;			// int nt/T between bed calculation
+    S49=5;              // int number of non-equillibrium relaxation sweeps
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments
@@ -921,7 +923,7 @@ void control::ini_default()
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body
-    X21_d=900.0;        // double presribe homogeneous density floating body
+    X21_d=900.0;  // double presribe homogeneous density floating body
     X22=0;        // int prescribe mass floating body
     X22_m=0;    // double prescribe mass floating body
     X23=0;        // int prescribe center of gravity
@@ -932,7 +934,8 @@ void control::ini_default()
     X32=1;        // int 
     X33=1;        // int 
     X34=0;        // int 
-    X39=0;       // int type of viscous force calculation
+    X38=0;       // int type of viscous force calculation CFD
+    X39=0;       // int type of viscous force calculation NHFLOW
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation

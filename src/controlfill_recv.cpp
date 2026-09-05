@@ -1568,6 +1568,8 @@ void control::ctrlrecv()
     ii++;
     S39 = dctrl[dd];
     dd++;
+    S40 = dctrl[dd];
+    dd++;
     S41 = ictrl[ii];
     ii++;
     S42 = ictrl[ii];
@@ -1584,6 +1586,8 @@ void control::ctrlrecv()
     dd++;
     S48 = dctrl[dd];
     dd++;
+    S49 = ictrl[ii];
+    ii++;
     S50 = ictrl[ii];
     ii++;
     S57 = dctrl[dd];
@@ -1884,6 +1888,8 @@ void control::ctrlrecv()
     X33 = ictrl[ii];
     ii++;
     X34 = ictrl[ii];
+    ii++;
+    X38 = ictrl[ii];
     ii++;
     X39 = ictrl[ii];
     ii++;

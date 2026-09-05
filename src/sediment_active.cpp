@@ -62,7 +62,7 @@ void sediment_f::active_cfd(lexer *p, fdm *a, ghostcell *pgc)
     p->DFBED[IJ]=-1;
     }
     
-    ALOOP
+    LOOP
     a->test(i,j,k) = p->DFBED[IJ];
 }
 
