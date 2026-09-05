@@ -291,6 +291,8 @@ private:
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
     void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
+    void hydrodynamic_viscous_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,
+            double&,double&,double&,double,double,double,double,double,double,double);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);

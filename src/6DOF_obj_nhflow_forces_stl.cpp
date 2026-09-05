@@ -317,12 +317,15 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
              
             if(p->j_dir==0)
             Fp_y = 0.0;
+            
+            // Viscous forces
+            hydrodynamic_viscous_forces_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, A_triang, xp, yp, zp, nx, ny, nz);
              
             // Total forces
-            Fx = Fp_x;// + Fv_x;
-            Fy = Fp_y;// + Fv_y;
-            Fz = Fp_z;// + Fv_z;
-
+            Fx = Fp_x + Fv_x;
+            Fy = Fp_y + Fv_y;
+            Fz = Fp_z + Fv_z;
+             
             // Add forces to global forces
             Xe += Fx;
             Ye += Fy;
