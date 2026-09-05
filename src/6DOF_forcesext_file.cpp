@@ -28,8 +28,7 @@ Author: Filip Hahs
 #include <iostream>
 #include <sstream>
 #include <string>
-class lexer;
-class ghostcell;
+
 void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc)
 {
     char name[100];
@@ -37,7 +36,7 @@ void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc)
     double sign, beta, s;
     int count;
 
-    sprintf(name, "6DOF_forces.dat");
+    snprintf(name, sizeof(name), "6DOF_forces.dat");
 
     // open file and determine number of columns
     ifstream file(name, ios_base::in);
@@ -60,7 +59,6 @@ void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc)
     while(iss >> val)
         ++colnum;
 
-    std::cerr << "rank=" << p->mpirank << " colnum=" << colnum << std::endl;
 
     // rewind file
     file.clear();
@@ -126,6 +124,7 @@ void sixdof_forcesext_file::read_format(lexer *p, ghostcell *pgc)
     ts = data[0][0];
     te = data[ptnum - 1][0];
 }
+
 void sixdof_forcesext_file::forcesext_trans(lexer *p, ghostcell *pgc)
 {
     Xext = 0.0;
@@ -173,6 +172,7 @@ void sixdof_forcesext_file::forcesext_trans(lexer *p, ghostcell *pgc)
 
     Zext = data[i0][3] + alpha * (data[i1][3] - data[i0][3]);
 }
+
 void sixdof_forcesext_file::forcesext_rot(lexer *p, ghostcell *pgc)
 {
     Kext = 0.0;
@@ -223,10 +223,9 @@ void sixdof_forcesext_file::forcesext_rot(lexer *p, ghostcell *pgc)
 
     Next = data[i0][6] + alpha * (data[i1][6] - data[i0][6]);
 }
+
 sixdof_forcesext_file::sixdof_forcesext_file(lexer *p, ghostcell *g)
 {
-    ini(p, g);
     read_format(p, g);
 }
 
-void sixdof_forcesext_file::ini(lexer *p, ghostcell *g) { return; }

@@ -33,6 +33,7 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
     cout<<"6DOF startup ..."<<endl;
     
     number6DOF = p->X20;
+    
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj(p,pgc,nb));
 }

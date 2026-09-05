@@ -26,6 +26,7 @@ Author: Tobias Martin
 #include"ghostcell.h"
 #include"mooring.h"
 #include"net_interface.h"
+
 void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
