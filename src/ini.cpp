@@ -934,7 +934,8 @@ void control::ini_default()
     X32=1;        // int 
     X33=1;        // int 
     X34=0;        // int 
-    X39=0;       // int type of viscous force calculation
+    X38=0;       // int type of viscous force calculation CFD
+    X39=0;       // int type of viscous force calculation NHFLOW
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
