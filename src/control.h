@@ -230,8 +230,11 @@ public:
     double F57_1,F57_2,F57_3,F57_4;
     double F58_1,F58_2,F58_3,F58_4;
     double F59_xm, F59_ym, F59_zs, F59_ze, F59_r;
+    int F60_flag;
     double F60,F61,F62,F63;
     int F64;
+    int F68;
+    double F68_x,F68_y,F68_z;
     int F70;
     double *F70_xs, *F70_xe, *F70_ys, *F70_ye, *F70_zs, *F70_ze;
     int F71;

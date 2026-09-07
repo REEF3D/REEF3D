@@ -40,6 +40,7 @@ class diffusion;
 class poisson;
 class vrans;
 class turbulence;
+class nhflow_fsf;
 
 using namespace std;
 
@@ -47,7 +48,7 @@ class nhflow
 {
 public:    
 
-    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*)=0;
+    virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_fsf*)=0;
     
 
 

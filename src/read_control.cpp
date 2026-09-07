@@ -1131,6 +1131,7 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 60: control>>F60;
+                         F60_flag=1;
                          clear(c,numint);
                          break;
                 case 61: control>>F61;
@@ -1144,6 +1145,10 @@ void control::read_control(lexer* p)
                          break;
                 case 64: control>>F64;
                          clear(c,numint);
+                         break;
+                case 68: control>>F68_x>>F68_y>>F68_z;
+                         clear(c,numint);
+                         F68=1;
                          break;
                 case 70: ++F70;
                          clear(c,numint);

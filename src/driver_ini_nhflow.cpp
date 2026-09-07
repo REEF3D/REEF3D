@@ -48,7 +48,7 @@ Author: Hans Bihs
 void driver::driver_ini_nhflow()
 {
     
-    pnhf->ini(p,d,pgc,pflow);
+    pnhf->ini(p,d,pgc,pflow,pnhfsf);
 
 	log_ini();
     

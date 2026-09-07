@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"vrans.h"
+#include"nhflow_fsf.h"
 
 nhflow_f::nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
@@ -35,7 +36,7 @@ nhflow_f::~nhflow_f()
 {
 }
 
-void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
+void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_fsf *pnhfsf)
 {
     // count cells 3D
     int count=0;
@@ -111,22 +112,11 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     
     pgc->gcsl_start4(p,d->bed,50);
     
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
+    pnhfsf->depth_update(p,d,pgc,pflow);
     
     pgc->gcsl_start4(p,d->depth,50);
     
-    ILOOP
-    JLOOP
-	d->solidbed(i,j) = p->solidbed[IJ];
 
-    ILOOP
-    JLOOP
-	d->topobed(i,j) = p->topobed[IJ];
-    
-    pgc->gcsl_start4(p,d->solidbed,50);
-    pgc->gcsl_start4(p,d->topobed,50);
-    
     // eta ini
 	SLICELOOP4
     {
@@ -135,7 +125,7 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
     p->wet[IJ]=1;
     d->breaking(i,j)=0;
     }
-
+    
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4Vint(p,p->deep,50);
     pgc->gcsl_start4(p,d->eta,50);

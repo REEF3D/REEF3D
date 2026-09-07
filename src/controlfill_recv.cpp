@@ -864,6 +864,8 @@ void control::ctrlrecv()
     dd++;
     F59_r = dctrl[dd];
     dd++;
+    F60_flag = ictrl[ii];
+    ii++;
     F60 = dctrl[dd];
     dd++;
     F61 = dctrl[dd];
@@ -874,6 +876,14 @@ void control::ctrlrecv()
     dd++;
     F64 = ictrl[ii];
     ii++;
+    F68 = ictrl[ii];
+    ii++;
+    F68_x = dctrl[dd];
+    dd++;
+    F68_y = dctrl[dd];
+    dd++;
+    F68_z = dctrl[dd];
+    dd++;
     F70 = ictrl[ii];
     ii++;
     F71 = ictrl[ii];

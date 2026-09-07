@@ -869,6 +869,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = F59_r;
     dd++;
+    ictrl[ii] = F60_flag;
+    ii++;
     dctrl[dd] = F60;
     dd++;
     dctrl[dd] = F61;
@@ -879,6 +881,14 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = F64;
     ii++;
+    ictrl[ii] = F68;
+    ii++;
+    dctrl[dd] = F68_x;
+    dd++;
+    dctrl[dd] = F68_y;
+    dd++;
+    dctrl[dd] = F68_z;
+    dd++;
     ictrl[ii] = F70;
     ii++;
     ictrl[ii] = F71;

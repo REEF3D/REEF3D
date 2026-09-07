@@ -435,11 +435,13 @@ void control::ini_default()
 	F59_zs=0.0;      // zs
 	F59_ze=0.0;      // ze
     F59_r=0.0;      // r
+    F60_flag=0;     // int F60 flag
 	F60=-1.0e20;  // double ini z-dir
 	F61=-1.0e20;  // double inflow  ini
 	F62=-1.0e20;  // double outflow  ini
 	F63=-1.0e20;  // double xstart phi interpolate with outflow h
-	F64=0;			// iterations for relaxing outflow waterlevel
+	F64=0;			// int iterations for relaxing outflow waterlevel
+    F68=0;            // int seaward free surface level 
 	F70=0;             // int number of phi 1 ini boxes
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
