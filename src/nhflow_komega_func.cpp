@@ -92,7 +92,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 		LOOP
 		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
 
 		
         if(p->A564==1)
@@ -105,7 +105,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 
 		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
 		}
 	}
     
@@ -126,12 +126,12 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
         if(p->A564==0)
 		d->EV0[IJK] = f*MAX(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
         if(p->A564==1)
 		d->EV0[IJK] = f*MAX(MIN(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
     }
     
@@ -142,8 +142,18 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
     
     if(p->A565==1)
     LOOP
-	d->EV[IJK] = MIN(d->EV0[IJK], MAX(KIN[IJK]/((fabs(EPS[IJK]))>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*Qij2(p,d))/(p->T42*kw_beta*Sij2(p,d)));
+    {
+    double Sij2_val = Sij2(p,d); 
+    
+	if(Sij2_val>1.0e-20)
+    d->EV[IJK] = MIN(d->EV0[IJK], p->cmu*MAX(KIN[IJK]*KIN[IJK]
+                     /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
+                     *(ke_c_1e*Qij2(p,d))/(p->T42*ke_c_2e*Sij2_val));
+                     
+    else
+    d->EV[IJK] = d->EV0[IJK];
+                     
+    }
                                          
     LOOP
     if(p->DF[IJK]<0)

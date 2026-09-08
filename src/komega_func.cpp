@@ -175,8 +175,16 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     
     if(p->T41==1)
     LOOP
+    {
+    double Sij2_val = Sij2(p,a); 
+    
+    if(Sij2_val>1.0e-20)
 	a->eddyv(i,j,k) = MIN(eddyv0(i,j,k), MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*Qij2(p,a))/(p->T42*kw_beta*Sij2(p,a)));
+                                         *(p->cmu*kw_alpha*Qij2(p,a))/(p->T42*kw_beta*Sij2_val));
+                                         
+    else
+    a->eddyv(i,j,k) = eddyv0(i,j,k);                                    
+    }
 	
     
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)

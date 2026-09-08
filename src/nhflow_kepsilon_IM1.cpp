@@ -53,8 +53,8 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
 //kin
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
-	pdiff->diff_scalar(p,d,pgc,psolv,KIN,kw_sigma_k,1.0);
+    pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
+	pdiff->diff_scalar(p,d,pgc,psolv,KIN,ke_sigma_k,1.0);
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
     bckepsilon_start(p,d,KIN,EPS,gcval_kin);
@@ -70,19 +70,19 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
 //omega
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
-	pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
+    pconvec->start(p,d,EPS,4,d->U,d->V,d->W);
+	pdiff->diff_scalar(p,d,pgc,psolv,EPS,ke_sigma_e,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
-    bckepsilon_start(p,d,KIN,EPS,gcval_eps);
-    bcomega_matrix(p,d,KIN,EPS);
+    bcepsilon_matrix(p,d,KIN,EPS);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
+    bckepsilon_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
+	cout<<"epsilon_iter: "<<p->epsiter<<"  epsilon_time: "<<setprecision(3)<<p->epstime<<endl;
 
     eddyvisc(p,d,pgc,pvrans);
     pflow->turb_relax_nhflow(p,d,pgc,KIN);

@@ -39,7 +39,7 @@ void nhflow_kepsilon_bc::bckepsilon_start(lexer *p, fdm_nhf *d, double *KIN, dou
     wall_law_kin(p,d,KIN,EPS);
         
 	if(gcval==30)
-	wall_law_omega(p,d,KIN,EPS);
+	wall_law_epsilon(p,d,KIN,EPS);
 }
 
 void nhflow_kepsilon_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
@@ -126,7 +126,7 @@ void nhflow_kepsilon_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double 
     }
 }
 
-void nhflow_kepsilon_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_kepsilon_bc::wall_law_epsilon(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
     int check=0;
     
@@ -283,7 +283,7 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         }
 }
 
-void nhflow_kepsilon_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
 	int q;
     int inflow=0;
