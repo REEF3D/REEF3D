@@ -44,7 +44,7 @@ class beam
 {
 public:
 	
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
     typedef Eigen::Matrix<double,4,Eigen::Dynamic> Matrix4Xd;
