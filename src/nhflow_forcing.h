@@ -45,7 +45,7 @@ class nhflow_momentum_func;
 
 using namespace std;
 
-class nhflow_forcing : public nhflow_geometry, private vtp3D
+class nhflow_forcing : public nhflow_geometry
 {
 public:
 	nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
