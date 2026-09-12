@@ -2960,7 +2960,7 @@
           <File Name="reduction_FD.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sandslide">
-          <File Name="sandslide_weighted-multidir.cpp"/>
+          <File Name="sandslide_weighted_multidir.cpp"/>
           <File Name="sandslide_steepest_descent.cpp"/>
           <File Name="sandslide_f2.cpp"/>
           <File Name="sandslide_v.cpp"/>
