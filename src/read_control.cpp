@@ -2247,16 +2247,10 @@ void control::read_control(lexer* p)
                 case 31: control>>T31;
                          clear(c,numint);
                          break;
-                case 32: control>>T32;
-                         clear(c,numint);
-                         break;
                 case 33: control>>T33;
                          clear(c,numint);
                          break;
                 case 34: control>>T34;
-                         clear(c,numint);
-                         break;
-                case 35: control>>T35;
                          clear(c,numint);
                          break;
                 case 36: control>>T36;

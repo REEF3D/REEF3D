@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "control.h"
+#include<math.h>
 
 void control::ini_default()
 {
@@ -831,11 +832,9 @@ void control::ini_default()
 	T12=5;              // int convection scheme
     T21=0;              // int type of LES filter
     T23=1.0;            // double URANS C3 coefficient
-	T31=0.816;	        // double factor for limiter for eddy limiter in phase 1
-	T32=0.816;	        // double factor for limiter for eddy limiter in phase 2
+	T31=1.0/sqrt(3.0);  // double factor for limiter for eddy limiter
     T33=0;               // int kin source
     T34=1;               // int eddyv limiter
-	T35=0.212; 			// double factor for limiter for eddy limiter near wall
 	T36=0;				// int explciti free surface dampong through dissipation
 	T37=0.07;		    // int damping coefficient for T36
     T38=1.6;            // double epsi fsf turbulence damping

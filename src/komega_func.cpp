@@ -98,53 +98,13 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         if(p->T34==1)
 		LOOP
 		{
-            epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
 
-            if(p->j_dir==0)
-            epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-        
-			if(a->phi(i,j,k)>epsi)
-			H=1.0;
-
-			if(a->phi(i,j,k)<-epsi)
-			H=0.0;
-
-			if(fabs(a->phi(i,j,k))<=epsi)
-			H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-			
-			factor = H*p->T31 + (1.0-H)*p->T32;
 			
 		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(factor*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
 						  0.0001*a->visc(i,j,k));
 		}
 		
-        if(p->T34==1)
-        {
-		GC4LOOP
-		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
-		{
-		i = p->gcb4[n][0];
-		j = p->gcb4[n][1];
-		k = p->gcb4[n][2];
-		
-		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
-						  0.0001*a->visc(i,j,k));
-		}
-        
-        GCDF4LOOP
-		{
-		i = p->gcdf4[n][0];
-		j = p->gcdf4[n][1];
-		k = p->gcdf4[n][2];
-		
-		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
-						  0.0001*a->visc(i,j,k));
-		}
-        }
-	
     
     // URANS
 	if(p->T10==22)
@@ -164,7 +124,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     if(p->T34==1)
     eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
-                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T35*kin(i,j,k))/strainterm(p,a)),
+                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
 						  0.0001*a->visc(i,j,k));
     }
     

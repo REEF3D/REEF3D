@@ -1678,14 +1678,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = T31;
     dd++;
-    dctrl[dd] = T32;
-    dd++;
     ictrl[ii] = T33;
     ii++;
     ictrl[ii] = T34;
     ii++;
-    dctrl[dd] = T35;
-    dd++;
     ictrl[ii] = T36;
     ii++;
     dctrl[dd] = T37;

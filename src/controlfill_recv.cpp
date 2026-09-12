@@ -1669,14 +1669,10 @@ void control::ctrlrecv()
     dd++;
     T31 = dctrl[dd];
     dd++;
-    T32 = dctrl[dd];
-    dd++;
     T33 = ictrl[ii];
     ii++;
     T34 = ictrl[ii];
     ii++;
-    T35 = dctrl[dd];
-    dd++;
     T36 = ictrl[ii];
     ii++;
     T37 = dctrl[dd];
