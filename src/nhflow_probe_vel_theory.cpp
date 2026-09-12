@@ -50,7 +50,7 @@ nhflow_probe_vel_theory::nhflow_probe_vel_theory(lexer *p, fdm_nhf *d) : probenu
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		sprintf(name,"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Vel-Probe-Theory-%i.dat",n+1);
+		snprintf(name,sizeof(name),"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Vel-Probe-Theory-%i.dat",n+1);
 		
 		pout[n].open(name);
         

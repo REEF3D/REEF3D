@@ -160,7 +160,7 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
         cout<<"6DOF PTO limits: Fmax "<<pto_.Fmax<<" N  Pmax "<<pto_.Pmax<<" W"<<endl;
 
         char str[1000];
-        sprintf(str,"%s/REEF3D_6DOF_pto_%i.dat",sixdof_output_dir(p),n6DOF);
+        snprintf(str,sizeof(str),"%s/REEF3D_6DOF_pto_%i.dat",sixdof_output_dir(p),n6DOF);
 
         // a restart from a checkpoint (I 45 1) continues the file
         if(reefckpt_open(printpto,str,p->I45))

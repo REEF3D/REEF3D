@@ -47,7 +47,7 @@ void vrans_nhflow_f::print_force_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
     {
     // open force surf file
-	sprintf(name,"./REEF3D_NHFLOW_VRANS_Force/REEF3D_VRANS_NHFLOW_Force.dat");
+	snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VRANS_Force/REEF3D_VRANS_NHFLOW_Force.dat");
 	
 	fout.open(name);
 

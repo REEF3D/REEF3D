@@ -269,7 +269,7 @@ void sflow_print_max::write_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
     offset[n]=offset[n-1]+sizeof(int)*p->polygon_sum+sizeof(int);
     ++n;
 
-    sprintf(name,"./REEF3D_SFLOW_MAX/REEF3D-SFLOW-MAX-%06i.vtp",p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_MAX/REEF3D-SFLOW-MAX-%06i.vtp",p->mpirank+1);
     ofstream result;
     result.open(name, ios::binary);
 
@@ -356,7 +356,7 @@ void sflow_print_max::write_vtp(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_print_max::write_pvtp(lexer *p)
 {
-    sprintf(name,"./REEF3D_SFLOW_MAX/REEF3D-SFLOW-MAX.pvtp");
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_MAX/REEF3D-SFLOW-MAX.pvtp");
 
     ofstream result;
     result.open(name);
@@ -374,7 +374,7 @@ void sflow_print_max::write_pvtp(lexer *p)
     char pname[200];
     for(int n=0; n<p->M10; ++n)
     {
-    sprintf(pname,"REEF3D-SFLOW-MAX-%06i.vtp",n+1);
+    snprintf(pname,sizeof(pname),"REEF3D-SFLOW-MAX-%06i.vtp",n+1);
     result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

@@ -60,13 +60,13 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
 
     // position
     if(p->A10==2)
-    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
     
     if((p->A10==5||p->A10==3))
-    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"),n6DOF);
+    snprintf(str,sizeof(str),(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"),n6DOF);
     
     if(p->A10==6)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
 	
     const bool printpos_new = reefckpt_open(printpos,str,p->I45);
     {
@@ -81,13 +81,13 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
     
     // velocity
     if(p->A10==2)
-    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
     
     if((p->A10==5||p->A10==3))
-    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"),n6DOF);
+    snprintf(str,sizeof(str),(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"),n6DOF);
     
     if(p->A10==6)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
 	
     const bool printvel_new = reefckpt_open(printvel,str,p->I45);
     {
@@ -101,13 +101,13 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
 
     // force
     if(p->A10==2)
-    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
     
     if((p->A10==5||p->A10==3))
-    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"),n6DOF);
+    snprintf(str,sizeof(str),(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"),n6DOF);
     
     if(p->A10==6)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
     const bool printforce_new = reefckpt_open(printforce,str,p->I45);
     {
@@ -164,13 +164,13 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
     char str[1000];
     
     if(p->A10==2)
-    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
     
     if((p->A10==5||p->A10==3))
-    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"),n6DOF);
+    snprintf(str,sizeof(str),(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_position_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_position_%i.dat"),n6DOF);
     
     if(p->A10==6)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat",n6DOF);
 	
     if(reefckpt_open(print,str,p->I45))
 	print<<"time \t XG \t YG \t ZG \t Phi \t Theta \t Psi"<<endl;
@@ -179,13 +179,13 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
 
 
     if(p->A10==2)
-    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
     
     if((p->A10==5||p->A10==3))
-    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"),n6DOF);
+    snprintf(str,sizeof(str),(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_velocity_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_velocity_%i.dat"),n6DOF);
     
     if(p->A10==6)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat",n6DOF);
 	
     if(reefckpt_open(print,str,p->I45))
 	print<<"time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]"<<endl;
@@ -194,13 +194,13 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
 
     
     if(p->A10==2)
-    sprintf(str,"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_SFLOW_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
     
     if((p->A10==5||p->A10==3))
-    sprintf(str,(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"),n6DOF);
+    snprintf(str,sizeof(str),(p->A10==3?"./REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_%i.dat":"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_%i.dat"),n6DOF);
     
     if(p->A10==6)
-    sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat",n6DOF);
 	
     if(reefckpt_open(print,str,p->I45))
 	print<<"time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v"<<endl;

@@ -134,7 +134,7 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum+sizeof(int);
     ++n;
 
-    sprintf(name,"./REEF3D_SEASTATE_VTP/REEF3D-SEASTATE-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_SEASTATE_VTP/REEF3D-SEASTATE-%08i-%06i.vtp",num,p->mpirank+1);
     ofstream result;
     result.open(name, ios::binary);
 
@@ -252,7 +252,7 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
 
 void seastate_vtp::pvtp(lexer *p, int num)
 {
-    sprintf(name,"./REEF3D_SEASTATE_VTP/REEF3D-SEASTATE-%08i.pvtp",num);
+    snprintf(name,sizeof(name),"./REEF3D_SEASTATE_VTP/REEF3D-SEASTATE-%08i.pvtp",num);
 
     ofstream result;
     result.open(name);
@@ -271,7 +271,7 @@ void seastate_vtp::pvtp(lexer *p, int num)
     char pname[200];
     for(n=0; n<p->M10; ++n)
     {
-    sprintf(pname,"REEF3D-SEASTATE-%08i-%06i.vtp",num,n+1);
+    snprintf(pname,sizeof(pname),"REEF3D-SEASTATE-%08i-%06i.vtp",num,n+1);
     result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

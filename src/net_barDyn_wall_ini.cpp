@@ -503,7 +503,7 @@ void net_barDyn::wall_ini(lexer *p, ghostcell *pgc)
             char str[1000];
             
             // the file print() continues (as for the other nets, also with NHFLOW)
-            sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             
             ofstream header_out;
             if(reefckpt_open(header_out,str,p->I45))   // I 45: continued from the checkpoint
@@ -522,7 +522,7 @@ void net_barDyn::wall_ini(lexer *p, ghostcell *pgc)
         char str[1000];
         
         // the file print() continues (as for the other nets, also with NHFLOW)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         
         ofstream header_out;
         if(reefckpt_open(header_out,str,p->I45))   // I 45: continued from the checkpoint
