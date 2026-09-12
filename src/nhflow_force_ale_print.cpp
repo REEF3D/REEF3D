@@ -42,7 +42,7 @@ void nhflow_force_ale::print_ini(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
     {
         // open force_ale file
-        sprintf(name,"./REEF3D_NHFLOW_Force_ALE/REEF3D_NHFLOW_ALE_Force-%i.dat",ID+1);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_Force_ALE/REEF3D_NHFLOW_ALE_Force-%i.dat",ID+1);
         
         fout.open(name);
 

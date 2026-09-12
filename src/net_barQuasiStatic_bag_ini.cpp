@@ -129,10 +129,10 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
         char str[1000];
         
         if(p->A10==5)
-        sprintf(str,"./REEF3D_NHFLOW_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_NHFLOW_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
         
         if(p->A10==6)
-        sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
         
         if(reefckpt_open(eTout,str,p->I45))   // I 45: continued from the checkpoint
         {
