@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class bedload_direction_f : public bedload_direction, public increment
+class bedload_direction_f : public bedload_direction
 {
 public:
 

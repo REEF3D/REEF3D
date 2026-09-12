@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_solitary_1st final : public wave_lib_precalc, public wave_lib_parameters, public increment
+class wave_lib_solitary_1st final : public wave_lib_precalc, public wave_lib_parameters
 {
 public:
     int wave_lexer_fields() const override {return 0;}
