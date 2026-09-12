@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 void nhflow_force::pvtp(lexer *p, int num)
 {
-    sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i.pvtp",ID,num);
 
     ofstream result;
     result.open(name);
@@ -42,7 +42,7 @@ void nhflow_force::pvtp(lexer *p, int num)
     char pname[100];
     for(n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
+        snprintf(pname,sizeof(pname),"REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

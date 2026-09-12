@@ -60,7 +60,7 @@ void nhflow_force::print_vtp(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
         pvtp(p,num);
 
-    sprintf(name,"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_SOLID/REEF3D-NHFLOW-SOLID-%i-%08i-%06i.vtp",ID,num,p->mpirank+1);
 
     ofstream result;
     result.open(name, ios::binary);

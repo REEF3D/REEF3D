@@ -37,7 +37,7 @@ void fnpf_runup::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
     if(p->mpirank==0)
     {
         // open fnpf_runup file
-        sprintf(name,"./REEF3D_FNPF_Runup/REEF3D_Runup-%i.dat",ID+1);
+        snprintf(name,sizeof(name),"./REEF3D_FNPF_Runup/REEF3D_Runup-%i.dat",ID+1);
         
         fout.open(name);
 

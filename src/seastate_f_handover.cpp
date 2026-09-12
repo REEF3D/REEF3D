@@ -121,11 +121,11 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     j = cj;
 
     char name[256];
-    sprintf(name,"./REEF3D_SEASTATE_Spectra/spectrum-file-2d_P%i.dat",n+1);
+    snprintf(name,sizeof(name),"./REEF3D_SEASTATE_Spectra/spectrum-file-2d_P%i.dat",n+1);
     ofstream out(name);
 
     char iname[256];
-    sprintf(iname,"./REEF3D_SEASTATE_Spectra/seastate-wavegen_P%i.txt",n+1);
+    snprintf(iname,sizeof(iname),"./REEF3D_SEASTATE_Spectra/seastate-wavegen_P%i.txt",n+1);
     ofstream info(iname);
 
         if(ee->wet(i,j)==0 || ee->N->spec(i,j)==nullptr)

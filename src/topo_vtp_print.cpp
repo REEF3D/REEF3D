@@ -82,7 +82,7 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     ++n;
     //---------------------------------------------
 
-    sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i-%06i.vtp",num,p->mpirank+1);
 
     ofstream result;
     result.open(name, ios::binary);

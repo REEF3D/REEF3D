@@ -80,10 +80,10 @@ void net_barQuasiStatic::print(lexer *p)
 		printtime+=p->P30;
 		
         if(p->A10==5)
-		sprintf(name,"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+		snprintf(name,sizeof(name),"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
         
         if(p->A10==6)
-		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
+		snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 
 		// Tension forces

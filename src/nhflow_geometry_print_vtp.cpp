@@ -42,14 +42,14 @@ void nhflow_geometry::print_vtp(lexer *p, int mode)
     {
     mkdir("./REEF3D_NHFLOW_FORCING_VTP", 0777);
 
-    sprintf(path,"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp");
+    snprintf(path,sizeof(path),"./REEF3D_NHFLOW_FORCING_VTP/REEF3D-NHFLOW-FORCING.vtp");
     }
     
     if(mode==2)
     {
     mkdir("./REEF3D_NHFLOW_VRANS_VTP", 0777);
 
-    sprintf(path,"./REEF3D_NHFLOW_VRANS_VTP/REEF3D-NHFLOW-VRANS.vtp");
+    snprintf(path,sizeof(path),"./REEF3D_NHFLOW_VRANS_VTP/REEF3D-NHFLOW-VRANS.vtp");
     }
 
     std::ofstream result;

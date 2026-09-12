@@ -188,7 +188,7 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		if(p->mpirank==0)
 		{
 			// open file
-			sprintf(name,"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%08i.dat",n+1,num);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_ProbeLine/REEF3D-CFD-probeline-%i-%08i.dat",n+1,num);
 
 
 			

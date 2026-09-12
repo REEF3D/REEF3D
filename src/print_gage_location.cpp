@@ -41,7 +41,7 @@ void print_gage_location::print_wsf_gage_location(lexer *p)
 	mkdir("./REEF3D_Log-Probes",0777);
     
 
-    sprintf(name,"./REEF3D_Log-Probes/REEF3D_wsf_gage_location.vtu");
+    snprintf(name,sizeof(name),"./REEF3D_Log-Probes/REEF3D_wsf_gage_location.vtu");
     
     
 
