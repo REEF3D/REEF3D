@@ -1056,7 +1056,7 @@ void VOF_PLIC::calcNormalMYC3D_V2(fdm* a,lexer* p, field& voffield)
            +voffield(i-1,j-1,k-1)*p->DZN[KM1]+voffield(i-1,j-1,k)*p->DZN[KP]+voffield(i-1,j-1,k+1)*p->DZN[KP1]
            +voffield(i+1,j-1,k-1)*p->DZN[KM1]+voffield(i+1,j-1,k)*p->DZN[KP]+voffield(i+1,j-1,k+1)*p->DZN[KP1];
            
-    zsum_yp=voffield(i,j+1,k-1)*p->DZN[KM1]+voffield(i,j+1,k)*p->DZN[KP]+voffield(i,j+1,k+1)*p->DZN[KP1];
+    zsum_yp=voffield(i,j+1,k-1)*p->DZN[KM1]+voffield(i,j+1,k)*p->DZN[KP]+voffield(i,j+1,k+1)*p->DZN[KP1]
            +voffield(i-1,j+1,k-1)*p->DZN[KM1]+voffield(i-1,j+1,k)*p->DZN[KP]+voffield(i-1,j+1,k+1)*p->DZN[KP1]
            +voffield(i+1,j+1,k-1)*p->DZN[KM1]+voffield(i+1,j+1,k)*p->DZN[KP]+voffield(i+1,j+1,k+1)*p->DZN[KP1];
            
