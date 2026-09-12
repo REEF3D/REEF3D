@@ -144,7 +144,7 @@ void nhflow_timeavg_vel_profile::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(time_accum[n]<=0.0)
             continue;
 
-        sprintf(name,"./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE/REEF3D-NHFLOW-TimeAvgVelProfile-%i-%i.dat",n+1,p->count);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_TIME_AVG_VEL_PROFILE/REEF3D-NHFLOW-TimeAvgVelProfile-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
         pout[n]<<"TIME-AVG-VEL-Profile ID:  "<<n+1<<"\n\n"

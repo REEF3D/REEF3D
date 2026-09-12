@@ -39,7 +39,7 @@ void sixdof_geometry::read_stl(lexer *p, ghostcell *pgc)
     else
     {
         char str[1000];
-        sprintf(str,"floating-%i.stl",id);
+        snprintf(str,sizeof(str),"floating-%i.stl",id);
 	    stl.open(str, ios_base::in);
     }
     
@@ -87,7 +87,7 @@ void sixdof_geometry::read_stl(lexer *p, ghostcell *pgc)
     else
     {
         char str[1000];
-        sprintf(str,"floating-%i.stl",id);
+        snprintf(str,sizeof(str),"floating-%i.stl",id);
 	    stl.open(str, ios_base::in);
     }
 	

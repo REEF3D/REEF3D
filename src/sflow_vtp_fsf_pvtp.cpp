@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed, int num)
 {
-    sprintf(name,"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i.pvtp",num);
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i.pvtp",num);
 
     ofstream result;
     result.open(name);
@@ -57,7 +57,7 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
     char pname[200];
     for(n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
+        snprintf(pname,sizeof(pname),"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

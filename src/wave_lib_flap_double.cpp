@@ -178,7 +178,7 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
     double sign1,sign2;
 	int count;
 	
-	sprintf(name,"wavemaker.dat");
+	snprintf(name,sizeof(name),"wavemaker.dat");
 
 // open file------------
 	ifstream file(name, ios_base::in);

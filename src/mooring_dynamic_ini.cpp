@@ -71,7 +71,7 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 	if(p->mpirank==0)
 	{
 		char str[1000];
-		sprintf(str,"%s/REEF3D_6DOF_mooring_force_%i.dat",sixdof_output_dir(p),line);
+		snprintf(str,sizeof(str),"%s/REEF3D_6DOF_mooring_force_%i.dat",sixdof_output_dir(p),line);
 		eTout.open(str);
 		eTout<<"time \t T"<<endl;
 	}

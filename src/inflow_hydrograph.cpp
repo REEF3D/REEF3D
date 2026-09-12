@@ -53,7 +53,7 @@ void ioflow_f::hydrograph_in_read(lexer *p, ghostcell* pgc)
 	double val;
 	int count;
 	
-	sprintf(name,"hydrograph.dat");
+	snprintf(name,sizeof(name),"hydrograph.dat");
 
 // open file------------
 	ifstream hg(name, ios_base::in);
@@ -91,7 +91,7 @@ void ioflow_f::hydrograph_out_read(lexer *p, ghostcell* pgc)
 	double val;
 	int count;
 	
-	sprintf(name,"hydrograph_out.dat");
+	snprintf(name,sizeof(name),"hydrograph_out.dat");
 
 // open file------------
 	ifstream hg(name, ios_base::in);

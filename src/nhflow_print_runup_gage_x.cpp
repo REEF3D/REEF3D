@@ -52,7 +52,7 @@ nhflow_print_runup_gage_x::nhflow_print_runup_gage_x(lexer *p, fdm_nhf *d, ghost
     if(p->mpirank==0)
     {
 		// open file
-		sprintf(name,"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
+		snprintf(name,sizeof(name),"./REEF3D_NHFLOW_RUNUP/REEF3D-NHFLOW-runup-x.dat");
 
 		wsfout.open(name);
 

@@ -29,7 +29,7 @@ Author: Hans Bihs
 void CPM::pvtp(lexer* p, int num)
 {
     char name[100];
-    sprintf(name,"./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i.pvtp",num);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_CPM_Particle/REEF3D-Particle-%08i.pvtp",num);
 
     std::ofstream result;
     result.open(name);
@@ -51,7 +51,7 @@ void CPM::pvtp(lexer* p, int num)
     char pname[100];
     for(int n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-Particle-%08i-%06i.vtp",printcount,n+1);
+        snprintf(pname,sizeof(pname),"REEF3D-Particle-%08i-%06i.vtp",printcount,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

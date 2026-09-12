@@ -121,13 +121,13 @@ void sixdof_obj::print_stl(lexer *p, ghostcell *pgc)
         char path[300];
         
         if(p->A10==2)
-        sprintf(path,"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+        snprintf(path,sizeof(path),"./REEF3D_SFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
         
         if((p->A10==5||p->A10==3))
-        sprintf(path,(p->A10==3?"./REEF3D_FNPF_6DOF_STL/REEF3D-6DOF-%i-%06i.stl":"./REEF3D_NHFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl"),n6DOF,num);
+        snprintf(path,sizeof(path),(p->A10==3?"./REEF3D_FNPF_6DOF_STL/REEF3D-6DOF-%i-%06i.stl":"./REEF3D_NHFLOW_6DOF_STL/REEF3D-6DOF-%i-%06i.stl"),n6DOF,num);
         
         if(p->A10==6)
-        sprintf(path,"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_6DOF_STL/REEF3D-6DOF-%i-%06i.stl",n6DOF,num);
 
 
         ofstream result;

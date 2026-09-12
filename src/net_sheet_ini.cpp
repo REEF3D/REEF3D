@@ -330,7 +330,7 @@ void net_sheet::ini(lexer *p, ghostcell *pgc)
         if(p->mpirank==0)
         {
             char str[1000];
-            sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             ofstream header_out;
             header_out.open(str);
             header_out<<"Knot point probe located near ("<<ppI.transpose()<<")"<<endl;
@@ -343,7 +343,7 @@ void net_sheet::ini(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         char str[1000];
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
         header_out.open(str);
         header_out<<"time [s] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
