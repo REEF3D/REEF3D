@@ -307,6 +307,7 @@
             <File Name="fluid_update.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Diffusion">
+            <File Name="ediff2_2D.h"/>
             <File Name="idiff2_PLIC.h"/>
             <File Name="idiff2_PLIC_2D.h"/>
             <File Name="idiff2_FS_2D.h"/>
@@ -1436,6 +1437,7 @@
             <File Name="fluid_update_fsf.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Diffusion">
+            <File Name="ediff2_2D.cpp"/>
             <File Name="idiff2_PLIC-scalar.cpp"/>
             <File Name="idiff2_PLICu.cpp"/>
             <File Name="idiff2_PLICv.cpp"/>

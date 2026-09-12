@@ -344,7 +344,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 
         if(p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==2)
         {
-            f[Ip1JK] = MAX(0.0,f[IJK]);
+            f[Ip1JK] = MAX(0.0,f[IJK] - p->dt/p->DXP[IP]*p->Uo*(f[IJK]-f[Im1JK]));
             f[Ip2JK] = MAX(0.0,f[IJK]);
             f[Ip3JK] = MAX(0.0,f[IJK]);
         }

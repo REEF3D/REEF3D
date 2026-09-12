@@ -62,7 +62,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	{
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {  
-            visc_IP = d->VISC[IJK] + d->EV[IJK] + d->vb(i,j);
+            visc_IP = d->VISC[IJK] + d->EV[IJK];
             
             visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK] + d->vb(i-1,j));
             visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK] + d->vb(i+1,j));
@@ -72,6 +72,20 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             
             visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i,j));
             visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i,j));
+            
+            if(k==p->knoz-1)
+            {
+            visc_IP +=  d->vb(i,j);
+            
+            visc_IM1 += 0.5*(d->vb(i,j) + d->vb(i-1,j));
+            visc_IP1 += 0.5*(d->vb(i,j) + d->vb(i+1,j));
+            
+            visc_JM1 += 0.5*(d->vb(i,j) + d->vb(i,j-1));
+            visc_JP1 += 0.5*(d->vb(i,j) + d->vb(i,j+1));
+            
+            visc_KM1 += d->vb(i,j);
+            visc_KP1 += d->vb(i,j);
+            }
             
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             

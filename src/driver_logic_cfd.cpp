@@ -328,8 +328,11 @@ void driver::logic_cfd()
 	if(p->D20==0)
 	pdiff=new diff_void;
 
-	if(p->D20==1)
+	if(p->D20==1 && p->j_dir==1)
 	pdiff=new ediff2(p);
+    
+    if(p->D20==1 && p->j_dir==0)
+	pdiff=new ediff2_2D(p);
 
 	if(p->D20==2 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
