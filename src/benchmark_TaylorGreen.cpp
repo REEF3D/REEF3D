@@ -186,22 +186,22 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			{
 			
 			if(numberi<10)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-00000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-00000%d.dat",numberi,p->mpirank);
 
 			if(numberi<100&&numberi>9)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-0000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-0000%d.dat",numberi,p->mpirank);
 
 			if(numberi<1000&&numberi>99)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-000%d.dat",numberi,p->mpirank);
 
 			if(numberi<10000&&numberi>999)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-00%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-00%d.dat",numberi,p->mpirank);
 
 			if(numberi<100000&&numberi>9999)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-0%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-0%d.dat",numberi,p->mpirank);
 
 			if(numberi>99999)
-			sprintf(name,"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Growth_Ratio/REEF3D_CFD_Gr_Ra-%d-%d.dat",numberi,p->mpirank);
 			
 			
 			printdata.open(name);
@@ -261,22 +261,22 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			{
 			
 			if(numberi<10)
-			sprintf(name,"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00000%d.dat",numberi,p->mpirank);
 
 			if(numberi<100&&numberi>9)
-			sprintf(name,"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0000%d.dat",numberi,p->mpirank);
 
 			if(numberi<1000&&numberi>99)
-			sprintf(name,"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-000%d.dat",numberi,p->mpirank);
 
 			if(numberi<10000&&numberi>999)
-			sprintf(name,"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00%d.dat",numberi,p->mpirank);
 
 			if(numberi<100000&&numberi>9999)
-			sprintf(name,"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0%d.dat",numberi,p->mpirank);
 
 			if(numberi>99999)
-			sprintf(name,"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-%d.dat",numberi,p->mpirank);
 			
 			
 			printdata.open(name);
@@ -339,22 +339,22 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			{
 			
 			if(numberi<10)
-			sprintf(name,"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00000%d.dat",numberi,p->mpirank);
 
 			if(numberi<100&&numberi>9)
-			sprintf(name,"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0000%d.dat",numberi,p->mpirank);
 
 			if(numberi<1000&&numberi>99)
-			sprintf(name,"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-000%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-000%d.dat",numberi,p->mpirank);
 
 			if(numberi<10000&&numberi>999)
-			sprintf(name,"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00%d.dat",numberi,p->mpirank);
 
 			if(numberi<100000&&numberi>9999)
-			sprintf(name,"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0%d.dat",numberi,p->mpirank);
 
 			if(numberi>99999)
-			sprintf(name,"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-%d.dat",numberi,p->mpirank);
+			snprintf(name,sizeof(name),"./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-%d.dat",numberi,p->mpirank);
 			
 			
 			printpos.open(name);

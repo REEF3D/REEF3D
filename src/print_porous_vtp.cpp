@@ -32,7 +32,7 @@ void print_porous::print_vtp(lexer *p)
         mkdir("./REEF3D_CFD_Porous",0777);
 
     char name[100];
-    sprintf(name,"./REEF3D_CFD_Porous/REEF3D_Porous-Object.vtp");
+    snprintf(name,sizeof(name),"./REEF3D_CFD_Porous/REEF3D_Porous-Object.vtp");
 
     ofstream result;
     result.open(name, ios::binary);

@@ -37,7 +37,7 @@ void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"6DOF_motion piston wavemaker "<<endl;
     
-	sprintf(name,"wavemaker.dat");
+	snprintf(name,sizeof(name),"wavemaker.dat");
 
 // open file and count
 	ifstream file(name, ios_base::in);
@@ -108,7 +108,7 @@ void sixdof_obj::read_format_flap_double(lexer *p, ghostcell* pgc)
     double beta,s,sign;
 	int count;
 	
-	sprintf(name,"wavemaker.dat");
+	snprintf(name,sizeof(name),"wavemaker.dat");
 
 // open file------------
 	ifstream file(name, ios_base::in);

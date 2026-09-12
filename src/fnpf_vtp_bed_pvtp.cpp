@@ -27,7 +27,7 @@ Author: Hans Bihs
 void fnpf_vtp_bed::pvtp(lexer *p, int num)
 {
     ofstream result;
-    sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i.pvtp",num);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i.pvtp",num);
     result.open(name);
 
     vtp3D::beginningParallel(p,result);
@@ -42,7 +42,7 @@ void fnpf_vtp_bed::pvtp(lexer *p, int num)
     char pname[200];
     for(n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-FNPF-BED-%08i-%06i.vtp",num,n+1);
+        snprintf(pname,sizeof(pname),"REEF3D-FNPF-BED-%08i-%06i.vtp",num,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
