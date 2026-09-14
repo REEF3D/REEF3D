@@ -246,6 +246,11 @@ void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 
 void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    if(p->A314==1)
+    SLICELOOP4
+    c->K(i,j) =  c->Fz(i,j);
+                 
+    if(p->A314==2)
     SLICELOOP4
     c->K(i,j) =  - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
     
@@ -254,6 +259,11 @@ void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 { 
+    if(p->A314==1)
+    SLICELOOP4
+    c->K(i,j) =   - fabs(p->W22)*eta(i,j);
+                 
+    if(p->A314==2)
     SLICELOOP4
     c->K(i,j) =  - 0.5*c->Fx(i,j)*c->Fx(i,j) - 0.5*c->Fy(i,j)*c->Fy(i,j)
     

@@ -276,7 +276,19 @@ void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 }
 
 void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{    
+{   
+
+    if(p->A314==1)
+    SLICELOOP4
+    {
+    if(p->wet[IJ]==1)
+    c->K(i,j) =  c->Fz(i,j);
+    
+    if(p->wet[IJ]==0)
+    c->K(i,j) = 0.0;
+    }
+                 
+    if(p->A314==2) 
     SLICELOOP4
     {
     if(p->wet[IJ]==1)
@@ -290,7 +302,18 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 }
 
 void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
-{  
+{
+    if(p->A314==1)
+    SLICELOOP4
+    {
+    if(p->wet[IJ]==1)
+    c->K(i,j) =   - fabs(p->W22)*eta(i,j);
+    
+    if(p->wet[IJ]==0)
+    c->K(i,j) = 0.0;
+    }
+                 
+    if(p->A314==2)
     SLICELOOP4
     {
     if(p->wet[IJ]==1)

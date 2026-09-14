@@ -67,6 +67,7 @@ void control::ini_default()
     A311=5;		  // int convection scheme for FNPF velocities
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
+    A314=2;      // int linear/non-linear
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=0;      // int 
