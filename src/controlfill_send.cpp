@@ -1423,6 +1423,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P185;
     ii++;
+    ictrl[ii] = P186;
+    ii++;
     ictrl[ii] = P190;
     ii++;
     ictrl[ii] = P191;
@@ -3500,6 +3502,14 @@ void control::ctrlsend()
         dctrl[dd] = P185_te[n];
         dd++;
         dctrl[dd] = P185_dt[n];
+        dd++;
+    }
+
+    for(n=0;n<P186;++n)
+    {
+        dctrl[dd] = P186_tstart[n];
+        dd++;
+        dctrl[dd] = P186_tend[n];
         dd++;
     }
 
