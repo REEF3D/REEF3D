@@ -154,8 +154,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     
     pgc->start4(p,a->phi,gcval_phi);
     
-    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
-    
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 	// U
@@ -251,12 +249,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
     LOOP
     a->phi(i,j,k) =  frk2(i,j,k);
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    
-    p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,frk2);
     
     pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
     
