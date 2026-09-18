@@ -583,7 +583,7 @@ void control::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
-    N18=0;         //
+    N18=1;         //   int permuting axes for hypre
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
     N23=0;         //  int precondioner switch FNPF

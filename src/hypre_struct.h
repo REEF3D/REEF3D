@@ -64,6 +64,9 @@ public:
 
     void make_grid(lexer*, ghostcell*);
     void make_grid_2Dvert(lexer*, ghostcell*);
+    
+    void make_grid_perm(lexer*, ghostcell*);
+    void make_grid_perm_2Dvert(lexer*, ghostcell*);
 
     void fill_matrix1(lexer*,fdm*, ghostcell*,field&);
     void fill_matrix1_2Dvert(lexer*,fdm*, ghostcell*,field&);
@@ -79,8 +82,13 @@ public:
     void fill_matrix4f_2Dvert(lexer*, ghostcell*,field&, vec&, matrix_diag&);
     void fill_matrix7(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix7_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    
     void fill_matrix8(lexer*, ghostcell*,double*, vec&, matrix_diag&);
     void fill_matrix8_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    
+    void fill_matrix8_perm(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fill_matrix8_perm_2Dvert(lexer*, ghostcell*,double*, vec&, matrix_diag&);
+    void fillbackvec8_perm(lexer*,double*,int);
 
     void fillbackvec1(lexer*,field&,int);
     void fillbackvec2(lexer*,field&,int);

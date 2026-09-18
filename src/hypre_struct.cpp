@@ -40,11 +40,22 @@ hypre_struct::hypre_struct(lexer* p,ghostcell *pgc, int solve_input, int precon_
     p->Iarray(iupper,3);
 
     p->Darray(values,vecsize*7);
-
-    if(p->j_dir==1)
-    make_grid(p,pgc);
-    else
-    make_grid_2Dvert(p,pgc);
+    
+    if(p->N18==1)
+    {
+        if(p->j_dir==1)
+        make_grid(p,pgc);
+        else
+        make_grid_2Dvert(p,pgc);
+    }
+    
+    if(p->N18==2)
+    {
+        if(p->j_dir==1)
+        make_grid_perm(p,pgc);
+        else
+        make_grid_perm_2Dvert(p,pgc);
+    }
 
 
     solve_type = solve_input;
@@ -287,10 +298,21 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 
     starttime=pgc->timer();
 
-    if(p->j_dir)
-    fill_matrix8(p,pgc,f,rhs,M);
-    else
-    fill_matrix8_2Dvert(p,pgc,f,rhs,M);
+    if(p->N18==1)
+    {
+        if(p->j_dir)
+        fill_matrix8(p,pgc,f,rhs,M);
+        else
+        fill_matrix8_2Dvert(p,pgc,f,rhs,M);
+    }
+    
+    if(p->N18==2)
+    {
+        if(p->j_dir)
+        fill_matrix8_perm(p,pgc,f,rhs,M);
+        else
+        fill_matrix8_perm_2Dvert(p,pgc,f,rhs,M);
+    }
 
     p->matrixtime+=pgc->timer()-starttime;
 
@@ -298,8 +320,12 @@ void hypre_struct::start_solver8(lexer* p, ghostcell* pgc, double *f, vec& rhs, 
 
     p->solveriter=num_iterations;
     p->final_res = final_res_norm;
-
+    
+    if(p->N18==1)
     fillbackvec8(p,f,var);
+    
+    if(p->N18==2)
+    fillbackvec8_perm(p,f,var);
 
     delete_solver5(p,pgc);
 

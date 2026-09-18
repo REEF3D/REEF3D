@@ -154,3 +154,135 @@ void hypre_struct::fillbackvec8(lexer *p, double *f, int var)
         ++count;
     }
 }
+
+
+// Perm
+
+
+void hypre_struct::fill_matrix8_perm(lexer* p, ghostcell* pgc, double *f, vec &rhs, matrix_diag &M)
+{
+    count=0;
+    LOOP
+    {
+        CVAL4[IJK]=count;
+        ++count;
+    }
+
+    nentries=7;
+
+    for (j = 0; j < nentries; j++)
+    stencil_indices[j] = j;
+
+    count=0;
+    LOOP
+    {
+        FPWDCHECK
+        {
+            n=CVAL4[IJK];
+
+            values[count]=M.p[n];
+            ++count;
+
+            values[count]=M.b[n];
+            ++count;
+
+            values[count]=M.t[n];
+            ++count;
+
+            values[count]=M.e[n];
+            ++count;
+
+            values[count]=M.w[n];
+            ++count;
+
+            values[count]=M.s[n];
+            ++count;
+
+            values[count]=M.n[n];
+            ++count;
+        }
+
+        FSWDCHECK
+        {
+            values[count]=1.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+
+            values[count]=0.0;
+            ++count;
+        }
+    }
+
+    HYPRE_StructMatrixSetBoxValues(A, ilower, iupper, nentries, stencil_indices, values);
+    HYPRE_StructMatrixAssemble(A);
+
+    // vec
+    count=0;
+    LOOP
+    {
+        FPWDCHECK
+        {
+            values[count] = f[FIJK];
+
+            if(values[count] != values[count])
+            p->solver_error=1;
+        }
+
+        FSWDCHECK
+        values[count] = 0.0;
+
+        ++count;
+    }
+
+    HYPRE_StructVectorSetBoxValues(x, ilower, iupper, values);
+    HYPRE_StructVectorAssemble(x);
+
+    count=0;
+    LOOP
+    {
+        FPWDCHECK
+        {
+            n=CVAL4[IJK];
+            values[count] = rhs.V[n];
+
+            if(values[count] != values[count])
+            p->solver_error=1;
+        }
+
+        FSWDCHECK
+        values[count] = 0.0;
+
+        ++count;
+    }
+
+    HYPRE_StructVectorSetBoxValues(b, ilower, iupper, values);
+    HYPRE_StructVectorAssemble(b);
+}
+
+void hypre_struct::fillbackvec8_perm(lexer *p, double *f, int var)
+{
+    HYPRE_StructVectorGetBoxValues(x, ilower, iupper, values);
+
+    count=0;
+    LOOP
+    {
+        FPWDCHECK
+        f[FIJK]=values[count];
+
+        ++count;
+    }
+}
