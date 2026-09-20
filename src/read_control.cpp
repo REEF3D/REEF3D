@@ -1509,6 +1509,15 @@ void control::read_control(lexer* p)
                 case 11: control>>N11;
                          clear(c,numint);
                          break;
+                case 12: control>>N12;
+                         clear(c,numint);
+                         break;
+                case 13: control>>N13;
+                         clear(c,numint);
+                         break;
+                case 14: control>>N14;
+                         clear(c,numint);
+                         break;
                 case 18: control>>N18;
                          clear(c,numint);
                          break;

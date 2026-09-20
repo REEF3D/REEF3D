@@ -583,6 +583,9 @@ void control::ini_default()
     // Numerics
 	N10=14;			// int linear poisson solver
 	N11=11;         // int precondioner
+    N12=1;         //  int SCMG multigrid setup interval
+    N13=0;         //  int SCMG max number of coarse levels, 0: automatic
+    N14=0;         //  int SCMG solver protocol
     N18=1;         //   int permuting axes for hypre
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW

@@ -41,6 +41,10 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="MG">
+        <File Name="semicoarsen_fnpf.h"/>
+        <File Name="semicoarsen_core.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.h"/>
       </VirtualDirectory>
@@ -1224,6 +1228,10 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Solver">
+      <VirtualDirectory Name="MG">
+        <File Name="semicoarsen_fnpf.cpp"/>
+        <File Name="semicoarsen_core.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>
       </VirtualDirectory>
