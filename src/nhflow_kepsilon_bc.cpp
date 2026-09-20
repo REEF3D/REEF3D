@@ -183,10 +183,10 @@ void nhflow_kepsilon_bc::wall_law_epsilon(lexer *p, fdm_nhf *d, double *KIN, dou
             eps_star = (pow(p->cmu, 0.75)*pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),1.5)) / (0.4*dist);
             
 
-            EPS[IJK] = eps_star;
+            //EPS[IJK] = eps_star;
             
-            //d->M.p[count] += 1.0e20;
-            //d->rhsvec.V[count] += eps_star*1.0e20;
+            d->M.p[count] += 1.0e20;
+            d->rhsvec.V[count] += eps_star*1.0e20;
             }
             
         
