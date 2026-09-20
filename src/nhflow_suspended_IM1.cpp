@@ -80,12 +80,20 @@ void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
+    double ws_eff,nval,Re_p;
+    
+    Re_p = s->ws*p->S20/p->W2;
+    nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
+    
     LOOP
     {
     WVEL[IJK] = 0.0;
     
     if(p->DF[IJK]>0 && p->wet[IJ]==1)
-    WVEL[IJK] = d->W[IJK] - s->ws;
+    {
+    ws_eff = s->ws * pow(MAX(1.0 - d->CONC[IJK]/0.635, 0.0), nval);
+    WVEL[IJK] = d->W[IJK] - ws_eff;
+    }
     }
     
     pgc->start4V(p,WVEL,12);
@@ -101,7 +109,8 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
         if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1)
         {
         zdist = p->DZN[KP]*d->WL(i,j);
-        d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
+        d->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;
+        d->M.p[count] += (s->ws)/zdist;
         }
         
         /*

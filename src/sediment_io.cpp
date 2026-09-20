@@ -75,11 +75,13 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     k=s->bedk(i,j);
     
     s->ro(i,j) = a->ro(i,j,k);
+    s->waterlevel(i,j) = a->WL(i,j);
     }
     
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
     pgc->gcsl_start4(p,s->ro,1);
+    pgc->gcsl_start4(p,s->waterlevel,1);
 }
 
 void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -92,8 +94,12 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP2
     s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
     
+    SLICELOOP4
+    s->waterlevel(i,j) = d->WL(i,j);
+    
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);  
+    pgc->gcsl_start4(p,s->waterlevel,1);
 }
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)

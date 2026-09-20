@@ -82,8 +82,17 @@ void suspended_IM1::ctimesave(lexer *p, fdm* a)
 
 void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
+    double ws_eff,nval,Re_p;
+    
+    Re_p = s->ws*p->S20/p->W2;
+    nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
+    
     WLOOP
-    wvel(i,j,k) = a->w(i,j,k) - s->ws;
+    {
+    
+    ws_eff = s->ws * pow(MAX(1.0 - a->conc(i,j,k)/0.635, 0.0), nval);
+    wvel(i,j,k) = a->w(i,j,k) - ws_eff;
+    }
     
     pgc->start3(p,wvel,12);
 }
@@ -100,7 +109,10 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
         {
         zdist = p->DZN[KP];
         
-        a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
+        a->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;
+        a->M.p[count] += (s->ws)/zdist;
+        
+        
         //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
         }
 	++count;
