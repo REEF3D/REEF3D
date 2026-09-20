@@ -51,6 +51,7 @@ struct sc_level
     std::vector<double> p,n,s,w,e,t,b;   // 7 diagonals, halo included
     std::vector<char>   act;             // 0 = identity row (dry, solid, padding)
     std::vector<double> u,f,r;
+    std::vector<double> hx,hy;           // cell widths, index i+1 for i in [-1,nx]
 
     long idx(int i,int j,int k) const
     {
@@ -72,8 +73,14 @@ public:
     //  nx,ny,nz  : local interior extent
     //  gnx,gny   : global horizontal extent
     //  Returns false with a message in err() if the layout cannot be used.
+    //  dxn/dyn give the cell widths for i in [-1,nx] and j in [-1,ny], i.e.
+    //  nx+2 and ny+2 entries including one ghost cell each side.  Pass NULL
+    //  for a uniform grid.  The widths let the coarse operators use the real
+    //  agglomerate volume and centre distance instead of assuming a factor of
+    //  four, which is what makes ragged and stretched grids behave.
     bool setup(MPI_Comm world,int npx,int npy,int cx,int cy,
-               int nx,int ny,int nz,int gnx,int gny,int maxlevel);
+               int nx,int ny,int nz,int gnx,int gny,int maxlevel,
+               const double *dxn=0,const double *dyn=0);
 
     sc_level& fine(){return lev[0];}
     int levels() const {return (int)lev.size();}
@@ -108,6 +115,8 @@ public:
 private:
 
     void line_gs(sc_level &L,int l,int sweeps,int dir);   // dir 0 fwd, 1 bwd, 2 symmetric
+    void build_widths(const double *dxn,const double *dyn);
+    void exchange_widths(sc_level &L);
     void restrict_xy(sc_level &F,sc_level &C);
     void prolong_xy(const sc_level &C,sc_level &F);
     void apply(sc_level &L,int l,const std::vector<double> &x,std::vector<double> &y);

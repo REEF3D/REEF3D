@@ -49,7 +49,8 @@ semicoarsen_core::~semicoarsen_core()
 }
 
 bool semicoarsen_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
-                             int nx,int ny,int nz,int gnx,int gny,int maxlevel)
+                             int nx,int ny,int nz,int gnx,int gny,int maxlevel,
+                             const double *dxn,const double *dyn)
 {
     //  Re-order the ranks so that neighbours are a simple offset apart.
     const int key=cy*npx+cx;
@@ -109,7 +110,71 @@ bool semicoarsen_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
     const long mx=std::max((long)lev[0].ny,(long)lev[0].nx)*nz;
     sbuf.assign(2*mx,0.0); rbuf.assign(2*mx,0.0);
 
+    build_widths(dxn,dyn);
+
     return true;
+}
+
+//  Cell widths per level.  A coarse cell is as wide as its children together,
+//  which is what makes a ragged agglomerate - one child instead of two - come
+//  out with the right volume rather than a quarter of it.
+void semicoarsen_core::build_widths(const double *dxn,const double *dyn)
+{
+    sc_level &F=lev[0];
+    F.hx.assign(F.nx+2,1.0);
+    F.hy.assign(F.ny+2,1.0);
+
+    if(dxn) for(int i=0;i<F.nx+2;++i) F.hx[i]=dxn[i];
+    if(dyn) for(int j=0;j<F.ny+2;++j) F.hy[j]=dyn[j];
+
+    for(int l=0;l+1<(int)lev.size();++l)
+    {
+        sc_level &C=lev[l+1];
+        sc_level &P=lev[l];
+
+        C.hx.assign(C.nx+2,0.0);
+        C.hy.assign(C.ny+2,0.0);
+
+        for(int I=0;I<C.nx;++I)
+        {
+            double s=0.0;
+            for(int a=0;a<C.rx;++a)
+            {
+                const int i=C.rx*I+a;
+                if(i<P.nx) s+=P.hx[i+1];
+            }
+            C.hx[I+1]=(s>0.0? s : 1.0);
+        }
+        for(int J=0;J<C.ny;++J)
+        {
+            double s=0.0;
+            for(int b=0;b<C.ry;++b)
+            {
+                const int j=C.ry*J+b;
+                if(j<P.ny) s+=P.hy[j+1];
+            }
+            C.hy[J+1]=(s>0.0? s : 1.0);
+        }
+
+        exchange_widths(C);
+    }
+
+    exchange_widths(F);
+}
+
+//  one cell of width halo, so the coarse centre distance at a process
+//  boundary is the real one
+void semicoarsen_core::exchange_widths(sc_level &L)
+{
+    double sx[2]={L.hx[1],L.hx[L.nx]}, rx[2]={L.hx[1],L.hx[L.nx]};
+    MPI_Sendrecv(&sx[0],1,MPI_DOUBLE,nbx0,701,&rx[1],1,MPI_DOUBLE,nbx1,701,comm,MPI_STATUS_IGNORE);
+    MPI_Sendrecv(&sx[1],1,MPI_DOUBLE,nbx1,702,&rx[0],1,MPI_DOUBLE,nbx0,702,comm,MPI_STATUS_IGNORE);
+    L.hx[0]=rx[0]; L.hx[L.nx+1]=rx[1];
+
+    double sy[2]={L.hy[1],L.hy[L.ny]}, ry[2]={L.hy[1],L.hy[L.ny]};
+    MPI_Sendrecv(&sy[0],1,MPI_DOUBLE,nby0,703,&ry[1],1,MPI_DOUBLE,nby1,703,comm,MPI_STATUS_IGNORE);
+    MPI_Sendrecv(&sy[1],1,MPI_DOUBLE,nby1,704,&ry[0],1,MPI_DOUBLE,nby0,704,comm,MPI_STATUS_IGNORE);
+    L.hy[0]=ry[0]; L.hy[L.ny+1]=ry[1];
 }
 
 //  ------------------------------------------------------------------ halo
@@ -189,30 +254,57 @@ void semicoarsen_core::coarsen()
         {
             const long qc=C.idx(I,J,k);
 
-            int na=0;
-            double st=0.0,sb=0.0,sx=0.0;
-            double nn=0.0,ss=0.0,ww=0.0,ee=0.0;
-            int cn=0,cs=0,cw=0,ce=0;
-
             const int rx=C.rx, ry=C.ry;
 
-            for(int a=0;a<rx;++a)
-            for(int bb=0;bb<ry;++bb)
+            //  Recover the face coefficient a from the fine row
+            //     M = -a/(d*h)      d = centre distance, h = cell width
+            //  average it over the fine faces that make up the coarse face,
+            //  then rebuild with the coarse width and centre distance.  A
+            //  ragged agglomerate simply has a smaller H, and a stretched
+            //  grid a varying one; neither needs a special case.
+            double volsum=0.0, tsum=0.0, bsum=0.0, xsum=0.0;
+            double an=0.0,as=0.0,aw=0.0,ae=0.0;
+            double wn=0.0,ws=0.0,ww_=0.0,we=0.0;
+            int na=0, ihi=rx*I, jhi=ry*J;
+
+            for(int a=0;a<rx;++a) if(rx*I+a<F.nx) ihi=rx*I+a;
+            for(int b=0;b<ry;++b) if(ry*J+b<F.ny) jhi=ry*J+b;
+
+            for(int i=rx*I;i<=ihi;++i)
+            for(int j=ry*J;j<=jhi;++j)
             {
-                const int i=rx*I+a, j=ry*J+bb;
-                if(i>=F.nx || j>=F.ny) continue;
                 const long qf=F.idx(i,j,k);
                 if(F.act[qf]==0) continue;
-
                 ++na;
-                st += F.t[qf];
-                sb += F.b[qf];
-                sx += F.p[qf]+F.n[qf]+F.s[qf]+F.w[qf]+F.e[qf]+F.t[qf]+F.b[qf]; // row sum
 
-                if(a==rx-1){nn+=F.n[qf]; ++cn;}
-                if(a==0   ){ss+=F.s[qf]; ++cs;}
-                if(bb==ry-1){ww+=F.w[qf]; ++cw;}
-                if(bb==0   ){ee+=F.e[qf]; ++ce;}
+                const double hxf=F.hx[i+1], hyf=F.hy[j+1];
+                const double vol=hxf*hyf;
+
+                volsum+=vol;
+                tsum  +=F.t[qf]*vol;
+                bsum  +=F.b[qf]*vol;
+                xsum  +=(F.p[qf]+F.n[qf]+F.s[qf]+F.w[qf]+F.e[qf]+F.t[qf]+F.b[qf])*vol;
+
+                if(i==ihi)
+                {
+                    const double d=0.5*(hxf+F.hx[i+2]);
+                    an+=(-F.n[qf]*d*hxf)*hyf; wn+=hyf;
+                }
+                if(i==rx*I)
+                {
+                    const double d=0.5*(hxf+F.hx[i]);
+                    as+=(-F.s[qf]*d*hxf)*hyf; ws+=hyf;
+                }
+                if(j==jhi)
+                {
+                    const double d=0.5*(hyf+F.hy[j+2]);
+                    aw+=(-F.w[qf]*d*hyf)*hxf; ww_+=hxf;
+                }
+                if(j==ry*J)
+                {
+                    const double d=0.5*(hyf+F.hy[j]);
+                    ae+=(-F.e[qf]*d*hyf)*hxf; we+=hxf;
+                }
             }
 
             if(na==0)
@@ -222,14 +314,18 @@ void semicoarsen_core::coarsen()
             }
 
             C.act[qc]=1;
-            C.t[qc]=st/na;
-            C.b[qc]=sb/na;
-            C.n[qc]=(cn>0)? nn/(double(cn)*rx*rx) : 0.0;
-            C.s[qc]=(cs>0)? ss/(double(cs)*rx*rx) : 0.0;
-            C.w[qc]=(cw>0)? ww/(double(cw)*ry*ry) : 0.0;
-            C.e[qc]=(ce>0)? ee/(double(ce)*ry*ry) : 0.0;
 
-            //  drop couplings that leave the global domain
+            const double HX=C.hx[I+1], HY=C.hy[J+1];
+            const double DXn=0.5*(HX+C.hx[I+2]), DXs=0.5*(HX+C.hx[I]);
+            const double DYw=0.5*(HY+C.hy[J+2]), DYe=0.5*(HY+C.hy[J]);
+
+            C.t[qc]=tsum/volsum;
+            C.b[qc]=bsum/volsum;
+            C.n[qc]=(wn >0.0)? -(an /wn )/(DXn*HX) : 0.0;
+            C.s[qc]=(ws >0.0)? -(as /ws )/(DXs*HX) : 0.0;
+            C.w[qc]=(ww_>0.0)? -(aw /ww_)/(DYw*HY) : 0.0;
+            C.e[qc]=(we >0.0)? -(ae /we )/(DYe*HY) : 0.0;
+
             if(I==0        && nbx0==MPI_PROC_NULL) C.s[qc]=0.0;
             if(I==C.nx-1   && nbx1==MPI_PROC_NULL) C.n[qc]=0.0;
             if(J==0        && nby0==MPI_PROC_NULL) C.e[qc]=0.0;
@@ -237,7 +333,7 @@ void semicoarsen_core::coarsen()
             if(k==0)        C.b[qc]=0.0;
             if(k==C.nz-1)   C.t[qc]=0.0;
 
-            const double excess=sx/na;
+            const double excess=xsum/volsum;
             C.p[qc]=excess-(C.n[qc]+C.s[qc]+C.w[qc]+C.e[qc]+C.t[qc]+C.b[qc]);
         }
     }

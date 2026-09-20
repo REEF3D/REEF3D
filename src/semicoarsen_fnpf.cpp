@@ -157,8 +157,14 @@ void semicoarsen_fnpf::topology(lexer *p, ghostcell *pgc)
         }
     }
 
+    //  Hand the real cell widths over: DXN[i+marge] is the width of cell i and
+    //  the array carries ghost cells, so DXN+marge-1 gives i = -1 .. knox.
+    //  With these the coarse operators use true agglomerate volumes and centre
+    //  distances, which is what makes odd local cell numbers and stretched
+    //  grids behave instead of costing iterations.
     if(!mg.setup(pgc->mpi_comm,npx,npy,cx,cy,
-                 p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,p->N13))
+                 p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,p->N13,
+                 p->DXN+p->marge-1, p->DYN+p->marge-1))
     {
         if(p->mpirank==0)
         cout<<"semicoarsen: "<<mg.err()<<endl;
@@ -173,8 +179,9 @@ void semicoarsen_fnpf::topology(lexer *p, ghostcell *pgc)
             <<", multigrid levels "<<mg.levels()<<endl;
 
         if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
-        cout<<"semicoarsen: WARNING - odd local cell numbers give ragged coarse cells "
-            <<"and cost iterations.  Even knox/knoy per rank converge noticeably better."<<endl;
+        cout<<"semicoarsen: note - odd local cell numbers give ragged coarse cells.  "
+            <<"The coarse operators account for this, but even knox/knoy per rank "
+            <<"still converge slightly better."<<endl;
     }
 }
 
