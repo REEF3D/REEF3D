@@ -63,6 +63,7 @@ Author: Hans Bihs
 #include"convection_void.h"
 #include"weno_hj_nug.h"
 #include"iweno_hj_nug.h"
+#include"ifou.h"
 #include"suspended_void.h"
 #include"suspended_RK2.h"
 #include"suspended_RK3.h"
@@ -211,7 +212,7 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     psuspdiff=new idiff2(p);
     
     if(p->S12>=1)
-	psuspdisc=new iweno_hj_nug(p);
+	psuspdisc=new ifou(p);
     
 
     if(p->S12>=1)
