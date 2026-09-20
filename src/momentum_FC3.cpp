@@ -206,12 +206,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk1, vrk1, wrk1, 1.0);
-	
-    LOOP
-    a->phi(i,j,k) = frk1(i,j,k);
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
     
 	pflow->u_relax(p,a,pgc,urk1);
 	pflow->v_relax(p,a,pgc,vrk1);
@@ -222,6 +216,11 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,vrk1,gcval_v);
 	pgc->start3(p,wrk1,gcval_w);
     
+    LOOP
+    a->phi(i,j,k) = frk1(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
+    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
 
     
 //Step 2
@@ -310,18 +309,16 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pflow->v_relax(p,a,pgc,vrk2);
 	pflow->w_relax(p,a,pgc,wrk2);
 	pflow->p_relax(p,a,pgc,a->press);
+	
+	pgc->start1(p,urk2,gcval_u);
+	pgc->start2(p,vrk2,gcval_v);
+	pgc->start3(p,wrk2,gcval_w);
     
     LOOP
     a->phi(i,j,k) =  frk2(i,j,k);
     
     pgc->start4(p,a->phi,gcval_phi);
     pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
-	
-	pgc->start1(p,urk2,gcval_u);
-	pgc->start2(p,vrk2,gcval_v);
-	pgc->start3(p,wrk2,gcval_w);
-    
-    
 
     
 //Step 3
@@ -340,13 +337,11 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 
     pflow->phi_relax(p,pgc,ls);
     
-    
-    
-    pgc->start4(p,a->phi,gcval_phi);
+    pgc->start4(p,ls,gcval_phi);
     
     p->F44=3;
     preini->start(a,p, ls, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,a->phi);
+    ppicard->correct_ls(p,a,pgc,ls);
     
 	// U
 	starttime=pgc->timer();
@@ -406,12 +401,6 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
     
 	pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, a->u, a->v, a->w, 2.0/3.0);
-	
-    LOOP
-    a->phi(i,j,k) =  ls(i,j,k);
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
 	pflow->u_relax(p,a,pgc,a->u);
 	pflow->v_relax(p,a,pgc,a->v);
@@ -422,7 +411,11 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
+    LOOP
+    a->phi(i,j,k) =  ls(i,j,k);
     
+    pgc->start4(p,a->phi,gcval_phi);
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
 
 }

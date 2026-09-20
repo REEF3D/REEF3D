@@ -185,18 +185,12 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	
 	pflow->phi_relax(p,pgc,frk1);
 	
+	pflow->phi_relax(p,pgc,frk1);
+	
 	pgc->start4(p,frk1,gcval_phi);
-    
-    LOOP
-    a->phi(i,j,k) = frk1(i,j,k);
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    
     p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
+    preini->start(a,p,frk1, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk1);
-    
- //   pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
     //-------------------------------------------
     // get vectorized face density from density_f
@@ -352,8 +346,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vrk1,gcval_v);
     pgc->start3(p,wrk1,gcval_w);
     
-    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
-    
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk1, vrk1, wrk1, fx, fy, fz, 0, 1.0, false);
     
@@ -371,7 +363,11 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     clear_FGH(p,a);
     
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    LOOP
+    a->phi(i,j,k) = frk1(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
+    pupdate->start(p,a,pgc,urk1,vrk1,wrk1);
 	
 //********************************************************
 //Step 2
@@ -396,16 +392,9 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	
 	pgc->start4(p,frk2,gcval_phi);
     
-    LOOP
-    a->phi(i,j,k) =  frk2(i,j,k);
-    
-    pgc->start4(p,a->phi,gcval_phi);
-    
     p->F44=2;
-    preini->start(a,p,a->phi, pgc, pflow);
+    preini->start(a,p,frk2, pgc, pflow);
     ppicard->correct_ls(p,a,pgc,frk2);
-    
-   // pupdate->start(p,a,pgc,a->u,a->v,a->w);
     
     //-------------------------------------------
     
@@ -556,14 +545,12 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,vrk2,gcval_v);
     pgc->start3(p,wrk2,gcval_w);
     
-    pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
-    
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            urk2, vrk2, wrk2, fx, fy, fz, 1, 0.25, false);
 
     pflow->pressure_io(p,a,pgc);
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow, urk2, vrk2, wrk2, 0.25);
-	
+    
 	pflow->u_relax(p,a,pgc,urk2);
 	pflow->v_relax(p,a,pgc,vrk2);
 	pflow->w_relax(p,a,pgc,wrk2);
@@ -575,7 +562,12 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 
 
     clear_FGH(p,a);
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    
+    LOOP
+    a->phi(i,j,k) =  frk2(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
+    pupdate->start(p,a,pgc,urk2,vrk2,wrk2);
 
 //********************************************************
 //Step 3
@@ -596,18 +588,12 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 				  + (2.0/3.0)*p->dt*a->L(i,j,k);
 
     pflow->phi_relax(p,pgc,ls);
-	pgc->start4(p,a->phi,gcval_phi);
-    
-    LOOP
-    a->phi(i,j,k) =  ls(i,j,k);
-    
-    pgc->start4(p,a->phi,gcval_phi);
+	
+    pgc->start4(p,ls,gcval_phi);
     
     p->F44=3;
-    preini->start(a,p,a->phi, pgc, pflow);
-    ppicard->correct_ls(p,a,pgc,a->phi);
-
-   // pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    preini->start(a,p, ls, pgc, pflow);
+    ppicard->correct_ls(p,a,pgc,ls);
     
     //-------------------------------------------
     
@@ -759,8 +745,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	pgc->start2(p,a->v,gcval_v);
 	pgc->start3(p,a->w,gcval_w);
     
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
-    
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            a->u, a->v, a->w, fx, fy, fz, 2, 2.0/3.0, true);
 
@@ -778,6 +762,10 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     clear_FGH(p,a);
     
+    LOOP
+    a->phi(i,j,k) =  ls(i,j,k);
+    
+    pgc->start4(p,a->phi,gcval_phi);
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }
 
