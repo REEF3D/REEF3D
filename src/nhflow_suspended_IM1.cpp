@@ -85,18 +85,20 @@ void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sedim
     Re_p = s->ws*p->S20/p->W2;
     nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
     
-    LOOP
+    FLOOP
+    if(k>0 && k<p->knoz)
     {
-    WVEL[IJK] = 0.0;
+    WVEL[FIJK] = 0.0;
     
-    if(p->DF[IJK]>0 && p->wet[IJ]==1)
-    {
-    ws_eff = s->ws * pow(MAX(1.0 - d->CONC[IJK]/0.635, 0.0), nval);
-    WVEL[IJK] = d->W[IJK] - ws_eff;
-    }
+        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+        {
+        ws_eff = s->ws * pow(MAX(1.0 - d->CONC[IJK]/0.635, 0.0), nval);
+        WVEL[FIJK] = d->W[FIJK] - ws_eff;
+        }
     }
     
-    pgc->start4V(p,WVEL,12);
+    //pgc->start4V(p,WVEL,12);
+    pgc->start7S(p,d->omegaF,17);
 }
 
 void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sediment_fdm *s)

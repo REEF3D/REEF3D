@@ -44,7 +44,7 @@ void nhflow_concentration_IM1::start(lexer *p, fdm_nhf *d, nhflow_scalar_convect
 {
     starttime=pgc->timer();
     clearrhs(p,d);
-    pconvec->start(p,d,C,4,d->U,d->V,d->W);
+    pconvec->start(p,d,C,4,d->U,d->V,d->omegaF);
     pdiff->diff_scalar(p,d,pgc,psolv,C,1.0,1.0);
 	concsource(p,d,C);
 	timesource(p,d,C);

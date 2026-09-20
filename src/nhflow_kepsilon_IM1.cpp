@@ -53,7 +53,7 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
 //kin
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
+    pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
 	pdiff->diff_scalar(p,d,pgc,psolv,KIN,ke_sigma_k,1.0);
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
@@ -70,7 +70,7 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
 //omega
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,EPS,4,d->U,d->V,d->W);
+    pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
 	pdiff->diff_scalar(p,d,pgc,psolv,EPS,ke_sigma_e,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);

@@ -53,7 +53,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 //kin
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,KIN,4,d->U,d->V,d->W);
+    pconvec->start(p,d,KIN,4,d->U,d->V,d->omegaF);
 	pdiff->diff_scalar(p,d,pgc,psolv,KIN,kw_sigma_k,1.0);
 	kinsource(p,d,pvrans);
 	timesource(p,d,KN);
@@ -70,14 +70,14 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 //omega
     starttime=pgc->timer();
 	clearrhs(p,d);
-    pconvec->start(p,d,EPS,4,d->U,d->V,d->W);
+    pconvec->start(p,d,EPS,4,d->U,d->V,d->omegaF);
 	pdiff->diff_scalar(p,d,pgc,psolv,EPS,kw_sigma_w,1.0);
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
     bcomega_matrix(p,d,KIN,EPS);
     bckomega_start(p,d,KIN,EPS,gcval_eps);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
-    bckomega_start(p,d,KIN,EPS,gcval_eps);
+    //bckomega_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
