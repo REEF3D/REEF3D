@@ -174,7 +174,7 @@ void driver::logic_nhflow()
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
     
-    if(p->N10>=50 && p->N10<60)
+    if(p->N10==51)
     ppoissonsolv = new reefmg(p,pgc,p->N10,p->N11);
 
 //Printer

@@ -33,14 +33,13 @@ Author: Hans Bihs
 
 reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 {
-    //  N 10 5x : 50 V-cycles only, 51 BiCGStab preconditioned by the V-cycle
-    //  (default), 52 V-cycles with fallback to BiCGStab.
+    //  solver_mode : 0 V-cycles only, 1 BiCGStab preconditioned by the V-cycle
+    //  (default), 2 V-cycles with fallback to BiCGStab.
     //
     //  BiCGStab is the default because it costs the same as plain cycling on
     //  a well-shaped grid and degrades far more gracefully on an awkward one:
     //  on ragged local extents it needed 5 cycles where plain cycling needed 13.
-    solve_mode = solve_input-50;
-    if(solve_mode<0 || solve_mode>2) solve_mode=1;
+    solve_mode = 1;
 
     presweep  = 1;
     postsweep = 1;
@@ -51,11 +50,6 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  costing convergence on a grid-aligned anisotropy.
     mg.set_sweepstyle(p->N12==1 ? 1 : 0);
 
-    if(precon_input>=1 && precon_input<=3)
-    {
-        presweep  = precon_input;
-        postsweep = precon_input;
-    }
 
     p->Iarray(CVAL4, p->imax*p->jmax*(p->kmax+2));
 
