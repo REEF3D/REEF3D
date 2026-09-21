@@ -83,7 +83,7 @@ void driver::logic_ptf()
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);
 	
-	if(p->N10==1)
+	if(p->N10==3)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
 	if(p->N10>10 && p->N10<=20)

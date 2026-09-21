@@ -180,7 +180,7 @@ void reefmg_core::exchange_widths(sc_level &L)
 //  ------------------------------------------------------------------ halo
 //  A plane of constant i is contiguous in memory, a plane of constant j is
 //  strided, so the second one is packed.
-void reefmg_core::halo(sc_level &L)
+void reefmg_core::halo_vec(sc_level &L,std::vector<double> &u)
 {
     if(nbx0==MPI_PROC_NULL && nbx1==MPI_PROC_NULL &&
        nby0==MPI_PROC_NULL && nby1==MPI_PROC_NULL)
@@ -195,10 +195,10 @@ void reefmg_core::halo(sc_level &L)
 
     //  x direction: contiguous blocks of ny*nz
     const int cntx=L.ny*nz;
-    double *sx0=&L.u[L.idx(0,0,0)];
-    double *sx1=&L.u[L.idx(L.nx-1,0,0)];
-    double *rx0=&L.u[L.idx(-1,0,0)];
-    double *rx1=&L.u[L.idx(L.nx,0,0)];
+    double *sx0=&u[L.idx(0,0,0)];
+    double *sx1=&u[L.idx(L.nx-1,0,0)];
+    double *rx0=&u[L.idx(-1,0,0)];
+    double *rx1=&u[L.idx(L.nx,0,0)];
 
     MPI_Irecv(rx0,cntx,MPI_DOUBLE,nbx0,tx0,comm,&req[nreq++]);
     MPI_Irecv(rx1,cntx,MPI_DOUBLE,nbx1,tx1,comm,&req[nreq++]);
@@ -213,8 +213,8 @@ void reefmg_core::halo(sc_level &L)
 
     for(int i=0;i<L.nx;++i) for(int k=0;k<nz;++k)
     {
-        p0[i*nz+k]=L.u[L.idx(i,0,k)];
-        p1[i*nz+k]=L.u[L.idx(i,L.ny-1,k)];
+        p0[i*nz+k]=u[L.idx(i,0,k)];
+        p1[i*nz+k]=u[L.idx(i,L.ny-1,k)];
     }
 
     MPI_Irecv(q0,cnty,MPI_DOUBLE,nby0,ty0,comm,&req[nreq++]);
@@ -224,9 +224,14 @@ void reefmg_core::halo(sc_level &L)
     MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
 
     if(nby0!=MPI_PROC_NULL)
-    for(int i=0;i<L.nx;++i) for(int k=0;k<nz;++k) L.u[L.idx(i,-1,k)]=q0[i*nz+k];
+    for(int i=0;i<L.nx;++i) for(int k=0;k<nz;++k) u[L.idx(i,-1,k)]=q0[i*nz+k];
     if(nby1!=MPI_PROC_NULL)
-    for(int i=0;i<L.nx;++i) for(int k=0;k<nz;++k) L.u[L.idx(i,L.ny,k)]=q1[i*nz+k];
+    for(int i=0;i<L.nx;++i) for(int k=0;k<nz;++k) u[L.idx(i,L.ny,k)]=q1[i*nz+k];
+}
+
+void reefmg_core::halo(sc_level &L)
+{
+    halo_vec(L,L.u);
 }
 
 //  --------------------------------------------------------- coarse operators
@@ -337,6 +342,52 @@ void reefmg_core::coarsen()
             C.p[qc]=excess-(C.n[qc]+C.s[qc]+C.w[qc]+C.e[qc]+C.t[qc]+C.b[qc]);
         }
     }
+
+    factor_lines();
+}
+
+//  The column matrices are fixed for the whole solve - every sweep of every
+//  V-cycle of every Krylov iteration sees the same ones - so their LU
+//  factorisation is computed once here.  The smoother then needs only
+//  multiplications; the two divisions per cell it used to perform on every
+//  sweep were what the serial recurrence stalled on.
+void reefmg_core::factor_lines()
+{
+    for(size_t l=0;l<lev.size();++l)
+    {
+        sc_level &L=lev[l];
+        const int nz=L.nz;
+        const long N=L.size();
+
+        if((long)L.tc.size()!=N)
+        {
+            L.tc.assign(N,0.0);
+            L.ti.assign(N,0.0);
+        }
+        L.colact.assign((long)L.nx*L.ny,0);
+
+        for(int i=0;i<L.nx;++i)
+        for(int j=0;j<L.ny;++j)
+        {
+            const long col=L.idx(i,j,0);
+
+            char any=0;
+            for(int k=0;k<nz;++k) if(L.act[col+k]){any=1; break;}
+            L.colact[(long)i*L.ny+j]=any;
+
+            double inv=1.0/L.p[col];
+            L.ti[col]=inv;
+            L.tc[col]=L.t[col]*inv;
+
+            for(int k=1;k<nz;++k)
+            {
+                const long q=col+k;
+                inv=1.0/(L.p[q]-L.b[q]*L.tc[q-1]);
+                L.ti[q]=inv;
+                L.tc[q]=L.t[q]*inv;
+            }
+        }
+    }
 }
 
 //  ------------------------------------------------------------- line solver
@@ -346,7 +397,12 @@ void reefmg_core::coarsen()
 void reefmg_core::line_gs(sc_level &L,int l,int sweeps,int dir)
 {
     const int nz=L.nz;
-    std::vector<double> d(nz),rhs(nz),c(nz);
+    std::vector<double> rhs(nz);
+    double *r=&rhs[0];
+
+    const double *Lf=&L.f[0], *Ln=&L.n[0], *Ls=&L.s[0], *Lw=&L.w[0], *Le=&L.e[0];
+    const double *Lb=&L.b[0], *Tc=&L.tc[0], *Ti=&L.ti[0];
+    double *Lu=&L.u[0];
 
     const int p0=(dir==1?1:0), p1=(dir==0?1:2);
 
@@ -362,36 +418,48 @@ void reefmg_core::line_gs(sc_level &L,int l,int sweeps,int dir)
         for(int i=i0;i!=i1;i+=di)
         for(int j=0;j<L.ny;++j)
         {
-            const long col=L.idx(i,j,0);
-            bool any=false;
-            for(int k=0;k<nz;++k) if(L.act[col+k]){any=true; break;}
-            if(!any) continue;
+            if(L.colact[(long)i*L.ny+j]==0) continue;
 
+            const long col=L.idx(i,j,0);
+            const double *un=Lu+L.idx(i+1,j,0), *us=Lu+L.idx(i-1,j,0);
+            const double *uw=Lu+L.idx(i,j+1,0), *ue=Lu+L.idx(i,j-1,0);
+
+            //  right-hand side: contiguous in k
             for(int k=0;k<nz;++k)
             {
                 const long q=col+k;
-                double v=L.f[q];
-                v-=L.n[q]*L.u[L.idx(i+1,j,k)];
-                v-=L.s[q]*L.u[L.idx(i-1,j,k)];
-                v-=L.w[q]*L.u[L.idx(i,j+1,k)];
-                v-=L.e[q]*L.u[L.idx(i,j-1,k)];
-                rhs[k]=v; d[k]=L.p[q];
+                r[k]=Lf[q]-Ln[q]*un[k]-Ls[q]*us[k]-Lw[q]*uw[k]-Le[q]*ue[k];
             }
 
-            c[0]=L.t[col]/d[0];
-            rhs[0]/=d[0];
+            //  forward and back substitution with the stored factorisation
+            r[0]*=Ti[col];
             for(int k=1;k<nz;++k)
-            {
-                const long q=col+k;
-                const double m=d[k]-L.b[q]*c[k-1];
-                c[k]=L.t[q]/m;
-                rhs[k]=(rhs[k]-L.b[q]*rhs[k-1])/m;
-            }
-            L.u[col+nz-1]=rhs[nz-1];
+            r[k]=(r[k]-Lb[col+k]*r[k-1])*Ti[col+k];
+
+            double *uc=Lu+col;
+            uc[nz-1]=r[nz-1];
             for(int k=nz-2;k>=0;--k)
-            L.u[col+k]=rhs[k]-c[k]*L.u[col+k+1];
+            uc[k]=r[k]-Tc[col+k]*uc[k+1];
         }
     }
+}
+
+
+//  y = A*u on one column, split so every loop is contiguous in k and free
+//  of branches; the two vertical couplings are applied in their own loops.
+static inline void column_apply(const sc_level &L,const double *u,long col,
+                                long cn,long cs,long cw,long ce,double *y)
+{
+    const int nz=L.nz;
+    const double *P=&L.p[col], *N=&L.n[col], *S=&L.s[col], *W=&L.w[col], *E=&L.e[col];
+    const double *T=&L.t[col], *B=&L.b[col];
+    const double *uc=u+col, *un=u+cn, *us=u+cs, *uw=u+cw, *ue=u+ce;
+
+    for(int k=0;k<nz;++k)
+    y[k]=P[k]*uc[k]+N[k]*un[k]+S[k]*us[k]+W[k]*uw[k]+E[k]*ue[k];
+
+    for(int k=0;k<nz-1;++k) y[k]  +=T[k]  *uc[k+1];
+    for(int k=1;k<nz;  ++k) y[k]  +=B[k]  *uc[k-1];
 }
 
 void reefmg_core::residual(sc_level &L)
@@ -400,17 +468,13 @@ void reefmg_core::residual(sc_level &L)
 
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
-    for(int k=0;k<L.nz;++k)
     {
-        const long q=L.idx(i,j,k);
-        double v=L.p[q]*L.u[q]
-                +L.n[q]*L.u[L.idx(i+1,j,k)]
-                +L.s[q]*L.u[L.idx(i-1,j,k)]
-                +L.w[q]*L.u[L.idx(i,j+1,k)]
-                +L.e[q]*L.u[L.idx(i,j-1,k)];
-        if(k<L.nz-1) v+=L.t[q]*L.u[q+1];
-        if(k>0     ) v+=L.b[q]*L.u[q-1];
-        L.r[q]=L.f[q]-v;
+        const long col=L.idx(i,j,0);
+        double *r=&L.r[col];
+        column_apply(L,&L.u[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
+                                   L.idx(i,j+1,0),L.idx(i,j-1,0),r);
+        const double *f=&L.f[col];
+        for(int k=0;k<L.nz;++k) r[k]=f[k]-r[k];
     }
 }
 
@@ -486,58 +550,67 @@ void reefmg_core::vcycle(int l,int pre,int post)
     line_gs(L,l,post,dpost);
 }
 
+//  Inactive entries are zero in every vector this is called with - identity
+//  rows carry f=0 and u=0, and the Krylov updates preserve that - so the
+//  activity test the loop used to make per cell is unnecessary.  Four partial
+//  sums break the single dependency chain of one running total.
 double reefmg_core::dot(const sc_level &L,const std::vector<double> &a,
                                                const std::vector<double> &b) const
 {
-    double s=0.0;
+    const int nz=L.nz;
+    double s0=0.0,s1=0.0,s2=0.0,s3=0.0;
+
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
-    for(int k=0;k<L.nz;++k)
     {
-        const long q=L.idx(i,j,k);
-        if(L.act[q]) s+=a[q]*b[q];
+        const double *pa=&a[L.idx(i,j,0)], *pb=&b[L.idx(i,j,0)];
+        int k=0;
+        for(;k+3<nz;k+=4)
+        {
+            s0+=pa[k  ]*pb[k  ];
+            s1+=pa[k+1]*pb[k+1];
+            s2+=pa[k+2]*pb[k+2];
+            s3+=pa[k+3]*pb[k+3];
+        }
+        for(;k<nz;++k) s0+=pa[k]*pb[k];
     }
-    double g=0.0;
+
+    double s=(s0+s1)+(s2+s3), g=0.0;
     MPI_Allreduce(&s,&g,1,MPI_DOUBLE,MPI_SUM,comm);
     return g;
 }
 
-void reefmg_core::apply(sc_level &L,int l,const std::vector<double> &x,
+//  x is exchanged in place.  The previous version swapped L.u out and
+//  assigned x into it, which allocated, copied and freed a full-size vector
+//  on every product - and for large vectors the allocation goes through mmap,
+//  so every call also page-faulted the buffer in from scratch.
+void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
                              std::vector<double> &y)
 {
-    std::vector<double> save;
-    save.swap(L.u);
-    L.u=x;
-    halo(L);
+    halo_vec(L,x);
 
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
-    for(int k=0;k<L.nz;++k)
     {
-        const long q=L.idx(i,j,k);
-        double v=L.p[q]*L.u[q]
-                +L.n[q]*L.u[L.idx(i+1,j,k)]
-                +L.s[q]*L.u[L.idx(i-1,j,k)]
-                +L.w[q]*L.u[L.idx(i,j+1,k)]
-                +L.e[q]*L.u[L.idx(i,j-1,k)];
-        if(k<L.nz-1) v+=L.t[q]*L.u[q+1];
-        if(k>0     ) v+=L.b[q]*L.u[q-1];
-        y[q]=v;
+        const long col=L.idx(i,j,0);
+        column_apply(L,&x[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
+                                 L.idx(i,j+1,0),L.idx(i,j-1,0),&y[col]);
     }
-    L.u.swap(save);
 }
 
-void reefmg_core::precondition(const std::vector<double> &rhs,
+//  Buffers are swapped rather than copied: rhs becomes the fine-level
+//  right-hand side and x the fine-level solution for the duration of the
+//  cycle, then both are handed back.  The cycle does not modify the fine f.
+void reefmg_core::precondition(std::vector<double> &rhs,
                                     std::vector<double> &x,int pre,int post)
 {
     sc_level &F=lev[0];
-    std::vector<double> savef,saveu;
-    savef.swap(F.f); saveu.swap(F.u);
-    F.f=rhs;
-    F.u.assign(F.size(),0.0);
+    F.f.swap(rhs);
+    F.u.swap(x);
+    std::fill(F.u.begin(),F.u.end(),0.0);
     vcycle(0,pre,post);
-    x=F.u;
-    F.f.swap(savef); F.u.swap(saveu);
+    F.u.swap(x);
+    F.f.swap(rhs);
 }
 
 int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int post)

@@ -159,10 +159,13 @@ void driver::logic_nhflow()
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);
     
-    if(p->N10==1 && p->j_dir==0)
+    if(p->N10==1)
+    ppoissonsolv = new reefmg(p,pgc,p->N10,p->N11);
+    
+    if(p->N10==3 && p->j_dir==0)
 	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
     
-    if(p->N10==1 && p->j_dir==1)
+    if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 	
 	if(p->N10>=10 && p->N10<20)
@@ -173,9 +176,6 @@ void driver::logic_nhflow()
     
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
-    
-    if(p->N10==51)
-    ppoissonsolv = new reefmg(p,pgc,p->N10,p->N11);
 
 //Printer
     if(p->P150==0)

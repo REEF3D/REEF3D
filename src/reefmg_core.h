@@ -50,6 +50,9 @@ struct sc_level
 
     std::vector<double> p,n,s,w,e,t,b;   // 7 diagonals, halo included
     std::vector<char>   act;             // 0 = identity row (dry, solid, padding)
+    std::vector<double> tc,ti;           // factorised column matrices: modified
+                                         // super-diagonal and reciprocal pivots
+    std::vector<char>   colact;          // 1 if the column has any active cell
     std::vector<double> u,f,r;
     std::vector<double> hx,hy;           // cell widths, index i+1 for i in [-1,nx]
 
@@ -109,6 +112,7 @@ public:
     void vcycle(int l,int pre,int post);
     void residual(sc_level &L);
     void halo(sc_level &L);
+    void halo_vec(sc_level &L,std::vector<double> &v);
     double dot(const sc_level &L,const std::vector<double> &a,
                                  const std::vector<double> &b) const;
 
@@ -119,8 +123,9 @@ private:
     void exchange_widths(sc_level &L);
     void restrict_xy(sc_level &F,sc_level &C);
     void prolong_xy(const sc_level &C,sc_level &F);
-    void apply(sc_level &L,int l,const std::vector<double> &x,std::vector<double> &y);
-    void precondition(const std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void apply(sc_level &L,int l,std::vector<double> &x,std::vector<double> &y);
+    void precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void factor_lines();
 
     std::vector<sc_level> lev;
 

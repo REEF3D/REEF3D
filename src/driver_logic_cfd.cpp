@@ -460,10 +460,10 @@ void driver::logic_cfd()
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);
 
-    if(p->N10==1 && p->j_dir==0)
+    if(p->N10==3 && p->j_dir==0)
 	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
 
-    if(p->N10==1 && p->j_dir==1)
+    if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 
 	if(p->N10>=10 && p->N10<20)
