@@ -41,9 +41,9 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="MG">
-        <File Name="semicoarsen_fnpf.h"/>
-        <File Name="semicoarsen_core.h"/>
+      <VirtualDirectory Name="REEFMG">
+        <File Name="reefmg.h"/>
+        <File Name="reefmg_core.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.h"/>
@@ -1228,9 +1228,9 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Solver">
-      <VirtualDirectory Name="MG">
-        <File Name="semicoarsen_fnpf.cpp"/>
-        <File Name="semicoarsen_core.cpp"/>
+      <VirtualDirectory Name="REEFMG">
+        <File Name="reefmg_fnpf.cpp"/>
+        <File Name="reefmg_core.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>

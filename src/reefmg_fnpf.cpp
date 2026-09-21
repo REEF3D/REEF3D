@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "semicoarsen_fnpf.h"
+#include "reefmg.h"
 #include "lexer.h"
 #include "ghostcell.h"
 #include "vec.h"
@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include <vector>
 #include <algorithm>
 
-semicoarsen_fnpf::semicoarsen_fnpf(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
+reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 {
     //  N 10 5x : 50 V-cycles only, 51 BiCGStab preconditioned by the V-cycle
     //  (default), 52 V-cycles with fallback to BiCGStab.
@@ -62,11 +62,11 @@ semicoarsen_fnpf::semicoarsen_fnpf(lexer *p, ghostcell *pgc, int solve_input, in
     topology(p,pgc);
 }
 
-semicoarsen_fnpf::~semicoarsen_fnpf()
+reefmg::~reefmg()
 {
 }
 
-void semicoarsen_fnpf::topology(lexer *p, ghostcell *pgc)
+void reefmg::topology(lexer *p, ghostcell *pgc)
 {
     int nprocs,myrank;
     MPI_Comm_size(pgc->mpi_comm,&nprocs);
@@ -185,7 +185,7 @@ void semicoarsen_fnpf::topology(lexer *p, ghostcell *pgc)
     }
 }
 
-void semicoarsen_fnpf::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
+void reefmg::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
 {
     if(p->mpirank==0)
     cout<<"semicoarsen: start() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
@@ -193,7 +193,7 @@ void semicoarsen_fnpf::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rh
     MPI_Abort(MPI_COMM_WORLD,-2753);
 }
 
-void semicoarsen_fnpf::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M, int var)
+void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M, int var)
 {
     if(p->mpirank==0)
     cout<<"semicoarsen: startf() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
@@ -201,7 +201,7 @@ void semicoarsen_fnpf::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matr
     MPI_Abort(MPI_COMM_WORLD,-2754);
 }
 
-void semicoarsen_fnpf::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
+void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
     if(p->mpirank==0)
     cout<<"semicoarsen: startV() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
@@ -209,11 +209,11 @@ void semicoarsen_fnpf::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, mat
     MPI_Abort(MPI_COMM_WORLD,-2755);
 }
 
-void semicoarsen_fnpf::startM(lexer *p, ghostcell *pgc, double *x, double *rhs, double *M, int var)
+void reefmg::startM(lexer *p, ghostcell *pgc, double *x, double *rhs, double *M, int var)
 {
 }
 
-void semicoarsen_fnpf::startF(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
+void reefmg::startF(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
     if(var==8)
     start_solver8(p,pgc,f,rhs,M,var);
@@ -227,7 +227,7 @@ void semicoarsen_fnpf::startF(lexer *p, ghostcell *pgc, double *f, vec &rhs, mat
     }
 }
 
-void semicoarsen_fnpf::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
+void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
                                      matrix_diag &M, int var)
 {
     p->solveriter=0;
@@ -263,7 +263,7 @@ void semicoarsen_fnpf::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &r
         <<relres<<endl;
 }
 
-void semicoarsen_fnpf::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
+void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 {
     sc_level &L=mg.fine();
 
@@ -313,7 +313,7 @@ void semicoarsen_fnpf::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &
     }
 }
 
-void semicoarsen_fnpf::fillbackvec8(lexer *p, double *f)
+void reefmg::fillbackvec8(lexer *p, double *f)
 {
     sc_level &L=mg.fine();
 

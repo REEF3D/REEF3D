@@ -20,8 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SEMICOARSEN_CORE_H_
-#define SEMICOARSEN_CORE_H_
+#ifndef REEFMG_CORE_H_
+#define REEFMG_CORE_H_
 
 #include <mpi.h>
 #include <vector>
@@ -34,7 +34,7 @@ Author: Hans Bihs
 //  levels no matter how few sigma layers there are.
 //
 //  Deliberately free of REEF3D types so that it can be compiled and
-//  benchmarked on its own; semicoarsen_fnpf.cpp is the only REEF3D-facing
+//  benchmarked on its own; reefmg.cpp is the only REEF3D-facing
 //  part.
 //
 //  Layout on every level: k contiguous (matching REEF3D's FIJK), one halo
@@ -60,12 +60,12 @@ struct sc_level
     long size() const {return (long)(nx+2)*(ny+2)*nz;}
 };
 
-class semicoarsen_core
+class reefmg_core
 {
 public:
 
-    semicoarsen_core();
-    ~semicoarsen_core();
+    reefmg_core();
+    ~reefmg_core();
 
     //  world     : communicator of the run
     //  npx,npy   : process grid (the vertical must not be decomposed)

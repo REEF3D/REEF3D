@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SEMICOARSEN_FNPF_H_
-#define SEMICOARSEN_FNPF_H_
+#ifndef REEFMG_H_
+#define REEFMG_H_
 
 #include "solver.h"
 #include "increment.h"
-#include "semicoarsen_core.h"
+#include "reefmg_core.h"
 
 class lexer;
 class fdm;
@@ -45,12 +45,12 @@ using namespace std;
 //  few layers.  Coarse operators are built from the fine coefficients, so
 //  variable depth and grid stretching are inherited rather than rederived.
 
-class semicoarsen_fnpf final : public solver, public increment
+class reefmg final : public solver, public increment
 {
 public:
 
-    semicoarsen_fnpf(lexer*, ghostcell*, int, int);
-    virtual ~semicoarsen_fnpf();
+    reefmg(lexer*, ghostcell*, int, int);
+    virtual ~reefmg();
 
     void start(lexer*, fdm*, ghostcell*, field&, vec&, int) override final;
     void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int) override final;
@@ -65,7 +65,7 @@ private:
     void fill_matrix8(lexer*, double*, vec&, matrix_diag&);
     void fillbackvec8(lexer*, double*);
 
-    semicoarsen_core mg;
+    reefmg_core mg;
 
     int *CVAL4;
     int count;

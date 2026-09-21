@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"bicgstab_ijk.h"
 #include"bicgstab_ijk_2D.h"
 
-#include"semicoarsen_fnpf.h"
+#include"reefmg.h"
 
 #include"hypre_aij.h"
 #include"hypre_struct.h"

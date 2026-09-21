@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include "semicoarsen_core.h"
+#include "reefmg_core.h"
 
 #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
 
-semicoarsen_core::semicoarsen_core()
+reefmg_core::reefmg_core()
 {
     comm=MPI_COMM_NULL;
     myrank=nprocs=0;
@@ -38,7 +38,7 @@ semicoarsen_core::semicoarsen_core()
     errmsg[0]='\0';
 }
 
-semicoarsen_core::~semicoarsen_core()
+reefmg_core::~reefmg_core()
 {
     //  the solver object may outlive MPI if it is torn down late
     int fin=0;
@@ -48,7 +48,7 @@ semicoarsen_core::~semicoarsen_core()
     MPI_Comm_free(&comm);
 }
 
-bool semicoarsen_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
+bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
                              int nx,int ny,int nz,int gnx,int gny,int maxlevel,
                              const double *dxn,const double *dyn)
 {
@@ -118,7 +118,7 @@ bool semicoarsen_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
 //  Cell widths per level.  A coarse cell is as wide as its children together,
 //  which is what makes a ragged agglomerate - one child instead of two - come
 //  out with the right volume rather than a quarter of it.
-void semicoarsen_core::build_widths(const double *dxn,const double *dyn)
+void reefmg_core::build_widths(const double *dxn,const double *dyn)
 {
     sc_level &F=lev[0];
     F.hx.assign(F.nx+2,1.0);
@@ -164,7 +164,7 @@ void semicoarsen_core::build_widths(const double *dxn,const double *dyn)
 
 //  one cell of width halo, so the coarse centre distance at a process
 //  boundary is the real one
-void semicoarsen_core::exchange_widths(sc_level &L)
+void reefmg_core::exchange_widths(sc_level &L)
 {
     double sx[2]={L.hx[1],L.hx[L.nx]}, rx[2]={L.hx[1],L.hx[L.nx]};
     MPI_Sendrecv(&sx[0],1,MPI_DOUBLE,nbx0,701,&rx[1],1,MPI_DOUBLE,nbx1,701,comm,MPI_STATUS_IGNORE);
@@ -180,7 +180,7 @@ void semicoarsen_core::exchange_widths(sc_level &L)
 //  ------------------------------------------------------------------ halo
 //  A plane of constant i is contiguous in memory, a plane of constant j is
 //  strided, so the second one is packed.
-void semicoarsen_core::halo(sc_level &L)
+void reefmg_core::halo(sc_level &L)
 {
     if(nbx0==MPI_PROC_NULL && nbx1==MPI_PROC_NULL &&
        nby0==MPI_PROC_NULL && nby1==MPI_PROC_NULL)
@@ -235,7 +235,7 @@ void semicoarsen_core::halo(sc_level &L)
 //  Vertical: a coarse face is four fine faces over four times the volume, so
 //  the coefficient is their mean.  The row sum is carried across unchanged,
 //  which is what keeps the free-surface Dirichlet term alive on every level.
-void semicoarsen_core::coarsen()
+void reefmg_core::coarsen()
 {
     for(int l=0;l+1<(int)lev.size();++l)
     {
@@ -343,7 +343,7 @@ void semicoarsen_core::coarsen()
 //  Symmetric sweep; the tridiagonal solve in k is exact, so vertical
 //  stretching costs nothing.  Identity rows sit in the system harmlessly
 //  as diag 1, sub and super 0.
-void semicoarsen_core::line_gs(sc_level &L,int l,int sweeps,int dir)
+void reefmg_core::line_gs(sc_level &L,int l,int sweeps,int dir)
 {
     const int nz=L.nz;
     std::vector<double> d(nz),rhs(nz),c(nz);
@@ -394,7 +394,7 @@ void semicoarsen_core::line_gs(sc_level &L,int l,int sweeps,int dir)
     }
 }
 
-void semicoarsen_core::residual(sc_level &L)
+void reefmg_core::residual(sc_level &L)
 {
     halo(L);
 
@@ -414,7 +414,7 @@ void semicoarsen_core::residual(sc_level &L)
     }
 }
 
-void semicoarsen_core::restrict_xy(sc_level &F,sc_level &C)
+void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
 {
     std::fill(C.f.begin(),C.f.end(),0.0);
     std::fill(C.u.begin(),C.u.end(),0.0);
@@ -437,7 +437,7 @@ void semicoarsen_core::restrict_xy(sc_level &F,sc_level &C)
 }
 
 //  cell-centred bilinear in the plane, identity in z
-void semicoarsen_core::prolong_xy(const sc_level &C,sc_level &F)
+void reefmg_core::prolong_xy(const sc_level &C,sc_level &F)
 {
     for(int i=0;i<F.nx;++i)
     for(int j=0;j<F.ny;++j)
@@ -463,7 +463,7 @@ void semicoarsen_core::prolong_xy(const sc_level &C,sc_level &F)
     }
 }
 
-void semicoarsen_core::vcycle(int l,int pre,int post)
+void reefmg_core::vcycle(int l,int pre,int post)
 {
     sc_level &L=lev[l];
 
@@ -486,7 +486,7 @@ void semicoarsen_core::vcycle(int l,int pre,int post)
     line_gs(L,l,post,dpost);
 }
 
-double semicoarsen_core::dot(const sc_level &L,const std::vector<double> &a,
+double reefmg_core::dot(const sc_level &L,const std::vector<double> &a,
                                                const std::vector<double> &b) const
 {
     double s=0.0;
@@ -502,7 +502,7 @@ double semicoarsen_core::dot(const sc_level &L,const std::vector<double> &a,
     return g;
 }
 
-void semicoarsen_core::apply(sc_level &L,int l,const std::vector<double> &x,
+void reefmg_core::apply(sc_level &L,int l,const std::vector<double> &x,
                              std::vector<double> &y)
 {
     std::vector<double> save;
@@ -527,7 +527,7 @@ void semicoarsen_core::apply(sc_level &L,int l,const std::vector<double> &x,
     L.u.swap(save);
 }
 
-void semicoarsen_core::precondition(const std::vector<double> &rhs,
+void reefmg_core::precondition(const std::vector<double> &rhs,
                                     std::vector<double> &x,int pre,int post)
 {
     sc_level &F=lev[0];
@@ -540,7 +540,7 @@ void semicoarsen_core::precondition(const std::vector<double> &rhs,
     F.f.swap(savef); F.u.swap(saveu);
 }
 
-int semicoarsen_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int post)
+int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int post)
 {
     sc_level &F=lev[0];
     const long N=F.size();
@@ -567,7 +567,7 @@ int semicoarsen_core::solve_vcycle(double tol,int maxiter,double &relres,int pre
 //  BiCGStab, V-cycle preconditioned.  The FNPF matrix is not symmetric, so a
 //  Krylov wrapper is the safe default even though the cycle alone usually
 //  converges.
-int semicoarsen_core::solve(double tol,int maxiter,double &relres,int pre,int post)
+int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
 {
     sc_level &F=lev[0];
     const long N=F.size();
@@ -649,7 +649,7 @@ int semicoarsen_core::solve(double tol,int maxiter,double &relres,int pre,int po
 //  coarse operator has lost too much of the fine one - steep bathymetry or a
 //  strongly one-sided boundary row - and BiCGStab recovers it from wherever
 //  the cycles left off.
-int semicoarsen_core::solve_auto(double tol,int maxiter,double &relres,
+int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
                                  int pre,int post,int mode)
 {
     if(mode==1)

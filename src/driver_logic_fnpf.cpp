@@ -78,7 +78,7 @@ void driver::logic_fnpf()
 	plapsolv = new hypre_sstruct(p,a,pgc);
     
     if(p->N10>=50 && p->N10<60)
-    plapsolv = new semicoarsen_fnpf(p,pgc,p->N10,p->N11);
+    plapsolv = new reefmg(p,pgc,p->N10,p->N11);
     
 //  Voids
 	pturb = new kepsilon_void(p,a,pgc);
