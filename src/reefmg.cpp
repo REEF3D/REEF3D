@@ -99,7 +99,7 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     if(p->periodic1>0 || p->periodic2>0 || p->periodic3>0)
     {
         if(p->mpirank==0)
-        cout<<"semicoarsen: periodic boundaries are not supported yet - the halo "
+        cout<<"REEFMG periodic boundaries are not supported yet - the halo "
             <<"exchange has no wraparound.  Use N 10 10-19 (hypre)."<<endl;
 
         MPI_Abort(MPI_COMM_WORLD,-2749);
@@ -110,7 +110,7 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     if(npz>1)
     {
         if(p->mpirank==0)
-        cout<<"semicoarsen: the grid is decomposed in z ("<<npz<<" ranks).  The vertical "
+        cout<<"REEFMG the grid is decomposed in z ("<<npz<<" ranks).  The vertical "
             <<"line solver needs each sigma column on one rank - decompose in x and y "
             <<"only, or use N 10 10-19 (hypre)."<<endl;
 
@@ -120,7 +120,7 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     if(npx*npy!=nprocs)
     {
         if(p->mpirank==0)
-        cout<<"semicoarsen: the decomposition is not a Cartesian product ("
+        cout<<"REEFMG the decomposition is not a Cartesian product ("
             <<npx<<" x "<<npy<<" != "<<nprocs<<" ranks).  Use N 10 10-19 (hypre)."<<endl;
 
         MPI_Abort(MPI_COMM_WORLD,-2751);
@@ -149,7 +149,7 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         if(bad)
         {
             if(p->mpirank==0)
-            cout<<"semicoarsen: the decomposition has inconsistent block sizes - ranks "
+            cout<<"REEFMG the decomposition has inconsistent block sizes - ranks "
                 <<"sharing an x position must share knox, and likewise in y.  "
                 <<"Use N 10 10-19 (hypre)."<<endl;
 
@@ -167,28 +167,28 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
                  p->DXN+p->marge-1, p->DYN+p->marge-1))
     {
         if(p->mpirank==0)
-        cout<<"semicoarsen: "<<mg.err()<<endl;
+        cout<<"REEFMG "<<mg.err()<<endl;
 
         MPI_Abort(MPI_COMM_WORLD,-2752);
     }
 
     if(p->mpirank==0)
     {
-        cout<<"semicoarsen: procs "<<npx<<" x "<<npy<<", local box "
+        cout<<"REEFMG procs "<<npx<<" x "<<npy<<", local box "
             <<p->knox<<" x "<<p->knoy<<" x "<<p->knoz
             <<", multigrid levels "<<mg.levels()<<endl;
 
-        if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
-        cout<<"semicoarsen: note - odd local cell numbers give ragged coarse cells.  "
+        /*if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
+        cout<<"REEFMG note - odd local cell numbers give ragged coarse cells.  "
             <<"The coarse operators account for this, but even knox/knoy per rank "
-            <<"still converge slightly better."<<endl;
+            <<"still converge slightly better."<<endl;*/
     }
 }
 
 void reefmg::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
 {
     if(p->mpirank==0)
-    cout<<"semicoarsen: start() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
+    cout<<"REEFMG start() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
 
     MPI_Abort(MPI_COMM_WORLD,-2753);
 }
@@ -196,7 +196,7 @@ void reefmg::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int 
 void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M, int var)
 {
     if(p->mpirank==0)
-    cout<<"semicoarsen: startf() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
+    cout<<"REEFMG startf() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
 
     MPI_Abort(MPI_COMM_WORLD,-2754);
 }
@@ -204,7 +204,7 @@ void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M
 void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
     if(p->mpirank==0)
-    cout<<"semicoarsen: startV() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
+    cout<<"REEFMG startV() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
 
     MPI_Abort(MPI_COMM_WORLD,-2755);
 }
@@ -221,7 +221,7 @@ void reefmg::startF(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &
     else
     {
         if(p->mpirank==0)
-        cout<<"semicoarsen: startF() only implemented for var==8 (FNPF Laplace)."<<endl;
+        cout<<"REEFMG startF() only implemented for var==8 (FNPF Laplace)."<<endl;
 
         MPI_Abort(MPI_COMM_WORLD,-2756);
     }
@@ -253,13 +253,13 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
     fillbackvec8(p,f);
 
     if(p->mpirank==0 && p->count%p->P12==0)
-    cout<<"semicoarsen: cycles "<<p->solveriter
+    cout<<"REEFMG cycles "<<p->solveriter
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime
         <<" s  solve "<<setprecision(3)<<solvetime<<" s"<<endl;
 
     if(p->solveriter>=p->N46 && p->mpirank==0)
-    cout<<"semicoarsen: WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "
+    cout<<"REEFMG WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "
         <<relres<<endl;
 }
 

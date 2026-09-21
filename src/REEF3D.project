@@ -1229,7 +1229,7 @@
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
-        <File Name="reefmg_fnpf.cpp"/>
+        <File Name="reefmg.cpp"/>
         <File Name="reefmg_core.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
