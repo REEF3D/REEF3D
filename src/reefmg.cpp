@@ -50,6 +50,13 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  costing convergence on a grid-aligned anisotropy.
     mg.set_sweepstyle(p->N12==1 ? 1 : 0);
 
+    //  N 14 32 runs the V-cycle on single-precision coefficients; the Krylov
+    //  iteration, halo exchange and convergence test stay in double, so the
+    //  converged answer is unchanged.  On one rank per node the cycle gains
+    //  about 20% but the solve only a few percent, and small grids get slower;
+    //  it is aimed at bandwidth-starved runs with fully populated nodes.
+    mg.set_precision(p->N14==32 ? 32 : 64);
+
 
     p->Iarray(CVAL4, p->imax*p->jmax*(p->kmax+2));
 

@@ -27,6 +27,34 @@ Author: Hans Bihs
 #include <cstring>
 #include <algorithm>
 
+namespace
+{
+    //  Everything the V-cycle kernels read, as raw pointers of type C.  The
+    //  kernels are written once and instantiated for double and float; the
+    //  arithmetic is always done in double, so float only changes how many
+    //  bytes each coefficient costs to load.
+    template<class C> struct sc_view
+    {
+        const C *p,*n,*s,*w,*e,*t,*b,*tc,*ti;
+    };
+
+    template<class C> sc_view<C> coef(const sc_level &L);
+
+    template<> inline sc_view<double> coef<double>(const sc_level &L)
+    {
+        sc_view<double> v={L.p.data(),L.n.data(),L.s.data(),L.w.data(),L.e.data(),
+                           L.t.data(),L.b.data(),L.tc.data(),L.ti.data()};
+        return v;
+    }
+
+    template<> inline sc_view<float> coef<float>(const sc_level &L)
+    {
+        sc_view<float> v={L.pf.data(),L.nf.data(),L.sf.data(),L.wf.data(),L.ef.data(),
+                          L.tf.data(),L.bf.data(),L.tcf.data(),L.tif.data()};
+        return v;
+    }
+}
+
 reefmg_core::reefmg_core()
 {
     comm=MPI_COMM_NULL;
@@ -35,6 +63,7 @@ reefmg_core::reefmg_core()
     coarse_sweeps=16;
     nfallback=0;
     sweepstyle=0;
+    pcbits=64;
     errmsg[0]='\0';
 }
 
@@ -242,6 +271,21 @@ void reefmg_core::halo(sc_level &L)
 //  which is what keeps the free-surface Dirichlet term alive on every level.
 void reefmg_core::coarsen()
 {
+    const bool fp32=(pcbits==32);
+
+    if(fp32)
+    for(size_t l=0;l<lev.size();++l)
+    {
+        sc_level &L=lev[l];
+        const long N=L.size();
+        if((long)L.pf.size()!=N)
+        {
+            L.pf.assign(N,0.0f); L.nf.assign(N,0.0f); L.sf.assign(N,0.0f);
+            L.wf.assign(N,0.0f); L.ef.assign(N,0.0f); L.tf.assign(N,0.0f);
+            L.bf.assign(N,0.0f); L.tcf.assign(N,0.0f); L.tif.assign(N,0.0f);
+        }
+    }
+
     for(int l=0;l+1<(int)lev.size();++l)
     {
         sc_level &F=lev[l];
@@ -279,6 +323,19 @@ void reefmg_core::coarsen()
             for(int j=ry*J;j<=jhi;++j)
             {
                 const long qf=F.idx(i,j,k);
+
+                //  Every fine cell is visited exactly once here, with all
+                //  seven coefficients about to be loaded anyway, so the fp32
+                //  mirror costs stores only - no separate pass over the
+                //  hierarchy.  Identity rows mirror as identity rows.
+                if(fp32)
+                {
+                    F.pf[qf]=(float)F.p[qf]; F.nf[qf]=(float)F.n[qf];
+                    F.sf[qf]=(float)F.s[qf]; F.wf[qf]=(float)F.w[qf];
+                    F.ef[qf]=(float)F.e[qf]; F.tf[qf]=(float)F.t[qf];
+                    F.bf[qf]=(float)F.b[qf];
+                }
+
                 if(F.act[qf]==0) continue;
                 ++na;
 
@@ -343,6 +400,9 @@ void reefmg_core::coarsen()
         }
     }
 
+    if(fp32)
+    to_fp32();          // coarsest level only - the others were mirrored above
+
     factor_lines();
 }
 
@@ -353,13 +413,15 @@ void reefmg_core::coarsen()
 //  sweep were what the serial recurrence stalled on.
 void reefmg_core::factor_lines()
 {
+    const bool fp32=(pcbits==32);
+
     for(size_t l=0;l<lev.size();++l)
     {
         sc_level &L=lev[l];
         const int nz=L.nz;
         const long N=L.size();
 
-        if((long)L.tc.size()!=N)
+        if(!fp32 && (long)L.tc.size()!=N)
         {
             L.tc.assign(N,0.0);
             L.ti.assign(N,0.0);
@@ -375,16 +437,21 @@ void reefmg_core::factor_lines()
             for(int k=0;k<nz;++k) if(L.act[col+k]){any=1; break;}
             L.colact[(long)i*L.ny+j]=any;
 
+            //  The elimination runs in double whatever the storage precision;
+            //  only the stored factors are rounded.  In fp32 mode the double
+            //  factors are never needed, so they are neither kept nor allocated.
             double inv=1.0/L.p[col];
-            L.ti[col]=inv;
-            L.tc[col]=L.t[col]*inv;
+            double tcp=L.t[col]*inv;
+            if(fp32){L.tif[col]=(float)inv; L.tcf[col]=(float)tcp;}
+            else    {L.ti [col]=inv;        L.tc [col]=tcp;}
 
             for(int k=1;k<nz;++k)
             {
                 const long q=col+k;
-                inv=1.0/(L.p[q]-L.b[q]*L.tc[q-1]);
-                L.ti[q]=inv;
-                L.tc[q]=L.t[q]*inv;
+                inv=1.0/(L.p[q]-L.b[q]*tcp);
+                tcp=L.t[q]*inv;
+                if(fp32){L.tif[q]=(float)inv; L.tcf[q]=(float)tcp;}
+                else    {L.ti [q]=inv;        L.tc [q]=tcp;}
             }
         }
     }
@@ -396,12 +463,20 @@ void reefmg_core::factor_lines()
 //  as diag 1, sub and super 0.
 void reefmg_core::line_gs(sc_level &L,int l,int sweeps,int dir)
 {
+    if(pcbits==32) line_gs_t<float >(L,sweeps,dir);
+    else           line_gs_t<double>(L,sweeps,dir);
+}
+
+template<class C>
+void reefmg_core::line_gs_t(sc_level &L,int sweeps,int dir)
+{
+    const sc_view<C> V=coef<C>(L);
     const int nz=L.nz;
     std::vector<double> rhs(nz);
     double *r=&rhs[0];
 
-    const double *Lf=&L.f[0], *Ln=&L.n[0], *Ls=&L.s[0], *Lw=&L.w[0], *Le=&L.e[0];
-    const double *Lb=&L.b[0], *Tc=&L.tc[0], *Ti=&L.ti[0];
+    const double *Lf=&L.f[0];
+    const C *Ln=V.n, *Ls=V.s, *Lw=V.w, *Le=V.e, *Lb=V.b, *Tc=V.tc, *Ti=V.ti;
     double *Lu=&L.u[0];
 
     const int p0=(dir==1?1:0), p1=(dir==0?1:2);
@@ -447,23 +522,36 @@ void reefmg_core::line_gs(sc_level &L,int l,int sweeps,int dir)
 
 //  y = A*u on one column, split so every loop is contiguous in k and free
 //  of branches; the two vertical couplings are applied in their own loops.
-static inline void column_apply(const sc_level &L,const double *u,long col,
+template<class C>
+static inline void column_apply(const sc_view<C> &V,int nz,const double *u,long col,
                                 long cn,long cs,long cw,long ce,double *y)
 {
-    const int nz=L.nz;
-    const double *P=&L.p[col], *N=&L.n[col], *S=&L.s[col], *W=&L.w[col], *E=&L.e[col];
-    const double *T=&L.t[col], *B=&L.b[col];
+    const C *P=V.p+col, *N=V.n+col, *S=V.s+col, *W=V.w+col, *E=V.e+col;
+    const C *T=V.t+col, *B=V.b+col;
     const double *uc=u+col, *un=u+cn, *us=u+cs, *uw=u+cw, *ue=u+ce;
 
     for(int k=0;k<nz;++k)
     y[k]=P[k]*uc[k]+N[k]*un[k]+S[k]*us[k]+W[k]*uw[k]+E[k]*ue[k];
 
-    for(int k=0;k<nz-1;++k) y[k]  +=T[k]  *uc[k+1];
-    for(int k=1;k<nz;  ++k) y[k]  +=B[k]  *uc[k-1];
+    for(int k=0;k<nz-1;++k) y[k]+=T[k]*uc[k+1];
+    for(int k=1;k<nz;  ++k) y[k]+=B[k]*uc[k-1];
 }
 
 void reefmg_core::residual(sc_level &L)
 {
+    residual_t<double>(L);
+}
+
+void reefmg_core::residual_cycle(sc_level &L)
+{
+    if(pcbits==32) residual_t<float >(L);
+    else           residual_t<double>(L);
+}
+
+template<class C>
+void reefmg_core::residual_t(sc_level &L)
+{
+    const sc_view<C> V=coef<C>(L);
     halo(L);
 
     for(int i=0;i<L.nx;++i)
@@ -471,10 +559,27 @@ void reefmg_core::residual(sc_level &L)
     {
         const long col=L.idx(i,j,0);
         double *r=&L.r[col];
-        column_apply(L,&L.u[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
-                                   L.idx(i,j+1,0),L.idx(i,j-1,0),r);
+        column_apply<C>(V,L.nz,&L.u[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
+                                          L.idx(i,j+1,0),L.idx(i,j-1,0),r);
         const double *f=&L.f[col];
         for(int k=0;k<L.nz;++k) r[k]=f[k]-r[k];
+    }
+}
+
+//  Mirror the coarsest level into single precision.  Every other level is
+//  mirrored during coarsen(), while its coefficients are loaded to build the
+//  next level; the coarsest is never a fine level, so it is done here.  It is
+//  also the only level when the hierarchy has not been coarsened at all.
+void reefmg_core::to_fp32()
+{
+    sc_level &L=lev.back();
+    const long N=L.size();
+
+    for(long q=0;q<N;++q)
+    {
+        L.pf[q]=(float)L.p[q]; L.nf[q]=(float)L.n[q]; L.sf[q]=(float)L.s[q];
+        L.wf[q]=(float)L.w[q]; L.ef[q]=(float)L.e[q]; L.tf[q]=(float)L.t[q];
+        L.bf[q]=(float)L.b[q];
     }
 }
 
@@ -543,7 +648,7 @@ void reefmg_core::vcycle(int l,int pre,int post)
     const int dpost=(sweepstyle==1)?2:1;
 
     line_gs(L,l,pre,dpre);
-    residual(L);
+    residual_cycle(L);
     restrict_xy(L,lev[l+1]);
     vcycle(l+1,pre,post);
     prolong_xy(lev[l+1],L);
@@ -587,14 +692,15 @@ double reefmg_core::dot(const sc_level &L,const std::vector<double> &a,
 void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
                              std::vector<double> &y)
 {
+    const sc_view<double> V64=coef<double>(L);
     halo_vec(L,x);
 
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
     {
         const long col=L.idx(i,j,0);
-        column_apply(L,&x[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
-                                 L.idx(i,j+1,0),L.idx(i,j-1,0),&y[col]);
+        column_apply<double>(V64,L.nz,&x[0],col,L.idx(i+1,j,0),L.idx(i-1,j,0),
+                                                L.idx(i,j+1,0),L.idx(i,j-1,0),&y[col]);
     }
 }
 

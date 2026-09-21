@@ -53,6 +53,10 @@ struct sc_level
     std::vector<double> tc,ti;           // factorised column matrices: modified
                                          // super-diagonal and reciprocal pivots
     std::vector<char>   colact;          // 1 if the column has any active cell
+
+    //  single-precision mirror of everything the V-cycle reads, filled once
+    //  per solve when the cycle runs in fp32 (see set_precision)
+    std::vector<float>  pf,nf,sf,wf,ef,tf,bf,tcf,tif;
     std::vector<double> u,f,r;
     std::vector<double> hx,hy;           // cell widths, index i+1 for i in [-1,nx]
 
@@ -109,8 +113,16 @@ public:
     int fallbacks() const {return nfallback;}
     void set_sweepstyle(int s){sweepstyle=s;}
 
+    //  32 runs the V-cycle on single-precision coefficients, 64 keeps it in
+    //  double.  Vectors, the halo exchange, the Krylov iteration and the
+    //  convergence test stay in double either way, so the converged answer
+    //  is unchanged - only the preconditioner is approximated.
+    void set_precision(int bits){pcbits=(bits==32?32:64);}
+    int  precision() const {return pcbits;}
+
     void vcycle(int l,int pre,int post);
-    void residual(sc_level &L);
+    void residual(sc_level &L);          // always double: Krylov and convergence test
+    void residual_cycle(sc_level &L);    // inside the V-cycle, follows set_precision
     void halo(sc_level &L);
     void halo_vec(sc_level &L,std::vector<double> &v);
     double dot(const sc_level &L,const std::vector<double> &a,
@@ -119,6 +131,9 @@ public:
 private:
 
     void line_gs(sc_level &L,int l,int sweeps,int dir);   // dir 0 fwd, 1 bwd, 2 symmetric
+    template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
+    template<class C> void residual_t(sc_level &L);
+    void to_fp32();
     void build_widths(const double *dxn,const double *dyn);
     void exchange_widths(sc_level &L);
     void restrict_xy(sc_level &F,sc_level &C);
@@ -137,6 +152,7 @@ private:
     std::vector<double> kr,krhat,kp,kv,ks,kt,ky,kz;   // BiCGStab work space
 
     int coarse_sweeps;
+    int pcbits;              // 64 or 32: precision of the V-cycle coefficients
     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
     int nfallback;
     char errmsg[512];
