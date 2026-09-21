@@ -45,7 +45,7 @@ using namespace std;
 //  few layers.  Coarse operators are built from the fine coefficients, so
 //  variable depth and grid stretching are inherited rather than rederived.
 
-class reefmg final : public solver, public increment
+class reefmg final : public solver, public increment, public sc_operator
 {
 public:
 
@@ -58,6 +58,9 @@ public:
     void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
     void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
 
+    //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
+    void fine_apply(const sc_level &L,const double *x,double *y) override;
+
 private:
 
     void topology(lexer*, ghostcell*);
@@ -68,6 +71,9 @@ private:
     reefmg_core mg;
 
     int *CVAL4;
+
+    matrix_diag *Mcur;          // REEF3D's matrix for the current solve
+    std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
     int count;
 
     int solve_mode, presweep, postsweep;

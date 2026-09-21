@@ -53,6 +53,28 @@ namespace
                           L.tf.data(),L.bf.data(),L.tcf.data(),L.tif.data()};
         return v;
     }
+
+    //  writable counterpart, for building coarse levels and factorisations
+    template<class C> struct sc_mview
+    {
+        C *p,*n,*s,*w,*e,*t,*b,*tc,*ti;
+    };
+
+    template<class C> sc_mview<C> mcoef(sc_level &L);
+
+    template<> inline sc_mview<double> mcoef<double>(sc_level &L)
+    {
+        sc_mview<double> v={L.p.data(),L.n.data(),L.s.data(),L.w.data(),L.e.data(),
+                            L.t.data(),L.b.data(),L.tc.data(),L.ti.data()};
+        return v;
+    }
+
+    template<> inline sc_mview<float> mcoef<float>(sc_level &L)
+    {
+        sc_mview<float> v={L.pf.data(),L.nf.data(),L.sf.data(),L.wf.data(),L.ef.data(),
+                           L.tf.data(),L.bf.data(),L.tcf.data(),L.tif.data()};
+        return v;
+    }
 }
 
 reefmg_core::reefmg_core()
@@ -64,6 +86,7 @@ reefmg_core::reefmg_core()
     nfallback=0;
     sweepstyle=0;
     pcbits=64;
+    fineop=0;
     ordering=0;
     errmsg[0]='\0';
 }
@@ -87,6 +110,13 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
     MPI_Comm_split(world,0,key,&comm);
     MPI_Comm_rank(comm,&myrank);
     MPI_Comm_size(comm,&nprocs);
+
+    if(pcbits==32 && fineop==0)
+    {
+        snprintf(errmsg,sizeof(errmsg),
+                 "fp32 storage needs the exact fine operator (set_fine_operator)");
+        return false;
+    }
 
     if(myrank!=key)
     {
@@ -125,8 +155,19 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
         L.rx=(l>0 && l<=levx)?2:1;
         L.ry=(l>0 && l<=levy)?2:1;
         const long N=L.size();
-        L.p.assign(N,0.0); L.n.assign(N,0.0); L.s.assign(N,0.0);
-        L.w.assign(N,0.0); L.e.assign(N,0.0); L.t.assign(N,0.0); L.b.assign(N,0.0);
+        //  coefficients in exactly one precision
+        if(pcbits==32)
+        {
+            L.pf.assign(N,0.0f); L.nf.assign(N,0.0f); L.sf.assign(N,0.0f);
+            L.wf.assign(N,0.0f); L.ef.assign(N,0.0f); L.tf.assign(N,0.0f);
+            L.bf.assign(N,0.0f); L.tcf.assign(N,0.0f); L.tif.assign(N,0.0f);
+        }
+        else
+        {
+            L.p.assign(N,0.0); L.n.assign(N,0.0); L.s.assign(N,0.0);
+            L.w.assign(N,0.0); L.e.assign(N,0.0); L.t.assign(N,0.0);
+            L.b.assign(N,0.0); L.tc.assign(N,0.0); L.ti.assign(N,0.0);
+        }
         L.u.assign(N,0.0); L.f.assign(N,0.0); L.r.assign(N,0.0);
         L.act.assign(N,0);
         if(l<levx){ax=(ax+1)/2; agx=(agx+1)/2;}
@@ -272,30 +313,27 @@ void reefmg_core::halo(sc_level &L)
 //  which is what keeps the free-surface Dirichlet term alive on every level.
 void reefmg_core::coarsen()
 {
-    const bool fp32=(pcbits==32);
+    if(pcbits==32) coarsen_t<float >();
+    else           coarsen_t<double>();
 
-    if(fp32)
-    for(size_t l=0;l<lev.size();++l)
-    {
-        sc_level &L=lev[l];
-        const long N=L.size();
-        if((long)L.pf.size()!=N)
-        {
-            L.pf.assign(N,0.0f); L.nf.assign(N,0.0f); L.sf.assign(N,0.0f);
-            L.wf.assign(N,0.0f); L.ef.assign(N,0.0f); L.tf.assign(N,0.0f);
-            L.bf.assign(N,0.0f); L.tcf.assign(N,0.0f); L.tif.assign(N,0.0f);
-        }
-    }
+    factor_lines();
+}
 
+template<class T>
+void reefmg_core::coarsen_t()
+{
     for(int l=0;l+1<(int)lev.size();++l)
     {
         sc_level &F=lev[l];
         sc_level &C=lev[l+1];
+        const sc_view<T> FV=coef<T>(F);
+        sc_mview<T> CV=mcoef<T>(C);
+        const long NC=C.size();
 
-        std::fill(C.p.begin(),C.p.end(),0.0);
-        std::fill(C.n.begin(),C.n.end(),0.0); std::fill(C.s.begin(),C.s.end(),0.0);
-        std::fill(C.w.begin(),C.w.end(),0.0); std::fill(C.e.begin(),C.e.end(),0.0);
-        std::fill(C.t.begin(),C.t.end(),0.0); std::fill(C.b.begin(),C.b.end(),0.0);
+        std::fill(CV.p,CV.p+NC,T(0)); std::fill(CV.n,CV.n+NC,T(0));
+        std::fill(CV.s,CV.s+NC,T(0)); std::fill(CV.w,CV.w+NC,T(0));
+        std::fill(CV.e,CV.e+NC,T(0)); std::fill(CV.t,CV.t+NC,T(0));
+        std::fill(CV.b,CV.b+NC,T(0));
         std::fill(C.act.begin(),C.act.end(),0);
 
         for(int I=0;I<C.nx;++I)
@@ -303,7 +341,6 @@ void reefmg_core::coarsen()
         for(int k=0;k<C.nz;++k)
         {
             const long qc=C.idx(I,J,k);
-
             const int rx=C.rx, ry=C.ry;
 
             //  Recover the face coefficient a from the fine row
@@ -324,55 +361,45 @@ void reefmg_core::coarsen()
             for(int j=ry*J;j<=jhi;++j)
             {
                 const long qf=F.idx(i,j,k);
-
-                //  Every fine cell is visited exactly once here, with all
-                //  seven coefficients about to be loaded anyway, so the fp32
-                //  mirror costs stores only - no separate pass over the
-                //  hierarchy.  Identity rows mirror as identity rows.
-                if(fp32)
-                {
-                    F.pf[qf]=(float)F.p[qf]; F.nf[qf]=(float)F.n[qf];
-                    F.sf[qf]=(float)F.s[qf]; F.wf[qf]=(float)F.w[qf];
-                    F.ef[qf]=(float)F.e[qf]; F.tf[qf]=(float)F.t[qf];
-                    F.bf[qf]=(float)F.b[qf];
-                }
-
                 if(F.act[qf]==0) continue;
                 ++na;
+
+                const double fp=FV.p[qf], fn=FV.n[qf], fs=FV.s[qf], fw=FV.w[qf];
+                const double fe=FV.e[qf], ft=FV.t[qf], fb=FV.b[qf];
 
                 const double hxf=F.hx[i+1], hyf=F.hy[j+1];
                 const double vol=hxf*hyf;
 
                 volsum+=vol;
-                tsum  +=F.t[qf]*vol;
-                bsum  +=F.b[qf]*vol;
-                xsum  +=(F.p[qf]+F.n[qf]+F.s[qf]+F.w[qf]+F.e[qf]+F.t[qf]+F.b[qf])*vol;
+                tsum  +=ft*vol;
+                bsum  +=fb*vol;
+                xsum  +=(fp+fn+fs+fw+fe+ft+fb)*vol;
 
                 if(i==ihi)
                 {
                     const double d=0.5*(hxf+F.hx[i+2]);
-                    an+=(-F.n[qf]*d*hxf)*hyf; wn+=hyf;
+                    an+=(-fn*d*hxf)*hyf; wn+=hyf;
                 }
                 if(i==rx*I)
                 {
                     const double d=0.5*(hxf+F.hx[i]);
-                    as+=(-F.s[qf]*d*hxf)*hyf; ws+=hyf;
+                    as+=(-fs*d*hxf)*hyf; ws+=hyf;
                 }
                 if(j==jhi)
                 {
                     const double d=0.5*(hyf+F.hy[j+2]);
-                    aw+=(-F.w[qf]*d*hyf)*hxf; ww_+=hxf;
+                    aw+=(-fw*d*hyf)*hxf; ww_+=hxf;
                 }
                 if(j==ry*J)
                 {
                     const double d=0.5*(hyf+F.hy[j]);
-                    ae+=(-F.e[qf]*d*hyf)*hxf; we+=hxf;
+                    ae+=(-fe*d*hyf)*hxf; we+=hxf;
                 }
             }
 
             if(na==0)
             {
-                C.p[qc]=1.0;
+                CV.p[qc]=T(1);
                 continue;
             }
 
@@ -382,29 +409,27 @@ void reefmg_core::coarsen()
             const double DXn=0.5*(HX+C.hx[I+2]), DXs=0.5*(HX+C.hx[I]);
             const double DYw=0.5*(HY+C.hy[J+2]), DYe=0.5*(HY+C.hy[J]);
 
-            C.t[qc]=tsum/volsum;
-            C.b[qc]=bsum/volsum;
-            C.n[qc]=(wn >0.0)? -(an /wn )/(DXn*HX) : 0.0;
-            C.s[qc]=(ws >0.0)? -(as /ws )/(DXs*HX) : 0.0;
-            C.w[qc]=(ww_>0.0)? -(aw /ww_)/(DYw*HY) : 0.0;
-            C.e[qc]=(we >0.0)? -(ae /we )/(DYe*HY) : 0.0;
+            double ct=tsum/volsum;
+            double cb=bsum/volsum;
+            double cn=(wn >0.0)? -(an /wn )/(DXn*HX) : 0.0;
+            double cs=(ws >0.0)? -(as /ws )/(DXs*HX) : 0.0;
+            double cw=(ww_>0.0)? -(aw /ww_)/(DYw*HY) : 0.0;
+            double ce=(we >0.0)? -(ae /we )/(DYe*HY) : 0.0;
 
-            if(I==0        && nbx0==MPI_PROC_NULL) C.s[qc]=0.0;
-            if(I==C.nx-1   && nbx1==MPI_PROC_NULL) C.n[qc]=0.0;
-            if(J==0        && nby0==MPI_PROC_NULL) C.e[qc]=0.0;
-            if(J==C.ny-1   && nby1==MPI_PROC_NULL) C.w[qc]=0.0;
-            if(k==0)        C.b[qc]=0.0;
-            if(k==C.nz-1)   C.t[qc]=0.0;
+            if(I==0        && nbx0==MPI_PROC_NULL) cs=0.0;
+            if(I==C.nx-1   && nbx1==MPI_PROC_NULL) cn=0.0;
+            if(J==0        && nby0==MPI_PROC_NULL) ce=0.0;
+            if(J==C.ny-1   && nby1==MPI_PROC_NULL) cw=0.0;
+            if(k==0)        cb=0.0;
+            if(k==C.nz-1)   ct=0.0;
 
             const double excess=xsum/volsum;
-            C.p[qc]=excess-(C.n[qc]+C.s[qc]+C.w[qc]+C.e[qc]+C.t[qc]+C.b[qc]);
+            const double cp=excess-(cn+cs+cw+ce+ct+cb);
+
+            CV.p[qc]=T(cp); CV.n[qc]=T(cn); CV.s[qc]=T(cs); CV.w[qc]=T(cw);
+            CV.e[qc]=T(ce); CV.t[qc]=T(ct); CV.b[qc]=T(cb);
         }
     }
-
-    if(fp32)
-    to_fp32();          // coarsest level only - the others were mirrored above
-
-    factor_lines();
 }
 
 //  The column matrices are fixed for the whole solve - every sweep of every
@@ -414,19 +439,20 @@ void reefmg_core::coarsen()
 //  sweep were what the serial recurrence stalled on.
 void reefmg_core::factor_lines()
 {
-    const bool fp32=(pcbits==32);
+    if(pcbits==32) factor_lines_t<float >();
+    else           factor_lines_t<double>();
+}
 
+template<class T>
+void reefmg_core::factor_lines_t()
+{
     for(size_t l=0;l<lev.size();++l)
     {
         sc_level &L=lev[l];
         const int nz=L.nz;
-        const long N=L.size();
+        const sc_view<T> V=coef<T>(L);
+        sc_mview<T> M=mcoef<T>(L);
 
-        if(!fp32 && (long)L.tc.size()!=N)
-        {
-            L.tc.assign(N,0.0);
-            L.ti.assign(N,0.0);
-        }
         L.colact.assign((long)L.nx*L.ny,0);
         L.zcol[0].clear();
         L.zcol[1].clear();
@@ -441,21 +467,18 @@ void reefmg_core::factor_lines()
             L.colact[(long)i*L.ny+j]=any;
             if(any) L.zcol[(i+j)&1].push_back(col);
 
-            //  The elimination runs in double whatever the storage precision;
-            //  only the stored factors are rounded.  In fp32 mode the double
-            //  factors are never needed, so they are neither kept nor allocated.
-            double inv=1.0/L.p[col];
-            double tcp=L.t[col]*inv;
-            if(fp32){L.tif[col]=(float)inv; L.tcf[col]=(float)tcp;}
-            else    {L.ti [col]=inv;        L.tc [col]=tcp;}
+            double inv=1.0/double(V.p[col]);
+            double tcp=double(V.t[col])*inv;
+            M.ti[col]=T(inv);
+            M.tc[col]=T(tcp);
 
             for(int k=1;k<nz;++k)
             {
                 const long q=col+k;
-                inv=1.0/(L.p[q]-L.b[q]*tcp);
-                tcp=L.t[q]*inv;
-                if(fp32){L.tif[q]=(float)inv; L.tcf[q]=(float)tcp;}
-                else    {L.ti [q]=inv;        L.tc [q]=tcp;}
+                inv=1.0/(double(V.p[q])-double(V.b[q])*tcp);
+                tcp=double(V.t[q])*inv;
+                M.ti[q]=T(inv);
+                M.tc[q]=T(tcp);
             }
         }
     }
@@ -635,8 +658,27 @@ static inline void column_apply(const sc_view<C> &V,int nz,const double *u,long 
     for(int k=1;k<nz;  ++k) y[k]+=B[k]*uc[k-1];
 }
 
+//  Always double: this is what the Krylov iteration and the convergence test
+//  measure.  Called on the fine level only.  In fp32 mode no double
+//  coefficients exist, so the exact operator comes from the host.
 void reefmg_core::residual(sc_level &L)
 {
+    if(pcbits==32)
+    {
+        halo(L);
+        fineop->fine_apply(L,&L.u[0],&L.r[0]);
+
+        for(int i=0;i<L.nx;++i)
+        for(int j=0;j<L.ny;++j)
+        {
+            const long col=L.idx(i,j,0);
+            double *r=&L.r[col];
+            const double *f=&L.f[col];
+            for(int k=0;k<L.nz;++k) r[k]=f[k]-r[k];
+        }
+        return;
+    }
+
     residual_t<double>(L);
 }
 
@@ -664,22 +706,6 @@ void reefmg_core::residual_t(sc_level &L)
     }
 }
 
-//  Mirror the coarsest level into single precision.  Every other level is
-//  mirrored during coarsen(), while its coefficients are loaded to build the
-//  next level; the coarsest is never a fine level, so it is done here.  It is
-//  also the only level when the hierarchy has not been coarsened at all.
-void reefmg_core::to_fp32()
-{
-    sc_level &L=lev.back();
-    const long N=L.size();
-
-    for(long q=0;q<N;++q)
-    {
-        L.pf[q]=(float)L.p[q]; L.nf[q]=(float)L.n[q]; L.sf[q]=(float)L.s[q];
-        L.wf[q]=(float)L.w[q]; L.ef[q]=(float)L.e[q]; L.tf[q]=(float)L.t[q];
-        L.bf[q]=(float)L.b[q];
-    }
-}
 
 void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
 {
@@ -790,8 +816,15 @@ double reefmg_core::dot(const sc_level &L,const std::vector<double> &a,
 void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
                              std::vector<double> &y)
 {
-    const sc_view<double> V64=coef<double>(L);
     halo_vec(L,x);
+
+    if(pcbits==32)
+    {
+        fineop->fine_apply(L,&x[0],&y[0]);
+        return;
+    }
+
+    const sc_view<double> V64=coef<double>(L);
 
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
@@ -965,4 +998,23 @@ int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
 
     relres=rn/bn;
     return it;
+}
+
+long reefmg_core::memory_bytes() const
+{
+    long s=0;
+    for(size_t l=0;l<lev.size();++l)
+    {
+        const sc_level &L=lev[l];
+        s+=long(L.p.capacity()+L.n.capacity()+L.s.capacity()+L.w.capacity()+L.e.capacity()
+               +L.t.capacity()+L.b.capacity()+L.tc.capacity()+L.ti.capacity())*sizeof(double);
+        s+=long(L.pf.capacity()+L.nf.capacity()+L.sf.capacity()+L.wf.capacity()+L.ef.capacity()
+               +L.tf.capacity()+L.bf.capacity()+L.tcf.capacity()+L.tif.capacity())*sizeof(float);
+        s+=long(L.u.capacity()+L.f.capacity()+L.r.capacity()
+               +L.hx.capacity()+L.hy.capacity())*sizeof(double);
+        s+=long(L.act.capacity()+L.colact.capacity());
+    }
+    s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()+ks.capacity()
+           +kt.capacity()+ky.capacity()+kz.capacity()+sbuf.capacity()+rbuf.capacity())*sizeof(double);
+    return s;
 }

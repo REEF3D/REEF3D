@@ -58,13 +58,18 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  needs independent columns.
     mg.set_ordering(p->N12==2 ? 1 : 0);
 
-    //  N 14 32 runs the V-cycle on single-precision coefficients; the Krylov
-    //  iteration, halo exchange and convergence test stay in double, so the
-    //  converged answer is unchanged.  On one rank per node the cycle gains
-    //  about 20% but the solve only a few percent, and small grids get slower;
-    //  it is aimed at bandwidth-starved runs with fully populated nodes.
+    //  N 14 32 stores the whole hierarchy in single precision and nothing in
+    //  double: about 25% less solver memory and a faster V-cycle.  BiCGStab,
+    //  the halo exchange and the convergence test stay in double, with the
+    //  exact operator read from REEF3D's matrix, so the converged answer is
+    //  unchanged.  Must be set before topology() calls setup().
     mg.set_precision(p->N14==32 ? 32 : 64);
 
+
+    //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
+    //  exact operator from REEF3D's own matrix through fine_apply().
+    Mcur=0;
+    mg.set_fine_operator(this);
 
     p->Iarray(CVAL4, p->imax*p->jmax*(p->kmax+2));
 
@@ -275,11 +280,29 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
 void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 {
     sc_level &L=mg.fine();
+    const bool fp32=(mg.precision()==32);
 
-    std::fill(L.p.begin(),L.p.end(),0.0);
-    std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
-    std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
-    std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+    Mcur=&M;
+
+    //  coefficients go into exactly one precision; in fp32 mode the row map
+    //  lets fine_apply() read the exact double operator from M instead
+    if(fp32)
+    {
+        std::fill(L.pf.begin(),L.pf.end(),0.0f);
+        std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
+        std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
+        std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
+
+        if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
+        std::fill(rowmap.begin(),rowmap.end(),-1);
+    }
+    else
+    {
+        std::fill(L.p.begin(),L.p.end(),0.0);
+        std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
+        std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
+        std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+    }
     std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
     std::fill(L.act.begin(),L.act.end(),0);
 
@@ -299,13 +322,27 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
         {
             n=CVAL4[IJK];
 
-            L.p[q]=M.p[n];
-            L.n[q]=M.n[n];   // i+1
-            L.s[q]=M.s[n];   // i-1
-            L.w[q]=M.w[n];   // j+1
-            L.e[q]=M.e[n];   // j-1
-            L.t[q]=M.t[n];   // k+1
-            L.b[q]=M.b[n];   // k-1
+            if(fp32)
+            {
+                L.pf[q]=(float)M.p[n];
+                L.nf[q]=(float)M.n[n];   // i+1
+                L.sf[q]=(float)M.s[n];   // i-1
+                L.wf[q]=(float)M.w[n];   // j+1
+                L.ef[q]=(float)M.e[n];   // j-1
+                L.tf[q]=(float)M.t[n];   // k+1
+                L.bf[q]=(float)M.b[n];   // k-1
+                rowmap[q]=n;
+            }
+            else
+            {
+                L.p[q]=M.p[n];
+                L.n[q]=M.n[n];   // i+1
+                L.s[q]=M.s[n];   // i-1
+                L.w[q]=M.w[n];   // j+1
+                L.e[q]=M.e[n];   // j-1
+                L.t[q]=M.t[n];   // k+1
+                L.b[q]=M.b[n];   // k-1
+            }
 
             L.f[q]=rhs.V[n];
             L.u[q]=f[FIJK];
@@ -317,7 +354,39 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 
         FSWDCHECK
         {
-            L.p[q]=1.0;      // identity row, passes harmlessly through the line solve
+            //  identity row, passes harmlessly through the line solve
+            if(fp32) L.pf[q]=1.0f;
+            else     L.p [q]=1.0;
+        }
+    }
+}
+
+//  y = A x with the exact double operator, read from REEF3D's matrix_diag.
+//  Used by the Krylov iteration in fp32 mode, where reefmg keeps no double
+//  coefficients.  CVAL4 numbers rows in LOOP order - i, then j, then k
+//  innermost - which is also reefmg's layout, so the rows are read
+//  sequentially down each column.  A different row order would still be
+//  correct but scatter these reads and cost several times more.
+void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
+{
+    const matrix_diag &M=*Mcur;
+    const long sx=(long)(L.ny+2)*L.nz, sy=L.nz;
+    const int *rm=&rowmap[0];
+
+    for(int ii=0;ii<L.nx;++ii)
+    for(int jj=0;jj<L.ny;++jj)
+    {
+        const long col=L.idx(ii,jj,0);
+        for(int kk=0;kk<L.nz;++kk)
+        {
+            const long q=col+kk;
+            const int r=rm[q];
+            if(r<0){y[q]=x[q]; continue;}
+
+            double v=M.p[r]*x[q]+M.n[r]*x[q+sx]+M.s[r]*x[q-sx]+M.w[r]*x[q+sy]+M.e[r]*x[q-sy];
+            if(kk<L.nz-1) v+=M.t[r]*x[q+1];
+            if(kk>0)      v+=M.b[r]*x[q-1];
+            y[q]=v;
         }
     }
 }

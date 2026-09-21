@@ -1,0 +1,641 @@
+--- a/src/reefmg_core.h	2026-09-21 16:42:44.753423589 +0000
++++ b/src/reefmg_core.h	2026-09-21 16:43:42.811048916 +0000
+@@ -55,8 +55,9 @@
+     std::vector<char>   colact;          // 1 if the column has any active cell
+     std::vector<long>   zcol[2];         // active columns by red-black colour
+ 
+-    //  single-precision mirror of everything the V-cycle reads, filled once
+-    //  per solve when the cycle runs in fp32 (see set_precision)
++    //  Coefficients live in exactly one of the two sets, depending on the
++    //  storage precision chosen before setup: p..b and tc,ti in fp64 mode,
++    //  pf..bf and tcf,tif in fp32 mode.  The other set stays empty.
+     std::vector<float>  pf,nf,sf,wf,ef,tf,bf,tcf,tif;
+     std::vector<double> u,f,r;
+     std::vector<double> hx,hy;           // cell widths, index i+1 for i in [-1,nx]
+@@ -68,6 +69,20 @@
+     long size() const {return (long)(nx+2)*(ny+2)*nz;}
+ };
+ 
++//  Exact fine-level operator supplied by the host code.  In fp32 mode no
++//  double-precision coefficients are stored anywhere in the hierarchy, so the
++//  Krylov iteration - which must see the exact operator to guarantee its
++//  tolerance - multiplies through this interface.  REEF3D implements it
++//  straight from its own matrix_diag, so the matrix is never duplicated.
++class sc_operator
++{
++public:
++    virtual ~sc_operator(){}
++
++    //  y = A x on the interior of the fine level; x already has a valid halo
++    virtual void fine_apply(const sc_level &L,const double *x,double *y)=0;
++};
++
+ class reefmg_core
+ {
+ public:
+@@ -114,11 +129,20 @@
+     int fallbacks() const {return nfallback;}
+     void set_sweepstyle(int s){sweepstyle=s;}
+ 
+-    //  32 runs the V-cycle on single-precision coefficients, 64 keeps it in
+-    //  double.  Vectors, the halo exchange, the Krylov iteration and the
+-    //  convergence test stay in double either way, so the converged answer
+-    //  is unchanged - only the preconditioner is approximated.
++    //  Storage precision of the coefficients, either/or:
++    //    64: every level stored in double, as the host provides the matrix.
++    //    32: every level stored in float only - no double coefficients
++    //        anywhere, which roughly halves the coefficient memory.  The
++    //        Krylov iteration still multiplies with the exact double
++    //        operator, obtained from set_fine_operator(), so the converged
++    //        answer is unchanged; only the preconditioner is approximated.
++    //  Both must be called before setup(); fp32 without a fine operator is
++    //  refused by setup().
+     void set_precision(int bits){pcbits=(bits==32?32:64);}
++    void set_fine_operator(sc_operator *op){fineop=op;}
++
++    //  bytes held by the hierarchy and the Krylov work space
++    long memory_bytes() const;
+ 
+     //  0: lexicographic line Gauss-Seidel, columns solved one after another.
+     //  1: red-black (zebra) line Gauss-Seidel.  Columns of one colour are
+@@ -141,7 +165,8 @@
+     template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
+     template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
+     template<class C> void residual_t(sc_level &L);
+-    void to_fp32();
++    template<class T> void coarsen_t();
++    template<class T> void factor_lines_t();
+     void build_widths(const double *dxn,const double *dyn);
+     void exchange_widths(sc_level &L);
+     void restrict_xy(sc_level &F,sc_level &C);
+@@ -160,7 +185,8 @@
+     std::vector<double> kr,krhat,kp,kv,ks,kt,ky,kz;   // BiCGStab work space
+ 
+     int coarse_sweeps;
+-    int pcbits;              // 64 or 32: precision of the V-cycle coefficients
++    int pcbits;              // 64 or 32: storage precision of the coefficients
++    sc_operator *fineop;     // exact fine operator, required in fp32 mode
+     int ordering;            // 0 lexicographic, 1 red-black batched
+     std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
+     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
+--- a/src/reefmg_core.cpp	2026-09-21 16:42:44.753423589 +0000
++++ b/src/reefmg_core.cpp	2026-09-21 16:43:42.810874051 +0000
+@@ -53,6 +53,28 @@
+                           L.tf.data(),L.bf.data(),L.tcf.data(),L.tif.data()};
+         return v;
+     }
++
++    //  writable counterpart, for building coarse levels and factorisations
++    template<class C> struct sc_mview
++    {
++        C *p,*n,*s,*w,*e,*t,*b,*tc,*ti;
++    };
++
++    template<class C> sc_mview<C> mcoef(sc_level &L);
++
++    template<> inline sc_mview<double> mcoef<double>(sc_level &L)
++    {
++        sc_mview<double> v={L.p.data(),L.n.data(),L.s.data(),L.w.data(),L.e.data(),
++                            L.t.data(),L.b.data(),L.tc.data(),L.ti.data()};
++        return v;
++    }
++
++    template<> inline sc_mview<float> mcoef<float>(sc_level &L)
++    {
++        sc_mview<float> v={L.pf.data(),L.nf.data(),L.sf.data(),L.wf.data(),L.ef.data(),
++                           L.tf.data(),L.bf.data(),L.tcf.data(),L.tif.data()};
++        return v;
++    }
+ }
+ 
+ reefmg_core::reefmg_core()
+@@ -64,6 +86,7 @@
+     nfallback=0;
+     sweepstyle=0;
+     pcbits=64;
++    fineop=0;
+     ordering=0;
+     errmsg[0]='\0';
+ }
+@@ -88,6 +111,13 @@
+     MPI_Comm_rank(comm,&myrank);
+     MPI_Comm_size(comm,&nprocs);
+ 
++    if(pcbits==32 && fineop==0)
++    {
++        snprintf(errmsg,sizeof(errmsg),
++                 "fp32 storage needs the exact fine operator (set_fine_operator)");
++        return false;
++    }
++
+     if(myrank!=key)
+     {
+         snprintf(errmsg,sizeof(errmsg),"rank re-ordering failed");
+@@ -125,8 +155,19 @@
+         L.rx=(l>0 && l<=levx)?2:1;
+         L.ry=(l>0 && l<=levy)?2:1;
+         const long N=L.size();
+-        L.p.assign(N,0.0); L.n.assign(N,0.0); L.s.assign(N,0.0);
+-        L.w.assign(N,0.0); L.e.assign(N,0.0); L.t.assign(N,0.0); L.b.assign(N,0.0);
++        //  coefficients in exactly one precision
++        if(pcbits==32)
++        {
++            L.pf.assign(N,0.0f); L.nf.assign(N,0.0f); L.sf.assign(N,0.0f);
++            L.wf.assign(N,0.0f); L.ef.assign(N,0.0f); L.tf.assign(N,0.0f);
++            L.bf.assign(N,0.0f); L.tcf.assign(N,0.0f); L.tif.assign(N,0.0f);
++        }
++        else
++        {
++            L.p.assign(N,0.0); L.n.assign(N,0.0); L.s.assign(N,0.0);
++            L.w.assign(N,0.0); L.e.assign(N,0.0); L.t.assign(N,0.0);
++            L.b.assign(N,0.0); L.tc.assign(N,0.0); L.ti.assign(N,0.0);
++        }
+         L.u.assign(N,0.0); L.f.assign(N,0.0); L.r.assign(N,0.0);
+         L.act.assign(N,0);
+         if(l<levx){ax=(ax+1)/2; agx=(agx+1)/2;}
+@@ -272,30 +313,27 @@
+ //  which is what keeps the free-surface Dirichlet term alive on every level.
+ void reefmg_core::coarsen()
+ {
+-    const bool fp32=(pcbits==32);
++    if(pcbits==32) coarsen_t<float >();
++    else           coarsen_t<double>();
+ 
+-    if(fp32)
+-    for(size_t l=0;l<lev.size();++l)
+-    {
+-        sc_level &L=lev[l];
+-        const long N=L.size();
+-        if((long)L.pf.size()!=N)
+-        {
+-            L.pf.assign(N,0.0f); L.nf.assign(N,0.0f); L.sf.assign(N,0.0f);
+-            L.wf.assign(N,0.0f); L.ef.assign(N,0.0f); L.tf.assign(N,0.0f);
+-            L.bf.assign(N,0.0f); L.tcf.assign(N,0.0f); L.tif.assign(N,0.0f);
+-        }
+-    }
++    factor_lines();
++}
+ 
++template<class T>
++void reefmg_core::coarsen_t()
++{
+     for(int l=0;l+1<(int)lev.size();++l)
+     {
+         sc_level &F=lev[l];
+         sc_level &C=lev[l+1];
+-
+-        std::fill(C.p.begin(),C.p.end(),0.0);
+-        std::fill(C.n.begin(),C.n.end(),0.0); std::fill(C.s.begin(),C.s.end(),0.0);
+-        std::fill(C.w.begin(),C.w.end(),0.0); std::fill(C.e.begin(),C.e.end(),0.0);
+-        std::fill(C.t.begin(),C.t.end(),0.0); std::fill(C.b.begin(),C.b.end(),0.0);
++        const sc_view<T> FV=coef<T>(F);
++        sc_mview<T> CV=mcoef<T>(C);
++        const long NC=C.size();
++
++        std::fill(CV.p,CV.p+NC,T(0)); std::fill(CV.n,CV.n+NC,T(0));
++        std::fill(CV.s,CV.s+NC,T(0)); std::fill(CV.w,CV.w+NC,T(0));
++        std::fill(CV.e,CV.e+NC,T(0)); std::fill(CV.t,CV.t+NC,T(0));
++        std::fill(CV.b,CV.b+NC,T(0));
+         std::fill(C.act.begin(),C.act.end(),0);
+ 
+         for(int I=0;I<C.nx;++I)
+@@ -303,7 +341,6 @@
+         for(int k=0;k<C.nz;++k)
+         {
+             const long qc=C.idx(I,J,k);
+-
+             const int rx=C.rx, ry=C.ry;
+ 
+             //  Recover the face coefficient a from the fine row
+@@ -324,55 +361,45 @@
+             for(int j=ry*J;j<=jhi;++j)
+             {
+                 const long qf=F.idx(i,j,k);
+-
+-                //  Every fine cell is visited exactly once here, with all
+-                //  seven coefficients about to be loaded anyway, so the fp32
+-                //  mirror costs stores only - no separate pass over the
+-                //  hierarchy.  Identity rows mirror as identity rows.
+-                if(fp32)
+-                {
+-                    F.pf[qf]=(float)F.p[qf]; F.nf[qf]=(float)F.n[qf];
+-                    F.sf[qf]=(float)F.s[qf]; F.wf[qf]=(float)F.w[qf];
+-                    F.ef[qf]=(float)F.e[qf]; F.tf[qf]=(float)F.t[qf];
+-                    F.bf[qf]=(float)F.b[qf];
+-                }
+-
+                 if(F.act[qf]==0) continue;
+                 ++na;
+ 
++                const double fp=FV.p[qf], fn=FV.n[qf], fs=FV.s[qf], fw=FV.w[qf];
++                const double fe=FV.e[qf], ft=FV.t[qf], fb=FV.b[qf];
++
+                 const double hxf=F.hx[i+1], hyf=F.hy[j+1];
+                 const double vol=hxf*hyf;
+ 
+                 volsum+=vol;
+-                tsum  +=F.t[qf]*vol;
+-                bsum  +=F.b[qf]*vol;
+-                xsum  +=(F.p[qf]+F.n[qf]+F.s[qf]+F.w[qf]+F.e[qf]+F.t[qf]+F.b[qf])*vol;
++                tsum  +=ft*vol;
++                bsum  +=fb*vol;
++                xsum  +=(fp+fn+fs+fw+fe+ft+fb)*vol;
+ 
+                 if(i==ihi)
+                 {
+                     const double d=0.5*(hxf+F.hx[i+2]);
+-                    an+=(-F.n[qf]*d*hxf)*hyf; wn+=hyf;
++                    an+=(-fn*d*hxf)*hyf; wn+=hyf;
+                 }
+                 if(i==rx*I)
+                 {
+                     const double d=0.5*(hxf+F.hx[i]);
+-                    as+=(-F.s[qf]*d*hxf)*hyf; ws+=hyf;
++                    as+=(-fs*d*hxf)*hyf; ws+=hyf;
+                 }
+                 if(j==jhi)
+                 {
+                     const double d=0.5*(hyf+F.hy[j+2]);
+-                    aw+=(-F.w[qf]*d*hyf)*hxf; ww_+=hxf;
++                    aw+=(-fw*d*hyf)*hxf; ww_+=hxf;
+                 }
+                 if(j==ry*J)
+                 {
+                     const double d=0.5*(hyf+F.hy[j]);
+-                    ae+=(-F.e[qf]*d*hyf)*hxf; we+=hxf;
++                    ae+=(-fe*d*hyf)*hxf; we+=hxf;
+                 }
+             }
+ 
+             if(na==0)
+             {
+-                C.p[qc]=1.0;
++                CV.p[qc]=T(1);
+                 continue;
+             }
+ 
+@@ -382,29 +409,27 @@
+             const double DXn=0.5*(HX+C.hx[I+2]), DXs=0.5*(HX+C.hx[I]);
+             const double DYw=0.5*(HY+C.hy[J+2]), DYe=0.5*(HY+C.hy[J]);
+ 
+-            C.t[qc]=tsum/volsum;
+-            C.b[qc]=bsum/volsum;
+-            C.n[qc]=(wn >0.0)? -(an /wn )/(DXn*HX) : 0.0;
+-            C.s[qc]=(ws >0.0)? -(as /ws )/(DXs*HX) : 0.0;
+-            C.w[qc]=(ww_>0.0)? -(aw /ww_)/(DYw*HY) : 0.0;
+-            C.e[qc]=(we >0.0)? -(ae /we )/(DYe*HY) : 0.0;
+-
+-            if(I==0        && nbx0==MPI_PROC_NULL) C.s[qc]=0.0;
+-            if(I==C.nx-1   && nbx1==MPI_PROC_NULL) C.n[qc]=0.0;
+-            if(J==0        && nby0==MPI_PROC_NULL) C.e[qc]=0.0;
+-            if(J==C.ny-1   && nby1==MPI_PROC_NULL) C.w[qc]=0.0;
+-            if(k==0)        C.b[qc]=0.0;
+-            if(k==C.nz-1)   C.t[qc]=0.0;
++            double ct=tsum/volsum;
++            double cb=bsum/volsum;
++            double cn=(wn >0.0)? -(an /wn )/(DXn*HX) : 0.0;
++            double cs=(ws >0.0)? -(as /ws )/(DXs*HX) : 0.0;
++            double cw=(ww_>0.0)? -(aw /ww_)/(DYw*HY) : 0.0;
++            double ce=(we >0.0)? -(ae /we )/(DYe*HY) : 0.0;
++
++            if(I==0        && nbx0==MPI_PROC_NULL) cs=0.0;
++            if(I==C.nx-1   && nbx1==MPI_PROC_NULL) cn=0.0;
++            if(J==0        && nby0==MPI_PROC_NULL) ce=0.0;
++            if(J==C.ny-1   && nby1==MPI_PROC_NULL) cw=0.0;
++            if(k==0)        cb=0.0;
++            if(k==C.nz-1)   ct=0.0;
+ 
+             const double excess=xsum/volsum;
+-            C.p[qc]=excess-(C.n[qc]+C.s[qc]+C.w[qc]+C.e[qc]+C.t[qc]+C.b[qc]);
++            const double cp=excess-(cn+cs+cw+ce+ct+cb);
++
++            CV.p[qc]=T(cp); CV.n[qc]=T(cn); CV.s[qc]=T(cs); CV.w[qc]=T(cw);
++            CV.e[qc]=T(ce); CV.t[qc]=T(ct); CV.b[qc]=T(cb);
+         }
+     }
+-
+-    if(fp32)
+-    to_fp32();          // coarsest level only - the others were mirrored above
+-
+-    factor_lines();
+ }
+ 
+ //  The column matrices are fixed for the whole solve - every sweep of every
+@@ -414,19 +439,20 @@
+ //  sweep were what the serial recurrence stalled on.
+ void reefmg_core::factor_lines()
+ {
+-    const bool fp32=(pcbits==32);
++    if(pcbits==32) factor_lines_t<float >();
++    else           factor_lines_t<double>();
++}
+ 
++template<class T>
++void reefmg_core::factor_lines_t()
++{
+     for(size_t l=0;l<lev.size();++l)
+     {
+         sc_level &L=lev[l];
+         const int nz=L.nz;
+-        const long N=L.size();
++        const sc_view<T> V=coef<T>(L);
++        sc_mview<T> M=mcoef<T>(L);
+ 
+-        if(!fp32 && (long)L.tc.size()!=N)
+-        {
+-            L.tc.assign(N,0.0);
+-            L.ti.assign(N,0.0);
+-        }
+         L.colact.assign((long)L.nx*L.ny,0);
+         L.zcol[0].clear();
+         L.zcol[1].clear();
+@@ -441,21 +467,18 @@
+             L.colact[(long)i*L.ny+j]=any;
+             if(any) L.zcol[(i+j)&1].push_back(col);
+ 
+-            //  The elimination runs in double whatever the storage precision;
+-            //  only the stored factors are rounded.  In fp32 mode the double
+-            //  factors are never needed, so they are neither kept nor allocated.
+-            double inv=1.0/L.p[col];
+-            double tcp=L.t[col]*inv;
+-            if(fp32){L.tif[col]=(float)inv; L.tcf[col]=(float)tcp;}
+-            else    {L.ti [col]=inv;        L.tc [col]=tcp;}
++            double inv=1.0/double(V.p[col]);
++            double tcp=double(V.t[col])*inv;
++            M.ti[col]=T(inv);
++            M.tc[col]=T(tcp);
+ 
+             for(int k=1;k<nz;++k)
+             {
+                 const long q=col+k;
+-                inv=1.0/(L.p[q]-L.b[q]*tcp);
+-                tcp=L.t[q]*inv;
+-                if(fp32){L.tif[q]=(float)inv; L.tcf[q]=(float)tcp;}
+-                else    {L.ti [q]=inv;        L.tc [q]=tcp;}
++                inv=1.0/(double(V.p[q])-double(V.b[q])*tcp);
++                tcp=double(V.t[q])*inv;
++                M.ti[q]=T(inv);
++                M.tc[q]=T(tcp);
+             }
+         }
+     }
+@@ -635,8 +658,27 @@
+     for(int k=1;k<nz;  ++k) y[k]+=B[k]*uc[k-1];
+ }
+ 
++//  Always double: this is what the Krylov iteration and the convergence test
++//  measure.  Called on the fine level only.  In fp32 mode no double
++//  coefficients exist, so the exact operator comes from the host.
+ void reefmg_core::residual(sc_level &L)
+ {
++    if(pcbits==32)
++    {
++        halo(L);
++        fineop->fine_apply(L,&L.u[0],&L.r[0]);
++
++        for(int i=0;i<L.nx;++i)
++        for(int j=0;j<L.ny;++j)
++        {
++            const long col=L.idx(i,j,0);
++            double *r=&L.r[col];
++            const double *f=&L.f[col];
++            for(int k=0;k<L.nz;++k) r[k]=f[k]-r[k];
++        }
++        return;
++    }
++
+     residual_t<double>(L);
+ }
+ 
+@@ -664,22 +706,6 @@
+     }
+ }
+ 
+-//  Mirror the coarsest level into single precision.  Every other level is
+-//  mirrored during coarsen(), while its coefficients are loaded to build the
+-//  next level; the coarsest is never a fine level, so it is done here.  It is
+-//  also the only level when the hierarchy has not been coarsened at all.
+-void reefmg_core::to_fp32()
+-{
+-    sc_level &L=lev.back();
+-    const long N=L.size();
+-
+-    for(long q=0;q<N;++q)
+-    {
+-        L.pf[q]=(float)L.p[q]; L.nf[q]=(float)L.n[q]; L.sf[q]=(float)L.s[q];
+-        L.wf[q]=(float)L.w[q]; L.ef[q]=(float)L.e[q]; L.tf[q]=(float)L.t[q];
+-        L.bf[q]=(float)L.b[q];
+-    }
+-}
+ 
+ void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
+ {
+@@ -790,9 +816,16 @@
+ void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
+                              std::vector<double> &y)
+ {
+-    const sc_view<double> V64=coef<double>(L);
+     halo_vec(L,x);
+ 
++    if(pcbits==32)
++    {
++        fineop->fine_apply(L,&x[0],&y[0]);
++        return;
++    }
++
++    const sc_view<double> V64=coef<double>(L);
++
+     for(int i=0;i<L.nx;++i)
+     for(int j=0;j<L.ny;++j)
+     {
+@@ -966,3 +999,22 @@
+     relres=rn/bn;
+     return it;
+ }
++
++long reefmg_core::memory_bytes() const
++{
++    long s=0;
++    for(size_t l=0;l<lev.size();++l)
++    {
++        const sc_level &L=lev[l];
++        s+=long(L.p.capacity()+L.n.capacity()+L.s.capacity()+L.w.capacity()+L.e.capacity()
++               +L.t.capacity()+L.b.capacity()+L.tc.capacity()+L.ti.capacity())*sizeof(double);
++        s+=long(L.pf.capacity()+L.nf.capacity()+L.sf.capacity()+L.wf.capacity()+L.ef.capacity()
++               +L.tf.capacity()+L.bf.capacity()+L.tcf.capacity()+L.tif.capacity())*sizeof(float);
++        s+=long(L.u.capacity()+L.f.capacity()+L.r.capacity()
++               +L.hx.capacity()+L.hy.capacity())*sizeof(double);
++        s+=long(L.act.capacity()+L.colact.capacity());
++    }
++    s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()+ks.capacity()
++           +kt.capacity()+ky.capacity()+kz.capacity()+sbuf.capacity()+rbuf.capacity())*sizeof(double);
++    return s;
++}
+--- a/src/reefmg.h	2026-09-21 16:42:44.753423589 +0000
++++ b/src/reefmg.h	2026-09-21 16:43:42.811123467 +0000
+@@ -45,7 +45,7 @@
+ //  few layers.  Coarse operators are built from the fine coefficients, so
+ //  variable depth and grid stretching are inherited rather than rederived.
+ 
+-class reefmg final : public solver, public increment
++class reefmg final : public solver, public increment, public sc_operator
+ {
+ public:
+ 
+@@ -58,6 +58,9 @@
+     void startV(lexer*, ghostcell*, double*, vec&, matrix_diag&, int) override final;
+     void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
+ 
++    //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
++    void fine_apply(const sc_level &L,const double *x,double *y) override;
++
+ private:
+ 
+     void topology(lexer*, ghostcell*);
+@@ -68,6 +71,9 @@
+     reefmg_core mg;
+ 
+     int *CVAL4;
++
++    matrix_diag *Mcur;          // REEF3D's matrix for the current solve
++    std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
+     int count;
+ 
+     int solve_mode, presweep, postsweep;
+--- a/src/reefmg.cpp	2026-09-21 16:42:44.753423589 +0000
++++ b/src/reefmg.cpp	2026-09-21 16:43:42.811245517 +0000
+@@ -58,14 +58,19 @@
+     //  needs independent columns.
+     mg.set_ordering(p->N12==2 ? 1 : 0);
+ 
+-    //  N 14 32 runs the V-cycle on single-precision coefficients; the Krylov
+-    //  iteration, halo exchange and convergence test stay in double, so the
+-    //  converged answer is unchanged.  On one rank per node the cycle gains
+-    //  about 20% but the solve only a few percent, and small grids get slower;
+-    //  it is aimed at bandwidth-starved runs with fully populated nodes.
++    //  N 14 32 stores the whole hierarchy in single precision and nothing in
++    //  double: about 25% less solver memory and a faster V-cycle.  BiCGStab,
++    //  the halo exchange and the convergence test stay in double, with the
++    //  exact operator read from REEF3D's matrix, so the converged answer is
++    //  unchanged.  Must be set before topology() calls setup().
+     mg.set_precision(p->N14==32 ? 32 : 64);
+ 
+ 
++    //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
++    //  exact operator from REEF3D's own matrix through fine_apply().
++    Mcur=0;
++    mg.set_fine_operator(this);
++
+     p->Iarray(CVAL4, p->imax*p->jmax*(p->kmax+2));
+ 
+     topology(p,pgc);
+@@ -275,11 +280,29 @@
+ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
+ {
+     sc_level &L=mg.fine();
++    const bool fp32=(mg.precision()==32);
++
++    Mcur=&M;
++
++    //  coefficients go into exactly one precision; in fp32 mode the row map
++    //  lets fine_apply() read the exact double operator from M instead
++    if(fp32)
++    {
++        std::fill(L.pf.begin(),L.pf.end(),0.0f);
++        std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
++        std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
++        std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
+ 
+-    std::fill(L.p.begin(),L.p.end(),0.0);
+-    std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
+-    std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
+-    std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
++        if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
++        std::fill(rowmap.begin(),rowmap.end(),-1);
++    }
++    else
++    {
++        std::fill(L.p.begin(),L.p.end(),0.0);
++        std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
++        std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
++        std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
++    }
+     std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+     std::fill(L.act.begin(),L.act.end(),0);
+ 
+@@ -299,13 +322,27 @@
+         {
+             n=CVAL4[IJK];
+ 
+-            L.p[q]=M.p[n];
+-            L.n[q]=M.n[n];   // i+1
+-            L.s[q]=M.s[n];   // i-1
+-            L.w[q]=M.w[n];   // j+1
+-            L.e[q]=M.e[n];   // j-1
+-            L.t[q]=M.t[n];   // k+1
+-            L.b[q]=M.b[n];   // k-1
++            if(fp32)
++            {
++                L.pf[q]=(float)M.p[n];
++                L.nf[q]=(float)M.n[n];   // i+1
++                L.sf[q]=(float)M.s[n];   // i-1
++                L.wf[q]=(float)M.w[n];   // j+1
++                L.ef[q]=(float)M.e[n];   // j-1
++                L.tf[q]=(float)M.t[n];   // k+1
++                L.bf[q]=(float)M.b[n];   // k-1
++                rowmap[q]=n;
++            }
++            else
++            {
++                L.p[q]=M.p[n];
++                L.n[q]=M.n[n];   // i+1
++                L.s[q]=M.s[n];   // i-1
++                L.w[q]=M.w[n];   // j+1
++                L.e[q]=M.e[n];   // j-1
++                L.t[q]=M.t[n];   // k+1
++                L.b[q]=M.b[n];   // k-1
++            }
+ 
+             L.f[q]=rhs.V[n];
+             L.u[q]=f[FIJK];
+@@ -317,7 +354,39 @@
+ 
+         FSWDCHECK
+         {
+-            L.p[q]=1.0;      // identity row, passes harmlessly through the line solve
++            //  identity row, passes harmlessly through the line solve
++            if(fp32) L.pf[q]=1.0f;
++            else     L.p [q]=1.0;
++        }
++    }
++}
++
++//  y = A x with the exact double operator, read from REEF3D's matrix_diag.
++//  Used by the Krylov iteration in fp32 mode, where reefmg keeps no double
++//  coefficients.  CVAL4 numbers rows in LOOP order - i, then j, then k
++//  innermost - which is also reefmg's layout, so the rows are read
++//  sequentially down each column.  A different row order would still be
++//  correct but scatter these reads and cost several times more.
++void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
++{
++    const matrix_diag &M=*Mcur;
++    const long sx=(long)(L.ny+2)*L.nz, sy=L.nz;
++    const int *rm=&rowmap[0];
++
++    for(int ii=0;ii<L.nx;++ii)
++    for(int jj=0;jj<L.ny;++jj)
++    {
++        const long col=L.idx(ii,jj,0);
++        for(int kk=0;kk<L.nz;++kk)
++        {
++            const long q=col+kk;
++            const int r=rm[q];
++            if(r<0){y[q]=x[q]; continue;}
++
++            double v=M.p[r]*x[q]+M.n[r]*x[q+sx]+M.s[r]*x[q-sx]+M.w[r]*x[q+sy]+M.e[r]*x[q-sy];
++            if(kk<L.nz-1) v+=M.t[r]*x[q+1];
++            if(kk>0)      v+=M.b[r]*x[q-1];
++            y[q]=v;
+         }
+     }
+ }

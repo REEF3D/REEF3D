@@ -55,8 +55,9 @@ struct sc_level
     std::vector<char>   colact;          // 1 if the column has any active cell
     std::vector<long>   zcol[2];         // active columns by red-black colour
 
-    //  single-precision mirror of everything the V-cycle reads, filled once
-    //  per solve when the cycle runs in fp32 (see set_precision)
+    //  Coefficients live in exactly one of the two sets, depending on the
+    //  storage precision chosen before setup: p..b and tc,ti in fp64 mode,
+    //  pf..bf and tcf,tif in fp32 mode.  The other set stays empty.
     std::vector<float>  pf,nf,sf,wf,ef,tf,bf,tcf,tif;
     std::vector<double> u,f,r;
     std::vector<double> hx,hy;           // cell widths, index i+1 for i in [-1,nx]
@@ -66,6 +67,20 @@ struct sc_level
         return ((long)(i+1)*(ny+2) + (j+1))*nz + k;
     }
     long size() const {return (long)(nx+2)*(ny+2)*nz;}
+};
+
+//  Exact fine-level operator supplied by the host code.  In fp32 mode no
+//  double-precision coefficients are stored anywhere in the hierarchy, so the
+//  Krylov iteration - which must see the exact operator to guarantee its
+//  tolerance - multiplies through this interface.  REEF3D implements it
+//  straight from its own matrix_diag, so the matrix is never duplicated.
+class sc_operator
+{
+public:
+    virtual ~sc_operator(){}
+
+    //  y = A x on the interior of the fine level; x already has a valid halo
+    virtual void fine_apply(const sc_level &L,const double *x,double *y)=0;
 };
 
 class reefmg_core
@@ -114,11 +129,20 @@ public:
     int fallbacks() const {return nfallback;}
     void set_sweepstyle(int s){sweepstyle=s;}
 
-    //  32 runs the V-cycle on single-precision coefficients, 64 keeps it in
-    //  double.  Vectors, the halo exchange, the Krylov iteration and the
-    //  convergence test stay in double either way, so the converged answer
-    //  is unchanged - only the preconditioner is approximated.
+    //  Storage precision of the coefficients, either/or:
+    //    64: every level stored in double, as the host provides the matrix.
+    //    32: every level stored in float only - no double coefficients
+    //        anywhere, which roughly halves the coefficient memory.  The
+    //        Krylov iteration still multiplies with the exact double
+    //        operator, obtained from set_fine_operator(), so the converged
+    //        answer is unchanged; only the preconditioner is approximated.
+    //  Both must be called before setup(); fp32 without a fine operator is
+    //  refused by setup().
     void set_precision(int bits){pcbits=(bits==32?32:64);}
+    void set_fine_operator(sc_operator *op){fineop=op;}
+
+    //  bytes held by the hierarchy and the Krylov work space
+    long memory_bytes() const;
 
     //  0: lexicographic line Gauss-Seidel, columns solved one after another.
     //  1: red-black (zebra) line Gauss-Seidel.  Columns of one colour are
@@ -141,7 +165,8 @@ private:
     template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
     template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
     template<class C> void residual_t(sc_level &L);
-    void to_fp32();
+    template<class T> void coarsen_t();
+    template<class T> void factor_lines_t();
     void build_widths(const double *dxn,const double *dyn);
     void exchange_widths(sc_level &L);
     void restrict_xy(sc_level &F,sc_level &C);
@@ -160,7 +185,8 @@ private:
     std::vector<double> kr,krhat,kp,kv,ks,kt,ky,kz;   // BiCGStab work space
 
     int coarse_sweeps;
-    int pcbits;              // 64 or 32: precision of the V-cycle coefficients
+    int pcbits;              // 64 or 32: storage precision of the coefficients
+    sc_operator *fineop;     // exact fine operator, required in fp32 mode
     int ordering;            // 0 lexicographic, 1 red-black batched
     std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
