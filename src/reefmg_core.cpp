@@ -64,6 +64,7 @@ reefmg_core::reefmg_core()
     nfallback=0;
     sweepstyle=0;
     pcbits=64;
+    ordering=0;
     errmsg[0]='\0';
 }
 
@@ -427,6 +428,8 @@ void reefmg_core::factor_lines()
             L.ti.assign(N,0.0);
         }
         L.colact.assign((long)L.nx*L.ny,0);
+        L.zcol[0].clear();
+        L.zcol[1].clear();
 
         for(int i=0;i<L.nx;++i)
         for(int j=0;j<L.ny;++j)
@@ -436,6 +439,7 @@ void reefmg_core::factor_lines()
             char any=0;
             for(int k=0;k<nz;++k) if(L.act[col+k]){any=1; break;}
             L.colact[(long)i*L.ny+j]=any;
+            if(any) L.zcol[(i+j)&1].push_back(col);
 
             //  The elimination runs in double whatever the storage precision;
             //  only the stored factors are rounded.  In fp32 mode the double
@@ -463,8 +467,102 @@ void reefmg_core::factor_lines()
 //  as diag 1, sub and super 0.
 void reefmg_core::line_gs(sc_level &L,int l,int sweeps,int dir)
 {
-    if(pcbits==32) line_gs_t<float >(L,sweeps,dir);
-    else           line_gs_t<double>(L,sweeps,dir);
+    if(ordering==1)
+    {
+        if(pcbits==32) line_zebra_t<float >(L,sweeps,dir);
+        else           line_zebra_t<double>(L,sweeps,dir);
+    }
+    else
+    {
+        if(pcbits==32) line_gs_t<float >(L,sweeps,dir);
+        else           line_gs_t<double>(L,sweeps,dir);
+    }
+}
+
+//  Red-black line Gauss-Seidel with the column solves batched across SIMD
+//  lanes.  Every red column's horizontal neighbours are black and vice versa,
+//  so all columns of one colour are independent and can be solved together.
+//  ZB columns are gathered into a transposed scratch block [k][lane]; the
+//  tridiagonal recurrence then runs down k with all lanes in step, which is
+//  what the compiler vectorises.  The block holds five arrays of nz*ZB
+//  doubles and stays in L1 for any realistic number of layers.
+//
+//  Pre-smoothing solves red then black, post-smoothing black then red, so the
+//  V-cycle keeps the same forward/backward symmetry as the lexicographic
+//  sweep.  A halo exchange precedes each half-sweep so each colour sees the
+//  other colour's latest values across process boundaries; colours are local,
+//  so a pair of same-coloured columns across a boundary couples block-Jacobi
+//  style, exactly as every interface did with the lexicographic sweep.
+static const int ZB=8;
+
+template<class C>
+void reefmg_core::line_zebra_t(sc_level &L,int sweeps,int dir)
+{
+    const sc_view<C> V=coef<C>(L);
+    const int nz=L.nz;
+    const long sx=(long)(L.ny+2)*nz, sy=nz;
+
+    const long ns=(long)nz*ZB;
+    if((long)zr.size()<ns){zr.resize(ns); zb.resize(ns); zti.resize(ns); ztc.resize(ns);}
+    double *R=&zr[0], *Bb=&zb[0], *Ti=&zti[0], *Tc=&ztc[0];
+
+    const double *f=&L.f[0];
+    double *u=&L.u[0];
+
+    for(int sw=0;sw<sweeps;++sw)
+    for(int h=0;h<2;++h)
+    {
+        const int colour=(dir==1)? 1-h : h;
+        const std::vector<long> &cols=L.zcol[colour];
+        const long nc=cols.size();
+
+        halo(L);
+
+        for(long c0=0;c0<nc;c0+=ZB)
+        {
+            //  a short final batch repeats its last column; the duplicates
+            //  read identical inputs and write identical values
+            long cb[ZB];
+            for(int b=0;b<ZB;++b) cb[b]=cols[std::min(c0+b,nc-1)];
+
+            //  gather: right-hand side and factors, transposed to [k][lane]
+            for(int b=0;b<ZB;++b)
+            {
+                const long c=cb[b];
+                for(int k=0;k<nz;++k)
+                {
+                    const long q=c+k;
+                    R [k*ZB+b]=f[q]-V.n[q]*u[q+sx]-V.s[q]*u[q-sx]
+                                   -V.w[q]*u[q+sy]-V.e[q]*u[q-sy];
+                    Bb[k*ZB+b]=V.b[q];
+                    Ti[k*ZB+b]=V.ti[q];
+                    Tc[k*ZB+b]=V.tc[q];
+                }
+            }
+
+            //  forward and back substitution, all lanes in step
+            for(int b=0;b<ZB;++b) R[b]*=Ti[b];
+            for(int k=1;k<nz;++k)
+            {
+                double *r=R+k*ZB; const double *rm=R+(k-1)*ZB;
+                const double *bb=Bb+k*ZB, *ti=Ti+k*ZB;
+                for(int b=0;b<ZB;++b) r[b]=(r[b]-bb[b]*rm[b])*ti[b];
+            }
+            for(int k=nz-2;k>=0;--k)
+            {
+                double *r=R+k*ZB; const double *rp=R+(k+1)*ZB;
+                const double *tc=Tc+k*ZB;
+                for(int b=0;b<ZB;++b) r[b]-=tc[b]*rp[b];
+            }
+
+            //  scatter
+            for(int b=0;b<ZB;++b)
+            {
+                double *uc=u+cb[b];
+                for(int k=0;k<nz;++k) uc[k]=R[k*ZB+b];
+            }
+        }
+    }
 }
 
 template<class C>

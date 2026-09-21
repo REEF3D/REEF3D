@@ -50,6 +50,14 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  costing convergence on a grid-aligned anisotropy.
     mg.set_sweepstyle(p->N12==1 ? 1 : 0);
 
+    //  N 12 2: EXPERIMENTAL red-black line smoother with column solves batched
+    //  across SIMD lanes.  Measured slower on CPU - about 1.5x per V-cycle and
+    //  one extra BiCGStab iteration - because after the column factorisation
+    //  the smoother is memory-bound, and red-black ordering streams the
+    //  solution through memory twice per sweep.  Kept only because a GPU port
+    //  needs independent columns.
+    mg.set_ordering(p->N12==2 ? 1 : 0);
+
     //  N 14 32 runs the V-cycle on single-precision coefficients; the Krylov
     //  iteration, halo exchange and convergence test stay in double, so the
     //  converged answer is unchanged.  On one rank per node the cycle gains

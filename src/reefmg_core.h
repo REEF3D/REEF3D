@@ -53,6 +53,7 @@ struct sc_level
     std::vector<double> tc,ti;           // factorised column matrices: modified
                                          // super-diagonal and reciprocal pivots
     std::vector<char>   colact;          // 1 if the column has any active cell
+    std::vector<long>   zcol[2];         // active columns by red-black colour
 
     //  single-precision mirror of everything the V-cycle reads, filled once
     //  per solve when the cycle runs in fp32 (see set_precision)
@@ -118,6 +119,12 @@ public:
     //  convergence test stay in double either way, so the converged answer
     //  is unchanged - only the preconditioner is approximated.
     void set_precision(int bits){pcbits=(bits==32?32:64);}
+
+    //  0: lexicographic line Gauss-Seidel, columns solved one after another.
+    //  1: red-black (zebra) line Gauss-Seidel.  Columns of one colour are
+    //     independent, so they are solved in batches with the tridiagonal
+    //     recurrence running across SIMD lanes.
+    void set_ordering(int o){ordering=(o==1?1:0);}
     int  precision() const {return pcbits;}
 
     void vcycle(int l,int pre,int post);
@@ -132,6 +139,7 @@ private:
 
     void line_gs(sc_level &L,int l,int sweeps,int dir);   // dir 0 fwd, 1 bwd, 2 symmetric
     template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
+    template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
     template<class C> void residual_t(sc_level &L);
     void to_fp32();
     void build_widths(const double *dxn,const double *dyn);
@@ -153,6 +161,8 @@ private:
 
     int coarse_sweeps;
     int pcbits;              // 64 or 32: precision of the V-cycle coefficients
+    int ordering;            // 0 lexicographic, 1 red-black batched
+    std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
     int nfallback;
     char errmsg[512];
