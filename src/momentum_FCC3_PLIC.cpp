@@ -800,13 +800,14 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
             a->phi(i,j,k)=(a->vof(i,j,k)-0.5)*p->DZN[KP];
     }
     pgc->start4(p,a->phi,1);
-    
-    /*double vofchecksum;
+    pgc->start4(p,a->vof,1);
+    double vofchecksum;
     vofchecksum=0.0;
     LOOP
         vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
     vofchecksum=pgc->globalsum(vofchecksum);
-    cout<<"Total water volume:"<<vofchecksum<<endl;*/
+    if(p->mpirank==1)
+        cout<<"Total F volume:"<<vofchecksum<<endl;
         
     
 }
