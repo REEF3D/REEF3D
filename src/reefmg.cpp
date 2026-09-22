@@ -66,6 +66,13 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  unchanged.  Must be set before topology() calls setup().
     mg.set_precision(p->N14==32 ? 32 : 64);
 
+    //  N 15 1: gather the coarsest level onto every rank and solve it with a
+    //  serial full-depth hierarchy.  Not needed for convergence when the free
+    //  surface is Dirichlet - FNPF and the NHFLOW pressure - but it replaces
+    //  the coarsest-level sweeps, each a halo exchange, by one all-gather per
+    //  V-cycle, which may pay at high rank counts.  Must precede setup().
+    mg.set_agglomeration(p->N15==1 ? 1 : 0);
+
 
     //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
     //  exact operator from REEF3D's own matrix through fine_apply().
@@ -193,6 +200,13 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
             <<p->knox<<" x "<<p->knoy<<" x "<<p->knoz
             <<", multigrid levels "<<mg.levels()<<endl;
 
+        if(mg.agglomerated())
+        cout<<"REEFMG coarse-grid agglomeration: "<<mg.agglomerated_cells()
+            <<" cells gathered on every rank"<<endl;
+        else if(p->N15==1 && npx*npy>1)
+        cout<<"REEFMG coarse-grid agglomeration refused: the gathered problem ("
+            <<mg.agglomerated_cells()<<" cells) is too large to hold on every rank"<<endl;
+
         /*if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
         cout<<"REEFMG note - odd local cell numbers give ragged coarse cells.  "
             <<"The coarse operators account for this, but even knox/knoy per rank "
@@ -244,15 +258,18 @@ void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &
 //
 //  So this solve runs on its own temporary hierarchy - double precision,
 //  lexicographic smoothing, full depth - independent of the settings chosen
-//  for the time-stepping solves, and freed afterwards.  If the decomposition
-//  leaves the coarsest grid too large to resolve the depth-uniform mode, the
-//  solve is handed to hypre GMRES+SMG, exactly as with N 10 1x, rather than
-//  risk an inaccurate initial velocity field.  It is a one-off solve at
-//  start-up, so robustness matters more than speed.
+//  for the time-stepping solves, and freed afterwards.  With more than one
+//  rank the coarsest level is agglomerated: gathered onto every rank and
+//  solved by a serial full-depth hierarchy, which resolves the depth-uniform
+//  mode however many ranks there are.  Only if the gathered problem is too
+//  large to replicate, and the distributed coarsest grid too large to resolve
+//  without it, is the solve handed to hypre GMRES+SMG, exactly as with
+//  N 10 1x, rather than risk an inaccurate initial velocity field.
 //
-//  Thresholds from pure-Neumann tests at full depth and with capped depth:
-//  with 64 coarsest-level sweeps accuracy failed at 512 coarsest columns;
-//  with 128 sweeps it held up to 2048.  512 at 128 sweeps keeps a 4x margin.
+//  Thresholds from pure-Neumann tests without agglomeration: with 64
+//  coarsest-level sweeps accuracy failed at 512 coarsest columns, with 128
+//  it held up to 2048, so 512 at 128 sweeps keeps a 4x margin.  With
+//  agglomeration every tested decomposition converged accurately.
 static const long POT_COARSEST_MAX  = 512;  // columns on the coarsest level
 static const int  POT_COARSE_SWEEPS = 128;
 
@@ -264,6 +281,7 @@ void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matri
     reefmg_core pot;
     pot.set_precision(64);
     pot.set_coarse_sweeps(POT_COARSE_SWEEPS);
+    pot.set_agglomeration(1);
 
     if(!pot.setup(pgc->mpi_comm,npx,npy,cx,cy,
                   p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,0,
@@ -277,12 +295,12 @@ void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matri
 
     const sc_level &C=pot.coarsest();
 
-    if((long)C.gnx*C.gny > POT_COARSEST_MAX)
+    if(!pot.agglomerated() && (long)C.gnx*C.gny > POT_COARSEST_MAX)
     {
         if(p->mpirank==0)
         cout<<"REEFMG potential (var 44): coarsest grid "<<C.gnx<<" x "<<C.gny
-            <<" is too large to resolve this pure-Neumann problem reliably - "
-            <<"solving it with hypre GMRES+SMG instead."<<endl;
+            <<" is too large to resolve this pure-Neumann problem reliably, and too "
+            <<"large to agglomerate - solving it with hypre GMRES+SMG instead."<<endl;
 
         hypre_struct fallback(p,pgc,14,11);
         fallback.startV(p,pgc,f,rhs,M,44);
@@ -299,7 +317,9 @@ void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matri
     fillbackvec44(p,pot,f);
 
     if(p->mpirank==0)
-    cout<<"REEFMG potential (var 44): levels "<<pot.levels()<<"  cycles "<<p->solveriter
+    cout<<"REEFMG potential (var 44): levels "<<pot.levels()
+        <<(pot.agglomerated()? " + agglomerated coarse grid" : "")
+        <<"  cycles "<<p->solveriter
         <<"  res "<<setprecision(3)<<relres<<"  "<<setprecision(3)
         <<pgc->timer()-starttime<<" s"<<endl;
 

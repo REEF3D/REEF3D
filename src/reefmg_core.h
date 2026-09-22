@@ -150,6 +150,24 @@ public:
     //  bytes held by the hierarchy and the Krylov work space
     long memory_bytes() const;
 
+    //  Coarse-grid agglomeration.  The distributed hierarchy stops coarsening
+    //  at a few cells per rank, which leaves a coarsest grid that grows with
+    //  the number of ranks.  With agglomeration on, that coarsest level is
+    //  gathered onto every rank and solved redundantly by a serial,
+    //  full-depth reefmg sub-hierarchy: no scatter, no idle ranks, and the
+    //  coarse matrix is gathered once per solve, the right-hand side once per
+    //  V-cycle.  Required when the coarse correction must span the whole
+    //  domain (pure-Neumann problems); optional otherwise.  Refused, and left
+    //  off, if the gathered problem would be too large to hold on every rank.
+    //  0 off, 1 on.  Must be called before setup().
+    void set_agglomeration(int mode){aggmode=(mode==1?1:0);}
+    void set_agglomeration_cycles(int n){agg_cycles=(n>0?n:1);}
+    bool agglomerated() const {return agg!=0;}
+    long agglomerated_cells() const {return agg_cells;}
+
+    reefmg_core(const reefmg_core&)=delete;
+    reefmg_core& operator=(const reefmg_core&)=delete;
+
     //  0: lexicographic line Gauss-Seidel, columns solved one after another.
     //  1: red-black (zebra) line Gauss-Seidel.  Columns of one colour are
     //     independent, so they are solved in batches with the tridiagonal
@@ -198,6 +216,18 @@ private:
     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
     int nfallback;
     char errmsg[512];
+
+    //  coarse-grid agglomeration
+    void setup_agglomeration(int npx,int npy);
+    void gather_coarse_matrix();
+    void coarse_solve_agg();
+
+    reefmg_core *agg;                               // serial sub-hierarchy, on every rank
+    int  aggmode, agg_cycles;
+    long agg_cells;                                 // cells of the gathered problem
+    std::vector<int> agg_ox,agg_oy,agg_nx,agg_ny;   // every rank's block of the coarsest level
+    std::vector<int> agg_cnt,agg_disp;              // gather counts and offsets, in cells
+    std::vector<double> agg_send,agg_recv;
 };
 
 #endif

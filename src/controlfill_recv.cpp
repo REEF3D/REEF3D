@@ -1159,6 +1159,8 @@ void control::ctrlrecv()
     ii++;
     N14 = ictrl[ii];
     ii++;
+    N15 = ictrl[ii];
+    ii++;
     N18 = ictrl[ii];
     ii++;
     N20 = ictrl[ii];

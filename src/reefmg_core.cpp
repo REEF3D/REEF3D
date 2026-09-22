@@ -106,11 +106,17 @@ reefmg_core::reefmg_core()
     pcbits=64;
     fineop=0;
     ordering=0;
+    agg=0;
+    aggmode=0;
+    agg_cycles=1;
+    agg_cells=0;
     errmsg[0]='\0';
 }
 
 reefmg_core::~reefmg_core()
 {
+    delete agg;
+
     //  the solver object may outlive MPI if it is torn down late
     int fin=0;
     MPI_Finalized(&fin);
@@ -200,6 +206,9 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
     sbuf.assign(2*mx,0.0); rbuf.assign(2*mx,0.0);
 
     build_widths(dxn,dyn);
+
+    if(aggmode==1 && nprocs>1)
+    setup_agglomeration(npx,npy);
 
     return true;
 }
@@ -335,6 +344,9 @@ void reefmg_core::coarsen()
     else           coarsen_t<double>();
 
     factor_lines();
+
+    if(agg)
+    gather_coarse_matrix();
 }
 
 template<class T>
@@ -810,7 +822,8 @@ void reefmg_core::vcycle(int l,int pre,int post)
 
     if(l==(int)lev.size()-1)
     {
-        line_gs(L,l,coarse_sweeps,2);
+        if(agg) coarse_solve_agg();
+        else    line_gs(L,l,coarse_sweeps,2);
         return;
     }
 
@@ -1118,5 +1131,208 @@ long reefmg_core::memory_bytes() const
     }
     s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()+ks.capacity()
            +kt.capacity()+ky.capacity()+kz.capacity()+sbuf.capacity()+rbuf.capacity())*sizeof(double);
+    s+=long(agg_send.capacity()+agg_recv.capacity())*sizeof(double);
+    if(agg) s+=agg->memory_bytes();
     return s;
+}
+
+//  ================================================ coarse-grid agglomeration
+
+namespace
+{
+    //  Every rank holds the gathered problem and its full hierarchy, roughly
+    //  150 bytes per cell; above this size agglomeration is refused.
+    const long AGG_MAX_CELLS = 1048576;
+
+    //  coefficients and activity of every interior cell, 8 values per cell,
+    //  in (i,j,k) order with k innermost
+    template<class T>
+    void pack8(const sc_level &C,double *out)
+    {
+        const sc_view<T> V=coef<T>(C);
+        long m=0;
+        for(int i=0;i<C.nx;++i)
+        for(int j=0;j<C.ny;++j)
+        for(int k=0;k<C.nz;++k)
+        {
+            const long q=C.idx(i,j,k);
+            out[m++]=V.p[q]; out[m++]=V.n[q]; out[m++]=V.s[q]; out[m++]=V.w[q];
+            out[m++]=V.e[q]; out[m++]=V.t[q]; out[m++]=V.b[q];
+            out[m++]=double(C.act[q]);
+        }
+    }
+}
+
+//  Lay out the global coarsest grid and build the serial sub-hierarchy that
+//  every rank will use to solve it.  Ranks are ordered cy*npx+cx in comm, and
+//  every rank sharing an x position shares its block width (and likewise in
+//  y), so the global layout follows from the block sizes alone.
+void reefmg_core::setup_agglomeration(int npx,int npy)
+{
+    sc_level &C=lev.back();
+    const int nz=C.nz;
+
+    int me[2]={C.nx,C.ny};
+    std::vector<int> all(2*nprocs,0);
+    MPI_Allgather(me,2,MPI_INT,&all[0],2,MPI_INT,comm);
+
+    std::vector<int> wx(npx),wy(npy),ox(npx+1,0),oy(npy+1,0);
+    for(int c=0;c<npx;++c) wx[c]=all[2*c+0];             // rank (cx=c, cy=0)
+    for(int c=0;c<npy;++c) wy[c]=all[2*(c*npx)+1];       // rank (cx=0, cy=c)
+    for(int c=0;c<npx;++c) ox[c+1]=ox[c]+wx[c];
+    for(int c=0;c<npy;++c) oy[c+1]=oy[c]+wy[c];
+
+    const int GX=ox[npx], GY=oy[npy];
+
+    agg_cells=(long)GX*GY*nz;
+    if(agg_cells>AGG_MAX_CELLS)
+    return;
+
+    agg_ox.resize(nprocs); agg_oy.resize(nprocs);
+    agg_nx.resize(nprocs); agg_ny.resize(nprocs);
+    agg_cnt.resize(nprocs); agg_disp.resize(nprocs);
+
+    long d=0;
+    for(int r=0;r<nprocs;++r)
+    {
+        const int rcx=r%npx, rcy=r/npx;
+        agg_ox[r]=ox[rcx];    agg_oy[r]=oy[rcy];
+        agg_nx[r]=all[2*r];   agg_ny[r]=all[2*r+1];
+
+        //  defensive: the fine-level decomposition check guarantees this
+        if(agg_nx[r]!=wx[rcx] || agg_ny[r]!=wy[rcy])
+        {
+            agg_cells=0;
+            return;
+        }
+
+        agg_cnt[r]=agg_nx[r]*agg_ny[r]*nz;
+        agg_disp[r]=(int)d;
+        d+=agg_cnt[r];
+    }
+
+    agg_send.assign((long)C.nx*C.ny*nz*8,0.0);
+    agg_recv.assign(d*8,0.0);
+
+    //  global cell widths of the coarsest level, one ghost cell each side
+    std::vector<double> gx(GX+2,1.0), gy(GY+2,1.0);
+    {
+        std::vector<int> cx_(nprocs),dx_(nprocs),cy_(nprocs),dy_(nprocs);
+        int ax=0, ay=0;
+        for(int r=0;r<nprocs;++r)
+        {
+            cx_[r]=agg_nx[r]; dx_[r]=ax; ax+=agg_nx[r];
+            cy_[r]=agg_ny[r]; dy_[r]=ay; ay+=agg_ny[r];
+        }
+        std::vector<double> allx(ax),ally(ay);
+        MPI_Allgatherv(&C.hx[1],C.nx,MPI_DOUBLE,&allx[0],&cx_[0],&dx_[0],MPI_DOUBLE,comm);
+        MPI_Allgatherv(&C.hy[1],C.ny,MPI_DOUBLE,&ally[0],&cy_[0],&dy_[0],MPI_DOUBLE,comm);
+
+        for(int c=0;c<npx;++c)
+        for(int i=0;i<wx[c];++i) gx[1+ox[c]+i]=allx[dx_[c]+i];
+        for(int c=0;c<npy;++c)
+        for(int j=0;j<wy[c];++j) gy[1+oy[c]+j]=ally[dy_[c*npx]+j];
+
+        gx[0]=gx[1]; gx[GX+1]=gx[GX];
+        gy[0]=gy[1]; gy[GY+1]=gy[GY];
+    }
+
+    //  The gathered problem is solved with reefmg itself: double precision,
+    //  full depth, lexicographic smoothing - everything already tested.
+    agg=new reefmg_core();
+    agg->set_precision(64);
+    agg->set_coarse_sweeps(coarse_sweeps);
+
+    if(!agg->setup(MPI_COMM_SELF,1,1,0,0,GX,GY,nz,GX,GY,0,&gx[0],&gy[0]))
+    {
+        delete agg;
+        agg=0;
+    }
+}
+
+//  Once per solve, after the distributed hierarchy has been rebuilt: gather
+//  the coarsest operator onto every rank and build the serial hierarchy.
+//  Couplings across former rank boundaries become ordinary interior
+//  couplings; couplings out of the global domain are already zero.
+void reefmg_core::gather_coarse_matrix()
+{
+    sc_level &C=lev.back();
+    const int nz=C.nz;
+
+    if(pcbits==32) pack8<float >(C,&agg_send[0]);
+    else           pack8<double>(C,&agg_send[0]);
+
+    std::vector<int> cnt8(nprocs),disp8(nprocs);
+    for(int r=0;r<nprocs;++r){cnt8[r]=agg_cnt[r]*8; disp8[r]=agg_disp[r]*8;}
+
+    MPI_Allgatherv(&agg_send[0],C.nx*C.ny*nz*8,MPI_DOUBLE,
+                   &agg_recv[0],&cnt8[0],&disp8[0],MPI_DOUBLE,comm);
+
+    sc_level &G=agg->fine();
+    std::fill(G.act.begin(),G.act.end(),0);
+
+    for(int r=0;r<nprocs;++r)
+    {
+        const double *in=&agg_recv[(long)agg_disp[r]*8];
+        long m=0;
+        for(int i=0;i<agg_nx[r];++i)
+        for(int j=0;j<agg_ny[r];++j)
+        for(int k=0;k<nz;++k)
+        {
+            const long q=G.idx(agg_ox[r]+i,agg_oy[r]+j,k);
+            G.p[q]=in[m++]; G.n[q]=in[m++]; G.s[q]=in[m++]; G.w[q]=in[m++];
+            G.e[q]=in[m++]; G.t[q]=in[m++]; G.b[q]=in[m++];
+            G.act[q]=(char)in[m++];
+        }
+    }
+
+    agg->coarsen();
+}
+
+//  The coarsest-level solve, replacing its smoothing sweeps: gather the
+//  right-hand side onto every rank, run the same serial V-cycles everywhere,
+//  and keep this rank's block of the answer.  Only interior values of the
+//  coarsest correction are read afterwards, so no halo exchange is needed.
+void reefmg_core::coarse_solve_agg()
+{
+    sc_level &C=lev.back();
+    const int nz=C.nz;
+
+    long m=0;
+    for(int i=0;i<C.nx;++i)
+    for(int j=0;j<C.ny;++j)
+    {
+        const double *fc=&C.f[C.idx(i,j,0)];
+        for(int k=0;k<nz;++k) agg_send[m++]=fc[k];
+    }
+
+    MPI_Allgatherv(&agg_send[0],C.nx*C.ny*nz,MPI_DOUBLE,
+                   &agg_recv[0],&agg_cnt[0],&agg_disp[0],MPI_DOUBLE,comm);
+
+    sc_level &G=agg->fine();
+    std::fill(G.u.begin(),G.u.end(),0.0);
+
+    for(int r=0;r<nprocs;++r)
+    {
+        const double *in=&agg_recv[agg_disp[r]];
+        long mm=0;
+        for(int i=0;i<agg_nx[r];++i)
+        for(int j=0;j<agg_ny[r];++j)
+        {
+            double *gf=&G.f[G.idx(agg_ox[r]+i,agg_oy[r]+j,0)];
+            for(int k=0;k<nz;++k) gf[k]=in[mm++];
+        }
+    }
+
+    for(int c=0;c<agg_cycles;++c)
+    agg->vcycle(0,1,1);
+
+    const int ox=agg_ox[myrank], oy=agg_oy[myrank];
+    for(int i=0;i<C.nx;++i)
+    for(int j=0;j<C.ny;++j)
+    {
+        const double *gu=&G.u[G.idx(ox+i,oy+j,0)];
+        double *cu=&C.u[C.idx(i,j,0)];
+        for(int k=0;k<nz;++k) cu[k]=gu[k];
+    }
 }

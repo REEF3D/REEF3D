@@ -308,7 +308,7 @@ public:
     double I241;
 
     // Numerical Options
-    int N10,N11,N12,N13,N14,N18,N40,N45,N46,N48,N60;
+    int N10,N11,N12,N13,N14,N15,N18,N40,N45,N46,N48,N60;
     int N20,N22,N23,N24,N25,N26;
     double N41,N43,N44,N47,N49,N50,N61;
 

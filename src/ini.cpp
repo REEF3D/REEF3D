@@ -589,6 +589,7 @@ void control::ini_default()
     N18=1;         //   int permuting axes for hypre
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
+    N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on
     N23=0;         //  int precondioner switch FNPF
     N24=0;         //  int precondioner switch
     N25=0;         //  int precondioner switch NHFLOW
