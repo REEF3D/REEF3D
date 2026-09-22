@@ -585,7 +585,7 @@ void control::ini_default()
 	N11=11;         // int precondioner
     N12=1;         //  int REEFMG multigrid setup interval
     N13=0;         //  int REEFMG max number of coarse levels, 0: automatic
-    N14=0;         //  int REEFMG V-cycle precision: 32 single, otherwise double
+    N14=32;         //  int REEFMG V-cycle precision: 32 single, otherwise double
     N18=1;         //   int permuting axes for hypre
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
