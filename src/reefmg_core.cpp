@@ -54,6 +54,24 @@ namespace
         return v;
     }
 
+    //  One column's contribution to a dot product: four partial sums over k,
+    //  accumulated across columns and combined as (s0+s1)+(s2+s3).  dot() and
+    //  every reduction fused into a BiCGStab update use this same routine, so
+    //  fusing changes how often memory is read, never the arithmetic.
+    inline void acc4(const double *a,const double *b,int nz,
+                     double &s0,double &s1,double &s2,double &s3)
+    {
+        int k=0;
+        for(;k+3<nz;k+=4)
+        {
+            s0+=a[k  ]*b[k  ];
+            s1+=a[k+1]*b[k+1];
+            s2+=a[k+2]*b[k+2];
+            s3+=a[k+3]*b[k+3];
+        }
+        for(;k<nz;++k) s0+=a[k]*b[k];
+    }
+
     //  writable counterpart, for building coarse levels and factorisations
     template<class C> struct sc_mview
     {
@@ -707,34 +725,63 @@ void reefmg_core::residual_t(sc_level &L)
 }
 
 
+//  Residuals of inactive cells are exactly zero - identity rows with u=f=0 -
+//  so the average can run over all existing children without testing
+//  activity, as one contiguous, branch-free loop per coarse column.  Children
+//  are summed in the same order as before and the division by 1, 2 or 4 is an
+//  exact multiplication, so the result is bit-identical.
 void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
 {
     std::fill(C.f.begin(),C.f.end(),0.0);
     std::fill(C.u.begin(),C.u.end(),0.0);
 
+    const int nz=C.nz;
+
     for(int I=0;I<C.nx;++I)
     for(int J=0;J<C.ny;++J)
-    for(int k=0;k<C.nz;++k)
     {
-        double s=0.0; int na=0;
+        const double *ch[4];
         int nc=0;
         for(int a=0;a<C.rx;++a) for(int b=0;b<C.ry;++b)
         {
             if(C.rx*I+a>=F.nx || C.ry*J+b>=F.ny) continue;
-            ++nc;
-            const long qf=F.idx(C.rx*I+a,C.ry*J+b,k);
-            if(F.act[qf]){s+=F.r[qf]; ++na;}
+            ch[nc++]=&F.r[F.idx(C.rx*I+a,C.ry*J+b,0)];
         }
-        C.f[C.idx(I,J,k)] = (na>0 && nc>0)? s/double(nc) : 0.0;
+
+        double *cf=&C.f[C.idx(I,J,0)];
+
+        if(nc==4)
+        {
+            const double *c0=ch[0], *c1=ch[1], *c2=ch[2], *c3=ch[3];
+            for(int k=0;k<nz;++k) cf[k]=(((c0[k]+c1[k])+c2[k])+c3[k])*0.25;
+        }
+        else if(nc==2)
+        {
+            const double *c0=ch[0], *c1=ch[1];
+            for(int k=0;k<nz;++k) cf[k]=(c0[k]+c1[k])*0.5;
+        }
+        else if(nc==1)
+        {
+            const double *c0=ch[0];
+            for(int k=0;k<nz;++k) cf[k]=c0[k];
+        }
     }
 }
 
 //  cell-centred bilinear in the plane, identity in z
+//  Only active fine cells may receive the correction, so identity rows keep
+//  u=0.  Columns without any active cell are skipped whole; within a column
+//  the activity mask multiplies instead of branching, which leaves active
+//  cells bit-identical (x*1 is exact) and lets the loop vectorise.
 void reefmg_core::prolong_xy(const sc_level &C,sc_level &F)
 {
+    const int nz=F.nz;
+
     for(int i=0;i<F.nx;++i)
     for(int j=0;j<F.ny;++j)
     {
+        if(F.colact[(long)i*F.ny+j]==0) continue;
+
         const int I=i/C.rx, J=j/C.ry;
         int Ia=I, Ja=J;
         double wx=1.0, wy=1.0;
@@ -746,13 +793,14 @@ void reefmg_core::prolong_xy(const sc_level &C,sc_level &F)
 
         const double w00=wx*wy, w10=(1.0-wx)*wy, w01=wx*(1.0-wy), w11=(1.0-wx)*(1.0-wy);
 
-        for(int k=0;k<F.nz;++k)
-        {
-            const long qf=F.idx(i,j,k);
-            if(F.act[qf]==0) continue;
-            F.u[qf] += w00*C.u[C.idx(I ,J ,k)] + w10*C.u[C.idx(Ia,J ,k)]
-                     + w01*C.u[C.idx(I ,Ja,k)] + w11*C.u[C.idx(Ia,Ja,k)];
-        }
+        const double *c00=&C.u[C.idx(I ,J ,0)], *c10=&C.u[C.idx(Ia,J ,0)];
+        const double *c01=&C.u[C.idx(I ,Ja,0)], *c11=&C.u[C.idx(Ia,Ja,0)];
+        const long col=F.idx(i,j,0);
+        double *fu=&F.u[col];
+        const char *fa=&F.act[col];
+
+        for(int k=0;k<nz;++k)
+        fu[k]+=(w00*c00[k]+w10*c10[k]+w01*c01[k]+w11*c11[k])*double(fa[k]);
     }
 }
 
@@ -792,16 +840,8 @@ double reefmg_core::dot(const sc_level &L,const std::vector<double> &a,
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
     {
-        const double *pa=&a[L.idx(i,j,0)], *pb=&b[L.idx(i,j,0)];
-        int k=0;
-        for(;k+3<nz;k+=4)
-        {
-            s0+=pa[k  ]*pb[k  ];
-            s1+=pa[k+1]*pb[k+1];
-            s2+=pa[k+2]*pb[k+2];
-            s3+=pa[k+3]*pb[k+3];
-        }
-        for(;k<nz;++k) s0+=pa[k]*pb[k];
+        const long col=L.idx(i,j,0);
+        acc4(&a[col],&b[col],nz,s0,s1,s2,s3);
     }
 
     double s=(s0+s1)+(s2+s3), g=0.0;
@@ -877,10 +917,19 @@ int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int 
 //  BiCGStab, V-cycle preconditioned.  The FNPF matrix is not symmetric, so a
 //  Krylov wrapper is the safe default even though the cycle alone usually
 //  converges.
+//  BiCGStab, right-preconditioned by one V-cycle.  Vector updates and the
+//  reductions that read their results share one pass over memory, and paired
+//  reductions share one MPI_Allreduce: five passes and four reductions per
+//  iteration instead of nine and six, and the next iteration's (rhat,r)
+//  comes out of the final update for free.  Every column accumulates through
+//  acc4() exactly as dot() does, so the iterates are bit-identical to the
+//  unfused version.  The fused loops touch interior cells only; the Krylov
+//  vectors' halo entries are never read.
 int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
 {
     sc_level &F=lev[0];
     const long N=F.size();
+    const int nz=F.nz;
 
     for(long q=0;q<N;++q) if(F.act[q]==0){F.u[q]=0.0; F.f[q]=0.0;}
 
@@ -895,12 +944,13 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
     std::fill(kv.begin(),kv.end(),0.0);
     std::fill(kp.begin(),kp.end(),0.0);
 
-    double rn=sqrt(dot(F,kr,kr));
+    //  rhat is a copy of r, so the first (rhat,r) is |r|^2
+    const double rn2=dot(F,kr,kr);
+    double rn=sqrt(rn2), rho1=rn2;
     int it=0;
 
     while(rn/bn>tol && it<maxiter)
     {
-        const double rho1=dot(F,krhat,kr);
         if(fabs(rho1)<1.0e-300) break;
 
         if(it==0)
@@ -919,15 +969,36 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         if(fabs(den)<1.0e-300) break;
         alpha=rho/den;
 
-        for(long q=0;q<N;++q) ks[q]=kr[q]-alpha*kv[q];
+        //  s = r - alpha v, with |s|^2 in the same pass
+        double sn;
+        {
+            double s0=0.0,s1=0.0,s2=0.0,s3=0.0;
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                double *sc=&ks[col];
+                const double *rc=&kr[col], *vc=&kv[col];
+                for(int k=0;k<nz;++k) sc[k]=rc[k]-alpha*vc[k];
+                acc4(sc,sc,nz,s0,s1,s2,s3);
+            }
+            double loc=(s0+s1)+(s2+s3), g=0.0;
+            MPI_Allreduce(&loc,&g,1,MPI_DOUBLE,MPI_SUM,comm);
+            sn=sqrt(g);
+        }
 
         //  standard half-step exit: if s is already small enough the second
         //  preconditioner application of this iteration is not needed
-        const double sn=sqrt(dot(F,ks,ks));
         if(sn/bn<=tol)
         {
-            for(long q=0;q<N;++q) F.u[q]+=alpha*ky[q];
-            kr=ks;
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                double *uc=&F.u[col];
+                const double *yc=&ky[col];
+                for(int k=0;k<nz;++k) uc[k]+=alpha*yc[k];
+            }
             rn=sn;
             ++it;
             break;
@@ -936,17 +1007,48 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         precondition(ks,kz,pre,post);
         apply(F,0,kz,kt);
 
-        const double tt=dot(F,kt,kt);
-        omega=(tt>0.0)? dot(F,kt,ks)/tt : 0.0;
-
-        for(long q=0;q<N;++q)
+        //  (t,t) and (t,s): one pass, one reduction
         {
-            F.u[q]+=alpha*ky[q]+omega*kz[q];
-            kr[q] =ks[q]-omega*kt[q];
+            double a0=0.0,a1=0.0,a2=0.0,a3=0.0, b0=0.0,b1=0.0,b2=0.0,b3=0.0;
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                const double *tc=&kt[col], *sc=&ks[col];
+                acc4(tc,tc,nz,a0,a1,a2,a3);
+                acc4(tc,sc,nz,b0,b1,b2,b3);
+            }
+            double loc[2]={(a0+a1)+(a2+a3),(b0+b1)+(b2+b3)}, g[2]={0.0,0.0};
+            MPI_Allreduce(loc,g,2,MPI_DOUBLE,MPI_SUM,comm);
+            omega=(g[0]>0.0)? g[1]/g[0] : 0.0;
+        }
+
+        //  x += alpha y + omega z;  r = s - omega t;  |r|^2 and the next
+        //  (rhat,r) in the same pass, one reduction
+        {
+            double a0=0.0,a1=0.0,a2=0.0,a3=0.0, b0=0.0,b1=0.0,b2=0.0,b3=0.0;
+            for(int i=0;i<F.nx;++i)
+            for(int j=0;j<F.ny;++j)
+            {
+                const long col=F.idx(i,j,0);
+                double *uc=&F.u[col], *rc=&kr[col];
+                const double *yc=&ky[col], *zc=&kz[col], *sc=&ks[col], *tc=&kt[col];
+                const double *hc=&krhat[col];
+                for(int k=0;k<nz;++k)
+                {
+                    uc[k]+=alpha*yc[k]+omega*zc[k];
+                    rc[k] =sc[k]-omega*tc[k];
+                }
+                acc4(rc,rc,nz,a0,a1,a2,a3);
+                acc4(hc,rc,nz,b0,b1,b2,b3);
+            }
+            double loc[2]={(a0+a1)+(a2+a3),(b0+b1)+(b2+b3)}, g[2]={0.0,0.0};
+            MPI_Allreduce(loc,g,2,MPI_DOUBLE,MPI_SUM,comm);
+            rn  =sqrt(g[0]);
+            rho1=g[1];
         }
 
         ++it;
-        rn=sqrt(dot(F,kr,kr));
 
         if(fabs(omega)<1.0e-300) break;
     }

@@ -106,6 +106,7 @@ public:
                const double *dxn=0,const double *dyn=0);
 
     sc_level& fine(){return lev[0];}
+    const sc_level& coarsest() const {return lev.back();}
     int levels() const {return (int)lev.size();}
     const char* err() const {return errmsg;}
 
@@ -140,6 +141,11 @@ public:
     //  refused by setup().
     void set_precision(int bits){pcbits=(bits==32?32:64);}
     void set_fine_operator(sc_operator *op){fineop=op;}
+
+    //  line-GS sweeps on the coarsest level (default 16).  Only matters when
+    //  the coarsest grid is large - chiefly for pure-Neumann problems, where
+    //  the coarsest level carries the depth-uniform mode across the domain.
+    void set_coarse_sweeps(int n){coarse_sweeps=(n>0?n:16);}
 
     //  bytes held by the hierarchy and the Krylov work space
     long memory_bytes() const;

@@ -68,12 +68,19 @@ private:
     void fill_matrix8(lexer*, double*, vec&, matrix_diag&);
     void fillbackvec8(lexer*, double*);
 
+    //  NHFLOW potential-flow initialisation, startV(...,44)
+    void start_solver44(lexer*, ghostcell*, double*, vec&, matrix_diag&);
+    void fill_matrix44(lexer*, reefmg_core&, double*, vec&, matrix_diag&);
+    void fillbackvec44(lexer*, reefmg_core&, double*);
+
     reefmg_core mg;
 
     int *CVAL4;
 
     matrix_diag *Mcur;          // REEF3D's matrix for the current solve
     std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
+    std::vector<int> colrow0;   // first row of a fully active column with
+                                // consecutive rows, -1 otherwise
     int count;
 
     int solve_mode, presweep, postsweep;

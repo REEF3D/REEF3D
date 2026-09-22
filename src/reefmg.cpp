@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "vec.h"
 #include "matrix_diag.h"
+#include "hypre_struct.h"
 
 #include <iostream>
 #include <iomanip>
@@ -217,10 +218,154 @@ void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M
 
 void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M, int var)
 {
-    if(p->mpirank==0)
-    cout<<"REEFMG startV() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
+    //  var==44: NHFLOW potential-flow initialisation (nhflow_potential_f, I 11 1)
+    if(var==44)
+    start_solver44(p,pgc,f,rhs,M);
 
-    MPI_Abort(MPI_COMM_WORLD,-2755);
+    else
+    {
+        if(p->mpirank==0)
+        cout<<"REEFMG startV() only implemented for var==44 (NHFLOW potential)."<<endl;
+
+        MPI_Abort(MPI_COMM_WORLD,-2755);
+    }
+}
+
+//  The NHFLOW potential problem differs from the Laplace and pressure
+//  problems in one way that matters here: every boundary is Neumann - bed,
+//  walls, and the top as a rigid lid - apart from prescribed inflow/outflow
+//  fluxes.  The matrix is singular, and without a Dirichlet surface the
+//  depth-uniform mode sees an unscreened horizontal Laplacian spanning the
+//  whole domain.  Unlike FNPF, this problem needs the full hierarchy depth
+//  and a coarsest level that genuinely resolves the smoothest mode: with a
+//  shallow hierarchy BiCGStab still reaches its residual tolerance, but the
+//  smooth part of the solution can be wrong, because the remaining residual
+//  concentrates in exactly the modes where the error is amplified most.
+//
+//  So this solve runs on its own temporary hierarchy - double precision,
+//  lexicographic smoothing, full depth - independent of the settings chosen
+//  for the time-stepping solves, and freed afterwards.  If the decomposition
+//  leaves the coarsest grid too large to resolve the depth-uniform mode, the
+//  solve is handed to hypre GMRES+SMG, exactly as with N 10 1x, rather than
+//  risk an inaccurate initial velocity field.  It is a one-off solve at
+//  start-up, so robustness matters more than speed.
+//
+//  Thresholds from pure-Neumann tests at full depth and with capped depth:
+//  with 64 coarsest-level sweeps accuracy failed at 512 coarsest columns;
+//  with 128 sweeps it held up to 2048.  512 at 128 sweeps keeps a 4x margin.
+static const long POT_COARSEST_MAX  = 512;  // columns on the coarsest level
+static const int  POT_COARSE_SWEEPS = 128;
+
+void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M)
+{
+    p->solveriter=0;
+    starttime=pgc->timer();
+
+    reefmg_core pot;
+    pot.set_precision(64);
+    pot.set_coarse_sweeps(POT_COARSE_SWEEPS);
+
+    if(!pot.setup(pgc->mpi_comm,npx,npy,cx,cy,
+                  p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,0,
+                  p->DXN+p->marge-1, p->DYN+p->marge-1))
+    {
+        if(p->mpirank==0)
+        cout<<"REEFMG potential: "<<pot.err()<<endl;
+
+        MPI_Abort(MPI_COMM_WORLD,-2758);
+    }
+
+    const sc_level &C=pot.coarsest();
+
+    if((long)C.gnx*C.gny > POT_COARSEST_MAX)
+    {
+        if(p->mpirank==0)
+        cout<<"REEFMG potential (var 44): coarsest grid "<<C.gnx<<" x "<<C.gny
+            <<" is too large to resolve this pure-Neumann problem reliably - "
+            <<"solving it with hypre GMRES+SMG instead."<<endl;
+
+        hypre_struct fallback(p,pgc,14,11);
+        fallback.startV(p,pgc,f,rhs,M,44);
+        return;
+    }
+
+    fill_matrix44(p,pot,f,rhs,M);
+    pot.coarsen();
+
+    double relres=1.0;
+    p->solveriter=pot.solve_auto(p->N44,p->N46,relres,1,1,1);
+    p->final_res=relres;
+
+    fillbackvec44(p,pot,f);
+
+    if(p->mpirank==0)
+    cout<<"REEFMG potential (var 44): levels "<<pot.levels()<<"  cycles "<<p->solveriter
+        <<"  res "<<setprecision(3)<<relres<<"  "<<setprecision(3)
+        <<pgc->timer()-starttime<<" s"<<endl;
+
+    if(p->solveriter>=p->N46 && p->mpirank==0)
+    cout<<"REEFMG potential (var 44): WARNING - iteration limit N 46 reached.  "
+        <<"If the prescribed inflow and outflow do not balance, the pure-Neumann "
+        <<"system is inconsistent and cannot converge with any solver."<<endl;
+}
+
+//  Same row numbering as the assembly in nhflow_potential_f::laplace (LOOP).
+//  That routine turns dry and solid cells into identity rows; they are kept
+//  out of the multigrid here rather than coarsened as if they were fluid.
+//  PSI is cell-centred: IJK, not FIJK as for the FNPF potential.
+void reefmg::fill_matrix44(lexer *p, reefmg_core &core, double *f, vec &rhs, matrix_diag &M)
+{
+    sc_level &L=core.fine();
+
+    std::fill(L.p.begin(),L.p.end(),0.0);
+    std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
+    std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
+    std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+    std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+    std::fill(L.act.begin(),L.act.end(),0);
+
+    count=0;
+    LOOP
+    {
+        CVAL4[IJK]=count;
+        ++count;
+    }
+
+    PLAINLOOP
+    {
+        const long q=L.idx(i,j,k);
+
+        if(p->flag4[IJK]>0 && p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
+            n=CVAL4[IJK];
+
+            L.p[q]=M.p[n];
+            L.n[q]=M.n[n];   // i+1
+            L.s[q]=M.s[n];   // i-1
+            L.w[q]=M.w[n];   // j+1
+            L.e[q]=M.e[n];   // j-1
+            L.t[q]=M.t[n];   // k+1
+            L.b[q]=M.b[n];   // k-1
+
+            L.f[q]=rhs.V[n];
+            L.u[q]=f[IJK];
+            L.act[q]=1;
+
+            if(L.u[q]!=L.u[q] || L.f[q]!=L.f[q])
+            p->solver_error=1;
+        }
+        else
+        L.p[q]=1.0;      // identity row
+    }
+}
+
+void reefmg::fillbackvec44(lexer *p, reefmg_core &core, double *f)
+{
+    sc_level &L=core.fine();
+
+    PLAINLOOP
+    PFLUIDCHECK
+    f[IJK]=L.u[L.idx(i,j,k)];
 }
 
 void reefmg::startM(lexer *p, ghostcell *pgc, double *x, double *rhs, double *M, int var)
@@ -359,6 +504,27 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
             else     L.p [q]=1.0;
         }
     }
+
+    //  First row of every column whose cells are all active and numbered
+    //  consecutively - every fully wet column, given CVAL4's LOOP order -
+    //  so that fine_apply() can run it as a plain stencil.
+    if(fp32)
+    {
+        const int nzl=L.nz;
+        colrow0.assign((long)L.nx*L.ny,-1);
+
+        for(int ii=0;ii<L.nx;++ii)
+        for(int jj=0;jj<L.ny;++jj)
+        {
+            const long col=L.idx(ii,jj,0);
+            const int r0=rowmap[col];
+            if(r0<0) continue;
+
+            int ok=1;
+            for(int kk=1;kk<nzl;++kk) if(rowmap[col+kk]!=r0+kk){ok=0; break;}
+            if(ok) colrow0[(long)ii*L.ny+jj]=r0;
+        }
+    }
 }
 
 //  y = A x with the exact double operator, read from REEF3D's matrix_diag.
@@ -371,12 +537,34 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
 {
     const matrix_diag &M=*Mcur;
     const long sx=(long)(L.ny+2)*L.nz, sy=L.nz;
+    const int nzl=L.nz;
     const int *rm=&rowmap[0];
 
     for(int ii=0;ii<L.nx;++ii)
     for(int jj=0;jj<L.ny;++jj)
     {
         const long col=L.idx(ii,jj,0);
+        const int r0=colrow0[(long)ii*L.ny+jj];
+
+        //  Fully active column with consecutive rows: contiguous slices of M,
+        //  no per-cell branches, the same stencil as the internal multiply.
+        //  Terms are added in the same order as the per-cell path below, so
+        //  both give bit-identical results.
+        if(r0>=0)
+        {
+            const double *P=M.p+r0, *Nn=M.n+r0, *S=M.s+r0, *W=M.w+r0, *E=M.e+r0;
+            const double *T=M.t+r0, *B=M.b+r0;
+            const double *xc=x+col, *xn=xc+sx, *xs=xc-sx, *xw=xc+sy, *xe=xc-sy;
+            double *yc=y+col;
+
+            for(int kk=0;kk<nzl;++kk)
+            yc[kk]=P[kk]*xc[kk]+Nn[kk]*xn[kk]+S[kk]*xs[kk]+W[kk]*xw[kk]+E[kk]*xe[kk];
+            for(int kk=0;kk<nzl-1;++kk) yc[kk]+=T[kk]*xc[kk+1];
+            for(int kk=1;kk<nzl;  ++kk) yc[kk]+=B[kk]*xc[kk-1];
+            continue;
+        }
+
+        //  general path: dry or solid cells, or non-consecutive rows
         for(int kk=0;kk<L.nz;++kk)
         {
             const long q=col+kk;
