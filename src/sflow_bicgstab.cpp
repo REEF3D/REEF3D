@@ -27,17 +27,21 @@ Author: Hans Bihs
 
 sflow_bicgstab::sflow_bicgstab(lexer *p, ghostcell *pgc)
 {
-    sj.resize(p->imax*p->jmax*p->kmax);
-    rj.resize(p->imax*p->jmax*p->kmax);
-    r0.resize(p->imax*p->jmax*p->kmax);
-    vj.resize(p->imax*p->jmax*p->kmax);
-    tj.resize(p->imax*p->jmax*p->kmax);
-    pj.resize(p->imax*p->jmax*p->kmax);
-    ph.resize(p->imax*p->jmax*p->kmax);
-    sh.resize(p->imax*p->jmax*p->kmax);
-    aii.resize(p->imax*p->jmax*p->kmax);
-    x.resize(p->imax*p->jmax*p->kmax);
-    rhs.resize(p->imax*p->jmax*p->kmax);
+    //  Every access this class makes is in-plane - IJ and its four
+    //  neighbours - so the arrays are 2D.  The old imax*jmax*kmax sizing cost
+    //  a factor of kmax for nothing: on a 133x200x10 FNPF box that was
+    //  38.4 MiB held against 2.4 MiB of need.
+    sj.resize(p->imax*p->jmax);
+    rj.resize(p->imax*p->jmax);
+    r0.resize(p->imax*p->jmax);
+    vj.resize(p->imax*p->jmax);
+    tj.resize(p->imax*p->jmax);
+    pj.resize(p->imax*p->jmax);
+    ph.resize(p->imax*p->jmax);
+    sh.resize(p->imax*p->jmax);
+    aii.resize(p->imax*p->jmax);
+    x.resize(p->imax*p->jmax);
+    rhs.resize(p->imax*p->jmax);
 }
 
 void sflow_bicgstab::start(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, vec2D &xvec, vec2D &rhsvec, int var)

@@ -28,6 +28,11 @@ vec::vec(lexer* p)
     resize(p->veclength);
 }
 
+vec::vec(lexer*, int len)
+{
+    resize(len);
+}
+
 void vec::resize(int size_new)
 {
     V.resize(size_new);

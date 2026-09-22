@@ -30,6 +30,11 @@ matrix_diag::matrix_diag(lexer *pp)
     resize(pp->veclength);
 }
 
+matrix_diag::matrix_diag(lexer*, int rows)
+{
+    resize(rows);
+}
+
 void matrix_diag::resize(int size_new)
 {
     n.resize(size_new);

@@ -28,6 +28,11 @@ matrix2D::matrix2D(lexer *pp)
     resize(pp->vec2Dlength);
 }
 
+matrix2D::matrix2D(lexer*, int rows)
+{
+    resize(rows);
+}
+
 void matrix2D::resize(int size_new)
 {
     p.resize(size_new);

@@ -31,6 +31,9 @@ class vec
 {
 public:
     vec(lexer*);
+
+    /// Explicit length; see matrix_diag's sized constructor.
+    vec(lexer*, int len);
     virtual ~vec() = default;
 
     void resize(int);

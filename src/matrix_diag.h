@@ -31,6 +31,10 @@ class matrix_diag
 {
 public:
     matrix_diag(lexer*);
+
+    //  Explicit row count, for a solver path that knows it writes fewer rows
+    //  than lexer's veclength allows for - see fdm_fnpf.
+    matrix_diag(lexer*, int rows);
     virtual ~matrix_diag() = default;
 
     void resize(int);

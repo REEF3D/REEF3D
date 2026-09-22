@@ -206,7 +206,10 @@ private:
     int nbx0,nbx1,nby0,nby1;     // neighbour ranks, MPI_PROC_NULL at the edge
 
     std::vector<double> sbuf,rbuf;
-    std::vector<double> kr,krhat,kp,kv,ks,kt,ky,kz;   // BiCGStab work space
+    //  BiCGStab work space, fine level.  s shares kr - see solve() - so there
+    //  are seven vectors here, not the eight the algorithm is usually written
+    //  with.
+    std::vector<double> kr,krhat,kp,kv,kt,ky,kz;
 
     int coarse_sweeps;
     int pcbits;              // 64 or 32: storage precision of the coefficients

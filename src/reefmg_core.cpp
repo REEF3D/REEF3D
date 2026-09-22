@@ -200,7 +200,7 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
 
     const long fn=lev[0].size();
     kr.assign(fn,0.0); krhat.assign(fn,0.0); kp.assign(fn,0.0); kv.assign(fn,0.0);
-    ks.assign(fn,0.0); kt.assign(fn,0.0);    ky.assign(fn,0.0); kz.assign(fn,0.0);
+    kt.assign(fn,0.0);   ky.assign(fn,0.0); kz.assign(fn,0.0);
 
     const long mx=std::max((long)lev[0].ny,(long)lev[0].nx)*nz;
     sbuf.assign(2*mx,0.0); rbuf.assign(2*mx,0.0);
@@ -982,7 +982,13 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         if(fabs(den)<1.0e-300) break;
         alpha=rho/den;
 
-        //  s = r - alpha v, with |s|^2 in the same pass
+        //  s = r - alpha v, with |s|^2 in the same pass.
+        //
+        //  s occupies kr.  r is dead the moment s is formed and is not read
+        //  again until r = s - omega t at the foot of the iteration, which is
+        //  elementwise at the same index, so both updates run in place and the
+        //  arithmetic is unchanged.  That is one fine-level vector - eight
+        //  bytes a cell - saved out of the BiCGStab work space.
         double sn;
         {
             double s0=0.0,s1=0.0,s2=0.0,s3=0.0;
@@ -990,9 +996,9 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             for(int j=0;j<F.ny;++j)
             {
                 const long col=F.idx(i,j,0);
-                double *sc=&ks[col];
-                const double *rc=&kr[col], *vc=&kv[col];
-                for(int k=0;k<nz;++k) sc[k]=rc[k]-alpha*vc[k];
+                double *sc=&kr[col];
+                const double *vc=&kv[col];
+                for(int k=0;k<nz;++k) sc[k]-=alpha*vc[k];
                 acc4(sc,sc,nz,s0,s1,s2,s3);
             }
             double loc=(s0+s1)+(s2+s3), g=0.0;
@@ -1017,7 +1023,7 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             break;
         }
 
-        precondition(ks,kz,pre,post);
+        precondition(kr,kz,pre,post);
         apply(F,0,kz,kt);
 
         //  (t,t) and (t,s): one pass, one reduction
@@ -1027,7 +1033,7 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             for(int j=0;j<F.ny;++j)
             {
                 const long col=F.idx(i,j,0);
-                const double *tc=&kt[col], *sc=&ks[col];
+                const double *tc=&kt[col], *sc=&kr[col];
                 acc4(tc,tc,nz,a0,a1,a2,a3);
                 acc4(tc,sc,nz,b0,b1,b2,b3);
             }
@@ -1045,12 +1051,12 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             {
                 const long col=F.idx(i,j,0);
                 double *uc=&F.u[col], *rc=&kr[col];
-                const double *yc=&ky[col], *zc=&kz[col], *sc=&ks[col], *tc=&kt[col];
+                const double *yc=&ky[col], *zc=&kz[col], *tc=&kt[col];
                 const double *hc=&krhat[col];
                 for(int k=0;k<nz;++k)
                 {
                     uc[k]+=alpha*yc[k]+omega*zc[k];
-                    rc[k] =sc[k]-omega*tc[k];
+                    rc[k]-=omega*tc[k];
                 }
                 acc4(rc,rc,nz,a0,a1,a2,a3);
                 acc4(hc,rc,nz,b0,b1,b2,b3);
@@ -1129,7 +1135,7 @@ long reefmg_core::memory_bytes() const
                +L.hx.capacity()+L.hy.capacity())*sizeof(double);
         s+=long(L.act.capacity()+L.colact.capacity());
     }
-    s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()+ks.capacity()
+    s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()
            +kt.capacity()+ky.capacity()+kz.capacity()+sbuf.capacity()+rbuf.capacity())*sizeof(double);
     s+=long(agg_send.capacity()+agg_recv.capacity())*sizeof(double);
     if(agg) s+=agg->memory_bytes();
