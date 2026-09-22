@@ -1918,6 +1918,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X39;
     ii++;
+    dctrl[dd] = X39_Lwl;
+    dd++;
+    dctrl[dd] = X39_k;
+    dd++;
     ictrl[ii] = X40;
     ii++;
     dctrl[dd] = X41;

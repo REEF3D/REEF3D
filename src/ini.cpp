@@ -942,6 +942,8 @@ void control::ini_default()
     X34=0;        // int 
     X38=0;       // int type of viscous force calculation CFD
     X39=0;       // int type of viscous force calculation NHFLOW
+    X39_Lwl=1.0; // double reference (waterline) length for ITTC-1957 friction line [m]
+    X39_k=0.0;   // double form factor k (total viscous resistance = (1+k)*R_F0)
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation

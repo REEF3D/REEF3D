@@ -1909,6 +1909,10 @@ void control::ctrlrecv()
     ii++;
     X39 = ictrl[ii];
     ii++;
+    X39_Lwl = dctrl[dd];
+    dd++;
+    X39_k = dctrl[dd];
+    dd++;
     X40 = ictrl[ii];
     ii++;
     X41 = dctrl[dd];

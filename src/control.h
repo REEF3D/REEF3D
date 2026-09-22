@@ -472,6 +472,7 @@ public:
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
     double X41,X42,X43,X44;
+    double X39_Lwl,X39_k;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;
     double *X102_u, *X102_v, *X102_w;
