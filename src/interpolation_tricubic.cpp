@@ -29,7 +29,6 @@ double interpolation::tricubic4a(field& f, int& i,int& j, int& k, double wx, dou
 {
     int i0,j0,k0,i3,j3,k3;
     
-pip=4;
     i0=j0=k0=1;
     i3=j3=k3=2;
 
@@ -71,7 +70,6 @@ pip=4;
                               f(i+1,j+1,k+k3),f(i+1,j+j3,k+k3)),
                               cint4a(wy, f(i+i3,j-j0,k+k3),f(i+i3,j,k+k3),
                               f(i+i3,j+1,k+k3),f(i+i3,j+j3,k+k3)) ) );
-pip=0;
 
     return value;
 }

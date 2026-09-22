@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class nhflow_potential_f : public nhflow_potential, public increment
+class nhflow_potential_f final : public nhflow_potential, public increment
 {
 
 public:
 	nhflow_potential_f(lexer*);
 	virtual ~nhflow_potential_f();
 
-	void start(lexer*,fdm_nhf*, solver*, ghostcell*) override;
+	void start(lexer*,fdm_nhf*, solver*, ghostcell*) override final;
 
 
 private:

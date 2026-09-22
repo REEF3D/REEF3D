@@ -97,7 +97,7 @@ double wave_lib_flap_double::wave_horzvel(lexer *p, double x, double y, double z
 	dX += fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
     }
     
-    vel = dX;
+    vel = dX*p->B118;
 
     return vel;
 }
@@ -131,7 +131,7 @@ double wave_lib_flap_double::wave_w(lexer *p, double x, double y, double z)
 	dZ += fac*((kinematics[timecount][4]-kinematics[timecount_old][4])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
     }
     
-    vel = dZ;
+    vel = dZ*p->B118;
 
     return vel;
 }

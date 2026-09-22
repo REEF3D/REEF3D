@@ -57,7 +57,7 @@ private:
 	double ddn;
 	int printcount;
     int ini_token;
-    int file_version,file_type;
+    int file_version,file_type,file_conti;
     int qn;
     ofstream result;
     

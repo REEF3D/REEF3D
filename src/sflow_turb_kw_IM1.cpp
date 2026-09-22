@@ -132,7 +132,7 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
     {
     b->M.p[count] += kw_beta * MAX(eps(i,j),0.0);
 
-    b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,k)
+    b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
                        + (3.456/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.0)) * (pow(ustar(i,j),4.0)/(HP*HP));
                        
@@ -234,13 +234,9 @@ void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
     n=0;
 	SLICELOOP4
 	{
-        pip=1;
         uvel=0.5*(b->P(i,j)+b->P(i-1,j));
-        pip=0;
 
-        pip=2;
         vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
-        pip=0;
 
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 

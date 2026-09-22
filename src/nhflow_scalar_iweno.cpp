@@ -328,8 +328,8 @@ void nhflow_scalar_iweno::jqmax(lexer *p,fdm_nhf *d, double *F)
 
 void nhflow_scalar_iweno::kqmax(lexer *p,fdm_nhf *d, double *F)
 {
-	q1 = (F[IJKm1]-F[IJKp2])/DZ[KM2];
-	q2 = (F[IJK]-F[IJKp1])/DZ[KM1];
+	q1 = (F[IJKm1]-F[IJKm2])/DZ[KM2];
+	q2 = (F[IJK]-F[IJKm1])/DZ[KM1];
 	q3 = (F[IJKp1]-F[IJK])/DZ[KP];
 	q4 = (F[IJKp2]-F[IJKp1])/DZ[KP1];
 	q5 = (F[IJKp3]-F[IJKp2])/DZ[KP2];

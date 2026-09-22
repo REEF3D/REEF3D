@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"ddweno_f_nug.h"
 
-bedslope::bedslope(lexer *p) : norm_vec(p)
+bedslope::bedslope(lexer *p) : norm_vec(p),nhflow_gradient(p)
 {
     midphi=p->S81*(PI/180.0);
     delta=p->S82*(PI/180.0);
@@ -171,14 +171,12 @@ void bedslope::slope_analytical(lexer *p, ghostcell *pgc, sediment_fdm *s)
 void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double uvel,vvel;
-    double nx,ny,nz,norm;
+    double nx,ny,nz;
     double nx0,ny0;
     double nz0,bx0,by0;
     
     SEDSLICELOOP
     {
-    k = s->bedk(i,j);
-    
     // beta
     uvel=0.5*(s->P(i,j)+s->P(i-1,j));
 
@@ -224,8 +222,6 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     
-    //bx0 = dswenox(s->bedzh, 1.0);
-     
     if(p->DFBED[Im1J]<0)
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
     
@@ -234,8 +230,6 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
      
      
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-    
-    //by0 = dswenoy(s->bedzh, 1.0);
     
     if(p->DFBED[IJm1]<0)
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
@@ -246,15 +240,8 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
     ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
-    nz0 = 1.0;
+    nz0 = 1.0/sqrt(bx0*bx0 + by0*by0 + 1.0);
      
-    norm=sqrt(nx0*nx0 + ny0*ny0 + nz0*nz0);
-     
-     
-    nx0/=norm>1.0e-20?norm:1.0e20;
-	ny0/=norm>1.0e-20?norm:1.0e20;
-	nz0/=norm>1.0e-20?norm:1.0e20;
-	
     // rotate bed normal
 	beta=-beta;
     nx = (cos(beta)*nx0-sin(beta)*ny0);
@@ -290,8 +277,108 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     }
 }
 
+void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    double uvel,vvel;
+    double nx,ny,nz;
+    double nx0,ny0;
+    double nz0,bx0,by0;
+    
+    SEDSLICELOOP
+    {
+    // beta
+    uvel=0.5*(s->P(i,j)+s->P(i-1,j));
 
-void bedslope::slope_weno(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo)
+    vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
+
+
+	// 1
+	if(uvel>0.0 && vvel>0.0 && fabs(uvel)>1.0e-10)
+	beta = atan(fabs(vvel/uvel));
+
+	// 2
+	if(uvel<0.0 && vvel>0.0 && fabs(vvel)>1.0e-10)
+	beta = PI*0.5 + atan(fabs(uvel/vvel));
+
+	// 3
+	if(uvel<0.0 && vvel<0.0 && fabs(uvel)>1.0e-10)
+	beta = PI + atan(fabs(vvel/uvel));
+
+	// 4
+	if(uvel>0.0 && vvel<0.0 && fabs(vvel)>1.0e-10)
+	beta = 1.5*PI + atan(fabs(uvel/vvel));
+
+	//------
+
+	if(uvel>0.0 && fabs(vvel)<=1.0e-10)
+	beta = 0.0;
+
+	if(fabs(uvel)<=1.0e-10 && vvel>0.0)
+	beta = PI*0.5;
+
+	if(uvel<0.0 && fabs(vvel)<=1.0e-10)
+	beta = PI;
+
+	if(fabs(uvel)<=1.0e-10 && vvel<0.0)
+	beta = PI*1.5;
+
+	if(fabs(uvel)<=1.0e-10 && fabs(vvel)<=1.0e-10)
+	beta = 0.0;
+   
+    // ----
+    
+    // ----
+    
+    bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+    
+    bx0 = dslwenox(s->bedzh, bx0);
+     
+     
+    by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    
+    bx0 = dslwenoy(s->bedzh, by0);
+    
+    
+    nx0 = bx0/sqrt(bx0*bx0 + by0*by0 + 1.0);
+    ny0 = by0/sqrt(bx0*bx0 + by0*by0 + 1.0);
+    nz0 = 1.0/sqrt(bx0*bx0 + by0*by0 + 1.0);
+     
+    // rotate bed normal
+	beta=-beta;
+    nx = (cos(beta)*nx0-sin(beta)*ny0);
+	ny = (sin(beta)*nx0+cos(beta)*ny0);
+    nz = nz0;
+  
+    s->beta(i,j) = beta;
+    
+    s->teta(i,j)  = -atan(nx/(fabs(nz)>1.0e-15?nz:1.0e20));
+    s->alpha(i,j) =  fabs(atan(ny/(fabs(nz)>1.0e-15?nz:1.0e20)));
+    
+    //-----------
+
+    if(fabs(nx)<1.0e-10 && fabs(ny)<1.0e-10)
+    s->gamma(i,j)=0.0;
+
+    s->gamma(i,j) = atan(sqrt(bx0*bx0 + by0*by0));
+    
+    // -----
+    double u0,v0,uvel,vvel,uabs,fx,fy;
+    u0=0.5*(s->P(i,j)+s->P(i-1,j));
+    v0=0.5*(s->Q(i,j)+s->Q(i,j-1));
+    
+    uvel = (cos(s->beta(i,j))*u0-sin(s->beta(i,j))*v0);
+	vvel = (sin(s->beta(i,j))*u0+cos(s->beta(i,j))*v0);
+    
+    uabs=sqrt(uvel*uvel + vvel*vvel);
+    
+    fx = fabs(uvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
+    fy = fabs(vvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
+
+    s->phi(i,j) = midphi + MIN(1.0,fabs(s->teta(i,j)/midphi))*(s->teta(i,j)/(fabs(s->gamma(i,j))>1.0e-20?fabs(s->gamma(i,j)):1.0e20))*delta; 
+    }
+}
+
+void bedslope::slope_weno_topo(lexer *p, ghostcell *pgc, sediment_fdm *s, field &topo)
 {
     double uvel,vvel;
     double nx,ny,nz,norm;

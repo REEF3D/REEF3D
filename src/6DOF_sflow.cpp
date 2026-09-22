@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -58,7 +58,7 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway_sflow(p,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_oneway_sflow(p,pgc,iter,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
@@ -94,7 +94,7 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);

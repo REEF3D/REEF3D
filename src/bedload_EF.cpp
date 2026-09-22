@@ -28,15 +28,8 @@ Author: Hans Bihs
 
 bedload_EF::bedload_EF(lexer *p)
 {
-    rhosed=p->S22;
-    rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    visc=p->W2;
-    kappa=0.4;
-    ks=p->S21*d50;
-    Rstar=(rhosed-rhowat)/rhowat;
-    Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
     mu_d = p->S18;
 }
 
@@ -55,7 +48,6 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         
         if(s->active(i,j)==1 && Tb>Ts)
         {
-        //qb = d50*sqrt((rhosed/rhowat-1.0)*g*d50) * (30.0/(PI*mu_d))* (Tb-Ts)*(sqrt(Tb) - 0.7*sqrt(Ts));
         Ub = (1.0 - 0.7*sqrt(Ts/Tb)) * 10.0*s->shearvel_eff(i,j);
         
         p_EF = pow(1.0 + pow((1.0/6.0)*PI*mu_d/(Tb-Ts),4.0), -1.0/4.0);

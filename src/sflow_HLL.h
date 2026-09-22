@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -35,7 +35,7 @@ class ghostcell;
 
 using namespace std;
 
-class sflow_HLL : public sflow_convection, public increment
+class sflow_HLL final : public sflow_convection, public increment
 {
 
 public:
@@ -43,7 +43,7 @@ public:
 	sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_HLL();
 
-    void start(lexer*&, fdm2D*&, int, slice&); // override, but different number of parameters
+    void start(lexer*&, fdm2D*&, int, slice&); // override final, but different number of parameters
     void precalc(lexer*, fdm2D*, int, slice&);
 
 private:

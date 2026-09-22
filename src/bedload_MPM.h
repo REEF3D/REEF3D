@@ -30,21 +30,21 @@ class turbulence;
 
 using namespace std;
 
-class bedload_MPM : public bedload, public increment
+class bedload_MPM final : public bedload, public increment
 {
 public:
 
     bedload_MPM(lexer*);
 	virtual ~bedload_MPM();
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 private:
     double rhosed,rhowat;
     double g,d50;
     double shields,eta,visc;
     double kappa,u_plus,ks;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
+    double shields_eff;
+    double shields_crit;
 
 };
 

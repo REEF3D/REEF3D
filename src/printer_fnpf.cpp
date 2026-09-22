@@ -344,6 +344,20 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
                 offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
                 ++n;
             }
+            
+            // breaking
+            if(p->P310==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+            
+            // breaking viscosity
+            if(p->P311==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
 
             // Hs
             if(p->P110==1)
@@ -387,6 +401,18 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
             result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
+        
+        if(p->P310==1)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
+        
+        if(p->P311==1)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\"vb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
 
         if(p->P110==1)
         {
@@ -413,23 +439,98 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         iin=3*sizeof(float)*p->pointnum;
         std::memcpy(&buffer[file_offset],&iin,sizeof(int));
         file_offset+=sizeof(int);
+        if(p->j_dir==1)
         TPLOOP
         {
+            // U
             ffn=float(c->U[FIJKp1]);
+            
             if(k==-1 && j==-1)
-                ffn=float(c->U[FIJp1Kp1]);
+            ffn=float(c->U[FIJp1Kp1]);
+            
+            if(i==-1 && j==-1 && k==-1)
+            ffn=float(c->U[FIp1Jp1Kp1]);
+            
+            if(i==-1 && j==-1 && k>-1)
+            ffn=float(c->U[FIp1Jp1K]);
+            
             std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
-
+            
+            // V
             ffn=float(c->V[FIJKp1]);
+            
             if(k==-1 && j==-1)
-                ffn=float(c->V[FIJp1Kp1]);
+            ffn=float(c->V[FIJp1Kp1]);
+            
+            if(i==-1 && j==-1 && k==-1)
+            ffn=float(c->V[FIp1Jp1Kp1]);
+            
+            if(i==-1 && j==-1 && k>-1)
+            ffn=float(c->V[FIp1Jp1K]);
+            
             std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
-
+            
+            // W
             ffn=float(c->W[FIJKp1]);
+            
             if(k==-1 && j==-1)
-                ffn=float(c->W[FIJp1Kp1]);
+            ffn=float(c->W[FIJp1Kp1]);
+            
+            if(i==-1 && j==-1 && k==-1)
+            ffn=float(c->W[FIp1Jp1Kp1]);
+            
+            if(i==-1 && j==-1 && k>-1)
+            ffn=float(c->W[FIp1Jp1K]);
+            
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
+        }
+        
+        if(p->j_dir==0)
+        TPLOOP
+        {
+            // U
+            if(j==-1)
+            ffn=float(c->U[FIJp1Kp1]);
+            
+            if(j==0)
+            ffn=float(c->U[FIJKp1]);
+            
+            if(k==-1 && j==-1)
+            ffn=float(c->U[FIJp1Kp1]);
+            
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
+            
+            // V
+            ffn=float(c->V[FIJKp1]);
+            
+            if(k==-1 && j==-1)
+            ffn=float(c->V[FIJp1Kp1]);
+            
+            if(i==-1 && j==-1 && k==-1)
+            ffn=float(c->V[FIp1Jp1Kp1]);
+            
+            if(i==-1 && j==-1 && k>-1)
+            ffn=float(c->V[FIp1Jp1K]);
+            
+            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+            file_offset+=sizeof(float);
+            
+            // W
+            ffn=float(c->W[FIJKp1]);
+            
+            if(k==-1 && j==-1)
+            ffn=float(c->W[FIJp1Kp1]);
+            
+            if(i==-1 && j==-1 && k==-1)
+            ffn=float(c->W[FIp1Jp1Kp1]);
+            
+            if(i==-1 && j==-1 && k>-1)
+            ffn=float(c->W[FIp1Jp1K]);
+            
             std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
         }
@@ -444,7 +545,14 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
                 ffn=float(c->Fi[FIJKp1]);
 
                 if(k==-1 && j==-1)
-                    ffn=float(c->Fi[FIJp1Kp1]);
+                ffn=float(c->Fi[FIJp1Kp1]);
+                
+                if(i==-1 && j==-1 && k==-1)
+                ffn=float(c->Fi[FIp1Jp1Kp1]);
+                
+                if(i==-1 && j==-1 && k>-1)
+                ffn=float(c->Fi[FIp1Jp1K]);
+            
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
@@ -453,9 +561,8 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
             {
                 if(j==-1)
                     ffn=float(c->Fi[FIJp1Kp1]);
-                else if(j==0)
+                if(j==0)
                     ffn=float(c->Fi[FIJKp1]);
-
                 if(k==-1 && j==-1)
                     ffn=float(c->Fi[FIJp1Kp1]);
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
@@ -482,6 +589,34 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
             TPLOOP
             {
                 ffn=float(p->ipol4_a(c->test));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+        
+        // breaking
+        if(p->P310==1)
+        {
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                ffn=float(p->ipol4_a_sliceint(c->breaking));
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+        
+        // breaking viscosity
+        if(p->P311==1)
+        {
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                ffn=float(p->ipol4_a_slice(c->vb));
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }

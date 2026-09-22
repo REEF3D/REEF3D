@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -39,8 +39,8 @@ void sixdof_obj::cylinder_x(lexer *p, ghostcell *pgc, int id)
 	ym=p->X131_yc;
     zm=p->X131_zc;
 	
-	x1=xm-p->X131_h;
-	x2=xm+p->X131_h;
+	x1=xm-0.5*p->X131_h;
+	x2=xm+0.5*p->X131_h;
 	
     r=p->X131_rad;
 	

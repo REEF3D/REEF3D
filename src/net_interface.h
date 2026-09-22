@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -39,11 +39,14 @@ public:
 	net_interface(lexer*, ghostcell*);
 	virtual ~net_interface();
 
-    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d) {};
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d) {};
+    void start_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, bool) {};
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, bool) {};
 
-    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
-    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>, vector<double>);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, 
+                        vector<double>&, vector<double>&, vector<double>&, vector<double>&, bool);
+                        
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, Eigen::Matrix3d, vector<double>&, vector<double>&, 
+                        vector<double>&, vector<double>&, vector<double>&, vector<double>&, bool);
     
 
     void dlm_cfd(lexer*, fdm*, ghostcell*, int);

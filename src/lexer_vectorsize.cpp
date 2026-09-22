@@ -30,8 +30,6 @@ void lexer::vecsize(ghostcell *pgc)
 	int gcbnum=0;
     int safetymargin=0;
     int solid_gcb_est_max, topo_gcb_est_max, gcextra_max;
-    
-    int gcbextra0;
 
     solid_gcb_est_max = pgc->globalimax(solid_gcb_est);
     topo_gcb_est_max = pgc->globalimax(topo_gcb_est);
@@ -47,8 +45,6 @@ void lexer::vecsize(ghostcell *pgc)
     
 // gcbextra
     gcbextra=gcextra_max*margin;
-    
-    gcbextra0=gcbextra;
     
     safetymargin = 0.2*double(solid_gcbextra_est+topo_gcbextra_est+tot_gcbextra_est) + 100.0;
     
@@ -80,16 +76,10 @@ void lexer::vecsize(ghostcell *pgc)
 	gcbnum+=500;
     
 
-    veclength = cellnum + gcbnum*margin + gcpara_sum*4  + gcbextra;
+    veclength = cellnum + gcbnum*1 + gcpara_sum*1;
     
-    //cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra0: "<<gcbextra0<<" gcextra: "<<gcbextra<<" tot_gcbextra_est: "<<tot_gcbextra_est<<endl;
-    
-    //gcbextra=gcbextra0;
-    
-    C4_size=C4a_size=C6_size=M_size=veclength;
-    
-    
-    
+    //cout<<mpirank<<" CELLNUM: "<<cellnum<<" veclength: "<<veclength<<" gcextra: "<<gcbextra<<" tot_gcbextra_est: "<<tot_gcbextra_est<<endl;
+      
     
     // 2D
      slicenum= 0;
@@ -102,8 +92,6 @@ void lexer::vecsize(ghostcell *pgc)
               + gcslparaco1_count + gcslparaco2_count + gcslparaco3_count + gcslparaco4_count;
     
     vec2Dlength = slicenum + gcbnum*3  + gcpara_sum*4;    
-    
-    C1_2D_size=C2_2D_size=C4_2D_size=M_2D_size=vec2Dlength;
 }
 
 void lexer::gcbextra_est(ghostcell *pgc)

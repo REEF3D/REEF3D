@@ -28,11 +28,7 @@ Author: Hans Bihs
 
 nhflow_komega_func::nhflow_komega_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_komega_bc(p)
 {
-    if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    sst_a1 = 0.31;
 }
 
 nhflow_komega_func::~nhflow_komega_func()
@@ -83,8 +79,10 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 	double factor;
 	double H;
 	int n;
-        
-        
+    
+    // RANS
+    if(p->A560==2)
+    {
         if(p->A564==0)
         LOOP
 		d->EV0[IJK] = MAX(KIN[IJK]
@@ -95,22 +93,32 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
 		LOOP
 		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
 
-		
-        if(p->A564==1)
-		GC4LOOP
-		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
-		{
-		i = p->gcb4[n][0];
-		j = p->gcb4[n][1];
-		k = p->gcb4[n][2];
+        
+        if(p->A564==2)
+        {
+        const double rfac = sst_a1/p->T31;
 
-		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
-		}
-	
+        LOOP
+        {
+            double kval = MAX(KIN[IJK],0.0);
+            double wval = MAX(EPS[IJK],1.0e-20);
+
+            double Sval = strainterm(p,d);
+
+            double sLim = sst_F2(p,d,kval,wval)*Sval;   // Bradshaw, blended
+            double rLim = rfac*Sval;                    // realizability, unblended
+
+            double den = sst_a1*wval;
+            if(sLim>den) den = sLim;
+            if(rLim>den) den = rLim;
+
+            d->EV0[IJK] = MAX(sst_a1*kval/(den>1.0e-20?den:1.0e-20), 0.00001*d->VISC[IJK]);
+        }
+        }
+	}
+    
     // URANS
 	if(p->A560==22)
 	LOOP
@@ -128,12 +136,12 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
         if(p->A564==0)
 		d->EV0[IJK] = f*MAX(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
         if(p->A564==1)
 		d->EV0[IJK] = f*MAX(MIN(MAX(KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
     }
     
@@ -144,8 +152,18 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
     
     if(p->A565==1)
     LOOP
-	d->EV[IJK] = MIN(d->EV0[IJK], MAX(KIN[IJK]/((fabs(EPS[IJK]))>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*Qij2(p,d))/(p->T42*kw_beta*Sij2(p,d)));
+    {
+    double Sij2_val = Sij2(p,d); 
+    
+	if(Sij2_val>1.0e-20)
+    d->EV[IJK] = MIN(d->EV0[IJK], p->cmu*MAX(KIN[IJK]*KIN[IJK]
+                     /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
+                     *(ke_c_1e*Qij2(p,d))/(p->T42*ke_c_2e*Sij2_val));
+                     
+    else
+    d->EV[IJK] = d->EV0[IJK];
+                     
+    }
                                          
     LOOP
     if(p->DF[IJK]<0)
@@ -161,7 +179,7 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 
     LOOP
     {
-        //if(WALLF[IJK]==0)
+        if(WALLF[IJK]==0)
         {
         d->M.p[count] += p->cmu * MAX(EPS[IJK],0.0);
 
@@ -170,6 +188,7 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 	++count;
     }
     
+    count=0;
     if(p->A566==1)
     LOOP
     {
@@ -202,7 +221,14 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     k=p->knoz-1;
     
-	if(p->A567==1)
+	if(p->A567==1 || p->A567==2)
+	SLICELOOP4
+	{
+	if(p->DF[IJK]>0)
+	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37));
+	}
+    
+    if(p->A567==3)
 	SLICELOOP4
 	{
 	if(p->DF[IJK]>0)
@@ -210,6 +236,29 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}
 }
 
+double nhflow_komega_func::sst_walldist(lexer *p, fdm_nhf *d)
+{
+    double y = p->ZSP[IJK] - d->bed(i,j);
 
+    if(d->SOLID[IJK] > 0.0)
+    y = MIN(y, d->SOLID[IJK]);
+
+    return MAX(y, 1.0e-10);
+}
+
+double nhflow_komega_func::sst_F2(lexer *p, fdm_nhf *d, double kval, double wval)
+{
+    double y = sst_walldist(p,d);
+
+    kval = MAX(kval, 0.0);
+    wval = MAX(wval, 1.0e-20);
+
+    double arg2 = MAX( 2.0*sqrt(kval)/(p->cmu*wval*y),
+                       500.0*d->VISC[IJK]/(y*y*wval) );
+
+    arg2 = MIN(arg2, 25.0);
+
+    return tanh(arg2*arg2);
+}
 
 

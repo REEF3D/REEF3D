@@ -28,14 +28,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class bedload_direction_v : public bedload_direction, public increment
+class bedload_direction_v final : public bedload_direction, public increment
 {
 public:
 
     bedload_direction_v(lexer*);
     virtual ~bedload_direction_v();
 
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
 
 };
 

@@ -68,6 +68,7 @@ public:
     void start4V(lexer*,double*,int);
     void start4V_par(lexer*,double*,int);
     void start5V(lexer*,double*,int);
+    void start5Vfull(lexer*,double*,int);
     
     void start20V(lexer*,double*,int);
     void start24V(lexer*,double*,int);
@@ -80,6 +81,7 @@ public:
     void start7P(lexer*,double*, int);
     
     void startintV(lexer*,int*,int);
+    void startintVF(lexer*,int*,int);
     
     void dgcpol1(lexer*,field&, int);
     void dgcpol2(lexer*,field&, int);
@@ -139,6 +141,7 @@ public:
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
     void gcparax7co(lexer*, double*, int);
+    void gcparax7int(lexer*, int*&, int);
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
     void gcparacox4a_sum(lexer*, field&, int);
@@ -306,6 +309,8 @@ private:
     void Sendrecv_1D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    
+    void gcwait(lexer*);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
@@ -326,7 +331,10 @@ private:
     
     MPI_Request sreq[6],rreq[6];
     MPI_Status status;
-
+    
+    MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
+    MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
+    
     double v1,v2,v3,v4;
     double wa,wb;
     double x1,x2;

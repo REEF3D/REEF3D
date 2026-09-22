@@ -45,6 +45,8 @@ double interpolation::lint1(field& b, int& i,int& j, int& k, double wa, double w
     v7=b(i+1,j,k+1);
     if(p->flag1[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=b(i+1,j+1,k+1);
+    
+    //cout<<" v1: "<<v1<<" v3: "<<v3<<" ";
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -54,6 +56,7 @@ double interpolation::lint1(field& b, int& i,int& j, int& k, double wa, double w
 
     y1 = wb*x1 +(1.0-wb)*x2;
     y2 = wb*x3 +(1.0-wb)*x4;
+
 
     value = wc*y1 +(1.0-wc)*y2;
 
@@ -89,6 +92,7 @@ double interpolation::lint1c(field& b, int& i,int& j, int& k, double wa, double 
 
     y1 = wb*x1 +(1.0-wb)*x2;
     y2 = wb*x3 +(1.0-wb)*x4;
+
 
     value = wc*y1 +(1.0-wc)*y2;
 
@@ -255,6 +259,8 @@ double interpolation::lint4(field& f, int& i,int& j, int& k, double wa, double w
     v7=f(i+1,j,k+1);
     if(p->flag4[Ip1Jp1Kp1]>TOPO_FLAG)
     v8=f(i+1,j+1,k+1);
+    
+    //cout<<" v1: "<<v1<<" v3: "<<v3<<" ";
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -434,16 +440,15 @@ double interpolation::lint4b(field& f, int& i,int& j, int& k, double wa, double 
     x3 = wa*v5 + (1.0-wa)*v7;
     x4 = wa*v6 + (1.0-wa)*v8;
 
-    y1 = wb*x1 +(1.0-wb)*x2;
-    y2 = wb*x3 +(1.0-wb)*x4;
+    y1 = wb*x1 + (1.0-wb)*x2;
+    y2 = wb*x3 + (1.0-wb)*x4;
 
 
-    value = wc*y1 +(1.0-wc)*y2;
+    value = wc*y1 + (1.0-wc)*y2;
 
  return value;
 
 }
-
 
 double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
@@ -490,7 +495,7 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
 
 }
 
-double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double wb, double wc1, double wc2, double wc3, double wc4)
+double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
 
@@ -505,15 +510,17 @@ double interpolation::lint4V(double *f, int& i,int& j, int& k, double wa, double
     v8=f[Ip1Jp1Kp1];
   
 
-    z1 = wc1*v1 +(1.0-wc1)*v5;
-    z2 = wc2*v2 +(1.0-wc2)*v6;
-    z3 = wc3*v3 +(1.0-wc3)*v7;
-    z4 = wc4*v4 +(1.0-wc4)*v8;
-    
-    y1 = wb*z1 +(1.0-wb)*z2;
-    y2 = wb*z3 +(1.0-wb)*z4;
-    
-    value = wa*y1 +(1.0-wa)*y2;
+    x1 = wa*v1 + (1.0-wa)*v3;
+    x2 = wa*v2 + (1.0-wa)*v4;
+
+    x3 = wa*v5 + (1.0-wa)*v7;
+    x4 = wa*v6 + (1.0-wa)*v8;
+
+    y1 = wb*x1 +(1.0-wb)*x2;
+    y2 = wb*x3 +(1.0-wb)*x4;
+
+
+    value = wc*y1 +(1.0-wc)*y2;
 
 
     return value;
@@ -526,22 +533,14 @@ double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double
 
   
     v1=f[FIJK];
-
     v2=f[FIJp1K];
-
     v3=f[FIp1JK];
-
     v4=f[FIp1Jp1K];
   
     v5=f[FIJKp1];
-    
     v6=f[FIJp1Kp1];
-
     v7=f[FIp1JKp1];
- 
     v8=f[FIp1Jp1Kp1];
-  
-
 
     x1 = wa*v1 + (1.0-wa)*v3;
     x2 = wa*v2 + (1.0-wa)*v4;
@@ -558,3 +557,45 @@ double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double
  return value;
 
 }
+
+
+/*
+double interpolation::lint7V(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
+{
+    double w1,w2,w3,w4,w5,w6,w7,w8,wsum;
+
+    w1 =      wa  *      wb  *      wc;      // (i,   j,   k  )
+    w2 =      wa  *(1.0-wb) *      wc;      // (i,   j+1, k  )
+    w3 = (1.0-wa) *      wb  *      wc;      // (i+1, j,   k  )
+    w4 = (1.0-wa) *(1.0-wb) *      wc;      // (i+1, j+1, k  )
+
+    w5 =      wa  *      wb  *(1.0-wc);      // (i,   j,   k+1)
+    w6 =      wa  *(1.0-wb) *(1.0-wc);      // (i,   j+1, k+1)
+    w7 = (1.0-wa) *      wb  *(1.0-wc);      // (i+1, j,   k+1)
+    w8 = (1.0-wa) *(1.0-wb) *(1.0-wc);      // (i+1, j+1, k+1)
+
+
+    // drop nodes inside the body and renormalise the rest:
+    // equivalent to filling them by zero-gradient from the fluid side
+    //if(p->DFF[FIJK]       < 0) w1 = 0.0;
+    //if(p->DFF[FIJp1K]     < 0) w2 = 0.0;
+    //if(p->DFF[FIp1JK]     < 0) w3 = 0.0;
+    //if(p->DFF[FIp1Jp1K]   < 0) w4 = 0.0;
+
+    //if(p->DFF[FIJKp1]     < 0) w5 = 0.0;
+    //if(p->DFF[FIJp1Kp1]   < 0) w6 = 0.0;
+    //if(p->DFF[FIp1JKp1]   < 0) w7 = 0.0;
+    //if(p->DFF[FIp1Jp1Kp1] < 0) w8 = 0.0;
+
+
+    wsum = w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8;
+
+    if(wsum > 1.0e-10)
+    value = ( w1*f[FIJK]     + w2*f[FIJp1K]     + w3*f[FIp1JK]     + w4*f[FIp1Jp1K]
+            + w5*f[FIJKp1]   + w6*f[FIJp1Kp1]   + w7*f[FIp1JKp1]   + w8*f[FIp1Jp1Kp1] )/wsum;
+
+    else
+    value = 0.0;
+
+    return value;
+}*/

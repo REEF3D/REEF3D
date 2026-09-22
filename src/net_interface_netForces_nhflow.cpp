@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -32,11 +32,12 @@ Author: Hans Bihs
 #include"net_sheet.h"
 
 void net_interface::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat,
-                            vector<double> Xne, vector<double> Yne, vector<double> Zne, vector<double> Kne, vector<double> Mne, vector<double> Nne)
+                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, 
+                            vector<double> &Mne, vector<double> &Nne, bool finalize)
 {
     NETLOOP
     {
-        pnet[n]->start_nhflow(p, d, pgc, alpha, quatRotMat);
+        pnet[n]->start_nhflow(p, d, pgc, alpha, quatRotMat, finalize);
         dlm_nhflow(p, d, pgc, n);
     
         // Forces on rigid body

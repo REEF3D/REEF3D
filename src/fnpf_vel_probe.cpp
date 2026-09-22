@@ -60,7 +60,7 @@ fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
 
 		pout[n]<<endl<<endl;
 		
-		pout[n]<<"t \t U \t V \t W "<<endl;
+		pout[n]<<"t \t U \t V \t W \t Fi "<<endl;
 		
 		}
     }
@@ -83,7 +83,7 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	
 	for(n=0;n<probenum;++n)
 	{
-	uval=vval=wval=-1.0e20;
+	uval=vval=wval=fival=-1.0e20;
 	
 		if(flag[n]>0)
 		{
@@ -94,15 +94,17 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 		uval = p->ccipol7V(c->U, c->WL, c->bed, xp, yp, zp);
 		vval = p->ccipol7V(c->V, c->WL, c->bed, xp, yp, zp);
 		wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
+        fival = p->ccipol7V(c->Fi, c->WL, c->bed, xp, yp, zp);
 		}
 	
 	uval=pgc->globalmax(uval);
 	vval=pgc->globalmax(vval);
 	wval=pgc->globalmax(wval);
+    fival=pgc->globalmax(fival);
 
 	
 	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
+	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<fival<<endl;
 	}	
 }
 

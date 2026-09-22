@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"sediment_fdm.h"
 #include"lexer.h"
-#include"fdm.h"
+#include"fdm2D.h"
 #include"ghostcell.h"
 #include"convection.h"
 #include"ioflow.h"
@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"bedslope.h"
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
+#include"sediment_roughness.h"
 
 void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
@@ -52,6 +53,9 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     // bedslope reduction ******
     preduce->start(p,pgc,s);
+    
+    // bed roughness -------
+    pks->start(p,pgc,s,b->hp);
     
     // bedshear stress -------
 	pbedshear->taubed(p,b,pgc,s);
@@ -76,10 +80,6 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     // relax *******
 	prelax->start(p,pgc,s);
-	
-    // filter bedzh *******
-	if(p->S100>0)
-	filter(p,pgc,s->bedzh,p->S100,p->S101);
     
     // update sflow  --------
     update_sflow(p,b,pgc,pflow);

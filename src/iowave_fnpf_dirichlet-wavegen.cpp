@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-
 void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi, double *Uin, slice &Fifsf, slice &etaf)
 {
     double etax;
@@ -39,7 +38,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         if(h_switch==1)
         {
-        etaf(i,j)   = eta(i,j);
+        //etaf(i,j)   = eta(i,j);
         etaf(i-1,j) = eta(i,j);
         etaf(i-2,j) = eta(i,j);
         etaf(i-3,j) = eta(i,j);
@@ -76,7 +75,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         ++count;
     }
     
-    
+    /*
     count=0;
     for(n=0;n<p->gcslin_count;n++)
     {
@@ -92,10 +91,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         ++count;
         }
-        
-        
-        
-    }
+    }*/
     
     // Uin
     count=0;
@@ -106,7 +102,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         FKLOOP
         FPCHECK
-        {// add eta guard
+        {
         Uin[FIm1JK] = Uinval[count]; 
         
         ++count;

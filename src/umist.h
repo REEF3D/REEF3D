@@ -28,15 +28,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class umist : public fluxlim, public increment
+class umist final : public fluxlim, public increment
 {
 public:
 	umist (lexer *);
 	virtual ~umist();
 
-	double iphi(field&,int,int,int,int) override;
-	double jphi(field&,int,int,int,int) override;
-	double kphi(field&,int,int,int,int) override;
+	double iphi(field&,int,int,int,int) override final;
+	double jphi(field&,int,int,int,int) override final;
+	double kphi(field&,int,int,int,int) override final;
 
 private:
     double r, phi,denom;

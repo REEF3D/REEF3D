@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke, Hans Bihs
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"CPM.h"
@@ -35,7 +35,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     
     // estimate number particles
     int count=0;
-    ALOOP
+    LOOP
     if(a->topo(i,j,k)<=0)
         ++count;
 
@@ -53,7 +53,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(p->Q29==1)
     {
         n=0;
-        ALOOP
+        LOOP
         if(a->topo(i,j,k)<=0)
         {
         int particles_per_cell = p->Q24;  
@@ -83,7 +83,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(p->Q29==2)
     {
         n=0;
-        ALOOP
+        LOOP
         if(a->topo(i,j,k)<=0)
         {
         int particles_per_cell = p->Q24; 
@@ -115,7 +115,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(p->Q29==3)
     {
         n=0;
-        ALOOP
+        LOOP
         if(a->topo(i,j,k)<=0)
         {
             for(int qn=0;qn<p->Q24;++qn)

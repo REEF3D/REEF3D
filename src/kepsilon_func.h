@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -34,9 +34,9 @@ class kepsilon_func : public rans_io, public kepsilon_bc
 public:
 	kepsilon_func(lexer*,fdm*,ghostcell*);
 	virtual ~kepsilon_func();
-	void isource(lexer*,fdm*) override;
-	void jsource(lexer*,fdm*) override;
-	void ksource(lexer*,fdm*) override;
+	void isource(lexer*,fdm*) override final;
+	void jsource(lexer*,fdm*) override final;
+	void ksource(lexer*,fdm*) override final;
 	void kinsource(lexer*,fdm*,vrans*);
 	void epssource(lexer*,fdm*,vrans*);
 	void epsfsf(lexer*,fdm*,ghostcell*);

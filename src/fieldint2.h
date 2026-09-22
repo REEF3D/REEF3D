@@ -24,41 +24,12 @@ Author: Hans Bihs
 #define FIELDINT2_H_
 
 #include"fieldint.h"
-#include"increment.h"
 
-using namespace std;
-
-class fieldint2 : public fieldint, public increment
+class fieldint2 final : public fieldint
 {
 public:
-
-	fieldint2 (lexer *);
-	virtual ~fieldint2();
-
-    int& operator()(int, int , int) override;
-    
-    void resize(lexer*) override;
-    
-    
-    void gcdebug(lexer*);
-    void vel_update(lexer*);
-
-    int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-	
-	int* V;
-	int*** gcfeld;
-
-private:
-
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
-	
-	int iter;
-	int gcfeldsize;
-	
-	lexer *pp;
+    fieldint2(lexer* p) : fieldint(p) {}
+    virtual ~fieldint2() = default;
 };
 
 #endif

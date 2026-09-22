@@ -74,7 +74,7 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
     ddn=p->stateprinttime;
     result.write((char*)&ddn, sizeof (double));   
     
-    ALOOP
+    LOOP
     {
     ffn=a->topo(i,j,k);
     result.write((char*)&ffn, sizeof (float));

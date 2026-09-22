@@ -39,7 +39,9 @@ fnpf_state::fnpf_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     file_version=4;
     
-    file_type=p->P45;
+    file_type=p->P44;
+    
+    file_conti=p->P45;
     
     ini_token=0;
     

@@ -33,11 +33,17 @@ Author: Hans Bihs
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
 #include"nhflow_print_wsfline_y.h"
+#include"nhflow_print_timeavg_wsfline.h"
+#include"nhflow_print_timeavg_wsfline_y.h"
+#include"nhflow_timeavg_vel_profile.h"
 #include"nhflow_print_runup_gage_x.h"
 #include"nhflow_print_runup_max_gage_x.h"
-#include"nhflow_u_profile.h"
-#include"nhflow_vel_probe.h"
-#include"nhflow_vel_probe_theory.h"
+#include"nhflow_profile_u.h"
+#include"nhflow_depavg_vel_lineprobe.h"
+#include"nhflow_depandtime_avg_vel_lineprobe.h"
+#include"nhflow_probe_vel.h"
+#include"nhflow_probe_vel_theory.h"
+#include"nhflow_probe_press.h"
 #include"nhflow_print_Hs.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_force.h"
@@ -102,28 +108,46 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
     pwsfline_y = new nhflow_print_wsfline_y(p,d,pgc);
 
+    if(p->P146>0)
+    ptimeavgwsfline = new nhflow_print_timeavg_wsfline(p,d,pgc);
+
+    if(p->P147>0)
+    ptimeavgwsfline_y = new nhflow_print_timeavg_wsfline_y(p,d,pgc);
+
+    if(p->P148>0)
+    ptimeavgvelprofile = new nhflow_timeavg_vel_profile(p,d);
+    
+    if(p->P64>0)
+    ppressprobe=new nhflow_probe_press(p,d);
+    
     if(p->P65>0)
-        pvel=new nhflow_vel_probe(p,d);
+    pvel=new nhflow_probe_vel(p,d);
 
     if(p->P67>0)
-        puprofile = new nhflow_u_profile(p,d);
+    puprofile = new nhflow_profile_u(p,d);
+
+    if(p->P144>0)
+    pdepavgline = new nhflow_depavg_vel_lineprobe(p,d);
+
+    if(p->P145>0)
+    pdepandtimeavgline = new nhflow_depandtime_avg_vel_lineprobe(p,d);
 
     if(p->P66>0)
-        pveltheo = new nhflow_vel_probe_theory(p,d);
+    pveltheo = new nhflow_probe_vel_theory(p,d);
 
     prunupx = new nhflow_print_runup_gage_x(p,d,pgc);
 
     prunupmaxx = new nhflow_print_runup_max_gage_x(p,d,pgc);
 
     if(p->P40>0)
-        pstate = new nhflow_state(p,d,pgc);
+    pstate = new nhflow_state(p,d,pgc);
 
     if(p->P81>0)
     {
         pforce = new nhflow_force*[p->P81];
 
         for(n=0;n<p->P81;++n)
-            pforce[n] = new nhflow_force(p,d,pgc,n);
+        pforce[n] = new nhflow_force(p,d,pgc,n);
     }
 
     if(p->P85>0)
@@ -131,17 +155,17 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
         pforce_ale = new nhflow_force_ale*[p->P85];
 
         for(n=0;n<p->P85;++n)
-            pforce_ale[n] = new nhflow_force_ale(p,d,pgc,n);
+        pforce_ale[n] = new nhflow_force_ale(p,d,pgc,n);
 
         for(n=0;n<p->P85;++n)
-            pforce_ale[n]->ini(p,d,pgc);
+        pforce_ale[n]->ini(p,d,pgc);
     }
 
     if(p->P110==1)
-        phs = new nhflow_print_Hs(p,d->Hs);
+    phs = new nhflow_print_Hs(p,d->Hs);
 
-    if(p->P180==1)
-        pfsf = new nhflow_vtp_fsf(p,d,pgc);
+    if(p->P180==1 || p->P186>0)
+    pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
     pbed = new nhflow_vtp_bed(p);
 }
@@ -150,27 +174,33 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
 {
     // Gages
     if(p->P51>0)
-        pwsf->height_gauge(p,d,pgc,d->eta);
+    pwsf->height_gauge(p,d,pgc,d->eta);
 
     if(p->P50>0)
-        pwsf_theory->height_gauge(p,d,pgc,pflow);
+    pwsf_theory->height_gauge(p,d,pgc,pflow);
 
     if(p->P110==1)
-        phs->start(p,pgc,d->eta,d->Hs);
+    phs->start(p,pgc,d->eta,d->Hs);
 
     if(p->P133>0)
-        prunupx->start(p,d,pgc,pflow,d->eta);
+    prunupx->start(p,d,pgc,pflow,d->eta);
 
     if(p->P134>0)
-        prunupmaxx->start(p,d,pgc,pflow,d->eta);
-
+    prunupmaxx->start(p,d,pgc,pflow,d->eta);
+    
+    if(p->P64>0)
+    ppressprobe->start(p,d,pgc);
+    
     if(p->P65>0)
-        pvel->start(p,d,pgc);
+    pvel->start(p,d,pgc);
 
     if(p->P66>0)
-        pveltheo->start(p,d,pgc,pflow);
+    pveltheo->start(p,d,pgc,pflow);
 
     pfsf->preproc(p,d,pgc);
+
+    if(p->P186>0)
+    pfsf->start_avg(p,d,pgc,psed);
 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
@@ -268,9 +298,24 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         pwsfline_y->start(p,d,pgc,pflow,d->eta);
 
+    if(p->P146>0)
+        ptimeavgwsfline->start(p,d,pgc,pflow,d->eta);
+
+    if(p->P147>0)
+        ptimeavgwsfline_y->start(p,d,pgc,pflow,d->eta);
+
+    if(p->P148>0)
+        ptimeavgvelprofile->start(p,d,pgc);
+
     // Vel Profile
     if(p->P67>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
         puprofile->start(p,d,pgc);
+
+    if(p->P144>0 && ((p->count%p->P54==0 && p->P55<0.0) || (p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+        pdepavgline->start(p,d,pgc);
+
+    if(p->P145>0)
+        pdepandtimeavgline->start(p,d,pgc);
 
 
     // Print state out based on iteration
@@ -339,14 +384,11 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         pgc->gcsl_start4(p,d->bed,50);
         pgc->gcsl_start4(p,d->breaking_print,50);
-        pgc->start4V(p,d->test,50);
+        pgc->start5V(p,d->test,1);
 
         pgc->dgcslpol(p,d->WL,p->dgcsl4,p->dgcsl4_count,14);
         pgc->dgcslpol(p,d->breaking_print,p->dgcsl4,p->dgcsl4_count,14);
         pgc->dgcslpol(p,d->bed,p->dgcsl4,p->dgcsl4_count,14);
-
-        d->WL.ggcpol(p);
-        d->breaking_print.ggcpol(p);
 
         i=-1;
         j=-1;
@@ -436,6 +478,13 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
                 offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
                 ++n;
             }
+            
+            //  vrans
+            if(p->B200==1)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
 
             // Format specific structure
             outputFormat->offset(p,offset,n);
@@ -498,6 +547,12 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         if(p->P28==1)
         {
             result<<"<DataArray type=\"Float32\" Name=\"floating\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
+        
+        if(p->B200==1)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\"porstruc\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
 
@@ -570,11 +625,11 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
             {
                 jj=j;
                 j=0;
-                ffn=float(0.5*(d->P[FIJKp1]+d->P[FIm1JKp1]));
+                ffn=float(0.5*(d->P[FIJKp1]+d->P[FIp1JKp1]));
                 j=jj;
             }
             else if(p->j_dir==1)
-                ffn=float(0.25*(d->P[FIJKp1]+d->P[FIm1JKp1] + d->P[FIJm1Kp1]+d->P[FIm1Jm1Kp1]));
+                ffn=float(0.25*(d->P[FIJKp1]+d->P[FIp1JKp1] + d->P[FIJp1Kp1]+d->P[FIp1Jp1Kp1]));
 
             std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
             file_offset+=sizeof(float);
@@ -744,6 +799,30 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
                 else if(p->j_dir==1)
                     ffn=float(0.125*(d->FB[IJK]+d->FB[Ip1JK]+d->FB[IJp1K]+d->FB[Ip1Jp1K]
                                 +  d->FB[IJKp1]+d->FB[Ip1JKp1]+d->FB[IJp1Kp1]+d->FB[Ip1Jp1Kp1]));
+
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+        
+        //  porstruc
+        if(p->B200==1)
+        {
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                if(p->j_dir==0)
+                {
+                    jj=j;
+                    j=0;
+                    ffn=float(0.25*(d->PORSTRUC[IJK]+d->PORSTRUC[Ip1JK]+d->PORSTRUC[IJKp1]+d->PORSTRUC[Ip1JKp1]));
+                    j=jj;
+                }
+                else if(p->j_dir==1)
+                    ffn=float(0.125*(d->PORSTRUC[IJK]+d->PORSTRUC[Ip1JK]+d->PORSTRUC[IJp1K]+d->PORSTRUC[Ip1Jp1K]
+                                +  d->PORSTRUC[IJKp1]+d->PORSTRUC[Ip1JKp1]+d->PORSTRUC[IJp1Kp1]+d->PORSTRUC[Ip1Jp1Kp1]));
 
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);

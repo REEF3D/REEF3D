@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,15 +31,15 @@ class heat;
 
 using namespace std;
 
-class heat_RK2 :public bcheat, public heat_print
+class heat_RK2 final :public bcheat, public heat_print
 {
 public:
     heat_RK2(lexer *, fdm*, ghostcell*,heat*&);
 	virtual ~heat_RK2();
 
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override;
-	void ttimesave(lexer*, fdm*) override;
-    void diff_update(lexer*, fdm*, ghostcell*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*) override final;
+	void ttimesave(lexer*, fdm*) override final;
+    void diff_update(lexer*, fdm*, ghostcell*) override final;
     
     field4 thermdiff;
 

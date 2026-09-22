@@ -47,9 +47,9 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
     double uvel,vvel,wvel;
     double zval;
     int check;
-    
+
     count=0;
-    if(p->B11>0)
+    if(p->B11==1)
     LOOP
     {
             check=0;
@@ -60,44 +60,47 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && i+p->origin_i != 0)
             {
             dist = 0.5*p->DXN[IP];
+            ks=p->B57;
             check=1;
             }
 
             if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && i+p->origin_i != p->gknox-1)
             {
             dist = 0.5*p->DXN[IP];
+            ks=p->B57;
             check=1;
             }
 
             if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
+            ks=p->B57;
             check=1;
             }
                 
             if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
+            ks=p->B57;
             check=1;
             }
                 
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0 || k==0)
             {
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
+            ks=p->B50;
             check=1;
             }
 
             if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k!=p->knoz-1)
             {
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
+            ks=p->B57;
             check=1;
             }
         
-        
             if(check==1)
             {
-                ks=p->B50;
-            
                 uvel=d->U[IJK];
                 vvel=d->V[IJK];
                 wvel=d->W[IJK];
@@ -110,11 +113,11 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
                 if(30.0*dist<ks)
                 dist=ks/30.0;
                 
-                uplus = (1.0/kappa)*log(30.0*(dist/ks));
+                uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
 
-                //tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+                tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
                 
-                tau = pow(p->cmu,0.25)*pow(fabs(KIN[IJK]),0.5)*(u_abs/(uplus>0.0?uplus:(1.0e20)));
+                //tau = pow(p->cmu,0.25)*pow(fabs(KIN[IJK]),0.5)*(u_abs/(uplus>0.0?uplus:(1.0e20)));
             
             d->M.p[count] += (pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),0.5)*uplus)/dist;
             d->rhsvec.V[count] += (tau*u_abs)/dist;
@@ -132,7 +135,7 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
     
     
     count=0;
-    if(p->B11>0)
+    if(p->B11==1)
     LOOP
     {
         check=0;
@@ -175,14 +178,14 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
             check=1;
             }
     
-            if(check==1)
+            if(check>0)
             {
             eps_star = pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
 
-            EPS[IJK] = eps_star;
+            //EPS[IJK] = eps_star;
             
-            //d->M.p[count] += 1.0e20;
-            //d->rhsvec.V[count] += eps_star*1.0e20;
+            d->M.p[count] += 1.0e20;
+            d->rhsvec.V[count] += eps_star*1.0e20;
             }
             
         }
@@ -257,11 +260,11 @@ void nhflow_komega_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *E
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {   
             KIN[IJK] = 0.0;
             
-            d->M.p[n]  =   1.0;
+            d->M.p[n] = 1.0;
 
             d->M.n[n] = 0.0;
             d->M.s[n] = 0.0;
@@ -300,26 +303,14 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             if(p->flag4[IJK]>0 && p->DF[IJK]>0)
             {
             // s
-            if(p->flag4[Im1JK]<0)// && inflow==0)
-            {
-            d->rhsvec.V[n] -= d->M.s[n]*EPS[IJK];
-            d->M.s[n] = 0.0;
-            }
-            
-            if(p->DF[Im1JK]<0)
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)// && inflow==0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*EPS[IJK];
             d->M.s[n] = 0.0;
             }
             
             // n
-            if(p->flag4[Ip1JK]<0)// && outflow==0)
-            {
-            d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
-            d->M.n[n] = 0.0;
-            }
-            
-            if(p->DF[Ip1JK]<0)
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)// && outflow==0)
             {
             d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
             d->M.n[n] = 0.0;
@@ -327,14 +318,7 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             
             // e
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0)
-            {
-            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
-            d->M.e[n] = 0.0;
-            }
-            
-            if(p->j_dir==1)
-            if(p->DF[IJm1K]<0)
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
             {
             d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
             d->M.e[n] = 0.0;
@@ -342,44 +326,26 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             
             // w
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0)
-            {
-            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
-            d->M.w[n] = 0.0;
-            }
-            
-            if(p->j_dir==1)
-            if(p->DF[IJp1K]<0)
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
             {
             d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
             d->M.w[n] = 0.0;
             }
             
             // b
-            if(p->flag4[IJKm1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.b[n]*EPS[IJK];
-            d->M.b[n] = 0.0;
-            }
-            
-            if(p->DF[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*EPS[IJK];
             d->M.b[n] = 0.0;
             }
             
             // t
-            if(p->flag4[IJKp1]<0)
+            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
             d->rhsvec.V[n] -= d->M.t[n]*EPS[IJK];
             d->M.t[n] = 0.0;
             }
-            
-            if(p->DF[IJKp1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.t[n]*EPS[IJK];
-            d->M.t[n] = 0.0;
-            }
+    
             }
 
         ++n;
@@ -389,11 +355,11 @@ void nhflow_komega_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {
             EPS[IJK] = 0.0;
             
-            d->M.p[n]  =   1.0;
+            d->M.p[n] = 1.0;
 
             d->M.n[n] = 0.0;
             d->M.s[n] = 0.0;

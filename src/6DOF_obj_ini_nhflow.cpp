@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -40,6 +40,35 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->mpirank==0)
     mkdir("./REEF3D_NHFLOW_6DOF",0777);
+    
+    
+    //DSM
+    int num=0;
+    DSM=0.0;
+    
+    if(p->j_dir==0)
+    SLICELOOP4
+    {
+    DSM += p->DXN[IP];
+        
+    ++num;
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
+        
+    ++num;
+    }
+    
+    DSM = pgc->globalsum(DSM);
+    num = pgc->globalisum(num);
+    
+    DSM = DSM/double(num);
+    
+    NB = MAX(3.0, 2.0*p->A526 + 1.0);
+    
     
     // Initialise folder structure
     if(p->X50==1)
@@ -80,9 +109,6 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->X50==2)
     print_stl(p,pgc);
-
-
-
 
 	// Mooring
 	if(p->X310==0)

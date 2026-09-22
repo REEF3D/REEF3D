@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -36,34 +36,37 @@ class ghostcell;
 
 using namespace std;
 
-class sediment_exner : public topo, public increment
+class sediment_exner final : public topo, public increment
 {
 public:
 	sediment_exner(lexer*, ghostcell*);
 	virtual ~sediment_exner();
-	void start(lexer*, ghostcell*, sediment_fdm*) override;
-
+	void start(lexer*, ghostcell*, sediment_fdm*) override final;
+    void start_RK(lexer*, ghostcell*, sediment_fdm*) override final;
+    void  timestep(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
     void topovel1(lexer*,ghostcell*,sediment_fdm*);
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
-    void  timestep(lexer*,ghostcell*,sediment_fdm*);
+    
+    double ramp_dt(lexer*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
-    double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
+    double  susp_ED(lexer*,ghostcell*,sediment_fdm*);
+    void  susp_qs(lexer*,ghostcell*,sediment_fdm*);
     
-    void filter(lexer*,ghostcell*,slice&,int,int);
-    
+    void filter(lexer*,ghostcell*,slice&,int,int);   
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;
-    
-    vec2D xvec,rhsvec;
+        vec2D xvec,rhsvec;
 
 	matrix2D M;
-    slice4 qbx,qby,vztemp,dh1,dh2;
+    slice4 qbx,qby;
+    slice4 qbn;
     
 	int gcval_topo;
+    int noneq_ini;    
 	double starttime;
     double maxdh,maxvz,maxdhnet,maxvznet;
     double dtsed0;

@@ -51,7 +51,6 @@ Author: Hans Bihs
 #define Im2Jp2  (i-p->imin-2)*p->jmax + (j-p->jmin+2)
 #define Ip2Jm2  (i-p->imin+2)*p->jmax + (j-p->jmin-2)
 
-
 #define Im2J  (i-p->imin-2)*p->jmax + (j-p->jmin)
 #define Ip2J  (i-p->imin+2)*p->jmax + (j-p->jmin)
 #define IJm2  (i-p->imin)*p->jmax + (j-p->jmin-2)

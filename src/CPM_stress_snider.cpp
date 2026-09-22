@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -36,7 +36,7 @@ void CPM::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     double maxTau = 1.0e7;
 
-    ALOOP
+    LOOP
     {        
         if(Ts(i,j,k)<=Tc)
         Tau(i,j,k) = 0.0;

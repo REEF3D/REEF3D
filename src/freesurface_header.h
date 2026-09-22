@@ -28,11 +28,7 @@ Author: Hans Bihs
 #include"levelset_void.h"
 
 #include"reini_RK3.h"
-#include"directreini.h"
 #include"reini_void.h"
-
-#include"particle_pls.h"
-#include"particle_pls_void.h"
 
 #include"VOF_AB.h"
 #include"VOF_RK3.h"

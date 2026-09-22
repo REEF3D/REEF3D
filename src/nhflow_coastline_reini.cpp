@@ -73,7 +73,7 @@ void nhflow_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 
 void nhflow_coastline::step(lexer* p)
 {
-	reiniter=p->S37;
+	reiniter=p->G41;
 }
 
 void nhflow_coastline::time_preproc(lexer* p)

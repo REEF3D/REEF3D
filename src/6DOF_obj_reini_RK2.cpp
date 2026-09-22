@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -52,7 +52,7 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
         // Step 1
 		prdisc->start(p,a,pgc,f,L,5);
 
-		ALOOP
+		LOOP
 		frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
 
          pgc->start4a(p,frk1,50);
@@ -61,7 +61,7 @@ void sixdof_obj::reini_RK2(lexer* p, fdm* a, ghostcell* pgc, field &f)
         // Step 2
 		prdisc->start(p,a,pgc,frk1,L,5);
 
-		ALOOP
+		LOOP
 		f.V[IJK] = 0.5*f.V[IJK] + 0.5*frk1.V[IJK] + 0.5*dt.V[IJK]*L.V[IJK];
 
         pgc->start4a(p,f,50);

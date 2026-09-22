@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -29,14 +29,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sediment_weno_hj : public sediment_exnerdisc, public increment, public ddweno_f_nug
+class sediment_weno_hj final : public sediment_exnerdisc, public increment, public ddweno_f_nug
 {
 public:
 	sediment_weno_hj(lexer*);
 	virtual ~sediment_weno_hj();
 
-    double sx(lexer*, slice&, double,double) override;
-	double sy(lexer*, slice&, double,double) override;
+    double sx(lexer*, slice&, double,double) override final;
+	double sy(lexer*, slice&, double,double) override final;
 
 private:
     double **ckz;

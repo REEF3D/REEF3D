@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Dave Kelly, Hans Bihs
+Authors: Dave Kelly, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_print_Hs.h"
@@ -74,7 +74,7 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
 	 // variance equation with etamean initially unknown
       
     ETAsum(i,j)      += eta(i,j)*p->dt;
-    ETAmean(i,j)      = ETAsum(i,j)/T_sum;
+    ETAmean(i,j)     =  ETAsum(i,j)/T_sum;
     ETA2sum(i,j)     += eta(i,j)*eta(i,j);
     
     //cout << "T_sum " << T_sum << " wtim " << wtime <<endl;
@@ -82,7 +82,7 @@ void fnpf_print_Hs::start(lexer *p, ghostcell *pgc, slice &eta, slice &Hs)
     
     if(NumDT1>1)
     { 
-	    ETAvar(i,j)        = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1));
+	    ETAvar(i,j)     = (1.0/double(NumDT1-1))*ETA2sum(i,j)-ETAmean(i,j)*ETAmean(i,j)*(double(NumDT1)/double(NumDT1-1));
 	    Hs(i,j)         = 4.0*sqrt(MAX(ETAvar(i,j),0.0));
     }
 	  

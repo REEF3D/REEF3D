@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -60,8 +60,6 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
     double eps_star;
     double kin;
     double turb_force_fac = 50.0;
-    
-    pip=4;
     
     LOOP
     eps0(i,j,k) = 0.0;
@@ -143,10 +141,7 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
             }     
         }
     }
-    
-    
-    pip=0;
-    
+
     if(p->T10==2)
     LOOP
     if(eps0(i,j,k)>1.0e-8)

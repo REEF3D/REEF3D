@@ -30,7 +30,7 @@ class flux;
 
 using namespace std;
 
-class cds2_alt : public convection,  public increment
+class cds2_alt final : public convection,  public increment
 {
 
 public:
@@ -38,7 +38,7 @@ public:
 	cds2_alt (lexer *);
 	virtual ~cds2_alt();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);

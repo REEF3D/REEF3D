@@ -28,11 +28,6 @@ Author: Hans Bihs
 
 nhflow_kepsilon_func::nhflow_kepsilon_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_kepsilon_bc(p)
 {
-    if(p->j_dir==0)        
-    epsi = p->T38*(1.0/2.0)*(p->DRM+p->DTM);
-        
-    if(p->j_dir==1)
-    epsi = p->T38*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
 }
 
 nhflow_kepsilon_func::~nhflow_kepsilon_func()
@@ -84,34 +79,48 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
 	double H;
 	int n;
         
-        
+    // RANS
+    if(p->A560==1)
+    {
         if(p->A564==0)
         LOOP
 		d->EV0[IJK] = p->cmu*MAX(MAX(KIN[IJK]*KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
         if(p->A564==1)
 		LOOP
 		d->EV0[IJK] = p->cmu*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
+                          
+        if(p->A564==2)
+        {
+        const double rfac = sst_a1/p->T31;
 
-		if(p->A564==1)
-		GC4LOOP
-		if(p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5)
-		{
-		i = p->gcb4[n][0];
-		j = p->gcb4[n][1];
-		k = p->gcb4[n][2];
+        LOOP
+        {
+            double kval = MAX(KIN[IJK],0.0);
+            double eval = MAX(EPS[IJK],1.0e-20);
+            double wval = eval/(p->cmu*(kval>1.0e-20?kval:1.0e-20));
 
-		d->EV0[IJK] = p->cmu*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T35*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
-		}
+            double Sval = strainterm(p,d);
+
+            double sLim = sst_F2(p,d,kval,wval)*Sval;   // Bradshaw, blended
+            double rLim = rfac*Sval;                    // realizability, unblended
+
+            double den = sst_a1*wval;
+            if(sLim>den) den = sLim;
+            if(rLim>den) den = rLim;
+
+            d->EV0[IJK] = MAX(sst_a1*kval/(den>1.0e-20?den:1.0e-20), 0.00001*d->VISC[IJK]);
+        }
+        }
+
+    }
 	
     // URANS
-	if(p->A560==22)
+	if(p->A560==21)
 	LOOP
     {
     if(p->j_dir==0)
@@ -120,19 +129,19 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
     if(p->j_dir==1)
     dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
     
-	f = MIN(1.0, dxm*p->A568*p->cmu*EPS[IJK]/   pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
+	f = MIN(1.0, dxm*p->A568*EPS[IJK]/pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),1.5));
     
     
     
         if(p->A564==0)
-		d->EV0[IJK] = f*MAX(MAX(KIN[IJK]*KIN[IJK]
+		d->EV0[IJK] = p->cmu*f*MAX(MAX(KIN[IJK]*KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
         if(p->A564==1)
-		d->EV0[IJK] = f*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
+		d->EV0[IJK] = p->cmu*f*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
 						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.00001*d->VISC[IJK]);
+						  0.0001*d->VISC[IJK]);
                           
     }
     
@@ -143,8 +152,16 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
     
     if(p->A565==1)
     LOOP
+    {
+    double Sij2_val = Sij2(p,d); 
+    
+	if(Sij2_val>1.0e-20)
 	d->EV[IJK] = MIN(d->EV0[IJK], MAX(KIN[IJK]/((fabs(EPS[IJK]))>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*Qij2(p,d))/(p->T42*kw_beta*Sij2(p,d)));
+                                         *(p->cmu*ke_c_1e*Qij2(p,d))/(p->T42*ke_c_2e*Sij2_val));
+                                         
+    else
+    d->EV[IJK] = d->EV0[IJK];
+    }
                                          
     LOOP
     if(p->DF[IJK]<0)
@@ -167,6 +184,7 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 	++count;
     }
     
+    count=0;
     if(p->A566==1)
     LOOP
     {
@@ -196,13 +214,41 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
 
 void nhflow_kepsilon_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    k=p->knoz-1;
+    
 	if(p->A567==1)
-	LOOP
+	SLICELOOP4
 	{
-	if(k==p->knoz-1 && p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37*d->WL(i,j)));
+	if(p->DF[IJK]>0)
+	EPS[IJK] = 2.5*pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),1.5)*(1.0/(p->T37*d->WL(i,j)));
 	}
 }
+
+double nhflow_kepsilon_func::sst_walldist(lexer *p, fdm_nhf *d)
+{
+    double y = p->ZSP[IJK] - d->bed(i,j);
+
+    if(d->SOLID[IJK] > 0.0)
+    y = MIN(y, d->SOLID[IJK]);
+
+    return MAX(y, 1.0e-10);
+}
+
+double nhflow_kepsilon_func::sst_F2(lexer *p, fdm_nhf *d, double kval, double wval)
+{
+    double y = sst_walldist(p,d);
+
+    kval = MAX(kval, 0.0);
+    wval = MAX(wval, 1.0e-20);
+
+    double arg2 = MAX( 2.0*sqrt(kval)/(p->cmu*wval*y),
+                       500.0*d->VISC[IJK]/(y*y*wval) );
+
+    arg2 = MIN(arg2, 25.0);
+
+    return tanh(arg2*arg2);
+}
+
 
 
 

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SEDIMENT_HEADER_H_
 
 #include"sediment_f.h"
+#include"sediment_RK2.h"
 #include"sediment_void.h"
 
 #include"sediment_exner.h"

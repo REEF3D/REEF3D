@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -24,44 +24,12 @@ Author: Hans Bihs
 #define FIELD4A_H_
 
 #include"field.h"
-#include"increment.h"
 
-using namespace std;
-
-class field4a : public field, increment
+class field4a final : public field
 {
 public:
-
-	field4a (lexer*);
-	virtual ~field4a();
-
-    double& operator()(int, int , int) override;
-	double& operator[](int) override;
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
-
-    void gcdebug(lexer*);
-
-	int di,dj,dk;
-	int imin,imax,jmax,jmin,kmin,kmax;
-
-	double ***gcfeld;
-
-private:
-
-	int iter;
-	int feldsize;
-
-	void fieldalloc(lexer *);
-	void fieldlength(lexer *);
-
-	lexer *pp;
+    field4a(lexer* p) : field(p) {}
+    virtual ~field4a() = default;
 };
 
 #endif
-
-
-
-
-
-

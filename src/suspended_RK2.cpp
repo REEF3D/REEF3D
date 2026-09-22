@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -106,7 +106,7 @@ void suspended_RK2::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
     zdist = p->DZN[KP];
     
-	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
+	a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
     //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
     }
 	

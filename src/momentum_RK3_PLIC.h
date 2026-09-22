@@ -46,13 +46,13 @@ class VOF_PLIC;
 
 using namespace std;
 
-class momentum_RK3_PLIC : public momentum, public momentum_forcing, public bcmom
+class momentum_RK3_PLIC final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK3_PLIC(lexer*, fdm*,ghostcell*, convection*, diffusion*, pressure*, poisson*, 
                 turbulence*, solver*, solver*, ioflow*,heat*&,concentration*&,fsi*);
 	virtual ~momentum_RK3_PLIC();
-	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
+	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override final;
 
     field1 udiff,urk1,urk2,fx;
 	field2 vdiff,vrk1,vrk2,fy;

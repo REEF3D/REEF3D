@@ -93,9 +93,6 @@ double iowave::rb1_ext(lexer *p, int var)
     if(test_all==0)
     r=1.0;
      
-    //if(test_all==1)
-    //r/=double(count);
-      
     return r;
 }
 

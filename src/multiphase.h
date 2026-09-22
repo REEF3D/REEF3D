@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,7 +31,6 @@ class ghostcell;
 class ioflow;
 class reini;
 class field;
-class particle_corr;
 
 #include<fstream>
 #include<sstream>
@@ -43,7 +42,7 @@ class multiphase
 {
 public:
 
-	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*)=0;
+	virtual void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*)=0;
 	virtual void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*)=0;
 	virtual void update(lexer*,fdm*,ghostcell*)=0;
 	

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -47,9 +47,8 @@ public:
    
     int *NODEVAL;
     
-    slice4 eta,eta_n,WL,detadt,detadt_n;
+    slice4 eta,eta_n,WL,detadt,detadt_n,un,vn,dudt;
     slice4 bed,depth;
-    slice4 solidbed,topobed;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc,nodeval2D;
     
@@ -79,14 +78,16 @@ public:
     double *P,*RO,*VISC,*EV,*EV0;
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
-    double *porosity;
+    double *POR,*PORPART;
     double *test;
     double *KIN;
     double *CONC;
     
     double *SOLID,*FB,*FHB;
+    double *PORSTRUC;
     
     double *Fx,*Fy,*Fz;
+    double *FEx,*FEy,*FSW,*DWDT;
     double *Fs,*Fn,*Fe,*Fw;
     double *Ss,*Sn,*Se,*Sw;
     double *SSx,*SSy;

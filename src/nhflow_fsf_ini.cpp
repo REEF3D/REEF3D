@@ -38,13 +38,63 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4(p,d->detadt,1);
     
     LOOP
-    d->detadt(i,j) += -p->DZN[KP]*((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP]  + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir);
+    d->detadt(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
     
     pgc->gcsl_start4(p,d->detadt,1);
     
-    pgc->start1V(p,d->Fx,10);
+    pgc->start1V(p,d->FEx,10);
     
-    pgc->start4V(p,d->test,1);
+    
+    // FSF seward
+    if(p->F68==1)
+    {
+        int iloc,jloc;
+        int maxiter = MAX(p->knox,p->knoy);
+        sliceint4 sea(p);
+        
+        SLICELOOP4
+        sea(i,j);
+    
+        if(p->F68_x >= p->originx && p->F68_x<p->endx 
+        && p->F68_y >= p->originy && p->F68_y<p->endy)
+        {  
+        iloc = p->posf_i(p->F68_x);    
+        jloc = p->posf_j(p->F68_y); 
+        
+            // forward
+            for(i=iloc+1;i<p->knox;++i)
+            {
+            if(d->bed(i,j)>p->F68_z+p->A544)
+            sea(i,j) = 1;
+             
+            if(d->bed(i,j)<=p->F68_z+p->A544)
+            break;
+            }
+            
+            // backward
+            for(i=iloc-1;i>=0;--i)
+            {
+            if(d->bed(i,j)>p->F68_z+p->A544)
+            sea(i,j) = 1;
+             
+            if(d->bed(i,j)<=p->F68_z+p->A544)
+            break;
+            }
+
+
+        }
+        
+        SLICELOOP4
+        if(d->bed(i,j)>p->F68_z+p->A544)
+        {
+        // test
+
+        }    
+    
+    
+        
+        
+    }
     
     
     // FSF Box
@@ -81,6 +131,6 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4Vint(p,p->wet,50);
     
     
-    pgc->start1V(p,d->Fx,10);
-    pgc->start2V(p,d->Fy,10);
+    pgc->start1V(p,d->FEx,10);
+    pgc->start2V(p,d->FEy,10);
 }

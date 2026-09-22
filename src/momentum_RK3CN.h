@@ -29,6 +29,7 @@ Author: Elyas Larkermani
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
+#include"field4.h"
 
 class convection;
 class diffusion;
@@ -43,16 +44,17 @@ class fsi;
 
 using namespace std;
 
-class momentum_RK3CN : public momentum, public momentum_forcing, public bcmom
+class momentum_RK3CN final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK3CN(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK3CN();
-	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override;
+	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override final;
 
     field1 udiff,urk1,urk2,fx;
 	field2 vdiff,vrk1,vrk2,fy;
 	field3 wdiff,wrk1,wrk2,fz;
+    field4 dro;
 
 private:
         fluid_update *pupdate;

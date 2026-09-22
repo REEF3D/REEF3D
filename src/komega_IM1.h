@@ -34,8 +34,8 @@ public:
 	komega_IM1(lexer *, fdm*, ghostcell*);
 	virtual ~komega_IM1();
 	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void ktimesave(lexer*, fdm*, ghostcell*) override;
-	void etimesave(lexer*, fdm*, ghostcell*) override;
+	void ktimesave(lexer*, fdm*, ghostcell*) override final;
+	void etimesave(lexer*, fdm*, ghostcell*) override final;
 	void timesource(lexer*,fdm*,field&);
 	void clearrhs(lexer*,fdm*);
     field4 kn,en;

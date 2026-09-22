@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,7 +28,7 @@ Author: Hans Bihs
 void vrans_f::sedpart_update(lexer *p, fdm *a, ghostcell *pgc, field &por, field &d50)
 {
     // Topo
-    ALOOP
+    LOOP
 	if(a->topo(i,j,k)<0.0)
 	{
 	a->porosity(i,j,k)= por(i,j,k); //porosity
@@ -54,7 +54,7 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"Update sediment for VRANS"<<endl;
 	
-	ALOOP
+	LOOP
 	{
 	a->porosity(i,j,k)=1.0;
 	a->porpart(i,j,k)=0.01;
@@ -69,7 +69,7 @@ void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
 	
 	
 	// Topo
-    ALOOP
+    LOOP
 	if(a->topo(i,j,k)<0.0)
 	{
 	a->porosity(i,j,k)= p->S24; //porosity

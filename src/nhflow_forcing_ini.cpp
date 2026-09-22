@@ -34,43 +34,15 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"Forcing ini "<<endl;
     
-    LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
+   
     
-    pgc->start5V(p,p->ZSP,1);
-    
-    
-    //DSM
-    int num=0;
-    DSM=0.0;
-    
-    if(p->j_dir==0)
-    SLICELOOP4
-    {
-    DSM += p->DXN[IP];
-        
-    ++num;
-    }
-    
-    if(p->j_dir==1)
-    SLICELOOP4
-    {
-    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
-        
-    ++num;
-    }
-    
-    pgc->globalsum(DSM);
-    pgc->globalisum(num);
-    
-    DSM = DSM/double(num);
-    
-    //cout<<"DSM: "<<DSM<<endl;
-    
+    // ************************
     // start raycast
-    objects_create(p, pgc);
-    ray_cast(p, d, pgc);
+    geometry_ini(p, d, pgc);
+    objects_create_forcing(p, pgc);
+    ray_cast(p, d, pgc, d->SOLID);
     reini_RK2(p, d, pgc, d->SOLID);
+    // ************************
     
     SLICELOOP4
 	d->depth(i,j) = p->wd - d->bed(i,j);
@@ -95,16 +67,13 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // -------------
     if(dlm_flag==1)
-    objects_create(p, pgc);
+    objects_create_forcing(p, pgc);
     
     // DFSL slice
     pgc->gcsldf_update(p);
     pgc->solid_forcing_eta(p,d->WL);
     pgc->solid_forcing_eta(p,d->eta);
     pgc->solid_forcing_bed(p,d->bed);
-    
-    
-    
     
 }
 

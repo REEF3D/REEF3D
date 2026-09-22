@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,15 +33,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rheology_f : public sflow_rheology, public increment
+class sflow_rheology_f final : public sflow_rheology, public increment
 {
 
 public:
     sflow_rheology_f(lexer*);
 	virtual ~sflow_rheology_f();
     
-	void u_source(lexer*, fdm2D*, slice&, slice&) override;
-    void v_source(lexer*, fdm2D*, slice&, slice&) override;
+	void u_source(lexer*, fdm2D*, slice&, slice&) override final;
+    void v_source(lexer*, fdm2D*, slice&, slice&) override final;
 
 private:
     double bingham(lexer*, fdm2D*, double, double, double, double);

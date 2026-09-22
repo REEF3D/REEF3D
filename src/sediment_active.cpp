@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,10 +28,10 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
+void sediment_f::active_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
     
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=0;
     
     ILOOP
@@ -46,6 +46,10 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
         }
     }
     
+    active_zone(p,pgc);
+    
+    pgc->gcsl_start4int(p,s->active,1); 
+    
     // assign gcsldfbed entries
     SLICEBASELOOP
     {
@@ -58,17 +62,22 @@ void sediment_f::active_cfd(lexer *p, fdm *a,ghostcell *pgc)
     p->DFBED[IJ]=-1;
     }
     
-    ALOOP
+    LOOP
     a->test(i,j,k) = p->DFBED[IJ];
 }
 
 void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
     
+    active_zone(p,pgc);
+    
+    pgc->gcsl_start4int(p,s->active,1);
+    
+    
     // assign gcsldfbed entries
-    SLICELOOP4
+    SLICEBASELOOP
     {
     k = s->bedk(i,j);
     
@@ -82,12 +91,17 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 
 void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
+    
+    active_zone(p,pgc);
+    
+    pgc->gcsl_start4int(p,s->active,1);
+    
     
     // assign gcsldfbed entries
     k=0;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -99,12 +113,17 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
+    
+    active_zone(p,pgc);
+    
+    pgc->gcsl_start4int(p,s->active,1);
+    
     
     // assign gcsldfbed entries
     k=0;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -116,18 +135,23 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
     
-    SLICELOOP4
+    SLICEBASELOOP
     if(b->solidbed(i,j) >= s->bedzh(i,j))
     {
     s->active(i,j)=0;
     }
     
+    active_zone(p,pgc);
+    
+    pgc->gcsl_start4int(p,s->active,1);
+    
+    
     // assign gcsldfeta entries
     k=p->knoz-1;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -135,17 +159,21 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
-    
 }
 
 void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    SLICELOOP4
+    SLICEBASELOOP
     s->active(i,j)=1;
+    
+    active_zone(p,pgc);
+    
+    pgc->gcsl_start4int(p,s->active,1);
+    
     
     // assign gcsldfeta entries
     k=p->knoz-1;
-    SLICELOOP4
+    SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
     p->DFBED[IJ]=1;
@@ -153,4 +181,13 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
+}
+
+void sediment_f::active_zone(lexer *p, ghostcell *pgc)
+{
+    SLICEBASELOOP
+    for(int n=0;n<p->S74;++n)
+    if(p->XP[IP]>p->S74_xs[n] && p->XP[IP]<p->S74_xe[n] && p->YP[JP]>p->S74_ys[n] && p->YP[JP]<p->S74_ye[n])
+    s->active(i,j)=0;
+
 }

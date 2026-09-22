@@ -28,15 +28,8 @@ Author: Hans Bihs
 bedload_einstein::bedload_einstein(lexer* p)
 {
     rhosed=p->S22;
-    rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    shields=p->S30;
-    eta=0.053;
-    visc=p->W2;
-    kappa=0.4;
-    ks=2.5*d50;
-    sval=rhosed/rhowat;
 }
 
 bedload_einstein::~bedload_einstein()
@@ -49,6 +42,9 @@ void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 	SLICELOOP4
     {
+        rhowat = s->ro(i,j);
+        
+        sval=rhosed/rhowat;
 
         qb = 2.15*exp((-3.91*rhowat*(sval-1.0)*g*d50)/(fabs(s->tau_eff(i,j))>1.0e-20?s->tau_eff(i,j):1.0e20))*sqrt(((p->S22-p->W1)/p->W1)*g*pow(p->S20,3.0));
 

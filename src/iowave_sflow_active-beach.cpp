@@ -44,7 +44,7 @@ void iowave::active_beach2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
 		j=p->gcslawa1[n][1];
 		
 		ii=0;
-		if(p->gcslawa1[n][3]==4)
+		if(p->gcslawa1[n][2]==4)
 		ii=1;
 			
 		eta_T = 0.0;
@@ -140,7 +140,7 @@ void iowave::active_beach2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
 		
 		
 		jj=0;
-		if(p->gcslawa2[n][3]==2)
+		if(p->gcslawa2[n][2]==2)
 		jj=1;
 		
 

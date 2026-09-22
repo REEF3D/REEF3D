@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -23,26 +23,13 @@ Author: Hans Bihs
 #ifndef FIELD_H_
 #define FIELD_H_
 
-class lexer;
-class fdm;
+#include "field_base.h"
 
-using namespace std;
-
-class field
+class field : public field_base<double>
 {
 public:
-	virtual double& operator()(int, int, int)=0;
-	virtual double& operator[](int)=0;
-    virtual void resize(lexer*)=0;
-    virtual void dealloc(lexer*)=0;
-	
-	double *V;
+    field(lexer* p) : field_base<double>(p) {}
+    virtual ~field() = default;
 };
 
 #endif
-
-
-
-
-
-

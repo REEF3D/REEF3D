@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class ediff2 : public diffusion, public gradient
+class ediff2 final : public diffusion, public gradient
 {
 
 public:
@@ -36,13 +36,13 @@ public:
 	ediff2(lexer*);
 	virtual ~ediff2();
 
-	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override;
-	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override;
-    void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override;
+	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double, double) override final;
+	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override final;
+    void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override final;
     
-    void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
-	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
-	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override;
+    void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
+	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
+	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
 
 private:
     

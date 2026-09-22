@@ -55,37 +55,7 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
 		}
     }
     pgc->gcsl_start4(p,eta,50);
-    
-
-    //FI
-    count=0;
-    FLOOP
-    {
-		
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
         
-        z=p->ZSN[FIJK]-p->phimean;
-		
-		// Wave Generation
-		if(p->B98==2)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                Fival_S_sin[count][qn] = wave_fi_space_sin(p,pgc,xg,yg,z,qn);
-                Fival_S_cos[count][qn] = wave_fi_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-		}
-    }
-    
-    
     
     // Fifsf
     count=0;
@@ -99,10 +69,10 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
         z = eta(i,j);
 		
 		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+        if(p->B98==2 && f_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
                 for(qn=0;qn<wave_comp;++qn)
                 {

@@ -43,17 +43,17 @@ sflow_vtp_bed::sflow_vtp_bed(lexer *p)
 void sflow_vtp_bed::start(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 {
     // Print out based on iteration
-    if((p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P10==1 && p->P20>0)  || (p->count==0 &&  p->P30<0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10==1 && p->P181>0)  || (p->count==0 &&  p->P182<0.0))
     {
         print2D(p,b,pgc,psed);
     }
 
     // Print out based on time
-    if((p->simtime>printbedtime && p->P30>0.0 && p->P34<0.0 && p->P10==1) || (p->count==0 &&  p->P30>0.0))
+    if((p->simtime>printbedtime && p->P182>0.0 && p->P10==1) || (p->count==0 &&  p->P182>0.0))
     {
         print2D(p,b,pgc,psed);
 
-        printbedtime+=p->P30;
+        printbedtime+=p->P182;
     }
 }
 

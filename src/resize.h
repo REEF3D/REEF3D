@@ -35,7 +35,14 @@ public:
     void Darray(double****&,int,int,int,int);
     
     void Darray(double**&,int,int*);
-
+    
+    void Farray(float*&,int);
+    void Farray(float**&,int,int);
+    void Farray(float***&,int,int,int);
+    void Farray(float****&,int,int,int,int);
+    
+    void Farray(float**&,int,int*);
+    
     void Iarray(int*&,int);
     void Iarray(int**&,int,int);
     void Iarray(int***&,int,int,int);

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -40,8 +40,8 @@ public:
     
     typedef vector<Eigen::Vector3d> EigenMat;
         
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d)=0;
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d)=0;
+	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool)=0;
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool)=0;
     
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*)=0;

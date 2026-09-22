@@ -33,7 +33,7 @@ void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     wave_prestep(p,pgc);
     
 
-        if(p->B89==0 )
+        if(p->B89==0)
         {
             if(p->B98==2)
             fnpf_precalc_relax(p,pgc);

@@ -36,8 +36,6 @@ void sflow_flux_face_FOU::u_flux(int ipol, slice& uvel, double &uflux1, double &
 {
 	if(ipol==1)
 	{
-    pip=1;
-    
 	if(0.5*(uvel(i,j)+uvel(i-1,j)) >= 0.0)
     uflux1 = uvel(i-1,j);
     
@@ -51,23 +49,18 @@ void sflow_flux_face_FOU::u_flux(int ipol, slice& uvel, double &uflux1, double &
     if(0.5*(uvel(i,j)+uvel(i+1,j)) < 0.0)
     uflux2 = uvel(i+1,j);
     
-	pip=0;
 	}
 
 	if(ipol==2)
 	{
-	pip=1;
 	uflux1 = 0.5*(uvel(i-1,j)+uvel(i-1,j+1));
 	uflux2 = 0.5*(uvel(i,j)+uvel(i,j+1));
-	pip=0;
 	}
 
 	if(ipol==4)
 	{
-	pip=1;
 	uflux1 = uvel(i-1,j);
 	uflux2 = uvel(i,j);
-	pip=0;
 	}
 }
 
@@ -75,16 +68,12 @@ void sflow_flux_face_FOU::v_flux(int ipol, slice& vvel, double &vflux1, double &
 {
 	if(ipol==1)
 	{
-	pip=2;
 	vflux1 = 0.5*(vvel(i,j-1)+vvel(i+1,j-1));
 	vflux2 = 0.5*(vvel(i,j)+vvel(i+1,j));
-	pip=0;
 	}
 
 	if(ipol==2)
 	{
-    pip=2;
-    
     if(0.5*(vvel(i,j)+vvel(i,j-1)) >= 0.0)
     vflux1 = vvel(i,j-1);
     
@@ -98,15 +87,12 @@ void sflow_flux_face_FOU::v_flux(int ipol, slice& vvel, double &vflux1, double &
     if(0.5*(vvel(i,j)+vvel(i,j+1)) < 0.0)
     vflux2 = vvel(i,j)+1;
     
-	pip=0;
 	}
 
 
 	if(ipol==4)
 	{
-	pip=2;
 	vflux1 = vvel(i,j-1);
 	vflux2 = vvel(i,j);
-	pip=0;
 	}
 }

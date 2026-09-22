@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs, Tobias Martin
+Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
 #ifndef SIXDOF_OBJ_H_
@@ -61,31 +61,39 @@ public:
     sixdof_obj(lexer*, ghostcell*, int);
 	virtual ~sixdof_obj();
 	
-	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int);
+	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
     
 	void initialize_cfd(lexer*,fdm*,ghostcell*);
     void initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void initialize_shipwave(lexer*,ghostcell*,slice&,slice&);
+    void initialize_wavemaker(lexer*,fdm_nhf*,ghostcell*,slice&,slice&);
     
 	// Additional functions
     void transform(lexer*, fdm*, ghostcell*, bool);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
-    void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,bool);
+    void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,bool);
 	
     void quat_matrices(lexer*);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
+    void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
     void update_position_2D(lexer*, ghostcell*,slice&);
     
-    void solve_eqmotion_oneway_onestep(lexer*,ghostcell*);
+    void solve_eqmotion_oneway_onestep(lexer*,ghostcell*,bool);
     
     // NHFLOW
-    void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int);
-    void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int);
+    void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);
+    void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
-    
+    void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
+    void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*,
+                                           double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+                         
+                         
+    double Sfx_n,Sfy_n,Sfz_n,SKx_n,SKy_n,SKz_n;
+    int fictmass_ini;
     
     // print
     void saveTimeStep(lexer*,int);
@@ -105,8 +113,8 @@ public:
     
     void update_forcing_sflow(lexer*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, int);
     
-    void solve_eqmotion_sflow(lexer*,ghostcell*,int);
-    void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int);
+    void solve_eqmotion_sflow(lexer*,ghostcell*,int,bool);
+    void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
     
     double Mass_fb, Vfb, Rfb;
 
@@ -116,11 +124,11 @@ private:
     void ini_fbvel(lexer*, ghostcell*);
     void maxvel(lexer*, ghostcell*);
     
-    void externalForces_cfd(lexer*, fdm*, ghostcell*, double);
-    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
+    void externalForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
+    void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void mooringForces(lexer*,  ghostcell*, double);
-    void netForces_cfd(lexer*, fdm*, ghostcell*, double);
-    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
+    void netForces_cfd(lexer*, fdm*, ghostcell*, double, bool);
+    void netForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
     void update_forces(lexer*);
     
     double ramp_vel(lexer*);
@@ -137,6 +145,9 @@ private:
 	void wedge_sym(lexer*, ghostcell*,int);
     void wedge(lexer*, ghostcell*,int);
     void hexahedron(lexer*, ghostcell*,int);
+    void piston(lexer*, ghostcell*,int);
+    void flap(lexer*, ghostcell*,int);
+    void flap_double(lexer*, ghostcell*,int);
     void read_stl(lexer*, ghostcell*);
     void triangle_switch_lsm(lexer*, ghostcell*);
     void triangle_switch_ray(lexer*, ghostcell*);
@@ -223,12 +234,22 @@ private:
     
     // ray cast NHFLOW
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    void ray_cast_io(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_x(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_ycorr(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void ray_cast_io_zcorr(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
     void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
+    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
+    double dist2_tri(const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double,
+                 const double,const double,const double);
+    int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double,
+                         double,double*,double*,double*);
     
     double zmin,zmax;
+    double NB;
     
     // Reini NHFLOW
     void nhflow_reini_RK2(lexer*, fdm_nhf*, ghostcell*, double*);
@@ -268,13 +289,22 @@ private:
 
     // Force NHFLOW
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    void force_calc_stl(lexer*, fdm_nhf*, ghostcell*,bool);
-    void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*);
+    void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
+    void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
+    void hydrodynamic_viscous_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,
+            double&,double&,double&,double,double,double,double,double,double,double);
+    void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);
 	void addpoint(lexer*,fdm_nhf*,int,int);
 	void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
+    double clip_edge(double,double);
+    double clip_edge_vol(double,double,double);
+    bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double,
+                double,double,double,double&,double&,double&,double&);
+    void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double,
+                         double&, double&, double&, double&);
     
     // -----
     
@@ -333,6 +363,10 @@ private:
 	fieldint5 vertice, nodeflag;
     field5 eta;
     
+    int triangle_token,printnormal_count;
+    
+    double alpha[3],gamma[3],zeta[3];
+    
     
     // Parallel	
 	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
@@ -354,7 +388,6 @@ private:
     Eigen::Vector3d Ffb_, Mfb_;
     double Xe, Ye, Ze, Ke, Me, Ne;
 
-
     // Mooring
 	vector<double> X311_xen, X311_yen, X311_zen;
 	vector<mooring*> pmooring;
@@ -366,9 +399,23 @@ private:
     // Number
     int n6DOF;
     
-    int triangle_token,printnormal_count;
+    // Wavemaker
+    double xwm1,zwm1,xwm2,zwm2;
+    double *uwm,*wwm;
     
-    double alpha[3],gamma[3],zeta[3];
+    void read_format_piston(lexer*,ghostcell*);
+    void read_format_flap(lexer*,ghostcell*);
+    void read_format_flap_double(lexer*,ghostcell*);
+    
+    double ts,te;
+    double f0;
+    int timecount,timecount_old;
+    int rowcount,colcount;
+    int colnum;
+    int ptnum;
+    double **kinematics;
+    
+    double DSM;
 };
 
 #endif

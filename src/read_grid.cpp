@@ -99,11 +99,11 @@ void lexer::read_grid()
     dx=ddn;
 
     grid.read((char*)&ddn, sizeof (double));
-    DRM=ddn;
+    DXM=ddn;
     grid.read((char*)&ddn, sizeof (double));
-    DSM=ddn;
+    DYM=ddn;
     grid.read((char*)&ddn, sizeof (double));
-    DTM=ddn;
+    DZM=ddn;
 
 
     grid.read((char*)&ddn, sizeof (double));
@@ -280,9 +280,22 @@ void lexer::read_grid()
 
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
+    cms_flag=iin;
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
     grid.read((char*)&iin, sizeof (int));
+    
+    grid.read((char*)&ddn, sizeof (double));
+    global_orig_x=ddn;
+    grid.read((char*)&ddn, sizeof (double));
+    global_orig_y=ddn;
+    grid.read((char*)&ddn, sizeof (double));
+    alpha_grid=ddn;
+    
+    grid.read((char*)&ddn, sizeof (double));
+    grid.read((char*)&ddn, sizeof (double));
+    grid.read((char*)&ddn, sizeof (double));
+
 
 
     // ---------------------------------------------------------------------------------------------------------------------
@@ -295,8 +308,7 @@ void lexer::read_grid()
     gcpara_sum=gcpara1_count+gcpara2_count+gcpara3_count+gcpara4_count+gcpara5_count+gcpara6_count;
     gcparaco_sum=gcparaco1_count+gcparaco2_count+gcparaco3_count+gcparaco4_count+gcparaco5_count+gcparaco6_count;
 
-    maxpara=maxparacount();
-    assign_margin();
+    grid::assign_margin();
 
     Iarray(flag4,imax*jmax*kmax);
 
@@ -313,6 +325,7 @@ void lexer::read_grid()
     Iarray(wet_n,imax*jmax);
     Iarray(deep,imax*jmax);
     Darray(depth,imax*jmax);
+    Darray(WL,imax*jmax);
     Darray(data,imax*jmax);
     Iarray(flagslice1,imax*jmax);
     Iarray(flagslice2,imax*jmax);
@@ -387,10 +400,6 @@ void lexer::read_grid()
     Darray(YN,knoy+1+4*marge);
     Darray(ZN,knoz+1+4*marge);
 
-    Darray(RN,knox+1+4*marge);
-    Darray(SN,knoy+1+4*marge);
-    Darray(TN,knoz+1+4*marge);
-
 
     // ---------------------------------------------------------------------------------------------------------------------
     // ---------------------------------------------------------------------------------------------------------------------
@@ -421,25 +430,6 @@ void lexer::read_grid()
     {
         grid.read((char*)&ddn, sizeof (double));
         ZN[KP]=ddn;
-    }
-
-    // Nodes RST
-    for(i=-marge;i<knox+1+marge;++i)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        RN[IP]=ddn;
-    }
-
-    for(j=-marge;j<knoy+1+marge;++j)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        SN[JP]=ddn;
-    }
-
-    for(k=-marge;k<knoz+1+marge;++k)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        TN[KP]=ddn;
     }
 
     //  Solid
@@ -831,7 +821,6 @@ void lexer::read_grid()
 
         gcslparaco1[i][0]=isurf;
         gcslparaco1[i][1]=jsurf;
-        gcslparaco1[i][3]=side1;
     }
 
     for(i=0; i<gcslparaco2_count; ++i)
@@ -847,7 +836,6 @@ void lexer::read_grid()
 
         gcslparaco2[i][0]=isurf;
         gcslparaco2[i][1]=jsurf;
-        gcslparaco2[i][3]=side1;
     }
 
     for(i=0; i<gcslparaco3_count; ++i)
@@ -863,7 +851,6 @@ void lexer::read_grid()
 
         gcslparaco3[i][0]=isurf;
         gcslparaco3[i][1]=jsurf;
-        gcslparaco3[i][3]=side1;
     }
 
     for(i=0; i<gcslparaco4_count; ++i)
@@ -879,7 +866,6 @@ void lexer::read_grid()
 
         gcslparaco4[i][0]=isurf;
         gcslparaco4[i][1]=jsurf;
-        gcslparaco4[i][3]=side1;
     }
 
 
@@ -919,10 +905,4 @@ void lexer::read_grid()
     gcout4a_count=gcout_count;
 
     grid.close();
-}
-
-void lexer::clear(char& b, int& j)
-{
-    b='a';
-    j=0;
 }

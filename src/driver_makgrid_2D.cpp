@@ -39,29 +39,14 @@ void driver::makegrid2D(lexer *p, ghostcell *pgc)
 	m1.makemgc(p);
     pgc->gcslflagx(p,p->flagslice1);
     m1.gcb_seed(p);
-    m1.mgcsetup(p);
-    m1.fillmgc(p);
-    m1.gcdirfill(p);
 
     m2.makemgc(p);
     pgc->gcslflagx(p,p->flagslice2);
     m2.gcb_seed(p);
-    m2.mgcsetup(p);
-    m2.fillmgc(p);
-    m2.gcdirfill(p);
 
     m4.makemgc(p);
     m4.gcb_seed(p);
-    m4.mgcsetup(p);
-    m4.fillmgc(p);
-    m4.gcdirfill(p);
 	
-	m1.make_ggc(p);
-    m1.fill_ggc(p);
-	m2.make_ggc(p);
-    m2.fill_ggc(p);
-    m4.make_ggc(p);
-    m4.fill_ggc(p);
     
     pgc->gcsl_setbc1(p);
     pgc->gcsl_setbc2(p);

@@ -155,7 +155,6 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
         p->xtime+=endtime-starttime;
     }
 
-
     starttime=timer();
     QQGC4LOOP
     if((p->gcb1[qq][3]!=2 && p->gcb1[qq][3]!=3) || p->j_dir==1)

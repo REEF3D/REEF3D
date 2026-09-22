@@ -228,9 +228,6 @@ void driver::logic_cfd()
 
 	if(p->S12>=1)
 	pconcdisc=new iweno_hj(p);
-
-	//if(p->S60>0&&p->S60<10)
-	//pconcdisc=new weno_hj(p);
     
   
 //turbulence model
@@ -242,8 +239,12 @@ void driver::logic_cfd()
 	pturb = new kepsilon_IM1(p,a,pgc);
 
     //kw
-	if(p->T10==2 || p->T10==22)
+	if((p->T10==2 || p->T10==22) && p->F80!=4)
 	pturb = new komega_IM1(p,a,pgc);
+    
+    //kw PLIC
+    if((p->T10==2 || p->T10==22) && p->F80==4)
+    pturb = new komega_IM1_PLIC(p,a,pgc);
 
     //EARSM
 	if(p->T10==12)
@@ -327,8 +328,11 @@ void driver::logic_cfd()
 	if(p->D20==0)
 	pdiff=new diff_void;
 
-	if(p->D20==1)
+	if(p->D20==1 && p->j_dir==1)
 	pdiff=new ediff2(p);
+    
+    if(p->D20==1 && p->j_dir==0)
+	pdiff=new ediff2_2D(p);
 
 	if(p->D20==2 && p->j_dir==1)
 	pdiff=new idiff2_FS(p);
@@ -341,6 +345,9 @@ void driver::logic_cfd()
     
     if((p->D20==2 && p->j_dir==0) && (p->F80==4))
     pdiff=new idiff2_PLIC_2D(p);
+    
+    if((p->D20==2 && p->j_dir==1) && (p->F80==4))
+    pdiff=new idiff2_PLIC(p);
 
 	// turbulence
 	if(p->D20==0 || p->T10==0)
@@ -376,17 +383,6 @@ void driver::logic_cfd()
 
     if(p->F40==3 || p->F40==23)
     preini = new reini_RK3(p,1);
-
-	if(p->F40==11)
-	preini = new directreini(p,a);
-
-
-	if(p->F31==0)
-	ppls = new particle_pls_void();
-
-	if(p->F31==1 || p->F31==2)
-	ppls = new particle_pls(p,a,pgc);
-
 
 	if(p->F80==1)
 	pfsf = new VOF_AB(p,a,pgc,pheat);
@@ -464,35 +460,29 @@ void driver::logic_cfd()
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);
 
-    if(p->N10==1 && p->j_dir==0)
+    if(p->N10==3 && p->j_dir==0)
 	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
 
-    if(p->N10==1 && p->j_dir==1)
+    if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 
-	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
 	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
-	#endif
 
-    #ifdef HYPRE_COMPILATION
 	if(p->N10>=20 && p->N10<30)
 	ppoissonsolv = new hypre_aij(p,a,pgc);
-	#endif
 
-    #ifdef HYPRE_COMPILATION
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
-	#endif
 
 //VRANS
-    if(p->B269==0)
+    if(p->B200==0)
 	pvrans = new vrans_v(p,pgc);
 
-	if(p->B269==1)
+	if(p->B200==1)
 	pvrans = new vrans_f(p,pgc);
 
-    if(p->B269==2)
+    if(p->B200==2)
 	pvrans = new vrans_veg(p,pgc);
 
 //IOFlow
@@ -527,6 +517,12 @@ void driver::logic_cfd()
 
 	if(p->F150==2)
     pbench = new benchmark_disk(p,a);
+    
+    if(p->F150==21)
+    pbench = new benchmark_disk_yz(p,a);
+    
+    if(p->F150==22)
+    pbench = new benchmark_disk_xy(p,a);
 
 	if(p->F150==3)
     pbench = new benchmark_vortex3D(p,a);
@@ -550,7 +546,7 @@ void driver::logic_cfd()
     if(p->S10>0)
     {
         if(p->Q10==0)
-        psed = new sediment_f(p,a,pgc,pturb,pBC);
+        psed = new sediment_f(p,pgc,pturb,pBC);
         
 		if(p->Q10==1)
         psed = new sediment_part(p,a,pgc,pturb,pBC);

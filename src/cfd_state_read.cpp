@@ -79,7 +79,7 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
 	p->stateprinttime=ddn;
     
     
-    ALOOP
+    LOOP
     {
     result.read((char*)&ffn, sizeof (float));
     a->topo(i,j,k)=double(ffn);

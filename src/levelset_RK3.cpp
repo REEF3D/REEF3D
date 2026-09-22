@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reini.h"
-#include"particle_corr.h"
 #include"picard.h"
 #include"fluid_update_fsf.h"
 #include"fluid_update_fsf_heat.h"
@@ -100,7 +99,7 @@ levelset_RK3::~levelset_RK3()
 {
 }
 
-void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppart, field &ls)
+void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, field &ls)
 {
     pflow->fsfinflow(p,a,pgc);
     pflow->fsfrkin(p,a,pgc,ark1);
@@ -159,17 +158,12 @@ void levelset_RK3::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, gho
 	pgc->start4(p,ls,gcval_phi);
     pgc->solid_forcing_lsm(p,a,ls);
     
-
-    ppart->start(p,a,pgc,pflow);
-    
 	
 	p->lsmtime=pgc->timer()-starttime;
     
 	preini->start(a,p,ls,pgc,pflow);
     
-
     ppicard->correct_ls(p,a,pgc,ls);
-	ppart->picardmove(p,a,pgc);
     
 	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 

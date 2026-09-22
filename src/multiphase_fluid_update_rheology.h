@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,13 +30,13 @@ class rheology;
 
 using namespace std;
 
-class multiphase_fluid_update_rheology : public multiphase_fluid_update, increment
+class multiphase_fluid_update_rheology final : public multiphase_fluid_update, increment
 {
 public:
     multiphase_fluid_update_rheology(lexer*);
     virtual ~multiphase_fluid_update_rheology();
 
-	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override;
+	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&) override final;
 
 private:
     rheology *prheo;
@@ -44,7 +44,7 @@ private:
     static int iocheck,iter;
     int gcval_ro,gcval_visc;
 	int n;
-	const double dx,visc3,visc2,ro1,ro2,ro3;
+	const double visc3,visc2,ro1,ro2,ro3;
     double visc1;
 	double eps12,eps13,eps23;
     double epsi;

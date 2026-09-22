@@ -23,8 +23,9 @@ Author: Hans Bihs
 #ifndef FNPF_FSFBC_WD_H_
 #define FNPF_FSFBC_WD_H_
 
-#include"fnpf_fsf.h"
+#include"fnpf_breaking.h"
 #include"sliceint4.h"
+#include"slice4.h"
 
 class fnpf_laplace;
 class field;
@@ -33,30 +34,30 @@ class fnpf_ddx;
 class fnpf_etadisc;
 class fnpf_coastline;
 class solver2D;
+class wind;
 
 using namespace std;
 
-class fnpf_fsfbc_wd : public fnpf_fsf, public increment 
+class fnpf_fsfbc_wd final : public fnpf_breaking
 {
 public:
 	fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_fsfbc_wd();
     
-    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override;
-    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
-    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override;
-    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override;
-    void breaking0(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override;
-    void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
-    void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override;
-    void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override;
+    void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
+    void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
+    void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*) override final;
+    void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final;
     
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
     
-    void filter(lexer*, fdm_fnpf*,ghostcell*, slice&);
 
     fnpf_convection *pconvec;
     fnpf_convection *pconeta;
@@ -65,6 +66,7 @@ public:
     fnpf_ddx *pddx;
     fnpf_coastline *pcoast;
     solver2D *psolv;
+    wind *pwind;
 
     double ivel,jvel,kvel;
     
@@ -81,8 +83,9 @@ private:
     int gcval_eta,gcval_fifsf;
     const double eps;
     
-    sliceint4 bx,by;
     sliceint4 wetcoast;
+    slice4 ef,df;
+    
     int count_n;
     int coastline_count;
 };

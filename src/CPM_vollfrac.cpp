@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Alexander Hanke, Hans Bihs
+Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"CPM.h"
@@ -28,7 +28,7 @@ Author: Alexander Hanke, Hans Bihs
 
 void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ)
 {
-    ALOOP
+    LOOP
     cellSum(i,j,k) = 0.0;
     
     pgc->start4a(p,cellSum,1);
@@ -61,7 +61,7 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
     
     pgc->start4a_sum(p,cellSum,1);
     
-    ALOOP
+    LOOP
     Ts(i,j,k) = (1.0/6.0)*PI*pow(P.d50,3.0)*cellSum(i,j,k)/(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
     
     pgc->start4a(p,Ts,1);

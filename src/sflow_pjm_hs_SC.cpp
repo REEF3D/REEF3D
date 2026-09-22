@@ -78,7 +78,7 @@ void sflow_pjm_hs::upgrad(lexer*p, fdm2D *b, slice &WL)
 {
     LOOP
     WETDRY
-    d->F[IJK] += PORVALNH*0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
+    d->F[IJK] += 0.5*(d->ETAs(i,j)+d->ETAn(i-1,j))*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
 }
 
@@ -86,7 +86,7 @@ void sflow_pjm_hs::vpgrad(lexer*p, fdm2D *b, slice &WL)
 {
     LOOP
     WETDRY
-	d->G[IJK] += PORVALNH*0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
+	d->G[IJK] += 0.5*(d->ETAe(i,j)+d->ETAw(i,j-1))*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 

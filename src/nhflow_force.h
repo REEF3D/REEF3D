@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -23,8 +23,6 @@ Author: Hans Bihs
 #ifndef NHFLOW_FORCE_H_
 #define NHFLOW_FORCE_H_
 
-#include"fieldint5.h"
-#include"field5.h"
 #include"increment.h"
 #include"vtp3D.h"
 #include<iostream>
@@ -53,6 +51,8 @@ private:
     
     void allocate(lexer*,fdm_nhf*,ghostcell*);
     void deallocate(lexer*,fdm_nhf*,ghostcell*);
+    
+    double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
 
     int *vertice,*nodeflag;
     double *eta;

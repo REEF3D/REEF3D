@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -32,14 +32,14 @@ class lexer;
 
 using namespace std;
 
-class density_f : public density, virtual public increment
+class density_f final : public density, virtual public increment
 {
 
 public:
     density_f(lexer*);
 	virtual ~density_f();
 
-	double roface(lexer*,fdm*,int,int,int) override;
+	double roface(lexer*,fdm*,int,int,int) override final;
 	
 	double H,H_fb,roval,phival;
 	int ii,jj,kk;

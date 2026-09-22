@@ -55,7 +55,7 @@ void reinidisc_fsf::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, 
         L.V[IJK] = 0.0;
         
         n=0;
-        ALOOP
+        LOOP
         {
         disc(p,a,pgc,f,L);
         ++n;

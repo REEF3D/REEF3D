@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -45,7 +45,6 @@ class ghostcell;
 class timestep;
 class freesurface;
 class reini;
-class particle_corr;
 class sediment;
 class bedload;
 class reinitopo;
@@ -70,10 +69,10 @@ class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
 class nhflow_potential;
+class vrans_nhflow;
 class sflow;
 class fnpf_timestep;
 class nhflow_timestep;
-class grid;
 class patchBC_interface;
 class nhflow;
 class multiphase;
@@ -123,11 +122,11 @@ public:
     void driver_ini_nhflow();
     void driver_ini_fnpf();
     void driver_ini_ptf();
-    void driver_ini_sflow();
     
 	void log_ini();
 	void mainlog(lexer*);
 	void maxlog(lexer*);
+    void volumelog(lexer*);
 	void solverlog(lexer*);
     
 	void makegrid(lexer*,ghostcell*);
@@ -140,6 +139,11 @@ public:
     
 	void vec_test(lexer*,fdm*,ghostcell*,field&);
 	void func_test(lexer*,fdm*,ghostcell*,field&);
+    void pos_test(lexer*,fdm*,ghostcell*);
+    void ipol_test(lexer*,fdm*,ghostcell*);
+    void ipol_test(lexer*,fdm_nhf*,ghostcell*);
+    void bedslope_test(lexer*,ghostcell*);
+    double bedslope_angle(lexer*,ghostcell*,double,double);
 	double calc();
     
     void stop(lexer*,fdm*,ghostcell*);
@@ -173,7 +177,6 @@ public:
 	timestep* ptstep;
 	freesurface* pfsf;
 	reini* preini;
-	particle_corr* ppls; 
 	sediment* psed;
 	reinitopo* preto;
     reinitopo* preso;
@@ -189,7 +192,6 @@ public:
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_timestep *pftstep;
-    grid *pgrid;
     patchBC_interface *pBC;
     nhflow *pnhf;
     nhflow_convection *pnhfconvec;
@@ -204,6 +206,7 @@ public:
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
     nhflow_forcing *pnhfdf;
+    vrans_nhflow *pnhfvrans;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
@@ -212,7 +215,9 @@ public:
 private:
     double starttime, endtime;
     ofstream mainlogout;
+    ofstream versionlogout;
     ofstream maxlogout;
+    ofstream vollogout;
     ofstream solvlogout;
 	
 	double nom,val;

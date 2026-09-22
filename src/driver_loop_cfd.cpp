@@ -45,6 +45,9 @@ void driver::loop_cfd(fdm* a)
     cout<<"starting mainloop.CFD"<<endl;
     
     //vec_test(p,a,pgc,a->test);
+    //pos_test(p,a,pgc);
+    //ipol_test(p,a,pgc);
+    //bedslope_test(p,pgc);
     
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
@@ -75,14 +78,15 @@ void driver::loop_cfd(fdm* a)
         pflow->wavegen_precalc(p,pgc);
 
 		    
-            pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,ppls,a->phi);
+            pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,a->phi);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
             pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
-            pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini,ppls);
+            pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini);
         
         psed->start_susp(p,a,pgc,pflow,psolv);
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
+        
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);

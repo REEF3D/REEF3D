@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin, Hans Bihs
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
@@ -125,6 +125,12 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
+    }
+    
+    if(p->X10==4)
+    {
+    p->Darray(uwm,(p->kmax+2)); 
+    p->Darray(wwm,(p->kmax+2));   
     }
 }
 

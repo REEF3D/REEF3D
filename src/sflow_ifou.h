@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,13 +30,13 @@ class sflow_flux;
 
 using namespace std;
 
-class sflow_ifou : public sflow_convection, public increment
+class sflow_ifou final : public sflow_convection, public increment
 {
 public:
 	sflow_ifou(lexer*);
 	virtual ~sflow_ifou();
 
-	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override;
+	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override final;
 
 private:
     void aij(lexer*, fdm2D*, slice&, int, slice&, slice&);

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs, Alexander Hanke
+Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"fluid_update_rheology.h"
@@ -34,10 +34,10 @@ fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3),
     prheo = new rheology_f(p);
 
     if(p->j_dir==0)
-    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM); 
+    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM); 
     
     if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 }
 
 fluid_update_rheology::~fluid_update_rheology()

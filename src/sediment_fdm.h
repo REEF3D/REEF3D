@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -43,25 +43,26 @@ public:
     
     slice4 bedzh,bedzh0,bedch,bedsole;
     slice4 vz,dh,reduce;
-    slice4 ks;
+    slice4 ks,ks_eff;
+    slice4 ro;
     
     slice4 tau_eff,tau_crit;
     slice4 shearvel_eff,shearvel_crit;
     slice4 shields_eff, shields_crit;
     
     slice4 alpha,teta,gamma,beta,phi;
-    slice4 active;
+    sliceint4 active;
     
     
     sliceint4 bedk;
     slice4 slide_fh;
     
-    slice4 qb,qbe;
+    slice4 qb,qbe,qbs;
     slice4 cbe,cb,cbn,conc;
     
     slice4 waterlevel;
     slice4 guard;
-    slice4 MOB;
+    slice4 MOB,tau_i;
     
     double ws;
 

@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -55,6 +55,9 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     if(p->X10==3)
     start_shipwave(p,d,pgc,iter,finalize);
     
+    if(p->X10==4)
+    start_wavemaker(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
+    
     p->fbtime+=pgc->timer()-starttime;
 }
 
@@ -64,10 +67,10 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,finalize);
+        //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
         
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
@@ -102,7 +105,7 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
@@ -133,6 +136,34 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     }
 }
 
+void sixdof_nhflow::start_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    {
+
+        // Update position and trimesh
+        fb_obj[nb]->update_wavemaker_nhflow(p,d,pgc,d->fs,finalize);  
+        
+        // Update forcing terms
+        fb_obj[nb]->update_forcing_nhflow_wavemaker(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        
+        // Print
+        if(finalize==true)
+        {
+            fb_obj[nb]->saveTimeStep(p,iter);
+            
+            // Print
+            if(p->X50==1)
+            fb_obj[nb]->print_vtp(p,pgc);
+            
+            if(p->X50==2)
+            fb_obj[nb]->print_stl(p,pgc);
+            
+            fb_obj[nb]->print_parameter(p,pgc);
+        }
+    }
+}
+
 void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
 {
     
@@ -140,7 +171,7 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc);
+        fb_obj[nb]->solve_eqmotion_oneway_onestep(p,pgc,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
@@ -169,5 +200,32 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
             fb_obj[nb]->print_stl(p,pgc);
             
             fb_obj[nb]->print_parameter(p,pgc);
+    }
+}
+
+void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
+                                 double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    {
+        // 1. re-impose no-slip at the position the fluid was solved with
+        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+
+        // 2. load from the pressure that was just solved
+        fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
+
+        // 3. advance the body for the next substage
+        /*fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
+        fb_obj[nb]->quat_matrices(p);
+        fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);
+        fb_obj[nb]->update_fbvel(p,pgc);
+
+        if(finalize==true)
+        {
+            fb_obj[nb]->saveTimeStep(p,iter);
+            if(p->X50==1) fb_obj[nb]->print_vtp(p,pgc);
+            if(p->X50==2) fb_obj[nb]->print_stl(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc);
+        }*/
     }
 }

@@ -55,7 +55,7 @@ void ghostcell::sizeM_update(lexer* p, fdm* a)
 	p->sizeM4[1]=count;
     
     count=0;
-	ALOOP
+	LOOP
 	++count;
 	
 	p->sizeM4a[0]=0;

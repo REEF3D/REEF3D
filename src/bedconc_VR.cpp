@@ -34,7 +34,6 @@ bedconc_VR::bedconc_VR(lexer *p)
     shields=p->S30;
     visc=p->W2;
     kappa=0.4;
-    ks=2.5*d50;
     adist=3.0*d50;
     deltab=3.0*d50;
     Rstar=(rhosed-rhowat)/rhowat;
@@ -47,33 +46,61 @@ bedconc_VR::~bedconc_VR()
 void bedconc_VR::start(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     double Ts,Tb;
+    double ca,h,z1,P,R;
     
     SLICELOOP4
     s->cbn(i,j) = s->cbe(i,j);
     
     // cb* van Rijn
-    SLICELOOP4
+    k=0;
+    SEDSLICELOOP
     {
-    k=s->bedk(i,j);
-    
-    Ts = s->shields_crit(i,j);
-    Tb = s->shields_eff(i,j);
-    
-    Ti=MAX((Tb-Ts)/(Ts),0.0);
-        
+    Ts = s->tau_crit(i,j);
+    Tb = s->tau_i(i,j);                 // skin friction, not tau_eff
+
+    Ti = MAX((Tb-Ts)/Ts, 0.0);
 
     Ds = d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
-    
     Ds = Ds>1.0e-10?Ds:1.0e10;
-    
-    adist = 0.5*p->DZP[KP];
-    
-    s->cbe(i,j) =  MIN((0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.5);
-    
-    //s->cbe(i,j) =  (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist);
+
+    h = MAX(s->waterlevel(i,j), 1.0e-6);
+
+    // van Rijn reference height: physical, grid independent
+    // evaluate van Rijn at a physical reference height, then transfer to the first cell centre.
+    adist = MAX(s->ks_eff(i,j), 0.01*h);
+    adist = MAX(adist, 2.0*d50);
+    adist = MIN(adist, 0.5*h);
+
+    // reference concentration at z = a
+    ca = MIN( (0.015*d50*pow(Ti,1.5))/(pow(Ds,0.3)*adist), 0.05); // c_max = 0.05
+
+    // height of the first cell centre above the bed
+    if(p->A10==5)               // NHFLOW: ZP is sigma in [0,1]
+    {
+    k  = 0;
+    z1 = p->ZP[KP]*h;
     }
+
+    if(p->A10==6)               // CFD: ZP is physical z
+    {
+    k  = s->bedk(i,j);
+    z1 = p->ZP[KP] - s->bedzh(i,j);
+    }
+
+    z1 = MAX(z1,adist);         // never extrapolate below the reference level
+    z1 = MIN(z1,0.99*h);
+
+    // Rouse transfer from z = a to z = z1
+    P = s->ws/(kappa*MAX(s->shearvel_eff(i,j),1.0e-6));
+    P = MIN(P,5.0);
+
+    R = pow( (adist/(h-adist)) * ((h-z1)/z1), P );
+
+    s->cbe(i,j) = ca*R;
     
-    pgc->gcsl_start4(p,s->qbe,1);
+    
+    //cout<<"adist: "<<adist<<" ca: "<<ca<<" cbe: "<<s->cbe(i,j)<<endl;
+    }
 }
 
 

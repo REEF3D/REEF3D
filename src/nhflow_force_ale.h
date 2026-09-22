@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -24,8 +24,6 @@ Author: Hans Bihs
 #define NHFLOW_FORCE_ALE_H_
 
 #include"nhflow_gradient.h"
-#include"fieldint5.h"
-#include"field5.h"
 #include<iostream>
 #include<fstream>
 

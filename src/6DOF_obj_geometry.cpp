@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -84,7 +84,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 	double H;
 	Vfb=0.0;
    
-	ALOOP
+	LOOP
 	{
         H = Hsolidface(p,a,0,0,0);
 		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
@@ -173,6 +173,8 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 // Moments of Inertia
 
     double Ix,Iy,Iz;	
+    
+    I_.setZero();
         
 	if(p->X24==0)
 	{
@@ -237,11 +239,12 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	double H;
 	Vfb=0.0;
    
-	ALOOP
+	LOOP
 	{
         H = Hsolidface_nhflow(p,d,0,0,0);
-		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
+		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*d->WL(i,j);
 	}
+    
 	Vfb=pgc->globalsum(Vfb);
    
     // Mass and density calculation
@@ -328,6 +331,8 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 // Moments of Inertia
 
     double Ix,Iy,Iz;	
+    
+    I_.setZero();
         
 	if(p->X24==0)
 	{

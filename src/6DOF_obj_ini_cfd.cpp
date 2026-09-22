@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -161,9 +161,10 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     // Print initial body 
     if(p->X50==1)
-        print_vtp(p,pgc);
+    print_vtp(p,pgc);
+    
     else if(p->X50==2)
-        print_stl(p,pgc);
+    print_stl(p,pgc);
     
     // ghostcell update
     pgc->gcdf_update(p,a);

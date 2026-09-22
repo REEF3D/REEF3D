@@ -25,13 +25,11 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 
-void fnpf_breaking::filter(lexer *p, fdm_fnpf *c,ghostcell *pgc, slice &f)
+void fnpf_breaking::filter(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
 {
     double he,hw,hn,hs,hp;
     double dhe, dhw, dhn, dhs,dhp;
     
-    int outer_iter = p->A361;
-    int inner_iter = p->A362;
     
     if(p->j_dir==0)
 	for(int qn=0;qn<outer_iter;++qn)

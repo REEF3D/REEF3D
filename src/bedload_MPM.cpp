@@ -31,11 +31,6 @@ bedload_MPM::bedload_MPM(lexer* p)
     rhowat=p->W1;
     g=9.81;
     d50=p->S20;
-    shields=p->S30;
-    eta=0.053;
-    visc=p->W2;
-    kappa=0.4;
-    ks=2.5*d50;
 }
 
 bedload_MPM::~bedload_MPM()
@@ -48,11 +43,13 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 	SEDSLICELOOP
     {
+        rhowat = s->ro(i,j);
+        
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);
 
         if(s->active(i,j)==1 && Tb>=Ts)
-        qb = 8.0*pow(MAX(Tb - Ts,0.0),1.5)* p->S20*sqrt(((p->S22-p->W1)/p->W1)*fabs(p->W22)*p->S20);
+        qb = 8.0*pow(MAX(Tb - Ts,0.0),1.5)* p->S20*sqrt(((rhosed-rhowat)/rhowat)*fabs(p->W22)*p->S20);
 
         if(s->active(i,j)==0 || Tb<Ts)
         qb=0.0;

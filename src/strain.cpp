@@ -71,7 +71,7 @@ double strain::sij(lexer *p, fdm *a, int ii, int jj)
         s = pudz(p,a) + pwdx(p,a);
 
     if(ii==2 && jj==2)
-        s = pvdy(p,a);
+        s = 2.0*pvdy(p,a);
 
     if((ii==2 && jj==3) || (ii==3 && jj==2))
         s = pvdz(p,a) + pwdy(p,a);

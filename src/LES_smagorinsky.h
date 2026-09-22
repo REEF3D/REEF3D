@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -30,14 +30,14 @@ class LES_filter;
 
 using namespace std;
 
-class LES_smagorinsky : public LES
+class LES_smagorinsky final : public LES
 {
 public:
 	LES_smagorinsky(lexer *, fdm*);
 	virtual ~LES_smagorinsky();
-	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override;
-	void ktimesave(lexer*, fdm*, ghostcell*) override;
-	void etimesave(lexer*, fdm*, ghostcell*) override;
+	void start(fdm*, lexer*, convection*, diffusion*, solver*, ghostcell*, ioflow*, vrans*) override final;
+	void ktimesave(lexer*, fdm*, ghostcell*) override final;
+	void etimesave(lexer*, fdm*, ghostcell*) override final;
 
 private:
 	int gcval_sgs;

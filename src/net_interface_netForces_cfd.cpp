@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"net_interface.h"
 #include"lexer.h"
+#include"fdm.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 
@@ -32,11 +33,12 @@ Author: Hans Bihs
 #include"net_sheet.h"
 
 void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d quatRotMat, 
-                            vector<double> Xne, vector<double> Yne, vector<double> Zne, vector<double> Kne, vector<double> Mne, vector<double> Nne)
+                            vector<double> &Xne, vector<double> &Yne, vector<double> &Zne, vector<double> &Kne, 
+                            vector<double> &Mne, vector<double> &Nne, bool finalize)
 {
     NETLOOP
     {
-        pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat);
+        pnet[n]->start_cfd(p, a, pgc, alpha, quatRotMat, finalize);
         
         dlm_cfd(p, a, pgc, n);
         
@@ -51,5 +53,4 @@ void net_interface::netForces_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha
         pgc->bcast_double(&Mne[n],1);
         pgc->bcast_double(&Nne[n],1);
     }
-    
 }

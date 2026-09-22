@@ -32,7 +32,7 @@ void geotopo::dat(lexer* p, fdm* a, ghostcell* pgc)
     a->topo(i,j,k) = p->flag_topo[IJK];
     
     if(p->S57>-1.0e20)
-    ALOOP
+    LOOP
     a->topo(i,j,k)=-p->S57+p->ZP[KP];
     
     pgc->start4a(p,a->topo,150);

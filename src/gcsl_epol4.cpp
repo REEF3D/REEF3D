@@ -57,7 +57,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if((bc==211 || bc==212 || bc==112 || bc==111) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
 	return 4;
     
-    // Fifsf 60
+    // Fifsf 60 - 3D
     else
     if((cs==2 || cs==3) && gcv==60)
     return 4;
@@ -105,19 +105,19 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     if((bc==21||bc==3) && (gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
-    // Fifsf
+    // Fifsf 160 - 2D
     else
-    if(((bc!=1 && bc!=6) || p->B98<=2) && cs==1 && gcv==160)
+    if(cs==1 && p->B98<=2 && gcv==160)
     return 14;
     
     else
-    if(((bc!=7 && bc!=8) || p->B99<=2) && cs==4 && gcv==160)
+    if(cs==4 && p->B99<=2 && gcv==160)
     return 14;
     
     
     // eta 150
     else
-    if(((bc!=1 && bc!=6 && p->B98<=2))  &&gcv==155)
+    if(gcv==155)
     return 14;
     
     else

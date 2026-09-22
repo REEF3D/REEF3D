@@ -39,17 +39,16 @@ nhflow_strain::~nhflow_strain()
 
 void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALLF)
 {
-
 	LOOP
 	WALLF[IJK]=0;
     
     LOOP
     if(p->DF[IJK]>0)
     {  
-        if(p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)
+        if((p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)  || p->DF[Im1JK]<0)
         WALLF[IJK]=1;
 
-        if(p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)
+        if((p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)  || p->DF[Ip1JK]<0)
         WALLF[IJK]=1;
         
         if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
@@ -61,7 +60,7 @@ void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALL
         if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
         WALLF[IJK]=1;
 
-        if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+        if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k!=p->knoz-1)
         WALLF[IJK]=1;
     }
 }
@@ -104,7 +103,7 @@ void nhflow_strain::Pk_b_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     val = 0.0;
     
     if(k==p->knoz-1)
-    val = (1.0/0.85)*(1.0/p->W1)*d->EV0[IJK]*(p->W22*(p->W3 - p->W1)/(p->DZP[KP1]*d->WL(i,j)));
+    val = (1.0/0.85)*(1.0/p->W1)*d->EV0[IJK]*(p->W22*(p->W3 - p->W1)/(p->DZN[KP]*d->WL(i,j)));
     PK_b[IJK] = val;
     }
 }
@@ -123,7 +122,7 @@ double nhflow_strain::sij(lexer *p, fdm_nhf *d, int ii, int jj)
 	s = pudz(p,a) + pwdx(p,a);
 
 	if(ii==2 && jj==2)
-	s = pvdy(p,a);
+	s = 2.0*pvdy(p,a);
 
 	if((ii==2 && jj==3) || (ii==3 && jj==2))
 	s = pvdz(p,a) + pwdy(p,a);

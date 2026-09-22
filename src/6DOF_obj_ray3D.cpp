@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -28,7 +28,7 @@ Author: Hans Bihs
 
 void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
-	ALOOP
+	LOOP
 	{
     fbio(i,j,k)=1;
 	a->fb(i,j,k)=1.0e8;
@@ -51,7 +51,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
         
             if(rayiter==1 && p->X188==1)
             {
-            pgc->gcparaxint(p,fbio,1);
+            pgc->gcparaxint(p,fbio,4);
             
             ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
             
@@ -63,14 +63,14 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
             
             if(rayiter==1 && p->X188==2)
             {
-            pgc->gcparaxint(p,fbio,1);
+            pgc->gcparaxint(p,fbio,4);
             
             ray_cast_direct(p,a,pgc,tstart[qn],tend[qn]);
             }
         }
     }
     
-    ALOOP
+    LOOP
     {
         if(fbio(i,j,k)==-1)
         a->fb(i,j,k)=-fabs(a->fb(i,j,k));
@@ -81,7 +81,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
     }
     
 	
-	ALOOP
+	LOOP
 	{
 		if(a->fb(i,j,k)>10.0*p->DXM)
 		a->fb(i,j,k)=10.0*p->DXM;

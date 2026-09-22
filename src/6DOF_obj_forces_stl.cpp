@@ -151,7 +151,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             double dir;
 
 
-            if(p->X39==0)
+            if(p->X38==0)
             {
             xlocvel = xc + p->X43*nx*p->DXP[IP];
             ylocvel = yc + p->X43*ny*p->DYP[JP];
@@ -183,7 +183,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             }
             
             
-            if(p->X39==1)
+            if(p->X38==1)
             {
             xlocvel = xc + p->X43*nx*p->DXP[IP];
             ylocvel = yc + p->X43*ny*p->DYP[JP];
@@ -236,7 +236,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             }
             
             
-            if(p->X39==2)
+            if(p->X38==2)
             {
             xlocvel = xc + p->X43*nx*p->DXP[IP];
             ylocvel = yc + p->X43*ny*p->DYP[JP];
@@ -283,7 +283,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             
             
             
-            if(p->X39==3)
+            if(p->X38==3)
             {
             xlocvel = xc + p->X43*nx*p->DXP[IP];
             ylocvel = yc + p->X43*ny*p->DYP[JP];
@@ -319,7 +319,7 @@ void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
             }
             
             
-            if(p->X39==4)
+            if(p->X38==4)
             {
             //zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
             

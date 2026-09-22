@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -39,18 +39,10 @@ public:
 
     //mgcslice4
 	void makemgc(lexer*);
-	void mgcsetup(lexer*);
-	void gcdirfill(lexer*);
-	void fillmgc(lexer*);
-	void make_ggc(lexer*);
-	void fill_ggc(lexer*);
 
-    
     void gcb_seed(lexer*);
 	
 	int imin,imax,jmax,jmin,kmin,kmax;
-	int gcdirsize;
-	int ggcsize;
 	
 private:
 	int di,dj;

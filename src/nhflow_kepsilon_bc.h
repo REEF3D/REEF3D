@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -37,9 +37,9 @@ public:
 	virtual ~nhflow_kepsilon_bc();
 	void bckepsilon_start(lexer*,fdm_nhf*,double*,double*, int);
     void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
-    void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
+    void bcepsilon_matrix(lexer*,fdm_nhf*,double*,double*);
 	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_omega(lexer*,fdm_nhf*,double*,double*);
+	void wall_law_epsilon(lexer*,fdm_nhf*,double*,double*);
 
 private:
 	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;

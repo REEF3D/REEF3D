@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include"benchmark_void.h"
 #include"benchmark_vortex.h"
 #include"benchmark_disk.h"
+#include"benchmark_disk_xy.h"
+#include"benchmark_disk_yz.h"
 #include"benchmark_vortex3D.h"
 #include"benchmark_convection.h"
 #include"benchmark_TaylorGreen.h"

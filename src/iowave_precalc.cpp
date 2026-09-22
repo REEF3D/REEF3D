@@ -82,7 +82,7 @@ void iowave::wavegen_precalc(lexer *p, ghostcell *pgc)
         }
     }
     
-    
+    pgc->gcsync();
     
 }
     

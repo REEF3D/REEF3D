@@ -97,7 +97,7 @@ void initialize::inifdm(lexer* p, fdm* a, ghostcell* pgc)
 		a->conc(i,j,k)=0.0;
 	}
 
-	ALOOP
+	LOOP
     {
 	a->fb(i,j,k)=1.0;
     a->topo(i,j,k)=1.0;

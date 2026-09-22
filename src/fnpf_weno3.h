@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -29,19 +29,19 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_weno3 : public fnpf_convection, public increment, public ddweno3_f_nug
+class fnpf_weno3 final : public fnpf_convection, public increment, public ddweno3_f_nug
 {
 public:
 	fnpf_weno3(lexer*);
 	virtual ~fnpf_weno3();
 
-    double fx(lexer*, field&, double, double) override;
-	double fy(lexer*, field&, double, double) override;
-	double fz(lexer*, field&, double, double) override;
+    double fx(lexer*, field&, double, double) override final;
+	double fy(lexer*, field&, double, double) override final;
+	double fz(lexer*, field&, double, double) override final;
     
-    double sx(lexer*, slice&, double) override;
-	double sy(lexer*, slice&, double) override;
-    double sz(lexer*, double*) override;
+    double sx(lexer*, slice&, double) override final;
+	double sy(lexer*, slice&, double) override final;
+    double sz(lexer*, double*) override final;
 
 private:
     double **ckz;

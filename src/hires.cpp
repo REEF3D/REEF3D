@@ -44,7 +44,7 @@ hires::hires (lexer *p, int limiter)
 {
     if(p->j_dir==0)
     {
-    if(p->B269==0)
+    if(p->B200==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
@@ -53,7 +53,7 @@ hires::hires (lexer *p, int limiter)
         pflux = new flux_face_CDS2_2D(p);
     }
     
-    if(p->B269>=1 || p->S10==2)
+    if(p->B200>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
@@ -65,7 +65,7 @@ hires::hires (lexer *p, int limiter)
     
     if(p->j_dir==1)
     {
-    if(p->B269==0)
+    if(p->B200==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
@@ -74,7 +74,7 @@ hires::hires (lexer *p, int limiter)
         pflux = new flux_face_CDS2(p);
     }
     
-    if(p->B269>=1 || p->S10==2)
+    if(p->B200>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);

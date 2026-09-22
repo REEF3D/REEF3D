@@ -35,9 +35,9 @@ class komega_func : public rans_io, public komega_bc
 public:
 	komega_func(lexer *, fdm*, ghostcell*);
 	virtual ~komega_func();
-	void isource(lexer*,fdm*) override;
-	void jsource(lexer*,fdm*) override;
-	void ksource(lexer*,fdm*) override;
+	void isource(lexer*,fdm*) override final;
+	void jsource(lexer*,fdm*) override final;
+	void ksource(lexer*,fdm*) override final;
 	void kinsource(lexer*,fdm*,vrans*);
 	void epssource(lexer*,fdm*,vrans*,field&);
 	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);

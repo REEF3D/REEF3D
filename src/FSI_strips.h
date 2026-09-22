@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -35,7 +35,7 @@ class turbulence;
 
 using namespace std;
 
-class fsi_strips : public fsi
+class fsi_strips final : public fsi
 {
 public:
 	
@@ -43,9 +43,9 @@ public:
 	
     fsi_strips(lexer*,ghostcell*);
 	virtual ~fsi_strips();
-	void start(lexer*,fdm*,ghostcell*) override;
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override;
-    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override;
+	void start(lexer*,fdm*,ghostcell*) override final;
+	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override final;
+    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override final;
     
     
 private:

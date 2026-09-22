@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fnpf_fsf.h"
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5) // keep as is for wetting-drying
+#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5) // keep as is for wetting-drYing
 
 #define WLVLDRY (0.01*c->wd_criterion)
 
@@ -40,7 +40,10 @@ fnpf_sigma::~fnpf_sigma()
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
 {	
+    c->wd_criterion=p->A344;
     
+    SLICELOOP4
+    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
     
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
@@ -64,6 +67,16 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     
     SLICELOOP4
 	c->bed(i,j) = p->bed[IJ];
+    
+    
+    for(int qn=0; qn<p->A309;++qn)
+    {
+	SLICELOOP4
+	c->bed(i,j) = 0.5*c->bed(i,j) + 0.125*(c->bed(i-1,j) +c->bed(i+1,j) +c->bed(i,j-1) +c->bed(i,j+1) );
+    
+    pgc->gcsl_start4(p,c->bed,50);
+    }
+    
     
     SLICELOOP4
     c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));

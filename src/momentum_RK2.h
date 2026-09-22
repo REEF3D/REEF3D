@@ -41,13 +41,13 @@ class fsi;
 
 using namespace std;
 
-class momentum_RK2 : public momentum, public momentum_forcing, public bcmom
+class momentum_RK2 final : public momentum, public momentum_forcing, public bcmom
 {
 public:
 	momentum_RK2(lexer*, fdm*, convection*, diffusion*, pressure*, poisson*, turbulence*, 
                 solver*, solver*, ioflow*, fsi*);
 	virtual ~momentum_RK2();
-	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override;
+	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override final;
 
     field1 udiff, urk1, fx;
 	field2 vdiff, vrk1, fy;

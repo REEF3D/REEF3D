@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -32,12 +32,12 @@ class picard;
 
 using namespace std;
 
-class reinisolid_RK3 : public reinitopo, public increment
+class reinisolid_RK3 final : public reinitopo, public increment
 {
 public:
 	reinisolid_RK3(lexer* p);
 	virtual ~reinisolid_RK3();
-	void start(lexer*,fdm*,ghostcell*,field&) override;
+	void start(lexer*,fdm*,ghostcell*,field&) override final;
 
 	int *sizeM;
 	field4a f,frk1,frk2,L,dt;

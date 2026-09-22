@@ -56,7 +56,7 @@ void driver::logic_nhflow()
     
 // forcing
     pnhfdf=new nhflow_forcing(p,d,pgc);
-    
+
 // FSF
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
@@ -69,17 +69,26 @@ void driver::logic_nhflow()
     pss = new nhflow_signal_speed(p);
     
 //Convection	
-    if(p->A511==1)
+    if(p->A511==1 && p->A520!=3)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
-    if(p->A511==2)
+    if(p->A511==2 && p->A520!=3)
 	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
+    
+    if(p->A520==3)
+	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
     
     pnhfscalarconvec = new nhflow_scalar_ifou(p);
     
 //Diffusion
-    if(p->A512==0)
+    if(p->A512==0 && p->A560==0)
     pnhfdiff = new nhflow_diff_void(p);
+    
+    if(p->A512==0 && p->A560>0 && p->j_dir==1)
+    pnhfdiff = new nhflow_idiff(p);
+    
+    if(p->A512==0 && p->A560>0 && p->j_dir==0)
+    pnhfdiff = new nhflow_idiff_2D(p);
     
     if(p->A512==1)
     pnhfdiff = new nhflow_ediff(p);
@@ -94,7 +103,7 @@ void driver::logic_nhflow()
     if(p->A514<=3)
     precon = new nhflow_reconstruct_hires(p,pBC);
     
-    if(p->A514==4)
+    if(p->A514==4 || p->A514==5)
     precon = new nhflow_reconstruct_weno(p,pBC);
     
 //pressure scheme
@@ -106,6 +115,9 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
+    
+    if(p->A520==3)
+    pnhpress = new nhflow_pjm_yl(p,d,pgc,pBC);
 
 //Turbulence
     if(p->A560==0)
@@ -147,27 +159,24 @@ void driver::logic_nhflow()
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);
     
-    if(p->N10==1 && p->j_dir==0)
+    if(p->N10==1)
+    ppoissonsolv = new reefmg(p,pgc,p->N10,p->N11);
+    
+    if(p->N10==3 && p->j_dir==0)
 	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
     
-    if(p->N10==1 && p->j_dir==1)
+    if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 	
-	#ifdef HYPRE_COMPILATION
 	if(p->N10>=10 && p->N10<20)
 	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
-	#endif
     
-    #ifdef HYPRE_COMPILATION
 	if(p->N10>=20 && p->N10<30)
 	ppoissonsolv = new hypre_aij(p,a,pgc);
-	#endif
     
-    #ifdef HYPRE_COMPILATION
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
-	#endif
-    
+
 //Printer
     if(p->P150==0)
 	pdata = new expdata_void(p,a,pgc);
@@ -176,17 +185,14 @@ void driver::logic_nhflow()
 	pdata = new expdata_f(p,a,pgc);
     
     pprint = new printer_nhflow(p,d,pgc);
-    
+
 //VRANS
-    if(p->B269==0)
-	pvrans = new vrans_v(p,pgc);
+    if(p->B200==0)
+	pnhfvrans = new vrans_nhflow_v(p,d,pgc);
 
-	if(p->B269==1)
-	pvrans = new vrans_f(p,pgc);
+	if(p->B200==1)
+	pnhfvrans = new vrans_nhflow_f(p,d,pgc);
 
-    if(p->B269==2)
-	pvrans = new vrans_veg(p,pgc);
-    
 //IOFlow
 	if(p->B60==0 && p->B90==0 && p->B180==0)
 	pflow = new ioflow_v(p,pgc,pBC);
@@ -218,14 +224,17 @@ void driver::logic_nhflow()
     if(p->S10==0)
     psed = new sediment_void();
 
-    if(p->S10>0)
-    psed = new sediment_f(p,aa,pgc,pturbcfd,pBC);
+    if(p->S10==1)
+    psed = new sediment_f(p,pgc,pturbcfd,pBC);
     
+    if(p->S10==12)
+    psed = new sediment_RK2(p,pgc,pturbcfd,pBC);
+      
 //Momentum
     if(p->A510==2)
-	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pvrans,pnhfdf);
-    
+	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfvrans,pnhfdf,psed);
+
     if(p->A510==3)
-	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pvrans,pnhfdf);    
+	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
     
 }

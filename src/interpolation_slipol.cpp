@@ -29,12 +29,10 @@ double interpolation::sl_ipol1(slice &f)
 {
     v1=v2=0;
 
-    pip=4;
     if(p->flagslice1[IJ]>0)
     v1=f(i,j);
     if(p->flagslice1[IJp1]>0)
     v2=f(i,j+1);
-    pip=0;
 
     value = 0.5*(v1+v2);
 
@@ -45,12 +43,10 @@ double interpolation::sl_ipol2(slice &f)
 {
     v1=v2=0;
 
-    pip=4;
     if(p->flagslice2[IJ]>0)
     v1=f(i,j);
     if(p->flagslice2[Ip1J]>0)
     v2=f(i+1,j);
-    pip=0;
 
     value = 0.5*(v1+v2);
 
@@ -61,10 +57,8 @@ double interpolation::sl_ipol1a(slice &f)
 {
     v1=v2=0;
 
-    pip=4;
     v1=f(i,j);
     v2=f(i,j+1);
-    pip=0;
 
     value = 0.5*(v1+v2);
 
@@ -75,10 +69,8 @@ double interpolation::sl_ipol2a(slice &f)
 {
     v1=v2=0;
 
-    pip=4;
     v1=f(i,j);
     v2=f(i+1,j);
-    pip=0;
 
     value = 0.5*(v1+v2);
 
@@ -89,7 +81,6 @@ double interpolation::sl_ipol4(slice &f)
 {
     v1=v2=v3=v4=0;
 
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
@@ -97,7 +88,6 @@ double interpolation::sl_ipol4(slice &f)
     v3=f(i,j+1);
 
     v4=f(i+1,j+1);
-    pip=0;
 
     value = 0.25*(v1+v2+v3+v4);
     
@@ -137,8 +127,6 @@ double interpolation::sl_ipol1eta(int *wet,slice &f, slice &bed)
     // 3D
     if(p->j_dir==1)
     {
-    pip=4;
-    
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -163,12 +151,9 @@ double interpolation::sl_ipol1eta(int *wet,slice &f, slice &bed)
     if(wet[Ip1Jp1]==0)
     v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-30.0*wd_criterion);
     
-    pip=0;
-
     value = 0.25*(v1+v2+v3+v4);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
@@ -176,7 +161,6 @@ double interpolation::sl_ipol1eta(int *wet,slice &f, slice &bed)
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
-    pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     }
@@ -206,22 +190,17 @@ double interpolation::sl_ipol2eta(int *wet,slice &f, slice &bed)
     jj=j;
     
     j=0;
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
 
-    pip=0;
 
     value = 0.5*(v1+v2);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
-
-    pip=0;
 
     bedvalue = 0.5*(v1+v2);
     
@@ -230,8 +209,6 @@ double interpolation::sl_ipol2eta(int *wet,slice &f, slice &bed)
     
     if(p->j_dir==1)
     {
-    pip=4;
-    
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -255,13 +232,10 @@ double interpolation::sl_ipol2eta(int *wet,slice &f, slice &bed)
     
     if(wet[Ip1Jp1]==0)
     v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-30.0*wd_criterion);
-    
-    pip=0;
 
     value = 0.25*(v1+v2+v3+v4);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
@@ -269,7 +243,6 @@ double interpolation::sl_ipol2eta(int *wet,slice &f, slice &bed)
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
-    pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     }
@@ -295,22 +268,18 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     jj=j;
     
     j=0;
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
 
-    pip=0;
 
     value = 0.5*(v1+v2);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
 
-    pip=0;
 
     bedvalue = 0.5*(v1+v2);
     
@@ -319,8 +288,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(p->j_dir==0)
     {
-    pip=4;
-    
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -333,17 +300,12 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     if(wet[Ip1J]==0)
     v2=MIN(f(i+1,j),bed(i+1,j)-p->wd-1.0*p->DXM);
 
-    
-    pip=0;
-
     value = 0.5*(v1+v2);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
-    pip=0;
 
     bedvalue = 0.5*(v1+v2);
     
@@ -356,8 +318,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(p->j_dir==1)
     {
-    pip=4;
-    
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -382,7 +342,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     if(wet[Ip1Jp1]==0)
     v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-1.0*p->DXM);
     
-    pip=0;
     /*
     v1=f(i,j);
     v2=f(i+1,j);
@@ -392,7 +351,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     value = 0.25*(v1+v2+v3+v4);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
@@ -400,7 +358,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
-    pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     
@@ -417,22 +374,18 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     jj=j;
     
     j=0;
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
 
-    pip=0;
 
     value = 0.5*(v1+v2);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
 
-    pip=0;
 
     bedvalue = 0.5*(v1+v2);
     
@@ -441,7 +394,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(p->j_dir==1)
     {
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
@@ -449,12 +401,10 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     v3=f(i,j+1);
 
     v4=f(i+1,j+1);
-    pip=0;
 
     value = 0.25*(v1+v2+v3+v4);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
@@ -462,7 +412,6 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
-    pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     }
@@ -480,7 +429,6 @@ double interpolation::sl_ipol4eta_wd(int *wet, slice &f, slice &bed)
 {
     v1=v2=v3=v4=0;
 
-    pip=4;
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -492,7 +440,6 @@ double interpolation::sl_ipol4eta_wd(int *wet, slice &f, slice &bed)
 
     if(wet[Ip1Jp1]==1)
     v4=f(i+1,j+1);
-    pip=0;
 
     value = 0.25*(v1+v2+v3+v4);
     
@@ -504,7 +451,6 @@ double interpolation::sl_ipolint(sliceint &f)
 {
     v1=v2=v3=v4=0;
 
-    pip=4;
     v1=double(f(i,j));
 
     v2=double(f(i+1,j));
@@ -512,7 +458,6 @@ double interpolation::sl_ipolint(sliceint &f)
     v3=double(f(i,j+1));
 
     v4=double(f(i+1,j+1));
-    pip=0;
 
     value = 0.25*(v1+v2+v3+v4);
 
@@ -533,8 +478,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
 
     if(p->j_dir==0)
     {
-    pip=4;
-    
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -548,16 +491,13 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     v2=MIN(f(i+1,j),bed(i+1,j)-p->wd-fac*p->DXM);
 
     
-    pip=0;
 
     value = 0.5*(v1+v2);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
-    pip=0;
 
     bedvalue = 0.5*(v1+v2);
     
@@ -568,8 +508,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(p->j_dir==1)
     {
-    pip=4;
-    
     if(wet[IJ]==1)
     v1=f(i,j);
     
@@ -594,7 +532,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     if(wet[Ip1Jp1]==0)
     v4=MIN(f(i+1,j+1),bed(i+1,j+1)-p->wd-fac*p->DXM);
     
-    pip=0;
     /*
     v1=f(i,j);
     v2=f(i+1,j);
@@ -604,7 +541,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     value = 0.25*(v1+v2+v3+v4);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
@@ -612,7 +548,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
-    pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     
@@ -629,22 +564,18 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     jj=j;
     
     j=0;
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
 
-    pip=0;
 
     value = 0.5*(v1+v2);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
 
-    pip=0;
 
     bedvalue = 0.5*(v1+v2);
     
@@ -653,7 +584,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     
     if(p->j_dir==1)
     {
-    pip=4;
     v1=f(i,j);
 
     v2=f(i+1,j);
@@ -661,12 +591,10 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     v3=f(i,j+1);
 
     v4=f(i+1,j+1);
-    pip=0;
 
     value = 0.25*(v1+v2+v3+v4);
     
     //bed
-    pip=4;
     v1=bed(i,j);
 
     v2=bed(i+1,j);
@@ -674,7 +602,6 @@ double interpolation::nhf_ipol4eta(int *wet,slice &f, slice &bed)
     v3=bed(i,j+1);
 
     v4=bed(i+1,j+1);
-    pip=0;
 
     bedvalue = 0.25*(v1+v2+v3+v4);
     }

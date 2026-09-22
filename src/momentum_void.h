@@ -27,12 +27,12 @@ Author: Hans Bihs
 
 using namespace std;
 
-class momentum_void : public momentum
+class momentum_void final : public momentum
 {
 public:
 	momentum_void();
 	virtual ~momentum_void();
-	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override;
+	void start(lexer*, fdm*, ghostcell*,vrans*,sixdof*) override final;
 
 private:
 };

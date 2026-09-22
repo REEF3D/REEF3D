@@ -10,14 +10,14 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Tobias Martin, Hans Bihs
+Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
@@ -72,4 +72,19 @@ void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, boo
     // Update floating level set function
 	ray_cast(p,d,pgc);
 	nhflow_reini_RK2(p,d,pgc,d->FB);
+}
+
+void sixdof_obj::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
+{
+    // Update position of wavemaker
+    if(p->X170==1)
+	piston(p, pgc, 0);
+    
+    if(p->X172==1)
+    flap_double(p,pgc,0);
+    
+    // Update floating level set function
+	ray_cast(p,d,pgc);
+	nhflow_reini_RK2(p,d,pgc,d->FB);
+
 }

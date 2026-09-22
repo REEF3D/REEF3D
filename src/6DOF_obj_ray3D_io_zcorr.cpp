@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -47,7 +47,7 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 	double denom;
 	double psi = 1.0e-8*p->DXM;
     
-    ALOOP
+    LOOP
 	{
 	cutl(i,j,k)=0;
 	cutr(i,j,k)=0;
@@ -192,13 +192,13 @@ void sixdof_obj::ray_cast_io_zcorr(lexer *p, fdm *a, ghostcell *pgc, int ts, int
 	}
     }
     
-    ALOOP
+    LOOP
 	if((cutl(i,j,k)+1)%2==0  && (cutr(i,j,k)+1)%2==0)
 	fbio(i,j,k)=-1;
 
     /*
     count=0;
-	ALOOP
+	LOOP
 	if(a->fb(i,j,k)>0)
 	++count;
     

@@ -41,9 +41,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
          ETA: cos()
         */
 
-    double fsfloc;
     int qn;
-
 
     // pre-calc every iteration
     count=0;
@@ -83,7 +81,7 @@ void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
         if(p->B98==2 && f_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
                 Fifsfval[count] = 0.0;
                 

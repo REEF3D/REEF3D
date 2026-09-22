@@ -36,7 +36,7 @@ ifou::ifou (lexer *p)
 {
     if(p->j_dir==0)
     {
-    if(p->B269==0)
+    if(p->B200==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
@@ -45,7 +45,7 @@ ifou::ifou (lexer *p)
         pflux = new flux_face_CDS2_2D(p);
     }
     
-    if(p->B269>=1 || p->S10==2)
+    if(p->B200>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
@@ -57,7 +57,7 @@ ifou::ifou (lexer *p)
     
     if(p->j_dir==1)
     {
-    if(p->B269==0)
+    if(p->B200==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
@@ -66,7 +66,7 @@ ifou::ifou (lexer *p)
         pflux = new flux_face_CDS2(p);
     }
     
-    if(p->B269>=1 || p->S10==2)
+    if(p->B200>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
@@ -125,9 +125,9 @@ void ifou::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, fiel
     wdir=1.0;
 
 	 
-	 a->M.p[count] = udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
+	 a->M.p[count] =    udir*ivel2/DX[IM1] - (1.0-udir)*ivel1/DX[IP]
 					+ (vdir*jvel2/DY[JM1] - (1.0-vdir)*jvel1/DY[JP])*p->y_dir
-					+ wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
+					+  wdir*kvel2/DZ[KM1] - (1.0-wdir)*kvel1/DZ[KP];
 	 
 	 a->M.s[count] = -udir*ivel1/DX[IM1];
 	 a->M.n[count] =  (1.0-udir)*ivel2/DX[IP];

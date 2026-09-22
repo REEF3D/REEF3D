@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -91,21 +91,29 @@ void sixdof_void::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
-
+    // Mooring
     if(p->X310>0)
-    {
-        for (int i=0; i<p->mooring_count; i++)
-        {
-            pmooring[i]->start(p, pgc);
-        }
-    }
+    for (int i=0; i<p->mooring_count; i++)
+    pmooring[i]->start(p, pgc);
     
+    // Net
     if(p->X320>0)
+    pnetinter->netForces_cfd(p,a,pgc,1.0,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
+    
+    int ii=0;
+    /*if( p->mpirank == 0)
     {
-        pnetinter->netForces_cfd(p,a,pgc,alpha[iter],quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne);
-    }
+                cout<<"Xne"<< ii <<" : "<<Xne[ii]<<" Yne"<< ii <<" : "<<Yne[ii]<<" Zne"<< ii <<" : "<<Zne[ii]
+                <<" Kne"<< ii <<" : "<<Kne[ii]<<" Mne"<< ii <<" : "<<Mne[ii]<<" Nne"<< ii <<" : "<<Nne[ii]<<endl;        
+    }*/
+    
+    // print counter
+    if((((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0) && finalize==true)
+    {
+    printtime += p->P30;
     
     ++p->printcount_sixdof;
+    }
 }
 
 

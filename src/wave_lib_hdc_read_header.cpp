@@ -42,6 +42,10 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         header.read((char*)&iin, sizeof (int));
         file_type=iin;
         
+        // file_conti
+        header.read((char*)&iin, sizeof (int));
+        file_conti=iin;
+        
         // jdir
         header.read((char*)&iin, sizeof (int));
         jdir=iin;
@@ -136,7 +140,6 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
         Xstart = X[0];
         Xend = X[Nx-1];
         }
-        
         
         
         if(Ny==0)

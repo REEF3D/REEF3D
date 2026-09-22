@@ -32,19 +32,19 @@ class patchBC_interface;
 
 using namespace std;
 
-class sflow_eta : public sflow_fsf, public increment
+class sflow_eta final : public sflow_fsf, public increment
 {
 public:    
 	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
 	virtual ~sflow_eta();
 	
-    void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double) override;
-	void ini(lexer*, fdm2D*, ghostcell*, ioflow*) override;
-	void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override;
-    void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override;
-    void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override;
-    void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override;
-	void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override;
+    void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double) override final;
+	void ini(lexer*, fdm2D*, ghostcell*, ioflow*) override final;
+	void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override final;
+    void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override final;
+    void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
+    void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
+	void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override final;
 private:
     
     void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);

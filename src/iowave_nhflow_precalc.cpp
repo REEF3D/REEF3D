@@ -56,6 +56,8 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     p->wavecalctime+=pgc->timer()-starttime;
+    
+    pgc->gcsync();
 }
 
 void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

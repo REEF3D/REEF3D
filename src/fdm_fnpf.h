@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -47,12 +47,12 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field5 press,test;
+    field5 test;
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;
     slice4 bed,depth;
-    slice4 Fifsf,Fibed,Fz;
+    slice4 Fifsf,Fz;
     slice4 K;
     sliceint4 etaloc,wet_n,breaking,breaklog,bc;
     
@@ -61,7 +61,6 @@ public:
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
-    slice4 Hx,Hy;
     slice4 coastline;
     slice4 vb;
     slice4 test2D;

@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reini.h"
-#include"particle_corr.h"
 #include"picard.h"
 #include"fluid_update_fsf.h"
 #include"fluid_update_fsf_heat.h"
@@ -78,7 +77,7 @@ levelset_void::~levelset_void()
 }
 
 
-void levelset_void::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, particle_corr* ppls, field &ls)
+void levelset_void::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostcell* pgc,ioflow* pflow, reini* preini, field &ls)
 {
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
 }

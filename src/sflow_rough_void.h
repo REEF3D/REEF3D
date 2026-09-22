@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -29,15 +29,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sflow_rough_void : public sflow_roughness
+class sflow_rough_void final : public sflow_roughness
 {
 
 public:
     sflow_rough_void(lexer*);
 	virtual ~sflow_rough_void();
     
-	void u_source(lexer*, fdm2D*, slice&) override;
-    void v_source(lexer*, fdm2D*, slice&) override;
+	void u_source(lexer*, fdm2D*, slice&) override final;
+    void v_source(lexer*, fdm2D*, slice&) override final;
 
 };
 

@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"vrans_header.h"
 #include"nhflow_header.h"
 #include"lexer.h"
 #include<sys/stat.h>
@@ -47,7 +48,7 @@ Author: Hans Bihs
 void driver::driver_ini_nhflow()
 {
     
-    pnhf->ini(p,d,pgc,pflow);
+    pnhf->ini(p,d,pgc,pflow,pnhfsf);
 
 	log_ini();
     
@@ -87,6 +88,9 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->eta_n(i,j) = d->eta(i,j);
     
+    // sigma ini
+    pnhfmom->inidisc(p,d,pgc,pnhfsf);
+    
     LOOP
     {
     d->RO[IJK] = p->W1;
@@ -96,7 +100,11 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->ks(i,j) = p->B50;
     
-    if(p->S10>0)
+    if(p->S10>0 && p->S28==0)
+    SLICELOOP4
+    d->ks(i,j) = p->S20;
+    
+    if(p->S10>0 && p->S28==1)
     SLICELOOP4
     d->ks(i,j) = p->S21*p->S20;
     
@@ -127,11 +135,14 @@ void driver::driver_ini_nhflow()
     // turbulence ini
     pnhfturb->ini(p, d, pgc);
     
-    //sediment ini
+    // sediment ini
     psed->ini_nhflow(p,d,pgc);
     
-    //6DOF ini
+    // 6DOF ini
     p6dof->initialize(p, d, pgc);
+    
+    // VRANS ini
+    pnhfvrans->initialize(p,d,pgc);
     
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
 

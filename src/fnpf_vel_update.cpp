@@ -30,7 +30,8 @@ Author: Hans Bihs
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e20)
 
 void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
-{/*
+{
+    /*
     FLOOP
     {
     // U
@@ -57,8 +58,10 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     
     // W
     c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
-    }
-    */
+    }*/
+    
+    
+    
     FLOOP
     {
     // U
@@ -66,8 +69,8 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     c->U[FIJK] = (-c->Fi[FIp2JK] + 8.0*c->Fi[FIp1JK] - 8.0*c->Fi[FIm1JK] + c->Fi[FIm2JK])/(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2])
     
                 + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
-                
-                
+
+                            
     if(k==p->knoz)
     c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
     
@@ -85,23 +88,12 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
                 + p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
     
     // W
+    if(k<p->knoz)
     c->W[FIJK] = ((-c->Fi[FIJKp2] + 8.0*c->Fi[FIJKp1] - 8.0*c->Fi[FIJKm1] + c->Fi[FIJKm2])/(-p->ZN[KP2] + 8.0*p->ZN[KP1] - 8.0*p->ZN[KM1] + p->ZN[KM2]))*p->sigz[IJ];
     }
-
-    FLOOP
-    {
-        if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
-        || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)
-        {
-        
-        c->U[FIJK]=0.0;
-        c->V[FIJK]=0.0;
-        c->W[FIJK]=0.0;
-        }
-    }
-
-
-      /*
+    
+    /*
+    if(p->B98>=3)
     for(n=0;n<p->gcslin_count;n++)
     {
         i=p->gcslin[n][0];
@@ -118,8 +110,43 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     FFILOOP4
     c->W[FIJK] = c->Fz(i,j);
     
+    FLOOP
+    {
+        if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
+        || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)
+        {
+        
+        c->U[FIJK]=0.0;
+        c->V[FIJK]=0.0;
+        c->W[FIJK]=0.0;
+        }
+        
+        if(i+p->origin_i<=5)
+        {
+        if(c->U[FIJK]<=-p->N61)
+        c->U[FIJK] = -0.95*p->N61;
+        
+        if(c->U[FIJK]>=p->N61)
+        c->U[FIJK] = 0.95*p->N61;
+        
+        
+        if(c->V[FIJK]<=-p->N61)
+        c->V[FIJK] = -0.95*p->N61;
+        
+        if(c->V[FIJK]>=p->N61)
+        c->V[FIJK] = 0.95*p->N61;
+        
+            
+        if(c->W[FIJK]<=-p->N61)
+        c->W[FIJK] = -0.95*p->N61;
+        
+        if(c->W[FIJK]>=p->N61)
+        c->W[FIJK] = 0.95*p->N61;
+        }
+    }
     
     
+
     int gcval=210;
     
     pgc->start7V(p,c->U,c->bc,gcval);
@@ -127,16 +154,26 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     pgc->start7V(p,c->W,c->bc,gcval);
     
     
-    
-    // test: kfsfbc
-    double val;
-    
+    /*
+    k = p->knoz;
     
     SLICELOOP4
+    if(fabs(c->W[FIJK])>100.0 && p->YP[JP]>9000 && p->YP[JP]<9400)
     {
-    c->eta_n(i,j) = c->eta(i,j);
+    FKLOOP
+    {
+    cout<<c->Fi[FIJK]<<" "<<((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))<<" "<<p->sigz[IJ]<<" "<<c->WL(i,j)<<" "<<p->wd-c->bed(i,j)<<" "<<c->depth(i,j)<<endl;
     }
-    pgc->gcsl_start4(p,c->eta_n,1);   
+    cout<<endl;
+    }
     
+    LOOP
+    c->test[IJK] = p->sigz[IJ];
+    */
+    
+    SLICELOOP4
+    c->eta_n(i,j) = c->eta(i,j);
+
+    pgc->gcsl_start4(p,c->eta_n,1);   
 }
 

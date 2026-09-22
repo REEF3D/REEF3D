@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -63,13 +63,12 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 {
     int count=0;
-    int q;
 
     LOOP
     {
-        d->M.p[count]+= 1.0/DT;
+        d->M.p[count]+= 1.0/p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/DT;
+        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/p->dt;
 
 	++count;
     }
@@ -81,10 +80,25 @@ void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
-    FLOOP
-    WVEL[FIJK] = d->omegaF[FIJK] - s->ws;
+    double ws_eff,nval,Re_p;
     
-    pgc->start7S(p,WVEL,17);
+    Re_p = s->ws*p->S20/p->W2;
+    nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
+    
+    FLOOP
+    if(k>0 && k<p->knoz)
+    {
+    WVEL[FIJK] = 0.0;
+    
+        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+        {
+        ws_eff = s->ws * pow(MAX(1.0 - d->CONC[IJK]/0.635, 0.0), nval);
+        WVEL[FIJK] = d->W[FIJK] - ws_eff;
+        }
+    }
+    
+    //pgc->start4V(p,WVEL,12);
+    pgc->start7S(p,d->omegaF,17);
 }
 
 void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sediment_fdm *s)
@@ -94,14 +108,17 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     count=0;
     LOOP
     {   
-
-        if(k==0)
+        if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1)
         {
         zdist = p->DZN[KP]*d->WL(i,j);
-        d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
-        
-        //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
+        d->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;
+        d->M.p[count] += (s->ws)/zdist;
         }
+        
+        /*
+        if(p->mpirank==0)
+        if(i==10 && k==p->knoz-1)
+        d->rhsvec.V[count] += 0.00001;*/
 
 	++count;
     }
@@ -114,42 +131,52 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         n=0;
         LOOP
         {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
+            if(p->DF[IJK]>0 && p->wet[IJ]==1)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*CONC[Im1JK];
+                
+            if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 || p->wet[Im1J]==0)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*CONC[IJK];
             d->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))
+            if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*CONC[Ip1JK];
+            d->rhsvec.V[n] -= d->M.n[n]*CONC[IJK];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0))
+            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJm1K];
+            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJK];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0))
+            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0 || p->wet[IJp1]==0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJp1K];
+            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJK];
             d->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k<p->knoz-1)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*CONC[IJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*CONC[IJK];
             d->M.t[n] = 0.0;
+            }
+            
+            if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k==p->knoz-1)
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*0.0;
+            d->M.t[n] = 0.0;
+            }
             }
 
         ++n;
@@ -160,9 +187,9 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         n=0;
         LOOP
         {
-            if(p->DF[IJK]<0)
+            if(p->DF[IJK]<0 || p->wet[IJ]==0)
             {
-            d->M.p[n]  =   1.0;
+            d->M.p[n] = 1.0;
 
             d->M.n[n] = 0.0;
             d->M.s[n] = 0.0;
@@ -183,9 +210,60 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
 {
     k=0;
     SLICELOOP4
-    s->cb(i,j) = d->CONC[IJK];
+    {
+    if(p->DF[IJK]<0 || p->wet[IJ]==0)
+    s->cb(i,j) = 0.0;
+    
+        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+        {
+            if(p->S61==1)
+            s->cb(i,j) = MAX(MIN(d->CONC[IJK],0.1),0.0);
 
+            if(p->S61==2)
+            s->cb(i,j) = Rouse_formula(p,d,s,d->CONC[IJK]);
+        }
+    }    
     pgc->gcsl_start4(p,s->cb,1);
+    
+    
+    double Uh;
+    
+    SEDSLICELOOP
+    s->qbs(i,j) = 0.0;
+    
+    SEDSLICELOOP
+    KLOOP
+    {
+        Uh = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]);
+        
+        s->qbs(i,j) += Uh*d->CONC[IJK]*p->DZN[KP]*d->WL(i,j);
+    }
+    
+    pgc->gcsl_start4(p,s->qbs,1);
+}
+
+double nhflow_suspended_IM1::Rouse_formula(lexer* p, fdm_nhf *d, sediment_fdm *s, double Cc)
+{
+    double Ca;    
+    double za,zc,P;
+    
+    za = 2.0*p->S20;
+    
+    zc = 0.5*p->DZN[KP]*p->WL[IJ];
+    
+    P = s->ws/(0.4* (s->shearvel_eff(i,j)>0.0?s->shearvel_eff(i,j):1.0e-6) );
+    
+    P = MAX(P,0.8);
+    P = MIN(P,2.5);
+    
+    
+    Ca = Cc * pow( ((p->WL[IJ]-za)/za) / ((p->WL[IJ]-zc)/zc), P);
+    
+    Ca = MIN(Ca,0.1);
+    
+    //cout<<"Cc: "<<Cc<<" Ca: "<<Ca<<" | P: "<<P<<" "<<s->shearvel_eff(i,j)<<endl;
+
+    return Ca;
 }
 
 void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
@@ -195,6 +273,18 @@ void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
     {    
     d->rhsvec.V[n]=0.0;
     d->L[IJK]=0.0;
+    
+    
+            d->M.p[n] = 0.0;
+
+            d->M.n[n] = 0.0;
+            d->M.s[n] = 0.0;
+
+            d->M.w[n] = 0.0;
+            d->M.e[n] = 0.0;
+
+            d->M.t[n] = 0.0;
+            d->M.b[n] = 0.0;
 	++n;
     }
 }

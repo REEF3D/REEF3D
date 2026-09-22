@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include"bicgstab_ijk.h"
 #include"bicgstab_ijk_2D.h"
 
+#include"reefmg.h"
+
 #include"hypre_aij.h"
 #include"hypre_struct.h"
 #include"hypre_sstruct.h"

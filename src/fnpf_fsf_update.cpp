@@ -60,6 +60,7 @@ void fnpf_fsf_update::etaloc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, double *Fi)
 {
+    // free surface boundary condition for Laplace equation
     FFILOOP4
     {
         Fi[FIJK]   = Fifsf(i,j);

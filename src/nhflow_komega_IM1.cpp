@@ -75,8 +75,9 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
     bcomega_matrix(p,d,KIN,EPS);
-	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
     bckomega_start(p,d,KIN,EPS,gcval_eps);
+	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
+    //bckomega_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
@@ -115,9 +116,9 @@ void nhflow_komega_IM1::timesource(lexer* p, fdm_nhf* d, double *FN)
     count=0;
     LOOP
     {
-        d->M.p[count] += 1.0/DT;
+        d->M.p[count] += 1.0/p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/DT;
+        d->rhsvec.V[count] += d->L[IJK] + FN[IJK]/p->dt;
 
 	++count;
     }

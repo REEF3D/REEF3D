@@ -35,18 +35,6 @@ void iowave::wavegen_precalc_decomp_time_fnpf(lexer *p, ghostcell *pgc)
     etaval_T_sin[qn] = wave_eta_time_sin(p,pgc,qn);
     etaval_T_cos[qn] = wave_eta_time_cos(p,pgc,qn);
     }
-
-    for(qn=0;qn<wave_comp;++qn)
-    {
-    Fival_T_sin[qn] = wave_fi_time_sin(p,pgc,qn);
-    Fival_T_cos[qn] = wave_fi_time_cos(p,pgc,qn);
-    }
-    
-    for(qn=0;qn<wave_comp;++qn)
-    {
-    uval_T_sin[qn] = wave_u_time_sin(p,pgc,qn);
-    uval_T_cos[qn] = wave_u_time_cos(p,pgc,qn);
-    }
     
     for(qn=0;qn<wave_comp;++qn)
     {

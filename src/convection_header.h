@@ -43,11 +43,13 @@ Author: Hans Bihs
 #include"weno3_flux.h"
 #include"diff_void.h"
 #include"ediff2.h"
+#include"ediff2_2D.h"
 #include"idiff2.h"
 #include"idiff2_FS.h"
 #include"idiff2_CN.h"
 #include"idiff2_FS_2D.h"
 #include"idiff2_PLIC_2D.h"
+#include"idiff2_PLIC.h"
 
 #include"hires.h"
 

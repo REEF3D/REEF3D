@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,13 +33,13 @@ class sediment_fdm;
 
 using namespace std;
 
-class reduction_parker :  public bedshear_reduction, public bedslope
+class reduction_parker final :  public bedshear_reduction, public bedslope
 {
 public:
     reduction_parker(lexer*);
     virtual ~reduction_parker();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override;
+	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
 

@@ -39,7 +39,7 @@ void nhflow_kepsilon_bc::bckepsilon_start(lexer *p, fdm_nhf *d, double *KIN, dou
     wall_law_kin(p,d,KIN,EPS);
         
 	if(gcval==30)
-	wall_law_omega(p,d,KIN,EPS);
+	wall_law_epsilon(p,d,KIN,EPS);
 }
 
 void nhflow_kepsilon_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
@@ -110,6 +110,8 @@ void nhflow_kepsilon_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double 
                 if(30.0*dist<ks)
                 dist=ks/30.0;
                 
+                uplus = (1.0/kappa)*log(30.0*(dist/ks));
+                
                 tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
                 
                 //tau = pow(p->cmu,0.25)*pow(fabs(KIN[IJK]),0.5)*(u_abs/(uplus>0.0?uplus:(1.0e20)));
@@ -124,13 +126,13 @@ void nhflow_kepsilon_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double 
     }
 }
 
-void nhflow_kepsilon_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_kepsilon_bc::wall_law_epsilon(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
     int check=0;
     
     
     count=0;
-    if(p->B11>0)
+    //if(p->B11>0)
     LOOP
     {
         check=0;
@@ -181,10 +183,10 @@ void nhflow_kepsilon_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, doubl
             eps_star = (pow(p->cmu, 0.75)*pow((KIN[IJK]>(0.0)?(KIN[IJK]):(0.0)),1.5)) / (0.4*dist);
             
 
-            EPS[IJK] = eps_star;
+            //EPS[IJK] = eps_star;
             
-            //d->M.p[count] += 1.0e20;
-            //d->rhsvec.V[count] += eps_star*1.0e20;
+            d->M.p[count] += 1.0e20;
+            d->rhsvec.V[count] += eps_star*1.0e20;
             }
             
         
@@ -281,7 +283,7 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         }
 }
 
-void nhflow_kepsilon_bc::bcomega_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
 	int q;
     int inflow=0;

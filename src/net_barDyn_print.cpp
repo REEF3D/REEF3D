@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -66,13 +66,8 @@ void net_barDyn::print(lexer *p)
         }
     }  
     
-	
-    if
-	(
-		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-		|| (p->simtime>printtime && p->P30>0.0)   
-		|| p->count==0)
-	)
+	// Print net.vtk
+    if(p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0))
 	{
 		printtime += p->P30;
 

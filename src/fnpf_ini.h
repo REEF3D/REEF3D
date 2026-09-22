@@ -44,7 +44,7 @@ public:
 	fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_ini();
     
-    void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*) override;
+    void ini(lexer*, fdm_fnpf*, ghostcell*, ioflow*, reini*) override final;
     
     void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     

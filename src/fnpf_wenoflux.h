@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -29,14 +29,14 @@ Author: Hans Bihs
 
 using namespace std;
 
-class fnpf_wenoflux : public fnpf_etadisc, public increment, public weno_nug_func
+class fnpf_wenoflux final : public fnpf_etadisc, public increment, public weno_nug_func
 {
 public:
 	fnpf_wenoflux(lexer*);
 	virtual ~fnpf_wenoflux();
 
-    double sx(lexer*, slice&, slice&) override;
-	double sy(lexer*, slice&, slice&) override;
+    double sx(lexer*, slice&, slice&) override final;
+	double sy(lexer*, slice&, slice&) override final;
 
 
 private:

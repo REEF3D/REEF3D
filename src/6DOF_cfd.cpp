@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -52,7 +52,7 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter);
+        fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
          
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);

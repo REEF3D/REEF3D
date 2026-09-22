@@ -27,15 +27,15 @@ Author: Hans Bihs
 
 using namespace std;
 
-class picard_void : public picard
+class picard_void final : public picard
 {
 public:
 
     picard_void(lexer *p);
     virtual ~picard_void();
 
-    void volcalc(lexer*, fdm*, ghostcell*, field&) override;
-    void correct_ls(lexer*, fdm*, ghostcell*, field&) override;
+    void volcalc(lexer*, fdm*, ghostcell*, field&) override final;
+    void correct_ls(lexer*, fdm*, ghostcell*, field&) override final;
 
 };
 

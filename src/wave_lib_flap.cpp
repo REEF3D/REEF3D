@@ -88,7 +88,7 @@ double wave_lib_flap::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
 	
-	vel = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+	vel = p->B118*fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
 
     return vel;
 }
@@ -110,7 +110,7 @@ double wave_lib_flap::wave_w(lexer *p, double x, double y, double z)
 	
 	fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
 	
-	vel = fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
+	vel = p->B118*fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
 
     return vel;
 }
@@ -119,7 +119,7 @@ double wave_lib_flap::wave_eta(lexer *p, double x, double y)
 {
     double eta;
 
-    eta =  0.0;
+    eta =  0.0;//2.0*(kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]) * sqrt(depth/9.81);
 
     return eta;
 }

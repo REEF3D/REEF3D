@@ -26,7 +26,42 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 
-void wind_f::wind_forcing_drag_coeff(lexer *p)
+void wind_f::wind_forcing_drag_coeff_fnpf(lexer *p)
+{
+    // Garratt
+    if(p->A370==1)
+    {
+    if(p->A371_u<41.0)
+    Cd = 0.001 * (0.75+0.067*p->A371_u);
+    
+    if(p->A371_u>=41.0)
+    Cd = 0.001 * (3.5*p->A371_u);
+    }
+
+    // Wu
+    if(p->A370==2)
+    {
+    if(p->A371_u<7.5)
+    Cd = 1.2875e-3;
+    
+    if(p->A371_u>=7.5)
+    Cd = 0.001 * (0.8 + 0.065*p->A371_u);
+    }
+    
+    // Smith and Banke
+    if(p->A370==3)
+    {
+    Cd = 0.001 * (0.63+0.066*p->A371_u);
+    }
+    
+    // Zijlema
+    if(p->A370==4)
+    {     
+    Cd = 0.001 * (0.55 + 2.97*(p->A371_u/Uref) - 1.49*pow(p->A371_u/Uref,2.0));
+    }
+}
+
+void wind_f::wind_forcing_drag_coeff_nhflow(lexer *p)
 {
     // Garratt
     if(p->A570==1)

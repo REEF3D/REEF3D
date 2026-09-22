@@ -112,7 +112,7 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
 		wsfout<<"\t \t W "<<q+1;
 		}
 
-		wsfout<<endl<<endl;
+		wsfout<<endl;
     }
 
     //-------------------

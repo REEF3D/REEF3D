@@ -34,29 +34,42 @@ nhflow_scalar_advec_CDS2::~nhflow_scalar_advec_CDS2()
 
 void nhflow_scalar_advec_CDS2::uadvec(int ipol, double *U, double &uflux1, double &uflux2)
 {
-	if(ipol==4)
-	{
-	uflux1 = U[IJK];
-	uflux2 = U[IJK];
-	}
+	uflux1 = 0.5*(U[IJK]+U[Im1JK]);
+	uflux2 = 0.5*(U[IJK]+U[Ip1JK]);
+    
+    /*if(i==0 || p->DF[Im1JK]<0)
+    uflux1=0.0;
+    
+    if(i==p->knox-1 || p->DF[Ip1JK]<0)
+    uflux2=0.0;*/
 }
 
 void nhflow_scalar_advec_CDS2::vadvec(int ipol, double *V, double &vflux1, double &vflux2)
 {
-	if(ipol==4)
-	{
-	vflux1 = V[IJK];
-	vflux2 = V[IJK];
-	}
+	vflux1 = 0.5*(V[IJK]+V[IJm1K]);
+	vflux2 = 0.5*(V[IJK]+V[IJp1K]);
+    
+    if(j==0 || p->DF[IJm1K]<0)
+    vflux1=0.0;
+    
+    if(j==p->knoy-1 || p->DF[IJp1K]<0)
+    vflux2=0.0;
 }
 
 void nhflow_scalar_advec_CDS2::wadvec(int ipol, double *W, double &wflux1, double &wflux2)
 {
-	if(ipol==4)
-	{
-	wflux1 = 0.5*(W[FIJK]+W[FIJKp1]);
-	wflux2 = 0.5*(W[FIJK]+W[FIJKp1]);
-	}
+	/*wflux1 = 0.5*(W[IJK]+W[IJKm1]);
+	wflux2 = 0.5*(W[IJK]+W[IJKp1]);
+    
+    if(k==0 || p->DF[IJKm1]<0)
+    wflux1=0.0;
+    
+    if(k==p->knoz-1 || p->DF[IJKp1]<0)
+    wflux2=0.0;*/
+    
+    
+    wflux1 = W[FIJK];
+	wflux2 = W[FIJKp1];
 }
 
 

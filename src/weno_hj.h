@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -31,26 +31,26 @@ class cpt;
 
 using namespace std;
 
-class weno_hj : public convection, public increment
+class weno_hj final : public convection, public increment
 {
 public:
 	weno_hj(lexer*);
 	virtual ~weno_hj();
 
-	void start(lexer*,fdm*,field&,int,field&,field&,field&) override;
+	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
 private:
-    double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
+    double aij(lexer*, fdm*, field&, int,field&,field&,field&);
     
 	double ddx(lexer*, fdm*, field&);
 	double ddy(lexer*, fdm*, field&);
 	double ddz(lexer*, fdm*, field&);
-	void iqmin(field&, double, double*);
-	void jqmin(field&, double, double*);
-	void kqmin(field&, double, double*);
-	void iqmax(field&, double, double*);
-	void jqmax(field&, double, double*);
-	void kqmax(field&, double, double*);
+	void iqmin(field&, double);
+	void jqmin(field&, double);
+	void kqmin(field&, double);
+	void iqmax(field&, double);
+	void jqmax(field&, double);
+	void kqmax(field&, double);
 
 	double L,grad;
 	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;

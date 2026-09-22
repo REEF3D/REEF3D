@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -41,10 +41,9 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"sandslide_f.h"
 #include"sandslide_f2.h"
-#include"sandslide_f3.h"
-#include"sandslide_f4.h"
-#include"sandslide_nz.h"
 #include"sandslide_pde.h"
+#include"sandslide_steepest_descent.h"
+#include"sandslide_weighted_multidir.h"
 #include"sandslide_v.h"
 #include"topo_relax.h"
 #include"vrans_v.h"
@@ -64,6 +63,7 @@ Author: Hans Bihs
 #include"convection_void.h"
 #include"weno_hj_nug.h"
 #include"iweno_hj_nug.h"
+#include"ifou.h"
 #include"suspended_void.h"
 #include"suspended_RK2.h"
 #include"suspended_RK3.h"
@@ -87,8 +87,9 @@ Author: Hans Bihs
 #include"bedshear_max.h"
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
+#include"sediment_roughness.h"
 
-void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *pturb)
+void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
     
@@ -128,16 +129,15 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
     pslide=new sandslide_f2(p);
     
     if(p->S90==3)
-    pslide=new sandslide_f3(p);
+    pslide=new sandslide_steepest_descent(p);
     
     if(p->S90==4)
-    pslide=new sandslide_f4(p);
+    pslide=new sandslide_weighted_multidir(p);
     
     if(p->S90==5)
-    pslide=new sandslide_nz(p);
-    
-    if(p->S90==6)
     pslide=new sandslide_pde(p);
+    
+    
     
     if(p->S10!=2 && p->A10==6)
 	pvrans = new vrans_v(p,pgc);
@@ -208,34 +208,15 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	psuspdisc=new convection_void(p);
     
     
-    /*if(p->S60<11 && p->S60>0 && p->j_dir==0)
-	psuspdiff=new idiff2_FS_2D(p);
-    
-    if(p->S60<11 && p->S60>0 && p->j_dir==1)
-	psuspdiff=new idiff2_FS(p);
-	
-	if(p->S60>10)
-	
-    
-    // suspended conv
-	if(p->S60<11 && p->S60>0)
-	psuspdisc=new weno_hj_nug(p);*/
-    
     if(p->S12>=1)
     psuspdiff=new idiff2(p);
     
     if(p->S12>=1)
-	psuspdisc=new iweno_hj_nug(p);
+	psuspdisc=new ifou(p);
     
-    /*
-    if(p->S60==2)
-    psusp = new suspended_RK2(p,a);
-
-    if(p->S60==3)
-    psusp = new suspended_RK3(p,a);*/
 
     if(p->S12>=1)
-    psusp = new suspended_IM1(p,a);
+    psusp = new suspended_IM1(p);
     }
     
     if(p->S85==0)
@@ -275,6 +256,6 @@ void sediment_f::sediment_logic(lexer *p, fdm *a,ghostcell *pgc, turbulence *ptu
 	if(p->P126>0)
 	pbedshearmax = new bedshear_max(p,pgc);
     
-    
+    pks = new sediment_roughness(p);
     
 }

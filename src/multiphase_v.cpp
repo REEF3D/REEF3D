@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -47,7 +47,7 @@ void multiphase_v::ini(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, convecti
 {
 }
 
-void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini, particle_corr* ppls)
+void multiphase_v::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, solver *psolv, ioflow *pflow, reini* preini)
 {
 }
 

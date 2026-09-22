@@ -84,33 +84,5 @@ void iowave::wavegen_precalc_decomp_space_dirichlet_fnpf(lexer *p, ghostcell *pg
 		}
     }
     
-    
-    // Uin
-        count=0;
-		for(n=0;n<p->gcslin_count;n++)
-        {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
-        
-        xg=xgen(p);
-        yg=ygen(p);
-        x1=xgen1(p);
-        y2=ygen2(p);
-        
-            FKLOOP
-            FPCHECK
-            {
-            z=p->ZSN[FIJK]-p->phimean;
-
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                uval_S_sin[count][qn] = wave_u_space_sin(p,pgc,xg,yg,z,qn);
-                uval_S_cos[count][qn] = wave_u_space_cos(p,pgc,xg,yg,z,qn);
-                }
-            ++count;
-            }
-        }
-
-
 
 }

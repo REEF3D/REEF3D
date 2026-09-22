@@ -41,13 +41,6 @@ fnpf_ini::~fnpf_ini()
 
 void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini)
 {	
-    
-    //pflow->fi_relax(p,pgc,a->Fi,a->phi);
-    //pflow->fifsf_relax(p,pgc,a->Fifsf);
-    //pgc->start4(p,a->Fi,250);
-    
-    //pgc->gcsl_start4(p,a->Fifsf,50);
-    pgc->gcsl_start4(p,c->eta,50);
 }
 
 void fnpf_ini::lsm_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)

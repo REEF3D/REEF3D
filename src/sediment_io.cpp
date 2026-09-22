@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -54,7 +54,7 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     xip= p->XN[IP1];
 	yip= p->YP[JP];
-    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[k];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i+1,j)) + 1.6*p->DZN[KP];
     
     s->P(i,j) = a->P(i,j) = p->ccipol1_a(a->u,xip,yip,zval);
     }
@@ -65,13 +65,23 @@ void sediment_f::fill_PQ_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     xip= p->XP[IP];
 	yip= p->YN[JP1];
-    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[k];
+    zval = 0.5*(s->bedzh(i,j)+s->bedzh(i,j+1)) + 1.6*p->DZN[KP];
     
     s->Q(i,j) = a->Q(i,j)  = p->ccipol2_a(a->v,xip,yip,zval);
     }
     
+    SLICELOOP4
+    {
+    k=s->bedk(i,j);
+    
+    s->ro(i,j) = a->ro(i,j,k);
+    s->waterlevel(i,j) = a->WL(i,j);
+    }
+    
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
+    pgc->gcsl_start4(p,s->ro,1);
+    pgc->gcsl_start4(p,s->waterlevel,1);
 }
 
 void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -84,8 +94,12 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP2
     s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
     
+    SLICELOOP4
+    s->waterlevel(i,j) = d->WL(i,j);
+    
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);  
+    pgc->gcsl_start4(p,s->waterlevel,1);
 }
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)

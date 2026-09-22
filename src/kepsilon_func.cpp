@@ -79,28 +79,10 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 	double factor,epsi;
 	
 	LOOP
-    {
-        
-        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
-
-        if(p->j_dir==0)
-        epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
-
-		if(a->phi(i,j,k)>epsi)
-		H=1.0;
-
-		if(a->phi(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-		
-		factor = H*p->T31 + (1.0-H)*p->T32;
-		
-        a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
-					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(factor*kin(i,j,k))/strainterm(p,a)),
+    a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
+					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
 					  0.0001*a->visc(i,j,k));
-	}
+
 	
 	if(p->T10==21)
 	LOOP
@@ -117,7 +99,7 @@ void  kepsilon_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
     LOOP
     {
-	//if(wallf(i,j,k)==0)
+	if(wallf(i,j,k)==0)
 	a->rhsvec.V[count]  += pk(p,a,a->eddyv)
 						- MAX(eps(i,j,k),0.0);
 	
@@ -129,7 +111,6 @@ void  kepsilon_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 
 void  kepsilon_func::epssource(lexer *p, fdm* a, vrans* pvrans)
 {
-	double epsi = 1.6*p->dx;
 	double dirac;
     count=0;
 

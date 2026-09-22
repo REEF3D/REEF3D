@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
-#include"vrans.h"
+#include"vrans_nhflow.h"
 #include"rheology_v.h"
 #include"rheology_f.h"
 #include"turbulence.h"
@@ -102,7 +102,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         u(i,j+3,k) = p->W12_u;
         }
         
-        if(p->W13==3)
+        if(p->W13==1)
         if(p->gcb1[n][3]==3 && p->gcb1[n][4]==1)
         {
         i=p->gcb1[n][0];
@@ -178,7 +178,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         v(i,j+3,k) = p->W12_v;
         }
         
-        if(p->W13==3)
+        if(p->W13==1)
         if(p->gcb2[n][3]==3 && p->gcb2[n][4]==1)
         {
         i=p->gcb2[n][0];
@@ -258,7 +258,7 @@ void ioflow_v::velocity_inlet(lexer *p, fdm* a, ghostcell* pgc, field &u, field 
         w(i,j+3,k) = p->W12_w;
         }
         
-        if(p->W13==3)
+        if(p->W13==1)
         if(p->gcb3[n][3]==3 && p->gcb3[n][4]==1)
         {
         i=p->gcb3[n][0];
@@ -426,92 +426,23 @@ void  ioflow_v::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
     prheo->w_source(p,a);
 }
 
-void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void ioflow_v::isource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
-    double porousterm;
-    
-    NLOOP4
-	d->rhsvec.V[n]=0.0;
-
-	// Darcy Porosity
-	count=0;
-    if(p->B240>0 && p->B241==1)
-    LOOP
-	{
-		
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
-			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
-			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*d->VISC[IJK]*d->U[IJK] + 0.5*p->B240_C[n]*d->U[IJK]*fabs(d->U[IJK]);
-		}
-	
-    d->rhsvec.V[count] -= porousterm;
-	++count;
-	}
-	
-	//VRANS
-   //pvrans->u_source(p,a);
-}
-
-void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
-{
-    double porousterm;
-    
-    NLOOP4
-	d->rhsvec.V[n]=0.0;
-
-	count=0;
-    if(p->B240>0 && p->B242==1)
-    VLOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
-			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
-			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*d->VISC[IJK]*d->V[IJK] + 0.5*p->B240_C[n]*d->V[IJK]*fabs(d->V[IJK]);
-		}
-	
-    d->rhsvec.V[count] -= porousterm;
-	++count;
-	}
     
     //VRANS
-    //pvrans->v_source(p,a);
+    pvrans->u_source(p,d,WL);
 }
 
-void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans *pvrans)
+void ioflow_v::jsource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
 {
-    double porousterm;
-    
-    NLOOP4
-	d->rhsvec.V[n]=0.0;
-	
-	count=0;
-    if(p->B240>0 && p->B243==1)
-    LOOP
-	{
-		// porous media
-		porousterm=0.0;
-		for(n=0;n<p->B240;++n)
-		{
-			if(p->pos_x() >= p->B240_xs[n] && p->pos_x() < p->B240_xe[n])
-			if(p->pos_y() >= p->B240_ys[n] && p->pos_y() < p->B240_ye[n])
-			if(p->pos_z() >= p->B240_zs[n] && p->pos_z() < p->B240_ze[n])
-			porousterm=p->B240_D[n]*d->VISC[IJK]*d->W[IJK] + 0.5*p->B240_C[n]*d->W[IJK]*fabs(d->W[IJK]);
-		}
-
-    d->rhsvec.V[count] -= porousterm;
-	++count;
-	}
-    
     //VRANS
-    //pvrans->w_source(p,a);
+    pvrans->v_source(p,d,WL);
+}
+
+void ioflow_v::ksource_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, vrans_nhflow *pvrans, slice &WL)
+{
+    //VRANS
+    pvrans->w_source(p,d,WL);
 }
 
 void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)

@@ -39,7 +39,7 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 
         phases_irregular(p);
 
-        pgc->bcast_double(ei,p->wN);
+        pgc->bcast_double(ei,p->wN,0);
         }
         
         if(p->B92==41)
@@ -58,7 +58,11 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 	if(p->B85==4 || p->B85==5 || p->B85==6)
 	wavepackets_parameters(p);
 
-    print_components(p);
+    // Print components based on spectrum type
+    if(p->B85==11)
+        print_components_2d(p);
+    else
+        print_components(p);
     
     
     if(p->mpirank==0)
@@ -69,16 +73,16 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     
     cout<<endl;
     
-    cout<<"Hs: "<<p->wHs<<" Tp: "<<p->wTp<<" wp: "<<p->wwp<<" cp: "<<p->wC<<endl;
+    cout<<"Hs: "<<p->wHs<<" Tp: "<<p->wTp<<" wp: "<<p->wwp<<" cp: "<<p->wC<<" water depth: "<<wdt<<endl;
     if(p->B92>40 && p->B92<50)
     cout<<"Focused Wave   xF: "<< p->B81_1 << " yF: " << p->B81_3 <<" tF: "<<p->B81_2<<endl;
     }
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
-    
+
     p->Darray(sinhkd,p->wN);
-   
+
     for(n=0;n<p->wN;++n)
     sinhkd[n] = sinh(ki[n]*wdt);
 }

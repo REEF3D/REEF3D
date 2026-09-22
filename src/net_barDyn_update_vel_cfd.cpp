@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -75,16 +75,16 @@ void net_barDyn::updateField_cfd(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			}
 			else if (cmp==3)
 			{
-				coupledField[i][cmp] = p->ccipol4a(a->phi,x_(i,0),x_(i,1),x_(i,2));
+				coupledField[i][cmp] = p->ccipol4a(a->ro,x_(i,0),x_(i,1),x_(i,2));
                 
-                if (coupledField[i][cmp] >= 0.0) // water
+                /*if (coupledField[i][cmp] >= 0.0) // water
                 {
-                    coupledField[i][cmp] = p->W1;
+                    coupledField[i][cmp] = p->ccipol4a(a->ro,x_(i,0),x_(i,1),x_(i,2));
                 }
                 else    // air
                 {
                     coupledField[i][cmp] = p->W3;
-                }
+                }*/
 			}
             
 			recField[i] = -1;

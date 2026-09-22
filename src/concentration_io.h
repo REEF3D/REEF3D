@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -40,13 +40,13 @@ public:
     concentration_io(lexer*,fdm*);
 	virtual ~concentration_io();
 
-    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override;
-    void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override;
-    double val(int,int,int) override;
+    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
+    void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration) override final;
+    double val(int,int,int) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override;
-    void name_ParaView(lexer*, ostream&, int*, int &) override;
-    void offset_ParaView(lexer*, int*, int &) override;
+    void name_ParaView_parallel(lexer*, ofstream&) override final;
+    void name_ParaView(lexer*, ostream&, int*, int &) override final;
+    void offset_ParaView(lexer*, int*, int &) override final;
 
     field4 C;
 	fluid_update *pupdate;

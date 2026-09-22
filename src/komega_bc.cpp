@@ -46,7 +46,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         QGCDF4LOOP
 		wall_law_kin(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
-        if(p->S10==2 || p->B269==1 || p->B269==2)
+        if(p->S10==2 || p->B200==1 || p->B200==2)
         vrans_wall_law_kin(p,a,kin,eps);
 	}
 
@@ -60,7 +60,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
         QGCDF4LOOP
 		wall_law_omega(a,p,kin,eps,p->gcdf4[q][0], p->gcdf4[q][1], p->gcdf4[q][2], p->gcdf4[q][3], p->gcdf4[q][4], p->gcdf4[q][5],  0.5*p->DXM);
         
-        if(p->S10==2 || p->B269==1 || p->B269==2)
+        if(p->S10==2 || p->B200==1 || p->B200==2)
         vrans_wall_law_omega(p,a,kin,eps);
 	}
 }
@@ -282,8 +282,8 @@ void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
     LOOP
     {
         if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
-                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99)
-                                        || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99)
+                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99
+                                        || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99))
         {
         if(p->j_dir==0)
         dist = (1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);
@@ -304,10 +304,10 @@ void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
         ks=fac*a->porpart(i,j+1,k);
         
         if(a->porosity(i,j,k-1)<0.99)
-        ks=fac*a->porpart(i,j,k);
+        ks=fac*a->porpart(i,j,k-1);
         
         if(a->porosity(i,j,k+1)<0.99)
-        ks=fac*a->porpart(i,j,k);
+        ks=fac*a->porpart(i,j,k+1);
 
             uvel=0.5*(a->u(i,j,k)+a->u(i-1,j,k));
             vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
@@ -339,8 +339,8 @@ void komega_bc::vrans_wall_law_omega(lexer *p,fdm *a,field &kin,field &eps)
     LOOP
     {
         if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
-                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99)
-                                        || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99)
+                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99
+                                        || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99))
         {
         if(p->j_dir==0)
         dist=(1.0/4.0)*(p->DXN[IP] + p->DZN[KP]);

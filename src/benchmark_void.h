@@ -33,14 +33,14 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_void : public benchmark
+class benchmark_void final : public benchmark
 {
 
 public:
     benchmark_void();
 	virtual ~benchmark_void();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+	void start(lexer*, fdm*, ghostcell*, convection*) override final;
 
 
 };

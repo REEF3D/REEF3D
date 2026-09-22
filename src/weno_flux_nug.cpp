@@ -36,7 +36,7 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
 {
     if(p->j_dir==0)
     {
-    if(p->B269==0)
+    if(p->B200==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_2D(p);
@@ -45,7 +45,7 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
         pflux = new flux_face_CDS2_2D(p);
     }
     
-    if(p->B269>=1 || p->S10==2)
+    if(p->B200>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
@@ -57,7 +57,7 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
     
     if(p->j_dir==1)
     {
-    if(p->B269==0)
+    if(p->B200==0)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU(p);
@@ -66,7 +66,7 @@ weno_flux_nug::weno_flux_nug(lexer* p):weno_nug_func(p)
         pflux = new flux_face_CDS2(p);
     }
     
-    if(p->B269>=1 || p->S10==2)
+    if(p->B200>=1 || p->S10==2)
     {
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
@@ -291,7 +291,7 @@ void weno_flux_nug::iqmax(lexer *p, field& f, field& uvel, int ipol)
 	q2 = f.V[IJK];
 	q3 = f.V[Ip1JK];
 	q4 = f.V[Ip2JK];
-	q5 = f.V[Ip2JK];
+	q5 = f.V[Ip3JK];
 }
 
 void weno_flux_nug::jqmax(lexer *p, field& f, field& vvel, int ipol)

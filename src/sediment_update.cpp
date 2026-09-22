@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -71,7 +71,7 @@ void sediment_f::update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pfl
 {
     bedlevel(p,pgc); 
     
-    SLICELOOP4
+    SLICEBASELOOP
 	d->bed(i,j) = s->bedzh(i,j);
     
     pgc->gcsl_start4(p,d->bed,50);
@@ -86,10 +86,10 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
 {
     bedlevel(p,pgc); 
     
-    SLICELOOP4
+    SLICEBASELOOP
     b->topobed(i,j) = s->bedzh(i,j);
     
-    SLICELOOP4
+    SLICEBASELOOP
     b->bed(i,j) = MAX(b->topobed(i,j),b->solidbed(i,j));
     
     pgc->gcsl_start4(p,b->bed,50);

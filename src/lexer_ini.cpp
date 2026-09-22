@@ -33,7 +33,8 @@ void lexer::lexer_ini()
     omegamax=0.0;
 
     utime=vtime=wtime=0.0;
-    kintime=epstime=poissontime=lsmtime=susptime=printouttime=dftime=0.0;
+    kintime=epstime=lsmtime=susptime=printouttime=dftime=0.0;
+    poissontime=laplacetime=matrixtime=ptime=0.0;
     recontime=fsftime=0.0;
 
     uiter=viter=witer=0;
@@ -53,12 +54,7 @@ void lexer::lexer_ini()
     solver_error=0;
 	
 	maxdt=mindt=0.0;
-    RK_alpha=0.0;
     wavetime=0.0;
-
-    G1=0;
-    if(S10>0 || toporead>0 || solidread==1)
-    G1=1;
 
     wT=0.0;
     wV=0.0;
@@ -78,12 +74,6 @@ void lexer::lexer_ini()
     
 	ufbi=vfbi=wfbi=0.0;
 	pfbi=qfbi=rfbi=0.0;
-    
-    if(B98==1)
-    B98=2;
-    
-    if(A10==3 || A10==5)
-    G2=1;
 }
 
 void lexer::makeflag( int *field)
@@ -91,50 +81,4 @@ void lexer::makeflag( int *field)
     int n;
 	for(n=0;n<imax*jmax*kmax;++n)
 	field[n]=OBJ_FLAG;
-}
-
-void lexer::parse()
-{
-    if(F80>0 && F35>0)
-    F35=0;
-	
-	if(I10==1)
-    {
-    I11=1;
-    I12=2;
-    I13=1;
-    }
-    
-    if(I10==2)
-    {
-    I11=2;
-    I12=2;
-    I13=1;
-    }
-	
-	if(I40>0)
-	{
-	I10=0;
-    I11=0;
-    I12=0;
-    I13=0;
-    }
-
-    if(T10==0)
-    I13=0;
-	
-	if(S10>=1 || toporead==1)
-	P27=1;
-    
-    if((N40==3 || N40==23 ) && X10>0)
-    N40=4;
-    
-    if((N40==13) && X10>0)
-    N40=14;
-    
-    if(X10>0)
-    D22=2;
-    
-    if(A10==5 && B98==3)
-    B98=4;
 }

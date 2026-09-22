@@ -23,23 +23,13 @@ Author: Hans Bihs
 #ifndef FIELDINT_H_
 #define FIELDINT_H_
 
-class lexer;
+#include "field_base.h"
 
-using namespace std;
-
-class fieldint
+class fieldint : public field_base<int>
 {
 public:
-	virtual int& operator()(int, int, int)=0;
-    
-    virtual void resize(lexer*)=0;
+    fieldint(lexer* p) : field_base<int>(p) {}
+    virtual ~fieldint() = default;
 };
 
 #endif
-
-
-
-
-
-
-

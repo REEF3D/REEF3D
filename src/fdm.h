@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -44,7 +44,6 @@ Author: Hans Bihs
 #include"matrix_diag.h"
 #include"cpt.h"
 #include"looping.h"
-#include"iterators.h"
 #include<iostream>
 #include<vector>
 
@@ -67,10 +66,8 @@ public:
     field4 Fi;
 	field4 eddyv;
 	field4 L;
-	field4 ro,dro,visc;
+	field4 ro,visc;
 	field4 phi;
-    field4 phasemarker;
-    field4 vof, vof_nt,vof_nb,vof_st,vof_sb;
 	field4 conc;
     field4 test;
 	field4a topo,solid;
@@ -90,6 +87,10 @@ public:
     
     //PLIC
     field4 nX,nY,nZ,Alpha;
+    field4 phasemarker;
+    field4 vof;
+    field4 vof_nt,vof_nb,vof_st,vof_sb; //2D
+    field4 vof_nte,vof_ntw,vof_nbe,vof_nbw,vof_ste,vof_stw,vof_sbe,vof_sbw; //3D
     
     // PTF
     slice4 eta,eta_n,depth,WL;

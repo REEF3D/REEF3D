@@ -30,7 +30,6 @@ Author: Hans Bihs
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class field;
 class ioflow;
 class slice;
 

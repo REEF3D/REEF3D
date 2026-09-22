@@ -28,7 +28,7 @@ Author: Hans Bihs
 fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),
 												visc_air(p->W4),visc_water(p->W2),ro_water(p->W1)
 {
-    gcval_ro=2;
+    gcval_ro=1;
 	gcval_visc=1;
 }
 
@@ -49,10 +49,10 @@ void fluid_update_fsf_comp::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 	iter=p->count;
     
     if(p->j_dir==0)        
-    epsi = p->F45*(1.0/2.0)*(p->DRM+p->DTM);
+    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
         
     if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DRM+p->DSM+p->DTM);
+    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
 	LOOP
 	{

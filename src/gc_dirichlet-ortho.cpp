@@ -43,7 +43,7 @@ void ghostcell::dirichlet_ortho(lexer *p,field& f,double dist,int gcv, int bc, i
     dx = p->DZP[KP];
 	
 	ys=1;
-    if(dist>p->DXM*(1.0-1.0e-6) && dist<p->DXM*(1.0+1.0e-6))
+    if(dist>dx*(1.0-1.0e-9) && dist<dx*(1.0+1.0e-9))
     ys=0;
     
 

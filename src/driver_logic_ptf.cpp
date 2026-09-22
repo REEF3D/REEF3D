@@ -83,18 +83,14 @@ void driver::logic_ptf()
 	if(p->N10==0)
 	plapsolv = new solver_void(p,a,pgc);
 	
-	if(p->N10==1)
+	if(p->N10==3)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
-	#ifdef HYPRE_COMPILATION
 	if(p->N10>10 && p->N10<=20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
-    #endif
     
-    #ifdef HYPRE_COMPILATION
 	if(p->N10>20 && p->N10<=30)
 	plapsolv = new hypre_aij(p,a,pgc);
-	#endif
     
 //  Voids
 	pturb = new kepsilon_void(p,a,pgc);

@@ -27,7 +27,7 @@ void ghostcell::gcparaxijk(lexer* p, double *f, int gcv)
 {
     starttime=timer();
 
-    paramargin=3;
+    paramargin=margin;
 
     //  FILL SEND
     count=0;

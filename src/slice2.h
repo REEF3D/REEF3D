@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -23,49 +23,13 @@ Author: Hans Bihs
 #ifndef SLICE2_H_
 #define SLICE2_H_
 
-#include"slice.h"
-#include"increment.h"
+#include "slice.h"
 
-using namespace std;
-
-class slice2 : public slice, increment
+class slice2 final : public slice
 {
 public:
-
-	slice2 (lexer*);
-	virtual ~slice2();
-
-    double& operator()(int, int) override;
-	double& operator[](int) override;
-    void ggcpol(lexer*) override;
-    void resize(lexer*) override;
-    void dealloc(lexer*) override;
-    
-	int di,dj;
-	int imin,imax,jmax,jmin;
-
-	double ***gcfeld;
-
-private:
-
-	void fieldalloc(lexer *);
-	void fieldgcalloc(lexer*);
-	void fieldlength(lexer *);
-
-    int iter;
-	int gcfeldsize,feldsize;
-	
-	int rank, gcsl_extra;
-	
-	double starttime;
-	
-	lexer *pp;
-
+    slice2(lexer *p) : slice(p) {};;
+    virtual ~slice2() = default;
 };
 
 #endif
-
-
-
-
-

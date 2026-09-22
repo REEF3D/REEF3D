@@ -10,7 +10,7 @@ the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTIBILITY or
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
@@ -33,14 +33,14 @@ class ghostcell;
 
 using namespace std;
 
-class benchmark_vortex3D : public benchmark, public increment
+class benchmark_vortex3D final : public benchmark, public increment
 {
 
 public:
     benchmark_vortex3D(lexer*,fdm*);
 	virtual ~benchmark_vortex3D();
 
-	void start(lexer*, fdm*, ghostcell*, convection*) override;
+	void start(lexer*, fdm*, ghostcell*, convection*) override final;
 
 
 };

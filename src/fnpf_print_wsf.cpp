@@ -47,7 +47,7 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
+    wsfout<<n+1<<"\t "<<p->Xout(x[n],y[n])<<"\t "<<p->Yout(x[n],y[n])<<endl;
 
     wsfout<<endl<<endl;
 
@@ -55,7 +55,7 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
     for(n=0;n<gauge_num;++n)
     wsfout<<"\t P"<<n+1;
 
-    wsfout<<endl<<endl;
+    wsfout<<endl;
     
     
         if(p->P57==1 || p->P57==3)
@@ -74,7 +74,7 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
         for(n=0;n<gauge_num;++n)
         detaout<<"\t P"<<n+1;
 
-        detaout<<endl<<endl;
+        detaout<<endl;
         }
         
         if(p->P57==2 || p->P57==3)
@@ -93,7 +93,7 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
         for(n=0;n<gauge_num;++n)
         Uhorzout<<"\t P"<<n+1;
 
-        Uhorzout<<endl<<endl;
+        Uhorzout<<endl;
         }
     }
 	
