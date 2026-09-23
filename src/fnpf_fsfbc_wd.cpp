@@ -72,7 +72,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     }
     else if(p->A311==4  || p->A311==5)
     {
-        pconvec = new fnpf_weno5_wd(p,c);
+        pconvec = new fnpf_weno5_wd(p);
         pconeta = new fnpf_weno5(p);
     }
     else if(p->A311==6)

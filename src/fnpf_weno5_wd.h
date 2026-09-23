@@ -27,14 +27,12 @@ Author: Hans Bihs
 #include"increment.h"
 #include"fnpf_ddweno_f_nug.h"
 
-class fdm_fnpf;
-
 using namespace std;
 
 class fnpf_weno5_wd final : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
 {
 public:
-    fnpf_weno5_wd(lexer*,fdm_fnpf*);
+    fnpf_weno5_wd(lexer*);
     virtual ~fnpf_weno5_wd();
 
     double fx(lexer*, field&, double, double) override final;
