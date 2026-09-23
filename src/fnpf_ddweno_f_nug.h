@@ -23,59 +23,104 @@ Author: Hans Bihs
 #ifndef FNPF_DDWENO_F_NUG_H_
 #define FNPF_DDWENO_F_NUG_H_
 
-#include"increment.h"
-#include"weno_nug_func.h"
+#include "increment.h"
+#include "weno_nug_func.h"
 
-class fdm_fnpf;
 class field;
 class slice;
 class lexer;
-class ghostcell;
-class vec;
-class cpt;
 
 using namespace std;
 
 class fnpf_ddweno_f_nug : public weno_nug_func
 {
 public:
+    fnpf_ddweno_f_nug(lexer*);
+    ~fnpf_ddweno_f_nug();
 
-	 fnpf_ddweno_f_nug(lexer*,fdm_fnpf*);
-	 ~fnpf_ddweno_f_nug();
-    
     // field
     double ddwenox(field&, double);
     double ddwenoy(field&, double);
     double ddwenoz(field&, double);
-     
-    void iqmin(field&);
-    void jqmin(field&);
-    void kqmin(field&);
-	void iqmax(field&);
-	void jqmax(field&);
-	void kqmax(field&);
-     
-    // slice
+
+    // slice, wet-dry aware: zero gradient unless every cell of the stencil is wet
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
-    void isqmin(slice&);
-	void jsqmin(slice&);
-	void isqmax(slice&);
-	void jsqmax(slice&);
-    
-    void is_wd_x_min();
-    void is_wd_x_max();
-    void is_wd_y_min();
-    void is_wd_y_max();
+    // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
+    inline double dswenox_dq(slice &dq, double uvel)
+    {
+        if(uvel>0.0)
+        {
+            if(p->wet[Im3J]>0 && p->wet[Im2J]>0 && p->wet[Im1J]>0 && p->wet[IJ]>0 && p->wet[Ip1J]>0 && p->wet[Ip2J]>0)
+            {
+                q1 = dq(i-3,j);
+                q2 = dq(i-2,j);
+                q3 = dq(i-1,j);
+                q4 = dq(i,j);
+                q5 = dq(i+1,j);
+                return weno_min_x();
+            }
+            return 0.0;
+        }
+        else if(uvel<0.0)
+        {
+            if(p->wet[Im2J]>0 && p->wet[Im1J]>0 && p->wet[IJ]>0 && p->wet[Ip1J]>0 && p->wet[Ip2J]>0 && p->wet[Ip3J]>0)
+            {
+                q1 = dq(i-2,j);
+                q2 = dq(i-1,j);
+                q3 = dq(i,j);
+                q4 = dq(i+1,j);
+                q5 = dq(i+2,j);
+                return weno_max_x();
+            }
+            return 0.0;
+        }
+        else
+            return 0.0;
+    }
 
-    
-    double grad;
-    double *DX,*DY,*DZ;
-    
+    inline double dswenoy_dq(slice &dq, double vvel)
+    {
+        if(vvel>0.0)
+        {
+            if(p->wet[IJm3]>0 && p->wet[IJm2]>0 && p->wet[IJm1]>0 && p->wet[IJ]>0 && p->wet[IJp1]>0 && p->wet[IJp2]>0)
+            {
+                q1 = dq(i,j-3);
+                q2 = dq(i,j-2);
+                q3 = dq(i,j-1);
+                q4 = dq(i,j);
+                q5 = dq(i,j+1);
+                return weno_min_y();
+            }
+            return 0.0;
+        }
+        else if(vvel<0.0)
+        {
+            if(p->wet[IJm2]>0 && p->wet[IJm1]>0 && p->wet[IJ]>0 && p->wet[IJp1]>0 && p->wet[IJp2]>0 && p->wet[IJp3]>0)
+            {
+                q1 = dq(i,j-2);
+                q2 = dq(i,j-1);
+                q3 = dq(i,j);
+                q4 = dq(i,j+1);
+                q5 = dq(i,j+2);
+                return weno_max_y();
+            }
+            return 0.0;
+        }
+        else
+            return 0.0;
+    }
+
+
 private:
+    // wet-dry aware stencils, all q zero unless every cell of the stencil is wet
+    inline void isqmin(slice&);
+    inline void jsqmin(slice&);
+    inline void isqmax(slice&);
+    inline void jsqmax(slice&);
+
     lexer *p;
-    fdm_fnpf *c;
 };
 
 #endif

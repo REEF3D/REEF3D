@@ -23,15 +23,25 @@ Author: Hans Bihs
 #ifndef FNPF_FSFBC_WD_H_
 #define FNPF_FSFBC_WD_H_
 
-#include"fnpf_breaking.h"
-#include"sliceint4.h"
-#include"slice4.h"
+#include "fnpf_breaking.h"
+#include "sliceint4.h"
+#include "slice4.h"
+#include "fnpf_voiddisc.h"
+#include "fnpf_cds2_wd.h"
+#include "fnpf_cds4_wd.h"
+#include "fnpf_cds6_wd.h"
+#include "fnpf_weno3.h"
+#include "fnpf_weno5.h"
+#include "fnpf_weno5_wd.h"
+#include "fnpf_cds4.h"
+#include "fnpf_hires.h"
+#include "fnpf_ddx_cds2.h"
+#include "fnpf_ddx_cds4.h"
+#include <optional>
+#include <variant>
 
 class fnpf_laplace;
 class field;
-class fnpf_convection;
-class fnpf_ddx;
-class fnpf_etadisc;
 class fnpf_coastline;
 class solver2D;
 class wind;
@@ -41,9 +51,9 @@ using namespace std;
 class fnpf_fsfbc_wd final : public fnpf_breaking
 {
 public:
-	fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_fsfbc_wd();
-    
+    fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_fsfbc_wd();
+
     void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override final;
@@ -55,39 +65,39 @@ public:
     void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
     void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*) override final;
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final;
-    
-    void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    
 
-    fnpf_convection *pconvec;
-    fnpf_convection *pconeta;
-    fnpf_etadisc *pdf;
-    fnpf_convection *pdx;
-    fnpf_ddx *pddx;
+    void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
+
+private:
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    double rb5(lexer*,double);
+
+    sliceint4 wetcoast;
+    slice4 ef,df;
+
+    std::variant<fnpf_voiddisc, fnpf_cds2_wd, fnpf_cds4_wd, fnpf_weno3, fnpf_weno5_wd, fnpf_cds6_wd> pconvec;
+    std::optional<fnpf_weno5> pconeta; // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
+    std::optional<slice4> dqF, dqE;    // WENO5 face divided differences of Fifsf and eta
+    std::variant<fnpf_hires, fnpf_cds4> pdx;
+    std::variant<fnpf_ddx_cds2, fnpf_ddx_cds4> pddx;
     fnpf_coastline *pcoast;
     solver2D *psolv;
     wind *pwind;
 
     double ivel,jvel,kvel;
-    
-private:
-    double rb3(lexer*,double);
-    double rb4(lexer*,double);
-    double rb5(lexer*,double);
-    
+
     double dist3,dist4,dist5,expinverse,db;
-    
+
     double visc;
-    
+
     int *temp;
     int gcval_eta,gcval_fifsf;
-    const double eps;
-    
-    sliceint4 wetcoast;
-    slice4 ef,df;
-    
+
     int count_n;
     int coastline_count;
+
+    static constexpr double eps = 1.0e-6;
 };
 
 #endif
