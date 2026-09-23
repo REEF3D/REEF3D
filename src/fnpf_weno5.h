@@ -23,30 +23,26 @@ Author: Hans Bihs
 #ifndef FNPF_WENO5_H_
 #define FNPF_WENO5_H_
 
-#include"fnpf_convection.h"
-#include"increment.h"
-#include"ddweno_f_nug.h"
-
-using namespace std;
+#include "fnpf_convection.h"
+#include "increment.h"
+#include "ddweno_f_nug.h"
 
 class fnpf_weno5 final : public fnpf_convection, public increment, public ddweno_f_nug
 {
 public:
-	fnpf_weno5(lexer*);
-	virtual ~fnpf_weno5();
+    fnpf_weno5(lexer*);
+    virtual ~fnpf_weno5();
 
     double fx(lexer*, field&, double, double) override final;
-	double fy(lexer*, field&, double, double) override final;
-	double fz(lexer*, field&, double, double) override final;
-    
+    double fy(lexer*, field&, double, double) override final;
+    double fz(lexer*, field&, double, double) override final;
+
     double sx(lexer*, slice&, double) override final;
-	double sy(lexer*, slice&, double) override final;
+    double sy(lexer*, slice&, double) override final;
     double sz(lexer*, double*) override final;
 
 private:
     double **ckz;
-
-
 };
 
 #endif
