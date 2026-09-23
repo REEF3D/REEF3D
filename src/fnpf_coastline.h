@@ -44,6 +44,7 @@ public:
 private:
    void reini(lexer*,ghostcell*,slice&);
    void fsm(lexer*,ghostcell*,slice&);
+   void isolated(lexer*,fdm_fnpf*,ghostcell*,slice&,int*);
    void fsm_update(lexer*,int,int);
    void disc(lexer*,ghostcell*,slice&);
    

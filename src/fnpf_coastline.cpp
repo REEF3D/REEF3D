@@ -51,6 +51,10 @@ void fnpf_coastline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &coastli
         }
         double starttime=pgc->timer();
         
+        // A338: dry out wet pockets not connected to the main water body
+        if(p->A338==1)
+        isolated(p,c,pgc,coastline,wet);
+        
         // A339: 1 = fast sweeping (default), 0 = PDE reinitialisation (legacy)
         if(p->A339==1)
         fsm(p,pgc,coastline);
