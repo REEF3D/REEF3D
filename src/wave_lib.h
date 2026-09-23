@@ -23,6 +23,8 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_H_
 #define WAVE_LIB_H_
 
+#include<vector>
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -68,6 +70,35 @@ public:
     virtual void parameters(lexer*,ghostcell*)=0;
     virtual void wave_prestep(lexer*,ghostcell*)=0;
 
+    // ---- cached-point evaluation ------------------------------------------
+    // The relaxation-zone cells are fixed, so iowave registers their
+    // horizontal coordinates once (wave_cache_points) and afterwards evaluates
+    // by cell index. The defaults simply call the plain functions at the
+    // stored coordinates, so every wave type works unchanged;
+    // wave_lib_irregular_1st overrides them with precomputed spatial phases.
+    virtual void wave_cache_points(lexer*, const std::vector<double> &x, const std::vector<double> &y)
+    {
+        cache_x=x;
+        cache_y=y;
+    }
+
+    virtual double wave_eta_c(lexer *p, int q) {return wave_eta(p,cache_x[q],cache_y[q]);}
+    virtual double wave_fi_c(lexer *p, int q, double z) {return wave_fi(p,cache_x[q],cache_y[q],z);}
+    virtual double wave_u_c(lexer *p, int q, double z) {return wave_u(p,cache_x[q],cache_y[q],z);}
+    virtual double wave_v_c(lexer *p, int q, double z) {return wave_v(p,cache_x[q],cache_y[q],z);}
+    virtual double wave_w_c(lexer *p, int q, double z) {return wave_w(p,cache_x[q],cache_y[q],z);}
+
+    virtual void wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+    {
+        u=wave_u_c(p,q,z);
+        v=wave_v_c(p,q,z);
+        w=wave_w_c(p,q,z);
+    }
+
+    virtual ~wave_lib() = default;
+
+protected:
+    std::vector<double> cache_x, cache_y;
 };
 
 #endif

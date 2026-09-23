@@ -208,6 +208,38 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
     return pval;
 }
 
+void wave_interface::wave_cache_points(lexer *p, ghostcell *pgc, const std::vector<double> &x, const std::vector<double> &y)
+{
+    pwave->wave_cache_points(p,x,y);
+}
+
+double wave_interface::wave_eta_c(lexer *p, ghostcell *pgc, int q)
+{
+    double eta=0.0;
+    
+    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    eta = pwave->wave_eta_c(p,q);
+	
+    return eta;
+}
+
+double wave_interface::wave_fi_c(lexer *p, ghostcell *pgc, int q, double z)
+{
+    z = MAX(z,-wD);
+    
+    return pwave->wave_fi_c(p,q,z);
+}
+
+void wave_interface::wave_uvw_c(lexer *p, ghostcell *pgc, int q, double z, double &u, double &v, double &w)
+{
+    u=v=w=0.0;
+    
+    z = MAX(z,-wD);
+    
+    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    pwave->wave_uvw_c(p,q,z,u,v,w);
+}
+
 double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
 {
     double eta=0.0;

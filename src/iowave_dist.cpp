@@ -295,3 +295,34 @@ double iowave::ygen(lexer *p)
 
     return ygcache[IJ];
 }
+// Generation-zone columns (distgen<1e20) over all (i,j) in ILOOP/JLOOP order,
+// registered with the wave library for cached-point evaluation. FNPF loops
+// skip flagslice4<=0 columns (SLICELOOP4 order), NHFLOW loops add KLOOP with
+// PCHECK (LOOP order), so both reproduce the count sequence of the relaxation
+// functions that consume the value arrays.
+void iowave::genzone4_build(lexer *p, ghostcell *pgc)
+{
+    gen_i.clear(); gen_j.clear();
+    gen_idx.assign(size_t(p->imax)*size_t(p->jmax),-1);
+    
+    std::vector<double> xg_, yg_;
+    
+    ILOOP
+    JLOOP
+    {
+        dg = distgen(p);
+        
+        if(dg<1.0e20)
+        {
+        gen_idx[IJ] = int(gen_i.size());
+        gen_i.push_back(i);
+        gen_j.push_back(j);
+        xg_.push_back(xgen(p));
+        yg_.push_back(ygen(p));
+        }
+    }
+    
+    wave_cache_points(p,pgc,xg_,yg_);
+    
+    gen_built=true;
+}

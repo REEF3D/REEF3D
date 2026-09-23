@@ -23,6 +23,8 @@ Author: Hans Bihs
 #ifndef WAVE_INTERFACE_H_
 #define WAVE_INTERFACE_H_
 
+#include<vector>
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -44,6 +46,13 @@ public:
     double wave_h(lexer*,ghostcell*,double,double,double);
     double wave_fi(lexer*,ghostcell*,double,double,double);
     double wave_eta(lexer*,ghostcell*,double,double);
+    
+    // cached-point evaluation (wave_lib.h): register the generation-zone
+    // cells once, then evaluate by index; same time window and z clamp as above
+    void wave_cache_points(lexer*,ghostcell*,const std::vector<double>&,const std::vector<double>&);
+    double wave_eta_c(lexer*,ghostcell*,int);
+    double wave_fi_c(lexer*,ghostcell*,int,double);
+    void wave_uvw_c(lexer*,ghostcell*,int,double,double&,double&,double&);
     double wave_um(lexer*,ghostcell*,double,double);
     double wave_vm(lexer*,ghostcell*,double,double);
     

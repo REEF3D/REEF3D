@@ -36,6 +36,8 @@ double sin(double) noexcept;
 double cos(double) noexcept;
 #pragma omp declare simd notinbranch
 double cosh(double) noexcept;
+#pragma omp declare simd notinbranch
+double exp(double) noexcept;
 }
 #endif
 
@@ -379,4 +381,215 @@ void wave_lib_irregular_1st::parameters(lexer *p, ghostcell *pgc)
 
 void wave_lib_irregular_1st::wave_prestep(lexer *p, ghostcell *pgc)
 {
+}
+
+// ---- cached-point evaluation ------------------------------------------------
+//
+// phase_n(x,y,t) = a_n(x,y) + b_n(t),  a_n = k_n (cosbeta_n x + sinbeta_n y),
+//                                       b_n = -w_n t - e_n
+// cos/sin(a_n) are stored per registered cell, cos/sin(b_n) per step, and
+// the sums use the angle-addition formulae. The depth functions are formed
+// from one exp per cell and component:
+//   cosh(k(d+z))/sinh(kd) = (e^{kz} + e^{-2kd} e^{-kz}) / (1 - e^{-2kd})
+//   sinh(k(d+z))/sinh(kd) = (e^{kz} - e^{-2kd} e^{-kz}) / (1 - e^{-2kd})
+// which is also better behaved for large kd than cosh()/sinh() directly.
+// Results agree with the plain functions to round-off (not bit-identical).
+
+void wave_lib_irregular_1st::wave_cache_points(lexer *p, const std::vector<double> &x, const std::vector<double> &y)
+{
+    cache_x=x;
+    cache_y=y;
+
+    const int N=int(x.size());
+    const int M=p->wN;
+
+    cS.assign(size_t(N)*M,0.0);
+    sS.assign(size_t(N)*M,0.0);
+
+    for(int q=0;q<N;++q)
+    for(int m=0;m<M;++m)
+    {
+        const double a = ki[m]*(cosbeta[m]*x[q] + sinbeta[m]*y[q]);
+        cS[size_t(q)*M+m] = cos(a);
+        sS[size_t(q)*M+m] = sin(a);
+    }
+
+    cT.assign(M,0.0); sT.assign(M,0.0); ezb.assign(M,0.0);
+    em2kd.assign(M,0.0); invden.assign(M,0.0);
+    Aeta.assign(M,0.0); Afi.assign(M,0.0); Au.assign(M,0.0); Av.assign(M,0.0); Aw.assign(M,0.0);
+
+    for(int m=0;m<M;++m)
+    {
+        em2kd[m]  = exp(-2.0*ki[m]*wdt);
+        invden[m] = 1.0/(1.0 - em2kd[m]);
+
+        Aeta[m] = Ai[m];
+        Afi[m]  = (wi[m]*Ai[m])/ki[m];
+        Au[m]   = wi[m]*Ai[m]*cosbeta[m];
+        Av[m]   = wi[m]*Ai[m]*sinbeta[m];
+        Aw[m]   = wi[m]*Ai[m];
+    }
+
+    cache_t=-1.0e300;
+}
+
+void wave_lib_irregular_1st::cache_time(lexer *p)
+{
+    if(p->wavetime==cache_t)
+    return;
+
+    const int M=p->wN;
+    const double t=p->wavetime;
+
+    for(int m=0;m<M;++m)
+    {
+        const double b = -wi[m]*t - ei[m];
+        cT[m]=cos(b);
+        sT[m]=sin(b);
+    }
+
+    cache_t=t;
+}
+
+double wave_lib_irregular_1st::wave_eta_c(lexer *p, int q)
+{
+    cache_time(p);
+
+    const int M=p->wN;
+    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+
+    double acc=0.0;
+    for(int m=0;m<M;++m)
+    acc += Aeta[m]*(cs[m]*cT[m] - ss[m]*sT[m]);      // cos(a+b)
+
+    return acc;
+}
+
+double wave_lib_irregular_1st::wave_fi_c(lexer *p, int q, double z)
+{
+    cache_time(p);
+
+    const int M=p->wN;
+    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    double *ez=&ezb[0];
+
+    #pragma omp simd
+    for(int m=0;m<M;++m)
+    ez[m]=exp(ki[m]*z);
+
+    double acc=0.0;
+    for(int m=0;m<M;++m)
+    {
+        const double chr = (ez[m] + em2kd[m]/ez[m])*invden[m];       // cosh ratio
+        acc += Afi[m]*chr*(ss[m]*cT[m] + cs[m]*sT[m]);                // sin(a+b)
+    }
+
+    return acc;
+}
+
+double wave_lib_irregular_1st::wave_u_c(lexer *p, int q, double z)
+{
+    cache_time(p);
+
+    const int M=p->wN;
+    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    double *ez=&ezb[0];
+
+    #pragma omp simd
+    for(int m=0;m<M;++m)
+    ez[m]=exp(ki[m]*z);
+
+    double acc=0.0;
+    for(int m=0;m<M;++m)
+    {
+        const double chr = (ez[m] + em2kd[m]/ez[m])*invden[m];
+        acc += Au[m]*chr*(cs[m]*cT[m] - ss[m]*sT[m]);
+    }
+
+    if(p->B130==0)
+    acc*=cosgamma;
+
+    return acc;
+}
+
+double wave_lib_irregular_1st::wave_v_c(lexer *p, int q, double z)
+{
+    cache_time(p);
+
+    const int M=p->wN;
+    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    double *ez=&ezb[0];
+
+    #pragma omp simd
+    for(int m=0;m<M;++m)
+    ez[m]=exp(ki[m]*z);
+
+    double acc=0.0;
+    for(int m=0;m<M;++m)
+    {
+        const double chr = (ez[m] + em2kd[m]/ez[m])*invden[m];
+        acc += Av[m]*chr*(cs[m]*cT[m] - ss[m]*sT[m]);
+    }
+
+    if(p->B130==0)
+    acc*=singamma;
+
+    return acc;
+}
+
+double wave_lib_irregular_1st::wave_w_c(lexer *p, int q, double z)
+{
+    cache_time(p);
+
+    const int M=p->wN;
+    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    double *ez=&ezb[0];
+
+    #pragma omp simd
+    for(int m=0;m<M;++m)
+    ez[m]=exp(ki[m]*z);
+
+    double acc=0.0;
+    for(int m=0;m<M;++m)
+    {
+        const double shr = (ez[m] - em2kd[m]/ez[m])*invden[m];       // sinh ratio
+        acc += Aw[m]*shr*(ss[m]*cT[m] + cs[m]*sT[m]);
+    }
+
+    return acc;
+}
+
+void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    cache_time(p);
+
+    const int M=p->wN;
+    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    double *ez=&ezb[0];
+
+    #pragma omp simd
+    for(int m=0;m<M;++m)
+    ez[m]=exp(ki[m]*z);
+
+    double au=0.0, av=0.0, aw=0.0;
+    for(int m=0;m<M;++m)
+    {
+        const double r   = em2kd[m]/ez[m];
+        const double chr = (ez[m] + r)*invden[m];
+        const double shr = (ez[m] - r)*invden[m];
+        const double cph = cs[m]*cT[m] - ss[m]*sT[m];
+        const double sph = ss[m]*cT[m] + cs[m]*sT[m];
+
+        au += Au[m]*chr*cph;
+        av += Av[m]*chr*cph;
+        aw += Aw[m]*shr*sph;
+    }
+
+    if(p->B130==0)
+    {
+        au*=cosgamma;
+        av*=singamma;
+    }
+
+    u=au; v=av; w=aw;
 }

@@ -277,6 +277,15 @@ private:
     std::vector<int> rz4_i, rz4_j;
     std::vector<double> rz4_xg, rz4_yg, rz4_dg, rz4_db;
     bool rz4_built=false;
+    
+    // Wave-generation columns (dg<1e20), all (i,j) in ILOOP/JLOOP order,
+    // registered with the wave library for cached-point evaluation
+    // (wave_lib.h). gen_idx maps a slice cell IJ to its index, -1 outside.
+    void genzone4_build(lexer*,ghostcell*);
+    std::vector<int> gen_i, gen_j;
+    std::vector<int> gen_idx;
+    bool gen_built=false;
+    
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC

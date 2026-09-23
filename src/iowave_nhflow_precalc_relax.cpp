@@ -27,103 +27,60 @@ Author: Hans Bihs
 
 void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    double fsfloc;
-    
     p->wavetime = p->simtime;
     
-// ETA
-    SLICELOOP4
+    if(!gen_built) genzone4_build(p,pgc);
+    
+// ETA (SLICELOOP4 order)
+    if(p->B98==2)
+    for(size_t q=0; q<gen_i.size(); ++q)
     {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==2)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-		}
+        i = gen_i[q];
+        j = gen_j[q];
+        
+        PSLICECHECK4
+        eta(i,j) = wave_eta_c(p,pgc,int(q));
     }
     pgc->gcsl_start4(p,eta,50);
     
-// U
+// U, V, W in one pass over the generation-zone cells (LOOP order), with the
+// three velocities of a cell from one evaluation of the phase and depth
+// functions. uval/vval/wval share the count sequence of the former three loops.
     count=0;
-    LOOP
-    {
-		xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        z=p->ZSP[IJK]-p->phimean;
-		
-		// Wave Generation
-		if(p->B98==2)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
-            UHval[count] = (eta(i,j) + d->depth(i,j))*uval[count];
-            ++count;
-            }
-		}
-    }
-		
-// V
-    count=0;
-    if(p->j_dir==1)
-    LOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        z=p->ZSP[IJK]-p->phimean;
-        
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            vval[count] = wave_v(p,pgc,xg,yg,z);
-            VHval[count] = (eta(i,j) + d->depth(i,j))*vval[count];
-            ++count;
-            }
-		}
-    }
     
-// W
-    count=0;
-    LOOP
+    if(p->B98==2)
+    for(size_t q=0; q<gen_i.size(); ++q)
     {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
+        i = gen_i[q];
+        j = gen_j[q];
         
-        zloc3 = p->pos3_z();
-        fsfloc = eta(i,j) + p->phimean;
-
-        z=p->ZSP[IJK]-p->phimean;
-
-		// Wave Generation		
-		if(p->B98==2 && w_switch==1)
+        const double hval = eta(i,j) + d->depth(i,j);
+        
+        KLOOP
+        PCHECK
         {
-            // Zone 1
-            if(dg<1.0e20)
+            z=p->ZSP[IJK]-p->phimean;
+            
+            double uw,vw,ww;
+            wave_uvw_c(p,pgc,int(q),z,uw,vw,ww);
+            
+            uval[count] = uw + p->Ui;
+            UHval[count] = hval*uval[count];
+            
+            if(p->j_dir==1 && v_switch==1)
             {
-            wval[count] = wave_w(p,pgc,xg,yg,z);
-            WHval[count] = (eta(i,j) + d->depth(i,j))*wval[count];
-            ++count;
+            vval[count] = vw;
+            VHval[count] = hval*vval[count];
             }
-		}
-    }	
-    
+            
+            if(w_switch==1)
+            {
+            wval[count] = ww;
+            WHval[count] = hval*wval[count];
+            }
+            
+            ++count;
+        }
+    }
 }
     
