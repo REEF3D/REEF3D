@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include "fnpf_ddx_cds4.h"
 #include <optional>
 #include <variant>
+#include <vector>
 
 class fnpf_laplace;
 class field;
@@ -69,6 +70,17 @@ public:
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
 
 private:
+    // coastline damping: c->coastline is fixed after its initialisation, so
+    // the cells inside the damping bands and their rb3/rb4/rb5 factors are
+    // collected once (first call with p->count>0) instead of evaluating
+    // exp(pow(x,3.5)) for every coastal cell in every call
+    struct coast_cell { int i,j; double r; };
+    std::vector<coast_cell> cz3, cz4, cz5;      // coastline>=0 and db<dist3/4/5
+    std::vector<coast_cell> czdry;              // coastline<0
+    bool cz_built=false;
+    void coast_cache(lexer*,fdm_fnpf*);
+    inline bool coast_cached(lexer *p) const {return !(p->I30==1 && p->count==0) && p->count>0;}
+    
     double rb3(lexer*,double);
     double rb4(lexer*,double);
     double rb5(lexer*,double);

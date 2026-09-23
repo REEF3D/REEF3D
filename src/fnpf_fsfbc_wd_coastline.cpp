@@ -26,9 +26,43 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "fnpf_coastline.h"
 
+void fnpf_fsfbc_wd::coast_cache(lexer *p, fdm_fnpf *c)
+{
+    cz3.clear(); cz4.clear(); cz5.clear(); czdry.clear();
+    
+    // fac = 1 here (only used when !(I30==1 && count==0)), so the bands and
+    // factors are exactly those of the loops below
+    SLICELOOP4
+    {
+        const double cl = c->coastline(i,j);
+        
+        if(cl>=0.0)
+        {
+            if(cl<dist3) cz3.push_back({i,j,rb3(p,cl)});
+            if(cl<dist4) cz4.push_back({i,j,rb4(p,cl)});
+            if(cl<dist5) cz5.push_back({i,j,rb5(p,cl)});
+        }
+        
+        if(cl<0.0)
+        czdry.push_back({i,j,0.0});
+    }
+    
+    cz_built=true;
+}
+
 void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
+
+    if((p->A347==1 || p->A347==2) && coast_cached(p))
+    {
+        if(!cz_built) coast_cache(p,c);
+        
+        for(const coast_cell &q : cz3)
+        f(q.i,q.j) = q.r*f(q.i,q.j);
+        
+        return;
+    }
 
     if(p->A347==1 || p->A347==2)
     SLICELOOP4
@@ -51,6 +85,20 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
 void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
+
+    if((p->A347==1 || p->A347==3) && coast_cached(p))
+    {
+        if(!cz_built) coast_cache(p,c);
+        
+        for(const coast_cell &q : cz4)
+        f(q.i,q.j) = q.r*f(q.i,q.j);
+        
+        if(p->A343>=1)
+        for(const coast_cell &q : czdry)
+        f(q.i,q.j) = 0.0;
+        
+        return;
+    }
 
     if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
     SLICELOOP4
@@ -76,6 +124,28 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
 void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F)
 {
     double fac=1.0;
+
+    if(coast_cached(p))
+    {
+        if(!cz_built) coast_cache(p,c);
+        
+        for(const coast_cell &q : cz5)
+        {
+            i=q.i; j=q.j;
+            FKLOOP
+            F[FIJK] = q.r*F[FIJK];
+        }
+        
+        if(p->A343>=1)
+        for(const coast_cell &q : czdry)
+        {
+            i=q.i; j=q.j;
+            FKLOOP
+            F[FIJK]=0.0;
+        }
+        
+        return;
+    }
 
     SLICELOOP4
     {
@@ -125,6 +195,20 @@ void fnpf_fsfbc_wd::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
     double fac=1.0;
+
+    if(coast_cached(p))
+    {
+        if(!cz_built) coast_cache(p,c);
+        
+        for(const coast_cell &q : cz5)
+        f(q.i,q.j) = q.r*f(q.i,q.j);
+        
+        if(p->A343>=1)
+        for(const coast_cell &q : czdry)
+        f(q.i,q.j) = 0.0;
+        
+        return;
+    }
 
     SLICELOOP4
     {
