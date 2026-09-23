@@ -31,19 +31,6 @@ Author: Hans Bihs
 #include "solver.h"
 #include "reini.h"
 
-#include "fnpf_voiddisc.h"
-#include "fnpf_cds2.h"
-#include "fnpf_cds4.h"
-#include "fnpf_cds6.h"
-#include "fnpf_weno3.h"
-#include "fnpf_weno5.h"
-#include "fnpf_weno5_wd.h"
-#include "fnpf_wenoflux.h"
-#include "fnpf_hires.h"
-
-#include "fnpf_ddx_cds2.h"
-#include "fnpf_ddx_cds4.h"
-
 #include "sflow_bicgstab.h"
 
 #include "wind_f.h"
@@ -51,51 +38,24 @@ Author: Hans Bihs
 
 using namespace std;
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc), ef(p), df(p)
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc), ef(p), df(p), pconvec(std::in_place_type<fnpf_voiddisc>, p),
+                                                                                                            pddx(std::in_place_type<fnpf_ddx_cds2>, p)
 {
-    if(p->A311==0)
-    {
-        pconvec = new fnpf_voiddisc(p);
-        pconeta = new fnpf_voiddisc(p);
-    }
-    else if(p->A311==1)
-    {
-        pconvec = new fnpf_cds2(p);
-        pconeta = new fnpf_cds2(p);
-    }
+    if(p->A311==1)
+        pconvec.emplace<fnpf_cds2>(p);
     else if(p->A311==2)
-    {
-        pconvec = new fnpf_cds4(p);
-        pconeta = new fnpf_cds4(p);
-    }
+        pconvec.emplace<fnpf_cds4>(p);
     else if(p->A311==3)
-    {
-        pconvec = new fnpf_weno3(p);
-        pconeta = new fnpf_weno3(p);
-    }
+        pconvec.emplace<fnpf_weno3>(p);
     else if(p->A311==4 || p->A311==5)
     {
-        pconvec = new fnpf_weno5(p);
-        pconeta = new fnpf_weno5(p);
+        pconvec.emplace<fnpf_weno5>(p);
     }
     else if(p->A311==6)
-    {
-        pconvec = new fnpf_cds6(p);
-        pconeta = new fnpf_cds6(p);
-    }
+        pconvec.emplace<fnpf_cds6>(p);
 
-    if(p->A312==2)
-    {
-        pddx = new fnpf_ddx_cds2(p);
-        pdx = new fnpf_hires(p);
-    }
-    else if(p->A312==3)
-    {
-        pddx = new fnpf_ddx_cds4(p);
-        pdx = new fnpf_cds4(p);
-    }
-
-    pdf = new fnpf_wenoflux(p);
+    if(p->A312==3)
+        pddx.emplace<fnpf_ddx_cds4>(p);
 
     if(p->A350>0)
     psolv = new sflow_bicgstab(p,pgc);
@@ -139,37 +99,40 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
     // which runs before the first fsfdisc call), so this was dead work
     // costing 4 slice halo exchanges per RK stage.
 
-    // 3D
-    if(p->j_dir)
+    std::visit([&](auto &conv, auto &ddx)
     {
-        SLICELOOP4
+        // 3D
+        if(p->j_dir)
         {
-            ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-            jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+            SLICELOOP4
+            {
+                ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+                jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-            c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-            c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
+                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
+                c->Fy(i,j) = conv.sy(p,Fifsf,jvel);
 
-            c->Ex(i,j) = pconeta->sx(p,eta,ivel);
-            c->Ey(i,j) = pconeta->sy(p,eta,jvel);
+                c->Ex(i,j) = conv.sx(p,eta,ivel);
+                c->Ey(i,j) = conv.sy(p,eta,jvel);
 
-            c->Exx(i,j) = pddx->sxx(p,eta);
-            c->Eyy(i,j) = pddx->syy(p,eta);
+                c->Exx(i,j) = ddx.sxx(p,eta);
+                c->Eyy(i,j) = ddx.syy(p,eta);
+            }
         }
-    }
-    // 2D
-    else
-    {
-        SLICELOOP4
+        // 2D
+        else
         {
-            ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+            SLICELOOP4
+            {
+                ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-            c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-            c->Ex(i,j) = pconeta->sx(p,eta,ivel);
+                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
+                c->Ex(i,j) = conv.sx(p,eta,ivel);
 
-            c->Exx(i,j) = pddx->sxx(p,eta);
+                c->Exx(i,j) = ddx.sxx(p,eta);
+            }
         }
-    }
+    }, pconvec, pddx);
 
     pgc->gcsl_start4(p,c->Ex,1);
     pgc->gcsl_start4(p,c->Ey,1);
@@ -177,27 +140,30 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 
 void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
-    // 3D
-    if(p->j_dir)
+    std::visit([&](auto &conv, auto &ddx)
     {
-        SLICELOOP4
+        // 3D
+        if(p->j_dir)
         {
-            c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
-            c->By(i,j) = pconvec->sy(p,c->depth,1.0);
+            SLICELOOP4
+            {
+                c->Bx(i,j) = conv.sx(p,c->depth,1.0);
+                c->By(i,j) = conv.sy(p,c->depth,1.0);
 
-            c->Bxx(i,j) = pddx->sxx(p,df);
-            c->Byy(i,j) = pddx->syy(p,df);
+                c->Bxx(i,j) = ddx.sxx(p,df);
+                c->Byy(i,j) = ddx.syy(p,df);
+            }
         }
-    }
-    // 2D
-    else
-    {
-        SLICELOOP4
+        // 2D
+        else
         {
-            c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
-            c->Bxx(i,j) = pddx->sxx(p,df);
+            SLICELOOP4
+            {
+                c->Bx(i,j) = conv.sx(p,c->depth,1.0);
+                c->Bxx(i,j) = ddx.sxx(p,df);
+            }
         }
-    }
+    }, pconvec, pddx);
 
     pgc->gcsl_start4(p,c->Bx,1);
     pgc->gcsl_start4(p,c->By,1);
@@ -211,13 +177,16 @@ void fnpf_fsfbc::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
 void fnpf_fsfbc::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     // fi
-    FFILOOP4
+    std::visit([&](auto &conv)
     {
-        c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
+        FFILOOP4
+        {
+            c->Fz(i,j) = p->sigz[IJ]*conv.sz(p,c->Fi);
 
-        if(p->wet[IJ]==0)
-        c->Fz(i,j) = 0.0;
-    }
+            if(p->wet[IJ]==0)
+            c->Fz(i,j) = 0.0;
+        }
+    }, pconvec);
 }
 
 void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)

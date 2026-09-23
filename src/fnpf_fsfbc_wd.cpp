@@ -30,65 +30,35 @@ Author: Hans Bihs
 #include "ioflow.h"
 #include "solver.h"
 #include "reini.h"
-#include "fnpf_voiddisc.h"
-#include "fnpf_cds2_wd.h"
-#include "fnpf_cds4_wd.h"
-#include "fnpf_cds6_wd.h"
-#include "fnpf_cds2.h"
-#include "fnpf_cds4.h"
-#include "fnpf_cds6.h"
-#include "fnpf_weno3.h"
-#include "fnpf_weno5.h"
-#include "fnpf_weno5_wd.h"
-#include "fnpf_wenoflux.h"
-#include "fnpf_ddx_cds2_wd.h"
-#include "fnpf_ddx_cds4_wd.h"
-#include "fnpf_hires.h"
-#include "fnpf_ddx_cds2.h"
-#include "fnpf_ddx_cds4.h"
 #include "fnpf_coastline.h"
 #include "sflow_bicgstab.h"
 #include "wind_f.h"
 #include "wind_v.h"
 
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
-                                                                      ef(p),df(p)
+                                                                      ef(p),df(p),
+                                                                      pconvec(std::in_place_type<fnpf_voiddisc>, p),
+                                                                      pdx(std::in_place_type<fnpf_hires>, p),
+                                                                      pddx(std::in_place_type<fnpf_ddx_cds2>, p)
 {
-    if(p->A311==0)
-    {
-        pconvec = pconeta = new fnpf_voiddisc(p);
-    }
-    else if(p->A311==1)
-    {
-        pconvec = pconeta = new fnpf_cds2_wd(p,c);
-    }
+    if(p->A311==1)
+        pconvec.emplace<fnpf_cds2_wd>(p,c);
     else if(p->A311==2)
-    {
-        pconvec = pconeta = new fnpf_cds4_wd(p);
-    }
+        pconvec.emplace<fnpf_cds4_wd>(p);
     else if(p->A311==3)
-    {
-        pconvec = pconeta = new fnpf_weno3(p);
-    }
+        pconvec.emplace<fnpf_weno3>(p);
     else if(p->A311==4  || p->A311==5)
     {
-        pconvec = new fnpf_weno5_wd(p);
-        pconeta = new fnpf_weno5(p);
+        pconvec.emplace<fnpf_weno5_wd>(p);
+        pconeta.emplace(p);
     }
     else if(p->A311==6)
-    {
-        pconvec = pconeta = new fnpf_cds6_wd(p);
-    }
+        pconvec.emplace<fnpf_cds6_wd>(p);
 
-    if(p->A312==2)
+    if(p->A312==3)
     {
-        pddx = new fnpf_ddx_cds2(p);
-        pdx = new fnpf_hires(p);
-    }
-    else if(p->A312==3)
-    {
-        pddx = new fnpf_ddx_cds4(p);
-        pdx = new fnpf_cds4(p);
+        pdx.emplace<fnpf_cds4>(p);
+        pddx.emplace<fnpf_ddx_cds4>(p);
     }
 
     pcoast = new fnpf_coastline(p);
@@ -157,44 +127,47 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // which runs before the first fsfdisc call), so this was dead work
     // costing 4 slice halo exchanges per RK stage.
 
-    // 3D
-    if(p->j_dir)
+    std::visit([&](auto &conv, auto &ddx, auto &dx)
     {
-        SLICELOOP4
-        WETDRY
+        // 3D
+        if(p->j_dir)
         {
-            ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-            jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+            SLICELOOP4
+            WETDRY
+            {
+                ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+                jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-            c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-            c->Fy(i,j) = pconvec->sy(p,Fifsf,jvel);
+                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
+                c->Fy(i,j) = conv.sy(p,Fifsf,jvel);
 
-            c->Ex(i,j) = pconeta->sx(p,eta,ivel);
-            c->Ey(i,j) = pconeta->sy(p,eta,jvel);
+                c->Ex(i,j) = conv.sx(p,eta,ivel);
+                c->Ey(i,j) = conv.sy(p,eta,jvel);
 
-            c->Exx(i,j) = pddx->sxx(p,eta);
-            c->Eyy(i,j) = pddx->syy(p,eta);
+                c->Exx(i,j) = ddx.sxx(p,eta);
+                c->Eyy(i,j) = ddx.syy(p,eta);
 
-            c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
-            c->By(i,j) = pdx->sy(p,c->depth,1.0);
+                c->Bx(i,j) = dx.sx(p,c->depth,1.0);
+                c->By(i,j) = dx.sy(p,c->depth,1.0);
+            }
         }
-    }
-    // 2D
-    else
-    {
-        SLICELOOP4
-        WETDRY
+        // 2D
+        else
         {
-        ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+            SLICELOOP4
+            WETDRY
+            {
+                ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-        c->Fx(i,j) = pconvec->sx(p,Fifsf,ivel);
-        c->Ex(i,j) = pconeta->sx(p,eta,ivel);
+                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
+                c->Ex(i,j) = conv.sx(p,eta,ivel);
 
-        c->Exx(i,j) = pddx->sxx(p,eta);
+                c->Exx(i,j) = ddx.sxx(p,eta);
 
-        c->Bx(i,j) = pdx->sx(p,c->depth,1.0);
+                c->Bx(i,j) = dx.sx(p,c->depth,1.0);
+            }
         }
-    }
+    }, pconvec, pddx, pdx);
 }
 
 void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
@@ -210,27 +183,30 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         c->K(i,j) = 0.0;
     }
 
-    // 3D
-    if(p->j_dir)
+    std::visit([&](auto &conv, auto &ddx)
     {
-        SLICELOOP4
+        // 3D
+        if(p->j_dir)
         {
-            c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
-            c->By(i,j) = pconvec->sy(p,c->depth,1.0);
+            SLICELOOP4
+            {
+                c->Bx(i,j) = conv.sx(p,c->depth,1.0);
+                c->By(i,j) = conv.sy(p,c->depth,1.0);
 
-            c->Bxx(i,j) = pddx->sxx(p,df);
-            c->Byy(i,j) = pddx->syy(p,df);
+                c->Bxx(i,j) = ddx.sxx(p,df);
+                c->Byy(i,j) = ddx.syy(p,df);
+            }
         }
-    }
-    // 2D
-    else
-    {
-        SLICELOOP4
+        // 2D
+        else
         {
-            c->Bx(i,j) = pconvec->sx(p,c->depth,1.0);
-            c->Bxx(i,j) = pddx->sxx(p,df);
+            SLICELOOP4
+            {
+                c->Bx(i,j) = conv.sx(p,c->depth,1.0);
+                c->Bxx(i,j) = ddx.sxx(p,df);
+            }
         }
-    }
+    }, pconvec, pddx);
 
     pgc->gcsl_start4(p,c->Bx,1);
     pgc->gcsl_start4(p,c->By,1);
@@ -245,13 +221,16 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
 void fnpf_fsfbc_wd::fsfwvel(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     // fi
-    FFILOOP4
+    std::visit([&](auto &conv)
     {
-        if(p->wet[IJ]==1)
-            c->Fz(i,j) = p->sigz[IJ]*pconvec->sz(p,c->Fi);
-        else if(p->wet[IJ]==0)
-            c->Fz(i,j) = 0.0;
-    }
+        FFILOOP4
+        {
+            if(p->wet[IJ]==1)
+                c->Fz(i,j) = p->sigz[IJ]*conv.sz(p,c->Fi);
+            else if(p->wet[IJ]==0)
+                c->Fz(i,j) = 0.0;
+        }
+    }, pconvec);
 
     if(p->count>0)
         coastline_Fz(p,c,pgc,c->Fz);

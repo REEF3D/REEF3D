@@ -26,12 +26,22 @@ Author: Hans Bihs
 #include "fnpf_breaking.h"
 #include "sliceint4.h"
 #include "slice4.h"
+#include "fnpf_voiddisc.h"
+#include "fnpf_cds2_wd.h"
+#include "fnpf_cds4_wd.h"
+#include "fnpf_cds6_wd.h"
+#include "fnpf_weno3.h"
+#include "fnpf_weno5.h"
+#include "fnpf_weno5_wd.h"
+#include "fnpf_cds4.h"
+#include "fnpf_hires.h"
+#include "fnpf_ddx_cds2.h"
+#include "fnpf_ddx_cds4.h"
+#include <optional>
+#include <variant>
 
 class fnpf_laplace;
 class field;
-class fnpf_convection;
-class fnpf_ddx;
-class fnpf_etadisc;
 class fnpf_coastline;
 class solver2D;
 class wind;
@@ -66,11 +76,10 @@ private:
     sliceint4 wetcoast;
     slice4 ef,df;
 
-    fnpf_convection *pconvec;
-    fnpf_convection *pconeta;
-    fnpf_etadisc *pdf;
-    fnpf_convection *pdx;
-    fnpf_ddx *pddx;
+    std::variant<fnpf_voiddisc, fnpf_cds2_wd, fnpf_cds4_wd, fnpf_weno3, fnpf_weno5_wd, fnpf_cds6_wd> pconvec;
+    std::optional<fnpf_weno5> pconeta; // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
+    std::variant<fnpf_hires, fnpf_cds4> pdx;
+    std::variant<fnpf_ddx_cds2, fnpf_ddx_cds4> pddx;
     fnpf_coastline *pcoast;
     solver2D *psolv;
     wind *pwind;
