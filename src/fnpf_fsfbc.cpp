@@ -50,6 +50,8 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
     else if(p->A311==4 || p->A311==5)
     {
         pconvec.emplace<fnpf_weno5>(p);
+        dqF.emplace(p);
+        dqE.emplace(p);
     }
     else if(p->A311==6)
         pconvec.emplace<fnpf_cds6>(p);
@@ -101,8 +103,41 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 
     std::visit([&](auto &conv, auto &ddx)
     {
+        // WENO5: face divided differences once per field and direction, inlined stencils
+        if constexpr(std::is_same_v<std::decay_t<decltype(conv)>, fnpf_weno5>)
+        {
+            conv.dsdiffx(Fifsf,*dqF);
+            conv.dsdiffx(eta,*dqE);
+
+            SLICELOOP4
+            {
+                const double uvel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+
+                c->Fx(i,j) = conv.dswenox_dq(*dqF,uvel);
+                c->Ex(i,j) = conv.dswenox_dq(*dqE,uvel);
+
+                c->Exx(i,j) = ddx.sxx(p,eta);
+            }
+
+            // 3D
+            if(p->j_dir)
+            {
+                conv.dsdiffy(Fifsf,*dqF);
+                conv.dsdiffy(eta,*dqE);
+
+                SLICELOOP4
+                {
+                    const double vvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+
+                    c->Fy(i,j) = conv.dswenoy_dq(*dqF,vvel);
+                    c->Ey(i,j) = conv.dswenoy_dq(*dqE,vvel);
+
+                    c->Eyy(i,j) = ddx.syy(p,eta);
+                }
+            }
+        }
         // 3D
-        if(p->j_dir)
+        else if(p->j_dir)
         {
             SLICELOOP4
             {

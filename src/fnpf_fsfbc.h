@@ -63,6 +63,7 @@ private:
     slice4 ef,df;
 
     std::variant<fnpf_voiddisc, fnpf_cds2, fnpf_cds4, fnpf_weno3, fnpf_weno5, fnpf_cds6> pconvec;
+    std::optional<slice4> dqF, dqE; // WENO5 face divided differences of Fifsf and eta
     std::variant<fnpf_ddx_cds2, fnpf_ddx_cds4> pddx;
     solver2D *psolv;
     wind *pwind;

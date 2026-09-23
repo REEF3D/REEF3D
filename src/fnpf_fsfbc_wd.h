@@ -78,6 +78,7 @@ private:
 
     std::variant<fnpf_voiddisc, fnpf_cds2_wd, fnpf_cds4_wd, fnpf_weno3, fnpf_weno5_wd, fnpf_cds6_wd> pconvec;
     std::optional<fnpf_weno5> pconeta; // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
+    std::optional<slice4> dqF, dqE;    // WENO5 face divided differences of Fifsf and eta
     std::variant<fnpf_hires, fnpf_cds4> pdx;
     std::variant<fnpf_ddx_cds2, fnpf_ddx_cds4> pddx;
     fnpf_coastline *pcoast;

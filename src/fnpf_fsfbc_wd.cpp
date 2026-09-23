@@ -51,6 +51,8 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     {
         pconvec.emplace<fnpf_weno5_wd>(p);
         pconeta.emplace(p);
+        dqF.emplace(p);
+        dqE.emplace(p);
     }
     else if(p->A311==6)
         pconvec.emplace<fnpf_cds6_wd>(p);
@@ -129,8 +131,48 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
     std::visit([&](auto &conv, auto &ddx, auto &dx)
     {
+        // WENO5: Fifsf through the wet-dry aware fnpf_weno5_wd, eta through fnpf_weno5,
+        // both on face divided differences computed once per direction
+        if constexpr(std::is_same_v<std::decay_t<decltype(conv)>, fnpf_weno5_wd>)
+        {
+            conv.dsdiffx(Fifsf,*dqF);
+            pconeta->dsdiffx(eta,*dqE);
+
+            SLICELOOP4
+            WETDRY
+            {
+                const double uvel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+
+                c->Fx(i,j) = conv.dswenox_dq(*dqF,uvel);
+                c->Ex(i,j) = pconeta->dswenox_dq(*dqE,uvel);
+
+                c->Exx(i,j) = ddx.sxx(p,eta);
+
+                c->Bx(i,j) = dx.sx(p,c->depth,1.0);
+            }
+
+            // 3D
+            if(p->j_dir)
+            {
+                conv.dsdiffy(Fifsf,*dqF);
+                pconeta->dsdiffy(eta,*dqE);
+
+                SLICELOOP4
+                WETDRY
+                {
+                    const double vvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+
+                    c->Fy(i,j) = conv.dswenoy_dq(*dqF,vvel);
+                    c->Ey(i,j) = pconeta->dswenoy_dq(*dqE,vvel);
+
+                    c->Eyy(i,j) = ddx.syy(p,eta);
+
+                    c->By(i,j) = dx.sy(p,c->depth,1.0);
+                }
+            }
+        }
         // 3D
-        if(p->j_dir)
+        else if(p->j_dir)
         {
             SLICELOOP4
             WETDRY
