@@ -189,3 +189,33 @@ double iowave::distbeach(lexer *p)
 	return dist;
 }
 
+// distgen()/distbeach() test every slice cell against all B107/B108 zone
+// polygons. The zones and the grid are fixed, so this is done once here and
+// the per-step relaxation loops visit only the cells that lie in a zone.
+void iowave::relaxzone4_build(lexer *p)
+{
+    rz4_i.clear();
+    rz4_j.clear();
+    rz4_xg.clear();
+    rz4_yg.clear();
+    rz4_dg.clear();
+    rz4_db.clear();
+    
+    SLICELOOP4
+    {
+        const double dgv = distgen(p);
+        const double dbv = distbeach(p);
+        
+        if(dgv<1.0e20 || dbv<1.0e20)
+        {
+        rz4_i.push_back(i);
+        rz4_j.push_back(j);
+        rz4_xg.push_back(xgen(p));
+        rz4_yg.push_back(ygen(p));
+        rz4_dg.push_back(dgv);
+        rz4_db.push_back(dbv);
+        }
+    }
+    
+    rz4_built=true;
+}

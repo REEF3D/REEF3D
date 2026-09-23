@@ -41,6 +41,8 @@ class linear_regression_cont;
 
 using namespace std;
 
+#include<vector>
+
 class iowave final : public ioflow, public wave_interface, public increment, public flowfile_in
 {
 
@@ -260,6 +262,14 @@ private:
     
     void distbeach_ini(lexer*);
     void distgen_ini(lexer*);
+    
+    // Relaxation-zone geometry of the slice4 cells, built once on first use.
+    // Only cells inside the generation or beach zone are stored, in SLICELOOP4
+    // order, with their xgen/ygen/distgen/distbeach values.
+    void relaxzone4_build(lexer*);
+    std::vector<int> rz4_i, rz4_j;
+    std::vector<double> rz4_xg, rz4_yg, rz4_dg, rz4_db;
+    bool rz4_built=false;
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC

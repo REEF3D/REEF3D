@@ -31,122 +31,105 @@ Author: Hans Bihs
 
 void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
 {
-    /*
-    FLOOP
+    // Per-column version of the former three FLOOP sweeps (bit-identical):
+    // grid-metric denominators and the 2D wet-neighbour test are evaluated once
+    // per (i,j) column instead of once per cell.
+    const int sI = p->jmax*p->kmaxF;
+    const int sJ = p->kmaxF;
+    const int knoz = p->knoz;
+    
+    const double *const __restrict Fi = c->Fi;
+    double *const __restrict U = c->U;
+    double *const __restrict V = c->V;
+    double *const __restrict W = c->W;
+    
+    ILOOP
+    JLOOP
     {
-    // U
-    if(k<p->knoz)
-    c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
-    
-                + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
-                
-    if(k==p->knoz)
-    c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
-    
-                + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
-     
-    // V           
-    if(k<p->knoz)
-    c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1])
-                
-                + p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
-                
-    if(k==p->knoz)
-    c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1])
-                
-                + p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
-    
-    // W
-    c->W[FIJK] = ((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ];
-    }*/
-    
-    
-    
-    FLOOP
-    {
-    // U
-    if(k<p->knoz)
-    c->U[FIJK] = (-c->Fi[FIp2JK] + 8.0*c->Fi[FIp1JK] - 8.0*c->Fi[FIm1JK] + c->Fi[FIm2JK])/(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2])
-    
-                + p->sigx[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
-
-                            
-    if(k==p->knoz)
-    c->U[FIJK] = (c->Fi[FIp1JK]-c->Fi[FIm1JK])/(p->DXP[IP]+p->DXP[IM1])
-    
-                + p->sigx[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
-     
-    // V           
-    if(k<p->knoz)
-    c->V[FIJK] = (-c->Fi[FIJp2K] + 8.0*c->Fi[FIJp1K] - 8.0*c->Fi[FIJm1K] + c->Fi[FIJm2K])/(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2])
-                
-                + p->sigy[FIJK]*((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZN[KP]+p->DZN[KM1]));
-                
-    if(k==p->knoz)
-    c->V[FIJK] = (c->Fi[FIJp1K]-c->Fi[FIJm1K])/(p->DYP[JP]+p->DYP[JM1])
-                
-                + p->sigy[FIJK]*((c->Fi[FIJK]-c->Fi[FIJKm1])/(p->DZN[KP]));
-    
-    // W
-    if(k<p->knoz)
-    c->W[FIJK] = ((-c->Fi[FIJKp2] + 8.0*c->Fi[FIJKp1] - 8.0*c->Fi[FIJKm1] + c->Fi[FIJKm2])/(-p->ZN[KP2] + 8.0*p->ZN[KP1] - 8.0*p->ZN[KM1] + p->ZN[KM2]))*p->sigz[IJ];
-    }
-    
-    /*
-    if(p->B98>=3)
-    for(n=0;n<p->gcslin_count;n++)
-    {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
+        k=0;
+        const int c0 = FIJK;
         
-        FKLOOP
-        FPCHECK
+        const double dx4 = (-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);
+        const double dy4 = (-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);
+        const double dx2 = (p->DXP[IP]+p->DXP[IM1]);
+        const double dy2 = (p->DYP[JP]+p->DYP[JM1]);
+        const double sz  = p->sigz[IJ];
+        
+        for(k=0; k<=knoz; ++k)
         {
-        c->U[FIJK] = c->Uin[FIm1JK];
-
-        }
-    }*/
-    
-    FFILOOP4
-    c->W[FIJK] = c->Fz(i,j);
-    
-    FLOOP
-    {
-        if(p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
-        || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0)
-        {
-        
-        c->U[FIJK]=0.0;
-        c->V[FIJK]=0.0;
-        c->W[FIJK]=0.0;
-        }
-        
-        if(i+p->origin_i<=5)
-        {
-        if(c->U[FIJK]<=-p->N61)
-        c->U[FIJK] = -0.95*p->N61;
-        
-        if(c->U[FIJK]>=p->N61)
-        c->U[FIJK] = 0.95*p->N61;
-        
-        
-        if(c->V[FIJK]<=-p->N61)
-        c->V[FIJK] = -0.95*p->N61;
-        
-        if(c->V[FIJK]>=p->N61)
-        c->V[FIJK] = 0.95*p->N61;
-        
+            const int q = c0 + k;
             
-        if(c->W[FIJK]<=-p->N61)
-        c->W[FIJK] = -0.95*p->N61;
+            if(p->flag7[q]>0)
+            {
+            if(k<knoz)
+            {
+            U[q] = (-Fi[q+2*sI] + 8.0*Fi[q+sI] - 8.0*Fi[q-sI] + Fi[q-2*sI])/dx4
+                 + p->sigx[q]*((Fi[q+1]-Fi[q-1])/(p->DZN[KP]+p->DZN[KM1]));
+            
+            V[q] = (-Fi[q+2*sJ] + 8.0*Fi[q+sJ] - 8.0*Fi[q-sJ] + Fi[q-2*sJ])/dy4
+                 + p->sigy[q]*((Fi[q+1]-Fi[q-1])/(p->DZN[KP]+p->DZN[KM1]));
+            
+            W[q] = ((-Fi[q+2] + 8.0*Fi[q+1] - 8.0*Fi[q-1] + Fi[q-2])/(-p->ZN[KP2] + 8.0*p->ZN[KP1] - 8.0*p->ZN[KM1] + p->ZN[KM2]))*sz;
+            }
+            
+            if(k==knoz)
+            {
+            U[q] = (Fi[q+sI]-Fi[q-sI])/dx2
+                 + p->sigx[q]*((Fi[q]-Fi[q-1])/(p->DZN[KP]));
+            
+            V[q] = (Fi[q+sJ]-Fi[q-sJ])/dy2
+                 + p->sigy[q]*((Fi[q]-Fi[q-1])/(p->DZN[KP]));
+            }
+            }
+        }
         
-        if(c->W[FIJK]>=p->N61)
-        c->W[FIJK] = 0.95*p->N61;
+        // former FFILOOP4
+        if(p->flagslice4[IJ]>0)
+        W[c0+knoz] = c->Fz(i,j);
+        
+        // former third FLOOP: wet test is 2D, clamp only near the inlet
+        const bool dryneigh = (p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
+                            || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0);
+        const bool clampcol = (i+p->origin_i<=5);
+        
+        if(dryneigh || clampcol)
+        for(k=0; k<=knoz; ++k)
+        {
+            const int q = c0 + k;
+            
+            if(p->flag7[q]>0)
+            {
+            if(dryneigh)
+            {
+            U[q]=0.0;
+            V[q]=0.0;
+            W[q]=0.0;
+            }
+            
+            if(clampcol)
+            {
+            if(U[q]<=-p->N61)
+            U[q] = -0.95*p->N61;
+            
+            if(U[q]>=p->N61)
+            U[q] = 0.95*p->N61;
+            
+            if(V[q]<=-p->N61)
+            V[q] = -0.95*p->N61;
+            
+            if(V[q]>=p->N61)
+            V[q] = 0.95*p->N61;
+            
+            if(W[q]<=-p->N61)
+            W[q] = -0.95*p->N61;
+            
+            if(W[q]>=p->N61)
+            W[q] = 0.95*p->N61;
+            }
+            }
         }
     }
     
-    
-
     int gcval=210;
     
     pgc->start7V(p,c->U,c->bc,gcval);

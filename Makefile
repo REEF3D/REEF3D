@@ -37,6 +37,12 @@ debug: CXXFLAGS += -O0 -g -g3 -Wall
 debug: CXXFLAGS += -DBUILD=\"debug\"
 debug: $(APP)
 
+# Vectorised libm (glibc libmvec) for the irregular-wave component sums (Linux/GCC)
+ifeq ($(shell uname -s),Linux)
+$(OBJ_DIR)/src/wave_lib_irregular_1st.o: CXXFLAGS += -fopenmp-simd -fno-math-errno -DREEF3D_SIMD_MATH
+LDFLAGS += -lmvec
+endif
+
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -c $< -o $@

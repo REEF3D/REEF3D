@@ -167,6 +167,7 @@ public:
     double globalsum(double);
     int globalisum(int);
     double globalmax(double);
+    void globalmax(double*,int);   // in-place elementwise max over all ranks, one MPI_Allreduce
     double globalmin(double);
     int globalimax(int);
     int globalimin(int);
@@ -277,6 +278,7 @@ public:
     void fivec2D(lexer*,double*,sliceint&);
     void fivec_vel(lexer*,double*,sliceint&);
     void fivec2D_vel(lexer*,double*,sliceint&);
+    void fivec_buildlist(lexer*);
     void gc_periodic(lexer*,field&,int,int);
     
     //NHFLOW

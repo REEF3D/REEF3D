@@ -161,8 +161,7 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 
     }
 	
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+    pgc->globalmax(wsf,gauge_num);   // one reduction for all gauges
 }
 
 void fnpf_print_wsf::fill_deta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)

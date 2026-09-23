@@ -24,6 +24,20 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<cmath>
+
+// Expose glibc's libmvec vector variants (normally only with -ffast-math).
+// Used only when compiled with -fopenmp-simd; otherwise these are no-ops.
+#if defined(_OPENMP) || defined(REEF3D_SIMD_MATH)
+extern "C" {
+#pragma omp declare simd notinbranch
+double sin(double) noexcept;
+#pragma omp declare simd notinbranch
+double cos(double) noexcept;
+#pragma omp declare simd notinbranch
+double cosh(double) noexcept;
+}
+#endif
 
 wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
 { 
@@ -253,14 +267,23 @@ double wave_lib_irregular_1st::wave_w_time_cos(lexer *p, int n)
 // ETA -------------------------------------------------------------
 double wave_lib_irregular_1st::wave_eta(lexer *p, double x, double y)
 {
-    eta=0.0;
-
-	for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
-
-	for(n=0;n<p->wN;++n)
-    eta +=  Ai[n]*cos(Ti[n]);
+    // Local loop index/accumulator (the static increment::n and member eta
+    // had to be spilled around every libm call) and a SIMD-able term loop:
+    // with -fno-math-errno -fopenmp-simd GCC maps cos() to libmvec. The
+    // components are still summed in the original order.
+    const int N = p->wN;
+    const double t = p->wavetime;
+    double *const __restrict T = Ti;
+    
+    #pragma omp simd
+	for(int q=0;q<N;++q)
+	T[q] = Ai[q]*cos(ki[q]*(cosbeta[q]*x + sinbeta[q]*y) - wi[q]*t - ei[q]);
+    
+    double acc=0.0;
+	for(int q=0;q<N;++q)
+    acc += T[q];
 	
+    eta = acc;
     return eta;
 }
 
@@ -299,14 +322,20 @@ double wave_lib_irregular_1st::wave_eta_time_cos(lexer *p, int n)
 // FI -------------------------------------------------------------
 double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
 {
-    fi=0.0;
+    const int N = p->wN;
+    const double t = p->wavetime;
+    const double zz = wdt+z;
+    double *const __restrict T = Ti;
     
-    for(n=0;n<p->wN;++n)
-	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
-
-    for(n=0;n<p->wN;++n)
-    fi += ((wi[n]*Ai[n])/ki[n])*(cosh(ki[n]*(wdt+z))/sinhkd[n] ) * sin(Ti[n]);
-
+    #pragma omp simd
+    for(int q=0;q<N;++q)
+    T[q] = ((wi[q]*Ai[q])/ki[q])*(cosh(ki[q]*zz)/sinhkd[q] ) * sin(ki[q]*(cosbeta[q]*x + sinbeta[q]*y) - wi[q]*t - ei[q]);
+    
+    double acc=0.0;
+    for(int q=0;q<N;++q)
+    acc += T[q];
+    
+    fi = acc;
     return fi;
 }
     

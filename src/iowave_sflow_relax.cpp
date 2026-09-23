@@ -30,10 +30,14 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
     starttime=pgc->timer();
     
 	count=0;
-    SLICELOOP4
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built) relaxzone4_build(p);
+    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
     {
-		dg = distgen(p);
-		db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
         
 
 		// Wave Generation
@@ -136,11 +140,14 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
     starttime=pgc->timer();
     
     count=0;
-    SLICELOOP4
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built) relaxzone4_build(p);
+    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
     {
-
-		dg = distgen(p);
-		db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
 
         // Wave Generation
 		if(p->B98==2 && w_switch==1)
@@ -171,12 +178,16 @@ void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta
     
 	double wval=0.0;
     
-    SLICELOOP4
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built) relaxzone4_build(p);
+    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
     {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        xg = rz4_xg[rzq];
+        yg = rz4_yg[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
 
         z=eta(i,j);
 
@@ -207,12 +218,16 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 {
 	starttime=pgc->timer();
     
-    SLICELOOP4
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built) relaxzone4_build(p);
+    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
     {
-		xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        xg = rz4_xg[rzq];
+        yg = rz4_yg[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
 		
 		// Wave Generation
         if(p->B98==2)

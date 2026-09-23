@@ -29,10 +29,14 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
     starttime=pgc->timer();
     
     count=0;
-    SLICELOOP4
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built) relaxzone4_build(p);
+    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
     {
-        dg = distgen(p);    
-        db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
         
 		// Wave Generation
 		if(p->B98==2 && f_switch==1)
@@ -102,10 +106,14 @@ void iowave::test_relax(lexer *p, ghostcell *pgc, slice& f)
     starttime=pgc->timer();
     
     count=0;
-    SLICELOOP4
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built) relaxzone4_build(p);
+    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
     {
-        dg = distgen(p);    
-        db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
         
 		// Wave Generation
 		/*if(p->B98==2 && f_switch==1)

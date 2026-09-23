@@ -47,6 +47,21 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
     alpha_eta=p->A366;
     }
     
+    // With vb==0 everywhere the implicit damping system is diagonal with
+    // solution f, so the global 2D BiCGStab solve is skipped. This is the
+    // normal state whenever no cell is breaking.
+    if(p->A350>0 && check==1)
+    {
+        double vbmax=0.0;
+        SLICELOOP4
+        vbmax = MAX(vbmax,fabs(c->vb(i,j)));
+        
+        vbmax = pgc->globalmax(vbmax);
+        
+        if(vbmax<=0.0)
+        check=0;
+    }
+    
     if(p->A350>0 && check==1)
     {
         n=0;

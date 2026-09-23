@@ -148,26 +148,11 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
 
     pgc->gcsl_start4(p,c->WL,50);
     
-    // ef
-    SLICELOOP4
-    ef(i,j) = eta(i,j);
-    
-    pgc->gcsl_start4(p,ef,1);
-    
-    filter(p,c,pgc,ef,5,2);
-    
-    pgc->gcsl_start4(p,ef,1);
-    
-    
-    // df
-    SLICELOOP4
-    df(i,j) = c->depth(i,j);
-    
-    pgc->gcsl_start4(p,df,1);
-    
-    filter(p,c,pgc,df,5,2);
-    
-    pgc->gcsl_start4(p,df,1);
+    // ef/df: removed. Both slices were copied, halo-exchanged 4x and passed to
+    // filter(), which has no (i,j) loop and so only touched one stale cell.
+    // Neither ef nor df is read afterwards (df is only read in fsfdisc_ini,
+    // which runs before the first fsfdisc call), so this was dead work
+    // costing 4 slice halo exchanges per RK stage.
     
     // 3D
     if(p->j_dir==1)

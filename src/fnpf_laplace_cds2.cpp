@@ -42,193 +42,229 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     starttime=pgc->timer();
     
+    // Fused single-pass assembly (previously two full LOOP sweeps).
+    // Column-constant factors are hoisted; per-cell arithmetic is kept in
+    // the original evaluation order, so M and rhs are bit-identical.
+    const int sI = p->jmax*p->kmaxF;
+    const int sJ = p->kmaxF;
+    
+    const int    *const __restrict flag7 = p->flag7;
+    const double *const __restrict sigx  = p->sigx;
+    const double *const __restrict sigy  = p->sigy;
+    const double *const __restrict sigxx = p->sigxx;
+    const double *const __restrict Uin   = c->Uin;
+    
+    double *const __restrict Mp = c->M.p;
+    double *const __restrict Mn = c->M.n;
+    double *const __restrict Ms = c->M.s;
+    double *const __restrict Mw = c->M.w;
+    double *const __restrict Me = c->M.e;
+    double *const __restrict Mt = c->M.t;
+    double *const __restrict Mb = c->M.b;
+    double *const __restrict rhs = c->rhsvec.V;
+    
+    const double ydir = p->y_dir;
+    const double xdir = p->x_dir;
+    
 	n=0;
-    LOOP
-	{
-        if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
+    ILOOP
+    JLOOP
+    {
+        k=0;
+        const int c0 = FIJK;
+        
+        const int wP = p->wet[IJ];
+        const int wS = p->wet[Im1J];
+        const int wN = p->wet[Ip1J];
+        const int wE = p->wet[IJm1];
+        const int wW = p->wet[IJp1];
+        const int bcS = c->bc(i-1,j);
+        const int bcN = c->bc(i+1,j);
+        
+        const double dxn = 1.0/(p->DXP[IP]*p->DXN[IP]);
+        const double dxs = 1.0/(p->DXP[IM1]*p->DXN[IP]);
+        const double dyw = 1.0/(p->DYP[JP]*p->DYN[JP])*ydir;
+        const double dye = 1.0/(p->DYP[JM1]*p->DYN[JP])*ydir;
+        const double hxy = dxn + dxs + dyw + dye;
+        
+        const double dxc = p->DXP[IP]+p->DXP[IM1];
+        const double dyc = p->DYP[JP]+p->DYP[JM1];
+        
+        const double sz = p->sigz[IJ];
+        const double bx = c->Bx(i,j);
+        const double by = c->By(i,j);
+        
+        KLOOP
+        if(p->flag4[IJK]>0)
         {
-        sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-        
-        c->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP]) 
-                    + 1.0/(p->DXP[IM1]*p->DXN[IP])
-                    
-                    + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir 
-                    + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir 
-                    
-                    + (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))
-                    + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]));
-
-
-        c->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
-        c->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
-
-        c->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-        c->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-        
-        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-        
-        
-        c->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
-                        
-                        + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                        /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-                        
-        }
-        
-        if(p->wet[IJ]==0 || p->flag7[FIJK]<0)
-        {
-        c->M.p[n]  =  1.0;
-
-
-        c->M.n[n] = 0.0;
-        c->M.s[n] = 0.0;
-
-        c->M.w[n] = 0.0;
-        c->M.e[n] = 0.0;
-
-        c->M.t[n] = 0.0;
-        c->M.b[n] = 0.0;
-        
-        c->rhsvec.V[n] =  0.0;
-        }
-	++n;
-	}
-    
-    
-    n=0;
-	LOOP
-	{
-            if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
+            const int q = c0 + k;
+            
+            if(wP==1 && flag7[q]>0)
             {
+            const double sx  = sigx[q];
+            const double sy  = sigy[q];
+            const double sxx = sigxx[q];
+            const double s2  = sx*sx + sy*sy + sz*sz;
+            const double dzc = p->DZN[KP]+p->DZN[KM1];
+            
+            double mp = hxy + (s2/(p->DZP[KM1]*p->DZN[KP])) + (s2/(p->DZP[KM1]*p->DZN[KM1]));
+            double mn = -dxn;
+            double ms = -dxs;
+            double mw = -dyw;
+            double me = -dye;
+            double mt = -(s2/(p->DZP[KM1]*p->DZN[KP])  + sxx/dzc);
+            double mb = -(s2/(p->DZP[KM1]*p->DZN[KM1]) - sxx/dzc);
+            
+            double rv = 2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])/(dxc*dzc)
+                      + 2.0*sy*(f[q+sJ+1] - f[q-sJ+1] - f[q+sJ-1] + f[q-sJ-1])/(dyc*dzc)*ydir;
             
             // KBEDBC
-            if(p->flag7[FIJKm1]<0)
+            if(flag7[q-1]<0)
             {
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            const double ab = mb;
+            denom = sz + bx*sx + by*sy;
             
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-            
-            denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
-
-                    c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-      
-                    c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-
-                c->M.t[n] += ab;
-                c->M.b[n] = 0.0;
+                mn +=  ab*2.0*p->DZN[KP]*bx/(denom*dxc);
+                ms += -ab*2.0*p->DZN[KP]*bx/(denom*dxc);
+                
+                mw +=  ab*2.0*p->DZN[KP]*by/(denom*dyc);
+                me += -ab*2.0*p->DZN[KP]*by/(denom*dyc);
+                
+                mt += ab;
+                mb = 0.0;
             }
             
-            
             // south
+            const bool sdry = (flag7[q-sI]<0 || wS==0);
+            
             if(p->B98<=2)
-            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)))
+            if(sdry)
             {
-            c->M.p[n] += c->M.s[n];
-            c->M.s[n] = 0.0;
+            mp += ms;
+            ms = 0.0;
             }
             
             if(p->B98>2)
             {
-            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)) && c->bc(i-1,j)==0)
+            if(sdry && bcS==0)
             {
-            c->M.p[n] += c->M.s[n];
-            c->M.s[n] = 0.0;
+            mp += ms;
+            ms = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1)
+            if(flag7[q-sI]<0 && bcS==1  && p->A329==1)
             {
-            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
-            c->M.p[n] += c->M.s[n];
-            c->M.s[n] = 0.0;
+            rv += ms*Uin[q-sI]*p->DXP[IM1];
+            mp += ms;
+            ms = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2)
+            if(flag7[q-sI]<0 && bcS==1  && p->A329>=2)
             {
             denom = -1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1];
             
-            c->rhsvec.V[n] += (2.0/3.0)*c->M.s[n]*c->Uin[FIm1JK]*denom;
-            c->M.p[n] += (4.0/3.0)*c->M.s[n];
-            c->M.n[n] -= (1.0/3.0)*c->M.s[n];
-            c->M.s[n] = 0.0;
-            }  
+            rv += (2.0/3.0)*ms*Uin[q-sI]*denom;
+            mp += (4.0/3.0)*ms;
+            mn -= (1.0/3.0)*ms;
+            ms = 0.0;
+            }
             }
             
             // north
+            const bool ndry = (flag7[q+sI]<0 || wN==0);
+            
             if(p->B99<=2)
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0))
+            if(ndry)
             {
-            c->M.p[n] += c->M.n[n];
-            c->M.n[n] = 0.0;
+            mp += mn;
+            mn = 0.0;
             }
             
             if(p->B99>2)
             {
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            if(ndry && bcN==0)
             {
-            c->M.p[n] += c->M.n[n];
-            c->M.n[n] = 0.0;
+            mp += mn;
+            mn = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329==1)
+            if(flag7[q+sI]<0 && bcN==2  && p->A329==1)
             {
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            rv -=  2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])
+                        /(dxc*dzc)*xdir;
                         
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(c->Uin[FIp1JKp1] - c->Uin[FIp1JKm1])
-                        /((p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            rv +=  2.0*sx*(Uin[q+sI+1] - Uin[q+sI-1])
+                        /(dzc)*xdir;
                         
-            c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
-            c->M.p[n] += c->M.n[n];
-            c->M.n[n] = 0.0;
+            rv -= mn*Uin[q+sI]*p->DXP[IP1];
+            mp += mn;
+            mn = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329>=2)
+            if(flag7[q+sI]<0 && bcN==2  && p->A329>=2)
             {
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            rv -=  2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])
+                        /(dxc*dzc)*xdir;
                         
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(c->Uin[FIp1JKp1] - c->Uin[FIp1JKm1])
-                        /((p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            rv +=  2.0*sx*(Uin[q+sI+1] - Uin[q+sI-1])
+                        /(dzc)*xdir;
                         
             denom = -0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP1];
             
-            c->rhsvec.V[n] += (2.0/3.0)*c->M.n[n]*c->Uin[FIp1JK]*denom;
-            c->M.p[n] += (4.0/3.0)*c->M.n[n];
-            c->M.s[n] -= (1.0/3.0)*c->M.n[n];
-            c->M.n[n] = 0.0;
+            rv += (2.0/3.0)*mn*Uin[q+sI]*denom;
+            mp += (4.0/3.0)*mn;
+            ms -= (1.0/3.0)*mn;
+            mn = 0.0;
             }
             }
 
             // east
-            if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0)
+            if(flag7[q-sJ]<0 || wE==0)
             {
-            c->M.p[n] += c->M.e[n];
-            c->M.e[n] = 0.0;
+            mp += me;
+            me = 0.0;
             }
 
             // west
-            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0)
+            if(flag7[q+sJ]<0 || wW==0)
             {
-            c->M.p[n] += c->M.w[n];
-            c->M.w[n] = 0.0;
+            mp += mw;
+            mw = 0.0;
             }
-            
             
             // FSFBC
-            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            if(flag7[q+2]<0 && flag7[q+1]>0)
             {
-            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
-            c->M.t[n] = 0.0;
+            rv -= mt*f[q+2];
+            mt = 0.0;
             }
- 
             
+            Mp[n] = mp;
+            Mn[n] = mn;
+            Ms[n] = ms;
+            Mw[n] = mw;
+            Me[n] = me;
+            Mt[n] = mt;
+            Mb[n] = mb;
+            rhs[n] = rv;
             }
-	++n;
-	}
+            
+            else
+            if(wP==0 || flag7[q]<0)
+            {
+            Mp[n] = 1.0;
+            Mn[n] = 0.0;
+            Ms[n] = 0.0;
+            Mw[n] = 0.0;
+            Me[n] = 0.0;
+            Mt[n] = 0.0;
+            Mb[n] = 0.0;
+            rhs[n] = 0.0;
+            }
+            
+        ++n;
+        }
+    }
     
     endtime=pgc->timer();
     //if(p->mpirank==0 && (p->count%p->P12==0))

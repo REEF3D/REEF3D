@@ -51,8 +51,6 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 // maximum velocities
     SLICELOOP4
 	depthmax=MAX(depthmax,c->depth(i,j));
-	
-	depthmax=pgc->globalmax(depthmax);
 
 	SLICELOOP4
     if(i+p->origin_i>=5 || p->j_dir==1)
@@ -61,11 +59,18 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
     p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
     }
-
-	p->umax=pgc->globalmax(p->umax);
-    p->vmax=pgc->globalmax(p->vmax);
-    p->wmax=pgc->globalmax(p->wmax);
-
+    
+    SLICELOOP4
+	p->viscmax=MAX(p->viscmax, c->vb(i,j));
+    
+    // one MPI_Allreduce instead of five
+    double red[5] = {depthmax, p->umax, p->vmax, p->wmax, p->viscmax};
+    pgc->globalmax(red,5);
+    depthmax  = red[0];
+    p->umax   = red[1];
+    p->vmax   = red[2];
+    p->wmax   = red[3];
+    p->viscmax= red[4];
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
@@ -78,12 +83,7 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
     
     
-    // visc
-    SLICELOOP4
-	p->viscmax=MAX(p->viscmax, c->vb(i,j));
 
-	p->viscmax=pgc->globalmax(p->viscmax);
-    
     if(p->mpirank==0 && (p->count%p->P12==0) && p->viscmax>0.0)
 	cout<<"viscmax: "<<p->viscmax<<endl;
     
