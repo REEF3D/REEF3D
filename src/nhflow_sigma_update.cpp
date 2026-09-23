@@ -24,8 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
-#include"fnpf_ddx_cds2.h"
-#include"fnpf_ddx_cds4.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
 
