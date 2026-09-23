@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef FNPF_FSFBC_WD_H_
 #define FNPF_FSFBC_WD_H_
 
-#include"fnpf_breaking.h"
-#include"sliceint4.h"
-#include"slice4.h"
+#include "fnpf_breaking.h"
+#include "sliceint4.h"
+#include "slice4.h"
 
 class fnpf_laplace;
 class field;
@@ -41,9 +41,9 @@ using namespace std;
 class fnpf_fsfbc_wd final : public fnpf_breaking
 {
 public:
-	fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_fsfbc_wd();
-    
+    fnpf_fsfbc_wd(lexer*, fdm_fnpf*, ghostcell*);
+    virtual ~fnpf_fsfbc_wd();
+
     void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void kfsfbc(lexer*,fdm_fnpf*,ghostcell*) override final;
@@ -55,9 +55,16 @@ public:
     void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&) override final;
     void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*) override final;
     void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double) override final;
-    
+
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
-    
+
+private:
+    double rb3(lexer*,double);
+    double rb4(lexer*,double);
+    double rb5(lexer*,double);
+
+    sliceint4 wetcoast;
+    slice4 ef,df;
 
     fnpf_convection *pconvec;
     fnpf_convection *pconeta;
@@ -69,25 +76,18 @@ public:
     wind *pwind;
 
     double ivel,jvel,kvel;
-    
-private:
-    double rb3(lexer*,double);
-    double rb4(lexer*,double);
-    double rb5(lexer*,double);
-    
+
     double dist3,dist4,dist5,expinverse,db;
-    
+
     double visc;
-    
+
     int *temp;
     int gcval_eta,gcval_fifsf;
-    const double eps;
-    
-    sliceint4 wetcoast;
-    slice4 ef,df;
-    
+
     int count_n;
     int coastline_count;
+
+    static constexpr double eps = 1.0e-6;
 };
 
 #endif
