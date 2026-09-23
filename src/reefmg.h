@@ -81,6 +81,8 @@ private:
     std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
     std::vector<int> colrow0;   // first row of a fully active column with
                                 // consecutive rows, -1 otherwise
+    bool fill_ini=false;        // CVAL4 and the zero halo set up (first fill)
+    std::vector<int> wetsig;    // p->wet at the last rowmap/colrow0 build
     int count;
 
     int solve_mode, presweep, postsweep;

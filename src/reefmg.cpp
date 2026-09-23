@@ -446,91 +446,164 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 {
     sc_level &L=mg.fine();
     const bool fp32=(mg.precision()==32);
+    const int nzl=L.nz;
 
     Mcur=&M;
 
-    //  coefficients go into exactly one precision; in fp32 mode the row map
-    //  lets fine_apply() read the exact double operator from M instead
-    if(fp32)
-    {
-        std::fill(L.pf.begin(),L.pf.end(),0.0f);
-        std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
-        std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
-        std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
+    //  First call: zero everything once (this also leaves the halo of the
+    //  coefficients, f and act at zero for good - nothing else writes it) and
+    //  number the rows. CVAL4 depends on flag4 only, which is fixed.
+    const bool first=!fill_ini;
 
-        if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
-        std::fill(rowmap.begin(),rowmap.end(),-1);
+    if(first)
+    {
+        if(fp32)
+        {
+            std::fill(L.pf.begin(),L.pf.end(),0.0f);
+            std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
+            std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
+            std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
+        }
+        else
+        {
+            std::fill(L.p.begin(),L.p.end(),0.0);
+            std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
+            std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
+            std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+        }
+        std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+        std::fill(L.act.begin(),L.act.end(),0);
+
+        //  same cell numbering as the Laplace assembly in fnpf_laplace_*
+        count=0;
+        LOOP
+        {
+            CVAL4[IJK]=count;
+            ++count;
+        }
+
+        fill_ini=true;
     }
     else
     {
-        std::fill(L.p.begin(),L.p.end(),0.0);
-        std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
-        std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
-        std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
-    }
-    std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
-    std::fill(L.act.begin(),L.act.end(),0);
-
-    //  same cell numbering as the Laplace assembly in fnpf_laplace_*
-    count=0;
-    LOOP
-    {
-        CVAL4[IJK]=count;
-        ++count;
-    }
-
-    PLAINLOOP
-    {
-        const long q=L.idx(i,j,k);
-
-        FPWDCHECK
+        //  the solve leaves neighbour values in the halo of u; the original
+        //  per-solve fill reset it to zero, so do the same for the halo only
+        for(int ii=-1;ii<=L.nx;++ii)
+        for(int jj=-1;jj<=L.ny;++jj)
+        if(ii<0 || ii>=L.nx || jj<0 || jj>=L.ny)
         {
-            n=CVAL4[IJK];
+            double *uc=&L.u[L.idx(ii,jj,0)];
+            for(int kk=0;kk<nzl;++kk) uc[kk]=0.0;
+        }
+    }
 
-            if(fp32)
+    //  rowmap and colrow0 depend on flag7 (fixed) and wet: rebuild them only
+    //  when the wet/dry pattern has changed since the last build
+    const size_t nsl=size_t(p->imax)*size_t(p->jmax);
+    bool topo=first || wetsig.size()!=nsl;
+
+    if(!topo)
+    for(size_t q=0;q<nsl;++q)
+    if(wetsig[q]!=p->wet[q]){topo=true; break;}
+
+    if(topo)
+    {
+        wetsig.assign(p->wet,p->wet+nsl);
+
+        if(fp32)
+        {
+            if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
+            std::fill(rowmap.begin(),rowmap.end(),-1);
+        }
+    }
+
+    //  One pass per column. Every interior entry is written each call, so the
+    //  result is the same as zero-filling everything and writing the active
+    //  rows, as before. Rows of a column are consecutive in M, f and CVAL4.
+    const double *const Mp=M.p, *const Mn=M.n, *const Ms=M.s, *const Mw=M.w;
+    const double *const Me=M.e, *const Mt=M.t, *const Mb=M.b, *const R=rhs.V;
+    const int *const flag7=p->flag7;
+    int err=0;
+
+    ILOOP
+    JLOOP
+    {
+        k=0;
+        const int fc=FIJK;             // f / flag7 index of k=0
+        const int cc=IJK;              // CVAL4 index of k=0
+        const int w=p->wet[IJ];
+        const long q0=L.idx(i,j,0);
+
+        for(int kk=0;kk<nzl;++kk)
+        {
+            const long q=q0+kk;
+
+            if(flag7[fc+kk]>0 && w>0)                 // FPWDCHECK
             {
-                L.pf[q]=(float)M.p[n];
-                L.nf[q]=(float)M.n[n];   // i+1
-                L.sf[q]=(float)M.s[n];   // i-1
-                L.wf[q]=(float)M.w[n];   // j+1
-                L.ef[q]=(float)M.e[n];   // j-1
-                L.tf[q]=(float)M.t[n];   // k+1
-                L.bf[q]=(float)M.b[n];   // k-1
-                rowmap[q]=n;
+                const int r=CVAL4[cc+kk];
+
+                if(fp32)
+                {
+                    L.pf[q]=(float)Mp[r];
+                    L.nf[q]=(float)Mn[r];   // i+1
+                    L.sf[q]=(float)Ms[r];   // i-1
+                    L.wf[q]=(float)Mw[r];   // j+1
+                    L.ef[q]=(float)Me[r];   // j-1
+                    L.tf[q]=(float)Mt[r];   // k+1
+                    L.bf[q]=(float)Mb[r];   // k-1
+                    if(topo) rowmap[q]=r;
+                }
+                else
+                {
+                    L.p[q]=Mp[r];
+                    L.n[q]=Mn[r];   // i+1
+                    L.s[q]=Ms[r];   // i-1
+                    L.w[q]=Mw[r];   // j+1
+                    L.e[q]=Me[r];   // j-1
+                    L.t[q]=Mt[r];   // k+1
+                    L.b[q]=Mb[r];   // k-1
+                }
+
+                const double fv=R[r], uv=f[fc+kk];
+                L.f[q]=fv;
+                L.u[q]=uv;
+                L.act[q]=1;
+
+                if(uv!=uv || fv!=fv)
+                err=1;
             }
             else
             {
-                L.p[q]=M.p[n];
-                L.n[q]=M.n[n];   // i+1
-                L.s[q]=M.s[n];   // i-1
-                L.w[q]=M.w[n];   // j+1
-                L.e[q]=M.e[n];   // j-1
-                L.t[q]=M.t[n];   // k+1
-                L.b[q]=M.b[n];   // k-1
+                //  FSWDCHECK: identity row, passes harmlessly through the
+                //  line solve; any other cell: all zero (as after the fill)
+                const bool ident=(flag7[fc+kk]<=0 || w==0);
+
+                if(fp32)
+                {
+                    L.pf[q]=ident?1.0f:0.0f;
+                    L.nf[q]=L.sf[q]=L.wf[q]=L.ef[q]=L.tf[q]=L.bf[q]=0.0f;
+                }
+                else
+                {
+                    L.p[q]=ident?1.0:0.0;
+                    L.n[q]=L.s[q]=L.w[q]=L.e[q]=L.t[q]=L.b[q]=0.0;
+                }
+
+                L.f[q]=0.0;
+                L.u[q]=0.0;
+                L.act[q]=0;
             }
-
-            L.f[q]=rhs.V[n];
-            L.u[q]=f[FIJK];
-            L.act[q]=1;
-
-            if(L.u[q]!=L.u[q] || L.f[q]!=L.f[q])
-            p->solver_error=1;
-        }
-
-        FSWDCHECK
-        {
-            //  identity row, passes harmlessly through the line solve
-            if(fp32) L.pf[q]=1.0f;
-            else     L.p [q]=1.0;
         }
     }
+
+    if(err)
+    p->solver_error=1;
 
     //  First row of every column whose cells are all active and numbered
     //  consecutively - every fully wet column, given CVAL4's LOOP order -
     //  so that fine_apply() can run it as a plain stencil.
-    if(fp32)
+    if(fp32 && topo)
     {
-        const int nzl=L.nz;
         colrow0.assign((long)L.nx*L.ny,-1);
 
         for(int ii=0;ii<L.nx;++ii)
