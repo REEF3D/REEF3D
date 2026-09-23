@@ -76,95 +76,69 @@ void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
 
 void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
 {
-	double factor;
-	double H;
-	int n;
-    
-    // RANS
-    if(p->A560==2)
+    // RANS (A560 2) and URANS (A560 22)
+    // A564 0: nu_t = k/omega
+    // A564 1: + realizability,  nu_t <= T31 k/S
+    // A564 2: + SST/Bradshaw,   nu_t <= a1 k/(F2 S)
+    if(p->A560==2 || p->A560==22)
+    LOOP
     {
-        if(p->A564==0)
-        LOOP
-		d->EV0[IJK] = MAX(KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0);
-						  
-                          
+        const double kval = MAX(KIN[IJK],0.0);
+        const double Sval = strainterm(p,d);
+
+        double ev = EPS[IJK]>1.0e-20 ? kval/EPS[IJK] : 0.0;
+
         if(p->A564==1)
-		LOOP
-		d->EV0[IJK] = MAX(MIN(MAX(KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.0001*d->VISC[IJK]);
+        ev = MIN(ev, p->T31*kval/(Sval>1.0e-20?Sval:1.0e-20));
 
-        
-        if(p->A564==2)
+        if(p->A564==2 && EPS[IJK]>1.0e-20)
         {
-        const double rfac = sst_a1/p->T31;
-
-        LOOP
-        {
-            double kval = MAX(KIN[IJK],0.0);
-            double wval = MAX(EPS[IJK],1.0e-20);
-
-            double Sval = strainterm(p,d);
-
-            double sLim = sst_F2(p,d,kval,wval)*Sval;   // Bradshaw, blended
-            double rLim = rfac*Sval;                    // realizability, unblended
+            const double wval = EPS[IJK];
 
             double den = sst_a1*wval;
+            const double sLim = sst_F2(p,d,kval,wval)*Sval;   // Bradshaw, blended
+            const double rLim = (sst_a1/p->T31)*Sval;         // realizability, unblended
             if(sLim>den) den = sLim;
             if(rLim>den) den = rLim;
 
-            d->EV0[IJK] = MAX(sst_a1*kval/(den>1.0e-20?den:1.0e-20), 0.00001*d->VISC[IJK]);
+            ev = sst_a1*kval/(den>1.0e-20?den:1.0e-20);
         }
+
+        // URANS filter
+        if(p->A560==22)
+        {
+            if(p->j_dir==0)
+            dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
+
+            if(p->j_dir==1)
+            dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
+
+            f = MIN(1.0, dxm*p->A568*p->cmu*EPS[IJK]/pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
+
+            ev *= f;
         }
-	}
-    
-    // URANS
-	if(p->A560==22)
-	LOOP
-    {
-    if(p->j_dir==0)
-    dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
-    
-    if(p->j_dir==1)
-    dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
-    
-	f = MIN(1.0, dxm*p->A568*p->cmu*EPS[IJK]/   pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
-    
-    
-    
-        if(p->A564==0)
-		d->EV0[IJK] = f*MAX(MAX(KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.0001*d->VISC[IJK]);
-                          
-        if(p->A564==1)
-		d->EV0[IJK] = f*MAX(MIN(MAX(KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.0001*d->VISC[IJK]);
-                          
+
+        d->EV0[IJK] = MAX(ev, 0.0001*d->VISC[IJK]);
     }
-    
-    // stabilization
+
+    // stabilization (Larsen & Fuhrman 2018): nu_t <= k/omega * beta* alpha Omega^2/(lambda2 beta S^2)
     if(p->A565==0)
     LOOP
     d->EV[IJK] = d->EV0[IJK];
-    
+
     if(p->A565==1)
     LOOP
     {
-    double Sij2_val = Sij2(p,d); 
-    
+    double Sij2_val = Sij2(p,d);
+
 	if(Sij2_val>1.0e-20)
-    d->EV[IJK] = MIN(d->EV0[IJK], p->cmu*MAX(KIN[IJK]*KIN[IJK]
-                     /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
-                     *(ke_c_1e*Qij2(p,d))/(p->T42*ke_c_2e*Sij2_val));
-                     
+    d->EV[IJK] = MIN(d->EV0[IJK], MAX(KIN[IJK]/((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
+                     *(p->cmu*kw_alpha*Qij2(p,d))/(p->T42*kw_beta*Sij2_val));
+
     else
     d->EV[IJK] = d->EV0[IJK];
-                     
     }
-                                         
+
     LOOP
     if(p->DF[IJK]<0)
     {
