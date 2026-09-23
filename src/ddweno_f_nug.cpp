@@ -26,10 +26,8 @@ Author: Hans Bihs
 #include "slice.h"
 #include "ghostcell.h"
 
-ddweno_f_nug::ddweno_f_nug(lexer* pp):weno_nug_func(pp)
+ddweno_f_nug::ddweno_f_nug(lexer* p):weno_nug_func(p)
 {
-    p=pp;
-
     // only the uniform-flux coefficient set is used
     uf = vf = wf = 0;
 }
@@ -106,20 +104,4 @@ double ddweno_f_nug::dswenoy(slice &f, double uw)
         jsqmax(f);
         return weno_max_y();
     }
-}
-
-void ddweno_f_nug::dsdiffx(slice &f, slice &dq)
-{
-    // faces i-3 .. i+2 of the cells 0 .. knox-1
-    for(int ii=-3; ii<p->knox+2; ++ii)
-    for(int jj=0; jj<p->knoy; ++jj)
-    dq(ii,jj) = (f(ii+1,jj)-f(ii,jj))/p->DXP[ii+marge];
-}
-
-void ddweno_f_nug::dsdiffy(slice &f, slice &dq)
-{
-    // faces j-3 .. j+2 of the cells 0 .. knoy-1
-    for(int ii=0; ii<p->knox; ++ii)
-    for(int jj=-3; jj<p->knoy+2; ++jj)
-    dq(ii,jj) = (f(ii,jj+1)-f(ii,jj))/p->DYP[jj+marge];
 }

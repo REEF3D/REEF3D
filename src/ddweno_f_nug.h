@@ -43,12 +43,7 @@ public:
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
-    // Face divided differences dq(ii,j) = (f(ii+1,j)-f(ii,j))/DXP[ii] over every face the
-    // WENO5 stencils of the interior cells touch, so that dswenox_dq() needs no divisions.
-    void dsdiffx(slice&, slice&);
-    void dsdiffy(slice&, slice&);
-
-    // Upwinded WENO5 gradient at (i,j) from dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
+    // Upwinded WENO5 gradient at (i,j) from weno_nug_func::dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
     // Zero velocity returns 0, like fnpf_weno5::sx/sy.
     inline double dswenox_dq(slice &dq, double uvel)
     {
@@ -98,70 +93,8 @@ public:
             return 0.0;
     }
 
-private:
-    // WENO5 reconstruction from q1..q5
-    inline double weno_min_x()
-    {
-        is_min_x();
-        weight_min_x();
-
-        return w1x*(q4 + qfx[IP][uf][0][0]*(q3-q4) - qfx[IP][uf][0][1]*(q5-q4))
-             + w2x*(q3 + qfx[IP][uf][1][0]*(q4-q3) - qfx[IP][uf][1][1]*(q2-q3))
-             + w3x*(q2 + qfx[IP][uf][2][0]*(q1-q2) + qfx[IP][uf][2][1]*(q3-q2));
-    }
-    inline double weno_max_x()
-    {
-        is_max_x();
-        weight_max_x();
-
-        return w1x*(q4 + qfx[IP][uf][3][0]*(q3-q4) + qfx[IP][uf][3][1]*(q5-q4))
-             + w2x*(q3 + qfx[IP][uf][4][0]*(q2-q3) - qfx[IP][uf][4][1]*(q4-q3))
-             + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
-    }
-
-    inline double weno_min_y()
-    {
-        is_min_y();
-        weight_min_y();
-
-        return w1y*(q4 + qfy[JP][vf][0][0]*(q3-q4) - qfy[JP][vf][0][1]*(q5-q4))
-             + w2y*(q3 + qfy[JP][vf][1][0]*(q4-q3) - qfy[JP][vf][1][1]*(q2-q3))
-             + w3y*(q2 + qfy[JP][vf][2][0]*(q1-q2) + qfy[JP][vf][2][1]*(q3-q2));
-    }
-    inline double weno_max_y()
-    {
-        is_max_y();
-        weight_max_y();
-
-        return w1y*(q4 + qfy[JP][vf][3][0]*(q3-q4) + qfy[JP][vf][3][1]*(q5-q4))
-             + w2y*(q3 + qfy[JP][vf][4][0]*(q2-q3) - qfy[JP][vf][4][1]*(q4-q3))
-             + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
-    }
-
-    inline double weno_min_z()
-    {
-        is_min_z();
-        weight_min_z();
-
-        return w1z*(q4 + qfz[KP][wf][0][0]*(q3-q4) - qfz[KP][wf][0][1]*(q5-q4))
-             + w2z*(q3 + qfz[KP][wf][1][0]*(q4-q3) - qfz[KP][wf][1][1]*(q2-q3))
-             + w3z*(q2 + qfz[KP][wf][2][0]*(q1-q2) + qfz[KP][wf][2][1]*(q3-q2));
-    }
-    inline double weno_max_z()
-    {
-        is_max_z();
-        weight_max_z();
-
-        return w1z*(q4 + qfz[KP][wf][3][0]*(q3-q4) + qfz[KP][wf][3][1]*(q5-q4))
-             + w2z*(q3 + qfz[KP][wf][4][0]*(q2-q3) - qfz[KP][wf][4][1]*(q4-q3))
-             + w3z*(q2 + qfz[KP][wf][5][0]*(q3-q2) - qfz[KP][wf][5][1]*(q1-q2));
-    }
-
 protected:
     double grad;
-
-private:
-    lexer *p;
 };
 
 #endif
