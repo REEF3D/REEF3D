@@ -113,6 +113,10 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     
     singamma = sin((p->B105_1)*(PI/180.0));
     cosgamma = cos((p->B105_1)*(PI/180.0));
+    
+    // velocity table for NHFLOW / CFD (FNPF only needs eta and Fifsf)
+    if(p->A10!=3)
+    buildVelocityTable();
 }
 
 wave_lib_ssgw::~wave_lib_ssgw()
@@ -121,66 +125,51 @@ wave_lib_ssgw::~wave_lib_ssgw()
 
 double wave_lib_ssgw::wave_eta(lexer *p, double x, double y)
 {
-    // Transform x location to current position xcurr at time instance p->wavetime
-    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->wavetime, wL));
-    xcurr = xcurr>0.5*wL ? xcurr-wL : xcurr;
-   
-    // Linear interpolation
-    auto is = std::upper_bound(xs.begin(),xs.end(),xcurr);
-    int index = std::distance(xs.begin(), is)-1;
-    xl = xs[index]; 
-    xr = xs[index + 1];
-    yl = ys[index]; 
-    yr = ys[index + 1];
-    eta = yl + (xcurr - xl)/(xr - xl)*(yr - yl);
-
-    return eta;
+    xcurr = waveFrameX(x,p->wavetime);
+    
+    return surfaceInterp(ys,xcurr);
 }
 
 double wave_lib_ssgw::wave_fi(lexer *p, double x, double y, double z)
 {
-    // Transform x location to current position xcurr at time instance p->wavetime
-    xcurr = fabs(modulo(x - ParameterValue.phaseVelocity*p->wavetime, wL));
-    xcurr = xcurr>0.5*wL ? xcurr-wL : xcurr;
-
-    // Linear interpolation
-    auto is = std::upper_bound(xs.begin(),xs.end(),xcurr);
-    int index = std::distance(xs.begin(), is)-1;
-    xl = xs[index]; 
-    xr = xs[index + 1];
-    yl = phis[index]; 
-    yr = phis[index + 1];
-    fi = yl + (xcurr - xl)/(xr - xl)*(yr - yl);
-
-    return fi;
+    // surface potential (FNPF Fifsf); independent of z
+    xcurr = waveFrameX(x,p->wavetime);
+    
+    return surfaceInterp(phis,xcurr);
 }
 
 double wave_lib_ssgw::wave_u(lexer *p, double x, double y, double z)
 {
-    double vel = 0.0;
+    double vel = wave_horzvel(p,x,y,z);
 
     return cosgamma*vel;
 }
 
 double wave_lib_ssgw::wave_v(lexer *p, double x, double y, double z)
 {
-    double vel = 0.0;
+    double vel = wave_horzvel(p,x,y,z);
 
     return singamma*vel;
 }
 
 double wave_lib_ssgw::wave_horzvel(lexer *p, double x, double y, double z)
 {
-    double vel = 0.0;
+    if(!kinematicsReady)
+    buildVelocityTable();
+    
+    xcurr = waveFrameX(x,p->wavetime);
 
-    return vel;
+    return tableInterp(Ut,xcurr,z);
 }
 
 double wave_lib_ssgw::wave_w(lexer *p, double x, double y, double z)
 {
-    double vel = 0.0;
+    if(!kinematicsReady)
+    buildVelocityTable();
+    
+    xcurr = waveFrameX(x,p->wavetime);
 
-    return vel;
+    return tableInterp(Wt,xcurr,z);
 }
 
 void wave_lib_ssgw::parameters(lexer *p, ghostcell *pgc){}
