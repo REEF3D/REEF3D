@@ -337,7 +337,7 @@ void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     ppress->wpgrad(p,d,d->WL);
     krhs(p,d,pgc);
     pconvec->start(p,d,3,d->WL,d->WH);
-    pnhfdiff->diff_u(p,d,pgc,pflow,psolv,WHDIFF,WHRK2,UHRK2,VHRK2,WHRK2,d->WL,2.0/3.0);
+    pnhfdiff->diff_w(p,d,pgc,pflow,psolv,WHDIFF,WHRK2,UHRK2,VHRK2,WHRK2,d->WL,2.0/3.0);
 
 	LOOP
 	d->WH[IJK] = (1.0/3.0)*d->WH[IJK] + (2.0/3.0)*WHDIFF[IJK]
