@@ -55,6 +55,7 @@ void lexer::lexer_ini()
 	
 	maxdt=mindt=0.0;
     wavetime=0.0;
+    RK_alpha=0.0;
 
     wT=0.0;
     wV=0.0;

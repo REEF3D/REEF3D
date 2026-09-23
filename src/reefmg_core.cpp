@@ -154,7 +154,7 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
     nby1 = (cy<npy-1)? myrank+npx : MPI_PROC_NULL;
 
     //  How far can every rank coarsen?  All ranks must agree, so take the
-    //  global minimum.  Coarsening stops when a local extent turns odd or
+    //  global minimum.  Coarsening stops when a local extent
     //  drops below 8 cells.
     //  x and y are coarsened independently, so a 2D vertical run (ny==1)
     //  simply keeps y at one cell on every level.

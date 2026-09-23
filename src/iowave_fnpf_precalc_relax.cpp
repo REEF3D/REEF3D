@@ -29,7 +29,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     double fsfloc;
     int dbcount;
     
-    p->wavetime = p->simtime;
+    p->wavetime = p->simtime + p->RK_alpha*p->dt;
     
     // pre-calc every iteration
     // eta

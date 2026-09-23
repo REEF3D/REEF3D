@@ -223,7 +223,7 @@ public:
     int solver_status,solver_error;
     int sediter;
     double final_res;
-	double dt,dt_old,simtime,viscmax;
+	double dt,dt_old,simtime,viscmax,RK_alpha;
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
