@@ -34,21 +34,19 @@ using namespace std;
 class fnpf_weno5_wd final : public fnpf_convection, public increment, public fnpf_ddweno_f_nug
 {
 public:
-	fnpf_weno5_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_weno5_wd();
+    fnpf_weno5_wd(lexer*,fdm_fnpf*);
+    virtual ~fnpf_weno5_wd();
 
     double fx(lexer*, field&, double, double) override final;
-	double fy(lexer*, field&, double, double) override final;
-	double fz(lexer*, field&, double, double) override final;
-    
+    double fy(lexer*, field&, double, double) override final;
+    double fz(lexer*, field&, double, double) override final;
+
     double sx(lexer*, slice&, double) override final;
-	double sy(lexer*, slice&, double) override final;
+    double sy(lexer*, slice&, double) override final;
     double sz(lexer*, double*) override final;
 
 private:
     double **ckz;
-
-
 };
 
 #endif
