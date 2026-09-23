@@ -137,67 +137,139 @@ public:
     // x
     inline void weight_min_x()
     {
+        // same arithmetic as before; the shared sum is formed once and the
+        // coefficient row is loaded once (the member stores in between kept
+        // the compiler from doing either)
+        const double *const cf = cfx[IP][uf];
+        const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
+        
         const double is1x_psi = is1x + psi;
         const double is2x_psi = is2x + psi;
         const double is3x_psi = is3x + psi;
+        
+        const double a1 = is1x_psi*is1x_psi;
+        const double a2 = is2x_psi*is2x_psi;
+        const double a3 = is3x_psi*is3x_psi;
+        
+        const double sum = c1/a1 + c2/a2 + c3/a3;
 
-        w1x = cfx[IP][uf][0]/(epsilon + (is1x_psi*is1x_psi)*(cfx[IP][uf][0]/(is1x_psi*is1x_psi) + cfx[IP][uf][1]/(is2x_psi*is2x_psi) + cfx[IP][uf][2]/(is3x_psi*is3x_psi)));
-        w2x = cfx[IP][uf][1]/(epsilon + (is2x_psi*is2x_psi)*(cfx[IP][uf][0]/(is1x_psi*is1x_psi) + cfx[IP][uf][1]/(is2x_psi*is2x_psi) + cfx[IP][uf][2]/(is3x_psi*is3x_psi)));
-        w3x = cfx[IP][uf][2]/(epsilon + (is3x_psi*is3x_psi)*(cfx[IP][uf][0]/(is1x_psi*is1x_psi) + cfx[IP][uf][1]/(is2x_psi*is2x_psi) + cfx[IP][uf][2]/(is3x_psi*is3x_psi)));
+        w1x = c1/(epsilon + a1*sum);
+        w2x = c2/(epsilon + a2*sum);
+        w3x = c3/(epsilon + a3*sum);
     }
     inline void weight_max_x()
     {
+        // same arithmetic as before; the shared sum is formed once and the
+        // coefficient row is loaded once (the member stores in between kept
+        // the compiler from doing either)
+        const double *const cf = cfx[IP][uf];
+        const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
+        
         const double is1x_psi = is1x + psi;
         const double is2x_psi = is2x + psi;
         const double is3x_psi = is3x + psi;
+        
+        const double a1 = is1x_psi*is1x_psi;
+        const double a2 = is2x_psi*is2x_psi;
+        const double a3 = is3x_psi*is3x_psi;
+        
+        const double sum = c1/a1 + c2/a2 + c3/a3;
 
-        w1x = cfx[IP][uf][3]/(epsilon + (is1x_psi*is1x_psi)*(cfx[IP][uf][3]/(is1x_psi*is1x_psi) + cfx[IP][uf][4]/(is2x_psi*is2x_psi) + cfx[IP][uf][5]/(is3x_psi*is3x_psi)));
-        w2x = cfx[IP][uf][4]/(epsilon + (is2x_psi*is2x_psi)*(cfx[IP][uf][3]/(is1x_psi*is1x_psi) + cfx[IP][uf][4]/(is2x_psi*is2x_psi) + cfx[IP][uf][5]/(is3x_psi*is3x_psi)));
-        w3x = cfx[IP][uf][5]/(epsilon + (is3x_psi*is3x_psi)*(cfx[IP][uf][3]/(is1x_psi*is1x_psi) + cfx[IP][uf][4]/(is2x_psi*is2x_psi) + cfx[IP][uf][5]/(is3x_psi*is3x_psi)));
+        w1x = c1/(epsilon + a1*sum);
+        w2x = c2/(epsilon + a2*sum);
+        w3x = c3/(epsilon + a3*sum);
     }
 
     // y
     inline void weight_min_y()
     {
+        // same arithmetic as before; the shared sum is formed once and the
+        // coefficient row is loaded once (the member stores in between kept
+        // the compiler from doing either)
+        const double *const cf = cfy[JP][vf];
+        const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
+        
         const double is1y_psi = is1y + psi;
         const double is2y_psi = is2y + psi;
         const double is3y_psi = is3y + psi;
+        
+        const double a1 = is1y_psi*is1y_psi;
+        const double a2 = is2y_psi*is2y_psi;
+        const double a3 = is3y_psi*is3y_psi;
+        
+        const double sum = c1/a1 + c2/a2 + c3/a3;
 
-        w1y = cfy[JP][vf][0]/(epsilon + (is1y_psi*is1y_psi)*(cfy[JP][vf][0]/(is1y_psi*is1y_psi) + cfy[JP][vf][1]/(is2y_psi*is2y_psi) + cfy[JP][vf][2]/(is3y_psi*is3y_psi)));
-        w2y = cfy[JP][vf][1]/(epsilon + (is2y_psi*is2y_psi)*(cfy[JP][vf][0]/(is1y_psi*is1y_psi) + cfy[JP][vf][1]/(is2y_psi*is2y_psi) + cfy[JP][vf][2]/(is3y_psi*is3y_psi)));
-        w3y = cfy[JP][vf][2]/(epsilon + (is3y_psi*is3y_psi)*(cfy[JP][vf][0]/(is1y_psi*is1y_psi) + cfy[JP][vf][1]/(is2y_psi*is2y_psi) + cfy[JP][vf][2]/(is3y_psi*is3y_psi)));
+        w1y = c1/(epsilon + a1*sum);
+        w2y = c2/(epsilon + a2*sum);
+        w3y = c3/(epsilon + a3*sum);
     }
     inline void weight_max_y()
     {
+        // same arithmetic as before; the shared sum is formed once and the
+        // coefficient row is loaded once (the member stores in between kept
+        // the compiler from doing either)
+        const double *const cf = cfy[JP][vf];
+        const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
+        
         const double is1y_psi = is1y + psi;
         const double is2y_psi = is2y + psi;
         const double is3y_psi = is3y + psi;
+        
+        const double a1 = is1y_psi*is1y_psi;
+        const double a2 = is2y_psi*is2y_psi;
+        const double a3 = is3y_psi*is3y_psi;
+        
+        const double sum = c1/a1 + c2/a2 + c3/a3;
 
-        w1y = cfy[JP][vf][3]/(epsilon + (is1y_psi*is1y_psi)*(cfy[JP][vf][3]/(is1y_psi*is1y_psi) + cfy[JP][vf][4]/(is2y_psi*is2y_psi) + cfy[JP][vf][5]/(is3y_psi*is3y_psi)));
-        w2y = cfy[JP][vf][4]/(epsilon + (is2y_psi*is2y_psi)*(cfy[JP][vf][3]/(is1y_psi*is1y_psi) + cfy[JP][vf][4]/(is2y_psi*is2y_psi) + cfy[JP][vf][5]/(is3y_psi*is3y_psi)));
-        w3y = cfy[JP][vf][5]/(epsilon + (is3y_psi*is3y_psi)*(cfy[JP][vf][3]/(is1y_psi*is1y_psi) + cfy[JP][vf][4]/(is2y_psi*is2y_psi) + cfy[JP][vf][5]/(is3y_psi*is3y_psi)));
+        w1y = c1/(epsilon + a1*sum);
+        w2y = c2/(epsilon + a2*sum);
+        w3y = c3/(epsilon + a3*sum);
     }
 
     // z
     inline void weight_min_z()
     {
+        // same arithmetic as before; the shared sum is formed once and the
+        // coefficient row is loaded once (the member stores in between kept
+        // the compiler from doing either)
+        const double *const cf = cfz[KP][wf];
+        const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
+        
         const double is1z_psi = is1z + psi;
         const double is2z_psi = is2z + psi;
         const double is3z_psi = is3z + psi;
+        
+        const double a1 = is1z_psi*is1z_psi;
+        const double a2 = is2z_psi*is2z_psi;
+        const double a3 = is3z_psi*is3z_psi;
+        
+        const double sum = c1/a1 + c2/a2 + c3/a3;
 
-        w1z = cfz[KP][wf][0]/(epsilon + (is1z_psi*is1z_psi)*(cfz[KP][wf][0]/(is1z_psi*is1z_psi) + cfz[KP][wf][1]/(is2z_psi*is2z_psi) + cfz[KP][wf][2]/(is3z_psi*is3z_psi)));
-        w2z = cfz[KP][wf][1]/(epsilon + (is2z_psi*is2z_psi)*(cfz[KP][wf][0]/(is1z_psi*is1z_psi) + cfz[KP][wf][1]/(is2z_psi*is2z_psi) + cfz[KP][wf][2]/(is3z_psi*is3z_psi)));
-        w3z = cfz[KP][wf][2]/(epsilon + (is3z_psi*is3z_psi)*(cfz[KP][wf][0]/(is1z_psi*is1z_psi) + cfz[KP][wf][1]/(is2z_psi*is2z_psi) + cfz[KP][wf][2]/(is3z_psi*is3z_psi)));
+        w1z = c1/(epsilon + a1*sum);
+        w2z = c2/(epsilon + a2*sum);
+        w3z = c3/(epsilon + a3*sum);
     }
     inline void weight_max_z()
     {
+        // same arithmetic as before; the shared sum is formed once and the
+        // coefficient row is loaded once (the member stores in between kept
+        // the compiler from doing either)
+        const double *const cf = cfz[KP][wf];
+        const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
+        
         const double is1z_psi = is1z + psi;
         const double is2z_psi = is2z + psi;
         const double is3z_psi = is3z + psi;
+        
+        const double a1 = is1z_psi*is1z_psi;
+        const double a2 = is2z_psi*is2z_psi;
+        const double a3 = is3z_psi*is3z_psi;
+        
+        const double sum = c1/a1 + c2/a2 + c3/a3;
 
-        w1z = cfz[KP][wf][3]/(epsilon + (is1z_psi*is1z_psi)*(cfz[KP][wf][3]/(is1z_psi*is1z_psi) + cfz[KP][wf][4]/(is2z_psi*is2z_psi) + cfz[KP][wf][5]/(is3z_psi*is3z_psi)));
-        w2z = cfz[KP][wf][4]/(epsilon + (is2z_psi*is2z_psi)*(cfz[KP][wf][3]/(is1z_psi*is1z_psi) + cfz[KP][wf][4]/(is2z_psi*is2z_psi) + cfz[KP][wf][5]/(is3z_psi*is3z_psi)));
-        w3z = cfz[KP][wf][5]/(epsilon + (is3z_psi*is3z_psi)*(cfz[KP][wf][3]/(is1z_psi*is1z_psi) + cfz[KP][wf][4]/(is2z_psi*is2z_psi) + cfz[KP][wf][5]/(is3z_psi*is3z_psi)));
+        w1z = c1/(epsilon + a1*sum);
+        w2z = c2/(epsilon + a2*sum);
+        w3z = c3/(epsilon + a3*sum);
     }
 
     static double ****qfx,****qfy,****qfz;
