@@ -38,7 +38,7 @@ Author: Hans Bihs
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
                                                                       ef(p),df(p),
                                                                       pconvec(std::in_place_type<fnpf_voiddisc>, p),
-                                                                      pdx(std::in_place_type<fnpf_hires>, p),
+                                                                      pdx(std::in_place_type<fnpf_hires>),
                                                                       pddx(std::in_place_type<fnpf_ddx_cds2>)
 {
     if(p->A311==1)
