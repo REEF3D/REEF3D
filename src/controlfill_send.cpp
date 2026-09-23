@@ -120,6 +120,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A329;
     ii++;
+    ictrl[ii] = A339;
+    ii++;
     dctrl[dd] = A340;
     dd++;
     dctrl[dd] = A341;

@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"sliceint.h"
 
-fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
+fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p),cpx(p),cpy(p)
 {
     time_preproc(p); 
 }
@@ -49,7 +49,19 @@ void fnpf_coastline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &coastli
             coastline(i,j)=-1.0;
    
         }
+        double starttime=pgc->timer();
+        
+        // A339: 1 = fast sweeping (default), 0 = PDE reinitialisation (legacy)
+        if(p->A339==1)
+        fsm(p,pgc,coastline);
+        
+        if(p->A339!=1)
         reini(p,pgc,coastline);
+        
+        double endtime=pgc->timer();
+        
+        if(p->mpirank==0)
+        cout<<"coastline initialization time: "<<endtime-starttime<<" s"<<endl<<endl;
     }
 }
 

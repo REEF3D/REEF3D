@@ -2183,6 +2183,7 @@
             <File Name="fnpf_discrete_weights.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
+            <File Name="fnpf_coastline_fsm.cpp"/>
             <File Name="fnpf_coastline_disc.cpp"/>
             <File Name="fnpf_coastline_reini.cpp"/>
             <File Name="fnpf_coastline.cpp"/>

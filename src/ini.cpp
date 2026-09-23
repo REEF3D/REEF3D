@@ -74,6 +74,7 @@ void control::ini_default()
     A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
     
+    A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
     A340=1.0e20;    // double minimum water depth
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance

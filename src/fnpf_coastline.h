@@ -43,12 +43,14 @@ public:
    
 private:
    void reini(lexer*,ghostcell*,slice&);
+   void fsm(lexer*,ghostcell*,slice&);
+   void fsm_update(lexer*,int,int);
    void disc(lexer*,ghostcell*,slice&);
    
    void step(lexer*);
    void time_preproc(lexer*);
    
-   slice4 frk1,frk2,L,dt,wet_n;
+   slice4 frk1,frk2,L,dt,wet_n,cpx,cpy;
    
    
    int reiniter,change;
