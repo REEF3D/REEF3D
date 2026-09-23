@@ -61,8 +61,8 @@ void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nh
     fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP]*dfdx(i+1,j);
     }
     
-    pgc->gcsl_start1(p,fs,1);
-    pgc->gcsl_start1(p,fn,1);
+    //pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fe, slice &fw)
@@ -92,8 +92,8 @@ void nhflow_reconstruct_hires::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nh
     fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP]*dfdy(i,j+1); 
     }
     
-    pgc->gcsl_start2(p,fe,1);
-    pgc->gcsl_start2(p,fw,1);
+    //pgc->gcsl_start2(p,fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start2(p,fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     }
 }
 
@@ -122,10 +122,10 @@ void nhflow_reconstruct_hires::reconstruct_2D_WL(lexer* p, ghostcell *pgc, fdm_n
     d->Dw(i,j) = MAX(d->ETAw(i,j)  + 0.5*(d->depth(i,j+1)+d->depth(i,j)), p->A544);
     }
     
-    pgc->gcsl_start1(p,d->Ds,1);
-    pgc->gcsl_start1(p,d->Dn,1);
-    pgc->gcsl_start2(p,d->De,1);
-    pgc->gcsl_start2(p,d->Dw,1);
+    //pgc->gcsl_start1(p,d->Ds,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start1(p,d->Dn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start2(p,d->De,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->gcsl_start2(p,d->Dw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
         
 }
 
@@ -153,8 +153,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nh
     Fn[IJK] = (Fx[Ip1JK]  - 0.5*p->DXP[IP]*DFDX[Ip1JK]);
     }
     
-    pgc->start1V(p,Fs,1);
-    pgc->start1V(p,Fn,1);
+    //pgc->start1V(p,Fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->start1V(p,Fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
 void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf *d, double *Fy, double *Fe, double *Fw)
@@ -183,8 +183,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nh
     Fw[IJK] = (Fy[IJp1K]  - 0.5*p->DYP[JP]*DFDX[IJp1K]);
     }
     
-    pgc->start2V(p,Fe,1);
-    pgc->start2V(p,Fw,1);
+    //pgc->start2V(p,Fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->start2V(p,Fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     }
 }
 
@@ -212,8 +212,8 @@ void nhflow_reconstruct_hires::reconstruct_3D_z(lexer* p, ghostcell *pgc, fdm_nh
     Ft[IJK] = (Fz[IJKp1]  - 0.5*p->DZN[KP1]*DFDX[IJKp1]);
     }
     
-    pgc->start3V(p,Fb,1);
-    pgc->start3V(p,Ft,1);
+    //pgc->start3V(p,Fb,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
+    //pgc->start3V(p,Ft,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
 }
 
 double nhflow_reconstruct_hires::limiter(double v1, double v2)

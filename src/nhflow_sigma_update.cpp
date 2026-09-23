@@ -129,27 +129,9 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     // -----------------------------------------------------
     
-    // sigx
-    FLOOP
-    {
-    if(p->wet[IJ]==0)
-    p->sigx[FIJK] = 0.0;
-    
-    if(p->wet[IJ]==1)
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(d->Bx(i,j)/WLVL) - p->sig[FIJK]*(d->Ex(i,j)/WLVL);
-    }
-    
-    // sigy
-    FLOOP
-    {
-    if(p->wet[IJ]==0)
-    p->sigy[FIJK] = 0.0;
-    
-    if(p->wet[IJ]==1)
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
-    }    
-    
-    // sigz
+    // sigx, sigy, sigz, sigt, sigxx in one column sweep.
+    // Same expressions as the former separate FLOOPs; the column constants
+    // (WLVL, B/E slopes and curvatures) are evaluated once per (i,j).
     SLICELOOP4
     {
     if(p->wet[IJ]==0)
@@ -160,37 +142,75 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     p->WL[IJ] = WL(i,j);
     }
-
-    // sigt
-    FLOOP
-    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*d->detadt(i,j);
-
-    // sigxx
-    FLOOP
+    
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
     {
-    p->sigxx[FIJK] = 0.0;
+    const int wet = p->wet[IJ];
+    const double wl = WLVL;
+    const double bxw = d->Bx(i,j)/wl;
+    const double exw = d->Ex(i,j)/wl;
+    const double byw = d->By(i,j)/wl;
+    const double eyw = d->Ey(i,j)/wl;
+    const double dedt = d->detadt(i,j);
     
-        if(p->wet[IJ]==1 && d->SOLID[IJK]>0 && d->SOLID[IJKm1]>0) 
+    const double axx = d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/wl;
+    const double bxx = d->Exx(i,j) - pow(d->Ex(i,j),2.0)/wl;
+    const double cxx = d->Bx(i,j) + d->Ex(i,j);
+    const double dxx = d->Bx(i,j)*d->Ex(i,j);
+    const double ayy = d->Byy(i,j) - pow(d->By(i,j),2.0)/wl;
+    const double byy = d->Eyy(i,j) - pow(d->Ey(i,j),2.0)/wl;
+    const double cyy = d->By(i,j) + d->Ey(i,j);
+    const double dyy = d->By(i,j)*d->Ey(i,j);
+    const double wl2 = pow(wl,2.0);
+    
+        for(k=0; k<p->knoz+1; ++k)
+        if(p->flag7[FIJK]>0)
         {
-        p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
+        const double sig = p->sig[FIJK];
         
-                      - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
-                      
-                      - (p->sigx[FIJK]/WLVL)*(d->Bx(i,j) + d->Ex(i,j))
-                      
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->Bx(i,j)*d->Ex(i,j))
-                      
-                      
-                      + ((1.0 - p->sig[FIJK])/WLVL)*(d->Byy(i,j) - pow(d->By(i,j),2.0)/WLVL) // yy
-        
-                      - (p->sig[FIJK]/WLVL)*(d->Eyy(i,j) - pow(d->Ey(i,j),2.0)/WLVL)
-                      
-                      - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
-                      
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
-                      
+        // sigx, sigy
+        if(wet==0)
+        {
+        p->sigx[FIJK] = 0.0;
+        p->sigy[FIJK] = 0.0;
         }
+        
+        if(wet==1)
+        {
+        p->sigx[FIJK] = (1.0 - sig)*bxw - sig*exw;
+        p->sigy[FIJK] = (1.0 - sig)*byw - sig*eyw;
+        }
+        
+        // sigt
+        p->sigt[FIJK] = -(sig/wl)*dedt;
+        
+        // sigxx
+        p->sigxx[FIJK] = 0.0;
     
+            if(wet==1 && d->SOLID[IJK]>0 && d->SOLID[IJKm1]>0) 
+            {
+            const double sigxv = p->sigx[FIJK];
+            const double sigyv = p->sigy[FIJK];
+            
+            p->sigxx[FIJK] = ((1.0 - sig)/wl)*axx // xx
+            
+                          - (sig/wl)*bxx
+                          
+                          - (sigxv/wl)*cxx
+                          
+                          - ((1.0 - 2.0*sig)/wl2)*dxx
+                          
+                          
+                          + ((1.0 - sig)/wl)*ayy // yy
+            
+                          - (sig/wl)*byy
+                          
+                          - (sigyv/wl)*cyy
+                          
+                          - ((1.0 - 2.0*sig)/wl2)*dyy;
+            }
+        }
     }
     
     // sig BC
