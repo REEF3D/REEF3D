@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-double iowave::xgen(lexer *p)
+double iowave::xgen_calc(lexer *p)
 {
 	double x1,y1;
 	double x0,y0;
@@ -76,7 +76,7 @@ double iowave::xgen2(lexer *p)
 	return dist;
 }
 
-double iowave::ygen(lexer *p)
+double iowave::ygen_calc(lexer *p)
 {
 	double x1,y1;
 	double x0,y0;
@@ -127,7 +127,7 @@ double iowave::ygen2(lexer *p)
 	return dist;
 }
 
-double iowave::distgen(lexer *p)
+double iowave::distgen_calc(lexer *p)
 {
     double x0,y0,denom;
 	double dist=1.0e20;
@@ -158,7 +158,7 @@ double iowave::distgen(lexer *p)
 	return dist;
 }
 
-double iowave::distbeach(lexer *p)
+double iowave::distbeach_calc(lexer *p)
 {
     double x0,y0,denom;
 	double dist=1.0e20;
@@ -218,4 +218,80 @@ void iowave::relaxzone4_build(lexer *p)
     }
     
     rz4_built=true;
+}
+
+// distgen/distbeach depend only on (i,j) through XP[IP], YP[JP] and on the
+// relaxation-zone polygons, which are fixed after the constructor.
+// They are called for every 3D cell in every relax function and RK stage,
+// so they are tabulated once per (i,j) (including ghost columns).
+void iowave::dist_cache_build(lexer *p)
+{
+    const int is=i, js=j;
+
+    if(dgcache==nullptr)
+    {
+    p->Darray(dgcache,p->imax*p->jmax);
+    p->Darray(dbcache,p->imax*p->jmax);
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    dgcache[IJ] = distgen_calc(p);
+    dbcache[IJ] = distbeach_calc(p);
+    }
+    }
+
+    i=is;
+    j=js;
+}
+
+// xgen/ygen additionally depend on tan_alpha (set at the end of the constructor)
+void iowave::xy_cache_build(lexer *p)
+{
+    const int is=i, js=j;
+
+    p->Darray(xgcache,p->imax*p->jmax);
+    p->Darray(ygcache,p->imax*p->jmax);
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    xgcache[IJ] = xgen_calc(p);
+    ygcache[IJ] = ygen_calc(p);
+    }
+
+    i=is;
+    j=js;
+}
+
+double iowave::distgen(lexer *p)
+{
+    if(dgcache==nullptr)
+    dist_cache_build(p);
+
+    return dgcache[IJ];
+}
+
+double iowave::distbeach(lexer *p)
+{
+    if(dbcache==nullptr)
+    dist_cache_build(p);
+
+    return dbcache[IJ];
+}
+
+double iowave::xgen(lexer *p)
+{
+    if(xgcache==nullptr)
+    xy_cache_build(p);
+
+    return xgcache[IJ];
+}
+
+double iowave::ygen(lexer *p)
+{
+    if(ygcache==nullptr)
+    xy_cache_build(p);
+
+    return ygcache[IJ];
 }

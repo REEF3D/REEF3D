@@ -66,18 +66,27 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
     precon->reconstruct_2D_WL(p, pgc, d);
 
     // reconstruct U 
+    // Vs,Vn,Ws,Wn,Ue,Uw,We,Ww are only read by the HLLC flux (wave-speed scaling);
+    // HLL (A511=1) and HLLYL (A520=3) never use them -> skip 4 of 12 horizontal reconstructions
+    const bool hllc = (p->A511==2 && p->A520!=3);
+
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);
+    if(hllc)
     precon->reconstruct_3D_y(p, pgc, d, U, d->Ue, d->Uw);
     precon->reconstruct_3D_z(p, pgc, d, U, d->Ub, d->Ut);
     
     // reconstruct  V
+    if(hllc)
     precon->reconstruct_3D_x(p, pgc, d, V, d->Vs, d->Vn);
     precon->reconstruct_3D_y(p, pgc, d, V, d->Ve, d->Vw);
     precon->reconstruct_3D_z(p, pgc, d, V, d->Vb, d->Vt);
     
     // reconstruct  W
+    if(hllc)
+    {
     precon->reconstruct_3D_x(p, pgc, d, W, d->Ws, d->Wn);
     precon->reconstruct_3D_y(p, pgc, d, W, d->We, d->Ww);
+    }
     precon->reconstruct_3D_z(p, pgc, d, W, d->Wb, d->Wt);
     
     // reconstruct UH
@@ -102,75 +111,57 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
 
 void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    // Fr nuber limiter
-    if(p->A532==1)
+    // Froude-number limiters + U=UH/WL + DWDT, fused into one sweep.
+    // Every operation is per cell, so the result is identical to the former
+    // sequence of separate loops (limiter A532, limiter B60, DWDT, U, dry, DWDT).
     LOOP
-    WETDRY
     {
-    UH[IJK] = MIN(UH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
-    UH[IJK] = MAX(UH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MAX(VH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MAX(WH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
-    }
-    
-    if(p->A532==2)
-    LOOP
-    WETDRY
-    if(p->deep[IJ]==0) // if WL < 10.0 * A 544
-    {
-    UH[IJK] = MIN(UH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
-    UH[IJK] = MAX(UH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MAX(VH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MAX(WH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
-    }
-    
-    
-    if(p->B60==1)
-    LOOP
-    if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->deep[IJ]==0)
-    {
-    UH[IJK] = MIN(UH[IJK], 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
-    UH[IJK] = MAX(UH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MAX(VH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MAX(WH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
-    }
-    
-    LOOP
-    WETDRY
-    {
-    d->DWDT[IJK] = d->W[IJK];
-    }
-    
-    LOOP
-    WETDRY
-    {
-    d->U[IJK] = UH[IJK]/WLVL;
-    d->V[IJK] = VH[IJK]/WLVL;
-    d->W[IJK] = WH[IJK]/WLVL;       
-    }
-    
-
-    LOOP
-    if(p->wet[IJ]==0)
-    {
-    d->U[IJK] = 0.0;
-    d->V[IJK] = 0.0;
-    d->W[IJK] = 0.0;
-    }
-    
-    LOOP
-    WETDRY
-    {
-    d->DWDT[IJK] = (d->W[IJK]-d->DWDT[IJK])/(alpha*p->dt);
+        if(p->wet[IJ]==1 && (p->A532==1 || (p->A532==2 && p->deep[IJ]==0)))
+        {
+        const double lim = p->A531*WL(i,j)*sqrt(9.81*WL(i,j));
+        UH[IJK] = MIN(UH[IJK], lim);
+        VH[IJK] = MIN(VH[IJK], lim);
+        WH[IJK] = MIN(WH[IJK], lim);
+        
+        const double nlim = -p->A531*WL(i,j)*sqrt(9.81*WL(i,j));
+        UH[IJK] = MAX(UH[IJK], nlim);
+        VH[IJK] = MAX(VH[IJK], nlim);
+        WH[IJK] = MAX(WH[IJK], nlim);
+        }
+        
+        if(p->B60==1)
+        if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->deep[IJ]==0)
+        {
+        const double lim = 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j));
+        UH[IJK] = MIN(UH[IJK], lim);
+        VH[IJK] = MIN(VH[IJK], lim);
+        WH[IJK] = MIN(WH[IJK], lim);
+        
+        const double nlim = -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j));
+        UH[IJK] = MAX(UH[IJK], nlim);
+        VH[IJK] = MAX(VH[IJK], nlim);
+        WH[IJK] = MAX(WH[IJK], nlim);
+        }
+        
+        if(p->wet[IJ]==1)
+        {
+        const double wold = d->W[IJK];
+        const double wl = WLVL;
+        
+        d->U[IJK] = UH[IJK]/wl;
+        d->V[IJK] = VH[IJK]/wl;
+        d->W[IJK] = WH[IJK]/wl;
+        
+        d->DWDT[IJK] = (d->W[IJK]-wold)/(alpha*p->dt);
+        }
+        
+        else
+        if(p->wet[IJ]==0)
+        {
+        d->U[IJK] = 0.0;
+        d->V[IJK] = 0.0;
+        d->W[IJK] = 0.0;
+        }
     }
     
     pgc->start4V(p,d->U,gcval_u);

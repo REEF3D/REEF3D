@@ -259,6 +259,13 @@ private:
 
 	double distgen(lexer*);
 	double distbeach(lexer*);
+	double distgen_calc(lexer*);
+	double distbeach_calc(lexer*);
+	void dist_cache_build(lexer*);
+	void xy_cache_build(lexer*);
+	double *dgcache=nullptr, *dbcache=nullptr, *xgcache=nullptr, *ygcache=nullptr;
+	double xgen_calc(lexer*);
+	double ygen_calc(lexer*);
     
     void distbeach_ini(lexer*);
     void distgen_ini(lexer*);

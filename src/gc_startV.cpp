@@ -25,6 +25,64 @@ Author: Hans Bihs
 #include"sliceint.h"
 #include"ghostcell.h"
 
+// iterate over the precomputed boundary-cell list L (same order as the full sweep)
+#define GCBL_LOOP(L,T) gcbl_build_impl(p,L,T,i,j,k); \
+    for(size_t qq_=0; qq_<L.ijk.size(); qq_+=3) \
+    if((i=L.ijk[qq_], j=L.ijk[qq_+1], k=L.ijk[qq_+2], true))
+
+// boundary-cell lists for the V-type BC sweeps (NHFLOW/FNPF):
+// cells of a ULOOP/VLOOP/WLOOP/LOOP/FLOOP that have at least one face
+// neighbour flagged <0. Only these cells can satisfy any of the BC branches,
+// so iterating over them in the original order gives identical results.
+// Rebuilt once per time step (p->count) and whenever flags are rebuilt.
+#include<vector>
+namespace
+{
+    struct gcblist { std::vector<int> ijk; int count=-2; };
+    gcblist gcbl1, gcbl2, gcbl3, gcbl4, gcbl7;
+}
+
+void gcbl_reset_all()
+{
+    gcbl1.count=gcbl2.count=gcbl3.count=gcbl4.count=gcbl7.count=-2;
+}
+
+static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int &k)
+{
+    // during initialisation (count==0) flags may still change: always rebuild
+    if(L.count==p->count && p->count>0)
+    return;
+
+    L.ijk.clear();
+
+    if(type==1)
+    ULOOP
+    if(p->flag1[Im1JK]<0 || p->flag1[Ip1JK]<0 || p->flag1[IJm1K]<0 || p->flag1[IJp1K]<0 || p->flag1[IJKm1]<0 || p->flag1[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k);}
+
+    if(type==2)
+    VLOOP
+    if(p->flag2[Im1JK]<0 || p->flag2[Ip1JK]<0 || p->flag2[IJm1K]<0 || p->flag2[IJp1K]<0 || p->flag2[IJKm1]<0 || p->flag2[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k);}
+
+    if(type==3)
+    WLOOP
+    if(p->flag3[Im1JK]<0 || p->flag3[Ip1JK]<0 || p->flag3[IJm1K]<0 || p->flag3[IJp1K]<0 || p->flag3[IJKm1]<0 || p->flag3[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k);}
+
+    if(type==4)
+    LOOP
+    if(p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0 || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0 || p->flag4[IJKm1]<0 || p->flag4[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k);}
+
+    if(type==7)
+    FLOOP
+    if(p->flag7[FIm1JK]<0 || p->flag7[FIp1JK]<0 || p->flag7[FIJm1K]<0 || p->flag7[FIJp1K]<0 || p->flag7[FIJKm1]<0 || p->flag7[FIJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k);}
+
+    L.count=p->count;
+}
+
 void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
@@ -54,7 +112,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    ULOOP
+    GCBL_LOOP(gcbl1,1)
     {
         // s
         // U
@@ -156,7 +214,7 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    VLOOP
+    GCBL_LOOP(gcbl2,2)
     {
     // s
         if(p->flag2[Im1JK]<0)
@@ -245,7 +303,7 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    WLOOP
+    GCBL_LOOP(gcbl3,3)
     {
         if(p->flag3[Im1JK]<0)
         {
@@ -309,7 +367,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         outflow=2;
 
     starttime=timer();
-    LOOP
+    GCBL_LOOP(gcbl4,4)
     {
         // xxxxxxx
         // s
@@ -437,7 +495,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {
-    LOOP
+    GCBL_LOOP(gcbl4,4)
     {
         if(p->flag4[Im1JK]<0)
         {
@@ -1081,7 +1139,7 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 
 void ghostcell::start7P(lexer *p, double *f, int gcv)
 {
-    FLOOP
+    GCBL_LOOP(gcbl7,7)
     {
         if(p->flag7[FIm1JK]<0)
         f[FIm1JK] = f[FIJK];
@@ -1111,7 +1169,7 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
-    FLOOP
+    GCBL_LOOP(gcbl7,7)
     {
         if(p->flag7[FIm1JK]<0)
         f[FIm1JK] = f[FIJK];
