@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include <iostream>
 #include <iomanip>
 #include <vector>
-#include <algorithm>
 
 reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
 {
@@ -94,26 +93,21 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     MPI_Comm_size(pgc->mpi_comm,&nprocs);
     MPI_Comm_rank(pgc->mpi_comm,&myrank);
 
-    //  The decomposition comes out of the DIVEMesh grid files, so the process
-    //  topology is reconstructed from the box origins.
-    int me[6];
-    me[0]=p->origin_i; me[1]=p->origin_j; me[2]=p->origin_k;
-    me[3]=p->knox;     me[4]=p->knoy;     me[5]=p->knoz;
+    //  The process grid comes from ghostcell's Cartesian communicator, which
+    //  gcx_cart_topology has already checked against the DIVEMesh neighbours.
+    //  Its dimensionality follows the decomposition: 1 when only x is split,
+    //  2 when z is not, so missing coordinates are 0.
+    int nd=0;
+    int dims[3]={1,1,1}, per[3]={0,0,0}, crd[3]={0,0,0};
+    MPI_Cartdim_get(pgc->cart(),&nd);
+    MPI_Cart_get(pgc->cart(),nd,dims,per,crd);
 
-    std::vector<int> all(6*nprocs,0);
-    MPI_Allgather(me,6,MPI_INT,&all[0],6,MPI_INT,pgc->mpi_comm);
+    npx = dims[0];
+    npy = nd>1 ? dims[1] : 1;
+    const int npz = nd>2 ? dims[2] : 1;
 
-    std::vector<int> ox(nprocs),oy(nprocs),oz(nprocs);
-    for(int r=0;r<nprocs;++r)
-    {
-        ox[r]=all[6*r+0]; oy[r]=all[6*r+1]; oz[r]=all[6*r+2];
-    }
-    std::sort(ox.begin(),ox.end()); ox.erase(std::unique(ox.begin(),ox.end()),ox.end());
-    std::sort(oy.begin(),oy.end()); oy.erase(std::unique(oy.begin(),oy.end()),oy.end());
-    std::sort(oz.begin(),oz.end()); oz.erase(std::unique(oz.begin(),oz.end()),oz.end());
-
-    npx=ox.size(); npy=oy.size();
-    const int npz=oz.size();
+    cx = crd[0];
+    cy = nd>1 ? crd[1] : 0;
 
     //  Periodic boundaries wrap the matrix around the global edge; the halo
     //  exchange here has no wraparound, so the operator would silently be the
@@ -139,33 +133,26 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         MPI_Abort(MPI_COMM_WORLD,-2750);
     }
 
-    if(npx*npy!=nprocs)
-    {
-        if(p->mpirank==0)
-        cout<<"REEFMG the decomposition is not a Cartesian product ("
-            <<npx<<" x "<<npy<<" != "<<nprocs<<" ranks).  Use N 10 10-19 (hypre)."<<endl;
-
-        MPI_Abort(MPI_COMM_WORLD,-2751);
-    }
-
-    cx = std::lower_bound(ox.begin(),ox.end(),p->origin_i)-ox.begin();
-    cy = std::lower_bound(oy.begin(),oy.end(),p->origin_j)-oy.begin();
-
     //  The halo exchange sends knoy*knoz across an x face and knox*knoz across
     //  a y face, so every rank in a column must share knox and every rank in a
-    //  row must share knoy.  A Cartesian decomposition gives that; check it
-    //  rather than discover it as an MPI truncation error.
+    //  row must share knoy.  The Cartesian check compares neighbour ranks only,
+    //  not block sizes, so check it rather than discover it as an MPI
+    //  truncation error.
     {
+        int me[4]={cx,cy,p->knox,p->knoy};
+        std::vector<int> all(4*nprocs,0);
+        MPI_Allgather(me,4,MPI_INT,&all[0],4,MPI_INT,pgc->mpi_comm);
+
         std::vector<int> wx(npx,-1), wy(npy,-1);
         int bad=0;
 
         for(int r=0;r<nprocs;++r)
         {
-            const int rx=std::lower_bound(ox.begin(),ox.end(),all[6*r+0])-ox.begin();
-            const int ry=std::lower_bound(oy.begin(),oy.end(),all[6*r+1])-oy.begin();
+            const int rx=all[4*r+0];
+            const int ry=all[4*r+1];
 
-            if(wx[rx]<0) wx[rx]=all[6*r+3]; else if(wx[rx]!=all[6*r+3]) bad=1;
-            if(wy[ry]<0) wy[ry]=all[6*r+4]; else if(wy[ry]!=all[6*r+4]) bad=1;
+            if(wx[rx]<0) wx[rx]=all[4*r+2]; else if(wx[rx]!=all[4*r+2]) bad=1;
+            if(wy[ry]<0) wy[ry]=all[4*r+3]; else if(wy[ry]!=all[4*r+3]) bad=1;
         }
 
         if(bad)
@@ -184,7 +171,7 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     //  With these the coarse operators use true agglomerate volumes and centre
     //  distances, which is what makes odd local cell numbers and stretched
     //  grids behave instead of costing iterations.
-    if(!mg.setup(pgc->mpi_comm,npx,npy,cx,cy,
+    if(!mg.setup(pgc->cart(),
                  p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,p->N13,
                  p->DXN+p->marge-1, p->DYN+p->marge-1))
     {
@@ -283,7 +270,7 @@ void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matri
     pot.set_coarse_sweeps(POT_COARSE_SWEEPS);
     pot.set_agglomeration(1);
 
-    if(!pot.setup(pgc->mpi_comm,npx,npy,cx,cy,
+    if(!pot.setup(pgc->cart(),
                   p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,0,
                   p->DXN+p->marge-1, p->DYN+p->marge-1))
     {

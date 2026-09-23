@@ -90,9 +90,12 @@ public:
     reefmg_core();
     ~reefmg_core();
 
-    //  world     : communicator of the run
-    //  npx,npy   : process grid (the vertical must not be decomposed)
-    //  cx,cy     : this rank's position in it
+    //  cart      : Cartesian communicator of the run (ghostcell::cart()); the
+    //              process grid, this rank's position and the neighbours are
+    //              read from it.  Duplicated, not kept.  A single-rank
+    //              communicator such as MPI_COMM_SELF needs no topology.
+    //              The vertical must not be decomposed and nothing may be
+    //              periodic.
     //  nx,ny,nz  : local interior extent
     //  gnx,gny   : global horizontal extent
     //  Returns false with a message in err() if the layout cannot be used.
@@ -101,7 +104,7 @@ public:
     //  for a uniform grid.  The widths let the coarse operators use the real
     //  agglomerate volume and centre distance instead of assuming a factor of
     //  four, which is what makes ragged and stretched grids behave.
-    bool setup(MPI_Comm world,int npx,int npy,int cx,int cy,
+    bool setup(MPI_Comm cart,
                int nx,int ny,int nz,int gnx,int gny,int maxlevel,
                const double *dxn=0,const double *dyn=0);
 
