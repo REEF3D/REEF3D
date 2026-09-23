@@ -39,7 +39,7 @@ Author: Hans Bihs
 using namespace std;
 
 fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc), ef(p), df(p), pconvec(std::in_place_type<fnpf_voiddisc>, p),
-                                                                                                            pddx(std::in_place_type<fnpf_ddx_cds2>, p)
+                                                                                                            pddx(std::in_place_type<fnpf_ddx_cds2>)
 {
     if(p->A311==1)
         pconvec.emplace<fnpf_cds2>(p);

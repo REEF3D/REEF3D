@@ -39,7 +39,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
                                                                       ef(p),df(p),
                                                                       pconvec(std::in_place_type<fnpf_voiddisc>, p),
                                                                       pdx(std::in_place_type<fnpf_hires>, p),
-                                                                      pddx(std::in_place_type<fnpf_ddx_cds2>, p)
+                                                                      pddx(std::in_place_type<fnpf_ddx_cds2>)
 {
     if(p->A311==1)
         pconvec.emplace<fnpf_cds2_wd>(p,c);
