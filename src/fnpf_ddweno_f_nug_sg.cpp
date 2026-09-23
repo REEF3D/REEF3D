@@ -69,6 +69,22 @@ double fnpf_ddweno_f_nug::dswenoy(slice& f, double uw)
         return 0.0;
 }
 
+void fnpf_ddweno_f_nug::dsdiffx(slice &f, slice &dq)
+{
+    // faces i-3 .. i+2 of the cells 0 .. knox-1
+    for(int ii=-3; ii<p->knox+2; ++ii)
+    for(int jj=0; jj<p->knoy; ++jj)
+    dq(ii,jj) = (f(ii+1,jj)-f(ii,jj))/p->DXP[ii+marge];
+}
+
+void fnpf_ddweno_f_nug::dsdiffy(slice &f, slice &dq)
+{
+    // faces j-3 .. j+2 of the cells 0 .. knoy-1
+    for(int ii=0; ii<p->knox; ++ii)
+    for(int jj=-3; jj<p->knoy+2; ++jj)
+    dq(ii,jj) = (f(ii,jj+1)-f(ii,jj))/p->DYP[jj+marge];
+}
+
 void fnpf_ddweno_f_nug::isqmin(slice& f)
 {
     q1=q2=q3=q4=q5=0.0;

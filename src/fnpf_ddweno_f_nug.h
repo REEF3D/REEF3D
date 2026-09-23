@@ -47,6 +47,76 @@ public:
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
+    // Face divided differences dq(ii,j) = (f(ii+1,j)-f(ii,j))/DXP[ii] over every face the
+    // WENO5 stencils of the interior cells touch, so that dswenox_dq() needs no divisions.
+    void dsdiffx(slice&, slice&);
+    void dsdiffy(slice&, slice&);
+
+    // Upwinded WENO5 gradient at (i,j) from dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
+    inline double dswenox_dq(slice &dq, double uvel)
+    {
+        if(uvel>0.0)
+        {
+            if(p->wet[Im3J]>0 && p->wet[Im2J]>0 && p->wet[Im1J]>0 && p->wet[IJ]>0 && p->wet[Ip1J]>0 && p->wet[Ip2J]>0)
+            {
+                q1 = dq(i-3,j);
+                q2 = dq(i-2,j);
+                q3 = dq(i-1,j);
+                q4 = dq(i,j);
+                q5 = dq(i+1,j);
+                return weno_min_x();
+            }
+            return 0.0;
+        }
+        else if(uvel<0.0)
+        {
+            if(p->wet[Im2J]>0 && p->wet[Im1J]>0 && p->wet[IJ]>0 && p->wet[Ip1J]>0 && p->wet[Ip2J]>0 && p->wet[Ip3J]>0)
+            {
+                q1 = dq(i-2,j);
+                q2 = dq(i-1,j);
+                q3 = dq(i,j);
+                q4 = dq(i+1,j);
+                q5 = dq(i+2,j);
+                return weno_max_x();
+            }
+            return 0.0;
+        }
+        else
+            return 0.0;
+    }
+
+    inline double dswenoy_dq(slice &dq, double vvel)
+    {
+        if(vvel>0.0)
+        {
+            if(p->wet[IJm3]>0 && p->wet[IJm2]>0 && p->wet[IJm1]>0 && p->wet[IJ]>0 && p->wet[IJp1]>0 && p->wet[IJp2]>0)
+            {
+                q1 = dq(i,j-3);
+                q2 = dq(i,j-2);
+                q3 = dq(i,j-1);
+                q4 = dq(i,j);
+                q5 = dq(i,j+1);
+                return weno_min_y();
+            }
+            return 0.0;
+        }
+        else if(vvel<0.0)
+        {
+            if(p->wet[IJm2]>0 && p->wet[IJm1]>0 && p->wet[IJ]>0 && p->wet[IJp1]>0 && p->wet[IJp2]>0 && p->wet[IJp3]>0)
+            {
+                q1 = dq(i,j-2);
+                q2 = dq(i,j-1);
+                q3 = dq(i,j);
+                q4 = dq(i,j+1);
+                q5 = dq(i,j+2);
+                return weno_max_y();
+            }
+            return 0.0;
+        }
+        else
+            return 0.0;
+    }
+
 
 private:
     // wet-dry aware stencils, all q zero unless every cell of the stencil is wet

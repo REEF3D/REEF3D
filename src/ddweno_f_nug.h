@@ -43,6 +43,61 @@ public:
     double dswenox(slice&, double);
     double dswenoy(slice&, double);
 
+    // Face divided differences dq(ii,j) = (f(ii+1,j)-f(ii,j))/DXP[ii] over every face the
+    // WENO5 stencils of the interior cells touch, so that dswenox_dq() needs no divisions.
+    void dsdiffx(slice&, slice&);
+    void dsdiffy(slice&, slice&);
+
+    // Upwinded WENO5 gradient at (i,j) from dsdiffx/dsdiffy output, bit-identical to dswenox/dswenoy.
+    // Zero velocity returns 0, like fnpf_weno5::sx/sy.
+    inline double dswenox_dq(slice &dq, double uvel)
+    {
+        if(uvel>0.0)
+        {
+            q1 = dq(i-3,j);
+            q2 = dq(i-2,j);
+            q3 = dq(i-1,j);
+            q4 = dq(i,j);
+            q5 = dq(i+1,j);
+            return weno_min_x();
+        }
+        else if(uvel<0.0)
+        {
+            q1 = dq(i-2,j);
+            q2 = dq(i-1,j);
+            q3 = dq(i,j);
+            q4 = dq(i+1,j);
+            q5 = dq(i+2,j);
+            return weno_max_x();
+        }
+        else
+            return 0.0;
+    }
+
+    inline double dswenoy_dq(slice &dq, double vvel)
+    {
+        if(vvel>0.0)
+        {
+            q1 = dq(i,j-3);
+            q2 = dq(i,j-2);
+            q3 = dq(i,j-1);
+            q4 = dq(i,j);
+            q5 = dq(i,j+1);
+            return weno_min_y();
+        }
+        else if(vvel<0.0)
+        {
+            q1 = dq(i,j-2);
+            q2 = dq(i,j-1);
+            q3 = dq(i,j);
+            q4 = dq(i,j+1);
+            q5 = dq(i,j+2);
+            return weno_max_y();
+        }
+        else
+            return 0.0;
+    }
+
 private:
     // WENO5 reconstruction from q1..q5
     inline double weno_min_x()
