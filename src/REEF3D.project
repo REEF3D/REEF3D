@@ -2204,7 +2204,6 @@
           <File Name="fnpf_cds2.cpp"/>
           <VirtualDirectory Name="DDX">
             <File Name="fnpf_ddx_cds4_wd.cpp"/>
-            <File Name="fnpf_ddx_cds4.cpp"/>
             <File Name="fnpf_ddx_cds2_wd.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="DDWENO">

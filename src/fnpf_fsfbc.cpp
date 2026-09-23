@@ -57,7 +57,7 @@ fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,
         pconvec.emplace<fnpf_cds6>(p);
 
     if(p->A312==3)
-        pddx.emplace<fnpf_ddx_cds4>(p);
+        pddx.emplace<fnpf_ddx_cds4>();
 
     if(p->A350>0)
     psolv = new sflow_bicgstab(p,pgc);

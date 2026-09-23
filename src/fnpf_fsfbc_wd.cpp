@@ -60,7 +60,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
     if(p->A312==3)
     {
         pdx.emplace<fnpf_cds4>(p);
-        pddx.emplace<fnpf_ddx_cds4>(p);
+        pddx.emplace<fnpf_ddx_cds4>();
     }
 
     pcoast = new fnpf_coastline(p);
