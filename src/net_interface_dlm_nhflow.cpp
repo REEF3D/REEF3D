@@ -30,81 +30,100 @@ Author: Hans Bihs
 
 void net_interface::dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int nNet)
 { 
-    // Distribute net forces on surrounding cells
-    int ii, jj, kk;
-    double dist, D, dx, dy, dz;
-    double test = 0.0;
+    // Distribute net forces (per unit fluid density) on surrounding cells.
+    //
+    // NHFLOW specifics:
+    //  - collocated sigma grid: kernel evaluated at cell centres XP, YP, ZSP
+    //  - Fext enters the conservative momentum equation d(UH)/dt (see irhs),
+    //    so the spread acceleration is multiplied with the local water depth WL
+    //  - the vertical kernel is renormalised over the wet water column, so no
+    //    force is lost where the stencil is cut by the bed or the free surface
+    //  - all ranks hold all Lagrangian forces (globalsum in coupling_dlm_nhflow),
+    //    so each rank spreads onto its own interior cells only; ghost cells
+    //    are filled by start4V
+    int ii, jj, kk, kc, isave, jsave;
+    int is, ie, js, je, ks, ke;
+    double dx, dy, dz, Dx, Dy, sum, fac, w;
+    double Dzk[7];
 
     const EigenMat& lagrangePoints = pnet[nNet]->getLagrangePoints();
     const EigenMat& lagrangeForces = pnet[nNet]->getLagrangeForces();
-
-    LOOP
-    kernel_x(i,j,k) = 0.0;
-
-    LOOP
-    kernel_y(i,j,k) = 0.0;
-
-    LOOP
-    kernel_z(i,j,k) = 0.0;
-    
 
     for (int pI = 0; pI < lagrangePoints.size(); pI++)
     {
         const Eigen::Vector3d& forcesI = lagrangeForces[pI];
         
-        if (forcesI.norm()!=0.0)
+        if (forcesI.norm()==0.0)
+        continue;
+        
+        const Eigen::Vector3d& coordI = lagrangePoints[pI];
+
+        ii = p->posc_i(coordI(0));
+        jj = p->posc_j(coordI(1));
+
+        dx = p->DXN[MAX(MIN(ii,p->knox-1),0) + marge];
+        dy = p->DYN[MAX(MIN(jj,p->knoy-1),0) + marge];
+        
+        // interior cells of this subdomain inside the kernel support
+        is = MAX(ii-2,0);
+        ie = MIN(ii+2,p->knox-1);
+        js = MAX(jj-2,0);
+        je = MIN(jj+2,p->knoy-1);
+        
+        if(p->j_dir==0)
+        js = je = 0;
+
+        for(i=is; i<=ie; ++i)
         {
-            const Eigen::Vector3d& coordI = lagrangePoints[pI];
-
-            ii = p->posc_i(coordI(0));
-            jj = p->posc_j(coordI(1));
-            kk = p->posc_sig(ii, jj, coordI(2));
-
-            dx = p->DXN[ii + marge];
-            dy = p->DYN[jj + marge];
-            dz = p->DZN[kk + marge]*d->WL(ii,jj);
-
-            for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
+            Dx = kernel_peskin(fabs(p->XP[IP] - coordI(0))/dx);
+            
+            if(Dx==0.0)
+            continue;
+            
+            for(j=js; j<=je; ++j)
             {
-                for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
+                // 2D: the force acts over the full width of the single cell row
+                Dy = (p->j_dir==0) ? 1.0 : kernel_peskin(fabs(p->YP[JP] - coordI(1))/dy);
+                
+                if(Dy==0.0 || p->wet[IJ]==0)
+                continue;
+                
+                // vertical position in this column (posc_sig overwrites i,j,k)
+                isave = i;
+                jsave = j;
+                kk = p->posc_sig(i,j,coordI(2));
+                i = isave;
+                j = jsave;
+                
+                kc = MAX(MIN(kk,p->knoz-1),0);
+                dz = p->DZN[kc + marge]*d->WL(i,j);
+                
+                ks = MAX(kk-3,0);
+                ke = MIN(kk+3,p->knoz-1);
+                
+                if(ke<ks || dz<1.0e-20)
+                continue;
+                
+                sum = 0.0;
+                for(k=ks; k<=ke; ++k)
                 {
-                    for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
-                    {
-                        i = i_it;
-                        j = j_it;
-                        k = k_it;
-                        
-                        dist = sqrt(pow(p->XP[IP] - coordI(0), 2.0))/dx;
-                        D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[JP] - coordI(1), 2.0))/dy;
-                        D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZSP[IJK] - coordI(2), 2.0))/dz;
-                        D *= kernel_peskin(dist);
-                        
-                        test = forcesI(0)*D/(dx*dy*dz);
-                        d->Fext[IJK] -= test;
-
-                        dist = sqrt(pow(p->XP[IP] - coordI(0), 2.0))/dx;
-                        D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[JP] - coordI(1), 2.0))/dy;
-                        D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZSP[IJK] - coordI(2), 2.0))/dz;
-                        D *= kernel_peskin(dist);
-                            
-                        test = forcesI(1)*D/(dx*dy*dz);
-                        d->Gext[IJK] -= test;
-                        
-                        dist = sqrt(pow(p->XP[IP] - coordI(0), 2.0))/dx;
-                        D = kernel_peskin(dist);
-                        dist = sqrt(pow(p->YP[JP] - coordI(1), 2.0))/dy;
-                        D *= kernel_peskin(dist);
-                        dist = sqrt(pow(p->ZSP[IJK] - coordI(2), 2.0))/dz;
-                        D *= kernel_peskin(dist);
-                         
-                        test = forcesI(2)*D/(dx*dy*dz);
-                        d->Hext[IJK] -= test;
-                        
-                    }
+                    Dzk[k-ks] = kernel_peskin(fabs(p->ZSP[IJK] - coordI(2))/dz);
+                    sum += Dzk[k-ks]*p->DZN[KP]*d->WL(i,j);
+                }
+                
+                if(sum<1.0e-20)
+                continue;
+                
+                // Dx/dx*Dy/dy*Dz/sum integrates to one over the cells; times WL for d(UH)/dt
+                fac = (Dx/dx)*(p->j_dir==0 ? 1.0/dy : Dy/dy)*d->WL(i,j)/sum;
+                
+                for(k=ks; k<=ke; ++k)
+                {
+                    w = fac*Dzk[k-ks];
+                    
+                    d->Fext[IJK] -= forcesI(0)*w;
+                    d->Gext[IJK] -= forcesI(1)*w;
+                    d->Hext[IJK] -= forcesI(2)*w;
                 }
             }
         }

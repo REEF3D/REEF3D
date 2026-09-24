@@ -67,10 +67,10 @@ nhflow_forcing::~nhflow_forcing()
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
-    // nothing to force (no solids, floating bodies, DLM or 6DOF): the remaining
+    // nothing to force (no solids, floating bodies, DLM, 6DOF, moorings or nets): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)
-    if(forcing_flag==0 && solid_flag==0 && dlm_flag==0 && p->X10==0 && p->S10==0)
+    if(forcing_flag==0 && solid_flag==0 && dlm_flag==0 && p->X10==0 && p->S10==0 && p->X310==0 && p->X320==0)
     return;
 
     starttime=pgc->timer();

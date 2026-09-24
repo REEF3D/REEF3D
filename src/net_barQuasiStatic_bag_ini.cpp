@@ -92,6 +92,7 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
 
     
     // Initialise fields
+    p->Darray(coupledField, nK, 4);		// fluid coupling matrix (velocity 1,2,3 + density 4)
     p->Darray(v_t, nf, 3);		// tangential direction
     p->Darray(v_n, nf, 3);		// normal direction
     

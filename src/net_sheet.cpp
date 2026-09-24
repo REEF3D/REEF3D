@@ -45,6 +45,14 @@ void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {    
     //- Initialise net model
     ini(p,pgc);
+
+    //- NHFLOW: the grid z-range (originz/endz) is the sigma box, not physical z.
+    //  There is no vertical decomposition, so only x/y decide the owning rank.
+    for (int qn = 0; qn < p->mpi_size; qn++)
+    {
+        zstart[qn] = -1.0e20;
+        zend[qn]   =  1.0e20;
+    }
     
     //- Initialise printing
     printtime = 0.0;

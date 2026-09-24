@@ -100,6 +100,14 @@ void net_barDyn::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         buildNet_wall(p);    
     } 
 
+    //- NHFLOW: the grid z-range (originz/endz) is the sigma box, not physical z.
+    //  There is no vertical decomposition, so only x/y decide the owning rank.
+    for (int qn = 0; qn < p->mpi_size; qn++)
+    {
+        zstart[qn] = -1.0e20;
+        zend[qn]   =  1.0e20;
+    }
+
     //- Initialise old variables   
     xnn_ = x_;    
     xn_ = x_;

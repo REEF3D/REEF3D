@@ -120,6 +120,22 @@ void sixdof_void::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &u
 void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
                                         double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    // Mooring
+    if(p->X310>0)
+    for (int i=0; i<p->mooring_count; i++)
+    pmooring[i]->start(p, pgc);
+    
+    // Net (fixed nets, no floating body)
+    if(p->X320>0)
+    pnetinter->netForces_nhflow(p,d,pgc,1.0,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
+    
+    // print counter
+    if((((p->count%p->P20==0) && p->P30<0.0)  || (p->simtime>printtime && p->P30>0.0)   || p->count==0) && finalize==true)
+    {
+    printtime += p->P30;
+    
+    ++p->printcount_sixdof;
+    }
 }
 
 void sixdof_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)

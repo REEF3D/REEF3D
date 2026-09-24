@@ -81,7 +81,8 @@ void net_barQuasiStatic::coupling_dlm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pg
         (
             coordI(0) >= xstart[p->mpirank] && coordI(0) < xend[p->mpirank] &&
             coordI(1) >= ystart[p->mpirank] && coordI(1) < yend[p->mpirank] &&
-            coordI(2) >= zstart[p->mpirank] && coordI(2) < zend[p->mpirank]
+            coordI(2) >= zstart[p->mpirank] && coordI(2) < zend[p->mpirank] &&
+            coordI(2) <= p->ccslipol4(d->WL,coordI(0),coordI(1)) + p->ccslipol4(d->bed,coordI(0),coordI(1))
         )
         {
             // Calculate relative velocity at screen
