@@ -242,10 +242,18 @@ private:
                 return dq(i,j);
             return 0.5*(dq(i-1,j) + dq(i,j));
         }
+        // one wet face only, the other side is dry and acts as a wall: take the
+        // face only if it is upwind for the Bernoulli term 0.5*|grad Fi|^2, i.e.
+        // the flow goes towards the dry side (advancing front). Flow away from
+        // the dry side gets the wall value 0 (Godunov flux). The downwind face
+        // turns Fi_t = -0.5*Fx^2 - g*eta into a Riccati equation with finite-time
+        // blow-up (concave wet-dry corners in 3D, where Fx and Fy both do it).
+        // uvel is not used here: it is a central difference over the dry cell's
+        // stale Fifsf and can have the wrong sign
         if(bw)
-            return dq(i-1,j);
+            return dq(i-1,j)>0.0 ? dq(i-1,j) : 0.0;
         if(fw)
-            return dq(i,j);
+            return dq(i,j)<0.0 ? dq(i,j) : 0.0;
 
         return 0.0;
     }
@@ -262,10 +270,11 @@ private:
                 return dq(i,j);
             return 0.5*(dq(i,j-1) + dq(i,j));
         }
+        // one wet face only: see fallback_x
         if(bw)
-            return dq(i,j-1);
+            return dq(i,j-1)>0.0 ? dq(i,j-1) : 0.0;
         if(fw)
-            return dq(i,j);
+            return dq(i,j)<0.0 ? dq(i,j) : 0.0;
 
         return 0.0;
     }
