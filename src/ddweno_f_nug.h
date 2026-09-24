@@ -93,6 +93,36 @@ public:
             return 0.0;
     }
 
+    // Symmetric WENO5 gradient: mean of the left- and right-biased reconstructions.
+    // Sixth-order central on smooth data, non-oscillatory at steep gradients.
+    // Used for eta_x/eta_y where they act as geometry (sigma metrics, breaking, wind).
+    inline double dswenox_dq_sym(slice &dq)
+    {
+        return 0.5*(dswenox_dq(dq,1.0) + dswenox_dq(dq,-1.0));
+    }
+
+    inline double dswenoy_dq_sym(slice &dq)
+    {
+        return 0.5*(dswenoy_dq(dq,1.0) + dswenoy_dq(dq,-1.0));
+    }
+
+    // Upwinded for nonzero speed, symmetric for zero speed (dswenox_dq returns 0 there).
+    inline double dswenox_dq_upsym(slice &dq, double uvel)
+    {
+        if(uvel!=0.0)
+            return dswenox_dq(dq,uvel);
+        else
+            return dswenox_dq_sym(dq);
+    }
+
+    inline double dswenoy_dq_upsym(slice &dq, double vvel)
+    {
+        if(vvel!=0.0)
+            return dswenoy_dq(dq,vvel);
+        else
+            return dswenoy_dq_sym(dq);
+    }
+
 protected:
     double grad;
 };

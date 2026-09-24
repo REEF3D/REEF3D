@@ -106,6 +106,12 @@ void control::ctrlrecv()
     ii++;
     A314 = ictrl[ii];
     ii++;
+    A315 = ictrl[ii];
+    ii++;
+    A316 = ictrl[ii];
+    ii++;
+    A317 = ictrl[ii];
+    ii++;
     A320 = ictrl[ii];
     ii++;
     A321 = ictrl[ii];

@@ -58,6 +58,7 @@ public:
     
     slice4 Fx,Fy;
     slice4 Ex,Ey;
+    slice4 Exu,Eyu;  // eta gradient for the kinematic FSBC, upwinded by dH/deta_x (A315>=1); equal to Ex,Ey for A315=0
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;

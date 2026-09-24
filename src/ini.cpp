@@ -68,6 +68,9 @@ void control::ini_default()
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
     A314=2;      // int linear/non-linear
+    A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC)
+    A316=1;      // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours
+    A317=1;      // int bed metrics: 0 legacy (Bxx=Byy=0, left-biased Bx without wetting-drying), 1 bed curvature on, symmetric Bx
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=0;      // int 

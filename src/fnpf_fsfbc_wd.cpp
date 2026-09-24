@@ -129,6 +129,19 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // which runs before the first fsfdisc call), so this was dead work
     // costing 4 slice halo exchanges per RK stage.
 
+    // A315==0 legacy: Ex,Ey upwinded by sign of Fx,Fy (zero gradient at zero speed) and used everywhere.
+    // A315>=1:
+    //   - Exu,Eyu (kinematic FSBC only): upwinded by dH/deta_x = Fx - 2*Fz*Ex, the characteristic speed
+    //     of eta_t + Fx*Ex - Fz*(1 + Ex^2 + Ey^2) = 0; previous-stage Fz, Ex used for the sign.
+    //   - zero speed gives the symmetric gradient instead of 0.
+    //   - Ex,Ey (sigma metrics, breaking, wind, dynamic FSBC): upwinded by sign of Fx,Fy as before (A315==1)
+    //     or symmetric (A315==2).
+    // A316==1: WENO5 Fx,Fy fall back to a first-order gradient from wet neighbours where the
+    //          stencil is not fully wet (legacy A316==0: zero).
+    // A317==1: bed curvature Bxx,Byy updated together with Bx,By (legacy A317==0: Bxx=Byy=0).
+    const int zerosym = (p->A315==0) ? 0 : 1;
+    const int fallback = (p->A316==0) ? 0 : 1;
+
     std::visit([&](auto &conv, auto &ddx, auto &dx)
     {
         // WENO5: Fifsf through the wet-dry aware fnpf_weno5_wd, eta through fnpf_weno5,
@@ -143,12 +156,27 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
             {
                 const double uvel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-                c->Fx(i,j) = conv.dswenox_dq(*dqF,uvel);
-                c->Ex(i,j) = pconeta->dswenox_dq(*dqE,uvel);
+                c->Fx(i,j) = conv.dswenox_dq_wd(*dqF,uvel,zerosym,fallback);
+
+                if(p->A315==0)
+                {
+                    c->Ex(i,j) = pconeta->dswenox_dq(*dqE,uvel);
+                    c->Exu(i,j) = c->Ex(i,j);
+                }
+                else
+                {
+                    const double evel = uvel - 2.0*c->Fz(i,j)*c->Ex(i,j);
+
+                    c->Exu(i,j) = pconeta->dswenox_dq_upsym(*dqE,evel);
+                    c->Ex(i,j) = (p->A315==2) ? pconeta->dswenox_dq_sym(*dqE) : pconeta->dswenox_dq_upsym(*dqE,uvel);
+                }
 
                 c->Exx(i,j) = ddx.sxx(p,eta);
 
                 c->Bx(i,j) = dx.sx(p,c->depth,1.0);
+
+                if(p->A317==1)
+                    c->Bxx(i,j) = ddx.sxx(p,c->depth);
             }
 
             // 3D
@@ -162,51 +190,92 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
                 {
                     const double vvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
 
-                    c->Fy(i,j) = conv.dswenoy_dq(*dqF,vvel);
-                    c->Ey(i,j) = pconeta->dswenoy_dq(*dqE,vvel);
+                    c->Fy(i,j) = conv.dswenoy_dq_wd(*dqF,vvel,zerosym,fallback);
+
+                    if(p->A315==0)
+                    {
+                        c->Ey(i,j) = pconeta->dswenoy_dq(*dqE,vvel);
+                        c->Eyu(i,j) = c->Ey(i,j);
+                    }
+                    else
+                    {
+                        const double evel = vvel - 2.0*c->Fz(i,j)*c->Ey(i,j);
+
+                        c->Eyu(i,j) = pconeta->dswenoy_dq_upsym(*dqE,evel);
+                        c->Ey(i,j) = (p->A315==2) ? pconeta->dswenoy_dq_sym(*dqE) : pconeta->dswenoy_dq_upsym(*dqE,vvel);
+                    }
 
                     c->Eyy(i,j) = ddx.syy(p,eta);
 
                     c->By(i,j) = dx.sy(p,c->depth,1.0);
+
+                    if(p->A317==1)
+                        c->Byy(i,j) = ddx.syy(p,c->depth);
                 }
             }
         }
-        // 3D
-        else if(p->j_dir)
-        {
-            SLICELOOP4
-            WETDRY
-            {
-                ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-                jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-
-                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
-                c->Fy(i,j) = conv.sy(p,Fifsf,jvel);
-
-                c->Ex(i,j) = conv.sx(p,eta,ivel);
-                c->Ey(i,j) = conv.sy(p,eta,jvel);
-
-                c->Exx(i,j) = ddx.sxx(p,eta);
-                c->Eyy(i,j) = ddx.syy(p,eta);
-
-                c->Bx(i,j) = dx.sx(p,c->depth,1.0);
-                c->By(i,j) = dx.sy(p,c->depth,1.0);
-            }
-        }
-        // 2D
         else
         {
+            // symmetric gradient: identical to sx/sy for the central schemes, mean of both biases for WENO3
+            auto sxs = [&](slice &f) {return 0.5*(conv.sx(p,f,1.0) + conv.sx(p,f,-1.0));};
+            auto sys = [&](slice &f) {return 0.5*(conv.sy(p,f,1.0) + conv.sy(p,f,-1.0));};
+            auto sxu = [&](slice &f, double vel) {return vel!=0.0 ? conv.sx(p,f,vel) : sxs(f);};
+            auto syu = [&](slice &f, double vel) {return vel!=0.0 ? conv.sy(p,f,vel) : sys(f);};
+
             SLICELOOP4
             WETDRY
             {
                 ivel = (Fifsf(i+1,j) - Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
 
-                c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
-                c->Ex(i,j) = conv.sx(p,eta,ivel);
+                if(p->A315==0)
+                {
+                    c->Fx(i,j) = conv.sx(p,Fifsf,ivel);
+                    c->Ex(i,j) = conv.sx(p,eta,ivel);
+                    c->Exu(i,j) = c->Ex(i,j);
+                }
+                else
+                {
+                    const double evel = ivel - 2.0*c->Fz(i,j)*c->Ex(i,j);
+
+                    c->Fx(i,j) = sxu(Fifsf,ivel);
+                    c->Exu(i,j) = sxu(eta,evel);
+                    c->Ex(i,j) = (p->A315==2) ? sxs(eta) : sxu(eta,ivel);
+                }
 
                 c->Exx(i,j) = ddx.sxx(p,eta);
 
                 c->Bx(i,j) = dx.sx(p,c->depth,1.0);
+
+                if(p->A317==1)
+                    c->Bxx(i,j) = ddx.sxx(p,c->depth);
+
+                // 3D
+                if(p->j_dir)
+                {
+                    jvel = (Fifsf(i,j+1) - Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+
+                    if(p->A315==0)
+                    {
+                        c->Fy(i,j) = conv.sy(p,Fifsf,jvel);
+                        c->Ey(i,j) = conv.sy(p,eta,jvel);
+                        c->Eyu(i,j) = c->Ey(i,j);
+                    }
+                    else
+                    {
+                        const double evel = jvel - 2.0*c->Fz(i,j)*c->Ey(i,j);
+
+                        c->Fy(i,j) = syu(Fifsf,jvel);
+                        c->Eyu(i,j) = syu(eta,evel);
+                        c->Ey(i,j) = (p->A315==2) ? sys(eta) : syu(eta,jvel);
+                    }
+
+                    c->Eyy(i,j) = ddx.syy(p,eta);
+
+                    c->By(i,j) = dx.sy(p,c->depth,1.0);
+
+                    if(p->A317==1)
+                        c->Byy(i,j) = ddx.syy(p,c->depth);
+                }
             }
         }
     }, pconvec, pddx, pdx);
@@ -219,24 +288,35 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         c->Ex(i,j) = 0.0;
         c->Ey(i,j) = 0.0;
 
+        c->Exu(i,j) = 0.0;
+        c->Eyu(i,j) = 0.0;
+
         c->Fx(i,j) = 0.0;
         c->Fy(i,j) = 0.0;
 
         c->K(i,j) = 0.0;
     }
 
-    std::visit([&](auto &conv, auto &ddx)
+    // A317==0 legacy: Bx left-biased (sx with speed 1.0, overwritten by fsfdisc), Bxx from df,
+    // which is never filled, so Bxx=0.
+    // A317==1: Bx from the same symmetric operator as in fsfdisc, Bxx from the depth.
+    slice &bdd = (p->A317==0) ? static_cast<slice&>(df) : static_cast<slice&>(c->depth);
+
+    std::visit([&](auto &conv, auto &ddx, auto &dx)
     {
+        auto bsx = [&](slice &f) {return p->A317==0 ? conv.sx(p,f,1.0) : dx.sx(p,f,1.0);};
+        auto bsy = [&](slice &f) {return p->A317==0 ? conv.sy(p,f,1.0) : dx.sy(p,f,1.0);};
+
         // 3D
         if(p->j_dir)
         {
             SLICELOOP4
             {
-                c->Bx(i,j) = conv.sx(p,c->depth,1.0);
-                c->By(i,j) = conv.sy(p,c->depth,1.0);
+                c->Bx(i,j) = bsx(c->depth);
+                c->By(i,j) = bsy(c->depth);
 
-                c->Bxx(i,j) = ddx.sxx(p,df);
-                c->Byy(i,j) = ddx.syy(p,df);
+                c->Bxx(i,j) = ddx.sxx(p,bdd);
+                c->Byy(i,j) = ddx.syy(p,bdd);
             }
         }
         // 2D
@@ -244,11 +324,11 @@ void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &et
         {
             SLICELOOP4
             {
-                c->Bx(i,j) = conv.sx(p,c->depth,1.0);
-                c->Bxx(i,j) = ddx.sxx(p,df);
+                c->Bx(i,j) = bsx(c->depth);
+                c->Bxx(i,j) = ddx.sxx(p,bdd);
             }
         }
-    }, pconvec, pddx);
+    }, pconvec, pddx, pdx);
 
     pgc->gcsl_start4(p,c->Bx,1);
     pgc->gcsl_start4(p,c->By,1);
@@ -295,8 +375,9 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         SLICELOOP4
         {
             if(p->wet[IJ]==1)
-                c->K(i,j) = - c->Fx(i,j)*c->Ex(i,j) - c->Fy(i,j)*c->Ey(i,j)
-                            + c->Fz(i,j)*(1.0 + pow(c->Ex(i,j),2.0) + pow(c->Ey(i,j),2.0));
+                // Exu,Eyu: upwinded eta gradient (equal to Ex,Ey for A315==0)
+                c->K(i,j) = - c->Fx(i,j)*c->Exu(i,j) - c->Fy(i,j)*c->Eyu(i,j)
+                            + c->Fz(i,j)*(1.0 + pow(c->Exu(i,j),2.0) + pow(c->Eyu(i,j),2.0));
             else if(p->wet[IJ]==0)
                 c->K(i,j) = 0.0;
         }
