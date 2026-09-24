@@ -214,10 +214,45 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
                     temp[IJ] = 1;
                     wetage(i,j) = 0;
                     Fifsf(i,j) = wet_nb_average(p,Fifsf);   // uses the old mask: wet neighbours only
+
+                    // the flags change in the first RK stage: the later stages
+                    // combine with the base state (e.g. 0.75*Fifsf^n + 0.25*...),
+                    // which still holds the stale value of the dry cell and would
+                    // reintroduce the jump; update it as well (eta^n is already
+                    // the dry level, which is the rewetting level)
+                    if(&Fifsf != &c->Fifsf)
+                    c->Fifsf(i,j) = Fifsf(i,j);
+
                     ++nrewet;
                 }
             }
             else if(c->WL(i,j)<=crit && wetage(i,j)>=p->A330)
+            {
+                temp[IJ] = 0;
+                ++ndry;
+            }
+        }
+
+        // a single wet cell without wet face neighbours is a closed box (dry
+        // neighbours act as walls): it cannot drain, and its Fifsf drifts with
+        // -g*eta*t until it reconnects with a jump. Dry it regardless of age,
+        // unless it holds substantial water (> (1+A331)*A344 above the
+        // criterion, i.e. it can still rewet a neighbour itself)
+        SLICELOOP4
+        if(wetcoast(i,j)==1 && p->wet[IJ]==1 && temp[IJ]==1)
+        {
+            int nw=0;
+
+            if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0) ++nw;
+            if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0) ++nw;
+
+            if(p->j_dir==1)
+            {
+                if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0) ++nw;
+                if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0) ++nw;
+            }
+
+            if(nw==0 && c->WL(i,j) <= crit + 2.0*margin)
             {
                 temp[IJ] = 0;
                 ++ndry;
