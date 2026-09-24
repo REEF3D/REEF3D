@@ -73,6 +73,14 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         {
             pgc->gcsl_start4Vint(p,p->wet,50);
             wd_front_mask(p,pgc);
+
+            if(p->A343>=2)
+            {
+                SLICELOOP4
+                wdref(i,j) = 0;
+
+                wd_connect(p,c,pgc,Fifsf,false);
+            }
         }
     }
     else if(p->count>=1)
@@ -203,7 +211,10 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
         wd_flagcount = p->count;
 
         SLICELOOP4
-        wd_dvol(i,j) = 0.0;
+        {
+            wd_dvol(i,j) = 0.0;
+            wdref(i,j) = 0;
+        }
 
         int nrewet=0, ndry=0;
 
@@ -242,7 +253,31 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
                 {
                     temp[IJ] = 1;
                     wetage(i,j) = 0;
-                    Fifsf(i,j) = wet_nb_average(p,Fifsf);   // uses the old mask: wet neighbours only
+                    // Fifsf from the wet neighbours (old mask) that are connected to
+                    // the main water body; only if there are none from all wet
+                    // neighbours. A wet pocket has its own Bernoulli constant, its
+                    // Fifsf is aligned in wd_connect when it joins the main body
+                    {
+                        double sum=0.0;
+                        int n=0;
+
+                        if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0 && wdconn(i-1,j)==1) {sum+=Fifsf(i-1,j); ++n;}
+                        if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0 && wdconn(i+1,j)==1) {sum+=Fifsf(i+1,j); ++n;}
+
+                        if(p->j_dir==1)
+                        {
+                        if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0 && wdconn(i,j-1)==1) {sum+=Fifsf(i,j-1); ++n;}
+                        if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0 && wdconn(i,j+1)==1) {sum+=Fifsf(i,j+1); ++n;}
+                        }
+
+                        if(n>0)
+                        {
+                        Fifsf(i,j) = sum/double(n);
+                        wdref(i,j) = 1;
+                        }
+                        else
+                        Fifsf(i,j) = wet_nb_average(p,Fifsf);   // uses the old mask: wet neighbours only
+                    }
 
                     // the new cell takes up the local water level instead of
                     // starting as a dimple of depth A344 next to deeper water:
@@ -314,6 +349,13 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         cout<<"wetdry: rewetted "<<nrewet<<"  dried "<<ndry<<endl;
+
+        // connectivity only changes with the flags
+        if(nrewet>0 || ndry>0)
+        {
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+            wd_connect(p,c,pgc,Fifsf,true);
+        }
 
         wd_front_mask(p,pgc);
     }
@@ -442,4 +484,228 @@ void fnpf_fsfbc_wd::wd_redistribute(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
         if(base)
         c->eta(i,j) -= take;
     }
+}
+
+// ---------------------------------------------------------------------------
+// Connectivity of the wet area to the main water body and Fifsf gauge
+//
+// A wet pocket that is not connected to the main water body (overwash puddle,
+// lagoon cut off during rundown) has its own Bernoulli constant: without flow
+// its Fifsf drifts with -g*eta*t (eta of a pocket on land is above the still
+// water level). Nothing is wrong with that inside the pocket, but when the
+// pocket reconnects, the accumulated offset (O(100) m^2/s after a few minutes)
+// appears as a Fifsf jump over one or two cells, i.e. O(10) m/s surface
+// velocities in a thin film. Here the connected area is found by a flood fill
+// through wet cells (face neighbours) from the deepest wet cell and the wet
+// cells at the x boundaries (wave generation / beach); pocket cells that are
+// connected again get their Fifsf shifted by a constant (per connection path)
+// so that it is continuous with the main body. The shift does not change any
+// velocity inside the pocket. RK base state c->Fifsf gets the same shift.
+//
+// wdL: -1 dry, 0 wet not (yet) connected, 1 connected
+// shift pass: 2 reference (connected before, or rewetted from a connected
+// neighbour), 0.5 pending, 1 shifted
+// ---------------------------------------------------------------------------
+void fnpf_fsfbc_wd::wd_connect(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, bool shift)
+{
+    const int nsweep  = p->j_dir==1?4:2;
+    const int maxiter = 100000;
+    double changed;
+    int iter;
+
+    // 1. flood fill
+    double dmax = -1.0e20;
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    dmax = MAX(dmax, c->depth(i,j));
+
+    dmax = pgc->globalmax(dmax);
+
+    SLICEBASELOOP
+    wdL(i,j) = -1.0;
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        wdL(i,j) = 0.0;
+
+        if(c->depth(i,j) >= dmax - 1.0e-10*MAX(fabs(dmax),1.0) || i+p->origin_i==0 || i+p->origin_i==p->gknox-1)
+        wdL(i,j) = 1.0;
+    }
+
+    pgc->gcsl_start4(p,wdL,50);
+
+    for(iter=0; iter<maxiter; ++iter)
+    {
+        changed=0.0;
+
+        for(int sweep=0; sweep<nsweep; ++sweep)
+        {
+            const int idir = (sweep%2==0)?1:-1;
+            const int jdir = (sweep<2)?1:-1;
+
+            for(int ii=0; ii<p->knox; ++ii)
+            {
+            i = idir>0?ii:p->knox-1-ii;
+
+                for(int jj=0; jj<p->knoy; ++jj)
+                {
+                j = jdir>0?jj:p->knoy-1-jj;
+
+                if(wdL(i,j)>-0.5 && wdL(i,j)<0.5)
+                if(wdL(i-1,j)>0.5 || wdL(i+1,j)>0.5 || (p->j_dir==1 && (wdL(i,j-1)>0.5 || wdL(i,j+1)>0.5)))
+                {
+                wdL(i,j) = 1.0;
+                changed = 1.0;
+                }
+                }
+            }
+
+            pgc->gcsl_start4(p,wdL,50);
+        }
+
+        changed = pgc->globalmax(changed);
+
+        if(changed<0.5)
+        break;
+    }
+
+    // 2. Fifsf gauge of pockets that joined the main water body
+    if(shift)
+    {
+        SLICEBASELOOP
+        wdS(i,j) = 0.0;
+
+        SLICELOOP4
+        if(wdL(i,j)>0.5)
+        {
+            const bool ref = (p->wet_n[IJ]==1) ? (wdconn(i,j)==1) : (wdref(i,j)==1);
+
+            wdL(i,j) = ref ? 2.0 : 0.5;
+        }
+
+        pgc->gcsl_start4(p,wdL,50);
+
+        // nothing joined: no pending cells anywhere
+        double npend=0.0;
+
+        SLICELOOP4
+        if(wdL(i,j)>0.4 && wdL(i,j)<0.6)
+        npend=1.0;
+
+        npend = pgc->globalmax(npend);
+
+        if(npend>0.5)
+        {
+            pgc->gcsl_start4(p,wdS,50);
+
+            auto isref = [&](int ii, int jj) {return p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0 && wdL(ii,jj)>1.5;};
+            auto isnew = [&](int ii, int jj) {return p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0 && wdL(ii,jj)>0.9 && wdL(ii,jj)<1.1;};
+
+            for(iter=0; iter<maxiter; ++iter)
+            {
+                changed=0.0;
+
+                for(int sweep=0; sweep<nsweep; ++sweep)
+                {
+                    const int idir = (sweep%2==0)?1:-1;
+                    const int jdir = (sweep<2)?1:-1;
+
+                    for(int ii=0; ii<p->knox; ++ii)
+                    {
+                    i = idir>0?ii:p->knox-1-ii;
+
+                        for(int jj=0; jj<p->knoy; ++jj)
+                        {
+                        j = jdir>0?jj:p->knoy-1-jj;
+
+                        if(wdL(i,j)>0.4 && wdL(i,j)<0.6)
+                        {
+                            // next to the main body: continuous Fifsf across the face
+                            double sum=0.0;
+                            int n=0;
+
+                            if(isref(i-1,j)) {sum+=Fifsf(i-1,j); ++n;}
+                            if(isref(i+1,j)) {sum+=Fifsf(i+1,j); ++n;}
+
+                            if(p->j_dir==1)
+                            {
+                            if(isref(i,j-1)) {sum+=Fifsf(i,j-1); ++n;}
+                            if(isref(i,j+1)) {sum+=Fifsf(i,j+1); ++n;}
+                            }
+
+                            if(n>0)
+                            {
+                                wdS(i,j) = sum/double(n) - Fifsf(i,j);
+                                wdL(i,j) = 1.0;
+                                changed = 1.0;
+                                continue;
+                            }
+
+                            // inside the pocket: same shift as the neighbour it was reached from
+                            sum=0.0;
+                            n=0;
+
+                            if(isnew(i-1,j)) {sum+=wdS(i-1,j); ++n;}
+                            if(isnew(i+1,j)) {sum+=wdS(i+1,j); ++n;}
+
+                            if(p->j_dir==1)
+                            {
+                            if(isnew(i,j-1)) {sum+=wdS(i,j-1); ++n;}
+                            if(isnew(i,j+1)) {sum+=wdS(i,j+1); ++n;}
+                            }
+
+                            if(n>0)
+                            {
+                                wdS(i,j) = sum/double(n);
+                                wdL(i,j) = 1.0;
+                                changed = 1.0;
+                            }
+                        }
+                        }
+                    }
+
+                    pgc->gcsl_start4(p,wdL,50);
+                    pgc->gcsl_start4(p,wdS,50);
+                }
+
+                changed = pgc->globalmax(changed);
+
+                if(changed<0.5)
+                break;
+            }
+
+            int nshift=0;
+            double smax=0.0;
+
+            SLICELOOP4
+            if(wdL(i,j)>0.9 && wdL(i,j)<1.1)
+            {
+                Fifsf(i,j) += wdS(i,j);
+
+                if(&Fifsf != &c->Fifsf)
+                c->Fifsf(i,j) += wdS(i,j);
+
+                smax = MAX(smax,fabs(wdS(i,j)));
+                ++nshift;
+            }
+
+            nshift = pgc->globalisum(nshift);
+            smax   = pgc->globalmax(smax);
+
+            if(p->mpirank==0 && nshift>0)
+            cout<<"wetdry: "<<nshift<<" pocket cells joined the main water body, Fifsf shift max "<<smax<<endl;
+
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+
+            if(&Fifsf != &c->Fifsf)
+            pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+        }
+    }
+
+    SLICELOOP4
+    wdconn(i,j) = (wdL(i,j)>0.4) ? 1 : 0;
+
+    pgc->gcsl_start4int(p,wdconn,50);
 }

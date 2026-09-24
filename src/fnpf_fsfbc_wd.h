@@ -103,6 +103,12 @@ private:
     slice4 wd_dvol,wd_nwet;     // clamp volume per cell area and number of receiving wet neighbours
     int wd_flagcount;           // p->count of the last wet/dry flag update
 
+    // connectivity to the main water body and Fifsf gauge of wet pockets
+    void wd_connect(lexer*,fdm_fnpf*,ghostcell*,slice&,bool);
+    sliceint4 wdconn;           // 1: wet and connected to the main water body
+    sliceint4 wdref;            // rewetted in this flag update from a connected neighbour
+    slice4 wdL,wdS;             // flood fill label and Fifsf gauge shift
+
     std::variant<fnpf_voiddisc, fnpf_cds2_wd, fnpf_cds4_wd, fnpf_weno3, fnpf_weno5_wd, fnpf_cds6_wd> pconvec;
     std::optional<fnpf_weno5> pconeta; // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
     std::optional<slice4> dqF, dqE;    // WENO5 face divided differences of Fifsf and eta

@@ -37,6 +37,7 @@ Author: Hans Bihs
 
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
                                                                       ef(p),df(p),wetage(p),wdfront(p),wd_dvol(p),wd_nwet(p),eta_ref(p),fi_ref(p),
+                                                                      wdconn(p),wdref(p),wdL(p),wdS(p),
                                                                       pconvec(std::in_place_type<fnpf_voiddisc>, p),
                                                                       pdx(std::in_place_type<fnpf_hires>),
                                                                       pddx(std::in_place_type<fnpf_ddx_cds2>)
