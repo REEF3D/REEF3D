@@ -33,14 +33,18 @@ using namespace std;
 class nhflow_scalar_ifou final : public nhflow_scalar_convection, public increment
 {
 public:
-	nhflow_scalar_ifou (lexer*);
+	nhflow_scalar_ifou (lexer*, int=0);
 	virtual ~nhflow_scalar_ifou();
 
 	void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*) override final;
 
 private:
+    void start_advective(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
+
+private:
 
 	int count;
+    const int advective; // 0: flux form d(uF)/dx (default), 1: advective form u dF/dx (sigma-consistent for non-D-weighted scalars)
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double udir,vdir,wdir;

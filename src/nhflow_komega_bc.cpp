@@ -57,28 +57,28 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
             if(p->DF[IJK]>0)
             {
                 
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && i+p->origin_i != 0)
+            if((p->flag4[Im1JK]<0 && p->IO[Im1JK]==0) || p->DF[Im1JK]<0)
             {
             dist = 0.5*p->DXN[IP];
             ks=p->B57;
             check=1;
             }
 
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && i+p->origin_i != p->gknox-1)
+            if((p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==0) || p->DF[Ip1JK]<0)
             {
             dist = 0.5*p->DXN[IP];
             ks=p->B57;
             check=1;
             }
 
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1)
+            if(((p->flag4[IJm1K]<0 && p->IO[IJm1K]==0) || p->DF[IJm1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             ks=p->B57;
             check=1;
             }
                 
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1)
+            if(((p->flag4[IJp1K]<0 && p->IO[IJp1K]==0) || p->DF[IJp1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             ks=p->B57;
@@ -142,31 +142,31 @@ void nhflow_komega_bc::wall_law_omega(lexer *p, fdm_nhf *d, double *KIN, double 
             
         if(p->DF[IJK]>0)
         {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && i+p->origin_i != 0)
+            if((p->flag4[Im1JK]<0 && p->IO[Im1JK]==0) || p->DF[Im1JK]<0)
             {
             dist = 0.5*p->DXN[IP];
             check=1;
             }
 
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && i+p->origin_i != p->gknox-1)
+            if((p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==0) || p->DF[Ip1JK]<0)
             {
             dist = 0.5*p->DXN[IP];
             check=1;
             }
 
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0) && p->j_dir==1)
+            if(((p->flag4[IJm1K]<0 && p->IO[IJm1K]==0) || p->DF[IJm1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             check=1;
             }
                 
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0) && p->j_dir==1)
+            if(((p->flag4[IJp1K]<0 && p->IO[IJp1K]==0) || p->DF[IJp1K]<0) && p->j_dir==1)
             {
             dist = 0.5*p->DYN[JP];
             check=1;
             }
                 
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0 || k==0)
             {
             dist = 0.5*p->DZN[KP]*d->WL(i,j);
             check=1;

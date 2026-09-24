@@ -47,9 +47,11 @@ void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
 	LOOP
 	d->F[IJK]=0.0;
     
+    // momentum is solved for UH: source is -(2/3) D dk/dx|z, with dk/dx|z = dk/dx|s + sigx dk/ds
     if(p->T33==1)
     LOOP
-	d->F[IJK] = -(2.0/3.0)*(KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1]);
+	d->F[IJK] = -(2.0/3.0)*d->WL(i,j)*((KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1])
+              + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
 }
 
 void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
@@ -60,7 +62,8 @@ void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
     
     if(p->T33==1)
     LOOP
-	d->G[IJK] = -(2.0/3.0)*(KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]);
+	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1])
+              + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
 }
 
 void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
@@ -69,9 +72,10 @@ void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
 	LOOP
 	d->H[IJK]=0.0;
     
+    // D * sigz * dk/ds = dk/ds
     if(p->T33==1)
     LOOP
-	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/((p->DZP[KP]+p->DZP[KM1])*d->WL(i,j));
+	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 }
 
 void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)

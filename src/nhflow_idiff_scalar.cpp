@@ -47,14 +47,14 @@ void nhflow_idiff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *pso
     sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
 	
 //   M
-	d->M.p[n]  +=        visc_IP1/(p->DXN[IP]*p->DXP[IM1])
-					+   visc_IM1/(p->DXN[IP]*p->DXP[IP])
+	d->M.p[n]  +=        visc_IP1/(p->DXN[IP]*p->DXP[IP])
+					+   visc_IM1/(p->DXN[IP]*p->DXP[IM1])
                     
-					+   visc_JP1/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
-					+   visc_JM1/(p->DYN[JP]*p->DYP[JP])*p->y_dir
+					+   visc_JP1/(p->DYN[JP]*p->DYP[JP])*p->y_dir
+					+   visc_JM1/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
                     
-					+   (visc_KP1*sigxyz2)/(p->DZN[KP]*p->DZP[KM1])
-					+   (visc_KM1*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
+					+   (visc_KP1*sigxyz2)/(p->DZN[KP]*p->DZP[KP])
+					+   (visc_KM1*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
     
 	 d->M.n[n] -= visc_IP1/(p->DXP[IP]*p->DXN[IP]);
      d->M.s[n] -= visc_IM1/(p->DXP[IM1]*p->DXN[IP]);

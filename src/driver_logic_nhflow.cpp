@@ -78,7 +78,7 @@ void driver::logic_nhflow()
     if(p->A520==3)
 	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
     
-    pnhfscalarconvec = new nhflow_scalar_ifou(p);
+    pnhfscalarconvec = new nhflow_scalar_ifou(p,1);   // advective form for k, epsilon/omega
     
 //Diffusion
     if(p->A512==0 && p->A560==0)
