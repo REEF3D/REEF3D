@@ -36,20 +36,24 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==1)
 	ptime = new sflow_etimestep(p,b);
 	
-    // convection
-    if(p->A211==0)
-    pconvec = new sflow_voidconv(p);
-        
-    if(p->A211==1)
+    // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)
+    phll = new sflow_HLL(p,pgc,pBC);
+    
+    pss = new sflow_signal_speed(p);
+    
+    if(p->A211<=3)
+    precon = new sflow_reconstruct_hires(p,pBC);
+    
+    if(p->A211>=4)
+    precon = new sflow_reconstruct_weno(p,pBC);
+    
+    // scalar convection (turbulence)
+    if(p->A211<=3)
     pconvec = new sflow_fou(p);
-        
-    if(p->A211==4)
+    
+    if(p->A211>=4)
     pconvec = new sflow_weno_flux(p);
-        
-    if(p->A211==5)
-    pconvec = new sflow_weno_hj(p);
-        
-         
+
     // filter
     pfilter = new sflow_filter(p);
 	
@@ -71,15 +75,15 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220==0)
 	ppress = new sflow_hydrostatic(p,b,pBC);
     
-    if(p->A220==1)
+    if(p->A220==1 || p->A220>=3)
 	ppress = new sflow_pjm_lin(p,b,pBC);
     
     if(p->A220==2)
 	ppress = new sflow_pjm_quad(p,b,pBC);
     
-    if(p->A220==3)
-	ppress = new sflow_pjm_corr_lin(p,b,pBC);
-    
+    if(p->A220>=3 && p->mpirank==0)
+    cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
+
     // diffusion
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
@@ -137,12 +141,11 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// momentum
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+	pmom = new sflow_momentum_RK2(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
-	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
-    
-    
+	if(p->A210!=2)
+	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+
     //Potential Flow Solver
     if(p->I11==0)
     potflow = new sflow_potential_v(p);

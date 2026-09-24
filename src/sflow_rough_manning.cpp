@@ -24,8 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 
-#define HXIJ (fabs(b->hx(i,j))>1.0e-20?b->hx(i,j):1.0e20)
-#define HYIJ (fabs(b->hy(i,j))>1.0e-20?b->hy(i,j):1.0e20)
+#define WLIJ (WL(i,j)>p->A244?WL(i,j):1.0e20)
 
 sflow_rough_manning::sflow_rough_manning(lexer* p) 
 {
@@ -35,27 +34,28 @@ sflow_rough_manning::~sflow_rough_manning()
 {
 }
 
-void sflow_rough_manning::u_source(lexer *p, fdm2D *b, slice &u)
+// Manning friction, tau_b/rho = g n^2 |u| u / h^(1/3), n = ks^(1/6)/20
+
+void sflow_rough_manning::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
 {
-    SLICELOOP1
+    SLICELOOP4
+    WETDRY
     {
-    manning = pow(0.5*(b->ks(i,j)+b->ks(i+1,j)),1.0/6.0)/20.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;
+    cf = pow(manning,2.0)*fabs(p->W22)/pow(WLIJ,1.0/3.0);
     
-    cf = pow(manning,2.0)*9.81/pow(HXIJ,1.0/3.0);
-    
-    b->F(i,j) -= cf*u(i,j)*fabs(u(i,j))*(1.0/HXIJ);
+    b->F(i,j) -= cf*U(i,j)*sqrt(U(i,j)*U(i,j) + V(i,j)*V(i,j));
     }
 }
 
-void sflow_rough_manning::v_source(lexer *p, fdm2D *b, slice &v)
+void sflow_rough_manning::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
 {
-    SLICELOOP2
+    SLICELOOP4
+    WETDRY
     {
-    manning = pow(0.5*(b->ks(i,j)+b->ks(i,j+1)),1.0/6.0)/20.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;
+    cf = pow(manning,2.0)*fabs(p->W22)/pow(WLIJ,1.0/3.0);
     
-    cf = pow(manning,2.0)*9.81/pow(HYIJ,1.0/3.0);
-    
-    b->G(i,j) -= cf*v(i,j)*fabs(v(i,j))*(1.0/HYIJ);
-    }   
+    b->G(i,j) -= cf*V(i,j)*sqrt(U(i,j)*U(i,j) + V(i,j)*V(i,j));
+    }
 }
-

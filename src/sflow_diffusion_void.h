@@ -40,9 +40,9 @@ public:
 	sflow_diffusion_void(lexer*);
 	virtual ~sflow_diffusion_void();
 
-	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override final;
-	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override final;
-    void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double) override final;
+	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
     void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override final;
 
 };

@@ -54,65 +54,39 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     pgc->gcsl_start4(p,eta,50);
     
+    // depth-averaged wave velocities at the cell centres (cell-centred HLL SFLOW)
     count=0;
-    SLICELOOP1
+    SLICELOOP4
     {
-		xg = xgen1(p);
-        yg = ygen1(p);
+		xg = xgen(p);
+        yg = ygen(p);
         dg = distgen(p);
 		db = distbeach(p);
         
-        
-        deltaz = (0.5*(eta(i,j)+eta(i+1,j)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i+1,j)))/(double(p->B160));
+        deltaz = (eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
         
         u_val=0.0;
+        v_val=0.0;
         z=-p->wd;
         for(int qn=0;qn<=p->B160;++qn)
         {
         u_val += wave_u(p,pgc,xg,yg,z);
         
+        if(p->j_dir==1)
+        v_val += wave_v(p,pgc,xg,yg,z);
+        
         z+=deltaz;
         }
         u_val/=double(p->B160+1);
+        v_val/=double(p->B160+1);
 		
 		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+		if(p->B98==2 && (u_switch==1 || v_switch==1))
         {
             // Zone 1
             if(dg<1.0e20)
             {
             uval[count] = u_val;
-            ++count;
-            }
-		}
-    }
-		
-    count=0;
-    SLICELOOP2
-    {
-        xg = xgen2(p);
-        yg = ygen2(p);
-        dg = distgen(p);
-		db = distbeach(p);
-        
-        deltaz = (0.5*(eta(i,j)+eta(i,j+1)) + p->wd - 0.5*(b->bed(i,j)+b->bed(i,j+1)))/(double(p->B160));
-        
-        v_val=0.0;
-        z=-p->wd;
-        for(int qn=0;qn<=p->B160;++qn)
-        {
-        v_val += wave_v(p,pgc,xg,yg,z);
-        
-        z+=deltaz;
-        }
-        v_val/=double(p->B160+1);
-        
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
             vval[count] = v_val;
             ++count;
             }

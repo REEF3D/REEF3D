@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_hydrostatic.h"
 #include"sflow_potential.h"
+#include"sflow_momentum.h"
 #include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
@@ -155,34 +156,38 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     SLICELOOP4
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
+    
+    // water depth WL from eta
+    ini_wl(p,b,pgc);
 
     pflow->ini2D(p,b,pgc);
-      
-     
-     // P,Q ini
-	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
-	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
-
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
-	pgc->gcsl_start4(p,b->eta,gcval_eta);
-    pgc->gcsl_start4(p,b->hp,gcval_eta);
+    
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     
+    ini_wl(p,b,pgc);
     
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
-    pflow->ini2D(p,b,pgc);
+    // U,V ini in the relaxation zones
+	pflow->um_relax(p,pgc,b->U,b->UH,b->WL);
+	pflow->vm_relax(p,pgc,b->V,b->VH,b->WL);
+    
     // potential flow ini
     potflow->start(p,b,ppoissonsolv,pgc);
     
-    pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
-
+    if(p->I11==1)
+    SLICELOOP4
+    {
+    b->U(i,j) = 0.5*(b->P(i-1,j) + b->P(i,j));
+    b->V(i,j) = 0.5*(b->Q(i,j-1) + b->Q(i,j))*p->y_dir;
+    }
     
     // FSF ini
     ini_fsf_2(p,b,pgc);
-
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    
+    ini_wl(p,b,pgc);
+    
+    // conserved variables UH,VH,WH and ghost cells
+    pmom->ini(p,b,pgc);
 
     //roughness ini
     SLICELOOP4
@@ -401,7 +406,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         }
     }
       
-	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+	ini_wl(p,b,pgc);
     
     int gcval_eta;
     
@@ -447,4 +452,20 @@ void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
     b->eta_n(i,j) = b->eta(i,j);
     
     pgc->gcsl_start4(p,b->eta_n,gcval_eta);
+}
+
+void sflow_f::ini_wl(lexer *p, fdm2D* b, ghostcell* pgc)
+{   
+    // still water depth and water column from eta
+    SLICELOOP4
+	b->depth(i,j) = p->wd - b->bed(i,j);
+    
+    pgc->gcsl_start4(p,b->depth,50);
+    
+    SLICELOOP4
+    b->WL(i,j) = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
+    pgc->gcsl_start4(p,b->WL,50);
+    
+    pfsf->depth_update(p,b,pgc,b->WL);
 }

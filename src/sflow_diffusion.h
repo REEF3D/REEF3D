@@ -32,15 +32,18 @@ class sliceint;
 
 using namespace std;
 
+// momentum diffusion for the cell-centred HLL scheme
+//   diff_u(.., UHdiff, UH, U, V, WL, alpha): UHdiff is the conserved momentum the RK stage
+//   starts from (UH for void/explicit, WL*U_implicit for implicit diffusion); explicit
+//   schemes add WL*div(nu grad U) to b->F
+
 class sflow_diffusion
 {
 public:
-
-	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double)=0;
-	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double)=0;
-    virtual void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double)=0;
+	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
+	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
+    virtual void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, slice&, double)=0;
     virtual void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double)=0;
-
 };
 
 #endif

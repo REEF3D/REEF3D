@@ -35,31 +35,32 @@ sflow_rheology_f::~sflow_rheology_f()
 {
 }
 
-void sflow_rheology_f::u_source(lexer *p, fdm2D *b, slice &u, slice &v)
+void sflow_rheology_f::u_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
 {
-    SLICELOOP1
+    SLICELOOP4
+    WETDRY
     {   
-    u_abs = sqrt(pow(u(i,j),2.0) + pow(0.25*(v(i,j-1) + v(i,j) + v(i+1,j-1) + v(i+1,j)),2.0));
-    press = 0.5*(b->press(i,j) + b->press(i+1,j)) + p->W1*fabs(p->W22)*0.5*(b->hp(i,j) + b->hp(i+1,j));
+    u_abs = sqrt(U(i,j)*U(i,j) + V(i,j)*V(i,j));
     
-    tau_zx = bingham(p,b,u(i,j),u_abs,press,HXIJ);
+    press = b->press(i,j) + p->W1*fabs(p->W22)*WL(i,j);
     
+    tau_zx = bingham(p,b,U(i,j),u_abs,press,HPIJ);
     
-    
-    b->F(i,j) -= tau_zx/(HXIJ*p->W1);
+    b->F(i,j) -= tau_zx/p->W1;
     }
 }
 
-void sflow_rheology_f::v_source(lexer *p, fdm2D *b, slice &u, slice &v)
+void sflow_rheology_f::v_source(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL)
 {
-    SLICELOOP2
+    SLICELOOP4
+    WETDRY
     {    
-    u_abs = sqrt(pow(0.25*(u(i-1,j) + u(i,j) + u(i-1,j+1) + u(i,j+1)),2.0) + pow(v(i,j),2.0));
-    press = 0.5*(b->press(i,j) + b->press(i,j+1)) + p->W1*fabs(p->W22)*0.5*(b->hp(i,j) + b->hp(i,j+1));
+    u_abs = sqrt(U(i,j)*U(i,j) + V(i,j)*V(i,j));
     
-    tau_zy = bingham(p,b,v(i,j),u_abs,press,HYIJ);
+    press = b->press(i,j) + p->W1*fabs(p->W22)*WL(i,j);
     
-    b->G(i,j) -= tau_zy/(HYIJ*p->W1);
+    tau_zy = bingham(p,b,V(i,j),u_abs,press,HPIJ);
+    
+    b->G(i,j) -= tau_zy/p->W1;
     }   
 }
-

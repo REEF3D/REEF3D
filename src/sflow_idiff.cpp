@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"solver2D.h"
 
-sflow_idiff::sflow_idiff(lexer* p)
+sflow_idiff::sflow_idiff(lexer* p) : f(p)
 {
     gcval_u = 10;
     gcval_v = 11;
@@ -36,72 +36,97 @@ sflow_idiff::~sflow_idiff()
 {
 }
 
-void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
+double sflow_idiff::viscosity(lexer *p, fdm2D *b)
 {
-    starttime=pgc->timer();
-    
-    n=0;
-    SLICELOOP1
-    {
-	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i+1,j));
+    visc = p->W2 + b->eddyv(i,j);
     
     if(p->A246==2 && b->breaking(i,j)==1)
     visc += p->A250;
+    
+    return visc;
+}
 
-        
-	b->M.p[n] =   4.0*visc/(p->DXM*p->DXM)
-                
-                + 2.0*visc/(p->DXM*p->DXM)*p->y_dir
-                   
-                + 1.0/(alpha*p->dt);
-    
-	b->rhsvec.V[n] = (visc/(p->DXM*p->DXM))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
-                         
-						 + u(i,j)/(alpha*p->dt);
-
-	 b->M.s[n] = -2.0*visc/(p->DXM*p->DXM);
-	 b->M.n[n] = -2.0*visc/(p->DXM*p->DXM);
-	 
-	 b->M.e[n] = -visc/(p->DXM*p->DXM)*p->y_dir;
-	 b->M.w[n] = -visc/(p->DXM*p->DXM)*p->y_dir;
- 
-	 ++n;
-	}
-    
-    
+void sflow_idiff::bc(lexer *p, fdm2D *b, slice &u)
+{
+    // boundary values from the ghost cells of the velocity
     n=0;
-    SLICELOOP1
+    SLICELOOP4
     {
-        if(p->flagslice1[Im1J]<0)
+        if(p->flagslice4[Im1J]<0)
 		{
 		b->rhsvec.V[n] -= b->M.s[n]*u(i-1,j);
 		b->M.s[n] = 0.0;
 		}
 		
-		if(p->flagslice1[Ip1J]<0)
+		if(p->flagslice4[Ip1J]<0)
 		{
 		b->rhsvec.V[n] -= b->M.n[n]*u(i+1,j);
 		b->M.n[n] = 0.0;
 		}
 		
-		if(p->flagslice1[IJm1]<0)
+		if(p->flagslice4[IJm1]<0)
 		{
 		b->rhsvec.V[n] -= b->M.e[n]*u(i,j-1);
 		b->M.e[n] = 0.0;
 		}
 		
-		if(p->flagslice1[IJp1]<0)
+		if(p->flagslice4[IJp1]<0)
 		{
 		b->rhsvec.V[n] -= b->M.w[n]*u(i,j+1);
 		b->M.w[n] = 0.0;
 		}
- 
+        
+        if(p->wet[IJ]==0)
+        {
+        b->M.p[n] = 1.0;
+        b->M.n[n] = 0.0;
+        b->M.s[n] = 0.0;
+        b->M.e[n] = 0.0;
+        b->M.w[n] = 0.0;
+        b->rhsvec.V[n] = 0.0;
+        }
+	++n;
+	}
+}
+
+void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &UHdiff, slice &UH, slice &U, slice &V, slice &WL, double alpha)
+{
+    double cxp,cxm,cyp,cym,dxy;
+    
+    starttime=pgc->timer();
+    
+    n=0;
+    SLICELOOP4
+    {
+    viscosity(p,b);
+    
+    cxp = 2.0*visc/(p->DXP[IP]*p->DXN[IP]);
+    cxm = 2.0*visc/(p->DXP[IM1]*p->DXN[IP]);
+    cyp = visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+    cym = visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+    
+    dxy=0.0;
+    if(p->j_dir==1 && p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0)
+    dxy = (V(i+1,j+1) - V(i+1,j-1) - V(i-1,j+1) + V(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
+    
+	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
+    b->M.n[n] = -cxp;
+    b->M.s[n] = -cxm;
+    b->M.w[n] = -cyp;
+    b->M.e[n] = -cym;
+    
+	b->rhsvec.V[n] = visc*dxy + U(i,j)/(alpha*p->dt);
+    
+    f(i,j) = U(i,j);
 	++n;
 	}
     
-	psolv->start(p,pgc,u,b->M,b->xvec,b->rhsvec,1);
+    bc(p,b,U);
     
-    pgc->gcsl_start1(p,u,gcval_u);
+	psolv->start(p,pgc,f,b->M,b->xvec,b->rhsvec,4);
+    
+    SLICELOOP4
+    UHdiff(i,j) = (p->wet[IJ]==1)?WL(i,j)*f(i,j):UH(i,j);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
@@ -109,152 +134,97 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
 }
 
-void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
+void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &VHdiff, slice &VH, slice &U, slice &V, slice &WL, double alpha)
 {
+    double cxp,cxm,cyp,cym,dxy;
+    
+    if(p->j_dir==0)
+    {
+    SLICELOOP4
+    VHdiff(i,j) = VH(i,j);
+    
+    return;
+    }
+    
     starttime=pgc->timer();
-   
-    n=0;
-    SLICELOOP2
-    {
-	visc = p->W2 + 0.5*(b->eddyv(i,j) + b->eddyv(i,j+1));
-    
-    if(p->A246==2 && b->breaking(i,j)==1)
-    visc += p->A250;
-    
-        
-	b->M.p[n] =   2.0*visc/(p->DXM*p->DXM)
-    
-                + 4.0*visc/(p->DXM*p->DXM)*p->y_dir
-                   
-                + 1.0/(alpha*p->dt);
-				  
-	b->rhsvec.V[n] = (visc/(p->DXM*p->DXM))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
-									
-						 + (v(i,j))/(alpha*p->dt);
-									
-	 
-	 b->M.s[n] = -visc/(p->DXM*p->DXM);
-	 b->M.n[n] = -visc/(p->DXM*p->DXM);
-	 
-	 b->M.e[n] = -2.0*visc/(p->DXM*p->DXM)*p->y_dir;
-	 b->M.w[n] = -2.0*visc/(p->DXM*p->DXM)*p->y_dir;
- 
-	 ++n;
-	}
     
     n=0;
-    SLICELOOP2
+    SLICELOOP4
     {
-        if(p->flagslice2[Im1J]<0)
-		{
-		b->rhsvec.V[n] -= b->M.s[n]*v(i-1,j);
-		b->M.s[n] = 0.0;
-		}
-		
-		if(p->flagslice2[Ip1J]<0)
-		{
-		b->rhsvec.V[n] -= b->M.n[n]*v(i+1,j);
-		b->M.n[n] = 0.0;
-		}
-		
-		if(p->flagslice2[IJm1]<0)
-		{
-		b->rhsvec.V[n] -= b->M.e[n]*v(i,j-1);
-		b->M.e[n] = 0.0;
-		}
-		
-		if(p->flagslice2[IJp1]<0)
-		{
-		b->rhsvec.V[n] -= b->M.w[n]*v(i,j+1);
-		b->M.w[n] = 0.0;
-		}
- 
+    viscosity(p,b);
+    
+    cxp = visc/(p->DXP[IP]*p->DXN[IP]);
+    cxm = visc/(p->DXP[IM1]*p->DXN[IP]);
+    cyp = 2.0*visc/(p->DYP[JP]*p->DYN[JP]);
+    cym = 2.0*visc/(p->DYP[JM1]*p->DYN[JP]);
+    
+    dxy=0.0;
+    if(p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0)
+    dxy = (U(i+1,j+1) - U(i+1,j-1) - U(i-1,j+1) + U(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
+    
+	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
+    b->M.n[n] = -cxp;
+    b->M.s[n] = -cxm;
+    b->M.w[n] = -cyp;
+    b->M.e[n] = -cym;
+    
+	b->rhsvec.V[n] = visc*dxy + V(i,j)/(alpha*p->dt);
+    
+    f(i,j) = V(i,j);
 	++n;
 	}
     
-	psolv->start(p,pgc,v,b->M,b->xvec,b->rhsvec,2);
+    bc(p,b,V);
     
-    pgc->gcsl_start2(p,v,gcval_v);
+	psolv->start(p,pgc,f,b->M,b->xvec,b->rhsvec,4);
+    
+    SLICELOOP4
+    VHdiff(i,j) = (p->wet[IJ]==1)?WL(i,j)*f(i,j):VH(i,j);
     
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
-	cout<<"vdiffiter: "<<p->uiter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
+	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
 }
 
-void sflow_idiff::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, slice &w, double alpha)
+void sflow_idiff::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &WHdiff, slice &WH, slice &U, slice &V, slice &W, slice &WL, double alpha)
 {
+    double cxp,cxm,cyp,cym;
+    
     starttime=pgc->timer();
-   
-    n=0;
-    SLICELOOP4
-    {
-	visc = p->W2 + b->eddyv(i,j);
-    
-    if(p->A246==2 && b->breaking(i,j)==1)
-    visc += p->A250;
-    
-        
-	b->M.p[n] =   2.0*visc/(p->DXM*p->DXM)
-    
-                + 4.0*visc/(p->DXM*p->DXM)*p->y_dir
-                   
-                + 1.0/(alpha*p->dt);
-				  
-	b->rhsvec.V[n] = (visc/(p->DXM*p->DXM))*((u(i,j+1)-u(i,j)) - (u(i-1,j+1)-u(i-1,j)))
-    
-                   + (visc/(p->DXM*p->DXM))*((v(i+1,j)-v(i,j)) - (v(i+1,j-1)-v(i,j-1)))
-									
-						 + (w(i,j))/(alpha*p->dt);
-									
-	 
-	 b->M.s[n] = -visc/(p->DXM*p->DXM);
-	 b->M.n[n] = -visc/(p->DXM*p->DXM);
-	 
-	 b->M.e[n] = -2.0*visc/(p->DXM*p->DXM)*p->y_dir;
-	 b->M.w[n] = -2.0*visc/(p->DXM*p->DXM)*p->y_dir;
- 
-	 ++n;
-	}
     
     n=0;
     SLICELOOP4
     {
-        if(p->flagslice4[Im1J]<0)
-		{
-		b->rhsvec.V[n] -= b->M.s[n]*w(i-1,j);
-		b->M.s[n] = 0.0;
-		}
-		
-		if(p->flagslice4[Ip1J]<0)
-		{
-		b->rhsvec.V[n] -= b->M.n[n]*w(i+1,j);
-		b->M.n[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJm1]<0)
-		{
-		b->rhsvec.V[n] -= b->M.e[n]*w(i,j-1);
-		b->M.e[n] = 0.0;
-		}
-		
-		if(p->flagslice4[IJp1]<0)
-		{
-		b->rhsvec.V[n] -= b->M.w[n]*w(i,j+1);
-		b->M.w[n] = 0.0;
-		}
- 
+    viscosity(p,b);
+    
+    cxp = visc/(p->DXP[IP]*p->DXN[IP]);
+    cxm = visc/(p->DXP[IM1]*p->DXN[IP]);
+    cyp = visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
+    cym = visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+    
+	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
+    b->M.n[n] = -cxp;
+    b->M.s[n] = -cxm;
+    b->M.w[n] = -cyp;
+    b->M.e[n] = -cym;
+    
+	b->rhsvec.V[n] = W(i,j)/(alpha*p->dt);
+    
+    f(i,j) = W(i,j);
 	++n;
 	}
     
-	psolv->start(p,pgc,w,b->M,b->xvec,b->rhsvec,4);
+    bc(p,b,W);
     
-    pgc->gcsl_start2(p,v,gcval_v);
+	psolv->start(p,pgc,f,b->M,b->xvec,b->rhsvec,4);
+    
+    SLICELOOP4
+    WHdiff(i,j) = (p->wet[IJ]==1)?WL(i,j)*f(i,j):WH(i,j);
     
 	time=pgc->timer()-starttime;
-	p->viter=p->solveriter;
 	if(p->mpirank==0 && p->D21==1 && p->count%p->P12==0)
-	cout<<"wdiffiter: "<<p->uiter<<"  wdifftime: "<<setprecision(3)<<time<<endl;
+	cout<<"wdiffiter: "<<p->solveriter<<"  wdifftime: "<<setprecision(3)<<time<<endl;
 }
 
 void sflow_idiff::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)

@@ -36,16 +36,14 @@ using namespace std;
 class sflow_pressure
 {
 public:
-
+    // projection of the conserved momenta UH, VH, WH at water depth WL;
+    // Un, Vn: velocities at the beginning of the RK stage
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double)=0;
-	virtual void upgrad(lexer*, fdm2D*, slice&, slice&)=0;
-	virtual void vpgrad(lexer*, fdm2D*, slice&, slice&)=0;
-    virtual void wpgrad(lexer*, fdm2D*, slice&, slice&)=0;
     
-    virtual void ucorr(lexer*,fdm2D*,slice&,slice&,double)=0;
-	virtual void vcorr(lexer*,fdm2D*,slice&,slice&,double)=0;
-	virtual void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&)=0;
-    virtual void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&)=0;
+    // bed-slope source matching the hydrostatic part of the HLL momentum flux
+	virtual void upgrad(lexer*, fdm2D*, slice&)=0;
+	virtual void vpgrad(lexer*, fdm2D*, slice&)=0;
+    virtual void wpgrad(lexer*, fdm2D*, slice&)=0;
 };
 
 #endif

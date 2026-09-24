@@ -85,6 +85,7 @@ public:
     virtual void test_relax(lexer*, ghostcell*, slice&){};
     virtual void visc_relax(lexer*, ghostcell*, slice&)=0;
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
+    // SFLOW: um/vm/wm_relax(U,UH,WL) at the cell centres
     virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
     virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
 	virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;

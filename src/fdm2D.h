@@ -51,8 +51,8 @@ public:
     
     slice4 U,V,W,UH,VH,WH;
     
-    slice1 Fx,Fs,Fn;
-    slice2 Fy,Fe,Fw;
+    slice1 Fx,Fs,Fn,FEx;
+    slice2 Fy,Fe,Fw,FEy;
     
     slice1 Ss,Sn,SSx;
     slice2 Se,Sw,SSy;

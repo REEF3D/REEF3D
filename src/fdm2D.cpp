@@ -25,8 +25,8 @@ Author: Hans Bihs
 
 fdm2D::fdm2D(lexer *p)
 			: U(p),V(p),W(p),UH(p),VH(p),WH(p),
-            Fx(p),Fs(p),Fn(p),
-            Fy(p),Fe(p),Fw(p),
+            Fx(p),Fs(p),Fn(p),FEx(p),
+            Fy(p),Fe(p),Fw(p),FEy(p),
     
             Ss(p),Sn(p),SSx(p),
             Se(p),Sw(p),SSy(p),

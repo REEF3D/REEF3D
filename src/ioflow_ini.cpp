@@ -41,7 +41,7 @@ void ioflow_f::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
 void ioflow_f::ini2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     discharge2D(p,b,pgc);
-    inflow2D(p,b,pgc,b->P,b->Q,b->bed,b->eta);
+    inflow2D(p,b,pgc,b->U,b->V,b->bed,b->eta);
 }
 
 void ioflow_f::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)

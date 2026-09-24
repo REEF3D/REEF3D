@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 #include"sflow_pressure.h"
 #include"increment.h"
-#include"slice4.h"
 
 using namespace std;
 
@@ -34,20 +33,14 @@ class sflow_hydrostatic final : public sflow_pressure, public increment
 public:
     sflow_hydrostatic(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_hydrostatic();
-    
+
 	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
-	void upgrad(lexer*, fdm2D*, slice&, slice&) override final;
-	void vpgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    void wpgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    
-    void ucorr(lexer*,fdm2D*,slice&,slice&,double) override final;
-	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override final;
-	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
-    void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
-    
+	void upgrad(lexer*, fdm2D*, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&) override final;
+
 private:
     patchBC_interface *pBC;
-
 };
 
 #endif

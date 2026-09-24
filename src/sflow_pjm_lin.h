@@ -25,42 +25,42 @@ Author: Hans Bihs
 
 #include"sflow_pressure.h"
 #include"increment.h"
-#include"slice4.h"
 
 using namespace std;
+
+// depth-integrated non-hydrostatic pressure, linear vertical profile
+// (Stelling & Zijlema 2003), collocated for the HLL scheme.
+//   press = depth-averaged non-hydrostatic pressure q, bottom value q_b = 2q
+//   UH -= alpha*dt/rho * ( d(h q)/dx - q_b d(d)/dx )
+//   WH += alpha*dt/rho * q_b
+//   constraint: h div(u) + 2(w + u.grad(d)) = 0
+// linear dispersion: omega^2 = g h k^2 / (1 + k^2 h^2/4)
 
 class sflow_pjm_lin final : public sflow_pressure, public increment
 {
 public:
     sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_lin();
-    
+
 	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
-	void upgrad(lexer*, fdm2D*, slice&, slice&) override final;
-	void vpgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    void wpgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    
-    void ucorr(lexer*,fdm2D*,slice&,slice&,double) override final;
-	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override final;
-	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
-    void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
-    
-    void rhs(lexer*, fdm2D*, slice&, slice&, slice&, double);
-    
-    void poisson(lexer*,fdm2D*,double);
-    
+	void upgrad(lexer*, fdm2D*, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&) override final;
+
 private:
-	double starttime,endtime;
-    int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
+    void rhs(lexer*, fdm2D*, slice&, double);
+    void poisson(lexer*, fdm2D*, slice&, double);
+    void ucorr(lexer*, fdm2D*, slice&, slice&, double);
+	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
+	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
+    int active(lexer*, fdm2D*);
     
-    double sqd;
-	double theta;
+	double starttime;
+    int gcval_press;
 	double solvtime,ptime;
-    double wd_criterion;
+    const double cb;
     
     patchBC_interface *pBC;
-
 };
 
 #endif

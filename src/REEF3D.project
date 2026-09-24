@@ -394,9 +394,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
-        <VirtualDirectory Name="Pressure SC">
-          <File Name="sflow_pjm_hs_SC.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
@@ -407,6 +404,7 @@
             <File Name="sflow_signal_speed.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Reconstruct">
+            <File Name="sflow_reconstruct_hires.h"/>
             <File Name="sflow_reconstruct_weno.h"/>
             <File Name="sflow_reconstruct.h"/>
           </VirtualDirectory>
@@ -454,7 +452,6 @@
           <File Name="sflow_print_probe_da.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
-          <File Name="sflow_pjm_corr_lin.h"/>
           <File Name="sflow_pressure.h"/>
           <File Name="sflow_pjm_quad.h"/>
           <File Name="sflow_pjm_lin.h"/>
@@ -464,12 +461,10 @@
           <VirtualDirectory Name="Func">
             <File Name="sflow_momentum_func.h"/>
           </VirtualDirectory>
-          <File Name="sflow_momentum_RK2_SC.h"/>
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
-            <File Name="sflow_bcmom.h"/>
             <File Name="sflow_roughness.h"/>
             <File Name="sflow_rough_void.h"/>
             <File Name="sflow_rough_manning.h"/>
@@ -484,12 +479,6 @@
         <VirtualDirectory Name="FSF">
           <File Name="sflow_fsf.h"/>
           <File Name="sflow_eta.h"/>
-          <VirtualDirectory Name="Discretization">
-            <File Name="sflow_hxy_weno.h"/>
-            <File Name="sflow_hxy_fou.h"/>
-            <File Name="sflow_hxy_disc.h"/>
-            <File Name="sflow_hxy_cds.h"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Potential Flow">
@@ -508,15 +497,8 @@
             <File Name="sflow_fixtimestep.h"/>
             <File Name="sflow_etimestep.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Gradient">
-            <File Name="sflow_gradient_weno.h"/>
-            <File Name="sflow_gradient.h"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Flux">
-            <File Name="sflow_flux_old.h"/>
-            <File Name="sflow_flux_HJ_CDS.h"/>
             <File Name="sflow_flux_face_HJ.h"/>
-            <File Name="sflow_flux_face_FOU.h"/>
             <File Name="sflow_flux_face_CDS.h"/>
             <File Name="sflow_flux.h"/>
           </VirtualDirectory>
@@ -1681,9 +1663,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
-        <VirtualDirectory Name="Pressure SC">
-          <File Name="sflow_pjm_hs_SC.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
@@ -1692,6 +1671,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Scalar"/>
           <VirtualDirectory Name="Reconstruct">
+            <File Name="sflow_reconstruct_hires.cpp"/>
             <File Name="sflow_reconstruct_weno.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
@@ -1763,15 +1743,12 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
-          <File Name="sflow_pjm_corr_lin.cpp"/>
           <File Name="sflow_pjm_quad.cpp"/>
           <File Name="sflow_pjm_lin.cpp"/>
           <File Name="sflow_hydrostatic.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
-          <File Name="sflow_momentum_RK2_SC.cpp"/>
           <VirtualDirectory Name="Func">
-            <File Name="sflow_bcmom.cpp"/>
             <File Name="sflow_momentum_func.cpp"/>
           </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
@@ -1786,15 +1763,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="sflow_eta_deep.cpp"/>
-          <File Name="sflow_eta_wetdry_nb.cpp"/>
           <File Name="sflow_eta_wetdry.cpp"/>
           <File Name="sflow_eta_breaking.cpp"/>
           <File Name="sflow_eta.cpp"/>
-          <VirtualDirectory Name="Discretization">
-            <File Name="sflow_hxy_weno.cpp"/>
-            <File Name="sflow_hxy_fou.cpp"/>
-            <File Name="sflow_hxy_cds.cpp"/>
-          </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="fdm2D.cpp"/>
@@ -1811,13 +1782,8 @@
             <File Name="sflow_fixtimestep.cpp"/>
             <File Name="sflow_etimestep.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="Gradient">
-            <File Name="sflow_gradient_weno.cpp"/>
-          </VirtualDirectory>
           <VirtualDirectory Name="Flux">
-            <File Name="sflow_flux_HJ_CDS.cpp"/>
             <File Name="sflow_flux_face_HJ.cpp"/>
-            <File Name="sflow_flux_face_FOU.cpp"/>
             <File Name="sflow_flux_face_CDS.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Filtering">

@@ -20,29 +20,43 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SFLOW_FLUX_FACE_HJ_H_
-#define SFLOW_FLUX_FACE_HJ_H_
+#ifndef SFLOW_RECONSTRUCT_HIRES_H_
+#define SFLOW_RECONSTRUCT_HIRES_H_
 
+#include"sflow_reconstruct.h"
 #include"increment.h"
-#include"sflow_flux.h"
+#include"slice4.h"
 
 class lexer;
+class ghostcell;
+class fdm2D;
+class slice;
+class patchBC_interface;
 
 using namespace std;
 
-class sflow_flux_HJ_CDS final : public sflow_flux, public increment
+// second-order MUSCL face reconstruction with slope limiter (A 211)
+//   0: first-order (no slope), 1: van Leer, 2: Superbee, 3: van Albada
+
+class sflow_reconstruct_hires final : public sflow_reconstruct, public increment
 {
 public:
+	sflow_reconstruct_hires(lexer*,patchBC_interface*);
+	virtual ~sflow_reconstruct_hires();
 
-	sflow_flux_HJ_CDS (lexer *p);
-	virtual ~sflow_flux_HJ_CDS();
-
-	void u_flux(int,slice&,double&,double&) override final;
-	void v_flux(int,slice&,double&,double&) override final;
+    void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
+    void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
+    void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override final;
 
 private:
-    lexer *p;
+    double limiter(lexer*, double, double);
     
+    slice4 dfdx,dfdy;
+    
+    double dfdx_plus,dfdx_min,dfdy_plus,dfdy_min;
+    double val,denom,r,phi;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

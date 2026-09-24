@@ -23,53 +23,25 @@ Author: Hans Bihs
 #ifndef SFLOW_MOMENTUM_RK3_H_
 #define SFLOW_MOMENTUM_RK3_H_
 
-#include"sflow_momentum.h"
-#include"slice1.h"
-#include"slice2.h"
+#include"sflow_momentum_func.h"
 #include"slice4.h"
-#include"increment.h"
-
-class sflow_convection;
-class sflow_fsf;
-class sflow_diffusion;
-class sflow_roughness;
-class sflow_rheology;
-class sflow_forcing;
 
 using namespace std;
 
-class sflow_momentum_RK3 final : public sflow_momentum, public increment
+class sflow_momentum_RK3 final : public sflow_momentum_func
 {
 public:
-	sflow_momentum_RK3(lexer*, fdm2D*, sflow_convection*, sflow_diffusion*, sflow_pressure*, 
+	sflow_momentum_RK3(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*, 
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
 	virtual ~sflow_momentum_RK3();
+    
 	void start(lexer*, fdm2D*, ghostcell*) override final;
-
-    slice1 Prk1,Prk2;
-	slice2 Qrk1,Qrk2;
-	slice4 wrk1,wrk2;
-    slice4 etark1,etark2;
-
+    
 private:
-	void irhs(lexer*,fdm2D*,ghostcell*,slice&,double);
-	void jrhs(lexer*,fdm2D*,ghostcell*,slice&,double);
-	
-	int gcval_u, gcval_v, gcval_w;
-	int gcval_eta;
-	double starttime;
-
-	sflow_convection *pconvec;
-	sflow_diffusion *pdiff;
-	sflow_pressure *ppress;
-	solver2D *psolv;
-    solver2D *ppoissonsolv;
-	ioflow *pflow;
-	sflow_fsf *pfsf;
-    sflow_roughness *prough;
-    sflow_rheology *prheo;
-    sflow_forcing *psfdf;
-    sixdof *p6dof;
+    slice4 WLRK1,WLRK2;
+    slice4 UHRK1,UHRK2;
+	slice4 VHRK1,VHRK2;
+	slice4 WHRK1,WHRK2;
 };
 
 #endif

@@ -43,6 +43,9 @@ class sflow_fsf;
 class sflow_vtp_fsf;
 class sflow_vtp_bed;
 class sflow_convection;
+class sflow_HLL;
+class sflow_signal_speed;
+class sflow_reconstruct;
 class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
@@ -69,6 +72,7 @@ private:
     
     void ini_fsf(lexer*, fdm2D*, ghostcell*);
     void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
+    void ini_wl(lexer*, fdm2D*, ghostcell*);
 	
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
@@ -88,6 +92,9 @@ private:
 	sflow_vtp_fsf *pprint;
 	sflow_vtp_bed *pprintbed;
 	sflow_convection *pconvec;
+	sflow_HLL *phll;
+    sflow_signal_speed *pss;
+    sflow_reconstruct *precon;
 	sflow_diffusion *pdiff;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;

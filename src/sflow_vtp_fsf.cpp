@@ -323,10 +323,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->sl_ipol1a(b->P));
+        ffn=float(p->sl_ipol4(b->U));
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=float(p->sl_ipol2a(b->Q));
+        ffn=float(p->sl_ipol4(b->V));
         result.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->sl_ipol4(b->ws));

@@ -40,6 +40,10 @@ Author: Hans Bihs
 #include"sflow_weno_flux.h"
 #include"sflow_weno_hj.h"
 #include"sflow_voidconv.h"
+#include"sflow_HLL.h"
+#include"sflow_signal_speed.h"
+#include"sflow_reconstruct_hires.h"
+#include"sflow_reconstruct_weno.h"
 #include"sflow_eta.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_momentum_RK2.h"
@@ -60,7 +64,6 @@ Author: Hans Bihs
 #include"sflow_idiff.h"
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
-#include"sflow_pjm_corr_lin.h"
 #include"sflow_filter.h"
 
 #include"sediment_f.h"

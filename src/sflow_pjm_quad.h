@@ -25,57 +25,48 @@ Author: Hans Bihs
 
 #include"sflow_pressure.h"
 #include"increment.h"
-#include"slice1.h"
-#include"slice2.h"
 #include"slice4.h"
 
-class sflow_weno_hj;
-class sflow_gradient_weno;
-
 using namespace std;
+
+// depth-integrated non-hydrostatic pressure, quadratic vertical profile
+// (Jeschke et al. 2017), collocated for the HLL scheme.
+//   press = depth-averaged non-hydrostatic pressure q
+//   bottom value q_b = 1.5 q + rho*h*phi/4,  phi = Dw_b/Dt, w_b = -u.grad(d)
+//     phi = -(Du/Dt).grad(d) - (u^2 d_xx + 2uv d_xy + v^2 d_yy)
+//   UH -= alpha*dt/rho * ( d(h q)/dx - q_b d(d)/dx )
+//   WH += alpha*dt/rho * q_b
+//   constraint: h div(u) + 2(w + u.grad(d)) = 0
+// linear dispersion: omega^2 = g h k^2 / (1 + k^2 h^2/3)
 
 class sflow_pjm_quad final : public sflow_pressure, public increment
 {
 public:
     sflow_pjm_quad(lexer*, fdm2D*,patchBC_interface*);
 	virtual ~sflow_pjm_quad();
-    
-	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
-	void upgrad(lexer*, fdm2D*, slice&, slice&) override final;
-	void vpgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    void wpgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    
-    void ucorr(lexer*,fdm2D*,slice&,slice&,double) override final;
-	void vcorr(lexer*,fdm2D*,slice&,slice&,double) override final;
-	void wcorr(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
-    void wcalc(lexer*,fdm2D*,double,slice&,slice&,slice&) override final;
-    
-    void rhs(lexer*, fdm2D*, slice&, slice&, slice&, double);
-    
-    void poisson(lexer*,fdm2D*,double);
-    
-private:
-    void quad_prep(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,double);
-    void quad_calc(lexer*,fdm2D*,slice&,slice&,slice&,slice&,double);
-    
-    
-	double starttime,endtime;
-    int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-    
-    double sqd;
-	double theta;
-	double solvtime,ptime;
-    double wd_criterion;
-    
-    slice4 phi4,press_n;
-	sflow_weno_hj *disc;
-    sflow_gradient_weno *pgrad;
-    patchBC_interface *pBC;
-    
-    slice1 Ps;
-    slice2 Qs;
 
+	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
+	void upgrad(lexer*, fdm2D*, slice&) override final;
+	void vpgrad(lexer*, fdm2D*, slice&) override final;
+    void wpgrad(lexer*, fdm2D*, slice&) override final;
+
+private:
+    void quad_calc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double);
+    void rhs(lexer*, fdm2D*, slice&, double);
+    void poisson(lexer*, fdm2D*, slice&, double);
+    void ucorr(lexer*, fdm2D*, slice&, slice&, double);
+	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
+	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
+    int active(lexer*, fdm2D*);
+    
+	double starttime;
+    int gcval_press,q;
+	double solvtime,ptime;
+    const double cb;
+    
+    slice4 phi,Uest,Vest;
+    
+    patchBC_interface *pBC;
 };
 
 #endif

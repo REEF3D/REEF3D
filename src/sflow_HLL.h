@@ -23,45 +23,44 @@ Author: Hans Bihs
 #ifndef SFLOW_HLL_H_
 #define SFLOW_HLL_H_
 
-#include"sflow_convection.h"
-#include"slice1.h"
-#include"slice2.h"
 #include"increment.h"
 
-class sflow_flux_build;
-
-class patchBC_interface;
+class lexer;
+class fdm2D;
+class slice;
 class ghostcell;
+class patchBC_interface;
+class sflow_flux_build;
 
 using namespace std;
 
-class sflow_HLL final : public sflow_convection, public increment
+// HLL finite volume fluxes for the depth-averaged SFLOW equations on the
+// cell-centred slice grid (conserved variables WL, UH, VH, WH).
+//   ipol 1: UH  -> b->F     ipol 2: VH -> b->G
+//   ipol 3: WH  -> b->H     ipol 4: continuity -> b->FEx, b->FEy
+// The momentum fluxes contain the hydrostatic part 0.5*g*eta^2 + g*eta*d_face,
+// the matching bed-slope source is added by sflow_pressure::upgrad/vpgrad.
+
+class sflow_HLL final : public increment
 {
-
 public:
-
-	sflow_HLL (lexer*,ghostcell*,patchBC_interface*);
+	sflow_HLL(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_HLL();
 
-    void start(lexer*&, fdm2D*&, int, slice&); // override final, but different number of parameters
-    void precalc(lexer*, fdm2D*, int, slice&);
+    void start(lexer*, fdm2D*, int);
 
 private:
+    void aij_U(lexer*, fdm2D*);
+    void aij_V(lexer*, fdm2D*);
+    void aij_W(lexer*, fdm2D*);
+    void aij_E(lexer*, fdm2D*);
 
-    void aij_U(lexer*&, fdm2D*&, int);
-    void aij_V(lexer*&, fdm2D*&, int);
-    void aij_W(lexer*&, fdm2D*&, int);
-    void aij_E(lexer*&, fdm2D*&, int);
-    
-    void HLL(lexer*&, fdm2D*&, slice &, slice &, slice &, slice &);
-    void HLL_E(lexer*&, fdm2D*&);
-    
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
+    void HLL(lexer*, fdm2D*, slice&, slice&, slice&, slice&, slice&, slice&);
+    void flux_bc(lexer*, fdm2D*, int);
+    void divergence(lexer*, fdm2D*, slice&);
+
     double denom;
-
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+    int inflow, outflow;
 
     ghostcell *pgc;
     patchBC_interface *pBC;
