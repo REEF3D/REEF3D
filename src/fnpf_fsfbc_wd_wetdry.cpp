@@ -176,6 +176,9 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
     {
         wd_flagcount = p->count;
 
+        SLICELOOP4
+        wd_dvol(i,j) = 0.0;
+
         int nrewet=0, ndry=0;
 
         SLICELOOP4
@@ -215,6 +218,15 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
                     wetage(i,j) = 0;
                     Fifsf(i,j) = wet_nb_average(p,Fifsf);   // uses the old mask: wet neighbours only
 
+                    // the new cell takes up the local water level instead of
+                    // starting as a dimple of depth A344 next to deeper water:
+                    // half way to the wet neighbours' level, the volume comes
+                    // from them (wd_redistribute below), so for one donor both
+                    // end at the same level
+                    const double etat = 0.5*(eta(i,j) + wet_nb_average(p,eta));
+                    wd_dvol(i,j) = MAX(0.0, etat - eta(i,j));
+                    eta(i,j) += wd_dvol(i,j);
+
                     // the flags change in the first RK stage: the later stages
                     // combine with the base state (e.g. 0.75*Fifsf^n + 0.25*...),
                     // which still holds the stale value of the dry cell and would
@@ -223,6 +235,8 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
                     if(&Fifsf != &c->Fifsf)
                     c->Fifsf(i,j) = Fifsf(i,j);
 
+                    if(&eta != &c->eta)
+                    c->eta(i,j) = eta(i,j);
                     ++nrewet;
                 }
             }
@@ -264,6 +278,10 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
         p->wet[IJ] = temp[IJ];
 
         pgc->gcsl_start4Vint(p,p->wet,50);
+
+        // volume for the rewetted cells from their wet neighbours, applied
+        // to the stage and to the base state like the rewetting itself
+        wd_redistribute(p,c,pgc,eta,true);
 
         nrewet = pgc->globalisum(nrewet);
         ndry   = pgc->globalisum(ndry);
@@ -308,59 +326,9 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
 
     // ---------------------------------------------------------------
     // 3. volume redistribution to the wet face neighbours
-    //    (gather formulation, MPI-safe through the halo exchange)
     // ---------------------------------------------------------------
     if(p->A334==1)
-    {
-        SLICELOOP4
-        {
-            int nw=0;
-
-            if(wd_dvol(i,j)!=0.0)
-            {
-                if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0) ++nw;
-                if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0) ++nw;
-
-                if(p->j_dir==1)
-                {
-                    if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0) ++nw;
-                    if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0) ++nw;
-                }
-            }
-
-            wd_nwet(i,j) = double(nw);
-        }
-
-        pgc->gcsl_start4(p,wd_dvol,50);
-        pgc->gcsl_start4(p,wd_nwet,50);
-
-        SLICELOOP4
-        if(p->wet[IJ]==1)
-        {
-            double take=0.0;
-
-            if(p->flagslice4[Im1J]>0 && wd_nwet(i-1,j)>0.5)
-            take += wd_dvol(i-1,j)/wd_nwet(i-1,j);
-
-            if(p->flagslice4[Ip1J]>0 && wd_nwet(i+1,j)>0.5)
-            take += wd_dvol(i+1,j)/wd_nwet(i+1,j);
-
-            if(p->j_dir==1)
-            {
-                if(p->flagslice4[IJm1]>0 && wd_nwet(i,j-1)>0.5)
-                take += wd_dvol(i,j-1)/wd_nwet(i,j-1);
-
-                if(p->flagslice4[IJp1]>0 && wd_nwet(i,j+1)>0.5)
-                take += wd_dvol(i,j+1)/wd_nwet(i,j+1);
-            }
-
-            // a donor is never pushed below the criterion
-            if(take>0.0)
-            take = MIN(take, MAX(0.0, eta(i,j) + c->depth(i,j) - crit));
-
-            eta(i,j) -= take;
-        }
-    }
+    wd_redistribute(p,c,pgc,eta,false);
 
     SLICELOOP4
     c->WL(i,j) = eta(i,j) + c->depth(i,j);
@@ -385,5 +353,67 @@ void fnpf_fsfbc_wd::wd_front_mask(lexer *p, ghostcell *pgc)
         }
 
         wdfront(i,j) = front;
+    }
+}
+
+// Gather formulation, MPI-safe through the halo exchange: every cell with
+// wd_dvol != 0 (volume per cell area added there) takes it in equal shares
+// from its wet face neighbours; a donor is never pushed below the criterion.
+// During the flag update (rewetting) the same change is applied to the RK
+// base state c->eta, otherwise the later stages would undo it.
+void fnpf_fsfbc_wd::wd_redistribute(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, bool update_base)
+{
+    const double crit = c->wd_criterion;
+    const bool base = update_base && (&eta != &c->eta);
+
+    SLICELOOP4
+    {
+        int nw=0;
+
+        if(wd_dvol(i,j)!=0.0)
+        {
+            if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0) ++nw;
+            if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0) ++nw;
+
+            if(p->j_dir==1)
+            {
+                if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0) ++nw;
+                if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0) ++nw;
+            }
+        }
+
+        wd_nwet(i,j) = double(nw);
+    }
+
+    pgc->gcsl_start4(p,wd_dvol,50);
+    pgc->gcsl_start4(p,wd_nwet,50);
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        double take=0.0;
+
+        if(p->flagslice4[Im1J]>0 && wd_nwet(i-1,j)>0.5)
+        take += wd_dvol(i-1,j)/wd_nwet(i-1,j);
+
+        if(p->flagslice4[Ip1J]>0 && wd_nwet(i+1,j)>0.5)
+        take += wd_dvol(i+1,j)/wd_nwet(i+1,j);
+
+        if(p->j_dir==1)
+        {
+            if(p->flagslice4[IJm1]>0 && wd_nwet(i,j-1)>0.5)
+            take += wd_dvol(i,j-1)/wd_nwet(i,j-1);
+
+            if(p->flagslice4[IJp1]>0 && wd_nwet(i,j+1)>0.5)
+            take += wd_dvol(i,j+1)/wd_nwet(i,j+1);
+        }
+
+        if(take>0.0)
+        take = MIN(take, MAX(0.0, eta(i,j) + c->depth(i,j) - crit));
+
+        eta(i,j) -= take;
+
+        if(base)
+        c->eta(i,j) -= take;
     }
 }

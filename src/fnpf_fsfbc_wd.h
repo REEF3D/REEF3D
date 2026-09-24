@@ -92,6 +92,7 @@ private:
     void wetdry_dynamic(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
     double wet_nb_average(lexer*,slice&);
     void wd_front_mask(lexer*,ghostcell*);
+    void wd_redistribute(lexer*,fdm_fnpf*,ghostcell*,slice&,bool);
     sliceint4 wetage;           // time steps since the cell was (re)wetted, capped at A330
     sliceint4 wdfront;          // wet cell with a dry cell inside the +-3 WENO stencil
     slice4 wd_dvol,wd_nwet;     // clamp volume per cell area and number of receiving wet neighbours

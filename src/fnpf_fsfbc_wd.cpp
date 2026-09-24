@@ -282,7 +282,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     }, pconvec, pddx, pdx);
 
     // A343 2/3, A336 1: at the wet-dry front (dry cell inside the +-3 stencil)
-    // the eta gradients are taken from wet cells only. The eta WENO has no
+    // the eta gradients are taken from wet cells only and Exx=Eyy=0. The eta WENO has no
     // wet-dry check and would otherwise read the film level of dry cells
     // (bed + A344, i.e. the land slope for A343 2), which enters Fz*(1+Ex^2+Ey^2),
     // the sigma metrics and the steepness breaking criterion. Same rule as the
@@ -310,7 +310,10 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
             c->Ex(i,j) = onesided(bw,fw,gb,gf, (p->A315==2) ? 0.0 : c->Fx(i,j));
             c->Exu(i,j) = (p->A315==0) ? c->Ex(i,j) : onesided(bw,fw,gb,gf, c->Fx(i,j) - 2.0*c->Fz(i,j)*c->Ex(i,j));
-            c->Exx(i,j) = (bw && fw) ? 2.0*(gf-gb)/(p->DXP[IM1]+p->DXP[IP]) : 0.0;
+            // no surface curvature in the sigma metrics at the front: the film
+            // depth W jumps between columns there and Exx/W (sigxx) turned 2dx
+            // noise of a few-mm film into a Laplace blow-up
+            c->Exx(i,j) = 0.0;
 
             // y
             if(p->j_dir==1)
@@ -322,7 +325,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
 
                 c->Ey(i,j) = onesided(bs,fs,hb,hf, (p->A315==2) ? 0.0 : c->Fy(i,j));
                 c->Eyu(i,j) = (p->A315==0) ? c->Ey(i,j) : onesided(bs,fs,hb,hf, c->Fy(i,j) - 2.0*c->Fz(i,j)*c->Ey(i,j));
-                c->Eyy(i,j) = (bs && fs) ? 2.0*(hf-hb)/(p->DYP[JM1]+p->DYP[JP]) : 0.0;
+                c->Eyy(i,j) = 0.0;
             }
         }
     }
