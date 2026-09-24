@@ -38,11 +38,21 @@ using namespace std;
 //   WH += alpha*dt/rho * q_b
 //   constraint: h div(u) + 2(w + u.grad(d)) = 0
 // linear dispersion: omega^2 = g h k^2 / (1 + k^2 h^2/3)
+//
+// A 220 3: improved dispersion (Chazel, Lannes & Marche 2011, J. Sci. Comput. 48)
+//   (I + a T)(du/dt + g grad eta) = T(g grad eta),  T: Green-Naghdi dispersive operator,
+//   a = A 224 (default 1.159, a=1 recovers A 220 2)
+//   -> projected pressure q = a*q_GN, bottom pressure q_b = 1.5 q/a + rho h phi/4 in the
+//      w-equation and a*q_b in the momentum, plus the explicit source
+//      d(UH)/dt += B g grad(h^3 div(grad(eta))),  B = (a-1)/3
+//      discretised with central differences only (consistent with the collocated
+//      projection), explicit: dt <= 1.8 dx^2/sqrt(g B h^3), see sflow_etimestep
+//   linear dispersion: omega^2 = g h k^2 (1 + B k^2 h^2) / (1 + a k^2 h^2/3)
 
 class sflow_pjm_quad final : public sflow_pressure, public increment
 {
 public:
-    sflow_pjm_quad(lexer*, fdm2D*,patchBC_interface*);
+    sflow_pjm_quad(lexer*, fdm2D*, ghostcell*, patchBC_interface*);
 	virtual ~sflow_pjm_quad();
 
 	void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double) override final;
@@ -63,10 +73,12 @@ private:
     int gcval_press,q;
 	double solvtime,ptime;
     const double cb;
+    double adisp,cw,Bdisp;
     
-    slice4 phi,Uest,Vest;
+    slice4 phi,Uest,Vest,Ld,Gx,Gy;
     
     patchBC_interface *pBC;
+    ghostcell *pgc;
 };
 
 #endif

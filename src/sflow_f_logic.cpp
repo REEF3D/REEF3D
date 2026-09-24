@@ -75,13 +75,13 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A220==0)
 	ppress = new sflow_hydrostatic(p,b,pBC);
     
-    if(p->A220==1 || p->A220>=3)
+    if(p->A220==1 || p->A220>=4)
 	ppress = new sflow_pjm_lin(p,b,pBC);
     
-    if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b,pBC);
+    if(p->A220==2 || p->A220==3)
+	ppress = new sflow_pjm_quad(p,b,pgc,pBC);
     
-    if(p->A220>=3 && p->mpirank==0)
+    if(p->A220>=4 && p->mpirank==0)
     cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
 
     // diffusion

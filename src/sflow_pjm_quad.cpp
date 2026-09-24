@@ -30,8 +30,22 @@ Author: Hans Bihs
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
-sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, patchBC_interface *ppBC) : cb(1.5), phi(p), Uest(p), Vest(p)
+sflow_pjm_quad::sflow_pjm_quad(lexer* p, fdm2D *b, ghostcell *ppgc, patchBC_interface *ppBC) : cb(1.5), phi(p), Uest(p), Vest(p), Ld(p), Gx(p), Gy(p)
 {
+    pgc = ppgc;
+    
+    // dispersion parameter
+    adisp = 1.0;
+    
+    if(p->A220==3)
+    adisp = MAX(p->A224,1.0);
+    
+    cw = cb/adisp;
+    Bdisp = (adisp-1.0)/3.0;
+    
+    if(p->mpirank==0 && p->A220==3)
+    cout<<"SFLOW quadratic non-hydrostatic pressure with improved dispersion, alpha: "<<adisp<<endl;
+
     pBC = ppBC;
     
     gcval_press=40;  
@@ -201,7 +215,7 @@ void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alph
     {
     dx = p->DXP[IP] + p->DXP[IM1];
     
-    qb = cb*b->press(i,j) + 0.25*p->W1*WL(i,j)*phi(i,j);
+    qb = cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j);
     
 	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i+1,j)*b->press(i+1,j) - WL(i-1,j)*b->press(i-1,j))/dx
                                     - qb*(b->depth(i+1,j) - b->depth(i-1,j))/dx);
@@ -218,7 +232,7 @@ void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice &VH, slice &WL, double alph
     {
     dy = p->DYP[JP] + p->DYP[JM1];
     
-    qb = cb*b->press(i,j) + 0.25*p->W1*WL(i,j)*phi(i,j);
+    qb = cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j);
     
 	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*((WL(i,j+1)*b->press(i,j+1) - WL(i,j-1)*b->press(i,j-1))/dy
                                     - qb*(b->depth(i,j+1) - b->depth(i,j-1))/dy);
@@ -229,7 +243,7 @@ void sflow_pjm_quad::wcorr(lexer* p, fdm2D* b, slice &WH, slice &WL, double alph
 {	    
     SLICELOOP4
     if(active(p,b)==1)
-	WH(i,j) += alpha*p->dt*((1.0/p->W1)*cb*b->press(i,j) + 0.25*WL(i,j)*phi(i,j));
+	WH(i,j) += alpha*p->dt*((1.0/p->W1)*cw*b->press(i,j) + 0.25*WL(i,j)*phi(i,j));
 }
 
 void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
@@ -269,7 +283,7 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
                + WL(i,j)/(p->W1*p->DXP[IM1]*p->DXN[IP])
                + WL(i,j)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
                + WL(i,j)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-               + 2.0*cb/(HP*p->W1);
+               + 2.0*cw/(HP*p->W1);
     
    	b->M.n[n] = -WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP]);
 	b->M.s[n] = -WL(i,j)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
@@ -333,6 +347,42 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
     SLICELOOP4
     WETDRY
     b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
+    
+    // dispersion correction (A 220 3): B g grad(h^3 div(grad(eta)))
+    // all derivatives central: the collocated projection only acts through central
+    // gradients, a compact Laplacian here would limit the time step to dt ~ dx^2 much earlier
+    if(Bdisp>0.0)
+    {
+    double h;
+    
+        SLICELOOP4
+        {
+        Gx(i,j) = (eta(i+1,j) - eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        Gy(i,j) = (eta(i,j+1) - eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
+        }
+        
+        pgc->gcsl_start4(p,Gx,1);
+        pgc->gcsl_start4(p,Gy,1);
+        
+        SLICELOOP4
+        {
+        Ld(i,j) = 0.0;
+        
+            if(active(p,b)==1)
+            {
+            h = MAX(eta(i,j) + b->depth(i,j),0.0);
+            
+            Ld(i,j) = h*h*h*((Gx(i+1,j) - Gx(i-1,j))/(p->DXP[IP] + p->DXP[IM1])
+                           + (Gy(i,j+1) - Gy(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir);
+            }
+        }
+        
+        pgc->gcsl_start4(p,Ld,1);
+        
+        SLICELOOP4
+        if(active(p,b)==1)
+        b->F(i,j) += Bdisp*fabs(p->W22)*(Ld(i+1,j) - Ld(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+    }
 }
 
 void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
@@ -340,6 +390,12 @@ void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
     SLICELOOP4
     WETDRY
     b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
+    
+    // dispersion correction (A 220 3), Ld from upgrad
+    if(Bdisp>0.0 && p->j_dir==1)
+    SLICELOOP4
+    if(active(p,b)==1)
+    b->G(i,j) += Bdisp*fabs(p->W22)*(Ld(i,j+1) - Ld(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
 }
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta)

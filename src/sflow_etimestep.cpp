@@ -91,6 +91,26 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     cmin = pgc->globalmin(cmin);
     
+    // explicit dispersion correction of A 220 3: dt <= 1.8/((1/dx^2+1/dy^2) sqrt(g B h^3))
+    if(p->A220==3 && p->A224>1.0)
+    {
+    double B = (p->A224-1.0)/3.0;
+    double dtd = 1.0e20;
+    double hh;
+    
+        SLICELOOP4
+        WETDRY
+        {
+        hh = MAX(b->WL(i,j),wd_criterion);
+        dtd = MIN(dtd, 1.8/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
+        }
+        
+    dtd = pgc->globalmin(dtd);
+    
+    // cmin is scaled by 2*N47 below
+    cmin = MIN(cmin, dtd/(2.0*p->N47));
+    }
+    
     if(cmin>1.0e19)
     cmin = p->DXM/sqrt(g*MAX(p->wd,wd_criterion));
 
