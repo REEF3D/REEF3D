@@ -90,9 +90,12 @@ public:
     reefmg_core();
     ~reefmg_core();
 
-    //  world     : communicator of the run
-    //  npx,npy   : process grid (the vertical must not be decomposed)
-    //  cx,cy     : this rank's position in it
+    //  cart      : Cartesian communicator of the run (ghostcell::cart()); the
+    //              process grid, this rank's position and the neighbours are
+    //              read from it.  Duplicated, not kept.  A single-rank
+    //              communicator such as MPI_COMM_SELF needs no topology.
+    //              The vertical must not be decomposed and nothing may be
+    //              periodic.
     //  nx,ny,nz  : local interior extent
     //  gnx,gny   : global horizontal extent
     //  Returns false with a message in err() if the layout cannot be used.
@@ -101,7 +104,7 @@ public:
     //  for a uniform grid.  The widths let the coarse operators use the real
     //  agglomerate volume and centre distance instead of assuming a factor of
     //  four, which is what makes ragged and stretched grids behave.
-    bool setup(MPI_Comm world,int npx,int npy,int cx,int cy,
+    bool setup(MPI_Comm cart,
                int nx,int ny,int nz,int gnx,int gny,int maxlevel,
                const double *dxn=0,const double *dyn=0);
 
@@ -206,7 +209,10 @@ private:
     int nbx0,nbx1,nby0,nby1;     // neighbour ranks, MPI_PROC_NULL at the edge
 
     std::vector<double> sbuf,rbuf;
-    std::vector<double> kr,krhat,kp,kv,ks,kt,ky,kz;   // BiCGStab work space
+    //  BiCGStab work space, fine level.  s shares kr - see solve() - so there
+    //  are seven vectors here, not the eight the algorithm is usually written
+    //  with.
+    std::vector<double> kr,krhat,kp,kv,kt,ky,kz;
 
     int coarse_sweeps;
     int pcbits;              // 64 or 32: storage precision of the coefficients

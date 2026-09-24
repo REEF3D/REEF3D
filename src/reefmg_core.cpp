@@ -125,13 +125,16 @@ reefmg_core::~reefmg_core()
     MPI_Comm_free(&comm);
 }
 
-bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
+bool reefmg_core::setup(MPI_Comm cart,
                              int nx,int ny,int nz,int gnx,int gny,int maxlevel,
                              const double *dxn,const double *dyn)
 {
-    //  Re-order the ranks so that neighbours are a simple offset apart.
-    const int key=cy*npx+cx;
-    MPI_Comm_split(world,0,key,&comm);
+    //  A duplicate keeps the topology but gives the solver its own message
+    //  space, and outlives the caller's handle.
+    if(comm!=MPI_COMM_NULL)
+    MPI_Comm_free(&comm);
+
+    MPI_Comm_dup(cart,&comm);
     MPI_Comm_rank(comm,&myrank);
     MPI_Comm_size(comm,&nprocs);
 
@@ -142,16 +145,49 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
         return false;
     }
 
-    if(myrank!=key)
-    {
-        snprintf(errmsg,sizeof(errmsg),"rank re-ordering failed");
-        return false;
-    }
+    int npx=1, npy=1;
+    nbx0=nbx1=nby0=nby1=MPI_PROC_NULL;
 
-    nbx0 = (cx>0    )? myrank-1   : MPI_PROC_NULL;
-    nbx1 = (cx<npx-1)? myrank+1   : MPI_PROC_NULL;
-    nby0 = (cy>0    )? myrank-npx : MPI_PROC_NULL;
-    nby1 = (cy<npy-1)? myrank+npx : MPI_PROC_NULL;
+    if(nprocs>1)
+    {
+        int topo=MPI_UNDEFINED;
+        MPI_Topo_test(comm,&topo);
+
+        if(topo!=MPI_CART)
+        {
+            snprintf(errmsg,sizeof(errmsg),"setup needs a Cartesian communicator");
+            return false;
+        }
+
+        //  The dimensionality follows the decomposition - 1 when only x is
+        //  split, 2 when z is not - so missing dimensions have extent 1.
+        int nd=0;
+        int dims[3]={1,1,1}, per[3]={0,0,0}, crd[3]={0,0,0};
+        MPI_Cartdim_get(comm,&nd);
+        MPI_Cart_get(comm,nd,dims,per,crd);
+
+        if(nd>2 && dims[2]>1)
+        {
+            snprintf(errmsg,sizeof(errmsg),
+                     "the grid is decomposed in z - each sigma column must live on one rank");
+            return false;
+        }
+
+        //  MPI_Cart_shift would hand out the wraparound neighbours, but the
+        //  coarse operators and the agglomeration layout assume a global edge.
+        if(per[0] || per[1] || per[2])
+        {
+            snprintf(errmsg,sizeof(errmsg),"periodic boundaries are not supported");
+            return false;
+        }
+
+        npx = dims[0];
+        npy = nd>1 ? dims[1] : 1;
+
+        MPI_Cart_shift(comm,0,1,&nbx0,&nbx1);
+        if(nd>1)
+        MPI_Cart_shift(comm,1,1,&nby0,&nby1);
+    }
 
     //  How far can every rank coarsen?  All ranks must agree, so take the
     //  global minimum.  Coarsening stops when a local extent
@@ -200,7 +236,7 @@ bool reefmg_core::setup(MPI_Comm world,int npx,int npy,int cx,int cy,
 
     const long fn=lev[0].size();
     kr.assign(fn,0.0); krhat.assign(fn,0.0); kp.assign(fn,0.0); kv.assign(fn,0.0);
-    ks.assign(fn,0.0); kt.assign(fn,0.0);    ky.assign(fn,0.0); kz.assign(fn,0.0);
+    kt.assign(fn,0.0);   ky.assign(fn,0.0); kz.assign(fn,0.0);
 
     const long mx=std::max((long)lev[0].ny,(long)lev[0].nx)*nz;
     sbuf.assign(2*mx,0.0); rbuf.assign(2*mx,0.0);
@@ -982,7 +1018,13 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
         if(fabs(den)<1.0e-300) break;
         alpha=rho/den;
 
-        //  s = r - alpha v, with |s|^2 in the same pass
+        //  s = r - alpha v, with |s|^2 in the same pass.
+        //
+        //  s occupies kr.  r is dead the moment s is formed and is not read
+        //  again until r = s - omega t at the foot of the iteration, which is
+        //  elementwise at the same index, so both updates run in place and the
+        //  arithmetic is unchanged.  That is one fine-level vector - eight
+        //  bytes a cell - saved out of the BiCGStab work space.
         double sn;
         {
             double s0=0.0,s1=0.0,s2=0.0,s3=0.0;
@@ -990,9 +1032,9 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             for(int j=0;j<F.ny;++j)
             {
                 const long col=F.idx(i,j,0);
-                double *sc=&ks[col];
-                const double *rc=&kr[col], *vc=&kv[col];
-                for(int k=0;k<nz;++k) sc[k]=rc[k]-alpha*vc[k];
+                double *sc=&kr[col];
+                const double *vc=&kv[col];
+                for(int k=0;k<nz;++k) sc[k]-=alpha*vc[k];
                 acc4(sc,sc,nz,s0,s1,s2,s3);
             }
             double loc=(s0+s1)+(s2+s3), g=0.0;
@@ -1017,7 +1059,7 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             break;
         }
 
-        precondition(ks,kz,pre,post);
+        precondition(kr,kz,pre,post);
         apply(F,0,kz,kt);
 
         //  (t,t) and (t,s): one pass, one reduction
@@ -1027,7 +1069,7 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             for(int j=0;j<F.ny;++j)
             {
                 const long col=F.idx(i,j,0);
-                const double *tc=&kt[col], *sc=&ks[col];
+                const double *tc=&kt[col], *sc=&kr[col];
                 acc4(tc,tc,nz,a0,a1,a2,a3);
                 acc4(tc,sc,nz,b0,b1,b2,b3);
             }
@@ -1045,12 +1087,12 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
             {
                 const long col=F.idx(i,j,0);
                 double *uc=&F.u[col], *rc=&kr[col];
-                const double *yc=&ky[col], *zc=&kz[col], *sc=&ks[col], *tc=&kt[col];
+                const double *yc=&ky[col], *zc=&kz[col], *tc=&kt[col];
                 const double *hc=&krhat[col];
                 for(int k=0;k<nz;++k)
                 {
                     uc[k]+=alpha*yc[k]+omega*zc[k];
-                    rc[k] =sc[k]-omega*tc[k];
+                    rc[k]-=omega*tc[k];
                 }
                 acc4(rc,rc,nz,a0,a1,a2,a3);
                 acc4(hc,rc,nz,b0,b1,b2,b3);
@@ -1129,7 +1171,7 @@ long reefmg_core::memory_bytes() const
                +L.hx.capacity()+L.hy.capacity())*sizeof(double);
         s+=long(L.act.capacity()+L.colact.capacity());
     }
-    s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()+ks.capacity()
+    s+=long(kr.capacity()+krhat.capacity()+kp.capacity()+kv.capacity()
            +kt.capacity()+ky.capacity()+kz.capacity()+sbuf.capacity()+rbuf.capacity())*sizeof(double);
     s+=long(agg_send.capacity()+agg_recv.capacity())*sizeof(double);
     if(agg) s+=agg->memory_bytes();
@@ -1164,9 +1206,10 @@ namespace
 }
 
 //  Lay out the global coarsest grid and build the serial sub-hierarchy that
-//  every rank will use to solve it.  Ranks are ordered cy*npx+cx in comm, and
-//  every rank sharing an x position shares its block width (and likewise in
-//  y), so the global layout follows from the block sizes alone.
+//  every rank will use to solve it.  The rank order is whatever the Cartesian
+//  communicator chose, so ranks and positions are mapped through it; every
+//  rank sharing an x position shares its block width (and likewise in y), so
+//  the global layout follows from the block sizes alone.
 void reefmg_core::setup_agglomeration(int npx,int npy)
 {
     sc_level &C=lev.back();
@@ -1176,9 +1219,25 @@ void reefmg_core::setup_agglomeration(int npx,int npy)
     std::vector<int> all(2*nprocs,0);
     MPI_Allgather(me,2,MPI_INT,&all[0],2,MPI_INT,comm);
 
+    //  rank -> position, and position (cy*npx+cx) -> rank
+    std::vector<int> rcx(nprocs),rcy(nprocs),at(npx*npy);
+    {
+        int nd=0;
+        MPI_Cartdim_get(comm,&nd);
+
+        for(int r=0;r<nprocs;++r)
+        {
+            int crd[3]={0,0,0};
+            MPI_Cart_coords(comm,r,nd,crd);
+            rcx[r]=crd[0];
+            rcy[r]=nd>1 ? crd[1] : 0;
+            at[rcy[r]*npx+rcx[r]]=r;
+        }
+    }
+
     std::vector<int> wx(npx),wy(npy),ox(npx+1,0),oy(npy+1,0);
-    for(int c=0;c<npx;++c) wx[c]=all[2*c+0];             // rank (cx=c, cy=0)
-    for(int c=0;c<npy;++c) wy[c]=all[2*(c*npx)+1];       // rank (cx=0, cy=c)
+    for(int c=0;c<npx;++c) wx[c]=all[2*at[c]+0];         // rank (cx=c, cy=0)
+    for(int c=0;c<npy;++c) wy[c]=all[2*at[c*npx]+1];     // rank (cx=0, cy=c)
     for(int c=0;c<npx;++c) ox[c+1]=ox[c]+wx[c];
     for(int c=0;c<npy;++c) oy[c+1]=oy[c]+wy[c];
 
@@ -1195,12 +1254,11 @@ void reefmg_core::setup_agglomeration(int npx,int npy)
     long d=0;
     for(int r=0;r<nprocs;++r)
     {
-        const int rcx=r%npx, rcy=r/npx;
-        agg_ox[r]=ox[rcx];    agg_oy[r]=oy[rcy];
+        agg_ox[r]=ox[rcx[r]]; agg_oy[r]=oy[rcy[r]];
         agg_nx[r]=all[2*r];   agg_ny[r]=all[2*r+1];
 
         //  defensive: the fine-level decomposition check guarantees this
-        if(agg_nx[r]!=wx[rcx] || agg_ny[r]!=wy[rcy])
+        if(agg_nx[r]!=wx[rcx[r]] || agg_ny[r]!=wy[rcy[r]])
         {
             agg_cells=0;
             return;
@@ -1229,9 +1287,9 @@ void reefmg_core::setup_agglomeration(int npx,int npy)
         MPI_Allgatherv(&C.hy[1],C.ny,MPI_DOUBLE,&ally[0],&cy_[0],&dy_[0],MPI_DOUBLE,comm);
 
         for(int c=0;c<npx;++c)
-        for(int i=0;i<wx[c];++i) gx[1+ox[c]+i]=allx[dx_[c]+i];
+        for(int i=0;i<wx[c];++i) gx[1+ox[c]+i]=allx[dx_[at[c]]+i];
         for(int c=0;c<npy;++c)
-        for(int j=0;j<wy[c];++j) gy[1+oy[c]+j]=ally[dy_[c*npx]+j];
+        for(int j=0;j<wy[c];++j) gy[1+oy[c]+j]=ally[dy_[at[c*npx]]+j];
 
         gx[0]=gx[1]; gx[GX+1]=gx[GX];
         gy[0]=gy[1]; gy[GY+1]=gy[GY];
@@ -1243,7 +1301,7 @@ void reefmg_core::setup_agglomeration(int npx,int npy)
     agg->set_precision(64);
     agg->set_coarse_sweeps(coarse_sweeps);
 
-    if(!agg->setup(MPI_COMM_SELF,1,1,0,0,GX,GY,nz,GX,GY,0,&gx[0],&gy[0]))
+    if(!agg->setup(MPI_COMM_SELF,GX,GY,nz,GX,GY,0,&gx[0],&gy[0]))
     {
         delete agg;
         agg=0;

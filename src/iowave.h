@@ -40,7 +40,7 @@ class patchBC_interface;
 class linear_regression_cont;
 
 using namespace std;
-
+#include <memory>
 #include<vector>
 
 class iowave final : public ioflow, public wave_interface, public increment, public flowfile_in
@@ -292,8 +292,12 @@ private:
     double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
     slice4 vofheight;
     slice4 genheight;
-    field4 vofgen;
-    
+
+    //  Written only by wavegen_precalc_relax under F80==4 (VOF-PLIC), which
+    //  FNPF never reaches - it goes through fnpf_precalc_relax instead.  Held
+    //  by pointer so a run that cannot use it does not pay for a full 3D
+    //  field: 3.5 MiB per rank on a 133x200x10 box.
+    std::unique_ptr<field4> vofgen;
 
     int n,count;
     int wtype;

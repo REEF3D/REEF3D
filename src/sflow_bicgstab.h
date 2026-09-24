@@ -23,58 +23,46 @@ Author: Hans Bihs
 #ifndef SFLOW_BICGSTAB_H_
 #define SFLOW_BICGSTAB_H_
 
-#include"solver2D.h"
-#include"increment.h"
+#include "solver2D.h"
+#include "increment.h"
+
+#include <vector>
 
 using namespace std;
 
 class sflow_bicgstab final : public solver2D, public increment
 {
 public:
+    sflow_bicgstab(lexer*,ghostcell*);
+    virtual ~sflow_bicgstab() = default;
+    void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
-	sflow_bicgstab(lexer*,ghostcell*);
-	virtual ~sflow_bicgstab();
-	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
-	void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int&);
-    
-    void fillxvec(lexer*,slice&,vec2D&);
-	void finalize(lexer*,slice&);
-
-	double res_calc(lexer*, matrix2D&, ghostcell*, double*);
-	void matvec_axb(lexer*, matrix2D&, double*, double*);
-	void matvec_std(lexer*, matrix2D&, double*, double*);
-    
-    void precon_setup(lexer*, matrix2D&,ghostcell*);
-    void precon_solve(lexer*,ghostcell*,double*,double*);
-	
-    
 private:
+    void solve(lexer*, ghostcell*, matrix2D&, vec2D&, vec2D&, int, int&);
 
-    double *sj,*rj,*r0,*vj,*tj,*pj,*ph,*sh,*x,*rhs,*aii;
+    void fillxvec(lexer*,slice&,vec2D&);
+    void finalize(lexer*,slice&);
 
-    int num_iterations;
-    double final_res_norm;
-	int stencil_indices[7];
-	int nentries;
-   
-	int numiter,count,q;
-    
-    
-    //cg
-	int *sizeS,*range;
+    double res_calc(lexer*, matrix2D&, ghostcell*, std::vector<double>&);
+    void matvec_axb(lexer*, matrix2D&, std::vector<double>&, std::vector<double>&);
+    void matvec_std(lexer*, matrix2D&, std::vector<double>&, std::vector<double>&);
 
-	const double epsi;
+    void precon_setup(lexer*, matrix2D&,ghostcell*);
+    void precon_solve(lexer*,ghostcell*,std::vector<double>&,std::vector<double>&);
 
-	int margin;
-    int ulast,vlast,wlast;
+    std::vector<double> sj,rj,r0,vj,tj,pj,ph,sh,aii,x,rhs;
+
     int *flagslice;
-	
-	double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj ;
-    double r_j1, r_j, sigma;
 
+    double final_res_norm;
+    double alpha,beta,w1,w2,w,residual,norm_vj,norm_r0,norm_sj,norm_rj;
+    double r_j1,r_j,sigma;
 
+    int count,q;
+
+    int ulast,vlast,wlast;
+
+    static constexpr double epsi = 1.0e-19;
 };
 
 #endif
-
-

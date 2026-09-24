@@ -69,9 +69,15 @@ public:
     sliceint5 nodeval2D;
     slice4 breaking_print;
 	
+    //  Rows the Laplace assembly writes, and rows the 2D damping system
+    //  writes.  Declared before rhsvec/M and xvec/rvec/N so they are
+    //  initialised first and can size them.
+    const int laprows;
+    const int slicerows;
+
     vec rhsvec;
     vec2D xvec,rvec;
-    double *Fi,*Uin,*Uout,*U,*V,*W;
+    double *Fi,*Uin,*U,*V,*W;
 
     matrix2D N;
 	matrix_diag M;    

@@ -32,6 +32,10 @@ class vec2D
 {
 public:
     vec2D(lexer*);
+
+    /// Explicit length; see matrix_diag's sized constructor.  The default
+    /// constructor takes lexer's veclength, which is the 3D row count.
+    vec2D(lexer*, int len);
     virtual ~vec2D() = default;
 
     void resize(int);

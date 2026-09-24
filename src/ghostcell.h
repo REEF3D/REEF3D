@@ -177,6 +177,7 @@ public:
     void walldistance(lexer*,fdm*,convection*,reini*,ioflow*,field&);
 
     MPI_Comm mpi_comm = MPI_COMM_NULL;
+    MPI_Comm cart() const {return cart_comm;}
 
 // Slice
     // epol

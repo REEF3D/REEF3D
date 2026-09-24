@@ -28,6 +28,11 @@ vec2D::vec2D(lexer* p)
     resize(p->veclength);
 }
 
+vec2D::vec2D(lexer*, int len)
+{
+    resize(len);
+}
+
 void vec2D::resize(int size_new)
 {
     V.resize(size_new);
