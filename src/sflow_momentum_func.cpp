@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"sflow_rheology_v.h"
 #include"solver2D.h"
 #include"6DOF.h"
+#include"sflow_boussinesq.h"
 
 #define WLVL (fabs(WL(i,j))>p->A244?WL(i,j):1.0e20)
 
@@ -70,6 +71,12 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     
     if(p->W90==1)
     prheo = new sflow_rheology_f(p);
+    
+    nhp  = (p->A220>=1 && p->A220<=3)?1:0;
+    bous = (p->A220==4)?1:0;
+    
+    if(bous==1)
+    pbous = new sflow_boussinesq(p,b,pgc);
     
 
 	gcval_u=10;
@@ -132,6 +139,20 @@ void sflow_momentum_func::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     
     inflow(p,b,pgc,pflow);
     
+    // Boussinesq: initial velocities taken as u_a, V from u_a
+    if(bous==1)
+    {
+    SLICELOOP4
+    {
+    b->UA(i,j) = b->U(i,j);
+    b->VA(i,j) = b->V(i,j);
+    }
+    
+    vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+    pbous->mask_update(p,b,pgc,b->WL);
+    pbous->forward(p,b,pgc,b->UH,b->VH,b->WL,1);
+    }
+    
     velcalc(p,b,pgc,b->UH,b->VH,b->WH,b->WL,2);
 }
 
@@ -162,7 +183,39 @@ void sflow_momentum_func::inflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pfl
         b->W(i-q,j) = 0.0;
     }
     
+    // Boussinesq: reference level velocity at the inflow
+    if(bous==1 && inflow_flag==1)
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+        for(q=1;q<=3;++q)
+        {
+        b->UA(i-q,j) = b->U(i-q,j);
+        b->VA(i-q,j) = b->V(i-q,j);
+        }
+    }
+    
+    // Boussinesq: active wave absorption, ghost cells from ioflow
+    if(bous==1 && outflow_flag==1)
+    for(n=0;n<p->gcslout_count;n++)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+        for(q=1;q<=3;++q)
+        {
+        b->UA(i+q,j) = b->U(i+q,j);
+        b->VA(i+q,j) = b->V(i+q,j);
+        }
+    }
+    
     ghostcells(p,b,pgc,b->UH,b->VH,b->WH,b->WL);
+    
+    // Boussinesq: dispersion switch for this time step
+    if(bous==1 && p->count>0)
+    pbous->mask_update(p,b,pgc,b->WL);
 }
 
 void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc, 
@@ -218,8 +271,12 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
 	pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WLs,alpha);
     p->vtime+=pgc->timer()-starttime;
     
+    // Boussinesq dispersive terms
+    if(bous==1)
+    pbous->source(p,b,pgc,WLs);
+    
     // W
-    if(p->A220>0)
+    if(nhp==1)
     {
     if(p->A214==1)
     phll->start(p,b,3);
@@ -239,11 +296,11 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     VHo(i,j) = (a*b->VH(i,j) + alpha*(VHDIFF(i,j) + p->dt*b->G(i,j)))*p->y_dir;
     }
     
-    if(p->A220>0)
+    if(nhp==1)
     SLICELOOP4
     WHo(i,j) = a*b->WH(i,j) + alpha*(WHDIFF(i,j) + p->dt*b->H(i,j));
     
-    if(p->A220==0)
+    if(nhp==0)
     SLICELOOP4
     WHo(i,j) = 0.0;
     
@@ -258,10 +315,23 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     velcalc(p,b,pgc,UHo,VHo,WHo,WLo,0);
     
     // relaxation zones
+    if(bous==0)
+    {
     pflow->um_relax(p,pgc,b->U,UHo,WLo);
     pflow->vm_relax(p,pgc,b->V,VHo,WLo);
     pflow->wm_relax(p,pgc,b->W,WHo,WLo);
     pflow->pm_relax(p,pgc,b->press);
+    }
+    
+    // Boussinesq: relax u_a (targets at z_a), then V from u_a where it changed
+    if(bous==1)
+    {
+    pbous->save(p,b);
+    pflow->um_relax(p,pgc,b->UA,UHo,WLo);
+    pflow->vm_relax(p,pgc,b->VA,VHo,WLo);
+    vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+    pbous->forward(p,b,pgc,UHo,VHo,WLo,0);
+    }
     
     velcalc(p,b,pgc,UHo,VHo,WHo,WLo,2);
 }
@@ -279,17 +349,20 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     precon->reconstruct_x(p, pgc, b, b->U, b->Us, b->Un);
     precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
 
-    // conserved variables
-    precon->reconstruct_x(p, pgc, b, UH, b->UHs, b->UHn);
-    precon->reconstruct_y(p, pgc, b, UH, b->UHe, b->UHw);
+    // conserved variables (Boussinesq: volume flux M instead of V)
+    slice &UHf = (bous==1)?b->MX:UH;
+    slice &VHf = (bous==1)?b->MY:VH;
+    
+    precon->reconstruct_x(p, pgc, b, UHf, b->UHs, b->UHn);
+    precon->reconstruct_y(p, pgc, b, UHf, b->UHe, b->UHw);
 
     if(p->j_dir==1)
     {
-    precon->reconstruct_x(p, pgc, b, VH, b->VHs, b->VHn);
-    precon->reconstruct_y(p, pgc, b, VH, b->VHe, b->VHw);
+    precon->reconstruct_x(p, pgc, b, VHf, b->VHs, b->VHn);
+    precon->reconstruct_y(p, pgc, b, VHf, b->VHe, b->VHw);
     }
 
-    if(p->A220>0 && p->A214==1)
+    if(nhp==1 && p->A214==1)
     {
     precon->reconstruct_x(p, pgc, b, WH, b->WHs, b->WHn);
     precon->reconstruct_y(p, pgc, b, WH, b->WHe, b->WHw);
@@ -309,6 +382,67 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
     // mode 0: interior cells, 1: + ghost cells, 2: + ghost cells + staggered diagnostics
     const double g = fabs(p->W22);
     double lim;
+    
+    // Boussinesq: UH,VH hold V; u_a from V (after the momentum update), then M and U=M/H
+    if(bous==1)
+    {
+        if(mode==1 || (mode==0 && p->X10>0))
+        {
+        SLICELOOP4
+        if(p->wet[IJ]==0)
+        {
+        UH(i,j) = 0.0;
+        VH(i,j) = 0.0;
+        }
+        
+        pbous->invert(p,b,pgc,psolv,UH,VH,WL);
+        vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+        }
+        
+    pbous->flux(p,b,pgc,WL);
+    
+        SLICELOOP4
+        {
+            if(p->wet[IJ]==1)
+            {
+            lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
+            
+            if(p->B60>=1)
+            if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+            lim *= 0.1;
+            
+            b->MX(i,j) = MAX(MIN(b->MX(i,j), lim), -lim);
+            b->MY(i,j) = MAX(MIN(b->MY(i,j), lim), -lim);
+            
+            b->U(i,j) = b->MX(i,j)/WLVL;
+            b->V(i,j) = b->MY(i,j)/WLVL*p->y_dir;
+            b->W(i,j) = 0.0;
+            WH(i,j) = 0.0;
+            }
+            
+            if(p->wet[IJ]==0)
+            {
+            UH(i,j) = 0.0;
+            VH(i,j) = 0.0;
+            WH(i,j) = 0.0;
+            b->MX(i,j) = 0.0;
+            b->MY(i,j) = 0.0;
+            b->UA(i,j) = 0.0;
+            b->VA(i,j) = 0.0;
+            b->U(i,j) = 0.0;
+            b->V(i,j) = 0.0;
+            b->W(i,j) = 0.0;
+            }
+        }
+    
+    if(mode>=1)
+    ghostcells(p,b,pgc,UH,VH,WH,WL);
+    
+    if(mode>=2)
+    face_velocities(p,b,pgc,WL);
+    
+    return;
+    }
     
     SLICELOOP4
     {
@@ -369,26 +503,18 @@ void sflow_momentum_func::mpi4(lexer *p, ghostcell *pgc, slice &f)
     }
 }
 
-void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL)
+void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, slice &v, slice &w)
 {
     int cs,bc;
-    double wlg;
     
     // MPI
-    mpi4(p,pgc,b->U);
-    mpi4(p,pgc,UH);
+    mpi4(p,pgc,u);
     
     if(p->j_dir==1)
-    {
-    mpi4(p,pgc,b->V);
-    mpi4(p,pgc,VH);
-    }
+    mpi4(p,pgc,v);
     
-    if(p->A220>0)
-    {
-    mpi4(p,pgc,b->W);
-    mpi4(p,pgc,WH);
-    }
+    if(nhp==1)
+    mpi4(p,pgc,w);
     
     // physical boundaries: velocities
     GCSL4LOOP
@@ -410,16 +536,16 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
                 // relaxation zone: zero gradient, otherwise closed
                 if(p->B98==2)
                 {
-                neumann(p,b->U,cs);
-                neumann(p,b->V,cs);
-                neumann(p,b->W,cs);
+                neumann(p,u,cs);
+                neumann(p,v,cs);
+                neumann(p,w,cs);
                 }
                 
                 else
                 {
-                mirror(p,b->U,cs,-1.0);
-                mirror(p,b->V,cs,1.0);
-                mirror(p,b->W,cs,1.0);
+                mirror(p,u,cs,-1.0);
+                mirror(p,v,cs,1.0);
+                mirror(p,w,cs,1.0);
                 }
             }
         continue;
@@ -432,16 +558,16 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
             
             if(outflow_flag==2)
             {
-            neumann(p,b->U,cs);
-            neumann(p,b->V,cs);
-            neumann(p,b->W,cs);
+            neumann(p,u,cs);
+            neumann(p,v,cs);
+            neumann(p,w,cs);
             }
             
             if(outflow_flag==0)
             {
-            mirror(p,b->U,cs,-1.0);
-            mirror(p,b->V,cs,1.0);
-            mirror(p,b->W,cs,1.0);
+            mirror(p,u,cs,-1.0);
+            mirror(p,v,cs,1.0);
+            mirror(p,w,cs,1.0);
             }
         continue;
         }
@@ -449,17 +575,47 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
         // walls, free slip
         if(cs==1 || cs==4)
         {
-        mirror(p,b->U,cs,-1.0);
-        mirror(p,b->V,cs,1.0);
-        mirror(p,b->W,cs,1.0);
+        mirror(p,u,cs,-1.0);
+        mirror(p,v,cs,1.0);
+        mirror(p,w,cs,1.0);
         }
         
         if(cs==2 || cs==3)
         {
-        mirror(p,b->U,cs,1.0);
-        mirror(p,b->V,cs,-1.0);
-        mirror(p,b->W,cs,1.0);
+        mirror(p,u,cs,1.0);
+        mirror(p,v,cs,-1.0);
+        mirror(p,w,cs,1.0);
         }
+    }
+    
+}
+
+void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL)
+{
+    int cs;
+    double wlg;
+    
+    // MPI
+    mpi4(p,pgc,UH);
+    
+    if(p->j_dir==1)
+    mpi4(p,pgc,VH);
+    
+    if(nhp==1)
+    mpi4(p,pgc,WH);
+    
+    // velocities
+    vel_bc(p,b,pgc,b->U,b->V,b->W);
+    
+    // Boussinesq: reference level velocity and volume flux
+    if(bous==1)
+    {
+    vel_bc(p,b,pgc,b->UA,b->VA,b->W);
+    
+    mpi4(p,pgc,b->MX);
+    
+    if(p->j_dir==1)
+    mpi4(p,pgc,b->MY);
     }
     
     // physical boundaries: conserved variables from the ghost velocities and water depth
@@ -491,6 +647,12 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
         UH(i+ii,j+jj) = b->U(i+ii,j+jj)*wlg;
         VH(i+ii,j+jj) = b->V(i+ii,j+jj)*wlg;
         WH(i+ii,j+jj) = b->W(i+ii,j+jj)*wlg;
+        
+            if(bous==1)
+            {
+            b->MX(i+ii,j+jj) = b->U(i+ii,j+jj)*wlg;
+            b->MY(i+ii,j+jj) = b->V(i+ii,j+jj)*wlg;
+            }
         }
     }
 }

@@ -40,6 +40,7 @@ class sflow_pressure;
 class sflow_forcing;
 class sflow_roughness;
 class sflow_rheology;
+class sflow_boussinesq;
 
 using namespace std;
 
@@ -74,6 +75,8 @@ public:
     int gcval_uh, gcval_vh, gcval_wh;
     int gcval_eta;
     int inflow_flag, outflow_flag;
+    int nhp;     // non-hydrostatic pressure (A 220 1-3)
+    int bous;    // Boussinesq equations (A 220 4)
     double starttime;
     
 protected:
@@ -90,6 +93,7 @@ protected:
     sixdof *p6dof;
     sflow_roughness *prough;
     sflow_rheology *prheo;
+    sflow_boussinesq *pbous;
     
     slice4 UHDIFF,VHDIFF,WHDIFF;
     slice4 Un,Vn,etaS;
@@ -98,6 +102,7 @@ private:
     int q;
     
     void mpi4(lexer*, ghostcell*, slice&);
+    void vel_bc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     
     void mirror(lexer*, slice&, int, double);
     void neumann(lexer*, slice&, int);

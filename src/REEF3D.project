@@ -452,6 +452,7 @@
           <File Name="sflow_print_probe_da.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
+          <File Name="sflow_boussinesq.h"/>
           <File Name="sflow_pressure.h"/>
           <File Name="sflow_pjm_quad.h"/>
           <File Name="sflow_pjm_lin.h"/>
@@ -1743,6 +1744,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
+          <File Name="sflow_boussinesq.cpp"/>
           <File Name="sflow_pjm_quad.cpp"/>
           <File Name="sflow_pjm_lin.cpp"/>
           <File Name="sflow_hydrostatic.cpp"/>

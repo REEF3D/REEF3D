@@ -79,6 +79,15 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         }
         u_val/=double(p->B160+1);
         v_val/=double(p->B160+1);
+        
+        // Boussinesq (A 220 4): velocity at the reference level z_a
+        if(p->A220==4)
+        {
+        z = -0.53*(p->wd - b->bed(i,j)) + 0.47*eta(i,j);
+        
+        u_val = wave_u(p,pgc,xg,yg,z);
+        v_val = (p->j_dir==1)?wave_v(p,pgc,xg,yg,z):0.0;
+        }
 		
 		// Wave Generation
 		if(p->B98==2 && (u_switch==1 || v_switch==1))

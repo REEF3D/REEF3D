@@ -111,6 +111,15 @@ void iowave::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
         uval/=double(p->B160+1);
         vval/=double(p->B160+1);
         
+        // Boussinesq (A 220 4): velocity at the reference level z_a
+        if(p->A220==4)
+        {
+        z = -0.53*(p->wd - b->bed(i,j)) + 0.47*b->eta(i,j);
+        
+        uval = wave_u(p,pgc,xg,yg,z);
+        vval = wave_v(p,pgc,xg,yg,z);
+        }
+        
 		b->U(i,j) = uval;
         b->V(i,j) = vval*p->y_dir;
 	}

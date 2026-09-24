@@ -50,6 +50,7 @@ public:
 	double gi,gj,gk;
     
     slice4 U,V,W,UH,VH,WH;
+    slice4 UA,VA,MX,MY;
     
     slice1 Fx,Fs,Fn,FEx;
     slice2 Fy,Fe,Fw,FEy;

@@ -126,7 +126,7 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	psolv->start(p,pgc,f,b->M,b->xvec,b->rhsvec,4);
     
     SLICELOOP4
-    UHdiff(i,j) = (p->wet[IJ]==1)?WL(i,j)*f(i,j):UH(i,j);
+    UHdiff(i,j) = (p->wet[IJ]==1)?UH(i,j) + WL(i,j)*(f(i,j) - U(i,j)):UH(i,j);
     
 	time=pgc->timer()-starttime;
 	p->uiter=p->solveriter;
@@ -179,7 +179,7 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
 	psolv->start(p,pgc,f,b->M,b->xvec,b->rhsvec,4);
     
     SLICELOOP4
-    VHdiff(i,j) = (p->wet[IJ]==1)?WL(i,j)*f(i,j):VH(i,j);
+    VHdiff(i,j) = (p->wet[IJ]==1)?VH(i,j) + WL(i,j)*(f(i,j) - V(i,j)):VH(i,j);
     
 	time=pgc->timer()-starttime;
 	p->viter=p->solveriter;
