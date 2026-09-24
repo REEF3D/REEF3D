@@ -25,7 +25,9 @@ Author: Hans Bihs
 
 vec2D::vec2D(lexer* p)
 {
-    resize(p->veclength);
+    // 2D solver vectors (SFLOW, sediment exner, NHFLOW) are indexed over the slice:
+    // veclength is only set for the 3D grid
+    resize(p->vec2Dlength>p->veclength?p->vec2Dlength:p->veclength);
 }
 
 vec2D::vec2D(lexer*, int len)

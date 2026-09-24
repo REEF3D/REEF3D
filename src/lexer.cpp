@@ -25,6 +25,8 @@ Author: Hans Bihs
 lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(this)
 {
     sigT=0.9;
+    veclength=0;
+    vec2Dlength=0;
     
 	control::ini_default();
 

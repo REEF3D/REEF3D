@@ -171,15 +171,8 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	pflow->um_relax(p,pgc,b->U,b->UH,b->WL);
 	pflow->vm_relax(p,pgc,b->V,b->VH,b->WL);
     
-    // potential flow ini
+    // potential flow ini: sets the cell-centred U,V directly (I 11 1)
     potflow->start(p,b,ppoissonsolv,pgc);
-    
-    if(p->I11==1)
-    SLICELOOP4
-    {
-    b->U(i,j) = 0.5*(b->P(i-1,j) + b->P(i,j));
-    b->V(i,j) = 0.5*(b->Q(i,j-1) + b->Q(i,j))*p->y_dir;
-    }
     
     // FSF ini
     ini_fsf_2(p,b,pgc);
