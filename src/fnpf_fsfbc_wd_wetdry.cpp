@@ -69,7 +69,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
             pgc->gcsl_start4(p,eta,gcval_eta);
         }
 
-        if(p->A343>=2)
+        if(p->A343>=2 || (p->A343==1 && p->A337==1))
         {
             pgc->gcsl_start4Vint(p,p->wet,50);
             wd_front_mask(p,pgc);
@@ -86,7 +86,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         if(p->A343>=2)
         wetdry_dynamic(p,c,pgc,eta,Fifsf);
 
-        if(p->A343==1)
+        if(p->A343==1 && p->A337==0)
         SLICELOOP4
         if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
         {
@@ -97,6 +97,32 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
                 Fifsf(i,j) = 0.25*(Fifsf(i-1,j) + Fifsf(i+1,j) + Fifsf(i,j-1) + Fifsf(i,j+1));
             else
                 Fifsf(i,j) = 0.5*(Fifsf(i-1,j) + Fifsf(i+1,j));
+        }
+
+        // A337 1: the clamp takes Fifsf from wet neighbours only (land cells
+        // hold Fi=0, which pulled the cell away from its neighbours by a
+        // fraction of the Fi drift) and gives the added volume back (A334)
+        if(p->A343==1 && p->A337==1)
+        {
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+
+            SLICELOOP4
+            wd_dvol(i,j) = 0.0;
+
+            SLICELOOP4
+            if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
+            {
+                const double etaw = 1.1*c->wd_criterion - c->depth(i,j);
+                wd_dvol(i,j) = etaw - eta(i,j);
+                eta(i,j) = etaw;
+                Fifsf(i,j) = wet_nb_average(p,Fifsf);
+            }
+
+            if(p->A334==1)
+            wd_redistribute(p,c,pgc,eta,false);
+
+            SLICELOOP4
+            c->WL(i,j) = eta(i,j) + c->depth(i,j);
         }
 
         pgc->gcsl_start4Vint(p,p->wet,50);

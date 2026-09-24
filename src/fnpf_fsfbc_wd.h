@@ -93,6 +93,11 @@ private:
     double wet_nb_average(lexer*,slice&);
     void wd_front_mask(lexer*,ghostcell*);
     void wd_redistribute(lexer*,fdm_fnpf*,ghostcell*,slice&,bool);
+
+    // static coastline (A343 1): running means the coastline relaxation relaxes to (A326)
+    void coast_ref_update(lexer*,fdm_fnpf*);
+    slice4 eta_ref,fi_ref;
+    int ref_count=-1;
     sliceint4 wetage;           // time steps since the cell was (re)wetted, capped at A330
     sliceint4 wdfront;          // wet cell with a dry cell inside the +-3 WENO stencil
     slice4 wd_dvol,wd_nwet;     // clamp volume per cell area and number of receiving wet neighbours

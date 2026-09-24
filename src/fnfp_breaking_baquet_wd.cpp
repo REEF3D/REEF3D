@@ -223,6 +223,22 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
             c->vb(i,j) = MAX(c->vb(i,j), p->A346);
         }
         
+        // A343 1, A337 1: coastline viscosity A346 (formerly commented out
+        // above), through the implicit damping solve: rising to A346 towards
+        // the coastline inside the relaxation band (dist3), and A346 in every
+        // thin-film cell (WL < 10*A344), i.e. where a drawdown has exposed the
+        // bed but the static mask keeps the cell wet and clamped
+        if(p->A343==1 && p->A337==1 && p->A346>0.0)
+        SLICELOOP4
+        if(p->wet[IJ]==1)
+        {
+            if(c->coastline(i,j)>=0.0 && dist3>0.0 && c->coastline(i,j)<dist3)
+            c->vb(i,j) = MAX(c->vb(i,j), (1.0-rb3(p,c->coastline(i,j)))*p->A346);
+
+            if(c->WL(i,j) < 10.0*c->wd_criterion)
+            c->vb(i,j) = MAX(c->vb(i,j), p->A346);
+        }
+        
         // additional breaking filter
         // shallow
         if(p->A352==1)
