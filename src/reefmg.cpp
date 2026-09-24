@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 #include "reefmg.h"
 #include "lexer.h"
+#include "fdm.h"
+#include "field.h"
 #include "ghostcell.h"
 #include "vec.h"
 #include "matrix_diag.h"
@@ -127,7 +129,7 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     {
         if(p->mpirank==0)
         cout<<"REEFMG the grid is decomposed in z ("<<npz<<" ranks).  The vertical "
-            <<"line solver needs each sigma column on one rank - decompose in x and y "
+            <<"line solver needs each vertical column on one rank - decompose in x and y "
             <<"only, or use N 10 10-19 (hypre)."<<endl;
 
         MPI_Abort(MPI_COMM_WORLD,-2750);
@@ -203,10 +205,27 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
 
 void reefmg::start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var)
 {
-    if(p->mpirank==0)
-    cout<<"REEFMG start() not implemented - use N 10 10-19 (hypre) for this equation."<<endl;
+    //  var==5: CFD pressure Poisson equation (pjm, pjm_corr; poisson_f and
+    //  poisson_pcorr assemble a->M in LOOP order)
+    if(var==5)
+    start_solver5(p,pgc,f,rhsvec,a->M);
 
-    MPI_Abort(MPI_COMM_WORLD,-2753);
+    //  var==44: CFD potential-flow initialisation (potential_f, I 11 1).
+    //  var==4 reaches the pressure solver only from potential_water (I 11 2),
+    //  the same kind of problem assembled the same way, so it takes the same
+    //  path.  The diffusion and turbulence solves use var 1-4 as well, but
+    //  they go to psolv, never to the pressure solver.
+    else if(var==44 || var==4)
+    start_solver44(p,a,pgc,&f,0,rhsvec,a->M);
+
+    else
+    {
+        if(p->mpirank==0)
+        cout<<"REEFMG start() only implemented for var==5 (CFD pressure) and var==4/44 "
+            <<"(CFD potential) - use N 10 10-19 (hypre) for this equation."<<endl;
+
+        MPI_Abort(MPI_COMM_WORLD,-2753);
+    }
 }
 
 void reefmg::startf(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M, int var)
@@ -221,7 +240,7 @@ void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &
 {
     //  var==44: NHFLOW potential-flow initialisation (nhflow_potential_f, I 11 1)
     if(var==44)
-    start_solver44(p,pgc,f,rhs,M);
+    start_solver44(p,0,pgc,0,f,rhs,M);
 
     else
     {
@@ -260,7 +279,8 @@ void reefmg::startV(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &
 static const long POT_COARSEST_MAX  = 512;  // columns on the coarsest level
 static const int  POT_COARSE_SWEEPS = 128;
 
-void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matrix_diag &M)
+void reefmg::start_solver44(lexer *p, fdm *a, ghostcell *pgc, field *ff, double *f,
+                            vec &rhs, matrix_diag &M)
 {
     p->solveriter=0;
     starttime=pgc->timer();
@@ -290,18 +310,22 @@ void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matri
             <<"large to agglomerate - solving it with hypre GMRES+SMG instead."<<endl;
 
         hypre_struct fallback(p,pgc,14,11);
+
+        if(ff)
+        fallback.start(p,a,pgc,*ff,rhs,44);
+        else
         fallback.startV(p,pgc,f,rhs,M,44);
         return;
     }
 
-    fill_matrix44(p,pot,f,rhs,M);
+    fill_matrix44(p,pot,ff,f,rhs,M);
     pot.coarsen();
 
     double relres=1.0;
     p->solveriter=pot.solve_auto(p->N44,p->N46,relres,1,1,1);
     p->final_res=relres;
 
-    fillbackvec44(p,pot,f);
+    fillbackvec44(p,pot,ff,f);
 
     if(p->mpirank==0)
     cout<<"REEFMG potential (var 44): levels "<<pot.levels()
@@ -316,11 +340,14 @@ void reefmg::start_solver44(lexer *p, ghostcell *pgc, double *f, vec &rhs, matri
         <<"system is inconsistent and cannot converge with any solver."<<endl;
 }
 
-//  Same row numbering as the assembly in nhflow_potential_f::laplace (LOOP).
-//  That routine turns dry and solid cells into identity rows; they are kept
-//  out of the multigrid here rather than coarsened as if they were fluid.
+//  Same row numbering as the assembly in nhflow_potential_f::laplace and
+//  potential_f::laplace (both LOOP).  The NHFLOW routine turns dry and solid
+//  cells into identity rows; the CFD routine leaves the rows it excludes
+//  (air with I 21 1, direct-forcing solids, flagsf4) empty, so there a zero
+//  diagonal marks the cell as outside the problem.  Either way they are kept
+//  out of the multigrid rather than coarsened as if they were fluid.
 //  PSI is cell-centred: IJK, not FIJK as for the FNPF potential.
-void reefmg::fill_matrix44(lexer *p, reefmg_core &core, double *f, vec &rhs, matrix_diag &M)
+void reefmg::fill_matrix44(lexer *p, reefmg_core &core, field *ff, double *f, vec &rhs, matrix_diag &M)
 {
     sc_level &L=core.fine();
 
@@ -342,7 +369,9 @@ void reefmg::fill_matrix44(lexer *p, reefmg_core &core, double *f, vec &rhs, mat
     {
         const long q=L.idx(i,j,k);
 
-        if(p->flag4[IJK]>0 && p->wet[IJ]==1 && p->DF[IJK]>0)
+        const bool act = ff ? (p->flag4[IJK]>0 && M.p[CVAL4[IJK]]!=0.0)                  // CFD
+                            : (p->flag4[IJK]>0 && p->wet[IJ]==1 && p->DF[IJK]>0);     // NHFLOW
+        if(act)
         {
             n=CVAL4[IJK];
 
@@ -355,7 +384,7 @@ void reefmg::fill_matrix44(lexer *p, reefmg_core &core, double *f, vec &rhs, mat
             L.b[q]=M.b[n];   // k-1
 
             L.f[q]=rhs.V[n];
-            L.u[q]=f[IJK];
+            L.u[q]=ff ? (*ff)(i,j,k) : f[IJK];
             L.act[q]=1;
 
             if(L.u[q]!=L.u[q] || L.f[q]!=L.f[q])
@@ -366,9 +395,20 @@ void reefmg::fill_matrix44(lexer *p, reefmg_core &core, double *f, vec &rhs, mat
     }
 }
 
-void reefmg::fillbackvec44(lexer *p, reefmg_core &core, double *f)
+void reefmg::fillbackvec44(lexer *p, reefmg_core &core, field *ff, double *f)
 {
     sc_level &L=core.fine();
+
+    if(ff)
+    {
+        PLAINLOOP
+        {
+            const long q=L.idx(i,j,k);
+            if(L.act[q])
+            (*ff)(i,j,k)=L.u[q];
+        }
+        return;
+    }
 
     PLAINLOOP
     PFLUIDCHECK
@@ -590,20 +630,25 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     //  consecutively - every fully wet column, given CVAL4's LOOP order -
     //  so that fine_apply() can run it as a plain stencil.
     if(fp32 && topo)
+    build_colrow0(L);
+}
+
+void reefmg::build_colrow0(const sc_level &L)
+{
+    const int nzl=L.nz;
+
+    colrow0.assign((long)L.nx*L.ny,-1);
+
+    for(int ii=0;ii<L.nx;++ii)
+    for(int jj=0;jj<L.ny;++jj)
     {
-        colrow0.assign((long)L.nx*L.ny,-1);
+        const long col=L.idx(ii,jj,0);
+        const int r0=rowmap[col];
+        if(r0<0) continue;
 
-        for(int ii=0;ii<L.nx;++ii)
-        for(int jj=0;jj<L.ny;++jj)
-        {
-            const long col=L.idx(ii,jj,0);
-            const int r0=rowmap[col];
-            if(r0<0) continue;
-
-            int ok=1;
-            for(int kk=1;kk<nzl;++kk) if(rowmap[col+kk]!=r0+kk){ok=0; break;}
-            if(ok) colrow0[(long)ii*L.ny+jj]=r0;
-        }
+        int ok=1;
+        for(int kk=1;kk<nzl;++kk) if(rowmap[col+kk]!=r0+kk){ok=0; break;}
+        if(ok) colrow0[(long)ii*L.ny+jj]=r0;
     }
 }
 
@@ -667,5 +712,204 @@ void reefmg::fillbackvec8(lexer *p, double *f)
     {
         FPWDCHECK
         f[FIJK]=L.u[L.idx(i,j,k)];
+    }
+}
+
+//  ---------------------------------------------------------------------------
+//  REEF3D::CFD pressure Poisson equation, start(...,5)
+//
+//  The operator is poisson_f / poisson_pcorr: a 7-point stencil in 1/rho on
+//  the cell-centred Cartesian grid, rows in LOOP order (flag4>0).  Couplings
+//  to flag4<0 neighbours - walls, the bed, embedded solids, the global edge -
+//  have been moved to the right-hand side with the ghost values, while the
+//  diagonal keeps them.  Every row next to such a cell is therefore strictly
+//  diagonally dominant and the system is nonsingular, just like the FNPF
+//  Laplace equation with its Dirichlet free surface: the solve runs on the
+//  time-stepping hierarchy, no agglomeration needed.
+//
+//  Two things differ from FNPF:
+//   - the active cells come from flag4, which changes with moving bodies
+//     and topography updates, so rows are renumbered and rowmap/colrow0
+//     rebuilt on every solve - one pass over the grid, as hypre_struct
+//     does in fill_matrix4;
+//   - a column can hold solid cells anywhere, e.g. under a variable bed.
+//     They become identity rows, which the column solve passes through
+//     and the coarsening leaves out (act = 0).
+//  The density jump across the free surface lies mostly along the columns,
+//  where the line solve treats it exactly.
+//  ---------------------------------------------------------------------------
+
+void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_diag &M)
+{
+    p->solveriter=0;
+
+    starttime=pgc->timer();
+    fill_matrix5(p,f,rhs,M);
+    p->matrixtime+=pgc->timer()-starttime;
+
+    starttime=pgc->timer();
+    mg.coarsen();
+    const double coarsentime=pgc->timer()-starttime;
+
+    starttime=pgc->timer();
+    double relres=1.0;
+    p->solveriter = mg.solve_auto(p->N44,p->N46,relres,presweep,postsweep,solve_mode);
+    const double solvetime=pgc->timer()-starttime;
+
+    p->final_res=relres;
+
+    fillbackvec5(p,f);
+
+    if(p->mpirank==0 && p->count%p->P12==0)
+    cout<<"REEFMG cycles "<<p->solveriter
+        <<"  res "<<setprecision(3)<<relres
+        <<"  coarsen "<<setprecision(3)<<coarsentime
+        <<" s  solve "<<setprecision(3)<<solvetime<<" s"<<endl;
+
+    if(p->solveriter>=p->N46 && p->mpirank==0)
+    cout<<"REEFMG WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "
+        <<relres<<endl;
+}
+
+void reefmg::fill_matrix5(lexer *p, field &f, vec &rhs, matrix_diag &M)
+{
+    sc_level &L=mg.fine();
+    const bool fp32=(mg.precision()==32);
+
+    Mcur=&M;
+
+    //  First call: zero everything once, so the halo of the coefficients,
+    //  f and act stays at zero for good.  Later calls reset the halo of u
+    //  only; the interior is rewritten below.
+    if(!fill_ini)
+    {
+        if(fp32)
+        {
+            std::fill(L.pf.begin(),L.pf.end(),0.0f);
+            std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
+            std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
+            std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
+        }
+        else
+        {
+            std::fill(L.p.begin(),L.p.end(),0.0);
+            std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
+            std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
+            std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+        }
+        std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
+        std::fill(L.act.begin(),L.act.end(),0);
+
+        fill_ini=true;
+    }
+    else
+    {
+        for(int ii=-1;ii<=L.nx;++ii)
+        for(int jj=-1;jj<=L.ny;++jj)
+        if(ii<0 || ii>=L.nx || jj<0 || jj>=L.ny)
+        {
+            double *uc=&L.u[L.idx(ii,jj,0)];
+            for(int kk=0;kk<L.nz;++kk) uc[kk]=0.0;
+        }
+    }
+
+    //  same row numbering as poisson_f::start (LOOP), redone every solve
+    //  because flag4 can change between time steps
+    count=0;
+    LOOP
+    {
+        CVAL4[IJK]=count;
+        ++count;
+    }
+
+    if(fp32)
+    {
+        if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
+        std::fill(rowmap.begin(),rowmap.end(),-1);
+    }
+
+    int err=0;
+
+    PLAINLOOP
+    {
+        const long q=L.idx(i,j,k);
+
+        //  a zero diagonal would mean a row poisson_f left empty; keep it
+        //  out of the problem rather than hand the smoother a zero pivot
+        int r=-1;
+        if(p->flag4[IJK]>0)
+        {
+            r=CVAL4[IJK];
+            if(M.p[r]==0.0) r=-1;
+        }
+
+        if(r>=0)
+        {
+            if(fp32)
+            {
+                L.pf[q]=(float)M.p[r];
+                L.nf[q]=(float)M.n[r];   // i+1
+                L.sf[q]=(float)M.s[r];   // i-1
+                L.wf[q]=(float)M.w[r];   // j+1
+                L.ef[q]=(float)M.e[r];   // j-1
+                L.tf[q]=(float)M.t[r];   // k+1
+                L.bf[q]=(float)M.b[r];   // k-1
+                rowmap[q]=r;
+            }
+            else
+            {
+                L.p[q]=M.p[r];
+                L.n[q]=M.n[r];   // i+1
+                L.s[q]=M.s[r];   // i-1
+                L.w[q]=M.w[r];   // j+1
+                L.e[q]=M.e[r];   // j-1
+                L.t[q]=M.t[r];   // k+1
+                L.b[q]=M.b[r];   // k-1
+            }
+
+            const double fv=rhs.V[r], uv=f(i,j,k);
+            L.f[q]=fv;
+            L.u[q]=uv;
+            L.act[q]=1;
+
+            if(uv!=uv || fv!=fv)
+            err=1;
+        }
+        else
+        {
+            //  solid, object or excluded cell: identity row
+            if(fp32)
+            {
+                L.pf[q]=1.0f;
+                L.nf[q]=L.sf[q]=L.wf[q]=L.ef[q]=L.tf[q]=L.bf[q]=0.0f;
+            }
+            else
+            {
+                L.p[q]=1.0;
+                L.n[q]=L.s[q]=L.w[q]=L.e[q]=L.t[q]=L.b[q]=0.0;
+            }
+
+            L.f[q]=0.0;
+            L.u[q]=0.0;
+            L.act[q]=0;
+        }
+    }
+
+    if(err)
+    p->solver_error=1;
+
+    if(fp32)
+    build_colrow0(L);
+}
+
+void reefmg::fillbackvec5(lexer *p, field &f)
+{
+    sc_level &L=mg.fine();
+
+    PLAINLOOP
+    {
+        const long q=L.idx(i,j,k);
+        if(L.act[q])
+        f(i,j,k)=L.u[q];
     }
 }

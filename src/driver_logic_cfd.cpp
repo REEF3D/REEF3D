@@ -460,6 +460,9 @@ void driver::logic_cfd()
 	if(p->N10==0)
 	ppoissonsolv = new solver_void(p,a,pgc);
 
+    if(p->N10==1)
+	ppoissonsolv = new reefmg(p,pgc,p->N10,p->N11);
+
     if(p->N10==3 && p->j_dir==0)
 	ppoissonsolv = new bicgstab_ijk_2D(p,a,pgc);
 
