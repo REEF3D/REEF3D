@@ -88,6 +88,15 @@ private:
     sliceint4 wetcoast;
     slice4 ef,df;
 
+    // dynamic wetting-drying (A343 2: runup and rundown, A343 3: rundown only)
+    void wetdry_dynamic(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+    double wet_nb_average(lexer*,slice&);
+    void wd_front_mask(lexer*,ghostcell*);
+    sliceint4 wetage;           // time steps since the cell was (re)wetted, capped at A330
+    sliceint4 wdfront;          // wet cell with a dry cell inside the +-3 WENO stencil
+    slice4 wd_dvol,wd_nwet;     // clamp volume per cell area and number of receiving wet neighbours
+    int wd_flagcount;           // p->count of the last wet/dry flag update
+
     std::variant<fnpf_voiddisc, fnpf_cds2_wd, fnpf_cds4_wd, fnpf_weno3, fnpf_weno5_wd, fnpf_cds6_wd> pconvec;
     std::optional<fnpf_weno5> pconeta; // eta discretisation next to fnpf_weno5_wd, otherwise pconvec is used
     std::optional<slice4> dqF, dqE;    // WENO5 face divided differences of Fifsf and eta

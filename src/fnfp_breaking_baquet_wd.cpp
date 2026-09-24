@@ -182,6 +182,47 @@ void fnpf_breaking::breaking_baquet_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc, sl
         c->vb(i,j) = 0.5*p->A365;
     }
         
+        // A343 2/3: viscosity band along the moving wet-dry front
+        // (replaces the static coastline viscosity above, which is tied to
+        // the initial coastline); cells within A332 cells of a dry cell get
+        // at least A346, applied through the implicit damping solve
+        if(p->A343>=2 && p->A332>0 && p->A346>0.0)
+        {
+            SLICELOOP4
+            wdband(i,j) = (p->wet[IJ]==0) ? 1 : 0;
+            
+            pgc->gcsl_start4int(p,wdband,50);
+            
+            for(int qn=0; qn<p->A332; ++qn)
+            {
+                // tag qn+2 marks cells added in this sweep, so the band grows
+                // by exactly one cell per sweep
+                SLICELOOP4
+                if(wdband(i,j)==0)
+                {
+                    int hit=0;
+                    
+                    for(int di=-1; di<=1; ++di)
+                    for(int dj=-p->j_dir; dj<=p->j_dir; ++dj)
+                    {
+                        const int b = wdband(i+di,j+dj);
+                        
+                        if(b>0 && b<=qn+1)
+                        hit=1;
+                    }
+                    
+                    if(hit==1)
+                    wdband(i,j) = qn+2;
+                }
+                
+                pgc->gcsl_start4int(p,wdband,50);
+            }
+            
+            SLICELOOP4
+            if(p->wet[IJ]==1 && wdband(i,j)>1)
+            c->vb(i,j) = MAX(c->vb(i,j), p->A346);
+        }
+        
         // additional breaking filter
         // shallow
         if(p->A352==1)

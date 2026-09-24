@@ -77,12 +77,18 @@ void control::ini_default()
     A323=1;      // int PTF FSF extrapolation
     A329=1;      // int wave maker BC order
     
+    A330=10;     // int dynamic wetting-drying (A343 2/3): minimum number of time steps a rewetted cell stays wet
+    A331=1.0;    // double dynamic wetting-drying (A343 2/3): rewetting hysteresis margin as factor of A344
+    A332=2;      // int dynamic wetting-drying (A343 2/3): width in cells of the front viscosity band (viscosity A346, needs A350 1), 0 off
+    A334=1;      // int dynamic wetting-drying (A343 2/3): redistribute wet-dry clamp volume to wet neighbours: 1 on, 0 off
+    A335=1.0e20; // double runup (A343 2): maximum bed elevation above still water level that can become wet
+    A336=1;      // int dynamic wetting-drying (A343 2/3): eta gradients at the wet-dry front from wet cells only: 1 on, 0 off
     A338=1;      // int remove wet areas not connected to the main water body (coastline ini): 1 on, 0 off
     A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
     A340=1.0e20;    // double minimum water depth
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
-    A343=1;      // int turn on wetting-drying
+    A343=1;      // int wetting-drying: 0 off, 1 static coastline, 2 dynamic runup and rundown (no coastline damping), 3 dynamic rundown only
     A344=0.001; // double wetting criterion value
     A346=1.86;    // double viscosity damping within the coastline
     A347=1;     // int coastline relaxation for Fi and eta

@@ -52,6 +52,12 @@ void fnpf_fsfbc_wd::coast_cache(lexer *p, fdm_fnpf *c)
 
 void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
+    // A343 2 (full runup/rundown): no coastline damping. Dry cells are held
+    // by wetdry_dynamic, dry columns get Fi=0 from the Laplace solve, Fz=0
+    // from fsfwvel and U=V=W=0 from velcalc_sig
+    if(p->A343==2)
+    return;
+    
     double fac=1.0;
 
     if((p->A347==1 || p->A347==2) && coast_cached(p))
@@ -59,7 +65,15 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
         if(!cz_built) coast_cache(p,c);
         
         for(const coast_cell &q : cz3)
-        f(q.i,q.j) = q.r*f(q.i,q.j);
+        {
+            i=q.i; j=q.j;
+            
+            // A343 3: temporarily dry cells are held by wetdry, not relaxed
+            if(p->A343==3 && p->wet[IJ]==0)
+            continue;
+            
+            f(i,j) = q.r*f(i,j);
+        }
         
         return;
     }
@@ -84,6 +98,12 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
 
 void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
+    // A343 2 (full runup/rundown): no coastline damping. Dry cells are held
+    // by wetdry_dynamic, dry columns get Fi=0 from the Laplace solve, Fz=0
+    // from fsfwvel and U=V=W=0 from velcalc_sig
+    if(p->A343==2)
+    return;
+    
     double fac=1.0;
 
     if((p->A347==1 || p->A347==3) && coast_cached(p))
@@ -91,7 +111,14 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
         if(!cz_built) coast_cache(p,c);
         
         for(const coast_cell &q : cz4)
-        f(q.i,q.j) = q.r*f(q.i,q.j);
+        {
+            i=q.i; j=q.j;
+            
+            if(p->A343==3 && p->wet[IJ]==0)
+            continue;
+            
+            f(i,j) = q.r*f(i,j);
+        }
         
         if(p->A343>=1)
         for(const coast_cell &q : czdry)
@@ -123,6 +150,12 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
 
 void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F)
 {
+    // A343 2 (full runup/rundown): no coastline damping. Dry cells are held
+    // by wetdry_dynamic, dry columns get Fi=0 from the Laplace solve, Fz=0
+    // from fsfwvel and U=V=W=0 from velcalc_sig
+    if(p->A343==2)
+    return;
+    
     double fac=1.0;
 
     if(coast_cached(p))
@@ -169,6 +202,12 @@ void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
 
 void fnpf_fsfbc_wd::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
+    // A343 2 (full runup/rundown): no coastline damping. Dry cells are held
+    // by wetdry_dynamic, dry columns get Fi=0 from the Laplace solve, Fz=0
+    // from fsfwvel and U=V=W=0 from velcalc_sig
+    if(p->A343==2)
+    return;
+    
     double fac=1.0;
 
     if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
@@ -194,6 +233,12 @@ void fnpf_fsfbc_wd::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
 
 void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
 {
+    // A343 2 (full runup/rundown): no coastline damping. Dry cells are held
+    // by wetdry_dynamic, dry columns get Fi=0 from the Laplace solve, Fz=0
+    // from fsfwvel and U=V=W=0 from velcalc_sig
+    if(p->A343==2)
+    return;
+    
     double fac=1.0;
 
     if(coast_cached(p))

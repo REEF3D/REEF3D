@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include "wind_v.h"
 
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
-                                                                      ef(p),df(p),
+                                                                      ef(p),df(p),wetage(p),wdfront(p),wd_dvol(p),wd_nwet(p),
                                                                       pconvec(std::in_place_type<fnpf_voiddisc>, p),
                                                                       pdx(std::in_place_type<fnpf_hires>),
                                                                       pddx(std::in_place_type<fnpf_ddx_cds2>)
@@ -75,6 +75,7 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
         pwind = new wind_v(p);
 
     coastline_count = 0;
+    wd_flagcount = -1;
 
     c->wd_criterion=p->A344;
 
@@ -279,6 +280,52 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
             }
         }
     }, pconvec, pddx, pdx);
+
+    // A343 2/3, A336 1: at the wet-dry front (dry cell inside the +-3 stencil)
+    // the eta gradients are taken from wet cells only. The eta WENO has no
+    // wet-dry check and would otherwise read the film level of dry cells
+    // (bed + A344, i.e. the land slope for A343 2), which enters Fz*(1+Ex^2+Ey^2),
+    // the sigma metrics and the steepness breaking criterion. Same rule as the
+    // A316 Fifsf fallback: upwind wet face, else the other wet face, else 0.
+    if(p->A343>=2 && p->A336==1)
+    {
+        auto onesided = [](bool bw, bool fw, double gb, double gf, double vel)
+        {
+            if(vel>0.0 && bw) return gb;
+            if(vel<0.0 && fw) return gf;
+            if(bw && fw)      return 0.5*(gb+gf);
+            if(bw)            return gb;
+            if(fw)            return gf;
+            return 0.0;
+        };
+
+        SLICELOOP4
+        if(p->wet[IJ]==1 && wdfront(i,j)==1)
+        {
+            // x
+            const bool bw = (p->wet[Im1J]==1);
+            const bool fw = (p->wet[Ip1J]==1);
+            const double gb = bw ? (eta(i,j)-eta(i-1,j))/p->DXP[IM1] : 0.0;
+            const double gf = fw ? (eta(i+1,j)-eta(i,j))/p->DXP[IP] : 0.0;
+
+            c->Ex(i,j) = onesided(bw,fw,gb,gf, (p->A315==2) ? 0.0 : c->Fx(i,j));
+            c->Exu(i,j) = (p->A315==0) ? c->Ex(i,j) : onesided(bw,fw,gb,gf, c->Fx(i,j) - 2.0*c->Fz(i,j)*c->Ex(i,j));
+            c->Exx(i,j) = (bw && fw) ? 2.0*(gf-gb)/(p->DXP[IM1]+p->DXP[IP]) : 0.0;
+
+            // y
+            if(p->j_dir==1)
+            {
+                const bool bs = (p->wet[IJm1]==1);
+                const bool fs = (p->wet[IJp1]==1);
+                const double hb = bs ? (eta(i,j)-eta(i,j-1))/p->DYP[JM1] : 0.0;
+                const double hf = fs ? (eta(i,j+1)-eta(i,j))/p->DYP[JP] : 0.0;
+
+                c->Ey(i,j) = onesided(bs,fs,hb,hf, (p->A315==2) ? 0.0 : c->Fy(i,j));
+                c->Eyu(i,j) = (p->A315==0) ? c->Ey(i,j) : onesided(bs,fs,hb,hf, c->Fy(i,j) - 2.0*c->Fz(i,j)*c->Ey(i,j));
+                c->Eyy(i,j) = (bs && fs) ? 2.0*(hf-hb)/(p->DYP[JM1]+p->DYP[JP]) : 0.0;
+            }
+        }
+    }
 }
 
 void fnpf_fsfbc_wd::fsfdisc_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)

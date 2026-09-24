@@ -122,6 +122,18 @@ void control::ctrlrecv()
     ii++;
     A329 = ictrl[ii];
     ii++;
+    A330 = ictrl[ii];
+    ii++;
+    A331 = dctrl[dd];
+    dd++;
+    A332 = ictrl[ii];
+    ii++;
+    A334 = ictrl[ii];
+    ii++;
+    A335 = dctrl[dd];
+    dd++;
+    A336 = ictrl[ii];
+    ii++;
     A338 = ictrl[ii];
     ii++;
     A339 = ictrl[ii];

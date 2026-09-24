@@ -89,7 +89,8 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
         
         // former third FLOOP: wet test is 2D, clamp only near the inlet
         const bool dryneigh = (p->wet[Im1J]==0 || p->wet[Ip1J]==0 || p->wet[IJm1]==0 || p->wet[IJp1]==0 
-                            || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0);
+                            || p->wet[Im1Jm1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Ip1Jp1]==0
+                            || (p->A343>=2 && p->wet[IJ]==0));
         const bool clampcol = (i+p->origin_i<=5);
         
         if(dryneigh || clampcol)
