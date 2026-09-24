@@ -77,6 +77,9 @@ public:
     double getTensLoc(int n){return f0.col(n).norm();};
     Eigen::Vector3d getTensGlob(int n){return R(q.col(n+1))*f0.col(n).tail(3);};
     
+    // RADAU5 statistics of the last Integrate call
+    void getSolverStats(int& steps, int& rejected, int& nfcn_, int& njac_) const {steps = naccpt; rejected = nrejct; nfcn_ = nfcn; njac_ = njac;};
+    
 private:
 
     // Initialisation

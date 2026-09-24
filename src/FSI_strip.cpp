@@ -26,7 +26,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 #include"field.h"
 
-fsi_strip::fsi_strip(lexer *p, int num) : nstrip(num),beam(num),eps0(p)
+fsi_strip::fsi_strip(lexer *p, int num) : beam(num),nstrip(num)
 {    
 }
     
@@ -39,6 +39,9 @@ void fsi_strip::start(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 	// Set mooring time step
 	t_strip_n = t_strip;
 	t_strip += alpha*p->dt;
+    
+    // Fluid momentum of the Lagrangian points is constant during the integration
+    precompute_fluid_momentum();
 
     // Integrate from t_mooring_n to t_mooring
     Integrate(t_strip_n,t_strip);
@@ -65,4 +68,37 @@ void fsi_strip::store_variables(lexer *p)
 {
     P_el_n = P_el;
     I_el_n = I_el;
+}
+
+int fsi_strip::numLagrangePoints() const
+{
+    int n = 0;
+    for (int eI = 0; eI < Ne; eI++)
+    n += lagrangePoints[eI].cols();
+    
+    return n;
+}
+
+void fsi_strip::pack_vel(double *buf) const
+{
+    int n = 0;
+    for (int eI = 0; eI < Ne; eI++)
+    for (int pI = 0; pI < lagrangeVel[eI].cols(); pI++)
+    {
+        buf[n++] = lagrangeVel[eI](0,pI);
+        buf[n++] = lagrangeVel[eI](1,pI);
+        buf[n++] = lagrangeVel[eI](2,pI);
+    }
+}
+
+void fsi_strip::unpack_vel(const double *buf)
+{
+    int n = 0;
+    for (int eI = 0; eI < Ne; eI++)
+    for (int pI = 0; pI < lagrangeVel[eI].cols(); pI++)
+    {
+        lagrangeVel[eI](0,pI) = buf[n++];
+        lagrangeVel[eI](1,pI) = buf[n++];
+        lagrangeVel[eI](2,pI) = buf[n++];
+    }
 }

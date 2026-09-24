@@ -67,41 +67,24 @@ void fsi_strip::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
 
 void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_, const double time)
 {
-    double dm_el, m_el;
+    // Called in every RHS evaluation of the beam solver. The element mass, static moment and
+    // inertia (m_el, s0, J0) are constant, and the fluid momentum (P_el_star, I_el_star) does
+    // not change during one Integrate call, so the loops over the Lagrangian points were moved
+    // to precompute_element_constants() and precompute_fluid_momentum().
+    
+    double m_el;
     Eigen::Vector3d P_el_star, I_el_star, s0, omega_el, omega_el_0;
-    Eigen::Matrix3d J0, Xil_0_skew;
+    Eigen::Matrix3d J0;
 
     double delta_time = (time - t_strip_n)/(t_strip - t_strip_n) > 0.01 ? time - t_strip_n : 1e20;
 
     for (int eI = 1; eI < Ne+1; eI++)
     {
-        m_el = 0.0;   
-        P_el.col(eI) << 0.0, 0.0, 0.0;
-        P_el_star << 0.0, 0.0, 0.0;
-        I_el_star << 0.0, 0.0, 0.0;
-        s0 << 0.0, 0.0, 0.0;
-        J0 << Eigen::Matrix3d::Zero();
-        
-        for (int pI = 0; pI < lagrangePoints[eI-1].cols(); pI++)
-        {
-            // Mass of element
-            dm_el = rho_f*dx_body*lagrangeArea[eI-1](pI);
-            m_el += dm_el;
-
-            // Preliminary linear momentum
-            P_el_star += dm_el*lagrangeVel[eI-1].col(pI);
-
-            // Static moment
-            s0 += dm_el*Xil_0[eI-1].col(pI);
-            
-            // Preliminary angular momentum
-            I_el_star += dm_el*Xil[eI-1].col(pI).cross(lagrangeVel[eI-1].col(pI));
-
-            // Quaternionic tensor of inertia
-            Xil_0_skew << 0, -Xil_0[eI-1](2,pI), Xil_0[eI-1](1,pI), Xil_0[eI-1](2,pI), 0, -Xil_0[eI-1](0,pI), -Xil_0[eI-1](1,pI), Xil_0[eI-1](0,pI), 0;
-            Xil_0_skew = Xil_0_skew.transpose()*Xil_0_skew;
-            J0 += dm_el*Xil_0_skew;
-        }
+        m_el = m_el_c(eI-1);
+        s0 = s0_c.col(eI-1);
+        J0 = J0_c[eI-1];
+        P_el_star = P_star_c.col(eI-1);
+        I_el_star = I_star_c.col(eI-1);
 
         // Determine linear momentum
         omega_el = getOmega(q_.col(eI),qdot_.col(eI));
@@ -131,5 +114,69 @@ void fsi_strip::setVariableLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matri
         {
             Mext_.col(eI) << 0.0, M_el.col(eI)/l_el;
         }
+    }
+}
+
+void fsi_strip::precompute_element_constants()
+{
+    double dm_el;
+    Eigen::Matrix3d Xil_0_skew;
+    
+    m_el_c = Eigen::VectorXd::Zero(Ne);
+    s0_c = Matrix3Xd::Zero(3,Ne);
+    J0_c.assign(Ne, Eigen::Matrix3d::Zero());
+    
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        double m_el = 0.0;
+        Eigen::Vector3d s0 = Eigen::Vector3d::Zero();
+        Eigen::Matrix3d J0 = Eigen::Matrix3d::Zero();
+        
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            // Mass of element
+            dm_el = rho_f*dx_body*lagrangeArea[eI](pI);
+            m_el += dm_el;
+
+            // Static moment
+            s0 += dm_el*Xil_0[eI].col(pI);
+
+            // Quaternionic tensor of inertia
+            Xil_0_skew << 0, -Xil_0[eI](2,pI), Xil_0[eI](1,pI), Xil_0[eI](2,pI), 0, -Xil_0[eI](0,pI), -Xil_0[eI](1,pI), Xil_0[eI](0,pI), 0;
+            Xil_0_skew = Xil_0_skew.transpose()*Xil_0_skew;
+            J0 += dm_el*Xil_0_skew;
+        }
+        
+        m_el_c(eI) = m_el;
+        s0_c.col(eI) = s0;
+        J0_c[eI] = J0;
+    }
+    
+    P_star_c = Matrix3Xd::Zero(3,Ne);
+    I_star_c = Matrix3Xd::Zero(3,Ne);
+}
+
+void fsi_strip::precompute_fluid_momentum()
+{
+    double dm_el;
+    
+    for (int eI = 0; eI < Ne; eI++)
+    {
+        Eigen::Vector3d P_el_star = Eigen::Vector3d::Zero();
+        Eigen::Vector3d I_el_star = Eigen::Vector3d::Zero();
+        
+        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
+        {
+            dm_el = rho_f*dx_body*lagrangeArea[eI](pI);
+
+            // Preliminary linear momentum
+            P_el_star += dm_el*lagrangeVel[eI].col(pI);
+            
+            // Preliminary angular momentum
+            I_el_star += dm_el*Xil[eI].col(pI).cross(lagrangeVel[eI].col(pI));
+        }
+        
+        P_star_c.col(eI) = P_el_star;
+        I_star_c.col(eI) = I_el_star;
     }
 }

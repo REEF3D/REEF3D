@@ -24,6 +24,9 @@ Author: Tobias Martin
 
 beam::beam(int number):nBeam(number),iout(0),imas(0),ijac(0)
 {
+    rtoler = nullptr;
+    atoler = nullptr;
+    
     // Call from derived class
     
     // iniBeam(Ne, E, A, rho, L, G, IX, IY, IZ);

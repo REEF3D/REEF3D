@@ -30,10 +30,12 @@ void beam::resetSolver()
 	dx = 1.0;
 	// rtoler and atoler are scalars
 	itoler = 0;
-	// relative tolerance
-	rtoler = new double(1.0e-10);
+	// relative tolerance (allocated once, previously leaked on every call)
+	if (!rtoler) rtoler = new double;
+	*rtoler = 1.0e-10;
 	// absolute tolerance
-	atoler = new double(1.0e-10);
+	if (!atoler) atoler = new double;
+	*atoler = 1.0e-10;
 	// initial step size
 	hinit = 0.0;
 	// number of non-zero rows below main diagonal of Jacobian

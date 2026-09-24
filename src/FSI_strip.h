@@ -49,11 +49,19 @@ public:
 	void start(lexer*,fdm*,ghostcell*,double);
 	void initialize(lexer*,fdm*,ghostcell*,turbulence*);
     
+    // Velocity interpolation: local contribution only, MPI reduction is done
+    // once for all strips in fsi_strips::forcing (pack/unpack below)
     void interpolate_vel(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    int  numLagrangePoints() const;
+    void pack_vel(double*) const;
+    void unpack_vel(const double*);
+
     void update_points();
     void coupling_vel();
     void coupling_force(lexer*,double);
-    void distribute_forces(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    // Spreads forces onto fx,fy,fz and accumulates the RANS forcing into eps0.
+    // Ghost-cell exchange and epsget are done once for all strips by the caller.
+    void distribute_forces(lexer*,fdm*,ghostcell*,field&,field&,field&,field&);
     void store_variables(lexer*);
     void print_ini(lexer *p);
     void print_stl(lexer*,fdm*,ghostcell*);
@@ -70,6 +78,9 @@ private:
     void get_cellsize(lexer*,fdm*,ghostcell*);
     void build_strip();
     double kernel_roma(const double&);
+    bool near_subdomain(const Eigen::Vector3d&) const;
+    void precompute_element_constants();
+    void precompute_fluid_momentum();
 
     // Parallelisation
     int nstrip;
@@ -85,6 +96,16 @@ private:
     Eigen::Vector3d gravity_vec;
     bool thinStrip;
 
+    // Cached quantities for setVariableLoads (previously recomputed in every
+    // RHS evaluation of the beam solver, i.e. ~n_dim times per FD Jacobian)
+    Eigen::VectorXd m_el_c;              // element fluid mass      (constant)
+    Matrix3Xd s0_c;                      // static moment           (constant)
+    vector<Eigen::Matrix3d> J0_c;        // quaternionic inertia    (constant)
+    Matrix3Xd P_star_c, I_star_c;        // fluid momentum          (constant during one Integrate call)
+
+    // Subdomain bounds extended by the kernel footprint (force spreading)
+    double xlo_ext, xhi_ext, ylo_ext, yhi_ext, zlo_ext, zhi_ext;
+
     // Print
     int printcount_fsi;
 	double printtime;
@@ -93,7 +114,6 @@ private:
     double starttime, endtime;
     
     turbulence *pturb;
-    field4 eps0;
 };
 
 #endif

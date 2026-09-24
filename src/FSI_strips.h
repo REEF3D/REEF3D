@@ -24,6 +24,8 @@ Authors: Tobias Martin, Hans Bihs
 #define FSI_STRIPS_H_
 
 #include"FSI.h"
+#include"increment.h"
+#include"field4.h"
 #include<vector>
 #include <Eigen/Dense>
 
@@ -35,7 +37,7 @@ class turbulence;
 
 using namespace std;
 
-class fsi_strips final : public fsi
+class fsi_strips final : public fsi, public increment
 {
 public:
 	
@@ -54,6 +56,9 @@ private:
     double starttime0;
 	
     vector<fsi_strip*> pstrip;
+    vector<double> velbuf;      // packed Lagrangian velocities of all strips, one MPI_Allreduce per call
+    field4 eps0;                // shared RANS forcing field (was one full field4 per strip)
+    turbulence *pturb;
 };
 
 #endif

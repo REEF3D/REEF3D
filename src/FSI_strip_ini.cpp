@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<algorithm>
 
 void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
 {
@@ -151,6 +152,9 @@ void fsi_strip::initialize(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb)
         }
     } 
 
+    // Constant element quantities for the coupling loads
+    precompute_element_constants();
+
     // Initialise print
     print_ini(p);
 }
@@ -180,6 +184,16 @@ void fsi_strip::ini_parallel(lexer *p, fdm *a, ghostcell *pgc)
 		pgc->bcast_double(&zstart[i],1,i);
 		pgc->bcast_double(&zend[i],1,i);
 	}
+    
+    // This subdomain extended by the kernel footprint (1.5 cells of the cell size used for a
+    // point outside the subdomain, with safety factor). Points outside cannot contribute to
+    // the interior cells in distribute_forces.
+    xlo_ext = p->XN[0 + marge]       - 2.0*std::max(p->DXN[-1 + marge], p->DXN[0 + marge]);
+    xhi_ext = p->XN[p->knox + marge] + 2.0*std::max(p->DXN[p->knox + marge], p->DXN[p->knox + 1 + marge]);
+    ylo_ext = p->YN[0 + marge]       - 2.0*std::max(p->DYN[-1 + marge], p->DYN[0 + marge]);
+    yhi_ext = p->YN[p->knoy + marge] + 2.0*std::max(p->DYN[p->knoy + marge], p->DYN[p->knoy + 1 + marge]);
+    zlo_ext = p->ZN[0 + marge]       - 2.0*std::max(p->DZN[-1 + marge], p->DZN[0 + marge]);
+    zhi_ext = p->ZN[p->knoz + marge] + 2.0*std::max(p->DZN[p->knoz + marge], p->DZN[p->knoz + 1 + marge]);
 }
 
 void fsi_strip::get_cellsize(lexer *p, fdm *a, ghostcell *pgc)

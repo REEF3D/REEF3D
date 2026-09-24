@@ -53,24 +53,30 @@ void fsi_strip::coupling_force(lexer *p, double alpha)
     }
 }
 
-void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, field& fy, field& fz)
+void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, field& fy, field& fz, field& eps0)
 {
-    int ii, jj, kk;
-    double dx, dy, dz, dV, dist, D;
+    // Same kernel and stencil as before, with three changes that do not alter the result:
+    //  - points whose kernel footprint cannot reach this subdomain are skipped
+    //    (previously every rank looped over every Lagrangian point of every strip),
+    //  - separable 1D kernel weights, zero-weight stencil entries skipped,
+    //  - ghost-cell exchange, eps0 reset and epsget moved to fsi_strips::forcing (once per call).
+    
+    int ii, jj, kk, i_it, j_it, k_it;
+    double dx, dy, dz, dV, D, dxdydz;
     double eps_star;
     double kin;
     double turb_force_fac = 50.0;
-    
-    LOOP
-    eps0(i,j,k) = 0.0;
-    
-    pgc->start4(p,eps0,30);
+    double wxF[5], wxC[5], wyF[5], wyC[5], wzF[5], wzC[5], wzT[5];
 
     for (int eI = 0; eI < Ne; eI++)
     {
         for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
         {
             const Eigen::Vector3d& coordI = lagrangePoints[eI].col(pI);
+            
+            if (!near_subdomain(coordI))
+            continue;
+            
             const Eigen::Vector3d& forceI = lagrangeForceCoup[eI].col(pI);
             const double& areaI = lagrangeArea[eI](pI);
 
@@ -81,76 +87,77 @@ void fsi_strip::distribute_forces(lexer *p, fdm *a, ghostcell *pgc, field& fx, f
             dx = p->DXN[ii + marge];
             dy = p->DYN[jj + marge];
             dz = p->DZN[kk + marge];
-
-            for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
+            
+            dV = areaI*dx_body;
+            dxdydz = dx*dy*dz;
+            
+            for (int n = 0; n < 5; n++)
             {
-                for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
-                {
-                    for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
-                    {
-                        dV = areaI*dx_body;
+                wxF[n] = kernel_roma((p->XN[ii + n - 2 + 1 + marge] - coordI(0))/dx);
+                wxC[n] = kernel_roma((p->XP[ii + n - 2 + marge] - coordI(0))/dx);
+                wyF[n] = kernel_roma((p->YN[jj + n - 2 + 1 + marge] - coordI(1))/dy);
+                wyC[n] = kernel_roma((p->YP[jj + n - 2 + marge] - coordI(1))/dy);
+                wzF[n] = kernel_roma((p->ZN[kk + n - 2 + 1 + marge] - coordI(2))/dz);
+                wzC[n] = kernel_roma((p->ZP[kk + n - 2 + marge] - coordI(2))/dz);
+                wzT[n] = kernel_roma((p->ZN[kk + n - 2 + marge] - coordI(2))/dz);   // as before: ZN[k], not ZP[k]
+            }
 
-                        dist = (p->XN[i_it + 1 + marge] - coordI(0))/dx;
-                        D = kernel_roma(dist);
-                        dist = (p->YP[j_it + marge] - coordI(1))/dy;
-                        D *= kernel_roma(dist);
-                        dist = (p->ZP[k_it + marge] - coordI(2))/dz;
-                        D *= kernel_roma(dist);
-                        
-                        fx(i_it,j_it,k_it) += forceI(0)*D*dV/(dx*dy*dz);
-      
-
-                        dist = (p->XP[i_it + marge] - coordI(0))/dx;
-                        D = kernel_roma(dist);
-                        dist = (p->YN[j_it + 1 + marge] - coordI(1))/dy;
-                        D *= kernel_roma(dist);
-                        dist = (p->ZP[k_it + marge] - coordI(2))/dz;
-                        D *= kernel_roma(dist);
-                        
-                        fy(i_it,j_it,k_it) += forceI(1)*D*dV/(dx*dy*dz);
+            for (int ni = 0; ni < 5; ni++)
+            {
+                i_it = ii - 2 + ni;
                 
-
-                        dist = (p->XP[i_it + marge] - coordI(0))/dx;
-                        D = kernel_roma(dist);
-                        dist = (p->YP[j_it + marge] - coordI(1))/dy;
-                        D *= kernel_roma(dist);
-                        dist = (p->ZN[k_it + 1 + marge] - coordI(2))/dz;
-                        D *= kernel_roma(dist);
+                for (int nj = 0; nj < 5; nj++)
+                {
+                    j_it = jj - 2 + nj;
+                    
+                    for (int nk = 0; nk < 5; nk++)
+                    {
+                        k_it = kk - 2 + nk;
                         
-                        fz(i_it,j_it,k_it) += forceI(2)*D*dV/(dx*dy*dz);
-                        
+                        D = wxF[ni];
+                        D *= wyC[nj];
+                        D *= wzC[nk];
+                        if (D != 0.0)
+                        fx(i_it,j_it,k_it) += forceI(0)*D*dV/dxdydz;
+  
+                        D = wxC[ni];
+                        D *= wyF[nj];
+                        D *= wzC[nk];
+                        if (D != 0.0)
+                        fy(i_it,j_it,k_it) += forceI(1)*D*dV/dxdydz;
+            
+                        D = wxC[ni];
+                        D *= wyC[nj];
+                        D *= wzF[nk];
+                        if (D != 0.0)
+                        fz(i_it,j_it,k_it) += forceI(2)*D*dV/dxdydz;
                         
                         // RANS turbulence forcing
                         if(p->T10==2)
                         if(i_it>=0 && j_it>=0 && k_it>=0 && i_it<p->knox && j_it<p->knoy && k_it<p->knoz)
                         {
-                        dist = (p->XP[i_it + marge] - coordI(0))/dx;
-                        D = kernel_roma(dist);
-                        dist = (p->YP[j_it + marge] - coordI(1))/dy;
-                        D *= kernel_roma(dist);
-                        dist = (p->ZN[k_it + marge] - coordI(2))/dz;
-                        D *= kernel_roma(dist);
+                        D = wxC[ni];
+                        D *= wyC[nj];
+                        D *= wzT[nk];
                         
+                        if (D != 0.0)
+                        {
                         kin = pturb->kinval(i_it,j_it,k_it);
                         eps_star = turb_force_fac*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
                         
                         eps0(i_it,j_it,k_it) += eps_star;
+                        }
                         }
                     }
                 }
             }     
         }
     }
+}
 
-    if(p->T10==2)
-    LOOP
-    if(eps0(i,j,k)>1.0e-8)
-    {
-    eps_star = eps0(i,j,k);
-    pturb->epsget(i,j,k,eps_star);
-    }
-    
-    pgc->start1(p,fx,10);
-    pgc->start2(p,fy,11);
-    pgc->start3(p,fz,12);
+bool fsi_strip::near_subdomain(const Eigen::Vector3d& coordI) const
+{
+    return  coordI(0) >= xlo_ext && coordI(0) <= xhi_ext &&
+            coordI(1) >= ylo_ext && coordI(1) <= yhi_ext &&
+            coordI(2) >= zlo_ext && coordI(2) <= zhi_ext;
 }
