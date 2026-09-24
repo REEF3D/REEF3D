@@ -212,10 +212,18 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A374;
     ii++;
-    dctrl[dd] = A375_s;
+    dctrl[dd] = A375;
     dd++;
-    dctrl[dd] = A375_c;
+    dctrl[dd] = A376_s;
     dd++;
+    dctrl[dd] = A376_sc;
+    dd++;
+    dctrl[dd] = A376_c;
+    dd++;
+    dctrl[dd] = A377;
+    dd++;
+    ictrl[ii] = A378;
+    ii++;
 
     ictrl[ii] = A410;
     ii++;

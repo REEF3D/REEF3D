@@ -208,10 +208,18 @@ void control::ctrlrecv()
     ii++;
     A374 = ictrl[ii];
     ii++;
-    A375_s = dctrl[dd];
+    A375 = dctrl[dd];
     dd++;
-    A375_c = dctrl[dd];
+    A376_s = dctrl[dd];
     dd++;
+    A376_sc = dctrl[dd];
+    dd++;
+    A376_c = dctrl[dd];
+    dd++;
+    A377 = dctrl[dd];
+    dd++;
+    A378 = ictrl[ii];
+    ii++;
 
     A410 = ictrl[ii];
     ii++;

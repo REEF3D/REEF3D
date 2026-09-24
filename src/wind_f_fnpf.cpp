@@ -25,63 +25,157 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include"slice4.h"
+
+// FNPF wind forcing, added to the dynamic free surface boundary condition:
+//
+//   dFi/dt = ... + K_wind,   K_wind = -p_a/rho_w  (pressure modes)
+//
+// A373 == 1 : wind setup from the surface stress tau = rho_a*Cd*U10^2, spread over a reference
+//             depth h_ref (A377). Applied as the along-wind potential  +tau/(rho_w*h_ref)*s,
+//             s = along-wind coordinate clamped to the forcing area, so Fifsf stays continuous at
+//             the area edges. Equilibrium: g*deta/ds = tau/(rho_w*h_ref), setup downwind.
+//             Exact for constant depth; with varying depth there is no exact surface potential
+//             (curl(tau/h) != 0), h_ref is the mean still water depth of the forcing area unless given.
+// A373 == 2 : deprecated (crest-masked ramp), treated as A373 == 1.
+// A373 == 3 : Miles/Plant wind input, zero-mean surface pressure in phase with the slope
+//             p_a = beta*rho_a*u*^2*deta/dn,  u*^2 = Cd*U10^2,  n = wind direction,  beta = A375.
+//             Energy growth gamma/omega = beta*(rho_a/rho_w)*(u*/c)^2 for every wave component,
+//             beta ~ 32 reproduces Plant (1982), gamma/omega = 0.04*(u*/c)^2.
+// A373 == 4 : modified Jeffreys (Touboul et al. 2006, Kharif et al. 2008): 
+//             p_a = s*rho_a*(U10-c)^2*deta/dn, only on steep faces |deta/dn| > critical slope,
+//             switched on smoothly over 0.8..1.0 of the critical slope. s, slope_c, c from A376.
+// A374 == 1 (with A372): cos^2 downwind decay of the pressure forcing over [xs,xe], as in NHFLOW.
+// A378 : number of 1-2-1 low-pass passes on the forcing slope (default 4).
 
 void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, slice &eta)
 {
-    double windforce,xc,yc,xref,yref;
-    
-    // A373 1/2: along-wind potential ramp
-    // The ramp is measured from the start of the forcing area and the coordinates are
-    // clamped to [xs,xe] x [ys,ye]: zero upstream of the area, constant downstream of it.
-    // This keeps Fifsf continuous at the area edges (previously it jumped by Cd*U^2*(xs-xmin)
-    // at xs and dropped to zero at xe). Without A372 the ramp is measured from the domain origin
-    // as before.
-    if(p->A373<3)
+    // wind setup
+    if(p->A373==1 || p->A373==2)
     {
+    double xref,yref,xc,yc,f;
+    
+    // reference depth, computed once: mean still water depth of the wet forcing area
+    if(href_set==0)
+    {
+        if(p->A377>0.0)
+        href = p->A377;
+        
+        else
+        {
+        double hsum=0.0, hcount=0.0;
+        
+        SLICELOOP4
+        WETDRY
+        if( p->XP[IP]>xs && p->XP[IP]<xe)
+        if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
+        {
+        hsum += MAX(p->wd - c->bed(i,j), 0.0);
+        hcount += 1.0;
+        }
+        
+        hsum = pgc->globalsum(hsum);
+        hcount = pgc->globalsum(hcount);
+        
+        href = (hcount>0.0) ? hsum/hcount : 0.0;
+        }
+        
+        href = MAX(href, 1.0e-3);
+        href_set = 1;
+        
+        if(p->mpirank==0)
+        cout<<"FNPF wind setup: h_ref = "<<href<<" m"<<endl;
+    }
+    
+    f = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u/href;
+    
     xref = (p->A372==1) ? xs : p->global_xmin;
     yref = (p->A372==1) ? ys : p->global_ymin;
     
     SLICELOOP4
     WETDRY
-    if(p->A373==1 || eta(i,j)>0.0)
     {
     xc = MIN(MAX(p->XP[IP],xs),xe) - xref;
     yc = (p->j_dir==1) ? (MIN(MAX(p->YP[JP],ys),ye) - yref) : 0.0;
     
-    windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*xc + sina*yc);
-    
-    K(i,j) -= windforce;
+    K(i,j) += f*(cosa*xc + sina*yc);
     }
     }
     
     
-    // A373 3/4: Jeffreys sheltering, applied as an atmospheric surface pressure
-    // p_a = rho_a * s * (U - c)^2 * d(eta)/dn  on wind-facing slopes (d(eta)/dn > 0),
-    // n = wind direction, s = sheltering coefficient (A 375), c = wave phase speed.
-    // Dynamic FSBC: dFi/dt = ... - p_a/rho_w
-    // A373==4 restricts the forcing further to the crests (eta > 0).
-    // A374==1 (with A372) applies the cos^2 downwind decay over [xs,xe] as in NHFLOW.
+    // wind input via surface pressure
     if(p->A373==3 || p->A373==4)
     {
-    double cph,dU,slope,psi,pa;
+    double P,w,psi,sc,cph,dU;
     
-    cph = (p->A375_c>0.0) ? p->A375_c : p->wC;
-    dU = p->A371_u - cph;
+    // pressure amplitude per unit slope, p_a = P*deta/dn
+    P = 0.0;
     
-    if(dU>0.0)
+    if(p->A373==3)
+    P = p->A375*p->W3*Cd*p->A371_u*p->A371_u;
+    
+    sc = MAX(p->A376_sc, 1.0e-6);
+    
+    if(p->A373==4)
+    {
+    cph = (p->A376_c>0.0) ? p->A376_c : p->wC;
+    dU = MAX(p->A371_u - cph, 0.0);
+    P = p->A376_s*p->W3*dU*dU;
+    }
+    
+    // along-wind slope, central differences
+    SLICELOOP4
+    {
+    (*Sw)(i,j) = 0.0;
+    
+    if(p->wet[IJ]==1)
+    {
+    (*Sw)(i,j) = cosa*(eta(i+1,j) - eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+    
+    if(p->j_dir==1)
+    (*Sw)(i,j) += sina*(eta(i,j+1) - eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+    }
+    }
+    
+    // low-pass filter (1-2-1 passes, A 378): the input grows like (u*/c)^2, so without it 
+    // unresolved grid-scale waves receive the strongest forcing and grow without bound.
+    // Response per pass cos^2(pi*dx/L): 40 cells per wave, 4 passes -> 0.976; 4 cells -> 0.06.
+    for(int q=0; q<p->A378; ++q)
+    {
+        pgc->gcsl_start4(p,*Sw,1);
+        
+        SLICELOOP4
+        (*Stmp)(i,j) = 0.25*(*Sw)(i-1,j) + 0.5*(*Sw)(i,j) + 0.25*(*Sw)(i+1,j);
+        
+        SLICELOOP4
+        (*Sw)(i,j) = (p->wet[IJ]==1) ? (*Stmp)(i,j) : 0.0;
+        
+        if(p->j_dir==1)
+        {
+        pgc->gcsl_start4(p,*Sw,1);
+        
+        SLICELOOP4
+        (*Stmp)(i,j) = 0.25*(*Sw)(i,j-1) + 0.5*(*Sw)(i,j) + 0.25*(*Sw)(i,j+1);
+        
+        SLICELOOP4
+        (*Sw)(i,j) = (p->wet[IJ]==1) ? (*Stmp)(i,j) : 0.0;
+        }
+    }
+    
+    if(P>0.0)
     SLICELOOP4
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A373==3 || eta(i,j)>0.0)
     {
-    slope = cosa*c->Ex(i,j);
+    const double slope = (*Sw)(i,j);
     
-    if(p->j_dir==1)
-    slope += sina*c->Ey(i,j);
+    // Jeffreys: steep faces only, smooth switch-on over 0.8..1.0 of the critical slope
+    w = 1.0;
     
-    if(slope>0.0)
-    {
+    if(p->A373==4)
+    w = MIN(MAX((fabs(slope) - 0.8*sc)/(0.2*sc), 0.0), 1.0);
+    
     psi = 1.0;
     
     if(p->A374==1 && p->A372==1)
@@ -90,10 +184,7 @@ void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, 
     psi = psi*psi;
     }
     
-    pa = p->W3*p->A375_s*dU*dU*slope;
-    
-    K(i,j) -= psi*pa/p->W1;
-    }
+    K(i,j) -= psi*w*P*slope/p->W1;
     }
     }
 }

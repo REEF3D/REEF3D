@@ -25,11 +25,16 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include"slice4.h"
 
 wind_f::wind_f(lexer *p) 
 {
     Uref = 31.5; // Zijlema et al. (2012) reference velocity, must be set before Cd is computed
     Cd = 0.0;
+    href = 0.0;
+    href_set = 0;
+    Sw = nullptr;
+    Stmp = nullptr;
     
     xs = -1.0e10;
     xe =  1.0e10;
@@ -40,8 +45,17 @@ wind_f::wind_f(lexer *p)
     {
         wind_forcing_drag_coeff_fnpf(p);
         
+        if(p->A373==3 || p->A373==4)
+        {
+        Sw = new slice4(p);
+        Stmp = new slice4(p);
+        }
+        
         cosa = cos(p->A371_dir*(PI/180.0));
         sina = sin(p->A371_dir*(PI/180.0));
+        
+        if(p->A373==2 && p->mpirank==0)
+        cout<<"A 373 2 is deprecated for FNPF, using A 373 1 (wind setup)"<<endl;
         
         if(p->A372==1)
         {
@@ -73,6 +87,8 @@ wind_f::wind_f(lexer *p)
 
 wind_f::~wind_f()
 {
+    delete Sw;
+    delete Stmp;
 }
 
 void wind_f::wind_forcing_ini(lexer *p, ghostcell *pgc)

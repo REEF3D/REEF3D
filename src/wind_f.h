@@ -30,6 +30,7 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
+class slice4;
 
 using namespace std;
 
@@ -56,6 +57,9 @@ private:
     double xs,xe,ys,ye;
     
     double Uref;
+    double href;
+    slice4 *Sw, *Stmp; // along-wind slope, filtered (FNPF pressure modes)
+    int href_set;
 
 };
 

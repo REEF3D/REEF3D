@@ -119,8 +119,12 @@ void control::ini_default()
     A372_xs=A372_xe=A372_ys=A372_ye=0.0; // double wind forcing area
     A373=1;      // int wind forcing region
     A374=0;      // int wind decay
-    A375_s=0.5;  // double Jeffreys sheltering coefficient
-    A375_c=0.0;  // double wave phase speed for Jeffreys forcing, <=0: use wave generation celerity
+    A375=32.0;   // double Miles/Plant wind input coefficient beta, p_a = beta*rho_a*u*^2*deta/dn
+    A376_s=0.5;  // double Jeffreys sheltering coefficient
+    A376_sc=0.3; // double Jeffreys critical slope
+    A376_c=0.0;  // double Jeffreys wave phase speed, <=0: use wave generation celerity
+    A377=0.0;    // double reference depth for wind setup, <=0: mean still water depth
+    A378=4;      // int low-pass filter passes on the wind forcing slope
 
     
     // PTF
