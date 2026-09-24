@@ -41,16 +41,28 @@ path
 
 with Ls -> 0 recovering the equilibrium closure qb = qbe.
 
-Discretisation: first-order upwind along s_hat, solved for the diagonal
+Discretisation: first-order upwind along s_hat,
 
-        qb_P = ( qbe_P + cx*qb_upwind + cy*qb_upwind )/( 1 + cx + cy )
+        qb_P = ( qbe_P + |cx|*qb_upx + |cy|*qb_upy )/( 1 + |cx| + |cy| )
 
-with cx = Ls*|sgx|/dx_upwind >= 0. Each update is a convex combination
-of qbe and the upwind neighbours, so the sweep is unconditionally stable
-for any Ls/dx, satisfies a maximum principle and cannot generate
-negative qb. Jacobi sweeps propagate the information one cell per sweep
-with a ghostcell exchange in between; the solution of the previous
-sediment time step (qbn) is used as the initial guess.
+with cx = Ls*sgx/dx_upwind. The system matrix is a strictly diagonally
+dominant M-matrix, so every update is a convex combination of qbe and
+the upwind neighbours: unconditionally stable for any Ls/dx, maximum
+principle, no negative qb.
+
+Solver: the equation is steady, so it is solved to convergence in every
+sediment step. Gauss-Seidel with alternating sweep directions (fast
+sweeping): whenever the sweep direction matches the transport direction
+the whole subdomain is solved in a single pass; the four orderings cover
+all quadrants of s_hat. Ghostcell exchange after every sweep, iteration
+stops once the global max update is below tol*max(qbe). The previous
+Jacobi version stopped after a fixed number of sweeps, which turned the
+steady relaxation into a pseudo-time lag that depended on the number of
+sediment steps (S44, dtsed, RK stages) instead of on the physics.
+
+Where the upwind neighbour is not a sediment cell (structure, inflow
+ghost cell without bed) its term is dropped. This is the same fixed
+point as a zero-gradient neighbour, but converges faster.
 
 The relaxation is carried out on the bedload-only field qbn. s->qb is
 only written at the end, because susp_qs() later adds the suspended load
@@ -58,11 +70,18 @@ qbs to s->qb, which must not re-enter the bedload relaxation.
 
 Control:
   S33   0: equilibrium
-        1: non-equilibrium, constant adaptation length Ls = S40
-        2: non-equilibrium, van Rijn saltation length
-        3: non-equilibrium, Phillips & Sutherland
-  S40   adaptation length [m], used for S33 = 1
-  S49   number of relaxation sweeps per sediment time step
+        1: non-equilibrium, constant adaptation length Ls = S40 [m]
+        2: non-equilibrium, van Rijn (1984) saltation length
+           Ls = 3 d50 D*^0.6 T^0.9
+        3: non-equilibrium, Phillips & Sutherland (1989)
+           Ls = 4000 (theta - theta_cr) d50
+        4: non-equilibrium, depth scaled Ls = S40*h   (S40 [-])
+  S40   adaptation length [m] for S33 = 1, factor [-] for S33 = 4
+  S49   maximum number of Gauss-Seidel sweeps per sediment step
+
+Note on S33 = 2/3: both formulas give a single saltation hop, i.e.
+O(1-100) d50. On typical grids Ls/dx << 1 and the result is practically
+identical to equilibrium transport.
 --------------------------------------------------------------------*/
 
 void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_fdm *s)
@@ -73,34 +92,20 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     const double Rstar = (p->S22 - p->W1)/p->W1;
     const double Dstar = d50*pow(fabs(Rstar)*grav/(visc*visc),1.0/3.0);
     const double ydir = p->y_dir;
-    const int itermax = 10;
+    const int itermax = MAX(p->S49,1);
+    const double tol = 1.0e-6;
 
     double uvel,vvel,umag;
     double sgx,sgy;
-    double dxu,dyu,qxu,qyu,cx,cy;
     double ustar2,ucrit2,Ti;
-    double Ls;
+    double Lsc,cx,cy,num,den,qnew;
+    double qbe_max=0.0;
+    double Ls_max=0.0;
+    double dqmax=0.0;
+    int iter=0;
 
 
-    // initial guess: equilibrium
-    if(noneq_ini==0)
-    {
-    SEDSLICELOOP
-    qbn(i,j) = s->qbe(i,j);
-
-    pgc->gcsl_start4(p,qbn,1);
-
-    noneq_ini=1;
-    }
-
-    SEDSLICELOOP
-    q0(i,j) = qbn(i,j);
-
-    pgc->gcsl_start4(p,q0,1);
-
-
-    for(int qn=0; qn<itermax; ++qn)
-    {
+    // coefficients: transport direction and adaptation length ------------
     SEDSLICELOOP
     {
         // transport direction
@@ -114,62 +119,140 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
 
 
         // adaptation length
+        Lsc = 0.0;
+
+        if(p->S33==1)
+        Lsc = p->S40;
+
+        if(p->S33==2)
+        {
         ucrit2 = s->shearvel_crit(i,j)*s->shearvel_crit(i,j);
         ustar2 = s->shearvel_eff(i,j)*s->shearvel_eff(i,j);
 
         Ti = ucrit2>1.0e-20?MAX((ustar2-ucrit2)/ucrit2,0.0):0.0;
 
-        Ls = 0.1;
-
-        if(p->S33==2)
-        Ls = 3.0*d50*pow(Dstar,0.6)*pow(Ti,0.9);
+        Lsc = 3.0*d50*pow(Dstar,0.6)*pow(Ti,0.9);
+        }
 
         if(p->S33==3)
-        Ls = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j),0.0)*d50;
+        Lsc = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j),0.0)*d50;
 
-        Ls = MAX(Ls,0.0);
+        if(p->S33==4)
+        Lsc = p->S40*MAX(s->waterlevel(i,j),0.0);
 
+        Lsc = MAX(Lsc,0.0);
 
-        // upwind neighbors along s_hat; fall back to the local value
-        // where there is no sediment bed (zero gradient)
-        if(sgx>=0.0)
-        {
-        dxu = p->DXP[IM1];
-        qxu = p->DFBED[Im1J]>0?q0(i-1,j):q0(i,j);
-        }
-
-        if(sgx<0.0)
-        {
-        dxu = p->DXP[IP];
-        qxu = p->DFBED[Ip1J]>0?q0(i+1,j):q0(i,j);
-        }
-
-        if(sgy>=0.0)
-        {
-        dyu = p->DYP[JM1];
-        qyu = p->DFBED[IJm1]>0?q0(i,j-1):q0(i,j);
-        }
-
-        if(sgy<0.0)
-        {
-        dyu = p->DYP[JP];
-        qyu = p->DFBED[IJp1]>0?q0(i,j+1):q0(i,j);
-        }
-
-        cx = dxu>1.0e-20?Ls*fabs(sgx)/dxu:0.0;
-        cy = dyu>1.0e-20?Ls*fabs(sgy)/dyu:0.0;
+        Ls_max = MAX(Ls_max,Lsc);
 
 
-        qbn(i,j) = (s->qbe(i,j) + cx*qxu + cy*qyu)/(1.0 + cx + cy);
+        // signed upwind coefficients, zero where the upwind cell carries no bed
+        cx = 0.0;
+        cy = 0.0;
+
+        if(sgx>0.0 && p->DFBED[Im1J]>0 && p->DXP[IM1]>1.0e-20)
+        cx = Lsc*sgx/p->DXP[IM1];
+
+        if(sgx<0.0 && p->DFBED[Ip1J]>0 && p->DXP[IP]>1.0e-20)
+        cx = Lsc*sgx/p->DXP[IP];
+
+        if(sgy>0.0 && p->DFBED[IJm1]>0 && p->DYP[JM1]>1.0e-20)
+        cy = Lsc*sgy/p->DYP[JM1];
+
+        if(sgy<0.0 && p->DFBED[IJp1]>0 && p->DYP[JP]>1.0e-20)
+        cy = Lsc*sgy/p->DYP[JP];
+
+        cxn(i,j) = cx;
+        cyn(i,j) = cy;
+
+        qbe_max = MAX(qbe_max,s->qbe(i,j));
     }
 
-    SEDSLICELOOP
-    q0(i,j) = qbn(i,j);
+    qbe_max = pgc->globalmax(qbe_max);
+    Ls_max = pgc->globalmax(Ls_max);
 
-    pgc->gcsl_start4(p,q0,1);
+
+    // initial guess: equilibrium, afterwards the previous sediment step
+    if(noneq_ini==0)
+    {
+    SEDSLICELOOP
+    qbn(i,j) = s->qbe(i,j);
+
+    noneq_ini=1;
+    }
+
+    pgc->gcsl_start4(p,qbn,1);
+
+
+    // Gauss-Seidel, alternating sweep directions ----------------------------
+    for(iter=0; iter<itermax; ++iter)
+    {
+        const int sweep = iter%4;
+        const bool xrev = (sweep==1 || sweep==2);
+        const bool yrev = (sweep==2 || sweep==3);
+
+        dqmax = 0.0;
+
+        for(int ii=0; ii<p->knox; ++ii)
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+            i = xrev?(p->knox-1-ii):ii;
+            j = yrev?(p->knoy-1-jj):jj;
+
+            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0)
+            {
+            cx = cxn(i,j);
+            cy = cyn(i,j);
+
+            num = s->qbe(i,j);
+            den = 1.0;
+
+            if(cx>0.0)
+            {
+            num += cx*qbn(i-1,j);
+            den += cx;
+            }
+
+            if(cx<0.0)
+            {
+            num -= cx*qbn(i+1,j);
+            den -= cx;
+            }
+
+            if(cy>0.0)
+            {
+            num += cy*qbn(i,j-1);
+            den += cy;
+            }
+
+            if(cy<0.0)
+            {
+            num -= cy*qbn(i,j+1);
+            den -= cy;
+            }
+
+            qnew = num/den;
+
+            dqmax = MAX(dqmax,fabs(qnew-qbn(i,j)));
+
+            qbn(i,j) = qnew;
+            }
+        }
+
+        pgc->gcsl_start4(p,qbn,1);
+
+        dqmax = pgc->globalmax(dqmax);
+
+        if(dqmax<=tol*qbe_max)
+        {
+        ++iter;
+        break;
+        }
     }
 
 
     SEDSLICELOOP
     s->qb(i,j) = qbn(i,j);
+
+    if(p->mpirank==0)
+    cout<<"non-eq. bedload  Ls_max: "<<setprecision(4)<<Ls_max<<"  sweeps: "<<iter<<"  dq/qbe_max: "<<setprecision(3)<<(qbe_max>1.0e-20?dqmax/qbe_max:0.0)<<endl;
 }

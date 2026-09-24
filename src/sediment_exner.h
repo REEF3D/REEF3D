@@ -64,6 +64,7 @@ private:
 	matrix2D M;
     slice4 qbx,qby;
     slice4 qbn;
+    slice4 cxn,cyn;
     
 	int gcval_topo;
     int noneq_ini;    
