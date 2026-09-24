@@ -520,8 +520,8 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     //  One pass per column. Every interior entry is written each call, so the
     //  result is the same as zero-filling everything and writing the active
     //  rows, as before. Rows of a column are consecutive in M, f and CVAL4.
-    const double *const Mp=M.p, *const Mn=M.n, *const Ms=M.s, *const Mw=M.w;
-    const double *const Me=M.e, *const Mt=M.t, *const Mb=M.b, *const R=rhs.V;
+    const double *const Mp=M.p.data(), *const Mn=M.n.data(), *const Ms=M.s.data(), *const Mw=M.w.data();
+    const double *const Me=M.e.data(), *const Mt=M.t.data(), *const Mb=M.b.data(), *const R=rhs.V.data();
     const int *const flag7=p->flag7;
     int err=0;
 
@@ -645,8 +645,8 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
         //  both give bit-identical results.
         if(r0>=0)
         {
-            const double *P=M.p+r0, *Nn=M.n+r0, *S=M.s+r0, *W=M.w+r0, *E=M.e+r0;
-            const double *T=M.t+r0, *B=M.b+r0;
+            const double *P=M.p.data()+r0, *Nn=M.n.data()+r0, *S=M.s.data()+r0, *W=M.w.data()+r0, *E=M.e.data()+r0;
+            const double *T=M.t.data()+r0, *B=M.b.data()+r0;
             const double *xc=x+col, *xn=xc+sx, *xs=xc-sx, *xw=xc+sy, *xe=xc-sy;
             double *yc=y+col;
 

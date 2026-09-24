@@ -103,8 +103,8 @@ void hypre_aij::fill_matrix_7p(lexer* p,fdm* a, ghostcell* pgc, field &f)
         ++n;
     }
 
-    HYPRE_IJVectorSetValues(b, p->N4_row, rows, a->rhsvec.V);
-    HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec.V);
+    HYPRE_IJVectorSetValues(b, p->N4_row, rows, a->rhsvec.V.data());
+    HYPRE_IJVectorSetValues(x, p->N4_row, rows, xvec.V.data());
 
     HYPRE_IJVectorAssemble(b);
     HYPRE_IJVectorGetObject(b, (void **) &par_b);

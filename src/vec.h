@@ -23,21 +23,21 @@ Author: Hans Bihs
 #ifndef VEC_H_
 #define VEC_H_
 
-class lexer;
+#include <vector>
 
-using namespace std;
+class lexer;
 
 class vec
 {
 public:
-
     vec(lexer*);
-    virtual ~vec();
-    
-    void resize(lexer*,int,int);
-    
-	double *V;
+    virtual ~vec() = default;
 
+    void resize(int);
+
+    void reset() {std::fill(V.begin(), V.end(), 0.0);};
+
+    std::vector<double> V;
 };
 
 #endif

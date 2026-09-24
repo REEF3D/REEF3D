@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"momentum.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
+#include <algorithm>
 
 #define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
 
@@ -126,10 +127,9 @@ void sflow_pjm_lin::wcalc(lexer* p, fdm2D* b,double alpha, slice &P, slice &Q, s
 
 void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &P, slice &Q, slice &w, double alpha)
 {
-    NSLICELOOP4
-	b->rhsvec.V[n]=0.0;
-    
-	count=0;
+    b->rhsvec.reset();
+
+    count=0;
     SLICELOOP4
     {
     b->rhsvec.V[count] =   -((P(i,j) - P(i-1,j))*(b->hp(i,j))
