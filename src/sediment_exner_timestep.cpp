@@ -72,6 +72,46 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     p->dtsed = MIN(p->dtsed,ramp_dt(p));
     }
 
+    // bed celerity limit (S103>0)
+    // Exner: dz/dt + S35/(1-n) * dqb/dx = 0  ->  celerity c = S35/(1-n) * dqb/dz
+    // Roe-type estimate across each sediment face, only where |dz| > d50 so that
+    // transport gradients over a flat bed do not produce spurious celerities.
+    // dtsed <= S103 * dx/c
+    if(p->S103>0.0)
+    {
+    double cdx=0.0;
+    double dz,dq;
+    const double dzmin = MAX(p->S20,1.0e-10);
+    const double cfac = p->S35/(1.0-p->S24);
+
+        SEDSLICELOOP
+        {
+            if(i+p->origin_i<p->gknox-1 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
+            {
+            dz = fabs(s->bedzh(i+1,j)-s->bedzh(i,j));
+            dq = fabs(s->qb(i+1,j)-s->qb(i,j));
+
+            if(dz>dzmin)
+            cdx = MAX(cdx, cfac*dq/(dz*p->DXP[IP]));
+            }
+
+            if(p->j_dir==1 && p->gknoy>1)
+            if(j+p->origin_j<p->gknoy-1 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
+            {
+            dz = fabs(s->bedzh(i,j+1)-s->bedzh(i,j));
+            dq = fabs(s->qb(i,j+1)-s->qb(i,j));
+
+            if(dz>dzmin)
+            cdx = MAX(cdx, cfac*dq/(dz*p->DYP[JP]));
+            }
+        }
+
+    cdx = pgc->globalmax(cdx);
+
+    if(cdx>1.0e-20)
+    p->dtsed = MIN(p->dtsed, p->S103/cdx);
+    }
+
     p->dtsed=pgc->timesync(p->dtsed);
     
     //

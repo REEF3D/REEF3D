@@ -38,7 +38,7 @@ sediment_cds::~sediment_cds()
 double sediment_cds::sx(lexer *p, slice &f, double ivel1, double ivel2)
 {   
     if(p->S31==1)
-    grad = (f(i+1,j)*ivel2-f(i-1,j)*ivel1)/(p->DXP[IP]+p->DXP[IM1]);
+    grad = (0.5*(f(i,j)+f(i+1,j))*ivel2 - 0.5*(f(i-1,j)+f(i,j))*ivel1)/p->DXN[IP];
     
     if(p->S31>=2)
     grad = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
@@ -49,7 +49,7 @@ double sediment_cds::sx(lexer *p, slice &f, double ivel1, double ivel2)
 double sediment_cds::sy(lexer *p, slice &f, double jvel1, double jvel2)
 {
     if(p->S31==1)
-    grad = (f(i,j+1)*jvel2-f(i,j-1)*jvel1)/(p->DYP[JP]+p->DYP[JM1]);
+    grad = (0.5*(f(i,j)+f(i,j+1))*jvel2 - 0.5*(f(i,j-1)+f(i,j))*jvel1)/p->DYN[JP];
     
     if(p->S31>=2)
     grad = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);

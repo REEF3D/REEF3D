@@ -151,7 +151,6 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         s->vz(i,j) = 0.0;
 	}
 
-    filter(p,pgc,s->vz,3,5);
     
     pgc->gcsl_start4(p,s->vz,1);
 }
