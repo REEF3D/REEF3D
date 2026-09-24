@@ -59,18 +59,35 @@ void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     print(p);
 }
 
+void net_sheet::updateFluidAcc(lexer *p, bool finalize)
+{
+    // coupledField holds the current stage velocity, coupledFieldn the velocity at t^n
+    if (fluidVelInit_==false)
+    {
+        fluidAcc_ = MatrixXd::Zero(nK,3);
+        
+        for (int i = 0; i < nK; i++)
+        for (int c = 0; c < 3; c++)
+        coupledFieldn[i][c] = coupledField[i][c];
+        
+        fluidVelInit_ = true;
+    }
+    
+    if (finalize==true && p->dt > 0.0)
+    {
+        for (int i = 0; i < nK; i++)
+        for (int c = 0; c < 3; c++)
+        {
+            fluidAcc_(i,c) = (coupledField[i][c] - coupledFieldn[i][c])/p->dt;
+            coupledFieldn[i][c] = coupledField[i][c];
+        }
+    }
+}
+
 void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1 = pgc->timer();    
-    dt_ = alpha*p->dt;
-
-    //- Store old velocities
-    for (int i = 0; i < nK; i++)
-    {
-        coupledFieldn[i][0] = coupledField[i][0];
-        coupledFieldn[i][1] = coupledField[i][1];
-        coupledFieldn[i][2] = coupledField[i][2];
-    }
+    dt_ = p->dt;
 
     //- Get velocities at knots
     updateField_cfd(p,a,pgc,0);
@@ -79,6 +96,11 @@ void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen:
     
     //- Get density at knots
     updateField_cfd(p,a,pgc,3);       
+    
+    //- Fluid acceleration for the inertia force: taken over the full time step in
+    //  the final RK stage and held through the intermediate stages (alpha holds
+    //  the RK weights, not stage time increments, so alpha*dt must not be used)
+    updateFluidAcc(p,finalize);
     
     //- Calculate velocities from rigid body motion
     for (int knotI = 0; knotI < nK; knotI++)
@@ -147,15 +169,7 @@ void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen:
 void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
     double starttime1 = pgc->timer();    
-    dt_ = alpha*p->dt;
-
-    //- Store old velocities
-    for (int i = 0; i < nK; i++)
-    {
-        coupledFieldn[i][0] = coupledField[i][0];
-        coupledFieldn[i][1] = coupledField[i][1];
-        coupledFieldn[i][2] = coupledField[i][2];
-    }
+    dt_ = p->dt;
 
     //- Get velocities at knots
     updateField_nhflow(p,d,pgc,0);
@@ -164,6 +178,11 @@ void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     
     //- Get density at knots
     updateField_nhflow(p,d,pgc,3);       
+    
+    //- Fluid acceleration for the inertia force: taken over the full time step in
+    //  the final RK stage and held through the intermediate stages (alpha holds
+    //  the RK weights, not stage time increments, so alpha*dt must not be used)
+    updateFluidAcc(p,finalize);
     
     //- Calculate velocities from rigid body motion
     for (int knotI = 0; knotI < nK; knotI++)
