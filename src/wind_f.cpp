@@ -28,7 +28,8 @@ Author: Hans Bihs
 
 wind_f::wind_f(lexer *p) 
 {
-    
+    Uref = 31.5; // Zijlema et al. (2012) reference velocity, must be set before Cd is computed
+    Cd = 0.0;
     
     xs = -1.0e10;
     xe =  1.0e10;
@@ -67,10 +68,6 @@ wind_f::wind_f(lexer *p)
         ye = p->A572_ye;
         }
     }
-    
-    
-    
-    Uref = 31.5;
 
 }
 

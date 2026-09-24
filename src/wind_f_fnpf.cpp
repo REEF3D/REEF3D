@@ -28,52 +28,72 @@ Author: Hans Bihs
 
 void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, slice &eta)
 {
-    double windforce,facx,disty;
+    double windforce,xc,yc,xref,yref;
     
+    // A373 1/2: along-wind potential ramp
+    // The ramp is measured from the start of the forcing area and the coordinates are
+    // clamped to [xs,xe] x [ys,ye]: zero upstream of the area, constant downstream of it.
+    // This keeps Fifsf continuous at the area edges (previously it jumped by Cd*U^2*(xs-xmin)
+    // at xs and dropped to zero at xe). Without A372 the ramp is measured from the domain origin
+    // as before.
     if(p->A373<3)
+    {
+    xref = (p->A372==1) ? xs : p->global_xmin;
+    yref = (p->A372==1) ? ys : p->global_ymin;
+    
     SLICELOOP4
     WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
     if(p->A373==1 || eta(i,j)>0.0)
     {
-        
-    windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*(p->XP[IP]-p->global_xmin) + sina*(p->YP[JP]-p->global_ymin));
+    xc = MIN(MAX(p->XP[IP],xs),xe) - xref;
+    yc = (p->j_dir==1) ? (MIN(MAX(p->YP[JP],ys),ye) - yref) : 0.0;
+    
+    windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*xc + sina*yc);
     
     K(i,j) -= windforce;
     }
+    }
     
     
+    // A373 3/4: Jeffreys sheltering, applied as an atmospheric surface pressure
+    // p_a = rho_a * s * (U - c)^2 * d(eta)/dn  on wind-facing slopes (d(eta)/dn > 0),
+    // n = wind direction, s = sheltering coefficient (A 375), c = wave phase speed.
+    // Dynamic FSBC: dFi/dt = ... - p_a/rho_w
+    // A373==4 restricts the forcing further to the crests (eta > 0).
+    // A374==1 (with A372) applies the cos^2 downwind decay over [xs,xe] as in NHFLOW.
     if(p->A373==3 || p->A373==4)
+    {
+    double cph,dU,slope,psi,pa;
+    
+    cph = (p->A375_c>0.0) ? p->A375_c : p->wC;
+    dU = p->A371_u - cph;
+    
+    if(dU>0.0)
     SLICELOOP4
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    {
-    Sx = c->Ex(i,j);
-    Sy = c->Ey(i,j);
-    
-    if(Sx*cosa>0.0)
-    Sx = 1.0;
-    
-    else
-    Sx = 0.0;
-    
-    
-    if(Sy*sina>0.0)
-    Sy = 1.0;
-    
-    else
-    Sy = 0.0;
-    
-    windforce = 0.0;
-    
     if(p->A373==3 || eta(i,j)>0.0)
-    windforce = (p->W3/p->W1)*Cd*p->A371_u*p->A371_u*(cosa*(p->XP[IP]-p->global_xmin)*Sx + sina*(p->YP[JP]-p->global_ymin)*Sy);
+    {
+    slope = cosa*c->Ex(i,j);
     
-    K(i,j) -= windforce;
+    if(p->j_dir==1)
+    slope += sina*c->Ey(i,j);
+    
+    if(slope>0.0)
+    {
+    psi = 1.0;
+    
+    if(p->A374==1 && p->A372==1)
+    {
+    psi = cos(0.5*PI*(p->XP[IP]-xs)/(xe-xs));
+    psi = psi*psi;
+    }
+    
+    pa = p->W3*p->A375_s*dU*dU*slope;
+    
+    K(i,j) -= psi*pa/p->W1;
+    }
+    }
     }
 }
-
-
-

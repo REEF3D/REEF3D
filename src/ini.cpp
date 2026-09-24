@@ -109,6 +109,9 @@ void control::ini_default()
     A372=0;      // int wind forcing area
     A372_xs=A372_xe=A372_ys=A372_ye=0.0; // double wind forcing area
     A373=1;      // int wind forcing region
+    A374=0;      // int wind decay
+    A375_s=0.5;  // double Jeffreys sheltering coefficient
+    A375_c=0.0;  // double wave phase speed for Jeffreys forcing, <=0: use wave generation celerity
 
     
     // PTF
