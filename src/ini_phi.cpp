@@ -77,11 +77,21 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
         }
     }
 
-    if(p->F60>-1.0e20)
+    if(p->F60>-1.0e20 && p->F50_flag==0)
     {
         LOOP
         a->phi(i,j,k)=p->F60-p->pos_z();
 
+        p->phimean=p->F60;
+        
+    }
+    
+    if(p->F60>-1.0e20 && p->F50_flag==1)
+    {
+        LOOP
+        if(p->ZN[KP]<p->F60)
+            a->phi(i,j,k)=1.0;
+            
         p->phimean=p->F60;
         
     }
