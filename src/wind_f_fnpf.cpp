@@ -103,88 +103,13 @@ void wind_f::wind_forcing_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &K, 
     }
     
     
-    // wind input via surface pressure
+    // wind input via surface pressure, dFi/dt = ... - p_a/rho_w
     if(p->A373==3 || p->A373==4)
     {
-    double P,w,psi,sc,cph,dU;
+    wind_pressure(p,pgc,eta,p->A373,p->A371_u,p->A375,p->A376_s,p->A376_sc,p->A376_c,p->A378,p->A374,p->A372);
     
-    // pressure amplitude per unit slope, p_a = P*deta/dn
-    P = 0.0;
-    
-    if(p->A373==3)
-    P = p->A375*p->W3*Cd*p->A371_u*p->A371_u;
-    
-    sc = MAX(p->A376_sc, 1.0e-6);
-    
-    if(p->A373==4)
-    {
-    cph = (p->A376_c>0.0) ? p->A376_c : p->wC;
-    dU = MAX(p->A371_u - cph, 0.0);
-    P = p->A376_s*p->W3*dU*dU;
-    }
-    
-    // along-wind slope, central differences
-    SLICELOOP4
-    {
-    (*Sw)(i,j) = 0.0;
-    
-    if(p->wet[IJ]==1)
-    {
-    (*Sw)(i,j) = cosa*(eta(i+1,j) - eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
-    
-    if(p->j_dir==1)
-    (*Sw)(i,j) += sina*(eta(i,j+1) - eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
-    }
-    }
-    
-    // low-pass filter (1-2-1 passes, A 378): the input grows like (u*/c)^2, so without it 
-    // unresolved grid-scale waves receive the strongest forcing and grow without bound.
-    // Response per pass cos^2(pi*dx/L): 40 cells per wave, 4 passes -> 0.976; 4 cells -> 0.06.
-    for(int q=0; q<p->A378; ++q)
-    {
-        pgc->gcsl_start4(p,*Sw,1);
-        
-        SLICELOOP4
-        (*Stmp)(i,j) = 0.25*(*Sw)(i-1,j) + 0.5*(*Sw)(i,j) + 0.25*(*Sw)(i+1,j);
-        
-        SLICELOOP4
-        (*Sw)(i,j) = (p->wet[IJ]==1) ? (*Stmp)(i,j) : 0.0;
-        
-        if(p->j_dir==1)
-        {
-        pgc->gcsl_start4(p,*Sw,1);
-        
-        SLICELOOP4
-        (*Stmp)(i,j) = 0.25*(*Sw)(i,j-1) + 0.5*(*Sw)(i,j) + 0.25*(*Sw)(i,j+1);
-        
-        SLICELOOP4
-        (*Sw)(i,j) = (p->wet[IJ]==1) ? (*Stmp)(i,j) : 0.0;
-        }
-    }
-    
-    if(P>0.0)
     SLICELOOP4
     WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    {
-    const double slope = (*Sw)(i,j);
-    
-    // Jeffreys: steep faces only, smooth switch-on over 0.8..1.0 of the critical slope
-    w = 1.0;
-    
-    if(p->A373==4)
-    w = MIN(MAX((fabs(slope) - 0.8*sc)/(0.2*sc), 0.0), 1.0);
-    
-    psi = 1.0;
-    
-    if(p->A374==1 && p->A372==1)
-    {
-    psi = cos(0.5*PI*(p->XP[IP]-xs)/(xe-xs));
-    psi = psi*psi;
-    }
-    
-    K(i,j) -= psi*w*P*slope/p->W1;
-    }
+    K(i,j) -= (*Pa)(i,j)/p->W1;
     }
 }

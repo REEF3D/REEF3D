@@ -25,78 +25,75 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include"slice4.h"
+
+// NHFLOW wind forcing, momentum sources d(UH)/dt = F, d(VH)/dt = G
+//
+// A573 == 1 : surface shear stress tau = rho_a*Cd*U10^2 in the top sigma layer,
+//             F += tau_x/(rho_w*dsigma_top), i.e. an acceleration tau_x/(rho_w*dz_top) in that layer
+//             (same scaling as the bed shear stress in nhflow_bcmom::roughness_u).
+//             Depth-integrated: d(hU)/dt = tau_x/rho_w, closed-basin setup g*h*deta/dx = tau_x/rho_w.
+// A573 == 2 : deprecated (crest-masked stress), treated as A573 == 1.
+// A573 == 3 : Miles/Plant wave growth via surface pressure,  A573 == 4 : modified Jeffreys,
+//             see wind_f::wind_pressure (A 575, A 576, A 578). The atmospheric pressure is transmitted
+//             through the water column, so it acts in every layer: F -= WL/rho_w * dp_a/dx.
+// A574 == 1 (with A572): cos^2 downwind decay over [xs,xe], all modes.
 
 void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
 {
-    k=p->knoz-1;
-    double psi, xpos; // wind decay
-    
-    if(p->A573<3)
-    SLICELOOP4
-    WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A573==1 || eta(i,j)>0.0)
-        {
-            psi = cos(0.5*PI*(p->XP[IP]-xs)/(xe-xs));
-            psi = psi*psi;
-            F[IJK] += psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
-        }
-    
-    if(p->A573==3 || p->A573==4)
-    SLICELOOP4
-    WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    {
-    Sx = d->Ex(i,j);
-    xpos = p->XP[IP];
-    
-    psi = 1.0;
-    
-    if(p->A574==1)
-    {
-    psi = cos(0.5*PI*(xpos - xs)/(xe - xs));
-    psi = psi*psi;
-    }
-    
-    
-    if(p->A573==3 || eta(i,j)>0.0)
-    if(Sx*cosa>0.0)
-    F[IJK] += psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
-    
-    
-    d->test2D(i,j) = 0.0;
-    
-    if(Sx*cosa>0.0)
-    if(p->A573==3 || eta(i,j)>0.0)
-    d->test2D(i,j) = psi*WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*cosa;
-    }
+    wind_forcing_nhf_dir(p,d,pgc,F,WL,eta,0);
 }
 
 void wind_f::wind_forcing_nhf_y(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *G, slice &WL, slice &eta)
 {
-    k=p->knoz-1;
+    if(p->j_dir==1)
+    wind_forcing_nhf_dir(p,d,pgc,G,WL,eta,1);
+}
+
+void wind_f::wind_forcing_nhf_dir(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F, slice &WL, slice &eta, int dir)
+{
+    const double comp = (dir==0) ? cosa : sina;
+    double psi,dpdx;
     
-    if(p->A573<3)
-    SLICELOOP4
-    WETDRY
-    if( p->XP[IP]>xs && p->XP[IP]<xe)
-    if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
-    if(p->A573==1 || eta(i,j)>0.0)
-    G[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*sina;
+    // surface shear stress, top layer
+    if(p->A573==1 || p->A573==2)
+    {
+    k = p->knoz-1;
     
-    if(p->A573==3 || p->A573==3)
     SLICELOOP4
     WETDRY
     if( p->XP[IP]>xs && p->XP[IP]<xe)
     if((p->YP[JP]>ys && p->YP[JP]<ye) || p->j_dir==0)
     {
-    Sx = d->Ex(i,j);
+    psi = 1.0;
     
-    if(p->A573==3 || eta(i,j)>0.0)
-    if(Sy*sina>0.0)
-    G[IJK] += WL(i,j)*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*sina;
+    if(p->A574==1 && p->A572==1)
+    {
+    psi = cos(0.5*PI*(p->XP[IP]-xs)/(xe-xs));
+    psi = psi*psi;
+    }
+    
+    F[IJK] += psi*(p->W3/p->W1)*Cd*p->A571_u*p->A571_u*comp/p->DZN[KP];
+    }
+    }
+    
+    // wave growth, surface pressure gradient over the whole column
+    if(p->A573==3 || p->A573==4)
+    {
+    wind_pressure(p,pgc,eta,p->A573,p->A571_u,p->A575,p->A576_s,p->A576_sc,p->A576_c,p->A578,p->A574,p->A572);
+    
+    pgc->gcsl_start4(p,*Pa,1);
+    
+    LOOP
+    WETDRY
+    {
+    if(dir==0)
+    dpdx = ((*Pa)(i+1,j) - (*Pa)(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+    
+    if(dir==1)
+    dpdx = ((*Pa)(i,j+1) - (*Pa)(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
+    
+    F[IJK] -= WL(i,j)*dpdx/p->W1;
+    }
     }
 }
-

@@ -186,6 +186,11 @@ void control::ini_default()
     A572_xs=A572_xe=A572_ys=A572_ye=0.0; // double wind forcing area
     A573=1;      // int wind forcing region
     A574=0;      // int wind decay 
+    A575=32.0;   // double Miles/Plant wind input coefficient beta
+    A576_s=0.5;  // double Jeffreys sheltering coefficient
+    A576_sc=0.3; // double Jeffreys critical slope
+    A576_c=0.0;  // double Jeffreys wave phase speed, <=0: use wave generation celerity
+    A578=4;      // int low-pass filter passes on the wind forcing slope
     
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y

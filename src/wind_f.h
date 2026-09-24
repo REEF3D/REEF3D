@@ -50,15 +50,17 @@ public:
 private:
     void wind_forcing_drag_coeff_fnpf(lexer*);
     void wind_forcing_drag_coeff_nhflow(lexer*);
+    void wind_pressure(lexer*, ghostcell*, slice&, int, double, double, double, double, double, int, int, int);
+    void wind_forcing_nhf_dir(lexer*, fdm_nhf*, ghostcell*, double*, slice&, slice&, int);
     
     double Cd;
     double cosa,sina;
-    double Sx,Sy;
     double xs,xe,ys,ye;
     
     double Uref;
     double href;
-    slice4 *Sw, *Stmp; // along-wind slope, filtered (FNPF pressure modes)
+    slice4 *Sw, *Stmp; // along-wind slope, filtered (pressure modes)
+    slice4 *Pa;        // wind surface pressure [Pa] (pressure modes)
     int href_set;
 
 };
