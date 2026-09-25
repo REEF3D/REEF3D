@@ -199,20 +199,28 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     }
     
     // boundary faces
-    //  walls: no mass flux, momentum flux = hydrostatic pressure of the wall cell
+    //  walls: no mass flux, momentum flux from the mirrored ghost state (see below)
     //  inflow (gcslin) / outflow (gcslout): physical flux of the ghost state
     slice &Fx = (ipol==4)?b->FEx:b->Fx;
     slice &Fy = (ipol==4)?b->FEy:b->Fy;
     
     const double g = fabs(p->W22);
+    double wc,sw;
     
+    //  walls: HLL flux with the mirrored ghost state, F = F_i -/+ s q_i
+    //  (s = |u| + sqrt(gH)); the normal momentum of the wall cell is coupled to the wall
     SLICELOOP4
     {
+    wc = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
         // x-dir
         if(p->flagslice4[Im1J]<0)
         {
+        sw = fabs(b->U(i,j)) + sqrt(g*wc);
+        
         if(ipol==1)
-        Fx(i-1,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i-1,j);
+        Fx(i-1,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i-1,j)
+                  + wc*b->U(i,j)*b->U(i,j) - sw*wc*b->U(i,j);
         
         else
         Fx(i-1,j) = 0.0;
@@ -220,8 +228,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         
         if(p->flagslice4[Ip1J]<0)
         {
+        sw = fabs(b->U(i,j)) + sqrt(g*wc);
+        
         if(ipol==1)
-        Fx(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i,j);
+        Fx(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfx(i,j)
+                + wc*b->U(i,j)*b->U(i,j) + sw*wc*b->U(i,j);
         
         else
         Fx(i,j) = 0.0;
@@ -232,8 +243,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         {
             if(p->flagslice4[IJm1]<0)
             {
+            sw = fabs(b->V(i,j)) + sqrt(g*wc);
+            
             if(ipol==2)
-            Fy(i,j-1) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j-1);
+            Fy(i,j-1) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j-1)
+                      + wc*b->V(i,j)*b->V(i,j) - sw*wc*b->V(i,j);
             
             else
             Fy(i,j-1) = 0.0;
@@ -241,8 +255,11 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
             
             if(p->flagslice4[IJp1]<0)
             {
+            sw = fabs(b->V(i,j)) + sqrt(g*wc);
+            
             if(ipol==2)
-            Fy(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j);
+            Fy(i,j) = 0.5*g*b->eta(i,j)*b->eta(i,j) + g*b->eta(i,j)*b->dfy(i,j)
+                    + wc*b->V(i,j)*b->V(i,j) + sw*wc*b->V(i,j);
             
             else
             Fy(i,j) = 0.0;

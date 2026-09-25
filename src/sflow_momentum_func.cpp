@@ -394,7 +394,7 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
 {
     // mode 0: interior cells, 1: + ghost cells, 2: + ghost cells + staggered diagnostics
     const double g = fabs(p->W22);
-    double lim;
+    double lim,fac;
     
     // Boussinesq: UH,VH hold V; u_a from V (after the momentum update), then M and U=M/H
     if(bous==1)
@@ -424,8 +424,22 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
             if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
             lim *= 0.1;
             
-            b->MX(i,j) = MAX(MIN(b->MX(i,j), lim), -lim);
-            b->MY(i,j) = MAX(MIN(b->MY(i,j), lim), -lim);
+            // limit M and scale V and u_a consistently (V is the prognostic variable)
+            if(fabs(b->MX(i,j))>lim)
+            {
+            fac = lim/fabs(b->MX(i,j));
+            b->MX(i,j) *= fac;
+            b->UA(i,j) *= fac;
+            UH(i,j) *= fac;
+            }
+            
+            if(fabs(b->MY(i,j))>lim)
+            {
+            fac = lim/fabs(b->MY(i,j));
+            b->MY(i,j) *= fac;
+            b->VA(i,j) *= fac;
+            VH(i,j) *= fac;
+            }
             
             b->U(i,j) = b->MX(i,j)/WLVL;
             b->V(i,j) = b->MY(i,j)/WLVL*p->y_dir;
