@@ -76,8 +76,9 @@ void control::ini_default()
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=0;      // int 
     A323=1;      // int PTF FSF extrapolation
-    A329=1;      // int wave maker BC order
     A326=0.0;    // double static coastline (A343 1): coastline relaxation towards the running mean of eta, Fi over this time scale (s) instead of 0; 0 = relax to 0
+    A329=1;      // int wave maker BC order
+    
     
     A330=10;     // int dynamic wetting-drying (A343 2/3): minimum number of time steps a rewetted cell stays wet
     A331=1.0;    // double dynamic wetting-drying (A343 2/3): rewetting hysteresis margin as factor of A344
