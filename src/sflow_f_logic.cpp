@@ -111,6 +111,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sediment_f(p,pgc,pturbcfd,pBC);
 	
 	// solver
+    //  N 10 1: REEFMG, the same multigrid as for FNPF, NHFLOW and CFD, run
+    //  on the slice (reefmg2D); otherwise hypre (N 10 11-19)
+    if(p->N10==1)
+	ppoissonsolv = new reefmg2D(p,pgc);
+    
+    if(p->N10!=1)
 	ppoissonsolv = new hypre_struct2D(p,pgc);
     
     

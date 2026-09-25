@@ -111,6 +111,21 @@ public:
     sc_level& fine(){return lev[0];}
     const sc_level& coarsest() const {return lev.back();}
     int levels() const {return (int)lev.size();}
+
+    //  Use only the first n levels of the hierarchy built by setup(), without
+    //  rebuilding it: level n-1 becomes the coarsest and gets the coarsest-
+    //  level sweeps.  For problems whose operator screens the smooth modes -
+    //  a reaction term, as in the depth-averaged non-hydrostatic pressure -
+    //  levels coarser than the screening length only cost time.  Clamped to
+    //  [1,levels()]; setup() resets it to levels().  Takes effect at the next
+    //  coarsen(), and all ranks must pass the same n.  With a truncated
+    //  hierarchy the agglomerated coarse solve is bypassed.
+    void set_active_levels(int n)
+    {
+        const int nl=(int)lev.size();
+        nuse=(n<1?1:(n>nl?nl:n));
+    }
+    int active_levels() const {return nuse;}
     const char* err() const {return errmsg;}
 
     //  Build the coarse operators from the fine ones.  Call after the fine
@@ -190,6 +205,7 @@ private:
 
     void line_gs(sc_level &L,int l,int sweeps,int dir);   // dir 0 fwd, 1 bwd, 2 symmetric
     template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
+    template<class C> void point_gs_t(sc_level &L,int sweeps,int dir);   // nz==1
     template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
     template<class C> void residual_t(sc_level &L);
     template<class T> void coarsen_t();
@@ -215,10 +231,13 @@ private:
     std::vector<double> kr,krhat,kp,kv,kt,ky,kz;
 
     int coarse_sweeps;
+    int nuse;                // levels in use, see set_active_levels()
     int pcbits;              // 64 or 32: storage precision of the coefficients
     sc_operator *fineop;     // exact fine operator, required in fp32 mode
     int ordering;            // 0 lexicographic, 1 red-black batched
     std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
+    std::vector<int> pj,pja;             // prolongation tables for nz==1
+    std::vector<double> pwy;
     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
     int nfallback;
     char errmsg[512];

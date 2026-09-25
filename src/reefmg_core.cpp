@@ -110,6 +110,7 @@ reefmg_core::reefmg_core()
     aggmode=0;
     agg_cycles=1;
     agg_cells=0;
+    nuse=0;
     errmsg[0]='\0';
 }
 
@@ -242,6 +243,9 @@ bool reefmg_core::setup(MPI_Comm cart,
     sbuf.assign(2*mx,0.0); rbuf.assign(2*mx,0.0);
 
     build_widths(dxn,dyn);
+
+    //  every level in use until the host asks for fewer
+    nuse=(int)lev.size();
 
     if(aggmode==1 && nprocs>1)
     setup_agglomeration(npx,npy);
@@ -381,14 +385,16 @@ void reefmg_core::coarsen()
 
     factor_lines();
 
-    if(agg)
+    //  the agglomerated coarse solve replaces the coarsest level only; with
+    //  the hierarchy truncated it would never be reached
+    if(agg && nuse==(int)lev.size())
     gather_coarse_matrix();
 }
 
 template<class T>
 void reefmg_core::coarsen_t()
 {
-    for(int l=0;l+1<(int)lev.size();++l)
+    for(int l=0;l+1<nuse;++l)
     {
         sc_level &F=lev[l];
         sc_level &C=lev[l+1];
@@ -512,7 +518,7 @@ void reefmg_core::factor_lines()
 template<class T>
 void reefmg_core::factor_lines_t()
 {
-    for(size_t l=0;l<lev.size();++l)
+    for(int l=0;l<nuse;++l)
     {
         sc_level &L=lev[l];
         const int nz=L.nz;
@@ -654,9 +660,61 @@ void reefmg_core::line_zebra_t(sc_level &L,int sweeps,int dir)
     }
 }
 
+//  Single layer (nz==1, the depth-averaged solvers): the column solve is a
+//  division by the diagonal, so the sweep is point Gauss-Seidel.  Same
+//  arithmetic as line_gs_t in the same order, hence bit-identical, but with
+//  the row addressing hoisted out of the inner loop - the generic kernel
+//  spends most of its time on per-column index arithmetic and three k loops
+//  of length one.
+template<class C>
+void reefmg_core::point_gs_t(sc_level &L,int sweeps,int dir)
+{
+    const sc_view<C> V=coef<C>(L);
+    const long sx=(long)(L.ny+2);
+    const int ny=L.ny;
+
+    const double *Lf=&L.f[0];
+    const C *Ln=V.n, *Ls=V.s, *Lw=V.w, *Le=V.e, *Ti=V.ti;
+    double *Lu=&L.u[0];
+
+    const int p0=(dir==1?1:0), p1=(dir==0?1:2);
+
+    for(int sw=0;sw<sweeps;++sw)
+    for(int pass=p0;pass<p1;++pass)
+    {
+        halo(L);
+
+        const int i0=(pass==0?0:L.nx-1);
+        const int i1=(pass==0?L.nx:-1);
+        const int di=(pass==0?1:-1);
+
+        for(int i=i0;i!=i1;i+=di)
+        {
+            const long q0=L.idx(i,0,0);
+            const char *ca=&L.colact[(long)i*ny];
+
+            for(int j=0;j<ny;++j)
+            {
+                if(ca[j]==0) continue;
+
+                const long q=q0+j;
+                double r=Lf[q]-Ln[q]*Lu[q+sx]-Ls[q]*Lu[q-sx]-Lw[q]*Lu[q+1]-Le[q]*Lu[q-1];
+                r*=Ti[q];
+                Lu[q]=r;
+            }
+        }
+    }
+}
+
 template<class C>
 void reefmg_core::line_gs_t(sc_level &L,int sweeps,int dir)
 {
+    if(L.nz==1)
+    {
+        point_gs_t<C>(L,sweeps,dir);
+        return;
+    }
+
     const sc_view<C> V=coef<C>(L);
     const int nz=L.nz;
     std::vector<double> rhs(nz);
@@ -760,6 +818,27 @@ void reefmg_core::residual_t(sc_level &L)
     const sc_view<C> V=coef<C>(L);
     halo(L);
 
+    //  single layer: same sums in the same order as column_apply
+    if(L.nz==1)
+    {
+        const long sx=(long)(L.ny+2);
+        const double *u=&L.u[0], *f=&L.f[0];
+        double *r=&L.r[0];
+
+        for(int i=0;i<L.nx;++i)
+        {
+            const long q0=L.idx(i,0,0);
+
+            for(int j=0;j<L.ny;++j)
+            {
+                const long q=q0+j;
+                const double y=V.p[q]*u[q]+V.n[q]*u[q+sx]+V.s[q]*u[q-sx]+V.w[q]*u[q+1]+V.e[q]*u[q-1];
+                r[q]=f[q]-y;
+            }
+        }
+        return;
+    }
+
     for(int i=0;i<L.nx;++i)
     for(int j=0;j<L.ny;++j)
     {
@@ -784,6 +863,34 @@ void reefmg_core::restrict_xy(sc_level &F,sc_level &C)
     std::fill(C.u.begin(),C.u.end(),0.0);
 
     const int nz=C.nz;
+
+    //  single layer: children addressed directly, same sums in the same order
+    if(nz==1)
+    {
+        for(int I=0;I<C.nx;++I)
+        {
+            const int i0=C.rx*I, i1=(C.rx==2 && i0+1<F.nx)? i0+1 : -1;
+            const double *r0=&F.r[F.idx(i0,0,0)];
+            const double *r1=(i1>=0)? &F.r[F.idx(i1,0,0)] : 0;
+            double *cf=&C.f[C.idx(I,0,0)];
+
+            for(int J=0;J<C.ny;++J)
+            {
+                const int j0=C.ry*J, j1=(C.ry==2 && j0+1<F.ny)? j0+1 : -1;
+
+                //  children in the order of the generic loop: (a,b) = (0,0),(0,1),(1,0),(1,1)
+                if(r1 && j1>=0)
+                cf[J]=(((r0[j0]+r0[j1])+r1[j0])+r1[j1])*0.25;
+                else if(r1)
+                cf[J]=(r0[j0]+r1[j0])*0.5;
+                else if(j1>=0)
+                cf[J]=(r0[j0]+r0[j1])*0.5;
+                else
+                cf[J]=r0[j0];
+            }
+        }
+        return;
+    }
 
     for(int I=0;I<C.nx;++I)
     for(int J=0;J<C.ny;++J)
@@ -825,6 +932,49 @@ void reefmg_core::prolong_xy(const sc_level &C,sc_level &F)
 {
     const int nz=F.nz;
 
+    //  single layer: the j-dependent part of the interpolation is the same
+    //  for every i, so it is tabulated once; same weights, same sums
+    if(nz==1)
+    {
+        pj.resize(F.ny); pja.resize(F.ny); pwy.resize(F.ny);
+
+        for(int j=0;j<F.ny;++j)
+        {
+            const int J=j/C.ry;
+            int Ja=J;
+            double wy=1.0;
+            if(C.ry==2){Ja=(j%2==0)? J-1 : J+1; wy=0.75;}
+            Ja=std::max(0,std::min(C.ny-1,Ja));
+            pj[j]=J; pja[j]=Ja; pwy[j]=wy;
+        }
+
+        for(int i=0;i<F.nx;++i)
+        {
+            const int I=i/C.rx;
+            int Ia=I;
+            double wx=1.0;
+            if(C.rx==2){Ia=(i%2==0)? I-1 : I+1; wx=0.75;}
+            Ia=std::max(0,std::min(C.nx-1,Ia));
+
+            const double *cI =&C.u[C.idx(I ,0,0)];
+            const double *cIa=&C.u[C.idx(Ia,0,0)];
+            const long q0=F.idx(i,0,0);
+            const char *ca=&F.colact[(long)i*F.ny];
+
+            for(int j=0;j<F.ny;++j)
+            {
+                if(ca[j]==0) continue;
+
+                const double wy=pwy[j];
+                const double w00=wx*wy, w10=(1.0-wx)*wy, w01=wx*(1.0-wy), w11=(1.0-wx)*(1.0-wy);
+                const int J=pj[j], Ja=pja[j];
+
+                F.u[q0+j]+=(w00*cI[J]+w10*cIa[J]+w01*cI[Ja]+w11*cIa[Ja])*double(F.act[q0+j]);
+            }
+        }
+        return;
+    }
+
     for(int i=0;i<F.nx;++i)
     for(int j=0;j<F.ny;++j)
     {
@@ -856,9 +1006,9 @@ void reefmg_core::vcycle(int l,int pre,int post)
 {
     sc_level &L=lev[l];
 
-    if(l==(int)lev.size()-1)
+    if(l==nuse-1)
     {
-        if(agg) coarse_solve_agg();
+        if(agg && nuse==(int)lev.size()) coarse_solve_agg();
         else    line_gs(L,l,coarse_sweeps,2);
         return;
     }

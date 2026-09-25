@@ -44,6 +44,7 @@
       <VirtualDirectory Name="REEFMG">
         <File Name="reefmg.h"/>
         <File Name="reefmg_core.h"/>
+        <File Name="reefmg2D.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.h"/>
@@ -1220,6 +1221,7 @@
       <VirtualDirectory Name="REEFMG">
         <File Name="reefmg.cpp"/>
         <File Name="reefmg_core.cpp"/>
+        <File Name="reefmg2D.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>
