@@ -177,6 +177,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     // FSF ini
     ini_fsf_2(p,b,pgc);
     
+    // 6DOF ini: ship-wave draft depresses eta (X 10 3, X 207 0); must precede ini_wl so WL, wet/dry and UH,VH follow
+    p6dof->initialize(p, b, pgc);
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    
     ini_wl(p,b,pgc);
     
     // conserved variables UH,VH,WH and ghost cells
@@ -190,9 +194,6 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     //sediment ini
     psed->ini_sflow(p,b,pgc);
-
-    //6DOF ini
-    p6dof->initialize(p, b, pgc);
 
     // print
     log_ini(p);
