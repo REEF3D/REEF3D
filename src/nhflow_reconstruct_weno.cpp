@@ -32,6 +32,9 @@ nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *pp
     p->Darray(DFDX,p->imax*p->jmax*(p->kmax+2));
     
     uf=vf=wf=0;
+    
+    // nonlinear weights for all reconstruction paths (A527: 0 WENO-JS, 1 WENO-Z, 2 TENO5)
+    set_weno_weights(p->A527,p->A528);
 }
 
 nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
@@ -217,9 +220,16 @@ static inline __attribute__((always_inline)) void weno_is(const weno_coef &c, in
     is3 = c.isf[s+2][0]*dq12*dq12 + c.isf[s+2][1]*(dq32)*(dq12) + c.isf[s+2][2]*dq32*dq32;
 }
 
-static inline __attribute__((always_inline)) void weno_w(const weno_coef &c, int s, double epsilon, double psi, double is1, double is2, double is3,
+template<int WT>
+static inline __attribute__((always_inline)) void weno_w(const weno_coef &c, int s, double epsilon, double psi, double ct, double is1, double is2, double is3,
                    double &w1, double &w2, double &w3)
 {
+    if constexpr(WT!=0)
+    {
+    weno_weights_zt(WT,ct,psi,c.cf[s+0],c.cf[s+1],c.cf[s+2],is1,is2,is3,w1,w2,w3);
+    return;
+    }
+    
     const double a1 = is1 + psi;
     const double a2 = is2 + psi;
     const double a3 = is3 + psi;
@@ -230,7 +240,8 @@ static inline __attribute__((always_inline)) void weno_w(const weno_coef &c, int
 }
 
 // left state at face i+1/2 from F[-2..2], right state from F[-1..3] (stride st)
-static inline __attribute__((always_inline)) void weno_face(const weno_coef &c, double epsilon, double psi, const double *F, long st,
+template<int WT>
+static inline __attribute__((always_inline)) void weno_face(const weno_coef &c, double epsilon, double psi, double ct, const double *F, long st,
                       double &fs, double &fn)
 {
     double is1,is2,is3,w1,w2,w3;
@@ -239,7 +250,7 @@ static inline __attribute__((always_inline)) void weno_face(const weno_coef &c, 
     {
     const double q1=F[-2*st], q2=F[-st], q3=F[0], q4=F[st], q5=F[2*st];
     weno_is(c,0,q1,q2,q3,q4,q5,is1,is2,is3);
-    weno_w (c,0,epsilon,psi,is1,is2,is3,w1,w2,w3);
+    weno_w<WT>(c,0,epsilon,psi,ct,is1,is2,is3,w1,w2,w3);
 
     fs =  w1*(q4 + c.qf[0][0]*(q3-q4) - c.qf[0][1]*(q5-q4))
         + w2*(q3 + c.qf[1][0]*(q4-q3) - c.qf[1][1]*(q2-q3))
@@ -250,7 +261,7 @@ static inline __attribute__((always_inline)) void weno_face(const weno_coef &c, 
     {
     const double q1=F[-st], q2=F[0], q3=F[st], q4=F[2*st], q5=F[3*st];
     weno_is(c,3,q1,q2,q3,q4,q5,is1,is2,is3);
-    weno_w (c,3,epsilon,psi,is1,is2,is3,w1,w2,w3);
+    weno_w<WT>(c,3,epsilon,psi,ct,is1,is2,is3,w1,w2,w3);
 
     fn =  w1*(q4 + c.qf[3][0]*(q3-q4) + c.qf[3][1]*(q5-q4))
         + w2*(q3 + c.qf[4][0]*(q2-q3) - c.qf[4][1]*(q4-q3))
@@ -266,7 +277,8 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     wf=0;
 
     const long sti = long(p->jmax)*long(p->kmax);
-    const double eps_ = epsilon, psi_ = psi;
+    const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
+    const int wt_ = wtype;
     const int *__restrict flag = p->flag1;
     weno_coef c;
 
@@ -286,8 +298,16 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
             const int kn = (nk-k0<WCHUNK) ? nk-k0 : WCHUNK;
             double ts[WCHUNK], tn[WCHUNK];
 
+                // weight type is fixed per run: branch per chunk, inner loops stay branch-free
+                if(wt_==0)
                 for(int kk=0; kk<kn; ++kk)
-                weno_face(c, eps_, psi_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
+                weno_face<0>(c, eps_, psi_, ct_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
+                else if(wt_==1)
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<1>(c, eps_, psi_, ct_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
+                else
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<2>(c, eps_, psi_, ct_, Fx+n0+k0+kk, sti, ts[kk], tn[kk]);
 
                 for(int kk=0; kk<kn; ++kk)
                 {
@@ -315,7 +335,8 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
     if(p->j_dir==1)
     {
     const long stj = long(p->kmax);
-    const double eps_ = epsilon, psi_ = psi;
+    const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
+    const int wt_ = wtype;
     const int *__restrict flag = p->flag2;
     weno_coef c;
 
@@ -334,8 +355,16 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
             const int kn = (nk-k0<WCHUNK) ? nk-k0 : WCHUNK;
             double ts[WCHUNK], tn[WCHUNK];
 
+                // weight type is fixed per run: branch per chunk, inner loops stay branch-free
+                if(wt_==0)
                 for(int kk=0; kk<kn; ++kk)
-                weno_face(c, eps_, psi_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
+                weno_face<0>(c, eps_, psi_, ct_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
+                else if(wt_==1)
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<1>(c, eps_, psi_, ct_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
+                else
+                for(int kk=0; kk<kn; ++kk)
+                weno_face<2>(c, eps_, psi_, ct_, Fy+n0+k0+kk, stj, ts[kk], tn[kk]);
 
                 for(int kk=0; kk<kn; ++kk)
                 {

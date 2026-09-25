@@ -23,7 +23,7 @@ Author: Hans Bihs
 #include"weno_nug_func.h"
 #include"lexer.h"
 
-weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6)
+weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
 {
     ini(p);
 

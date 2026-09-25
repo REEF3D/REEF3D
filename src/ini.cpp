@@ -72,6 +72,8 @@ void control::ini_default()
     A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC)
     A316=1;      // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours
     A317=1;      // int bed metrics: 0 legacy (Bxx=Byy=0, left-biased Bx without wetting-drying), 1 bed curvature on, symmetric Bx
+    A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
     A320=1;		  // int order of Laplace equation
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=0;      // int 
@@ -155,6 +157,8 @@ void control::ini_default()
     A524=2;      // int sigma gradients
     A525=0;      // int 
     A526=1.1;    // double direct forcing factor
+    A527=0;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    A528=1.0e-5; // double NHFLOW TENO5 cutoff C_T (A527 2)
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 

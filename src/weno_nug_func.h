@@ -31,6 +31,65 @@ Author: Hans Bihs
 
 using namespace std;
 
+#include<cmath>
+
+// Nonlinear WENO5 weights other than WENO-JS, shared by all weno_nug_func users and the
+// NHFLOW register kernel. c1..c3 are the (non-uniform grid) ideal weights, is1..is3 the
+// smoothness indicators in weno_nug_func ordering: is1 on {q3,q4,q5}, is3 on {q1,q2,q3},
+// so tau5 = |is1 - is3| is the usual |beta_0 - beta_2|.
+//   type 1: WENO-Z, p = 2 (Borges et al. 2008, JCP 227; Castro et al. 2011, JCP 230)
+//   type 2: TENO5, C = 1, q = 6, cutoff ct (Fu, Hu & Adams 2016, JCP 305)
+//   eps: regularisation of the smoothness indicators. It must not be tiny (1e-40 as in the
+//   original papers): with a scale-free ratio tau/(is+eps), round-off level variations in an
+//   otherwise uniform direction switch the weights at random, which can select downwind-biased
+//   stencils and let transverse noise grow in 3D. With eps = psi (1e-6, as for WENO-JS)
+//   near-uniform regions fall back to the linear upwind-biased scheme.
+static inline __attribute__((always_inline)) void weno_weights_zt(const int type, const double ct, const double eps,
+                                   const double c1, const double c2, const double c3,
+                                   const double is1, const double is2, const double is3,
+                                   double &w1, double &w2, double &w3)
+{
+    const double tau = std::fabs(is1 - is3);
+
+    const double r1 = tau/(is1 + eps);
+    const double r2 = tau/(is2 + eps);
+    const double r3 = tau/(is3 + eps);
+
+    if(type==1)
+    {
+        const double a1 = c1*(1.0 + r1*r1);
+        const double a2 = c2*(1.0 + r2*r2);
+        const double a3 = c3*(1.0 + r3*r3);
+        const double inv = 1.0/(a1 + a2 + a3);
+
+        w1 = a1*inv;
+        w2 = a2*inv;
+        w3 = a3*inv;
+    }
+    else
+    {
+        // (1+r)^6, capped so that the sum cannot overflow
+        const double g1b = (r1 < 1.0e40) ? 1.0 + r1 : 1.0e40;
+        const double g2b = (r2 < 1.0e40) ? 1.0 + r2 : 1.0e40;
+        const double g3b = (r3 < 1.0e40) ? 1.0 + r3 : 1.0e40;
+        const double g1 = (g1b*g1b)*(g1b*g1b)*(g1b*g1b);
+        const double g2 = (g2b*g2b)*(g2b*g2b)*(g2b*g2b);
+        const double g3 = (g3b*g3b)*(g3b*g3b)*(g3b*g3b);
+        const double gct = ct*(g1 + g2 + g3);
+
+        // sharp cutoff: a stencil is either kept with its ideal weight or discarded
+        // (the largest chi is >= 1/3 > ct, so at least one stencil always survives)
+        const double d1 = (g1 >= gct) ? c1 : 0.0;
+        const double d2 = (g2 >= gct) ? c2 : 0.0;
+        const double d3 = (g3 >= gct) ? c3 : 0.0;
+        const double inv = 1.0/(d1 + d2 + d3);
+
+        w1 = d1*inv;
+        w2 = d2*inv;
+        w3 = d3*inv;
+    }
+}
+
 class weno_nug_func : public increment
 {
 public:
@@ -42,6 +101,13 @@ public:
     void precalc_isf(lexer*);
 
     void ini(lexer*);
+
+    // nonlinear weights: 0 WENO-JS (default, unchanged), 1 WENO-Z, 2 TENO5 with cutoff ct
+    void set_weno_weights(int type, double ct)
+    {
+        wtype = (type==1 || type==2) ? type : 0;
+        teno_ct = ct;
+    }
 
     // Face divided differences dq(ii,j) = (f(ii+1,j)-f(ii,j))/DXP[ii] over every face the
     // WENO5 slice stencils of the interior cells touch, so that the q1..q5 of a cell are plain loads.
@@ -142,6 +208,12 @@ public:
         // the compiler from doing either)
         const double *const cf = cfx[IP][uf];
         const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
+
+        if(wtype!=0)
+        {
+            weno_weights_zt(wtype,teno_ct,psi,c1,c2,c3,is1x,is2x,is3x,w1x,w2x,w3x);
+            return;
+        }
         
         const double is1x_psi = is1x + psi;
         const double is2x_psi = is2x + psi;
@@ -164,6 +236,12 @@ public:
         // the compiler from doing either)
         const double *const cf = cfx[IP][uf];
         const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
+
+        if(wtype!=0)
+        {
+            weno_weights_zt(wtype,teno_ct,psi,c1,c2,c3,is1x,is2x,is3x,w1x,w2x,w3x);
+            return;
+        }
         
         const double is1x_psi = is1x + psi;
         const double is2x_psi = is2x + psi;
@@ -188,6 +266,12 @@ public:
         // the compiler from doing either)
         const double *const cf = cfy[JP][vf];
         const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
+
+        if(wtype!=0)
+        {
+            weno_weights_zt(wtype,teno_ct,psi,c1,c2,c3,is1y,is2y,is3y,w1y,w2y,w3y);
+            return;
+        }
         
         const double is1y_psi = is1y + psi;
         const double is2y_psi = is2y + psi;
@@ -210,6 +294,12 @@ public:
         // the compiler from doing either)
         const double *const cf = cfy[JP][vf];
         const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
+
+        if(wtype!=0)
+        {
+            weno_weights_zt(wtype,teno_ct,psi,c1,c2,c3,is1y,is2y,is3y,w1y,w2y,w3y);
+            return;
+        }
         
         const double is1y_psi = is1y + psi;
         const double is2y_psi = is2y + psi;
@@ -234,6 +324,12 @@ public:
         // the compiler from doing either)
         const double *const cf = cfz[KP][wf];
         const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
+
+        if(wtype!=0)
+        {
+            weno_weights_zt(wtype,teno_ct,psi,c1,c2,c3,is1z,is2z,is3z,w1z,w2z,w3z);
+            return;
+        }
         
         const double is1z_psi = is1z + psi;
         const double is2z_psi = is2z + psi;
@@ -256,6 +352,12 @@ public:
         // the compiler from doing either)
         const double *const cf = cfz[KP][wf];
         const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
+
+        if(wtype!=0)
+        {
+            weno_weights_zt(wtype,teno_ct,psi,c1,c2,c3,is1z,is2z,is3z,w1z,w2z,w3z);
+            return;
+        }
         
         const double is1z_psi = is1z + psi;
         const double is2z_psi = is2z + psi;
@@ -283,6 +385,8 @@ public:
     double q1,q2,q3,q4,q5;
 
     const double epsilon,psi;
+    int wtype;
+    double teno_ct;
     double is1x,is2x,is3x;
     double is1y,is2y,is3y;
     double is1z,is2z,is3z;

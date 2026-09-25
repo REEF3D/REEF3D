@@ -28,6 +28,9 @@ Author: Hans Bihs
 
 fnpf_weno5::fnpf_weno5(lexer *p) : ddweno_f_nug(p)
 {
+    // nonlinear weights (A318: 0 WENO-JS, 1 WENO-Z, 2 TENO5); also used for eta next to fnpf_weno5_wd
+    set_weno_weights(p->A318,p->A319);
+
     p->Darray(ckz,p->knoz+1+4*marge,5);
 
     fnpf_discrete_weights dw(p);

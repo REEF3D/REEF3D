@@ -31,6 +31,9 @@ fnpf_ddweno_f_nug::fnpf_ddweno_f_nug(lexer* pp) : weno_nug_func(pp)
 
     // only the uniform-flux coefficient set is used
     uf = vf = wf = 0;
+
+    // nonlinear weights for the free-surface gradients (A318: 0 WENO-JS, 1 WENO-Z, 2 TENO5)
+    set_weno_weights(p->A318,p->A319);
 }
 
 fnpf_ddweno_f_nug::~fnpf_ddweno_f_nug()
