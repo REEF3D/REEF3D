@@ -78,6 +78,8 @@ void control::ini_default()
     A321=1;      // int boundary condition order for 4th-order Laplace equation
     A322=0;      // int 
     A323=1;      // int PTF FSF extrapolation
+    A324=0;      // int FNPF Laplace: max Picard iterations for the explicit sigma cross-derivative terms (0 = lagged by one RK stage, legacy)
+    A325=1.0e-3; // double FNPF Laplace: Picard stop when the change is below A325 times the change of the first solve (A324>0)
     A326=0.0;    // double static coastline (A343 1): coastline relaxation towards the running mean of eta, Fi over this time scale (s) instead of 0; 0 = relax to 0
     A329=1;      // int wave maker BC order
     

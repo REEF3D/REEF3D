@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"fnpf_laplace.h"
 #include"increment.h"
+#include<vector>
 
 class fnpf_bed_update;
 
@@ -45,6 +46,9 @@ private:
     double sigxyz2;
     double ab,denom;
     double starttime,endtime;
+    int gcval;
+    
+    std::vector<double> fold;
 
 };
 

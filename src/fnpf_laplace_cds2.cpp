@@ -29,6 +29,11 @@ Author: Hans Bihs
 
 fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p) 
 {
+    pbed = new fnpf_bed_update(p);
+    
+    gcval=250;
+    if(p->j_dir==0)
+    gcval=150;
 }
 
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
@@ -65,6 +70,34 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     const double ydir = p->y_dir;
     const double xdir = p->x_dir;
+    
+    // The mixed derivatives 2*sigx*d2Fi/dxdsig (and y) are not in the 7-point
+    // matrix but in rhs, evaluated with the current f. Without further
+    // iterations they are those of the previous RK stage (or time step), a
+    // lag of one stage: O(dt) and growing with the wave slope (sigx ~ Ex).
+    // With A324>0 the assembly and solve are repeated (Picard) with the new
+    // iterate until the change is below A325 times the change of the first
+    // solve, at most A324 times. A324 0 is the previous behaviour.
+    const int nouter = 1 + MAX(p->A324,0);
+    double dfirst=0.0;
+    
+    if(nouter>1 && int(fold.size())!=p->imax*p->jmax*(p->kmax+2))
+    fold.resize(p->imax*p->jmax*(p->kmax+2));
+    
+    for(int qo=0; qo<nouter; ++qo)
+    {
+    if(qo>0)
+    {
+    // bed ghost cells and halos from the new iterate
+    pbed->bedbc_sig(p,c,pgc,f,pf);
+    pgc->start7V(p,f,c->bc,gcval);
+    
+    starttime=pgc->timer();
+    }
+    
+    if(nouter>1)
+    FLOOP
+    fold[FIJK] = f[FIJK];
     
 	n=0;
     ILOOP
@@ -276,6 +309,24 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;
+    
+    if(nouter>1)
+    {
+    double dmax=0.0;
+    
+    FLOOP
+    dmax = MAX(dmax,fabs(f[FIJK]-fold[FIJK]));
+    
+    dmax = pgc->globalmax(dmax);
+    
+    if(qo==0)
+    dfirst = dmax;
+    
+    if(qo>0 && dmax<=p->A325*dfirst)
+    break;
+    }
+    }
+    
     p->laplacetime+=p->poissontime;
     
     
