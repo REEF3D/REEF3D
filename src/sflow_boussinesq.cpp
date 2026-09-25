@@ -248,7 +248,7 @@ void sflow_boussinesq::operators(lexer *p, fdm2D *b, ghostcell *pgc)
 }
 
 // ---------------------------------------------------------------------------
-// dispersion switch: breaking (A 246), |eta|/h >= 0.8, shoreline, in- and outflow
+// dispersion switch: breaking (A 246), |eta|/h >= 0.8, Fr >= 1, shoreline, in- and outflow
 // ---------------------------------------------------------------------------
 void sflow_boussinesq::mask_update(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
 {
@@ -290,6 +290,10 @@ void sflow_boussinesq::mask_update(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL
     // breaking (Tonelli & Petti 2009, FUNWAVE-TVD): |eta|/h >= 0.8
     // (crests and deep troughs / rundown, where the total depth H -> 0)
     if(b->depth(i,j)>0.0 && fabs(b->eta(i,j))/b->depth(i,j) >= breakratio)
+    f(i,j) = 0.0;
+    
+    // supercritical flow (backwash, bores): Fr = |u|/sqrt(g H) >= 1
+    if(WL(i,j)>p->A244 && b->U(i,j)*b->U(i,j) + b->V(i,j)*b->V(i,j)*p->y_dir >= fabs(p->W22)*WL(i,j))
     f(i,j) = 0.0;
     
     // in- and outflow boundaries (ghost values from ioflow)

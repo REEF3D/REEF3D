@@ -56,8 +56,8 @@ using namespace std;
 // u_a is recovered from V with a line-implicit solve per component (x-x and y-y
 // derivatives implicit, cross derivatives lagged). Dispersion is switched off
 // (nonlinear shallow water equations) in breaking cells, for |eta|/h >= 0.8
-// (crests and strong drawdown), next to the shoreline and next to in- and
-// outflow boundaries. The switch m is widened
+// (crests and strong drawdown), in supercritical flow (Fr >= 1, backwash and
+// bores), next to the shoreline and next to in- and outflow boundaries. The switch m is widened
 // by one cell, smoothed over two cells and enters as A -> m A, B -> m B with compact
 // face-based gradients, so that u2 and V1' share one symmetric operator (stable
 // for any spatial variation of m). Where m changes, V is kept and u_a follows.
