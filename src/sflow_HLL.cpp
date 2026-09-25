@@ -69,6 +69,12 @@ void sflow_HLL::start(lexer *p, fdm2D *b, int ipol)
 void sflow_HLL::aij_U(lexer *p, fdm2D *b)
 {
     pflux->start_U(p,b,pgc);
+    
+    // Boussinesq: fluxes from the volume flux M, dissipation from the conserved V
+    if(p->A220==4)
+    HLL(p,b,b->QUs,b->QUn,b->QUe,b->QUw,b->Fx,b->Fy);
+    
+    else
     HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw,b->Fx,b->Fy);
     flux_bc(p,b,1);
     
@@ -78,6 +84,11 @@ void sflow_HLL::aij_U(lexer *p, fdm2D *b)
 void sflow_HLL::aij_V(lexer *p, fdm2D *b)
 {
     pflux->start_V(p,b,pgc);
+    
+    if(p->A220==4)
+    HLL(p,b,b->QVs,b->QVn,b->QVe,b->QVw,b->Fx,b->Fy);
+    
+    else
     HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw,b->Fx,b->Fy);
     flux_bc(p,b,2);
     

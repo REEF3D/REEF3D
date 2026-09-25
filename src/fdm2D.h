@@ -76,6 +76,12 @@ public:
     slice1 WHn,WHs;
     slice2 WHe,WHw;   
     
+    // Boussinesq (A 220 4): reconstructed conserved momentum V for the HLL dissipation
+    slice1 QUn,QUs;
+    slice2 QUe,QUw;
+    slice1 QVn,QVs;
+    slice2 QVe,QVw;
+    
 
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;

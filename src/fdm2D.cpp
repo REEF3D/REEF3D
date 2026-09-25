@@ -49,6 +49,11 @@ fdm2D::fdm2D(lexer *p)
             WHn(p),WHs(p),
             WHe(p),WHw(p), 
             
+            QUn(p),QUs(p),
+            QUe(p),QUw(p),
+            QVn(p),QVs(p),
+            QVe(p),QVw(p),
+            
             WL(p),
             ETAs(p),ETAn(p),
             ETAe(p),ETAw(p),

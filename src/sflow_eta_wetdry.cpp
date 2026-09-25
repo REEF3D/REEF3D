@@ -240,6 +240,10 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         b->VHn(i,j) = 0.0;
         b->WHs(i,j) = 0.0;
         b->WHn(i,j) = 0.0;
+        b->QUs(i,j) = 0.0;
+        b->QUn(i,j) = 0.0;
+        b->QVs(i,j) = 0.0;
+        b->QVn(i,j) = 0.0;
         }
     }
     
@@ -285,6 +289,10 @@ void sflow_eta::wetdry_fluxes(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
         b->VHw(i,j) = 0.0;
         b->WHe(i,j) = 0.0;
         b->WHw(i,j) = 0.0;
+        b->QUe(i,j) = 0.0;
+        b->QUw(i,j) = 0.0;
+        b->QVe(i,j) = 0.0;
+        b->QVw(i,j) = 0.0;
         }
     }
     

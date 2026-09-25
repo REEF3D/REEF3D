@@ -361,6 +361,19 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     precon->reconstruct_x(p, pgc, b, VHf, b->VHs, b->VHn);
     precon->reconstruct_y(p, pgc, b, VHf, b->VHe, b->VHw);
     }
+    
+    // Boussinesq: the conserved variable V for the HLL dissipation term (FUNWAVE-TVD)
+    if(bous==1)
+    {
+    precon->reconstruct_x(p, pgc, b, UH, b->QUs, b->QUn);
+    precon->reconstruct_y(p, pgc, b, UH, b->QUe, b->QUw);
+    
+        if(p->j_dir==1)
+        {
+        precon->reconstruct_x(p, pgc, b, VH, b->QVs, b->QVn);
+        precon->reconstruct_y(p, pgc, b, VH, b->QVe, b->QVw);
+        }
+    }
 
     if(nhp==1 && p->A214==1)
     {
