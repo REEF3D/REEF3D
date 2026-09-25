@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"dem.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -96,6 +97,7 @@ void driver::loop_cfd_df(fdm* a)
         pfsf->update(p,a,pgc,a->phi);
 	
         // Momentum and 6DOF motion
+        pdem->start_cfd(p,a,pgc);
         pmom_df->starti(p,a,pgc,p6dof,pvrans,pfsi);
 
         // Save previous timestep

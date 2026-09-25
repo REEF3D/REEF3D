@@ -831,6 +831,22 @@ void control::ini_default()
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
     
+    // DEM
+    E10=0;              // int DEM on/off (input in dem.txt)
+    E11=1;              // int fluid coupling: 0 dry, 1 unresolved, 2 resolved, 3 hybrid
+    E12=5.0;            // double hybrid: resolved if d_eq/dx >= E12
+    E13=1000;           // int max contact solver iterations
+    E14=1.0e-5;         // double contact solver tolerance (relative velocity residual)
+    E15=0.1;            // double print interval [s] for VTP and state file, 0 off
+    E16=1;              // int min DEM substeps per fluid time step
+    E17=0.5;            // double added mass coefficient (unresolved)
+    E18=1.5;            // double resolved: Heaviside half width in cells
+    E19=0.2;            // double penetration stabilisation factor
+    E20=0.25;           // double max particle travel per DEM step, fraction of the smallest bounding radius
+    E21=6;              // int contact manifold reduction: max points per pair and normal cluster, 0 off
+    E22=1;              // int unresolved: fluid acceleration force (pressure gradient and added mass of the fluid acceleration), 0 off 1 on
+    E23=2.0;            // double unresolved: kernel radius for the momentum exchange in cells (at least d_eq)
+
     // Particles
     Q10=0;              // int time scheme
     Q11=1;              // int tim

@@ -20,45 +20,33 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef MOMENTUM_FORCING_H_
-#define MOMENTUM_FORCING_H_
+/*--------------------------------------------------------------------
+DEM interface: standalone discrete element module for rigid particles
+of arbitrary shape, coupled to REEF3D::CFD and REEF3D::NHFLOW.
+--------------------------------------------------------------------*/
 
-#include"increment.h"
-#include<vector>
+#ifndef DEM_H_
+#define DEM_H_
 
 class lexer;
 class fdm;
+class fdm_nhf;
 class ghostcell;
 class field;
-class turbulence;
-class sixdof;
-class vrans;
-class mooring;
-class fsi;
-class rodtree_coupling;
-class dem;
+class slice;
 
-using namespace std;
-
-class momentum_forcing : public increment
+class dem
 {
 public:
-	momentum_forcing(lexer*);
-	virtual ~momentum_forcing();
-	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
-                                field&,field&,field&,field&,field&,field&,int,double,bool);
+    virtual ~dem() = default;
 
-    // DEM coupling, set by the CFD driver (shared by all momentum schemes)
-    inline static dem *pdem = nullptr;
+    // advance the particles over one fluid time step, called before the momentum step
+    virtual void start_cfd(lexer*, fdm*, ghostcell*)=0;
+    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*)=0;
 
-private:
-	double uplus,ks_plus,dist,ks,ustar;
-	int ii,jj,kk;
-	double value;
-	int gcval_u,gcval_v,gcval_w;
-    double starttime, endtime;
-    
-    // flexible rod trees (Z 20), created on first use
-    rodtree_coupling *prodtree;
+    // fluid forcing inside the momentum RK stages (resolved: direct forcing, unresolved: momentum source)
+    virtual void forcing_cfd(lexer*, fdm*, ghostcell*, int, double, field&, field&, field&, bool)=0;
+    virtual void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&, bool, bool)=0;
 };
+
 #endif

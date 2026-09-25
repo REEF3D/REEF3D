@@ -1250,6 +1250,54 @@ void control::read_control(lexer* p)
                 }
                 break;
 
+            case 'E': control>>numint;
+                switch(numint)
+                {
+                case 10: control>>E10;
+                         clear(c,numint);
+                         break;
+                case 11: control>>E11;
+                         clear(c,numint);
+                         break;
+                case 12: control>>E12;
+                         clear(c,numint);
+                         break;
+                case 13: control>>E13;
+                         clear(c,numint);
+                         break;
+                case 14: control>>E14;
+                         clear(c,numint);
+                         break;
+                case 15: control>>E15;
+                         clear(c,numint);
+                         break;
+                case 16: control>>E16;
+                         clear(c,numint);
+                         break;
+                case 17: control>>E17;
+                         clear(c,numint);
+                         break;
+                case 18: control>>E18;
+                         clear(c,numint);
+                         break;
+                case 19: control>>E19;
+                         clear(c,numint);
+                         break;
+                case 20: control>>E20;
+                         clear(c,numint);
+                         break;
+                case 21: control>>E21;
+                         clear(c,numint);
+                         break;
+                case 22: control>>E22;
+                         clear(c,numint);
+                         break;
+                case 23: control>>E23;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
             case 'F': control>>numint;
                 switch(numint)
                 {

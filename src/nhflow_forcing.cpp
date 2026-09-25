@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_reinidisc_fsf.h"
 #include"vrans.h"
 #include"rodtree_coupling.h"
+#include"dem.h"
 
 nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), fe(p)
 {
@@ -73,6 +74,10 @@ nhflow_forcing::~nhflow_forcing()
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
+    // DEM: resolved particle forcing and unresolved momentum source
+    if(pdem!=nullptr)
+    pdem->forcing_nhflow(p,d,pgc,iter,alpha,UH,VH,WH,WL,finalize,false);
+
     // nothing to force (no solids, floating bodies, DLM, 6DOF, moorings or nets): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)

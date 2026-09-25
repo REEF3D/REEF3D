@@ -1629,6 +1629,35 @@ void control::ctrlsend()
     ii++;
 
 
+    ictrl[ii] = E10;
+    ii++;
+    ictrl[ii] = E11;
+    ii++;
+    dctrl[dd] = E12;
+    dd++;
+    ictrl[ii] = E13;
+    ii++;
+    dctrl[dd] = E14;
+    dd++;
+    dctrl[dd] = E15;
+    dd++;
+    ictrl[ii] = E16;
+    ii++;
+    dctrl[dd] = E17;
+    dd++;
+    dctrl[dd] = E18;
+    dd++;
+    dctrl[dd] = E19;
+    dd++;
+    dctrl[dd] = E20;
+    dd++;
+    ictrl[ii] = E21;
+    ii++;
+    ictrl[ii] = E22;
+    ii++;
+    dctrl[dd] = E23;
+    dd++;
+
     ictrl[ii] = Q10;
     ii++;
     ictrl[ii] = Q11;

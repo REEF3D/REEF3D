@@ -809,6 +809,13 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="DEM">
+        <File Name="dem.h"/>
+        <File Name="dem_void.h"/>
+        <File Name="dem_header.h"/>
+        <File Name="dem_core.h"/>
+        <File Name="dem_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Ice">
         <File Name="ice_contact.h"/>
         <File Name="ice_contact_nscd.h"/>
@@ -2241,6 +2248,14 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="DEM">
+        <File Name="dem_core.cpp"/>
+        <File Name="dem_shape.cpp"/>
+        <File Name="dem_f.cpp"/>
+        <File Name="dem_f_cfd.cpp"/>
+        <File Name="dem_f_nhflow.cpp"/>
+        <File Name="dem_f_print.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Ice">
         <File Name="ice_contact_nscd.cpp"/>
         <File Name="fnpf_ice.cpp"/>

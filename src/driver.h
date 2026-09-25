@@ -52,6 +52,7 @@ class potential;
 class heat;
 class benchmark;
 class sixdof;
+class dem;
 class fsi;
 class vrans;
 class expdata;
@@ -214,6 +215,7 @@ public:
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
+    dem *pdem;
     turbulence *pturbcfd;
 
 private:

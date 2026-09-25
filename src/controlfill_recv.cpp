@@ -1621,6 +1621,35 @@ void control::ctrlrecv()
     P352 = ictrl[ii];
     ii++;
 
+    E10 = ictrl[ii];
+    ii++;
+    E11 = ictrl[ii];
+    ii++;
+    E12 = dctrl[dd];
+    dd++;
+    E13 = ictrl[ii];
+    ii++;
+    E14 = dctrl[dd];
+    dd++;
+    E15 = dctrl[dd];
+    dd++;
+    E16 = ictrl[ii];
+    ii++;
+    E17 = dctrl[dd];
+    dd++;
+    E18 = dctrl[dd];
+    dd++;
+    E19 = dctrl[dd];
+    dd++;
+    E20 = dctrl[dd];
+    dd++;
+    E21 = ictrl[ii];
+    ii++;
+    E22 = ictrl[ii];
+    ii++;
+    E23 = dctrl[dd];
+    dd++;
+
     Q10 = ictrl[ii];
     ii++;
     Q11 = ictrl[ii];

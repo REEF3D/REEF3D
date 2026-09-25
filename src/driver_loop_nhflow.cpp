@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"dem.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -80,6 +81,9 @@ void driver::loop_nhflow()
         
         // Lagrangian particles: release, velocity at t^n
         pnhfpart->step_begin(p,d,pgc);
+
+        // DEM
+        pdem->start_nhflow(p,d,pgc);
         
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pnhfvrans); 

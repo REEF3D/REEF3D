@@ -20,45 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef MOMENTUM_FORCING_H_
-#define MOMENTUM_FORCING_H_
+#ifndef DEM_VOID_H_
+#define DEM_VOID_H_
 
-#include"increment.h"
-#include<vector>
+#include"dem.h"
 
-class lexer;
-class fdm;
-class ghostcell;
-class field;
-class turbulence;
-class sixdof;
-class vrans;
-class mooring;
-class fsi;
-class rodtree_coupling;
-class dem;
-
-using namespace std;
-
-class momentum_forcing : public increment
+class dem_void final : public dem
 {
 public:
-	momentum_forcing(lexer*);
-	virtual ~momentum_forcing();
-	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
-                                field&,field&,field&,field&,field&,field&,int,double,bool);
+    dem_void() = default;
+    virtual ~dem_void() = default;
 
-    // DEM coupling, set by the CFD driver (shared by all momentum schemes)
-    inline static dem *pdem = nullptr;
-
-private:
-	double uplus,ks_plus,dist,ks,ustar;
-	int ii,jj,kk;
-	double value;
-	int gcval_u,gcval_v,gcval_w;
-    double starttime, endtime;
-    
-    // flexible rod trees (Z 20), created on first use
-    rodtree_coupling *prodtree;
+    void start_cfd(lexer*, fdm*, ghostcell*) override final {}
+    void start_nhflow(lexer*, fdm_nhf*, ghostcell*) override final {}
+    void forcing_cfd(lexer*, fdm*, ghostcell*, int, double, field&, field&, field&, bool) override final {}
+    void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&, bool, bool) override final {}
 };
+
 #endif
