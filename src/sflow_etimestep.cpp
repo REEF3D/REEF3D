@@ -31,6 +31,18 @@ sflow_etimestep::sflow_etimestep(lexer *p, fdm2D *b)
     wd_criterion=0.00005;
     
     wd_criterion=p->A244;
+    
+    // Boussinesq (A 220 4): the dispersive terms are explicit, Courant number <= 0.5
+    // (FUNWAVE-TVD default), larger values blow up in deep water
+    cfl = p->N47;
+    
+    if(p->A220==4 && p->N47>0.25)
+    {
+    cfl = 0.25;
+    
+    if(p->mpirank==0)
+    cout<<"SFLOW Boussinesq: N 47 "<<p->N47<<" reduced to 0.25 (Courant number 0.5)"<<endl;
+    }
 }
 
 sflow_etimestep::~sflow_etimestep()
@@ -108,13 +120,13 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     dtd = pgc->globalmin(dtd);
     
     // cmin is scaled by 2*N47 below
-    cmin = MIN(cmin, dtd/(2.0*p->N47));
+    cmin = MIN(cmin, dtd/(2.0*cfl));
     }
     
     if(cmin>1.0e19)
     cmin = p->DXM/sqrt(g*MAX(p->wd,wd_criterion));
 
-	p->dt=p->N47*2.0*cmin;
+	p->dt=cfl*2.0*cmin;
 	p->dt=pgc->timesync(p->dt);
 
 	b->maxF=0.0;
@@ -150,7 +162,7 @@ void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	
 	
-	p->dt=p->N47*cu;
+	p->dt=cfl*cu;
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt_old=p->dt;
