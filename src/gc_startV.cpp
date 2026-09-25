@@ -493,32 +493,36 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         }
 
         // yyyyy
+        // side walls are slip walls: the normal velocity (V, VH: gcv 11, 15) is mirrored
+        // antisymmetrically, all other fields (U, W, UH, WH, scalars) symmetrically.
+        // (Setting the tangential components to 0 acted like a no-slip wall and, through
+        // the reconstruction and the HLL dissipation, damped waves in 3D.)
         if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15))
         {
-            f[IJm1K] = 0.0;
-            f[IJm2K] = 0.0;
-            f[IJm3K] = 0.0;
+            f[IJm1K] = -f[IJK];
+            f[IJm2K] = -f[IJp1K];
+            f[IJm3K] = -f[IJp2K];
         }
 
         if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15))
         {
-            f[IJm1K] = 0.0;
-            f[IJm2K] = 0.0;
-            f[IJm3K] = 0.0;
+            f[IJm1K] = f[IJK];
+            f[IJm2K] = f[IJp1K];
+            f[IJm3K] = f[IJp2K];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15))
         {
-            f[IJp1K] = 0.0;
-            f[IJp2K] = 0.0;
-            f[IJp3K] = 0.0;
+            f[IJp1K] = -f[IJK];
+            f[IJp2K] = -f[IJm1K];
+            f[IJp3K] = -f[IJm2K];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15))
         {
-            f[IJp1K] = 0.0;
-            f[IJp2K] = 0.0;
-            f[IJp3K] = 0.0;
+            f[IJp1K] = f[IJK];
+            f[IJp2K] = f[IJm1K];
+            f[IJp3K] = f[IJm2K];
         }
 
         // zzzzz

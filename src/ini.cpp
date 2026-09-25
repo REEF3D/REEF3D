@@ -218,6 +218,25 @@ void control::ini_default()
     A594=0;     // int invert STL
     A599=0;     // use dlm instead of df
 
+    // NHFLOW Lagrangian particles
+    L10=0;       // int particle tracking
+    L11=1;       // int random seed
+    L21=0;       // int point releases
+    L22=0;       // int line releases
+    L23=0;       // int box releases
+    L31=0.0;     // double horizontal diffusivity Kh
+    L32=0;       // int vertical diffusion: 0 off, 1 constant Kv, 2 Kv + nu_t/Sc
+    L33=0.0;     // double vertical (background) diffusivity Kv
+    L34=1.0;     // double turbulent Schmidt number
+    L41=0;       // int windage wind given
+    L41_u=0.0;   // double U10 for windage
+    L41_dir=0.0; // double wind direction for windage
+    L51=0;       // int beaching: 0 refloat when rewetted, 1 permanent
+    L52=1;       // int bed contact: 0 reflect, 1 deposit sinking particles
+    L53=0;       // int domain boundaries: 0 remove, 1 reflect
+    L61=1.0;     // double print interval
+    L62=1;       // int output: 1 vtp, 2 csv, 3 both
+
 
     // Boundary Conditions
 	B10=0;			// int wall function velocities on/off

@@ -1566,6 +1566,61 @@ void control::read_control(lexer* p)
                 }
                 break;
 
+            case 'L': control>>numint;
+                switch(numint)
+                {
+                case 10: control>>L10;
+                         clear(c,numint);
+                         break;
+                case 11: control>>L11;
+                         clear(c,numint);
+                         break;
+                case 21: ++L21;
+                         control.ignore(1000, '\n');
+                         clear(c,numint);
+                         break;
+                case 22: ++L22;
+                         control.ignore(1000, '\n');
+                         clear(c,numint);
+                         break;
+                case 23: ++L23;
+                         control.ignore(1000, '\n');
+                         clear(c,numint);
+                         break;
+                case 31: control>>L31;
+                         clear(c,numint);
+                         break;
+                case 32: control>>L32;
+                         clear(c,numint);
+                         break;
+                case 33: control>>L33;
+                         clear(c,numint);
+                         break;
+                case 34: control>>L34;
+                         clear(c,numint);
+                         break;
+                case 41: control>>L41_u>>L41_dir;
+                         L41=1;
+                         clear(c,numint);
+                         break;
+                case 51: control>>L51;
+                         clear(c,numint);
+                         break;
+                case 52: control>>L52;
+                         clear(c,numint);
+                         break;
+                case 53: control>>L53;
+                         clear(c,numint);
+                         break;
+                case 61: control>>L61;
+                         clear(c,numint);
+                         break;
+                case 62: control>>L62;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
             case 'M': control>>numint;
                 switch(numint)
                 {
@@ -2841,6 +2896,11 @@ void control::read_control(lexer* p)
 
     // re-read
 
+    // L
+    Darray(L21_val,9*L21);
+    Darray(L22_val,12*L22);
+    Darray(L23_val,12*L23);
+
     // A
     Darray(A581_xs,A581);
     Darray(A581_xe,A581);
@@ -3783,6 +3843,9 @@ void control::read_control(lexer* p)
     int countX322=0;
     int countX324=0;
     int countZ11=0;
+    int countL21=0;
+    int countL22=0;
+    int countL23=0;
 
 
     count=0;
@@ -4157,6 +4220,27 @@ void control::read_control(lexer* p)
                 case 399: control>>F399_xc[countF399]>>F399_yc[countF399]>>F399_zc[countF399]>>F399_r[countF399];
                          p->XYin(F399_xc[countF399],F399_yc[countF399]);
                          ++countF399;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
+            case 'L': control>>numint;
+                switch(numint)
+                {
+                case 21: for(int qn=0;qn<9;++qn)
+                         control>>L21_val[9*countL21+qn];
+                         ++countL21;
+                         clear(c,numint);
+                         break;
+                case 22: for(int qn=0;qn<12;++qn)
+                         control>>L22_val[12*countL22+qn];
+                         ++countL22;
+                         clear(c,numint);
+                         break;
+                case 23: for(int qn=0;qn<12;++qn)
+                         control>>L23_val[12*countL23+qn];
+                         ++countL23;
                          clear(c,numint);
                          break;
                 }

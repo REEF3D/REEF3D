@@ -793,6 +793,11 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Particles">
+        <File Name="nhflow_particle.h"/>
+        <File Name="nhflow_particle_void.h"/>
+        <File Name="nhflow_particle_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <File Name="CPM.h"/>
         <File Name="part.h"/>
@@ -2183,6 +2188,13 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Particles">
+        <File Name="nhflow_particle_f.cpp"/>
+        <File Name="nhflow_particle_f_xchange.cpp"/>
+        <File Name="nhflow_particle_f_seed.cpp"/>
+        <File Name="nhflow_particle_f_print.cpp"/>
+        <File Name="nhflow_particle_f_move.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <VirtualDirectory Name="Drag">
           <File Name="CPM_drag.cpp"/>

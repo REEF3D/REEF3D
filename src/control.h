@@ -104,6 +104,18 @@ public:
     double A592_dx,A592_dy,A592_dz;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
 
+    // NHFLOW Lagrangian particles
+    int L10,L11;
+    int L21,L22,L23;
+    double *L21_val,*L22_val,*L23_val;
+    double L31,L33,L34;
+    int L32;
+    int L41;
+    double L41_u,L41_dir;
+    int L51,L52,L53;
+    double L61;
+    int L62;
+
     // boundary conditions
     int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;

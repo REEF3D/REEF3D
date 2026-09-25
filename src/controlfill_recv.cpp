@@ -5110,6 +5110,62 @@ void control::ctrlrecv()
         dd++;
     }
 
+    // NHFLOW Lagrangian particles
+    L10 = ictrl[ii];
+    ii++;
+    L11 = ictrl[ii];
+    ii++;
+    L21 = ictrl[ii];
+    ii++;
+    L22 = ictrl[ii];
+    ii++;
+    L23 = ictrl[ii];
+    ii++;
+    L31 = dctrl[dd];
+    dd++;
+    L32 = ictrl[ii];
+    ii++;
+    L33 = dctrl[dd];
+    dd++;
+    L34 = dctrl[dd];
+    dd++;
+    L41 = ictrl[ii];
+    ii++;
+    L41_u = dctrl[dd];
+    dd++;
+    L41_dir = dctrl[dd];
+    dd++;
+    L51 = ictrl[ii];
+    ii++;
+    L52 = ictrl[ii];
+    ii++;
+    L53 = ictrl[ii];
+    ii++;
+    L61 = dctrl[dd];
+    dd++;
+    L62 = ictrl[ii];
+    ii++;
+
+    Darray(L21_val,9*L21);
+    Darray(L22_val,12*L22);
+    Darray(L23_val,12*L23);
+
+    for(n=0;n<9*L21;++n)
+    {
+        L21_val[n] = dctrl[dd];
+        dd++;
+    }
+    for(n=0;n<12*L22;++n)
+    {
+        L22_val[n] = dctrl[dd];
+        dd++;
+    }
+    for(n=0;n<12*L23;++n)
+    {
+        L23_val[n] = dctrl[dd];
+        dd++;
+    }
+
     ii_recv=ii;
     dd_recv=dd;
 }

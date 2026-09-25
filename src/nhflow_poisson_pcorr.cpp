@@ -166,13 +166,27 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             }
             
             // East
-            if(p->flag7[FIJm1K]<0  || p->wet[IJm1]==0 || p->deep[IJm1]==0)
+            // solid wall: homogeneous Neumann dp/dn=0 (ghost = cell value), i.e. the
+            // coupling moves onto the diagonal; dry / shallow neighbour: p=0 as before
+            if(p->flag7[FIJm1K]<0 && p->j_dir==1)
+            {
+            d->M.p[n] += d->M.e[n];
+            d->M.e[n] = 0.0;
+            }
+            
+            if(p->wet[IJm1]==0 || p->deep[IJm1]==0)
             {
             d->M.e[n] = 0.0;
             }
             
             // West
-            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0 || p->deep[IJp1]==0)
+            if(p->flag7[FIJp1K]<0 && p->j_dir==1)
+            {
+            d->M.p[n] += d->M.w[n];
+            d->M.w[n] = 0.0;
+            }
+            
+            if(p->wet[IJp1]==0 || p->deep[IJp1]==0)
             {
             d->M.w[n] = 0.0;
             }

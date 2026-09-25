@@ -236,5 +236,10 @@ void driver::logic_nhflow()
 
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
-    
+
+//Lagrangian particles
+    if(p->L10==0)
+    pnhfpart = new nhflow_particle_void();
+    if(p->L10>0)
+    pnhfpart = new nhflow_particle_f(p,pgc);
 }

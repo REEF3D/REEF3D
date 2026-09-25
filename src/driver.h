@@ -77,6 +77,7 @@ class patchBC_interface;
 class nhflow;
 class multiphase;
 class nhflow_momentum;
+class nhflow_particle;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class particle_base;
@@ -205,6 +206,7 @@ public:
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
+    nhflow_particle *pnhfpart;
     nhflow_forcing *pnhfdf;
     vrans_nhflow *pnhfvrans;
     momentum_RKLS3_df *pmom_df;

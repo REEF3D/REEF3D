@@ -4006,6 +4006,58 @@ void control::ctrlsend()
         dd++;
     }
 
+    // NHFLOW Lagrangian particles
+    ictrl[ii] = L10;
+    ii++;
+    ictrl[ii] = L11;
+    ii++;
+    ictrl[ii] = L21;
+    ii++;
+    ictrl[ii] = L22;
+    ii++;
+    ictrl[ii] = L23;
+    ii++;
+    dctrl[dd] = L31;
+    dd++;
+    ictrl[ii] = L32;
+    ii++;
+    dctrl[dd] = L33;
+    dd++;
+    dctrl[dd] = L34;
+    dd++;
+    ictrl[ii] = L41;
+    ii++;
+    dctrl[dd] = L41_u;
+    dd++;
+    dctrl[dd] = L41_dir;
+    dd++;
+    ictrl[ii] = L51;
+    ii++;
+    ictrl[ii] = L52;
+    ii++;
+    ictrl[ii] = L53;
+    ii++;
+    dctrl[dd] = L61;
+    dd++;
+    ictrl[ii] = L62;
+    ii++;
+
+    for(n=0;n<9*L21;++n)
+    {
+        dctrl[dd] = L21_val[n];
+        dd++;
+    }
+    for(n=0;n<12*L22;++n)
+    {
+        dctrl[dd] = L22_val[n];
+        dd++;
+    }
+    for(n=0;n<12*L23;++n)
+    {
+        dctrl[dd] = L23_val[n];
+        dd++;
+    }
+
     ii_send=ii;
     dd_send=dd;
 }
