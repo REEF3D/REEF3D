@@ -248,7 +248,7 @@ void sflow_boussinesq::operators(lexer *p, fdm2D *b, ghostcell *pgc)
 }
 
 // ---------------------------------------------------------------------------
-// dispersion switch: breaking (A 246), eta/h >= 0.8, shoreline, in- and outflow
+// dispersion switch: breaking (A 246), eta/h >= 0.8, eta/h <= -0.5, shoreline, in- and outflow
 // ---------------------------------------------------------------------------
 void sflow_boussinesq::mask_update(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
 {
@@ -289,6 +289,10 @@ void sflow_boussinesq::mask_update(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL
     
     // breaking (Tonelli & Petti 2009, FUNWAVE-TVD): eta/h >= 0.8
     if(b->depth(i,j)>0.0 && b->eta(i,j)/b->depth(i,j) >= breakratio)
+    f(i,j) = 0.0;
+    
+    // strong drawdown: eta/h <= -0.5
+    if(b->depth(i,j)>0.0 && b->eta(i,j)/b->depth(i,j) <= -0.5)
     f(i,j) = 0.0;
     
     // in- and outflow boundaries (ghost values from ioflow)
