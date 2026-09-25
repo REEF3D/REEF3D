@@ -178,6 +178,13 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     Nne.resize(p->net_count);
     }
     
+    // Initial hydrodynamic + gravity load. Xe..Ne are otherwise first set in reforcing(), i.e. after
+    // the first pressure solve, so the first RK stage of the first time step would use
+    // uninitialised values.
+    Xe=Ye=Ze=Ke=Me=Ne=0.0;
+    
+    if(p->X10==1)
+    hydrodynamic_forces_nhflow(p,d,pgc,d->WL,false);
 }
 
 

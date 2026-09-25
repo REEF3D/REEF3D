@@ -139,21 +139,29 @@ void sixdof_obj::saveTimeStep(lexer *p, int iter)
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
 {
-	p->ufbmax = p->ufbi;
-    p->vfbmax = p->vfbi; 
-    p->wfbmax = p->wfbi;
+    // Maximum rigid-body velocity |u + omega x r| over the body surface (STL vertices, which all
+    // ranks hold). Previously evaluated over every cell of the domain, so a rotating body got a
+    // lever arm up to the domain size, which inflated ufbmax and cut the time step; that value
+    // was also rank-local.
+	p->ufbmax = fabs(p->ufbi);
+    p->vfbmax = fabs(p->vfbi); 
+    p->wfbmax = fabs(p->wfbi);
     
-    double uvel,vvel,wvel;
-
-	LOOP
+    double uvel,vvel,wvel,rx,ry,rz;
+    
+	for(int n=0; n<tricount; ++n)
+    for(int q=0; q<3; ++q)
 	{
-        uvel = p->ufbi + (p->pos_z() - p->zg)*p->qfbi - (p->pos_y() - p->yg)*p->rfbi;
-        vvel = p->vfbi + (p->pos_x() - p->xg)*p->rfbi - (p->pos_z() - p->zg)*p->pfbi;
-        wvel = p->wfbi + (p->pos_y() - p->yg)*p->pfbi - (p->pos_x() - p->xg)*p->qfbi;
+        rx = tri_x[n][q] - p->xg;
+        ry = tri_y[n][q] - p->yg;
+        rz = tri_z[n][q] - p->zg;
+        
+        uvel = p->ufbi + rz*p->qfbi - ry*p->rfbi;
+        vvel = p->vfbi + rx*p->rfbi - rz*p->pfbi;
+        wvel = p->wfbi + ry*p->pfbi - rx*p->qfbi;
         
         p->ufbmax = MAX(p->ufbmax, fabs(uvel));
         p->vfbmax = MAX(p->vfbmax, fabs(vvel));
         p->wfbmax = MAX(p->wfbmax, fabs(wvel));
 	}
 }
-

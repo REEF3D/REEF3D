@@ -46,311 +46,179 @@ void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 
 void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
-    double x0,x1,x2,y0,y1,y2,z0,z1,z2;
-    double xs0,xs1,xs2,ys0,ys1,ys2,zs0,zs1,zs2;
-	double xc,yc,zc;
-    double xp,yp,zp;
-	double at,bt,ct,st;
-	double nx,ny,nz,norm;
-	double A_triang,A,A_red;
-    double f;
-	double pval,rho_int,nu_int,enu_int,u_int,v_int,w_int;
-	double du,dv,dw, dudx, dudy, dudz, dvdx, dvdy, dvdz, dwdx, dwdy, dwdz;
-	double dudxf, dudyf, dudzf, dvdxf, dvdyf, dvdzf, dwdxf, dwdyf, dwdzf;
-	double dudxb, dudyb, dudzb, dvdxb, dvdyb, dvdzb, dwdxb, dwdyb, dwdzb;
-	double xlocvel,ylocvel,zlocvel,xlocp,ylocp,zlocp;
-	double Fx,Fy,Fz,Fp_x,Fp_y,Fp_z,Fv_x,Fv_y,Fv_z;
+    // Pressure + viscous load on the wetted part of the STL surface.
+    //
+    // Each triangle is clipped against the local free surface z = wd + eta (Sutherland-Hodgman,
+    // so vertices lying exactly on the surface are handled), the wetted polygon is fan-triangulated
+    // and every sub-triangle is integrated with the 3-point edge-midpoint rule. That rule is exact
+    // for quadratic integrands, so for a planar facet both the force (linear hydrostatic pressure)
+    // and the moment (lever arm x pressure) are integrated exactly, independent of STL resolution.
+    // Moment arms are the quadrature points, not the centroid of the unclipped triangle.
+    
+    double Fx,Fy,Fz,Fv_x,Fv_y,Fv_z;
     double Xe_p,Ye_p,Ze_p,Xe_v,Ye_v,Ze_v;
-    double fsf_z;
-    double f_jdir;
-
+    double A;
+    double vx[3],vy[3],vz[3];
+    double px[4],py[4],pz[4];   // wetted polygon: a triangle clipped by a plane has at most 4 vertices
+    
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
     // Set new time
     curr_time = p->simtime;
-
-    for (int n = 0; n < tricount; ++n)
-    {     
-		// Vertices of triangle
-        x0 = tri_x[n][0];
-        y0 = tri_y[n][0];
-        z0 = tri_z[n][0];
-        
-        x1 = tri_x[n][1];
-        y1 = tri_y[n][1];
-        z1 = tri_z[n][1];
-        
-        x2 = tri_x[n][2];
-        y2 = tri_y[n][2];
-        z2 = tri_z[n][2];  
-		   
-		// Center of triangle
-		xc = (x0 + x1 + x2)/3.0;
-		yc = (y0 + y1 + y2)/3.0;
-		zc = (z0 + z1 + z2)/3.0;
-        
-        xp = xc;
-        yp = yc;
-        zp = zc;
     
- 
-		if (xc >= p->originx && xc < p->endx &&
-			yc >= p->originy && yc < p->endy &&
-			zc >= p->originz && zc < p->endz)
-		{
-            
-            
-            // Normal vectors (always pointing outwards)     
-			nx = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
-			ny = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
-			nz = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-
-			norm = sqrt(nx*nx + ny*ny + nz*nz);
-			
-			nx /= norm > 1.0e-20 ? norm : 1.0e20;
-			ny /= norm > 1.0e-20 ? norm : 1.0e20;
-			nz /= norm > 1.0e-20 ? norm : 1.0e20;
-            
-            f_jdir=1.0;
-            
-            if(fabs(ny)>0.9 && p->j_dir==0)
-            f_jdir=0.0;
-            
-            
-            // Position of triangle
-            /*i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_sig(i,j,zc);*/
-            
-            etaval = p->ccslipol4(d->eta,xc,yc);  
-            
-            fsf_z = p->wd + etaval;
-            
-
-            //if(zc<fsf_z)
-            if(z0<fsf_z || z1<fsf_z || z2<fsf_z)
-            {
-            // Area of triangle using Heron's formula
-			A_triang = triangle_area(p,x0,y0,z0,x1,y1,z1,x2,y2,z2);
-            
-
-        // peak up 0
-            if(z0>fsf_z && z1<fsf_z  && z2<fsf_z)
-            {
-            // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z0-z1)>1.0e-10?fabs(z0-z1):1.0e10);
-
-             xs1 = x1 + f*(x0-x1);
-             ys1 = y1 + f*(y0-y1);
-             zs1 = z1 + f*(z0-z1);
-             
-             // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z0-z2)>1.0e-10?fabs(z0-z2):1.0e10);
-
-             xs2 = x2 + f*(x0-x2);
-             ys2 = y2 + f*(y0-y2);
-             zs2 = z2 + f*(z0-z2);
-             
-             xp = (x1 + x2 + xs1 + xs2)/4.0;
-             yp = (y1 + y2 + ys1 + ys2)/4.0;
-             zp = (z1 + z2 + zs1 + zs2)/4.0;
-             
-             //cout<<"A_triang: "<<A_triang<<" A: "<<triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2)<<endl;
-                
-            A_triang = A_triang - triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
-            }
-            
-        // peak up 1
-            if(z1>fsf_z && z0<fsf_z  && z2<fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z1-z0)>1.0e-10?fabs(z1-z0):1.0e10);
-            
-             xs0 = x0 + f*(x1-x0);
-             ys0 = y0 + f*(y1-y0);
-             zs0 = z0 + f*(z1-z0);
-             
-             // Ps2
-             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-             
-             xs2 = x2 + f*(x1-x2);
-             ys2 = y2 + f*(y1-y2);
-             zs2 = z2 + f*(z1-z2);
-             
-             xp = (x0 + x2 + xs0 + xs2)/4.0;
-             yp = (y0 + y2 + ys0 + ys2)/4.0;
-             zp = (z0 + z2 + zs0 + zs2)/4.0;
-                
-            A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
-            }
-            
-        // peak up 2
-            if(z2>fsf_z && z0<fsf_z  && z1<fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z0)/(fabs(z2-z0)>1.0e-10?fabs(z2-z0):1.0e10);
-
-             xs0 = x0 + f*(x2-x0);
-             ys0 = y0 + f*(y2-y0);
-             zs0 = z0 + f*(z2-z0);
-             
-             // Ps1
-             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-             
-             xs1 = x1 + f*(x2-x1);
-             ys1 = y1 + f*(y2-y1);
-             zs1 = z1 + f*(z2-z1);
-             
-             xp = (x0 + x1 + xs0 + xs1)/4.0;
-             yp = (y0 + y1 + ys0 + ys1)/4.0;
-             zp = (z0 + z1 + zs0 + zs1)/4.0;
-                
-            A_triang = A_triang - triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
-            }
+    for(int n=0; n<tricount; ++n)
+    {     
+        for(int q=0; q<3; ++q)
+        {
+            vx[q] = tri_x[n][q];
+            vy[q] = tri_y[n][q];
+            vz[q] = tri_z[n][q];
+        }
         
-        // -----
+		// Center of triangle
+		const double xc = (vx[0] + vx[1] + vx[2])/3.0;
+		const double yc = (vy[0] + vy[1] + vy[2])/3.0;
         
-         // peak down 0
-            if(z0<fsf_z && z1>fsf_z  && z2>fsf_z)
+        // Ownership by the triangle centroid.
+        // NHFLOW is decomposed in x and y only, and originz/endz are the bounds of the (sigma)
+        // mesh, not physical heights -> no z test. In 2D the STL may be wider than the one-cell
+        // strip -> no y test either (same convention as ray_cast_z and band_distance).
+        if(!(xc >= p->originx && xc < p->endx))
+        continue;
+        
+        if(p->j_dir==1 && !(yc >= p->originy && yc < p->endy))
+        continue;
+        
+        // Normal vector (pointing outwards)
+        double nx = (vy[1] - vy[0])*(vz[2] - vz[0]) - (vy[2] - vy[0])*(vz[1] - vz[0]);
+        double ny = (vx[2] - vx[0])*(vz[1] - vz[0]) - (vx[1] - vx[0])*(vz[2] - vz[0]); 
+        double nz = (vx[1] - vx[0])*(vy[2] - vy[0]) - (vx[2] - vx[0])*(vy[1] - vy[0]);
+        const double norm = sqrt(nx*nx + ny*ny + nz*nz);
+        
+        if(norm<1.0e-20)
+        continue;
+        
+        nx /= norm;
+        ny /= norm;
+        nz /= norm;
+        
+        // 2D: the y-normal end caps carry no load
+        if(p->j_dir==0)
+        {
+            if(fabs(ny)>0.9)
+            continue;
+            
+            ny = 0.0;
+        }
+        
+        const double fsf_z = p->wd + p->ccslipol4(d->eta,xc,yc);
+        
+        // Clip the triangle to the wetted side z <= fsf_z
+        int np=0;
+        for(int q=0; q<3; ++q)
+        {
+            const int r = (q+1)%3;
+            const bool in_q = (vz[q] <= fsf_z);
+            const bool in_r = (vz[r] <= fsf_z);
+            
+            if(in_q)
             {
-            // Ps1
-             f = fabs(fsf_z - z0)/(fabs(z0-z1)>1.0e-10?fabs(z0-z1):1.0e10);
-             
-             xs1 = x0 + f*(x1-x0);
-             ys1 = y0 + f*(y1-y0);
-             zs1 = z0 + f*(z1-z0);
-             
-             // Ps2
-             f = fabs(fsf_z - z0)/(fabs(z0-z2)>1.0e-10?fabs(z0-z2):1.0e10);
-             
-             xs2 = x0 + f*(x2-x0);
-             ys2 = y0 + f*(y2-y0);
-             zs2 = z0 + f*(z2-z0);
-             
-             xp = (x0 + xs1 + xs2)/3.0;
-             yp = (y0 + ys1 + ys2)/3.0;
-             zp = (z0 + zs1 + zs2)/3.0;
-                
-            A_triang = triangle_area(p,x0,y0,z0,xs1,ys1,zs1,xs2,ys2,zs2);
+                px[np] = vx[q];
+                py[np] = vy[q];
+                pz[np] = vz[q];
+                ++np;
             }
             
-            
-            // peak down 1
-            if(z1<fsf_z && z0>fsf_z  && z2>fsf_z)
+            if(in_q != in_r)   // edge crosses the surface; vz[r]!=vz[q] is guaranteed here
             {
-            // Ps0
-             f = fabs(fsf_z - z1)/(fabs(z1-z0)>1.0e-10?fabs(z1-z0):1.0e10);
-             
-             xs0 = x1 + f*(x0-x1);
-             ys0 = y1 + f*(y0-y1);
-             zs0 = z1 + f*(z0-z1);
-             
-             // Ps2
-             f = fabs(fsf_z - z1)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-             
-             xs2 = x1 + f*(x2-x1);
-             ys2 = y1 + f*(y2-y1);
-             zs2 = z1 + f*(z2-z1);
-             
-             xp = (xs0 + x1 + xs2)/3.0;
-             yp = (ys0 + y1 + ys2)/3.0;
-             zp = (zs0 + z1 + zs2)/3.0;
-                
-            //cout<<"A_0: "<<A_triang<<" A_triang: "<<triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2)<<" f: "<<f<<endl;
+                const double t = (fsf_z - vz[q])/(vz[r] - vz[q]);
+                px[np] = vx[q] + t*(vx[r] - vx[q]);
+                py[np] = vy[q] + t*(vy[r] - vy[q]);
+                pz[np] = vz[q] + t*(vz[r] - vz[q]);
+                ++np;
+            }
+        }
+        
+        if(np<3)
+        continue;
+        
+        // Fan triangulation of the wetted polygon
+        for(int s=1; s<np-1; ++s)
+        {
+            const double ax = px[0],   ay = py[0],   az = pz[0];
+            const double bx = px[s],   by = py[s],   bz = pz[s];
+            const double cx = px[s+1], cy = py[s+1], cz = pz[s+1];
             
-            A_triang = triangle_area(p,xs0,ys0,zs0,x1,y1,z1,xs2,ys2,zs2);
+            const double crx = (by - ay)*(cz - az) - (cy - ay)*(bz - az);
+            const double cry = (cx - ax)*(bz - az) - (bx - ax)*(cz - az);
+            const double crz = (bx - ax)*(cy - ay) - (cx - ax)*(by - ay);
+            const double A_sub = 0.5*sqrt(crx*crx + cry*cry + crz*crz);
+            
+            if(A_sub<1.0e-30)
+            continue;
+            
+            // Pressure: 3-point edge-midpoint rule
+            const double mx[3] = {0.5*(ax + bx), 0.5*(bx + cx), 0.5*(cx + ax)};
+            const double my[3] = {0.5*(ay + by), 0.5*(by + cy), 0.5*(cy + ay)};
+            const double mz[3] = {0.5*(az + bz), 0.5*(bz + cz), 0.5*(cz + az)};
+            
+            for(int q=0; q<3; ++q)
+            {
+                // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
+                const double pval = p->ccipol7V(d->P, WL, d->bed, mx[q] + p->X42*nx*DSM, 
+                                                                  my[q] + p->X42*ny*DSM, 
+                                                                  mz[q] + p->X42*nz*DSM);
+                // hydrostatic pressure at the quadrature point
+                const double hsp = MAX(0.0, (p->wd + p->ccslipol4(d->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
+                
+                const double w  = A_sub/3.0;
+                const double fx = -(pval + hsp)*w*nx;
+                const double fy = -(pval + hsp)*w*ny;
+                const double fz = -(pval + hsp)*w*nz;
+                
+                const double rx = mx[q] - c_(0);
+                const double ry = my[q] - c_(1);
+                const double rz = mz[q] - c_(2);
+                
+                Xe += fx;
+                Ye += fy;
+                Ze += fz;
+                Ke += ry*fz - rz*fy;
+                Me += rz*fx - rx*fz;
+                Ne += rx*fy - ry*fx;
+                
+                Xe_p += fx;
+                Ye_p += fy;
+                Ze_p += fz;
             }
             
-        // peak down 2
-            if(z2<fsf_z && z0>fsf_z  && z1>fsf_z)
-            {
-            // Ps0
-             f = fabs(fsf_z - z2)/(fabs(z2-z0)>1.0e-10?fabs(z2-z0):1.0e10);
-               
-             xs0 = x2 + f*(x0-x2);
-             ys0 = y2 + f*(y0-y2);
-             zs0 = z2 + f*(z0-z2);
-             
-             // Ps1
-             f = fabs(fsf_z - z2)/(fabs(z1-z2)>1.0e-10?fabs(z1-z2):1.0e10);
-
-             xs1 = x2 + f*(x1-x2);
-             ys1 = y2 + f*(y1-y2);
-             zs1 = z2 + f*(z1-z2);
-             
-             xp = (xs0 + xs1 + x2)/3.0;
-             yp = (ys0 + ys1 + y2)/3.0;
-             zp = (zs0 + zs1 + z2)/3.0;
-                
-            A_triang = triangle_area(p,xs0,ys0,zs0,xs1,ys1,zs1,x2,y2,z2);
-            }
-   
-            if(p->j_dir==0)
-            ny=0.0;
+            // Viscous forces at the sub-triangle centroid
+            const double gx = (ax + bx + cx)/3.0;
+            const double gy = (ay + by + cy)/3.0;
+            const double gz = (az + bz + cz)/3.0;
             
-            // Add normal stress contributions
-            xlocp = xc + p->X42*nx*p->DXP[IP];
-            ylocp = yc + p->X42*ny*p->DYP[JP];
-            zlocp = zc + p->X42*nz*p->DZP[KP];
+            hydrodynamic_viscous_forces_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, A_sub, gx, gy, gz, nx, ny, nz);
             
-            /*
-            double p0,p1,p2,pc;
-            
-            p0   = p->ccipol7P(d->P, WL, d->bed, x0, y0, z0);
-            p1   = p->ccipol7P(d->P, WL, d->bed, x1, y1, z1);
-            p2   = p->ccipol7P(d->P, WL, d->bed, x2, y2, z2);
-            
-            pc   = p->ccipol7P(d->P, WL, d->bed, xc, yc, zc);
-            
-            pval = (1.0/4.0)*(p0 + p1 + p2 + pc);*/
-
-            // pressure
-            pval   = p->ccipol7V(d->P, WL, d->bed, xp, yp, zp);// - p->pressgage;
-            etaval = p->ccslipol4(d->eta,xp,yp);  
-            hspval = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
-
-            Fp_x = -(pval + hspval)*A_triang*nx*f_jdir;
-            Fp_y = -(pval + hspval)*A_triang*ny*f_jdir;
-            Fp_z = -(pval + hspval)*A_triang*nz*f_jdir;
-             
-            if(p->j_dir==0)
-            Fp_y = 0.0;
-            
-            // Viscous forces
-            hydrodynamic_viscous_forces_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, A_triang, xp, yp, zp, nx, ny, nz);
-             
-            // Total forces
-            Fx = Fp_x + Fv_x;
-            Fy = Fp_y + Fv_y;
-            Fz = Fp_z + Fv_z;
-             
-            // Add forces to global forces
-            Xe += Fx;
-            Ye += Fy;
-            Ze += Fz;
-
-            Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
-            Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;
-            Ne += (xc - c_(0))*Fy - (yc - c_(1))*Fx;
-            
-            Xe_p += Fp_x;
-            Ye_p += Fp_y;
-            Ze_p += Fp_z;
+            Xe += Fv_x;
+            Ye += Fv_y;
+            Ze += Fv_z;
+            Ke += (gy - c_(1))*Fv_z - (gz - c_(2))*Fv_y;
+            Me += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
+            Ne += (gx - c_(0))*Fv_y - (gy - c_(1))*Fv_x;
             
             Xe_v += Fv_x;
             Ye_v += Fv_y;
             Ze_v += Fv_z;
-							
-            A += A_triang;
-            }
-		}
-	}		
- 
+            
+            A += A_sub;
+        }
+	}
+    
 	// Communication with other processors
     A = pgc->globalsum(A);
-	
+    
 	Xe = pgc->globalsum(Xe);
 	Ye = pgc->globalsum(Ye);
 	Ze = pgc->globalsum(Ze);
@@ -358,17 +226,26 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
     
-    Fx = Xe;
-    Fy = Ye;
-    Fz = Ze;
-
 	Xe_p = pgc->globalsum(Xe_p);
 	Ye_p = pgc->globalsum(Ye_p);
 	Ze_p = pgc->globalsum(Ze_p);
 	Xe_v = pgc->globalsum(Xe_v);
 	Ye_v = pgc->globalsum(Ye_v);
 	Ze_v = pgc->globalsum(Ze_v);
-
+    
+    // 2D: only surge, heave and pitch exist. Out-of-plane moments from an asymmetric STL
+    // triangulation would otherwise enter h_ and tilt the trimesh out of the x-z plane,
+    // although u_fb(3) and u_fb(5) are zeroed in update_fbvel.
+    if(p->j_dir==0)
+    {
+        Ye = Ke = Ne = 0.0;
+        Ye_p = Ye_v = 0.0;
+    }
+    
+    Fx = Xe;
+    Fy = Ye;
+    Fz = Ze;
+    
 	// Add gravity force
 	Xe += p->W20*Mass_fb;
 	Ye += p->W21*Mass_fb;
@@ -381,7 +258,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     cout<<"A_tot: "<<A<<endl;
     cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
     }
-
+    
     // Print results	
     if (p->mpirank==0 && finalize==1) 
     {
@@ -389,4 +266,3 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
     }
 }
-
