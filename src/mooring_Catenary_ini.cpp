@@ -52,6 +52,9 @@ void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         char str[1000];
+        if(p->A10==5)
+        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
+        else
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
         eTout.open(str);
         eTout<<"time \t T"<<endl;

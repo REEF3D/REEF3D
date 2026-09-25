@@ -74,6 +74,9 @@ private:
 	
 	// Material
 	double gamma, A, E, G, L, rho_c, d_c;
+
+	// Environment
+	double rho_w, grav, z_bed;
 	
 	// Mesh
     int Ne;

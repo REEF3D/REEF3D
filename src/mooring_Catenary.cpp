@@ -33,8 +33,17 @@ void mooring_Catenary::start(lexer *p, ghostcell *pgc)
 {
     curr_time = p->simtime;
 
-    FH_0 = 0.01;
-    FV_0 = 0.01;
+    // warm start from the previous solution
+    if (FH > 0.0 && FV > 0.0 && FH==FH && FV==FV)
+    {
+        FH_0 = FH;
+        FV_0 = FV;
+    }
+    else
+    {
+        FH_0 = 0.01;
+        FV_0 = 0.01;
+    }
 
     calcForce(p,pgc);
 		
@@ -66,8 +75,10 @@ void mooring_Catenary::calcForce(lexer *p, ghostcell *pgc)
         FH_0 = FH + 1.0;
         FV_0 = FV + 1.0;	
        
-        while (fabs(FH - FH_0) > 1e-5 && fabs(FV - FV_0) > 1e-5)
+        int newton_it = 0;
+        while ((fabs(FH - FH_0) > 1e-5 || fabs(FV - FV_0) > 1e-5) && newton_it < 100)
         {
+            ++newton_it;
             FH_0 = FH;
             FV_0 = FV;
    
@@ -85,9 +96,13 @@ void mooring_Catenary::calcForce(lexer *p, ghostcell *pgc)
 
             FH = FH + F_eigen[0];
             FV = FV + F_eigen[1];
+
+            // keep horizontal force positive (log and FV/FH)
+            FH = MAX(FH, 1.0e-6);
         }
-        Xme_ = FH*fabs(cos(atan(dy/dx)));
-        Yme_ = FH*fabs(sin(atan(dy/dx)));
+        double dxy_dir = MAX(sqrt(dx*dx + dy*dy), 1.0e-12);
+        Xme_ = FH*fabs(dx)/dxy_dir;
+        Yme_ = FH*fabs(dy)/dxy_dir;
         Zme_ = FV;	
 
         buildLine(p);
@@ -168,7 +183,7 @@ void mooring_Catenary::mooringForces
 void mooring_Catenary::getForce(lexer *p, ghostcell *pgc, double& FH_, double& FV_)
 {
     // Ini line
-	double rho_f = 1000.0;
+	double rho_f = p->W1;
 	
 	rho_c = p->X311_rho_c[line];
 	w = p->X311_w[line]*9.81*(rho_c - rho_f)/rho_c;
@@ -197,7 +212,7 @@ void mooring_Catenary::getForce(lexer *p, ghostcell *pgc, double& FH_, double& F
 void mooring_Catenary::getShape(lexer *p, ghostcell *pgc, double*& x_, double*& y_, double*& z_, double*& T_)
 {
     // Ini line
-	double rho_f = 1000.0;
+	double rho_f = p->W1;
 	
 	rho_c = p->X311_rho_c[line];
 	w = p->X311_w[line]*9.81*(rho_c - rho_f)/rho_c;
@@ -235,7 +250,7 @@ void mooring_Catenary::getShape(lexer *p, ghostcell *pgc, double*& x_, double*& 
 void mooring_Catenary::iniShape(lexer *p, ghostcell *pgc,Eigen::VectorXd& x_, Eigen::VectorXd& y_, Eigen::VectorXd& z_)
 {
     // Ini line
-	double rho_f = 1000.0;
+	double rho_f = p->W1;
 	
 	rho_c = p->X311_rho_c[line];
 	w = p->X311_w[line]*9.81*(rho_c - rho_f)/rho_c;
