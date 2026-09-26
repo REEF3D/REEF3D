@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ice_contact_nscd.h"
 
-fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),etat(p),dtot(p),pcontact(nullptr),comm(pgc->mpi_comm),
+fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),etat(p),dtot(p),pcontact(nullptr),comm(pgc->mpi_comm),pgc_(pgc),
                                                         stage(0),nstage(3),stagewarn(0),printtime(0.0),printcount(0)
 {
     rhow  = p->W1;

@@ -160,6 +160,7 @@ private:
     slice4 etat,dtot;
     ice_contact *pcontact;
     MPI_Comm comm;
+    ghostcell *pgc_;
 
     // RK state of the floes: x[3], q[4], v[3], w[3]
     static constexpr int NY = 13;
