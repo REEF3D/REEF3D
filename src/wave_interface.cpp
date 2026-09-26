@@ -270,3 +270,27 @@ void wave_interface::wave_prestep(lexer *p, ghostcell *pgc)
 }
 
 int wave_interface::printcheck=0;
+
+double wave_interface::wave_paddle_X(lexer *p, ghostcell *pgc, double z)
+{
+    double val=0.0;
+
+    z = MAX(z,-wD);
+
+    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    val = pwave->wave_paddle_X(p,z);
+
+    return val;
+}
+
+double wave_interface::wave_paddle_Xz(lexer *p, ghostcell *pgc, double z)
+{
+    double val=0.0;
+
+    z = MAX(z,-wD);
+
+    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    val = pwave->wave_paddle_Xz(p,z);
+
+    return val;
+}

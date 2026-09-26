@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"wave_lib_wavemaker2nd.h"
 #include<fstream>
 
 wave_lib_flap::wave_lib_flap(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
@@ -35,6 +36,7 @@ wave_lib_flap::wave_lib_flap(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
 	
     timecount_old=0;
 	timecount=1;
+    timecount_d=1;
     timecount_z=0;
 	
 	read(p,pgc);
@@ -202,6 +204,13 @@ void wave_lib_flap::read(lexer *p, ghostcell* pgc)
     kinematics[qn][1] = sign*fabs(sin(kinematics[qn][1])*(p->B111_ze-p->B111_zs));
     }
     
+    // 2nd-order wavemaker correction
+    if(p->B113>0)
+    {
+    wave_lib_wavemaker2nd wm2;
+    wm2.correct(p,pgc,kinematics,ptnum,wdt,2,p->B111_zs,p->B111_ze);
+    }
+    
     // calculate vertical component 
     for(int qn=0; qn<ptnum; ++qn)
     {
@@ -222,4 +231,48 @@ void wave_lib_flap::read(lexer *p, ghostcell* pgc)
 
 void wave_lib_flap::wave_prestep(lexer *p, ghostcell *pgc)
 {
+}
+
+double wave_lib_flap::paddle_disp(lexer *p)
+{
+    // linear interpolation of the displacement time series at wavetime
+    while(timecount_d<ptnum-1 && p->wavetime>kinematics[timecount_d][0])
+    ++timecount_d;
+    
+    int q1 = timecount_d;
+    int q0 = q1>0?q1-1:0;
+    
+    double dts = kinematics[q1][0]-kinematics[q0][0];
+    double fac = dts>1.0e-20 ? (p->wavetime-kinematics[q0][0])/dts : 1.0;
+    fac = MAX(0.0,MIN(1.0,fac));
+    
+    return kinematics[q0][1] + fac*(kinematics[q1][1]-kinematics[q0][1]);
+}
+
+double wave_lib_flap::wave_paddle_X(lexer *p, double z)
+{
+    z+=p->wd;
+    
+    if(p->wavetime<ts || p->wavetime>te)
+	return 0.0;
+	
+	if(z<p->B111_zs || z>p->B111_ze)
+	return 0.0;
+    
+    double fac = (z-p->B111_zs)/(p->B111_ze-p->B111_zs);
+    
+    return cosgamma*p->B118*fac*paddle_disp(p);
+}
+
+double wave_lib_flap::wave_paddle_Xz(lexer *p, double z)
+{
+    z+=p->wd;
+    
+    if(p->wavetime<ts || p->wavetime>te)
+	return 0.0;
+	
+	if(z<p->B111_zs || z>p->B111_ze)
+	return 0.0;
+    
+    return cosgamma*p->B118*paddle_disp(p)/(p->B111_ze-p->B111_zs);
 }

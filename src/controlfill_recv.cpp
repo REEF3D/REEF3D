@@ -603,6 +603,18 @@ void control::ctrlrecv()
     dd++;
     B118 = dctrl[dd];
     dd++;
+    B113 = ictrl[ii];
+    ii++;
+    B113_J = ictrl[ii];
+    ii++;
+    B114_fmin = dctrl[dd];
+    dd++;
+    B114_fmax = dctrl[dd];
+    dd++;
+    B114_f2min = dctrl[dd];
+    dd++;
+    B119 = ictrl[ii];
+    ii++;
     B120 = dctrl[dd];
     dd++;
     B122 = dctrl[dd];

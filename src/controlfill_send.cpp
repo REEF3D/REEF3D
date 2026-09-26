@@ -607,6 +607,18 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B118;
     dd++;
+    ictrl[ii] = B113;
+    ii++;
+    ictrl[ii] = B113_J;
+    ii++;
+    dctrl[dd] = B114_fmin;
+    dd++;
+    dctrl[dd] = B114_fmax;
+    dd++;
+    dctrl[dd] = B114_f2min;
+    dd++;
+    ictrl[ii] = B119;
+    ii++;
     dctrl[dd] = B120;
     dd++;
     dctrl[dd] = B122;

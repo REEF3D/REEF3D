@@ -326,10 +326,16 @@ void control::ini_default()
     B112_zs=0.0;	// double flap start
     B112_z2=0.0;	// double flap2 end/flap2 start
     B112_ze=1.0;	// double flag end
+    B113=0;         // int 2nd-order wavemaker correction for piston/flap: 0 off, 1 sub+super, 2 sub, 3 super
+    B113_J=10;      // int number of evanescent modes for the 2nd-order correction
+    B114_fmin=0.0;  // double lower frequency of first-order components [Hz]
+    B114_fmax=0.0;  // double upper frequency of first-order components [Hz], 0: automatic
+    B114_f2min=0.0; // double lowest corrected 2nd-order frequency [Hz], 0: 0.1 x peak frequency
     B115=0;         // int activate vertical velocity component for flap wavemaker theory
     B116=1;         // int x or beta input for flap wavemaker theories
     B117=0.0;		  // double starting time shift for timeseries input
     B118=1.0;        // double wavemaker correction factor for NHFLOW
+    B119=0;          // int FNPF paddle BC with 2nd-order Taylor terms (moving paddle) for piston/flap
     B120=-90.0;       // doubel delta t for wave generation
     B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location

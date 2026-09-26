@@ -1184,6 +1184,7 @@
         <File Name="ioflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_wavemaker2nd.h"/>
         <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>
         <File Name="wave_lib_flap_eta.h"/>
@@ -3201,6 +3202,7 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_wavemaker2nd.cpp"/>
         <File Name="wave_lib_ssgw_kinematics.cpp"/>
         <File Name="wave_lib_ssgw_routines.cpp"/>
         <File Name="wave_lib_hdc.cpp"/>

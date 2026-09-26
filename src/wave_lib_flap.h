@@ -44,11 +44,16 @@ public:
     double wave_fi(lexer*,double,double,double) override final;
     
     
+    double wave_paddle_X(lexer*,double) override final;
+    double wave_paddle_Xz(lexer*,double) override final;
+
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
 private:
 	void read(lexer*, ghostcell*);
+    double paddle_disp(lexer*);
+    int timecount_d;
 	
 	int ptnum;
 	
