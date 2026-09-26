@@ -30,7 +30,8 @@ Author: Hans Bihs
 #include"fnpf_fsf.h"
 #include"fnpf_bed_update.h"
 
-fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false), foot(p), psiD(p), zeroslice(p)
+fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false), foot(p), psiD(p), zeroslice(p),
+                                                               eta_ext(p), fi_ext(p), ext_ini(false)
 {
     if(p->mpirank==0)
     cout<<"6DOF FNPF startup ..."<<endl;
@@ -135,38 +136,95 @@ void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
 
 void fnpf_6DOF::footprint(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf, int gcval_eta, int gcval_fifsf)
 {
-    // harmonic extension of eta and Fifsf over the footprint (Gauss-Seidel, warm started
-    // from the previous stage), the surrounding free surface acts as Dirichlet data
-    if(footcount==0)
-    return;
+    // Harmonic extension of eta and Fifsf over the footprint, the surrounding free surface
+    // acts as Dirichlet data.
+    // The stage value in the footprint contains the RK tendency of columns whose free-surface
+    // node lies inside the body (Fz there is meaningless and can be large), so it is discarded:
+    // the relaxation restarts from the last extension (eta_ext, fi_ext) and is iterated to
+    // convergence. Columns entering the footprint start from their last free-surface value.
+    if(!ext_ini)
+    {
+        SLICELOOP4
+        {
+        eta_ext(i,j) = eta(i,j);
+        fi_ext(i,j)  = Fifsf(i,j);
+        }
+        
+        pgc->gcsl_start4(p,eta_ext,gcval_eta);
+        pgc->gcsl_start4(p,fi_ext,gcval_fifsf);
+        
+        ext_ini = true;
+    }
     
-    for(int it=0; it<20; ++it)
+    if(footcount>0)
     {
         SLICELOOP4
         if(foot(i,j)>0.5)
         {
-            double se = eta(i-1,j) + eta(i+1,j);
-            double sf = Fifsf(i-1,j) + Fifsf(i+1,j);
-            double nn = 2.0;
-            
-            if(p->j_dir==1)
-            {
-            se += eta(i,j-1) + eta(i,j+1);
-            sf += Fifsf(i,j-1) + Fifsf(i,j+1);
-            nn += 2.0;
-            }
-            
-            eta(i,j)   = se/nn;
-            Fifsf(i,j) = sf/nn;
+        eta(i,j)   = eta_ext(i,j);
+        Fifsf(i,j) = fi_ext(i,j);
         }
         
         pgc->gcsl_start4(p,eta,gcval_eta);
         pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+        
+        const double tol = 1.0e-9*MAX(p->DXM,1.0e-12);
+        
+        for(int it=0; it<1000; ++it)
+        {
+            double dmax=0.0;
+            
+            SLICELOOP4
+            if(foot(i,j)>0.5)
+            {
+                double se = eta(i-1,j) + eta(i+1,j);
+                double sf = Fifsf(i-1,j) + Fifsf(i+1,j);
+                double nn = 2.0;
+                
+                if(p->j_dir==1)
+                {
+                se += eta(i,j-1) + eta(i,j+1);
+                sf += Fifsf(i,j-1) + Fifsf(i,j+1);
+                nn += 2.0;
+                }
+                
+                // over-relaxed Gauss-Seidel
+                const double de = 1.6*(se/nn - eta(i,j));
+                const double df = 1.6*(sf/nn - Fifsf(i,j));
+                
+                eta(i,j)   += de;
+                Fifsf(i,j) += df;
+                
+                dmax = MAX(dmax,fabs(de));
+            }
+            
+            pgc->gcsl_start4(p,eta,gcval_eta);
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+            
+            dmax = pgc->globalmax(dmax);
+            
+            if(dmax<tol)
+            break;
+        }
     }
+    
+    // remember the clean state: extension in the footprint, free surface elsewhere
+    SLICELOOP4
+    {
+    eta_ext(i,j) = eta(i,j);
+    fi_ext(i,j)  = Fifsf(i,j);
+    }
+    
+    pgc->gcsl_start4(p,eta_ext,gcval_eta);
+    pgc->gcsl_start4(p,fi_ext,gcval_fifsf);
 }
 
 void fnpf_6DOF::geometry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    // fnpf_sigma_update sets ZSN in the interior columns only; the sampling of the hull
+    // loads (ccipol7V) reaches into the ghost columns at subdomain boundaries
+    pgc->gcparax7(p,p->ZSN,7);
+    
     const int size = p->imax*p->jmax*(p->kmax+2);
     
     for(int n=0; n<size; ++n)
@@ -187,8 +245,8 @@ void fnpf_6DOF::geometry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     ++count;
     
     footcount = pgc->globalisum(count);
-    
-    // Neumann data for phi: rigid-body velocity
+
+        // Neumann data for phi: rigid-body velocity
     zero_face(p,c);
     for(int nb=0; nb<nbody; ++nb)
     fb_obj[nb]->face_data_fnpf(p,c,pgc,-1,c->FBF,c->FBu,c->FBv,c->FBw);
@@ -249,7 +307,10 @@ void fnpf_6DOF::extrapolate(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
             }
         }
         
+        // values and fill state of the ghost nodes, so the result does not depend on the
+        // domain decomposition
         pgc->gcparax7(p,f,7);
+        pgc->gcparax7int(p,mark,7);
     }
 }
 

@@ -93,6 +93,8 @@ private:
     int *mark;
     
     slice4 foot,psiD,zeroslice;
+    slice4 eta_ext,fi_ext;
+    bool ext_ini;
     
     fnpf_bed_update *pbed;
 };
