@@ -153,6 +153,7 @@ void control::ini_default()
     A394=1;      // int ice breaking check every n steps
     A395_dir=12; // int flexural cut directions
     A395_off=9;  // int flexural cut offsets per direction
+    A396=0.05;   // double contact force averaging time for splitting [s]
 
     
     // PTF

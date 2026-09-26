@@ -395,6 +395,9 @@ void control::read_control(lexer* p)
                 case 395: control>>A395_dir>>A395_off;
                          clear(c,numint);
                          break;
+                case 396: control>>A396;
+                         clear(c,numint);
+                         break;
 
                 case 410: control>>A410;
                          clear(c,numint);

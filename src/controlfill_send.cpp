@@ -276,6 +276,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A395_off;
     ii++;
+    dctrl[dd] = A396;
+    dd++;
 
     ictrl[ii] = A410;
     ii++;

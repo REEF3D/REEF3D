@@ -39,8 +39,9 @@ Author: Hans Bihs
 //
 // Contact splitting (A 390 2,3, 3D): a floe splits along the contact normal through the contact point
 // when the pair normal force exceeds F_s = C*K_IC*h*sqrt(D) (A 392), D = 2*sqrt(A/pi); LEFM scaling of
-// in-plane splitting (Bhat 1988, Lu et al. 2015), C to be calibrated. The force is the normal
-// impulse/dt of the non-smooth contact, impacts therefore depend on dt.
+// in-plane splitting (Bhat 1988, Lu et al. 2015), C to be calibrated. The force is the pair normal
+// force of the non-smooth contact averaged over t_c (A 396), see contact_average: impact impulses are
+// resolved within one or two steps, impulse/dt alone depends on dt and on the timing of the impact.
 //
 // Pieces with a caliper width below D_min (A 393) are not created. Mass, momentum and angular
 // momentum are conserved: pieces keep the orientation and the rigid-body velocity field of the parent.
@@ -304,42 +305,43 @@ void fnpf_ice::breaking_decide(lexer *p)
         }
     }
 
-    // contact splitting
-    if((breakflag&2) && !is2D && pcontact!=nullptr)
-    for(const auto &rc : pcontact->records())
+    // contact splitting, on the time-averaged pair normal force (contact_average)
+    if((breakflag&2) && !is2D)
+    for(const auto &kv : cforce)
     for(int side=0; side<2; ++side)
     {
-        const int bi = side==0 ? rc.a : rc.b;
-        if(bi<0 || bi>=int(cmap.size()))
+        const int fid = side==0 ? kv.first.first : kv.first.second;
+        if(fid<0 || fid>=int(nf))
         continue;
-
-        const size_t f = size_t(cmap[bi]);
+        
+        const size_t f = size_t(fid);
         const fnpf_ice_floe &fl = floe[f];
         if(fl.type!=0)
         continue;
-
+        
+        const cavg &ca = kv.second;
         const double D = 2.0*sqrt(fl.area/PI);
         const double Fs = Csplit*KIC*fl.h*sqrt(D);
-        const double r = rc.Fn/MAX(Fs,1.0e-20);
-
+        const double r = ca.F/MAX(Fs,1.0e-20);
+        
         if(r>=1.0 && r>ratio[f])
         {
         // cut along the contact normal through the contact point
-        const double nx = -rc.ny, ny = rc.nx;
-        const double s = nx*(rc.px-fl.x[0]) + ny*(rc.py-fl.x[1]);
+        const double nx = -ca.ny, ny = ca.nx;
+        const double s = nx*(ca.px-fl.x[0]) + ny*(ca.py-fl.x[1]);
         split sp;
         if(body_cut(fl,nx,ny,s,sp))
         {
         sp.f = int(f);
         sp.mech = 2;
-        sp.val = rc.Fn;
+        sp.val = ca.F;
         sp.lim = Fs;
         best[f] = sp;
         ratio[f] = r;
         }
         }
     }
-
+    
     for(size_t f=0; f<nf; ++f)
     if(ratio[f]>=1.0)
     splits.push_back(best[f]);
@@ -387,6 +389,16 @@ void fnpf_ice::breaking_apply(lexer *p, ghostcell *pgc)
         if(nid>=0)
         {
         ++nbreak;
+        
+        // the load that broke the floe is released
+        const int pid = floe[sp.f].id;
+        for(auto it=cforce.begin(); it!=cforce.end();)
+        {
+            if(it->first.first==pid || it->first.second==pid)
+            it = cforce.erase(it);
+            else
+            ++it;
+        }
 
         if(p->mpirank==0 && breakout.is_open())
         breakout<<setprecision(9)<<t<<" "<<floe[sp.f].id<<" "<<nid<<" "<<sp.mech<<" "<<sp.val<<" "<<sp.lim<<" "
@@ -457,4 +469,41 @@ int fnpf_ice::split_floe(lexer *p, size_t f, double nbx, double nby, double s, i
 
     (void)mech;
     return pb.id;
+}
+
+void fnpf_ice::contact_average(lexer *p)
+{
+    // Rank 0, every step. The non-smooth contact gives impulses, an impact is resolved within one or two
+    // steps and impulse/dt depends on dt and on where the impact falls within the step. For splitting
+    // the pair normal force is averaged over t_c (A 396) with an exponential filter:
+    //     F_avg <- F_avg + a*(F - F_avg),  a = min(1, dt/t_c)
+    // An impact with impulse P gives F_avg ~ P/t_c, a sustained load gives F_avg = F.
+    const double a = (tcon>0.0) ? MIN(1.0, p->dt/tcon) : 1.0;
+    
+    for(auto &kv : cforce)
+    kv.second.F *= (1.0-a);
+    
+    for(const auto &rc : pcontact->records())
+    {
+        if(rc.a<0 || rc.a>=int(cmap.size()))
+        continue;
+        
+        const int ida = floe[cmap[rc.a]].id;
+        const int idb = (rc.b>=0 && rc.b<int(cmap.size())) ? floe[cmap[rc.b]].id : rc.b;
+        
+        cavg &ca = cforce[make_pair(ida,idb)];
+        ca.F  += a*rc.Fn;
+        ca.px = rc.px;
+        ca.py = rc.py;
+        ca.nx = rc.nx;
+        ca.ny = rc.ny;
+    }
+    
+    for(auto it=cforce.begin(); it!=cforce.end();)
+    {
+        if(it->second.F < 1.0e-6)
+        it = cforce.erase(it);
+        else
+        ++it;
+    }
 }

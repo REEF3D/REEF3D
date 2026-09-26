@@ -59,6 +59,7 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     ndir   = is2D ? 1 : MAX(1,p->A395_dir);
     noff   = MAX(1,p->A395_off);
     nbreak = 0;
+    tcon   = MAX(p->A396,0.0);
     nstage = (p->A310==4) ? 4 : 3;
 
     // the lid stiffens the surface under the floes: g_eff = g*(1+alpha)
@@ -205,6 +206,10 @@ void fnpf_ice::poststep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     
     if(p->mpirank==0)
     contact(p);
+    
+    // contact loads for splitting: averaged over A 396 every step
+    if((breakflag&2) && p->mpirank==0)
+    contact_average(p);
     
     if(checkbreak && p->mpirank==0)
     breaking_decide(p);

@@ -272,6 +272,8 @@ void control::ctrlrecv()
     ii++;
     A395_off = ictrl[ii];
     ii++;
+    A396 = dctrl[dd];
+    dd++;
 
     A410 = ictrl[ii];
     ii++;

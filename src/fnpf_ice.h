@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include<array>
 #include<fstream>
 #include<mpi.h>
+#include<map>
 
 class lexer;
 class fdm_fnpf;
@@ -120,6 +121,15 @@ private:
     };
     void breaking_moments(lexer*);
     void breaking_decide(lexer*);
+    void contact_average(lexer*);
+    struct cavg
+    {
+        double F = 0.0;             // time-averaged pair normal force (A 396)
+        double px = 0.0, py = 0.0;  // last contact point
+        double nx = 0.0, ny = 0.0;  // last normal, from a to b
+    };
+    map<pair<int,int>,cavg> cforce;     // key: floe ids (a, b), b < 0: wall
+    double tcon;
     void breaking_apply(lexer*, ghostcell*);
     int split_floe(lexer*, size_t, double, double, double, int);
     static void clip_halfplane(const vector<double>&, const vector<double>&, double, double, double, double, vector<double>&, vector<double>&);
