@@ -794,6 +794,12 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Ice">
+        <File Name="ice_contact.h"/>
+        <File Name="ice_contact_nscd.h"/>
+        <File Name="fnpf_ice.h"/>
+        <File Name="fnpf_ice_floe.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles">
         <File Name="nhflow_particle.h"/>
         <File Name="nhflow_particle_void.h"/>
@@ -2190,6 +2196,15 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Ice">
+        <File Name="ice_contact_nscd.cpp"/>
+        <File Name="fnpf_ice.cpp"/>
+        <File Name="fnpf_ice_read.cpp"/>
+        <File Name="fnpf_ice_print.cpp"/>
+        <File Name="fnpf_ice_lid.cpp"/>
+        <File Name="fnpf_ice_dynamics.cpp"/>
+        <File Name="fnpf_ice_breaking.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Particles">
         <File Name="nhflow_particle_f.cpp"/>
         <File Name="nhflow_particle_f_xchange.cpp"/>
