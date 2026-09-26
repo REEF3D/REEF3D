@@ -85,8 +85,7 @@ public:
     
     void wave_prestep(lexer*,ghostcell*);
 
-    double wave_paddle_X(lexer*,ghostcell*,double);
-    double wave_paddle_Xz(lexer*,ghostcell*,double);
+    double wave_paddle_Q(lexer*,ghostcell*,double);
 
 
 private:

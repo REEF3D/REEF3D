@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"wave_lib_wavemaker2nd.h"
 #include<fstream>
 
 wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc) 
@@ -36,7 +35,6 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
 	
     timecount_old=0;
 	timecount=1;
-    timecount_d=1;
 	
 	read(p,pgc);
 	
@@ -178,49 +176,21 @@ void wave_lib_piston::read(lexer *p, ghostcell* pgc)
 	ts = kinematics[0][0];
 	te = kinematics[ptnum-1][0];
     
+    // moving-paddle BC terms from the first-order signal (before correcting it)
+    if(p->B119==1 && p->A10==3)
+    wm2.make_Qtable(p,pgc,kinematics,ptnum,wdt,1,p->B110_zs,p->B110_ze);
+    
     // 2nd-order wavemaker correction
     if(p->B113>0)
-    {
-    wave_lib_wavemaker2nd wm2;
     wm2.correct(p,pgc,kinematics,ptnum,wdt,1,p->B110_zs,p->B110_ze);
-    }
 }
 
-double wave_lib_piston::paddle_disp(lexer *p)
+double wave_lib_piston::wave_paddle_Q(lexer *p, double z)
 {
-    // linear interpolation of the displacement time series at wavetime
-    while(timecount_d<ptnum-1 && p->wavetime>kinematics[timecount_d][0])
-    ++timecount_d;
-    
-    int q1 = timecount_d;
-    int q0 = q1>0?q1-1:0;
-    
-    double dts = kinematics[q1][0]-kinematics[q0][0];
-    double fac = dts>1.0e-20 ? (p->wavetime-kinematics[q0][0])/dts : 1.0;
-    fac = MAX(0.0,MIN(1.0,fac));
-    
-    return kinematics[q0][1] + fac*(kinematics[q1][1]-kinematics[q0][1]);
-}
-
-double wave_lib_piston::wave_paddle_X(lexer *p, double z)
-{
-    if(p->wavetime<ts || p->wavetime>te)
-	return 0.0;
-    
-    if(p->B110==1)
-    {
-    z+=p->wd;
-    
-    if(z<p->B110_zs || z>p->B110_ze)
+    if(p->B119!=1 || p->wavetime<ts || p->wavetime>te)
     return 0.0;
-    }
     
-    return cosgamma*p->B118*paddle_disp(p);
-}
-
-double wave_lib_piston::wave_paddle_Xz(lexer *p, double z)
-{
-    return 0.0;
+    return cosgamma*wm2.paddle_Q(p->wavetime,z);
 }
 
 void wave_lib_piston::wave_prestep(lexer *p, ghostcell *pgc)

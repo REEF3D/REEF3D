@@ -67,9 +67,9 @@ public:
     virtual double wave_fi_time_cos(lexer*,int)=0;
     
     
-    // paddle displacement S(z,t) and dS/dz for piston/flap wavemakers (z relative to still water)
-    virtual double wave_paddle_X(lexer*,double) {return 0.0;}
-    virtual double wave_paddle_Xz(lexer*,double) {return 0.0;}
+    // second-order moving-paddle BC terms Q = X_z*phi_z - X*phi_xx at x=0
+    // for piston/flap wavemakers (z relative to still water level)
+    virtual double wave_paddle_Q(lexer*,double) {return 0.0;}
 
     virtual void parameters(lexer*,ghostcell*)=0;
     virtual void wave_prestep(lexer*,ghostcell*)=0;

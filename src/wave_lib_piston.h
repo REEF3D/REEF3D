@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
 #include"increment.h"
+#include"wave_lib_wavemaker2nd.h"
 
 using namespace std;
 
@@ -44,16 +45,14 @@ public:
     double wave_fi(lexer*,double,double,double) override final;
     
     
-    double wave_paddle_X(lexer*,double) override final;
-    double wave_paddle_Xz(lexer*,double) override final;
+    double wave_paddle_Q(lexer*,double) override final;
 
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
 private:
 	void read(lexer*, ghostcell*);
-    double paddle_disp(lexer*);
-    int timecount_d;
+    wave_lib_wavemaker2nd wm2;
 	
 	int ptnum;
 	

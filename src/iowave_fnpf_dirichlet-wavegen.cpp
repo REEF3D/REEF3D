@@ -105,56 +105,14 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         {
         Uin[FIm1JK] = Uinval[count]; 
         
-        // moving paddle: 2nd-order Taylor terms of the paddle BC about x=0
-        // phi_x = X_t + X_z*phi_z - X*phi_xx,  phi_xx = -(phi_yy + phi_zz)
-        if(p->B119==1 && (p->B92==21 || p->B92==22) && p->knoz>=2)
-        Uin[FIm1JK] += paddle_taylor_fnpf(p,pgc,Fi);
+        // moving paddle: 2nd-order Taylor terms of the paddle BC about x=0,
+        // phi_x = X_t + X_z*phi_z - X*phi_xx, with phi from the linear paddle
+        // solution (prescribed, no feedback from the computed field)
+        if(p->B119==1 && (p->B92==21 || p->B92==22))
+        Uin[FIm1JK] += wave_paddle_Q(p,pgc,p->ZSN[FIJK]-p->phimean);
         
         ++count;
         }
     }
 }
 
-double iowave::paddle_taylor_fnpf(lexer *p, ghostcell *pgc, double *Fi)
-{
-    double zz = p->ZSN[FIJK]-p->phimean;
-    
-    double X  = wave_paddle_X(p,pgc,zz);
-    double Xz = wave_paddle_Xz(p,pgc,zz);
-    
-    if(fabs(X)<1.0e-20 && fabs(Xz)<1.0e-20)
-    return 0.0;
-    
-    // three-point stencil in the vertical column at the first interior node
-    int k0 = k-1;
-    
-    if(k==0)
-    k0 = 0;
-    
-    if(k==p->knoz)
-    k0 = k-2;
-    
-    const int id = FIJK;
-    const int d0 = k0-k;
-    
-    double z0 = p->ZSN[id+d0], z1 = p->ZSN[id+d0+1], z2 = p->ZSN[id+d0+2];
-    double f0 = Fi[id+d0],     f1 = Fi[id+d0+1],     f2 = Fi[id+d0+2];
-    double zc = p->ZSN[id];
-    
-    double c0 = 1.0/((z0-z1)*(z0-z2));
-    double c1 = 1.0/((z1-z0)*(z1-z2));
-    double c2 = 1.0/((z2-z0)*(z2-z1));
-    
-    double fzz = 2.0*(f0*c0 + f1*c1 + f2*c2);
-    double fz  = f0*c0*(2.0*zc-z1-z2) + f1*c1*(2.0*zc-z0-z2) + f2*c2*(2.0*zc-z0-z1);
-    
-    if(k==0)
-    fz = 0.0;   // bed
-    
-    double fyy = 0.0;
-    
-    if(p->y_dir>0.5)
-    fyy = 2.0*((Fi[FIJp1K]-Fi[FIJK])/p->DYP[JP] - (Fi[FIJK]-Fi[FIJm1K])/p->DYP[JM1])/(p->DYP[JP]+p->DYP[JM1]);
-    
-    return Xz*fz + X*(fzz + fyy);
-}

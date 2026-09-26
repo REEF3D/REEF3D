@@ -136,6 +136,67 @@ cplx sinhc(cplx x, double h)
     return sinh(x*h)/x;
 }
 
+// FFT of the zero-padded first-order paddle signal and selection of the
+// components X(t) = sum_n Re(Xc_n exp(i omega_n t)) used by the theory
+int select_components(double g, double h, double fmin, double fmax, int nmax,
+                      const std::vector<double> &x, double dt,
+                      std::vector<cplx> &F, int &nfft, double &dw,
+                      std::vector<int> &cand, std::vector<double> &Xre, std::vector<double> &Xim)
+{
+    const int npts = int(x.size());
+
+    nfft=1;
+    while(nfft<2*npts)
+    nfft<<=1;
+
+    F.assign(nfft,cplx(0.0,0.0));
+    for(int q=0; q<npts; ++q)
+    F[q] = x[q];
+    fft(F,false);
+
+    dw = 2.0*pi_/(double(nfft)*dt);
+
+    double amax=0.0;
+    for(int b=1; b<nfft/2; ++b)
+    amax = std::max(amax,std::abs(F[b]));
+
+    cand.clear();
+    for(int b=1; b<nfft/2; ++b)
+    {
+        const double f = double(b)*dw/(2.0*pi_);
+        const double kh = k_prog(double(b)*dw,h,g)*h;
+        if(kh>100.0)
+        continue;
+
+        if(fmax>0.0)
+        {
+            if(f>=fmin && f<=fmax)
+            cand.push_back(b);
+        }
+        else
+        if(f>=fmin && std::abs(F[b])>=1.0e-3*amax)
+        cand.push_back(b);
+    }
+
+    // keep the nmax most energetic components
+    if(int(cand.size())>nmax)
+    {
+        std::sort(cand.begin(),cand.end(),[&](int a, int b){ return std::abs(F[a])>std::abs(F[b]); });
+        cand.resize(nmax);
+        std::sort(cand.begin(),cand.end());
+    }
+
+    const int N = int(cand.size());
+    Xre.resize(N);
+    Xim.resize(N);
+    for(int n=0; n<N; ++n)
+    {
+        Xre[n] = 2.0*F[cand[n]].real()/double(nfft);
+        Xim[n] = 2.0*F[cand[n]].imag()/double(nfft);
+    }
+    return N;
+}
+
 struct wm_mode
 {
     int n;          // owning first-order frequency
@@ -323,59 +384,14 @@ int wave_lib_wavemaker2nd::compute(double g, double h, int shape, double zs, dou
     if(npts<8)
     return 0;
 
-    // analysis FFT, zero padded
-    int nfft=1;
-    while(nfft<2*npts)
-    nfft<<=1;
-
-    std::vector<cplx> F(nfft,cplx(0.0,0.0));
-    for(int q=0; q<npts; ++q)
-    F[q] = x[q];
-    fft(F,false);
-
-    const double dw = 2.0*pi_/(double(nfft)*dt);
-
-    // X(t) = sum_b Re(Xb e^{i w_b t}),  Xb = 2 F_b / nfft
-    double amax=0.0;
-    for(int b=1; b<nfft/2; ++b)
-    amax = std::max(amax,std::abs(F[b]));
-
+    std::vector<cplx> F;
     std::vector<int> cand;
-    for(int b=1; b<nfft/2; ++b)
-    {
-        const double f = double(b)*dw/(2.0*pi_);
-        const double kh = k_prog(double(b)*dw,h,g)*h;
-        if(kh>100.0)
-        continue;
-
-        if(fmax>0.0)
-        {
-            if(f>=fmin && f<=fmax)
-            cand.push_back(b);
-        }
-        else
-        if(f>=fmin && std::abs(F[b])>=1.0e-3*amax)
-        cand.push_back(b);
-    }
-
-    // keep the nmax most energetic components
-    if(int(cand.size())>nmax)
-    {
-        std::sort(cand.begin(),cand.end(),[&](int a, int b){ return std::abs(F[a])>std::abs(F[b]); });
-        cand.resize(nmax);
-        std::sort(cand.begin(),cand.end());
-    }
-
-    const int N = int(cand.size());
+    std::vector<double> Xre, Xim, X2re, X2im;
+    int nfft;
+    double dw;
+    const int N = select_components(g,h,fmin,fmax,nmax,x,dt,F,nfft,dw,cand,Xre,Xim);
     if(N==0)
     return 0;
-
-    std::vector<double> Xre(N), Xim(N), X2re, X2im;
-    for(int n=0; n<N; ++n)
-    {
-        Xre[n] = 2.0*F[cand[n]].real()/double(nfft);
-        Xim[n] = 2.0*F[cand[n]].imag()/double(nfft);
-    }
 
     // lowest second-order frequency that is corrected: very long difference
     // frequencies (set-down under the ramped wave train, spectral leakage)
@@ -416,6 +432,153 @@ int wave_lib_wavemaker2nd::compute(double g, double h, int shape, double zs, dou
     return N;
 }
 
+void wave_lib_wavemaker2nd::compute_paddle_Q(double g, double h, int shape, double zs, double ze,
+                       int J, double fmin, double fmax, int nmax,
+                       const std::vector<double> &x, double dt, int nlev, std::vector<float> &Q)
+{
+    const int npts = int(x.size());
+    Q.assign(size_t(nlev)*size_t(npts),0.0f);
+    if(npts<8 || nlev<2)
+    return;
+
+    std::vector<cplx> F;
+    std::vector<int> cand;
+    std::vector<double> Xre, Xim;
+    int nfft;
+    double dw;
+    const int N = select_components(g,h,fmin,fmax,nmax,x,dt,F,nfft,dw,cand,Xre,Xim);
+    if(N==0)
+    return;
+
+    double al=1.0, be=0.0, sa=0.0;
+    if(shape==2)
+    {
+        al = -zs/(ze-zs);
+        be = 1.0/(ze-zs);
+        sa = std::max(zs,0.0);
+    }
+
+    // band-limited first-order displacement X(t)
+    std::vector<cplx> Y(nfft,cplx(0.0,0.0));
+    for(int n=0; n<N; ++n)
+    Y[cand[n]] = cplx(Xre[n],Xim[n]);
+    fft(Y,true);
+    std::vector<double> xs(npts);
+    for(int q=0; q<npts; ++q)
+    xs[q] = Y[q].real();
+
+    // modal coefficients Ct = i g a/omega and wavenumbers
+    std::vector<cplx> km, Ctm, chm;
+    km.reserve(size_t(N)*(J+1));
+    for(int n=0; n<N; ++n)
+    {
+        const double w = double(cand[n])*dw;
+        const cplx X(Xre[n],Xim[n]);
+        for(int j=0; j<=J; ++j)
+        {
+            const cplx k = (j==0) ? cplx(k_prog(w,h,g),0.0) : cplx(0.0,-k_evan(w,h,g,j));
+            const cplx ch = cosh(k*h), sh = sinh(k*h);
+            const cplx N0 = (2.0*k*h + 2.0*sh*ch)/(4.0*k);
+            const cplx a  = I_*X*sh*Lc(k,al,be,sa,h)/N0;
+            km.push_back(k);
+            chm.push_back(ch);
+            Ctm.push_back(I_*g*a/w);
+        }
+    }
+
+    std::vector<cplx> A(nfft), B(nfft);
+    for(int l=0; l<nlev; ++l)
+    {
+        const double s = h*double(l)/double(nlev-1);
+        const double f  = (s>=sa) ? al+be*s : 0.0;
+        const double fp = (s>=sa) ? be : 0.0;
+
+        if(f==0.0 && fp==0.0)
+        continue;
+
+        std::fill(A.begin(),A.end(),cplx(0.0,0.0));
+        std::fill(B.begin(),B.end(),cplx(0.0,0.0));
+
+        for(int n=0; n<N; ++n)
+        for(int j=0; j<=J; ++j)
+        {
+            const int m = n*(J+1)+j;
+            const cplx k = km[m];
+            const cplx c = Ctm[m]/chm[m];
+            A[cand[n]] += -k*k*c*cosh(k*s);   // phi_xx
+            B[cand[n]] +=  k*c*sinh(k*s);     // phi_z
+        }
+        fft(A,true);
+        fft(B,true);
+
+        for(int q=0; q<npts; ++q)
+        Q[size_t(l)*npts+q] = float(fp*xs[q]*B[q].real() - f*xs[q]*A[q].real());
+    }
+}
+
+int wave_lib_wavemaker2nd::resample(double **kin, int ptnum, double &t0, double &dt, std::vector<double> &xu)
+{
+    // uniform grid, skipping non-increasing time stamps
+    std::vector<double> tt, xx;
+    tt.reserve(ptnum);
+    xx.reserve(ptnum);
+    for(int q=0; q<ptnum; ++q)
+    if(tt.empty() || kin[q][0]>tt.back())
+    {
+        tt.push_back(kin[q][0]);
+        xx.push_back(kin[q][1]);
+    }
+
+    const int nt = int(tt.size());
+    if(nt<8)
+    return 0;
+
+    std::vector<double> dts(nt-1);
+    for(int q=0; q<nt-1; ++q)
+    dts[q] = tt[q+1]-tt[q];
+    std::nth_element(dts.begin(),dts.begin()+dts.size()/2,dts.end());
+    dt = dts[dts.size()/2];
+    t0 = tt.front();
+
+    const int nu = int((tt.back()-tt.front())/dt) + 1;
+    xu.resize(nu);
+    int qq=0;
+    for(int q=0; q<nu; ++q)
+    {
+        const double t = t0 + double(q)*dt;
+        while(qq<nt-2 && tt[qq+1]<t)
+        ++qq;
+        const double fac = std::min(1.0,std::max(0.0,(t-tt[qq])/(tt[qq+1]-tt[qq])));
+        xu[q] = xx[qq] + fac*(xx[qq+1]-xx[qq]);
+    }
+    return nu;
+}
+
+double wave_lib_wavemaker2nd::paddle_Q(double t, double z) const
+{
+    if(Qnt<2 || Qnlev<2)
+    return 0.0;
+
+    // levels s = z+h in [0,h]; above still water the top level is used
+    double sl = (z+Qh)/Qh*double(Qnlev-1);
+    sl = std::min(double(Qnlev-1),std::max(0.0,sl));
+    int l0 = std::min(Qnlev-2,int(sl));
+    double fl = sl-double(l0);
+
+    double st = (t-Qt0)/Qdt;
+    if(st<0.0 || st>double(Qnt-1))
+    return 0.0;
+    int q0 = std::min(Qnt-2,int(st));
+    double ft = st-double(q0);
+
+    const float *a = &Qtab[size_t(l0)*Qnt];
+    const float *b = &Qtab[size_t(l0+1)*Qnt];
+    double qa = a[q0] + ft*(a[q0+1]-a[q0]);
+    double qb = b[q0] + ft*(b[q0+1]-b[q0]);
+
+    return qa + fl*(qb-qa);
+}
+
 #ifndef WM2ND_STANDALONE
 void wave_lib_wavemaker2nd::correct(lexer *p, ghostcell *pgc, double **kin, int ptnum, double h, int shape, double zs, double ze)
 {
@@ -437,38 +600,11 @@ void wave_lib_wavemaker2nd::correct(lexer *p, ghostcell *pgc, double **kin, int 
     if(shape==2 && ze<h && p->mpirank==0)
     cout<<"Wave_Lib: WARNING flap top B111_ze below still water level, 2nd-order correction not reliable"<<endl;
 
-    // resample to a uniform grid (skip non-increasing time stamps)
-    std::vector<double> tt, xx;
-    tt.reserve(ptnum);
-    xx.reserve(ptnum);
-    for(int q=0; q<ptnum; ++q)
-    if(tt.empty() || kin[q][0]>tt.back())
-    {
-        tt.push_back(kin[q][0]);
-        xx.push_back(kin[q][1]);
-    }
-
-    const int nt = int(tt.size());
-    if(nt<8)
+    double t0, dt;
+    std::vector<double> xu, x2;
+    const int nu = resample(kin,ptnum,t0,dt,xu);
+    if(nu<8)
     return;
-
-    std::vector<double> dts(nt-1);
-    for(int q=0; q<nt-1; ++q)
-    dts[q] = tt[q+1]-tt[q];
-    std::nth_element(dts.begin(),dts.begin()+dts.size()/2,dts.end());
-    const double dt = dts[dts.size()/2];
-
-    const int nu = int((tt.back()-tt.front())/dt) + 1;
-    std::vector<double> xu(nu), x2;
-    int qq=0;
-    for(int q=0; q<nu; ++q)
-    {
-        const double t = tt.front() + double(q)*dt;
-        while(qq<nt-2 && tt[qq+1]<t)
-        ++qq;
-        const double fac = std::min(1.0,std::max(0.0,(t-tt[qq])/(tt[qq+1]-tt[qq])));
-        xu[q] = xx[qq] + fac*(xx[qq+1]-xx[qq]);
-    }
 
     const double starttime = pgc->timer();
 
@@ -478,7 +614,7 @@ void wave_lib_wavemaker2nd::correct(lexer *p, ghostcell *pgc, double **kin, int 
     double x2max=0.0, xmax=0.0;
     for(int q=0; q<ptnum; ++q)
     {
-        const double s = (kin[q][0]-tt.front())/dt;
+        const double s = (kin[q][0]-t0)/dt;
         int iq = int(floor(s));
         double corr=0.0;
         if(iq>=0 && iq<nu-1)
@@ -501,5 +637,31 @@ void wave_lib_wavemaker2nd::correct(lexer *p, ghostcell *pgc, double **kin, int 
         cout<<"  components: "<<N<<"  evanescent modes: "<<p->B113_J<<"  paddle BC terms: "<<addQ<<endl;
         cout<<"Wave_Lib: max |X1|: "<<xmax<<"  max |X2|: "<<x2max<<"  time: "<<pgc->timer()-starttime<<" s"<<endl;
     }
+}
+
+void wave_lib_wavemaker2nd::make_Qtable(lexer *p, ghostcell *pgc, double **kin, int ptnum, double h, int shape, double zs, double ze)
+{
+    const double g = fabs(p->W22)>0.0 ? fabs(p->W22) : 9.81;
+
+    if(shape==1)
+    {
+        zs=0.0;
+        ze=h;
+    }
+
+    std::vector<double> xu;
+    const int nu = resample(kin,ptnum,Qt0,Qdt,xu);
+    if(nu<8)
+    return;
+
+    const double starttime = pgc->timer();
+
+    Qh = h;
+    Qnlev = 41;
+    Qnt = nu;
+    compute_paddle_Q(g,h,shape,zs,ze,p->B113_J,p->B114_fmin,p->B114_fmax,500,xu,Qdt,Qnlev,Qtab);
+
+    if(p->mpirank==0)
+    cout<<"Wave_Lib: moving-paddle BC terms tabulated, levels: "<<Qnlev<<"  samples: "<<Qnt<<"  evanescent modes: "<<p->B113_J<<"  time: "<<pgc->timer()-starttime<<" s"<<endl;
 }
 #endif

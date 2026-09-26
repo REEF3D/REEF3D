@@ -54,6 +54,20 @@ public:
     // elevation of the paddle) in place. shape: 1 piston, 2 flap
     void correct(lexer*, ghostcell*, double **kin, int ptnum, double h, int shape, double zs, double ze);
 
+    // REEF3D interface for the moving-paddle BC (B119): tabulates
+    // Q(z,t) = X_z*phi_z - X*phi_xx at x=0 from the linear paddle solution
+    // (progressive + J evanescent modes) of the first-order signal.
+    // Must be called with the uncorrected first-order signal.
+    void make_Qtable(lexer*, ghostcell*, double **kin, int ptnum, double h, int shape, double zs, double ze);
+
+    // Q at time t and elevation z (relative to still water level)
+    double paddle_Q(double t, double z) const;
+
+    // core: Q on nlev equidistant levels s=z+h in [0,h], Q[l*npts+q]
+    static void compute_paddle_Q(double g, double h, int shape, double zs, double ze,
+                       int J, double fmin, double fmax, int nmax,
+                       const std::vector<double> &x, double dt, int nlev, std::vector<float> &Q);
+
     // core: uniformly sampled first-order displacement x (dt), returns x2
     // mode: 1 sub+super, 2 subharmonics only, 3 superharmonics only
     // zs,ze measured from the bed, flap: hinge at zs, displacement given at ze
@@ -72,6 +86,13 @@ public:
                        int mode, int J, int addQ, double dw, double w2min,
                        const std::vector<int> &bin, const std::vector<double> &Xre, const std::vector<double> &Xim,
                        std::vector<double> &X2re, std::vector<double> &X2im);
+
+private:
+    static int resample(double **kin, int ptnum, double &t0, double &dt, std::vector<double> &xu);
+
+    std::vector<float> Qtab;
+    int Qnlev=0, Qnt=0;
+    double Qt0=0.0, Qdt=1.0, Qh=1.0;
 };
 
 #endif

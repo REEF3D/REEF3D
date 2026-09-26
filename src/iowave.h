@@ -188,7 +188,6 @@ public:
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
     void dirichlet_wavegen_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&);
-    double paddle_taylor_fnpf(lexer*,ghostcell*,double*);
     void active_beach_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double*, slice&, slice&);
     
     void wavegen_precalc_decomp_space_fnpf(lexer*,ghostcell*);
