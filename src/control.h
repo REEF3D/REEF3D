@@ -546,7 +546,8 @@ public:
     int X410;
 
     // FSI
-    int Z10,Z11;
+    int Z10,Z11,Z20;
+    double Z21;
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
     double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
 

@@ -825,13 +825,19 @@
         <File Name="multiphase_f.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">
+        <VirtualDirectory Name="Rodtree">
+          <File Name="rodtree.h"/>
+          <File Name="rodtree_coupling.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Strips">
+          <File Name="FSI_strips.h"/>
+          <File Name="FSI_strip.h"/>
+        </VirtualDirectory>
         <File Name="FSI_interface.h"/>
         <VirtualDirectory Name="Beam">
           <File Name="beam.h"/>
         </VirtualDirectory>
-        <File Name="FSI_strip.h"/>
         <File Name="FSI_void.h"/>
-        <File Name="FSI_strips.h"/>
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
@@ -2300,6 +2306,12 @@
         <File Name="multiphase_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">
+        <VirtualDirectory Name="Rodtree">
+          <File Name="rodtree.cpp"/>
+          <File Name="rodtree_coupling.cpp"/>
+          <File Name="rodtree_coupling_nhflow.cpp"/>
+          <File Name="rodtree_coupling_cfd.cpp"/>
+        </VirtualDirectory>
         <File Name="FSI_interface_logic.cpp"/>
         <File Name="FSI_interface.cpp"/>
         <VirtualDirectory Name="Beam">

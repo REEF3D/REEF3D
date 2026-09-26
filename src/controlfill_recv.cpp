@@ -2355,6 +2355,10 @@ void control::ctrlrecv()
     dd++;
     Z12_ckz = dctrl[dd];
     dd++;
+    Z20 = ictrl[ii];
+    ii++;
+    Z21 = dctrl[dd];
+    dd++;
 
     // --------------------------
 

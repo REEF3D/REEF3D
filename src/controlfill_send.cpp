@@ -2364,6 +2364,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = Z12_ckz;
     dd++;
+    ictrl[ii] = Z20;
+    ii++;
+    dctrl[dd] = Z21;
+    dd++;
 
 
 // --------------------------

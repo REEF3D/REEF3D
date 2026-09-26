@@ -1,0 +1,26 @@
+# smoke test: gorgonian-like fan at x = 40 m, 0.8 m tall, in the x-z plane
+substeps 2
+reaction full
+
+colony fan
+  material 2.0e7 0.4 1100
+  hydro    1.2 0.01 1.0
+  damping  0.01
+  # polyps   0.004 0.5 1.0          # uncomment: polyp layer (h_p, phi_p, Cd_p)
+  # polyp_response 0.15 0.10 1.0    # uncomment: flow-induced retraction (U_r, dU, tau)
+  refine   4
+  node 1  40.00 0.5 0.00 0.015
+  node 2  40.00 0.5 0.35 0.012
+  node 3  40.15 0.5 0.60 0.008
+  node 4  39.85 0.5 0.60 0.008
+  node 5  40.25 0.5 0.80 0.005
+  node 6  40.05 0.5 0.80 0.005
+  node 7  39.75 0.5 0.80 0.005
+  edge 1 2
+  edge 2 3
+  edge 2 4
+  edge 3 5
+  edge 3 6
+  edge 4 7
+  clamp 1
+end
