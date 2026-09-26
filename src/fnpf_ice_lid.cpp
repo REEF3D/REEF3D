@@ -338,6 +338,27 @@ void fnpf_ice::stage_forces(lexer *p, fdm_fnpf *c, slice &K, slice &eta)
         s[4] += (e.xc - fl.x[0])*Aw;
         }
         
+        {
+        // Static part p_eq*grad(eta_eq) of the lid force (p_eq = phi*rho_i*g*h, eta_eq = -sum phi*draft),
+        // removed on all footprint cells, also where the floe lifts off. It sums to zero for a single
+        // floe, but where the edge tapers of neighbouring floes overlap it pulls them together (the water
+        // between two floes at rest is flat). Removing it only on loaded cells, as before, broke the
+        // zero sum whenever part of a floe lifted off and gave a mean up-wave force (~0.6 N on a
+        // 134 kg floe in H = 0.2 m waves). What remains is exactly zero at rest and keeps the
+        // wave-induced terms p_eq*grad(eta'), p'*grad(eta_eq) (side/waterline force), p'*grad(eta').
+        const double Aw = fl.pw*e.phi*e.area;
+        const double dxc0 = p->XP[IP1]-p->XP[IM1];
+        const double exq0 = -(dtot(i+1,j)-dtot(i-1,j))/dxc0;
+        double eyq0 = 0.0;
+        if(!is2D)
+        eyq0 = -(dtot(i,j+1)-dtot(i,j-1))/(p->YP[JP1]-p->YP[JM1]);
+        s[0] += Aw*exq0;
+        s[1] += Aw*eyq0;
+        const double rz0 = zbottom(fl,e.xc,e.yc) + e.off - fl.x[2];
+        s[3] -= rz0*Aw*eyq0;
+        s[4] += rz0*Aw*exq0;
+        s[5] += (e.xc-fl.x[0])*Aw*eyq0 - (e.yc-fl.x[1])*Aw*exq0;
+        }
         if(arg<=0.0)
         continue;
         
@@ -357,25 +378,11 @@ void fnpf_ice::stage_forces(lexer *p, fdm_fnpf *c, slice &K, slice &eta)
         // the surface gradient carries the side (waterline) pressure of the floe, which gives the
         // relative-elevation part of the mean wave drift force. The bottom tilt alone misses it and
         // lets floes drift up-wave in reflected wave fields.
-        //
-        // The part p_eq*grad(eta_eq) of the floe at rest (p_eq = phi*rho_i*g*h, eta_eq = -sum phi*draft)
-        // is taken out: it sums to zero for a single floe, but where the edge tapers of neighbouring floes
-        // overlap it pulls them together (spurious attraction in still water; physically the water between
-        // two floes is flat). What remains is exactly zero at rest and keeps the wave-induced terms
-        // p_eq*grad(eta'), p'*grad(eta_eq) (side/waterline force) and p'*grad(eta').
-        const double dxc = p->XP[IP1]-p->XP[IM1];
-        const double ex = (eta(i+1,j)-eta(i-1,j))/dxc;
-        const double exq = -(dtot(i+1,j)-dtot(i-1,j))/dxc;
-        double ey=0.0, eyq=0.0;
-        if(!is2D)
-        {
-        const double dyc = p->YP[JP1]-p->YP[JM1];
-        ey  = (eta(i,j+1)-eta(i,j-1))/dyc;
-        eyq = -(dtot(i,j+1)-dtot(i,j-1))/dyc;
-        }
-        const double peqA = fl.pw*A;
-        double fx = -pA*ex + peqA*exq;
-        double fy = -pA*ey + peqA*eyq;
+        // (The static part p_eq*grad(eta_eq) is removed above on all footprint cells.)
+        const double ex = (eta(i+1,j)-eta(i-1,j))/(p->XP[IP1]-p->XP[IM1]);
+        const double ey = is2D ? 0.0 : (eta(i,j+1)-eta(i,j-1))/(p->YP[JP1]-p->YP[JM1]);
+        double fx = -pA*ex;
+        double fy = -pA*ey;
         double fz = pA;
         
         // ice-water skin drag on the relative horizontal velocity at the surface
