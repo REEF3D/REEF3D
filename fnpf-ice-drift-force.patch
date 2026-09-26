@@ -1,0 +1,51 @@
+From 173458290f3162082bde640e04b83b93734d6681 Mon Sep 17 00:00:00 2001
+From: Hans Bihs <hans.bihs@ntnu.no>
+Date: Sat, 26 Sep 2026 16:08:35 +0200
+Subject: [PATCH] fnpf ice floes: horizontal lid force from the loaded surface
+ gradient
+
+The horizontal lid force on a floe is now -p*A*grad(eta) (central
+differences of the stage eta) instead of p*A times the bottom tilt. It is the
+exact reaction of the pressure given to the fluid (horizontal momentum
+conserved), and in the edge taper it carries the side/waterline pressure of
+the floe, i.e. the relative-elevation part of the mean wave drift force.
+
+With the bottom tilt only, floe fields in waves drifted up-wave at the front
+(11 of 21 floes, up to -3.4 m in 25 s, field centroid -0.1 m). Now all floes
+drift down-wave (centroid +1.4 m), single floes at about the Stokes drift
+(3D: 0.07 m/s vs a^2*omega*k = 0.062 m/s); static equilibrium unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Tx98bAxbHpyeVhJoFooqyV
+---
+ src/fnpf_ice_lid.cpp | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/src/fnpf_ice_lid.cpp b/src/fnpf_ice_lid.cpp
+index 2458aa9e4..7e5752627 100644
+--- a/src/fnpf_ice_lid.cpp
++++ b/src/fnpf_ice_lid.cpp
+@@ -338,10 +338,16 @@ void fnpf_ice::stage_forces(lexer *p, fdm_fnpf *c, slice &K, slice &eta)
+         const double ry = e.yc - fl.x[1];
+         const double rz = zb - fl.x[2];
+         
+-        // lid pressure normal to the tilted bottom: dF = p*A_h*nb/nb_z
+-        const double nz = MAX(fl.nb[2],1.0e-6);
+-        double fx = pA*fl.nb[0]/nz;
+-        double fy = pA*fl.nb[1]/nz;
++        // Lid pressure on the loaded surface z = eta: dF = p*A_h*(-deta/dx, -deta/dy, 1).
++        // This is exactly the reaction of the pressure given to the fluid, so horizontal momentum is
++        // conserved. Under the rigid part eta follows the floe bottom (slope force); in the edge taper
++        // the surface gradient carries the side (waterline) pressure of the floe, which gives the
++        // relative-elevation part of the mean wave drift force. The bottom tilt alone misses it and
++        // lets floes drift up-wave in reflected wave fields.
++        const double ex = (eta(i+1,j)-eta(i-1,j))/(p->XP[IP1]-p->XP[IM1]);
++        const double ey = is2D ? 0.0 : (eta(i,j+1)-eta(i,j-1))/(p->YP[JP1]-p->YP[JM1]);
++        double fx = -pA*ex;
++        double fy = -pA*ey;
+         double fz = pA;
+         
+         // ice-water skin drag on the relative horizontal velocity at the surface
+-- 
+2.43.0
+

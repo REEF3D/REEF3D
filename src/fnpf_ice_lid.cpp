@@ -324,10 +324,16 @@ void fnpf_ice::stage_forces(lexer *p, fdm_fnpf *c, slice &K, slice &eta)
         const double ry = e.yc - fl.x[1];
         const double rz = zb - fl.x[2];
         
-        // lid pressure normal to the tilted bottom: dF = p*A_h*nb/nb_z
-        const double nz = MAX(fl.nb[2],1.0e-6);
-        double fx = pA*fl.nb[0]/nz;
-        double fy = pA*fl.nb[1]/nz;
+        // Lid pressure on the loaded surface z = eta: dF = p*A_h*(-deta/dx, -deta/dy, 1).
+        // This is exactly the reaction of the pressure given to the fluid, so horizontal momentum is
+        // conserved. Under the rigid part eta follows the floe bottom (slope force); in the edge taper
+        // the surface gradient carries the side (waterline) pressure of the floe, which gives the
+        // relative-elevation part of the mean wave drift force. The bottom tilt alone misses it and
+        // lets floes drift up-wave in reflected wave fields.
+        const double ex = (eta(i+1,j)-eta(i-1,j))/(p->XP[IP1]-p->XP[IM1]);
+        const double ey = is2D ? 0.0 : (eta(i,j+1)-eta(i,j-1))/(p->YP[JP1]-p->YP[JM1]);
+        double fx = -pA*ex;
+        double fy = -pA*ey;
         double fz = pA;
         
         // ice-water skin drag on the relative horizontal velocity at the surface
