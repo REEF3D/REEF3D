@@ -26,10 +26,31 @@ particle container (`part`) of the sediment/CPM code.
   energy. The gyroscopic term is implicit (Catto 2015). The step is limited by kinematics
   (`E 20`), not by contact stiffness, so the DEM normally runs at the fluid time step or with a
   few substeps.
-* **Parallelisation.** The particle state is replicated on all ranks. Fluid data, forcing
-  integrals and wall contacts are evaluated on the rank that owns the evaluation point and combined
-  with one reduction or gather. Rank 0 broadcasts the state after every step. This suits up to
-  roughly 1e4 particles; a domain-decomposed DEM would be the next step beyond that.
+* **Parallelisation (domain decomposition).** A particle whose bounding radius is at most `E 24`
+  times the smallest subdomain extent is *distributed*. It is owned by the rank that holds its
+  centroid, and it moves to a new owner after each DEM substep. Copies (ghosts) are sent to every
+  partner rank whose subdomain lies within the particle's halo, which covers the contact range
+  plus the reach of its fluid coupling. Larger particles are *replicated* on all ranks. A contact
+  is solved by one rank: the owner of the lower global id, the owner of the distributed particle
+  in a mixed pair, or rank 0 for two replicated particles.
+  - **Solver:** contacts of particles solved on one rank only are swept locally. Contacts of
+    particles shared by several ranks are swept in colour phases: ranks closer than twice the halo
+    get different colours, and one colour sweeps at a time. After each phase, the velocity
+    corrections of ghosts go back to their owners and the new velocities out to the ghosts. The
+    warm-start impulses are synchronised once before the first sweep.
+    - For distributed particles this is a Gauss-Seidel iteration with a different contact order,
+      not a Jacobi iteration between ranks.
+    - Replicated particles touched by several ranks are mass-split (Tonge et al. 2012), and their
+      corrections are averaged.
+    - Convergence is tested globally.
+    - Summed ghost corrections (block Jacobi) and mass splitting for all particles were tried
+      first; they did not converge for stacks across rank boundaries.
+  - **Fluid coupling:** fluid data, forcing integrals, kernel sums and wall contacts are
+    evaluated where the grid point lies and returned to the particle's owner by point-to-point
+    exchange with the partner ranks. Only replicated particles need global reductions.
+  - **Consequences:** memory and work scale with the local particles plus their halo. With
+    `E 24 0` all particles are replicated. Because contact forces in piles are statically
+    indeterminate, results depend slightly on the decomposition.
 
 ## Fluid coupling (`E 11`)
 
@@ -88,6 +109,7 @@ The fluid forcing is applied in the momentum schemes that use `momentum_forcing`
 | E 21 | int | 6 | contact points per pair and normal cluster, 0 keeps all |
 | E 22 | int | 1 | unresolved: fluid acceleration force on/off |
 | E 23 | double | 2.0 | unresolved: kernel radius in cells |
+| E 24 | double | 0.25 | distributed particles: max bounding radius as fraction of the smallest subdomain extent, larger ones are replicated; 0 replicates all |
 
 Gravity is taken from `W 20-22`, so `W 22 -9.81` has to be set. For CFD cases in still water,
 initialise the pressure (`I 10 1`), otherwise the start-up flow disturbs the particles.
@@ -145,11 +167,26 @@ distributed over the one-cell-wide slab. The resolved forcing integral covers on
   Floating unresolved and surface-piercing boxes reach the correct draft. In regular waves,
   floating blocks follow the orbital motion (with `E 22 1`).
 
+**Domain decomposition** (September 2026, 1/2/4 ranks):
+- Settling sphere on a rank boundary: same terminal velocity to 10 digits on 1 and 2 ranks.
+- NHFLOW floating/submerged case: same mean positions on 1 and 2 ranks.
+- 7-box stack across the boundary with alternating owners: at rest on 1, 2 and 4 ranks, with the
+  similar iteration counts (about 60-600 once settled) and less than 0.01 mm drift in 1.5 s.
+- Replicated box resting on distributed spheres across two ranks: same resting height as on one
+  rank.
+- 250-particle pile: same final statistics on 1, 2 and 4 ranks.
+
 ## Limitations and next steps
 
 * Projected Gauss-Seidel converges slowly for large piles; accelerated projected gradient
   solvers, or sleeping of resting particles, would reduce the cost.
-* Replicated particle data: memory and work scale with the total particle count on every rank.
+* Replicated (large) particles: their contacts with each other are solved on rank 0, and their
+  velocity corrections are summed globally at every synchronisation, so keep their number small.
+* Distributed solver: every sweep needs one synchronisation per colour. That is typically 2-8
+  colours for a Cartesian decomposition, and more when the halo is wider than a subdomain.
+  Warm-start caches stay on the rank that solved a contact, so a contact that changes rank starts
+  cold once. Particles whose centroid leaves all subdomains, or that jump beyond the partner ranks
+  in one substep, stay with their owner.
 * The unresolved coupling has no correction for the self-induced velocity. It is small for
   d/dx < 0.5 with the default kernel.
 * NHFLOW surface-piercing particles are coupled one-way, without radiation damping.

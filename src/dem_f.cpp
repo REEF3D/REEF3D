@@ -335,39 +335,12 @@ void dem_f::ini(lexer *p, ghostcell *pgc)
     core.plane2D = (p->j_dir==0);
     core.initialize();
 
-    nb = core.bodies.size();
+    nglobal = core.bodies.size();
 
-    rhof.assign(nb,0.0);
-    nuf.assign(nb,0.0);
-    epsf.assign(nb,1.0);
-    vsub.assign(nb,0.0);
-    dvol.assign(nb,0.0);
-    ufl.assign(nb,dem_vec::Zero());
-    ufl_old.assign(nb,dem_vec::Zero());
-    Fb.assign(nb,dem_vec::Zero());
-    Tb.assign(nb,dem_vec::Zero());
-    fluidcount.assign(nb,0);
-    ufl_valid.assign(nb,false);
-    Fibm.assign(nb,dem_vec::Zero());
-    Fstage.assign(3*nb,dem_vec::Zero());
-    Tstage.assign(3*nb,dem_vec::Zero());
-    Tibm.assign(nb,dem_vec::Zero());
-    mfl.assign(nb,0.0);
-    hvol.assign(nb,0.0);
-    Ffp.assign(nb,dem_vec::Zero());
-    Fhyd.assign(nb,dem_vec::Zero());
-    vprev.assign(nb,dem_vec::Zero());
-    Ifl.assign(nb,dem_vec::Zero());
-    Lfl.assign(nb,dem_vec::Zero());
-    Ifl_old.assign(nb,dem_vec::Zero());
-    Lfl_old.assign(nb,dem_vec::Zero());
-    Ifl_valid.assign(nb,false);
-    wprev.assign(nb,dem_vec::Zero());
-
-    for(int n=0; n<nb; ++n)
+    for(auto &B : core.bodies)
     {
-        vprev[n] = core.bodies[n].v;
-        wprev[n] = core.bodies[n].w;
+        B.cpl.vprev = B.v;
+        B.cpl.wprev = B.w;
     }
 
     // coupling mode per particle
@@ -386,9 +359,8 @@ void dem_f::ini(lexer *p, ghostcell *pgc)
         nres += B.mode;
     }
 
-    basemode.assign(nb,0);
-    for(int n=0; n<nb; ++n)
-    basemode[n] = core.bodies[n].mode;
+    for(auto &B : core.bodies)
+    B.cpl.basemode = B.mode;
 
     if(p->mpirank==0)
     {
@@ -396,17 +368,20 @@ void dem_f::ini(lexer *p, ghostcell *pgc)
         if(p->E15>0.0)
         mkdir("./REEF3D_DEM_VTP",0777);
 
-        cout<<"DEM: "<<core.shapes.size()<<" shapes, "<<core.mats.size()<<" materials, "<<nb<<" particles, "<<core.planes.size()<<" walls"<<endl;
+        cout<<"DEM: "<<core.shapes.size()<<" shapes, "<<core.mats.size()<<" materials, "<<nglobal<<" particles, "<<core.planes.size()<<" walls"<<endl;
         for(size_t s=0; s<core.shapes.size(); ++s)
         {
             const dem_shape &S = core.shapes[s];
             cout<<"DEM: shape "<<s<<" type "<<S.type<<" V: "<<S.volume<<" d_eq: "<<S.deq<<" r_bound: "<<S.rbound
                 <<" sphericity: "<<S.sphericity<<" nodes: "<<S.nodes.size()<<" quadrature points: "<<S.qp.size()<<endl;
         }
-        cout<<"DEM: coupling "<<coupling<<", resolved particles: "<<nres<<", unresolved: "<<nb-nres<<endl;
+        cout<<"DEM: coupling "<<coupling<<", resolved particles: "<<nres<<", unresolved: "<<nglobal-nres<<endl;
     }
 
     printtime = p->simtime;
+
+    // distribute the particles over the ranks
+    decomp_ini(p,pgc);
 }
 
 void dem_f::ini_cfd(lexer *p, ghostcell *pgc)
@@ -455,38 +430,20 @@ void dem_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc)
     internal_cfd(p,a,pgc);
     set_loads(p,pgc);
 
-    core.gravity = dem_vec(p->W20,p->W21,p->W22);
     dem_core::wallfunc wf = nullptr;
     if(gridwalls==1 && (p->toporead>0 || p->S10>0 || p->solidread==1))
     wf = [&](dem_core &c, double margin, vector<dem_contact> &cts) {walls_cfd(p,a,pgc,margin,cts);};
 
-    nsub = substeps(p);
-    maxiter_used = 0;
-    for(int s=0; s<nsub; ++s)
-    {
-        core.step(p->dt/double(nsub),wf);
-        maxiter_used = std::max(maxiter_used,core.iterations);
-    }
-
-    // hydrodynamic force over the step (drag and added mass evaluated with the new velocity)
-    for(int n=0; n<nb; ++n)
-    {
-        const dem_body &B = core.bodies[n];
-        dem_vec ap = (B.v - vprev[n])/p->dt;
-        Fhyd[n] = B.F + B.K*(B.uf - B.v) + B.madd*(B.af - ap);
-    }
-
-    sync(p,pgc);
-    deactivate(p);
+    run_step(p,pgc,wf);
 
     feedback_cfd(p,a,pgc);
 
     for(int n=0; n<nb; ++n)
     {
-        Fibm[n].setZero();
-        Tibm[n].setZero();
-        mfl[n] = 0.0;
-        hvol[n] = 0.0;
+        core.bodies[n].cpl.Fibm.setZero();
+        core.bodies[n].cpl.Tibm.setZero();
+        core.bodies[n].cpl.mfl = 0.0;
+        core.bodies[n].cpl.hvol = 0.0;
     }
     dt_old = p->dt;
 
@@ -511,38 +468,20 @@ void dem_f::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     internal_nhflow(p,d,pgc);
     set_loads(p,pgc);
 
-    core.gravity = dem_vec(p->W20,p->W21,p->W22);
     dem_core::wallfunc wf = nullptr;
     if(gridwalls==1)
     wf = [&](dem_core &c, double margin, vector<dem_contact> &cts) {walls_nhflow(p,d,pgc,margin,cts);};
 
-    nsub = substeps(p);
-    maxiter_used = 0;
-    for(int s=0; s<nsub; ++s)
-    {
-        core.step(p->dt/double(nsub),wf);
-        maxiter_used = std::max(maxiter_used,core.iterations);
-    }
-
-    // hydrodynamic force over the step (drag and added mass evaluated with the new velocity)
-    for(int n=0; n<nb; ++n)
-    {
-        const dem_body &B = core.bodies[n];
-        dem_vec ap = (B.v - vprev[n])/p->dt;
-        Fhyd[n] = B.F + B.K*(B.uf - B.v) + B.madd*(B.af - ap);
-    }
-
-    sync(p,pgc);
-    deactivate(p);
+    run_step(p,pgc,wf);
 
     feedback_nhflow(p,d,pgc);
 
     for(int n=0; n<nb; ++n)
     {
-        Fibm[n].setZero();
-        Tibm[n].setZero();
-        mfl[n] = 0.0;
-        hvol[n] = 0.0;
+        core.bodies[n].cpl.Fibm.setZero();
+        core.bodies[n].cpl.Tibm.setZero();
+        core.bodies[n].cpl.mfl = 0.0;
+        core.bodies[n].cpl.hvol = 0.0;
     }
     dt_old = p->dt;
 
@@ -563,6 +502,9 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
         dem_body &B = core.bodies[n];
         const dem_shape &S = core.shapes[B.shape];
 
+        if(B.ghost)
+        continue;
+
         B.F.setZero();
         B.T.setZero();
         B.K = 0.0;
@@ -572,8 +514,8 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
         B.af.setZero();
 
         // lagged particle acceleration over the last fluid step
-        vprev[n] = B.v;
-        wprev[n] = B.w;
+        core.bodies[n].cpl.vprev = B.v;
+        core.bodies[n].cpl.wprev = B.w;
 
         if(!B.active || B.fixed || coupling==0)
         continue;
@@ -581,28 +523,28 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
         if(B.mode==0)
         {
             // unresolved
-            if(fluidcount[n]==0 || rhof[n]<=0.0)
+            if(core.bodies[n].cpl.fluidcount==0 || core.bodies[n].cpl.rhof<=0.0)
             continue;
 
-            double fsub = solver==5 ? std::min(1.0,vsub[n]/S.volume) : 1.0;
+            double fsub = solver==5 ? std::min(1.0,core.bodies[n].cpl.vsub/S.volume) : 1.0;
 
-            B.F += Fb[n];
-            B.T += Tb[n];
+            B.F += core.bodies[n].cpl.Fb;
+            B.T += core.bodies[n].cpl.Tb;
 
             if(fsub>0.0)
             {
-                drag(p,n,rhof[n],nuf[n],epsf[n]);
+                drag(p,n,core.bodies[n].cpl.rhof,core.bodies[n].cpl.nuf,core.bodies[n].cpl.epsf);
                 B.K *= fsub;
                 B.Kr *= fsub;
 
                 // added mass; the fluid acceleration terms use the local Eulerian acceleration, which
                 // contains the particle's self-induced flow, hence optional (E 22)
-                B.madd = Ca*rhof[n]*S.volume*fsub;
-                if(fluidacc==1 && ufl_valid[n] && dt_old>0.0)
+                B.madd = Ca*core.bodies[n].cpl.rhof*S.volume*fsub;
+                if(fluidacc==1 && core.bodies[n].cpl.ufl_valid && dt_old>0.0)
                 {
-                    dem_vec af = (ufl[n]-ufl_old[n])/dt_old;
+                    dem_vec af = (core.bodies[n].cpl.ufl-core.bodies[n].cpl.ufl_old)/dt_old;
                     B.af = af;
-                    B.F += rhof[n]*S.volume*fsub*af;
+                    B.F += core.bodies[n].cpl.rhof*S.volume*fsub*af;
                 }
             }
         }
@@ -610,23 +552,23 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
         {
             // resolved: forcing integral, rate of change of the fluid momentum inside the particle
             // (evaluated from the fluid field, Kempe & Froehlich 2012), buoyancy
-            B.F = Fibm[n];
-            B.T = Tibm[n];
+            B.F = core.bodies[n].cpl.Fibm;
+            B.T = core.bodies[n].cpl.Tibm;
 
-            if(Ifl_valid[n] && dt_old>0.0)
+            if(core.bodies[n].cpl.Ifl_valid && dt_old>0.0)
             {
-                B.F += (Ifl[n] - Ifl_old[n])/dt_old;
-                B.T += (Lfl[n] - Lfl_old[n])/dt_old;
+                B.F += (core.bodies[n].cpl.Ifl - core.bodies[n].cpl.Ifl_old)/dt_old;
+                B.T += (core.bodies[n].cpl.Lfl - core.bodies[n].cpl.Lfl_old)/dt_old;
             }
 
             if(solver==6)
-            B.F -= mfl[n]*g;         // gravity acts on the forced fluid in CFD, Uhlmann (2005)
+            B.F -= core.bodies[n].cpl.mfl*g;         // gravity acts on the forced fluid in CFD, Uhlmann (2005)
 
 
             if(solver==5)
             {
-                B.F += Fb[n];        // hydrostatic pressure is not part of the NHFLOW pressure
-                B.T += Tb[n];
+                B.F += core.bodies[n].cpl.Fb;        // hydrostatic pressure is not part of the NHFLOW pressure
+                B.T += core.bodies[n].cpl.Tb;
             }
         }
     }
@@ -644,7 +586,7 @@ void dem_f::drag(lexer *p, int n, double rho, double nu, double eps)
     eps = std::max(0.2,std::min(1.0,eps));
     nu = std::max(nu,1.0e-12);
 
-    double ur = (ufl[n]-B.v).norm();
+    double ur = (core.bodies[n].cpl.ufl-B.v).norm();
     double Re = eps*ur*d/nu;
 
     // Haider & Levenspiel (1989), non-spherical particles; Cd*|u_rel|
@@ -668,7 +610,7 @@ void dem_f::drag(lexer *p, int n, double rho, double nu, double eps)
 
     B.K  = 0.5*rho*A*pow(eps,2.0-chi)*cdu;
     B.Kr = pi*rho*nu*d*d*d;
-    B.uf = ufl[n];
+    B.uf = core.bodies[n].cpl.ufl;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -694,44 +636,11 @@ bool dem_f::owns(lexer *p, double x, double y, double z)
     return true;
 }
 
-void dem_f::sync(lexer *p, ghostcell *pgc)
-{
-    const int nv = 14;
-    vector<double> buf(nb*nv);
-
-    if(p->mpirank==0)
-    for(int n=0; n<nb; ++n)
-    {
-        const dem_body &B = core.bodies[n];
-        double *b = &buf[n*nv];
-        b[0]=B.x(0); b[1]=B.x(1); b[2]=B.x(2);
-        b[3]=B.q.w(); b[4]=B.q.x(); b[5]=B.q.y(); b[6]=B.q.z();
-        b[7]=B.v(0); b[8]=B.v(1); b[9]=B.v(2);
-        b[10]=B.w(0); b[11]=B.w(1); b[12]=B.w(2);
-        b[13]=B.active ? 1.0 : 0.0;
-    }
-
-    MPI_Bcast(buf.data(),nb*nv,MPI_DOUBLE,0,pgc->mpi_comm);
-
-    if(p->mpirank>0)
-    for(int n=0; n<nb; ++n)
-    {
-        dem_body &B = core.bodies[n];
-        const double *b = &buf[n*nv];
-        B.x = dem_vec(b[0],b[1],b[2]);
-        B.q = dem_quat(b[3],b[4],b[5],b[6]);
-        B.v = dem_vec(b[7],b[8],b[9]);
-        B.w = dem_vec(b[10],b[11],b[12]);
-        B.active = b[13]>0.5;
-        B.R = B.q.toRotationMatrix();
-    }
-}
-
 void dem_f::deactivate(lexer *p)
 {
     for(auto &B : core.bodies)
     {
-        if(!B.active)
+        if(!B.active || B.ghost)
         continue;
 
         double r = 2.0*core.shapes[B.shape].rbound;
@@ -746,45 +655,9 @@ void dem_f::deactivate(lexer *p)
             B.active = false;
             B.v.setZero();
             B.w.setZero();
-            if(p->mpirank==0)
+            if((B.tier==1 && p->mpirank==0) || (B.tier==0 && B.owner==p->mpirank))
             cout<<"DEM: particle "<<B.id<<" left the domain and is deactivated"<<endl;
         }
-    }
-}
-
-void dem_f::gather_walls(lexer *p, ghostcell *pgc, const vector<double> &loc, vector<dem_contact> &cts)
-{
-    // packed: body, feature, x(3), n(3), gap
-    const int nv = 9;
-    int nloc = loc.size();
-    vector<int> counts(p->mpi_size), displs(p->mpi_size,0);
-    MPI_Allgather(&nloc,1,MPI_INT,counts.data(),1,MPI_INT,pgc->mpi_comm);
-
-    int ntot=0;
-    for(int q=0; q<p->mpi_size; ++q)
-    {
-        displs[q] = ntot;
-        ntot += counts[q];
-    }
-
-    vector<double> all(std::max(ntot,1));
-    MPI_Allgatherv(loc.data(),nloc,MPI_DOUBLE,all.data(),counts.data(),displs.data(),MPI_DOUBLE,pgc->mpi_comm);
-
-    for(int c=0; c<ntot/nv; ++c)
-    {
-        const double *b = &all[c*nv];
-        dem_contact C;
-        C.a = int(b[0]);
-        C.b = -1;
-        int feature = int(b[1]);
-        C.key = core.make_key(C.a,-1,feature);
-        C.x = dem_vec(b[2],b[3],b[4]);
-        C.n = dem_vec(b[5],b[6],b[7]);
-        C.gap = b[8];
-        const dem_material &M = core.mats[core.bodies[C.a].mat];
-        C.mu = 0.5*(M.friction + core.wallmat.friction);
-        C.e  = 0.5*(M.restitution + core.wallmat.restitution);
-        cts.push_back(C);
     }
 }
 
@@ -884,42 +757,47 @@ void dem_f::combine_stages(lexer *p, ghostcell *pgc, int iter, double alpha)
         dem_vec F = dem_vec::Zero(), T = dem_vec::Zero();
         for(int s=0; s<3; ++s)
         {
-            F += wgt[s]*Fstage[3*q+s];
-            T += wgt[s]*Tstage[3*q+s];
-            Fstage[3*q+s].setZero();
-            Tstage[3*q+s].setZero();
+            F += wgt[s]*core.bodies[q].cpl.Fs[s];
+            T += wgt[s]*core.bodies[q].cpl.Ts[s];
+            core.bodies[q].cpl.Fs[s].setZero();
+            core.bodies[q].cpl.Ts[s].setZero();
         }
         buf[8*q+0]=F(0); buf[8*q+1]=F(1); buf[8*q+2]=F(2);
         buf[8*q+3]=T(0); buf[8*q+4]=T(1); buf[8*q+5]=T(2);
-        buf[8*q+6]=mfl[q];
-        buf[8*q+7]=hvol[q];
+        buf[8*q+6]=core.bodies[q].cpl.mfl;
+        buf[8*q+7]=core.bodies[q].cpl.hvol;
     }
 
-    MPI_Allreduce(MPI_IN_PLACE,buf.data(),8*nb,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,buf,8,false,false);
 
     for(int q=0; q<nb; ++q)
     {
-        Fibm[q] = dem_vec(buf[8*q+0],buf[8*q+1],buf[8*q+2]);
-        Tibm[q] = dem_vec(buf[8*q+3],buf[8*q+4],buf[8*q+5]);
+        core.bodies[q].cpl.Fibm = dem_vec(buf[8*q+0],buf[8*q+1],buf[8*q+2]);
+        core.bodies[q].cpl.Tibm = dem_vec(buf[8*q+3],buf[8*q+4],buf[8*q+5]);
 
         // fluid mass of the particle volume: mean density over the smoothed indicator times the exact
         // volume (the smoothed indicator overestimates the volume by O(eps^2/r)); NHFLOW: submerged volume
         const dem_body &B = core.bodies[q];
-        double vol = solver==5 ? vsub[q] : core.shapes[B.shape].volume;
-        mfl[q] = buf[8*q+7]>0.0 ? buf[8*q+6]/buf[8*q+7]*vol : 0.0;
+        double vol = solver==5 ? core.bodies[q].cpl.vsub : core.shapes[B.shape].volume;
+        core.bodies[q].cpl.mfl = buf[8*q+7]>0.0 ? buf[8*q+6]/buf[8*q+7]*vol : 0.0;
     }
 }
 
-int dem_f::substeps(lexer *p)
+int dem_f::substeps(lexer *p, ghostcell *pgc)
 {
     // particles must not travel more than a fraction of their size per DEM step (contact detection)
-    double ns = ceil(core.max_velocity()*p->dt/(travel*core.min_rbound()));
+    double vmax, rmin;
+    global_stats(pgc,vmax,rmin);
+    // distributed: global residual scale and contact margin; single rank: as before (local)
+    core.vref_ext = nproc>1 ? std::max(vmax,1.0e-3) : 0.0;
+    core.vmax_ext = nproc>1 ? vmax : 0.0;
+    double ns = rmin<1.0e19 ? ceil(vmax*p->dt/(travel*rmin)) : 1.0;
     int n = std::max(minsub,int(std::min(ns,1.0e6)));
 
     if(n>1000)
     {
         if(p->mpirank==0)
-        cout<<"DEM: warning, "<<n<<" substeps required, limited to 1000 (max particle velocity "<<core.max_velocity()<<" m/s)"<<endl;
+        cout<<"DEM: warning, "<<n<<" substeps required, limited to 1000 (max particle velocity "<<vmax<<" m/s)"<<endl;
         n=1000;
     }
     return n;
@@ -928,4 +806,52 @@ int dem_f::substeps(lexer *p)
 dem_vec dem_f::relpos(lexer *p, double x, double y, double z, const dem_vec &c)
 {
     return dem_vec(x-c(0), p->j_dir==1 ? y-c(1) : 0.0, z-c(2));
+}
+
+void dem_f::run_step(lexer *p, ghostcell *pgc, const dem_core::wallfunc &wf)
+{
+    core.gravity = dem_vec(p->W20,p->W21,p->W22);
+
+    // distributed solver hooks
+    bool dist = nproc>1;
+    dem_hooks hk;
+    if(dist)
+    {
+        hk.ghosts = [&](dem_core &c) {ghost_exchange(p,pgc);};
+        hk.sync = [&](dem_core &c, int mode, double res, bool final) {return sync_solver(pgc,mode,res,final);};
+        hk.ncolors = ncolors;
+        hk.mycolor = mycolor;
+        hk.split = [&](dem_core &c) {mass_split(pgc);};
+    }
+
+    nsub = substeps(p,pgc);
+    maxiter_used = 0;
+    for(int s=0; s<nsub; ++s)
+    {
+        if(dist && s>0)
+        migrate(p,pgc);
+
+        core.step(p->dt/double(nsub),wf,dist ? &hk : nullptr);
+        maxiter_used = std::max(maxiter_used,core.iterations);
+    }
+
+    // hydrodynamic force over the step (drag and added mass evaluated with the new velocity)
+    for(auto &B : core.bodies)
+    {
+        if(B.ghost)
+        continue;
+        dem_vec ap = (B.v - B.cpl.vprev)/p->dt;
+        B.cpl.Fhyd = B.F + B.K*(B.uf - B.v) + B.madd*(B.af - ap);
+    }
+
+    sync(p,pgc);
+    deactivate(p);
+
+    // new owners and ghosts for the fluid coupling of the next momentum step
+    if(dist)
+    {
+        migrate(p,pgc);
+        ghost_exchange(p,pgc);
+    }
+    rebuild_maps();
 }

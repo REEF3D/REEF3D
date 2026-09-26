@@ -80,29 +80,29 @@ void dem_f::fluid_cfd(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    MPI_Allreduce(MPI_IN_PLACE,buf.data(),nb*nv,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,buf,nv,false,false);
 
     for(int n=0; n<nb; ++n)
     {
         const double *b = &buf[n*nv];
         int cnt = int(b[6]+0.5);
 
-        ufl_old[n] = ufl[n];
-        bool wasvalid = fluidcount[n]>0;
-        fluidcount[n] = cnt;
+        core.bodies[n].cpl.ufl_old = core.bodies[n].cpl.ufl;
+        bool wasvalid = core.bodies[n].cpl.fluidcount>0;
+        core.bodies[n].cpl.fluidcount = cnt;
 
         if(cnt>0)
         {
-            ufl[n] = dem_vec(b[0],b[1],b[2])/double(cnt);
-            rhof[n] = b[3]/double(cnt);
-            nuf[n] = b[4]/double(cnt);
-            epsf[n] = std::max(0.0,std::min(1.0,b[5]/double(cnt)));
+            core.bodies[n].cpl.ufl = dem_vec(b[0],b[1],b[2])/double(cnt);
+            core.bodies[n].cpl.rhof = b[3]/double(cnt);
+            core.bodies[n].cpl.nuf = b[4]/double(cnt);
+            core.bodies[n].cpl.epsf = std::max(0.0,std::min(1.0,b[5]/double(cnt)));
         }
-        ufl_valid[n] = wasvalid && cnt>0;
+        core.bodies[n].cpl.ufl_valid = wasvalid && cnt>0;
 
-        Fb[n] = dem_vec(b[7],b[8],b[9]);
-        Tb[n] = dem_vec(b[10],b[11],b[12]);
-        vsub[n] = b[13];
+        core.bodies[n].cpl.Fb = dem_vec(b[7],b[8],b[9]);
+        core.bodies[n].cpl.Tb = dem_vec(b[10],b[11],b[12]);
+        core.bodies[n].cpl.vsub = b[13];
     }
 }
 
@@ -152,9 +152,27 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    MPI_Allreduce(MPI_IN_PLACE,sw.data(),4*nb,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    // kernel sums at the owners, then back to the ghosts
+    reduce_owner(pgc,sw,4,true,false);
 
-    // pass 2: reaction force (drag and added mass) and solid volume
+    // reaction force (drag and added mass) at the owners, sent to the ghosts
+    vector<double> ffp(3*nb,0.0);
+    for(int n=0; n<nb; ++n)
+    {
+        dem_body &B = core.bodies[n];
+        if(B.ghost || !B.active || B.fixed || B.mode!=0)
+        continue;
+        dem_vec ap = (B.v - B.cpl.vprev)/p->dt;
+        B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
+        for(int q=0; q<3; ++q)
+        ffp[3*n+q] = B.cpl.Ffp(q);
+    }
+    owner_to_ghosts(pgc,ffp,3);
+    for(int n=0; n<nb; ++n)
+    if(core.bodies[n].ghost)
+    core.bodies[n].cpl.Ffp = dem_vec(ffp[3*n],ffp[3*n+1],ffp[3*n+2]);
+
+    // pass 2: spread the reaction force and the solid volume on every copy of the particle
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
@@ -162,8 +180,6 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
         continue;
 
         const dem_shape &S = core.shapes[B.shape];
-        dem_vec ap = (B.v - vprev[n])/p->dt;
-        Ffp[n] = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
 
         double R = std::max(S.deq,kernel_cells*dxs);
         cellrange(p,n,R,i0,i1,j0,j1,k0,k1);
@@ -178,21 +194,21 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
             {
                 wk = kernel(relpos(p,p->pos1_x(),p->pos1_y(),p->pos1_z(),B.x).norm(),R);
                 double ro = 0.5*(a->ro(i,j,k)+a->ro(i+1,j,k));
-                (*Sx)(i,j,k) += Ffp[n](0)*wk/(ro*sw[4*n+0]);
+                (*Sx)(i,j,k) += core.bodies[n].cpl.Ffp(0)*wk/(ro*sw[4*n+0]);
             }
 
             if(p->flag2[IJK]>0 && sw[4*n+1]>0.0 && p->j_dir==1)
             {
                 wk = kernel(relpos(p,p->pos2_x(),p->pos2_y(),p->pos2_z(),B.x).norm(),R);
                 double ro = 0.5*(a->ro(i,j,k)+a->ro(i,j+1,k));
-                (*Sy)(i,j,k) += Ffp[n](1)*wk/(ro*sw[4*n+1]);
+                (*Sy)(i,j,k) += core.bodies[n].cpl.Ffp(1)*wk/(ro*sw[4*n+1]);
             }
 
             if(p->flag3[IJK]>0 && sw[4*n+2]>0.0)
             {
                 wk = kernel(relpos(p,p->pos3_x(),p->pos3_y(),p->pos3_z(),B.x).norm(),R);
                 double ro = 0.5*(a->ro(i,j,k)+a->ro(i,j,k+1));
-                (*Sz)(i,j,k) += Ffp[n](2)*wk/(ro*sw[4*n+2]);
+                (*Sz)(i,j,k) += core.bodies[n].cpl.Ffp(2)*wk/(ro*sw[4*n+2]);
             }
 
             if(p->flag4[IJK]>0 && sw[4*n+3]>0.0)
@@ -235,7 +251,6 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
     }
 
     // resolved: direct forcing of the rigid body velocity inside the particle
-    bool anyres=false;
     int i0,i1,j0,j1,k0,k1;
     double eps = hs_factor*dxs;
     int st = std::min(std::max(iter,0),2);
@@ -246,7 +261,6 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
         if(!B.active || B.mode!=1 || coupling==1)
         continue;
 
-        anyres=true;
         const dem_shape &S = core.shapes[B.shape];
         double rlim = S.rbound + eps;
         cellrange(p,n,rlim+dxs,i0,i1,j0,j1,k0,k1);
@@ -279,8 +293,8 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 {
                     u(i,j,k) += alpha*p->dt*f;
                     double dF = -0.5*(a->ro(i,j,k)+a->ro(i+1,j,k))*f*p->DXP[IP]*p->DYN[JP]*p->DZN[KP];
-                    Fstage[3*n+st](0) += dF;
-                    Tstage[3*n+st] += relpos(p,xf,yf,zf,B.x).cross(dem_vec(dF,0.0,0.0));
+                    core.bodies[n].cpl.Fs[st](0) += dF;
+                    core.bodies[n].cpl.Ts[st] += relpos(p,xf,yf,zf,B.x).cross(dem_vec(dF,0.0,0.0));
                 }
             }
 
@@ -292,8 +306,8 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 {
                     v(i,j,k) += alpha*p->dt*f;
                     double dF = -0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))*f*p->DXN[IP]*p->DYP[JP]*p->DZN[KP];
-                    Fstage[3*n+st](1) += dF;
-                    Tstage[3*n+st] += relpos(p,xf,yf,zf,B.x).cross(dem_vec(0.0,dF,0.0));
+                    core.bodies[n].cpl.Fs[st](1) += dF;
+                    core.bodies[n].cpl.Ts[st] += relpos(p,xf,yf,zf,B.x).cross(dem_vec(0.0,dF,0.0));
                 }
             }
 
@@ -305,8 +319,8 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 {
                     w(i,j,k) += alpha*p->dt*f;
                     double dF = -0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))*f*p->DXN[IP]*p->DYN[JP]*p->DZP[KP];
-                    Fstage[3*n+st](2) += dF;
-                    Tstage[3*n+st] += relpos(p,xf,yf,zf,B.x).cross(dem_vec(0.0,0.0,dF));
+                    core.bodies[n].cpl.Fs[st](2) += dF;
+                    core.bodies[n].cpl.Ts[st] += relpos(p,xf,yf,zf,B.x).cross(dem_vec(0.0,0.0,dF));
                 }
             }
 
@@ -316,14 +330,15 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 if(r.squaredNorm()<=rlim*rlim)
                 {
                     double Hc = heaviside(S.sdf(B.R.transpose()*r),eps);
-                    mfl[n] += a->ro(i,j,k)*Hc*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
-                    hvol[n] += Hc*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    core.bodies[n].cpl.mfl += a->ro(i,j,k)*Hc*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+                    core.bodies[n].cpl.hvol += Hc*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
                 }
             }
         }
     }
 
-    if(finalize && anyres)
+    // global condition: combine_stages communicates
+    if(finalize && (coupling==2 || coupling==3))
     combine_stages(p,pgc,iter,alpha);
 
     pgc->start1(p,u,10);
@@ -360,7 +375,7 @@ void dem_f::walls_cfd(lexer *p, fdm *a, ghostcell *pgc, double margin, vector<de
         if(B.active && !B.fixed && owns(p,B.x(0),B.x(1),B.x(2)))
         phic[n] = wallphi_cfd(p,a,B.x(0),B.x(1),B.x(2));
     }
-    MPI_Allreduce(MPI_IN_PLACE,phic.data(),nb,MPI_DOUBLE,MPI_MIN,pgc->mpi_comm);
+    reduce_owner(pgc,phic,1,true,true);
 
     double h = 0.5*dxs;
     vector<double> loc;
@@ -417,7 +432,7 @@ void dem_f::walls_cfd(lexer *p, fdm *a, ghostcell *pgc, double margin, vector<de
         }
     }
 
-    gather_walls(p,pgc,loc,cts);
+    route_walls(p,pgc,loc,cts);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -432,7 +447,6 @@ void dem_f::internal_cfd(lexer *p, fdm *a, ghostcell *pgc)
     int i0,i1,j0,j1,k0,k1;
     double eps = hs_factor*dxs;
     vector<double> buf(6*nb,0.0);
-    bool anyres=false;
 
     for(int n=0; n<nb; ++n)
     {
@@ -440,7 +454,6 @@ void dem_f::internal_cfd(lexer *p, fdm *a, ghostcell *pgc)
         if(!B.active || B.mode!=1 || B.fixed)
         continue;
 
-        anyres=true;
         const dem_shape &S = core.shapes[B.shape];
         double rlim = S.rbound + eps;
         cellrange(p,n,rlim+dxs,i0,i1,j0,j1,k0,k1);
@@ -474,28 +487,25 @@ void dem_f::internal_cfd(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    if(!anyres)
-    return;
-
-    MPI_Allreduce(MPI_IN_PLACE,buf.data(),6*nb,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,buf,6,false,false);
 
     for(int n=0; n<nb; ++n)
     {
         const dem_body &B = core.bodies[n];
-        if(!B.active || B.mode!=1 || B.fixed)
+        if(B.ghost || !B.active || B.mode!=1 || B.fixed)
         continue;
 
-        Ifl_old[n] = Ifl[n];
-        Lfl_old[n] = Lfl[n];
-        Ifl[n] = dem_vec(buf[6*n],buf[6*n+1],buf[6*n+2]);
-        Lfl[n] = dem_vec(buf[6*n+3],buf[6*n+4],buf[6*n+5]);
+        core.bodies[n].cpl.Ifl_old = core.bodies[n].cpl.Ifl;
+        core.bodies[n].cpl.Lfl_old = core.bodies[n].cpl.Lfl;
+        core.bodies[n].cpl.Ifl = dem_vec(buf[6*n],buf[6*n+1],buf[6*n+2]);
+        core.bodies[n].cpl.Lfl = dem_vec(buf[6*n+3],buf[6*n+4],buf[6*n+5]);
 
         // first step: no history
-        if(!Ifl_valid[n])
+        if(!core.bodies[n].cpl.Ifl_valid)
         {
-            Ifl_old[n] = Ifl[n];
-            Lfl_old[n] = Lfl[n];
-            Ifl_valid[n] = true;
+            core.bodies[n].cpl.Ifl_old = core.bodies[n].cpl.Ifl;
+            core.bodies[n].cpl.Lfl_old = core.bodies[n].cpl.Lfl;
+            core.bodies[n].cpl.Ifl_valid = true;
         }
     }
 }

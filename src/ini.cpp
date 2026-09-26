@@ -846,6 +846,7 @@ void control::ini_default()
     E21=6;              // int contact manifold reduction: max points per pair and normal cluster, 0 off
     E22=1;              // int unresolved: fluid acceleration force (pressure gradient and added mass of the fluid acceleration), 0 off 1 on
     E23=2.0;            // double unresolved: kernel radius for the momentum exchange in cells (at least d_eq)
+    E24=0.25;           // double distributed particles: max bounding radius as fraction of the smallest subdomain, larger ones are replicated; 0 replicates all
 
     // Particles
     Q10=0;              // int time scheme

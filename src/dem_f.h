@@ -34,9 +34,10 @@ Coupling modes (ctrl E 11):
               integral of the forcing (Uhlmann 2005)
  3 hybrid     per particle, resolved if d_eq/dx >= E 12, else unresolved
 
-The particle state is replicated on all ranks. Fluid data and forces are
-evaluated on the rank that owns the evaluation point and summed with one
-MPI_Allreduce per step. Rank 0 broadcasts the state after every step.
+Domain decomposition (dem_f_mpi.cpp): small particles are owned by the rank
+holding their centroid and appear as ghosts on neighbouring ranks; large
+particles (E 24) are replicated. Fluid data and forces are evaluated on the rank
+that owns the evaluation point and returned to the particle's owner.
 --------------------------------------------------------------------*/
 
 #ifndef DEM_F_H_
@@ -47,6 +48,7 @@ MPI_Allreduce per step. Rank 0 broadcasts the state after every step.
 #include"increment.h"
 #include<vector>
 #include<string>
+#include<unordered_map>
 
 class lexer;
 class fdm;
@@ -60,6 +62,29 @@ class field4a;
 class slice;
 
 using namespace std;
+
+// serialisation helpers for the particle exchange
+struct dem_writer
+{
+    vector<double> &b;
+    explicit dem_writer(vector<double> &buf) : b(buf) {}
+    void d(double v) {b.push_back(v);}
+    void v(const dem_vec &x) {b.push_back(x(0)); b.push_back(x(1)); b.push_back(x(2));}
+    void q(const dem_quat &x) {b.push_back(x.w()); b.push_back(x.x()); b.push_back(x.y()); b.push_back(x.z());}
+    void m(const dem_mat &x) {for(int r=0; r<3; ++r) for(int c=0; c<3; ++c) b.push_back(x(r,c));}
+};
+
+struct dem_reader
+{
+    const vector<double> &b;
+    size_t pos;
+    dem_reader(const vector<double> &buf, size_t start) : b(buf), pos(start) {}
+    double d() {return b[pos++];}
+    int i() {return int(llround(b[pos++]));}
+    dem_vec v() {dem_vec x(b[pos],b[pos+1],b[pos+2]); pos+=3; return x;}
+    dem_quat q() {dem_quat x(b[pos],b[pos+1],b[pos+2],b[pos+3]); pos+=4; return x;}
+    dem_mat m() {dem_mat x; for(int r=0; r<3; ++r) for(int c=0; c<3; ++c) x(r,c)=b[pos++]; return x;}
+};
 
 class dem_f final : public dem, public increment
 {
@@ -85,7 +110,7 @@ private:
     void set_loads(lexer*, ghostcell*);
     void sync(lexer*, ghostcell*);
     void deactivate(lexer*);
-    int substeps(lexer*);
+    int substeps(lexer*, ghostcell*);
 
     // point ownership in the domain decomposition
     bool owns(lexer*, double, double, double);
@@ -102,8 +127,40 @@ private:
     void walls_nhflow(lexer*, fdm_nhf*, ghostcell*, double, vector<dem_contact>&);
     double wallphi_nhflow(lexer*, fdm_nhf*, double, double, double);
 
+    // domain decomposition
+    void decomp_ini(lexer*, ghostcell*);
+    double halo(const dem_body&);
+    bool in_box(int, const dem_vec&);
+    int find_owner(const dem_vec&);
+    double boxdist(int, const dem_vec&);
+    void p2p(ghostcell*, vector<vector<double>>&, vector<vector<double>>&);
+    void rebuild_maps();
+    void erase_ghosts();
+    void ghost_exchange(lexer*, ghostcell*);
+    void pack_body(vector<double>&, const dem_body&);
+    void unpack_body(dem_reader&, dem_body&);
+    void migrate(lexer*, ghostcell*);
+    void reduce_owner(ghostcell*, vector<double>&, int, bool, bool);
+    void owner_to_ghosts(ghostcell*, vector<double>&, int);
+    double sync_solver(ghostcell*, int, double, bool);
+    void mass_split(ghostcell*);
+    void route_walls(lexer*, ghostcell*, const vector<double>&, vector<dem_contact>&);
+    void global_stats(ghostcell*, double&, double&);
+    void gather_output(ghostcell*, vector<dem_body>&);
+    void run_step(lexer*, ghostcell*, const dem_core::wallfunc&);
+
+    int myrank = 0, nproc = 1;
+    vector<double> boxes;
+    double p_gmax[3] = {1.0e30,1.0e30,1.0e30};
+    double rmax0 = 0.0;
+    vector<int> partners, partner_index;
+    vector<vector<int>> ghostdest;
+    unordered_map<int,int> gid2loc;
+    vector<int> tier1idx;
+    int nglobal = 0;
+    int ncolors = 1, mycolor = 0;
+
     // common
-    void gather_walls(lexer*, ghostcell*, const vector<double>&, vector<dem_contact>&);
     void drag(lexer*, int, double, double, double);
     double heaviside(double, double);
 
@@ -114,14 +171,13 @@ private:
 
     // output
     void print(lexer*, ghostcell*);
-    void print_vtp(lexer*);
-    void print_state(lexer*);
+    void print_vtp(lexer*, const vector<dem_body>&);
+    void print_state(lexer*, const vector<dem_body>&);
     void print_log(lexer*, ghostcell*);
 
     dem_core core;
 
     int solver;                 // 6 CFD, 5 NHFLOW
-    vector<int> basemode;       // coupling mode from E 11/E 12; NHFLOW switches surface-piercing particles to unresolved
     int coupling;
     bool initialized;
     int nb;
@@ -131,33 +187,16 @@ private:
     int sdf_res, quad_res;
     int gridwalls;
 
-    // per particle fluid data
-    vector<double> rhof, nuf, epsf, vsub, dvol;
-    vector<dem_vec> ufl, ufl_old, Fb, Tb;
-    vector<int> fluidcount;
-    vector<bool> ufl_valid;
-
     // resolved: hydrodynamic force from the forcing, fluid mass inside the particle
-    vector<dem_vec> Fibm, Tibm;
-    vector<double> mfl, hvol;
-    vector<dem_vec> Fstage, Tstage;     // per RK stage, combined with the RK weights at the final stage
     void combine_stages(lexer*, ghostcell*, int, double);
     bool rkwarn = false;
     double dxs = 1.0;           // horizontal grid length scale (NHFLOW: DXM mixes in the sigma spacing)
-    vector<dem_vec> vprev, wprev;
 
     // resolved: fluid momentum and angular momentum inside the particles (Kempe & Froehlich 2012)
-    vector<dem_vec> Ifl, Lfl, Ifl_old, Lfl_old;
-    vector<bool> Ifl_valid;
     void internal_cfd(lexer*, fdm*, ghostcell*);
     void internal_nhflow(lexer*, fdm_nhf*, ghostcell*);
     double dt_old;
 
-    // unresolved: reaction force on the fluid
-    vector<dem_vec> Ffp;
-
-    // hydrodynamic force on the particles over the last step (output)
-    vector<dem_vec> Fhyd;
 
     // CFD source fields and solid fraction
     field1 *Sx;

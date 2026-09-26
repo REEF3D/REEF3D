@@ -2255,6 +2255,7 @@
         <File Name="dem_f_cfd.cpp"/>
         <File Name="dem_f_nhflow.cpp"/>
         <File Name="dem_f_print.cpp"/>
+        <File Name="dem_f_mpi.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Ice">
         <File Name="ice_contact_nscd.cpp"/>

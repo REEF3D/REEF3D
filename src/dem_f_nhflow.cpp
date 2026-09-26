@@ -45,7 +45,7 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int n=0; n<nb; ++n)
     {
         const dem_body &B = core.bodies[n];
-        if(!B.active || B.fixed || coupling==0 || basemode[n]!=1)
+        if(!B.active || B.fixed || coupling==0 || core.bodies[n].cpl.basemode!=1)
         continue;
 
         double rr = core.shapes[B.shape].rbound + 2.0*dxs;
@@ -62,14 +62,14 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             ring[2*n+1] += 1.0;
         }
     }
-    MPI_Allreduce(MPI_IN_PLACE,ring.data(),2*nb,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,ring,2,true,false);
 
     // NHFLOW has no free surface inside a forced particle: resolved forcing is used only while the
     // particle is fully submerged, surface-piercing particles are treated as unresolved
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
-        if(basemode[n]!=1 || ring[2*n+1]<0.5)
+        if(B.ghost || core.bodies[n].cpl.basemode!=1 || ring[2*n+1]<0.5)
         continue;
 
         double eta = ring[2*n]/ring[2*n+1];
@@ -77,9 +77,26 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(mode!=B.mode)
         {
             B.mode = mode;
-            Ifl_valid[n] = false;
-            if(p->mpirank==0)
+            core.bodies[n].cpl.Ifl_valid = false;
+            if((B.tier==1 && p->mpirank==0) || (B.tier==0 && B.owner==p->mpirank))
             cout<<"DEM: particle "<<B.id<<(mode==1 ? " submerged, resolved coupling" : " surface-piercing, unresolved coupling")<<endl;
+        }
+    }
+
+    // ghosts need the new mode before the forcing and the internal momentum of this step
+    {
+        vector<double> md(2*nb,0.0);
+        for(int n=0; n<nb; ++n)
+        {
+            md[2*n]   = core.bodies[n].mode;
+            md[2*n+1] = core.bodies[n].cpl.Ifl_valid ? 1.0 : 0.0;
+        }
+        owner_to_ghosts(pgc,md,2);
+        for(int n=0; n<nb; ++n)
+        if(core.bodies[n].ghost)
+        {
+            core.bodies[n].mode = int(llround(md[2*n]));
+            core.bodies[n].cpl.Ifl_valid = md[2*n+1]>0.5;
         }
     }
 
@@ -103,7 +120,7 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
 
         // large particles (resolved or surface-piercing): ambient water level, avoids self-interaction
-        bool useRing = basemode[n]==1 && ring[2*n+1]>0.5;
+        bool useRing = core.bodies[n].cpl.basemode==1 && ring[2*n+1]>0.5;
         double etaring = useRing ? ring[2*n]/ring[2*n+1] : 0.0;
 
         const dem_shape &S = core.shapes[B.shape];
@@ -126,29 +143,29 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    MPI_Allreduce(MPI_IN_PLACE,buf.data(),nb*nv,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,buf,nv,false,false);
 
     for(int n=0; n<nb; ++n)
     {
         const double *b = &buf[n*nv];
         int cnt = int(b[6]+0.5);
 
-        ufl_old[n] = ufl[n];
-        bool wasvalid = fluidcount[n]>0;
-        fluidcount[n] = cnt;
+        core.bodies[n].cpl.ufl_old = core.bodies[n].cpl.ufl;
+        bool wasvalid = core.bodies[n].cpl.fluidcount>0;
+        core.bodies[n].cpl.fluidcount = cnt;
 
         if(cnt>0)
         {
-            ufl[n] = dem_vec(b[0],b[1],b[2])/double(cnt);
-            rhof[n] = b[3]/double(cnt);
-            nuf[n] = b[4]/double(cnt);
-            epsf[n] = std::max(0.0,std::min(1.0,b[5]/double(cnt)));
+            core.bodies[n].cpl.ufl = dem_vec(b[0],b[1],b[2])/double(cnt);
+            core.bodies[n].cpl.rhof = b[3]/double(cnt);
+            core.bodies[n].cpl.nuf = b[4]/double(cnt);
+            core.bodies[n].cpl.epsf = std::max(0.0,std::min(1.0,b[5]/double(cnt)));
         }
-        ufl_valid[n] = wasvalid && cnt>0;
+        core.bodies[n].cpl.ufl_valid = wasvalid && cnt>0;
 
-        Fb[n] = dem_vec(b[7],b[8],b[9]);
-        Tb[n] = dem_vec(b[10],b[11],b[12]);
-        vsub[n] = b[13];
+        core.bodies[n].cpl.Fb = dem_vec(b[7],b[8],b[9]);
+        core.bodies[n].cpl.Tb = dem_vec(b[10],b[11],b[12]);
+        core.bodies[n].cpl.vsub = b[13];
     }
 }
 
@@ -177,7 +194,7 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const dem_body &B = core.bodies[n];
 
         // surface-piercing particles larger than the grid are coupled one-way (fluid to particle)
-        if(!B.active || B.fixed || B.mode!=0 || basemode[n]==1)
+        if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1)
         continue;
 
         double R = std::max(core.shapes[B.shape].deq,kernel_cells*dxs);
@@ -190,17 +207,36 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         sw[n] += kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),R)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
     }
 
-    MPI_Allreduce(MPI_IN_PLACE,sw.data(),nb,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,sw,1,true,false);
+
+    // reaction force and submerged volume at the owners, sent to the ghosts
+    vector<double> ffp(4*nb,0.0);
+    for(int n=0; n<nb; ++n)
+    {
+        dem_body &B = core.bodies[n];
+        if(B.ghost || !B.active || B.fixed || B.mode!=0)
+        continue;
+        dem_vec ap = (B.v - B.cpl.vprev)/p->dt;
+        B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
+        for(int q=0; q<3; ++q)
+        ffp[4*n+q] = B.cpl.Ffp(q);
+        ffp[4*n+3] = B.cpl.vsub;
+    }
+    owner_to_ghosts(pgc,ffp,4);
+    for(int n=0; n<nb; ++n)
+    if(core.bodies[n].ghost)
+    {
+        core.bodies[n].cpl.Ffp = dem_vec(ffp[4*n],ffp[4*n+1],ffp[4*n+2]);
+        core.bodies[n].cpl.vsub = ffp[4*n+3];
+    }
 
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
-        if(!B.active || B.fixed || B.mode!=0 || basemode[n]==1 || sw[n]<=0.0)
+        if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1 || sw[n]<=0.0)
         continue;
 
         const dem_shape &S = core.shapes[B.shape];
-        dem_vec ap = (B.v - vprev[n])/p->dt;
-        Ffp[n] = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
 
         double R = std::max(S.deq,kernel_cells*dxs);
         cellrange(p,n,R,i0,i1,j0,j1,k0,k1);
@@ -211,10 +247,10 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(p->flag4[IJK]>0 && p->wet[IJ]>0)
         {
             double wk = kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),R);
-            SX[IJK] += Ffp[n](0)*wk/(p->W1*sw[n]);
-            SY[IJK] += p->j_dir==1 ? Ffp[n](1)*wk/(p->W1*sw[n]) : 0.0;
-            SZ[IJK] += Ffp[n](2)*wk/(p->W1*sw[n]);
-            ALPHAV[IJK] += vsub[n]*wk/sw[n];
+            SX[IJK] += core.bodies[n].cpl.Ffp(0)*wk/(p->W1*sw[n]);
+            SY[IJK] += p->j_dir==1 ? core.bodies[n].cpl.Ffp(1)*wk/(p->W1*sw[n]) : 0.0;
+            SZ[IJK] += core.bodies[n].cpl.Ffp(2)*wk/(p->W1*sw[n]);
+            ALPHAV[IJK] += core.bodies[n].cpl.vsub*wk/sw[n];
         }
     }
 
@@ -251,7 +287,6 @@ void dem_f::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, doubl
     }
 
     // resolved: direct forcing
-    bool anyres=false;
     int i0,i1,j0,j1,k0,k1;
     double eps = hs_factor*dxs;
     int st = std::min(std::max(iter,0),2);
@@ -262,7 +297,6 @@ void dem_f::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, doubl
         if(!B.active || B.mode!=1 || coupling==1)
         continue;
 
-        anyres=true;
         const dem_shape &S = core.shapes[B.shape];
         double rlim = S.rbound + eps;
         cellrange(p,n,rlim+dxs,i0,i1,j0,j1,k0,k1);
@@ -300,18 +334,19 @@ void dem_f::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, doubl
             {
                 double dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
                 dem_vec dF = -p->W1*f*dV;
-                Fstage[3*n+st] += dF;
-                Tstage[3*n+st] += r.cross(dF);
+                core.bodies[n].cpl.Fs[st] += dF;
+                core.bodies[n].cpl.Ts[st] += r.cross(dF);
                 if(finalize && !reforce)
                 {
-                    mfl[n] += p->W1*H*dV;
-                    hvol[n] += H*dV;
+                    core.bodies[n].cpl.mfl += p->W1*H*dV;
+                    core.bodies[n].cpl.hvol += H*dV;
                 }
             }
         }
     }
 
-    if(finalize && reforce && anyres)
+    // global condition: combine_stages communicates
+    if(finalize && reforce && (coupling==2 || coupling==3))
     combine_stages(p,pgc,iter,alpha);
 
     pgc->start4V(p,d->U,10);
@@ -352,7 +387,7 @@ void dem_f::walls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double margin, ve
         if(B.active && !B.fixed && owns(p,B.x(0),B.x(1),B.x(2)))
         phic[n] = wallphi_nhflow(p,d,B.x(0),B.x(1),B.x(2));
     }
-    MPI_Allreduce(MPI_IN_PLACE,phic.data(),nb,MPI_DOUBLE,MPI_MIN,pgc->mpi_comm);
+    reduce_owner(pgc,phic,1,true,true);
 
     double h = 0.5*dxs;
     vector<double> loc;
@@ -409,7 +444,7 @@ void dem_f::walls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double margin, ve
         }
     }
 
-    gather_walls(p,pgc,loc,cts);
+    route_walls(p,pgc,loc,cts);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -424,7 +459,6 @@ void dem_f::internal_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     int i0,i1,j0,j1,k0,k1;
     double eps = hs_factor*dxs;
     vector<double> buf(6*nb,0.0);
-    bool anyres=false;
 
     for(int n=0; n<nb; ++n)
     {
@@ -432,7 +466,6 @@ void dem_f::internal_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(!B.active || B.mode!=1 || B.fixed)
         continue;
 
-        anyres=true;
         const dem_shape &S = core.shapes[B.shape];
         double rlim = S.rbound + eps;
         cellrange(p,n,rlim+dxs,i0,i1,j0,j1,k0,k1);
@@ -463,27 +496,24 @@ void dem_f::internal_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    if(!anyres)
-    return;
-
-    MPI_Allreduce(MPI_IN_PLACE,buf.data(),6*nb,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    reduce_owner(pgc,buf,6,false,false);
 
     for(int n=0; n<nb; ++n)
     {
         const dem_body &B = core.bodies[n];
-        if(!B.active || B.mode!=1 || B.fixed)
+        if(B.ghost || !B.active || B.mode!=1 || B.fixed)
         continue;
 
-        Ifl_old[n] = Ifl[n];
-        Lfl_old[n] = Lfl[n];
-        Ifl[n] = dem_vec(buf[6*n],buf[6*n+1],buf[6*n+2]);
-        Lfl[n] = dem_vec(buf[6*n+3],buf[6*n+4],buf[6*n+5]);
+        core.bodies[n].cpl.Ifl_old = core.bodies[n].cpl.Ifl;
+        core.bodies[n].cpl.Lfl_old = core.bodies[n].cpl.Lfl;
+        core.bodies[n].cpl.Ifl = dem_vec(buf[6*n],buf[6*n+1],buf[6*n+2]);
+        core.bodies[n].cpl.Lfl = dem_vec(buf[6*n+3],buf[6*n+4],buf[6*n+5]);
 
-        if(!Ifl_valid[n])
+        if(!core.bodies[n].cpl.Ifl_valid)
         {
-            Ifl_old[n] = Ifl[n];
-            Lfl_old[n] = Lfl[n];
-            Ifl_valid[n] = true;
+            core.bodies[n].cpl.Ifl_old = core.bodies[n].cpl.Ifl;
+            core.bodies[n].cpl.Lfl_old = core.bodies[n].cpl.Lfl;
+            core.bodies[n].cpl.Ifl_valid = true;
         }
     }
 }

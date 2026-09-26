@@ -70,7 +70,7 @@ double dem_core::kinetic_energy() const
 {
     double E=0.0;
     for(auto &B : bodies)
-    if(B.active && !B.fixed)
+    if(B.active && !B.fixed && !B.ghost)
     {
         dem_vec wb = B.R.transpose()*B.w;
         E += 0.5*B.m*B.v.squaredNorm() + 0.5*wb.dot(B.Ib.cwiseProduct(wb));
@@ -100,16 +100,23 @@ double dem_core::min_rbound() const
 // time step
 // ---------------------------------------------------------------------------------------------
 
-void dem_core::step(double dt, const wallfunc &walls)
+void dem_core::step(double dt, const wallfunc &walls, const dem_hooks *hooks)
 {
+    hk = hooks;
     update_mass(dt);
 
     // contact margin from the pre-step velocities
-    double margin = 1.5*max_velocity()*dt + gravity.norm()*dt*dt + 2.0*slop;
+    double vm = max_velocity();
+    if(hk)
+    vm = std::max(vm,vmax_ext);     // distributed: particles arriving from other ranks
+    double margin = 1.5*vm*dt + gravity.norm()*dt*dt + 2.0*slop;
 
     // free velocities: gravity, external loads, implicit drag and added mass, implicit gyroscopic term
     for(auto &B : bodies)
     {
+        if(B.ghost)
+        continue;
+
         B.vold = B.v;
         B.wold = B.w;
 
@@ -131,6 +138,10 @@ void dem_core::step(double dt, const wallfunc &walls)
         }
     }
 
+    // ghosts receive the free velocities, masses and positions of their owners
+    if(hk && hk->ghosts)
+    hk->ghosts(*this);
+
     contacts.clear();
     detect(margin);
     planes_contacts(margin);
@@ -138,15 +149,25 @@ void dem_core::step(double dt, const wallfunc &walls)
     walls(*this,margin,contacts);
 
     reduce();
+
+    // mass splitting for particles whose contacts are solved on several ranks
+    if(hk && hk->split)
+    hk->split(*this);
+
     prepare(dt);
     solve(dt);
     integrate(dt);
+
+    hk = nullptr;
 }
 
 void dem_core::update_mass(double dt)
 {
     for(auto &B : bodies)
     {
+        if(B.ghost)
+        continue;
+
         B.R = B.q.toRotationMatrix();
 
         if(!B.active || B.fixed)
@@ -203,6 +224,8 @@ void dem_core::detect(double margin)
         if(!A.active || !Bb.active)
         return;
         if(A.fixed && Bb.fixed)
+        return;
+        if(!mine(a,b))
         return;
         double rs = shapes[A.shape].rbound + shapes[Bb.shape].rbound + margin;
         if((A.x-Bb.x).squaredNorm() < rs*rs)
@@ -261,7 +284,7 @@ void dem_core::narrow(int a, int b, double margin)
         dem_contact C;
         C.a = ca;
         C.b = cb;
-        C.key = make_key(ca,cb,feature);
+        C.key = make_key(bodies[ca].id,bodies[cb].id,feature);
         C.x = x;
         C.n = n;
         C.gap = gap;
@@ -344,7 +367,9 @@ void dem_core::planes_contacts(double margin)
         for(size_t nb=0; nb<bodies.size(); ++nb)
         {
             const dem_body &B = bodies[nb];
-            if(!B.active || B.fixed)
+            if(!B.active || B.fixed || B.ghost)
+            continue;
+            if(B.tier==1 && myrank!=0)
             continue;
 
             const dem_shape &S = shapes[B.shape];
@@ -360,7 +385,7 @@ void dem_core::planes_contacts(double margin)
                 dem_contact C;
                 C.a = nb;
                 C.b = -2-int(pl);
-                C.key = make_key(nb,C.b,feature);
+                C.key = make_key(B.id,C.b,feature);
                 C.x = x;
                 C.n = P.n;
                 C.gap = gap;
@@ -648,71 +673,159 @@ void dem_core::prepare(double dt)
     ncontacts = contacts.size();
 }
 
+double dem_core::sweep(const vector<int> &idx, bool reverse)
+{
+    double res = 0.0;
+    int nc = idx.size();
+
+    for(int cc=0; cc<nc; ++cc)
+    {
+        int c = reverse ? idx[nc-1-cc] : idx[cc];
+        dem_contact &C = contacts[c];
+        dem_vec u = relvel(C);
+        double un = C.n.dot(u);
+        Eigen::Vector2d ut(C.t1.dot(u),C.t2.dot(u));
+
+        // normal
+        double Wnn = C.Wl(0,0);
+        if(Wnn<=1.0e-20)
+        continue;
+
+        double Pn = std::max(0.0, C.P(0) + sor*(C.target - un)/Wnn);
+        double dPn = Pn - C.P(0);
+
+        // tangential, projected on the friction disc
+        ut += C.Wl.block<2,1>(1,0)*dPn;
+        Eigen::Matrix2d Wt = C.Wl.block<2,2>(1,1);
+        Eigen::Vector2d Pt = C.P.tail<2>();
+        Eigen::Vector2d Ptn = Pt;
+
+        // isotropic tangential effective mass: the fixed point then satisfies maximum dissipation
+        // (friction impulse anti-parallel to the slip velocity); a full 2x2 solve would not
+        double wt = std::max(Wt(0,0),Wt(1,1));
+        if(wt>1.0e-20)
+        Ptn = Pt - sor*ut/wt;
+
+        double pt = Ptn.norm();
+        double lim = C.mu*Pn;
+        if(pt>lim && pt>0.0)
+        Ptn *= lim/pt;
+
+        Eigen::Vector2d dPt = Ptn - Pt;
+
+        dem_vec dP = C.n*dPn + C.t1*dPt(0) + C.t2*dPt(1);
+        apply(c,dP);
+
+        C.P(0) = Pn;
+        C.P(1) = Ptn(0);
+        C.P(2) = Ptn(1);
+
+        res = std::max(res, fabs(dPn)*Wnn + dPt.norm()*std::max(Wt(0,0),Wt(1,1)));
+    }
+    return res;
+}
+
+double dem_core::sweep_pseudo(const vector<int> &idx, bool reverse)
+{
+    double res=0.0;
+    int nc = idx.size();
+
+    for(int cc=0; cc<nc; ++cc)
+    {
+        int c = reverse ? idx[nc-1-cc] : idx[cc];
+        dem_contact &C = contacts[c];
+        double Wnn = C.Wl(0,0);
+        if(Wnn<=1.0e-20)
+        continue;
+
+        const dem_body &A = bodies[C.a];
+        dem_vec u = A.vp + A.wp.cross(C.ra);
+        if(C.b>=0)
+        u -= bodies[C.b].vp + bodies[C.b].wp.cross(C.rb);
+
+        double Pn = std::max(0.0, C.Pp + (C.stab - C.n.dot(u))/Wnn);
+        double dPn = Pn - C.Pp;
+        C.Pp = Pn;
+        apply_pseudo(c,dPn);
+        res = std::max(res,fabs(dPn)*Wnn);
+    }
+    return res;
+}
+
 void dem_core::solve(double dt)
 {
     iterations = 0;
     residual = 0.0;
 
-    if(contacts.empty())
+    bool dist = hk && hk->sync;
+
+    for(auto &B : bodies)
+    {
+        B.vp.setZero();
+        B.wp.setZero();
+        B.vps.setZero();
+        B.wps.setZero();
+    }
+
+    if(contacts.empty() && !dist)
     return;
 
+    // contacts of particles solved on one rank only are swept freely, contacts of shared particles
+    // in the colour phases (distributed runs only)
+    vector<int> freec, sharedc;
+    for(size_t c=0; c<contacts.size(); ++c)
+    {
+        const dem_contact &C = contacts[c];
+        bool shared = dist && (bodies[C.a].split>1.5 || (C.b>=0 && bodies[C.b].split>1.5));
+        if(shared)
+        sharedc.push_back(c);
+        else
+        freec.push_back(c);
+    }
+
+    int ncol = dist ? std::max(1,hk->ncolors) : 1;
+
     // residual scale: current velocities with a floor of 1 mm/s (resting stacks need a strict tolerance)
-    double vref = std::max(max_velocity(),1.0e-3);
+    double vref = vref_ext>0.0 ? vref_ext : std::max(max_velocity(),1.0e-3);
+
+    // distributed: make the warm-start impulses of all ranks visible before the first sweep
+    if(dist)
+    hk->sync(*this,0,0.0,false);
 
     for(int it=0; it<maxiter; ++it)
     {
-        double res = 0.0;
+        bool rev = (it%2==1);   // symmetric Gauss-Seidel: alternate the order
 
-        // symmetric Gauss-Seidel: alternate the sweep direction to avoid ordering bias
-        int nc = contacts.size();
-        for(int cc=0; cc<nc; ++cc)
+        if(!dist)
         {
-            int c = (it%2==0) ? cc : nc-1-cc;
-            dem_contact &C = contacts[c];
-            dem_vec u = relvel(C);
-            double un = C.n.dot(u);
-            Eigen::Vector2d ut(C.t1.dot(u),C.t2.dot(u));
-
-            // normal
-            double Wnn = C.Wl(0,0);
-            if(Wnn<=1.0e-20)
+            double res = sweep(freec,rev);
+            iterations = it+1;
+            residual = res/vref;
+            if(residual<tol)
+            break;
             continue;
-
-            double Pn = std::max(0.0, C.P(0) + sor*(C.target - un)/Wnn);
-            double dPn = Pn - C.P(0);
-
-            // tangential, projected on the friction disc
-            ut += C.Wl.block<2,1>(1,0)*dPn;
-            Eigen::Matrix2d Wt = C.Wl.block<2,2>(1,1);
-            Eigen::Vector2d Pt = C.P.tail<2>();
-            Eigen::Vector2d Ptn = Pt;
-
-            // isotropic tangential effective mass: the fixed point then satisfies maximum dissipation
-            // (friction impulse anti-parallel to the slip velocity); a full 2x2 solve would not
-            double wt = std::max(Wt(0,0),Wt(1,1));
-            if(wt>1.0e-20)
-            Ptn = Pt - sor*ut/wt;
-
-            double pt = Ptn.norm();
-            double lim = C.mu*Pn;
-            if(pt>lim && pt>0.0)
-            Ptn *= lim/pt;
-
-            Eigen::Vector2d dPt = Ptn - Pt;
-
-            dem_vec dP = C.n*dPn + C.t1*dPt(0) + C.t2*dPt(1);
-            apply(c,dP);
-
-            C.P(0) = Pn;
-            C.P(1) = Ptn(0);
-            C.P(2) = Ptn(1);
-
-            res = std::max(res, fabs(dPn)*Wnn + dPt.norm()*std::max(Wt(0,0),Wt(1,1)));
         }
 
-        iterations = it+1;
-        residual = res/vref;
+        double res = 0.0, gres;
+        if(!rev)
+        res = std::max(res,sweep(freec,false));
 
+        for(int cc=0; cc<ncol; ++cc)
+        {
+            int col = rev ? ncol-1-cc : cc;
+            if(col==hk->mycolor)
+            res = std::max(res,sweep(sharedc,rev));
+            if(cc<ncol-1)
+            hk->sync(*this,0,res,false);
+        }
+
+        if(rev)
+        res = std::max(res,sweep(freec,true));
+
+        gres = hk->sync(*this,0,res,true);
+
+        iterations = it+1;
+        residual = gres/vref;
         if(residual<tol)
         break;
     }
@@ -726,40 +839,33 @@ void dem_core::solve(double dt)
         anypen=true;
     }
 
-    for(auto &B : bodies)
-    {
-        B.vp.setZero();
-        B.wp.setZero();
-    }
-
-    if(!anypen)
+    if(!anypen && !dist)
     return;
 
     for(int it=0; it<pseudoiter; ++it)
     {
-        double res=0.0;
-        int nc = contacts.size();
-        for(int cc=0; cc<nc; ++cc)
+        bool rev = (it%2==1);
+
+        if(!dist)
         {
-            int c = (it%2==0) ? cc : nc-1-cc;
-            dem_contact &C = contacts[c];
-            double Wnn = C.Wl(0,0);
-            if(Wnn<=1.0e-20)
+            double res = sweep_pseudo(freec,rev);
+            if(res<1.0e-3*vstab_max)
+            break;
             continue;
-
-            const dem_body &A = bodies[C.a];
-            dem_vec u = A.vp + A.wp.cross(C.ra);
-            if(C.b>=0)
-            u -= bodies[C.b].vp + bodies[C.b].wp.cross(C.rb);
-
-            double Pn = std::max(0.0, C.Pp + (C.stab - C.n.dot(u))/Wnn);
-            double dPn = Pn - C.Pp;
-            C.Pp = Pn;
-            apply_pseudo(c,dPn);
-            res = std::max(res,fabs(dPn)*Wnn);
         }
 
-        if(res<1.0e-3*vstab_max)
+        double res = sweep_pseudo(freec,rev);
+        for(int cc=0; cc<ncol; ++cc)
+        {
+            int col = rev ? ncol-1-cc : cc;
+            if(col==hk->mycolor)
+            res = std::max(res,sweep_pseudo(sharedc,rev));
+            if(cc<ncol-1)
+            hk->sync(*this,1,res,false);
+        }
+
+        double g = hk->sync(*this,1,res,true);
+        if(g<1.0e-3*vstab_max)
         break;
     }
 }
@@ -784,7 +890,7 @@ void dem_core::integrate(double dt)
 {
     for(auto &B : bodies)
     {
-        if(!B.active || B.fixed)
+        if(!B.active || B.fixed || B.ghost)
         continue;
 
         B.x += dt*(B.v + B.vp);
@@ -811,4 +917,25 @@ void dem_core::integrate(double dt)
         if(C.speculative && C.P(0)>0.0)
         cacheU[C.key] = C.un0;
     }
+}
+
+bool dem_core::mine(int a, int b) const
+{
+    const dem_body &A = bodies[a], &B = bodies[b];
+
+    if(A.ghost && B.ghost)
+    return false;
+
+    // replicated - replicated: rank 0
+    if(A.tier==1 && B.tier==1)
+    return myrank==0;
+
+    // replicated - distributed: owner of the distributed particle
+    if(A.tier==1)
+    return B.owner==myrank;
+    if(B.tier==1)
+    return A.owner==myrank;
+
+    // distributed - distributed: owner of the lower global id
+    return (A.id<B.id ? A.owner : B.owner)==myrank;
 }

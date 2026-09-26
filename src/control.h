@@ -402,7 +402,7 @@ public:
 
     // DEM
     int E10,E11,E13,E16,E21,E22;
-    double E12,E14,E15,E17,E18,E19,E20,E23;
+    double E12,E14,E15,E17,E18,E19,E20,E23,E24;
 
     // Particles
     int Q10;

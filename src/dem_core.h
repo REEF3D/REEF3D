@@ -119,6 +119,29 @@ private:
     vector<float> sdfval;
 };
 
+// per-particle data of the flow coupling (owned by the adapter, travels with the particle)
+struct dem_cpl
+{
+    double rhof = 0.0, nuf = 0.0, epsf = 1.0, vsub = 0.0;
+    dem_vec ufl = dem_vec::Zero(), ufl_old = dem_vec::Zero();
+    dem_vec Fb = dem_vec::Zero(), Tb = dem_vec::Zero();
+    int fluidcount = 0;
+    bool ufl_valid = false;
+
+    dem_vec Fibm = dem_vec::Zero(), Tibm = dem_vec::Zero();
+    double mfl = 0.0, hvol = 0.0;
+    dem_vec Fs[3] = {dem_vec::Zero(),dem_vec::Zero(),dem_vec::Zero()};
+    dem_vec Ts[3] = {dem_vec::Zero(),dem_vec::Zero(),dem_vec::Zero()};
+
+    dem_vec Ifl = dem_vec::Zero(), Lfl = dem_vec::Zero(), Ifl_old = dem_vec::Zero(), Lfl_old = dem_vec::Zero();
+    bool Ifl_valid = false;
+
+    dem_vec vprev = dem_vec::Zero(), wprev = dem_vec::Zero();
+    dem_vec Ffp = dem_vec::Zero(), Fhyd = dem_vec::Zero();
+    double sw[4] = {0.0,0.0,0.0,0.0};
+    int basemode = 0;
+};
+
 struct dem_body
 {
     int shape = 0;
@@ -127,6 +150,17 @@ struct dem_body
     bool fixed = false;
     bool active = true;
     int mode = 0;               // 0 unresolved, 1 resolved (set by the adapter)
+
+    // domain decomposition: tier 0 particles are owned by one rank and appear as ghosts on the
+    // neighbours, tier 1 (large) particles are replicated on all ranks
+    int tier = 0;
+    int owner = 0;
+    bool ghost = false;
+    dem_vec vs = dem_vec::Zero(), ws = dem_vec::Zero();    // velocities at the last solver synchronisation
+    dem_vec vps = dem_vec::Zero(), wps = dem_vec::Zero();
+    double split = 1.0;         // number of ranks that solve contacts of the particle
+
+    dem_cpl cpl;
 
     double m = 0.0;             // mass
     dem_vec Ib = dem_vec::Zero(); // principal inertia (body frame)
@@ -186,6 +220,26 @@ struct dem_plane
     double d = 0.0;                 // plane: n.x = d
 };
 
+class dem_core;
+
+// hooks for the distributed solver:
+//  ghosts: ghost update after the free velocities
+//  split:  count, per particle, the ranks that solve contacts of it (dem_body::split)
+//  sync:   return the velocity corrections of ghosts and replicated particles to their owners and
+//          send back the new velocities (mode 0: velocities, 1: pseudo velocities); with final==true
+//          it also returns the global residual
+// Contacts of particles shared by several ranks are swept in colour phases (ranks of one colour at a
+// time, no two ranks sharing a particle have the same colour), so the distributed solver is a
+// Gauss-Seidel iteration with a particular contact order, as on one rank.
+struct dem_hooks
+{
+    std::function<void(dem_core&)> ghosts;
+    std::function<void(dem_core&)> split;
+    std::function<double(dem_core&, int, double, bool)> sync;
+    int ncolors = 1;
+    int mycolor = 0;
+};
+
 class dem_core
 {
 public:
@@ -195,7 +249,13 @@ public:
     typedef std::function<void(dem_core&, double, vector<dem_contact>&)> wallfunc;
 
     void initialize();
-    void step(double dt, const wallfunc &walls);
+    void step(double dt, const wallfunc &walls, const dem_hooks *hooks=nullptr);
+
+    // contact ownership in the domain decomposition
+    bool mine(int a, int b) const;
+    int myrank = 0;
+    double vref_ext = 0.0;      // global velocity scale for the residual (0: local)
+    double vmax_ext = 0.0;      // global max particle velocity (distributed contact margin)
 
     double kinetic_energy() const;
     double max_velocity() const;
@@ -249,8 +309,11 @@ private:
 
     void apply(int c, const dem_vec &Pw);
     void apply_pseudo(int c, double Pn);
+    double sweep(const vector<int> &idx, bool reverse);
+    double sweep_pseudo(const vector<int> &idx, bool reverse);
     dem_vec relvel(const dem_contact &C) const;
 
+    const dem_hooks *hk = nullptr;
     unordered_map<uint64_t,dem_vec> cacheP;     // world impulse of last step
     unordered_map<uint64_t,double> cacheU;      // approach velocity of speculative contacts
 };

@@ -5,5 +5,6 @@ REEF3D::DEM example cases (see docs/DEM.md)
 3_CFD Particle Pile Unresolved           250 spheres, boxes, cylinders and ellipsoids raining into a tank
 4_NHFLOW Floating and Submerged Particles  floating boxes (surface-piercing large, unresolved small) and a submerged resolved sphere
 5_NHFLOW Floes in Waves 2D               floating blocks in regular waves
+6_CFD Box on Particles Distributed       large replicated box on distributed spheres across two ranks (dry)
 
 Run DIVEMesh first, then REEF3D with 2 MPI ranks (M 10 2).

@@ -1649,6 +1649,8 @@ void control::ctrlrecv()
     ii++;
     E23 = dctrl[dd];
     dd++;
+    E24 = dctrl[dd];
+    dd++;
 
     Q10 = ictrl[ii];
     ii++;
