@@ -149,13 +149,27 @@ double fnpf_ice::coverage(lexer *p, const fnpf_ice_floe &fl, int ii, int jj) con
     if(MIN(MIN(edge_distance(fl,x0,y0),edge_distance(fl,x1,y0)),MIN(edge_distance(fl,x1,y1),edge_distance(fl,x0,y1))) >= taper)
     return 1.0;
     
+    // product of the edge ramps: smooth (C1) also at the corners, where the distance function has a
+    // crease; a 90 deg corner is rounded instead of pointed (area deficit is taken up by the rescaling)
+    const int nv = int(fl.wx.size());
     double sum=0.0;
     for(int a=0; a<nsub; ++a)
     for(int b=0; b<nsub; ++b)
     {
     const double xs = x0 + (a+0.5)*(x1-x0)/double(nsub);
     const double ys = y0 + (b+0.5)*(y1-y0)/double(nsub);
-    sum += ramp(edge_distance(fl,xs,ys),taper);
+    
+    double prod=1.0;
+    for(int q=0; q<nv && prod>0.0; ++q)
+    {
+    const int q2=(q+1)%nv;
+    const double ex = fl.wx[q2]-fl.wx[q];
+    const double ey = fl.wy[q2]-fl.wy[q];
+    const double len = sqrt(ex*ex + ey*ey);
+    if(len>0.0)
+    prod *= ramp((-ey*(xs-fl.wx[q]) + ex*(ys-fl.wy[q]))/len, taper);
+    }
+    sum += prod;
     }
     
     return sum/double(nsub*nsub);
