@@ -30,6 +30,8 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p,d,pgc);
+    
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -61,6 +63,8 @@ void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
 
 void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p,d,pgc);
+    
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -89,6 +93,8 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
 
 void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice& WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p,d,pgc);
+    
     SLICELOOP4
     K(i,j) = 0.0;
     

@@ -28,6 +28,7 @@ Author: Hans Bihs
 void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {  
         double etaval=0.0;
+        double Dact,uwave,vwave,wwave;
         
         p->wavetime = p->simtime;
         
@@ -57,14 +58,47 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         x=xgen(p);
         y=ygen(p);
             
-        if(p->A515==1)
-        etaval = 0.0;
+        if(p->A515==4)
+        {
+        // mass-conservative wavemaker:
+        // - paddle kinematics sampled at the still-water sigma positions, so the
+        //   layer fluxes integrate to the paddle's still-water stroke flux
+        //   (piston: u*h, flap: theta_dot*int(z+l)dz over the still-water depth)
+        // - wave flux over the still-water depth -> zero-mean flux, no net
+        //   second-order (Stokes) mass input <u_p*eta> through the boundary
+        // - current flux over the actual depth
+        // - ghost velocity consistent with the actual depth: U = UH/D
+        Dact = MAX(d->eta(i,j) + d->depth(i,j), p->A544);
         
-        if(p->A515==2)
-        etaval = d->eta(i,j);
+        z = p->ZP[KP]*d->depth(i,j) + d->bed(i,j) - p->phimean;
         
-        if(p->A515==3)
-        etaval = eta(i-1,j);
+        uwave = wave_u(p,pgc,x,y,z);
+        vwave = wave_v(p,pgc,x,y,z);
+        wwave = wave_w(p,pgc,x,y,z);
+        
+        // U
+        UHval[count] = d->depth(i,j)*uwave + Dact*p->Ui;
+        uval[count]  = UHval[count]/Dact;
+        
+        // V
+        VHval[count] = d->depth(i,j)*vwave;
+        vval[count]  = VHval[count]/Dact;
+        
+        // W
+        wval[count]  = wwave;
+        WHval[count] = Dact*wval[count];
+        }
+        
+        else
+        {
+            if(p->A515==1)
+            etaval = 0.0;
+            
+            if(p->A515==2)
+            etaval = d->eta(i,j);
+            
+            if(p->A515==3)
+            etaval = eta(i-1,j);
 
         z = p->ZSP[IJK]-p->phimean;
 
@@ -79,6 +113,7 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         // W
         wval[count] = wave_w(p,pgc,x,y,z);
         WHval[count] = (etaval + d->depth(i,j))*wval[count];
+        }
 
         ++count;
         }

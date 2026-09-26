@@ -207,6 +207,7 @@ public:
     void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void fsfinflow_flux_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override final;
     
     void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);

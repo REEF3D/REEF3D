@@ -42,7 +42,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             if(p->A515==1)
             etaval = d->eta(i,j);
             
-            if(p->A515==2)
+            if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
             /*
@@ -75,7 +75,7 @@ void iowave::nhflow_dirichlet_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, doub
             if(p->A515==1)
             etaval = d->eta(i,j);
             
-            if(p->A515==2)
+            if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
             /*

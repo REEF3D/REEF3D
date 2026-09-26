@@ -121,3 +121,27 @@ void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     }
     
 }
+
+void iowave::fsfinflow_flux_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // A515=4, Dirichlet wavemaker (B98=3):
+    // impose the prescribed mass flux exactly at the inflow face, so the
+    // free-surface and omega updates see UH_bc instead of the reconstructed
+    // HLL flux (whose dissipation term S_L*S_R*(D_R-D_L) and one-sided
+    // reconstruction add or remove mass at the boundary)
+    if(p->B98!=3 || p->A515!=4)
+    return;
+    
+    count=0;
+    for(n=0;n<p->gcin_count;++n)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+        if(p->wet[IJ]==1)
+        d->FEx[Im1JK] = UHval[count]*ramp(p);
+    
+    ++count;
+    }
+}

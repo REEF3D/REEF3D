@@ -61,6 +61,8 @@ void nhflow_fsf_f::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
 
 void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p,d,pgc);
+    
     SLICELOOP4
     K(i,j) = 0.0;
     
@@ -100,6 +102,8 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
 
 void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p,d,pgc);
+    
     SLICELOOP4
     K(i,j) = 0.0;
     

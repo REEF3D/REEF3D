@@ -167,7 +167,7 @@ void control::ini_default()
     A512=0;		// int NHFLOW diffusion
     A513=1;		// int NHFLOW wall diffusion
     A514=4;		// int NHFLOW reconstruction 
-    A515=1;      // int Dirichlet wave BC type
+    A515=1;      // int Dirichlet wave BC type: 1 still-water flux, 2 actual-depth flux, 3 theoretical eta, 4 mass-conservative (still-water flux, U=UH/D, exact face flux)
     A516=1;      // int forcing WL/eta treatment
     A517=1;      // int preserve tangential velocities for forcing
     A518=2;      // int NHFLOW bed BC

@@ -130,6 +130,7 @@ public:
     virtual void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&)=0;
     virtual void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&)=0;
     virtual void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&)=0;
+    virtual void fsfinflow_flux_nhflow(lexer*,fdm_nhf*,ghostcell*){}  // optional: impose inflow mass flux FEx at the boundary face
     virtual void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*)=0;
 
 
