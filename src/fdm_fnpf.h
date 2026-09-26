@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"cpt2D.h"
 
 class lexer;
+class fnpf_ice;
 
 using namespace std;
 
@@ -85,6 +86,9 @@ public:
     
     double gi,gj,gk;
     double wd_criterion;
+    
+    // FNPF ice floes (A 380), nullptr when off; read by the dynamic FSBC
+    fnpf_ice *ice = nullptr;
 };
 
 #endif

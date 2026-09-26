@@ -61,6 +61,10 @@ public:
     int A370,A372,A373,A374,A378;
     double A371_u,A371_dir,A375,A376_s,A376_sc,A376_c,A377;
     double A372_xs,A372_xe,A372_ys,A372_ye;
+    int A380,A385,A386,A388;
+    int A390,A394,A395_dir,A395_off;
+    double A391,A392_K,A392_C,A393;
+    double A381,A382,A383,A384_mu,A384_e,A387,A389;
 
     // NSEWAVE
     int A410;

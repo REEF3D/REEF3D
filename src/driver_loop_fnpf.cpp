@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
+#include"fnpf_ice.h"
 
 void driver::loop_fnpf()
 {
@@ -73,8 +74,16 @@ void driver::loop_fnpf()
         c->breaklog(i,j)=0;
 
 
+        // ice floes: footprints and lid parameters at t^n
+        if(pfice!=nullptr)
+        pfice->prestep(p,c,pgc);
+        
         // FNPF
 		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
+        
+        // ice floes: forces at t^n+1, 6DOF + contact, output
+        if(pfice!=nullptr)
+        pfice->poststep(p,c,pgc);
         
         // printer
         pprint->start(p,c,pgc,pflow);
@@ -82,6 +91,9 @@ void driver::loop_fnpf()
         //timestep control
         p->simtime+=p->dt;
         pftstep->start(c,p,pgc);
+        
+        if(pfice!=nullptr)
+        pfice->timestep(p,c,pgc);
         
 
         // Shell-Printout

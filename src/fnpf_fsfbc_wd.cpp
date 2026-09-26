@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include "fnpf_coastline.h"
 #include "sflow_bicgstab.h"
 #include "wind_f.h"
+#include "fnpf_ice.h"
 #include "wind_v.h"
 
 fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc),wetcoast(p),
@@ -437,6 +438,10 @@ void fnpf_fsfbc_wd::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {
+    // ice floes: c->K still holds the kinematic tendency deta/dt of this stage
+    if(c->ice!=nullptr)
+    c->ice->store_etat(p,c,c->K);
+    
     if(p->A314==1)
     {
         SLICELOOP4
@@ -462,5 +467,9 @@ void fnpf_fsfbc_wd::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
     }
 
     pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
+    
+    // Ice floes: compliant-lid pressure, dFi/dt = ... - p_ice/rho_w
+    if(c->ice!=nullptr)
+    c->ice->lid_forcing(p,c,c->K,eta);
 }
 

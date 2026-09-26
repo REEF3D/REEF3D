@@ -134,6 +134,26 @@ void control::ini_default()
     A377=0.0;    // double reference depth for wind setup, <=0: mean still water depth
     A378=4;      // int low-pass filter passes on the wind forcing slope
 
+    A380=0;      // int FNPF ice floes, 1: read ice_floes.dat
+    A381=20.0;   // double ice lid stiffness k/(rho_w*g)
+    A382=0.2;    // double ice lid damping ratio (of critical, per floe)
+    A383=0.0055; // double ice-water drag coefficient
+    A384_mu=0.3; // double ice contact friction coefficient
+    A384_e=0.0;  // double ice contact restitution coefficient
+    A385=1;      // int ice floes: domain boundaries act as walls
+    A386=4;      // int ice footprint supersampling per cell direction
+    A387=-1.0;   // double ice floe print interval in s, <0: follow fsf print settings
+    A388=30;     // int ice contact solver iterations
+    A389=2.0;    // double ice footprint edge taper half width in cells
+    A390=0;      // int ice breaking: 0 off, 1 flexural, 2 contact splitting, 3 both
+    A391=0.5e6;  // double ice flexural strength [Pa]
+    A392_K=1.0e5;// double ice fracture toughness K_IC [Pa m^0.5] for splitting
+    A392_C=1.0;  // double splitting load coefficient, F = C*K_IC*h*sqrt(D)
+    A393=-1.0;   // double minimum floe size after breaking [m], <0: 4 mean cells
+    A394=1;      // int ice breaking check every n steps
+    A395_dir=12; // int flexural cut directions
+    A395_off=9;  // int flexural cut offsets per direction
+
     
     // PTF
     A410=1;      // int scheme eta

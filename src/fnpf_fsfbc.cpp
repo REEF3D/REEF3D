@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include "sflow_bicgstab.h"
 
 #include "wind_f.h"
+#include "fnpf_ice.h"
 #include "wind_v.h"
 
 using namespace std;
@@ -302,6 +303,10 @@ void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
 void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 {
+    // ice floes: c->K still holds the kinematic tendency deta/dt of this stage
+    if(c->ice!=nullptr)
+    c->ice->store_etat(p,c,c->K);
+    
     if(p->A314==1)
     {
         SLICELOOP4
@@ -316,6 +321,10 @@ void fnpf_fsfbc::dfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta)
 
     // Wind
     pwind->wind_forcing_fnpf(p,c,pgc,c->K,eta);
+    
+    // Ice floes: compliant-lid pressure, dFi/dt = ... - p_ice/rho_w
+    if(c->ice!=nullptr)
+    c->ice->lid_forcing(p,c,c->K,eta);
 }
 
 void fnpf_fsfbc::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)

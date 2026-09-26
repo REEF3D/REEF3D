@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
+#include"fnpf_ice.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"
@@ -178,12 +179,24 @@ void driver::driver_ini_fnpf()
     // iowave ini - including fullini
     pflow->ini_fnpf(p,c,pgc);  
     
+    // ice floes: read, place at equilibrium draft, depress eta under the footprints
+    if(p->A380>0)
+    {
+    pfice = new fnpf_ice(p,c,pgc);
+    c->ice = pfice;
+    pfice->ini(p,c,pgc);
+    }
+    
     
     // ini wetdry and coastline
     ppfsg->inidisc_step2(p,c,pgc,pflow,psolv);   // RK
     
     
     pftstep->ini(c,p,pgc);
+    
+    if(pfice!=nullptr)
+    pfice->timestep(p,c,pgc);
+    
     pprint->start(p,c,pgc,pflow);
     
     p->gctime=0.0;
