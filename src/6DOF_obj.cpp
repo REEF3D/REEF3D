@@ -21,6 +21,7 @@ Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include "6DOF_forcesext_file.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -82,7 +83,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     alpha[0] = 1.0;
     alpha[1] = 0.5;
     
-    gamma[0] = 0.0;
+    gamma[0] = 0.0; 
     gamma[1] = 0.0;
     gamma[2] = 0.0;
     
@@ -106,10 +107,12 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     
     if(p->X240==21)
     pmotion = new sixdof_motionext_wavemaker(p,pgc);
-    
-    Mass_fb =  Rfb = Vfb = 1.0;
-    
-    
+
+    if (p->X330 == 1)
+    pforce = new sixdof_forcesext_file(p, pgc);
+
+    Mass_fb = Rfb = Vfb = 1.0;
+
     if(p->A10==5)
     {
     pnhfrdisc = new nhflow_reinidisc_fsf(p);
@@ -137,4 +140,3 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
 sixdof_obj::~sixdof_obj()
 {
 }
-    
