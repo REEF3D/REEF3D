@@ -30,6 +30,7 @@ Author: Hans Bihs
 
 class fnpf_laplace;
 class fnpf_fsf;
+class fnpf_6DOF;
 class field;
 
 using namespace std;
@@ -59,6 +60,11 @@ private:
     
     int gcval_sl;
     double t0;
+    
+    // resolved 6DOF bodies (X 10 > 0)
+    void fb_stage(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&, int);
+    fnpf_6DOF *pfb;
+    slice4 ek,fk;
 
 };
 

@@ -276,6 +276,7 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
         }
         
         Vol_ls=0.0;
+        if(d!=nullptr)   // FNPF passes no fdm_nhf: diagnostic level-set volume only
         LOOP
         {
             H = Hsolidface_nhflow(p,d,0,0,0);

@@ -80,6 +80,10 @@ public:
     vec rhsvec;
     vec2D xvec,rvec;
     double *Fi,*Uin,*U,*V,*W;
+    
+    // resolved 6DOF bodies (X 10 > 0): body id per sigma node (0 = fluid) and the
+    // Neumann data of the staircase body faces, see fnpf_6DOF
+    double *FBF=nullptr,*FBu=nullptr,*FBv=nullptr,*FBw=nullptr;
 
     matrix2D N;
 	matrix_diag M;    

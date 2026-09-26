@@ -103,6 +103,14 @@ fdm_fnpf::fdm_fnpf(lexer *p) : test(p),Fifsf(p),
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
+    
+    if(p->X10>0)
+    {
+    p->Darray(FBF,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FBu,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FBv,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(FBw,p->imax*p->jmax*(p->kmax+2));
+    }
 }
 
 

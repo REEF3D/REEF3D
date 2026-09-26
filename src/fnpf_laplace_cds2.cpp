@@ -59,6 +59,14 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     const double *const __restrict sigxx = p->sigxx;
     const double *const __restrict Uin   = c->Uin;
     
+    // resolved 6DOF bodies: body nodes are decoupled, fluid/body faces carry the
+    // Neumann data (FBu,FBv,FBw).e_face, see fnpf_6DOF
+    const bool fbon = (p->X10>0 && c->FBF!=nullptr);
+    const double *const FBF = c->FBF;
+    const double *const FBu = c->FBu;
+    const double *const FBv = c->FBv;
+    const double *const FBw = c->FBw;
+    
     double *const __restrict Mp = c->M.p.data();
     double *const __restrict Mn = c->M.n.data();
     double *const __restrict Ms = c->M.s.data();
@@ -132,7 +140,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         {
             const int q = c0 + k;
             
-            if(wP==1 && flag7[q]>0)
+            if(wP==1 && flag7[q]>0 && !(fbon && FBF[q]>0.5))
             {
             const double sx  = sigx[q];
             const double sy  = sigy[q];
@@ -165,6 +173,54 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
                 
                 mt += ab;
                 mb = 0.0;
+            }
+            
+            // 6DOF body faces (after KBEDBC, which would re-couple the bed-slope terms):
+            // staircase Neumann d(f)/dx = FBu etc., ghost value eliminated as for the A329 inflow
+            if(fbon)
+            {
+                if(FBF[q-sI]>0.5 && flag7[q-sI]>0)
+                {
+                rv += ms*FBu[q-sI]*p->DXP[IM1];
+                mp += ms;
+                ms = 0.0;
+                }
+                
+                if(FBF[q+sI]>0.5 && flag7[q+sI]>0)
+                {
+                rv -= mn*FBu[q+sI]*p->DXP[IP];
+                mp += mn;
+                mn = 0.0;
+                }
+                
+                if(FBF[q-sJ]>0.5 && flag7[q-sJ]>0)
+                {
+                rv += me*FBv[q-sJ]*p->DYP[JM1];
+                mp += me;
+                me = 0.0;
+                }
+                
+                if(FBF[q+sJ]>0.5 && flag7[q+sJ]>0)
+                {
+                rv -= mw*FBv[q+sJ]*p->DYP[JP];
+                mp += mw;
+                mw = 0.0;
+                }
+                
+                // vertical: d(f)/dz = sigz*d(f)/dsig (horizontal metric terms neglected at the face)
+                if(FBF[q+1]>0.5 && flag7[q+1]>0)
+                {
+                rv -= mt*FBw[q+1]*p->DZN[KP]/sz;
+                mp += mt;
+                mt = 0.0;
+                }
+                
+                if(FBF[q-1]>0.5 && flag7[q-1]>0)
+                {
+                rv += mb*FBw[q-1]*p->DZN[KM1]/sz;
+                mp += mb;
+                mb = 0.0;
+                }
             }
             
             // south
@@ -280,6 +336,20 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mt[n] = mt;
             Mb[n] = mb;
             rhs[n] = rv;
+            }
+            
+            else
+            if(wP==1 && flag7[q]>0)
+            {
+            // 6DOF body node: keep the (extrapolated) value
+            Mp[n] = 1.0;
+            Mn[n] = 0.0;
+            Ms[n] = 0.0;
+            Mw[n] = 0.0;
+            Me[n] = 0.0;
+            Mt[n] = 0.0;
+            Mb[n] = 0.0;
+            rhs[n] = f[q];
             }
             
             else

@@ -43,6 +43,7 @@ class lexer;
 class fdm;
 class fdm2D;
 class fdm_nhf;
+class fdm_fnpf;
 class ghostcell;
 class reinidisc;
 class nhflow_reinidisc_fsf;
@@ -117,7 +118,17 @@ public:
     void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
     
     double Mass_fb, Vfb, Rfb;
-
+    
+    // FNPF: resolved bodies in the sigma grid (6DOF_obj_fnpf*.cpp)
+    void initialize_fnpf(lexer*, fdm_fnpf*, ghostcell*);
+    void solve_eqmotion_fnpf(lexer*, ghostcell*, int, bool);
+    void update_position_fnpf(lexer*, ghostcell*, bool);
+    void print_fnpf(lexer*, ghostcell*, int);
+    void ray_cast_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, slice&);
+    void face_data_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, double*, double*, double*, double*);
+    void forces_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double**, bool);
+    bool fnpf_fixed(lexer*);
+    
 private:
 
 	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
@@ -416,6 +427,16 @@ private:
     double **kinematics;
     
     double DSM;
+    
+    // FNPF: classical RK4 stage derivatives and the added-mass coupling
+    void rk4(lexer*, ghostcell*, int);
+    void externalForces_fnpf(lexer*, ghostcell*, bool);
+    void apply_added_mass(lexer*);
+    bool p_fixed_dof(lexer*, int);
+    Eigen::Vector3d rk4_p_[3], rk4_c_[3], rk4_h_[3];
+    Eigen::Vector4d rk4_e_[3];
+    Eigen::Matrix<double, 6, 6> Aadd_;
+    bool am_on_ = false;
 };
 
 #endif

@@ -31,10 +31,12 @@ Author: Hans Bihs
 #include"fnpf_laplace_cds2.h"
 #include"fnpf_fsfbc.h"
 #include"fnpf_fsfbc_wd.h"
+#include"fnpf_6DOF.h"
 
 fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       erk1(p),erk2(p),erk3(p),erk(p),en(p),
-                                                      frk1(p),frk2(p),frk3(p),frk(p)
+                                                      frk1(p),frk2(p),frk3(p),frk(p),
+                                                      erk4(p),frk4(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -63,6 +65,11 @@ fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     
     if(p->A343>=1)
     pf = new fnpf_fsfbc_wd(p,c,pgc);
+    
+    pfb = nullptr;
+    
+    if(p->X10>0)
+    pfb = new fnpf_6DOF(p,c,pgc);
 }
 
 fnpf_RK4::~fnpf_RK4()
@@ -82,6 +89,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     en(i,j) = c->eta(i,j);
     
+    if(pfb!=nullptr && !pfb->initialized)
+    pfb->ini(p,c,pgc);
+    
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);
@@ -94,6 +104,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
 	SLICELOOP4
 	frk1(i,j) = c->K(i,j);
+    
+    if(pfb!=nullptr)
+    fb_stage(p,c,pgc,psolv,erk1,frk1,0);
     
     SLICELOOP4
     {
@@ -113,11 +126,17 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
+    if(pfb!=nullptr)
+    pfb->footprint(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
+    
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk,en,frk,0.5);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
+    
+    if(pfb!=nullptr)
+    pfb->geometry(p,c,pgc);
     
     // Set Boundary Conditions
     fsfbc_sig(p,c,pgc,frk,c->Fi);
@@ -127,6 +146,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk);
     pgc->start7V(p,c->Fi,c->bc,gcval);
+    
+    if(pfb!=nullptr)
+    pfb->extrapolate(p,c,pgc,c->Fi);
     pf->fsfwvel(p,c,pgc,erk,frk);
 
 // Step 2
@@ -141,6 +163,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     SLICELOOP4
 	frk2(i,j) = c->K(i,j);
+    
+    if(pfb!=nullptr)
+    fb_stage(p,c,pgc,psolv,erk2,frk2,1);
     
     SLICELOOP4
     {
@@ -160,11 +185,17 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
+    if(pfb!=nullptr)
+    pfb->footprint(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
+    
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk,en,frk,0.5);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
+    
+    if(pfb!=nullptr)
+    pfb->geometry(p,c,pgc);
     
     // Set Boundary Conditions
     fsfbc_sig(p,c,pgc,frk,c->Fi);
@@ -174,6 +205,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk);
     pgc->start7V(p,c->Fi,c->bc,gcval);
+    
+    if(pfb!=nullptr)
+    pfb->extrapolate(p,c,pgc,c->Fi);
     pf->fsfwvel(p,c,pgc,erk,frk);
     
 // Step 3
@@ -188,6 +222,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     SLICELOOP4
 	frk3(i,j) = c->K(i,j);
+    
+    if(pfb!=nullptr)
+    fb_stage(p,c,pgc,psolv,erk3,frk3,2);
     
     SLICELOOP4
     {
@@ -207,11 +244,17 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
     
+    if(pfb!=nullptr)
+    pfb->footprint(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
+    
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk,en,frk,1.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
+    
+    if(pfb!=nullptr)
+    pfb->geometry(p,c,pgc);
     
     // Set Boundary Conditions
     fsfbc_sig(p,c,pgc,frk,c->Fi);
@@ -221,20 +264,47 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,frk);
     pgc->start7V(p,c->Fi,c->bc,gcval);
+    
+    if(pfb!=nullptr)
+    pfb->extrapolate(p,c,pgc,c->Fi);
     pf->fsfwvel(p,c,pgc,erk,frk);
 
 // Step 4 
     // fsf eta
     pf->kfsfbc(p,c,pgc);
     
+    if(pfb==nullptr)
+    {
     SLICELOOP4
     c->eta(i,j) = c->eta(i,j) + p->dt*(1.0/6.0)*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + c->K(i,j));
     
     // fsf Fi
     pf->dfsfbc(p,c,pgc,erk);
     
-    SLICELOOP4
+	SLICELOOP4
 	c->Fifsf(i,j) = c->Fifsf(i,j) + p->dt*(1.0/6.0)*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + c->K(i,j));
+    }
+    
+    if(pfb!=nullptr)
+    {
+    // both stage-4 tendencies before eta is overwritten: the body loads need the
+    // stage-3 state (dfsfbc only uses the eta passed to it)
+    SLICELOOP4
+    erk4(i,j) = c->K(i,j);
+    
+    pf->dfsfbc(p,c,pgc,erk);
+    
+    SLICELOOP4
+    frk4(i,j) = c->K(i,j);
+    
+    fb_stage(p,c,pgc,psolv,erk4,frk4,3);
+    
+    SLICELOOP4
+    {
+    c->eta(i,j)   = c->eta(i,j)   + p->dt*(1.0/6.0)*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + erk4(i,j));
+    c->Fifsf(i,j) = c->Fifsf(i,j) + p->dt*(1.0/6.0)*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + frk4(i,j));
+    }
+    }
     
     pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
@@ -248,11 +318,17 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     
+    if(pfb!=nullptr)
+    pfb->footprint(p,c,pgc,c->eta,c->Fifsf,gcval_eta,gcval_fifsf);
+    
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
+    
+    if(pfb!=nullptr)
+    pfb->geometry(p,c,pgc);
     
     // Set Boundary Conditions
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
@@ -262,6 +338,9 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->start7V(p,c->Fi,c->bc,gcval);
     plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
     pgc->start7V(p,c->Fi,c->bc,gcval);
+    
+    if(pfb!=nullptr)
+    pfb->extrapolate(p,c,pgc,c->Fi);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
     //---------------------------------
@@ -323,3 +402,15 @@ void fnpf_RK4::ini_wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     pf->coastline_fi(p,c,pgc,c->Fifsf);
 }
 
+void fnpf_RK4::fb_stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &Keta, slice &Kfi, int iter)
+{
+    // loads from the current state (Fi, eta, sigma grid of the previous stage) and its
+    // tendencies, then the body RK4 stage; the geometry follows after sigma_update
+    velcalc_sig(p,c,pgc,c->Fi);
+    pgc->gcparax7(p,c->U,7);
+    pgc->gcparax7(p,c->V,7);
+    pgc->gcparax7(p,c->W,7);
+    
+    pfb->forces(p,c,pgc,psolv,plap,pf,Keta,Kfi,iter);
+    pfb->motion(p,c,pgc,iter);
+}

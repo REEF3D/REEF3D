@@ -956,6 +956,7 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="fnpf_6DOF.h"/>
         <VirtualDirectory Name="Net Interface">
           <File Name="net_interface.h"/>
         </VirtualDirectory>
@@ -2452,6 +2453,9 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Interface FNPF">
+          <File Name="fnpf_6DOF.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Net Interface">
           <File Name="net_interface_netForces_nhflow.cpp"/>
           <File Name="net_interface_netForces_cfd.cpp"/>
@@ -2500,6 +2504,10 @@
           <File Name="6DOF_sflow.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
+          <VirtualDirectory Name="Forces FNPF">
+            <File Name="6DOF_obj_fnpf.cpp"/>
+            <File Name="6DOF_obj_fnpf_forces.cpp"/>
+          </VirtualDirectory>
           <File Name="6DOF_obj.cpp"/>
           <VirtualDirectory Name="6DOF Equations">
             <File Name="6DOF_obj_update_pos_nhflow.cpp"/>
