@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define FNPF_6DOF_H_
 
 #include"increment.h"
+#include"fnpf_body.h"
 #include"slice4.h"
 #include<vector>
 
@@ -34,6 +35,7 @@ class solver;
 class fnpf_laplace;
 class fnpf_fsf;
 class fnpf_bed_update;
+class fnpf_fsf_update;
 class sixdof_obj;
 class slice;
 
@@ -53,31 +55,37 @@ using namespace std;
 //   psi_j: Dirichlet 0, Neumann N_j (unit modes) -> added mass A_ij
 // and the body is advanced with (M + A) a = F_0 + F_ext, stage-synchronous with
 // fnpf_RK3 or fnpf_RK4. A is refreshed once per time step (first stage).
+//
+// Coupling to the time stepping only through the fnpf_body hooks: stage(), surface(),
+// and a decorated Laplace solver (geometry before, body-band extrapolation after the
+// phi solve). The psi solves use the undecorated solver.
 
-class fnpf_6DOF : public increment
+class fnpf_6DOF : public fnpf_body, public increment
 {
 public:
     fnpf_6DOF(lexer*, fdm_fnpf*, ghostcell*);
     virtual ~fnpf_6DOF();
     
-    void ini(lexer*, fdm_fnpf*, ghostcell*);
+    // fnpf_body hooks
+    void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int) override;
+    void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
+    fnpf_laplace* laplace(fnpf_laplace*) override;
     
-    // at the start of RK stage iter, from the current state and its tendencies
-    void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, slice&, slice&, int);
-    void motion(lexer*, fdm_fnpf*, ghostcell*, int);
-    
-    // after the stage values eta/Fifsf are formed
-    void footprint(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int);
-    
-    // after sigma_update, before the Laplace solve
-    void geometry(lexer*, fdm_fnpf*, ghostcell*);
-    
-    // after a Laplace solve: fill the body band for the cross terms and sampling
-    void extrapolate(lexer*, fdm_fnpf*, ghostcell*, double*);
+    // used by the decorated Laplace solver around the phi solve:
+    // body geometry on the new sigma grid, then extrapolation of the body band
+    void pre_solve(lexer*, fdm_fnpf*, ghostcell*);
+    void post_solve(lexer*, fdm_fnpf*, ghostcell*, double*);
     
     bool initialized;
     
 private:
+    void geometry(lexer*, fdm_fnpf*, ghostcell*);
+    void extrapolate(lexer*, fdm_fnpf*, ghostcell*, double*);
+    void ini(lexer*, fdm_fnpf*, ghostcell*);
+    void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
+    void motion(lexer*, fdm_fnpf*, ghostcell*, int);
+    void footprint(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int);
+    
     void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&);
     void zero_face(lexer*, fdm_fnpf*);
     void exchange_face(lexer*, fdm_fnpf*, ghostcell*);
@@ -97,6 +105,8 @@ private:
     bool ext_ini;
     
     fnpf_bed_update *pbed;
+    fnpf_fsf_update *pvel;
+    fnpf_laplace *plap;
 };
 
 #endif

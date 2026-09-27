@@ -29,6 +29,28 @@ Author: Hans Bihs
 #include"fnpf_laplace.h"
 #include"fnpf_fsf.h"
 #include"fnpf_bed_update.h"
+#include"fnpf_fsf_update.h"
+
+// Laplace solver seen by the time stepping when bodies are present: body geometry on the
+// new sigma grid before the phi solve, body-band extrapolation after it.
+class fnpf_laplace_6DOF : public fnpf_laplace
+{
+public:
+    fnpf_laplace_6DOF(fnpf_6DOF *fb, fnpf_laplace *plap) : fb(fb), plap(plap) {}
+    
+    void start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf) override
+    {
+        fb->pre_solve(p,c,pgc);
+        
+        plap->start(p,c,pgc,psolv,pf,f,Fifsf);
+        
+        fb->post_solve(p,c,pgc,f);
+    }
+    
+private:
+    fnpf_6DOF *fb;
+    fnpf_laplace *plap;
+};
 
 fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false), foot(p), psiD(p), zeroslice(p),
                                                                eta_ext(p), fi_ext(p), ext_ini(false)
@@ -64,6 +86,53 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     mark = new int[size]();
     
     pbed = new fnpf_bed_update(p);
+    pvel = new fnpf_fsf_update(p,c,pgc);
+    plap = nullptr;
+}
+
+fnpf_laplace* fnpf_6DOF::laplace(fnpf_laplace *pl)
+{
+    // keep the plain solver for the psi solves, hand the decorated one to the RK scheme
+    plap = pl;
+    
+    return new fnpf_laplace_6DOF(this,pl);
+}
+
+void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, slice &Keta, slice &Kfi, int iter)
+{
+    // loads from the current state (Fi, eta, sigma grid of the previous stage) and its
+    // tendencies, then the body RK stage; the geometry follows with the next phi solve
+    if(!initialized)
+    ini(p,c,pgc);
+    
+    pvel->velcalc_sig(p,c,pgc,c->Fi);
+    pgc->gcparax7(p,c->U,7);
+    pgc->gcparax7(p,c->V,7);
+    pgc->gcparax7(p,c->W,7);
+    
+    forces(p,c,pgc,psolv,pf,Keta,Kfi,iter);
+    motion(p,c,pgc,iter);
+}
+
+void fnpf_6DOF::pre_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(initialized)
+    geometry(p,c,pgc);
+}
+
+void fnpf_6DOF::post_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
+{
+    if(!initialized)
+    return;
+    
+    pgc->start7V(p,f,c->bc,gcval);
+    extrapolate(p,c,pgc,f);
+}
+
+void fnpf_6DOF::surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf, int gcval_eta, int gcval_fifsf)
+{
+    if(initialized)
+    footprint(p,c,pgc,eta,Fifsf,gcval_eta,gcval_fifsf);
 }
 
 fnpf_6DOF::~fnpf_6DOF()
@@ -81,7 +150,7 @@ void fnpf_6DOF::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     initialized = true;
 }
 
-void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_laplace *plap, fnpf_fsf *pf, 
+void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, 
                        slice &Keta, slice &Kfi, int iter)
 {
     // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt

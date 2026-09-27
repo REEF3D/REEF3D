@@ -691,6 +691,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <VirtualDirectory Name="Forcing">
+          <File Name="fnpf_body.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Breaking">
           <File Name="fnpf_breaking.h"/>
         </VirtualDirectory>
@@ -736,6 +739,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
+          <File Name="fnpf_laplace_body_bc.h"/>
           <File Name="fnpf_laplace_cds2.h"/>
           <File Name="fnpf_laplace.h"/>
         </VirtualDirectory>
@@ -2068,6 +2072,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <VirtualDirectory Name="Forcing">
+          <File Name="fnpf_body.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Breaking">
           <File Name="fnfp_breaking_baquet_wd.cpp"/>
           <File Name="fnpf_breaking_baquet.cpp"/>
