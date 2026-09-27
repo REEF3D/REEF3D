@@ -94,8 +94,18 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             // Zone 2
             if(db<1.0e20)
             {
+            // B 97 1: waves on a current, relax to the inflow current instead of to rest
+            if(p->B97==1)
+            {
+            U[IJK]  = relax4_nb(i,j)*U[IJK]  + (1.0-relax4_nb(i,j))*ramp(p)*p->Ui;
+            UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*ramp(p)*p->Ui*p->WL[IJ];
+            }
+            
+            if(p->B97==0)
+            {
             U[IJK] = relax4_nb(i,j)*U[IJK];
             UH[IJK] = relax4_nb(i,j)*UH[IJK];
+            }
             }
         }
     }

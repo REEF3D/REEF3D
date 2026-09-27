@@ -613,6 +613,8 @@ void control::ctrlrecv()
     dd++;
     B96_2 = dctrl[dd];
     dd++;
+    B97 = ictrl[ii];
+    ii++;
     B98 = ictrl[ii];
     ii++;
     B99 = ictrl[ii];

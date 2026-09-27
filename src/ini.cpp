@@ -337,6 +337,7 @@ void control::ini_default()
     B94_wdt=0.0;    // double water depth for wave theory
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
+	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion

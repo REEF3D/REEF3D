@@ -617,6 +617,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B96_2;
     dd++;
+    ictrl[ii] = B97;
+    ii++;
     ictrl[ii] = B98;
     ii++;
     ictrl[ii] = B99;
