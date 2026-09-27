@@ -84,6 +84,7 @@ public:
     double *MRCX = nullptr;     // membrane (X 330): face correction velocities of the last projection,
     double *MRCY = nullptr;     //                   Rhie-Chow continuity flux next to the membrane
     int MPROJ = 1;              // membrane (X 330): projections per stage (membrane.dat: projections)
+    double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;
     double *KIN;
     double *CONC;

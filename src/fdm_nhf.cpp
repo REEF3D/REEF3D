@@ -73,6 +73,9 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(POR,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PORPART,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(PORDEM,p->imax*p->jmax*(p->kmax+2));
+    for(int n=0; n<p->imax*p->jmax*(p->kmax+2); ++n)
+    PORDEM[n] = 1.0;
     
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
     

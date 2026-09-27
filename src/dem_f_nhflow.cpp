@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include"vrans_definitions.h"
 #include<mpi.h>
 
 // ---------------------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ Author: Hans Bihs
 
 void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    const int nv = 14;
+    const int nv = 24;     // 0-13 as before; E 26: 14-16 sum qw u_q, 17 sum qw, 18-20 sum qw r x u_q, 21-23 sum qw r
     vector<double> buf(nb*nv,0.0);
     dem_vec g(p->W20,p->W21,p->W22);
 
@@ -103,7 +104,8 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int n=0; n<nb; ++n)
     {
         const dem_body &B = core.bodies[n];
-        if(!B.active || B.fixed || coupling==0)
+        // fixed particles need fluid data only for their drag (E 29) or porosity (E 28 2)
+        if(!B.active || coupling==0 || (B.fixed && fixeddrag==0 && pormode!=2))
         continue;
 
         double *b = &buf[n*nv];
@@ -140,6 +142,23 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             b[7]+=F(0); b[8]+=F(1); b[9]+=F(2);
             b[10]+=T(0); b[11]+=T(1); b[12]+=T(2);
             b[13]+=S.qw[q];
+
+            // E 26: fluid velocity at the submerged quadrature points
+            if(multipoint==1 && !useRing)
+            {
+                dem_vec uq(p->ccipol4V(d->U,d->WL,d->bed,xq(0),xq(1),xq(2)),
+                           p->j_dir==1 ? p->ccipol4V(d->V,d->WL,d->bed,xq(0),xq(1),xq(2)) : 0.0,
+                           p->ccipol4V(d->W,d->WL,d->bed,xq(0),xq(1),xq(2)));
+                dem_vec rq = p->j_dir==1 ? r : dem_vec(r(0),0.0,r(2));
+                dem_vec m = rq.cross(uq);
+                for(int c=0; c<3; ++c)
+                {
+                    b[14+c] += S.qw[q]*uq(c);
+                    b[18+c] += S.qw[q]*m(c);
+                    b[21+c] += S.qw[q]*rq(c);
+                }
+                b[17] += S.qw[q];
+            }
         }
     }
 
@@ -166,7 +185,121 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         core.bodies[n].cpl.Fb = dem_vec(b[7],b[8],b[9]);
         core.bodies[n].cpl.Tb = dem_vec(b[10],b[11],b[12]);
         core.bodies[n].cpl.vsub = b[13];
+
+        // E 26: volume-averaged fluid velocity over the submerged part, and the moment of the
+        // velocity variation over the particle (gives the drag torque of a non-uniform flow)
+        core.bodies[n].cpl.vq = b[17];
+        core.bodies[n].cpl.Aq.setZero();
+        if(multipoint==1 && b[17]>0.0)
+        {
+            dem_vec um = dem_vec(b[14],b[15],b[16])/b[17];
+            core.bodies[n].cpl.ufl = um;
+            core.bodies[n].cpl.Aq = dem_vec(b[18],b[19],b[20]) - dem_vec(b[21],b[22],b[23]).cross(um);
+        }
     }
+}
+
+// ---------------------------------------------------------------------------------------------
+// 4-point Peskin kernel (Peskin 2002), spreading of a point load onto the sigma grid (E 26):
+// horizontal weights normalised over the wet columns of the 4 x 4 stencil, vertical weights
+// normalised within each column (as in the rodtree coupling). The functor is called for every
+// interior cell with the weight of the cell (sum 1 over all ranks) and the cell volume.
+// ---------------------------------------------------------------------------------------------
+
+double dem_f::peskin(double r) const
+{
+    r = fabs(r);
+    if(r<1.0)
+    return 0.125*(3.0 - 2.0*r + sqrt(std::max(0.0,1.0 + 4.0*r - 4.0*r*r)));
+    if(r<2.0)
+    return 0.125*(5.0 - 2.0*r - sqrt(std::max(0.0,-7.0 + 12.0*r - 4.0*r*r)));
+    return 0.0;
+}
+
+template<class F> void dem_f::peskin_spread(lexer *p, fdm_nhf *d, const dem_vec &x, F &&add)
+{
+    int ic = p->posc_i(x(0));
+    int jc = p->j_dir==1 ? p->posc_j(x(1)) : 0;
+    int nj = p->j_dir==1 ? 5 : 1;
+
+    double wx[5], wy[5];
+    int ii[5], jj[5];
+    for(int a=0; a<5; ++a)
+    {
+        ii[a] = ic - 2 + a;
+        wx[a] = 0.0;
+        if(ii[a]>=-marge && ii[a]<p->knox+marge)
+        wx[a] = peskin((p->XP[ii[a]+marge] - x(0))/p->DXN[ii[a]+marge]);
+    }
+    for(int b=0; b<nj; ++b)
+    {
+        jj[b] = p->j_dir==1 ? jc - 2 + b : 0;
+        wy[b] = 1.0;
+        if(p->j_dir==1)
+        {
+            wy[b] = 0.0;
+            if(jj[b]>=-marge && jj[b]<p->knoy+marge)
+            wy[b] = peskin((p->YP[jj[b]+marge] - x(1))/p->DYN[jj[b]+marge]);
+        }
+    }
+
+    // horizontal normalisation over the wet columns (ghost columns included, same on all ranks)
+    double wsum = 0.0;
+    for(int a=0; a<5; ++a)
+    for(int b=0; b<nj; ++b)
+    {
+        if(wx[a]*wy[b]<=0.0)
+        continue;
+        i = ii[a]; j = jj[b];
+        if(p->wet[IJ]>0)
+        wsum += wx[a]*wy[b];
+    }
+    if(wsum<=1.0e-12)
+    return;
+
+    for(int a=0; a<5; ++a)
+    for(int b=0; b<nj; ++b)
+    {
+        double wh = wx[a]*wy[b]/wsum;
+        if(wh<=0.0 || ii[a]<0 || ii[a]>=p->knox || jj[b]<0 || jj[b]>=p->knoy)
+        continue;
+        i = ii[a]; j = jj[b];
+        if(p->wet[IJ]==0)
+        continue;
+
+        // vertical weights within the column
+        double wz[512];
+        int nk = std::min(p->knoz,512);
+        double zsum = 0.0;
+        for(k=0; k<nk; ++k)
+        {
+            wz[k] = 0.0;
+            if(p->flag4[IJK]<=0)
+            continue;
+            double dz = p->DZN[KP]*d->WL(i,j);
+            if(dz<=1.0e-12)
+            continue;
+            wz[k] = peskin((p->ZSP[IJK] - x(2))/dz);
+            zsum += wz[k];
+        }
+        if(zsum<=1.0e-12)
+        continue;
+
+        for(k=0; k<nk; ++k)
+        if(wz[k]>0.0)
+        {
+            double vol = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+            add(wh*wz[k]/zsum, vol);
+        }
+    }
+}
+
+bool dem_f::fluidcoupled(const dem_body &B) const
+{
+    // unresolved momentum exchange: moving particles, fixed ones with E 29 (fixed particles larger
+    // than E 12 cells, e.g. boxes that only give a contact surface, stay out)
+    return B.active && B.mode==0 && B.cpl.basemode!=1
+        && (!B.fixed || (fixeddrag==1 && core.shapes[B.shape].deq<=hybrid_ratio*dxs));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -180,11 +313,27 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         SX[IJK] = 0.0;
         SY[IJK] = 0.0;
         SZ[IJK] = 0.0;
+        SD[IJK] = 0.0;
         ALPHAV[IJK] = 0.0;
+        ALPHAP[IJK] = 0.0;
+    }
+
+    // velocities the reaction is evaluated with, for the point-implicit drag in the RK stages
+    if(fimplicit==1)
+    LOOP
+    {
+        UFB[IJK] = d->U[IJK];
+        VFB[IJK] = d->V[IJK];
+        WFB[IJK] = d->W[IJK];
     }
 
     if(coupling==0 || coupling==2)
     return;
+
+    // which particles take part: momentum exchange, voidage for the drag law, porosity
+    auto voidb = [&](const dem_body &B) {return B.active && !B.fixed && B.mode==0 && B.cpl.basemode!=1;};
+    auto porb  = [&](const dem_body &B) {return pormode>0 && B.active && B.mode==0 && B.cpl.basemode!=1
+                                          && (!B.fixed || (pormode==2 && core.shapes[B.shape].deq<=hybrid_ratio*dxs));};
 
     int i0,i1,j0,j1,k0,k1;
     vector<double> sw(2*nb,0.0);     // kernel sums: momentum kernel, solid fraction kernel
@@ -194,7 +343,7 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const dem_body &B = core.bodies[n];
 
         // surface-piercing particles larger than the grid are coupled one-way (fluid to particle)
-        if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1)
+        if(!fluidcoupled(B) && !voidb(B) && !porb(B))
         continue;
 
         double R = kradius(n), Ra = vradius(n);
@@ -214,52 +363,110 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     reduce_owner(pgc,sw,2,true,false);
 
-    // reaction force and submerged volume at the owners, sent to the ghosts
-    vector<double> ffp(4*nb,0.0);
+    // reaction force, submerged volume and drag coefficient at the owners, sent to the ghosts
+    const int nf = 5;
+    vector<double> ffp(nf*nb,0.0);
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
-        if(B.ghost || !B.active || B.fixed || B.mode!=0)
+        if(B.ghost || !B.active || B.mode!=0)
         continue;
         dem_vec ap = (B.v - B.cpl.vprev)/p->dt;
+        if(B.fixed)
+        B.cpl.Ffp = fixeddrag==1 ? dem_vec(-B.K*B.uf) : dem_vec(dem_vec::Zero());
+        else
         B.cpl.Ffp = -(B.K*(B.uf - B.v) + B.madd*(B.af - ap));
         for(int q=0; q<3; ++q)
-        ffp[4*n+q] = B.cpl.Ffp(q);
-        ffp[4*n+3] = B.cpl.vsub;
+        ffp[nf*n+q] = B.cpl.Ffp(q);
+        ffp[nf*n+3] = B.cpl.vsub;
+        // drag coefficient with respect to the (superficial) fluid velocity
+        ffp[nf*n+4] = B.K/std::max(0.2,std::min(1.0,B.cpl.epsf));
     }
-    owner_to_ghosts(pgc,ffp,4);
+    owner_to_ghosts(pgc,ffp,nf);
+    vector<double> kd(nb,0.0);
     for(int n=0; n<nb; ++n)
-    if(core.bodies[n].ghost)
     {
-        core.bodies[n].cpl.Ffp = dem_vec(ffp[4*n],ffp[4*n+1],ffp[4*n+2]);
-        core.bodies[n].cpl.vsub = ffp[4*n+3];
+        dem_body &B = core.bodies[n];
+        if(B.ghost)
+        {
+            B.cpl.Ffp = dem_vec(ffp[nf*n],ffp[nf*n+1],ffp[nf*n+2]);
+            B.cpl.vsub = ffp[nf*n+3];
+        }
+        kd[n] = ffp[nf*n+4];
     }
 
+    const double rho = p->W1;
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
         B.cpl.aself = 0.0;
-        if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1 || sw[2*n]<=0.0)
+        bool ex = fluidcoupled(B) && sw[2*n]>0.0;
+        bool vb = voidb(B) && sw[2*n+1]>0.0;
+        bool pb = porb(B) && sw[2*n]>0.0;
+        if(!ex && !vb && !pb)
         continue;
 
         double R = kradius(n), Ra = vradius(n);
-        cellrange(p,n,Ra,i0,i1,j0,j1,k0,k1);
 
         // solid fraction with the wider kernel (E 25); the particle's own share at its centroid is
         // taken out again when the particle samples the voidage
+        if(vb)
         B.cpl.aself = B.cpl.vsub*kernel(0.0,Ra)/sw[2*n+1];
 
-        for(i=i0; i<=i1; ++i)
-        for(j=j0; j<=j1; ++j)
-        for(k=k0; k<=k1; ++k)
-        if(p->flag4[IJK]>0 && p->wet[IJ]>0)
+        bool centroidex = ex && multipoint==0;
+        if(centroidex || vb || pb)
         {
-            double r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm();
-            double wk = kernel(r,R);
-            SX[IJK] += core.bodies[n].cpl.Ffp(0)*wk/(p->W1*sw[2*n]);
-            SY[IJK] += p->j_dir==1 ? core.bodies[n].cpl.Ffp(1)*wk/(p->W1*sw[2*n]) : 0.0;
-            SZ[IJK] += core.bodies[n].cpl.Ffp(2)*wk/(p->W1*sw[2*n]);
-            ALPHAV[IJK] += core.bodies[n].cpl.vsub*kernel(r,Ra)/sw[2*n+1];
+            cellrange(p,n,Ra,i0,i1,j0,j1,k0,k1);
+
+            for(i=i0; i<=i1; ++i)
+            for(j=j0; j<=j1; ++j)
+            for(k=k0; k<=k1; ++k)
+            if(p->flag4[IJK]>0 && p->wet[IJ]>0)
+            {
+                double r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm();
+                double wk = kernel(r,R);
+                if(centroidex && wk>0.0)
+                {
+                    SX[IJK] += B.cpl.Ffp(0)*wk/(rho*sw[2*n]);
+                    SY[IJK] += p->j_dir==1 ? B.cpl.Ffp(1)*wk/(rho*sw[2*n]) : 0.0;
+                    SZ[IJK] += B.cpl.Ffp(2)*wk/(rho*sw[2*n]);
+                    if(fimplicit==1)
+                    {
+                        double vol = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+                        double sc = wk*vol/sw[2*n];
+                        SD[IJK] += kd[n]*sc*sc/(rho*vol);
+                    }
+                }
+                if(vb)
+                ALPHAV[IJK] += B.cpl.vsub*kernel(r,Ra)/sw[2*n+1];
+                if(pb && wk>0.0)
+                ALPHAP[IJK] += B.cpl.vsub*wk/sw[2*n];
+            }
+        }
+
+        // E 26: the reaction is shared by the submerged quadrature points (by volume) and spread
+        // from each of them with the Peskin kernel
+        if(ex && multipoint==1 && B.cpl.vsub>0.0)
+        {
+            const dem_shape &S = core.shapes[B.shape];
+            for(size_t q=0; q<S.qp.size(); ++q)
+            {
+                dem_vec xq = B.x + B.R*S.qp[q];
+                double eta = p->ccslipol4(d->WL,xq(0),xq(1)) + p->ccslipol4(d->bed,xq(0),xq(1));
+                if(xq(2)>=eta)
+                continue;
+                double share = S.qw[q]/B.cpl.vsub;
+                dem_vec fq = share*B.cpl.Ffp;
+                double kq = share*kd[n];
+                peskin_spread(p,d,xq,[&](double wc, double vol)
+                {
+                    SX[IJK] += fq(0)*wc/(rho*vol);
+                    SY[IJK] += p->j_dir==1 ? fq(1)*wc/(rho*vol) : 0.0;
+                    SZ[IJK] += fq(2)*wc/(rho*vol);
+                    if(fimplicit==1)
+                    SD[IJK] += kq*wc*wc/(rho*vol);
+                });
+            }
         }
     }
 
@@ -267,6 +474,27 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ALPHAV[IJK] = std::min(ALPHAV[IJK],0.8);
 
     pgc->start4V(p,ALPHAV,1);
+
+    // E 28: particle volume as porosity of the NHFLOW flow (VRANS terms of NHFLOW); with VRANS porous
+    // structures (B 200 1) the porosities multiply in the VRANS update, otherwise POR is set here
+    // The porosity follows the particles with the relaxation time E 30: NHFLOW has no dn/dt term
+    // (moving particles displacing water), and a porosity that jumps with the particles makes spurious
+    // flow, which moves the particles further (seen in testing: stones in the armour displaced 23 of 36
+    // with the instantaneous porosity, 1 of 36 with a frozen one).
+    if(pormode>0)
+    {
+        double r = (porinit==0 || p->E30<=0.0) ? 1.0 : std::min(1.0,p->dt/p->E30);
+        porinit = 1;
+        LOOP
+        d->PORDEM[IJK] += r*((1.0 - std::min(ALPHAP[IJK],0.7)) - d->PORDEM[IJK]);
+
+        if(p->B200==0)
+        {
+            LOOP
+            d->POR[IJK] = d->PORDEM[IJK];
+            pgc->start5Vfull(p,d->POR,1);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -285,14 +513,38 @@ void dem_f::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, doubl
     if((coupling==1 || coupling==3) && !reforce)
     LOOP
     {
-        d->U[IJK] += alpha*p->dt*SX[IJK];
-        UH[IJK]   += alpha*p->dt*SX[IJK]*WL(i,j);
+        // with the particle porosity (E 28) the source is a force per total volume and gets the
+        // VRANS inertia factor of NHFLOW per fluid volume: CPOR/n (= 1/(1+c_A) with B 265 1)
+        double fp = pormode>0 ? CPORNH/PORVALNH : 1.0;
+        double a = alpha*p->dt*fp;
 
-        d->V[IJK] += alpha*p->dt*SY[IJK];
-        VH[IJK]   += alpha*p->dt*SY[IJK]*WL(i,j);
+        if(fimplicit==1 && SD[IJK]>0.0)
+        {
+            // point-implicit drag: f(u) = S - D (u - u_fb)
+            double den = 1.0 + a*SD[IJK];
+            double un = (d->U[IJK] + a*(SX[IJK] + SD[IJK]*UFB[IJK]))/den;
+            double vn = (d->V[IJK] + a*(SY[IJK] + SD[IJK]*VFB[IJK]))/den;
+            double wn = (d->W[IJK] + a*(SZ[IJK] + SD[IJK]*WFB[IJK]))/den;
+            if(p->j_dir==0)
+            vn = d->V[IJK];
 
-        d->W[IJK] += alpha*p->dt*SZ[IJK];
-        WH[IJK]   += alpha*p->dt*SZ[IJK]*WL(i,j);
+            UH[IJK] += (un - d->U[IJK])*WL(i,j);
+            VH[IJK] += (vn - d->V[IJK])*WL(i,j);
+            WH[IJK] += (wn - d->W[IJK])*WL(i,j);
+            d->U[IJK] = un;
+            d->V[IJK] = vn;
+            d->W[IJK] = wn;
+            continue;
+        }
+
+        d->U[IJK] += a*SX[IJK];
+        UH[IJK]   += a*SX[IJK]*WL(i,j);
+
+        d->V[IJK] += a*SY[IJK];
+        VH[IJK]   += a*SY[IJK]*WL(i,j);
+
+        d->W[IJK] += a*SZ[IJK];
+        WH[IJK]   += a*SZ[IJK]*WL(i,j);
     }
 
     // resolved: direct forcing

@@ -70,6 +70,12 @@ dem_f::dem_f(lexer *p, ghostcell *pgc)
     Sz = nullptr;
     ALPHA = nullptr;
     SX = SY = SZ = ALPHAV = nullptr;
+    SD = UFB = VFB = WFB = ALPHAP = nullptr;
+    multipoint = p->E26;
+    fimplicit = p->E27;
+    pormode = p->E28;
+    fixeddrag = p->E29;
+    porinit = 0;
 
     dt_old = 0.0;
     printtime = 0.0;
@@ -90,6 +96,11 @@ dem_f::~dem_f()
     delete [] SY;
     delete [] SZ;
     delete [] ALPHAV;
+    delete [] SD;
+    delete [] UFB;
+    delete [] VFB;
+    delete [] WFB;
+    delete [] ALPHAP;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -408,6 +419,19 @@ void dem_f::ini_nhflow(lexer *p, ghostcell *pgc)
     p->Darray(SY,p->imax*p->jmax*(p->kmax+2));
     p->Darray(SZ,p->imax*p->jmax*(p->kmax+2));
     p->Darray(ALPHAV,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(SD,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(UFB,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(VFB,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WFB,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(ALPHAP,p->imax*p->jmax*(p->kmax+2));
+
+    if(p->mpirank==0 && (multipoint || fimplicit || pormode || fixeddrag))
+    cout<<"DEM: NHFLOW coupling: exchange at "<<(multipoint ? "quadrature points (Peskin kernel)" : "centroid")
+        <<", fluid-side drag "<<(fimplicit ? "point-implicit" : "explicit")
+        <<", porosity "<<(pormode==0 ? "off" : pormode==1 ? "moving particles" : "moving and fixed particles")
+        <<", fixed particles "<<(fixeddrag ? "with" : "without")<<" drag"<<endl;
+    if(p->mpirank==0 && pormode>0 && p->B265==0)
+    cout<<"DEM: note, E 28 with B 265 0: the NHFLOW VRANS inertia factor makes long waves in the particle layer too fast (see docs/DEM.md)"<<endl;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -518,7 +542,7 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
         core.bodies[n].cpl.vprev = B.v;
         core.bodies[n].cpl.wprev = B.w;
 
-        if(!B.active || B.fixed || coupling==0)
+        if(!B.active || coupling==0 || (B.fixed && !(fixeddrag==1 && solver==5)))
         continue;
 
         if(B.mode==0)
@@ -529,6 +553,17 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
 
             double fsub = solver==5 ? std::min(1.0,core.bodies[n].cpl.vsub/S.volume) : 1.0;
 
+            // fixed particles (E 29): only the drag coefficient, for the reaction on the fluid
+            if(B.fixed)
+            {
+                if(fsub>0.0)
+                {
+                    drag(p,n,core.bodies[n].cpl.rhof,core.bodies[n].cpl.nuf,core.bodies[n].cpl.epsf);
+                    B.K *= fsub;
+                }
+                continue;
+            }
+
             B.F += core.bodies[n].cpl.Fb;
             B.T += core.bodies[n].cpl.Tb;
 
@@ -537,6 +572,13 @@ void dem_f::set_loads(lexer *p, ghostcell *pgc)
                 drag(p,n,core.bodies[n].cpl.rhof,core.bodies[n].cpl.nuf,core.bodies[n].cpl.epsf);
                 B.K *= fsub;
                 B.Kr *= fsub;
+
+                // E 26: drag torque of the flow variation over the particle
+                if(multipoint==1 && solver==5 && core.bodies[n].cpl.vq>0.0)
+                {
+                    double ec = std::max(0.2,std::min(1.0,core.bodies[n].cpl.epsf));
+                    B.T += B.K/(ec*core.bodies[n].cpl.vq)*core.bodies[n].cpl.Aq;
+                }
 
                 // added mass; the fluid acceleration terms use the local Eulerian acceleration, which
                 // contains the particle's self-induced flow, hence optional (E 22)

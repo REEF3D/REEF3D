@@ -94,6 +94,37 @@ particle larger than the grid switches automatically to unresolved loads. Its hy
 uses the ambient water level, sampled on a ring around the particle, and it is coupled one-way
 (fluid to particle). Radiation damping of large floating bodies is therefore not represented.
 
+**NHFLOW coupling options** (unresolved particles, each can be switched on alone):
+
+* `E 26 1`, exchange at the volume quadrature points. The fluid velocity is averaged over the submerged
+  quadrature points of each particle (the non-uniform part gives a drag torque), and the reaction is
+  shared by these points by volume and spread from each with the 4-point Peskin kernel (horizontal
+  weights normalised over the wet columns, vertical weights within each column, as in the rod-tree
+  coupling). This follows the shape of the particle and its submerged part.
+* `E 27 1`, point-implicit drag on the fluid side. The reaction is linearised in the local fluid
+  velocity with the kernel self-weight, `f(u) = S - D (u - u_0)`, and applied implicitly in every RK
+  stage. It keeps dense beds stable at large time steps; otherwise it changes the result only at the
+  level of the time discretisation.
+* `E 28 1|2`, particle volume as porosity of the flow. The submerged volume of the particles
+  (moving ones, and with `2` also fixed ones) is spread with the momentum kernel and gives the porosity
+  `n = 1 - alpha` (n >= 0.3), which enters the NHFLOW VRANS terms: free-surface storage `1/n`,
+  advection of the superficial velocity `1/n^2` and the inertia factor. With VRANS porous structures
+  (`B 200 1`) the two porosities multiply. The DEM source is scaled with the inertia factor per fluid
+  volume. The time derivative of the porosity (moving particles displacing water) is not included, so
+  the porosity follows the particles with the relaxation time `E 30` (default 1 s). With the
+  instantaneous porosity (`E 30 0`) the moving stones of a breakwater armour produced spurious flow,
+  which moved them further (23 of 36 stones displaced instead of 2, vertical velocities up to 6 m/s).
+  Use it with `B 265 1`. The NHFLOW free-surface equation uses the porosity of the surface cell for the
+  storage, `n_s deta/dt = -div Q`. With the default `B 265 0` the inertia factor `1/(1+C(1-n)/n^2)` makes
+  long waves in a porous layer faster than in open water; `B 265 1` uses `n/(1+c_A)`, `c_A = C(1-n)/n`
+  (Liu et al. 1999), for the cell and the face values (`vrans_definitions.h`). Closed-tank seiche, h = 0.4 m,
+  L = 4 m, no resistance (open water 4.077 s): fully porous n = 0.4 5.012 s (long-wave theory 5.010 s,
+  `B 265 0` 3.889 s); n = 0.558 4.595 s (4.593 s); porous lower half n = 0.4 5.083 s (5.127 s); the same
+  tank filled with fixed DEM spheres of solid fraction 0.442 (`E 28 2`) 4.667 s (4.593 s for the mean porosity;
+  the porosity of the sphere lattice varies over the depth).
+* `E 29 1`, fixed particles exert drag on the fluid (filter layers, fixed toes). Fixed particles larger
+  than `E 12` cells stay out (they only give a contact surface).
+
 The fluid forcing is applied in the momentum schemes that use `momentum_forcing` (for example
 `N 40 3`) and in NHFLOW. With `N 40 14` the particles feel the fluid, but they do not force it back.
 
@@ -117,6 +148,11 @@ The fluid forcing is applied in the momentum schemes that use `momentum_forcing`
 | E 23 | double | 2.0 | unresolved: kernel radius in cells |
 | E 24 | double | 0.25 | distributed particles: max bounding radius as fraction of the smallest subdomain extent, larger ones are replicated; 0 replicates all |
 | E 25 | double | 2.0 | unresolved: radius of the solid volume fraction kernel in equivalent diameters (at least the `E 23` kernel) |
+| E 26 | int | 0 | NHFLOW unresolved: 0 exchange at the centroid, 1 at the volume quadrature points (Peskin kernel) |
+| E 27 | int | 0 | NHFLOW unresolved: point-implicit fluid-side drag |
+| E 28 | int | 0 | NHFLOW: particle volume as porosity, 1 moving particles, 2 moving and fixed particles |
+| E 29 | int | 0 | NHFLOW unresolved: fixed particles exert drag on the fluid |
+| E 30 | double | 1.0 | NHFLOW: relaxation time of the particle porosity [s] (`E 28`), 0 instantaneous |
 
 Gravity is taken from `W 20-22`, so `W 22 -9.81` has to be set. For CFD cases in still water,
 initialise the pressure (`I 10 1`), otherwise the start-up flow disturbs the particles.

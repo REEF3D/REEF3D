@@ -185,6 +185,7 @@ public:
     
     double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
+    int B265;
     int B270;
     double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
     int B274;
@@ -401,8 +402,8 @@ public:
     double *P352_x,*P352_y;
 
     // DEM
-    int E10,E11,E13,E16,E21,E22;
-    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25;
+    int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29;
+    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30;
 
     // Particles
     int Q10;

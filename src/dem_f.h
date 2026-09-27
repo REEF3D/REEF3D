@@ -208,6 +208,15 @@ private:
 
     // NHFLOW source arrays and solid fraction
     double *SX,*SY,*SZ,*ALPHAV;
+    // NHFLOW: point-implicit drag coefficient and the velocities it was evaluated with (E 27),
+    // solid fraction for the porosity (E 28)
+    double *SD,*UFB,*VFB,*WFB,*ALPHAP;
+    int multipoint, fimplicit, pormode, fixeddrag, porinit;
+
+    // NHFLOW: 4-point Peskin kernel spreading of a point load onto the sigma grid (E 26)
+    double peskin(double) const;
+    template<class F> void peskin_spread(lexer*, fdm_nhf*, const dem_vec&, F&&);
+    bool fluidcoupled(const dem_body&) const;
 
     // parameters
     double hybrid_ratio, Ca, hs_factor, travel, kernel_cells, void_factor;

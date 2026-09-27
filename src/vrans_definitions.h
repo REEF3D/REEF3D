@@ -24,7 +24,7 @@ Author: Hans Bihs
 // - U,V,W (and UH,VH,WH) are Darcy (filtered) velocities, pressure and eta are intrinsic.
 // - Added mass follows van Gent (1995): (1 + c) du/dt = RHS,  c = gamma (1-n)/n^2  (gamma = B 260),
 //   i.e. every momentum tendency, including the non-hydrostatic pressure correction, is scaled
-//   by CPORNH = 1/(1+c).
+//   by CPORNH = 1/(1+c). With B 265 1: CPORNH = n/(1+c_A), c_A = gamma (1-n)/n (see below).
 //   NOTE: REEF3D::CFD uses CPOR = 1/(1+gamma) inside the porous zone (looping.h), a
 //   porosity-independent added mass. The two modules therefore differ for the same B 260.
 // - Continuity: n_s deta/dt + div(Q) = 0 with n_s the porosity of the surface cell.
@@ -37,15 +37,19 @@ Author: Hans Bihs
 #define PORVALNH2m  (0.5*(d->POR[IJK] + d->POR[IJm1K]))
 #define PORVALNH3  (0.5*(d->POR[IJK] + d->POR[IJKp1]))
 
-#define CPORNHval(n)  (1.0/(1.0 + (p->B260*(1.0-(n))/((n)*(n)))))
+// inertia (added mass) factor for porosity n, B 265 0: 1/(1 + C(1-n)/n^2) (van Gent 1995 as above);
+// B 265 1: n/(1 + c_A), c_A = C(1-n)/n (VARANS for the superficial velocity, e.g. Liu et al. 1999;
+// consistent with the free-surface storage n_s deta/dt: long waves in a porous layer without resistance
+// travel at sqrt(g h/(1+c_A)), with B 265 0 they are faster than in open water)
+#define CPORNHval(n)  (p->B265==1 ? (n)*(n)/((n) + p->B260*(1.0-(n))) : 1.0/(1.0 + (p->B260*(1.0-(n))/((n)*(n)))))
 
-#define CPORNH  (1.0/(1.0 + (p->B260*(1.0-PORVALNH)/(PORVALNH*PORVALNH))))
+#define CPORNH  CPORNHval(PORVALNH)
 
-#define CPORNH1m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1m)/(PORVALNH1m*PORVALNH1m))))
-#define CPORNH1  (1.0/(1.0 + (p->B260*(1.0-PORVALNH1)/(PORVALNH1*PORVALNH1))))
+#define CPORNH1m  CPORNHval(PORVALNH1m)
+#define CPORNH1  CPORNHval(PORVALNH1)
 
-#define CPORNH2m  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2m)/(PORVALNH2m*PORVALNH2m))))
-#define CPORNH2  (1.0/(1.0 + (p->B260*(1.0-PORVALNH2)/(PORVALNH2*PORVALNH2))))
+#define CPORNH2m  CPORNHval(PORVALNH2m)
+#define CPORNH2  CPORNHval(PORVALNH2)
 
 /*
 #define PORVALNH  1.0

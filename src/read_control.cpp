@@ -1069,6 +1069,9 @@ void control::read_control(lexer* p)
                case 264: control>>B264;
                          clear(c,numint);
                          break;
+               case 265: control>>B265;
+                         clear(c,numint);
+                         break;
                case 267: control>>B267;
                          clear(c,numint);
                          break;
@@ -1299,6 +1302,21 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 25: control>>E25;
+                         clear(c,numint);
+                         break;
+                case 26: control>>E26;
+                         clear(c,numint);
+                         break;
+                case 27: control>>E27;
+                         clear(c,numint);
+                         break;
+                case 28: control>>E28;
+                         clear(c,numint);
+                         break;
+                case 29: control>>E29;
+                         clear(c,numint);
+                         break;
+                case 30: control>>E30;
                          clear(c,numint);
                          break;
                 }

@@ -440,6 +440,7 @@ void control::ini_default()
 	B243=1;			// int porous media in z-direction
     B260=0.34;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
+    B265=0;         // int NHFLOW VRANS inertia factor: 0 1/(1+C(1-n)/n^2), 1 n/(1+C(1-n)/n)
     B267=0.001;     // double d50 for VRANS
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
@@ -848,6 +849,11 @@ void control::ini_default()
     E23=2.0;            // double unresolved: kernel radius for the momentum exchange in cells (at least d_eq)
     E24=0.25;           // double distributed particles: max bounding radius as fraction of the smallest subdomain, larger ones are replicated; 0 replicates all
     E25=2.0;            // double unresolved: radius of the solid volume fraction kernel in equivalent diameters
+    E26=0;              // int NHFLOW unresolved: 0 exchange at the centroid, 1 at the volume quadrature points (Peskin kernel)
+    E27=0;              // int NHFLOW unresolved: fluid-side drag point-implicit (0 off, 1 on)
+    E28=0;              // int NHFLOW: particle volume as porosity (0 off, 1 moving particles, 2 moving and fixed particles)
+    E29=0;              // int NHFLOW unresolved: fixed particles exert drag on the fluid (0 off, 1 on)
+    E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
 
     // Particles
     Q10=0;              // int time scheme

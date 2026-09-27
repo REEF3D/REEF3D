@@ -79,6 +79,10 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         d->POR[IJK] = MIN(d->POR[IJK], 1.0 - Hfb*(1.0 - p->X16_n));
     }
     
+    // porosity of the DEM particles (E 28), 1 otherwise
+    LOOP
+    d->POR[IJK] *= d->PORDEM[IJK];
+
     pgc->start5Vfull(p,d->POR,1);
     pgc->start5Vfull(p,d->PORPART,1);
     

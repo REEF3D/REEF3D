@@ -140,6 +140,8 @@ struct dem_cpl
     dem_vec Ffp = dem_vec::Zero(), Fhyd = dem_vec::Zero();
     double sw[4] = {0.0,0.0,0.0,0.0};
     double aself = 0.0;         // own contribution to the solid fraction at the centroid
+    dem_vec Aq = dem_vec::Zero();   // E 26: sum qw r x (u_q - u_mean) over the submerged quadrature points
+    double vq = 0.0;                // E 26: submerged quadrature volume
     int basemode = 0;
 };
 
