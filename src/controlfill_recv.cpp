@@ -286,6 +286,16 @@ void control::ctrlrecv()
     dd++;
     A399_seed = ictrl[ii];
     ii++;
+    A400 = ictrl[ii];
+    ii++;
+    A401 = ictrl[ii];
+    ii++;
+    A402_L = dctrl[dd];
+    dd++;
+    A402_C = dctrl[dd];
+    dd++;
+    A402_T = dctrl[dd];
+    dd++;
 
     A410 = ictrl[ii];
     ii++;

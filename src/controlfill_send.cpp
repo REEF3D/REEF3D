@@ -290,6 +290,16 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = A399_seed;
     ii++;
+    ictrl[ii] = A400;
+    ii++;
+    ictrl[ii] = A401;
+    ii++;
+    dctrl[dd] = A402_L;
+    dd++;
+    dctrl[dd] = A402_C;
+    dd++;
+    dctrl[dd] = A402_T;
+    dd++;
 
     ictrl[ii] = A410;
     ii++;

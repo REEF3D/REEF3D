@@ -51,7 +51,13 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     taper = MAX(p->A389,0.0)*dxmean;
     
     // breaking
-    breakflag = MAX(0,MIN(3,p->A390));
+    breakflag = MAX(0,MIN(7,p->A390));
+    ncrack  = MAX(1,p->A400);
+    nradial = MAX(1,p->A401);
+    Lspall  = p->A402_L;
+    Cspall  = MAX(p->A402_C,0.0);
+    trub    = MAX(p->A402_T,0.0);
+    Arubble = 0.0;
     sigf   = p->A391;
     KIC    = p->A392_K;
     Csplit = p->A392_C;
@@ -162,7 +168,20 @@ void fnpf_ice::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(breakflag>0)
     cout<<"FNPF ice: breaking "<<((breakflag&1)?"flexural sigma_f = ":"")<<((breakflag&1)?to_string(sigf):"")
         <<((breakflag&2)?"  splitting F = C*K_IC*h*sqrt(D), C*K_IC = ":"")<<((breakflag&2)?to_string(Csplit*KIC):"")
-        <<"  D_min = "<<Dmin<<" m"<<endl;
+        <<((breakflag&4)?"  spalling":"")<<"  D_min = "<<Dmin<<" m"<<endl;
+    
+    if((breakflag&1) && ncrack>1)
+    cout<<"FNPF ice: up to "<<ncrack<<" flexural cracks per floe and check (A 400)"<<endl;
+    if((breakflag&2) && nradial>1)
+    cout<<"FNPF ice: "<<nradial<<" radial cracks per splitting event (A 401)"<<endl;
+    if(breakflag&4)
+    {
+    if(p->A398>0.0)
+    cout<<"FNPF ice: spalling at crushed depth L_sp = "<<(Lspall>0.0 ? to_string(Lspall)+" m" : string("h"))
+        <<", chip chord <= "<<Cspall<<" x chip depth, chips narrower than D_min cleared as rubble over "<<trub<<" s (A 402)"<<endl;
+    else
+    cout<<"FNPF ice: warning, spalling (A 390 4) needs crushing (A 398 > 0), no spalls"<<endl;
+    }
     
     for(auto &fl : floe)
     if(fl.type==0)
@@ -182,6 +201,18 @@ void fnpf_ice::prestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     SLICELOOP4
     etat(i,j) = 0.0;
+
+    // spalled rubble: the lid fades out over t_r (A 402), then the chip is removed
+    for(auto &fl : floe)
+    if(fl.type==3)
+    {
+    fl.fade = (trub>0.0) ? 1.0 - (p->simtime - fl.t0)/trub : 0.0;
+    if(fl.fade<=0.0)
+    {
+    fl.fade = 0.0;
+    fl.type = 2;
+    }
+    }
 
     for(size_t n=0; n<floe.size(); ++n)
     {

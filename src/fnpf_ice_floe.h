@@ -35,7 +35,10 @@ using namespace std;
 struct fnpf_ice_floe
 {
     int id = 0;
-    int type = 0;                   // 0: floe, 1: fixed obstacle (contact only, load logged)
+    int type = 0;                   // 0: floe, 1: fixed obstacle (contact only, load logged), 2: removed,
+                                    // 3: spalled rubble, fixed, no contact, its lid fades out (A 402)
+    double t0 = 0.0;                // rubble: time of spalling
+    double fade = 1.0;              // rubble: lid factor 1 - (t - t0)/t_r
 
     // geometry, body frame
     vector<double> bx,by;

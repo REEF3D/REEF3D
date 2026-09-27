@@ -46,7 +46,8 @@ void fnpf_ice::print_ini(lexer *p)
     if(breakflag>0)
     {
     breakout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-breaking.dat");
-    breakout<<"# ice breaking events: mech 1 flexural (value, limit: stress, strength [Pa]), 2 contact splitting (force, splitting load [N])"<<endl;
+    breakout<<"# ice breaking events: mech 1 flexural (value, limit: stress, strength [Pa]), 2 contact splitting (force, splitting load [N]),"<<endl;
+    breakout<<"# 3 spalling (crushed depth, spall length [m]); new_id -2: chip cleared as rubble"<<endl;
     breakout<<"# t parent_id new_id mech value limit area_parent_piece area_new_piece"<<endl;
     }
     
@@ -147,16 +148,22 @@ void fnpf_ice::print_vtp(lexer *p, int num)
 
     ofstream out(name);
 
+    // removed floes are not drawn, rubble (type 3) as floes
+    vector<fnpf_ice_floe> vis;
+    for(size_t n=0; n<floe.size(); ++n)
+    if(floe[n].type!=2)
+    vis.push_back(floe[n]);
+
     // prisms: bottom and top polygons plus side quads; obstacles drawn as columns through the surface
     double hob=0.0;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     if(fl.type==0)
     hob = MAX(hob,fl.h);
     if(hob<=0.0)
     hob=1.0;
 
     int npts=0, npoly=0, nconn=0;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     {
     const int nv = int(fl.bx.size());
     npts  += 2*nv;
@@ -171,7 +178,7 @@ void fnpf_ice::print_vtp(lexer *p, int num)
 
     out<<"<Points>"<<endl;
     out<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">"<<endl;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     {
         double R[3][3];
         quat_to_matrix(fl.q,R);
@@ -180,7 +187,7 @@ void fnpf_ice::print_vtp(lexer *p, int num)
         for(int side=0; side<2; ++side)
         for(int q=0; q<nv; ++q)
         {
-            if(fl.type==0)
+            if(fl.type==0 || fl.type==3)
             {
             const double zb = side==0 ? -0.5*fl.h : 0.5*fl.h;
             out<<fl.x[0] + R[0][0]*fl.bx[q] + R[0][1]*fl.by[q] + R[0][2]*zb<<" "
@@ -196,22 +203,22 @@ void fnpf_ice::print_vtp(lexer *p, int num)
 
     out<<"<CellData Scalars=\"id\">"<<endl;
     out<<"<DataArray type=\"Int32\" Name=\"id\" format=\"ascii\">"<<endl;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     for(size_t q=0; q<fl.bx.size()+2; ++q)
     out<<fl.id<<endl;
     out<<"</DataArray>"<<endl;
     out<<"<DataArray type=\"Int32\" Name=\"type\" format=\"ascii\">"<<endl;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     for(size_t q=0; q<fl.bx.size()+2; ++q)
     out<<fl.type<<endl;
     out<<"</DataArray>"<<endl;
     out<<"<DataArray type=\"Float32\" Name=\"speed\" format=\"ascii\">"<<endl;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     for(size_t q=0; q<fl.bx.size()+2; ++q)
     out<<sqrt(fl.v[0]*fl.v[0]+fl.v[1]*fl.v[1]+fl.v[2]*fl.v[2])<<endl;
     out<<"</DataArray>"<<endl;
     out<<"<DataArray type=\"Float32\" Name=\"contact_force\" format=\"ascii\">"<<endl;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     for(size_t q=0; q<fl.bx.size()+2; ++q)
     out<<sqrt(fl.Fc[0]*fl.Fc[0]+fl.Fc[1]*fl.Fc[1])<<endl;
     out<<"</DataArray>"<<endl;
@@ -220,7 +227,7 @@ void fnpf_ice::print_vtp(lexer *p, int num)
     out<<"<Polys>"<<endl;
     out<<"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">"<<endl;
     int base=0;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     {
         const int nv = int(fl.bx.size());
         // bottom (reversed, facing down), top
@@ -238,7 +245,7 @@ void fnpf_ice::print_vtp(lexer *p, int num)
     out<<"</DataArray>"<<endl;
     out<<"<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">"<<endl;
     int off=0;
-    for(auto &fl : floe)
+    for(auto &fl : vis)
     {
         const int nv = int(fl.bx.size());
         off+=nv; out<<off<<endl;

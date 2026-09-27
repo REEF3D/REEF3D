@@ -114,11 +114,11 @@ private:
     // breaking (A 390)
     struct split
     {
-        int f;              // floe index
-        int mech;           // 1 flexural, 2 contact splitting
-        double nbx,nby,s;   // cut line in the body frame: nb.x = s
-        double val;         // stress [Pa] or contact force [N]
-        double lim;         // strength or splitting load
+        int f;              // floe index at the decision (the cut goes to f or a piece split off f in the same check)
+        int mech;           // 1 flexural, 2 contact splitting, 3 spalling (chip on the side n.x >= s)
+        double nx,ny,s;     // cut line, world horizontal: n.x = s
+        double val;         // stress [Pa], contact force [N] or crushed depth [m]
+        double lim;         // strength, splitting load or spall length
     };
     void breaking_moments(lexer*);
     void breaking_decide(lexer*);
@@ -132,11 +132,17 @@ private:
     map<pair<int,int>,cavg> cforce;     // key: floe ids (a, b), b < 0: wall
     double tcon;
     void breaking_apply(lexer*, ghostcell*);
-    int split_floe(lexer*, size_t, double, double, double, int);
+    int split_floe(lexer*, size_t, double, double, double, int, double&, double&);
+    int cut_valid(fnpf_ice_floe&, const split&, double&, double&, double&, int&);
+    double piece_width(const vector<double>&, const vector<double>&) const;
+    void world_polygon(fnpf_ice_floe&, vector<double>&, vector<double>&);
     static void clip_halfplane(const vector<double>&, const vector<double>&, double, double, double, double, vector<double>&, vector<double>&);
     static double chord(const vector<double>&, const vector<double>&, double, double, double);
     int breakflag,ndir,noff;
     double sigf,KIC,Csplit,Dmin;
+    int ncrack,nradial;             // flexural cracks per floe and check (A 400), radial splitting cracks (A 401)
+    double Lspall,Cspall,trub;      // spall length (A 402, <0: h), locality factor, rubble fade-out time
+    double Arubble;                 // planform area of the spalled chips cleared as rubble
     double Emod,nu;                 // plate stiffness for the flexural stress (A 397), Emod <= 0: rigid statics
     double wm,wA;                   // Weibull modulus and reference area (A 399)
     mt19937 rng;

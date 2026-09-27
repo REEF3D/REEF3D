@@ -28,7 +28,9 @@ Author: Hans Bihs
 #include<algorithm>
 #include<random>
 
-// Ice breaking (A 390): a floe splits in two along a straight cut, at most once per floe and check.
+// Ice breaking (A 390, bits: 1 flexural, 2 contact splitting, 4 spalling): floes break along straight
+// cuts, so all pieces stay convex. Per floe and check one mechanism acts, the most critical one; it may
+// make several cuts, which are applied one after another to the piece each cut crosses.
 //
 // Flexural failure (A 390 1,3): along A 395 directions the net vertical load of the floe
 //     q = phi*A*( p_lid - rho_i*g*h - rho_i*h*a_z(x,y) ),   a_z = a_G,z + (alpha x r)_z   (d'Alembert)
@@ -50,6 +52,20 @@ Author: Hans Bihs
 // in-plane splitting (Bhat 1988, Lu et al. 2015), C to be calibrated. The force is the pair normal
 // force of the non-smooth contact averaged over t_c (A 396), see contact_average: impact impulses are
 // resolved within one or two steps, impulse/dt alone depends on dt and on the timing of the impact.
+//
+// Several cracks per check: flexural up to A 400 parallel cracks along the governing direction, at the local
+// stress maxima above the strength, at least D_min apart; splitting A 401 radial cracks through the contact
+// point, fanned about the contact normal at -90 + 180 (k+1)/(A 401 + 1) deg: the floe breaks into wedges
+// with their tips at the contact.
+//
+// Spalling (A 390 4, needs crushing A 398): at a crushing contact the crushed depth grows; when it reaches
+// L_sp (A 402, <0: h) the tip in front of the cut parallel to the contact face, L_sp behind the face of the
+// other body, breaks off. The chip is a new floe if it is at least D_min wide, otherwise it is cleared as
+// rubble: it leaves the contact and stays in place as a type 3 chip whose lid pressure and surface
+// depression fade out linearly over t_r (A 402), its planform area is logged. Only local chips
+// spall: the chord of the cut must not exceed C_loc (A 402) times the chip depth, a straight cut across a
+// wide floe face is not a spall; the floe keeps crushing then. Wedge tips after radial splitting, floe
+// corners and small floes spall, which gives the crushing-spalling load cycles at structures.
 //
 // Pieces with a caliper width below D_min (A 393) are not created. Mass, momentum and angular
 // momentum are conserved: pieces keep the orientation and the rigid-body velocity field of the parent.
@@ -288,41 +304,90 @@ void fnpf_ice::breaking_moments(lexer *p)
     MPI_Allreduce(MPI_IN_PLACE, Mcut.data(), int(nq*nf), MPI_DOUBLE, MPI_SUM, comm);
 }
 
+void fnpf_ice::world_polygon(fnpf_ice_floe &fl, vector<double> &px, vector<double> &py)
+{
+    // planform at the level of the centre of mass, world coordinates (as in the contact solve)
+    quat_to_matrix(fl.q,fl.R);
+    const int nv = int(fl.bx.size());
+    px.resize(nv);
+    py.resize(nv);
+    for(int q=0; q<nv; ++q)
+    {
+    px[q] = fl.x[0] + fl.R[0][0]*fl.bx[q] + fl.R[0][1]*fl.by[q];
+    py[q] = fl.x[1] + fl.R[1][0]*fl.bx[q] + fl.R[1][1]*fl.by[q];
+    }
+}
+
+double fnpf_ice::piece_width(const vector<double> &x, const vector<double> &y) const
+{
+    if(x.size()<3)
+    return 0.0;
+    if(is2D)
+    return *max_element(x.begin(),x.end()) - *min_element(x.begin(),x.end());
+    return caliper(x,y);
+}
+
+int fnpf_ice::cut_valid(fnpf_ice_floe &fl, const split &sp, double &nbx, double &nby, double &sb, int &rubble)
+{
+    // world cut line n.x = s -> body frame of this floe, nb.xb = sb; checks the piece sizes.
+    // Cracks (mech 1,2): both pieces at least D_min wide. Spall (mech 3): the remainder (n.x <= s)
+    // at least D_min wide, the chip (n.x >= s) becomes a floe if it is at least D_min wide, else rubble.
+    rubble = 0;
+    quat_to_matrix(fl.q,fl.R);
+    const double bxn = fl.R[0][0]*sp.nx + fl.R[1][0]*sp.ny;
+    const double byn = fl.R[0][1]*sp.nx + fl.R[1][1]*sp.ny;
+    const double len = sqrt(bxn*bxn + byn*byn);
+    if(len<1.0e-12)
+    return 0;
+    nbx = bxn/len;
+    nby = byn/len;
+    sb  = (sp.s - sp.nx*fl.x[0] - sp.ny*fl.x[1])/len;
+    
+    vector<double> ax,ay,bx2,by2;
+    clip_halfplane(fl.bx,fl.by,nbx,nby,sb, 1.0,ax,ay);
+    clip_halfplane(fl.bx,fl.by,nbx,nby,sb,-1.0,bx2,by2);
+    if(ax.size()<3 || bx2.size()<3)
+    return 0;
+    
+    const double wa = piece_width(ax,ay);
+    const double wb = piece_width(bx2,by2);
+    
+    if(sp.mech==3)
+    {
+    if(wa<Dmin)
+    return 0;
+    rubble = (wb<Dmin) ? 1 : 0;
+    return 1;
+    }
+    
+    return (wa>=Dmin && wb>=Dmin) ? 1 : 0;
+}
+
 void fnpf_ice::breaking_decide(lexer *p)
 {
-    // rank 0: pick at most one cut per floe
+    // rank 0: the cuts of this check, per floe one mechanism (the most critical one):
+    //   flexural   up to A 400 parallel cracks along the governing direction
+    //   splitting  A 401 radial cracks through the contact point, fanned about the contact normal
+    //   spalling   the crushed tip at a crushing contact, if no crack is due
     splits.clear();
 
     const size_t nf = floe.size();
 
-    vector<split> best(nf);
+    vector<vector<split>> cuts(nf);
     vector<double> ratio(nf,0.0);
-
-    auto body_cut = [&](const fnpf_ice_floe &fl, double nx, double ny, double s, split &sp)
+    
+    map<int,size_t> index;
+    for(size_t f=0; f<nf; ++f)
+    index[floe[f].id] = f;
+    
+    double nbx,nby,sb;
+    int rb;
+    
+    auto line = [&](int f, int mech, double nx, double ny, double s, double val, double lim)
     {
-        // world horizontal cut through the centre of mass frame -> body frame
-        double bxn = fl.R[0][0]*nx + fl.R[1][0]*ny;
-        double byn = fl.R[0][1]*nx + fl.R[1][1]*ny;
-        const double len = sqrt(bxn*bxn + byn*byn);
-        if(len<1.0e-12)
-        return 0;
-        sp.nbx = bxn/len;
-        sp.nby = byn/len;
-        sp.s = s/len;
-
-        // both pieces at least D_min wide
-        vector<double> ax,ay,bx2,by2;
-        clip_halfplane(fl.bx,fl.by,sp.nbx,sp.nby,sp.s, 1.0,ax,ay);
-        clip_halfplane(fl.bx,fl.by,sp.nbx,sp.nby,sp.s,-1.0,bx2,by2);
-        if(ax.size()<3 || bx2.size()<3)
-        return 0;
-        if(is2D)
-        {
-        const double la = *max_element(ax.begin(),ax.end()) - *min_element(ax.begin(),ax.end());
-        const double lb = *max_element(bx2.begin(),bx2.end()) - *min_element(bx2.begin(),bx2.end());
-        return (la>=Dmin && lb>=Dmin) ? 1 : 0;
-        }
-        return (caliper(ax,ay)>=Dmin && caliper(bx2,by2)>=Dmin) ? 1 : 0;
+        split sp;
+        sp.f=f; sp.mech=mech; sp.nx=nx; sp.ny=ny; sp.s=s; sp.val=val; sp.lim=lim;
+        return sp;
     };
 
     // flexural: beam on elastic foundation (or rigid statics) along each direction
@@ -332,10 +397,11 @@ void fnpf_ice::breaking_decide(lexer *p)
     const int nq = ndir*nbin;
     const double *geo = &Mcut[nq*nf];
     vector<double> Bv(nbin),kv(nbin),Qv(nbin),Mv(nbin),bw(nbin);
+    vector<double> sig(ndir*nbin);
     
     for(size_t f=0; f<nf; ++f)
     {
-        const fnpf_ice_floe &fl = floe[f];
+        fnpf_ice_floe &fl = floe[f];
         if(fl.type!=0 || fl.Awet<=0.0)
         continue;
         
@@ -349,6 +415,8 @@ void fnpf_ice::breaking_decide(lexer *p)
         }
         
         const double Dp = (Emod>0.0) ? Emod*fl.h*fl.h*fl.h/(12.0*(1.0-nu*nu)) : 0.0;
+        int kbest=-1;
+        split best;
         
         for(int k=0; k<ndir; ++k)
         {
@@ -356,6 +424,9 @@ void fnpf_ice::breaking_decide(lexer *p)
             const double nx = cos(th), ny = sin(th);
             const double s0 = geo[2*(ndir*f+k)];
             const double ds = geo[2*(ndir*f+k)+1];
+            
+            for(int i=0;i<nbin;++i)
+            sig[k*nbin+i] = 0.0;
             
             double bmax=0.0;
             for(int i=0;i<nbin;++i)
@@ -394,39 +465,76 @@ void fnpf_ice::breaking_decide(lexer *p)
             
             for(int i=1;i<nbin-1;++i)
             {
-                const double sig = 6.0*fabs(Mv[i])/(fl.h*fl.h*bw[i]);
-                const double r = sig/MAX(fl.sigf,1.0e-20);
+                sig[k*nbin+i] = 6.0*fabs(Mv[i])/(fl.h*fl.h*bw[i]);
+                const double r = sig[k*nbin+i]/MAX(fl.sigf,1.0e-20);
                 
                 if(r>=1.0 && r>ratio[f])
                 {
-                split sp;
                 const double si = s0 + (i+0.5)*ds;
-                if(body_cut(fl,nx,ny,si,sp))
+                split sp = line(int(f),1,nx,ny,si + nx*fl.x[0] + ny*fl.x[1],sig[k*nbin+i],fl.sigf);
+                if(cut_valid(fl,sp,nbx,nby,sb,rb))
                 {
-                sp.f = int(f);
-                sp.mech = 1;
-                sp.val = sig;
-                sp.lim = fl.sigf;
-                best[f] = sp;
+                best = sp;
+                kbest = k;
                 ratio[f] = r;
                 }
                 }
             }
         }
+        
+        if(kbest<0)
+        continue;
+        
+        cuts[f].assign(1,best);
+        
+        // further cracks along the governing direction: local stress maxima above the strength,
+        // strongest first, at least D_min apart
+        if(ncrack>1)
+        {
+            const int k = kbest;
+            const double th = PI*double(k)/double(ndir);
+            const double nx = cos(th), ny = sin(th);
+            const double s0 = geo[2*(ndir*f+k)];
+            const double ds = geo[2*(ndir*f+k)+1];
+            const double *sk = &sig[k*nbin];
+            
+            vector<int> peak;
+            for(int i=1;i<nbin-1;++i)
+            if(sk[i]>=fl.sigf && sk[i]>=sk[i-1] && sk[i]>=sk[i+1])
+            peak.push_back(i);
+            sort(peak.begin(),peak.end(),[&](int a, int b){return sk[a]>sk[b];});
+            
+            for(int i : peak)
+            {
+                if(int(cuts[f].size())>=ncrack)
+                break;
+                
+                split sp = line(int(f),1,nx,ny,s0 + (i+0.5)*ds + nx*fl.x[0] + ny*fl.x[1],sk[i],fl.sigf);
+                int ok=1;
+                for(const auto &c : cuts[f])
+                if(fabs(c.s-sp.s)<Dmin)
+                ok=0;
+                if(ok && cut_valid(fl,sp,nbx,nby,sb,rb))
+                cuts[f].push_back(sp);
+            }
+        }
     }
     }
     
-    // contact splitting, on the time-averaged pair normal force (contact_average)
+    // contact splitting, on the time-averaged pair normal force (contact_average):
+    // radial cracks through the contact point, at the angles -90 + 180 (k+1)/(A 401 + 1) deg to the
+    // contact normal, the one closest to the normal first (A 401 1: along the normal)
     if((breakflag&2) && !is2D)
     for(const auto &kv : cforce)
     for(int side=0; side<2; ++side)
     {
         const int fid = side==0 ? kv.first.first : kv.first.second;
-        if(fid<0 || fid>=int(nf))
+        auto it = index.find(fid);
+        if(fid<0 || it==index.end())
         continue;
         
-        const size_t f = size_t(fid);
-        const fnpf_ice_floe &fl = floe[f];
+        const size_t f = it->second;
+        fnpf_ice_floe &fl = floe[f];
         if(fl.type!=0)
         continue;
         
@@ -437,25 +545,99 @@ void fnpf_ice::breaking_decide(lexer *p)
         
         if(r>=1.0 && r>ratio[f])
         {
-        // cut along the contact normal through the contact point
-        const double nx = -ca.ny, ny = ca.nx;
-        const double s = nx*(ca.px-fl.x[0]) + ny*(ca.py-fl.x[1]);
-        split sp;
-        if(body_cut(fl,nx,ny,s,sp))
-        {
-        sp.f = int(f);
-        sp.mech = 2;
-        sp.val = ca.F;
-        sp.lim = Fs;
-        best[f] = sp;
-        ratio[f] = r;
+            vector<double> ang(nradial);
+            for(int k=0;k<nradial;++k)
+            ang[k] = (nradial==1) ? 0.0 : PI*(-0.5 + double(k+1)/double(nradial+1));
+            sort(ang.begin(),ang.end(),[](double a, double b){return fabs(a)<fabs(b)-1.0e-12 || (fabs(fabs(a)-fabs(b))<=1.0e-12 && a<b);});
+            
+            vector<split> fan;
+            for(double a : ang)
+            {
+                // crack direction: the contact normal turned by a, cut line normal perpendicular to it
+                const double dx = cos(a)*ca.nx - sin(a)*ca.ny;
+                const double dy = sin(a)*ca.nx + cos(a)*ca.ny;
+                const double nx = -dy, ny = dx;
+                split sp = line(int(f),2,nx,ny,nx*ca.px + ny*ca.py,ca.F,Fs);
+                if(cut_valid(fl,sp,nbx,nby,sb,rb))
+                fan.push_back(sp);
+                else if(fan.empty())
+                break;          // the first crack has to fit, as for a single crack
+            }
+            
+            if(!fan.empty())
+            {
+            cuts[f] = fan;
+            ratio[f] = r;
+            }
         }
+    }
+    
+    // spalling at crushing contacts: when the crushed depth reaches L_sp (A 402, <0: h), the tip of the
+    // floe in front of the cut n.x = s_face - L_sp breaks off, n from the floe into the other body and
+    // s_face the other body's face. Only local chips: the chord of the cut must not exceed C_loc times
+    // the chip depth L_sp + crushed depth, a straight cut across a wide floe face is not a spall.
+    if((breakflag&4) && p->A398>0.0)
+    {
+    vector<double> spr(nf,0.0);
+    vector<split> spc(nf);
+    vector<double> fx,fy,ox,oy;
+    
+    for(const auto &rc : pcontact->records())
+    {
+        if(rc.Fcap<=0.0 || rc.pen<=0.0 || rc.b<0)
+        continue;
+        if(rc.a>=int(cmap.size()) || rc.b>=int(cmap.size()))
+        continue;
+        
+        for(int side=0; side<2; ++side)
+        {
+            const size_t f = size_t(cmap[side==0 ? rc.a : rc.b]);
+            const size_t o = size_t(cmap[side==0 ? rc.b : rc.a]);
+            fnpf_ice_floe &fl = floe[f];
+            if(fl.type!=0 || ratio[f]>=1.0)
+            continue;
+            
+            const double L = (Lspall>0.0) ? Lspall : fl.h;
+            if(rc.pen<L || rc.pen/L<=spr[f])
+            continue;
+            
+            const double nx = (side==0) ? rc.nx : -rc.nx;
+            const double ny = (side==0) ? rc.ny : -rc.ny;
+            
+            world_polygon(fl,fx,fy);
+            world_polygon(floe[o],ox,oy);
+            
+            double sface=1.0e20, sfront=-1.0e20;
+            for(size_t q=0;q<ox.size();++q)
+            sface = MIN(sface, nx*ox[q] + ny*oy[q]);
+            for(size_t q=0;q<fx.size();++q)
+            sfront = MAX(sfront, nx*fx[q] + ny*fy[q]);
+            
+            const double scut = sface - L;
+            const double depth = sfront - scut;
+            if(depth<=0.0)
+            continue;
+            
+            if(chord(fx,fy,nx,ny,scut) > Cspall*depth)
+            continue;
+            
+            split sp = line(int(f),3,nx,ny,scut,rc.pen,L);
+            if(cut_valid(fl,sp,nbx,nby,sb,rb))
+            {
+            spc[f] = sp;
+            spr[f] = rc.pen/L;
+            }
         }
     }
     
     for(size_t f=0; f<nf; ++f)
-    if(ratio[f]>=1.0)
-    splits.push_back(best[f]);
+    if(spr[f]>0.0 && cuts[f].empty())
+    cuts[f].assign(1,spc[f]);
+    }
+    
+    for(size_t f=0; f<nf; ++f)
+    for(const auto &c : cuts[f])
+    splits.push_back(c);
 }
 
 void fnpf_ice::breaking_apply(lexer *p, ghostcell *pgc)
@@ -472,7 +654,7 @@ void fnpf_ice::breaking_apply(lexer *p, ghostcell *pgc)
     {
     const split &sp = splits[n];
     double *b=&buf[7*n];
-    b[0]=sp.f; b[1]=sp.mech; b[2]=sp.nbx; b[3]=sp.nby; b[4]=sp.s; b[5]=sp.val; b[6]=sp.lim;
+    b[0]=sp.f; b[1]=sp.mech; b[2]=sp.nx; b[3]=sp.ny; b[4]=sp.s; b[5]=sp.val; b[6]=sp.lim;
     }
 
     if(ns>0)
@@ -484,47 +666,90 @@ void fnpf_ice::breaking_apply(lexer *p, ghostcell *pgc)
     for(int n=0;n<ns;++n)
     {
     const double *b=&buf[7*n];
-    splits[n].f=int(b[0]); splits[n].mech=int(b[1]); splits[n].nbx=b[2]; splits[n].nby=b[3];
+    splits[n].f=int(b[0]); splits[n].mech=int(b[1]); splits[n].nx=b[2]; splits[n].ny=b[3];
     splits[n].s=b[4]; splits[n].val=b[5]; splits[n].lim=b[6];
     }
     }
     }
 
     const double t = p->simtime + p->dt;
+    
+    // the cuts of one floe go one after another to the piece they cross: the floe itself or a piece
+    // split off it in this check (same order and arithmetic on all ranks)
+    map<int,vector<size_t>> family;
+    int ncut=0, nspall=0, nrub=0;
 
     for(int n=0;n<ns;++n)
     {
         const split &sp = splits[n];
-        const int nid = split_floe(p,size_t(sp.f),sp.nbx,sp.nby,sp.s,sp.mech);
-
-        if(nid>=0)
-        {
-        ++nbreak;
+        vector<size_t> &fam = family[sp.f];
+        if(fam.empty())
+        fam.push_back(size_t(sp.f));
         
-        // the load that broke the floe is released
-        const int pid = floe[sp.f].id;
-        for(auto it=cforce.begin(); it!=cforce.end();)
+        for(size_t c : fam)
         {
-            if(it->first.first==pid || it->first.second==pid)
-            it = cforce.erase(it);
+            double nbx,nby,sb;
+            int rubble;
+            if(!cut_valid(floe[c],sp,nbx,nby,sb,rubble))
+            continue;
+            
+            const int mode = (sp.mech==3) ? (rubble ? 2 : 1) : 0;
+            double Aa=0.0, Ab=0.0;
+            const int pid = floe[c].id;
+            const int nid = split_floe(p,c,nbx,nby,sb,mode,Aa,Ab);
+            
+            if(nid==-1)
+            continue;
+            
+            ++nbreak;
+            if(sp.mech==3)
+            ++nspall;
             else
-            ++it;
-        }
-
-        if(p->mpirank==0 && breakout.is_open())
-        breakout<<setprecision(9)<<t<<" "<<floe[sp.f].id<<" "<<nid<<" "<<sp.mech<<" "<<sp.val<<" "<<sp.lim<<" "
-                <<floe[sp.f].area<<" "<<floe.back().area<<endl;
+            ++ncut;
+            
+            if(nid>=0)
+            fam.push_back(floe.size()-1);
+            else
+            {
+            ++nrub;
+            Arubble += Ab;
+            }
+            
+            // the load that broke the floe is released
+            for(auto it=cforce.begin(); it!=cforce.end();)
+            {
+                if(it->first.first==pid || it->first.second==pid)
+                it = cforce.erase(it);
+                else
+                ++it;
+            }
+            
+            if(p->mpirank==0 && breakout.is_open())
+            breakout<<setprecision(9)<<t<<" "<<pid<<" "<<nid<<" "<<sp.mech<<" "<<sp.val<<" "<<sp.lim<<" "
+                    <<Aa<<" "<<Ab<<endl;
+            break;
         }
     }
 
-    if(ns>0 && p->mpirank==0)
-    cout<<"FNPF ice: "<<ns<<" floe(s) broken at t = "<<t<<", "<<nfloe<<" floes"<<endl;
+    if(ns>0 && p->mpirank==0 && ncut+nspall>0)
+    {
+    cout<<"FNPF ice: ";
+    if(ncut>0)
+    cout<<ncut<<" crack(s) ";
+    if(nspall>0)
+    cout<<nspall<<" spall(s) ("<<nrub<<" cleared as rubble, total rubble area "<<Arubble<<" m2) ";
+    cout<<"at t = "<<t<<", "<<nfloe<<" floes"<<endl;
+    }
 
     splits.clear();
 }
 
-int fnpf_ice::split_floe(lexer *p, size_t f, double nbx, double nby, double s, int mech)
+int fnpf_ice::split_floe(lexer *p, size_t f, double nbx, double nby, double s, int mode, double &Aa, double &Ab)
 {
+    // mode 0: crack, two floes, new strengths for both
+    // mode 1: spall, the chip (nb.x >= s) becomes a floe with a new strength, the remainder keeps its strength
+    // mode 2: spall, the chip is cleared as rubble (removed), the remainder keeps its strength
+    // returns the id of the new floe, -2 for a chip cleared as rubble (type 3, fading), -1 if no cut
     fnpf_ice_floe parent = floe[f];
 
     vector<double> ax,ay,bx,by;
@@ -565,8 +790,34 @@ int fnpf_ice::split_floe(lexer *p, size_t f, double nbx, double nby, double s, i
     fnpf_ice_floe pa,pb;
     make_piece(ax,ay,pa);
     make_piece(bx,by,pb);
+    Aa = pa.area;
+    Ab = pb.area;
     
-    // new strengths for both pieces (same random sequence on all ranks)
+    if(mode==2)
+    {
+    // rubble: fixed where it spalled, no contact, the lid fades out over t_r (prestep, footprint);
+    // removing the chip at once releases its surface depression as a jet
+    pa.id = parent.id;
+    pb.id = int(floe.size());
+    pb.type = 3;
+    pb.t0 = p->simtime + p->dt;
+    pb.fade = 1.0;
+    for(int a=0;a<3;++a)
+    pb.v[a] = pb.w[a] = 0.0;
+    kinematics(pb);
+    
+    floe[f] = pa;
+    floe.push_back(pb);
+    
+    Yn.resize(floe.size());
+    D1.resize(floe.size());
+    D2.resize(floe.size());
+    D3.resize(floe.size());
+    return -2;
+    }
+    
+    // new strengths (same random sequence on all ranks)
+    if(mode==0)
     strength(pa);
     strength(pb);
 
@@ -582,7 +833,6 @@ int fnpf_ice::split_floe(lexer *p, size_t f, double nbx, double nby, double s, i
     D3.resize(floe.size());
     ++nfloe;
 
-    (void)mech;
     return pb.id;
 }
 

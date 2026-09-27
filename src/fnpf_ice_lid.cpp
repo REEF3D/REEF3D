@@ -44,7 +44,7 @@ void fnpf_ice::kinematics(fnpf_ice_floe &fl)
     fl.bbox[0]=fl.bbox[2]= 1.0e20;
     fl.bbox[1]=fl.bbox[3]=-1.0e20;
 
-    const double zb = (fl.type==0) ? -0.5*fl.h : 0.0;
+    const double zb = (fl.type==0 || fl.type==3) ? -0.5*fl.h : 0.0;
 
     for(int q=0; q<nv; ++q)
     {
@@ -186,7 +186,7 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
     {
         fnpf_ice_floe &fl = floe[f];
         
-        if(fl.type!=0)
+        if(fl.type!=0 && fl.type!=3)
         continue;
         
         // taper at most a quarter of the floe width, small floes keep a sharper edge
@@ -258,7 +258,7 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
     {
         fnpf_ice_floe &fl = floe[f];
         
-        if(fl.type!=0)
+        if(fl.type!=0 && fl.type!=3)
         continue;
         
         const double S0 = sum[nv*f];
@@ -270,6 +270,10 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
         if(inside && S0>0.0)
         scale[f] = MAX(0.5, MIN(2.0, fl.area/S0));
         
+        // spalled rubble: lid pressure and surface depression fade out together
+        if(fl.type==3)
+        scale[f] *= fl.fade;
+        
         // lid-spring frequencies of the footprint, for the time step
         const double Kz = fl.klid*scale[f]*S0;
         const double Kr = fl.klid*scale[f]*sum[nv*f+1];
@@ -279,6 +283,27 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
     
     for(auto &e : cell)
     e.phi *= scale[e.f];
+    
+    // spalled rubble fills only what the floes leave of a cell: a floe crushing on into the chip does
+    // not add its weight on top of the chip's (the crushed ice is not counted twice)
+    int nrub=0;
+    for(auto &fl : floe)
+    if(fl.type==3)
+    ++nrub;
+    
+    if(nrub>0)
+    {
+    SLICELOOP4
+    dtot(i,j) = 0.0;
+    
+    for(auto &e : cell)
+    if(floe[e.f].type==0)
+    dtot(e.i,e.j) += e.phi;
+    
+    for(auto &e : cell)
+    if(floe[e.f].type==3)
+    e.phi = MIN(e.phi, MAX(0.0, 1.0 - dtot(e.i,e.j)));
+    }
     
     // equilibrium depression of the surface, sum over the floes sharing a cell
     SLICELOOP4

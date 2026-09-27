@@ -145,7 +145,7 @@ void control::ini_default()
     A387=-1.0;   // double ice floe print interval in s, <0: follow fsf print settings
     A388=30;     // int ice contact solver iterations
     A389=2.0;    // double ice footprint edge taper half width in cells
-    A390=0;      // int ice breaking: 0 off, 1 flexural, 2 contact splitting, 3 both
+    A390=0;      // int ice breaking, bits: 1 flexural, 2 contact splitting, 4 spalling (7 all)
     A391=0.5e6;  // double ice flexural strength [Pa]
     A392_K=1.0e5;// double ice fracture toughness K_IC [Pa m^0.5] for splitting
     A392_C=1.0;  // double splitting load coefficient, F = C*K_IC*h*sqrt(D)
@@ -160,6 +160,11 @@ void control::ini_default()
     A399_m=0.0;  // double Weibull modulus of the flexural strength, <=0: no scatter, no size effect
     A399_A=1.0;  // double Weibull reference area [m^2]
     A399_seed=1; // int Weibull random seed
+    A400=1;      // int ice: max flexural cracks per floe and check
+    A401=1;      // int ice: radial cracks per contact splitting event
+    A402_L=-1.0; // double ice spall length [m], <0: floe thickness
+    A402_C=3.0;  // double ice spall locality: chip chord <= C*chip depth
+    A402_T=1.0;  // double ice rubble lid fade-out time [s]
 
     
     // PTF
