@@ -5095,6 +5095,12 @@ void control::ctrlrecv()
         }
     }
 
+    for(n=0;n<X320;++n)
+    {
+        X320_type[n] = ictrl[ii];
+        ii++;
+    }
+
     for(n=0;n<X321;++n)
     {
         X321_Sn[n] = dctrl[dd];

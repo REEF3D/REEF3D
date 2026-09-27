@@ -3447,22 +3447,6 @@ void control::ctrlsend()
         dd++;
     }
 
-    for(n=0;n<P167;++n)
-    {
-        dctrl[dd] = P167_x[n];
-        dd++;
-    }
-
-    for(n=0;n<P168;++n)
-    {
-        dctrl[dd] = P168_x[n];
-        dd++;
-        dctrl[dd] = P168_zs[n];
-        dd++;
-        dctrl[dd] = P168_ze[n];
-        dd++;
-    }
-
     for(n=0;n<P81;++n)
     {
         dctrl[dd] = P81_xs[n];
@@ -3623,6 +3607,22 @@ void control::ctrlsend()
         ii++;
     }
 
+    for(n=0;n<P167;++n)
+    {
+        dctrl[dd] = P167_x[n];
+        dd++;
+    }
+
+    for(n=0;n<P168;++n)
+    {
+        dctrl[dd] = P168_x[n];
+        dd++;
+        dctrl[dd] = P168_zs[n];
+        dd++;
+        dctrl[dd] = P168_ze[n];
+        dd++;
+    }
+
     for(n=0;n<P185;++n)
     {
         dctrl[dd] = P185_ts[n];
@@ -3730,6 +3730,20 @@ void control::ctrlsend()
         dctrl[dd] = Q111_zs[n];
         dd++;
         dctrl[dd] = Q111_ze[n];
+        dd++;
+    }
+
+    for(n=0;n<Q73;++n)
+    {
+        dctrl[dd] = Q73_val[n];
+        dd++;
+        dctrl[dd] = Q73_dist[n];
+        dd++;
+        dctrl[dd] = Q73_b[n];
+        dd++;
+        dctrl[dd] = Q73_x[n];
+        dd++;
+        dctrl[dd] = Q73_y[n];
         dd++;
     }
 
