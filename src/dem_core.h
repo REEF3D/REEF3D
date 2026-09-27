@@ -139,6 +139,7 @@ struct dem_cpl
     dem_vec vprev = dem_vec::Zero(), wprev = dem_vec::Zero();
     dem_vec Ffp = dem_vec::Zero(), Fhyd = dem_vec::Zero();
     double sw[4] = {0.0,0.0,0.0,0.0};
+    double aself = 0.0;         // own contribution to the solid fraction at the centroid
     int basemode = 0;
 };
 
@@ -236,6 +237,7 @@ struct dem_hooks
     std::function<void(dem_core&)> ghosts;
     std::function<void(dem_core&)> split;
     std::function<double(dem_core&, int, double, bool)> sync;
+    std::function<double(double)> maxall;     // global maximum
     int ncolors = 1;
     int mycolor = 0;
 };

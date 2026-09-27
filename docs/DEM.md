@@ -43,6 +43,9 @@ particle container (`part`) of the sediment/CPM code.
     - Replicated particles touched by several ranks are mass-split (Tonge et al. 2012), and their
       corrections are averaged.
     - Convergence is tested globally.
+    - If no particle is touched by contacts on more than one rank (for example a pile that lies
+      inside one subdomain), the ranks iterate independently and synchronise once at the end.
+      This gives the same solution up to the tolerance, without communication in every iteration.
     - Summed ghost corrections (block Jacobi) and mass splitting for all particles were tried
       first; they did not converge for stacks across rank boundaries.
   - **Fluid coupling:** fluid data, forcing integrals, kernel sums and wall contacts are
@@ -69,8 +72,11 @@ density (CFD: two-phase level set) or the local free surface (NHFLOW), which als
 righting moment of floating particles. Added mass is `C_a = E 17`, and the fluid acceleration
 force is optional (`E 22`). The reaction force (drag and added mass) is spread to the fluid momentum
 with a compact quartic kernel of radius `max(d_eq, E 23 dx)`, normalised globally so the momentum
-exchange is exact. The solid volume fraction is spread with the same kernel and enters the voidage
-correction.
+exchange is exact. The solid volume fraction is spread with a wider kernel of radius `max(E 25 d_eq, E 23 dx)`, and
+each particle sees the voidage of its surroundings without its own share. The REEF3D flow
+equations have no porosity, so the fluid velocity is a superficial velocity: the drag law is
+evaluated with the interstitial velocity `u/eps`. In dilute suspensions both corrections vanish;
+in packed beds (armour layers) the drag then follows Ergun-type resistance.
 
 **Resolved.** The fluid velocity inside the smoothed particle indicator (Heaviside half width
 `E 18 dx`) is forced to the rigid-body velocity in every RK stage. The hydrodynamic force is the
@@ -105,11 +111,12 @@ The fluid forcing is applied in the momentum schemes that use `momentum_forcing`
 | E 17 | double | 0.5 | added mass coefficient (unresolved) |
 | E 18 | double | 1.5 | resolved: Heaviside half width in cells |
 | E 19 | double | 0.2 | penetration correction factor (split impulse) |
-| E 20 | double | 0.25 | max travel per DEM step, fraction of the smallest bounding radius |
+| E 20 | double | 0.25 | max travel per DEM step, fraction of the smallest bounding radius of the moving particles |
 | E 21 | int | 6 | contact points per pair and normal cluster, 0 keeps all |
 | E 22 | int | 1 | unresolved: fluid acceleration force on/off |
 | E 23 | double | 2.0 | unresolved: kernel radius in cells |
 | E 24 | double | 0.25 | distributed particles: max bounding radius as fraction of the smallest subdomain extent, larger ones are replicated; 0 replicates all |
+| E 25 | double | 2.0 | unresolved: radius of the solid volume fraction kernel in equivalent diameters (at least the `E 23` kernel) |
 
 Gravity is taken from `W 20-22`, so `W 22 -9.81` has to be set. For CFD cases in still water,
 initialise the pressure (`I 10 1`), otherwise the start-up flow disturbs the particles.

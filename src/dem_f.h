@@ -167,6 +167,8 @@ private:
     // grid point relative to a particle centre; in 2D the y offset is ignored (x-z slab)
     dem_vec relpos(lexer*, double, double, double, const dem_vec&);
     double kernel(double, double);
+    double kradius(int);        // momentum kernel radius of a particle
+    double vradius(int);        // solid fraction kernel radius
     void cellrange(lexer*, int, double, int&, int&, int&, int&, int&, int&);
 
     // output
@@ -208,7 +210,7 @@ private:
     double *SX,*SY,*SZ,*ALPHAV;
 
     // parameters
-    double hybrid_ratio, Ca, hs_factor, travel, kernel_cells;
+    double hybrid_ratio, Ca, hs_factor, travel, kernel_cells, void_factor;
     int fluidacc;
     int minsub, nsub;
 

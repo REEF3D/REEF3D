@@ -56,6 +56,7 @@ dem_f::dem_f(lexer *p, ghostcell *pgc)
     travel = std::max(p->E20,0.01);
     fluidacc = p->E22;
     kernel_cells = p->E23;
+    void_factor = std::max(p->E25,0.0);
     minsub = std::max(1,p->E16);
     nsub = 1;
 
@@ -586,7 +587,10 @@ void dem_f::drag(lexer *p, int n, double rho, double nu, double eps)
     eps = std::max(0.2,std::min(1.0,eps));
     nu = std::max(nu,1.0e-12);
 
-    double ur = (core.bodies[n].cpl.ufl-B.v).norm();
+    // the REEF3D flow equations carry no porosity, so the fluid velocity is a superficial velocity;
+    // the drag law (Di Felice) is written for the interstitial velocity u/eps
+    dem_vec ui = core.bodies[n].cpl.ufl/eps;
+    double ur = (ui-B.v).norm();
     double Re = eps*ur*d/nu;
 
     // Haider & Levenspiel (1989), non-spherical particles; Cd*|u_rel|
@@ -610,7 +614,7 @@ void dem_f::drag(lexer *p, int n, double rho, double nu, double eps)
 
     B.K  = 0.5*rho*A*pow(eps,2.0-chi)*cdu;
     B.Kr = pi*rho*nu*d*d*d;
-    B.uf = core.bodies[n].cpl.ufl;
+    B.uf = ui;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -668,6 +672,16 @@ double dem_f::heaviside(double phi, double eps)
     if(phi>eps)
     return 0.0;
     return 0.5*(1.0 - phi/eps - sin(3.14159265358979323846*phi/eps)/3.14159265358979323846);
+}
+
+double dem_f::kradius(int n)
+{
+    return std::max(core.shapes[core.bodies[n].shape].deq,kernel_cells*dxs);
+}
+
+double dem_f::vradius(int n)
+{
+    return std::max(void_factor*core.shapes[core.bodies[n].shape].deq,kradius(n));
 }
 
 double dem_f::kernel(double r, double R)
@@ -819,6 +833,7 @@ void dem_f::run_step(lexer *p, ghostcell *pgc, const dem_core::wallfunc &wf)
     {
         hk.ghosts = [&](dem_core &c) {ghost_exchange(p,pgc);};
         hk.sync = [&](dem_core &c, int mode, double res, bool final) {return sync_solver(pgc,mode,res,final);};
+        hk.maxall = [&](double v) {MPI_Allreduce(MPI_IN_PLACE,&v,1,MPI_DOUBLE,MPI_MAX,pgc->mpi_comm); return v;};
         hk.ncolors = ncolors;
         hk.mycolor = mycolor;
         hk.split = [&](dem_core &c) {mass_split(pgc);};

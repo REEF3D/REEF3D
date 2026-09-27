@@ -115,7 +115,7 @@ void dem_f::fluid_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             b[2] = p->ccipol4V(d->W,d->WL,d->bed,B.x(0),B.x(1),B.x(2));
             b[3] = p->W1;
             b[4] = p->W2;
-            b[5] = 1.0 - p->ccipol4V(ALPHAV,d->WL,d->bed,B.x(0),B.x(1),B.x(2));
+            b[5] = 1.0 - std::max(0.0,p->ccipol4V(ALPHAV,d->WL,d->bed,B.x(0),B.x(1),B.x(2)) - core.bodies[n].cpl.aself);
             b[6] = 1.0;
         }
 
@@ -187,7 +187,7 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     return;
 
     int i0,i1,j0,j1,k0,k1;
-    vector<double> sw(nb,0.0);
+    vector<double> sw(2*nb,0.0);     // kernel sums: momentum kernel, solid fraction kernel
 
     for(int n=0; n<nb; ++n)
     {
@@ -197,17 +197,22 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1)
         continue;
 
-        double R = std::max(core.shapes[B.shape].deq,kernel_cells*dxs);
-        cellrange(p,n,R,i0,i1,j0,j1,k0,k1);
+        double R = kradius(n), Ra = vradius(n);
+        cellrange(p,n,Ra,i0,i1,j0,j1,k0,k1);
 
         for(i=i0; i<=i1; ++i)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         if(p->flag4[IJK]>0 && p->wet[IJ]>0)
-        sw[n] += kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),R)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+        {
+            double r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm();
+            double vol = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+            sw[2*n]   += kernel(r,R)*vol;
+            sw[2*n+1] += kernel(r,Ra)*vol;
+        }
     }
 
-    reduce_owner(pgc,sw,1,true,false);
+    reduce_owner(pgc,sw,2,true,false);
 
     // reaction force and submerged volume at the owners, sent to the ghosts
     vector<double> ffp(4*nb,0.0);
@@ -233,24 +238,28 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
-        if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1 || sw[n]<=0.0)
+        B.cpl.aself = 0.0;
+        if(!B.active || B.fixed || B.mode!=0 || core.bodies[n].cpl.basemode==1 || sw[2*n]<=0.0)
         continue;
 
-        const dem_shape &S = core.shapes[B.shape];
+        double R = kradius(n), Ra = vradius(n);
+        cellrange(p,n,Ra,i0,i1,j0,j1,k0,k1);
 
-        double R = std::max(S.deq,kernel_cells*dxs);
-        cellrange(p,n,R,i0,i1,j0,j1,k0,k1);
+        // solid fraction with the wider kernel (E 25); the particle's own share at its centroid is
+        // taken out again when the particle samples the voidage
+        B.cpl.aself = B.cpl.vsub*kernel(0.0,Ra)/sw[2*n+1];
 
         for(i=i0; i<=i1; ++i)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         if(p->flag4[IJK]>0 && p->wet[IJ]>0)
         {
-            double wk = kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),R);
-            SX[IJK] += core.bodies[n].cpl.Ffp(0)*wk/(p->W1*sw[n]);
-            SY[IJK] += p->j_dir==1 ? core.bodies[n].cpl.Ffp(1)*wk/(p->W1*sw[n]) : 0.0;
-            SZ[IJK] += core.bodies[n].cpl.Ffp(2)*wk/(p->W1*sw[n]);
-            ALPHAV[IJK] += core.bodies[n].cpl.vsub*wk/sw[n];
+            double r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm();
+            double wk = kernel(r,R);
+            SX[IJK] += core.bodies[n].cpl.Ffp(0)*wk/(p->W1*sw[2*n]);
+            SY[IJK] += p->j_dir==1 ? core.bodies[n].cpl.Ffp(1)*wk/(p->W1*sw[2*n]) : 0.0;
+            SZ[IJK] += core.bodies[n].cpl.Ffp(2)*wk/(p->W1*sw[2*n]);
+            ALPHAV[IJK] += core.bodies[n].cpl.vsub*kernel(r,Ra)/sw[2*n+1];
         }
     }
 
@@ -372,7 +381,11 @@ double dem_f::wallphi_nhflow(lexer *p, fdm_nhf *d, double x, double y, double z)
     double by = p->j_dir==1 ? (p->ccslipol4(d->bed,x,y+h) - p->ccslipol4(d->bed,x,y-h))/(2.0*h) : 0.0;
     double phi = (z-bed)/sqrt(1.0 + bx*bx + by*by);
 
-    if(p->solidread==1)
+    // SOLID is a level set only with the NHFLOW solid forcing (A 581-590); DIVEMesh solids
+    // (solidread) are part of the bed in NHFLOW and SOLID is not set
+    bool solidls = (p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0
+                 || p->A588>0 || p->A589>0 || p->A590>0) && p->A599!=1;
+    if(solidls)
     phi = std::min(phi,p->ccipol4V(d->SOLID,d->WL,d->bed,x,y,z));
 
     return phi;

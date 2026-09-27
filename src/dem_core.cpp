@@ -785,6 +785,10 @@ void dem_core::solve(double dt)
 
     int ncol = dist ? std::max(1,hk->ncolors) : 1;
 
+    // no particle is touched by contacts on more than one rank: the ranks are decoupled and iterate
+    // independently, only the corrections of ghosts go back to their owners at the end
+    bool decoupled = dist && hk->maxall && hk->maxall(double(sharedc.size()))<0.5;
+
     // residual scale: current velocities with a floor of 1 mm/s (resting stacks need a strict tolerance)
     double vref = vref_ext>0.0 ? vref_ext : std::max(max_velocity(),1.0e-3);
 
@@ -796,7 +800,7 @@ void dem_core::solve(double dt)
     {
         bool rev = (it%2==1);   // symmetric Gauss-Seidel: alternate the order
 
-        if(!dist)
+        if(!dist || decoupled)
         {
             double res = sweep(freec,rev);
             iterations = it+1;
@@ -830,6 +834,13 @@ void dem_core::solve(double dt)
         break;
     }
 
+    if(decoupled)
+    {
+        hk->sync(*this,0,0.0,false);
+        residual = hk->maxall(residual);
+        iterations = int(hk->maxall(double(iterations)));
+    }
+
     // split impulse: normal-only projected Gauss-Seidel on the pseudo velocities
     bool anypen=false;
     for(auto &C : contacts)
@@ -846,7 +857,7 @@ void dem_core::solve(double dt)
     {
         bool rev = (it%2==1);
 
-        if(!dist)
+        if(!dist || decoupled)
         {
             double res = sweep_pseudo(freec,rev);
             if(res<1.0e-3*vstab_max)
@@ -868,6 +879,9 @@ void dem_core::solve(double dt)
         if(g<1.0e-3*vstab_max)
         break;
     }
+
+    if(decoupled)
+    hk->sync(*this,1,0.0,false);
 }
 
 void dem_core::apply_pseudo(int c, double Pn)

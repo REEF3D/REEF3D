@@ -216,7 +216,7 @@ double dem_f::halo(const dem_body &B)
     const dem_shape &S = core.shapes[B.shape];
     double rb = S.rbound;
     double h = rb + rmax0 + std::max(rmax0,std::max(2.0*dxs,2.0*travel*rmax0));
-    h = std::max(h, std::max(S.deq,kernel_cells*dxs) + 2.0*dxs);
+    h = std::max(h, std::max(std::max(S.deq,void_factor*S.deq),kernel_cells*dxs) + 2.0*dxs);
     h = std::max(h, rb + (hs_factor+3.0)*dxs);
     return h;
 }
@@ -864,10 +864,10 @@ void dem_f::global_stats(ghostcell *pgc, double &vmax, double &rmin)
     rmin = 1.0e20;
     for(auto &B : core.bodies)
     {
-        if(B.ghost || !B.active)
+        // travel limit per substep: moving particles only, fixed ones are caught by the speculative contacts
+        if(B.ghost || !B.active || B.fixed)
         continue;
         rmin = std::min(rmin,core.shapes[B.shape].rbound);
-        if(!B.fixed)
         vmax = std::max(vmax, B.v.norm() + core.shapes[B.shape].rbound*B.w.norm());
     }
     double buf[2] = {vmax,-rmin};

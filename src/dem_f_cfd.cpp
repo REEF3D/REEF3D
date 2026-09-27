@@ -56,7 +56,7 @@ void dem_f::fluid_cfd(lexer *p, fdm *a, ghostcell *pgc)
             b[2] = p->ccipol3(a->w,B.x(0),B.x(1),B.x(2));
             b[3] = p->ccipol4a(a->ro,B.x(0),B.x(1),B.x(2));
             b[4] = p->ccipol4a(a->visc,B.x(0),B.x(1),B.x(2));
-            b[5] = 1.0 - p->ccipol4a(*ALPHA,B.x(0),B.x(1),B.x(2));
+            b[5] = 1.0 - std::max(0.0,p->ccipol4a(*ALPHA,B.x(0),B.x(1),B.x(2)) - core.bodies[n].cpl.aself);
             b[6] = 1.0;
         }
 
@@ -134,8 +134,8 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
         if(!B.active || B.fixed || B.mode!=0)
         continue;
 
-        double R = std::max(core.shapes[B.shape].deq,kernel_cells*dxs);
-        cellrange(p,n,R,i0,i1,j0,j1,k0,k1);
+        double R = kradius(n), Ra = vradius(n);
+        cellrange(p,n,Ra,i0,i1,j0,j1,k0,k1);
 
         for(i=i0; i<=i1; ++i)
         for(j=j0; j<=j1; ++j)
@@ -148,7 +148,7 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
             if(p->flag3[IJK]>0)
             sw[4*n+2] += kernel(relpos(p,p->pos3_x(),p->pos3_y(),p->pos3_z(),B.x).norm(),R)*p->DXN[IP]*p->DYN[JP]*p->DZP[KP];
             if(p->flag4[IJK]>0)
-            sw[4*n+3] += kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),R)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+            sw[4*n+3] += kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),Ra)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
         }
     }
 
@@ -176,13 +176,18 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
     for(int n=0; n<nb; ++n)
     {
         dem_body &B = core.bodies[n];
+        B.cpl.aself = 0.0;
         if(!B.active || B.fixed || B.mode!=0)
         continue;
 
         const dem_shape &S = core.shapes[B.shape];
 
-        double R = std::max(S.deq,kernel_cells*dxs);
-        cellrange(p,n,R,i0,i1,j0,j1,k0,k1);
+        double R = kradius(n), Ra = vradius(n);
+        cellrange(p,n,Ra,i0,i1,j0,j1,k0,k1);
+
+        // solid fraction with the wider kernel (E 25), own share at the centroid
+        if(sw[4*n+3]>0.0)
+        B.cpl.aself = S.volume*kernel(0.0,Ra)/sw[4*n+3];
 
         for(i=i0; i<=i1; ++i)
         for(j=j0; j<=j1; ++j)
@@ -213,7 +218,7 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
             if(p->flag4[IJK]>0 && sw[4*n+3]>0.0)
             {
-                wk = kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),R);
+                wk = kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),Ra);
                 (*ALPHA)(i,j,k) += S.volume*wk/sw[4*n+3];
             }
         }

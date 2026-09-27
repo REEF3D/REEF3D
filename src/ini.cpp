@@ -847,6 +847,7 @@ void control::ini_default()
     E22=1;              // int unresolved: fluid acceleration force (pressure gradient and added mass of the fluid acceleration), 0 off 1 on
     E23=2.0;            // double unresolved: kernel radius for the momentum exchange in cells (at least d_eq)
     E24=0.25;           // double distributed particles: max bounding radius as fraction of the smallest subdomain, larger ones are replicated; 0 replicates all
+    E25=2.0;            // double unresolved: radius of the solid volume fraction kernel in equivalent diameters
 
     // Particles
     Q10=0;              // int time scheme
