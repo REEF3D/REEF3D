@@ -1007,6 +1007,11 @@ void control::ini_default()
     X12=1;      // int turn force calculation on
     X14=1;      // int tangential velocity cfd
     X15=1;      // int tangential velocity nhflow
+    X16=0;          // int porous floating body (NHFLOW)
+    X16_n=0.5;      // double porosity of the floating body
+    X16_d50=0.01;   // double characteristic grain / element size of the floating body
+    X16_alpha=1000.0; // double linear (Darcy) resistance coefficient
+    X16_beta=1.1;   // double quadratic (Forchheimer) resistance coefficient
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body

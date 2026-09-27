@@ -60,6 +60,30 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
 	BPOR[IJK]       = H*p->B201_beta;
     }
     
+    // porous floating body (X 16): POR is reset above, so re-apply the moving body porosity
+    // n = 1 - H_fb(1 - n_fb), same Heaviside as sixdof_obj::Hsolidface_nhflow()
+    if(p->X10>0 && p->X16==1)
+    LOOP
+    {
+        double psi,Hfb;
+        
+        if(p->j_dir==0)
+        psi = p->A526*p->DXN[IP];
+        
+        if(p->j_dir==1)
+        psi = p->A526*0.5*(p->DXN[IP] + p->DYN[JP]);
+        
+        Hfb = 0.5*(1.0 + (-d->FB[IJK])/psi + (1.0/PI)*sin((PI*(-d->FB[IJK]))/psi));
+        
+        if(-d->FB[IJK] > psi)
+        Hfb = 1.0;
+        
+        if(-d->FB[IJK] < -psi)
+        Hfb = 0.0;
+        
+        d->POR[IJK] = MIN(d->POR[IJK], 1.0 - Hfb*(1.0 - p->X16_n));
+    }
+    
     pgc->start5Vfull(p,d->POR,1);
     pgc->start5Vfull(p,d->PORPART,1);
     pgc->start5Vfull(p,APOR,1);

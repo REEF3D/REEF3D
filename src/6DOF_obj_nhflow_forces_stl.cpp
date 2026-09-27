@@ -29,11 +29,13 @@ Author: Hans Bihs
 void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
-    if(p->X60==1)
+    // porous body (X 16) always uses the STL integration: the (1-n) scaled envelope pressure
+    // plus the volume drag from update_forcing_nhflow_porous()
+    if(p->X60==1 || p->X16==1)
     force_calc_stl(p,d,pgc,WL,finalize);
     
     
-    if(p->X60==2)
+    if(p->X60==2 && p->X16==0)
     {
     triangulation(p,d,pgc);
 	reconstruct(p,d);
@@ -63,6 +65,11 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
+    
+    // porous body (X 16): the pressure acts on the solid fraction only.
+    // -int_V (1-n) grad p dV = -(1-n_fb) oint p n dA  (divergence theorem, n_fb const inside)
+    // -> buoyancy and Froude-Krylov load on the skeleton
+    const double pfac = (p->X16==1) ? (1.0 - p->X16_n) : 1.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
     // Set new time
@@ -174,9 +181,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 const double hsp = MAX(0.0, (p->wd + p->ccslipol4(d->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
                 
                 const double w  = A_sub/3.0;
-                const double fx = -(pval + hsp)*w*nx;
-                const double fy = -(pval + hsp)*w*ny;
-                const double fz = -(pval + hsp)*w*nz;
+                const double fx = -pfac*(pval + hsp)*w*nx;
+                const double fy = -pfac*(pval + hsp)*w*ny;
+                const double fz = -pfac*(pval + hsp)*w*nz;
                 
                 const double rx = mx[q] - c_(0);
                 const double ry = my[q] - c_(1);
@@ -194,7 +201,13 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 Ze_p += fz;
             }
             
+            A += A_sub;
+            
             // Viscous forces at the sub-triangle centroid
+            // (not for a porous body: the envelope is not a wall, the volume drag replaces it)
+            if(p->X16==1)
+            continue;
+            
             const double gx = (ax + bx + cx)/3.0;
             const double gy = (ay + by + cy)/3.0;
             const double gz = (az + bz + cz)/3.0;
@@ -211,8 +224,6 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             Xe_v += Fv_x;
             Ye_v += Fv_y;
             Ze_v += Fv_z;
-            
-            A += A_sub;
         }
 	}
     
@@ -232,6 +243,22 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 	Xe_v = pgc->globalsum(Xe_v);
 	Ye_v = pgc->globalsum(Ye_v);
 	Ze_v = pgc->globalsum(Ze_v);
+    
+    // porous body: add the Darcy-Forchheimer drag reaction (already global sums).
+    // It is written to the viscous columns of the force file.
+    if(p->X16==1)
+    {
+        Xe += Xd;
+        Ye += Yd;
+        Ze += Zd;
+        Ke += Kd;
+        Me += Md;
+        Ne += Nd;
+        
+        Xe_v = Xd;
+        Ye_v = Yd;
+        Ze_v = Zd;
+    }
     
     // 2D: only surge, heave and pitch exist. Out-of-plane moments from an asymmetric STL
     // triangulation would otherwise enter h_ and tilt the trimesh out of the x-z plane,

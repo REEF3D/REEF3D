@@ -2645,6 +2645,10 @@ void control::read_control(lexer* p)
                 case  15: control>>X15;
                          clear(c,numint);
                          break;
+                case  16: control>>X16_n>>X16_d50>>X16_alpha>>X16_beta;
+                         X16=1;
+                         clear(c,numint);
+                         break;
                 case  19: control>>X19;
                          clear(c,numint);
                          break;

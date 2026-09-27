@@ -48,6 +48,10 @@ void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int
 
     update_forces(p);
     
+    // porous floating body: linearly implicit drag
+    if(p->X16==1)
+    porous_damping_nhflow(p,iter);
+    
     if(p->A510==2)
     rk2(p,pgc,iter);
     

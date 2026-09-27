@@ -91,6 +91,11 @@ public:
     void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*,
                                            double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+    
+    // porous floating body (X 16)
+    void update_forcing_nhflow_porous(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int);
+    void porosity_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void porous_damping_nhflow(lexer*, int);
                          
                          
     double Sfx_n,Sfy_n,Sfz_n,SKx_n,SKy_n,SKz_n;
@@ -398,6 +403,11 @@ private:
     double Xext, Yext, Zext, Kext, Mext, Next;
     Eigen::Vector3d Ffb_, Mfb_;
     double Xe, Ye, Ze, Ke, Me, Ne;
+    
+    // porous floating body: drag reaction of the fluid on the skeleton (X 16)
+    double Xd, Yd, Zd, Kd, Md, Nd;
+    double Apor_fb, Bpor_fb;
+    double Dpor_t, Dpor_r[3];
 
     // Mooring
 	vector<double> X311_xen, X311_yen, X311_zen;

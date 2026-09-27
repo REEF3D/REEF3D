@@ -28,6 +28,13 @@ Author: Hans Bihs
 void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
 {
+    // porous floating body: Darcy-Forchheimer resistance instead of rigid direct forcing
+    if(p->X16==1)
+    {
+    update_forcing_nhflow_porous(p,d,pgc,U,V,W,FX,FY,FZ,WL,iter);
+    return;
+    }
+    
     // Calculate forcing fields
     double H, uf, vf, wf;
     double ef,efc;

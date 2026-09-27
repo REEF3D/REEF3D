@@ -1975,6 +1975,16 @@ void control::ctrlrecv()
     ii++;
     X15 = ictrl[ii];
     ii++;
+    X16 = ictrl[ii];
+    ii++;
+    X16_n = dctrl[dd];
+    dd++;
+    X16_d50 = dctrl[dd];
+    dd++;
+    X16_alpha = dctrl[dd];
+    dd++;
+    X16_beta = dctrl[dd];
+    dd++;
     X19 = ictrl[ii];
     ii++;
     X20 = ictrl[ii];

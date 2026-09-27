@@ -1984,6 +1984,16 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X15;
     ii++;
+    ictrl[ii] = X16;
+    ii++;
+    dctrl[dd] = X16_n;
+    dd++;
+    dctrl[dd] = X16_d50;
+    dd++;
+    dctrl[dd] = X16_alpha;
+    dd++;
+    dctrl[dd] = X16_beta;
+    dd++;
     ictrl[ii] = X19;
     ii++;
     ictrl[ii] = X20;

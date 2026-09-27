@@ -209,7 +209,14 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     for (int nb=0; nb<number6DOF;++nb)
     {
         // 1. re-impose no-slip at the position the fluid was solved with
+        //    porous body (X 16): the resistance is a momentum source and was applied once before
+        //    the pressure projection - applying it again would double the drag. Only restore
+        //    the porosity / FHB fields that reset() cleared.
+        if(p->X16==0)
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        
+        if(p->X16==1)
+        fb_obj[nb]->porosity_nhflow(p,d,pgc);
 
         // 2. load from the pressure that was just solved
         fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
