@@ -108,7 +108,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         // moving paddle: 2nd-order Taylor terms of the paddle BC about x=0,
         // phi_x = X_t + X_z*phi_z - X*phi_xx, with phi from the linear paddle
         // solution (prescribed, no feedback from the computed field)
-        if(p->B119==1 && (p->B92==21 || p->B92==22))
+        if(p->B119==1 && (p->B92==21 || p->B92==22 || p->B92==23))
         Uin[FIm1JK] += wave_paddle_Q(p,pgc,p->ZSN[FIJK]-p->phimean);
         
         ++count;

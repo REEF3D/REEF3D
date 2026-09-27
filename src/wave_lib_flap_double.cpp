@@ -226,6 +226,14 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
     kinematics[qn][2] = sign2*fabs(sin(kinematics[qn][2])*(p->B112_ze-p->B112_z2));
     }
     
+    // moving-paddle BC terms from the first-order signal (before correcting it)
+    if(p->B119==1 && p->A10==3)
+    wm2.make_Qtable_double(p,pgc,kinematics,ptnum,wdt,p->B112_zs,p->B112_z2,p->B112_ze);
+    
+    // 2nd-order wavemaker correction, split over the two flaps in proportion to the first-order motion
+    if(p->B113>0)
+    wm2.correct_double(p,pgc,kinematics,ptnum,wdt,p->B112_zs,p->B112_z2,p->B112_ze);
+    
     // calculate vertical component
     for(int qn=0; qn<ptnum; ++qn)
     {
@@ -247,6 +255,14 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
     cout<<kinematics[qn][1]<<" "<<kinematics[qn][2]<<" | "<<kinematics[qn][3]<<" "<<kinematics[qn][4]<<endl;
     */
 	    
+}
+
+double wave_lib_flap_double::wave_paddle_Q(lexer *p, double z)
+{
+    if(p->B119!=1 || p->wavetime<ts || p->wavetime>te)
+    return 0.0;
+    
+    return cosgamma*wm2.paddle_Q(p->wavetime,z);
 }
 
 void wave_lib_flap_double::wave_prestep(lexer *p, ghostcell *pgc)
