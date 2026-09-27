@@ -146,6 +146,7 @@ private:
     vector<int> cmap;       // contact body index -> floe index, last contact solve
     vector<split> splits;
     ofstream breakout;
+    ofstream crushout;      // crushing contacts (A 398 > 0), rank 0
     int nbreak;
 
     // output

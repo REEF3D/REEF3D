@@ -50,6 +50,14 @@ void fnpf_ice::print_ini(lexer *p)
     breakout<<"# t parent_id new_id mech value limit area_parent_piece area_new_piece"<<endl;
     }
     
+    if(p->A398>0.0)
+    {
+    crushout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-crushing.dat");
+    crushout<<"# ice crushing contacts, every time step with a capped or penetrating pair (A 398 sigma_c = "<<p->A398<<" Pa)"<<endl;
+    crushout<<"# id_b < 0: domain wall. depth: crushed depth (overlap), volume = h*width*depth"<<endl;
+    crushout<<"# t id_a id_b Fn Fcap depth width volume"<<endl;
+    }
+
     if(nobst>0)
     {
     obstout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-obstacle-loads.dat");

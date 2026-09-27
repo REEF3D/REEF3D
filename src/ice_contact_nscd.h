@@ -41,7 +41,11 @@ using namespace std;
 // Crushing (sigma_c > 0): the pair normal force is capped at sigma_c*h*w, h the thinner ice thickness of
 // the pair, w the contact width (distance of the two contact points, at least h). Beyond the cap the
 // floes interpenetrate, which stands for the crushed ice; the Baumgarte correction is switched off then,
-// so crushed overlap is not pushed back out.
+// so crushed overlap is not pushed back out. The capped force acts from the moment of touching only
+// (no speculative braking, the part of the step after touching), so the crushed depth follows the energy
+// balance m v^2/(2 sigma_c h w). While a pair overlaps, it keeps the reference face of its first contact:
+// the crushing front stays normal to the impact direction even when the crushed depth exceeds the width
+// of the pile or floe.
 
 class ice_contact_nscd final : public ice_contact
 {
@@ -64,6 +68,8 @@ private:
         double mn,mt;         // effective masses
         double bias;          // target normal velocity
         double Pnmax = 1.0e300; // crushing cap on the normal impulse
+        double wc = 0.0;        // contact width of the pair (crushing)
+        double Fcap = 0.0;      // crushing force cap of the pair sigma_c*h*w, 0: none
         double Pn = 0.0, Pt = 0.0;
     };
 
@@ -82,6 +88,7 @@ private:
     vector<contact> con;
     vector<ice_contact_record> rec;
     map<tuple<int,int,long>,pair<double,double>> cache;
+    map<pair<int,int>,pair<int,int>> crushref,newcrushref;  // crushing pairs (ids): reference face (flip, edge) kept while they overlap
 };
 
 #endif

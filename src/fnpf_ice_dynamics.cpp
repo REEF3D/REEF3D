@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"fnpf_ice.h"
 #include"lexer.h"
 #include"ice_contact.h"
+#include<iomanip>
 
 namespace
 {
@@ -222,6 +223,20 @@ void fnpf_ice::contact(lexer *p)
     }
 
     pcontact->solve(body,dt,is2D);
+
+    if(crushout.is_open())
+    for(const auto &rc : pcontact->records())
+    if(rc.Fcap>0.0 && (rc.pen>0.0 || rc.Fn>=0.999*rc.Fcap))
+    {
+        const fnpf_ice_floe &fa = floe[map[rc.a]];
+        const int idb = (rc.b>=0) ? floe[map[rc.b]].id : rc.b;
+        double hc = (fa.type==0) ? fa.h : 0.0;
+        if(rc.b>=0 && floe[map[rc.b]].type==0)
+        hc = (hc>0.0) ? MIN(hc,floe[map[rc.b]].h) : floe[map[rc.b]].h;
+
+        crushout<<setprecision(9)<<p->simtime+dt<<" "<<fa.id<<" "<<idb<<" "<<rc.Fn<<" "<<rc.Fcap<<" "
+                <<rc.pen<<" "<<rc.wc<<" "<<hc*rc.wc*rc.pen<<endl;
+    }
 
     for(size_t nb=0; nb<map.size(); ++nb)
     {

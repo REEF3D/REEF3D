@@ -57,7 +57,9 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
 
     // detection
     con.clear();
+    newcrushref.clear();
     broadphase(b,dt);
+    crushref.swap(newcrushref);
 
     if(wallflag==1)
     for(int n=0; n<nb; ++n)
@@ -89,7 +91,11 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
             
             const double Pmax = sigc*hc*wc*dt/double(idx.size());
             for(int n : idx)
+            {
             con[n].Pnmax = Pmax;
+            con[n].wc = wc;
+            con[n].Fcap = sigc*hc*wc;
+            }
         }
     }
     
@@ -140,6 +146,23 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
         double brest = (vn0 < -vrest) ? -e*vn0 : 0.0;
         double bpos  = (-c.sep > slop && sigc<=0.0) ? beta*(-c.sep - slop)/dt : 0.0;
         c.bias = max(brest,bpos);
+        }
+
+        // crushing: the capped force acts from the moment of touching. The contact geometry is the
+        // end-of-step prediction; with the closing speed va the pair touched at the fraction
+        // s0/(va*dt) of the step, s0 = sep + va*dt the gap at its start. Before touching (sep > 0) the
+        // floe moves freely, so crushing starts at contact and the crushed depth follows the energy
+        // balance m v^2/(2 sigma_c h w) instead of starting a step early.
+        if(sigc>0.0 && c.Pnmax<1.0e299)
+        {
+        const double va = max(0.0,-vn0);
+        const double s0 = c.sep + va*dt;
+        double f = 1.0;
+        if(c.sep>=0.0)
+        f = 0.0;
+        else if(s0>0.0)
+        f = min(1.0, -c.sep/(va*dt));
+        c.Pnmax *= f;
         }
 
         // warm start
@@ -267,6 +290,9 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
         r.px=c.px*Fn; r.py=c.py*Fn;
         r.nx=c.nx; r.ny=c.ny;
         r.Fn=Fn;
+        r.Fcap = c.Fcap;
+        r.pen = max(0.0,-c.sep);
+        r.wc = c.wc;
         pairidx[key]=int(rec.size());
         rec.push_back(r);
         }
@@ -276,6 +302,7 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
         r.px += c.px*Fn;
         r.py += c.py*Fn;
         r.Fn += Fn;
+        r.pen = max(r.pen,-c.sep);
         }
     }
     for(auto &r : rec)
@@ -401,6 +428,26 @@ void ice_contact_nscd::collide(vector<ice_body2D> &b, int ia, int ib, double mar
     R=&A; I=&B; er=ea; flip=0;
     }
 
+    // crushing pair that overlapped in the last step: keep its reference face
+    const pair<int,int> pkey = make_pair(A.id,B.id);
+    if(sigc>0.0)
+    {
+        auto itc = crushref.find(pkey);
+        if(itc!=crushref.end())
+        {
+        const int fl = itc->second.first;
+        const int ek = itc->second.second;
+        const int nv = int((fl ? B : A).px.size());
+            if(ek>=0 && ek<nv)
+            {
+            flip = fl;
+            er = ek;
+            R = flip ? &B : &A;
+            I = flip ? &A : &B;
+            }
+        }
+    }
+
     const int nr = int(R->px.size());
     const int ni = int(I->px.size());
 
@@ -482,6 +529,9 @@ void ice_contact_nscd::collide(vector<ice_body2D> &b, int ia, int ib, double mar
         c.sep = sep;
         c.key = long(er) + 1000L*long(ei) + 1000000L*long(cid[q]) + 10000000L*long(flip);
         con.push_back(c);
+
+        if(sigc>0.0 && sep<0.0)
+        newcrushref[pkey] = make_pair(flip,er);
         }
     }
 }

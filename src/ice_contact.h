@@ -52,6 +52,9 @@ struct ice_contact_record
     double px = 0.0, py = 0.0;
     double nx = 0.0, ny = 0.0;
     double Fn = 0.0;
+    double Fcap = 0.0;                  // crushing cap of the pair (sigma_c*h*w), 0: no cap
+    double pen = 0.0;                   // largest penetration depth of the pair (crushed ice for Fcap > 0)
+    double wc = 0.0;                    // contact width
 };
 
 class ice_contact

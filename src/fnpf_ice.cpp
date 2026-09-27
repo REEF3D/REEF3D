@@ -102,6 +102,9 @@ fnpf_ice::~fnpf_ice()
 
     if(obstout.is_open())
     obstout.close();
+
+    if(crushout.is_open())
+    crushout.close();
 }
 
 void fnpf_ice::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
