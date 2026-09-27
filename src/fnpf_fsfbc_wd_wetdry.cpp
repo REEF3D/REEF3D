@@ -69,7 +69,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
             pgc->gcsl_start4(p,eta,gcval_eta);
         }
 
-        if(p->A343>=2 || (p->A343==1 && p->A337==1))
+        if(p->A343>=2 || (p->A343==1 && p->A337>=1))
         {
             pgc->gcsl_start4Vint(p,p->wet,50);
             wd_front_mask(p,pgc);
@@ -110,7 +110,7 @@ void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, sl
         // A337 1: the clamp takes Fifsf from wet neighbours only (land cells
         // hold Fi=0, which pulled the cell away from its neighbours by a
         // fraction of the Fi drift) and gives the added volume back (A334)
-        if(p->A343==1 && p->A337==1)
+        if(p->A343==1 && p->A337>=1)
         {
             pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
 

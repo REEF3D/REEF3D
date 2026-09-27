@@ -289,7 +289,7 @@ void fnpf_fsfbc_wd::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, s
     // (bed + A344, i.e. the land slope for A343 2), which enters Fz*(1+Ex^2+Ey^2),
     // the sigma metrics and the steepness breaking criterion. Same rule as the
     // A316 Fifsf fallback: upwind wet face, else the other wet face, else 0.
-    if(p->A336==1 && (p->A343>=2 || (p->A343==1 && p->A337==1)))
+    if(p->A336==1 && (p->A343>=2 || (p->A343==1 && p->A337>=1)))
     {
         auto onesided = [](bool bw, bool fw, double gb, double gf, double vel)
         {
