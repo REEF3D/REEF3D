@@ -881,6 +881,12 @@ void control::ini_default()
 	S47=1.0;			// double t/T, before sediment transport starts
 	S48=0.1;			// int nt/T between bed calculation
     S49=200;            // int max number of non-equillibrium Gauss-Seidel sweeps (stops at convergence)
+    S51=0;                  // int number of sediment fractions (count of S 51 lines), 0: single fraction d50=S20
+    S52=0.0;                // double active layer thickness, <=0: 2*d90 of initial mixture
+    S53=10.0;               // double initial substrate layer thickness
+    S54=1;                  // int hiding/exposure function, 0: off, 1: Wu, Wang & Jia (2000)
+    S55=0.6;                // double hiding/exposure exponent m
+    S56=0;                  // int grain size for bed roughness ks=S21*d, 0: S20, 1: local d50, 2: local dm, 3: local d90
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S60=0;                  // int time stepping for suspended sediments

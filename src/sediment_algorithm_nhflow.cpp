@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
 #include"sediment_roughness.h"
+#include"sediment_mixture.h"
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
@@ -64,7 +65,11 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     pbedshear->taucritbed(p,d,pgc,s);
     
     // bedload *******
+    if(s->pmix==nullptr)
     pbed->start(p,pgc,s);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->bedload_fractions(p,pgc,s,pbed);
     
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
@@ -94,6 +99,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // sediment log
     sedimentlog(p);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->print_log(p,pgc);
     
     
     if(p->mpirank==0 && p->count>0)

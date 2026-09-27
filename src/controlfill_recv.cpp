@@ -1786,6 +1786,18 @@ void control::ctrlrecv()
     dd++;
     S103 = dctrl[dd];
     dd++;
+    S51 = ictrl[ii];
+    ii++;
+    S52 = dctrl[dd];
+    dd++;
+    S53 = dctrl[dd];
+    dd++;
+    S54 = ictrl[ii];
+    ii++;
+    S55 = dctrl[dd];
+    dd++;
+    S56 = ictrl[ii];
+    ii++;
 
     T10 = ictrl[ii];
     ii++;
@@ -3314,6 +3326,13 @@ void control::ctrlrecv()
     {
         Darray(S75_x,S75);
         Darray(S75_dist,S75);
+    }
+
+    if(S51>0)
+    {
+        Darray(S51_d,S51);
+        Darray(S51_fa,S51);
+        Darray(S51_fs,S51);
     }
 
     if(W41>0)
@@ -4889,6 +4908,16 @@ void control::ctrlrecv()
         S75_x[n]  = dctrl[dd];
         dd++;
         S75_dist[n]= dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<S51;++n)
+    {
+        S51_d[n]  = dctrl[dd];
+        dd++;
+        S51_fa[n] = dctrl[dd];
+        dd++;
+        S51_fs[n] = dctrl[dd];
         dd++;
     }
 

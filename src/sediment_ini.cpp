@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"patchBC_interface.h"
 #include"bedslope.h"
+#include"sediment_mixture.h"
 
 void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
 {
@@ -75,6 +76,9 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     topo_zh_update(p,a,pgc,s);
     waterlevel(p,a,pgc);
     
+    if(s->pmix!=nullptr)
+    s->pmix->ini(p,pgc,s);
+    
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
     log_ini(p);
@@ -101,6 +105,9 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_nhflow(p,d,pgc);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->ini(p,pgc,s);
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
@@ -131,6 +138,9 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_sflow(p,b,pgc);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->ini(p,pgc,s);
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);

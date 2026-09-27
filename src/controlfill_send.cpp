@@ -1795,6 +1795,18 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = S103;
     dd++;
+    ictrl[ii] = S51;
+    ii++;
+    dctrl[dd] = S52;
+    dd++;
+    dctrl[dd] = S53;
+    dd++;
+    ictrl[ii] = S54;
+    ii++;
+    dctrl[dd] = S55;
+    dd++;
+    ictrl[ii] = S56;
+    ii++;
 
     ictrl[ii] = T10;
     ii++;
@@ -3788,6 +3800,16 @@ void control::ctrlsend()
         dctrl[dd] = S75_x[n];
         dd++;
         dctrl[dd] = S75_dist[n];
+        dd++;
+    }
+
+    for(n=0;n<S51;++n)
+    {
+        dctrl[dd] = S51_d[n];
+        dd++;
+        dctrl[dd] = S51_fa[n];
+        dd++;
+        dctrl[dd] = S51_fs[n];
         dd++;
     }
 

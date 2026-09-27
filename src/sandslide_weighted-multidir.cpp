@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sandslide_weighted_multidir.h"
 #include"sediment_fdm.h"
+#include"sediment_mixture.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sliceint.h"
@@ -73,6 +74,9 @@ void sandslide_weighted_multidir::start(lexer *p, ghostcell *pgc, sediment_fdm *
         
         pgc->gcsl_start4(p,fh,1);
         
+        if(s->pmix!=nullptr)
+        s->pmix->slide_zero(p,pgc);
+        
         // slide loop
        compute_fh(p,pgc,s);
 
@@ -88,6 +92,10 @@ void sandslide_weighted_multidir::start(lexer *p, ghostcell *pgc, sediment_fdm *
         
 
         pgc->gcsl_start4(p,s->bedzh,1);
+        
+        // multi-fraction bed: sorting of the slid material
+        if(s->pmix!=nullptr)
+        s->pmix->slide_finish(p,pgc,s);
 
         slidecount=pgc->globalimax(slidecount);
 
@@ -195,6 +203,9 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
             {
                 double fraction = weights[k] / total_weight;
                 fh(ni[k], nj[k]) += total_flux * fraction;
+                
+                if(s->pmix!=nullptr)
+                s->pmix->slide_transfer(i,j,ni[k],nj[k],total_flux * fraction);
             }
         }
     }

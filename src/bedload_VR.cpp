@@ -42,6 +42,8 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double Ti,r,f,Ts,Tb;
 	double qb;
+    
+    d50 = s->dk;
 	
 	SEDSLICELOOP
     {

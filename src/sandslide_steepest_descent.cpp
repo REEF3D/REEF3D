@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sandslide_steepest_descent.h"
 #include"sediment_fdm.h"
+#include"sediment_mixture.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sliceint.h"
@@ -66,6 +67,9 @@ void sandslide_steepest_descent::start(lexer *p, ghostcell *pgc, sediment_fdm *s
         
         pgc->gcsl_start4(p,fh,1);
         
+        if(s->pmix!=nullptr)
+        s->pmix->slide_zero(p,pgc);
+        
         // slide loop
        slide(p,pgc,s);
 
@@ -81,6 +85,10 @@ void sandslide_steepest_descent::start(lexer *p, ghostcell *pgc, sediment_fdm *s
         
 
         pgc->gcsl_start4(p,s->bedzh,1);
+        
+        // multi-fraction bed: sorting of the slid material
+        if(s->pmix!=nullptr)
+        s->pmix->slide_finish(p,pgc,s);
 
         count=pgc->globalimax(count);
 
@@ -135,6 +143,9 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
             // Accumulate flux (don't modify topo directly yet)
             fh(i,j) -= transfer;
             fh(i_steep, j_steep) += transfer;
+            
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i_steep,j_steep,transfer);
             
             ++count;
         }

@@ -86,7 +86,7 @@ identical to equilibrium transport.
 
 void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
-    const double d50 = p->S20;
+    const double d50 = s->dk;
     const double visc = p->W2;
     const double grav = 9.81;
     const double Rstar = (p->S22 - p->W1)/p->W1;

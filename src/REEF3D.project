@@ -845,6 +845,7 @@
           <File Name="bedslope.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
+          <File Name="sediment_mixture.h"/>
           <File Name="sediment_roughness.h"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.h"/>
@@ -2349,6 +2350,7 @@
           <File Name="bedslope.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
+          <File Name="sediment_mixture.cpp"/>
           <File Name="sediment_roughness.cpp"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.cpp"/>
@@ -2538,6 +2540,7 @@
             <File Name="6DOF_obj_forcing_2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces NHFLOW">
+            <File Name="6DOF_obj_forcing_nhflow_porous.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_viscous.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_volume.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_stl2.cpp"/>

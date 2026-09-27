@@ -45,6 +45,8 @@ void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     // CFD/NHFLOW: P,Q are near-bed -> f from Engelund's resistance law V/u* = 6 + 2.5 ln(h/ks)
 	double qb,Ts,Tb,Rstar,fc,h,ks,uvel,vvel,u_abs,ustar;
 
+    d50 = s->dk;
+
 	SEDSLICELOOP
     {
         rhowat = s->ro(i,j);

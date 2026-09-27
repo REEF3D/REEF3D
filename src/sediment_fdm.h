@@ -32,6 +32,8 @@ Author: Hans Bihs
 
 using namespace std;
 
+class sediment_mixture;
+
 class sediment_fdm
 {
 public:
@@ -65,6 +67,13 @@ public:
     slice4 MOB,tau_i;
     
     double ws;
+    
+    // grain diameter used by the bedload formulas; S20 for single-fraction runs,
+    // set to d_k by sediment_mixture while the bedload of fraction k is evaluated
+    double dk;
+    
+    // multi-fraction bed model (S51>0), nullptr otherwise
+    sediment_mixture *pmix;
 
 };
 

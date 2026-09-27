@@ -35,6 +35,8 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        cbe(p),cb(p),cbn(p),conc(p),
                                        waterlevel(p),guard(p),MOB(p),tau_i(p)
 {
+    dk = p->S20;
+    pmix = nullptr;
 
 }
 

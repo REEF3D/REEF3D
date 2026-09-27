@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sandslide_pde.h"
 #include"sediment_fdm.h"
+#include"sediment_mixture.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
@@ -71,6 +72,9 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         }
         
         pgc->gcsl_start4(p,fh,1);
+        
+        if(s->pmix!=nullptr)
+        s->pmix->slide_zero(p,pgc);
         pgc->gcsl_start4(p,ci,1);
         
 
@@ -92,6 +96,10 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         }
         
         pgc->gcsl_start4(p,s->bedzh,1);
+        
+        // multi-fraction bed: sorting of the slid material
+        if(s->pmix!=nullptr)
+        s->pmix->slide_finish(p,pgc,s);
 
         count=pgc->globalimax(count);
 
@@ -115,6 +123,10 @@ void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
                                 
                         +(s->bedzh(i,j+1)-s->bedzh(i,j))*0.5*(ci(i,j+1)+ci(i,j)) 
                         -(s->bedzh(i,j)-s->bedzh(i,j-1))*0.5*(ci(i,j)+ci(i,j-1)));
+    
+    // multi-fraction bed: face fluxes with upwind composition
+    if(s->pmix!=nullptr)
+    s->pmix->slide_pde(p,s,ci,i,j,dt*sqd);
     
   
 }

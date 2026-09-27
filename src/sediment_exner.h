@@ -46,6 +46,8 @@ public:
     void  timestep(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
+    void start_mixture(lexer*,ghostcell*,sediment_fdm*);
+    
     void topovel1(lexer*,ghostcell*,sediment_fdm*);
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
@@ -67,7 +69,8 @@ private:
     slice4 cxn,cyn;
     
 	int gcval_topo;
-    int noneq_ini;    
+    int noneq_ini;
+    int frac_k;    
 	double starttime;
     double maxdh,maxvz,maxdhnet,maxvznet;
     double dtsed0;

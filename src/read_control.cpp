@@ -2358,6 +2358,24 @@ void control::read_control(lexer* p)
                 case 50: control>>S50;
                          clear(c,numint);
                          break;
+                case 51: ++S51;
+                         clear(c,numint);
+                         break;
+                case 52: control>>S52;
+                         clear(c,numint);
+                         break;
+                case 53: control>>S53;
+                         clear(c,numint);
+                         break;
+                case 54: control>>S54;
+                         clear(c,numint);
+                         break;
+                case 55: control>>S55;
+                         clear(c,numint);
+                         break;
+                case 56: control>>S56;
+                         clear(c,numint);
+                         break;
                 case 57: control>>S57;
                          clear(c,numint);
                          break;
@@ -3628,6 +3646,10 @@ void control::read_control(lexer* p)
     Darray(Q111_ze,Q111);
 
     // S
+    Darray(S51_d,S51);
+    Darray(S51_fa,S51);
+    Darray(S51_fs,S51);
+
     Darray(S73_val,S73);
     Darray(S73_dist,S73);
     Darray(S73_b,S73);
@@ -3904,6 +3926,7 @@ void control::read_control(lexer* p)
     int countQ73=0;
     int countQ110=0;
     int countQ111=0;
+    int countS51=0;
     int countS73=0;
     int countS74=0;
     int countS75=0;
@@ -4556,6 +4579,10 @@ void control::read_control(lexer* p)
             case 'S': control>>numint;
                 switch(numint)
                 {
+                case 51: control>>S51_d[countS51]>>S51_fa[countS51]>>S51_fs[countS51];
+                         ++countS51;
+                         clear(c,numint);
+                         break;
                 case 73: control>>S73_val[countS73]>>S73_dist[countS73]>>S73_b[countS73]>>S73_x[countS73]>>S73_y[countS73];
                          ++countS73;
                          clear(c,numint);

@@ -42,6 +42,8 @@ void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     //                  Phi = 40*theta^3              for theta >= 0.182
     double qb,Tb,Rstar;
 
+    d50 = s->dk;
+
 	SEDSLICELOOP
     {
         rhowat = s->ro(i,j);
