@@ -31,41 +31,64 @@ void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, doubl
     int* rownum7;
     p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 
+    // mark all ghost/boundary positions as invalid, so that only real unknowns
+    // (local or MPI neighbour, exchanged with flagx7 on the FNPF FIJK layout) end up as column indices in the IJ matrix
+    for(int q=0; q<p->imax*p->jmax*(p->kmax+2); ++q)
+    rownum7[q]=-1;
+
     pgc->rownum7_update(p,rownum7);
-    pgc->flagx(p,rownum7);
+    pgc->flagx7(p,rownum7);
 
     n=0;
     LOOP
     {
         count=0;
         val[count] = M.p[n];
-        col[count] = rownum7[IJK];
-        rownum = rownum7[IJK];
+        col[count] = rownum7[FIJK];
+        rownum = rownum7[FIJK];
         ++count;
 
+        if(rownum7[FIm1JK]>=0 && M.s[n]!=0.0)
+        {
         val[count] = M.s[n];
-        col[count] = rownum7[Im1JK];
+        col[count] = rownum7[FIm1JK];
         ++count;
+        }
 
+        if(rownum7[FIp1JK]>=0 && M.n[n]!=0.0)
+        {
         val[count] = M.n[n];
-        col[count] = rownum7[Ip1JK];
+        col[count] = rownum7[FIp1JK];
         ++count;
+        }
 
+        if(rownum7[FIJm1K]>=0 && M.e[n]!=0.0)
+        {
         val[count] = M.e[n];
-        col[count] = rownum7[IJm1K];
+        col[count] = rownum7[FIJm1K];
         ++count;
+        }
 
+        if(rownum7[FIJp1K]>=0 && M.w[n]!=0.0)
+        {
         val[count] = M.w[n];
-        col[count] = rownum7[IJp1K];
+        col[count] = rownum7[FIJp1K];
         ++count;
+        }
 
+        if(rownum7[FIJKm1]>=0 && M.b[n]!=0.0)
+        {
         val[count] = M.b[n];
-        col[count] = rownum7[IJKm1];
+        col[count] = rownum7[FIJKm1];
         ++count;
+        }
 
+        if(rownum7[FIJKp1]>=0 && M.t[n]!=0.0)
+        {
         val[count] = M.t[n];
-        col[count] = rownum7[IJKp1];
+        col[count] = rownum7[FIJKp1];
         ++count;
+        }
 
         HYPRE_IJMatrixSetValues(A, 1, &count, &rownum, col, val);
 
@@ -81,7 +104,7 @@ void hypre_aij::fill_matrix_F_7p(lexer* p, ghostcell* pgc, matrix_diag &M, doubl
     LOOP
     {
         xvec[n] = f[FIJK];
-        rows[n] = rownum7[IJK];
+        rows[n] = rownum7[FIJK];
         ++n;
     }
 

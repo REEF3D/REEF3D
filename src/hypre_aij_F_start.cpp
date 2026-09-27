@@ -112,7 +112,7 @@ void hypre_aij::fillbackvec_F(lexer *p, double *f, double *xvec, int var)
 
 void hypre_aij::fillbackvec_F_v2(lexer *p, double *f, double *xvec, int var)
 {
-    HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec);
+    HYPRE_IJVectorGetValues(x, p->N7_row, rows, xvec);
 
     n=0;
     LOOP

@@ -49,7 +49,7 @@ void ghostcell::rownum7_update(lexer* p, int *rownum7)
 
     LOOP
     {
-        rownum7[IJK]=p->N7_row;
+        rownum7[FIJK]=p->N7_row;
         ++p->N7_row;
         ++p->N7_col;
     }
@@ -57,5 +57,5 @@ void ghostcell::rownum7_update(lexer* p, int *rownum7)
     rangex(p,p->range_row7,p->N7_row);
 
     LOOP
-        rownum7[IJK]+=p->range_row7[p->mpirank];
+        rownum7[FIJK]+=p->range_row7[p->mpirank];
 }
