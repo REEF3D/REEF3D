@@ -262,7 +262,7 @@ wave_lib_wavemaker2nd::~wave_lib_wavemaker2nd()
 void wave_lib_wavemaker2nd::compute_components_multi(double g, double h, const std::vector<shape_t> &shp,
                        int mode, int J, int addQ, double dw, double w2min,
                        const std::vector<int> &bin, const std::vector<std::vector<cplx> > &X,
-                       std::vector<std::vector<cplx> > &X2)
+                       std::vector<std::vector<cplx> > &X2, std::vector<cplx> *RQ)
 {
     const int N = int(bin.size());
     const int P = int(shp.size());
@@ -316,6 +316,7 @@ void wave_lib_wavemaker2nd::compute_components_multi(double g, double h, const s
         continue;
 
         // bound wave contribution (-phi^(21)_x at the paddle, projected)
+        if(RQ==nullptr)
         for(int q1=0; q1<M; ++q1)
         {
             const wm_mode &a1 = md[q1];
@@ -401,6 +402,14 @@ void wave_lib_wavemaker2nd::compute_components_multi(double g, double h, const s
                 R[ab] += r;
             }
         }
+    }
+
+    // only the projected paddle terms requested (B119 forcing)
+    if(RQ!=nullptr)
+    {
+        *RQ = R;
+        X2.assign(P,std::vector<cplx>(nb,cplx(0.0,0.0)));
+        return;
     }
 
     // direction of the paddle motion per first-order component, e = X/|X|
@@ -542,96 +551,73 @@ void wave_lib_wavemaker2nd::compute_paddle_Q_multi(double g, double h, const std
                        int J, double fmin, double fmax, int nmax,
                        const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q)
 {
-    const int P = int(shp.size());
+    // The pointwise Taylor terms Q(z,t) of the linear paddle solution are
+    // singular at the paddle/free-surface corner (phi_xx ~ log r) and, applied
+    // node by node, can exceed the first-order paddle velocity near the surface.
+    // Only their projection onto the free progressive mode generates a
+    // propagating second-order wave (this is also what B113 cancels), so Q is
+    // replaced by that projection for every second-order frequency:
+    //   Q_prog(s,t) = sum_b Re( Qb cosh(K_b s) exp(i Omega_b t) ),
+    //   Qb = int Q cosh(K_b s) ds / int cosh^2(K_b s) ds.
+    // It is smooth, bounded and radiates exactly the same free wave.
+
     const int npts = int(x[0].size());
     Q.assign(size_t(nlev)*size_t(npts),0.0f);
     if(npts<8 || nlev<2)
     return;
 
     std::vector<int> cand;
-    std::vector<std::vector<cplx> > X;
+    std::vector<std::vector<cplx> > X, X2;
     std::vector<double> amp;
+    std::vector<cplx> RQ;
     int nfft;
     double dw;
     const int N = select_components(g,h,fmin,fmax,nmax,x,dt,nfft,dw,cand,X,amp);
     if(N==0)
     return;
 
-    // band-limited first-order displacements X_p(t)
-    std::vector<std::vector<double> > xs(P,std::vector<double>(npts));
-    for(int p=0; p<P; ++p)
+    compute_components_multi(g,h,shp,1,J,1,dw,0.0,cand,X,X2,&RQ);
+
+    const int nb = int(RQ.size());
+    std::vector<double> Kb(nb,0.0);
+    std::vector<cplx> Qb(nb,cplx(0.0,0.0));
+    for(int b=1; b<nb; ++b)
+    if(std::abs(RQ[b])>0.0)
     {
-        std::vector<cplx> Y(nfft,cplx(0.0,0.0));
-        for(int n=0; n<N; ++n)
-        Y[cand[n]] = X[p][n];
-        fft(Y,true);
-        for(int q=0; q<npts; ++q)
-        xs[p][q] = Y[q].real();
+        Kb[b] = k_prog(double(b)*dw,h,g);
+        Qb[b] = -RQ[b];                                             // R accumulates -int Q cosh
     }
 
-    // modal coefficients Ct = i g a/omega and wavenumbers
-    std::vector<cplx> km, Ctm, chm;
-    km.reserve(size_t(N)*(J+1));
-    for(int n=0; n<N; ++n)
+    // cosh(K s) / int_0^h cosh^2(K s) ds, overflow-safe for large K h
+    auto shapefac = [&](double K, double s)
     {
-        const double w = double(cand[n])*dw;
-        for(int j=0; j<=J; ++j)
-        {
-            const cplx k = (j==0) ? cplx(k_prog(w,h,g),0.0) : cplx(0.0,-k_evan(w,h,g,j));
-            const cplx ch = cosh(k*h), sh = sinh(k*h);
-            const cplx N0 = (2.0*k*h + 2.0*sh*ch)/(4.0*k);
-            cplx XI(0.0,0.0);
-            for(int p=0; p<P; ++p)
-            XI += X[p][n]*If_shape(shp[p],k,h);
-            const cplx a  = I_*sh*XI/N0;
-            km.push_back(k);
-            chm.push_back(ch);
-            Ctm.push_back(I_*g*a/w);
-        }
+        if(K*h<20.0)
+        return cosh(K*s)/(0.5*h + sinh(2.0*K*h)/(4.0*K));
+
+        return 4.0*K*exp(K*(s-2.0*h))*0.5*(1.0+exp(-2.0*K*s))/(1.0 + 2.0*K*h*exp(-2.0*K*h));
+    };
+
+    // synthesis grid with the same frequency spacing, fine enough for 2*fmax
+    int nsyn = nfft, r = 1;
+    while(nsyn/2 <= nb)
+    {
+        nsyn<<=1;
+        r<<=1;
     }
 
-    std::vector<cplx> A(nfft), B(nfft);
+    std::vector<cplx> Y(nsyn);
     for(int l=0; l<nlev; ++l)
     {
         const double s = h*double(l)/double(nlev-1);
 
-        std::vector<double> f(P,0.0), fp(P,0.0);
-        bool any=false;
-        for(int p=0; p<P; ++p)
-        if(s>=shp[p].sa)
-        {
-            f[p]  = shp[p].al + shp[p].be*s;
-            fp[p] = shp[p].be;
-            any = any || f[p]!=0.0 || fp[p]!=0.0;
-        }
-        if(!any)
-        continue;
-
-        std::fill(A.begin(),A.end(),cplx(0.0,0.0));
-        std::fill(B.begin(),B.end(),cplx(0.0,0.0));
-
-        for(int n=0; n<N; ++n)
-        for(int j=0; j<=J; ++j)
-        {
-            const int m = n*(J+1)+j;
-            const cplx k = km[m];
-            const cplx c = Ctm[m]/chm[m];
-            A[cand[n]] += -k*k*c*cosh(k*s);   // phi_xx
-            B[cand[n]] +=  k*c*sinh(k*s);     // phi_z
-        }
-        fft(A,true);
-        fft(B,true);
+        std::fill(Y.begin(),Y.end(),cplx(0.0,0.0));
+        for(int b=1; b<nb; ++b)
+        if(std::abs(Qb[b])>0.0)
+        Y[b] = Qb[b]*shapefac(Kb[b],s);
+        fft(Y,true);
 
         for(int q=0; q<npts; ++q)
-        {
-            double S=0.0, Sz=0.0;
-            for(int p=0; p<P; ++p)
-            {
-                S  += f[p]*xs[p][q];
-                Sz += fp[p]*xs[p][q];
-            }
-            Q[size_t(l)*npts+q] = float(Sz*B[q].real() - S*A[q].real());
-        }
+        Q[size_t(l)*npts+q] = float(Y[size_t(q)*size_t(r)].real());
     }
 }
 

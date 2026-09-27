@@ -74,9 +74,10 @@ public:
     // upper flap hinged at z2 (kin[q][2] = displacement at ze relative to the lower flap)
     void correct_double(lexer*, ghostcell*, double **kin, int ptnum, double h, double zs, double z2, double ze);
 
-    // REEF3D interface for the moving-paddle BC (B119): tabulates
-    // Q(z,t) = X_z*phi_z - X*phi_xx at x=0 from the linear paddle solution
-    // (progressive + J evanescent modes) of the first-order signal.
+    // REEF3D interface for the moving-paddle BC (B119): tabulates the
+    // progressive-mode projection of Q(z,t) = X_z*phi_z - X*phi_xx at x=0,
+    // computed from the linear paddle solution (progressive + J evanescent
+    // modes) of the first-order signal.
     // Must be called with the uncorrected first-order signal.
     void make_Qtable(lexer*, ghostcell*, double **kin, int ptnum, double h, int shape, double zs, double ze);
     void make_Qtable_double(lexer*, ghostcell*, double **kin, int ptnum, double h, double zs, double z2, double ze);
@@ -92,7 +93,7 @@ public:
     static void compute_components_multi(double g, double h, const std::vector<shape_t> &shp,
                        int mode, int J, int addQ, double dw, double w2min,
                        const std::vector<int> &bin, const std::vector<std::vector<cplx> > &X,
-                       std::vector<std::vector<cplx> > &X2);
+                       std::vector<std::vector<cplx> > &X2, std::vector<cplx> *RQ=nullptr);
 
     // uniformly sampled first-order displacements x[p] (dt), returns x2[p]
     // mode: 1 sub+super, 2 subharmonics only, 3 superharmonics only
@@ -103,7 +104,7 @@ public:
                        int mode, int J, int addQ, double fmin, double fmax, double f2min, int nmax,
                        const std::vector<std::vector<double> > &x, double dt, std::vector<std::vector<double> > &x2);
 
-    // Q on nlev equidistant levels s=z+h in [0,h], Q[l*npts+q]
+    // progressive-mode projection of Q on nlev equidistant levels s=z+h in [0,h], Q[l*npts+q]
     static void compute_paddle_Q_multi(double g, double h, const std::vector<shape_t> &shp,
                        int J, double fmin, double fmax, int nmax,
                        const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q);
