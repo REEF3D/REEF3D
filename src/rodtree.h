@@ -42,9 +42,20 @@ Author: Hans Bihs
 // element mass matrix, buoyancy, gravity.  All fluid terms scale with the
 // submerged fraction chi supplied by the coupling.
 //
-// Time integration: linearly implicit Euler on the full tree (sparse LU,
-// joint Jacobians by central finite differences, drag linearised
-// analytically) or symplectic Euler with automatic sub-cycling.
+// Time integration: linearly implicit Euler on the full tree (joint Jacobians
+// by central finite differences, drag linearised analytically) or symplectic
+// Euler with automatic sub-cycling.  Linear solver: block elimination on the
+// tree (6x6 blocks, leaves first, no fill-in, O(n); the tree analogue of a
+// banded solve) or general sparse LU.
+//
+// Structural modes: dynamic (default), quasi-static (static equilibrium under
+// the current fluid loads in every time step, Newton on the joint stiffness,
+// no structural inertia) or rigid (initial geometry, loads only).
+//
+// Representative colonies (canopies): 'represent weight spacing' makes every
+// instance of a colony stand for 'weight' physical colonies; the coupling
+// multiplies the fluid reaction by the weight and widens the horizontal
+// kernel to the representative spacing.
 //
 // This file has no REEF3D dependencies (Eigen + STL only) so the solver
 // can be tested standalone (tests/rodtree).
@@ -107,6 +118,7 @@ public:
         material mat;
         std::vector<int> elements, roots;        // element ids, root joints
         int tip_node=-1;                         // element whose end is farthest from root
+        double weight=1.0, spacing=0.0;          // representative colonies: physical colonies per instance, spacing [m]
     };
 
     rodtree();
@@ -123,6 +135,12 @@ public:
     int get_integrator() const {return integrator;}
     int get_substeps() const {return substeps;}
     int get_reaction_mode() const {return reaction_mode;}  // 0 full, 1 drag only, 2 one-way
+    void set_mode(int m){mode=m;}               // 0 dynamic, 1 quasi-static, 2 rigid
+    int get_mode() const {return mode;}
+    void set_linear_solver(int s){linsolver=s;} // 0 sparse LU, 1 tree block elimination
+    int get_linear_solver() const {return linsolver;}
+    bool tree_topology();                        // element graph is a forest (tree solver applicable)
+    int static_iterations() const {return qs_it_last;}
     void compute_hydro();                        // Fh, Fdrag, Finert with current state
     void advance(double dt);                     // one fluid time step
 
@@ -166,6 +184,7 @@ private:
     struct pcolony
     {
         std::string name; material mat; int refine=1;
+        double weight=1.0, spacing=0.0;
         std::vector<pnode> nodes; std::vector<pedge> edges; std::vector<int> clamps;
         std::vector<Vec3> instances;
     };
@@ -178,12 +197,27 @@ private:
     Vec3 g;
     double rhof, t;
     int integrator, substeps, nsub_last, reaction_mode;
+    int mode, linsolver, qs_it_last;
     double hsub_prev;
 
     // implicit solver data
     Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > lu;
     bool pattern_ready;
     std::vector<Eigen::Triplet<double> > trip;
+
+    // tree block solver
+    typedef Eigen::Matrix<double,6,6> Mat6;
+    typedef Eigen::Matrix<double,6,1> Vec6;
+    std::vector<int> parent, order;
+    bool tree_built, tree_ok;
+    std::vector<Mat6> Dm, Up, Lp;
+    std::vector<Eigen::PartialPivLU<Mat6> > luD;
+    void build_tree();
+    bool tree_solve(Eigen::VectorXd& b);
+    void solve_system(int N, Eigen::VectorXd& b, bool reuse_pattern);
+    void joint_jacobian(double cx, double cv, Eigen::VectorXd* Ku, const Eigen::VectorXd* u);
+    void step_quasistatic();
+    void state_rigid();
 
     // helpers
     static Vec3 logq(const Quat&);

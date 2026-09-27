@@ -143,8 +143,10 @@ void rodtree_coupling::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double
         if(nin==0)
         continue;
 
-        const double cpt = rt.drag_slope(e)/double(nin);
-        const Eigen::Vector3d Fp0 = F/(rho*double(nin));        // per point, per unit density
+        const double cpt = wgt[e]*rt.drag_slope(e)/double(nin);
+        const Eigen::Vector3d Fp0 = wgt[e]*F/(rho*double(nin));        // per point, per unit density
+        const double sh = shk[e];
+        const int Rh = stencil_h(sh);
 
         for(int q=0; q<nq[e]; ++q)
         {
@@ -169,27 +171,27 @@ void rodtree_coupling::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double
                 i = ic; j = jc;
                 if(WL(i,j)>1.0e-10) dzc = p->DZN[kc+marge]*WL(i,j);
             }
-            double S = self_weight(std::fmod(std::fabs(x(0)-p->XP[ic+marge])/dx,1.0))*self_weight(0.0);
+            double S = self_weight_s(std::fmod(std::fabs(x(0)-p->XP[ic+marge])/dx,1.0),sh)*self_weight(0.0);
             if(p->j_dir==1)
-            S *= self_weight(std::fmod(std::fabs(x(1)-p->YP[jc+marge])/dy,1.0));
+            S *= self_weight_s(std::fmod(std::fabs(x(1)-p->YP[jc+marge])/dy,1.0),sh);
             const double relax = 1.0/(1.0 + alpha*p->dt*cpt*S/(dx*dy*dzc*rho));
             const Eigen::Vector3d Fp = relax*Fp0;
 
-            const int is = std::max(ii-2,0), ie = std::min(ii+2,p->knox-1);
-            const int js = (p->j_dir==1) ? std::max(jj-2,0) : 0;
-            const int je = (p->j_dir==1) ? std::min(jj+2,p->knoy-1) : 0;
+            const int is = std::max(ii-Rh,0), ie = std::min(ii+Rh,p->knox-1);
+            const int js = (p->j_dir==1) ? std::max(jj-Rh,0) : 0;
+            const int je = (p->j_dir==1) ? std::min(jj+Rh,p->knoy-1) : 0;
 
             for(int ia=is; ia<=ie; ++ia)
             {
                 i = ia;
-                const double Dx = kernel((p->XP[IP]-x(0))/dx);
+                const double Dx = kernel_s((p->XP[IP]-x(0))/dx,sh);
                 if(Dx==0.0)
                 continue;
 
                 for(int ja=js; ja<=je; ++ja)
                 {
                     i = ia; j = ja;
-                    const double Dy = (p->j_dir==0) ? 1.0 : kernel((p->YP[JP]-x(1))/dy);
+                    const double Dy = (p->j_dir==0) ? 1.0 : kernel_s((p->YP[JP]-x(1))/dy,sh);
 
                     if(Dy==0.0 || p->wet[IJ]==0 || WL(i,j)<1.0e-10)
                     continue;

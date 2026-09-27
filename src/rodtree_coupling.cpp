@@ -97,7 +97,9 @@ rodtree_coupling::rodtree_coupling(lexer *p, ghostcell *pgc) : npts(0), tprev(0.
                  <<(rt.get_integrator()==0 ? "implicit" : "explicit")<<" integrator";
         if(rt.get_integrator()==0)
         std::cout<<" ("<<rt.get_substeps()<<" substeps)";
-        std::cout<<", reaction "<<(rt.get_reaction_mode()==0 ? "full" : rt.get_reaction_mode()==1 ? "drag" : "none")<<std::endl;
+        std::cout<<", reaction "<<(rt.get_reaction_mode()==0 ? "full" : rt.get_reaction_mode()==1 ? "drag" : "none")
+                 <<", mode "<<(rt.get_mode()==0 ? "dynamic" : rt.get_mode()==1 ? "quasi-static" : "rigid")
+                 <<", solver "<<((rt.get_linear_solver()==1 && rt.tree_topology()) ? "tree" : "sparse LU")<<std::endl;
 
         for(int c=0; c<rt.ncolony(); ++c)
         {
@@ -138,6 +140,17 @@ void rodtree_coupling::ini_points(lexer *p, ghostcell *pgc)
     }
 
     buf.assign(4*npts,0.0);
+
+    // representative colonies: reaction times the weight, horizontal kernel widened
+    // to the representative spacing (in units of the smallest horizontal cell)
+    wgt.resize(ne);
+    shk.resize(ne);
+    for(int e=0; e<ne; ++e)
+    {
+        const rodtree::colony_info& c = rt.colony(rt.elem(e).colony);
+        wgt[e] = c.weight;
+        shk[e] = std::max(1.0, c.spacing/h);
+    }
 }
 
 void rodtree_coupling::reduce_samples(ghostcell *pgc)
@@ -228,6 +241,19 @@ double rodtree_coupling::kernel(double r) const
 {
     r = std::fabs(r);
     return r<2.0 ? 0.25*(1.0 + std::cos(0.5*PI*r)) : 0.0;
+}
+
+double rodtree_coupling::self_weight_s(double frac, double s) const
+{
+    // sum of squared widened 1D kernel weights (s = 1: self_weight)
+    const int K = (int)std::ceil(2.0*s) + 1;
+    double sum = 0.0;
+    for(int kk=-K; kk<=K; ++kk)
+    {
+        double w = kernel_s(double(kk) - frac, s);
+        sum += w*w;
+    }
+    return sum;
 }
 
 double rodtree_coupling::self_weight(double frac) const

@@ -40,7 +40,7 @@ namespace
     }
 }
 
-rodtree::rodtree() : g(0.0,0.0,-9.81), rhof(1000.0), t(0.0), integrator(0), substeps(1), nsub_last(1), reaction_mode(0), hsub_prev(0.0), pattern_ready(false)
+rodtree::rodtree() : g(0.0,0.0,-9.81), rhof(1000.0), t(0.0), integrator(0), substeps(1), nsub_last(1), reaction_mode(0), mode(0), linsolver(1), qs_it_last(0), hsub_prev(0.0), pattern_ready(false), tree_built(false), tree_ok(false)
 {
 }
 
@@ -82,6 +82,27 @@ void rodtree::read(std::istream& in)
             throw input_error(lineno,"substeps needs an integer >= 1");
             continue;
         }
+        if(!cur && key=="mode")
+        {
+            std::string m;
+            ls>>m;
+            if(m=="dynamic") mode = 0;
+            else if(m=="quasistatic" || m=="quasi-static") mode = 1;
+            else if(m=="rigid") mode = 2;
+            else throw input_error(lineno,"mode must be 'dynamic', 'quasistatic' or 'rigid'");
+            continue;
+        }
+
+        if(!cur && key=="solver")
+        {
+            std::string m;
+            ls>>m;
+            if(m=="tree") linsolver = 1;
+            else if(m=="sparse") linsolver = 0;
+            else throw input_error(lineno,"solver must be 'tree' or 'sparse'");
+            continue;
+        }
+
         if(!cur && key=="reaction")
         {
             std::string m;
@@ -139,6 +160,11 @@ void rodtree::read(std::istream& in)
         {
             if(!(ls>>cur->mat.Ur>>cur->mat.dUr>>cur->mat.taup) || cur->mat.Ur<0.0 || cur->mat.dUr<0.0 || cur->mat.taup<0.0)
             throw input_error(lineno,"polyp_response needs: U_retract dU tau  (all >= 0)");
+        }
+        else if(key=="represent")
+        {
+            if(!(ls>>cur->weight>>cur->spacing) || cur->weight<=0.0 || cur->spacing<0.0)
+            throw input_error(lineno,"represent needs: weight spacing  (weight > 0 colonies per instance, spacing >= 0 m)");
         }
         else if(key=="refine")
         {
@@ -255,6 +281,8 @@ void rodtree::finalize_setup()
             colony_info ci;
             ci.name = pc.name + (offsets.size()>1 ? "_" + std::to_string(inst) : "");
             ci.mat = pc.mat;
+            ci.weight = pc.weight;
+            ci.spacing = pc.spacing;
             const int cid = (int)col.size();
 
             std::vector<int> last_elem_of_edge(pc.edges.size(),-1);
@@ -600,6 +628,36 @@ void rodtree::advance(double dt)
 
     update_polyps(dt);
 
+    if(mode==2)
+    {
+        state_rigid();
+
+        // reaction: every colony's root joints carry its total external load
+        std::vector<Vec3> F,T;
+        assemble_forces(F,T,true);
+        for(const colony_info& c : col)
+        if(!c.roots.empty())
+        {
+            Vec3 Fs = Vec3::Zero();
+            for(int e : c.elements) Fs += F[e];
+            for(int rj : c.roots) {jt[rj].F.setZero(); jt[rj].T.setZero();}
+            jt[c.roots[0]].F = -Fs;
+        }
+        nsub_last = 0;
+        t += dt;
+        return;
+    }
+
+    if(mode==1)
+    {
+        step_quasistatic();
+        std::vector<Vec3> F,T;
+        assemble_forces(F,T,true);
+        nsub_last = qs_it_last;
+        t += dt;
+        return;
+    }
+
     if(integrator==1)
     {
         double h = explicit_dt();
@@ -761,6 +819,31 @@ void rodtree::step_implicit(double h)
     }
 
     // joint Jacobians by central differences
+    joint_jacobian(-h*h, -h, &Ku, &u);
+
+    Eigen::VectorXd du = h*(rhs + h*Ku);
+    solve_system(N, du, true);
+
+    for(int e=0; e<ne; ++e)
+    {
+        element& E = el[e];
+        Vec3 dv = du.segment<3>(6*e);
+        E.v += dv;
+        E.a = dv/h;
+        E.w += du.segment<3>(6*e+3);
+        E.c += h*E.v;
+        E.q = expq(h*E.w)*E.q;
+        E.q.normalize();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// joint Jacobians (central differences): adds cx*dF/dx and cv*dF/dv to the
+// triplet list; optionally Ku += dF/dx * u
+// ---------------------------------------------------------------------------
+
+void rodtree::joint_jacobian(double cx, double cv, Eigen::VectorXd* Ku, const Eigen::VectorXd* u)
+{
     const Vec3 z = Vec3::Zero();
     const Quat qi = Quat::Identity();
     for(const joint& j : jt)
@@ -775,7 +858,7 @@ void rodtree::step_implicit(double h)
             const double epsr = 1.0e-6;
             const double epsv = 1.0e-6;
 
-            for(int kind=0; kind<2; ++kind)      // 0: position, 1: velocity
+            for(int kind=0; kind<(cv!=0.0 ? 2 : 1); ++kind)      // 0: position, 1: velocity
             for(int k=0; k<6; ++k)
             {
                 Eigen::Matrix<double,12,1> col_d;
@@ -815,25 +898,122 @@ void rodtree::step_implicit(double h)
                         if(dfd==0.0) continue;
                         if(kind==0)
                         {
-                            trip.emplace_back(6*r+i,colidx,-h*h*dfd);
-                            Ku(6*r+i) += dfd*u(colidx);
+                            trip.emplace_back(6*r+i,colidx,cx*dfd);
+                            if(Ku) (*Ku)(6*r+i) += dfd*(*u)(colidx);
                         }
                         else
-                        trip.emplace_back(6*r+i,colidx,-h*dfd);
+                        trip.emplace_back(6*r+i,colidx,cv*dfd);
                     }
                 }
             }
         }
     }
 
+}
+
+// ---------------------------------------------------------------------------
+// linear solvers
+// ---------------------------------------------------------------------------
+
+void rodtree::build_tree()
+{
+    const int ne = nelem();
+    parent.assign(ne,-1);
+    tree_ok = true;
+
+    for(const joint& j : jt)
+    if(j.a>=0)
+    {
+        if(parent[j.b]!=-1) {tree_ok = false; break;}
+        parent[j.b] = j.a;
+    }
+
+    // depths (detects cycles), elimination order leaves first
+    std::vector<int> depth(ne,0);
+    for(int e=0; e<ne && tree_ok; ++e)
+    {
+        int d = 0, x = e;
+        while(parent[x]>=0 && d<=ne) {x = parent[x]; ++d;}
+        if(d>ne) tree_ok = false;
+        depth[e] = d;
+    }
+
+    order.resize(ne);
+    for(int e=0; e<ne; ++e) order[e] = e;
+    std::stable_sort(order.begin(),order.end(),[&](int x, int y){return depth[x]>depth[y];});
+
+    tree_built = true;
+}
+
+bool rodtree::tree_topology()
+{
+    if(!tree_built) build_tree();
+    return tree_ok;
+}
+
+bool rodtree::tree_solve(Eigen::VectorXd& b)
+{
+    // block Gaussian elimination on the element tree: every element couples only
+    // to its parent and children, so eliminating leaves first creates no fill-in
+    if(!tree_built) build_tree();
+    if(!tree_ok) return false;
+
+    const int ne = nelem();
+    Dm.assign(ne,Mat6::Zero());
+    Up.assign(ne,Mat6::Zero());     // row e, column parent(e)
+    Lp.assign(ne,Mat6::Zero());     // row parent(e), column e
+
+    for(const Eigen::Triplet<double>& t : trip)
+    {
+        const int er = t.row()/6, ec = t.col()/6, ir = t.row()%6, ic = t.col()%6;
+        if(er==ec) Dm[er](ir,ic) += t.value();
+        else if(parent[er]==ec) Up[er](ir,ic) += t.value();
+        else if(parent[ec]==er) Lp[ec](ir,ic) += t.value();
+        else return false;
+    }
+
+    luD.resize(ne);
+
+    for(int e : order)
+    {
+        luD[e].compute(Dm[e]);
+        const int p = parent[e];
+        if(p>=0)
+        {
+            Dm[p] -= Lp[e]*luD[e].solve(Up[e]);
+            b.segment<6>(6*p) -= Lp[e]*luD[e].solve(Vec6(b.segment<6>(6*e)));
+        }
+    }
+
+    for(int n=ne-1; n>=0; --n)
+    {
+        const int e = order[n], p = parent[e];
+        Vec6 r = b.segment<6>(6*e);
+        if(p>=0) r -= Up[e]*b.segment<6>(6*p);
+        b.segment<6>(6*e) = luD[e].solve(r);
+    }
+
+    for(int e=0; e<ne; ++e)
+    if(!b.segment<6>(6*e).allFinite())
+    throw std::runtime_error("rodtree: tree block elimination failed (singular block)");
+
+    return true;
+}
+
+void rodtree::solve_system(int N, Eigen::VectorXd& b, bool reuse_pattern)
+{
+    // system from the triplet list, solution overwrites b
+    if(linsolver==1 && tree_solve(b))
+    return;
+
     Eigen::SparseMatrix<double> A(N,N);
     A.setFromTriplets(trip.begin(),trip.end());
     A.makeCompressed();
 
-    if(!pattern_ready)
+    if(!pattern_ready || !reuse_pattern)
     {
         lu.analyzePattern(A);
-        pattern_ready = true;
+        pattern_ready = reuse_pattern;
     }
     lu.factorize(A);
     if(lu.info()!=Eigen::Success)
@@ -845,18 +1025,102 @@ void rodtree::step_implicit(double h)
         throw std::runtime_error("rodtree: sparse LU factorisation failed");
     }
 
-    Eigen::VectorXd du = lu.solve(h*(rhs + h*Ku));
+    b = lu.solve(b).eval();
+}
 
-    for(int e=0; e<ne; ++e)
+// ---------------------------------------------------------------------------
+// quasi-static and rigid modes
+// ---------------------------------------------------------------------------
+
+void rodtree::step_quasistatic()
+{
+    // static equilibrium under the current fluid loads (structure at rest):
+    // Newton on the joint stiffness, fluid loads re-evaluated in every iteration
+    // with the current orientation (their orientation dependence is lagged)
+    const int ne = nelem();
+    const int N = 6*ne;
+    const int maxit = 50;
+
+    for(element& E : el) {E.v.setZero(); E.w.setZero(); E.a.setZero();}
+
+    std::vector<Vec3> F,T;
+    Eigen::VectorXd r(N);
+    int it;
+
+    for(it=1; it<=maxit; ++it)
     {
-        element& E = el[e];
-        Vec3 dv = du.segment<3>(6*e);
-        E.v += dv;
-        E.a = dv/h;
-        E.w += du.segment<3>(6*e+3);
-        E.c += h*E.v;
-        E.q = expq(h*E.w)*E.q;
-        E.q.normalize();
+        assemble_forces(F,T,false);
+        for(int e=0; e<ne; ++e)
+        {
+            r.segment<3>(6*e) = F[e];
+            r.segment<3>(6*e+3) = T[e];
+        }
+
+        trip.clear();
+        trip.reserve(jt.size()*144 + ne*9);
+        joint_jacobian(-1.0, 0.0, nullptr, nullptr);
+
+        // orientation dependence of the fluid loads (drag direction, buoyancy is
+        // orientation independent): -dF_ext/dtheta by central differences
+        for(int e=0; e<ne; ++e)
+        {
+            element& E = el[e];
+            if(E.chi<=0.0) continue;
+            const Quat q0 = E.q;
+            const double eps = 1.0e-6;
+            Mat3 Cd;
+            for(int k=0; k<3; ++k)
+            {
+                Vec3 fp, fm, tq, d = Vec3::Zero();
+                d(k) = eps;
+                E.q = expq(d)*q0;  external_loads(e,fp,tq,Cd);
+                E.q = expq(-d)*q0; external_loads(e,fm,tq,Cd);
+                const Vec3 col_d = (fp - fm)/(2.0*eps);
+                for(int i=0; i<3; ++i)
+                if(col_d(i)!=0.0)
+                trip.emplace_back(6*e+i,6*e+3+k,-col_d(i));
+            }
+            E.q = q0;
+        }
+
+        solve_system(N, r, false);           // du = K^-1 F
+
+        // step limitation: at most 0.2 rad and 0.2 l per iteration
+        double sc = 1.0;
+        for(int e=0; e<ne; ++e)
+        {
+            const double dth = r.segment<3>(6*e+3).norm(), dx = r.segment<3>(6*e).norm()/el[e].l;
+            if(dth>0.2) sc = std::min(sc,0.2/dth);
+            if(dx>0.2)  sc = std::min(sc,0.2/dx);
+        }
+
+        double dmax = 0.0;
+        for(int e=0; e<ne; ++e)
+        {
+            element& E = el[e];
+            E.c += sc*r.segment<3>(6*e);
+            E.q = expq(sc*r.segment<3>(6*e+3))*E.q;
+            E.q.normalize();
+            dmax = std::max(dmax, std::max(sc*r.segment<3>(6*e+3).norm(), sc*r.segment<3>(6*e).norm()/E.l));
+        }
+
+        if(!std::isfinite(dmax))
+        throw std::runtime_error("rodtree: quasi-static Newton iteration diverged");
+
+        if(dmax<1.0e-8)
+        break;
+    }
+
+    qs_it_last = std::min(it,maxit);
+}
+
+void rodtree::state_rigid()
+{
+    // initial geometry at rest; the joints carry the external loads
+    for(element& E : el)
+    {
+        E.c = E.c0; E.q = E.q0;
+        E.v.setZero(); E.w.setZero(); E.a.setZero();
     }
 }
 

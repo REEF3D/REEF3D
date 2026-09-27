@@ -9,6 +9,7 @@
 //  6  branching colony in oscillatory flow: implicit vs explicit
 //  7  large-deflection cantilever vs elastica (tip load via drag-free end mass)
 
+#include<chrono>
 #include"../../src/rodtree.h"
 #include<cstdio>
 #include<cmath>
@@ -338,6 +339,111 @@ int main()
         const double F3 = run(stem("polyps 0.003 0.5 1.0\npolyp_response 0.1 0.05 0.0\n"),0.125,1.0,ex);
         std::printf("    half-way in the retraction ramp: ext %.3f, drag ratio %.5f  expected %.5f\n", ex, F3/(F0*0.125*0.125/0.04), 1.0+0.5*(ratio_ref-1.0));
         check(std::fabs(ex-0.5)<1.0e-5 && std::fabs(F3/(F0*0.125*0.125/0.04)-(1.0+0.5*(ratio_ref-1.0)))<1.0e-4,"partial extension scales the polyp drag");
+    }
+
+    // ------------------------------------------------------------------ 10
+    std::printf("Test 10: tree block solver vs sparse LU (branching fan, oscillatory flow)\n");
+    {
+        std::vector<V3> tip[2];
+        double tcpu[2];
+        for(int sol=0; sol<2; ++sol)
+        {
+            rodtree rt;
+            load(rt,colony_fan(0.002,6));
+            rt.set_fluid_density(1000.0);
+            rt.set_gravity(V3(0,0,-9.81));
+            rt.set_integrator(0);
+            rt.set_linear_solver(sol==0 ? 1 : 0);
+            auto t0 = std::chrono::steady_clock::now();
+            for(int s=0; s<1500; ++s)
+            {
+                const double tt = s*2.0e-3;
+                set_fluid(rt,V3(0.25*std::sin(2.0*PI*tt/1.5),0,0),V3(0.25*2.0*PI/1.5*std::cos(2.0*PI*tt/1.5),0,0),1.0);
+                rt.compute_hydro();
+                rt.advance(2.0e-3);
+                tip[sol].push_back(rt.tip_displacement(0));
+            }
+            tcpu[sol] = std::chrono::duration<double>(std::chrono::steady_clock::now()-t0).count();
+            if(sol==0) check(rt.tree_topology(),"fan is recognised as a tree");
+        }
+        double emax = 0.0, amax = 0.0;
+        for(size_t n=0; n<tip[0].size(); ++n) {emax = std::max(emax,(tip[0][n]-tip[1][n]).norm()); amax = std::max(amax,tip[0][n].norm());}
+        std::printf("    max tip difference %.2e m (max excursion %.4f m);  CPU tree %.3f s  sparse %.3f s  (speed-up %.2f)\n",
+                    emax, amax, tcpu[0], tcpu[1], tcpu[1]/tcpu[0]);
+        check(emax<1.0e-9*std::max(amax,1.0e-3)+1.0e-12,"tree and sparse solvers give the same trajectory (round-off)");
+    }
+
+    // ------------------------------------------------------------------ 11
+    std::printf("Test 11: quasi-static mode vs dynamic steady state (flexible stem and fan in current)\n");
+    {
+        // stem: same set-up as test 5
+        double tip[2], Fx[2];
+        for(int m=0; m<2; ++m)
+        {
+            rodtree rt;
+            load(rt,cantilever(L,r,E,1030.0,20,V3(0,0,1),0.0));
+            rt.set_fluid_density(1000.0);
+            rt.set_gravity(V3(0,0,-9.81));
+            rt.set_integrator(0);
+            rt.set_mode(m==0 ? 0 : 1);
+            set_fluid(rt,V3(0.3,0,0),V3::Zero(),1.0);
+            const int nsteps = (m==0) ? 4000 : 5;
+            for(int s=0; s<nsteps; ++s) {rt.advance(2.0e-3); rt.compute_hydro();}
+            tip[m] = rt.tip_displacement(0)(0);
+            Fx[m] = rt.base_force(0)(0);
+            if(m==1) std::printf("    stem: quasi-static Newton iterations in the last step: %d\n", rt.static_iterations());
+        }
+        std::printf("    stem tip dx: dynamic %.5f m  quasi-static %.5f m;  base Fx: dynamic %.5f N  quasi-static %.5f N\n", tip[0], tip[1], Fx[0], Fx[1]);
+        check(std::fabs(tip[0]-tip[1])<2.0e-3*L,"stem: quasi-static tip deflection = dynamic steady state (2e-3 L)");
+        check(std::fabs(Fx[0]-Fx[1])<2.0e-3*std::fabs(Fx[0]),"stem: quasi-static base force = dynamic steady state (0.2%)");
+
+        // fan
+        V3 tf[2]; V3 Ff[2];
+        for(int m=0; m<2; ++m)
+        {
+            rodtree rt;
+            load(rt,colony_fan(0.01,4));
+            rt.set_fluid_density(1000.0);
+            rt.set_gravity(V3(0,0,-9.81));
+            rt.set_mode(m==0 ? 0 : 1);
+            set_fluid(rt,V3(0.2,0.05,0),V3::Zero(),1.0);
+            const int nsteps = (m==0) ? 5000 : 5;
+            for(int s=0; s<nsteps; ++s) {rt.advance(2.0e-3); rt.compute_hydro();}
+            tf[m] = rt.tip_displacement(0);
+            Ff[m] = rt.base_force(0);
+        }
+        std::printf("    fan tip: dynamic (%.5f %.5f %.5f)  quasi-static (%.5f %.5f %.5f) m\n", tf[0](0),tf[0](1),tf[0](2), tf[1](0),tf[1](1),tf[1](2));
+        check((tf[0]-tf[1]).norm()<2.0e-3*0.27,"fan: quasi-static tip = dynamic steady state (2e-3 H)");
+        check((Ff[0]-Ff[1]).norm()<5.0e-3*Ff[0].norm(),"fan: quasi-static base force = dynamic steady state (0.5%)");
+    }
+
+    // ------------------------------------------------------------------ 12
+    std::printf("Test 12: rigid mode\n");
+    {
+        rodtree rt;
+        load(rt,cantilever(L,r,E,1000.0,20,V3(0,0,1),0.0));
+        rt.set_fluid_density(1000.0);
+        rt.set_gravity(V3(0,0,-9.81));
+        rt.set_mode(2);
+        set_fluid(rt,V3(0.3,0,0),V3::Zero(),1.0);
+        rt.compute_hydro();
+        rt.advance(1.0e-2);
+        rt.compute_hydro();
+        const double F_rigid = 0.5*1000.0*1.2*2.0*r*L*0.09;
+        std::printf("    base Fx %.6f N  rigid-stem drag %.6f N  tip displacement %.2e m\n", rt.base_force(0)(0), F_rigid, rt.tip_displacement(0).norm());
+        check(std::fabs(rt.base_force(0)(0)-F_rigid)<1.0e-6*F_rigid,"base force equals rigid-stem drag");
+        check(rt.tip_displacement(0).norm()==0.0,"geometry stays at the initial configuration");
+    }
+
+    // ------------------------------------------------------------------ 13
+    std::printf("Test 13: representative colonies input\n");
+    {
+        rodtree rt;
+        std::string in = colony_fan(0.0,2);
+        in.insert(in.find("refine"),"represent 250 0.08\n");
+        load(rt,in);
+        std::printf("    weight %.1f  spacing %.3f m\n", rt.colony(0).weight, rt.colony(0).spacing);
+        check(rt.colony(0).weight==250.0 && rt.colony(0).spacing==0.08,"'represent weight spacing' is read");
     }
 
     std::printf("\n%s (%d failure%s)\n", failures==0 ? "ALL TESTS PASSED" : "TESTS FAILED", failures, failures==1?"":"s");

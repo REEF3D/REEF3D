@@ -85,8 +85,10 @@ void rodtree_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
         if(nin==0)
         continue;
 
-        const double cpt = rt.drag_slope(e)/double(nin);
-        const Eigen::Vector3d Fp0 = F/(rho*double(nin));
+        const double cpt = wgt[e]*rt.drag_slope(e)/double(nin);
+        const Eigen::Vector3d Fp0 = wgt[e]*F/(rho*double(nin));
+        const double sh = shk[e];
+        const int Rh = stencil_h(sh);
 
         for(int q=0; q<nq[e]; ++q)
         {
@@ -106,34 +108,34 @@ void rodtree_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
             const double dy = p->DYN[jc+marge];
             const double dz = p->DZN[kc+marge];
 
-            double S = self_weight(std::fmod(std::fabs(x(0)-p->XP[ic+marge])/dx,1.0))
+            double S = self_weight_s(std::fmod(std::fabs(x(0)-p->XP[ic+marge])/dx,1.0),sh)
                       *self_weight(std::fmod(std::fabs(x(2)-p->ZP[kc+marge])/dz,1.0));
             if(p->j_dir==1)
-            S *= self_weight(std::fmod(std::fabs(x(1)-p->YP[jc+marge])/dy,1.0));
+            S *= self_weight_s(std::fmod(std::fabs(x(1)-p->YP[jc+marge])/dy,1.0),sh);
             const double relax = 1.0/(1.0 + alpha*p->dt*cpt*S/(dx*dy*dz*rho));
             const Eigen::Vector3d Fp = relax*Fp0/(dx*dy*dz);
 
-            const int is = std::max(ii-2,0), ie = std::min(ii+2,p->knox-1);
-            const int js = (p->j_dir==1) ? std::max(jj-2,0) : 0;
-            const int je = (p->j_dir==1) ? std::min(jj+2,p->knoy-1) : 0;
+            const int is = std::max(ii-Rh,0), ie = std::min(ii+Rh,p->knox-1);
+            const int js = (p->j_dir==1) ? std::max(jj-Rh,0) : 0;
+            const int je = (p->j_dir==1) ? std::min(jj+Rh,p->knoy-1) : 0;
             const int ks = std::max(kk-2,0), ke = std::min(kk+2,p->knoz-1);
 
             for(int ia=is; ia<=ie; ++ia)
             for(int ja=js; ja<=je; ++ja)
             for(int ka=ks; ka<=ke; ++ka)
             {
-                const double DyP = (p->j_dir==0) ? 1.0 : kernel((p->YP[ja+marge]-x(1))/dy);
-                const double DxP = kernel((p->XP[ia+marge]-x(0))/dx);
+                const double DyP = (p->j_dir==0) ? 1.0 : kernel_s((p->YP[ja+marge]-x(1))/dy,sh);
+                const double DxP = kernel_s((p->XP[ia+marge]-x(0))/dx,sh);
                 const double DzP = kernel((p->ZP[ka+marge]-x(2))/dz);
 
                 // u faces
-                const double DxN = kernel((p->XN[ia+1+marge]-x(0))/dx);
+                const double DxN = kernel_s((p->XN[ia+1+marge]-x(0))/dx,sh);
                 fx(ia,ja,ka) += Fp(0)*DxN*DyP*DzP;
 
                 // v faces
                 if(p->j_dir==1)
                 {
-                const double DyN = kernel((p->YN[ja+1+marge]-x(1))/dy);
+                const double DyN = kernel_s((p->YN[ja+1+marge]-x(1))/dy,sh);
                 fy(ia,ja,ka) += Fp(1)*DxP*DyN*DzP;
                 }
 

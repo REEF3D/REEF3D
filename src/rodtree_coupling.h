@@ -41,6 +41,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"rodtree.h"
 #include<vector>
+#include<algorithm>
+#include<cmath>
 #include<string>
 
 class lexer;
@@ -70,11 +72,16 @@ private:
     void print(lexer*);
     double kernel(double) const;
     double self_weight(double frac) const;
+    // horizontally widened kernel for representative colonies (scale s >= 1 cells)
+    double kernel_s(double r, double s) const {return kernel(r/s)/s;}
+    double self_weight_s(double frac, double s) const;
+    int stencil_h(double s) const {return std::max(2,(int)std::ceil(2.0*s));}
 
     rodtree rt;
 
     // Lagrangian points: nq per element
     std::vector<int> nq, first;                 // points per element, offset
+    std::vector<double> wgt, shk;               // per element: representative weight, horizontal kernel scale
     int npts;
     std::vector<double> buf;                    // 4 per point: u,v,w,in-fluid
     std::vector<Eigen::Vector3d> ufprev;
