@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 #include<iomanip>
+#include<cmath>
 
 nhflow_potential_f::nhflow_potential_f(lexer* p) 
 {
@@ -78,11 +79,39 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     
     pgc->start49V(p,PSI,gcval_pot);
     }
-    
+
     ucalc(p,d);
 	vcalc(p,d);
 	wcalc(p,d);
-    
+
+    // The potential problem is pure Neumann apart from the in/outflow fluxes. If the wet
+    // domain falls apart into regions that are not connected (e.g. a weir or dam whose crest
+    // sticks out of the initial water level), each region only sees inflow or outflow, the
+    // system is inconsistent and the solve diverges. Start from rest instead of passing
+    // non-finite or unconverged velocities on to the first time step.
+    {
+    int fail = (p->solveriter>=p->N46) ? 1 : 0;
+
+    LOOP
+    if(!std::isfinite(d->U[IJK]) || !std::isfinite(d->V[IJK]) || !std::isfinite(d->W[IJK]))
+    fail=1;
+
+    fail = pgc->globalimax(fail);
+
+        if(fail==1)
+        {
+            if(p->mpirank==0)
+            cout<<"potential flow solver: no converged solution (wet domain disconnected or "
+                <<"in/outflow unbalanced?) - starting from rest instead"<<endl<<endl;
+
+            LOOP
+            {
+            d->U[IJK]=d->V[IJK]=d->W[IJK]=0.0;
+            d->UH[IJK]=d->VH[IJK]=d->WH[IJK]=0.0;
+            }
+        }
+    }
+
 	pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
