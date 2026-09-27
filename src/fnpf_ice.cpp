@@ -60,6 +60,11 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     noff   = MAX(1,p->A395_off);
     nbreak = 0;
     tcon   = MAX(p->A396,0.0);
+    Emod   = p->A397_E;
+    nu     = p->A397_nu;
+    wm     = p->A399_m;
+    wA     = MAX(p->A399_A,1.0e-12);
+    rng.seed(p->A399_seed);
     nstage = (p->A310==4) ? 4 : 3;
 
     // the lid stiffens the surface under the floes: g_eff = g*(1+alpha)
@@ -72,6 +77,10 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     }
     
     read(p,pgc);
+    
+    for(auto &fl : floe)
+    if(fl.type==0)
+    strength(fl);
 
     Yn.resize(floe.size());
     D1.resize(floe.size());
@@ -81,7 +90,7 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     double ymin = is2D ? 0.0 : p->global_ymin;
     double ymax = is2D ? 0.0 : p->global_ymax;
 
-    pcontact = new ice_contact_nscd(p->A384_mu, p->A384_e, p->A388, p->A385, p->global_xmin, p->global_xmax, ymin, ymax);
+    pcontact = new ice_contact_nscd(p->A384_mu, p->A384_e, p->A388, p->A385, p->global_xmin, p->global_xmax, ymin, ymax, p->A398);
 }
 
 fnpf_ice::~fnpf_ice()
@@ -129,6 +138,23 @@ void fnpf_ice::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     cout<<"FNPF ice: lid stiffness A381 = "<<alpha<<", damping ratio A382 = "<<zeta<<", drag Cd A383 = "<<Cd<<endl;
     cout<<"FNPF ice: time step factor 1/sqrt(1+A381) = "<<dtfac<<endl;
     cout<<"FNPF ice: footprint edge taper +-"<<taper<<" m"<<endl;
+    
+    if(breakflag&1)
+    {
+    if(Emod>0.0)
+    {
+    const double h0 = floe.empty() ? 0.0 : floe[0].h;
+    const double D0 = Emod*h0*h0*h0/(12.0*(1.0-nu*nu));
+    cout<<"FNPF ice: flexural stress from a beam on elastic foundation, E = "<<Emod<<" Pa, nu = "<<nu
+        <<", flexural length (D/rho_w g)^1/4 = "<<pow(D0/(rhow*g),0.25)<<" m (h = "<<h0<<" m)"<<endl;
+    }
+    else
+    cout<<"FNPF ice: flexural stress from rigid-floe statics"<<endl;
+    if(wm>0.0)
+    cout<<"FNPF ice: Weibull flexural strength, modulus "<<wm<<", reference area "<<wA<<" m2"<<endl;
+    }
+    if(p->A398>0.0)
+    cout<<"FNPF ice: crushing cap sigma_c = "<<p->A398<<" Pa"<<endl;
     
     if(breakflag>0)
     cout<<"FNPF ice: breaking "<<((breakflag&1)?"flexural sigma_f = ":"")<<((breakflag&1)?to_string(sigf):"")

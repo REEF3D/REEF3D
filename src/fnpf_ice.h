@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include<fstream>
 #include<mpi.h>
 #include<map>
+#include<random>
 
 class lexer;
 class fdm_fnpf;
@@ -136,6 +137,11 @@ private:
     static double chord(const vector<double>&, const vector<double>&, double, double, double);
     int breakflag,ndir,noff;
     double sigf,KIC,Csplit,Dmin;
+    double Emod,nu;                 // plate stiffness for the flexural stress (A 397), Emod <= 0: rigid statics
+    double wm,wA;                   // Weibull modulus and reference area (A 399)
+    mt19937 rng;
+    void strength(fnpf_ice_floe&);
+    static int beam(int, double, const double*, const double*, const double*, double*);
     vector<double> Mcut;
     vector<int> cmap;       // contact body index -> floe index, last contact solve
     vector<split> splits;

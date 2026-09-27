@@ -41,6 +41,7 @@ struct ice_body2D
     double fx = 0.0, fy = 0.0;          // out: contact force on the body (impulse/dt)
     int ncontact = 0;                   // out
     int id = 0;                         // persistent id, keys the warm start
+    double h = 0.0;                     // ice thickness (0 for fixed obstacles), for the crushing cap
 };
 
 // Active contact after a solve, per body pair (b = -1-wall for walls): contact point, normal from a to b,

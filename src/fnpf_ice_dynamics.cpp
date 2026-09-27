@@ -198,6 +198,7 @@ void fnpf_ice::contact(lexer *p)
         b.w  = fl.w[2];
         b.rb = fl.rbound;
         b.id = fl.id;
+        b.h  = (fl.type==0) ? fl.h : 0.0;
 
         if(fl.type==0)
         {

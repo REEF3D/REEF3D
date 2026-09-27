@@ -152,8 +152,14 @@ void control::ini_default()
     A393=-1.0;   // double minimum floe size after breaking [m], <0: 4 mean cells
     A394=1;      // int ice breaking check every n steps
     A395_dir=12; // int flexural cut directions
-    A395_off=9;  // int flexural cut offsets per direction
+    A395_off=64; // int flexural beam bins (cut positions) per direction
     A396=0.05;   // double contact force averaging time for splitting [s]
+    A397_E=5.0e9;// double ice Young's modulus [Pa] for the flexural stress, <=0: rigid-floe statics
+    A397_nu=0.3; // double ice Poisson ratio
+    A398=0.0;    // double ice crushing strength [Pa], contact force cap sigma_c*h*w, <=0: off
+    A399_m=0.0;  // double Weibull modulus of the flexural strength, <=0: no scatter, no size effect
+    A399_A=1.0;  // double Weibull reference area [m^2]
+    A399_seed=1; // int Weibull random seed
 
     
     // PTF

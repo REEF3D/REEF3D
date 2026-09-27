@@ -26,16 +26,24 @@ Author: Hans Bihs
 #include"ice_contact.h"
 #include<iomanip>
 #include<algorithm>
+#include<random>
 
 // Ice breaking (A 390): a floe splits in two along a straight cut, at most once per floe and check.
 //
-// Flexural failure (A 390 1,3): internal bending moment of the rigid floe about candidate cut lines
-// (A 395: directions x offsets), from the loads on one side of the cut:
+// Flexural failure (A 390 1,3): along A 395 directions the net vertical load of the floe
 //     q = phi*A*( p_lid - rho_i*g*h - rho_i*h*a_z(x,y) ),   a_z = a_G,z + (alpha x r)_z   (d'Alembert)
-//     M = sum_{n.r > s} q*(n.r - s),     sigma = 6|M|/(h^2 L),   L = chord of the cut
+// is binned into a line load Q(s) (A 395 bins). The floe is a free-free beam on an elastic foundation
+// along s (A 397, E > 0):
+//     (B w'')'' + k w = Q,   B = D*b(s),  D = E h^3/(12(1-nu^2)),  k = rho_w*g*b(s),  b(s) = chord width
+// w is the elastic deflection relative to the rigid-body motion: the rigid lid gives the loads of a rigid
+// floe, where the floe bends the hydrostatic pressure relaxes by rho_w*g*w. Bending moment M = B w'',
+// stress sigma = 6|M|/(h^2 b). Floes short compared with the flexural length (D/(rho_w g))^(1/4) recover
+// rigid-floe statics, long floes break at a distance of the order of the flexural length.
+// E <= 0: rigid-floe statics, M(s) = sum_{s_j > s} Q_j (s_j - s).
+// Breaks when sigma >= sigma_f of the floe on the most stressed cut. sigma_f with Weibull scatter and
+// size effect (A 399): sigma_f,i = sigma_f*(A_ref/A_i)^(1/m)*(-ln U)^(1/m)/Gamma(1+1/m), U uniform, new
+// values for both pieces after a split.
 // q sums to zero over a floe at rest and in rigid-body equilibrium, so there is no spurious moment.
-// Breaks when sigma >= sigma_f (A 391) on the cut with the largest stress.
-// Rigid-floe statics: an upper bound for floes longer than the flexural length.
 //
 // Contact splitting (A 390 2,3, 3D): a floe splits along the contact normal through the contact point
 // when the pair normal force exceeds F_s = C*K_IC*h*sqrt(D) (A 392), D = 2*sqrt(A/pi); LEFM scaling of
@@ -144,76 +152,140 @@ double fnpf_ice::chord(const vector<double> &x, const vector<double> &y, double 
     return tmax>tmin ? tmax-tmin : 0.0;
 }
 
+void fnpf_ice::strength(fnpf_ice_floe &fl)
+{
+    fl.sigf = sigf;
+    
+    if(wm>0.0 && fl.area>0.0)
+    {
+    uniform_real_distribution<double> U(1.0e-12,1.0);
+    const double u = U(rng);
+    fl.sigf = sigf*pow(wA/fl.area,1.0/wm)*pow(-log(u),1.0/wm)/tgamma(1.0+1.0/wm);
+    }
+}
+
+int fnpf_ice::beam(int N, double ds, const double *B, const double *k, const double *Q, double *M)
+{
+    // free-free beam on an elastic foundation, finite volumes on N bins of width ds:
+    //   V_{i+1/2} - V_{i-1/2} + k_i ds w_i = Q_i,   V_{i+1/2} = (M_{i+1}-M_i)/ds,
+    //   M_i = B_i (w_{i-1} - 2 w_i + w_{i+1})/ds^2 (i = 1..N-2),  M_0 = M_{N-1} = 0 (free ends)
+    // A = sum_r B_r/ds^3 s_r s_r^T + diag(k ds), symmetric positive definite, bandwidth 2
+    if(N<3)
+    return -1;
+    
+    vector<double> A(N*5,0.0);   // band storage: A[i*5 + (j-i+2)]
+    auto a = [&](int i, int j) -> double& { return A[i*5 + (j-i+2)]; };
+    
+    for(int i=0;i<N;++i)
+    a(i,i) += k[i]*ds;
+    
+    for(int r=1;r<N-1;++r)
+    {
+        const double c = B[r]/(ds*ds*ds);
+        const int id[3] = {r-1,r,r+1};
+        const double sv[3] = {1.0,-2.0,1.0};
+        for(int p=0;p<3;++p)
+        for(int q=0;q<3;++q)
+        a(id[p],id[q]) += c*sv[p]*sv[q];
+    }
+    
+    // banded Gaussian elimination, no pivoting (SPD)
+    vector<double> w(Q,Q+N);
+    for(int c=0;c<N;++c)
+    {
+        const double piv = a(c,c);
+        if(fabs(piv)<1.0e-300)
+        return -1;
+        for(int i=c+1;i<=MIN(c+2,N-1);++i)
+        {
+            const double f = a(i,c)/piv;
+            if(f==0.0)
+            continue;
+            for(int j=c;j<=MIN(c+2,N-1);++j)
+            a(i,j) -= f*a(c,j);
+            w[i] -= f*w[c];
+        }
+    }
+    for(int c=N-1;c>=0;--c)
+    {
+        double sum=w[c];
+        for(int j=c+1;j<=MIN(c+2,N-1);++j)
+        sum -= a(c,j)*w[j];
+        w[c] = sum/a(c,c);
+    }
+    
+    M[0]=M[N-1]=0.0;
+    for(int i=1;i<N-1;++i)
+    M[i] = B[i]*(w[i-1]-2.0*w[i]+w[i+1])/(ds*ds);
+    
+    return 0;
+}
+
 void fnpf_ice::breaking_moments(lexer *p)
 {
-    // all ranks: cut moments from the local footprint cells, summed over the ranks
-    const int ncut = ndir*noff;
-    Mcut.assign(ncut*floe.size(),0.0);
-
+    // all ranks: line loads of the local footprint cells in bins along each direction, summed over ranks
+    const int nbin = noff;
+    const int nq = ndir*nbin;
+    const size_t nf = floe.size();
+    Mcut.assign(nq*nf + 2*ndir*nf,0.0);
+    
     if(!(breakflag&1))
     return;
-
-    // cut offsets along each direction, from the planform extent (identical on all ranks)
-    vector<double> soff(ncut*floe.size(),0.0);
-
-    for(size_t f=0; f<floe.size(); ++f)
+    
+    // bin origin and width per floe and direction, from the planform extent (identical on all ranks)
+    double *geo = &Mcut[nq*nf];
+    
+    for(size_t f=0; f<nf; ++f)
     {
         const fnpf_ice_floe &fl = floe[f];
         if(fl.type!=0)
         continue;
-
+        
         for(int k=0; k<ndir; ++k)
         {
             const double th = PI*double(k)/double(ndir);
             const double nx = cos(th), ny = sin(th);
             double smin=1.0e20, smax=-1.0e20;
-
+            
             for(size_t q=0; q<fl.wx.size(); ++q)
             {
             const double d = nx*(fl.wx[q]-fl.x[0]) + ny*(fl.wy[q]-fl.x[1]);
             smin = MIN(smin,d);
             smax = MAX(smax,d);
             }
-
-            for(int o=0; o<noff; ++o)
-            soff[ncut*f + k*noff + o] = smin + (smax-smin)*double(o+1)/double(noff+1);
+            
+            geo[2*(ndir*f+k)]   = smin;
+            geo[2*(ndir*f+k)+1] = MAX(smax-smin,1.0e-12)/double(nbin);
         }
     }
-
+    
     for(auto &e : cell)
     {
         const fnpf_ice_floe &fl = floe[e.f];
-
+        
         if(fl.type!=0)
         continue;
-
+        
         const double rx = e.xc - fl.x[0];
         const double ry = e.yc - fl.x[1];
         const double az = fl.acc[2] + fl.alp[0]*ry - fl.alp[1]*rx;
         const double qA = e.phi*e.area*(e.pl - fl.pw - fl.rho*fl.h*az);
-
-        double *M = &Mcut[ncut*e.f];
-        const double *so = &soff[ncut*e.f];
-
+        
+        double *Q = &Mcut[nq*e.f];
+        
         for(int k=0; k<ndir; ++k)
         {
             const double th = PI*double(k)/double(ndir);
             const double d = cos(th)*rx + sin(th)*ry;
-
-            for(int o=0; o<noff; ++o)
-            {
-            const double s = so[k*noff+o];
-            if(d>s)
-            M[k*noff+o] += qA*(d-s);
-            }
+            const double s0 = geo[2*(ndir*e.f+k)];
+            const double ds = geo[2*(ndir*e.f+k)+1];
+            const int ib = MAX(0, MIN(nbin-1, int(floor((d-s0)/ds))));
+            Q[k*nbin+ib] += qA;
         }
     }
-
-    if(p->mpi_size>1 && !Mcut.empty())
-    MPI_Allreduce(MPI_IN_PLACE, Mcut.data(), int(Mcut.size()), MPI_DOUBLE, MPI_SUM, comm);
-
-    // keep the offsets for breaking_decide
-    Mcut.insert(Mcut.end(), soff.begin(), soff.end());
+    
+    if(p->mpi_size>1)
+    MPI_Allreduce(MPI_IN_PLACE, Mcut.data(), int(nq*nf), MPI_DOUBLE, MPI_SUM, comm);
 }
 
 void fnpf_ice::breaking_decide(lexer *p)
@@ -221,7 +293,6 @@ void fnpf_ice::breaking_decide(lexer *p)
     // rank 0: pick at most one cut per floe
     splits.clear();
 
-    const int ncut = ndir*noff;
     const size_t nf = floe.size();
 
     vector<split> best(nf);
@@ -254,14 +325,20 @@ void fnpf_ice::breaking_decide(lexer *p)
         return (caliper(ax,ay)>=Dmin && caliper(bx2,by2)>=Dmin) ? 1 : 0;
     };
 
-    // flexural
+    // flexural: beam on elastic foundation (or rigid statics) along each direction
     if(breakflag&1)
+    {
+    const int nbin = noff;
+    const int nq = ndir*nbin;
+    const double *geo = &Mcut[nq*nf];
+    vector<double> Bv(nbin),kv(nbin),Qv(nbin),Mv(nbin),bw(nbin);
+    
     for(size_t f=0; f<nf; ++f)
     {
         const fnpf_ice_floe &fl = floe[f];
         if(fl.type!=0 || fl.Awet<=0.0)
         continue;
-
+        
         // planform at the centre of mass level, relative to it
         const int nv = int(fl.bx.size());
         vector<double> px(nv),py(nv);
@@ -270,33 +347,66 @@ void fnpf_ice::breaking_decide(lexer *p)
         px[q] = fl.R[0][0]*fl.bx[q] + fl.R[0][1]*fl.by[q];
         py[q] = fl.R[1][0]*fl.bx[q] + fl.R[1][1]*fl.by[q];
         }
-
+        
+        const double Dp = (Emod>0.0) ? Emod*fl.h*fl.h*fl.h/(12.0*(1.0-nu*nu)) : 0.0;
+        
         for(int k=0; k<ndir; ++k)
         {
             const double th = PI*double(k)/double(ndir);
             const double nx = cos(th), ny = sin(th);
-
-            for(int o=0; o<noff; ++o)
+            const double s0 = geo[2*(ndir*f+k)];
+            const double ds = geo[2*(ndir*f+k)+1];
+            
+            double bmax=0.0;
+            for(int i=0;i<nbin;++i)
             {
-                const double M = Mcut[ncut*f + k*noff + o];
-                const double s = Mcut[ncut*nf + ncut*f + k*noff + o];
-                const double L = is2D ? fl.width2D : chord(px,py,nx,ny,s);
-
-                if(L<=0.0)
-                continue;
-
-                const double sig = 6.0*fabs(M)/(fl.h*fl.h*L);
-                const double r = sig/MAX(sigf,1.0e-20);
-
+            const double si = s0 + (i+0.5)*ds;
+            bw[i] = is2D ? fl.width2D : chord(px,py,nx,ny,si);
+            bmax = MAX(bmax,bw[i]);
+            }
+            if(bmax<=0.0)
+            continue;
+            
+            for(int i=0;i<nbin;++i)
+            {
+            bw[i] = MAX(bw[i],1.0e-3*bmax);
+            Qv[i] = Mcut[nq*f + k*nbin + i];
+            Bv[i] = Dp*bw[i];
+            kv[i] = rhow*g*bw[i];
+            }
+            
+            if(Emod>0.0)
+            {
+            if(beam(nbin,ds,Bv.data(),kv.data(),Qv.data(),Mv.data())!=0)
+            continue;
+            }
+            else
+            {
+            // rigid statics at the bin centres
+            for(int i=0;i<nbin;++i)
+            {
+            double m=0.0;
+            for(int j=i+1;j<nbin;++j)
+            m += Qv[j]*(j-i)*ds;
+            Mv[i]=m;
+            }
+            }
+            
+            for(int i=1;i<nbin-1;++i)
+            {
+                const double sig = 6.0*fabs(Mv[i])/(fl.h*fl.h*bw[i]);
+                const double r = sig/MAX(fl.sigf,1.0e-20);
+                
                 if(r>=1.0 && r>ratio[f])
                 {
                 split sp;
-                if(body_cut(fl,nx,ny,s,sp))
+                const double si = s0 + (i+0.5)*ds;
+                if(body_cut(fl,nx,ny,si,sp))
                 {
                 sp.f = int(f);
                 sp.mech = 1;
                 sp.val = sig;
-                sp.lim = sigf;
+                sp.lim = fl.sigf;
                 best[f] = sp;
                 ratio[f] = r;
                 }
@@ -304,7 +414,8 @@ void fnpf_ice::breaking_decide(lexer *p)
             }
         }
     }
-
+    }
+    
     // contact splitting, on the time-averaged pair normal force (contact_average)
     if((breakflag&2) && !is2D)
     for(const auto &kv : cforce)
@@ -454,6 +565,10 @@ int fnpf_ice::split_floe(lexer *p, size_t f, double nbx, double nby, double s, i
     fnpf_ice_floe pa,pb;
     make_piece(ax,ay,pa);
     make_piece(bx,by,pb);
+    
+    // new strengths for both pieces (same random sequence on all ranks)
+    strength(pa);
+    strength(pb);
 
     pa.id = parent.id;
     pb.id = int(floe.size());

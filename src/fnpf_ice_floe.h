@@ -47,6 +47,7 @@ struct fnpf_ice_floe
     double rbound = 0.0;            // planform bounding radius
     double width2D = 1.0;           // 2D flume: width carried by one cell row (area / planform length)
     double wmin = 0.0;              // minimum caliper width of the planform
+    double sigf = 0.0;              // flexural strength of this floe (Weibull scatter and size effect, A 399)
 
     // state
     double x[3] = {0.0};            // centre of mass

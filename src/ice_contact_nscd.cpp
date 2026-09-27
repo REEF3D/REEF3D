@@ -25,9 +25,9 @@ Author: Hans Bihs
 #include<algorithm>
 #include<numeric>
 
-ice_contact_nscd::ice_contact_nscd(double mu_, double e_, int iter_, int walls_, double xmin_, double xmax_, double ymin_, double ymax_)
+ice_contact_nscd::ice_contact_nscd(double mu_, double e_, int iter_, int walls_, double xmin_, double xmax_, double ymin_, double ymax_, double sigc_)
               : mu(mu_),e(e_),iter(iter_),wallflag(walls_),xmin(xmin_),xmax(xmax_),ymin(ymin_),ymax(ymax_),
-                beta(0.2),slop(0.0),vrest(1.0e-3)
+                beta(0.2),slop(0.0),vrest(1.0e-3),sigc(sigc_)
 {
     if(iter<1)
     iter=1;
@@ -66,6 +66,33 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
 
     const int nc = int(con.size());
 
+    // crushing cap per contact point: sigma_c*h*w*dt shared by the points of a pair
+    if(sigc>0.0)
+    {
+        map<pair<int,int>,vector<int>> pairs;
+        for(int n=0; n<nc; ++n)
+        pairs[make_pair(con[n].a,con[n].b)].push_back(n);
+        
+        for(auto &kv : pairs)
+        {
+            const vector<int> &idx = kv.second;
+            const ice_body2D &A = b[kv.first.first];
+            double hc = A.h;
+            if(kv.first.second>=0 && b[kv.first.second].h>0.0)
+            hc = (hc>0.0) ? min(hc,b[kv.first.second].h) : b[kv.first.second].h;
+            
+            double wc = 0.0;
+            for(size_t q=0; q<idx.size(); ++q)
+            for(size_t r=q+1; r<idx.size(); ++r)
+            wc = max(wc, sqrt(pow(con[idx[q]].px-con[idx[r]].px,2.0) + pow(con[idx[q]].py-con[idx[r]].py,2.0)));
+            wc = max(wc,hc);
+            
+            const double Pmax = sigc*hc*wc*dt/double(idx.size());
+            for(int n : idx)
+            con[n].Pnmax = Pmax;
+        }
+    }
+    
     // prepare, warm start
     map<tuple<int,int,long>,pair<double,double>> newcache;
 
@@ -111,7 +138,7 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
         else
         {
         double brest = (vn0 < -vrest) ? -e*vn0 : 0.0;
-        double bpos  = (-c.sep > slop) ? beta*(-c.sep - slop)/dt : 0.0;
+        double bpos  = (-c.sep > slop && sigc<=0.0) ? beta*(-c.sep - slop)/dt : 0.0;
         c.bias = max(brest,bpos);
         }
 
@@ -119,8 +146,8 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
         auto it = cache.find(make_tuple(b[c.a].id, c.b<0 ? c.b : b[c.b].id, c.key));
         if(it!=cache.end() && c.sep<=0.0)
         {
-        c.Pn = it->second.first;
-        c.Pt = it->second.second;
+        c.Pn = min(it->second.first, c.Pnmax);
+        c.Pt = max(-mu*c.Pn, min(mu*c.Pn, it->second.second));
 
         const double Px = c.Pn*c.nx + c.Pt*tx;
         const double Py = c.Pn*c.ny + c.Pt*ty;
@@ -180,7 +207,7 @@ void ice_contact_nscd::solve(vector<ice_body2D> &b, double dt, int is2D)
         relvel(dvx,dvy);
         const double vn = dvx*c.nx + dvy*c.ny;
         const double lam = c.mn*(c.bias - vn);
-        const double Pn_new = max(c.Pn + lam, 0.0);
+        const double Pn_new = min(max(c.Pn + lam, 0.0), c.Pnmax);
         const double dPn = Pn_new - c.Pn;
         c.Pn = Pn_new;
         apply(dPn*c.nx, dPn*c.ny);

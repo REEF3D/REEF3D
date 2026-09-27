@@ -37,11 +37,16 @@ using namespace std;
 //
 // Narrow phase: separating axis test, reference face / incident edge clipping, up to two
 // contact points per polygon pair. Walls: the domain box as fixed half-planes (optional).
+//
+// Crushing (sigma_c > 0): the pair normal force is capped at sigma_c*h*w, h the thinner ice thickness of
+// the pair, w the contact width (distance of the two contact points, at least h). Beyond the cap the
+// floes interpenetrate, which stands for the crushed ice; the Baumgarte correction is switched off then,
+// so crushed overlap is not pushed back out.
 
 class ice_contact_nscd final : public ice_contact
 {
 public:
-    ice_contact_nscd(double mu, double e, int iter, int walls, double xmin, double xmax, double ymin, double ymax);
+    ice_contact_nscd(double mu, double e, int iter, int walls, double xmin, double xmax, double ymin, double ymax, double sigc=0.0);
     virtual ~ice_contact_nscd() = default;
 
     void solve(vector<ice_body2D>&, double dt, int is2D) override final;
@@ -58,6 +63,7 @@ private:
         double rax,ray,rbx,rby;
         double mn,mt;         // effective masses
         double bias;          // target normal velocity
+        double Pnmax = 1.0e300; // crushing cap on the normal impulse
         double Pn = 0.0, Pt = 0.0;
     };
 
@@ -71,6 +77,7 @@ private:
     int wallflag;
     double xmin,xmax,ymin,ymax;
     double beta,slop,vrest;
+    double sigc;          // crushing strength, <=0: off
 
     vector<contact> con;
     vector<ice_contact_record> rec;
