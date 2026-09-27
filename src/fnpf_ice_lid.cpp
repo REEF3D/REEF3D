@@ -222,6 +222,7 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
             e.f = int(f);
             e.phi = phi;
             e.pl = 0.0;
+            e.pl1 = 0.0;
             e.off = 0.0;
             e.area = is2D ? p->DXN[IP]*fl.width2D : p->DXN[IP]*p->DYN[JP];
             
@@ -233,8 +234,8 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
         }
     }
     
-    // per floe: sum phi*A, sum phi*A*r^2 over all ranks
-    const int nv = 2;
+    // per floe: sum phi*A and the second moments sum phi*A*r_b^2 about the body axes, over all ranks
+    const int nv = 3;
     vector<double> sum(nv*floe.size(),0.0);
     
     for(auto &e : cell)
@@ -242,8 +243,11 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
     const fnpf_ice_floe &fl = floe[e.f];
     const double A = e.phi*e.area;
     const double rx = e.xc-fl.x[0], ry = e.yc-fl.x[1];
+    const double rbx = fl.R[0][0]*rx + fl.R[1][0]*ry;
+    const double rby = fl.R[0][1]*rx + fl.R[1][1]*ry;
     sum[nv*e.f]   += A;
-    sum[nv*e.f+1] += A*(rx*rx + ry*ry);
+    sum[nv*e.f+1] += A*rby*rby;     // roll, about the body x axis
+    sum[nv*e.f+2] += A*rbx*rbx;     // pitch, about the body y axis
     }
     
     if(p->mpi_size>1 && !sum.empty())
@@ -274,11 +278,14 @@ void fnpf_ice::footprint(lexer *p, fdm_fnpf *c)
         if(fl.type==3)
         scale[f] *= fl.fade;
         
-        // lid-spring frequencies of the footprint, for the time step
-        const double Kz = fl.klid*scale[f]*S0;
-        const double Kr = fl.klid*scale[f]*sum[nv*f+1];
-        const double Imin = MAX(is2D ? fl.Ib[1][1] : MIN(fl.Ib[0][0],fl.Ib[1][1]), 1.0e-20);
-        fl.omega = MAX(sqrt(Kz/MAX(fl.mass,1.0e-20)), sqrt(Kr/Imin));
+        // lid-spring frequencies of the footprint (heave, roll, pitch), for the time step; each spring
+        // moment with the inertia about the same body axis
+        const double Kz  = fl.klid*scale[f]*S0;
+        const double Kxx = fl.klid*scale[f]*sum[nv*f+1];
+        const double Kyy = fl.klid*scale[f]*sum[nv*f+2];
+        const double wr  = sqrt(Kxx/MAX(fl.Ib[0][0],1.0e-20));
+        const double wp  = sqrt(Kyy/MAX(fl.Ib[1][1],1.0e-20));
+        fl.omega = MAX(sqrt(Kz/MAX(fl.mass,1.0e-20)), is2D ? wp : MAX(wr,wp));
     }
     
     for(auto &e : cell)
@@ -352,6 +359,8 @@ void fnpf_ice::stage_forces(lexer *p, fdm_fnpf *c, slice &K, slice &eta)
         const double arg = fl.pw + fl.klid*(wd + eta(i,j) - zb) + fl.clid*(etat(i,j) - zbt);
         
         e.pl = MAX(arg,0.0);
+        if(stage==1)
+        e.pl1 = e.pl;
         
         // The floe weight is carried by the footprint, i.e. distributed like phi, not concentrated at the
         // centre of mass: its moment is taken with the same cells (also where the floe lifts off). The

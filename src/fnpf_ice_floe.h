@@ -78,6 +78,9 @@ struct fnpf_ice_floe
 
     double acc[3] = {0.0};          // acceleration of the centre of mass, last RK stage
     double alp[3] = {0.0};          // angular acceleration, world, last RK stage
+    double acc1[3] = {0.0};         // acceleration and angular acceleration of the first RK stage (state t^n)
+    double alp1[3] = {0.0};
+    double sigmax = 0.0;            // largest flexural stress of the last breaking check [Pa]
 
     double Fc[2] = {0.0};           // contact force (obstacles: ice load), world, planar
     int ncontact = 0;

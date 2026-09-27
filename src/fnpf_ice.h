@@ -176,7 +176,8 @@ private:
         int i,j,f;
         double phi,area,xc,yc;
         double off;     // bottom offset in the taper and in shared cells: draft_f - sum_g phi_g*draft_g
-        double pl;      // lid pressure of the last RK stage (for the bending moments)
+        double pl;      // lid pressure of the current RK stage
+        double pl1;     // lid pressure of the first RK stage, i.e. at the accepted state t^n (bending moments)
     };
     vector<lidcell> cell;
 
@@ -195,7 +196,8 @@ private:
     int nsub;
     double taper,dxmean;
     int is2D;
-    double dtfac;
+    double dtfac;       // old time step factor 1/sqrt(1+alpha) (A 403 < 0)
+    double dtlid;       // lid stability limit A 403/omega_lid, omega_lid the fastest surface mode under the lid
 
     // output
     double printtime;

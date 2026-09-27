@@ -165,6 +165,7 @@ void control::ini_default()
     A402_L=-1.0; // double ice spall length [m], <0: floe thickness
     A402_C=3.0;  // double ice spall locality: chip chord <= C*chip depth
     A402_T=1.0;  // double ice rubble lid fade-out time [s]
+    A403=1.0;    // double ice lid time step factor, dt <= A403/omega_lid; <0: old limit dt*1/sqrt(1+A381)
 
     
     // PTF

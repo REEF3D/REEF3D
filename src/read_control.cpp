@@ -416,6 +416,9 @@ void control::read_control(lexer* p)
                 case 402: control>>A402_L>>A402_C>>A402_T;
                          clear(c,numint);
                          break;
+                case 403: control>>A403;
+                         clear(c,numint);
+                         break;
 
                 case 410: control>>A410;
                          clear(c,numint);

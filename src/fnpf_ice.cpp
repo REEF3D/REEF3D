@@ -50,6 +50,15 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     dxmean = dxs/MAX(dxn,1.0);
     taper = MAX(p->A389,0.0)*dxmean;
     
+    double dxmin=1.0e20;
+    SLICELOOP4
+    {
+    dxmin = MIN(dxmin, p->DXN[IP]);
+    if(!is2D)
+    dxmin = MIN(dxmin, p->DYN[JP]);
+    }
+    dxmin = pgc->globalmin(dxmin);
+    
     // breaking
     breakflag = MAX(0,MIN(7,p->A390));
     ncrack  = MAX(1,p->A400);
@@ -75,7 +84,7 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
 
     // the lid stiffens the surface under the floes: g_eff = g*(1+alpha)
     dtfac = 1.0/sqrt(1.0+alpha);
-
+    
     SLICELOOP4
     {
     etat(i,j)=0.0;
@@ -84,6 +93,27 @@ fnpf_ice::fnpf_ice(lexer *p, fdm_fnpf *c, ghostcell *pgc) : nfloe(0),nobst(0),et
     
     read(p,pgc);
     
+    // Lid stability limit. Under a floe the dynamic FSBC carries the lid spring, the surface modes have
+    // omega^2 = g(1+alpha) k tanh(kd). The explicit RK stages are stable for omega*dt below ~1.7 (RK3),
+    // 2.8 (RK4); the fastest resolved mode k = pi/dx_min sets the limit dt <= A403/omega_lid (A403 = 1:
+    // ~60 % of the RK3 limit). The FNPF CFL dt, dx/sqrt(g d), is left as it is: the lid modes are
+    // artificial, they only need to be stable, not resolved. The lid damping adds the real eigenvalue
+    // -(c/rho_w) k tanh(kd), stable below 2.5 (RK3); taken into account with the same factor.
+    // A403 < 0: the old limit, the FNPF dt times 1/sqrt(1+alpha).
+    {
+    const double kmax = PI/MAX(dxmin,1.0e-12);
+    const double lam = kmax*tanh(kmax*MAX(wd,1.0e-12));
+    const double omlid = sqrt(g*(1.0+alpha)*lam);
+    dtlid = (p->A403>0.0) ? p->A403/MAX(omlid,1.0e-12) : -1.0;
+    
+    double cmax=0.0;
+    for(auto &fl : floe)
+    if(fl.type==0)
+    cmax = MAX(cmax, fl.clid/rhow);
+    if(dtlid>0.0 && cmax*lam>0.0)
+    dtlid = MIN(dtlid, p->A403*1.25/(cmax*lam));
+    }
+
     for(auto &fl : floe)
     if(fl.type==0)
     strength(fl);
@@ -145,7 +175,10 @@ void fnpf_ice::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
     cout<<"FNPF ice: "<<nfloe<<" floes, "<<nobst<<" obstacles"<<endl;
     cout<<"FNPF ice: lid stiffness A381 = "<<alpha<<", damping ratio A382 = "<<zeta<<", drag Cd A383 = "<<Cd<<endl;
-    cout<<"FNPF ice: time step factor 1/sqrt(1+A381) = "<<dtfac<<endl;
+    if(dtlid>0.0)
+    cout<<"FNPF ice: lid time step limit dt <= "<<dtlid<<" s (A 403 = "<<p->A403<<")"<<endl;
+    else
+    cout<<"FNPF ice: time step factor 1/sqrt(1+A381) = "<<dtfac<<" (A 403 < 0)"<<endl;
     cout<<"FNPF ice: footprint edge taper +-"<<taper<<" m"<<endl;
     
     if(breakflag&1)
@@ -260,7 +293,7 @@ void fnpf_ice::poststep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     const int checkbreak = (breakflag>0 && p->count%MAX(1,p->A394)==0);
     
-    // bending moments from the last RK stage loads, before contact moves the floes
+    // bending moments from the first RK stage loads (accepted state t^n), before contact moves the floes
     if(checkbreak)
     breaking_moments(p);
     
@@ -287,11 +320,23 @@ void fnpf_ice::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->N48==0)
     {
         if(p->count==0 && p->mpirank==0 && alpha>0.0)
+        {
+        if(dtlid>0.0)
+        cout<<"FNPF ice: fixed time step (N 48 0), make sure dt <= "<<dtlid<<" s (lid stability)"<<endl;
+        else
         cout<<"FNPF ice: fixed time step (N 48 0), make sure dt is reduced by 1/sqrt(1+A381) = "<<dtfac<<endl;
+        }
         return;
     }
 
-    double dtice = p->dt*dtfac;
+    int nact=0;
+    for(auto &fl : floe)
+    if(fl.type==0 || fl.type==3)
+    ++nact;
+    if(nact==0)
+    return;
+
+    double dtice = (dtlid>0.0) ? MIN(p->dt, dtlid) : p->dt*dtfac;
 
     double vmax=0.0;
     double omax=0.0;
@@ -309,7 +354,7 @@ void fnpf_ice::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     dtice = MIN(dtice, 0.5*dxmean/vmax);
 
     if(omax>0.0)
-    dtice = MIN(dtice, 1.0/omax);
+    dtice = MIN(dtice, ((dtlid>0.0) ? p->A403 : 1.0)/omax);
 
     p->dt = pgc->globalmin(dtice);
 }

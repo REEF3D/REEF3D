@@ -119,11 +119,16 @@ void fnpf_ice::rk_stage(lexer *p)
         derivative(fl,D);
         get_state(fl,Y);
         
-        // stage accelerations, the last stage feeds the bending moments
+        // stage accelerations, the first stage (accepted state) feeds the bending moments
         for(int a=0;a<3;++a)
         {
         fl.acc[a] = D[7+a];
         fl.alp[a] = D[10+a];
+        if(stage==1)
+        {
+        fl.acc1[a] = D[7+a];
+        fl.alp1[a] = D[10+a];
+        }
         }
 
         const double *Y0 = Yn[n].data();

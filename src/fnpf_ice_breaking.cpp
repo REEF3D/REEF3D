@@ -284,8 +284,10 @@ void fnpf_ice::breaking_moments(lexer *p)
         
         const double rx = e.xc - fl.x[0];
         const double ry = e.yc - fl.x[1];
-        const double az = fl.acc[2] + fl.alp[0]*ry - fl.alp[1]*rx;
-        const double qA = e.phi*e.area*(e.pl - fl.pw - fl.rho*fl.h*az);
+        // loads of the first RK stage, i.e. of the accepted state t^n: the intermediate stages carry the
+        // stiff lid modes with O(1) errors once omega_lid*dt ~ 1, the accepted state does not
+        const double az = fl.acc1[2] + fl.alp1[0]*ry - fl.alp1[1]*rx;
+        const double qA = e.phi*e.area*(e.pl1 - fl.pw - fl.rho*fl.h*az);
         
         double *Q = &Mcut[nq*e.f];
         
@@ -416,6 +418,7 @@ void fnpf_ice::breaking_decide(lexer *p)
         
         const double Dp = (Emod>0.0) ? Emod*fl.h*fl.h*fl.h/(12.0*(1.0-nu*nu)) : 0.0;
         int kbest=-1;
+        fl.sigmax = 0.0;
         split best;
         
         for(int k=0; k<ndir; ++k)
@@ -466,6 +469,7 @@ void fnpf_ice::breaking_decide(lexer *p)
             for(int i=1;i<nbin-1;++i)
             {
                 sig[k*nbin+i] = 6.0*fabs(Mv[i])/(fl.h*fl.h*bw[i]);
+                fl.sigmax = MAX(fl.sigmax, sig[k*nbin+i]);
                 const double r = sig[k*nbin+i]/MAX(fl.sigf,1.0e-20);
                 
                 if(r>=1.0 && r>ratio[f])

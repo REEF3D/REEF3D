@@ -67,6 +67,7 @@ public:
     int A399_seed;
     int A400,A401;
     double A402_L,A402_C,A402_T;
+    double A403;
     double A381,A382,A383,A384_mu,A384_e,A387,A389;
 
     // NSEWAVE

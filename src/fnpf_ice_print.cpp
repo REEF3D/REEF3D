@@ -40,8 +40,8 @@ void fnpf_ice::print_ini(lexer *p)
     mkdir("./REEF3D_FNPF_ICE",0777);
 
     logout.open("./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-floes.dat");
-    logout<<"# FNPF ice floes: time, id, centre of mass, Euler angles ZYX [deg], velocity, hydrodynamic force, contact force (planar), loaded area"<<endl;
-    logout<<"# t id x y z roll pitch yaw u v w Fx_hyd Fy_hyd Fz_hyd Fx_c Fy_c A_wet sigma_f"<<endl;
+    logout<<"# FNPF ice floes: time, id, centre of mass, Euler angles ZYX [deg], velocity, hydrodynamic force, contact force (planar), loaded area, flexural strength, largest flexural stress of the last breaking check"<<endl;
+    logout<<"# t id x y z roll pitch yaw u v w Fx_hyd Fy_hyd Fz_hyd Fx_c Fy_c A_wet sigma_f sigma_max"<<endl;
 
     if(breakflag>0)
     {
@@ -137,7 +137,7 @@ void fnpf_ice::print_log(lexer *p)
               <<roll*deg<<" "<<pitch*deg<<" "<<yaw*deg<<" "
               <<fl.v[0]<<" "<<fl.v[1]<<" "<<fl.v[2]<<" "
               <<fl.F[0]<<" "<<fl.F[1]<<" "<<fl.F[2]<<" "
-              <<fl.Fc[0]<<" "<<fl.Fc[1]<<" "<<fl.Awet<<" "<<fl.sigf<<endl;
+              <<fl.Fc[0]<<" "<<fl.Fc[1]<<" "<<fl.Awet<<" "<<fl.sigf<<" "<<fl.sigmax<<endl;
     }
 }
 
