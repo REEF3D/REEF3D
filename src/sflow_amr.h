@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<fstream>
+#include<unordered_map>
+#include<cstdint>
 
 class lexer;
 class fdm2D;
@@ -47,35 +49,52 @@ using namespace std;
 
 //  Patch-based mesh refinement for REEF3D::SFLOW (hydrostatic HLL, A 220 0).
 //
-//  Level 0 is the native SFLOW grid and stays untouched.  Each refined patch
-//  is a small SFLOW domain of its own: its own lexer (control keys copied,
-//  geometry of the patch), its own fdm2D and its own instances of the SFLOW
-//  classes (HLL, reconstruction, signal speeds, sflow_eta, RK3), so the
-//  kernels run unchanged on every grid.  This class only couples the grids:
+//  Level 0 is the native SFLOW grid.  Each refined patch is a small SFLOW domain
+//  of its own: its own lexer (control keys copied, patch geometry, solid flags and
+//  wall lists built from flagslice4 as for level 0), its own fdm2D and its own
+//  instances of the SFLOW classes, so the kernels run unchanged on every grid.
 //
-//   - ghost cells of a patch are prolonged from its parent (well balanced:
-//     the surface is interpolated, the depth follows the fine bed)
-//   - after every RK3 stage the patch is restricted into its parent
+//   - a patch computes EXT cells beyond its box on every side (redundant work,
+//     results discarded): the wall, wet-dry and limiter steps inside a stage that
+//     need the new values of neighbour cells then see the same data as on one
+//     large grid, so the patch layout does not change the solution
+//   - all other cells of the patch arrays are filled before each stage: from a
+//     patch of the same level, or prolonged from the next coarser level (well
+//     balanced: the surface is interpolated, the depth follows the fine bed);
+//     cells owned by another rank are computed there and sent
+//   - after every RK3 stage a patch is restricted into the coarser level
 //     (conservative averages of WL, UH, VH)
-//   - the parent's faces on the patch boundary take the mean of the two fine
-//     face fluxes, and the face depth of the bed-slope source is matched the
-//     same way (sflow_HLL calls hll_hook between flux_bc and the divergence)
+//   - a coarse face on a coarse-fine interface takes the mean of the two fine
+//     face fluxes and face depths (sflow_HLL calls hll_hook between flux_bc and
+//     the divergence); across a partition edge the fine values are sent
 //   - one global time step, the stages of all grids in lockstep
+//   - every A 271 steps the patches are rebuilt from refinement flags (A 273
+//     surface jump, A 274 shoreline, A 276 boxes) with a buffer of A 272 cells.
+//     Flags mark tiles of A 275 cells on the global index space of each level;
+//     the tile maps are global, so the refined region does not depend on the
+//     domain decomposition.  Marked tiles are merged into rectangles and cut at
+//     the partition edges.
 //
-//  A patch index i of the patch lexer maps to the fine cell i-1: the extra
-//  cell 0 in x and y makes the kernels compute the low-side boundary face
-//  (SLICELOOP1/2 start at the first cell's right face), it is refilled from
-//  the parent every stage like a ghost cell.
-//
-//  v1: static patches (A 276 boxes, A 270 levels), rank-local and at least
-//  3 parent cells away from walls, solids and partition edges.
+//  Index conventions: every level has a global cell index space, level l+1
+//  refines level l by 2.  A patch covers the global box [I0,I1]x[J0,J1] of its
+//  level; its lexer index is i = I-I0+EXT.
+
+struct sflow_amr_fill
+{
+    int di,dj;          // destination cell (patch lexer index)
+    int kind;           // 0: copy from grid g, 1: prolong from grid g (coarser level), 2: remote
+    int g;              // grid id (-1: level 0)
+    int si,sj;          // source cell on grid g
+    int ox,oy;          // prolongation: quadrant of the fine cell (-1/+1)
+    int slot;           // remote: position in the receive buffer of the level
+    double depth;       // prolongation: still water depth of the fine cell
+};
 
 struct sflow_amr_patch
 {
-    int id, lev, parent;            // parent: index into patches, -1 = level 0
-    int ilo0,ihi0,jlo0,jhi0;        // region in level-0 cells (rank-local)
-    int pi0,pi1,pj0,pj1;            // covered parent cells, parent lexer indices
-    int nx,ny;                      // real fine cells
+    int lev;
+    int I0,I1,J0,J1;                // global box of the patch on its level
+    int nx,ny;
 
     lexer *pp;
     fdm2D *b;
@@ -88,11 +107,36 @@ struct sflow_amr_patch
     sflow_forcing *psfdf;
     sflow_momentum_RK3 *pmom;
 
-    vector<int> children;
-
     // boundary face values recorded by hll_hook: rec[ipol][side][fine index]
     // side 0: low x, 1: high x, 2: low y, 3: high y; ipol 0 holds dfx/dfy
     vector<double> rec[5][4];
+
+    // cells filled before each stage
+    vector<sflow_amr_fill> fill;
+
+    // restriction: coarse target (grid id, i, j) for every 2x2 block (-2: wall)
+    vector<int> rgrid, ric, rjc;
+
+    bool fresh;                     // created by the current regrid
+};
+
+// a coarse face overridden with fine values
+struct sflow_amr_match
+{
+    int dir;          // 0: x face, 1: y face
+    int fi,fj;        // local face index on the target grid
+    int child;        // patch that recorded the fine faces (-1: remote)
+    int side,r;       // recorded side and first fine index
+    double val[5];    // remote: averaged fine values (0: face depth, 1, 2, 4: fluxes)
+};
+
+// point-to-point exchange with a fixed set of peers
+struct sflow_amr_xplan
+{
+    vector<int> speer, rpeer;            // ranks
+    vector<vector<int>> sitem;           // per send peer: item indices (meaning depends on the plan)
+    vector<int> rcount;                  // per receive peer: number of items
+    vector<vector<double>> sbuf, rbuf;
 };
 
 class sflow_amr : public increment
@@ -115,30 +159,98 @@ public:
     int patches_total;
 
 private:
-    void make_patch(lexer*, fdm2D*, ghostcell*, int, int, int, int, int, int);
-    void build_lexer(lexer*, sflow_amr_patch&, lexer*);
-    void ini_bed(lexer*, sflow_amr_patch&);
-    void ini_state(lexer*, ghostcell*, sflow_amr_patch&);
-    void fill_ghosts(lexer*, sflow_amr_patch&, int);
+    // grid handles: id -1 is level 0, otherwise an index into P
+    struct gh
+    {
+        lexer *q;
+        fdm2D *b;
+        sflow_momentum_RK3 *m;
+        int oi,oj;    // local index = global index - oi
+    };
+    gh grid(int);
+    int patch_at(int, int, int);            // level, I, J: interior patch on this rank, -1: level 0 (l==0), -2: none
+    int owner(int, int);                    // rank of the level-0 cell (I,J), -1: outside the domain
+    int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
+    void build_flags(lexer*);
+    vector<int> fl0;
+    static const int FH = 8;
+
+    // regridding
+    void regrid(lexer*, fdm2D*, ghostcell*, bool);
+    void tag_level(int, vector<unsigned char>&);
+    void global_or(vector<unsigned char>&);
+    void build_tiles();
+    sflow_amr_patch* make_patch(lexer*, ghostcell*, int, int, int, int, int);
+    void free_patch(sflow_amr_patch*);
+    void build_lexer(lexer*, sflow_amr_patch&);
+    void build_bc(ghostcell*, sflow_amr_patch&);
+    double bed_at(int, int, int);
+    unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
+    void build_plans(ghostcell*);
+    void ini_patch_state(lexer*, ghostcell*, sflow_amr_patch&, vector<sflow_amr_patch*>&);
+
+    // coupling
+    void cache_stage(int);
+    void fill_level(ghostcell*, int, int);
+    void eval_fill(const sflow_amr_fill&, double*);
+    void prolong(int, int, int, int, int, double, double*);
+    void apply_bc(ghostcell*, sflow_amr_patch&, int);
     void restrict_patch(lexer*, sflow_amr_patch&, int);
-    void prolong(sflow_amr_patch&, int, int, slice&, slice&, slice&, double&, double&, double&, int&);
-    void write_vtr(lexer*, sflow_amr_patch&);
-    void write_vtr0(lexer*, fdm2D*);
+    void exchange_level0(lexer*, fdm2D*, ghostcell*, int);
+    void exchange_fluxes(int);
+
+    // MPI helpers
+    void xsetup(vector<vector<int>>&, vector<vector<int>>&, int);
+    void xrun(sflow_amr_xplan&, int, int);
+
     double mass(lexer*, fdm2D*, ghostcell*);
+    void write_vtr(lexer*, sflow_amr_patch&, int);
+    void write_vtr0(lexer*, fdm2D*);
 
-    // parent access (level 0 or a patch)
-    lexer* plex(sflow_amr_patch&);
-    fdm2D* pfdm(sflow_amr_patch&);
-    sflow_momentum_RK3* pmom(sflow_amr_patch&);
-    int pwet(sflow_amr_patch&, int, int);
-    void set_pwet(sflow_amr_patch&, int, int, int);
+    vector<sflow_amr_patch*> P;
+    vector<vector<int>> lev;        // patch ids per level (index 0 unused)
+    int maxlev, nest, tile, nbuf, regrid_int;
+    double tol_eta;
+    int shore;
 
-    vector<sflow_amr_patch> P;
-    vector<int> order;              // patches sorted by level, coarse first
-    int maxlev;
+    // rank boxes of level 0 (global cell indices), all ranks
+    int O0i,O0j,NX0,NY0,GNX,GNY;
+    vector<int> rbx0,rbx1,rby0,rby1;
+    int last_owner;
+    int bxlo(int l) const { return O0i<<l; }
+    int bxhi(int l) const { return ((O0i+NX0)<<l)-1; }
+    int bylo(int l) const { return O0j<<l; }
+    int byhi(int l) const { return ((O0j+NY0)<<l)-1; }
+
+    // global tile maps per level (1 = refined), and the local tile -> patch map
+    vector<vector<unsigned char>> gtile;
+    vector<int> gtnx,gtny;
+    vector<vector<int>> tmap;
+    vector<int> tti0,ttj0,tnx,tny;
+
+    // flux matching entries per target grid (index id+1): local and remote
+    vector<vector<sflow_amr_match>> match;
+    vector<vector<sflow_amr_match>> rmatch;
+
+    // ghost service per level: items are sflow_amr_fill descriptors of the cells served
+    vector<sflow_amr_xplan> gplan;
+    vector<vector<sflow_amr_fill>> gserve;      // [l]: served cells (kind 0/1)
+    vector<vector<sflow_amr_fill*>> grecv;      // [l]: receive slot -> fill entry
+
+    // fine face records sent across partition edges, per level
+    vector<sflow_amr_xplan> fplan;
+    vector<vector<int>> fsend;                  // [l]: (patch, side, r) triplets
+    vector<vector<int>> frecv;                  // [l]: target grid id+1 and index into rmatch, -1: skip
+
+    // cached stage input arrays per grid (index id+1)
+    vector<slice*> sWL,sUH,sVH;
+
+    // no refinement near in- and outflow boundaries and in A 277 boxes: global level-0 cells
+    vector<unsigned char> forbid0;
 
     lexer *p0;
     fdm2D *b0;
+    ghostcell *pgc0;
     sflow_HLL *phll0;
     sflow_momentum_RK3 *pmom0;
     patchBC_interface *pBC;
@@ -146,9 +258,13 @@ private:
     ioflow *pflow_void;
 
     double m0, printtime_amr;
-    int printcount_amr;
+    double tm[8];
+    int printcount_amr, regrids;
+    long cells_total;
     ofstream logout;
     const double eps;
+    int EXT;                        // extra computed cells on each side of a patch (2, 3 with B 60)
+    static const int NV = 8;        // values per filled cell
 };
 
 #endif

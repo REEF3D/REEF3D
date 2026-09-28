@@ -57,6 +57,7 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
 
 sflow_eta::~sflow_eta()
 {
+    delete [] temp;
 }
 
 void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &WLout, slice &WL0, slice &WLs, double a)

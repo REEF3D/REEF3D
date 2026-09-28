@@ -34,6 +34,8 @@ class sflow_rheology
 
 public:
 
+    virtual ~sflow_rheology() = default;
+
     // bed shear stress for the conserved momenta: args U, V, WL (cell centres)
 	virtual void u_source(lexer*, fdm2D*, slice&, slice&, slice&)=0;
     virtual void v_source(lexer*, fdm2D*, slice&, slice&, slice&)=0;

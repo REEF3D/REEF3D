@@ -25,6 +25,9 @@ Author: Hans Bihs
 
 weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
 {
+    own_tables=0;
+    own_nx=own_ny=own_nz=0;
+    
     ini(p);
 
     weno_nug_func::p=p;
@@ -32,6 +35,11 @@ weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct
 
 weno_nug_func::weno_nug_func(lexer* p, int):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
 {
+    own_tables=1;
+    own_nx=p->knox+8;
+    own_ny=p->knoy+8;
+    own_nz=p->knoz+8;
+    
     p->Darray(qfx,p->knox+8,2,6,2);
     p->Darray(qfy,p->knoy+8,2,6,2);
     p->Darray(qfz,p->knoz+8,2,6,2);
@@ -53,6 +61,20 @@ weno_nug_func::weno_nug_func(lexer* p, int):epsilon(0.0),psi(1.0e-6),wtype(0),te
 
 weno_nug_func::~weno_nug_func()
 {
+    if(own_tables==1)
+    {
+    p->del_Darray(qfx,own_nx,2,6,2);
+    p->del_Darray(qfy,own_ny,2,6,2);
+    p->del_Darray(qfz,own_nz,2,6,2);
+    
+    p->del_Darray(cfx,own_nx,2,6);
+    p->del_Darray(cfy,own_ny,2,6);
+    p->del_Darray(cfz,own_nz,2,6);
+    
+    p->del_Darray(isfx,own_nx,2,6,3);
+    p->del_Darray(isfy,own_ny,2,6,3);
+    p->del_Darray(isfz,own_nz,2,6,3);
+    }
 }
 
 void weno_nug_func::ini(lexer* p)

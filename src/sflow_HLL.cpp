@@ -50,6 +50,7 @@ sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
 
 sflow_HLL::~sflow_HLL()
 {
+    delete pflux;
 }
 
 void sflow_HLL::start(lexer *p, fdm2D *b, int ipol)

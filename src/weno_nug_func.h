@@ -387,6 +387,7 @@ public:
     static double ****s_isfx,****s_isfy,****s_isfz;
     
 	static int iniflag;
+    int own_tables, own_nx, own_ny, own_nz;
     
     
     

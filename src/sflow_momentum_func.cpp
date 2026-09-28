@@ -60,6 +60,9 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     psfdf = ppsfdf;
     p6dof = pp6dof;
     
+    prough = nullptr;
+    prheo = nullptr;
+    
     if(p->A218==0)
     prough = new sflow_rough_void(p);
     
@@ -115,6 +118,8 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
 
 sflow_momentum_func::~sflow_momentum_func()
 {
+    delete prough;
+    delete prheo;
 }
 
 void sflow_momentum_func::ini(lexer *p, fdm2D *b, ghostcell *pgc)
