@@ -164,7 +164,7 @@ void  ioflow_gravity::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 		{
 			dist_x = p->pos_x() - p->B192_3;
 			dist_z = p->pos_z() - p->B192_4;
-			a->rhsvec.V[n] += dist_z*theta_y*pow(omega_y,2.0)*sin(omega_y*p->simtime)
+			a->rhsvec.V[n] += -dist_z*theta_y*pow(omega_y,2.0)*sin(omega_y*p->simtime)
 						 + dist_x*pow(theta_y*omega_y*cos(omega_y*p->simtime),2.0);
 						 //- a->w(i,j,k)*theta_y*omega_y*cos(omega_y*p->simtime);
 		++n;
@@ -198,7 +198,7 @@ void  ioflow_gravity::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 		WLOOP
 		{
 			dist_y = p->pos_y() - p->B191_3;
-			a->rhsvec.V[n] -= dist_y*theta_x*pow(omega_x,2.0)*sin(omega_x*p->simtime);
+			a->rhsvec.V[n] += dist_y*theta_x*pow(omega_x,2.0)*sin(omega_x*p->simtime);
 			
 		++n;
 		}
@@ -215,7 +215,7 @@ void  ioflow_gravity::ksource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 		{
 			dist_x = p->pos_x() - p->B192_3;
 			dist_z = p->pos_z() - p->B192_4;
-			a->rhsvec.V[n] +=  -dist_x*theta_y*pow(omega_y,2.0)*sin(omega_y*p->simtime)
+			a->rhsvec.V[n] +=   dist_x*theta_y*pow(omega_y,2.0)*sin(omega_y*p->simtime)
 						 +  dist_z*pow(theta_y*omega_y*cos(omega_y*p->simtime),2.0);
 						 //- a->u(i,j,k)*theta_y*omega_y*cos(omega_y*p->simtime);	
 		++n;
