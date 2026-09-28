@@ -764,6 +764,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Discrete Weights">
             <File Name="fnpf_discrete_weights.h"/>
+            <File Name="fnpf_sz_weights.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Coastline">
             <File Name="fnpf_coastline.h"/>

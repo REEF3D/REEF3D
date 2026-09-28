@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"vec.h"
 
-fnpf_cds4::fnpf_cds4(lexer* p)
+fnpf_cds4::fnpf_cds4(lexer* p) : szw(p)
 {
 }
 
@@ -66,6 +66,9 @@ double fnpf_cds4::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_cds4::sz(lexer *p, double *f)
 {
+    if(p->A327==1)
+    return szw.eval(p,f,FIJK,5);
+
    // return (-(25.0/12.0)*f[FIJKp1] + 4.0*f[FIJK] - 3.0*f[FIJKm1] + (4.0/3.0)*f[FIJKm2] - 0.25*f[FIJKm3])
    //       /(-(25.0/12.0)*p->ZN[KP1] + 4.0*p->ZN[KP] - 3.0*p->ZN[KM1] + (4.0/3.0)*p->ZN[KM2] - 0.25*p->ZN[KM3]);
           

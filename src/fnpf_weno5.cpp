@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include "field.h"
 #include "fnpf_discrete_weights.h"
 
-fnpf_weno5::fnpf_weno5(lexer *p) : ddweno_f_nug(p)
+fnpf_weno5::fnpf_weno5(lexer *p) : ddweno_f_nug(p), szw(p)
 {
     // nonlinear weights (A318: 0 WENO-JS, 1 WENO-Z, 2 TENO5); also used for eta next to fnpf_weno5_wd
     set_weno_weights(p->A318,p->A319);
@@ -130,6 +130,9 @@ double fnpf_weno5::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_weno5::sz(lexer *p, double *f)
 {
+    if(p->A327==1)
+    return szw.eval(p,f,FIJK,5);
+
     if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3]>0)
     {
         return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])

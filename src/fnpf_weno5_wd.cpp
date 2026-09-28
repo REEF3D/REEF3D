@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include "vec.h"
 #include "fnpf_discrete_weights.h"
 
-fnpf_weno5_wd::fnpf_weno5_wd(lexer *p) : fnpf_ddweno_f_nug(p)
+fnpf_weno5_wd::fnpf_weno5_wd(lexer *p) : fnpf_ddweno_f_nug(p), szw(p)
 {
     p->Darray(ckz,p->knoz+1+4*marge,5);
 
@@ -90,6 +90,9 @@ double fnpf_weno5_wd::sy(lexer *p, slice &f, double jvel)
 
 double fnpf_weno5_wd::sz(lexer *p, double *f)
 {
+    if(p->A327==1)
+    return szw.eval(p,f,FIJK,5);
+
     if(p->flag7[FIJK]>0 && p->flag7[FIJKm1]>0 && p->flag7[FIJKm2]>0 && p->flag7[FIJKm3]>0)
     {
         return (-(25.0/12.0)*f[FIJK] + 4.0*f[FIJKm1] - 3.0*f[FIJKm2] + (4.0/3.0)*f[FIJKm3] - 0.25*f[FIJKm4])

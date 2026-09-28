@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include "fnpf_convection.h"
 #include "increment.h"
+#include "fnpf_sz_weights.h"
 #include "ddweno_f_nug.h"
 
 class fnpf_weno5 final : public fnpf_convection, public increment, public ddweno_f_nug
@@ -42,6 +43,7 @@ public:
     double sz(lexer*, double*) override final;
 
 private:
+    fnpf_sz_weights szw;
     double **ckz;
 };
 
