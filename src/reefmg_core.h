@@ -160,6 +160,14 @@ public:
     void set_precision(int bits){pcbits=(bits==32?32:64);}
     void set_fine_operator(sc_operator *op){fineop=op;}
 
+    //  Krylov operator from the host also in fp64 mode, for a fine operator
+    //  the hierarchy does not hold - the FNPF Laplace equation with its
+    //  sigma cross-derivatives (A 328 1): the V-cycle then preconditions the
+    //  full operator with its 7-point part.  Needs set_fine_operator() and
+    //  BiCGStab (solve_auto mode 1); V-cycles alone would converge to the
+    //  7-point solution.  May change from one solve to the next.
+    void set_fine_exact(bool on){fexact=on;}
+
     //  line-GS sweeps on the coarsest level (default 16).  Only matters when
     //  the coarsest grid is large - chiefly for pure-Neumann problems, where
     //  the coarsest level carries the depth-uniform mode across the domain.
@@ -234,6 +242,7 @@ private:
     int nuse;                // levels in use, see set_active_levels()
     int pcbits;              // 64 or 32: storage precision of the coefficients
     sc_operator *fineop;     // exact fine operator, required in fp32 mode
+    bool fexact;             // Krylov operator from fineop in fp64 mode as well
     int ordering;            // 0 lexicographic, 1 red-black batched
     std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
     std::vector<int> pj,pja;             // prolongation tables for nz==1

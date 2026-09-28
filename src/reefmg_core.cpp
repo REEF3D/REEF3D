@@ -105,6 +105,7 @@ reefmg_core::reefmg_core()
     sweepstyle=0;
     pcbits=64;
     fineop=0;
+    fexact=false;
     ordering=0;
     agg=0;
     aggmode=0;
@@ -787,7 +788,7 @@ static inline void column_apply(const sc_view<C> &V,int nz,const double *u,long 
 //  coefficients exist, so the exact operator comes from the host.
 void reefmg_core::residual(sc_level &L)
 {
-    if(pcbits==32)
+    if(pcbits==32 || (fexact && fineop))
     {
         halo(L);
         fineop->fine_apply(L,&L.u[0],&L.r[0]);
@@ -1057,7 +1058,7 @@ void reefmg_core::apply(sc_level &L,int l,std::vector<double> &x,
 {
     halo_vec(L,x);
 
-    if(pcbits==32)
+    if(pcbits==32 || (fexact && fineop))
     {
         fineop->fine_apply(L,&x[0],&y[0]);
         return;
@@ -1269,7 +1270,8 @@ int reefmg_core::solve(double tol,int maxiter,double &relres,int pre,int post)
 int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
                                  int pre,int post,int mode)
 {
-    if(mode==1)
+    //  the V-cycle alone only knows the 7-point part of a host operator
+    if(mode==1 || (fexact && fineop))
     return solve(tol,maxiter,relres,pre,post);
 
     sc_level &F=lev[0];

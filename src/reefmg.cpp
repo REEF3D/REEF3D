@@ -442,6 +442,10 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
     fill_matrix8(p,f,rhs,M);
     p->matrixtime+=pgc->timer()-starttime;
 
+    //  A 328 1: BiCGStab with the full sigma operator (fine_apply), the
+    //  V-cycle on its 7-point part as preconditioner.
+    mg.set_fine_exact(mixed);
+
     //  Coarse operators are rebuilt from the fine coefficients every solve.
     //  This is a sweep over 4/3 of the fine grid with no RAP, so the moving
     //  free surface costs essentially nothing.
@@ -476,6 +480,12 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     const int nzl=L.nz;
 
     Mcur=&M;
+
+    //  A 328 1: the Laplace assembly has sized the cross-couplings nt..eb.
+    //  BiCGStab then multiplies through fine_apply(), which needs rowmap and
+    //  colrow0 also in fp64 mode.
+    mixed = (p->A328==1 && !M.nt.empty() && M.nt.size()==M.p.size());
+    const bool rmap = fp32 || mixed;
 
     //  First call: zero everything once (this also leaves the halo of the
     //  coefficients, f and act at zero for good - nothing else writes it) and
@@ -537,7 +547,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     {
         wetsig.assign(p->wet,p->wet+nsl);
 
-        if(fp32)
+        if(rmap)
         {
             if((long)rowmap.size()!=L.size()) rowmap.resize(L.size());
             std::fill(rowmap.begin(),rowmap.end(),-1);
@@ -589,6 +599,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
                     L.e[q]=Me[r];   // j-1
                     L.t[q]=Mt[r];   // k+1
                     L.b[q]=Mb[r];   // k-1
+                    if(topo && mixed) rowmap[q]=r;
                 }
 
                 const double fv=R[r], uv=f[fc+kk];
@@ -629,7 +640,7 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     //  First row of every column whose cells are all active and numbered
     //  consecutively - every fully wet column, given CVAL4's LOOP order -
     //  so that fine_apply() can run it as a plain stencil.
-    if(fp32 && topo)
+    if(rmap && topo)
     build_colrow0(L);
 }
 
@@ -686,6 +697,18 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             yc[kk]=P[kk]*xc[kk]+Nn[kk]*xn[kk]+S[kk]*xs[kk]+W[kk]*xw[kk]+E[kk]*xe[kk];
             for(int kk=0;kk<nzl-1;++kk) yc[kk]+=T[kk]*xc[kk+1];
             for(int kk=1;kk<nzl;  ++kk) yc[kk]+=B[kk]*xc[kk-1];
+
+            //  A 328 1: sigma cross-couplings (i+-1,k+-1), (j+-1,k+-1)
+            if(mixed)
+            {
+                const double *NT=M.nt.data()+r0, *NB=M.nb.data()+r0, *ST=M.st.data()+r0, *SB=M.sb.data()+r0;
+                const double *WT=M.wt.data()+r0, *WB=M.wb.data()+r0, *ET=M.et.data()+r0, *EB=M.eb.data()+r0;
+
+                for(int kk=0;kk<nzl-1;++kk)
+                yc[kk]+=NT[kk]*xn[kk+1]+ST[kk]*xs[kk+1]+WT[kk]*xw[kk+1]+ET[kk]*xe[kk+1];
+                for(int kk=1;kk<nzl;  ++kk)
+                yc[kk]+=NB[kk]*xn[kk-1]+SB[kk]*xs[kk-1]+WB[kk]*xw[kk-1]+EB[kk]*xe[kk-1];
+            }
             continue;
         }
 
@@ -699,6 +722,12 @@ void reefmg::fine_apply(const sc_level &L,const double *x,double *y)
             double v=M.p[r]*x[q]+M.n[r]*x[q+sx]+M.s[r]*x[q-sx]+M.w[r]*x[q+sy]+M.e[r]*x[q-sy];
             if(kk<L.nz-1) v+=M.t[r]*x[q+1];
             if(kk>0)      v+=M.b[r]*x[q-1];
+
+            if(mixed)
+            {
+                if(kk<L.nz-1) v+=M.nt[r]*x[q+sx+1]+M.st[r]*x[q-sx+1]+M.wt[r]*x[q+sy+1]+M.et[r]*x[q-sy+1];
+                if(kk>0)      v+=M.nb[r]*x[q+sx-1]+M.sb[r]*x[q-sx-1]+M.wb[r]*x[q+sy-1]+M.eb[r]*x[q-sy-1];
+            }
             y[q]=v;
         }
     }
@@ -747,6 +776,8 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
     fill_matrix5(p,f,rhs,M);
     p->matrixtime+=pgc->timer()-starttime;
 
+    mg.set_fine_exact(false);
+
     starttime=pgc->timer();
     mg.coarsen();
     const double coarsentime=pgc->timer()-starttime;
@@ -777,6 +808,7 @@ void reefmg::fill_matrix5(lexer *p, field &f, vec &rhs, matrix_diag &M)
     const bool fp32=(mg.precision()==32);
 
     Mcur=&M;
+    mixed=false;
 
     //  First call: zero everything once, so the halo of the coefficients,
     //  f and act stays at zero for good.  Later calls reset the halo of u

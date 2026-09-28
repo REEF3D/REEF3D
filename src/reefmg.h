@@ -88,6 +88,9 @@ private:
     int *CVAL4;
 
     matrix_diag *Mcur;          // REEF3D's matrix for the current solve
+    bool mixed=false;           // Mcur carries the FNPF sigma cross-couplings
+                                // nt..eb (A 328 1): Krylov operator via
+                                // fine_apply() also in fp64 mode
     std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
     std::vector<int> colrow0;   // first row of a fully active column with
                                 // consecutive rows, -1 otherwise

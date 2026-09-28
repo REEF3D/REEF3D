@@ -35,6 +35,9 @@ fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p)
     gcval=250;
     if(p->j_dir==0)
     gcval=150;
+    
+    if(p->A328==1 && p->N10!=1 && p->mpirank==0)
+    cout<<"A 328 1 needs REEFMG (N 10 1); sigma cross-derivatives stay explicit"<<endl;
 }
 
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
@@ -72,6 +75,33 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     const double ydir = p->y_dir;
     const double xdir = p->x_dir;
+    
+    // A328 1 (REEFMG, N 10 1): the mixed derivatives are assembled as
+    // couplings nt..eb of the matrix wherever the neighbour is an unknown of
+    // the solve, and REEFMG's BiCGStab multiplies with this full 15-point
+    // (9-point in 2D) operator, preconditioned by the V-cycle on the 7-point
+    // part. Only couplings to non-unknowns stay in rhs with the current f:
+    // the free-surface node (Dirichlet, current stage), wall and dry
+    // neighbours, and the slope part of the bed ghost cells.
+    const bool mix = (p->A328==1 && p->N10==1);
+    
+    double *Xnt=0,*Xnb=0,*Xst=0,*Xsb=0,*Xwt=0,*Xwb=0,*Xet=0,*Xeb=0;
+    
+    if(mix)
+    {
+        const size_t nr = c->M.p.size();
+        
+        if(c->M.nt.size()!=nr)
+        {
+        c->M.nt.assign(nr,0.0); c->M.nb.assign(nr,0.0);
+        c->M.st.assign(nr,0.0); c->M.sb.assign(nr,0.0);
+        c->M.wt.assign(nr,0.0); c->M.wb.assign(nr,0.0);
+        c->M.et.assign(nr,0.0); c->M.eb.assign(nr,0.0);
+        }
+        
+        Xnt=c->M.nt.data(); Xnb=c->M.nb.data(); Xst=c->M.st.data(); Xsb=c->M.sb.data();
+        Xwt=c->M.wt.data(); Xwb=c->M.wb.data(); Xet=c->M.et.data(); Xeb=c->M.eb.data();
+    }
     
     // The mixed derivatives 2*sigx*d2Fi/dxdsig (and y) are not in the 7-point
     // matrix but in rhs, evaluated with the current f. Without further
@@ -150,8 +180,53 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             double mt = -(s2/(p->DZP[KM1]*p->DZN[KP])  + sxx/dzc);
             double mb = -(s2/(p->DZP[KM1]*p->DZN[KM1]) - sxx/dzc);
             
-            double rv = 2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])/(dxc*dzc)
-                      + 2.0*sy*(f[q+sJ+1] - f[q-sJ+1] - f[q+sJ-1] + f[q-sJ-1])/(dyc*dzc)*ydir;
+            // active beach (B99>2) at the north boundary replaces the x mixed
+            // term by its Uin form below
+            const bool xdrop = (p->B99>2 && flag7[q+sI]<0 && bcN==2 && p->A329>=1);
+            
+            double rv;
+            double cnt=0.0,cnb=0.0,cst=0.0,csb=0.0,cwt=0.0,cwb=0.0,cet=0.0,ceb=0.0;
+            
+            if(!mix)
+            rv = 2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])/(dxc*dzc)
+               + 2.0*sy*(f[q+sJ+1] - f[q-sJ+1] - f[q+sJ-1] + f[q-sJ-1])/(dyc*dzc)*ydir;
+            
+            else
+            {
+            // rhs term Mx(f): +cx at (i+1,k+1),(i-1,k-1), -cx at (i-1,k+1),(i+1,k-1)
+            const double cx = xdrop ? 0.0 : 2.0*sx/(dxc*dzc);
+            const double cy = 2.0*sy/(dyc*dzc)*ydir;
+            const int kt = k+1, kb = k-1;
+            
+            rv = 0.0;
+            
+            // neighbour q+off at level kn in column with wet flag wc is an unknown
+            auto unk = [&](int qq, int kn, int wc) {return kn>=0 && kn<p->knoz && flag7[qq]>0 && wc==1;};
+            
+            // top neighbours: unknown or surface/wall (explicit)
+            if(unk(q+sI+1,kt,wN)) cnt = -cx; else rv += cx*f[q+sI+1];
+            if(unk(q-sI+1,kt,wS)) cst =  cx; else rv -= cx*f[q-sI+1];
+            if(unk(q+sJ+1,kt,wW)) cwt = -cy; else rv += cy*f[q+sJ+1];
+            if(unk(q-sJ+1,kt,wE)) cet =  cy; else rv -= cy*f[q-sJ+1];
+            
+            // bottom neighbours; at k=0 the bed ghost is f(k=0) of that column
+            // plus the slope part, so f(k=0) goes into the n/s/w/e coupling
+            if(unk(q+sI-1,kb,wN)) cnb =  cx;
+            else if(k==0 && unk(q+sI,k,wN)) {mn += cx; rv -= cx*(f[q+sI-1]-f[q+sI]);}
+            else rv -= cx*f[q+sI-1];
+            
+            if(unk(q-sI-1,kb,wS)) csb = -cx;
+            else if(k==0 && unk(q-sI,k,wS)) {ms -= cx; rv += cx*(f[q-sI-1]-f[q-sI]);}
+            else rv += cx*f[q-sI-1];
+            
+            if(unk(q+sJ-1,kb,wW)) cwb =  cy;
+            else if(k==0 && unk(q+sJ,k,wW)) {mw += cy; rv -= cy*(f[q+sJ-1]-f[q+sJ]);}
+            else rv -= cy*f[q+sJ-1];
+            
+            if(unk(q-sJ-1,kb,wE)) ceb = -cy;
+            else if(k==0 && unk(q-sJ,k,wE)) {me -= cy; rv += cy*(f[q-sJ-1]-f[q-sJ]);}
+            else rv += cy*f[q-sJ-1];
+            }
             
             // KBEDBC
             if(flag7[q-1]<0)
@@ -228,6 +303,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(flag7[q+sI]<0 && bcN==2  && p->A329==1)
             {
+            if(!mix)
             rv -=  2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])
                         /(dxc*dzc)*xdir;
                         
@@ -241,6 +317,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(flag7[q+sI]<0 && bcN==2  && p->A329>=2)
             {
+            if(!mix)
             rv -=  2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])
                         /(dxc*dzc)*xdir;
                         
@@ -285,6 +362,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mt[n] = mt;
             Mb[n] = mb;
             rhs[n] = rv;
+            
+            if(mix)
+            {
+            Xnt[n]=cnt; Xnb[n]=cnb; Xst[n]=cst; Xsb[n]=csb;
+            Xwt[n]=cwt; Xwb[n]=cwb; Xet[n]=cet; Xeb[n]=ceb;
+            }
             }
             
             else
@@ -293,6 +376,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mp[n] = 1.0;
             Mn[n] = Ms[n] = Mw[n] = Me[n] = Mt[n] = Mb[n] = 0.0;
             rhs[n] = f[q];
+            
+            if(mix)
+            {
+            Xnt[n]=Xnb[n]=Xst[n]=Xsb[n]=0.0;
+            Xwt[n]=Xwb[n]=Xet[n]=Xeb[n]=0.0;
+            }
             }
             
             else
@@ -306,6 +395,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mt[n] = 0.0;
             Mb[n] = 0.0;
             rhs[n] = 0.0;
+            
+            if(mix)
+            {
+            Xnt[n]=Xnb[n]=Xst[n]=Xsb[n]=0.0;
+            Xwt[n]=Xwb[n]=Xet[n]=Xeb[n]=0.0;
+            }
             }
             
         ++n;
