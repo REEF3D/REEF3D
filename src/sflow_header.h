@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"sflow_reconstruct_weno.h"
 #include"sflow_eta.h"
 #include"sflow_momentum_RK3.h"
+#include"sflow_amr.h"
 #include"sflow_momentum_RK2.h"
 
 

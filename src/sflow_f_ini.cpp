@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
+#include"sflow_amr.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -194,6 +195,14 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     //sediment ini
     psed->ini_sflow(p,b,pgc);
+    
+    // mesh refinement: patches from the initial level-0 state
+    if(pamr!=nullptr)
+    {
+    pamr->ini(p,b,pgc);
+    pamr->timestep(p,b,pgc);
+    pamr->print(p,b,pgc);
+    }
 
     // print
     log_ini(p);

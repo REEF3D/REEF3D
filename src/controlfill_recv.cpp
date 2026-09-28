@@ -95,6 +95,10 @@ void control::ctrlrecv()
     dd++;
     A264 = dctrl[dd];
     dd++;
+    A270 = ictrl[ii];
+    ii++;
+    A276 = ictrl[ii];
+    ii++;
 
     A309 = ictrl[ii];
     ii++;
@@ -2863,6 +2867,14 @@ void control::ctrlrecv()
         Darray(F72_h,F72);
     }
 
+    if(A276>0)
+    {
+        Darray(A276_xs,A276);
+        Darray(A276_xe,A276);
+        Darray(A276_ys,A276);
+        Darray(A276_ye,A276);
+    }
+
     if(F112>0)
     {
         Darray(F112_xs,F112);
@@ -4233,6 +4245,18 @@ void control::ctrlrecv()
         F72_ye[n] = dctrl[dd];
         dd++;
         F72_h[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<A276;++n)
+    {
+        A276_xs[n] = dctrl[dd];
+        dd++;
+        A276_xe[n] = dctrl[dd];
+        dd++;
+        A276_ys[n] = dctrl[dd];
+        dd++;
+        A276_ye[n] = dctrl[dd];
         dd++;
     }
 

@@ -99,6 +99,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A264;
     dd++;
+    ictrl[ii] = A270;
+    ii++;
+    ictrl[ii] = A276;
+    ii++;
 
     ictrl[ii] = A309;
     ii++;
@@ -3124,6 +3128,18 @@ void control::ctrlsend()
         dctrl[dd] = F72_ye[n];
         dd++;
         dctrl[dd] = F72_h[n];
+        dd++;
+    }
+
+    for(n=0;n<A276;++n)
+    {
+        dctrl[dd] = A276_xs[n];
+        dd++;
+        dctrl[dd] = A276_xe[n];
+        dd++;
+        dctrl[dd] = A276_ys[n];
+        dd++;
+        dctrl[dd] = A276_ye[n];
         dd++;
     }
 

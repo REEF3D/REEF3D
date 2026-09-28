@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"slice.h"
 #include"patchBC_interface.h"
 #include"sflow_flux_build_f.h"
+#include"sflow_amr.h"
 
 sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -78,6 +79,9 @@ void sflow_HLL::aij_U(lexer *p, fdm2D *b)
     HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw,b->Fx,b->Fy);
     flux_bc(p,b,1);
     
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,1,amr_id);
+    
     divergence(p,b,b->F);
 }
 
@@ -92,6 +96,9 @@ void sflow_HLL::aij_V(lexer *p, fdm2D *b)
     HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw,b->Fx,b->Fy);
     flux_bc(p,b,2);
     
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,2,amr_id);
+    
     divergence(p,b,b->G);
 }
 
@@ -100,6 +107,9 @@ void sflow_HLL::aij_W(lexer *p, fdm2D *b)
     pflux->start_W(p,b,pgc);
     HLL(p,b,b->WHs,b->WHn,b->WHe,b->WHw,b->Fx,b->Fy);
     flux_bc(p,b,3);
+    
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,3,amr_id);
     
     divergence(p,b,b->H);
 }
@@ -127,6 +137,9 @@ void sflow_HLL::aij_E(lexer *p, fdm2D *b)
     }
     
     flux_bc(p,b,4);
+    
+    if(amr!=nullptr)
+    amr->hll_hook(p,b,4,amr_id);
 }
 
 void sflow_HLL::divergence(lexer *p, fdm2D *b, slice &f)

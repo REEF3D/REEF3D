@@ -54,6 +54,7 @@ class sediment;
 class turbulence;
 class patchBC_interface;
 class sixdof;
+class sflow_amr;
 
 using namespace std;
 
@@ -107,6 +108,7 @@ private:
     patchBC_interface *pBC;
     
     sixdof *p6dof;
+    sflow_amr *pamr = nullptr;
 	
 	double starttime, endtime;
     

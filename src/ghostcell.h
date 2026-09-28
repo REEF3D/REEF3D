@@ -155,6 +155,9 @@ public:
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     double timer();
+
+    // MPI exchange of the gc*_start functions on/off (SFLOW AMR patches run without it)
+    bool set_comms(bool on) {bool old=do_comms; do_comms=on; return old;}
     //Collective Communication
     void gather_int(int *, int, int *, int);
     void gatherv_int(int*, int, int*, int*, int*);

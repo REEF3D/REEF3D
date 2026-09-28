@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"sflow_momentum_func.h"
 #include"slice4.h"
 
+class sflow_amr;
+
 using namespace std;
 
 class sflow_momentum_RK3 final : public sflow_momentum_func
@@ -36,6 +38,15 @@ public:
 	virtual ~sflow_momentum_RK3();
     
 	void start(lexer*, fdm2D*, ghostcell*) override final;
+
+    // single RK3 stage s = 0,1,2 and the end-of-step work; start() is inflow + 3 stages + finish
+    void rk_stage(lexer*, fdm2D*, ghostcell*, int);
+    void rk_finish(lexer*, fdm2D*, ghostcell*);
+
+    // input and output conserved variables of stage s (for the mesh refinement)
+    void stage_io(int, fdm2D*, slice*&, slice*&, slice*&, slice*&, slice*&, slice*&);
+
+    sflow_amr *pamr = nullptr;
     
 private:
     slice4 WLRK1,WLRK2;

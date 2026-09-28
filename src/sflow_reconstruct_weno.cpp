@@ -33,6 +33,13 @@ sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC
     uf=vf=wf=0;
 }
 
+sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC, int own) : weno_nug_func(p,own), dfdx(p), dfdy(p)
+{
+    pBC = ppBC;
+
+    uf=vf=wf=0;
+}
+
 sflow_reconstruct_weno::~sflow_reconstruct_weno()
 {
 }

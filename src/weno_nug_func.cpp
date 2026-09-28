@@ -30,14 +30,8 @@ weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct
     weno_nug_func::p=p;
 }
 
-weno_nug_func::~weno_nug_func()
+weno_nug_func::weno_nug_func(lexer* p, int):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
 {
-}
-
-void weno_nug_func::ini(lexer* p)
-{
-    if(iniflag==0)
-    {
     p->Darray(qfx,p->knox+8,2,6,2);
     p->Darray(qfy,p->knoy+8,2,6,2);
     p->Darray(qfz,p->knoz+8,2,6,2);
@@ -50,6 +44,40 @@ void weno_nug_func::ini(lexer* p)
     p->Darray(isfy,p->knoy+8,2,6,3);
     p->Darray(isfz,p->knoz+8,2,6,3);
     
+    precalc_qf(p);
+    precalc_cf(p);
+    precalc_isf(p);
+
+    weno_nug_func::p=p;
+}
+
+weno_nug_func::~weno_nug_func()
+{
+}
+
+void weno_nug_func::ini(lexer* p)
+{
+    if(iniflag==0)
+    {
+    p->Darray(s_qfx,p->knox+8,2,6,2);
+    p->Darray(s_qfy,p->knoy+8,2,6,2);
+    p->Darray(s_qfz,p->knoz+8,2,6,2);
+    
+    p->Darray(s_cfx,p->knox+8,2,6);
+    p->Darray(s_cfy,p->knoy+8,2,6);
+    p->Darray(s_cfz,p->knoz+8,2,6);
+    
+    p->Darray(s_isfx,p->knox+8,2,6,3);
+    p->Darray(s_isfy,p->knoy+8,2,6,3);
+    p->Darray(s_isfz,p->knoz+8,2,6,3);
+    }
+
+    qfx=s_qfx; qfy=s_qfy; qfz=s_qfz;
+    cfx=s_cfx; cfy=s_cfy; cfz=s_cfz;
+    isfx=s_isfx; isfy=s_isfy; isfz=s_isfz;
+
+    if(iniflag==0)
+    {
     precalc_qf(p);
     precalc_cf(p);
     precalc_isf(p);
@@ -75,7 +103,7 @@ void weno_nug_func::dsdiffy(slice &f, slice &dq)
     dq(ii,jj) = (f(ii,jj+1)-f(ii,jj))/p->DYP[jj+marge];
 }
 
-double ****weno_nug_func::qfx,****weno_nug_func::qfy,****weno_nug_func::qfz;
-double ***weno_nug_func::cfx,***weno_nug_func::cfy,***weno_nug_func::cfz;
-double ****weno_nug_func::isfx,****weno_nug_func::isfy,****weno_nug_func::isfz;
+double ****weno_nug_func::s_qfx,****weno_nug_func::s_qfy,****weno_nug_func::s_qfz;
+double ***weno_nug_func::s_cfx,***weno_nug_func::s_cfy,***weno_nug_func::s_cfz;
+double ****weno_nug_func::s_isfx,****weno_nug_func::s_isfy,****weno_nug_func::s_isfz;
 int weno_nug_func::iniflag(0);

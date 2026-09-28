@@ -152,6 +152,18 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->A210!=2)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
+    // mesh refinement (A 270, A 276)
+    if(p->A270>0 && p->A276>0)
+    {
+    sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
+    
+        if(prk3!=nullptr)
+        {
+        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,phll,prk3);
+        prk3->pamr = pamr;
+        }
+    }
+    
     //Potential Flow Solver
     if(p->I11==0)
     potflow = new sflow_potential_v(p);

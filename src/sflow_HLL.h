@@ -31,6 +31,7 @@ class slice;
 class ghostcell;
 class patchBC_interface;
 class sflow_flux_build;
+class sflow_amr;
 
 using namespace std;
 
@@ -46,6 +47,10 @@ class sflow_HLL final : public increment
 public:
 	sflow_HLL(lexer*,ghostcell*,patchBC_interface*);
 	virtual ~sflow_HLL();
+
+    // mesh refinement: interface fluxes are recorded/matched between flux_bc and the divergence
+    sflow_amr *amr = nullptr;
+    int amr_id = 0;
 
     void start(lexer*, fdm2D*, int);
 

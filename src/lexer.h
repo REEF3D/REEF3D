@@ -49,6 +49,8 @@ class lexer : virtual public resize_class, public grid, public control,
 public:
 
 	lexer();
+	// SFLOW AMR patch: control keys copied from b, the patch geometry is set by sflow_amr
+	lexer(const lexer &b, int);
 	virtual ~lexer();
 
 //-----functions------------------

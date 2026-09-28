@@ -50,6 +50,8 @@ public:
     int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
+    int A270,A276;
+    double *A276_xs,*A276_xe,*A276_ys,*A276_ye;
     double A223,A224,A247,A249,A244,A251_val;
     double A250;
 

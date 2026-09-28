@@ -157,6 +157,12 @@ void control::read_control(lexer* p)
                 case 264: control>>A264;
                          clear(c,numint);
                          break;
+                case 270: control>>A270;
+                         clear(c,numint);
+                         break;
+                case 276: ++A276;
+                         clear(c,numint);
+                         break;
 
                 case 309: control>>A309;
                          clear(c,numint);
@@ -3337,6 +3343,11 @@ void control::read_control(lexer* p)
 
     Darray(F72_h,F72);
 
+    Darray(A276_xs,A276);
+    Darray(A276_xe,A276);
+    Darray(A276_ys,A276);
+    Darray(A276_ye,A276);
+
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
 
@@ -3888,6 +3899,7 @@ void control::read_control(lexer* p)
     int countF70=0;
     int countF71=0;
     int countF72=0;
+    int countA276=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -3986,6 +3998,12 @@ void control::read_control(lexer* p)
             case 'A': control>>numint;
                 switch(numint)
                 {
+                case 276: control>>A276_xs[countA276]>>A276_xe[countA276]>>A276_ys[countA276]>>A276_ye[countA276];
+                         p->XYin(A276_xs[countA276],A276_ys[countA276]);
+                         p->XYin(A276_xe[countA276],A276_ye[countA276]);
+                         ++countA276;
+                         clear(c,numint);
+                         break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];
                          p->XYin(A581_xs[countA581],A581_ys[countA581]);
                          p->XYin(A581_xe[countA581],A581_ye[countA581]);

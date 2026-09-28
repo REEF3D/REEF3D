@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"sflow_filter.h"
 #include"sflow_turbulence.h"
 #include"6DOF_sflow.h"
+#include"sflow_amr.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -127,12 +128,18 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         p->simtime+=p->dt;
         ptime->start(p,b,pgc);
         
+        if(pamr!=nullptr)
+        pamr->timestep(p,b,pgc);
+        
         
         // printer
 		//print_debug(p,b,pgc);
 		
 		double ptime=pgc->timer();
 		
+        if(pamr!=nullptr)
+        pamr->print(p,b,pgc);
+        
         pprint->start(p,b,pgc,pflow,pturb,psed);
 		pprintbed->start(p,b,pgc,psed);
 		

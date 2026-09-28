@@ -60,6 +60,8 @@ void control::ini_default()
     A262=0.0667; // double parabolic turbulence model factor
     A263=10.0;   // double eddyv limiter factor set to high
     A263=2.7;   // double epsisolon coefficient ce_gamma
+    A270=0;      // int SFLOW mesh refinement: number of refined levels
+    A276=0;      // int SFLOW mesh refinement: number of static refinement boxes
 
 
     // FNPF

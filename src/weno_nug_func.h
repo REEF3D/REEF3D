@@ -94,6 +94,7 @@ class weno_nug_func : public increment
 {
 public:
     weno_nug_func(lexer*);
+    weno_nug_func(lexer*, int);   // own coefficient tables for the grid of this lexer
     virtual ~weno_nug_func();
 
     void precalc_qf(lexer*);
@@ -374,9 +375,16 @@ public:
         w3z = c3/(epsilon + a3*sum);
     }
 
-    static double ****qfx,****qfy,****qfz;
-    static double ***cfx,***cfy,***cfz;
-    static double ****isfx,****isfy,****isfz;
+    // coefficient tables: by default shared by all instances (static storage, built
+    // once for the rank grid); an instance built with weno_nug_func(p,1) owns tables
+    // for the grid of its own lexer (SFLOW AMR patches)
+    double ****qfx,****qfy,****qfz;
+    double ***cfx,***cfy,***cfz;
+    double ****isfx,****isfy,****isfz;
+
+    static double ****s_qfx,****s_qfy,****s_qfz;
+    static double ***s_cfx,***s_cfy,***s_cfz;
+    static double ****s_isfx,****s_isfy,****s_isfz;
     
 	static int iniflag;
     
