@@ -55,6 +55,7 @@ private:
     slice4 erk1,erk2;
     slice4 frk1,frk2;
     slice4 ek,fk;   // stage tendencies deta/dt, dFifsf/dt
+    slice4 en;      // eta_n, for the breaking onset criterion
 
     fnpf_laplace *plap;
     fnpf_fsf *pf;

@@ -77,13 +77,6 @@ fnpf_RK4::~fnpf_RK4()
 
 void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
 {
-    // Classical RK4:  y_s = y_n + c_s*dt*K_{s-1},  c_s = 1/2, 1/2, 1
-    //                 y_n+1 = y_n + dt/6*(K1 + 2K2 + 2K3 + K4)
-    // Both tendencies of a stage are evaluated before its stage value is
-    // formed, so the dynamic FSBC sees the eta of the same stage. en keeps
-    // eta_n for the breaking onset criterion (eta_s - eta_n)/(c_s*dt) = K.
-    // The breaking-viscosity damping acts on the formed stage value with
-    // weight c_s (on y_n+1 with weight 1), i.e. nu*dt once per time step.
     
     SLICELOOP4
     en(i,j) = c->eta(i,j);
