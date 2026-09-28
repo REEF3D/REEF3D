@@ -1691,6 +1691,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="AMR">
+          <File Name="sflow_amr.cpp"/>
+          <File Name="sflow_amr_nh.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
