@@ -45,6 +45,7 @@ public:
 
     // input and output conserved variables of stage s (for the mesh refinement)
     void stage_io(int, fdm2D*, slice*&, slice*&, slice*&, slice*&, slice*&, slice*&);
+    void stage_io_w(int, fdm2D*, slice*&, slice*&);
 
     sflow_amr *pamr = nullptr;
     

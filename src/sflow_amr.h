@@ -44,6 +44,10 @@ class sflow_pressure;
 class sflow_fsf;
 class sflow_forcing;
 class sflow_momentum_RK3;
+class sflow_pjm_lin;
+class reefmg_core;
+class reefmg2D;
+class vec2D;
 
 using namespace std;
 
@@ -118,6 +122,14 @@ struct sflow_amr_patch
     vector<int> rgrid, ric, rjc;
 
     bool fresh;                     // created by the current regrid
+
+    // non-hydrostatic pressure (A 220 1), solved on all grids together
+    sflow_pjm_lin *pnh = nullptr;
+    vector<slice*> nv;              // Krylov vectors
+    vector<signed char> act;        // -2 no row, -1 covered by a finer patch, 0 q = 0 row, 1 active
+    vector<int> row;                // matrix row of a cell (SLICELOOP4 order), -1 none
+    reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    vector<double> qrec[4];         // boundary face gradients of q
 };
 
 // a coarse face overridden with fine values
@@ -127,7 +139,7 @@ struct sflow_amr_match
     int fi,fj;        // local face index on the target grid
     int child;        // patch that recorded the fine faces (-1: remote)
     int side,r;       // recorded side and first fine index
-    double val[5];    // remote: averaged fine values (0: face depth, 1, 2, 4: fluxes)
+    double val[6];    // remote: averaged fine values (0: face depth, 1-4: fluxes, 5: gradient of q)
 };
 
 // point-to-point exchange with a fixed set of peers
@@ -158,7 +170,34 @@ public:
 
     int patches_total;
 
+    // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
+    bool nh_patches() const { return maxlev>0 && patches_total>0 && nh==1; }
+    void nh_solve(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
+
 private:
+    // composite non-hydrostatic solve (sflow_amr_nh.cpp)
+    int nh;
+    struct nhg { lexer *q; fdm2D *b; vector<signed char> *act; vector<int> *row; vector<slice*> *v; };
+    nhg nh_grid(int);
+    slice& nh_vec(int, int);        // grid, vector (-1: press)
+    void nh_prepare(ghostcell*);
+    void nh_restrict_vec(int);
+    void nh_sync(int);
+    void nh_qfill(int, int);
+    double nh_eval(const sflow_amr_fill&, int);
+    void nh_apply(int, int);
+    double nh_dot(int, int);
+    void nh_prec(int, int);
+    vector<signed char> nh0_act;
+    vector<int> nh0_row;
+    vector<slice*> nh0_v;
+    reefmg2D *nhmg0 = nullptr;
+    vec2D *nhr0 = nullptr;
+    bool nh_rebuild0;
+    long nh_it_total, nh_solves;
+    int nh_it_last;
+    vector<int> nlevg;              // patches per level, all ranks
+
     // grid handles: id -1 is level 0, otherwise an index into P
     struct gh
     {
@@ -206,6 +245,8 @@ private:
     double mass(lexer*, fdm2D*, ghostcell*);
     void write_vtr(lexer*, sflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm2D*);
+    void gauges(lexer*, fdm2D*, ghostcell*);
+    ofstream gaugeout;
 
     vector<sflow_amr_patch*> P;
     vector<vector<int>> lev;        // patch ids per level (index 0 unused)
@@ -243,7 +284,7 @@ private:
     vector<vector<int>> frecv;                  // [l]: target grid id+1 and index into rmatch, -1: skip
 
     // cached stage input arrays per grid (index id+1)
-    vector<slice*> sWL,sUH,sVH;
+    vector<slice*> sWL,sUH,sVH,sWH;
 
     // no refinement near in- and outflow boundaries and in A 277 boxes: global level-0 cells
     vector<unsigned char> forbid0;
@@ -264,7 +305,7 @@ private:
     ofstream logout;
     const double eps;
     int EXT;                        // extra computed cells on each side of a patch (2, 3 with B 60)
-    static const int NV = 8;        // values per filled cell
+    static const int NV = 10;       // values per filled cell: WL UH VH eta U V wet deep WH W
 };
 
 #endif

@@ -314,9 +314,24 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     // direct forcing
     psfdf->forcing(p,b,pgc,p6dof,iter,alpha,UHo,VHo,WHo,WLo,finalize);
     
-    // non-hydrostatic pressure
+    // non-hydrostatic pressure (mesh refinement: solved later on all grids together)
+    if(nh_defer && nhp==1)
+    {
+    nhUH = &UHo;
+    nhVH = &VHo;
+    nhWH = &WHo;
+    nhWL = &WLo;
+    nh_alpha = alpha;
+    return;
+    }
+    
     ppress->start(p,b,pgc,ppoissonsolv,pflow,UHo,VHo,WHo,WLo,Un,Vn,alpha);
     
+    stage_finish(p,b,pgc,UHo,VHo,WHo,WLo);
+}
+
+void sflow_momentum_func::stage_finish(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHo, slice &VHo, slice &WHo, slice &WLo)
+{
     velcalc(p,b,pgc,UHo,VHo,WHo,WLo,0);
     
     // relaxation zones

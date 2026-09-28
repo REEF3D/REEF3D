@@ -60,6 +60,15 @@ public:
     void ini(lexer*, fdm2D*, ghostcell*) override final;
     void stage(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, slice&, slice&, double, int, bool);
     
+    // second part of a stage, after the non-hydrostatic pressure: velocities, relaxation zones
+    void stage_finish(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    
+    // mesh refinement: the stage of a patch stops before the non-hydrostatic pressure, which
+    // is solved on all grids together; the arguments of that call are kept here
+    bool nh_defer = false;
+    slice *nhUH=nullptr, *nhVH=nullptr, *nhWH=nullptr, *nhWL=nullptr;
+    double nh_alpha = 0.0;
+    
     void reconstruct(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
     void velcalc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, int);
     void ghostcells(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);

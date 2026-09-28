@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"solver2D.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
+#include"sflow_amr.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -54,6 +55,11 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 
         solvtime=pgc->timer();
 
+    // mesh refinement: one pressure for level 0 and the patches
+    if(amr!=nullptr && amr->nh_patches())
+    amr->nh_solve(p,b,pgc,UH,VH,WH,WL,alpha);
+    
+    else
     psolv->start(p,pgc,b->press,b->M,b->xvec,b->rhsvec,4);
 
         p->poissontime=pgc->timer()-solvtime;
@@ -71,6 +77,26 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"piter: "<<p->solveriter<<"  solvtime: "<<setprecision(3)<<p->poissontime<<"  ptime: "<<setprecision(3)<<ptime<<endl;
+}
+
+void sflow_pjm_lin::assemble(lexer *p, fdm2D *b, slice &WL, double alpha)
+{
+    rhs(p,b,WL,alpha);
+    poisson(p,b,WL,alpha);
+}
+
+void sflow_pjm_lin::correct(lexer *p, fdm2D *b, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)
+{
+    ucorr(p,b,UH,WL,alpha);
+	vcorr(p,b,VH,WL,alpha);
+    wcorr(p,b,WH,WL,alpha);
+}
+
+int sflow_pjm_lin::is_active(lexer *p, fdm2D *b, int ii, int jj)
+{
+    i=ii;
+    j=jj;
+    return active(p,b);
 }
 
 int sflow_pjm_lin::active(lexer *p, fdm2D *b)

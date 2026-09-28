@@ -101,3 +101,10 @@ void sflow_momentum_RK3::stage_io(int s, fdm2D *b, slice *&WLi, slice *&UHi, sli
     if(s==1) {WLi=&WLRK1; UHi=&UHRK1; VHi=&VHRK1; WLo=&WLRK2; UHo=&UHRK2; VHo=&VHRK2;}
     if(s==2) {WLi=&WLRK2; UHi=&UHRK2; VHi=&VHRK2; WLo=&b->WL; UHo=&b->UH; VHo=&b->VH;}
 }
+
+void sflow_momentum_RK3::stage_io_w(int s, fdm2D *b, slice *&WHi, slice *&WHo)
+{
+    if(s==0) {WHi=&b->WH; WHo=&WHRK1;}
+    if(s==1) {WHi=&WHRK1; WHo=&WHRK2;}
+    if(s==2) {WHi=&WHRK2; WHo=&b->WH;}
+}

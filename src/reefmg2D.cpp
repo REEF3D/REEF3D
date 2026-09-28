@@ -215,6 +215,28 @@ void reefmg2D::start(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, vec2D &xve
         <<relres<<endl;
 }
 
+void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r, bool rebuild)
+{
+    SLICELOOP4
+    z(i,j)=0.0;
+
+    bool singular=false;
+    const double ldx=fill(p,pgc,mg,z,M,r,singular);
+
+    if(rebuild)
+    {
+        if(p->N13==0)
+        mg.set_active_levels(screened_levels(ldx,mg.levels()));
+
+        mg.coarsen();
+    }
+
+    //  fill() leaves u = 0 and f = 0 on the rows outside the multigrid
+    mg.vcycle(0,presweep,postsweep);
+
+    fillback(p,mg,z);
+}
+
 //  ---------------------------------------------------------------------------
 //  matrix2D -> fine level
 //

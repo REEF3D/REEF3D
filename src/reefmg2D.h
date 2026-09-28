@@ -66,6 +66,11 @@ public:
 
     void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
 
+    //  One V-cycle z = M^-1 r from a zero initial guess: the level-0 part of the
+    //  preconditioner of the composite non-hydrostatic solve (SFLOW mesh
+    //  refinement).  rebuild: M changed, coarsen again.
+    void vcycle(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, bool);
+
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
     void fine_apply(const sc_level &L,const double *x,double *y) override;
 

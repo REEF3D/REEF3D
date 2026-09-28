@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"sflow_pressure.h"
 #include"increment.h"
 
+class sflow_amr;
+
 using namespace std;
 
 // depth-integrated non-hydrostatic pressure, linear vertical profile
@@ -46,6 +48,14 @@ public:
 	void upgrad(lexer*, fdm2D*, slice&) override final;
 	void vpgrad(lexer*, fdm2D*, slice&) override final;
     void wpgrad(lexer*, fdm2D*, slice&) override final;
+    
+    // mesh refinement (sflow_amr): the level-0 instance hands the solve to the composite
+    // solver; the patch instances assemble their rows and apply the correction
+    sflow_amr *amr = nullptr;
+    void assemble(lexer*, fdm2D*, slice&, double);
+    void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double);
+    int is_active(lexer*, fdm2D*, int, int);
+    int gcval() const {return gcval_press;}
 
 private:
     void rhs(lexer*, fdm2D*, slice&, double);
