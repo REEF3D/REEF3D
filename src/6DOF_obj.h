@@ -133,6 +133,7 @@ public:
     void face_data_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, double*, double*, double*, double*);
     void forces_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double**, bool);
     bool fnpf_fixed(lexer*);
+    void print_force_fnpf(lexer*);
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}

@@ -36,6 +36,8 @@ class slice;
 // is returned unchanged, so fnpf_RK3/fnpf_RK4 call the hooks unconditionally and
 // contain no body logic. create() returns fnpf_6DOF for X 10 > 0.
 //
+// initialize() is called once at t = 0 (inidisc_step2, after the sigma grid is set up),
+// so the body output starts together with the initial fluid output.
 // Per RK stage the scheme calls
 //   stage()   with the tendencies deta/dt, dFifsf/dt of the current state, before the
 //             stage value is formed (body loads and body RK stage),
@@ -49,6 +51,9 @@ public:
     static fnpf_body* create(lexer*, fdm_fnpf*, ghostcell*);
     
     virtual ~fnpf_body(){}
+    
+    // once at t = 0 after the initial sigma grid, before the initial output
+    virtual void initialize(lexer*, fdm_fnpf*, ghostcell*){}
     
     virtual void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int){}
     virtual void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int){}

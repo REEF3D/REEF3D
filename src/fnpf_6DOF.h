@@ -67,6 +67,7 @@ public:
     virtual ~fnpf_6DOF();
     
     // fnpf_body hooks
+    void initialize(lexer*, fdm_fnpf*, ghostcell*) override;
     void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int) override;
     void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
     fnpf_laplace* laplace(fnpf_laplace*) override;

@@ -258,6 +258,7 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
+    pbody->initialize(p,c,pgc);
     
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);

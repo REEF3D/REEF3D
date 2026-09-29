@@ -98,6 +98,12 @@ fnpf_laplace* fnpf_6DOF::laplace(fnpf_laplace *pl)
     return new fnpf_laplace_6DOF(this,pl);
 }
 
+void fnpf_6DOF::initialize(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(!initialized)
+    ini(p,c,pgc);
+}
+
 void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, slice &Keta, slice &Kfi, int iter)
 {
     // loads from the current state (Fi, eta, sigma grid of the previous stage) and its
@@ -185,6 +191,10 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
         }
         
         fb_obj[nb]->forces_fnpf(p,c,pgc,psi0,psi,computeA);
+        
+        // force log: first stage = state at the current time level
+        if(iter==0)
+        fb_obj[nb]->print_force_fnpf(p);
     }
 }
 

@@ -972,6 +972,7 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <File Name="6DOF_output_dir.h"/>
         <File Name="fnpf_6DOF.h"/>
         <VirtualDirectory Name="Net Interface">
           <File Name="net_interface.h"/>
