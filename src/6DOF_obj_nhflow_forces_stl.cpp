@@ -75,6 +75,10 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     // Set new time
     curr_time = p->simtime;
     
+    vis_x.clear(); vis_y.clear(); vis_z.clear();
+    vis_nx.clear(); vis_ny.clear(); vis_nz.clear();
+    vis_A.clear();
+    
     for(int n=0; n<tricount; ++n)
     {     
         for(int q=0; q<3; ++q)
@@ -212,6 +216,16 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             const double gy = (ay + by + cy)/3.0;
             const double gz = (az + bz + cz)/3.0;
             
+            // ITTC-1957 (X 39): collected here, evaluated after the loop, as the local
+            // friction line needs global quantities (flow direction, bow position)
+            if(p->X39>0)
+            {
+                vis_x.push_back(gx);   vis_y.push_back(gy);   vis_z.push_back(gz);
+                vis_nx.push_back(nx);  vis_ny.push_back(ny);  vis_nz.push_back(nz);
+                vis_A.push_back(A_sub);
+                continue;
+            }
+            
             hydrodynamic_viscous_forces_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, A_sub, gx, gy, gz, nx, ny, nz);
             
             Xe += Fv_x;
@@ -226,6 +240,23 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             Ze_v += Fv_z;
         }
 	}
+    
+    if(p->X39>0 && p->X16!=1)
+    {
+        double Kv,Mv,Nv;
+        viscous_forces_ittc_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, Kv, Mv, Nv);
+        
+        Xe += Fv_x;
+        Ye += Fv_y;
+        Ze += Fv_z;
+        Ke += Kv;
+        Me += Mv;
+        Ne += Nv;
+        
+        Xe_v += Fv_x;
+        Ye_v += Fv_y;
+        Ze_v += Fv_z;
+    }
     
 	// Communication with other processors
     A = pgc->globalsum(A);

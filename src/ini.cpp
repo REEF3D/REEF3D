@@ -1059,7 +1059,7 @@ void control::ini_default()
     X33=1;        // int 
     X34=0;        // int 
     X38=0;       // int type of viscous force calculation CFD
-    X39=0;       // int type of viscous force calculation NHFLOW
+    X39=0;       // int type of viscous force calculation NHFLOW: 1 ITTC-1957 CF(Re_L), 2 local ITTC-consistent cf(Re_x)
     X39_Lwl=1.0; // double reference (waterline) length for ITTC-1957 friction line [m]
     X39_k=0.0;   // double form factor k (total viscous resistance = (1+k)*R_F0)
     X40=3;		// int type of force calculation

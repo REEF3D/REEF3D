@@ -317,6 +317,11 @@ private:
     void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
     void hydrodynamic_viscous_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,
             double&,double&,double&,double,double,double,double,double,double,double);
+    void viscous_forces_ittc_nhflow(lexer*, fdm_nhf*, ghostcell*, slice&,
+            double&,double&,double&,double&,double&,double&);
+    
+    // wetted sub-triangles collected in force_calc_stl for the ITTC viscous force (X 39)
+    vector<double> vis_x, vis_y, vis_z, vis_nx, vis_ny, vis_nz, vis_A;
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
 	void reconstruct(lexer*, fdm_nhf*);
