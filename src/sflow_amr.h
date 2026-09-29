@@ -48,6 +48,8 @@ class sflow_pjm_lin;
 class reefmg_core;
 class reefmg2D;
 class vec2D;
+class sixdof_sflow;
+class sflow_amr_ship;
 
 using namespace std;
 
@@ -78,6 +80,12 @@ using namespace std;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
 //     the partition edges.
+//   - moving body (X 10 2/3): the body stays on level 0 (sixdof_sflow); the patches
+//     evaluate it on their own cells (sflow_amr_ship.cpp): the level set is interpolated
+//     from level 0, the draft is ray-cast from the hull triangles at the patch cell centres,
+//     and the pressure (X 10 3) or the direct forcing (X 10 2) is applied in the patch
+//     kernels.  A 278 refines a margin around the hull, A 279 a wake wedge behind the bow,
+//     both moving with the body.
 //
 //  Index conventions: every level has a global cell index space, level l+1
 //  refines level l by 2.  A patch covers the global box [I0,I1]x[J0,J1] of its
@@ -130,6 +138,9 @@ struct sflow_amr_patch
     vector<int> row;                // matrix row of a cell (SLICELOOP4 order), -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
     vector<double> qrec[4];         // boundary face gradients of q
+
+    // moving body on the patch (X 10 2/3)
+    sflow_amr_ship *pship = nullptr;
 };
 
 // a coarse face overridden with fine values
@@ -197,6 +208,19 @@ private:
     long nh_it_total, nh_solves;
     int nh_it_last;
     vector<int> nlevg;              // patches per level, all ranks
+
+    // moving ship (X 10 2/3): body fields on the patches, refinement zone A 278/A 279
+    int shipmode;                   // X 10 of the body, 0: none
+    sixdof_sflow *ship6;
+    struct shipzone { double cx,cy,ex,ey,smin,smax,nmin,nmax,sfront,wake,bx0,bx1,by0,by1; };
+    vector<shipzone> zones;
+    vector<double> ship_x0, ship_y0;    // initial position of every body
+    vector<vector<int>> shiptri;    // per body: triangles reaching below the still water level
+    void ship_setup(lexer*);
+    bool ship_zone(double, double);
+    void ship_fields(sflow_amr_patch&, bool);
+    void ship_patches(bool);
+    double fs0_at(sflow_amr_patch&, int, int);
 
     // grid handles: id -1 is level 0, otherwise an index into P
     struct gh
@@ -299,7 +323,7 @@ private:
     ioflow *pflow_void;
 
     double m0, printtime_amr;
-    double tm[8];
+    double tm[9];
     int printcount_amr, regrids;
     long cells_total;
     ofstream logout;

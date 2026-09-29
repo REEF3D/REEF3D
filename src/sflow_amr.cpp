@@ -35,6 +35,9 @@ Author: Hans Bihs
 #include"sflow_forcing.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_pjm_lin.h"
+#include"sflow_ediff.h"
+#include"sflow_amr_ship.h"
+#include"6DOF_sflow.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
 #include"vec2D.h"
@@ -112,8 +115,18 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     nh_it_last = 0;
     nh_rebuild0 = true;
 
+    // moving body (X 10 2: direct forcing, X 10 3: pressure of the ship)
+    shipmode = 0;
+    ship6 = nullptr;
+    if(p->X10==2 || p->X10==3)
+    {
+        ship6 = dynamic_cast<sixdof_sflow*>(pp6dof);
+        if(ship6!=nullptr)
+        shipmode = p->X10;
+    }
+
     // boxes only: static patches
-    if(tol_eta<=0.0 && shore==0)
+    if(tol_eta<=0.0 && shore==0 && (p->A278==0 || shipmode==0))
     regrid_int = 0;
 
     patches_total = 0;
@@ -123,7 +136,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     regrids = 0;
     m0 = 0.0;
     last_owner = 0;
-    for(int k=0; k<8; ++k)
+    for(int k=0; k<9; ++k)
     tm[k]=0.0;
 
     match.resize(1);
@@ -274,17 +287,16 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     int ok=1;
     if(p->A220!=0 && p->A220!=1) ok=0;
     if(p->A210==2) ok=0;
-    if(p->A212!=0) ok=0;
     if(p->A260!=0) ok=0;
     if(p->S10!=0) ok=0;
-    if(p->X10>=2) ok=0;
+    if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
     if(p->j_dir!=1) ok=0;
 
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (A 270): only for A 220 0/1, A 210 3, A 212 0, A 260 0, S 10 0, X 10 0/1, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (A 270): only for A 220 0/1, A 210 3, A 260 0, S 10 0, X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -375,6 +387,10 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(regrid_int>0)
         cout<<", regrid every "<<regrid_int<<" steps";
         cout<<endl;
+        if(shipmode>0)
+        cout<<"SFLOW AMR: moving body X 10 "<<shipmode<<" on the patches"<<(p->A278>0?", refinement around the body (A 278)":"")<<endl;
+        if(p->A278>0 && shipmode==0)
+        cout<<"SFLOW AMR: A 278 needs a moving body (X 10 2/3) -- ignored"<<endl;
     }
 }
 
@@ -407,6 +423,10 @@ sflow_amr_patch* sflow_amr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, 
     if(p->A211>=4)
     c->precon = new sflow_reconstruct_weno(pp,pBC,1);
 
+    // diffusion: explicit on the patches (A 212 2 is implicit on level 0 only)
+    if(p->A212>=1)
+    c->pdiff = new sflow_ediff(pp);
+    else
     c->pdiff = new sflow_diffusion_void(pp);
     if(nh==1)
     {
@@ -417,7 +437,13 @@ sflow_amr_patch* sflow_amr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, 
     c->ppress = new sflow_hydrostatic(pp,c->b,pBC);
     c->pfsf = new sflow_eta(pp,c->b,pgc,pBC);
     c->psfdf = new sflow_forcing(pp);
-    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,nullptr,nullptr,pflow_void,c->pfsf,c->psfdf,p6dof);
+    sixdof *p6 = p6dof;
+    if(shipmode>0)
+    {
+    c->pship = new sflow_amr_ship(pp);
+    p6 = c->pship;
+    }
+    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,nullptr,nullptr,pflow_void,c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
     }
 
@@ -441,6 +467,7 @@ void sflow_amr::free_patch(sflow_amr_patch *c)
     delete c->mg;
 
     delete c->pmom;
+    delete c->pship;
     delete c->psfdf;
     delete c->pfsf;
     delete c->ppress;
@@ -809,6 +836,9 @@ void sflow_amr::regrid(lexer *p, fdm2D *b, ghostcell *pgc, bool initial)
     //      and the footprint of the finer level grown by the nesting width
     vector<vector<unsigned char>> M(maxlev+1);
 
+    if(shipmode>0 && p->A278>0)
+    ship_setup(p);
+
     auto tile_forbidden = [&](int l, int ti, int tj)
     {
         int a0 = (ti*T)>>l, a1 = (MIN((ti+1)*T,GNX<<l)-1)>>l;
@@ -829,6 +859,16 @@ void sflow_amr::regrid(lexer *p, fdm2D *b, ghostcell *pgc, bool initial)
         for(int q=0; q<p->A276; ++q)
         SLICELOOP4
         if(p->XP[IP]>=p->A276_xs[q] && p->XP[IP]<=p->A276_xe[q] && p->YP[JP]>=p->A276_ys[q] && p->YP[JP]<=p->A276_ye[q])
+        {
+            int I=i+O0i, J=j+O0j;
+            for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
+            for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+            M[l][(size_t)ti*gtny[l]+tj]=1;
+        }
+
+        if(shipmode>0 && p->A278>0)
+        SLICELOOP4
+        if(ship_zone(p->XP[IP],p->YP[JP]))
         {
             int I=i+O0i, J=j+O0j;
             for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
@@ -1898,6 +1938,10 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
         c->pp->count = p->count;
         c->pmom->inflow(c->pp,c->b,pgc,pflow_void);
     }
+
+    // body on the patches: X 10 3 updates the ship pressure once per step (as level 0),
+    // X 10 2 moves the body in every stage
+    ship_patches(shipmode==3);
 }
 
 void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
@@ -1910,6 +1954,9 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
     for(int l=1; l<=maxlev; ++l)
     fill_level(pgc,l,s);
+
+    if(shipmode==2 && s>0)
+    ship_patches(false);
     tm[0] += MPI_Wtime()-t0;
 
 
@@ -2143,6 +2190,8 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(p->mpirank==0 && doprint)
     cout<<"SFLOW AMR: "<<patches_total<<" patches, "<<cells_total<<" cells; time in patch stages "<<setprecision(4)<<tm[1]<<" s, fill "<<tm[0]<<" s, restriction "<<tm[3]<<" s, regrid "<<tm[4]<<" s";
+    if(p->mpirank==0 && doprint && shipmode>0)
+    cout<<", body "<<tm[8]<<" s";
     if(p->mpirank==0 && doprint && nh==1)
     cout<<"; pressure "<<tm[5]<<" s (preconditioner "<<tm[6]<<" s, operator "<<tm[7]<<" s), mean iterations "<<(nh_solves>0 ? double(nh_it_total)/nh_solves : 0.0);
     if(p->mpirank==0 && doprint)

@@ -68,6 +68,10 @@ void control::ini_default()
     A275=8;      // int SFLOW mesh refinement: tile size in cells of the refined level
     A276=0;      // int SFLOW mesh refinement: number of static refinement boxes
     A277=0;      // int SFLOW mesh refinement: number of boxes without refinement
+    A278=0;      // int SFLOW mesh refinement: refine around the moving body (X 10 2/3)
+    A278_r=0.5;  // double SFLOW mesh refinement: margin around the hull
+    A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
+    A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
 
 
     // FNPF

@@ -395,6 +395,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="AMR">
+          <File Name="sflow_amr.h"/>
+          <File Name="sflow_amr_ship.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
@@ -1692,6 +1696,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="AMR">
+          <File Name="sflow_amr_ship.cpp"/>
           <File Name="sflow_amr.cpp"/>
           <File Name="sflow_amr_nh.cpp"/>
         </VirtualDirectory>

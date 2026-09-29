@@ -153,7 +153,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
     // mesh refinement (A 270): static boxes (A 276) and/or flagged regions (A 273, A 274)
-    if(p->A270>0 && (p->A276>0 || p->A273>0.0 || p->A274>0))
+    if(p->A270>0 && (p->A276>0 || p->A273>0.0 || p->A274>0 || p->A278>0))
     {
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     
