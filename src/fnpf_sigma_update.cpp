@@ -33,101 +33,95 @@ Author: Hans Bihs
 
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
 {
-    // sigx
-    FBASELOOP
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(c->Bx(i,j)/WLVL) - p->sig[FIJK]*(c->Ex(i,j)/WLVL);
+    // One fused pass per (i,j) column. All slice quantities are loaded once per
+    // column; the per-cell arithmetic is kept in the original order so the
+    // result is bit-identical to the previous five separate 3D sweeps.
+    double *const __restrict sig   = p->sig;
+    double *const __restrict sigx  = p->sigx;
+    double *const __restrict sigy  = p->sigy;
+    double *const __restrict sigxx = p->sigxx;
+    double *const __restrict ZSN   = p->ZSN;
+    double *const __restrict ZSP   = p->ZSP;
+    const int knoz = p->knoz;
     
-    // sigy
-    FBASELOOP
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(c->By(i,j)/WLVL) - p->sig[FIJK]*(c->Ey(i,j)/WLVL);
-    
-    // sigz
-    SLICEBASELOOP
+    ILOOP
+    JLOOP
     {
-        PSLICECHECK4
-        p->sigz[IJ] = 1.0/WLVL;
+        const double W   = WLVL;
+        const double W2  = W*W;
+        const double bx  = c->Bx(i,j),  by  = c->By(i,j);
+        const double ex  = c->Ex(i,j),  ey  = c->Ey(i,j);
+        const double bxx = c->Bxx(i,j), byy = c->Byy(i,j);
+        const double exx = c->Exx(i,j), eyy = c->Eyy(i,j);
         
-        SSLICECHECK4
+        const double bxW = bx/W, exW = ex/W;
+        const double byW = by/W, eyW = ey/W;
+        
+        const double tbx = bxx - bx*bx/W;
+        const double tex = exx - ex*ex/W;
+        const double tby = byy - by*by/W;
+        const double tey = eyy - ey*ey/W;
+        const double sbex = bx + ex, bex = bx*ex;
+        const double sbey = by + ey, bey = by*ey;
+        
+        k=0;
+        const int n0 = FIJK;
+        
+        for(int kk=0; kk<=knoz; ++kk)
+        {
+            const int n = n0 + kk;
+            const double s = sig[n];
+            
+            const double sgx = (1.0 - s)*bxW - s*exW;
+            const double sgy = (1.0 - s)*byW - s*eyW;
+            
+            sigx[n] = sgx;
+            sigy[n] = sgy;
+            
+            sigxx[n] = ((1.0 - s)/W)*tbx
+                     - (s/W)*tex
+                     - (sgx/W)*sbex
+                     - ((1.0 - 2.0*s)/W2)*bex
+                     + ((1.0 - s)/W)*tby
+                     - (s/W)*tey
+                     - (sgy/W)*sbey
+                     - ((1.0 - 2.0*s)/W2)*bey;
+        }
+        
+        // sigz
+        if(p->flagslice4[IJ]>0)
+        p->sigz[IJ] = 1.0/W;
+        
+        if(p->flagslice4[IJ]<0)
         p->sigz[IJ] = 1.0/(p->wd-p->bed[IJ]);
-    }
-    
-    // sigxx
-    FBASELOOP
-    {
-    p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(c->Bxx(i,j) - pow(c->Bx(i,j),2.0)/WLVL) // xx
-    
-                  - (p->sig[FIJK]/WLVL)*(c->Exx(i,j) - pow(c->Ex(i,j),2.0)/WLVL)
-                  
-                  - (p->sigx[FIJK]/WLVL)*(c->Bx(i,j) + c->Ex(i,j))
-                  
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->Bx(i,j)*c->Ex(i,j))
-                  
-                  
-                  + ((1.0 - p->sig[FIJK])/WLVL)*(c->Byy(i,j) - pow(c->By(i,j),2.0)/WLVL) // yy
-    
-                  - (p->sig[FIJK]/WLVL)*(c->Eyy(i,j) - pow(c->Ey(i,j),2.0)/WLVL)
-                  
-                  - (p->sigy[FIJK]/WLVL)*(c->By(i,j) + c->Ey(i,j))
-                  
-                  - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(c->By(i,j)*c->Ey(i,j));
-    }
-    
-    // sig BC
-    SLICELOOP4
-    {
-        k=0;
-            p->sigx[FIJKm1] = p->sigx[FIJK];
-            p->sigx[FIJKm2] = p->sigx[FIJK];
-            p->sigx[FIJKm3] = p->sigx[FIJK];
+        
+        // sig BC (was SLICELOOP4)
+        if(p->flagslice4[IJ]>0)
+        {
+            const int nb = n0, nt = n0 + knoz;
             
+            sigx[nb-1] = sigx[nb-2] = sigx[nb-3] = sigx[nb];
+            sigx[nt+1] = sigx[nt+2] = sigx[nt+3] = sigx[nt];
             
+            sigy[nb-1] = sigy[nb-2] = sigy[nb-3] = sigy[nb];
+            sigy[nt+1] = sigy[nt+2] = sigy[nt+3] = sigy[nt];
+            
+            sigxx[nb-1] = sigxx[nb-2] = sigxx[nb-3] = sigxx[nb];
+            sigxx[nt+1] = sigxx[nt+2] = sigxx[nt+3] = sigxx[nt];
+        }
         
-        k=p->knoz;
-            p->sigx[FIJKp1] = p->sigx[FIJK];
-            p->sigx[FIJKp2] = p->sigx[FIJK];
-            p->sigx[FIJKp3] = p->sigx[FIJK];
-    }
-    
-    SLICELOOP4
-    {
-        k=0;
-            p->sigy[FIJKm1] = p->sigy[FIJK];
-            p->sigy[FIJKm2] = p->sigy[FIJK];
-            p->sigy[FIJKm3] = p->sigy[FIJK];
+        // ZSN (was FLOOP) and ZSP (was LOOP)
+        const double wl = c->WL(i,j), bd = c->bed(i,j);
         
-        k=p->knoz;
-            p->sigy[FIJKp1] = p->sigy[FIJK];
-            p->sigy[FIJKp2] = p->sigy[FIJK];
-            p->sigy[FIJKp3] = p->sigy[FIJK];
-    }
-    
-    SLICELOOP4
-    {
-        k=0;
-            p->sigxx[FIJKm1] = p->sigxx[FIJK];
-            p->sigxx[FIJKm2] = p->sigxx[FIJK];
-            p->sigxx[FIJKm3] = p->sigxx[FIJK];
-
+        for(k=0; k<=knoz; ++k)
+        {
+            // FLOOP already implies flag7>0, so the old FSCHECK branch was dead
+            if(p->flag7[FIJK]>0)
+            ZSN[FIJK] = p->ZN[KP]*wl + bd;
+        }
         
-        k=p->knoz;
-            p->sigxx[FIJKp1] = p->sigxx[FIJK];
-            p->sigxx[FIJKp2] = p->sigxx[FIJK];
-            p->sigxx[FIJKp3] = p->sigxx[FIJK];
+        for(k=0; k<knoz; ++k)
+        if(p->flag4[IJK]>0)
+        ZSP[IJK]  = p->ZP[KP]*wl + bd;
     }
-    
-    FLOOP
-    {
-    FPCHECK
-    p->ZSN[FIJK] = p->ZN[KP]*c->WL(i,j) + c->bed(i,j); 
-    
-    FSCHECK
-    p->ZSN[FIJK] = p->ZN[KP]*(p->wd);
-    }
-    
-    LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*c->WL(i,j) + c->bed(i,j);
 }
-
-
-
-

@@ -68,5 +68,7 @@ Author: Hans Bihs
 
 #include"nhflow_potential_v.h"
 #include"nhflow_potential_f.h"
+#include"nhflow_particle_void.h"
+#include"nhflow_particle_f.h"
 
 #endif

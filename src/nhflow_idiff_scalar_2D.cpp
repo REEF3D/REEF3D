@@ -45,11 +45,11 @@ void nhflow_idiff_2D::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *
 	
 //   M
 	
-	d->M.p[n]  +=        visc_IP1/(p->DXN[IP]*p->DXP[IM1])
-					+   visc_IM1/(p->DXN[IP]*p->DXP[IP])
+	d->M.p[n]  +=        visc_IP1/(p->DXN[IP]*p->DXP[IP])
+					+   visc_IM1/(p->DXN[IP]*p->DXP[IM1])
                     
-					+   (visc_KP1*sigxyz2)/(p->DZN[KP]*p->DZP[KM1])
-					+   (visc_KM1*sigxyz2)/(p->DZN[KP]*p->DZP[KP]);
+					+   (visc_KP1*sigxyz2)/(p->DZN[KP]*p->DZP[KP])
+					+   (visc_KM1*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
     
 	 d->M.n[n] -= visc_IP1/(p->DXP[IP]*p->DXN[IP]);
      d->M.s[n] -= visc_IM1/(p->DXP[IM1]*p->DXN[IP]);

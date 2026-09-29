@@ -40,6 +40,7 @@ surface gravity waves in arbitrary depth. Journal of Fluid Mechanics, Vol. 844, 
 #include <complex>
 #include <string>
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -87,6 +88,16 @@ private:
     void defineInput2Iteration(double k, double d, double H);
     void PetviashviliIteration();
     double modulo(double, double);
+    
+    // interior kinematics (NHFLOW/CFD): wave_lib_ssgw_kinematics.cpp
+    void buildVelocityTable();
+    double waveFrameX(double, double);
+    double surfaceInterp(const std::vector<double>&, double);
+    double tableInterp(const std::vector<double>&, double, double);
+    int Nxt, Nst;
+    double dxt;
+    bool kinematicsReady = false;
+    std::vector<double> etat, Ut, Wt;
     
     int N, iter;
     double tol, err;

@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"topo_relax.h"
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
+#include"sediment_mixture.h"
 
 double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
@@ -34,6 +35,10 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
     if(p->S62==1 && p->count>p->S43)
     val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
+    
+    // multi-fraction bed: exchange with the single suspended class weighted by F_k
+    if(frac_k>=0)
+    val *= (*s->pmix->F[frac_k])(i,j);
     
     // E: cbe
     // D: conc
@@ -43,8 +48,13 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
 void sediment_exner::susp_qs(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
+    if(frac_k<0)
     SEDSLICELOOP
     s->qb(i,j) += s->qbs(i,j);
+    
+    if(frac_k>=0)
+    SEDSLICELOOP
+    s->qb(i,j) += (*s->pmix->F[frac_k])(i,j)*s->qbs(i,j);
     
     pgc->gcsl_start4(p,s->qb,1);
 }

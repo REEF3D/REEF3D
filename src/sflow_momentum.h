@@ -38,6 +38,7 @@ class sflow_momentum
 public:
 
 	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
+    virtual void ini(lexer*, fdm2D*, ghostcell*)=0;
 };
 
 #endif

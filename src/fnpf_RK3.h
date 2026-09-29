@@ -30,6 +30,7 @@ Author: Hans Bihs
 
 class fnpf_laplace;
 class fnpf_fsf;
+class fnpf_body;
 class field;
 
 using namespace std;
@@ -53,9 +54,12 @@ private:
 
     slice4 erk1,erk2;
     slice4 frk1,frk2;
+    slice4 ek,fk;   // stage tendencies deta/dt, dFifsf/dt
+    slice4 en;      // eta_n, for the breaking onset criterion
 
     fnpf_laplace *plap;
     fnpf_fsf *pf;
+    fnpf_body *pbody;
     
     int gcval_sl;
     double t0;

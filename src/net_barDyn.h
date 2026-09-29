@@ -65,6 +65,8 @@ private:
     // -------------------------------
 	// Runtime
 	void startLoop(lexer*, ghostcell*, int&);
+    void advanceNet(lexer*, ghostcell*, const Eigen::MatrixXd&);
+    Eigen::MatrixXd knotVelocity();
     void update_velocity_cfd(lexer*, fdm*, ghostcell*);
     void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
@@ -140,6 +142,7 @@ private:
     int nd, nl, niK, nbK, nK, nf;
     MatrixXd x0_, x_, xn_, xnn_, xdot_, xdotn_, xdotnn_, xdotdot_, top_xdot_, top_xdotdot_, A_, forces_knot;
     double dt_, dtn_, dtnn_, t_net, t_net_n;
+    bool fluidVelInit_ = false;     // knot fluid velocity at t^n available
     VectorXd mass_knot, weight_knot, sinker_knot, added_mass, B_, T_, T_old, T_backup, coeffs_;
     double **coupledField, **coupledFieldn, **fb, **K; 
     int *Pb, *Nb, *Pi, *Ni;

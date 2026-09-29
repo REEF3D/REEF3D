@@ -26,7 +26,7 @@ Author: Tobias Martin
 
 void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const Matrix3Xd& c_, const Matrix3Xd& cdot_, const Matrix4Xd& q_, const Matrix4Xd& qdot_)
 {
-    double zg = 0.0;
+    double zg = z_bed;
     double cd_t = 0.5;
     double cd_n = 2.5;
     double cm_t = 0.0;
@@ -39,7 +39,10 @@ void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
     double t_x, t_y, t_z, t_mag, v_x, v_y, v_z, vn_x, vn_y, vn_z, vn_mag, v_t;
     double a_t, a_x, a_y, a_z, an_x, an_y, an_z;
         
-    double Fb = -9.81*(rho_c - 1000)/rho_c;
+    // Fext enters beam::rhs as acceleration: line forces per unit length [N/m]
+    // are divided by the mass per unit length gamma = rho_c*A [kg/m]
+    double Fb = -grav*(rho_c - rho_w)/rho_c;
+    double inv_m = 1.0/gamma;
 
     for (int i = 0; i < Ne+1; i++)
     {
@@ -76,9 +79,9 @@ void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
         vn_z = v_z - v_t*t_z;
         vn_mag = sqrt(vn_x*vn_x + vn_y*vn_y + vn_z*vn_z);
     
-        Fext_(0,i) = 0.5*rho_c*d_c*(cd_t*fabs(v_t)*v_t*t_x + cd_n*vn_mag*vn_x);
-        Fext_(1,i) = 0.5*rho_c*d_c*(cd_t*fabs(v_t)*v_t*t_y + cd_n*vn_mag*vn_y);
-        Fext_(2,i) = 0.5*rho_c*d_c*(cd_t*fabs(v_t)*v_t*t_z + cd_n*vn_mag*vn_z);
+        Fext_(0,i) = inv_m*0.5*rho_w*d_c*(cd_t*fabs(v_t)*v_t*t_x + cd_n*vn_mag*vn_x);
+        Fext_(1,i) = inv_m*0.5*rho_w*d_c*(cd_t*fabs(v_t)*v_t*t_y + cd_n*vn_mag*vn_y);
+        Fext_(2,i) = inv_m*0.5*rho_w*d_c*(cd_t*fabs(v_t)*v_t*t_z + cd_n*vn_mag*vn_z);
 
         // Added mass force
         a_t = a_x*t_x+a_y*t_y+a_z*t_z;
@@ -86,9 +89,9 @@ void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
         an_y = a_y - a_t*t_y;
         an_z = a_z - a_t*t_z;
     
-        Fext_(0,i) += rho_c*PI/4.0*d_c*d_c*(fluid_acc[i][0] + cm_t*a_t*t_x + cm_n*an_x);
-        Fext_(1,i) += rho_c*PI/4.0*d_c*d_c*(fluid_acc[i][1] + cm_t*a_t*t_y + cm_n*an_y);
-        Fext_(2,i) += rho_c*PI/4.0*d_c*d_c*(fluid_acc[i][2] + cm_t*a_t*t_z + cm_n*an_z);
+        Fext_(0,i) += inv_m*rho_w*PI/4.0*d_c*d_c*(fluid_acc[i][0] + cm_t*a_t*t_x + cm_n*an_x);
+        Fext_(1,i) += inv_m*rho_w*PI/4.0*d_c*d_c*(fluid_acc[i][1] + cm_t*a_t*t_y + cm_n*an_y);
+        Fext_(2,i) += inv_m*rho_w*PI/4.0*d_c*d_c*(fluid_acc[i][2] + cm_t*a_t*t_z + cm_n*an_z);
 
         // Gravity force
         Fext_(2,i) += Fb;
@@ -96,12 +99,12 @@ void mooring_dynamic::setConstantLoads(Matrix3Xd& Fext_, Matrix4Xd& Mext_, const
         // Bottom force
         if ((zg - c_(2,i)) > 0.0)
         {
-            Fext_(2,i) += (Kg*d_c*(zg - c_(2,i)) - 2.0*xi*sqrt(Kg*rho_c*A*d_c)*max(cdot_(2,i),0.0));
+            Fext_(2,i) += inv_m*(Kg*d_c*(zg - c_(2,i)) - 2.0*xi*sqrt(Kg*rho_c*A*d_c)*max(cdot_(2,i),0.0));
             
             double vx = cdot_(0,i)/max(nu,sqrt(cdot_(0,i)*cdot_(0,i) + cdot_(1,i)*cdot_(1,i)));
             double vy = cdot_(1,i)/max(nu,sqrt(cdot_(0,i)*cdot_(0,i) + cdot_(1,i)*cdot_(1,i)));
-            Fext_(0,i) = mu*Fb*sin(PI/2.0*vx);
-            Fext_(1,i) = mu*Fb*sin(PI/2.0*vy);
+            Fext_(0,i) += mu*Fb*sin(PI/2.0*vx);
+            Fext_(1,i) += mu*Fb*sin(PI/2.0*vy);
         }
     }
 }

@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice4.h" 
 
-class sflow_hxy_disc;
 class patchBC_interface;
 
 using namespace std;
@@ -37,36 +36,26 @@ class sflow_eta final : public sflow_fsf, public increment
 public:    
 	sflow_eta(lexer*, fdm2D*, ghostcell*,patchBC_interface*);
 	virtual ~sflow_eta();
-	
-    void start(lexer*, fdm2D*, ghostcell*, ioflow*,slice&,slice&,double) override final;
+    
 	void ini(lexer*, fdm2D*, ghostcell*, ioflow*) override final;
-	void depth_update(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override final;
-    void disc(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override final;
+    void update(lexer*, fdm2D*, ghostcell*, ioflow*, slice&, slice&, slice&, double) override final;
+	void depth_update(lexer*, fdm2D*, ghostcell*, slice&) override final;
+	void wetdry(lexer*, fdm2D*, ghostcell*, slice&) override final;
+    void wetdry_fluxes(lexer*, fdm2D*, ghostcell*, slice&) override final;
     void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
     void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
-	void wetdry(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&) override final;
-private:
-    
-    void wetdry_nb(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
-    void wetdrydeep(lexer*, fdm2D*, ghostcell*,slice&,slice&,slice&,slice&);
-    
-	
-	
-	int gcval_eta;
-    
-    double hxp,hxm,hyp,hym;
-	double starttime;
-	
-    double wd_criterion;
-    
-	sflow_hxy_disc *phxy;
-    patchBC_interface *pBC;
-	
-	slice4 Lab;
-    int *temp;
-    
-        
 
+private:
+    void wetdrydeep(lexer*, fdm2D*, ghostcell*, slice&);
+    
+	int gcval_eta;
+	double starttime;
+    double wd_criterion;
+    const double eps;
+    
+    patchBC_interface *pBC;
+	slice4 K;
+    int *temp;
 };
 
 #endif

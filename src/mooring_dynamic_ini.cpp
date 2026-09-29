@@ -34,6 +34,10 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 	rho_c = p->X311_rho_c[line];   		// density of material [kg/m3]
 	d_c = p->X311_d[line];      		// diameter of the cable [m]
 	Ne = p->X311_H[line];				// number of elements
+
+	rho_w = p->W1;						// fluid density [kg/m3]
+	grav = 9.81;
+	z_bed = p->X311_zs[line];			// flat seabed assumed at anchor level
  
     A = gamma/rho_c;
     
@@ -65,10 +69,13 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
     // Initialise print
 	if(p->mpirank==0)
 	{
-		/*char str[1000];
+		char str[1000];
+		if(p->A10==5)
+		sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
+		else
 		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
 		eTout.open(str);
-		eTout<<"time \t T"<<endl;*/	
+		eTout<<"time \t T"<<endl;
 	}
 
     // Initialise fields
@@ -85,8 +92,9 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 	fluid_vel_n.resize(Ne+1, three);
 	fluid_acc.resize(Ne+1, three);
 
-    t_mooring = 0.0;
-    t_mooring_n = 0.0;
+    // start from the current time (restart-safe)
+    t_mooring = p->simtime;
+    t_mooring_n = p->simtime;
     
     // Initialise breaking
     broken = false;

@@ -97,7 +97,13 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
     }
     
     // U,UH
-    ULOOP
+    // (the branches below only fire at wet/dry column interfaces: columns
+    //  where both neighbours are wet are skipped without touching k)
+    for(i=0; i<p->knox-p->ulast; ++i)
+    for(j=0; j<p->knoy; ++j)
+    if(!(p->wet[IJ]==1 && p->wet[Ip1J]==1))
+    for(k=0; k<p->knoz; ++k)
+    if(p->flag1[IJK]>0)
     {
         if(p->wet[IJ]==1 && p->wet[Ip1J]==0)
         {
@@ -159,7 +165,11 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
         }
     }
     
-    VLOOP
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy-p->vlast; ++j)
+    if(!(p->wet[IJ]==1 && p->wet[IJp1]==1))
+    for(k=0; k<p->knoz; ++k)
+    if(p->flag2[IJK]>0)
     {
 
         if(p->wet[IJ]==1 && p->wet[IJp1]==0)
@@ -228,7 +238,24 @@ void nhflow_fsf_f::wetdry_fluxes(lexer* p, fdm_nhf* d, ghostcell* pgc, slice &WL
    
    // Forcing Fluxes
    // U,UH
+    // the forcing-flux branches below only fire next to cells with DF<0
+    // (solids / floating bodies); skip the three sweeps when there are none
+    // (whole array incl. ghost/halo layers, since the neighbour DF is read)
+    int anydf=0;
+    
     if(p->A521==0)
+    {
+    const int ndf = p->imax*p->jmax*p->kmax;
+    
+    for(int q=0; q<ndf; ++q)
+    if(p->DF[q]<0)
+    {
+    anydf=1;
+    break;
+    }
+    }
+    
+    if(p->A521==0 && anydf==1)
     {
     ULOOP
     {

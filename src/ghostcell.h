@@ -155,6 +155,9 @@ public:
     void gcsync();
 	void verticalmax(lexer*,fdm*,double**);
     double timer();
+
+    // MPI exchange of the gc*_start functions on/off (SFLOW AMR patches run without it)
+    bool set_comms(bool on) {bool old=do_comms; do_comms=on; return old;}
     //Collective Communication
     void gather_int(int *, int, int *, int);
     void gatherv_int(int*, int, int*, int*, int*);
@@ -167,6 +170,7 @@ public:
     double globalsum(double);
     int globalisum(int);
     double globalmax(double);
+    void globalmax(double*,int);   // in-place elementwise max over all ranks, one MPI_Allreduce
     double globalmin(double);
     int globalimax(int);
     int globalimin(int);
@@ -176,6 +180,7 @@ public:
     void walldistance(lexer*,fdm*,convection*,reini*,ioflow*,field&);
 
     MPI_Comm mpi_comm = MPI_COMM_NULL;
+    MPI_Comm cart() const {return cart_comm;}
 
 // Slice
     // epol
@@ -277,6 +282,7 @@ public:
     void fivec2D(lexer*,double*,sliceint&);
     void fivec_vel(lexer*,double*,sliceint&);
     void fivec2D_vel(lexer*,double*,sliceint&);
+    void fivec_buildlist(lexer*);
     void gc_periodic(lexer*,field&,int,int);
     
     //NHFLOW

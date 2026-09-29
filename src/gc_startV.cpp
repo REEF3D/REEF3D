@@ -25,6 +25,82 @@ Author: Hans Bihs
 #include"sliceint.h"
 #include"ghostcell.h"
 
+// iterate over the precomputed boundary-cell list L (same order as the full sweep)
+// entries are (i,j,k,h): h=1 if the cell has a flagged neighbour in x or y,
+// h=0 if only the bottom/top neighbour is flagged. For h=0 cells only the
+// vertical BC statements (the tail of each loop body) can fire.
+#define GCBL_LOOP(L,T) gcbl_build_impl(p,L,T,i,j,k); int gcbl_h=0; \
+    for(size_t qq_=0; qq_<L.ijk.size(); qq_+=4) \
+    if((i=L.ijk[qq_], j=L.ijk[qq_+1], k=L.ijk[qq_+2], gcbl_h=L.ijk[qq_+3], true))
+
+// boundary-cell lists for the V-type BC sweeps (NHFLOW/FNPF):
+// cells of a ULOOP/VLOOP/WLOOP/LOOP/FLOOP that have at least one face
+// neighbour flagged <0. Only these cells can satisfy any of the BC branches,
+// so iterating over them in the original order gives identical results.
+// Rebuilt once per time step (p->count) and whenever flags are rebuilt.
+#include<vector>
+namespace
+{
+    struct gcblist { std::vector<int> ijk; int count=-2; };
+    gcblist gcbl1, gcbl2, gcbl3, gcbl4, gcbl7;
+}
+
+void gcbl_reset_all()
+{
+    gcbl1.count=gcbl2.count=gcbl3.count=gcbl4.count=gcbl7.count=-2;
+}
+
+static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int &k)
+{
+    // during initialisation (count==0) flags may still change: always rebuild
+    if(L.count==p->count && p->count>0)
+    return;
+
+    L.ijk.clear();
+
+    if(type==1)
+    ULOOP
+    {
+    const int h = (p->flag1[Im1JK]<0 || p->flag1[Ip1JK]<0 || p->flag1[IJm1K]<0 || p->flag1[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag1[IJKm1]<0 || p->flag1[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    }
+
+    if(type==2)
+    VLOOP
+    {
+    const int h = (p->flag2[Im1JK]<0 || p->flag2[Ip1JK]<0 || p->flag2[IJm1K]<0 || p->flag2[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag2[IJKm1]<0 || p->flag2[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    }
+
+    if(type==3)
+    WLOOP
+    {
+    const int h = (p->flag3[Im1JK]<0 || p->flag3[Ip1JK]<0 || p->flag3[IJm1K]<0 || p->flag3[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag3[IJKm1]<0 || p->flag3[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    }
+
+    if(type==4)
+    LOOP
+    {
+    const int h = (p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0 || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag4[IJKm1]<0 || p->flag4[IJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    }
+
+    if(type==7)
+    FLOOP
+    {
+    const int h = (p->flag7[FIm1JK]<0 || p->flag7[FIp1JK]<0 || p->flag7[FIJm1K]<0 || p->flag7[FIJp1K]<0) ? 1 : 0;
+    if(h==1 || p->flag7[FIJKm1]<0 || p->flag7[FIJKp1]<0)
+    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    }
+
+    L.count=p->count;
+}
+
 void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
@@ -54,7 +130,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    ULOOP
+    GCBL_LOOP(gcbl1,1)
+    {
+    if(gcbl_h==1)
     {
         // s
         // U
@@ -130,6 +208,17 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
         if(p->flag1[IJKp1]<0)
             f[IJKp1] = 0.0;
     }
+    else
+    {
+        if(p->flag1[IJKm1]<0)
+            f[IJKm1] = 0.0;
+
+        // t
+        if(p->flag1[IJKp1]<0)
+            f[IJKp1] = 0.0;
+    
+    }
+    }
     p->gctime+=timer()-starttime;
 }
 
@@ -156,7 +245,9 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    VLOOP
+    GCBL_LOOP(gcbl2,2)
+    {
+    if(gcbl_h==1)
     {
     // s
         if(p->flag2[Im1JK]<0)
@@ -220,6 +311,21 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         f[IJKp1] = 0.0;
         }
     }
+    else
+    {
+        if(p->flag2[IJKm1]<0 && p->j_dir==1)
+        {
+        f[IJKm1] = 0.0;
+        }
+
+    // t
+        if(p->flag2[IJKp1]<0 && p->j_dir==1)
+        {
+        f[IJKp1] = 0.0;
+        }
+    
+    }
+    }
     p->gctime+=timer()-starttime;
 }
 
@@ -245,7 +351,9 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    WLOOP
+    GCBL_LOOP(gcbl3,3)
+    {
+    if(gcbl_h==1)
     {
         if(p->flag3[Im1JK]<0)
         {
@@ -282,6 +390,25 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
         f[IJKp1] = 0.0;
         }
     }
+    else
+    {
+        if(p->flag3[IJKm1]<0)
+        {
+        f[IJKm1] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0 && gcv!=10)
+        {
+        f[IJKp1] = 0.0;
+        }
+
+        if(p->flag3[IJKp1]<0 && gcv==10)
+        {
+        f[IJKp1] = 0.0;
+        }
+    
+    }
+    }
     p->gctime+=timer()-starttime;
 }
 
@@ -309,7 +436,9 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         outflow=2;
 
     starttime=timer();
-    LOOP
+    GCBL_LOOP(gcbl4,4)
+    {
+    if(gcbl_h==1)
     {
         // xxxxxxx
         // s
@@ -364,32 +493,36 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         }
 
         // yyyyy
+        // side walls are slip walls: the normal velocity (V, VH: gcv 11, 15) is mirrored
+        // antisymmetrically, all other fields (U, W, UH, WH, scalars) symmetrically.
+        // (Setting the tangential components to 0 acted like a no-slip wall and, through
+        // the reconstruction and the HLL dissipation, damped waves in 3D.)
         if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15))
         {
-            f[IJm1K] = 0.0;
-            f[IJm2K] = 0.0;
-            f[IJm3K] = 0.0;
+            f[IJm1K] = -f[IJK];
+            f[IJm2K] = -f[IJp1K];
+            f[IJm3K] = -f[IJp2K];
         }
 
         if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15))
         {
-            f[IJm1K] = 0.0;
-            f[IJm2K] = 0.0;
-            f[IJm3K] = 0.0;
+            f[IJm1K] = f[IJK];
+            f[IJm2K] = f[IJp1K];
+            f[IJm3K] = f[IJp2K];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15))
         {
-            f[IJp1K] = 0.0;
-            f[IJp2K] = 0.0;
-            f[IJp3K] = 0.0;
+            f[IJp1K] = -f[IJK];
+            f[IJp2K] = -f[IJm1K];
+            f[IJp3K] = -f[IJm2K];
         }
 
         if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15))
         {
-            f[IJp1K] = 0.0;
-            f[IJp2K] = 0.0;
-            f[IJp3K] = 0.0;
+            f[IJp1K] = f[IJK];
+            f[IJp2K] = f[IJm1K];
+            f[IJp3K] = f[IJm2K];
         }
 
         // zzzzz
@@ -431,19 +564,63 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
             }
         }
     }
+    else
+    {
+        if(p->flag4[IJKp1]<0 && (gcv==14))
+        {
+            f[IJKp1] = 0.0;
+            f[IJKp2] = 0.0;
+            f[IJKp3] = 0.0;
+        }
+
+        if(p->flag4[IJKp1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
+        {
+            f[IJKp1] = f[IJK];
+            f[IJKp2] = f[IJK];
+            f[IJKp3] = f[IJK];
+        }
+
+        if(p->flag4[IJKp1]<0 && gcv==12)
+        {
+            f[IJKp1] = f[IJK];
+            f[IJKp2] = f[IJK];
+            f[IJKp3] = f[IJK];
+        }
+
+        // bed
+        if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
+        {
+            if(p->A518==1)
+            {
+                f[IJKm1] = f[IJK];
+                f[IJKm2] = f[IJK];
+                f[IJKm3] = f[IJK];
+            }
+             if(p->A518==2)
+            {
+                f[IJKm1] = 0.0;
+                f[IJKm2] = 0.0;
+                f[IJKm3] = 0.0;
+            }
+        }
+    
+    }
+    }
 
     p->gctime+=timer()-starttime;
 }
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {
-    LOOP
+    GCBL_LOOP(gcbl4,4)
+    {
+    if(gcbl_h==1)
     {
         if(p->flag4[Im1JK]<0)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
-        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
         }
         
         //
@@ -485,6 +662,25 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
         f[IJKp2] = f[IJK];
         f[IJKp3] = f[IJK];
         }
+    }
+    else
+    {
+        if(p->flag4[IJKm1]<0)
+        {
+        f[IJKm1] = f[IJK];
+        f[IJKm2] = f[IJK];
+        f[IJKm3] = f[IJK];
+        }
+
+        //
+        if(p->flag4[IJKp1]<0)
+        {
+        f[IJKp1] = f[IJK];
+        f[IJKp2] = f[IJK];
+        f[IJKp3] = f[IJK];
+        }
+    
+    }
     }
 
     gcparaxV(p, f, gcv);
@@ -1081,7 +1277,9 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 
 void ghostcell::start7P(lexer *p, double *f, int gcv)
 {
-    FLOOP
+    GCBL_LOOP(gcbl7,7)
+    {
+    if(gcbl_h==1)
     {
         if(p->flag7[FIm1JK]<0)
         f[FIm1JK] = f[FIJK];
@@ -1101,6 +1299,16 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
         if(p->flag7[FIJKp1]<0)
         f[FIJKp1] = 0.0;
     }
+    else
+    {
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
+
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = 0.0;
+    
+    }
+    }
 
     if(do_comms)
     {
@@ -1111,7 +1319,9 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
-    FLOOP
+    GCBL_LOOP(gcbl7,7)
+    {
+    if(gcbl_h==1)
     {
         if(p->flag7[FIm1JK]<0)
         f[FIm1JK] = f[FIJK];
@@ -1130,6 +1340,16 @@ void ghostcell::start7S(lexer *p, double *f, int gcv)
 
         if(p->flag7[FIJKp1]<0)
         f[FIJKp1] = f[FIJK];
+    }
+    else
+    {
+        if(p->flag7[FIJKm1]<0)
+        f[FIJKm1] = f[FIJK];
+
+        if(p->flag7[FIJKp1]<0)
+        f[FIJKp1] = f[FIJK];
+    
+    }
     }
 
     if(do_comms)

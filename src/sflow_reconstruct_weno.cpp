@@ -33,6 +33,13 @@ sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC
     uf=vf=wf=0;
 }
 
+sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC, int own) : weno_nug_func(p,own), dfdx(p), dfdy(p)
+{
+    pBC = ppBC;
+
+    uf=vf=wf=0;
+}
+
 sflow_reconstruct_weno::~sflow_reconstruct_weno()
 {
 }
@@ -67,9 +74,6 @@ void sflow_reconstruct_weno::reconstruct_x(lexer* p, ghostcell *pgc, fdm2D*, sli
           
             + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
-    
-    pgc->gcsl_start1(p,fs,1);
-    pgc->gcsl_start1(p,fn,1);
 }
 
 void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, slice& f, slice &fe, slice &fw)
@@ -101,9 +105,6 @@ void sflow_reconstruct_weno::reconstruct_y(lexer* p, ghostcell *pgc, fdm2D*, sli
           
             + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
 	}
-    
-    pgc->gcsl_start2(p,fe,1);
-    pgc->gcsl_start2(p,fw,1);
 }
 
 void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
@@ -121,20 +122,15 @@ void sflow_reconstruct_weno::reconstruct_WL(lexer* p, ghostcell *pgc, fdm2D *b)
     
     SLICELOOP1
     {
-    b->Ds(i,j) = MAX(b->ETAs(i,j) + 0.5*(b->depth(i+1,j)+b->depth(i,j)), p->A544);
-    b->Dn(i,j) = MAX(b->ETAn(i,j) + 0.5*(b->depth(i+1,j)+b->depth(i,j)), p->A544);
+    b->Ds(i,j) = MAX(b->ETAs(i,j) + b->dfx(i,j), p->A244);
+    b->Dn(i,j) = MAX(b->ETAn(i,j) + b->dfx(i,j), p->A244);
     }
     
     SLICELOOP2
     {
-    b->De(i,j) = MAX(b->ETAe(i,j)  + 0.5*(b->depth(i,j+1)+b->depth(i,j)), p->A544);
-    b->Dw(i,j) = MAX(b->ETAw(i,j)  + 0.5*(b->depth(i,j+1)+b->depth(i,j)), p->A544);
+    b->De(i,j) = MAX(b->ETAe(i,j) + b->dfy(i,j), p->A244);
+    b->Dw(i,j) = MAX(b->ETAw(i,j) + b->dfy(i,j), p->A244);
     }
-    
-    pgc->gcsl_start1(p,b->Ds,1);
-    pgc->gcsl_start1(p,b->Dn,1);
-    pgc->gcsl_start2(p,b->De,1);
-    pgc->gcsl_start2(p,b->Dw,1);
 }
 
 void sflow_reconstruct_weno::iqmin(lexer *p, slice& f)

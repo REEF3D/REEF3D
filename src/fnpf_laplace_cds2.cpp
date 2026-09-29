@@ -26,9 +26,18 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 #include"fnpf_bed_update.h"
+#include"fnpf_laplace_body_bc.h"
 
 fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p) 
 {
+    pbed = new fnpf_bed_update(p);
+    
+    gcval=250;
+    if(p->j_dir==0)
+    gcval=150;
+    
+    if(p->A328==1 && p->N10!=1 && p->mpirank==0)
+    cout<<"A 328 1 needs REEFMG (N 10 1); sigma cross-derivatives stay explicit"<<endl;
 }
 
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
@@ -42,193 +51,361 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     starttime=pgc->timer();
     
+    // Fused single-pass assembly (previously two full LOOP sweeps).
+    // Column-constant factors are hoisted; per-cell arithmetic is kept in
+    // the original evaluation order, so M and rhs are bit-identical.
+    const int sI = p->jmax*p->kmaxF;
+    const int sJ = p->kmaxF;
+    
+    const int    *const __restrict flag7 = p->flag7;
+    const double *const __restrict sigx  = p->sigx;
+    const double *const __restrict sigy  = p->sigy;
+    const double *const __restrict sigxx = p->sigxx;
+    const double *const __restrict Uin   = c->Uin;
+    const fnpf_body_bc body(p->X10>0 && c->FBF!=nullptr, c->FBF, c->FBu, c->FBv, c->FBw, flag7);
+    
+    double *const __restrict Mp = c->M.p.data();
+    double *const __restrict Mn = c->M.n.data();
+    double *const __restrict Ms = c->M.s.data();
+    double *const __restrict Mw = c->M.w.data();
+    double *const __restrict Me = c->M.e.data();
+    double *const __restrict Mt = c->M.t.data();
+    double *const __restrict Mb = c->M.b.data();
+    double *const __restrict rhs = c->rhsvec.V.data();
+    
+    const double ydir = p->y_dir;
+    const double xdir = p->x_dir;
+    
+    // A328 1 (REEFMG, N 10 1): the mixed derivatives are assembled as
+    // couplings nt..eb of the matrix wherever the neighbour is an unknown of
+    // the solve, and REEFMG's BiCGStab multiplies with this full 15-point
+    // (9-point in 2D) operator, preconditioned by the V-cycle on the 7-point
+    // part. Only couplings to non-unknowns stay in rhs with the current f:
+    // the free-surface node (Dirichlet, current stage), wall and dry
+    // neighbours, and the slope part of the bed ghost cells.
+    const bool mix = (p->A328==1 && p->N10==1);
+    
+    double *Xnt=0,*Xnb=0,*Xst=0,*Xsb=0,*Xwt=0,*Xwb=0,*Xet=0,*Xeb=0;
+    
+    if(mix)
+    {
+        const size_t nr = c->M.p.size();
+        
+        if(c->M.nt.size()!=nr)
+        {
+        c->M.nt.assign(nr,0.0); c->M.nb.assign(nr,0.0);
+        c->M.st.assign(nr,0.0); c->M.sb.assign(nr,0.0);
+        c->M.wt.assign(nr,0.0); c->M.wb.assign(nr,0.0);
+        c->M.et.assign(nr,0.0); c->M.eb.assign(nr,0.0);
+        }
+        
+        Xnt=c->M.nt.data(); Xnb=c->M.nb.data(); Xst=c->M.st.data(); Xsb=c->M.sb.data();
+        Xwt=c->M.wt.data(); Xwb=c->M.wb.data(); Xet=c->M.et.data(); Xeb=c->M.eb.data();
+    }
+    
+    // The mixed derivatives 2*sigx*d2Fi/dxdsig (and y) are not in the 7-point
+    // matrix but in rhs, evaluated with the current f. Without further
+    // iterations they are those of the previous RK stage (or time step), a
+    // lag of one stage: O(dt) and growing with the wave slope (sigx ~ Ex).
+    // With A324>0 the assembly and solve are repeated (Picard) with the new
+    // iterate until the change is below A325 times the change of the first
+    // solve, at most A324 times. A324 0 is the previous behaviour.
+    const int nouter = 1 + MAX(p->A324,0);
+    double dfirst=0.0;
+    
+    if(nouter>1 && int(fold.size())!=p->imax*p->jmax*(p->kmax+2))
+    fold.resize(p->imax*p->jmax*(p->kmax+2));
+    
+    for(int qo=0; qo<nouter; ++qo)
+    {
+    if(qo>0)
+    {
+    // bed ghost cells and halos from the new iterate
+    pbed->bedbc_sig(p,c,pgc,f,pf);
+    pgc->start7V(p,f,c->bc,gcval);
+    
+    starttime=pgc->timer();
+    }
+    
+    if(nouter>1)
+    FLOOP
+    fold[FIJK] = f[FIJK];
+    
 	n=0;
-    LOOP
-	{
-        if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
+    ILOOP
+    JLOOP
+    {
+        k=0;
+        const int c0 = FIJK;
+        
+        const int wP = p->wet[IJ];
+        const int wS = p->wet[Im1J];
+        const int wN = p->wet[Ip1J];
+        const int wE = p->wet[IJm1];
+        const int wW = p->wet[IJp1];
+        const int bcS = c->bc(i-1,j);
+        const int bcN = c->bc(i+1,j);
+        
+        const double dxn = 1.0/(p->DXP[IP]*p->DXN[IP]);
+        const double dxs = 1.0/(p->DXP[IM1]*p->DXN[IP]);
+        const double dyw = 1.0/(p->DYP[JP]*p->DYN[JP])*ydir;
+        const double dye = 1.0/(p->DYP[JM1]*p->DYN[JP])*ydir;
+        const double hxy = dxn + dxs + dyw + dye;
+        
+        const double dxc = p->DXP[IP]+p->DXP[IM1];
+        const double dyc = p->DYP[JP]+p->DYP[JM1];
+        
+        const double sz = p->sigz[IJ];
+        const double bx = c->Bx(i,j);
+        const double by = c->By(i,j);
+        
+        KLOOP
+        if(p->flag4[IJK]>0)
         {
-        sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-        
-        c->M.p[n]  =  1.0/(p->DXP[IP]*p->DXN[IP]) 
-                    + 1.0/(p->DXP[IM1]*p->DXN[IP])
-                    
-                    + 1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir 
-                    + 1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir 
-                    
-                    + (sigxyz2/(p->DZP[KM1]*p->DZN[KP]))
-                    + (sigxyz2/(p->DZP[KM1]*p->DZN[KM1]));
-
-
-        c->M.n[n] = -1.0/(p->DXP[IP]*p->DXN[IP]);
-        c->M.s[n] = -1.0/(p->DXP[IM1]*p->DXN[IP]);
-
-        c->M.w[n] = -1.0/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
-        c->M.e[n] = -1.0/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
-        
-        c->M.t[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KP])  + p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-        c->M.b[n] = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
-        
-        
-        c->rhsvec.V[n] =  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
-                        
-                        + 2.0*p->sigy[FIJK]*(f[FIJp1Kp1] - f[FIJm1Kp1] - f[FIJp1Km1] + f[FIJm1Km1])
-                        /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-                        
-        }
-        
-        if(p->wet[IJ]==0 || p->flag7[FIJK]<0)
-        {
-        c->M.p[n]  =  1.0;
-
-
-        c->M.n[n] = 0.0;
-        c->M.s[n] = 0.0;
-
-        c->M.w[n] = 0.0;
-        c->M.e[n] = 0.0;
-
-        c->M.t[n] = 0.0;
-        c->M.b[n] = 0.0;
-        
-        c->rhsvec.V[n] =  0.0;
-        }
-	++n;
-	}
-    
-    
-    n=0;
-	LOOP
-	{
-            if(p->wet[IJ]==1 && p->flag7[FIJK]>0)
+            const int q = c0 + k;
+            
+            if(wP==1 && flag7[q]>0 && !body.body(q))
             {
+            const double sx  = sigx[q];
+            const double sy  = sigy[q];
+            const double sxx = sigxx[q];
+            const double s2  = sx*sx + sy*sy + sz*sz;
+            const double dzc = p->DZN[KP]+p->DZN[KM1];
             
-            // KBEDBC
-            if(p->flag7[FIJKm1]<0)
+            double mp = hxy + (s2/(p->DZP[KM1]*p->DZN[KP])) + (s2/(p->DZP[KM1]*p->DZN[KM1]));
+            double mn = -dxn;
+            double ms = -dxs;
+            double mw = -dyw;
+            double me = -dye;
+            double mt = -(s2/(p->DZP[KM1]*p->DZN[KP])  + sxx/dzc);
+            double mb = -(s2/(p->DZP[KM1]*p->DZN[KM1]) - sxx/dzc);
+            
+            // active beach (B99>2) at the north boundary replaces the x mixed
+            // term by its Uin form below
+            const bool xdrop = (p->B99>2 && flag7[q+sI]<0 && bcN==2 && p->A329>=1);
+            
+            double rv;
+            double cnt=0.0,cnb=0.0,cst=0.0,csb=0.0,cwt=0.0,cwb=0.0,cet=0.0,ceb=0.0;
+            
+            if(!mix)
+            rv = 2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])/(dxc*dzc)
+               + 2.0*sy*(f[q+sJ+1] - f[q-sJ+1] - f[q+sJ-1] + f[q-sJ-1])/(dyc*dzc)*ydir;
+            
+            else
             {
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            // rhs term Mx(f): +cx at (i+1,k+1),(i-1,k-1), -cx at (i-1,k+1),(i+1,k-1)
+            const double cx = xdrop ? 0.0 : 2.0*sx/(dxc*dzc);
+            const double cy = 2.0*sy/(dyc*dzc)*ydir;
+            const int kt = k+1, kb = k-1;
             
-            ab = -(sigxyz2/(p->DZP[KM1]*p->DZN[KM1]) - p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]));
+            rv = 0.0;
             
-            denom = p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
-
-                    c->M.n[n] +=  ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-                    c->M.s[n] += -ab*2.0*p->DZN[KP]*c->Bx(i,j)/(denom*(p->DXP[IP] + p->DXP[IM1]));
-      
-                    c->M.w[n] +=  ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-                    c->M.e[n] += -ab*2.0*p->DZN[KP]*c->By(i,j)/(denom*(p->DYP[JP] + p->DYP[JM1]));
-
-                c->M.t[n] += ab;
-                c->M.b[n] = 0.0;
+            // neighbour q+off at level kn in column with wet flag wc is an unknown
+            auto unk = [&](int qq, int kn, int wc) {return kn>=0 && kn<p->knoz && flag7[qq]>0 && wc==1;};
+            
+            // top neighbours: unknown or surface/wall (explicit)
+            if(unk(q+sI+1,kt,wN)) cnt = -cx; else rv += cx*f[q+sI+1];
+            if(unk(q-sI+1,kt,wS)) cst =  cx; else rv -= cx*f[q-sI+1];
+            if(unk(q+sJ+1,kt,wW)) cwt = -cy; else rv += cy*f[q+sJ+1];
+            if(unk(q-sJ+1,kt,wE)) cet =  cy; else rv -= cy*f[q-sJ+1];
+            
+            // bottom neighbours; at k=0 the bed ghost is f(k=0) of that column
+            // plus the slope part, so f(k=0) goes into the n/s/w/e coupling
+            if(unk(q+sI-1,kb,wN)) cnb =  cx;
+            else if(k==0 && unk(q+sI,k,wN)) {mn += cx; rv -= cx*(f[q+sI-1]-f[q+sI]);}
+            else rv -= cx*f[q+sI-1];
+            
+            if(unk(q-sI-1,kb,wS)) csb = -cx;
+            else if(k==0 && unk(q-sI,k,wS)) {ms -= cx; rv += cx*(f[q-sI-1]-f[q-sI]);}
+            else rv += cx*f[q-sI-1];
+            
+            if(unk(q+sJ-1,kb,wW)) cwb =  cy;
+            else if(k==0 && unk(q+sJ,k,wW)) {mw += cy; rv -= cy*(f[q+sJ-1]-f[q+sJ]);}
+            else rv -= cy*f[q+sJ-1];
+            
+            if(unk(q-sJ-1,kb,wE)) ceb = -cy;
+            else if(k==0 && unk(q-sJ,k,wE)) {me -= cy; rv += cy*(f[q-sJ-1]-f[q-sJ]);}
+            else rv += cy*f[q-sJ-1];
             }
             
+            // KBEDBC
+            if(flag7[q-1]<0)
+            {
+            const double ab = mb;
+            denom = sz + bx*sx + by*sy;
+            
+                mn +=  ab*2.0*p->DZN[KP]*bx/(denom*dxc);
+                ms += -ab*2.0*p->DZN[KP]*bx/(denom*dxc);
+                
+                mw +=  ab*2.0*p->DZN[KP]*by/(denom*dyc);
+                me += -ab*2.0*p->DZN[KP]*by/(denom*dyc);
+                
+                mt += ab;
+                mb = 0.0;
+            }
+            
+            body.faces(q,sI,sJ, p->DXP[IM1],p->DXP[IP],p->DYP[JM1],p->DYP[JP],p->DZN[KP],p->DZN[KM1],sz,
+                       mp,ms,mn,me,mw,mt,mb,rv);
             
             // south
+            const bool sdry = (flag7[q-sI]<0 || wS==0);
+            
             if(p->B98<=2)
-            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)))
+            if(sdry)
             {
-            c->M.p[n] += c->M.s[n];
-            c->M.s[n] = 0.0;
+            mp += ms;
+            ms = 0.0;
             }
             
             if(p->B98>2)
             {
-            if((p->flag7[FIm1JK]<0 || (p->wet[Im1J]==0)) && c->bc(i-1,j)==0)
+            if(sdry && bcS==0)
             {
-            c->M.p[n] += c->M.s[n];
-            c->M.s[n] = 0.0;
+            mp += ms;
+            ms = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329==1)
+            if(flag7[q-sI]<0 && bcS==1  && p->A329==1)
             {
-            c->rhsvec.V[n] += c->M.s[n]*c->Uin[FIm1JK]*p->DXP[IM1];
-            c->M.p[n] += c->M.s[n];
-            c->M.s[n] = 0.0;
+            rv += ms*Uin[q-sI]*p->DXP[IM1];
+            mp += ms;
+            ms = 0.0;
             }
             
-            if(p->flag7[FIm1JK]<0 && c->bc(i-1,j)==1  && p->A329>=2)
+            if(flag7[q-sI]<0 && bcS==1  && p->A329>=2)
             {
             denom = -1.5*p->XP[IM1] + 2.0*p->XP[IP] - 0.5*p->XP[IP1];
             
-            c->rhsvec.V[n] += (2.0/3.0)*c->M.s[n]*c->Uin[FIm1JK]*denom;
-            c->M.p[n] += (4.0/3.0)*c->M.s[n];
-            c->M.n[n] -= (1.0/3.0)*c->M.s[n];
-            c->M.s[n] = 0.0;
-            }  
+            rv += (2.0/3.0)*ms*Uin[q-sI]*denom;
+            mp += (4.0/3.0)*ms;
+            mn -= (1.0/3.0)*ms;
+            ms = 0.0;
+            }
             }
             
             // north
+            const bool ndry = (flag7[q+sI]<0 || wN==0);
+            
             if(p->B99<=2)
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0))
+            if(ndry)
             {
-            c->M.p[n] += c->M.n[n];
-            c->M.n[n] = 0.0;
+            mp += mn;
+            mn = 0.0;
             }
             
             if(p->B99>2)
             {
-            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0) && c->bc(i+1,j)==0)
+            if(ndry && bcN==0)
             {
-            c->M.p[n] += c->M.n[n];
-            c->M.n[n] = 0.0;
+            mp += mn;
+            mn = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329==1)
+            if(flag7[q+sI]<0 && bcN==2  && p->A329==1)
             {
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            if(!mix)
+            rv -=  2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])
+                        /(dxc*dzc)*xdir;
                         
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(c->Uin[FIp1JKp1] - c->Uin[FIp1JKm1])
-                        /((p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            rv +=  2.0*sx*(Uin[q+sI+1] - Uin[q+sI-1])
+                        /(dzc)*xdir;
                         
-            c->rhsvec.V[n] -= c->M.n[n]*c->Uin[FIp1JK]*p->DXP[IP1];
-            c->M.p[n] += c->M.n[n];
-            c->M.n[n] = 0.0;
+            rv -= mn*Uin[q+sI]*p->DXP[IP1];
+            mp += mn;
+            mn = 0.0;
             }
             
-            if(p->flag7[FIp1JK]<0 && c->bc(i+1,j)==2  && p->A329>=2)
+            if(flag7[q+sI]<0 && bcN==2  && p->A329>=2)
             {
-            c->rhsvec.V[n] -=  2.0*p->sigx[FIJK]*(f[FIp1JKp1] - f[FIm1JKp1] - f[FIp1JKm1] + f[FIm1JKm1])
-                        /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            if(!mix)
+            rv -=  2.0*sx*(f[q+sI+1] - f[q-sI+1] - f[q+sI-1] + f[q-sI-1])
+                        /(dxc*dzc)*xdir;
                         
-            c->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(c->Uin[FIp1JKp1] - c->Uin[FIp1JKm1])
-                        /((p->DZN[KP]+p->DZN[KM1]))*p->x_dir;
+            rv +=  2.0*sx*(Uin[q+sI+1] - Uin[q+sI-1])
+                        /(dzc)*xdir;
                         
             denom = -0.5*p->XP[IM1] + 2.0*p->XP[IP] - 1.5*p->XP[IP1];
             
-            c->rhsvec.V[n] += (2.0/3.0)*c->M.n[n]*c->Uin[FIp1JK]*denom;
-            c->M.p[n] += (4.0/3.0)*c->M.n[n];
-            c->M.s[n] -= (1.0/3.0)*c->M.n[n];
-            c->M.n[n] = 0.0;
+            rv += (2.0/3.0)*mn*Uin[q+sI]*denom;
+            mp += (4.0/3.0)*mn;
+            ms -= (1.0/3.0)*mn;
+            mn = 0.0;
             }
             }
 
             // east
-            if(p->flag7[FIJm1K]<0 || p->wet[IJm1]==0)
+            if(flag7[q-sJ]<0 || wE==0)
             {
-            c->M.p[n] += c->M.e[n];
-            c->M.e[n] = 0.0;
+            mp += me;
+            me = 0.0;
             }
 
             // west
-            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0)
+            if(flag7[q+sJ]<0 || wW==0)
             {
-            c->M.p[n] += c->M.w[n];
-            c->M.w[n] = 0.0;
+            mp += mw;
+            mw = 0.0;
             }
-            
             
             // FSFBC
-            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            if(flag7[q+2]<0 && flag7[q+1]>0)
             {
-            c->rhsvec.V[n] -= c->M.t[n]*f[FIJKp2];
-            c->M.t[n] = 0.0;
+            rv -= mt*f[q+2];
+            mt = 0.0;
             }
- 
             
+            Mp[n] = mp;
+            Mn[n] = mn;
+            Ms[n] = ms;
+            Mw[n] = mw;
+            Me[n] = me;
+            Mt[n] = mt;
+            Mb[n] = mb;
+            rhs[n] = rv;
+            
+            if(mix)
+            {
+            Xnt[n]=cnt; Xnb[n]=cnb; Xst[n]=cst; Xsb[n]=csb;
+            Xwt[n]=cwt; Xwb[n]=cwb; Xet[n]=cet; Xeb[n]=ceb;
             }
-	++n;
-	}
+            }
+            
+            else
+            if(wP==1 && flag7[q]>0)   // resolved-body node: keep its value
+            {
+            Mp[n] = 1.0;
+            Mn[n] = Ms[n] = Mw[n] = Me[n] = Mt[n] = Mb[n] = 0.0;
+            rhs[n] = f[q];
+            
+            if(mix)
+            {
+            Xnt[n]=Xnb[n]=Xst[n]=Xsb[n]=0.0;
+            Xwt[n]=Xwb[n]=Xet[n]=Xeb[n]=0.0;
+            }
+            }
+            
+            else
+            if(wP==0 || flag7[q]<0)
+            {
+            Mp[n] = 1.0;
+            Mn[n] = 0.0;
+            Ms[n] = 0.0;
+            Mw[n] = 0.0;
+            Me[n] = 0.0;
+            Mt[n] = 0.0;
+            Mb[n] = 0.0;
+            rhs[n] = 0.0;
+            
+            if(mix)
+            {
+            Xnt[n]=Xnb[n]=Xst[n]=Xsb[n]=0.0;
+            Xwt[n]=Xwb[n]=Xet[n]=Xeb[n]=0.0;
+            }
+            }
+            
+        ++n;
+        }
+    }
     
     endtime=pgc->timer();
     //if(p->mpirank==0 && (p->count%p->P12==0))
@@ -240,6 +417,24 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     p->poissoniter+=p->solveriter;
     p->poissontime+=endtime-starttime;
+    
+    if(nouter>1)
+    {
+    double dmax=0.0;
+    
+    FLOOP
+    dmax = MAX(dmax,fabs(f[FIJK]-fold[FIJK]));
+    
+    dmax = pgc->globalmax(dmax);
+    
+    if(qo==0)
+    dfirst = dmax;
+    
+    if(qo>0 && dmax<=p->A325*dfirst)
+    break;
+    }
+    }
+    
     p->laplacetime+=p->poissontime;
     
     

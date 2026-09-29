@@ -23,23 +23,31 @@ Author: Hans Bihs
 #ifndef MATRIX_DIAG_H_
 #define MATRIX_DIAG_H_
 
-class lexer;
+#include <vector>
 
-using namespace std;
+class lexer;
 
 class matrix_diag
 {
 public:
-
     matrix_diag(lexer*);
-    virtual ~matrix_diag();
-    
-    void resize(lexer*,int,int);
 
-	double *n,*s,*e,*w,*b,*t,*p;
+    //  Explicit row count, for a solver path that knows it writes fewer rows
+    //  than lexer's veclength allows for - see fdm_fnpf.
+    matrix_diag(lexer*, int rows);
+    virtual ~matrix_diag() = default;
 
+    void resize(int);
+
+    void reset();
+
+    std::vector<double> n,s,e,w,b,t,p;
+
+    //  Optional x-sigma and y-sigma couplings of the FNPF Laplace operator
+    //  (A 328 1): nt = (i+1,k+1), nb = (i+1,k-1), st = (i-1,k+1), ...,
+    //  w = j+1, e = j-1. Empty unless the Laplace assembly sizes them; only
+    //  REEFMG's Krylov operator reads them.
+    std::vector<double> nt,nb,st,sb,wt,wb,et,eb;
 };
 
 #endif
-
-

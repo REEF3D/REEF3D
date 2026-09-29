@@ -24,9 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 
 fdm2D::fdm2D(lexer *p)
-			: U(p),V(p),W(p),UH(p),VH(p),WH(p),
-            Fx(p),Fs(p),Fn(p),
-            Fy(p),Fe(p),Fw(p),
+			: U(p),V(p),W(p),UH(p),VH(p),WH(p),UA(p),VA(p),MX(p),MY(p),
+            Fx(p),Fs(p),Fn(p),FEx(p),
+            Fy(p),Fe(p),Fw(p),FEy(p),
     
             Ss(p),Sn(p),SSx(p),
             Se(p),Sw(p),SSy(p),
@@ -48,6 +48,11 @@ fdm2D::fdm2D(lexer *p)
     
             WHn(p),WHs(p),
             WHe(p),WHw(p), 
+            
+            QUn(p),QUs(p),
+            QUe(p),QUw(p),
+            QVn(p),QVs(p),
+            QVe(p),QVw(p),
             
             WL(p),
             ETAs(p),ETAn(p),

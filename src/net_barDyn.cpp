@@ -41,27 +41,18 @@ void net_barDyn::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen
     
     double starttime1 = pgc->timer();    
 
-	//- Set net time step
-	double phi = 0.0;
-	t_net_n = t_net;
-	t_net = phi*p->simtime + (1.0 - phi)*(p->simtime + alpha*p->dt);
-	double dtm = t_net - t_net_n;
-	
-    dt_ = p->X325_dt > 0.0 ? min(dtm, p->X325_dt) : dtm;
-
-	//- Start loop
-    int loops = ceil(dtm/dt_);
-    if (dt_==0.0) loops = 0;
-    dt_ = dtm/loops;
-
-	Eigen::VectorXi convIt(loops);
-    
-    for (int loop = 0; loop < loops; loop++)
+    //- Advance the net once per fluid time step, in the final RK stage.
+    //  alpha holds the RK stage weights (e.g. 1, 1/4, 2/3 for SSP-RK3), not stage
+    //  times, so simtime + alpha*dt must not be used as the net time: it made the
+    //  net step backwards in stage 2. In the intermediate stages only the fluid
+    //  loads are updated with the current stage velocities (coupling_dlm).
+    if(finalize==true)
     {
-        convIt(loop) = loop;
+        Eigen::MatrixXd uOld = knotVelocity();
         
         update_velocity_cfd(p,a,pgc);
-        startLoop(p,pgc,convIt(loop));
+        
+        advanceNet(p,pgc,uOld);
     }
 
     //- Coupling forces for vrans model
@@ -76,27 +67,18 @@ void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha
 {
     double starttime1 = pgc->timer();    
 
-	//- Set net time step
-	double phi = 0.0;
-	t_net_n = t_net;
-	t_net = phi*p->simtime + (1.0 - phi)*(p->simtime + alpha*p->dt);
-	double dtm = t_net - t_net_n;
-	
-    dt_ = p->X325_dt > 0.0 ? min(dtm, p->X325_dt) : dtm;
-
-	//- Start loop
-    int loops = ceil(dtm/dt_);
-    if (dt_==0.0) loops = 0;
-    dt_ = dtm/loops;
-
-	Eigen::VectorXi convIt(loops);
-    
-    for (int loop = 0; loop < loops; loop++)
+    //- Advance the net once per fluid time step, in the final RK stage.
+    //  alpha holds the RK stage weights (e.g. 1, 1/4, 2/3 for SSP-RK3), not stage
+    //  times, so simtime + alpha*dt must not be used as the net time: it made the
+    //  net step backwards in stage 2. In the intermediate stages only the fluid
+    //  loads are updated with the current stage velocities (coupling_dlm).
+    if(finalize==true)
     {
-        convIt(loop) = loop;
+        Eigen::MatrixXd uOld = knotVelocity();
         
         update_velocity_nhflow(p,d,pgc);
-        startLoop(p,pgc,convIt(loop));
+        
+        advanceNet(p,pgc,uOld);
     }
 
     //- Coupling forces for vrans model
@@ -105,6 +87,62 @@ void net_barDyn::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha
 	//- Build and save net
     if(finalize==true)
 	print(p);	
+}
+
+Eigen::MatrixXd net_barDyn::knotVelocity()
+{
+    Eigen::MatrixXd u(nK,3);
+    
+    for (int i = 0; i < nK; i++)
+    for (int c = 0; c < 3; c++)
+    u(i,c) = coupledField[i][c];
+    
+    return u;
+}
+
+void net_barDyn::advanceNet(lexer *p, ghostcell *pgc, const Eigen::MatrixXd& uOld)
+{
+    // Called after coupledField holds the fluid velocity at t^n+1.
+    // uOld: fluid velocity at the knots at t^n (end of the previous step).
+    const Eigen::MatrixXd uNew = knotVelocity();
+    Eigen::MatrixXd u0 = uOld;
+    
+    // first step: no fluid velocity history, start with zero fluid acceleration
+    if (fluidVelInit_==false)
+    {
+        u0 = uNew;
+        fluidVelInit_ = true;
+    }
+    
+    //- Net time step: one fluid time step, optionally sub-cycled with X 325
+    const double dtm = p->dt;
+    
+    if (dtm <= 0.0)
+    return;
+    
+    dt_ = p->X325_dt > 0.0 ? min(dtm, p->X325_dt) : dtm;
+    
+    int loops = int(ceil(dtm/dt_ - 1.0e-10));
+    loops = max(loops,1);
+    dt_ = dtm/loops;
+    
+    //- Sub-cycle with the fluid velocity interpolated linearly in time,
+    //  i.e. a constant fluid acceleration (uNew-uOld)/dtm for the inertia force
+    for (int loop = 0; loop < loops; loop++)
+    {
+        const double s0 = double(loop)/double(loops);
+        const double s1 = double(loop+1)/double(loops);
+        
+        for (int i = 0; i < nK; i++)
+        for (int c = 0; c < 3; c++)
+        {
+            coupledFieldn[i][c] = u0(i,c) + s0*(uNew(i,c) - u0(i,c));
+            coupledField[i][c]  = u0(i,c) + s1*(uNew(i,c) - u0(i,c));
+        }
+        
+        int iter = loop;
+        startLoop(p,pgc,iter);
+    }
 }
 
 void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)

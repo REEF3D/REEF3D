@@ -25,6 +25,8 @@ Author: Hans Bihs
 lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(this)
 {
     sigT=0.9;
+    veclength=0;
+    vec2Dlength=0;
     
 	control::ini_default();
 
@@ -38,6 +40,36 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     solidread=toporead=porousread=0;
     net_count=0;
     mooring_count=0;
+}
+
+lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this), cmu(0.09)
+{
+    sigT=0.9;
+    veclength=0;
+    vec2Dlength=0;
+
+    solveriter=0;
+	mpirank=b.mpirank;
+    mpi_size=1;
+
+	simtime=b.simtime;
+	poissontime=0.0;
+	pressval=0;
+    alpha=0.0;
+    solidread=toporead=porousread=0;
+    net_count=0;
+    mooring_count=0;
+
+    count=b.count;
+    dt=b.dt;
+    dt_old=b.dt_old;
+    umax=vmax=wmax=0.0;
+    gctime=xtime=0.0;
+    utime=vtime=wtime=0.0;
+    recontime=fsftime=0.0;
+    lsmtime=0.0;
+    solver_error=0;
+    wenofunc=nullptr;
 }
 
 lexer::~lexer()

@@ -87,6 +87,7 @@ private:
     double visc;
     
     sliceint4 bx,by;
+    sliceint4 wdband;     // A343 2: distance (in cells) to the moving wet-dry front
     
     slice4 eta_t, t_break;
     slice4 B_coeff;

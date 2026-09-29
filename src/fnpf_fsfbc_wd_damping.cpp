@@ -47,6 +47,21 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
     alpha_eta=p->A366;
     }
     
+    // With vb==0 everywhere the implicit damping system is diagonal with
+    // solution f, so the global 2D BiCGStab solve is skipped. This is the
+    // normal state whenever no cell is breaking.
+    if(p->A350>0 && check==1)
+    {
+        double vbmax=0.0;
+        SLICELOOP4
+        vbmax = MAX(vbmax,fabs(c->vb(i,j)));
+        
+        vbmax = pgc->globalmax(vbmax);
+        
+        if(vbmax<=0.0)
+        check=0;
+    }
+    
     if(p->A350>0 && check==1)
     {
         n=0;
@@ -76,7 +91,9 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
             {
              c->N.p[n] =  1.0;
             
-             c->rvec.V[n] =   0.0;
+             // A343 2/3: keep eta/Fifsf of temporarily dry cells (eta=0 would
+             // put a full water column under a dry flag, released on rewetting)
+             c->rvec.V[n] =   (p->A343>=2) ? f(i,j) : 0.0;
              
              c->N.s[n] = 0.0;
              c->N.n[n] = 0.0;

@@ -39,6 +39,7 @@ class sflow_reconstruct_weno final : public sflow_reconstruct, public weno_nug_f
 {
 public:
 	sflow_reconstruct_weno(lexer*,patchBC_interface*);
+	sflow_reconstruct_weno(lexer*,patchBC_interface*,int);   // own WENO tables (SFLOW AMR patch)
 	virtual ~sflow_reconstruct_weno();
 
     void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;

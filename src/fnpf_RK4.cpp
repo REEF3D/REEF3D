@@ -31,10 +31,12 @@ Author: Hans Bihs
 #include"fnpf_laplace_cds2.h"
 #include"fnpf_fsfbc.h"
 #include"fnpf_fsfbc_wd.h"
+#include"fnpf_body.h"
 
 fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       erk1(p),erk2(p),erk3(p),erk(p),en(p),
-                                                      frk1(p),frk2(p),frk3(p),frk(p)
+                                                      frk1(p),frk2(p),frk3(p),frk(p),
+                                                      erk4(p),frk4(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -63,6 +65,10 @@ fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     
     if(p->A343>=1)
     pf = new fnpf_fsfbc_wd(p,c,pgc);
+    
+    // resolved bodies (X 10): no-op unless present
+    pbody = fnpf_body::create(p,c,pgc);
+    plap = pbody->laplace(plap);
 }
 
 fnpf_RK4::~fnpf_RK4()
@@ -70,40 +76,48 @@ fnpf_RK4::~fnpf_RK4()
 }
 
 void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, convection *pconvec, ioflow *pflow, reini *preini)
-{	
+{
+    
+    SLICELOOP4
+    en(i,j) = c->eta(i,j);
     
 // Step 1
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,c->eta,gcval_eta,0.5);
-
+    
     SLICELOOP4
-    {
 	erk1(i,j) = c->K(i,j);
-    erk(i,j) = c->eta(i,j) + 0.5*p->dt*c->K(i,j);
-    }
     
     // fsf Fi
     pf->dfsfbc(p,c,pgc,c->eta);
-    pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,0.5);
-
+    
 	SLICELOOP4
-    {
 	frk1(i,j) = c->K(i,j);
-    frk(i,j)  = c->Fifsf(i,j) + 0.5*p->dt*c->K(i,j);
+    
+    pbody->stage(p,c,pgc,psolv,pf,erk1,frk1,0);
+    
+    SLICELOOP4
+    {
+    erk(i,j) = c->eta(i,j)   + 0.5*p->dt*erk1(i,j);
+    frk(i,j) = c->Fifsf(i,j) + 0.5*p->dt*frk1(i,j);
     }
     
+    pf->damping(p,c,pgc,erk,gcval_eta,0.5);
+    pf->damping(p,c,pgc,frk,gcval_fifsf,0.5);
+    
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,erk);
+    pf->wetdry(p,c,pgc,erk,frk);
     pgc->gcsl_start4(p,erk,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk);
     pf->coastline_fi(p,c,pgc,frk);
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
+    pbody->surface(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
     
     // fsfdisc and sigma update
-    pf->breaking(p, c, pgc, en, c->eta, frk,0.5);
-    pf->wetdry(p,c,pgc,erk,frk);
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
+    pf->breaking(p,c,pgc,erk,en,frk,0.5);
+    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
     
@@ -113,44 +127,46 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,frk1);
+    plap->start(p,c,pgc,psolv,pf,c->Fi,frk);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk,frk);
-    
-    SLICELOOP4
-    en(i,j) = erk(i,j);
 
 // Step 2
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,erk,gcval_eta,0.5);
     
     SLICELOOP4
-    {
 	erk2(i,j) = c->K(i,j);
-    erk(i,j)  = c->eta(i,j) + 0.5*p->dt*c->K(i,j);
-    }
     
     // fsf Fi
-    pf->dfsfbc(p,c,pgc,en);
-    pf->damping(p,c,pgc,frk,gcval_fifsf,0.5);
+    pf->dfsfbc(p,c,pgc,erk);
+    
+    SLICELOOP4
+	frk2(i,j) = c->K(i,j);
+    
+    pbody->stage(p,c,pgc,psolv,pf,erk2,frk2,1);
     
     SLICELOOP4
     {
-	frk2(i,j) = c->K(i,j);
-    frk(i,j)  = c->Fifsf(i,j) + 0.5*p->dt*c->K(i,j);
+    erk(i,j) = c->eta(i,j)   + 0.5*p->dt*erk2(i,j);
+    frk(i,j) = c->Fifsf(i,j) + 0.5*p->dt*frk2(i,j);
     }
     
+    pf->damping(p,c,pgc,erk,gcval_eta,0.5);
+    pf->damping(p,c,pgc,frk,gcval_fifsf,0.5);
+    
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,erk);
+    pf->wetdry(p,c,pgc,erk,frk);
     pgc->gcsl_start4(p,erk,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk);
     pf->coastline_fi(p,c,pgc,frk);
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
+    pbody->surface(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
     
     // fsfdisc and sigma update
-    pf->breaking(p, c, pgc, en, c->eta, frk,0.5);
-    pf->wetdry(p,c,pgc,erk,frk);
+    pf->breaking(p,c,pgc,erk,en,frk,0.5);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
@@ -161,44 +177,46 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,frk2);
+    plap->start(p,c,pgc,psolv,pf,c->Fi,frk);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk,frk);
-    
-    SLICELOOP4
-    en(i,j) = erk(i,j);
     
 // Step 3
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,erk,gcval_eta,1.0);
     
     SLICELOOP4
-    {
 	erk3(i,j) = c->K(i,j);
-    erk(i,j)  = c->eta(i,j) + p->dt*c->K(i,j);
-    }
     
     // fsf Fi
-    pf->dfsfbc(p,c,pgc,en);
-    pf->damping(p,c,pgc,frk,gcval_fifsf,1.0);
+    pf->dfsfbc(p,c,pgc,erk);
+    
+    SLICELOOP4
+	frk3(i,j) = c->K(i,j);
+    
+    pbody->stage(p,c,pgc,psolv,pf,erk3,frk3,2);
     
     SLICELOOP4
     {
-	frk3(i,j) = c->K(i,j);
-    frk(i,j)  = c->Fifsf(i,j) + p->dt*c->K(i,j);
+    erk(i,j) = c->eta(i,j)   + p->dt*erk3(i,j);
+    frk(i,j) = c->Fifsf(i,j) + p->dt*frk3(i,j);
     }
     
+    pf->damping(p,c,pgc,erk,gcval_eta,1.0);
+    pf->damping(p,c,pgc,frk,gcval_fifsf,1.0);
+    
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,erk);
+    pf->wetdry(p,c,pgc,erk,frk);
     pgc->gcsl_start4(p,erk,gcval_eta);
     pf->coastline_eta(p,c,pgc,erk);
     pf->coastline_fi(p,c,pgc,frk);
     pflow->fifsf_relax(p,pgc,frk);
     pgc->gcsl_start4(p,frk,gcval_fifsf);
+    pbody->surface(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
     
     // fsfdisc and sigma update
-    pf->breaking(p,c,pgc,en,c->eta,frk,1.0);
-    pf->wetdry(p,c,pgc,erk,frk);
+    pf->breaking(p,c,pgc,erk,en,frk,1.0);
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
@@ -209,39 +227,45 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // solve Fi
     pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,frk3);
+    plap->start(p,c,pgc,psolv,pf,c->Fi,frk);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,erk,frk);
-    
-    SLICELOOP4
-    en(i,j) = erk(i,j);
 
 // Step 4 
     // fsf eta
     pf->kfsfbc(p,c,pgc);
-    pf->damping(p,c,pgc,erk,gcval_eta,1.0);
+    SLICELOOP4
+    erk4(i,j) = c->K(i,j);
+    
+    // fsf Fi (dfsfbc only uses the eta passed to it)
+    pf->dfsfbc(p,c,pgc,erk);
+    SLICELOOP4
+    frk4(i,j) = c->K(i,j);
+    
+    pbody->stage(p,c,pgc,psolv,pf,erk4,frk4,3);
     
     SLICELOOP4
-    c->eta(i,j) = c->eta(i,j) + p->dt*(1.0/6.0)*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + c->K(i,j));
+    {
+    c->eta(i,j)   = c->eta(i,j)   + p->dt*(1.0/6.0)*(erk1(i,j) + 2.0*erk2(i,j) + 2.0*erk3(i,j) + erk4(i,j));
+    c->Fifsf(i,j) = c->Fifsf(i,j) + p->dt*(1.0/6.0)*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + frk4(i,j));
+    }
     
-    // fsf Fi
-    pf->dfsfbc(p,c,pgc,en);
-    pf->damping(p,c,pgc,frk,gcval_fifsf,1.0);
+    pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
+    pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
     
-    SLICELOOP4
-	c->Fifsf(i,j) = c->Fifsf(i,j) + p->dt*(1.0/6.0)*(frk1(i,j) + 2.0*frk2(i,j) + 2.0*frk3(i,j) + c->K(i,j));
-    
+    // wavegen and coastline
     pflow->eta_relax(p,pgc,c->eta);
+    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pf->coastline_eta(p,c,pgc,c->eta);
     pf->coastline_fi(p,c,pgc,c->Fifsf);
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    pbody->surface(p,c,pgc,c->eta,c->Fifsf,gcval_eta,gcval_fifsf);
     
     // fsfdisc and sigma update
-    pf->breaking(p, c, pgc, en, c->eta, c->Fifsf,1.0);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
+    pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
+    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
     
@@ -255,9 +279,11 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pgc->start7V(p,c->Fi,c->bc,gcval);
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
 
+    //---------------------------------
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
+    
     pf->coastline_vel(p,c,pgc,c->U);
     pf->coastline_vel(p,c,pgc,c->V);
     pf->coastline_vel(p,c,pgc,c->W);

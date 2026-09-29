@@ -88,10 +88,15 @@ Author: Hans Bihs
 #include"bedprobe_line_x.h"
 #include"bedprobe_line_y.h"
 #include"sediment_roughness.h"
+#include"sediment_mixture.h"
 
 void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
     s = new sediment_fdm(p);
+    
+    // multi-fraction bed
+    if(p->S51>0)
+    s->pmix = new sediment_mixture(p);
     
     
     if(p->S11==0)

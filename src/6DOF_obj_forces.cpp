@@ -79,4 +79,8 @@ void sixdof_obj::update_forces(lexer *p)
     
     if(Mfb_(2)!=Mfb_(2))
     cout<<"Mfb_(2)....###"<<endl;
+    
+    // FNPF: instantaneous added mass on the left-hand side
+    if(am_on_)
+    apply_added_mass(p);
 }

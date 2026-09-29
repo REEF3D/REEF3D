@@ -175,7 +175,22 @@ void wave_lib_piston::read(lexer *p, ghostcell* pgc)
 	
 	ts = kinematics[0][0];
 	te = kinematics[ptnum-1][0];
-	    
+    
+    // moving-paddle BC terms from the first-order signal (before correcting it)
+    if(p->B119==1 && p->A10==3)
+    wm2.make_Qtable(p,pgc,kinematics,ptnum,wdt,1,p->B110_zs,p->B110_ze);
+    
+    // 2nd-order wavemaker correction
+    if(p->B113>0)
+    wm2.correct(p,pgc,kinematics,ptnum,wdt,1,p->B110_zs,p->B110_ze);
+}
+
+double wave_lib_piston::wave_paddle_Q(lexer *p, double z)
+{
+    if(p->B119!=1 || p->wavetime<ts || p->wavetime>te)
+    return 0.0;
+    
+    return cosgamma*wm2.paddle_Q(p->wavetime,z);
 }
 
 void wave_lib_piston::wave_prestep(lexer *p, ghostcell *pgc)

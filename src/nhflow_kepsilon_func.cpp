@@ -28,6 +28,7 @@ Author: Hans Bihs
 
 nhflow_kepsilon_func::nhflow_kepsilon_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_kepsilon_bc(p)
 {
+    sst_a1 = 0.31;
 }
 
 nhflow_kepsilon_func::~nhflow_kepsilon_func()
@@ -46,9 +47,11 @@ void nhflow_kepsilon_func::isource(lexer *p, fdm_nhf *d)
 	LOOP
 	d->F[IJK]=0.0;
     
+    // momentum is solved for UH: source is -(2/3) D dk/dx|z, with dk/dx|z = dk/dx|s + sigx dk/ds
     if(p->T33==1)
     LOOP
-	d->F[IJK] = -(2.0/3.0)*(KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1]);
+	d->F[IJK] = -(2.0/3.0)*d->WL(i,j)*((KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1])
+              + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
 }
 
 void nhflow_kepsilon_func::jsource(lexer *p, fdm_nhf *d)
@@ -59,7 +62,8 @@ void nhflow_kepsilon_func::jsource(lexer *p, fdm_nhf *d)
     
     if(p->T33==1)
     LOOP
-	d->G[IJK] = -(2.0/3.0)*(KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]);
+	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1])
+              + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
 }
 
 void nhflow_kepsilon_func::ksource(lexer *p, fdm_nhf *d)
@@ -68,101 +72,78 @@ void nhflow_kepsilon_func::ksource(lexer *p, fdm_nhf *d)
 	LOOP
 	d->H[IJK]=0.0;
     
+    // D * sigz * dk/ds = dk/ds
     if(p->T33==1)
     LOOP
-	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/((p->DZP[KP]+p->DZP[KM1])*d->WL(i,j));
+	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 }
 
 void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
 {
-	double factor;
-	double H;
-	int n;
-        
-    // RANS
-    if(p->A560==1)
+    // RANS (A560 1) and URANS (A560 21)
+    // A564 0: nu_t = cmu k^2/eps
+    // A564 1: + realizability,  nu_t <= T31 k/S   (same bound as k-omega A564 1)
+    // A564 2: + SST/Bradshaw,   nu_t <= a1 k/(F2 S), with omega = eps/(cmu k)
+    if(p->A560==1 || p->A560==21)
+    LOOP
     {
-        if(p->A564==0)
-        LOOP
-		d->EV0[IJK] = p->cmu*MAX(MAX(KIN[IJK]*KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.0001*d->VISC[IJK]);
-                          
+        const double kval = MAX(KIN[IJK],0.0);
+        const double Sval = strainterm(p,d);
+
+        double ev = EPS[IJK]>1.0e-20 ? p->cmu*kval*kval/EPS[IJK] : 0.0;
+
         if(p->A564==1)
-		LOOP
-		d->EV0[IJK] = p->cmu*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.0001*d->VISC[IJK]);
-                          
-        if(p->A564==2)
+        ev = MIN(ev, p->T31*kval/(Sval>1.0e-20?Sval:1.0e-20));
+
+        if(p->A564==2 && EPS[IJK]>1.0e-20)
         {
-        const double rfac = sst_a1/p->T31;
-
-        LOOP
-        {
-            double kval = MAX(KIN[IJK],0.0);
-            double eval = MAX(EPS[IJK],1.0e-20);
-            double wval = eval/(p->cmu*(kval>1.0e-20?kval:1.0e-20));
-
-            double Sval = strainterm(p,d);
-
-            double sLim = sst_F2(p,d,kval,wval)*Sval;   // Bradshaw, blended
-            double rLim = rfac*Sval;                    // realizability, unblended
+            const double wval = EPS[IJK]/(p->cmu*(kval>1.0e-20?kval:1.0e-20));
 
             double den = sst_a1*wval;
+            const double sLim = sst_F2(p,d,kval,wval)*Sval;   // Bradshaw, blended
+            const double rLim = (sst_a1/p->T31)*Sval;         // realizability, unblended
             if(sLim>den) den = sLim;
             if(rLim>den) den = rLim;
 
-            d->EV0[IJK] = MAX(sst_a1*kval/(den>1.0e-20?den:1.0e-20), 0.00001*d->VISC[IJK]);
-        }
+            ev = sst_a1*kval/(den>1.0e-20?den:1.0e-20);
         }
 
+        // URANS filter
+        if(p->A560==21)
+        {
+            if(p->j_dir==0)
+            dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
+
+            if(p->j_dir==1)
+            dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
+
+            f = MIN(1.0, dxm*p->A568*EPS[IJK]/pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),1.5));
+
+            ev *= f;
+        }
+
+        d->EV0[IJK] = MAX(ev, 0.0001*d->VISC[IJK]);
     }
-	
-    // URANS
-	if(p->A560==21)
-	LOOP
-    {
-    if(p->j_dir==0)
-    dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
-    
-    if(p->j_dir==1)
-    dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
-    
-	f = MIN(1.0, dxm*p->A568*EPS[IJK]/pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),1.5));
-    
-    
-    
-        if(p->A564==0)
-		d->EV0[IJK] = p->cmu*f*MAX(MAX(KIN[IJK]*KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),
-						  0.0001*d->VISC[IJK]);
-                          
-        if(p->A564==1)
-		d->EV0[IJK] = p->cmu*f*MAX(MIN(MAX(KIN[IJK]*KIN[IJK]
-						  /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0),fabs(p->T31*KIN[IJK])/strainterm(p,d)),
-						  0.0001*d->VISC[IJK]);
-                          
-    }
-    
-    // stabilization
+
+    // stabilization (Larsen & Fuhrman type): nu_t <= cmu k^2/eps * c1e Omega^2/(lambda2 c2e S^2)
     if(p->A565==0)
     LOOP
     d->EV[IJK] = d->EV0[IJK];
-    
+
     if(p->A565==1)
     LOOP
     {
-    double Sij2_val = Sij2(p,d); 
-    
+    double Sij2_val = Sij2(p,d);
+
 	if(Sij2_val>1.0e-20)
-	d->EV[IJK] = MIN(d->EV0[IJK], MAX(KIN[IJK]/((fabs(EPS[IJK]))>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
-                                         *(p->cmu*ke_c_1e*Qij2(p,d))/(p->T42*ke_c_2e*Sij2_val));
-                                         
+    d->EV[IJK] = MIN(d->EV0[IJK], p->cmu*MAX(KIN[IJK]*KIN[IJK]
+                     /((EPS[IJK])>(1.0e-20)?(EPS[IJK]):(1.0e20)),0.0)
+                     *(ke_c_1e*Qij2(p,d))/(p->T42*ke_c_2e*Sij2_val));
+
     else
     d->EV[IJK] = d->EV0[IJK];
     }
-                                         
+
     LOOP
     if(p->DF[IJK]<0)
     {
@@ -179,7 +160,10 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
     {
         if(WALLF[IJK]==0)
         {
-        d->rhsvec.V[count] += PK[IJK] - MAX(EPS[IJK],0.0);
+        // dissipation linearised implicitly (eps/k * k): keeps k >= 0 for any dt
+        d->M.p[count] += MAX(EPS[IJK],0.0)/(KIN[IJK]>1.0e-10?KIN[IJK]:1.0e-10);
+        
+        d->rhsvec.V[count] += PK[IJK];
         }
 	++count;
     }

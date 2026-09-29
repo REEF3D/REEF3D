@@ -195,25 +195,9 @@ void potential_f::rhs(lexer *p, fdm* a)
 
 void potential_f::laplace(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-    n=0;
-    BASELOOP
-    {
-    a->M.p[n]  =  1.0;
+    a->M.reset();
+    a->rhsvec.reset();
 
-        a->M.n[n] = 0.0;
-        a->M.s[n] = 0.0;
-
-        a->M.w[n] = 0.0;
-        a->M.e[n] = 0.0;
-
-        a->M.t[n] = 0.0;
-        a->M.b[n] = 0.0;
-        
-        a->rhsvec.V[n] =  0.0;
-        
-    ++n;
-    }
-    
 	n=0;
     LOOP
 	{

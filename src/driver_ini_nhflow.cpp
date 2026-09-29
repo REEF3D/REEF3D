@@ -146,6 +146,9 @@ void driver::driver_ini_nhflow()
     
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
 
+    // Lagrangian particles ini
+    pnhfpart->ini(p,d,pgc);
+
 // ini variables
     for(int qn=0; qn<2; ++qn)
     {

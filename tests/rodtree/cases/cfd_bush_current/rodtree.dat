@@ -1,0 +1,18 @@
+# CFD smoke test: small branching colony in a 0.2 m deep current
+substeps 1
+colony bush
+  material 1.0e6 0.4 1050
+  hydro    1.2 0.01 1.0
+  damping  0.02
+  refine   4
+  node 1 0.60 0.30 0.000 0.004
+  node 2 0.60 0.30 0.080 0.0035
+  node 3 0.64 0.30 0.140 0.0025
+  node 4 0.56 0.30 0.140 0.0025
+  node 5 0.60 0.34 0.150 0.0025
+  edge 1 2
+  edge 2 3
+  edge 2 4
+  edge 2 5
+  clamp 1
+end

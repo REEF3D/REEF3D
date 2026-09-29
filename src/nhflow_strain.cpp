@@ -45,16 +45,20 @@ void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALL
     LOOP
     if(p->DF[IJK]>0)
     {  
-        if((p->flag4[Im1JK]<0 && p->IO[Im1JK]!=1)  || p->DF[Im1JK]<0)
+        // x: a boundary ghost cell is a wall unless it is an inflow/outflow cell
+        if((p->flag4[Im1JK]<0 && p->IO[Im1JK]==0)  || p->DF[Im1JK]<0)
         WALLF[IJK]=1;
 
-        if((p->flag4[Ip1JK]<0  && p->IO[Ip1JK]!=2)  || p->DF[Ip1JK]<0)
+        if((p->flag4[Ip1JK]<0  && p->IO[Ip1JK]==0)  || p->DF[Ip1JK]<0)
         WALLF[IJK]=1;
-        
-        if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+
+        // y: only in 3D; in 2D the y-ghost cells carry flag4<0 and would mark every cell as a wall cell
+        if(p->j_dir==1)
+        if((p->flag4[IJm1K]<0 && p->IO[IJm1K]==0) || p->DF[IJm1K]<0)
         WALLF[IJK]=1;
-        
-        if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+
+        if(p->j_dir==1)
+        if((p->flag4[IJp1K]<0 && p->IO[IJp1K]==0) || p->DF[IJp1K]<0)
         WALLF[IJK]=1;
         
         if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)

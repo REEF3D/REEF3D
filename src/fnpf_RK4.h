@@ -30,6 +30,7 @@ Author: Hans Bihs
 
 class fnpf_laplace;
 class fnpf_fsf;
+class fnpf_body;
 class field;
 
 using namespace std;
@@ -57,7 +58,9 @@ private:
 
     fnpf_laplace *plap;
     fnpf_fsf *pf;
-
+    fnpf_body *pbody;
+    
+    slice4 erk4,frk4;
 };
 
 #endif

@@ -124,7 +124,10 @@ private:
     double dt_; 
     VectorXd mass_knot, weight_knot, added_mass;
     MatrixXd forces_knot;
-    double **coupledField, **coupledFieldn;
+    double **coupledField, **coupledFieldn;   // fluid velocity (+density) at knots: current stage, t^n
+    MatrixXd fluidAcc_;                       // fluid acceleration at knots over the last full time step
+    bool fluidVelInit_ = false;
+    void updateFluidAcc(lexer*, bool);
     
     // Net mesh
     int tend;  

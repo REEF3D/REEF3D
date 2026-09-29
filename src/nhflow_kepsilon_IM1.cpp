@@ -75,8 +75,8 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
 	epssource(p,d,pvrans);
 	timesource(p,d,EN);
     bcepsilon_matrix(p,d,KIN,EPS);
+    bckepsilon_start(p,d,KIN,EPS,gcval_eps);   // wall-function epsilon, must act on M/rhs before the solve
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
-    //bckepsilon_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;

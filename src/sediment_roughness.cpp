@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"sediment_mixture.h"
 
 sediment_roughness::sediment_roughness(lexer *p)
 {
@@ -39,28 +40,46 @@ void sediment_roughness::start(lexer* p, ghostcell* pgc, sediment_fdm *s, slice 
 {
     double Delta,lambda,Ti,tauc;
     double density = p->W1;
+    double dks = p->S20;   // grain size for the grain roughness ks = S21*dks
+    double dsed = p->S20;  // median grain size
+    
+    // multi-fraction bed: grain roughness from the local active layer (S56)
+    if(s->pmix!=nullptr && p->S56>0)
+    SLICELOOP4
+    s->ks(i,j) = p->S21*s->pmix->ks_diameter(p,i,j);
     
     if(p->S36==0)
     SLICELOOP4
-    s->ks_eff(i,j) = p->S21*p->S20;
+    {
+    if(s->pmix!=nullptr && p->S56>0)
+    dks = s->pmix->ks_diameter(p,i,j);
+    
+    s->ks_eff(i,j) = p->S21*dks;
+    }
     
     // bedform roughness
     if(p->S36==1)
     SLICELOOP4
     {
-    tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*p->S20;
+    if(s->pmix!=nullptr && p->S56>0)
+    dks = s->pmix->ks_diameter(p,i,j);
+    
+    if(s->pmix!=nullptr)
+    dsed = s->pmix->d50(i,j);
+    
+    tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*dsed;
     
     Ti  = (s->tau_i(i,j)-tauc)/tauc;
     
-    Delta = WL(i,j) * 0.11 * pow(p->S20/WL(i,j),0.3) * (1.0 - pow(EE,-0.5*Ti)) * (25.0 - Ti);
+    Delta = WL(i,j) * 0.11 * pow(dsed/WL(i,j),0.3) * (1.0 - pow(EE,-0.5*Ti)) * (25.0 - Ti);
      
     lambda = 7.3 * WL(i,j);
     
     if(Ti < 25.0 && Ti>0.0)
-    s->ks_eff(i,j) = p->S21*p->S20 + 1.1 * Delta*(1.0-pow(EE,-25.0*Delta/lambda));
+    s->ks_eff(i,j) = p->S21*dks + 1.1 * Delta*(1.0-pow(EE,-25.0*Delta/lambda));
     
 
     if(Ti >= 25.0 || Ti<=0.0)
-    s->ks_eff(i,j) = p->S21*p->S20;
+    s->ks_eff(i,j) = p->S21*dks;
     }
 }

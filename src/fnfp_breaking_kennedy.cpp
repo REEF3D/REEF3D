@@ -30,8 +30,9 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
     // ini
     
     // detect breaking
+    // stage value eta against eta_n (was c->eta, i.e. zero or the wrong stage)
     SLICELOOP4
-    eta_t(i, j) = (c->eta(i, j) - eta_n(i, j)) /(alpha* p->dt);
+    eta_t(i, j) = (eta(i, j) - eta_n(i, j)) /(alpha* p->dt);
 
     
      double threshold_I, threshold_F;

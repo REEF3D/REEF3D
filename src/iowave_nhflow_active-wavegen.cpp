@@ -41,7 +41,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             if(p->A515==1)
             etaval = d->eta(i,j);
             
-            if(p->A515==2)
+            if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
             /*
@@ -74,7 +74,7 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             if(p->A515==1)
             etaval = d->eta(i,j);
             
-            if(p->A515==2)
+            if(p->A515==2 || p->A515==4)
             {
             etaval = d->eta(i,j);
             /*

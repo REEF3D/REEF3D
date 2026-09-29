@@ -124,7 +124,7 @@ double sediment_wenoflux::ffx(lexer *p, slice &f, double advec)
 {
     grad = 0.0;
 
-	if(advec>0.0)
+	if(advec>=0.0)
 	{
 	iqmin(p,f);
 	is_min_x();
@@ -159,7 +159,7 @@ double sediment_wenoflux::ffy(lexer *p, slice &f, double advec)
 {
     grad = 0.0;
 
-	if(advec>0.0)
+	if(advec>=0.0)
 	{
 	jqmin(p,f);
 	is_min_y();

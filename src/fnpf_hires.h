@@ -23,35 +23,51 @@ Author: Hans Bihs
 #ifndef FNPF_HIRES_H_
 #define FNPF_HIRES_H_
 
-#include"fnpf_convection.h"
-#include"increment.h"
+#include "fnpf_convection.h"
+#include "increment.h"
+#include "lexer.h"
+#include "slice.h"
 
-class fdm_fnpf;
-
-using namespace std;
+#include <cmath>
 
 class fnpf_hires final : public fnpf_convection, public increment
 {
 public:
-    fnpf_hires(lexer*);
-	virtual ~fnpf_hires();
+    fnpf_hires() = default;
+    virtual ~fnpf_hires() = default;
 
-    double fx(lexer*, field&, double, double) override final {return 0.0;};
-	double fy(lexer*, field&, double, double) override final {return 0.0;};
-	double fz(lexer*, field&, double, double) override final {return 0.0;};
-    
-    double sx(lexer*, slice&, double) override final;
-	double sy(lexer*, slice&, double) override final;
-    double sz(lexer*, double*) override final {return 0.0;};
-    
+    inline double fx(lexer*, field&, double, double) override final {return 0.0;};
+    inline double fy(lexer*, field&, double, double) override final {return 0.0;};
+    inline double fz(lexer*, field&, double, double) override final {return 0.0;};
+
+    inline double sx(lexer *p, slice &f, double ivel) override final
+    {
+        const double dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
+        const double dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
+
+        return limiter(dfdx_plus,dfdx_min);
+    }
+
+    inline double sy(lexer *p, slice &f, double ivel) override final
+    {
+        const double dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
+        const double dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
+
+        return limiter(dfdy_plus,dfdy_min);
+    }
+
+    inline double sz(lexer*, double*) override final {return 0.0;};
+
 private:
-    fdm_fnpf *c;
-    
-    double limiter(double v1, double v2);
-    
-    double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
-    double denom,val,grad;
 
+    inline double limiter(double v1, double v2)
+    {
+        double denom = fabs(v1) + fabs(v2);
+
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+
+        return (v1*fabs(v2) + fabs(v1)*v2)/denom;
+    }
 };
 
 #endif

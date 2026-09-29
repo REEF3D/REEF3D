@@ -24,10 +24,55 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"sliceint.h"
+#include<vector>
+
+// (i,j,k) triplets of FLOOP cells that have a solid (flag7<0) neighbour in i
+// (list2D) or in i or j (list3D). flag7 is static after the sigma grid is built.
+static std::vector<int> fivec_list3D, fivec_list2D;
+static bool fivec_listbuilt=false;
+
+// flag7 is fixed after driver_makegrid_sigma, so the cells that can own a
+// wall ghost cell are found once. The loops below visit only those cells, in
+// the original FLOOP order, instead of sweeping the whole 3D field every call.
+void ghostcell::fivec_buildlist(lexer *p)
+{
+    fivec_list3D.clear();
+    fivec_list2D.clear();
+    
+    FLOOP
+    {
+        const bool xwall = (p->flag7[FIm1JK]<0 || p->flag7[FIp1JK]<0);
+        const bool ywall = (p->flag7[FIJm1K]<0 || p->flag7[FIJp1K]<0);
+        
+        if(xwall || ywall)
+        {
+        fivec_list3D.push_back(i);
+        fivec_list3D.push_back(j);
+        fivec_list3D.push_back(k);
+        }
+        
+        if(xwall)
+        {
+        fivec_list2D.push_back(i);
+        fivec_list2D.push_back(j);
+        fivec_list2D.push_back(k);
+        }
+    }
+    
+    fivec_listbuilt=true;
+}
+
+#define FIVEC_LOOP3D if(!fivec_listbuilt) fivec_buildlist(p); \
+    for(size_t qq=0; qq<fivec_list3D.size(); qq+=3) \
+    if((i=fivec_list3D[qq], j=fivec_list3D[qq+1], k=fivec_list3D[qq+2], true))
+
+#define FIVEC_LOOP2D if(!fivec_listbuilt) fivec_buildlist(p); \
+    for(size_t qq=0; qq<fivec_list2D.size(); qq+=3) \
+    if((i=fivec_list2D[qq], j=fivec_list2D[qq+1], k=fivec_list2D[qq+2], true))
 
 void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
 {	
-    FLOOP
+    FIVEC_LOOP3D
     {  
         if(p->B98<3||bc(i-1,j)==0)
         if(p->flag7[FIm1JK]<0)
@@ -80,7 +125,7 @@ void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
 
 void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
 {	
-    FLOOP
+    FIVEC_LOOP2D
     {
         if(p->B98<3||bc(i-1,j)==0)
         if(p->flag7[FIm1JK]<0)
@@ -119,7 +164,7 @@ void ghostcell::fivec2D(lexer *p, double *f, sliceint &bc)
 
 void ghostcell::fivec_vel(lexer *p, double *f, sliceint &bc)
 {	
-    FLOOP
+    FIVEC_LOOP3D
     {  
         if(p->flag7[FIm1JK]<0)
         {
@@ -153,7 +198,7 @@ void ghostcell::fivec_vel(lexer *p, double *f, sliceint &bc)
 
 void ghostcell::fivec2D_vel(lexer *p, double *f, sliceint &bc)
 {	
-    FLOOP
+    FIVEC_LOOP2D
     {
         if(p->flag7[FIm1JK]<0)
         {

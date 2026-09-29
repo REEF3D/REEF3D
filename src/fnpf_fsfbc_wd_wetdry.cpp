@@ -20,121 +20,692 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_fsfbc_wd.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include"fnpf_coastline.h"
+#include "fnpf_fsfbc_wd.h"
+#include "lexer.h"
+#include "fdm_fnpf.h"
+#include "ghostcell.h"
+#include "fnpf_coastline.h"
 
-void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf) 
-{   
+void fnpf_fsfbc_wd::wetdry(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
+{
     if(p->count==0)
     {
-    SLICELOOP4
-    wetcoast(i,j)=1;
-    
-    SLICELOOP4
-    if(p->wd - c->bed(i,j) < c->wd_criterion)
-    wetcoast(i,j)=0;
-    
-    SLICELOOP4
-    p->wet[IJ]=1;
-    
-    SLICELOOP4
-    if(p->A343>=1)
-    if(p->wd - c->bed(i,j) < c->wd_criterion)
-    p->wet[IJ]=0;
-    
-    SLICELOOP4
-    c->WL(i,j) = MAX(c->wd_criterion, eta(i,j) + p->wd - c->bed(i,j));
-    }
-    
-    
-    if(p->count>=1)
-    {
-    SLICELOOP4
-    c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
-
-    
-    pgc->gcsl_start4(p,c->WL,50);
-    
-    // dynamic wetting-drying
-    if(p->A343==2)
-    {
-    
-    SLICELOOP4
-    {
-    p->wet_n[IJ] = p->wet[IJ];
-    temp[IJ] = p->wet[IJ];
-    }
-     
-    SLICELOOP4
-    {
-        if(p->wet[IJ]==0 && wetcoast(i,j)==1)
+        SLICELOOP4
         {
-            if(p->wet[Ip1J]==1 && eta(i,j)<eta(i+1,j) && c->WL(i+1,j)>c->wd_criterion+eps)
-            temp[IJ]=1;
-            
-            if(p->wet[Im1J]==1 && eta(i,j)<eta(i-1,j) && c->WL(i-1,j)>c->wd_criterion+eps)
-            temp[IJ]=1;
-            
-            if(p->wet[IJp1]==1 && eta(i,j)<eta(i,j+1) && c->WL(i,j+1)>c->wd_criterion+eps && p->j_dir==1)
-            temp[IJ]=1;
-            
-            if(p->wet[IJm1]==1 && eta(i,j)<eta(i,j-1) && c->WL(i,j-1)>c->wd_criterion+eps && p->j_dir==1)
-            temp[IJ]=1;
+            wetcoast(i,j)=1;
+            p->wet[IJ]=1;
         }
-        
-        else              
+
+        SLICELOOP4
+        if(p->wd - c->bed(i,j) < c->wd_criterion)
+        wetcoast(i,j)=0;
+
+        if(p->A343>=1)
+        SLICELOOP4
+        if(p->wd - c->bed(i,j) < c->wd_criterion)
+        p->wet[IJ]=0;
+
+        SLICELOOP4
+        c->WL(i,j) = MAX(c->wd_criterion, eta(i,j) + p->wd - c->bed(i,j));
+
+        // initially wet cells may dry right away
+        SLICELOOP4
+        wetage(i,j) = p->A330;
+
+        if(p->A343==2)
+        {
+            // runup: every cell below the maximum runup elevation A335 (above
+            // still water) may become wet, not only the initially wet ones
+            SLICELOOP4
+            wetcoast(i,j) = (p->flagslice4[IJ]>0 && c->bed(i,j) - p->wd <= p->A335) ? 1 : 0;
+
+            // dry cells carry a thin film: eta = bed + A344. This is the level
+            // the rewetting test compares with, so it must be set before the
+            // first time step (initial land eta is 0)
+            SLICELOOP4
+            if(p->wet[IJ]==0 && wetcoast(i,j)==1)
+            eta(i,j) = c->wd_criterion - c->depth(i,j);
+
+            pgc->gcsl_start4(p,eta,gcval_eta);
+        }
+
+        if(p->A343>=2 || (p->A343==1 && p->A337>=1))
+        {
+            pgc->gcsl_start4Vint(p,p->wet,50);
+            wd_front_mask(p,pgc);
+
+            if(p->A343>=2)
+            {
+                SLICELOOP4
+                wdref(i,j) = 0;
+
+                wd_connect(p,c,pgc,Fifsf,false);
+            }
+        }
+    }
+    else if(p->count>=1)
+    {
+        SLICELOOP4
+        c->WL(i,j) = eta(i,j) + p->wd - c->bed(i,j);
+
+        pgc->gcsl_start4(p,c->WL,50);
+
+        // dynamic wetting-drying: 2 runup and rundown, 3 rundown only
+        if(p->A343>=2)
+        wetdry_dynamic(p,c,pgc,eta,Fifsf);
+
+        if(p->A343==1 && p->A337==0)
+        SLICELOOP4
         if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
         {
-        temp[IJ]=0;
-        eta(i,j) = c->wd_criterion - c->depth(i,j);
-        c->WL(i,j) = eta(i,j) + c->depth(i,j);
-        Fifsf(i,j) = 0.0;
+            eta(i,j) = 1.1*c->wd_criterion - c->depth(i,j);
+            c->WL(i,j) = eta(i,j) + c->depth(i,j);
+
+            if(p->j_dir)
+                Fifsf(i,j) = 0.25*(Fifsf(i-1,j) + Fifsf(i+1,j) + Fifsf(i,j-1) + Fifsf(i,j+1));
+            else
+                Fifsf(i,j) = 0.5*(Fifsf(i-1,j) + Fifsf(i+1,j));
         }
+
+        // A337 1: the clamp takes Fifsf from wet neighbours only (land cells
+        // hold Fi=0, which pulled the cell away from its neighbours by a
+        // fraction of the Fi drift) and gives the added volume back (A334)
+        if(p->A343==1 && p->A337>=1)
+        {
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+
+            SLICELOOP4
+            wd_dvol(i,j) = 0.0;
+
+            SLICELOOP4
+            if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
+            {
+                const double etaw = 1.1*c->wd_criterion - c->depth(i,j);
+                wd_dvol(i,j) = etaw - eta(i,j);
+                eta(i,j) = etaw;
+                Fifsf(i,j) = wet_nb_average(p,Fifsf);
+            }
+
+            if(p->A334==1)
+            wd_redistribute(p,c,pgc,eta,false);
+
+            SLICELOOP4
+            c->WL(i,j) = eta(i,j) + c->depth(i,j);
+        }
+
+        pgc->gcsl_start4Vint(p,p->wet,50);
+        pgc->gcsl_start4(p,eta,gcval_eta);
+        pgc->gcsl_start4(p,c->WL,gcval_eta);
     }
-    
-    SLICELOOP4
-    if(wetcoast(i,j)==1)
-    p->wet[IJ] = temp[IJ];
-    }
-    
-    //----
-    //----
-    
-    
-    if(p->A343==1)
-    SLICELOOP4
-    if(c->WL(i,j)<=c->wd_criterion && wetcoast(i,j)==1)
-    {
-        eta(i,j) = 1.1*c->wd_criterion - c->depth(i,j);
-        c->WL(i,j) = eta(i,j) + c->depth(i,j);
-        //Fifsf(i,j) = 0.0;
-        
-        if(p->j_dir==0)
-        Fifsf(i,j) = 0.5*(Fifsf(i-1,j) + Fifsf(i+1,j));
-        
-        if(p->j_dir==1)
-        Fifsf(i,j) = 0.25*(Fifsf(i-1,j) + Fifsf(i+1,j) + Fifsf(i,j-1) + Fifsf(i,j+1));
-    }
-    
-    //----
-    //----
 
     pgc->gcsl_start4Vint(p,p->wet,50);
-    pgc->gcsl_start4(p,eta,gcval_eta);
-    pgc->gcsl_start4(p,c->WL,gcval_eta);
+
+    if(coastline_count==0)
+    {
+        pcoast->start(p,c,pgc,c->coastline,p->wet,c->wet_n);
+        ++coastline_count;
     }
-    
-      
-      pgc->gcsl_start4Vint(p,p->wet,50);
-      
-      if(coastline_count==0)
-      {
-      pcoast->start(p,c,pgc,c->coastline,p->wet,c->wet_n);
-      ++coastline_count;
-      }
-          
+
 }
 
+
+// ---------------------------------------------------------------------------
+// Dynamic wetting-drying
+//   A343 2: runup and rundown. All cells below the elevation A335 may wet and
+//           dry, no coastline damping (only the front viscosity band A332)
+//   A343 3: rundown only. Only initially wet cells may dry and rewet, the
+//           coastline damping A341/A342 around the initial coastline is kept
+//
+// Compared with the former A343 2 implementation:
+//  - the wet/dry flags change only once per time step (first call with a new
+//    p->count, i.e. the first RK stage); later stages only enforce the
+//    constraints, so the RK stages see one consistent mask
+//  - drying keeps Fifsf; a rewetted cell gets Fifsf from its wet face
+//    neighbours instead of the stale value/zero, which otherwise produces a
+//    jump of the size of the Bernoulli drift of Fi (O(100) m^2/s) and thus
+//    O(10) m/s surface velocities in the first step after rewetting
+//  - hysteresis: rewetting needs a wet neighbour whose surface is at least
+//    A331*A344 above the dry cell's level, and a rewetted cell stays wet for
+//    at least A330 time steps (below the criterion it is clamped as for A343 1)
+//  - dry cells are held at WL = A344 in every stage
+//  - optional (A334 1): the volume added/removed by the clamps is taken
+//    from/given to the wet face neighbours, so wetting-drying conserves volume
+// ---------------------------------------------------------------------------
+double fnpf_fsfbc_wd::wet_nb_average(lexer *p, slice &f)
+{
+    double sum=0.0;
+    int n=0;
+
+    if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0)
+    {sum+=f(i-1,j); ++n;}
+
+    if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0)
+    {sum+=f(i+1,j); ++n;}
+
+    if(p->j_dir==1)
+    {
+        if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0)
+        {sum+=f(i,j-1); ++n;}
+
+        if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0)
+        {sum+=f(i,j+1); ++n;}
+    }
+
+    return n>0 ? sum/double(n) : f(i,j);
+}
+
+void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
+{
+    const double crit   = c->wd_criterion;
+    const double margin = p->A331*crit;
+
+    // neighbour values are read below: make the halos current for this stage
+    pgc->gcsl_start4(p,eta,gcval_eta);
+    pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+
+    // ---------------------------------------------------------------
+    // 1. flag update, once per time step
+    // ---------------------------------------------------------------
+    if(p->count!=wd_flagcount)
+    {
+        wd_flagcount = p->count;
+
+        SLICELOOP4
+        {
+            wd_dvol(i,j) = 0.0;
+            wdref(i,j) = 0;
+        }
+
+        int nrewet=0, ndry=0;
+
+        SLICELOOP4
+        {
+            p->wet_n[IJ] = p->wet[IJ];
+            temp[IJ] = p->wet[IJ];
+
+            if(p->wet[IJ]==1 && wetage(i,j)<p->A330)
+            ++wetage(i,j);
+        }
+
+        SLICELOOP4
+        if(wetcoast(i,j)==1)
+        {
+            if(p->wet[IJ]==0)
+            {
+                int rewet=0;
+
+                if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0 && eta(i+1,j)>eta(i,j)+margin && c->WL(i+1,j)>crit+margin)
+                rewet=1;
+
+                if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0 && eta(i-1,j)>eta(i,j)+margin && c->WL(i-1,j)>crit+margin)
+                rewet=1;
+
+                if(p->j_dir==1)
+                {
+                    if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0 && eta(i,j+1)>eta(i,j)+margin && c->WL(i,j+1)>crit+margin)
+                    rewet=1;
+
+                    if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0 && eta(i,j-1)>eta(i,j)+margin && c->WL(i,j-1)>crit+margin)
+                    rewet=1;
+                }
+
+                if(rewet==1)
+                {
+                    temp[IJ] = 1;
+                    wetage(i,j) = 0;
+                    // Fifsf from the wet neighbours (old mask) that are connected to
+                    // the main water body; only if there are none from all wet
+                    // neighbours. A wet pocket has its own Bernoulli constant, its
+                    // Fifsf is aligned in wd_connect when it joins the main body
+                    {
+                        double sum=0.0;
+                        int n=0;
+
+                        if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0 && wdconn(i-1,j)==1) {sum+=Fifsf(i-1,j); ++n;}
+                        if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0 && wdconn(i+1,j)==1) {sum+=Fifsf(i+1,j); ++n;}
+
+                        if(p->j_dir==1)
+                        {
+                        if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0 && wdconn(i,j-1)==1) {sum+=Fifsf(i,j-1); ++n;}
+                        if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0 && wdconn(i,j+1)==1) {sum+=Fifsf(i,j+1); ++n;}
+                        }
+
+                        if(n>0)
+                        {
+                        Fifsf(i,j) = sum/double(n);
+                        wdref(i,j) = 1;
+                        }
+                        else
+                        Fifsf(i,j) = wet_nb_average(p,Fifsf);   // uses the old mask: wet neighbours only
+                    }
+
+                    // the new cell takes up the local water level instead of
+                    // starting as a dimple of depth A344 next to deeper water:
+                    // half way to the wet neighbours' level, the volume comes
+                    // from them (wd_redistribute below), so for one donor both
+                    // end at the same level
+                    const double etat = 0.5*(eta(i,j) + wet_nb_average(p,eta));
+                    wd_dvol(i,j) = MAX(0.0, etat - eta(i,j));
+                    eta(i,j) += wd_dvol(i,j);
+
+                    // the flags change in the first RK stage: the later stages
+                    // combine with the base state (e.g. 0.75*Fifsf^n + 0.25*...),
+                    // which still holds the stale value of the dry cell and would
+                    // reintroduce the jump; update it as well (eta^n is already
+                    // the dry level, which is the rewetting level)
+                    if(&Fifsf != &c->Fifsf)
+                    c->Fifsf(i,j) = Fifsf(i,j);
+
+                    if(&eta != &c->eta)
+                    c->eta(i,j) = eta(i,j);
+                    ++nrewet;
+                }
+            }
+            else if(c->WL(i,j)<=crit && wetage(i,j)>=p->A330)
+            {
+                temp[IJ] = 0;
+                ++ndry;
+            }
+        }
+
+        // a single wet cell without wet face neighbours is a closed box (dry
+        // neighbours act as walls): it cannot drain, and its Fifsf drifts with
+        // -g*eta*t until it reconnects with a jump. Dry it regardless of age,
+        // unless it holds substantial water (> (1+A331)*A344 above the
+        // criterion, i.e. it can still rewet a neighbour itself)
+        SLICELOOP4
+        if(wetcoast(i,j)==1 && p->wet[IJ]==1 && temp[IJ]==1)
+        {
+            int nw=0;
+
+            if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0) ++nw;
+            if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0) ++nw;
+
+            if(p->j_dir==1)
+            {
+                if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0) ++nw;
+                if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0) ++nw;
+            }
+
+            if(nw==0 && c->WL(i,j) <= crit + 2.0*margin)
+            {
+                temp[IJ] = 0;
+                ++ndry;
+            }
+        }
+
+        SLICELOOP4
+        if(wetcoast(i,j)==1)
+        p->wet[IJ] = temp[IJ];
+
+        pgc->gcsl_start4Vint(p,p->wet,50);
+
+        // volume for the rewetted cells from their wet neighbours, applied
+        // to the stage and to the base state like the rewetting itself
+        wd_redistribute(p,c,pgc,eta,true);
+
+        nrewet = pgc->globalisum(nrewet);
+        ndry   = pgc->globalisum(ndry);
+
+        if(p->mpirank==0 && (p->count%p->P12==0))
+        cout<<"wetdry: rewetted "<<nrewet<<"  dried "<<ndry<<endl;
+
+        // connectivity only changes with the flags
+        if(nrewet>0 || ndry>0)
+        {
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+            wd_connect(p,c,pgc,Fifsf,true);
+        }
+
+        wd_front_mask(p,pgc);
+    }
+
+    // ---------------------------------------------------------------
+    // 2. constraints, every stage
+    // ---------------------------------------------------------------
+    SLICELOOP4
+    wd_dvol(i,j) = 0.0;
+
+    SLICELOOP4
+    if(wetcoast(i,j)==1)
+    {
+        if(p->wet[IJ]==0)
+        {
+            // dry: water level held at the criterion, Fifsf untouched.
+            // Only cells that were wet at the start of this step exchange
+            // volume; cells that stay dry have K=0 and any change there is
+            // not water (relaxation zone, initial state)
+            const double etad = crit - c->depth(i,j);
+
+            if(p->wet_n[IJ]==1)
+            wd_dvol(i,j) = etad - eta(i,j);
+
+            eta(i,j) = etad;
+        }
+        else if(eta(i,j) + c->depth(i,j) < crit)
+        {
+            // wet but below the criterion (young cell or later RK stage): clamp as for A343 1
+            const double etaw = 1.1*crit - c->depth(i,j);
+            wd_dvol(i,j) = etaw - eta(i,j);
+            eta(i,j) = etaw;
+            Fifsf(i,j) = wet_nb_average(p,Fifsf);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // 3. volume redistribution to the wet face neighbours
+    // ---------------------------------------------------------------
+    if(p->A334==1)
+    wd_redistribute(p,c,pgc,eta,false);
+
+    SLICELOOP4
+    c->WL(i,j) = eta(i,j) + c->depth(i,j);
+}
+
+// wet cells with a dry cell inside the +-3 cell WENO stencil (x and y lines);
+// used for the wet-only eta gradients at the front (A336)
+void fnpf_fsfbc_wd::wd_front_mask(lexer *p, ghostcell *pgc)
+{
+    SLICELOOP4
+    {
+        int front=0;
+
+        if(p->wet[IJ]==1)
+        for(int q=-3; q<=3; ++q)
+        {
+            if(p->wet[(i-p->imin+q)*p->jmax + (j-p->jmin)]==0)
+            front=1;
+
+            if(p->j_dir==1 && p->wet[(i-p->imin)*p->jmax + (j-p->jmin+q)]==0)
+            front=1;
+        }
+
+        wdfront(i,j) = front;
+    }
+}
+
+// Gather formulation, MPI-safe through the halo exchange: every cell with
+// wd_dvol != 0 (volume per cell area added there) takes it in equal shares
+// from its wet face neighbours; a donor is never pushed below the criterion.
+// During the flag update (rewetting) the same change is applied to the RK
+// base state c->eta, otherwise the later stages would undo it.
+void fnpf_fsfbc_wd::wd_redistribute(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, bool update_base)
+{
+    const double crit = c->wd_criterion;
+    const bool base = update_base && (&eta != &c->eta);
+
+    SLICELOOP4
+    {
+        int nw=0;
+
+        if(wd_dvol(i,j)!=0.0)
+        {
+            if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0) ++nw;
+            if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0) ++nw;
+
+            if(p->j_dir==1)
+            {
+                if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0) ++nw;
+                if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0) ++nw;
+            }
+        }
+
+        wd_nwet(i,j) = double(nw);
+    }
+
+    pgc->gcsl_start4(p,wd_dvol,50);
+    pgc->gcsl_start4(p,wd_nwet,50);
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        double take=0.0;
+
+        if(p->flagslice4[Im1J]>0 && wd_nwet(i-1,j)>0.5)
+        take += wd_dvol(i-1,j)/wd_nwet(i-1,j);
+
+        if(p->flagslice4[Ip1J]>0 && wd_nwet(i+1,j)>0.5)
+        take += wd_dvol(i+1,j)/wd_nwet(i+1,j);
+
+        if(p->j_dir==1)
+        {
+            if(p->flagslice4[IJm1]>0 && wd_nwet(i,j-1)>0.5)
+            take += wd_dvol(i,j-1)/wd_nwet(i,j-1);
+
+            if(p->flagslice4[IJp1]>0 && wd_nwet(i,j+1)>0.5)
+            take += wd_dvol(i,j+1)/wd_nwet(i,j+1);
+        }
+
+        if(take>0.0)
+        take = MIN(take, MAX(0.0, eta(i,j) + c->depth(i,j) - crit));
+
+        eta(i,j) -= take;
+
+        if(base)
+        c->eta(i,j) -= take;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Connectivity of the wet area to the main water body and Fifsf gauge
+//
+// A wet pocket that is not connected to the main water body (overwash puddle,
+// lagoon cut off during rundown) has its own Bernoulli constant: without flow
+// its Fifsf drifts with -g*eta*t (eta of a pocket on land is above the still
+// water level). Nothing is wrong with that inside the pocket, but when the
+// pocket reconnects, the accumulated offset (O(100) m^2/s after a few minutes)
+// appears as a Fifsf jump over one or two cells, i.e. O(10) m/s surface
+// velocities in a thin film. Here the connected area is found by a flood fill
+// through wet cells (face neighbours) from the deepest wet cell and the wet
+// cells at the x boundaries (wave generation / beach); pocket cells that are
+// connected again get their Fifsf shifted by a constant (per connection path)
+// so that it is continuous with the main body. The shift does not change any
+// velocity inside the pocket. RK base state c->Fifsf gets the same shift.
+//
+// wdL: -1 dry, 0 wet not (yet) connected, 1 connected
+// shift pass: 2 reference (connected before, or rewetted from a connected
+// neighbour), 0.5 pending, 1 shifted
+// ---------------------------------------------------------------------------
+void fnpf_fsfbc_wd::wd_connect(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, bool shift)
+{
+    const int nsweep  = p->j_dir==1?4:2;
+    const int maxiter = 100000;
+    double changed;
+    int iter;
+
+    // 1. flood fill
+    double dmax = -1.0e20;
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    dmax = MAX(dmax, c->depth(i,j));
+
+    dmax = pgc->globalmax(dmax);
+
+    SLICEBASELOOP
+    wdL(i,j) = -1.0;
+
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        wdL(i,j) = 0.0;
+
+        if(c->depth(i,j) >= dmax - 1.0e-10*MAX(fabs(dmax),1.0) || i+p->origin_i==0 || i+p->origin_i==p->gknox-1)
+        wdL(i,j) = 1.0;
+    }
+
+    pgc->gcsl_start4(p,wdL,50);
+
+    for(iter=0; iter<maxiter; ++iter)
+    {
+        changed=0.0;
+
+        for(int sweep=0; sweep<nsweep; ++sweep)
+        {
+            const int idir = (sweep%2==0)?1:-1;
+            const int jdir = (sweep<2)?1:-1;
+
+            for(int ii=0; ii<p->knox; ++ii)
+            {
+            i = idir>0?ii:p->knox-1-ii;
+
+                for(int jj=0; jj<p->knoy; ++jj)
+                {
+                j = jdir>0?jj:p->knoy-1-jj;
+
+                if(wdL(i,j)>-0.5 && wdL(i,j)<0.5)
+                if(wdL(i-1,j)>0.5 || wdL(i+1,j)>0.5 || (p->j_dir==1 && (wdL(i,j-1)>0.5 || wdL(i,j+1)>0.5)))
+                {
+                wdL(i,j) = 1.0;
+                changed = 1.0;
+                }
+                }
+            }
+
+            pgc->gcsl_start4(p,wdL,50);
+        }
+
+        changed = pgc->globalmax(changed);
+
+        if(changed<0.5)
+        break;
+    }
+
+    // 2. Fifsf gauge of pockets that joined the main water body
+    if(shift)
+    {
+        SLICEBASELOOP
+        wdS(i,j) = 0.0;
+
+        SLICELOOP4
+        if(wdL(i,j)>0.5)
+        {
+            const bool ref = (p->wet_n[IJ]==1) ? (wdconn(i,j)==1) : (wdref(i,j)==1);
+
+            wdL(i,j) = ref ? 2.0 : 0.5;
+        }
+
+        pgc->gcsl_start4(p,wdL,50);
+
+        // nothing joined: no pending cells anywhere
+        double npend=0.0;
+
+        SLICELOOP4
+        if(wdL(i,j)>0.4 && wdL(i,j)<0.6)
+        npend=1.0;
+
+        npend = pgc->globalmax(npend);
+
+        if(npend>0.5)
+        {
+            pgc->gcsl_start4(p,wdS,50);
+
+            auto isref = [&](int ii, int jj) {return p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0 && wdL(ii,jj)>1.5;};
+            auto isnew = [&](int ii, int jj) {return p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0 && wdL(ii,jj)>0.9 && wdL(ii,jj)<1.1;};
+
+            for(iter=0; iter<maxiter; ++iter)
+            {
+                changed=0.0;
+
+                for(int sweep=0; sweep<nsweep; ++sweep)
+                {
+                    const int idir = (sweep%2==0)?1:-1;
+                    const int jdir = (sweep<2)?1:-1;
+
+                    for(int ii=0; ii<p->knox; ++ii)
+                    {
+                    i = idir>0?ii:p->knox-1-ii;
+
+                        for(int jj=0; jj<p->knoy; ++jj)
+                        {
+                        j = jdir>0?jj:p->knoy-1-jj;
+
+                        if(wdL(i,j)>0.4 && wdL(i,j)<0.6)
+                        {
+                            // next to the main body: continuous Fifsf across the face
+                            double sum=0.0;
+                            int n=0;
+
+                            if(isref(i-1,j)) {sum+=Fifsf(i-1,j); ++n;}
+                            if(isref(i+1,j)) {sum+=Fifsf(i+1,j); ++n;}
+
+                            if(p->j_dir==1)
+                            {
+                            if(isref(i,j-1)) {sum+=Fifsf(i,j-1); ++n;}
+                            if(isref(i,j+1)) {sum+=Fifsf(i,j+1); ++n;}
+                            }
+
+                            if(n>0)
+                            {
+                                wdS(i,j) = sum/double(n) - Fifsf(i,j);
+                                wdL(i,j) = 1.0;
+                                changed = 1.0;
+                                continue;
+                            }
+
+                            // inside the pocket: same shift as the neighbour it was reached from
+                            sum=0.0;
+                            n=0;
+
+                            if(isnew(i-1,j)) {sum+=wdS(i-1,j); ++n;}
+                            if(isnew(i+1,j)) {sum+=wdS(i+1,j); ++n;}
+
+                            if(p->j_dir==1)
+                            {
+                            if(isnew(i,j-1)) {sum+=wdS(i,j-1); ++n;}
+                            if(isnew(i,j+1)) {sum+=wdS(i,j+1); ++n;}
+                            }
+
+                            if(n>0)
+                            {
+                                wdS(i,j) = sum/double(n);
+                                wdL(i,j) = 1.0;
+                                changed = 1.0;
+                            }
+                        }
+                        }
+                    }
+
+                    pgc->gcsl_start4(p,wdL,50);
+                    pgc->gcsl_start4(p,wdS,50);
+                }
+
+                changed = pgc->globalmax(changed);
+
+                if(changed<0.5)
+                break;
+            }
+
+            int nshift=0;
+            double smax=0.0;
+
+            SLICELOOP4
+            if(wdL(i,j)>0.9 && wdL(i,j)<1.1)
+            {
+                Fifsf(i,j) += wdS(i,j);
+
+                if(&Fifsf != &c->Fifsf)
+                c->Fifsf(i,j) += wdS(i,j);
+
+                smax = MAX(smax,fabs(wdS(i,j)));
+                ++nshift;
+            }
+
+            nshift = pgc->globalisum(nshift);
+            smax   = pgc->globalmax(smax);
+
+            if(p->mpirank==0 && nshift>0)
+            cout<<"wetdry: "<<nshift<<" pocket cells joined the main water body, Fifsf shift max "<<smax<<endl;
+
+            pgc->gcsl_start4(p,Fifsf,gcval_fifsf);
+
+            if(&Fifsf != &c->Fifsf)
+            pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+        }
+    }
+
+    SLICELOOP4
+    wdconn(i,j) = (wdL(i,j)>0.4) ? 1 : 0;
+
+    pgc->gcsl_start4int(p,wdconn,50);
+}

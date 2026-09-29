@@ -50,17 +50,29 @@ public:
     int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
-    double A223,A247,A249,A244,A251_val;
+    int A270,A271,A272,A274,A275,A276,A277,A278;
+    double A273,A278_r,A279_L,A279_a;
+    double *A276_xs,*A276_xe,*A276_ys,*A276_ye;
+    double *A277_xs,*A277_xe,*A277_ys,*A277_ye;
+    double A223,A224,A247,A249,A244,A251_val;
     double A250;
 
     // FNPF
-    int A309,A310,A311,A312,A313,A314,A320,A321,A322,A323,A329,A343,A345,A347,A348;
-    double A340,A341,A342,A344,A346,A349;
+    int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A321,A322,A323,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A345,A347,A348;
+    double A319,A325,A326,A331,A335,A340,A341,A342,A344,A346,A349;
     int A350,A351,A352,A353,A357,A358,A361,A362,A363,A368;
     double A354,A355,A356,A365,A366;
-    int A370,A372,A373,A374;
-    double A371_u,A371_dir;
+    int A370,A372,A373,A374,A378;
+    double A371_u,A371_dir,A375,A376_s,A376_sc,A376_c,A377;
     double A372_xs,A372_xe,A372_ys,A372_ye;
+    int A380,A385,A386,A388;
+    int A390,A394,A395_dir,A395_off;
+    double A391,A392_K,A392_C,A393,A396,A397_E,A397_nu,A398,A399_m,A399_A;
+    int A399_seed;
+    int A400,A401;
+    double A402_L,A402_C,A402_T;
+    double A403;
+    double A381,A382,A383,A384_mu,A384_e,A387,A389;
 
     // NSEWAVE
     int A410;
@@ -68,8 +80,8 @@ public:
 
     // NHFLOW
     int A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
-    int A520,A521,A524,A525;
-    double A522,A523,A526;
+    int A520,A521,A524,A525,A527;
+    double A522,A523,A526,A528;
     double A531;
     int A532,A533;
     int A540,A543;
@@ -78,8 +90,8 @@ public:
     double A554,A555,A556,A557;
     int A560;
     int A564,A565,A566,A567,A569;
-    int A570,A573,A574;
-    double A568,A571_u,A571_dir;
+    int A570,A573,A574,A578;
+    double A568,A571_u,A571_dir,A575,A576_s,A576_sc,A576_c;
     int A572;
     double A572_xs,A572_xe,A572_ys,A572_ye;
     int A581;
@@ -104,6 +116,18 @@ public:
     double A592_dx,A592_dy,A592_dz;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
 
+    // NHFLOW Lagrangian particles
+    int L10,L11;
+    int L21,L22,L23;
+    double *L21_val,*L22_val,*L23_val;
+    double L31,L33,L34;
+    int L32;
+    int L41;
+    double L41_u,L41_dir;
+    int L51,L52,L53;
+    double L61;
+    int L62;
+
     // boundary conditions
     int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
@@ -122,7 +146,8 @@ public:
     double B110_zs,B110_ze;
     double B111_zs,B111_ze;
     double B112_zs,B112_z2,B112_ze;
-    int B115,B116,B125,B127;
+    int B113,B113_J,B115,B116,B119,B125,B127;
+    double B114_fmin,B114_fmax,B114_f2min;
     double B120,B122,B123,B125_y;
     int B130,B133;
     double B131,B132_s,B132_e;
@@ -308,7 +333,7 @@ public:
     double I241;
 
     // Numerical Options
-    int N10,N11,N12,N13,N14,N18,N40,N45,N46,N48,N60;
+    int N10,N11,N12,N13,N14,N15,N18,N40,N45,N46,N48,N60;
     int N20,N22,N23,N24,N25,N26;
     double N41,N43,N44,N47,N49,N50,N61;
 
@@ -418,12 +443,13 @@ public:
     int Q202;
 
     // Sediment Transport
-    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S60,S61,S62,S66,S73,S74,S75,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101,S49;
-    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S102;
+    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S60,S61,S62,S66,S73,S74,S75,S77,S78,S79,S80,S83,S84,S85,S90,S91,S94,S100,S101,S49,S51,S54,S56;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S102,S103,S52,S53,S55;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
     double *S75_x,*S75_dist;
+    double *S51_d,*S51_fa,*S51_fs;
     double S77_xs,S77_xe;
 
     // Turbulence
@@ -460,13 +486,14 @@ public:
     double W112;
 
     // 6DOF
-    int X10,X12,X14,X15,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
+    int X10,X12,X14,X15,X16,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
     int X100,X101,X102,X103,X141,X142,X143,X153,X170,X171,X172;
     int X180,X181,X182,X183,X210,X211;
     int X310, X311, X312, X313, X314, X315, X320, X321;
     int X20;
     double X21_d,X22_m;
+    double X16_n,X16_d50,X16_alpha,X16_beta;
     double X23_x,X23_y,X23_z;
     double X24_Ix,X24_Iy,X24_Iz;
     double X25_Cp,X25_Cq,X25_Cr;
@@ -530,7 +557,8 @@ public:
     int X410;
 
     // FSI
-    int Z10,Z11;
+    int Z10,Z11,Z20;
+    double Z21;
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
     double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
 

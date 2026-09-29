@@ -56,7 +56,8 @@ void net_sheet::updateField_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int cmp
 			}
 			else if (cmp==3)
 			{
-				coupledField[i][cmp] = p->W1;
+				// water below the free surface, air above (no fluid loads on dry net parts)
+				coupledField[i][cmp] = (x_(i,2) <= p->ccslipol4(d->WL,x_(i,0),x_(i,1)) + p->ccslipol4(d->bed,x_(i,0),x_(i,1))) ? p->W1 : p->W3;
 			}
             
 			recField[i] = -1;

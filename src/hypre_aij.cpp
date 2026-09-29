@@ -100,7 +100,7 @@ void hypre_aij::solve(lexer* p,fdm* a, ghostcell* pgc, vec& xvec, vec& rhsvec, i
 
 void hypre_aij::fillbackvec(lexer *p, fdm *a, field &f, vec &xvec, int var)
 {
-    HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec.V);
+    HYPRE_IJVectorGetValues(x, p->N4_row, rows, xvec.V.data());
 
     n=0;
     LOOP

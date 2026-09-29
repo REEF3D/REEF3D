@@ -49,6 +49,8 @@ class lexer : virtual public resize_class, public grid, public control,
 public:
 
 	lexer();
+	// SFLOW AMR patch: control keys copied from b, the patch geometry is set by sflow_amr
+	lexer(const lexer &b, int);
 	virtual ~lexer();
 
 //-----functions------------------
@@ -223,7 +225,7 @@ public:
     int solver_status,solver_error;
     int sediter;
     double final_res;
-	double dt,dt_old,simtime,viscmax;
+	double dt,dt_old,simtime,viscmax,RK_alpha;
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;

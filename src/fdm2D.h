@@ -50,9 +50,10 @@ public:
 	double gi,gj,gk;
     
     slice4 U,V,W,UH,VH,WH;
+    slice4 UA,VA,MX,MY;
     
-    slice1 Fx,Fs,Fn;
-    slice2 Fy,Fe,Fw;
+    slice1 Fx,Fs,Fn,FEx;
+    slice2 Fy,Fe,Fw,FEy;
     
     slice1 Ss,Sn,SSx;
     slice2 Se,Sw,SSy;
@@ -74,6 +75,12 @@ public:
     
     slice1 WHn,WHs;
     slice2 WHe,WHw;   
+    
+    // Boussinesq (A 220 4): reconstructed conserved momentum V for the HLL dissipation
+    slice1 QUn,QUs;
+    slice2 QUe,QUw;
+    slice1 QVn,QVs;
+    slice2 QVe,QVw;
     
 
     slice1 ETAs,ETAn;

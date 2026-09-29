@@ -92,17 +92,19 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 	Vfb=pgc->globalsum(Vfb);
    
     // Mass and density calculation
-	if(p->X21==1)
-	{
-	Rfb = p->X21_d;
-	Mass_fb = Vfb*Rfb;
-    p->X22_m = Mass_fb;
-	}
-	
+    // X 22 (prescribed mass) takes precedence: X21 is on by default (X21_d=900), and the
+    // X21 branch overwrites X22_m, so a prescribed mass was silently replaced by V*900.
 	if(p->X22==1)
 	{
 	Mass_fb = p->X22_m;
 	Rfb = Mass_fb/Vfb;
+	}
+	
+	else if(p->X21==1)
+	{
+	Rfb = p->X21_d;
+	Mass_fb = Vfb*Rfb;
+    p->X22_m = Mass_fb;
 	}
 	
 	if(p->mpirank==0)
@@ -248,17 +250,19 @@ void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	Vfb=pgc->globalsum(Vfb);
    
     // Mass and density calculation
-	if(p->X21==1)
-	{
-	Rfb = p->X21_d;
-	Mass_fb = Vfb*Rfb;
-    p->X22_m = Mass_fb;
-	}
-	
+    // X 22 (prescribed mass) takes precedence: X21 is on by default (X21_d=900), and the
+    // X21 branch overwrites X22_m, so a prescribed mass was silently replaced by V*900.
 	if(p->X22==1)
 	{
 	Mass_fb = p->X22_m;
 	Rfb = Mass_fb/Vfb;
+	}
+	
+	else if(p->X21==1)
+	{
+	Rfb = p->X21_d;
+	Mass_fb = Vfb*Rfb;
+    p->X22_m = Mass_fb;
 	}
 	
 	if(p->mpirank==0)

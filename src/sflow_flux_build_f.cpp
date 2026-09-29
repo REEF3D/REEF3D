@@ -39,7 +39,7 @@ sflow_flux_build_f::~sflow_flux_build_f()
 void sflow_flux_build_f::start_U(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     // flux x-dir
-    ULOOP
+    SLICELOOP1
     {
     b->Fs(i,j) = b->UHs(i,j)*b->Us(i,j)
             + 0.5*fabs(p->W22)*b->ETAs(i,j)*b->ETAs(i,j)
@@ -52,7 +52,7 @@ void sflow_flux_build_f::start_U(lexer* p, fdm2D *b, ghostcell *pgc)
     
     // flux y-dir
     if(p->j_dir==1)
-    VLOOP
+    SLICELOOP2
     {
     b->Fe(i,j) = b->Ve(i,j)*b->UHe(i,j);
     
@@ -65,7 +65,7 @@ void sflow_flux_build_f::start_V(lexer* p, fdm2D *b, ghostcell *pgc)
     if(p->j_dir==1)
     {
     // flux x-dir
-    ULOOP
+    SLICELOOP1
     {
     b->Fs(i,j) = b->Us(i,j)*b->VHs(i,j);
     
@@ -73,7 +73,7 @@ void sflow_flux_build_f::start_V(lexer* p, fdm2D *b, ghostcell *pgc)
     }
     
     // flux y-dir
-    VLOOP
+    SLICELOOP2
     {
     b->Fe(i,j) = b->VHe(i,j)*b->Ve(i,j) 
             + 0.5*fabs(p->W22)*b->ETAe(i,j)*b->ETAe(i,j)
@@ -89,7 +89,7 @@ void sflow_flux_build_f::start_V(lexer* p, fdm2D *b, ghostcell *pgc)
 void sflow_flux_build_f::start_W(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // flux x-dir
-    ULOOP
+    SLICELOOP1
     {
     b->Fs(i,j) = b->Us(i,j)*b->WHs(i,j);
     
@@ -98,7 +98,7 @@ void sflow_flux_build_f::start_W(lexer *p, fdm2D *b, ghostcell *pgc)
     
     // flux y-dir
     if(p->j_dir==1)
-    VLOOP
+    SLICELOOP2
     {
     b->Fe(i,j) = b->Ve(i,j)*b->WHe(i,j);
     
@@ -109,7 +109,7 @@ void sflow_flux_build_f::start_W(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_flux_build_f::start_E(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     // flux x-dir
-    ULOOP
+    SLICELOOP1
     {
     b->Fs(i,j) = b->UHs(i,j);
     
@@ -118,7 +118,7 @@ void sflow_flux_build_f::start_E(lexer* p, fdm2D *b, ghostcell *pgc)
     
     // flux y-dir
     if(p->j_dir==1)
-    VLOOP
+    SLICELOOP2
     {
     b->Fe(i,j) = b->VHe(i,j);
     

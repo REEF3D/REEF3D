@@ -58,7 +58,8 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(d->SOLID[IJK]<0.0)
     p->DF[IJK]=-1;
 
-    if(floating_flag==1)
+    // a porous floating body (X 16) is fluid for the solver, not a solid
+    if(floating_flag==1 && p->X16==0)
     LOOP
     if(d->FB[IJK]<0.0)
     p->DF[IJK]=-1;

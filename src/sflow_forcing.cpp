@@ -40,7 +40,7 @@ sflow_forcing::~sflow_forcing()
 }
 
 void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof, 
-                             int iter, double alpha, slice &P, slice &Q, slice &w, slice &eta, slice &WL, bool finalize)
+                             int iter, double alpha, slice &UH, slice &VH, slice &WH, slice &WL, bool finalize)
 {
     SLICELOOP4
     {
@@ -49,52 +49,19 @@ void sflow_forcing::forcing(lexer *p, fdm2D *b, ghostcell *pgc, sixdof *p6dof,
     b->fz(i,j) = 0.0; 
     }
     
-
     // 6DOF forcing
-    p6dof->start_sflow(p,b,pgc,iter,b->fs,P,Q,w,b->fx,b->fy,eta,finalize);
+    p6dof->start_sflow(p,b,pgc,iter,b->fs,b->U,b->V,b->W,b->fx,b->fy,b->eta,finalize);
 
 
     if(forcing_flag==1)
     {
-    // add forcing term to RHS
-    SLICELOOP1
-    {
-        P(i,j) += alpha*p->dt*b->fx(i,j);
-        
-        /*if(p->count<10)
-        b->maxF = MAX(fabs(alpha*CPORNH*b->FX[IJK]), b->maxF);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*b->FX[IJK]), p->fbmax);*/
-    }
-    
-    SLICELOOP2
-    {
-        Q(i,j) += alpha*p->dt*b->fy(i,j);
-        
-        /*if(p->count<10)
-        b->maxG = MAX(fabs(alpha*CPORNH*b->FY[IJK]), b->maxG);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*b->FY[IJK]), p->fbmax);*/
-    }
-    
+    // add forcing term to the conserved momenta (cell centred)
     SLICELOOP4
+    WETDRY
     {
-        w(i,j) += alpha*p->dt*0.0;
-        
-        /*if(p->count<10)
-        b->maxG = MAX(fabs(alpha*CPORNH*b->FY[IJK]), b->maxG);
-        
-        p->fbmax = MAX(fabs(alpha*CPORNH*b->FY[IJK]), p->fbmax);*/
+        UH(i,j) += alpha*p->dt*WL(i,j)*b->fx(i,j);
+        VH(i,j) += alpha*p->dt*WL(i,j)*b->fy(i,j)*p->y_dir;
     }
-    
-    /*
-    SLICELOOP4
-    {
-        eta(i,j) += alpha*p->dt*b->fz(i,j);
-    }
-    
-    SLICELOOP4
-    WL(i,j) = MAX(eta(i,j) + p->wd - p->bed[IJ],0.0);*/
     }
 }
 

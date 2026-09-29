@@ -38,7 +38,7 @@ public:
 	void ini(lexer*,fdm2D*,ghostcell*) override final;
 	
 private:
-	double cu,cv,velmax,wd_criterion;
+	double cu,cv,velmax,wd_criterion,cfl;
 
 };
 

@@ -23,21 +23,26 @@ Author: Hans Bihs
 #ifndef VEC2D_H_
 #define VEC2D_H_
 
-class lexer;
+#include <algorithm>
+#include <vector>
 
-using namespace std;
+class lexer;
 
 class vec2D
 {
 public:
-
     vec2D(lexer*);
-    virtual ~vec2D();
-    
-    void resize(lexer*,int,int);
-    
-	double *V;
 
+    /// Explicit length; see matrix_diag's sized constructor.  The default
+    /// constructor takes lexer's veclength, which is the 3D row count.
+    vec2D(lexer*, int len);
+    virtual ~vec2D() = default;
+
+    void resize(int);
+
+    void reset() {std::fill(V.begin(), V.end(), 0.0);};
+
+    std::vector<double> V;
 };
 
 #endif

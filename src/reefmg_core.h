@@ -90,9 +90,12 @@ public:
     reefmg_core();
     ~reefmg_core();
 
-    //  world     : communicator of the run
-    //  npx,npy   : process grid (the vertical must not be decomposed)
-    //  cx,cy     : this rank's position in it
+    //  cart      : Cartesian communicator of the run (ghostcell::cart()); the
+    //              process grid, this rank's position and the neighbours are
+    //              read from it.  Duplicated, not kept.  A single-rank
+    //              communicator such as MPI_COMM_SELF needs no topology.
+    //              The vertical must not be decomposed and nothing may be
+    //              periodic.
     //  nx,ny,nz  : local interior extent
     //  gnx,gny   : global horizontal extent
     //  Returns false with a message in err() if the layout cannot be used.
@@ -101,13 +104,28 @@ public:
     //  for a uniform grid.  The widths let the coarse operators use the real
     //  agglomerate volume and centre distance instead of assuming a factor of
     //  four, which is what makes ragged and stretched grids behave.
-    bool setup(MPI_Comm world,int npx,int npy,int cx,int cy,
+    bool setup(MPI_Comm cart,
                int nx,int ny,int nz,int gnx,int gny,int maxlevel,
                const double *dxn=0,const double *dyn=0);
 
     sc_level& fine(){return lev[0];}
     const sc_level& coarsest() const {return lev.back();}
     int levels() const {return (int)lev.size();}
+
+    //  Use only the first n levels of the hierarchy built by setup(), without
+    //  rebuilding it: level n-1 becomes the coarsest and gets the coarsest-
+    //  level sweeps.  For problems whose operator screens the smooth modes -
+    //  a reaction term, as in the depth-averaged non-hydrostatic pressure -
+    //  levels coarser than the screening length only cost time.  Clamped to
+    //  [1,levels()]; setup() resets it to levels().  Takes effect at the next
+    //  coarsen(), and all ranks must pass the same n.  With a truncated
+    //  hierarchy the agglomerated coarse solve is bypassed.
+    void set_active_levels(int n)
+    {
+        const int nl=(int)lev.size();
+        nuse=(n<1?1:(n>nl?nl:n));
+    }
+    int active_levels() const {return nuse;}
     const char* err() const {return errmsg;}
 
     //  Build the coarse operators from the fine ones.  Call after the fine
@@ -142,6 +160,14 @@ public:
     void set_precision(int bits){pcbits=(bits==32?32:64);}
     void set_fine_operator(sc_operator *op){fineop=op;}
 
+    //  Krylov operator from the host also in fp64 mode, for a fine operator
+    //  the hierarchy does not hold - the FNPF Laplace equation with its
+    //  sigma cross-derivatives (A 328 1): the V-cycle then preconditions the
+    //  full operator with its 7-point part.  Needs set_fine_operator() and
+    //  BiCGStab (solve_auto mode 1); V-cycles alone would converge to the
+    //  7-point solution.  May change from one solve to the next.
+    void set_fine_exact(bool on){fexact=on;}
+
     //  line-GS sweeps on the coarsest level (default 16).  Only matters when
     //  the coarsest grid is large - chiefly for pure-Neumann problems, where
     //  the coarsest level carries the depth-uniform mode across the domain.
@@ -149,6 +175,24 @@ public:
 
     //  bytes held by the hierarchy and the Krylov work space
     long memory_bytes() const;
+
+    //  Coarse-grid agglomeration.  The distributed hierarchy stops coarsening
+    //  at a few cells per rank, which leaves a coarsest grid that grows with
+    //  the number of ranks.  With agglomeration on, that coarsest level is
+    //  gathered onto every rank and solved redundantly by a serial,
+    //  full-depth reefmg sub-hierarchy: no scatter, no idle ranks, and the
+    //  coarse matrix is gathered once per solve, the right-hand side once per
+    //  V-cycle.  Required when the coarse correction must span the whole
+    //  domain (pure-Neumann problems); optional otherwise.  Refused, and left
+    //  off, if the gathered problem would be too large to hold on every rank.
+    //  0 off, 1 on.  Must be called before setup().
+    void set_agglomeration(int mode){aggmode=(mode==1?1:0);}
+    void set_agglomeration_cycles(int n){agg_cycles=(n>0?n:1);}
+    bool agglomerated() const {return agg!=0;}
+    long agglomerated_cells() const {return agg_cells;}
+
+    reefmg_core(const reefmg_core&)=delete;
+    reefmg_core& operator=(const reefmg_core&)=delete;
 
     //  0: lexicographic line Gauss-Seidel, columns solved one after another.
     //  1: red-black (zebra) line Gauss-Seidel.  Columns of one colour are
@@ -169,6 +213,7 @@ private:
 
     void line_gs(sc_level &L,int l,int sweeps,int dir);   // dir 0 fwd, 1 bwd, 2 symmetric
     template<class C> void line_gs_t(sc_level &L,int sweeps,int dir);
+    template<class C> void point_gs_t(sc_level &L,int sweeps,int dir);   // nz==1
     template<class C> void line_zebra_t(sc_level &L,int sweeps,int dir);
     template<class C> void residual_t(sc_level &L);
     template<class T> void coarsen_t();
@@ -188,16 +233,35 @@ private:
     int nbx0,nbx1,nby0,nby1;     // neighbour ranks, MPI_PROC_NULL at the edge
 
     std::vector<double> sbuf,rbuf;
-    std::vector<double> kr,krhat,kp,kv,ks,kt,ky,kz;   // BiCGStab work space
+    //  BiCGStab work space, fine level.  s shares kr - see solve() - so there
+    //  are seven vectors here, not the eight the algorithm is usually written
+    //  with.
+    std::vector<double> kr,krhat,kp,kv,kt,ky,kz;
 
     int coarse_sweeps;
+    int nuse;                // levels in use, see set_active_levels()
     int pcbits;              // 64 or 32: storage precision of the coefficients
     sc_operator *fineop;     // exact fine operator, required in fp32 mode
+    bool fexact;             // Krylov operator from fineop in fp64 mode as well
     int ordering;            // 0 lexicographic, 1 red-black batched
     std::vector<double> zr,zb,zti,ztc;   // transposed scratch for batched columns
+    std::vector<int> pj,pja;             // prolongation tables for nz==1
+    std::vector<double> pwy;
     int sweepstyle;          // 0: alternating fwd/bwd, 1: symmetric both ways
     int nfallback;
     char errmsg[512];
+
+    //  coarse-grid agglomeration
+    void setup_agglomeration(int npx,int npy);
+    void gather_coarse_matrix();
+    void coarse_solve_agg();
+
+    reefmg_core *agg;                               // serial sub-hierarchy, on every rank
+    int  aggmode, agg_cycles;
+    long agg_cells;                                 // cells of the gathered problem
+    std::vector<int> agg_ox,agg_oy,agg_nx,agg_ny;   // every rank's block of the coarsest level
+    std::vector<int> agg_cnt,agg_disp;              // gather counts and offsets, in cells
+    std::vector<double> agg_send,agg_recv;
 };
 
 #endif

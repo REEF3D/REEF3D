@@ -35,6 +35,7 @@ class sixdof;
 class mooring;
 class fsi;
 class nhflow_reinidisc_fsf;
+class rodtree_coupling;
 
 using namespace std;
 
@@ -88,6 +89,9 @@ private:
     
     int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
+    
+    // flexible rod trees (Z 20)
+    rodtree_coupling *prodtree;
 };
 
 #endif

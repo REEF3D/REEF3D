@@ -24,39 +24,97 @@ Author: Hans Bihs
 #define SFLOW_MOMENTUM_FUNC_H_
 
 #include"sflow_momentum.h"
-#include"sflow_bcmom.h"
+#include"increment.h"
+#include"slice4.h"
 
+class slice;
+class ioflow;
+class solver2D;
+class sixdof;
+class sflow_HLL;
 class sflow_fsf;
 class sflow_signal_speed;
 class sflow_reconstruct;
-class sflow_fsf_reconstruct;
+class sflow_diffusion;
+class sflow_pressure;
+class sflow_forcing;
+class sflow_roughness;
+class sflow_rheology;
+class sflow_boussinesq;
 
 using namespace std;
 
-class sflow_momentum_func : public sflow_momentum, public sflow_bcmom
+// shared functions of the SFLOW HLL time integrators
+// prognostic: WL, UH, VH, WH (cell centres)
+// diagnostic: U, V, W (cell centres), P, Q (face velocities), ws, hx, hy, hp
+//
+// SSP Runge-Kutta stage:  q_out = a*q_n + (1-a)*(q_s + dt*L(q_s)),  alpha = 1-a
+
+class sflow_momentum_func : public sflow_momentum, public increment
 {
 public:
-	sflow_momentum_func(lexer*, fdm2D*, ghostcell*);
+	sflow_momentum_func(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, 
+                        sflow_diffusion*, sflow_pressure*, solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
 	virtual ~sflow_momentum_func();
     
-
-    void inidisc(lexer*, fdm2D*, ghostcell*, sflow_fsf*);
-    void reconstruct(lexer*, fdm2D*, ghostcell*, sflow_fsf*, sflow_signal_speed*, sflow_reconstruct*,slice&,slice&,slice&,slice&,slice&,slice&,slice&);
-    void velcalc(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
+    void ini(lexer*, fdm2D*, ghostcell*) override final;
+    void stage(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, slice&, slice&, slice&, double, int, bool);
     
-	void irhs(lexer*,fdm2D*,ghostcell*);
-	void jrhs(lexer*,fdm2D*,ghostcell*);
-	void krhs(lexer*,fdm2D*,ghostcell*);
+    // second part of a stage, after the non-hydrostatic pressure: velocities, relaxation zones
+    void stage_finish(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
     
-    void clearrhs(lexer*,fdm2D*,ghostcell*);
-	
+    // mesh refinement: the stage of a patch stops before the non-hydrostatic pressure, which
+    // is solved on all grids together; the arguments of that call are kept here
+    bool nh_defer = false;
+    slice *nhUH=nullptr, *nhVH=nullptr, *nhWH=nullptr, *nhWL=nullptr;
+    double nh_alpha = 0.0;
     
-
+    void reconstruct(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    void velcalc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, int);
+    void ghostcells(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    void face_velocities(lexer*, fdm2D*, ghostcell*, slice&);
+    void inflow(lexer*, fdm2D*, ghostcell*, ioflow*);
+    
+	void irhs(lexer*, fdm2D*);
+	void jrhs(lexer*, fdm2D*);
+	void krhs(lexer*, fdm2D*);
+    void clearrhs(lexer*, fdm2D*);
+    
 	int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
-    
+    int gcval_eta;
+    int inflow_flag, outflow_flag;
+    int nhp;     // non-hydrostatic pressure (A 220 1-3)
+    int bous;    // Boussinesq equations (A 220 4)
     double starttime;
-
+    
+protected:
+    sflow_HLL *phll;
+    sflow_signal_speed *pss;
+    sflow_reconstruct *precon;
+	sflow_diffusion *pdiff;
+	sflow_pressure *ppress;
+	solver2D *psolv;
+    solver2D *ppoissonsolv;
+	ioflow *pflow;
+	sflow_fsf *pfsf;
+    sflow_forcing *psfdf;
+    sixdof *p6dof;
+    sflow_roughness *prough;
+    sflow_rheology *prheo;
+    sflow_boussinesq *pbous;
+    
+    slice4 UHDIFF,VHDIFF,WHDIFF;
+    slice4 Un,Vn,etaS;
+    
+private:
+    int q;
+    
+    void mpi4(lexer*, ghostcell*, slice&);
+    void vel_bc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    
+    void mirror(lexer*, slice&, int, double);
+    void neumann(lexer*, slice&, int);
 };
 
 #endif

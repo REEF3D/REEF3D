@@ -25,14 +25,24 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 
-#define HXIJ (fabs(b->hx(i,j))>wd_criterion?b->hx(i,j):wd_criterion)
-#define HYIJ (fabs(b->hy(i,j))>wd_criterion?b->hy(i,j):wd_criterion)
 
 sflow_etimestep::sflow_etimestep(lexer *p, fdm2D *b)
 {
     wd_criterion=0.00005;
     
     wd_criterion=p->A244;
+    
+    // Boussinesq (A 220 4): the dispersive terms are explicit, Courant number <= 0.5
+    // (FUNWAVE-TVD default), larger values blow up in deep water
+    cfl = p->N47;
+    
+    if(p->A220==4 && p->N47>0.25)
+    {
+    cfl = 0.25;
+    
+    if(p->mpirank==0)
+    cout<<"SFLOW Boussinesq: N 47 "<<p->N47<<" reduced to 0.25 (Courant number 0.5)"<<endl;
+    }
 }
 
 sflow_etimestep::~sflow_etimestep()
@@ -41,34 +51,23 @@ sflow_etimestep::~sflow_etimestep()
 
 void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    const double g = fabs(p->W22);
+    double dx,dy,c,cmin;
+    
 	p->umax=p->vmax=p->viscmax=0.0;
 	p->dt_old=p->dt;
-	double depthmax=-10.0;
-
 
 // maximum velocities
-
-
-	SLICELOOP1
-	p->umax=MAX(p->umax,fabs(b->P(i,j)));
+	SLICELOOP4
+    WETDRY
+    {
+	p->umax=MAX(p->umax,fabs(b->U(i,j)));
+	p->vmax=MAX(p->vmax,fabs(b->V(i,j)));
+    }
 
 	p->umax=pgc->globalmax(p->umax);
-
-
-	SLICELOOP2
-	p->vmax=MAX(p->vmax,fabs(b->Q(i,j)));
-
 	p->vmax=pgc->globalmax(p->vmax);
-
-	SLICELOOP4
-	depthmax=MAX(depthmax,b->depth(i,j));
     
-    depthmax=MAX(depthmax,0.00001);
-	
-	depthmax=pgc->globalmax(depthmax);
-    
-    
-	
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
 	cout<<"umax: "<<setprecision(3)<<p->umax<<" \t utime: "<<p->utime<<endl;
@@ -76,41 +75,63 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	cout<<"fsftime: "<<p->lsmtime<<endl;
     }
 
-    velmax=MAX(p->umax,p->vmax);
-
-
-// 
+// CFL: dt = N47 * 2*min( dx/(|u|+c), dy/(|v|+c) ),  c = sqrt(g h)
+// (factor 2 as in the previous SFLOW time step definition, N 47 0.2 -> Courant number 0.4)
+    cmin=1.0e20;
     
-	cu=2.0/((p->umax/p->DXM)+sqrt(4.0*fabs(b->maxF)/p->DXM));
-	cv=2.0/((p->vmax/p->DXM)+sqrt(4.0*fabs(b->maxG)/p->DXM));
-    
-	if(p->A219==1)
+    SLICELOOP4
+    WETDRY
     {
-    cu=MIN(cu,2.0/((p->umax+sqrt(9.81*depthmax))/p->DXM));
-	cv=MIN(cv,2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM));
+    c = sqrt(g*MAX(b->WL(i,j),wd_criterion));
+    
+    dx = p->DXN[IP]/(fabs(b->U(i,j)) + c);
+    cmin = MIN(cmin,dx);
+    
+    if(p->j_dir==1)
+    {
+    dy = p->DYN[JP]/(fabs(b->V(i,j)) + c);
+    cmin = MIN(cmin,dy);
     }
     
-    if(p->A219==2)
-    {
-    cu=p->DXM/(fabs(p->umax)>1.0e-20?p->umax:1.0);
-	cv=p->DXM/(fabs(p->vmax)>1.0e-20?p->vmax:1.0);
+        // advection-only limit (A 219 2)
+        if(p->A219==2)
+        {
+        dx = p->DXN[IP]/(fabs(b->U(i,j))>1.0e-20?fabs(b->U(i,j)):1.0e-20);
+        cmin = MIN(cmin,dx);
+        }
     }
     
-    if(p->A219==3)
+    cmin = pgc->globalmin(cmin);
+    
+    // explicit dispersion correction of A 220 3: dt <= 1.8/((1/dx^2+1/dy^2) sqrt(g B h^3))
+    if(p->A220==3 && p->A224>1.0)
     {
-    cu=2.0/((p->umax+sqrt(9.81*depthmax))/p->DXM);
-	cv=2.0/((p->vmax+sqrt(9.81*depthmax))/p->DXM);
+    double B = (p->A224-1.0)/3.0;
+    double dtd = 1.0e20;
+    double hh;
+    
+        SLICELOOP4
+        WETDRY
+        {
+        hh = MAX(b->WL(i,j),wd_criterion);
+        dtd = MIN(dtd, 1.8/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
+        }
+        
+    dtd = pgc->globalmin(dtd);
+    
+    // cmin is scaled by 2*N47 below
+    cmin = MIN(cmin, dtd/(2.0*cfl));
     }
     
+    if(cmin>1.0e19)
+    cmin = p->DXM/sqrt(g*MAX(p->wd,wd_criterion));
 
-	p->dt=p->N47*MIN(cu,cv);
+	p->dt=cfl*2.0*cmin;
 	p->dt=pgc->timesync(p->dt);
-
 
 	b->maxF=0.0;
 	b->maxG=0.0;
 }
-
 
 void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
@@ -135,10 +156,13 @@ void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
 	
 	cu=2.0/((p->umax/p->DXM));
+    
+    // include the shallow water wave speed
+    cu=MIN(cu,p->DXM/(p->umax + sqrt(fabs(p->W22)*MAX(MAX(p->F60,p->wd),1.0))));
 	
 	
 	
-	p->dt=p->N47*cu;
+	p->dt=cfl*cu;
 	p->dt=pgc->timesync(p->dt);
 
 	p->dt_old=p->dt;

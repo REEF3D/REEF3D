@@ -60,10 +60,10 @@ void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc,
          
         //if(efc>0.1)
         //{
-        H = Hsolidface_2D(p,1,0);
+        H = Hsolidface_2D(p,0,0);
         fx(i,j) += H*(uf - P(i,j))/(alpha[iter]*p->dt);
         
-        H = Hsolidface_2D(p,0,1);
+        H = Hsolidface_2D(p,0,0);
         fy(i,j) += H*(vf - Q(i,j))/(alpha[iter]*p->dt);
         
         //}

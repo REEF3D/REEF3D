@@ -40,6 +40,8 @@ bedload_MPM::~bedload_MPM()
 void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
     double qb,Ts,Tb;
+    
+    d50 = s->dk;
 
 	SEDSLICELOOP
     {
@@ -49,7 +51,7 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	    Tb = s->shields_eff(i,j);
 
         if(s->active(i,j)==1 && Tb>=Ts)
-        qb = 8.0*pow(MAX(Tb - Ts,0.0),1.5)* p->S20*sqrt(((rhosed-rhowat)/rhowat)*fabs(p->W22)*p->S20);
+        qb = 8.0*pow(MAX(Tb - Ts,0.0),1.5)* d50*sqrt(((rhosed-rhowat)/rhowat)*fabs(p->W22)*d50);
 
         if(s->active(i,j)==0 || Tb<Ts)
         qb=0.0;

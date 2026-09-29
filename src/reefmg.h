@@ -37,7 +37,8 @@ class matrix_diag;
 using namespace std;
 
 //  x-y semicoarsening multigrid with vertical line relaxation for the
-//  REEF3D::FNPF Laplace equation.
+//  REEF3D::FNPF Laplace equation, the NHFLOW pressure and potential
+//  problems, and the REEF3D::CFD pressure Poisson equation.
 //
 //  The sigma direction is never coarsened and is solved exactly by a
 //  tridiagonal sweep, so vertical stretching does not enter the convergence
@@ -68,19 +69,33 @@ private:
     void fill_matrix8(lexer*, double*, vec&, matrix_diag&);
     void fillbackvec8(lexer*, double*);
 
-    //  NHFLOW potential-flow initialisation, startV(...,44)
-    void start_solver44(lexer*, ghostcell*, double*, vec&, matrix_diag&);
-    void fill_matrix44(lexer*, reefmg_core&, double*, vec&, matrix_diag&);
-    void fillbackvec44(lexer*, reefmg_core&, double*);
+    //  CFD pressure Poisson equation, start(...,5): pjm, pjm_corr
+    void start_solver5(lexer*, ghostcell*, field&, vec&, matrix_diag&);
+    void fill_matrix5(lexer*, field&, vec&, matrix_diag&);
+    void fillbackvec5(lexer*, field&);
+
+    //  first row of every fully active column with consecutive rows (fp32)
+    void build_colrow0(const sc_level&);
+
+    //  Potential-flow initialisation, var 44: NHFLOW through startV (double*,
+    //  ff==0) and CFD through start (field, ff!=0).
+    void start_solver44(lexer*, fdm*, ghostcell*, field*, double*, vec&, matrix_diag&);
+    void fill_matrix44(lexer*, reefmg_core&, field*, double*, vec&, matrix_diag&);
+    void fillbackvec44(lexer*, reefmg_core&, field*, double*);
 
     reefmg_core mg;
 
     int *CVAL4;
 
     matrix_diag *Mcur;          // REEF3D's matrix for the current solve
+    bool mixed=false;           // Mcur carries the FNPF sigma cross-couplings
+                                // nt..eb (A 328 1): Krylov operator via
+                                // fine_apply() also in fp64 mode
     std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
     std::vector<int> colrow0;   // first row of a fully active column with
                                 // consecutive rows, -1 otherwise
+    bool fill_ini=false;        // CVAL4 and the zero halo set up (first fill)
+    std::vector<int> wetsig;    // p->wet at the last rowmap/colrow0 build
     int count;
 
     int solve_mode, presweep, postsweep;

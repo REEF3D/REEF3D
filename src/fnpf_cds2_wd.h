@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"fnpf_convection.h"
 #include"increment.h"
+#include"fnpf_sz_weights.h"
 
 class fdm_fnpf;
 
@@ -45,6 +46,7 @@ public:
     double sz(lexer*, double*) override final;
 
 private:
+    fnpf_sz_weights szw;
     fdm_fnpf *c;
    
 

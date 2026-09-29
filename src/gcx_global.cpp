@@ -42,6 +42,12 @@ double ghostcell::globalmin(double sendmin)
     return recvmin;
 }
 
+void ghostcell::globalmax(double *vals, int num)
+{
+    if(num>0)
+    MPI_Allreduce(MPI_IN_PLACE,vals,num,MPI_DOUBLE,MPI_MAX,mpi_comm);
+}
+
 double ghostcell::globalmax(double sendmax)
 {
     MPI_Allreduce(&sendmax,&recvmax,1,MPI_DOUBLE,MPI_MAX,mpi_comm);

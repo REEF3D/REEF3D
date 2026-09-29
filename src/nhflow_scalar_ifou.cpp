@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"nhflow_scalar_advec_CDS2.h"
 
-nhflow_scalar_ifou::nhflow_scalar_ifou(lexer *p)
+nhflow_scalar_ifou::nhflow_scalar_ifou(lexer *p, int form) : advective(form)
 {
 
     padvec = new nhflow_scalar_advec_CDS2(p);
@@ -38,6 +38,12 @@ nhflow_scalar_ifou::~nhflow_scalar_ifou()
 
 void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double *U, double *V, double *W)
 {
+    if(advective==1)
+    {
+    start_advective(p,d,F,ipol,U,V,W);
+    return;
+    }
+    
     count=0;
     LOOP
     {
@@ -69,6 +75,51 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
 	 
 	 d->M.b[count] = -wdir*kvel1/(p->DZN[KM1]*p->WL[IJ]);
 	 d->M.t[count] =  (1.0-wdir)*kvel2/(p->DZN[KP]*p->WL[IJ]);
+     
+	 ++count;
+    }
+}
+
+void nhflow_scalar_ifou::start_advective(lexer* p, fdm_nhf *d, double *F, int ipol, double *U, double *V, double *W)
+{
+    // Implicit first-order upwind for the non-conservative (in D) scalar equation in sigma coordinates:
+    //   dF/dt + u dF/dx|s + v dF/dy|s + (omega/D) dF/ds = ...
+    // Written as per-face upwind flux divergence minus F*div(face velocities):
+    //   M.p = (u1+ - u2-)/dx + ...,  M.s = -u1+/dx,  M.n = u2-/dx
+    // -> row sum zero (constants preserved), M-matrix (positivity), no spurious F*dD/dt source.
+    double up1,um2,vp1,vm2,wp1,wm2;
+    double dxc,dyc,dzc;
+    
+    count=0;
+    LOOP
+    {
+    padvec->uadvec(ipol,U,ivel1,ivel2);
+    padvec->vadvec(ipol,V,jvel1,jvel2);
+    padvec->wadvec(ipol,W,kvel1,kvel2);
+    
+    up1 = MAX(ivel1,0.0);   // inflow through i-1/2
+    um2 = MIN(ivel2,0.0);   // inflow through i+1/2
+    vp1 = MAX(jvel1,0.0);
+    vm2 = MIN(jvel2,0.0);
+    wp1 = MAX(kvel1,0.0);
+    wm2 = MIN(kvel2,0.0);
+    
+    dxc = p->DXN[IP];
+    dyc = p->DYN[JP];
+    dzc = p->DZN[KP]*(p->WL[IJ]>1.0e-20?p->WL[IJ]:1.0e20);
+    
+	 d->M.p[count] =    (up1 - um2)/dxc
+					+  ((vp1 - vm2)/dyc)*p->y_dir
+					+   (wp1 - wm2)/dzc;
+	 
+	 d->M.s[count] = -up1/dxc;
+	 d->M.n[count] =  um2/dxc;
+	 
+	 d->M.e[count] = -vp1/dyc*p->y_dir;
+	 d->M.w[count] =  vm2/dyc*p->y_dir;
+	 
+	 d->M.b[count] = -wp1/dzc;
+	 d->M.t[count] =  wm2/dzc;
      
 	 ++count;
     }

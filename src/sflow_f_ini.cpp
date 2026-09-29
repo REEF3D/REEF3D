@@ -33,9 +33,11 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_hydrostatic.h"
 #include"sflow_potential.h"
+#include"sflow_momentum.h"
 #include"sflow_vtp_fsf.h"
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
+#include"sflow_amr.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -155,34 +157,35 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     SLICELOOP4
 	b->hp(i,j) = MAX(b->eta(i,j) + p->wd - b->bed(i,j),0.0);
+    
+    // water depth WL from eta
+    ini_wl(p,b,pgc);
 
     pflow->ini2D(p,b,pgc);
-      
-     
-     // P,Q ini
-	pflow->um_relax(p,pgc,b->P,b->bed,b->eta);
-	pflow->vm_relax(p,pgc,b->Q,b->bed,b->eta);
-
-	pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
-	pgc->gcsl_start4(p,b->eta,gcval_eta);
-    pgc->gcsl_start4(p,b->hp,gcval_eta);
+    
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     
+    ini_wl(p,b,pgc);
     
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
-    pflow->ini2D(p,b,pgc);
-    // potential flow ini
+    // U,V ini in the relaxation zones
+	pflow->um_relax(p,pgc,b->U,b->UH,b->WL);
+	pflow->vm_relax(p,pgc,b->V,b->VH,b->WL);
+    
+    // potential flow ini: sets the cell-centred U,V directly (I 11 1)
     potflow->start(p,b,ppoissonsolv,pgc);
-    
-    pgc->gcsl_start1(p,b->P,10);
-	pgc->gcsl_start2(p,b->Q,11);
-
     
     // FSF ini
     ini_fsf_2(p,b,pgc);
-
-    pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+    
+    // 6DOF ini: ship-wave draft depresses eta (X 10 3, X 207 0); must precede ini_wl so WL, wet/dry and UH,VH follow
+    p6dof->initialize(p, b, pgc);
+    pgc->gcsl_start4(p,b->eta,gcval_eta);
+    
+    ini_wl(p,b,pgc);
+    
+    // conserved variables UH,VH,WH and ghost cells
+    pmom->ini(p,b,pgc);
 
     //roughness ini
     SLICELOOP4
@@ -192,9 +195,14 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     //sediment ini
     psed->ini_sflow(p,b,pgc);
-
-    //6DOF ini
-    p6dof->initialize(p, b, pgc);
+    
+    // mesh refinement: patches from the initial level-0 state
+    if(pamr!=nullptr)
+    {
+    pamr->ini(p,b,pgc);
+    pamr->timestep(p,b,pgc);
+    pamr->print(p,b,pgc);
+    }
 
     // print
     log_ini(p);
@@ -401,7 +409,7 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         }
     }
       
-	pfsf->depth_update(p,b,pgc,b->P,b->Q,b->ws,b->eta);
+	ini_wl(p,b,pgc);
     
     int gcval_eta;
     
@@ -447,4 +455,20 @@ void sflow_f::ini_fsf_2(lexer *p, fdm2D* b, ghostcell* pgc)
     b->eta_n(i,j) = b->eta(i,j);
     
     pgc->gcsl_start4(p,b->eta_n,gcval_eta);
+}
+
+void sflow_f::ini_wl(lexer *p, fdm2D* b, ghostcell* pgc)
+{   
+    // still water depth and water column from eta
+    SLICELOOP4
+	b->depth(i,j) = p->wd - b->bed(i,j);
+    
+    pgc->gcsl_start4(p,b->depth,50);
+    
+    SLICELOOP4
+    b->WL(i,j) = MAX(b->eta(i,j) + b->depth(i,j), 0.0);
+    
+    pgc->gcsl_start4(p,b->WL,50);
+    
+    pfsf->depth_update(p,b,pgc,b->WL);
 }

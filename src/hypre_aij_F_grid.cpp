@@ -31,7 +31,7 @@ void hypre_aij::make_grid_F(lexer* p, ghostcell* pgc)
     p->Iarray(rownum7,p->imax*p->jmax*(p->kmax+2));
 
     pgc->rownum7_update(p,rownum7);
-    pgc->flagx(p,rownum7);
+    pgc->flagx7(p,rownum7);
 
     p->range_col7[0]=0;
     for(n=1;n<=p->M10;++n)

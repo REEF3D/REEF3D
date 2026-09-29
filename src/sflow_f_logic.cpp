@@ -36,20 +36,24 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==1)
 	ptime = new sflow_etimestep(p,b);
 	
-    // convection
-    if(p->A211==0)
-    pconvec = new sflow_voidconv(p);
-        
-    if(p->A211==1)
+    // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)
+    phll = new sflow_HLL(p,pgc,pBC);
+    
+    pss = new sflow_signal_speed(p);
+    
+    if(p->A211<=3)
+    precon = new sflow_reconstruct_hires(p,pBC);
+    
+    if(p->A211>=4)
+    precon = new sflow_reconstruct_weno(p,pBC);
+    
+    // scalar convection (turbulence)
+    if(p->A211<=3)
     pconvec = new sflow_fou(p);
-        
-    if(p->A211==4)
+    
+    if(p->A211>=4)
     pconvec = new sflow_weno_flux(p);
-        
-    if(p->A211==5)
-    pconvec = new sflow_weno_hj(p);
-        
-         
+
     // filter
     pfilter = new sflow_filter(p);
 	
@@ -68,18 +72,18 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pdiff =  new sflow_idiff(p);
 	
 	// pressure
-    if(p->A220==0)
+    if(p->A220==0 || p->A220==4)
 	ppress = new sflow_hydrostatic(p,b,pBC);
     
-    if(p->A220==1)
+    if(p->A220==1 || p->A220>=5)
 	ppress = new sflow_pjm_lin(p,b,pBC);
     
-    if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b,pBC);
+    if(p->A220==2 || p->A220==3)
+	ppress = new sflow_pjm_quad(p,b,pgc,pBC);
     
-    if(p->A220==3)
-	ppress = new sflow_pjm_corr_lin(p,b,pBC);
-    
+    if(p->A220>=5 && p->mpirank==0)
+    cout<<"A 220 "<<p->A220<<" not available with the HLL scheme, using A 220 1"<<endl;
+
     // diffusion
 	if(p->A260==0)
 	pturb =  new sflow_turb_void(p);
@@ -107,6 +111,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     psed = new sediment_f(p,pgc,pturbcfd,pBC);
 	
 	// solver
+    //  N 10 1: REEFMG, the same multigrid as for FNPF, NHFLOW and CFD, run
+    //  on the slice (reefmg2D); otherwise hypre (N 10 11-19)
+    if(p->N10==1)
+	ppoissonsolv = new reefmg2D(p,pgc);
+    
+    if(p->N10!=1)
 	ppoissonsolv = new hypre_struct2D(p,pgc);
     
     
@@ -137,11 +147,27 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// momentum
     if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+	pmom = new sflow_momentum_RK2(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
-	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+	if(p->A210!=2)
+	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+
+    // mesh refinement (A 270): static boxes (A 276) and/or flagged regions (A 273, A 274)
+    if(p->A270>0 && (p->A276>0 || p->A273>0.0 || p->A274>0 || p->A278>0))
+    {
+    sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     
+        if(prk3!=nullptr)
+        {
+        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,phll,prk3);
+        prk3->pamr = pamr;
+        
+        // non-hydrostatic pressure on the composite grid
+        sflow_pjm_lin *pnh = dynamic_cast<sflow_pjm_lin*>(ppress);
+        if(p->A220==1 && pnh!=nullptr)
+        pnh->amr = pamr;
+        }
+    }
     
     //Potential Flow Solver
     if(p->I11==0)

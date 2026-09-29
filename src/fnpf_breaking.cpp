@@ -26,7 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p),
-                 S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), eta_old(p), brk_flag(p),k_smooth(p)
+                 S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), eta_old(p), brk_flag(p),k_smooth(p),
+                 wdband(p)
 
 {
     // Default parameter values
@@ -95,6 +96,10 @@ void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
     if(p->A350==1 && p->A343==1)
+    breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
+    
+    // A343 2/3: dynamic wetting-drying previously fell through here (no breaking viscosity at all)
+    if(p->A350==1 && p->A343>=2)
     breaking_baquet_wd(p, c, pgc, eta, eta_n, Fifsf, alpha);
     
     if(p->A350==2)

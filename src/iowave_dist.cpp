@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-double iowave::xgen(lexer *p)
+double iowave::xgen_calc(lexer *p)
 {
 	double x1,y1;
 	double x0,y0;
@@ -76,7 +76,7 @@ double iowave::xgen2(lexer *p)
 	return dist;
 }
 
-double iowave::ygen(lexer *p)
+double iowave::ygen_calc(lexer *p)
 {
 	double x1,y1;
 	double x0,y0;
@@ -127,7 +127,7 @@ double iowave::ygen2(lexer *p)
 	return dist;
 }
 
-double iowave::distgen(lexer *p)
+double iowave::distgen_calc(lexer *p)
 {
     double x0,y0,denom;
 	double dist=1.0e20;
@@ -158,7 +158,7 @@ double iowave::distgen(lexer *p)
 	return dist;
 }
 
-double iowave::distbeach(lexer *p)
+double iowave::distbeach_calc(lexer *p)
 {
     double x0,y0,denom;
 	double dist=1.0e20;
@@ -189,3 +189,140 @@ double iowave::distbeach(lexer *p)
 	return dist;
 }
 
+// distgen()/distbeach() test every slice cell against all B107/B108 zone
+// polygons. The zones and the grid are fixed, so this is done once here and
+// the per-step relaxation loops visit only the cells that lie in a zone.
+void iowave::relaxzone4_build(lexer *p)
+{
+    rz4_i.clear();
+    rz4_j.clear();
+    rz4_xg.clear();
+    rz4_yg.clear();
+    rz4_dg.clear();
+    rz4_db.clear();
+    
+    SLICELOOP4
+    {
+        const double dgv = distgen(p);
+        const double dbv = distbeach(p);
+        
+        if(dgv<1.0e20 || dbv<1.0e20)
+        {
+        rz4_i.push_back(i);
+        rz4_j.push_back(j);
+        rz4_xg.push_back(xgen(p));
+        rz4_yg.push_back(ygen(p));
+        rz4_dg.push_back(dgv);
+        rz4_db.push_back(dbv);
+        }
+    }
+    
+    rz4_built=true;
+}
+
+// distgen/distbeach depend only on (i,j) through XP[IP], YP[JP] and on the
+// relaxation-zone polygons, which are fixed after the constructor.
+// They are called for every 3D cell in every relax function and RK stage,
+// so they are tabulated once per (i,j) (including ghost columns).
+void iowave::dist_cache_build(lexer *p)
+{
+    const int is=i, js=j;
+
+    if(dgcache==nullptr)
+    {
+    p->Darray(dgcache,p->imax*p->jmax);
+    p->Darray(dbcache,p->imax*p->jmax);
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    dgcache[IJ] = distgen_calc(p);
+    dbcache[IJ] = distbeach_calc(p);
+    }
+    }
+
+    i=is;
+    j=js;
+}
+
+// xgen/ygen additionally depend on tan_alpha (set at the end of the constructor)
+void iowave::xy_cache_build(lexer *p)
+{
+    const int is=i, js=j;
+
+    p->Darray(xgcache,p->imax*p->jmax);
+    p->Darray(ygcache,p->imax*p->jmax);
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+    xgcache[IJ] = xgen_calc(p);
+    ygcache[IJ] = ygen_calc(p);
+    }
+
+    i=is;
+    j=js;
+}
+
+double iowave::distgen(lexer *p)
+{
+    if(dgcache==nullptr)
+    dist_cache_build(p);
+
+    return dgcache[IJ];
+}
+
+double iowave::distbeach(lexer *p)
+{
+    if(dbcache==nullptr)
+    dist_cache_build(p);
+
+    return dbcache[IJ];
+}
+
+double iowave::xgen(lexer *p)
+{
+    if(xgcache==nullptr)
+    xy_cache_build(p);
+
+    return xgcache[IJ];
+}
+
+double iowave::ygen(lexer *p)
+{
+    if(ygcache==nullptr)
+    xy_cache_build(p);
+
+    return ygcache[IJ];
+}
+// Generation-zone columns (distgen<1e20) over all (i,j) in ILOOP/JLOOP order,
+// registered with the wave library for cached-point evaluation. FNPF loops
+// skip flagslice4<=0 columns (SLICELOOP4 order), NHFLOW loops add KLOOP with
+// PCHECK (LOOP order), so both reproduce the count sequence of the relaxation
+// functions that consume the value arrays.
+void iowave::genzone4_build(lexer *p, ghostcell *pgc)
+{
+    gen_i.clear(); gen_j.clear();
+    gen_idx.assign(size_t(p->imax)*size_t(p->jmax),-1);
+    
+    std::vector<double> xg_, yg_;
+    
+    ILOOP
+    JLOOP
+    {
+        dg = distgen(p);
+        
+        if(dg<1.0e20)
+        {
+        gen_idx[IJ] = int(gen_i.size());
+        gen_i.push_back(i);
+        gen_j.push_back(j);
+        xg_.push_back(xgen(p));
+        yg_.push_back(ygen(p));
+        }
+    }
+    
+    wave_cache_points(p,pgc,xg_,yg_);
+    
+    gen_built=true;
+}

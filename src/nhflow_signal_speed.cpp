@@ -39,87 +39,111 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
                                         double *Us, double *Un, double *Ve, double *Vw, 
                                         slice &Ds,slice &Dn, slice &De, slice &Dw)
 {
-    // signal speed x-dir
-    ULOOP
-    {
-    USx = 0.5*(Us[IJK]+Un[IJK]) + sqrt(9.81*Ds(i,j)) - sqrt(9.81*Dn(i,j));
-    DSx = 0.5*(sqrt(9.81*Ds(i,j)) + sqrt(9.81*Dn(i,j))) + 0.25*(Us[IJK] - Un[IJK]);
+    // Same expressions as before; the celerities sqrt(9.81*D) depend only on
+    // the column and are evaluated once per (i,j) instead of 4-6 times per cell.
     
-    Cs = sqrt(9.81*Ds(i,j));
-    Cn = sqrt(9.81*Dn(i,j));
+    // signal speed x-dir  (ULOOP)
+    for(i=0; i<p->knox-p->ulast; ++i)
+    for(j=0; j<p->knoy; ++j)
+    {
+    const double cs = sqrt(9.81*Ds(i,j));
+    const double cn = sqrt(9.81*Dn(i,j));
+    const int wP = p->wet[IJ];
+    const int wN = p->wet[Ip1J];
+    
+        for(k=0; k<p->knoz; ++k)
+        if(p->flag1[IJK]>0)
+        {
+        const double us = Us[IJK];
+        const double un = Un[IJK];
+        const double usx = 0.5*(us+un) + cs - cn;
+        const double dsx = 0.5*(cs + cn) + 0.25*(us - un);
+        const int dfP = p->DF[IJK];
+        const int dfN = p->DF[Ip1JK];
 
-    if((p->wet[IJ]==1 && p->wet[Ip1J]==1) && (p->DF[IJK]==1 && p->DF[Ip1JK]==1))
-    {
-    d->Ss[IJK] = MIN(Us[IJK] - Cs, USx - DSx);
-    d->Sn[IJK] = MAX(Un[IJK] + Cn, USx + DSx);
-    d->SSx[IJK] = USx;
+        if((wP==1 && wN==1) && (dfP==1 && dfN==1))
+        {
+        d->Ss[IJK] = MIN(us - cs, usx - dsx);
+        d->Sn[IJK] = MAX(un + cn, usx + dsx);
+        d->SSx[IJK] = usx;
+        }
+        
+        else
+        if((wP==0 && wN==1) || (dfP<0 && dfN==1))  // left dry
+        {
+        d->Ss[IJK] = un - 2.0*cn;
+        d->Sn[IJK] = un +     cn;
+        d->SSx[IJK] = d->Ss[IJK];
+        }
+        
+        else
+        if((wP==1 && wN==0) || (dfP==1 && dfN<0)) // right dry
+        {
+        d->Ss[IJK] = us - cs;
+        d->Sn[IJK] = us + cs;
+        d->SSx[IJK] = d->Sn[IJK];
+        }
+        
+        else
+        if((wP==0 && wN==0)  || (dfP<0 && dfN<0))
+        {
+        d->Ss[IJK] = 0.0;
+        d->Sn[IJK] = 0.0;
+        d->SSx[IJK] = 0.0;
+        }
+        }
     }
     
-    else
-    if((p->wet[IJ]==0 && p->wet[Ip1J]==1) || (p->DF[IJK]<0 && p->DF[Ip1JK]==1))  // left dry
-    {
-    d->Ss[IJK] = Un[IJK] - 2.0*Cn;
-    d->Sn[IJK] = Un[IJK] +     Cn;
-    d->SSx[IJK] = d->Ss[IJK];
-    }
-    
-    else
-    if((p->wet[IJ]==1 && p->wet[Ip1J]==0) || (p->DF[IJK]==1 && p->DF[Ip1JK]<0)) // right dry
-    {
-    d->Ss[IJK] = Us[IJK] - Cs;
-    d->Sn[IJK] = Us[IJK] + Cs;
-    d->SSx[IJK] = d->Sn[IJK];
-    }
-    
-    else
-    if((p->wet[IJ]==0 && p->wet[Ip1J]==0)  || (p->DF[IJK]<0 && p->DF[Ip1JK]<0))
-    {
-    d->Ss[IJK] = 0.0;
-    d->Sn[IJK] = 0.0;
-    d->SSx[IJK] = 0.0;
-    }
-    }
-    
-    // signal speed y-dir
+    // signal speed y-dir  (VLOOP)
     if(p->j_dir==1)
-    VLOOP
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy-p->vlast; ++j)
     {
-    USy = 0.5*(Ve[IJK]+Vw[IJK]) + sqrt(9.81*De(i,j)) - sqrt(9.81*Dw(i,j));
-    DSy = 0.5*(sqrt(9.81*De(i,j)) + sqrt(9.81*Dw(i,j))) + 0.25*(Ve[IJK] - Vw[IJK]);
+    const double ce = sqrt(9.81*De(i,j));
+    const double cw = sqrt(9.81*Dw(i,j));
+    const int wP = p->wet[IJ];
+    const int wN = p->wet[IJp1];
     
-    Ce = sqrt(9.81*De(i,j));
-    Cw = sqrt(9.81*Dw(i,j));
-    
-    if((p->wet[IJ]==1 && p->wet[IJp1]==1) && (p->DF[IJK]==1 && p->DF[IJp1K]==1))
-    {
-    d->Se[IJK] = MIN(Ve[IJK] - sqrt(9.81*De(i,j)), USy - DSy);
-    d->Sw[IJK] = MAX(Vw[IJK] + sqrt(9.81*Dw(i,j)), USy + DSy);
-    d->SSy[IJK] = USy;
-    }
+        for(k=0; k<p->knoz; ++k)
+        if(p->flag2[IJK]>0)
+        {
+        const double ve = Ve[IJK];
+        const double vw = Vw[IJK];
+        const double usy = 0.5*(ve+vw) + ce - cw;
+        const double dsy = 0.5*(ce + cw) + 0.25*(ve - vw);
+        const int dfP = p->DF[IJK];
+        const int dfN = p->DF[IJp1K];
+        
+        if((wP==1 && wN==1) && (dfP==1 && dfN==1))
+        {
+        d->Se[IJK] = MIN(ve - ce, usy - dsy);
+        d->Sw[IJK] = MAX(vw + cw, usy + dsy);
+        d->SSy[IJK] = usy;
+        }
 
-    else
-    if((p->wet[IJ]==0 && p->wet[IJp1]==1) || (p->DF[IJK]<0 && p->DF[IJp1K]==1))
-    {
-    d->Se[IJK] = Vw[IJK] - 2.0*Cw;
-    d->Sw[IJK] = Vw[IJK] +     Cw;
-    d->SSy[IJK] = d->Se[IJK];
-    }
-    
-    else
-    if((p->wet[IJ]==1 && p->wet[IJp1]==0) || (p->DF[IJK]==1 && p->DF[IJp1K]<0))
-    {
-    d->Se[IJK] = Ve[IJK] -     Ce;
-    d->Sw[IJK] = Ve[IJK] + 2.0*Ce;
-    d->SSy[IJK] = d->Sw[IJK];
-    }
-    
-    else
-    if((p->wet[IJ]==0 && p->wet[IJp1]==0) || (p->DF[IJK]<0 && p->DF[IJp1K]<0))
-    {
-    d->Se[IJK] = 0.0;
-    d->Sw[IJK] = 0.0;
-    d->SSy[IJK] = 0.0;
-    }
-    
+        else
+        if((wP==0 && wN==1) || (dfP<0 && dfN==1))
+        {
+        d->Se[IJK] = vw - 2.0*cw;
+        d->Sw[IJK] = vw +     cw;
+        d->SSy[IJK] = d->Se[IJK];
+        }
+        
+        else
+        if((wP==1 && wN==0) || (dfP==1 && dfN<0))
+        {
+        d->Se[IJK] = ve -     ce;
+        d->Sw[IJK] = ve + 2.0*ce;
+        d->SSy[IJK] = d->Sw[IJK];
+        }
+        
+        else
+        if((wP==0 && wN==0) || (dfP<0 && dfN<0))
+        {
+        d->Se[IJK] = 0.0;
+        d->Sw[IJK] = 0.0;
+        d->SSy[IJK] = 0.0;
+        }
+        }
     }
 }

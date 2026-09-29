@@ -33,7 +33,7 @@ void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 void sixdof_sflow::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_shipwave(p, pgc,b->eta,b->hp);
+    fb_obj[nb]->initialize_shipwave(p, pgc,b->eta,b->WL);
 }
 
 void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc)

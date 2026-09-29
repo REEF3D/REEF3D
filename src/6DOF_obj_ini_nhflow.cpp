@@ -153,9 +153,13 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 				pmooring.push_back(new mooring_Spring(i));
 			}
 		
-			X311_xen[i] = p->X311_xe[i] - p->xg;
-			X311_yen[i] = p->X311_ye[i] - p->yg;
-			X311_zen[i] = p->X311_ze[i] - p->zg;
+			// Fairlead offset in the body frame: mooringForces() applies R_*offset,
+			// so remove the initial rotation (X101) here to avoid rotating twice
+			Eigen::Vector3d fl(p->X311_xe[i] - p->xg, p->X311_ye[i] - p->yg, p->X311_ze[i] - p->zg);
+			fl = R_.transpose()*fl;
+			X311_xen[i] = fl(0);
+			X311_yen[i] = fl(1);
+			X311_zen[i] = fl(2);
 		
 			pmooring[i]->initialize(p,pgc);
 		}
@@ -174,6 +178,28 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     Nne.resize(p->net_count);
     }
     
+    // Initial hydrodynamic + gravity load. Xe..Ne are otherwise first set in reforcing(), i.e. after
+    // the first pressure solve, so the first RK stage of the first time step would use
+    // uninitialised values.
+    Xe=Ye=Ze=Ke=Me=Ne=0.0;
+    Xd=Yd=Zd=Kd=Md=Nd=0.0;
+    
+    // porous floating body (X 16)
+    if(p->X16==1)
+    {
+    porosity_nhflow(p,d,pgc);
+    
+        if(p->mpirank==0)
+        {
+        cout<<"6DOF porous floating body: n="<<p->X16_n<<" d50="<<p->X16_d50
+            <<" alpha="<<p->X16_alpha<<" beta="<<p->X16_beta<<endl;
+        cout<<"6DOF porous floating body: X 21 / X 22 define the mass of the solid skeleton,"
+            <<" i.e. bulk density rho_s*(1-n), buoyancy acts on (1-n)*V_sub"<<endl;
+        }
+    }
+    
+    if(p->X10==1)
+    hydrodynamic_forces_nhflow(p,d,pgc,d->WL,false);
 }
 
 

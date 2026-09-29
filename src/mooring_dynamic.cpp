@@ -33,8 +33,16 @@ void mooring_dynamic::start(lexer *p, ghostcell *pgc)
 {
 	// Set mooring time step
 	phi_mooring = 0.0;
+	double t_new = phi_mooring*p->simtime + (1.0 - phi_mooring)*(p->simtime + p->dt);
+
+	// start() is called at every RK substage of the 6DOF solver, but simtime only
+	// advances once per time step: integrate only once per step, otherwise the
+	// beam solver is called with t_old == t_new (zero step, division by zero)
+	if (t_new - t_mooring <= 1.0e-12*MAX(1.0,fabs(t_new)))
+	return;
+
 	t_mooring_n = t_mooring;
-	t_mooring = phi_mooring*p->simtime + (1.0 - phi_mooring)*(p->simtime + p->dt);
+	t_mooring = t_new;
 
 	// Update fields
     updateFields(p, pgc);

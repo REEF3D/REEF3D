@@ -27,8 +27,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"FSI.h"
+#include"rodtree_coupling.h"
 
-momentum_forcing::momentum_forcing(lexer* p)
+momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr)
 {
     gcval_u=10;
 	gcval_v=11;
@@ -37,6 +38,7 @@ momentum_forcing::momentum_forcing(lexer* p)
 
 momentum_forcing::~momentum_forcing()
 {
+    delete prodtree;
 }
 
 void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, fsi* pfsi,
@@ -64,6 +66,15 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         p6dof->start_cfd(p,a,pgc,iter,u,v,w,fx,fy,fz,final);
         
         pfsi->forcing(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
+        
+        // flexible rod trees: sample, spread reaction, advance structure (final stage)
+        if(p->Z20>0)
+        {
+            if(prodtree==nullptr)
+            prodtree = new rodtree_coupling(p,pgc);
+            
+            prodtree->start_cfd(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
+        }
  
         ULOOP
         {

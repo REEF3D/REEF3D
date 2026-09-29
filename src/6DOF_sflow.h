@@ -70,7 +70,11 @@ public:
     
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
-    
+
+    // bodies, for the SFLOW mesh refinement
+    int objects() const {return number6DOF;}
+    sixdof_obj* object(int n) {return fb_obj[n];}
+
 private:
 	
     // hires gradient

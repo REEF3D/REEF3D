@@ -37,14 +37,12 @@ void net_sheet::gravityForce(lexer *p)
 
 void net_sheet::inertiaForce(lexer *p)
 {   
-    if (dt_ < 1e-10) dt_ = 1e10;
-    
     for (int knotI = 0; knotI < nK; knotI++)
     {
         // Assign inertia force to knot
-        forces_knot(knotI,0) = 2.0*weight_knot(knotI)*(coupledField[knotI][0] - coupledFieldn[knotI][0])/dt_;
-        forces_knot(knotI,1) = 2.0*weight_knot(knotI)*(coupledField[knotI][1] - coupledFieldn[knotI][1])/dt_;
-        forces_knot(knotI,2) = 2.0*weight_knot(knotI)*(coupledField[knotI][2] - coupledFieldn[knotI][2])/dt_;   
+        forces_knot(knotI,0) = 2.0*weight_knot(knotI)*fluidAcc_(knotI,0);
+        forces_knot(knotI,1) = 2.0*weight_knot(knotI)*fluidAcc_(knotI,1);
+        forces_knot(knotI,2) = 2.0*weight_knot(knotI)*fluidAcc_(knotI,2);   
     }
 }
 

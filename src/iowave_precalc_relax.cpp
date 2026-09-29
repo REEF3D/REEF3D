@@ -297,19 +297,21 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     
     if(p->F80==4)
     {
+        field4 &vg = *vofgen;
+
     LOOP
         {
         if((eta(i,j)+p->phimean)>=(p->pos_z()+0.5*p->DZN[KP]))
-            vofgen(i,j,k)=1.0;
+            vg(i,j,k)=1.0;
         else if((eta(i,j)+p->phimean)<=(p->pos_z()-0.5*p->DZN[KP]))
-            vofgen(i,j,k)=0.0;
+            vg(i,j,k)=0.0;
         else
-            vofgen(i,j,k)=(eta(i,j)+p->phimean-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
+            vg(i,j,k)=(eta(i,j)+p->phimean-(p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
                     
-        if(vofgen(i,j,k)>1.0)
-            vofgen(i,j,k)=1.0;
-        else if(vofgen(i,j,k)<0.0)
-            vofgen(i,j,k)=0.0;
+        if(vg(i,j,k)>1.0)
+            vg(i,j,k)=1.0;
+        else if(vg(i,j,k)<0.0)
+            vg(i,j,k)=0.0;
         }
         
     }

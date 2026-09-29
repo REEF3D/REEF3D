@@ -31,9 +31,10 @@ Author: Hans Bihs
 #include"sediment_wenoflux.h"
 #include"sediment_weno_hj.h"
 #include"sflow_bicgstab.h"
+#include"sediment_mixture.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p)
 {
     noneq_ini=0;
 
@@ -57,6 +58,7 @@ sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(
     
     Ls = p->S20;
     
+    frac_k = -1;
     
     prelax = new topo_relax(p);
     
@@ -84,6 +86,13 @@ sediment_exner::~sediment_exner()
 
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {   
+    // multi-fraction bed
+    if(s->pmix!=nullptr)
+    {
+    start_mixture(p,pgc,s);
+    return;
+    }
+    
     // eq.
     if(p->S33==0)
     SEDSLICELOOP
@@ -180,3 +189,110 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 
 
+
+void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{
+    sediment_mixture *m = s->pmix;
+    
+    m->exner_begin(p,pgc,s);
+    
+    for(int q=0;q<m->nf;++q)
+    {
+        // qbe, shields parameters and grain size of fraction q
+        m->load_fraction(p,pgc,s,q);
+        
+        SLICELOOP4
+        s->qbe(i,j) = (*m->qbe_k[q])(i,j)*m->fac(i,j);
+        
+        pgc->gcsl_start4(p,s->qbe,1);
+        
+        // eq.
+        if(p->S33==0)
+        SEDSLICELOOP
+        s->qb(i,j)=s->qbe(i,j);
+        
+        // non-eq., relaxation state per fraction
+        if(p->S33>0)
+        {
+            SLICELOOP4
+            qbn(i,j) = (*m->qbn_k[q])(i,j);
+            
+            noneq_ini = m->noneq_ini_k[q];
+            
+            non_equillibrium_solve(p,pgc,s);
+            
+            SLICELOOP4
+            (*m->qbn_k[q])(i,j) = qbn(i,j);
+            
+            m->noneq_ini_k[q] = noneq_ini;
+        }
+        
+        pgc->gcsl_start4(p,s->qb,1);
+        
+        // suspended load exchange distributed with the active layer composition
+        frac_k = q;
+        
+        if(p->S62==2)
+        susp_qs(p,pgc,s);
+        
+        SLICELOOP4
+        s->vz(i,j) = 0.0;
+        
+        // Exner
+        if(p->S31==1)
+        topovel1(p,pgc,s);
+        
+        if(p->S31==2)
+        topovel2(p,pgc,s);
+        
+        if(p->S31==3)
+        topovel3(p,pgc,s);
+        
+        if(p->S100>0)
+        filter(p,pgc,s->vz,p->S100,p->S101);
+        
+        SLICELOOP4
+        {
+        (*m->vz_k[q])(i,j) = s->vz(i,j);
+        (*m->qb_k[q])(i,j) = s->qb(i,j);
+        }
+    }
+    
+    frac_k = -1;
+    
+    m->exner_end(p,pgc,s);
+    
+    // total
+    SLICELOOP4
+    {
+    s->vz(i,j) = 0.0;
+    s->qb(i,j) = 0.0;
+    
+        for(int q=0;q<m->nf;++q)
+        {
+        s->vz(i,j) += (*m->vz_k[q])(i,j);
+        s->qb(i,j) += (*m->qb_k[q])(i,j);
+        }
+    }
+    
+    pgc->gcsl_start4(p,s->vz,1);
+    pgc->gcsl_start4(p,s->qb,1);
+    
+    // Bedch
+    timestep(p,pgc,s);
+    
+    SEDSLICELOOP
+    s->dh(i,j) = p->dtsed*s->vz(i,j);
+    
+    SEDSLICELOOP
+    s->bedzh(i,j) += s->dh(i,j);
+    
+	pgc->gcsl_start4(p,s->bedzh,1);
+    
+    // sorting: active layer and substrate
+    for(int q=0;q<m->nf;++q)
+    SLICELOOP4
+    (*m->dh_k[q])(i,j) = p->dtsed*(*m->vz_k[q])(i,j);
+    
+    m->bedchange(p,pgc,s,m->dh_k);
+}

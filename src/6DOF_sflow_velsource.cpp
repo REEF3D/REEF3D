@@ -41,12 +41,13 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // pressure of the moving body, cell centred source of the conserved momentum
     if(p->X10==3)
-	SLICELOOP1
+	SLICELOOP4
     {
-    dfdx = (press(i+1,j)-press(i,j))/(p->DXP[IP]);
+    dfdx = (press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     
-    b->F(i,j) += dfdx/p->W1;
+    b->F(i,j) += b->WL(i,j)*dfdx/p->W1;
     }
     
     SLICELOOP4
@@ -56,11 +57,11 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(p->X10==3)
-	SLICELOOP2
+	SLICELOOP4
     {
-    dfdy = (press(i,j+1)-press(i,j))/(p->DYP[JP]);
+    dfdy = (press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    b->G(i,j) += dfdy/p->W1;
+    b->G(i,j) += b->WL(i,j)*dfdy/p->W1;
     }
 }
 

@@ -39,6 +39,16 @@ public:
     
     double wave_horzvel(lexer*,double,double,double);
     
+    // cached-point evaluation (see wave_lib.h): spatial phases per cell and
+    // component precomputed, time phases per step, cosh/sinh via one exp
+    void wave_cache_points(lexer*, const std::vector<double>&, const std::vector<double>&) override final;
+    double wave_eta_c(lexer*, int) override final;
+    double wave_fi_c(lexer*, int, double) override final;
+    double wave_u_c(lexer*, int, double) override final;
+    double wave_v_c(lexer*, int, double) override final;
+    double wave_w_c(lexer*, int, double) override final;
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+
     double wave_u(lexer*,double,double,double) override final;
     double wave_u_space_sin(lexer*,double,double,double,int) override final;
     double wave_u_space_cos(lexer*,double,double,double,int) override final;
@@ -78,6 +88,15 @@ private:
     double T,vel,eta,fi;
     
     double *sinhkd;
+
+    // cached-point data
+    void cache_time(lexer*);
+    std::vector<double> cS, sS;                 // cos/sin of the spatial phase, [q*wN+n]
+    std::vector<double> cT, sT;                 // cos/sin of the time phase, [n]
+    std::vector<double> em2kd, invden;          // exp(-2 k d), 1/(1-exp(-2 k d))
+    std::vector<double> Aeta, Afi, Au, Av, Aw;  // component amplitudes of each quantity
+    std::vector<double> ezb;                    // exp(k z) scratch, [n]
+    double cache_t=-1.0e300;
     double **fixy,*fin;
 };
 

@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"cpt2D.h"
 
 class lexer;
+class fnpf_ice;
 
 using namespace std;
 
@@ -58,6 +59,7 @@ public:
     
     slice4 Fx,Fy;
     slice4 Ex,Ey;
+    slice4 Exu,Eyu;  // eta gradient for the kinematic FSBC, upwinded by dH/deta_x (A315>=1); equal to Ex,Ey for A315=0
     slice4 Exx,Eyy;
     slice4 Bx,By;
     slice4 Bxx,Byy;
@@ -69,15 +71,28 @@ public:
     sliceint5 nodeval2D;
     slice4 breaking_print;
 	
+    //  Rows the Laplace assembly writes, and rows the 2D damping system
+    //  writes.  Declared before rhsvec/M and xvec/rvec/N so they are
+    //  initialised first and can size them.
+    const int laprows;
+    const int slicerows;
+
     vec rhsvec;
     vec2D xvec,rvec;
-    double *Fi,*Uin,*Uout,*U,*V,*W;
+    double *Fi,*Uin,*U,*V,*W;
+    
+    // resolved 6DOF bodies (X 10 > 0): body id per sigma node (0 = fluid) and the
+    // Neumann data of the staircase body faces, see fnpf_6DOF
+    double *FBF=nullptr,*FBu=nullptr,*FBv=nullptr,*FBw=nullptr;
 
     matrix2D N;
 	matrix_diag M;    
     
     double gi,gj,gk;
     double wd_criterion;
+    
+    // FNPF ice floes (A 380), nullptr when off; read by the dynamic FSBC
+    fnpf_ice *ice = nullptr;
 };
 
 #endif

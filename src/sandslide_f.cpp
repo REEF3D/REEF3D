@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sandslide_f.h"
 #include"sediment_fdm.h"
+#include"sediment_mixture.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sliceint.h"
@@ -64,6 +65,9 @@ void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
         pgc->gcsl_start4(p,fh,1);
         
+        if(s->pmix!=nullptr)
+        s->pmix->slide_zero(p,pgc);
+        
         // slide loop
         
         slide(p,pgc,s);
@@ -79,6 +83,10 @@ void sandslide_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
 
         pgc->gcsl_start4(p,s->bedzh,1);
+        
+        // multi-fraction bed: sorting of the slid material
+        if(s->pmix!=nullptr)
+        s->pmix->slide_finish(p,pgc,s);
 
         count=pgc->globalimax(count);
 
@@ -111,6 +119,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac1*dh_corr;
             fh(i-1,j)+= fac1*dh_corr;
             
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i-1,j,fac1*dh_corr);
+            
 		++count;
 		}
 
@@ -126,6 +138,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
             
             fh(i,j)-= fac1*dh_corr;
             fh(i+1,j)+= fac1*dh_corr;
+            
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i+1,j,fac1*dh_corr);
 
         ++count;
         }
@@ -142,6 +158,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
             
             fh(i,j)-= fac1*dh_corr;
             fh(i,j-1)+= fac1*dh_corr;
+            
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i,j-1,fac1*dh_corr);
             
         ++count;
         }
@@ -160,6 +180,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac1*dh_corr;
             fh(i,j+1)+= fac1*dh_corr;
             
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i,j+1,fac1*dh_corr);
+            
         ++count;
         }
 		
@@ -176,6 +200,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
             
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j-1)+= fac2*dh_corr;
+            
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i-1,j-1,fac2*dh_corr);
             
         ++count;
         }
@@ -194,6 +222,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
             fh(i,j)-= fac2*dh_corr;
             fh(i-1,j+1)+= fac2*dh_corr;
             
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i-1,j+1,fac2*dh_corr);
+            
         ++count;
         }
 
@@ -210,6 +242,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 			fh(i,j)-= fac2*dh_corr;
             fh(i+1,j-1)+= fac2*dh_corr;
             
+
+			if(s->pmix!=nullptr)
+			s->pmix->slide_transfer(i,j,i+1,j-1,fac2*dh_corr);
+            
         ++count;
         }
     
@@ -225,6 +261,10 @@ void sandslide_f::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
       
             fh(i,j)-= fac2*dh_corr;
             fh(i+1,j+1)+= fac2*dh_corr;
+      
+
+            if(s->pmix!=nullptr)
+            s->pmix->slide_transfer(i,j,i+1,j+1,fac2*dh_corr);
             
         ++count;
         }

@@ -26,54 +26,35 @@ Author: Hans Bihs
 
 void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 {
-    double fsfloc;
-    int dbcount;
+    p->wavetime = p->simtime + p->RK_alpha*p->dt;
     
-    p->wavetime = p->simtime;
+    if(!gen_built) genzone4_build(p,pgc);
     
-    // pre-calc every iteration
-    // eta
-    SLICELOOP4
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==2)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-		}
-    }
-    pgc->gcsl_start4(p,eta,50);
-    
-
-
+    // eta and Fifsf of a cell together, so the cell's cached phases are read
+    // once (they do not fit in cache for many components). Fifsf is evaluated
+    // at the surface eta(i,j) just computed, which the halo exchange below
+    // does not change at interior cells; the Fifsfval count sequence is that
+    // of the relaxation functions (SLICELOOP4 order).
     count=0;
-    SLICELOOP4
+    
+    if(p->B98==2)
+    for(size_t q=0; q<gen_i.size(); ++q)
     {
-		
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
+        i = gen_i[q];
+        j = gen_j[q];
         
-        z = eta(i,j);
-		
-		// Wave Generation
-		if(p->B98==2 && f_switch==1)
+        PSLICECHECK4
         {
-            // Zone 1
-            if(dg<1.0e20)
-            { 
-            Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
-            
-            ++count;
-            }
-		}
+        eta(i,j) = wave_eta_c(p,pgc,int(q));
+        
+        if(f_switch==1)
+        {
+        Fifsfval[count] = wave_fi_c(p,pgc,int(q),eta(i,j));
+        ++count;
+        }
+        }
     }
     
+    pgc->gcsl_start4(p,eta,50);
 }
     

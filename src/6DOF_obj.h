@@ -43,6 +43,7 @@ class lexer;
 class fdm;
 class fdm2D;
 class fdm_nhf;
+class fdm_fnpf;
 class ghostcell;
 class reinidisc;
 class nhflow_reinidisc_fsf;
@@ -90,6 +91,11 @@ public:
     void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*,
                                            double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+    
+    // porous floating body (X 16)
+    void update_forcing_nhflow_porous(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int);
+    void porosity_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void porous_damping_nhflow(lexer*, int);
                          
                          
     double Sfx_n,Sfy_n,Sfz_n,SKx_n,SKy_n,SKz_n;
@@ -117,6 +123,24 @@ public:
     void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
     
     double Mass_fb, Vfb, Rfb;
+    
+    // FNPF: resolved bodies in the sigma grid (6DOF_obj_fnpf*.cpp)
+    void initialize_fnpf(lexer*, fdm_fnpf*, ghostcell*);
+    void solve_eqmotion_fnpf(lexer*, ghostcell*, int, bool);
+    void update_position_fnpf(lexer*, ghostcell*, bool);
+    void print_fnpf(lexer*, ghostcell*, int);
+    void ray_cast_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, slice&);
+    void face_data_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, double*, double*, double*, double*);
+    void forces_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double**, bool);
+    bool fnpf_fixed(lexer*);
+
+    // read-only access for the SFLOW mesh refinement (sflow_amr)
+    int amr_tricount() const {return tricount;}
+    double **amr_tri(int d) {return d==0?tri_x:(d==1?tri_y:tri_z);}
+    double amr_u(int n) const {return u_fb(n);}
+    double amr_c(int n) const {return c_(n);}
+    double amr_ramp_draft(lexer *p) {return ramp_draft(p);}
+    slice& amr_fs() {return fs;}
 
 private:
 
@@ -387,6 +411,11 @@ private:
     double Xext, Yext, Zext, Kext, Mext, Next;
     Eigen::Vector3d Ffb_, Mfb_;
     double Xe, Ye, Ze, Ke, Me, Ne;
+    
+    // porous floating body: drag reaction of the fluid on the skeleton (X 16)
+    double Xd, Yd, Zd, Kd, Md, Nd;
+    double Apor_fb, Bpor_fb;
+    double Dpor_t, Dpor_r[3];
 
     // Mooring
 	vector<double> X311_xen, X311_yen, X311_zen;
@@ -416,6 +445,16 @@ private:
     double **kinematics;
     
     double DSM;
+    
+    // FNPF: classical RK4 stage derivatives and the added-mass coupling
+    void rk4(lexer*, ghostcell*, int);
+    void externalForces_fnpf(lexer*, ghostcell*, bool);
+    void apply_added_mass(lexer*);
+    bool p_fixed_dof(lexer*, int);
+    Eigen::Vector3d rk4_p_[3], rk4_c_[3], rk4_h_[3];
+    Eigen::Vector4d rk4_e_[3];
+    Eigen::Matrix<double, 6, 6> Aadd_;
+    bool am_on_ = false;
 };
 
 #endif

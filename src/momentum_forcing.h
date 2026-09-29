@@ -35,6 +35,7 @@ class sixdof;
 class vrans;
 class mooring;
 class fsi;
+class rodtree_coupling;
 
 using namespace std;
 
@@ -52,5 +53,8 @@ private:
 	double value;
 	int gcval_u,gcval_v,gcval_w;
     double starttime, endtime;
+    
+    // flexible rod trees (Z 20), created on first use
+    rodtree_coupling *prodtree;
 };
 #endif

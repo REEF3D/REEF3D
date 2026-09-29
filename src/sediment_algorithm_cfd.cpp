@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
 #include"sediment_roughness.h"
+#include"sediment_mixture.h"
 
 void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
@@ -62,7 +63,11 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     pbedshear->taucritbed(p,a,pgc,s);
 
     // bedload *******
+    if(s->pmix==nullptr)
     pbed->start(p,pgc,s);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->bedload_fractions(p,pgc,s,pbed);
     
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
@@ -97,6 +102,9 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     
     // sediment log
     sedimentlog(p);
+    
+    if(s->pmix!=nullptr)
+    s->pmix->print_log(p,pgc);
     
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;

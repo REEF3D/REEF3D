@@ -53,7 +53,7 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
     }
     
     // NHFLOW
-    if(p->A10==5)
+    if((p->A10==5||p->A10==3))
     {
         if(p->P19==1)
         if(((p->count%p->P20==0) && p->P30<0.0) 
@@ -108,10 +108,10 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
         if(p->A10==2)
         printtime+=p->P182;
         
-        if(p->A10==5 && p->P19==1)
+        if((p->A10==5||p->A10==3) && p->P19==1)
         printtime+=p->P30;
         
-        if(p->A10==5 && p->P19==2)
+        if((p->A10==5||p->A10==3) && p->P19==2)
         printtime+=p->P182;
 
         int num=0;
@@ -125,8 +125,8 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
         char path[300];
         if(p->A10==2)
             sprintf(path,"./REEF3D_SFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
-        else if(p->A10==5)
-            sprintf(path,"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+        else if((p->A10==5||p->A10==3))
+            sprintf(path,(p->A10==3?"./REEF3D_FNPF_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp":"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp"),n6DOF,num);
         else if(p->A10==6)
             sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
 

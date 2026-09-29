@@ -28,8 +28,15 @@ Authors: Tobias Martin, Hans Bihs
 
 void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, field& vvel, field& wvel)
 {
-    int ii, jj, kk;
-    double dx, dy, dz, dist, D;
+    // Local contribution only; the global sum over all ranks is done in fsi_strips::forcing.
+    // The 3D kernel is a tensor product, so the 1D weights are evaluated once per point and
+    // direction (30 kernel calls instead of 1125) and zero-weight stencil entries are skipped.
+    // Products and summation order are the same as before.
+    
+    int ii, jj, kk, i_it, j_it, k_it;
+    double dx, dy, dz, D;
+    double wxF[5], wxC[5], wyF[5], wyC[5], wzF[5], wzC[5];
+    double su, sv, sw;
 
     for (int eI = 0; eI < Ne; eI++)
     {
@@ -53,55 +60,56 @@ void fsi_strip::interpolate_vel(lexer* p, fdm* a, ghostcell* pgc, field& uvel, f
                 dx = p->DXN[ii + marge];
                 dy = p->DYN[jj + marge];
                 dz = p->DZN[kk + marge];
-
-                for (int i_it = ii - 2; i_it <= ii + 2; i_it++)
+                
+                for (int n = 0; n < 5; n++)
                 {
-                    for (int j_it = jj - 2; j_it <= jj + 2; j_it++)
-                    {
-                        for (int k_it = kk - 2; k_it <= kk + 2; k_it++)
-                        {
-                            dist = (p->XN[i_it + 1 + marge] - coordI(0))/dx;
-                            D = kernel_roma(dist);
-                            dist = (p->YP[j_it + marge] - coordI(1))/dy;
-                            D *= kernel_roma(dist);
-                            dist = (p->ZP[k_it + marge] - coordI(2))/dz;
-                            D *= kernel_roma(dist);
-                            
-                            lagrangeVel[eI](0,pI) += uvel(i_it,j_it,k_it)*D;
+                    wxF[n] = kernel_roma((p->XN[ii + n - 2 + 1 + marge] - coordI(0))/dx);
+                    wxC[n] = kernel_roma((p->XP[ii + n - 2 + marge] - coordI(0))/dx);
+                    wyF[n] = kernel_roma((p->YN[jj + n - 2 + 1 + marge] - coordI(1))/dy);
+                    wyC[n] = kernel_roma((p->YP[jj + n - 2 + marge] - coordI(1))/dy);
+                    wzF[n] = kernel_roma((p->ZN[kk + n - 2 + 1 + marge] - coordI(2))/dz);
+                    wzC[n] = kernel_roma((p->ZP[kk + n - 2 + marge] - coordI(2))/dz);
+                }
+                
+                su = sv = sw = 0.0;
 
-                            dist = (p->XP[i_it + marge] - coordI(0))/dx;
-                            D = kernel_roma(dist);
-                            dist = (p->YN[j_it + 1 + marge] - coordI(1))/dy;
-                            D *= kernel_roma(dist);
-                            dist = (p->ZP[k_it + marge] - coordI(2))/dz;
-                            D *= kernel_roma(dist);
-                                
-                            lagrangeVel[eI](1,pI) += vvel(i_it,j_it,k_it)*D;
+                for (int ni = 0; ni < 5; ni++)
+                {
+                    i_it = ii - 2 + ni;
+                    
+                    for (int nj = 0; nj < 5; nj++)
+                    {
+                        j_it = jj - 2 + nj;
+                        
+                        for (int nk = 0; nk < 5; nk++)
+                        {
+                            k_it = kk - 2 + nk;
                             
-                            dist = (p->XP[i_it + marge] - coordI(0))/dx;
-                            D = kernel_roma(dist);
-                            dist = (p->YP[j_it + marge] - coordI(1))/dy;
-                            D *= kernel_roma(dist);
-                            dist = (p->ZN[k_it + 1 + marge] - coordI(2))/dz;
-                            D *= kernel_roma(dist);
-                             
-                            lagrangeVel[eI](2,pI) += wvel(i_it,j_it,k_it)*D;
+                            D = wxF[ni];
+                            D *= wyC[nj];
+                            D *= wzC[nk];
+                            if (D != 0.0)
+                            su += uvel(i_it,j_it,k_it)*D;
+
+                            D = wxC[ni];
+                            D *= wyF[nj];
+                            D *= wzC[nk];
+                            if (D != 0.0)
+                            sv += vvel(i_it,j_it,k_it)*D;
+                            
+                            D = wxC[ni];
+                            D *= wyC[nj];
+                            D *= wzF[nk];
+                            if (D != 0.0)
+                            sw += wvel(i_it,j_it,k_it)*D;
                         }
                     }
                 }
+                
+                lagrangeVel[eI](0,pI) = su;
+                lagrangeVel[eI](1,pI) = sv;
+                lagrangeVel[eI](2,pI) = sw;
             }
         }
     }
-    
-    starttime=pgc->timer();
-    for (int eI = 0; eI < Ne; eI++)
-    {
-        for (int pI = 0; pI < lagrangePoints[eI].cols(); pI++)
-        {
-            lagrangeVel[eI].col(pI) << pgc->globalsum(lagrangeVel[eI](0,pI)), pgc->globalsum(lagrangeVel[eI](1,pI)), pgc->globalsum(lagrangeVel[eI](2,pI));
-        }
-    }
-    
-    if(p->mpirank==0)
-    cout<<"FSI_sync time: "<<pgc->timer()-starttime<<endl;
 }

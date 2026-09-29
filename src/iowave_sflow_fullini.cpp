@@ -90,4 +90,37 @@ void iowave::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
 		b->eta(i,j) = wave_eta(p,pgc,xg,yg);
 
     }
+    
+    // cell-centred velocities (HLL SFLOW)
+    SLICELOOP4
+    {
+        xg = xgen(p);
+        yg = ygen(p);
+        
+        deltaz = (b->eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
+        
+        uval=0.0;
+        vval=0.0;
+        z=-p->wd;
+        for(int qn=0;qn<=p->B160;++qn)
+        {
+        uval += wave_u(p,pgc,xg,yg,z);
+        vval += wave_v(p,pgc,xg,yg,z);
+        z+=deltaz;
+        }
+        uval/=double(p->B160+1);
+        vval/=double(p->B160+1);
+        
+        // Boussinesq (A 220 4): velocity at the reference level z_a
+        if(p->A220==4)
+        {
+        z = -0.53*(p->wd - b->bed(i,j)) + 0.47*b->eta(i,j);
+        
+        uval = wave_u(p,pgc,xg,yg,z);
+        vval = wave_v(p,pgc,xg,yg,z);
+        }
+        
+		b->U(i,j) = uval;
+        b->V(i,j) = vval*p->y_dir;
+	}
 }

@@ -109,6 +109,18 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     
     Mass_fb =  Rfb = Vfb = 1.0;
     
+    // porous floating body (X 16): Darcy-Forchheimer coefficients, same closure as vrans_nhflow_f
+    // K = Apor_fb*visc + Bpor_fb*|u - u_fb|  [1/s]
+    Xd=Yd=Zd=Kd=Md=Nd=0.0;
+    Apor_fb=Bpor_fb=0.0;
+    Dpor_t=Dpor_r[0]=Dpor_r[1]=Dpor_r[2]=0.0;
+    
+    if(p->X16==1)
+    {
+    Apor_fb = p->X16_alpha*(pow(1.0-p->X16_n,2.0)/pow(p->X16_n,3.0))/pow(p->X16_d50,2.0);
+    Bpor_fb = p->X16_beta*(1.0 + 7.5/p->B264)*((1.0-p->X16_n)/pow(p->X16_n,4.0))/p->X16_d50;
+    }
+    
     
     if(p->A10==5)
     {

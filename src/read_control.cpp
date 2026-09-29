@@ -102,6 +102,9 @@ void control::read_control(lexer* p)
                 case 223: control>>A223;
                          clear(c,numint);
                          break;
+                case 224: control>>A224;
+                         clear(c,numint);
+                         break;
                 case 230: control>>A230;
                          clear(c,numint);
                          break;
@@ -154,6 +157,37 @@ void control::read_control(lexer* p)
                 case 264: control>>A264;
                          clear(c,numint);
                          break;
+                case 270: control>>A270;
+                         clear(c,numint);
+                         break;
+                case 271: control>>A271;
+                         clear(c,numint);
+                         break;
+                case 272: control>>A272;
+                         clear(c,numint);
+                         break;
+                case 273: control>>A273;
+                         clear(c,numint);
+                         break;
+                case 274: control>>A274;
+                         clear(c,numint);
+                         break;
+                case 275: control>>A275;
+                         clear(c,numint);
+                         break;
+                case 276: ++A276;
+                         clear(c,numint);
+                         break;
+                case 277: ++A277;
+                         clear(c,numint);
+                         break;
+                case 278: control>>A278_r;
+                         A278=1;
+                         clear(c,numint);
+                         break;
+                case 279: control>>A279_L>>A279_a;
+                         clear(c,numint);
+                         break;
 
                 case 309: control>>A309;
                          clear(c,numint);
@@ -173,6 +207,21 @@ void control::read_control(lexer* p)
                 case 314: control>>A314;
                          clear(c,numint);
                          break;
+                case 315: control>>A315;
+                         clear(c,numint);
+                         break;
+                case 316: control>>A316;
+                         clear(c,numint);
+                         break;
+                case 317: control>>A317;
+                         clear(c,numint);
+                         break;
+                case 318: control>>A318;
+                         clear(c,numint);
+                         break;
+                case 319: control>>A319;
+                         clear(c,numint);
+                         break;
                 case 320: control>>A320;
                          clear(c,numint);
                          break;
@@ -185,7 +234,49 @@ void control::read_control(lexer* p)
                 case 323: control>>A323;
                          clear(c,numint);
                          break;
+                case 324: control>>A324;
+                         clear(c,numint);
+                         break;
+                case 325: control>>A325;
+                         clear(c,numint);
+                         break;
+                case 328: control>>A328;
+                         clear(c,numint);
+                         break;
+                case 326: control>>A326;
+                         clear(c,numint);
+                         break;
+                case 327: control>>A327;
+                         clear(c,numint);
+                         break;
                 case 329: control>>A329;
+                         clear(c,numint);
+                         break;
+                case 330: control>>A330;
+                         clear(c,numint);
+                         break;
+                case 331: control>>A331;
+                         clear(c,numint);
+                         break;
+                case 332: control>>A332;
+                         clear(c,numint);
+                         break;
+                case 334: control>>A334;
+                         clear(c,numint);
+                         break;
+                case 335: control>>A335;
+                         clear(c,numint);
+                         break;
+                case 336: control>>A336;
+                         clear(c,numint);
+                         break;
+                case 337: control>>A337;
+                         clear(c,numint);
+                         break;
+                case 338: control>>A338;
+                         clear(c,numint);
+                         break;
+                case 339: control>>A339;
                          clear(c,numint);
                          break;
                 case 340: control>>A340;
@@ -281,6 +372,90 @@ void control::read_control(lexer* p)
                 case 374: control>>A374;
                          clear(c,numint);
                          break;
+                case 375: control>>A375;
+                         clear(c,numint);
+                         break;
+                case 376: control>>A376_s>>A376_sc>>A376_c;
+                         clear(c,numint);
+                         break;
+                case 377: control>>A377;
+                         clear(c,numint);
+                         break;
+                case 378: control>>A378;
+                         clear(c,numint);
+                         break;
+                case 380: control>>A380;
+                         clear(c,numint);
+                         break;
+                case 381: control>>A381;
+                         clear(c,numint);
+                         break;
+                case 382: control>>A382;
+                         clear(c,numint);
+                         break;
+                case 383: control>>A383;
+                         clear(c,numint);
+                         break;
+                case 384: control>>A384_mu>>A384_e;
+                         clear(c,numint);
+                         break;
+                case 385: control>>A385;
+                         clear(c,numint);
+                         break;
+                case 386: control>>A386;
+                         clear(c,numint);
+                         break;
+                case 387: control>>A387;
+                         clear(c,numint);
+                         break;
+                case 388: control>>A388;
+                         clear(c,numint);
+                         break;
+                case 389: control>>A389;
+                         clear(c,numint);
+                         break;
+                case 390: control>>A390;
+                         clear(c,numint);
+                         break;
+                case 391: control>>A391;
+                         clear(c,numint);
+                         break;
+                case 392: control>>A392_K>>A392_C;
+                         clear(c,numint);
+                         break;
+                case 393: control>>A393;
+                         clear(c,numint);
+                         break;
+                case 394: control>>A394;
+                         clear(c,numint);
+                         break;
+                case 395: control>>A395_dir>>A395_off;
+                         clear(c,numint);
+                         break;
+                case 396: control>>A396;
+                         clear(c,numint);
+                         break;
+                case 397: control>>A397_E>>A397_nu;
+                         clear(c,numint);
+                         break;
+                case 398: control>>A398;
+                         clear(c,numint);
+                         break;
+                case 399: control>>A399_m>>A399_A>>A399_seed;
+                         clear(c,numint);
+                         break;
+                case 400: control>>A400;
+                         clear(c,numint);
+                         break;
+                case 401: control>>A401;
+                         clear(c,numint);
+                         break;
+                case 402: control>>A402_L>>A402_C>>A402_T;
+                         clear(c,numint);
+                         break;
+                case 403: control>>A403;
+                         clear(c,numint);
+                         break;
 
                 case 410: control>>A410;
                          clear(c,numint);
@@ -341,6 +516,12 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 526: control>>A526;
+                         clear(c,numint);
+                         break;
+                case 527: control>>A527;
+                         clear(c,numint);
+                         break;
+                case 528: control>>A528;
                          clear(c,numint);
                          break;
                 case 531: control>>A531;
@@ -431,6 +612,15 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 574: control>>A574;
+                         clear(c,numint);
+                         break;
+                case 575: control>>A575;
+                         clear(c,numint);
+                         break;
+                case 576: control>>A576_s>>A576_sc>>A576_c;
+                         clear(c,numint);
+                         break;
+                case 578: control>>A578;
                          clear(c,numint);
                          break;
                 case 581: ++A581;
@@ -700,6 +890,12 @@ void control::read_control(lexer* p)
                 case 112: control>>B112_zs>>B112_z2>>B112_ze;
                          clear(c,numint);
                          break;
+                case 113: control>>B113>>B113_J;
+                         clear(c,numint);
+                         break;
+                case 114: control>>B114_fmin>>B114_fmax>>B114_f2min;
+                         clear(c,numint);
+                         break;
                 case 115: control>>B115;
                          clear(c,numint);
                          break;
@@ -710,6 +906,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 118: control>>B118;
+                         clear(c,numint);
+                         break;
+                case 119: control>>B119;
                          clear(c,numint);
                          break;
                 case 120: control>>B120;
@@ -1491,6 +1690,61 @@ void control::read_control(lexer* p)
                 }
                 break;
 
+            case 'L': control>>numint;
+                switch(numint)
+                {
+                case 10: control>>L10;
+                         clear(c,numint);
+                         break;
+                case 11: control>>L11;
+                         clear(c,numint);
+                         break;
+                case 21: ++L21;
+                         control.ignore(1000, '\n');
+                         clear(c,numint);
+                         break;
+                case 22: ++L22;
+                         control.ignore(1000, '\n');
+                         clear(c,numint);
+                         break;
+                case 23: ++L23;
+                         control.ignore(1000, '\n');
+                         clear(c,numint);
+                         break;
+                case 31: control>>L31;
+                         clear(c,numint);
+                         break;
+                case 32: control>>L32;
+                         clear(c,numint);
+                         break;
+                case 33: control>>L33;
+                         clear(c,numint);
+                         break;
+                case 34: control>>L34;
+                         clear(c,numint);
+                         break;
+                case 41: control>>L41_u>>L41_dir;
+                         L41=1;
+                         clear(c,numint);
+                         break;
+                case 51: control>>L51;
+                         clear(c,numint);
+                         break;
+                case 52: control>>L52;
+                         clear(c,numint);
+                         break;
+                case 53: control>>L53;
+                         clear(c,numint);
+                         break;
+                case 61: control>>L61;
+                         clear(c,numint);
+                         break;
+                case 62: control>>L62;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
             case 'M': control>>numint;
                 switch(numint)
                 {
@@ -1516,6 +1770,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 14: control>>N14;
+                         clear(c,numint);
+                         break;
+                case 15: control>>N15;
                          clear(c,numint);
                          break;
                 case 18: control>>N18;
@@ -2159,6 +2416,24 @@ void control::read_control(lexer* p)
                 case 50: control>>S50;
                          clear(c,numint);
                          break;
+                case 51: ++S51;
+                         clear(c,numint);
+                         break;
+                case 52: control>>S52;
+                         clear(c,numint);
+                         break;
+                case 53: control>>S53;
+                         clear(c,numint);
+                         break;
+                case 54: control>>S54;
+                         clear(c,numint);
+                         break;
+                case 55: control>>S55;
+                         clear(c,numint);
+                         break;
+                case 56: control>>S56;
+                         clear(c,numint);
+                         break;
                 case 57: control>>S57;
                          clear(c,numint);
                          break;
@@ -2239,6 +2514,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 102: control>>S102;
+                         clear(c,numint);
+                         break;
+                case 103: control>>S103;
                          clear(c,numint);
                          break;
                 }
@@ -2441,6 +2719,10 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case  15: control>>X15;
+                         clear(c,numint);
+                         break;
+                case  16: control>>X16_n>>X16_d50>>X16_alpha>>X16_beta;
+                         X16=1;
                          clear(c,numint);
                          break;
                 case  19: control>>X19;
@@ -2742,6 +3024,12 @@ void control::read_control(lexer* p)
                 case  11: ++Z11;
                          clear(c,numint);
                          break;
+                case  20: control>>Z20;
+                         clear(c,numint);
+                         break;
+                case  21: control>>Z21;
+                         clear(c,numint);
+                         break;
                 }
                 break;
         }
@@ -2759,6 +3047,11 @@ void control::read_control(lexer* p)
     control.clear();
 
     // re-read
+
+    // L
+    Darray(L21_val,9*L21);
+    Darray(L22_val,12*L22);
+    Darray(L23_val,12*L23);
 
     // A
     Darray(A581_xs,A581);
@@ -3077,6 +3370,16 @@ void control::read_control(lexer* p)
     Darray(F72_ye,F72);
 
     Darray(F72_h,F72);
+
+    Darray(A276_xs,A276);
+    Darray(A276_xe,A276);
+    Darray(A276_ys,A276);
+    Darray(A276_ye,A276);
+
+    Darray(A277_xs,A277);
+    Darray(A277_xe,A277);
+    Darray(A277_ys,A277);
+    Darray(A277_ye,A277);
 
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
@@ -3411,6 +3714,10 @@ void control::read_control(lexer* p)
     Darray(Q111_ze,Q111);
 
     // S
+    Darray(S51_d,S51);
+    Darray(S51_fa,S51);
+    Darray(S51_fs,S51);
+
     Darray(S73_val,S73);
     Darray(S73_dist,S73);
     Darray(S73_b,S73);
@@ -3625,6 +3932,8 @@ void control::read_control(lexer* p)
     int countF70=0;
     int countF71=0;
     int countF72=0;
+    int countA276=0;
+    int countA277=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -3687,6 +3996,7 @@ void control::read_control(lexer* p)
     int countQ73=0;
     int countQ110=0;
     int countQ111=0;
+    int countS51=0;
     int countS73=0;
     int countS74=0;
     int countS75=0;
@@ -3702,6 +4012,9 @@ void control::read_control(lexer* p)
     int countX322=0;
     int countX324=0;
     int countZ11=0;
+    int countL21=0;
+    int countL22=0;
+    int countL23=0;
 
 
     count=0;
@@ -3719,6 +4032,18 @@ void control::read_control(lexer* p)
             case 'A': control>>numint;
                 switch(numint)
                 {
+                case 276: control>>A276_xs[countA276]>>A276_xe[countA276]>>A276_ys[countA276]>>A276_ye[countA276];
+                         p->XYin(A276_xs[countA276],A276_ys[countA276]);
+                         p->XYin(A276_xe[countA276],A276_ye[countA276]);
+                         ++countA276;
+                         clear(c,numint);
+                         break;
+                case 277: control>>A277_xs[countA277]>>A277_xe[countA277]>>A277_ys[countA277]>>A277_ye[countA277];
+                         p->XYin(A277_xs[countA277],A277_ys[countA277]);
+                         p->XYin(A277_xe[countA277],A277_ye[countA277]);
+                         ++countA277;
+                         clear(c,numint);
+                         break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];
                          p->XYin(A581_xs[countA581],A581_ys[countA581]);
                          p->XYin(A581_xe[countA581],A581_ye[countA581]);
@@ -4081,6 +4406,27 @@ void control::read_control(lexer* p)
                 }
                 break;
 
+            case 'L': control>>numint;
+                switch(numint)
+                {
+                case 21: for(int qn=0;qn<9;++qn)
+                         control>>L21_val[9*countL21+qn];
+                         ++countL21;
+                         clear(c,numint);
+                         break;
+                case 22: for(int qn=0;qn<12;++qn)
+                         control>>L22_val[12*countL22+qn];
+                         ++countL22;
+                         clear(c,numint);
+                         break;
+                case 23: for(int qn=0;qn<12;++qn)
+                         control>>L23_val[12*countL23+qn];
+                         ++countL23;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
             case 'P': control>>numint;
                 switch(numint)
                 {
@@ -4315,6 +4661,10 @@ void control::read_control(lexer* p)
             case 'S': control>>numint;
                 switch(numint)
                 {
+                case 51: control>>S51_d[countS51]>>S51_fa[countS51]>>S51_fs[countS51];
+                         ++countS51;
+                         clear(c,numint);
+                         break;
                 case 73: control>>S73_val[countS73]>>S73_dist[countS73]>>S73_b[countS73]>>S73_x[countS73]>>S73_y[countS73];
                          ++countS73;
                          clear(c,numint);

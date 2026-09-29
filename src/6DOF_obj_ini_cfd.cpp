@@ -138,9 +138,13 @@ void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 				pmooring.push_back(new mooring_Spring(i));
 			}
 		
-			X311_xen[i] = p->X311_xe[i] - p->xg;
-			X311_yen[i] = p->X311_ye[i] - p->yg;
-			X311_zen[i] = p->X311_ze[i] - p->zg;
+			// Fairlead offset in the body frame: mooringForces() applies R_*offset,
+			// so remove the initial rotation (X101) here to avoid rotating twice
+			Eigen::Vector3d fl(p->X311_xe[i] - p->xg, p->X311_ye[i] - p->yg, p->X311_ze[i] - p->zg);
+			fl = R_.transpose()*fl;
+			X311_xen[i] = fl(0);
+			X311_yen[i] = fl(1);
+			X311_zen[i] = fl(2);
 		
 			pmooring[i]->initialize(p,pgc);
 		}

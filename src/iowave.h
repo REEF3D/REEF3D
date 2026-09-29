@@ -40,6 +40,8 @@ class patchBC_interface;
 class linear_regression_cont;
 
 using namespace std;
+#include <memory>
+#include<vector>
 
 class iowave final : public ioflow, public wave_interface, public increment, public flowfile_in
 {
@@ -205,6 +207,7 @@ public:
     void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void fsfinflow_flux_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override final;
     
     void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);
@@ -257,17 +260,45 @@ private:
 
 	double distgen(lexer*);
 	double distbeach(lexer*);
+	double distgen_calc(lexer*);
+	double distbeach_calc(lexer*);
+	void dist_cache_build(lexer*);
+	void xy_cache_build(lexer*);
+	double *dgcache=nullptr, *dbcache=nullptr, *xgcache=nullptr, *ygcache=nullptr;
+	double xgen_calc(lexer*);
+	double ygen_calc(lexer*);
     
     void distbeach_ini(lexer*);
     void distgen_ini(lexer*);
+    
+    // Relaxation-zone geometry of the slice4 cells, built once on first use.
+    // Only cells inside the generation or beach zone are stored, in SLICELOOP4
+    // order, with their xgen/ygen/distgen/distbeach values.
+    void relaxzone4_build(lexer*);
+    std::vector<int> rz4_i, rz4_j;
+    std::vector<double> rz4_xg, rz4_yg, rz4_dg, rz4_db;
+    bool rz4_built=false;
+    
+    // Wave-generation columns (dg<1e20), all (i,j) in ILOOP/JLOOP order,
+    // registered with the wave library for cached-point evaluation
+    // (wave_lib.h). gen_idx maps a slice cell IJ to its index, -1 outside.
+    void genzone4_build(lexer*,ghostcell*);
+    std::vector<int> gen_i, gen_j;
+    std::vector<int> gen_idx;
+    bool gen_built=false;
+    
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC
     double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
     slice4 vofheight;
     slice4 genheight;
-    field4 vofgen;
-    
+
+    //  Written only by wavegen_precalc_relax under F80==4 (VOF-PLIC), which
+    //  FNPF never reaches - it goes through fnpf_precalc_relax instead.  Held
+    //  by pointer so a run that cannot use it does not pay for a full 3D
+    //  field: 3.5 MiB per rank on a 133x200x10 box.
+    std::unique_ptr<field4> vofgen;
 
     int n,count;
     int wtype;
