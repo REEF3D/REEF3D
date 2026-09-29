@@ -396,6 +396,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="AMR">
+          <File Name="sflow_amr_linesolve.h"/>
           <File Name="sflow_amr.h"/>
           <File Name="sflow_amr_ship.h"/>
         </VirtualDirectory>
@@ -457,6 +458,7 @@
           <File Name="sflow_print_probe_da.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
+          <File Name="sflow_pressure_nh.h"/>
           <File Name="sflow_boussinesq.h"/>
           <File Name="sflow_pressure.h"/>
           <File Name="sflow_pjm_quad.h"/>
@@ -1697,6 +1699,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="AMR">
+          <File Name="sflow_amr_linesolve.cpp"/>
           <File Name="sflow_amr_ship.cpp"/>
           <File Name="sflow_amr.cpp"/>
           <File Name="sflow_amr_nh.cpp"/>

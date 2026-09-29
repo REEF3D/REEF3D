@@ -44,12 +44,13 @@ class sflow_pressure;
 class sflow_fsf;
 class sflow_forcing;
 class sflow_momentum_RK3;
-class sflow_pjm_lin;
+class sflow_pressure_nh;
 class reefmg_core;
 class reefmg2D;
 class vec2D;
 class sixdof_sflow;
 class sflow_amr_ship;
+class solver2D;
 
 using namespace std;
 
@@ -132,7 +133,7 @@ struct sflow_amr_patch
     bool fresh;                     // created by the current regrid
 
     // non-hydrostatic pressure (A 220 1), solved on all grids together
-    sflow_pjm_lin *pnh = nullptr;
+    sflow_pressure_nh *pnh = nullptr;
     vector<slice*> nv;              // Krylov vectors
     vector<signed char> act;        // -2 no row, -1 covered by a finer patch, 0 q = 0 row, 1 active
     vector<int> row;                // matrix row of a cell (SLICELOOP4 order), -1 none
@@ -141,6 +142,9 @@ struct sflow_amr_patch
 
     // moving body on the patch (X 10 2/3)
     sflow_amr_ship *pship = nullptr;
+
+    // line solver of the Boussinesq u_a inversion (A 220 4)
+    solver2D *psolv = nullptr;
 };
 
 // a coarse face overridden with fine values
@@ -289,6 +293,8 @@ private:
 
     // global tile maps per level (1 = refined), and the local tile -> patch map
     vector<vector<unsigned char>> gtile;
+    vector<vector<unsigned char>> tage;     // regrids since a tile was last flagged (A 280)
+    int keep;
     vector<int> gtnx,gtny;
     vector<vector<int>> tmap;
     vector<int> tti0,ttj0,tnx,tny;
@@ -329,7 +335,9 @@ private:
     ofstream logout;
     const double eps;
     int EXT;                        // extra computed cells on each side of a patch (2, 3 with B 60)
-    static const int NV = 10;       // values per filled cell: WL UH VH eta U V wet deep WH W
+    static const int NVMAX = 14;
+    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY)
+    int bous;                       // Boussinesq (A 220 4): UH,VH hold V, u_a and M are filled as well
 };
 
 #endif

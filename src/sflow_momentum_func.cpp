@@ -321,6 +321,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     nhVH = &VHo;
     nhWH = &WHo;
     nhWL = &WLo;
+    nhUn = &Un;
+    nhVn = &Vn;
     nh_alpha = alpha;
     return;
     }

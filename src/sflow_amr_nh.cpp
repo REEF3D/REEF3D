@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"vec2D.h"
 #include"matrix2D.h"
-#include"sflow_pjm_lin.h"
+#include"sflow_pressure_nh.h"
 #include"sflow_momentum_RK3.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
@@ -36,7 +36,7 @@ Author: Hans Bihs
 #include<mpi.h>
 #include<iomanip>
 
-//  Composite non-hydrostatic pressure (sflow_pjm_lin, A 220 1) on level 0 and the patches.
+//  Composite non-hydrostatic pressure (sflow_pjm_lin A 220 1, sflow_pjm_quad A 220 2/3) on level 0 and the patches.
 //
 //  Every grid assembles its own rows with sflow_pjm_lin (level 0 before the call, the patches
 //  in nh_prepare).  The unknowns are the leaf cells: level-0 and patch cells not covered by a
@@ -121,7 +121,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc)
         c->nv.push_back(new slice4(c->pp));
 
         // the patch rows (right-hand side from the state after the momentum update)
-        c->pnh->assemble(c->pp,c->b,*c->pmom->nhWL,c->pmom->nh_alpha);
+        c->pnh->assemble(c->pp,c->b,pgc,*c->pmom->nhUH,*c->pmom->nhVH,*c->pmom->nhWL,*c->pmom->nhUn,*c->pmom->nhVn,c->pmom->nh_alpha);
     }
     }
 

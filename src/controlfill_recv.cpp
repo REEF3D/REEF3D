@@ -119,6 +119,8 @@ void control::ctrlrecv()
     dd++;
     A279_a = dctrl[dd];
     dd++;
+    A280 = ictrl[ii];
+    ii++;
 
     A309 = ictrl[ii];
     ii++;

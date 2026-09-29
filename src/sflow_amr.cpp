@@ -35,8 +35,10 @@ Author: Hans Bihs
 #include"sflow_forcing.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_pjm_lin.h"
+#include"sflow_pjm_quad.h"
 #include"sflow_ediff.h"
 #include"sflow_amr_ship.h"
+#include"sflow_amr_linesolve.h"
 #include"6DOF_sflow.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
@@ -101,16 +103,28 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     tile = MAX(p->A275,4);
     tile += tile%2;
     nest = 3;
+    keep = MIN(MAX(p->A280,0),250);
 
     // cells computed beyond the patch box: the wet-dry step of a stage needs the new state
     // two cells further out, the discharge limiter (B 60) three
     // (non-hydrostatic without the shallow-water switch A 221: the deep flag needs the
     // wet state three cells further out)
+    // (Boussinesq A 220 4: the dispersive operators reach three cells, the flux M five
+    // through the reconstruction; only the line-implicit u_a solve couples the whole patch)
     EXT = (p->B60>=1) ? 3 : 2;
-    if(p->A220==1 && p->A221==0)
+    if(p->A220>=1 && p->A220<=3 && p->A221==0)
     EXT = 4;
+    if(p->A220==4)
+    EXT = 6;
 
-    nh = (p->A220==1) ? 1 : 0;
+    nh = (p->A220>=1 && p->A220<=3) ? 1 : 0;
+    bous = (p->A220==4) ? 1 : 0;
+    NV = bous==1 ? 14 : 10;
+
+    // the patch arrays reach EXT + margin fine cells beyond the patch: the coarser level has to
+    // cover them (A 220 4, EXT 6)
+    if(bous==1)
+    nest = MAX(nest,(EXT+p->margin+1)/2);
     nh_it_total = nh_solves = 0;
     nh_it_last = 0;
     nh_rebuild0 = true;
@@ -285,7 +299,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // scope
     int ok=1;
-    if(p->A220!=0 && p->A220!=1) ok=0;
+    if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2) ok=0;
     if(p->A260!=0) ok=0;
     if(p->S10!=0) ok=0;
@@ -296,7 +310,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (A 270): only for A 220 0/1, A 210 3, A 260 0, S 10 0, X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (A 270): only for A 220 0-4, A 210 3, A 260 0, S 10 0, X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -322,6 +336,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     lev.assign(maxlev+1,vector<int>());
     gtile.assign(maxlev+1,vector<unsigned char>());
+    tage.assign(maxlev+1,vector<unsigned char>());
     gtnx.assign(maxlev+1,0);
     gtny.assign(maxlev+1,0);
     tmap.assign(maxlev+1,vector<int>());
@@ -430,7 +445,10 @@ sflow_amr_patch* sflow_amr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, 
     c->pdiff = new sflow_diffusion_void(pp);
     if(nh==1)
     {
+    if(p->A220==1)
     c->pnh = new sflow_pjm_lin(pp,c->b,pBC);
+    else
+    c->pnh = new sflow_pjm_quad(pp,c->b,pgc,pBC);
     c->ppress = c->pnh;
     }
     else
@@ -443,7 +461,9 @@ sflow_amr_patch* sflow_amr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, 
     c->pship = new sflow_amr_ship(pp);
     p6 = c->pship;
     }
-    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,nullptr,nullptr,pflow_void,c->pfsf,c->psfdf,p6);
+    if(bous==1)
+    c->psolv = new sflow_amr_linesolve;
+    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_void,c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
     }
 
@@ -468,6 +488,7 @@ void sflow_amr::free_patch(sflow_amr_patch *c)
 
     delete c->pmom;
     delete c->pship;
+    delete c->psolv;
     delete c->psfdf;
     delete c->pfsf;
     delete c->ppress;
@@ -876,6 +897,30 @@ void sflow_amr::regrid(lexer *p, fdm2D *b, ghostcell *pgc, bool initial)
             M[l][(size_t)ti*gtny[l]+tj]=1;
         }
 
+        global_or(M[l]);
+
+        // hysteresis (A 280): a refined tile is kept until it has not been flagged for A 280
+        // regrids, so that a flag which drops below the threshold for a moment does not remove
+        // and rebuild the patch
+        if(keep>0)
+        {
+            vector<unsigned char> &A = tage[l];
+            if(A.size()!=M[l].size())
+            A.assign(M[l].size(),255);
+
+            const bool old = gtile[l].size()==M[l].size();
+            for(size_t t=0; t<M[l].size(); ++t)
+            {
+                if(M[l][t])
+                A[t] = 0;
+                else if(A[t]<255)
+                ++A[t];
+
+                if(!initial && old && !M[l][t] && gtile[l][t] && A[t]<=keep)
+                M[l][t] = 1;
+            }
+        }
+
         if(l<maxlev)
         for(int ti=0; ti<gtnx[l+1]; ++ti)
         for(int tj=0; tj<gtny[l+1]; ++tj)
@@ -889,8 +934,6 @@ void sflow_amr::regrid(lexer *p, fdm2D *b, ghostcell *pgc, bool initial)
             for(int d=d0; d<=d1; ++d)
             M[l][(size_t)a*gtny[l]+d]=1;
         }
-
-        global_or(M[l]);
 
         for(int ti=0; ti<gtnx[l]; ++ti)
         for(int tj=0; tj<gtny[l]; ++tj)
@@ -1144,7 +1187,7 @@ void sflow_amr::ini_patch_state(lexer *p, ghostcell *pgc, sflow_amr_patch &c, ve
     fdm2D *b = c.b;
     const int l = c.lev;
     const double wd = p->A244;
-    double v[NV];
+    double v[NVMAX];
 
     // defaults for all cells (cells outside the interior are filled afterwards)
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
@@ -1155,6 +1198,7 @@ void sflow_amr::ini_patch_state(lexer *p, ghostcell *pgc, sflow_amr_patch &c, ve
         b->eta(ii,jj) = wd - b->depth(ii,jj);
         b->U(ii,jj) = b->V(ii,jj) = b->W(ii,jj) = 0.0;
         b->press(ii,jj) = 0.0;
+        b->UA(ii,jj) = b->VA(ii,jj) = b->MX(ii,jj) = b->MY(ii,jj) = 0.0;
         pp->wet[lij(pp,ii,jj)] = 0;
         pp->deep[lij(pp,ii,jj)] = 0;
     }
@@ -1194,6 +1238,10 @@ void sflow_amr::ini_patch_state(lexer *p, ghostcell *pgc, sflow_amr_patch &c, ve
                 b->WH(ii,jj) = o->b->WH(si,sj);
                 b->W(ii,jj) = o->b->W(si,sj);
                 b->press(ii,jj) = o->b->press(si,sj);
+                b->UA(ii,jj) = o->b->UA(si,sj);
+                b->VA(ii,jj) = o->b->VA(si,sj);
+                b->MX(ii,jj) = o->b->MX(si,sj);
+                b->MY(ii,jj) = o->b->MY(si,sj);
                 pp->wet[lij(pp,ii,jj)] = qp->wet[lij(qp,si,sj)];
                 pp->deep[lij(pp,ii,jj)] = qp->deep[lij(qp,si,sj)];
             }
@@ -1216,6 +1264,10 @@ void sflow_amr::ini_patch_state(lexer *p, ghostcell *pgc, sflow_amr_patch &c, ve
             prolong(g,ic,jc,a==0?-1:1,d==0?-1:1,b->depth(ii,jj),v);
             b->WL(ii,jj)=v[0]; b->UH(ii,jj)=v[1]; b->VH(ii,jj)=v[2]; b->WH(ii,jj)=v[8];
             b->press(ii,jj) = G.b->press(ic,jc);
+            if(bous==1)
+            {
+            b->UA(ii,jj)=v[10]; b->VA(ii,jj)=v[11]; b->MX(ii,jj)=v[12]; b->MY(ii,jj)=v[13];
+            }
             pp->wet[lij(pp,ii,jj)]=(int)v[6];
         }
 
@@ -1254,6 +1306,11 @@ void sflow_amr::ini_patch_state(lexer *p, ghostcell *pgc, sflow_amr_patch &c, ve
             b->U(ii,jj) = w==1 ? b->UH(ii,jj)/wlvl : 0.0;
             b->V(ii,jj) = w==1 ? b->VH(ii,jj)/wlvl*p->y_dir : 0.0;
             b->W(ii,jj) = w==1 ? b->WH(ii,jj)/wlvl : 0.0;
+            if(bous==1)
+            {
+            b->U(ii,jj) = w==1 ? b->MX(ii,jj)/wlvl : 0.0;
+            b->V(ii,jj) = w==1 ? b->MY(ii,jj)/wlvl*p->y_dir : 0.0;
+            }
             pp->deep[lij(pp,ii,jj)] = w;
         }
     }
@@ -1662,6 +1719,20 @@ void sflow_amr::prolong(int g, int ic, int jc, int ox, int oy, double depthf, do
     auto dry = [&]()
     {
         v[0]=wd; v[1]=v[2]=0.0; v[3]=wd-depthf; v[4]=v[5]=0.0; v[6]=0.0; v[7]=0.0; v[8]=v[9]=0.0;
+        if(bous==1)
+        v[10]=v[11]=v[12]=v[13]=0.0;
+    };
+
+    // Boussinesq: u_a and M/H of the coarse cell (the parent state at the start of the stage)
+    auto getb = [&](int a, int bb, double *w)
+    {
+        double wlc = WLp(a,bb);
+        double wlvl = fabs(wlc)>wd ? wlc : 1.0e20;
+        int wt = q->wet[lij(q,a,bb)]==1 && q->flagslice4[lij(q,a,bb)]>0;
+        w[0] = wt ? pb->UA(a,bb) : 0.0;
+        w[1] = wt ? pb->VA(a,bb) : 0.0;
+        w[2] = wt ? pb->MX(a,bb)/wlvl : 0.0;
+        w[3] = wt ? pb->MY(a,bb)/wlvl : 0.0;
     };
 
     double e0,u0,v0,w0v; int w0;
@@ -1684,10 +1755,28 @@ void sflow_amr::prolong(int g, int ic, int jc, int ox, int oy, double depthf, do
         v[8]=wh; v[9]=wh/wlvl;
     };
 
+    // Boussinesq: u_a and M from limited slopes of u_a and M/H, U = M/H
+    auto finb = [&](double hf, double sx, double sy)
+    {
+        double c0[4],cE[4],cW[4],cN[4],cS[4];
+        getb(ic,jc,c0);
+        getb(ic+1,jc,cE); getb(ic-1,jc,cW); getb(ic,jc+1,cN); getb(ic,jc-1,cS);
+        for(int k=0; k<4; ++k)
+        {
+            double f = c0[k] + sx*mmod(cE[k]-c0[k],c0[k]-cW[k]) + sy*mmod(cN[k]-c0[k],c0[k]-cS[k]);
+            if(k<2) v[10+k] = f;
+            else    v[10+k] = hf*f;
+        }
+        v[4] = v[12]/(fabs(hf)>wd ? hf : 1.0e20);
+        v[5] = v[13]/(fabs(hf)>wd ? hf : 1.0e20)*p0->y_dir;
+    };
+
     double hc = WLp(ic,jc);
     if(hc<3.0*wd)
     {
         fin(hc,UHp(ic,jc),VHp(ic,jc),WHp(ic,jc));
+        if(bous==1)
+        finb(hc,0.0,0.0);
         return;
     }
 
@@ -1718,6 +1807,12 @@ void sflow_amr::prolong(int g, int ic, int jc, int ox, int oy, double depthf, do
     }
 
     fin(hf, hf*(u0 + sxu*fx + syu*fy), hf*(v0 + sxv*fx + syv*fy), hf*(w0v + sxw*fx + syw*fy));
+
+    if(bous==1)
+    {
+        bool full = wE==1 && wW==1 && wN==1 && wS==1;
+        finb(hf, full ? fx : 0.0, full ? fy : 0.0);
+    }
 }
 
 void sflow_amr::eval_fill(const sflow_amr_fill &f, double *v)
@@ -1741,18 +1836,27 @@ void sflow_amr::eval_fill(const sflow_amr_fill &f, double *v)
         v[7] = G.q->deep[lij(G.q,f.si,f.sj)];
         v[8] = (*sWH[f.g+1])(f.si,f.sj);
         v[9] = G.b->W(f.si,f.sj);
+        if(bous==1)
+        {
+        v[10] = G.b->UA(f.si,f.sj);
+        v[11] = G.b->VA(f.si,f.sj);
+        v[12] = G.b->MX(f.si,f.sj);
+        v[13] = G.b->MY(f.si,f.sj);
+        }
         return;
     }
 
     const double wd = p0->A244;
     v[0]=wd; v[1]=v[2]=0.0; v[3]=wd-f.depth; v[4]=v[5]=0.0; v[6]=v[7]=0.0; v[8]=v[9]=0.0;
+    if(bous==1)
+    v[10]=v[11]=v[12]=v[13]=0.0;
 }
 
 // cells of the level-l patches outside their interior, then the wall conditions
 void sflow_amr::fill_level(ghostcell *pgc, int l, int s)
 {
     sflow_amr_xplan &X = gplan[l];
-    double v[NV];
+    double v[NVMAX];
 
     // cells served to other ranks
     for(size_t k=0; k<X.speer.size(); ++k)
@@ -1780,6 +1884,13 @@ void sflow_amr::fill_level(ghostcell *pgc, int l, int s)
         pp->deep[lij(pp,ii,jj)] = (int)w[7];
         (*sWH[n+1])(ii,jj) = w[8];
         b->W(ii,jj) = w[9];
+        if(bous==1)
+        {
+        b->UA(ii,jj) = w[10];
+        b->VA(ii,jj) = w[11];
+        b->MX(ii,jj) = w[12];
+        b->MY(ii,jj) = w[13];
+        }
     };
 
     comms_off guard(pgc);
@@ -1866,6 +1977,18 @@ void sflow_amr::restrict_patch(lexer *p, sflow_amr_patch &c, int s)
         G.b->V(ic,jc) = w==1 ? vh/wlvl : 0.0;
         G.b->W(ic,jc) = w==1 ? wh/wlvl : 0.0;
         G.b->hp(ic,jc) = wl;
+
+        // Boussinesq: u_a and M with V, U = M/H
+        if(bous==1)
+        {
+        auto avg = [&](slice &f) { return 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1)); };
+        G.b->UA(ic,jc) = avg(b->UA);
+        G.b->VA(ic,jc) = avg(b->VA);
+        G.b->MX(ic,jc) = avg(b->MX);
+        G.b->MY(ic,jc) = avg(b->MY);
+        G.b->U(ic,jc) = w==1 ? G.b->MX(ic,jc)/wlvl : 0.0;
+        G.b->V(ic,jc) = w==1 ? G.b->MY(ic,jc)/wlvl : 0.0;
+        }
     }
 }
 
@@ -1881,8 +2004,8 @@ void sflow_amr::exchange_level0(lexer *p, fdm2D *b, ghostcell *pgc, int s)
     slice *WHi,*WHo;
     pmom0->stage_io_w(s,b,WHi,WHo);
 
-    slice *f[9] = {WLo,UHo,VHo,WHo,&b->eta,&b->U,&b->V,&b->W,&b->hp};
-    for(int k=0; k<9; ++k)
+    slice *f[13] = {WLo,UHo,VHo,WHo,&b->eta,&b->U,&b->V,&b->W,&b->hp,&b->UA,&b->VA,&b->MX,&b->MY};
+    for(int k=0; k<(bous==1?13:9); ++k)
     {
         pgc->gcslparax(p,*f[k],4);
         pgc->gcslparacox(p,*f[k],10);
@@ -2146,7 +2269,30 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
-    double dtp = p->N47*2.0*cmin;
+    // explicit dispersion correction of A 220 3, as sflow_etimestep
+    double dtd = 1.0e20;
+    if(p->A220==3 && p->A224>1.0)
+    {
+        const double B = (p->A224-1.0)/3.0;
+        for(auto c : P)
+        {
+            lexer *pp = c->pp;
+            fdm2D *pb = c->b;
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
+            {
+                double hh = MAX(pb->WL(ii,jj),p->A244);
+                double dx = pp->DXN[ii+marge], dy = pp->DYN[jj+marge];
+                dtd = MIN(dtd, 1.8/((1.0/(dx*dx) + p->y_dir/(dy*dy))*sqrt(g*B*hh*hh*hh)));
+            }
+        }
+    }
+
+    // Boussinesq (A 220 4): Courant number 0.5 at most, as sflow_etimestep
+    const double cfl = (p->A220==4) ? MIN(p->N47,0.25) : p->N47;
+
+    double dtp = MIN(cfl*2.0*cmin, dtd);
     dtp = pgc->globalmin(dtp);
 
     if(p->N48==1)

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SFLOW_PJM_QUAD_H_
 #define SFLOW_PJM_QUAD_H_
 
-#include"sflow_pressure.h"
+#include"sflow_pressure_nh.h"
 #include"increment.h"
 #include"slice4.h"
 
@@ -49,7 +49,7 @@ using namespace std;
 //      projection), explicit: dt <= 1.8 dx^2/sqrt(g B h^3), see sflow_etimestep
 //   linear dispersion: omega^2 = g h k^2 (1 + B k^2 h^2) / (1 + a k^2 h^2/3)
 
-class sflow_pjm_quad final : public sflow_pressure, public increment
+class sflow_pjm_quad final : public sflow_pressure_nh, public increment
 {
 public:
     sflow_pjm_quad(lexer*, fdm2D*, ghostcell*, patchBC_interface*);
@@ -59,6 +59,12 @@ public:
 	void upgrad(lexer*, fdm2D*, slice&) override final;
 	void vpgrad(lexer*, fdm2D*, slice&) override final;
     void wpgrad(lexer*, fdm2D*, slice&) override final;
+    
+    // mesh refinement (sflow_amr), as sflow_pjm_lin
+    void assemble(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double) override final;
+    int is_active(lexer*, fdm2D*, int, int) override final;
+    int gcval() const override final {return gcval_press;}
 
 private:
     void quad_calc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double);

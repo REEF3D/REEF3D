@@ -23,10 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_PJM_LIN_H_
 #define SFLOW_PJM_LIN_H_
 
-#include"sflow_pressure.h"
+#include"sflow_pressure_nh.h"
 #include"increment.h"
-
-class sflow_amr;
 
 using namespace std;
 
@@ -38,7 +36,7 @@ using namespace std;
 //   constraint: h div(u) + 2(w + u.grad(d)) = 0
 // linear dispersion: omega^2 = g h k^2 / (1 + k^2 h^2/4)
 
-class sflow_pjm_lin final : public sflow_pressure, public increment
+class sflow_pjm_lin final : public sflow_pressure_nh, public increment
 {
 public:
     sflow_pjm_lin(lexer*, fdm2D*,patchBC_interface*);
@@ -51,11 +49,10 @@ public:
     
     // mesh refinement (sflow_amr): the level-0 instance hands the solve to the composite
     // solver; the patch instances assemble their rows and apply the correction
-    sflow_amr *amr = nullptr;
-    void assemble(lexer*, fdm2D*, slice&, double);
-    void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double);
-    int is_active(lexer*, fdm2D*, int, int);
-    int gcval() const {return gcval_press;}
+    void assemble(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double) override final;
+    void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double) override final;
+    int is_active(lexer*, fdm2D*, int, int) override final;
+    int gcval() const override final {return gcval_press;}
 
 private:
     void rhs(lexer*, fdm2D*, slice&, double);

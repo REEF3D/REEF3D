@@ -66,7 +66,7 @@ public:
     // mesh refinement: the stage of a patch stops before the non-hydrostatic pressure, which
     // is solved on all grids together; the arguments of that call are kept here
     bool nh_defer = false;
-    slice *nhUH=nullptr, *nhVH=nullptr, *nhWH=nullptr, *nhWL=nullptr;
+    slice *nhUH=nullptr, *nhVH=nullptr, *nhWH=nullptr, *nhWL=nullptr, *nhUn=nullptr, *nhVn=nullptr;
     double nh_alpha = 0.0;
     
     void reconstruct(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);

@@ -72,6 +72,7 @@ void control::ini_default()
     A278_r=0.5;  // double SFLOW mesh refinement: margin around the hull
     A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
     A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
+    A280=4;      // int SFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
 
 
     // FNPF

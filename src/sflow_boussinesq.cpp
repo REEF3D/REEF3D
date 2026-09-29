@@ -35,7 +35,8 @@ sflow_boussinesq::sflow_boussinesq(lexer *p, fdm2D *b, ghostcell *pgc) : zeta(-0
                                     vy(p),hvy(p),ux(p),hux(p),
                                     mask(p),io(p),ua_n(p),va_n(p),f(p)
 {
-    if(p->mpirank==0)
+    // (not for the patches of the mesh refinement, whose lexer has no domain origin)
+    if(p->mpirank==0 && p->origin_i>-1000000)
     cout<<"SFLOW Boussinesq equations (FUNWAVE-TVD formulation)"<<endl;
 }
 
@@ -482,6 +483,12 @@ void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psol
         }
     }
     
+    // start values; outside the computed cells (the partition halo, the filled cells of a
+    // refined patch) f carries u_a, which the patch line solver takes as boundary value
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    f(ii,jj) = b->UA(ii,jj);
+    
     // x-component
     n=0;
     SLICELOOP4
@@ -543,6 +550,10 @@ void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psol
     // y-component
     if(p->j_dir==1)
     {
+        for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+        for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+        f(ii,jj) = b->VA(ii,jj);
+        
         n=0;
         SLICELOOP4
         {
