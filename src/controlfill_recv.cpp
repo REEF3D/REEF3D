@@ -2097,6 +2097,10 @@ void control::ctrlrecv()
     ii++;
     X34 = ictrl[ii];
     ii++;
+    X37 = ictrl[ii];
+    ii++;
+    X37_val = dctrl[dd];
+    dd++;
     X38 = ictrl[ii];
     ii++;
     X39 = ictrl[ii];

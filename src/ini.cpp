@@ -1058,6 +1058,8 @@ void control::ini_default()
     X32=1;        // int 
     X33=1;        // int 
     X34=0;        // int 
+    X37=0;       // int velocity for the NHFLOW ITTC viscous force: 0 fixed distance X43, 1 boundary-layer edge search, 2 reference speed
+    X37_val=6.0; // double X37=1: max. search distance [mean cell sizes], X37=2: reference speed U_ref [m/s]
     X38=0;       // int type of viscous force calculation CFD
     X39=0;       // int type of viscous force calculation NHFLOW: 1 ITTC-1957 CF(Re_L), 2 local ITTC-consistent cf(Re_x)
     X39_Lwl=1.0; // double reference (waterline) length for ITTC-1957 friction line [m]

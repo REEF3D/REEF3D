@@ -88,8 +88,12 @@ void sixdof_obj::viscous_forces_ittc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     //
     //   tau = 0.5*rho*(1+k)*cf*|u_t|*u_t
     //
-    // u_t: fluid velocity relative to the moving hull, sampled X43 mean cell sizes off the
-    //      wall and projected onto the hull tangent plane
+    // u_t: fluid velocity relative to the moving hull, projected onto the hull tangent plane
+    // X 37 0: sampled X43 mean cell sizes off the wall
+    // X 37 1: boundary-layer edge velocity U_e: sampled at 1,2,..,X37_val mean cell sizes
+    //         off the wall, marching out until |u_t| grows by less than 1%
+    // X 37 2: magnitude = reference speed U_ref = X37_val, direction from the X43 sample
+    //         (pure ITTC-1957 resistance, no feedback of the local flow speed)
     // X 39 1: cf = CF(Re_L),  Re_L = |u_t|*Lwl/nu          (global friction line)
     // X 39 2: cf = cf(Re_x),  Re_x = |u_t|*x/nu            (local, ITTC-consistent)
     //         x: distance from the bow along the mean relative flow direction
@@ -111,11 +115,6 @@ void sixdof_obj::viscous_forces_ittc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
         const double ny = vis_ny[n];
         const double nz = vis_nz[n];
         
-        // sample point off the wall (DSM: mean horizontal cell size, as for the pressure)
-        const double xs = vis_x[n] + p->X43*nx*DSM;
-        const double ys = vis_y[n] + p->X43*ny*DSM;
-        const double zs = vis_z[n] + p->X43*nz*DSM;
-        
         // hull velocity at the wall point
         const double rx = vis_x[n] - c_(0);
         const double ry = vis_y[n] - c_(1);
@@ -125,19 +124,72 @@ void sixdof_obj::viscous_forces_ittc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
         const double vb = u_fb(1) + u_fb(5)*rx - u_fb(3)*rz;
         const double wb = u_fb(2) + u_fb(3)*ry - u_fb(4)*rx;
         
-        double ur = p->ccipol4V(d->U, WL, d->bed, xs, ys, zs) - ub;
-        double vr = p->ccipol4V(d->V, WL, d->bed, xs, ys, zs) - vb;
-        double wr = p->ccipol4V(d->W, WL, d->bed, xs, ys, zs) - wb;
+        // relative tangential velocity at distance dist off the wall
+        auto sample = [&](double dist, double &us, double &vs, double &ws)
+        {
+            const double xs = vis_x[n] + dist*nx;
+            const double ys = vis_y[n] + dist*ny;
+            const double zs = vis_z[n] + dist*nz;
+            
+            double ur = p->ccipol4V(d->U, WL, d->bed, xs, ys, zs) - ub;
+            double vr = p->ccipol4V(d->V, WL, d->bed, xs, ys, zs) - vb;
+            double wr = p->ccipol4V(d->W, WL, d->bed, xs, ys, zs) - wb;
+            
+            if(p->j_dir==0)
+            vr = 0.0;
+            
+            const double un = ur*nx + vr*ny + wr*nz;
+            
+            us = ur - un*nx;
+            vs = vr - un*ny;
+            ws = wr - un*nz;
+        };
         
-        if(p->j_dir==0)
-        vr = 0.0;
-        
-        // tangential part
-        const double un = ur*nx + vr*ny + wr*nz;
-        
-        ut[n] = ur - un*nx;
-        vt[n] = vr - un*ny;
-        wt[n] = wr - un*nz;
+        if(p->X37==1)
+        {
+            // first point one mean cell size (DSM) off the wall, then march outwards
+            sample(DSM, ut[n], vt[n], wt[n]);
+            
+            double Ub = sqrt(ut[n]*ut[n] + vt[n]*vt[n] + wt[n]*wt[n]);
+            
+            for(int m=2; m<=int(p->X37_val); ++m)
+            {
+                const double dist = double(m)*DSM;
+                const double xs = vis_x[n] + dist*nx;
+                const double ys = vis_y[n] + dist*ny;
+                const double zs = vis_z[n] + dist*nz;
+                
+                // stay inside the local subdomain (plus one cell of ghost layer) and the water column
+                if(xs < p->originx - DSM || xs > p->endx + DSM)
+                break;
+                
+                if(p->j_dir==1 && (ys < p->originy - DSM || ys > p->endy + DSM))
+                break;
+                
+                if(zs > p->wd + p->ccslipol4(d->eta,xs,ys) || zs < p->ccslipol4(d->bed,xs,ys))
+                break;
+                
+                double us, vs, ws;
+                sample(dist, us, vs, ws);
+                
+                const double Us = sqrt(us*us + vs*vs + ws*ws);
+                
+                if(Us <= Ub)
+                break;
+                
+                const bool edge = (Us < 1.01*Ub);
+                
+                ut[n] = us;
+                vt[n] = vs;
+                wt[n] = ws;
+                Ub = Us;
+                
+                if(edge)
+                break;
+            }
+        }
+        else
+        sample(p->X43*DSM, ut[n], vt[n], wt[n]);
         
         const double A = vis_A[n];
         
@@ -163,6 +215,42 @@ void sixdof_obj::viscous_forces_ittc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     const double ex = SUx/SUn;
     const double ey = SUy/SUn;
     const double ez = SUz/SUn;
+    
+    // reference speed: keep the local direction, replace the magnitude by U_ref.
+    // Where the local flow is too weak for a reliable direction (e.g. stagnation point),
+    // the mean flow direction projected onto the tangent plane is used.
+    if(p->X37==2)
+    {
+        const double Uref = p->X37_val;
+        
+        SU = 0.0;
+        
+        for(int n=0; n<nv; ++n)
+        {
+            double tx = ut[n], ty = vt[n], tz = wt[n];
+            double tn = sqrt(tx*tx + ty*ty + tz*tz);
+            
+            if(tn < 0.1*fabs(Uref))
+            {
+                const double en = ex*vis_nx[n] + ey*vis_ny[n] + ez*vis_nz[n];
+                
+                tx = ex - en*vis_nx[n];
+                ty = ey - en*vis_ny[n];
+                tz = ez - en*vis_nz[n];
+                tn = sqrt(tx*tx + ty*ty + tz*tz);
+            }
+            
+            const double sc = (tn > 1.0e-12) ? Uref/tn : 0.0;
+            
+            ut[n] = sc*tx;
+            vt[n] = sc*ty;
+            wt[n] = sc*tz;
+            
+            SU += vis_A[n]*sqrt(ut[n]*ut[n] + vt[n]*vt[n] + wt[n]*wt[n]);
+        }
+        
+        SU = pgc->globalsum(SU);
+    }
     
     // bow: most upstream wetted point
     double s_bow = 1.0e20;
