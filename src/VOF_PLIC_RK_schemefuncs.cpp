@@ -117,16 +117,16 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
         {
             LOOP
             {
-                if(Vn_p(i-1,j,k)>0.0)
+                if(uvel(i-1,j,k)>0.0 && Vn_p(i-1,j,k)>0.0)
                     Vn_m(i,j,k)=Vn_p(i-1,j,k);
                     
-                if(Vn_m(i+1,j,k)<0.0)
+                if(uvel(i,j,k)<0.0 && Vn_m(i+1,j,k)<0.0)
                     Vn_p(i,j,k)=Vn_m(i+1,j,k);
                     
-                if(Vz_p(i-1,j,k)>0.0)
+                if(uvel(i-1,j,k)>0.0 && Vz_p(i-1,j,k)>0.0)
                     Vz_m(i,j,k)=Vz_p(i-1,j,k);
                     
-                if(Vz_m(i+1,j,k)<0.0)
+                if(uvel(i,j,k)<0.0 && Vz_m(i+1,j,k)<0.0)
                     Vz_p(i,j,k)=Vz_m(i+1,j,k);
             }
             pgc->start4(p,Vn_p,1);
@@ -138,16 +138,16 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
         {
             LOOP
             {
-                if(Vn_p(i,j,k-1)>0.0)
+                if(wvel(i,j,k-1)>0.0 && Vn_p(i,j,k-1)>0.0)
                     Vn_m(i,j,k)=Vn_p(i,j,k-1);
                     
-                if(Vn_m(i,j,k+1)<0.0)
+                if(wvel(i,j,k)<0.0 && Vn_m(i,j,k+1)<0.0)
                     Vn_p(i,j,k)=Vn_m(i,j,k+1);
             
-                if(Vx_p(i,j,k-1)>0.0)
+                if(wvel(i,j,k-1)>0.0 && Vx_p(i,j,k-1)>0.0)
                     Vx_m(i,j,k)=Vx_p(i,j,k-1);
                     
-                if(Vx_m(i,j,k+1)<0.0)
+                if(wvel(i,j,k)<0.0 && Vx_m(i,j,k+1)<0.0)
                     Vx_p(i,j,k)=Vx_m(i,j,k+1);
             }        
             pgc->start4(p,Vn_p,1);
@@ -176,10 +176,10 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             pgc->start4(p,Vx_m,1);
             LOOP
             {
-                if(Vx_p(i,j,k-1)>0.0)
+                if(wvel(i,j,k-1)>0.0 && Vx_p(i,j,k-1)>0.0)
                     Vx_m(i,j,k)=Vx_p(i,j,k-1);
                     
-                if(Vx_m(i,j,k+1)<0.0)
+                if(wvel(i,j,k)<0.0 && Vx_m(i,j,k+1)<0.0)
                     Vx_p(i,j,k)=Vx_m(i,j,k+1);
             }
             pgc->start4(p,Vx_p,1);
@@ -202,10 +202,10 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             pgc->start4(p,Vz_m,1);
             LOOP
             {
-                if(Vz_p(i-1,j,k)>0.0)
+                if(uvel(i-1,j,k)>0.0 && Vz_p(i-1,j,k)>0.0)
                     Vz_m(i,j,k)=Vz_p(i-1,j,k);
                     
-                if(Vz_m(i+1,j,k)<0.0)
+                if(uvel(i,j,k)<0.0 && Vz_m(i+1,j,k)<0.0)
                     Vz_p(i,j,k)=Vz_m(i+1,j,k);
             }
             pgc->start4(p,Vz_p,1);
@@ -288,10 +288,10 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
         {
             LOOP
             {
-                if(V_p(i-1,j,k)>0.0)
+                if(uvel(i-1,j,k)>0.0 && V_p(i-1,j,k)>0.0)
                     V_m(i,j,k)=V_p(i-1,j,k);
                     
-                if(V_m(i+1,j,k)<0.0)
+                if(uvel(i,j,k)<0.0 && V_m(i+1,j,k)<0.0)
                     V_p(i,j,k)=V_m(i+1,j,k);
             }
             pgc->start4(p,V_p,1);
@@ -304,10 +304,10 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
         {
             LOOP
             {
-                if(V_p(i,j-1,k)>0.0)
+                if(vvel(i,j-1,k)>0.0 && V_p(i,j-1,k)>0.0)
                     V_m(i,j,k)=V_p(i,j-1,k);
                     
-                if(V_m(i,j+1,k)<0.0)
+                if(vvel(i,j,k)<0.0 && V_m(i,j+1,k)<0.0)
                     V_p(i,j,k)=V_m(i,j+1,k);
             }
             pgc->start4(p,V_p,1);
@@ -320,10 +320,10 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
         {
             LOOP
             {
-                if(V_p(i,j,k-1)>0.0)
+                if(wvel(i,j,k-1)>0.0 && V_p(i,j,k-1)>0.0)
                     V_m(i,j,k)=V_p(i,j,k-1);
                     
-                if(V_m(i,j,k+1)<0.0)
+                if(wvel(i,j,k)<0.0 && V_m(i,j,k+1)<0.0)
                     V_p(i,j,k)=V_m(i,j,k+1);
             }        
             pgc->start4(p,V_p,1);
@@ -457,7 +457,7 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
     swtchsum = swtch_x+swtch_y+swtch_z+swtch_xy+swtch_xz+swtch_yx+swtch_yz+swtch_zx+swtch_zy
                 +swtch_xyz+swtch_xzy+swtch_yxz+swtch_yzx+swtch_zxy+swtch_zyx;
                 
-    if(swtchsum < 15)
+    if(swtchsum < 15 && p->mpirank==0)
         cout<<"not all switches activated!!!"<<endl;
     
    /* cout<<"x:"<<swtch_x<<" y:"<<swtch_y<<" z:"<<swtch_z<<endl;
