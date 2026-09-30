@@ -61,6 +61,7 @@ public:
     void membrane_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void membrane_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void membrane_reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
+    void membrane_pgrad(lexer*, fdm_nhf*, double, double*, double*, double*, slice&, int);
     
     typedef vector<Eigen::Vector3d> EigenMat;
     

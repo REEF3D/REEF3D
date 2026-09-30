@@ -225,17 +225,20 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     // fused flux build + HLL (continuity: F = UH, VH;  q = D)
-    // membranes (X 330): the depth-jump dissipation is scaled with the face mobility, see nhflow_membrane_beta.h
     hll_sweep_x(p, d, d->FEx,
                 [p,d](int i, int j, int k){return d->UHs[IJK];},
                 [p,d](int i, int j, int k){return d->UHn[IJK];},
-                [p,d](int i, int j, int k){return MBETAFACEX*nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j));});
+                [p,d](int i, int j, int k){return nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j));});
     
     if(p->j_dir==1)
     hll_sweep_y(p, d, d->FEy,
                 [p,d](int i, int j, int k){return d->VHe[IJK];},
                 [p,d](int i, int j, int k){return d->VHw[IJK];},
-                [p,d](int i, int j, int k){return MBETAFACEY*nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j));});
+                [p,d](int i, int j, int k){return nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j));});
+    
+    // membranes (X 330): Rhie-Chow continuity flux at faces next to membrane cells, see nhflow_membrane_beta.h
+    if(d->MBETA!=nullptr)
+    nhflow_membrane_rc_flux(p,d);
     
     LOOP
     WETDRY

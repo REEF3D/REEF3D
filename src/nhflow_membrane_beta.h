@@ -20,95 +20,137 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+
 #ifndef NHFLOW_MEMBRANE_BETA_H_
 #define NHFLOW_MEMBRANE_BETA_H_
 
-// Membrane mobility (X 330) in the NHFLOW pressure Poisson equation.
+// Membrane mobility (X 330) in the NHFLOW projection.
 //
 // The membrane forcing is integrated implicitly, (1 + a K H)(u - u_m) = (u* - u_m) - a/rho grad(q),
-// so in the smeared membrane layer the pressure acts with the reduced mobility
-// beta = 1/(1 + a K H) (d->MBETA, cell centred). The same factor multiplies the velocity
-// correction in nhflow_pjm (A 520 1, required for membranes).
+// so in the smeared membrane layer the pressure acts with the reduced mobility beta = 1/(1 + a K H)
+// (d->MBETA, cell centred). The mobility enters the projection in three consistent places:
 //
-// Row n belongs to the pressure node (i,j,k) at the bottom face of cell k, between cell k-1
-// (below) and cell k (above):
-//   node value         bF = min(beta(k-1), beta(k))
-//   horizontal faces   harmonic mean of the node values
-//   vertical faces     beta of the cell between the nodes
-//   sigma cross terms  bF (both the sigxx first-derivative term and the lagged cross terms,
-//                      so that a constant pressure stays in the null space)
+// 1. Poisson matrix (nhflow_membrane_row). Row n belongs to the pressure node (i,j,k) at the bottom
+//    face of cell k, between cell k-1 (below) and cell k (above):
+//      horizontal faces   harmonic mean of the two cells' beta, averaged over cells k-1, k with the
+//                         weights of the velocity average in the divergence
+//      vertical faces     beta of the cell between the nodes
+//      sigma cross terms  node average bF (so that a constant pressure stays in the null space)
 //
-// rhs0 is the right-hand side before the cross terms of this row were added.
+// 2. Velocity correction (nhflow_membrane_gradx/grady). The collocated correction uses the wide
+//    gradient (P_i+1 - P_i-1)/(2 dx). Written as the distance-weighted mean of the two compact face
+//    gradients, the mobility is applied per face:
+//      dU_i = -a/rho [ w+ beta_i+1/2 (P_i+1 - P_i)/dx+ + w- beta_i-1/2 (P_i - P_i-1)/dx- ]
+//    Without membrane (beta = 1) this is identical to the wide gradient. With the cell value instead,
+//    a cell next to the layer is corrected with mobility 1 by the pressure difference across the
+//    layer that the matrix only sees through the small face mobility: the projection over-corrects
+//    and diverges in 3D and with the incremental scheme (A 520 2).
+//
+// 3. Continuity flux (nhflow_membrane_rc_flux). Rhie-Chow face velocity near the membrane,
+//      U_f = (U_i + U_i+1)/2 + (dU_i + dU_i+1)/2 - dU_f,   dU_f = -a/rho beta_f (P_i+1 - P_i)/dx
+//    i.e. the face velocity the compact Poisson matrix makes divergence free. The free surface then
+//    follows the projected face field: no mass moves through the membrane layer or below the bag floor
+//    that the projection does not see. dU_f of the last projection is kept in d->MRCX, d->MRCY.
 
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"ghostcell.h"
 #include"increment.h"
 
-// mobility of the velocity correction in cell (i,j,k)
-//  vertical:   cell value, the correction uses the compact difference of the pressure nodes k, k+1,
-//              exactly the vertical face of the Poisson matrix
-//  horizontal: minimum over the cell and its horizontal neighbours. The horizontal correction uses
-//              the wide (2 dx) collocated gradient, while the matrix couples neighbours through the
-//              small harmonic face value. With the cell value, a cell next to the membrane layer is
-//              corrected with mobility 1 by pressure differences across the layer that the matrix
-//              hardly sees, the projection over-corrects (eigenvalues of L_wide L_compact^-1 > 2)
-//              and in 3D the divergence error grows from stage to stage.
-#define MBETAVAL  (d->MBETA!=nullptr ? d->MBETA[IJK] : 1.0)
-#define MBETAHVAL (d->MBETA!=nullptr ? nhflow_membrane_hmin(p,d,i,j,k) : 1.0)
+// mobility of the vertical velocity correction in cell (i,j,k): compact difference of the nodes k, k+1,
+// exactly the vertical face of the Poisson matrix
+#define MBETAVAL (d->MBETA!=nullptr ? d->MBETA[IJK] : 1.0)
 
-// mobility of the faces i+1/2 and j+1/2 for the depth-jump dissipation of the HLL continuity flux.
-// The dissipation c/2 (D_n - D_s) is a hydrostatic, pressure-driven mass flux. It is suppressed
-//  - in the membrane layer with the mobility beta: otherwise it transports mass through the
-//    membrane even when the velocity in the layer vanishes,
-//  - below the bag floor, wherever the prescribed static pressure acts (chi = d->MCHI > 0):
-//    there the column depth carries the inner water level, which does not drive the flow under
-//    the floor. Without this the dissipation drains the bag through the gap below its edge.
-#define MBETAFACEX (d->MBETA!=nullptr ? nhflow_membrane_face(d,IJK,Ip1JK) : 1.0)
-#define MBETAFACEY (d->MBETA!=nullptr ? nhflow_membrane_face(d,IJK,IJp1K) : 1.0)
+// Incremental scheme (A 520 2): nhflow_poisson_pcorr lags the sigma cross derivatives with PCORR = 0, so
+// the operator of the increment has no cross terms. Next to the membrane, where the pressure jumps
+// vertically across the bag floor and the sigma levels slope across the wall ramp, the correction of the
+// increment has to leave them out as well, or it acts with an operator the matrix does not contain and
+// the increments grow. The cross terms still act through the old pressure P^n in the predictor
+// (net_interface::membrane_pgrad), i.e. they are treated by deferred correction.
+#define MSIGCORR (d->MBETA!=nullptr && nhflow_membrane_active(p,d,i,j,k) ? 0.0 : 1.0)
 
-inline double nhflow_membrane_face(fdm_nhf *d, int q0, int q1)
+inline double nhflow_membrane_harm(double a, double b)
 {
-    return (d->MCHI[q0]>0.0 || d->MCHI[q1]>0.0) ? 0.0 : MIN(d->MBETA[q0],d->MBETA[q1]);
+    return 2.0*a*b/(a+b);
 }
 
-inline double nhflow_membrane_hmin(lexer *p, fdm_nhf *d, int i, int j, int k)
+// cell whose horizontal correction differs from the plain wide gradient
+inline bool nhflow_membrane_active(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
     const double *B = d->MBETA;
-    double b = MIN(B[IJK],MIN(B[Ip1JK],B[Im1JK]));
     
-    if(p->j_dir==1)
-    b = MIN(b,MIN(B[IJp1K],B[IJm1K]));
+    if(B[IJK]<1.0 || B[Ip1JK]<1.0 || B[Im1JK]<1.0)
+    return true;
     
-    return b;
+    if(p->j_dir==1 && (B[IJp1K]<1.0 || B[IJm1K]<1.0))
+    return true;
+    
+    return false;
+}
+
+// horizontal pressure gradient of the velocity correction with face mobilities (without the sigma term);
+// P at the nodes, averaged to the cell level of layer k as in nhflow_pjm::ucorr
+inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
+{
+    const int marge = increment::marge;
+    const double *B = d->MBETA;
+    
+    const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
+    const double Pn = 0.5*(P[FIp1JK]+P[FIp1JKp1]);
+    const double Ps = 0.5*(P[FIm1JK]+P[FIm1JKp1]);
+    
+    const double dxp = p->DXP[IP], dxm = p->DXP[IM1];
+    
+    return (nhflow_membrane_harm(B[IJK],B[Ip1JK])*(Pn-Pc) + nhflow_membrane_harm(B[IJK],B[Im1JK])*(Pc-Ps))/(dxp+dxm);
+}
+
+inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
+{
+    const int marge = increment::marge;
+    const double *B = d->MBETA;
+    
+    const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
+    const double Pw = 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
+    const double Pe = 0.5*(P[FIJm1K]+P[FIJm1Kp1]);
+    
+    const double dyp = p->DYP[JP], dym = p->DYP[JM1];
+    
+    return (nhflow_membrane_harm(B[IJK],B[IJp1K])*(Pw-Pc) + nhflow_membrane_harm(B[IJK],B[IJm1K])*(Pc-Pe))/(dyp+dym);
 }
 
 inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n, double ct, double cb, double sxx, double rhs0)
 {
     // ct, cb: vertical Laplacian coefficients of the row (M.t, M.b without the sigxx term)
     // sxx:    sigxx first-derivative coefficient (M.t = ct - sxx, M.b = cb + sxx)
+    //
+    // The horizontal face mobility of the node is the average of the face mobilities of the two cells
+    // it sits between, weighted like the vertical average of the velocities in the divergence
+    // (nhflow_pjm::rhs). The matrix then matches divergence o correction (nhflow_membrane_gradx) for
+    // smooth pressure fields; a min over the two cells makes the matrix weaker than the correction
+    // where beta changes vertically (bag floor), and the incremental scheme diverges there.
     const int marge = increment::marge;
     const double *B = d->MBETA;
     
     const double bc  = B[IJK];
     const double bcm = k>0 ? B[IJKm1] : bc;
-    const double bF  = MIN(bc,bcm);
     
-    const double bFn = k>0 ? MIN(B[Ip1JK],B[Ip1JKm1]) : B[Ip1JK];
-    const double bFs = k>0 ? MIN(B[Im1JK],B[Im1JKm1]) : B[Im1JK];
-    const double bFw = p->j_dir==1 ? (k>0 ? MIN(B[IJp1K],B[IJp1Km1]) : B[IJp1K]) : 1.0;
-    const double bFe = p->j_dir==1 ? (k>0 ? MIN(B[IJm1K],B[IJm1Km1]) : B[IJm1K]) : 1.0;
+    const double fac = k>0 ? p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]) : 0.0;
     
-    if(bF==1.0 && bcm==1.0 && bFn==1.0 && bFs==1.0 && bFw==1.0 && bFe==1.0)
-    return;
+    auto hmean = [&](double a0, double a1, double b0, double b1)
+    {
+        return (1.0-fac)*nhflow_membrane_harm(a0,a1) + fac*nhflow_membrane_harm(b0,b1);
+    };
     
-    auto harm = [](double a, double b) {return 2.0*a*b/(a+b);};
-    
-    const double bn = harm(bF,bFn);
-    const double bs = harm(bF,bFs);
-    const double bw = harm(bF,bFw);
-    const double be = harm(bF,bFe);
+    const double bn = hmean(bc,B[Ip1JK], bcm,k>0?B[Ip1JKm1]:B[Ip1JK]);
+    const double bs = hmean(bc,B[Im1JK], bcm,k>0?B[Im1JKm1]:B[Im1JK]);
+    const double bw = p->j_dir==1 ? hmean(bc,B[IJp1K], bcm,k>0?B[IJp1Km1]:B[IJp1K]) : 1.0;
+    const double be = p->j_dir==1 ? hmean(bc,B[IJm1K], bcm,k>0?B[IJm1Km1]:B[IJm1K]) : 1.0;
+    const double bF = (1.0-fac)*bc + fac*bcm;
     const double bt = bc;
     const double bb = bcm;
+    
+    if(bn==1.0 && bs==1.0 && bw==1.0 && be==1.0 && bt==1.0 && bb==1.0)
+    return;
     
     d->M.n[n] *= bn;
     d->M.s[n] *= bs;
@@ -121,6 +163,96 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
     d->M.p[n] = -(d->M.n[n] + d->M.s[n] + d->M.w[n] + d->M.e[n]) - bt*ct - bb*cb;
     
     d->rhsvec.V[n] = rhs0 + bF*(d->rhsvec.V[n] - rhs0);
+}
+
+// face correction velocities dU_f of the projection with the total pressure P (after the correction),
+// a = alpha dt, for the Rhie-Chow continuity flux of the next stage
+inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const double *P, double a)
+{
+    int i,j,k;
+    const int marge = increment::marge;
+    const double *B = d->MBETA;
+    
+    LOOP
+    {
+        const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
+        const double Pn = 0.5*(P[FIp1JK]+P[FIp1JKp1]);
+        
+        d->MRCX[IJK] = -a/p->W1*nhflow_membrane_harm(B[IJK],B[Ip1JK])*(Pn-Pc)/p->DXP[IP];
+        
+        if(p->j_dir==1)
+        {
+        const double Pw = 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
+        d->MRCY[IJK] = -a/p->W1*nhflow_membrane_harm(B[IJK],B[IJp1K])*(Pw-Pc)/p->DYP[JP];
+        }
+    }
+    
+    pgc->start4V(p,d->MRCX,1);
+    
+    if(p->j_dir==1)
+    pgc->start4V(p,d->MRCY,1);
+}
+
+// U = UH/WL after a correction, for a further projection pass within the stage
+inline void nhflow_membrane_velupdate(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *UH, double *VH, double *WH)
+{
+    int i,j,k;
+    
+    LOOP
+    if(p->wet[IJ]==1)
+    {
+        const double wl = fabs(WL(i,j))>1.0e-20 ? WL(i,j) : 1.0e20;
+        d->U[IJK] = UH[IJK]/wl;
+        d->V[IJK] = VH[IJK]/wl;
+        d->W[IJK] = WH[IJK]/wl;
+    }
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
+}
+
+inline bool nhflow_membrane_face_cell(fdm_nhf *d, int q)
+{
+    return d->MBETA[q]<1.0 || d->MCHI[q]>0.0;
+}
+
+// Rhie-Chow continuity flux at faces within two cells of membrane cells (beta < 1) or of the region
+// below the bag floor with the prescribed static pressure (chi > 0)
+inline void nhflow_membrane_rc_flux(lexer *p, fdm_nhf *d)
+{
+    int i,j,k;
+    const int marge = increment::marge;
+    
+    ULOOP
+    if(nhflow_membrane_face_cell(d,IJK) || nhflow_membrane_face_cell(d,Ip1JK) || nhflow_membrane_face_cell(d,Im1JK) || nhflow_membrane_face_cell(d,Ip2JK))
+    {
+        const double dxs = p->DXP[IM1], dxc = p->DXP[IP], dxn = p->DXP[IP1];
+        
+        // cell corrections as distance-weighted means of the face corrections
+        const double dUi  = (dxc*d->MRCX[IJK]   + dxs*d->MRCX[Im1JK])/(dxc+dxs);
+        const double dUi1 = (dxn*d->MRCX[Ip1JK] + dxc*d->MRCX[IJK])/(dxn+dxc);
+        
+        const double rc = d->MPROJ>1 ? 0.0 : 0.5*(dUi + dUi1) - d->MRCX[IJK];
+        const double Uf = 0.5*(d->U[IJK] + d->U[Ip1JK]) + rc;
+        
+        d->FEx[IJK] = 0.5*(d->Ds(i,j) + d->Dn(i,j))*Uf;
+    }
+    
+    if(p->j_dir==1)
+    VLOOP
+    if(nhflow_membrane_face_cell(d,IJK) || nhflow_membrane_face_cell(d,IJp1K) || nhflow_membrane_face_cell(d,IJm1K) || nhflow_membrane_face_cell(d,IJp2K))
+    {
+        const double dys = p->DYP[JM1], dyc = p->DYP[JP], dyn = p->DYP[JP1];
+        
+        const double dVj  = (dyc*d->MRCY[IJK]   + dys*d->MRCY[IJm1K])/(dyc+dys);
+        const double dVj1 = (dyn*d->MRCY[IJp1K] + dyc*d->MRCY[IJK])/(dyn+dyc);
+        
+        const double rc = d->MPROJ>1 ? 0.0 : 0.5*(dVj + dVj1) - d->MRCY[IJK];
+        const double Vf = 0.5*(d->V[IJK] + d->V[IJp1K]) + rc;
+        
+        d->FEy[IJK] = 0.5*(d->De(i,j) + d->Dw(i,j))*Vf;
+    }
 }
 
 #endif

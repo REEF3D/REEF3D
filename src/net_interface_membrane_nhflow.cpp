@@ -27,12 +27,13 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 #include"nhflow_membrane_beta.h"
+#include"vrans_definitions.h"
 #include<mpi.h>
 #include<fstream>
 #include<sstream>
 #include<string>
 
-// ctrl.txt: X 330 1 (and A 520 1). membrane.dat (read by rank 0, broadcast):
+// ctrl.txt: X 330 1 (A 520 1 or 2). membrane.dat (read by rank 0, broadcast):
 //
 //   # comment
 //   membrane box       x0 x1 y0 y1 z_bottom z_top     starts a new membrane (in 2D y0, y1 are ignored)
@@ -43,6 +44,11 @@ Author: Hans Bihs
 //   mesh        h                      target triangle edge length [m]; default min(dx,dy)
 //   fill        dh                     initial inner water level above the outside level [m]; default 0
 //   print       dt                     vtp output interval [s]; default none
+//   floorpressure 0|1|3                static pressure below the floor: 0 uniform head difference,
+//                                      1 local excess head (comparison only), 3 shape of the
+//                                      time-averaged ramp; default 3 with A 520 1, 0 with A 520 2
+//   tau         t                      averaging time of floorpressure 3 [s]; default 2
+//   projections n                      projection passes per stage (default 1: Rhie-Chow continuity flux)
 //   poisson     0|1                    membrane mobility in the pressure Poisson equation; default 1
 //                                      (0 only to demonstrate the splitting leakage of the projection)
 //
@@ -154,6 +160,21 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(!(ls>>mp.back().fill))
             error=true;
         }
+        else if(key=="floorpressure")
+        {
+            if(!(ls>>mp.back().floorp))
+            error=true;
+        }
+        else if(key=="tau")
+        {
+            if(!(ls>>mp.back().tau) || mp.back().tau<=0.0)
+            error=true;
+        }
+        else if(key=="projections")
+        {
+            if(!(ls>>mp.back().projections) || mp.back().projections<1)
+            error=true;
+        }
         else if(key=="poisson")
         {
             if(!(ls>>mp.back().poisson))
@@ -189,11 +210,20 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(d->MCHI==nullptr)
     p->Darray(d->MCHI,p->imax*p->jmax*(p->kmax+2));
 
+    if(d->MRCX==nullptr)
+    p->Darray(d->MRCX,p->imax*p->jmax*(p->kmax+2));
+
+    if(d->MRCY==nullptr)
+    p->Darray(d->MRCY,p->imax*p->jmax*(p->kmax+2));
+
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
     {
     d->MBETA[qn]=1.0;
     d->MCHI[qn]=0.0;
     }
+
+    for(size_t m=0; m<mp.size(); ++m)
+    d->MPROJ = MAX(d->MPROJ, mp[m].projections);
 
     for(size_t m=0; m<mp.size(); ++m)
     {
@@ -225,8 +255,80 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     pgc->start4V(p,d->MCHI,1);
 
     // 3. implicit porous-jump forcing
+    //    Incremental pressure scheme (A 520 2): the predictor already contains the old non-hydrostatic
+    //    pressure gradient, -a C/rho G P^n. For the projection to stay consistent, P^n has to act with
+    //    the same mobility as the pressure correction (beta_h horizontal, beta vertical), not with the
+    //    implicit forcing factor (I + a A)^-1 in the layer or 1 next to it. It is taken out before the
+    //    forcing and put back with the correction mobility afterwards; without this the pressure
+    //    increments accumulate in the layer and the scheme diverges.
+    const bool incremental = (p->A520==2);
+
+    if(incremental)
+    membrane_pgrad(p,d,alpha,UH,VH,WH,WL,1);
+
     for(auto m : pmem)
     m->forcing_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+
+    if(incremental)
+    membrane_pgrad(p,d,alpha,UH,VH,WH,WL,-1);
+}
+
+void net_interface::membrane_pgrad(lexer *p, fdm_nhf *d, double alpha, double *UH, double *VH, double *WH, slice &WL, int mode)
+{
+    // Incremental scheme (A 520 2): the predictor contains the old pressure gradient -a C/rho G P^n
+    // (nhflow_pjm_corr::upgrad, vpgrad, wpgrad: plain wide gradient). Next to the membrane it has to act
+    // through the same operator as the pressure correction, i.e. with the face mobilities
+    // (nhflow_membrane_gradx/grady) and beta on the vertical and sigma terms, not with the implicit
+    // forcing factor (I + a A)^-1 in the layer or with mobility 1 next to it. Then P^n and PCORR act
+    // like one full pressure P^{n+1} and the scheme is the projection of A 520 1.
+    //   mode  1: take the plain gradient out before the forcing
+    //   mode -1: put it back with the mobilities after the forcing
+    double gx,gy,gz,sx,sy,a;
+    const double *P = d->P;
+
+    LOOP
+    WETDRYDEEP
+    {
+        if(!nhflow_membrane_active(p,d,i,j,k))
+        continue;
+
+        a = alpha*p->dt*CPORNH;
+        const double bv = d->MBETA[IJK];
+        const double dPk = (P[FIJKp1]-P[FIJK])/p->DZN[KP];
+
+        sx = 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*dPk;
+        sy = 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*dPk;
+
+        if(mode==1)
+        {
+            gx = (0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]) + sx;
+            gy = p->j_dir==1 ? (0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]) + sy : 0.0;
+            gz = dPk;
+        }
+        else
+        {
+            gx = -(nhflow_membrane_gradx(p,d,P,i,j,k) + bv*sx);
+            gy = p->j_dir==1 ? -(nhflow_membrane_grady(p,d,P,i,j,k) + bv*sy) : 0.0;
+            gz = -bv*dPk;
+        }
+
+        // wpgrad acts on WH without the water depth: dW = -a C/rho dP/(DZN WL)
+        gx *= 1.0/p->W1;
+        gy *= 1.0/p->W1;
+        gz *= 1.0/(p->W1*MAX(WL(i,j),1.0e-20));
+
+        d->U[IJK] += a*gx;
+        UH[IJK]   += a*gx*WL(i,j);
+
+        if(p->j_dir==1)
+        {
+        d->V[IJK] += a*gy;
+        VH[IJK]   += a*gy*WL(i,j);
+        }
+
+        d->W[IJK] += a*gz;
+        WH[IJK]   += a*gz*WL(i,j);
+    }
 }
 
 void net_interface::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)

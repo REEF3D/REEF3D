@@ -34,7 +34,7 @@ Author: Hans Bihs
 #include<cmath>
 
 net_membrane::net_membrane(int num, const membrane_param &mp) : nMem(num), prm(mp), Afloor(0.0),
-                           delta(0.0), Kn(0.0), Kt(0.0), Fx(0.0), Fy(0.0), Fz(0.0), Fzfloor(0.0), Qleak(0.0), urelmax(0.0), dh(0.0),
+                           delta(0.0), Kn(0.0), Kt(0.0), Fx(0.0), Fy(0.0), Fz(0.0), Fzfloor(0.0), Qleak(0.0), urelmax(0.0), dh(0.0), etaref(0.0),
                            printtime(0.0), printcount(0), outdir("./REEF3D_NHFLOW_Membrane")
 {
 }
@@ -45,15 +45,15 @@ net_membrane::~net_membrane()
 
 void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(p->A520!=1)
+    if(p->A520!=1 && p->A520!=2)
     {
-        // The incremental pressure correction scheme (A 520 2) accumulates the membrane pressure jump in
-        // the old pressure of the predictor, which the wide collocated gradients see differently from the
-        // compact Poisson operator: in tests a spurious circulation below the bag floor keeps growing.
         if(p->mpirank==0)
-        cout<<"\n!!! X 330 membrane: requires the non-hydrostatic pressure projection A 520 1 !!!\n"<<endl;
+        cout<<"\n!!! X 330 membrane: requires the non-hydrostatic pressure scheme A 520 1 or A 520 2 !!!\n"<<endl;
         MPI_Abort(pgc->mpi_comm,1);
     }
+
+    if(prm.floorp<0)
+    prm.floorp = p->A520==1 ? 3 : 0;
 
     if(prm.shape==2 && p->j_dir==0)
     {
@@ -116,7 +116,8 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         cout<<"Membrane "<<nMem<<" ("<<prm.name<<"): "<<(prm.shape==1?"box":"cylinder")<<", "<<tri_.size()<<" triangles, "
             <<"delta = "<<delta<<" m, R_n = "<<prm.Rn<<" m/s (K_n = "<<Kn<<" 1/s), R_t = "<<prm.Rt<<" m/s, "
-            <<"floor area = "<<Afloor<<" m^2, fill = "<<prm.fill<<" m"<<(prm.poisson==1?"":", Poisson mobility OFF")<<endl;
+            <<"floor area = "<<Afloor<<" m^2, fill = "<<prm.fill<<" m, floorpressure "<<prm.floorp
+            <<", projections "<<prm.projections<<(prm.poisson==1?"":", Poisson mobility OFF")<<endl;
 
         if(delta < 1.5*dmax)
         cout<<"Membrane "<<nMem<<": delta < 1.5 max(dx,dy,dz) - the smeared layer may leave gaps between cells"<<endl;
@@ -508,32 +509,55 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
                     s = cells_.size();
                     cellentry e;
                     e.i=i; e.j=j; e.k=k;
-                    e.t1=t; e.d1=dist; e.w0=u; e.w1=v; e.w2=w;
-                    e.t2=-1; e.d2=1.0e20;
-                    e.H1=e.H2=0.0;
+                    e.ns=1;
+                    e.t[0]=t; e.dd[0]=dist; e.H[0]=0.0;
+                    e.tc=t; e.w0=u; e.w1=v; e.w2=w;
+                    e.dc=dist;
                     cells_.push_back(e);
                     continue;
                 }
 
                 cellentry &e = cells_[s];
 
-                const bool differs = fabs(tn_[t].dot(tn_[e.t1])) < samenormal;
-
-                if(dist<e.d1)
+                // closest triangle overall: membrane velocity and tangential resistance
+                if(dist<e.dc)
                 {
-                    // the old closest triangle becomes the second surface if its normal differs
-                    if(differs)
-                    {
-                        e.t2 = e.t1;
-                        e.d2 = e.d1;
-                    }
-
-                    e.t1=t; e.d1=dist; e.w0=u; e.w1=v; e.w2=w;
+                    e.dc=dist; e.tc=t; e.w0=u; e.w1=v; e.w2=w;
                 }
-                else if(differs && dist<e.d2)
+
+                // closest triangle of each distinct surface orientation (up to three: walls meeting
+                // the floor at the bottom corners of a box need all three normals)
+                int q=-1;
+                for(int r=0; r<e.ns; ++r)
+                if(fabs(tn_[t].dot(tn_[e.t[r]]))>=samenormal)
+                q=r;
+
+                if(q>=0)
                 {
-                    e.t2=t;
-                    e.d2=dist;
+                    if(dist<e.dd[q])
+                    {
+                        e.t[q]=t;
+                        e.dd[q]=dist;
+                    }
+                }
+                else if(e.ns<3)
+                {
+                    e.t[e.ns]=t;
+                    e.dd[e.ns]=dist;
+                    ++e.ns;
+                }
+                else
+                {
+                    int f=0;
+                    for(int r=1; r<3; ++r)
+                    if(e.dd[r]>e.dd[f])
+                    f=r;
+
+                    if(dist<e.dd[f])
+                    {
+                        e.t[f]=t;
+                        e.dd[f]=dist;
+                    }
                 }
             }
         }
@@ -544,8 +568,14 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i=e.i; j=e.j; k=e.k;
         slot_[IJK] = -1;
 
-        e.H1 = indicator(e.d1);
-        e.H2 = e.t2>=0 ? indicator(e.d2) : 0.0;
+        e.Hmax=0.0;
+        for(int r=0; r<e.ns; ++r)
+        {
+            e.H[r] = indicator(e.dd[r]);
+            e.Hmax = MAX(e.Hmax,e.H[r]);
+        }
+        
+        e.Hc = indicator(e.dc);
     }
 }
 
@@ -566,7 +596,7 @@ void net_membrane::mobility_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     for(const auto &e : cells_)
     {
         i=e.i; j=e.j; k=e.k;
-        d->MBETA[IJK] = MIN(d->MBETA[IJK], 1.0/(1.0 + a*Kn*MAX(e.H1,e.H2)));
+        d->MBETA[IJK] = MIN(d->MBETA[IJK], 1.0/(1.0 + a*Kn*e.Hmax));
     }
 }
 
@@ -579,17 +609,17 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
     {
         i=e.i; j=e.j; k=e.k;
 
-        const Eigen::Vector3d &n1 = tn_[e.t1];
+        const Eigen::Vector3d &nc = tn_[e.tc];
 
-        Eigen::Matrix3d A = Kn*e.H1*(n1*n1.transpose()) + Kt*e.H1*(I - n1*n1.transpose());
+        Eigen::Matrix3d A = Kt*e.Hc*(I - nc*nc.transpose());
 
-        if(e.t2>=0)
+        for(int r=0; r<e.ns; ++r)
         {
-            const Eigen::Vector3d &n2 = tn_[e.t2];
-            A += Kn*e.H2*(n2*n2.transpose());
+            const Eigen::Vector3d &nr = tn_[e.t[r]];
+            A += Kn*e.H[r]*(nr*nr.transpose());
         }
 
-        const Eigen::Vector3d um = membrane_vel(e.t1,e.w0,e.w1,e.w2);
+        const Eigen::Vector3d um = membrane_vel(e.tc,e.w0,e.w1,e.w2);
 
         Eigen::Vector3d rel(d->U[IJK]-um(0), d->V[IJK]-um(1), d->W[IJK]-um(2));
 
@@ -616,6 +646,7 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
 
 void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
 {
+
     // load on the membrane from the final (projected) velocity: F = rho H A (u^{n+1} - u_m) dV
     fill(tf_.begin(),tf_.end(),0.0);
 
@@ -629,7 +660,7 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         if(p->wet[IJ]==0)
         continue;
 
-        const Eigen::Vector3d um = membrane_vel(e.t1,e.w0,e.w1,e.w2);
+        const Eigen::Vector3d um = membrane_vel(e.tc,e.w0,e.w1,e.w2);
 
         Eigen::Vector3d rel(d->U[IJK]-um(0), d->V[IJK]-um(1), d->W[IJK]-um(2));
 
@@ -638,34 +669,38 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 
         const double dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
 
-        const Eigen::Vector3d &n1 = tn_[e.t1];
-        const double un1 = n1.dot(rel);
-
-        const Eigen::Vector3d f1 = rho*dV*e.H1*(Kn*un1*n1 + Kt*(rel - un1*n1));
-
-        tf_[3*e.t1+0] += f1(0);
-        tf_[3*e.t1+1] += f1(1);
-        tf_[3*e.t1+2] += f1(2);
-
-        double un2=0.0;
-
-        if(e.t2>=0)
+        // normal resistance, per surface orientation
+        double hun=0.0;
+        
+        for(int r=0; r<e.ns; ++r)
         {
-            const Eigen::Vector3d &n2 = tn_[e.t2];
-            un2 = n2.dot(rel);
+            const Eigen::Vector3d &nr = tn_[e.t[r]];
+            const double un = nr.dot(rel);
+            const Eigen::Vector3d f = rho*dV*e.H[r]*Kn*un*nr;
 
-            const Eigen::Vector3d f2 = rho*dV*e.H2*Kn*un2*n2;
+            tf_[3*e.t[r]+0] += f(0);
+            tf_[3*e.t[r]+1] += f(1);
+            tf_[3*e.t[r]+2] += f(2);
+            
+            hun += e.H[r]*un;
+            
+            if(e.H[r]>0.5)
+            urm = MAX(urm,fabs(un));
+        }
+        
+        // tangential resistance, closest triangle
+        if(Kt>0.0)
+        {
+            const Eigen::Vector3d &nc = tn_[e.tc];
+            const Eigen::Vector3d f = rho*dV*e.Hc*Kt*(rel - nc.dot(rel)*nc);
 
-            tf_[3*e.t2+0] += f2(0);
-            tf_[3*e.t2+1] += f2(1);
-            tf_[3*e.t2+2] += f2(2);
+            tf_[3*e.tc+0] += f(0);
+            tf_[3*e.tc+1] += f(1);
+            tf_[3*e.tc+2] += f(2);
         }
 
         // flux through the membrane: int u_n dA = (1/(1.5 delta)) int H u_n dV, outward positive
-        Q += (e.H1*un1 + e.H2*un2)*dV/(1.5*delta);
-
-        if(e.H1>0.5)
-        urm = MAX(urm,fabs(un1));
+        Q += hun*dV/(1.5*delta);
     }
 
     MPI_Allreduce(MPI_IN_PLACE,tf_.data(),(int)tf_.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
@@ -770,20 +805,159 @@ double net_membrane::footprint_distance(double xp, double yp, double &gx, double
     return prm.R - r;
 }
 
+void net_membrane::footprint_weight(double xp, double yp, double &A, double &Ax, double &Ay) const
+{
+    // Smoothed footprint indicator, 1 inside, 0 outside, with the Darcy profile across the walls.
+    // Box: tensor product of the 1D steps across the four walls - smooth at the vertical corners,
+    // where a distance function min(x-x0, x1-x, ...) has a kink along the diagonal that leaves a
+    // spurious torque below the floor. Cylinder: step in the radial distance.
+    Ax=Ay=0.0;
+    
+    if(prm.shape==1)
+    {
+        const double sx0 = xp-prm.x0, sx1 = prm.x1-xp;
+        const double Sx = smoothstep(sx0)*smoothstep(sx1);
+        const double dSx = dstep(sx0)*smoothstep(sx1) - smoothstep(sx0)*dstep(sx1);
+        
+        double Sy=1.0, dSy=0.0;
+        
+        if(yc_.size()>1)
+        {
+            const double sy0 = yp-prm.y0, sy1 = prm.y1-yp;
+            Sy  = smoothstep(sy0)*smoothstep(sy1);
+            dSy = dstep(sy0)*smoothstep(sy1) - smoothstep(sy0)*dstep(sy1);
+        }
+        
+        A  = Sx*Sy;
+        Ax = dSx*Sy;
+        Ay = Sx*dSy;
+        return;
+    }
+    
+    const double rx = xp-prm.xc, ry = yp-prm.yc;
+    const double r = sqrt(rx*rx + ry*ry);
+    const double s = prm.R - r;
+    
+    A = smoothstep(s);
+    
+    if(r>1.0e-12)
+    {
+        Ax = -dstep(s)*rx/r;
+        Ay = -dstep(s)*ry/r;
+    }
+}
+
+void net_membrane::footprint_weight_ext(double xp, double yp, double &A, double &Ax, double &Ay) const
+{
+    // footprint weight widened across the whole wall layer: 1 for s > -delta, 0 for s < -2 delta
+    auto W  = [this](double s) {return smoothstep(2.0*(s + 1.5*delta));};
+    auto dW = [this](double s) {return 2.0*dstep(2.0*(s + 1.5*delta));};
+    
+    Ax=Ay=0.0;
+    
+    if(prm.shape==1)
+    {
+        const double sx0 = xp-prm.x0, sx1 = prm.x1-xp;
+        const double Sx  = W(sx0)*W(sx1);
+        const double dSx = dW(sx0)*W(sx1) - W(sx0)*dW(sx1);
+        
+        double Sy=1.0, dSy=0.0;
+        
+        if(yc_.size()>1)
+        {
+            const double sy0 = yp-prm.y0, sy1 = prm.y1-yp;
+            Sy  = W(sy0)*W(sy1);
+            dSy = dW(sy0)*W(sy1) - W(sy0)*dW(sy1);
+        }
+        
+        A  = Sx*Sy;
+        Ax = dSx*Sy;
+        Ay = Sx*dSy;
+        return;
+    }
+    
+    const double rx = xp-prm.xc, ry = yp-prm.yc;
+    const double r = sqrt(rx*rx + ry*ry);
+    const double s = prm.R - r;
+    
+    A = W(s);
+    
+    if(r>1.0e-12)
+    {
+        Ax = -dW(s)*rx/r;
+        Ay = -dW(s)*ry/r;
+    }
+}
+
+void net_membrane::footprint_weight_int(double xp, double yp, double &A, double &Ax, double &Ay) const
+{
+    // interior weight: 0 for s < delta, 1 for s > 3 delta
+    auto W  = [this](double s) {return smoothstep(s - 2.0*delta);};
+    auto dW = [this](double s) {return dstep(s - 2.0*delta);};
+    
+    Ax=Ay=0.0;
+    
+    if(prm.shape==1)
+    {
+        const double sx0 = xp-prm.x0, sx1 = prm.x1-xp;
+        const double Sx  = W(sx0)*W(sx1);
+        const double dSx = dW(sx0)*W(sx1) - W(sx0)*dW(sx1);
+        
+        double Sy=1.0, dSy=0.0;
+        
+        if(yc_.size()>1)
+        {
+            const double sy0 = yp-prm.y0, sy1 = prm.y1-yp;
+            Sy  = W(sy0)*W(sy1);
+            dSy = dW(sy0)*W(sy1) - W(sy0)*dW(sy1);
+        }
+        
+        A  = Sx*Sy;
+        Ax = dSx*Sy;
+        Ay = Sx*dSy;
+        return;
+    }
+    
+    const double rx = xp-prm.xc, ry = yp-prm.yc;
+    const double r = sqrt(rx*rx + ry*ry);
+    const double s = prm.R - r;
+    
+    A = W(s);
+    
+    if(r>1.0e-12)
+    {
+        Ax = -dW(s)*rx/r;
+        Ay = -dW(s)*ry/r;
+    }
+}
+
+double net_membrane::dstep(double s) const
+{
+    return fabs(s)<delta ? indicator(fabs(s))/(1.5*delta) : 0.0;
+}
+
 void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
     // NHFLOW carries one free surface per column, so a column below the bag floor sees the inner
-    // water level eta_in in its hydrostatic pressure, while the water there is connected to the
-    // outside, eta_out. The non-hydrostatic pressure would have to jump by -rho g dh across the floor,
-    // and that sharp jump on the sloping sigma levels at the bag edge (where eta ramps from eta_in to
-    // eta_out) leaves pressure gradient errors that drive a spurious circulation under the floor.
-    // The known static part is therefore applied as a prescribed pressure
+    // water level in its hydrostatic pressure, while the water there is connected to the outside.
+    // The non-hydrostatic pressure would have to jump by -rho g dh across the floor, and that sharp
+    // jump on the sloping sigma levels at the bag edge leaves pressure gradient errors that drive a
+    // spurious circulation under the floor. The static part is therefore prescribed, below the floor
+    // (B) and over the footprint (A or W), as
     //
-    //      p_m = -rho g dh A(s_xy) B(z_b - z),     dh = eta_in - eta_out (footprint means)
+    //   floorpressure 0:  p_m = -rho g dh A B                A = Darcy profile across the walls
+    //   floorpressure 1:  p_m = -rho g (eta - eta_out) W B   local excess head, W = 1 for s > -delta
+    //   floorpressure 3:  p_m = -rho g dh S W B              S = (eta_avg - eta_out,avg)/dh_avg, the shape
+    //                                                         of the time-averaged (tau) free-surface ramp
     //
-    // with A, B the integral of the layer indicator across the walls and the floor. Its gradient is
-    // evaluated analytically in physical coordinates and added as a body force in the stage, so the
-    // solved non-hydrostatic pressure stays smooth.
+    // On a Cartesian grid the discrete free-surface ramp across the wall layer of a curved bag differs
+    // between the axis and the diagonal directions; with the analytic profile A (0) the mismatch drives a
+    // slowly growing, grid-aligned circulation below the bag edge. 3 follows the actual ramp without
+    // feeding the fast free-surface motion back into p_m, and is the default with A 520 1. With the
+    // incremental scheme A 520 2 it is not stable in all tests (2D box), there 0 is the default.
+    // 1 follows the instantaneous level and is kept for comparison only.
+    // Deep inside the footprint (s > 3 delta) the uniform dh is used. eta_out is the mean level in a
+    // ring 1 - 3 delta outside the footprint. The gradient of p_m is added as a body force in the stage.
     double ein=0.0, ain=0.0, eout=0.0, aout=0.0, gx, gy;
     
     SLICELOOP4
@@ -814,6 +988,26 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     return;
     
     dh = ein/ain - eout/aout;
+    etaref = eout/aout;
+    
+    // time-averaged free surface for floorpressure 3 (relaxation time prm.tau)
+    if(prm.floorp==3)
+    {
+        const double r = etab_.empty() ? 1.0 : MIN(1.0, alpha*p->dt/prm.tau);
+        
+        if(etab_.empty())
+        etab_.assign(p->imax*p->jmax,0.0);
+        
+        for(int ii=-1; ii<=p->knox; ++ii)
+        for(int jj=(p->j_dir==1?-1:0); jj<=(p->j_dir==1?p->knoy:0); ++jj)
+        {
+            double &e = etab_[(ii-p->imin)*p->jmax + (jj-p->jmin)];
+            e += r*(d->eta(ii,jj) - e);
+        }
+        
+        erefb += r*(etaref - erefb);
+        dhb   += r*(dh - dhb);
+    }
     
     const double a = alpha*p->dt;
     const double g = fabs(p->W22);
@@ -821,23 +1015,92 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     LOOP
     WETDRYDEEP
     {
-        const double s = footprint_distance(p->XP[IP],p->YP[JP],gx,gy);
         const double sz = prm.zb - p->ZSP[IJK];
         
-        if(s<=-delta || sz<=-delta)
+        if(sz<=-delta)
         continue;
         
-        const double A  = smoothstep(s);
-        const double B  = smoothstep(sz);
-        const double dA = s<delta  ? indicator(fabs(s))/(1.5*delta)  : 0.0;
-        const double dB = sz<delta ? indicator(fabs(sz))/(1.5*delta) : 0.0;
+        double A, Ax, Ay, fx, fy, fz;
         
-        d->MCHI[IJK] = MAX(d->MCHI[IJK], A*B);
-
-        // f = -grad(p_m)/rho
-        const double fx =  g*dh*dA*B*gx;
-        const double fy =  g*dh*dA*B*gy;
-        const double fz = -g*dh*A*dB;
+        if(prm.floorp==1 || prm.floorp==3)
+        {
+            // local excess head of the column over the outside level, applied over the footprint and
+            // across the whole wall ramp (W = 1 for s > -delta): below the floor the hydrostatic head is
+            // then eta_out everywhere, whatever the shape of the discrete free-surface ramp
+            footprint_weight_ext(p->XP[IP],p->YP[JP],A,Ax,Ay);
+            
+            if(A<=0.0)
+            continue;
+            
+            // excess head: local (eta - eta_out) across the wall ramp, blended into the uniform dh
+            // deeper inside (I = 1 for s > 3 delta), where the local value would decouple the columns
+            // below the floor from the inner free surface and let slow modes grow
+            double I, Ix, Iy;
+            footprint_weight_int(p->XP[IP],p->YP[JP],I,Ix,Iy);
+            
+            double E, Ex, Ey;
+            
+            if(prm.floorp==3)
+            {
+                // floorpressure 3: shape of the ramp from the time-averaged level, normalised with the
+                // averaged head, S = (eta_avg - eta_ref,avg)/dh_avg; amplitude from the current head dh.
+                // The discrete (grid-dependent) ramp across the wall layer is matched as in 1, but the
+                // amplitude does not feed back on the local free surface.
+                auto EV = [&](int ii, int jj) {return etab_[(ii-p->imin)*p->jmax + (jj-p->jmin)];};
+                const double sc = fabs(dhb)>1.0e-8 ? 1.0/dhb : 0.0;
+                
+                const double S  = (EV(i,j) - erefb)*sc;
+                const double Sx = (EV(i+1,j) - EV(i-1,j))/(p->XP[IP+1] - p->XP[IM1])*sc;
+                const double Sy = p->j_dir==1 ? (EV(i,j+1) - EV(i,j-1))/(p->YP[JP+1] - p->YP[JM1])*sc : 0.0;
+                
+                E  = dh*((1.0-I)*S + I);
+                Ex = dh*((1.0-I)*Sx + Ix*(1.0 - S));
+                Ey = dh*((1.0-I)*Sy + Iy*(1.0 - S));
+            }
+            else
+            {
+                const double El = d->eta(i,j) - etaref;
+                const double Elx = (d->eta(i+1,j) - d->eta(i-1,j))/(p->XP[IP+1] - p->XP[IM1]);
+                const double Ely = p->j_dir==1 ? (d->eta(i,j+1) - d->eta(i,j-1))/(p->YP[JP+1] - p->YP[JM1]) : 0.0;
+                
+                E  = (1.0-I)*El + I*dh;
+                Ex = (1.0-I)*Elx + Ix*(dh - El);
+                Ey = (1.0-I)*Ely + Iy*(dh - El);
+            }
+            const double B  = smoothstep(sz);
+            const double dB = sz<delta ? indicator(fabs(sz))/(1.5*delta) : 0.0;
+            
+            // the continuity dissipation is switched off below the floor inside the wall only (as for 0):
+            // the widened weight W reaches into outside columns, whose free surface needs it
+            {
+                double A0, A0x, A0y;
+                footprint_weight(p->XP[IP],p->YP[JP],A0,A0x,A0y);
+                d->MCHI[IJK] = MAX(d->MCHI[IJK], A0*B);
+            }
+            
+            // f = -grad(p_m)/rho,  p_m = -rho g (eta - eta_ref) W B
+            fx =  g*B*(A*Ex + E*Ax);
+            fy =  g*B*(A*Ey + E*Ay);
+            fz = -g*E*A*dB;
+        }
+        else
+        {
+            // uniform head difference dh over the smoothed footprint
+            footprint_weight(p->XP[IP],p->YP[JP],A,Ax,Ay);
+            
+            if(A<=0.0)
+            continue;
+            
+            const double B  = smoothstep(sz);
+            const double dB = sz<delta ? indicator(fabs(sz))/(1.5*delta) : 0.0;
+            
+            d->MCHI[IJK] = MAX(d->MCHI[IJK], A*B);
+            
+            // f = -grad(p_m)/rho
+            fx =  g*dh*Ax*B;
+            fy =  g*dh*Ay*B;
+            fz = -g*dh*A*dB;
+        }
         
         d->U[IJK] += a*fx;
         UH[IJK]   += a*fx*WL(i,j);

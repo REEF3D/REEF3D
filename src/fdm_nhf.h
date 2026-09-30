@@ -81,6 +81,9 @@ public:
     double *POR,*PORPART;
     double *MBETA = nullptr;    // membrane mobility in the pressure Poisson equation (X 330), else unallocated
     double *MCHI = nullptr;     // fraction of the prescribed static pressure below membrane floors (X 330)
+    double *MRCX = nullptr;     // membrane (X 330): face correction velocities of the last projection,
+    double *MRCY = nullptr;     //                   Rhie-Chow continuity flux next to the membrane
+    int MPROJ = 1;              // membrane (X 330): projections per stage (membrane.dat: projections)
     double *test;
     double *KIN;
     double *CONC;

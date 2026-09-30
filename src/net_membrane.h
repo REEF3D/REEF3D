@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef NET_MEMBRANE_H_
 #define NET_MEMBRANE_H_
 
-// Impermeable membrane (closed flexible fish cage) for REEF3D::NHFLOW.   ctrl.txt: X 330 1, A 520 1
+// Impermeable membrane (closed flexible fish cage) for REEF3D::NHFLOW.   ctrl.txt: X 330 1, A 520 1 or 2
 // Geometry and parameters in membrane.dat (see net_interface_membrane_nhflow.cpp).
 //
 // 1. Porous jump. The membrane is a triangulated surface. On the fluid side it is a thin, anisotropic
@@ -40,17 +40,21 @@ Author: Hans Bihs
 //    and of the closest triangle with a different normal, so no leakage path opens around corners.
 //
 // 2. Projection. The same implicit factor enters the pressure Poisson equation and the velocity
-//    correction as the mobility beta = 1/(1 + a K_n H) (d->MBETA; nhflow_poisson, nhflow_pjm).
-//    Without it the correction -a/rho grad(q) puts O(a dq/(rho delta)) normal velocity through the
-//    membrane in every stage. Only the full projection A 520 1 is supported.
+//    correction as the mobility beta = 1/(1 + a K_n H) (d->MBETA; nhflow_poisson(_pcorr),
+//    nhflow_pjm(_corr), nhflow_membrane_beta.h): in the matrix per face, in the collocated correction
+//    as the distance-weighted mean of the two compact face gradients with their face mobilities.
+//    A 520 2 (incremental): the old pressure gradient of the predictor is taken out before the forcing
+//    and put back through the same operator (net_interface::membrane_pgrad), so P^n and the increment
+//    act like one full pressure. Optional further projection passes per stage (projections n).
 //
-// 3. Free surface. The depth-jump dissipation of the HLL/HLLC continuity flux is scaled with beta,
-//    otherwise it moves mass through the layer although the velocity there vanishes.
+// 3. Free surface. At faces next to the membrane or below the bag floor the continuity flux uses the
+//    Rhie-Chow face velocity of the last projection (with projections > 1 the central face velocity of
+//    the converged wide divergence), so the free surface follows the projected velocity field and no
+//    mass moves through the membrane layer or past the floor corner that the projection does not see.
 //
 // 4. Bag floor. NHFLOW has one free surface per column, so the columns below the floor see the
-//    inner level in their hydrostatic pressure. The static overpressure -rho g dh below the floor
-//    is prescribed (static_pressure_nhflow) and the continuity dissipation is switched off where it
-//    acts (d->MCHI), so the solved non-hydrostatic pressure stays smooth.
+//    inner level in their hydrostatic pressure. The static overpressure below the floor is prescribed
+//    (static_pressure_nhflow, floorpressure 0/1/3), so the solved non-hydrostatic pressure stays smooth.
 //
 // 5. Loads. Evaluated after the projection from the final velocity, F = rho H A (u^{n+1} - u_m) dV,
 //    per triangle. In steady state they integrate to the pressure jump times the panel area.
@@ -85,7 +89,10 @@ struct membrane_param
     double h=-1.0;                          // target triangle edge length [m], <0: min cell size
     double fill=0.0;                        // initial inner water level above the undisturbed level [m]
     double printdt=-1.0;                    // vtp print interval [s], <0: no vtp output
+    int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
     int poisson=1;                          // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
+    int floorp=-1;                          // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp; -1: 3 with A 520 1, 0 with A 520 2
+    double tau=2.0;                         // relaxation time of the averaged level (floorpressure 3) [s]
 };
 
 class net_membrane final : public net, public increment
@@ -135,6 +142,10 @@ private:
     double indicator(double) const;
     double smoothstep(double) const;
     double footprint_distance(double, double, double&, double&) const;
+    void footprint_weight(double, double, double&, double&, double&) const;
+    void footprint_weight_ext(double, double, double&, double&, double&) const;
+    void footprint_weight_int(double, double, double&, double&, double&) const;
+    double dstep(double) const;
 
     // output
     void print_timeseries(lexer*, fdm_nhf*, ghostcell*);
@@ -158,10 +169,13 @@ private:
     struct cellentry
     {
         int i,j,k;
-        int t1,t2;
-        double d1,d2;
-        double H1,H2;
-        double w0,w1,w2;    // barycentric weights of the closest point on t1
+        int ns;             // distinct surface orientations within delta (up to 3)
+        int t[3];           // closest triangle of each orientation
+        double dd[3], H[3];
+        double Hmax;
+        int tc;             // closest triangle overall
+        double dc, Hc;
+        double w0,w1,w2;    // barycentric weights of the closest point on tc
     };
     vector<cellentry> cells_;
     vector<int> slot_;
@@ -170,7 +184,9 @@ private:
     // loads
     vector<double> tf_;                     // 3 per triangle, reaction on the membrane [N]
     double Fx,Fy,Fz,Fzfloor,Qleak,urelmax;
-    double dh;                              // eta_in - eta_out used for the static floor pressure
+    double dh, etaref;                      // eta_in - eta_out and eta_out used for the static floor pressure
+    vector<double> etab_;                   // time-averaged free surface (floorpressure 3)
+    double erefb=0.0, dhb=0.0;
 
     // print
     double printtime;
