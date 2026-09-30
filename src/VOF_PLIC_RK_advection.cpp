@@ -89,7 +89,7 @@ double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a,
     {
         V=0.0;
     }
-    else if((min(n_1*d_1+n_2*d_2,n_3*d_3)<=r) && (r<=n_3*d_3)) //case 5
+    else if((n_1*d_1+n_2*d_2<=n_3*d_3) && (n_1*d_1+n_2*d_2<=r) && (r<=n_3*d_3)) //case 5 (only exists if m1+m2<=m3)
     {
         V=(r-0.5*(n_1*d_1+n_2*d_2))/(n_3*d_3);
     }
@@ -171,7 +171,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                 }
                 
             }
-            else if(nx(i,j,k)<0.0)
+            else if(r0x>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=dsx*p->DYN[JP]*p->DZN[KP];
                 switch(inputdim)
@@ -218,7 +218,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                                 break;
                 }
             }
-            else if(nx(i,j,k)>0.0)
+            else if(r0x>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=dsx*p->DYN[JP]*p->DZN[KP];
                 switch(inputdim)
@@ -268,7 +268,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                                 break;
                 }
             }
-            else if(nz(i,j,k)<0.0)
+            else if(r0z>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=p->DXN[IP]*p->DYN[JP]*dsz;
                 switch(inputdim)
@@ -314,7 +314,7 @@ void VOF_PLIC::advectPlane_forCOSMIC2D_RK
                                 break;
                 }
             }
-            else if(nz(i,j,k)>0.0)
+            else if(r0z>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=p->DXN[IP]*p->DYN[JP]*dsz;
                 switch(inputdim)
@@ -452,7 +452,7 @@ double VOF_PLIC::twoStepVel(lexer* p, fdm* a,double uin1,double uin2,double delt
 {
     double dx1, u12, dx2, dx_ret;
     dx1=0.5*p->dt*uin1;
-    u12=(uin2-uin1)/deltax * dx1+uin1;
+    u12=(uin2-uin1)/deltax * fabs(dx1)+uin1; // upstream point lies inside the donor cell for both signs of uin1
     dx2=0.5*p->dt*u12;
     dx_ret=dx1+dx2;
     
@@ -489,7 +489,7 @@ void VOF_PLIC::advectPlane_forCOSMIC3D_RK
                 cout<<"plane u volnan in "<<i<<","<<j<<","<<k<<endl;
                 V_p(i,j,k)=Vol;
             }
-            else if(nx(i,j,k)<0.0)
+            else if(r0x>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=dsx*p->DYN[JP]*p->DZN[KP];
                 V_p(i,j,k)=Vol;
@@ -514,7 +514,7 @@ void VOF_PLIC::advectPlane_forCOSMIC3D_RK
                     cout<<"plane u volnan in "<<i<<","<<j<<","<<k<<endl;
                 V_m(i,j,k)=-Vol;
             }
-            else if(nx(i,j,k)>0.0)
+            else if(r0x>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=dsx*p->DYN[JP]*p->DZN[KP];
                 V_m(i,j,k)=-Vol;
@@ -541,7 +541,7 @@ void VOF_PLIC::advectPlane_forCOSMIC3D_RK
                     cout<<"plane y volnan in "<<i<<","<<j<<","<<k<<endl;
                 V_p(i,j,k)=Vol;
             }
-            else if(ny(i,j,k)<0.0)
+            else if(r0y>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=p->DXN[IP]*fabs(dsy)*p->DZN[KP];
                 V_p(i,j,k)=Vol;
@@ -564,7 +564,7 @@ void VOF_PLIC::advectPlane_forCOSMIC3D_RK
                     cout<<"plane v  volnan in "<<i<<","<<j<<","<<k<<endl;
                 V_m(i,j,k)=-Vol;
             }
-            else if(ny(i,j,k)>0.0)
+            else if(r0y>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=p->DXN[IP]*fabs(dsy)*p->DZN[KP];
                 V_m(i,j,k)=-Vol;
@@ -590,7 +590,7 @@ void VOF_PLIC::advectPlane_forCOSMIC3D_RK
                     cout<<"plane w volnan in "<<i<<","<<j<<","<<k<<endl;
                 V_p(i,j,k)=Vol;
             }
-            else if(nz(i,j,k)<0.0)
+            else if(r0z>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=p->DXN[IP]*p->DYN[JP]*dsz;
                 V_p(i,j,k)=Vol;
@@ -614,7 +614,7 @@ void VOF_PLIC::advectPlane_forCOSMIC3D_RK
                     cout<<"plane w volnan in "<<i<<","<<j<<","<<k<<endl;
                 V_m(i,j,k)=-Vol;
             }
-            else if(nz(i,j,k)>0.0)
+            else if(r0z>0.0) // plane misses flux region: full iff region centre is on the water side
             {
                 Vol=p->DXN[IP]*p->DYN[JP]*dsz;
                 V_m(i,j,k)=-Vol;

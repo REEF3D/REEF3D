@@ -298,6 +298,8 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     pgc->start4(p,a->ro,gcval_ro);
     pgc->start4(p,a->visc,gcval_visc);
     
+    // keep the redistanced level set for F92==1 (density is recomputed from phi in update())
+    if(p->F92!=1)
     LOOP
     {
         if(a->vof(i,j,k)>p->F94)
@@ -315,5 +317,6 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     LOOP
         vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
     vofchecksum=pgc->globalsum(vofchecksum);
+    if(p->mpirank==0)
     cout<<"Total water volume:"<<vofchecksum<<endl;
 }

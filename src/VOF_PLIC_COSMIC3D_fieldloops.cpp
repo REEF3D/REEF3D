@@ -60,10 +60,10 @@ void VOF_PLIC::fieldloop_xy
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i-1,j,k)>0.0)
+            if(uvel(i-1,j,k)>0.0 && V_p(i-1,j,k)>0.0)
                 V_m(i,j,k)=V_p(i-1,j,k);
                     
-            if(V_m(i+1,j,k)<0.0)
+            if(uvel(i,j,k)<0.0 && V_m(i+1,j,k)<0.0)
                 V_p(i,j,k)=V_m(i+1,j,k);
         }
         pgc->start4(p,V_p,1);
@@ -105,10 +105,10 @@ void VOF_PLIC::fieldloop_xz
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i-1,j,k)>0.0)
+            if(uvel(i-1,j,k)>0.0 && V_p(i-1,j,k)>0.0)
                 V_m(i,j,k)=V_p(i-1,j,k);
                     
-            if(V_m(i+1,j,k)<0.0)
+            if(uvel(i,j,k)<0.0 && V_m(i+1,j,k)<0.0)
                 V_p(i,j,k)=V_m(i+1,j,k);
         }
         pgc->start4(p,V_p,1);
@@ -150,10 +150,10 @@ void VOF_PLIC::fieldloop_yx
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j-1,k)>0.0)
+            if(vvel(i,j-1,k)>0.0 && V_p(i,j-1,k)>0.0)
                 V_m(i,j,k)=V_p(i,j-1,k);
                     
-            if(V_m(i,j+1,k)<0.0)
+            if(vvel(i,j,k)<0.0 && V_m(i,j+1,k)<0.0)
                 V_p(i,j,k)=V_m(i,j+1,k);
         }
         pgc->start4(p,V_p,1);
@@ -195,10 +195,10 @@ void VOF_PLIC::fieldloop_yz
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j-1,k)>0.0)
+            if(vvel(i,j-1,k)>0.0 && V_p(i,j-1,k)>0.0)
                 V_m(i,j,k)=V_p(i,j-1,k);
                     
-            if(V_m(i,j+1,k)<0.0)
+            if(vvel(i,j,k)<0.0 && V_m(i,j+1,k)<0.0)
                 V_p(i,j,k)=V_m(i,j+1,k);
         }
         pgc->start4(p,V_p,1);
@@ -240,10 +240,10 @@ void VOF_PLIC::fieldloop_zx
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j,k-1)>0.0)
+            if(wvel(i,j,k-1)>0.0 && V_p(i,j,k-1)>0.0)
                 V_m(i,j,k)=V_p(i,j,k-1);
                     
-            if(V_m(i,j,k+1)<0.0)
+            if(wvel(i,j,k)<0.0 && V_m(i,j,k+1)<0.0)
                 V_p(i,j,k)=V_m(i,j,k+1);
         }
         pgc->start4(p,V_p,1);
@@ -285,10 +285,10 @@ void VOF_PLIC::fieldloop_zy
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j,k-1)>0.0)
+            if(wvel(i,j,k-1)>0.0 && V_p(i,j,k-1)>0.0)
                 V_m(i,j,k)=V_p(i,j,k-1);
                     
-            if(V_m(i,j,k+1)<0.0)
+            if(wvel(i,j,k)<0.0 && V_m(i,j,k+1)<0.0)
                 V_p(i,j,k)=V_m(i,j,k+1);
         }
         pgc->start4(p,V_p,1);
@@ -330,10 +330,10 @@ void VOF_PLIC::fieldloop_xzy
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i-1,j,k)>0.0)
+            if(uvel(i-1,j,k)>0.0 && V_p(i-1,j,k)>0.0)
                 V_m(i,j,k)=V_p(i-1,j,k);
                     
-            if(V_m(i+1,j,k)<0.0)
+            if(uvel(i,j,k)<0.0 && V_m(i+1,j,k)<0.0)
                 V_p(i,j,k)=V_m(i+1,j,k);
         }
         pgc->start4(p,V_p,1);
@@ -375,10 +375,10 @@ void VOF_PLIC::fieldloop_xyz
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i-1,j,k)>0.0)
+            if(uvel(i-1,j,k)>0.0 && V_p(i-1,j,k)>0.0)
                 V_m(i,j,k)=V_p(i-1,j,k);
                     
-            if(V_m(i+1,j,k)<0.0)
+            if(uvel(i,j,k)<0.0 && V_m(i+1,j,k)<0.0)
                 V_p(i,j,k)=V_m(i+1,j,k);
         }
         pgc->start4(p,V_p,1);
@@ -420,10 +420,10 @@ void VOF_PLIC::fieldloop_yxz
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j-1,k)>0.0)
+            if(vvel(i,j-1,k)>0.0 && V_p(i,j-1,k)>0.0)
                 V_m(i,j,k)=V_p(i,j-1,k);
                     
-            if(V_m(i,j+1,k)<0.0)
+            if(vvel(i,j,k)<0.0 && V_m(i,j+1,k)<0.0)
                 V_p(i,j,k)=V_m(i,j+1,k);
         }
         pgc->start4(p,V_p,1);
@@ -465,10 +465,10 @@ void VOF_PLIC::fieldloop_yzx
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j-1,k)>0.0)
+            if(vvel(i,j-1,k)>0.0 && V_p(i,j-1,k)>0.0)
                 V_m(i,j,k)=V_p(i,j-1,k);
                     
-            if(V_m(i,j+1,k)<0.0)
+            if(vvel(i,j,k)<0.0 && V_m(i,j+1,k)<0.0)
                 V_p(i,j,k)=V_m(i,j+1,k);
         }
         pgc->start4(p,V_p,1);
@@ -510,10 +510,10 @@ void VOF_PLIC::fieldloop_zxy
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j,k-1)>0.0)
+            if(wvel(i,j,k-1)>0.0 && V_p(i,j,k-1)>0.0)
                 V_m(i,j,k)=V_p(i,j,k-1);
                     
-            if(V_m(i,j,k+1)<0.0)
+            if(wvel(i,j,k)<0.0 && V_m(i,j,k+1)<0.0)
                 V_p(i,j,k)=V_m(i,j,k+1);
         }
         pgc->start4(p,V_p,1);
@@ -555,10 +555,10 @@ void VOF_PLIC::fieldloop_zyx
         pgc->start4(p,V_m,1);
         LOOP
         {
-            if(V_p(i,j,k-1)>0.0)
+            if(wvel(i,j,k-1)>0.0 && V_p(i,j,k-1)>0.0)
                 V_m(i,j,k)=V_p(i,j,k-1);
                     
-            if(V_m(i,j,k+1)<0.0)
+            if(wvel(i,j,k)<0.0 && V_m(i,j,k+1)<0.0)
                 V_p(i,j,k)=V_m(i,j,k+1);
         }
         pgc->start4(p,V_p,1);
