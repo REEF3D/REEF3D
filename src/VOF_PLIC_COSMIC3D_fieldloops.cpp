@@ -43,8 +43,7 @@ void VOF_PLIC::fieldloop_xy
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -88,8 +87,7 @@ void VOF_PLIC::fieldloop_xz
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -133,8 +131,7 @@ void VOF_PLIC::fieldloop_yx
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -178,8 +175,7 @@ void VOF_PLIC::fieldloop_yz
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -223,8 +219,7 @@ void VOF_PLIC::fieldloop_zx
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -268,8 +263,7 @@ void VOF_PLIC::fieldloop_zy
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -313,8 +307,7 @@ void VOF_PLIC::fieldloop_xzy
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -358,8 +351,7 @@ void VOF_PLIC::fieldloop_xyz
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -403,8 +395,7 @@ void VOF_PLIC::fieldloop_yxz
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -448,8 +439,7 @@ void VOF_PLIC::fieldloop_yzx
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -493,8 +483,7 @@ void VOF_PLIC::fieldloop_zxy
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -538,8 +527,7 @@ void VOF_PLIC::fieldloop_zyx
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {

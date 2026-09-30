@@ -67,12 +67,7 @@ void VOF_PLIC::symmetric_scheme2D_FCRK3
             Vz_p(i,j,k)=0.0;
             Vz_m(i,j,k)=0.0;
         }
-        pgc->start4(p,Vn_p,1);
-        pgc->start4(p,Vn_m,1);
-        pgc->start4(p,Vx_p,1);
-        pgc->start4(p,Vx_m,1);
-        pgc->start4(p,Vz_p,1);
-        pgc->start4(p,Vz_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -267,8 +262,7 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
             V_p(i,j,k)=0.0;
             V_m(i,j,k)=0.0;
         }
-        pgc->start4(p,V_p,1);
-        pgc->start4(p,V_m,1);
+        // ghost values are only read after the next start4 below -> no exchange needed here
         
         LOOP
         {
@@ -389,10 +383,10 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
             if(swtch_xz==0)
                 fieldloop_xz(a,p,pgc,uvel,vvel,wvel);
                 
-            if(swtch_yz==1)
+            if(swtch_yz==1 && swtch_xyz==0)
                 fieldloop_xyz(a,p,pgc,uvel,vvel,wvel);
                 
-            if(swtch_zy==1)
+            if(swtch_zy==1 && swtch_xzy==0)
                 fieldloop_xzy(a,p,pgc,uvel,vvel,wvel);
         }
         else if (sweep==1)
@@ -403,10 +397,10 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
             if(swtch_yz==0)
                 fieldloop_yz(a,p,pgc,uvel,vvel,wvel);
                 
-            if(swtch_xz==1)
+            if(swtch_xz==1 && swtch_yxz==0)
                 fieldloop_yxz(a,p,pgc,uvel,vvel,wvel);
                 
-            if(swtch_zx==1)
+            if(swtch_zx==1 && swtch_yzx==0)
                 fieldloop_yzx(a,p,pgc,uvel,vvel,wvel);
         }
         else if (sweep==2)
@@ -417,10 +411,10 @@ void VOF_PLIC::symmetric_scheme3D_FCRK3
             if(swtch_zy==0)
                 fieldloop_zy(a,p,pgc,uvel,vvel,wvel);
                 
-            if(swtch_xy==1)
+            if(swtch_xy==1 && swtch_zxy==0)
                 fieldloop_zxy(a,p,pgc,uvel,vvel,wvel);
                 
-            if(swtch_yx==1)
+            if(swtch_yx==1 && swtch_zyx==0)
                 fieldloop_zyx(a,p,pgc,uvel,vvel,wvel);
         }
     }
