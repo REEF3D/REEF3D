@@ -56,6 +56,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"increment.h"
+#include"vrans_definitions.h"
 
 // mobility of the vertical velocity correction in cell (i,j,k): compact difference of the nodes k, k+1,
 // exactly the vertical face of the Poisson matrix
@@ -167,6 +168,7 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
 
 // face correction velocities dU_f of the projection with the total pressure P (after the correction),
 // a = alpha dt, for the Rhie-Chow continuity flux of the next stage
+// VRANS: scaled by the face value of CPORNH, as the Poisson matrix and ucorr/vcorr (= 1 without porosity)
 inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const double *P, double a)
 {
     int i,j,k;
@@ -178,12 +180,16 @@ inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
         const double Pn = 0.5*(P[FIp1JK]+P[FIp1JKp1]);
         
-        d->MRCX[IJK] = -a/p->W1*nhflow_membrane_harm(B[IJK],B[Ip1JK])*(Pn-Pc)/p->DXP[IP];
+        const double cx = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[Ip1JK]));
+        
+        d->MRCX[IJK] = -a*cx/p->W1*nhflow_membrane_harm(B[IJK],B[Ip1JK])*(Pn-Pc)/p->DXP[IP];
         
         if(p->j_dir==1)
         {
         const double Pw = 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
-        d->MRCY[IJK] = -a/p->W1*nhflow_membrane_harm(B[IJK],B[IJp1K])*(Pw-Pc)/p->DYP[JP];
+        const double cy = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[IJp1K]));
+        
+        d->MRCY[IJK] = -a*cy/p->W1*nhflow_membrane_harm(B[IJK],B[IJp1K])*(Pw-Pc)/p->DYP[JP];
         }
     }
     
