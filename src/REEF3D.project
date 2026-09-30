@@ -2499,6 +2499,7 @@
           <File Name="fnpf_6DOF.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net Interface">
+          <File Name="net_interface_membrane_nhflow.cpp"/>
           <File Name="net_interface_netForces_nhflow.cpp"/>
           <File Name="net_interface_netForces_cfd.cpp"/>
           <File Name="net_interface_dlm_nhflow.cpp"/>
