@@ -37,7 +37,15 @@ void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     LOOP
     WETDRY
-    K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)/PORVALNH;
+    K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    
+    // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
+    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    SLICELOOP4
+    {
+    k = p->knoz-1;
+    K(i,j) /= PORVALNH;
+    }
     
     SLICELOOP4
     WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
@@ -70,7 +78,15 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     LOOP
     WETDRY
-    K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)/PORVALNH;
+    K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    
+    // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
+    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    SLICELOOP4
+    {
+    k = p->knoz-1;
+    K(i,j) /= PORVALNH;
+    }
     
     SLICELOOP4
     WLRK2(i,j) = 0.75*d->WL(i,j) + 0.25*WLRK1(i,j) + 0.25*p->dt*K(i,j);
@@ -100,7 +116,15 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     LOOP
     WETDRY
-    K(i,j) += - p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)/PORVALNH;
+    K(i,j) += - p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    
+    // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
+    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    SLICELOOP4
+    {
+    k = p->knoz-1;
+    K(i,j) /= PORVALNH;
+    }
     
     SLICELOOP4
     d->WL(i,j) = (1.0/3.0)*d->WL(i,j) + (2.0/3.0)*WLRK2(i,j) + (2.0/3.0)*p->dt*K(i,j);

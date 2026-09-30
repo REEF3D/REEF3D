@@ -136,8 +136,8 @@ void sixdof_obj::update_forcing_nhflow_porous(lexer *p, fdm_nhf *d, ghostcell *p
 void sixdof_obj::porosity_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // n(x,t) = 1 - H_fb (1 - n_fb)
-    // without static VRANS structures (B 200 0) the field is owned by the body and fully
-    // overwritten; with static structures (B 200 1) vrans_nhflow_f::update() resets POR at the
+    // without static VRANS structures (B 200 0) nhflow_forcing::reset() clears POR to 1 before
+    // the bodies stamp it; with static structures (B 200 1) vrans_nhflow_f::update() resets POR at the
     // start of every stage and applies the same stamp, here we only take the minimum.
     double H;
     
@@ -145,10 +145,8 @@ void sixdof_obj::porosity_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        if(p->B200==0)
-        d->POR[IJK] = 1.0 - H*(1.0 - p->X16_n);
-        
-        if(p->B200>0)
+        // POR is reset to 1 in nhflow_forcing::reset() (B 200 0) or vrans_nhflow_f::update()
+        // (B 200 1) -> MIN lets several porous bodies coexist
         d->POR[IJK] = MIN(d->POR[IJK], 1.0 - H*(1.0 - p->X16_n));
         
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0);
