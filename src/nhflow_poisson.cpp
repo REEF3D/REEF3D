@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_poisson.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_membrane_beta.h"
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
@@ -68,6 +69,8 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	{
         WETDRYDEEP
         {
+            const double rhs0 = d->rhsvec.V[n];
+            
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
@@ -110,6 +113,14 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                         
                             + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
                             /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir);
+            
+            // impermeable membranes (X 330): reduced mobility in the membrane layer
+            if(d->MBETA!=nullptr)
+            nhflow_membrane_row(p,d,i,j,k,n,
+                                - cT*sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP]),
+                                - cB*sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]),
+                                cP*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1])),
+                                rhs0);
         }
         
         if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)

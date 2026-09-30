@@ -32,6 +32,10 @@ Author: Hans Bihs
 void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
+    // impermeable membranes (X 330): loads from the projected velocity
+    if(p->X330>0)
+    p6dof->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+    
     // nothing to force (no solids, floating bodies, DLM or 6DOF): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)

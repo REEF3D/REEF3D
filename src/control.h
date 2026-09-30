@@ -548,6 +548,7 @@ public:
     double *X321_Sn,*X321_d,*X321_lambda,*X321_dk,*X321_rho,*X321_nd,*X321_nl;
     double *X322_D,*X322_L,*X322_x0,*X322_y0,*X322_z0,*X322_phi,*X322_theta,*X322_psi;
     int X324;
+    int X330;
     double X323_m,X323_d,X323_l;
     double *X324_x,*X324_y,*X324_z;
     double X325_dt,X325_relX,X325_relY,X325_relZ;

@@ -66,5 +66,8 @@ void net_interface::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             pnet[n]->initialize_nhflow(p,d,pgc);
 		}
     }
-
+    
+    // impermeable membranes (closed cages)
+    if(p->X330>0)
+    membrane_ini_nhflow(p,d,pgc);
 }

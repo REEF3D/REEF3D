@@ -974,6 +974,10 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Membrane">
+          <File Name="nhflow_membrane_beta.h"/>
+          <File Name="net_membrane.h"/>
+        </VirtualDirectory>
         <File Name="6DOF_output_dir.h"/>
         <File Name="fnpf_6DOF.h"/>
         <VirtualDirectory Name="Net Interface">
@@ -2488,6 +2492,9 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Membrane">
+          <File Name="net_membrane.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">
           <File Name="fnpf_6DOF.cpp"/>
         </VirtualDirectory>

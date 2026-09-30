@@ -79,6 +79,8 @@ public:
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
     double *POR,*PORPART;
+    double *MBETA = nullptr;    // membrane mobility in the pressure Poisson equation (X 330), else unallocated
+    double *MCHI = nullptr;     // fraction of the prescribed static pressure below membrane floors (X 330)
     double *test;
     double *KIN;
     double *CONC;

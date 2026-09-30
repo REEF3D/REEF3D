@@ -40,6 +40,13 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
     if(dlm_flag==1)
     dlm_forcing_ini(p,pgc);
     
+    if(p->X330>0 && p->X10>0)
+    {
+        if(p->mpirank==0)
+        cout<<"\n!!! X 330 membranes are not yet coupled to floating bodies (X 10) !!!\n"<<endl;
+        exit(1);
+    }
+    
     prodtree = nullptr;
     if(p->Z20>0)
     prodtree = new rodtree_coupling(p,pgc);
@@ -76,7 +83,7 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     // nothing to force (no solids, floating bodies, DLM, 6DOF, moorings or nets): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)
-    if(forcing_flag==0 && solid_flag==0 && dlm_flag==0 && p->X10==0 && p->S10==0 && p->X310==0 && p->X320==0 && prodtree==nullptr)
+    if(forcing_flag==0 && solid_flag==0 && dlm_flag==0 && p->X10==0 && p->S10==0 && p->X310==0 && p->X320==0 && p->X330==0 && prodtree==nullptr)
     return;
 
     starttime=pgc->timer();
@@ -211,6 +218,10 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
             d->W[IJK] += alpha*p->dt*CPORNH*FZ[IJK];
         }
     }
+    
+    // impermeable membranes (X 330): implicit porous-jump forcing, sets the Poisson mobility d->MBETA
+    if(p->X330>0)
+    p6dof->membrane_forcing_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
     
     // flexible rod trees: sample, spread reaction, advance structure (final stage)
     if(prodtree!=nullptr)
