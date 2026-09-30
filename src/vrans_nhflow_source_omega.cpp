@@ -25,32 +25,30 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void vrans_nhflow_f::omega_source(lexer *p, fdm_nhf *d, field &kin, field &eps)
+// k-omega, omega-equation: + n beta omega_inf^2,  omega_inf = eps_inf/(cmu k_inf)
+// (balances the beta omega^2 sink at omega = omega_inf)
+void vrans_nhflow_f::omega_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS, double beta)
 {
-    /*
-	int count;
-    double uvel,vvel,wvel,uu;
-    double por;
-    double kinf,winf;
-    double ke_c_2e=1.92;
+    double kinf,einf,winf;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
-    if(a->porosity(i,j,k)<1.0)
     {
-        uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-        vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-        wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
+        porous_coeff(p,d);
         
-        uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        por = a->porosity(i,j,k);
+        if(H>1.0e-12)
+        {
+        turb_inf(p,d,kinf,einf);
         
-        kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
+        if(kinf>1.0e-20)
+        {
+        winf = einf/(p->cmu*kinf);
         
-        a->rhsvec.V[count] += por*(winf*winf);
-        ++count;  
+        d->rhsvec.V[count] += porval*beta*winf*winf;
+        }
+        }
+        
+    ++count;
     }
-    */
 }

@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"vrans.h"
+#include"vrans_nhflow.h"
 
 nhflow_komega_func::nhflow_komega_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_komega_bc(p)
 {
@@ -78,7 +79,7 @@ void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
 	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 }
 
-void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
+void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nhflow* pvrans)
 {
     // RANS (A560 2) and URANS (A560 22)
     // A564 0: nu_t = k/omega
@@ -143,6 +144,9 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
     d->EV[IJK] = d->EV0[IJK];
     }
 
+    // VRANS: eddy viscosity treatment inside porous structures (B 295 2)
+    pvrans->eddyv_func(p,d);
+
     LOOP
     if(p->DF[IJK]<0)
     {
@@ -151,7 +155,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* p
     }
 }
 
-void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
+void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 {	
     int count=0;
 
@@ -175,10 +179,11 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 	++count;
     }
     
-    //pvrans->kw_source(p,a,kin);
+    // VRANS turbulence source (B 295 1)
+    pvrans->kw_source(p,d,KIN,EPS);
 }
 
-void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
+void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 {
     count=0;
     double dirac;
@@ -192,7 +197,8 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
         }
 
     
-    //pvrans->omega_source(p,a,kin,eps);
+    // VRANS turbulence source (B 295 1)
+    pvrans->omega_source(p,d,KIN,EPS,kw_beta);
 }
 
 void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)

@@ -31,6 +31,7 @@ class solver;
 class ghostcell;
 class ioflow;
 class vrans;
+class vrans_nhflow;
 
 #include<fstream>
 #include<sstream>
@@ -42,7 +43,7 @@ class nhflow_turbulence
 {
 
 public:
-	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*)=0;
+	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*)=0;
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void etimesave(lexer*, fdm_nhf*, ghostcell*)=0;
 	virtual void isource(lexer*, fdm_nhf*)=0;

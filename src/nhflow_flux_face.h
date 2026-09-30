@@ -45,6 +45,20 @@ Author: Hans Bihs
 
 namespace nhflow_face
 {
+// porosity of the surface cell, averaged to the x- / y-face: storage coefficient of the
+// continuity equation n_s deta/dt + div(Q) = 0 -> the HLL/HLLC jump term is n_s*(D_R - D_L)
+inline double por_surf_x(lexer *p, fdm_nhf *d, int i, int j)
+{
+    const int k = p->knoz-1;
+    return 0.5*(d->POR[IJK] + d->POR[Ip1JK]);
+}
+
+inline double por_surf_y(lexer *p, fdm_nhf *d, int i, int j)
+{
+    const int k = p->knoz-1;
+    return 0.5*(d->POR[IJK] + d->POR[IJp1K]);
+}
+
 // U momentum
 __attribute__((noinline)) inline double U_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
@@ -124,10 +138,10 @@ inline void zflux(lexer *p, fdm_nhf *d, const double *Fb, const double *Ft)
     WLOOP
     {
     if(d->omegaF[FIJKp1]>=0.0)
-    d->Fz[IJK] = (d->omegaF[FIJKp1]*(Fb[IJK]))/(PORVALNH*PORVALNH);
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(Fb[IJK]))/(PORVALNH3*PORVALNH3);
     
     if(d->omegaF[FIJKp1]<0.0)
-    d->Fz[IJK] = (d->omegaF[FIJKp1]*(Ft[IJK]))/(PORVALNH*PORVALNH);
+    d->Fz[IJK] = (d->omegaF[FIJKp1]*(Ft[IJK]))/(PORVALNH3*PORVALNH3);
     }
 }
 }

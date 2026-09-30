@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"density_f.h"
 #include"patchBC_interface.h"
 #include"vrans.h"
+#include"vrans_definitions.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -147,7 +148,7 @@ void nhflow_pjm_yl::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P
 	LOOP
     WETDRYDEEP
     {
-	UH[IJK] -= alpha*p->dt*WL(i,j)*(1.0/p->W1)*
+	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
                 ((0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])
                 
@@ -161,7 +162,7 @@ void nhflow_pjm_yl::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P
     LOOP
     WETDRYDEEP
     {
-    VH[IJK] -= alpha*p->dt*WL(i,j)*(1.0/p->W1)*
+    VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
                 ((0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])
                 
@@ -173,7 +174,7 @@ void nhflow_pjm_yl::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P
 {
     /*LOOP
     WETDRYDEEP
-	WH[IJK] -= alpha*p->dt*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));*/
+	WH[IJK] -= alpha*p->dt*CPORNH*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));*/
 }
 
 void nhflow_pjm_yl::upgrad(lexer*p, fdm_nhf *d, slice &WL)

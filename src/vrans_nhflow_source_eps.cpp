@@ -25,31 +25,26 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void vrans_nhflow_f::eps_source(lexer *p, fdm_nhf *d, field &kin, field &eps)
+// k-epsilon, epsilon-equation: + n c2e eps_inf^2 / k_inf
+void vrans_nhflow_f::eps_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    /*
-	int count;
-    double uvel,vvel,wvel,uu;
-    double por;
+    const double ke_c_2e=1.92;
     double kinf,einf;
-    double ke_c_2e=1.92;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
     {
-        uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-        vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-        wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
+        porous_coeff(p,d);
         
-        uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        por = a->porosity(i,j,k);
+        if(H>1.0e-12)
+        {
+        turb_inf(p,d,kinf,einf);
         
-        kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        einf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k));
+        if(kinf>1.0e-20)
+        d->rhsvec.V[count] += porval*ke_c_2e*einf*einf/kinf;
+        }
         
-        a->rhsvec.V[count] += por*(ke_c_2e*einf*einf)/(kinf>1.0e-20?kinf:1.0e20);
-        ++count;  
+    ++count;
     }
-*/
 }

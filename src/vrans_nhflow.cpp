@@ -27,9 +27,6 @@ Author: Hans Bihs
 
 vrans_nhflow_f::vrans_nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), Cval(p->B264)
 {
-    p->Darray(APOR,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(BPOR,p->imax*p->jmax*(p->kmax+2));
-    
     p->Darray(UN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(VN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WN,p->imax*p->jmax*(p->kmax+2));
@@ -56,8 +53,6 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     
     d->POR[IJK]     = H*p->B201_n + (1.0-H)*1.0;
 	d->PORPART[IJK] = H*p->B201_d50;
-	APOR[IJK]       = H*p->B201_alpha;
-	BPOR[IJK]       = H*p->B201_beta;
     }
     
     // porous floating body (X 16): POR is reset above, so re-apply the moving body porosity
@@ -86,8 +81,6 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     
     pgc->start5Vfull(p,d->POR,1);
     pgc->start5Vfull(p,d->PORPART,1);
-    pgc->start5Vfull(p,APOR,1);
-    pgc->start5Vfull(p,BPOR,1);
     
     // print force
     if(p->B208==1)

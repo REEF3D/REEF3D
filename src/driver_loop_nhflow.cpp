@@ -71,7 +71,7 @@ void driver::loop_nhflow()
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc_nhflow(p,d,pgc);
 			
-        pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
+        pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pnhfvrans);        
         
 		// Sediment Computation
         psed->start_susp_nhflow(p,d,pgc,pflow,psolv);

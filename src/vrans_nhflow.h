@@ -43,10 +43,12 @@ public:
 	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
 	virtual void w_source(lexer*, fdm_nhf*, slice&)=0;
     
-    virtual void ke_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void kw_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void eps_source(lexer*, fdm_nhf*, field&, field&)=0;
-    virtual void omega_source(lexer*, fdm_nhf*, field&, field&)=0;
+    // porous-media turbulence closure (Nakayama & Kuwahara 1999), B 295 1
+    // arguments: KIN, EPS (epsilon or omega); omega_source also gets beta of the k-omega model
+    virtual void ke_source(lexer*, fdm_nhf*, double*, double*)=0;
+    virtual void kw_source(lexer*, fdm_nhf*, double*, double*)=0;
+    virtual void eps_source(lexer*, fdm_nhf*, double*, double*)=0;
+    virtual void omega_source(lexer*, fdm_nhf*, double*, double*, double)=0;
     
     virtual void eddyv_func(lexer*, fdm_nhf*)=0;
     

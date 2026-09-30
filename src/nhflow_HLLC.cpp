@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 #include"nhflow_flux_build_f.h"
+#include"nhflow_flux_face.h"
 
 nhflow_HLLC::nhflow_HLLC (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -270,10 +271,10 @@ void nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
             
             else
             if(d->SSx[IJK]>=0.0)
-            d->FEx[IJK] = d->Fs[IJK] + d->Ss[IJK]*(FsS - d->Ds(i,j));
+            d->FEx[IJK] = d->Fs[IJK] + d->Ss[IJK]*nhflow_face::por_surf_x(p,d,i,j)*(FsS - d->Ds(i,j));
             
             else
-            d->FEx[IJK] = d->Fn[IJK] + d->Sn[IJK]*(FnS - d->Dn(i,j));
+            d->FEx[IJK] = d->Fn[IJK] + d->Sn[IJK]*nhflow_face::por_surf_x(p,d,i,j)*(FnS - d->Dn(i,j));
         }
         
         
@@ -292,7 +293,7 @@ void nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
             denom = d->Sn[IJK]-d->Ss[IJK];
             denom = fabs(denom)>1.0e-10?denom:1.0e10;
             
-            d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
+            d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j)))/denom;
             }
         }
     }
@@ -315,10 +316,10 @@ void nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
             
             else
             if(d->SSy[IJK]>=0.0)
-            d->FEy[IJK] = d->Fe[IJK] + d->Se[IJK]*(FeS - d->De(i,j));
+            d->FEy[IJK] = d->Fe[IJK] + d->Se[IJK]*nhflow_face::por_surf_y(p,d,i,j)*(FeS - d->De(i,j));
             
             else
-            d->FEy[IJK] = d->Fw[IJK] + d->Sw[IJK]*(FwS - d->Dw(i,j));
+            d->FEy[IJK] = d->Fw[IJK] + d->Sw[IJK]*nhflow_face::por_surf_y(p,d,i,j)*(FwS - d->Dw(i,j));
         }
         
         
@@ -336,7 +337,7 @@ void nhflow_HLLC::HLLC_E(lexer* p,fdm_nhf* d)
             denom = d->Sw[IJK]-d->Se[IJK];
             denom = fabs(denom)>1.0e-10?denom:1.0e10;
             
-            d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
+            d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j)))/denom;
             }
         }
     }

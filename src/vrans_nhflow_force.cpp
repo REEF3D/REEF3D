@@ -34,54 +34,46 @@ void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
     FLOOP
     P[FIJK] = (p->wd + d->eta(i,j) - p->ZSN[FIJK])*p->W1*fabs(p->W22) + d->P[FIJK];
     
-    // VRANS force
+    // VRANS force on the static structures
+    // F = sum dV [ rho (A u + B |u| u) + rho c du/dt - (1 - n_s) grad p ],  c = gamma (1-n_s)/n_s^2
+    // all terms vanish with (1 - n_s) outside the structure
     if(p->B200>0)
     LOOP
 	{
-        H = Hporface(p,d,0,0,0);  
+        porous_coeff(p,d);
         
-        porval   = d->POR[IJK];
-        partval  = d->PORPART[IJK];
-        alphaval = APOR[IJK];
-        betaval  = BPOR[IJK];
-        viscval  = d->VISC[IJK];
-		
-        
-        Aporval = Apor(porval,partval,alphaval,viscval);
-        Bporval = Bpor(porval,partval,betaval);
+        if(H<1.0e-12)
+        continue;
         
         dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*p->WL[IJ];
         
         rho = d->RO[IJK];
         
-        // added-mass coefficient, identical to the one in CPORNH: c = gamma (1-n)/n^2
-        cmval = p->B260*(1.0-PORVALNH)/(PORVALNH*PORVALNH);
+        cmval = p->B260*(1.0-porval)/(porval*porval);
         
-        // force on the skeleton = rho*(Darcy-Forchheimer drag + added mass) - (1-n) grad p
-        // (Apor/Bpor are per unit mass -> multiply by rho, as in the porous 6DOF body)
-        Fx += dV*H*(rho*(Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]))
+        Fx += dV*(rho*(Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]))
         
                 + rho*cmval*(d->U[IJK]-UN[IJK])/(alpha*p->dt)*cmfac
                 
-                - (1.0-PORVALNH)*(((0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
+                - (1.0-porval)*(((0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
                 
                 + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
         
         
-        Fy += dV*H*(rho*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]))
+        Fy += dV*(rho*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]))
         
                 + rho*cmval*(d->V[IJK]-VN[IJK])/(alpha*p->dt)*cmfac
                 
-                - (1.0-PORVALNH)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
+                - (1.0-porval)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
                 
                 + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
         
         
-        Fz += dV*H*(rho*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]))
+        Fz += dV*(rho*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]))
         
                 + rho*cmval*(d->W[IJK]-WN[IJK])/(alpha*p->dt)*cmfac
                 
-                - (1.0-PORVALNH)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
+                - (1.0-porval)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
 	}
     
     Fx = pgc->globalsum(Fx);

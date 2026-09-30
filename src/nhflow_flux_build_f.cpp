@@ -144,7 +144,7 @@ void nhflow_flux_build_f::start_U_yl(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK])/(PORVALNH*PORVALNH);
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Ub[IJK] + d->Ut[IJK]))/(PORVALNH3*PORVALNH3) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Ut[IJK] - d->Ub[IJK])/(PORVALNH3*PORVALNH3);
 }
 
 void nhflow_flux_build_f::start_V_yl(lexer* p, fdm_nhf *d, ghostcell *pgc)
@@ -169,6 +169,6 @@ void nhflow_flux_build_f::start_V_yl(lexer* p, fdm_nhf *d, ghostcell *pgc)
     
     // flux z-dir
     WLOOP
-    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]))/(PORVALNH*PORVALNH) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK])/(PORVALNH*PORVALNH);
+    d->Fz[IJK] = 0.5*(d->omegaF[FIJKp1]*(d->Vb[IJK] + d->Vt[IJK]))/(PORVALNH3*PORVALNH3) - 0.5*fabs(d->omegaF[FIJKp1])*(d->Vt[IJK] - d->Vb[IJK])/(PORVALNH3*PORVALNH3);
     }
 }

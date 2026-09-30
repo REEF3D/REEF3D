@@ -46,10 +46,10 @@ public:
 	void v_source(lexer*, fdm_nhf*, slice&) override final {};
 	void w_source(lexer*, fdm_nhf*, slice&) override final {};
     
-    void ke_source(lexer*, fdm_nhf*, field&) override final {};
-    void kw_source(lexer*, fdm_nhf*, field&) override final {};
-    void eps_source(lexer*, fdm_nhf*, field&, field&) override final {};
-    void omega_source(lexer*, fdm_nhf*, field&, field&) override final {};
+    void ke_source(lexer*, fdm_nhf*, double*, double*) override final {};
+    void kw_source(lexer*, fdm_nhf*, double*, double*) override final {};
+    void eps_source(lexer*, fdm_nhf*, double*, double*) override final {};
+    void omega_source(lexer*, fdm_nhf*, double*, double*, double) override final {};
     
     void eddyv_func(lexer*, fdm_nhf*) override final {};
     
