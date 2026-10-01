@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_H_
 
 #include"ddweno_f_nug.h"
+#include<functional>
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -139,6 +140,14 @@ public:
     void ray_cast_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, slice&);
     void face_data_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, double*, double*, double*, double*);
     void forces_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double**, bool);
+    // forces_fnpf in two parts for several grids (FNPF mesh refinement): the hull triangles
+    // whose centroid own(x,y) accepts are integrated on grid (p,c) with the sampling distance
+    // del, then the sums are reduced and stored
+    struct fnpf_force_sum { double F[3], Mo[3], Am[36], Atot; };
+    void forces_fnpf_zero(lexer*, fnpf_force_sum&);
+    void forces_fnpf_sum(lexer*, fdm_fnpf*, double*, double**, bool, double, const std::function<bool(double,double)>*, fnpf_force_sum&);
+    void forces_fnpf_set(lexer*, ghostcell*, fnpf_force_sum&, bool);
+    double fnpf_dsm() const {return DSM;}
     bool fnpf_fixed(lexer*);
     void print_force_fnpf(lexer*);
 

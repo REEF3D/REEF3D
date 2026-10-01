@@ -200,22 +200,39 @@ void sixdof_obj::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0
     // Integration over the trimesh clipped at the local free surface (as NHFLOW),
     // fluid quantities sampled half a mean cell off the hull.
     
-    const double rho = p->W1;
-    const double grav = fabs(p->W22);
-    const double del = 0.5*DSM;
+    fnpf_force_sum S;
+    forces_fnpf_zero(p,S);
     
-    double F[3]  = {0.0,0.0,0.0};
-    double Mo[3] = {0.0,0.0,0.0};
-    double Am[36];
-    double Atot=0.0;
+    forces_fnpf_sum(p,c,psi0,psi,computeA,0.5*DSM,nullptr,S);
+    forces_fnpf_set(p,pgc,S,computeA);
+}
+
+void sixdof_obj::forces_fnpf_zero(lexer *p, fnpf_force_sum &S)
+{
+    curr_time = p->simtime;
+    
+    for(int m=0; m<3; ++m)
+    S.F[m] = S.Mo[m] = 0.0;
     
     for(int m=0; m<36; ++m)
-    Am[m]=0.0;
+    S.Am[m]=0.0;
+    
+    S.Atot=0.0;
+}
+
+void sixdof_obj::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, double **psi, bool computeA, double del,
+                                 const std::function<bool(double,double)> *own, fnpf_force_sum &S)
+{
+    const double rho = p->W1;
+    const double grav = fabs(p->W22);
+    
+    double *F = S.F;
+    double *Mo = S.Mo;
+    double *Am = S.Am;
+    double &Atot = S.Atot;
     
     double vx[3],vy[3],vz[3];
     double px[4],py[4],pz[4];
-    
-    curr_time = p->simtime;
     
     for(n=0; n<tricount; ++n)
     {     
@@ -229,12 +246,21 @@ void sixdof_obj::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0
 		const double xc = (vx[0] + vx[1] + vx[2])/3.0;
 		const double yc = (vy[0] + vy[1] + vy[2])/3.0;
         
-        // ownership by the triangle centroid (decomposition in x and y only)
-        if(!(xc >= p->originx && xc < p->endx))
-        continue;
-        
-        if(p->j_dir==1 && !(yc >= p->originy && yc < p->endy))
-        continue;
+        // ownership by the triangle centroid (decomposition in x and y only); with several
+        // grids own() decides (rank box and the finest grid that holds the centroid)
+        if(own!=nullptr)
+        {
+            if(!(*own)(xc,yc))
+            continue;
+        }
+        else
+        {
+            if(!(xc >= p->originx && xc < p->endx))
+            continue;
+            
+            if(p->j_dir==1 && !(yc >= p->originy && yc < p->endy))
+            continue;
+        }
         
         double nx = (vy[1] - vy[0])*(vz[2] - vz[0]) - (vy[2] - vy[0])*(vz[1] - vz[0]);
         double ny = (vx[2] - vx[0])*(vz[1] - vz[0]) - (vx[1] - vx[0])*(vz[2] - vz[0]); 
@@ -354,6 +380,14 @@ void sixdof_obj::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0
             Atot += A_sub;
         }
 	}
+}
+
+void sixdof_obj::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &S, bool computeA)
+{
+    double *F = S.F;
+    double *Mo = S.Mo;
+    double *Am = S.Am;
+    double Atot = S.Atot;
     
     Atot = pgc->globalsum(Atot);
     

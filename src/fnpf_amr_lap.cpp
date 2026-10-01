@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"reefmg_core.h"
 #include"reefamr_krylov.h"
 #include"fnpf_amr_fill.h"
+#include"fnpf_body.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
@@ -75,7 +76,7 @@ inline long ijk4(const lexer *q, int ii, int jj, int kk)
 double* fnpf_amr::lvec(int g, int k)
 {
     if(k<0)
-    return gfd(g)->Fi;
+    return ltgt[g+1];
 
     return (g<0) ? kv0[k] : FP(g)->kv[k];
 }
@@ -129,8 +130,8 @@ void fnpf_amr::lap_rows()
                 L.cq.push_back(qq);
                 else
                 {
-                    L.lq.push_back(qq);
-                    L.lr.push_back(r);
+                    L.aq.push_back(qq);
+                    L.ar.push_back(r);
                 }
             }
         }
@@ -182,6 +183,30 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         lap_layout = regrids;
     }
 
+    // fixed rows (identity rows of the assembly: nodes inside a resolved body) are no unknowns:
+    // they keep their value, and no fluid row couples to them (Neumann faces).  Left in the
+    // composite system they took up the coarse correction across the hull and the solve
+    // needed 200 iterations instead of 5
+    const bool hasbody = (body!=nullptr);
+    auto fixed = [&](const matrix_diag &M, int r)
+    {
+        return hasbody && M.p[r]==1.0 && M.n[r]==0.0 && M.s[r]==0.0 && M.w[r]==0.0 && M.e[r]==0.0 && M.t[r]==0.0 && M.b[r]==0.0;
+    };
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        lgrid &L = lg[g+1];
+        const matrix_diag &M = gfd(g)->M;
+        L.lq.clear();
+        L.lr.clear();
+        for(size_t n=0; n<L.aq.size(); ++n)
+        if(!fixed(M,L.ar[n]))
+        {
+            L.lq.push_back(L.aq[n]);
+            L.lr.push_back(L.ar[n]);
+        }
+    }
+
     auto clear = [](sc_level &L)
     {
         std::fill(L.p.begin(),L.p.end(),0.0);
@@ -210,7 +235,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
                 continue;
             }
             L.p[lq]=M.p[r]; L.n[lq]=M.n[r]; L.s[lq]=M.s[r]; L.w[lq]=M.w[r]; L.e[lq]=M.e[r]; L.t[lq]=M.t[r]; L.b[lq]=M.b[r];
-            L.act[lq] = 1;
+            L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         mg0->coarsen();
     }
@@ -242,7 +267,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             L.e[lq] = (jj-1>=EXT) ? M.e[r] : 0.0;
             L.t[lq] = M.t[r];
             L.b[lq] = M.b[r];
-            L.act[lq] = 1;
+            L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         c->mg->coarsen();
     }
@@ -476,12 +501,46 @@ struct lap_space
 };
 }
 
-// the Laplace equation of the RK stage on all grids; level 0 is assembled (fnpf_RK3)
-void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
+// assembled rows of all grids -> solution in ltgt: right-hand side, BiCGStab (initial guess:
+// the values in ltgt), then the covered columns, the columns around the patches and the halo
+void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
+{
+    lap_prepare(pgc);
+
+    // right-hand side into NS
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *R = gfd(g)->rhsvec.V.data();
+        double *b = lvec(g,NS);
+        const lgrid &L = lg[g+1];
+        for(size_t n=0; n<L.lq.size(); ++n)
+        b[L.lq[n]] = R[L.lr[n]];
+        for(int qq : L.cq)
+        b[qq] = 0.0;
+    }
+
+    lap_apply(-1,NVV);
+
+    double bn, rn;
+    lap_space sp{this};
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3]);
+
+    lap_it_last = it;
+    lap_it_total += it;
+    ++lap_solves;
+    lap_res_last = bn>0.0 ? rn/bn : 0.0;
+    p->solveriter = it;
+    p->final_res = lap_res_last;
+
+    lap_sync(-1);
+}
+
+// the Laplace equation of the RK stage on all grids (fnpf_RK3, through fnpf_laplace_amr)
+void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     const double t0 = MPI_Wtime();
 
-    // the patches: free-surface derivatives, sigma grid, boundary conditions, rows
+    // the patches: free-surface derivatives, sigma grid, boundary conditions
     {
     comms_off guard(pgc);
     for(int id=0; id<(int)P.size(); ++id)
@@ -497,40 +556,38 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
         pc->pfu->fsfbc_sig(pp,cc,pgc,Sf,cc->Fi);
         pc->pbu->bedbc_sig(pp,cc,pgc,cc->Fi,pc->pf);
         walls_fi(*pc,cc->Fi);
-        pc->plap->start(pp,cc,pgc,nullptr,pc->pf,cc->Fi,Sf);
     }
     }
 
-    lap_prepare(pgc);
+    // resolved body on the new sigma grids
+    if(body!=nullptr)
+    body->amr_geometry(p,c,pgc);
 
-    // right-hand side into NS
-    for(int g=-1; g<(int)P.size(); ++g)
+    // rows: level 0 with its own solver, the patches
+    plap0->assemble_only = true;
+    plap0->start(p,c,pgc,psolv,pf,f,Fifsf);
+    plap0->assemble_only = false;
+
     {
-        const double *R = gfd(g)->rhsvec.V.data();
-        double *b = lvec(g,NS);
-        const lgrid &L = lg[g+1];
-        for(size_t n=0; n<L.lq.size(); ++n)
-        b[L.lq[n]] = R[L.lr[n]];
-        for(int qq : L.cq)
-        b[qq] = 0.0;
+    comms_off guard(pgc);
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        fnpf_amr_patch *pc = FP(id);
+        pc->plap->start(pc->pp,pc->c,pgc,nullptr,pc->pf,pc->c->Fi,sval(id,stg,1));
+    }
     }
 
-    // BiCGStab; initial guess: Fi of the previous stage
-    lap_apply(-1,NVV);
+    // initial guess: Fi of the previous stage
+    ltgt.assign(P.size()+1,nullptr);
+    ltgt[0] = f;
+    for(int id=0; id<(int)P.size(); ++id)
+    ltgt[id+1] = FP(id)->c->Fi;
 
-    double bn, rn;
-    lap_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3]);
+    lap_core(p,pgc);
 
-    lap_it_last = it;
-    lap_it_total += it;
-    ++lap_solves;
-    lap_res_last = bn>0.0 ? rn/bn : 0.0;
-    p->solveriter = it;
-    p->final_res = lap_res_last;
-
-    // Fi in the covered columns, around the patches and in the halo
-    lap_sync(-1);
+    // body band
+    if(body!=nullptr)
+    body->amr_post_solve(p,c,pgc,f);
 
     // the patches: wall nodes, vertical velocity at the free surface
     {
@@ -546,5 +603,30 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f)
     tm[1] += MPI_Wtime()-t0;
 
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"FNPF AMR Laplace: iterations "<<it<<"  res "<<setprecision(3)<<lap_res_last<<endl;
+    cout<<"FNPF AMR Laplace: iterations "<<lap_it_last<<"  res "<<setprecision(3)<<lap_res_last<<endl;
+}
+
+// a psi solve of the body loads on all grids, with the operator of the current sigma grids
+void fnpf_amr::lap_solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double **f, slice **D)
+{
+    const double t0 = MPI_Wtime();
+
+    plap0->assemble_only = true;
+    plap0->start(p,c,pgc,psolv,pf,f[0],*D[0]);
+    plap0->assemble_only = false;
+
+    {
+    comms_off guard(pgc);
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        fnpf_amr_patch *pc = FP(id);
+        pc->plap->start(pc->pp,pc->c,pgc,nullptr,pc->pf,f[id+1],*D[id+1]);
+    }
+    }
+
+    ltgt.assign(f,f+P.size()+1);
+
+    lap_core(p,pgc);
+
+    tm[1] += MPI_Wtime()-t0;
 }

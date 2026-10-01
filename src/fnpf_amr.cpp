@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"fnpf_laplace_cds2.h"
 #include"reefmg_core.h"
 #include"fnpf_amr_fill.h"
+#include"fnpf_body.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
@@ -60,11 +61,7 @@ public:
             return;
         }
 
-        plap0->assemble_only = true;
-        outer->start(p,c,pgc,psolv,pf,f,Fifsf);
-        plap0->assemble_only = false;
-
-        a->lap_solve(p,c,pgc,f);
+        a->lap_solve(p,c,pgc,psolv,pf,f,Fifsf);
     }
 
 private:
@@ -123,6 +120,12 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     }
     q.ioband = 4;
 
+    // refinement around the resolved body (X 10 1): margin A 278 around the wetted hull
+    q.zones = (p->X10==1 && p->A278>0);
+    q.zr = p->A278_r;
+    q.zL = p->A279_L;
+    q.za = p->A279_a;
+
     configure(q);
 
     gcval_eta = 55;
@@ -155,7 +158,49 @@ fnpf_laplace* fnpf_amr::laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0)
     if(maxlev<1)
     return outer;
 
+    fnpf_amr::plap0 = plap0;
+
     return new fnpf_laplace_amr(this,outer,plap0);
+}
+
+void fnpf_amr::attach_body(fnpf_body *b)
+{
+    body = (b!=nullptr && b->present()) ? b : nullptr;
+}
+
+void fnpf_amr::zone_bodies(vector<sixdof_obj*> &obj)
+{
+    if(body!=nullptr)
+    body->amr_bodies(obj);
+}
+
+fnpf_fsf* fnpf_amr::patch_fsf(int n)
+{
+    return FP(n)->pf;
+}
+
+slice& fnpf_amr::patch_tendency(int n, int m)
+{
+    return (m==0) ? static_cast<slice&>(*FP(n)->ek) : static_cast<slice&>(*FP(n)->fk);
+}
+
+// the finest local grid whose interior holds (x,y)
+int fnpf_amr::finest_at(double x, double y)
+{
+    int g=-1, l=0;
+    for(int n=0; n<(int)P.size(); ++n)
+    {
+        reefamr_patch *c = P[n];
+        lexer *pp = c->pp;
+        if(c->lev<=l)
+        continue;
+        if(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge] && y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge])
+        {
+            g=n;
+            l=c->lev;
+        }
+    }
+    return g;
 }
 
 // --------------------------------------------------------------------- grids
@@ -190,7 +235,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->A310!=3) ok=0;
     if(p->A343!=0) ok=0;
     if(p->A350!=0) ok=0;
-    if(p->X10!=0) ok=0;
+    if(p->X10!=0 && p->X10!=1) ok=0;
     if(p->A324!=0) ok=0;
     if(p->A328!=0) ok=0;
     if(p->A380!=0) ok=0;
@@ -200,7 +245,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (A 270): only for A 310 3, A 311 other than 3, A 343 0, A 350 0, X 10 0, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (A 270): only for A 310 3, A 311 other than 3, A 343 0, A 350 0, X 10 0/1, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -221,6 +266,9 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     for(int it=0; it<maxlev; ++it)
     regrid(p,pgc,true);
+
+    if(body!=nullptr)
+    body->amr_grids(p,pgc);
 
     if(p->mpirank==0)
     {
@@ -670,20 +718,15 @@ void fnpf_amr::regrid_finish(ghostcell *pgc, int old_total)
 }
 
 // --------------------------------------------------------------------- time stepping
-// the patches form their stage values (as fnpf_RK3), the fine values go to the coarser
-// levels, then the cells around the patches are filled
-void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, slice &Sf, int s)
+// the tendencies of the patches (kinematic and dynamic FSBC), as fnpf_RK3: before the body
+// loads, which need them for the psi_0 data
+void fnpf_amr::stage_tendency(lexer *p, fdm_fnpf *c, ghostcell *pgc, int s)
 {
-    Se0 = &Se;
-    Sf0 = &Sf;
-    stg = s;
-
     if(!active())
     return;
 
     double t0 = MPI_Wtime();
 
-    {
     comms_off guard(pgc);
 
     for(auto q : P)
@@ -698,10 +741,9 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
         pp->count = p->count;
 
         slice4 &ek = *pc->ek, &fk = *pc->fk;
-        slice4 &erk1 = *pc->erk1, &erk2 = *pc->erk2, &frk1 = *pc->frk1, &frk2 = *pc->frk2;
+        slice4 &erk1 = *pc->erk1, &erk2 = *pc->erk2;
         slice &Ein = (s==0) ? static_cast<slice&>(cc->eta) : (s==1) ? static_cast<slice&>(erk1) : static_cast<slice&>(erk2);
 
-        {
         lexer *p = pp;
         fdm_fnpf *c = cc;
 
@@ -712,6 +754,37 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
         pc->pf->dfsfbc(p,c,pgc,Ein);
         SLICELOOP4
         fk(i,j) = c->K(i,j);
+    }
+
+    tm[0] += MPI_Wtime()-t0;
+}
+
+// the patches form their stage values (as fnpf_RK3) and the footprint of the body, the fine
+// values go to the coarser levels, then the cells around the patches are filled
+void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, slice &Sf, int s)
+{
+    Se0 = &Se;
+    Sf0 = &Sf;
+    stg = s;
+
+    if(!active())
+    return;
+
+    double t0 = MPI_Wtime();
+
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        fnpf_amr_patch *pc = FP(id);
+
+        {
+        comms_off guard(pgc);
+
+        fdm_fnpf *cc = pc->c;
+        slice4 &ek = *pc->ek, &fk = *pc->fk;
+        slice4 &erk1 = *pc->erk1, &erk2 = *pc->erk2, &frk1 = *pc->frk1, &frk2 = *pc->frk2;
+
+        lexer *p = pc->pp;
+        fdm_fnpf *c = cc;
 
         if(s==0)
         {
@@ -735,7 +808,9 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
             c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
         }
         }
-    }
+
+        if(body!=nullptr)
+        body->amr_surface(pc->pp,pgc,id,sval(id,s,0),sval(id,s,1));
     }
 
     auto sel = [&](int g, int m) -> slice& { return sval(g,s,m); };

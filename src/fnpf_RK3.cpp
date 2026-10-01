@@ -90,6 +90,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // mesh refinement: tendencies of the patches (the body loads need them)
+    if(pamr!=nullptr)
+    pamr->stage_tendency(p,c,pgc,0);
+    
     pbody->stage(p,c,pgc,psolv,pf,ek,fk,0);
     
     SLICELOOP4
@@ -142,6 +146,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // mesh refinement: tendencies of the patches (the body loads need them)
+    if(pamr!=nullptr)
+    pamr->stage_tendency(p,c,pgc,1);
+    
     pbody->stage(p,c,pgc,psolv,pf,ek,fk,1);
     
     SLICELOOP4
@@ -192,6 +200,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->dfsfbc(p,c,pgc,erk2);
     SLICELOOP4
     fk(i,j) = c->K(i,j);
+    
+    // mesh refinement: tendencies of the patches (the body loads need them)
+    if(pamr!=nullptr)
+    pamr->stage_tendency(p,c,pgc,2);
     
     pbody->stage(p,c,pgc,psolv,pf,ek,fk,2);
     
@@ -250,6 +262,8 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 void fnpf_RK3::attach_amr(fnpf_amr *a)
 {
     pamr = a;
+    a->attach_body(pbody);
+    pbody->amr_attach(a);
     plap = a->laplace(plap,plap0);
 }
 

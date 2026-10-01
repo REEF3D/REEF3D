@@ -41,6 +41,8 @@ class fnpf_fsf_update;
 class fnpf_bed_update;
 class fnpf_laplace_cds2;
 class reefmg_core;
+class fnpf_body;
+class solver;
 
 using namespace std;
 
@@ -66,9 +68,14 @@ using namespace std;
 //     correction and patch-local REEFMG V-cycles on the residual it leaves
 //   - one global time step, the stages of all grids in lockstep
 //
+//  Resolved body (fnpf_6DOF, X 10 1): every grid carries the body at its own resolution (ray
+//  cast, footprint, body band); the phi and psi solves are composite solves over all grids,
+//  every hull triangle is integrated on the finest grid that holds its centroid.  A 278 r
+//  refines a margin r around the wetted hull at t = 0.
+//
 //  Scope of this version: static refinement (A 270 levels, A 276 boxes, A 277 boxes without
-//  refinement, A 275 tile width), RK3 (A 310 3), no wetting-drying (A 343 0), no breaking
-//  (A 350 0), no resolved bodies (X 10 0), no ice (A 380 0), A 324 0, A 328 0, 3D grids.
+//  refinement, A 275 tile width, A 278 zone around the body), RK3 (A 310 3), no wetting-drying
+//  (A 343 0), no breaking (A 350 0), X 10 0 or 1, no ice (A 380 0), A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
 struct fnpf_amr_patch : public reefamr_patch
@@ -103,6 +110,8 @@ public:
     void timestep(lexer*, fdm_fnpf*, ghostcell*);
     void print(lexer*, fdm_fnpf*, ghostcell*);
 
+    // fnpf_RK3: stage s (0,1,2), the level-0 tendencies are formed: those of the patches
+    void stage_tendency(lexer*, fdm_fnpf*, ghostcell*, int);
     // fnpf_RK3: stage s (0,1,2) values eta, Fifsf of level 0 are formed
     void stage_surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int);
     // fnpf_RK3: end of the time step
@@ -111,7 +120,22 @@ public:
     // the Laplace solver for fnpf_RK3: level 0 assembled by plap0, then all grids together
     fnpf_laplace* laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0);
     bool active() const { return maxlev>0 && patches_total>0; }
-    void lap_solve(lexer*, fdm_fnpf*, ghostcell*, double*);
+    void lap_solve(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, double*, slice&);
+    // a psi solve of the body loads on all grids: targets f[g+1] with free-surface data D[g+1];
+    // boundary data are set by the caller
+    void lap_solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, double**, slice**);
+
+    // resolved bodies (fnpf_6DOF) on the hierarchy
+    void attach_body(fnpf_body*);
+    int patches() const { return (int)P.size(); }
+    lexer* patch_lexer(int n) { return P[n]->pp; }
+    fdm_fnpf* patch_fdm(int n) { return FP(n)->c; }
+    fnpf_fsf* patch_fsf(int n);
+    slice& patch_tendency(int n, int m);
+    int patch_level(int n) { return P[n]->lev; }
+    void patch_walls_fi(int n, double *f) { walls_fi(*FP(n),f); }
+    int finest_at(double, double);      // local grid id whose interior holds (x,y), -1: level 0
+    int layout() const { return regrids; }
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
     void lap_apply(int, int);
@@ -132,6 +156,7 @@ protected:
     void regrid_static(ghostcell*) override;
     void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
     void regrid_finish(ghostcell*, int) override;
+    void zone_bodies(vector<sixdof_obj*>&) override;
 
 private:
     fnpf_amr_patch* FP(int n) { return static_cast<fnpf_amr_patch*>(P[n]); }
@@ -172,7 +197,9 @@ private:
     void walls_sl(fnpf_amr_patch&, slice&, int);
 
     // composite Laplace (fnpf_amr_lap.cpp)
-    double* lvec(int, int);         // grid, vector (-1: Fi)
+    double* lvec(int, int);         // grid, vector (-1: the target of the solve, ltgt)
+    vector<double*> ltgt;           // [g+1]: unknowns of the current solve (Fi or psi)
+    void lap_core(lexer*, ghostcell*);
     void lap_prepare(ghostcell*);
     void lap_sync(int);
     void lap_rows();
@@ -181,6 +208,7 @@ private:
     {
         vector<int> lq, lr;         // leaf unknowns: Fi index, matrix row
         vector<int> cq;             // covered unknowns: Fi index
+        vector<int> aq, ar;         // all leaf rows (lq, lr: without the fixed rows)
     };
     vector<lgrid> lg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
@@ -197,6 +225,8 @@ private:
     ofstream gaugeout, logout;
 
     fdm_fnpf *c0;
+    fnpf_laplace_cds2 *plap0 = nullptr;
+    fnpf_body *body = nullptr;
     int vref;
     int gcval_eta, gcval_fifsf;
     double printtime_amr;
