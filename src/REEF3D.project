@@ -40,6 +40,10 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
+    <VirtualDirectory Name="REEFAMR">
+      <File Name="reefamr.h"/>
+      <File Name="reefamr_krylov.h"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
         <File Name="reefmg.h"/>
@@ -1248,6 +1252,11 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
+    <VirtualDirectory Name="REEFAMR">
+      <File Name="reefamr.cpp"/>
+      <File Name="reefamr_regrid.cpp"/>
+      <File Name="reefamr_zone.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
         <File Name="reefmg.cpp"/>
