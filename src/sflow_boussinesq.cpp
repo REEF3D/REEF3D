@@ -33,7 +33,8 @@ sflow_boussinesq::sflow_boussinesq(lexer *p, fdm2D *b, ghostcell *pgc) : zeta(-0
                                     U4(p),V4(p),U1p(p),V1p(p),Cx(p),Cy(p),
                                     T1(p),T2(p),etat(p),
                                     vy(p),hvy(p),ux(p),hux(p),
-                                    mask(p),io(p),ua_n(p),va_n(p),f(p)
+                                    mask(p),io(p),ua_n(p),va_n(p),f(p),
+                                    Xp(p),Xn(p),Xs(p),Xr(p),Yp(p),Ye(p),Yw(p),Yr(p)
 {
     // (not for the patches of the mesh refinement, whose lexer has no domain origin)
     if(p->mpirank==0 && p->origin_i>-1000000)
@@ -465,6 +466,14 @@ void sflow_boussinesq::source(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
 // ---------------------------------------------------------------------------
 void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &Vx, slice &Vy, slice &WL)
 {
+    invert_prepare(p,b,pgc,Vx,Vy,WL);
+    invert_solve(p,b,psolv,pgc);
+}
+
+// rows of the two line systems for u_a and v_a: x-x and y-y derivatives implicit, the cross
+// derivatives (Cx, Cy) from the u_a at hand
+void sflow_boussinesq::invert_prepare(lexer *p, fdm2D *b, ghostcell *pgc, slice &Vx, slice &Vy, slice &WL)
+{
     double c1,c2,c3;
     
     operators(p,b,pgc);
@@ -483,62 +492,100 @@ void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psol
         }
     }
     
-    // start values; outside the computed cells (the partition halo, the filled cells of a
-    // refined patch) f carries u_a, which the patch line solver takes as boundary value
-    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
-    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
-    f(ii,jj) = b->UA(ii,jj);
-    
     // x-component
-    n=0;
     SLICELOOP4
     {
-    b->M.p[n] = 1.0;
-    b->M.n[n] = 0.0;
-    b->M.s[n] = 0.0;
-    b->M.e[n] = 0.0;
-    b->M.w[n] = 0.0;
-    b->rhsvec.V[n] = 0.0;
+    Xp(i,j) = 1.0;
+    Xn(i,j) = 0.0;
+    Xs(i,j) = 0.0;
+    Xr(i,j) = 0.0;
     
         if(p->wet[IJ]==1)
         {
         coef_x(p,b,c1,c2,c3);
         
-        b->M.p[n] = 1.0 + c3;
-        b->M.n[n] = c1;
-        b->M.s[n] = c2;
-        b->rhsvec.V[n] = Vx(i,j)/HWL - Cx(i,j);
+        Xp(i,j) = 1.0 + c3;
+        Xn(i,j) = c1;
+        Xs(i,j) = c2;
+        Xr(i,j) = Vx(i,j)/HWL - Cx(i,j);
         }
     
-    f(i,j) = b->UA(i,j);
-    ++n;
-    }
-    
-    n=0;
-    SLICELOOP4
-    {
         // walls: u antisymmetric (implicit), in- and outflow: ghost values
         if(p->flagslice4[Im1J]<0)
         {
         if(int(io(i,j)+0.5)%2==0)
-        b->M.p[n] -= b->M.s[n];
+        Xp(i,j) -= Xs(i,j);
         
         else
-        b->rhsvec.V[n] -= b->M.s[n]*b->UA(i-1,j);
+        Xr(i,j) -= Xs(i,j)*b->UA(i-1,j);
         
-        b->M.s[n] = 0.0;
+        Xs(i,j) = 0.0;
         }
         
         if(p->flagslice4[Ip1J]<0)
         {
         if(int(io(i,j)+0.5)<2)
-        b->M.p[n] -= b->M.n[n];
+        Xp(i,j) -= Xn(i,j);
         
         else
-        b->rhsvec.V[n] -= b->M.n[n]*b->UA(i+1,j);
+        Xr(i,j) -= Xn(i,j)*b->UA(i+1,j);
         
-        b->M.n[n] = 0.0;
+        Xn(i,j) = 0.0;
         }
+    }
+    
+    // y-component
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    Yp(i,j) = 1.0;
+    Yw(i,j) = 0.0;
+    Ye(i,j) = 0.0;
+    Yr(i,j) = 0.0;
+    
+        if(p->wet[IJ]==1)
+        {
+        coef_y(p,b,c1,c2,c3);
+        
+        Yp(i,j) = 1.0 + c3;
+        Yw(i,j) = c1;
+        Ye(i,j) = c2;
+        Yr(i,j) = Vy(i,j)/HWL - Cy(i,j);
+        }
+    
+        // side walls: v antisymmetric (implicit)
+        if(p->flagslice4[IJm1]<0)
+        {
+        Yp(i,j) -= Ye(i,j);
+        Ye(i,j) = 0.0;
+        }
+        
+        if(p->flagslice4[IJp1]<0)
+        {
+        Yp(i,j) -= Yw(i,j);
+        Yw(i,j) = 0.0;
+        }
+    }
+}
+
+// the line systems of invert_prepare; outside the computed cells (the partition halo, the filled
+// cells of a refined patch) f carries u_a, which the patch line solver takes as boundary value,
+// so that sflow_amr can repeat the solve with updated values there
+void sflow_boussinesq::invert_solve(lexer *p, fdm2D *b, solver2D *psolv, ghostcell *pgc)
+{
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    f(ii,jj) = b->UA(ii,jj);
+    
+    n=0;
+    SLICELOOP4
+    {
+    b->M.p[n] = Xp(i,j);
+    b->M.n[n] = Xn(i,j);
+    b->M.s[n] = Xs(i,j);
+    b->M.e[n] = 0.0;
+    b->M.w[n] = 0.0;
+    b->rhsvec.V[n] = Xr(i,j);
     ++n;
     }
     
@@ -547,7 +594,6 @@ void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psol
     SLICELOOP4
     b->UA(i,j) = (p->wet[IJ]==1)?f(i,j):0.0;
     
-    // y-component
     if(p->j_dir==1)
     {
         for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
@@ -557,42 +603,12 @@ void sflow_boussinesq::invert(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psol
         n=0;
         SLICELOOP4
         {
-        b->M.p[n] = 1.0;
+        b->M.p[n] = Yp(i,j);
         b->M.n[n] = 0.0;
         b->M.s[n] = 0.0;
-        b->M.e[n] = 0.0;
-        b->M.w[n] = 0.0;
-        b->rhsvec.V[n] = 0.0;
-        
-            if(p->wet[IJ]==1)
-            {
-            coef_y(p,b,c1,c2,c3);
-            
-            b->M.p[n] = 1.0 + c3;
-            b->M.w[n] = c1;
-            b->M.e[n] = c2;
-            b->rhsvec.V[n] = Vy(i,j)/HWL - Cy(i,j);
-            }
-        
-        f(i,j) = b->VA(i,j);
-        ++n;
-        }
-        
-        n=0;
-        SLICELOOP4
-        {
-            // side walls: v antisymmetric (implicit)
-            if(p->flagslice4[IJm1]<0)
-            {
-            b->M.p[n] -= b->M.e[n];
-            b->M.e[n] = 0.0;
-            }
-            
-            if(p->flagslice4[IJp1]<0)
-            {
-            b->M.p[n] -= b->M.w[n];
-            b->M.w[n] = 0.0;
-            }
+        b->M.e[n] = Ye(i,j);
+        b->M.w[n] = Yw(i,j);
+        b->rhsvec.V[n] = Yr(i,j);
         ++n;
         }
         

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_amr.h"
+#include"sflow_boussinesq.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -94,22 +95,27 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     // cells computed beyond the patch box: the wet-dry step of a stage needs the new state
     // two cells further out, the discharge limiter (B 60) three
     // (non-hydrostatic without the shallow-water switch A 221: the deep flag needs the
-    // wet state three cells further out)
-    // (Boussinesq A 220 4: the dispersive operators reach three cells, the flux M five
-    // through the reconstruction; only the line-implicit u_a solve couples the whole patch)
+    // wet state three cells further out; the dispersion correction of A 220 3 two more:
+    // without them a patch cut at a partition edge sees a 4e-4 relative difference to the serial run)
+    // (Boussinesq A 220 4: the dispersive operators reach three cells, the flux M five through the
+    // reconstruction; u_a is solved on the leaf cells of all levels together, bous_solve)
     q.ext = (p->B60>=1) ? 3 : 2;
     if(p->A220>=1 && p->A220<=3 && p->A221==0)
     q.ext = 4;
+    if(p->A220==3 && p->A224>1.0)
+    q.ext += 2;
     if(p->A220==4)
     q.ext = 6;
 
     nh = (p->A220>=1 && p->A220<=3) ? 1 : 0;
     bous = (p->A220==4) ? 1 : 0;
+    if(bous==1)
+    pmom0->bous_amr = this;
     NV = bous==1 ? 14 : 10;
 
     // the patch arrays reach EXT + margin fine cells beyond the patch: the coarser level has to
-    // cover them (A 220 4, EXT 6)
-    if(bous==1)
+    // cover them
+    if(q.ext>4)
     q.nest = MAX(q.nest,(q.ext+p->margin+1)/2);
     nh_it_total = nh_solves = 0;
     nh_it_last = 0;
@@ -153,7 +159,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     printcount_amr = 0;
     printtime_amr = 0.0;
     m0 = 0.0;
-    for(int k=0; k<9; ++k)
+    for(int k=0; k<10; ++k)
     tm[k]=0.0;
 
     pflow_void = new ioflow_v(p,pgc,pBC);
@@ -299,6 +305,7 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->psolv = new sflow_amr_linesolve;
     c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_void,c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
+    c->pmom->bous_defer = (bous==1);
 
     for(int ip=0; ip<5; ++ip)
     {
@@ -438,6 +445,15 @@ void sflow_amr::regrid_static(ghostcell *pgc)
             pb->ks(ii,jj) = p->B50;
         }
 
+        // wall ghost cells as sflow_eta::depth_update sets them at the end of every step (mirrored);
+        // bed_at gives them the bed of the nearest level-0 cell instead.  A patch created at a regrid
+        // would otherwise run its first step with other ghost depths than a kept patch covering the
+        // same cells, and the result would depend on how the level is split into patches and ranks
+        {
+        comms_off guard(pgc);
+        pgc->gcsl_start4(pp,pb->depth,50);
+        }
+
         // face depth as sflow_reconstruct::reconstruct_WL
         for(int ii=pp->imin; ii<pp->imin+pp->imax-1; ++ii)
         for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
@@ -480,6 +496,13 @@ void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 
     if(patches_total>0 || old_total>0)
     exchange_level0(p0,b0,pgc,2);
+
+    // non-hydrostatic pressure outside the patch interiors, as after a pressure solve: the rows
+    // of the next solve take it in the computed cells beyond the patch (Uest, bed acceleration),
+    // where a new patch otherwise has 0 and a kept one the values of the last solve
+    if(nh==1)
+    for(int l=1; l<=maxlev; ++l)
+    nh_qfill(l,-1);
 }
 
 // fine bed: limited-linear prolongation, level by level from level 0 (children average = parent);
@@ -1304,7 +1327,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
             {
                 double hh = MAX(pb->WL(ii,jj),p->A244);
                 double dx = pp->DXN[ii+marge], dy = pp->DYN[jj+marge];
-                dtd = MIN(dtd, 1.8/((1.0/(dx*dx) + p->y_dir/(dy*dy))*sqrt(g*B*hh*hh*hh)));
+                dtd = MIN(dtd, 1.2/((1.0/(dx*dx) + p->y_dir/(dy*dy))*sqrt(g*B*hh*hh*hh)));
             }
         }
     }
@@ -1358,6 +1381,8 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     cout<<"SFLOW AMR: "<<patches_total<<" patches, "<<cells_total<<" cells; time in patch stages "<<setprecision(4)<<tm[1]<<" s, fill "<<tm[0]<<" s, restriction "<<tm[3]<<" s, regrid "<<tm[4]<<" s";
     if(p->mpirank==0 && doprint && shipmode>0)
     cout<<", body "<<tm[8]<<" s";
+    if(p->mpirank==0 && doprint && bous==1)
+    cout<<"; u_a "<<tm[9]<<" s, mean iterations "<<(bq_solves>0 ? double(bq_it_total)/bq_solves : 0.0);
     if(p->mpirank==0 && doprint && nh==1)
     cout<<"; pressure "<<tm[5]<<" s (preconditioner "<<tm[6]<<" s, operator "<<tm[7]<<" s), mean iterations "<<(nh_solves>0 ? double(nh_it_total)/nh_solves : 0.0);
     if(p->mpirank==0 && doprint)

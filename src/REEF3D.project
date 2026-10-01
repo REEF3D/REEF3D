@@ -1117,6 +1117,7 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="REEFAMR"/>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary.h"/>
         </VirtualDirectory>
@@ -1716,6 +1717,7 @@
           <File Name="sflow_amr_ship.cpp"/>
           <File Name="sflow_amr.cpp"/>
           <File Name="sflow_amr_nh.cpp"/>
+          <File Name="sflow_amr_bous.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
@@ -3002,6 +3004,7 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
+        <VirtualDirectory Name="REEFAMR"/>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary_update_nhflow.cpp"/>
           <File Name="boundary.cpp"/>

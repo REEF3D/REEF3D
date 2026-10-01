@@ -103,7 +103,8 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     cmin = pgc->globalmin(cmin);
     
-    // explicit dispersion correction of A 220 3: dt <= 1.8/((1/dx^2+1/dy^2) sqrt(g B h^3))
+    // explicit dispersion correction of A 220 3: dt <= 1.2/((1/dx^2+1/dy^2) sqrt(g B h^3))
+    // (1.8 is only marginally stable: with direct forcing, X 10 2, a checkerboard mode grows)
     if(p->A220==3 && p->A224>1.0)
     {
     double B = (p->A224-1.0)/3.0;
@@ -114,7 +115,7 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
         WETDRY
         {
         hh = MAX(b->WL(i,j),wd_criterion);
-        dtd = MIN(dtd, 1.8/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
+        dtd = MIN(dtd, 1.2/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
         }
         
     dtd = pgc->globalmin(dtd);

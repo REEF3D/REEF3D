@@ -251,6 +251,44 @@ protected:
         }
     }
 
+    // as fill_run, but stores only the fill entries sel(reefamr_patch*) lists (a const vector<int>*
+    // of indices into its fill, nullptr: none); all served cells are still evaluated and sent
+    template<class EV, class ST, class SEL>
+    void fill_run_sub(int l, int nv, int tag, EV &&eval, ST &&store, SEL &&sel)
+    {
+        reefamr_xplan &X = gplan[l];
+
+        for(size_t k=0; k<X.speer.size(); ++k)
+        {
+            vector<double> &sb = X.sbuf[k];
+            sb.resize(X.sitem[k].size()*nv);
+            for(size_t m=0; m<X.sitem[k].size(); ++m)
+            eval(gserve[l][X.sitem[k][m]],&sb[m*nv]);
+        }
+
+        xrun(X,nv,tag);
+
+        fillv.resize(nv);
+        for(int id : lev[l])
+        {
+            reefamr_patch *c = P[id];
+            const vector<int> *E = sel(c);
+            if(E==nullptr)
+            continue;
+            for(int e : *E)
+            {
+                const reefamr_fill &f = c->fill[e];
+                if(f.kind==2)
+                {
+                    store(c,id,f,&X.rbuf[f.si][(size_t)f.slot*nv]);
+                    continue;
+                }
+                eval(f,&fillv[0]);
+                store(c,id,f,&fillv[0]);
+            }
+        }
+    }
+
     // fine face values of the level-l patches on the partition edges, to the rank of the coarse
     // cell: pack(reefamr_patch*, side, r, double*) gives nv values of the fine faces r, r+1,
     // unpack(reefamr_match&, const double*) stores them in the remote match entry

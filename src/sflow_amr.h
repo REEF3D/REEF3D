@@ -81,6 +81,8 @@ using namespace std;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
 //     the partition edges.
+//   - Boussinesq (A 220 4): u_a is solved on the leaf cells of all levels together
+//     (sflow_amr_bous.cpp), the patch stages stop before it and continue afterwards
 //   - moving body (X 10 2/3): the body stays on level 0 (sixdof_sflow); the patches
 //     evaluate it on their own cells (sflow_amr_ship.cpp): the level set is interpolated
 //     from level 0, the draft is ray-cast from the hull triangles at the patch cell centres,
@@ -107,6 +109,7 @@ struct sflow_amr_patch : public reefamr_patch
     // non-hydrostatic pressure (A 220 1), solved on all grids together
     sflow_pressure_nh *pnh = nullptr;
     vector<slice*> nv;              // Krylov vectors
+    vector<int> bqneed[2];          // Boussinesq u_a: fill entries next to a leaf cell along x, y
     vector<signed char> act;        // -2 no row, -1 covered by a finer patch, 0 q = 0 row, 1 active
     vector<int> row;                // matrix row of a cell (SLICELOOP4 order), -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
@@ -149,6 +152,20 @@ public:
     void op_s(double);
     void op_x(double, double);
 
+    // Boussinesq u_a on the leaf cells of all levels, called by the level-0 stage after its rows
+    // (sflow_momentum_func::stage); the patch stages continue afterwards
+    bool bous_patches() const { return maxlev>0 && patches_total>0 && bous==1; }
+    void bous_solve(ghostcell*);
+
+    // vector space of the composite u_a solve (sflow_amr_bous.cpp)
+    void bq_apply(int, int, int);
+    void bq_prec(int, int, int);
+    double bq_dot(int, int);
+    void bq_start(int);
+    void bq_p(double, double);
+    void bq_s(double);
+    void bq_x(double, double);
+
 protected:
     // REEFAMR hooks
     reefamr_patch* patch_new() override;
@@ -186,6 +203,7 @@ private:
     vec2D *nhr0 = nullptr;
     bool nh_rebuild0;
     long nh_it_total, nh_solves;
+    long bq_it_total = 0, bq_solves = 0;
     int nh_it_last;
 
     // moving ship (X 10 2/3): body fields on the patches, refinement zone A 278/A 279
@@ -214,6 +232,12 @@ private:
     // coupling
     void cache_stage(int);
     void fill_level(ghostcell*, int, int);
+    // Boussinesq (A 220 4): u_a on the leaf cells of all levels (sflow_amr_bous.cpp)
+    void bq_setup();
+    void bq_sync(int, int);
+    int bq_layout = -1;
+    struct bqgrid { vector<int> leaf, seg[2]; };  // leaf cells, line segments (start, length)
+    vector<bqgrid> bqg;                           // [g+1]
     void eval_fill(const reefamr_fill&, double*);
     void store_fill(sflow_amr_patch*, int, int, int, const double*);
     void prolong(int, int, int, int, int, double, double*);
@@ -242,7 +266,7 @@ private:
     ioflow *pflow_void;
 
     double m0, printtime_amr;
-    double tm[9];
+    double tm[10];
     int printcount_amr;
     ofstream logout;
     const double eps;

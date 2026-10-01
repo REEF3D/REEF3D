@@ -41,6 +41,7 @@ class sflow_forcing;
 class sflow_roughness;
 class sflow_rheology;
 class sflow_boussinesq;
+class sflow_amr;
 
 using namespace std;
 
@@ -62,12 +63,23 @@ public:
     
     // second part of a stage, after the non-hydrostatic pressure: velocities, relaxation zones
     void stage_finish(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
+    void stage_rest(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double, int, bool);
+    void bous_prepare(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     
     // mesh refinement: the stage of a patch stops before the non-hydrostatic pressure, which
     // is solved on all grids together; the arguments of that call are kept here
     bool nh_defer = false;
     slice *nhUH=nullptr, *nhVH=nullptr, *nhWH=nullptr, *nhWL=nullptr, *nhUn=nullptr, *nhVn=nullptr;
     double nh_alpha = 0.0;
+    
+    // Boussinesq (A 220 4) on a refined patch: the stage stops after the rows of the u_a line
+    // systems (bous_prepare); sflow_amr::bous_solve solves u_a on the leaf cells of all levels
+    // when the level-0 stage has its rows, and continues the patch stages with bous_resume.
+    // The pointers above hold the stage output.
+    bool bous_defer = false;
+    sflow_amr *bous_amr = nullptr;      // level 0 with mesh refinement: the composite u_a solve
+    void bous_resume(lexer*, fdm2D*, ghostcell*);
+    sflow_boussinesq *boussinesq() {return pbous;}
     
     void reconstruct(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&);
     void velcalc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, int);
@@ -109,6 +121,9 @@ protected:
     
 private:
     int q;
+    int df_iter = 0;
+    bool df_finalize = false;
+    bool bous_solved = false;
     
     void mpi4(lexer*, ghostcell*, slice&);
     void vel_bc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);

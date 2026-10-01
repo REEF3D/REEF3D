@@ -46,7 +46,7 @@ using namespace std;
 //      w-equation and a*q_b in the momentum, plus the explicit source
 //      d(UH)/dt += B g grad(h^3 div(grad(eta))),  B = (a-1)/3
 //      discretised with central differences only (consistent with the collocated
-//      projection), explicit: dt <= 1.8 dx^2/sqrt(g B h^3), see sflow_etimestep
+//      projection), explicit: dt <= 1.2 dx^2/sqrt(g B h^3), see sflow_etimestep
 //   linear dispersion: omega^2 = g h k^2 (1 + B k^2 h^2) / (1 + a k^2 h^2/3)
 
 class sflow_pjm_quad final : public sflow_pressure_nh, public increment

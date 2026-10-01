@@ -604,6 +604,7 @@ namespace
 // the composite pressure as the vector space of reefamr_bicgstab
 struct nh_space
 {
+    static const int B=NS, R=NR, RH=NRH, PV=NPV, VV=NVV, S=NS, T=NT, PH=NPH, SH=NSH;
     sflow_amr *a;
     void apply(int x, int y) { a->nh_apply(x,y); }
     void prec(int r, int z) { a->nh_prec(r,z); }
@@ -633,8 +634,8 @@ void sflow_amr::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &V
     nh_apply(-1,NVV);
 
     double bn, rn;
-    nh_space S{this};
-    int it = reefamr_bicgstab(S,p->N44,p->N46,bn,rn,&tm[6],&tm[7]);
+    nh_space sp{this};
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[6],&tm[7]);
 
     nh_it_last = it;
     nh_it_total += it;
