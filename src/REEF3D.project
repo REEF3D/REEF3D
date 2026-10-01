@@ -41,6 +41,15 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="SFLOW">
+        <File Name="sflow_amr_ship.h"/>
+        <File Name="sflow_amr_linesolve.h"/>
+        <File Name="sflow_amr.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_amr_fill.h"/>
+        <File Name="fnpf_amr.h"/>
+      </VirtualDirectory>
       <File Name="reefamr.h"/>
       <File Name="reefamr_krylov.h"/>
     </VirtualDirectory>
@@ -399,11 +408,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
-        <VirtualDirectory Name="AMR">
-          <File Name="sflow_amr_linesolve.h"/>
-          <File Name="sflow_amr.h"/>
-          <File Name="sflow_amr_ship.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
@@ -1124,7 +1128,6 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="REEFAMR"/>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary.h"/>
         </VirtualDirectory>
@@ -1261,6 +1264,18 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="SFLOW">
+        <File Name="sflow_amr_ship.cpp"/>
+        <File Name="sflow_amr_nh.cpp"/>
+        <File Name="sflow_amr_linesolve.cpp"/>
+        <File Name="sflow_amr_bous.cpp"/>
+        <File Name="sflow_amr.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_amr_print.cpp"/>
+        <File Name="fnpf_amr_lap.cpp"/>
+        <File Name="fnpf_amr.cpp"/>
+      </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
       <File Name="reefamr_zone.cpp"/>
@@ -1719,13 +1734,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
-        <VirtualDirectory Name="AMR">
-          <File Name="sflow_amr_linesolve.cpp"/>
-          <File Name="sflow_amr_ship.cpp"/>
-          <File Name="sflow_amr.cpp"/>
-          <File Name="sflow_amr_nh.cpp"/>
-          <File Name="sflow_amr_bous.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
@@ -3020,7 +3028,6 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="REEFAMR"/>
         <VirtualDirectory Name="Boundary">
           <File Name="boundary_update_nhflow.cpp"/>
           <File Name="boundary.cpp"/>

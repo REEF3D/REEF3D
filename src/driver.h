@@ -60,6 +60,7 @@ class concentration;
 class ptf;
 class fnpf;
 class fnpf_ice;
+class fnpf_amr;
 class nhflow_fsf;
 class nhflow_convection;
 class nhflow_scalar_convection;
@@ -192,6 +193,7 @@ public:
 	concentration *pconc;
     fnpf *ppfsg;
     fnpf_ice *pfice = nullptr;
+    fnpf_amr *pfamr = nullptr;
     ptf *pptf;
     nhflow_fsf *pnhfsf;
     sflow *psflow;

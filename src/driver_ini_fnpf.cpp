@@ -39,6 +39,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_header.h"
 #include"waves_header.h"
 #include"lexer.h"
+#include"fnpf_amr.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -191,13 +192,22 @@ void driver::driver_ini_fnpf()
     // ini wetdry and coastline
     ppfsg->inidisc_step2(p,c,pgc,pflow,psolv);   // RK
     
+    // mesh refinement: initial hierarchy
+    if(pfamr!=nullptr)
+    pfamr->ini(p,c,pgc);
     
     pftstep->ini(c,p,pgc);
+    
+    if(pfamr!=nullptr)
+    pfamr->timestep(p,c,pgc);
     
     if(pfice!=nullptr)
     pfice->timestep(p,c,pgc);
     
     pprint->start(p,c,pgc,pflow);
+    
+    if(pfamr!=nullptr)
+    pfamr->print(p,c,pgc);
     
     p->gctime=0.0;
     p->xtime=0.0;

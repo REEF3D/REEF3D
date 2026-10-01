@@ -30,6 +30,7 @@ class solver;
 class convection;
 class ioflow;
 class reini;
+class fnpf_amr;
 
 using namespace std;
 
@@ -41,6 +42,9 @@ public:
     virtual void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*)=0;
     virtual void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*)=0;
     virtual void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*)=0;
+    
+    // mesh refinement (A 270): the time stepping couples level 0 with the patches
+    virtual void attach_amr(fnpf_amr*) {}
 
 };
 
