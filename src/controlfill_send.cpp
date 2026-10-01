@@ -2359,7 +2359,11 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = X186;
     dd++;
+    dctrl[dd] = X187;
+    dd++;
     ictrl[ii] = X188;
+    ii++;
+    ictrl[ii] = X189;
     ii++;
     ictrl[ii] = X205;
     ii++;

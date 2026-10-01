@@ -989,6 +989,9 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Geometry">
+          <File Name="6DOF_obj_remesh.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Membrane">
           <File Name="nhflow_membrane_beta.h"/>
           <File Name="net_membrane.h"/>
@@ -2643,6 +2646,10 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Remesh">
+              <File Name="6DOF_obj_refinement_remesh.cpp"/>
+              <File Name="6DOF_obj_remesh.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_wavemaker_read.cpp"/>
             <VirtualDirectory Name="Objects">
               <File Name="6DOF_obj_flap_double.cpp"/>

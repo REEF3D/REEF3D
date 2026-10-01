@@ -2350,7 +2350,11 @@ void control::ctrlrecv()
     ii++;
     X186 = dctrl[dd];
     dd++;
+    X187 = dctrl[dd];
+    dd++;
     X188 = ictrl[ii];
+    ii++;
+    X189 = ictrl[ii];
     ii++;
     X205 = ictrl[ii];
     ii++;

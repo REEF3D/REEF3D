@@ -178,6 +178,7 @@ private:
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
 	void geometry_refinement(lexer*,ghostcell*);
+	void geometry_remesh(lexer*,ghostcell*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
 	void box(lexer*, ghostcell*,int);
 	void cylinder_x(lexer*, ghostcell*,int);
