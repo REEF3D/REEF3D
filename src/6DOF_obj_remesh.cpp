@@ -1639,8 +1639,8 @@ void sixdof_remesh::print_stats(std::ostream &os, const stats &st)
     os<<"  min angle [deg]: "<<st.minangle_in<<" -> "<<st.minangle_out<<std::endl;
     os<<"  quality mean   : "<<st.q_mean_in<<" -> "<<st.q_mean_out<<"   min: "<<st.q_min_in<<" -> "<<st.q_min_out
       <<"   q<0.5: "<<100.0*st.frac_q05_in<<"% -> "<<100.0*st.frac_q05_out<<"%"<<std::endl;
-    os<<"  in grid cells  : edge length mean "<<st.Lh_mean<<"  min "<<st.Lh_min<<"  max "<<st.Lh_max
-      <<"   quality mean "<<st.q_mean_metric<<"  min "<<st.q_min_metric<<std::endl;
+    os<<"  edge/target    : mean "<<st.Lh_mean<<"  min "<<st.Lh_min<<"  max "<<st.Lh_max
+      <<"   (target = X 186 cells)   quality in grid metric: mean "<<st.q_mean_metric<<"  min "<<st.q_min_metric<<std::endl;
     os<<"  area           : "<<st.area_in<<" -> "<<st.area_out<<"   volume: "<<st.vol_in<<" -> "<<st.vol_out<<std::endl;
     os.flags(fl);
     os.precision(pr);
