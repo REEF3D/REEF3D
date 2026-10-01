@@ -381,9 +381,16 @@ void fnpf_6DOF::geometry(fnpf_6DOF_grid &G, ghostcell *pgc)
 
 void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
 {
-    // two layers of body nodes next to the fluid: average of the fluid (or already
-    // filled) neighbours; feeds the lagged cross terms of the Laplace rhs and the
-    // sampling of the hull pressure
+    // All body nodes, layer by layer from the fluid inwards: average of the fluid (or
+    // already filled) neighbours. The first layers feed the lagged cross terms of the
+    // Laplace rhs and the sampling of the hull pressure.
+    // The whole interior has to be filled, not only two layers: the body nodes are
+    // identity rows, so deeper nodes would keep the value from the time they were
+    // covered. phi drifts in time (Bernoulli constant, set-down), the stale interior
+    // then gives large spurious gradients, which velcalc_sig turns into body-band and
+    // footprint velocities (|W| of O(10) m/s after a few wave periods). These leak into
+    // the hull loads through the trilinear sampling and blow the case up.
+    // On a patch (mesh refinement) the fill is local to the patch.
     lexer *p = G.p;
     fdm_fnpf *c = G.c;
     int *mark = G.mark;
@@ -395,8 +402,14 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
     for(int n=0; n<size; ++n)
     mark[n]=0;
     
-    for(int pass=0; pass<2; ++pass)
+    // fill until no body node is left that touches the fluid or a filled node;
+    // nodes without any connection to the fluid keep their value
+    const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
+    
+    for(int pass=0; pass<maxpass; ++pass)
     {
+        int filled=0;
+        
         ILOOP
         JLOOP
         FKLOOP
@@ -432,6 +445,7 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
                 {
                 f[q] = sum/double(cnt);
                 mark[q] = pass+1;
+                ++filled;
                 }
             }
         }
@@ -442,7 +456,12 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
         {
         pgc->gcparax7(p,f,7);
         pgc->gcparax7int(p,mark,7);
+        
+        filled = pgc->globalisum(filled);
         }
+        
+        if(filled==0)
+        break;
     }
 }
 
