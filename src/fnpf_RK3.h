@@ -31,6 +31,8 @@ Author: Hans Bihs
 class fnpf_laplace;
 class fnpf_fsf;
 class fnpf_body;
+class fnpf_amr;
+class fnpf_laplace_cds2;
 class field;
 
 using namespace std;
@@ -45,6 +47,7 @@ public:
     void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
+    void attach_amr(fnpf_amr*) override final;
     
 private:
     int gcval,gcval_u,gcval_v,gcval_w;
@@ -58,6 +61,8 @@ private:
     slice4 en;      // eta_n, for the breaking onset criterion
 
     fnpf_laplace *plap;
+    fnpf_laplace_cds2 *plap0;
+    fnpf_amr *pamr = nullptr;
     fnpf_fsf *pf;
     fnpf_body *pbody;
     

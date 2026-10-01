@@ -39,6 +39,9 @@ public:
 
     void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&) override final;
     
+    // mesh refinement (fnpf_amr): assemble M and rhs, but do not solve
+    bool assemble_only = false;
+    
 private:
     
     fnpf_bed_update *pbed;

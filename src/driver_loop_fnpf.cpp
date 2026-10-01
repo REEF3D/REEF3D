@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"fnpf_ice.h"
+#include"fnpf_amr.h"
 
 void driver::loop_fnpf()
 {
@@ -88,9 +89,15 @@ void driver::loop_fnpf()
         // printer
         pprint->start(p,c,pgc,pflow);
         
+        if(pfamr!=nullptr)
+        pfamr->print(p,c,pgc);
+        
         //timestep control
         p->simtime+=p->dt;
         pftstep->start(c,p,pgc);
+        
+        if(pfamr!=nullptr)
+        pfamr->timestep(p,c,pgc);
         
         if(pfice!=nullptr)
         pfice->timestep(p,c,pgc);
