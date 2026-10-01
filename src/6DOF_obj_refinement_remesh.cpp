@@ -29,9 +29,11 @@ Author: Hans Bihs
 
 // X 185 4: re-triangulate the 6DOF body surface with an adaptive isotropic remesher.
 //
-// Target edge length h(x) = X 186 * local cell size of the fluid grid, where the local cell
-// size is the smallest spacing of the active directions (x; y in 3D; z unless the grid is a
-// single layer). The grid is the global one, assembled from all subdomains, so the result
+// Target edge length = X 186 (default 1) * local cell size of the fluid grid, with the cell size
+// (X 190) the geometric mean of the active spacings (2, default, regular triangles of one cell
+// volume equivalent size), the grid metric (1, an edge spans X 186 cells in every direction,
+// triangles stretched like the cells) or the smallest spacing (3). Active directions: x; y in 3D;
+// z unless the grid is a single layer. The grid is the global one, assembled from all subdomains, so the result
 // is identical for every decomposition. For sigma grids (NHFLOW, FNPF) the vertical node
 // positions are mapped to the still water column z = zb + sigma*(wd - zb), zb = global_zmin
 // (flat bed assumption under the body).
@@ -99,20 +101,42 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
     }
 
     const double fac = p->X186;
-
-    auto hfunc = [&](double x, double y, double z)
+    const int mode = p->X190;
+    
+    // target lengths along x,y,z (one fluid cell times X 186)
+    //   X 190 1: grid metric, every edge spans about X 186 cells in each direction (anisotropic)
+    //   X 190 2: isotropic, cell size = geometric mean of the active spacings (default)
+    //   X 190 3: isotropic, cell size = smallest active spacing
+    // inactive directions (2D: y, single layer: z) get the isotropic cell size
+    auto Hfunc = [&](double x, double y, double z)
     {
-        double hh = grid_cellsize(gx,x);
-
-        if(!gy.empty())
-        hh = std::min(hh,grid_cellsize(gy,y));
-
-        if(!gz.empty())
-        hh = std::min(hh,grid_cellsize(gz,z));
-
-        return fac*hh;
+        double d[3] = {grid_cellsize(gx,x),
+                       gy.empty() ? -1.0 : grid_cellsize(gy,y),
+                       gz.empty() ? -1.0 : grid_cellsize(gz,z)};
+        
+        double gm=1.0, mn=1.0e300;
+        int na=0;
+        
+        for(int q=0; q<3; ++q)
+        if(d[q]>0.0)
+        {
+            gm *= d[q];
+            mn = std::min(mn,d[q]);
+            ++na;
+        }
+        
+        gm = std::pow(gm,1.0/double(na));
+        
+        const double hiso = (mode==3) ? mn : gm;
+        
+        sixdof_remesh::vec3 H;
+        
+        for(int q=0; q<3; ++q)
+        H[q] = fac*((mode==1 && d[q]>0.0) ? d[q] : hiso);
+        
+        return H;
     };
-
+    
     // ---------------------------------------------------------- entity ranges
     int nent = entity_sum;
     bool ranges_ok = (nent>0);
@@ -166,7 +190,7 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
             in.push_back({tri_x[n][q],tri_y[n][q],tri_z[n][q]});
 
             sixdof_remesh::stats st;
-            const bool ok = R.remesh(in,out,hfunc,prm,st);
+            const bool ok = R.remesh(in,out,sixdof_remesh::metric_func(Hfunc),prm,st);
 
             cout<<endl<<"6DOF surface remeshing, body "<<n6DOF<<" entity "<<qn<<": "<<(ok?"ok":"FAILED, keeping the input triangles")<<endl;
 

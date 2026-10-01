@@ -1133,9 +1133,10 @@ void control::ini_default()
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
     X184=1;     // int remeshing (X 185 4): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
     X185=4;     // int stl refinement
-    X186=0.7;   // double refinement factor
+    X186=1.0;   // double refinement factor: target triangle size in fluid cells
     X187=30.0;  // double remeshing (X 185 4): feature angle in degrees
     X189=10;    // int remeshing (X 185 4): number of iterations
+    X190=2;     // int remeshing (X 185 4): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
     X188=1;     // int ray cast algorithm
     X205=1;     // type of ramp up function
     X206=0;     // int ramp up velocity

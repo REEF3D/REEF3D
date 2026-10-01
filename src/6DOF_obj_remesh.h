@@ -63,7 +63,8 @@ class sixdof_remesh
 {
 public:
     using vec3 = std::array<double,3>;
-    using sizing_func = std::function<double(double,double,double)>;
+    using sizing_func = std::function<double(double,double,double)>;   // isotropic target edge length h(x)
+    using metric_func = std::function<vec3(double,double,double)>;     // target lengths (hx,hy,hz) along the axes
 
     struct params
     {
@@ -91,7 +92,8 @@ public:
         double q_mean_in=0.0, q_min_in=0.0;                  // q = 4 sqrt(3) A / sum(l^2), 1 = equilateral
         double q_mean_out=0.0, q_min_out=0.0;
         double frac_q05_in=0.0, frac_q05_out=0.0;            // fraction of triangles with q < 0.5
-        double Lh_mean=0.0, Lh_min=0.0, Lh_max=0.0;          // edge length / target length
+        double q_mean_metric=0.0, q_min_metric=0.0;          // quality measured in the sizing metric (grid index space)
+        double Lh_mean=0.0, Lh_min=0.0, Lh_max=0.0;          // edge length / target length (metric length)
         bool ok=false;
     };
 
@@ -100,6 +102,11 @@ public:
     // h  : target edge length at (x,y,z), > 0
     // returns false (out = in) if the mesh could not be remeshed
     bool remesh(const std::vector<vec3> &in, std::vector<vec3> &out, const sizing_func &h, const params &prm, stats &st);
+    
+    // anisotropic version: edge lengths are measured in the metric diag(1/hx^2,1/hy^2,1/hz^2),
+    // i.e. an edge of metric length 1 spans one target length in every axis direction
+    // (with hx,hy,hz = grid spacings: one fluid cell). For hx=hy=hz this is the isotropic case.
+    bool remesh(const std::vector<vec3> &in, std::vector<vec3> &out, const metric_func &H, const params &prm, stats &st);
 
     static void print_stats(std::ostream &os, const stats &st);
 };

@@ -357,13 +357,13 @@ void soup_stats(const std::vector<vec3> &T, double &area, double &vol, double &a
 class remesher
 {
 public:
-    remesher(const sixdof_remesh::sizing_func &hf, const sixdof_remesh::params &pr, sixdof_remesh::stats &s)
-    : h(hf), prm(pr), st(s) {}
+    remesher(const sixdof_remesh::metric_func &hf, const sixdof_remesh::params &pr, sixdof_remesh::stats &s)
+    : H(hf), prm(pr), st(s) {}
 
     bool run(const std::vector<vec3> &in, std::vector<vec3> &out);
 
 private:
-    const sixdof_remesh::sizing_func &h;
+    const sixdof_remesh::metric_func &H;
     const sixdof_remesh::params &prm;
     sixdof_remesh::stats &st;
 
@@ -380,10 +380,38 @@ private:
 
     std::vector<int> tmp1, tmp2, tmp3;
 
-    double hx(const vec3 &x) const
+    // target lengths along the axes at x
+    vec3 hv(const vec3 &x) const
     {
-        double v=h(x[0],x[1],x[2]);
-        return v>1.0e-12*diag ? v : 1.0e-12*diag;
+        vec3 s=H(x[0],x[1],x[2]);
+        for(int d=0; d<3; ++d) s[d] = s[d]>1.0e-12*diag ? s[d] : 1.0e-12*diag;
+        return s;
+    }
+    // isotropic equivalent target length
+    double hiso(const vec3 &x) const
+    {
+        vec3 s=hv(x);
+        return std::cbrt(s[0]*s[1]*s[2]);
+    }
+    static vec3 scale(const vec3 &d, const vec3 &s) {return {d[0]/s[0], d[1]/s[1], d[2]/s[2]};}
+    // squared metric length of the edge a-b (metric at the midpoint), 1 = target
+    double ml2(const vec3 &a, const vec3 &b) const
+    {
+        vec3 d=scale(b-a,hv(0.5*(a+b)));
+        return dot(d,d);
+    }
+    // area of triangle a,b,c in the metric (at its centroid), target triangle: sqrt(3)/4
+    double marea(const vec3 &a, const vec3 &b, const vec3 &c) const
+    {
+        vec3 s=hv((1.0/3.0)*(a+b+c));
+        return 0.5*norm(cross(scale(b-a,s),scale(c-a,s)));
+    }
+    // min angle of the quad split (p,q,r),(q,p,s) evaluated in the metric
+    void metric_quad(const vec3 &pa, const vec3 &pb, const vec3 &pc, const vec3 &pd,
+                     vec3 &qa, vec3 &qb, vec3 &qc, vec3 &qd) const
+    {
+        vec3 s=hv(0.25*(pa+pb+pc+pd));
+        qa=scale(pa,s); qb=scale(pb,s); qc=scale(pc,s); qd=scale(pd,s);
     }
 
     void weld(const std::vector<vec3> &in);
@@ -871,9 +899,8 @@ void remesher::refine_and_fair_patches()
                 // edge and stays fixed, so the original surface is not changed)
                 M.edge_faces(a,b,tmp1);
                 if(tmp1.size()!=2) continue;
-                double hh=hx(0.5*(M.P[a]+M.P[b]));
-                double L2=dist2(M.P[a],M.P[b]);
-                if(L2>(16.0/9.0)*hh*hh) cand.emplace_back(-L2/(hh*hh),int(i));
+                double r2=ml2(M.P[a],M.P[b]);
+                if(r2>16.0/9.0) cand.emplace_back(-r2,int(i));
             }
             if(cand.empty()) break;
             std::sort(cand.begin(),cand.end());
@@ -917,7 +944,7 @@ void remesher::fair_patch(int mode)
     };
 
     double hmean=0.0;
-    for(int v: V) hmean+=hx(M.P[v]);
+    for(int v: V) hmean+=hiso(M.P[v]);
     hmean/=double(V.size());
     const double eps=1.0e-7*hmean;
 
@@ -1104,10 +1131,7 @@ long remesher::estimate_triangles() const
     for(size_t f=0; f<rF.size(); ++f)
     {
         const auto &t=rF[f];
-        vec3 g=(1.0/3.0)*(rP[t[0]]+rP[t[1]]+rP[t[2]]);
-        double A=0.5*norm(cross(rP[t[1]]-rP[t[0]],rP[t[2]]-rP[t[0]]));
-        double hh=hx(g);
-        n+=A/(0.25*std::sqrt(3.0)*hh*hh);
+        n+=marea(rP[t[0]],rP[t[1]],rP[t[2]])/(0.25*std::sqrt(3.0));
     }
     return long(n)+1;
 }
@@ -1232,8 +1256,7 @@ bool remesher::collapse(int a, int b)
     for(int x: Na)
     {
         if(x==b) continue;
-        double hh=hx(0.5*(pb+M.P[x]));
-        if(dist2(pb,M.P[x]) > (4.0/3.0)*(4.0/3.0)*hh*hh) return false;
+        if(ml2(pb,M.P[x]) > 16.0/9.0) return false;
     }
 
     // no flipped or degenerate faces, limited normal rotation
@@ -1321,9 +1344,8 @@ int remesher::split_long()
         for(size_t i=0; i<E.size(); ++i)
         {
             const vec3 &pa=M.P[E[i].first], &pb=M.P[E[i].second];
-            double hh=hx(0.5*(pa+pb));
-            double L2=dist2(pa,pb);
-            if(L2 > (16.0/9.0)*hh*hh) cand.emplace_back(-L2/(hh*hh),int(i));
+            double r2=ml2(pa,pb);
+            if(r2 > 16.0/9.0) cand.emplace_back(-r2,int(i));
         }
         if(cand.empty()) break;
         std::sort(cand.begin(),cand.end());
@@ -1351,9 +1373,8 @@ int remesher::collapse_short()
         for(size_t i=0; i<E.size(); ++i)
         {
             const vec3 &pa=M.P[E[i].first], &pb=M.P[E[i].second];
-            double hh=hx(0.5*(pa+pb));
-            double L2=dist2(pa,pb);
-            if(L2 < (16.0/25.0)*hh*hh) cand.emplace_back(L2/(hh*hh),int(i));
+            double r2=ml2(pa,pb);
+            if(r2 < 16.0/25.0) cand.emplace_back(r2,int(i));
         }
         if(cand.empty()) break;
         std::sort(cand.begin(),cand.end());
@@ -1363,8 +1384,7 @@ int remesher::collapse_short()
             int a=E[c.second].first, b=E[c.second].second;
             if(!M.val[a] || !M.val[b]) continue;
             const vec3 &pa=M.P[a], &pb=M.P[b];
-            double hh=hx(0.5*(pa+pb));
-            if(dist2(pa,pb) >= (16.0/25.0)*hh*hh) continue;
+            if(ml2(pa,pb) >= 16.0/25.0) continue;
             // remove the less constrained vertex first
             bool done=false;
             if(M.lev[a]<=M.lev[b]) done = collapse(a,b) || collapse(b,a);
@@ -1395,7 +1415,8 @@ int remesher::flip_valence()
         if(after<before)
         {
             // do not trade valence for very poor angles
-            const vec3 &pa=M.P[a], &pb=M.P[b], &pc=M.P[c], &pd=M.P[d];
+            vec3 pa,pb,pc,pd;
+            metric_quad(M.P[a],M.P[b],M.P[c],M.P[d],pa,pb,pc,pd);
             double mb=std::min(tri_minangle(pa,pb,pc),tri_minangle(pb,pa,pd));
             double ma=std::min(tri_minangle(pc,pa,pd),tri_minangle(pd,pb,pc));
             if(ma<0.5*mb) continue;
@@ -1420,7 +1441,8 @@ int remesher::flip_delaunay(bool patch_only)
             if(!flip_ok(a,b,f1,f2,c,d)) continue;
             if(patch_only && (!M.fpatch[f1] || !M.fpatch[f2])) continue;
             if(M.valence(a)<=3 || M.valence(b)<=3) continue;
-            const vec3 &pa=M.P[a], &pb=M.P[b], &pc=M.P[c], &pd=M.P[d];
+            vec3 pa,pb,pc,pd;
+            metric_quad(M.P[a],M.P[b],M.P[c],M.P[d],pa,pb,pc,pd);
             if(angle_at(pc,pa,pb)+angle_at(pd,pa,pb) <= PI_+1.0e-6) continue;
             double mb=std::min(tri_minangle(pa,pb,pc),tri_minangle(pb,pa,pd));
             double ma=std::min(tri_minangle(pc,pa,pd),tri_minangle(pd,pb,pc));
@@ -1457,9 +1479,11 @@ void remesher::relax()
             {
                 const auto &t=M.F[f];
                 vec3 g=(1.0/3.0)*(M.P[t[0]]+M.P[t[1]]+M.P[t[2]]);
+                // CVT in the metric: weight = metric area^2 / area (isotropic: A/h^4)
                 double A=0.5*norm(M.fnormal(f));
-                double hh=hx(g);
-                double w=A/(hh*hh*hh*hh);
+                if(A<=tiny_area) continue;
+                double Am=marea(M.P[t[0]],M.P[t[1]],M.P[t[2]]);
+                double w=Am*Am/A;
                 c=c+w*g;
                 wsum+=w;
             }
@@ -1481,8 +1505,11 @@ void remesher::relax()
             if(cnt!=2) continue;
             const vec3 &pu=M.P[u], &pw=M.P[w];
             // weighted so that both feature edges approach their target lengths
-            double hu=hx(0.5*(p+pu)), hw=hx(0.5*(p+pw));
-            double wu=1.0/hu, ww=1.0/hw;
+            // target length along each feature edge: |d| / metric length
+            double lu=std::sqrt(dist2(p,pu)), lw=std::sqrt(dist2(p,pw));
+            double mu=std::sqrt(ml2(p,pu)), mw=std::sqrt(ml2(p,pw));
+            if(lu<=0.0 || lw<=0.0 || mu<=0.0 || mw<=0.0) continue;
+            double wu=mu/lu, ww=mw/lw;
             vec3 c=(1.0/(wu+ww))*(wu*pu+ww*pw);
             np=p+lambda*(c-p);
             np=project_chain(np,M.chain[v]);
@@ -1547,12 +1574,24 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
     for(auto &e: E)
     {
         const vec3 &pa=M.P[e.first], &pb=M.P[e.second];
-        double r=std::sqrt(dist2(pa,pb))/hx(0.5*(pa+pb));
+        double r=std::sqrt(ml2(pa,pb));
         s+=r;
         st.Lh_min=std::min(st.Lh_min,r);
         st.Lh_max=std::max(st.Lh_max,r);
     }
     st.Lh_mean = E.empty() ? 0.0 : s/double(E.size());
+
+    // quality in the metric (shape relative to the grid cells)
+    st.q_mean_metric=0.0;
+    st.q_min_metric=1.0;
+    for(size_t t=0; t<out.size()/3; ++t)
+    {
+        vec3 sc=hv((1.0/3.0)*(out[3*t]+out[3*t+1]+out[3*t+2]));
+        double q=tri_quality(scale(out[3*t],sc),scale(out[3*t+1],sc),scale(out[3*t+2],sc));
+        st.q_mean_metric+=q;
+        st.q_min_metric=std::min(st.q_min_metric,q);
+    }
+    if(!out.empty()) st.q_mean_metric/=double(out.size()/3);
     return st.ntri_out>0;
 }
 
@@ -1561,8 +1600,18 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
 
 bool sixdof_remesh::remesh(const std::vector<vec3> &in, std::vector<vec3> &out, const sizing_func &h, const params &prm, stats &st)
 {
+    metric_func H=[&h](double x, double y, double z)
+    {
+        double v=h(x,y,z);
+        return vec3{v,v,v};
+    };
+    return remesh(in,out,H,prm,st);
+}
+
+bool sixdof_remesh::remesh(const std::vector<vec3> &in, std::vector<vec3> &out, const metric_func &H, const params &prm, stats &st)
+{
     st=stats();
-    remesher r(h,prm,st);
+    remesher r(H,prm,st);
     bool ok=r.run(in,out);
     if(!ok) out=in;
     st.ok=ok;
@@ -1590,7 +1639,8 @@ void sixdof_remesh::print_stats(std::ostream &os, const stats &st)
     os<<"  min angle [deg]: "<<st.minangle_in<<" -> "<<st.minangle_out<<std::endl;
     os<<"  quality mean   : "<<st.q_mean_in<<" -> "<<st.q_mean_out<<"   min: "<<st.q_min_in<<" -> "<<st.q_min_out
       <<"   q<0.5: "<<100.0*st.frac_q05_in<<"% -> "<<100.0*st.frac_q05_out<<"%"<<std::endl;
-    os<<"  edge/target    : mean "<<st.Lh_mean<<"  min "<<st.Lh_min<<"  max "<<st.Lh_max<<std::endl;
+    os<<"  in grid cells  : edge length mean "<<st.Lh_mean<<"  min "<<st.Lh_min<<"  max "<<st.Lh_max
+      <<"   quality mean "<<st.q_mean_metric<<"  min "<<st.q_min_metric<<std::endl;
     os<<"  area           : "<<st.area_in<<" -> "<<st.area_out<<"   volume: "<<st.vol_in<<" -> "<<st.vol_out<<std::endl;
     os.flags(fl);
     os.precision(pr);

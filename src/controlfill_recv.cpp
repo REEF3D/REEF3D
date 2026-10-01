@@ -2358,6 +2358,8 @@ void control::ctrlrecv()
     ii++;
     X189 = ictrl[ii];
     ii++;
+    X190 = ictrl[ii];
+    ii++;
     X205 = ictrl[ii];
     ii++;
     X206 = ictrl[ii];
