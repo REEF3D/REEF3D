@@ -38,6 +38,8 @@ Author: Hans Bihs
 //
 // The surface is remeshed on rank 0 and broadcast: the force integration assigns triangles to
 // ranks by their centroid, so all ranks must hold bit-identical triangle lists.
+// Holes in the STL are closed with X 184 1 (harmonic, flat/membrane patch, default) or X 184 2
+// (biharmonic, curvature continuous patch); X 184 0 keeps them as open boundaries.
 // Sharp edges (X 187 feature angle), corners and open boundaries are preserved; every vertex
 // stays on the original STL surface and the triangle orientation is kept.
 
@@ -142,9 +144,11 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
     sixdof_remesh::params prm;
     prm.feature_angle = p->X187;
     prm.iterations = p->X189;
+    prm.hole_fill = p->X184;
 
     std::vector<int> ntri(entity_sum,0);
     std::vector<double> buf;
+    int repaired = 0;
 
     if(p->mpirank==0)
     {
@@ -171,8 +175,15 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
 
             sixdof_remesh::print_stats(cout,st);
 
+            if(st.n_holes_filled>0 || st.n_gap_merges>0)
+            {
+                cout<<"  NOTE: the STL surface had holes or gaps, they were closed (X 184 "<<p->X184<<")"<<endl;
+                repaired = 1;
+            }
+            
             if(st.n_boundary_edges>0 || st.n_nonmanifold_edges>0 || st.n_inconsistent_edges>0)
-            cout<<"  WARNING: the surface is not closed and consistently oriented, check the STL"<<endl;
+            cout<<"  WARNING: the surface is not closed and consistently oriented, check the STL"
+                <<(p->X184==0 ? " or activate hole filling with X 184 1" : "")<<endl;
 
             ntri[qn] = int(out.size()/3);
 
@@ -190,6 +201,8 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
     // ---------------------------------------------------------- broadcast
     if(entity_sum>0)
     pgc->bcast_int(ntri.data(),entity_sum);
+    
+    pgc->bcast_int(&repaired,1);
 
     int total = 0;
     for(int qn=0; qn<nent; ++qn)
@@ -228,4 +241,14 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
     
     for(int qn=nent; qn<entity_sum; ++qn)
     tstart[qn] = tend[qn] = tricount;
+    
+    // the volume of an STL with holes is meaningless: recompute volume and mass (X 21) or
+    // density (X 22) from the closed surface
+    if(repaired==1)
+    {
+        geometry_stl(p,pgc);
+        
+        if(p->mpirank==0)
+        cout<<"  volume of the closed surface: "<<Vfb<<", mass: "<<Mass_fb<<", density: "<<Rfb<<endl<<endl;
+    }
 }

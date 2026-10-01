@@ -199,6 +199,8 @@ struct mesh
     std::vector<double> vtarget; // ideal valence of corner vertices
     std::unordered_map<std::uint64_t,int> fe;   // feature edge -> feature curve id
     std::vector<char> chain_bnd; // feature curve is an open boundary
+    std::vector<char> fpatch;    // face belongs to a hole filling patch
+    std::vector<char> vpatch;    // vertex is a free (inner) vertex of a hole filling patch
 
     int nfaces_alive=0;
 
@@ -210,6 +212,7 @@ struct mesh
         lev.push_back(l);
         chain.push_back(ch);
         vtarget.push_back(6.0);
+        vpatch.push_back(0);
         return int(P.size())-1;
     }
 
@@ -217,6 +220,7 @@ struct mesh
     {
         F.push_back({a,b,c});
         fal.push_back(1);
+        fpatch.push_back(0);
         int f=int(F.size())-1;
         vf[a].push_back(f);
         vf[b].push_back(f);
@@ -383,7 +387,14 @@ private:
     }
 
     void weld(const std::vector<vec3> &in);
-    int  repair_tjunctions();
+    int  repair_tjunctions(double tol, bool guard);
+    void boundary_halfedges(std::vector<std::pair<int,int> > &H);
+    void merge_vertices(int v, int u);
+    int  close_gaps();
+    void fill_holes();
+    void fill_loop(const std::vector<int> &L);
+    void refine_and_fair_patches();
+    void fair_patch(int mode);
     void detect_features();
     void build_reference();
     long estimate_triangles() const;
@@ -408,7 +419,7 @@ private:
     int split_long();
     int collapse_short();
     int flip_valence();
-    int flip_delaunay();
+    int flip_delaunay(bool patch_only=false);
     void relax();
 };
 
@@ -475,9 +486,8 @@ void remesher::weld(const std::vector<vec3> &in)
 
 // Split faces whose boundary edge passes through a boundary vertex of a neighbouring face
 // (non-conforming STL). Returns number of splits.
-int remesher::repair_tjunctions()
+int remesher::repair_tjunctions(double tol, bool guard)
 {
-    const double tol=prm.tjunction_tol*diag;
     int nfix=0;
 
     for(int pass=0; pass<20; ++pass)
@@ -521,6 +531,10 @@ int remesher::repair_tjunctions()
             vec3 ab=pb-pa;
             double l2=dot(ab,ab);
             if(l2<=0.0) continue;
+            int dir0;
+            const int cself=M.opposite(f,a,b,dir0);
+            // gap closing: the snapping distance is also limited by the edge length
+            const double etol = guard ? std::min(tol,0.3*std::sqrt(l2)) : tol;
             // candidate vertex closest to the open edge: scan vertices within tol of the segment
             int best=-1;
             double bestt=2.0;
@@ -539,10 +553,11 @@ int remesher::repair_tjunctions()
                 for(int i=nd.start; i<nd.start+nd.count; ++i)
                 {
                     int v=bv[vb.idx[i]];
-                    if(v==a || v==b) continue;
+                    if(v==a || v==b || v==cself) continue;
                     double t=dot(M.P[v]-pa,ab)/l2;
                     if(t<=1.0e-6 || t>=1.0-1.0e-6) continue;
-                    if(dist2(pa+t*ab,M.P[v])>tol*tol) continue;
+                    if(guard && (t*t*l2<=etol*etol || (1.0-t)*(1.0-t)*l2<=etol*etol)) continue;
+                    if(dist2(pa+t*ab,M.P[v])>etol*etol) continue;
                     if(t<bestt) {bestt=t; best=v;}
                 }
             }
@@ -552,6 +567,7 @@ int remesher::repair_tjunctions()
             M.kill_face(f);
             int g1=M.add_face(a,best,c);
             int g2=M.add_face(best,b,c);
+            M.fpatch[g1]=M.fpatch[g2]=M.fpatch[f];
             touched.resize(M.F.size(),0);
             touched[g1]=touched[g2]=1;
             ++nsplit;
@@ -560,6 +576,381 @@ int remesher::repair_tjunctions()
         if(nsplit==0) break;
     }
     return nfix;
+}
+
+// ------------------------------------------------------------------ open boundaries: gaps and holes
+void remesher::boundary_halfedges(std::vector<std::pair<int,int> > &H)
+{
+    H.clear();
+    for(size_t f=0; f<M.F.size(); ++f)
+    if(M.fal[f])
+    for(int q=0; q<3; ++q)
+    {
+        int a=M.F[f][q], b=M.F[f][(q+1)%3];
+        M.edge_faces(a,b,tmp3);
+        if(tmp3.size()==1) H.emplace_back(a,b);
+    }
+    std::sort(H.begin(),H.end());
+}
+
+// merge vertex v into u (at the midpoint), remove collapsed and duplicate faces
+void remesher::merge_vertices(int v, int u)
+{
+    M.P[u]=0.5*(M.P[u]+M.P[v]);
+    std::vector<int> fv=M.vf[v];
+    for(int f: fv)
+    {
+        auto &t=M.F[f];
+        for(int q=0; q<3; ++q) if(t[q]==v) t[q]=u;
+        M.vf[u].push_back(f);
+    }
+    M.vf[v].clear();
+    M.val[v]=0;
+
+    std::vector<int> fu=M.vf[u];
+    std::sort(fu.begin(),fu.end());
+    fu.erase(std::unique(fu.begin(),fu.end()),fu.end());
+    for(int f: fu)
+    {
+        if(!M.fal[f]) continue;
+        const auto &t=M.F[f];
+        if(t[0]==t[1] || t[1]==t[2] || t[2]==t[0]) M.kill_face(f);
+    }
+    // duplicate faces: same orientation -> keep one, opposite orientation -> zero volume fin, remove both
+    fu=M.vf[u];
+    for(size_t i=0; i<fu.size(); ++i)
+    for(size_t j=i+1; j<fu.size(); ++j)
+    {
+        int f=fu[i], g=fu[j];
+        if(!M.fal[f] || !M.fal[g]) continue;
+        std::array<int,3> s=M.F[f], r=M.F[g];
+        std::sort(s.begin(),s.end());
+        std::sort(r.begin(),r.end());
+        if(s!=r) continue;
+        int d1,d2;
+        M.opposite(f,M.F[f][0],M.F[f][1],d1);
+        M.opposite(g,M.F[f][0],M.F[f][1],d2);
+        M.kill_face(g);
+        if(d1!=d2) M.kill_face(f);
+    }
+}
+
+// Close cracks: T-junctions and boundary vertices within the gap tolerance
+int remesher::close_gaps()
+{
+    const double gtol=prm.gap_tol*diag;
+    int nmerge=0;
+    std::vector<std::pair<int,int> > H;
+
+    for(int pass=0; pass<10; ++pass)
+    {
+        boundary_halfedges(H);
+        if(H.empty()) break;
+
+        std::vector<double> Lb(M.P.size(),1.0e300);
+        std::vector<int> bv;
+        for(auto &e: H)
+        {
+            double L=std::sqrt(dist2(M.P[e.first],M.P[e.second]));
+            Lb[e.first]=std::min(Lb[e.first],L);
+            Lb[e.second]=std::min(Lb[e.second],L);
+            bv.push_back(e.first);
+            bv.push_back(e.second);
+        }
+        std::sort(bv.begin(),bv.end());
+        bv.erase(std::unique(bv.begin(),bv.end()),bv.end());
+
+        std::vector<std::array<double,6> > bb(bv.size());
+        for(size_t i=0; i<bv.size(); ++i)
+        {
+            const vec3 &p=M.P[bv[i]];
+            bb[i]={p[0],p[1],p[2],p[0],p[1],p[2]};
+        }
+        bvh vb;
+        vb.build(bb);
+
+        std::vector<char> done(M.P.size(),0);
+        int nm=0;
+        for(int v: bv)
+        {
+            if(!M.val[v] || done[v]) continue;
+            double r=std::min(gtol,0.3*Lb[v]);
+            double best=r*r;
+            int bi=vb.closest(M.P[v],[&](int i)
+            {
+                int u=bv[i];
+                if(u==v || !M.val[u] || done[u]) return 1.0e300;
+                double d2=dist2(M.P[u],M.P[v]);
+                double ru=0.3*Lb[u];
+                if(d2>ru*ru) return 1.0e300;
+                return d2;
+            },best);
+            if(bi<0) continue;
+            int u=bv[bi];
+            M.neighbors(v,tmp2);
+            if(std::binary_search(tmp2.begin(),tmp2.end(),u)) continue;
+            merge_vertices(v,u);
+            done[v]=done[u]=1;
+            ++nm;
+        }
+        nmerge+=nm;
+
+        int nt=repair_tjunctions(gtol,true);
+        st.n_tjunctions+=nt;
+
+        if(nm==0 && nt==0) break;
+    }
+    return nmerge;
+}
+
+void remesher::fill_holes()
+{
+    std::vector<std::pair<int,int> > H;
+    boundary_halfedges(H);
+    if(H.empty()) return;
+
+    std::unordered_map<int,std::vector<int> > out;
+    for(auto &e: H) out[e.first].push_back(e.second);
+    std::unordered_map<std::uint64_t,char> used;
+    auto dkey=[](int a, int b){return (std::uint64_t(std::uint32_t(a))<<32) | std::uint64_t(std::uint32_t(b));};
+
+    for(auto &e0: H)
+    {
+        if(used.count(dkey(e0.first,e0.second))) continue;
+        used[dkey(e0.first,e0.second)]=1;
+
+        const int a0=e0.first;
+        std::vector<int> L{a0};
+        std::unordered_map<int,int> where;
+        where[a0]=0;
+        int cur=e0.second;
+        bool fail=false;
+        size_t steps=0;
+
+        while(cur!=a0)
+        {
+            if(++steps>H.size()+1) {fail=true; break;}
+            auto it=where.find(cur);
+            if(it!=where.end())
+            {
+                // the walk passed a pinch vertex: emit the closed sub-loop
+                int j=it->second;
+                std::vector<int> sub(L.begin()+j,L.end());
+                fill_loop(sub);
+                for(size_t k=j+1; k<L.size(); ++k) where.erase(L[k]);
+                L.resize(j+1);
+            }
+            else
+            {
+                where[cur]=int(L.size());
+                L.push_back(cur);
+            }
+            int nb=-1;
+            for(int b: out[cur]) if(!used.count(dkey(cur,b))) {nb=b; break;}
+            if(nb<0) {fail=true; break;}
+            used[dkey(cur,nb)]=1;
+            cur=nb;
+        }
+        if(fail) {++st.n_holes_open; continue;}
+        fill_loop(L);
+    }
+}
+
+// Triangulate one boundary loop. L follows the boundary half-edges L[i]->L[i+1] of the mesh,
+// so the patch faces use the reversed orientation.
+void remesher::fill_loop(const std::vector<int> &L)
+{
+    const int n=int(L.size());
+    if(n<3) {++st.n_holes_open; return;}
+    ++st.n_holes_filled;
+    st.n_hole_edges+=n;
+
+    if(n==3)
+    {
+        int f=M.add_face(L[2],L[1],L[0]);
+        M.fpatch[f]=1;
+        return;
+    }
+
+    // Newell normal of the loop; patch normals point along -N
+    vec3 N{0.0,0.0,0.0};
+    for(int i=0; i<n; ++i)
+    {
+        const vec3 &p=M.P[L[i]], &q=M.P[L[(i+1)%n]];
+        N[0]+=(p[1]-q[1])*(p[2]+q[2]);
+        N[1]+=(p[2]-q[2])*(p[0]+q[0]);
+        N[2]+=(p[0]-q[0])*(p[1]+q[1]);
+    }
+    const vec3 Nt=-1.0*unit(N);
+
+    if(n<=400)
+    {
+        // minimum weight triangulation (dynamic programming over the polygon)
+        // weight: area, penalised for patch normals turning away from the loop normal,
+        // plus the squared edge lengths (favours short diagonals and compact triangles)
+        std::vector<double> W(size_t(n)*n,0.0);
+        std::vector<int> Lam(size_t(n)*n,-1);
+        auto tw=[&](int i, int m, int k)
+        {
+            const vec3 &pi=M.P[L[i]], &pm=M.P[L[m]], &pk=M.P[L[k]];
+            vec3 c=cross(pm-pk,pi-pk);
+            double A2=norm(c);
+            double cs = A2>0.0 ? dot(c,Nt)/A2 : 0.0;
+            return 0.5*A2*(2.0-cs) + 0.1*(dist2(pi,pm)+dist2(pm,pk)+dist2(pk,pi));
+        };
+        for(int len=2; len<n; ++len)
+        for(int i=0; i+len<n; ++i)
+        {
+            int k=i+len;
+            double best=1.0e300;
+            int bm=-1;
+            for(int m=i+1; m<k; ++m)
+            {
+                double w=W[size_t(i)*n+m]+W[size_t(m)*n+k]+tw(i,m,k);
+                if(w<best) {best=w; bm=m;}
+            }
+            W[size_t(i)*n+k]=best;
+            Lam[size_t(i)*n+k]=bm;
+        }
+        std::vector<std::pair<int,int> > stack{{0,n-1}};
+        while(!stack.empty())
+        {
+            auto [i,k]=stack.back();
+            stack.pop_back();
+            if(k-i<2) continue;
+            int m=Lam[size_t(i)*n+k];
+            int f=M.add_face(L[k],L[m],L[i]);
+            M.fpatch[f]=1;
+            stack.push_back({i,m});
+            stack.push_back({m,k});
+        }
+    }
+    else
+    {
+        // very long loop: fan around the centroid, the fairing moves the centre
+        vec3 c{0.0,0.0,0.0};
+        for(int v: L) c=c+M.P[v];
+        c=(1.0/n)*c;
+        int cv=M.add_vertex(c,0,-1);
+        M.vpatch[cv]=1;
+        for(int i=0; i<n; ++i)
+        {
+            int f=M.add_face(L[(i+1)%n],L[i],cv);
+            M.fpatch[f]=1;
+        }
+    }
+}
+
+// Refine the patches towards the target size and fair them with the rim fixed
+void remesher::refine_and_fair_patches()
+{
+    bool any=false;
+    for(size_t f=0; f<M.F.size(); ++f) if(M.fal[f] && M.fpatch[f]) {any=true; break;}
+    if(!any) return;
+
+    for(int round=0; round<4; ++round)
+    {
+        for(int pass=0; pass<30; ++pass)
+        {
+            std::vector<std::pair<int,int> > E;
+            for(size_t f=0; f<M.F.size(); ++f)
+            if(M.fal[f] && M.fpatch[f])
+            for(int q=0; q<3; ++q)
+            {
+                int a=M.F[f][q], b=M.F[f][(q+1)%3];
+                E.emplace_back(std::min(a,b),std::max(a,b));
+            }
+            std::sort(E.begin(),E.end());
+            E.erase(std::unique(E.begin(),E.end()),E.end());
+
+            std::vector<std::pair<double,int> > cand;
+            for(size_t i=0; i<E.size(); ++i)
+            {
+                int a=E[i].first, b=E[i].second;
+                // inner patch edges and rim edges (a rim midpoint lies on the original
+                // edge and stays fixed, so the original surface is not changed)
+                M.edge_faces(a,b,tmp1);
+                if(tmp1.size()!=2) continue;
+                double hh=hx(0.5*(M.P[a]+M.P[b]));
+                double L2=dist2(M.P[a],M.P[b]);
+                if(L2>(16.0/9.0)*hh*hh) cand.emplace_back(-L2/(hh*hh),int(i));
+            }
+            if(cand.empty()) break;
+            std::sort(cand.begin(),cand.end());
+            for(auto &c: cand)
+            {
+                if(M.nfaces_alive>prm.max_tri) break;
+                split(E[c.second].first,E[c.second].second);
+            }
+        }
+        flip_delaunay(true);
+        fair_patch(1);
+        if(prm.hole_fill==2) fair_patch(2);
+        flip_delaunay(true);
+    }
+}
+
+// mode 1: harmonic (membrane, uniform Laplacian = 0), mode 2: biharmonic (Laplacian^2 = 0)
+// Gauss-Seidel on the free patch vertices, all other vertices fixed.
+void remesher::fair_patch(int mode)
+{
+    std::vector<int> V;
+    for(size_t v=0; v<M.P.size(); ++v)
+    if(M.val[v] && M.vpatch[v] && !M.vf[v].empty()) V.push_back(int(v));
+    if(V.empty()) return;
+
+    std::unordered_map<int,std::vector<int> > nb;
+    auto nbs=[&](int v) -> const std::vector<int>&
+    {
+        auto it=nb.find(v);
+        if(it!=nb.end()) return it->second;
+        std::vector<int> t;
+        M.neighbors(v,t);
+        return nb.emplace(v,std::move(t)).first->second;
+    };
+    auto lap=[&](int v)
+    {
+        const auto &N=nbs(v);
+        vec3 c{0.0,0.0,0.0};
+        for(int j: N) c=c+M.P[j];
+        return (1.0/double(N.size()))*c - M.P[v];
+    };
+
+    double hmean=0.0;
+    for(int v: V) hmean+=hx(M.P[v]);
+    hmean/=double(V.size());
+    const double eps=1.0e-7*hmean;
+
+    const int maxit = mode==1 ? 5000 : 3000;
+    for(int it=0; it<maxit; ++it)
+    {
+        double maxd=0.0;
+        for(int v: V)
+        {
+            vec3 d;
+            if(mode==1)
+            {
+                d=1.6*lap(v);   // SOR
+            }
+            else
+            {
+                const auto &N=nbs(v);
+                const double nv=double(N.size());
+                vec3 r{0.0,0.0,0.0};
+                double cvv=1.0;
+                for(int j: N)
+                {
+                    r=r+(1.0/nv)*lap(j);
+                    cvv+=1.0/(nv*double(nbs(j).size()));
+                }
+                r=r-lap(v);
+                d=(-1.0/cvv)*r;
+            }
+            M.P[v]=M.P[v]+d;
+            maxd=std::max(maxd,norm(d));
+        }
+        if(maxd<eps) break;
+    }
 }
 
 void remesher::detect_features()
@@ -769,6 +1160,9 @@ void remesher::split(int a, int b)
         M.fe[ekey(m,b)]=ch;
     }
     std::vector<int> ef=tmp1;
+    bool allpatch=true;
+    for(int f: ef) if(!M.fpatch[f]) allpatch=false;
+    M.vpatch[m] = allpatch ? 1 : 0;
     for(int f: ef)
     {
         auto t=M.F[f];
@@ -784,6 +1178,7 @@ void remesher::split(int a, int b)
         mesh::erase_val(M.vf[w],f);
         M.F.push_back({m,w,c});
         M.fal.push_back(1);
+        M.fpatch.push_back(M.fpatch[f]);
         int g=int(M.F.size())-1;
         M.vf[m].push_back(g);
         M.vf[w].push_back(g);
@@ -1011,7 +1406,7 @@ int remesher::flip_valence()
     return n;
 }
 
-int remesher::flip_delaunay()
+int remesher::flip_delaunay(bool patch_only)
 {
     int total=0;
     std::vector<std::pair<int,int> > E;
@@ -1023,6 +1418,7 @@ int remesher::flip_delaunay()
         {
             int a=e.first, b=e.second, f1, f2, c, d;
             if(!flip_ok(a,b,f1,f2,c,d)) continue;
+            if(patch_only && (!M.fpatch[f1] || !M.fpatch[f2])) continue;
             if(M.valence(a)<=3 || M.valence(b)<=3) continue;
             const vec3 &pa=M.P[a], &pb=M.P[b], &pc=M.P[c], &pd=M.P[d];
             if(angle_at(pc,pa,pb)+angle_at(pd,pa,pb) <= PI_+1.0e-6) continue;
@@ -1104,7 +1500,13 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
     if(in.size()<9) return false;
 
     weld(in);
-    st.n_tjunctions=repair_tjunctions();
+    st.n_tjunctions=repair_tjunctions(prm.tjunction_tol*diag,false);
+    if(prm.hole_fill>0)
+    {
+        st.n_gap_merges=close_gaps();
+        fill_holes();
+        refine_and_fair_patches();
+    }
     detect_features();
     build_reference();
 
@@ -1177,8 +1579,14 @@ void sixdof_remesh::print_stats(std::ostream &os, const stats &st)
     if(st.n_boundary_edges>0) os<<", "<<st.n_boundary_edges<<" open boundary edges";
     if(st.n_nonmanifold_edges>0) os<<", "<<st.n_nonmanifold_edges<<" non-manifold edges";
     if(st.n_inconsistent_edges>0) os<<", "<<st.n_inconsistent_edges<<" edges with inconsistent orientation";
-    if(st.n_tjunctions>0) os<<", "<<st.n_tjunctions<<" T-junctions repaired";
     os<<std::endl;
+    if(st.n_tjunctions>0 || st.n_gap_merges>0 || st.n_holes_filled>0 || st.n_holes_open>0)
+    {
+        os<<"  repairs        : "<<st.n_tjunctions<<" T-junctions, "<<st.n_gap_merges<<" gap vertices merged, "
+          <<st.n_holes_filled<<" holes filled ("<<st.n_hole_edges<<" rim edges)";
+        if(st.n_holes_open>0) os<<", "<<st.n_holes_open<<" holes could not be filled";
+        os<<std::endl;
+    }
     os<<"  min angle [deg]: "<<st.minangle_in<<" -> "<<st.minangle_out<<std::endl;
     os<<"  quality mean   : "<<st.q_mean_in<<" -> "<<st.q_mean_out<<"   min: "<<st.q_min_in<<" -> "<<st.q_min_out
       <<"   q<0.5: "<<100.0*st.frac_q05_in<<"% -> "<<100.0*st.frac_q05_out<<"%"<<std::endl;

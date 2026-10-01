@@ -2346,6 +2346,8 @@ void control::ctrlrecv()
     dd++;
     X183_psi = dctrl[dd];
     dd++;
+    X184 = ictrl[ii];
+    ii++;
     X185 = ictrl[ii];
     ii++;
     X186 = dctrl[dd];

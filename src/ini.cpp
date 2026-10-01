@@ -1131,6 +1131,7 @@ void control::ini_default()
     X182_dx=X182_dy=X182_dz=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
+    X184=1;     // int remeshing (X 185 4): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
     X185=4;     // int stl refinement
     X186=0.7;   // double refinement factor
     X187=30.0;  // double remeshing (X 185 4): feature angle in degrees

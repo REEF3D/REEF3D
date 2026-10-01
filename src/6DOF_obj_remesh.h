@@ -41,6 +41,12 @@ Author: Hans Bihs
 //            original surface (resp. its feature curves)
 //
 // followed by a Delaunay (max-min-angle) flip pass and final relaxation sweeps.
+//
+// Open boundaries (holes) are repaired before the feature detection: cracks are closed by
+// snapping boundary vertices onto nearby boundary vertices/edges, the remaining boundary loops
+// are triangulated (minimum weight triangulation, Liepa 2003), the patch is refined to h and
+// faired (harmonic or biharmonic with the rim fixed). The faired patch then becomes part of
+// the reference surface.
 // Sharp edges and corners are preserved exactly, triangle orientation is preserved and
 // all vertices remain on the original surface. The class is self-contained (std only)
 // and deterministic.
@@ -67,6 +73,10 @@ public:
         double merge_tol = 1.0e-7;     // vertex welding tolerance relative to the bounding box diagonal
         double tjunction_tol = 1.0e-6; // T-junction detection tolerance relative to the bounding box diagonal
         long max_tri = 2000000;        // abort (and keep the input) if the estimated triangle count exceeds this
+        int hole_fill = 1;             // open boundaries: 0 keep, 1 close gaps + fill holes with a harmonic (membrane)
+                                       // patch, 2 close gaps + fill holes with a biharmonic (curvature continuous) patch
+        double gap_tol = 1.0e-3;       // gap closing tolerance relative to the bounding box diagonal (additionally
+                                       // limited to 0.3 x the adjacent boundary edge length)
     };
 
     struct stats
@@ -74,6 +84,7 @@ public:
         int ntri_in=0, ntri_out=0, nvert_out=0;
         int n_feature_edges=0, n_corners=0, n_chains=0;
         int n_boundary_edges=0, n_nonmanifold_edges=0, n_inconsistent_edges=0, n_tjunctions=0;
+        int n_gap_merges=0, n_holes_filled=0, n_hole_edges=0, n_holes_open=0;
         long ntri_estimate=0;
         double area_in=0.0, area_out=0.0, vol_in=0.0, vol_out=0.0;
         double minangle_in=0.0, minangle_out=0.0;           // [deg] smallest angle in the mesh

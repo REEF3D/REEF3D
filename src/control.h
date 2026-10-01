@@ -536,7 +536,7 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
-    int X185,X188,X189;
+    int X184,X185,X188,X189;
     double X186,X187;
     int X205;
     int X206,X207;
