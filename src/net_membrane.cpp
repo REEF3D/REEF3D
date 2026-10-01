@@ -35,7 +35,7 @@ Author: Hans Bihs
 
 net_membrane::net_membrane(int num, const membrane_param &mp) : nMem(num), prm(mp), Afloor(0.0),
                            delta(0.0), Kn(0.0), Kt(0.0), Fx(0.0), Fy(0.0), Fz(0.0), Fzfloor(0.0), Qleak(0.0), urelmax(0.0), dh(0.0), etaref(0.0),
-                           printtime(0.0), printcount(0), outdir("./REEF3D_NHFLOW_Membrane")
+                           printtime(0.0), printcount(0), outdir("./REEF3D_NHFLOW_Membrane"), vtpdir("./REEF3D_NHFLOW_Membrane_VTP")
 {
 }
 
@@ -52,8 +52,34 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         MPI_Abort(pgc->mpi_comm,1);
     }
 
+    if(prm.structure>0 && p->X10==0 && prm.structure==1)
+    {
+        if(p->mpirank==0)
+        cout<<"Membrane "<<nMem<<": structure rigid without floating body (X 10), the membrane stays in place"<<endl;
+    }
+    
+    if(prm.structure==2 && p->X10==1 && p->mpirank==0)
+    cout<<"Membrane "<<nMem<<": WARNING flexible membrane on a freely floating body (X 10 1): the collar coupling is "
+        <<"implicit, but the flexible membrane follows the fluid only with an extra inertia ~ rho R_n dt per area "
+        <<"(implicit porous coupling); in waves the collar is held by the bag and surge was unstable in the tests. "
+        <<"Use a prescribed collar motion (X 10 2) or structure rigid"<<endl;
+    
+    // tangential resistance: a moving membrane carries the fluid of its layer along (the Poisson mobility beta is
+    // isotropic, so the layer can not be moved tangentially by pressure); a fixed one only blocks the normal flow
+    if(prm.Rt<0.0)
+    prm.Rt = moving() ? prm.Rn : 0.0;
+    
+    // floorpressure 3 matches the discrete free-surface ramp in grid coordinates, a moving membrane uses 0
     if(prm.floorp<0)
-    prm.floorp = p->A520==1 ? 3 : 0;
+    prm.floorp = moving() ? 0 : 3;
+    
+    if(moving() && prm.floorp!=0)
+    {
+        if(p->mpirank==0)
+        cout<<"Membrane "<<nMem<<": floorpressure "<<prm.floorp<<" needs a fixed membrane, using floorpressure 0"<<endl;
+        
+        prm.floorp=0;
+    }
 
     if(prm.shape==2 && p->j_dir==0)
     {
@@ -88,14 +114,18 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     delta = prm.delta>0.0 ? prm.delta : 1.5*dmax;
 
+    // triangle size: fixed membrane the smallest cell size (geometry), moving membrane the largest, so that every
+    // node of the structure receives loads from the cells of the layer
     if(prm.h<=0.0)
-    prm.h = hmin;
+    prm.h = moving() ? dmax : hmin;
 
     // the integral of the indicator across the layer is 1.5 delta (plateau delta, two tapers delta/4)
     Kn = prm.Rn/(1.5*delta);
     Kt = prm.Rt/(1.5*delta);
 
     mesh(p);
+    
+    ini_structure(p,pgc);
 
     // cell map storage
     slot_.assign(p->imax*p->jmax*(p->kmax+2),-1);
@@ -109,22 +139,44 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     yc_[j] = p->YP[JP];
 
     tf_.assign(3*tri_.size(),0.0);
+    nf_.assign(3*x_.size(),0.0);
+    zf_.assign(p->imax*p->jmax,prm.zb);
+    
+    floor_geometry(p);
 
     if(p->mpirank==0)
     {
         mkdir(outdir.c_str(),0777);
+        
+        if(prm.printdt!=0.0)
+        mkdir(vtpdir.c_str(),0777);
 
         cout<<"Membrane "<<nMem<<" ("<<prm.name<<"): "<<(prm.shape==1?"box":"cylinder")<<", "<<tri_.size()<<" triangles, "
             <<"delta = "<<delta<<" m, R_n = "<<prm.Rn<<" m/s (K_n = "<<Kn<<" 1/s), R_t = "<<prm.Rt<<" m/s, "
             <<"floor area = "<<Afloor<<" m^2, fill = "<<prm.fill<<" m, floorpressure "<<prm.floorp
             <<", projections "<<prm.projections<<(prm.poisson==1?"":", Poisson mobility OFF")<<endl;
+        
+        const char *sname[3] = {"fixed","rigid","flexible"};
+        cout<<"Membrane "<<nMem<<": structure "<<sname[prm.structure]<<", "<<x_.size()<<" nodes";
+        
+        if(prm.structure==2)
+        {
+            int na=0;
+            for(size_t q=0; q<att_.size(); ++q)
+            na += att_[q];
+            
+            cout<<", "<<edge_.size()<<" edges, "<<na<<" attached nodes, mass "<<prm.mA<<" kg/m^2, density "<<prm.rhom
+                <<" kg/m^3, E t = "<<prm.EA<<" N/m, damping "<<prm.zeta<<", sinker "<<prm.sinker<<" N/m";
+        }
+        cout<<endl;
 
         if(delta < 1.5*dmax)
         cout<<"Membrane "<<nMem<<": delta < 1.5 max(dx,dy,dz) - the smeared layer may leave gaps between cells"<<endl;
 
         ofstream ts((outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+".dat").c_str());
         ts<<"# membrane "<<nMem<<" "<<prm.name<<"  delta "<<delta<<"  Rn "<<prm.Rn<<"  Rt "<<prm.Rt<<"  Afloor "<<Afloor<<"\n";
-        ts<<"# time  eta_in  eta_out  dh  Q_leak[m3/s]  Fx  Fy  Fz  Fz_floor  Fz_floor_hydrostatic(-rho g dh A)  max|u_n,rel|_layer  max|U|  water_volume\n";
+        ts<<"# time  eta_in  eta_out  dh  Q_leak[m3/s]  Fx  Fy  Fz  Fz_floor  Fz_floor_hydrostatic(-rho g dh A)  max|u_n,rel|_layer  max|U|  water_volume"
+            <<"  Fx_body  Fy_body  Fz_body  floor_z_mean  floor_z_min  max|u_node|  max_tension[N/m]\n";
         ts.close();
     }
 }
@@ -148,9 +200,10 @@ void net_membrane::mesh(lexer *p)
 
     if(prm.shape==1)
     {
-        // in 2D the y-extent is irrelevant: the panels are extended far beyond the single cell row
-        const double ylo = p->j_dir==1 ? prm.y0 : -1.0e3;
-        const double yhi = p->j_dir==1 ? prm.y1 : 1.0e3;
+        // in 2D the panels span the single cell row, so masses and loads refer to the same width
+        j=0;
+        const double ylo = p->j_dir==1 ? prm.y0 : p->YN[JP];
+        const double yhi = p->j_dir==1 ? prm.y1 : p->YN[JP1];
         const double lx = prm.x1 - prm.x0;
         const double ly = yhi - ylo;
         const int nx = MAX(1,(int)ceil(lx/h));
@@ -182,6 +235,8 @@ void net_membrane::mesh(lexer *p)
         add_disk(nt,nr);
     }
 
+    merge_nodes();
+    
     xdot_.assign(x_.size(),Eigen::Vector3d::Zero());
 
     Afloor=0.0;
@@ -305,8 +360,78 @@ void net_membrane::add_tri(int a, int b, int c, const Eigen::Vector3d &nout, int
     ttag_.push_back(tag);
 }
 
+void net_membrane::merge_nodes()
+{
+    // the panels are meshed separately: merge coincident nodes along the edges, so the structure is connected
+    double lmin=1.0e20;
+    for(const auto &t : tri_)
+    for(int q=0; q<3; ++q)
+    lmin = MIN(lmin, (x_[t[q]]-x_[t[(q+1)%3]]).norm());
+    
+    const double tol = 1.0e-3*lmin;
+    
+    vector<int> order(x_.size());
+    for(size_t q=0; q<order.size(); ++q)
+    order[q]=q;
+    
+    sort(order.begin(),order.end(),[&](int a, int b){return x_[a](0)<x_[b](0);});
+    
+    vector<int> newid(x_.size(),-1);
+    vector<Eigen::Vector3d> xn;
+    
+    for(size_t qa=0; qa<order.size(); ++qa)
+    {
+        const int a = order[qa];
+        
+        if(newid[a]>=0)
+        continue;
+        
+        newid[a] = xn.size();
+        xn.push_back(x_[a]);
+        
+        for(size_t qb=qa+1; qb<order.size() && x_[order[qb]](0)-x_[a](0)<tol; ++qb)
+        {
+            const int b = order[qb];
+            
+            if(newid[b]<0 && (x_[b]-x_[a]).norm()<tol)
+            newid[b] = newid[a];
+        }
+    }
+    
+    x_ = xn;
+    
+    for(auto &t : tri_)
+    for(int q=0; q<3; ++q)
+    t[q] = newid[t[q]];
+}
+
+void net_membrane::update_geometry()
+{
+    // normals, centroids and areas of the (moved) triangles; the vertex order keeps the outward orientation
+    for(size_t t=0; t<tri_.size(); ++t)
+    {
+        const Eigen::Vector3d &a = x_[tri_[t][0]];
+        const Eigen::Vector3d &b = x_[tri_[t][1]];
+        const Eigen::Vector3d &c = x_[tri_[t][2]];
+        
+        Eigen::Vector3d n = (b-a).cross(c-a);
+        const double A2 = n.norm();
+        
+        if(A2>1.0e-20)
+        {
+        tn_[t] = n/A2;
+        ta_[t] = 0.5*A2;
+        }
+        
+        tc_[t] = (a+b+c)/3.0;
+    }
+}
+
 bool net_membrane::inside_footprint(double xp, double yp, double margin) const
 {
+    xp -= offx_;
+    yp -= offy_;
+
     if(prm.shape==1)
     {
         if(xp<=prm.x0+margin || xp>=prm.x1-margin)
@@ -325,6 +450,9 @@ bool net_membrane::inside_footprint(double xp, double yp, double margin) const
 
 bool net_membrane::outside_footprint(double xp, double yp, double margin) const
 {
+    xp -= offx_;
+    yp -= offy_;
+
     if(prm.shape==1)
     {
         if(xp<prm.x0-margin || xp>prm.x1+margin)
@@ -501,6 +629,33 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
                 if(dist>=delta)
                 continue;
+                
+                // moving membrane, beyond a corner edge (the cell projects outside the triangle across an edge
+                // to a panel of different orientation): the panel ends there. The layers of the two panels meet
+                // on the inner side of the corner and seal it; on the outer side the water has to pass freely
+                // below the edge of a moving floor, the rounded outer layer would have to be dragged along.
+                // A fixed membrane keeps the rounded corner (it steadies the wall columns below the floor edge).
+                if(moving() && !cornerE_.empty())
+                {
+                    const Eigen::Vector3d dP = P-C;
+                    const Eigen::Vector3d dtan = dP - dP.dot(tn_[t])*tn_[t];
+                    
+                    if(dtan.norm()>1.0e-6*delta)
+                    {
+                        const double eps = 1.0e-9;
+                        int q=-1, vtx=-1;
+                        
+                        if(u<eps && v<eps)      vtx = tri_[t][2];
+                        else if(v<eps && w<eps) vtx = tri_[t][0];
+                        else if(u<eps && w<eps) vtx = tri_[t][1];
+                        else if(w<eps)          q = 0;
+                        else if(u<eps)          q = 1;
+                        else if(v<eps)          q = 2;
+                        
+                        if((vtx>=0 && cornerN_[vtx]) || (q>=0 && cornerE_[tedge_[t][q]]))
+                        continue;
+                    }
+                }
 
                 int &s = slot_[IJK];
 
@@ -511,6 +666,7 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
                     e.i=i; e.j=j; e.k=k;
                     e.ns=1;
                     e.t[0]=t; e.dd[0]=dist; e.H[0]=0.0;
+                    e.bw[0][0]=u; e.bw[0][1]=v; e.bw[0][2]=w;
                     e.tc=t; e.w0=u; e.w1=v; e.w2=w;
                     e.dc=dist;
                     cells_.push_back(e);
@@ -538,12 +694,14 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
                     {
                         e.t[q]=t;
                         e.dd[q]=dist;
+                        e.bw[q][0]=u; e.bw[q][1]=v; e.bw[q][2]=w;
                     }
                 }
                 else if(e.ns<3)
                 {
                     e.t[e.ns]=t;
                     e.dd[e.ns]=dist;
+                    e.bw[e.ns][0]=u; e.bw[e.ns][1]=v; e.bw[e.ns][2]=w;
                     ++e.ns;
                 }
                 else
@@ -557,6 +715,7 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
                     {
                         e.t[f]=t;
                         e.dd[f]=dist;
+                        e.bw[f][0]=u; e.bw[f][1]=v; e.bw[f][2]=w;
                     }
                 }
             }
@@ -610,25 +769,34 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
         i=e.i; j=e.j; k=e.k;
 
         const Eigen::Vector3d &nc = tn_[e.tc];
+        const Eigen::Matrix3d Pt = Kt*e.Hc*(I - nc*nc.transpose());
 
-        Eigen::Matrix3d A = Kt*e.Hc*(I - nc*nc.transpose());
+        // f = -sum_r K_n H_r n_r n_r^T (u - u_m,r) - K_t H_c (I - n_c n_c^T)(u - u_m,c): each surface
+        // orientation with the velocity of its own closest triangle (at the floor edge the floor and the
+        // wall move differently)
+        Eigen::Matrix3d A = Pt;
+        Eigen::Vector3d b = Pt*membrane_vel(e.tc,e.w0,e.w1,e.w2);
 
         for(int r=0; r<e.ns; ++r)
         {
             const Eigen::Vector3d &nr = tn_[e.t[r]];
-            A += Kn*e.H[r]*(nr*nr.transpose());
+            const Eigen::Matrix3d Pr = Kn*e.H[r]*(nr*nr.transpose());
+            
+            A += Pr;
+            b += Pr*membrane_vel(e.t[r],e.bw[r][0],e.bw[r][1],e.bw[r][2]);
         }
 
-        const Eigen::Vector3d um = membrane_vel(e.tc,e.w0,e.w1,e.w2);
-
-        Eigen::Vector3d rel(d->U[IJK]-um(0), d->V[IJK]-um(1), d->W[IJK]-um(2));
+        Eigen::Vector3d u(d->U[IJK], d->V[IJK], d->W[IJK]);
 
         if(p->j_dir==0)
-        rel(1)=0.0;
+        u(1)=0.0;
 
-        // implicit resistance over the stage: (I + a A)(u - u_m)^new = (u - u_m)^*
-        const Eigen::Vector3d relnew = (I + a*A).ldlt().solve(rel);
-        const Eigen::Vector3d du = relnew - rel;
+        // implicit resistance over the stage: (I + a A) u^new = u^* + a b
+        const Eigen::Vector3d unew = (I + a*A).ldlt().solve(u + a*b);
+        Eigen::Vector3d du = unew - u;
+        
+        if(p->j_dir==0)
+        du(1)=0.0;
 
         d->U[IJK] += du(0);
         UH[IJK]   += du(0)*WL(i,j);
@@ -647,8 +815,21 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
 void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
 {
 
-    // load on the membrane from the final (projected) velocity: F = rho H A (u^{n+1} - u_m) dV
+    // load on the membrane from the final (projected) velocity: F = rho H A (u^{n+1} - u_m) dV,
+    // per triangle and per node (barycentric weights of the closest point)
     fill(tf_.begin(),tf_.end(),0.0);
+    fill(nf_.begin(),nf_.end(),0.0);
+    
+    auto addnode = [&](int t, const double *w, const Eigen::Vector3d &f)
+    {
+        for(int q=0; q<3; ++q)
+        {
+            const int nd = tri_[t][q];
+            nf_[3*nd+0] += w[q]*f(0);
+            nf_[3*nd+1] += w[q]*f(1);
+            nf_[3*nd+2] += w[q]*f(2);
+        }
+    };
 
     double Q=0.0, urm=0.0;
     const double rho = p->W1;
@@ -675,12 +856,15 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         for(int r=0; r<e.ns; ++r)
         {
             const Eigen::Vector3d &nr = tn_[e.t[r]];
-            const double un = nr.dot(rel);
+            const Eigen::Vector3d umr = moving() ? membrane_vel(e.t[r],e.bw[r][0],e.bw[r][1],e.bw[r][2]) : um;
+            const double un = nr.dot(Eigen::Vector3d(d->U[IJK]-umr(0), p->j_dir==1 ? d->V[IJK]-umr(1) : 0.0, d->W[IJK]-umr(2)));
             const Eigen::Vector3d f = rho*dV*e.H[r]*Kn*un*nr;
 
             tf_[3*e.t[r]+0] += f(0);
             tf_[3*e.t[r]+1] += f(1);
             tf_[3*e.t[r]+2] += f(2);
+            
+            addnode(e.t[r],e.bw[r],f);
             
             hun += e.H[r]*un;
             
@@ -697,6 +881,9 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             tf_[3*e.tc+0] += f(0);
             tf_[3*e.tc+1] += f(1);
             tf_[3*e.tc+2] += f(2);
+            
+            const double w[3] = {e.w0,e.w1,e.w2};
+            addnode(e.tc,w,f);
         }
 
         // flux through the membrane: int u_n dA = (1/(1.5 delta)) int H u_n dV, outward positive
@@ -704,6 +891,7 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     }
 
     MPI_Allreduce(MPI_IN_PLACE,tf_.data(),(int)tf_.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE,nf_.data(),(int)nf_.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
 
     Qleak = pgc->globalsum(Q);
     urelmax = pgc->globalmax(urm);
@@ -720,35 +908,124 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         Fzfloor += tf_[3*t+2];
     }
 
+    // structure: the flexible membrane is advanced once per time step, in the final stage, with the loads
+    // of the final velocity; the load on the floating body is updated with it and held over the next step.
+    // The rigid membrane passes its load to the body in every stage.
+    if(prm.structure==2 && finalize)
+    {
+        advance_structure(p,p->dt);
+        update_geometry();
+        update_body_load(p);
+        
+        if(body_)
+        attach_response(p,p->dt);
+    }
+    
+    if(prm.structure==1)
+    update_body_load(p);
+    
+    if(prm.structure==2)
+    update_body_fluid_load(p);
+
     if(finalize)
     {
         print_timeseries(p,d,pgc);
 
-        if(prm.printdt>0.0 && (p->simtime>=printtime || p->count==0))
-        {
-            print_vtp(p);
-            printtime += prm.printdt;
-        }
+        if(print_now(p))
+        print_vtp(p);
     }
 }
 
 void net_membrane::netForces(lexer *p, double &Xne, double &Yne, double &Zne, double &Kne, double &Mne, double &Nne)
 {
-    // total hydrodynamic load on the membrane and its moment about the origin
-    Xne=Yne=Zne=Kne=Mne=Nne=0.0;
+    // load of the membrane on the floating body, moment about the centre of gravity
+    body_load(p,Eigen::Vector3d(p->xg,p->yg,p->zg),Rb_,Xne,Yne,Zne,Kne,Mne,Nne);
+}
 
+void net_membrane::kinematics_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // node positions and velocities for this stage: with a floating body the rigid membrane moves with it
+    // entirely, the flexible one at its attached nodes (the free nodes move in advance_structure)
+    if(!moving())
+    return;
+    
+    if(body_)
+    for(size_t q=0; q<x_.size(); ++q)
+    if(prm.structure==1 || att_[q])
+    {
+        x_[q] = attached_position(q);
+        xdot_[q] = body_velocity(x_[q]);
+    }
+    
+    update_geometry();
+    floor_geometry(p);
+}
+
+void net_membrane::floor_geometry(lexer *p)
+{
+    // footprint offset from the floor edge and floor height per column for a moving membrane
+    if(!moving() || ring_.empty())
+    return;
+    
+    Eigen::Vector3d c = Eigen::Vector3d::Zero();
+    for(int q : ring_)
+    c += x_[q];
+    c /= double(ring_.size());
+    
+    offx_ = c(0) - ringc0_(0);
+    offy_ = p->j_dir==1 ? c(1) - ringc0_(1) : 0.0;
+    zring_ = c(2);
+    
+    fill(zf_.begin(),zf_.end(),zring_);
+    
+    // floor triangles: height at the column centres inside their horizontal projection
     for(size_t t=0; t<tri_.size(); ++t)
     {
-        const Eigen::Vector3d F(tf_[3*t+0],tf_[3*t+1],tf_[3*t+2]);
-        const Eigen::Vector3d M = tc_[t].cross(F);
-
-        Xne += F(0);
-        Yne += F(1);
-        Zne += F(2);
-        Kne += M(0);
-        Mne += M(1);
-        Nne += M(2);
+        if(ttag_[t]!=1)
+        continue;
+        
+        const Eigen::Vector3d &a = x_[tri_[t][0]];
+        const Eigen::Vector3d &b = x_[tri_[t][1]];
+        const Eigen::Vector3d &e = x_[tri_[t][2]];
+        
+        const double bxmin = min(a(0),min(b(0),e(0))), bxmax = max(a(0),max(b(0),e(0)));
+        const double bymin = min(a(1),min(b(1),e(1))), bymax = max(a(1),max(b(1),e(1)));
+        
+        const int ia = lower_bound(xc_.begin(),xc_.end(),bxmin) - xc_.begin();
+        const int ib = int(upper_bound(xc_.begin(),xc_.end(),bxmax) - xc_.begin()) - 1;
+        
+        int ja=0, jb=0;
+        if(p->j_dir==1)
+        {
+        ja = lower_bound(yc_.begin(),yc_.end(),bymin) - yc_.begin();
+        jb = int(upper_bound(yc_.begin(),yc_.end(),bymax) - yc_.begin()) - 1;
+        }
+        
+        const double det = (b(0)-a(0))*(e(1)-a(1)) - (e(0)-a(0))*(b(1)-a(1));
+        
+        if(fabs(det)<1.0e-20)
+        continue;
+        
+        for(i=ia; i<=ib; ++i)
+        for(j=ja; j<=jb; ++j)
+        {
+            const double xp = p->XP[IP];
+            const double yp = p->YP[JP];
+            
+            const double l1 = ((xp-a(0))*(e(1)-a(1)) - (e(0)-a(0))*(yp-a(1)))/det;
+            const double l2 = ((b(0)-a(0))*(yp-a(1)) - (xp-a(0))*(b(1)-a(1)))/det;
+            
+            if(l1<-1.0e-10 || l2<-1.0e-10 || l1+l2>1.0+1.0e-10)
+            continue;
+            
+            zf_[(i-p->imin)*p->jmax + (j-p->jmin)] = a(2) + l1*(b(2)-a(2)) + l2*(e(2)-a(2));
+        }
     }
+}
+
+double net_membrane::zfloor(lexer *p, int ii, int jj) const
+{
+    return moving() ? zf_[(ii-p->imin)*p->jmax + (jj-p->jmin)] : prm.zb;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -777,6 +1054,8 @@ double net_membrane::footprint_distance(double xp, double yp, double &gx, double
 {
     // signed horizontal distance to the footprint boundary, positive inside, and its gradient
     gx=gy=0.0;
+    xp -= offx_;
+    yp -= offy_;
     
     if(prm.shape==1)
     {
@@ -812,6 +1091,8 @@ void net_membrane::footprint_weight(double xp, double yp, double &A, double &Ax,
     // where a distance function min(x-x0, x1-x, ...) has a kink along the diagonal that leaves a
     // spurious torque below the floor. Cylinder: step in the radial distance.
     Ax=Ay=0.0;
+    xp -= offx_;
+    yp -= offy_;
     
     if(prm.shape==1)
     {
@@ -854,6 +1135,8 @@ void net_membrane::footprint_weight_ext(double xp, double yp, double &A, double 
     auto dW = [this](double s) {return 2.0*dstep(2.0*(s + 1.5*delta));};
     
     Ax=Ay=0.0;
+    xp -= offx_;
+    yp -= offy_;
     
     if(prm.shape==1)
     {
@@ -896,6 +1179,8 @@ void net_membrane::footprint_weight_int(double xp, double yp, double &A, double 
     auto dW = [this](double s) {return dstep(s - 2.0*delta);};
     
     Ax=Ay=0.0;
+    xp -= offx_;
+    yp -= offy_;
     
     if(prm.shape==1)
     {
@@ -931,6 +1216,17 @@ void net_membrane::footprint_weight_int(double xp, double yp, double &A, double 
     }
 }
 
+double net_membrane::dindicator(double dist) const
+{
+    // d H / d dist
+    const double h = 0.5*delta;
+    
+    if(dist<=h || dist>=delta)
+    return 0.0;
+    
+    return -0.5*PI/h*sin(PI*(dist-h)/h);
+}
+
 double net_membrane::dstep(double s) const
 {
     return fabs(s)<delta ? indicator(fabs(s))/(1.5*delta) : 0.0;
@@ -948,13 +1244,15 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     //   floorpressure 0:  p_m = -rho g dh A B                A = Darcy profile across the walls
     //   floorpressure 1:  p_m = -rho g (eta - eta_out) W B   local excess head, W = 1 for s > -delta
     //   floorpressure 3:  p_m = -rho g dh S W B              S = (eta_avg - eta_out,avg)/dh_avg, the shape
-    //                                                         of the time-averaged (tau) free-surface ramp
+    //                                                         of the free-surface ramp, running average
+    //                                                         (tau) frozen at t = 2 tau
     //
     // On a Cartesian grid the discrete free-surface ramp across the wall layer of a curved bag differs
     // between the axis and the diagonal directions; with the analytic profile A (0) the mismatch drives a
-    // slowly growing, grid-aligned circulation below the bag edge. 3 follows the actual ramp without
-    // feeding the fast free-surface motion back into p_m, and is the default with A 520 1. With the
-    // incremental scheme A 520 2 it is not stable in all tests (2D box), there 0 is the default.
+    // slowly growing, grid-aligned circulation below the bag edge. 3 matches the actual ramp; it is frozen
+    // after the start, since a shape that keeps following the free surface also absorbs slow drifts of the
+    // levels in the wall columns, which then lose their restoring pressure below the floor (unstable with
+    // A 520 2). 3 is the default for a fixed membrane, 0 for a moving one (the ramp moves with it).
     // 1 follows the instantaneous level and is kept for comparison only.
     // Deep inside the footprint (s > 3 delta) the uniform dh is used. eta_out is the mean level in a
     // ring 1 - 3 delta outside the footprint. The gradient of p_m is added as a body force in the stage.
@@ -990,8 +1288,11 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     dh = ein/ain - eout/aout;
     etaref = eout/aout;
     
-    // time-averaged free surface for floorpressure 3 (relaxation time prm.tau)
-    if(prm.floorp==3)
+    // floorpressure 3: shape of the discrete free-surface ramp, running average (relaxation time tau) until
+    // t = 2 tau, frozen afterwards. A shape that keeps following the free surface also absorbs slow drifts of the
+    // levels in the wall columns, which then have no restoring pressure below the floor; with A 520 2 these
+    // drifts grow.
+    if(prm.floorp==3 && p->simtime<=2.0*prm.tau)
     {
         const double r = etab_.empty() ? 1.0 : MIN(1.0, alpha*p->dt/prm.tau);
         
@@ -1015,7 +1316,7 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     LOOP
     WETDRYDEEP
     {
-        const double sz = prm.zb - p->ZSP[IJK];
+        const double sz = zfloor(p,i,j) - p->ZSP[IJK];
         
         if(sz<=-delta)
         continue;
@@ -1042,16 +1343,16 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
             
             if(prm.floorp==3)
             {
-                // floorpressure 3: shape of the ramp from the time-averaged level, normalised with the
-                // averaged head, S = (eta_avg - eta_ref,avg)/dh_avg; amplitude from the current head dh.
-                // The discrete (grid-dependent) ramp across the wall layer is matched as in 1, but the
-                // amplitude does not feed back on the local free surface.
+                // floorpressure 3: shape of the ramp from the averaged level, normalised with the averaged
+                // head, S = (eta_avg - eta_ref,avg)/dh_avg; amplitude from the current head dh.
+                // The discrete (grid-dependent) ramp across the wall layer is matched as in 1, but neither the
+                // amplitude nor the shape feeds back on the local free surface.
                 auto EV = [&](int ii, int jj) {return etab_[(ii-p->imin)*p->jmax + (jj-p->jmin)];};
                 const double sc = fabs(dhb)>1.0e-8 ? 1.0/dhb : 0.0;
                 
-                const double S  = (EV(i,j) - erefb)*sc;
-                const double Sx = (EV(i+1,j) - EV(i-1,j))/(p->XP[IP+1] - p->XP[IM1])*sc;
-                const double Sy = p->j_dir==1 ? (EV(i,j+1) - EV(i,j-1))/(p->YP[JP+1] - p->YP[JM1])*sc : 0.0;
+                double S  = (EV(i,j) - erefb)*sc;
+                double Sx = (EV(i+1,j) - EV(i-1,j))/(p->XP[IP+1] - p->XP[IM1])*sc;
+                double Sy = p->j_dir==1 ? (EV(i,j+1) - EV(i,j-1))/(p->YP[JP+1] - p->YP[JM1])*sc : 0.0;
                 
                 E  = dh*((1.0-I)*S + I);
                 Ex = dh*((1.0-I)*Sx + Ix*(1.0 - S));
@@ -1114,104 +1415,4 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
         d->W[IJK] += a*fz;
         WH[IJK]   += a*fz*WL(i,j);
     }
-}
-
-// ---------------------------------------------------------------------------------------------
-// output
-// ---------------------------------------------------------------------------------------------
-
-void net_membrane::print_timeseries(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    double ein=0.0, ain=0.0, eout=0.0, aout=0.0, umax=0.0, vol=0.0;
-
-    SLICELOOP4
-    if(p->wet[IJ]==1)
-    {
-        const double A = p->DXN[IP]*p->DYN[JP];
-
-        vol += d->WL(i,j)*A;
-
-        if(inside_footprint(p->XP[IP],p->YP[JP],delta))
-        {
-            ein += d->eta(i,j)*A;
-            ain += A;
-        }
-
-        if(outside_footprint(p->XP[IP],p->YP[JP],delta))
-        {
-            eout += d->eta(i,j)*A;
-            aout += A;
-        }
-    }
-
-    LOOP
-    if(p->wet[IJ]==1)
-    umax = MAX(umax, sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK] + d->W[IJK]*d->W[IJK]));
-
-    ein  = pgc->globalsum(ein);
-    ain  = pgc->globalsum(ain);
-    eout = pgc->globalsum(eout);
-    aout = pgc->globalsum(aout);
-    umax = pgc->globalmax(umax);
-    vol  = pgc->globalsum(vol);
-
-    if(p->mpirank==0)
-    {
-        const double etain  = ain>0.0  ? ein/ain  : 0.0;
-        const double etaout = aout>0.0 ? eout/aout : 0.0;
-        const double dhl = etain - etaout;
-
-        ofstream ts((outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+".dat").c_str(), ios::app);
-        ts<<setprecision(10)<<p->simtime<<" "<<etain<<" "<<etaout<<" "<<dhl<<" "<<Qleak<<" "
-          <<Fx<<" "<<Fy<<" "<<Fz<<" "<<Fzfloor<<" "<<-p->W1*fabs(p->W22)*dhl*Afloor<<" "<<urelmax<<" "<<umax<<" "<<vol<<"\n";
-    }
-}
-
-void net_membrane::print_vtp(lexer *p)
-{
-    if(p->mpirank!=0)
-    return;
-
-    const string name = outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+"_"+to_string(printcount)+".vtp";
-    ++printcount;
-
-    ofstream out(name.c_str());
-
-    out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n<PolyData>\n";
-    out<<"<Piece NumberOfPoints=\""<<x_.size()<<"\" NumberOfPolys=\""<<tri_.size()<<"\">\n";
-    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">"<<p->simtime<<"</DataArray></FieldData>\n";
-
-    out<<"<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(const auto &x : x_)
-    out<<x(0)<<" "<<x(1)<<" "<<x(2)<<"\n";
-    out<<"</DataArray>\n</Points>\n";
-
-    out<<"<CellData Scalars=\"dp\">\n";
-
-    // pressure jump across the panel, positive when the inside pressure is higher
-    out<<"<DataArray type=\"Float64\" Name=\"dp\" format=\"ascii\">\n";
-    for(size_t t=0; t<tri_.size(); ++t)
-    {
-        const Eigen::Vector3d F(tf_[3*t+0],tf_[3*t+1],tf_[3*t+2]);
-        out<<F.dot(tn_[t])/ta_[t]<<"\n";
-    }
-    out<<"</DataArray>\n";
-
-    out<<"<DataArray type=\"Float64\" Name=\"force\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(size_t t=0; t<tri_.size(); ++t)
-    out<<tf_[3*t+0]<<" "<<tf_[3*t+1]<<" "<<tf_[3*t+2]<<"\n";
-    out<<"</DataArray>\n";
-
-    out<<"<DataArray type=\"Int32\" Name=\"tag\" format=\"ascii\">\n";
-    for(size_t t=0; t<tri_.size(); ++t)
-    out<<ttag_[t]<<"\n";
-    out<<"</DataArray>\n</CellData>\n";
-
-    out<<"<Polys>\n<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">\n";
-    for(const auto &tr : tri_)
-    out<<tr[0]<<" "<<tr[1]<<" "<<tr[2]<<"\n";
-    out<<"</DataArray>\n<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">\n";
-    for(size_t t=0; t<tri_.size(); ++t)
-    out<<3*(t+1)<<"\n";
-    out<<"</DataArray>\n</Polys>\n</Piece>\n</PolyData>\n</VTKFile>\n";
 }

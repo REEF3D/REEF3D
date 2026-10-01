@@ -55,15 +55,30 @@ Author: Hans Bihs
 // 4. Bag floor. NHFLOW has one free surface per column, so the columns below the floor see the
 //    inner level in their hydrostatic pressure. The static overpressure below the floor is prescribed
 //    (static_pressure_nhflow, floorpressure 0/1/3), so the solved non-hydrostatic pressure stays smooth.
+//    For a moving membrane the footprint follows the floor edge and the floor height is taken per
+//    column from the floor triangles.
 //
 // 5. Loads. Evaluated after the projection from the final velocity, F = rho H A (u^{n+1} - u_m) dV,
-//    per triangle. In steady state they integrate to the pressure jump times the panel area.
+//    per triangle and, with the barycentric weights of the closest point, per node. In steady state
+//    they integrate to the pressure jump times the panel area.
 //
-// This first version carries prescribed (fixed) membranes; the node velocities xdot_ enter the
-// forcing already, the structural solver is connected in a follow-up.
+// 6. Structure (net_membrane_structure.cpp), membrane.dat 'structure':
+//      fixed      the membrane stays in place (default)
+//      rigid      the whole membrane moves with the floating body (X 10), loads go to the body
+//      flexible   mass-spring membrane (edge springs from E t, edge dampers, fabric weight and
+//                 buoyancy, sinker weight along the floor edge). Like the nets (X 320), the nodes at
+//                 the top edge ('attach') follow the floating body, or stay in place without X 10, and
+//                 the force of the membrane on them goes to the body as an external force.
+//    The flexible membrane is advanced once per time step in the final RK stage with a linearised backward
+//    Euler step, in which the porous-jump load is taken implicitly in the node velocity (the fluid of the
+//    layer is tied to the membrane like a stiff damper, which a lagged, explicit coupling can not carry).
+//    Stable, equilibrium unchanged, but the fast dynamics are damped (see net_membrane_structure.cpp).
+//    The fluid layer of a moving membrane moves with it (R_t = R_n by default): the Poisson mobility is
+//    isotropic, so the layer fluid can not be moved along the membrane by pressure.
 
 #include"net.h"
 #include"increment.h"
+#include"vtp3D.h"
 #include<vector>
 #include<array>
 #include<string>
@@ -84,18 +99,29 @@ struct membrane_param
     double x0=0.0,x1=0.0,y0=0.0,y1=0.0;     // box footprint
     double xc=0.0,yc=0.0,R=0.0;             // cylinder footprint
     double zb=0.0,zt=0.0;                   // bottom (floor) and top of the bag
-    double Rn=1.0e4, Rt=0.0;                // hydraulic resistance normal / tangential [m/s]
+    double Rn=1.0e4, Rt=-1.0;               // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
     double delta=-1.0;                      // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
     double h=-1.0;                          // target triangle edge length [m], <0: min cell size
     double fill=0.0;                        // initial inner water level above the undisturbed level [m]
-    double printdt=-1.0;                    // vtp print interval [s], <0: no vtp output
+    double printdt=-1.0;                    // vtp print interval [s]; <0: NHFLOW print control (P 20 / P 30), 0: off
     int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
     int poisson=1;                          // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
-    int floorp=-1;                          // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp; -1: 3 with A 520 1, 0 with A 520 2
-    double tau=2.0;                         // relaxation time of the averaged level (floorpressure 3) [s]
+    int floorp=-1;                          // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp;
+                                            // -1: 3 for a fixed membrane, 0 for a moving one
+    double tau=2.0;                         // averaging time of the ramp shape (floorpressure 3), frozen at 2 tau [s]
+
+    // structure
+    int structure=0;                        // 0 fixed, 1 rigid (moves with the floating body), 2 flexible
+    double mA=1.0;                          // fabric mass per area [kg/m^2]
+    double rhom=1300.0;                     // fabric density [kg/m^3] (buoyancy)
+    double EA=5.0e5;                        // membrane stiffness E t [N/m]
+    double zeta=0.1;                        // damping ratio of the edge dampers
+    double sinker=0.0;                      // submerged weight along the floor edge [N/m]
+    double zattach=-1.0e20;                 // nodes at or above this height are attached, default: top edge
+    double Mbody=-1.0;                      // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
 };
 
-class net_membrane final : public net, public increment
+class net_membrane final : public net, public increment, private vtp3D
 {
 public:
     net_membrane(int, const membrane_param&);
@@ -113,11 +139,19 @@ public:
     const EigenMat& getCollarVel() override final {return empty_;}
     const EigenMat& getCollarPoints() override final {return empty_;}
 
-    // NHFLOW coupling, called per RK stage: mobility (builds the cell map), forcing, reaction
+    // NHFLOW coupling, called per RK stage: kinematics, mobility (builds the cell map), forcing, reaction
+    void kinematics_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void mobility_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
     void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void static_pressure_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
+
+    // floating body: body frame at the start, current kinematics, load on the body
+    void attach_body(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&);
+    void set_body(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void body_load(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&) const;
+    double body_addedmass(lexer*) const;
+    Eigen::Matrix3d body_stiffness() const {return (moving() && body_) ? Eigen::Matrix3d(Jb_.block<3,3>(0,0)) : Eigen::Matrix3d::Zero();}
 
     // initial inner water level
     void fill_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -127,6 +161,8 @@ public:
 private:
     // geometry
     void mesh(lexer*);
+    void merge_nodes();
+    void update_geometry();
     void add_panel(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, int, int, const Eigen::Vector3d&, int);
     void add_cylinder_wall(int, int);
     void add_disk(int, int);
@@ -140,16 +176,32 @@ private:
                                          const Eigen::Vector3d&, double&, double&, double&);
     Eigen::Vector3d membrane_vel(int, double, double, double) const;
     double indicator(double) const;
+    double dindicator(double) const;
     double smoothstep(double) const;
     double footprint_distance(double, double, double&, double&) const;
     void footprint_weight(double, double, double&, double&, double&) const;
     void footprint_weight_ext(double, double, double&, double&, double&) const;
     void footprint_weight_int(double, double, double&, double&, double&) const;
     double dstep(double) const;
+    void floor_geometry(lexer*);
+    double zfloor(lexer*, int, int) const;
 
-    // output
+    // structure (net_membrane_structure.cpp)
+    void ini_structure(lexer*, ghostcell*);
+    void advance_structure(lexer*, double);
+    void internal_forces(lexer*, const vector<Eigen::Vector3d>&, const vector<Eigen::Vector3d>&, vector<Eigen::Vector3d>&) const;
+    void external_forces(lexer*, vector<Eigen::Vector3d>&) const;
+    void update_body_load(lexer*);
+    void attach_response(lexer*, double);
+    void update_body_fluid_load(lexer*);
+    Eigen::Vector3d attached_position(int) const;
+    Eigen::Vector3d body_velocity(const Eigen::Vector3d&) const;
+    bool moving() const {return prm.structure>0;}
+
+    // output (net_membrane_print.cpp)
     void print_timeseries(lexer*, fdm_nhf*, ghostcell*);
     void print_vtp(lexer*);
+    bool print_now(lexer*);
 
     int nMem;
     membrane_param prm;
@@ -172,6 +224,7 @@ private:
         int ns;             // distinct surface orientations within delta (up to 3)
         int t[3];           // closest triangle of each orientation
         double dd[3], H[3];
+        double bw[3][3];    // barycentric weights of the closest point on t[r]
         double Hmax;
         int tc;             // closest triangle overall
         double dc, Hc;
@@ -183,15 +236,51 @@ private:
 
     // loads
     vector<double> tf_;                     // 3 per triangle, reaction on the membrane [N]
+    vector<double> nf_;                     // 3 per node, reaction on the membrane [N]
     double Fx,Fy,Fz,Fzfloor,Qleak,urelmax;
     double dh, etaref;                      // eta_in - eta_out and eta_out used for the static floor pressure
-    vector<double> etab_;                   // time-averaged free surface (floorpressure 3)
+    vector<double> etab_;                   // averaged free surface (floorpressure 3)
     double erefb=0.0, dhb=0.0;
+
+    // moving floor: footprint offset (floor edge centroid), floor height per column
+    vector<int> ring_;                      // nodes on the floor edge
+    Eigen::Vector3d ringc0_;
+    double offx_=0.0, offy_=0.0, zring_=0.0;
+    vector<double> zf_;
+
+    // structure
+    vector<Eigen::Vector3d> x0_;            // initial node positions
+    vector<Eigen::Vector3d> vs_;            // structural node velocity
+    vector<Eigen::Vector3d> xan_;           // attached node positions at the start of the step
+    vector<Eigen::Vector3d> rb_;            // node positions in the body frame
+    vector<Eigen::Vector3d> nn_;            // node normals
+    vector<array<int,2> > edge_;
+    vector<double> L0_, ke_, ce_;
+    vector<double> an_, mn_, ws_;           // node area, mass, sinker weight
+    vector<char> att_;                      // attached to the floating body (or fixed)
+    vector<int> grp_;                       // representative node of the group (2D: the node pairs across the slice)
+    vector<vector<int> > gm_;               // groups of free nodes, moving together
+    vector<array<int,3> > tedge_;           // edges of each triangle
+    vector<int> flo_;                       // floor nodes
+    vector<char> cornerE_, cornerN_;        // edges between panels of different orientation (floor edge, box corners), their nodes
+    int nsub_=0;
+    double Tmax_=0.0, vmax_=0.0;
+
+    // floating body
+    bool body_=false;
+    Eigen::Vector3d cb_=Eigen::Vector3d::Zero(), vb_=Eigen::Vector3d::Zero(), wb_=Eigen::Vector3d::Zero();
+    Eigen::Matrix3d Rb_=Eigen::Matrix3d::Identity();
+    Eigen::Vector3d Fb_=Eigen::Vector3d::Zero(), Mb_=Eigen::Vector3d::Zero();   // load on the body, moment about the origin
+    Eigen::Matrix<double,6,6> Jb_=Eigen::Matrix<double,6,6>::Zero();            // d(F, M_origin)/d(body translation, rotation)
+    Eigen::Vector3d Ffl_=Eigen::Vector3d::Zero(), Mfl_=Eigen::Vector3d::Zero(); // fluid load on the attached edge (flexible), every stage
+    Eigen::Vector3d cbn_=Eigen::Vector3d::Zero();                               // body position and orientation of Fb_, Mb_
+    Eigen::Matrix3d Rbn_=Eigen::Matrix3d::Identity();
 
     // print
     double printtime;
     int printcount;
-    string outdir;
+    string outdir, vtpdir;
+    vector<double> pvdtime_;
 };
 
 #endif

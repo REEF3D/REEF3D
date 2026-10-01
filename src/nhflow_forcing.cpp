@@ -40,13 +40,6 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
     if(dlm_flag==1)
     dlm_forcing_ini(p,pgc);
     
-    if(p->X330>0 && p->X10>0)
-    {
-        if(p->mpirank==0)
-        cout<<"\n!!! X 330 membranes are not yet coupled to floating bodies (X 10) !!!\n"<<endl;
-        exit(1);
-    }
-    
     prodtree = nullptr;
     if(p->Z20>0)
     prodtree = new rodtree_coupling(p,pgc);

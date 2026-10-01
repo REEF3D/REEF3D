@@ -92,6 +92,13 @@ public:
                                            double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     
+    // impermeable membranes (X 330) attached to the body: kinematics and forcing before the projection, loads after it
+    void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
+    void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
+    void membrane_stabilisation(lexer*,int);
+    Eigen::Vector3d umem_n_=Eigen::Vector3d::Zero(), amem_n_=Eigen::Vector3d::Zero();
+    double tmem_n_=-1.0;
+    
     // porous floating body (X 16)
     void update_forcing_nhflow_porous(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int);
     void porosity_nhflow(lexer*, fdm_nhf*, ghostcell*);

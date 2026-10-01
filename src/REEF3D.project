@@ -2494,6 +2494,8 @@
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Membrane">
           <File Name="net_membrane.cpp"/>
+          <File Name="net_membrane_structure.cpp"/>
+          <File Name="net_membrane_print.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">
           <File Name="fnpf_6DOF.cpp"/>

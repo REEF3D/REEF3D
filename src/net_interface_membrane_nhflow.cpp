@@ -39,18 +39,37 @@ Author: Hans Bihs
 //   membrane box       x0 x1 y0 y1 z_bottom z_top     starts a new membrane (in 2D y0, y1 are ignored)
 //   membrane cylinder  xc yc R z_bottom z_top
 //   name        text                   optional label
-//   resistance  R_n [R_t]              hydraulic resistance [m/s], leakage u_n = (dp/rho)/R_n; default 1e4, 0
+//   resistance  R_n [R_t]              hydraulic resistance [m/s], leakage u_n = (dp/rho)/R_n; default 1e4;
+//                                      R_t default 0 (fixed membrane), R_n (moving membrane: the layer moves with it)
 //   thickness   delta                  half width of the smeared layer [m]; default 1.5 max(dx,dy,dz)
-//   mesh        h                      target triangle edge length [m]; default min(dx,dy)
+//   mesh        h                      target triangle edge length [m]; default min(dx,dy) (fixed), max(dx,dy,dz) (moving)
 //   fill        dh                     initial inner water level above the outside level [m]; default 0
-//   print       dt                     vtp output interval [s]; default none
+//   print       dt                     vtp output interval [s] (REEF3D_NHFLOW_Membrane_VTP, with a .pvd
+//                                      collection); default: NHFLOW print control P 30 / P 20; 0: off
 //   floorpressure 0|1|3                static pressure below the floor: 0 uniform head difference,
-//                                      1 local excess head (comparison only), 3 shape of the
-//                                      time-averaged ramp; default 3 with A 520 1, 0 with A 520 2
+//                                      1 local excess head (comparison only), 3 shape of the discrete
+//                                      free-surface ramp, running average (tau), frozen at t = 2 tau;
+//                                      default 3 (fixed membrane), 0 (moving membrane)
 //   tau         t                      averaging time of floorpressure 3 [s]; default 2
 //   projections n                      projection passes per stage (default 1: Rhie-Chow continuity flux)
 //   poisson     0|1                    membrane mobility in the pressure Poisson equation; default 1
 //                                      (0 only to demonstrate the splitting leakage of the projection)
+//
+//   structure   fixed|rigid|flexible   fixed (default); rigid: moves with the floating body (X 10);
+//                                      flexible: mass-spring membrane, top edge attached to the floating
+//                                      body like the nets (X 320), or held in place without X 10
+//                                      (tested with a fixed or prescribed collar motion, X 10 2 / X 11 2;
+//                                      a freely floating collar with a flexible bag is not stable yet)
+//   mass        m                      fabric mass per area [kg/m^2]; default 1
+//   density     rho                    fabric density [kg/m^3] (buoyancy); default 1300
+//   stiffness   Et                     membrane stiffness E t [N/m]; default 5e5
+//   damping     zeta                   damping ratio of the edge dampers; default 0.1
+//   sinker      w                      submerged weight along the floor edge [N/m]; default 0
+//   attach      z                      nodes at or above z are attached; default the top edge z_top
+//   bodyaddedmass M                    added mass [kg] of the stabilised coupling to the floating body
+//                                      (translation); default 2 rho V_bag (water of the bag below the still
+//                                      water level) for a rigid membrane, 0 for a flexible one (its top
+//                                      edge is coupled implicitly); 0: off
 //
 // Parameter lines apply to the most recent 'membrane' line.
 
@@ -185,6 +204,55 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(!(ls>>mp.back().printdt))
             error=true;
         }
+        else if(key=="structure")
+        {
+            string st;
+            ls>>st;
+            
+            if(st=="fixed")
+            mp.back().structure=0;
+            else if(st=="rigid")
+            mp.back().structure=1;
+            else if(st=="flexible")
+            mp.back().structure=2;
+            else
+            error=true;
+        }
+        else if(key=="mass")
+        {
+            if(!(ls>>mp.back().mA) || mp.back().mA<=0.0)
+            error=true;
+        }
+        else if(key=="density")
+        {
+            if(!(ls>>mp.back().rhom) || mp.back().rhom<=0.0)
+            error=true;
+        }
+        else if(key=="stiffness")
+        {
+            if(!(ls>>mp.back().EA) || mp.back().EA<=0.0)
+            error=true;
+        }
+        else if(key=="damping")
+        {
+            if(!(ls>>mp.back().zeta) || mp.back().zeta<0.0)
+            error=true;
+        }
+        else if(key=="sinker")
+        {
+            if(!(ls>>mp.back().sinker))
+            error=true;
+        }
+        else if(key=="bodyaddedmass")
+        {
+            if(!(ls>>mp.back().Mbody) || mp.back().Mbody<0.0)
+            error=true;
+        }
+        else if(key=="attach")
+        {
+            if(!(ls>>mp.back().zattach))
+            error=true;
+        }
         else
         error=true;
 
@@ -236,6 +304,10 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
                                             double *UH, double *VH, double *WH, slice &WL)
 {
+    // 0. membrane positions for this stage (moving membranes)
+    for(auto m : pmem)
+    m->kinematics_nhflow(p,d,pgc);
+    
     // 1. mobility field beta (also builds the membrane cell maps for this stage)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
     d->MBETA[qn]=1.0;
@@ -335,4 +407,53 @@ void net_interface::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pg
 {
     for(auto m : pmem)
     m->reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+}
+
+void net_interface::membrane_attach_nhflow(lexer *p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R)
+{
+    for(auto m : pmem)
+    m->attach_body(p,c,R);
+}
+
+void net_interface::membrane_body_nhflow(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Vector3d &v, const Eigen::Vector3d &w)
+{
+    for(auto m : pmem)
+    m->set_body(c,R,v,w);
+}
+
+void net_interface::membraneForces_nhflow(lexer *p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, double &X, double &Y, double &Z, double &K, double &M, double &N)
+{
+    // load of all membranes on the floating body at its current position c and orientation R (flexible membranes:
+    // linearised in the body motion since the last membrane step), moment about c; identical on all ranks
+    X=Y=Z=K=M=N=0.0;
+    
+    for(auto m : pmem)
+    {
+        double x,y,z,k,mm,n;
+        m->body_load(p,c,R,x,y,z,k,mm,n);
+        
+        X+=x; Y+=y; Z+=z;
+        K+=k; M+=mm; N+=n;
+    }
+}
+
+double net_interface::membrane_addedmass_nhflow(lexer *p)
+{
+    double Ma=0.0;
+    
+    for(auto m : pmem)
+    Ma += m->body_addedmass(p);
+    
+    return Ma;
+}
+
+Eigen::Matrix3d net_interface::membrane_stiffness_nhflow(lexer *p)
+{
+    // d F / d (body translation) of the flexible membranes attached to the body
+    Eigen::Matrix3d J = Eigen::Matrix3d::Zero();
+    
+    for(auto m : pmem)
+    J += m->body_stiffness();
+    
+    return J;
 }

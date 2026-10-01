@@ -62,13 +62,6 @@ Author: Hans Bihs
 // exactly the vertical face of the Poisson matrix
 #define MBETAVAL (d->MBETA!=nullptr ? d->MBETA[IJK] : 1.0)
 
-// Incremental scheme (A 520 2): nhflow_poisson_pcorr lags the sigma cross derivatives with PCORR = 0, so
-// the operator of the increment has no cross terms. Next to the membrane, where the pressure jumps
-// vertically across the bag floor and the sigma levels slope across the wall ramp, the correction of the
-// increment has to leave them out as well, or it acts with an operator the matrix does not contain and
-// the increments grow. The cross terms still act through the old pressure P^n in the predictor
-// (net_interface::membrane_pgrad), i.e. they are treated by deferred correction.
-#define MSIGCORR (d->MBETA!=nullptr && nhflow_membrane_active(p,d,i,j,k) ? 0.0 : 1.0)
 
 inline double nhflow_membrane_harm(double a, double b)
 {

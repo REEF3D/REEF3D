@@ -54,7 +54,98 @@ void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, dou
 	if (p->X320>0)
 	netForces_nhflow(p,d,pgc,alpha,finalize);
     
+    // Membrane forces (X 330): load of rigid or flexible membranes attached to the body
+    if (p->X330>0)
+    {
+        double X,Y,Z,K,M,N;
+        pnetinter->membraneForces_nhflow(p,c_,quatRotMat,X,Y,Z,K,M,N);
+        
+        Xext += X;
+        Yext += Y;
+        Zext += Z;
+        Kext += K;
+        Mext += M;
+        Next += N;
+    }
+    
     // VRANS forces
+}
+
+void sixdof_obj::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
+                                         double *UH, double *VH, double *WH, slice &WL)
+{
+    // current body kinematics for the attached membrane nodes (u_fb: also prescribed motions, X 11 = 2)
+    pnetinter->membrane_body_nhflow(c_, quatRotMat, Eigen::Vector3d(u_fb(0),u_fb(1),u_fb(2)), Eigen::Vector3d(u_fb(3),u_fb(4),u_fb(5)));
+    
+    pnetinter->membrane_forcing_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+void sixdof_obj::membrane_stabilisation(lexer *p, int iter)
+{
+    // A membrane bag carries much more water than a floating collar weighs. The loads on the body (membrane
+    // load, and the pressure on the hull, computed after the projection of the last stage) contain the inertia
+    // of that water as -M_a,true a, lagged by a stage, and the explicit exchange diverges for M_a,true >> M
+    // (added-mass instability). In addition the top edge of a flexible membrane acts on the collar as a stiff
+    // spring, F = F^n + J q (net_membrane::attach_response), which has to be integrated implicitly together with
+    // the added mass. The translation of the stage (h = alpha dt) is therefore integrated as
+    //
+    //   (M + M_a - h^2 J) dv = h (F + M_a a^n + h J v)
+    //
+    // and passed to the RK update as the equivalent force M dv/h. M_a a^n (acceleration of the last time step)
+    // leaves the equilibrium unchanged; stable for M_a > (M_a,true - M)/2.
+    // M_a: membrane.dat 'bodyaddedmass', default 2 rho V_bag (water enclosed below the still water level).
+    // Rotations are not stabilised.
+    const double Ma = pnetinter->membrane_addedmass_nhflow(p);
+    Eigen::Matrix3d J = pnetinter->membrane_stiffness_nhflow(p);
+    
+    if(Ma<=0.0 && J.norm()<=0.0)
+    return;
+    
+    // acceleration of the last time step, from the velocity at the start of each step
+    if(iter==0 && p->simtime!=tmem_n_)
+    {
+        const Eigen::Vector3d u(u_fb(0),u_fb(1),u_fb(2));
+        
+        if(tmem_n_>=0.0 && p->simtime>tmem_n_)
+        amem_n_ = (u - umem_n_)/(p->simtime - tmem_n_);
+        
+        umem_n_ = u;
+        tmem_n_ = p->simtime;
+    }
+    
+    // free translations only
+    const int fr[3] = {p->X11_u==1, p->X11_v==1 && p->j_dir==1, p->X11_w==1};
+    
+    for(int r=0; r<3; ++r)
+    for(int c=0; c<3; ++c)
+    if(!fr[r] || !fr[c])
+    J(r,c) = 0.0;
+    
+    const double h = alpha[iter]*p->dt;
+    const Eigen::Vector3d v(u_fb(0),u_fb(1),u_fb(2));
+    
+    Eigen::Matrix3d A = (Mass_fb + Ma)*Eigen::Matrix3d::Identity() - h*h*J;
+    Eigen::Vector3d b = Ffb_ + Ma*amem_n_ + h*J*v;
+    
+    for(int r=0; r<3; ++r)
+    if(!fr[r])
+    {
+        A.row(r).setZero();
+        A.col(r).setZero();
+        A(r,r) = 1.0;
+        b(r) = 0.0;
+    }
+    
+    const Eigen::Vector3d F = Mass_fb*A.lu().solve(b);
+    
+    for(int r=0; r<3; ++r)
+    if(fr[r])
+    Ffb_(r) = F(r);
+}
+
+void sixdof_obj::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
+{
+    pnetinter->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
 }
 
 void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
