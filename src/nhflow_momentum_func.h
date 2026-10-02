@@ -32,6 +32,8 @@ class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 class nhflow_momentum_func;
+class nhflow_forcing;
+class sixdof;
 
 using namespace std;
 
@@ -98,6 +100,10 @@ public:
     
     void attach_runner(nhflow_stage_runner *a) override { prun = a; }
     nhflow_stage_runner *prun = nullptr;
+    
+    // membranes (X 330, membrane.dat 'coupling iterated'): phase_P repeats the projection (nhflow_forcing::projection)
+    nhflow_forcing *pmfrc = nullptr;
+    sixdof *pm6dof = nullptr;
 	
     
 

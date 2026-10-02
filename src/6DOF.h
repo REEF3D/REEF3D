@@ -47,6 +47,10 @@ public:
     // impermeable membranes (X 330): implicit forcing before the projection, loads after it
     virtual void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
     virtual void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) {};
+    // strong coupling (membrane.dat 'coupling iterated'): repeated projection, see nhflow_forcing::projection
+    virtual bool membrane_iterated() {return false;};
+    virtual void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
+    virtual bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int) {return true;};
     
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;

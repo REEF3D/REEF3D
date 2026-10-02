@@ -1,0 +1,5 @@
+# 2D flexible bag hanging from a collar of two pontoons, towed at 0.2 m/s (prescribed motion, X 10 2, X 11 2, X 210)
+membrane box 28.0 32.0 0.0 0.0 2.0 5.2
+name bag
+resistance 1.0e4
+structure flexible
