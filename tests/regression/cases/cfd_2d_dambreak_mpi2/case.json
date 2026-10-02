@@ -1,0 +1,3 @@
+{"base": "cfd_2d_dambreak", "np": 2,
+ "description": "as cfd_2d_dambreak on 2 MPI ranks.",
+ "tags": ["quick", "2d", "dambreak", "mpi"], "covers": ["MPI halo exchange 2D"]}

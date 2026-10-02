@@ -1072,6 +1072,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Regression">
+        <File Name="regression_dump.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Probes">
           <File Name="print_gage_location.h"/>
@@ -2942,6 +2945,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <VirtualDirectory Name="Regression">
+        <File Name="regression_dump.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Probes">
           <File Name="print_gage_location.cpp"/>

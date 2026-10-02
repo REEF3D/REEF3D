@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"regression_dump.h"
 #include"ghostcell.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -217,6 +218,9 @@ void driver::cfd_driver()
     logic_cfd();
 
     driver_ini_cfd();
+
+    preg = new regression_dump(p);
+    preg->cfd_ini(p,a,pgc,pturb);
 
     // Start MAINLOOP
     if(p->X10==0 && p->Z10==0 && p->N40==14)

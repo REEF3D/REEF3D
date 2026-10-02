@@ -1,0 +1,20 @@
+{
+ "description": "3D heave decay of a floating sphere (6DOF, X10=1, STL body, direct forcing), uniform coarse grid, 4 MPI ranks. N40=4 (momentum_FCLS3). Based on tutorial 11_16, coarse (no local refinement).",
+ "np": 4,
+ "steps": 20,
+ "files": [
+  "floating.stl"
+ ],
+ "tags": [
+  "3d",
+  "6dof",
+  "floating",
+  "mpi"
+ ],
+ "covers": [
+  "6DOF sixdof_obj CFD",
+  "momentum_FCLS3 + 6DOF",
+  "direct forcing",
+  "REEF3D_CFD_6DOF output"
+ ]
+}

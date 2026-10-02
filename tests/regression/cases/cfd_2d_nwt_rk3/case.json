@@ -1,0 +1,4 @@
+{"base": "cfd_2d_nwt", "ctrl_set": {"N 40": "13"},
+ "description": "as cfd_2d_nwt with N40=13: momentum_RK3 + separate levelset_RK3.",
+ "tags": ["quick", "2d", "waves", "levelset", "momentum"],
+ "covers": ["N40=13 momentum_RK3", "levelset_RK3"]}

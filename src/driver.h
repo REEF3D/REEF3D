@@ -92,6 +92,8 @@ class particle_base;
 
 using namespace std;
 
+class regression_dump;
+
 class driver : public increment
 {
 public:
@@ -153,6 +155,7 @@ public:
     void stop(lexer*,fdm*,ghostcell*);
 
 	printer* pprint;
+    regression_dump* preg;
 	initialize* pini;
 	diffusion* pdiff;
 	diffusion* pturbdiff;

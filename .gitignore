@@ -20,4 +20,7 @@ src/.ctagsd
 # IDE files
 *.json
 # MacOS files
-.DS_Store
+.DS_Store# regression suite run directories
+tests/regression/runs/
+__pycache__/
+!tests/regression/cases/**/*.json

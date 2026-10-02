@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"regression_dump.h"
 #include"dem.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -111,6 +112,7 @@ void driver::loop_cfd_df(fdm* a)
 
         // printer
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+        preg->cfd_step(p,a,pgc,pturb);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -165,6 +167,8 @@ void driver::loop_cfd_df(fdm* a)
     maxlogout.close();
     solvlogout.close();
 	}
+
+    preg->cfd_final(p,a,pgc,pturb);
 
     pgc->final();
 }
