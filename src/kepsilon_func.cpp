@@ -48,7 +48,7 @@ void kepsilon_func::isource(lexer *p, fdm* a)
     
     if(p->T33==1)
     ULOOP
-	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
+	a->F(i,j,k) = -(2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
 void kepsilon_func::jsource(lexer *p, fdm* a)
@@ -59,7 +59,7 @@ void kepsilon_func::jsource(lexer *p, fdm* a)
     
     if(p->T33==1)
     VLOOP
-	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
+	a->G(i,j,k) = -(2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
 void kepsilon_func::ksource(lexer *p, fdm* a)
@@ -70,7 +70,7 @@ void kepsilon_func::ksource(lexer *p, fdm* a)
     
     if(p->T33==1)
     WLOOP
-	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
+	a->H(i,j,k) = -(2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
 void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)

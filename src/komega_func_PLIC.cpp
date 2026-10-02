@@ -54,7 +54,7 @@ void komega_func_PLIC::isource(lexer *p, fdm* a)
     
     if(p->T33==1)
     ULOOP
-	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
+	a->F(i,j,k) = -(2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
 void komega_func_PLIC::jsource(lexer *p, fdm* a)
@@ -65,7 +65,7 @@ void komega_func_PLIC::jsource(lexer *p, fdm* a)
     
     if(p->T33==1)
     VLOOP
-	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
+	a->G(i,j,k) = -(2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
 void komega_func_PLIC::ksource(lexer *p, fdm* a)
@@ -76,7 +76,7 @@ void komega_func_PLIC::ksource(lexer *p, fdm* a)
     
     if(p->T33==1)
     WLOOP
-	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
+	a->H(i,j,k) = -(2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
 void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
