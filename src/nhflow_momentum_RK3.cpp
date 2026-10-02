@@ -70,6 +70,8 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     
     p6dof=pp6dof;
     pnhfdf = ppnhfdf;
+    pmfrc = ppnhfdf;     // membranes (X 330): iterated projection in phase_P
+    pm6dof = pp6dof;
     pvrans = ppvrans;
     
     if(p->A570==0)

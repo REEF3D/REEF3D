@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_func.h"
+#include"6DOF.h"
+#include"nhflow_forcing.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -211,6 +213,12 @@ void nhflow_momentum_func::phase_P(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
 {
     phase_P1(p,d,pgc,S,s);
     
+    // strongly coupled flexible membranes: the projection is repeated until membrane and fluid agree
+    if(p->X330>0 && pmfrc!=nullptr && pm6dof!=nullptr && pm6dof->membrane_iterated())
+    pmfrc->projection(p,d,pgc,pm6dof,S.ppress,S.ppoissonsolv,S.pflow,this,s,stage_alpha(s),
+                      stage_UH(d,s,0),stage_UH(d,s,1),stage_UH(d,s,2),stage_WL(d,s));
+    
+    else
 	S.ppress->start(p,d,S.ppoissonsolv,pgc,S.pflow,stage_WL(d,s),stage_UH(d,s,0),stage_UH(d,s,1),stage_UH(d,s,2),stage_alpha(s));
     
     phase_P2(p,d,pgc,S,s);

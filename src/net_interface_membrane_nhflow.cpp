@@ -42,7 +42,8 @@ Author: Hans Bihs
 //   resistance  R_n [R_t]              hydraulic resistance [m/s], leakage u_n = (dp/rho)/R_n; default 1e4;
 //                                      R_t default 0 (fixed membrane), R_n (moving membrane: the layer moves with it)
 //   thickness   delta                  half width of the smeared layer [m]; default 1.5 max(dx,dy,dz)
-//   mesh        h                      target triangle edge length [m]; default min(dx,dy) (fixed), max(dx,dy,dz) (moving)
+//   mesh        h                      target triangle edge length [m]; default min(dx,dy) (fixed), max(dx,dy,dz) (moving),
+//                                      1.5 delta (coupling iterated)
 //   fill        dh                     initial inner water level above the outside level [m]; default 0
 //   print       dt                     vtp output interval [s] (REEF3D_NHFLOW_Membrane_VTP, with a .pvd
 //                                      collection); default: NHFLOW print control P 30 / P 20; 0: off
@@ -58,8 +59,8 @@ Author: Hans Bihs
 //   structure   fixed|rigid|flexible   fixed (default); rigid: moves with the floating body (X 10);
 //                                      flexible: mass-spring membrane, top edge attached to the floating
 //                                      body like the nets (X 320), or held in place without X 10
-//                                      (tested with a fixed or prescribed collar motion, X 10 2 / X 11 2;
-//                                      a freely floating collar with a flexible bag is not stable yet)
+//                                      (staggered coupling: fixed or prescribed collar motion, X 10 2 / X 11 2;
+//                                      freely floating collar: coupling iterated)
 //   mass        m                      fabric mass per area [kg/m^2]; default 1
 //   density     rho                    fabric density [kg/m^3] (buoyancy); default 1300
 //   stiffness   Et                     membrane stiffness E t [N/m]; default 5e5
@@ -70,6 +71,24 @@ Author: Hans Bihs
 //                                      (translation); default 2 rho V_bag (water of the bag below the still
 //                                      water level) for a rigid membrane, 0 for a flexible one (its top
 //                                      edge is coupled implicitly); 0: off
+//   coupling    staggered|iterated [rtol [n]]
+//                                      fluid-structure coupling of a flexible membrane. staggered (default): the
+//                                      structure is advanced once per time step with the implicit porous damper
+//                                      (stable, extra inertia ~ rho R_n dt per area); iterated: the projection of
+//                                      every RK stage is repeated until the node velocities of fluid and structure
+//                                      agree to rtol (default 1e-3), at most n iterations (default 50); IQN-ILS
+//                                      (net_membrane_coupling.cpp). Use it for a freely floating collar (X 10 1)
+//   couplingtol rtol [atol]            iterated: relative tolerance, absolute tolerance [m/s] (default 1e-5, rms)
+//   couplingiter n                     iterated: maximum iterations per stage (default 50)
+//   couplingreuse n                    iterated: converged stages whose secant information is reused (default 8)
+//   couplingrelax w                    iterated: relaxation of the first iteration without history (default 0.5)
+//   couplingrobin f                    iterated: scale of the Robin preconditioner (default 16); the converged
+//                                      solution does not depend on it, the tolerances are divided by f
+//   couplingcolumns n                  iterated: maximum number of IQN-ILS columns (default 100)
+//   couplingfilter eps                 iterated: IQN-ILS QR filter (default 1e-2)
+//   couplingqn ils|imvj                iterated: quasi-Newton update, IQN-ILS with reused columns (default) or
+//                                      IQN-IMVJ with the inverse Jacobian carried over (n x n per RK stage)
+//   couplinglog 0|1                    iterated: residual of every coupling iteration on screen (default 0)
 //
 // Parameter lines apply to the most recent 'membrane' line.
 
@@ -248,6 +267,88 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(!(ls>>mp.back().Mbody) || mp.back().Mbody<0.0)
             error=true;
         }
+        else if(key=="coupling")
+        {
+            string st;
+            ls>>st;
+            
+            if(st=="staggered")
+            mp.back().coupling=0;
+            else if(st=="iterated")
+            {
+                mp.back().coupling=1;
+                
+                double t;
+                int n;
+                
+                if(ls>>t)
+                {
+                    mp.back().crtol=t;
+                    
+                    if(ls>>n)
+                    mp.back().citer=n;
+                }
+            }
+            else
+            error=true;
+            
+            if(mp.back().crtol<=0.0 || mp.back().citer<1)
+            error=true;
+        }
+        else if(key=="couplingtol")
+        {
+            if(!(ls>>mp.back().crtol) || mp.back().crtol<=0.0)
+            error=true;
+            
+            ls>>mp.back().catol;
+        }
+        else if(key=="couplingiter")
+        {
+            if(!(ls>>mp.back().citer) || mp.back().citer<1)
+            error=true;
+        }
+        else if(key=="couplingreuse")
+        {
+            if(!(ls>>mp.back().creuse) || mp.back().creuse<0)
+            error=true;
+        }
+        else if(key=="couplingrobin")
+        {
+            if(!(ls>>mp.back().crobin) || mp.back().crobin<=0.0)
+            error=true;
+        }
+        else if(key=="couplingcolumns")
+        {
+            if(!(ls>>mp.back().ccols) || mp.back().ccols<1)
+            error=true;
+        }
+        else if(key=="couplingfilter")
+        {
+            if(!(ls>>mp.back().cfilt) || mp.back().cfilt<=0.0)
+            error=true;
+        }
+        else if(key=="couplingqn")
+        {
+            string st;
+            ls>>st;
+            
+            if(st=="ils")
+            mp.back().cqn=0;
+            else if(st=="imvj")
+            mp.back().cqn=1;
+            else
+            error=true;
+        }
+        else if(key=="couplinglog")
+        {
+            if(!(ls>>mp.back().clog))
+            error=true;
+        }
+        else if(key=="couplingrelax")
+        {
+            if(!(ls>>mp.back().crelax) || mp.back().crelax<=0.0 || mp.back().crelax>1.0)
+            error=true;
+        }
         else if(key=="attach")
         {
             if(!(ls>>mp.back().zattach))
@@ -407,6 +508,33 @@ void net_interface::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pg
 {
     for(auto m : pmem)
     m->reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+}
+
+bool net_interface::membrane_iterated()
+{
+    for(auto m : pmem)
+    if(m->iterated())
+    return true;
+    
+    return false;
+}
+
+void net_interface::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+{
+    // strong coupling: forcing update for the node velocities of the next iteration
+    for(auto m : pmem)
+    m->reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+bool net_interface::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
+{
+    // strong coupling: loads of the projected velocity, structure, next node velocities; true when all converged
+    bool conv=true;
+    
+    for(auto m : pmem)
+    conv = m->couple_nhflow(p,d,pgc,iter,alpha,WL,it) && conv;
+    
+    return conv;
 }
 
 void net_interface::membrane_attach_nhflow(lexer *p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R)

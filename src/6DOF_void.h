@@ -52,6 +52,9 @@ public:
     
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) override final;
     void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) override final;
+    bool membrane_iterated() override final;
+    void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) override final;
+    bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int) override final;
     
 	void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
