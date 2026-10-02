@@ -1289,7 +1289,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
     }
 
-    // same CFL as sflow_etimestep, over the wet real patch cells
+    // same CFL as sflow_etimestep (unsplit 2D: x and y Courant numbers add up), over the wet real patch cells
     const double g = fabs(p->W22);
     double cmin = 1.0e20;
 
@@ -1303,8 +1303,12 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
         {
             double cc = sqrt(g*MAX(pb->WL(ii,jj),p->A244));
-            cmin = MIN(cmin, pp->DXN[ii+marge]/(fabs(pb->U(ii,jj))+cc));
-            cmin = MIN(cmin, pp->DYN[jj+marge]/(fabs(pb->V(ii,jj))+cc));
+            double sigma = (fabs(pb->U(ii,jj))+cc)/pp->DXN[ii+marge];
+
+            if(p->j_dir==1)
+            sigma += (fabs(pb->V(ii,jj))+cc)/pp->DYN[jj+marge];
+
+            cmin = MIN(cmin, 1.0/sigma);
 
             if(p->A219==2)
             cmin = MIN(cmin, pp->DXN[ii+marge]/(fabs(pb->U(ii,jj))>1.0e-20?fabs(pb->U(ii,jj)):1.0e-20));

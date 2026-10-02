@@ -52,7 +52,7 @@ sflow_etimestep::~sflow_etimestep()
 void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
     const double g = fabs(p->W22);
-    double dx,dy,c,cmin;
+    double dx,c,cmin,sigma;
     
 	p->umax=p->vmax=p->viscmax=0.0;
 	p->dt_old=p->dt;
@@ -75,7 +75,8 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	cout<<"fsftime: "<<p->lsmtime<<endl;
     }
 
-// CFL: dt = N47 * 2*min( dx/(|u|+c), dy/(|v|+c) ),  c = sqrt(g h)
+// CFL: dt = N47 * 2 / max( (|u|+c)/dx + (|v|+c)/dy ),  c = sqrt(g h)
+// the HLL update is unsplit: the x and y Courant numbers add up in 2D (1D unchanged)
 // (factor 2 as in the previous SFLOW time step definition, N 47 0.2 -> Courant number 0.4)
     cmin=1.0e20;
     
@@ -84,14 +85,12 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     {
     c = sqrt(g*MAX(b->WL(i,j),wd_criterion));
     
-    dx = p->DXN[IP]/(fabs(b->U(i,j)) + c);
-    cmin = MIN(cmin,dx);
+    sigma = (fabs(b->U(i,j)) + c)/p->DXN[IP];
     
     if(p->j_dir==1)
-    {
-    dy = p->DYN[JP]/(fabs(b->V(i,j)) + c);
-    cmin = MIN(cmin,dy);
-    }
+    sigma += (fabs(b->V(i,j)) + c)/p->DYN[JP];
+    
+    cmin = MIN(cmin,1.0/sigma);
     
         // advection-only limit (A 219 2)
         if(p->A219==2)
