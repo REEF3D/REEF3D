@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"6DOF_void.h"
 #include"6DOF_nhflow.h"
 #include"dem_header.h"
+#include"nhflow_amr.h"
 
 void driver::logic_nhflow()
 {    
@@ -245,6 +246,10 @@ void driver::logic_nhflow()
 
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
+
+// mesh refinement (A 270): patches on the NHFLOW grid
+    if(p->A270>0)
+    pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep);
 
 //Lagrangian particles
     if(p->L10==0)

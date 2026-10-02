@@ -50,6 +50,10 @@
         <File Name="fnpf_amr_fill.h"/>
         <File Name="fnpf_amr.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_amr_fill.h"/>
+        <File Name="nhflow_amr.h"/>
+      </VirtualDirectory>
       <File Name="reefamr.h"/>
       <File Name="reefamr_krylov.h"/>
     </VirtualDirectory>
@@ -1277,6 +1281,11 @@
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
         <File Name="fnpf_amr.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_amr_print.cpp"/>
+        <File Name="nhflow_amr_press.cpp"/>
+        <File Name="nhflow_amr.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>

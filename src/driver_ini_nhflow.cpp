@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"driver.h"
 #include"ghostcell.h"
 #include"lexer.h"
+#include"nhflow_amr.h"
 #include"fdm_nhf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -144,7 +145,14 @@ void driver::driver_ini_nhflow()
     // VRANS ini
     pnhfvrans->initialize(p,d,pgc);
     
+    // mesh refinement ini: patches from the initial state
+    if(pnhfamr!=nullptr)
+    pnhfamr->ini(p,d,pgc);
+    
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+    
+    if(pnhfamr!=nullptr)
+    pnhfamr->print(p,d,pgc);
 
     // Lagrangian particles ini
     pnhfpart->ini(p,d,pgc);

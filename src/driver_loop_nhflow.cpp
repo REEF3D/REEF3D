@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"nhflow_header.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_amr.h"
 
 void driver::loop_nhflow()
 {
@@ -103,6 +104,9 @@ void driver::loop_nhflow()
         
         // printer
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+        
+        if(pnhfamr!=nullptr)
+        pnhfamr->print(p,d,pgc);
 
         // Shell-Printout
         p->wavecalctime = pgc->globalmax(p->wavecalctime);
