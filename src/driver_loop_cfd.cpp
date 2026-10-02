@@ -46,11 +46,6 @@ void driver::loop_cfd(fdm* a)
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
     
-    //vec_test(p,a,pgc,a->test);
-    //pos_test(p,a,pgc);
-    //ipol_test(p,a,pgc);
-    //bedslope_test(p,pgc);
-    
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
 	{		
@@ -148,7 +143,6 @@ void driver::loop_cfd(fdm* a)
 	p->field4time=0.0;
     
     pgc->gcparax(p,a->press,4);
-    
     
     stop(p,a,pgc);
 	}

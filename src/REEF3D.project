@@ -2976,7 +2976,6 @@
       <VirtualDirectory Name="Driver">
         <File Name="driver_makegrid_sigma.cpp"/>
         <File Name="driver_log.cpp"/>
-        <File Name="driver_test.cpp"/>
         <File Name="driver_makegrid.cpp"/>
         <File Name="driver_makgrid_2D.cpp"/>
         <File Name="driver_stop.cpp"/>

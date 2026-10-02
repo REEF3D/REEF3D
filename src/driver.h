@@ -144,15 +144,6 @@ public:
     void makegrid_sigma(lexer*,ghostcell*);
     void makegrid_sigma_cds(lexer*,ghostcell*);  
     
-	void vec_test(lexer*,fdm*,ghostcell*,field&);
-	void func_test(lexer*,fdm*,ghostcell*,field&);
-    void pos_test(lexer*,fdm*,ghostcell*);
-    void ipol_test(lexer*,fdm*,ghostcell*);
-    void ipol_test(lexer*,fdm_nhf*,ghostcell*);
-    void bedslope_test(lexer*,ghostcell*);
-    double bedslope_angle(lexer*,ghostcell*,double,double);
-	double calc();
-    
     void stop(lexer*,fdm*,ghostcell*);
 
 	printer* pprint;
