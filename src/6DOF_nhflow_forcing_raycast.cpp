@@ -39,6 +39,11 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     zmax = MAX(zmax, p->ZSP[IJK]);
     }
     
+    ray_cast_nhflow_grid(p,d,pgc,IO,CL,CR,DSM);
+}
+
+void sixdof_obj::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pgc, int *IO, int *CL, int *CR, double DSM)
+{
     LOOP
 	{
     IO[IJK]=1;

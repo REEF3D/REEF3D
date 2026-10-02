@@ -86,16 +86,16 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 	}
 	
 	
-	double critL = p->DXM*p->X186;
+	double critL = amr_hfac*p->DXM*p->X186;
     
     double dxmin=1.0e10;
     
     ILOOP
-    dxmin = MIN(dxmin,p->DXN[IP]);
+    dxmin = MIN(dxmin,amr_hfac*p->DXN[IP]);
     
     if(p->j_dir==1)
     JLOOP
-    dxmin = MIN(dxmin,p->DYN[JP]);
+    dxmin = MIN(dxmin,amr_hfac*p->DYN[JP]);
     
     KLOOP
     dxmin = MIN(dxmin,p->DZN[KP]);
@@ -122,7 +122,7 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 		ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));   
         
         if(p->X185==1)
-        critL = p->DXM*p->X186;
+        critL = amr_hfac*p->DXM*p->X186;
         
         if(p->X185==2)
         critL = dxmin*p->X186;
@@ -139,10 +139,10 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
         j = p->posc_j(ym);
         k = p->posc_k(zm);
         
-        dxmin = MIN(dxmin,p->DXN[IP]);
+        dxmin = MIN(dxmin,amr_hfac*p->DXN[IP]);
         
         if(p->j_dir==1)
-        dxmin = MIN(dxmin,p->DYN[JP]);
+        dxmin = MIN(dxmin,amr_hfac*p->DYN[JP]);
         
         dxmin = MIN(dxmin,p->DZN[KP]);
         }

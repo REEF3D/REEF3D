@@ -53,6 +53,7 @@
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_amr_fill.h"/>
         <File Name="nhflow_amr.h"/>
+        <File Name="nhflow_amr_6dof.h"/>
       </VirtualDirectory>
       <File Name="reefamr.h"/>
       <File Name="reefamr_krylov.h"/>
@@ -1244,6 +1245,7 @@
         <File Name="nhflow_amr_print.cpp"/>
         <File Name="nhflow_amr_press.cpp"/>
         <File Name="nhflow_amr.cpp"/>
+        <File Name="nhflow_amr_6dof.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>

@@ -41,7 +41,9 @@ Author: Hans Bihs
 #include"vrans_nhflow_v.h"
 #include"nhflow_fsf_f.h"
 #include"nhflow_forcing.h"
-#include"6DOF_void.h"
+#include"nhflow_amr_6dof.h"
+#include"6DOF_nhflow.h"
+#include"6DOF_obj.h"
 #include"sediment_void.h"
 #include"ioflow_void.h"
 #include"patchBC_void.h"
@@ -67,13 +69,18 @@ inline double mmod(double a, double b)
 }
 }
 
-nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pmom, nhflow_convection *pconv, nhflow_timestep *pstep)
+nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pmom, nhflow_convection *pconv, nhflow_timestep *pstep,
+                       sixdof *p6dof)
                       : reefamr(p,pgc)
 {
     d0 = d;
     mom0 = dynamic_cast<nhflow_momentum_func*>(pmom);
     pconv0 = pconv;
     pstep0 = pstep;
+
+    // floating bodies on the hierarchy (X 10 1 two-way, X 10 2 prescribed motion)
+    if(p->X10==1 || p->X10==2)
+    b6 = dynamic_cast<sixdof_nhflow*>(p6dof);
 
     reefamr_param q;
     q.name = "NHFLOW AMR";
@@ -115,6 +122,18 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     }
     q.ioband = 4;
 
+    // refinement around the floating body: margin A 278 around the wetted hull, a rectangle
+    // aligned with x and y (moored or oscillating bodies), built at t = 0
+    q.zones = (b6!=nullptr && p->A278>0);
+    q.zr = p->A278_r;
+    q.zalign = true;
+
+    // the zone holds the hull: its triangles are sized for the finest level (sixdof_obj::amr_hfac,
+    // before the 6DOF initialisation builds them), as on the uniform fine grid
+    if(q.zones)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_hfac = 1.0/double(1<<MAX(p->A270,0));
+
     configure(q);
 
     if(p->F50==1) gcval_eta = 51;
@@ -130,7 +149,6 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     for(int k=0; k<8; ++k)
     tm[k] = 0.0;
 
-    p6v = nullptr;
     pflowv = nullptr;
     pBCv = nullptr;
     psedv = nullptr;
@@ -199,7 +217,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A511!=1 && p->A511!=2) ok=0;
     if(p->A520<0 || p->A520>2) ok=0;
     if(p->A512!=0 || p->A560!=0 || p->A550!=0) ok=0;
-    if(p->B200!=0 || p->X10!=0 || p->S10!=0 || p->X330!=0 || p->A599!=0) ok=0;
+    if(p->B200!=0 || p->S10!=0 || p->X330!=0 || p->A599!=0) ok=0;
+    if(p->X10!=0 && (b6==nullptr || p->X60!=1 || p->X16!=0 || p->X320!=0 || p->A516==2 || p->A516==4)) ok=0;
     if(p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0) ok=0;
     if(p->A580==1) ok=0;
     if(p->E10>0 || p->L10>0 || p->Z20>0) ok=0;
@@ -208,8 +227,9 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (A 270): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, X 10 0, S 10 0, "
-            <<"no solids, membranes, DEM, particles or rods, and 3D grids -- refinement switched off"<<endl;
+        cout<<"NHFLOW AMR (A 270): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, S 10 0, "
+            <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles or rods, and 3D grids "
+            <<"-- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -226,7 +246,6 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // objects shared by all patches (their NHFLOW calls do nothing)
     pBCv = new patchBC_void(p);
     pflowv = new ioflow_v(p,pgc,pBCv);
-    p6v = new sixdof_void(p,pgc);
     psedv = new sediment_void();
 
     NF = 4*p->knoz + 1;
@@ -251,6 +270,23 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // initial time step with the patch cells
     pstep0->ini(p,d,pgc);
+
+    // floating bodies: the loads of every hull triangle from the finest grid at its centroid,
+    // the initial loads with the patches
+    if(b6!=nullptr)
+    {
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_grid_nhflow = [this](double x, double y)
+        {
+            const int g = finest_at(x,y);
+            if(g<0)
+            return sixdof_obj::nhflow_grid{glex(-1),d0,(cur_stage<0) ? &d0->WL : stage_out(-1,cur_stage).WL};
+            return sixdof_obj::nhflow_grid{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL};
+        };
+
+        cur_stage = -1;
+        body_loads(p,pgc);
+    }
 
     m0 = mass(p,d,pgc);
 
@@ -416,7 +452,8 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->pBC = pBCv;
     c->pflow = pflowv;
-    c->p6dof = p6v;
+    // the floating bodies on the patch grid (all calls do nothing without bodies)
+    c->p6dof = new nhflow_amr_6dof(pp,b6,(b6!=nullptr) ? b6->object(0)->nhflow_dsm()*pp->DXM/glex(-1)->DXM : 0.0);
     c->psed = psedv;
 
     c->pss = new nhflow_signal_speed(pp);
@@ -477,6 +514,7 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     delete c->mg;
 
     delete c->pmom;
+    delete c->p6dof;
     delete c->pdf;
     delete c->pfsf;
     delete c->pvrans;
@@ -1027,6 +1065,9 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             c->pmom->sigma_ini(pp,d,pgc,d->eta);
             c->pmom->inidisc(pp,d,pgc,c->pfsf);
             c->pfsf->kinematic_fsf(pp,d,d->U,d->V,d->W,d->eta);
+
+            // floating bodies: the hull on the new sigma grid
+            body_patch(pgc,*c);
         }
     }
 }
@@ -1275,7 +1316,9 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         halo0(pgc,s);
         tm[3] += MPI_Wtime()-t0;
 
-        // pressure projection on all grids
+        // pressure projection on all grids; level 0 first: it advances the floating bodies,
+        // whose forcing the patches take
+        mom->phase_P1(p,d,pgc,S0,s);
         {
         comms_off guard(pgc);
         for(auto q : P)
@@ -1284,10 +1327,10 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         NP(q)->pmom->phase_P1(q->pp,NP(q)->d,pgc,NP(q)->S,s);
         }
         }
-        mom->phase_P1(p,d,pgc,S0,s);
 
         press_solve(p,pgc,s);
 
+        // level 0 last: the loads on the floating bodies sample the patches
         {
         comms_off guard(pgc);
         for(auto q : P)
@@ -1317,6 +1360,51 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         }
         mom->phase_E(p,d,pgc,S0,s);
     }
+    cur_stage = -1;
+}
+
+// --------------------------------------------------------------------- floating bodies
+void nhflow_amr::zone_bodies(vector<sixdof_obj*> &obj)
+{
+    if(b6!=nullptr)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    obj.push_back(b6->object(nb));
+}
+
+// the finest local grid whose interior holds (x,y), -1: level 0
+int nhflow_amr::finest_at(double x, double y)
+{
+    int g=-1, l=0;
+    for(int n=0; n<(int)P.size(); ++n)
+    {
+        reefamr_patch *c = P[n];
+        lexer *pp = c->pp;
+        if(c->lev<=l)
+        continue;
+        if(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge] && y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge])
+        {
+            g=n;
+            l=c->lev;
+        }
+    }
+    return g;
+}
+
+// the hull on the sigma grid of a patch: level set FB, solid flags
+void nhflow_amr::body_patch(ghostcell *pgc, nhflow_amr_patch &c)
+{
+    if(b6==nullptr)
+    return;
+
+    pscope ps(pgc,c.d,d0);
+    static_cast<nhflow_amr_6dof*>(c.p6dof)->body(c.pp,c.d,pgc);
+}
+
+// loads on the floating bodies from the current state of all grids (outside the time step)
+void nhflow_amr::body_loads(lexer *p, ghostcell *pgc)
+{
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->hydrodynamic_forces_nhflow(p,d0,pgc,d0->WL,false);
 }
 
 // --------------------------------------------------------------------- time step

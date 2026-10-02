@@ -45,6 +45,8 @@ class nhflow_turbulence;
 class vrans_nhflow;
 class sixdof;
 class sediment;
+class sixdof_nhflow;
+class sixdof_obj;
 class ioflow;
 class patchBC_interface;
 class reefmg_core;
@@ -77,11 +79,19 @@ using namespace std;
 //   - restriction of the corrected UH, VH, WH and P, relaxation zones and ghost cells
 //   - one global time step from the finest grid (nhflow_timestep with the patch hook)
 //
-//  Scope of this version: static refinement boxes (A 270 levels, A 276 boxes, A 277 boxes
-//  without refinement, A 275 tile width), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2, A 512 0,
-//  A 560 0, A 550 0, B 200 0, X 10 0, S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), 3D
-//  grids.  Patches stay out of the relaxation zones (B 96), the in- and outflow band and dry or
-//  shallow cells (they are fully wet; level 0 keeps its wetting and drying).
+//  Floating bodies (6DOF_nhflow, X 10 1/2): the body is advanced on level 0, before the patches
+//  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
+//  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
+//  triangle on the finest grid at its centroid (pressure, free surface, shear).  A 278 refines
+//  around the wetted hull (margin A 278, rectangle aligned with x and y), built at t = 0; the
+//  hull triangles (X 185) are then sized for the finest level, as on a uniform fine grid.
+//
+//  Scope of this version: static refinement boxes and the static body zone (A 270 levels, A 276
+//  boxes, A 277 boxes without refinement, A 275 tile width, A 278), A 510 2/3, A 511 1/2, A 514
+//  all, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3),
+//  S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches
+//  stay out of the relaxation zones (B 96), the in- and outflow band and dry or shallow cells (they
+//  are fully wet; level 0 keeps its wetting and drying).
 
 struct nhflow_amr_patch : public reefamr_patch
 {
@@ -116,7 +126,7 @@ struct nhflow_amr_patch : public reefamr_patch
 class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook
 {
 public:
-    nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*);
+    nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
     virtual ~nhflow_amr();
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
@@ -153,6 +163,7 @@ protected:
     void regrid_static(ghostcell*) override;
     void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
     void regrid_finish(ghostcell*, int) override;
+    void zone_bodies(vector<sixdof_obj*>&) override;
 
 private:
     // a patch kernel runs: ghostcell exchange off and the fdm of the ghostcell on the patch (the
@@ -230,6 +241,13 @@ private:
     double pr_res_last = 0.0;
     int layout_id = 0;
 
+    // floating bodies (X 10 1/2): the level-0 bodies, the finest grid at (x,y) (local grid id, -1:
+    // level 0), the hull on a patch, the loads from the finest grids
+    sixdof_nhflow *b6 = nullptr;
+    int finest_at(double, double);
+    void body_patch(ghostcell*, nhflow_amr_patch&);
+    void body_loads(lexer*, ghostcell*);
+
     // output
     void write_vtr(lexer*, nhflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm_nhf*);
@@ -240,13 +258,12 @@ private:
     fdm_nhf *d0;
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
-    sixdof *p6v;                    // objects shared by all patches (their NHFLOW calls do nothing)
-    ioflow *pflowv;
+    ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;
     nhflow_convection *pconv0;
     nhflow_timestep *pstep0;
-    int cur_stage = 0;
+    int cur_stage = -1;             // RK stage of the time step, -1: outside
     int gcval_eta;
     int bc5, bc6;                   // boundary types of the bed and the free surface (gcb4)
     double printtime_amr;

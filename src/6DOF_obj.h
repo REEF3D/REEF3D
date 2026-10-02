@@ -163,6 +163,18 @@ public:
     double amr_ramp_draft(lexer *p) {return ramp_draft(p);}
     slice& amr_fs() {return fs;}
 
+    // NHFLOW mesh refinement (nhflow_amr): the body on a refined grid (level set FB of the grid
+    // with its own ray-cast workspace IO, CL, CR of the grid size and the band spacing dsm)
+    void ray_cast_nhflow_grid(lexer*, fdm_nhf*, ghostcell*, int*, int*, int*, double);
+    double nhflow_dsm() const {return DSM;}
+    // the grid that samples the load of a hull triangle with centroid (x,y): lexer, fdm and
+    // water level (empty: the grid of the call)
+    struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
+    std::function<nhflow_grid(double,double)> amr_grid_nhflow;
+    // the hull triangles (X 185) are sized for the horizontal spacing times amr_hfac: the finest
+    // level of a refinement zone around the body (set before the initialisation)
+    double amr_hfac = 1.0;
+
 private:
 
 	void ini_parameter_stl(lexer*, fdm*, ghostcell*);
