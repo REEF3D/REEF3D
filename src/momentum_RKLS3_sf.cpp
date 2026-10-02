@@ -137,7 +137,7 @@ void momentum_RKLS3_sf::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
         ppress->vpgrad(p,a,a->eta,a->eta_n);
         jrhs(p,a,pgc,a->v,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,a->v,a->v,a->w,2.0*alpha(loop));
+        pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,a->u,a->v,a->w,2.0*alpha(loop));
         
         VLOOP
         vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
