@@ -2,6 +2,7 @@
 src/Makefile*
 **/.codelite
 .DS_Store
+**/.DS_Store
 All
 Release
 Dev
