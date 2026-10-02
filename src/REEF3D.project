@@ -959,6 +959,7 @@
         <VirtualDirectory Name="Membrane">
           <File Name="nhflow_membrane_beta.h"/>
           <File Name="net_membrane.h"/>
+          <File Name="iqn_ils.h"/>
         </VirtualDirectory>
         <File Name="6DOF_output_dir.h"/>
         <File Name="fnpf_6DOF.h"/>
@@ -1835,6 +1836,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Forcing">
           <File Name="nhflow_forcing_reforce.cpp"/>
+          <File Name="nhflow_forcing_projection.cpp"/>
           <File Name="nhflow_forcing_ini.cpp"/>
           <VirtualDirectory Name="DLM">
             <File Name="nhflow_forcing_dlm_force.cpp"/>
@@ -2448,6 +2450,8 @@
           <File Name="net_membrane.cpp"/>
           <File Name="net_membrane_structure.cpp"/>
           <File Name="net_membrane_print.cpp"/>
+          <File Name="net_membrane_coupling.cpp"/>
+          <File Name="iqn_ils.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">
           <File Name="fnpf_6DOF.cpp"/>

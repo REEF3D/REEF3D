@@ -80,7 +80,13 @@ void net_membrane::print_timeseries(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ofstream ts((outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+".dat").c_str(), ios::app);
         ts<<setprecision(10)<<p->simtime<<" "<<etain<<" "<<etaout<<" "<<dhl<<" "<<Qleak<<" "
           <<Fx<<" "<<Fy<<" "<<Fz<<" "<<Fzfloor<<" "<<-p->W1*fabs(p->W22)*dhl*Afloor<<" "<<urelmax<<" "<<umax<<" "<<vol<<" "
-          <<Fb_(0)+Ffl_(0)<<" "<<Fb_(1)+Ffl_(1)<<" "<<Fb_(2)+Ffl_(2)<<" "<<zm<<" "<<zmin<<" "<<vmax_<<" "<<Tmax_<<"\n";
+          <<Fb_(0)+Ffl_(0)<<" "<<Fb_(1)+Ffl_(1)<<" "<<Fb_(2)+Ffl_(2)<<" "<<zm<<" "<<zmin<<" "<<vmax_<<" "<<Tmax_;
+        
+        // strong coupling: iterations of the time step (all stages), largest relative residual at the end of a stage
+        if(iterated())
+        ts<<" "<<citstep_<<" "<<cres_;
+        
+        ts<<"\n";
     }
 }
 

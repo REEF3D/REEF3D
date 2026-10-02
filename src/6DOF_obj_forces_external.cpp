@@ -143,6 +143,21 @@ void sixdof_obj::membrane_stabilisation(lexer *p, int iter)
     Ffb_(r) = F(r);
 }
 
+bool sixdof_obj::membrane_iterated()
+{
+    return pnetinter->membrane_iterated();
+}
+
+void sixdof_obj::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+{
+    pnetinter->membrane_reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+bool sixdof_obj::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
+{
+    return pnetinter->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it);
+}
+
 void sixdof_obj::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
 {
     pnetinter->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);

@@ -185,3 +185,18 @@ void sixdof_void::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 void sixdof_void::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 }
+
+bool sixdof_void::membrane_iterated()
+{
+    return pnetinter->membrane_iterated();
+}
+
+void sixdof_void::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+{
+    pnetinter->membrane_reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+bool sixdof_void::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
+{
+    return pnetinter->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it);
+}

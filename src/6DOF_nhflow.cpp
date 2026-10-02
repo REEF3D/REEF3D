@@ -249,3 +249,30 @@ void sixdof_nhflow::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pg
     for (int nb=0; nb<number6DOF;++nb)
     fb_obj[nb]->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
 }
+
+bool sixdof_nhflow::membrane_iterated()
+{
+    bool it=false;
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    it = fb_obj[nb]->membrane_iterated() || it;
+    
+    return it;
+}
+
+void sixdof_nhflow::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->membrane_reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+bool sixdof_nhflow::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
+{
+    // every body iterates its membranes; converged when all are
+    bool conv=true;
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    conv = fb_obj[nb]->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it) && conv;
+    
+    return conv;
+}

@@ -75,6 +75,14 @@ Author: Hans Bihs
 //    Stable, equilibrium unchanged, but the fast dynamics are damped (see net_membrane_structure.cpp).
 //    The fluid layer of a moving membrane moves with it (R_t = R_n by default): the Poisson mobility is
 //    isotropic, so the layer fluid can not be moved along the membrane by pressure.
+//
+// 7. Strong coupling (membrane.dat 'coupling iterated', flexible membranes; net_membrane_coupling.cpp). The
+//    projection of every RK stage is repeated until the node velocities the fluid used and the ones the structure
+//    returns for the resulting loads agree (nhflow_forcing::projection). The structure takes a backward-Euler step
+//    of the stage with its real inertia; the local response of the layer fluid serves as Robin preconditioner
+//    and drops out at convergence; IQN-ILS accelerates the fixed point (iqn_ils.h). No artificial inertia.
+//    Defaults: membrane mesh 1.5 delta (shorter structural modes are not seen by the layer and stall the iteration),
+//    Robin matrix x16 with the tolerances / 16.
 
 #include"net.h"
 #include"increment.h"
@@ -101,7 +109,8 @@ struct membrane_param
     double zb=0.0,zt=0.0;                   // bottom (floor) and top of the bag
     double Rn=1.0e4, Rt=-1.0;               // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
     double delta=-1.0;                      // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
-    double h=-1.0;                          // target triangle edge length [m], <0: min cell size
+    double h=-1.0;                          // target triangle edge length [m], <0: min cell size (fixed), max cell size
+                                            // (moving), 1.5 delta (coupling iterated)
     double fill=0.0;                        // initial inner water level above the undisturbed level [m]
     double printdt=-1.0;                    // vtp print interval [s]; <0: NHFLOW print control (P 20 / P 30), 0: off
     int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
@@ -119,6 +128,19 @@ struct membrane_param
     double sinker=0.0;                      // submerged weight along the floor edge [N/m]
     double zattach=-1.0e20;                 // nodes at or above this height are attached, default: top edge
     double Mbody=-1.0;                      // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
+
+    // fluid-structure coupling of a flexible membrane
+    int coupling=0;                         // 0 staggered (once per step, implicit porous damper), 1 iterated per stage
+    double crtol=1.0e-3;                    // iterated: relative tolerance of the node velocities
+    double catol=1.0e-5;                    //           absolute tolerance [m/s] (rms)
+    int citer=50;                           //           maximum iterations per stage
+    int creuse=8;                           //           IQN-ILS: converged stages kept for the next ones
+    double crelax=0.5;                      //           relaxation of the first iteration without history
+    int clog=0;                             //           1: residual of every iteration on screen
+    double crobin=16.0;                     //           scale of the Robin matrix (local layer response)
+    int ccols=100;                          //           IQN-ILS: maximum number of columns
+    double cfilt=1.0e-2;                    //           IQN-ILS: QR filter (drop columns nearly dependent on newer ones)
+    int cqn=0;                              //           quasi-Newton: 0 IQN-ILS, 1 IQN-IMVJ
 };
 
 class net_membrane final : public net, public increment, private vtp3D
@@ -156,6 +178,11 @@ public:
     // initial inner water level
     void fill_nhflow(lexer*, fdm_nhf*, ghostcell*);
 
+    // strong coupling (net_membrane_coupling.cpp): forcing update for new node velocities, coupling iteration
+    bool iterated() const {return prm.coupling==1 && prm.structure==2;}
+    void reforce_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    bool couple_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, slice&, int);
+
     const membrane_param& param() const {return prm;}
 
 private:
@@ -175,6 +202,8 @@ private:
     static Eigen::Vector3d closest_point(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&,
                                          const Eigen::Vector3d&, double&, double&, double&);
     Eigen::Vector3d membrane_vel(int, double, double, double) const;
+    Eigen::Vector3d membrane_vel(const vector<Eigen::Vector3d>&, int, const double*) const;
+    void compute_loads(lexer*, fdm_nhf*, ghostcell*, slice&);
     double indicator(double) const;
     double dindicator(double) const;
     double smoothstep(double) const;
@@ -189,10 +218,15 @@ private:
     // structure (net_membrane_structure.cpp)
     void ini_structure(lexer*, ghostcell*);
     void advance_structure(lexer*, double);
+    void structure_solve(lexer*, double, int, const vector<Eigen::Matrix3d>&, const vector<Eigen::Vector3d>&,
+                         const vector<Eigen::Vector3d>&, const vector<Eigen::Vector3d>&, bool=false);
+    void free_factor();
+    struct structure_factor *sfac_=nullptr;   // factorised structure matrix, reused in the coupling iterations of a stage
+    bool sfac_ok_=false;
     void internal_forces(lexer*, const vector<Eigen::Vector3d>&, const vector<Eigen::Vector3d>&, vector<Eigen::Vector3d>&) const;
     void external_forces(lexer*, vector<Eigen::Vector3d>&) const;
     void update_body_load(lexer*);
-    void attach_response(lexer*, double);
+    void attach_response(lexer*, double, const vector<Eigen::Matrix3d>* =nullptr);
     void update_body_fluid_load(lexer*);
     Eigen::Vector3d attached_position(int) const;
     Eigen::Vector3d body_velocity(const Eigen::Vector3d&) const;
@@ -211,6 +245,7 @@ private:
     vector<Eigen::Vector3d> x_, xdot_;
     vector<array<int,3> > tri_;
     vector<Eigen::Vector3d> tn_, tc_;       // outward unit normal, centroid
+    vector<Eigen::Vector3d> tn0_;           // outward unit normal of the undeformed mesh (orientation classes)
     vector<double> ta_;                     // area
     vector<int> ttag_;                      // 0: wall, 1: floor
     double Afloor;
@@ -275,6 +310,24 @@ private:
     Eigen::Vector3d Ffl_=Eigen::Vector3d::Zero(), Mfl_=Eigen::Vector3d::Zero(); // fluid load on the attached edge (flexible), every stage
     Eigen::Vector3d cbn_=Eigen::Vector3d::Zero();                               // body position and orientation of Fb_, Mb_
     Eigen::Matrix3d Rbn_=Eigen::Matrix3d::Identity();
+
+    // strong coupling (net_membrane_coupling.cpp)
+    void layer_matrix(const cellentry&, const vector<Eigen::Vector3d>&, Eigen::Matrix3d&, Eigen::Vector3d&) const;
+    void robin_matrix(lexer*, ghostcell*, double, slice&);
+    void stage_begin(lexer*, ghostcell*, int, double, slice&);
+    void stage_commit(lexer*);
+    void group_vector(const vector<Eigen::Vector3d>&, Eigen::VectorXd&, bool) const;
+    void group_scatter(const Eigen::VectorXd&, vector<Eigen::Vector3d>&) const;
+    vector<Eigen::Vector3d> xn_, vsn_;      // structure at the start of the time step
+    vector<Eigen::Vector3d> xk_, vsk_;      // structure after the last converged stage
+    vector<Eigen::Vector3d> xbase_, vbase_; // base state of the current stage, (1-alpha) n + alpha k
+    vector<Eigen::Vector3d> xdotf_;         // node velocities of the forcing of this stage
+    vector<Eigen::Vector3d> xr_, vr_;       // structure result of the current iteration
+    vector<Eigen::Matrix3d> Cr_;            // Robin matrix per node: local response of the layer fluid
+    class iqn_ils *pqn_=nullptr;
+    bool pending_=false;                    // converged stage result waiting for reaction_nhflow
+    int citstep_=0, citmax_=0, cwarn_=0;
+    double cres_=0.0, rbest_=0.0;
 
     // print
     double printtime;
