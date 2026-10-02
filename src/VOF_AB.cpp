@@ -31,7 +31,6 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"fluid_update_vof.h"
 #include"heat.h"
-#include"weno_hj.h"
 #include"hric.h"
 
 VOF_AB::VOF_AB(lexer* p, fdm *a, ghostcell* pgc, heat *pheat):gradient(p),uc(p),vc(p),wc(p),F(p),lab(p)

@@ -32,7 +32,6 @@ Author: Fabian Knoblauch
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"weno_hj.h"
 #include"hric.h"
 
 // in 2D scheme one function is used for Fields

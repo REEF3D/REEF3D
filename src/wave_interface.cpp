@@ -41,7 +41,6 @@ Author: Hans Bihs
 #include"wave_lib_irregular_1st.h"
 #include"wave_lib_irregular_2nd_a.h"
 #include"wave_lib_irregular_2nd_b.h"
-#include"wave_lib_reconstruct.h"
 #include"wave_lib_hdc.h"
 #include"wave_lib_ssgw.h"
 #include"lexer.h"

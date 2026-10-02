@@ -34,7 +34,6 @@ Authors: Tobias Martin, Fabian Knoblauch
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"weno_hj.h"
 #include"hric.h"
 #include"interpolation.h"
 #include"picard_f.h"

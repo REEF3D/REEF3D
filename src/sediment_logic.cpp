@@ -62,7 +62,6 @@ Author: Hans Bihs
 #include"idiff2_FS_2D.h"
 #include"convection_void.h"
 #include"weno_hj_nug.h"
-#include"iweno_hj_nug.h"
 #include"ifou.h"
 #include"suspended_void.h"
 #include"suspended_RK2.h"

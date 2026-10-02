@@ -32,7 +32,6 @@ Author: Fabian Knoblauch
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"weno_hj.h"
 #include"hric.h"
 
 double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a, double d_b, double d_c, double r0)

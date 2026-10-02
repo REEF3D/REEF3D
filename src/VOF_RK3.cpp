@@ -32,7 +32,6 @@ Author: Hans Bihs
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"weno_hj.h"
 #include"hric.h"
 
 VOF_RK3::VOF_RK3(lexer* p, fdm *a, ghostcell* pgc, heat *pheat):gradient(p),uc(p),vc(p),wc(p),F(p)
