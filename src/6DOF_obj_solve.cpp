@@ -38,7 +38,8 @@ void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, 
     if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
     rk3(p,pgc,iter);
    
-    if(p->N40==4 || p->N40==44)
+    // low-storage RK3: FCLS3 (4, 24), RKLS3_df (14, also N40=13 with X10>0), RKLS3 (44)
+    if(p->N40==4 || p->N40==14 || p->N40==24 || p->N40==44)
     rkls3(p,pgc,iter);
 }
 
