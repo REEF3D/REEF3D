@@ -64,9 +64,8 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<endl<<"A_orig: "<<A<<endl;
-    
-    
-	
+
+
 	tri_x_r.reserve(3*tricount);
 	tri_y_r.reserve(3*tricount);
 	tri_z_r.reserve(3*tricount);	
@@ -100,9 +99,8 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
     
     KLOOP
     dxmin = MIN(dxmin,p->DZN[KP]);
-    
-        
-    
+
+
 	for (int n = 0; n < tri_x_r.size(); n++)
 	{
     //cout<<"n: "<<n<<" tri_x_r.size()"<<tri_x_r.size()<<endl;
@@ -195,26 +193,8 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 			create_triangle(x01,y01,z01,x12,y12,z12,x02,y02,z02,nx_old,ny_old,nz_old);
 			create_triangle(x01,y01,z01,x1,y1,z1,x12,y12,z12,nx_old,ny_old,nz_old);
 			create_triangle(x02,y02,z02,x12,y12,z12,x2,y2,z2,nx_old,ny_old,nz_old);
-            
-            /*if(at>=bt && at>=ct)
-            {
-            create_triangle(x0,y0,z0,x01,y01,z01,x2,y2,z2,nx_old,ny_old,nz_old);
-            create_triangle(x01,y01,z01,x1,y1,z1,x2,y2,z2,nx_old,ny_old,nz_old);
-            }
-            
-            if(bt>at && bt>=ct)
-            {
-            create_triangle(x0,y0,z0,x1,y1,z1,x12,y12,z12,nx_old,ny_old,nz_old);
-            create_triangle(x0,y0,z0,x12,y12,z12,x2,y2,z2,nx_old,ny_old,nz_old);
-            }
-            
-            if(ct>at && ct>bt)
-            {
-            create_triangle(x0,y0,z0,x1,y1,z1,x02,y02,z02,nx_old,ny_old,nz_old);
-            create_triangle(x02,y02,z02,x1,y1,z1,x2,y2,z2,nx_old,ny_old,nz_old);
-            }*/
-    
-		
+
+
             if (tri_x_r.size() > 100000) break;
 		}
 		

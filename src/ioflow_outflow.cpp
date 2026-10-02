@@ -25,20 +25,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void ioflow_f::outflow_plain(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
-{
-    for(n=0;n<p->gcout_count;n++)
-    {
-    i=p->gcout[n][0]-1;
-    j=p->gcout[n][1];
-    k=p->gcout[n][2];
-    
-        u(i+1,j,k)=p->Uo;
-        u(i+2,j,k)=p->Uo;
-        u(i+3,j,k)=p->Uo;
-    }
-}
-
 void ioflow_f::outflow_log(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     double hmax=-1.0e20;

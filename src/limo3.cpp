@@ -139,24 +139,6 @@ double limo3::min(double val1,double val2)
 	return mini;
 }
 
-double limo3::max(double val1,double val2,double val3)
-{
-	double maxi;
-
-	maxi=val1;
-
-	if(maxi<val2)
-	maxi=val2;
-
-	if(maxi<val3)
-	maxi=val3;
-
-	if(maxi<0.0)
-	maxi=0.0;
-
-	return maxi;
-}
-
 double limo3::max(double val1,double val2)
 {
 	double maxi;

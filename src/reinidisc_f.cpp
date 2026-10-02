@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_f.h"
-#include"cpt.h"
 
 reinidisc_f::reinidisc_f(lexer *p) :  ddweno_nug_sf(p)
 {

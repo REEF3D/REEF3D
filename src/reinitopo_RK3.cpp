@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"convection.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"picard_f.h"
 #include"picard_void.h"

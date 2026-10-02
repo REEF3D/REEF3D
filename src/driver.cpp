@@ -66,14 +66,20 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3)
     cout<<endl<<"REEF3D::FNPF" <<endl<<endl;
 
-    if(p->A10==4)
-    cout<<endl<<"REEF3D::PTF" <<endl<<endl;
-
     if(p->A10==5)
     cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
 
     if(p->A10==6)
     cout<<endl<<"REEF3D::CFD" <<endl<<endl;
+    }
+
+    // PTF (A 10 4) was removed
+    if(p->A10==4)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 10 4: REEF3D::PTF has been removed, use REEF3D::FNPF (A 10 3) or REEF3D::CFD (A 10 6)."<<endl<<endl;
+
+        pgc->final(true);
     }
 
 // 2D Framework - SFLOW
@@ -113,18 +119,14 @@ driver::driver(int& argc, char **argv)
         nhflow_driver();
     }
 
-    // fixed grid - PTF & NSEWAVE & CFD
-    if(p->A10==4 || p->A10==6)
+    // fixed grid - CFD
+    if(p->A10==6)
     {
         p->flagini();
         pgc->flagfield(p);
         makegrid(p,pgc);
         makegrid2D(p,pgc);
 
-        if(p->A10==4)
-        ptf_driver();
-
-        if(p->A10==6)
         cfd_driver();
     }
 }
@@ -166,24 +168,6 @@ void driver::fnpf_driver()
 
     // Start MAINLOOP
     loop_fnpf();
-}
-
-void driver::ptf_driver()
-{
-    if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
-
-    a=new fdm(p);
-
-    aa=a;
-    pgc->fdm_update(a);
-
-    logic_ptf();
-
-    driver_ini_ptf();
-
-    // Start MAINLOOP
-    loop_ptf(a);
 }
 
 void driver::nhflow_driver()

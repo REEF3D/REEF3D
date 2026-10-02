@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_reinidisc_fsf.h"
-#include"cpt.h"
 
 nhflow_reinidisc_fsf::nhflow_reinidisc_fsf(lexer *p) :  ddweno_nug_sig(p)
 {

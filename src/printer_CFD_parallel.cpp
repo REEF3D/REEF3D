@@ -76,8 +76,6 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
     if(p->P72==1)
     result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>\n";
 
-    if(p->A10==4)
-    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
 
     if(p->P26==1)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";

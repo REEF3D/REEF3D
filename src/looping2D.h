@@ -29,17 +29,11 @@ Author: Hans Bihs
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
 #define SSLICECHECK4  if(p->flagslice4[IJ]<0)
 
-#define WETDRYCHK if(p->wet[IJ]>0)
 #define SEDSLICECHECK if(p->DFBED[IJ]>0)
 #define SLICEFLEXCHECK  if(flagslice[IJ]>0)
 
-#define WETDRY1 if(b->wet1(i,j)==1)
-#define WETDRY2 if(b->wet2(i,j)==1)
-#define WETDRYDEEP1 if(b->wet1(i,j)==1 && b->deep1(i,j)==1)
-#define WETDRYDEEP2 if(b->wet2(i,j)==1 && b->deep2(i,j)==1)
 #define WETDRY if(p->wet[IJ]==1)
 #define WETDRYDEEP if(p->wet[IJ]==1 && p->deep[IJ]==1)
-#define WETDRYDEEPBREAK if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
 
 // SLICE BASE LOOPS
 #define SLICEBASELOOP ILOOP JLOOP
@@ -54,7 +48,6 @@ Author: Hans Bihs
 
 #define TPSLICELOOP ITPLOOP JTPLOOP
 
-#define NSLICELOOP4 for(n=p->sizeS4[0]; n<p->sizeS4[1]; ++n)
 
 #define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
 
@@ -66,7 +59,6 @@ Author: Hans Bihs
 
 #define QGCSLB1 for(q=0;q<p->gcbsl1_count;++q)
 #define QGCSLB1CHECK if(p->gcbsl1[q][3]>0)
-#define QGCSL1LOOP QGCSLB1 QGCSLB1CHECK
 
 #define QQGCSLB1 for(qq=0;qq<p->gcbsl1_count;++qq)
 #define QQGCSLB1CHECK if(p->gcbsl1[qq][3]>0)
@@ -79,7 +71,6 @@ Author: Hans Bihs
 
 #define QGCSLB2 for(q=0;q<p->gcbsl2_count;++q)
 #define QGCSLB2CHECK if(p->gcbsl2[q][3]>0)
-#define QGCSL2LOOP QGCSLB2 QGCSLB2CHECK
 
 #define QQGCSLB2 for(qq=0;qq<p->gcbsl2_count;++qq)
 #define QQGCSLB2CHECK if(p->gcbsl2[qq][3]>0)
@@ -92,7 +83,6 @@ Author: Hans Bihs
 
 #define QGCSLB4 for(q=0;q<p->gcbsl4_count;++q)
 #define QGCSLB4CHECK if(p->gcbsl4[q][3]>0)
-#define QGCSL4LOOP QGCSLB4 QGCSLB4CHECK
 
 #define QQGCSLB4 for(qq=0;qq<p->gcbsl4_count;++qq)
 #define QQGCSLB4CHECK if(p->gcbsl4[qq][3]>0)
@@ -101,11 +91,9 @@ Author: Hans Bihs
 
 #define GCSLB4A for(n=0;n<p->gcbsl4a_count;++n)
 #define GCSLB4ACHECK if(p->gcbsl4a[n][3]>0)
-#define GCSL4ALOOP GCSLB4A GCSLB4ACHECK
 
 #define QGCSLB4A for(q=0;q<p->gcbsl4a_count;++q)
 #define QGCSLB4ACHECK if(p->gcbsl4a[q][3]>0)
-#define QGCSL4ALOOP QGCSLB4A QGCSLB4ACHECK
 
 #define QQGCSLB4A for(qq=0;qq<p->gcbsl4a_count;++qq)
 #define QQGCSLB4ACHECK if(p->gcbsl4a[qq][3]>0)

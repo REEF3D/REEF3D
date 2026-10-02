@@ -77,14 +77,6 @@ void net_barDyn::updateField_cfd(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 			{
 				coupledField[i][cmp] = p->ccipol4a(a->ro,x_(i,0),x_(i,1),x_(i,2));
                 
-                /*if (coupledField[i][cmp] >= 0.0) // water
-                {
-                    coupledField[i][cmp] = p->ccipol4a(a->ro,x_(i,0),x_(i,1),x_(i,2));
-                }
-                else    // air
-                {
-                    coupledField[i][cmp] = p->W3;
-                }*/
 			}
             
 			recField[i] = -1;

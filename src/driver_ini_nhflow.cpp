@@ -40,7 +40,6 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"vrans_header.h"
 #include"nhflow_header.h"
-#include"lexer.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 

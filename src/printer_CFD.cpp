@@ -423,12 +423,6 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
                 offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
                 ++n;
             }
-            // Fi
-            if(p->A10==4)
-            {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-                ++n;
-            }
             // conc
             if(p->P26==1)
             {
@@ -549,12 +543,6 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         if(p->P72==1)
         {
             result<<"<DataArray type=\"Float32\" Name=\"VOF\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-            ++n;
-        }
-
-        if(p->A10==4)
-        {
-            result<<"<DataArray type=\"Float32\" Name=\"Fi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
 
@@ -738,20 +726,6 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             TPLOOP
             {
                 ffn=float(p->ipol4(a->vof));
-                memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
-            }
-        }
-
-        //  Fi
-        if(p->A10==4)
-        {
-            iin=sizeof(float)*p->pointnum;
-            memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
-            TPLOOP
-            {
-                ffn=float(p->ipol4press(a->Fi));
                 memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }

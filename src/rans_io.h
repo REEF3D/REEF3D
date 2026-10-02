@@ -44,7 +44,6 @@ public:
     void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
     void ini(lexer*, fdm*, ghostcell*) override final;
     void plain_wallfunc(lexer*, fdm*, ghostcell*);
-    void inflow(lexer*, fdm*, ghostcell*);
     double kinval(int,int,int) override final;
     double epsval(int,int,int) override final;
 	void gcupdate(lexer*, fdm*, ghostcell*) override final;

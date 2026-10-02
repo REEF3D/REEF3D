@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "field4.h"
 #include "convection.h"
-#include "convection.h"
 #include "ioflow.h"
 #include "solver.h"
 #include "reini.h"

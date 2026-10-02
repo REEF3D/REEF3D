@@ -72,7 +72,6 @@ public:
     
     int ihalf(int,int);
     
-    int conv(double);
     
 private:
     lexer *p;

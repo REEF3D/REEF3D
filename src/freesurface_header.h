@@ -30,8 +30,6 @@ Author: Hans Bihs
 #include"reini_RK3.h"
 #include"reini_void.h"
 
-#include"VOF_AB.h"
-#include"VOF_RK3.h"
 #include"VOF_PLIC.h"
 #include"VOF_void.h"
 

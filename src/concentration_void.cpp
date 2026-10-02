@@ -57,10 +57,6 @@ double concentration_void::val(int ii, int jj, int kk)
     return val;
 }
 
-void concentration_void::concentration_ini(lexer* p, fdm *a, ghostcell* pgc, concentration *pconcentration)
-{
-}
-
 void concentration_void::name_ParaView_parallel(lexer *p, ofstream &result)
 {
 }

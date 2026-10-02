@@ -21,7 +21,6 @@ Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum_FCLS3.h"
-#include"momentum_FCLS3.h"
 #include"vrans.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -50,9 +49,6 @@ Authors: Tobias Martin, Hans Bihs
 #include"fluid_update_void.h"
 #include"fluid_update_fsf_concentration.h"
 #include"fluid_update_rheology.h"
-#include"picard_f.h"
-#include"picard_lsm.h"
-#include"picard_void.h"
 #include"heat.h"
 
 momentum_FCLS3::momentum_FCLS3(lexer *p, fdm *a, ghostcell *pgc, convection *pconvection, convection *ppfsfdisc, diffusion *pdiffusion, pressure* ppressure, poisson* ppoisson,

@@ -128,7 +128,6 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
  
         
         fy=0.0; // !
- 
 
 
 			if(p->wet[IJ]==1)
@@ -207,21 +206,5 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
         eta_T = 0.0;
         eta_M = d->eta(i,j); 
         eta_R = fabs(eta_M-eta_T);
-/*
-            if(p->wet[IJ]==1)
-			KLOOP 
-			{
-			d->P[(i-p->imin+1*aa)*p->jmax*p->kmax + (j-p->jmin+1*bb)*p->kmax + k-p->kmin] = 0.0;
-             d->P[(i-p->imin+2*aa)*p->jmax*p->kmax + (j-p->jmin+2*bb)*p->kmax + k-p->kmin] = 0.0;
-             d->P[(i-p->imin+3*aa)*p->jmax*p->kmax + (j-p->jmin+3*bb)*p->kmax + k-p->kmin] = 0.0;
-			
-			W[(i-p->imin+1*aa)*p->jmax*p->kmax + (j-p->jmin+1*bb)*p->kmax + k-p->kmin] = 0.0;
-             W[(i-p->imin+2*aa)*p->jmax*p->kmax + (j-p->jmin+2*bb)*p->kmax + k-p->kmin] = 0.0;
-             W[(i-p->imin+3*aa)*p->jmax*p->kmax + (j-p->jmin+3*bb)*p->kmax + k-p->kmin] = 0.0;
-             
-             WH[(i-p->imin+1*aa)*p->jmax*p->kmax + (j-p->jmin+1*bb)*p->kmax + k-p->kmin] = 0.0;
-             WH[(i-p->imin+2*aa)*p->jmax*p->kmax + (j-p->jmin+2*bb)*p->kmax + k-p->kmin] = 0.0;
-             WH[(i-p->imin+3*aa)*p->jmax*p->kmax + (j-p->jmin+3*bb)*p->kmax + k-p->kmin] = 0.0;
-            }*/
         }
 }

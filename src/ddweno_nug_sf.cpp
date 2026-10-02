@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"vec.h"
-#include"cpt.h"
 
 ddweno_nug_sf::ddweno_nug_sf(lexer* pp):weno_nug_func(pp)
 {
@@ -276,27 +275,6 @@ void ddweno_nug_sf::kqmax0(fdm* a, field &f)
     q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }
     
-void ddweno_nug_sf::iqmin1(fdm* a, field &f)
-{   
-    q1=q2=q3=q4=q5=0.0;
-    
-    if(a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0 && a->solid(i-3,j,k)>0.0 && a->topo(i-3,j,k)>0.0)
-	q1 = (f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
-    
-    if(a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0 && a->solid(i-2,j,k)>0.0 && a->topo(i-2,j,k)>0.0)
-	q2 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
-    
-    if(a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0 && a->solid(i-1,j,k)>0.0 && a->topo(i-1,j,k)>0.0)
-	q3 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
-    
-    if(a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0 && a->solid(i,j,k)>0.0 && a->topo(i,j,k)>0.0)
-	q4 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
-    
-    if(a->solid(i+2,j,k)>0.0 && a->topo(i+2,j,k)>0.0 && a->solid(i+1,j,k)>0.0 && a->topo(i+1,j,k)>0.0)
-	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
-
-}
-
 void ddweno_nug_sf::jqmin1(fdm* a, field &f)
 {
     q1=q2=q3=q4=q5=0.0;
@@ -395,26 +373,6 @@ void ddweno_nug_sf::kqmax1(fdm* a, field &f)
     
     if(a->solid(i,j,k+3)>0.0 && a->topo(i,j,k+3)>0.0 && a->solid(i,j,k+2)>0.0 && a->topo(i,j,k+2)>0.0)
     q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
-}
-
-void ddweno_nug_sf::iqmin2(fdm* a, field &f)
-{
-    q1=q2=q3=q4=q5=0.0;
-   
-    if(a->fbh4(i-2,j,k)  < 0.5 && a->fbh4(i-3,j,k)  < 0.5)
-    q1 = (f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
-    
-    if(a->fbh4(i-1,j,k)  < 0.5 && a->fbh4(i-2,j,k)  < 0.5)
-	q2 = (f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
-    
-    if(a->fbh4(i,j,k)  < 0.5 && a->fbh4(i-1,j,k)  < 0.5)
-	q3 = (f.V[IJK]   - f.V[Im1JK])/DX[IM1];
-    
-    if(a->fbh4(i+1,j,k)  < 0.5 && a->fbh4(i,j,k)  < 0.5)
-	q4 = (f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
-    
-    if(a->fbh4(i+2,j,k)  < 0.5 && a->fbh4(i+1,j,k)  < 0.5)
-	q5 = (f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
 }
 
 void ddweno_nug_sf::jqmin2(fdm* a, field &f)
@@ -517,15 +475,6 @@ void ddweno_nug_sf::kqmax2(fdm* a, field &f)
     q5 = (f.V[IJKp3] - f.V[IJKp2])/DZ[KP2];
 }
 
-
-void ddweno_nug_sf::iqmin3(fdm* a, field &f)
-{   
-    q1 = a->fbh5(i-3,j,k)*(f.V[Im2JK] - f.V[Im3JK])/DX[IM3];
-	q2 = a->fbh5(i-2,j,k)*(f.V[Im1JK] - f.V[Im2JK])/DX[IM2];
-	q3 = a->fbh5(i-1,j,k)*(f.V[IJK]   - f.V[Im1JK])/DX[IM1];
-	q4 = a->fbh5(i,j,k)*(f.V[Ip1JK] - f.V[IJK]  )/DX[IP];
-	q5 = a->fbh5(i+1,j,k)*(f.V[Ip2JK] - f.V[Ip1JK])/DX[IP1];
-}
 
 void ddweno_nug_sf::jqmin3(fdm* a, field &f)
 {

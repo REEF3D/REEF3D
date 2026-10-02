@@ -39,7 +39,6 @@ public:
 	void ttimesave(lexer*, fdm*) override final;
 
 	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
-    void concentration_ini(lexer*, fdm*, ghostcell*,concentration*);
     double val(int,int,int) override final;
 
     void name_ParaView_parallel(lexer*, ofstream&) override final;

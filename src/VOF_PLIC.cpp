@@ -28,13 +28,11 @@ Authors: Tobias Martin, Fabian Knoblauch
 #include"ghostcell.h"
 #include"convection.h"
 #include"solver.h"
-#include"ghostcell.h"
 #include"freesurface_header.h"
 #include"ioflow.h"
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"hric.h"
 #include"interpolation.h"
 #include"picard_f.h"
 

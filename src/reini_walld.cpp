@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"reinidisc_f.h"
 

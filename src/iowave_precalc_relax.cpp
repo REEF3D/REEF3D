@@ -287,8 +287,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             if(zloc4<=fsfloc+epsi || p->A10==3)
             Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
             
-            if(zloc4>fsfloc+epsi && p->A10==4)
-            Fifsfval[count] = 0.0;
             
             ++count;
             }

@@ -202,24 +202,6 @@ cfd_state::~cfd_state()
 
 void cfd_state::write(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sediment *psed)
 {
-    /*// header file
-    if(ini_token==0)
-    {
-    if(p->mpirank==0)
-    ini_mainheader(p,a,pgc);
-    
-    if(flag==1)
-    write_header(p,a,pgc);
-    
-    ini_token=1;
-    }
-    
-    if(p->mpirank==0)
-    write_mainheader(p,a,pgc);
-    
-    
-    // result file
-    if(flag==1)*/
         
     write_result(p,a,pgc,pturb,psed);
 }

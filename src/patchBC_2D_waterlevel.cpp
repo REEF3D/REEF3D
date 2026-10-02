@@ -60,14 +60,6 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         b->hp(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i-3,j) =  patch[qq]->waterlevel-b->bed(i,j);
         
-        /*
-        b->hx(i-1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i-3,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i-1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i-3,j) =  patch[qq]->waterlevel-b->bed(i,j);*/
         }
         
         if(patch[qq]->gcb[n][3]==2)
@@ -81,14 +73,6 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         b->hp(i,j+2) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i,j+3) =  patch[qq]->waterlevel-b->bed(i,j);
         
-        /*
-        b->hx(i,j+1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j+2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j+3) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i,j)   =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j+1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j+2) =  patch[qq]->waterlevel-b->bed(i,j);*/
         }
         
         if(patch[qq]->gcb[n][3]==3)
@@ -102,13 +86,6 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         b->hp(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);
         
-        /*b->hx(i,j-1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i,j-1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);*/
         }
         
         if(patch[qq]->gcb[n][3]==4)
@@ -122,14 +99,6 @@ void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice 
         b->hp(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
         b->hp(i+3,j) =  patch[qq]->waterlevel-b->bed(i,j);
         
-        /*
-        b->hx(i,j)   =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i+3,j) =  patch[qq]->waterlevel-b->bed(i,j);*/
         }
     }
 }

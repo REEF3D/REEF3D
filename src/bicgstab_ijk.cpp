@@ -44,10 +44,6 @@ bicgstab_ijk::~bicgstab_ijk()
 {
 }
 
-void bicgstab_ijk::setup(lexer* p, ghostcell* pgc, int var)
-{
-}
-
 void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
 {
 	p->preconiter=0;

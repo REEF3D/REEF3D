@@ -51,8 +51,5 @@ Author: Hans Bihs
 
 #include"hires.h"
 
-#include"hric.h"
-#include"hric_mod.h"
-#include"cicsam.h"
 
 #endif

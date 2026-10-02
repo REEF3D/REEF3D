@@ -45,9 +45,7 @@ public:
 	void diff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, double, double) override final;
     void idiff_scalar(lexer*, fdm*, ghostcell*, solver*, field&, field&, double, double) override final;
     
-	void diff_u(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
-	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, double);
 
 private:    
 	double D;

@@ -229,7 +229,7 @@
   0.0007228478343023253,
   0.0007225620161406399
  ],
- "blessed_from": "/home/claude/build/new/REEF3D",
+ "blessed_from": "/home/claude/build/final/REEF3D",
  "date": "2026-10-02",
- "note": "after F3 F5 F7 F10 F16 (series on top of aaadef9); Linux x86-64 gcc 13 / OpenMPI 4.1, -O2"
+ "note": "hans_dev ae6440c (grid format v2) + series 0001-0016; Linux x86-64 gcc 13 / OpenMPI 4.1, -O2 -ffp-contract=off"
 }

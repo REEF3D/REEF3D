@@ -28,7 +28,6 @@ Author: Hans Bihs
 #include"field.h"
 
 class picard;
-class cpt;
 
 using namespace std;
 

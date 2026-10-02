@@ -319,10 +319,6 @@ void probe_line::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	++linecount;
 }
 
-void probe_line::write(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void probe_line::ini_global_location(lexer *p, fdm *a, ghostcell *pgc)
 {
 	

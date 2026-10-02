@@ -27,12 +27,10 @@ Author: Fabian Knoblauch
 #include"ghostcell.h"
 #include"convection.h"
 #include"solver.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"hric.h"
 
 double VOF_PLIC::calculateVolume(double n_a, double n_b, double n_c, double d_a, double d_b, double d_c, double r0)
 {

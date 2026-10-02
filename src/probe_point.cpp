@@ -111,10 +111,6 @@ void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	}			
 }
 
-void probe_point::write(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
     int check;
