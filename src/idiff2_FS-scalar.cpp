@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"bc_noflux.h"
 
 void idiff2_FS::idiff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field& b, field& visc, double sig, double alpha)
 {
@@ -66,41 +67,62 @@ void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	 ++count;
 	}
     
+    // no-flux walls: zero normal gradient, implicit (ghost coefficient into the diagonal)
+    bc_noflux_mask(p,noflux,BC_NOFLUX_WALLS|BC_NOFLUX_SCALAR);
+
     n=0;
 	LOOP
 	{
 		if(p->flag4[Im1JK]<0)
 		{
+		if(noflux[IJK]&1)
+		a->M.p[n] += a->M.s[n];
+		else
 		a->rhsvec.V[n] -= a->M.s[n]*b(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
 		if(p->flag4[Ip1JK]<0)
 		{
+		if(noflux[IJK]&8)
+		a->M.p[n] += a->M.n[n];
+		else
 		a->rhsvec.V[n] -= a->M.n[n]*b(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 		
 		if(p->flag4[IJm1K]<0)
 		{
+		if(noflux[IJK]&4)
+		a->M.p[n] += a->M.e[n];
+		else
 		a->rhsvec.V[n] -= a->M.e[n]*b(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
 		if(p->flag4[IJp1K]<0)
 		{
+		if(noflux[IJK]&2)
+		a->M.p[n] += a->M.w[n];
+		else
 		a->rhsvec.V[n] -= a->M.w[n]*b(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKm1]<0)
 		{
+		if(noflux[IJK]&16)
+		a->M.p[n] += a->M.b[n];
+		else
 		a->rhsvec.V[n] -= a->M.b[n]*b(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKp1]<0)
 		{
+		if(noflux[IJK]&32)
+		a->M.p[n] += a->M.t[n];
+		else
 		a->rhsvec.V[n] -= a->M.t[n]*b(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
@@ -150,41 +172,62 @@ void idiff2_FS::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	 ++count;
 	}
     
+    // no-flux walls: zero normal gradient, implicit (ghost coefficient into the diagonal)
+    bc_noflux_mask(p,noflux,BC_NOFLUX_WALLS|BC_NOFLUX_SCALAR);
+
     n=0;
 	LOOP
 	{
 		if(p->flag4[Im1JK]<0)
 		{
+		if(noflux[IJK]&1)
+		a->M.p[n] += a->M.s[n];
+		else
 		a->rhsvec.V[n] -= a->M.s[n]*b(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
 		if(p->flag4[Ip1JK]<0)
 		{
+		if(noflux[IJK]&8)
+		a->M.p[n] += a->M.n[n];
+		else
 		a->rhsvec.V[n] -= a->M.n[n]*b(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 		
 		if(p->flag4[IJm1K]<0)
 		{
+		if(noflux[IJK]&4)
+		a->M.p[n] += a->M.e[n];
+		else
 		a->rhsvec.V[n] -= a->M.e[n]*b(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
 		if(p->flag4[IJp1K]<0)
 		{
+		if(noflux[IJK]&2)
+		a->M.p[n] += a->M.w[n];
+		else
 		a->rhsvec.V[n] -= a->M.w[n]*b(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKm1]<0)
 		{
+		if(noflux[IJK]&16)
+		a->M.p[n] += a->M.b[n];
+		else
 		a->rhsvec.V[n] -= a->M.b[n]*b(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
 		if(p->flag4[IJKp1]<0)
 		{
+		if(noflux[IJK]&32)
+		a->M.p[n] += a->M.t[n];
+		else
 		a->rhsvec.V[n] -= a->M.t[n]*b(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}

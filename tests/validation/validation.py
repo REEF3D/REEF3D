@@ -159,7 +159,58 @@ def check_max_abs(c, rundir):
             "rows_text": "max |%s| = %.3e (final step %d)" % (ck["field"], m, st[0])}
 
 
+def read_wsf(rundir):
+    """REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat -> (x positions, t list, [eta list per gauge])"""
+    fns = glob.glob(os.path.join(rundir, "REEF3D_CFD_WSF", "*WSF-HG.dat"))
+    if not fns:
+        return None
+    xs, ts, cols = [], [], None
+    with open(fns[0]) as f:
+        lines = f.read().split("\n")
+    ng = int(lines[0].split(":")[1])
+    for l in lines[1:]:
+        t = l.split()
+        if len(t) == 3 and len(xs) < ng:
+            try:
+                xs.append(float(t[1]))
+                continue
+            except ValueError:
+                pass
+        if len(t) == ng + 1:
+            try:
+                v = [float(x) for x in t]
+            except ValueError:
+                continue
+            if cols is None:
+                cols = [[] for _ in range(ng)]
+            ts.append(v[0])
+            for g in range(ng):
+                cols[g].append(v[g + 1])
+    return xs, ts, cols
+
+
+def check_wave_height(c, rundir):
+    """Wave height (max - min of the free-surface elevation) at every wave gauge (P 51) in the
+    window t_start..t_end, relative to the target height H: error = max |H_g - H| / H."""
+    ck = c["check"]
+    w = read_wsf(rundir)
+    if w is None or not w[1]:
+        return {"ok": False, "error": float("nan"), "note": "no wave gauge output"}
+    xs, ts, cols = w
+    err, txt = 0.0, []
+    for g, x in enumerate(xs):
+        eta = [e for t, e in zip(ts, cols[g]) if ck["t_start"] <= t <= ck["t_end"]]
+        if not eta:
+            return {"ok": False, "error": float("nan"), "note": "no samples in the time window"}
+        hg = max(eta) - min(eta)
+        e = abs(hg - ck["H"]) / ck["H"]
+        err = max(err, e)
+        txt.append("x = %g: H = %.5f (target %g, %+.1f %%)" % (x, hg, ck["H"], 100.0 * (hg - ck["H"]) / ck["H"]))
+    return {"ok": err <= ck["tol"], "error": err, "tol": ck["tol"], "rows_text": "\n\n".join(txt)}
+
+
 CHECKS = {"channel_startup": check_channel_startup,
+          "wave_height": check_wave_height,
           "max_abs": check_max_abs,
           "conserved_integral": check_conserved_integral}
 

@@ -115,7 +115,8 @@ momentum_FCC3::momentum_FCC3(lexer *p, fdm *a, ghostcell *pgc, convection *pconv
     if(p->F30>0 && p->H10==0 && p->W30==0 && p->F300==0 && p->W90>0)
     pupdate = new fluid_update_rheology(p);
 
-    if(p->F300>0)
+    // single phase (F 30 0) or multiphase: no density/viscosity update from the level set
+    if(p->F300>0 || p->F30==0)
 	pupdate = new fluid_update_void();
     
     // face density

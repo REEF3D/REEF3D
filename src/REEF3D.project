@@ -193,6 +193,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.h"/>
+            <File Name="bc_noflux.h"/>
             <File Name="poisson.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
@@ -1161,7 +1162,6 @@
       </VirtualDirectory>
       <File Name="lexer.h"/>
       <File Name="driver.h"/>
-      <File Name="regression_dump.h"/>
       <VirtualDirectory Name="Control">
         <File Name="control.h"/>
       </VirtualDirectory>
@@ -1584,6 +1584,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.cpp"/>
+            <File Name="bc_noflux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
             <File Name="density_vof.cpp"/>
@@ -3005,7 +3006,6 @@
       </VirtualDirectory>
       <File Name="main.cpp"/>
       <File Name="driver.cpp"/>
-      <File Name="regression_dump.cpp"/>
       <File Name="lexer.cpp"/>
       <VirtualDirectory Name="Logic">
         <File Name="driver_logic_nhflow.cpp"/>
