@@ -141,7 +141,7 @@ void fnpf_amr::lap_rows()
 // vectors, multigrids and their coefficients for this solve
 void fnpf_amr::lap_prepare(ghostcell *pgc)
 {
-    if(lap_layout!=regrids)
+    if(lap_layout!=layout_id)
     {
         lap_rows();
 
@@ -180,7 +180,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             }
         }
 
-        lap_layout = regrids;
+        lap_layout = layout_id;
     }
 
     // fixed rows (identity rows of the assembly: nodes inside a resolved body) are no unknowns:

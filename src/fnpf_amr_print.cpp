@@ -64,7 +64,8 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->mpirank==0 && doprint)
     cout<<"FNPF AMR: "<<patches_total<<" patches, "<<cells_total<<" columns; time in patch stages "<<setprecision(4)<<tm[0]
         <<" s, Laplace "<<tm[1]<<" s (preconditioner "<<tm[2]<<" s, operator "<<tm[3]<<" s), mean iterations "
-        <<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0)<<endl;
+        <<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0)
+        <<(regrid_int>0 ? ", regrid " : "")<<(regrid_int>0 ? tm[4] : 0.0)<<(regrid_int>0 ? " s" : "")<<endl;
 
     if(!doprint)
     return;

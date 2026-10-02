@@ -28,16 +28,18 @@ Author: Hans Bihs
 
 // (i,j,k) triplets of FLOOP cells that have a solid (flag7<0) neighbour in i
 // (list2D) or in i or j (list3D). flag7 is static after the sigma grid is built.
+// The lists belong to the lexer they were built for (the rank grid); for any other lexer
+// (a mesh refinement patch, whose lexers come and go) the cells are collected per call.
 static std::vector<int> fivec_list3D, fivec_list2D;
 static bool fivec_listbuilt=false;
+static lexer *fivec_lexer=nullptr;
 
-// flag7 is fixed after driver_makegrid_sigma, so the cells that can own a
-// wall ghost cell are found once. The loops below visit only those cells, in
-// the original FLOOP order, instead of sweeping the whole 3D field every call.
-void ghostcell::fivec_buildlist(lexer *p)
+static void fivec_collect(lexer *p, std::vector<int> &L3, std::vector<int> &L2)
 {
-    fivec_list3D.clear();
-    fivec_list2D.clear();
+    int i,j,k;
+    
+    L3.clear();
+    L2.clear();
     
     FLOOP
     {
@@ -46,29 +48,52 @@ void ghostcell::fivec_buildlist(lexer *p)
         
         if(xwall || ywall)
         {
-        fivec_list3D.push_back(i);
-        fivec_list3D.push_back(j);
-        fivec_list3D.push_back(k);
+        L3.push_back(i);
+        L3.push_back(j);
+        L3.push_back(k);
         }
         
         if(xwall)
         {
-        fivec_list2D.push_back(i);
-        fivec_list2D.push_back(j);
-        fivec_list2D.push_back(k);
+        L2.push_back(i);
+        L2.push_back(j);
+        L2.push_back(k);
         }
     }
+}
+
+// flag7 is fixed after driver_makegrid_sigma, so the cells that can own a
+// wall ghost cell are found once. The loops below visit only those cells, in
+// the original FLOOP order, instead of sweeping the whole 3D field every call.
+void ghostcell::fivec_buildlist(lexer *p)
+{
+    fivec_collect(p,fivec_list3D,fivec_list2D);
     
+    fivec_lexer=p;
     fivec_listbuilt=true;
 }
 
-#define FIVEC_LOOP3D if(!fivec_listbuilt) fivec_buildlist(p); \
-    for(size_t qq=0; qq<fivec_list3D.size(); qq+=3) \
-    if((i=fivec_list3D[qq], j=fivec_list3D[qq+1], k=fivec_list3D[qq+2], true))
+static const std::vector<int>& fivec_get(ghostcell *g, lexer *p, bool three, std::vector<int> &T3, std::vector<int> &T2)
+{
+    if(!fivec_listbuilt)
+    g->fivec_buildlist(p);
+    
+    if(p==fivec_lexer)
+    return three ? fivec_list3D : fivec_list2D;
+    
+    fivec_collect(p,T3,T2);
+    return three ? T3 : T2;
+}
 
-#define FIVEC_LOOP2D if(!fivec_listbuilt) fivec_buildlist(p); \
-    for(size_t qq=0; qq<fivec_list2D.size(); qq+=3) \
-    if((i=fivec_list2D[qq], j=fivec_list2D[qq+1], k=fivec_list2D[qq+2], true))
+#define FIVEC_LOOP3D std::vector<int> fivec_T3, fivec_T2; \
+    const std::vector<int> &fivec_L = fivec_get(this,p,true,fivec_T3,fivec_T2); \
+    for(size_t qq=0; qq<fivec_L.size(); qq+=3) \
+    if((i=fivec_L[qq], j=fivec_L[qq+1], k=fivec_L[qq+2], true))
+
+#define FIVEC_LOOP2D std::vector<int> fivec_T3, fivec_T2; \
+    const std::vector<int> &fivec_L = fivec_get(this,p,false,fivec_T3,fivec_T2); \
+    for(size_t qq=0; qq<fivec_L.size(); qq+=3) \
+    if((i=fivec_L[qq], j=fivec_L[qq+1], k=fivec_L[qq+2], true))
 
 void ghostcell::fivec(lexer *p, double *f, sliceint &bc)
 {	

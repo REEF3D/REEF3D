@@ -68,6 +68,8 @@ struct fnpf_6DOF_grid
     fdm_fnpf *c = nullptr;
     fnpf_fsf *pf = nullptr;
     int id = -1;                    // fnpf_amr grid id, -1: level 0
+    int serial = -1;                // fnpf_amr patch serial number (the grid follows its patch)
+    bool fresh = false;             // body geometry not yet built
     bool l0 = true;                 // level 0: MPI exchange and global reductions; patch: local
     double del = 0.0;               // load sampling distance off the hull
     double *psi0 = nullptr;

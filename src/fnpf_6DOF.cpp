@@ -140,6 +140,9 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     {
         g0.pf = pf;
         
+        // the patches may have changed at the end of the last step (zone following the body)
+        amr_grids(p,pgc);
+        
         reefamr_comms_off guard(pgc);
         for(auto &G : gp)
         G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
@@ -545,34 +548,50 @@ void fnpf_6DOF::amr_bodies(vector<sixdof_obj*> &obj)
 
 void fnpf_6DOF::free_grid(fnpf_6DOF_grid &G)
 {
-    lexer *p = G.p;
-    const int size = p->imax*p->jmax*(p->kmax+2);
-    
-    p->del_Darray(G.psi0,size);
-    p->del_Darray(G.zero,size);
+    // the patch lexer may already be gone (regrid): plain deletes only
+    delete [] G.psi0;
+    delete [] G.zero;
     for(int m=0; m<6; ++m)
-    if(G.psi[m]!=nullptr)
-    p->del_Darray(G.psi[m],size);
+    delete [] G.psi[m];
     delete [] G.mark;
     delete G.foot; delete G.psiD; delete G.zeroslice; delete G.eta_ext; delete G.fi_ext;
     delete G.pbed;
     delete G.pvel;
 }
 
-// body grids of the patches, after the (re)gridding of fnpf_amr
+// body grids of the patches, after the (re)gridding of fnpf_amr: grids of patches that are
+// still there are kept (with their footprint state), the others are freed, new patches get a
+// grid with the body geometry of the current position
 void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
 {
     if(amr==nullptr || amr_layout==amr->layout())
     return;
     
-    for(auto &G : gp)
-    free_grid(G);
-    gp.clear();
+    vector<fnpf_6DOF_grid> old;
+    old.swap(gp);
+    vector<char> used(old.size(),0);
     
     reefamr_comms_off guard(pgc);
     
     for(int n=0; n<amr->patches(); ++n)
     {
+        const int serial = amr->patch_serial(n);
+        
+        bool found=false;
+        for(size_t k=0; k<old.size(); ++k)
+        if(!used[k] && old[k].serial==serial)
+        {
+            used[k] = 1;
+            old[k].id = n;
+            old[k].Keta = &amr->patch_tendency(n,0);
+            old[k].Kfi = &amr->patch_tendency(n,1);
+            gp.push_back(old[k]);
+            found = true;
+            break;
+        }
+        if(found)
+        continue;
+        
         fnpf_6DOF_grid G;
         lexer *pp = amr->patch_lexer(n);
         fdm_fnpf *cc = amr->patch_fdm(n);
@@ -582,6 +601,7 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
         G.c = cc;
         G.pf = amr->patch_fsf(n);
         G.id = n;
+        G.serial = serial;
         G.l0 = false;
         G.del = 0.5*fb_obj[0]->fnpf_dsm()/double(1<<amr->patch_level(n));
         
@@ -600,18 +620,25 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
         G.pvel = new fnpf_fsf_update(pp,cc,pgc);
         G.Keta = &amr->patch_tendency(n,0);
         G.Kfi = &amr->patch_tendency(n,1);
+        G.fresh = true;
         
         gp.push_back(G);
     }
+    
+    for(size_t k=0; k<old.size(); ++k)
+    if(!used[k])
+    free_grid(old[k]);
     
     amr_layout = amr->layout();
     
     if(initialized)
     for(auto &G : gp)
+    if(G.fresh)
     {
         geometry(G,pgc);
         extrapolate(G,pgc,G.c->Fi);
         amr->patch_walls_fi(G.id,G.c->Fi);
+        G.fresh = false;
     }
 }
 

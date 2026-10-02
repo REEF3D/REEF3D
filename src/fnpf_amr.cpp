@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"fnpf_amr_fill.h"
 #include"fnpf_body.h"
 #include<cmath>
+#include<algorithm>
 #include<mpi.h>
 #include<iomanip>
 #include<cstdio>
@@ -82,7 +83,7 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     q.nbuf = MAX(p->A272,0);
     q.tile = MAX(p->A275,4);
     q.tile += q.tile%2;
-    q.keep = 0;
+    q.keep = MIN(MAX(p->A280,0),250);
 
     // cells computed beyond the patch box: the free-surface derivatives (WENO5, CDS4) reach
     // three cells; the patch arrays reach EXT + margin fine cells beyond the patch, which the
@@ -120,11 +121,14 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     }
     q.ioband = 4;
 
-    // refinement around the resolved body (X 10 1): margin A 278 around the wetted hull
+    // refinement around the resolved body (X 10 1): margin A 278 around the wetted hull,
+    // rebuilt every A 271 steps so that the zone follows the body (A 271 0: static)
     q.zones = (p->X10==1 && p->A278>0);
     q.zr = p->A278_r;
     q.zL = p->A279_L;
     q.za = p->A279_a;
+    if(q.zones)
+    q.regrid = MAX(p->A271,0);
 
     configure(q);
 
@@ -275,6 +279,8 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         cout<<"FNPF AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns";
         if(vref==2)
         cout<<", sigma layers doubled on every level (A 281)";
+        if(regrid_int>0)
+        cout<<", regrid every "<<regrid_int<<" steps (A 271), the zone follows the body";
         cout<<endl;
     }
 }
@@ -282,7 +288,9 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 // --------------------------------------------------------------------- patches
 reefamr_patch* fnpf_amr::patch_new()
 {
-    return new fnpf_amr_patch;
+    fnpf_amr_patch *c = new fnpf_amr_patch;
+    c->serial = serial_next++;
+    return c;
 }
 
 // sigma grid and 3D flags of the patch, as driver::makegrid_sigma: a fluid column is fluid
@@ -432,6 +440,28 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
     delete c->pfu;
     delete c->psig;
     delete c->pf;
+
+    // fdm_fnpf has no destructor (on level 0 it lives for the whole run): its 3D arrays are
+    // freed here, otherwise every regrid that replaces a patch leaks them
+    {
+        fdm_fnpf *cc = c->c;
+        lexer *pp = c->pp;
+        const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
+
+        pp->del_Darray(cc->U,n7);
+        pp->del_Darray(cc->V,n7);
+        pp->del_Darray(cc->W,n7);
+        pp->del_Darray(cc->Fi,n7);
+        pp->del_Darray(cc->Uin,n7);
+
+        if(pp->X10>0)
+        {
+        pp->del_Darray(cc->FBF,n7);
+        pp->del_Darray(cc->FBu,n7);
+        pp->del_Darray(cc->FBv,n7);
+        pp->del_Darray(cc->FBw,n7);
+        }
+    }
     delete c->c;
 
     free_lexer3D(*c);
@@ -596,12 +626,51 @@ void fnpf_amr::regrid_static(ghostcell *pgc)
 {
 }
 
+// cells of the fresh patch c that an old patch of the same level held: fn(old patch, ii, jj,
+// io, jo) with the lexer indices on c and on the old patch (interior cells of the old patch)
+template<class F>
+void fnpf_amr::from_old(fnpf_amr_patch &c, vector<reefamr_patch*> &oldP, F fn)
+{
+    for(auto q : oldP)
+    {
+        if(q==&c || q->lev!=c.lev)
+        continue;
+
+        // kept patches are in both lists; only patches that are gone or kept can be sources,
+        // both still hold the state of the end of the step
+        const int I0 = MAX(c.I0,q->I0), I1 = MIN(c.I1,q->I1);
+        const int J0 = MAX(c.J0,q->J0), J1 = MIN(c.J1,q->J1);
+        if(I0>I1 || J0>J1)
+        continue;
+
+        fnpf_amr_patch *o = FP(q);
+        for(int I=I0; I<=I1; ++I)
+        for(int J=J0; J<=J1; ++J)
+        fn(*o, I-c.I0+EXT, J-c.J0+EXT, I-q->I0+EXT, J-q->J0+EXT);
+    }
+}
+
 // state of the new patches, coarse to fine: bed, depth and its derivatives, eta and Fifsf,
-// sigma grid, Fi and Fz from the parent level
+// sigma grid, Fi and Fz.  Where an old patch of the same level was (the zone moved with the
+// body), its values are taken over; elsewhere they are interpolated from the parent level.
+// The bed is always prolonged from the parent (static, the same values as before).
 void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 {
     Se0 = &c0->eta;
     Sf0 = &c0->Fifsf;
+
+    // the patch layout changed: rows, multigrids and the body grids are rebuilt
+    {
+        bool changed = false;
+        for(auto q : P)
+        if(q->fresh)
+        changed = true;
+        for(auto q : oldP)
+        if(std::find(P.begin(),P.end(),q)==P.end())
+        changed = true;
+        if(changed)
+        ++layout_id;
+    }
 
     auto sbed = [&](int g, int m) -> slice& { return gfd(g)->bed; };
     auto sfz  = [&](int g, int m) -> slice& { return gfd(g)->Fz; };
@@ -643,8 +712,16 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         for(int id : lev[l])
         if(P[id]->fresh)
         {
-            prolong_interior_sl(*FP(id),2,sst);
-            prolong_interior_sl(*FP(id),1,sfz);
+            fnpf_amr_patch *c = FP(id);
+            prolong_interior_sl(*c,2,sst);
+            prolong_interior_sl(*c,1,sfz);
+
+            from_old(*c,oldP,[&](fnpf_amr_patch &o, int ii, int jj, int io, int jo)
+            {
+                c->c->eta(ii,jj) = o.c->eta(io,jo);
+                c->c->Fifsf(ii,jj) = o.c->Fifsf(io,jo);
+                c->c->Fz(ii,jj) = o.c->Fz(io,jo);
+            });
         }
         fill_sl(l,2,7520+l,sst);
         fill_sl(l,1,7530+l,sfz);
@@ -685,7 +762,17 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         // Fi
         for(int id : lev[l])
         if(P[id]->fresh)
-        prolong_interior_col(*FP(id),sfi);
+        {
+            fnpf_amr_patch *c = FP(id);
+            prolong_interior_col(*c,sfi);
+
+            lexer *pp = c->pp;
+            from_old(*c,oldP,[&](fnpf_amr_patch &o, int ii, int jj, int io, int jo)
+            {
+                for(int kk=0; kk<=pp->knoz; ++kk)
+                c->c->Fi[fidx(pp,ii,jj,kk)] = o.c->Fi[fidx(o.pp,io,jo,kk)];
+            });
+        }
         fill_col(l,7540+l,sfi);
 
         for(int id : lev[l])
@@ -696,6 +783,7 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             walls_fi(*c,c->c->Fi);
             c->pfu->fsfbc_sig(c->pp,c->c,pgc,c->c->Fifsf,c->c->Fi);
             c->pbu->bedbc_sig(c->pp,c->c,pgc,c->c->Fi,c->pf);
+            c->pfu->velcalc_sig(c->pp,c->c,pgc,c->c->Fi);
         }
     }
 }
@@ -836,15 +924,28 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
 
 void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(!active())
+    if(maxlev<1)
     return;
 
+    {
     comms_off guard(pgc);
     for(auto q : P)
     {
         fnpf_amr_patch *pc = FP(q);
         pc->pbu->bedbc_sig(pc->pp,pc->c,pgc,pc->c->Fi,pc->pf);
         pc->pfu->velcalc_sig(pc->pp,pc->c,pgc,pc->c->Fi);
+    }
+    }
+
+    // the zone around the body moves: new patches every A 271 steps
+    if(regrid_int>0 && p->count%regrid_int==0)
+    {
+        double t0 = MPI_Wtime();
+        Se0 = &c0->eta;
+        Sf0 = &c0->Fifsf;
+        stg = 2;
+        regrid(p,pgc,false);
+        tm[4] += MPI_Wtime()-t0;
     }
 }
 

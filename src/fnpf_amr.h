@@ -97,6 +97,7 @@ struct fnpf_amr_patch : public reefamr_patch
     // composite Laplace
     vector<double*> kv;             // Krylov vectors, Fi layout
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
+    int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
 };
 
@@ -133,9 +134,10 @@ public:
     fnpf_fsf* patch_fsf(int n);
     slice& patch_tendency(int n, int m);
     int patch_level(int n) { return P[n]->lev; }
+    int patch_serial(int n) { return FP(n)->serial; }
     void patch_walls_fi(int n, double *f) { walls_fi(*FP(n),f); }
     int finest_at(double, double);      // local grid id whose interior holds (x,y), -1: level 0
-    int layout() const { return regrids; }
+    int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
     void lap_apply(int, int);
@@ -195,6 +197,9 @@ private:
     template<class SEL> void prolong_interior_sl(fnpf_amr_patch&, int, SEL);
     template<class SEL> void prolong_interior_col(fnpf_amr_patch&, SEL);
     void walls_sl(fnpf_amr_patch&, slice&, int);
+    template<class F> void from_old(fnpf_amr_patch&, vector<reefamr_patch*>&, F);
+    int layout_id = 0;
+    int serial_next = 0;
 
     // composite Laplace (fnpf_amr_lap.cpp)
     double* lvec(int, int);         // grid, vector (-1: the target of the solve, ltgt)
