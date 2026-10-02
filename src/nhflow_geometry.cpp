@@ -26,8 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
+#include"geo_mesh.h"
 
-nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.6)
+nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : georay(p), epsi(1.6)
 {
     forcing_flag=0;
     solid_flag=0;
@@ -35,6 +36,22 @@ nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.
     dlm_flag=0;
     
     if(p->A581>0 || p->A583>0 || p->A584>0   || p->A585>0  || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
+    {   
+    forcing_flag=1;
+    solid_flag=1;
+    }
+    
+    // solids of the grid file as immersed solids (A 580 1)
+    grid_solid_num=0;
+    grid_solid_tri=0;
+    
+    if(p->A580==1 && p->gridgeo!=nullptr)
+    {
+    grid_solid_num = p->gridgeo->count(geo_mesh::role_solid);
+    grid_solid_tri = p->gridgeo->tricount(geo_mesh::role_solid);
+    }
+    
+    if(grid_solid_num>0)
     {   
     forcing_flag=1;
     solid_flag=1;

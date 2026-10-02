@@ -29,6 +29,8 @@ Author: Hans Bihs
 
 class mooring;
 class net;
+class net_membrane;
+class slice;
 class ddweno_f_nug;
 
 using namespace std;
@@ -55,11 +57,23 @@ public:
     void initialize_cfd(lexer*, fdm*, ghostcell*);
     void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
+    // impermeable membranes (X 330, membrane.dat), NHFLOW
+    void membrane_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void membrane_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void membrane_reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
+    void membrane_pgrad(lexer*, fdm_nhf*, double, double*, double*, double*, slice&, int);
+    void membrane_attach_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&);
+    void membrane_body_nhflow(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void membraneForces_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&);
+    double membrane_addedmass_nhflow(lexer*);
+    Eigen::Matrix3d membrane_stiffness_nhflow(lexer*);
+    
     typedef vector<Eigen::Vector3d> EigenMat;
     
     
 private:
     vector<net*> pnet;
+    vector<net_membrane*> pmem;
    
     field1 kernel_x;
     field2 kernel_y;

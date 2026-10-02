@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"vrans.h"
+#include"vrans_nhflow.h"
 
 nhflow_kepsilon_func::nhflow_kepsilon_func(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_rans_io(p,d), nhflow_kepsilon_bc(p)
 {
@@ -78,7 +79,7 @@ void nhflow_kepsilon_func::ksource(lexer *p, fdm_nhf *d)
 	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 }
 
-void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans* pvrans)
+void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nhflow* pvrans)
 {
     // RANS (A560 1) and URANS (A560 21)
     // A564 0: nu_t = cmu k^2/eps
@@ -144,6 +145,9 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
     d->EV[IJK] = d->EV0[IJK];
     }
 
+    // VRANS: eddy viscosity treatment inside porous structures (B 295 2)
+    pvrans->eddyv_func(p,d);
+
     LOOP
     if(p->DF[IJK]<0)
     {
@@ -152,7 +156,7 @@ void nhflow_kepsilon_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans*
     }
 }
 
-void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
+void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 {	
     int count=0;
 
@@ -177,10 +181,11 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans* pvrans)
 	++count;
     }
     
-    //pvrans->kw_source(p,a,kin);
+    // VRANS turbulence source (B 295 1)
+    pvrans->ke_source(p,d,KIN,EPS);
 }
 
-void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
+void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 {
     count=0;
     
@@ -193,7 +198,8 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans* pvrans)
         ++count;
         }
         
-    //pvrans->omega_source(p,a,kin,eps);
+    // VRANS turbulence source (B 295 1)
+    pvrans->eps_source(p,d,KIN,EPS);
 }
 
 void nhflow_kepsilon_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)

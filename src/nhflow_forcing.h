@@ -34,6 +34,7 @@ class slice;
 class sixdof;
 class mooring;
 class fsi;
+class dem;
 class nhflow_reinidisc_fsf;
 class rodtree_coupling;
 
@@ -57,6 +58,9 @@ public:
     void reset(lexer*, fdm_nhf*, ghostcell*);
     
     double Hsolidface(lexer*, fdm_nhf*, int, int, int);
+
+    // DEM coupling, set by the NHFLOW driver
+    dem *pdem = nullptr;
     
     // DLM
     void dlm_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);

@@ -25,6 +25,7 @@ Author: Fabian Knoblauch
 #include"convection.h"
 #include"lexer.h"
 #include"gradient.h"
+#include<vector>
 
 void VOF_PLIC::updatePhasemarkers( lexer* p, fdm* a, ghostcell* pgc,field& voffield)
 {
@@ -271,11 +272,12 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
     
     pgc->start4(p,a->phasemarker,1);
 
+    markerNear(p,a,10.0,3,nearmask);
     LOOP
     {
         if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
         {   
-            if(searchMarkerInVicinity(p,a,3,10.0,i,j,k)>=1)
+            if(nearmask[((size_t)i*p->knoy+j)*p->knoz+k])
             {
                 a->phasemarker(i,j,k)=6.0;
             }
@@ -283,11 +285,12 @@ void VOF_PLIC::updatePhasemarkersCorrection( lexer* p, fdm* a, ghostcell* pgc,fi
     }
     
     pgc->start4(p,a->phasemarker,1);
+    markerNear(p,a,6.0,3,nearmask);
     LOOP
     {
         if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
         {
-            if(searchMarkerInVicinity(p,a,3,6.0,i,j,k)>=1)
+            if(nearmask[((size_t)i*p->knoy+j)*p->knoz+k])
             {
                 a->phasemarker(i,j,k)=4.0;
             }
@@ -386,3 +389,48 @@ int VOF_PLIC::searchMarkerAlongDims(lexer* p, fdm* a, int dist, double markernum
     return returnnum;
 }
 
+
+// res[(i*knoy+j)*knoz+k] = 1 if any cell within the (2d+1)^3 cube around (i,j,k) (square in 2D) carries marker m.
+// Separable box dilation: identical result to searchMarkerInVicinity(p,a,d,m,i,j,k)>=1, but O(3(2d+1)) instead of O((2d+1)^3) per cell.
+// Reads phasemarker up to d cells into the ghost layer, exactly like the direct search (requires marge>=d).
+void VOF_PLIC::markerNear(lexer* p, fdm* a, double m, int d, std::vector<char>& res)
+{
+    const int nx=p->knox, ny=p->knoy, nz=p->knoz;
+    const int dj=(p->j_dir>0)?d:0;
+    const int NY=ny+2*dj, NZ=nz+2*d;
+    std::vector<char> t1((size_t)nx*NY*NZ,0), t2((size_t)nx*ny*NZ,0);
+    res.assign((size_t)nx*ny*nz,0);
+
+    for(int ii=0;ii<nx;++ii)
+    for(int jj=-dj;jj<ny+dj;++jj)
+    for(int kk=-d;kk<nz+d;++kk)
+    {
+        char f=0;
+        for(int s=-d;s<=d && !f;++s)
+        {
+            double v=a->phasemarker(ii+s,jj,kk);
+            f=(v>m-0.1 && v<m+0.1);
+        }
+        t1[((size_t)ii*NY+(jj+dj))*NZ+(kk+d)]=f;
+    }
+
+    for(int ii=0;ii<nx;++ii)
+    for(int jj=0;jj<ny;++jj)
+    for(int kk=0;kk<NZ;++kk)
+    {
+        char f=0;
+        for(int s=-dj;s<=dj && !f;++s)
+            f=t1[((size_t)ii*NY+(jj+s+dj))*NZ+kk];
+        t2[((size_t)ii*ny+jj)*NZ+kk]=f;
+    }
+
+    for(int ii=0;ii<nx;++ii)
+    for(int jj=0;jj<ny;++jj)
+    for(int kk=0;kk<nz;++kk)
+    {
+        char f=0;
+        for(int s=-d;s<=d && !f;++s)
+            f=t2[((size_t)ii*ny+jj)*NZ+kk+s+d];
+        res[((size_t)ii*ny+jj)*nz+kk]=f;
+    }
+}

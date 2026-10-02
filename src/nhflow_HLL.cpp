@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
+#include"nhflow_membrane_beta.h"
 #include"slice.h"
 #include"patchBC_interface.h"
 #include"nhflow_reconstruct_hires.h"
@@ -227,13 +228,17 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->FEx,
                 [p,d](int i, int j, int k){return d->UHs[IJK];},
                 [p,d](int i, int j, int k){return d->UHn[IJK];},
-                [p,d](int i, int j, int k){return d->Dn(i,j) - d->Ds(i,j);});
+                [p,d](int i, int j, int k){return nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j));});
     
     if(p->j_dir==1)
     hll_sweep_y(p, d, d->FEy,
                 [p,d](int i, int j, int k){return d->VHe[IJK];},
                 [p,d](int i, int j, int k){return d->VHw[IJK];},
-                [p,d](int i, int j, int k){return d->Dw(i,j) - d->De(i,j);});
+                [p,d](int i, int j, int k){return nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j));});
+    
+    // membranes (X 330): Rhie-Chow continuity flux at faces next to membrane cells, see nhflow_membrane_beta.h
+    if(d->MBETA!=nullptr)
+    nhflow_membrane_rc_flux(p,d);
     
     LOOP
     WETDRY
@@ -316,7 +321,7 @@ void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
         denom = d->Sn[IJK]-d->Ss[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
+        d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j)))/denom;
         }
     }
     
@@ -336,7 +341,7 @@ void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
         denom = d->Sw[IJK]-d->Se[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
+        d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
     }
 }

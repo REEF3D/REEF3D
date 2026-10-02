@@ -39,7 +39,7 @@ nhflow_LES_Smagorinsky::~nhflow_LES_Smagorinsky()
 {
 }
 
-void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans *pvrans)
+void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans_nhflow *pvrans)
 {
 	LOOP
     d->EV[IJK] = pow(c_sgs,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j),2.0/3.0) * strainterm(p,d);

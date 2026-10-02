@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"waves_header.h"
+#include"fnpf_amr.h"
 
 void driver::logic_fnpf()
 {    
@@ -104,5 +105,12 @@ void driver::logic_fnpf()
         
     if(p->A310==4)
     ppfsg = new fnpf_RK4(p,c,pgc);
+    
+//  Mesh refinement
+    if(p->A270>0)
+    {
+    pfamr = new fnpf_amr(p,c,pgc);
+    ppfsg->attach_amr(pfamr);
+    }
     
 }

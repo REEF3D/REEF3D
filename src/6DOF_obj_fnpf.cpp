@@ -44,17 +44,12 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     cout<<"6DOF_fnpf_ini "<<endl;
     mkdir("./REEF3D_FNPF_6DOF",0777);
     mkdir("./REEF3D_FNPF_6DOF_STL",0777);
+    
+    if(p->X310>0)
+    mkdir("./REEF3D_FNPF_6DOF_Mooring",0777);
     }
     
-    // level-set defined objects need the NHFLOW fdm
-    if(p->X131>0 || p->X132>0 || p->X133>0 || p->X153>0)
-    {
-    if(p->mpirank==0)
-    cout<<"6DOF FNPF: only triangulated objects (box, cylinder, wedge, hexahedron, STL) are supported"<<endl;
-    
-    pgc->final();
-    exit(1);
-    }
+    // all objects are triangulated; mass, CoG and inertia from the surface triangles
     
     if(p->X320>0 && p->mpirank==0)
     cout<<"6DOF FNPF: nets (X 320) are ignored"<<endl;
@@ -93,12 +88,6 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     omega_I = R_*omega_B;
     
 	update_fbvel(p,pgc);
-    
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
     
 	// Mooring (vtk output of the lines is only written for NHFLOW/CFD)
 	if(p->X310==0)
@@ -145,6 +134,14 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 			pmooring[ii]->initialize(p,pgc);
 		}
 	}	
+    
+    // t = 0 frame of the body after the mooring set-up, so both series share the
+    // index of the initial fluid output (printcount_sixdof)
+    if(p->X50==1)
+    print_vtp(p,pgc);
+    
+    if(p->X50==2)
+    print_stl(p,pgc);
     
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xext=Yext=Zext=Kext=Mext=Next=0.0;
@@ -351,4 +348,12 @@ void sixdof_obj::print_fnpf(lexer *p, ghostcell *pgc, int iter)
     print_stl(p,pgc);
     
     print_parameter(p,pgc);
+}
+
+void sixdof_obj::print_force_fnpf(lexer *p)
+{
+    // same columns as CFD/NHFLOW; potential flow: pressure part = total, no viscous part
+    if(p->mpirank==0)
+    printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+    <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Fx<<" \t "<<Fy<<" \t "<<Fz<<" \t "<<0.0<<" \t "<<0.0<<" \t "<<0.0<<endl;
 }

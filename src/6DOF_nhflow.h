@@ -50,6 +50,10 @@ public:
     
     void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
     
+    // impermeable membranes (X 330) attached to the floating body
+    void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) override final;
+    void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) override final;
+    
     void start_twoway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
     void start_oneway(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
     void start_wavemaker(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);

@@ -71,6 +71,11 @@ public:
     void mask_update(lexer*, fdm2D*, ghostcell*, slice&);
     void source(lexer*, fdm2D*, ghostcell*, slice&);
     void invert(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&);
+    void invert_prepare(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
+    void invert_solve(lexer*, fdm2D*, solver2D*, ghostcell*);
+    
+    // rows of the line systems for u_a (p, n, s, right-hand side) and v_a (p, e, w, rhs)
+    slice4 Xp,Xn,Xs,Xr,Yp,Ye,Yw,Yr;
     void flux(lexer*, fdm2D*, ghostcell*, slice&);
     void forward(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, int);
     void save(lexer*, fdm2D*);

@@ -26,90 +26,76 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 
+// Darcy-Forchheimer resistance of the static porous structures (B 201, B 210-230).
+// The coefficients use the static-structure porosity n_s = 1 - H(1 - n), not d->POR, so that
+// porous floating bodies (X 16), which carry their own resistance, are not counted twice.
+// (1 - n_s) -> 0 outside the structure, so no additional Heaviside weighting is needed.
+void vrans_nhflow_f::porous_coeff(lexer *p, fdm_nhf *d)
+{
+    H = Hporface(p,d,0,0,0);
+    
+    porval  = 1.0 - H*(1.0 - p->B201_n);
+    Aporval = Apor(porval,p->B201_d50,p->B201_alpha,d->VISC[IJK]);
+    Bporval = Bpor(porval,p->B201_d50,p->B201_beta);
+}
+
 void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)
 {
-	// VRANS porosity
     if(p->B200>0)
     LOOP
 	{
-        H = Hporface(p,d,0,0,0);  
+        porous_coeff(p,d);
         
-        porval   = d->POR[IJK];
-        partval  = d->PORPART[IJK];
-        alphaval = APOR[IJK];
-        betaval  = BPOR[IJK];
-        viscval  = d->VISC[IJK];
-		
-        
-        Aporval = Apor(porval,partval,alphaval,viscval);
-        Bporval = Bpor(porval,partval,betaval);
-            
+        if(H<1.0e-12)
+        continue;
 
         porousterm = Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]); 
     	
-    d->Fext[IJK] -= H*WL(i,j)*porousterm;
+        d->Fext[IJK] -= WL(i,j)*porousterm;
     
-    d->maxF = MAX(fabs(d->maxF),fabs(H*WL(i,j)*porousterm));
+        d->maxF = MAX(fabs(d->maxF),fabs(WL(i,j)*porousterm));
 	}
 }
 
 void vrans_nhflow_f::v_source(lexer *p, fdm_nhf *d, slice &WL)
 {
-	// VRANS porosity
     if(p->B200>0)
     LOOP
 	{
-        H = Hporface(p,d,0,0,0);  
+        porous_coeff(p,d);
         
-        porval   = d->POR[IJK];
-        partval  = d->PORPART[IJK];
-        alphaval = APOR[IJK];
-        betaval  = BPOR[IJK];
-        viscval  = d->VISC[IJK];
-		
-        
-        Aporval = Apor(porval,partval,alphaval,viscval);
-        Bporval = Bpor(porval,partval,betaval);
-            
+        if(H<1.0e-12)
+        continue;
 
         porousterm = Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]); 
     	
-    d->Gext[IJK] -= H*WL(i,j)*porousterm;
+        d->Gext[IJK] -= WL(i,j)*porousterm;
     
-    d->maxG = MAX(fabs(d->maxG),fabs(H*WL(i,j)*porousterm));
+        d->maxG = MAX(fabs(d->maxG),fabs(WL(i,j)*porousterm));
 	}
 }
 
 void vrans_nhflow_f::w_source(lexer *p, fdm_nhf *d, slice &WL)
 {
-	// VRANS porosity
     if(p->B200>0)
     LOOP
 	{
-        H = Hporface(p,d,0,0,0);  
+        porous_coeff(p,d);
         
-        porval   = d->POR[IJK];
-        partval  = d->PORPART[IJK];
-        alphaval = APOR[IJK];
-        betaval  = BPOR[IJK];
-        viscval  = d->VISC[IJK];
-		
-        
-        Aporval = Apor(porval,partval,alphaval,viscval);
-        Bporval = Bpor(porval,partval,betaval);
-            
+        if(H<1.0e-12)
+        continue;
 
         porousterm = Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]); 
     	
-    d->Hext[IJK] -= H*WL(i,j)*porousterm;
+        d->Hext[IJK] -= WL(i,j)*porousterm;
     
-    d->maxH = MAX(fabs(d->maxH),fabs(H*WL(i,j)*porousterm));
+        d->maxH = MAX(fabs(d->maxH),fabs(WL(i,j)*porousterm));
 	}
 }
 
 double vrans_nhflow_f::Apor(double por, double part, double alpha, double visc)
 {
-	val = alpha*(pow(1.0-por,2.0)/pow(por,3.0))*(viscval/pow(part,2.0));
+	val = alpha*(pow(1.0-por,2.0)/pow(por,3.0))*(visc/pow(part,2.0));
     
     if(val!=val)
     val=0.0;

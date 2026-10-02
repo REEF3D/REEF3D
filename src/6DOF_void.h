@@ -50,6 +50,9 @@ public:
     
     void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {};
     
+    void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) override final;
+    void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) override final;
+    
 	void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
     void initialize(lexer*, fdm2D*, ghostcell*) override final;

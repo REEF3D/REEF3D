@@ -236,3 +236,16 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         }*/
     }
 }
+
+void sixdof_nhflow::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
+                                            double *UH, double *VH, double *WH, slice &WL)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->membrane_forcing_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+void sixdof_nhflow::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+}

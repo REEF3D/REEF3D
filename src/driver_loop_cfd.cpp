@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
  #include"driver.h"
+#include"dem.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -91,6 +92,7 @@ void driver::loop_cfd(fdm* a)
         pflow->v_relax(p,a,pgc,a->v);
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
+        pdem->start_cfd(p,a,pgc);
         pmom->start(p,a,pgc,pvrans,p6dof); 
         pbench->start(p,a,pgc,pconvec);
 		

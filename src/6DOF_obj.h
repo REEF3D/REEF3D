@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_H_
 
 #include"ddweno_f_nug.h"
+#include<functional>
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -34,6 +35,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"slice4.h"
 #include"sliceint5.h"
 #include"vtp3D.h"
+#include"geo_raycast.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -92,6 +94,13 @@ public:
                                            double*, double*, double*, slice&, int, bool);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     
+    // impermeable membranes (X 330) attached to the body: kinematics and forcing before the projection, loads after it
+    void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
+    void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
+    void membrane_stabilisation(lexer*,int);
+    Eigen::Vector3d umem_n_=Eigen::Vector3d::Zero(), amem_n_=Eigen::Vector3d::Zero();
+    double tmem_n_=-1.0;
+    
     // porous floating body (X 16)
     void update_forcing_nhflow_porous(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int);
     void porosity_nhflow(lexer*, fdm_nhf*, ghostcell*);
@@ -132,7 +141,16 @@ public:
     void ray_cast_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, slice&);
     void face_data_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, double*, double*, double*, double*);
     void forces_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double**, bool);
+    // forces_fnpf in two parts for several grids (FNPF mesh refinement): the hull triangles
+    // whose centroid own(x,y) accepts are integrated on grid (p,c) with the sampling distance
+    // del, then the sums are reduced and stored
+    struct fnpf_force_sum { double F[3], Mo[3], Am[36], Atot; };
+    void forces_fnpf_zero(lexer*, fnpf_force_sum&);
+    void forces_fnpf_sum(lexer*, fdm_fnpf*, double*, double**, bool, double, const std::function<bool(double,double)>*, fnpf_force_sum&);
+    void forces_fnpf_set(lexer*, ghostcell*, fnpf_force_sum&, bool);
+    double fnpf_dsm() const {return DSM;}
     bool fnpf_fixed(lexer*);
+    void print_force_fnpf(lexer*);
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
@@ -161,6 +179,7 @@ private:
     void objects_create(lexer*, ghostcell*);
     void objects_allocate(lexer*, ghostcell*);
 	void geometry_refinement(lexer*,ghostcell*);
+	void geometry_remesh(lexer*,ghostcell*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
 	void box(lexer*, ghostcell*,int);
 	void cylinder_x(lexer*, ghostcell*,int);
@@ -223,15 +242,9 @@ private:
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    
-   // ray cast 3D
+   // ray cast 3D: geometry core kernels
     void ray_cast(lexer*, fdm*, ghostcell*);
-	void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_io_zcorr(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_direct(lexer*, fdm*, ghostcell*,int,int);
+    geo_raycast georay;
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
     // Raycast 3D
@@ -256,19 +269,8 @@ private:
     int reiniter;
     
     
-    // ray cast NHFLOW
+    // ray cast NHFLOW: geometry core kernels
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    void ray_cast_io_x(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_io_ycorr(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_io_zcorr(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
-    double dist2_tri(const double,const double,const double,
-                 const double,const double,const double,
-                 const double,const double,const double,
-                 const double,const double,const double);
     int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double,
                          double,double*,double*,double*);
     

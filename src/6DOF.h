@@ -44,6 +44,10 @@ public:
     
     virtual void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     
+    // impermeable membranes (X 330): implicit forcing before the projection, loads after it
+    virtual void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
+    virtual void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) {};
+    
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;

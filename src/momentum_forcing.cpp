@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"FSI.h"
 #include"rodtree_coupling.h"
+#include"dem.h"
 
 momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr)
 {
@@ -107,6 +108,10 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         }
         
         p->fbtime+=pgc->timer()-starttime;
+
+        // DEM: resolved particle forcing and unresolved momentum source
+        if(pdem!=nullptr)
+        pdem->forcing_cfd(p,a,pgc,iter,alpha,u,v,w,final);
         
         
     // ghostcell update

@@ -194,7 +194,7 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     pnhfsuspdiff = new nhflow_idiff_2D(p);
     
 	if(p->S12>0)
-	pnhfsuspdisc= new nhflow_scalar_ifou(p);
+	pnhfsuspdisc= new nhflow_scalar_ifou(p,1);   // advective form, used with omegaF-based WVEL
     
     if(p->S12>0)
     pnhfsusp = new nhflow_suspended_IM1(p);

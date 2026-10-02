@@ -138,6 +138,17 @@ void sixdof_void::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter,
     }
 }
 
+void sixdof_void::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
+                                          double *UH, double *VH, double *WH, slice &WL)
+{
+    pnetinter->membrane_forcing_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+void sixdof_void::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
+{
+    pnetinter->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+}
+
 void sixdof_void::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
     

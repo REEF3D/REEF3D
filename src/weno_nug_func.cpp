@@ -28,12 +28,24 @@ weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct
     own_tables=0;
     own_nx=own_ny=own_nz=0;
     
+    // the shared tables belong to the first lexer (the rank grid); an instance on another
+    // grid (a mesh refinement patch) builds its own
+    if(iniflag==1 && p!=s_lexer)
+    own_ini(p);
+    else
     ini(p);
 
     weno_nug_func::p=p;
 }
 
 weno_nug_func::weno_nug_func(lexer* p, int):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
+{
+    own_ini(p);
+
+    weno_nug_func::p=p;
+}
+
+void weno_nug_func::own_ini(lexer* p)
 {
     own_tables=1;
     own_nx=p->knox+8;
@@ -55,8 +67,6 @@ weno_nug_func::weno_nug_func(lexer* p, int):epsilon(0.0),psi(1.0e-6),wtype(0),te
     precalc_qf(p);
     precalc_cf(p);
     precalc_isf(p);
-
-    weno_nug_func::p=p;
 }
 
 weno_nug_func::~weno_nug_func()
@@ -104,7 +114,8 @@ void weno_nug_func::ini(lexer* p)
     precalc_cf(p);
     precalc_isf(p);
                
-    iniflag=1;    
+    iniflag=1;
+    s_lexer=p;    
     }              
                       
 }
@@ -129,3 +140,4 @@ double ****weno_nug_func::s_qfx,****weno_nug_func::s_qfy,****weno_nug_func::s_qf
 double ***weno_nug_func::s_cfx,***weno_nug_func::s_cfy,***weno_nug_func::s_cfz;
 double ****weno_nug_func::s_isfx,****weno_nug_func::s_isfy,****weno_nug_func::s_isfz;
 int weno_nug_func::iniflag(0);
+lexer *weno_nug_func::s_lexer(nullptr);

@@ -27,53 +27,53 @@ Author: Hans Bihs
 
 void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, int val)
 {
+    double rho,cmval;
+    
     Fx=Fy=Fz=0.0;
     
     FLOOP
     P[FIJK] = (p->wd + d->eta(i,j) - p->ZSN[FIJK])*p->W1*fabs(p->W22) + d->P[FIJK];
     
-    // VRANS force
+    // VRANS force on the static structures
+    // F = sum dV [ rho (A u + B |u| u) + rho c du/dt - (1 - n_s) grad p ],  c = gamma (1-n_s)/n_s^2
+    // all terms vanish with (1 - n_s) outside the structure
     if(p->B200>0)
     LOOP
 	{
-        H = Hporface(p,d,0,0,0);  
+        porous_coeff(p,d);
         
-        porval   = d->POR[IJK];
-        partval  = d->PORPART[IJK];
-        alphaval = APOR[IJK];
-        betaval  = BPOR[IJK];
-        viscval  = d->VISC[IJK];
-		
-        
-        Aporval = Apor(porval,partval,alphaval,viscval);
-        Bporval = Bpor(porval,partval,betaval);
+        if(H<1.0e-12)
+        continue;
         
         dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*p->WL[IJ];
-            
-
-        Fx += dV*H*(Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]) 
         
-                + d->RO[IJK]*p->B260*(d->U[IJK]-UN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
+        rho = d->RO[IJK];
+        
+        cmval = p->B260*(1.0-porval)/(porval*porval);
+        
+        Fx += dV*(rho*(Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]))
+        
+                + rho*cmval*(d->U[IJK]-UN[IJK])/(alpha*p->dt)*cmfac
                 
-                - (1.0-PORVALNH)*(((0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
+                - (1.0-porval)*(((0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
                 
                 + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
         
         
-        Fy += dV*H*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK])
+        Fy += dV*(rho*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]))
         
-                + d->RO[IJK]*p->B260*(d->V[IJK]-VN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
+                + rho*cmval*(d->V[IJK]-VN[IJK])/(alpha*p->dt)*cmfac
                 
-                + (1.0-PORVALNH)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
+                - (1.0-porval)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
                 
                 + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
         
         
-        Fz += dV*H*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK])
+        Fz += dV*(rho*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]))
         
-                + d->RO[IJK]*p->B260*(d->W[IJK]-WN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
+                + rho*cmval*(d->W[IJK]-WN[IJK])/(alpha*p->dt)*cmfac
                 
-                - (1.0-PORVALNH)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
+                - (1.0-porval)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
 	}
     
     Fx = pgc->globalsum(Fx);

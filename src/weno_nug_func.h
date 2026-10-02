@@ -387,6 +387,8 @@ public:
     static double ****s_isfx,****s_isfy,****s_isfz;
     
 	static int iniflag;
+    static lexer *s_lexer;          // the lexer the shared tables were built for
+    void own_ini(lexer*);
     int own_tables, own_nx, own_ny, own_nz;
     
     

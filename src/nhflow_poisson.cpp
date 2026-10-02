@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_poisson.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_membrane_beta.h"
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
@@ -31,6 +32,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 #include"vrans.h"
+#include"vrans_definitions.h"
 
 nhflow_poisson::nhflow_poisson(lexer *p) 
 {
@@ -43,6 +45,7 @@ nhflow_poisson::~nhflow_poisson()
 void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 {	
     double ab,denom;
+    double cP,cN,cS,cW,cE,cT,cB;
     
     n=0;
     FBASELOOP
@@ -66,37 +69,58 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 	{
         WETDRYDEEP
         {
+            const double rhs0 = d->rhsvec.V[n];
+            
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
             
-            d->M.p[n]  =  (1.0)/(p->W1*p->DXP[IP]*p->DXN[IP])
-                        + (1.0)/(p->W1*p->DXP[IM1]*p->DXN[IP])
+            // VRANS: variable-coefficient operator div(C grad p) with C = CPORNH, the same factor
+            // that scales the momentum predictor (ucorr/vcorr/wcorr use it too).
+            // Without porosity C = 1 exactly and the operator is unchanged.
+            cP = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[IJKm1]));
+            cN = 0.5*(cP + 0.5*(CPORNHval(d->POR[Ip1JK]) + CPORNHval(d->POR[Ip1JKm1])));
+            cS = 0.5*(cP + 0.5*(CPORNHval(d->POR[Im1JK]) + CPORNHval(d->POR[Im1JKm1])));
+            cW = 0.5*(cP + 0.5*(CPORNHval(d->POR[IJp1K]) + CPORNHval(d->POR[IJp1Km1])));
+            cE = 0.5*(cP + 0.5*(CPORNHval(d->POR[IJm1K]) + CPORNHval(d->POR[IJm1Km1])));
+            cT = CPORNHval(d->POR[IJK]);
+            cB = CPORNHval(d->POR[IJKm1]);
+            
+            d->M.p[n]  =  cN/(p->W1*p->DXP[IP]*p->DXN[IP])
+                        + cS/(p->W1*p->DXP[IM1]*p->DXN[IP])
                         
-                        + (1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
+                        + cW/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
+                        + cE/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + (sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + (sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
+                        + cT*(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])
+                        + cB*(sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
 
 
-            d->M.n[n] = -(1.0)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -(1.0)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
+            d->M.n[n] = -cN/(p->W1*p->DXP[IP]*p->DXN[IP]);
+            d->M.s[n] = -cS/(p->W1*p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.w[n] = -(1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -(1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            d->M.w[n] = -cW/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
+            d->M.e[n] = -cE/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.t[n] = - cT*sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])     
+                        - cP*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
                         
-            d->M.b[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.b[n] = - cB*sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
+                        + cP*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-            d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
+            d->rhsvec.V[n] += cP*(2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
                             /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
                             + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
-                            /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                            /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir);
+            
+            // impermeable membranes (X 330): reduced mobility in the membrane layer
+            if(d->MBETA!=nullptr)
+            nhflow_membrane_row(p,d,i,j,k,n,
+                                - cT*sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP]),
+                                - cB*sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]),
+                                cP*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1])),
+                                rhs0);
         }
         
         if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)

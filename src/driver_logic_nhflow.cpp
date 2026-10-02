@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"nhflow_header.h"
 #include"6DOF_void.h"
 #include"6DOF_nhflow.h"
+#include"dem_header.h"
 
 void driver::logic_nhflow()
 {    
@@ -219,6 +220,14 @@ void driver::logic_nhflow()
     
     if(p->X10>0)
     p6dof = new sixdof_nhflow(p,pgc);
+
+// DEM
+    if(p->E10>0)
+    pdem = new dem_f(p,pgc);
+    else
+    pdem = new dem_void();
+
+    pnhfdf->pdem = pdem;
     
 // Sediment
     if(p->S10==0)

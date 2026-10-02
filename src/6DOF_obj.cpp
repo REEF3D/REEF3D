@@ -36,7 +36,7 @@ Authors: Tobias Martin, Hans Bihs
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
                                                                                 f(p), frk1(p), cutl(p), cutr(p), 
-                                                                                fbio(p),n6DOF(number),
+                                                                                fbio(p),georay(p),n6DOF(number),
                                                                                 epsifb(1.6*p->DXM), epsi(1.6),vertice(p),
                                                                                 nodeflag(p),interfac(1.6),zero(0.0),eta(p),
                                                                                 lrk1(p),lrk2(p),K(p),dts(p),

@@ -32,6 +32,7 @@ Authors: Tobias Martin, Fabian Knoblauch
 #include"field3.h"
 #include"field4.h"
 #include"interpolation.h"
+#include<vector>
 
 class picard_f;
 class heat;
@@ -101,6 +102,8 @@ private:
     void calcNormalMYC2D_V3(fdm*,lexer*, field&);
     int searchMarkerInVicinity(lexer*,fdm*,int,double,int,int,int);
     int searchMarkerAlongDims(lexer*,fdm*,int,double,int,int,int);
+    void markerNear(lexer*,fdm*,double,int,std::vector<char>&);
+    std::vector<char> nearmask;
     double twoStepVel(lexer*,fdm*,double,double,double);
     
     //COSMICC 3D Subfunctions

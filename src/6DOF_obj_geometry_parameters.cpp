@@ -128,9 +128,16 @@ void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
             }
         }
 
-		integ[1] *= Rfb/24.0;
-		integ[2] *= Rfb/24.0;
-		integ[3] *= Rfb/24.0;
+        // density of the triangulation that is integrated: identical to Rfb when Vfb was
+        // computed from the same triangles (X 180 0, X 185 1-3), but for a remeshed STL
+        // (X 185 4) the enclosed volume differs slightly from the STL volume Vfb. Scaling
+        // with Rfb would then scale the CoG and inertia about the coordinate origin.
+        const double Vtri = integ[0]/6.0;
+        const double Rint = fabs(Vtri)>1.0e-20 ? Mass_fb/Vtri : Rfb;
+        
+		integ[1] *= Rint/24.0;
+		integ[2] *= Rint/24.0;
+		integ[3] *= Rint/24.0;
 
 		c_(0) = integ[1]/Mass_fb;
 		c_(1) = integ[2]/Mass_fb;
@@ -157,12 +164,12 @@ void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 		}
 		else
 		{
-			integ[4] *= Rfb/60.0;
-			integ[5] *= Rfb/60.0;
-			integ[6] *= Rfb/60.0;
-			integ[7] *= Rfb/120.0;
-			integ[8] *= Rfb/120.0;
-			integ[9] *= Rfb/120.0;
+			integ[4] *= Rint/60.0;
+			integ[5] *= Rint/60.0;
+			integ[6] *= Rint/60.0;
+			integ[7] *= Rint/120.0;
+			integ[8] *= Rint/120.0;
+			integ[9] *= Rint/120.0;
 		
 			Ix = integ[5] + integ[6] - Mass_fb*(c_(1)*c_(1) + c_(2)*c_(2));
 			Iy = integ[4] + integ[6] - Mass_fb*(c_(2)*c_(2) + c_(0)*c_(0));
@@ -209,7 +216,9 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     
     I_ = Eigen::Matrix3d::Zero();
 
-	if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0)
+	// level-set integration needs the NHFLOW fdm; FNPF (d==nullptr) integrates the
+	// surface triangles for every object
+	if ((p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0) && d!=nullptr)
 	{
 		geometry_ls_nhflow(p,d,pgc);
 	}	
@@ -303,9 +312,16 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
             }
         }
 
-		integ[1] *= Rfb/24.0;
-		integ[2] *= Rfb/24.0;
-		integ[3] *= Rfb/24.0;
+        // density of the triangulation that is integrated: identical to Rfb when Vfb was
+        // computed from the same triangles (X 180 0, X 185 1-3), but for a remeshed STL
+        // (X 185 4) the enclosed volume differs slightly from the STL volume Vfb. Scaling
+        // with Rfb would then scale the CoG and inertia about the coordinate origin.
+        const double Vtri = integ[0]/6.0;
+        const double Rint = fabs(Vtri)>1.0e-20 ? Mass_fb/Vtri : Rfb;
+        
+		integ[1] *= Rint/24.0;
+		integ[2] *= Rint/24.0;
+		integ[3] *= Rint/24.0;
 
 		c_(0) = integ[1]/Mass_fb;
 		c_(1) = integ[2]/Mass_fb;
@@ -332,12 +348,12 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 		}
 		else
 		{
-			integ[4] *= Rfb/60.0;
-			integ[5] *= Rfb/60.0;
-			integ[6] *= Rfb/60.0;
-			integ[7] *= Rfb/120.0;
-			integ[8] *= Rfb/120.0;
-			integ[9] *= Rfb/120.0;
+			integ[4] *= Rint/60.0;
+			integ[5] *= Rint/60.0;
+			integ[6] *= Rint/60.0;
+			integ[7] *= Rint/120.0;
+			integ[8] *= Rint/120.0;
+			integ[9] *= Rint/120.0;
 		
 			Ix = integ[5] + integ[6] - Mass_fb*(c_(1)*c_(1) + c_(2)*c_(2));
 			Iy = integ[4] + integ[6] - Mass_fb*(c_(2)*c_(2) + c_(0)*c_(0));

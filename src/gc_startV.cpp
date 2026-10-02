@@ -435,6 +435,11 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     if(p->B60==1)
         outflow=2;
 
+    // waves on a current with relaxation wave generation (B 98 2, B 60 1): the relaxation zone
+    // prescribes the velocity, the inflow ghost cells take it over (zero gradient) as without current
+    if(p->B98==2 && p->B60==1)
+        inflow=0;
+
     starttime=timer();
     GCBL_LOOP(gcbl4,4)
     {

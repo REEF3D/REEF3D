@@ -28,15 +28,16 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"vec2D.h"
 #include"matrix2D.h"
-#include"sflow_pjm_lin.h"
+#include"sflow_pressure_nh.h"
 #include"sflow_momentum_RK3.h"
 #include"reefmg_core.h"
 #include"reefmg2D.h"
+#include"reefamr_krylov.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
 
-//  Composite non-hydrostatic pressure (sflow_pjm_lin, A 220 1) on level 0 and the patches.
+//  Composite non-hydrostatic pressure (sflow_pjm_lin A 220 1, sflow_pjm_quad A 220 2/3) on level 0 and the patches.
 //
 //  Every grid assembles its own rows with sflow_pjm_lin (level 0 before the call, the patches
 //  in nh_prepare).  The unknowns are the leaf cells: level-0 and patch cells not covered by a
@@ -57,16 +58,11 @@ namespace
 {
 inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); }
 
-struct comms_off
-{
-    ghostcell *g;
-    bool old;
-    comms_off(ghostcell *gg) : g(gg) { old = g->set_comms(false); }
-    ~comms_off() { g->set_comms(old); }
-};
+typedef reefamr_comms_off comms_off;
 
-// Krylov vectors per grid
-enum { NR=0, NRH, NPV, NVV, NS, NT, NPH, NSH, NTMP, NVEC };
+// Krylov vectors per grid (reefamr_krylov.h)
+enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
+       NPH=REEFAMR_NPH, NSH=REEFAMR_NSH, NTMP=REEFAMR_NTMP, NVEC=REEFAMR_NVEC };
 
 // patch-local passes per level in the preconditioner: with one pass each patch corrects
 // against the coarse interpolation only, and the iteration count grows with the number of
@@ -83,7 +79,7 @@ sflow_amr::nhg sflow_amr::nh_grid(int g)
         r.q = p0; r.b = b0; r.act = &nh0_act; r.row = &nh0_row; r.v = &nh0_v;
         return r;
     }
-    sflow_amr_patch *c = P[g];
+    sflow_amr_patch *c = SP(g);
     r.q = c->pp; r.b = c->b; r.act = &c->act; r.row = &c->row; r.v = &c->nv;
     return r;
 }
@@ -91,9 +87,9 @@ sflow_amr::nhg sflow_amr::nh_grid(int g)
 slice& sflow_amr::nh_vec(int g, int k)
 {
     if(k<0)
-    return (g<0) ? b0->press : P[g]->b->press;
+    return (g<0) ? b0->press : SP(g)->b->press;
 
-    return (g<0) ? *nh0_v[k] : *P[g]->nv[k];
+    return (g<0) ? *nh0_v[k] : *SP(g)->nv[k];
 }
 
 // rows, activity and the patch multigrids of this solve
@@ -114,14 +110,15 @@ void sflow_amr::nh_prepare(ghostcell *pgc)
     {
     comms_off guard(pgc);
 
-    for(auto c : P)
+    for(auto q : P)
     {
+        sflow_amr_patch *c = SP(q);
         if(c->nv.empty())
         for(int k=0; k<NVEC; ++k)
         c->nv.push_back(new slice4(c->pp));
 
         // the patch rows (right-hand side from the state after the momentum update)
-        c->pnh->assemble(c->pp,c->b,*c->pmom->nhWL,c->pmom->nh_alpha);
+        c->pnh->assemble(c->pp,c->b,pgc,*c->pmom->nhUH,*c->pmom->nhVH,*c->pmom->nhWL,*c->pmom->nhUn,*c->pmom->nhVn,c->pmom->nh_alpha);
     }
     }
 
@@ -172,7 +169,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc)
     // patch multigrids: the patch rows with q = 0 at the patch edge
     for(int n=0; n<(int)P.size(); ++n)
     {
-        sflow_amr_patch *c = P[n];
+        sflow_amr_patch *c = SP(n);
         lexer *pp = c->pp;
         matrix2D &M = c->b->M;
 
@@ -239,7 +236,7 @@ void sflow_amr::nh_restrict_vec(int k)
     for(int l=maxlev; l>=1; --l)
     for(int n : lev[l])
     {
-        sflow_amr_patch *c = P[n];
+        sflow_amr_patch *c = SP(n);
         slice &x = nh_vec(n,k);
         const int nby = c->ny/2;
 
@@ -258,7 +255,7 @@ void sflow_amr::nh_restrict_vec(int k)
 }
 
 // value of a filled cell: sibling copy or linear interpolation of the coarser level
-double sflow_amr::nh_eval(const sflow_amr_fill &f, int k)
+double sflow_amr::nh_eval(const reefamr_fill &f, int k)
 {
     if(f.kind==0)
     return nh_vec(f.g,k)(f.si,f.sj);
@@ -266,7 +263,7 @@ double sflow_amr::nh_eval(const sflow_amr_fill &f, int k)
     if(f.kind==1)
     {
         slice &x = nh_vec(f.g,k);
-        lexer *q = (f.g<0) ? p0 : P[f.g]->pp;
+        lexer *q = glex(f.g);
         const int ic=f.si, jc=f.sj;
         const double x0 = x(ic,jc);
 
@@ -281,30 +278,9 @@ double sflow_amr::nh_eval(const sflow_amr_fill &f, int k)
 // cells of the level-l patches outside their interior
 void sflow_amr::nh_qfill(int l, int k)
 {
-    sflow_amr_xplan &X = gplan[l];
-
-    for(size_t kk=0; kk<X.speer.size(); ++kk)
-    {
-        vector<double> &sb = X.sbuf[kk];
-        sb.resize(X.sitem[kk].size());
-        for(size_t m=0; m<X.sitem[kk].size(); ++m)
-        sb[m] = nh_eval(gserve[l][X.sitem[kk][m]],k);
-    }
-
-    xrun(X,1,7300+l);
-
-    for(int n : lev[l])
-    {
-        sflow_amr_patch *c = P[n];
-        slice &x = nh_vec(n,k);
-        for(auto &f : c->fill)
-        {
-            if(f.kind==2)
-            x(f.di,f.dj) = X.rbuf[f.si][f.slot];
-            else
-            x(f.di,f.dj) = nh_eval(f,k);
-        }
-    }
+    fill_run(l,1,7300+l,
+             [&](const reefamr_fill &f, double *v) { v[0] = nh_eval(f,k); },
+             [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { nh_vec(n,k)(f.di,f.dj) = w[0]; });
 }
 
 void sflow_amr::nh_sync(int k)
@@ -329,7 +305,7 @@ void sflow_amr::nh_apply(int kx, int ky)
     // fine face gradients on the patch edges
     for(int n=0; n<(int)P.size(); ++n)
     {
-        sflow_amr_patch *c = P[n];
+        sflow_amr_patch *c = SP(n);
         lexer *pp = c->pp;
         slice &x = nh_vec(n,kx);
         const int il=EXT-1, ih=EXT+c->nx-1, jl=EXT-1, jh=EXT+c->ny-1;
@@ -353,33 +329,13 @@ void sflow_amr::nh_apply(int kx, int ky)
 
     // across partition edges
     for(int l=1; l<=maxlev; ++l)
-    {
-        sflow_amr_xplan &F = fplan[l];
-        for(size_t k=0; k<F.speer.size(); ++k)
-        {
-            vector<double> &sb = F.sbuf[k];
-            sb.resize(F.sitem[k].size());
-            for(size_t m=0; m<F.sitem[k].size(); ++m)
-            {
-                int it = F.sitem[k][m];
-                sflow_amr_patch *c = P[fsend[l][3*it]];
-                int side = fsend[l][3*it+1], r = fsend[l][3*it+2];
-                sb[m] = 0.5*(c->qrec[side][r]+c->qrec[side][r+1]);
-            }
-        }
-
-        xrun(F,1,7400+l);
-
-        size_t it=0;
-        for(size_t k=0; k<F.rpeer.size(); ++k)
-        for(int m=0; m<F.rcount[k]; ++m)
-        {
-            int tgt = frecv[l][2*it], idx = frecv[l][2*it+1];
-            if(tgt>=0)
-            rmatch[tgt][idx].val[5] = F.rbuf[k][m];
-            ++it;
-        }
-    }
+    face_run(l,1,7400+l,
+             [&](reefamr_patch *q, int side, int r, double *sb)
+             {
+                 sflow_amr_patch *c = SP(q);
+                 sb[0] = 0.5*(c->qrec[side][r]+c->qrec[side][r+1]);
+             },
+             [&](reefamr_match &m, const double *v) { m.val[5] = v[0]; });
 
     // rows
     for(int g=-1; g<(int)P.size(); ++g)
@@ -410,7 +366,7 @@ void sflow_amr::nh_apply(int kx, int ky)
         }
 
         // coarse faces next to finer patches: the fine face gradients replace the coarse one
-        auto over = [&](const sflow_amr_match &m, double gf)
+        auto over = [&](const reefamr_match &m, double gf)
         {
             int ii = m.fi + (m.side==1 ? 1 : 0);
             int jj = m.fj + (m.side==3 ? 1 : 0);
@@ -427,7 +383,7 @@ void sflow_amr::nh_apply(int kx, int ky)
 
         for(auto &m : match[g+1])
         {
-            sflow_amr_patch *c = P[m.child];
+            sflow_amr_patch *c = SP(m.child);
             over(m,0.5*(c->qrec[m.side][m.r]+c->qrec[m.side][m.r+1]));
         }
         for(auto &m : rmatch[g+1])
@@ -487,7 +443,7 @@ void sflow_amr::nh_prec(int kr, int kz)
         // coarse correction interpolated into the patch interior, then the cells around it
         for(int n : lev[l])
         {
-            sflow_amr_patch *c = P[n];
+            sflow_amr_patch *c = SP(n);
             slice &z = nh_vec(n,kz);
             const int nby = c->ny/2;
 
@@ -505,7 +461,7 @@ void sflow_amr::nh_prec(int kr, int kz)
                         z(ii,jj) = 0.0;
                         continue;
                     }
-                    sflow_amr_fill f;
+                    reefamr_fill f;
                     f.kind=1; f.g=g; f.si=c->ric[kk]; f.sj=c->rjc[kk];
                     f.ox = a==0 ? -1 : 1; f.oy = d==0 ? -1 : 1;
                     z(ii,jj) = nh_eval(f,kz);
@@ -525,7 +481,7 @@ void sflow_amr::nh_prec(int kr, int kz)
 
         for(int n : lev[l])
         {
-            sflow_amr_patch *c = P[n];
+            sflow_amr_patch *c = SP(n);
             lexer *pp = c->pp;
             matrix2D &M = c->b->M;
             slice &z = nh_vec(n,kz);
@@ -581,43 +537,32 @@ void sflow_amr::nh_prec(int kr, int kz)
     }
 }
 
-void sflow_amr::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)
+// fn(g, grid, ii, jj, cell) on the rows of all grids (leaf and covered cells)
+template<class F>
+void sflow_amr::nh_each(F fn)
 {
-    const double t0 = MPI_Wtime();
-    nh_prepare(pgc);
-
-    auto each = [&](auto fn)
+    for(int g=-1; g<(int)P.size(); ++g)
     {
-        for(int g=-1; g<(int)P.size(); ++g)
+        nhg G = nh_grid(g);
+        lexer *q = G.q;
+        int i0,i1,j0,j1;
+        if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+
+        for(int ii=i0; ii<=i1; ++ii)
+        for(int jj=j0; jj<=j1; ++jj)
         {
-            nhg G = nh_grid(g);
-            lexer *q = G.q;
-            int i0,i1,j0,j1;
-            if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-            else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
-
-            for(int ii=i0; ii<=i1; ++ii)
-            for(int jj=j0; jj<=j1; ++jj)
-            {
-                int c = lij(q,ii,jj);
-                if((*G.act)[c]>=-1)
-                fn(g,G,ii,jj,c);
-            }
+            int c = lij(q,ii,jj);
+            if((*G.act)[c]>=-1)
+            fn(g,G,ii,jj,c);
         }
-    };
+    }
+}
 
-    // right-hand side into NS (temporarily), q = 0 rows start at 0
-    each([&](int g, nhg &G, int ii, int jj, int c)
-    {
-        int a = (*G.act)[c];
-        nh_vec(g,NS)(ii,jj) = (a>=0) ? G.b->rhsvec.V[(*G.row)[c]] : 0.0;
-        if(a==0)
-        nh_vec(g,-1)(ii,jj) = 0.0;
-    });
-
-    // BiCGStab, right preconditioned; initial guess: the previous pressure
-    nh_apply(-1,NVV);
-    each([&](int g, nhg &G, int ii, int jj, int c)
+// vector space of reefamr_bicgstab
+void sflow_amr::op_start()
+{
+    nh_each([&](int g, nhg &G, int ii, int jj, int c)
     {
         double r = ((*G.act)[c]>=0) ? nh_vec(g,NS)(ii,jj) - nh_vec(g,NVV)(ii,jj) : 0.0;
         nh_vec(g,NR)(ii,jj) = r;
@@ -625,57 +570,72 @@ void sflow_amr::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &V
         nh_vec(g,NPV)(ii,jj) = 0.0;
         nh_vec(g,NVV)(ii,jj) = 0.0;
     });
+}
 
-    double bn = sqrt(nh_dot(NS,NS));
-    double rn = sqrt(nh_dot(NR,NR));
-    double rho=1.0, alp=1.0, om=1.0;
-    int it=0;
-
-    if(bn>0.0)
-    while(rn/bn>p->N44 && it<p->N46)
+void sflow_amr::op_p(double beta, double om)
+{
+    nh_each([&](int g, nhg &G, int ii, int jj, int c)
     {
-        double rhon = nh_dot(NRH,NR);
-        double beta = (rhon/rho)*(alp/om);
-        rho = rhon;
+        nh_vec(g,NPV)(ii,jj) = nh_vec(g,NR)(ii,jj) + beta*(nh_vec(g,NPV)(ii,jj) - om*nh_vec(g,NVV)(ii,jj));
+    });
+}
 
-        each([&](int g, nhg &G, int ii, int jj, int c)
-        {
-            nh_vec(g,NPV)(ii,jj) = nh_vec(g,NR)(ii,jj) + beta*(nh_vec(g,NPV)(ii,jj) - om*nh_vec(g,NVV)(ii,jj));
-        });
+void sflow_amr::op_s(double alp)
+{
+    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    {
+        nh_vec(g,NS)(ii,jj) = nh_vec(g,NR)(ii,jj) - alp*nh_vec(g,NVV)(ii,jj);
+    });
+}
 
-        double ta = MPI_Wtime();
-        nh_prec(NPV,NPH);
-        double tb = MPI_Wtime();
-        nh_apply(NPH,NVV);
-        tm[6] += tb-ta;
-        tm[7] += MPI_Wtime()-tb;
-        alp = rho/nh_dot(NRH,NVV);
+void sflow_amr::op_x(double alp, double om)
+{
+    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    {
+        if((*G.act)[c]<0)
+        return;
+        nh_vec(g,-1)(ii,jj) += alp*nh_vec(g,NPH)(ii,jj) + om*nh_vec(g,NSH)(ii,jj);
+        nh_vec(g,NR)(ii,jj) = nh_vec(g,NS)(ii,jj) - om*nh_vec(g,NT)(ii,jj);
+    });
+}
 
-        each([&](int g, nhg &G, int ii, int jj, int c)
-        {
-            nh_vec(g,NS)(ii,jj) = nh_vec(g,NR)(ii,jj) - alp*nh_vec(g,NVV)(ii,jj);
-        });
+namespace
+{
+// the composite pressure as the vector space of reefamr_bicgstab
+struct nh_space
+{
+    static const int B=NS, R=NR, RH=NRH, PV=NPV, VV=NVV, S=NS, T=NT, PH=NPH, SH=NSH;
+    sflow_amr *a;
+    void apply(int x, int y) { a->nh_apply(x,y); }
+    void prec(int r, int z) { a->nh_prec(r,z); }
+    double dot(int x, int y) { return a->nh_dot(x,y); }
+    void op_start() { a->op_start(); }
+    void op_p(double beta, double om) { a->op_p(beta,om); }
+    void op_s(double alp) { a->op_s(alp); }
+    void op_x(double alp, double om) { a->op_x(alp,om); }
+};
+}
 
-        ta = MPI_Wtime();
-        nh_prec(NS,NSH);
-        tb = MPI_Wtime();
-        nh_apply(NSH,NT);
-        tm[6] += tb-ta;
-        tm[7] += MPI_Wtime()-tb;
-        double tt = nh_dot(NT,NT);
-        om = tt>0.0 ? nh_dot(NT,NS)/tt : 0.0;
+void sflow_amr::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)
+{
+    const double t0 = MPI_Wtime();
+    nh_prepare(pgc);
 
-        each([&](int g, nhg &G, int ii, int jj, int c)
-        {
-            if((*G.act)[c]<0)
-            return;
-            nh_vec(g,-1)(ii,jj) += alp*nh_vec(g,NPH)(ii,jj) + om*nh_vec(g,NSH)(ii,jj);
-            nh_vec(g,NR)(ii,jj) = nh_vec(g,NS)(ii,jj) - om*nh_vec(g,NT)(ii,jj);
-        });
+    // right-hand side into NS (temporarily), q = 0 rows start at 0
+    nh_each([&](int g, nhg &G, int ii, int jj, int c)
+    {
+        int a = (*G.act)[c];
+        nh_vec(g,NS)(ii,jj) = (a>=0) ? G.b->rhsvec.V[(*G.row)[c]] : 0.0;
+        if(a==0)
+        nh_vec(g,-1)(ii,jj) = 0.0;
+    });
 
-        rn = sqrt(nh_dot(NR,NR));
-        ++it;
-    }
+    // BiCGStab, right preconditioned (reefamr_krylov.h); initial guess: the previous pressure
+    nh_apply(-1,NVV);
+
+    double bn, rn;
+    nh_space sp{this};
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[6],&tm[7]);
 
     nh_it_last = it;
     nh_it_total += it;
@@ -684,7 +644,7 @@ void sflow_amr::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &V
     p->final_res = bn>0.0 ? rn/bn : 0.0;
 
     // q = 0 rows exactly, then the values around the patches
-    each([&](int g, nhg &G, int ii, int jj, int c)
+    nh_each([&](int g, nhg &G, int ii, int jj, int c)
     {
         if((*G.act)[c]==0)
         nh_vec(g,-1)(ii,jj) = 0.0;
@@ -693,8 +653,9 @@ void sflow_amr::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &V
 
     // velocity correction and the rest of the stage on the patches
     comms_off guard(pgc);
-    for(auto c : P)
+    for(auto q : P)
     {
+        sflow_amr_patch *c = SP(q);
         sflow_momentum_RK3 *m = c->pmom;
         pgc->gcsl_start4(c->pp,c->b->press,c->pnh->gcval());
         c->pnh->correct(c->pp,c->b,*m->nhUH,*m->nhVH,*m->nhWH,*m->nhWL,m->nh_alpha);

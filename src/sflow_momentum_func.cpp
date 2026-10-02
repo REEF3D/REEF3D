@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_momentum_func.h"
+#include"sflow_amr.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -309,8 +310,40 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     SLICELOOP4
     WHo(i,j) = 0.0;
     
+    // Boussinesq on a refined patch: u_a is solved by sflow_amr on all levels together
+    // (sflow_amr::bous_solve), the stage continues in bous_resume
+    if(bous_defer && bous==1)
+    {
+    nhUH = &UHo;
+    nhVH = &VHo;
+    nhWH = &WHo;
+    nhWL = &WLo;
+    nh_alpha = alpha;
+    df_iter = iter;
+    df_finalize = finalize;
+    bous_prepare(p,b,pgc,UHo,VHo,WLo);
+    return;
+    }
+    
+    // level 0 with refined patches: u_a on the leaf cells of all levels together; the patch
+    // stages, stopped in bous_prepare, continue in sflow_amr::bous_solve
+    if(bous==1 && bous_amr!=nullptr && bous_amr->bous_patches())
+    {
+    bous_prepare(p,b,pgc,UHo,VHo,WLo);
+    bous_amr->bous_solve(pgc);
+    
+    bous_solved = true;
+    velcalc(p,b,pgc,UHo,VHo,WHo,WLo,1);
+    bous_solved = false;
+    }
+    else
     velcalc(p,b,pgc,UHo,VHo,WHo,WLo,1);
     
+    stage_rest(p,b,pgc,UHo,VHo,WHo,WLo,alpha,iter,finalize);
+}
+
+void sflow_momentum_func::stage_rest(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHo, slice &VHo, slice &WHo, slice &WLo, double alpha, int iter, bool finalize)
+{
     // direct forcing
     psfdf->forcing(p,b,pgc,p6dof,iter,alpha,UHo,VHo,WHo,WLo,finalize);
     
@@ -321,6 +354,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     nhVH = &VHo;
     nhWH = &WHo;
     nhWL = &WLo;
+    nhUn = &Un;
+    nhVn = &Vn;
     nh_alpha = alpha;
     return;
     }
@@ -328,6 +363,28 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     ppress->start(p,b,pgc,ppoissonsolv,pflow,UHo,VHo,WHo,WLo,Un,Vn,alpha);
     
     stage_finish(p,b,pgc,UHo,VHo,WHo,WLo);
+}
+
+// Boussinesq: V of dry cells cleared, rows of the u_a line systems
+void sflow_momentum_func::bous_prepare(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL)
+{
+    SLICELOOP4
+    if(p->wet[IJ]==0)
+    {
+    UH(i,j) = 0.0;
+    VH(i,j) = 0.0;
+    }
+    
+    pbous->invert_prepare(p,b,pgc,UH,VH,WL);
+}
+
+void sflow_momentum_func::bous_resume(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    bous_solved = true;
+    velcalc(p,b,pgc,*nhUH,*nhVH,*nhWH,*nhWL,1);
+    bous_solved = false;
+    
+    stage_rest(p,b,pgc,*nhUH,*nhVH,*nhWH,*nhWL,nh_alpha,df_iter,df_finalize);
 }
 
 void sflow_momentum_func::stage_finish(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHo, slice &VHo, slice &WHo, slice &WLo)
@@ -421,14 +478,12 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
     {
         if(mode==1 || (mode==0 && p->X10>0))
         {
-        SLICELOOP4
-        if(p->wet[IJ]==0)
-        {
-        UH(i,j) = 0.0;
-        VH(i,j) = 0.0;
-        }
+            if(!bous_solved)
+            {
+            bous_prepare(p,b,pgc,UH,VH,WL);
+            pbous->invert_solve(p,b,psolv,pgc);
+            }
         
-        pbous->invert(p,b,pgc,psolv,UH,VH,WL);
         vel_bc(p,b,pgc,b->UA,b->VA,b->W);
         }
         

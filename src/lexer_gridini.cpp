@@ -31,6 +31,9 @@ void lexer::gridini(ghostcell *pgc)
     grid::gridspacing(pgc);
 
     gcd_ini(pgc);
+    
+    // solids and topography of the grid file: fields, bed levels, ghost cell estimates
+    grid_solids(pgc);
 }
 
 void lexer::flagini()

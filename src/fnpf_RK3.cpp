@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"fnpf_fsfbc.h"
 #include"fnpf_fsfbc_wd.h"
 #include"fnpf_body.h"
+#include"fnpf_amr.h"
 
 fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       erk1(p),erk2(p),frk1(p),frk2(p),ek(p),fk(p),en(p)
@@ -55,7 +56,8 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     gcval_fifsf = 160;
     }
     
-    plap = new fnpf_laplace_cds2(p);
+    plap0 = new fnpf_laplace_cds2(p);
+    plap = plap0;
         
     if(p->A343==0)
     pf = new fnpf_fsfbc(p,c,pgc);
@@ -88,6 +90,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // mesh refinement: tendencies of the patches (the body loads need them)
+    if(pamr!=nullptr)
+    pamr->stage_tendency(p,c,pgc,0);
+    
     pbody->stage(p,c,pgc,psolv,pf,ek,fk,0);
     
     SLICELOOP4
@@ -108,6 +114,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,frk1);
     pgc->gcsl_start4(p,frk1,gcval_fifsf);
     pbody->surface(p,c,pgc,erk1,frk1,gcval_eta,gcval_fifsf);
+    
+    // mesh refinement: stage values of the patches, restriction, cells around the patches
+    if(pamr!=nullptr)
+    pamr->stage_surface(p,c,pgc,erk1,frk1,0);
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk1,en,frk1,1.0);
@@ -136,6 +146,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // mesh refinement: tendencies of the patches (the body loads need them)
+    if(pamr!=nullptr)
+    pamr->stage_tendency(p,c,pgc,1);
+    
     pbody->stage(p,c,pgc,psolv,pf,ek,fk,1);
     
     SLICELOOP4
@@ -156,6 +170,9 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,frk2);
     pgc->gcsl_start4(p,frk2,gcval_fifsf);
     pbody->surface(p,c,pgc,erk2,frk2,gcval_eta,gcval_fifsf);
+    
+    if(pamr!=nullptr)
+    pamr->stage_surface(p,c,pgc,erk2,frk2,1);
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk2,en,frk2,0.5);
@@ -184,6 +201,10 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
+    // mesh refinement: tendencies of the patches (the body loads need them)
+    if(pamr!=nullptr)
+    pamr->stage_tendency(p,c,pgc,2);
+    
     pbody->stage(p,c,pgc,psolv,pf,ek,fk,2);
     
     SLICELOOP4
@@ -204,6 +225,9 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pflow->fifsf_relax(p,pgc,c->Fifsf);
     pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
     pbody->surface(p,c,pgc,c->eta,c->Fifsf,gcval_eta,gcval_fifsf);
+    
+    if(pamr!=nullptr)
+    pamr->stage_surface(p,c,pgc,c->eta,c->Fifsf,2);
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
@@ -229,6 +253,18 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pf->coastline_vel(p,c,pgc,c->U);
     pf->coastline_vel(p,c,pgc,c->V);
     pf->coastline_vel(p,c,pgc,c->W);
+    
+    if(pamr!=nullptr)
+    pamr->step_end(p,c,pgc);
+}
+
+// mesh refinement (A 270): the Laplace equation is solved on all grids together
+void fnpf_RK3::attach_amr(fnpf_amr *a)
+{
+    pamr = a;
+    a->attach_body(pbody);
+    pbody->amr_attach(a);
+    plap = a->laplace(plap,plap0);
 }
 
 void fnpf_RK3::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
@@ -258,6 +294,7 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);   
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);
+    pbody->initialize(p,c,pgc);
     
     fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
     bedbc_sig(p,c,pgc,c->Fi,pf);

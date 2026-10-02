@@ -60,18 +60,20 @@ void control::ini_default()
     A262=0.0667; // double parabolic turbulence model factor
     A263=10.0;   // double eddyv limiter factor set to high
     A263=2.7;   // double epsisolon coefficient ce_gamma
-    A270=0;      // int SFLOW mesh refinement: number of refined levels
+    A270=0;      // int SFLOW and FNPF mesh refinement: number of refined levels
     A271=4;      // int SFLOW mesh refinement: regrid interval in time steps (0: static)
     A272=2;      // int SFLOW mesh refinement: buffer cells around flagged cells
     A273=0.0;    // double SFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
     A274=0;      // int SFLOW mesh refinement: flag the shoreline
-    A275=8;      // int SFLOW mesh refinement: tile size in cells of the refined level
-    A276=0;      // int SFLOW mesh refinement: number of static refinement boxes
-    A277=0;      // int SFLOW mesh refinement: number of boxes without refinement
-    A278=0;      // int SFLOW mesh refinement: refine around the moving body (X 10 2/3)
-    A278_r=0.5;  // double SFLOW mesh refinement: margin around the hull
+    A275=8;      // int SFLOW and FNPF mesh refinement: tile size in cells of the refined level
+    A276=0;      // int SFLOW and FNPF mesh refinement: number of static refinement boxes
+    A277=0;      // int SFLOW and FNPF mesh refinement: number of boxes without refinement
+    A278=0;      // int SFLOW and FNPF mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1)
+    A278_r=0.5;  // double SFLOW and FNPF mesh refinement: margin around the hull
     A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
     A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
+    A280=4;      // int SFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+    A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
 
 
     // FNPF
@@ -248,6 +250,7 @@ void control::ini_default()
     A576_sc=0.3; // double Jeffreys critical slope
     A576_c=0.0;  // double Jeffreys wave phase speed, <=0: use wave generation celerity
     A578=4;      // int low-pass filter passes on the wind forcing slope
+    A580=0;      // int DIVEMesh solids (S): 0 bed level, 1 immersed solids (direct forcing)
     
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y
@@ -336,6 +339,7 @@ void control::ini_default()
     B94_wdt=0.0;    // double water depth for wave theory
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
+	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
 	B98=0;          // int type of wave generation
 	B99=0;			// int type of numerical beach
 	B101=0;        // int ramp function wave geneartion
@@ -439,6 +443,7 @@ void control::ini_default()
 	B243=1;			// int porous media in z-direction
     B260=0.34;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
+    B265=0;         // int NHFLOW VRANS inertia factor: 0 1/(1+C(1-n)/n^2), 1 n/(1+C(1-n)/n)
     B267=0.001;     // double d50 for VRANS
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
@@ -830,6 +835,29 @@ void control::ini_default()
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
     
+    // DEM
+    E10=0;              // int DEM on/off (input in dem.txt)
+    E11=1;              // int fluid coupling: 0 dry, 1 unresolved, 2 resolved, 3 hybrid
+    E12=5.0;            // double hybrid: resolved if d_eq/dx >= E12
+    E13=1000;           // int max contact solver iterations
+    E14=1.0e-5;         // double contact solver tolerance (relative velocity residual)
+    E15=0.1;            // double print interval [s] for VTP and state file, 0 off
+    E16=1;              // int min DEM substeps per fluid time step
+    E17=0.5;            // double added mass coefficient (unresolved)
+    E18=1.5;            // double resolved: Heaviside half width in cells
+    E19=0.2;            // double penetration stabilisation factor
+    E20=0.25;           // double max particle travel per DEM step, fraction of the smallest bounding radius
+    E21=6;              // int contact manifold reduction: max points per pair and normal cluster, 0 off
+    E22=1;              // int unresolved: fluid acceleration force (pressure gradient and added mass of the fluid acceleration), 0 off 1 on
+    E23=2.0;            // double unresolved: kernel radius for the momentum exchange in cells (at least d_eq)
+    E24=0.25;           // double distributed particles: max bounding radius as fraction of the smallest subdomain, larger ones are replicated; 0 replicates all
+    E25=2.0;            // double unresolved: radius of the solid volume fraction kernel in equivalent diameters
+    E26=0;              // int NHFLOW unresolved: 0 exchange at the centroid, 1 at the volume quadrature points (Peskin kernel)
+    E27=0;              // int NHFLOW unresolved: fluid-side drag point-implicit (0 off, 1 on)
+    E28=0;              // int NHFLOW: particle volume as porosity (0 off, 1 moving particles, 2 moving and fixed particles)
+    E29=0;              // int NHFLOW unresolved: fixed particles exert drag on the fluid (0 off, 1 on)
+    E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
+
     // Particles
     Q10=0;              // int time scheme
     Q11=1;              // int tim
@@ -1108,8 +1136,12 @@ void control::ini_default()
     X182_dx=X182_dy=X182_dz=0.0;  // double translation of stl geometry
     X183=0;
     X183_x=X183_y=X183_z=X183_phi=X183_theta=X183_psi=0.0;
-    X185=1;     // int stl refinement
-    X186=0.7;   // double refinement factor
+    X184=1;     // int remeshing (X 185 4): close gaps and fill holes, 0 off, 1 harmonic patch, 2 biharmonic patch
+    X185=4;     // int stl refinement
+    X186=1.0;   // double refinement factor: target triangle size in fluid cells
+    X187=30.0;  // double remeshing (X 185 4): feature angle in degrees
+    X189=10;    // int remeshing (X 185 4): number of iterations
+    X190=2;     // int remeshing (X 185 4): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
     X188=1;     // int ray cast algorithm
     X205=1;     // type of ramp up function
     X206=0;     // int ramp up velocity
@@ -1140,6 +1172,7 @@ void control::ini_default()
     X323_m=X323_d=X323_l=0.0;   // double dynamic net sinker properties
     X325_dt=0.001;   // double dynamic net time step
     X324=0;     // int number of nets
+    X330=0;     // int impermeable membranes, geometry in membrane.dat
 	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
 	X400=0;         // sflow external pressure term
     X401_p0=0.0;    // sflow external pressure term p0

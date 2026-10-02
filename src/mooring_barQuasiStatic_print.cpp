@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"6DOF_output_dir.h"
 
 
 void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
@@ -64,11 +65,7 @@ void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 	{
 		printtime+=p->P30;
 		
-        if(p->A10==5)
-        sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
-        
-        if(p->A10==6)
-        sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
+        sprintf(name,"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
 
 
 		ofstream result;

@@ -123,6 +123,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A279_a;
     dd++;
+    ictrl[ii] = A280;
+    ii++;
+    ictrl[ii] = A281;
+    ii++;
 
     ictrl[ii] = A309;
     ii++;
@@ -454,6 +458,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = A578;
     ii++;
+    ictrl[ii] = A580;
+    ii++;
     ictrl[ii] = A581;
     ii++;
     ictrl[ii] = A583;
@@ -615,6 +621,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B96_2;
     dd++;
+    ictrl[ii] = B97;
+    ii++;
     ictrl[ii] = B98;
     ii++;
     ictrl[ii] = B99;
@@ -843,6 +851,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B267;
     dd++;
+    ictrl[ii] = B265;
+    ii++;
     ictrl[ii] = B270;
     ii++;
     ictrl[ii] = B274;
@@ -1627,6 +1637,49 @@ void control::ctrlsend()
     ii++;
 
 
+    ictrl[ii] = E10;
+    ii++;
+    ictrl[ii] = E11;
+    ii++;
+    dctrl[dd] = E12;
+    dd++;
+    ictrl[ii] = E13;
+    ii++;
+    dctrl[dd] = E14;
+    dd++;
+    dctrl[dd] = E15;
+    dd++;
+    ictrl[ii] = E16;
+    ii++;
+    dctrl[dd] = E17;
+    dd++;
+    dctrl[dd] = E18;
+    dd++;
+    dctrl[dd] = E19;
+    dd++;
+    dctrl[dd] = E20;
+    dd++;
+    ictrl[ii] = E21;
+    ii++;
+    ictrl[ii] = E22;
+    ii++;
+    ictrl[ii] = E26;
+    ii++;
+    ictrl[ii] = E27;
+    ii++;
+    ictrl[ii] = E28;
+    ii++;
+    ictrl[ii] = E29;
+    ii++;
+    dctrl[dd] = E23;
+    dd++;
+    dctrl[dd] = E24;
+    dd++;
+    dctrl[dd] = E25;
+    dd++;
+    dctrl[dd] = E30;
+    dd++;
+
     ictrl[ii] = Q10;
     ii++;
     ictrl[ii] = Q11;
@@ -2312,11 +2365,19 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = X183_psi;
     dd++;
+    ictrl[ii] = X184;
+    ii++;
     ictrl[ii] = X185;
     ii++;
     dctrl[dd] = X186;
     dd++;
+    dctrl[dd] = X187;
+    dd++;
     ictrl[ii] = X188;
+    ii++;
+    ictrl[ii] = X189;
+    ii++;
+    ictrl[ii] = X190;
     ii++;
     ictrl[ii] = X205;
     ii++;
@@ -2383,6 +2444,8 @@ void control::ctrlsend()
     dctrl[dd] = X323_l;
     dd++;
     ictrl[ii] = X324;
+    ii++;
+    ictrl[ii] = X330;
     ii++;
     dctrl[dd] = X325_dt;
     dd++;

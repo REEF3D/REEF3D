@@ -1,0 +1,4 @@
+# ice-floe like blocks (unresolved) in regular waves, 2D flume
+material 1 900 0.3 0.1
+shape 1 box 0.1 0.05 0.04
+block 1 1  5 1 1  8.0 0.025 0.498  1.0 0 0

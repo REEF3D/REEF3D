@@ -123,8 +123,16 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     triangle_switch_ray(p,pgc);
     
     // Refine triangles
+    // X 185 1-3: split triangles larger than the grid
+    // X 185 4  : adaptive isotropic re-triangulation matching the local grid spacing
     if(p->X185>0 && p->X60!=2 && entity_count>0 && p->X170==0 && p->X171==0 && p->X172==0)
-	geometry_refinement(p,pgc);	
+    {
+        if(p->X185==4)
+        geometry_remesh(p,pgc);
+        
+        else
+        geometry_refinement(p,pgc);
+    }
 
     if(p->mpirank==0)
 	cout<<"Refined surface triangles: "<<tricount<<endl;
@@ -144,22 +152,22 @@ void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
     // cylinder_x   
     r=p->X131_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
+	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	snum = MAX(int(U/ds),8);
 	trisum+=5*(snum+1)*p->X131;
     
     // cylinder_y
     r=p->X132_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
+	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	snum = MAX(int(U/ds),8);
 	trisum+=5*(snum+1)*p->X132;
     
     // cylinder_z
     r=p->X133_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
+	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	snum = MAX(int(U/ds),8);
     trisum+=5*(snum+1)*p->X133;
     
     // wedge sym

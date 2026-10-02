@@ -407,6 +407,10 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         }
     }
     
+    // mesh refinement: the rows are solved together with those of the patches (fnpf_amr)
+    if(assemble_only)
+    return;
+    
     endtime=pgc->timer();
     //if(p->mpirank==0 && (p->count%p->P12==0))
 	//cout<<"LAPLCE_time: "<<endtime-starttime<<endl;

@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
 #include"nhflow_flux_build_f.h"
+#include"nhflow_flux_face.h"
 #include"vrans.h"
 
 nhflow_HLLYL::nhflow_HLLYL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
@@ -299,7 +300,7 @@ void nhflow_HLLYL::HLL_E(lexer *&p, fdm_nhf *&d)
         denom = d->Sn[IJK]-d->Ss[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(d->Dn(i,j) - d->Ds(i,j)))/denom;
+        d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j)))/denom;
         }
     }
     
@@ -319,7 +320,7 @@ void nhflow_HLLYL::HLL_E(lexer *&p, fdm_nhf *&d)
         denom = d->Sw[IJK]-d->Se[IJK];
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
-        d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(d->Dw(i,j) - d->De(i,j)))/denom;
+        d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j)))/denom;
         }
     }
 }

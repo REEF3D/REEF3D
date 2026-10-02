@@ -25,64 +25,63 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void vrans_nhflow_f::kw_source(lexer *p, fdm_nhf *d, field &kin)
-{/*
-    int count;
-    double uvel,vvel,wvel,uu;
-    double por;
-    double kinf,winf;
-    double ke_c_2e=1.92;
+// Porous-media turbulence closure (Nakayama & Kuwahara 1999), B 295 1:
+//   k_inf = 3.7 (1-n) n^1.5 |u|^2,   eps_inf = 39 (1-n)^2.5 n^2 |u|^3 / d50
+// u = Darcy velocity, n = static-structure porosity n_s. Sources are explicit, added to the
+// rows of the k / eps / omega systems (row order = LOOP order, one row per cell).
+void vrans_nhflow_f::turb_inf(lexer *p, fdm_nhf *d, double &kinf, double &einf)
+{
+    double uu;
     
-    count=0;
-	if(p->B295==1)
-    LOOP
-    if(a->porosity(i,j,k)<1.0)
-    {
-        uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-        vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-        wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        
-        uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        por = a->porosity(i,j,k);
-        
-
-        kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
-        
-        a->rhsvec.V[count] += por*ke_c_2e*MAX(winf,0.0)*MAX(kinf,0.0);
+    uu = d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]*p->y_dir + d->W[IJK]*d->W[IJK];
     
-        ++count;  
-    }*/
+    kinf = 3.7*(1.0-porval)*pow(porval,1.5)*uu;
+    einf = 39.0*pow(1.0-porval,2.5)*pow(porval,2.0)*pow(uu,1.5)/p->B201_d50;
+    
+    kinf = MAX(kinf,0.0);
+    einf = MAX(einf,0.0);
 }
 
-void vrans_nhflow_f::ke_source(lexer *p, fdm_nhf *d, field &kin)
+// k-epsilon, k-equation: + n eps_inf
+void vrans_nhflow_f::ke_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
-    /*
-    int count;
-    double uvel,vvel,wvel,uu;
-    double por;
     double kinf,einf;
-    double ke_c_2e=1.92;
     
     count=0;
-	if(p->B295==1)
+    if(p->B295==1)
     LOOP
-    if(a->porosity(i,j,k)<1.0)
     {
-        uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-        vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-        wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
+        porous_coeff(p,d);
         
-        uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        por = a->porosity(i,j,k);
+        if(H>1.0e-12)
+        {
+        turb_inf(p,d,kinf,einf);
         
+        d->rhsvec.V[count] += porval*einf;
+        }
+        
+    ++count;
+    }
+}
 
-        kinf = 3.7*(1.0-por)*pow(por,1.5)*uu;
-        einf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k));
-        
-        a->rhsvec.V[count] += por*MAX(einf,0.0);
+// k-omega, k-equation: + n beta* k_inf omega_inf = + n eps_inf   (omega_inf = eps_inf/(cmu k_inf))
+void vrans_nhflow_f::kw_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
+{
+    double kinf,einf;
     
-        ++count;  
-    }*/
-
+    count=0;
+    if(p->B295==1)
+    LOOP
+    {
+        porous_coeff(p,d);
+        
+        if(H>1.0e-12)
+        {
+        turb_inf(p,d,kinf,einf);
+        
+        d->rhsvec.V[count] += porval*einf;
+        }
+        
+    ++count;
+    }
 }

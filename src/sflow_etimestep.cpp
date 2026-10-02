@@ -52,7 +52,7 @@ sflow_etimestep::~sflow_etimestep()
 void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
     const double g = fabs(p->W22);
-    double dx,dy,c,cmin;
+    double dx,c,cmin,sigma;
     
 	p->umax=p->vmax=p->viscmax=0.0;
 	p->dt_old=p->dt;
@@ -75,7 +75,8 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	cout<<"fsftime: "<<p->lsmtime<<endl;
     }
 
-// CFL: dt = N47 * 2*min( dx/(|u|+c), dy/(|v|+c) ),  c = sqrt(g h)
+// CFL: dt = N47 * 2 / max( (|u|+c)/dx + (|v|+c)/dy ),  c = sqrt(g h)
+// the HLL update is unsplit: the x and y Courant numbers add up in 2D (1D unchanged)
 // (factor 2 as in the previous SFLOW time step definition, N 47 0.2 -> Courant number 0.4)
     cmin=1.0e20;
     
@@ -84,14 +85,12 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     {
     c = sqrt(g*MAX(b->WL(i,j),wd_criterion));
     
-    dx = p->DXN[IP]/(fabs(b->U(i,j)) + c);
-    cmin = MIN(cmin,dx);
+    sigma = (fabs(b->U(i,j)) + c)/p->DXN[IP];
     
     if(p->j_dir==1)
-    {
-    dy = p->DYN[JP]/(fabs(b->V(i,j)) + c);
-    cmin = MIN(cmin,dy);
-    }
+    sigma += (fabs(b->V(i,j)) + c)/p->DYN[JP];
+    
+    cmin = MIN(cmin,1.0/sigma);
     
         // advection-only limit (A 219 2)
         if(p->A219==2)
@@ -103,7 +102,8 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
     cmin = pgc->globalmin(cmin);
     
-    // explicit dispersion correction of A 220 3: dt <= 1.8/((1/dx^2+1/dy^2) sqrt(g B h^3))
+    // explicit dispersion correction of A 220 3: dt <= 1.2/((1/dx^2+1/dy^2) sqrt(g B h^3))
+    // (1.8 is only marginally stable: with direct forcing, X 10 2, a checkerboard mode grows)
     if(p->A220==3 && p->A224>1.0)
     {
     double B = (p->A224-1.0)/3.0;
@@ -114,7 +114,7 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
         WETDRY
         {
         hh = MAX(b->WL(i,j),wd_criterion);
-        dtd = MIN(dtd, 1.8/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
+        dtd = MIN(dtd, 1.2/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
         }
         
     dtd = pgc->globalmin(dtd);

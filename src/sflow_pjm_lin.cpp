@@ -79,7 +79,7 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
 	cout<<"piter: "<<p->solveriter<<"  solvtime: "<<setprecision(3)<<p->poissontime<<"  ptime: "<<setprecision(3)<<ptime<<endl;
 }
 
-void sflow_pjm_lin::assemble(lexer *p, fdm2D *b, slice &WL, double alpha)
+void sflow_pjm_lin::assemble(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)
 {
     rhs(p,b,WL,alpha);
     poisson(p,b,WL,alpha);

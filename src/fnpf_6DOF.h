@@ -38,6 +38,7 @@ class fnpf_bed_update;
 class fnpf_fsf_update;
 class sixdof_obj;
 class slice;
+class fnpf_amr;
 
 using namespace std;
 
@@ -60,6 +61,29 @@ using namespace std;
 // and a decorated Laplace solver (geometry before, body-band extrapolation after the
 // phi solve). The psi solves use the undecorated solver.
 
+// one grid of the body: level 0, or (mesh refinement) a patch of fnpf_amr
+struct fnpf_6DOF_grid
+{
+    lexer *p = nullptr;
+    fdm_fnpf *c = nullptr;
+    fnpf_fsf *pf = nullptr;
+    int id = -1;                    // fnpf_amr grid id, -1: level 0
+    int serial = -1;                // fnpf_amr patch serial number (the grid follows its patch)
+    bool fresh = false;             // body geometry not yet built
+    bool l0 = true;                 // level 0: MPI exchange and global reductions; patch: local
+    double del = 0.0;               // load sampling distance off the hull
+    double *psi0 = nullptr;
+    double *psi[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
+    double *zero = nullptr;
+    int *mark = nullptr;
+    slice4 *foot = nullptr, *psiD = nullptr, *zeroslice = nullptr, *eta_ext = nullptr, *fi_ext = nullptr;
+    bool ext_ini = false;
+    int footcount = 0;
+    fnpf_bed_update *pbed = nullptr;
+    fnpf_fsf_update *pvel = nullptr;
+    slice *Keta = nullptr, *Kfi = nullptr;      // patch: tendencies of the current stage
+};
+
 class fnpf_6DOF : public fnpf_body, public increment
 {
 public:
@@ -67,9 +91,19 @@ public:
     virtual ~fnpf_6DOF();
     
     // fnpf_body hooks
+    void initialize(lexer*, fdm_fnpf*, ghostcell*) override;
     void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int) override;
     void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
     fnpf_laplace* laplace(fnpf_laplace*) override;
+    
+    // mesh refinement (fnpf_amr)
+    bool present() const override {return true;}
+    void amr_attach(fnpf_amr*) override;
+    void amr_grids(lexer*, ghostcell*) override;
+    void amr_geometry(lexer*, fdm_fnpf*, ghostcell*) override;
+    void amr_post_solve(lexer*, fdm_fnpf*, ghostcell*, double*) override;
+    void amr_surface(lexer*, ghostcell*, int, slice&, slice&) override;
+    void amr_bodies(vector<sixdof_obj*>&) override;
     
     // used by the decorated Laplace solver around the phi solve:
     // body geometry on the new sigma grid, then extrapolation of the body band
@@ -79,34 +113,39 @@ public:
     bool initialized;
     
 private:
-    void geometry(lexer*, fdm_fnpf*, ghostcell*);
-    void extrapolate(lexer*, fdm_fnpf*, ghostcell*, double*);
+    void geometry(fnpf_6DOF_grid&, ghostcell*);
+    void extrapolate(fnpf_6DOF_grid&, ghostcell*, double*);
     void ini(lexer*, fdm_fnpf*, ghostcell*);
     void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
+    void forces_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
     void motion(lexer*, fdm_fnpf*, ghostcell*, int);
-    void footprint(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int);
-    
+    void footprint(fnpf_6DOF_grid&, ghostcell*, slice&, slice&, int, int);
     void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&);
-    void zero_face(lexer*, fdm_fnpf*);
-    void exchange_face(lexer*, fdm_fnpf*, ghostcell*);
+    void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool);
+    void zero_face(fnpf_6DOF_grid&);
+    void exchange_face(fnpf_6DOF_grid&, ghostcell*);
+    void free_grid(fnpf_6DOF_grid&);
+    bool amr_on() const;
     
     vector<sixdof_obj*> fb_obj;
     int nbody;
     int gcval;
-    int footcount;
-    
     double *psi0;
     double *psi[6];
     double *zero;
     int *mark;
-    
     slice4 foot,psiD,zeroslice;
     slice4 eta_ext,fi_ext;
-    bool ext_ini;
     
     fnpf_bed_update *pbed;
     fnpf_fsf_update *pvel;
     fnpf_laplace *plap;
+    
+    // level 0 and the patches (mesh refinement)
+    fnpf_6DOF_grid g0;
+    vector<fnpf_6DOF_grid> gp;
+    fnpf_amr *amr;
+    int amr_layout;
 };
 
 #endif

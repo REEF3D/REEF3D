@@ -80,25 +80,27 @@ void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
-    double ws_eff,nval,Re_p;
-    
+    // WVEL: vertical transport velocity across sigma faces for the advective (form=1) ifou scheme,
+    // same convention as k-epsilon/k-omega: omegaF is the face volume flux D*dsigma/dt [m/s],
+    // settling across a sigma face is -ws (D*dsigma/dt of -ws = -ws).
+    // Face k lies between cells k-1 and k; bed (k=0) and surface (k=knoz) faces stay closed,
+    // bed exchange is handled by suspsource().
+    double ws_eff,nval,Re_p,cface;
+
     Re_p = s->ws*p->S20/p->W2;
     nval = (4.7 + 0.41*pow(Re_p,0.75))/(1 + 0.175*pow(Re_p,0.75));
-    
+
     FLOOP
-    if(k>0 && k<p->knoz)
     {
     WVEL[FIJK] = 0.0;
-    
-        if(p->DF[IJK]>0 && p->wet[IJ]==1)
+
+        if(k>0 && k<p->knoz && p->DF[IJK]>0 && p->wet[IJ]==1)
         {
-        ws_eff = s->ws * pow(MAX(1.0 - d->CONC[IJK]/0.635, 0.0), nval);
-        WVEL[FIJK] = d->W[FIJK] - ws_eff;
+        cface = 0.5*(d->CONC[IJK] + d->CONC[IJKm1]);
+        ws_eff = s->ws * pow(MAX(1.0 - cface/0.635, 0.0), nval);
+        WVEL[FIJK] = d->omegaF[FIJK] - ws_eff;
         }
     }
-    
-    //pgc->start4V(p,WVEL,12);
-    pgc->start7S(p,d->omegaF,17);
 }
 
 void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sediment_fdm *s)

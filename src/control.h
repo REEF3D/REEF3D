@@ -50,7 +50,7 @@ public:
     int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
-    int A270,A271,A272,A274,A275,A276,A277,A278;
+    int A270,A271,A272,A274,A275,A276,A277,A278,A280,A281;
     double A273,A278_r,A279_L,A279_a;
     double *A276_xs,*A276_xe,*A276_ys,*A276_ye;
     double *A277_xs,*A277_xe,*A277_ys,*A277_ye;
@@ -90,7 +90,7 @@ public:
     double A554,A555,A556,A557;
     int A560;
     int A564,A565,A566,A567,A569;
-    int A570,A573,A574,A578;
+    int A570,A573,A574,A578,A580;
     double A568,A571_u,A571_dir,A575,A576_s,A576_sc,A576_c;
     int A572;
     double A572_xs,A572_xe,A572_ys,A572_ye;
@@ -132,7 +132,7 @@ public:
     int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;
-    int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B98,B99,B101,B105,B106,B107;
+    int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B101,B105,B106,B107;
     int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
     double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
@@ -185,6 +185,7 @@ public:
     
     double *B240_D, *B240_C, *B240_xs, *B240_xe, *B240_ys, *B240_ye, *B240_zs, *B240_ze;
     double B260,B264,B267;
+    int B265;
     int B270;
     double *B270_xs, *B270_xe, *B270_ys, *B270_ye, *B270_zs, *B270_ze, *B270_n, *B270_d50, *B270_alpha, *B270_beta;
     int B274;
@@ -400,6 +401,10 @@ public:
     double *P351_x,*P351_y;
     double *P352_x,*P352_y;
 
+    // DEM
+    int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29;
+    double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30;
+
     // Particles
     int Q10;
     int Q11;
@@ -532,8 +537,8 @@ public:
     double X181_x,X181_y,X181_z;
     double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
-    int X185,X188;
-    double X186;
+    int X184,X185,X188,X189,X190;
+    double X186,X187;
     int X205;
     int X206,X207;
     double X206_ts,X206_te,X207_ts,X207_te;
@@ -549,6 +554,7 @@ public:
     double *X321_Sn,*X321_d,*X321_lambda,*X321_dk,*X321_rho,*X321_nd,*X321_nl;
     double *X322_D,*X322_L,*X322_x0,*X322_y0,*X322_z0,*X322_phi,*X322_theta,*X322_psi;
     int X324;
+    int X330;
     double X323_m,X323_d,X323_l;
     double *X324_x,*X324_y,*X324_z;
     double X325_dt,X325_relX,X325_relY,X325_relZ;

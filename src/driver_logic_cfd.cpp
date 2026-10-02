@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"concentration_header.h"
 #include"benchmark_header.h"
 #include"6DOF_header.h"
+#include"dem_header.h"
 #include"FSI_header.h"
 #include"vrans_header.h"
 #include"waves_header.h"
@@ -579,6 +580,17 @@ void driver::logic_cfd()
     
     if(p->X10==1)
     p6dof = new sixdof_cfd(p,a,pgc);
+
+// DEM
+    if(p->E10>0)
+    pdem = new dem_f(p,pgc);
+    else
+    pdem = new dem_void();
+
+    momentum_forcing::pdem = pdem;
+
+    if(p->E10>0 && p->N40==14 && p->E11>0 && p->mpirank==0)
+    cout<<"DEM: warning, the DEM fluid forcing is not applied with N 40 14, use N 40 3"<<endl;
 
 // FSI
     if(p->Z10==0)

@@ -24,99 +24,15 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"geo_primitive.h"
 
 void nhflow_geometry::cylinder_y(lexer *p, ghostcell *pgc, int id)
 {
-    double U,ds,phi;
-	double r1,y1,y2;
-    double xm,zm;
-	int snum;
-	
-	xm=cyly_xc[id];
-    zm=cyly_zc[id];
-	
-	y1=cyly_ys[id];
-	y2=cyly_ye[id];
-	
-    r1=cyly_r[id];
-
-	U = 2.0*PI*r1;
-	ds = 0.5*(DSM);
-    snum = MAX(int(U/ds), 40);
-
-// Vertices	
-	ds = (2.0*PI)/double(snum);
-	
-	phi=0.0;
-	
+    const int snum = geo_primitive::segments(cyly_r[id],0.5*(DSM),40);
+    
 	tstart[entity_count]=tricount;
-	
-
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle	
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = y1;
-	tri_z[tricount][0] = zm;
-	
-	tri_x[tricount][1] = xm + r1*sin(phi);
-	tri_y[tricount][1] = y1;
-	tri_z[tricount][1] = zm + r1*cos(phi);
-	
-	tri_x[tricount][2] = xm + r1*sin(phi+ds);
-	tri_y[tricount][2] = y1;
-	tri_z[tricount][2] = zm + r1*cos(phi+ds);
-	++tricount;
-		
-	//top circle
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = y2;
-	tri_z[tricount][0] = zm;
-	
-	tri_x[tricount][1] = xm + r1*sin(phi);
-	tri_y[tricount][1] = y2;
-	tri_z[tricount][1] = zm + r1*cos(phi);
-	
-	tri_x[tricount][2] = xm + r1*sin(phi+ds);
-	tri_y[tricount][2] = y2;
-	tri_z[tricount][2] = zm + r1*cos(phi+ds);
-	++tricount;
-	
-	//side		
-	// 1st triangle
-	tri_x[tricount][0] = xm + r1*sin(phi);
-	tri_y[tricount][0] = y1;
-	tri_z[tricount][0] = zm + r1*cos(phi);
-	
-	tri_x[tricount][1] = xm + r1*sin(phi+ds);
-	tri_y[tricount][1] = y2;
-	tri_z[tricount][1] = zm + r1*cos(phi+ds);
-	
-	tri_x[tricount][2] = xm + r1*sin(phi+ds);
-	tri_y[tricount][2] = y1;
-	tri_z[tricount][2] = zm + r1*cos(phi+ds);
-
-	++tricount;
-	
-	// 2nd triangle
-	tri_x[tricount][0] = xm + r1*sin(phi);
-	tri_y[tricount][0] = y1;
-	tri_z[tricount][0] = zm + r1*cos(phi);
-	
-	tri_x[tricount][1] = xm + r1*sin(phi+ds);
-	tri_y[tricount][1] = y2;
-	tri_z[tricount][1] = zm + r1*cos(phi+ds);
-	
-	tri_x[tricount][2] = xm + r1*sin(phi);
-	tri_y[tricount][2] = y2;
-	tri_z[tricount][2] = zm + r1*cos(phi);
-	++tricount;
-
-	phi+=ds;
-	}
+    
+    geo_primitive::cylinder_y(tri_x,tri_y,tri_z,tricount,cyly_xc[id],cyly_zc[id],cyly_ys[id],cyly_ye[id],cyly_r[id],snum);
 	
 	tend[entity_count]=tricount;
-    
 }
-
-

@@ -30,12 +30,18 @@ class solver;
 class fnpf_laplace;
 class fnpf_fsf;
 class slice;
+class fnpf_amr;
+class sixdof_obj;
+
+#include<vector>
 
 // Interface between the FNPF time stepping and resolved bodies.
 // The base class is the "no body" case: every hook is a no-op and the Laplace solver
 // is returned unchanged, so fnpf_RK3/fnpf_RK4 call the hooks unconditionally and
 // contain no body logic. create() returns fnpf_6DOF for X 10 > 0.
 //
+// initialize() is called once at t = 0 (inidisc_step2, after the sigma grid is set up),
+// so the body output starts together with the initial fluid output.
 // Per RK stage the scheme calls
 //   stage()   with the tendencies deta/dt, dFifsf/dt of the current state, before the
 //             stage value is formed (body loads and body RK stage),
@@ -50,9 +56,23 @@ public:
     
     virtual ~fnpf_body(){}
     
+    // once at t = 0 after the initial sigma grid, before the initial output
+    virtual void initialize(lexer*, fdm_fnpf*, ghostcell*){}
+    
     virtual void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int){}
     virtual void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int){}
     virtual fnpf_laplace* laplace(fnpf_laplace *plap){return plap;}
+    
+    // mesh refinement (fnpf_amr, A 270): the body is represented on every grid of the
+    // hierarchy; fnpf_amr calls these around its composite phi solve and after each patch
+    // stage value; the psi solves of the loads run on all grids as well
+    virtual bool present() const {return false;}
+    virtual void amr_attach(fnpf_amr*){}
+    virtual void amr_grids(lexer*, ghostcell*){}
+    virtual void amr_geometry(lexer*, fdm_fnpf*, ghostcell*){}
+    virtual void amr_post_solve(lexer*, fdm_fnpf*, ghostcell*, double*){}
+    virtual void amr_surface(lexer*, ghostcell*, int, slice&, slice&){}
+    virtual void amr_bodies(std::vector<sixdof_obj*>&){}
 };
 
 #endif

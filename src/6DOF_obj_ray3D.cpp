@@ -34,6 +34,9 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 	a->fb(i,j,k)=1.0e8;
 	}
 	
+    // geometry core kernels (geo_raycast), subdomain interior
+    const geo_cart g = geo_raycast::interior(p);
+    
     for(rayiter=0; rayiter<2; ++rayiter)
     {
 
@@ -41,31 +44,31 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
         {
             if(rayiter==0)
             {
-            ray_cast_io_x(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_io(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,fbio.V,cutl.V,cutr.V);
             
             if(p->j_dir==1)
-            ray_cast_io_ycorr(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_io(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,fbio.V,cutl.V,cutr.V);
             
-            ray_cast_io_zcorr(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_io(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,fbio.V,cutl.V,cutr.V);
             }
         
             if(rayiter==1 && p->X188==1)
             {
             pgc->gcparaxint(p,fbio,4);
             
-            ray_cast_x(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_dist(p,0,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,fbio.V,a->fb.V);
             
             if(p->j_dir==1)
-            ray_cast_y(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_dist(p,1,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,fbio.V,a->fb.V);
             
-            ray_cast_z(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_dist(p,2,tri_x,tri_y,tri_z,tstart[qn],tend[qn],g,fbio.V,a->fb.V);
             }
             
             if(rayiter==1 && p->X188==2)
             {
             pgc->gcparaxint(p,fbio,4);
             
-            ray_cast_direct(p,a,pgc,tstart[qn],tend[qn]);
+            georay.cart_vertexdist(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],a->fb.V);
             }
         }
     }

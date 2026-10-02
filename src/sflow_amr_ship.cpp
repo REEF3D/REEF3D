@@ -155,123 +155,6 @@ double sflow_amr::fs0_at(sflow_amr_patch &c, int ii, int jj)
     return fsv;
 }
 
-// triangles below the still water level and the refinement zone of every body (A 278, A 279)
-void sflow_amr::ship_setup(lexer *p)
-{
-    const double psi = 1.0e-8*p->DXM;
-    const int nbody = ship6->objects();
-
-    shiptri.assign(nbody,vector<int>());
-    zones.assign(nbody,shipzone());
-
-    if((int)ship_x0.size()!=nbody)
-    {
-        ship_x0.resize(nbody);
-        ship_y0.resize(nbody);
-        for(int nb=0; nb<nbody; ++nb)
-        {
-            ship_x0[nb] = ship6->object(nb)->amr_c(0);
-            ship_y0[nb] = ship6->object(nb)->amr_c(1);
-        }
-    }
-
-    for(int nb=0; nb<nbody; ++nb)
-    {
-        sixdof_obj *o = ship6->object(nb);
-        double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
-
-        shipzone &z = zones[nb];
-        z.cx = o->amr_c(0);
-        z.cy = o->amr_c(1);
-
-        // heading: direction of motion, the yaw angle for a body at rest
-        double ux = o->amr_u(0), uy = o->amr_u(1);
-        double sp = sqrt(ux*ux + uy*uy);
-        if(sp>1.0e-6)
-        {
-            z.ex = ux/sp;
-            z.ey = uy/sp;
-        }
-        else
-        {
-            z.ex = cos(p->psi_fb);
-            z.ey = sin(p->psi_fb);
-        }
-
-        z.smin = z.nmin = 1.0e20;
-        z.smax = z.nmax = -1.0e20;
-        z.bx0 = z.by0 = 1.0e20;
-        z.bx1 = z.by1 = -1.0e20;
-
-        for(int n=0; n<o->amr_tricount(); ++n)
-        {
-            if(tz[n][0]>p->wd+psi && tz[n][1]>p->wd+psi && tz[n][2]>p->wd+psi)
-            continue;
-
-            shiptri[nb].push_back(n);
-
-            for(int q=0; q<3; ++q)
-            {
-                z.bx0 = MIN(z.bx0,tx[n][q]); z.bx1 = MAX(z.bx1,tx[n][q]);
-                z.by0 = MIN(z.by0,ty[n][q]); z.by1 = MAX(z.by1,ty[n][q]);
-            }
-
-            for(int q=0; q<3; ++q)
-            if(tz[n][q]<=p->wd+psi)
-            {
-                double dx = tx[n][q]-z.cx, dy = ty[n][q]-z.cy;
-                double s = dx*z.ex + dy*z.ey;
-                double r = -dx*z.ey + dy*z.ex;
-                z.smin = MIN(z.smin,s); z.smax = MAX(z.smax,s);
-                z.nmin = MIN(z.nmin,r); z.nmax = MAX(z.nmax,r);
-            }
-        }
-
-        // the zone reaches ahead of the bow by the distance travelled until the next regrid
-        z.sfront = z.smax + p->A278_r + 1.5*sp*p->dt*MAX(regrid_int,1);
-
-        // the wake wedge reaches back to where the bow has been
-        double trav = sqrt(pow(z.cx-ship_x0[nb],2.0) + pow(z.cy-ship_y0[nb],2.0));
-        z.wake = MIN(p->A279_L, (z.smax-z.smin) + trav + p->A278_r);
-
-        if(z.smin>z.smax)       // no part of the body in the water
-        z.smin = z.smax = z.nmin = z.nmax = z.sfront = z.wake = 0.0;
-    }
-}
-
-bool sflow_amr::ship_zone(double x, double y)
-{
-    const double r = p0->A278_r;
-    const double ta = tan(p0->A279_a*PI/180.0);
-
-    for(auto &z : zones)
-    {
-        if(z.smin>=z.smax)
-        continue;
-
-        double dx = x-z.cx, dy = y-z.cy;
-        double s = dx*z.ex + dy*z.ey;
-        double n = -dx*z.ey + dy*z.ex;
-
-        // hull
-        if(s>=z.smin-r && s<=z.sfront && n>=z.nmin-r && n<=z.nmax+r)
-        return true;
-
-        // wake: wedge from the bow with half angle A 279 a, length A 279 L at most (only where the bow has been)
-        if(z.wake>0.0)
-        {
-            double d = z.smax - s;
-            if(d>=0.0 && d<=z.wake)
-            {
-                double half = 0.5*(z.nmax-z.nmin) + r + d*ta;
-                if(fabs(n - 0.5*(z.nmin+z.nmax))<=half)
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 // body fields on one patch: level set, kinematics and (X 10 3) the surface pressure
 void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
 {
@@ -306,11 +189,11 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
             double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
 
             // patch away from the hull: no draft
-            const shipzone &z = zones[nb];
+            const reefamr_zone &z = zones[nb];
             if(z.bx1<xa[0]-psi || z.bx0>xa[nx-1]+psi || z.by1<ya[0]-psi || z.by0>ya[ny-1]+psi)
             continue;
 
-            for(int n : shiptri[nb])
+            for(int n : ztri[nb])
             {
                 double Ax=tx[n][0], Ay=ty[n][0], Az=tz[n][0];
                 double Bx=tx[n][1], By=ty[n][1], Bz=tz[n][1];
@@ -382,7 +265,7 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
 
         for(int nb=0; nb<(int)zones.size(); ++nb)
         {
-            const shipzone &z = zones[nb];
+            const reefamr_zone &z = zones[nb];
             if(z.bx1<xa[0]-w || z.bx0>xa[nx-1]+w || z.by1<ya[0]-w || z.by0>ya[ny-1]+w)
             continue;
 
@@ -482,10 +365,10 @@ void sflow_amr::ship_patches(bool withpress)
 
     double t0 = MPI_Wtime();
 
-    ship_setup(p0);
+    zone_setup(p0);
 
     for(auto c : P)
-    ship_fields(*c,withpress);
+    ship_fields(*SP(c),withpress);
 
     tm[8] += MPI_Wtime()-t0;
 }

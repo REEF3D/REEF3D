@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include"mooring_dynamic.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"6DOF_output_dir.h"
 
 void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 {
@@ -70,10 +71,7 @@ void mooring_dynamic::initialize(lexer *p, ghostcell *pgc)
 	if(p->mpirank==0)
 	{
 		char str[1000];
-		if(p->A10==5)
-		sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
-		else
-		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
+		sprintf(str,"%s/REEF3D_6DOF_mooring_force_%i.dat",sixdof_output_dir(p),line);
 		eTout.open(str);
 		eTout<<"time \t T"<<endl;
 	}

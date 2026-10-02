@@ -40,6 +40,19 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
+    <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="SFLOW">
+        <File Name="sflow_amr_ship.h"/>
+        <File Name="sflow_amr_linesolve.h"/>
+        <File Name="sflow_amr.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_amr_fill.h"/>
+        <File Name="fnpf_amr.h"/>
+      </VirtualDirectory>
+      <File Name="reefamr.h"/>
+      <File Name="reefamr_krylov.h"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
         <File Name="reefmg.h"/>
@@ -395,10 +408,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
-        <VirtualDirectory Name="AMR">
-          <File Name="sflow_amr.h"/>
-          <File Name="sflow_amr_ship.h"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
@@ -457,6 +466,7 @@
           <File Name="sflow_print_probe_da.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
+          <File Name="sflow_pressure_nh.h"/>
           <File Name="sflow_boussinesq.h"/>
           <File Name="sflow_pressure.h"/>
           <File Name="sflow_pjm_quad.h"/>
@@ -803,6 +813,13 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="DEM">
+        <File Name="dem.h"/>
+        <File Name="dem_void.h"/>
+        <File Name="dem_header.h"/>
+        <File Name="dem_core.h"/>
+        <File Name="dem_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Ice">
         <File Name="ice_contact.h"/>
         <File Name="ice_contact_nscd.h"/>
@@ -972,6 +989,14 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Geometry">
+          <File Name="6DOF_obj_remesh.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Membrane">
+          <File Name="nhflow_membrane_beta.h"/>
+          <File Name="net_membrane.h"/>
+        </VirtualDirectory>
+        <File Name="6DOF_output_dir.h"/>
         <File Name="fnpf_6DOF.h"/>
         <VirtualDirectory Name="Net Interface">
           <File Name="net_interface.h"/>
@@ -1073,17 +1098,13 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
-        <VirtualDirectory Name="Geo_Func">
-          <File Name="geo_func.h"/>
+        <VirtualDirectory Name="Geo_Core">
+          <File Name="geo_mesh.h"/>
+          <File Name="geo_raycast.h"/>
+          <File Name="geo_primitive.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Container">
-          <File Name="geo_container.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Interface">
-          <File Name="geo_interface.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Create">
-          <File Name="geo_create.h"/>
+        <VirtualDirectory Name="Grid_File">
+          <File Name="gridfile_v2.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Driver">
@@ -1241,6 +1262,23 @@
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
+    <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="SFLOW">
+        <File Name="sflow_amr_ship.cpp"/>
+        <File Name="sflow_amr_nh.cpp"/>
+        <File Name="sflow_amr_linesolve.cpp"/>
+        <File Name="sflow_amr_bous.cpp"/>
+        <File Name="sflow_amr.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_amr_print.cpp"/>
+        <File Name="fnpf_amr_lap.cpp"/>
+        <File Name="fnpf_amr.cpp"/>
+      </VirtualDirectory>
+      <File Name="reefamr.cpp"/>
+      <File Name="reefamr_regrid.cpp"/>
+      <File Name="reefamr_zone.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
         <File Name="reefmg.cpp"/>
@@ -1695,11 +1733,6 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
-        <VirtualDirectory Name="AMR">
-          <File Name="sflow_amr_ship.cpp"/>
-          <File Name="sflow_amr.cpp"/>
-          <File Name="sflow_amr_nh.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
@@ -1861,15 +1894,7 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
-            <File Name="nhflow_geometry_distance.cpp"/>
-            <File Name="nhflow_geometry_raycast_io_ycorr.cpp"/>
-            <File Name="nhflow_geometry_raycast_io_x.cpp"/>
-            <File Name="nhflow_geometry_raycast_io_zcorr.cpp"/>
             <File Name="nhflow_geometry_reini_RK2.cpp"/>
-            <File Name="nhflow_geometry_raycast_z.cpp"/>
-            <File Name="nhflow_geometry_raycast_y.cpp"/>
-            <File Name="nhflow_geometry_raycast_x.cpp"/>
-            <File Name="nhflow_geometry_raycast_direct.cpp"/>
             <File Name="nhflow_geometry_raycast.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_geometry.cpp"/>
@@ -2222,6 +2247,15 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="DEM">
+        <File Name="dem_core.cpp"/>
+        <File Name="dem_shape.cpp"/>
+        <File Name="dem_f.cpp"/>
+        <File Name="dem_f_cfd.cpp"/>
+        <File Name="dem_f_nhflow.cpp"/>
+        <File Name="dem_f_print.cpp"/>
+        <File Name="dem_f_mpi.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Ice">
         <File Name="ice_contact_nscd.cpp"/>
         <File Name="fnpf_ice.cpp"/>
@@ -2484,10 +2518,16 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Membrane">
+          <File Name="net_membrane.cpp"/>
+          <File Name="net_membrane_structure.cpp"/>
+          <File Name="net_membrane_print.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">
           <File Name="fnpf_6DOF.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net Interface">
+          <File Name="net_interface_membrane_nhflow.cpp"/>
           <File Name="net_interface_netForces_nhflow.cpp"/>
           <File Name="net_interface_netForces_cfd.cpp"/>
           <File Name="net_interface_dlm_nhflow.cpp"/>
@@ -2594,6 +2634,10 @@
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Geometry">
+            <VirtualDirectory Name="Remesh">
+              <File Name="6DOF_obj_refinement_remesh.cpp"/>
+              <File Name="6DOF_obj_remesh.cpp"/>
+            </VirtualDirectory>
             <File Name="6DOF_obj_wavemaker_read.cpp"/>
             <VirtualDirectory Name="Objects">
               <File Name="6DOF_obj_flap_double.cpp"/>
@@ -2609,13 +2653,6 @@
               <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
-              <File Name="6DOF_nhflow_forcing_distance.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_io_zcorr.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_io_ycorr.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_io_x.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_z.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_y.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_x.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast.cpp"/>
             </VirtualDirectory>
             <File Name="6DOF_obj_refinement.cpp"/>
@@ -2627,13 +2664,6 @@
               <File Name="6DOF_obj_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 3D">
-              <File Name="6DOF_obj_ray3D_direct.cpp"/>
-              <File Name="6DOF_obj_ray3D_z.cpp"/>
-              <File Name="6DOF_obj_ray3D_y.cpp"/>
-              <File Name="6DOF_obj_ray3D_x.cpp"/>
-              <File Name="6DOF_obj_ray3D_io_zcorr.cpp"/>
-              <File Name="6DOF_obj_ray3D_io_ycorr.cpp"/>
-              <File Name="6DOF_obj_ray3D_io_x.cpp"/>
               <File Name="6DOF_obj_ray3D.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 2D">
@@ -2952,16 +2982,16 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
-        <VirtualDirectory Name="Geo_Container">
-          <File Name="geo_container.cpp"/>
+        <VirtualDirectory Name="Geo_Core">
+          <File Name="geo_mesh.cpp"/>
+          <File Name="geo_raycast.cpp"/>
+          <File Name="geo_raycast_cart.cpp"/>
+          <File Name="geo_raycast_sigma.cpp"/>
+          <File Name="geo_raycast_column.cpp"/>
+          <File Name="geo_primitive.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Interface">
-          <File Name="geo_interface.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Create">
-          <File Name="geo_create_cylinder_z.cpp"/>
-          <File Name="geo_create_cylinder_y.cpp"/>
-          <File Name="geo_create_box.cpp"/>
+        <VirtualDirectory Name="Grid_Solids">
+          <File Name="lexer_grid_solids.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Ini">

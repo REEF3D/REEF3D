@@ -28,10 +28,19 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"nhflow_reinidisc_fsf.h"
 #include"vrans.h"
+#include"dem.h"
 
 void nhflow_forcing::reforcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 
                              int iter, double alpha, double *UH, double *VH, double *WH, slice &WL, bool finalize)
 {
+    // impermeable membranes (X 330): loads from the projected velocity
+    if(p->X330>0)
+    p6dof->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+    
+    // DEM: re-impose the resolved particle velocity after the projection
+    if(pdem!=nullptr)
+    pdem->forcing_nhflow(p,d,pgc,iter,alpha,UH,VH,WH,WL,finalize,true);
+
     // nothing to force (no solids, floating bodies, DLM or 6DOF): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)

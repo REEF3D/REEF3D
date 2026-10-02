@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"nhflow_kepsilon_bc.h"
 #include"ghostcell.h"
 #include"vrans.h"
+#include"vrans_nhflow.h"
 
 using namespace std;
 
@@ -38,10 +39,10 @@ public:
 	void isource(lexer*,fdm_nhf*) override final;
 	void jsource(lexer*,fdm_nhf*) override final;
 	void ksource(lexer*,fdm_nhf*) override final;
-	void kinsource(lexer*,fdm_nhf*,vrans*);
-	void epssource(lexer*,fdm_nhf*,vrans*);
+	void kinsource(lexer*,fdm_nhf*,vrans_nhflow*);
+	void epssource(lexer*,fdm_nhf*,vrans_nhflow*);
 	void epsfsf(lexer*,fdm_nhf*,ghostcell*);
-	void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
+	void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*);
 	void clearfield(lexer*,fdm_nhf*,double*);
     
     double sst_walldist(lexer *p, fdm_nhf *d);

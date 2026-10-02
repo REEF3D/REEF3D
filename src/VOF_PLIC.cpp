@@ -79,6 +79,7 @@ VOF_PLIC::VOF_PLIC
 
     sSweep = -1;
     
+    if(p->F88==5)   // 3 x 26 doubles per cell, only needed for least-squares normals
     ininorVecLS(p);
     
     swtch_x=0;
@@ -315,5 +316,6 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     LOOP
         vofchecksum+=a->vof(i,j,k)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
     vofchecksum=pgc->globalsum(vofchecksum);
+    if(p->mpirank==0)
     cout<<"Total water volume:"<<vofchecksum<<endl;
 }

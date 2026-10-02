@@ -22,125 +22,17 @@ Author: Hans Bihs
 
 #include"nhflow_geometry.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"geo_primitive.h"
 
 void nhflow_geometry::sphere(lexer *p, ghostcell *pgc, int id)
 {
-    double U,ds,dt,phi,theta;
-	int snum;
-    double xm,ym,zm,r;
-    int q;
-
-	xm=sphere_xm[id];
-    ym=sphere_ym[id];
-    zm=sphere_zm[id];
-    r=sphere_r[id];
-
-
-	U = 2.0*PI*r;
-	ds = 0.5*(DSM);
-    snum = MAX(int(U/ds), 40);
-
-
-// Vertices
-	ds = (2.0*PI)/double(snum);
-
-    dt = ds;
-
-	phi=-0.5*PI;
-	theta=-0.5*PI;
-
+    const int snum = geo_primitive::segments(sphere_r[id],0.5*(DSM),40);
+    
 	tstart[entity_count]=tricount;
-
-        // bottom start /triangles
-        for(q=0;q<snum;++q)
-        {
-        tri_x[tricount][0] = xm;
-        tri_y[tricount][0] = ym;
-        tri_z[tricount][0] = zm-r;
-
-        tri_x[tricount][1] = xm + r*cos(theta+dt)*cos(phi);
-        tri_y[tricount][1] = ym + r*cos(theta+dt)*sin(phi);
-        tri_z[tricount][1] = zm + r*sin(theta+dt);
-
-        tri_x[tricount][2] = xm + r*cos(theta+dt)*cos(phi+ds);
-        tri_y[tricount][2] = ym + r*cos(theta+dt)*sin(phi+ds);
-        tri_z[tricount][2] = zm + r*sin(theta+dt);
-
-        ++tricount;
-
-        phi+=ds;
-        }
-
-    theta+=dt;
-
-    // middle section / hexahedrons
-	for(n=1;n<snum/2-1;++n)
-    {
-        phi=-0.5*PI;
-        for(q=0;q<snum;++q)
-        {
-        //side
-        // 1st triangle
-        tri_x[tricount][0] = xm + r*cos(theta)*cos(phi);
-        tri_y[tricount][0] = ym + r*cos(theta)*sin(phi);
-        tri_z[tricount][0] = zm + r*sin(theta);
-
-        tri_x[tricount][1] = xm + r*cos(theta+dt)*cos(phi);
-        tri_y[tricount][1] = ym + r*cos(theta+dt)*sin(phi);
-        tri_z[tricount][1] = zm + r*sin(theta+dt);
-
-        tri_x[tricount][2] = xm + r*cos(theta+dt)*cos(phi+ds);
-        tri_y[tricount][2] = ym + r*cos(theta+dt)*sin(phi+ds);
-        tri_z[tricount][2] = zm + r*sin(theta+dt);
-
-        ++tricount;
-
-        // 2nd triangle
-        tri_x[tricount][0] = xm + r*cos(theta)*cos(phi);
-        tri_y[tricount][0] = ym + r*cos(theta)*sin(phi);
-        tri_z[tricount][0] = zm + r*sin(theta);
-
-        tri_x[tricount][1] = xm + r*cos(theta+dt)*cos(phi+ds);
-        tri_y[tricount][1] = ym + r*cos(theta+dt)*sin(phi+ds);
-        tri_z[tricount][1] = zm + r*sin(theta+dt);
-
-        tri_x[tricount][2] = xm + r*cos(theta)*cos(phi+ds);
-        tri_y[tricount][2] = ym + r*cos(theta)*sin(phi+ds);
-        tri_z[tricount][2] = zm + r*sin(theta);
-
-        ++tricount;
-
-        phi+=ds;
-        }
-    theta+=dt;
-	}
-
-    // top start /triangles
-
-        phi=-0.5*PI;
-        theta=0.5*PI-dt;
-        for(q=0;q<snum;++q)
-        {
-        tri_x[tricount][0] = xm;
-        tri_y[tricount][0] = ym;
-        tri_z[tricount][0] = zm+r;
-
-        tri_x[tricount][1] = xm + r*cos(theta)*cos(phi);
-        tri_y[tricount][1] = ym + r*cos(theta)*sin(phi);
-        tri_z[tricount][1] = zm + r*sin(theta);
-
-        tri_x[tricount][2] = xm + r*cos(theta)*cos(phi+ds);
-        tri_y[tricount][2] = ym + r*cos(theta)*sin(phi+ds);
-        tri_z[tricount][2] = zm + r*sin(theta);
-
-        ++tricount;
-
-        phi+=ds;
-        }
-
-    // end point
-
-
+    
+    geo_primitive::sphere(tri_x,tri_y,tri_z,tricount,sphere_xm[id],sphere_ym[id],sphere_zm[id],sphere_r[id],snum);
+	
 	tend[entity_count]=tricount;
 }

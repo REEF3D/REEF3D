@@ -93,4 +93,9 @@ void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
     fe(i,j) = 0.0;
     }
+    
+    // porous floating bodies without static VRANS: clear POR, the bodies re-stamp it with MIN
+    if(p->X10>0 && p->X16==1 && p->B200==0)
+    LOOP
+    d->POR[IJK] = 1.0;
 }

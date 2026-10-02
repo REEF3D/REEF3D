@@ -163,8 +163,8 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         prk3->pamr = pamr;
         
         // non-hydrostatic pressure on the composite grid
-        sflow_pjm_lin *pnh = dynamic_cast<sflow_pjm_lin*>(ppress);
-        if(p->A220==1 && pnh!=nullptr)
+        sflow_pressure_nh *pnh = dynamic_cast<sflow_pressure_nh*>(ppress);
+        if(p->A220>=1 && p->A220<=3 && pnh!=nullptr)
         pnh->amr = pamr;
         }
     }

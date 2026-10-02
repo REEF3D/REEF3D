@@ -36,6 +36,7 @@ class vrans;
 class mooring;
 class fsi;
 class rodtree_coupling;
+class dem;
 
 using namespace std;
 
@@ -46,6 +47,9 @@ public:
 	virtual ~momentum_forcing();
 	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
                                 field&,field&,field&,field&,field&,field&,int,double,bool);
+
+    // DEM coupling, set by the CFD driver (shared by all momentum schemes)
+    inline static dem *pdem = nullptr;
 
 private:
 	double uplus,ks_plus,dist,ks,ustar;

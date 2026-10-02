@@ -168,6 +168,10 @@ void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Net
     pnetinter->initialize_nhflow(p,d,pgc);
     
+    // Membranes (X 330): node positions in the body frame
+    if(p->X330>0)
+    pnetinter->membrane_attach_nhflow(p,c_,R_);
+    
     if(p->X320>0)
     {
     Xne.resize(p->net_count);
