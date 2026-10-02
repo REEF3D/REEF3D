@@ -45,7 +45,7 @@ endif
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@
 
 $(APP): $(OBJECTS)
 	@mkdir -p $(@D)
