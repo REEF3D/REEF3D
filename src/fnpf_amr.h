@@ -149,6 +149,7 @@ public:
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
     void lap_apply(int, int);
     void lap_prec(int, int);
+    void lap_local(int, int, int);
     double lap_dot(int, int);
     void lap_start();
     void lap_restart();
