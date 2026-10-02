@@ -27,3 +27,4 @@ src/.ctagsd
 tests/regression/runs/
 __pycache__/
 !tests/regression/cases/**/*.json
+!tests/validation/cases/**/*.json

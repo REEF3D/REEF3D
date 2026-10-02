@@ -159,11 +159,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,a->u,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->u,1,a->u,a->v,a->w);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,a->u,a->u,a->v,a->w,1.0);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	ULOOP
+	urk1(i,j,k) = a->u(i,j,k)
+				+ p->dt*CPOR1*a->F(i,j,k);
 
 	ULOOP
-	urk1(i,j,k) = udiff(i,j,k)
-				+ p->dt*CPOR1*a->F(i,j,k);
+	a->F(i,j,k) = 0.0;
+
+	pdiff->diff_u(p,a,pgc,psolv,urk1,urk1,a->u,a->v,a->w,1.0);
+
+	// explicit diffusion (D 20 1) adds to F; zero for the implicit schemes
+	ULOOP
+	urk1(i,j,k) += p->dt*CPOR1*a->F(i,j,k);
 
     p->utime=pgc->timer()-starttime;
 
@@ -176,11 +184,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,a->v,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->v,2,a->u,a->v,a->w);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,a->v,a->u,a->v,a->w,1.0);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	VLOOP
+	vrk1(i,j,k) = a->v(i,j,k)
+				+ p->dt*CPOR2*a->G(i,j,k);
 
 	VLOOP
-	vrk1(i,j,k) = vdiff(i,j,k)
-				+ p->dt*CPOR2*a->G(i,j,k);
+	a->G(i,j,k) = 0.0;
+
+	pdiff->diff_v(p,a,pgc,psolv,vrk1,vrk1,a->u,a->v,a->w,1.0);
+
+	// explicit diffusion (D 20 1) adds to G; zero for the implicit schemes
+	VLOOP
+	vrk1(i,j,k) += p->dt*CPOR2*a->G(i,j,k);
 
     p->vtime=pgc->timer()-starttime;
 
@@ -193,11 +209,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,a->w,a->u,a->v,a->w,1.0);
 	pconvec->start(p,a,a->w,3,a->u,a->v,a->w);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,a->w,a->u,a->v,a->w,1.0);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	WLOOP
+	wrk1(i,j,k) = a->w(i,j,k)
+				+ p->dt*CPOR3*a->H(i,j,k);
 
 	WLOOP
-	wrk1(i,j,k) = wdiff(i,j,k)
-				+ p->dt*CPOR3*a->H(i,j,k);
+	a->H(i,j,k) = 0.0;
+
+	pdiff->diff_w(p,a,pgc,psolv,wrk1,wrk1,a->u,a->v,a->w,1.0);
+
+	// explicit diffusion (D 20 1) adds to H; zero for the implicit schemes
+	WLOOP
+	wrk1(i,j,k) += p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime=pgc->timer()-starttime;
     
@@ -255,11 +279,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,urk1,1,urk1,vrk1,wrk1);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk1,urk1,vrk1,wrk1,0.25);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	ULOOP
+	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*urk1(i,j,k)
+				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
 
 	ULOOP
-	urk2(i,j,k) = 0.75*a->u(i,j,k) + 0.25*udiff(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->F(i,j,k);
+	a->F(i,j,k) = 0.0;
+
+	pdiff->diff_u(p,a,pgc,psolv,urk2,urk2,urk1,vrk1,wrk1,0.25);
+
+	// explicit diffusion (D 20 1) adds to F; zero for the implicit schemes
+	ULOOP
+	urk2(i,j,k) += 0.25*p->dt*CPOR1*a->F(i,j,k);
                 
     p->utime+=pgc->timer()-starttime;
 	
@@ -272,11 +304,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,vrk1,2,urk1,vrk1,wrk1);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk1,urk1,vrk1,wrk1,0.25);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	VLOOP
+	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vrk1(i,j,k)
+				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
 
 	VLOOP
-	vrk2(i,j,k) = 0.75*a->v(i,j,k) + 0.25*vdiff(i,j,k)
-				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
+	a->G(i,j,k) = 0.0;
+
+	pdiff->diff_v(p,a,pgc,psolv,vrk2,vrk2,urk1,vrk1,wrk1,0.25);
+
+	// explicit diffusion (D 20 1) adds to G; zero for the implicit schemes
+	VLOOP
+	vrk2(i,j,k) += 0.25*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
 
@@ -289,11 +329,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk1,urk1,vrk1,wrk1,0.25);
 	pconvec->start(p,a,wrk1,3,urk1,vrk1,wrk1);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk1,urk1,vrk1,wrk1,0.25);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	WLOOP
+	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wrk1(i,j,k)
+				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
 
 	WLOOP
-	wrk2(i,j,k) = 0.75*a->w(i,j,k) + 0.25*wdiff(i,j,k)
-				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
+	a->H(i,j,k) = 0.0;
+
+	pdiff->diff_w(p,a,pgc,psolv,wrk2,wrk2,urk1,vrk1,wrk1,0.25);
+
+	// explicit diffusion (D 20 1) adds to H; zero for the implicit schemes
+	WLOOP
+	wrk2(i,j,k) += 0.25*p->dt*CPOR3*a->H(i,j,k);
 
     p->wtime+=pgc->timer()-starttime;
     
@@ -352,11 +400,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->upgrad(p,a,a->eta,a->eta_n);
 	irhs(p,a,pgc,urk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,urk2,1,urk2,vrk2,wrk2);
-	pdiff->diff_u(p,a,pgc,psolv,udiff,urk2,urk2,vrk2,wrk2,2.0/3.0);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	ULOOP
+	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*urk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
 
 	ULOOP
-	a->u(i,j,k) = (1.0/3.0)*a->u(i,j,k) + (2.0/3.0)*udiff(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
+	a->F(i,j,k) = 0.0;
+
+	pdiff->diff_u(p,a,pgc,psolv,a->u,a->u,urk2,vrk2,wrk2,(2.0/3.0));
+
+	// explicit diffusion (D 20 1) adds to F; zero for the implicit schemes
+	ULOOP
+	a->u(i,j,k) += (2.0/3.0)*p->dt*CPOR1*a->F(i,j,k);
 	
     p->utime+=pgc->timer()-starttime;
 
@@ -369,11 +425,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
 	jrhs(p,a,pgc,vrk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,vrk2,2,urk2,vrk2,wrk2);
-	pdiff->diff_v(p,a,pgc,psolv,vdiff,vrk2,urk2,vrk2,wrk2,2.0/3.0);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	VLOOP
+	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vrk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
 
 	VLOOP
-	a->v(i,j,k) = (1.0/3.0)*a->v(i,j,k) + (2.0/3.0)*vdiff(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
+	a->G(i,j,k) = 0.0;
+
+	pdiff->diff_v(p,a,pgc,psolv,a->v,a->v,urk2,vrk2,wrk2,(2.0/3.0));
+
+	// explicit diffusion (D 20 1) adds to G; zero for the implicit schemes
+	VLOOP
+	a->v(i,j,k) += (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
 	
     p->vtime+=pgc->timer()-starttime;
 
@@ -386,11 +450,19 @@ void momentum_FC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
 	krhs(p,a,pgc,wrk2,urk2,vrk2,wrk2,2.0/3.0);
 	pconvec->start(p,a,wrk2,3,urk2,vrk2,wrk2);
-	pdiff->diff_w(p,a,pgc,psolv,wdiff,wrk2,urk2,vrk2,wrk2,2.0/3.0);
+	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
+	WLOOP
+	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wrk2(i,j,k)
+				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
 
 	WLOOP
-	a->w(i,j,k) = (1.0/3.0)*a->w(i,j,k) + (2.0/3.0)*wdiff(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
+	a->H(i,j,k) = 0.0;
+
+	pdiff->diff_w(p,a,pgc,psolv,a->w,a->w,urk2,vrk2,wrk2,(2.0/3.0));
+
+	// explicit diffusion (D 20 1) adds to H; zero for the implicit schemes
+	WLOOP
+	a->w(i,j,k) += (2.0/3.0)*p->dt*CPOR3*a->H(i,j,k);
 	
     p->wtime+=pgc->timer()-starttime;
     

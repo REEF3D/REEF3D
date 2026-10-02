@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"concentration.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -71,7 +72,7 @@ void regression_dump::add(const char *name, int n)
     data.back().reserve(n);
 }
 
-void regression_dump::cfd_collect(lexer *p, fdm *a, turbulence *pturb)
+void regression_dump::cfd_collect(lexer *p, fdm *a, turbulence *pturb, concentration *pconc)
 {
     names.clear();
     data.clear();
@@ -122,7 +123,18 @@ void regression_dump::cfd_collect(lexer *p, fdm *a, turbulence *pturb)
 
     add("conc",p->cellnum);
     LOOP
-    data.back().push_back(a->conc(i,j,k));
+    data.back().push_back(pconc->val(i,j,k));
+
+    // discrete divergence of the velocity field, as seen by the pressure projection
+    add("div",p->cellnum);
+    LOOP
+    data.back().push_back((a->u(i,j,k)-a->u(i-1,j,k))/p->DXN[IP]
+                         +(a->v(i,j,k)-a->v(i,j-1,k))/p->DYN[JP]*p->y_dir
+                         +(a->w(i,j,k)-a->w(i,j,k-1))/p->DZN[KP]);
+
+    add("vol",p->cellnum);
+    LOOP
+    data.back().push_back(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]);
 
     add("flag4",p->cellnum);
     BASELOOP
@@ -165,26 +177,26 @@ void regression_dump::write_state(lexer *p)
     last_written=p->count;
 }
 
-void regression_dump::cfd_state(lexer *p, fdm *a, turbulence *pturb)
+void regression_dump::cfd_state(lexer *p, fdm *a, turbulence *pturb, concentration *pconc)
 {
     if(last_written==p->count)
     return;
 
-    cfd_collect(p,a,pturb);
+    cfd_collect(p,a,pturb,pconc);
     write_state(p);
 }
 
-void regression_dump::cfd_ini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void regression_dump::cfd_ini(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, concentration *pconc)
 {
     if(!is_active)
     return;
 
     steplog<<"# count simtime dt  sum(u^2) sum(v^2) sum(w^2) sum(press^2) sum(phi^2) sum(eddyv^2)  (rank-local, hexfloat)"<<std::endl;
 
-    cfd_state(p,a,pturb);
+    cfd_state(p,a,pturb,pconc);
 }
 
-void regression_dump::cfd_step(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void regression_dump::cfd_step(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, concentration *pconc)
 {
     if(!is_active)
     return;
@@ -211,14 +223,14 @@ void regression_dump::cfd_step(lexer *p, fdm *a, ghostcell *pgc, turbulence *ptu
            <<su<<" "<<sv<<" "<<sw<<" "<<sp<<" "<<sphi<<" "<<sev<<"\n";
 
     if(every>0 && p->count%every==0)
-    cfd_state(p,a,pturb);
+    cfd_state(p,a,pturb,pconc);
 }
 
-void regression_dump::cfd_final(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
+void regression_dump::cfd_final(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, concentration *pconc)
 {
     if(!is_active)
     return;
 
     steplog.flush();
-    cfd_state(p,a,pturb);
+    cfd_state(p,a,pturb,pconc);
 }

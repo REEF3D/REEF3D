@@ -32,6 +32,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class turbulence;
+class concentration;
 class field;
 
 /*--------------------------------------------------------------------
@@ -61,13 +62,13 @@ public:
     bool active() const {return is_active;}
 
     // CFD
-    void cfd_ini(lexer*, fdm*, ghostcell*, turbulence*);     // after initialisation
-    void cfd_step(lexer*, fdm*, ghostcell*, turbulence*);    // end of each time step
-    void cfd_final(lexer*, fdm*, ghostcell*, turbulence*);   // after the main loop
+    void cfd_ini(lexer*, fdm*, ghostcell*, turbulence*, concentration*);     // after initialisation
+    void cfd_step(lexer*, fdm*, ghostcell*, turbulence*, concentration*);    // end of each time step
+    void cfd_final(lexer*, fdm*, ghostcell*, turbulence*, concentration*);   // after the main loop
 
 private:
-    void cfd_state(lexer*, fdm*, turbulence*);
-    void cfd_collect(lexer*, fdm*, turbulence*);
+    void cfd_state(lexer*, fdm*, turbulence*, concentration*);
+    void cfd_collect(lexer*, fdm*, turbulence*, concentration*);
     void add(const char*, int);
     void write_state(lexer*);
 

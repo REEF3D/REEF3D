@@ -93,8 +93,11 @@ def load_case(name, _seen=None):
         control = list(b["control_lines"])
         ctrl = list(b["ctrl_lines"])
         files = list(b["files_abs"])
-        for k in ("np", "steps", "dump_every", "solver"):
-            c.setdefault(k, b.get(k))
+        # inherit everything that is not specific to the base case's own files/overrides
+        for k, v in b.items():
+            if k not in ("name", "dir", "base", "control_lines", "ctrl_lines", "files_abs", "files",
+                         "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers"):
+                c.setdefault(k, v)
     else:
         control = read_lines(os.path.join(cdir, "control.txt"))
         ctrl = read_lines(os.path.join(cdir, "ctrl.txt"))
@@ -162,9 +165,14 @@ def write_inputs(c, rundir, steps_override=None):
     np_ = c["np"]
     steps = steps_override or c["steps"]
     control = apply_overrides(c["control_lines"], {"M 10": str(np_)}, [])
-    # the suite controls length and output: fixed number of steps, no VTU/state files
+    # the suite controls length and output (no VTU/state files)
+    # length: fixed number of steps, or a simulated time ("time" in case.json, validation cases)
+    if c.get("time") and not steps_override:
+        nsteps, tmax = "100000000", repr(float(c["time"]))
+    else:
+        nsteps, tmax = str(steps), "1.0e9"
     ctrl = apply_overrides(c["ctrl_lines"],
-                           {"M 10": str(np_), "N 45": str(steps), "N 41": "1.0e9",
+                           {"M 10": str(np_), "N 45": nsteps, "N 41": tmax,
                             "P 20": None, "P 30": None, "P 40": None, "P 41": None,
                             "P 42": None, "P 12": "10"}, [])
     with open(os.path.join(rundir, "control.txt"), "w") as f:
