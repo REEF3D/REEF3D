@@ -181,8 +181,7 @@
             <File Name="les_io.h"/>
             <File Name="rans_io.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="EARSM">
-          </VirtualDirectory>
+          <VirtualDirectory Name="EARSM"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="pressure_void.h"/>
@@ -234,8 +233,7 @@
             <File Name="VOF_void.h"/>
             <File Name="VOF_PLIC.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VOF Algebraic">
-          </VirtualDirectory>
+          <VirtualDirectory Name="VOF Algebraic"/>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reini_walld.h"/>
             <File Name="reini_void.h"/>
@@ -373,14 +371,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Update">
-        </VirtualDirectory>
-        <VirtualDirectory Name="Laplace">
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSFBC">
-        </VirtualDirectory>
-        <VirtualDirectory Name="PTF">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Update"/>
+        <VirtualDirectory Name="Laplace"/>
+        <VirtualDirectory Name="FSFBC"/>
+        <VirtualDirectory Name="PTF"/>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
@@ -955,6 +949,11 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="PTO">
+          <File Name="6DOF_pto.h"/>
+          <File Name="6DOF_pto_elements.h"/>
+          <File Name="6DOF_pto_joint.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geometry">
           <File Name="6DOF_obj_remesh.h"/>
         </VirtualDirectory>
@@ -1097,8 +1096,7 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Boundary">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Boundary"/>
         <VirtualDirectory Name="Grid">
           <File Name="grid.h"/>
           <File Name="grid_helper.h"/>
@@ -1571,8 +1569,7 @@
             <File Name="rans_ini.cpp"/>
             <File Name="les_io.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="EARSM">
-          </VirtualDirectory>
+          <VirtualDirectory Name="EARSM"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="pressure_void.cpp"/>
@@ -1643,8 +1640,7 @@
             <File Name="VOF_PLIC_normalVector.cpp"/>
             <File Name="VOF_PLIC.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VOF Algebraic">
-          </VirtualDirectory>
+          <VirtualDirectory Name="VOF Algebraic"/>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reini_walld.cpp"/>
             <File Name="reini_void.cpp"/>
@@ -1669,14 +1665,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Breaking"/>
-        <VirtualDirectory Name="Update">
-        </VirtualDirectory>
-        <VirtualDirectory Name="Laplace">
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSFBC">
-        </VirtualDirectory>
-        <VirtualDirectory Name="PTF">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Update"/>
+        <VirtualDirectory Name="Laplace"/>
+        <VirtualDirectory Name="FSFBC"/>
+        <VirtualDirectory Name="PTF"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Convect">
@@ -2449,6 +2441,11 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="PTO">
+          <File Name="6DOF_obj_pto.cpp"/>
+          <File Name="6DOF_pto_elements.cpp"/>
+          <File Name="6DOF_pto_joint.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Membrane">
           <File Name="net_membrane.cpp"/>
           <File Name="net_membrane_structure.cpp"/>
@@ -2939,8 +2936,7 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Boundary">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Boundary"/>
         <VirtualDirectory Name="Grid">
           <File Name="grid.cpp"/>
           <VirtualDirectory Name="Grid Helper">

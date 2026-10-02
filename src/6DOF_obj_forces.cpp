@@ -80,7 +80,7 @@ void sixdof_obj::update_forces(lexer *p)
     if(Mfb_(2)!=Mfb_(2))
     cout<<"Mfb_(2)....###"<<endl;
     
-    // FNPF: instantaneous added mass on the left-hand side
-    if(am_on_)
+    // FNPF: instantaneous added mass (and implicit PTO terms, X 500 2) on the left-hand side
+    if(am_on_ || (pto_on_ && pto_implicit_))
     apply_added_mass(p);
 }

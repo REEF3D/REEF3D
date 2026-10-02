@@ -1176,6 +1176,19 @@ void control::ini_default()
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
     X410=0;         // int etaval for draft
+    X500=0;         // int PTO: 0 off, 1 explicit, 2 linearly implicit coupling
+    X501=0;         // int PTO joint attachment point given
+    X501_ax=X501_ay=0.0; // double PTO joint axis
+    X501_az=1.0;
+    X501_xa=X501_ya=X501_za=0.0; // double PTO joint attachment point, default CoG
+    X502=0;         // int PTO linear damper
+    X502_B=0.0;     // double damping coefficient [N s/m]
+    X503=0;         // int PTO spring-damper
+    X503_K=X503_B=0.0; // double stiffness [N/m], damping [N s/m]
+    X504=0;         // int PTO end-stops
+    X504_qmin=-1.0e20; // double lower stroke limit [m]
+    X504_qmax=1.0e20;  // double upper stroke limit [m]
+    X504_K=X504_C=0.0; // double end-stop stiffness [N/m], damping [N s/m]
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model

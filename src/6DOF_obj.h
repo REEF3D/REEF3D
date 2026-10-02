@@ -36,6 +36,8 @@ Authors: Hans Bihs, Tobias Martin
 #include"sliceint5.h"
 #include"vtp3D.h"
 #include"geo_raycast.h"
+#include"6DOF_pto.h"
+#include"6DOF_pto_joint.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -465,13 +467,26 @@ private:
     
     // FNPF: classical RK4 stage derivatives and the added-mass coupling
     void rk4(lexer*, ghostcell*, int);
-    void externalForces_fnpf(lexer*, ghostcell*, bool);
+    void externalForces_fnpf(lexer*, ghostcell*, int, bool);
     void apply_added_mass(lexer*);
     bool p_fixed_dof(lexer*, int);
     Eigen::Vector3d rk4_p_[3], rk4_c_[3], rk4_h_[3];
     Eigen::Vector4d rk4_e_[3];
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
+
+    // FNPF: power take-off (X 500 - X 504, 6DOF_obj_pto.cpp)
+    void ini_pto(lexer*, ghostcell*);
+    void pto_forces(lexer*, ghostcell*, int);
+    void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
+    void pto_stability_check(lexer*);
+    pto_joint_prismatic pto_joint_;
+    pto_composite pto_;
+    pto_state pto_s_;
+    pto_output pto_out_;
+    bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
+    double pto_E_ = 0.0, pto_Pn_ = 0.0, pto_tn_ = -1.0;
+    ofstream printpto;
 };
 
 #endif

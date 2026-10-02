@@ -560,6 +560,11 @@ public:
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
     int X410;
+    int X500,X501,X502,X503,X504;
+    double X501_ax,X501_ay,X501_az,X501_xa,X501_ya,X501_za;
+    double X502_B;
+    double X503_K,X503_B;
+    double X504_qmin,X504_qmax,X504_K,X504_C;
 
     // FSI
     int Z10,Z11,Z20;
