@@ -229,7 +229,7 @@
   0.0007368049535800653,
   0.0007370655354656686
  ],
- "blessed_from": "/home/claude/build/ref/REEF3D",
+ "blessed_from": "/home/claude/build/new/REEF3D",
  "date": "2026-10-02",
- "note": "initial references: hans_dev aaadef9 + regression_dump hook; Linux x86-64 gcc 13 / OpenMPI 4.1, -O2"
+ "note": "after F3 F5 F7 F10 F16 (series on top of aaadef9); Linux x86-64 gcc 13 / OpenMPI 4.1, -O2"
 }

@@ -99,7 +99,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak` (+ `_fcc3`, `_fcls3`, `_mpi2`) | 1/2 | closed tank, walls, N40=33 / 4, 2D MPI |
 | `cfd_2d_cylinder_singlephase` | 1 | single phase, explicit diffusion, inflow/outflow, forces |
 | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
-| `cfd_3d_pier_komega` (+ `_rkls3_sf`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop |
+| `cfd_3d_pier_komega` (+ `_rkls3_sf`, `_t33`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop, T33 k-gradient source |
 | `cfd_3d_heave_sphere_6dof` (+ `_rk3`) | 4 | floating body 6DOF (FCLS3), N40=13→14 df loop |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
