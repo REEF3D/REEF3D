@@ -1,10 +1,3 @@
-26.10
-x grid format v2: smaller grid files, solids (S) and topo (T) passed to REEF3D as triangles
-x geometry core: 6DOF ray casting shared by 6DOF, NHFLOW solid forcing and the grid solids
-x solids and topography of the grid file built in REEF3D for CFD, NHFLOW, SFLOW and FNPF
-x added NHFLOW immersed grid solids (A 580 1)
-x 6DOF FNPF supports all objects (cylinders, symmetric wedge)
-x fixed 6DOF cylinder resolution (segment length 0.75 dx)
 
 
 26.08
