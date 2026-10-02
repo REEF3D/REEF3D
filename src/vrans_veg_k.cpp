@@ -35,6 +35,7 @@ void vrans_veg::kw_source(lexer *p, fdm *a, field &kin)
     count=0;
 	if(p->B295==1)
     LOOP
+    {
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
@@ -47,7 +48,8 @@ void vrans_veg::kw_source(lexer *p, fdm *a, field &kin)
 
         a->rhsvec.V[count] += kw;
     
-        ++count;  
+    }
+    ++count;
     }
 }
 
@@ -61,6 +63,7 @@ void vrans_veg::ke_source(lexer *p, fdm *a, field &kin)
     count=0;
 	if(p->B295==1)
     LOOP
+    {
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
@@ -73,6 +76,7 @@ void vrans_veg::ke_source(lexer *p, fdm *a, field &kin)
 
         a->rhsvec.V[count] += kw;
     
-        ++count;  
+    }
+    ++count;
     }
 }

@@ -36,6 +36,7 @@ void vrans_f::kw_source(lexer *p, fdm *a, field &kin)
     count=0;
 	if(p->B295==1)
     LOOP
+    {
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
@@ -51,7 +52,8 @@ void vrans_f::kw_source(lexer *p, fdm *a, field &kin)
         
         a->rhsvec.V[count] += por*ke_c_2e*MAX(winf,0.0)*MAX(kinf,0.0);
     
-        ++count;  
+    }
+    ++count;
     }
 }
 
@@ -66,6 +68,7 @@ void vrans_f::ke_source(lexer *p, fdm *a, field &kin)
     count=0;
 	if(p->B295==1)
     LOOP
+    {
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
@@ -81,7 +84,8 @@ void vrans_f::ke_source(lexer *p, fdm *a, field &kin)
         
         a->rhsvec.V[count] += por*MAX(einf,0.0);
     
-        ++count;  
+    }
+    ++count;
     }
 
 }

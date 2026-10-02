@@ -36,6 +36,7 @@ void vrans_f::omega_source(lexer *p, fdm *a, field &kin, field &eps)
     count=0;
 	if(p->B295==1)
     LOOP
+    {
     if(a->porosity(i,j,k)<1.0)
     {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
@@ -49,7 +50,8 @@ void vrans_f::omega_source(lexer *p, fdm *a, field &kin, field &eps)
         winf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k))*(p->cmu*(kinf>1.0e-20?kinf:1.0e20));
         
         a->rhsvec.V[count] += por*(winf*winf);
-        ++count;  
+    }
+    ++count;
     }
 
 }
