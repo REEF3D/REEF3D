@@ -250,6 +250,7 @@ void control::ini_default()
     A576_sc=0.3; // double Jeffreys critical slope
     A576_c=0.0;  // double Jeffreys wave phase speed, <=0: use wave generation celerity
     A578=4;      // int low-pass filter passes on the wind forcing slope
+    A580=0;      // int DIVEMesh solids (S): 0 bed level, 1 immersed solids (direct forcing)
     
     A581=0;      // int solid box
     A583=0;      // int solid cylinder y

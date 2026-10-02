@@ -23,311 +23,40 @@ Author: Hans Bihs
 #include"6DOF_obj.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"geo_primitive.h"
 
 void sixdof_obj::cylinder_x(lexer *p, ghostcell *pgc, int id)
 {
-	double U,ds,phi;
-	double xm,ym,zm,x1,x2,r;
-	int snum;
-	int vertice_mem, center1_num,center2_num;
-	double Ax,Ay,Az;
-	double Bx,By,Bz;
-	double Nx,Ny,Nz,norm;
-	
-
-	xm=p->X131_xc;
-	ym=p->X131_yc;
-    zm=p->X131_zc;
-	
-	x1=xm-0.5*p->X131_h;
-	x2=xm+0.5*p->X131_h;
-	
-    r=p->X131_rad;
-	
-	U = 2.0 * PI * r;
-	
-	ds = 0.75*(U*p->dx);
-	
-	snum = int(U/ds);
-	
-
-// Vertices	
-	ds = (2.0*PI)/double(snum);
-	
-	phi=0.0;
+    // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	const int snum = geo_primitive::segments(p->X131_rad,0.75*p->dx,8);
 	
 	tstart[entity_count]=tricount;
 	
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle	
-	tri_x[tricount][0] = x1;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = zm;
-	
-	tri_x[tricount][1] = x1;
-	tri_y[tricount][1] = ym + r*sin(phi);
-	tri_z[tricount][1] = zm + r*cos(phi);
-	
-	tri_x[tricount][2] = x1;
-	tri_y[tricount][2] = ym + r*sin(phi+ds);
-	tri_z[tricount][2] = zm + r*cos(phi+ds);
-	++tricount;
-		
-	//top circle
-	tri_x[tricount][0] = x2;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = zm;
-	
-	tri_x[tricount][1] = x2;
-	tri_y[tricount][1] = ym + r*sin(phi);
-	tri_z[tricount][1] = zm + r*cos(phi);
-	
-	tri_x[tricount][2] = x2;
-	tri_y[tricount][2] = ym + r*sin(phi+ds);
-	tri_z[tricount][2] = zm + r*cos(phi+ds);
-	++tricount;
-	
-	//side		
-	// 1st triangle
-	tri_x[tricount][0] = x1;
-	tri_y[tricount][0] = ym + r*sin(phi);
-	tri_z[tricount][0] = zm + r*cos(phi);
-	
-	tri_x[tricount][1] = x2;
-	tri_y[tricount][1] = ym + r*sin(phi+ds);
-	tri_z[tricount][1] = zm + r*cos(phi+ds);
-	
-	tri_x[tricount][2] = x1;
-	tri_y[tricount][2] = ym + r*sin(phi+ds);
-	tri_z[tricount][2] = zm + r*cos(phi+ds);
-
-	++tricount;
-	
-	// 2nd triangle
-	tri_x[tricount][0] = x1;
-	tri_y[tricount][0] = ym + r*sin(phi);
-	tri_z[tricount][0] = zm + r*cos(phi);
-	
-	tri_x[tricount][1] = x2;
-	tri_y[tricount][1] = ym + r*sin(phi+ds);
-	tri_z[tricount][1] = zm + r*cos(phi+ds);
-	
-	tri_x[tricount][2] = x2;
-	tri_y[tricount][2] = ym + r*sin(phi);
-	tri_z[tricount][2] = zm + r*cos(phi);
-	
-	++tricount;
-		
-	phi+=ds;
-	}
-		
+	geo_primitive::cylinder_x(tri_x,tri_y,tri_z,tricount,p->X131_yc,p->X131_zc,p->X131_xc-0.5*p->X131_h,p->X131_xc+0.5*p->X131_h,p->X131_rad,snum);
 	
 	tend[entity_count]=tricount;
 }
 
-
 void sixdof_obj::cylinder_y(lexer *p, ghostcell *pgc, int id)
 {
-	double U,ds,phi;
-	double xm,ym,zm,y1,y2,r;
-	int snum;
-	int vertice_mem, center1_num,center2_num;
-	double Ax,Ay,Az;
-	double Bx,By,Bz;
-	double Nx,Ny,Nz,norm;
+    // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	const int snum = geo_primitive::segments(p->X132_rad,0.75*p->dx,8);
 	
-	
-
-	xm=p->X132_xc;
-	ym=p->X132_yc;
-    zm=p->X132_zc;
-	
-	y1=ym-0.5*p->X132_h;
-	y2=ym+0.5*p->X132_h;
-	
-    r=p->X132_rad;
-	
-	U = 2.0 * PI * r;
-	
-	ds = 0.75*(U*p->dx);
-	
-	snum = int(U/ds);
-	
-	
-
-// Vertices	
-	ds = (2.0*PI)/double(snum);
-	
-	phi=0.0;
-
 	tstart[entity_count]=tricount;
-
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle	
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = y1;
-	tri_z[tricount][0] = zm;
 	
-	tri_x[tricount][1] = xm + r*sin(phi);
-	tri_y[tricount][1] = y1;
-	tri_z[tricount][1] = zm + r*cos(phi);
+	geo_primitive::cylinder_y(tri_x,tri_y,tri_z,tricount,p->X132_xc,p->X132_zc,p->X132_yc-0.5*p->X132_h,p->X132_yc+0.5*p->X132_h,p->X132_rad,snum);
 	
-	tri_x[tricount][2] = xm + r*sin(phi+ds);
-	tri_y[tricount][2] = y1;
-	tri_z[tricount][2] = zm + r*cos(phi+ds);
-	++tricount;
-		
-	//top circle
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = y2;
-	tri_z[tricount][0] = zm;
-	
-	tri_x[tricount][1] = xm + r*sin(phi);
-	tri_y[tricount][1] = y2;
-	tri_z[tricount][1] = zm + r*cos(phi);
-	
-	tri_x[tricount][2] = xm + r*sin(phi+ds);
-	tri_y[tricount][2] = y2;
-	tri_z[tricount][2] = zm + r*cos(phi+ds);
-	++tricount;
-	
-	//side		
-	// 1st triangle
-	tri_x[tricount][0] = xm + r*sin(phi);
-	tri_y[tricount][0] = y1;
-	tri_z[tricount][0] = zm + r*cos(phi);
-	
-	tri_x[tricount][1] = xm + r*sin(phi+ds);
-	tri_y[tricount][1] = y2;
-	tri_z[tricount][1] = zm + r*cos(phi+ds);
-	
-	tri_x[tricount][2] = xm + r*sin(phi+ds);
-	tri_y[tricount][2] = y1;
-	tri_z[tricount][2] = zm + r*cos(phi+ds);
-
-	++tricount;
-	
-	// 2nd triangle
-	tri_x[tricount][0] = xm + r*sin(phi);
-	tri_y[tricount][0] = y1;
-	tri_z[tricount][0] = zm + r*cos(phi);
-	
-	tri_x[tricount][1] = xm + r*sin(phi+ds);
-	tri_y[tricount][1] = y2;
-	tri_z[tricount][1] = zm + r*cos(phi+ds);
-	
-	tri_x[tricount][2] = xm + r*sin(phi);
-	tri_y[tricount][2] = y2;
-	tri_z[tricount][2] = zm + r*cos(phi);
-	++tricount;
-	
-		
-	phi+=ds;
-	}
-		
 	tend[entity_count]=tricount;
 }
 
 void sixdof_obj::cylinder_z(lexer *p, ghostcell *pgc, int id)
 {
-	double U,ds,phi;
-	double xm,ym,zm,z1,z2,r;
-	int snum;
-	int vertice_mem, center1_num,center2_num;
-	double Ax,Ay,Az;
-	double Bx,By,Bz;
-	double Nx,Ny,Nz,norm;
-	
-
-	xm=p->X133_xc;
-	ym=p->X133_yc;
-    zm=p->X133_zc;
-	
-	z1=zm-0.5*p->X133_h;
-	z2=zm+0.5*p->X133_h;
-	
-    r=p->X133_rad;
-	
-	U = 2.0 * PI * r;
-	
-	ds = 0.75*(U*p->dx);
-	
-	snum = int(U/ds);
-	
-
-// Vertices	
-	ds = (2.0*PI)/double(snum);
-	
-	phi=0.0;
+    // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	const int snum = geo_primitive::segments(p->X133_rad,0.75*p->dx,8);
 	
 	tstart[entity_count]=tricount;
 	
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle	
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = z1;
+	geo_primitive::cylinder_z(tri_x,tri_y,tri_z,tricount,p->X133_xc,p->X133_yc,p->X133_zc-0.5*p->X133_h,p->X133_zc+0.5*p->X133_h,p->X133_rad,snum);
 	
-	tri_x[tricount][1] = xm + r*cos(phi);
-	tri_y[tricount][1] = ym + r*sin(phi);
-	tri_z[tricount][1] = z1;
-	
-	tri_x[tricount][2] = xm + r*cos(phi+ds);
-	tri_y[tricount][2] = ym + r*sin(phi+ds);
-	tri_z[tricount][2] = z1;
-	++tricount;
-		
-	//top circle
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = z2;
-	
-	tri_x[tricount][1] = xm + r*cos(phi);
-	tri_y[tricount][1] = ym + r*sin(phi);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r*cos(phi+ds);
-	tri_y[tricount][2] = ym + r*sin(phi+ds);
-	tri_z[tricount][2] = z2;
-	++tricount;
-	
-	//side		
-	// 1st triangle
-	tri_x[tricount][0] = xm + r*cos(phi);
-	tri_y[tricount][0] = ym + r*sin(phi);
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r*cos(phi+ds);
-	tri_y[tricount][1] = ym + r*sin(phi+ds);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r*cos(phi+ds);
-	tri_y[tricount][2] = ym + r*sin(phi+ds);
-	tri_z[tricount][2] = z1;
-
-	++tricount;
-	
-	// 2nd triangle
-	tri_x[tricount][0] = xm + r*cos(phi);
-	tri_y[tricount][0] = ym + r*sin(phi);
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r*cos(phi+ds);
-	tri_y[tricount][1] = ym + r*sin(phi+ds);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r*cos(phi);
-	tri_y[tricount][2] = ym + r*sin(phi);
-	tri_z[tricount][2] = z2;
-	
-	++tricount;
-		
-	phi+=ds;
-	}
-		
 	tend[entity_count]=tricount;
 }
-

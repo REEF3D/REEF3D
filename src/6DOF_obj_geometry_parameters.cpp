@@ -216,7 +216,9 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     
     I_ = Eigen::Matrix3d::Zero();
 
-	if (p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0)
+	// level-set integration needs the NHFLOW fdm; FNPF (d==nullptr) integrates the
+	// surface triangles for every object
+	if ((p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0) && d!=nullptr)
 	{
 		geometry_ls_nhflow(p,d,pgc);
 	}	

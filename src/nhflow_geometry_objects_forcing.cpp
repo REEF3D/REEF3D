@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"geo_mesh.h"
 
 void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
 {
@@ -32,6 +33,9 @@ void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
     objects_allocate_forcing(p,pgc);
 	
     entity_count=0;
+    
+    // solids of the grid file first: an inverted STL (S 9 2) complements the field so far
+    grid_solids(p,pgc);
 	
 	for(qn=0;qn<box_num;++qn)
     {
@@ -330,6 +334,13 @@ void nhflow_geometry::objects_allocate_forcing(lexer *p, ghostcell *pgc)
     // STL
     if(p->A590==1)
     entity_sum+=1;
+    
+    // solids of the grid file
+    entity_sum += grid_solid_num;
+    trisum += grid_solid_tri;
+    
+    ent_raymode.assign(entity_sum,1);
+    ent_invert.assign(entity_sum,0);
 
     p->Darray(tri_x,trisum,3);
 	p->Darray(tri_y,trisum,3);
@@ -337,4 +348,39 @@ void nhflow_geometry::objects_allocate_forcing(lexer *p, ghostcell *pgc)
     
 	p->Iarray(tstart,entity_sum);
 	p->Iarray(tend,entity_sum);
+}
+
+void nhflow_geometry::grid_solids(lexer *p, ghostcell *pgc)
+{
+    if(grid_solid_num==0)
+    return;
+    
+    const geo_mesh &G = *p->gridgeo;
+    
+    for(const geo_object &ob : G.obj)
+    if(ob.role==geo_mesh::role_solid)
+    {
+        tstart[entity_count]=tricount;
+        
+        for(int q=ob.ts; q<ob.te; ++q)
+        {
+            for(int v=0; v<3; ++v)
+            {
+            tri_x[tricount][v] = G.tri_x[q][v];
+            tri_y[tricount][v] = G.tri_y[q][v];
+            tri_z[tricount][v] = G.tri_z[q][v];
+            }
+            ++tricount;
+        }
+        
+        tend[entity_count]=tricount;
+        
+        ent_raymode[entity_count] = ob.raymode;
+        ent_invert[entity_count] = ob.invert;
+        
+        ++entity_count;
+    }
+    
+    if(p->mpirank==0)
+    cout<<"NHFLOW immersed grid solids: "<<grid_solid_num<<" entities, "<<grid_solid_tri<<" triangles"<<endl;
 }

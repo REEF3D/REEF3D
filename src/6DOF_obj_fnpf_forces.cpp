@@ -37,71 +37,10 @@ void sixdof_obj::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *FB
     const double id = double(n6DOF+1);
     const int ny = p->knoy;
     
-    vector<vector<double> > hits(p->knox*p->knoy);
+    // sorted, unique crossings of the column rays (geometry core)
+    vector<vector<double> > hits;
     
-    // 2D: the STL is extruded in y, cast in its mid-plane
-    double ymid=0.0;
-    
-    if(p->j_dir==0 && tricount>0)
-    {
-        double ylo=1.0e20, yhi=-1.0e20;
-        
-        for(n=0; n<tricount; ++n)
-        for(int q=0; q<3; ++q)
-        {
-        ylo = MIN(ylo,tri_y[n][q]);
-        yhi = MAX(yhi,tri_y[n][q]);
-        }
-        
-        ymid = 0.5*(ylo+yhi);
-    }
-    
-    // small irrational offset against rays through edges and vertices
-    const double ex = 0.1234567891e-6*p->DXM;
-    const double ey = 0.3141592653e-6*p->DXM;
-    
-    for(n=0; n<tricount; ++n)
-    {
-        const double x0 = tri_x[n][0], x1 = tri_x[n][1], x2 = tri_x[n][2];
-        const double y0 = tri_y[n][0], y1 = tri_y[n][1], y2 = tri_y[n][2];
-        const double z0 = tri_z[n][0], z1 = tri_z[n][1], z2 = tri_z[n][2];
-        
-        const double det = (y1-y2)*(x0-x2) + (x2-x1)*(y0-y2);
-        
-        // vertical facets are never crossed by a vertical ray
-        if(fabs(det)<1.0e-30)
-        continue;
-        
-        const double txmin = MIN(x0,MIN(x1,x2));
-        const double txmax = MAX(x0,MAX(x1,x2));
-        const double tymin = MIN(y0,MIN(y1,y2));
-        const double tymax = MAX(y0,MAX(y1,y2));
-        
-        ILOOP
-        {
-            const double xr = p->XP[IP] + ex;
-            
-            if(xr<txmin || xr>txmax)
-            continue;
-            
-            JLOOP
-            {
-                const double yr = ((p->j_dir==0) ? ymid : p->YP[JP]) + ey;
-                
-                if(yr<tymin || yr>tymax)
-                continue;
-                
-                const double l0 = ((y1-y2)*(xr-x2) + (x2-x1)*(yr-y2))/det;
-                const double l1 = ((y2-y0)*(xr-x2) + (x0-x2)*(yr-y2))/det;
-                const double l2 = 1.0 - l0 - l1;
-                
-                if(l0<0.0 || l1<0.0 || l2<0.0)
-                continue;
-                
-                hits[i*ny+j].push_back(l0*z0 + l1*z1 + l2*z2);
-            }
-        }
-    }
+    georay.column_hits(p,tri_x,tri_y,tri_z,0,tricount,p->DXM,hits);
     
     ILOOP
     JLOOP
@@ -110,19 +49,6 @@ void sixdof_obj::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *FB
         
         if(h.empty())
         continue;
-        
-        // a ray through a shared edge or vertex hits every adjacent facet:
-        // count coincident crossings once
-        sort(h.begin(),h.end());
-        
-        const double tol = 1.0e-9*p->DXM;
-        size_t nu=1;
-        
-        for(size_t m=1; m<h.size(); ++m)
-        if(h[m]-h[nu-1]>tol)
-        h[nu++] = h[m];
-        
-        h.resize(nu);
         
         FKLOOP
         if(p->flag7[FIJK]>0)

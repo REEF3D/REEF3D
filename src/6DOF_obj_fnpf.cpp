@@ -49,15 +49,7 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     mkdir("./REEF3D_FNPF_6DOF_Mooring",0777);
     }
     
-    // level-set defined objects need the NHFLOW fdm
-    if(p->X131>0 || p->X132>0 || p->X133>0 || p->X153>0)
-    {
-    if(p->mpirank==0)
-    cout<<"6DOF FNPF: only triangulated objects (box, cylinder, wedge, hexahedron, STL) are supported"<<endl;
-    
-    pgc->final();
-    exit(1);
-    }
+    // all objects are triangulated; mass, CoG and inertia from the surface triangles
     
     if(p->X320>0 && p->mpirank==0)
     cout<<"6DOF FNPF: nets (X 320) are ignored"<<endl;

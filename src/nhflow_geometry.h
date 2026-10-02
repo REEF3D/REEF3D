@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"increment.h"
 #include"slice4.h"
 #include"vtp3D.h"
+#include"geo_raycast.h"
+#include<vector>
 
 class lexer;
 class fdm_nhf;
@@ -57,20 +59,13 @@ private:
     void objects_allocate_forcing(lexer*, ghostcell*);
     void objects_allocate_vrans(lexer*, ghostcell*);
     
-    void ray_cast_io_x(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_io_ycorr(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_io_zcorr(lexer*, fdm_nhf*, ghostcell*,int,int);
+    // ray cast: geometry core kernels
+    geo_raycast georay;
     
-    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
-    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
-    void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
-    void ray_cast_direct(lexer*, fdm_nhf*, ghostcell*,int,int,double*);
-    
-    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
-    double dist2_tri(const double,const double,const double,
-                 const double,const double,const double,
-                 const double,const double,const double,
-                 const double,const double,const double);
+    // solids of the grid file as immersed solids (A 580 1)
+    void grid_solids(lexer*, ghostcell*);
+    int grid_solid_num, grid_solid_tri;
+    vector<int> ent_raymode, ent_invert;
     
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);

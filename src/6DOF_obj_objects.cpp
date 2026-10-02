@@ -152,22 +152,22 @@ void sixdof_obj::objects_allocate(lexer *p, ghostcell *pgc)
     // cylinder_x   
     r=p->X131_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
+	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	snum = MAX(int(U/ds),8);
 	trisum+=5*(snum+1)*p->X131;
     
     // cylinder_y
     r=p->X132_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
+	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	snum = MAX(int(U/ds),8);
 	trisum+=5*(snum+1)*p->X132;
     
     // cylinder_z
     r=p->X133_rad;
 	U = 2.0 * PI * r;
-	ds = 0.75*(U*p->dx);
-	snum = int(U/ds);
+	ds = 0.75*p->dx;      // segment length 0.75 dx (was 0.75*U*dx, i.e. 1/(0.75 dx) segments for any radius)
+	snum = MAX(int(U/ds),8);
     trisum+=5*(snum+1)*p->X133;
     
     // wedge sym

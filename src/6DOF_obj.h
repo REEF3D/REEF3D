@@ -35,6 +35,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"slice4.h"
 #include"sliceint5.h"
 #include"vtp3D.h"
+#include"geo_raycast.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -241,15 +242,9 @@ private:
 
     void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    
-   // ray cast 3D
+   // ray cast 3D: geometry core kernels
     void ray_cast(lexer*, fdm*, ghostcell*);
-	void ray_cast_io_x(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_io_ycorr(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_io_zcorr(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_y(lexer*, fdm*, ghostcell*,int,int);
-	void ray_cast_z(lexer*, fdm*, ghostcell*,int,int);
-    void ray_cast_direct(lexer*, fdm*, ghostcell*,int,int);
+    geo_raycast georay;
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
     // Raycast 3D
@@ -274,19 +269,8 @@ private:
     int reiniter;
     
     
-    // ray cast NHFLOW
+    // ray cast NHFLOW: geometry core kernels
     void ray_cast(lexer*, fdm_nhf*, ghostcell*);
-    void ray_cast_io_x(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_io_ycorr(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_io_zcorr(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_x(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_y(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void ray_cast_z(lexer*, fdm_nhf*, ghostcell*,int,int);
-    void band_distance(lexer*, fdm_nhf*, ghostcell*, double*, int, int);
-    double dist2_tri(const double,const double,const double,
-                 const double,const double,const double,
-                 const double,const double,const double,
-                 const double,const double,const double);
     int  clip_facet_poly(lexer*,double,double,double,double,double,double,double,double,double,
                          double,double*,double*,double*);
     

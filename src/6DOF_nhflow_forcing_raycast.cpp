@@ -46,35 +46,19 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}
     pgc->start5V(p,d->FB,1); 
     
+    // geometry core kernels (geo_raycast)
     for(int rayiter=0; rayiter<2; ++rayiter)
     {
         for(int qn=0;qn<entity_sum;++qn)
         {
             if(rayiter==0)
-            {
-            //ray_cast_io_x(p,d,pgc,tstart[qn],tend[qn]);
-            
-            //if(p->j_dir==1)
-            //ray_cast_io_ycorr(p,d,pgc,tstart[qn],tend[qn]);
-            ray_cast_io_zcorr(p,d,pgc,tstart[qn],tend[qn]);
-            
-            }
-            
-            /*
-            if(rayiter==1)
-            {
-            pgc->gcparaxintV(p,IO,4);
-     
-            ray_cast_x(p,d,pgc,tstart[qn],tend[qn]);
-            if(p->j_dir==1)
-            ray_cast_y(p,d,pgc,tstart[qn],tend[qn]);
-            ray_cast_z(p,d,pgc,tstart[qn],tend[qn]);
-            }*/
+            georay.sigma_io(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],DSM,1,IO,CL,CR);
             
             if(rayiter==1)
             {
             pgc->startintV(p,IO,1);
-            band_distance(p,d,pgc,d->FB,tstart[qn],tend[qn]);
+            
+            georay.sigma_band(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],NB*DSM,d->FB);
             }
         }
     }

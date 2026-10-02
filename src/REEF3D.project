@@ -1098,17 +1098,13 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
-        <VirtualDirectory Name="Geo_Func">
-          <File Name="geo_func.h"/>
+        <VirtualDirectory Name="Geo_Core">
+          <File Name="geo_mesh.h"/>
+          <File Name="geo_raycast.h"/>
+          <File Name="geo_primitive.h"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Container">
-          <File Name="geo_container.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Interface">
-          <File Name="geo_interface.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Create">
-          <File Name="geo_create.h"/>
+        <VirtualDirectory Name="Grid_File">
+          <File Name="gridfile_v2.h"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Driver">
@@ -1898,15 +1894,7 @@
             <File Name="nhflow_geometry_print_vtp.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Ray Casting">
-            <File Name="nhflow_geometry_distance.cpp"/>
-            <File Name="nhflow_geometry_raycast_io_ycorr.cpp"/>
-            <File Name="nhflow_geometry_raycast_io_x.cpp"/>
-            <File Name="nhflow_geometry_raycast_io_zcorr.cpp"/>
             <File Name="nhflow_geometry_reini_RK2.cpp"/>
-            <File Name="nhflow_geometry_raycast_z.cpp"/>
-            <File Name="nhflow_geometry_raycast_y.cpp"/>
-            <File Name="nhflow_geometry_raycast_x.cpp"/>
-            <File Name="nhflow_geometry_raycast_direct.cpp"/>
             <File Name="nhflow_geometry_raycast.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_geometry.cpp"/>
@@ -2665,13 +2653,6 @@
               <File Name="6DOF_obj_nhflow_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast NHFLOW">
-              <File Name="6DOF_nhflow_forcing_distance.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_io_zcorr.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_io_ycorr.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_io_x.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_z.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_y.cpp"/>
-              <File Name="6DOF_nhflow_forcing_raycast_x.cpp"/>
               <File Name="6DOF_nhflow_forcing_raycast.cpp"/>
             </VirtualDirectory>
             <File Name="6DOF_obj_refinement.cpp"/>
@@ -2683,13 +2664,6 @@
               <File Name="6DOF_obj_reini_RK2.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 3D">
-              <File Name="6DOF_obj_ray3D_direct.cpp"/>
-              <File Name="6DOF_obj_ray3D_z.cpp"/>
-              <File Name="6DOF_obj_ray3D_y.cpp"/>
-              <File Name="6DOF_obj_ray3D_x.cpp"/>
-              <File Name="6DOF_obj_ray3D_io_zcorr.cpp"/>
-              <File Name="6DOF_obj_ray3D_io_ycorr.cpp"/>
-              <File Name="6DOF_obj_ray3D_io_x.cpp"/>
               <File Name="6DOF_obj_ray3D.cpp"/>
             </VirtualDirectory>
             <VirtualDirectory Name="Ray Cast 2D">
@@ -3008,16 +2982,16 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
-        <VirtualDirectory Name="Geo_Container">
-          <File Name="geo_container.cpp"/>
+        <VirtualDirectory Name="Geo_Core">
+          <File Name="geo_mesh.cpp"/>
+          <File Name="geo_raycast.cpp"/>
+          <File Name="geo_raycast_cart.cpp"/>
+          <File Name="geo_raycast_sigma.cpp"/>
+          <File Name="geo_raycast_column.cpp"/>
+          <File Name="geo_primitive.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Interface">
-          <File Name="geo_interface.cpp"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="Geo_Create">
-          <File Name="geo_create_cylinder_z.cpp"/>
-          <File Name="geo_create_cylinder_y.cpp"/>
-          <File Name="geo_create_box.cpp"/>
+        <VirtualDirectory Name="Grid_Solids">
+          <File Name="lexer_grid_solids.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Ini">

@@ -40,6 +40,7 @@ Author: Hans Bihs
 
 class weno_nug_func;
 class ghostcell;
+class geo_mesh;
 
 using namespace std;
 
@@ -58,6 +59,7 @@ public:
     void lexer_read(ghostcell*);
     void flagini();
 	void gridini(ghostcell*);
+    void grid_solids(ghostcell*);   // solids and topography of the grid file for all modules
     void gcd_ini(ghostcell*);
     void makeflag(int*);
 
@@ -91,6 +93,8 @@ public:
 
     // flag
     double *flag_solid,*flag_topo;
+    double *geobed;                 // geodat bed level of the grid file (G 10)
+    geo_mesh *gridgeo;              // solids and topography of the grid file (geometry core)
     double *data;
 	double *topobed,*solidbed,*bed,*depth,*WL;
     int *wet,*wet_n;
