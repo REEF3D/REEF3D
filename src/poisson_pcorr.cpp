@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"poisson_pcorr.h"
+#include<mpi.h>
 #include"lexer.h"
 #include"fdm.h"
 #include"heat.h"
@@ -75,6 +76,32 @@ poisson_pcorr::~poisson_pcorr()
 {
 }
 
+void poisson_pcorr::noflux_boundaries(lexer* p, fdm *a)
+{
+    // Faces where the velocity is a boundary value that the projection does not correct
+    // (walls, lid, bed, solid surfaces): the pressure correction needs a zero normal
+    // gradient there. Inflow, outflow and patch boundaries keep their treatment below.
+    noflux.assign(size_t(p->imax)*size_t(p->jmax)*size_t(p->kmax),0);
+
+    for(n=0;n<p->gcb4_count;++n)
+    {
+        int bc = p->gcb4[n][4];
+        int cs = p->gcb4[n][3];
+
+        if(cs<1 || cs>6)
+        continue;
+
+        if(bc==3 || bc==5 || bc==21 || bc==22)
+        {
+        i=p->gcb4[n][0];
+        j=p->gcb4[n][1];
+        k=p->gcb4[n][2];
+
+        noflux[IJK] |= (1<<(cs-1));
+        }
+    }
+}
+
 void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 {
     a->M.reset();
@@ -104,6 +131,71 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	++n;
 	}
     
+
+    // no-flux boundaries (walls, lid, bed, solids): Neumann for the pressure correction,
+    // i.e. the coefficient of the ghost cell is dropped from the diagonal
+    noflux_boundaries(p,a);
+
+    int ndirichlet=0;          // remaining boundary faces with a fixed pressure correction
+    int pin_n=-1;              // row and side of one converted face, to pin the level if needed
+    int pin_side=0;
+    double pin_coef=0.0;
+
+    n=0;
+	LOOP
+	{
+        int nf = noflux[IJK];
+        double *coef[6] = {&a->M.s[n],&a->M.w[n],&a->M.e[n],&a->M.n[n],&a->M.b[n],&a->M.t[n]};   // cs = 1..6
+        bool ghost[6] = {p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0),
+                         p->flag4[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0) && p->j_dir==1,
+                         p->flag4[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0) && p->j_dir==1,
+                         p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0),
+                         p->flag4[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0),
+                         p->flag4[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)};
+
+        for(int cs=1; cs<=6; ++cs)
+        {
+            if(!ghost[cs-1])
+            continue;
+
+            if(nf & (1<<(cs-1)))
+            {
+                // prefer a lid/top face (cs 6) for pinning, otherwise the first one
+                if(pin_n<0 || (cs==6 && pin_side!=6))
+                {
+                pin_n=n;
+                pin_side=cs;
+                pin_coef=*coef[cs-1];
+                }
+
+                a->M.p[n] += *coef[cs-1];
+                *coef[cs-1] = 0.0;
+            }
+            else
+            ++ndirichlet;
+        }
+    ++n;
+    }
+
+    // closed domain (no inflow/outflow/open boundary anywhere): the Neumann problem is singular,
+    // so one face (on the lowest rank that has one) keeps the fixed value as a pressure level
+    int nd_glob=0;
+    MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+
+    if(nd_glob==0)
+    {
+        int myrank = (pin_n>=0) ? p->mpirank : 1<<30;
+        int pinrank = 1<<30;
+        MPI_Allreduce(&myrank,&pinrank,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
+
+        if(p->mpirank==pinrank && pin_n>=0)
+        {
+        // undo the conversion: the face below sets M.x*press(ghost) into the rhs (press ghost = 0)
+        double *coef[6] = {&a->M.s[pin_n],&a->M.w[pin_n],&a->M.e[pin_n],&a->M.n[pin_n],&a->M.b[pin_n],&a->M.t[pin_n]};
+        a->M.p[pin_n] -= pin_coef;
+        *coef[pin_side-1] = pin_coef;
+        }
+    }
 
     n=0;
 	LOOP

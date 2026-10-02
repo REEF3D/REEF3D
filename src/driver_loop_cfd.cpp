@@ -104,7 +104,7 @@ void driver::loop_cfd(fdm* a)
         
         // printer
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
-        preg->cfd_step(p,a,pgc,pturb);
+        preg->cfd_step(p,a,pgc,pturb,pconc);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -159,7 +159,7 @@ void driver::loop_cfd(fdm* a)
     solvlogout.close();
 	}
 
-    preg->cfd_final(p,a,pgc,pturb);
+    preg->cfd_final(p,a,pgc,pturb,pconc);
 
     pgc->final();
 }

@@ -1,0 +1,1 @@
+{"base": "channel_2d_fc3", "ctrl_set": {"N 40": "4"}, "description": "as channel_2d_fc3, N40=4 (momentum_FCLS3, default with floating bodies).", "tags": ["quick", "diffusion", "laminar", "2d"]}

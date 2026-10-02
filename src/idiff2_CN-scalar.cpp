@@ -45,12 +45,12 @@ void idiff2_CN::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	
 //   M
 	
-	visctermp  =    0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IM1])
-					+   0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IP])
-					+   0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JM1])
-					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JP])
-					+   0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KM1])
-					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KP]);
+	visctermp  =    0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IP])
+					+   0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IM1])
+					+   0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JP])*p->y_dir
+					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
+					+   0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KP])
+					+   0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KM1]);
 
          a->M.p[count]  = alphaCN*visctermp + 1.0/(alpha*p->dt);
 
@@ -60,8 +60,8 @@ void idiff2_CN::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 	 
 	 viscterms = -0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IM1]);
 	 visctermn = -0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IP]);
-	 viscterme = -0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JM1]);
-	 visctermw = -0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JP]);
+	 viscterme = -0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JM1])*p->y_dir;
+	 visctermw = -0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JP])*p->y_dir;
 	 visctermb = -0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KM1]);
 	 visctermt = -0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KP]);
 	 
@@ -141,12 +141,12 @@ void idiff2_CN::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 
 	
 //   M
-	visctermp  =    0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IM1])
-                                        +   0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IP])
-                                        +   0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JM1])
-                                        +   0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JP])
-                                        +   0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KM1])
-                                        +   0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KP]);
+	visctermp  =    0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IP])
+                                        +   0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IM1])
+                                        +   0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JP])*p->y_dir
+                                        +   0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JM1])*p->y_dir
+                                        +   0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KP])
+                                        +   0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KM1]);
 
          a->M.p[count]  = alphaCN*visctermp + 1.0/(alpha*p->dt);
 
@@ -156,8 +156,8 @@ void idiff2_CN::diff_scalar(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, fie
 
          viscterms = -0.5*(visc_ijk+ev_ijk/sig + visc(i-1,j,k)+a->eddyv(i-1,j,k)/sig)/(p->DXN[IP]*p->DXP[IM1]);
          visctermn = -0.5*(visc(i+1,j,k)+a->eddyv(i+1,j,k)/sig + visc_ijk+ev_ijk/sig)/(p->DXN[IP]*p->DXP[IP]);
-         viscterme = -0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JM1]);
-         visctermw = -0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JP]);
+         viscterme = -0.5*(visc_ijk+ev_ijk/sig + visc(i,j-1,k)+a->eddyv(i,j-1,k)/sig)/(p->DYN[JP]*p->DYP[JM1])*p->y_dir;
+         visctermw = -0.5*(visc(i,j+1,k)+a->eddyv(i,j+1,k)/sig + visc_ijk+ev_ijk/sig)/(p->DYN[JP]*p->DYP[JP])*p->y_dir;
          visctermb = -0.5*(visc_ijk+ev_ijk/sig + visc(i,j,k-1)+a->eddyv(i,j,k-1)/sig)/(p->DZN[KP]*p->DZP[KM1]);
          visctermt = -0.5*(visc(i,j,k+1)+a->eddyv(i,j,k+1)/sig + visc_ijk+ev_ijk/sig)/(p->DZN[KP]*p->DZP[KP]);
 

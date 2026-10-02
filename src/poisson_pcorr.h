@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"poisson.h"
 #include"increment.h"
+#include<vector>
 
 class heat;
 class concentration;
@@ -44,8 +45,12 @@ public:
 
 private:
 
+	void noflux_boundaries(lexer*, fdm*);
+
 	double pval;
 	int count,n,q;
+
+    std::vector<int> noflux;   // per cell: bit (cs-1) set if the face on side cs is a wall/lid/bed
     
     density *pd;
 };
