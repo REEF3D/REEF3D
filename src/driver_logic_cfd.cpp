@@ -41,6 +41,18 @@ Author: Hans Bihs
 #include"vrans_header.h"
 #include"waves_header.h"
 
+// stop for input options whose code was removed
+static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
+{
+    if(!used)
+    return;
+
+    if(p->mpirank==0)
+    cout<<endl<<msg<<endl<<endl;
+
+    pgc->final(true);
+}
+
 void driver::logic_cfd()
 {
 	makegrid_cds();
@@ -52,10 +64,14 @@ void driver::logic_cfd()
 
 	if(p->mpirank==0)
     cout<<"creating objects"<<endl;
-    
-    
 
-    
+    // removed options
+    removed_option(p,pgc,p->N40==5,"N 40 5: momentum_RK3CN has been removed, use N 40 3 or N 40 13.");
+    removed_option(p,pgc,p->T10==12,"T 10 12: EARSM has been removed, use T 10 2 (k-omega; the EARSM stresses were not coupled to the momentum equations).");
+    removed_option(p,pgc,p->F80==1 || p->F80==3,"F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
+    removed_option(p,pgc,p->F85>=51 && p->F85<=53,"F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
+
+
 // time stepping
     if(p->N48==0)
 	ptstep=new fixtimestep(p);
@@ -65,9 +81,8 @@ void driver::logic_cfd()
 
 	if((p->N48==1) && (p->D20==0||p->D20>=2))
 	ptstep=new ietimestep(p);
-    
-  
-    
+
+
 // Multiphase
 	if(p->F300==0)
 	pmp = new multiphase_v();
@@ -189,8 +204,6 @@ void driver::logic_cfd()
 	
 	if(p->F305>=40 && p->F305<50)
 	pmpconvec=new hires(p,p->F305);
-    
-
 
 
 //  Convection Concentration
@@ -247,9 +260,6 @@ void driver::logic_cfd()
     if((p->T10==2 || p->T10==22) && p->F80==4)
     pturb = new komega_IM1_PLIC(p,a,pgc);
 
-    //EARSM
-	if(p->T10==12)
-	pturb = new EARSM_kw_IM1(p,a,pgc);
 
     // LES
 	if(p->T10==31)
@@ -385,12 +395,7 @@ void driver::logic_cfd()
     if(p->F40==3 || p->F40==23)
     preini = new reini_RK3(p,1);
 
-	if(p->F80==1)
-	pfsf = new VOF_AB(p,a,pgc,pheat);
 
-	if(p->F80==3)
-	pfsf = new VOF_RK3(p,a,pgc,pheat);
-    
     if(p->F80>0 && (p->N40==2||p->N40==3||p->N40==22||p->N40==23||p->N40==33))
     pfsf = new VOF_void(p,a,pgc,pheat);
 
@@ -426,14 +431,6 @@ void driver::logic_cfd()
 	if(p->F85>=40 && p->F85<50)
 	pfsfdisc=new hires(p,p->F85);
 
-    if(p->F85==51)
-	pfsfdisc=new hric(p);
-
-	if(p->F85==52)
-	pfsfdisc=new hric_mod(p);
-
-	if(p->F85==53)
-	pfsfdisc=new cicsam(p);
 
 //pressure scheme
 	if(p->D30==0)
@@ -625,9 +622,8 @@ void driver::logic_cfd()
     
     if(p->N40==13 && p->F80==4)
     pmom = new momentum_RK3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pfsi);
-    
-    
-    
+
+
     if(p->N40==33 && p->F80!=4)
 	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
     
@@ -651,8 +647,6 @@ void driver::logic_cfd()
     pmom = new momentum_void();
     }
 
-	if(p->N40==5)
-	pmom = new momentum_RK3CN(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
 
 }
 

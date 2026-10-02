@@ -344,10 +344,6 @@ double initialize::VforPLIC(double n_a, double n_b, double n_c, double d_a, doub
 
 /*
 
-#include"initialize.h"
-#include"fdm.h"
-#include"lexer.h"
-#include"ghostcell.h"
 
 void initialize::inivofPLIC(fdm*a, lexer* p, ghostcell* pgc)
 {

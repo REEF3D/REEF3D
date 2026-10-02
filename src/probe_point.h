@@ -46,7 +46,6 @@ public:
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
-    void write(lexer*, fdm*, ghostcell*);
 	char name[100];
 
     int *iloc,*jloc,*kloc,*flag;

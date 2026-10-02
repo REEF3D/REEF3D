@@ -60,12 +60,9 @@ Authors: Hans Bihs, Alexander Hanke
 #define JVLOOP for(j=0; j<p->knoy-p->vlast; ++j)
 #define KWLOOP for(k=0; k<p->knoz-p->wlast; ++k)
 
-#define FILOOP ILOOP
-#define FJLOOP JLOOP
 #define FKLOOP for(k=0; k<p->knoz+1; ++k)
 
 #define ETALOC  for(k=a->etaloc(i,j); k<a->etaloc(i,j)+1; ++k)
-#define FETALOC for(k=c->etaloc(i,j); k<c->etaloc(i,j)+1; ++k)
 
 // CONDITIONS
 #define FLEXCHECK   if(flag[IJK]>0)
@@ -79,7 +76,6 @@ Authors: Hans Bihs, Alexander Hanke
 #define WFLUIDCHECK if(p->flag3[IJK]>=AIR_FLAG)
 #define WSCHECK     if(p->flag3[IJK]<0)
 #define PCHECK      if(p->flag4[IJK]>0)
-#define SCHECK      if(p->flag4[IJK]<0)
 #define PFLUIDCHECK if(p->flag4[IJK]>=AIR_FLAG)
 #define PAIR_CHECK  if(p->flag4[IJK]==AIR_FLAG)
 #define SFLUIDCHECK if(p->flag4[IJK]<AIR_FLAG)
@@ -100,14 +96,10 @@ Authors: Hans Bihs, Alexander Hanke
 #define PORVAL4py a->porosity(i,j+1,k)
 #define PORVAL4pz a->porosity(i,j,k+1)
 
-#define CPOR4px   (1.0/(1.0+(p->B260*(PORVAL4px<1.0?1.0:0.0))))
-#define CPOR4py   (1.0/(1.0+(p->B260*(PORVAL4py<1.0?1.0:0.0))))
-#define CPOR4pz   (1.0/(1.0+(p->B260*(PORVAL4pz<1.0?1.0:0.0))))
 
 #define CPOR1   (1.0/(1.0+(p->B260*(PORVAL1<1.0?1.0:0.0))))
 #define CPOR2   (1.0/(1.0+(p->B260*(PORVAL2<1.0?1.0:0.0))))
 #define CPOR3   (1.0/(1.0+(p->B260*(PORVAL3<1.0?1.0:0.0))))
-#define CPOR4   (1.0/(1.0+(p->B260*(PORVAL4<1.0?1.0:0.0))))
 
 #define PORVAL1m (0.5*(a->porosity(i,j,k) + a->porosity(i-1,j,k)))
 #define PORVAL2m (0.5*(a->porosity(i,j,k) + a->porosity(i,j-1,k)))
@@ -121,9 +113,6 @@ Authors: Hans Bihs, Alexander Hanke
 #define PORVAL2p (0.5*(a->porosity(i,j+2,k) + a->porosity(i,j+1,k)))
 #define PORVAL3p (0.5*(a->porosity(i,j,k+2) + a->porosity(i,j,k+1)))
 
-#define CPOR1p   (1.0/(1.0+(p->B260*(PORVAL1p<1.0?1.0:0.0))))
-#define CPOR2p   (1.0/(1.0+(p->B260*(PORVAL2p<1.0?1.0:0.0))))
-#define CPOR3p   (1.0/(1.0+(p->B260*(PORVAL3p<1.0?1.0:0.0))))
 
 // COMBINDED LOOPS
 #define IJKLOOP ILOOP JLOOP KLOOP
@@ -139,13 +128,10 @@ Authors: Hans Bihs, Alexander Hanke
 #define KYLREVLOOP for(k=p->knoz-1; k>=1; --k)
 #define YLLOOP ILOOP JLOOP KYLREVLOOP PBASECHECK
 
-#define AIRLOOP PLAINLOOP PAIR_CHECK
 
 #define MALOOP IMALOOP JMALOOP KMALOOP
 
 // BOUNDARY LOOPS
-#define BLOOP IBLOOP JBLOOP KBLOOP
-#define BBASELOOP IBLOOP JBLOOP KBLOOP PBASECHECK
 
 // FLUID LOOPS
 #define ULOOP IULOOP JLOOP KLOOP UCHECK
@@ -155,7 +141,6 @@ Authors: Hans Bihs, Alexander Hanke
 #define UFLUIDLOOP IULOOP JLOOP KLOOP UFLUIDCHECK
 #define VFLUIDLOOP ILOOP JVLOOP KLOOP VFLUIDCHECK
 #define WFLUIDLOOP ILOOP JLOOP KWLOOP WFLUIDCHECK
-#define FLUIDLOOP PLAINLOOP PFLUIDCHECK
 
 // SOLVER LOOPS
 #define FLEXLOOP IFLEXLOOP JFLEXLOOP KFLEXLOOP FLEXCHECK
@@ -164,7 +149,6 @@ Authors: Hans Bihs, Alexander Hanke
 #define FKJILOOP FKLOOP JLOOP ILOOP
 #define FLOOP ILOOP JLOOP FKLOOP FPCHECK
 #define FBASELOOP ILOOP JLOOP FKLOOP
-#define FILOOP4 ILOOP JLOOP ETALOC PFLUIDCHECK
 //#define FFILOOP4 ILOOP JLOOP FETALOC FPCHECK
 #define  FFILOOP4 k=p->knoz; SLICELOOP4
 
@@ -173,15 +157,7 @@ Authors: Hans Bihs, Alexander Hanke
 
 #define NETLOOP for (int n=0; n<p->net_count; ++n)
 
-#define NLOOP1 for(n=p->sizeM1[0]; n<p->sizeM1[1]; ++n)
-#define NLOOP2 for(n=p->sizeM2[0]; n<p->sizeM2[1]; ++n)
-#define NLOOP3 for(n=p->sizeM3[0]; n<p->sizeM3[1]; ++n)
 #define NLOOP4 for(n=p->sizeM4[0]; n<p->sizeM4[1]; ++n)
-#define NLOOP4A for(n=p->sizeM4a[0]; n<p->sizeM4a[1]; ++n)
-#define NLOOP6 for(n=p->sizeM6[0]; n<p->sizeM6[1]; ++n)
-#define NLOOP9 for(n=p->sizeM9[0]; n<p->sizeM9[1]; ++n)
-#define NLOOP for(n=sizeM[0]; n<sizeM[1]; ++n)
-#define VECLOOP for(n=0; n<p->veclength; ++n)
 
 //MAX, MIN, SIGN
 #define MAX(aAa,bBb) ((aAa)>(bBb)?(aAa):(bBb))
@@ -247,7 +223,6 @@ Authors: Hans Bihs, Alexander Hanke
 
 #define GCDF1 for(n=0;n<p->gcdf1_count;++n)
 #define GCDF1CHECK if(p->gcdf1[n][3]>0)
-#define GCDF1LOOP GCDF1 GCDF1CHECK
 
 #define QGCDF2 for(q=0;q<p->gcdf2_count;++q)
 #define QGCDF2CHECK if(p->gcdf2[q][3]>0)
@@ -255,7 +230,6 @@ Authors: Hans Bihs, Alexander Hanke
 
 #define GCDF2 for(n=0;n<p->gcdf2_count;++n)
 #define GCDF2CHECK if(p->gcdf2[n][3]>0)
-#define GCDF2LOOP GCDF2 GCDF2CHECK
 
 #define QGCDF3 for(q=0;q<p->gcdf3_count;++q)
 #define QGCDF3CHECK if(p->gcdf3[q][3]>0)
@@ -263,7 +237,6 @@ Authors: Hans Bihs, Alexander Hanke
 
 #define GCDF3 for(n=0;n<p->gcdf3_count;++n)
 #define GCDF3CHECK if(p->gcdf3[n][3]>0)
-#define GCDF3LOOP GCDF3 GCDF3CHECK
 
 #define QGCDF4 for(q=0;q<p->gcdf4_count;++q)
 #define QGCDF4CHECK if(p->gcdf4[q][3]>0)
@@ -279,15 +252,10 @@ Authors: Hans Bihs, Alexander Hanke
 
 #define QGC4A for(q=0;q<p->gcb4a_count;++q)
 #define QGCB4ACHECK if(p->gcb4a[q][3]>0)
-#define QGC4ALOOP QGC4A QGCB4ACHECK
 
 #define QQGC4A for(qq=0;qq<p->gcb4a_count;++qq)
 #define QQGCB4ACHECK if(p->gcb4a[qq][3]>0)
 #define QQGC4ALOOP QQGC4A QQGCB4ACHECK
 
-#define GC6LOOP   for(n=0;n<p->gcb_fix;++n)
-#define QGC6LOOP  for(q=0;q<p->gcb_fix;++q)
-#define QQGC6LOOP for(qq=0;qq<p->gcb_fix;++qq)
-#define GGC6LOOP  for(g=0;g<p->gcb_fix;++g)
 
 #endif

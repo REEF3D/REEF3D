@@ -74,21 +74,6 @@ void net_barDyn::print(lexer *p)
 		sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.vtk",nNet,num);
 
 
-        /*
-        char str[1000];
-        sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_Net_Tension_%i_%i.dat",nNet,num);
-        ofstream header_out;
-        header_out.open(str, std::ofstream::out | std::ofstream::app);
-		
-        for (int j = 0; j < nf; j++)	
-        {    
-            header_out<<T_(j)<<" "<<(0.5*(x_.row(Pi[j])+x_.row(Ni[j])))<<endl;
-        }
-        
-        header_out.close();
-        */
-
-
 		ofstream result;
 		result.open(name, ios::binary);
 		

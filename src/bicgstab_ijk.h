@@ -43,7 +43,6 @@ public:
     void startM(lexer*, ghostcell*, double*, double*, double*, int) override final;
     
 	void solve(lexer*, ghostcell*, vec&, matrix_diag&, int, int&,int,double);
-	void setup(lexer*, ghostcell*,int);
 	
 	void fillxvec(lexer*,fdm*,field&,vec&);
 	void finalize(lexer*,fdm*,field&);

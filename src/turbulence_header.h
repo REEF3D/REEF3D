@@ -25,7 +25,6 @@ Author: Hans Bihs
 
 #include"komega_IM1.h"
 #include"komega_IM1_PLIC.h"
-#include"EARSM_kw_IM1.h"
 #include"kepsilon_IM1.h"
 #include"kepsilon_void.h"
 

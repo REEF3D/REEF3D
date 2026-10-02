@@ -50,33 +50,6 @@ void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
         wsfout = f*p->F62 + (1.0-f)*p->F60;
         }
     }
-/*
-        GCSL1LOOP
-        {
-        i = p->gcbsl1[n][0];
-        j = p->gcbsl1[n][1];
-                
-            if(p->gcbsl1[n][4]==2)
-            {
-            //b->hx(i,j) = MAX(wsfout - b->bed(i,j),0.0);
-            b->hx(i+1,j) = MAX(wsfout - b->bed(i,j),0.0);
-            b->hx(i+2,j) = MAX(wsfout - b->bed(i,j),0.0);
-            b->hx(i+3,j) = MAX(wsfout - b->bed(i,j),0.0);
-            }
-        }
-
-        GCSL2LOOP
-        {
-        i = p->gcbsl2[n][0];
-        j = p->gcbsl2[n][1];
-            
-            if(p->gcbsl2[n][4]==2)
-            {
-            b->hy(i+1,j) = MAX(wsfout - b->bed(i,j),0.0);
-            b->hy(i+2,j) = MAX(wsfout - b->bed(i,j),0.0);
-            b->hy(i+3,j) = MAX(wsfout - b->bed(i,j),0.0);
-            }
-        }*/
         
         if(p->F50==2 || p->F50==3)
         for(n=0;n<p->gcslout_count;n++)
@@ -98,7 +71,6 @@ void ioflow_f::waterlevel2D(lexer *p, fdm2D *b, ghostcell* pgc, slice &eta)
             }
         }
 
-    
-    
+
     pBC->patchBC_waterlevel2D(p,b,pgc,eta);
 }

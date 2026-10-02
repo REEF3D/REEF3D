@@ -79,24 +79,6 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
 	cout<<"Volume 2: "<<p->volume2<<endl;
     }
     ++iocheck;
-    /*
-    // sediment
-    if(p->Q10==1)
-    BASELOOP
-	{    
-		if(a->topo(i,j,k)>p->psi)
-		H=1.0;
-
-		if(a->topo(i,j,k)<-p->psi)
-		H=0.0;
-
-		if(fabs(a->topo(i,j,k))<=p->psi)
-		H=0.5*(1.0 + a->topo(i,j,k)/p->psi + (1.0/PI)*sin((PI*a->topo(i,j,k))/p->psi));
-
-
-        a->ro(i,j,k)   = a->ro(i,j,k)*H +   ro_sed*(1.0-H);
-        a->visc(i,j,k) = a->visc(i,j,k)*H + visc_sed*(1.0-H);
-	}*/
     
     
     pgc->start4(p,a->ro,gcval_ro);

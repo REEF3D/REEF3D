@@ -57,7 +57,6 @@ class fsi;
 class vrans;
 class expdata;
 class concentration;
-class ptf;
 class fnpf;
 class fnpf_ice;
 class fnpf_amr;
@@ -107,18 +106,15 @@ public:
     void cfd_driver();
     void nhflow_driver();
     void fnpf_driver();
-    void ptf_driver();
     void sflow_driver();
     
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
     void loop_cfd_sf(fdm*);
     void loop_nhflow();
-    void loop_ptf(fdm*);
     void loop_fnpf();
     
 	void logic_cfd();
-    void logic_ptf();
     void logic_fnpf();
     void logic_nhflow();
     void logic_sflow();
@@ -128,7 +124,6 @@ public:
 	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
-    void driver_ini_ptf();
     
 	void log_ini();
 	void mainlog(lexer*);
@@ -190,7 +185,6 @@ public:
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
     nhflow_amr *pnhfamr = nullptr;
-    ptf *pptf;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     fnpf_timestep *pftstep;

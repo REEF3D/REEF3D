@@ -309,39 +309,6 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
 }
 
-double ietimestep::min(double val1,double val2,double val3)
-{
-	double mini;
-
-	mini=val1;
-
-	if(mini>val2)
-	mini=val2;
-
-	if(mini>val3)
-	mini=val3;
-
-	if(mini<0.0)
-	mini=0.0;
-
-	return mini;
-}
-
-double ietimestep::min(double val1,double val2)
-{
-	double mini;
-
-	mini=val1;
-
-	if(mini>val2)
-	mini=val2;
-
-	if(mini<0.0)
-	mini=0.0;
-
-	return mini;
-}
-
 double ietimestep::max(double val1,double val2,double val3)
 {
 	double maxi;
@@ -353,21 +320,6 @@ double ietimestep::max(double val1,double val2,double val3)
 
 	if(maxi<val3)
 	maxi=val3;
-
-	if(maxi<0.0)
-	maxi=0.0;
-
-	return maxi;
-}
-
-double ietimestep::max(double val1,double val2)
-{
-	double maxi;
-
-	maxi=val1;
-
-	if(maxi<val2)
-	maxi=val2;
 
 	if(maxi<0.0)
 	maxi=0.0;

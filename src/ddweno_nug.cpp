@@ -25,7 +25,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"vec.h"
-#include"cpt.h"
 
 ddweno_nug::ddweno_nug(lexer* pp):weno_nug_func(pp)
 {

@@ -49,7 +49,6 @@ public:
 	void inflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void inflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void outflow_log(lexer*,fdm*,ghostcell*,field&,field&,field&);
-    void outflow_plain(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void outflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void outflow_corresponding(lexer*,fdm*,ghostcell*,field&,field&,field&);
     void inflow_water(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -152,11 +151,7 @@ public:
 
     void pressure_outlet(lexer*,fdm*,ghostcell*);
     void pressure_inlet(lexer*,fdm*,ghostcell*);
-    void pressure_wall(lexer*,fdm*,ghostcell*);
-    void pressure_bed(lexer*,fdm*,ghostcell*);
-    double local_fsf(lexer*,fdm*,ghostcell*);
 
-    void fsfdistance(lexer*,fdm*,ghostcell*);
     double r1(lexer*,double);
 	double r3(double,double);
 

@@ -169,36 +169,14 @@ void fnpf_discrete_weights::ck_weights(lexer *p, double **ck, double *pos, int n
         if(id==6)
         for(r=0;r<nd;++r)
         ck[qn+marge][r] = c[r][1];
-        
-        
-        
+
+
         // Debug Print
-        /*
-        if(id==3)
-        if(p->mpirank==0)
-        {
-        for(r=0;r<accuracy+1;++r)
-        cout<<ck[qn+marge][r]<<" ";
-        cout<<endl;
-        }*/
-        /*
-        if(id==6)
-        if(p->mpirank==0)
-        {
-        for(r=0;r<accuracy+1;++r)
-        cout<<ck[qn+marge][r]<<" ";
-        cout<<endl;
-        
-        //cout<<"z: "<<z<<endl;
-        }*/
-        
-        
-        
+
+
     }
 
 
 }
-
-
 
 

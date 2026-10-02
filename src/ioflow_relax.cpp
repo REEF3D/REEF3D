@@ -26,10 +26,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 
-void ioflow_f::fsfdistance(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void ioflow_f::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 {
 }

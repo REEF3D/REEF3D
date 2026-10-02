@@ -112,31 +112,13 @@ public:
 	//--------------------------------
 
 	//u
-	 double udx(fdm*);
-	 double udy(fdm*);
-	 double udz(fdm*);
 
-	 double udxx(fdm*);
-	 double udyy(fdm*);
-	 double udzz(fdm*);
 
 	//v
-	 double vdx(fdm*);
-	 double vdy(fdm*);
-	 double vdz(fdm*);
 
-	 double vdxx(fdm*);
-	 double vdyy(fdm*);
-	 double vdzz(fdm*);
 
 	//w
-	 double wdx(fdm*);
-	 double wdy(fdm*);
-	 double wdz(fdm*);
 
-	 double wdxx(fdm*);
-	 double wdyy(fdm*);
-	 double wdzz(fdm*);
 	 
 
 	double grad1,grad2;

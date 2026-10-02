@@ -211,31 +211,6 @@ double iowave::rb3_ext(lexer *p, int var)
 	return r;
 }
 
-double iowave::rb1(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=1.0-x/dist1;
-    x=MAX(x,0.0);
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-      
-    return r;
-}
-
-double iowave::rb3(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist2-fabs(x))/(dist2*dist2_fac);
-    x=MAX(x,0.0);
-    
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-	
-	return r;
-}
-
 double iowave::ramp(lexer *p)
 {
     double f=1.0;
@@ -248,20 +223,6 @@ double iowave::ramp(lexer *p)
     if(p->B101==2 && p->simtime<p->B102)
     {
     f = p->simtime/(p->B102) - (1.0/PI)*sin(PI*(p->simtime/(p->B102)));
-    }
-
-    return f;
-}
-
-double iowave::ramp_corr(lexer *p)
-{
-    double f=1.0;
-
-    double duration=10.0;
-    
-    if( p->simtime<duration)
-    {
-    f = p->simtime/(duration) - (1.0/PI)*sin(PI*(p->simtime/(duration)));
     }
 
     return f;

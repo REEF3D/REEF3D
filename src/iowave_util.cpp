@@ -667,10 +667,6 @@ void iowave::gen_ini(lexer *p, fdm *a, ghostcell *pgc)
 	//cout<<p->mpirank<<" GCGEN_COUNT: "<<gcgen4_count<<endl;	
 }
 
-void iowave::awa_update(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void iowave::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 }

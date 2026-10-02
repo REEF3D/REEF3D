@@ -130,41 +130,6 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 
 }
 
-void rans_io::inflow(lexer* p, fdm*a, ghostcell* pgc)
-{
-        GC4LOOP
-        if(p->gcb4[n][4]==1)
-        {
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-
-		eps(i-1,j,k)=eps(i,j,k);
-		eps(i-2,j,k)=eps(i,j,k);
-		eps(i-2,j,k)=eps(i,j,k);
-
-		kin(i-1,j,k)=kin(i,j,k);
-		kin(i-2,j,k)=kin(i,j,k);
-		kin(i-3,j,k)=kin(i,j,k);
-        }
-        
-        GC4LOOP
-        if(p->gcb4[n][4]==2)
-        {
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-
-		eps(i+1,j,k)=eps(i,j,k);
-		eps(i+2,j,k)=eps(i,j,k);
-		eps(i+2,j,k)=eps(i,j,k);
-
-		kin(i+1,j,k)=kin(i,j,k);
-		kin(i+2,j,k)=kin(i,j,k);
-		kin(i+3,j,k)=kin(i,j,k);
-        }
-}
-
 void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 {
 	ks=p->B50;	

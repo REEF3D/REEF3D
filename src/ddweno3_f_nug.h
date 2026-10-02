@@ -32,7 +32,6 @@ class slice;
 class lexer;
 class ghostcell;
 class vec;
-class cpt;
 
 using namespace std;
 
@@ -45,7 +44,6 @@ public:
 
 	 double ddwenox(field&, double);
 	 double ddwenoy(field&, double);
-	 double ddwenoz(field&, double);
      
      double dswenox(slice&, double);
 	 double dswenoy(slice&, double);
@@ -53,10 +51,8 @@ public:
 
 	void iqmin(lexer*, field&);
 	void jqmin(lexer*, field&);
-	void kqmin(lexer*, field&);
 	void iqmax(lexer*, field&);
 	void jqmax(lexer*, field&);
-	void kqmax(lexer*, field&);
     
     void isqmin(lexer*, slice&);
 	void jsqmin(lexer*, slice&);

@@ -34,14 +34,6 @@ void fnpf_print_kinematics::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
         
     fout.open(name);
     
-    /*ddn=p->Xout(p->P88_x[ID]);
-	fout.write((char*)&ddn, sizeof (double));
-    
-    ddn=p->Yout(p->P88_y[ID]);
-	fout.write((char*)&ddn, sizeof (double));
-    
-    iin=p->knoz+1;
-	fout.write((char*)&iin, sizeof (int));*/
     
     fout<<p->Xout(p->P88_x[ID],p->P88_y[ID])<<" "<<p->Yout(p->P88_x[ID],p->P88_y[ID])<<" "<<p->knoz+1<<endl;
 }

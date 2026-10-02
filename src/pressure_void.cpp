@@ -67,10 +67,6 @@ void pressure_void::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
 }
 
-void pressure_void::rhs(lexer *p, fdm* a, ghostcell *pgc, field& uu, field& vv, field& ww, double alpha)
-{
-}
-
 void pressure_void::ini(lexer*p,fdm* a, ghostcell *pgc)
 {
 }

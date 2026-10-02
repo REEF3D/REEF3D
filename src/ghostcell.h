@@ -89,7 +89,6 @@ public:
     void dgcpol4(lexer*,field&, int);
 
 // particle
-	void parapls(lexer*,double**,double**,int*,int*);
     void gcpartnum(int[6],int[6]);
     void gcpartx(int[6],int[6],double*[6],double*[6]);
 
@@ -137,14 +136,12 @@ public:
 // PARALLEL
     void gcparax(lexer*, field&, int);
     void gcparaxint(lexer*, fieldint&, int);
-    void gcparaxijk(lexer*, double*, int);
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
     void gcparax7co(lexer*, double*, int);
     void gcparax7int(lexer*, int*&, int);
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
-    void gcparacox4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
     void gcparaxintV(lexer*, int*, int);
     void gcparaxV1(lexer*, double*, int);
@@ -161,7 +158,6 @@ public:
     //Collective Communication
     void gather_int(int *, int, int *, int);
     void gatherv_int(int*, int, int*, int*, int*);
-    void allgather_int(int *, int, int *, int);
     void allgatherv_int(int *, int, int *, int*, int*);
     void gather_double(double *, int, double *, int);
     void gatherv_double(double *, int, double *, int*, int*);
@@ -316,7 +312,6 @@ private:
     void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     
-    void gcwait(lexer*);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
@@ -338,8 +333,6 @@ private:
     MPI_Request sreq[6],rreq[6];
     MPI_Status status;
     
-    MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
-    MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
     
     double v1,v2,v3,v4;
     double wa,wb;

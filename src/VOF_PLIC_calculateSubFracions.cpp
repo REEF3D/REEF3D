@@ -69,11 +69,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                             a->vof_nt(i,j,k)=1.0;
                         else
                             a->vof_nt(i,j,k)=0.0;
-                   /* }
-                    else if(nx(i,j,k)>=0.0 && nz(i,j,k)>=0.0)
-                        a->vof_nt(i,j,k)=0.0;
-                    else
-                        a->vof_nt(i,j,k)=1.0;*/
                 }
             
                 //NB
@@ -92,11 +87,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                             a->vof_nb(i,j,k)=1.0;
                         else
                             a->vof_nb(i,j,k)=0.0;
-                 /*   }
-                    else if(nx(i,j,k)>=0.0 && nz(i,j,k)<=0.0)
-                        a->vof_nb(i,j,k)=0.0;
-                    else
-                        a->vof_nb(i,j,k)=1.0; */
                 }
             
                 //ST
@@ -115,11 +105,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                             a->vof_st(i,j,k)=1.0;
                         else
                             a->vof_st(i,j,k)=0.0;
-                  /*  }
-                    else if(nx(i,j,k)<=0.0 && nz(i,j,k)>=0.0)
-                        a->vof_st(i,j,k)=0.0;
-                    else
-                        a->vof_st(i,j,k)=1.0;*/
                 }
             
                 //SB
@@ -138,11 +123,6 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                             a->vof_sb(i,j,k)=1.0;
                         else
                             a->vof_sb(i,j,k)=0.0;
-                   /* }
-                    else if(nx(i,j,k)<=0.0 && nz(i,j,k)<=0.0)
-                        a->vof_sb(i,j,k)=0.0;
-                    else
-                        a->vof_sb(i,j,k)=1.0;*/
                 }
             }
         }
@@ -309,10 +289,8 @@ void VOF_PLIC::calculateSubFractions(lexer* p, fdm* a, ghostcell* pgc, field& vo
                         else
                             a->vof_sbw(i,j,k)=0.0;
                 }
-                    
-                
-                
-                
+
+
             }   
         }
         pgc->start4(p,a->vof_nte,1);

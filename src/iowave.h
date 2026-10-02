@@ -71,8 +71,6 @@ public:
     
     void flowfile(lexer*,fdm*,ghostcell*,turbulence*) override final;
     
-    void hydrograph_in_read(lexer*,fdm*,ghostcell*);
-	void hydrograph_out_read(lexer*,fdm*,ghostcell*);
 	double hydrograph_ipol(lexer*,ghostcell*,double**,int);
 	
     
@@ -151,12 +149,8 @@ public:
     void velini(lexer*,fdm*,ghostcell*);
     void pressure_outlet(lexer*,fdm*,ghostcell*);
     void pressure_inlet(lexer*,fdm*,ghostcell*);
-    void pressure_wall(lexer*,fdm*,ghostcell*);
-    void pressure_bed(lexer*,fdm*,ghostcell*);
-    double local_fsf(lexer*,fdm*,ghostcell*);
 	
 	void awa_ini(lexer*,fdm*,ghostcell*);
-	void awa_update(lexer*,fdm*,ghostcell*);
 	void gen_ini(lexer*,fdm*,ghostcell*);
     
     void waterlevel_update(lexer*,fdm*,ghostcell*) override final;
@@ -241,8 +235,6 @@ private:
     slice4 relax4_wg, relax4_nb;
     sliceint4 wgflag;
 	
-	double rb1(lexer*,double);
-    double rb3(lexer*,double);
     
     double rb1_ext(lexer*,int);
     double rb3_ext(lexer*,int);
@@ -290,7 +282,6 @@ private:
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC
-    double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
     slice4 vofheight;
     slice4 genheight;
 
@@ -365,7 +356,6 @@ private:
     patchBC_interface *pBC;
     
     
-    double ramp_corr(lexer*);
     
     double netQ,netQ_n,netV;
     double netV_corr,netV_corr_n;
@@ -375,7 +365,6 @@ private:
     linear_regression_cont *linreg;
     
     
-    double cosh_func(double);
     
 };
 

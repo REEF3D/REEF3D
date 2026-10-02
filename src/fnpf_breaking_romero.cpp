@@ -52,7 +52,6 @@ void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     if (ini_done == 0)
     {
 
-        
 
         ini_done = 1;
     }
@@ -97,15 +96,6 @@ void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     ++count;
     }
     
-    /*
-    LOOP
-    {
-    if(c->breaking(i,j)>0)
-    c->test[IJK] = 1.0;
-    
-    else
-    c->test[IJK] = 0.0;
-    }*/
     
     //LOOP
     //c->test[IJK] = c->vb(i,j);

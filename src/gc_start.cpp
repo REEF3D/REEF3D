@@ -223,7 +223,6 @@ void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
     {
         starttime=timer();
         gcparax4a_sum(p,f,5);
-        //gcparacox4a_sum(p,f,5);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }

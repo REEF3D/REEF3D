@@ -52,8 +52,6 @@ private:
     void read0(lexer*,fdm*,ghostcell*,turbulence*);
     void read1(lexer*,fdm*,ghostcell*,turbulence*);
      void header_read(lexer*,ghostcell*);
-     double ccipol4(lexer*,double**,double,double,double);
-     double lint4(double**,int&,int&,int&,double,double,double);
      int conv(double);
      
      ifstream headerfile;

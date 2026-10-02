@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"convection.h"
 #include"solver.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"reini.h"
 #include"picard.h"

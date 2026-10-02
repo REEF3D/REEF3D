@@ -400,22 +400,3 @@ void bicgstab_ijk_2D::finalizeV(lexer *p, double *f)
     f[IJK]=x[IJK];
 }
 
-void bicgstab_ijk_2D::fillxvecF(lexer* p, double *f, vec &rhsvec)
-{
-    n=0;
-	FLEXLOOP
-	{
-	x[IJK] = f[FIJK];
-    
-    rhs[IJK] = rhsvec.V[n];
-
-    ++n;
-    }
-}
-
-void bicgstab_ijk_2D::finalizeF(lexer *p, double *f)
-{  
-    FLEXLOOP
-    f[FIJK]=x[IJK];
-}
-

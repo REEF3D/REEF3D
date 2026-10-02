@@ -77,37 +77,7 @@ void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
     
     
     // pressval orig
-    /*
-    pressval=0.0;
-    count=0;
-	LOOP
-	{
-        if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-            
-        if(fabs(a->phi(i,j,k))>=epsi)
-        dirac=0.0;
-        
-        if(dirac>1.0e-10 && a->phi(i,j,k)<0.0)
-        {
-        pressval += a->press(i,j,k);
-        ++count;
-        }
-	}
-    
-    pressval = pgc->globalsum(pressval);
-    
-    count = pgc->globalisum(count);
-    
-    if(count>0)
-    pressval = pressval/double(count);
-    
-    LOOP
-    a->press(i,j,k) -= pressval;
-    */
 
 }
-
-
 
 

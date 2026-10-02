@@ -31,7 +31,7 @@ Author: Hans Bihs
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
 {	 
     
-    if(p->A10==4 || p->A10==6)
+    if(p->A10==6)
     {
     int check=0;
     
@@ -78,7 +78,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         if(p->A10==3)
         pprint->print_stop(p,c,pgc);
         
-        if(p->A10==4 || p->A10==6)
+        if(p->A10==6)
         pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
         
         if(p->A10==5)
@@ -99,7 +99,7 @@ void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
         if(p->A10==3)
         pprint->print_stop(p,c,pgc);
         
-        if(p->A10==4 || p->A10==5 || p->A10==6)
+        if(p->A10==5 || p->A10==6)
         pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
         if(p->A10==5)

@@ -147,25 +147,4 @@ void LES_filter_f1::start(lexer *p, fdm *a, ghostcell *pgc, field &uprime, field
  
 }
 
-/*int LES_filter_f1::veleval(lexer *p, int gcv)
-{
-//	Velocities
-
-
-	if(gcv==10)
-	return 1;
-	
-	if(gcv==11)
-	return 2;
-	
-	if(gcv==12)
-	return 3;
-    
-
-	else
-	return 0;
-}
-
-*/
-
 

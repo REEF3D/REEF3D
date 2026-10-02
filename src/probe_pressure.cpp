@@ -101,10 +101,6 @@ void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 	}		
 }
 
-void probe_pressure::write(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void probe_pressure::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
     int check;

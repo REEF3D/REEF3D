@@ -51,15 +51,6 @@ public:
     int gcb_uflag, gcb_pressflag, gcb_phiflag;
     int counter;
     
-    /*
-    B211=0;        // int patchBC discharge
-    B212=0;        // int patchBC pressure BC
-    B213=0;        // int patchBC waterlevel
-    B214=0;        // int patchBC perpendicular velocity
-    B215=0;        // int patchBC velocity components
-    B216=0;        // int patchBC horizontal inflow angle
-    B217=0;        // int patchBC inflow normals
-    */
     
     int Q_flag;
     double Q, Uq;

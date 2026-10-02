@@ -35,7 +35,6 @@ Author: Hans Bihs
 #include"vec2D.h"
 #include"matrix_diag.h"
 #include"matrix2D.h"
-#include"cpt2D.h"
 
 class lexer;
 class fnpf_ice;

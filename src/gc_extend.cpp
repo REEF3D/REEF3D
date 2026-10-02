@@ -24,7 +24,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"field.h"
 #include"vec.h"
-#include"cpt.h"
 
 void ghostcell::extend(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {

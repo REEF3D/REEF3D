@@ -79,27 +79,6 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
 
     i=iloc[n];
 		
-        /*
-        if(flag[n]==1)
-        JLOOP
-        KLOOP
-        PCHECK
-        {
-			area=0.0;
-            if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
-			{
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
-            area=p->DYN[JP]*p->DZN[KP];
-
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
-			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0*p->DZN[KP])
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
-
-            q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
-			}
-        }*/
         
         if(flag[n]==1)
         JLOOP

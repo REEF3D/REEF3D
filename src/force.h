@@ -49,7 +49,6 @@ private:
 	void triangulation(lexer*, fdm*, ghostcell*, field&);
 	void reconstruct(lexer*, fdm*, field&);
 	void addpoint(lexer*,fdm*,int,int);
-	void finalize(lexer*,fdm*);
 	
 	int **tri, **facet, *confac, *numfac,*numpt;
 	double **ccpt, **pt, *ls;
