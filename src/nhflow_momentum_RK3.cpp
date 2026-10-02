@@ -68,6 +68,8 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     p->Darray(VHDIFF,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WHDIFF,p->imax*p->jmax*(p->kmax+2));
     
+    sigma_ini(p,d,pgc,d->eta);
+    
     p6dof=pp6dof;
     pnhfdf = ppnhfdf;
     pmfrc = ppnhfdf;     // membranes (X 330): iterated projection in phase_P
