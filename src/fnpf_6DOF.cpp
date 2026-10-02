@@ -631,6 +631,19 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
     
     amr_layout = amr->layout();
     
+    // psi0 and the unit modes of a fresh grid: prolonged from the coarser grid as the initial
+    // guess of the next psi solves (gp is in patch order, coarse levels first).  Left at zero
+    // they started the composite solves with a jump at the patch edge
+    vector<double*> fg(gp.size()+1);
+    auto prolong_psi = [&](fnpf_6DOF_grid &G, int m)
+    {
+        fg[0] = (m<0) ? g0.psi0 : g0.psi[m];
+        for(size_t k=0; k<gp.size(); ++k)
+        fg[k+1] = (m<0) ? gp[k].psi0 : gp[k].psi[m];
+        if(fg[0]!=nullptr && fg[G.id+1]!=nullptr)
+        amr->prolong_col(G.id,&fg[0]);
+    };
+    
     if(initialized)
     for(auto &G : gp)
     if(G.fresh)
@@ -638,6 +651,11 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
         geometry(G,pgc);
         extrapolate(G,pgc,G.c->Fi);
         amr->patch_walls_fi(G.id,G.c->Fi);
+        
+        prolong_psi(G,-1);
+        for(int m=0; m<6; ++m)
+        prolong_psi(G,m);
+        
         G.fresh = false;
     }
 }

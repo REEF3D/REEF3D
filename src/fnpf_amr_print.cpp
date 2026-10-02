@@ -59,13 +59,38 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     if(p->mpirank==0)
     logout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<p->dt<<" \t "<<patches_total<<" \t "<<cells_total<<" \t "
-          <<lap_it_last<<" \t "<<setprecision(4)<<lap_res_last<<endl;
+          <<lap_it_last<<" \t "<<setprecision(4)<<lap_res_last<<" \t "<<lap_it_phi_max<<" \t "<<lap_it_psi_max<<" \t "
+          <<lap_solves_step<<" \t "<<lap_it_step<<" \t "<<layout_id<<" \t "<<regrids_skipped<<endl;
 
-    if(p->mpirank==0 && doprint)
-    cout<<"FNPF AMR: "<<patches_total<<" patches, "<<cells_total<<" columns; time in patch stages "<<setprecision(4)<<tm[0]
-        <<" s, Laplace "<<tm[1]<<" s (preconditioner "<<tm[2]<<" s, operator "<<tm[3]<<" s), mean iterations "
-        <<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0)
-        <<(regrid_int>0 ? ", regrid " : "")<<(regrid_int>0 ? tm[4] : 0.0)<<(regrid_int>0 ? " s" : "")<<endl;
+    lap_it_phi_max = lap_it_psi_max = lap_solves_step = 0;
+    lap_it_step = 0;
+
+    // timings: the maximum over the ranks (rank 0 often holds no patch, its own times showed
+    // the waiting for the patch ranks as Laplace time); doprint is the same on all ranks
+    if(doprint)
+    {
+        double tmx[6];
+        for(int k=0; k<6; ++k)
+        tmx[k] = tm[k];
+        pgc->globalmax(tmx,6);
+        const double cmax = pgc->globalmax(double(cells_local));
+
+        if(p->mpirank==0)
+        {
+            cout<<"FNPF AMR: "<<patches_total<<" patches, "<<cells_total<<" columns (max "<<(long)cmax<<" per rank); max over ranks: patch stages "
+                <<setprecision(4)<<tmx[0]<<" s, Laplace "<<tmx[1]<<" s (preconditioner "<<tmx[2]<<" s, operator "<<tmx[3]<<" s, setup "<<tmx[5]
+                <<" s), mean iterations "<<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0);
+            if(regrid_int>0)
+            cout<<", regrid "<<tmx[4]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
+            if(lap_restarts>0)
+            cout<<", "<<lap_restarts<<" BiCGStab restarts";
+            if(lap_stalls>0)
+            cout<<", "<<lap_stalls<<" solves stopped stagnating below 100 N 44";
+            if(lap_capped>0)
+            cout<<", "<<lap_capped<<" solves at N 46";
+            cout<<endl;
+        }
+    }
 
     if(!doprint)
     return;

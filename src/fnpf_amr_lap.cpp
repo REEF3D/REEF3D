@@ -67,6 +67,20 @@ enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEF
 // not change with 2 or 4 passes (the level-0 correction couples them), only the cost
 const int LPASS = 1;
 
+// smoothing sweeps (pre and post) of the patch-local V-cycles of the FAC sweep.  With one
+// sweep the roll and pitch unit-mode psi solves of a floating body (X 10 1) stagnated for up
+// to N 46 iterations at 1e-8..3e-7 relative (moored box, first second: 5 of 12 solves per
+// step); with two sweeps they need 3..6 iterations there, mean 2.6, and the Laplace time
+// halves.  More level-0 sweeps made it worse: the level-0 correction carries the coarse body,
+// the patch V-cycles have to remove it next to the hull
+const int PSWEEP = 2;
+
+// a solve that stagnates again after a BiCGStab restart stops if its relative residual is below
+// STAGTOL*N 44 (0: run to N 46).  Once the waves move the moored box, about 2 % of the psi
+// solves still stagnate at 1e-8..3e-7 relative (N 44 1e-8); without the stop 21 of 8400 solves
+// ran to N 46 = 250, with it none, 40 % less Laplace time, body motion unchanged (< 1e-6)
+const double STAGTOL = 100.0;
+
 inline long ijk4(const lexer *q, int ii, int jj, int kk)
 {
     return (long)(ii-q->imin)*q->jmax*q->kmax + (long)(jj-q->jmin)*q->kmax + kk-q->kmin;
@@ -143,6 +157,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
 {
     if(lap_layout!=layout_id)
     {
+        const double ts = MPI_Wtime();
+
         lap_rows();
 
         const int n0 = p0->imax*p0->jmax*(p0->kmax+2);
@@ -181,6 +197,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         }
 
         lap_layout = layout_id;
+        tm[5] += MPI_Wtime()-ts;
     }
 
     // fixed rows (identity rows of the assembly: nodes inside a resolved body) are no unknowns:
@@ -345,6 +362,22 @@ void fnpf_amr::lap_start()
     }
 }
 
+// restart of the BiCGStab recurrence from the current residual (reefamr_bicgstab)
+void fnpf_amr::lap_restart()
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = lvec(g,NR);
+        double *vrh = lvec(g,NRH), *vp = lvec(g,NPV), *vv = lvec(g,NVV);
+        for(int qq : lg[g+1].lq)
+        {
+            vrh[qq] = vr[qq];
+            vp[qq] = 0.0;
+            vv[qq] = 0.0;
+        }
+    }
+}
+
 void fnpf_amr::lap_p(double beta, double om)
 {
     for(int g=-1; g<(int)P.size(); ++g)
@@ -466,7 +499,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
                     L.f[lq] = r[qq] - az;
                 }
 
-                c->mg->vcycle(0,1,1);
+                c->mg->vcycle(0,PSWEEP,PSWEEP);
 
                 for(int ii=EXT; ii<EXT+c->nx; ++ii)
                 for(int jj=EXT; jj<EXT+c->ny; ++jj)
@@ -498,6 +531,7 @@ struct lap_space
     void op_p(double beta, double om) { a->lap_p(beta,om); }
     void op_s(double alp) { a->lap_s(alp); }
     void op_x(double alp, double om) { a->lap_x(alp,om); }
+    void op_restart() { a->lap_restart(); }
 };
 }
 
@@ -523,14 +557,32 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     lap_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3]);
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls);
 
-    lap_it_last = it;
+    const double res = bn>0.0 ? rn/bn : 0.0;
     lap_it_total += it;
     ++lap_solves;
-    lap_res_last = bn>0.0 ? rn/bn : 0.0;
+    lap_it_step += it;
+    ++lap_solves_step;
+    if(lap_kind==0)
+    {
+        lap_it_last = it;
+        lap_res_last = res;
+        lap_it_phi_max = MAX(lap_it_phi_max,it);
+    }
+    else
+    lap_it_psi_max = MAX(lap_it_psi_max,it);
     p->solveriter = it;
-    p->final_res = lap_res_last;
+    p->final_res = res;
+
+    // the uniform REEFMG path warns at the iteration limit; a stalled composite solve was silent
+    if(it>=p->N46 && res>p->N44)
+    {
+        ++lap_capped;
+        if(p->mpirank==0)
+        cout<<"FNPF AMR WARNING - "<<(lap_kind==0 ? "phi" : "psi")<<" Laplace iteration limit N 46 = "<<p->N46
+            <<" reached, res "<<setprecision(3)<<res<<" (N 44 = "<<p->N44<<")"<<endl;
+    }
 
     lap_sync(-1);
 }
@@ -583,6 +635,7 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, f
     for(int id=0; id<(int)P.size(); ++id)
     ltgt[id+1] = FP(id)->c->Fi;
 
+    lap_kind = 0;
     lap_core(p,pgc);
 
     // body band
@@ -626,7 +679,9 @@ void fnpf_amr::lap_solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
 
     ltgt.assign(f,f+P.size()+1);
 
+    lap_kind = 1;
     lap_core(p,pgc);
+    lap_kind = 0;
 
     tm[1] += MPI_Wtime()-t0;
 }

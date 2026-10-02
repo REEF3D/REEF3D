@@ -130,6 +130,12 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     if(q.zones)
     q.regrid = MAX(p->A271,0);
 
+    // the FNPF bodies are moored or oscillate: the zone is aligned with x and y (the heading of
+    // the SFLOW ship zone swings with every reversal of the motion), and the layout is kept as
+    // long as it covers the flagged tiles with at most 50 % excess
+    q.zalign = true;
+    q.lazy = 1.5;
+
     configure(q);
 
     gcval_eta = 55;
@@ -186,6 +192,11 @@ fnpf_fsf* fnpf_amr::patch_fsf(int n)
 slice& fnpf_amr::patch_tendency(int n, int m)
 {
     return (m==0) ? static_cast<slice&>(*FP(n)->ek) : static_cast<slice&>(*FP(n)->fk);
+}
+
+void fnpf_amr::prolong_col(int n, double **f)
+{
+    prolong_interior_col(*FP(n),[&](int g) -> double* { return f[g+1]; });
 }
 
 // the finest local grid whose interior holds (x,y)
@@ -261,7 +272,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->mpirank==0)
     {
         logout.open("./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_log.dat");
-        logout<<"# count \t simtime \t dt \t patches \t cells \t Laplace iterations \t residual"<<endl;
+        logout<<"# count \t simtime \t dt \t patches \t cells \t Laplace iterations (last phi) \t residual \t max phi iterations \t max psi iterations \t solves \t iterations \t layout \t regrids skipped"<<endl;
     }
 
     Se0 = &c0->eta;
@@ -274,6 +285,10 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(body!=nullptr)
     body->amr_grids(p,pgc);
 
+    // load: the patches stay with the rank of the level-0 cells below them
+    const double cmax = pgc->globalmax(double(cells_local));
+    const double c0n = pgc->globalmax(double(p->knox*p->knoy));
+
     if(p->mpirank==0)
     {
         cout<<"FNPF AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns";
@@ -282,6 +297,8 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(regrid_int>0)
         cout<<", regrid every "<<regrid_int<<" steps (A 271), the zone follows the body";
         cout<<endl;
+        cout<<"FNPF AMR: refined columns per rank max "<<(long)cmax<<", mean "<<setprecision(4)<<double(cells_total)/p->mpi_size
+            <<" (level-0 columns per rank "<<(long)c0n<<")"<<endl;
     }
 }
 

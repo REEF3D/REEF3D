@@ -73,8 +73,12 @@ using namespace std;
 //  every hull triangle is integrated on the finest grid that holds its centroid.  A 278 r
 //  refines a margin r around the wetted hull at t = 0.
 //
-//  Scope of this version: static refinement (A 270 levels, A 276 boxes, A 277 boxes without
-//  refinement, A 275 tile width, A 278 zone around the body), RK3 (A 310 3), no wetting-drying
+//  Regridding (A 271 steps, default 4) only with the zone around the body (A 278): the zone is
+//  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
+//  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
+//
+//  Scope of this version: refinement A 270 levels, A 276 boxes, A 277 boxes without
+//  refinement, A 275 tile width, A 278 zone around the body; RK3 (A 310 3), no wetting-drying
 //  (A 343 0), no breaking (A 350 0), X 10 0 or 1, no ice (A 380 0), A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
@@ -137,6 +141,9 @@ public:
     int patch_serial(int n) { return FP(n)->serial; }
     void patch_walls_fi(int n, double *f) { walls_fi(*FP(n),f); }
     int finest_at(double, double);      // local grid id whose interior holds (x,y), -1: level 0
+    // a Fi-layout array of patch n from its coarser grid (initial guess of a fresh body grid);
+    // f[g+1] is the array of grid g
+    void prolong_col(int n, double **f);
     int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
@@ -144,6 +151,7 @@ public:
     void lap_prec(int, int);
     double lap_dot(int, int);
     void lap_start();
+    void lap_restart();
     void lap_p(double, double);
     void lap_s(double);
     void lap_x(double, double);
@@ -222,6 +230,12 @@ private:
     long lap_it_total, lap_solves;
     int lap_it_last;
     double lap_res_last;
+    int lap_kind = 0;               // solve of lap_core: 0 phi, 1 psi (body loads)
+    int lap_it_phi_max = 0, lap_it_psi_max = 0, lap_solves_step = 0;   // this step (log)
+    long lap_it_step = 0;
+    int lap_capped = 0;             // solves that reached N 46
+    int lap_restarts = 0;           // BiCGStab restarts after stagnation
+    int lap_stalls = 0;             // solves stopped after a second stagnation (STAGTOL)
 
     // output
     void write_vtr(lexer*, fnpf_amr_patch&, int);

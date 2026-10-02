@@ -43,19 +43,35 @@ Author: Hans Bihs
 //  vector as S: it is read before S is first written).  Returns the iteration count; bn, rn
 //  receive the norms of the right-hand side and of the final residual.  tprec, tapply
 //  accumulate the time in the preconditioner and the operator.
+//
+//  Restart: a space that also implements
+//
+//    void op_restart()                 RH = R, PV = 0, VV = 0 (leaf cells)
+//
+//  is restarted when the residual has not dropped by 5 % over RESTART_WIN iterations.
+//  BiCGStab can stagnate with a constant residual (FNPF AMR: the roll and pitch unit-mode psi
+//  solves of a floating body stalled at 1e-8..3e-7 relative for N 46 iterations); a new shadow
+//  residual RH = R often recovers it within a few iterations (restarts receives their number).
+//  If it stagnates again after a restart and the relative residual is below stagtol (0: never),
+//  the solve stops there (stalls receives their number) instead of running to maxiter.
 
 // default vector indices (a module may use its own)
 enum { REEFAMR_NR=0, REEFAMR_NRH, REEFAMR_NPV, REEFAMR_NVV, REEFAMR_NS, REEFAMR_NT, REEFAMR_NPH, REEFAMR_NSH, REEFAMR_NTMP, REEFAMR_NVEC };
 
 template<class S>
-int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, double *tprec=nullptr, double *tapply=nullptr)
+int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, double *tprec=nullptr, double *tapply=nullptr,
+                     int *restarts=nullptr, double stagtol=0.0, int *stalls=nullptr)
 {
+    const int RESTART_WIN = 8;
+
     sp.op_start();
 
     bn = sqrt(sp.dot(S::B,S::B));
     rn = sqrt(sp.dot(S::R,S::R));
     double rho=1.0, alp=1.0, om=1.0;
     int it=0;
+    double rbest=rn;
+    int ibest=0, nostep=0;
 
     if(bn>0.0)
     while(rn/bn>tol && it<maxiter)
@@ -89,6 +105,34 @@ int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, dou
 
         rn = sqrt(sp.dot(S::R,S::R));
         ++it;
+
+        if constexpr (requires { sp.op_restart(); })
+        {
+            if(rn<0.95*rbest)
+            {
+                rbest = rn;
+                ibest = it;
+                nostep = 0;
+            }
+            else if(it-ibest>=RESTART_WIN && rn/bn>tol)
+            {
+                // stagnated again after a restart, close enough: stop
+                if(nostep>0 && rn/bn<=stagtol)
+                {
+                    if(stalls)
+                    ++(*stalls);
+                    break;
+                }
+
+                ++nostep;
+                sp.op_restart();
+                rho = alp = om = 1.0;
+                rbest = rn;
+                ibest = it;
+                if(restarts)
+                ++(*restarts);
+            }
+        }
     }
 
     return it;

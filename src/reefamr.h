@@ -130,6 +130,7 @@ struct reefamr_xplan
 struct reefamr_zone
 {
     double cx,cy,ex,ey,smin,smax,nmin,nmax,sfront,wake,bx0,bx1,by0,by1;
+    double sback,nlo,nhi;       // hull rectangle in (s,n): [sback,sfront] x [nlo,nhi]
 };
 
 // parameters set by the module (configure)
@@ -151,6 +152,12 @@ struct reefamr_param
     double zr = 0.0;            // zone: margin around the hull
     double zL = 0.0;            // zone: length of the wake wedge (at most)
     double za = 0.0;            // zone: half angle of the wake wedge in degrees
+    bool zalign = false;        // zone: rectangle aligned with x and y around the wetted hull, grown by
+                                // the distance travelled until the next regrid (moored and
+                                // oscillating bodies), instead of aligned with the direction of motion
+    double lazy = 0.0;          // regrid: the refined tiles of the current layout are kept as long as
+                                // the union with the flagged tiles has at most lazy times the flagged
+                                // tiles, an unchanged layout skips the regrid (0: off)
 };
 
 // switches the MPI exchange of the ghostcell class off while patch kernels run
@@ -338,7 +345,9 @@ protected:
     int maxlev, nest, tile, nbuf, regrid_int, keep;
     int EXT;                        // extra computed cells on each side of a patch
     int regrids;
+    int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;
+    long cells_local = 0;           // refined columns of the patches on this rank
 
     // rank boxes of level 0 (global cell indices), all ranks
     int O0i,O0j,NX0,NY0,GNX,GNY;

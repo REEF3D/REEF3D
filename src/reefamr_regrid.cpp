@@ -132,6 +132,26 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         for(int tj=0; tj<gtny[l]; ++tj)
         if(M[l][(size_t)ti*gtny[l]+tj] && tile_forbidden(l,ti,tj))
         M[l][(size_t)ti*gtny[l]+tj]=0;
+
+        // lazy layout: the refined tiles of the current layout stay as long as the union with the
+        // flagged tiles is at most par.lazy times the flagged tiles.  A patch is kept only with
+        // exactly its old box, so every tile that comes or goes rebuilds the patches of the rank
+        // (lexer, fdm, kernels, multigrid, body grids); with the union a zone that oscillates
+        // with the body settles after one period.  The map is global, all ranks decide alike
+        if(par.lazy>0.0 && !initial && gtile[l].size()==M[l].size())
+        {
+            long nflag=0, nunion=0;
+            for(size_t t=0; t<M[l].size(); ++t)
+            {
+                nflag += M[l][t] ? 1 : 0;
+                nunion += (M[l][t] || gtile[l][t]) ? 1 : 0;
+            }
+
+            if(nflag>0 && double(nunion)<=par.lazy*double(nflag))
+            for(size_t t=0; t<M[l].size(); ++t)
+            if(gtile[l][t])
+            M[l][t] = 1;
+        }
     }
 
     // proper nesting (the forbidden tiles can break it): coarse first
@@ -152,6 +172,21 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 
         if(!ok)
         M[l][(size_t)ti*gtny[l]+tj]=0;
+    }
+
+    // ---- lazy layout: the tile maps did not change, the hierarchy stays as it is
+    if(par.lazy>0.0 && !initial)
+    {
+        bool same = true;
+        for(int l=1; l<=maxlev && same; ++l)
+        if(gtile[l]!=M[l])
+        same = false;
+
+        if(same)
+        {
+            ++regrids_skipped;
+            return;
+        }
     }
 
     // ---- patches: marked tiles merged into rectangles, cut at the rank box
@@ -267,6 +302,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     for(int l=1; l<=maxlev; ++l)
     nlevg[l] = pgc->globalisum((int)lev[l].size());
     cells_total = (long)pgc->globalsum(double(cells));
+    cells_local = cells;
 
     // ---- level 0 consistent with the patches
     regrid_finish(pgc,old_total);
