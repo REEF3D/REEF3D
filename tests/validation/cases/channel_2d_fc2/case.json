@@ -1,0 +1,15 @@
+{
+ "base": "channel_2d_fc3",
+ "ctrl_set": {
+  "N 40": "2"
+ },
+ "description": "as channel_2d_fc3, N40=2 (momentum_FC2).",
+ "tags": [
+  "diffusion",
+  "laminar",
+  "2d"
+ ],
+ "check_set": {
+  "tol_transient": 0.2
+ }
+}

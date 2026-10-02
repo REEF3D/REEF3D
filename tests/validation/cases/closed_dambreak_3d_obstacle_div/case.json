@@ -1,0 +1,6 @@
+{
+ "description": "As closed_dambreak_2d_div in 3D with a box obstacle (solid surfaces inside the domain), 4 MPI ranks.",
+ "np": 4, "steps": 40,
+ "tags": ["quick", "pressure", "closed", "3d", "mpi", "solid"],
+ "check": {"type": "max_abs", "field": "div", "tol": 1e-6}
+}

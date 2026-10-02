@@ -1,0 +1,27 @@
+{
+ "description": "Laminar channel flow from rest, driven by a body force (W 20 = g = 0.8 m/s2), nu = 0.1 m2/s, no-slip walls at z = 0 and 1 m (B 20 3, D 22 2), periodic in x (C 21 1). Domain filled with water (F 60 above the lid), so the free-surface schemes run as single phase. Exact solution: Fourier series (u_max steady = g H^2/(8 nu) = 1 m/s). Tests the time integration of the implicit diffusion (D 20 2) and the wall treatment. N40=3 (momentum_FC3). With the implicit diffusion the time integration of the diffusion is first order (transient error ~0.13 u_max at CFL 0.3, ~0.015 at CFL 0.03), the steady state is exact to the spatial error.",
+ "np": 1,
+ "time": 6.0,
+ "tags": [
+  "quick",
+  "diffusion",
+  "laminar",
+  "2d"
+ ],
+ "check": {
+  "type": "channel_startup",
+  "g": 0.8,
+  "nu": 0.1,
+  "H": 1.0,
+  "z0": 0.0,
+  "times": [
+   0.25,
+   0.5,
+   1.0,
+   2.0,
+   6.0
+  ],
+  "tol_final": 0.01,
+  "tol_transient": 0.15
+ }
+}
