@@ -43,6 +43,12 @@ public:
     virtual void ucorr(lexer*,fdm_nhf*,slice&,double*,double*,double)=0;
 	virtual void vcorr(lexer*,fdm_nhf*,slice&,double*,double*,double)=0;
 	virtual void wcorr(lexer*,fdm_nhf*,slice&,double*,double*,double)=0;
+    
+    // mesh refinement (nhflow_amr): the projection of start() in two parts around a solve of all
+    // grids together.  amr_prepare: right-hand side and matrix (d->M, d->rhsvec), returns the
+    // array of the unknowns (nullptr: nothing to solve); amr_finish: pressure and velocity update
+    virtual double* amr_prepare(lexer*,fdm_nhf*,ghostcell*,double) { return nullptr; }
+    virtual void amr_finish(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*,double) {}
 };
 
 #endif

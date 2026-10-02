@@ -42,6 +42,8 @@ public:
 	virtual ~nhflow_pjm();
 
 	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override final;
+    double* amr_prepare(lexer*,fdm_nhf*,ghostcell*,double) override final;
+    void amr_finish(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*,double) override final;
 	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
 	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
 	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;

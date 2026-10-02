@@ -31,8 +31,33 @@ class nhflow_fsf;
 class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
+class nhflow_momentum_func;
 
 using namespace std;
+
+// the objects one RK stage works with (the arguments of nhflow_momentum::start)
+struct nhflow_stage_obj
+{
+    ioflow *pflow;
+    nhflow_signal_speed *pss;
+    nhflow_reconstruct *precon;
+    nhflow_convection *pconvec;
+    nhflow_diffusion *pdiff;
+    nhflow_pressure *ppress;
+    solver *ppoissonsolv;
+    solver *psolv;
+    nhflow *pnhf;
+    nhflow_fsf *pfsf;
+    nhflow_turbulence *pturb;
+    vrans_nhflow *pvrans;
+};
+
+// runs the time step of all grids (mesh refinement, nhflow_amr) instead of start()
+class nhflow_stage_runner
+{
+public:
+    virtual void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) = 0;
+};
 
 class nhflow_momentum_func : public nhflow_momentum, public nhflow_bcmom, public nhflow_sigma
 {
@@ -50,6 +75,29 @@ public:
 	void krhs(lexer*,fdm_nhf*,ghostcell*);
     
     void clearrhs(lexer*,fdm_nhf*,ghostcell*);
+    
+    // one time step as phases, so that the AMR module can interleave the grids (nhflow_amr):
+    //   step_begin  in- and outflow of the stage arrays
+    //   phase_F     sigma, reconstruction, continuity flux, water level of stage s, omega
+    //   phase_M     momentum fluxes and the RK update of UH, VH, WH
+    //   phase_P     velocities, forcing, pressure projection (phase_P1, ppress->start, phase_P2)
+    //   phase_E     relaxation zones, ghost cells (RK2: sediment, depth update)
+    // start() runs them in this order; without mesh refinement the operations are unchanged
+    virtual int stages() const = 0;
+    virtual void step_begin(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&) = 0;
+    virtual void phase_F(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;
+    virtual void phase_M(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;
+    void phase_P(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int);
+    virtual void phase_P1(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;   // velocities, forcing
+    virtual void phase_P2(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;   // velocities, reforcing
+    virtual void phase_E(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;
+    // stage values of stage s: water level and UH, VH, WH (s = stages()-1: d->WL, d->UH, ...)
+    virtual slice& stage_WL(fdm_nhf*,int) = 0;
+    virtual double* stage_UH(fdm_nhf*,int,int) = 0;
+    virtual double stage_alpha(int) const = 0;
+    
+    void attach_runner(nhflow_stage_runner *a) override { prun = a; }
+    nhflow_stage_runner *prun = nullptr;
 	
     
 

@@ -122,6 +122,27 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
+// mesh refinement: start() without the solve (the membrane passes X 330 are not supported there)
+double* nhflow_pjm::amr_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
+{
+    FLOOP
+    P0[FIJK] = d->P[FIJK];
+    
+    rhs(p,d,pgc,d->U,d->V,d->W,alpha);
+    ppois->start(p,d,d->P);
+    
+    return d->P;
+}
+
+void nhflow_pjm::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *UH, double *VH, double *WH, double alpha)
+{
+	pgc->start7P(p,d->P,gcval_press);
+    
+	ucorr(p,d,WL,UH,d->P,alpha);
+	vcorr(p,d,WL,VH,d->P,alpha);
+	wcorr(p,d,WL,WH,d->P,alpha);
+}
+
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, double alpha)
 {
     // membranes (X 330): face mobilities in the horizontal gradient, see nhflow_membrane_beta.h

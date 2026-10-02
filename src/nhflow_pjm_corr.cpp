@@ -115,6 +115,27 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
 }
 
+// mesh refinement: start() without the solve (the membrane passes X 330 are not supported there)
+double* nhflow_pjm_corr::amr_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
+{
+    rhs(p,d,pgc,d->U,d->V,d->W,alpha);
+    ppois->start(p,d,PCORR);
+    
+    return PCORR;
+}
+
+void nhflow_pjm_corr::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *UH, double *VH, double *WH, double alpha)
+{
+    presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
+    
+    pgc->start7P(p,d->P,gcval_press);
+    pgc->start7P(p,PCORR,gcval_press);
+    
+	ucorr(p,d,WL,UH,PCORR,alpha);
+	vcorr(p,d,WL,VH,PCORR,alpha);
+	wcorr(p,d,WL,WH,PCORR,alpha);
+}
+
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
 {
     double psi, phival_fb;

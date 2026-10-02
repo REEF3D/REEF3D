@@ -29,19 +29,21 @@ Author: Hans Bihs
 // entries are (i,j,k,h): h=1 if the cell has a flagged neighbour in x or y,
 // h=0 if only the bottom/top neighbour is flagged. For h=0 cells only the
 // vertical BC statements (the tail of each loop body) can fire.
-#define GCBL_LOOP(L,T) gcbl_build_impl(p,L,T,i,j,k); int gcbl_h=0; \
-    for(size_t qq_=0; qq_<L.ijk.size(); qq_+=4) \
-    if((i=L.ijk[qq_], j=L.ijk[qq_+1], k=L.ijk[qq_+2], gcbl_h=L.ijk[qq_+3], true))
+#define GCBL_LOOP(L,T) gcblist gcbl_tmp_; const gcblist &gcbl_L_ = gcbl_get(p,L,gcbl_tmp_,T,i,j,k); int gcbl_h=0; \
+    for(size_t qq_=0; qq_<gcbl_L_.ijk.size(); qq_+=4) \
+    if((i=gcbl_L_.ijk[qq_], j=gcbl_L_.ijk[qq_+1], k=gcbl_L_.ijk[qq_+2], gcbl_h=gcbl_L_.ijk[qq_+3], true))
 
 // boundary-cell lists for the V-type BC sweeps (NHFLOW/FNPF):
 // cells of a ULOOP/VLOOP/WLOOP/LOOP/FLOOP that have at least one face
 // neighbour flagged <0. Only these cells can satisfy any of the BC branches,
 // so iterating over them in the original order gives identical results.
 // Rebuilt once per time step (p->count) and whenever flags are rebuilt.
+// A list belongs to the lexer it was first built for (the rank grid); for any other lexer
+// (a mesh refinement patch, whose lexers come and go) the cells are collected per call.
 #include<vector>
 namespace
 {
-    struct gcblist { std::vector<int> ijk; int count=-2; };
+    struct gcblist { std::vector<int> ijk; int count=-2; lexer *lx=nullptr; };
     gcblist gcbl1, gcbl2, gcbl3, gcbl4, gcbl7;
 }
 
@@ -101,10 +103,27 @@ static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int 
     L.count=p->count;
 }
 
+static const gcblist& gcbl_get(lexer *p, gcblist &L, gcblist &T, int type, int &i, int &j, int &k)
+{
+    if(L.lx==nullptr)
+    L.lx=p;
+
+    if(p==L.lx)
+    {
+    gcbl_build_impl(p,L,type,i,j,k);
+    return L;
+    }
+
+    gcbl_build_impl(p,T,type,i,j,k);
+    return T;
+}
+
 void ghostcell::start1V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
+    if(do_comms)
     gcparaxV1(p, f, gcv);
+    if(do_comms)
     gcparacoxV1(p, f, gcv);
     
 
@@ -225,7 +244,9 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
 void ghostcell::start2V(lexer *p, double *f, int gcv)
 {
     //  MPI Boundary Swap
+    if(do_comms)
     gcparaxV1(p, f, gcv);
+    if(do_comms)
     gcparacoxV1(p, f, gcv);
     
     int inflow=0;
@@ -331,7 +352,9 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
 
 void ghostcell::start3V(lexer *p, double *f, int gcv)
 {
+    if(do_comms)
     gcparaxV1(p, f, gcv);
+    if(do_comms)
     gcparacoxV1(p, f, gcv);
 
     int inflow=0;
@@ -414,13 +437,17 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
 
 void ghostcell::start4V_par(lexer *p, double *f, int gcv)
 {
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::start4V(lexer *p, double *f, int gcv)
 {
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     int inflow=0;
@@ -688,7 +715,9 @@ void ghostcell::start5V(lexer *p, double *f, int gcv)
     }
     }
 
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 }
 
@@ -757,13 +786,16 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
         }
     }
 
+    if(do_comms)
     gcparaxV(p, f, gcv);
     //gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
 {
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     int inflow=0;
@@ -892,6 +924,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
         }
     }
 
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     p->gctime+=timer()-starttime;
@@ -899,7 +932,9 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
 
 void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
 {
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     int inflow=0;
@@ -988,6 +1023,7 @@ void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
         }
     }
 
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     p->gctime+=timer()-starttime;
@@ -995,7 +1031,9 @@ void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
 
 void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
 {
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     int inflow=0;
@@ -1077,6 +1115,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
         }
     }
 
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 }
 
@@ -1109,13 +1148,17 @@ void ghostcell::start49V(lexer *p, double *f, int gcv)
             f[IJKp1] = f[IJK];
     }
 
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 }
 
 void ghostcell::start60V(lexer *p, double *f, int gcv) // EPS
 {
+    if(do_comms)
     gcparaxV(p, f, gcv);
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 
     int inflow=0;
@@ -1197,6 +1240,7 @@ void ghostcell::start60V(lexer *p, double *f, int gcv) // EPS
         }
     }
 
+    if(do_comms)
     gcparacoxV(p, f, gcv);
 }
 
@@ -1223,6 +1267,7 @@ void ghostcell::startintV(lexer *p, int *f, int gcv)
         f[IJKp1] = f[IJK];
     }
 
+    if(do_comms)
     gcparaxintV(p, f, gcv);
 }
 

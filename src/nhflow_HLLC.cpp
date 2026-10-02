@@ -73,6 +73,9 @@ void nhflow_HLLC::aij_U(lexer* p,fdm_nhf* d, int ipol)
     pgc->start2V(p,d->Fy,10);
     pgc->start3V(p,d->Fz,10);
     
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,1,d->Fx,d->Fy);
+    
     LOOP
     WETDRY
     {
@@ -104,6 +107,9 @@ void nhflow_HLLC::aij_V(lexer* p, fdm_nhf* d, int ipol)
     pgc->start2V(p,d->Fy,11);
     pgc->start3V(p,d->Fz,11);
     
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,2,d->Fx,d->Fy);
+    
     LOOP
     WETDRY
     {
@@ -125,6 +131,9 @@ void nhflow_HLLC::aij_W(lexer* p,fdm_nhf* d, int ipol)
     pgc->start1V(p,d->Fx,12);
     pgc->start2V(p,d->Fy,12);
     pgc->start3V(p,d->Fz,12);
+    
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,3,d->Fx,d->Fy);
     
     LOOP
     WETDRY
@@ -164,6 +173,9 @@ void nhflow_HLLC::aij_E(lexer* p,fdm_nhf* d, int ipol)
     
     pgc->start1V(p,d->FEx,14);
     pgc->start2V(p,d->FEy,14); 
+    
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,4,d->FEx,d->FEy);
 }
 
 void nhflow_HLLC::HLLC(lexer* p,fdm_nhf* d, double *Us, double *Un, double *Ue, double *Uw, double *SSxs, double *SSxn, double *SSye, double *SSyw)

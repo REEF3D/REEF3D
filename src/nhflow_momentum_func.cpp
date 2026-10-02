@@ -206,6 +206,16 @@ void nhflow_momentum_func::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	}
 }
 
+// stage s: velocities, forcing, pressure projection
+void nhflow_momentum_func::phase_P(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s)
+{
+    phase_P1(p,d,pgc,S,s);
+    
+	S.ppress->start(p,d,S.ppoissonsolv,pgc,S.pflow,stage_WL(d,s),stage_UH(d,s,0),stage_UH(d,s,1),stage_UH(d,s,2),stage_alpha(s));
+    
+    phase_P2(p,d,pgc,S,s);
+}
+
 void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
     pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);

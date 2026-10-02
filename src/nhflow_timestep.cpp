@@ -50,29 +50,39 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
 	depthmax=MAX(depthmax,d->WL(i,j));
 	
+    if(phook!=nullptr)
+    depthmax=MAX(depthmax,phook->dt_local_max(0));
 	depthmax=pgc->globalmax(depthmax);
 
 
     LOOP
 	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
+    if(phook!=nullptr)
+    p->umax=MAX(p->umax,phook->dt_local_max(1));
 	p->umax=pgc->globalmax(p->umax);
 
 
 	LOOP
 	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
+    if(phook!=nullptr)
+    p->vmax=MAX(p->vmax,phook->dt_local_max(2));
 	p->vmax=pgc->globalmax(p->vmax);
 
 
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
     
+    if(phook!=nullptr)
+    p->wmax=MAX(p->wmax,phook->dt_local_max(3));
     p->wmax=pgc->globalmax(p->wmax);
     
     FLOOP
 	p->omegamax=MAX(p->omegamax,fabs(d->omegaF[FIJK]));
     
+    if(phook!=nullptr)
+    p->omegamax=MAX(p->omegamax,phook->dt_local_max(4));
 	p->omegamax=pgc->globalmax(p->omegamax);
     
 	
@@ -121,6 +131,26 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cu = MIN(cu, 1.0/(0.00001
     
             + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
+    }
+    
+    // refined patches: the same limits with their smallest cells
+    if(phook!=nullptr)
+    {
+    double dxp=1.0e20, dzp=1.0e20;
+    phook->dt_cell_size(1,dxp,dzp);
+    
+        if(dxp<1.0e19)
+        {
+        cu = MIN(cu, dxp/(p->umax + sqrt(9.81*depthmax)));
+        
+        if(p->j_dir==1 )
+        cv = MIN(cv, dxp/(p->vmax + sqrt(9.81*depthmax)));
+        
+        cw = MIN(cw, dxp/(p->wmax));
+        
+        if(p->A533==1)
+        cw = MIN(cw, dzp/(p->wmax));
+        }
     }
     
     cu = pgc->globalmin(cu);
@@ -224,6 +254,21 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     co = MIN(co, 1.0/((fabs(p->omegamax)/dx)));
     }
 
+    // refined patches: the same limits with their smallest cells
+    if(phook!=nullptr)
+    {
+    double dxp=1.0e20, dzp=1.0e20;
+    phook->dt_cell_size(0,dxp,dzp);
+    
+        if(dxp<1.0e19)
+        {
+        cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dxp)));
+        cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dxp)));
+        cw = MIN(cw, 1.0/((fabs(p->wmax)/dxp)));
+        co = MIN(co, 1.0/((fabs(p->omegamax)/dxp)));
+        }
+    }
+    
 	cu = MIN(cu,cv);
     
     cu = MIN(cu,cw);
