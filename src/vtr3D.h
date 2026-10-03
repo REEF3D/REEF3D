@@ -41,6 +41,11 @@ class vtr3D final : public vtk3D , increment
         void endingParallel(std::ostream&, const char*, const int, const int) override final;
 
         void structureWrite(lexer*, fdm*, std::vector<char>&, size_t&) override final;
+
+        // grids without a lexer of their own (AMR patches): explicit extent, node coordinates and field data
+        void offset(int*, int&, const int, const int, const int);
+        void beginning(std::ostream&, const int*, const double, const int);
+        void structureWrite(std::vector<char>&, size_t&, const double*, const int, const double*, const int, const double*, const int);
     private:
         int *piextent;
         char pname[50];

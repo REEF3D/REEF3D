@@ -60,15 +60,33 @@ void vtr3D::extent(lexer *p, ghostcell *pgc)
 
 void vtr3D::offset(lexer *p, int *offset, int &n)
 {
-    //x
-    offset[n]=offset[n-1]+sizeof(float)*(p->knox+1)+sizeof(int); 
+    vtr3D::offset(offset,n,p->knox+1,p->knoy+1,p->knoz+1);
+}
+
+// node counts in x, y and z
+void vtr3D::offset(int *offset, int &n, const int nx, const int ny, const int nz)
+{
+    offset[n]=offset[n-1]+sizeof(float)*nx+sizeof(int);
     ++n;
-    //y
-    offset[n]=offset[n-1]+sizeof(float)*(p->knoy+1)+sizeof(int); 
+    offset[n]=offset[n-1]+sizeof(float)*ny+sizeof(int);
     ++n;
-    //z
-    offset[n]=offset[n-1]+sizeof(float)*(p->knoz+1)+sizeof(int); 
+    offset[n]=offset[n-1]+sizeof(float)*nz+sizeof(int);
     ++n;
+}
+
+// extent: i0 i1 j0 j1 k0 k1, level < 0: not written
+void vtr3D::beginning(std::ostream &result, const int *ext, const double time, const int level)
+{
+    xmlVersion(result);
+    result<<"<VTKFile type=\"RectilinearGrid\" ";
+    vtkVersion(result);
+    result<<"<RectilinearGrid WholeExtent=\""<<ext[0]<<" "<<ext[1]<<" "<<ext[2]<<" "<<ext[3]<<" "<<ext[4]<<" "<<ext[5]<<"\">\n";
+    if(time>=0.0)
+        result<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<std::setprecision(7)<<time<<"\n</DataArray>\n";
+    if(level>=0)
+        result<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\"> "<<level<<"\n</DataArray>\n";
+    result<<"</FieldData>\n";
+    result<<"<Piece Extent=\""<<ext[0]<<" "<<ext[1]<<" "<<ext[2]<<" "<<ext[3]<<" "<<ext[4]<<" "<<ext[5]<<"\">\n";
 }
 
 void vtr3D::beginning(lexer *p, std::ostream &result)
@@ -128,39 +146,34 @@ void vtr3D::endingParallel(std::ostream &result, const char *A10, const int M10,
 
 void vtr3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
 {
-    float ffn;
-    int iin;
+    std::vector<double> x(p->knox+1), y(p->knoy+1), z(p->knoz+1);
 
-    // Coordinates
-    // x
-    iin=sizeof(float)*(p->knox+1);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
     ITLOOP
-    {
-        ffn=float(p->Xout(p->XN[IP],p->YN[JP]));
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
-    }
-    // y
-    iin=sizeof(float)*(p->knoy+1);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
+        x[i]=p->Xout(p->XN[IP],p->YN[JP]);
     JTLOOP
-    {
-        ffn=float(p->Yout(p->XN[IP],p->YN[JP]));
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
-    }
-    // z
-    iin=sizeof(float)*(p->knoz+1);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
+        y[j]=p->Yout(p->XN[IP],p->YN[JP]);
     KTLOOP
+        z[k]=p->ZN[KP];
+
+    structureWrite(buffer,m,x.data(),p->knox+1,y.data(),p->knoy+1,z.data(),p->knoz+1);
+}
+
+void vtr3D::structureWrite(std::vector<char> &buffer, size_t &m, const double *x, const int nx, const double *y, const int ny, const double *z, const int nz)
+{
+    const double *xyz[3] = {x,y,z};
+    const int num[3] = {nx,ny,nz};
+
+    for(int d=0; d<3; ++d)
     {
-        ffn=float(p->ZN[KP]);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
+        int iin=sizeof(float)*num[d];
+        std::memcpy(&buffer[m],&iin,sizeof(int));
+        m+=sizeof(int);
+        for(int q=0; q<num[d]; ++q)
+        {
+            float ffn=float(xyz[d][q]);
+            std::memcpy(&buffer[m],&ffn,sizeof(float));
+            m+=sizeof(float);
+        }
     }
 
     vtk3D::structureWriteEnd(buffer,m);
