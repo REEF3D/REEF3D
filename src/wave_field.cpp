@@ -26,9 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<cmath>
 #include<cstdlib>
-#include<fstream>
 #include<iostream>
-#include<sstream>
 #include<string>
 
 wave_lib* wave_lib_create(lexer*, ghostcell*, int);
@@ -99,127 +97,75 @@ bool wave_field::use(const wave_source *s) const
 
 void wave_field::read(lexer *p, ghostcell *pgc)
 {
-    // one record per source: id type seed | H T rot phase ts te t_ramp x0 y0
-    std::vector<int> iv;
-    std::vector<double> dv;
-    int n=0;
-    const int NI=3, ND=9;
-
-    if(p->mpirank==0)
+    // B 500-504 (control.h, read by read_control and sent to all ranks)
+    auto fail = [&](const std::string &msg)
     {
-        std::vector<int> id,type,seed;
-        std::vector<double> H,T,rot,phase,ts,te,tr,x0,y0;
-
-        auto find = [&](int k)->int
-        {
-            for(size_t q=0; q<id.size(); ++q)
-            if(id[q]==k)
-            return (int)q;
-            return -1;
-        };
-
-        auto fail = [&](const std::string &msg)
-        {
-            std::cout<<std::endl<<"!!! wave_field: "<<msg<<" !!!"<<std::endl<<std::endl;
-            std::exit(1);
-        };
-
-        std::ifstream f("ctrl.txt");
-        std::string line;
-
-        // B 500 first, so that B 501-504 may come in any order
-        for(int pass=0; pass<2; ++pass)
-        {
-            f.clear();
-            f.seekg(0);
-
-            while(std::getline(f,line))
-            {
-                std::istringstream ls(line);
-                std::string c;
-                int key;
-
-                if(!(ls>>c) || c!="B" || !(ls>>key))
-                continue;
-
-                if(pass==0 && key==500)
-                {
-                    int k,t; double h,tt;
-                    if(!(ls>>k>>t>>h>>tt))
-                    fail("B 500 needs: id type H T");
-                    if(k<2)
-                    fail("source ids start at 2 (id 1 is the B 92 wave)");
-                    if(find(k)>=0)
-                    fail("source id "+std::to_string(k)+" defined twice in B 500");
-
-                    id.push_back(k); type.push_back(t); seed.push_back(0);
-                    H.push_back(h); T.push_back(tt); rot.push_back(0.0); phase.push_back(0.0);
-                    ts.push_back(0.0); te.push_back(1.0e20); tr.push_back(0.0);
-                    x0.push_back(0.0); y0.push_back(0.0);
-                }
-
-                if(pass==1 && (key==501 || key==502 || key==504))
-                {
-                    int k;
-                    if(!(ls>>k))
-                    fail("B "+std::to_string(key)+" needs a source id");
-                    int q = find(k);
-                    if(q<0)
-                    fail("B "+std::to_string(key)+" refers to source "+std::to_string(k)+", which has no B 500");
-
-                    if(key==501 && !(ls>>rot[q]>>phase[q]>>ts[q]>>te[q]>>tr[q]))
-                    fail("B 501 needs: id dir phase ts te t_ramp");
-
-                    if(key==502 && !(ls>>x0[q]>>y0[q]))
-                    fail("B 502 needs: id x0 y0");
-
-                    if(key==504 && !(ls>>seed[q]))
-                    fail("B 504 needs: id seed");
-                }
-            }
-        }
-
-        n = (int)id.size();
-
-        for(int q=0; q<n; ++q)
-        {
-            iv.push_back(id[q]); iv.push_back(type[q]); iv.push_back(seed[q]);
-            dv.push_back(H[q]); dv.push_back(T[q]); dv.push_back(rot[q]); dv.push_back(phase[q]);
-            dv.push_back(ts[q]); dv.push_back(te[q]); dv.push_back(tr[q]);
-            dv.push_back(x0[q]); dv.push_back(y0[q]);
-        }
+        if(p->mpirank==0)
+        std::cout<<std::endl<<"!!! wave_field: "<<msg<<" !!!"<<std::endl<<std::endl;
+        std::exit(1);
+    };
+    
+    auto find = [&](int k)->wave_source*
+    {
+        for(wave_source *s : src)
+        if(s->id==k)
+        return s;
+        return nullptr;
+    };
+    
+    for(int n=0; n<p->B500; ++n)
+    {
+        const int k = p->B500_id[n];
+        
+        if(k<2)
+        fail("source ids start at 2 (id 1 is the B 92 wave)");
+        if(find(k)!=nullptr)
+        fail("source id "+std::to_string(k)+" defined twice in B 500");
+        
+        wave_source *s = new wave_source(k,p->B500_type[n]);
+        s->H = p->B500_H[n];
+        s->T = p->B500_T[n];
+        src.push_back(s);
     }
-
-    pgc->bcast_int(&n,1);
-
-    if(n==0)
-    return;
-
-    iv.resize(NI*n);
-    dv.resize(ND*n);
-    pgc->bcast_int(iv.data(),NI*n);
-    pgc->bcast_double(dv.data(),ND*n);
-
-    for(int q=0; q<n; ++q)
+    
+    for(int n=0; n<p->B501; ++n)
     {
-        wave_source *s = new wave_source(iv[NI*q],iv[NI*q+1]);
-        s->seed  = iv[NI*q+2];
-        s->H     = dv[ND*q];
-        s->T     = dv[ND*q+1];
-        s->rot   = dv[ND*q+2];
-        s->phase = dv[ND*q+3];
-        s->ts    = dv[ND*q+4];
-        s->te    = dv[ND*q+5];
-        s->t_ramp= dv[ND*q+6];
-        s->x0    = dv[ND*q+7];
-        s->y0    = dv[ND*q+8];
-
+        wave_source *s = find(p->B501_id[n]);
+        if(s==nullptr)
+        fail("B 501 refers to source "+std::to_string(p->B501_id[n])+", which has no B 500");
+        
+        s->rot    = p->B501_dir[n];
+        s->phase  = p->B501_phase[n];
+        s->ts     = p->B501_ts[n];
+        s->te     = p->B501_te[n];
+        s->t_ramp = p->B501_tramp[n];
+    }
+    
+    for(int n=0; n<p->B502; ++n)
+    {
+        wave_source *s = find(p->B502_id[n]);
+        if(s==nullptr)
+        fail("B 502 refers to source "+std::to_string(p->B502_id[n])+", which has no B 500");
+        
+        s->x0 = p->B502_x[n];
+        s->y0 = p->B502_y[n];
+    }
+    
+    for(int n=0; n<p->B504; ++n)
+    {
+        wave_source *s = find(p->B504_id[n]);
+        if(s==nullptr)
+        fail("B 504 refers to source "+std::to_string(p->B504_id[n])+", which has no B 500");
+        
+        s->seed = p->B504_seed[n];
+    }
+    
+    for(wave_source *s : src)
+    {
         const double r = s->rot*(3.14159265358979323846/180.0);
         s->cr = cos(r);
         s->sr = sin(r);
         s->tshift = s->phase/360.0*s->T;
-
-        src.push_back(s);
     }
 }
 

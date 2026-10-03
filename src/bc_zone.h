@@ -40,7 +40,7 @@ the line; the weight depends on the distance to the line.
 bc_zone_set holds all zones of a case. from_legacy() translates B 96,
 B 98, B 99, B 107 and B 108 into zones, with the same arithmetic as the
 former iowave functions, so results stay bitwise identical, and adds the
-zones given directly (ctrl.txt, read on rank 0 and broadcast):
+zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
 
   B 520 id method priority     method 1: relaxation (wave generation), 2: beach
   B 521 id edge s0 s1 width    edge 1: x-, 2: x+, 3: y-, 4: y+; along-edge range

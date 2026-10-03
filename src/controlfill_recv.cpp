@@ -641,6 +641,20 @@ void control::ctrlrecv()
     ii++;
     B107 = ictrl[ii];
     ii++;
+    B500 = ictrl[ii];
+    ii++;
+    B501 = ictrl[ii];
+    ii++;
+    B502 = ictrl[ii];
+    ii++;
+    B504 = ictrl[ii];
+    ii++;
+    B520 = ictrl[ii];
+    ii++;
+    B521 = ictrl[ii];
+    ii++;
+    B524 = ictrl[ii];
+    ii++;
     B110 = ictrl[ii];
     ii++;
     B110_zs = dctrl[dd];
@@ -2696,6 +2710,59 @@ void control::ctrlrecv()
         Darray(B108_ye,B108);
         Darray(B108_d,B108);
     }
+
+    if(B500>0)
+    {
+        Iarray(B500_id,B500);
+        Iarray(B500_type,B500);
+        Darray(B500_H,B500);
+        Darray(B500_T,B500);
+    }
+
+    if(B501>0)
+    {
+        Iarray(B501_id,B501);
+        Darray(B501_dir,B501);
+        Darray(B501_phase,B501);
+        Darray(B501_ts,B501);
+        Darray(B501_te,B501);
+        Darray(B501_tramp,B501);
+    }
+
+    if(B502>0)
+    {
+        Iarray(B502_id,B502);
+        Darray(B502_x,B502);
+        Darray(B502_y,B502);
+    }
+
+    if(B504>0)
+    {
+        Iarray(B504_id,B504);
+        Iarray(B504_seed,B504);
+    }
+
+    if(B520>0)
+    {
+        Iarray(B520_id,B520);
+        Iarray(B520_method,B520);
+        Iarray(B520_prio,B520);
+    }
+
+    if(B521>0)
+    {
+        Iarray(B521_id,B521);
+        Iarray(B521_edge,B521);
+        Darray(B521_s0,B521);
+        Darray(B521_s1,B521);
+        Darray(B521_w,B521);
+    }
+
+    if(B524>0)
+    {
+        Iarray(B524_id,B524);
+        Iarray(B524_src,B524);
+    }
     
     if(B210>0)
     {
@@ -3893,6 +3960,84 @@ void control::ctrlrecv()
         dd++;
         B108_d[n]  = dctrl[dd];
         dd++;
+    }
+
+    for(n=0;n<B500;++n)
+    {
+        B500_id[n] = ictrl[ii];
+        ii++;
+        B500_type[n] = ictrl[ii];
+        ii++;
+        B500_H[n] = dctrl[dd];
+        dd++;
+        B500_T[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<B501;++n)
+    {
+        B501_id[n] = ictrl[ii];
+        ii++;
+        B501_dir[n] = dctrl[dd];
+        dd++;
+        B501_phase[n] = dctrl[dd];
+        dd++;
+        B501_ts[n] = dctrl[dd];
+        dd++;
+        B501_te[n] = dctrl[dd];
+        dd++;
+        B501_tramp[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<B502;++n)
+    {
+        B502_id[n] = ictrl[ii];
+        ii++;
+        B502_x[n] = dctrl[dd];
+        dd++;
+        B502_y[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<B504;++n)
+    {
+        B504_id[n] = ictrl[ii];
+        ii++;
+        B504_seed[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n=0;n<B520;++n)
+    {
+        B520_id[n] = ictrl[ii];
+        ii++;
+        B520_method[n] = ictrl[ii];
+        ii++;
+        B520_prio[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n=0;n<B521;++n)
+    {
+        B521_id[n] = ictrl[ii];
+        ii++;
+        B521_edge[n] = ictrl[ii];
+        ii++;
+        B521_s0[n] = dctrl[dd];
+        dd++;
+        B521_s1[n] = dctrl[dd];
+        dd++;
+        B521_w[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<B524;++n)
+    {
+        B524_id[n] = ictrl[ii];
+        ii++;
+        B524_src[n] = ictrl[ii];
+        ii++;
     }
     
     for(n=0;n<B210;++n)

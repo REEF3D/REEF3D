@@ -140,6 +140,16 @@ public:
     double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
     double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
+
+    // iowave redesign: wave sources (B 500-504) and boundary zones (B 520-524), repeatable
+    int B500,B501,B502,B504,B520,B521,B524;
+    int *B500_id,*B500_type; double *B500_H,*B500_T;
+    int *B501_id; double *B501_dir,*B501_phase,*B501_ts,*B501_te,*B501_tramp;
+    int *B502_id; double *B502_x,*B502_y;
+    int *B504_id,*B504_seed;
+    int *B520_id,*B520_method,*B520_prio;
+    int *B521_id,*B521_edge; double *B521_s0,*B521_s1,*B521_w;
+    int *B524_id,*B524_src;
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;

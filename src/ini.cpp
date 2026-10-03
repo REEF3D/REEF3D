@@ -352,6 +352,7 @@ void control::ini_default()
 	B106=0;			// int read wave generation origin
 	B107=0;			// int read numerical beach origin
     B108=0;        // int read wave generation  origin
+    B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end

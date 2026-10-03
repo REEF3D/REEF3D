@@ -24,9 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<cstdlib>
-#include<fstream>
 #include<iostream>
-#include<sstream>
 #include<string>
 #include<cmath>
 
@@ -159,129 +157,80 @@ bc_zone_set bc_zone_set::from_legacy(lexer *p, ghostcell *pgc)
 
 void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
 {
-    // per zone: id method priority edge nsrc src... | s0 s1 width
-    std::vector<int> iv;
-    std::vector<double> dv;
-    int n=0, ni=0;
-
-    if(p->mpirank==0)
+    // B 520-524 (control.h, read by read_control and sent to all ranks)
+    auto fail = [&](const std::string &msg)
     {
-        std::vector<int> id,method,prio,edge;
-        std::vector<double> s0,s1,width;
-        std::vector<std::vector<int>> src;
-
-        auto find = [&](int k)->int
-        {
-            for(size_t q=0; q<id.size(); ++q)
-            if(id[q]==k)
-            return (int)q;
-            return -1;
-        };
-
-        auto fail = [&](const std::string &msg)
-        {
-            std::cout<<std::endl<<"!!! bc_zone: "<<msg<<" !!!"<<std::endl<<std::endl;
-            std::exit(1);
-        };
-
-        std::ifstream f("ctrl.txt");
-        std::string line;
-
-        for(int pass=0; pass<2; ++pass)
-        {
-            f.clear();
-            f.seekg(0);
-
-            while(std::getline(f,line))
-            {
-                std::istringstream ls(line);
-                std::string c;
-                int key,k;
-
-                if(!(ls>>c) || c!="B" || !(ls>>key))
-                continue;
-
-                if(pass==0 && key==520)
-                {
-                    int m,pr;
-                    if(!(ls>>k>>m>>pr))
-                    fail("B 520 needs: id method priority");
-                    if(find(k)>=0)
-                    fail("zone id "+std::to_string(k)+" defined twice in B 520");
-                    if(m!=1 && m!=2)
-                    fail("B 520 method is 1 (relaxation) or 2 (beach)");
-
-                    id.push_back(k); method.push_back(m); prio.push_back(pr); edge.push_back(0);
-                    s0.push_back(0.0); s1.push_back(0.0); width.push_back(0.0);
-                    src.emplace_back();
-                }
-
-                if(pass==1 && (key==521 || key==524))
-                {
-                    if(!(ls>>k))
-                    fail("B "+std::to_string(key)+" needs a zone id");
-                    int q = find(k);
-                    if(q<0)
-                    fail("B "+std::to_string(key)+" refers to zone "+std::to_string(k)+", which has no B 520");
-
-                    if(key==521 && !(ls>>edge[q]>>s0[q]>>s1[q]>>width[q]))
-                    fail("B 521 needs: id edge s0 s1 width");
-
-                    if(key==524)
-                    {
-                        int s;
-                        if(!(ls>>s))
-                        fail("B 524 needs: id source");
-                        src[q].push_back(s);
-                    }
-                }
-            }
-        }
-
-        n = (int)id.size();
-
-        for(int q=0; q<n; ++q)
-        {
-            if(edge[q]<1 || edge[q]>4)
-            fail("zone "+std::to_string(id[q])+" needs a B 521 edge (1: x-, 2: x+, 3: y-, 4: y+)");
-            if(width[q]<=0.0)
-            fail("zone "+std::to_string(id[q])+": the B 521 width must be positive");
-
-            iv.push_back(id[q]); iv.push_back(method[q]); iv.push_back(prio[q]); iv.push_back(edge[q]);
-            iv.push_back((int)src[q].size());
-            for(int s : src[q])
-            iv.push_back(s);
-
-            dv.push_back(s0[q]); dv.push_back(s1[q]); dv.push_back(width[q]);
-        }
-
-        ni = (int)iv.size();
-    }
-
-    pgc->bcast_int(&n,1);
-
+        if(p->mpirank==0)
+        std::cout<<std::endl<<"!!! bc_zone: "<<msg<<" !!!"<<std::endl<<std::endl;
+        std::exit(1);
+    };
+    
+    const int n = p->B520;
+    
     if(n==0)
-    return;
-
-    pgc->bcast_int(&ni,1);
-    iv.resize(ni);
-    dv.resize(3*n);
-    pgc->bcast_int(iv.data(),ni);
-    pgc->bcast_double(dv.data(),3*n);
-
-    const double fac = (p->B99==1) ? 2.0 : 1.0;
-    const double ext = 10.0*p->DXM;
-    int pos=0;
-
+    {
+        if(p->B521>0 || p->B524>0)
+        fail("B 521 / B 524 refer to zones, but no zone is defined by B 520");
+        return;
+    }
+    
+    std::vector<int> edge(n,0);
+    std::vector<double> s0(n,0.0), s1(n,0.0), width(n,0.0);
+    std::vector<std::vector<int>> src(n);
+    
+    auto find = [&](int k)->int
+    {
+        for(int q=0; q<n; ++q)
+        if(p->B520_id[q]==k)
+        return q;
+        return -1;
+    };
+    
     for(int q=0; q<n; ++q)
     {
-        const int k=iv[pos], m=iv[pos+1], pr=iv[pos+2], e=iv[pos+3], ns=iv[pos+4];
-        pos+=5;
-
-        const double a=dv[3*q], b=dv[3*q+1], w=dv[3*q+2];
+        if(find(p->B520_id[q])!=q)
+        fail("zone id "+std::to_string(p->B520_id[q])+" defined twice in B 520");
+        if(p->B520_method[q]!=1 && p->B520_method[q]!=2)
+        fail("B 520 method is 1 (relaxation) or 2 (beach)");
+    }
+    
+    for(int m=0; m<p->B521; ++m)
+    {
+        int q = find(p->B521_id[m]);
+        if(q<0)
+        fail("B 521 refers to zone "+std::to_string(p->B521_id[m])+", which has no B 520");
+        
+        edge[q]  = p->B521_edge[m];
+        s0[q]    = p->B521_s0[m];
+        s1[q]    = p->B521_s1[m];
+        width[q] = p->B521_w[m];
+    }
+    
+    for(int m=0; m<p->B524; ++m)
+    {
+        int q = find(p->B524_id[m]);
+        if(q<0)
+        fail("B 524 refers to zone "+std::to_string(p->B524_id[m])+", which has no B 520");
+        
+        src[q].push_back(p->B524_src[m]);
+    }
+    
+    const double fac = (p->B99==1) ? 2.0 : 1.0;
+    const double ext = 10.0*p->DXM;
+    
+    for(int q=0; q<n; ++q)
+    {
+        const int k=p->B520_id[q], m=p->B520_method[q], e=edge[q];
+        
+        if(e<1 || e>4)
+        fail("zone "+std::to_string(k)+" needs a B 521 edge (1: x-, 2: x+, 3: y-, 4: y+)");
+        if(width[q]<=0.0)
+        fail("zone "+std::to_string(k)+": the B 521 width must be positive");
+        
+        const double a=s0[q], b=s1[q], w=width[q];
         const bool whole = b<=a;
         double xs,ys,xe,ye;
-
+        
         if(e==1 || e==2)
         {
             xs = xe = (e==1) ? p->xcoormin : p->xcoormax;
@@ -294,15 +243,12 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
             xs = whole ? p->xcoormin-ext : p->xcoormin+a;
             xe = whole ? p->xcoormax+ext : p->xcoormin+b;
         }
-
+        
         bc_zone z(k, m==1 ? bc_method::relax : bc_method::beach, xs,ys,xe,ye,w, m==1 ? 1.0 : fac);
-        z.priority = pr;
+        z.priority = p->B520_prio[q];
         z.user = true;
-
-        for(int s=0; s<ns; ++s)
-        z.sources.push_back(iv[pos+s]);
-        pos+=ns;
-
+        z.sources = src[q];
+        
         if(m==1)
         relax.push_back(z);
         else
