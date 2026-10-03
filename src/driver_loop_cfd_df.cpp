@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"field_header.h"
 #include"6DOF_header.h"
 #include"FSI_header.h"
+#include"runlog.h"
 
 void driver::loop_cfd_df(fdm* a)
 {
@@ -159,6 +160,9 @@ void driver::loop_cfd_df(fdm* a)
 	if(p->mpirank==0)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
+
+	if(p->plog)
+	p->plog->end(p,"finished");
 
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout << endl;

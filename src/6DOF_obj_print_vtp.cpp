@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"6DOF_obj.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"runlog.h"
 
 void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
@@ -198,6 +199,10 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
         vtp3D::footer(result);
 
         result.close();
+        char sname[32];
+        snprintf(sname,sizeof(sname),"body%i",n6DOF);
+        if(p->plog)
+        p->plog->written(p,num,sname,"floating_body",path,0);
 
         ++p->printcount_sixdof;
     }

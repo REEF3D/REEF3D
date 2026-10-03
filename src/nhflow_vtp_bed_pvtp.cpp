@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_vtp_bed.h"
 #include"lexer.h"
 #include"sediment.h"
+#include"runlog.h"
 
 void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
 {
@@ -61,4 +62,6 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"bed","bed",name,p->M10);
 }

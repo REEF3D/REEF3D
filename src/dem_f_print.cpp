@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include<iomanip>
 #include<cstdio>
 #include<mpi.h>
+#include"runlog.h"
 
 void dem_f::print(lexer *p, ghostcell *pgc)
 {
@@ -155,6 +156,10 @@ void dem_f::print_vtp(lexer *p, const vector<dem_body> &bodies)
     out<<"</DataArray>\n</Polys>\n";
 
     out<<"</Piece>\n</PolyData>\n</VTKFile>\n";
+    out.close();
+
+    if(p->plog)
+    p->plog->written(p,printcount,"dem","dem",name,0);
 }
 
 void dem_f::print_state(lexer *p, const vector<dem_body> &bodies)

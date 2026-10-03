@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
 {
@@ -43,6 +44,8 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
     {
     // open file
 	wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
+	if(p->plog)
+	p->plog->table_file(p,"wsf","gauges","./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;

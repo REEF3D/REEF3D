@@ -33,6 +33,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"multiphase.h"
 #include"sediment.h"
 #include"print_averaging.h"
+#include"runlog.h"
 
 void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed, int num)
 {
@@ -124,4 +125,6 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
     outputFormat->endingParallel(result,"CFD",p->M10,num);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"volume","volume",name,p->M10);
 }

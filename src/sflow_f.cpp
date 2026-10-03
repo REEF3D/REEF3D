@@ -45,6 +45,7 @@ Author: Hans Bihs
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -224,6 +225,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->mpirank==0)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
+
+	if(p->plog)
+	p->plog->end(p,"finished");
 
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout << endl;

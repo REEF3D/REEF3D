@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"topo_vtp.h"
 #include"lexer.h"
 #include"sediment.h"
+#include"runlog.h"
 
 void topo_vtp::pvtp(lexer* p, sediment *psed, int num)
 {
@@ -58,4 +59,6 @@ void topo_vtp::pvtp(lexer* p, sediment *psed, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"topo","bed",name,p->M10);
 }

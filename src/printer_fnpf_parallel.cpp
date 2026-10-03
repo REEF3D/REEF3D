@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"printer_fnpf.h"
 #include"lexer.h"
+#include"runlog.h"
 
 void printer_fnpf::parallel(lexer *p, int num)
 {
@@ -51,4 +52,6 @@ void printer_fnpf::parallel(lexer *p, int num)
     outputFormat->endingParallel(result,"FNPF",p->M10,num);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"volume","volume",name,p->M10);
 }

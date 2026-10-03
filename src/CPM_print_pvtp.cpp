@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 void CPM::pvtp(lexer* p, int num)
 {
@@ -57,4 +58,6 @@ void CPM::pvtp(lexer* p, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"cpm","cpm_particles",name,p->M10);
 }

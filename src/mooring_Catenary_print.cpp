@@ -25,6 +25,7 @@ Author: Tobias Martin
 #include"lexer.h"
 #include"ghostcell.h"
 #include"6DOF_output_dir.h"
+#include"runlog.h"
 
 
 void mooring_Catenary::print(lexer *p)
@@ -85,6 +86,10 @@ void mooring_Catenary::print(lexer *p)
 		}
 		
 		result.close();
+		char sname[32];
+		snprintf(sname,sizeof(sname),"mooring%i",line);
+		if(p->plog)
+		p->plog->written(p,num,sname,"mooring",name,0);
 
 
 		eTout<<p->simtime<<" \t "<<T[H-1]<<endl;	

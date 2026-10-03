@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include<cstdio>
 #include<cstdint>
 #include<iomanip>
+#include"runlog.h"
 
 // output every L 61 seconds of simulation time
 // L 62 = 1: VTP (ParaView), 2: CSV tracks, 3: both
@@ -173,6 +174,8 @@ void nhflow_particle_f::print_vtp(lexer *p, const std::vector<nhflow_particle_da
 
     result<<"\n</AppendedData>\n</VTKFile>\n";
     result.close();
+    if(p->plog)
+    p->plog->written(p,printcount,"particles","particles",name,0);
 }
 
 void nhflow_particle_f::print_csv(lexer *p, const std::vector<nhflow_particle_data> &all)

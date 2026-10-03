@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"waves_header.h"
 #include"patchBC.h"
+#include"runlog.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -56,6 +57,9 @@ driver::driver(int& argc, char **argv)
     
     p->gridini(pgc);
     patchBC_logic();
+
+    // run log: REEF3D_Case/REEF3D_<SOLVER>_run.jsonl (rank 0 writes)
+    p->plog = new runlog(p,VERSION);
 
 
     if(p->mpirank==0)

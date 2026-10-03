@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"nhflow_amr.h"
 #include"regression_dump.h"
+#include"runlog.h"
 
 void driver::loop_nhflow()
 {
@@ -159,6 +160,9 @@ void driver::loop_nhflow()
 	if(p->mpirank==0)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
+
+	if(p->plog)
+	p->plog->end(p,"finished");
 
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout<<endl;

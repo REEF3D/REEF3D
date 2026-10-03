@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"fnpf_ice.h"
 #include"fnpf_amr.h"
 #include"regression_dump.h"
+#include"runlog.h"
 
 void driver::loop_fnpf()
 {
@@ -150,6 +151,9 @@ void driver::loop_fnpf()
 	if(p->mpirank==0)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
+
+	if(p->plog)
+	p->plog->end(p,"finished");
 
 	cout<<"modelled time: "<<p->simtime<<endl;
     cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;

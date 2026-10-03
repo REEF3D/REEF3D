@@ -44,6 +44,8 @@ class geo_mesh;
 
 using namespace std;
 
+class runlog;
+
 class lexer : virtual public resize_class, public grid, public control,
               public position, public interpolation, public coordinates
 {
@@ -287,6 +289,9 @@ public:
 
 // PARALELL
     int mpirank;
+
+    // run log (REEF3D_Case/REEF3D_<SOLVER>_run.jsonl); writers call it after an output
+    runlog *plog = nullptr;
 	int gcx_1range1[7],gcx_3range1[7];
 	int gcx_1range2[7],gcx_3range2[7];
 	int gcx_1range3[7],gcx_3range3[7];
