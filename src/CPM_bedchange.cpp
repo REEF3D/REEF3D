@@ -26,62 +26,69 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-void CPM::bedchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, int mode)
+// bed interface from the particles: iso-surface of the solid volume fraction theta_bed = Q 26 (1-S 24)
+// first order level set estimate, reinitialised afterwards by reinitopo
+void CPM::topo_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    // topo
-    LOOP
-        a->topo(i,j,k) -= 0.1*(1.0/P.ParcelFactor)*bedch(i,j)*1.0/6.0*PI*pow(P.d50,3.0)/(p->DXN[IP]*p->DYN[JP]*p->S24);
+    double gx,gy,gz,grad,h,val;
+    double Tm,Tp;
+    
+    BASELOOP
+    {
+        h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        
+        Tm = wallcell(p,i-1,j,k) ? Ts(i,j,k) : Ts(i-1,j,k);
+        Tp = wallcell(p,i+1,j,k) ? Ts(i,j,k) : Ts(i+1,j,k);
+        gx = (Tp-Tm)/(p->DXP[IM1]+p->DXP[IP]);
+        
+        gy=0.0;
+        if(p->j_dir==1)
+        {
+        Tm = wallcell(p,i,j-1,k) ? Ts(i,j,k) : Ts(i,j-1,k);
+        Tp = wallcell(p,i,j+1,k) ? Ts(i,j,k) : Ts(i,j+1,k);
+        gy = (Tp-Tm)/(p->DYP[JM1]+p->DYP[JP]);
+        }
+        
+        Tm = wallcell(p,i,j,k-1) ? (1.0-p->S24) : Ts(i,j,k-1);
+        Tp = wallcell(p,i,j,k+1) ? Ts(i,j,k) : Ts(i,j,k+1);
+        gz = (Tp-Tm)/(p->DZP[KM1]+p->DZP[KP]);
+        
+        grad = sqrt(gx*gx + gy*gy + gz*gz);
+        grad = MAX(grad, theta_bed/(2.0*h));
+        
+        val = (theta_bed - Ts(i,j,k))/grad;
+        
+        val = MAX(val,-3.0*h);
+        val = MIN(val, 3.0*h);
+        
+        a->topo(i,j,k) = val;
+    }
+    
+    pgc->start4a(p,a->topo,150);
+}
 
-    // bedzh
+// bed elevation from the topo level set
+void CPM::bedzh_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+{
     double h;
+    
     ILOOP
     JLOOP
     {
+        h = s->bedzh(i,j);
+        
+        if(a->topo(i,j,0)>=0.0 && p->nb5<0)
+        h = p->ZN[0+marge];
+        
         KLOOP
         PBASECHECK
-        if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
-            h = -(a->topo(i,j,k-1)*p->DZP[KP])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KP];
+        if(k>0 && a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>=0.0)
+            h = -(a->topo(i,j,k-1)*p->DZP[KM1])/(a->topo(i,j,k)-a->topo(i,j,k-1)) + p->pos_z()-p->DZP[KM1];
+            
         s->bedzh(i,j)=h;
+        a->bed(i,j)=h;
     }
-}
-
-void CPM::bedchange_update(lexer *p, ghostcell *pgc, int mode)
-{
-    for(n=0;n<P.index;++n)
-    if(P.Flag[n]>=ACTIVE)
-    {
-        // step 1
-        if(mode==1)
-        {
-            i=p->posc_i(P.X[n]);
-            j=p->posc_j(P.Y[n]);
-            k=p->posc_k(P.Z[n]);
-        }
-        else if(mode==2)
-        {
-            i=p->posc_i(P.XRK1[n]);
-            j=p->posc_j(P.YRK1[n]);
-            k=p->posc_k(P.ZRK1[n]);
-        }
-
-        bedch(i,j) -= P.ParcelFactor;
-
-        // step 2
-        if(mode==1)
-        {
-            i=p->posc_i(P.XRK1[n]);
-            j=p->posc_j(P.YRK1[n]);
-            k=p->posc_k(P.ZRK1[n]);
-        }
-        else if(mode==2)
-        {
-            i=p->posc_i(P.X[n]);
-            j=p->posc_j(P.Y[n]);
-            k=p->posc_k(P.Z[n]);
-        }
-
-        bedch(i,j) += P.ParcelFactor;
-    }
-
-    pgc->gcsl_start4(p,bedch,1);
+    
+    pgc->gcsl_start4(p,s->bedzh,1);
+    pgc->gcsl_start4(p,a->bed,50);
 }

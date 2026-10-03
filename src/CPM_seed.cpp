@@ -26,129 +26,143 @@ Authors: Alexander Hanke, Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
+// seed parcels in the cells below the initial bed (topo<0)
+// Q 29 1: regular lattice, 2: lattice with jitter, 3: random
+// the parcel factor is set such that the seeded bed has the solid fraction 1-S 24
 void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    double spacing;
-    double particles_per_dim;
-    
-    epsi = p->psi;
-    
-    // estimate number particles
-    int count=0;
-    LOOP
-    if(a->topo(i,j,k)<=0)
-        ++count;
-
-    // safety
-    count += 100;
-
-    count *= p->Q24;
-
-    P.resize(p,count);
-    
     const int irand(100000);
     const double drand(100000.0);
     
-    // seed equal spacing
-    if(p->Q29==1)
+    epsi = p->psi;
+    
+    // hotstart: the parcels come from the state file
+    if(restored==1)
+    return;
+    
+    int dim = p->j_dir==1 ? 3 : 2;
+    int ppd = MAX(1, int(pow(double(MAX(p->Q24,1)), 1.0/double(dim)) + 0.5));
+    int ppdy = p->j_dir==1 ? ppd : 1;
+    int nppc = p->Q29==3 ? MAX(p->Q24,1) : ppd*ppd*ppdy;
+    
+    if(p->mpirank==0)
     {
-        n=0;
-        LOOP
-        if(a->topo(i,j,k)<=0)
-        {
-        int particles_per_cell = p->Q24;  
-        int particles_per_dim = int(pow(double(particles_per_cell), 1.0/3.0) + 0.5);
+        if(p->Q24<1)
+        cout<<"CPM warning: Q 24 (parcels per cell) not set, using 1"<<endl;
         
-        spacing = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) / double(particles_per_dim);
+        if(p->Q29!=3 && nppc!=p->Q24)
+        cout<<"CPM: lattice seeding with "<<ppd<<" parcels per direction, "<<nppc<<" parcels per cell (Q 24 "<<p->Q24<<")"<<endl;
+    }
+    
+    // estimate number of parcels and the bed volume
+    int count=0;
+    double volsum=0.0;
+    
+    BASELOOP
+    if(a->topo(i,j,k)<=0.0)
+    {
+        ++count;
+        volsum += p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+    }
+    
+    double cellsum = double(pgc->globalsum(count));
+    volsum = pgc->globalsum(volsum);
+    
+    if(cellsum>0.0)
+    P.ParcelFactor = (1.0-p->S24)*volsum/(cellsum*double(nppc)*Vp);
+    
+    if(p->mpirank==0)
+    cout<<"CPM ParcelFactor: "<<P.ParcelFactor<<" particles per parcel, parcels per cell: "<<nppc<<endl;
 
-            for(int ii = 0; ii < particles_per_dim; ++ii)
-            for(int jj = 0; jj < particles_per_dim; ++jj)
-            for(int kk = 0; kk < particles_per_dim; ++kk)
+    P.resize(p,int(double((count+100)*nppc)*MAX(p->Q25,1.0)));
+    
+    double xs,ys,zs;
+    
+    BASELOOP
+    if(a->topo(i,j,k)<=0.0)
+    {
+        if(p->Q29==1 || p->Q29==2)
+        {
+            for(int ii = 0; ii < ppd; ++ii)
+            for(int jj = 0; jj < ppdy; ++jj)
+            for(int kk = 0; kk < ppd; ++kk)
             {
+                xs = p->XN[IP] + (double(ii)+0.5)*p->DXN[IP]/double(ppd);
+                ys = p->j_dir==1 ? p->YN[JP] + (double(jj)+0.5)*p->DYN[JP]/double(ppd) : p->YP[JP];
+                zs = p->ZN[KP] + (double(kk)+0.5)*p->DZN[KP]/double(ppd);
+                
+                if(p->Q29==2)
+                {
+                    xs += 0.5*(double(rand() % irand)/drand-0.5)*p->DXN[IP]/double(ppd);
+                    zs += 0.5*(double(rand() % irand)/drand-0.5)*p->DZN[KP]/double(ppd);
+                    
+                    if(p->j_dir==1)
+                    ys += 0.5*(double(rand() % irand)/drand-0.5)*p->DYN[JP]/double(ppd);
+                }
+                
+                if(P.index_empty<=0)
+                break;
+                
+                --P.index_empty;
                 n=P.Empty[P.index_empty];
-                P.X[n] = p->XN[IP] + double(ii) * spacing ;
-                P.Y[n] = p->YN[JP] + double(jj) * spacing ;
-                P.Z[n] = p->ZN[KP] + double(kk) * spacing ;
+                
+                P.X[n] = xs;
+                P.Y[n] = ys;
+                P.Z[n] = zs;
+                P.U[n] = P.V[n] = P.W[n] = 0.0;
 
                 P.D[n] = p->S20;
                 P.RO[n] = p->S22;
 
                 P.Flag[n] = ACTIVE;
-                --P.index_empty;
             }
+        }
+        
+        if(p->Q29==3)
+        for(int qn=0;qn<nppc;++qn)
+        {
+            if(P.index_empty<=0)
+            break;
+            
+            --P.index_empty;
+            n=P.Empty[P.index_empty];
+            
+            P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
+            P.Y[n] = p->j_dir==1 ? p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand : p->YP[JP];
+            P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
+            P.U[n] = P.V[n] = P.W[n] = 0.0;
+
+            P.D[n] = p->S20;
+            P.RO[n] = p->S22;
+
+            P.Flag[n] = ACTIVE;
         }
     }
     
-    // seed equal spacing with jitter
-    if(p->Q29==2)
-    {
-        n=0;
-        LOOP
-        if(a->topo(i,j,k)<=0)
-        {
-        int particles_per_cell = p->Q24; 
-        int particles_per_dim = int(pow(double(particles_per_cell), 1.0/3.0) + 0.5);        
-        
-        spacing = (1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) / double(particles_per_dim);
-        
-        //cout<<"particles_per_dim: "<<particles_per_dim<<" spacing: "<<spacing<<endl;
-
-            for(int ii = 0; ii < particles_per_dim; ++ii)
-            for(int jj = 0; jj < particles_per_dim; ++jj)
-            for(int kk = 0; kk < particles_per_dim; ++kk)
-            {
-                n=P.Empty[P.index_empty];
-                P.X[n] = p->XN[IP] + double(ii) * spacing + 0.1*p->DXN[IP]*double(rand() % irand)/drand;
-                P.Y[n] = p->YN[JP] + double(jj) * spacing + 0.1*p->DYN[JP]*double(rand() % irand)/drand;
-                P.Z[n] = p->ZN[KP] + double(kk) * spacing + 0.1*p->DZN[KP]*double(rand() % irand)/drand;
-
-                P.D[n] = p->S20;
-                P.RO[n] = p->S22;
-
-                P.Flag[n] = ACTIVE;
-                --P.index_empty;
-            }
-        }
-    }
-    
-    // seed fully random
-    if(p->Q29==3)
-    {
-        n=0;
-        LOOP
-        if(a->topo(i,j,k)<=0)
-        {
-            for(int qn=0;qn<p->Q24;++qn)
-            {
-                n=P.Empty[P.index_empty];
-                P.X[n] = p->XN[IP] + p->DXN[IP]*double(rand() % irand)/drand;
-                P.Y[n] = p->YN[JP] + p->DYN[JP]*double(rand() % irand)/drand;
-                P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
-
-                P.D[n] = p->S20;
-                P.RO[n] = p->S22;
-
-                P.Flag[n] = ACTIVE;
-                --P.index_empty;
-            }
-        }
-    }
-
-    // remove above bed
+    // remove above bed and inside solids
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
     {
         double topoval  = p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]);
         double solidval = p->ccipol4_b(a->solid,P.X[n],P.Y[n],P.Z[n]);
 
-        if(topoval>0.0)
-            P.remove(n);
-
-        if(solidval<0.0)
-            P.remove(n);
+        if(topoval>0.0 || solidval<0.0)
+        P.remove(n);
     }
-
-    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
+    
+    for(n=0;n<P.index;++n)
+    {
+        P.XRK1[n] = P.X[n];
+        P.YRK1[n] = P.Y[n];
+        P.ZRK1[n] = P.Z[n];
+        P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+    }
     
     wallbc(p,pgc,s);
+}
+
+void CPM::ini_fields(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
+{
+    grid_update(p,a,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
+    count_particles(p,a,pgc,s);
 }

@@ -30,6 +30,8 @@ Authors: Hans Bihs, Alexander Hanke
 void CPM::plain_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
+    
+    volfrac_update(p,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
 
     // RK step 1
 
@@ -53,13 +55,7 @@ void CPM::plain_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
         P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
     }
 
-    // cellSum update
-    volfrac_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
-
-
     boundcheck(p,1);
-    bedchange_update(p,pgc,1);
-    bedchange(p,a,pgc,s,1);
 
     // parallel transfer
     P.xchange(p,pgc,bedch,1);
@@ -83,12 +79,7 @@ void CPM::plain_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
         P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
     }
 
-    // cellSum update
-    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
-
     boundcheck(p,2);
-    bedchange_update(p,pgc,2);
-    bedchange(p,a,pgc,s,2);
 
     // parallel transfer
     P.xchange(p, pgc,bedch,2);

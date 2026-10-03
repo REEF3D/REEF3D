@@ -50,7 +50,7 @@ pjm_hydrostatic::pjm_hydrostatic(lexer* p, fdm *a, heat *&pheat, concentration *
         if(p->X10==0 && p->Q10==0)
         pd = new density_f(p);
         
-        if(p->X10==0 && p->Q10==1)
+        if(p->X10==0 && p->Q10>=1)
         pd = new density_pst(p);
         
         if(p->X10==1)  

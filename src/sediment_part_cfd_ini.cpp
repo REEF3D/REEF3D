@@ -34,6 +34,8 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     ILOOP
     JLOOP
     {
+        h = p->ZN[0+marge];
+        
         KLOOP
         PBASECHECK
         if(a->topo(i,j,k-1)<0.0 && a->topo(i,j,k)>0.0)
@@ -67,7 +69,7 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     pbedshear->taucritbed(p,a,pgc,s);
     pgc->gcsl_start4(p,s->tau_crit,1);
 
-    pst->update(p,a,pgc,s,por,d50);
+    pst->ini_fields(p,a,pgc,s);
     pst->print_particles(p,s);
 
     pgc->gcdf_update(p,a);

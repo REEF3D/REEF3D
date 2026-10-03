@@ -21,18 +21,41 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"sediment_part.h"
+#include"CPM.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"ghostcell.h"
 #include"vrans.h"
+#include"ioflow.h"
+#include"reinitopo.h"
+#include"sediment_fdm.h"
 
-void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *ptopo)
+// the bed seen by the fluid follows the parcels:
+// topo level set from the solid volume fraction, S 10 1: bed as solid boundary, S 10 2: VRANS porosity 1-theta
+void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto)
 {
-    LOOP
-    if(a->topo(i,j,k)<0.0)
+    pst->topo_update(p,a,pgc,s);
+    preto->start(p,a,pgc,a->topo);
+    pgc->start4a(p,a->topo,150);
+    
+    pst->bedzh_update(p,a,pgc,s);
+    
+    if(p->S10==1)
     {
-        por(i,j,k)= p->S24; //porosity
-        d50(i,j,k) = p->S20;  //d50
+        if(p->D22==1)
+        pgc->solid_forcing_flag_update(p,a);
+        
+        pgc->gcdf_update(p,a);
     }
-
+    
+    pst->update(p,a,pgc,s,por,d50);
+    
+    if(p->S10==2)
     pvrans->sedpart_update(p,a,pgc,por,d50);
+    
+    pflow->gcio_update(p,a,pgc);
+    
+    pgc->start1(p,a->u,10);
+    pgc->start2(p,a->v,11);
+    pgc->start3(p,a->w,12);
 }

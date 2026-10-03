@@ -27,14 +27,13 @@ Author: Hans Bihs
 
 void vrans_f::sedpart_update(lexer *p, fdm *a, ghostcell *pgc, field &por, field &d50)
 {
-    // Topo
-    LOOP
-	if(a->topo(i,j,k)<0.0)
+    // particle sediment: porosity from the solid volume fraction of the parcels
+    BASELOOP
 	{
 	a->porosity(i,j,k)= por(i,j,k); //porosity
 	a->porpart(i,j,k) = d50(i,j,k);  //d50
-	alpha(i,j,k) = p->S26_a;  //alpha
-	beta(i,j,k) = p->S26_b;    //beta
+	alpha(i,j,k) = por(i,j,k)<1.0 ? p->S26_a : 0.0;  //alpha
+	beta(i,j,k) = por(i,j,k)<1.0 ? p->S26_b : 0.0;    //beta
 	}
     
     

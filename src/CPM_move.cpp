@@ -32,10 +32,12 @@ void CPM::move(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pt
     if(p->Q11==1)
     plain_RK2(p,a,pgc,s,pturb);
     
-    
-    if(p->Q10==1 && p->Q11==2)
-    mppic_EE1(p,a,pgc,s,pturb);
-    
-    if(p->Q10==2 && p->Q11==2)
-    mppic_RK2(p,a,pgc,s,pturb);
+    if(p->Q11==2)
+    {
+        if(p->Q10==2)
+        mppic_RK2(p,a,pgc,s,pturb);
+        
+        else
+        mppic_EE1(p,a,pgc,s,pturb);
+    }
 }

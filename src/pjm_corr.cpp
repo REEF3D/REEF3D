@@ -49,7 +49,7 @@ pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration
         if(p->X10==0 && p->Q10==0)
         pd = new density_f(p);
         
-        if(p->X10==0 && p->Q10==1)
+        if(p->X10==0 && p->Q10>=1)
         pd = new density_f(p);
         
         if(p->X10==1)  

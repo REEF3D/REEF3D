@@ -418,6 +418,10 @@ public:
     double Q15;
     double Q16;
     double Q17;
+    double Q18;
+    double Q26;
+    int Q19,Q27,Q28;
+    double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
     double Q22;
     double Q23;
     double Q25,Q30;

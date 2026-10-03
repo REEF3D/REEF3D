@@ -80,12 +80,13 @@ void ghostcell::gcx_ini(lexer* p)
     gcx_cart_topology(p);
     
     // nb
-    nb0[0] = p->nb1;
-	nb0[1] = p->nb2;
-	nb0[2] = p->nb3;
-	nb0[3] = p->nb4;
-	nb0[4] = p->nb5;
-	nb0[5] = p->nb6;
+    // no neighbour: MPI_PROC_NULL (-2 in OpenMPI, -1 in MPICH)
+    nb0[0] = p->nb1>=0 ? p->nb1 : MPI_PROC_NULL;
+	nb0[1] = p->nb2>=0 ? p->nb2 : MPI_PROC_NULL;
+	nb0[2] = p->nb3>=0 ? p->nb3 : MPI_PROC_NULL;
+	nb0[3] = p->nb4>=0 ? p->nb4 : MPI_PROC_NULL;
+	nb0[4] = p->nb5>=0 ? p->nb5 : MPI_PROC_NULL;
+	nb0[5] = p->nb6>=0 ? p->nb6 : MPI_PROC_NULL;
     
     stag[0] = 1;
 	stag[1] = 2;

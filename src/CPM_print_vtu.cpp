@@ -34,20 +34,20 @@ Author: Hans Bihs
 void CPM::name_ParaView_parallel_CPM(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"CPM_Ts\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Tau\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"CPM_press\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"CPM_test\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Ps\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Us\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Ws\"/>\n";
 }
 
 void CPM::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
 {
     result<<"<DataArray type=\"Float32\" Name=\"CPM_Ts\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"CPM_Tau\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_Ps\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"CPM_press\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_Us\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"CPM_test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_Ws\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 }
 
@@ -92,26 +92,26 @@ void CPM::print_3D_CPM(lexer* p, ghostcell *pgc, vector<char> &buffer, size_t &m
         m+=sizeof(float);
     }
     
-    // press
+    // solid velocity u
     iin=sizeof(float)*p->pointnum;
     memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     
     TPLOOP
     {
-        ffn=float(p->ipol4_a(press));
+        ffn=float(p->ipol4_a(Us));
         memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
     }
     
-    // test
+    // solid velocity w
     iin=sizeof(float)*p->pointnum;
     memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     
     TPLOOP
     {
-        ffn=float(p->ipol4_a(test));
+        ffn=float(p->ipol4_a(Ws));
         memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
     }    

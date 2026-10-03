@@ -859,14 +859,26 @@ void control::ini_default()
     E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
 
     // Particles
-    Q10=0;              // int time scheme
-    Q11=1;              // int tim
-    Q12=0;              // int 
-    Q13=0;              // int 
+    Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2
+    Q11=1;              // int particle movement model: 1 plain (empirical threshold), 2 MP-PIC
+    Q12=2;              // int inter-particle stress model: 0 off, 1 Snider (2001), 2 packed bed (Johnson-Jackson contact pressure + mu(I) friction)
+    Q13=1;              // int frictional shear stress for Q 12 2: 0 off, 1 on
     Q14=10;             // double continuum particle stress model parameter following Snider (2001) [Pressure]
     Q15=3.5;            // double continuum particle stress model parameter following Snider (2001)
     Q16=10e-7;          // double continuum particle stress model parameter following Snider (2001)
     Q17=0.6;            // double critical solid volume fraction
+    Q18=0.5;            // double CFL coefficient for the particle sub-step based on the particle stress wave speed
+    Q19=1;              // int grid-limited step: parcels enter a cell only if it has free volume (0 off, 1 on)
+    Q26=0.5;            // double bed interface: solid fraction threshold relative to 1-S 24
+    Q27=1;              // int number of smoothing passes for the solid volume fraction
+    Q28=100;            // int maximum number of particle sub-steps per fluid time step
+    Q32=-1.0;           // double packed bed: close packing, maximum solid fraction (<0: 1-S 24 + 0.035)
+    Q33=0.05;           // double packed bed: contact pressure coefficient Fr [Pa] (Johnson & Jackson 1987), 0 off
+    Q34=3.0;            // double packed bed: contact pressure exponent eta0
+    Q35=5.0;            // double packed bed: contact pressure exponent eta1
+    Q36=0.63;           // double packed bed: static friction coefficient mu_s
+    Q37=1.13;           // double packed bed: dynamic friction coefficient mu_2
+    Q38=0.6;            // double packed bed: inertial number scale I0
     Q20=-1;             // int iterations between cleanup cycles
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter

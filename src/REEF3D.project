@@ -2217,12 +2217,9 @@
           <File Name="CPM_plain_advec.cpp"/>
           <File Name="CPM_mppic_advec.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Pressure">
-          <File Name="CPM_press_lithostatic.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Stress">
           <File Name="CPM_stress_snider.cpp"/>
-          <File Name="CPM_stress_schaeffer.cpp"/>
+          <File Name="CPM_stress_packedbed.cpp"/>
         </VirtualDirectory>
         <File Name="CPM_move.cpp"/>
         <File Name="CPM_mppic_EE1.cpp"/>
@@ -2245,6 +2242,8 @@
           <File Name="CPM_boundcheck.cpp"/>
           <File Name="CPM_gradient.cpp"/>
           <File Name="CPM_vollfrac.cpp"/>
+          <File Name="CPM_limiter.cpp"/>
+          <File Name="CPM_state.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">
           <VirtualDirectory Name="Parallel">

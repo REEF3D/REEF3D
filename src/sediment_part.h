@@ -142,6 +142,9 @@ private:
     void offset_ParaView_parameter2(lexer*, int*, int &) override final {};
     
     void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) override final;
+    
+    void state_write(lexer*, int) override final;
+    void state_read(lexer*, ghostcell*, int) override final;
     void name_ParaView_parallel_CPM(lexer*, ofstream&) override final;
     void name_ParaView_CPM(lexer*, ostream&, int*, int &) override final;
     void offset_ParaView_CPM(lexer*, int*, int &) override final;

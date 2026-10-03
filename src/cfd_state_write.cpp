@@ -142,6 +142,9 @@ void cfd_state::write_result(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb
 	
 	
 	result.close();
+    
+    // particle sediment (CPM)
+    psed->state_write(p,num);
 	
 	++printcount;
 }

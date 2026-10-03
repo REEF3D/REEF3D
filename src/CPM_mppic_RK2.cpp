@@ -33,124 +33,107 @@ void CPM::mppic_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulenc
 
     pressure_gradient(p,a,pgc,s);
     
-    // ------------------------
-    // RK step 1
+    double trem = p->dt;
+    double dts;
+    int qs=0;
     
-    // stress and cellSum update
-    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
-    stress_snider(p,pgc,s);
-    stress_gradient(p,a,pgc,s);
-    
-    for(n=0;n<P.index;++n)
-    if(P.Flag[n]==ACTIVE)
+    while(trem>1.0e-10*p->dt)
     {
-        // advec 1
-        advec_mppic_step1(p, a, P, s, pturb,
-                    P.X, P.Y, P.Z, P.U, P.V, P.W,
-                    F, G, H, 1.0);
-                    
-        //F=G=H=0.0;
-
-        // Velocity update 1
-        P.URK1[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
-        P.VRK1[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
-        P.WRK1[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
+        grid_update(p,a,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
         
-        // Position update 
-        P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
-        P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
-        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
+        dts = substep_size(p,pgc,trem,qs);
+        
+        substep_rk2(p,a,pgc,s,pturb,dts);
+        
+        trem -= dts;
+        ++qs;
     }
     
+    nsub = qs;
+    dtsub = p->dt/double(MAX(qs,1));
+}
+
+// Heun / SSP-RK2, point implicit drag and friction in each stage
+void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb, double dt)
+{
+    double fac;
     
-    /*
+ // ------------------------
+    // RK step 1, grid quantities from grid_update
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
-        // advec 2
-        advec_mppic_step2(p, a, P, s, pturb,
-                    P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
-                    F, G, H, 1.0);
-                    
-        //F=G=H=0.0;
+        advec_mppic(p, a, P, s, pturb,
+                    P.X, P.Y, P.Z, P.U, P.V, P.W,
+                    F, G, H, dt);
 
-        // Velocity update 2
-        P.URK1[n] += p->dtsed*F;
-        P.VRK1[n] += p->dtsed*G;
-        P.WRK1[n] += p->dtsed*H;
-
-        // Position update 
-        P.XRK1[n] = P.X[n] + p->dtsed*P.URK1[n];
-        P.YRK1[n] = P.Y[n] + p->dtsed*P.VRK1[n];
-        P.ZRK1[n] = P.Z[n] + p->dtsed*P.WRK1[n];
-    }*/
-
+        fac = 1.0/(1.0 + dt*Dpx);
+        
+        P.URK1[n] = (P.U[n] + dt*F)*fac;
+        P.VRK1[n] = (P.V[n] + dt*G)*fac;
+        P.WRK1[n] = (P.W[n] + dt*H)*fac;
+        
+        if(p->Q12==2 && p->Q13==1)
+        friction(p,a,P.X[n],P.Y[n],P.Z[n],P.URK1[n],P.VRK1[n],P.WRK1[n],dt,fac);
+        
+        P.XRK1[n] = P.X[n] + dt*P.URK1[n];
+        P.YRK1[n] = P.Y[n] + dt*P.VRK1[n];
+        P.ZRK1[n] = P.Z[n] + dt*P.WRK1[n];
+    }
     
-
     boundcheck(p,1);
-    bedchange_update(p,pgc,1);
-    bedchange(p,a,pgc,s,1);
+    
+    if(p->Q19==1)
+    limiter(p,a,pgc,P.X,P.Y,P.Z,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
 
-    // parallel transfer
     P.xchange(p,pgc,bedch,1);
 
     // ------------------------
     // RK step 2
-    
-    // stress and cellSum update
-    volfrac_update(p,pgc,s,P.XRK1,P.YRK1,P.ZRK1);
-    stress_snider(p,pgc,s);
-    stress_gradient(p,a,pgc,s);
-    
-    LOOP
-    a->test(i,j,k) = Tau(i,j,k);
+    grid_update(p,a,pgc,s,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
-
-        advec_mppic_step1(p, a, P, s, pturb,
+        advec_mppic(p, a, P, s, pturb,
                     P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
-                    F, G, H, 0.5);
-                    
-        //F=G=H=0.0;
+                    F, G, H, dt);
 
-        // Velocity update 1
-        P.U[n] = (0.5*P.U[n] + 0.5*P.URK1[n] + 0.5*p->dtsed*F)/(1.0 + 0.5*p->dtsed*Dpx);
-        P.V[n] = (0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*p->dtsed*G)/(1.0 + 0.5*p->dtsed*Dpy);
-        P.W[n] = (0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*p->dtsed*H)/(1.0 + 0.5*p->dtsed*Dpz);
+        fac = 1.0/(1.0 + 0.5*dt*Dpx);
         
-        // Position update
-        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
-        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
-        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
+        P.U[n] = (0.5*P.U[n] + 0.5*P.URK1[n] + 0.5*dt*F)*fac;
+        P.V[n] = (0.5*P.V[n] + 0.5*P.VRK1[n] + 0.5*dt*G)*fac;
+        P.W[n] = (0.5*P.W[n] + 0.5*P.WRK1[n] + 0.5*dt*H)*fac;
+        
+        if(p->Q12==2 && p->Q13==1)
+        friction(p,a,P.XRK1[n],P.YRK1[n],P.ZRK1[n],P.U[n],P.V[n],P.W[n],0.5*dt,fac);
+        
+        // tentative position in XRK1, velocity in URK1
+        P.XRK1[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*dt*P.U[n];
+        P.YRK1[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*dt*P.V[n];
+        P.ZRK1[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*dt*P.W[n];
+        
+        P.URK1[n] = P.U[n];
+        P.VRK1[n] = P.V[n];
+        P.WRK1[n] = P.W[n];
     }
-    /*
+
+    boundcheck(p,1);
+    
+    if(p->Q19==1)
+    limiter(p,a,pgc,P.X,P.Y,P.Z,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
-        // advec 2
-        advec_mppic_step2(p, a, P, s, pturb,
-                    P.X, P.Y, P.Z, P.U, P.V, P.W,
-                    F, G, H, 0.5);
-                    
-        //F=G=H=0.0;
+        P.X[n] = P.XRK1[n];
+        P.Y[n] = P.YRK1[n];
+        P.Z[n] = P.ZRK1[n];
+        P.U[n] = P.URK1[n];
+        P.V[n] = P.VRK1[n];
+        P.W[n] = P.WRK1[n];
+    }
 
-        // Velocity update 2
-        P.U[n] += 0.5*p->dtsed*F;
-        P.V[n] += 0.5*p->dtsed*G;
-        P.W[n] += 0.5*p->dtsed*H;
-
-        // Position update
-        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
-        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
-        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
-    }*/
-
-    boundcheck(p,2);
-    bedchange_update(p,pgc,2);
-    bedchange(p,a,pgc,s,2);
-
-    // parallel transfer
-    P.xchange(p, pgc,bedch,2);
+    P.xchange(p,pgc,bedch,2);
 }

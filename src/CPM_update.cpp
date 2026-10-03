@@ -27,12 +27,13 @@ Authors: Hans Bihs, Alexander Hanke
 #include"vrans.h"
 #include"sediment_fdm.h"
 
+// porosity and grain size for the VRANS fluid coupling (S 10 2)
 void CPM::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &por, field &d50)
 {
-    LOOP
+    BASELOOP
     {
-        por(i,j,k)=p->S24;
-        d50(i,j,k)=p->S20;
+        por(i,j,k) = 1.0 - MAX(0.0,MIN(Ts(i,j,k),theta_max));
+        d50(i,j,k) = p->S20;
     }
 
     pgc->start4a(p,por,1);

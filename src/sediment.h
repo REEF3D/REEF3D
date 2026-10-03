@@ -116,6 +116,10 @@ public:
     virtual void offset_ParaView_parameter2(lexer*, int*, int &){};
     
     virtual void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) {};
+    
+    // particle state for the hotstart
+    virtual void state_write(lexer*, int) {};
+    virtual void state_read(lexer*, ghostcell*, int) {};
     virtual void name_ParaView_parallel_CPM(lexer*, ofstream&) {};
     virtual void name_ParaView_CPM(lexer*, ostream&, int*, int &) {};
     virtual void offset_ParaView_CPM(lexer*, int*, int &) {};

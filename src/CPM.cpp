@@ -21,12 +21,78 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"CPM.h"
+#include"lexer.h"
+#include"ghostcell.h"
 
-CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p), press(p), test(p),
-                                               cellSum(p),
+CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p),
+                                               cellSum(p), Us(p), Vs(p), Ws(p), Pov(p), dSx(p), dSy(p), dSz(p), Locc(p), Lout(p), Lin(p), Ltc(p), Lloc(p), LA(p), Lh0(p), Lh1(p), Lh2(p), Lh3(p),
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
 {
     relax_ini(p);
 
     printcount=0;
+    printtime=0.0;
+    nsub=1;
+    nrej_step=0;
+    nclip_step=0;
+    restored=0;
+    logini=0;
+    outvol=0.0;
+    dtsub=0.0;
+    cmax=0.0;
+    
+    // minimum cell size
+    hmin=1.0e20;
+    BASELOOP
+    {
+        hmin = MIN(hmin,p->DXN[IP]);
+        hmin = MIN(hmin,p->DZN[KP]);
+        
+        if(p->j_dir==1)
+        hmin = MIN(hmin,p->DYN[JP]);
+    }
+    hmin = pgc->globalmin(hmin);
+    
+    // open boundaries for the parcels (in- and outflow), from the grid boundary groups
+    // sides: 1 -x, 2 +y, 3 -y, 4 +x, 5 -z, 6 +z
+    for(int qn=0;qn<6;++qn)
+    open_side[qn]=0;
+    
+    for(int qn=0;qn<p->gcb4_count;++qn)
+    if(p->gcb4[qn][3]>=1 && p->gcb4[qn][3]<=6)
+    if(p->gcb4[qn][4]==1 || p->gcb4[qn][4]==6 || p->gcb4[qn][4]==2 || p->gcb4[qn][4]==7 || p->gcb4[qn][4]==8)
+    open_side[p->gcb4[qn][3]-1]=1;
+    
+    for(int qn=0;qn<6;++qn)
+    open_side[qn] = pgc->globalimax(open_side[qn]);
+    
+    // vertical domain decomposition
+    zsplit = pgc->globalimax((p->nb5>=0 || p->nb6>=0) ? 1 : 0);
+    epsi=p->psi;
+
+    // packed bed parameters
+    theta_max = p->Q32>0.0 ? p->Q32 : (1.0-p->S24) + 0.035;
+    theta_bed = p->Q26*(1.0-p->S24);
+    theta_0 = 1.0-p->S24;
+    
+    Fr = p->Q33;
+    eta0 = p->Q34;
+    eta1 = p->Q35;
+    mu_s = p->Q36;
+    mu_2 = p->Q37;
+    I0 = p->Q38;
+    
+    Vp = (1.0/6.0)*PI*pow(p->S20,3.0);
+
+    if(p->mpirank==0 && p->Q11==2)
+    {
+        cout<<"CPM MP-PIC: time scheme "<<(p->Q10==2?"RK2":"EE1")<<"  stress model Q 12 "<<p->Q12<<"  friction Q 13 "<<p->Q13<<endl;
+        
+        if(p->Q12==2)
+        cout<<"CPM packed bed: theta_bed "<<theta_bed<<" theta_0 "<<theta_0<<" theta_max "<<theta_max<<" Fr "<<Fr<<" eta0 "<<eta0<<" eta1 "<<eta1
+            <<" mu_s "<<mu_s<<" mu_2 "<<mu_2<<" I0 "<<I0<<endl;
+            
+        if(theta_0>=theta_max)
+        cout<<"CPM warning: 1-S 24 < theta_max is required, check Q 32 and S 24"<<endl;
+    }
 }

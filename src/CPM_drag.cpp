@@ -27,20 +27,17 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
-double CPM::drag_model(lexer *p, double d50, double rhoS, double vel, double Ts)
+// Andrews & O'Rourke (1996):  Dp = Cd 3/8 rho_f/rho_p |Uf-Up|/r_p,  Cd = 24/Re (thf^-2.65 + 1/6 Re^2/3 thf^-1.78)
+// written without the 1/Re singularity:  Dp = 18 nu rho_f/(rho_p d^2) (thf^-2.65 + 1/6 Re^2/3 thf^-1.78)
+// vel: magnitude of the relative velocity |Uf-Up|
+double CPM::drag_model(lexer *p, double d, double rhoS, double vel, double Ts)
 {
-    double Tf = 1.0-Ts;
+    double Tf = MAX(1.0-Ts, 1.0-theta_max);
+    Tf = MIN(Tf,1.0);
 
-    vel = fabs(vel);
+    double Rep = fabs(vel)*d/p->W2;
 
-    double Rep = vel*d50/p->W2;
-
-    double Cd = (24.0/Rep)*(pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
-
-    Cd = MIN(Cd,10.0);
-    Cd = MAX(Cd,0.0);
-
-    double Dp = Cd*(3.0/8.0)*(p->W1/rhoS)*(vel/(0.5*d50));
+    double Dp = 18.0*p->W2*p->W1/(rhoS*d*d) * (pow(Tf,-2.65) + (1.0/6.0)*pow(Rep,2.0/3.0)*pow(Tf,-1.78));
 
     return Dp;
 }

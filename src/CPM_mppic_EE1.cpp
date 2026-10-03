@@ -27,66 +27,139 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_fdm.h"
 #include"turbulence.h"
 
+// grid quantities from the parcels: solid fraction, solid velocity, particle stress and its gradient
+void CPM::grid_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW)
+{
+    volfrac_update(p,pgc,s,PX,PY,PZ,PU,PV,PW);
+    
+    if(p->Q12==1)
+    stress_snider(p,pgc,s);
+    
+    else if(p->Q12==2)
+    stress_packedbed(p,pgc,s);
+    
+    else
+    {
+        BASELOOP
+        Tau(i,j,k)=0.0;
+        
+        pgc->start4a(p,Tau,1);
+        
+        cmax=0.0;
+    }
+    
+    stress_gradient(p,a,pgc,s);
+}
+
+// adaptive sub-steps over the fluid time step:
+// particle CFL number S 14 and wave speed of the particle stress Q 18, at most Q 28 sub-steps
+double CPM::substep_size(lexer *p, ghostcell *pgc, double trem, int qs)
+{
+    double vmax=0.0;
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    vmax = MAX(vmax, sqrt(P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n]));
+    
+    vmax = pgc->globalmax(vmax);
+    
+    double dtlim = trem;
+    
+    if(vmax>1.0e-15)
+    dtlim = MIN(dtlim, p->S14*hmin/vmax);
+    
+    if(cmax>1.0e-15)
+    dtlim = MIN(dtlim, p->Q18*hmin/cmax);
+    
+    // last allowed sub-step
+    if(qs>=p->Q28-1)
+    {
+        if(dtlim<trem && p->mpirank==0)
+        cout<<"CPM warning: maximum number of sub-steps Q 28 reached, stable step "<<dtlim<<" < "<<trem<<endl;
+        
+        dtlim = trem;
+    }
+    
+    // avoid a tiny last sub-step
+    if(trem-dtlim < 0.1*dtlim)
+    dtlim = trem;
+    
+    return dtlim;
+}
+
 void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
     count_particles(p,a,pgc,s);
     
-    press_lithostatic(p,a,pgc,s);
-    
     pressure_gradient(p,a,pgc,s);
     
-    LOOP
-    test(i,j,k) = dTz(i,j,k);
+    double trem = p->dt;
+    double dts;
+    int qs=0;
     
-    // stress and cellSum update
-    volfrac_update(p,pgc,s,P.X,P.Y,P.Z);
-    stress_snider(p,pgc,s);
-    stress_gradient(p,a,pgc,s);
-    
-    for(n=0;n<P.index;++n)
-    if(P.Flag[n]==ACTIVE)
+    while(trem>1.0e-10*p->dt)
     {
-
-        advec_mppic_step1(p, a, P, s, pturb,
-                    P.X, P.Y, P.Z, P.U, P.V, P.W,
-                    F, G, H, 0.5);
-
-        // Velocity update 1
-        P.U[n] = (P.U[n] + p->dtsed*F)/(1.0 + p->dtsed*Dpx);
-        P.V[n] = (P.V[n] + p->dtsed*G)/(1.0 + p->dtsed*Dpy);
-        P.W[n] = (P.W[n] + p->dtsed*H)/(1.0 + p->dtsed*Dpz);
+        grid_update(p,a,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
         
-        // Position update
-        P.X[n] = P.X[n] + p->dtsed*P.U[n];
-        P.Y[n] = P.Y[n] + p->dtsed*P.V[n];
-        P.Z[n] = P.Z[n] + p->dtsed*P.W[n];
+        dts = substep_size(p,pgc,trem,qs);
+        
+        substep_euler(p,a,pgc,s,pturb,dts);
+        
+        trem -= dts;
+        ++qs;
     }
-    /*
+    
+    nsub = qs;
+    dtsub = p->dt/double(MAX(qs,1));
+}
+
+// explicit Euler, point implicit drag and friction, grid quantities from grid_update
+// the tentative step (XRK1, URK1) is checked against the walls and the free volume of the cells
+void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb, double dt)
+{
+    double fac;
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
-        // advec 2
-        advec_mppic_step2(p, a, P, s, pturb,
+        advec_mppic(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
-                    F, G, H, 0.5);
-                    
-        //F=G=H=0.0;
+                    F, G, H, dt);
 
-        // Velocity update 2
-        P.U[n] += 0.5*p->dtsed*F;
-        P.V[n] += 0.5*p->dtsed*G;
-        P.W[n] += 0.5*p->dtsed*H;
+        // velocity update
+        fac = 1.0/(1.0 + dt*Dpx);
+        
+        P.URK1[n] = (P.U[n] + dt*F)*fac;
+        P.VRK1[n] = (P.V[n] + dt*G)*fac;
+        P.WRK1[n] = (P.W[n] + dt*H)*fac;
+        
+        // friction
+        if(p->Q12==2 && p->Q13==1)
+        friction(p,a,P.X[n],P.Y[n],P.Z[n],P.URK1[n],P.VRK1[n],P.WRK1[n],dt,fac);
+        
+        // tentative position
+        P.XRK1[n] = P.X[n] + dt*P.URK1[n];
+        P.YRK1[n] = P.Y[n] + dt*P.VRK1[n];
+        P.ZRK1[n] = P.Z[n] + dt*P.WRK1[n];
+    }
 
-        // Position update
-        P.X[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*p->dtsed*P.U[n];
-        P.Y[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n] + 0.5*p->dtsed*P.V[n];
-        P.Z[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n] + 0.5*p->dtsed*P.W[n];
-    }*/
-
-    boundcheck(p,2);
-    //bedchange_update(p,pgc,2);
-    //bedchange(p,a,pgc,s,2);
+    // walls, then grid-limited step
+    boundcheck(p,1);
+    
+    if(p->Q19==1)
+    limiter(p,a,pgc,P.X,P.Y,P.Z,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    {
+        P.X[n] = P.XRK1[n];
+        P.Y[n] = P.YRK1[n];
+        P.Z[n] = P.ZRK1[n];
+        P.U[n] = P.URK1[n];
+        P.V[n] = P.VRK1[n];
+        P.W[n] = P.WRK1[n];
+    }
 
     // parallel transfer
-    P.xchange(p, pgc,bedch,2);
+    P.xchange(p,pgc,bedch,2);
 }

@@ -30,11 +30,12 @@ void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
     index_empty = index_empty0;
 
     // fill recv into F
+    // Empty[0..index_empty-1] holds the free slots
     for(n=0;n<6;++n)
     for(q=0;q<recvnum[n];++q)
     {
-        F[Empty[index_empty]] = recv[n][q];
         --index_empty;
+        F[Empty[index_empty]] = recv[n][q];
     }
 }
 
@@ -47,6 +48,7 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mod
     for(int qn=0;qn<6;++qn)
     for(q=0;q<recvnum[qn];++q)
     {
+        --index_empty;
         n=Empty[index_empty];
 
         // flag
@@ -65,8 +67,5 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mod
         }
 
         bedch(i,j) += ParcelFactor;
-
-        --index_empty;
-        ++n;
     }
 }

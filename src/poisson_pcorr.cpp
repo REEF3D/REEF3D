@@ -45,7 +45,7 @@ poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc)
         if(p->X10==0 && p->Q10==0)
         pd = new density_f(p);
         
-        if(p->X10==0 && p->Q10==1)
+        if(p->X10==0 && p->Q10>=1)
         pd = new density_f(p);
         
         if(p->X10==1)  
