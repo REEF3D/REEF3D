@@ -53,13 +53,31 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     if(par.zones)
     zone_setup(p);
 
+    // cells that no patch may cover now (dry or shallow cells of the module), grown by dryband
+    const bool dyn = par.dryband>0;
+    if(dyn)
+    {
+        const int B = par.dryband;
+        forbidd.assign((size_t)GNX*GNY,0);
+        for(int ii=0; ii<NX0; ++ii)
+        for(int jj=0; jj<NY0; ++jj)
+        if(cell_unfit(ii,jj))
+        {
+            int I=ii+O0i, J=jj+O0j;
+            for(int a=MAX(I-B,0); a<=MIN(I+B,GNX-1); ++a)
+            for(int d=MAX(J-B,0); d<=MIN(J+B,GNY-1); ++d)
+            forbidd[(size_t)a*GNY+d]=1;
+        }
+        global_or(forbidd);
+    }
+
     auto tile_forbidden = [&](int l, int ti, int tj)
     {
         int a0 = (ti*T)>>l, a1 = (MIN((ti+1)*T,GNX<<l)-1)>>l;
         int d0 = (tj*T)>>l, d1 = (MIN((tj+1)*T,GNY<<l)-1)>>l;
         for(int a=a0; a<=a1; ++a)
         for(int d=d0; d<=d1; ++d)
-        if(forbid0[(size_t)a*GNY+d])
+        if(forbid0[(size_t)a*GNY+d] || (dyn && forbidd[(size_t)a*GNY+d]))
         return true;
         return false;
     };
@@ -147,9 +165,10 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
                 nunion += (M[l][t] || gtile[l][t]) ? 1 : 0;
             }
 
+            // (a tile of the layout that is forbidden now, e.g. fallen dry, is not kept)
             if(nflag>0 && double(nunion)<=par.lazy*double(nflag))
             for(size_t t=0; t<M[l].size(); ++t)
-            if(gtile[l][t])
+            if(gtile[l][t] && !(dyn && tile_forbidden(l,(int)(t/gtny[l]),(int)(t%gtny[l]))))
             M[l][t] = 1;
         }
     }

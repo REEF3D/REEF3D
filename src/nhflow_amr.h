@@ -97,12 +97,19 @@ using namespace std;
 //  is prolonged from its parent, conservatively (every 2x2 block keeps the water level and,
 //  layer by layer, the momentum of its coarse cell).
 //
-//  Scope of this version: static refinement boxes and the body zone (A 270 levels, A 276 boxes,
-//  A 277 boxes without refinement, A 275 tile width, A 278, A 279, A 271, A 280, A 281), A 510 2/3, A 511 1/2, A 514
-//  all, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3),
-//  S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches
-//  stay out of the relaxation zones (B 96), the in- and outflow band and dry or shallow cells (they
-//  are fully wet; level 0 keeps its wetting and drying).
+//  Solution-adaptive refinement (as sflow_amr): a cell of level l flags level l+1 where its surface
+//  jumps by more than A 273 to a neighbour or its second difference along x or y exceeds A 282;
+//  A 272 buffer cells, regrid every A 271 steps with the machinery of the body zone (lazy layout,
+//  A 280 hysteresis).  The hierarchy may be empty: the first patches appear with the first flags.
+//  At t = 0 the patches take the initial water level boxes (F 72) on their own grid.
+//
+//  Scope of this version: static refinement boxes, the body zone and the adaptive flags (A 270
+//  levels, A 276 boxes, A 277 boxes without refinement, A 275 tile width, A 272, A 273, A 282, A 278,
+//  A 279, A 271, A 280, A 281), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2, A 512 0, A 560 0,
+//  A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), S 10 0, no solids (A 580 1,
+//  A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches stay out of the relaxation
+//  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
+//  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
 
 struct nhflow_amr_patch : public reefamr_patch
 {
@@ -176,6 +183,7 @@ protected:
     void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
     void regrid_finish(ghostcell*, int) override;
     void zone_bodies(vector<sixdof_obj*>&) override;
+    bool cell_unfit(int, int) override;
 
 private:
     // a patch kernel runs: ghostcell exchange off and the fdm of the ghostcell on the patch (the
@@ -229,6 +237,7 @@ private:
     vector<vector<double>> rval;    // [target grid id+1][rmatch index * NF]: fine face values from other ranks
     int NF = 0;                     // values per face entry: 4 variables x layers + dfx
     void prolong_patch(ghostcell*, nhflow_amr_patch&);
+    void ini_boxes(nhflow_amr_patch&);
     template<class F> void from_old(nhflow_amr_patch&, vector<reefamr_patch*>&, F);
     template<class SEL> void fill_col(int, int, SEL);
     template<class SEL> void restrict_col(SEL);
@@ -258,6 +267,12 @@ private:
     int pr_it_last = 0;
     double pr_res_last = 0.0;
     int layout_id = 0;
+
+    // solution-adaptive flags (A 273 surface jump, A 282 second difference) and the regrid of a
+    // step
+    double tol_eta = 0.0, tol_curv = 0.0;
+    bool adaptive = false;
+    void regrid_step(lexer*, ghostcell*);
 
     // floating bodies (X 10 1/2): the level-0 bodies, the finest grid at (x,y) (local grid id, -1:
     // level 0), the hull on a patch, the loads from the finest grids

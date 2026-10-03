@@ -129,13 +129,25 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.za = p->A279_a;
     }
 
-    // the zone follows the body: new patches every A 271 steps (A 271 0: static), the layout is
-    // kept as long as it covers the flagged tiles with at most 50 % excess (as fnpf_amr)
-    if(q.zones)
+    // solution-adaptive flags (as sflow_amr): a cell of level l gets level l+1 where the surface
+    // jumps by more than A 273 to a neighbour cell or its second difference along x or y exceeds
+    // A 282 (both in m, so a finer level flags only steeper or shorter waves)
+    tol_eta = MAX(p->A273,0.0);
+    tol_curv = MAX(p->A282,0.0);
+    adaptive = (tol_eta>0.0 || tol_curv>0.0);
+
+    // the zone follows the body, the patches follow the flags: new patches every A 271 steps
+    // (A 271 0: static), the layout is kept as long as it covers the flagged tiles with at most
+    // 50 % excess (as fnpf_amr)
+    if(q.zones || adaptive)
     {
     q.regrid = MAX(p->A271,0);
     q.lazy = 1.5;
     }
+
+    // patches are fully wet: no patch within 4 level-0 cells of a dry or shallow cell, checked at
+    // every regrid (cell_unfit; a static box over dry cells loses those tiles as well)
+    q.dryband = 4;
 
     // the zone holds the hull: its triangles are sized for the finest level (sixdof_obj::amr_hfac,
     // before the 6DOF initialisation builds them), as on the uniform fine grid
@@ -310,8 +322,16 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"NHFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns, dt "<<p->dt;
     if(vr==2)
     cout<<", sigma layers doubled on every level (A 281)";
+    if(adaptive)
+    {
+    cout<<", flags:";
+    if(tol_eta>0.0)
+    cout<<" surface jump "<<tol_eta<<" m (A 273)";
+    if(tol_curv>0.0)
+    cout<<" second difference "<<tol_curv<<" m (A 282)";
+    }
     if(regrid_int>0)
-    cout<<", regrid every "<<regrid_int<<" steps (A 271), the zone follows the body";
+    cout<<", regrid every "<<regrid_int<<" steps (A 271)"<<(par.zones ? ", the zone follows the body" : "");
     cout<<endl;
     }
 }
@@ -569,9 +589,72 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     free_lexer3D(*c);
 }
 
+// cells of level l that need level l+1 (the boxes A 276 and the body zone are marked by the
+// core): the end-of-step surface of the level-l grids, wet cells deeper than A 545 A 544 only
 void nhflow_amr::tag(int l, vector<unsigned char> &M)
 {
-    // static refinement: the boxes (A 276) are marked by the core
+    if(!adaptive)
+    return;
+
+    const int lf = l+1;
+
+    auto test = [&](lexer *q, fdm_nhf *d, int ii, int jj)
+    {
+        const double wmin = q->A545*q->A544;
+        auto ok = [&](int a, int b)
+        {
+            const int n = lij(q,a,b);
+            return q->flagslice4[n]>0 && q->wet[n]==1 && d->WL(a,b)>wmin;
+        };
+
+        if(!ok(ii,jj))
+        return false;
+
+        const double ec = d->eta(ii,jj);
+
+        if(tol_eta>0.0)
+        {
+            const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
+            for(int k=0; k<4; ++k)
+            if(ok(ii+di[k],jj+dj[k]) && fabs(d->eta(ii+di[k],jj+dj[k])-ec)>tol_eta)
+            return true;
+        }
+
+        if(tol_curv>0.0)
+        {
+            if(ok(ii+1,jj) && ok(ii-1,jj) && fabs(d->eta(ii+1,jj)-2.0*ec+d->eta(ii-1,jj))>tol_curv)
+            return true;
+            if(q->j_dir==1 && ok(ii,jj+1) && ok(ii,jj-1) && fabs(d->eta(ii,jj+1)-2.0*ec+d->eta(ii,jj-1))>tol_curv)
+            return true;
+        }
+        return false;
+    };
+
+    if(l==0)
+    {
+        for(int ii=0; ii<NX0; ++ii)
+        for(int jj=0; jj<NY0; ++jj)
+        if(test(p0,d0,ii,jj))
+        tag_cell(lf,ii+O0i,jj+O0j,nbuf,M);
+        return;
+    }
+
+    for(int n : lev[l])
+    {
+        nhflow_amr_patch *c = NP(n);
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        if(test(c->pp,c->d,ii,jj))
+        tag_cell(lf,ii-EXT+c->I0,jj-EXT+c->J0,nbuf,M);
+    }
+}
+
+// a level-0 cell no patch may cover: dry or shallow (water level at most A 545 A 544, the deep
+// criterion of the wetting and drying); the patches are fully wet
+bool nhflow_amr::cell_unfit(int ii, int jj)
+{
+    const int n = lij(p0,ii,jj);
+    return p0->flagslice4[n]>0 && (p0->wet[n]==0 || d0->WL(ii,jj)<=p0->A545*p0->A544);
 }
 
 // --------------------------------------------------------------------- interpolation
@@ -1004,6 +1087,93 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
     }
 }
 
+// initial water level boxes (F 72) on the interior of a fresh patch at t = 0.  The bicubic
+// prolongation of a box edge overshoots (12 % for the hump of 5f), so the blocks whose parent
+// stencil (parent cell +-2) or whose own cells see more than one box state are set on the patch
+// grid itself: the box height in a box, else the surface of the nearest parent-level cell
+// outside the boxes (piecewise constant).  All other blocks keep the prolonged state, and so
+// do U, V, W, P and detadt everywhere (initial waves or currents are not touched); UH, VH, WH
+// follow the new water level.
+void nhflow_amr::ini_boxes(nhflow_amr_patch &c)
+{
+    lexer *pp = c.pp;
+    fdm_nhf *d = c.d;
+    const int K = pp->knoz;
+    const int nby = c.ny/2;
+
+    // last box that holds the point (the later box wins, as on level 0), -1 none
+    auto boxof = [&](double x, double y)
+    {
+        int r=-1;
+        for(int qn=0; qn<p0->F72; ++qn)
+        if(x>=p0->F72_xs[qn] && x<p0->F72_xe[qn] && y>=p0->F72_ys[qn] && y<p0->F72_ye[qn])
+        r=qn;
+        return r;
+    };
+
+    for(int bi=0; bi<c.nx/2; ++bi)
+    for(int bj=0; bj<nby; ++bj)
+    {
+        const int k = bi*nby+bj;
+        const int g = c.rgrid[k];
+        if(g<-1)
+        continue;
+
+        lexer *q = glex(g);
+        fdm_nhf *dq = gfd(g);
+        const int ic = c.ric[k], jc = c.rjc[k];
+        auto cbox = [&](int a, int b) { return boxof(q->XP[ic+a+marge],q->YP[jc+b+marge]); };
+
+        const int b0 = cbox(0,0);
+        bool aff = false;
+        for(int a=-2; a<=2; ++a)
+        for(int b=-2; b<=2; ++b)
+        if(cbox(a,b)!=b0)
+        aff = true;
+
+        for(int a=0; a<2; ++a)
+        for(int b=0; b<2; ++b)
+        if(boxof(pp->XP[EXT+2*bi+a+marge],pp->YP[EXT+2*bj+b+marge])!=b0)
+        aff = true;
+
+        if(!aff)
+        continue;
+
+        for(int a=0; a<2; ++a)
+        for(int b=0; b<2; ++b)
+        {
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
+            const int bf = boxof(pp->XP[ii+marge],pp->YP[jj+marge]);
+            const int da = a ? 1 : -1, db = b ? 1 : -1;
+
+            double e = dq->eta(ic,jc);
+            if(bf>=0)
+            e = p0->F72_h[bf] - p0->F60;
+            else
+            {
+                // the parent cell, else its neighbour on the side of this child
+                const int ca[4] = {0,da,0,da}, cb[4] = {0,0,db,db};
+                for(int n=0; n<4; ++n)
+                if(cbox(ca[n],cb[n])<0)
+                {
+                    e = dq->eta(ic+ca[n],jc+cb[n]);
+                    break;
+                }
+            }
+
+            d->eta(ii,jj) = e;
+            d->WL(ii,jj) = MAX(e + d->depth(ii,jj), pp->A544);
+            for(int kk=0; kk<K; ++kk)
+            {
+                const int n = cidx(pp,ii,jj,kk);
+                d->UH[n] = d->WL(ii,jj)*d->U[n];
+                d->VH[n] = d->WL(ii,jj)*d->V[n];
+                d->WH[n] = d->WL(ii,jj)*d->W[n];
+            }
+        }
+    }
+}
+
 // cells of the fresh patch c that an old patch of the same level held (the zone moved with the
 // body): fn(old patch, ii, jj, io, jo) with the lexer indices on c and on the old patch
 template<class F>
@@ -1220,6 +1390,12 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                 for(int kk=0; kk<=K; ++kk)
                 d->P[fidx(pp,ii,jj,kk)] = od->P[fidx(op,io,jo,kk)];
             });
+
+            // at t = 0 the initial water level boxes (F 72) on the patch grid itself, as
+            // nhflow_fsf_ini on level 0 (the interpolated coarse box would overshoot at its edges);
+            // level 0 takes their mean in regrid_finish
+            if(p0->count==0 && p0->F72>0)
+            ini_boxes(*c);
         }
 
         fill_stage(pgc,l,-1);
@@ -1450,6 +1626,9 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         mom->phase_P(p,d,pgc,S0,s);
         mom->phase_E(p,d,pgc,S0,s);
         }
+
+        // adaptive flags: the first patches appear when the flags do
+        regrid_step(p,pgc);
         return;
     }
 
@@ -1560,9 +1739,14 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     }
     cur_stage = -1;
 
-    // the zone around the body moves: new patches every A 271 steps, from the state at the end
-    // of the step
-    if(regrid_int>0 && p->count%regrid_int==0)
+    regrid_step(p,pgc);
+}
+
+// the zone around the body moves, the flags move: new patches every A 271 steps, from the state
+// at the end of the step
+void nhflow_amr::regrid_step(lexer *p, ghostcell *pgc)
+{
+    if(maxlev>0 && regrid_int>0 && p->count%regrid_int==0)
     {
         const double t0 = MPI_Wtime();
         regrid(p,pgc,false);

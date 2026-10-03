@@ -61,9 +61,9 @@ void control::ini_default()
     A263=10.0;   // double eddyv limiter factor set to high
     A263=2.7;   // double epsisolon coefficient ce_gamma
     A270=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF, NHFLOW: only with A 278)
-    A272=2;      // int SFLOW and FNPF mesh refinement: buffer cells around flagged cells
-    A273=0.0;    // double SFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
+    A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with A 278, NHFLOW: with A 278, A 273 or A 282)
+    A272=2;      // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells
+    A273=0.0;    // double SFLOW and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
     A274=0;      // int SFLOW mesh refinement: flag the shoreline
     A275=8;      // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
     A276=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
@@ -74,6 +74,7 @@ void control::ini_default()
     A279_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
     A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     A281=0;      // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
+    A282=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
 
 
     // FNPF

@@ -51,7 +51,7 @@ public:
     int A251,A260;
     double A261,A262,A263,A264;
     int A270,A271,A272,A274,A275,A276,A277,A278,A280,A281;
-    double A273,A278_r,A279_L,A279_a;
+    double A273,A278_r,A279_L,A279_a,A282;
     double *A276_xs,*A276_xe,*A276_ys,*A276_ye;
     double *A277_xs,*A277_xe,*A277_ys,*A277_ye;
     double A223,A224,A247,A249,A244,A251_val;

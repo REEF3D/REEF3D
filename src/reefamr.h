@@ -158,6 +158,8 @@ struct reefamr_param
     double lazy = 0.0;          // regrid: the refined tiles of the current layout are kept as long as
                                 // the union with the flagged tiles has at most lazy times the flagged
                                 // tiles, an unchanged layout skips the regrid (0: off)
+    int dryband = 0;            // regrid: no refinement within this many level-0 cells of a cell the
+                                // module reports as unfit for a patch (cell_unfit, e.g. dry), 0: off
 };
 
 // switches the MPI exchange of the ghostcell class off while patch kernels run
@@ -204,6 +206,8 @@ protected:
     virtual double serve_aux(int, int, int) {return 0.0;}
     // moving bodies of the refinement zone
     virtual void zone_bodies(vector<sixdof_obj*>&) {}
+    // level-0 cell (ii,jj) of this rank that no patch may cover at this regrid (par.dryband > 0)
+    virtual bool cell_unfit(int, int) {return false;}
 
     // ---- hierarchy
     void setup(lexer*, ghostcell*);
@@ -394,8 +398,9 @@ private:
     // vertical refinement factor of each level over level 0
     vector<int> vfac;
 
-    // no refinement: global level-0 cells
+    // no refinement: global level-0 cells, static and (dryband) at the current regrid
     vector<unsigned char> forbid0;
+    vector<unsigned char> forbidd;
 
     // initial position of every body of the refinement zone
     vector<double> zx0, zy0;
