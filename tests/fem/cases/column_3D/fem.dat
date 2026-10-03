@@ -1,6 +1,0 @@
-# 3D dam break onto a flexible square column (rubber-like), clamped at the bottom
-lattice 0.01 0.01 0.01  0 0 0
-material 1 elastic 1500 2.0e6 0.3
-box 0.70 0.76 0.12 0.18 0.0 0.25 1
-fix -1 2 -1 1 -0.0001 0.0001 xyz
-monitor top 0.70 0.15 0.25

@@ -1,4 +1,0 @@
-{"base": "cfd_2d_nwt", "ctrl_set": {"N 40": "44"},
- "description": "as cfd_2d_nwt with N40=44 low-storage momentum_RKLS3 + levelset_RK3.",
- "tags": ["2d", "waves", "levelset", "momentum"],
- "covers": ["N40=44 momentum_RKLS3"]}

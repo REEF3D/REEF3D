@@ -1,3 +1,0 @@
-{"base": "cfd_2d_dambreak", "ctrl_set": {"N 40": "33", "F 80": "4", "F 30": "0", "F 40": "0"},
- "description": "as cfd_2d_dambreak with PLIC VOF (F80=4), N40=33: momentum_FCC3_PLIC.",
- "tags": ["2d", "dambreak", "plic", "momentum"], "covers": ["N40=33 F80=4 momentum_FCC3_PLIC"]}

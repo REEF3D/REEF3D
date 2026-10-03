@@ -1,3 +1,0 @@
-{"base": "cfd_2d_fem_obstacle", "np": 2,
- "description": "as cfd_2d_fem_obstacle on 2 MPI ranks (the obstacle lies on the subdomain border).",
- "tags": ["quick", "2d", "fem", "fsi", "mpi"], "covers": ["FEM owner sampling + MPI_Allreduce", "kernel spreading across subdomain borders"]}

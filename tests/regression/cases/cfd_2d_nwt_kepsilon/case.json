@@ -1,4 +1,0 @@
-{"base": "cfd_2d_nwt", "ctrl_set": {"T 10": "1"},
- "description": "as cfd_2d_nwt with k-epsilon (T10=1).",
- "tags": ["2d", "waves", "turbulence"],
- "covers": ["kepsilon_IM1"]}

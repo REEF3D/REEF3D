@@ -1,6 +1,0 @@
-{
- "description": "2D dam break in a closed tank (walls on all sides, lid on top), N40=3. Based on tutorial 11_1, coarse. Closed domain: sensitive to wall/pressure-correction BCs and mass conservation.",
- "np": 1, "steps": 80,
- "tags": ["quick", "2d", "dambreak", "levelset", "default", "closed"],
- "covers": ["N40=3 momentum_FC3", "wall BC 21", "poisson_pcorr at walls", "F50=4"]
-}

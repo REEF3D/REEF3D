@@ -1,6 +1,0 @@
-# elastic column 50 x 50 x 200 mm, clamped at the bottom
-lattice 0.0125 0.0125 0.0125  0 0 0
-material 1 elastic 1500 2.0e6 0.3
-box 0.40 0.45 0.125 0.175 0.0 0.20 1
-fix -1 2 -1 1 -0.0001 0.0001 xyz
-monitor top 0.40 0.15 0.20

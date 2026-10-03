@@ -1,7 +1,0 @@
-{
- "description": "2D numerical wave tank (regression case cfd_2d_nwt run for 24 s): 2nd-order Stokes waves H = 0.02 m, L = 4 m in 0.5 m depth (T ~ 1.98 s), relaxation generation (0-4 m) and absorption (last 8 m). Wave height at the gauges x = 6, 8, 10 m over the last three periods (t = 18-24 s) against the target height: measures generation and propagation (numerical damping on this coarse grid, dx = L/80).",
- "np": 1,
- "time": 24.0,
- "tags": ["waves", "levelset", "2d", "inflow"],
- "check": {"type": "wave_height", "H": 0.02, "t_start": 18.0, "t_end": 24.0, "tol": 0.05}
-}

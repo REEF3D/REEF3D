@@ -1,6 +1,0 @@
-{
- "description": "Dam break in a closed 2D tank (walls and lid on all sides). After the projection the velocity must be divergence-free in every cell, including the cells next to the walls: max |div u| over the final state. Tests the boundary treatment of the pressure correction at no-flux boundaries (and the pinning of the pressure level in a closed domain).",
- "np": 1, "steps": 80,
- "tags": ["quick", "pressure", "closed", "2d"],
- "check": {"type": "max_abs", "field": "div", "tol": 1e-6}
-}

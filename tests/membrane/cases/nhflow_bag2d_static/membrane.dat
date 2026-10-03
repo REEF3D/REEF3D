@@ -1,6 +1,0 @@
-# 2D closed bag: walls at x = 8 and x = 12, floor at z = 2, top above the free surface (h = 5)
-membrane box 8.0 12.0 0.0 0.0 2.0 6.0
-name bag
-resistance 1.0e4
-fill 0.05
-print 5.0

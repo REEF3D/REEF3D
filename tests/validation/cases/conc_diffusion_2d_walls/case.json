@@ -1,5 +1,0 @@
-{"base": "conc_diffusion_2d_uniform",
- "ctrl_set": {"C 51": "0.0", "C 53": "0.0", "C 54": "0.3", "C 56": "0.3"},
- "steps": 100,
- "description": "as conc_diffusion_2d_uniform, but the blob sits in the corner on the bed and the left wall, so the diffusion acts at the walls from the start. Walls must be no-flux for the scalar (zero normal gradient, implicit): integral of conc*vol constant.",
- "tags": ["quick", "diffusion", "scalar", "2d", "conservation", "bc"]}

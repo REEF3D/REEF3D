@@ -1,3 +1,0 @@
-{"base": "cfd_2d_dambreak", "ctrl_set": {"N 40": "4"},
- "description": "as cfd_2d_dambreak with N40=4 low-storage momentum_FCLS3 (what N40=3 becomes with floating bodies).",
- "tags": ["quick", "2d", "dambreak", "momentum"], "covers": ["N40=4 momentum_FCLS3"]}

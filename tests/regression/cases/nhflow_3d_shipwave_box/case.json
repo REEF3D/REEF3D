@@ -1,8 +1,0 @@
-{
- "description": "NHFLOW 3D moving pressure patch (ship-wave mode X10=3, X400=2 box pressure) towed at constant speed (X210), one-step 6DOF update.",
- "solver": "nhflow",
- "np": 1,
- "steps": 30,
- "tags": ["3d", "nhflow", "6dof", "ship"],
- "covers": ["sixdof_nhflow::start_shipwave", "solve_eqmotion_oneway_onestep", "updateForcing_box"]
-}

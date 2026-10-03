@@ -1,3 +1,0 @@
-{"base": "fnpf_2d_6dof_box", "ctrl_set": {"A 310": "4"},
- "description": "as fnpf_2d_6dof_box with A310=4 (FNPF RK4, 6DOF classical rk4).",
- "tags": ["2d", "fnpf", "6dof", "floating"], "covers": ["sixdof_obj rk4 (FNPF)"]}

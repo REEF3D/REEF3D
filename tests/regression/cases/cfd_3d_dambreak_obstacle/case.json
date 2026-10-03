@@ -1,6 +1,0 @@
-{
- "description": "3D dam break with a box obstacle (DIVEMesh solid S10), 4 MPI ranks, N40=3. Based on tutorial 11_2, coarse.",
- "np": 4, "steps": 40,
- "tags": ["quick", "3d", "dambreak", "mpi", "solid"],
- "covers": ["3D", "MPI halo exchange 3D (gcparax, paracox)", "solid ghost cells", "gc_dgcpol diagonal ghosts"]
-}

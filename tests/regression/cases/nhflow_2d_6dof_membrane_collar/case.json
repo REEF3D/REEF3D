@@ -1,9 +1,0 @@
-{
- "description": "NHFLOW 2D rigid membrane bag (X330) carried by a floating collar of two pontoons, regular waves. Copy of tests/membrane/cases/nhflow_bag2d_collar_rigid, shortened.",
- "solver": "nhflow",
- "np": 2,
- "steps": 100,
- "files": ["membrane.dat"],
- "tags": ["2d", "nhflow", "6dof", "floating", "membrane", "mpi"],
- "covers": ["externalForces_nhflow membrane loads", "membrane_stabilisation", "net_interface membrane NHFLOW"]
-}

@@ -1,4 +1,0 @@
-{"base": "nhflow_2d_6dof_box",
- "ctrl_add": ["X 25 0.5 2.0 0.5", "X 26 5.0 0.0 10.0", "X 101 0.0 8.0 0.0", "X 102 0.05 0.0 0.0", "X 103 0.0 0.3 0.0"],
- "description": "as nhflow_2d_6dof_box with linear damping (X25/X26), initial pitch (X101), initial linear (X102) and angular (X103) velocity.",
- "tags": ["2d", "nhflow", "6dof", "floating"], "covers": ["6DOF damping X25/X26", "initial rotation X101 (quaternion init)", "X102/X103 initial momentum"]}

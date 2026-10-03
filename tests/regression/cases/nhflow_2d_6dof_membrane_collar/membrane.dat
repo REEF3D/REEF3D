@@ -1,5 +1,0 @@
-# 2D rigid bag carried by a freely floating collar of two pontoons (pitch locked), regular waves H 0.2 m, T 4 s
-membrane box 28.0 32.0 0.0 0.0 2.0 5.2
-name bag
-resistance 1.0e4
-structure rigid

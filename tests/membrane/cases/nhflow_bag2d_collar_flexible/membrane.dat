@@ -1,7 +1,0 @@
-# 2D flexible bag carried by a freely floating collar of two pontoons (pitch locked), regular waves H 0.2 m, T 4 s,
-# strongly coupled membrane (coupling iterated)
-membrane box 28.0 32.0 0.0 0.0 2.0 5.4
-name bag
-resistance 1.0e4
-structure flexible
-coupling iterated

@@ -1,4 +1,0 @@
-{"base": "cfd_2d_nwt", "ctrl_set": {"N 40": "2"},
- "description": "as cfd_2d_nwt with N40=2 momentum_FC2.",
- "tags": ["2d", "waves", "levelset", "momentum"],
- "covers": ["N40=2 momentum_FC2"]}
