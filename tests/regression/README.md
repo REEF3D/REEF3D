@@ -111,6 +111,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_regular` (+ `_mpi2`) | 1/2 | FNPF relaxation generation + beach, regular waves |
 | `fnpf_2d_irregular_decomp` | 1 | FNPF JONSWAP waves, decomposed relaxation precalc (B89=1) |
 | `fnpf_3d_shortcrested` | 2 | FNPF 3D short-crested waves (B130=2) |
+| `nhflow_2d_two_sources` (+ `_mpi2`) | 1/2 | wave_field: B 92 linear wave + linear source 2 with phase (B 500/501); P 50 prints the summed target |
+| `nhflow_2d_irregular_two_sources` | 1 | wave_field: two JONSWAP sources with their own seeds (B 139, B 504) |
+| `fnpf_2d_two_sources` | 1 | wave_field in FNPF (cached potential path) |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.

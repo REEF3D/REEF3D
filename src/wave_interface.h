@@ -29,6 +29,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class wave_lib;
+class wave_field;
 
 using namespace std;
 
@@ -89,7 +90,8 @@ public:
 
 
 private:
-    wave_lib *pwave;
+    wave_lib *pwave;      // source 1: the B 92 wave, unchanged path
+    wave_field *pfield;   // additional sources (B 500-504), summed on top
     
     
     int n,m,count;

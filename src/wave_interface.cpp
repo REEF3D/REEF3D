@@ -43,23 +43,16 @@ Author: Hans Bihs
 #include"wave_lib_irregular_2nd_b.h"
 #include"wave_lib_hdc.h"
 #include"wave_lib_ssgw.h"
+#include"wave_field.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-wave_interface::wave_interface(lexer *p, ghostcell *pgc) 
-{ 
-    p->wts=0.0;
-    p->wte=1.0e20;
-    
-    wtype=p->B92;
-    
-    if(p->B94==0)
-	 wD=p->phimean;
-	
-	if(p->B94==1)
-	wD=p->B94_wdt;
-    
+// wave theory by B 92 code (also used for the additional sources of wave_field)
+wave_lib* wave_lib_create(lexer *p, ghostcell *pgc, int wtype)
+{
+    wave_lib *pwave = nullptr;
+
     if(wtype==0)
     pwave = new wave_lib_void(p,pgc);
 	
@@ -143,10 +136,31 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     
     if(wtype==70)
     pwave = new wave_lib_ssgw(p,pgc);
+
+    return pwave;
+}
+
+wave_interface::wave_interface(lexer *p, ghostcell *pgc) 
+{ 
+    p->wts=0.0;
+    p->wte=1.0e20;
+    
+    wtype=p->B92;
+    
+    if(p->B94==0)
+	 wD=p->phimean;
+	
+	if(p->B94==1)
+	wD=p->B94_wdt;
+    
+    pwave = wave_lib_create(p,pgc,wtype);
+
+    pfield = new wave_field(p,pgc);
 }
 
 wave_interface::~wave_interface()
 {
+    delete pfield;
 }
 
 double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, double z)
@@ -158,6 +172,9 @@ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, doub
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     uvel = pwave->wave_u(p,x,y,z);
+
+    if(pfield->size()>0)
+    uvel += pfield->u(p,x,y,z);
 	
     return uvel;
 }
@@ -171,6 +188,9 @@ double wave_interface::wave_v(lexer *p, ghostcell *pgc, double x, double y, doub
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     vvel = pwave->wave_v(p,x,y,z);
 
+    if(pfield->size()>0)
+    vvel += pfield->v(p,x,y,z);
+
     return vvel;
 }
 
@@ -183,6 +203,9 @@ double wave_interface::wave_w(lexer *p, ghostcell *pgc, double x, double y, doub
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     wvel = pwave->wave_w(p,x,y,z);
 
+    if(pfield->size()>0)
+    wvel += pfield->w(p,x,y,z);
+
     return wvel;
 }
 
@@ -192,6 +215,9 @@ double wave_interface::wave_h(lexer *p, ghostcell *pgc, double x, double y, doub
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     lsv=p->phimean + pwave->wave_eta(p,x,y);
+
+    if(pfield->size()>0)
+    lsv += pfield->eta(p,x,y);
 
     return lsv;
 }
@@ -203,6 +229,9 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
     z = MAX(z,-wD);
     
     pval = pwave->wave_fi(p,x,y,z);
+
+    if(pfield->size()>0)
+    pval += pfield->fi(p,x,y,z);
 	
     return pval;
 }
@@ -210,6 +239,7 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
 void wave_interface::wave_cache_points(lexer *p, ghostcell *pgc, const std::vector<double> &x, const std::vector<double> &y)
 {
     pwave->wave_cache_points(p,x,y);
+    pfield->cache_points(p,x,y);
 }
 
 double wave_interface::wave_eta_c(lexer *p, ghostcell *pgc, int q)
@@ -218,6 +248,9 @@ double wave_interface::wave_eta_c(lexer *p, ghostcell *pgc, int q)
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     eta = pwave->wave_eta_c(p,q);
+
+    if(pfield->size()>0)
+    eta += pfield->eta_c(p,q);
 	
     return eta;
 }
@@ -226,7 +259,12 @@ double wave_interface::wave_fi_c(lexer *p, ghostcell *pgc, int q, double z)
 {
     z = MAX(z,-wD);
     
-    return pwave->wave_fi_c(p,q,z);
+    double val = pwave->wave_fi_c(p,q,z);
+
+    if(pfield->size()>0)
+    val += pfield->fi_c(p,q,z);
+
+    return val;
 }
 
 void wave_interface::wave_uvw_c(lexer *p, ghostcell *pgc, int q, double z, double &u, double &v, double &w)
@@ -237,6 +275,9 @@ void wave_interface::wave_uvw_c(lexer *p, ghostcell *pgc, int q, double z, doubl
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     pwave->wave_uvw_c(p,q,z,u,v,w);
+
+    if(pfield->size()>0)
+    pfield->uvw_c(p,q,z,u,v,w);
 }
 
 double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
@@ -245,6 +286,9 @@ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     eta = pwave->wave_eta(p,x,y);
+
+    if(pfield->size()>0)
+    eta += pfield->eta(p,x,y);
 	
     return eta;
 }
@@ -266,6 +310,7 @@ double wave_interface::wave_vm(lexer *p, ghostcell *pgc, double x, double y)
 void wave_interface::wave_prestep(lexer *p, ghostcell *pgc)
 {
     pwave->wave_prestep(p,pgc);
+    pfield->prestep(p,pgc);
 }
 
 int wave_interface::printcheck=0;
