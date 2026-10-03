@@ -106,6 +106,17 @@ private:
                         double&, double&, double&, double);
                         
     void nearbed_velocity(lexer*, fdm*, double, double, double);
+    // two-way coupling
+public:
+    void coupling_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void fluid_forcing(lexer*, fdm*, ghostcell*, double, field&, field&, field&);
+    
+    // two-way coupling: mixture continuity div(u) = -div(theta u_p), source for the pressure Poisson equation
+    inline static CPM *coupled = nullptr;
+    void continuity_source(lexer*, ghostcell*);
+    field4a Dsrc;
+private:
+    
     void limiter(lexer*, fdm*, ghostcell*, double*, double*, double*, double*, double*, double*, double*, double*, double*);
     double occupancy_max(lexer*, ghostcell*);
     void substep_euler(lexer*, fdm*, ghostcell*, sediment_fdm*, turbulence*, double);
@@ -146,6 +157,7 @@ private:
     field4a cellSum;
     field4a Us,Vs,Ws;
     field4a Pov;
+    field4a Kc,KUx,KUy,KUz;
     field4a dSx,dSy,dSz;
     field4a Locc,Lout,Lin,Ltc,Lloc,LA,Lh0,Lh1,Lh2,Lh3;
 

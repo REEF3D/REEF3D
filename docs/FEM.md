@@ -164,6 +164,24 @@ g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src 
 ./fem_test            # or: ./fem_test cantilever|freq|rotation|j2|crackband|drop|collapse
 ```
 
+### Coupled test cases (`tests/fem/cases`, single rank)
+
+Grids with DIVEMesh (`control.txt`), then REEF3D in the same directory.
+
+* `elastic_obstacle_2D`: dam break onto an elastic obstacle (Walhorn et al. 2005 set-up: water column
+  0.146 x 0.292 m, obstacle 12 x 80 mm at x = 0.292 m, rho 2500, E 1 MPa), dx = 3 mm, solid h = 2 mm.
+  The bore reaches the obstacle at t = 0.13 s, maximum horizontal tip displacement 4.3 cm at
+  t = 0.23 s, then the obstacle recovers while the jet passes over it. Compare the monitor file with the
+  published curves before drawing conclusions. The load signal is noisy while the jet reattaches
+  (spikes around t = 0.43 s); the structural response stays smooth. Reference plots: `tests/fem/reference/`.
+  Around t = 0.53 s the jet hitting the right wall traps air, the time step collapses and the run breaks
+  down. The same happens with a rigid obstacle from DIVEMesh (`S 10`) and `Z 30 0`, so it is the
+  two-phase flow of this coarse closed 2D box, not the coupling; the case therefore stops at 0.5 s.
+* `wall_failure_2D`: dam break (0.4 x 0.4 m column) onto a 30 mm x 0.25 m weak concrete wall
+  (ft 20 kPa). The wall cracks at the base at the impact (t = 0.33 s), topples, breaks into pieces and
+  the fragments and debris particles are carried downstream along the ground (t = 0.6 s: 182 of 300
+  elements eroded, 376 debris particles).
+
 ## Limitations and next steps
 
 * The coupling is staggered (one exchange per fluid step). The enclosed-fluid correction
@@ -179,5 +197,6 @@ g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src 
   for the ghost-cell method would remove this.
 * `loads pressure` neglects shear stresses; `loads reaction` includes the no-slip reaction but its accuracy for skin friction is that of a diffuse immersed boundary.
 * Voxel geometry: surfaces are stair-stepped at the lattice size.
-* Debris particles are point masses with drag and buoyancy, they do not displace fluid.
+* Debris particles are point masses with drag and buoyancy, they do not displace fluid. The drag
+  reaction on the fluid is explicit; very dense debris piles in one cell may need a point-implicit form.
 * Contact: node-node and node-ground only (no node-face contact), plane ground only.

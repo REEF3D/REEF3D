@@ -1727,10 +1727,18 @@ void control::ctrlrecv()
     Q29 = ictrl[ii];
     ii++;
     Q30 = dctrl[dd];
+    ++dd;
+    Q45 = dctrl[dd];
     dd++;
     Q41 = dctrl[dd];
     dd++;
     Q43 = ictrl[ii];
+    ii++;
+    Q44 = ictrl[ii];
+    ii++;
+    Q50 = ictrl[ii];
+    ii++;
+    Q51 = ictrl[ii];
     ii++;
     Q61 = ictrl[ii];
     ii++;

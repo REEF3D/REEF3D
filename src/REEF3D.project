@@ -2233,6 +2233,7 @@
           <File Name="CPM_vollfrac.cpp"/>
           <File Name="CPM_limiter.cpp"/>
           <File Name="CPM_state.cpp"/>
+          <File Name="CPM_coupling.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">
           <VirtualDirectory Name="Parallel">

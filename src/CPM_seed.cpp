@@ -69,7 +69,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     volsum = pgc->globalsum(volsum);
     
     if(cellsum>0.0)
-    P.ParcelFactor = (1.0-p->S24)*volsum/(cellsum*double(nppc)*Vp);
+    P.ParcelFactor = (p->Q45>0.0 ? p->Q45 : 1.0-p->S24)*volsum/(cellsum*double(nppc)*Vp);
     
     if(p->mpirank==0)
     cout<<"CPM ParcelFactor: "<<P.ParcelFactor<<" particles per parcel, parcels per cell: "<<nppc<<endl;
@@ -159,6 +159,12 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     }
     
     wallbc(p,pgc,s);
+    
+    // all parcels fixed (Q 44 1)
+    if(p->Q44==1)
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE)
+    P.Flag[n]=BEDBC;
 }
 
 void CPM::ini_fields(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)

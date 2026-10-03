@@ -31,7 +31,8 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_fdm.h"
 
 // the bed seen by the fluid follows the parcels:
-// topo level set from the solid volume fraction, S 10 1: bed as solid boundary, S 10 2: VRANS porosity 1-theta
+// topo level set from the solid volume fraction, S 10 1: bed as solid boundary,
+// S 10 2: VRANS porosity 1-theta (one-way) or drag of the parcels (two-way, Q 50 1)
 void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto)
 {
     pst->topo_update(p,a,pgc,s);
@@ -50,7 +51,9 @@ void sediment_part::update_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, 
     
     pst->update(p,a,pgc,s,por,d50);
     
-    if(p->S10==2)
+    // S 10 2 one-way: the fluid sees the bed as VRANS porosity
+    // S 10 2 two-way (Q 50 1): the fluid sees the parcels through their drag, no porosity
+    if(p->S10==2 && p->Q50!=1)
     pvrans->sedpart_update(p,a,pgc,por,d50);
     
     pflow->gcio_update(p,a,pgc);

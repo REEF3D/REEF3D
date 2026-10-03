@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"rodtree_coupling.h"
 #include"fem_coupling.h"
 #include"dem.h"
+#include"sediment.h"
 
 momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr), pfem(nullptr)
 {
@@ -123,6 +124,10 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         // DEM: resolved particle forcing and unresolved momentum source
         if(pdem!=nullptr)
         pdem->forcing_cfd(p,a,pgc,iter,alpha,u,v,w,final);
+        
+        // particle sediment (CPM): two-way coupling
+        if(psed!=nullptr)
+        psed->forcing_cfd(p,a,pgc,alpha,u,v,w);
         
         
     // ghostcell update

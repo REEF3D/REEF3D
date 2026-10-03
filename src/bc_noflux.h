@@ -52,4 +52,8 @@ enum
 
 void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what);
 
+// true if face cs of cell (i,j,k) lies on a serial periodic boundary (periodic = 1): DIVEMesh keeps the
+// boundary code of the side (e.g. 21 from C 11) in the ghost-cell lists there, but it is not a wall
+bool bc_periodic_face(lexer *p, int i, int j, int k, int cs);
+
 #endif

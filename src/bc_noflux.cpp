@@ -37,6 +37,9 @@ void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what)
         if(cs<1 || cs>6)
         continue;
 
+        if(bc_periodic_face(p,p->gcb4[n][0],p->gcb4[n][1],p->gcb4[n][2],cs))
+        continue;
+
         bool noflux=false;
 
         if((what & BC_NOFLUX_WALLS) && (bc==3 || bc==5 || bc==21 || bc==22))
@@ -61,4 +64,27 @@ void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what)
         mask[(i-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + k-p->kmin] |= (1<<(cs-1));
         }
     }
+}
+
+bool bc_periodic_face(lexer *p, int i, int j, int k, int cs)
+{
+    if(cs==1 && p->periodic1==1 && i+p->origin_i==0)
+    return true;
+
+    if(cs==4 && p->periodic1==1 && i+p->origin_i==p->gknox-1)
+    return true;
+
+    if(cs==3 && p->periodic2==1 && j+p->origin_j==0)
+    return true;
+
+    if(cs==2 && p->periodic2==1 && j+p->origin_j==p->gknoy-1)
+    return true;
+
+    if(cs==5 && p->periodic3==1 && k+p->origin_k==0)
+    return true;
+
+    if(cs==6 && p->periodic3==1 && k+p->origin_k==p->gknoz-1)
+    return true;
+
+    return false;
 }

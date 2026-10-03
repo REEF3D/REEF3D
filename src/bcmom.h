@@ -50,6 +50,6 @@ private:
 	double uplus,ks_plus,ks,ustar,deltaZ,z0;
 	int ii,jj,kk;
 	double value;
-	int gcval_phi, bckin;
+	int gcval_phi;
 };
 #endif

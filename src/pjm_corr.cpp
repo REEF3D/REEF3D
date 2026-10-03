@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
 #include"density_pst.h"
+#include"CPM.h"
  
 pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
 {
@@ -172,6 +173,17 @@ void pjm_corr::rhs(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, field &
                           -(w.V[IJK] - w.V[IJKm1])/(alpha*p->dt*p->DZN[KP]);
                            
     ++count;
+    }
+    
+    // CPM two-way coupling: mixture continuity, div(u) = -div(theta u_p)
+    if(CPM::coupled!=nullptr)
+    {
+        count=0;
+        LOOP
+        {
+        a->rhsvec.V[count] += CPM::coupled->Dsrc(i,j,k)/(alpha*p->dt);
+        ++count;
+        }
     }
 }
  

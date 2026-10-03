@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"bc_noflux.h"
 
 void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
@@ -97,7 +98,7 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 	}
 
 	GC4LOOP
-	if(p->gcb4[n][4]==21 || p->gcb4[n][4]==5)
+	if((p->gcb4[n][4]==21 || p->gcb4[n][4]==5) && !bc_periodic_face(p,p->gcb4[n][0],p->gcb4[n][1],p->gcb4[n][2],p->gcb4[n][3]))
 	{
 		i=p->gcb4[n][0];
 		j=p->gcb4[n][1];
@@ -127,6 +128,12 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 	pgc->start4(p,kin,20);
 	pgc->start4(p,eps,30);
 	pgc->start4(p,a->eddyv,24);
+
+    // k-omega diffuses k and omega with the unlimited eddy viscosity eddyv0, set before the first step
+    LOOP
+    eddyv0(i,j,k)=a->eddyv(i,j,k);
+
+    pgc->start4(p,eddyv0,24);
 
 }
 

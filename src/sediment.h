@@ -117,6 +117,9 @@ public:
     
     virtual void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) {};
     
+    // momentum source of the particles on the fluid (two-way coupling)
+    virtual void forcing_cfd(lexer*, fdm*, ghostcell*, double, field&, field&, field&) {};
+    
     // particle state for the hotstart
     virtual void state_write(lexer*, int) {};
     virtual void state_read(lexer*, ghostcell*, int) {};

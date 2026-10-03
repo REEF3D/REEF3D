@@ -53,6 +53,16 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // S 10 1: the bed is a solid boundary for the fluid
     if(p->S10!=2)
     nearbed_velocity(p,a,PX[n],PY[n],PZ[n]);
+    
+    // two-way coupling: interstitial velocity u/eps
+    if(p->Q50==1)
+    {
+        double eps = MAX(1.0-p->ccipol4a(Ts,PX[n],PY[n],PZ[n]), 1.0-theta_max);
+        eps = MIN(eps,1.0);
+        uf/=eps;
+        vf/=eps;
+        wf/=eps;
+    }
 
     P.Uf[n] = uf;
     P.Vf[n] = vf;

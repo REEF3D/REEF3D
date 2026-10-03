@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"komega_bc.h"
 #include"fdm.h"
 #include"lexer.h"
+#include"bc_noflux.h"
 
 komega_bc::komega_bc(lexer* p):roughness(p)
 {
@@ -40,7 +41,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	if(gcval==20)
 	{
 		QGC4LOOP
-		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
+		if((p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43) && !bc_periodic_face(p,p->gcb4[q][0],p->gcb4[q][1],p->gcb4[q][2],p->gcb4[q][3]))
 		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
         QGCDF4LOOP
@@ -54,7 +55,7 @@ void komega_bc::bckomega_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	if(gcval==30)
 	{
 		QGC4LOOP
-		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
+		if((p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6)) && !bc_periodic_face(p,p->gcb4[q][0],p->gcb4[q][1],p->gcb4[q][2],p->gcb4[q][3]))
 		wall_law_omega(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
         QGCDF4LOOP
@@ -134,122 +135,66 @@ void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 
 void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-        n=0;
-        LOOP
-        {
-            if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
-            {
-            if(p->IO[Im1JK]!=1)
-            a->rhsvec.V[n] -= a->M.s[n]*kin(i,j,k);
-            a->M.s[n] = 0.0;
-            }
-            
-            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
-            {
-            if(p->IO[Ip1JK]!=1)
-            a->rhsvec.V[n] -= a->M.n[n]*kin(i,j,k);
-            a->M.n[n] = 0.0;
-            }
-            
-            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1 && p->IO[IJm1K]==0)
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*kin(i,j,k);
-            a->M.e[n] = 0.0;
-            }
-            
-            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1 && p->IO[IJp1K]==0)
-            {
-            a->rhsvec.V[n] -= a->M.w[n]*kin(i,j,k);
-            a->M.w[n] = 0.0;
-            }
-            
-            if((p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)) && p->IO[IJKm1]==0)
-            {
-            a->rhsvec.V[n] -= a->M.b[n]*kin(i,j,k);
-            a->M.b[n] = 0.0;
-            }
-            
-            if((p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)) && p->IO[IJKp1]==0)
-            {
-            a->rhsvec.V[n] -= a->M.t[n]*kin(i,j,k);
-            a->M.t[n] = 0.0;
-            }
-            
-        ++n;
-        }
-        
-        
-    // turn off inside direct forcing body
-        n=0;
-        LOOP
-        {
-            if(p->flagsf4[IJK]<0)
-            {
-            a->M.p[n]  =   1.0;
-
-            a->M.n[n] = 0.0;
-            a->M.s[n] = 0.0;
-
-            a->M.w[n] = 0.0;
-            a->M.e[n] = 0.0;
-
-            a->M.t[n] = 0.0;
-            a->M.b[n] = 0.0;
-            
-            a->rhsvec.V[n] = 0.0;
-            }
-        ++n;
-        }
+    bc_matrix(a,p);
 }
 
 void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-    // bc
+    bc_matrix(a,p);
+}
+
+void komega_bc::bc_matrix(fdm* a,lexer* p)
+{
+    // zero normal gradient at walls and solid-forcing boundaries, taken implicitly (M.p += M.x);
+    // inflow ghosts (IO 1) drop the coupling, serial periodic faces keep it (the solver couples them)
+    const bool per_im = p->periodic1==1;
+    const bool per_jm = p->periodic2==1;
+    const bool per_km = p->periodic3==1;
+
         n=0;
         LOOP
         {
-
-            if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
+            if((p->flag4[Im1JK]<0 && !(per_im && i+p->origin_i==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
             if(p->IO[Im1JK]!=1)
-            a->rhsvec.V[n] -= a->M.s[n]*eps(i,j,k);
+            a->M.p[n] += a->M.s[n];
             a->M.s[n] = 0.0;
             }
-            
-            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
+
+            if((p->flag4[Ip1JK]<0 && !(per_im && i+p->origin_i==p->gknox-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
             {
             if(p->IO[Ip1JK]!=1)
-            a->rhsvec.V[n] -= a->M.n[n]*eps(i,j,k);
+            a->M.p[n] += a->M.n[n];
             a->M.n[n] = 0.0;
             }
-            
-            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1 && p->IO[IJm1K]==0)
+
+            if(((p->flag4[IJm1K]<0 && !(per_jm && j+p->origin_j==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1 && p->IO[IJm1K]==0)
             {
-            a->rhsvec.V[n] -= a->M.e[n]*eps(i,j,k);
+            a->M.p[n] += a->M.e[n];
             a->M.e[n] = 0.0;
             }
-            
-            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1 && p->IO[IJp1K]==0)
+
+            if(((p->flag4[IJp1K]<0 && !(per_jm && j+p->origin_j==p->gknoy-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1 && p->IO[IJp1K]==0)
             {
-            a->rhsvec.V[n] -= a->M.w[n]*eps(i,j,k);
+            a->M.p[n] += a->M.w[n];
             a->M.w[n] = 0.0;
             }
-            
-            if((p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)) && p->IO[IJKm1]==0)
+
+            if(((p->flag4[IJKm1]<0 && !(per_km && k+p->origin_k==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)) && p->IO[IJKm1]==0)
             {
-            a->rhsvec.V[n] -= a->M.b[n]*eps(i,j,k);
+            a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
-            
-            if((p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)) && p->IO[IJKp1]==0)
+
+            if(((p->flag4[IJKp1]<0 && !(per_km && k+p->origin_k==p->gknoz-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)) && p->IO[IJKp1]==0)
             {
-            a->rhsvec.V[n] -= a->M.t[n]*eps(i,j,k);
+            a->M.p[n] += a->M.t[n];
             a->M.t[n] = 0.0;
             }
-            ++n;
-            
+
+        ++n;
         }
-        
+
     // turn off inside direct forcing body
         n=0;
         LOOP
@@ -266,7 +211,7 @@ void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 
             a->M.t[n] = 0.0;
             a->M.b[n] = 0.0;
-            
+
             a->rhsvec.V[n] = 0.0;
             }
         ++n;

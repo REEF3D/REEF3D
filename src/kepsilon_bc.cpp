@@ -22,6 +22,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"kepsilon_bc.h"
 #include"fdm.h"
 #include"lexer.h"
+#include"bc_noflux.h"
 
 kepsilon_bc::kepsilon_bc(lexer* p):roughness(p),kappa(0.4)
 {
@@ -38,7 +39,7 @@ void kepsilon_bc::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	if(gcval==20)
 	{
 		QGC4LOOP
-		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21  || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43)
+		if((p->gcb4[q][4]==5 || p->gcb4[q][4]==21  || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43) && !bc_periodic_face(p,p->gcb4[q][0],p->gcb4[q][1],p->gcb4[q][2],p->gcb4[q][3]))
 		wall_law_kin(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
     n=0;
@@ -87,7 +88,7 @@ void kepsilon_bc::bckeps_start(fdm* a,lexer* p,field& kin,field& eps,int gcval)
 	if(gcval==30)
 	{
 		QGC4LOOP
-		if(p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6))
+		if((p->gcb4[q][4]==5 || p->gcb4[q][4]==21 || p->gcb4[q][4]==22 || p->gcb4[q][4]==41 || p->gcb4[q][4]==42 || p->gcb4[q][4]==43  || (p->gcb4[q][4]==3 && p->gcb4[q][3]==6)) && !bc_periodic_face(p,p->gcb4[q][0],p->gcb4[q][1],p->gcb4[q][2],p->gcb4[q][3]))
 		wall_law_eps(a,p,kin,eps,p->gcb4[q][0], p->gcb4[q][1], p->gcb4[q][2], p->gcb4[q][3], p->gcb4[q][4], p->gcb4[q][5],  p->gcd4[q]);
         
     n=0;
@@ -167,7 +168,7 @@ void kepsilon_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 		if(30.0*dist<ks)
 		dist=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(dist/ks));
+		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
 
 	tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
     

@@ -27,6 +27,7 @@ tolerance, plus the probe-by-probe details.
 | `conserved_integral` | volume integral of a dumped field (Σ field·vol, needs the `vol` field of the state dump) | \|I_end − I_start\| / \|I_start\| |
 | `max_abs` | maximum \|field\| in the final state, e.g. `div` (divergence after the projection) | max \|field\| |
 | `channel_startup` | body-force driven laminar channel flow from rest between no-slip walls (exact Fourier-series solution); probes `P 61` | max \|u − u_exact\| / u_max at the last time (`tol_final`) and the earlier times (`tol_transient`) |
+| `log_law` | fully developed rough-wall turbulent flow: velocity at the probes `P 61` against u = (u*/κ) ln(30 z/ks) (or ln(z/z0) with `z0`) at the last time | max \|u − u_log\| / u_log |
 | `wave_height` | free-surface elevation at the wave gauges `P 51` (max − min in `t_start`..`t_end`) against the target height `H` | max \|H_gauge − H\| / H |
 
 ## Cases
@@ -43,6 +44,7 @@ tolerance, plus the probe-by-probe details.
 | `inflow_outflow_2d_div` | single-phase channel with constant-discharge inflow and outflow: divergence-free after the projection, incl. the inflow and outflow columns (~1e-6) |
 | `conc_diffusion_2d_uniform`, `_stretched` | passive concentration blob diffusing in still water (closed tank, 2D), uniform and stretched grid: total amount conserved |
 | `conc_diffusion_2d_walls` | as `_uniform` with the blob in the corner on bed and wall: no-flux walls for the scalar diffusion (was +1.4e-5 per 100 steps with the lagged ghost value) |
+| `turbchannel_2d_komega`, `turbchannel_2d_kepsilon` | rough-wall closed channel (walls at z = 0 and 2 m), periodic in x, k-ω / k-ε with wall functions, 400 s to steady state: log law within 5 % at z = 0.025..0.275 m (k-ω 0.8 %, k-ε 2.7 %); the periodic faces must not be treated as walls by the wall laws, the k-ω boundary matrix and the initialisation |
 | `nwt_2d_stokes2_height` | 2D wave tank (regression case `cfd_2d_nwt` for 24 s), Stokes 2nd order H = 0.02 m: wave height at x = 6, 8, 10 m within 5 % (0.7 % now, before and after the inflow/wave-generation pressure change) |
 
 Set-up notes: the channel cases use `B 20 3` (second-order Dirichlet wall ghost cells) and

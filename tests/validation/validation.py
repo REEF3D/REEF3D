@@ -210,7 +210,30 @@ def check_wave_height(c, rundir):
     return {"ok": err <= ck["tol"], "error": err, "tol": ck["tol"], "rows_text": "\n\n".join(txt)}
 
 
+def check_log_law(c, rundir):
+    """Rough-wall log law u = (u*/kappa) ln(30 z/ks) at the probes (P 61) at the last output time:
+    error = max |u - u_log| / u_log. Parameters u_star, ks, kappa (0.4), z0 (bed level, 0), tol."""
+    ck = c["check"]
+    us, ks, kap, z0 = ck["u_star"], ck["ks"], ck.get("kappa", 0.4), ck.get("z0", 0.0)
+    probes = read_probes(rundir)
+    if not probes:
+        return {"ok": False, "error": float("nan"), "note": "no probe output"}
+    err, txt = 0.0, []
+    for n in sorted(probes):
+        pr = probes[n]
+        if not pr["t"]:
+            return {"ok": False, "error": float("nan"), "note": "empty probe"}
+        z = pr["xyz"][2] - z0
+        u = pr["u"][-1]
+        ul = us / kap * math.log(30.0 * z / ks)
+        e = abs(u - ul) / ul
+        err = max(err, e)
+        txt.append("z = %.3f: u = %.4f, log law %.4f (%+.1f %%), t = %.1f" % (z, u, ul, 100.0 * (u - ul) / ul, pr["t"][-1]))
+    return {"ok": err <= ck["tol"], "error": err, "tol": ck["tol"], "rows_text": "\n\n".join(txt)}
+
+
 CHECKS = {"channel_startup": check_channel_startup,
+          "log_law": check_log_law,
           "wave_height": check_wave_height,
           "max_abs": check_max_abs,
           "conserved_integral": check_conserved_integral}

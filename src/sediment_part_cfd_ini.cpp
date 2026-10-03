@@ -71,6 +71,19 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     pst->ini_fields(p,a,pgc,s);
     pst->print_particles(p,s);
+    
+    // S 10 2 two-way (Q 50 1): the bed is no solid for the fluid, the fluid flows through
+    // the parcels and feels their drag; topo stays as the bed level for output
+    if(p->S10==2 && p->Q50==1 && p->Q11==2)
+    {
+        p->toporead=0;
+        p->topoforcing=0;
+        
+        int G5 = p->G5;
+        p->G5 = 1;
+        pgc->gcdf_update(p,a);
+        p->G5 = G5;
+    }
 
     pgc->gcdf_update(p,a);
 }

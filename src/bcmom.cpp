@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"bcmom.h"
 #include"lexer.h"
+#include"bc_noflux.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
@@ -40,10 +41,6 @@ bcmom::bcmom(lexer* p):surftens(p),roughness(p),kappa(0.4)
 	if(p->F50==4)
 	gcval_phi=54;
 
-
-    bckin=0;
-	if(p->T10>0 || p->T10<20)
-	bckin=1;
 }
 
 bcmom::~bcmom()
@@ -57,7 +54,7 @@ void bcmom::bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field
 	if(gcval==10 && p->B10!=0)
 	{
 	    QGC1LOOP
-		if((p->gcb1[q][4]==5 || p->gcb1[q][4]==21 || p->gcb1[q][4]==22 || p->gcb1[q][4]==41 || p->gcb1[q][4]==42 || p->gcb1[q][4]==43) && p->gcb1[q][3]!=1 && p->gcb1[q][3]!=4)
+		if((p->gcb1[q][4]==5 || p->gcb1[q][4]==21 || p->gcb1[q][4]==22 || p->gcb1[q][4]==41 || p->gcb1[q][4]==42 || p->gcb1[q][4]==43) && p->gcb1[q][3]!=1 && p->gcb1[q][3]!=4 && !bc_periodic_face(p,p->gcb1[q][0],p->gcb1[q][1],p->gcb1[q][2],p->gcb1[q][3]))
 		wall_law_u(a,p,pturb,b,p->gcb1[q][0], p->gcb1[q][1], p->gcb1[q][2], p->gcb1[q][3], p->gcb1[q][4], p->gcd1[q]);
         
         QGCDF1LOOP
@@ -67,7 +64,7 @@ void bcmom::bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field
 	if(gcval==11 && p->B10!=0 && p->j_dir==1)
 	{
 		QGC2LOOP
-		if((p->gcb2[q][4]==5 || p->gcb2[q][4]==21 || p->gcb2[q][4]==22 || p->gcb2[q][4]==41 || p->gcb2[q][4]==42 || p->gcb2[q][4]==43) && p->gcb2[q][3]!=2 && p->gcb2[q][3]!=3)
+		if((p->gcb2[q][4]==5 || p->gcb2[q][4]==21 || p->gcb2[q][4]==22 || p->gcb2[q][4]==41 || p->gcb2[q][4]==42 || p->gcb2[q][4]==43) && p->gcb2[q][3]!=2 && p->gcb2[q][3]!=3 && !bc_periodic_face(p,p->gcb2[q][0],p->gcb2[q][1],p->gcb2[q][2],p->gcb2[q][3]))
 		wall_law_v(a,p,pturb,b,p->gcb2[q][0], p->gcb2[q][1], p->gcb2[q][2], p->gcb2[q][3], p->gcb2[q][4], p->gcd2[q]);
         
         QGCDF2LOOP
@@ -77,7 +74,7 @@ void bcmom::bcmom_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb,field
 	if(gcval==12 && p->B10!=0)
 	{
 		QGC3LOOP
-		if((p->gcb3[q][4]==5 || p->gcb3[q][4]==21 || p->gcb3[q][4]==22 || p->gcb3[q][4]==41 || p->gcb3[q][4]==42 || p->gcb3[q][4]==43) && p->gcb3[q][3]!=5 && p->gcb3[q][3]!=6)
+		if((p->gcb3[q][4]==5 || p->gcb3[q][4]==21 || p->gcb3[q][4]==22 || p->gcb3[q][4]==41 || p->gcb3[q][4]==42 || p->gcb3[q][4]==43) && p->gcb3[q][3]!=5 && p->gcb3[q][3]!=6 && !bc_periodic_face(p,p->gcb3[q][0],p->gcb3[q][1],p->gcb3[q][2],p->gcb3[q][3]))
 		wall_law_w(a,p,pturb,b,p->gcb3[q][0], p->gcb3[q][1], p->gcb3[q][2], p->gcb3[q][3], p->gcb3[q][4], p->gcd3[q]);
         
         QGCDF3LOOP
@@ -107,7 +104,7 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(z0/ks));
+		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(z0/ks)));
     
 	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*deltaZ));
 }
@@ -131,7 +128,7 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(z0/ks));
+		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(z0/ks)));
 
 	a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus*deltaZ));
 }
@@ -155,7 +152,7 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(z0/ks));
+		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(z0/ks)));
 
 	a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus*deltaZ));
 }

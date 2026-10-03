@@ -100,8 +100,11 @@ void  kepsilon_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
     LOOP
     {
 	if(wallf(i,j,k)==0)
-	a->rhsvec.V[count]  += pk(p,a,a->eddyv)
-						- MAX(eps(i,j,k),0.0);
+	{
+    // dissipation implicit as (eps/k) k (keeps k positive, as cmu omega k in k-omega)
+    a->M.p[count] += MAX(eps(i,j,k),0.0)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+	a->rhsvec.V[count]  += pk(p,a,a->eddyv);
+	}
 	
 	++count;
     }

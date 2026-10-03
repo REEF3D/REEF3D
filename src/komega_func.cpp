@@ -243,7 +243,17 @@ void komega_func::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,eddyv0);
+        // alpha omega/k P(nu_t0): with nu_t0 = k/omega this is alpha S^2; it is bounded by alpha S^2 where
+        // nu_t0 exceeds k/omega (the lower clip 1e-4 nu when k -> 0), otherwise omega/k blows up
+        const double ratio = MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+        const double pk0 = pk(p,a,eddyv0);
+
+        if(ratio*eddyv0(i,j,k)<=1.0)
+        a->rhsvec.V[count] +=  kw_alpha * ratio * pk0;
+
+        if(ratio*eddyv0(i,j,k)>1.0)
+        a->rhsvec.V[count] +=  kw_alpha * pk0/eddyv0(i,j,k);
+
         ++count;
         }
 

@@ -38,6 +38,7 @@ class fsi;
 class rodtree_coupling;
 class fem_coupling;
 class dem;
+class sediment;
 
 using namespace std;
 
@@ -51,6 +52,7 @@ public:
 
     // DEM coupling, set by the CFD driver (shared by all momentum schemes)
     inline static dem *pdem = nullptr;
+    inline static sediment *psed = nullptr;
 
 private:
 	double uplus,ks_plus,dist,ks,ustar;

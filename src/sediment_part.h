@@ -143,6 +143,8 @@ private:
     
     void print_3D_CPM(lexer*, ghostcell*,  std::vector<char>&, size_t&) override final;
     
+    void forcing_cfd(lexer*, fdm*, ghostcell*, double, field&, field&, field&) override final;
+    
     void state_write(lexer*, int) override final;
     void state_read(lexer*, ghostcell*, int) override final;
     void name_ParaView_parallel_CPM(lexer*, ofstream&) override final;

@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p),
-                                               cellSum(p), Us(p), Vs(p), Ws(p), Pov(p), dSx(p), dSy(p), dSz(p), Locc(p), Lout(p), Lin(p), Ltc(p), Lloc(p), LA(p), Lh0(p), Lh1(p), Lh2(p), Lh3(p),
+                                               cellSum(p), Us(p), Vs(p), Ws(p), Pov(p), Kc(p), KUx(p), KUy(p), KUz(p), Dsrc(p), dSx(p), dSy(p), dSz(p), Locc(p), Lout(p), Lin(p), Ltc(p), Lloc(p), LA(p), Lh0(p), Lh1(p), Lh2(p), Lh3(p),
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p)
 {
     relax_ini(p);
@@ -69,6 +69,9 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), Tau(p), Ts(p),
     // vertical domain decomposition
     zsplit = pgc->globalimax((p->nb5>=0 || p->nb6>=0) ? 1 : 0);
     epsi=p->psi;
+    
+    if(p->Q50==1 && p->Q11==2)
+    coupled = this;
 
     // packed bed parameters
     theta_max = p->Q32>0.0 ? p->Q32 : (1.0-p->S24) + 0.035;

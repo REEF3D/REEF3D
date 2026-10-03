@@ -889,6 +889,10 @@ void control::ini_default()
     Q30=0.58;           // double friction factor
     Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts
+    Q45=-1.0;           // double solid fraction of the seeded region, default 1-S 24
+    Q44=0;              // int all parcels fixed (e.g. flow through a fixed bed), 0 off, 1 on
+    Q50=0;              // int fluid coupling of the parcels: 0 one-way, 1 two-way (drag reaction on the fluid, mixture continuity in the pressure equation)
+    Q51=1;              // int drag law: 1 Andrews & O'Rourke (1996), 2 Gidaspow (Ergun below fluid fraction 0.8, Wen & Yu above)
     Q61=0;              // point source x,y,z, iterations between particles
     Q73=0;              // int relax 
     Q101=0;             // int ini particle as topo

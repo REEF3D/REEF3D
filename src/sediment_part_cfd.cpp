@@ -61,6 +61,11 @@ void sediment_part::print_particles(lexer* p, sediment_fdm *s)
     pst->print_particles(p,s);
 }
 
+void sediment_part::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, field &u, field &v, field &w)
+{
+    pst->fluid_forcing(p,a,pgc,alpha,u,v,w);
+}
+
 void sediment_part::state_write(lexer *p, int num)
 {
     pst->state_write(p,num);
