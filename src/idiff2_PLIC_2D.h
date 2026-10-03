@@ -24,6 +24,8 @@ Author: Fabian Knoblauch
 #include"diffusion.h"
 #include<vector>
 
+class diff_wallghost;
+
 using namespace std;
 
 #ifndef IDIFF2_PLIC_2D_H_
@@ -58,6 +60,7 @@ private:
 	double ev_im_j_k, ev_ip_j_k, ev_i_jm_k, ev_i_jp_k, ev_i_j_km, ev_i_j_kp, ev_ip_j_kp,ev_ip_j_km,ev_im_j_kp;
 	double visc_im_j_k, visc_ip_j_k, visc_i_jm_k, visc_i_jp_k, visc_i_j_km, visc_i_j_kp;
 	std::vector<int> noflux;
+	diff_wallghost *pwall;
 	
 };
 #endif

@@ -1,5 +1,5 @@
 {
- "description": "Single-phase 2D channel between no-slip walls with constant-discharge inflow (B 60 1, W 10 = 0.025 m3/s through the 1 m x 0.05 m inflow, i.e. 0.5 m/s) and outflow. After the projection the velocity must be divergence-free in every cell, including the inflow and outflow columns: max |div u|. Before the inflow fix the inflow column had |div| = 0.29; the remaining ~1e-3 is in the outflow column (outflow velocity boundary condition, not corrected by the projection) - tolerance 2e-3 until the outflow is reworked.",
+ "description": "Single-phase 2D channel between no-slip walls with constant-discharge inflow (B 60 1, W 10 = 0.025 m3/s through the 1 m x 0.05 m inflow, i.e. 0.5 m/s) and outflow. After the projection the velocity must be divergence-free in every cell, including the inflow and outflow columns: max |div u|. History: 0.29 in the inflow column before the Neumann pressure correction at the inflow, 9e-4 in the outflow column until the implicit diffusion coupled the wall/outflow ghost cells implicitly; now ~1e-6.",
  "np": 1,
  "steps": 60,
  "tags": [
@@ -11,6 +11,6 @@
  "check": {
   "type": "max_abs",
   "field": "div",
-  "tol": 0.002
+  "tol": 1e-05
  }
 }

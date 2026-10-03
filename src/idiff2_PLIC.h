@@ -27,6 +27,8 @@ Author: Fabian Knoblauch
 #include"diffusion.h"
 #include<vector>
 
+class diff_wallghost;
+
 class rheology;
 
 using namespace std;
@@ -61,6 +63,7 @@ private:
     double ev_ip_jp_k,ev_ip_jm_k,ev_ip_j_kp,ev_ip_j_km,ev_im_jp_k,ev_i_jp_kp,ev_i_jp_km,ev_im_j_kp,ev_i_jm_kp;
 	double visc_im_j_k, visc_ip_j_k, visc_i_jm_k, visc_i_jp_k, visc_i_j_km, visc_i_j_kp;
 	std::vector<int> noflux;
+	diff_wallghost *pwall;
 	
 };
 #endif

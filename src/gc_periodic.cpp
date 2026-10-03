@@ -124,3 +124,53 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
         f(i,j,k+3) = val3;
     }
 }
+
+// serial periodic directions (periodic = 1): copy the first ghost layer of an ijk array
+// (iterates of the ijk solvers), as gc_periodic does for fields
+void ghostcell::gc_periodic_ijk(lexer *p, double *f)
+{
+    if(p->periodic1==1)
+    for(j=0; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        i=-1;
+        int g = IJK;
+        i=p->knox-1;
+        f[g] = f[IJK];
+
+        i=p->knox;
+        g = IJK;
+        i=0;
+        f[g] = f[IJK];
+    }
+
+    if(p->periodic2==1)
+    for(i=0; i<p->knox; ++i)
+    for(k=0; k<p->knoz; ++k)
+    {
+        j=-1;
+        int g = IJK;
+        j=p->knoy-1;
+        f[g] = f[IJK];
+
+        j=p->knoy;
+        g = IJK;
+        j=0;
+        f[g] = f[IJK];
+    }
+
+    if(p->periodic3==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    {
+        k=-1;
+        int g = IJK;
+        k=p->knoz-1;
+        f[g] = f[IJK];
+
+        k=p->knoz;
+        g = IJK;
+        k=0;
+        f[g] = f[IJK];
+    }
+}

@@ -483,11 +483,11 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
                 
     VLOOP
 	roy_rk2(i,j,k) = 0.75*roy(i,j,k) + 0.25*roy_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->G(i,j,k);
+				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
 	roz_rk2(i,j,k) = 0.75*roz(i,j,k) + 0.25*roz_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->H(i,j,k);
+				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
     
     clear_FGH(p,a);
     
@@ -705,7 +705,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     VLOOP
     My(i,j,k) = (1.0/3.0)*My(i,j,k) + (2.0/3.0)*My_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->G(i,j,k);
+				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
     
     WLOOP
     Mz(i,j,k) = (1.0/3.0)*Mz(i,j,k) + (2.0/3.0)*Mz_rk2(i,j,k)

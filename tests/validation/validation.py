@@ -16,6 +16,7 @@ Usage
   ./validation.py run   --reef3d BIN --divemesh DM --out DIR [--cases 'channel_*'] [--tags ...]
   ./validation.py check DIR [--cases ...]          # evaluate an existing run
   ./validation.py run ... --check                  # run + evaluate
+  ./validation.py compare REF_RUN NEW_RUN          # bitwise A/B of two runs (as regression.py compare)
 
 Result per case: PASS / FAIL with the error measure of the checker and its tolerance.
 Pure Python 3 standard library.
@@ -268,6 +269,9 @@ def main():
     p.add_argument("--check", action="store_true", help="evaluate after running")
     p = sub.add_parser("check"); p.add_argument("run"); p.add_argument("--cases", nargs="*")
     p.add_argument("--tags", nargs="*")
+    p = sub.add_parser("compare"); p.add_argument("ref"); p.add_argument("new"); p.add_argument("--cases", nargs="*")
+    p.add_argument("--rtol", type=float, default=1e-6); p.add_argument("--atol", type=float, default=1e-12)
+    p.add_argument("--require", choices=R.LEVELS, default="identical"); p.add_argument("--report")
     a = ap.parse_args()
 
     if a.cmd == "list":
@@ -279,6 +283,9 @@ def main():
         if a.check:
             rc |= evaluate(R.select_cases(a.cases, a.tags), a.out)
         return rc
+    if a.cmd == "compare":
+        a.cases_list = None
+        return R.cmd_compare(a)
     if a.cmd == "check":
         names = [n for n in R.select_cases(a.cases, a.tags) if os.path.isdir(os.path.join(a.run, n))]
         return evaluate(names, a.run)

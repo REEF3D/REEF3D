@@ -7,8 +7,5 @@
  "tags": [
   "diffusion",
   "convergence"
- ],
- "check_set": {
-  "tol_transient": 0.02
- }
+ ]
 }

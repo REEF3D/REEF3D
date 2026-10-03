@@ -193,6 +193,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.h"/>
+            <File Name="diff_wallghost.h"/>
             <File Name="bc_noflux.h"/>
             <File Name="poisson.h"/>
           </VirtualDirectory>
@@ -213,17 +214,11 @@
           <File Name="momentum_void.h"/>
           <File Name="momentum_RKLS3_sf.h"/>
           <File Name="momentum_RKLS3_df.h"/>
-          <File Name="momentum_RKLS3.h"/>
+          <File Name="momentum_rk.h"/>
           <File Name="momentum_RK3_PLIC.h"/>
-          <File Name="momentum_RK3.h"/>
-          <File Name="momentum_RK2.h"/>
           <File Name="momentum_forcing.h"/>
-          <File Name="momentum_FCLS3.h"/>
           <File Name="momentum_FCC3_PLIC.h"/>
-          <File Name="momentum_FCC3.h"/>
           <File Name="momentum_FC3_PLIC.h"/>
-          <File Name="momentum_FC3.h"/>
-          <File Name="momentum_FC2.h"/>
           <File Name="momentum.h"/>
           <File Name="bcmom.h"/>
         </VirtualDirectory>
@@ -1583,6 +1578,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.cpp"/>
+            <File Name="diff_wallghost.cpp"/>
             <File Name="bc_noflux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
@@ -1601,16 +1597,10 @@
           <File Name="momentum_void.cpp"/>
           <File Name="momentum_RKLS3_sf.cpp"/>
           <File Name="momentum_RKLS3_df.cpp"/>
-          <File Name="momentum_RKLS3.cpp"/>
+          <File Name="momentum_rk.cpp"/>
           <File Name="momentum_RK3_PLIC.cpp"/>
-          <File Name="momentum_RK3.cpp"/>
-          <File Name="momentum_RK2.cpp"/>
-          <File Name="momentum_FCLS3.cpp"/>
           <File Name="momentum_FCC3_PLIC.cpp"/>
-          <File Name="momentum_FCC3.cpp"/>
           <File Name="momentum_FC3_PLIC.cpp"/>
-          <File Name="momentum_FC3.cpp"/>
-          <File Name="momentum_FC2.cpp"/>
           <VirtualDirectory Name="Forcing">
             <File Name="momentum_forcing.cpp"/>
           </VirtualDirectory>

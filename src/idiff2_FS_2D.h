@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include"diffusion.h"
 #include<vector>
 
+class diff_wallghost;
+
 using namespace std;
 
 class idiff2_FS_2D final : public diffusion, public increment
@@ -45,7 +47,13 @@ public:
 	void diff_v(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
 	void diff_w(lexer*, fdm*, ghostcell*, solver*, field&, field&, field&, field&, field&, double) override final;
 
+    bool apply_available() override final {return true;}
+    void apply_u(lexer*, fdm*, ghostcell*, field&, field&, field&, field&) override final;
+    void apply_w(lexer*, fdm*, ghostcell*, field&, field&, field&, field&) override final;
+
 private:
+    void assemble_u(lexer*, fdm*, ghostcell*, field&, field&, field&, field&, double);
+    void assemble_w(lexer*, fdm*, ghostcell*, field&, field&, field&, field&, double);
 
 	double D;
 	double time,starttime,endtime;
@@ -56,6 +64,7 @@ private:
 	double ev_im_j_k, ev_ip_j_k, ev_i_jm_k, ev_i_jp_k, ev_i_j_km, ev_i_j_kp;
 	double visc_im_j_k, visc_ip_j_k, visc_i_jm_k, visc_i_jp_k, visc_i_j_km, visc_i_j_kp;
 	std::vector<int> noflux;
+	diff_wallghost *pwall;
 	
 };
 #endif

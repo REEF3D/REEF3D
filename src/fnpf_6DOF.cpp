@@ -135,6 +135,7 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     pgc->gcparax7(p,c->U,7);
     pgc->gcparax7(p,c->V,7);
     pgc->gcparax7(p,c->W,7);
+    body_velocities(g0,pgc);
     
     if(amr_on())
     {
@@ -145,7 +146,10 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
         
         reefamr_comms_off guard(pgc);
         for(auto &G : gp)
+        {
         G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
+        body_velocities(G,pgc);
+        }
         
         forces_amr(p,c,pgc,psolv,pf,Keta,Kfi,iter);
     }
@@ -174,6 +178,103 @@ void fnpf_6DOF::surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
 {
     if(initialized)
     footprint(g0,pgc,eta,Fifsf,gcval_eta,gcval_fifsf);
+}
+
+void fnpf_6DOF::velocity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(initialized)
+    body_velocities(g0,pgc);
+}
+
+void fnpf_6DOF::body_velocities(fnpf_6DOF_grid &G, ghostcell *pgc)
+{
+    // Velocities at the body nodes, layer by layer from the fluid inwards: the average of the
+    // fluid (or already filled) neighbours.  velcalc_sig differentiates the body-band values
+    // of Fi there with 4th-order stencils that reach two nodes into the body, where the
+    // extrapolation is only a continuation; at the free-surface node of a footprint column
+    // W is Fz from the extended Fifsf over the body interior.  Both gave |U|,|W| of several
+    // m/s that alternate from column to column (moored box, X 311, from about 7 s on: 4-5
+    // m/s with a body velocity of 0.2-0.5 m/s).  The hull loads sample U,V,W half a cell off
+    // the hull with trilinear weights that include these nodes, and umax/wmax (time step,
+    // N 61 stop, output) took them up.  The fluid velocity continued into the body keeps the
+    // slip velocity at the hull and the normal velocity of the fluid next to it.
+    // On a patch (mesh refinement) the fill is local to the patch.
+    lexer *p = G.p;
+    fdm_fnpf *c = G.c;
+    int *mark = G.mark;
+    double *U = c->U, *V = c->V, *W = c->W;
+    const double *FBF = c->FBF;
+    const int size = p->imax*p->jmax*(p->kmax+2);
+    const int sI = p->jmax*p->kmaxF;
+    const int sJ = p->kmaxF;
+    
+    for(int n=0; n<size; ++n)
+    mark[n]=0;
+    
+    const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
+    
+    for(int pass=0; pass<maxpass; ++pass)
+    {
+        int filled=0;
+        
+        ILOOP
+        JLOOP
+        FKLOOP
+        {
+            const int q = FIJK;
+            
+            if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
+            {
+                int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+                int nn = 6;
+                
+                if(p->j_dir==0)
+                {
+                nbr[2] = q-1;
+                nbr[3] = q+1;
+                nn = 4;
+                }
+                
+                double su=0.0, sv=0.0, sw=0.0;
+                int cnt=0;
+                
+                for(int m=0; m<nn; ++m)
+                {
+                    const int r = nbr[m];
+                    
+                    if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
+                    {
+                    su += U[r];
+                    sv += V[r];
+                    sw += W[r];
+                    ++cnt;
+                    }
+                }
+                
+                if(cnt>0)
+                {
+                U[q] = su/double(cnt);
+                V[q] = sv/double(cnt);
+                W[q] = sw/double(cnt);
+                mark[q] = pass+1;
+                ++filled;
+                }
+            }
+        }
+        
+        if(G.l0)
+        {
+        pgc->gcparax7(p,U,7);
+        pgc->gcparax7(p,V,7);
+        pgc->gcparax7(p,W,7);
+        pgc->gcparax7int(p,mark,7);
+        
+        filled = pgc->globalisum(filled);
+        }
+        
+        if(filled==0)
+        break;
+    }
 }
 
 fnpf_6DOF::~fnpf_6DOF()

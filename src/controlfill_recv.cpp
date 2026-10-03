@@ -963,6 +963,8 @@ void control::ctrlrecv()
     ii++;
     D22 = ictrl[ii];
     ii++;
+    D23 = ictrl[ii];
+    ii++;
     D30 = ictrl[ii];
     ii++;
     D31 = ictrl[ii];

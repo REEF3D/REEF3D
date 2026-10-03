@@ -186,8 +186,6 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
 	
 	pflow->phi_relax(p,pgc,frk1);
 	
-	pflow->phi_relax(p,pgc,frk1);
-	
 	pgc->start4(p,frk1,gcval_phi);
     p->F44=2;
     preini->start(a,p,frk1, pgc, pflow);
@@ -492,11 +490,11 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
                 
     VLOOP
 	roy_rk2(i,j,k) = 0.75*roy(i,j,k) + 0.25*roy_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->G(i,j,k);
+				+ 0.25*p->dt*CPOR2*a->G(i,j,k);
                 
     WLOOP
 	roz_rk2(i,j,k) = 0.75*roz(i,j,k) + 0.25*roz_rk1(i,j,k)
-				+ 0.25*p->dt*CPOR1*a->H(i,j,k);
+				+ 0.25*p->dt*CPOR3*a->H(i,j,k);
     
         // clear_FGH
     clear_FGH(p,a);
@@ -683,7 +681,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     // advect M    
     pconvec->start(p,a,Mx_rk2,1,urk2,vrk2,wrk2);
     pconvec->start(p,a,My_rk2,2,urk2,vrk2,wrk2);
-    pconvec->start(p,a,Mz_rk2,3,urk1,vrk1,wrk1);
+    pconvec->start(p,a,Mz_rk2,3,urk2,vrk2,wrk2);
     
     ULOOP
     Mx(i,j,k) = (1.0/3.0)*Mx(i,j,k) + (2.0/3.0)*Mx_rk2(i,j,k)
@@ -691,7 +689,7 @@ void momentum_FCC3::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdo
     
     VLOOP
     My(i,j,k) = (1.0/3.0)*My(i,j,k) + (2.0/3.0)*My_rk2(i,j,k)
-				+ (2.0/3.0)*p->dt*CPOR3*a->G(i,j,k);
+				+ (2.0/3.0)*p->dt*CPOR2*a->G(i,j,k);
     
     WLOOP
     Mz(i,j,k) = (1.0/3.0)*Mz(i,j,k) + (2.0/3.0)*Mz_rk2(i,j,k)

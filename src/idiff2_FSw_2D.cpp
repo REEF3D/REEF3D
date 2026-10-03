@@ -25,17 +25,35 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"diff_wallghost.h"
 
 void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &w_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
 	
-	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
     
     WLOOP
     diff(i,j,k) = w_in(i,j,k);
     
 	pgc->start3(p,diff,gcval_w);
+
+    assemble_w(p,a,pgc,w_in,u,v,w,alpha);
+
+	psolv->start(p,a,pgc,diff,a->rhsvec,3);
+
+    
+	pgc->start3(p,diff,gcval_w);
+	
+	time=pgc->timer()-starttime;
+	p->witer=p->solveriter;
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+	cout<<"wdiffiter: "<<p->witer<<"  wdifftime: "<<setprecision(3)<<time<<endl;
+}
+
+// matrix and rhs of the implicit diffusion of w (into a->M, a->rhsvec, which must be zero)
+void idiff2_FS_2D::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field &u, field &v, field &w, double alpha)
+{
+	double visc_ddx_p,visc_ddx_m,visc_ddy_p,visc_ddy_m;
 
 	n=0;
 
@@ -94,27 +112,27 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
         if(p->DF3[IJK]>0)
         {
             
-		if(p->flag3[Im1JK]<0 || p->DF3[Im1JK]<0)
+		if((p->flag3[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0)) || p->DF3[Im1JK]<0)
 		{
-		a->rhsvec.V[n] -= a->M.s[n]*w(i,j,k);
+		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag3[Ip1JK]<0 || p->DF3[Ip1JK]<0)
+		if((p->flag3[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)) || p->DF3[Ip1JK]<0)
 		{
-		a->rhsvec.V[n] -= a->M.n[n]*w(i,j,k);
+		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 
-		if(p->flag3[IJKm1]<0 || p->DF3[IJKm1]<0)
+		if((p->flag3[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0)) || p->DF3[IJKm1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.b[n]*w(i,j,k);
+		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag3[IJKp1]<0 || p->DF3[IJKp1]<0)
+		if((p->flag3[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)) || p->DF3[IJKp1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k);
+		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
 		}
         
@@ -127,29 +145,57 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
     
     if(p->D22==2)
     {
+    // walls: couple the ghost cell to the new values (instead of the old stage field)
+    double c1,c2;
+    pwall->update(p,pgc,2,gcval_w);
+
     n=0;
     WLOOP
 	{      
-		if(p->flag3[Im1JK]<0)
+		if(p->flag3[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,1,c1,c2) && (c2==0.0 || p->flag3[Ip1JK]>0))
+		{
+		a->M.p[n] += a->M.s[n]*c1;
+		a->M.n[n] += a->M.s[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.s[n]*w(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag3[Ip1JK]<0)
+		if(p->flag3[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,4,c1,c2) && (c2==0.0 || p->flag3[Im1JK]>0))
+		{
+		a->M.p[n] += a->M.n[n]*c1;
+		a->M.s[n] += a->M.n[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.n[n]*w(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 
-		if(p->flag3[IJKm1]<0)
+		if(p->flag3[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,5,c1,c2) && (c2==0.0 || p->flag3[IJKp1]>0))
+		{
+		a->M.p[n] += a->M.b[n]*c1;
+		a->M.t[n] += a->M.b[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.b[n]*w(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag3[IJKp1]<0)
+		if(p->flag3[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,6,c1,c2) && (c2==0.0 || p->flag3[IJKm1]>0))
+		{
+		a->M.p[n] += a->M.t[n]*c1;
+		a->M.b[n] += a->M.t[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.t[n]*w(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
@@ -158,15 +204,36 @@ void idiff2_FS_2D::diff_w(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field
 	++n;
 	}
     }
+}
 
+// explicit evaluation of the same operator at the velocities u, v, w: residual of the
+// system assembled with w_in = w, divided by CPOR
+void idiff2_FS_2D::apply_w(lexer* p, fdm* a, ghostcell *pgc, field &D, field &u, field &v, field &w)
+{
+    int q=0;
+    WLOOP
+    {
+    a->rhsvec.V[q]=0.0;
+    ++q;
+    }
 
-	psolv->start(p,a,pgc,diff,a->rhsvec,3);
+    assemble_w(p,a,pgc,w,u,v,w,1.0);
 
-    
-	pgc->start3(p,diff,gcval_w);
-	
-	time=pgc->timer()-starttime;
-	p->witer=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"wdiffiter: "<<p->witer<<"  wdifftime: "<<setprecision(3)<<time<<endl;
+    q=0;
+    WLOOP
+    {
+    D(i,j,k) = (a->rhsvec.V[q] - (a->M.p[q]*w(i,j,k)
+                + a->M.s[q]*w(i-1,j,k)
+                + a->M.n[q]*w(i+1,j,k)
+                + a->M.b[q]*w(i,j,k-1)
+                + a->M.t[q]*w(i,j,k+1)))/CPOR3;
+    ++q;
+    }
+
+    q=0;
+    WLOOP
+    {
+    a->rhsvec.V[q]=0.0;
+    ++q;
+    }
 }

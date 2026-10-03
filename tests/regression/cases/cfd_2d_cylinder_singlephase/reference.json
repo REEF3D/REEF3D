@@ -262,7 +262,7 @@
   0.006838301559665156,
   0.006847755271658198
  ],
- "blessed_from": "/home/claude/build/REEF3D_scalarwall",
- "date": "2026-10-02",
- "note": "after pressure-correction Neumann at inflow/wave generation (phase 6, on hans_dev 2f72e23b6); Linux x86-64 gcc 13 / OpenMPI 4.1, -O2 -ffp-contract=off"
+ "blessed_from": "/home/claude/build/REEF3D_imex4",
+ "date": "2026-10-03",
+ "note": "phase 7: FCC3 stage fixes, implicit wall/periodic coupling in the implicit diffusion, second-order implicit diffusion (D 23 2); Linux x86-64 gcc 13 / OpenMPI 4.1, -O2 -ffp-contract=off"
 }
