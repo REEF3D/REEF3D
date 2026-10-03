@@ -130,7 +130,8 @@ struct membrane_param
     double Mbody=-1.0;                      // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
 
     // fluid-structure coupling of a flexible membrane
-    int coupling=0;                         // 0 staggered (once per step, implicit porous damper), 1 iterated per stage
+    int coupling=-1;                        // 0 staggered (once per step, implicit porous damper), 1 iterated per stage,
+                                            // -1 not given: iterated for a flexible membrane
     double crtol=1.0e-3;                    // iterated: relative tolerance of the node velocities
     double catol=1.0e-5;                    //           absolute tolerance [m/s] (rms)
     int citer=50;                           //           maximum iterations per stage
@@ -173,6 +174,7 @@ public:
     void set_body(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
     void body_load(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&) const;
     double body_addedmass(lexer*) const;
+    Eigen::Matrix3d body_addedinertia(lexer*) const;
     Eigen::Matrix3d body_stiffness() const {return (moving() && body_) ? Eigen::Matrix3d(Jb_.block<3,3>(0,0)) : Eigen::Matrix3d::Zero();}
 
     // initial inner water level
@@ -306,6 +308,7 @@ private:
     Eigen::Vector3d cb_=Eigen::Vector3d::Zero(), vb_=Eigen::Vector3d::Zero(), wb_=Eigen::Vector3d::Zero();
     Eigen::Matrix3d Rb_=Eigen::Matrix3d::Identity();
     Eigen::Vector3d Fb_=Eigen::Vector3d::Zero(), Mb_=Eigen::Vector3d::Zero();   // load on the body, moment about the origin
+    Eigen::Matrix3d Iab_=Eigen::Matrix3d::Zero();                           // 2 rho x inertia of the bag water about the CoG, body frame
     Eigen::Matrix<double,6,6> Jb_=Eigen::Matrix<double,6,6>::Zero();            // d(F, M_origin)/d(body translation, rotation)
     Eigen::Vector3d Ffl_=Eigen::Vector3d::Zero(), Mfl_=Eigen::Vector3d::Zero(); // fluid load on the attached edge (flexible), every stage
     Eigen::Vector3d cbn_=Eigen::Vector3d::Zero();                               // body position and orientation of Fb_, Mb_

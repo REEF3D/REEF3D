@@ -61,6 +61,11 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         cout<<"Membrane "<<nMem<<": structure rigid without floating body (X 10), the membrane stays in place"<<endl;
     }
     
+    // default coupling of a flexible membrane: iterated. The staggered scheme gives the fabric an extra inertia
+    // ~ rho R_n dt per area, so its dynamics depend on the time step; it stays available as 'coupling staggered'
+    if(prm.coupling<0)
+    prm.coupling = prm.structure==2 ? 1 : 0;
+    
     if(prm.coupling==1 && prm.structure!=2 && p->mpirank==0)
     cout<<"Membrane "<<nMem<<": coupling iterated applies to flexible membranes only, ignored"<<endl;
     
@@ -654,6 +659,14 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(k=0; k<p->knoz; ++k)
             {
                 if(p->flag4[IJK]<=0)
+                continue;
+
+                // inside a floating body (X 10, level set FB < 0): the direct forcing of the body sets the velocity
+                // there and the part of the membrane inside the body (the edge clamped in the collar) is carried by
+                // it. A membrane resistance in these cells acts against the body forcing: the projected velocity
+                // differs from the body velocity before the reforcing, the layer turns that into a load K (u - u_m)
+                // on the attached nodes, which goes to the body (3D ring collar: diverged in the first steps)
+                if(p->X10>0 && d->FB[IJK]<0.0)
                 continue;
 
                 const double zp = p->ZSP[IJK];

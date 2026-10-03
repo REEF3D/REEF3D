@@ -31,6 +31,15 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
     control::read_control(this);
 
+#ifdef REEF3D_NO_HYPRE
+    // built without hypre (make NO_HYPRE=1): the hypre solvers N 10 10-39 are replaced by REEFMG (N 10 1)
+    if(mpirank==0 && N10>=10)
+    {
+        std::cout<<"N 10 "<<N10<<": this build has no hypre (NO_HYPRE=1), using REEFMG (N 10 1)"<<std::endl;
+        N10=1;
+    }
+#endif
+
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);
 

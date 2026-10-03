@@ -55,7 +55,12 @@ endif()
 find_package(MPI REQUIRED CXX)
 
 # ── HYPRE ────────────────────────────────────────────────────────────────────
+# -DREEF3D_USE_HYPRE=OFF builds without hypre: the hypre_* solver classes are left out and
+# N 10 10-39 falls back to REEFMG (N 10 1).
 
+option(REEF3D_USE_HYPRE "Build with the hypre solvers (N 10 10-39)" ON)
+
+if(REEF3D_USE_HYPRE)
 set(HYPRE_DIR "/usr/local/hypre" CACHE PATH "HYPRE installation prefix")
 
 find_library(_HYPRE_LIB NAMES HYPRE HINTS "${HYPRE_DIR}/lib" NO_DEFAULT_PATH)
@@ -78,6 +83,9 @@ else()
   FetchContent_MakeAvailable(hypre_src)
   # HYPRE's CMake exposes target "HYPRE"
   add_library(HYPRE::HYPRE ALIAS HYPRE)
+endif()
+else()
+  message(STATUS "Building without HYPRE: Poisson solves with REEFMG (N 10 1)")
 endif()
 
 # ── Eigen ─────────────────────────────────────────────────────────────────────
@@ -109,6 +117,9 @@ target_compile_definitions(Eigen3::Eigen INTERFACE EIGEN_MPL2_ONLY)
 # ── Executable ───────────────────────────────────────────────────────────────
 
 file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
+if(NOT REEF3D_USE_HYPRE)
+  list(FILTER SOURCES EXCLUDE REGEX "/hypre_[^/]*\\.cpp$")
+endif()
 add_executable(REEF3D ${SOURCES})
 
 set_target_properties(REEF3D PROPERTIES
@@ -122,7 +133,8 @@ target_compile_definitions(REEF3D PRIVATE
   $<$<CONFIG:Release>:NDEBUG;EIGEN_NO_DEBUG;BUILD="release">
   $<$<CONFIG:Debug>:BUILD="debug">
   $<$<CONFIG:Dev>:BUILD="dev">
-  $<$<CONFIG:All>:BUILD="all">)
+  $<$<CONFIG:All>:BUILD="all">
+  $<$<NOT:$<BOOL:${REEF3D_USE_HYPRE}>>:REEF3D_NO_HYPRE>)
 
 # ── Compile flags ─────────────────────────────────────────────────────────────
 # CMAKE_CXX_FLAGS_<CONFIG> already covers Dev/All (set above).
@@ -139,7 +151,7 @@ target_link_options(REEF3D PRIVATE
 
 target_link_libraries(REEF3D PRIVATE
   MPI::MPI_CXX
-  HYPRE::HYPRE
+  $<$<BOOL:${REEF3D_USE_HYPRE}>:HYPRE::HYPRE>
   Eigen3::Eigen)
 
 # ── Vectorised libm for irregular-wave generation (glibc libmvec) ──────────────

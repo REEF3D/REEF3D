@@ -467,6 +467,7 @@ void driver::logic_cfd()
     if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 
+#ifndef REEF3D_NO_HYPRE
 	if(p->N10>=10 && p->N10<20)
 	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
 
@@ -475,6 +476,7 @@ void driver::logic_cfd()
 
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
+#endif
 
 //VRANS
     if(p->B200==0)

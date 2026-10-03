@@ -94,24 +94,62 @@ void sixdof_obj::membrane_stabilisation(lexer *p, int iter)
     // and passed to the RK update as the equivalent force M dv/h. M_a a^n (acceleration of the last time step)
     // leaves the equilibrium unchanged; stable for M_a > (M_a,true - M)/2.
     // M_a: membrane.dat 'bodyaddedmass', default 2 rho V_bag (water enclosed below the still water level).
-    // Rotations are not stabilised.
+    // Rotations of a rigid bag in the same way with the added inertia I_a (net_membrane::body_addedinertia, 2 rho x
+    // inertia of the bag water about the centre of gravity), world frame, small rotations (no gyroscopic coupling):
+    //
+    //   (I_w + I_a) dw = h (M + I_a alpha^n),   I_w = R I R^T,
+    //
+    // passed on as the equivalent moment I_w dw/h. A flexible bag needs none (its top edge is coupled implicitly).
     const double Ma = pnetinter->membrane_addedmass_nhflow(p);
     Eigen::Matrix3d J = pnetinter->membrane_stiffness_nhflow(p);
+    const Eigen::Matrix3d Ia = pnetinter->membrane_addedinertia_nhflow(p);
     
-    if(Ma<=0.0 && J.norm()<=0.0)
+    if(Ma<=0.0 && J.norm()<=0.0 && Ia.norm()<=0.0)
     return;
     
     // acceleration of the last time step, from the velocity at the start of each step
     if(iter==0 && p->simtime!=tmem_n_)
     {
         const Eigen::Vector3d u(u_fb(0),u_fb(1),u_fb(2));
+        const Eigen::Vector3d w(u_fb(3),u_fb(4),u_fb(5));
         
         if(tmem_n_>=0.0 && p->simtime>tmem_n_)
+        {
         amem_n_ = (u - umem_n_)/(p->simtime - tmem_n_);
+        almem_n_ = (w - wmem_n_)/(p->simtime - tmem_n_);
+        }
         
         umem_n_ = u;
+        wmem_n_ = w;
         tmem_n_ = p->simtime;
     }
+    
+    if(Ia.norm()>0.0)
+    {
+        const int fw[3] = {p->X11_p==1 && p->j_dir==1, p->X11_q==1, p->X11_r==1 && p->j_dir==1};
+        const Eigen::Matrix3d Iw = quatRotMat*I_*quatRotMat.transpose();
+        
+        Eigen::Matrix3d A = Iw + Ia;
+        Eigen::Vector3d b = Mfb_ + Ia*almem_n_;
+        
+        for(int r=0; r<3; ++r)
+        if(!fw[r])
+        {
+            A.row(r).setZero();
+            A.col(r).setZero();
+            A(r,r) = 1.0;
+            b(r) = 0.0;
+        }
+        
+        const Eigen::Vector3d M = Iw*A.lu().solve(b);
+        
+        for(int r=0; r<3; ++r)
+        if(fw[r])
+        Mfb_(r) = M(r);
+    }
+    
+    if(Ma<=0.0 && J.norm()<=0.0)
+    return;
     
     // free translations only
     const int fr[3] = {p->X11_u==1, p->X11_v==1 && p->j_dir==1, p->X11_w==1};

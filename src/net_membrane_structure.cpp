@@ -262,6 +262,73 @@ void net_membrane::attach_body(lexer *p, const Eigen::Vector3d &c, const Eigen::
     body_ = true;
     cb_ = c;
     Rb_ = R;
+    
+    // rotational counterpart of body_addedmass: 4 rho x the inertia of the bag water below the still water level
+    // about the centre of gravity (solid block of water: cylinder or box, parallel-axis term to its centroid),
+    // in the body frame. Twice the factor of the translations: the outer water adds relatively more inertia in pitch;
+    // 3D ring collar with a rigid cylinder bag, pitch free, waves: 2 rho diverged at 4 s, 4 rho stable
+    Iab_.setZero();
+    
+    const double hw = MAX(0.0, p->wd - prm.zb);
+    double Lx, Ly, xm, ym;
+    
+    if(prm.shape==2)
+    {
+        Lx = Ly = 2.0*prm.R;
+        xm = prm.xc;
+        ym = prm.yc;
+    }
+    else
+    {
+        Lx = prm.x1-prm.x0;
+        Ly = p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge];
+        xm = 0.5*(prm.x0+prm.x1);
+        ym = p->j_dir==1 ? 0.5*(prm.y0+prm.y1) : c(1);
+    }
+    
+    const double A = prm.shape==2 ? PI*prm.R*prm.R : Lx*Ly;
+    const double M = 4.0*p->W1*A*hw;
+    const Eigen::Vector3d d = R.transpose()*(Eigen::Vector3d(xm, ym, prm.zb + 0.5*hw) - c);
+    
+    double Ixx, Iyy, Izz;
+    
+    if(prm.shape==2)
+    {
+        Ixx = Iyy = M*(prm.R*prm.R/4.0 + hw*hw/12.0);
+        Izz = 0.5*M*prm.R*prm.R;
+    }
+    else
+    {
+        Ixx = M*(Ly*Ly + hw*hw)/12.0;
+        Iyy = M*(Lx*Lx + hw*hw)/12.0;
+        Izz = M*(Lx*Lx + Ly*Ly)/12.0;
+    }
+    
+    Iab_(0,0) = Ixx + M*(d(1)*d(1) + d(2)*d(2));
+    Iab_(1,1) = Iyy + M*(d(0)*d(0) + d(2)*d(2));
+    Iab_(2,2) = Izz + M*(d(0)*d(0) + d(1)*d(1));
+    Iab_(0,1) = Iab_(1,0) = -M*d(0)*d(1);
+    Iab_(0,2) = Iab_(2,0) = -M*d(0)*d(2);
+    Iab_(1,2) = Iab_(2,1) = -M*d(1)*d(2);
+}
+
+Eigen::Matrix3d net_membrane::body_addedinertia(lexer *p) const
+{
+    // rigid bag: added inertia of the stabilised coupling for the rotations, world frame (see body_addedmass); scaled
+    // with bodyaddedmass when that is given
+    if(!moving() || !body_ || prm.structure!=1)
+    return Eigen::Matrix3d::Zero();
+    
+    double f = 1.0;
+    
+    if(prm.Mbody>=0.0)
+    {
+        const double A = prm.shape==2 ? PI*prm.R*prm.R : (prm.x1-prm.x0)*(p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge]);
+        const double M0 = 2.0*p->W1*A*MAX(0.0, p->wd - prm.zb);
+        f = M0>0.0 ? prm.Mbody/M0 : 0.0;
+    }
+    
+    return f*Rb_*Iab_*Rb_.transpose();
 }
 
 void net_membrane::set_body(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Vector3d &v, const Eigen::Vector3d &w)

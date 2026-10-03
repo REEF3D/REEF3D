@@ -692,7 +692,11 @@ void control::ini_default()
     I241=0.0;       // double delta t for flowfile
 
     // Numerics
+#ifndef REEF3D_NO_HYPRE
 	N10=14;			// int linear poisson solver
+#else
+	N10=1;			// int linear poisson solver (REEFMG, build without hypre)
+#endif
 	N11=11;         // int precondioner
     N12=0;         //  int REEFMG solver mode
     N13=0;         //  int REEFMG max number of coarse levels, 0: automatic

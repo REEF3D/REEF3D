@@ -1,4 +1,10 @@
+# NO_HYPRE=1 builds without hypre: the hypre_* solver classes are left out, N 10 10-39 falls back to REEFMG (N 10 1)
+NO_HYPRE     ?= 0
+ifeq ($(NO_HYPRE),1)
+OBJ_DIR      := ./build_nohypre
+else
 OBJ_DIR      := ./build
+endif
 APP_DIR      := ./bin
 TARGET       := REEF3D
 APP          := $(APP_DIR)/$(TARGET)
@@ -10,9 +16,16 @@ GIT_VERSION  := $(GIT_COMMIT)$(GIT_DIRTY)
 HYPRE_DIR    := /usr/local/hypre
 EIGEN_DIR    := ThirdParty/eigen-5.0.0
 CXXFLAGS     := -std=c++20 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
+ifeq ($(NO_HYPRE),1)
+CXXFLAGS     += -DREEF3D_NO_HYPRE
+LDFLAGS      :=
+INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
+SRC          := $(filter-out src/hypre_%.cpp,$(wildcard src/*.cpp))
+else
 LDFLAGS      := -L ${HYPRE_DIR}/lib/ -lHYPRE
 INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC          := $(wildcard src/*.cpp)
+endif
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 

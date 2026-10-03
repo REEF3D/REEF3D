@@ -129,7 +129,15 @@ bool net_membrane::couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     // the unconverged Robin term C (v~ - v) acts on the structure as a spurious force; with the Robin matrix scaled
     // by f the velocity tolerance is scaled by 1/f, so that this force error does not depend on f
     const double rtol = prm.crtol/prm.crobin, atol = prm.catol/prm.crobin;
-    const bool conv = rn <= rtol*on + atol*sn;
+    bool conv = rn <= rtol*on + atol*sn;
+    
+    // the structure is replicated on all ranks; agree on the decision, so that rounding differences of the reductions
+    // can never let one rank leave the loop while the others call the pressure solver again
+    {
+        int c = conv ? 1 : 0;
+        MPI_Allreduce(MPI_IN_PLACE,&c,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
+        conv = c==1;
+    }
 
     ++citstep_;
 

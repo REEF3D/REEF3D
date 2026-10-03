@@ -69,6 +69,7 @@ public:
     void membrane_body_nhflow(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
     void membraneForces_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&);
     double membrane_addedmass_nhflow(lexer*);
+    Eigen::Matrix3d membrane_addedinertia_nhflow(lexer*);
     Eigen::Matrix3d membrane_stiffness_nhflow(lexer*);
     
     typedef vector<Eigen::Vector3d> EigenMat;

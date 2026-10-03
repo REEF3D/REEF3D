@@ -105,6 +105,7 @@ public:
     void membrane_stabilisation(lexer*,int);
     Eigen::Vector3d umem_n_=Eigen::Vector3d::Zero(), amem_n_=Eigen::Vector3d::Zero();
     double tmem_n_=-1.0;
+    Eigen::Vector3d wmem_n_=Eigen::Vector3d::Zero(), almem_n_=Eigen::Vector3d::Zero();
     
     // porous floating body (X 16)
     void update_forcing_nhflow_porous(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int);

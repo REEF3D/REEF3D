@@ -116,8 +116,13 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N10==1)
 	ppoissonsolv = new reefmg2D(p,pgc);
     
+#ifndef REEF3D_NO_HYPRE
     if(p->N10!=1)
 	ppoissonsolv = new hypre_struct2D(p,pgc);
+#else
+    if(p->N10!=1)
+	ppoissonsolv = new reefmg2D(p,pgc);
+#endif
     
     
     psolv = new sflow_bicgstab(p,pgc);

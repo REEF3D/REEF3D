@@ -105,9 +105,15 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
         wcorr(p,d,WL,WH,PCORR,alpha);
     }
     
-    // membranes (X 330): face corrections of the total pressure for the Rhie-Chow continuity flux
+    // membranes (X 330): face corrections of the pressure increment for the Rhie-Chow continuity flux.
+    // The old pressure P^n acts on the cell velocities through the predictor (wide gradient), and the Poisson
+    // right-hand side is the divergence of those cell velocities averaged to the faces. The face field the
+    // compact matrix makes divergence free is therefore avg(U) + avg(dU(PCORR)) - dU_f(PCORR): only the
+    // increment is corrected. With the total pressure the face flux contains avg(G_wide P^n) - G_compact P^n,
+    // a divergence the projection never sees; it moves the free surface of the layer columns in an odd-even
+    // pattern that grows (seen with moving membranes, R_t = R_n and floorpressure 0).
     if(d->MBETA!=nullptr)
-    nhflow_membrane_rc_store(p,d,pgc,d->P,alpha*p->dt);
+    nhflow_membrane_rc_store(p,d,pgc,PCORR,alpha*p->dt);
 
     p->poissoniter=p->solveriter;
 

@@ -72,6 +72,7 @@ void driver::logic_fnpf()
     if(p->N10==3 && p->j_dir==1)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
+#ifndef REEF3D_NO_HYPRE
 	if(p->N10>=10 && p->N10<20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     
@@ -80,6 +81,7 @@ void driver::logic_fnpf()
     
 	if(p->N10>=30 && p->N10<40)
 	plapsolv = new hypre_sstruct(p,a,pgc);
+#endif
     
     
     

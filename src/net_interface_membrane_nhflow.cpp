@@ -33,7 +33,8 @@ Author: Hans Bihs
 #include<sstream>
 #include<string>
 
-// ctrl.txt: X 330 1 (A 520 1 or 2). membrane.dat (read by rank 0, broadcast):
+// ctrl.txt: X 330 1 (A 520 1 or 2; moving membranes, structure rigid|flexible, switch A 520 2 to 1, see
+// driver_logic_nhflow.cpp). membrane.dat (read by rank 0, broadcast):
 //
 //   # comment
 //   membrane box       x0 x1 y0 y1 z_bottom z_top     starts a new membrane (in 2D y0, y1 are ignored)
@@ -59,8 +60,8 @@ Author: Hans Bihs
 //   structure   fixed|rigid|flexible   fixed (default); rigid: moves with the floating body (X 10);
 //                                      flexible: mass-spring membrane, top edge attached to the floating
 //                                      body like the nets (X 320), or held in place without X 10
-//                                      (staggered coupling: fixed or prescribed collar motion, X 10 2 / X 11 2;
-//                                      freely floating collar: coupling iterated)
+//                                      (coupling iterated, the default; with coupling staggered only a fixed or
+//                                      prescribed collar motion, X 10 2 / X 11 2)
 //   mass        m                      fabric mass per area [kg/m^2]; default 1
 //   density     rho                    fabric density [kg/m^3] (buoyancy); default 1300
 //   stiffness   Et                     membrane stiffness E t [N/m]; default 5e5
@@ -70,14 +71,17 @@ Author: Hans Bihs
 //   bodyaddedmass M                    added mass [kg] of the stabilised coupling to the floating body
 //                                      (translation); default 2 rho V_bag (water of the bag below the still
 //                                      water level) for a rigid membrane, 0 for a flexible one (its top
-//                                      edge is coupled implicitly); 0: off
+//                                      edge is coupled implicitly); 0: off. Rotations of a rigid bag: added
+//                                      inertia 4 rho x inertia of that water about the centre of gravity,
+//                                      scaled with M / (2 rho V_bag) when M is given
 //   coupling    staggered|iterated [rtol [n]]
-//                                      fluid-structure coupling of a flexible membrane. staggered (default): the
-//                                      structure is advanced once per time step with the implicit porous damper
-//                                      (stable, extra inertia ~ rho R_n dt per area); iterated: the projection of
-//                                      every RK stage is repeated until the node velocities of fluid and structure
-//                                      agree to rtol (default 1e-3), at most n iterations (default 50); IQN-ILS
-//                                      (net_membrane_coupling.cpp). Use it for a freely floating collar (X 10 1)
+//                                      fluid-structure coupling of a flexible membrane. iterated (default): the
+//                                      projection of every RK stage is repeated until the node velocities of fluid
+//                                      and structure agree to rtol (default 1e-3), at most n iterations (default
+//                                      50); IQN-ILS (net_membrane_coupling.cpp). staggered: the structure is
+//                                      advanced once per time step with the implicit porous damper (stable, but an
+//                                      extra inertia ~ rho R_n dt per area makes the dynamics depend on dt; not for
+//                                      a freely floating collar)
 //   couplingtol rtol [atol]            iterated: relative tolerance, absolute tolerance [m/s] (default 1e-5, rms)
 //   couplingiter n                     iterated: maximum iterations per stage (default 50)
 //   couplingreuse n                    iterated: converged stages whose secant information is reused (default 8)
@@ -563,6 +567,16 @@ void net_interface::membraneForces_nhflow(lexer *p, const Eigen::Vector3d &c, co
         X+=x; Y+=y; Z+=z;
         K+=k; M+=mm; N+=n;
     }
+}
+
+Eigen::Matrix3d net_interface::membrane_addedinertia_nhflow(lexer *p)
+{
+    Eigen::Matrix3d I = Eigen::Matrix3d::Zero();
+    
+    for(auto m : pmem)
+    I += m->body_addedinertia(p);
+    
+    return I;
 }
 
 double net_interface::membrane_addedmass_nhflow(lexer *p)

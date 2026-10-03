@@ -12,6 +12,7 @@ src/*.mk
 # GNUMake build files
 bin
 build
+build_nohypre
 # Ctags files
 src/.ctagsd
 # Temp files

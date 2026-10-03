@@ -1,0 +1,7470 @@
+From c07109e20de1bdd4208bbdd0f8668e5819ad77fd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 3 Oct 2026 15:18:03 +0200
+Subject: [PATCH 1/2] iowave redesign phases 0-1: NHFLOW/FNPF regression cases,
+ wave_field superposition
+
+Phase 0
+- regression_dump: exact state and per-step norms for the NHFLOW and FNPF
+  driver loops (inactive unless REEF3D_REGRESSION_DIR is set; CFD results
+  bitwise unchanged)
+- regression.py: NHFLOW/FNPF text output and bulk folders
+- 11 NHFLOW/FNPF wave cases (relaxation, Dirichlet, AWA, waves on a
+  current, decomposed irregular, 3D short-crested, 2 ranks) with blessed
+  references; irregular cases fix B 139 / B 138 seeds
+
+Phase 1
+- wave_source / wave_field: additional wave sources (B 500 id type H T,
+  B 501 id dir phase ts te t_ramp, B 502 id x0 y0, B 504 id seed),
+  superposed on the B 92 wave behind the unchanged wave_interface API
+- each source wraps an unchanged wave_lib with its own copy of the lexer
+  fields the libraries read and write
+- without B 50x lines the old code path runs unchanged (13 phase 0 cases
+  bitwise identical); two linear sources match the analytical sum
+- setup checks: one nonlinear source at most, no B 89 1 / HDC / wavemaker
+  with several sources
+- 4 new cases (NHFLOW two sources, 2 ranks, irregular two sources, FNPF)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MJN9a8Qe3Za7youLJDTFti
+---
+ src/driver.cpp                                |   6 +
+ src/driver_loop_fnpf.cpp                      |   5 +
+ src/driver_loop_nhflow.cpp                    |   4 +
+ src/regression_dump.cpp                       | 198 ++++++++
+ src/regression_dump.h                         |  16 +
+ src/wave_field.cpp                            | 458 ++++++++++++++++++
+ src/wave_field.h                              |  97 ++++
+ src/wave_interface.cpp                        |  73 ++-
+ src/wave_interface.h                          |   4 +-
+ src/wave_source.cpp                           |  95 ++++
+ src/wave_source.h                             |  88 ++++
+ tests/regression/README.md                    |  23 +-
+ .../cases/fnpf_2d_irregular_decomp/case.json  |  20 +
+ .../fnpf_2d_irregular_decomp/control.txt      |  16 +
+ .../cases/fnpf_2d_irregular_decomp/ctrl.txt   |  35 ++
+ .../fnpf_2d_irregular_decomp/reference.json   | 383 +++++++++++++++
+ .../cases/fnpf_2d_regular/case.json           |  18 +
+ .../cases/fnpf_2d_regular/control.txt         |  16 +
+ .../regression/cases/fnpf_2d_regular/ctrl.txt |  24 +
+ .../cases/fnpf_2d_regular/reference.json      | 383 +++++++++++++++
+ .../cases/fnpf_2d_regular_mpi2/case.json      |  17 +
+ .../cases/fnpf_2d_regular_mpi2/reference.json | 383 +++++++++++++++
+ .../cases/fnpf_2d_two_sources/case.json       |  28 ++
+ .../cases/fnpf_2d_two_sources/reference.json  | 404 +++++++++++++++
+ .../cases/fnpf_3d_shortcrested/case.json      |  19 +
+ .../cases/fnpf_3d_shortcrested/control.txt    |  16 +
+ .../cases/fnpf_3d_shortcrested/ctrl.txt       |  41 ++
+ .../cases/fnpf_3d_shortcrested/reference.json | 140 ++++++
+ .../regression/cases/nhflow_2d_awa/case.json  |  21 +
+ .../cases/nhflow_2d_awa/reference.json        | 200 ++++++++
+ .../cases/nhflow_2d_current/case.json         |  26 +
+ .../cases/nhflow_2d_current/reference.json    | 200 ++++++++
+ .../cases/nhflow_2d_dirichlet/case.json       |  18 +
+ .../cases/nhflow_2d_dirichlet/reference.json  | 200 ++++++++
+ .../nhflow_2d_irregular_decomp/case.json      |  30 ++
+ .../nhflow_2d_irregular_decomp/reference.json | 200 ++++++++
+ .../nhflow_2d_irregular_two_sources/case.json |  35 ++
+ .../reference.json                            | 321 ++++++++++++
+ .../cases/nhflow_2d_nwt_stokes5/case.json     |  19 +
+ .../cases/nhflow_2d_nwt_stokes5/control.txt   |  16 +
+ .../cases/nhflow_2d_nwt_stokes5/ctrl.txt      |  24 +
+ .../nhflow_2d_nwt_stokes5/reference.json      | 200 ++++++++
+ .../nhflow_2d_nwt_stokes5_mpi2/case.json      |  17 +
+ .../nhflow_2d_nwt_stokes5_mpi2/reference.json | 200 ++++++++
+ .../cases/nhflow_2d_two_sources/case.json     |  29 ++
+ .../nhflow_2d_two_sources/reference.json      | 321 ++++++++++++
+ .../nhflow_2d_two_sources_mpi2/case.json      |  17 +
+ .../nhflow_2d_two_sources_mpi2/reference.json | 321 ++++++++++++
+ .../nhflow_3d_irregular_decomp/case.json      |  20 +
+ .../nhflow_3d_irregular_decomp/control.txt    |  16 +
+ .../cases/nhflow_3d_irregular_decomp/ctrl.txt |  35 ++
+ .../nhflow_3d_irregular_decomp/reference.json | 157 ++++++
+ tests/regression/regression.py                |  11 +-
+ 53 files changed, 5644 insertions(+), 20 deletions(-)
+ create mode 100644 src/wave_field.cpp
+ create mode 100644 src/wave_field.h
+ create mode 100644 src/wave_source.cpp
+ create mode 100644 src/wave_source.h
+ create mode 100644 tests/regression/cases/fnpf_2d_irregular_decomp/case.json
+ create mode 100644 tests/regression/cases/fnpf_2d_irregular_decomp/control.txt
+ create mode 100644 tests/regression/cases/fnpf_2d_irregular_decomp/ctrl.txt
+ create mode 100644 tests/regression/cases/fnpf_2d_irregular_decomp/reference.json
+ create mode 100644 tests/regression/cases/fnpf_2d_regular/case.json
+ create mode 100644 tests/regression/cases/fnpf_2d_regular/control.txt
+ create mode 100644 tests/regression/cases/fnpf_2d_regular/ctrl.txt
+ create mode 100644 tests/regression/cases/fnpf_2d_regular/reference.json
+ create mode 100644 tests/regression/cases/fnpf_2d_regular_mpi2/case.json
+ create mode 100644 tests/regression/cases/fnpf_2d_regular_mpi2/reference.json
+ create mode 100644 tests/regression/cases/fnpf_2d_two_sources/case.json
+ create mode 100644 tests/regression/cases/fnpf_2d_two_sources/reference.json
+ create mode 100644 tests/regression/cases/fnpf_3d_shortcrested/case.json
+ create mode 100644 tests/regression/cases/fnpf_3d_shortcrested/control.txt
+ create mode 100644 tests/regression/cases/fnpf_3d_shortcrested/ctrl.txt
+ create mode 100644 tests/regression/cases/fnpf_3d_shortcrested/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_awa/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_awa/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_current/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_current/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_dirichlet/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_dirichlet/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_irregular_decomp/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_irregular_decomp/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_irregular_two_sources/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_irregular_two_sources/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_nwt_stokes5/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_nwt_stokes5/control.txt
+ create mode 100644 tests/regression/cases/nhflow_2d_nwt_stokes5/ctrl.txt
+ create mode 100644 tests/regression/cases/nhflow_2d_nwt_stokes5/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_two_sources/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_two_sources/reference.json
+ create mode 100644 tests/regression/cases/nhflow_2d_two_sources_mpi2/case.json
+ create mode 100644 tests/regression/cases/nhflow_2d_two_sources_mpi2/reference.json
+ create mode 100644 tests/regression/cases/nhflow_3d_irregular_decomp/case.json
+ create mode 100644 tests/regression/cases/nhflow_3d_irregular_decomp/control.txt
+ create mode 100644 tests/regression/cases/nhflow_3d_irregular_decomp/ctrl.txt
+ create mode 100644 tests/regression/cases/nhflow_3d_irregular_decomp/reference.json
+
+diff --git a/src/driver.cpp b/src/driver.cpp
+index 4995a521..5709056e 100644
+--- a/src/driver.cpp
++++ b/src/driver.cpp
+@@ -166,6 +166,9 @@ void driver::fnpf_driver()
+ 
+     driver_ini_fnpf();
+ 
++    preg = new regression_dump(p);
++    preg->fnpf_ini(p,c,pgc);
++
+     // Start MAINLOOP
+     loop_fnpf();
+ }
+@@ -185,6 +188,9 @@ void driver::nhflow_driver()
+ 
+     driver_ini_nhflow();
+ 
++    preg = new regression_dump(p);
++    preg->nhflow_ini(p,d,pgc);
++
+     // Start MAINLOOP
+     loop_nhflow();
+ }
+diff --git a/src/driver_loop_fnpf.cpp b/src/driver_loop_fnpf.cpp
+index 41dcf071..a746d77e 100644
+--- a/src/driver_loop_fnpf.cpp
++++ b/src/driver_loop_fnpf.cpp
+@@ -40,6 +40,7 @@ Author: Hans Bihs
+ #include"fdm_fnpf.h"
+ #include"fnpf_ice.h"
+ #include"fnpf_amr.h"
++#include"regression_dump.h"
+ 
+ void driver::loop_fnpf()
+ {
+@@ -98,6 +99,8 @@ void driver::loop_fnpf()
+         
+         if(pfamr!=nullptr)
+         pfamr->timestep(p,c,pgc);
++
++        preg->fnpf_step(p,c,pgc);
+         
+         if(pfice!=nullptr)
+         pfice->timestep(p,c,pgc);
+@@ -157,6 +160,8 @@ void driver::loop_fnpf()
+     solvlogout.close();
+ 	}
+ 
++    preg->fnpf_final(p,c,pgc);
++
+     pgc->final();
+     
+ }
+diff --git a/src/driver_loop_nhflow.cpp b/src/driver_loop_nhflow.cpp
+index bc529fee..521dfd5a 100644
+--- a/src/driver_loop_nhflow.cpp
++++ b/src/driver_loop_nhflow.cpp
+@@ -40,6 +40,7 @@ Author: Hans Bihs
+ #include"lexer.h"
+ #include"fdm_nhf.h"
+ #include"nhflow_amr.h"
++#include"regression_dump.h"
+ 
+ void driver::loop_nhflow()
+ {
+@@ -101,6 +102,7 @@ void driver::loop_nhflow()
+         
+         // printer
+         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
++        preg->nhflow_step(p,d,pgc);
+         
+         if(pnhfamr!=nullptr)
+         pnhfamr->print(p,d,pgc);
+@@ -167,6 +169,8 @@ void driver::loop_nhflow()
+     solvlogout.close();
+ 	}
+ 
++    preg->nhflow_final(p,d,pgc);
++
+     pgc->final();
+ }
+ 
+diff --git a/src/regression_dump.cpp b/src/regression_dump.cpp
+index ae15430c..cc3db649 100644
+--- a/src/regression_dump.cpp
++++ b/src/regression_dump.cpp
+@@ -26,6 +26,8 @@ Author: Hans Bihs
+ #include"ghostcell.h"
+ #include"turbulence.h"
+ #include"concentration.h"
++#include"fdm_nhf.h"
++#include"fdm_fnpf.h"
+ #include<cstdlib>
+ #include<cstring>
+ #include<cstdint>
+@@ -234,3 +236,199 @@ void regression_dump::cfd_final(lexer *p, fdm *a, ghostcell *pgc, turbulence *pt
+     steplog.flush();
+     cfd_state(p,a,pturb,pconc);
+ }
++
++// ---------------------------------------------------------------------
++// NHFLOW
++// ---------------------------------------------------------------------
++
++void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
++{
++    names.clear();
++    data.clear();
++
++    add("U",p->cellnum);
++    LOOP
++    data.back().push_back(d->U[IJK]);
++
++    add("V",p->cellnum);
++    LOOP
++    data.back().push_back(d->V[IJK]);
++
++    add("W",p->cellnum);
++    LOOP
++    data.back().push_back(d->W[IJK]);
++
++    add("UH",p->cellnum);
++    LOOP
++    data.back().push_back(d->UH[IJK]);
++
++    add("VH",p->cellnum);
++    LOOP
++    data.back().push_back(d->VH[IJK]);
++
++    add("WH",p->cellnum);
++    LOOP
++    data.back().push_back(d->WH[IJK]);
++
++    add("P",p->cellnum);
++    LOOP
++    data.back().push_back(d->P[IJK]);
++
++    add("eta",p->cellnum);
++    SLICELOOP4
++    data.back().push_back(d->eta(i,j));
++
++    add("WL",p->cellnum);
++    SLICELOOP4
++    data.back().push_back(d->WL(i,j));
++}
++
++void regression_dump::nhflow_state(lexer *p, fdm_nhf *d)
++{
++    if(last_written==p->count)
++    return;
++
++    nhflow_collect(p,d);
++    write_state(p);
++}
++
++void regression_dump::nhflow_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
++{
++    if(!is_active)
++    return;
++
++    steplog<<"# count simtime dt  sum(U^2) sum(V^2) sum(W^2) sum(P^2) sum(eta^2) sum(WL^2)  (rank-local, hexfloat)"<<std::endl;
++
++    nhflow_state(p,d);
++}
++
++void regression_dump::nhflow_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
++{
++    if(!is_active)
++    return;
++
++    double su=0.0, sv=0.0, sw=0.0, sp=0.0, se=0.0, swl=0.0;
++
++    LOOP
++    {
++    su += d->U[IJK]*d->U[IJK];
++    sv += d->V[IJK]*d->V[IJK];
++    sw += d->W[IJK]*d->W[IJK];
++    sp += d->P[IJK]*d->P[IJK];
++    }
++
++    SLICELOOP4
++    {
++    se  += d->eta(i,j)*d->eta(i,j);
++    swl += d->WL(i,j)*d->WL(i,j);
++    }
++
++    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<"  "
++           <<su<<" "<<sv<<" "<<sw<<" "<<sp<<" "<<se<<" "<<swl<<"\n";
++
++    if(every>0 && p->count%every==0)
++    nhflow_state(p,d);
++}
++
++void regression_dump::nhflow_final(lexer *p, fdm_nhf *d, ghostcell *pgc)
++{
++    if(!is_active)
++    return;
++
++    steplog.flush();
++    nhflow_state(p,d);
++}
++
++// ---------------------------------------------------------------------
++// FNPF
++// ---------------------------------------------------------------------
++
++void regression_dump::fnpf_collect(lexer *p, fdm_fnpf *c)
++{
++    names.clear();
++    data.clear();
++
++    add("Fi",p->cellnum);
++    FLOOP
++    data.back().push_back(c->Fi[FIJK]);
++
++    add("U",p->cellnum);
++    FLOOP
++    data.back().push_back(c->U[FIJK]);
++
++    add("V",p->cellnum);
++    FLOOP
++    data.back().push_back(c->V[FIJK]);
++
++    add("W",p->cellnum);
++    FLOOP
++    data.back().push_back(c->W[FIJK]);
++
++    add("eta",p->cellnum);
++    SLICELOOP4
++    data.back().push_back(c->eta(i,j));
++
++    add("Fifsf",p->cellnum);
++    SLICELOOP4
++    data.back().push_back(c->Fifsf(i,j));
++
++    add("WL",p->cellnum);
++    SLICELOOP4
++    data.back().push_back(c->WL(i,j));
++}
++
++void regression_dump::fnpf_state(lexer *p, fdm_fnpf *c)
++{
++    if(last_written==p->count)
++    return;
++
++    fnpf_collect(p,c);
++    write_state(p);
++}
++
++void regression_dump::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
++{
++    if(!is_active)
++    return;
++
++    steplog<<"# count simtime dt  sum(Fi^2) sum(U^2) sum(W^2) sum(eta^2) sum(Fifsf^2) sum(WL^2)  (rank-local, hexfloat)"<<std::endl;
++
++    fnpf_state(p,c);
++}
++
++void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
++{
++    if(!is_active)
++    return;
++
++    double sfi=0.0, su=0.0, sw=0.0, se=0.0, sff=0.0, swl=0.0;
++
++    FLOOP
++    {
++    sfi += c->Fi[FIJK]*c->Fi[FIJK];
++    su  += c->U[FIJK]*c->U[FIJK];
++    sw  += c->W[FIJK]*c->W[FIJK];
++    }
++
++    SLICELOOP4
++    {
++    se  += c->eta(i,j)*c->eta(i,j);
++    sff += c->Fifsf(i,j)*c->Fifsf(i,j);
++    swl += c->WL(i,j)*c->WL(i,j);
++    }
++
++    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<"  "
++           <<sfi<<" "<<su<<" "<<sw<<" "<<se<<" "<<sff<<" "<<swl<<"\n";
++
++    if(every>0 && p->count%every==0)
++    fnpf_state(p,c);
++}
++
++void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
++{
++    if(!is_active)
++    return;
++
++    steplog.flush();
++    fnpf_state(p,c);
++}
+diff --git a/src/regression_dump.h b/src/regression_dump.h
+index 14e59c89..78fe8f39 100644
+--- a/src/regression_dump.h
++++ b/src/regression_dump.h
+@@ -34,6 +34,8 @@ class ghostcell;
+ class turbulence;
+ class concentration;
+ class field;
++class fdm_nhf;
++class fdm_fnpf;
+ 
+ /*--------------------------------------------------------------------
+ regression_dump: exact (double precision) state output for the
+@@ -66,9 +68,23 @@ public:
+     void cfd_step(lexer*, fdm*, ghostcell*, turbulence*, concentration*);    // end of each time step
+     void cfd_final(lexer*, fdm*, ghostcell*, turbulence*, concentration*);   // after the main loop
+ 
++    // NHFLOW
++    void nhflow_ini(lexer*, fdm_nhf*, ghostcell*);
++    void nhflow_step(lexer*, fdm_nhf*, ghostcell*);
++    void nhflow_final(lexer*, fdm_nhf*, ghostcell*);
++
++    // FNPF
++    void fnpf_ini(lexer*, fdm_fnpf*, ghostcell*);
++    void fnpf_step(lexer*, fdm_fnpf*, ghostcell*);
++    void fnpf_final(lexer*, fdm_fnpf*, ghostcell*);
++
+ private:
+     void cfd_state(lexer*, fdm*, turbulence*, concentration*);
+     void cfd_collect(lexer*, fdm*, turbulence*, concentration*);
++    void nhflow_state(lexer*, fdm_nhf*);
++    void nhflow_collect(lexer*, fdm_nhf*);
++    void fnpf_state(lexer*, fdm_fnpf*);
++    void fnpf_collect(lexer*, fdm_fnpf*);
+     void add(const char*, int);
+     void write_state(lexer*);
+ 
+diff --git a/src/wave_field.cpp b/src/wave_field.cpp
+new file mode 100644
+index 00000000..1ffe1e62
+--- /dev/null
++++ b/src/wave_field.cpp
+@@ -0,0 +1,458 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Author: Hans Bihs
++--------------------------------------------------------------------*/
++
++#include"wave_field.h"
++#include"wave_lib.h"
++#include"lexer.h"
++#include"ghostcell.h"
++#include<cmath>
++#include<cstdlib>
++#include<fstream>
++#include<iostream>
++#include<sstream>
++#include<string>
++
++wave_lib* wave_lib_create(lexer*, ghostcell*, int);
++
++wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss)
++{
++    keep.save(p);
++    s.ctx.load(p);
++    wavetime = p->wavetime;
++    p->wavetime = wavetime - s.tshift;
++}
++
++wave_field::scope::~scope()
++{
++    p->wavetime = wavetime;
++    s.ctx.save(p);
++    keep.load(p);
++}
++
++wave_field::wave_field(lexer *p, ghostcell *pgc)
++{
++    read(p,pgc);
++
++    if(src.empty())
++    return;
++
++    check(p);
++    build(p,pgc);
++    log(p);
++}
++
++wave_field::~wave_field()
++{
++    for(wave_source *s : src)
++    delete s;
++}
++
++bool wave_field::nonlinear(int t)
++{
++    // linear theories: shallow, linear, deep, 1st-order irregular
++    return !(t==1 || t==2 || t==3 || t==31 || t==41 || t==51);
++}
++
++// ---------------------------------------------------------------------
++// input
++// ---------------------------------------------------------------------
++
++void wave_field::read(lexer *p, ghostcell *pgc)
++{
++    // one record per source: id type seed | H T rot phase ts te t_ramp x0 y0
++    std::vector<int> iv;
++    std::vector<double> dv;
++    int n=0;
++    const int NI=3, ND=9;
++
++    if(p->mpirank==0)
++    {
++        std::vector<int> id,type,seed;
++        std::vector<double> H,T,rot,phase,ts,te,tr,x0,y0;
++
++        auto find = [&](int k)->int
++        {
++            for(size_t q=0; q<id.size(); ++q)
++            if(id[q]==k)
++            return (int)q;
++            return -1;
++        };
++
++        auto fail = [&](const std::string &msg)
++        {
++            std::cout<<std::endl<<"!!! wave_field: "<<msg<<" !!!"<<std::endl<<std::endl;
++            std::exit(1);
++        };
++
++        std::ifstream f("ctrl.txt");
++        std::string line;
++
++        // B 500 first, so that B 501-504 may come in any order
++        for(int pass=0; pass<2; ++pass)
++        {
++            f.clear();
++            f.seekg(0);
++
++            while(std::getline(f,line))
++            {
++                std::istringstream ls(line);
++                std::string c;
++                int key;
++
++                if(!(ls>>c) || c!="B" || !(ls>>key))
++                continue;
++
++                if(pass==0 && key==500)
++                {
++                    int k,t; double h,tt;
++                    if(!(ls>>k>>t>>h>>tt))
++                    fail("B 500 needs: id type H T");
++                    if(k<2)
++                    fail("source ids start at 2 (id 1 is the B 92 wave)");
++                    if(find(k)>=0)
++                    fail("source id "+std::to_string(k)+" defined twice in B 500");
++
++                    id.push_back(k); type.push_back(t); seed.push_back(0);
++                    H.push_back(h); T.push_back(tt); rot.push_back(0.0); phase.push_back(0.0);
++                    ts.push_back(0.0); te.push_back(1.0e20); tr.push_back(0.0);
++                    x0.push_back(0.0); y0.push_back(0.0);
++                }
++
++                if(pass==1 && (key==501 || key==502 || key==504))
++                {
++                    int k;
++                    if(!(ls>>k))
++                    fail("B "+std::to_string(key)+" needs a source id");
++                    int q = find(k);
++                    if(q<0)
++                    fail("B "+std::to_string(key)+" refers to source "+std::to_string(k)+", which has no B 500");
++
++                    if(key==501 && !(ls>>rot[q]>>phase[q]>>ts[q]>>te[q]>>tr[q]))
++                    fail("B 501 needs: id dir phase ts te t_ramp");
++
++                    if(key==502 && !(ls>>x0[q]>>y0[q]))
++                    fail("B 502 needs: id x0 y0");
++
++                    if(key==504 && !(ls>>seed[q]))
++                    fail("B 504 needs: id seed");
++                }
++            }
++        }
++
++        n = (int)id.size();
++
++        for(int q=0; q<n; ++q)
++        {
++            iv.push_back(id[q]); iv.push_back(type[q]); iv.push_back(seed[q]);
++            dv.push_back(H[q]); dv.push_back(T[q]); dv.push_back(rot[q]); dv.push_back(phase[q]);
++            dv.push_back(ts[q]); dv.push_back(te[q]); dv.push_back(tr[q]);
++            dv.push_back(x0[q]); dv.push_back(y0[q]);
++        }
++    }
++
++    pgc->bcast_int(&n,1);
++
++    if(n==0)
++    return;
++
++    iv.resize(NI*n);
++    dv.resize(ND*n);
++    pgc->bcast_int(iv.data(),NI*n);
++    pgc->bcast_double(dv.data(),ND*n);
++
++    for(int q=0; q<n; ++q)
++    {
++        wave_source *s = new wave_source(iv[NI*q],iv[NI*q+1]);
++        s->seed  = iv[NI*q+2];
++        s->H     = dv[ND*q];
++        s->T     = dv[ND*q+1];
++        s->rot   = dv[ND*q+2];
++        s->phase = dv[ND*q+3];
++        s->ts    = dv[ND*q+4];
++        s->te    = dv[ND*q+5];
++        s->t_ramp= dv[ND*q+6];
++        s->x0    = dv[ND*q+7];
++        s->y0    = dv[ND*q+8];
++
++        const double r = s->rot*(3.14159265358979323846/180.0);
++        s->cr = cos(r);
++        s->sr = sin(r);
++        s->tshift = s->phase/360.0*s->T;
++
++        src.push_back(s);
++    }
++}
++
++void wave_field::check(lexer *p)
++{
++    std::string err;
++    int nnonlin = nonlinear(p->B92) ? 1 : 0;
++
++    for(wave_source *s : src)
++    {
++        const int t = s->type;
++
++        if(t==61)
++        err = "source "+std::to_string(s->id)+": HDC coupling (61) is only available as the B 92 wave";
++
++        else
++        if(t>=20 && t<30)
++        err = "source "+std::to_string(s->id)+": wavemaker theories (20-24) are only available as the B 92 wave";
++
++        else
++        if(t==0)
++        err = "source "+std::to_string(s->id)+": type 0 is no wave";
++
++        if(nonlinear(t))
++        ++nnonlin;
++
++        if(s->T<=0.0 || s->H<0.0)
++        err = "source "+std::to_string(s->id)+": needs H >= 0 and T > 0";
++
++        if(s->te<=s->ts)
++        err = "source "+std::to_string(s->id)+": te must be larger than ts";
++    }
++
++    if(nnonlin>1)
++    err = "at most one nonlinear wave theory may be superposed with linear ones ("+std::to_string(nnonlin)+" given)";
++
++    if(p->B89==1)
++    err = "decomposed precalc (B 89 1) supports one wave source only, until the precalc engine of phase 2";
++
++    if(!err.empty())
++    {
++        if(p->mpirank==0)
++        std::cout<<std::endl<<"!!! wave_field: "<<err<<" !!!"<<std::endl<<std::endl;
++        std::exit(1);
++    }
++}
++
++// ---------------------------------------------------------------------
++// construction: every source starts from the legacy lexer state, gets its
++// own wave input, constructs its wave_lib and keeps the resulting state
++// ---------------------------------------------------------------------
++
++void wave_field::build(lexer *p, ghostcell *pgc)
++{
++    wave_lexer_context legacy;
++    legacy.save(p);
++
++    for(wave_source *s : src)
++    {
++        legacy.load(p);
++
++        p->B92   = s->type;
++        p->B91   = 0;
++        p->B93   = 1;
++        p->B93_1 = s->H;
++        p->B93_2 = s->T;
++        p->B105_1 = legacy.B105_1 + s->rot;
++
++        if(s->seed>0)
++        {
++            p->B139   = s->seed;
++            p->B138   = 1;
++            p->B138_1 = s->seed;
++            p->B138_2 = s->seed+7;
++        }
++
++        p->wts = 0.0;
++        p->wte = 1.0e20;
++
++        if(p->mpirank==0)
++        std::cout<<"wave_field: source "<<s->id<<std::endl;
++
++        s->lib = wave_lib_create(p,pgc,s->type);
++        s->ctx.save(p);
++    }
++
++    legacy.load(p);
++}
++
++void wave_field::log(lexer *p)
++{
++    if(p->mpirank!=0)
++    return;
++
++    std::cout<<"wave_field: "<<src.size()+1<<" sources, equivalent input:"<<std::endl;
++
++    const bool irr = p->B92>30 && p->B92!=70;
++    std::cout<<"  B 500 1 "<<p->B92<<" "<<(irr?p->wHs:p->wH)<<" "<<(irr?p->wTp:p->wT)
++             <<"      (B 92 wave)"<<std::endl;
++
++    for(wave_source *s : src)
++    {
++        std::cout<<"  B 500 "<<s->id<<" "<<s->type<<" "<<s->H<<" "<<s->T<<std::endl;
++        std::cout<<"  B 501 "<<s->id<<" "<<s->rot<<" "<<s->phase<<" "<<s->ts<<" "<<s->te<<" "<<s->t_ramp<<std::endl;
++        if(s->x0!=0.0 || s->y0!=0.0)
++        std::cout<<"  B 502 "<<s->id<<" "<<s->x0<<" "<<s->y0<<std::endl;
++        if(s->seed>0)
++        std::cout<<"  B 504 "<<s->id<<" "<<s->seed<<std::endl;
++    }
++}
++
++// ---------------------------------------------------------------------
++// evaluation: the sum of the additional sources
++// ---------------------------------------------------------------------
++
++double wave_field::eta(lexer *p, double x, double y)
++{
++    double val=0.0, xs, ys;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        s->local(x,y,xs,ys);
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_eta(p,xs,ys);
++    }
++
++    return val;
++}
++
++double wave_field::u(lexer *p, double x, double y, double z)
++{
++    double val=0.0, xs, ys;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        s->local(x,y,xs,ys);
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_u(p,xs,ys,z);
++    }
++
++    return val;
++}
++
++double wave_field::v(lexer *p, double x, double y, double z)
++{
++    double val=0.0, xs, ys;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        s->local(x,y,xs,ys);
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_v(p,xs,ys,z);
++    }
++
++    return val;
++}
++
++double wave_field::w(lexer *p, double x, double y, double z)
++{
++    double val=0.0, xs, ys;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        s->local(x,y,xs,ys);
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_w(p,xs,ys,z);
++    }
++
++    return val;
++}
++
++double wave_field::fi(lexer *p, double x, double y, double z)
++{
++    double val=0.0, xs, ys;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        s->local(x,y,xs,ys);
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_fi(p,xs,ys,z);
++    }
++
++    return val;
++}
++
++void wave_field::cache_points(lexer *p, const std::vector<double> &x, const std::vector<double> &y)
++{
++    std::vector<double> xs(x.size()), ys(y.size());
++
++    for(wave_source *s : src)
++    {
++        for(size_t q=0; q<x.size(); ++q)
++        s->local(x[q],y[q],xs[q],ys[q]);
++
++        scope sc(p,*s);
++        s->lib->wave_cache_points(p,xs,ys);
++    }
++}
++
++double wave_field::eta_c(lexer *p, int q)
++{
++    double val=0.0;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_eta_c(p,q);
++    }
++
++    return val;
++}
++
++double wave_field::fi_c(lexer *p, int q, double z)
++{
++    double val=0.0;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        scope sc(p,*s);
++        val += s->ramp(p)*s->lib->wave_fi_c(p,q,z);
++    }
++
++    return val;
++}
++
++void wave_field::uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
++{
++    double us,vs,ws;
++
++    for(wave_source *s : src)
++    if(s->active(p))
++    {
++        scope sc(p,*s);
++        const double r = s->ramp(p);
++        us=vs=ws=0.0;
++        s->lib->wave_uvw_c(p,q,z,us,vs,ws);
++        u += r*us;
++        v += r*vs;
++        w += r*ws;
++    }
++}
++
++void wave_field::prestep(lexer *p, ghostcell *pgc)
++{
++    for(wave_source *s : src)
++    {
++        scope sc(p,*s);
++        s->lib->wave_prestep(p,pgc);
++    }
++}
+diff --git a/src/wave_field.h b/src/wave_field.h
+new file mode 100644
+index 00000000..0412535d
+--- /dev/null
++++ b/src/wave_field.h
+@@ -0,0 +1,97 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Author: Hans Bihs
++--------------------------------------------------------------------*/
++
++#ifndef WAVE_FIELD_H_
++#define WAVE_FIELD_H_
++
++#include"wave_source.h"
++#include<vector>
++
++class lexer;
++class ghostcell;
++class wave_lib;
++
++/*--------------------------------------------------------------------
++wave_field: superposition of wave sources (iowave redesign, phase 1).
++
++Source 1 is the legacy wave (B 90, B 92, B 93, ...). It stays owned and
++evaluated by wave_interface exactly as before, so a case without the
++inputs below runs the unchanged code path. wave_field holds the
++additional sources and returns their sum, which wave_interface adds.
++
++Input (ctrl.txt, repeatable, read here on rank 0 and broadcast):
++  B 500 id type H T                 source id (>= 2), B 92 type, H (Hs), T (Tp)
++  B 501 id dir phase ts te t_ramp   direction and phase [deg], time window and ramp [s]
++  B 502 id x0 y0                    origin in the legacy generation frame [m]
++  B 504 id seed                     random phases of an irregular source
++Spectrum shape, spreading and depth are taken from the B 8x / B 13x / B 94
++input of the legacy source.
++
++Rules (checked at setup): at most one nonlinear source in total; no HDC
++or wavemaker (paddle) source beyond the legacy one; no decomposed
++precalc (B 89 1) with more than one source until phase 2.
++--------------------------------------------------------------------*/
++
++class wave_field
++{
++public:
++    wave_field(lexer*, ghostcell*);
++    ~wave_field();
++
++    int size() const {return (int)src.size();}
++
++    double eta(lexer*, double, double);
++    double u(lexer*, double, double, double);
++    double v(lexer*, double, double, double);
++    double w(lexer*, double, double, double);
++    double fi(lexer*, double, double, double);
++
++    void cache_points(lexer*, const std::vector<double>&, const std::vector<double>&);
++    double eta_c(lexer*, int);
++    double fi_c(lexer*, int, double);
++    void uvw_c(lexer*, int, double, double&, double&, double&);
++
++    void prestep(lexer*, ghostcell*);
++
++    static bool nonlinear(int);
++
++private:
++    void read(lexer*, ghostcell*);
++    void check(lexer*);
++    void build(lexer*, ghostcell*);
++    void log(lexer*);
++
++    // swaps a source's lexer context in for the scope of one evaluation
++    struct scope
++    {
++        scope(lexer*, wave_source&);
++        ~scope();
++        lexer *p;
++        wave_source &s;
++        wave_lexer_context keep;
++        double wavetime;
++    };
++
++    std::vector<wave_source*> src;
++};
++
++#endif
+diff --git a/src/wave_interface.cpp b/src/wave_interface.cpp
+index 89dc31fb..8182e7b0 100644
+--- a/src/wave_interface.cpp
++++ b/src/wave_interface.cpp
+@@ -43,23 +43,16 @@ Author: Hans Bihs
+ #include"wave_lib_irregular_2nd_b.h"
+ #include"wave_lib_hdc.h"
+ #include"wave_lib_ssgw.h"
++#include"wave_field.h"
+ #include"lexer.h"
+ #include"fdm.h"
+ #include"ghostcell.h"
+ 
+-wave_interface::wave_interface(lexer *p, ghostcell *pgc) 
+-{ 
+-    p->wts=0.0;
+-    p->wte=1.0e20;
+-    
+-    wtype=p->B92;
+-    
+-    if(p->B94==0)
+-	 wD=p->phimean;
+-	
+-	if(p->B94==1)
+-	wD=p->B94_wdt;
+-    
++// wave theory by B 92 code (also used for the additional sources of wave_field)
++wave_lib* wave_lib_create(lexer *p, ghostcell *pgc, int wtype)
++{
++    wave_lib *pwave = nullptr;
++
+     if(wtype==0)
+     pwave = new wave_lib_void(p,pgc);
+ 	
+@@ -143,10 +136,31 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
+     
+     if(wtype==70)
+     pwave = new wave_lib_ssgw(p,pgc);
++
++    return pwave;
++}
++
++wave_interface::wave_interface(lexer *p, ghostcell *pgc) 
++{ 
++    p->wts=0.0;
++    p->wte=1.0e20;
++    
++    wtype=p->B92;
++    
++    if(p->B94==0)
++	 wD=p->phimean;
++	
++	if(p->B94==1)
++	wD=p->B94_wdt;
++    
++    pwave = wave_lib_create(p,pgc,wtype);
++
++    pfield = new wave_field(p,pgc);
+ }
+ 
+ wave_interface::~wave_interface()
+ {
++    delete pfield;
+ }
+ 
+ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, double z)
+@@ -158,6 +172,9 @@ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, doub
+     
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     uvel = pwave->wave_u(p,x,y,z);
++
++    if(pfield->size()>0)
++    uvel += pfield->u(p,x,y,z);
+ 	
+     return uvel;
+ }
+@@ -171,6 +188,9 @@ double wave_interface::wave_v(lexer *p, ghostcell *pgc, double x, double y, doub
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     vvel = pwave->wave_v(p,x,y,z);
+ 
++    if(pfield->size()>0)
++    vvel += pfield->v(p,x,y,z);
++
+     return vvel;
+ }
+ 
+@@ -183,6 +203,9 @@ double wave_interface::wave_w(lexer *p, ghostcell *pgc, double x, double y, doub
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     wvel = pwave->wave_w(p,x,y,z);
+ 
++    if(pfield->size()>0)
++    wvel += pfield->w(p,x,y,z);
++
+     return wvel;
+ }
+ 
+@@ -193,6 +216,9 @@ double wave_interface::wave_h(lexer *p, ghostcell *pgc, double x, double y, doub
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     lsv=p->phimean + pwave->wave_eta(p,x,y);
+ 
++    if(pfield->size()>0)
++    lsv += pfield->eta(p,x,y);
++
+     return lsv;
+ }
+ 
+@@ -203,6 +229,9 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
+     z = MAX(z,-wD);
+     
+     pval = pwave->wave_fi(p,x,y,z);
++
++    if(pfield->size()>0)
++    pval += pfield->fi(p,x,y,z);
+ 	
+     return pval;
+ }
+@@ -210,6 +239,7 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
+ void wave_interface::wave_cache_points(lexer *p, ghostcell *pgc, const std::vector<double> &x, const std::vector<double> &y)
+ {
+     pwave->wave_cache_points(p,x,y);
++    pfield->cache_points(p,x,y);
+ }
+ 
+ double wave_interface::wave_eta_c(lexer *p, ghostcell *pgc, int q)
+@@ -218,6 +248,9 @@ double wave_interface::wave_eta_c(lexer *p, ghostcell *pgc, int q)
+     
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     eta = pwave->wave_eta_c(p,q);
++
++    if(pfield->size()>0)
++    eta += pfield->eta_c(p,q);
+ 	
+     return eta;
+ }
+@@ -226,7 +259,12 @@ double wave_interface::wave_fi_c(lexer *p, ghostcell *pgc, int q, double z)
+ {
+     z = MAX(z,-wD);
+     
+-    return pwave->wave_fi_c(p,q,z);
++    double val = pwave->wave_fi_c(p,q,z);
++
++    if(pfield->size()>0)
++    val += pfield->fi_c(p,q,z);
++
++    return val;
+ }
+ 
+ void wave_interface::wave_uvw_c(lexer *p, ghostcell *pgc, int q, double z, double &u, double &v, double &w)
+@@ -237,6 +275,9 @@ void wave_interface::wave_uvw_c(lexer *p, ghostcell *pgc, int q, double z, doubl
+     
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     pwave->wave_uvw_c(p,q,z,u,v,w);
++
++    if(pfield->size()>0)
++    pfield->uvw_c(p,q,z,u,v,w);
+ }
+ 
+ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
+@@ -245,6 +286,9 @@ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
+     
+     if(p->simtime>=p->wts && p->simtime<=p->wte)
+     eta = pwave->wave_eta(p,x,y);
++
++    if(pfield->size()>0)
++    eta += pfield->eta(p,x,y);
+ 	
+     return eta;
+ }
+@@ -266,6 +310,7 @@ double wave_interface::wave_vm(lexer *p, ghostcell *pgc, double x, double y)
+ void wave_interface::wave_prestep(lexer *p, ghostcell *pgc)
+ {
+     pwave->wave_prestep(p,pgc);
++    pfield->prestep(p,pgc);
+ }
+ 
+ int wave_interface::printcheck=0;
+diff --git a/src/wave_interface.h b/src/wave_interface.h
+index bbf74f5d..78d8ba54 100644
+--- a/src/wave_interface.h
++++ b/src/wave_interface.h
+@@ -29,6 +29,7 @@ class lexer;
+ class fdm;
+ class ghostcell;
+ class wave_lib;
++class wave_field;
+ 
+ using namespace std;
+ 
+@@ -89,7 +90,8 @@ public:
+ 
+ 
+ private:
+-    wave_lib *pwave;
++    wave_lib *pwave;      // source 1: the B 92 wave, unchanged path
++    wave_field *pfield;   // additional sources (B 500-504), summed on top
+     
+     
+     int n,m,count;
+diff --git a/src/wave_source.cpp b/src/wave_source.cpp
+new file mode 100644
+index 00000000..08f3bfa3
+--- /dev/null
++++ b/src/wave_source.cpp
+@@ -0,0 +1,95 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Author: Hans Bihs
++--------------------------------------------------------------------*/
++
++#include"wave_source.h"
++#include"wave_lib.h"
++#include"lexer.h"
++#include<cmath>
++
++void wave_lexer_context::save(const lexer *p)
++{
++    wT=p->wT; wC=p->wC; wA=p->wA; wk=p->wk; wL=p->wL; wwp=p->wwp; ww=p->ww; wd=p->wd;
++    wTp=p->wTp; wHs=p->wHs; wH=p->wH; wAs=p->wAs; phiin=p->phiin; wts=p->wts; wte=p->wte;
++    wLp=p->wLp; ww_s=p->ww_s; ww_e=p->ww_e;
++    wN=p->wN;
++
++    B84=p->B84; B85=p->B85; B86=p->B86; B87=p->B87; B91=p->B91; B92=p->B92; B93=p->B93;
++    B94=p->B94; B130=p->B130; B133=p->B133; B136=p->B136; B138=p->B138; B138_1=p->B138_1;
++    B138_2=p->B138_2; B139=p->B139;
++    B87_1=p->B87_1; B87_2=p->B87_2; B88=p->B88; B91_1=p->B91_1; B91_2=p->B91_2;
++    B93_1=p->B93_1; B93_2=p->B93_2; B94_wdt=p->B94_wdt; B105_1=p->B105_1; B131=p->B131;
++    B132_s=p->B132_s; B132_e=p->B132_e; B134=p->B134;
++}
++
++void wave_lexer_context::load(lexer *p) const
++{
++    p->wT=wT; p->wC=wC; p->wA=wA; p->wk=wk; p->wL=wL; p->wwp=wwp; p->ww=ww; p->wd=wd;
++    p->wTp=wTp; p->wHs=wHs; p->wH=wH; p->wAs=wAs; p->phiin=phiin; p->wts=wts; p->wte=wte;
++    p->wLp=wLp; p->ww_s=ww_s; p->ww_e=ww_e;
++    p->wN=wN;
++
++    p->B84=B84; p->B85=B85; p->B86=B86; p->B87=B87; p->B91=B91; p->B92=B92; p->B93=B93;
++    p->B94=B94; p->B130=B130; p->B133=B133; p->B136=B136; p->B138=B138; p->B138_1=B138_1;
++    p->B138_2=B138_2; p->B139=B139;
++    p->B87_1=B87_1; p->B87_2=B87_2; p->B88=B88; p->B91_1=B91_1; p->B91_2=B91_2;
++    p->B93_1=B93_1; p->B93_2=B93_2; p->B94_wdt=B94_wdt; p->B105_1=B105_1; p->B131=B131;
++    p->B132_s=B132_s; p->B132_e=B132_e; p->B134=B134;
++}
++
++wave_source::wave_source(int iid, int itype) : id(iid), type(itype), H(0.0), T(0.0), rot(0.0), phase(0.0),
++                                               ts(0.0), te(1.0e20), t_ramp(0.0), x0(0.0), y0(0.0), seed(0),
++                                               tshift(0.0), cr(1.0), sr(0.0), lib(nullptr)
++{
++}
++
++wave_source::~wave_source()
++{
++    delete lib;
++}
++
++bool wave_source::active(const lexer *p) const
++{
++    return p->simtime>=ts && p->simtime<=te && p->simtime>=ctx.wts && p->simtime<=ctx.wte;
++}
++
++double wave_source::ramp(const lexer *p) const
++{
++    if(t_ramp<=0.0)
++    return 1.0;
++
++    const double pi = 3.14159265358979323846;
++    double r = 1.0;
++
++    if(p->simtime < ts+t_ramp)
++    r = 0.5*(1.0 - cos(pi*(p->simtime-ts)/t_ramp));
++
++    if(te<1.0e19 && p->simtime > te-t_ramp)
++    r = fmin(r, 0.5*(1.0 - cos(pi*(te-p->simtime)/t_ramp)));
++
++    return fmax(0.0,fmin(1.0,r));
++}
++
++void wave_source::local(double x, double y, double &xs, double &ys) const
++{
++    xs =  (x-x0)*cr + (y-y0)*sr;
++    ys = -(x-x0)*sr + (y-y0)*cr;
++}
+diff --git a/src/wave_source.h b/src/wave_source.h
+new file mode 100644
+index 00000000..b3d8d1d6
+--- /dev/null
++++ b/src/wave_source.h
+@@ -0,0 +1,88 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Author: Hans Bihs
++--------------------------------------------------------------------*/
++
++#ifndef WAVE_SOURCE_H_
++#define WAVE_SOURCE_H_
++
++class lexer;
++class wave_lib;
++
++/*--------------------------------------------------------------------
++wave_lexer_context: the lexer fields a wave_lib reads per wave or writes
++back during construction (wT, wN, wHs, ...). The wave libraries keep
++reading these from the lexer, so every source stores its own copy and
++swaps it in while it is evaluated. The legacy source (B 92) owns the
++copy that stays in the lexer between evaluations, so all other code
++sees exactly the single-source state it saw before.
++--------------------------------------------------------------------*/
++
++struct wave_lexer_context
++{
++    // written by the wave libraries
++    double wT,wC,wA,wk,wL,wwp,ww,wd,wTp,wHs,wH,wAs,phiin,wts,wte,wLp,ww_s,ww_e;
++    int wN;
++
++    // wave input that may differ per source
++    int B84,B85,B86,B87,B91,B92,B93,B94,B130,B133,B136,B138,B138_1,B138_2,B139;
++    double B87_1,B87_2,B88,B91_1,B91_2,B93_1,B93_2,B94_wdt,B105_1,B131,B132_s,B132_e,B134;
++
++    void save(const lexer*);
++    void load(lexer*) const;
++};
++
++/*--------------------------------------------------------------------
++wave_source: one wave input. Wraps an unchanged wave_lib plus what the
++global B 9x parameters cannot express per wave.
++
++Frame: positions arrive in the generation frame of the legacy source
++(iowave xgen/ygen; the global frame for B 105 0 0 0). A source has an
++origin (x0,y0) and a direction rot (degrees) relative to that frame;
++its wave_lib turns velocities into the global frame with its own B 105.
++--------------------------------------------------------------------*/
++
++class wave_source
++{
++public:
++    wave_source(int, int);
++    ~wave_source();
++
++    bool active(const lexer*) const;     // inside [ts,te] and the library's own window
++    double ramp(const lexer*) const;     // cosine ramp up after ts, down before te
++    void local(double, double, double&, double&) const;
++
++    int id;
++    int type;                // B 92 code
++    double H,T;              // height (Hs) and period (Tp)
++    double rot;              // direction relative to the legacy frame [deg]
++    double phase;            // phase lag [deg], applied as a time shift phase/360*T
++    double ts,te,t_ramp;     // time window [s] and ramp duration [s]
++    double x0,y0;            // origin in the legacy generation frame
++    int seed;                // random phases of irregular sources (B 139, B 138)
++
++    double tshift;           // phase/360*T
++    double cr,sr;            // cos/sin of rot
++
++    wave_lib *lib;
++    wave_lexer_context ctx;
++};
++
++#endif
+diff --git a/tests/regression/README.md b/tests/regression/README.md
+index 6765baa6..1221d1bc 100644
+--- a/tests/regression/README.md
++++ b/tests/regression/README.md
+@@ -5,13 +5,13 @@ Small, fast cases that exercise the main code paths, plus tools to
+ - **A/B-compare two binaries bitwise** (for refactors and clean-up: "did anything change?"), and
+ - **check against stored references** with a tolerance (long-term regression testing).
+ 
+-Pure Python 3 (standard library only) + bash. Currently CFD cases; the layout is solver-independent
+-(`"solver"` in `case.json`), NHFLOW/FNPF/SFLOW cases can be added the same way once their driver
+-loops call `regression_dump`.
++Pure Python 3 (standard library only) + bash. CFD, NHFLOW and FNPF cases; the layout is
++solver-independent (`"solver"` in `case.json`), SFLOW cases can be added the same way once its
++driver loop calls `regression_dump`.
+ 
+ ## How it works
+ 
+-`src/regression_dump.{h,cpp}` is a small output class called from the CFD driver loops. It is
++`src/regression_dump.{h,cpp}` is a small output class called from the CFD, NHFLOW and FNPF driver loops. It is
+ **inactive unless `REEF3D_REGRESSION_DIR` is set**, so normal runs are unchanged. When active, each
+ rank writes into that directory
+ 
+@@ -101,12 +101,27 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
+ | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
+ | `cfd_3d_pier_komega` (+ `_rkls3_sf`, `_t33`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop, T33 k-gradient source |
+ | `cfd_3d_heave_sphere_6dof` (+ `_rk3`) | 4 | floating body 6DOF (FCLS3), N40=13→14 df loop |
++| `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
++| `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
++| `nhflow_2d_awa` | 1 | NHFLOW active wave generation + active absorption (B98=4/B99=3) |
++| `nhflow_2d_current` | 1 | NHFLOW waves on a current: discharge inflow (B60=1, W10), beach relaxes to the current (B97=1) |
++| `nhflow_2d_irregular_decomp` | 1 | NHFLOW JONSWAP waves, decomposed relaxation precalc (B89=1) |
++| `nhflow_3d_irregular_decomp` | 2 | NHFLOW 3D short-crested waves (B130=2), decomposed precalc, CFL 0.5 |
++| `fnpf_2d_regular` (+ `_mpi2`) | 1/2 | FNPF relaxation generation + beach, regular waves |
++| `fnpf_2d_irregular_decomp` | 1 | FNPF JONSWAP waves, decomposed relaxation precalc (B89=1) |
++| `fnpf_3d_shortcrested` | 2 | FNPF 3D short-crested waves (B130=2) |
++| `nhflow_2d_two_sources` (+ `_mpi2`) | 1/2 | wave_field: B 92 linear wave + linear source 2 with phase (B 500/501); P 50 prints the summed target |
++| `nhflow_2d_irregular_two_sources` | 1 | wave_field: two JONSWAP sources with their own seeds (B 139, B 504) |
++| `fnpf_2d_two_sources` | 1 | wave_field in FNPF (cached potential path) |
+ 
+ Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
+ run `./regression.py run ... --cases <new>`, check it, then `bless`.
+ 
+ ## Notes
+ 
++- Irregular-wave cases must fix the random seeds (`B 139`, and `B 138` for directional
++  spreading); otherwise the phases come from `srand(time(0))` and no two runs agree.
++
+ - Runs use few steps on coarse grids: they test that code paths give the same numbers, not that
+   the physics is right. Validation cases (long runs vs. measurements) are a separate set.
+ - A run fails on NaN/Inf in the per-step norms, a non-zero exit code, a timeout or a missing dump.
+diff --git a/tests/regression/cases/fnpf_2d_irregular_decomp/case.json b/tests/regression/cases/fnpf_2d_irregular_decomp/case.json
+new file mode 100644
+index 00000000..4cdc5893
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_irregular_decomp/case.json
+@@ -0,0 +1,20 @@
++{
++ "description": "FNPF 2D irregular JONSWAP waves with decomposed relaxation precalc (B89=1). Based on tutorial FNPF/9_4, shortened and coarsened.",
++ "solver": "fnpf",
++ "np": 1,
++ "steps": 300,
++ "tags": [
++  "quick",
++  "2d",
++  "fnpf",
++  "waves",
++  "iowave",
++  "irregular",
++  "decomp"
++ ],
++ "covers": [
++  "iowave_fnpf_precalc_decomp_relax",
++  "iowave_fnpf_precalc_decomp_time",
++  "wave_lib_irregular_1st"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_irregular_decomp/control.txt b/tests/regression/cases/fnpf_2d_irregular_decomp/control.txt
+new file mode 100644
+index 00000000..90d52012
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_irregular_decomp/control.txt
+@@ -0,0 +1,16 @@
++C 11 6
++C 12 3
++C 13 3
++C 14 7
++C 15 21
++C 16 3
++
++B 1 4.0
++B 2 375 1 10
++B 10 0.0 1500.0 0.0 4.0 0.0 1.0
++B 103 5
++B 113 3.0
++B 116 1.0
++
++M 10 1
++M 20 2
+diff --git a/tests/regression/cases/fnpf_2d_irregular_decomp/ctrl.txt b/tests/regression/cases/fnpf_2d_irregular_decomp/ctrl.txt
+new file mode 100644
+index 00000000..787e4a34
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_irregular_decomp/ctrl.txt
+@@ -0,0 +1,35 @@
++A 10 3
++A 310 3
++A 311 4
++A 343 0
++A 350 1
++A 351 2
++A 352 0
++
++B 84 1
++B 85 2
++B 86 128
++B 87 0.32 1.4
++B 88 3.0
++B 89 1
++B 90 1
++B 92 31
++B 93 5.00 12.00
++B 96 300.0 600.0
++B 98 2
++B 99 1
++
++F 60 600.0
++
++N 41 12800.0
++N 48 0
++N 49 0.03
++
++M 10 1
++
++P 51 300.00 0.5
++P 51 700.0 0.5
++P 51 1000.0 0.5
++
++W 22 -9.81
++B 139 16000
+diff --git a/tests/regression/cases/fnpf_2d_irregular_decomp/reference.json b/tests/regression/cases/fnpf_2d_irregular_decomp/reference.json
+new file mode 100644
+index 00000000..e2d8448b
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_irregular_decomp/reference.json
+@@ -0,0 +1,383 @@
++{
++ "final_count": 300,
++ "fields": {
++  "Fi": {
++   "n": 4125,
++   "sum": 4450.869367240836,
++   "l1": 6572.199002093687,
++   "l2": 211.35737965976583,
++   "linf": 28.745434159399053
++  },
++  "U": {
++   "n": 4125,
++   "sum": -5.041053292942818,
++   "l1": 81.96021017236562,
++   "l2": 6.058522704672008,
++   "linf": 1.4628478098185274
++  },
++  "V": {
++   "n": 4125,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 4125,
++   "sum": -0.14185890017748173,
++   "l1": 90.39742483689346,
++   "l2": 5.925541579926801,
++   "linf": 1.0051295480541145
++  },
++  "eta": {
++   "n": 375,
++   "sum": 2.744924904934345,
++   "l1": 67.78341679296597,
++   "l2": 8.887217109715369,
++   "linf": 2.1524055539094187
++  },
++  "Fifsf": {
++   "n": 375,
++   "sum": 403.32406475485,
++   "l1": 1451.2258962623068,
++   "l2": 154.41533243952142,
++   "linf": 28.745434159399053
++  },
++  "WL": {
++   "n": 375,
++   "sum": 225002.74492490492,
++   "l1": 225002.74492490492,
++   "l2": 11619.095183899384,
++   "linf": 601.9728680701137
++  }
++ },
++ "text": {
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
++   "rows": 304,
++   "last": [
++    8.95564124,
++    -0.242364413,
++    -0.0164515033,
++    -0.00627709325
++   ],
++   "colsum": [
++    1347.2067306931,
++    1963.2033403887335,
++    -0.012908291976833007,
++    -0.564921677002162
++   ],
++   "colabs": [
++    1347.2067306931,
++    2036.797570711992,
++    3.013488376399767,
++    0.565223110958082
++   ]
++  }
++ },
++ "final_simtime": 8.985641237740117,
++ "dt": [
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03,
++  0.03
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_regular/case.json b/tests/regression/cases/fnpf_2d_regular/case.json
+new file mode 100644
+index 00000000..f34ffa99
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_regular/case.json
+@@ -0,0 +1,18 @@
++{
++ "description": "FNPF 2D regular waves, relaxation generation and beach. Based on tutorial FNPF/9_1.",
++ "solver": "fnpf",
++ "np": 1,
++ "steps": 300,
++ "tags": [
++  "quick",
++  "2d",
++  "fnpf",
++  "waves",
++  "iowave"
++ ],
++ "covers": [
++  "iowave_fnpf_precalc_relax",
++  "iowave_fnpf_relax",
++  "FNPF wave gauges P51"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_regular/control.txt b/tests/regression/cases/fnpf_2d_regular/control.txt
+new file mode 100644
+index 00000000..d7174302
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_regular/control.txt
+@@ -0,0 +1,16 @@
++C 11 6
++C 12 3
++C 13 3
++C 14 7
++C 15 21
++C 16 3
++
++B 1 0.1
++B 2 400 1 10
++B 10 0.0 40.0 0.0 0.1 0.0 2.0
++B 103 5
++B 113 2.5
++B 116 2.0
++
++M 10 1
++M 20 2
+diff --git a/tests/regression/cases/fnpf_2d_regular/ctrl.txt b/tests/regression/cases/fnpf_2d_regular/ctrl.txt
+new file mode 100644
+index 00000000..a5e1556e
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_regular/ctrl.txt
+@@ -0,0 +1,24 @@
++A 10 3
++A 310 3
++A 311 4
++A 343 0
++
++B 90 1
++B 92 4
++B 91 0.04 4.0
++B 96 4.0 8.0
++B 98 2
++B 99 1
++
++F 60 2.0
++
++N 41 40.0
++N 47 1.0
++
++M 10 1
++
++P 51 15.0 0.005
++P 51 20.0 0.005
++P 51 25.0 0.005
++
++W 22 -9.81
+diff --git a/tests/regression/cases/fnpf_2d_regular/reference.json b/tests/regression/cases/fnpf_2d_regular/reference.json
+new file mode 100644
+index 00000000..d7f127b5
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_regular/reference.json
+@@ -0,0 +1,383 @@
++{
++ "final_count": 300,
++ "fields": {
++  "Fi": {
++   "n": 4400,
++   "sum": -12.921330078401104,
++   "l1": 30.715324934028025,
++   "l2": 0.7610606231049017,
++   "linf": 0.05393260510897548
++  },
++  "U": {
++   "n": 4400,
++   "sum": 3.115824971209971,
++   "l1": 32.629543177314424,
++   "l2": 1.0589381993457425,
++   "linf": 0.09375186002077432
++  },
++  "V": {
++   "n": 4400,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 4400,
++   "sum": 0.005764796582197334,
++   "l1": 30.490496912544817,
++   "l2": 1.0656972027364786,
++   "linf": 0.09085885663952649
++  },
++  "eta": {
++   "n": 400,
++   "sum": 0.05606642104824502,
++   "l1": 1.586912090618118,
++   "l2": 0.14579415885801214,
++   "linf": 0.022733351516299828
++  },
++  "Fifsf": {
++   "n": 400,
++   "sum": -1.1736631712765544,
++   "l1": 4.717421704584315,
++   "l2": 0.3789008560906941,
++   "linf": 0.05393260510897548
++  },
++  "WL": {
++   "n": 400,
++   "sum": 800.0560664210483,
++   "l1": 800.0560664210483,
++   "l2": 40.00306890253484,
++   "linf": 2.0206640885581963
++  }
++ },
++ "text": {
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
++   "rows": 304,
++   "last": [
++    6.73763555,
++    0.00272047808,
++    -0.00135271758,
++    0.000167013943
++   ],
++   "colsum": [
++    1014.76154301518,
++    60.0328010031783,
++    0.013780940254464536,
++    0.03533692737220916
++   ],
++   "colabs": [
++    1014.76154301518,
++    60.18486799380677,
++    0.09430604708609061,
++    0.03533692855654677
++   ]
++  }
++ },
++ "final_simtime": 6.760211732213963,
++ "dt": [
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_regular_mpi2/case.json b/tests/regression/cases/fnpf_2d_regular_mpi2/case.json
+new file mode 100644
+index 00000000..d4bfe1d1
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_regular_mpi2/case.json
+@@ -0,0 +1,17 @@
++{
++ "base": "fnpf_2d_regular",
++ "np": 2,
++ "description": "as fnpf_2d_regular on 2 MPI ranks.",
++ "tags": [
++  "quick",
++  "2d",
++  "fnpf",
++  "waves",
++  "iowave",
++  "mpi"
++ ],
++ "covers": [
++  "FNPF MPI halos",
++  "iowave relaxation across partition edges"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_regular_mpi2/reference.json b/tests/regression/cases/fnpf_2d_regular_mpi2/reference.json
+new file mode 100644
+index 00000000..9fa2c0af
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_regular_mpi2/reference.json
+@@ -0,0 +1,383 @@
++{
++ "final_count": 300,
++ "fields": {
++  "Fi": {
++   "n": 4400,
++   "sum": -12.921330078402516,
++   "l1": 30.71532493402874,
++   "l2": 0.7610606231048997,
++   "linf": 0.05393260510896804
++  },
++  "U": {
++   "n": 4400,
++   "sum": 3.1158249712080965,
++   "l1": 32.62954317731556,
++   "l2": 1.0589381993457543,
++   "linf": 0.09375186002078664
++  },
++  "V": {
++   "n": 4400,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 4400,
++   "sum": 0.005764796582178655,
++   "l1": 30.490496912545723,
++   "l2": 1.0656972027364942,
++   "linf": 0.09085885663952473
++  },
++  "eta": {
++   "n": 400,
++   "sum": 0.056066421048143675,
++   "l1": 1.586912090618217,
++   "l2": 0.14579415885801775,
++   "linf": 0.022733351516298836
++  },
++  "Fifsf": {
++   "n": 400,
++   "sum": -1.1736631712766843,
++   "l1": 4.717421704584328,
++   "l2": 0.37890085609069013,
++   "linf": 0.05393260510896804
++  },
++  "WL": {
++   "n": 400,
++   "sum": 800.0560664210482,
++   "l1": 800.0560664210482,
++   "l2": 40.003068902534835,
++   "linf": 2.020664088558198
++  }
++ },
++ "text": {
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
++   "rows": 304,
++   "last": [
++    6.73763555,
++    0.00272047808,
++    -0.00135271758,
++    0.000167013943
++   ],
++   "colsum": [
++    1014.76154301518,
++    60.0328010031783,
++    0.013780940254464536,
++    0.03533692737220916
++   ],
++   "colabs": [
++    1014.76154301518,
++    60.18486799380677,
++    0.09430604708609061,
++    0.03533692855654677
++   ]
++  }
++ },
++ "final_simtime": 6.7602117322142155,
++ "dt": [
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606,
++  0.02257618204928606
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_two_sources/case.json b/tests/regression/cases/fnpf_2d_two_sources/case.json
+new file mode 100644
+index 00000000..e1be921c
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_two_sources/case.json
+@@ -0,0 +1,28 @@
++{
++ "base": "fnpf_2d_regular",
++ "ctrl_set": {
++  "B 92": "2",
++  "B 91": null
++ },
++ "ctrl_add": [
++  "B 93 0.04 1.6",
++  "P 50 2.0 0.005",
++  "P 50 15.0 0.005",
++  "P 50 25.0 0.005",
++  "B 500 2 2 0.02 1.2",
++  "B 501 2 0.0 0.0 0.0 1.0e20 0.0"
++ ],
++ "description": "FNPF, two superposed linear sources: B 92 linear H 0.04 T 1.6 plus wave_field source 2, linear H 0.02 T 1.2. P 50 prints the summed target.",
++ "tags": [
++  "quick",
++  "2d",
++  "fnpf",
++  "waves",
++  "iowave",
++  "wave_field"
++ ],
++ "covers": [
++  "wave_field fi_c path (FNPF)",
++  "B 500/501 input"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_2d_two_sources/reference.json b/tests/regression/cases/fnpf_2d_two_sources/reference.json
+new file mode 100644
+index 00000000..2a43248e
+--- /dev/null
++++ b/tests/regression/cases/fnpf_2d_two_sources/reference.json
+@@ -0,0 +1,404 @@
++{
++ "final_count": 300,
++ "fields": {
++  "Fi": {
++   "n": 4400,
++   "sum": -13.415540060936271,
++   "l1": 29.738481086572317,
++   "l2": 0.7773099279134934,
++   "linf": 0.06678699507912514
++  },
++  "U": {
++   "n": 4400,
++   "sum": 2.3637593940225035,
++   "l1": 34.167463200948376,
++   "l2": 1.231849610786129,
++   "linf": 0.1341912235204901
++  },
++  "V": {
++   "n": 4400,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 4400,
++   "sum": 0.01832944991449156,
++   "l1": 32.66435172083424,
++   "l2": 1.2482248384869983,
++   "linf": 0.130667744153039
++  },
++  "eta": {
++   "n": 400,
++   "sum": 0.03018451628732405,
++   "l1": 1.6736615551133849,
++   "l2": 0.16535989152497893,
++   "linf": 0.030696819716979483
++  },
++  "Fifsf": {
++   "n": 400,
++   "sum": -1.217684894549329,
++   "l1": 4.684423761706759,
++   "l2": 0.40191871885090485,
++   "linf": 0.06678699507912514
++  },
++  "WL": {
++   "n": 400,
++   "sum": 800.0301845162874,
++   "l1": 800.0301845162874,
++   "l2": 40.00185098165927,
++   "linf": 2.0306968197169795
++  }
++ },
++ "text": {
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG-THEORY.dat": {
++   "rows": 304,
++   "last": [
++    6.73760171,
++    0.0292112108,
++    -0.00331471395,
++    0.00779064193
++   ],
++   "colsum": [
++    1014.75142429259,
++    42.090522820012,
++    -0.162133794735,
++    0.15728714390249998
++   ],
++   "colabs": [
++    1014.75142429259,
++    46.184328679736,
++    4.025414372361,
++    3.8756322886103
++   ]
++  },
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
++   "rows": 304,
++   "last": [
++    6.73760171,
++    0.0022703165,
++    -0.0010325228,
++    0.000211271887
++   ],
++   "colsum": [
++    1014.75142429259,
++    60.033459002247604,
++    0.021173004954365714,
++    0.03087790692748209
++   ],
++   "colabs": [
++    1014.75142429259,
++    60.14768509577172,
++    0.07759776660987244,
++    0.03087790694655017
++   ]
++  }
++ },
++ "final_simtime": 6.7601778903287535,
++ "dt": [
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526,
++  0.02257618204928526
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 1 wave_field: superposed sources (B 500-504)"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_3d_shortcrested/case.json b/tests/regression/cases/fnpf_3d_shortcrested/case.json
+new file mode 100644
+index 00000000..7fb02ac5
+--- /dev/null
++++ b/tests/regression/cases/fnpf_3d_shortcrested/case.json
+@@ -0,0 +1,19 @@
++{
++ "description": "FNPF 3D short-crested irregular waves (directional spreading B130=2), relaxation generation and beach. Based on tutorial FNPF/9_6, coarsened.",
++ "solver": "fnpf",
++ "np": 2,
++ "steps": 60,
++ "tags": [
++  "3d",
++  "fnpf",
++  "waves",
++  "iowave",
++  "irregular",
++  "mpi"
++ ],
++ "covers": [
++  "3D FNPF relaxation",
++  "directional spreading",
++  "FNPF MPI 3D"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_3d_shortcrested/control.txt b/tests/regression/cases/fnpf_3d_shortcrested/control.txt
+new file mode 100644
+index 00000000..2a2d6713
+--- /dev/null
++++ b/tests/regression/cases/fnpf_3d_shortcrested/control.txt
+@@ -0,0 +1,16 @@
++C 11 6
++C 12 3
++C 13 3
++C 14 7
++C 15 21
++C 16 3
++
++B 1 25.0
++B 2 80 80 8
++B 10 0.0 2000.0 0.0 2000.0 0.0 1.0
++B 103 5
++B 113 2.875
++B 116 1.0
++
++M 10 2
++M 20 2
+diff --git a/tests/regression/cases/fnpf_3d_shortcrested/ctrl.txt b/tests/regression/cases/fnpf_3d_shortcrested/ctrl.txt
+new file mode 100644
+index 00000000..a5aaf108
+--- /dev/null
++++ b/tests/regression/cases/fnpf_3d_shortcrested/ctrl.txt
+@@ -0,0 +1,41 @@
++A 10 3
++A 310 3
++A 311 4
++A 343 0
++A 350 1
++A 351 2
++A 352 0
++A 365 1.86
++
++B 84 2
++B 85 2
++B 86 128
++B 87 0.39 1.01
++B 88 3.3
++B 90 1
++B 92 31
++B 93 4.5 12.0
++B 96 400.0 800.0
++B 98 2
++B 99 1
++B 130 2
++B 131 0.0
++B 132 -90.0 90.0
++B 133 8
++B 134 10.0
++B 136 4
++
++F 60 600.0
++
++N 41 12800.0
++N 48 0
++N 49 0.08
++
++M 10 2
++
++P 51 800.0 1000.0
++P 51 1000.0 1000.0
++
++W 22 -9.81
++B 139 16000
++B 138 7 11
+diff --git a/tests/regression/cases/fnpf_3d_shortcrested/reference.json b/tests/regression/cases/fnpf_3d_shortcrested/reference.json
+new file mode 100644
+index 00000000..7b243d7a
+--- /dev/null
++++ b/tests/regression/cases/fnpf_3d_shortcrested/reference.json
+@@ -0,0 +1,140 @@
++{
++ "final_count": 60,
++ "fields": {
++  "Fi": {
++   "n": 57600,
++   "sum": -759.0782693105671,
++   "l1": 37737.4065214517,
++   "l2": 621.4140359588446,
++   "linf": 54.99309696000887
++  },
++  "U": {
++   "n": 57600,
++   "sum": 50.19177592750196,
++   "l1": 628.2172092915243,
++   "l2": 14.013481978549255,
++   "linf": 1.2753608416670748
++  },
++  "V": {
++   "n": 57600,
++   "sum": -26.228443007984747,
++   "l1": 366.26619290980335,
++   "l2": 8.352574625520251,
++   "linf": 0.8144512065381938
++  },
++  "W": {
++   "n": 57600,
++   "sum": -0.014321607221931135,
++   "l1": 793.5108937197597,
++   "l2": 17.855498381307665,
++   "linf": 1.686392282520018
++  },
++  "eta": {
++   "n": 6400,
++   "sum": 20.676427161463042,
++   "l1": 773.8952012825785,
++   "l2": 28.65964616722069,
++   "linf": 2.799164292746036
++  },
++  "Fifsf": {
++   "n": 6400,
++   "sum": -83.4963389856753,
++   "l1": 13934.510191332529,
++   "l2": 518.7211632484842,
++   "linf": 54.99309696000887
++  },
++  "WL": {
++   "n": 6400,
++   "sum": 3840020.6764271613,
++   "l1": 3840020.6764271613,
++   "l2": 48000.26701058977,
++   "linf": 602.799164292746
++  }
++ },
++ "text": {
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
++   "rows": 63,
++   "last": [
++    4.73775774,
++    -0.000156461456,
++    -0.000251046866
++   ],
++   "colsum": [
++    145.6477066119,
++    1799.981079713209,
++    1999.9858701174649
++   ],
++   "colabs": [
++    145.6477066119,
++    1800.018920286791,
++    2000.0141298825351
++   ]
++  }
++ },
++ "final_simtime": 4.817757735875725,
++ "dt": [
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_awa/case.json b/tests/regression/cases/nhflow_2d_awa/case.json
+new file mode 100644
+index 00000000..89a0018f
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_awa/case.json
+@@ -0,0 +1,21 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "ctrl_set": {
++  "B 98": "4",
++  "B 99": "3",
++  "B 92": "2",
++  "B 93": "0.2 4.5"
++ },
++ "description": "NHFLOW active wave generation (B98=4) and active absorption beach (B99=3), 2nd-order Stokes.",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave"
++ ],
++ "covers": [
++  "iowave_nhflow_active-wavegen",
++  "iowave_nhflow_active-beach"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_awa/reference.json b/tests/regression/cases/nhflow_2d_awa/reference.json
+new file mode 100644
+index 00000000..cccc169c
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_awa/reference.json
+@@ -0,0 +1,200 @@
++{
++ "final_count": 100,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 0.02536044011226303,
++   "l1": 38.95158394614223,
++   "l2": 1.9967952046075732,
++   "linf": 0.17498228234951763
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 2.263841182568228,
++   "l1": 18.495401013458316,
++   "l2": 1.1489641346243442,
++   "linf": 0.15657740666383999
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 2.772740036091205,
++   "l1": 156.64059835640725,
++   "l2": 8.04689004688781,
++   "linf": 0.7198215616673915
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 9.14683337750228,
++   "l1": 74.29753581068253,
++   "l2": 4.615923834076371,
++   "linf": 0.627952705746937
++  },
++  "P": {
++   "n": 1750,
++   "sum": -955.0401941035022,
++   "l1": 9696.044423186999,
++   "l2": 1398.6703404502891,
++   "linf": 356.4411210995793
++  },
++  "eta": {
++   "n": 350,
++   "sum": 0.06560261743383089,
++   "l1": 5.270916818210614,
++   "l2": 0.6040483111508966,
++   "linf": 0.10439222999559217
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1403.5656026174338,
++   "l1": 1403.5656026174338,
++   "l2": 75.02616881698027,
++   "linf": 4.114392229995592
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 105,
++   "last": [
++    8.72574635,
++    -0.0853934817,
++    -0.0266126958,
++    -0.000326272663,
++    -7.21798177e-10
++   ],
++   "colsum": [
++    449.6391936808,
++    263.8383466723393,
++    -0.31453241325741205,
++    -0.002389724813361679,
++    -3.697967266825015e-09
++   ],
++   "colabs": [
++    449.6391936808,
++    269.4429192659824,
++    0.3545324133329889,
++    0.002389724813366564,
++    3.697967266825015e-09
++   ]
++  }
++ },
++ "final_simtime": 8.725746353513285,
++ "dt": [
++  0.09102113743998327,
++  0.09099384784029832,
++  0.09091269280662627,
++  0.09067840352798837,
++  0.09033930332914956,
++  0.0899756126344716,
++  0.08959811793801323,
++  0.08924866469089177,
++  0.0889271851985778,
++  0.08865300881320946,
++  0.08844109661645765,
++  0.08831880266073223,
++  0.08826270490678456,
++  0.08829187749316793,
++  0.08836597926646513,
++  0.08845557558904256,
++  0.08852946057945343,
++  0.08860647389582374,
++  0.08858056011616333,
++  0.08853848788453628,
++  0.08853462853729482,
++  0.08852762290237502,
++  0.08850548209103379,
++  0.088499768152765,
++  0.0885102942272278,
++  0.08853055942016971,
++  0.08854658538001334,
++  0.08850317840659165,
++  0.08841512903114494,
++  0.08835303813617018,
++  0.0882963326712676,
++  0.08823290695389331,
++  0.08816819704409008,
++  0.08811921263172581,
++  0.08803868764750897,
++  0.08788362056786117,
++  0.08780044260833078,
++  0.0877584263802197,
++  0.08773530798605218,
++  0.08773642801726349,
++  0.08771204928329215,
++  0.0876853405100785,
++  0.08763605249105418,
++  0.08759999759037236,
++  0.08755503257016961,
++  0.08750050089450817,
++  0.08745877638025179,
++  0.08741217584162098,
++  0.08735266908041363,
++  0.08731769590939288,
++  0.08727233600728014,
++  0.0872219183975719,
++  0.08723656889116438,
++  0.08717049155015136,
++  0.08717833177792682,
++  0.0871591609922773,
++  0.0871706941196493,
++  0.08716177789250991,
++  0.08716727067305416,
++  0.08715199436617477,
++  0.08712903900785614,
++  0.08712537550550772,
++  0.08710437947306954,
++  0.08709629816374036,
++  0.08710186809923531,
++  0.08710894900966734,
++  0.08709589886847137,
++  0.08709642127875428,
++  0.0870942197929922,
++  0.08709561484524359,
++  0.08709070365495354,
++  0.08708646691981292,
++  0.08709216175051246,
++  0.08709663560440314,
++  0.08709302867982494,
++  0.0871021466927901,
++  0.08712705299163392,
++  0.08713118037131344,
++  0.0871415906192481,
++  0.08716696134649474,
++  0.0871945447289046,
++  0.08720113272437735,
++  0.08722734611417085,
++  0.08725553426000095,
++  0.08728336974135552,
++  0.08731060037345431,
++  0.08733267056332081,
++  0.08736735394738684,
++  0.08739709681801733,
++  0.08742293657667,
++  0.08745027753258551,
++  0.08748229043102528,
++  0.08751834446074233,
++  0.08750886926636561,
++  0.08751964810529199,
++  0.08753910465790808,
++  0.08755954835467221,
++  0.08755045138511326,
++  0.08755560970876904,
++  0.08753358547675802
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_current/case.json b/tests/regression/cases/nhflow_2d_current/case.json
+new file mode 100644
+index 00000000..b8c36ee7
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_current/case.json
+@@ -0,0 +1,26 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "ctrl_set": {
++  "B 92": "2",
++  "B 93": "0.2 4.5"
++ },
++ "ctrl_add": [
++  "B 60 1",
++  "B 97 1",
++  "W 10 0.01"
++ ],
++ "description": "NHFLOW waves on a current: discharge inflow (B60=1, W10), relaxation generation, beach relaxing to the inflow current (B97=1). Reference for the constant-background translation (p->Ui).",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "current"
++ ],
++ "covers": [
++  "iowave_nhflow_discharge",
++  "B97 beach to current",
++  "p->Ui"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_current/reference.json b/tests/regression/cases/nhflow_2d_current/reference.json
+new file mode 100644
+index 00000000..2c71e7e0
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_current/reference.json
+@@ -0,0 +1,200 @@
++{
++ "final_count": 100,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 41.61411205656678,
++   "l1": 68.65029418182515,
++   "l2": 2.5938070999184153,
++   "linf": 0.22611525440940783
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 1.900868807042979,
++   "l1": 26.892624851403056,
++   "l2": 1.379808094005287,
++   "linf": 0.15102924344231194
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 170.50046096936876,
++   "l1": 277.1640030078802,
++   "l2": 10.533103738315093,
++   "linf": 0.929334494917089
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 7.638107373102104,
++   "l1": 108.26603401111271,
++   "l2": 5.554086694309441,
++   "linf": 0.60854060846451
++  },
++  "P": {
++   "n": 1750,
++   "sum": 66.638758636139,
++   "l1": 13507.695645945918,
++   "l2": 1644.0109359415806,
++   "linf": 389.82235311923733
++  },
++  "eta": {
++   "n": 350,
++   "sum": 1.2883704203212867,
++   "l1": 8.131817210792757,
++   "l2": 0.7047278279314192,
++   "linf": 0.12083007776282262
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1404.7883704203211,
++   "l1": 1404.7883704203211,
++   "l2": 75.09237226298312,
++   "linf": 4.130830077762822
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 105,
++   "last": [
++    8.63643529,
++    -0.0816509887,
++    0.0602918594,
++    0.00208017648,
++    -0.00232875157
++   ],
++   "colsum": [
++    443.4354163211,
++    266.65741190946,
++    1.5334022512655994,
++    0.01267432218664816,
++    -0.029284746614072345
++   ],
++   "colabs": [
++    443.4354163211,
++    271.20191545964,
++    1.5383354851064006,
++    0.01316507415283184,
++    0.029284746614072345
++   ]
++  }
++ },
++ "final_simtime": 8.636435291622513,
++ "dt": [
++  0.08809691231642544,
++  0.08767146672326856,
++  0.08745089989150293,
++  0.08732622383931009,
++  0.08724871183321005,
++  0.08718087670417335,
++  0.0871185459428342,
++  0.08706200622339275,
++  0.08701030388262887,
++  0.08696582403642991,
++  0.08693214809369651,
++  0.08691930898040576,
++  0.0869078778313751,
++  0.0869092008323223,
++  0.08692553697272548,
++  0.08694282024914957,
++  0.08697177374936081,
++  0.08700614191564833,
++  0.08703706698214767,
++  0.08705124814397104,
++  0.08705174456258741,
++  0.08704792154447959,
++  0.0870394484127091,
++  0.0870207158677213,
++  0.0870117533003304,
++  0.08701607335959526,
++  0.08701910389597386,
++  0.0870184513733406,
++  0.08702945007296072,
++  0.08705085770189383,
++  0.0870585150884759,
++  0.08706740467490975,
++  0.08708606043042157,
++  0.08711037515836192,
++  0.08712123668972546,
++  0.08713757053635053,
++  0.08706212037109294,
++  0.08694881249926278,
++  0.08686501101878422,
++  0.08681498740853136,
++  0.08680219221209444,
++  0.08681590127935351,
++  0.0868240943878554,
++  0.08683173532120204,
++  0.08683839576973636,
++  0.08684874141112124,
++  0.08685834950577284,
++  0.08686880916177828,
++  0.08688294076867022,
++  0.08689147290302379,
++  0.08689965281671193,
++  0.08689877341672152,
++  0.08690028322980115,
++  0.08690499756373371,
++  0.08690532929056917,
++  0.08690616890540385,
++  0.08691035740955184,
++  0.08691922605034264,
++  0.08692785249485414,
++  0.0869313126825768,
++  0.08693975166768292,
++  0.08695262816531055,
++  0.08696925546756307,
++  0.08698409826935322,
++  0.0869976830555036,
++  0.08700976067455043,
++  0.08701957652215005,
++  0.08702834254197457,
++  0.08703583969416812,
++  0.08704157683475748,
++  0.08704332859043484,
++  0.08703945682721467,
++  0.08703313999238894,
++  0.08702511490070555,
++  0.08701646108861313,
++  0.08700835874705355,
++  0.08699473607521303,
++  0.08697883707690875,
++  0.086965092304989,
++  0.08695427154555346,
++  0.08694692903182046,
++  0.08694310567230219,
++  0.08693206715081536,
++  0.08692018800984937,
++  0.08691182838894956,
++  0.08690752450077645,
++  0.08690798333797,
++  0.08690201916278086,
++  0.08689344567563155,
++  0.08681668394796078,
++  0.08673614446179358,
++  0.08669090755694249,
++  0.0866771794679366,
++  0.08667818716745089,
++  0.08667898739164237,
++  0.08668393029050743,
++  0.08668688262343939,
++  0.0866859400989958,
++  0.08668552081986443,
++  0.08668623940191363
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_dirichlet/case.json b/tests/regression/cases/nhflow_2d_dirichlet/case.json
+new file mode 100644
+index 00000000..10c31455
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_dirichlet/case.json
+@@ -0,0 +1,18 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "ctrl_set": {
++  "B 98": "3"
++ },
++ "description": "NHFLOW Dirichlet wave generation (B98=3) at x-, relaxation beach (B99=1).",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave"
++ ],
++ "covers": [
++  "iowave_nhflow_dirichlet-wavegen",
++  "iowave_nhflow_precalc_dirichlet"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_dirichlet/reference.json b/tests/regression/cases/nhflow_2d_dirichlet/reference.json
+new file mode 100644
+index 00000000..3de025ba
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_dirichlet/reference.json
+@@ -0,0 +1,200 @@
++{
++ "final_count": 100,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": -28.921020614160394,
++   "l1": 151.19682346947377,
++   "l2": 8.625133512120069,
++   "linf": 1.1656141231702302
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 13.656791520983111,
++   "l1": 85.44897602919414,
++   "l2": 5.7409801704101024,
++   "linf": 0.8466934461102342
++  },
++  "UH": {
++   "n": 1750,
++   "sum": -67.07351471408604,
++   "l1": 608.5611053935702,
++   "l2": 35.60193883227966,
++   "linf": 5.395490438004423
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 56.607312873858426,
++   "l1": 346.3939125172422,
++   "l2": 23.546904389426686,
++   "linf": 3.561940286440879
++  },
++  "P": {
++   "n": 1750,
++   "sum": 13490.456224049994,
++   "l1": 49150.09593501905,
++   "l2": 7679.822220730169,
++   "linf": 3022.672164000406
++  },
++  "eta": {
++   "n": 350,
++   "sum": -3.9177662637520196,
++   "l1": 20.106078571300422,
++   "l2": 2.570197456554699,
++   "linf": 0.6206105684011787
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1399.5822337362479,
++   "l1": 1399.5822337362479,
++   "l2": 74.85466204272376,
++   "linf": 4.6306105684011785
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 105,
++   "last": [
++    7.5518418,
++    -0.261758573,
++    -0.0403040668,
++    -0.000219733033,
++    -2.26628272e-10
++   ],
++   "colsum": [
++    402.3970720818,
++    265.9731241023708,
++    -0.45620932391824365,
++    -0.0017281178473251139,
++    -1.295731300938425e-09
++   ],
++   "colabs": [
++    402.3970720818,
++    283.7893462152293,
++    0.4962093239182437,
++    0.0017281178473251139,
++    1.295731300938425e-09
++   ]
++  }
++ },
++ "final_simtime": 7.551841803406578,
++ "dt": [
++  0.09091397480639737,
++  0.0902428190056376,
++  0.08923215093829587,
++  0.08791625466969358,
++  0.08650896841574532,
++  0.08517292946796289,
++  0.08400809236787682,
++  0.08301715197897036,
++  0.08212807832052399,
++  0.08141452994373323,
++  0.08087270521015384,
++  0.0804855608336035,
++  0.08025351141690952,
++  0.08028274489435137,
++  0.0802988530317189,
++  0.08030388905942763,
++  0.08041304446094986,
++  0.08067259063900394,
++  0.08109040961072042,
++  0.08097594606121815,
++  0.0808521113217906,
++  0.08076118420364553,
++  0.08079685162412496,
++  0.08076720377204794,
++  0.08074663311476238,
++  0.08072621680028153,
++  0.08073684311195592,
++  0.08088541161999444,
++  0.08092220348402687,
++  0.08107403467640661,
++  0.0808591070298791,
++  0.08058880262937253,
++  0.08023640903532275,
++  0.07996060657514538,
++  0.07969194464401834,
++  0.07945124839582902,
++  0.07898253686776667,
++  0.07784831387515946,
++  0.0769302984034397,
++  0.0762152684632453,
++  0.07564023199385579,
++  0.07503833133781904,
++  0.07464953299507465,
++  0.07439891691763101,
++  0.07431449744631319,
++  0.07437508374376428,
++  0.07463219417635991,
++  0.07463231334948478,
++  0.07437565608945629,
++  0.07418342149039531,
++  0.07394629342313476,
++  0.07378991425331421,
++  0.07364288413564987,
++  0.07360088315935036,
++  0.07347906451922798,
++  0.07332525760450154,
++  0.07321186946475941,
++  0.07309043062437118,
++  0.07291724036712403,
++  0.072788609568174,
++  0.07262969005981115,
++  0.07248256093577803,
++  0.07236687012658512,
++  0.07224228714481624,
++  0.07207645360701233,
++  0.07190095743134166,
++  0.07175301789318474,
++  0.07164461926365848,
++  0.07144384745159324,
++  0.07134221830633293,
++  0.07118542931887525,
++  0.07105449911132242,
++  0.07100668760506221,
++  0.07082665323132699,
++  0.07084863991430781,
++  0.07067302815143417,
++  0.07067781587699824,
++  0.07058852121211516,
++  0.07055523338890982,
++  0.07058396098159965,
++  0.07051280547730582,
++  0.07066277451902131,
++  0.07054161470428306,
++  0.07070272150737576,
++  0.07064412831455767,
++  0.0707434046788548,
++  0.07082418384848559,
++  0.07085195831773952,
++  0.07104893841540706,
++  0.07102919927592065,
++  0.0711935376302796,
++  0.07128251152028225,
++  0.07136123696368153,
++  0.07156014602976372,
++  0.07160328710251843,
++  0.07175062831808499,
++  0.07190322898843599,
++  0.0719810477629722,
++  0.07215344373079303,
++  0.07228225268470059
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_irregular_decomp/case.json b/tests/regression/cases/nhflow_2d_irregular_decomp/case.json
+new file mode 100644
+index 00000000..88018220
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_irregular_decomp/case.json
+@@ -0,0 +1,30 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "ctrl_set": {
++  "B 92": "31",
++  "B 93": "0.4 4.5"
++ },
++ "ctrl_add": [
++  "B 85 2",
++  "B 86 64",
++  "B 87 0.6 3.0",
++  "B 88 3.3",
++  "B 89 1",
++  "B 139 16000"
++ ],
++ "description": "NHFLOW irregular JONSWAP waves (B92=31), relaxation generation with decomposed precalc (B89=1).",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "irregular",
++  "decomp"
++ ],
++ "covers": [
++  "iowave_nhflow_precalc_decomp_relax",
++  "iowave_nhflow_precalc_decomp_time",
++  "wave_lib_irregular_1st"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_irregular_decomp/reference.json b/tests/regression/cases/nhflow_2d_irregular_decomp/reference.json
+new file mode 100644
+index 00000000..7bb3cd71
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_irregular_decomp/reference.json
+@@ -0,0 +1,200 @@
++{
++ "final_count": 100,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 7.625086733412694,
++   "l1": 46.274207689168655,
++   "l2": 2.3280691049885474,
++   "linf": 0.23397653103714672
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 1.3558749332511166,
++   "l1": 27.917299282840933,
++   "l2": 1.5975453908789723,
++   "linf": 0.22556000885051908
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 34.142957159802904,
++   "l1": 185.6903144792451,
++   "l2": 9.319917896709876,
++   "linf": 0.9075014423161942
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 5.448438955713113,
++   "l1": 111.94190061044652,
++   "l2": 6.400038751772189,
++   "linf": 0.9060460611686376
++  },
++  "P": {
++   "n": 1750,
++   "sum": -242.62452073472556,
++   "l1": 17226.408445521338,
++   "l2": 2225.910202271727,
++   "linf": 595.3628559788438
++  },
++  "eta": {
++   "n": 350,
++   "sum": 1.003732424655222,
++   "l1": 6.330455265607968,
++   "l2": 0.7018692207350401,
++   "linf": 0.13139970494683073
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1404.5037324246553,
++   "l1": 1404.5037324246553,
++   "l2": 75.07714402165782,
++   "linf": 4.124766449043464
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 105,
++   "last": [
++    8.55337604,
++    0.0141689473,
++    0.066070706,
++    0.000875380367,
++    -2.79022134e-08
++   ],
++   "colsum": [
++    437.8936581144,
++    266.001261596873,
++    1.49828367471799,
++    3.06713883403809e-05,
++    -1.6814036101583767e-07
++   ],
++   "colabs": [
++    437.8936581144,
++    271.183502863007,
++    1.52652089367821,
++    0.005895670562659619,
++    1.6814036101583767e-07
++   ]
++  }
++ },
++ "final_simtime": 8.553376039934301,
++ "dt": [
++  0.08707360588627182,
++  0.08648984396562075,
++  0.0861064866631593,
++  0.08583841139409579,
++  0.08564114959037347,
++  0.08549107420227484,
++  0.08536675988535049,
++  0.08526723822133282,
++  0.08520896957085776,
++  0.08517597127784156,
++  0.08514679496118377,
++  0.08515360966159546,
++  0.08516009579295432,
++  0.08518845066056802,
++  0.08524425279145142,
++  0.08528581303635632,
++  0.0853585028114805,
++  0.08542974309316857,
++  0.0854826009688918,
++  0.08553327313050685,
++  0.08555749283781044,
++  0.08557018967525251,
++  0.08558309195464685,
++  0.08560456105506108,
++  0.0856114896146318,
++  0.08562055571091849,
++  0.0856436668950144,
++  0.08568036997463012,
++  0.08570117002296718,
++  0.0857196337430032,
++  0.08575154449624199,
++  0.085795500889006,
++  0.0858166489645206,
++  0.08584216378725701,
++  0.08588576370324032,
++  0.08592576958371058,
++  0.08595370521490762,
++  0.08599831383452196,
++  0.08605371499298001,
++  0.08609120314277989,
++  0.08613728853768998,
++  0.08619962182475258,
++  0.08619446137034686,
++  0.08619612828781636,
++  0.0862188679865026,
++  0.0862193332523182,
++  0.08623878513541193,
++  0.08626884365080827,
++  0.08627728846480154,
++  0.0862973060165856,
++  0.08632915669864417,
++  0.08635280316623099,
++  0.08636554545967515,
++  0.08638637940811227,
++  0.08641342446363699,
++  0.08643501743142025,
++  0.0864499207732873,
++  0.0864637328337495,
++  0.08647974523248782,
++  0.0864966800744119,
++  0.08651085556628355,
++  0.08651509322811682,
++  0.0865193934523567,
++  0.08652306951142459,
++  0.08652741608550431,
++  0.0865355608263171,
++  0.08652931165015944,
++  0.08652558126260212,
++  0.08652834610596793,
++  0.08653956125351177,
++  0.08653288360764469,
++  0.08653195575233447,
++  0.08654097185535779,
++  0.08654755009384459,
++  0.0865456640195367,
++  0.08655580068193482,
++  0.08654939067612222,
++  0.0865243724051981,
++  0.08650868530375133,
++  0.08650437368739824,
++  0.0864932386297321,
++  0.08648168461259484,
++  0.08648114695841443,
++  0.08648631655611862,
++  0.08647882484685784,
++  0.08648020335209053,
++  0.08649776122731316,
++  0.08649740628309335,
++  0.08649877196692299,
++  0.08651374108851698,
++  0.08653483097295608,
++  0.08653399450257572,
++  0.08654425721737005,
++  0.08656444228021058,
++  0.0865837743499752,
++  0.08658734310323318,
++  0.08659925756450962,
++  0.08661823443020071,
++  0.08663687785808748,
++  0.08664434422504935
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_irregular_two_sources/case.json b/tests/regression/cases/nhflow_2d_irregular_two_sources/case.json
+new file mode 100644
+index 00000000..f8ae938e
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_irregular_two_sources/case.json
+@@ -0,0 +1,35 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "steps": 200,
++ "ctrl_set": {
++  "B 92": "31",
++  "B 93": "0.2 4.5"
++ },
++ "ctrl_add": [
++  "B 85 2",
++  "B 86 64",
++  "B 87 0.6 3.0",
++  "B 88 3.3",
++  "P 50 10.0 0.005",
++  "P 50 40.0 0.005",
++  "P 50 60.0 0.005",
++  "B 139 16000",
++  "B 500 2 31 0.1 2.5",
++  "B 504 2 4242"
++ ],
++ "description": "NHFLOW, two irregular JONSWAP sources: B 92 31 (Hs 0.2, Tp 4.5, seed B 139) plus wave_field source 2 (Hs 0.1, Tp 2.5, own seed B 504). Checks the per-source lexer context and that the B 92 phases do not depend on other sources.",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "wave_field",
++  "irregular"
++ ],
++ "covers": [
++  "wave_field irregular sources",
++  "per-source random seed",
++  "lexer context swap"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_irregular_two_sources/reference.json b/tests/regression/cases/nhflow_2d_irregular_two_sources/reference.json
+new file mode 100644
+index 00000000..d8bc7da3
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_irregular_two_sources/reference.json
+@@ -0,0 +1,321 @@
++{
++ "final_count": 200,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 2.679584080978657,
++   "l1": 40.256894645728465,
++   "l2": 1.496743476043977,
++   "linf": 0.15176667304049288
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 1.0975423541804568,
++   "l1": 26.17878972986172,
++   "l2": 1.112657784549005,
++   "linf": 0.12610736313027823
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 12.19849182745294,
++   "l1": 161.3786703296523,
++   "l2": 5.99391640350281,
++   "linf": 0.5970032910438574
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 4.417837029503315,
++   "l1": 104.93790744911539,
++   "l2": 4.458647594596987,
++   "linf": 0.5024177482720295
++  },
++  "P": {
++   "n": 1750,
++   "sum": 722.6665047685332,
++   "l1": 16717.358331706084,
++   "l2": 1608.5205506725304,
++   "linf": 328.48903915886467
++  },
++  "eta": {
++   "n": 350,
++   "sum": 0.33541058821936565,
++   "l1": 5.522788338970905,
++   "l2": 0.4510233298921056,
++   "linf": 0.07619676443573464
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1403.8354105882192,
++   "l1": 1403.8354105882192,
++   "l2": 75.03951235823449,
++   "linf": 4.0672237434220575
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG-THEORY.dat": {
++   "rows": 204,
++   "last": [
++    17.5041788,
++    -0.0222609868,
++    -0.0453800474,
++    0.00129754159
++   ],
++   "colsum": [
++    1752.9285035057,
++    110.407354528613,
++    0.798468613277,
++    -0.02858637914700002
++   ],
++   "colabs": [
++    1752.9285035057,
++    116.801478355833,
++    7.735732398377,
++    9.913341899987
++   ]
++  },
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 205,
++   "last": [
++    17.5041788,
++    -0.0304564832,
++    -0.0273872004,
++    0.0572201599,
++    0.00364991381
++   ],
++   "colsum": [
++    1756.9285035057,
++    265.8681863848369,
++    0.3887657290666882,
++    0.4975550505860961,
++    0.03483618410874098
++   ],
++   "colabs": [
++    1756.9285035057,
++    271.1196916632049,
++    4.2150889386824915,
++    2.062820252234904,
++    0.035239192606479015
++   ]
++  }
++ },
++ "final_simtime": 17.504178760377176,
++ "dt": [
++  0.08785417877938251,
++  0.08729562014620712,
++  0.086901830245626,
++  0.08666597161702008,
++  0.08646978080303591,
++  0.08633774187146948,
++  0.08628059084692502,
++  0.08620338988865334,
++  0.08621829968874485,
++  0.08620409784182463,
++  0.08624171391934811,
++  0.08629464425634972,
++  0.08633112742533884,
++  0.08641924110162799,
++  0.08644780843188338,
++  0.08650100522180368,
++  0.08657170264345704,
++  0.08660768489926958,
++  0.08669878318231625,
++  0.08675458417820704,
++  0.08683062478832619,
++  0.086920868123345,
++  0.08699284267603494,
++  0.08708481238864761,
++  0.08716369180025914,
++  0.08722931544076658,
++  0.08733061402036135,
++  0.08739915133949373,
++  0.08739993684961259,
++  0.08739760365740802,
++  0.08737941339771504,
++  0.08735867193329463,
++  0.08736865193934766,
++  0.08734691009842609,
++  0.08738058119553838,
++  0.08736378321865806,
++  0.08738138973585614,
++  0.08739644169906068,
++  0.08738940151047835,
++  0.08741838549479403,
++  0.08739414823223988,
++  0.08739679486430335,
++  0.087402024467358,
++  0.08739064613995963,
++  0.08742262087937434,
++  0.0874070799096662,
++  0.08742158290483366,
++  0.08743988739332301,
++  0.08743943937470228,
++  0.08747452178110367,
++  0.08747650003478594,
++  0.08749238121789846,
++  0.08752786747889849,
++  0.08753114954673988,
++  0.08756933871966734,
++  0.08759110220969843,
++  0.08761375166497126,
++  0.08766852291657028,
++  0.08767842569940643,
++  0.08772104270711147,
++  0.08775525004156712,
++  0.08776198486416266,
++  0.08778683561015273,
++  0.08779651067415616,
++  0.08781796572920333,
++  0.08784460924635899,
++  0.08786569341511642,
++  0.0878807180616977,
++  0.0879160116901638,
++  0.08794194590034454,
++  0.08795671472565289,
++  0.08799564116671993,
++  0.08795930593075975,
++  0.08790821832723121,
++  0.08790533962717127,
++  0.0878282951831066,
++  0.08781908665560263,
++  0.08777282468366894,
++  0.08773768132289192,
++  0.08774321629419655,
++  0.08768242669011773,
++  0.08768720133207453,
++  0.08765399525043441,
++  0.08763332800705853,
++  0.08765330893892748,
++  0.0876073957381646,
++  0.08762208608410887,
++  0.08760998056941376,
++  0.08759953699317227,
++  0.08763980129168046,
++  0.0876060878775057,
++  0.08762386702946186,
++  0.0876423282715069,
++  0.08763478380743162,
++  0.08767167315532848,
++  0.08767566637660366,
++  0.08768735120061542,
++  0.08773448693630898,
++  0.08773336209154622,
++  0.0877554036552534,
++  0.08780082376621214,
++  0.08780704710230605,
++  0.08783148249824169,
++  0.08787583482159349,
++  0.08788975910381543,
++  0.0879102729028406,
++  0.08794532948034994,
++  0.08797354976019178,
++  0.08798861507340423,
++  0.08801184018655084,
++  0.08804260646073034,
++  0.08806413831354677,
++  0.08807582985231922,
++  0.08809259628809026,
++  0.08811447660670095,
++  0.08813572443211597,
++  0.08814264894189863,
++  0.08815163520125492,
++  0.0881657646109898,
++  0.08818495660604048,
++  0.08819292257295573,
++  0.08819629452214339,
++  0.08820556160701278,
++  0.08822067862533171,
++  0.08823421424901483,
++  0.08823476288079053,
++  0.08824156780829083,
++  0.08825459577295759,
++  0.08827136353002929,
++  0.08827274908360787,
++  0.08827832309668013,
++  0.08829009269500836,
++  0.08830774555240258,
++  0.08831314903288713,
++  0.0883178078403807,
++  0.08832841446625311,
++  0.08834455185447702,
++  0.08835701704408293,
++  0.08836060175117957,
++  0.08836979277295008,
++  0.08838411972918338,
++  0.08840139991188091,
++  0.08840675208281863,
++  0.08841417354388706,
++  0.08842637032249177,
++  0.0884429796083503,
++  0.08844297669313353,
++  0.08838356087265166,
++  0.08838366011285395,
++  0.08835096202391174,
++  0.08832294263962367,
++  0.0883151861937118,
++  0.0882853184824229,
++  0.0882981445098596,
++  0.08825381504845219,
++  0.08825402791918512,
++  0.08823046578930033,
++  0.08821456774256951,
++  0.08822522524687698,
++  0.08819409748375166,
++  0.08821673919135796,
++  0.08819212158219085,
++  0.08819861084616666,
++  0.08820945832984654,
++  0.0881991700902892,
++  0.08823980580272536,
++  0.0882188149631763,
++  0.08824480483402894,
++  0.08825784600106931,
++  0.08826636532179233,
++  0.08831067038836449,
++  0.08830706416439586,
++  0.08834878086511237,
++  0.08836705649891773,
++  0.08839038885437314,
++  0.08843967488430361,
++  0.08845071389387232,
++  0.08850296814862453,
++  0.08852711001412011,
++  0.08855777860721234,
++  0.08860067157620674,
++  0.08861831064239394,
++  0.08866808175029423,
++  0.08868955882746643,
++  0.08869134543652318,
++  0.08867575667624901,
++  0.08862065838656054,
++  0.08860097730821552,
++  0.08856131879217914,
++  0.08853067525633071,
++  0.08851191813989093,
++  0.08847262276047925,
++  0.088469811396844,
++  0.08842883570407652,
++  0.08841454870110649,
++  0.0883947248297704,
++  0.08837028869463051,
++  0.08837480555151446,
++  0.08834096733392324,
++  0.08834198724070488
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 1 wave_field: superposed sources (B 500-504)"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_nwt_stokes5/case.json b/tests/regression/cases/nhflow_2d_nwt_stokes5/case.json
+new file mode 100644
+index 00000000..f89c6fa9
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_nwt_stokes5/case.json
+@@ -0,0 +1,19 @@
++{
++ "description": "NHFLOW 2D numerical wave tank, 5th-order Stokes waves, relaxation generation (B98=2) and beach (B99=1). Based on tutorial NHFLOW/1_Stokes5, shortened.",
++ "solver": "nhflow",
++ "np": 1,
++ "steps": 100,
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave"
++ ],
++ "covers": [
++  "iowave_nhflow_precalc_relax",
++  "iowave_nhflow_relax",
++  "wave_lib_Stokes_5th",
++  "NHFLOW wave gauges P51"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_nwt_stokes5/control.txt b/tests/regression/cases/nhflow_2d_nwt_stokes5/control.txt
+new file mode 100644
+index 00000000..5482ff60
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_nwt_stokes5/control.txt
+@@ -0,0 +1,16 @@
++C 11 6
++C 12 3
++C 13 3
++C 14 7
++C 15 21
++C 16 3
++
++B 1 0.05
++B 2 350 1 5
++B 10 0.0 200.0 0.0 0.05 0.0 1.0
++B 103 5
++B 113 2.5
++B 116 1.0
++
++M 10 1
++M 20 2
+diff --git a/tests/regression/cases/nhflow_2d_nwt_stokes5/ctrl.txt b/tests/regression/cases/nhflow_2d_nwt_stokes5/ctrl.txt
+new file mode 100644
+index 00000000..d3e3f629
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_nwt_stokes5/ctrl.txt
+@@ -0,0 +1,24 @@
++A 10 5
++
++B 90 1
++B 92 5
++B 93 1.0 4.5
++B 96 25.0 50.0
++B 98 2
++B 99 1
++
++F 60 4.01
++
++I 12 1
++
++N 41 120.0
++N 47 1.0
++
++M 10 1
++
++P 51 15.0 0.005
++P 51 50.0 0.005
++P 51 75.0 0.005
++P 51 125.0 0.005
++
++W 22 -9.81
+diff --git a/tests/regression/cases/nhflow_2d_nwt_stokes5/reference.json b/tests/regression/cases/nhflow_2d_nwt_stokes5/reference.json
+new file mode 100644
+index 00000000..3d2ff5cd
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_nwt_stokes5/reference.json
+@@ -0,0 +1,200 @@
++{
++ "final_count": 100,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 14.380295204290743,
++   "l1": 200.41288851131588,
++   "l2": 10.008173102996157,
++   "linf": 1.0659012555640885
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 8.493958849530557,
++   "l1": 112.64668163740734,
++   "l2": 6.3097320782620265,
++   "linf": 0.6678575948957474
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 124.42044089023427,
++   "l1": 807.115350276013,
++   "l2": 40.738195855901374,
++   "linf": 4.901791113426414
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 34.37890787016504,
++   "l1": 453.5812301754021,
++   "l2": 25.541424601418637,
++   "linf": 2.7993935984816174
++  },
++  "P": {
++   "n": 1750,
++   "sum": 11280.043032373289,
++   "l1": 57483.839059710794,
++   "l2": 7325.415101337706,
++   "linf": 2410.7399776697443
++  },
++  "eta": {
++   "n": 350,
++   "sum": 1.5390340809831504,
++   "l1": 27.063262974228735,
++   "l2": 3.013435656651333,
++   "linf": 0.5887321884208729
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1405.0390340809831,
++   "l1": 1405.0390340809831,
++   "l2": 75.16288211468651,
++   "linf": 4.598732188420873
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 105,
++   "last": [
++    7.32008189,
++    -0.100974151,
++    0.254927991,
++    8.56440318e-05,
++    -6.3627219e-09
++   ],
++   "colsum": [
++    378.0610302353,
++    273.758940649496,
++    2.997935757569901,
++    -0.004003292753444616,
++    -4.017475952148888e-08
++   ],
++   "colabs": [
++    378.0610302353,
++    294.178065740996,
++    3.058711204378099,
++    0.004190680414164616,
++    4.017475952148888e-08
++   ]
++  }
++ },
++ "final_simtime": 7.320081888711757,
++ "dt": [
++  0.07818264430694127,
++  0.07657187805796942,
++  0.07563484837256815,
++  0.07502841875784516,
++  0.07462848456052112,
++  0.07430670236549189,
++  0.07405585438572959,
++  0.0738689750748612,
++  0.07370232580161859,
++  0.07358390801929411,
++  0.07350025925385727,
++  0.07339808790966158,
++  0.0733483946857651,
++  0.07333933018490374,
++  0.07330549943578717,
++  0.0733527648646052,
++  0.0733816259854991,
++  0.07340176707505597,
++  0.07347933115291995,
++  0.07352250641925463,
++  0.07355300223929548,
++  0.0735726067723927,
++  0.07361467483768983,
++  0.07359087021427083,
++  0.07353651360719003,
++  0.07353316472180994,
++  0.07352404396637263,
++  0.07345725615865725,
++  0.0734780575137533,
++  0.07347974672057715,
++  0.07345577667517876,
++  0.07353474808317091,
++  0.07353470502220535,
++  0.07356265280383456,
++  0.07368393251275308,
++  0.07367552747618837,
++  0.07374819608618487,
++  0.07386077689969042,
++  0.07387742742861868,
++  0.07399881901350874,
++  0.07408543880509674,
++  0.07414403961880786,
++  0.07431493743639553,
++  0.07436704517630427,
++  0.0744757944875841,
++  0.07408803492023995,
++  0.07368132920466218,
++  0.07350360710676132,
++  0.07344136405119947,
++  0.07345052837091498,
++  0.07337817091220844,
++  0.07338498584628494,
++  0.07343320528059574,
++  0.0733939631248651,
++  0.07338574182725743,
++  0.07341047783358015,
++  0.07342409310180878,
++  0.07339544178918939,
++  0.07340041077391367,
++  0.07344736849814919,
++  0.07341566091656404,
++  0.07340039103389094,
++  0.07342558165557625,
++  0.07344694958342035,
++  0.07341125038377355,
++  0.07341618234967627,
++  0.07345980463184144,
++  0.07343483398822516,
++  0.07342046768695215,
++  0.0734456921388937,
++  0.07347364746644439,
++  0.073440921819251,
++  0.07344928381788268,
++  0.07349740840859278,
++  0.07348019576290464,
++  0.07346908250701208,
++  0.07349479336426433,
++  0.0735308843708667,
++  0.07349463671664966,
++  0.0734940516457192,
++  0.07352846634759483,
++  0.07352346703843021,
++  0.07349600646741752,
++  0.0735020442268433,
++  0.07353954642888128,
++  0.07349571264873044,
++  0.07347015087052125,
++  0.07347764982026715,
++  0.07349094084487715,
++  0.07343790715986727,
++  0.07342297327241994,
++  0.07344827117886023,
++  0.07342149781483756,
++  0.07339325268431965,
++  0.07340799764324556,
++  0.07343623970851645,
++  0.07339606214365509,
++  0.07339753022274535,
++  0.07343828604314541,
++  0.07342420154521623
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/case.json b/tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/case.json
+new file mode 100644
+index 00000000..72f68e8e
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/case.json
+@@ -0,0 +1,17 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "np": 2,
++ "description": "as nhflow_2d_nwt_stokes5 on 2 MPI ranks (relaxation zones split across ranks).",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "mpi"
++ ],
++ "covers": [
++  "NHFLOW MPI halos",
++  "iowave relaxation across partition edges"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/reference.json b/tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/reference.json
+new file mode 100644
+index 00000000..95a27cd8
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_nwt_stokes5_mpi2/reference.json
+@@ -0,0 +1,200 @@
++{
++ "final_count": 100,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 14.380295204290922,
++   "l1": 200.41288851133393,
++   "l2": 10.008173102996157,
++   "linf": 1.0659012555640959
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 8.493958849530566,
++   "l1": 112.6466816373823,
++   "l2": 6.309732078262019,
++   "linf": 0.6678575948957446
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 124.42044089023484,
++   "l1": 807.1153502760853,
++   "l2": 40.73819585590138,
++   "linf": 4.90179111342645
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 34.378907870165044,
++   "l1": 453.5812301753015,
++   "l2": 25.5414246014186,
++   "linf": 2.7993935984816107
++  },
++  "P": {
++   "n": 1750,
++   "sum": 11280.545884771127,
++   "l1": 57483.3362073786,
++   "l2": 7325.415100205258,
++   "linf": 2410.7399776697634
++  },
++  "eta": {
++   "n": 350,
++   "sum": 1.5390340809831748,
++   "l1": 27.063262974226724,
++   "l2": 3.0134356566513265,
++   "linf": 0.5887321884208747
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1405.0390340809831,
++   "l1": 1405.0390340809831,
++   "l2": 75.16288211468651,
++   "linf": 4.5987321884208745
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 105,
++   "last": [
++    7.32008189,
++    -0.100974151,
++    0.254927991,
++    8.56440317e-05,
++    -6.36262465e-09
++   ],
++   "colsum": [
++    378.0610302353,
++    273.758940649496,
++    2.997935757569901,
++    -0.004003292753834616,
++    -4.017388710382487e-08
++   ],
++   "colabs": [
++    378.0610302353,
++    294.178065740996,
++    3.058711204378099,
++    0.004190680414174616,
++    4.017388710382487e-08
++   ]
++  }
++ },
++ "final_simtime": 7.320081888711758,
++ "dt": [
++  0.07818264430694127,
++  0.07657187805796942,
++  0.07563484837256816,
++  0.07502841875784516,
++  0.07462848456052112,
++  0.0743067023654919,
++  0.07405585438572959,
++  0.0738689750748612,
++  0.07370232580161859,
++  0.07358390801929411,
++  0.07350025925385727,
++  0.0733980879096616,
++  0.07334839468576512,
++  0.07333933018490374,
++  0.07330549943578715,
++  0.07335276486460521,
++  0.07338162598549912,
++  0.07340176707505597,
++  0.07347933115291995,
++  0.07352250641925466,
++  0.07355300223929546,
++  0.07357260677239272,
++  0.07361467483768983,
++  0.07359087021427084,
++  0.07353651360719002,
++  0.07353316472180993,
++  0.0735240439663726,
++  0.07345725615865724,
++  0.07347805751375329,
++  0.07347974672057714,
++  0.07345577667517875,
++  0.07353474808317091,
++  0.07353470502220537,
++  0.07356265280383459,
++  0.07368393251275313,
++  0.07367552747618841,
++  0.0737481960861849,
++  0.07386077689969045,
++  0.07387742742861865,
++  0.0739988190135087,
++  0.07408543880509673,
++  0.07414403961880785,
++  0.07431493743639556,
++  0.07436704517630427,
++  0.07447579448758411,
++  0.07408803492023992,
++  0.07368132920466218,
++  0.07350360710676132,
++  0.07344136405119947,
++  0.07345052837091498,
++  0.07337817091220844,
++  0.07338498584628494,
++  0.07343320528059574,
++  0.0733939631248651,
++  0.07338574182725743,
++  0.07341047783358015,
++  0.07342409310180878,
++  0.07339544178918939,
++  0.07340041077391367,
++  0.07344736849814917,
++  0.07341566091656404,
++  0.07340039103389094,
++  0.07342558165557624,
++  0.07344694958342035,
++  0.07341125038377354,
++  0.07341618234967627,
++  0.07345980463184144,
++  0.07343483398822516,
++  0.07342046768695216,
++  0.07344569213889368,
++  0.0734736474664444,
++  0.073440921819251,
++  0.07344928381788267,
++  0.07349740840859278,
++  0.07348019576290463,
++  0.07346908250701208,
++  0.07349479336426432,
++  0.0735308843708667,
++  0.07349463671664964,
++  0.0734940516457192,
++  0.07352846634759484,
++  0.07352346703843021,
++  0.07349600646741752,
++  0.0735020442268433,
++  0.07353954642888128,
++  0.07349571264873041,
++  0.07347015087052126,
++  0.0734776498202672,
++  0.07349094084487717,
++  0.07343790715986732,
++  0.07342297327241998,
++  0.07344827117886024,
++  0.07342149781483756,
++  0.07339325268431965,
++  0.07340799764324553,
++  0.07343623970851645,
++  0.07339606214365504,
++  0.07339753022274527,
++  0.07343828604314533,
++  0.07342420154521614
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_two_sources/case.json b/tests/regression/cases/nhflow_2d_two_sources/case.json
+new file mode 100644
+index 00000000..84504caf
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_two_sources/case.json
+@@ -0,0 +1,29 @@
++{
++ "base": "nhflow_2d_nwt_stokes5",
++ "steps": 200,
++ "ctrl_set": {
++  "B 92": "2",
++  "B 93": "0.05 4.5"
++ },
++ "ctrl_add": [
++  "P 50 10.0 0.005",
++  "P 50 40.0 0.005",
++  "P 50 60.0 0.005",
++  "B 500 2 2 0.03 3.0",
++  "B 501 2 0.0 30.0 0.0 1.0e20 0.0"
++ ],
++ "description": "NHFLOW, two superposed linear sources: B 92 linear H 0.05 T 4.5 plus wave_field source 2, linear H 0.03 T 3.0 with 30 deg phase (B 500/501). P 50 prints the summed target.",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "wave_field"
++ ],
++ "covers": [
++  "wave_field direct and cached paths",
++  "per-source lexer context",
++  "B 500/501 input"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_two_sources/reference.json b/tests/regression/cases/nhflow_2d_two_sources/reference.json
+new file mode 100644
+index 00000000..6e208a06
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_two_sources/reference.json
+@@ -0,0 +1,321 @@
++{
++ "final_count": 200,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 2.3716710583103007,
++   "l1": 20.563283152666653,
++   "l2": 0.8015782888908599,
++   "linf": 0.07279986999719901
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 0.5169061961851115,
++   "l1": 11.917935901659256,
++   "l2": 0.5384121040685099,
++   "linf": 0.05972647901848924
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 9.9372022958128,
++   "l1": 82.5597179773579,
++   "l2": 3.2220390972955633,
++   "linf": 0.29478680956794945
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 2.0740945098786,
++   "l1": 47.83221183381519,
++   "l2": 2.16164348387968,
++   "linf": 0.23999727448486263
++  },
++  "P": {
++   "n": 1750,
++   "sum": -131.6721507885318,
++   "l1": 7613.701939531312,
++   "l2": 798.8322092124863,
++   "linf": 196.5224207522169
++  },
++  "eta": {
++   "n": 350,
++   "sum": 0.31366840274419694,
++   "l1": 2.794593028066899,
++   "l2": 0.24238302360044997,
++   "linf": 0.03927659320396426
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1403.813668402744,
++   "l1": 1403.813668402744,
++   "l2": 75.03738648247378,
++   "linf": 4.049276593203964
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG-THEORY.dat": {
++   "rows": 204,
++   "last": [
++    17.8769161,
++    -0.00116010677,
++    -0.0119526799,
++    -0.00551792434
++   ],
++   "colsum": [
++    1796.987286534,
++    109.999673370142,
++    0.010594958925000009,
++    0.0013841076519999999
++   ],
++   "colabs": [
++    1796.987286534,
++    113.46431017684,
++    3.543956169629,
++    3.52680844792
++   ]
++  },
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 205,
++   "last": [
++    17.8769161,
++    -0.00641494851,
++    0.000799816876,
++    0.0171348156,
++    0.0014894299
++   ],
++   "colsum": [
++    1800.987286534,
++    264.9999443490482,
++    0.35143284743005265,
++    0.23107049450314657,
++    0.01641374204810059
++   ],
++   "colabs": [
++    1800.987286534,
++    268.4121077312858,
++    1.9194410429833473,
++    0.6598754477332934,
++    0.016445596906267408
++   ]
++  }
++ },
++ "final_simtime": 17.876916083797866,
++ "dt": [
++  0.0900385230488048,
++  0.08996440195513382,
++  0.08994546037920143,
++  0.08994583307181754,
++  0.08995179216188187,
++  0.08996343661540687,
++  0.0899731744055648,
++  0.08998347691786611,
++  0.08999528226532817,
++  0.08993697289808546,
++  0.08985984156541747,
++  0.08980374472784916,
++  0.0897700509910062,
++  0.08976120103369696,
++  0.08977008401899858,
++  0.0897744355490021,
++  0.0897747308634609,
++  0.08977826098711869,
++  0.08978513624661245,
++  0.08979461784771872,
++  0.08979569494195826,
++  0.08979800693061725,
++  0.08980351592147827,
++  0.08981189168451162,
++  0.08981264657816494,
++  0.08981575517794016,
++  0.08982358983281157,
++  0.08983535914957469,
++  0.08983883955031695,
++  0.08981657346630502,
++  0.0897905623616359,
++  0.08977444252313499,
++  0.08975883786680305,
++  0.08975083054540348,
++  0.08974633606570899,
++  0.08974790308535857,
++  0.08974278796155853,
++  0.08973986865320864,
++  0.0897418963218836,
++  0.08974575305420093,
++  0.08974480572669437,
++  0.0897468089839019,
++  0.08975265239695056,
++  0.08975692030002963,
++  0.08975667904030601,
++  0.08975702340413255,
++  0.08976059798201795,
++  0.08976505531503054,
++  0.0897657484641309,
++  0.08976889729862753,
++  0.08976680540271426,
++  0.08975886669030929,
++  0.08975346836714654,
++  0.08974175314996284,
++  0.08973100197531349,
++  0.08972405332981152,
++  0.08972033878742831,
++  0.08970967483687003,
++  0.08970043817727072,
++  0.08969495865481991,
++  0.08969272484137449,
++  0.08968311917636475,
++  0.08967379270565069,
++  0.08966785031355969,
++  0.08966556245307516,
++  0.08965789580105143,
++  0.08964871094048,
++  0.0896429659677188,
++  0.08964062253528964,
++  0.08963522560362934,
++  0.08962547984368059,
++  0.08961944539145963,
++  0.08961743552160464,
++  0.08961409761426467,
++  0.0896050780703121,
++  0.0896004653154451,
++  0.08960056883912636,
++  0.08959890462384518,
++  0.08959237543604116,
++  0.08959070285895893,
++  0.0895937216496538,
++  0.08959358040579987,
++  0.08958937331315253,
++  0.08958930514611067,
++  0.08959322341405325,
++  0.0895946546311518,
++  0.08959086119907259,
++  0.08959116624595093,
++  0.08959571352129345,
++  0.08959848402036776,
++  0.08959548744304228,
++  0.08959700942417327,
++  0.08960323554186998,
++  0.0896066404133216,
++  0.08960554171604442,
++  0.08960953085610543,
++  0.08961872403957975,
++  0.08962188428079854,
++  0.08962399213776522,
++  0.08963153539690219,
++  0.08964412697607593,
++  0.0896468733117625,
++  0.08965297216411657,
++  0.08966445882627891,
++  0.08967676129683877,
++  0.08968302591366531,
++  0.08969304625786366,
++  0.08970791038452669,
++  0.08972025534370141,
++  0.08972994573323045,
++  0.08974289914438635,
++  0.08973176072794632,
++  0.0896912235059031,
++  0.08967371804123181,
++  0.08967968350313323,
++  0.08968288565953463,
++  0.08968104955897645,
++  0.08968685753403388,
++  0.08969347065077014,
++  0.08969326032529805,
++  0.0896960308422224,
++  0.08970128955916049,
++  0.08971003769901964,
++  0.08971087306933102,
++  0.08971299639781487,
++  0.08971836586163184,
++  0.089726799404923,
++  0.0897275605491561,
++  0.08973110551792256,
++  0.08973778649327023,
++  0.08974611260398772,
++  0.08974679808197705,
++  0.08975068764165743,
++  0.08975534924207726,
++  0.08974733932013979,
++  0.0897377841971168,
++  0.08973008079662229,
++  0.08972858256094403,
++  0.08972352654487849,
++  0.08971735882500034,
++  0.08971448566288245,
++  0.08971541280741319,
++  0.08971011519479778,
++  0.08970771426843228,
++  0.089708228745732,
++  0.08970822476261389,
++  0.08970626772296707,
++  0.08970712872214151,
++  0.08971041170656271,
++  0.08971005338788678,
++  0.08971091957761454,
++  0.08971409037827674,
++  0.08971868059381521,
++  0.08971937710048893,
++  0.08972174922761512,
++  0.08972621495017274,
++  0.08972006834560758,
++  0.08971057880071111,
++  0.08970481085427884,
++  0.08970194910941132,
++  0.08969131107533539,
++  0.0896824640812076,
++  0.08967721312505282,
++  0.08967530683948421,
++  0.08966613541016195,
++  0.08965753836693585,
++  0.08965251663272857,
++  0.08965115214156906,
++  0.0896438916037093,
++  0.08963536682320541,
++  0.08963044474593958,
++  0.08962921154750507,
++  0.08962405943570971,
++  0.08961543775046774,
++  0.08961062418448705,
++  0.08960991084987385,
++  0.08960656099239842,
++  0.08959878498859583,
++  0.08959564415080762,
++  0.08959736921644973,
++  0.08959548278602938,
++  0.08959044737196045,
++  0.0895901900525532,
++  0.08959450948029794,
++  0.08959402601004592,
++  0.08959106491090771,
++  0.089592330334928,
++  0.08959768193967767,
++  0.0895988623760225,
++  0.08959676933101147,
++  0.08959873368260199,
++  0.0896046552672794,
++  0.08960790819033099,
++  0.08960649950987698,
++  0.08960901783476527,
++  0.0896153370500087,
++  0.08962105615342039,
++  0.08962010038301284,
++  0.08962295001473994,
++  0.0896295222895064
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 1 wave_field: superposed sources (B 500-504)"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_two_sources_mpi2/case.json b/tests/regression/cases/nhflow_2d_two_sources_mpi2/case.json
+new file mode 100644
+index 00000000..b5d1fa11
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_two_sources_mpi2/case.json
+@@ -0,0 +1,17 @@
++{
++ "base": "nhflow_2d_two_sources",
++ "np": 2,
++ "description": "as nhflow_2d_two_sources on 2 MPI ranks (B 50x broadcast, sources split across ranks).",
++ "tags": [
++  "quick",
++  "2d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "wave_field",
++  "mpi"
++ ],
++ "covers": [
++  "wave_field input broadcast"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_2d_two_sources_mpi2/reference.json b/tests/regression/cases/nhflow_2d_two_sources_mpi2/reference.json
+new file mode 100644
+index 00000000..f785cdb4
+--- /dev/null
++++ b/tests/regression/cases/nhflow_2d_two_sources_mpi2/reference.json
+@@ -0,0 +1,321 @@
++{
++ "final_count": 200,
++ "fields": {
++  "U": {
++   "n": 1750,
++   "sum": 2.371671056961796,
++   "l1": 20.563275208168346,
++   "l2": 0.8015782789154977,
++   "linf": 0.07279986999573398
++  },
++  "V": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "W": {
++   "n": 1750,
++   "sum": 0.5169061922741272,
++   "l1": 11.917935805822959,
++   "l2": 0.5384120907596052,
++   "linf": 0.05972647901791616
++  },
++  "UH": {
++   "n": 1750,
++   "sum": 9.937202293576973,
++   "l1": 82.55968613231529,
++   "l2": 3.2220390575693463,
++   "linf": 0.2947868095620895
++  },
++  "VH": {
++   "n": 1750,
++   "sum": 0.0,
++   "l1": 0.0,
++   "l2": 0.0,
++   "linf": 0.0
++  },
++  "WH": {
++   "n": 1750,
++   "sum": 2.074094478626572,
++   "l1": 47.83221147154596,
++   "l2": 2.1616434309475316,
++   "linf": 0.23999727448258856
++  },
++  "P": {
++   "n": 1750,
++   "sum": -259.19865774520434,
++   "l1": 7456.542432616064,
++   "l2": 797.3355575928574,
++   "linf": 196.52242075064456
++  },
++  "eta": {
++   "n": 350,
++   "sum": 0.3136684027451624,
++   "l1": 2.7945929990469507,
++   "l2": 0.24238302808662174,
++   "linf": 0.03927659320495813
++  },
++  "WL": {
++   "n": 350,
++   "sum": 1403.813668402745,
++   "l1": 1403.813668402745,
++   "l2": 75.03738648248832,
++   "linf": 4.049276593204958
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG-THEORY.dat": {
++   "rows": 204,
++   "last": [
++    17.8769161,
++    -0.00116010677,
++    -0.0119526799,
++    -0.00551792434
++   ],
++   "colsum": [
++    1796.987286534,
++    109.999673370142,
++    0.010594958925000009,
++    0.0013841076519999999
++   ],
++   "colabs": [
++    1796.987286534,
++    113.46431017684,
++    3.543956169629,
++    3.52680844792
++   ]
++  },
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 205,
++   "last": [
++    17.8769161,
++    -0.00641494851,
++    0.000799816874,
++    0.0171348159,
++    0.00148942962
++   ],
++   "colsum": [
++    1800.987286534,
++    264.9999443490482,
++    0.35143284763215266,
++    0.23107049119298337,
++    0.016413745338684654
++   ],
++   "colabs": [
++    1800.987286534,
++    268.4121077312858,
++    1.9194410429854474,
++    0.6598754487653986,
++    0.016445600545019347
++   ]
++  }
++ },
++ "final_simtime": 17.87691608379791,
++ "dt": [
++  0.0900385230488048,
++  0.08996440195513382,
++  0.08994546037920143,
++  0.08994583307181754,
++  0.08995179216188187,
++  0.08996343661540687,
++  0.0899731744055648,
++  0.08998347691786611,
++  0.08999528226532817,
++  0.08993697289808544,
++  0.08985984156541747,
++  0.08980374472784916,
++  0.0897700509910062,
++  0.08976120103369696,
++  0.08977008401899858,
++  0.08977443554900211,
++  0.08977473086346091,
++  0.08977826098711869,
++  0.08978513624661245,
++  0.08979461784771872,
++  0.08979569494195826,
++  0.08979800693061725,
++  0.08980351592147827,
++  0.08981189168451162,
++  0.08981264657816494,
++  0.08981575517794016,
++  0.08982358983281157,
++  0.0898353591495747,
++  0.08983883955031696,
++  0.08981657346630503,
++  0.0897905623616359,
++  0.08977444252313499,
++  0.08975883786680304,
++  0.08975083054540348,
++  0.08974633606570899,
++  0.08974790308535857,
++  0.08974278796155853,
++  0.08973986865320864,
++  0.0897418963218836,
++  0.08974575305420093,
++  0.08974480572669437,
++  0.0897468089839019,
++  0.08975265239695054,
++  0.08975692030002962,
++  0.08975667904030599,
++  0.08975702340413254,
++  0.08976059798201796,
++  0.08976505531503055,
++  0.0897657484641309,
++  0.08976889729862754,
++  0.08976680540271424,
++  0.08975886669030929,
++  0.08975346836714655,
++  0.08974175314996286,
++  0.0897310019753135,
++  0.08972405332981157,
++  0.08972033878742836,
++  0.08970967483687005,
++  0.08970043817727072,
++  0.08969495865481994,
++  0.0896927248413745,
++  0.08968311917636476,
++  0.0896737927056507,
++  0.08966785031355971,
++  0.0896655624530752,
++  0.08965789580105146,
++  0.08964871094047998,
++  0.08964296596771879,
++  0.0896406225352897,
++  0.08963522560362937,
++  0.08962547984368067,
++  0.08961944539145969,
++  0.08961743552160469,
++  0.08961409761426474,
++  0.08960507807031218,
++  0.08960046531544517,
++  0.0896005688391264,
++  0.08959890462384522,
++  0.08959237543604119,
++  0.08959070285895893,
++  0.08959372164965386,
++  0.0895935804057999,
++  0.08958937331315253,
++  0.08958930514611073,
++  0.08959322341405329,
++  0.08959465463115185,
++  0.08959086119907261,
++  0.08959116624595094,
++  0.08959571352129346,
++  0.08959848402036778,
++  0.08959548744304233,
++  0.08959700942417337,
++  0.0896032355418701,
++  0.08960664041332171,
++  0.0896055417160445,
++  0.08960953085610543,
++  0.08961872403957975,
++  0.08962188428079854,
++  0.08962399213776526,
++  0.08963153539690231,
++  0.08964412697607609,
++  0.08964687331176258,
++  0.08965297216411666,
++  0.08966445882627903,
++  0.08967676129683891,
++  0.08968302591366549,
++  0.08969304625786377,
++  0.08970791038452679,
++  0.08972025534370152,
++  0.08972994573323052,
++  0.0897428991443864,
++  0.08973176072794632,
++  0.08969122350590313,
++  0.08967371804123184,
++  0.08967968350313321,
++  0.08968288565953461,
++  0.08968104955897645,
++  0.08968685753403388,
++  0.08969347065077017,
++  0.08969326032529809,
++  0.08969603084222241,
++  0.0897012895591605,
++  0.08971003769901965,
++  0.08971087306933101,
++  0.08971299639781487,
++  0.08971836586163187,
++  0.08972679940492302,
++  0.0897275605491561,
++  0.08973110551792256,
++  0.08973778649327026,
++  0.08974611260398774,
++  0.08974679808197708,
++  0.08975068764165743,
++  0.08975534924207725,
++  0.08974733932013983,
++  0.08973778419711685,
++  0.0897300807966224,
++  0.08972858256094418,
++  0.08972352654487867,
++  0.08971735882500056,
++  0.0897144856628826,
++  0.08971541280741334,
++  0.08971011519479791,
++  0.08970771426843244,
++  0.08970822874573214,
++  0.08970822476261403,
++  0.08970626772296718,
++  0.0897071287221416,
++  0.08971041170656274,
++  0.08971005338788682,
++  0.08971091957761447,
++  0.08971409037827652,
++  0.08971868059381473,
++  0.08971937710048827,
++  0.0897217492276141,
++  0.08972621495017127,
++  0.08972006834560757,
++  0.08971057880071111,
++  0.08970481085427884,
++  0.0897019491094113,
++  0.08969131107533543,
++  0.0896824640812076,
++  0.08967721312505282,
++  0.0896753068394842,
++  0.08966613541016193,
++  0.08965753836693577,
++  0.08965251663272848,
++  0.08965115214156903,
++  0.08964389160370927,
++  0.08963536682320544,
++  0.0896304447459396,
++  0.08962921154750508,
++  0.08962405943570971,
++  0.0896154377504677,
++  0.08961062418448704,
++  0.08960991084987387,
++  0.0896065609923984,
++  0.08959878498859582,
++  0.0895956441508076,
++  0.08959736921644977,
++  0.08959548278602943,
++  0.0895904473719606,
++  0.08959019005255338,
++  0.08959450948029815,
++  0.08959402601004617,
++  0.08959106491090803,
++  0.08959233033492844,
++  0.08959768193967829,
++  0.08959886237602321,
++  0.08959676933101236,
++  0.08959873368260324,
++  0.08960465526728112,
++  0.08960790819033301,
++  0.08960649950987966,
++  0.08960901783476871,
++  0.0896153370500131,
++  0.08962105615342529,
++  0.08962010038301901,
++  0.08962295001474772,
++  0.08962952228951612
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 1 wave_field: superposed sources (B 500-504)"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_3d_irregular_decomp/case.json b/tests/regression/cases/nhflow_3d_irregular_decomp/case.json
+new file mode 100644
+index 00000000..edffa4d5
+--- /dev/null
++++ b/tests/regression/cases/nhflow_3d_irregular_decomp/case.json
+@@ -0,0 +1,20 @@
++{
++ "description": "NHFLOW 3D short-crested irregular waves (JONSWAP + directional spreading B130=2), decomposed relaxation precalc (B89=1), 2 ranks. CFL 0.5 (N 47): at 1.0 this coarse 3D grid goes unstable next to the generation zone within 30 steps, with or without decomposition and spreading.",
++ "solver": "nhflow",
++ "np": 2,
++ "steps": 60,
++ "tags": [
++  "3d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "irregular",
++  "decomp",
++  "mpi"
++ ],
++ "covers": [
++  "iowave_nhflow_precalc_decomp_space",
++  "directional spreading",
++  "3D relaxation zones"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_3d_irregular_decomp/control.txt b/tests/regression/cases/nhflow_3d_irregular_decomp/control.txt
+new file mode 100644
+index 00000000..e59dc2d4
+--- /dev/null
++++ b/tests/regression/cases/nhflow_3d_irregular_decomp/control.txt
+@@ -0,0 +1,16 @@
++C 11 6
++C 12 3
++C 13 3
++C 14 7
++C 15 21
++C 16 3
++
++B 1 1.0
++B 2 60 30 5
++B 10 0.0 60.0 0.0 30.0 0.0 1.0
++B 103 5
++B 113 2.5
++B 116 1.0
++
++M 10 2
++M 20 2
+diff --git a/tests/regression/cases/nhflow_3d_irregular_decomp/ctrl.txt b/tests/regression/cases/nhflow_3d_irregular_decomp/ctrl.txt
+new file mode 100644
+index 00000000..b91e796d
+--- /dev/null
++++ b/tests/regression/cases/nhflow_3d_irregular_decomp/ctrl.txt
+@@ -0,0 +1,35 @@
++A 10 5
++
++B 84 2
++B 85 2
++B 86 32
++B 87 0.6 3.0
++B 88 3.3
++B 89 1
++B 90 1
++B 92 31
++B 93 0.4 4.5
++B 96 15.0 15.0
++B 98 2
++B 99 1
++B 130 2
++B 131 0.0
++B 132 -90.0 90.0
++B 133 8
++B 134 10.0
++B 136 4
++
++F 60 4.0
++
++N 41 60.0
++N 47 0.5
++
++M 10 2
++
++P 51 20.0 15.0
++P 51 30.0 10.0
++P 51 40.0 15.0
++
++W 22 -9.81
++B 139 16000
++B 138 7 11
+diff --git a/tests/regression/cases/nhflow_3d_irregular_decomp/reference.json b/tests/regression/cases/nhflow_3d_irregular_decomp/reference.json
+new file mode 100644
+index 00000000..2769de8c
+--- /dev/null
++++ b/tests/regression/cases/nhflow_3d_irregular_decomp/reference.json
+@@ -0,0 +1,157 @@
++{
++ "final_count": 60,
++ "fields": {
++  "U": {
++   "n": 9000,
++   "sum": -11.960461259542726,
++   "l1": 409.99963378950196,
++   "l2": 6.441293816130102,
++   "linf": 0.3112134858146587
++  },
++  "V": {
++   "n": 9000,
++   "sum": -77.36470228384515,
++   "l1": 142.97356072224852,
++   "l2": 2.844674796349022,
++   "linf": 0.21238473090188514
++  },
++  "W": {
++   "n": 9000,
++   "sum": -0.6362047493992655,
++   "l1": 269.86423138639356,
++   "l2": 5.122303504768293,
++   "linf": 0.3186819841800217
++  },
++  "UH": {
++   "n": 9000,
++   "sum": -19.03610459161706,
++   "l1": 1632.1583944787799,
++   "l2": 25.543924179665694,
++   "linf": 1.305295980352281
++  },
++  "VH": {
++   "n": 9000,
++   "sum": -308.45185899361906,
++   "l1": 568.2631358288182,
++   "l2": 11.296008446299162,
++   "linf": 0.8532962128801749
++  },
++  "WH": {
++   "n": 9000,
++   "sum": -1.7584685496244958,
++   "l1": 1076.4120263650043,
++   "l2": 20.447247114433022,
++   "linf": 1.3023561938201456
++  },
++  "P": {
++   "n": 9000,
++   "sum": -13403.214974460625,
++   "l1": 466288.74882158474,
++   "l2": 15196.79485730407,
++   "linf": 1795.428031357169
++  },
++  "eta": {
++   "n": 1800,
++   "sum": -3.802343040665445,
++   "l1": 61.497480771157754,
++   "l2": 2.1814100724827554,
++   "linf": 0.19703439780202459
++  },
++  "WL": {
++   "n": 1800,
++   "sum": 7196.197656959334,
++   "l1": 7196.197656959334,
++   "l2": 169.63000856446067,
++   "linf": 4.197034397802025
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 64,
++   "last": [
++    4.40437356,
++    -0.103556434,
++    0.0394687927,
++    0.0103074471
++   ],
++   "colsum": [
++    138.8671952045,
++    90.78076113409745,
++    40.61445222657389,
++    0.09533001407188893
++   ],
++   "colabs": [
++    138.8671952045,
++    91.95665169397745,
++    40.61445222657389,
++    0.09533001407188893
++   ]
++  }
++ },
++ "final_simtime": 4.404373563228081,
++ "dt": [
++  0.07536868352281549,
++  0.07495492903093588,
++  0.07478885192980221,
++  0.07465335638609855,
++  0.07450808511994594,
++  0.07438445335541699,
++  0.07418761221505153,
++  0.07412499289446695,
++  0.07414325062192662,
++  0.07410722251969876,
++  0.07411318899887054,
++  0.07407539194610685,
++  0.07415392240521079,
++  0.07411656155392413,
++  0.07413425913554378,
++  0.07412881931015816,
++  0.07409747416255591,
++  0.07415595179638249,
++  0.07417748153541441,
++  0.07418954275176558,
++  0.07426268292221225,
++  0.0743673927307233,
++  0.07438182362756025,
++  0.07432413014788175,
++  0.07434703312789993,
++  0.074407921540955,
++  0.07430600796324009,
++  0.07418448610421854,
++  0.07415191388394393,
++  0.07401845853111891,
++  0.07400308307813834,
++  0.07403353989712291,
++  0.07397265799229528,
++  0.07401397799227716,
++  0.07402630847649323,
++  0.07400104857450585,
++  0.07407725129092026,
++  0.0740966926476543,
++  0.07411749276132086,
++  0.07425173152316607,
++  0.07422014433417547,
++  0.07419342703128316,
++  0.07424870659074165,
++  0.07419538382925377,
++  0.07420153251987145,
++  0.07424744805517815,
++  0.07420552658036043,
++  0.0742777933730585,
++  0.07423963500752667,
++  0.07426310512576662,
++  0.0742932355865287,
++  0.07426809302982447,
++  0.07435071973923092,
++  0.07435024437937876,
++  0.07437879548511817,
++  0.07447297864877556,
++  0.07440094261604813,
++  0.0743504739177112,
++  0.07439927337938049,
++  0.07431821965488972
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 0 iowave redesign baseline, hans_dev@395e1af + NHFLOW/FNPF regression_dump"
++}
+\ No newline at end of file
+diff --git a/tests/regression/regression.py b/tests/regression/regression.py
+index 090f365e..a251e2cc 100755
+--- a/tests/regression/regression.py
++++ b/tests/regression/regression.py
+@@ -64,11 +64,20 @@ TEXT_OUTPUT_GLOBS = [
+     "REEF3D_CFD_Force/*.dat",
+     "REEF3D_CFD_6DOF/*.dat",
+     "REEF3D_CFD_WSFLINE/*.dat",
++    "REEF3D_NHFLOW_WSF/*.dat",
++    "REEF3D_NHFLOW_ProbePoint/*.dat",
++    "REEF3D_NHFLOW_Force/*.dat",
++    "REEF3D_NHFLOW_WSFLINE/*.dat",
++    "REEF3D_FNPF_WSF/*.dat",
++    "REEF3D_FNPF_ProbePoint/*.dat",
++    "REEF3D_FNPF_WSFLINE/*.dat",
+ ]
+ 
+ # output folders deleted after a run unless --keep (large and not compared)
+ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals_VTP",
+-               "REEF3D_CFD_FSF", "DIVEMesh_Paraview"]
++               "REEF3D_CFD_FSF", "DIVEMesh_Paraview",
++               "REEF3D_NHFLOW_VTU", "REEF3D_NHFLOW_VTP_FSF", "REEF3D_NHFLOW_VTP_BED",
++               "REEF3D_FNPF_VTU", "REEF3D_FNPF_VTP_FSF", "REEF3D_FNPF_VTP_BED"]
+ 
+ LEVELS = ["identical", "close", "different", "failed"]
+ 
+-- 
+2.43.0
+
+
+From 4e11cef2e7080cd91d43b7614f139d64d0b1e1c5 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 3 Oct 2026 18:44:15 +0200
+Subject: [PATCH 2/2] iowave redesign phase 2a, slice 1: bc_zone
+
+- bc_zone / bc_zone_set: solver-agnostic boundary zones (reference line,
+  half width, method, relaxation weight, distance, AMR box), translated
+  from B 96 / B 98 / B 99 / B 107 / B 108 with the former iowave arithmetic
+- iowave rb1_ext, rb1_flag, rb3_ext, distgen_calc, distbeach_calc
+  delegate to the zone set (all solvers)
+- nhflow_amr / fnpf_amr: no-refinement boxes from the zones instead of the
+  hard-coded B 96 x-ranges, so B 107 / B 108 zones are respected as well
+- REEF3D.project: add bc_zone, wave_field, wave_source
+- regression: nhflow_3d_amr_relax, fnpf_3d_amr_relax (AMR active)
+- bitwise identical to phase 1 on all 19 NHFLOW/FNPF cases and the 11
+  CFD quick cases
+
+Note: iowave::dist2 (used by iozonecheck) no longer follows the last
+B 107 zone evaluated; it stays B 96 2, as for the default zone.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MJN9a8Qe3Za7youLJDTFti
+---
+ src/REEF3D.project                            |   6 +
+ src/bc_zone.cpp                               | 269 ++++++++++++++++++
+ src/bc_zone.h                                 |  84 ++++++
+ src/fnpf_amr.cpp                              |  17 +-
+ src/iowave.cpp                                |   2 +
+ src/iowave.h                                  |   2 +
+ src/iowave_dist.cpp                           |  56 +---
+ src/iowave_relax_functions.cpp                | 123 +-------
+ src/nhflow_amr.cpp                            |  15 +-
+ tests/regression/README.md                    |   2 +
+ .../cases/fnpf_3d_amr_relax/case.json         |  23 ++
+ .../cases/fnpf_3d_amr_relax/reference.json    | 110 +++++++
+ .../cases/nhflow_3d_amr_relax/case.json       |  21 ++
+ .../cases/nhflow_3d_amr_relax/reference.json  | 127 +++++++++
+ 14 files changed, 661 insertions(+), 196 deletions(-)
+ create mode 100644 src/bc_zone.cpp
+ create mode 100644 src/bc_zone.h
+ create mode 100644 tests/regression/cases/fnpf_3d_amr_relax/case.json
+ create mode 100644 tests/regression/cases/fnpf_3d_amr_relax/reference.json
+ create mode 100644 tests/regression/cases/nhflow_3d_amr_relax/case.json
+ create mode 100644 tests/regression/cases/nhflow_3d_amr_relax/reference.json
+
+diff --git a/src/REEF3D.project b/src/REEF3D.project
+index 293490ca..7fd32aea 100644
+--- a/src/REEF3D.project
++++ b/src/REEF3D.project
+@@ -1181,6 +1181,7 @@
+       </VirtualDirectory>
+       <VirtualDirectory Name="ioFlow">
+         <File Name="iowave.h"/>
++        <File Name="bc_zone.h"/>
+         <File Name="ioflow_void.h"/>
+         <File Name="ioflow_gravity.h"/>
+         <File Name="ioflow_f.h"/>
+@@ -1212,6 +1213,8 @@
+         <File Name="wave_lib_Stokes_5th_SH.h"/>
+         <VirtualDirectory Name="Interface">
+           <File Name="wave_interface.h"/>
++          <File Name="wave_field.h"/>
++          <File Name="wave_source.h"/>
+         </VirtualDirectory>
+         <VirtualDirectory Name="Spectrum">
+           <File Name="wave_lib_spectrum.h"/>
+@@ -3100,6 +3103,7 @@
+           <File Name="iowave_active-wavegen.cpp"/>
+           <File Name="iowave_active-beach.cpp"/>
+           <File Name="iowave.cpp"/>
++          <File Name="bc_zone.cpp"/>
+           <VirtualDirectory Name="SFLOW">
+             <File Name="iowave_sflow_wavegen.cpp"/>
+             <File Name="iowave_sflow_waterlevel.cpp"/>
+@@ -3211,6 +3215,8 @@
+         <VirtualDirectory Name="Interface">
+           <File Name="wave_interface_decomp.cpp"/>
+           <File Name="wave_interface.cpp"/>
++          <File Name="wave_field.cpp"/>
++          <File Name="wave_source.cpp"/>
+         </VirtualDirectory>
+         <File Name="wave_lib_cnoidal_1st.cpp"/>
+         <File Name="wave_lib_cnoidal_5th.cpp"/>
+diff --git a/src/bc_zone.cpp b/src/bc_zone.cpp
+new file mode 100644
+index 00000000..c0f63682
+--- /dev/null
++++ b/src/bc_zone.cpp
+@@ -0,0 +1,269 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Author: Hans Bihs
++--------------------------------------------------------------------*/
++
++#include"bc_zone.h"
++#include"lexer.h"
++#include<cmath>
++
++// ---------------------------------------------------------------------
++// bc_zone
++// ---------------------------------------------------------------------
++
++bc_zone::bc_zone(int iid, bc_method m, double x_s, double y_s, double x_e, double y_e, double dd, double f)
++                : id(iid), method(m), xs(x_s), ys(y_s), xe(x_e), ye(y_e), d(dd), fac(f)
++{
++    // quadrilateral as iowave::distbeach_ini / distgen_ini
++    double dx,dy,l1,l2,n1x,n1y,n2x,n2y;
++
++    dx = xe-xs;
++    dy = ye-ys;
++
++    n1x = -dy;
++    n1y =  dx;
++
++    n2x =  dy;
++    n2y = -dx;
++
++    l1 = sqrt(pow(n1x,2.0) + pow(n1y,2.0));
++    l2 = sqrt(pow(n2x,2.0) + pow(n2y,2.0));
++
++    l1 = fabs(l1)>1.0e-20?l1:1.0e20;
++    l2 = fabs(l2)>1.0e-20?l2:1.0e20;
++
++    P1[0] = xs + (n1x/l1)*d;
++    P1[1] = ys + (n1y/l1)*d;
++
++    P2[0] = xs + (n2x/l2)*d;
++    P2[1] = ys + (n2y/l2)*d;
++
++    P3[0] = xe + (n1x/l1)*d;
++    P3[1] = ye + (n1y/l1)*d;
++
++    P4[0] = xe + (n2x/l2)*d;
++    P4[1] = ye + (n2y/l2)*d;
++}
++
++bool bc_zone::inside(double x0, double y0) const
++{
++    return intriangle(P1[0],P1[1],P3[0],P3[1],P2[0],P2[1],x0,y0)==1
++        || intriangle(P3[0],P3[1],P4[0],P4[1],P2[0],P2[1],x0,y0)==1;
++}
++
++double bc_zone::line_dist(double x0, double y0) const
++{
++    double denom = sqrt(pow(ye-ys,2.0) + pow(xe-xs,2.0));
++    denom = denom>1.0e-20?denom:1.0e20;
++
++    return fabs((ye-ys)*x0 - (xe-xs)*y0 + xe*ys - ye*xs)/denom;
++}
++
++void bc_zone::box(double &bxs, double &bxe, double &bys, double &bye) const
++{
++    bxs = fmin(fmin(P1[0],P2[0]),fmin(P3[0],P4[0]));
++    bxe = fmax(fmax(P1[0],P2[0]),fmax(P3[0],P4[0]));
++    bys = fmin(fmin(P1[1],P2[1]),fmin(P3[1],P4[1]));
++    bye = fmax(fmax(P1[1],P2[1]),fmax(P3[1],P4[1]));
++}
++
++// exact copy of iowave::intriangle
++int bc_zone::intriangle(double Ax, double Ay, double Bx, double By, double Cx, double Cy, double x0,double y0)
++{
++	double Px,Py,Pz;
++	double Qx,Qy,Qz;
++	double PQx,PQy,PQz;
++	double Mx,My;
++	double u,v,w;
++
++    Px = x0;
++    Py = y0;
++    Pz = -10.0;
++
++    Qx = x0;
++    Qy = y0;
++    Qz = +10.0;
++
++    PQx = Qx-Px;
++    PQy = Qy-Py;
++    PQz = Qz-Pz;
++
++    Mx = PQy*Pz - PQz*Py;
++    My = PQz*Px - PQx*Pz;
++
++    u = PQz*(Cx*By - Cy*Bx)
++      + Mx*(Cx-Bx) + My*(Cy-By);
++
++    v = PQz*(Ax*Cy - Ay*Cx)
++      + Mx*(Ax-Cx) + My*(Ay-Cy);
++
++    w = PQz*(Bx*Ay - By*Ax)
++      + Mx*(Bx-Ax) + My*(By-Ay);
++
++    int check=1;
++    if(u==0.0 && v==0.0 && w==0.0)
++    check = 0;
++
++    if((u>=0.0 && v>=0.0 && w>=0.0) || (u<0.0 && v<0.0 && w<0.0) && check==1)
++    return 1;
++
++    else
++    return 0;
++}
++
++// ---------------------------------------------------------------------
++// bc_zone_set
++// ---------------------------------------------------------------------
++
++// Translator: iowave has completed the B 107 / B 108 lists from B 96 when
++// none were given (constructor), so the lists are always the zones.
++bc_zone_set bc_zone_set::from_legacy(lexer *p)
++{
++    bc_zone_set zs;
++
++    const double fac = (p->B99==1) ? 2.0 : 1.0;
++
++    for(int n=0; n<p->B108; ++n)
++    zs.relax.emplace_back(n+1,bc_method::relax,p->B108_xs[n],p->B108_ys[n],p->B108_xe[n],p->B108_ye[n],p->B108_d[n],1.0);
++
++    for(int n=0; n<p->B107; ++n)
++    zs.beach.emplace_back(n+1,bc_method::beach,p->B107_xs[n],p->B107_ys[n],p->B107_xe[n],p->B107_ye[n],p->B107_d[n],fac);
++
++    return zs;
++}
++
++// former iowave::rb1_ext
++double bc_zone_set::relax_weight(double x0, double y0) const
++{
++    double xdist, r=0.0, x=-1.0e20;
++    const double dist=1.0e20;
++    int test_all=0;
++
++    for(const bc_zone &z : relax)
++    {
++        if(z.inside(x0,y0))
++        {
++        test_all=1;
++
++        xdist = MIN(z.line_dist(x0,y0),dist);
++
++        x = MAX(1.0-xdist/z.d,x);
++        x = MAX(x,0.0);
++        }
++
++        if(test_all==1)
++        r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
++    }
++
++    if(test_all==0)
++    r=1.0;
++
++    return r;
++}
++
++// former iowave::rb1_flag
++int bc_zone_set::relax_flag(double x0, double y0) const
++{
++    int flag=0;
++
++    for(const bc_zone &z : relax)
++    if(z.inside(x0,y0))
++    flag=1;
++
++    return flag;
++}
++
++// former iowave::rb3_ext
++double bc_zone_set::beach_weight(double x0, double y0) const
++{
++    double x, r=0.0, dist2;
++    const double dist=1.0e20;
++    int test_all=0, count=0;
++
++    for(const bc_zone &z : beach)
++    if(z.inside(x0,y0))
++    {
++        test_all=1;
++
++        x = MIN(z.line_dist(x0,y0),dist);
++
++        dist2 = z.d;
++        x=(dist2-fabs(x))/(dist2*z.fac);
++        x=MAX(x,0.0);
++
++        r += 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
++        ++count;
++    }
++
++    if(test_all==0)
++    r=1.0;
++
++    if(test_all==1)
++    r/=double(count);
++
++	return r;
++}
++
++// former iowave::distgen_calc
++double bc_zone_set::relax_dist(double x0, double y0) const
++{
++    double dist=1.0e20;
++
++    for(const bc_zone &z : relax)
++    if(z.inside(x0,y0))
++    dist = MIN(z.line_dist(x0,y0),dist);
++
++    return dist;
++}
++
++// former iowave::distbeach_calc
++double bc_zone_set::beach_dist(double x0, double y0) const
++{
++    double dist=1.0e20;
++
++    for(const bc_zone &z : beach)
++    if(z.inside(x0,y0))
++    dist = MIN(z.line_dist(x0,y0),dist);
++
++    return dist;
++}
++
++void bc_zone_set::norefine_boxes(lexer *p, std::vector<double> &fbox) const
++{
++    double bxs,bxe,bys,bye;
++
++    if(p->B98==2)
++    for(const bc_zone &z : relax)
++    if(z.d>0.0)
++    {
++        z.box(bxs,bxe,bys,bye);
++        fbox.push_back(bxs); fbox.push_back(bxe);
++        fbox.push_back(bys); fbox.push_back(bye);
++    }
++
++    if(p->B99==1 || p->B99==2)
++    for(const bc_zone &z : beach)
++    if(z.d>0.0)
++    {
++        z.box(bxs,bxe,bys,bye);
++        fbox.push_back(bxs); fbox.push_back(bxe);
++        fbox.push_back(bys); fbox.push_back(bye);
++    }
++}
+diff --git a/src/bc_zone.h b/src/bc_zone.h
+new file mode 100644
+index 00000000..e2b2ab67
+--- /dev/null
++++ b/src/bc_zone.h
+@@ -0,0 +1,84 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Author: Hans Bihs
++--------------------------------------------------------------------*/
++
++#ifndef BC_ZONE_H_
++#define BC_ZONE_H_
++
++#include<vector>
++
++class lexer;
++
++/*--------------------------------------------------------------------
++bc_zone: one boundary zone (iowave redesign, phase 2a). Solver-agnostic:
++geometry, enforcement method, relaxation weight, distance, and the box
++that AMR must not refine.
++
++Geometry (as iowave's B 107 / B 108 zones): a reference line s -> e and a
++half width d. The zone is the quadrilateral reaching d to both sides of
++the line; the weight depends on the distance to the line.
++
++bc_zone_set holds all zones of a case. from_legacy() translates B 96,
++B 98, B 99, B 107 and B 108 into zones, with the same arithmetic as the
++former iowave functions, so results stay bitwise identical.
++--------------------------------------------------------------------*/
++
++enum class bc_method {relax, beach};
++
++class bc_zone
++{
++public:
++    bc_zone(int, bc_method, double, double, double, double, double, double);
++
++    bool inside(double, double) const;   // in one of the two triangles of the quadrilateral
++    double line_dist(double, double) const;  // distance to the reference line
++
++    // the 4 numbers xs,xe,ys,ye of the axis-aligned box around the quadrilateral
++    void box(double&, double&, double&, double&) const;
++
++    int id;
++    bc_method method;
++    double xs,ys,xe,ye,d;   // reference line and half width
++    double fac;             // beach: distance factor (2 for B 99 1)
++    double P1[2],P2[2],P3[2],P4[2];
++
++    static int intriangle(double,double,double,double,double,double,double,double);
++};
++
++class bc_zone_set
++{
++public:
++    static bc_zone_set from_legacy(lexer*);
++
++    double relax_weight(double, double) const;   // generation zones (former rb1_ext)
++    int relax_flag(double, double) const;        // inside a generation zone (former rb1_flag)
++    double beach_weight(double, double) const;   // beach zones (former rb3_ext)
++    double relax_dist(double, double) const;     // former distgen_calc
++    double beach_dist(double, double) const;     // former distbeach_calc
++
++    // no-refinement boxes for reefamr (xs,xe,ys,ye per zone), for the zones
++    // that relax: generation if B 98 2, beach if B 99 1 or 2
++    void norefine_boxes(lexer*, std::vector<double>&) const;
++
++    std::vector<bc_zone> relax, beach;
++};
++
++#endif
+diff --git a/src/fnpf_amr.cpp b/src/fnpf_amr.cpp
+index 2e8c41ab..a80fc0de 100644
+--- a/src/fnpf_amr.cpp
++++ b/src/fnpf_amr.cpp
+@@ -22,6 +22,7 @@ Author: Hans Bihs
+ 
+ #include"fnpf_amr.h"
+ #include"lexer.h"
++#include"bc_zone.h"
+ #include"fdm_fnpf.h"
+ #include"ghostcell.h"
+ #include"slice4.h"
+@@ -106,19 +107,9 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
+         q.fbox.push_back(p->A277_ys[k]); q.fbox.push_back(p->A277_ye[k]);
+     }
+ 
+-    // no refinement in the relaxation zones of the wave generation (B 98 2) and the
+-    // numerical beach (B 99 1, 2), measured from the ends of the domain in x
+-    const double big = 1.0e20;
+-    if(p->B98==2 && p->B96_1>0.0)
+-    {
+-        q.fbox.push_back(-big); q.fbox.push_back(p->global_xmin+p->B96_1);
+-        q.fbox.push_back(-big); q.fbox.push_back(big);
+-    }
+-    if((p->B99==1 || p->B99==2) && p->B96_2>0.0)
+-    {
+-        q.fbox.push_back(p->global_xmax-p->B96_2); q.fbox.push_back(big);
+-        q.fbox.push_back(-big); q.fbox.push_back(big);
+-    }
++    // no refinement in the relaxation zones of the wave generation (B 98 2) and the numerical
++    // beach (B 99 1, 2): the zones' boxes (bc_zone), so zones given by B 107 / B 108 count too
++    bc_zone_set::from_legacy(p).norefine_boxes(p,q.fbox);
+     q.ioband = 4;
+ 
+     // refinement around the resolved body (X 10 1): margin A 278 around the wetted hull,
+diff --git a/src/iowave.cpp b/src/iowave.cpp
+index ec9c2120..1ac662eb 100644
+--- a/src/iowave.cpp
++++ b/src/iowave.cpp
+@@ -163,6 +163,8 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
+ 
+     distgen_ini(p);
+ 
++    zones = bc_zone_set::from_legacy(p);
++
+ 	
+ 	p->Darray(beta,p->B106);
+ 	p->Darray(tan_beta,p->B106);
+diff --git a/src/iowave.h b/src/iowave.h
+index 9bd6fa5c..24a2ccc5 100644
+--- a/src/iowave.h
++++ b/src/iowave.h
+@@ -25,6 +25,7 @@ Author: Hans Bihs
+ 
+ #include"ioflow.h"
+ #include"wave_interface.h"
++#include"bc_zone.h"
+ #include"field1.h"
+ #include"field2.h"
+ #include"field4.h"
+@@ -233,6 +234,7 @@ private:
+     slice1 relax1_wg, relax1_nb;
+     slice2 relax2_wg, relax2_nb;
+     slice4 relax4_wg, relax4_nb;
++    bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
+     sliceint4 wgflag;
+ 	
+     
+diff --git a/src/iowave_dist.cpp b/src/iowave_dist.cpp
+index 3e916c0f..c84adee7 100644
+--- a/src/iowave_dist.cpp
++++ b/src/iowave_dist.cpp
+@@ -129,64 +129,12 @@ double iowave::ygen2(lexer *p)
+ 
+ double iowave::distgen_calc(lexer *p)
+ {
+-    double x0,y0,denom;
+-	double dist=1.0e20;
+-    int test1,test2;    
+-    
+-    x0 = p->pos_x();
+-    y0 = p->pos_y();
+-    
+-    for(int qn=0;qn<p->B108;++qn)
+-    {
+-    test1=0;
+-    test2=0;
+-    
+-    test1=intriangle(p,G1[qn][0],G1[qn][1],G3[qn][0],G3[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+-    test2=intriangle(p,G3[qn][0],G3[qn][1],G4[qn][0],G4[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+-
+-        if(test1==1||test2==1)
+-        {
+-        denom = sqrt(pow(Ge[qn][1]-Gs[qn][1],2.0) + pow(Ge[qn][0]-Gs[qn][0],2.0));
+-        denom = denom>1.0e-20?denom:1.0e20;
+-        
+-        dist = MIN(fabs((Ge[qn][1]-Gs[qn][1])*x0 - (Ge[qn][0]-Gs[qn][0])*y0 
+-                  + Ge[qn][0]*Gs[qn][1] - Ge[qn][1]*Gs[qn][0])/denom,dist);
+-        
+-        }
+-    }
+-    
+-	return dist;
++    return zones.relax_dist(p->pos_x(),p->pos_y());
+ }
+ 
+ double iowave::distbeach_calc(lexer *p)
+ {
+-    double x0,y0,denom;
+-	double dist=1.0e20;
+-    int test1,test2;    
+-    
+-    x0 = p->pos_x();
+-    y0 = p->pos_y();
+-    
+-    for(int qn=0;qn<p->B107;++qn)
+-    {
+-    test1=0;
+-    test2=0;
+-    
+-    test1=intriangle(p,B1[qn][0],B1[qn][1],B3[qn][0],B3[qn][1],B2[qn][0],B2[qn][1],x0,y0);
+-    test2=intriangle(p,B3[qn][0],B3[qn][1],B4[qn][0],B4[qn][1],B2[qn][0],B2[qn][1],x0,y0);
+-
+-        if(test1==1||test2==1)
+-        {
+-        denom = sqrt(pow(Be[qn][1]-Bs[qn][1],2.0) + pow(Be[qn][0]-Bs[qn][0],2.0));
+-        denom = denom>1.0e-20?denom:1.0e20;
+-        
+-        dist = MIN(fabs((Be[qn][1]-Bs[qn][1])*x0 - (Be[qn][0]-Bs[qn][0])*y0 
+-                  + Be[qn][0]*Bs[qn][1] - Be[qn][1]*Bs[qn][0])/denom,dist);
+-        
+-        }
+-    }
+-    
+-	return dist;
++    return zones.beach_dist(p->pos_x(),p->pos_y());
+ }
+ 
+ // distgen()/distbeach() test every slice cell against all B107/B108 zone
+diff --git a/src/iowave_relax_functions.cpp b/src/iowave_relax_functions.cpp
+index 13b22fc8..72461d67 100644
+--- a/src/iowave_relax_functions.cpp
++++ b/src/iowave_relax_functions.cpp
+@@ -27,14 +27,7 @@ Author: Hans Bihs
+ 
+ double iowave::rb1_ext(lexer *p, int var)
+ {
+-    double x0,y0,denom,r,xdist;
+-	double dist;
+-    int test1,test2,test_all;    
+-    int count;
+-    
+-    dist=1.0e20;
+-    
+-    x=-1.0e20;
++    double x0,y0;
+     
+     if(var==1)
+     {
+@@ -53,57 +46,14 @@ double iowave::rb1_ext(lexer *p, int var)
+     x0 = p->pos_x();
+     y0 = p->pos_y();
+     }
+-    
+-    test_all=0;
+-    count=0;
+-    r = 0.0;
+-    
+-    for(int qn=0;qn<p->B108;++qn)
+-    {
+-    test1=0;
+-    test2=0;
+-    
+-    test1=intriangle(p,G1[qn][0],G1[qn][1],G3[qn][0],G3[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+-    test2=intriangle(p,G3[qn][0],G3[qn][1],G4[qn][0],G4[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+ 
+-        if(test1==1||test2==1)
+-        {
+-        test_all=1;
+-        
+-        // x dist
+-        denom = sqrt(pow(Ge[qn][1]-Gs[qn][1],2.0) + pow(Ge[qn][0]-Gs[qn][0],2.0));
+-        denom = denom>1.0e-20?denom:1.0e20;
+-        
+-        xdist = MIN(fabs((Ge[qn][1]-Gs[qn][1])*x0 - (Ge[qn][0]-Gs[qn][0])*y0 
+-                  + Ge[qn][0]*Gs[qn][1] - Ge[qn][1]*Gs[qn][0])/denom,dist);
+-        
+-        // relax
+-        x=MAX(1.0-xdist/p->B108_d[qn],x);
+-        x=MAX(x,0.0);
+-
+-        ++count;
+-        }
+-        
+-        if(test_all==1)
+-        {
+-        r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+-        }
+-    }  
+-    
+-    if(test_all==0)
+-    r=1.0;
+-     
+-    return r;
++    return zones.relax_weight(x0,y0);
+ }
+ 
+ int iowave::rb1_flag(lexer *p, int var)
+ {
+-    double x0,y0,denom,xdist;
+-	double dist;
+-    int test1,test2;    
++    double x0,y0;
+     
+-    int flag;
+-
+     if(var==1)
+     {
+     x0 = p->pos1_x();
+@@ -121,31 +71,13 @@ int iowave::rb1_flag(lexer *p, int var)
+     x0 = p->pos_x();
+     y0 = p->pos_y();
+     }
+-    
+ 
+-    flag = 0;
+-    
+-    for(int qn=0;qn<p->B108;++qn)
+-    {
+-    test1=0;
+-    test2=0;
+-    
+-    test1=intriangle(p,G1[qn][0],G1[qn][1],G3[qn][0],G3[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+-    test2=intriangle(p,G3[qn][0],G3[qn][1],G4[qn][0],G4[qn][1],G2[qn][0],G2[qn][1],x0,y0);
+-
+-        if(test1==1||test2==1)
+-        flag=1;
+-    }  
+-    
+-    return flag;
++    return zones.relax_flag(x0,y0);
+ }
+ 
+ double iowave::rb3_ext(lexer *p, int var)
+ {
+-    double x0,y0,denom,r;
+-	double dist=1.0e20;
+-    int test1,test2,test_all;    
+-    int count;
++    double x0,y0;
+     
+     if(var==1)
+     {
+@@ -164,51 +96,8 @@ double iowave::rb3_ext(lexer *p, int var)
+     x0 = p->pos_x();
+     y0 = p->pos_y();
+     }
+-    
+-    test_all=0;
+-    count=0;
+-    r = 0.0;
+-    
+-    for(int qn=0;qn<p->B107;++qn)
+-    {
+-    test1=0;
+-    test2=0;
+-    
+-    test1=intriangle(p,B1[qn][0],B1[qn][1],B3[qn][0],B3[qn][1],B2[qn][0],B2[qn][1],x0,y0);
+-    test2=intriangle(p,B3[qn][0],B3[qn][1],B4[qn][0],B4[qn][1],B2[qn][0],B2[qn][1],x0,y0);
+ 
+-        if(test1==1||test2==1)
+-        {
+-        test_all=1;
+-        
+-        // x dist
+-        denom = sqrt(pow(Be[qn][1]-Bs[qn][1],2.0) + pow(Be[qn][0]-Bs[qn][0],2.0));
+-        denom = denom>1.0e-20?denom:1.0e20;
+-        
+-        x = MIN(fabs((Be[qn][1]-Bs[qn][1])*x0 - (Be[qn][0]-Bs[qn][0])*y0 
+-                  + Be[qn][0]*Bs[qn][1] - Be[qn][1]*Bs[qn][0])/denom,dist);
+-        
+-        // relax
+-        
+-        dist2 = p->B107_d[qn]; 
+-        
+-        x=(dist2-fabs(x))/(dist2*dist2_fac);
+-        x=MAX(x,0.0);
+-        
+-        r += 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+-        ++count;
+-        }
+-        
+-    }
+-    
+-    
+-    if(test_all==0)
+-    r=1.0;
+-    
+-    if(test_all==1)
+-    r/=double(count);
+-	
+-	return r;
++    return zones.beach_weight(x0,y0);
+ }
+ 
+ double iowave::ramp(lexer *p)
+diff --git a/src/nhflow_amr.cpp b/src/nhflow_amr.cpp
+index 84fc9395..bfab2282 100644
+--- a/src/nhflow_amr.cpp
++++ b/src/nhflow_amr.cpp
+@@ -23,6 +23,7 @@ Author: Hans Bihs
+ #include"nhflow_amr.h"
+ #include"nhflow_amr_fill.h"
+ #include"lexer.h"
++#include"bc_zone.h"
+ #include"fdm_nhf.h"
+ #include"ghostcell.h"
+ #include"slice4.h"
+@@ -108,18 +109,8 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
+     }
+ 
+     // no refinement in the relaxation zones of the wave generation (B 98 2) and the numerical
+-    // beach (B 99 1, 2), measured from the ends of the domain in x
+-    const double big = 1.0e20;
+-    if(p->B98==2 && p->B96_1>0.0)
+-    {
+-        q.fbox.push_back(-big); q.fbox.push_back(p->global_xmin+p->B96_1);
+-        q.fbox.push_back(-big); q.fbox.push_back(big);
+-    }
+-    if((p->B99==1 || p->B99==2) && p->B96_2>0.0)
+-    {
+-        q.fbox.push_back(p->global_xmax-p->B96_2); q.fbox.push_back(big);
+-        q.fbox.push_back(-big); q.fbox.push_back(big);
+-    }
++    // beach (B 99 1, 2): the zones' boxes (bc_zone), so zones given by B 107 / B 108 count too
++    bc_zone_set::from_legacy(p).norefine_boxes(p,q.fbox);
+     q.ioband = 4;
+ 
+     // refinement around the floating body: margin A 278 around the wetted hull, a rectangle
+diff --git a/tests/regression/README.md b/tests/regression/README.md
+index 1221d1bc..5e484c72 100644
+--- a/tests/regression/README.md
++++ b/tests/regression/README.md
+@@ -113,6 +113,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
+ | `nhflow_2d_two_sources` (+ `_mpi2`) | 1/2 | wave_field: B 92 linear wave + linear source 2 with phase (B 500/501); P 50 prints the summed target |
+ | `nhflow_2d_irregular_two_sources` | 1 | wave_field: two JONSWAP sources with their own seeds (B 139, B 504) |
+ | `fnpf_2d_two_sources` | 1 | wave_field in FNPF (cached potential path) |
++| `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
++| `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
+ 
+ Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
+ run `./regression.py run ... --cases <new>`, check it, then `bless`.
+diff --git a/tests/regression/cases/fnpf_3d_amr_relax/case.json b/tests/regression/cases/fnpf_3d_amr_relax/case.json
+new file mode 100644
+index 00000000..a36e9caa
+--- /dev/null
++++ b/tests/regression/cases/fnpf_3d_amr_relax/case.json
+@@ -0,0 +1,23 @@
++{
++ "base": "fnpf_3d_shortcrested",
++ "steps": 30,
++ "ctrl_add": [
++  "A 270 1",
++  "A 276 0.0 2000.0 0.0 2000.0"
++ ],
++ "description": "FNPF 3D static AMR (A 270 1) with a refinement box over the whole domain: only the relaxation zones (B 96 400 800) and the in/outflow band stay unrefined.",
++ "tags": [
++  "quick",
++  "3d",
++  "fnpf",
++  "waves",
++  "iowave",
++  "amr"
++ ],
++ "covers": [
++  "fnpf_amr fbox from bc_zone"
++ ],
++ "ctrl_set": {
++  "A 350": "0"
++ }
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/fnpf_3d_amr_relax/reference.json b/tests/regression/cases/fnpf_3d_amr_relax/reference.json
+new file mode 100644
+index 00000000..3b9ad2e1
+--- /dev/null
++++ b/tests/regression/cases/fnpf_3d_amr_relax/reference.json
+@@ -0,0 +1,110 @@
++{
++ "final_count": 30,
++ "fields": {
++  "Fi": {
++   "n": 57600,
++   "sum": 4503.49855819779,
++   "l1": 30342.494538535342,
++   "l2": 562.9838500329128,
++   "linf": 46.59262609086588
++  },
++  "U": {
++   "n": 57600,
++   "sum": 19.38963263554274,
++   "l1": 560.3153385541916,
++   "l2": 13.280415357761015,
++   "linf": 1.2464749458336712
++  },
++  "V": {
++   "n": 57600,
++   "sum": -10.004241602634728,
++   "l1": 326.76791157623853,
++   "l2": 7.7916494286262985,
++   "linf": 0.7091667834188482
++  },
++  "W": {
++   "n": 57600,
++   "sum": -0.5753451175540956,
++   "l1": 706.8059253539053,
++   "l2": 16.869852868063944,
++   "linf": 1.422102459220247
++  },
++  "eta": {
++   "n": 6400,
++   "sum": 8.924660899029414,
++   "l1": 713.3465518873525,
++   "l2": 27.816050931013407,
++   "linf": 2.8775495638507036
++  },
++  "Fifsf": {
++   "n": 6400,
++   "sum": 491.3463456145951,
++   "l1": 11938.986825989108,
++   "l2": 475.8113765458924,
++   "linf": 46.59262609086588
++  },
++  "WL": {
++   "n": 6400,
++   "sum": 3840008.9246608987,
++   "l1": 3840008.9246608987,
++   "l2": 48000.11961782771,
++   "linf": 602.8775495638507
++  }
++ },
++ "text": {
++  "REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat": {
++   "rows": 33,
++   "last": [
++    2.33775774,
++    -0.00043251874,
++    -0.00028810309
++   ],
++   "colsum": [
++    38.3149744119,
++    1799.9915422070683,
++    1999.9947473288287
++   ],
++   "colabs": [
++    38.3149744119,
++    1800.0084577929317,
++    2000.0052526711713
++   ]
++  }
++ },
++ "final_simtime": 2.417757735875723,
++ "dt": [
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08,
++  0.08
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 2a: AMR no-refinement boxes from bc_zone"
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_3d_amr_relax/case.json b/tests/regression/cases/nhflow_3d_amr_relax/case.json
+new file mode 100644
+index 00000000..410cbe8e
+--- /dev/null
++++ b/tests/regression/cases/nhflow_3d_amr_relax/case.json
+@@ -0,0 +1,21 @@
++{
++ "base": "nhflow_3d_irregular_decomp",
++ "steps": 30,
++ "ctrl_add": [
++  "A 270 1",
++  "A 276 0.0 60.0 0.0 30.0"
++ ],
++ "description": "NHFLOW 3D static AMR (A 270 1) with a refinement box over the whole domain: only the relaxation zones (B 96 15 15) and the in/outflow band stay unrefined. Guards the zones' no-refinement boxes.",
++ "tags": [
++  "quick",
++  "3d",
++  "nhflow",
++  "waves",
++  "iowave",
++  "amr"
++ ],
++ "covers": [
++  "nhflow_amr fbox from bc_zone",
++  "reefamr ioband"
++ ]
++}
+\ No newline at end of file
+diff --git a/tests/regression/cases/nhflow_3d_amr_relax/reference.json b/tests/regression/cases/nhflow_3d_amr_relax/reference.json
+new file mode 100644
+index 00000000..0081671f
+--- /dev/null
++++ b/tests/regression/cases/nhflow_3d_amr_relax/reference.json
+@@ -0,0 +1,127 @@
++{
++ "final_count": 30,
++ "fields": {
++  "U": {
++   "n": 9000,
++   "sum": 46.662904863640584,
++   "l1": 279.2775806939703,
++   "l2": 6.477595767249316,
++   "linf": 0.358809480122474
++  },
++  "V": {
++   "n": 9000,
++   "sum": -15.032183025870557,
++   "l1": 108.39221668700498,
++   "l2": 2.9336504578220985,
++   "linf": 0.2251200619591488
++  },
++  "W": {
++   "n": 9000,
++   "sum": -43.682909076324265,
++   "l1": 174.80644550276486,
++   "l2": 4.816597620645902,
++   "linf": 0.42688489978655586
++  },
++  "UH": {
++   "n": 9000,
++   "sum": 215.05880975577548,
++   "l1": 1115.7021315120612,
++   "l2": 25.835810444925773,
++   "linf": 1.4601651727158247
++  },
++  "VH": {
++   "n": 9000,
++   "sum": -57.688948381267416,
++   "l1": 431.4325100185485,
++   "l2": 11.636587580006033,
++   "linf": 0.9001482201146546
++  },
++  "WH": {
++   "n": 9000,
++   "sum": -172.6570558423819,
++   "l1": 698.5298058098159,
++   "l2": 19.21559027416981,
++   "linf": 1.7047780814123838
++  },
++  "P": {
++   "n": 9000,
++   "sum": -91906.75346441826,
++   "l1": 298170.54906237614,
++   "l2": 15194.978430947229,
++   "linf": 3585.5849426683308
++  },
++  "eta": {
++   "n": 1800,
++   "sum": 2.5974834624000738,
++   "l1": 39.3678232618007,
++   "l2": 2.0364238145905573,
++   "linf": 0.22612328760117828
++  },
++  "WL": {
++   "n": 1800,
++   "sum": 7202.5974834624,
++   "l1": 7202.5974834624,
++   "l2": 169.77905315336116,
++   "linf": 4.167219594856221
++  }
++ },
++ "text": {
++  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat": {
++   "rows": 34,
++   "last": [
++    1.08531642,
++    0.00788586704,
++    0.000229042798,
++    7.10209645e-06
++   ],
++   "colsum": [
++    22.4779992778,
++    90.0705040277195,
++    40.00174666941051,
++    4.841627039606905e-05
++   ],
++   "colabs": [
++    22.4779992778,
++    90.0705040277195,
++    40.00174666941051,
++    4.841627039606905e-05
++   ]
++  }
++ },
++ "final_simtime": 1.085316416932271,
++ "dt": [
++  0.03767359584186478,
++  0.03740855132828787,
++  0.037281486418407284,
++  0.037189484577576676,
++  0.0371199123797401,
++  0.037099088187680214,
++  0.037071465406554,
++  0.03706240365248011,
++  0.037032664368516655,
++  0.036997962128241094,
++  0.03698447382880992,
++  0.036948626043263,
++  0.036933617077339775,
++  0.03693309773295381,
++  0.03691005268434914,
++  0.03688403984195036,
++  0.03687582748666151,
++  0.0368849904657866,
++  0.03690448947095019,
++  0.03692548628357353,
++  0.036923878622104084,
++  0.036929546006087076,
++  0.03693726263825728,
++  0.03695337102283974,
++  0.03697870514526153,
++  0.037004577439308795,
++  0.03699570756558061,
++  0.037001035350181656,
++  0.03701452935770059,
++  0.03702283343087288
++ ],
++ "blessed_from": "/home/claude/reg/new/REEF3D",
++ "date": "2026-10-03",
++ "note": "phase 2a: AMR no-refinement boxes from bc_zone"
++}
+\ No newline at end of file
+-- 
+2.43.0
+
