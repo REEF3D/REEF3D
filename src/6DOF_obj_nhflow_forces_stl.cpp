@@ -71,6 +71,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     // -> buoyancy and Froude-Krylov load on the skeleton
     const double pfac = (p->X16==1) ? (1.0 - p->X16_n) : 1.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
+    double dMhs=0.0,dMhs0=0.0,dMnh=0.0,dMv=0.0;
     
     // Set new time
     curr_time = p->simtime;
@@ -213,6 +214,12 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 Xe_p += fx;
                 Ye_p += fy;
                 Ze_p += fz;
+                {
+                const double hs0 = MAX(0.0, (p->wd - mz[q])*p->W1*fabs(p->W22));
+                dMhs  += rz*(-hsp*w*nx)  - rx*(-hsp*w*nz);
+                dMhs0 += rz*(-hs0*w*nx)  - rx*(-hs0*w*nz);
+                dMnh  += rz*(-pval*w*nx) - rx*(-pval*w*nz);
+                }
             }
             
             A += A_sub;
@@ -233,6 +240,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             Ze += Fv_z;
             Ke += (gy - c_(1))*Fv_z - (gz - c_(2))*Fv_y;
             Me += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
+            dMv += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
             Ne += (gx - c_(0))*Fv_y - (gy - c_(1))*Fv_x;
             
             Xe_v += Fv_x;
@@ -242,6 +250,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 	}
     
 	// Communication with other processors
+    dMhs=pgc->globalsum(dMhs); dMhs0=pgc->globalsum(dMhs0); dMnh=pgc->globalsum(dMnh); dMv=pgc->globalsum(dMv);
+    if(p->mpirank==0)
+    cout<<"DIAG "<<p->simtime<<" "<<dMhs<<" "<<dMhs0<<" "<<dMnh<<" "<<dMv<<" "<<p->ccslipol4(d->eta,c_(0),c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)+0.35,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)-0.35,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)+0.15,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)-0.15,c_(1))<<" "<<finalize<<endl;
     A = pgc->globalsum(A);
     
 	Xe = pgc->globalsum(Xe);
