@@ -28,14 +28,13 @@ Authors: Tobias Martin, Hans Bihs
 void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc);
+    rb.euler_angles();
     
     // Update STL mesh
     update_trimesh_nhflow(p,d,pgc,finalize);
 
     // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
     k=p->knoz-1;
     

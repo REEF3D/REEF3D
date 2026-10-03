@@ -28,14 +28,13 @@ Authors: Tobias Martin, Hans Bihs
 void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc);
+    rb.euler_angles();
 
     // Update STL mesh
     update_trimesh_3D(p,a,pgc,finalize);
     
     // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
     if(p->mpirank==0 && finalize==true)
     {
@@ -43,26 +42,6 @@ void sixdof_obj::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool final
         cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
     }
 
-}
-
-void sixdof_obj::update_Euler_angles(lexer *p, ghostcell *pgc)
-{
-	// Calculate Euler angles from quaternion
-	
-	// around z-axis
-	psi = atan2(2.0*(e_(1)*e_(2) + e_(3)*e_(0)), 1.0 - 2.0*(e_(2)*e_(2) + e_(3)*e_(3))); 
-	
-	// around new y-axis
-	double arg = 2.0*(e_(0)*e_(2) - e_(1)*e_(3));
-	
-	if (fabs(arg) >= 1.0)
-	theta = SIGN(arg)*PI/2.0;
-    
-	else
-	theta = asin(arg);														
-			
-	// around new x-axis
-	phi = atan2(2.0*(e_(2)*e_(3) + e_(1)*e_(0)), 1.0 - 2.0*(e_(1)*e_(1) + e_(2)*e_(2)));	
 }
 
 void sixdof_obj::update_trimesh_3D(lexer *p, fdm *a, ghostcell *pgc, bool finalize)

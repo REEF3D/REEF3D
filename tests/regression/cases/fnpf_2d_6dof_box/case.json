@@ -1,0 +1,8 @@
+{
+ "description": "FNPF 2D floating box in regular waves (resolved body in the sigma grid, X10=1), surge/heave/pitch free, A310=3 (6DOF rk3, added mass coupling).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 200,
+ "tags": ["2d", "fnpf", "6dof", "floating"],
+ "covers": ["fnpf_6DOF", "sixdof_obj FNPF forces", "sixdof_obj rk3 (FNPF)", "apply_added_mass"]
+}

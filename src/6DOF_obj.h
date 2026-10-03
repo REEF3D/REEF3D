@@ -38,6 +38,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"geo_raycast.h"
 #include"6DOF_pto.h"
 #include"6DOF_pto_joint.h"
+#include"6DOF_rigidbody.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -65,6 +66,9 @@ public:
 	
     sixdof_obj(lexer*, ghostcell*, int);
 	virtual ~sixdof_obj();
+    
+    // rigid-body core: state, kinematics and time integration (solver independent)
+    sixdof_rigidbody rb;
 	
 	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
     
@@ -137,7 +141,8 @@ public:
     void solve_eqmotion_sflow(lexer*,ghostcell*,int,bool);
     void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
     
-    double Mass_fb, Vfb, Rfb;
+    double &Mass_fb;   // = rb.mass
+    double Vfb, Rfb;
     
     // FNPF: resolved bodies in the sigma grid (6DOF_obj_fnpf*.cpp)
     void initialize_fnpf(lexer*, fdm_fnpf*, ghostcell*);
@@ -241,7 +246,6 @@ private:
     void pvtp(lexer*,int);
     
     void iniPosition_RBM(lexer*, ghostcell*);
-    void update_Euler_angles(lexer*, ghostcell*);
     void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
     void update_trimesh_nhflow(lexer*, fdm_nhf*, ghostcell*, bool);
     void update_trimesh_2D(lexer*, ghostcell*);
@@ -249,9 +253,9 @@ private:
     void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&);
     
 
-    void get_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
-    void get_rot(lexer*,Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Vector3d&, Eigen::Vector4d&);
-    Eigen::Matrix3d quatRotMat;
+    // right-hand side of the rigid-body equations incl. prescribed motions (sixdof_motionext)
+    void get_trans(lexer*, ghostcell*);
+    void get_rot(lexer*);
     
     
     void rk2(lexer*, ghostcell*,int);
@@ -352,33 +356,24 @@ private:
     
     // -----
     
-    /* Rigid body motion
+    /* Rigid body state: references into the core (rb), so that the geometry, forcing and force
+       routines keep their names
         - e: quaternions
         - h: angular momentum in body-fixed coordinates
         - c: position of mass centre in inertial system
-        - p: velocity of mass centre in inertial system
+        - p: linear momentum in inertial system
     */
-    Eigen::Vector3d p_, pk_, pn1_, pn2_, pn3_, dp_, dpk_, dpn1_, dpn2_, dpn3_; 
-    Eigen::Vector3d c_, ck_, cn1_, cn2_, cn3_, dc_, dck_, dcn1_, dcn2_, dcn3_;
-    Eigen::Vector3d h_, hk_, hn1_, hn2_, hn3_, dh_, dhk_, dhn1_, dhn2_, dhn3_;
-    Eigen::Vector4d e_, ek_, en1_, en2_, en3_, de_, dek_, den1_, den2_, den3_;
-    Eigen::Matrix<double, 3, 4> E_, G_, Gdot_;
-    
-    Eigen::MatrixXd deltad_, delta_, deltan1_, deltan2_, deltan3_;
-
-    Eigen::Matrix3d R_, I_, Rinv_;
-    
-    Eigen::Vector3d omega_B, omega_I;
+    Eigen::Vector3d &p_, &c_, &h_, &dc_;
+    Eigen::Vector4d &e_;
+    Eigen::Matrix3d &R_, &I_, &quatRotMat;
+    Eigen::Vector3d &omega_B, &omega_I;
+    double &phi, &theta, &psi;
     
     Eigen::Matrix<double, 6, 1> u_fb;
     
     int tricount, entity_count;
     
-    double phi, theta, psi;
-    
     double Uext, Vext, Wext, Pext, Qext, Rext;
-    
-    double dtn1, dtn2, dtn3;
     
     
     // extmotion
@@ -429,7 +424,7 @@ private:
     
     // Forces
     double Xext, Yext, Zext, Kext, Mext, Next;
-    Eigen::Vector3d Ffb_, Mfb_;
+    Eigen::Vector3d &Ffb_, &Mfb_;   // = rb.F, rb.M
     double Xe, Ye, Ze, Ke, Me, Ne;
     
     // porous floating body: drag reaction of the fluid on the skeleton (X 16)
@@ -471,8 +466,6 @@ private:
     void externalForces_fnpf(lexer*, ghostcell*, int, bool);
     void apply_added_mass(lexer*);
     bool p_fixed_dof(lexer*, int);
-    Eigen::Vector3d rk4_p_[3], rk4_c_[3], rk4_h_[3];
-    Eigen::Vector4d rk4_e_[3];
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
 

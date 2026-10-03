@@ -84,8 +84,7 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     iniPosition_RBM(p,pgc);
     quat_matrices(p);
     
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
 	update_fbvel(p,pgc);
     
@@ -152,13 +151,6 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     Aadd_.setZero();
     am_on_=false;
     
-    for(int s=0; s<3; ++s)
-    {
-    rk4_p_[s].setZero();
-    rk4_c_[s].setZero();
-    rk4_h_[s].setZero();
-    rk4_e_[s].setZero();
-    }
 }
 
 bool sixdof_obj::fnpf_fixed(lexer *p)
@@ -198,45 +190,11 @@ void sixdof_obj::externalForces_fnpf(lexer *p, ghostcell *pgc, int iter, bool fi
 
 void sixdof_obj::rk4(lexer *p, ghostcell *pgc, int iter)
 {
-    // classical RK4, stage-synchronous with fnpf_RK4:
-    // y_s = y_n + c_s*dt*K_s (c_s = 1/2, 1/2, 1),  y_n+1 = y_n + dt/6*(K1 + 2K2 + 2K3 + K4)
-    get_trans(p, pgc, dp_, dc_, p_, c_);    
-    get_rot(p, dh_, de_, h_, e_);
+    // classical RK4, stage-synchronous with fnpf_RK4
+    get_trans(p,pgc);    
+    get_rot(p);
     
-    if(iter==0)
-    {
-        pk_ = p_;
-        ck_ = c_;
-        hk_ = h_;
-        ek_ = e_;
-    }
-    
-    if(iter<3)
-    {
-        rk4_p_[iter] = dp_;
-        rk4_c_[iter] = dc_;
-        rk4_h_[iter] = dh_;
-        rk4_e_[iter] = de_;
-        
-        const double cs = (iter==2) ? 1.0 : 0.5;
-        
-        p_ = pk_ + cs*p->dt*dp_;
-        c_ = ck_ + cs*p->dt*dc_;
-        h_ = hk_ + cs*p->dt*dh_;
-        e_ = ek_ + cs*p->dt*de_;
-        e_.normalize();
-    }
-    
-    if(iter==3)
-    {
-        const double w = p->dt/6.0;
-        
-        p_ = pk_ + w*(rk4_p_[0] + 2.0*rk4_p_[1] + 2.0*rk4_p_[2] + dp_);
-        c_ = ck_ + w*(rk4_c_[0] + 2.0*rk4_c_[1] + 2.0*rk4_c_[2] + dc_);
-        h_ = hk_ + w*(rk4_h_[0] + 2.0*rk4_h_[1] + 2.0*rk4_h_[2] + dh_);
-        e_ = ek_ + w*(rk4_e_[0] + 2.0*rk4_e_[1] + 2.0*rk4_e_[2] + de_);
-        e_.normalize();
-    }
+    rb.stage_rk4(iter,p->dt);
 }
 
 void sixdof_obj::apply_added_mass(lexer *p)
@@ -300,26 +258,14 @@ bool sixdof_obj::p_fixed_dof(lexer *p, int n)
 {
     // free DOF: X11 flag 1 (2 = prescribed via motionext, 0 = fixed)
     // 2D: sway, roll and yaw do not exist
-    int flag=1;
-    
-    if(n==0) flag = p->X11_u;
-    if(n==1) flag = p->X11_v;
-    if(n==2) flag = p->X11_w;
-    if(n==3) flag = p->X11_p;
-    if(n==4) flag = p->X11_q;
-    if(n==5) flag = p->X11_r;
-    
-    if(p->j_dir==0 && (n==1 || n==3 || n==5))
-    return true;
-    
-    return (flag!=1);
+    return rb.fixed(n);
 }
 
 void sixdof_obj::update_position_fnpf(lexer *p, ghostcell *pgc, bool finalize)
 {
     quat_matrices(p);
     
-    update_Euler_angles(p,pgc);
+    rb.euler_angles();
     
 	for(n=0; n<tricount; ++n)
 	{
@@ -334,8 +280,7 @@ void sixdof_obj::update_position_fnpf(lexer *p, ghostcell *pgc, bool finalize)
         }
 	}
     
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
     update_fbvel(p,pgc);
     

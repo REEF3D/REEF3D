@@ -41,8 +41,29 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
                                                                                 nodeflag(p),interfac(1.6),zero(0.0),eta(p),
                                                                                 lrk1(p),lrk2(p),K(p),dts(p),
                                                                                 fs(p),fsio(p),cr(p),cl(p),Ls(p),Bs(p),
-                                                                                Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p)
+                                                                                Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p),
+                                                                                Mass_fb(rb.mass),
+                                                                                p_(rb.p),c_(rb.c),h_(rb.h),dc_(rb.dc),e_(rb.e),
+                                                                                R_(rb.R),I_(rb.I),quatRotMat(rb.R),
+                                                                                omega_B(rb.omega_B),omega_I(rb.omega_I),
+                                                                                phi(rb.phi),theta(rb.theta),psi(rb.psi),
+                                                                                Ffb_(rb.F),Mfb_(rb.M)
 {
+    // rigid-body core: DOF modes (X 11) and linear damping (X 25, X 26)
+    rb.dof[0] = p->X11_u;
+    rb.dof[1] = p->X11_v;
+    rb.dof[2] = p->X11_w;
+    rb.dof[3] = p->X11_p;
+    rb.dof[4] = p->X11_q;
+    rb.dof[5] = p->X11_r;
+    rb.twoD = (p->j_dir==0);
+    rb.Cdamp_t[0] = p->X26_Cu;
+    rb.Cdamp_t[1] = p->X26_Cv;
+    rb.Cdamp_t[2] = p->X26_Cw;
+    rb.Cdamp_r[0] = p->X25_Cp;
+    rb.Cdamp_r[1] = p->X25_Cq;
+    rb.Cdamp_r[2] = p->X25_Cr;
+
     prdisc = new reinidisc_fsf(p);
     
     pnetinter = new net_interface(p,pgc);

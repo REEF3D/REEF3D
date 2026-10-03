@@ -28,14 +28,13 @@ Authors: Tobias Martin, Hans Bihs
 void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc);
+    rb.euler_angles();
     
     // Update STL mesh
     update_trimesh_2D(p,pgc);
 
     // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
     SLICELOOP4
     fsglobal(i,j) = fs(i,j);

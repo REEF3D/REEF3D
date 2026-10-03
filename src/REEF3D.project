@@ -949,6 +949,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Ships"/>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Core">
+          <File Name="6DOF_rigidbody.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="6DOF_pto.h"/>
           <File Name="6DOF_pto_elements.h"/>
@@ -2454,6 +2457,9 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Ships"/>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="Core">
+          <File Name="6DOF_rigidbody.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="6DOF_obj_pto.cpp"/>
           <File Name="6DOF_pto_elements.cpp"/>
