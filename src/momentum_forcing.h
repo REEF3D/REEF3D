@@ -36,6 +36,7 @@ class vrans;
 class mooring;
 class fsi;
 class rodtree_coupling;
+class fem_coupling;
 class dem;
 
 using namespace std;
@@ -60,5 +61,8 @@ private:
     
     // flexible rod trees (Z 20), created on first use
     rodtree_coupling *prodtree;
+
+    // FEM solid structures (Z 30), created on first use
+    fem_coupling *pfem;
 };
 #endif

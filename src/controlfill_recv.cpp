@@ -2558,6 +2558,10 @@ void control::ctrlrecv()
     ii++;
     Z21 = dctrl[dd];
     dd++;
+    Z30 = ictrl[ii];
+    ii++;
+    Z31 = dctrl[dd];
+    dd++;
 
     // --------------------------
 

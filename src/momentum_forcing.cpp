@@ -28,9 +28,10 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"FSI.h"
 #include"rodtree_coupling.h"
+#include"fem_coupling.h"
 #include"dem.h"
 
-momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr)
+momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr), pfem(nullptr)
 {
     gcval_u=10;
 	gcval_v=11;
@@ -40,6 +41,7 @@ momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr)
 momentum_forcing::~momentum_forcing()
 {
     delete prodtree;
+    delete pfem;
 }
 
 void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, fsi* pfsi,
@@ -75,6 +77,15 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
             prodtree = new rodtree_coupling(p,pgc);
             
             prodtree->start_cfd(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
+        }
+
+        // FEM solid structures: surface direct forcing, fluid loads, advance solid (final stage)
+        if(p->Z30>0)
+        {
+            if(pfem==nullptr)
+            pfem = new fem_coupling(p,pgc);
+
+            pfem->start_cfd(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
         }
  
         ULOOP

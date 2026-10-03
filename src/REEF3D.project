@@ -806,6 +806,10 @@
         <File Name="multiphase_v.h"/>
         <File Name="multiphase_f.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="FEM">
+        <File Name="fem_solid.h"/>
+        <File Name="fem_coupling.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="FSI">
         <VirtualDirectory Name="Rodtree">
           <File Name="rodtree.h"/>
@@ -2270,6 +2274,20 @@
         <File Name="multiphase_io.cpp"/>
         <File Name="multiphase_ini.cpp"/>
         <File Name="multiphase_f.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="FEM">
+        <VirtualDirectory Name="Solid">
+          <File Name="fem_solid.cpp"/>
+          <File Name="fem_solid_read.cpp"/>
+          <File Name="fem_solid_mesh.cpp"/>
+          <File Name="fem_solid_element.cpp"/>
+          <File Name="fem_solid_contact.cpp"/>
+          <File Name="fem_solid_print.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Coupling CFD">
+          <File Name="fem_coupling.cpp"/>
+          <File Name="fem_coupling_cfd.cpp"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">
         <VirtualDirectory Name="Rodtree">

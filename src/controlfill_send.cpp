@@ -2567,6 +2567,10 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = Z21;
     dd++;
+    ictrl[ii] = Z30;
+    ii++;
+    dctrl[dd] = Z31;
+    dd++;
 
 
 // --------------------------

@@ -1,0 +1,6 @@
+# elastic obstacle (Walhorn et al. 2005): 12 mm x 80 mm, rho 2500, E 1 MPa, nu 0
+lattice 0.002 0.003 0.002  0 0 0
+material 1 elastic 2500 1.0e6 0.0
+box 0.292 0.304 0.0 0.003 0.0 0.080 1
+fix -1 1 -1 1 -0.0001 0.0001 xyz
+monitor tip 0.292 0.0 0.080
