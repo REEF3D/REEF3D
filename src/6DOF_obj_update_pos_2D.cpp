@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_obj_2D::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     // Calculate new position
     rb.euler_angles();
@@ -48,7 +48,7 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
     }
 }
 
-void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
+void sixdof_obj_2D::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
 	// Update position of triangles 
     geom.transform(R_,c_);

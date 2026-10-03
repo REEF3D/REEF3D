@@ -980,6 +980,10 @@
           <File Name="6DOF_motionext.h"/>
         </VirtualDirectory>
         <File Name="6DOF_obj.h"/>
+        <File Name="6DOF_obj_cfd.h"/>
+        <File Name="6DOF_obj_nhflow.h"/>
+        <File Name="6DOF_obj_2D.h"/>
+        <File Name="6DOF_obj_fnpf.h"/>
         <File Name="6DOF_nhflow.h"/>
         <File Name="6DOF_cfd.h"/>
         <File Name="6DOF_sflow.h"/>

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -46,7 +46,7 @@ Author: Hans Bihs
 // through Kimp; the body side is made linearly implicit in porous_damping_nhflow() with the
 // linearised drag coefficients Dpor_t, Dpor_r collected here.
 
-void sixdof_obj::update_forcing_nhflow_porous(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+void sixdof_obj_nhflow::update_forcing_nhflow_porous(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, int iter)
 {
     double H,uf,vf,wf;
@@ -133,7 +133,7 @@ void sixdof_obj::update_forcing_nhflow_porous(lexer *p, fdm_nhf *d, ghostcell *p
     Yd = Kd = Nd = 0.0;
 }
 
-void sixdof_obj::porosity_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::porosity_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // n(x,t) = 1 - H_fb (1 - n_fb)
     // without static VRANS structures (B 200 0) nhflow_forcing::reset() clears POR to 1 before
@@ -156,7 +156,7 @@ void sixdof_obj::porosity_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start5V(p,d->FHB,50);
 }
 
-void sixdof_obj::porous_damping_nhflow(lexer *p, int iter)
+void sixdof_obj_nhflow::porous_damping_nhflow(lexer *p, int iter)
 {
     // Linearly implicit treatment of the drag in the body equations:
     //   (m + a dt D) dp = a dt F   ->   F_eff = F * m/(m + a dt D)

@@ -34,14 +34,10 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
 
-sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
-                                                                                f(p), frk1(p), cutl(p), cutr(p), 
-                                                                                fbio(p),georay(p),n6DOF(number),
-                                                                                epsifb(1.6*p->DXM), epsi(1.6),vertice(p),
-                                                                                nodeflag(p),interfac(1.6),zero(0.0),eta(p),
-                                                                                lrk1(p),lrk2(p),K(p),dts(p),
-                                                                                fs(p),fsio(p),cr(p),cl(p),Ls(p),Bs(p),
-                                                                                Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p),
+sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
+                                                                                georay(p),n6DOF(number),
+                                                                                epsifb(1.6*p->DXM), epsi(1.6),
+                                                                                interfac(1.6),zero(0.0),
                                                                                 Mass_fb(rb.mass),
                                                                                 p_(rb.p),c_(rb.c),h_(rb.h),dc_(rb.dc),e_(rb.e),
                                                                                 R_(rb.R),I_(rb.I),quatRotMat(rb.R),
@@ -69,8 +65,6 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     rb.Cdamp_r[1] = p->X25_Cq;
     rb.Cdamp_r[2] = p->X25_Cr;
 
-    prdisc = new reinidisc_fsf(p);
-    
     pnetinter = new net_interface(p,pgc);
     
     triangle_token=0;
@@ -148,22 +142,6 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     }
     
     
-    if(p->A10==5)
-    {
-    pnhfrdisc = new nhflow_reinidisc_fsf(p);
-    
-    p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
-    }
     
     if(p->X10==4)
     {

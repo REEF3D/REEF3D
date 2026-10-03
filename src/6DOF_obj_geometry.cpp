@@ -21,6 +21,8 @@ Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -59,7 +61,7 @@ void sixdof_obj::geometry_stl(lexer *p, ghostcell *pgc)
     }
 }
 
-void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Total Volume
 	double H;
@@ -216,7 +218,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// Total Volume
 	double H;

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::hydrodynamic_viscous_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, 
+void sixdof_obj_nhflow::hydrodynamic_viscous_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, 
                                             double &Fv_x, double &Fv_y, double &Fv_z, double A_triang,
                                             double xp, double yp, double zp, double nx, double ny, double nz)
 {

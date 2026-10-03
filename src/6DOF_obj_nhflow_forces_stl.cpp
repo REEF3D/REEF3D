@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
+void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
     // porous body (X 16) always uses the STL integration: the (1-n) scaled envelope pressure
@@ -46,7 +46,7 @@ void sixdof_obj::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 } 
 
 
-void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
+void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
     // Pressure + viscous load on the wetted part of the STL surface.
     //

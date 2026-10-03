@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
+void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     
 // Calculate forcing fields
@@ -261,7 +261,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     pgc->start3(p,fz,12);         
 };
 
-double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
+double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	
@@ -286,7 +286,7 @@ double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     return H;
 }
 
-double sixdof_obj::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
+double sixdof_obj_cfd::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	

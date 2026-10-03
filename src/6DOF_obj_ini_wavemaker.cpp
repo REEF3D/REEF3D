@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"momentum.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 
-void sixdof_obj::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &WL)
+void sixdof_obj_nhflow::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &WL)
 {
     if(p->mpirank==0)
     cout<<"6DOF_obj_ini_wavemaker "<<p->X172<<endl;

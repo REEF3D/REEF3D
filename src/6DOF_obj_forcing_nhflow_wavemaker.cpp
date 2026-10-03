@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+void sixdof_obj_nhflow::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
 {
     // Calculate forcing fields

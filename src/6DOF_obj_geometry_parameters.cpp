@@ -21,11 +21,14 @@ Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
+#include"6DOF_obj_cfd.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0, x1, x2, y0, y1, y2, z0, z1, z2;
     double n0, n1, n2;
@@ -206,8 +209,37 @@ void sixdof_obj::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 	}
 }
 
-void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+	// cylinders and wedges: level-set integration on the NHFLOW grid; otherwise the
+	// surface triangles (with the level-set volume as a diagnostic)
+	if ((p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0) && d!=nullptr)
+	{
+        I_ = Eigen::Matrix3d::Zero();
+        
+		geometry_ls_nhflow(p,d,pgc);
+	}	
+        
+	else
+	{
+        double H, Vol_ls;
+        
+        Vol_ls=0.0;
+        if(d!=nullptr)   // FNPF passes no fdm_nhf: diagnostic level-set volume only
+        LOOP
+        {
+            H = Hsolidface_nhflow(p,d,0,0,0);
+            Vol_ls+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j)*H;
+        }
+        Vol_ls=pgc->globalsum(Vol_ls);
+        
+        geometry_parameters_surface(p,pgc,Vol_ls);
+	}
+}
+
+void sixdof_obj::geometry_parameters_surface(lexer *p, ghostcell *pgc, double Vol_ls)
+{
+    // volume, mass, centre of gravity and inertia tensor from the closed surface triangulation
     double x0, x1, x2, y0, y1, y2, z0, z1, z2;
     double n0, n1, n2;
     double f1x,f2x,f3x,g0x,g1x,g2x,f1y,f2y,f3y;
@@ -215,15 +247,7 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     double *integ;
     
     I_ = Eigen::Matrix3d::Zero();
-
-	// level-set integration needs the NHFLOW fdm; FNPF (d==nullptr) integrates the
-	// surface triangles for every object
-	if ((p->X131 > 0 || p->X132 > 0 || p->X133 > 0 || p->X153 > 0) && d!=nullptr)
-	{
-		geometry_ls_nhflow(p,d,pgc);
-	}	
-        
-	else
+    
 	{
 
 		p->Darray(integ, 10);
@@ -262,7 +286,7 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 			integ[9] += n2 * (x0 * g0z + x1 * g1z + x2 * g2z);	
 		}
         
-        double Vol,Vol_ls,H;
+        double Vol;
         Vol=0.0;
         for (int n = 0; n < tricount; ++n)
         {
@@ -284,14 +308,6 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
             
         }
         
-        Vol_ls=0.0;
-        if(d!=nullptr)   // FNPF passes no fdm_nhf: diagnostic level-set volume only
-        LOOP
-        {
-            H = Hsolidface_nhflow(p,d,0,0,0);
-            Vol_ls+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j)*H;
-        }
-        Vol_ls=pgc->globalsum(Vol_ls);
 
         if(p->X180==0)
         {
@@ -387,11 +403,11 @@ void sixdof_obj::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 		}
 		
 		p->del_Darray(integ, 10);	
-	}
+		}
 }
 
 
-void sixdof_obj::geometry_parameters_2D(lexer *p, ghostcell *pgc)
+void sixdof_obj_2D::geometry_parameters_2D(lexer *p, ghostcell *pgc)
 {
     double x0, x1, x2, y0, y1, y2, z0, z1, z2;
     double xmin = .10e9;

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
 	LOOP
 	{

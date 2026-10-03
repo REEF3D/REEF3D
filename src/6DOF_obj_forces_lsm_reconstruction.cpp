@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 
-void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
+void sixdof_obj_cfd::reconstruct(lexer *p,fdm* a, field& b)
 {
     ccptcount=0;
 
@@ -55,7 +55,7 @@ void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
     }
 }
 
-void sixdof_obj::addpoint(lexer *p, fdm *a, int q1, int q2)
+void sixdof_obj_cfd::addpoint(lexer *p, fdm *a, int q1, int q2)
 {
 	// p. 917
     double dist,xd,dnom;

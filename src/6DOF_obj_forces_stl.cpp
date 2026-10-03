@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_obj::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
+void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double xc,yc,zc;

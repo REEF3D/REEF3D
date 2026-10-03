@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void sixdof_obj::ray_cast_2D_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
+void sixdof_obj_2D::ray_cast_2D_io_ycorr(lexer* p, ghostcell* pgc, int ts, int te)
 {
 	double ys,ye,zs,ze;
 	double Px,Py,Pz;

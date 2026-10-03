@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_6DOF.h"
-#include"6DOF_obj.h"
+#include"6DOF_obj_fnpf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -65,7 +65,7 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     nbody = 1;
     
     for(int nb=0; nb<nbody; ++nb)
-    fb_obj.push_back(new sixdof_obj(p,pgc,nb));
+    fb_obj.push_back(new sixdof_obj_fnpf(p,pgc,nb));
     
     gcval = (p->j_dir==0) ? 150 : 250;
     
@@ -959,7 +959,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         }
         
         // every hull triangle on the finest grid that holds its centroid
-        sixdof_obj::fnpf_force_sum S;
+        sixdof_obj_fnpf::fnpf_force_sum S;
         fb_obj[nb]->forces_fnpf_zero(p,S);
         
         for(int g=-1; g<(int)gp.size(); ++g)

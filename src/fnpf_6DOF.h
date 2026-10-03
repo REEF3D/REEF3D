@@ -37,6 +37,7 @@ class fnpf_fsf;
 class fnpf_bed_update;
 class fnpf_fsf_update;
 class sixdof_obj;
+class sixdof_obj_fnpf;
 class slice;
 class fnpf_amr;
 
@@ -129,7 +130,7 @@ private:
     void free_grid(fnpf_6DOF_grid&);
     bool amr_on() const;
     
-    vector<sixdof_obj*> fb_obj;
+    vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;
     int gcval;
     double *psi0;

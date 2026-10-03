@@ -307,8 +307,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
             const int g = finest_at(x,y);
             if(g<0)
-            return sixdof_obj::nhflow_grid{glex(-1),d0,(cur_stage<0) ? &d0->WL : stage_out(-1,cur_stage).WL};
-            return sixdof_obj::nhflow_grid{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL};
+            return sixdof_obj_nhflow::nhflow_grid{glex(-1),d0,(cur_stage<0) ? &d0->WL : stage_out(-1,cur_stage).WL};
+            return sixdof_obj_nhflow::nhflow_grid{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL};
         };
 
         cur_stage = -1;

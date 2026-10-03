@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void sixdof_obj::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
+void sixdof_obj_2D::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
 {
     // Calculate ship-like pressure field
     double H, press0, xpos, ypos, Ls, Bs, as, cl, cb;
@@ -57,7 +57,7 @@ void sixdof_obj::updateForcing_box(lexer *p, ghostcell *pgc, slice &press)
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice &eta)
+void sixdof_obj_2D::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice &eta)
 {
     // Calculate pressure field for stl geometry based on draft
     double H,etaval,fbval;
@@ -95,7 +95,7 @@ void sixdof_obj::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, slice
     pgc->gcsl_start4(p,press,50);
 }
 
-void sixdof_obj::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
+void sixdof_obj_2D::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
 {
     // Calculate 1D pressure field
     double press0, xpos, as;
@@ -113,7 +113,7 @@ void sixdof_obj::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
     pgc->gcsl_start4(p,press,50);
 }
 
-double sixdof_obj::Hsolidface_2D(lexer *p, int aa, int bb)
+double sixdof_obj_2D::Hsolidface_2D(lexer *p, int aa, int bb)
 {
     double psi, H, phival_fb;
 

@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"vrans_definitions.h"
 
-void sixdof_obj::hydrodynamic_forces_nhflow_volume
+void sixdof_obj_nhflow::hydrodynamic_forces_nhflow_volume
 (
     lexer *p, fdm_nhf *d, ghostcell *pgc,
     double *FX, double *FY, double *FZ,
@@ -144,7 +144,7 @@ void sixdof_obj::hydrodynamic_forces_nhflow_volume
 }
 
 
-void sixdof_obj::buoyancy_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double fsf_z,
+void sixdof_obj_nhflow::buoyancy_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double fsf_z,
                                  double &Vsub, double &xB, double &yB, double &zB)
 {
     double x0,y0,z0,x1,y1,z1,x2,y2,z2;
@@ -227,7 +227,7 @@ void sixdof_obj::buoyancy_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double fs
 // polygon itself rather than just its area and centroid. Winding is preserved,
 // so a fan from vertex 0 triangulates it without overlap.
 // Returns the number of wetted vertices: 3, 4, or 0 when the facet is dry.
-int sixdof_obj::clip_facet_poly(lexer *p,
+int sixdof_obj_nhflow::clip_facet_poly(lexer *p,
                                 double x0,double y0,double z0,
                                 double x1,double y1,double z1,
                                 double x2,double y2,double z2,
@@ -325,7 +325,7 @@ int sixdof_obj::clip_facet_poly(lexer *p,
 }
 
 
-double sixdof_obj::clip_edge_vol(double za, double zb, double fsf_z)
+double sixdof_obj_nhflow::clip_edge_vol(double za, double zb, double fsf_z)
 {
     double dz,f;
 

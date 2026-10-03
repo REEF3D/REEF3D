@@ -21,13 +21,15 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"mooring.h"
 #include"net_interface.h"
 
-void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
+void sixdof_obj_cfd::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
     
@@ -42,7 +44,7 @@ void sixdof_obj::externalForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alp
     // VRANS forces
 }
 
-void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha, bool finalize)
+void sixdof_obj_nhflow::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, double alpha, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
 
@@ -71,7 +73,7 @@ void sixdof_obj::externalForces_nhflow(lexer *p, fdm_nhf* d, ghostcell *pgc, dou
     // VRANS forces
 }
 
-void sixdof_obj::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
+void sixdof_obj_nhflow::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
                                          double *UH, double *VH, double *WH, slice &WL)
 {
     // current body kinematics for the attached membrane nodes (u_fb: also prescribed motions, X 11 = 2)
@@ -80,7 +82,7 @@ void sixdof_obj::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, d
     pnetinter->membrane_forcing_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
 }
 
-void sixdof_obj::membrane_stabilisation(lexer *p, int iter)
+void sixdof_obj_nhflow::membrane_stabilisation(lexer *p, int iter)
 {
     // A membrane bag carries much more water than a floating collar weighs. The loads on the body (membrane
     // load, and the pressure on the hull, computed after the projection of the last stage) contain the inertia
@@ -181,22 +183,22 @@ void sixdof_obj::membrane_stabilisation(lexer *p, int iter)
     Ffb_(r) = F(r);
 }
 
-bool sixdof_obj::membrane_iterated()
+bool sixdof_obj_nhflow::membrane_iterated()
 {
     return pnetinter->membrane_iterated();
 }
 
-void sixdof_obj::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+void sixdof_obj_nhflow::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
     pnetinter->membrane_reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
 }
 
-bool sixdof_obj::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
+bool sixdof_obj_nhflow::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
 {
     return pnetinter->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it);
 }
 
-void sixdof_obj::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
+void sixdof_obj_nhflow::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
 {
     pnetinter->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
 }
@@ -244,7 +246,7 @@ void sixdof_obj::mooringForces(lexer *p, ghostcell *pgc, double alpha)
     }
 }
 
-void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
+void sixdof_obj_cfd::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, bool finalize)
 {    
     pnetinter->netForces_cfd(p,a,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
     
@@ -260,7 +262,7 @@ void sixdof_obj::netForces_cfd(lexer *p, fdm* a, ghostcell *pgc, double alpha, b
     }
 }
 
-void sixdof_obj::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, bool finalize)
+void sixdof_obj_nhflow::netForces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, bool finalize)
 {
     pnetinter->netForces_nhflow(p,d,pgc,alpha,quatRotMat,Xne,Yne,Zne,Kne,Mne,Nne,finalize);
     

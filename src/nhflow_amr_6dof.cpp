@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_amr_6dof.h"
 #include"6DOF_nhflow.h"
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -97,7 +97,7 @@ void nhflow_amr_6dof::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
 
     for(int nb=0; nb<b->objects(); ++nb)
     {
-        sixdof_obj *o = b->object(nb);
+        sixdof_obj_nhflow *o = b->object(nb);
         ray_cast(p,d,pgc,nb);
         o->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
     }

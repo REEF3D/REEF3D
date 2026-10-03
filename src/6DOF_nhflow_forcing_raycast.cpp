@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
 
-void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {    
     zmin = 1.0e8;
     zmax = -1.0e8;
@@ -42,7 +42,7 @@ void sixdof_obj::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc)
     ray_cast_nhflow_grid(p,d,pgc,IO,CL,CR,DSM);
 }
 
-void sixdof_obj::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pgc, int *IO, int *CL, int *CR, double DSM)
+void sixdof_obj_nhflow::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pgc, int *IO, int *CL, int *CR, double DSM)
 {
     LOOP
 	{

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
+void sixdof_obj_cfd::print_vtp(lexer* p, fdm* a, ghostcell *pgc)
 {
     int num=0;
     if(p->P15==1)

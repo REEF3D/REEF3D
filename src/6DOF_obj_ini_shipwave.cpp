@@ -21,13 +21,26 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"momentum.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 
+sixdof_obj_2D::sixdof_obj_2D(lexer *p, ghostcell *pgc, int number) : sixdof_obj(p,pgc,number),
+                                                                     press(p),lrk1(p),lrk2(p),K(p),dts(p),fs(p),Ls(p),Bs(p),
+                                                                     Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),
+                                                                     cl(p),cr(p),fsio(p)
+{
+}
 
-void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice &WL)
+sixdof_obj_2D::~sixdof_obj_2D()
+{
+}
+
+
+
+void sixdof_obj_2D::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice &WL)
 {
     if(p->mpirank==0)
     cout<<"6DOF_obj_ini "<<endl;

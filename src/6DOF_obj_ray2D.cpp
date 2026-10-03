@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::ray_cast_2D(lexer *p, ghostcell *pgc)
+void sixdof_obj_2D::ray_cast_2D(lexer *p, ghostcell *pgc)
 {
 	SLICELOOP4
 	{

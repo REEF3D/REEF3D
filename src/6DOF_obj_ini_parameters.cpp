@@ -21,6 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"momentum.h"
 #include"ghostcell.h"
@@ -73,7 +74,7 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     p->printcount_sixdof = 0;
 }
 
-void sixdof_obj::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
     
     

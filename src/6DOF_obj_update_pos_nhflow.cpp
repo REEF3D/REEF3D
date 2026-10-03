@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
+void sixdof_obj_nhflow::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
 {
     // Calculate new position
     rb.euler_angles();
@@ -50,7 +50,7 @@ void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
     }
 }
 
-void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
+void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
 	// Update position of triangles 
     geom.transform(R_,c_);
@@ -60,7 +60,7 @@ void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, boo
 	nhflow_reini_RK2(p,d,pgc,d->FB);
 }
 
-void sixdof_obj::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
+void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
 {
     // Update position of wavemaker
     if(p->X170==1)

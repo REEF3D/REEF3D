@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_reinidisc_fsf.h"
 
-void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
+void sixdof_obj_nhflow::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
 {	/*
     if(p->j_dir==0)
     LOOP

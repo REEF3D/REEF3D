@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include <math.h>
 
-void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
+void sixdof_obj_cfd::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
 {
     triangulation(p,a,pgc,a->fb);
 	reconstruct(p,a,a->fb);
@@ -46,7 +46,7 @@ void sixdof_obj::forces_lsm(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field&
     p->del_Darray(ccpt,numtri*4,3);
 }
 
-void sixdof_obj::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, bool finalize)
+void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
     double ux,vy,wz,vel,pressure,density,viscosity;
     double du,dv,dw;
