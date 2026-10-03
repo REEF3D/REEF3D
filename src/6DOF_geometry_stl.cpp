@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_geometry.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
+void sixdof_geometry::read_stl(lexer *p, ghostcell *pgc)
 {
 	string word;
 	int count, vert_count;
@@ -32,14 +32,14 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 	
 	// read and count number of triangles
     ifstream stl;
-    if (n6DOF==0)
+    if (id==0)
     {
 	    stl.open("floating.stl", ios_base::in);
     }
     else
     {
         char str[1000];
-        sprintf(str,"floating-%i.stl",n6DOF);
+        sprintf(str,"floating-%i.stl",id);
 	    stl.open(str, ios_base::in);
     }
     
@@ -80,14 +80,14 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 	tricount=count;
 	
 	// reopen and read triangles
-    if (n6DOF==0)
+    if (id==0)
     {
 	    stl.open("floating.stl", ios_base::in);
     }
     else
     {
         char str[1000];
-        sprintf(str,"floating-%i.stl",n6DOF);
+        sprintf(str,"floating-%i.stl",id);
 	    stl.open(str, ios_base::in);
     }
 	
@@ -145,9 +145,9 @@ void sixdof_obj::read_stl(lexer *p, ghostcell *pgc)
 
     for(int qr=0;qr<tricount;++qr)
     {
-        rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
-        rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
-        rotation_tri(p,p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
+        rotation_tri(p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][0],tri_y[qr][0],tri_z[qr][0],p->X183_x,p->X183_y,p->X183_z);
+        rotation_tri(p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][1],tri_y[qr][1],tri_z[qr][1],p->X183_x,p->X183_y,p->X183_z);
+        rotation_tri(p->X183_phi,p->X183_theta,p->X183_psi,tri_x[qr][2],tri_y[qr][2],tri_z[qr][2],p->X183_x,p->X183_y,p->X183_z);
     }
 }
 

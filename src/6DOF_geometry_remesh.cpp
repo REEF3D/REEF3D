@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_geometry.h"
 #include"6DOF_obj_remesh.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -62,7 +62,7 @@ double grid_cellsize(const std::vector<double> &g, double x)
 }
 }
 
-void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
+void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
 {
     // ---------------------------------------------------------- global grid node coordinates
     auto gather_nodes = [&](std::vector<double> &g, int gkno, int origin, int kno, const double *XN)
@@ -193,7 +193,7 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
             sixdof_remesh::stats st;
             const bool ok = R.remesh(in,out,sixdof_remesh::metric_func(Hfunc),prm,st);
 
-            cout<<endl<<"6DOF surface remeshing, body "<<n6DOF<<" entity "<<qn<<": "<<(ok?"ok":"FAILED, keeping the input triangles")<<endl;
+            cout<<endl<<"6DOF surface remeshing, body "<<id<<" entity "<<qn<<": "<<(ok?"ok":"FAILED, keeping the input triangles")<<endl;
 
             if(!ok && st.ntri_estimate>prm.max_tri)
             cout<<"  estimated triangle count "<<st.ntri_estimate<<" exceeds "<<prm.max_tri<<", increase X 186"<<endl;
@@ -267,13 +267,7 @@ void sixdof_obj::geometry_remesh(lexer *p, ghostcell *pgc)
     for(int qn=nent; qn<entity_sum; ++qn)
     tstart[qn] = tend[qn] = tricount;
     
-    // the volume of an STL with holes is meaningless: recompute volume and mass (X 21) or
-    // density (X 22) from the closed surface
-    if(repaired==1)
-    {
-        geometry_stl(p,pgc);
-        
-        if(p->mpirank==0)
-        cout<<"  volume of the closed surface: "<<Vfb<<", mass: "<<Mass_fb<<", density: "<<Rfb<<endl<<endl;
-    }
+    // the volume of an STL with holes is meaningless: the owner recomputes volume and mass (X 21)
+    // or density (X 22) from the closed surface
+    holes_closed = (repaired==1);
 }

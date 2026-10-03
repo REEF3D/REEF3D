@@ -39,6 +39,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"6DOF_pto.h"
 #include"6DOF_pto_joint.h"
 #include"6DOF_rigidbody.h"
+#include"6DOF_geometry.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -69,6 +70,9 @@ public:
     
     // rigid-body core: state, kinematics and time integration (solver independent)
     sixdof_rigidbody rb;
+    
+    // surface geometry: hull triangles and pose transformation (solver independent)
+    sixdof_geometry geom;
 	
 	void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
     
@@ -181,7 +185,7 @@ public:
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;
     // the hull triangles (X 185) are sized for the horizontal spacing times amr_hfac: the finest
     // level of a refinement zone around the body (set before the initialisation)
-    double amr_hfac = 1.0;
+    double &amr_hfac;   // = geom.amr_hfac
 
 private:
 
@@ -200,23 +204,9 @@ private:
     double ramp_draft(lexer*);
     
     void objects_create(lexer*, ghostcell*);
-    void objects_allocate(lexer*, ghostcell*);
-	void geometry_refinement(lexer*,ghostcell*);
-	void geometry_remesh(lexer*,ghostcell*);
-	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
-	void box(lexer*, ghostcell*,int);
-	void cylinder_x(lexer*, ghostcell*,int);
-	void cylinder_y(lexer*, ghostcell*,int);
-	void cylinder_z(lexer*, ghostcell*,int);
-	void wedge_sym(lexer*, ghostcell*,int);
-    void wedge(lexer*, ghostcell*,int);
-    void hexahedron(lexer*, ghostcell*,int);
     void piston(lexer*, ghostcell*,int);
     void flap(lexer*, ghostcell*,int);
     void flap_double(lexer*, ghostcell*,int);
-    void read_stl(lexer*, ghostcell*);
-    void triangle_switch_lsm(lexer*, ghostcell*);
-    void triangle_switch_ray(lexer*, ghostcell*);
    
     void ini_parallel(lexer*, ghostcell*);
     
@@ -262,7 +252,6 @@ private:
     void rk3(lexer*, ghostcell*,int);
     void rkls3(lexer*, ghostcell*,int);
 
-    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
    
    // ray cast 3D: geometry core kernels
     void ray_cast(lexer*, fdm*, ghostcell*);
@@ -271,16 +260,12 @@ private:
     
     // Raycast 3D
     fieldint5 cutl,cutr,fbio;
-    double **tri_x,**tri_y,**tri_z,**tri_x0,**tri_y0,**tri_z0;
-    int *tri_switch,*tri_switch_id,*tri_switch_local,*tri_switch_local_id;
-    int tricount_local,*tricount_local_list,*tricount_local_displ;
-    int tricount_switch_total;
-	vector<vector<double> > tri_x_r;
-	vector<vector<double> > tri_y_r;
-	vector<vector<double> > tri_z_r;
+    // surface triangles: references into geom
+    double **&tri_x,**&tri_y,**&tri_z,**&tri_x0,**&tri_y0,**&tri_z0;
+    int &entity_sum;
+    int *&tstart,*&tend;
     double xs,xe,ys,ye,zs,ze;
-    int entity_sum, count, rayiter;
-    int *tstart,*tend;
+    int count, rayiter;
     double epsifb;
     const double epsi; 
     
@@ -371,7 +356,7 @@ private:
     
     Eigen::Matrix<double, 6, 1> u_fb;
     
-    int tricount, entity_count;
+    int &tricount, &entity_count;   // = geom
     
     double Uext, Vext, Wext, Pext, Qext, Rext;
     

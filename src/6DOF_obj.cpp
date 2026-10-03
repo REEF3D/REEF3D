@@ -47,7 +47,12 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
                                                                                 R_(rb.R),I_(rb.I),quatRotMat(rb.R),
                                                                                 omega_B(rb.omega_B),omega_I(rb.omega_I),
                                                                                 phi(rb.phi),theta(rb.theta),psi(rb.psi),
-                                                                                Ffb_(rb.F),Mfb_(rb.M)
+                                                                                Ffb_(rb.F),Mfb_(rb.M),
+                                                                                geom(number),amr_hfac(geom.amr_hfac),
+                                                                                tri_x(geom.tri_x),tri_y(geom.tri_y),tri_z(geom.tri_z),
+                                                                                tri_x0(geom.tri_x0),tri_y0(geom.tri_y0),tri_z0(geom.tri_z0),
+                                                                                entity_sum(geom.entity_sum),tstart(geom.tstart),tend(geom.tend),
+                                                                                tricount(geom.tricount),entity_count(geom.entity_count)
 {
     // rigid-body core: DOF modes (X 11) and linear damping (X 25, X 26)
     rb.dof[0] = p->X11_u;

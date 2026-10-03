@@ -29,16 +29,8 @@ Author: Tobias Martin
 
 void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 {
-    // Store initial position of triangles
-	for(n=0; n<tricount; ++n)
-	{
-        for(int q=0; q<3; q++)
-        {        
-            tri_x0[n][q] = tri_x[n][q] - c_(0);
-            tri_y0[n][q] = tri_y[n][q] - c_(1);
-            tri_z0[n][q] = tri_z[n][q] - c_(2);
-        }
-    }
+    // Store initial position of triangles (body frame, relative to the CoG)
+    geom.store_body_frame(c_);
 	
 	// Initial rotation
 
@@ -48,22 +40,14 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
         theta = p->X101_theta*(PI/180.0);
         psi = p->X101_psi*(PI/180.0);	
 	
-		for (n=0; n<tricount; ++n)
-		{
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][0],tri_y[n][0],tri_z[n][0],c_(0),c_(1),c_(2));
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][1],tri_y[n][1],tri_z[n][1],c_(0),c_(1),c_(2));
-			rotation_tri
-				(p,-phi,-theta,-psi,tri_x[n][2],tri_y[n][2],tri_z[n][2],c_(0),c_(1),c_(2));
-		}
+        geom.rotate(-phi,-theta,-psi,c_);
 
         // Rotate mooring end point
         if (p->X313==1) 
         {
             for (int line=0; line < p->mooring_count; line++)
             {
-			    rotation_tri(p,-phi,-theta,-psi,p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],c_(0),c_(1),c_(2));
+			    sixdof_geometry::rotation_tri(-phi,-theta,-psi,p->X311_xe[line],p->X311_ye[line],p->X311_ze[line],c_(0),c_(1),c_(2));
             }
         }
 	}

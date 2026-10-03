@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_geometry.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fieldint.h"
@@ -138,7 +138,7 @@ struct tri_bin2d
 };
 }
 
-void sixdof_obj::triangle_switch_ray(lexer *p, ghostcell *pgc)
+void sixdof_geometry::orient(lexer *p, ghostcell *pgc)
 {
 	double Px,Py,Pz;
 	double Qx,Qy,Qz;

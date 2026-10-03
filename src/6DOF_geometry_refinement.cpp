@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_geometry.h"
 #include"lexer.h"
 #include"ghostcell.h"
 
-void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
+void sixdof_geometry::geometry_refinement(lexer *p, ghostcell *pgc)
 {
 	double x0,x1,x2,y0,y1,y2,z0,z1,z2;
 	double x01,x02,x12,y01,y02,y12,z01,z02,z12;
@@ -256,7 +256,7 @@ void sixdof_obj::geometry_refinement(lexer *p, ghostcell *pgc)
 }
 
 
-void sixdof_obj::create_triangle
+void sixdof_geometry::create_triangle
 (
 	double& x0, double& y0, double& z0,
 	double& x1, double& y1, double& z1,
