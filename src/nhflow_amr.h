@@ -110,6 +110,16 @@ using namespace std;
 //  A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches stay out of the relaxation
 //  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
 //  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
+//
+//  Wetting and drying in the patches (A 283 1): the patches may cover dry and shallow cells, the
+//  NHFLOW wetting and drying (A 540) runs on every grid.  The coupling: the cells around a patch
+//  take the flags of their source cell (a fine face on the patch box carries mass only where the
+//  coarse face can) and are interpolated from wet source cells only (pressure: wet and deep), a
+//  dry source cell gives a dry cell on the fine bed; a fresh patch is well balanced at the
+//  shoreline (a 2x2 block with a dry child keeps the surface of its wet parent, without the
+//  conservative shift; dry children have no momentum) and takes its flags from its water level
+//  (or from the old patch); a covered coarse cell is wet if all its children are, deep follows the rule of
+//  nhflow_fsf_f::wetdry; the restriction of the pressure uses the wet and deep children.
 
 struct nhflow_amr_patch : public reefamr_patch
 {
@@ -129,6 +139,7 @@ struct nhflow_amr_patch : public reefamr_patch
     ioflow *pflow = nullptr;
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
+    vector<int> wfix;               // A 283: flags of the filled cells, kept through wetdry (lexer::wetfix)
 
     // box faces recorded by the flux hook: rec[ipol][side][r*knoz+k], r fine face index along the
     // side, k layer of the patch; side 0 low x, 1 high x, 2 low y, 3 high y; ipol 0: dfx/dfy (r
@@ -209,12 +220,14 @@ private:
     void build_lexer3D(nhflow_amr_patch&);
     void free_lexer3D(nhflow_amr_patch&);
 
-    // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy)
-    void pweights(lexer*, int, int, int, int, double*);
-    double pq(slice&, lexer*, int, int, int, int);
-    double pq3(const double*, lexer*, int, int, int, int, int, bool);
+    // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy); the last argument
+    // (A 283) selects the coarse cells the stencil may use: 0 fluid, 1 wet (surface, velocities),
+    // 2 wet and deep (pressure)
+    void pweights(lexer*, int, int, int, int, double*, int=0);
+    double pq(slice&, lexer*, int, int, int, int, int=0);
+    double pq3(const double*, lexer*, int, int, int, int, int, bool, int=0);
     double plin(slice&, lexer*, int, int, int, int);
-    void pcol(int, int, int, int, int, const double*, int, double*);
+    void pcol(int, int, int, int, int, const double*, int, double*, int=0);
     void vcell(lexer*, const double*, int, int, double*);
 
     // vertical refinement (A 281): the sigma layers doubled on every level (vr 2), nested
@@ -257,6 +270,8 @@ private:
         vector<int> lq, lr;         // leaf unknowns: F index, matrix row (without the fixed rows)
         vector<int> cq;             // covered unknowns: F index
         vector<int> aq, ar;         // all leaf rows
+        vector<int> aw;             // their column (slice index), for the wet flag
+        vector<int> fq;             // identity rows of wet columns (shallow): P = 0 after the solve
     };
     vector<pgrid> pg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
@@ -267,6 +282,16 @@ private:
     int pr_it_last = 0;
     double pr_res_last = 0.0;
     int layout_id = 0;
+
+    // wetting and drying in the patches (A 283 1): wet-aware interpolation, the flags of fresh
+    // patches and of the covered coarse cells
+    bool shore = false;
+    int nshore = 0;                 // shoreline flag (A 284): cells within nshore cells of the other wet state
+    bool wet_at(lexer*, int, int, int) const;
+    void dry_cell(lexer*, fdm_nhf*, slice&, double*, double*, double*, int, int);
+    void patch_flags(nhflow_amr_patch&);
+    void restrict_flags(ghostcell*, int);
+    void deep_rule(lexer*, slice&);
 
     // solution-adaptive flags (A 273 surface jump, A 282 second difference) and the regrid of a
     // step

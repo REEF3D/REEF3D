@@ -119,6 +119,7 @@ void nhflow_amr::pr_rows()
                 {
                     L.aq.push_back(qq);
                     L.ar.push_back(r);
+                    L.aw.push_back((ii-q->imin)*q->jmax + (jj-q->jmin));
                 }
             }
         }
@@ -180,14 +181,18 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
     {
         pgrid &L = pg[g+1];
         const matrix_diag &M = gfd(g)->M;
+        lexer *q = glex(g);
         L.lq.clear();
         L.lr.clear();
+        L.fq.clear();
         for(size_t n=0; n<L.aq.size(); ++n)
         if(!fixed(M,L.ar[n]))
         {
             L.lq.push_back(L.aq[n]);
             L.lr.push_back(L.ar[n]);
         }
+        else if(q->wet[L.aw[n]]==1)
+        L.fq.push_back(L.aq[n]);
     }
 
     auto clear = [](sc_level &L)
@@ -507,6 +512,15 @@ void nhflow_amr::pr_core(lexer *p, ghostcell *pgc)
     p->solveriter = it;
     p->poissoniter = it;
     p->final_res = pr_res_last;
+
+    // identity rows of wet but shallow columns: P = 0 as the single-grid solvers leave them
+    // (PCORR is 0 there already); dry columns keep their pressure
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        double *x = pvec(g,-1);
+        for(int qq : pg[g+1].fq)
+        x[qq] = 0.0;
+    }
 
     pr_sync(-1);
 }

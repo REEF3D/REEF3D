@@ -217,7 +217,7 @@ namespace
 {
 // cell data of a 2D window [i0,i1)x[j0,j1) of a grid: eta, elevation, bed, and the velocities of
 // the top layer
-void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int j1)
+void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int j1, bool wet)
 {
     auto field = [&](const char *nm, auto f)
     {
@@ -238,6 +238,12 @@ void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int
     field("bed",[&](int ii, int jj) { return d->bed(ii,jj); });
     field("u_top",[&](int ii, int jj) { return d->U[c3(ii,jj)]; });
     field("v_top",[&](int ii, int jj) { return d->V[c3(ii,jj)]; });
+    // A 283: the wet flag and the water depth
+    if(wet)
+    {
+    field("wet",[&](int ii, int jj) { return double(q->wet[(ii-q->imin)*q->jmax + (jj-q->jmin)]); });
+    field("WL",[&](int ii, int jj) { return d->WL(ii,jj); });
+    }
 }
 }
 
@@ -254,7 +260,7 @@ void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
     out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
-    vtr_fields(out,p,d,0,nx,0,ny);
+    vtr_fields(out,p,d,0,nx,0,ny,shore);
     out<<"</CellData>\n<Coordinates>\n";
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
     for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
@@ -279,7 +285,7 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
     out<<"<CellData Scalars=\"eta\">\n";
-    vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EXT,EXT+c.ny);
+    vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EXT,EXT+c.ny,shore);
     out<<"</CellData>\n<Coordinates>\n";
     const int m = marge;
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";

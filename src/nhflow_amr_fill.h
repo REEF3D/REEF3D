@@ -82,7 +82,7 @@ inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
                      v[kk] = src[fidx(q,f.si,f.sj,kk)];
                  }
                  else if(f.kind==1)
-                 pcol(f.g,f.si,f.sj,f.ox,f.oy,sel(f.g),knf,v);
+                 pcol(f.g,f.si,f.sj,f.ox,f.oy,sel(f.g),knf,v,2);
                  else
                  for(int kk=0; kk<=knf; ++kk)
                  v[kk] = 0.0;
@@ -125,16 +125,41 @@ inline void nhflow_amr::restrict_col(SEL sel)
 
             // cubic only on interior blocks: on the edge blocks the 4x4 stencil would read the
             // EXT cells of the patch, which are not unknowns of the composite solve (as fnpf_amr)
-            const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
+            bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
             const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
             const int fz = pp->knoz/q->knoz;
+
+            // A 283: only the children that are unknowns of the pressure (wet and deep); cubic only
+            // if the whole 4x4 stencil is; none of them: the coarse column is shallow or dry, P = 0
+            int na = 4;
+            double wa[4] = {0.25,0.25,0.25,0.25};
+            if(shore)
+            {
+                for(int a=-1; a<=2 && hi; ++a)
+                for(int b=-1; b<=2 && hi; ++b)
+                if(!wet_at(pp,i0+a,j0+b,2))
+                hi = false;
+
+                na = 0;
+                for(int a=0; a<2; ++a)
+                for(int b=0; b<2; ++b)
+                {
+                    wa[2*a+b] = wet_at(pp,i0+a,j0+b,2) ? 1.0 : 0.0;
+                    na += (int)wa[2*a+b];
+                }
+                for(int m=0; m<4; ++m)
+                wa[m] = (na>0) ? wa[m]/double(na) : 0.0;
+            }
+
             for(int K=0; K<=q->knoz; ++K)
             {
                 const int n0 = fidx(pp,i0,j0,fz*K);
                 if(hi)
                 dst[fidx(q,c->ric[k],c->rjc[k],K)] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
-                else
+                else if(na==4)
                 dst[fidx(q,c->ric[k],c->rjc[k],K)] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+                else
+                dst[fidx(q,c->ric[k],c->rjc[k],K)] = wa[0]*src[n0] + wa[2]*src[n0+sI] + wa[1]*src[n0+sJ] + wa[3]*src[n0+sI+sJ];
             }
         }
     }
@@ -166,7 +191,7 @@ inline void nhflow_amr::prolong_interior_col(nhflow_amr_patch &c, SEL sel)
         for(int a=0; a<2; ++a)
         for(int d=0; d<2; ++d)
         {
-            pcol(g,c.ric[k],c.rjc[k],a==0?-1:1,d==0?-1:1,sel(g),knf,&v[0]);
+            pcol(g,c.ric[k],c.rjc[k],a==0?-1:1,d==0?-1:1,sel(g),knf,&v[0],2);
             for(int kk=0; kk<=knf; ++kk)
             dst[fidx(pp,EXT+2*bi+a,EXT+2*bj+d,kk)] = v[kk];
         }

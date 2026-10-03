@@ -136,6 +136,22 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     tol_curv = MAX(p->A282,0.0);
     adaptive = (tol_eta>0.0 || tol_curv>0.0);
 
+    // wetting and drying: with A 283 1 the patches may cover dry and shallow cells (the NHFLOW
+    // wetting and drying runs on every grid, the coupling interpolates from wet cells only);
+    // otherwise they are fully wet: no patch within 4 level-0 cells of a dry or shallow cell,
+    // checked at every regrid (cell_unfit; a static box over dry cells loses those tiles as well)
+    shore = (p->A283==1);
+    q.dryband = shore ? 0 : 4;
+
+    // shoreline flag (A 284 n, with A 283 1): a cell flags the next level where a cell of the other
+    // wet state lies within n cells (n <= 3: the halo of level 0 and the EXT cells of a patch),
+    // so the patches follow run-up and run-down
+    if(shore && p->A284>0)
+    {
+    nshore = MIN(p->A284,3);
+    adaptive = true;
+    }
+
     // the zone follows the body, the patches follow the flags: new patches every A 271 steps
     // (A 271 0: static), the layout is kept as long as it covers the flagged tiles with at most
     // 50 % excess (as fnpf_amr)
@@ -144,10 +160,6 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.regrid = MAX(p->A271,0);
     q.lazy = 1.5;
     }
-
-    // patches are fully wet: no patch within 4 level-0 cells of a dry or shallow cell, checked at
-    // every regrid (cell_unfit; a static box over dry cells loses those tiles as well)
-    q.dryband = 4;
 
     // the zone holds the hull: its triangles are sized for the finest level (sixdof_obj::amr_hfac,
     // before the 6DOF initialisation builds them), as on the uniform fine grid
@@ -322,6 +334,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"NHFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns, dt "<<p->dt;
     if(vr==2)
     cout<<", sigma layers doubled on every level (A 281)";
+    if(shore)
+    cout<<", wetting and drying in the patches (A 283)";
     if(adaptive)
     {
     cout<<", flags:";
@@ -329,6 +343,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<" surface jump "<<tol_eta<<" m (A 273)";
     if(tol_curv>0.0)
     cout<<" second difference "<<tol_curv<<" m (A 282)";
+    if(nshore>0)
+    cout<<" shoreline within "<<nshore<<" cells (A 284)";
     }
     if(regrid_int>0)
     cout<<", regrid every "<<regrid_int<<" steps (A 271)"<<(par.zones ? ", the zone follows the body" : "");
@@ -492,6 +508,15 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     fdm_nhf *d = c->d;
     pscope ps(pgc,d,d0);
 
+    // A 283: the cells around the patch keep the flags of their source cell through the
+    // wetting and drying of the patch (set by every fill), so that a fine face on the patch box
+    // is open only where the coarse face is
+    if(shore)
+    {
+        c->wfix.assign(pp->imax*pp->jmax,-1);
+        pp->wetfix = c->wfix.data();
+    }
+
     c->pBC = pBCv;
     c->pflow = pflowv;
     // the floating bodies on the patch grid (all calls do nothing without bodies)
@@ -607,6 +632,19 @@ void nhflow_amr::tag(int l, vector<unsigned char> &M)
             return q->flagslice4[n]>0 && q->wet[n]==1 && d->WL(a,b)>wmin;
         };
 
+        // shoreline (A 284): a fluid cell with a cell of the other wet state within nshore cells
+        if(nshore>0 && q->flagslice4[lij(q,ii,jj)]>0)
+        {
+            const int w0 = q->wet[lij(q,ii,jj)];
+            for(int a=-nshore; a<=nshore; ++a)
+            for(int b=-nshore; b<=nshore; ++b)
+            {
+                const int n = lij(q,ii+a,jj+b);
+                if(q->flagslice4[n]>0 && q->wet[n]!=w0)
+                return true;
+            }
+        }
+
         if(!ok(ii,jj))
         return false;
 
@@ -657,13 +695,144 @@ bool nhflow_amr::cell_unfit(int ii, int jj)
     return p0->flagslice4[n]>0 && (p0->wet[n]==0 || d0->WL(ii,jj)<=p0->A545*p0->A544);
 }
 
+// --------------------------------------------------------------------- wetting and drying
+// coarse cell (a,b) of lexer q usable in a stencil: mode 0 fluid, 1 wet, 2 wet and deep
+bool nhflow_amr::wet_at(lexer *q, int a, int b, int mode) const
+{
+    const int n = lij(q,a,b);
+    if(q->flagslice4[n]<=0)
+    return false;
+    if(mode>=1 && q->wet[n]!=1)
+    return false;
+    if(mode>=2 && q->deep[n]!=1)
+    return false;
+    return true;
+}
+
+// a dry cell as nhflow_fsf_f::wetdry leaves it: water level A 544, the surface on the bed, no
+// velocity and no momentum
+void nhflow_amr::dry_cell(lexer *pp, fdm_nhf *d, slice &WL, double *UH, double *VH, double *WH, int ii, int jj)
+{
+    d->eta(ii,jj) = pp->A544 - d->depth(ii,jj);
+    WL(ii,jj) = pp->A544;
+    for(int kk=0; kk<pp->knoz; ++kk)
+    {
+        const int n = cidx(pp,ii,jj,kk);
+        d->U[n] = d->V[n] = d->W[n] = 0.0;
+        UH[n] = VH[n] = WH[n] = 0.0;
+    }
+}
+
+// flags of the interior of a fresh patch from its water level (the threshold of the wetting and
+// drying); the patch's own wetdry then sets deep and applies its rules
+void nhflow_amr::patch_flags(nhflow_amr_patch &c)
+{
+    lexer *pp = c.pp;
+    fdm_nhf *d = c.d;
+    for(int ii=EXT; ii<EXT+c.nx; ++ii)
+    for(int jj=EXT; jj<EXT+c.ny; ++jj)
+    {
+        const int n = lij(pp,ii,jj);
+        if(pp->flagslice4[n]<=0)
+        continue;
+        pp->wet[n] = pp->deep[n] = (d->WL(ii,jj)>pp->A544+1.0e-6) ? 1 : 0;
+    }
+}
+
+// deep as at the end of nhflow_fsf_f::wetdry (no dry cell within 2 cells in x, 3 in y, the
+// diagonal neighbours, and a water level above A 545 A 544), over the computed cells of q
+void nhflow_amr::deep_rule(lexer *q, slice &WL)
+{
+    auto w = [&](int a, int b) { return q->wet[lij(q,a,b)]; };
+
+    for(int ii=0; ii<q->knox; ++ii)
+    for(int jj=0; jj<q->knoy; ++jj)
+    {
+        const int n = lij(q,ii,jj);
+        if(q->flagslice4[n]<=0)
+        continue;
+
+        int dp = q->wet[n];
+        if(w(ii+1,jj)==0 || w(ii+2,jj)==0 || w(ii-1,jj)==0 || w(ii-2,jj)==0)
+        dp = 0;
+        if(q->j_dir==1)
+        {
+            if(w(ii,jj+1)==0 || w(ii,jj+2)==0 || w(ii,jj+3)==0 || w(ii,jj-1)==0 || w(ii,jj-2)==0 || w(ii,jj-3)==0)
+            dp = 0;
+            if(w(ii+1,jj+1)==0 || w(ii+1,jj-1)==0 || w(ii-1,jj+1)==0 || w(ii-1,jj-1)==0)
+            dp = 0;
+        }
+        if(WL(ii,jj)<=q->A545*q->A544)
+        dp = 0;
+        q->deep[n] = dp;
+    }
+}
+
+// wet and deep of the covered coarse cells after the restriction of stage s (s<0: end of the
+// step): wet only if all four children are wet - a coarse cell over the fine shoreline would
+// take a surface WL - depth of the coarse cell above the water (the dry children hold A 544),
+// rewet its coarse neighbours and drive them with that false slope; the fluxes across the patch
+// box come from the fine faces anyway.  Then deep on every grid that holds covered cells, as its
+// own wetdry would set it, so that the coarse rewetting rule, the flux zeroing and the Poisson
+// rows next to a patch see the front of the patch
+void nhflow_amr::restrict_flags(ghostcell *pgc, int s)
+{
+    if(!shore)
+    return;
+
+    for(int l=maxlev; l>=1; --l)
+    for(int id : lev[l])
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        const int nby = c->ny/2;
+        for(int bi=0; bi<c->nx/2; ++bi)
+        for(int bj=0; bj<nby; ++bj)
+        {
+            const int k = bi*nby+bj;
+            const int g = c->rgrid[k];
+            if(g<-1)
+            continue;
+            lexer *q = glex(g);
+            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+            int wt = 1;
+            for(int a=0; a<2; ++a)
+            for(int b=0; b<2; ++b)
+            if(pp->wet[lij(pp,i0+a,j0+b)]!=1)
+            wt = 0;
+            q->wet[lij(q,c->ric[k],c->rjc[k])] = wt;
+        }
+    }
+
+    // patches that hold covered cells (no partition exchange), then level 0 with its halo
+    {
+    comms_off guard(pgc);
+    for(int l=1; l<maxlev; ++l)
+    for(int id : lev[l])
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        slice &WL = (s<0) ? c->d->WL : *stage_out(id,s).WL;
+        pgc->gcsl_start4Vint(pp,pp->wet,50);
+        deep_rule(pp,WL);
+        pgc->gcsl_start4Vint(pp,pp->deep,50);
+    }
+    }
+
+    slice &WL0 = (s<0) ? d0->WL : *stage_out(-1,s).WL;
+    pgc->gcsl_start4Vint(p0,p0->wet,50);
+    deep_rule(p0,WL0);
+    pgc->gcsl_start4Vint(p0,p0->deep,50);
+}
+
 // --------------------------------------------------------------------- interpolation
 // interpolation from coarse cell (ic,jc) to the centre of its child (ox,oy), a quarter coarse
 // cell away in x and y (as fnpf_amr): bicubic where all 16 cells are fluid, otherwise
 // biquadratic on the 3x3 cells, slopes and curvatures switched off next to solids
-void nhflow_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w)
+void nhflow_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w, int mode)
 {
-    auto fl = [&](int a, int b) { return q->flagslice4[lij(q,a,b)]>0; };
+    const int md = shore ? mode : 0;
+    auto fl = [&](int a, int b) { return wet_at(q,a,b,md); };
 
     for(int m=0; m<25; ++m)
     w[m] = 0.0;
@@ -721,10 +890,10 @@ void nhflow_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w)
     }
 }
 
-double nhflow_amr::pq(slice &f, lexer *q, int ic, int jc, int ox, int oy)
+double nhflow_amr::pq(slice &f, lexer *q, int ic, int jc, int ox, int oy, int mode)
 {
     double w[25];
-    pweights(q,ic,jc,ox,oy,w);
+    pweights(q,ic,jc,ox,oy,w,mode);
 
     double r = 0.0;
     for(int di=-2; di<=2; ++di)
@@ -738,10 +907,10 @@ double nhflow_amr::pq(slice &f, lexer *q, int ic, int jc, int ox, int oy)
 }
 
 // layer kk of a cell-layout array (cl true) or node kk of an F-layout array
-double nhflow_amr::pq3(const double *f, lexer *q, int ic, int jc, int ox, int oy, int kk, bool cl)
+double nhflow_amr::pq3(const double *f, lexer *q, int ic, int jc, int ox, int oy, int kk, bool cl, int mode)
 {
     double w[25];
-    pweights(q,ic,jc,ox,oy,w);
+    pweights(q,ic,jc,ox,oy,w,mode);
 
     double r = 0.0;
     for(int di=-2; di<=2; ++di)
@@ -771,7 +940,7 @@ double nhflow_amr::plin(slice &f, lexer *q, int ic, int jc, int ox, int oy)
 // column of a child of coarse cell (ic,jc) of grid g: nodes 0..knf, the sigma nodes of grid g
 // (knf = knoz of g) or, with vertical refinement (knf = 2 knoz of g), the nested nodes: the coarse
 // nodes are the even nodes, the odd nodes linear between them
-void nhflow_amr::pcol(int g, int ic, int jc, int ox, int oy, const double *src, int knf, double *v)
+void nhflow_amr::pcol(int g, int ic, int jc, int ox, int oy, const double *src, int knf, double *v, int mode)
 {
     lexer *q = glex(g);
     const int kc = q->knoz;
@@ -780,7 +949,7 @@ void nhflow_amr::pcol(int g, int ic, int jc, int ox, int oy, const double *src, 
     const int sJ = q->kmaxF;
 
     double w[25];
-    pweights(q,ic,jc,ox,oy,w);
+    pweights(q,ic,jc,ox,oy,w,mode);
 
     const double *s[25];
     double ww[25];
@@ -878,19 +1047,22 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                      }
                      else
                      {
-                         v[0] = pq(d->eta,q,f.si,f.sj,f.ox,f.oy);
+                         // A 283: surface and velocities from wet cells, pressure from wet and
+                         // deep cells; the flags are the parent's (a fine face on the patch box
+                         // carries mass only where the coarse face can)
+                         v[0] = pq(d->eta,q,f.si,f.sj,f.ox,f.oy,1);
                          v[1] = q->wet[lij(q,f.si,f.sj)];
                          v[2] = q->deep[lij(q,f.si,f.sj)];
                          // layer by layer on the coarser grid, then (A 281) into the halves
                          for(int k=0; k<Kc; ++k)
                          {
-                             uc[k] = pq3(d->U,q,f.si,f.sj,f.ox,f.oy,k,true);
-                             uc[Kc+k] = pq3(d->V,q,f.si,f.sj,f.ox,f.oy,k,true);
-                             uc[2*Kc+k] = pq3(d->W,q,f.si,f.sj,f.ox,f.oy,k,true);
+                             uc[k] = pq3(d->U,q,f.si,f.sj,f.ox,f.oy,k,true,1);
+                             uc[Kc+k] = pq3(d->V,q,f.si,f.sj,f.ox,f.oy,k,true,1);
+                             uc[2*Kc+k] = pq3(d->W,q,f.si,f.sj,f.ox,f.oy,k,true,1);
                          }
                          for(int m=0; m<3; ++m)
                          vcell(q,&uc[m*Kc],Kc,K/Kc,&v[3+m*K]);
-                         pcol(f.g,f.si,f.sj,f.ox,f.oy,d->P,K,&v[3+3*K]);
+                         pcol(f.g,f.si,f.sj,f.ox,f.oy,d->P,K,&v[3+3*K],2);
                      }
                      return;
                  }
@@ -925,6 +1097,17 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                  }
                  for(int k=0; k<=K; ++k)
                  d->P[fidx(pp,ii,jj,k)] = w[3+3*K+k];
+
+                 // A 283: the flag of the source cell is kept through the patch's wetdry; a dry
+                 // source cell gives a dry cell on the bed of the patch
+                 if(shore)
+                 c->wfix[lij(pp,ii,jj)] = (int)w[1];
+                 if(shore && w[1]==0.0)
+                 {
+                     dry_cell(pp,d,*S.WL,S.UH,S.VH,S.WH,ii,jj);
+                     if(s<=0)
+                     d->WL(ii,jj) = pp->A544;
+                 }
              });
 
     comms_off guard(pgc);
@@ -1009,16 +1192,16 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
             const int ox = a==0?-1:1, oy = b==0?-1:1;
             const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
 
-            d->eta(ii,jj) = pq(dc->eta,q,ic,jc,ox,oy);
-            d->detadt(ii,jj) = pq(dc->detadt,q,ic,jc,ox,oy);
+            d->eta(ii,jj) = pq(dc->eta,q,ic,jc,ox,oy,1);
+            d->detadt(ii,jj) = pq(dc->detadt,q,ic,jc,ox,oy,1);
             const double wl = MAX(d->eta(ii,jj) + d->depth(ii,jj), pp->A544);
             d->WL(ii,jj) = wl;
 
             for(int kc=0; kc<Kc; ++kc)
             {
-                uc[kc] = pq3(dc->U,q,ic,jc,ox,oy,kc,true);
-                uc[Kc+kc] = pq3(dc->V,q,ic,jc,ox,oy,kc,true);
-                uc[2*Kc+kc] = pq3(dc->W,q,ic,jc,ox,oy,kc,true);
+                uc[kc] = pq3(dc->U,q,ic,jc,ox,oy,kc,true,1);
+                uc[Kc+kc] = pq3(dc->V,q,ic,jc,ox,oy,kc,true,1);
+                uc[2*Kc+kc] = pq3(dc->W,q,ic,jc,ox,oy,kc,true,1);
             }
             for(int m=0; m<3; ++m)
             vcell(q,&uc[m*Kc],Kc,fz,&uf[m*K]);
@@ -1034,7 +1217,7 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
                 d->WH[n] = wl*d->W[n];
             }
 
-            pcol(g,ic,jc,ox,oy,dc->P,K,&v[0]);
+            pcol(g,ic,jc,ox,oy,dc->P,K,&v[0],2);
             for(int kk=0; kk<=K; ++kk)
             d->P[fidx(pp,ii,jj,kk)] = v[kk];
         }
@@ -1049,6 +1232,62 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
         for(int b=0; b<2; ++b)
         wm += 0.25*d->WL(i0+a,j0+b);
         const double dwl = dc->WL(ic,jc) - wm;
+
+        // A 283, well balanced at the shoreline: a dry parent gives dry children on the bed of
+        // the patch; a block where a child falls dry (the interpolated surface, or the shift,
+        // below the bed + A 544) keeps the surface of the wet parent without the shift (eta
+        // flat at rest; the water volume of the block changes by the clipping) and its dry
+        // children lose their momentum
+        if(shore)
+        {
+            const double wdry = pp->A544 + 1.0e-6;
+            bool drych = (q->wet[lij(q,ic,jc)]!=1);
+            for(int a=0; a<2 && !drych; ++a)
+            for(int b=0; b<2 && !drych; ++b)
+            if(d->eta(i0+a,j0+b) + d->depth(i0+a,j0+b)<=wdry || d->WL(i0+a,j0+b) + dwl<=wdry)
+            drych = true;
+
+            if(drych)
+            {
+                const bool pdry = (q->wet[lij(q,ic,jc)]!=1);
+
+                // at t = 0 the shoreline of the patch is set on its own bed with the initial
+                // surface of NHFLOW (the still water level and the F 72 boxes, as nhflow_f::ini
+                // and nhflow_fsf_f::ini on level 0): a fine cell below the water is wet even
+                // where its coarse parent is dry
+                if(p0->count==0)
+                for(int a=0; a<2; ++a)
+                for(int b=0; b<2; ++b)
+                {
+                    const int ii = i0+a, jj = j0+b;
+                    double e = 0.0;
+                    for(int qn=0; qn<p0->F72; ++qn)
+                    if(pp->XP[ii+marge]>=p0->F72_xs[qn] && pp->XP[ii+marge]<p0->F72_xe[qn]
+                    && pp->YP[jj+marge]>=p0->F72_ys[qn] && pp->YP[jj+marge]<p0->F72_ye[qn])
+                    e = p0->F72_h[qn] - p0->F60;
+                    if(pdry || d->eta(ii,jj) + d->depth(ii,jj)<=wdry)
+                    {
+                        d->eta(ii,jj) = e;
+                        d->WL(ii,jj) = MAX(e + d->depth(ii,jj),pp->A544);
+                        for(int kk=0; kk<K; ++kk)
+                        {
+                            const int n = cidx(pp,ii,jj,kk);
+                            d->U[n] = d->V[n] = d->W[n] = 0.0;
+                            d->UH[n] = d->VH[n] = d->WH[n] = 0.0;
+                        }
+                    }
+                }
+
+                for(int a=0; a<2; ++a)
+                for(int b=0; b<2; ++b)
+                if((pdry && p0->count>0) || d->eta(i0+a,j0+b) + d->depth(i0+a,j0+b)<=wdry)
+                {
+                    dry_cell(pp,d,d->WL,d->UH,d->VH,d->WH,i0+a,j0+b);
+                    d->detadt(i0+a,j0+b) = 0.0;
+                }
+                continue;
+            }
+        }
         for(int a=0; a<2; ++a)
         for(int b=0; b<2; ++b)
         {
@@ -1079,9 +1318,10 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
                 d->UH[n] += dc->UH[nc] - um;
                 d->VH[n] += dc->VH[nc] - vm;
                 d->WH[n] += dc->WH[nc] - hm;
-                d->U[n] = d->UH[n]/wl;
-                d->V[n] = d->VH[n]/wl;
-                d->W[n] = d->WH[n]/wl;
+                const double wlvl = wl>pp->A544 ? wl : 1.0e20;
+                d->U[n] = d->UH[n]/wlvl;
+                d->V[n] = d->VH[n]/wlvl;
+                d->W[n] = d->WH[n]/wlvl;
             }
         }
     }
@@ -1368,12 +1608,22 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
             prolong_patch(pgc,*c);
 
-            // where an old patch of the same level was, its state is taken over
+            // A 283: the flags from the prolonged water level
+            if(shore)
+            patch_flags(*c);
+
+            // where an old patch of the same level was, its state is taken over (A 283: with
+            // its flags, which carry the history of the wetting and drying)
             const int K = pp->knoz;
             from_old(*c,oldP,[&](nhflow_amr_patch &o, int ii, int jj, int io, int jo)
             {
                 fdm_nhf *od = o.d;
                 lexer *op = o.pp;
+                if(shore)
+                {
+                    pp->wet[lij(pp,ii,jj)] = op->wet[lij(op,io,jo)];
+                    pp->deep[lij(pp,ii,jj)] = op->deep[lij(op,io,jo)];
+                }
                 d->eta(ii,jj) = od->eta(io,jo);
                 d->WL(ii,jj) = od->WL(io,jo);
                 d->detadt(ii,jj) = od->detadt(io,jo);
@@ -1395,7 +1645,11 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             // nhflow_fsf_ini on level 0 (the interpolated coarse box would overshoot at its edges);
             // level 0 takes their mean in regrid_finish
             if(p0->count==0 && p0->F72>0)
-            ini_boxes(*c);
+            {
+                ini_boxes(*c);
+                if(shore)
+                patch_flags(*c);
+            }
         }
 
         fill_stage(pgc,l,-1);
@@ -1455,7 +1709,10 @@ void nhflow_amr::regrid_finish(ghostcell *pgc, int old_total)
     restrict_momentum(mom0->stages()-1,true);
 
     if(patches_total>0 || old_total>0)
+    {
+    restrict_flags(pgc,-1);
     halo0(pgc,mom0->stages()-1);
+    }
 }
 
 // --------------------------------------------------------------------- flux matching
@@ -1690,6 +1947,7 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         restrict_surface(s);
         restrict_momentum(s,false);
         }
+        restrict_flags(pgc,s);
         halo0(pgc,s);
         tm[3] += MPI_Wtime()-t0;
 

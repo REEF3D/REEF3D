@@ -75,6 +75,8 @@ void control::ini_default()
     A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     A281=0;      // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
     A282=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
+    A283=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
+    A284=0;      // int NHFLOW mesh refinement with A 283 1: flag the cells within this many cells (1-3) of the shoreline (0: off)
 
 
     // FNPF

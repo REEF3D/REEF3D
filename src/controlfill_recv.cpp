@@ -125,6 +125,10 @@ void control::ctrlrecv()
     ii++;
     A282 = dctrl[dd];
     dd++;
+    A283 = ictrl[ii];
+    ii++;
+    A284 = ictrl[ii];
+    ii++;
 
     A309 = ictrl[ii];
     ii++;

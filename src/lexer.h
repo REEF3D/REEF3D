@@ -101,6 +101,7 @@ public:
 	double *topobed,*solidbed,*bed,*depth,*WL;
     int *wet,*wet_n;
     int *deep;
+    int *wetfix = nullptr;          // mesh refinement (NHFLOW A 283): flag a cell keeps through wetdry, -1 none
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
     int cms_flag;
