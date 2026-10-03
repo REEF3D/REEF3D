@@ -70,8 +70,8 @@ void control::ini_default()
     A277=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
     A278=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
     A278_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
-    A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
-    A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
+    A279_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
+    A279_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
     A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
 

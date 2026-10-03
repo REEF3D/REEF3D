@@ -128,6 +128,16 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.zr = p->A278_r;
     q.zalign = true;
 
+    // optional wake wedge (A 279 L a, as SFLOW): the zone is oriented along the direction of
+    // motion (the yaw angle at rest) and a wedge of half angle a reaches back from the bow by L
+    // at most, where the bow has been; without A 279 the rectangle aligned with x and y
+    if(p->A279_L>0.0)
+    {
+    q.zalign = false;
+    q.zL = p->A279_L;
+    q.za = p->A279_a;
+    }
+
     // the zone follows the body: new patches every A 271 steps (A 271 0: static), the layout is
     // kept as long as it covers the flagged tiles with at most 50 % excess (as fnpf_amr)
     if(q.zones)

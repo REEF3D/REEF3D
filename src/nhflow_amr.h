@@ -83,7 +83,8 @@ using namespace std;
 //  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
 //  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
 //  triangle on the finest grid at its centroid (pressure, free surface, shear).  A 278 refines
-//  around the wetted hull (margin A 278, rectangle aligned with x and y); the hull triangles
+//  around the wetted hull (margin A 278, rectangle aligned with x and y; with A 279 L a oriented
+//  along the motion plus a wake wedge of length L and half angle a, as SFLOW); the hull triangles
 //  (X 185) are then sized for the finest level, as on a uniform fine grid.  The zone follows the
 //  body: a regrid every A 271 steps at the end of the step (A 271 0: static), the layout kept
 //  while it covers the flagged tiles with at most 50 % excess, A 280 regrids of hysteresis.  A

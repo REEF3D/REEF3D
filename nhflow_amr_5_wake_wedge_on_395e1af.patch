@@ -1,0 +1,67 @@
+From 0dda578d8e0bbeb856fbb2aa1cc4de652aa3198a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 3 Oct 2026 05:53:04 +0200
+Subject: [PATCH] NHFLOW AMR: optional wake wedge of the body zone (A 279, as
+ SFLOW)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_014HX78HZiTjrxAkgQpNoML1
+---
+ src/ini.cpp        |  4 ++--
+ src/nhflow_amr.cpp | 10 ++++++++++
+ src/nhflow_amr.h   |  3 ++-
+ 3 files changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/src/ini.cpp b/src/ini.cpp
+index 30c3e4c7d..d5abdc8ea 100644
+--- a/src/ini.cpp
++++ b/src/ini.cpp
+@@ -70,8 +70,8 @@ void control::ini_default()
+     A277=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
+     A278=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
+     A278_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
+-    A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
+-    A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
++    A279_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
++    A279_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
+     A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+     A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
+ 
+diff --git a/src/nhflow_amr.cpp b/src/nhflow_amr.cpp
+index 84fc9395d..8b29dbc66 100644
+--- a/src/nhflow_amr.cpp
++++ b/src/nhflow_amr.cpp
+@@ -128,6 +128,16 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
+     q.zr = p->A278_r;
+     q.zalign = true;
+ 
++    // optional wake wedge (A 279 L a, as SFLOW): the zone is oriented along the direction of
++    // motion (the yaw angle at rest) and a wedge of half angle a reaches back from the bow by L
++    // at most, where the bow has been; without A 279 the rectangle aligned with x and y
++    if(p->A279_L>0.0)
++    {
++    q.zalign = false;
++    q.zL = p->A279_L;
++    q.za = p->A279_a;
++    }
++
+     // the zone follows the body: new patches every A 271 steps (A 271 0: static), the layout is
+     // kept as long as it covers the flagged tiles with at most 50 % excess (as fnpf_amr)
+     if(q.zones)
+diff --git a/src/nhflow_amr.h b/src/nhflow_amr.h
+index f3666a644..117c72e51 100644
+--- a/src/nhflow_amr.h
++++ b/src/nhflow_amr.h
+@@ -83,7 +83,8 @@ using namespace std;
+ //  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
+ //  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
+ //  triangle on the finest grid at its centroid (pressure, free surface, shear).  A 278 refines
+-//  around the wetted hull (margin A 278, rectangle aligned with x and y); the hull triangles
++//  around the wetted hull (margin A 278, rectangle aligned with x and y; with A 279 L a oriented
++//  along the motion plus a wake wedge of length L and half angle a, as SFLOW); the hull triangles
+ //  (X 185) are then sized for the finest level, as on a uniform fine grid.  The zone follows the
+ //  body: a regrid every A 271 steps at the end of the step (A 271 0: static), the layout kept
+ //  while it covers the flagged tiles with at most 50 % excess, A 280 regrids of hysteresis.  A
+-- 
+2.43.0
+
