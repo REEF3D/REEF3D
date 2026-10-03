@@ -127,12 +127,12 @@ void sflow_turb_ke_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    //if(wallf(i,j)==0)
+    // dissipation implicit as (eps/k)*k, keeps k positive (as in kepsilon_func::kinsource)
+    b->M.p[count] += MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20));
+    
 	b->rhsvec.V[count]  += Pk(i,j)
 
-                        + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP
-
-                        - MAX(eps(i,j),0.0);
+                        + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP;
 	++count;
     }
 }
@@ -199,9 +199,9 @@ void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     //if(b->wet2(i,j)==0 && b->wet2(i,j-1))
     vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
 
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
 
-    cf(i,j) = pow(manning,2.0)*9.81/pow(HP,1.0/3.0);
+    cf(i,j) = pow(manning,2.0)*fabs(p->W22)/pow(HP,1.0/3.0);
 
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }

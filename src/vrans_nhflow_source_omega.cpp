@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-// k-omega, omega-equation: + n beta omega_inf^2,  omega_inf = eps_inf/(cmu k_inf)
+// k-omega, omega-equation: + beta omega_inf^2 (no factor n: with the k-source n eps_inf this gives k = n k_inf, omega = omega_inf, same as k-eps),  omega_inf = eps_inf/(cmu k_inf)
 // (balances the beta omega^2 sink at omega = omega_inf)
 void vrans_nhflow_f::omega_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS, double beta)
 {
@@ -45,7 +45,7 @@ void vrans_nhflow_f::omega_source(lexer *p, fdm_nhf *d, double *KIN, double *EPS
         {
         winf = einf/(p->cmu*kinf);
         
-        d->rhsvec.V[count] += porval*beta*winf*winf;
+        d->rhsvec.V[count] += beta*winf*winf;
         }
         }
         

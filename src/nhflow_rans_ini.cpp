@@ -99,7 +99,7 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
 void nhflow_rans_io::tau_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
 	ks=p->B50;	
-	H=beddist;
+	H=(d->WL(i,j)>1.0e-6?d->WL(i,j):1.0e-6);   // flow depth (hydraulic radius), not the cell's distance to the bed
     
 	M=26.0/pow((ks),(1.0/6.0));
 	I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
@@ -148,6 +148,10 @@ void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
     d->EV[Im1JK] = evval;
     d->EV[Im2JK] = evval;
     d->EV[Im3JK] = evval;
+    
+    d->EV0[Im1JK] = evval;   // start24V keeps inflow ghosts (B60 1), so EV0 needs the profile as well
+    d->EV0[Im2JK] = evval;
+    d->EV0[Im3JK] = evval;
     
     KIN[Im1JK] = kinval;
     KIN[Im2JK] = kinval;

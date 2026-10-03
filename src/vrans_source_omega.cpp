@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-// k-omega, omega-equation: + n beta omega_inf^2,  omega_inf = eps_inf/(cmu k_inf)
+// k-omega, omega-equation: + beta omega_inf^2 (no factor n: with the k-source n eps_inf this gives k = n k_inf, omega = omega_inf, same as k-eps),  omega_inf = eps_inf/(cmu k_inf)
 // (balances the beta omega^2 sink at omega = omega_inf; beta = 3/40 as in komega)
 void vrans_f::omega_source(lexer *p, fdm *a, field &kin, field &eps)
 {
@@ -55,7 +55,7 @@ void vrans_f::omega_source(lexer *p, fdm *a, field &kin, field &eps)
         {
         winf = einf/(p->cmu*kinf);
         
-        a->rhsvec.V[count] += por*kw_beta*winf*winf;
+        a->rhsvec.V[count] += kw_beta*winf*winf;
         }
     }
     ++count;

@@ -177,9 +177,9 @@ void sflow_turb_kw_IM1_v1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
     vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
     
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
     
-    cf(i,j) = pow(manning,2.0)*9.81/pow(HP,1.0/3.0);
+    cf(i,j) = pow(manning,2.0)*fabs(p->W22)/pow(HP,1.0/3.0);
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }

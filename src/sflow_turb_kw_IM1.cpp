@@ -147,7 +147,9 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
 
     b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
-                       + (3.456/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.0)) * (pow(ustar(i,j),4.0)/(HP*HP));
+                       // depth-averaged bed source P_wv = beta*omega_eq^2 = ceg^2*beta/(cmu*sqrt(cf)) * u*^2/h^2,
+                       // from the Rastogi-Rodi equilibrium (ceg = A264, as in sflow_turb_ke_IM1) with omega = eps/(cmu k)
+                       + (pow(p->A264,2.0)*kw_beta/(p->cmu*sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))) * (pow(ustar(i,j),2.0)/(HP*HP));
                        
                        //+ (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
     ++count;
@@ -188,9 +190,9 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
     vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
     
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
     
-    cf(i,j) = pow(manning,2.0)*9.81/pow(HP,1.0/3.0);
+    cf(i,j) = pow(manning,2.0)*fabs(p->W22)/pow(HP,1.0/3.0);
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
