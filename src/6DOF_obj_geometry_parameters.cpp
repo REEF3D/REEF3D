@@ -438,14 +438,14 @@ void sixdof_obj_2D::geometry_parameters_2D(lexer *p, ghostcell *pgc)
 			z2 = tri_z[n][2];  
             
             
-            xmin = MIN3(x0,x1,x2);
-            xmax = MAX3(x0,x1,x2);
+            xmin = MIN(xmin,MIN3(x0,x1,x2));   // bounding box of all triangles
+            xmax = MAX(xmax,MAX3(x0,x1,x2));
             
-            ymin = MIN3(y0,y1,y2);
-            ymax = MAX3(y0,y1,y2);
+            ymin = MIN(ymin,MIN3(y0,y1,y2));
+            ymax = MAX(ymax,MAX3(y0,y1,y2));
             
-            zmin = MIN3(z0,z1,z2);
-            zmax = MAX3(z0,z1,z2);
+            zmin = MIN(zmin,MIN3(z0,z1,z2));
+            zmax = MAX(zmax,MAX3(z0,z1,z2));
 		}
         
         if(p->X23!=1)
