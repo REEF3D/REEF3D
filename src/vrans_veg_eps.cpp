@@ -44,7 +44,7 @@ void vrans_veg::eps_source(lexer *p, fdm *a, field &kin, field &eps)
         
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
         
-        ew = Cep*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*eps(i,j,k));
+        ew = Cep*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*MAX(eps(i,j,k),0.0));
 
         a->rhsvec.V[count] += ew;
     

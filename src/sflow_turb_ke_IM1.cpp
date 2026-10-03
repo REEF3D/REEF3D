@@ -107,7 +107,7 @@ void sflow_turb_ke_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = p->cmu*MAX(MIN(MAX(kin(i,j)*kin(i,j)
-                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->A263*kin(i,j))/S(i,j)),
+                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->A263*kin(i,j))/(S(i,j)>1.0e-20?S(i,j):1.0e-20)),
                         0.0001*p->W2);
                         
                         
@@ -154,6 +154,7 @@ void sflow_turb_ke_IM1::eps_source(lexer* p, fdm2D *b)
 void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     double dudx,dvdy,dudy,dvdx;
+    double uc,up,um,vc,vp,vm;
 
     SLICELOOP4
     {
@@ -163,23 +164,19 @@ void sflow_turb_ke_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
     
     
-    dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
+    // cross derivatives: walls (free-slip in SFLOW momentum), open boundaries and dry neighbours
+    // are treated as zero-gradient (mirror) instead of no-slip; no y-derivatives in 1D
+    uc = 0.5*(b->P(i,j)+b->P(i-1,j));
+    up = (p->flagslice4[IJp1]<0 || p->wet[IJp1]==0) ? uc : 0.5*(b->P(i,j+1)+b->P(i-1,j+1));
+    um = (p->flagslice4[IJm1]<0 || p->wet[IJm1]==0) ? uc : 0.5*(b->P(i,j-1)+b->P(i-1,j-1));
+    dudy = (up - um)/(2.0*p->DXM)*p->y_dir;
     
-    if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
-    dudy = (0.0 - (b->P(i,j)+b->P(i-1,j)))/(p->DXM);
+    vc = 0.5*(b->Q(i,j)+b->Q(i,j-1));
+    vp = (p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0) ? vc : 0.5*(b->Q(i+1,j)+b->Q(i+1,j-1));
+    vm = (p->flagslice4[Im1J]<0 || p->wet[Im1J]==0) ? vc : 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1));
+    dvdx = (vp - vm)/(2.0*p->DXM)*p->y_dir;
     
-    if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
-    dudy = ((b->P(i,j)+b->P(i-1,j)) - 0.0)/(p->DXM);
-    
-    
-    dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
-    
-    if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
-    dvdx = (0.0 - (b->Q(i,j)+b->Q(i,j-1)))/(p->DXM);
-    
-    if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
-    dvdx = ((b->Q(i,j)+b->Q(i,j-1)) - 0.0)/(p->DXM);
-    
+    dvdy *= p->y_dir;
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
 

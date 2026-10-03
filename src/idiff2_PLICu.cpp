@@ -100,7 +100,7 @@ void idiff2_PLIC::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
         H_ddz_m=(a->vof_nbw(i,j,k)+a->vof_nbe(i,j,k)+a->vof_sbw(i+1,j,k)+a->vof_sbe(i+1,j,k)+a->vof_ntw(i,j,k-1)+a->vof_nte(i,j,k-1)+a->vof_stw(i+1,j,k-1)+a->vof_ste(i+1,j,k-1))*0.125;
         
         visc_ddy_p=H_ddy_p*p->W2+(1.0-H_ddy_p)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_jp_k+ev_ip_jp_k)*0.25;
-        visc_ddy_m=H_ddy_m*p->W2+(1.0-H_ddy_p)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_jm_k+ev_ip_jm_k)*0.25;
+        visc_ddy_m=H_ddy_m*p->W2+(1.0-H_ddy_m)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_jm_k+ev_ip_jm_k)*0.25;
         
         visc_ddz_p=H_ddz_p*p->W2+(1.0-H_ddz_p)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_kp+ev_ip_j_kp)*0.25;
         visc_ddz_m=H_ddz_m*p->W2+(1.0-H_ddz_m)*p->W4+(ev_ijk+ev_ip_j_k+ev_i_j_km+ev_ip_j_km)*0.25;

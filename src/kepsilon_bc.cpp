@@ -198,6 +198,10 @@ void kepsilon_bc::wall_law_eps(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 	eps_star = (pow(p->cmu, 0.75)*pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),1.5)) / (0.4*dist);
 
 	eps(i,j,k) = eps_star;
+    
+    // impose the wall value in the implicit system (penalty), as in komega_bc::wall_law_omega
+    a->M.p[id] += 1.0e20;
+    a->rhsvec.V[id] += eps_star*1.0e20;
 }
 
 

@@ -49,10 +49,11 @@ void nhflow_scalar_advec_CDS2::vadvec(int ipol, double *V, double &vflux1, doubl
 	vflux1 = 0.5*(V[IJK]+V[IJm1K]);
 	vflux2 = 0.5*(V[IJK]+V[IJp1K]);
     
-    if(j==0 || p->DF[IJm1K]<0)
+    // global (not local) domain boundaries, otherwise the flux is blocked at every MPI interface in y
+    if(j+p->origin_j==0 || p->DF[IJm1K]<0)
     vflux1=0.0;
     
-    if(j==p->knoy-1 || p->DF[IJp1K]<0)
+    if(j+p->origin_j==p->gknoy-1 || p->DF[IJp1K]<0)
     vflux2=0.0;
 }
 

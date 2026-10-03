@@ -101,7 +101,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 
 			
 		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
 		}
 		
@@ -124,7 +124,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     if(p->T34==1)
     eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
-                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
     }
     
@@ -155,13 +155,16 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 		i=p->gcin[n][0]+q;
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
+        
+        if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
+        continue;
 
 		if(a->phi(i,j,k)<0.0)
 		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
         
         if(a->phi(i,j,k)>=0.0)
 		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
 		}
     }
@@ -189,7 +192,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         
         if(dirac>0.0)
         {
-        sgs_val = pow(c_sgs,2.0)*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0)
+        sgs_val = pow(c_sgs,2.0)*(p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP])
                  *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
                  
         dirac=MIN(dirac,1.0);

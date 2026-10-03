@@ -192,7 +192,15 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
         {
 		d->M.p[count] += kw_beta * MAX(EPS[IJK],0.0);
 
-        d->rhsvec.V[count] +=  kw_alpha * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*PK0[IJK];
+        // alpha omega/k P(nu_t0) = alpha S^2 for nu_t0 = k/omega; bounded by alpha S^2 where the
+        // 1e-4 nu floor makes nu_t0 > k/omega (same treatment as CFD komega_func::epssource)
+        const double ratio = MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
+
+        if(ratio*d->EV0[IJK]<=1.0 || d->EV0[IJK]<=1.0e-20)
+        d->rhsvec.V[count] +=  kw_alpha * ratio * PK0[IJK];
+        
+        else
+        d->rhsvec.V[count] +=  kw_alpha * PK0[IJK]/d->EV0[IJK];
         ++count;
         }
 

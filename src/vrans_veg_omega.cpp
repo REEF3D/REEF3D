@@ -44,7 +44,7 @@ void vrans_veg::omega_source(lexer *p, fdm *a, field &kin, field &eps)
         
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
         
-        ww = Cep*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*eps(i,j,k)*kin(i,j,k)*p->cmu);
+        ww = Cep*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*MAX(eps(i,j,k),0.0)*MAX(kin(i,j,k),0.0)*p->cmu);
 
         a->rhsvec.V[count] += ww;
     

@@ -64,7 +64,7 @@ void LES_smagorinsky::start(fdm* a, lexer* p, convection* pconvec, diffusion* pd
 	
     
     LOOP
-    a->eddyv(i,j,k) = pow(c_sgs,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0) * strainterm(p,uprime,vprime,wprime);
+    a->eddyv(i,j,k) = pow(c_sgs,2.0) * (p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP]) * strainterm(p,uprime,vprime,wprime);
 
 //		a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,uprime,vprime,wprime);
 //    a->eddyv(i,j,k) = pow(p->DXM*c_sgs,2.0) * sqrt(2.0) * strainterm(p,a);

@@ -38,7 +38,7 @@ sflow_turb_parabolic::~sflow_turb_parabolic()
 void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convection *pconvec, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
 {
     double dudx,dvdy,dudy,dvdx;
-    double alpha_t,Ustar;
+    double alpha_t,Ustar,uvel,vvel;
     double manning,cf;
     
     alpha_t = p->A262;
@@ -49,9 +49,15 @@ void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_conve
     
     cf = pow(manning,2.0)*9.81/pow(HPIJ,1.0/3.0);
     
-    Ustar = sqrt(cf*(b->P(i,j)*b->P(i,j) + b->Q(i,j)*b->Q(i,j)));
+    uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
+    vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
+    
+    Ustar = sqrt(cf*(uvel*uvel + vvel*vvel));
     
     b->eddyv(i,j) = alpha_t*Ustar*b->hp(i,j);
+    
+    if(p->wet[IJ]==0)
+    b->eddyv(i,j) = 0.0;
     }
     
     pgc->gcsl_start4(p,b->eddyv,24);

@@ -109,6 +109,9 @@ void nhflow_komega_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double *E
                 ks = p->S20*p->S21;
 
                 u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+                
+                if(ks<=0.0)
+                ks=0.0001;   // same clamp as CFD roughness::ks_val, avoids log(inf)*0 = NaN
 
                 if(30.0*dist<ks)
                 dist=ks/30.0;

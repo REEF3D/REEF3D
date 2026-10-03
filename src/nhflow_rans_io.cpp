@@ -283,7 +283,7 @@ void nhflow_rans_io::name_pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &r
     
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
-	if(p->A560==1)
+	if(p->A560==1 || p->A560==21)
 	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
 	if(p->A560==2 || p->A560==22)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
@@ -295,7 +295,7 @@ void nhflow_rans_io::name_vtp(lexer *p, fdm_nhf *d, ghostcell *pgc, ofstream &re
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	if(p->A560==1)
+	if(p->A560==1 || p->A560==21)
 	result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	if(p->A560==2 || p->A560==22)
     result<<"<DataArray type=\"Float32\" Name=\"omega\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -318,7 +318,7 @@ void nhflow_rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
     
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
-	if(p->A560==1)
+	if(p->A560==1 || p->A560==21)
 	result<<"<PDataArray type=\"Float32\" Name=\"epsilon\"/>\n";
 	if(p->A560==2 || p->A560==22)
     result<<"<PDataArray type=\"Float32\" Name=\"omega\"/>\n";
@@ -330,7 +330,7 @@ void nhflow_rans_io::name_ParaView(lexer *p, stringstream &result, int *offset, 
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
-	if(p->A560==1)
+	if(p->A560==1 || p->A560==21)
 	result<<"<DataArray type=\"Float32\" Name=\"epsilon\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
 	if(p->A560==2 || p->A560==22)
     result<<"<DataArray type=\"Float32\" Name=\"omega\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";

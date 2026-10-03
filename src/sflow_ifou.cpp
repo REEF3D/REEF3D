@@ -54,9 +54,10 @@ void sflow_ifou::start(lexer* p, fdm2D* b, slice& f, int ipol, slice& uvel, slic
 void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
 {
     udir=vdir=0.0;
+    ul=ur=vl=vr=0.0;
     
-    pflux->u_flux(ipol,uvel,iadvec,ivel2);
-    pflux->v_flux(ipol,vvel,jadvec,jvel2);
+    pflux->u_flux(ipol,uvel,ivel1,ivel2);
+    pflux->v_flux(ipol,vvel,jvel1,jvel2);
 
 
 	// X-dir

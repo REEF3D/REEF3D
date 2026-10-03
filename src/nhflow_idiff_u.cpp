@@ -115,7 +115,7 @@ void nhflow_idiff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             
             
             d->rhsvec.V[n] = visc_IP*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYN[JP]+p->DYN[JM1]))*p->y_dir
-                           + visc_IP*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                           + visc_IP*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->sigz[IJ]
 
 
 						 + (CPORNH*UHin[IJK])/(alpha*p->dt)

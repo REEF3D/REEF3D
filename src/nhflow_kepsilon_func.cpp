@@ -193,7 +193,16 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
         {
 		d->M.p[count] += ke_c_2e * MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
 
-        d->rhsvec.V[count] +=  ke_c_1e * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*PK0[IJK];
+        // c1 eps/k P(nu_t0) = c1 cmu k S^2 for nu_t0 = cmu k^2/eps; bounded by that value where the
+        // 1e-4 nu floor makes nu_t0 > cmu k^2/eps, otherwise eps/k * nu_floor blows up for k -> 0
+        const double ratio = MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
+        const double kpos  = MAX(KIN[IJK],0.0);
+
+        if(ratio*d->EV0[IJK]<=p->cmu*kpos || d->EV0[IJK]<=1.0e-20)
+        d->rhsvec.V[count] +=  ke_c_1e * ratio * PK0[IJK];
+        
+        else
+        d->rhsvec.V[count] +=  ke_c_1e * p->cmu*kpos * PK0[IJK]/d->EV0[IJK];
         
         ++count;
         }

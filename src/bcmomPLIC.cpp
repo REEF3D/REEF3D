@@ -39,6 +39,7 @@ void bcmom::bcmomPLIC_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb, 
 		wall_law_u(a,p,pturb,b,p->gcb1[q][0], p->gcb1[q][1], p->gcb1[q][2], p->gcb1[q][3], p->gcb1[q][4], p->gcd1[q]);
         
         QGCDF1LOOP
+        if(p->gcdf1[q][3]!=1 && p->gcdf1[q][3]!=4)   // tangential faces only, as in the gcb1 loop above
 		wall_law_u(a,p,pturb,b,p->gcdf1[q][0], p->gcdf1[q][1], p->gcdf1[q][2], p->gcdf1[q][3], p->gcdf1[q][4],  0.5*p->DXM);
 	}
 
@@ -49,6 +50,7 @@ void bcmom::bcmomPLIC_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb, 
 		wall_law_v(a,p,pturb,b,p->gcb2[q][0], p->gcb2[q][1], p->gcb2[q][2], p->gcb2[q][3], p->gcb2[q][4], p->gcd2[q]);
         
         QGCDF2LOOP
+        if(p->gcdf2[q][3]!=2 && p->gcdf2[q][3]!=3)   // tangential faces only, as in the gcb2 loop above
 		wall_law_v(a,p,pturb,b,p->gcdf2[q][0], p->gcdf2[q][1], p->gcdf2[q][2], p->gcdf2[q][3], p->gcdf2[q][4],  0.5*p->DXM);
 	}
 
@@ -59,6 +61,7 @@ void bcmom::bcmomPLIC_start(fdm* a, lexer* p,ghostcell *pgc, turbulence *pturb, 
 		wall_law_w(a,p,pturb,b,p->gcb3[q][0], p->gcb3[q][1], p->gcb3[q][2], p->gcb3[q][3], p->gcb3[q][4], p->gcd3[q]);
         
         QGCDF3LOOP
+        if(p->gcdf3[q][3]!=5 && p->gcdf3[q][3]!=6)   // tangential faces only, as in the gcb3 loop above
 		wall_law_w(a,p,pturb,b,p->gcdf3[q][0], p->gcdf3[q][1], p->gcdf3[q][2], p->gcdf3[q][3], p->gcdf3[q][4],  0.5*p->DXM);
 
 	}

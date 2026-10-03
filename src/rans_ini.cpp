@@ -32,6 +32,8 @@ void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 	gcval_eps=30;
 	gcval_edv=24;
 	
+	uref=0.0;
+	
 	if(p->B60>=1)
 	uref=p->Ui;
 	
@@ -91,7 +93,7 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 	eps(i,j,k)=(0.09*kin(i,j,k)*kin(i,j,k))/(a->eddyv(i,j,k)+1.0e-20);
 
 	if(p->T10==2 || p->T10==12 || p->T10==22)
-	eps(i,j,k)=(kin(i,j,k))/(a->eddyv(i,j,k));
+	eps(i,j,k)=(kin(i,j,k))/(a->eddyv(i,j,k)+1.0e-20);
 
 	if(p->T10==3 || p->T10==13)
 	eps(i,j,k)=(kin(i,j,k))/(a->eddyv(i,j,k));
@@ -106,13 +108,13 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 
         kin(i,j,k)=kinbed;
 
-        if(p->T10==1 || p->T10==11)
+        if(p->T10==1 || p->T10==11 || p->T10==21)
         {
         eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->DXM);
         a->eddyv(i,j,k) = p->cmu*kin(i,j,k)*kin(i,j,k)/eps(i,j,k);
         }
 
-        if(p->T10==2 || p->T10==12)
+        if(p->T10==2 || p->T10==12 || p->T10==22)
         {
         eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);

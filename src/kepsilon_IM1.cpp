@@ -66,9 +66,9 @@ void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->eddyv,ke_sigma_e,1.0);
 	epssource(p,a,pvrans);
 	timesource(p,a,en);
+	bckeps_start(a,p,kin,eps,gcval_eps);   // wall-function epsilon and ghost elimination must act on M/rhs before the solve
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
 	epsfsf(p,a,pgc);
-	bckeps_start(a,p,kin,eps,gcval_eps);
 	pgc->start4(p,eps,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

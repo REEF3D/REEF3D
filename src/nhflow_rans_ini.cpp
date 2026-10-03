@@ -68,10 +68,10 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     EPS[IJK] = 1.0;
     
     if(p->B11>0 && (p->A560==1 || p->A560==21))
-    EPS[IJK] = p->cmu*KIN[IJK]*KIN[IJK]/d->EV[IJK];
+    EPS[IJK] = p->cmu*KIN[IJK]*KIN[IJK]/(d->EV[IJK]>1.0e-20?d->EV[IJK]:1.0e20);
     
     if(p->B11>0 && (p->A560==2 || p->A560==22))
-    EPS[IJK] = KIN[IJK]/d->EV[IJK];
+    EPS[IJK] = KIN[IJK]/(d->EV[IJK]>1.0e-20?d->EV[IJK]:1.0e20);
     }
     
     // inflow
@@ -81,6 +81,12 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     pgc->start20V(p,KIN,20);
     pgc->start30V(p,EPS,30);
     pgc->start24V(p,d->EV,24);
+    
+    // EV0 (unlimited eddy viscosity) is used for k/eps/omega diffusion and PK0: initialise it consistently
+    LOOP
+    d->EV0[IJK] = d->EV[IJK];
+    
+    pgc->start24V(p,d->EV0,24);
     
     LOOP
     if(p->DF[IJK]<0)

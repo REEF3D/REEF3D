@@ -80,7 +80,7 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 	
 	LOOP
     a->eddyv(i,j,k) = MAX(MIN(p->cmu*MAX(kin(i,j,k)*kin(i,j,k)
-					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+					  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 					  0.0001*a->visc(i,j,k));
 
 	

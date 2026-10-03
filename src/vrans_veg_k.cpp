@@ -44,7 +44,7 @@ void vrans_veg::kw_source(lexer *p, fdm *a, field &kin)
         
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
         
-        kw = Ckp*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*kin(i,j,k));
+        kw = Ckp*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*MAX(kin(i,j,k),0.0));
 
         a->rhsvec.V[count] += kw;
     
@@ -72,7 +72,7 @@ void vrans_veg::ke_source(lexer *p, fdm *a, field &kin)
         
         uu = uvel*uvel + vvel*vvel + wvel*wvel;
         
-        kw = Ckp*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*kin(i,j,k));
+        kw = Ckp*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*MAX(kin(i,j,k),0.0));
 
         a->rhsvec.V[count] += kw;
     

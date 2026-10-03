@@ -102,7 +102,7 @@ void sflow_turb_kw_IM1_v1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = MAX(MIN(MAX(kin(i,j)
-                        /pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5),0.0),fabs(p->T31*kin(i,j))/(S(i,j)>1.0e-20?S(i,j):1.0e-20)),
                         0.0001*p->W2);
 
 	pgc->gcsl_start4(p,b->eddyv,24);
@@ -114,7 +114,7 @@ void sflow_turb_kw_IM1_v1::kin_source(lexer* p, fdm2D *b)
     SLICELOOP4
     {
     if(wallf(i,j)==0)
-    b->M.p[count] += p->cmu / pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5);
+    b->M.p[count] += p->cmu * sqrt(MAX(eps(i,j),0.0)); // beta* omega, with omega = sqrt(W)
     
     if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
@@ -299,7 +299,7 @@ void sflow_turb_kw_IM1_v1::wall_law_omega(lexer* p, fdm2D *b)
     
     SLICELOOP4
     if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
-    eps(i,j) = (kin(i,j)>(0.0)?(kin(i,j)):(0.0)) / (0.4*0.4*dist*dist*pow(p->cmu, 0.25));
+    eps(i,j) = (kin(i,j)>(0.0)?(kin(i,j)):(0.0)) / (0.4*0.4*dist*dist*pow(p->cmu, 0.5)); // W = omega^2 = k/(kappa^2 y^2 sqrt(cmu))
     
     
     n=0;

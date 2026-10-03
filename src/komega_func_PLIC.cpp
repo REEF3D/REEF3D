@@ -98,7 +98,7 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         if(p->T34==1)
 		LOOP
 		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
 		
     
@@ -120,7 +120,7 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     if(p->T34==1)
     eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
-                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
     }
     
@@ -131,8 +131,16 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     
     if(p->T41==1)
     LOOP
+    {
+    double Sij2_val = Sij2(p,a); 
+    
+    if(Sij2_val>1.0e-20)
 	a->eddyv(i,j,k) = MIN(eddyv0(i,j,k), MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0)
-                                         *(p->cmu*kw_alpha*Qij2(p,a))/(p->T42*kw_beta*Sij2(p,a)));
+                                         *(p->cmu*kw_alpha*Qij2(p,a))/(p->T42*kw_beta*Sij2_val));
+                                         
+    else
+    a->eddyv(i,j,k) = eddyv0(i,j,k);
+    }
 	
     
     if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
@@ -143,13 +151,16 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 		i=p->gcin[n][0]+q;
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
+        
+        if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
+        continue;
 
 		if(a->phi(i,j,k)<0.0)
 		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
         
         if(a->phi(i,j,k)>=0.0)
 		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
 		}
     }
@@ -177,7 +188,7 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         
         if(dirac>0.0)
         {
-        sgs_val = pow(c_sgs,2.0)*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0)
+        sgs_val = pow(c_sgs,2.0)*(p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP])
                  *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
                  
         dirac=MIN(dirac,1.0);
@@ -231,7 +242,15 @@ void komega_func_PLIC::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,eddyv0);
+        // alpha omega/k P(nu_t0), bounded by alpha S^2 where the 1e-4 nu floor is active (as in komega_func)
+        const double ratio = MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+        const double pk0 = pk(p,a,eddyv0);
+
+        if(ratio*eddyv0(i,j,k)<=1.0)
+        a->rhsvec.V[count] +=  kw_alpha * ratio * pk0;
+
+        if(ratio*eddyv0(i,j,k)>1.0)
+        a->rhsvec.V[count] +=  kw_alpha * pk0/eddyv0(i,j,k);
         ++count;
         }
 

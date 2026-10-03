@@ -59,7 +59,7 @@ void control::ini_default()
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
     A263=10.0;   // double eddyv limiter factor set to high
-    A263=2.7;   // double epsisolon coefficient ce_gamma
+    A264=2.7;    // double epsilon coefficient ce_gamma
     A270=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
     A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with A 278, NHFLOW: with A 278, A 273 or A 282)
     A272=2;      // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells

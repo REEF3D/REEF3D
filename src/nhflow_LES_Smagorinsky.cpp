@@ -41,23 +41,27 @@ nhflow_LES_Smagorinsky::~nhflow_LES_Smagorinsky()
 
 void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans_nhflow *pvrans)
 {
+    double delta2;
+    
 	LOOP
-    d->EV[IJK] = pow(c_sgs,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j),2.0/3.0) * strainterm(p,d);
-    
-    
-    double s11,s22,s33,s12,s13,s23;
-    
-    LOOP
     {
-        s11 = dudx(d->U);
-        s22 = dvdy(d->V);
-        s33 = dwdz(d->W);
-        s12 = (dudy(d->U) + dvdx(d->V));
-        s13 = (dudz(d->U) + dwdx(d->W));
-        s23 = (dvdz(d->V) + dwdy(d->W));
+    // filter width squared: (dx dy dz)^(2/3) in 3D, dx dz in 2D (the 2D slab width DYN is arbitrary)
+    if(p->j_dir==1)
+    delta2 = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j),2.0/3.0);
+    
+    if(p->j_dir==0)
+    delta2 = p->DXN[IP]*p->DZN[KP]*d->WL(i,j);
+    
+    d->EV[IJK] = pow(c_sgs,2.0) * delta2 * strainterm(p,d);
+    
+    if(p->wet[IJ]==0 || p->DF[IJK]<0)
+    d->EV[IJK] = 0.0;
+    
+    d->EV0[IJK] = d->EV[IJK];
     }
 
     pgc->start24V(p,d->EV,24);
+    pgc->start24V(p,d->EV0,24);
 }
 
 void nhflow_LES_Smagorinsky::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)

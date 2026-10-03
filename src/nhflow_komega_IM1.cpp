@@ -89,6 +89,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     pflow->turb_relax_nhflow(p,d,pgc,KIN);
     pflow->turb_relax_nhflow(p,d,pgc,d->EV);
     pgc->start24V(p,d->EV,24);
+    pgc->start24V(p,d->EV0,24);
 }
 
 void nhflow_komega_IM1::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
