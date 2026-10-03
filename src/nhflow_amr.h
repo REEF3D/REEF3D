@@ -57,7 +57,8 @@ using namespace std;
 //  hierarchy, patch lexers, fill and exchange plans, restriction map, flux matching registry).
 //
 //  Level 0 is the native NHFLOW grid.  A refined patch refines x and y by 2 per level, with the
-//  same sigma layers.  Each patch has its own lexer (horizontal geometry from the core, 3D flags
+//  same sigma layers, or with A 281 1 the sigma layers of its parent halved (nested: the coarse
+//  nodes are nodes of the fine grid).  Each patch has its own lexer (horizontal geometry from the core, 3D flags
 //  and the sigma arrays built here), its own fdm_nhf and its own instances of the NHFLOW classes
 //  (momentum RK2/RK3, reconstruction, HLL/HLLC, free surface, pressure), so the kernels run
 //  unchanged on every grid.
@@ -66,12 +67,16 @@ using namespace std;
 //  Per RK stage:
 //   - the cells around the patches are filled with the stage input (coarse to fine): a patch of
 //     the same level, or interpolated from the next coarser level (bicubic in x,y, layer by
-//     layer; eta, U, V, W and P, then WL = eta + depth of the patch and UH = WL U ...)
+//     layer; eta, U, V, W and P, then WL = eta + depth of the patch and UH = WL U ...; with
+//     A 281 U, V, W linear in sigma within each coarse layer, minmod-limited slope, mean
+//     preserving, and P at the midpoints between the coarse nodes linear)
 //   - continuity and momentum part of the stage (phase_F, phase_M), finest patches first: the
 //     flux hook of a patch records the face fluxes on its box faces (FEx/FEy, Fx/Fy of UH, VH,
 //     WH, per sigma layer, and dfx/dfy), a coarse face next to a finer patch takes the mean of
-//     its two fine faces -> mass and momentum conserved across the interfaces
-//   - restriction of WL, eta, UH, VH, WH to the covered coarse cells (2x2 averages per layer)
+//     its two fine faces (A 281: and of both fine layers) -> mass and momentum conserved across
+//     the interfaces
+//   - restriction of WL, eta, UH, VH, WH to the covered coarse cells (2x2 averages per layer,
+//     A 281: 2x2x2)
 //   - pressure projection on all grids together: the Poisson rows of every grid (nhflow_poisson,
 //     assembled per grid), the unknowns are the leaf nodes; BiCGStab with a FAC preconditioner
 //     (REEFMG V-cycle on level 0, patch-local reefmg_core), as the composite Laplace of FNPF AMR
@@ -93,7 +98,7 @@ using namespace std;
 //  layer by layer, the momentum of its coarse cell).
 //
 //  Scope of this version: static refinement boxes and the body zone (A 270 levels, A 276 boxes,
-//  A 277 boxes without refinement, A 275 tile width, A 278, A 271, A 280), A 510 2/3, A 511 1/2, A 514
+//  A 277 boxes without refinement, A 275 tile width, A 278, A 279, A 271, A 280, A 281), A 510 2/3, A 511 1/2, A 514
 //  all, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3),
 //  S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches
 //  stay out of the relaxation zones (B 96), the in- and outflow band and dry or shallow cells (they
@@ -119,7 +124,8 @@ struct nhflow_amr_patch : public reefamr_patch
     nhflow_stage_obj S;
 
     // box faces recorded by the flux hook: rec[ipol][side][r*knoz+k], r fine face index along the
-    // side, k layer; side 0 low x, 1 high x, 2 low y, 3 high y; ipol 0: dfx/dfy (r only)
+    // side, k layer of the patch; side 0 low x, 1 high x, 2 low y, 3 high y; ipol 0: dfx/dfy (r
+    // only)
     vector<double> rec[5][4];
 
     // composite pressure
@@ -201,6 +207,11 @@ private:
     double pq3(const double*, lexer*, int, int, int, int, int, bool);
     double plin(slice&, lexer*, int, int, int, int);
     void pcol(int, int, int, int, int, const double*, int, double*);
+    void vcell(lexer*, const double*, int, int, double*);
+
+    // vertical refinement (A 281): the sigma layers doubled on every level (vr 2), nested
+    int vr = 1;
+    int klev(int l) const { return p0->knoz*((vr==2) ? (1<<l) : 1); }
 
     // stage input arrays of grid g at stage s (s<0: end of the step)
     struct stg { slice *WL; double *UH,*VH,*WH; };

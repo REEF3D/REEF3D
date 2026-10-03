@@ -24,7 +24,8 @@ Author: Hans Bihs
 #define NHFLOW_AMR_FILL_H_
 
 // column fill, restriction and interpolation templates of nhflow_amr (F layout: the pressure
-// nodes 0..knoz of a column), as fnpf_amr_fill.h
+// nodes 0..knoz of a column; with A 281 the nodes of a level are nested in those of the next), as
+// fnpf_amr_fill.h
 
 #include"nhflow_amr.h"
 #include"lexer.h"
@@ -62,11 +63,12 @@ inline double rc4(F f)
 }
 }
 
-// columns around the level-l patches; sel(g) gives the F-layout array of grid g
+// columns around the level-l patches; sel(g) gives the F-layout array of grid g (from the coarser
+// level with A 281: the coarse nodes and the midpoints between them)
 template<class SEL>
 inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
 {
-    const int knf = p0->knoz;
+    const int knf = klev(l);
     const int nv = knf+1;
 
     fill_run(l,nv,tag,
@@ -94,7 +96,8 @@ inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
              });
 }
 
-// covered columns: restricted from the 2x2 children (cubic where possible), finest first
+// covered columns: restricted from the 2x2 children (cubic where possible), finest first; with
+// A 281 coarse node K is fine node 2K
 template<class SEL>
 inline void nhflow_amr::restrict_col(SEL sel)
 {
@@ -122,9 +125,10 @@ inline void nhflow_amr::restrict_col(SEL sel)
 
             const bool hi = rcubic(pp,i0,j0);
             const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
+            const int fz = pp->knoz/q->knoz;
             for(int K=0; K<=q->knoz; ++K)
             {
-                const int n0 = fidx(pp,i0,j0,K);
+                const int n0 = fidx(pp,i0,j0,fz*K);
                 if(hi)
                 dst[fidx(q,c->ric[k],c->rjc[k],K)] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
                 else

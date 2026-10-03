@@ -73,7 +73,7 @@ void control::ini_default()
     A279_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
     A279_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
     A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
-    A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
+    A281=0;      // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
 
 
     // FNPF
