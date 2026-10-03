@@ -29,7 +29,7 @@ Author: Hans Bihs
 // entries are (i,j,k,h): h=1 if the cell has a flagged neighbour in x or y,
 // h=0 if only the bottom/top neighbour is flagged. For h=0 cells only the
 // vertical BC statements (the tail of each loop body) can fire.
-#define GCBL_LOOP(L,T) gcblist gcbl_tmp_; const gcblist &gcbl_L_ = gcbl_get(p,L,gcbl_tmp_,T,i,j,k); int gcbl_h=0; \
+#define GCBL_LOOP(L,T) gcblist gcbl_tmp_; const gcblist &gcbl_L_ = gcbl_get(ghostcell::p,p,L,gcbl_tmp_,T,i,j,k); int gcbl_h=0; \
     for(size_t qq_=0; qq_<gcbl_L_.ijk.size(); qq_+=4) \
     if((i=gcbl_L_.ijk[qq_], j=gcbl_L_.ijk[qq_+1], k=gcbl_L_.ijk[qq_+2], gcbl_h=gcbl_L_.ijk[qq_+3], true))
 
@@ -38,12 +38,15 @@ Author: Hans Bihs
 // neighbour flagged <0. Only these cells can satisfy any of the BC branches,
 // so iterating over them in the original order gives identical results.
 // Rebuilt once per time step (p->count) and whenever flags are rebuilt.
-// A list belongs to the lexer it was first built for (the rank grid); for any other lexer
-// (a mesh refinement patch, whose lexers come and go) the cells are collected per call.
+// A list belongs to the rank grid (the lexer the ghostcell object was built with); for any
+// other lexer (a mesh refinement patch, whose lexers come and go) the cells are collected per
+// call.  The owner must not be the first lexer that happens to call: a patch can call first
+// (NHFLOW AMR runs the patches before level 0), and a later patch allocated at the address of
+// a freed one in the same step would then get the old patch's cells.
 #include<vector>
 namespace
 {
-    struct gcblist { std::vector<int> ijk; int count=-2; lexer *lx=nullptr; };
+    struct gcblist { std::vector<int> ijk; int count=-2; };
     gcblist gcbl1, gcbl2, gcbl3, gcbl4, gcbl7;
 }
 
@@ -103,12 +106,9 @@ static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int 
     L.count=p->count;
 }
 
-static const gcblist& gcbl_get(lexer *p, gcblist &L, gcblist &T, int type, int &i, int &j, int &k)
+static const gcblist& gcbl_get(lexer *owner, lexer *p, gcblist &L, gcblist &T, int type, int &i, int &j, int &k)
 {
-    if(L.lx==nullptr)
-    L.lx=p;
-
-    if(p==L.lx)
+    if(p==owner)
     {
     gcbl_build_impl(p,L,type,i,j,k);
     return L;

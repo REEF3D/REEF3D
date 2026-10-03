@@ -123,7 +123,9 @@ inline void nhflow_amr::restrict_col(SEL sel)
             double *dst = sel(g);
             const int i0 = EXT+2*bi, j0 = EXT+2*bj;
 
-            const bool hi = rcubic(pp,i0,j0);
+            // cubic only on interior blocks: on the edge blocks the 4x4 stencil would read the
+            // EXT cells of the patch, which are not unknowns of the composite solve (as fnpf_amr)
+            const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
             const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
             const int fz = pp->knoz/q->knoz;
             for(int K=0; K<=q->knoz; ++K)
