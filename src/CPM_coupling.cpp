@@ -125,9 +125,14 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         }
     }
     
+    pfold(p,Kc);
+    
     pgc->start4a_sum(p,Kc,1);
+    pfold(p,KUx);
     pgc->start4a_sum(p,KUx,1);
+    pfold(p,KUy);
     pgc->start4a_sum(p,KUy,1);
+    pfold(p,KUz);
     pgc->start4a_sum(p,KUz,1);
     
     BASELOOP
@@ -220,4 +225,22 @@ void CPM::continuity_source(lexer *p, ghostcell *pgc)
     }
     
     pgc->start4a(p,Dsrc,1);
+}
+
+// no coupling before the parcels move
+void CPM::coupling_reset(lexer *p, ghostcell *pgc)
+{
+    if(p->Q50!=1 || p->Q11!=2)
+    return;
+    
+    for(i=-1;i<p->knox+1;++i)
+    for(j=-1;j<p->knoy+1;++j)
+    for(k=-1;k<p->knoz+1;++k)
+    {
+        Kc(i,j,k) = 0.0;
+        KUx(i,j,k) = 0.0;
+        KUy(i,j,k) = 0.0;
+        KUz(i,j,k) = 0.0;
+        Dsrc(i,j,k) = 0.0;
+    }
 }

@@ -82,7 +82,11 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
         pbedshear->taubed(p,a,pgc,s);
     }
     
+    // two-way coupling once the parcels move (S 41, S 43/S 45: the fluid spins up first)
+    if(!sedcalc)
     pst->coupling_update(p,a,pgc,s);
+    else
+    pst->coupling_reset(p,pgc);
     
     print_particles(p,s);
     

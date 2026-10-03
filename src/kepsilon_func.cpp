@@ -121,7 +121,17 @@ void  kepsilon_func::epssource(lexer *p, fdm* a, vrans* pvrans)
 	{
     a->M.p[count] += ke_c_2e * MAX((eps(i,j,k))/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)),0.0);
 
-	a->rhsvec.V[count] += ke_c_1e * (eps(i,j,k)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,a->eddyv);
+    // c1 eps/k P with eps >= 0: a negative eps would turn this into a sink scaled by 1/k and grow without bound;
+    // bounded by c1 cmu k S^2 where the 1e-4 nu floor makes eddyv > cmu k^2/eps (as nhflow_kepsilon_func)
+    const double ratio = MAX(eps(i,j,k),0.0)/(fabs(kin(i,j,k))>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+    const double kpos  = MAX(kin(i,j,k),0.0);
+    const double pk_ev = pk(p,a,a->eddyv);
+
+    if(ratio*a->eddyv(i,j,k)<=p->cmu*kpos || a->eddyv(i,j,k)<=1.0e-20)
+	a->rhsvec.V[count] += ke_c_1e * ratio * pk_ev;
+    
+    else
+	a->rhsvec.V[count] += ke_c_1e * p->cmu*kpos * pk_ev/a->eddyv(i,j,k);
 
     ++count;
 	}

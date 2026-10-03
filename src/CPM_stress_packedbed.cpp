@@ -61,51 +61,129 @@ soil mechanics picture of an enduring contact network:
    with static friction (stick) below mu_s. A slope fails at tan(beta) = mu_s and an
    exposed grain moves when the drag exceeds mu_s times its submerged weight.
 
+4) dilatancy (Q 55): theta_0 is lowered in sheared layers, theta_0(I), see dilatancy()
+
 Ps = Pov + Pc acts on the parcels with -grad(Ps)/(theta rho_s).
 --------------------------------------------------------------------*/
 
 // Johnson & Jackson form above theta_0, continued linearly above theta_cap = theta_0 + 0.5 (theta_max - theta_0)
 // to bound the stiffness, i.e. the wave speed of the particle stress and the sub-step size
-double CPM::contact_pressure(double theta)
+// t0: packing of the contact network, theta_0 at rest, lower in a sheared layer (dilatancy, Q 55)
+double CPM::contact_pressure(double theta, double t0)
 {
-    if(theta<=theta_0)
+    if(theta<=t0)
     return 0.0;
     
-    double theta_cap = theta_0 + 0.5*(theta_max - theta_0);
+    double tmax = t0 + (theta_max - theta_0);
+    double theta_cap = t0 + 0.5*(tmax - t0);
     double th = MIN(theta,theta_cap);
     
-    double Pc = Fr*pow(th-theta_0,eta0)/pow(theta_max-th,eta1);
+    double Pc = Fr*pow(th-t0,eta0)/pow(tmax-th,eta1);
     
     if(theta>theta_cap)
-    Pc += contact_pressure_deriv(theta_cap)*(theta-theta_cap);
+    Pc += contact_pressure_deriv(theta_cap,t0)*(theta-theta_cap);
     
     return Pc;
 }
 
-double CPM::contact_pressure_deriv(double theta)
+double CPM::contact_pressure_deriv(double theta, double t0)
 {
-    if(theta<=theta_0)
+    if(theta<=t0)
     return 0.0;
     
-    double theta_cap = theta_0 + 0.5*(theta_max - theta_0);
+    double tmax = t0 + (theta_max - theta_0);
+    double theta_cap = t0 + 0.5*(tmax - t0);
     double th = MIN(theta,theta_cap);
     
-    double Pc = Fr*pow(th-theta_0,eta0)/pow(theta_max-th,eta1);
+    double Pc = Fr*pow(th-t0,eta0)/pow(tmax-th,eta1);
     
-    return Pc*(eta0/(th-theta_0) + eta1/(theta_max-th));
+    return Pc*(eta0/(th-t0) + eta1/(tmax-th));
+}
+
+/*--------------------------------------------------------------------
+dilatancy (Q 55): a sheared granular layer is looser than the bed at rest, the packing
+follows the inertial number like the friction coefficient (phi(I) of the mu(I) rheology,
+Forterre & Pouliquen 2008):
+
+    theta_0(I) = max(theta_bed, theta_0 - Q55 I),   I = d50 gamma / sqrt(P/rho_s)
+
+gamma: shear rate of the grid solid velocity, P: overburden effective stress, at least the
+weight of one grain layer. The contact pressure and the capacity of the grid-limited step
+use theta_0(I): a sheared surface layer dilates instead of jamming at the packing of the bed,
+a bed at rest (gamma = 0) keeps theta_0.
+--------------------------------------------------------------------*/
+void CPM::dilatancy(lexer *p, ghostcell *pgc)
+{
+    if(p->Q55<=0.0)
+    {
+        BASELOOP
+        T0e(i,j,k) = theta_0;
+        
+        pgc->start4a(p,T0e,1);
+        return;
+    }
+    
+    double rog = (p->S22 - p->W1)*sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
+    
+    auto der = [&](field &f, int di, int dj, int dk, double h)
+    {
+        bool wm = wallcell(p,i-di,j-dj,k-dk);
+        bool wp = wallcell(p,i+di,j+dj,k+dk);
+        
+        if(wm && wp)
+        return 0.0;
+        
+        if(wm)
+        return (f(i+di,j+dj,k+dk)-f(i,j,k))/h;
+        
+        if(wp)
+        return (f(i,j,k)-f(i-di,j-dj,k-dk))/h;
+        
+        return (f(i+di,j+dj,k+dk)-f(i-di,j-dj,k-dk))/(2.0*h);
+    };
+    
+    BASELOOP
+    {
+        double hx = p->DXN[IP], hy = p->DYN[JP], hz = p->DZN[KP];
+        
+        double dudx = der(Us,1,0,0,hx), dudz = der(Us,0,0,1,hz);
+        double dwdx = der(Ws,1,0,0,hx), dwdz = der(Ws,0,0,1,hz);
+        double dudy=0.0, dvdx=0.0, dvdy=0.0, dvdz=0.0, dwdy=0.0;
+        
+        if(p->j_dir==1)
+        {
+        dudy = der(Us,0,1,0,hy);
+        dvdx = der(Vs,1,0,0,hx);
+        dvdy = der(Vs,0,1,0,hy);
+        dvdz = der(Vs,0,0,1,hz);
+        dwdy = der(Ws,0,1,0,hy);
+        }
+        
+        double gamma = sqrt(2.0*(dudx*dudx + dvdy*dvdy + dwdz*dwdz)
+                     + (dudz+dwdx)*(dudz+dwdx) + (dudy+dvdx)*(dudy+dvdx) + (dvdz+dwdy)*(dvdz+dwdy));
+        
+        double P = MAX(Pov(i,j,k), rog*MAX(Ts(i,j,k),theta_bed)*p->S20);
+        double I = p->S20*gamma/sqrt(P/p->S22);
+        
+        T0e(i,j,k) = MAX(theta_bed, theta_0 - p->Q55*I);
+    }
+    
+    pgc->start4a(p,T0e,1);
 }
 
 void CPM::stress_packedbed(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     stress_overburden(p,pgc,s);
     
+    dilatancy(p,pgc);
+    
     cmax=0.0;
     
     BASELOOP
     {
-        Tau(i,j,k) = Pov(i,j,k) + contact_pressure(Ts(i,j,k));
+        Tau(i,j,k) = Pov(i,j,k) + contact_pressure(Ts(i,j,k),T0e(i,j,k));
         
-        cmax = MAX(cmax,contact_pressure_deriv(Ts(i,j,k)));
+        cmax = MAX(cmax,contact_pressure_deriv(Ts(i,j,k),T0e(i,j,k)));
     }
     
     cmax = sqrt(pgc->globalmax(cmax)/p->S22);

@@ -54,6 +54,7 @@ public:
 
     // CFD interface
     void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override final;
+    void topo_flags_off(lexer*, fdm*, ghostcell*);
     void ini_cfd(lexer*, fdm*, ghostcell*) override final;
     void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*) override final {};
     void update_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*) override final;

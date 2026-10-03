@@ -420,11 +420,11 @@ public:
     double Q17;
     double Q18;
     double Q26;
-    int Q19,Q27,Q28,Q44,Q50,Q51;
+    int Q19,Q27,Q28,Q44,Q50,Q51,Q52;
     double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
     double Q22;
     double Q23;
-    double Q25,Q30,Q45;
+    double Q25,Q30,Q45,Q53,Q54,Q55,Q56;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;

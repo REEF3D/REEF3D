@@ -2245,6 +2245,8 @@
           <File Name="CPM_limiter.cpp"/>
           <File Name="CPM_state.cpp"/>
           <File Name="CPM_coupling.cpp"/>
+          <File Name="CPM_dispersion.cpp"/>
+          <File Name="CPM_periodic.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Part">
           <VirtualDirectory Name="Parallel">

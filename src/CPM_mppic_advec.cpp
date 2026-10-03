@@ -51,8 +51,10 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     wf = p->ccipol3c(a->w,PX[n],PY[n],PZ[n]);
     
     // S 10 1: the bed is a solid boundary for the fluid
+    liftx=lifty=liftz=0.0;
+    
     if(p->S10!=2)
-    nearbed_velocity(p,a,PX[n],PY[n],PZ[n]);
+    nearbed_velocity(p,a,PX[n],PY[n],PZ[n],P.D[n]);
     
     // two-way coupling: interstitial velocity u/eps
     if(p->Q50==1)
@@ -80,9 +82,9 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     Dpy = Dpz = Dpx;
 
     // explicit forces
-    F = Dpx*uf - dPx_val/P.RO[n] + Bx;
-    G = Dpy*vf - dPy_val/P.RO[n] + By;
-    H = Dpz*wf - dPz_val/P.RO[n] + Bz;
+    F = Dpx*uf - dPx_val/P.RO[n] + Bx + liftx;
+    G = Dpy*vf - dPy_val/P.RO[n] + By + lifty;
+    H = Dpz*wf - dPz_val/P.RO[n] + Bz + liftz;
     
     // inter-particle normal stress
     if(p->Q12>0)
@@ -139,12 +141,14 @@ solid boundary for the fluid and the bed surface lies on the grid scale:
   - surface layer, depth below the bed surface delta < 0.5 h: exposed grains,
     fluid velocity sampled 0.5 h above the bed surface along the bed normal and
     scaled to the grain with the logarithmic law of the wall,
-        u_g = u_ref ln(30 d50/ks)/ln(30 (0.5h)/ks),   ks = S 21 d50
+        u_g = u_ref ln(30 d/ks)/ln(30 (0.5h)/ks),   ks = S 21 d50, d the parcel diameter
   - deeper: the pore water moves with the grains (local solid velocity)
   - linear transition between 0.5 h and h
 --------------------------------------------------------------------*/
-void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp)
+void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, double dp)
 {
+    liftx=lifty=liftz=0.0;
+    
     double topo = p->ccipol4_b(a->topo,xp,yp,zp);
     
     if(topo>=0.0)
@@ -200,12 +204,32 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp)
         double wr = p->ccipol3c(a->w,xr,yr,zr);
         
         double ks = MAX(p->S21*p->S20, 1.0e-6);
-        double fac = log(MAX(30.0*p->S20/ks,1.0+1.0e-6))/log(MAX(30.0*zref/ks,1.0+1.0e-6));
+        // velocity at the top of the grain dp in the log layer of the bed roughness ks = S 21 d50:
+        // small grains of a mixture lie lower in the roughness and are hidden (WP6)
+        double fac = log(MAX(30.0*dp/ks,1.0+1.0e-6))/log(MAX(30.0*zref/ks,1.0+1.0e-6));
         fac = MAX(0.0,MIN(fac,1.0));
         
         uf = w*fac*ur + (1.0-w)*ug;
         vf = w*fac*vr + (1.0-w)*vg;
         wf = w*fac*wr + (1.0-w)*wg;
+        
+        // lift on the exposed grains (Q 54 C_L, Wiberg & Smith 1985):
+        //   F_L = 0.5 rho_f C_L A (u_T^2 - u_B^2),  u_T at the grain top, u_B = 0 in the roughness,
+        //   per unit mass: 0.75 C_L rho_f/rho_p u_T^2/d, along the bed normal
+        if(p->Q54>0.0)
+        {
+            double ut = fac*ur, vt = fac*vr, wt = fac*wr;
+            double un = ut*nx + vt*ny + wt*nz;
+            ut -= un*nx;
+            vt -= un*ny;
+            wt -= un*nz;
+            
+            double aL = w*0.75*p->Q54*p->W1/p->S22*(ut*ut + vt*vt + wt*wt)/MAX(dp,1.0e-9);
+            
+            liftx = aL*nx;
+            lifty = aL*ny;
+            liftz = aL*nz;
+        }
     }
     else
     {

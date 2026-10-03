@@ -53,6 +53,26 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mod
 
         // flag
         Flag[n] = ACTIVE;
+        
+        // parallel periodic boundaries: the parcel crossed the periodic side, move it by the period
+        // (old and new position together, see CPM_periodic.cpp)
+        if(p->periodic1==2)
+        {
+            double Lx = p->global_xmax - p->global_xmin;
+            double xt = mode==1 ? XRK1[n] : X[n];
+            double sh = xt>=p->global_xmax ? -Lx : (xt<p->global_xmin ? Lx : 0.0);
+            X[n] += sh;
+            XRK1[n] += sh;
+        }
+        
+        if(p->periodic2==2 && p->j_dir==1)
+        {
+            double Ly = p->global_ymax - p->global_ymin;
+            double yt = mode==1 ? YRK1[n] : Y[n];
+            double sh = yt>=p->global_ymax ? -Ly : (yt<p->global_ymin ? Ly : 0.0);
+            Y[n] += sh;
+            YRK1[n] += sh;
+        }
 
         // bedch
         if(mode==1)

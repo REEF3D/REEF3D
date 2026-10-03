@@ -51,8 +51,10 @@ void CPM::timestep(lexer *p, ghostcell *pgc)
     // grid-limited step: rejected moves in the previous step and largest occupancy
     int nrej = pgc->globalisum(nrej_step);
     int nclip = pgc->globalisum(nclip_step);
+    int nit = pgc->globalimax(nit_step);
     nrej_step = 0;
     nclip_step = 0;
+    nit_step = 0;
     double omax = (p->Q11==2 && p->Q19==1) ? occupancy_max(p,pgc) : 0.0;
     
     if(p->Q11==1)
@@ -83,7 +85,7 @@ void CPM::timestep(lexer *p, ghostcell *pgc)
         cout<<"CPM sub-steps (previous step): "<<nsub<<"  mean dt_sub: "<<setprecision(4)<<dtsub<<"  stress wave speed: "<<setprecision(4)<<cmax<<endl;
         
         if(p->Q11==2 && p->Q19==1)
-        cout<<"CPM grid-limited step: rejected moves "<<nrej<<"  shortened moves "<<nclip<<"  max occupancy "<<setprecision(4)<<omax<<" (capacity "<<MAX(theta_max, theta_0 + P.ParcelFactor*Vp/(p->DXM*p->DXM*(p->j_dir==1?p->DXM:p->DYN[marge])))<<")"<<endl;
+        cout<<"CPM grid-limited step: rejected moves "<<nrej<<"  shortened moves "<<nclip<<"  max occupancy "<<setprecision(4)<<omax<<" (capacity "<<MAX(theta_max, theta_0 + P.ParcelFactor*Vp/(p->DXM*p->DXM*(p->j_dir==1?p->DXM:p->DYN[marge])))<<")  fix-up passes "<<nit<<endl;
         
         cout<<"Up_max: "<<setprecision(4)<<maxVelU<<"  Vp_max: "<<maxVelV<<"  Wp_max: "<<maxVelW<<endl;
         cout<<defaultfloat;

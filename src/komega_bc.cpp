@@ -135,18 +135,19 @@ void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
 
 void komega_bc::bckin_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-    bc_matrix(a,p);
+    bc_matrix(a,p,kin);
 }
 
 void komega_bc::bcomega_matrix(fdm* a,lexer* p,field& kin,field& eps)
 {
-    bc_matrix(a,p);
+    bc_matrix(a,p,eps);
 }
 
-void komega_bc::bc_matrix(fdm* a,lexer* p)
+void komega_bc::bc_matrix(fdm* a,lexer* p,field& f)
 {
-    // zero normal gradient at walls and solid-forcing boundaries, taken implicitly (M.p += M.x);
-    // inflow ghosts (IO 1) drop the coupling, serial periodic faces keep it (the solver couples them)
+    // zero normal gradient at walls, solid-forcing boundaries and outflow/open boundaries, taken implicitly (M.p += M.x);
+    // discharge inflow (B 60 >= 1, IO 1 at the i-1 face) takes the ghost value set by rans_io::inflow_turb as
+    // Dirichlet data; serial periodic faces keep the coupling (the solver couples them)
     const bool per_im = p->periodic1==1;
     const bool per_jm = p->periodic2==1;
     const bool per_km = p->periodic3==1;
@@ -156,37 +157,40 @@ void komega_bc::bc_matrix(fdm* a,lexer* p)
         {
             if((p->flag4[Im1JK]<0 && !(per_im && i+p->origin_i==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
             {
-            if(p->IO[Im1JK]!=1)
+            if(p->IO[Im1JK]==1 && p->B60>=1)
+            a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
+            
+            else
             a->M.p[n] += a->M.s[n];
+            
             a->M.s[n] = 0.0;
             }
 
             if((p->flag4[Ip1JK]<0 && !(per_im && i+p->origin_i==p->gknox-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
             {
-            if(p->IO[Ip1JK]!=1)
             a->M.p[n] += a->M.n[n];
             a->M.n[n] = 0.0;
             }
 
-            if(((p->flag4[IJm1K]<0 && !(per_jm && j+p->origin_j==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1 && p->IO[IJm1K]==0)
+            if(((p->flag4[IJm1K]<0 && !(per_jm && j+p->origin_j==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1)
             {
             a->M.p[n] += a->M.e[n];
             a->M.e[n] = 0.0;
             }
 
-            if(((p->flag4[IJp1K]<0 && !(per_jm && j+p->origin_j==p->gknoy-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1 && p->IO[IJp1K]==0)
+            if(((p->flag4[IJp1K]<0 && !(per_jm && j+p->origin_j==p->gknoy-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1)
             {
             a->M.p[n] += a->M.w[n];
             a->M.w[n] = 0.0;
             }
 
-            if(((p->flag4[IJKm1]<0 && !(per_km && k+p->origin_k==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)) && p->IO[IJKm1]==0)
+            if(((p->flag4[IJKm1]<0 && !(per_km && k+p->origin_k==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)))
             {
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
 
-            if(((p->flag4[IJKp1]<0 && !(per_km && k+p->origin_k==p->gknoz-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)) && p->IO[IJKp1]==0)
+            if(((p->flag4[IJKp1]<0 && !(per_km && k+p->origin_k==p->gknoz-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)))
             {
             a->M.p[n] += a->M.t[n];
             a->M.t[n] = 0.0;

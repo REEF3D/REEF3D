@@ -44,10 +44,10 @@ void CPM::kernel(lexer *p, double xs, double ys, double zs)
     ki[0]=i;
     ki[1]=i+1;
     
-    if(ki[0]<0 && p->nb1<0)
+    if(ki[0]<0 && p->nb1<0 && perx!=1)
     ki[0]=ki[1];
     
-    if(ki[1]>=p->knox && p->nb4<0)
+    if(ki[1]>=p->knox && p->nb4<0 && perx!=1)
     ki[1]=ki[0];
     
     // y
@@ -69,10 +69,10 @@ void CPM::kernel(lexer *p, double xs, double ys, double zs)
         kj[0]=j;
         kj[1]=j+1;
         
-        if(kj[0]<0 && p->nb3<0)
+        if(kj[0]<0 && p->nb3<0 && pery!=1)
         kj[0]=kj[1];
         
-        if(kj[1]>=p->knoy && p->nb2<0)
+        if(kj[1]>=p->knoy && p->nb2<0 && pery!=1)
         kj[1]=kj[0];
     }
     
@@ -105,10 +105,11 @@ void CPM::kernel(lexer *p, double xs, double ys, double zs)
 
 bool CPM::wallcell(lexer *p, int ii, int jj, int kkk)
 {
+    if(perx!=1)
     if((ii<0 && p->nb1<0) || (ii>=p->knox && p->nb4<0))
     return true;
     
-    if(p->j_dir==1)
+    if(p->j_dir==1 && pery!=1)
     if((jj<0 && p->nb3<0) || (jj>=p->knoy && p->nb2<0))
     return true;
     
@@ -155,9 +156,14 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
         }
     }
     
+    pfold(p,cellSum);
+    
     pgc->start4a_sum(p,cellSum,1);
+    pfold(p,Us);
     pgc->start4a_sum(p,Us,1);
+    pfold(p,Vs);
     pgc->start4a_sum(p,Vs,1);
+    pfold(p,Ws);
     pgc->start4a_sum(p,Ws,1);
     
     BASELOOP

@@ -86,6 +86,8 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
     
     if(p->Q19==1)
     limiter(p,a,pgc,P.X,P.Y,P.Z,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
+    
+    periodic_wrap(p,P.X,P.Y,P.XRK1,P.YRK1);
 
     P.xchange(p,pgc,bedch,1);
 
@@ -117,12 +119,24 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
         P.URK1[n] = P.U[n];
         P.VRK1[n] = P.V[n];
         P.WRK1[n] = P.W[n];
+        
+        // turbulent dispersion, once per step from the start position
+        if(p->Q52==1)
+        {
+            double ddx,ddy,ddz;
+            dispersion(p,P.X[n],P.Y[n],P.Z[n],ddx,ddy,ddz,dt);
+            P.XRK1[n] += ddx;
+            P.YRK1[n] += ddy;
+            P.ZRK1[n] += ddz;
+        }
     }
 
     boundcheck(p,1);
     
     if(p->Q19==1)
     limiter(p,a,pgc,P.X,P.Y,P.Z,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
+    
+    periodic_wrap(p,P.X,P.Y,P.XRK1,P.YRK1);
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)

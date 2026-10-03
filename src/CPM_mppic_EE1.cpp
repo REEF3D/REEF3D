@@ -49,6 +49,8 @@ void CPM::grid_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double 
     }
     
     stress_gradient(p,a,pgc,s);
+    
+    dispersion_update(p,a,pgc);
 }
 
 // adaptive sub-steps over the fluid time step:
@@ -70,6 +72,10 @@ double CPM::substep_size(lexer *p, ghostcell *pgc, double trem, int qs)
     
     if(cmax>1.0e-15)
     dtlim = MIN(dtlim, p->Q18*hmin/cmax);
+    
+    // random displacement: rms step sqrt(2 K dt) below half a cell
+    if(p->Q52==1 && Ktmax>1.0e-15)
+    dtlim = MIN(dtlim, 0.125*hmin*hmin/Ktmax);
     
     // last allowed sub-step
     if(qs>=p->Q28-1)
@@ -141,6 +147,16 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.XRK1[n] = P.X[n] + dt*P.URK1[n];
         P.YRK1[n] = P.Y[n] + dt*P.VRK1[n];
         P.ZRK1[n] = P.Z[n] + dt*P.WRK1[n];
+        
+        // turbulent dispersion
+        if(p->Q52==1)
+        {
+            double ddx,ddy,ddz;
+            dispersion(p,P.X[n],P.Y[n],P.Z[n],ddx,ddy,ddz,dt);
+            P.XRK1[n] += ddx;
+            P.YRK1[n] += ddy;
+            P.ZRK1[n] += ddz;
+        }
     }
 
     // walls, then grid-limited step
@@ -148,6 +164,8 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
     
     if(p->Q19==1)
     limiter(p,a,pgc,P.X,P.Y,P.Z,P.XRK1,P.YRK1,P.ZRK1,P.URK1,P.VRK1,P.WRK1);
+    
+    periodic_wrap(p,P.X,P.Y,P.XRK1,P.YRK1);
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)

@@ -45,6 +45,7 @@ public:
     void ini(lexer*, fdm_nhf*, ghostcell*) override final;
     void plain_wallfunc(lexer*, fdm_nhf*, ghostcell*);
     void inflow(lexer*, fdm_nhf*, ghostcell*);
+    void inflow_profile(lexer*, double, double, double&, double&, double&);
     double kinval(int,int,int) override final;
     double epsval(int,int,int) override final;
 	void gcupdate(lexer*, fdm_nhf*, ghostcell*) override final;
@@ -71,8 +72,6 @@ public:
 	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
-    void tau_calc(lexer*,fdm_nhf*,ghostcell*);
-    void bedval_calc(lexer*, fdm_nhf*,ghostcell*);
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
     void flowdepth_inflow(lexer*, fdm_nhf*, ghostcell*);
 

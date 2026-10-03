@@ -42,6 +42,7 @@ komega_IM1::~komega_IM1()
 
 void komega_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
+    inflow_turb(p,a,pgc);   // discharge inflow k, eps/omega into the inflow ghost cells (B 60 >= 1)
 	wallf_update(p,a,pgc,wallf);
 
 //kin

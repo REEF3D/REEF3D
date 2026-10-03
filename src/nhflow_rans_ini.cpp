@@ -52,26 +52,14 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     
     if(p->B60==1)
     {
-    ev_fac = 0.11;
-    
     LOOP
     {
     beddist = p->ZSP[IJK] - d->bed(i,j);
-    tau_calc(p,d,pgc);
-    bedval_calc(p,d,pgc);
     
-        
-    d->EV[IJK] = ev_fac*shearvel*beddist;
-    KIN[IJK] = kinbed * (1.0 - 0.5*(beddist/(d->WL(i,j)>0.0?d->WL(i,j):1.0e20)));
+    inflow_profile(p, beddist, d->WL(i,j), KIN[IJK], EPS[IJK], d->EV[IJK]);
     
     if(p->B11==0)
     EPS[IJK] = 1.0;
-    
-    if(p->B11>0 && (p->A560==1 || p->A560==21))
-    EPS[IJK] = p->cmu*KIN[IJK]*KIN[IJK]/(d->EV[IJK]>1.0e-20?d->EV[IJK]:1.0e20);
-    
-    if(p->B11>0 && (p->A560==2 || p->A560==22))
-    EPS[IJK] = KIN[IJK]/(d->EV[IJK]>1.0e-20?d->EV[IJK]:1.0e20);
     }
     
     // inflow
@@ -96,31 +84,6 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }
 }
 
-void nhflow_rans_io::tau_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
-{
-	ks=p->B50;	
-	H=(d->WL(i,j)>1.0e-6?d->WL(i,j):1.0e-6);   // flow depth (hydraulic radius), not the cell's distance to the bed
-    
-	M=26.0/pow((ks),(1.0/6.0));
-	I=pow(p->Ui/(M*pow(H,(2.0/3.0))),2.0);
-	tau=(9.81*H*I);
-    shearvel = sqrt(tau);
-}
-
-void nhflow_rans_io::bedval_calc(lexer* p, fdm_nhf *d, ghostcell* pgc)
-{
-    kk=k;
-    k=0;
-    
-    dist = 0.5*p->DZN[KP]*d->WL(i,j);
-    
-    k=kk;
-    
-	kinbed = tau/sqrt(p->cmu);
-    epsbed = (pow(p->cmu, 0.75)*pow(kinbed,1.5)) / (0.4*dist);
-    omegabed = pow(kinbed,0.5) / (0.4*dist*pow(p->cmu, 0.25));
-}
-
 void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
     double evval,kinval,epsval;
@@ -133,17 +96,8 @@ void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
     k=p->gcin[n][2];
     
     beddist = p->ZSP[IJK] - d->bed(i,j);
-    tau_calc(p,d,pgc);
-    bedval_calc(p,d,pgc);
     
-    evval = ev_fac*shearvel*beddist;
-    kinval = kinbed * (1.0 - 0.5*(beddist/(d->WL(i,j)>0.0?d->WL(i,j):1.0e20)));
-    
-    if(p->A560==1 || p->A560==21)
-    epsval = p->cmu*kinval*kinval/(evval>1.0e-20?evval:1.0e20);
-    
-    else
-    epsval = kinval/(evval>1.0e-20?evval:1.0e20);
+    inflow_profile(p, beddist, d->WL(i,j), kinval, epsval, evval);
 
     d->EV[Im1JK] = evval;
     d->EV[Im2JK] = evval;
@@ -161,6 +115,33 @@ void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
     EPS[Im2JK] = epsval;
     EPS[Im3JK] = epsval;
     }
+}
+
+// equilibrium open-channel profile, same as CFD rans_io::inflow_turb:
+//   u* = Ui/(2.5 ln(11 H/ks)),  k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),
+//   omega = u*/(sqrt(cmu) kappa z),  nu_t = kappa u* z (1-z/H);  (1-z/H) >= 0.1, z >= half the bottom cell
+void nhflow_rans_io::inflow_profile(lexer* p, double z, double H, double &kv, double &ev, double &nut)
+{
+    const double kappa = 0.4;
+    double ks = (p->S10==0) ? p->B50 : p->S20*p->S21;
+    
+    if(ks<=0.0)
+    ks=0.0001;
+    
+    H = MAX(H, 1.0e-6);
+    z = MAX(z, 0.5*p->DZN[KP]*H);
+    
+    const double ustar = fabs(p->Ui)/(2.5*log(MAX(11.0*H/ks,2.0)));
+    const double fz = MAX(1.0 - z/H, 0.1);
+    
+    kv  = ustar*ustar/sqrt(p->cmu)*fz;
+    nut = kappa*ustar*z*fz;
+    
+    if(p->A560==1 || p->A560==21)
+    ev = pow(ustar,3.0)/(kappa*z)*fz;
+    
+    else
+    ev = ustar/(sqrt(p->cmu)*kappa*z);
 }
 
 void nhflow_rans_io::flowdepth_inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)

@@ -131,9 +131,17 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         P.D[n]=val[6];
         P.RO[n]=val[7];
         P.Flag[n]=flag;
+        
+        // fixed parcels are released unless all parcels stay fixed (Q 44 1),
+        // the open boundaries fix theirs again below
+        if(flag==BEDBC)
+        P.Flag[n] = p->Q44==1 ? BEDBC : ACTIVE;
     }
     
     result.close();
+    
+    if(p->Q44!=1)
+    wallbc(p,pgc,nullptr);
     
     restored=1;
     

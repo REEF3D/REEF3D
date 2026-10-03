@@ -55,7 +55,6 @@ private:
     void wall_law_omega(lexer*, fdm2D*);
     
     slice4 kn, wn, Pk, S, Vw, Qw, ustar, cf;
-    sliceint4 wallf;
     
     double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
     

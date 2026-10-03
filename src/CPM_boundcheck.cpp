@@ -59,6 +59,8 @@ void CPM::boundcheck(lexer *p, int mode)
         }
         
         // walls in x
+        if(perx==0)
+        {
         if(PX[n]<p->global_xmin)
         {
             PX[n] = MIN(2.0*p->global_xmin - PX[n], p->global_xmin + 0.5*hmin);
@@ -73,9 +75,10 @@ void CPM::boundcheck(lexer *p, int mode)
         
         PX[n] = MAX(PX[n],p->global_xmin+eps);
         PX[n] = MIN(PX[n],p->global_xmax-eps);
+        }
         
         // walls in y
-        if(p->j_dir==1)
+        if(p->j_dir==1 && pery==0)
         {
             if(PY[n]<p->global_ymin)
             {

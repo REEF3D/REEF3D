@@ -27,6 +27,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"fdm.h"
 #include"bedshear.h"
 #include"sediment_fdm.h"
+#include<vector>
 
 void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -79,11 +80,97 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
         p->toporead=0;
         p->topoforcing=0;
         
-        int G5 = p->G5;
-        p->G5 = 1;
-        pgc->gcdf_update(p,a);
-        p->G5 = G5;
+        topo_flags_off(p,a,pgc);
     }
 
     pgc->gcdf_update(p,a);
+    
+    pst->periodic_flags(p);
+}
+
+// the cells that are solid only because of the topo become fluid cells: flag4 and the face
+// flags next to them are set again; faces on the domain boundary take the face flag of a
+// fluid cell further up in the same column, so periodic and parallel sides keep their flags
+void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
+{
+    auto id = [&](int ii, int jj, int kk) {return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;};
+    auto inside = [&](int ii, int jj, int kk) {return ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz;};
+    
+    double psi = p->j_dir==1 ? -p->X41*(1.0/3.0)*(p->DXN[0+marge]+p->DYN[0+marge]+p->DZN[0+marge]) : -p->X41*0.5*(p->DXN[0+marge]+p->DZN[0+marge]);
+    
+    std::vector<int> ci,cj,ck;
+    
+    BASELOOP
+    if(p->flag4[IJK]<0 && (p->solidread==0 || a->solid(i,j,k)>=psi))
+    {
+        p->flag4[IJK]=10;
+        ci.push_back(i);
+        cj.push_back(j);
+        ck.push_back(k);
+    }
+    
+    int nchg = pgc->globalisum(int(ci.size()));
+    
+    if(p->mpirank==0)
+    cout<<"CPM two-way: "<<nchg<<" topo cells become fluid cells"<<endl;
+    
+    pgc->flagx(p,p->flag4);
+    
+    // face flag: flag(face q,q+e) = flag4(q), -10 if flag4(q)>0 and flag4(q+e)<0
+    auto face = [&](int *fl, int ii, int jj, int kk, int di, int dj, int dk)
+    {
+        if(!inside(ii,jj,kk))
+        return;
+        
+        if(inside(ii+di,jj+dj,kk+dk))
+        {
+            int f4 = p->flag4[id(ii,jj,kk)];
+            fl[id(ii,jj,kk)] = (f4>0 && p->flag4[id(ii+di,jj+dj,kk+dk)]<0) ? -10 : f4;
+        }
+        else
+        {
+            // boundary face: copy from a fluid cell of the same column (x,y faces) or row (z faces)
+            if(dk==0)
+            {
+                for(int q=p->knoz-1;q>=0;--q)
+                if(p->flag4[id(ii,jj,q)]>0 && q!=kk)
+                {
+                    fl[id(ii,jj,kk)] = fl[id(ii,jj,q)];
+                    break;
+                }
+            }
+            else
+            {
+                for(int q=0;q<p->knox;++q)
+                if(p->flag4[id(q,jj,kk)]>0 && q!=ii)
+                {
+                    fl[id(ii,jj,kk)] = fl[id(q,jj,kk)];
+                    break;
+                }
+            }
+        }
+    };
+    
+    for(size_t q=0;q<ci.size();++q)
+    {
+        i=ci[q]; j=cj[q]; k=ck[q];
+        
+        face(p->flag1,i,j,k,1,0,0);
+        face(p->flag1,i-1,j,k,1,0,0);
+        
+        if(p->j_dir==1)
+        {
+        face(p->flag2,i,j,k,0,1,0);
+        face(p->flag2,i,j-1,k,0,1,0);
+        }
+        else
+        p->flag2[IJK] = p->flag4[IJK];
+        
+        face(p->flag3,i,j,k,0,0,1);
+        face(p->flag3,i,j,k-1,0,0,1);
+    }
+    
+    pgc->flagx(p,p->flag1);
+    pgc->flagx(p,p->flag2);
+    pgc->flagx(p,p->flag3);
 }

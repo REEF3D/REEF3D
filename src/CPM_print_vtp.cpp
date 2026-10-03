@@ -43,6 +43,11 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
     {
         print_vtp(p,s);
         printtime+=p->Q182;
+        
+        // hotstart: continue from the restart time, not from zero
+        if(printtime<p->simtime)
+        printtime = p->simtime + p->Q182;
+        
         ++printcount;
     }
 }

@@ -149,3 +149,79 @@ void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 	tau=(9.81*H*I);
 	kinbed = tau/sqrt(0.09);
 }
+
+// inflow turbulence for discharge inflow (B 60 >= 1), written into the inflow ghost cells i-1..i-3 before
+// each k and eps/omega solve; the bc routines take these values as Dirichlet data.
+// Equilibrium open-channel profile, consistent with the log law and the wall functions:
+//   u* = Ui/(2.5 ln(11 H/ks))          (as ioflow_f::inflow_log)
+//   k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z),
+//   i.e. nu_t = kappa u* z (1-z/H); (1-z/H) is bounded below by 0.1 at the free surface.
+// Air cells and all other inflow types (e.g. wave generation) get zero gradient.
+void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
+{
+    const double kappa = 0.4;
+    double hmin=+1.0e20;
+    double hmax=-1.0e20;
+    double H=0.0, ks, ustar=0.0, z, fz, kval, eval;
+    int n,q;
+    
+    const bool keps = (p->T10==1 || p->T10==11 || p->T10==21);
+    
+    if(p->B60>=1)
+    {
+        for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+        
+            if(a->phi(i,j,k)>0.0)
+            {
+            hmin=MIN(hmin,p->ZN[KP]);
+            hmax=MAX(hmax,p->ZN[KP1]);
+            }
+        }
+        hmax=pgc->globalmax(hmax);
+        hmin=pgc->globalmin(hmin);
+        
+        H = hmax-hmin;
+        
+        ks = (p->S10==0) ? p->B50 : p->S20*p->S21;
+        
+        if(ks<=0.0)
+        ks=0.0001;
+        
+        if(H>0.0)
+        ustar = fabs(p->Ui)/(2.5*log(MAX(11.0*H/ks,2.0)));
+    }
+    
+    for(n=0;n<p->gcin_count;++n)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+        kval = kin(i,j,k);
+        eval = eps(i,j,k);
+        
+        if(p->B60>=1 && H>0.0 && ustar>0.0 && a->phi(i,j,k)>0.0)
+        {
+        z  = MAX(p->ZP[KP]-hmin, 0.5*p->DZN[KP]);
+        fz = MAX(1.0 - z/H, 0.1);
+        
+        kval = ustar*ustar/sqrt(p->cmu)*fz;
+        
+        if(keps)
+        eval = pow(ustar,3.0)/(kappa*z)*fz;
+        
+        if(!keps)
+        eval = ustar/(sqrt(p->cmu)*kappa*z);
+        }
+        
+        for(q=1;q<=3;++q)
+        {
+        kin(i-q,j,k) = kval;
+        eps(i-q,j,k) = eval;
+        }
+    }
+}

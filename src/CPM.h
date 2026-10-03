@@ -34,6 +34,7 @@ CPM : Continuum Particle Method
 #include"boundarycheck.h"
 #include"vtp3D.h"
 #include<fstream>
+#include<random>
 
 class lexer;
 class fdm;
@@ -105,7 +106,8 @@ private:
                         double*, double*, double*, double*, double*, double*,
                         double&, double&, double&, double);
                         
-    void nearbed_velocity(lexer*, fdm*, double, double, double);
+    void nearbed_velocity(lexer*, fdm*, double, double, double, double);
+    double seed_diameter(lexer*, int);
     // two-way coupling
 public:
     void coupling_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
@@ -114,6 +116,7 @@ public:
     // two-way coupling: mixture continuity div(u) = -div(theta u_p), source for the pressure Poisson equation
     inline static CPM *coupled = nullptr;
     void continuity_source(lexer*, ghostcell*);
+    void coupling_reset(lexer*, ghostcell*);
     field4a Dsrc;
 private:
     
@@ -135,8 +138,10 @@ private:
     void stress_overburden(lexer*, ghostcell*, sediment_fdm*);
     void friction(lexer*, fdm*, double, double, double, double&, double&, double&, double, double);
     void gradient(lexer*, ghostcell*, field&, field&, field&, field&);
-    double contact_pressure(double);
-    double contact_pressure_deriv(double);
+    double contact_pressure(double, double);
+    double contact_pressure_deriv(double, double);
+    void dilatancy(lexer*, ghostcell*);
+    field4a T0e;
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
@@ -144,6 +149,24 @@ private:
     void smooth(lexer*, ghostcell*, field&, int);
     void kernel(lexer*, double, double, double);
     bool wallcell(lexer*, int, int, int);
+    
+    // periodic boundaries in x and y (DIVEMesh C 21, C 22)
+    //   1 serial: CPM folds the ghost deposits and wraps the parcels
+    //   2 parallel: the neighbour exchange sums the deposits, the parcels are wrapped on receipt
+    int perx, pery;
+    void pfold(lexer*, field&);
+public:
+    void periodic_flags(lexer*);
+private:
+    void periodic_wrap(lexer*, double*, double*, double*, double*);
+    
+    // turbulent dispersion (Q 52), random displacement with the eddy diffusivity of the fluid
+    void dispersion_update(lexer*, fdm*, ghostcell*);
+    void dispersion(lexer*, double, double, double, double&, double&, double&, double);
+    field4a Kt,dKx,dKy,dKz;
+    double Ktmax;
+    std::mt19937_64 rng;
+    std::normal_distribution<double> gauss;
     
     void wallbc(lexer*, ghostcell*, sediment_fdm*);
 
@@ -185,7 +208,7 @@ private:
     double *tan_betaQ73,*betaQ73,*dist_Q73;
 
     int timestep_ini = 0;
-    int nsub, zsplit, nrej_step, nclip_step;
+    int nsub, zsplit, nrej_step, nclip_step, nit_step=0;
     int restored, logini;
     int open_side[6];
     double outvol;
@@ -207,6 +230,7 @@ private:
     double dPx_val,dPy_val,dPz_val;
     double Bx,By,Bz;
     double uf,vf,wf;
+    double liftx,lifty,liftz;
     double Urel,Vrel,Wrel;
     double Tsval;
     double dTx_val,dTy_val,dTz_val;

@@ -26,7 +26,7 @@ Authors: Alexander Hanke, Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
-// seed parcels in the cells below the initial bed (topo<0)
+// seed parcels in the cells below the initial bed (topo<0) and in the boxes Q 110 (suspension)
 // Q 29 1: regular lattice, 2: lattice with jitter, 3: random
 // the parcel factor is set such that the seeded bed has the solid fraction 1-S 24
 void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
@@ -54,12 +54,27 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         cout<<"CPM: lattice seeding with "<<ppd<<" parcels per direction, "<<nppc<<" parcels per cell (Q 24 "<<p->Q24<<")"<<endl;
     }
     
+    // cells to seed: below the initial bed or with the centre in a box Q 110
+    auto seedcell = [&]()
+    {
+        if(a->topo(i,j,k)<=0.0)
+        return true;
+        
+        for(int qn=0;qn<p->Q110;++qn)
+        if(p->XP[IP]>=p->Q110_xs[qn] && p->XP[IP]<p->Q110_xe[qn]
+        && (p->j_dir==0 || (p->YP[JP]>=p->Q110_ys[qn] && p->YP[JP]<p->Q110_ye[qn]))
+        && p->ZP[KP]>=p->Q110_zs[qn] && p->ZP[KP]<p->Q110_ze[qn])
+        return true;
+        
+        return false;
+    };
+    
     // estimate number of parcels and the bed volume
     int count=0;
     double volsum=0.0;
     
     BASELOOP
-    if(a->topo(i,j,k)<=0.0)
+    if(seedcell())
     {
         ++count;
         volsum += p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
@@ -79,7 +94,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     double xs,ys,zs;
     
     BASELOOP
-    if(a->topo(i,j,k)<=0.0)
+    if(seedcell())
     {
         if(p->Q29==1 || p->Q29==2)
         {
@@ -111,7 +126,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
                 P.Z[n] = zs;
                 P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-                P.D[n] = p->S20;
+                P.D[n] = seed_diameter(p,n);
                 P.RO[n] = p->S22;
 
                 P.Flag[n] = ACTIVE;
@@ -132,7 +147,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             P.Z[n] = p->ZN[KP] + p->DZN[KP]*double(rand() % irand)/drand;
             P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-            P.D[n] = p->S20;
+            P.D[n] = seed_diameter(p,n);
             P.RO[n] = p->S22;
 
             P.Flag[n] = ACTIVE;
@@ -146,7 +161,15 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double topoval  = p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]);
         double solidval = p->ccipol4_b(a->solid,P.X[n],P.Y[n],P.Z[n]);
 
-        if(topoval>0.0 || solidval<0.0)
+        bool box=false;
+        
+        for(int qn=0;qn<p->Q110;++qn)
+        if(P.X[n]>=p->Q110_xs[qn] && P.X[n]<p->Q110_xe[qn]
+        && (p->j_dir==0 || (P.Y[n]>=p->Q110_ys[qn] && P.Y[n]<p->Q110_ye[qn]))
+        && P.Z[n]>=p->Q110_zs[qn] && P.Z[n]<p->Q110_ze[qn])
+        box=true;
+
+        if((topoval>0.0 && !box) || solidval<0.0)
         P.remove(n);
     }
     
@@ -171,4 +194,35 @@ void CPM::ini_fields(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     grid_update(p,a,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
     count_particles(p,a,pgc,s);
+}
+
+// parcel diameter: S 20, or for a mixture (S 51 d fa fs) a fraction drawn with the volume
+// fractions fa of the bed; all parcels have the same volume, so the number of parcels of a
+// fraction follows its volume fraction. A golden ratio sequence gives an even mixture.
+double CPM::seed_diameter(lexer *p, int nn)
+{
+    if(p->S51<=0)
+    return p->S20;
+    
+    double sum=0.0;
+    for(int q=0;q<p->S51;++q)
+    sum += MAX(p->S51_fa[q],0.0);
+    
+    if(sum<=0.0)
+    return p->S20;
+    
+    static long seq=0;
+    double u = fmod(0.6180339887498949*double(seq + 7919*p->mpirank) + 0.5, 1.0);
+    ++seq;
+    
+    double cum=0.0;
+    for(int q=0;q<p->S51;++q)
+    {
+        cum += MAX(p->S51_fa[q],0.0)/sum;
+        
+        if(u<cum)
+        return p->S51_d[q];
+    }
+    
+    return p->S51_d[p->S51-1];
 }

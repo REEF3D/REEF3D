@@ -894,6 +894,11 @@ void control::ini_default()
     Q44=0;              // int all parcels fixed (e.g. flow through a fixed bed), 0 off, 1 on
     Q50=0;              // int fluid coupling of the parcels: 0 one-way, 1 two-way (drag reaction on the fluid, mixture continuity in the pressure equation)
     Q51=1;              // int drag law: 1 Andrews & O'Rourke (1996), 2 Gidaspow (Ergun below fluid fraction 0.8, Wen & Yu above)
+    Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
+    Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off
+    Q55=0.0;            // double dilatancy: theta_0(I) = theta_0 - Q55 I in sheared layers (Q 12 2), 0: off
+    Q54=0.0;            // double lift coefficient C_L on the exposed grains (S 10 1 near-bed closure), 0: no lift
+    Q53=1.0;            // double turbulent Schmidt number for Q 52
     Q61=0;              // point source x,y,z, iterations between particles
     Q73=0;              // int relax 
     Q101=0;             // int ini particle as topo
