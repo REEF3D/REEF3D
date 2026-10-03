@@ -128,6 +128,14 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.zr = p->A278_r;
     q.zalign = true;
 
+    // the zone follows the body: new patches every A 271 steps (A 271 0: static), the layout is
+    // kept as long as it covers the flagged tiles with at most 50 % excess (as fnpf_amr)
+    if(q.zones)
+    {
+    q.regrid = MAX(p->A271,0);
+    q.lazy = 1.5;
+    }
+
     // the zone holds the hull: its triangles are sized for the finest level (sixdof_obj::amr_hfac,
     // before the 6DOF initialisation builds them), as on the uniform fine grid
     if(q.zones)
@@ -257,7 +265,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
     {
         logout.open("./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_log.dat");
-        logout<<"# count \t simtime \t dt \t patches \t cells \t pressure iterations \t residual \t water volume \t relative change"<<endl;
+        logout<<"# count \t simtime \t dt \t patches \t cells \t pressure iterations \t residual \t water volume \t relative change \t layout"<<endl;
     }
 
     for(int it=0; it<maxlev; ++it)
@@ -291,7 +299,12 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     m0 = mass(p,d,pgc);
 
     if(p->mpirank==0)
-    cout<<"NHFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns, dt "<<p->dt<<endl;
+    {
+    cout<<"NHFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns, dt "<<p->dt;
+    if(regrid_int>0)
+    cout<<", regrid every "<<regrid_int<<" steps (A 271), the zone follows the body";
+    cout<<endl;
+    }
 }
 
 // --------------------------------------------------------------------- patches
@@ -855,6 +868,7 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
             const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
 
             d->eta(ii,jj) = pq(dc->eta,q,ic,jc,ox,oy);
+            d->detadt(ii,jj) = pq(dc->detadt,q,ic,jc,ox,oy);
             const double wl = MAX(d->eta(ii,jj) + d->depth(ii,jj), pp->A544);
             d->WL(ii,jj) = wl;
 
@@ -874,6 +888,71 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
             for(int kk=0; kk<=K; ++kk)
             d->P[fidx(pp,ii,jj,kk)] = v[kk];
         }
+
+        // conservative: the 2x2 block keeps the water level and, layer by layer, the momentum
+        // of its coarse cell (the restriction is the block mean), a constant shift of the
+        // interpolated shape; the velocities follow
+        const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+        double wm = 0.0;
+        for(int a=0; a<2; ++a)
+        for(int b=0; b<2; ++b)
+        wm += 0.25*d->WL(i0+a,j0+b);
+        const double dwl = dc->WL(ic,jc) - wm;
+        for(int a=0; a<2; ++a)
+        for(int b=0; b<2; ++b)
+        {
+            d->WL(i0+a,j0+b) += dwl;
+            d->eta(i0+a,j0+b) += dwl;
+        }
+
+        for(int kk=0; kk<K; ++kk)
+        {
+            const int nc = cidx(q,ic,jc,kk);
+            double um=0.0, vm=0.0, hm=0.0;
+            for(int a=0; a<2; ++a)
+            for(int b=0; b<2; ++b)
+            {
+                const int n = cidx(pp,i0+a,j0+b,kk);
+                um += 0.25*d->UH[n];
+                vm += 0.25*d->VH[n];
+                hm += 0.25*d->WH[n];
+            }
+            for(int a=0; a<2; ++a)
+            for(int b=0; b<2; ++b)
+            {
+                const int n = cidx(pp,i0+a,j0+b,kk);
+                const double wl = d->WL(i0+a,j0+b);
+                d->UH[n] += dc->UH[nc] - um;
+                d->VH[n] += dc->VH[nc] - vm;
+                d->WH[n] += dc->WH[nc] - hm;
+                d->U[n] = d->UH[n]/wl;
+                d->V[n] = d->VH[n]/wl;
+                d->W[n] = d->WH[n]/wl;
+            }
+        }
+    }
+}
+
+// cells of the fresh patch c that an old patch of the same level held (the zone moved with the
+// body): fn(old patch, ii, jj, io, jo) with the lexer indices on c and on the old patch
+template<class F>
+void nhflow_amr::from_old(nhflow_amr_patch &c, vector<reefamr_patch*> &oldP, F fn)
+{
+    for(auto q : oldP)
+    {
+        if(q==&c || q->lev!=c.lev)
+        continue;
+
+        // kept and removed patches both hold the state of the end of the step
+        const int I0 = MAX(c.I0,q->I0), I1 = MIN(c.I1,q->I1);
+        const int J0 = MAX(c.J0,q->J0), J1 = MIN(c.J1,q->J1);
+        if(I0>I1 || J0>J1)
+        continue;
+
+        nhflow_amr_patch *o = NP(q);
+        for(int I=I0; I<=I1; ++I)
+        for(int J=J0; J<=J1; ++J)
+        fn(*o, I-c.I0+EXT, J-c.J0+EXT, I-q->I0+EXT, J-q->J0+EXT);
     }
 }
 
@@ -1042,6 +1121,29 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             pgc->gcsl_start4(pp,d->depth,50);
 
             prolong_patch(pgc,*c);
+
+            // where an old patch of the same level was, its state is taken over
+            const int K = pp->knoz;
+            from_old(*c,oldP,[&](nhflow_amr_patch &o, int ii, int jj, int io, int jo)
+            {
+                fdm_nhf *od = o.d;
+                lexer *op = o.pp;
+                d->eta(ii,jj) = od->eta(io,jo);
+                d->WL(ii,jj) = od->WL(io,jo);
+                d->detadt(ii,jj) = od->detadt(io,jo);
+                for(int kk=0; kk<K; ++kk)
+                {
+                    const int n = cidx(pp,ii,jj,kk), m = cidx(op,io,jo,kk);
+                    d->U[n] = od->U[m];
+                    d->V[n] = od->V[m];
+                    d->W[n] = od->W[m];
+                    d->UH[n] = od->UH[m];
+                    d->VH[n] = od->VH[m];
+                    d->WH[n] = od->WH[m];
+                }
+                for(int kk=0; kk<=K; ++kk)
+                d->P[fidx(pp,ii,jj,kk)] = od->P[fidx(op,io,jo,kk)];
+            });
         }
 
         fill_stage(pgc,l,-1);
@@ -1361,6 +1463,15 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         mom->phase_E(p,d,pgc,S0,s);
     }
     cur_stage = -1;
+
+    // the zone around the body moves: new patches every A 271 steps, from the state at the end
+    // of the step
+    if(regrid_int>0 && p->count%regrid_int==0)
+    {
+        const double t0 = MPI_Wtime();
+        regrid(p,pgc,false);
+        tm[7] += MPI_Wtime()-t0;
+    }
 }
 
 // --------------------------------------------------------------------- floating bodies

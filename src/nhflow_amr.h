@@ -83,11 +83,16 @@ using namespace std;
 //  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
 //  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
 //  triangle on the finest grid at its centroid (pressure, free surface, shear).  A 278 refines
-//  around the wetted hull (margin A 278, rectangle aligned with x and y), built at t = 0; the
-//  hull triangles (X 185) are then sized for the finest level, as on a uniform fine grid.
+//  around the wetted hull (margin A 278, rectangle aligned with x and y); the hull triangles
+//  (X 185) are then sized for the finest level, as on a uniform fine grid.  The zone follows the
+//  body: a regrid every A 271 steps at the end of the step (A 271 0: static), the layout kept
+//  while it covers the flagged tiles with at most 50 % excess, A 280 regrids of hysteresis.  A
+//  fresh patch takes the state of the old patches of its level where they overlap; elsewhere it
+//  is prolonged from its parent, conservatively (every 2x2 block keeps the water level and,
+//  layer by layer, the momentum of its coarse cell).
 //
-//  Scope of this version: static refinement boxes and the static body zone (A 270 levels, A 276
-//  boxes, A 277 boxes without refinement, A 275 tile width, A 278), A 510 2/3, A 511 1/2, A 514
+//  Scope of this version: static refinement boxes and the body zone (A 270 levels, A 276 boxes,
+//  A 277 boxes without refinement, A 275 tile width, A 278, A 271, A 280), A 510 2/3, A 511 1/2, A 514
 //  all, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3),
 //  S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches
 //  stay out of the relaxation zones (B 96), the in- and outflow band and dry or shallow cells (they
@@ -212,6 +217,7 @@ private:
     vector<vector<double>> rval;    // [target grid id+1][rmatch index * NF]: fine face values from other ranks
     int NF = 0;                     // values per face entry: 4 variables x layers + dfx
     void prolong_patch(ghostcell*, nhflow_amr_patch&);
+    template<class F> void from_old(nhflow_amr_patch&, vector<reefamr_patch*>&, F);
     template<class SEL> void fill_col(int, int, SEL);
     template<class SEL> void restrict_col(SEL);
     template<class SEL> void prolong_interior_col(nhflow_amr_patch&, SEL);

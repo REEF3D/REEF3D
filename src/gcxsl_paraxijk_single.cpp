@@ -25,6 +25,10 @@ Author: Hans Bihs
 
 void ghostcell::gcslparaxijk_single(lexer* p, double *f, int gcv)
 {
+    // a patch kernel of the mesh refinement runs without the partition exchange (set_comms)
+    if(!do_comms)
+    return;
+
     starttime=timer();
 
     paramargin=margin;

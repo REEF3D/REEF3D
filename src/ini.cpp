@@ -61,18 +61,18 @@ void control::ini_default()
     A263=10.0;   // double eddyv limiter factor set to high
     A263=2.7;   // double epsisolon coefficient ce_gamma
     A270=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    A271=4;      // int SFLOW and FNPF mesh refinement: regrid interval in time steps (0: static; FNPF: only with A 278)
+    A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF, NHFLOW: only with A 278)
     A272=2;      // int SFLOW and FNPF mesh refinement: buffer cells around flagged cells
     A273=0.0;    // double SFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
     A274=0;      // int SFLOW mesh refinement: flag the shoreline
     A275=8;      // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
     A276=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     A277=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
-    A278=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2: static zone)
+    A278=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
     A278_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
     A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
     A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
-    A280=4;      // int SFLOW and FNPF mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+    A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
 
 
