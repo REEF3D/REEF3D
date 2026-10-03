@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"lagoon_output.h"
+#include"vtr3D.h"
 #include<mpi.h>
 #include<iomanip>
 #include<cstdio>
@@ -293,22 +294,6 @@ void amr_fields(lexer *q, fdm_nhf *d, bool wet, FIELD field)
     field("WL",[&](int ii, int jj) { return d->WL(ii,jj); });
     }
 }
-
-// cell data of a 2D window [i0,i1)x[j0,j1) of a grid, as ASCII .vtr data arrays
-void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int j1, bool wet)
-{
-    amr_fields(q,d,wet,[&](const char *nm, auto f)
-    {
-        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
-        for(int jj=j0; jj<j1; ++jj)
-        {
-            for(int ii=i0; ii<i1; ++ii)
-            out<<setprecision(17)<<f(ii,jj)<<" ";
-            out<<"\n";
-        }
-        out<<"</DataArray>\n";
-    });
-}
 }
 
 void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
@@ -316,49 +301,84 @@ void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
     char name[256];
     snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-L0-%08i-%04i.vtr",printcount_amr,p->mpirank+1);
 
-    const int nx=p->knox, ny=p->knoy, m=marge;
-    ofstream out(name);
-    out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
-    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
-    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
-    out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
-    vtr_fields(out,p,d,0,nx,0,ny,shore);
-    out<<"</CellData>\n<Coordinates>\n";
-    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=0; jj<=ny; ++jj) out<<setprecision(12)<<p->YN[jj+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
-    out.close();
+    write_vtr_grid(p,p,d,name,0,p->knox,0,p->knoy,0);
 }
 
 void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
 {
-    lexer *pp = c.pp;
     char name[256];
     snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i-%04i-%04i.vtr",printcount_amr,p->mpirank+1,id+1);
 
-    ofstream out(name);
-    out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
-    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
-    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
-    out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
-    out<<"<CellData Scalars=\"eta\">\n";
-    vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EXT,EXT+c.ny,shore);
-    out<<"</CellData>\n<Coordinates>\n";
+    write_vtr_grid(p,c.pp,c.d,name,EXT,c.nx,EXT,c.ny,c.lev);
+}
+
+// cells [i0,i0+nx) x [j0,j0+ny) of a grid (lexer q, fields f), binary appended Float32 via vtr3D:
+// the fields of amr_fields
+void nhflow_amr::write_vtr_grid(lexer *p, lexer *q, fdm_nhf *f, const char *name, int i0, int nx, int j0, int ny, int lev)
+{
+    vtr3D vtr;
     const int m = marge;
-    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
-    out.close();
+    const int ncell = nx*ny;
+    const double z0 = 0.0;
+
+    vector<const char*> fname;
+    vector<float> values;
+    amr_fields(q,f,shore,[&](const char *nm, auto g)
+    {
+        fname.push_back(nm);
+        for(int jj=j0; jj<j0+ny; ++jj)
+        for(int ii=i0; ii<i0+nx; ++ii)
+        values.push_back(float(g(ii,jj)));
+    });
+    const int nf = fname.size();
+
+    // fields, then the coordinates
+    vector<int> offset(nf+4);
+    int n=0;
+    offset[n]=0;
+    ++n;
+    for(int r=0; r<nf; ++r)
+    {
+        offset[n]=offset[n-1]+sizeof(float)*ncell+sizeof(int);
+        ++n;
+    }
+    vtr.offset(offset.data(),n,nx+1,ny+1,1);
+
+    stringstream result;
+    const int ext[6] = {0,nx,0,ny,0,0};
+    vtr.beginning(result,ext,p->simtime,lev);
+    n=0;
+    result<<"<CellData Scalars=\"eta\">\n";
+    for(int r=0; r<nf; ++r)
+    {
+        result<<"<DataArray type=\"Float32\" Name=\""<<fname[r]<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        ++n;
+    }
+    result<<"</CellData>\n";
+    vtr.ending(result,offset.data(),n);
+
+    size_t pos = result.str().length();
+    const size_t total = pos + offset[n] + 27;
+    vector<char> buffer(total);
+    memcpy(&buffer[0],result.str().data(),pos);
+
+    const int iin = sizeof(float)*ncell;
+    for(int r=0; r<nf; ++r)
+    {
+        memcpy(&buffer[pos],&iin,sizeof(int));
+        pos+=sizeof(int);
+        memcpy(&buffer[pos],&values[size_t(r)*ncell],sizeof(float)*ncell);
+        pos+=sizeof(float)*ncell;
+    }
+
+    vtr.structureWrite(buffer,pos,&q->XN[i0+m],nx+1,&q->YN[j0+m],ny+1,&z0,1);
+
+    FILE *file = fopen(name,"wb");
+    if(file)
+    {
+        fwrite(buffer.data(),buffer.size(),1,file);
+        fclose(file);
+    }
 }
 
 // P 18: this rank's grids as its .vtr files have them (amr_fields), gathered into the LAGOON
