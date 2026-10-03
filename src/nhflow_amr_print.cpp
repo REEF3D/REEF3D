@@ -151,12 +151,26 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int n=0; n<(int)P.size(); ++n)
     write_vtr(p,*NP(n),n);
 
+    // multiblock index: one block per level, level 0 of every rank + the patches of each level
     int np = (int)P.size();
     vector<int> all(p->mpi_size,0);
     MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
 
+    vector<int> mylev(np), off(p->mpi_size,0);
+    for(int n=0; n<np; ++n)
+    mylev[n] = P[n]->lev;
+    for(int r=1; r<p->mpi_size; ++r)
+    off[r] = off[r-1]+all[r-1];
+    vector<int> plev(off[p->mpi_size-1]+all[p->mpi_size-1]+1);
+    MPI_Gatherv(np>0?&mylev[0]:NULL,np,MPI_INT,&plev[0],&all[0],&off[0],MPI_INT,0,MPI_COMM_WORLD);
+
     if(p->mpirank==0)
     {
+        int ltop=0;
+        for(int r=0; r<p->mpi_size; ++r)
+        for(int q=0; q<all[r]; ++q)
+        ltop = max(ltop,plev[off[r]+q]);
+
         char name[256];
         snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i.vtm",printcount_amr);
         ofstream out(name);
@@ -164,16 +178,22 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
         out<<"<Block index=\"0\" name=\"level 0\">\n";
         for(int r=0; r<p->mpi_size; ++r)
         out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-NHFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<".vtr\"/>\n";
-        out<<setfill(' ')<<"</Block>\n<Block index=\"1\" name=\"patches\">\n";
-        int idx=0;
-        for(int r=0; r<p->mpi_size; ++r)
-        for(int q=0; q<all[r]; ++q)
+        out<<setfill(' ')<<"</Block>\n";
+        for(int l=1; l<=ltop; ++l)
         {
-        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-NHFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
-        out<<setfill(' ');
-        ++idx;
+            out<<"<Block index=\""<<l<<"\" name=\"level "<<l<<"\">\n";
+            int idx=0;
+            for(int r=0; r<p->mpi_size; ++r)
+            for(int q=0; q<all[r]; ++q)
+            if(plev[off[r]+q]==l)
+            {
+                out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-NHFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
+                out<<setfill(' ');
+                ++idx;
+            }
+            out<<"</Block>\n";
         }
-        out<<"</Block>\n</vtkMultiBlockDataSet>\n</VTKFile>\n";
+        out<<"</vtkMultiBlockDataSet>\n</VTKFile>\n";
         out.close();
     }
 
