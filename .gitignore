@@ -1,8 +1,6 @@
 # Codelite build files
 src/Makefile*
 **/.codelite
-.DS_Store
-**/.DS_Store
 All
 Release
 Dev
@@ -24,7 +22,6 @@ src/.ctagsd
 *.json
 # MacOS files
 .DS_Store
-
 # regression suite run directories
 tests/regression/runs/
 __pycache__/
