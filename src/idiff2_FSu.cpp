@@ -25,9 +25,12 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"diff_wallghost.h"
 
 idiff2_FS::idiff2_FS(lexer* p)
 {
+    pwall = new diff_wallghost(p);
+
 	gcval_u=10;
 	gcval_v=11;
 	gcval_w=12;
@@ -35,18 +38,37 @@ idiff2_FS::idiff2_FS(lexer* p)
 
 idiff2_FS::~idiff2_FS()
 {
+    delete pwall;
 }
 
 void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &u_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
-	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
-    int n;
     
     ULOOP
     diff(i,j,k) = u_in(i,j,k);
     
     pgc->start1(p,diff,gcval_u);
+
+    assemble_u(p,a,pgc,u_in,u,v,w,alpha);
+
+	psolv->start(p,a,pgc,diff,a->rhsvec,1);
+    
+	
+    pgc->start1(p,diff,gcval_u);
+    
+    
+	time=pgc->timer()-starttime;
+	p->uiter=p->solveriter;
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
+}
+
+// matrix and rhs of the implicit diffusion of u (into a->M, a->rhsvec, which must be zero)
+void idiff2_FS::assemble_u(lexer* p, fdm* a, ghostcell *pgc, field &u_in, field &u, field &v, field &w, double alpha)
+{
+	double visc_ddy_p,visc_ddy_m,visc_ddz_p,visc_ddz_m;
+    int n;
 
     n=0;
 
@@ -124,39 +146,39 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
         if(p->DF1[IJK]>0)
         {
             
-		if(p->flag1[Im1JK]<0 || p->DF1[Im1JK]<0)
+		if((p->flag1[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0)) || p->DF1[Im1JK]<0)
 		{
-		a->rhsvec.V[n] -= a->M.s[n]*u(i,j,k);
+		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag1[Ip1JK]<0 || p->DF1[Ip1JK]<0)
+		if((p->flag1[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)) || p->DF1[Ip1JK]<0)
 		{
-		a->rhsvec.V[n] -= a->M.n[n]*u(i,j,k);
+		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag1[IJm1K]<0 || p->DF1[IJm1K]<0)
+		if((p->flag1[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0)) || p->DF1[IJm1K]<0)
 		{
-		a->rhsvec.V[n] -= a->M.e[n]*u(i,j,k);
+		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag1[IJp1K]<0 || p->DF1[IJp1K]<0)
+		if((p->flag1[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0)) || p->DF1[IJp1K]<0)
 		{
-		a->rhsvec.V[n] -= a->M.w[n]*u(i,j,k);
+		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag1[IJKm1]<0 || p->DF1[IJKm1]<0)
+		if((p->flag1[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0)) || p->DF1[IJKm1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k);
+		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag1[IJKp1]<0 || p->DF1[IJKp1]<0)
+		if((p->flag1[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)) || p->DF1[IJKp1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k);
+		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
 		}
         
@@ -169,41 +191,81 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
     if(p->D22==2)
     {
+    // walls: couple the ghost cell to the new values (instead of the old stage field)
+    double c1,c2;
+    pwall->update(p,pgc,0,gcval_u);
+
     n=0;
 	ULOOP
 	{
-		if(p->flag1[Im1JK]<0)
+		if(p->flag1[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,1,c1,c2) && (c2==0.0 || p->flag1[Ip1JK]>0))
+		{
+		a->M.p[n] += a->M.s[n]*c1;
+		a->M.n[n] += a->M.s[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.s[n]*u(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag1[Ip1JK]<0)
+		if(p->flag1[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,4,c1,c2) && (c2==0.0 || p->flag1[Im1JK]>0))
+		{
+		a->M.p[n] += a->M.n[n]*c1;
+		a->M.s[n] += a->M.n[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.n[n]*u(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag1[IJm1K]<0)
+		if(p->flag1[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0))
 		{
+		if(pwall->coef(p,i,j,k,3,c1,c2) && (c2==0.0 || p->flag1[IJp1K]>0))
+		{
+		a->M.p[n] += a->M.e[n]*c1;
+		a->M.w[n] += a->M.e[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.e[n]*u(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag1[IJp1K]<0)
+		if(p->flag1[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0))
 		{
+		if(pwall->coef(p,i,j,k,2,c1,c2) && (c2==0.0 || p->flag1[IJm1K]>0))
+		{
+		a->M.p[n] += a->M.w[n]*c1;
+		a->M.e[n] += a->M.w[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.w[n]*u(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag1[IJKm1]<0)
+		if(p->flag1[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,5,c1,c2) && (c2==0.0 || p->flag1[IJKp1]>0))
+		{
+		a->M.p[n] += a->M.b[n]*c1;
+		a->M.t[n] += a->M.b[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.b[n]*u(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag1[IJKp1]<0)
+		if(p->flag1[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,6,c1,c2) && (c2==0.0 || p->flag1[IJKm1]>0))
+		{
+		a->M.p[n] += a->M.t[n]*c1;
+		a->M.b[n] += a->M.t[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.t[n]*u(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
@@ -212,16 +274,38 @@ void idiff2_FS::diff_u(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 
 	++n;
     }
-    
-	
-	psolv->start(p,a,pgc,diff,a->rhsvec,1);
-    
-	
-    pgc->start1(p,diff,gcval_u);
-    
-    
-	time=pgc->timer()-starttime;
-	p->uiter=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"udiffiter: "<<p->uiter<<"  udifftime: "<<setprecision(3)<<time<<endl;
+}
+
+// explicit evaluation of the same operator at the velocities u, v, w: residual of the
+// system assembled with u_in = u, divided by CPOR
+void idiff2_FS::apply_u(lexer* p, fdm* a, ghostcell *pgc, field &D, field &u, field &v, field &w)
+{
+    int q=0;
+    ULOOP
+    {
+    a->rhsvec.V[q]=0.0;
+    ++q;
+    }
+
+    assemble_u(p,a,pgc,u,u,v,w,1.0);
+
+    q=0;
+    ULOOP
+    {
+    D(i,j,k) = (a->rhsvec.V[q] - (a->M.p[q]*u(i,j,k)
+                + a->M.s[q]*u(i-1,j,k)
+                + a->M.n[q]*u(i+1,j,k)
+                + a->M.e[q]*u(i,j-1,k)
+                + a->M.w[q]*u(i,j+1,k)
+                + a->M.b[q]*u(i,j,k-1)
+                + a->M.t[q]*u(i,j,k+1)))/CPOR1;
+    ++q;
+    }
+
+    q=0;
+    ULOOP
+    {
+    a->rhsvec.V[q]=0.0;
+    ++q;
+    }
 }

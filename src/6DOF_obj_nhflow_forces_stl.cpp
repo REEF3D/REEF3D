@@ -71,6 +71,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     // -> buoyancy and Froude-Krylov load on the skeleton
     const double pfac = (p->X16==1) ? (1.0 - p->X16_n) : 1.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
+    double dMhs=0.0,dMhs0=0.0,dMnh=0.0,dMv=0.0;
     
     // Set new time
     curr_time = p->simtime;
@@ -98,6 +99,20 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
         if(p->j_dir==1 && !(yc >= p->originy && yc < p->endy))
         continue;
         
+        // mesh refinement (nhflow_amr): the triangle is sampled on the finest grid at its centroid
+        lexer *pl = p;
+        fdm_nhf *dl = d;
+        slice *WLl = &WL;
+        double dsm = DSM;
+        if(amr_grid_nhflow)
+        {
+            nhflow_grid g = amr_grid_nhflow(xc,yc);
+            pl = g.p;
+            dl = g.d;
+            WLl = g.WL;
+            dsm = DSM*pl->DXM/p->DXM;
+        }
+        
         // Normal vector (pointing outwards)
         double nx = (vy[1] - vy[0])*(vz[2] - vz[0]) - (vy[2] - vy[0])*(vz[1] - vz[0]);
         double ny = (vx[2] - vx[0])*(vz[1] - vz[0]) - (vx[1] - vx[0])*(vz[2] - vz[0]); 
@@ -120,7 +135,7 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             ny = 0.0;
         }
         
-        const double fsf_z = p->wd + p->ccslipol4(d->eta,xc,yc);
+        const double fsf_z = p->wd + pl->ccslipol4(dl->eta,xc,yc);
         
         // Clip the triangle to the wetted side z <= fsf_z
         int np=0;
@@ -174,11 +189,11 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             for(int q=0; q<3; ++q)
             {
                 // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
-                const double pval = p->ccipol7V(d->P, WL, d->bed, mx[q] + p->X42*nx*DSM, 
-                                                                  my[q] + p->X42*ny*DSM, 
-                                                                  mz[q] + p->X42*nz*DSM);
+                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, mx[q] + p->X42*nx*dsm, 
+                                                                    my[q] + p->X42*ny*dsm, 
+                                                                    mz[q] + p->X42*nz*dsm);
                 // hydrostatic pressure at the quadrature point
-                const double hsp = MAX(0.0, (p->wd + p->ccslipol4(d->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
+                const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
                 
                 const double w  = A_sub/3.0;
                 const double fx = -pfac*(pval + hsp)*w*nx;
@@ -199,6 +214,12 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                 Xe_p += fx;
                 Ye_p += fy;
                 Ze_p += fz;
+                {
+                const double hs0 = MAX(0.0, (p->wd - mz[q])*p->W1*fabs(p->W22));
+                dMhs  += rz*(-hsp*w*nx)  - rx*(-hsp*w*nz);
+                dMhs0 += rz*(-hs0*w*nx)  - rx*(-hs0*w*nz);
+                dMnh  += rz*(-pval*w*nx) - rx*(-pval*w*nz);
+                }
             }
             
             A += A_sub;
@@ -212,13 +233,14 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
             const double gy = (ay + by + cy)/3.0;
             const double gz = (az + bz + cz)/3.0;
             
-            hydrodynamic_viscous_forces_nhflow(p, d, pgc, WL, Fv_x, Fv_y, Fv_z, A_sub, gx, gy, gz, nx, ny, nz);
+            hydrodynamic_viscous_forces_nhflow(pl, dl, pgc, *WLl, Fv_x, Fv_y, Fv_z, A_sub, gx, gy, gz, nx, ny, nz);
             
             Xe += Fv_x;
             Ye += Fv_y;
             Ze += Fv_z;
             Ke += (gy - c_(1))*Fv_z - (gz - c_(2))*Fv_y;
             Me += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
+            dMv += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
             Ne += (gx - c_(0))*Fv_y - (gy - c_(1))*Fv_x;
             
             Xe_v += Fv_x;
@@ -228,6 +250,9 @@ void sixdof_obj::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL,
 	}
     
 	// Communication with other processors
+    dMhs=pgc->globalsum(dMhs); dMhs0=pgc->globalsum(dMhs0); dMnh=pgc->globalsum(dMnh); dMv=pgc->globalsum(dMv);
+    if(p->mpirank==0)
+    cout<<"DIAG "<<p->simtime<<" "<<dMhs<<" "<<dMhs0<<" "<<dMnh<<" "<<dMv<<" "<<p->ccslipol4(d->eta,c_(0),c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)+0.35,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)-0.35,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)+0.15,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)-0.15,c_(1))<<" "<<finalize<<endl;
     A = pgc->globalsum(A);
     
 	Xe = pgc->globalsum(Xe);

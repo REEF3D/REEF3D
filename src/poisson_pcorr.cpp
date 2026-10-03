@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"poisson_pcorr.h"
+#include"bc_noflux.h"
 #include<mpi.h>
 #include"lexer.h"
 #include"fdm.h"
@@ -76,32 +77,6 @@ poisson_pcorr::~poisson_pcorr()
 {
 }
 
-void poisson_pcorr::noflux_boundaries(lexer* p, fdm *a)
-{
-    // Faces where the velocity is a boundary value that the projection does not correct
-    // (walls, lid, bed, solid surfaces): the pressure correction needs a zero normal
-    // gradient there. Inflow, outflow and patch boundaries keep their treatment below.
-    noflux.assign(size_t(p->imax)*size_t(p->jmax)*size_t(p->kmax),0);
-
-    for(n=0;n<p->gcb4_count;++n)
-    {
-        int bc = p->gcb4[n][4];
-        int cs = p->gcb4[n][3];
-
-        if(cs<1 || cs>6)
-        continue;
-
-        if(bc==3 || bc==5 || bc==21 || bc==22)
-        {
-        i=p->gcb4[n][0];
-        j=p->gcb4[n][1];
-        k=p->gcb4[n][2];
-
-        noflux[IJK] |= (1<<(cs-1));
-        }
-    }
-}
-
 void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 {
     a->M.reset();
@@ -132,9 +107,10 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	}
     
 
-    // no-flux boundaries (walls, lid, bed, solids): Neumann for the pressure correction,
-    // i.e. the coefficient of the ghost cell is dropped from the diagonal
-    noflux_boundaries(p,a);
+    // boundaries where the normal velocity is prescribed and not corrected by the projection
+    // (walls, lid, bed, solids, inflow, wave generation, velocity patches): Neumann for the
+    // pressure correction, i.e. the coefficient of the ghost cell is dropped from the diagonal
+    bc_noflux_mask(p,noflux,BC_NOFLUX_WALLS|BC_NOFLUX_INFLOW);
 
     int ndirichlet=0;          // remaining boundary faces with a fixed pressure correction
     int pin_n=-1;              // row and side of one converted face, to pin the level if needed

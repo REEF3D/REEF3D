@@ -146,6 +146,7 @@ void bicgstab_ijk_2D::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &
  restart:
     r_j=norm_r0=0.0;	
 	pgc->gcparaxijk_single(p,x,var);
+        pgc->gc_periodic_ijk(p,x);
 	
 	matvec_axb(p,x,rj,M);
 	
@@ -168,7 +169,8 @@ void bicgstab_ijk_2D::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &
 		
 		// -------------------------
 		precon_solve(p,pgc,ph,pj,M);
-		pgc->gcparaxijk_single(p,ph,var);				
+		pgc->gcparaxijk_single(p,ph,var);
+        pgc->gc_periodic_ijk(p,ph);				
 		// -------------------------
 		
 		matvec_std(p,ph,vj,M);
@@ -216,7 +218,8 @@ void bicgstab_ijk_2D::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &
 	{
 		// -------------------------
 		precon_solve(p,pgc,sh,sj,M);
-        pgc->gcparaxijk_single(p,sh,var);		
+        pgc->gcparaxijk_single(p,sh,var);
+        pgc->gc_periodic_ijk(p,sh);		
 		// -------------------------
 
 		matvec_std(p,sh,tj,M);

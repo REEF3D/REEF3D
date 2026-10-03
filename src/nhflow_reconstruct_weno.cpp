@@ -39,6 +39,7 @@ nhflow_reconstruct_weno::nhflow_reconstruct_weno(lexer* p, patchBC_interface *pp
 
 nhflow_reconstruct_weno::~nhflow_reconstruct_weno()
 {
+    delete [] DFDX;
 }
 
 void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)

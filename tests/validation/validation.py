@@ -16,6 +16,7 @@ Usage
   ./validation.py run   --reef3d BIN --divemesh DM --out DIR [--cases 'channel_*'] [--tags ...]
   ./validation.py check DIR [--cases ...]          # evaluate an existing run
   ./validation.py run ... --check                  # run + evaluate
+  ./validation.py compare REF_RUN NEW_RUN          # bitwise A/B of two runs (as regression.py compare)
 
 Result per case: PASS / FAIL with the error measure of the checker and its tolerance.
 Pure Python 3 standard library.
@@ -159,7 +160,58 @@ def check_max_abs(c, rundir):
             "rows_text": "max |%s| = %.3e (final step %d)" % (ck["field"], m, st[0])}
 
 
+def read_wsf(rundir):
+    """REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat -> (x positions, t list, [eta list per gauge])"""
+    fns = glob.glob(os.path.join(rundir, "REEF3D_CFD_WSF", "*WSF-HG.dat"))
+    if not fns:
+        return None
+    xs, ts, cols = [], [], None
+    with open(fns[0]) as f:
+        lines = f.read().split("\n")
+    ng = int(lines[0].split(":")[1])
+    for l in lines[1:]:
+        t = l.split()
+        if len(t) == 3 and len(xs) < ng:
+            try:
+                xs.append(float(t[1]))
+                continue
+            except ValueError:
+                pass
+        if len(t) == ng + 1:
+            try:
+                v = [float(x) for x in t]
+            except ValueError:
+                continue
+            if cols is None:
+                cols = [[] for _ in range(ng)]
+            ts.append(v[0])
+            for g in range(ng):
+                cols[g].append(v[g + 1])
+    return xs, ts, cols
+
+
+def check_wave_height(c, rundir):
+    """Wave height (max - min of the free-surface elevation) at every wave gauge (P 51) in the
+    window t_start..t_end, relative to the target height H: error = max |H_g - H| / H."""
+    ck = c["check"]
+    w = read_wsf(rundir)
+    if w is None or not w[1]:
+        return {"ok": False, "error": float("nan"), "note": "no wave gauge output"}
+    xs, ts, cols = w
+    err, txt = 0.0, []
+    for g, x in enumerate(xs):
+        eta = [e for t, e in zip(ts, cols[g]) if ck["t_start"] <= t <= ck["t_end"]]
+        if not eta:
+            return {"ok": False, "error": float("nan"), "note": "no samples in the time window"}
+        hg = max(eta) - min(eta)
+        e = abs(hg - ck["H"]) / ck["H"]
+        err = max(err, e)
+        txt.append("x = %g: H = %.5f (target %g, %+.1f %%)" % (x, hg, ck["H"], 100.0 * (hg - ck["H"]) / ck["H"]))
+    return {"ok": err <= ck["tol"], "error": err, "tol": ck["tol"], "rows_text": "\n\n".join(txt)}
+
+
 CHECKS = {"channel_startup": check_channel_startup,
+          "wave_height": check_wave_height,
           "max_abs": check_max_abs,
           "conserved_integral": check_conserved_integral}
 
@@ -217,6 +269,9 @@ def main():
     p.add_argument("--check", action="store_true", help="evaluate after running")
     p = sub.add_parser("check"); p.add_argument("run"); p.add_argument("--cases", nargs="*")
     p.add_argument("--tags", nargs="*")
+    p = sub.add_parser("compare"); p.add_argument("ref"); p.add_argument("new"); p.add_argument("--cases", nargs="*")
+    p.add_argument("--rtol", type=float, default=1e-6); p.add_argument("--atol", type=float, default=1e-12)
+    p.add_argument("--require", choices=R.LEVELS, default="identical"); p.add_argument("--report")
     a = ap.parse_args()
 
     if a.cmd == "list":
@@ -228,6 +283,9 @@ def main():
         if a.check:
             rc |= evaluate(R.select_cases(a.cases, a.tags), a.out)
         return rc
+    if a.cmd == "compare":
+        a.cases_list = None
+        return R.cmd_compare(a)
     if a.cmd == "check":
         names = [n for n in R.select_cases(a.cases, a.tags) if os.path.isdir(os.path.join(a.run, n))]
         return evaluate(names, a.run)

@@ -1,1 +1,19 @@
-{"base": "channel_2d_fc3", "ctrl_set": {"F 80": "4", "F 30": "0", "F 40": "0", "N 40": "13"}, "description": "as channel_2d_fc3 with PLIC VOF (F80=4), N40=13: momentum_RK3_PLIC.", "tags": ["diffusion", "laminar", "2d", "plic"]}
+{
+ "base": "channel_2d_fc3",
+ "ctrl_set": {
+  "F 80": "4",
+  "F 30": "0",
+  "F 40": "0",
+  "N 40": "13"
+ },
+ "description": "as channel_2d_fc3 with PLIC VOF (F80=4), N40=13: momentum_RK3_PLIC. The PLIC momentum classes keep the first-order implicit diffusion (transient ~6e-3).",
+ "tags": [
+  "diffusion",
+  "laminar",
+  "2d",
+  "plic"
+ ],
+ "check_set": {
+  "tol_transient": 0.01
+ }
+}

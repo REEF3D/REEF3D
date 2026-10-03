@@ -45,12 +45,10 @@ public:
 
 private:
 
-	void noflux_boundaries(lexer*, fdm*);
-
 	double pval;
 	int count,n,q;
 
-    std::vector<int> noflux;   // per cell: bit (cs-1) set if the face on side cs is a wall/lid/bed
+    std::vector<int> noflux;   // per cell: bit (cs-1) set for a no-flux face on side cs (bc_noflux.h)
     
     density *pd;
 };

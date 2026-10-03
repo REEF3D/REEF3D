@@ -45,6 +45,8 @@ class nhflow_turbulence;
 class vrans_nhflow;
 class sixdof;
 class sediment;
+class sixdof_nhflow;
+class sixdof_obj;
 class ioflow;
 class patchBC_interface;
 class reefmg_core;
@@ -55,7 +57,8 @@ using namespace std;
 //  hierarchy, patch lexers, fill and exchange plans, restriction map, flux matching registry).
 //
 //  Level 0 is the native NHFLOW grid.  A refined patch refines x and y by 2 per level, with the
-//  same sigma layers.  Each patch has its own lexer (horizontal geometry from the core, 3D flags
+//  same sigma layers, or with A 281 1 the sigma layers of its parent halved (nested: the coarse
+//  nodes are nodes of the fine grid).  Each patch has its own lexer (horizontal geometry from the core, 3D flags
 //  and the sigma arrays built here), its own fdm_nhf and its own instances of the NHFLOW classes
 //  (momentum RK2/RK3, reconstruction, HLL/HLLC, free surface, pressure), so the kernels run
 //  unchanged on every grid.
@@ -64,12 +67,16 @@ using namespace std;
 //  Per RK stage:
 //   - the cells around the patches are filled with the stage input (coarse to fine): a patch of
 //     the same level, or interpolated from the next coarser level (bicubic in x,y, layer by
-//     layer; eta, U, V, W and P, then WL = eta + depth of the patch and UH = WL U ...)
+//     layer; eta, U, V, W and P, then WL = eta + depth of the patch and UH = WL U ...; with
+//     A 281 U, V, W linear in sigma within each coarse layer, minmod-limited slope, mean
+//     preserving, and P at the midpoints between the coarse nodes linear)
 //   - continuity and momentum part of the stage (phase_F, phase_M), finest patches first: the
 //     flux hook of a patch records the face fluxes on its box faces (FEx/FEy, Fx/Fy of UH, VH,
 //     WH, per sigma layer, and dfx/dfy), a coarse face next to a finer patch takes the mean of
-//     its two fine faces -> mass and momentum conserved across the interfaces
-//   - restriction of WL, eta, UH, VH, WH to the covered coarse cells (2x2 averages per layer)
+//     its two fine faces (A 281: and of both fine layers) -> mass and momentum conserved across
+//     the interfaces
+//   - restriction of WL, eta, UH, VH, WH to the covered coarse cells (2x2 averages per layer,
+//     A 281: 2x2x2)
 //   - pressure projection on all grids together: the Poisson rows of every grid (nhflow_poisson,
 //     assembled per grid), the unknowns are the leaf nodes; BiCGStab with a FAC preconditioner
 //     (REEFMG V-cycle on level 0, patch-local reefmg_core), as the composite Laplace of FNPF AMR
@@ -77,11 +84,25 @@ using namespace std;
 //   - restriction of the corrected UH, VH, WH and P, relaxation zones and ghost cells
 //   - one global time step from the finest grid (nhflow_timestep with the patch hook)
 //
-//  Scope of this version: static refinement boxes (A 270 levels, A 276 boxes, A 277 boxes
-//  without refinement, A 275 tile width), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2, A 512 0,
-//  A 560 0, A 550 0, B 200 0, X 10 0, S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), 3D
-//  grids.  Patches stay out of the relaxation zones (B 96), the in- and outflow band and dry or
-//  shallow cells (they are fully wet; level 0 keeps its wetting and drying).
+//  Floating bodies (6DOF_nhflow, X 10 1/2): the body is advanced on level 0, before the patches
+//  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
+//  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
+//  triangle on the finest grid at its centroid (pressure, free surface, shear).  A 278 refines
+//  around the wetted hull (margin A 278, rectangle aligned with x and y; with A 279 L a oriented
+//  along the motion plus a wake wedge of length L and half angle a, as SFLOW); the hull triangles
+//  (X 185) are then sized for the finest level, as on a uniform fine grid.  The zone follows the
+//  body: a regrid every A 271 steps at the end of the step (A 271 0: static), the layout kept
+//  while it covers the flagged tiles with at most 50 % excess, A 280 regrids of hysteresis.  A
+//  fresh patch takes the state of the old patches of its level where they overlap; elsewhere it
+//  is prolonged from its parent, conservatively (every 2x2 block keeps the water level and,
+//  layer by layer, the momentum of its coarse cell).
+//
+//  Scope of this version: static refinement boxes and the body zone (A 270 levels, A 276 boxes,
+//  A 277 boxes without refinement, A 275 tile width, A 278, A 279, A 271, A 280, A 281), A 510 2/3, A 511 1/2, A 514
+//  all, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3),
+//  S 10 0, no solids (A 580 1, A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches
+//  stay out of the relaxation zones (B 96), the in- and outflow band and dry or shallow cells (they
+//  are fully wet; level 0 keeps its wetting and drying).
 
 struct nhflow_amr_patch : public reefamr_patch
 {
@@ -103,7 +124,8 @@ struct nhflow_amr_patch : public reefamr_patch
     nhflow_stage_obj S;
 
     // box faces recorded by the flux hook: rec[ipol][side][r*knoz+k], r fine face index along the
-    // side, k layer; side 0 low x, 1 high x, 2 low y, 3 high y; ipol 0: dfx/dfy (r only)
+    // side, k layer of the patch; side 0 low x, 1 high x, 2 low y, 3 high y; ipol 0: dfx/dfy (r
+    // only)
     vector<double> rec[5][4];
 
     // composite pressure
@@ -116,7 +138,7 @@ struct nhflow_amr_patch : public reefamr_patch
 class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook
 {
 public:
-    nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*);
+    nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
     virtual ~nhflow_amr();
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
@@ -153,6 +175,7 @@ protected:
     void regrid_static(ghostcell*) override;
     void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
     void regrid_finish(ghostcell*, int) override;
+    void zone_bodies(vector<sixdof_obj*>&) override;
 
 private:
     // a patch kernel runs: ghostcell exchange off and the fdm of the ghostcell on the patch (the
@@ -184,6 +207,11 @@ private:
     double pq3(const double*, lexer*, int, int, int, int, int, bool);
     double plin(slice&, lexer*, int, int, int, int);
     void pcol(int, int, int, int, int, const double*, int, double*);
+    void vcell(lexer*, const double*, int, int, double*);
+
+    // vertical refinement (A 281): the sigma layers doubled on every level (vr 2), nested
+    int vr = 1;
+    int klev(int l) const { return p0->knoz*((vr==2) ? (1<<l) : 1); }
 
     // stage input arrays of grid g at stage s (s<0: end of the step)
     struct stg { slice *WL; double *UH,*VH,*WH; };
@@ -201,6 +229,7 @@ private:
     vector<vector<double>> rval;    // [target grid id+1][rmatch index * NF]: fine face values from other ranks
     int NF = 0;                     // values per face entry: 4 variables x layers + dfx
     void prolong_patch(ghostcell*, nhflow_amr_patch&);
+    template<class F> void from_old(nhflow_amr_patch&, vector<reefamr_patch*>&, F);
     template<class SEL> void fill_col(int, int, SEL);
     template<class SEL> void restrict_col(SEL);
     template<class SEL> void prolong_interior_col(nhflow_amr_patch&, SEL);
@@ -230,6 +259,13 @@ private:
     double pr_res_last = 0.0;
     int layout_id = 0;
 
+    // floating bodies (X 10 1/2): the level-0 bodies, the finest grid at (x,y) (local grid id, -1:
+    // level 0), the hull on a patch, the loads from the finest grids
+    sixdof_nhflow *b6 = nullptr;
+    int finest_at(double, double);
+    void body_patch(ghostcell*, nhflow_amr_patch&);
+    void body_loads(lexer*, ghostcell*);
+
     // output
     void write_vtr(lexer*, nhflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm_nhf*);
@@ -240,13 +276,12 @@ private:
     fdm_nhf *d0;
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
-    sixdof *p6v;                    // objects shared by all patches (their NHFLOW calls do nothing)
-    ioflow *pflowv;
+    ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;
     nhflow_convection *pconv0;
     nhflow_timestep *pstep0;
-    int cur_stage = 0;
+    int cur_stage = -1;             // RK stage of the time step, -1: outside
     int gcval_eta;
     int bc5, bc6;                   // boundary types of the bed and the free surface (gcb4)
     double printtime_amr;

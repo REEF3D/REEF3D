@@ -246,7 +246,7 @@ public:
     double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
     // discretization
-    int D10,D11,D20,D21,D22,D30,D31,D37;
+    int D10,D11,D20,D21,D22,D23,D30,D31,D37;
 
     // Free Surface
     int F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F50,F150,F151;
@@ -564,6 +564,11 @@ public:
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
     int X410;
+    int X500,X501,X502,X503,X504;
+    double X501_ax,X501_ay,X501_az,X501_xa,X501_ya,X501_za;
+    double X502_B;
+    double X503_K,X503_B;
+    double X504_qmin,X504_qmax,X504_K,X504_C;
 
     // FSI
     int Z10,Z11,Z20;

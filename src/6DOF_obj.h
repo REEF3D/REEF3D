@@ -36,6 +36,8 @@ Authors: Hans Bihs, Tobias Martin
 #include"sliceint5.h"
 #include"vtp3D.h"
 #include"geo_raycast.h"
+#include"6DOF_pto.h"
+#include"6DOF_pto_joint.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -162,6 +164,18 @@ public:
     double amr_c(int n) const {return c_(n);}
     double amr_ramp_draft(lexer *p) {return ramp_draft(p);}
     slice& amr_fs() {return fs;}
+
+    // NHFLOW mesh refinement (nhflow_amr): the body on a refined grid (level set FB of the grid
+    // with its own ray-cast workspace IO, CL, CR of the grid size and the band spacing dsm)
+    void ray_cast_nhflow_grid(lexer*, fdm_nhf*, ghostcell*, int*, int*, int*, double);
+    double nhflow_dsm() const {return DSM;}
+    // the grid that samples the load of a hull triangle with centroid (x,y): lexer, fdm and
+    // water level (empty: the grid of the call)
+    struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
+    std::function<nhflow_grid(double,double)> amr_grid_nhflow;
+    // the hull triangles (X 185) are sized for the horizontal spacing times amr_hfac: the finest
+    // level of a refinement zone around the body (set before the initialisation)
+    double amr_hfac = 1.0;
 
 private:
 
@@ -453,13 +467,26 @@ private:
     
     // FNPF: classical RK4 stage derivatives and the added-mass coupling
     void rk4(lexer*, ghostcell*, int);
-    void externalForces_fnpf(lexer*, ghostcell*, bool);
+    void externalForces_fnpf(lexer*, ghostcell*, int, bool);
     void apply_added_mass(lexer*);
     bool p_fixed_dof(lexer*, int);
     Eigen::Vector3d rk4_p_[3], rk4_c_[3], rk4_h_[3];
     Eigen::Vector4d rk4_e_[3];
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
+
+    // FNPF: power take-off (X 500 - X 504, 6DOF_obj_pto.cpp)
+    void ini_pto(lexer*, ghostcell*);
+    void pto_forces(lexer*, ghostcell*, int);
+    void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
+    void pto_stability_check(lexer*);
+    pto_joint_prismatic pto_joint_;
+    pto_composite pto_;
+    pto_state pto_s_;
+    pto_output pto_out_;
+    bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
+    double pto_E_ = 0.0, pto_Pn_ = 0.0, pto_tn_ = -1.0;
+    ofstream printpto;
 };
 
 #endif

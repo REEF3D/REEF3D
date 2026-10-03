@@ -72,6 +72,10 @@ nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : georay(
     }
     
     // ----
+    IO = CL = CR = nullptr;
+    FRK1 = dt = L = nullptr;
+    prdisc = nullptr;
+
     if(forcing_flag==1 || p->B200>=1)
     {
     p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
@@ -88,5 +92,12 @@ nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : georay(
 
 nhflow_geometry::~nhflow_geometry()
 {
+    delete [] IO;
+    delete [] CL;
+    delete [] CR;
+    delete [] FRK1;
+    delete [] dt;
+    delete [] L;
+    delete prdisc;
 }
 

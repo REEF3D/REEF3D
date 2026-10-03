@@ -146,6 +146,9 @@ void sixdof_obj::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xext=Yext=Zext=Kext=Mext=Next=0.0;
     
+    // power take-off (X 500)
+    ini_pto(p,pgc);
+
     Aadd_.setZero();
     am_on_=false;
     
@@ -170,7 +173,7 @@ bool sixdof_obj::fnpf_fixed(lexer *p)
 
 void sixdof_obj::solve_eqmotion_fnpf(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
-    externalForces_fnpf(p,pgc,finalize);
+    externalForces_fnpf(p,pgc,iter,finalize);
     
     update_forces(p);
     
@@ -182,12 +185,15 @@ void sixdof_obj::solve_eqmotion_fnpf(lexer *p, ghostcell *pgc, int iter, bool fi
     rk4(p,pgc,iter);
 }
 
-void sixdof_obj::externalForces_fnpf(lexer *p, ghostcell *pgc, bool finalize)
+void sixdof_obj::externalForces_fnpf(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
 
 	if(p->X310>0)
 	mooringForces(p,pgc,1.0);
+
+    if(pto_on_)
+    pto_forces(p,pgc,iter);
 }
 
 void sixdof_obj::rk4(lexer *p, ghostcell *pgc, int iter)
@@ -256,6 +262,9 @@ void sixdof_obj::apply_added_mass(lexer *p)
     r.head<3>() = Ffb_;
     r.tail<3>() = Mfb_ - gyro;
     
+    // PTO Jacobians (X 500 2)
+    pto_implicit(p,L,r);
+
     bool fixed[6];
     
     for(int n=0; n<6; ++n)

@@ -53,6 +53,9 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
 
 nhflow_pjm_corr::~nhflow_pjm_corr()
 {
+    delete pd;
+    delete ppois;
+    delete [] PCORR;
 }
 
 void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL,

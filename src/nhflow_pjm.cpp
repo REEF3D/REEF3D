@@ -52,6 +52,9 @@ nhflow_pjm::nhflow_pjm(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *
 
 nhflow_pjm::~nhflow_pjm()
 {
+    delete pd;
+    delete ppois;
+    delete [] P0;
 }
 
 void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL,

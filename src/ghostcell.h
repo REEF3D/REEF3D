@@ -280,6 +280,7 @@ public:
     void fivec2D_vel(lexer*,double*,sliceint&);
     void fivec_buildlist(lexer*);
     void gc_periodic(lexer*,field&,int,int);
+    void gc_periodic_ijk(lexer*,double*);
     
     //NHFLOW
     void gciobc_update(lexer*, fdm_nhf*);

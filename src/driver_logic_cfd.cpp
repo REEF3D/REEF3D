@@ -601,40 +601,21 @@ void driver::logic_cfd()
 	if(p->N40==0)
 	pmom = new momentum_void();
     
-    if(p->N40==2 || p->N40==22)
-	pmom = new momentum_FC2(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if((p->N40==3 || p->N40==23) && p->F80!=4)
-	pmom = new momentum_FC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
+    // RK2, RK3 and low-storage RK3 with the level set outside (12, 13, 44) or inside the stages
+    // (2, 3, 4), conservative form (33)
+    if(p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
+    || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
+	pmom = new momentum_rk(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+
     if((p->N40==3 || p->N40==23) && p->F80==4)
     pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    if((p->N40==4 || p->N40==24) && p->F80!=4)
-	pmom = new momentum_FCLS3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    
-    if(p->N40==12)
-	pmom = new momentum_RK2(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-    
-    if(p->N40==13 && p->F80!=4)
-    pmom = new momentum_RK3(p,a,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi);
-    
+
     if(p->N40==13 && p->F80==4)
     pmom = new momentum_RK3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,pfsi);
 
-
-    if(p->N40==33 && p->F80!=4)
-	pmom = new momentum_FCC3(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
     if(p->N40==33 && p->F80==4)
     pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-    
-    
-    if(p->N40==44)
-    pmom = new momentum_RKLS3(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pfsi); 
-    
-    
+
     if(p->N40==14 && (p->X10==0 && p->Z10==0))
     {
     pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 

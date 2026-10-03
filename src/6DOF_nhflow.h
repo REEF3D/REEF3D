@@ -79,6 +79,10 @@ public:
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
     
+    // the bodies, for the NHFLOW mesh refinement (nhflow_amr)
+    int objects() const {return number6DOF;}
+    sixdof_obj* object(int nb) {return fb_obj[nb];}
+    
 private:
 	
     // hires gradient

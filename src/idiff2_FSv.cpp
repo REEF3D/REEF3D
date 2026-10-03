@@ -25,18 +25,36 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"diff_wallghost.h"
 
 void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &v_in, field &u, field &v, field &w, double alpha)
 {
 	starttime=pgc->timer();
 	
-	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
-    int n;
     
     VLOOP
     diff(i,j,k) = v_in(i,j,k);
     
     pgc->start2(p,diff,gcval_v);
+
+    assemble_v(p,a,pgc,v_in,u,v,w,alpha);
+
+	psolv->start(p,a,pgc,diff,a->rhsvec,2);
+    
+    
+	pgc->start2(p,diff,gcval_v);
+	
+    time=pgc->timer()-starttime;
+	p->viter=p->solveriter;
+	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
+	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
+}
+
+// matrix and rhs of the implicit diffusion of v (into a->M, a->rhsvec, which must be zero)
+void idiff2_FS::assemble_v(lexer* p, fdm* a, ghostcell *pgc, field &v_in, field &u, field &v, field &w, double alpha)
+{
+	double visc_ddx_p,visc_ddx_m,visc_ddz_p,visc_ddz_m;
+    int n;
 
 	n=0;
 
@@ -115,39 +133,39 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
         if(p->DF2[IJK]>0)
         {
             
-		if(p->flag2[Im1JK]<0 || p->DF2[Im1JK]<0)
+		if((p->flag2[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0)) || p->DF2[Im1JK]<0)
 		{
-		a->rhsvec.V[n] -= a->M.s[n]*v(i,j,k);
+		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag2[Ip1JK]<0 || p->DF2[Ip1JK]<0)
+		if((p->flag2[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)) || p->DF2[Ip1JK]<0)
 		{
-		a->rhsvec.V[n] -= a->M.n[n]*v(i,j,k);
+		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag2[IJm1K]<0 || p->DF2[IJm1K]<0)
+		if((p->flag2[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0)) || p->DF2[IJm1K]<0)
 		{
-		a->rhsvec.V[n] -= a->M.e[n]*v(i,j,k);
+		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag2[IJp1K]<0 || p->DF2[IJp1K]<0)
+		if((p->flag2[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0)) || p->DF2[IJp1K]<0)
 		{
-		a->rhsvec.V[n] -= a->M.w[n]*v(i,j,k);
+		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKm1]<0 || p->DF2[IJKm1]<0)
+		if((p->flag2[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0)) || p->DF2[IJKm1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.b[n]*v(i,j,k);
+		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKp1]<0 || p->DF2[IJKp1]<0)
+		if((p->flag2[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)) || p->DF2[IJKp1]<0)
 		{
-		a->rhsvec.V[n] -= a->M.t[n]*v(i,j,k);
+		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;
 		}
         
@@ -160,42 +178,82 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
     
     if(p->D22==2)
     {
+    // walls: couple the ghost cell to the new values (instead of the old stage field)
+    double c1,c2;
+    pwall->update(p,pgc,1,gcval_v);
+
     n=0;
 	VLOOP
 	{
             
-		if(p->flag2[Im1JK]<0)
+		if(p->flag2[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,1,c1,c2) && (c2==0.0 || p->flag2[Ip1JK]>0))
+		{
+		a->M.p[n] += a->M.s[n]*c1;
+		a->M.n[n] += a->M.s[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.s[n]*v(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag2[Ip1JK]<0)
+		if(p->flag2[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,4,c1,c2) && (c2==0.0 || p->flag2[Im1JK]>0))
+		{
+		a->M.p[n] += a->M.n[n]*c1;
+		a->M.s[n] += a->M.n[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.n[n]*v(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag2[IJm1K]<0)
+		if(p->flag2[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0))
 		{
+		if(pwall->coef(p,i,j,k,3,c1,c2) && (c2==0.0 || p->flag2[IJp1K]>0))
+		{
+		a->M.p[n] += a->M.e[n]*c1;
+		a->M.w[n] += a->M.e[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.e[n]*v(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag2[IJp1K]<0)
+		if(p->flag2[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0))
 		{
+		if(pwall->coef(p,i,j,k,2,c1,c2) && (c2==0.0 || p->flag2[IJm1K]>0))
+		{
+		a->M.p[n] += a->M.w[n]*c1;
+		a->M.e[n] += a->M.w[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.w[n]*v(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKm1]<0)
+		if(p->flag2[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,5,c1,c2) && (c2==0.0 || p->flag2[IJKp1]>0))
+		{
+		a->M.p[n] += a->M.b[n]*c1;
+		a->M.t[n] += a->M.b[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.b[n]*v(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKp1]<0)
+		if(p->flag2[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,6,c1,c2) && (c2==0.0 || p->flag2[IJKm1]>0))
+		{
+		a->M.p[n] += a->M.t[n]*c1;
+		a->M.b[n] += a->M.t[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.t[n]*v(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}
@@ -204,17 +262,40 @@ void idiff2_FS::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &d
 	++n;
 	}
     }
+}
 
+// explicit evaluation of the same operator at the velocities u, v, w: residual of the
+// system assembled with v_in = v, divided by CPOR
+void idiff2_FS::apply_v(lexer* p, fdm* a, ghostcell *pgc, field &D, field &u, field &v, field &w)
+{
+    int q=0;
+    VLOOP
+    {
+    a->rhsvec.V[q]=0.0;
+    ++q;
+    }
 
-	psolv->start(p,a,pgc,diff,a->rhsvec,2);
-    
-    
-	pgc->start2(p,diff,gcval_v);
-	
-    time=pgc->timer()-starttime;
-	p->viter=p->solveriter;
-	if(p->mpirank==0 && p->D21==1 && (p->count%p->P12==0))
-	cout<<"vdiffiter: "<<p->viter<<"  vdifftime: "<<setprecision(3)<<time<<endl;
+    assemble_v(p,a,pgc,v,u,v,w,1.0);
+
+    q=0;
+    VLOOP
+    {
+    D(i,j,k) = (a->rhsvec.V[q] - (a->M.p[q]*v(i,j,k)
+                + a->M.s[q]*v(i-1,j,k)
+                + a->M.n[q]*v(i+1,j,k)
+                + a->M.e[q]*v(i,j-1,k)
+                + a->M.w[q]*v(i,j+1,k)
+                + a->M.b[q]*v(i,j,k-1)
+                + a->M.t[q]*v(i,j,k+1)))/CPOR2;
+    ++q;
+    }
+
+    q=0;
+    VLOOP
+    {
+    a->rhsvec.V[q]=0.0;
+    ++q;
+    }
 }
 
 

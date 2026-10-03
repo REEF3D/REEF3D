@@ -249,7 +249,7 @@ void driver::logic_nhflow()
 
 // mesh refinement (A 270): patches on the NHFLOW grid
     if(p->A270>0)
-    pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep);
+    pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep,p6dof);
 
 //Lagrangian particles
     if(p->L10==0)

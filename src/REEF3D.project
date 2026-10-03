@@ -53,6 +53,7 @@
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_amr_fill.h"/>
         <File Name="nhflow_amr.h"/>
+        <File Name="nhflow_amr_6dof.h"/>
       </VirtualDirectory>
       <File Name="reefamr.h"/>
       <File Name="reefamr_krylov.h"/>
@@ -180,8 +181,7 @@
             <File Name="les_io.h"/>
             <File Name="rans_io.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="EARSM">
-          </VirtualDirectory>
+          <VirtualDirectory Name="EARSM"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="pressure_void.h"/>
@@ -193,6 +193,8 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.h"/>
+            <File Name="diff_wallghost.h"/>
+            <File Name="bc_noflux.h"/>
             <File Name="poisson.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
@@ -212,17 +214,11 @@
           <File Name="momentum_void.h"/>
           <File Name="momentum_RKLS3_sf.h"/>
           <File Name="momentum_RKLS3_df.h"/>
-          <File Name="momentum_RKLS3.h"/>
+          <File Name="momentum_rk.h"/>
           <File Name="momentum_RK3_PLIC.h"/>
-          <File Name="momentum_RK3.h"/>
-          <File Name="momentum_RK2.h"/>
           <File Name="momentum_forcing.h"/>
-          <File Name="momentum_FCLS3.h"/>
           <File Name="momentum_FCC3_PLIC.h"/>
-          <File Name="momentum_FCC3.h"/>
           <File Name="momentum_FC3_PLIC.h"/>
-          <File Name="momentum_FC3.h"/>
-          <File Name="momentum_FC2.h"/>
           <File Name="momentum.h"/>
           <File Name="bcmom.h"/>
         </VirtualDirectory>
@@ -232,8 +228,7 @@
             <File Name="VOF_void.h"/>
             <File Name="VOF_PLIC.h"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VOF Algebraic">
-          </VirtualDirectory>
+          <VirtualDirectory Name="VOF Algebraic"/>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reini_walld.h"/>
             <File Name="reini_void.h"/>
@@ -371,14 +366,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Update">
-        </VirtualDirectory>
-        <VirtualDirectory Name="Laplace">
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSFBC">
-        </VirtualDirectory>
-        <VirtualDirectory Name="PTF">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Update"/>
+        <VirtualDirectory Name="Laplace"/>
+        <VirtualDirectory Name="FSFBC"/>
+        <VirtualDirectory Name="PTF"/>
         <VirtualDirectory Name="FDM">
           <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
@@ -953,6 +944,11 @@
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="PTO">
+          <File Name="6DOF_pto.h"/>
+          <File Name="6DOF_pto_elements.h"/>
+          <File Name="6DOF_pto_joint.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geometry">
           <File Name="6DOF_obj_remesh.h"/>
         </VirtualDirectory>
@@ -1095,8 +1091,7 @@
         <File Name="waves_header.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Boundary">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Boundary"/>
         <VirtualDirectory Name="Grid">
           <File Name="grid.h"/>
           <File Name="grid_helper.h"/>
@@ -1161,7 +1156,6 @@
       </VirtualDirectory>
       <File Name="lexer.h"/>
       <File Name="driver.h"/>
-      <File Name="regression_dump.h"/>
       <VirtualDirectory Name="Control">
         <File Name="control.h"/>
       </VirtualDirectory>
@@ -1244,6 +1238,7 @@
         <File Name="nhflow_amr_print.cpp"/>
         <File Name="nhflow_amr_press.cpp"/>
         <File Name="nhflow_amr.cpp"/>
+        <File Name="nhflow_amr_6dof.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
@@ -1569,8 +1564,7 @@
             <File Name="rans_ini.cpp"/>
             <File Name="les_io.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="EARSM">
-          </VirtualDirectory>
+          <VirtualDirectory Name="EARSM"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="pressure_void.cpp"/>
@@ -1584,6 +1578,8 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Poisson">
             <File Name="poisson_pcorr.cpp"/>
+            <File Name="diff_wallghost.cpp"/>
+            <File Name="bc_noflux.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
             <File Name="density_vof.cpp"/>
@@ -1601,16 +1597,10 @@
           <File Name="momentum_void.cpp"/>
           <File Name="momentum_RKLS3_sf.cpp"/>
           <File Name="momentum_RKLS3_df.cpp"/>
-          <File Name="momentum_RKLS3.cpp"/>
+          <File Name="momentum_rk.cpp"/>
           <File Name="momentum_RK3_PLIC.cpp"/>
-          <File Name="momentum_RK3.cpp"/>
-          <File Name="momentum_RK2.cpp"/>
-          <File Name="momentum_FCLS3.cpp"/>
           <File Name="momentum_FCC3_PLIC.cpp"/>
-          <File Name="momentum_FCC3.cpp"/>
           <File Name="momentum_FC3_PLIC.cpp"/>
-          <File Name="momentum_FC3.cpp"/>
-          <File Name="momentum_FC2.cpp"/>
           <VirtualDirectory Name="Forcing">
             <File Name="momentum_forcing.cpp"/>
           </VirtualDirectory>
@@ -1640,8 +1630,7 @@
             <File Name="VOF_PLIC_normalVector.cpp"/>
             <File Name="VOF_PLIC.cpp"/>
           </VirtualDirectory>
-          <VirtualDirectory Name="VOF Algebraic">
-          </VirtualDirectory>
+          <VirtualDirectory Name="VOF Algebraic"/>
           <VirtualDirectory Name="Reinitialization">
             <File Name="reini_walld.cpp"/>
             <File Name="reini_void.cpp"/>
@@ -1666,14 +1655,10 @@
       </VirtualDirectory>
       <VirtualDirectory Name="PTF">
         <VirtualDirectory Name="Breaking"/>
-        <VirtualDirectory Name="Update">
-        </VirtualDirectory>
-        <VirtualDirectory Name="Laplace">
-        </VirtualDirectory>
-        <VirtualDirectory Name="FSFBC">
-        </VirtualDirectory>
-        <VirtualDirectory Name="PTF">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Update"/>
+        <VirtualDirectory Name="Laplace"/>
+        <VirtualDirectory Name="FSFBC"/>
+        <VirtualDirectory Name="PTF"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Convect">
@@ -2445,6 +2430,11 @@
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
+        <VirtualDirectory Name="PTO">
+          <File Name="6DOF_obj_pto.cpp"/>
+          <File Name="6DOF_pto_elements.cpp"/>
+          <File Name="6DOF_pto_joint.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Membrane">
           <File Name="net_membrane.cpp"/>
           <File Name="net_membrane_structure.cpp"/>
@@ -2935,8 +2925,7 @@
         <File Name="driver_stop.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Grid">
-        <VirtualDirectory Name="Boundary">
-        </VirtualDirectory>
+        <VirtualDirectory Name="Boundary"/>
         <VirtualDirectory Name="Grid">
           <File Name="grid.cpp"/>
           <VirtualDirectory Name="Grid Helper">
@@ -3004,7 +2993,6 @@
       </VirtualDirectory>
       <File Name="main.cpp"/>
       <File Name="driver.cpp"/>
-      <File Name="regression_dump.cpp"/>
       <File Name="lexer.cpp"/>
       <VirtualDirectory Name="Logic">
         <File Name="driver_logic_nhflow.cpp"/>

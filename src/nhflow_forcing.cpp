@@ -69,6 +69,9 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
 nhflow_forcing::~nhflow_forcing()
 {
     delete prodtree;
+    delete [] FX;
+    delete [] FY;
+    delete [] FZ;
 }
 
 void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof, 

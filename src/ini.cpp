@@ -61,19 +61,19 @@ void control::ini_default()
     A263=10.0;   // double eddyv limiter factor set to high
     A263=2.7;   // double epsisolon coefficient ce_gamma
     A270=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    A271=4;      // int SFLOW and FNPF mesh refinement: regrid interval in time steps (0: static; FNPF: only with A 278)
+    A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF, NHFLOW: only with A 278)
     A272=2;      // int SFLOW and FNPF mesh refinement: buffer cells around flagged cells
     A273=0.0;    // double SFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
     A274=0;      // int SFLOW mesh refinement: flag the shoreline
     A275=8;      // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
     A276=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     A277=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
-    A278=0;      // int SFLOW and FNPF mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1)
-    A278_r=0.5;  // double SFLOW and FNPF mesh refinement: margin around the hull
-    A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
-    A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
-    A280=4;      // int SFLOW and FNPF mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
-    A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
+    A278=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
+    A278_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
+    A279_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
+    A279_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
+    A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+    A281=0;      // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
 
 
     // FNPF
@@ -506,6 +506,7 @@ void control::ini_default()
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
     D22=1;            // int diffusion wall boundary condition
+    D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
     D37=0;          // int type of FSFBC for single fluid flow
@@ -1188,6 +1189,19 @@ void control::ini_default()
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
     X410=0;         // int etaval for draft
+    X500=0;         // int PTO: 0 off, 1 explicit, 2 linearly implicit coupling
+    X501=0;         // int PTO joint attachment point given
+    X501_ax=X501_ay=0.0; // double PTO joint axis
+    X501_az=1.0;
+    X501_xa=X501_ya=X501_za=0.0; // double PTO joint attachment point, default CoG
+    X502=0;         // int PTO linear damper
+    X502_B=0.0;     // double damping coefficient [N s/m]
+    X503=0;         // int PTO spring-damper
+    X503_K=X503_B=0.0; // double stiffness [N/m], damping [N s/m]
+    X504=0;         // int PTO end-stops
+    X504_qmin=-1.0e20; // double lower stroke limit [m]
+    X504_qmax=1.0e20;  // double upper stroke limit [m]
+    X504_K=X504_C=0.0; // double end-stop stiffness [N/m], damping [N s/m]
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model
