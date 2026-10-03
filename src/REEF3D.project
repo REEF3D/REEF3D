@@ -1045,6 +1045,9 @@
         <File Name="regression_dump.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Runlog">
+          <File Name="runlog.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Probes">
           <File Name="print_gage_location.h"/>
         </VirtualDirectory>
@@ -2892,6 +2895,9 @@
         <File Name="regression_dump.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Runlog">
+          <File Name="runlog.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Probes">
           <File Name="print_gage_location.cpp"/>
         </VirtualDirectory>
