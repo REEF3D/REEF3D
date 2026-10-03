@@ -1,0 +1,21 @@
+diff --git a/src/REEF3D.project b/src/REEF3D.project
+--- a/src/REEF3D.project
++++ b/src/REEF3D.project
+@@ -1212,6 +1212,8 @@
+         <File Name="wave_lib_Stokes_5th_SH.h"/>
+         <VirtualDirectory Name="Interface">
+           <File Name="wave_interface.h"/>
++          <File Name="wave_field.h"/>
++          <File Name="wave_source.h"/>
+         </VirtualDirectory>
+         <VirtualDirectory Name="Spectrum">
+           <File Name="wave_lib_spectrum.h"/>
+@@ -3221,6 +3223,8 @@
+         <VirtualDirectory Name="Interface">
+           <File Name="wave_interface_decomp.cpp"/>
+           <File Name="wave_interface.cpp"/>
++          <File Name="wave_field.cpp"/>
++          <File Name="wave_source.cpp"/>
+         </VirtualDirectory>
+         <File Name="wave_lib_cnoidal_1st.cpp"/>
+         <File Name="wave_lib_cnoidal_5th.cpp"/>
