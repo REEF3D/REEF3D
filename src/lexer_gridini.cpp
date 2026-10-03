@@ -122,8 +122,10 @@ void lexer::flagini()
 
     // gcsldf
     gcsldfeta4_count=1;
+    gcsldfbed4_count=1;
 
     Iarray(gcsldfeta4,gcsldfeta4_count,6);
+    Iarray(gcsldfbed4,gcsldfbed4_count,6);
 }
 
 int lexer::conv(double a)

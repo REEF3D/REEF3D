@@ -35,6 +35,7 @@ nhflow_reconstruct_hires::nhflow_reconstruct_hires(lexer* p, patchBC_interface *
 
 nhflow_reconstruct_hires::~nhflow_reconstruct_hires()
 {
+    delete [] DFDX;
 }
 
 void nhflow_reconstruct_hires::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf*, slice& f, slice &fs, slice &fn)

@@ -36,6 +36,8 @@ using namespace std;
 class vrans_nhflow
 {
 public:
+    virtual ~vrans_nhflow() {}
+
 	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
 	virtual void update(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
 

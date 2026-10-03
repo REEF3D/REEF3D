@@ -83,6 +83,13 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
 {
+    delete [] UHRK1;
+    delete [] VHRK1;
+    delete [] WHRK1;
+    delete [] UHDIFF;
+    delete [] VHDIFF;
+    delete [] WHDIFF;
+    delete pwind;
 }
 
 void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, 

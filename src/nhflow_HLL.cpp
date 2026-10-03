@@ -43,6 +43,7 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
 
 nhflow_HLL::~nhflow_HLL()
 {
+    delete pflux;
 }
 
 void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)

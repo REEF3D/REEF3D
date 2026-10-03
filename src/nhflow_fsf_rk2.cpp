@@ -49,6 +49,7 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, 
 
 nhflow_fsf_f::~nhflow_fsf_f()
 {
+    delete [] temp;
 }
 
 void nhflow_fsf_f::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
