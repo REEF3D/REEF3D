@@ -456,6 +456,7 @@ private:
     // output
     void write_vtr(lexer*, nhflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm_nhf*);
+    void write_vtr_grid(lexer*, lexer*, fdm_nhf*, const char*, int, int, int, int, int);
     bool print_lagoon(lexer*, fdm_nhf*, ghostcell*);
     void gauges(lexer*, fdm_nhf*, ghostcell*);
     double mass(lexer*, fdm_nhf*, ghostcell*);
