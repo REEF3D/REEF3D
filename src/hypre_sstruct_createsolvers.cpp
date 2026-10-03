@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #include "hypre_sstruct.h"
 #include "lexer.h"
 #include "fdm.h"
@@ -179,3 +181,5 @@ void hypre_sstruct::delete_solver5(lexer* p,ghostcell* pgc)
     else if(p->N11==33)
     HYPRE_SStructSplitDestroy(precond);
 }
+
+#endif  // REEF3D_USE_HYPRE

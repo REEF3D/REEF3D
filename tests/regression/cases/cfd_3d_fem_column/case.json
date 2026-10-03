@@ -1,0 +1,7 @@
+{
+ "files": ["fem.dat"],
+ "np": 4, "steps": 60,
+ "tags": ["quick", "3d", "dambreak", "fem", "fsi", "mpi"],
+ "description": "3D dam break onto an elastic column (FEM solid, Z 30), 4 MPI ranks, coarse.",
+ "covers": ["FEM 3D coupling", "kernel sampling/spreading across 3D subdomain borders", "FEM on 4 ranks"]
+}

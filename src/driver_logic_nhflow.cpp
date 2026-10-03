@@ -210,7 +210,7 @@ void driver::logic_nhflow()
     if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 	
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 	if(p->N10>=10 && p->N10<20)
 	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     

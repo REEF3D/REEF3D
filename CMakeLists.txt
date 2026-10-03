@@ -55,10 +55,10 @@ endif()
 find_package(MPI REQUIRED CXX)
 
 # ── HYPRE ────────────────────────────────────────────────────────────────────
-# -DREEF3D_USE_HYPRE=OFF builds without hypre: the hypre_* solver classes are left out and
-# N 10 10-39 falls back to REEFMG (N 10 1).
+# hypre is opt-in, for benchmarking only: -DREEF3D_USE_HYPRE=ON builds the hypre solvers N 10 10-39.
+# The default build has no hypre dependency; N 10 10-39 then fall back to REEFMG (N 10 1).
 
-option(REEF3D_USE_HYPRE "Build with the hypre solvers (N 10 10-39)" ON)
+option(REEF3D_USE_HYPRE "Build with the hypre solvers N 10 10-39 (benchmarking only)" OFF)
 
 if(REEF3D_USE_HYPRE)
 set(HYPRE_DIR "/usr/local/hypre" CACHE PATH "HYPRE installation prefix")
@@ -85,7 +85,7 @@ else()
   add_library(HYPRE::HYPRE ALIAS HYPRE)
 endif()
 else()
-  message(STATUS "Building without HYPRE: Poisson solves with REEFMG (N 10 1)")
+  message(STATUS "Building without HYPRE (default): Poisson solves with REEFMG (N 10 1); -DREEF3D_USE_HYPRE=ON to enable")
 endif()
 
 # ── Eigen ─────────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ target_compile_definitions(REEF3D PRIVATE
   $<$<CONFIG:Debug>:BUILD="debug">
   $<$<CONFIG:Dev>:BUILD="dev">
   $<$<CONFIG:All>:BUILD="all">
-  $<$<NOT:$<BOOL:${REEF3D_USE_HYPRE}>>:REEF3D_NO_HYPRE>)
+  $<$<BOOL:${REEF3D_USE_HYPRE}>:REEF3D_USE_HYPRE>)
 
 # ── Compile flags ─────────────────────────────────────────────────────────────
 # CMAKE_CXX_FLAGS_<CONFIG> already covers Dev/All (set above).

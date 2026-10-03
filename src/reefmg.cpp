@@ -27,15 +27,15 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "vec.h"
 #include "matrix_diag.h"
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 #include "hypre_struct.h"
 #endif
 
 // what to suggest when REEFMG can not take a case
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 #define REEFMG_ALT "Use N 10 10-19 (hypre)."
 #else
-#define REEFMG_ALT "hypre (N 10 10-19) is not available in this build (NO_HYPRE=1)."
+#define REEFMG_ALT "hypre (N 10 10-19) is not available in this build (hypre is opt-in: make HYPRE=1)."
 #endif
 
 #include <iostream>
@@ -313,7 +313,7 @@ void reefmg::start_solver44(lexer *p, fdm *a, ghostcell *pgc, field *ff, double 
 
     if(!pot.agglomerated() && (long)C.gnx*C.gny > POT_COARSEST_MAX)
     {
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
         if(p->mpirank==0)
         cout<<"REEFMG potential (var 44): coarsest grid "<<C.gnx<<" x "<<C.gny
             <<" is too large to resolve this pure-Neumann problem reliably, and too "
@@ -332,7 +332,7 @@ void reefmg::start_solver44(lexer *p, fdm *a, ghostcell *pgc, field *ff, double 
         if(p->mpirank==0)
         cout<<"REEFMG potential (var 44): coarsest grid "<<C.gnx<<" x "<<C.gny
             <<" is too large to resolve this pure-Neumann problem reliably, and too "
-            <<"large to agglomerate; no hypre in this build (NO_HYPRE=1), solving it with REEFMG anyway - "
+            <<"large to agglomerate; no hypre in this build (hypre is opt-in: make HYPRE=1), solving it with REEFMG anyway - "
             <<"check the initial potential, or use fewer ranks for the initialisation."<<endl;
 #endif
     }

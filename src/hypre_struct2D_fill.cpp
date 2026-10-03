@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #include "hypre_struct2D.h"
 #include "lexer.h"
 #include "fdm2D.h"
@@ -143,3 +145,5 @@ void hypre_struct2D::fillbackvec(lexer *p, slice &f, vec2D &xvec, int var)
         ++count;
     }
 }
+
+#endif  // REEF3D_USE_HYPRE

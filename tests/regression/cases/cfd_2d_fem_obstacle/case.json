@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_add": [
+  "Z 30 1"
+ ],
+ "files": [
+  "fem.dat"
+ ],
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "fem",
+  "fsi"
+ ],
+ "description": "2D dam break onto an elastic obstacle (FEM solid, Z 30), coarse. The bore reaches the obstacle within the run.",
+ "covers": [
+  "fem_coupling start_cfd (forcing, sampling, reaction loads)",
+  "fem_solid reduced hex8 + hourglass",
+  "plane strain",
+  "monitor and log output",
+  "N10=1 REEFMG pressure solver"
+ ],
+ "ctrl_set": {
+  "N 10": "1"
+ }
+}

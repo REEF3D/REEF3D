@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"ioflow_f.h"
 #include"ioflow_void.h"
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
 #endif
 #include"reefmg2D.h"

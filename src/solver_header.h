@@ -29,7 +29,7 @@ Author: Hans Bihs
 
 #include"reefmg.h"
 
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 #include"hypre_aij.h"
 #include"hypre_struct.h"
 #include"hypre_sstruct.h"

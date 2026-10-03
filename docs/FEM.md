@@ -164,9 +164,10 @@ g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src 
 ./fem_test            # or: ./fem_test cantilever|freq|rotation|j2|crackband|drop|collapse
 ```
 
-### Coupled test cases (`tests/fem/cases`, single rank)
+### Coupled test cases (`tests/fem/cases`)
 
-Grids with DIVEMesh (`control.txt`), then REEF3D in the same directory.
+Grids with DIVEMesh (`control.txt`), then REEF3D in the same directory. All cases use the REEFMG
+pressure solver (`N 10 1`).
 
 * `elastic_obstacle_2D`: dam break onto an elastic obstacle (Walhorn et al. 2005 set-up: water column
   0.146 x 0.292 m, obstacle 12 x 80 mm at x = 0.292 m, rho 2500, E 1 MPa), dx = 3 mm, solid h = 2 mm.
@@ -181,15 +182,40 @@ Grids with DIVEMesh (`control.txt`), then REEF3D in the same directory.
   (ft 20 kPa). The wall cracks at the base at the impact (t = 0.33 s), topples, breaks into pieces and
   the fragments and debris particles are carried downstream along the ground (t = 0.6 s: 182 of 300
   elements eroded, 376 debris particles).
+* `column_3D`: 3D dam break (0.4 x 0.35 m column across a 0.3 m wide channel) onto a flexible square
+  column 6 x 6 x 25 cm (rho 1500, E 2 MPa, nu 0.3), dx = 1 cm, solid h = 1 cm, 8 ranks. The bore hits at
+  t = 0.19 s, base shear peaks at 14 N, the column swings with up to 4.1 mm top displacement at about
+  5.3 Hz (dry first bending frequency 5.7 Hz; the attached water lowers it), small cross-flow motion.
+  Wall time 18 min on 8 cores (Apple silicon, Open MPI 4.1.6). The column starts without gravity
+  settling, so a small axial vibration (+-0.5 mm) from the sudden self weight persists.
+
+### Multi-rank check
+
+`elastic_obstacle_2D` and `wall_failure_2D` on 1 and 4 ranks (the obstacle sits exactly on a subdomain
+border). Up to the impact the FEM monitors agree to 1e-6 (relative), through the first 25 ms of the
+impact to 1e-5, the loads to 1e-3. Afterwards the violent free-surface flow amplifies the round-off
+differences of the two decompositions to a few percent (tip displacement 4.30 vs 4.33 cm), and the
+discrete erosion events of the wall shift by single elements. That is the usual sensitivity of the
+flow, not a parallel defect. Plot: `tests/fem/reference/mpi_check.png`.
+
+### Regression cases (`tests/regression`)
+
+| case | np | covers |
+|---|---|---|
+| `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | coupling, reaction loads, plane strain, monitors; MPI sampling and spreading across a border |
+| `cfd_2d_fem_wall_failure` | 1 | concrete damage, erosion, surface rebuild, debris, ground and part contact (50 steps) |
+| `cfd_3d_fem_column` | 4 | 3D coupling on 4 ranks |
+
+The FEM text output (`REEF3D_FEM/*.dat`) is part of the text comparison. `cfd_2d_fem_obstacle` and
+`_mpi2` agree to 1e-9. The references come from macOS clang 21 / Open MPI 4.1.6 (the wall case from
+Linux g++, where both machines agree to 5 digits over its 50 steps; beyond about 55 steps the erosion
+cascade makes it round-off sensitive).
 
 ## Limitations and next steps
 
 * The coupling is staggered (one exchange per fluid step). The enclosed-fluid correction
   limits the effective mass to 10 % of the solid mass, so bodies lighter than about 1.1 rho_f
   (floating structures, timber) are not supported yet (would need sub-iterations).
-* The parallel path (owner sampling, one `MPI_Allreduce`, spreading at subdomain borders) is written
-  like the FSI strips and rod trees but was only run on one rank so far: compare `M 10 1` and
-  `M 10 4` on the test cases before production runs.
 * The solid is replicated on every rank and computed serially: fine up to some 10^5 elements,
   beyond that it needs OpenMP or a partition of the solid.
 * The fluid inside thick bodies is only constrained near the surface (diffuse direct forcing); the
@@ -197,6 +223,8 @@ Grids with DIVEMesh (`control.txt`), then REEF3D in the same directory.
   for the ghost-cell method would remove this.
 * `loads pressure` neglects shear stresses; `loads reaction` includes the no-slip reaction but its accuracy for skin friction is that of a diffuse immersed boundary.
 * Voxel geometry: surfaces are stair-stepped at the lattice size.
+* No gravity settling before the flow arrives yet (planned with the accessibility layer); use
+  `relax T alpha` for now.
 * Debris particles are point masses with drag and buoyancy, they do not displace fluid. The drag
   reaction on the fluid is explicit; very dense debris piles in one cell may need a point-implicit form.
 * Contact: node-node and node-ground only (no node-face contact), plane ground only.

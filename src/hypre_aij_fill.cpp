@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #include "hypre_aij.h"
 #include "lexer.h"
 #include "fdm.h"
@@ -111,3 +113,5 @@ void hypre_aij::fill_matrix_7p(lexer* p,fdm* a, ghostcell* pgc, field &f)
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &par_x);
 }
+
+#endif  // REEF3D_USE_HYPRE

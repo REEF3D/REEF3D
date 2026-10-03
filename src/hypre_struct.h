@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #ifndef HYPRE_STRUCT_H_
 #define HYPRE_STRUCT_H_
 
@@ -141,3 +143,5 @@ private:
 };
 
 #endif
+
+#endif  // REEF3D_USE_HYPRE

@@ -26,15 +26,15 @@ Author: Hans Bihs
 #include "slice.h"
 #include "matrix2D.h"
 #include "vec2D.h"
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 #include "hypre_struct2D.h"
 #endif
 
 // what to suggest when REEFMG can not take a case
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
 #define REEFMG2D_ALT "Use N 10 11-19 (hypre)."
 #else
-#define REEFMG2D_ALT "hypre (N 10 11-19) is not available in this build (NO_HYPRE=1)."
+#define REEFMG2D_ALT "hypre (N 10 11-19) is not available in this build (hypre is opt-in: make HYPRE=1)."
 #endif
 #include "slice4.h"
 
@@ -489,10 +489,10 @@ void reefmg2D::fine_apply(const sc_level &L,const double *x,double *y)
 //  hypre GMRES preconditioned by PFMG, as with N 10 12 / N 11 11
 void reefmg2D::solve_hypre(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, vec2D &xvec, vec2D &rhsvec, int var)
 {
-#ifdef REEF3D_NO_HYPRE
-    // no hypre in this build (NO_HYPRE=1): the solution stays at the value it had before the solve
+#ifndef REEF3D_USE_HYPRE
+    // no hypre in this build (hypre is opt-in: make HYPRE=1): the solution stays at the value it had before the solve
     if(p->mpirank==0)
-    cout<<"REEFMG2D: no hypre in this build (NO_HYPRE=1) - the pure-Neumann solve is skipped, the field keeps "
+    cout<<"REEFMG2D: no hypre in this build (hypre is opt-in: make HYPRE=1) - the pure-Neumann solve is skipped, the field keeps "
         <<"its initial value."<<endl;
     return;
 #else
@@ -541,7 +541,7 @@ void reefmg2D::solve_neumann(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, ve
 
     if(!pot.agglomerated() && (long)C.gnx*C.gny > POT2D_COARSEST_MAX)
     {
-#ifndef REEF3D_NO_HYPRE
+#ifdef REEF3D_USE_HYPRE
         if(p->mpirank==0)
         cout<<"REEFMG2D pure-Neumann solve: coarsest grid "<<C.gnx<<" x "<<C.gny
             <<" too large to resolve reliably and to agglomerate - solving it with "
@@ -553,7 +553,7 @@ void reefmg2D::solve_neumann(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, ve
         // no hypre in this build: solve it with the distributed hierarchy (the smooth mode may be inaccurate)
         if(p->mpirank==0)
         cout<<"REEFMG2D pure-Neumann solve: coarsest grid "<<C.gnx<<" x "<<C.gny
-            <<" too large to resolve reliably and to agglomerate; no hypre in this build (NO_HYPRE=1), "
+            <<" too large to resolve reliably and to agglomerate; no hypre in this build (hypre is opt-in: make HYPRE=1), "
             <<"solving it with REEFMG anyway - check the result, or use fewer ranks."<<endl;
 #endif
     }
