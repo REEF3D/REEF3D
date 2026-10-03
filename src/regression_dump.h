@@ -36,6 +36,7 @@ class concentration;
 class field;
 class fdm_nhf;
 class fdm_fnpf;
+class fdm2D;
 
 /*--------------------------------------------------------------------
 regression_dump: exact (double precision) state output for the
@@ -78,6 +79,11 @@ public:
     void fnpf_step(lexer*, fdm_fnpf*, ghostcell*);
     void fnpf_final(lexer*, fdm_fnpf*, ghostcell*);
 
+    // SFLOW
+    void sflow_ini(lexer*, fdm2D*, ghostcell*);
+    void sflow_step(lexer*, fdm2D*, ghostcell*);
+    void sflow_final(lexer*, fdm2D*, ghostcell*);
+
 private:
     void cfd_state(lexer*, fdm*, turbulence*, concentration*);
     void cfd_collect(lexer*, fdm*, turbulence*, concentration*);
@@ -85,6 +91,8 @@ private:
     void nhflow_collect(lexer*, fdm_nhf*);
     void fnpf_state(lexer*, fdm_fnpf*);
     void fnpf_collect(lexer*, fdm_fnpf*);
+    void sflow_state(lexer*, fdm2D*);
+    void sflow_collect(lexer*, fdm2D*);
     void add(const char*, int);
     void write_state(lexer*);
 

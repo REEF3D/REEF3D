@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<string>
 
 double iowave::xgen_calc(lexer *p)
 {
@@ -129,64 +130,12 @@ double iowave::ygen2(lexer *p)
 
 double iowave::distgen_calc(lexer *p)
 {
-    double x0,y0,denom;
-	double dist=1.0e20;
-    int test1,test2;    
-    
-    x0 = p->pos_x();
-    y0 = p->pos_y();
-    
-    for(int qn=0;qn<p->B108;++qn)
-    {
-    test1=0;
-    test2=0;
-    
-    test1=intriangle(p,G1[qn][0],G1[qn][1],G3[qn][0],G3[qn][1],G2[qn][0],G2[qn][1],x0,y0);
-    test2=intriangle(p,G3[qn][0],G3[qn][1],G4[qn][0],G4[qn][1],G2[qn][0],G2[qn][1],x0,y0);
-
-        if(test1==1||test2==1)
-        {
-        denom = sqrt(pow(Ge[qn][1]-Gs[qn][1],2.0) + pow(Ge[qn][0]-Gs[qn][0],2.0));
-        denom = denom>1.0e-20?denom:1.0e20;
-        
-        dist = MIN(fabs((Ge[qn][1]-Gs[qn][1])*x0 - (Ge[qn][0]-Gs[qn][0])*y0 
-                  + Ge[qn][0]*Gs[qn][1] - Ge[qn][1]*Gs[qn][0])/denom,dist);
-        
-        }
-    }
-    
-	return dist;
+    return zones.relax_dist(p->pos_x(),p->pos_y());
 }
 
 double iowave::distbeach_calc(lexer *p)
 {
-    double x0,y0,denom;
-	double dist=1.0e20;
-    int test1,test2;    
-    
-    x0 = p->pos_x();
-    y0 = p->pos_y();
-    
-    for(int qn=0;qn<p->B107;++qn)
-    {
-    test1=0;
-    test2=0;
-    
-    test1=intriangle(p,B1[qn][0],B1[qn][1],B3[qn][0],B3[qn][1],B2[qn][0],B2[qn][1],x0,y0);
-    test2=intriangle(p,B3[qn][0],B3[qn][1],B4[qn][0],B4[qn][1],B2[qn][0],B2[qn][1],x0,y0);
-
-        if(test1==1||test2==1)
-        {
-        denom = sqrt(pow(Be[qn][1]-Bs[qn][1],2.0) + pow(Be[qn][0]-Bs[qn][0],2.0));
-        denom = denom>1.0e-20?denom:1.0e20;
-        
-        dist = MIN(fabs((Be[qn][1]-Bs[qn][1])*x0 - (Be[qn][0]-Bs[qn][0])*y0 
-                  + Be[qn][0]*Bs[qn][1] - Be[qn][1]*Bs[qn][0])/denom,dist);
-        
-        }
-    }
-    
-	return dist;
+    return zones.beach_dist(p->pos_x(),p->pos_y());
 }
 
 // distgen()/distbeach() test every slice cell against all B107/B108 zone
@@ -302,7 +251,7 @@ double iowave::ygen(lexer *p)
 // functions that consume the value arrays.
 void iowave::genzone4_build(lexer *p, ghostcell *pgc)
 {
-    gen_i.clear(); gen_j.clear();
+    gen_i.clear(); gen_j.clear(); gen_src.clear();
     gen_idx.assign(size_t(p->imax)*size_t(p->jmax),-1);
     
     std::vector<double> xg_, yg_;
@@ -317,6 +266,9 @@ void iowave::genzone4_build(lexer *p, ghostcell *pgc)
         gen_idx[IJ] = int(gen_i.size());
         gen_i.push_back(i);
         gen_j.push_back(j);
+        
+        const bc_zone *z = zones.relax_zone_at(p->pos_x(),p->pos_y());
+        gen_src.push_back((z!=nullptr && !z->sources.empty()) ? &z->sources : nullptr);
         xg_.push_back(xgen(p));
         yg_.push_back(ygen(p));
         }
@@ -325,4 +277,35 @@ void iowave::genzone4_build(lexer *p, ghostcell *pgc)
     wave_cache_points(p,pgc,xg_,yg_);
     
     gen_built=true;
+}
+
+// zone input (B 520-524) that iowave cannot honour yet
+void iowave::zones_check(lexer *p)
+{
+    std::string err;
+    
+    if(zones.user_relax() && p->B98!=2)
+    err = "relaxation zones (B 520 method 1) need relaxation wave generation (B 98 2)";
+    
+    if(zones.has_sources() && p->A10!=3 && p->A10!=5)
+    err = "zone sources (B 524) are available for FNPF and NHFLOW only, so far";
+    
+    if(zones.has_sources() && p->B89==1)
+    err = "zone sources (B 524) do not work with decomposed precalc (B 89 1) yet";
+    
+    for(const bc_zone &z : zones.relax)
+    for(int s : z.sources)
+    if(!source_exists(s))
+    err = "zone "+std::to_string(z.id)+" uses source "+std::to_string(s)+", which is not defined (B 92 is 1, B 500 the others)";
+    
+    for(const bc_zone &z : zones.beach)
+    if(!z.sources.empty())
+    err = "beach zone "+std::to_string(z.id)+" cannot have sources (B 524)";
+    
+    if(!err.empty())
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! iowave: "<<err<<" !!!"<<endl<<endl;
+        exit(1);
+    }
 }

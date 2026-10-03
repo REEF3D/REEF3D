@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"ioflow.h"
 #include"wave_interface.h"
+#include"bc_zone.h"
 #include"field1.h"
 #include"field2.h"
 #include"field4.h"
@@ -233,6 +234,7 @@ private:
     slice1 relax1_wg, relax1_nb;
     slice2 relax2_wg, relax2_nb;
     slice4 relax4_wg, relax4_nb;
+    bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
     sliceint4 wgflag;
 	
     
@@ -276,6 +278,8 @@ private:
     // (wave_lib.h). gen_idx maps a slice cell IJ to its index, -1 outside.
     void genzone4_build(lexer*,ghostcell*);
     std::vector<int> gen_i, gen_j;
+    std::vector<const std::vector<int>*> gen_src;   // sources of the column's zone (B 524), nullptr: all
+    void zones_check(lexer*);
     std::vector<int> gen_idx;
     bool gen_built=false;
     

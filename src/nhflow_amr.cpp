@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_amr.h"
 #include"nhflow_amr_fill.h"
 #include"lexer.h"
+#include"bc_zone.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice4.h"
@@ -108,18 +109,8 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     }
 
     // no refinement in the relaxation zones of the wave generation (B 98 2) and the numerical
-    // beach (B 99 1, 2), measured from the ends of the domain in x
-    const double big = 1.0e20;
-    if(p->B98==2 && p->B96_1>0.0)
-    {
-        q.fbox.push_back(-big); q.fbox.push_back(p->global_xmin+p->B96_1);
-        q.fbox.push_back(-big); q.fbox.push_back(big);
-    }
-    if((p->B99==1 || p->B99==2) && p->B96_2>0.0)
-    {
-        q.fbox.push_back(p->global_xmax-p->B96_2); q.fbox.push_back(big);
-        q.fbox.push_back(-big); q.fbox.push_back(big);
-    }
+    // beach (B 99 1, 2), measured from the ends of the domain in x, and in the B 520 zones (bc_zone)
+    bc_zone_set::from_legacy(p,pgc).norefine_boxes(p,q.fbox);
     q.ioband = 4;
 
     // refinement around the floating body: margin A 278 around the wetted hull, a rectangle

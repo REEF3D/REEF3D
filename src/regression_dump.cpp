@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"concentration.h"
 #include"fdm_nhf.h"
 #include"fdm_fnpf.h"
+#include"fdm2D.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -431,4 +432,89 @@ void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     steplog.flush();
     fnpf_state(p,c);
+}
+
+// ---------------------------------------------------------------------
+// SFLOW
+// ---------------------------------------------------------------------
+
+void regression_dump::sflow_collect(lexer *p, fdm2D *b)
+{
+    names.clear();
+    data.clear();
+
+    add("P",p->cellnum);
+    SLICELOOP1
+    data.back().push_back(b->P(i,j));
+
+    add("Q",p->cellnum);
+    SLICELOOP2
+    data.back().push_back(b->Q(i,j));
+
+    add("eta",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(b->eta(i,j));
+
+    add("WL",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(b->WL(i,j));
+
+    add("press",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(b->press(i,j));
+}
+
+void regression_dump::sflow_state(lexer *p, fdm2D *b)
+{
+    if(last_written==p->count)
+    return;
+
+    sflow_collect(p,b);
+    write_state(p);
+}
+
+void regression_dump::sflow_ini(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog<<"# count simtime dt  sum(P^2) sum(Q^2) sum(eta^2) sum(WL^2) sum(press^2)  (rank-local, hexfloat)"<<std::endl;
+
+    sflow_state(p,b);
+}
+
+void regression_dump::sflow_step(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    double sP=0.0, sQ=0.0, se=0.0, swl=0.0, sp=0.0;
+
+    SLICELOOP1
+    sP += b->P(i,j)*b->P(i,j);
+
+    SLICELOOP2
+    sQ += b->Q(i,j)*b->Q(i,j);
+
+    SLICELOOP4
+    {
+    se  += b->eta(i,j)*b->eta(i,j);
+    swl += b->WL(i,j)*b->WL(i,j);
+    sp  += b->press(i,j)*b->press(i,j);
+    }
+
+    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<"  "
+           <<sP<<" "<<sQ<<" "<<se<<" "<<swl<<" "<<sp<<"\n";
+
+    if(every>0 && p->count%every==0)
+    sflow_state(p,b);
+}
+
+void regression_dump::sflow_final(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog.flush();
+    sflow_state(p,b);
 }

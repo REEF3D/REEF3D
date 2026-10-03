@@ -85,6 +85,11 @@ public:
     double wave_fi_time_cos(lexer*,ghostcell*,int);
     
     void wave_prestep(lexer*,ghostcell*);
+    
+    // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
+    // ids as in B 524 (1: the B 92 wave); nullptr: all sources
+    void select_sources(const std::vector<int>*);
+    bool source_exists(int) const;
 
     double wave_paddle_Q(lexer*,ghostcell*,double);
 
@@ -92,6 +97,7 @@ public:
 private:
     wave_lib *pwave;      // source 1: the B 92 wave, unchanged path
     wave_field *pfield;   // additional sources (B 500-504), summed on top
+    bool legacy_on;       // the B 92 wave is among the selected sources
     
     
     int n,m,count;

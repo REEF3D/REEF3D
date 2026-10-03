@@ -72,6 +72,27 @@ bool wave_field::nonlinear(int t)
     return !(t==1 || t==2 || t==3 || t==31 || t==41 || t==51);
 }
 
+bool wave_field::exists(int k) const
+{
+    for(const wave_source *s : src)
+    if(s->id==k)
+    return true;
+    
+    return false;
+}
+
+bool wave_field::use(const wave_source *s) const
+{
+    if(filter==nullptr)
+    return true;
+    
+    for(int k : *filter)
+    if(k==s->id)
+    return true;
+    
+    return false;
+}
+
 // ---------------------------------------------------------------------
 // input
 // ---------------------------------------------------------------------
@@ -408,7 +429,7 @@ double wave_field::eta_c(lexer *p, int q)
     double val=0.0;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         scope sc(p,*s);
         val += s->ramp(p)*s->lib->wave_eta_c(p,q);
@@ -422,7 +443,7 @@ double wave_field::fi_c(lexer *p, int q, double z)
     double val=0.0;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         scope sc(p,*s);
         val += s->ramp(p)*s->lib->wave_fi_c(p,q,z);
@@ -436,7 +457,7 @@ void wave_field::uvw_c(lexer *p, int q, double z, double &u, double &v, double &
     double us,vs,ws;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         scope sc(p,*s);
         const double r = s->ramp(p);

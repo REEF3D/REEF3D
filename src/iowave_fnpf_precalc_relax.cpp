@@ -30,6 +30,8 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     
     if(!gen_built) genzone4_build(p,pgc);
     
+    const bool zsel = zones.has_sources();
+    
     // eta and Fifsf of a cell together, so the cell's cached phases are read
     // once (they do not fit in cache for many components). Fifsf is evaluated
     // at the surface eta(i,j) just computed, which the halo exchange below
@@ -43,6 +45,9 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         i = gen_i[q];
         j = gen_j[q];
         
+        if(zsel)
+        select_sources(gen_src[q]);
+        
         PSLICECHECK4
         {
         eta(i,j) = wave_eta_c(p,pgc,int(q));
@@ -54,6 +59,9 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
         }
         }
     }
+    
+    if(zsel)
+    select_sources(nullptr);
     
     pgc->gcsl_start4(p,eta,50);
 }

@@ -156,6 +156,8 @@ wave_interface::wave_interface(lexer *p, ghostcell *pgc)
     pwave = wave_lib_create(p,pgc,wtype);
 
     pfield = new wave_field(p,pgc);
+    
+    legacy_on = true;
 }
 
 wave_interface::~wave_interface()
@@ -246,7 +248,7 @@ double wave_interface::wave_eta_c(lexer *p, ghostcell *pgc, int q)
 {
     double eta=0.0;
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     eta = pwave->wave_eta_c(p,q);
 
     if(pfield->size()>0)
@@ -259,7 +261,7 @@ double wave_interface::wave_fi_c(lexer *p, ghostcell *pgc, int q, double z)
 {
     z = MAX(z,-wD);
     
-    double val = pwave->wave_fi_c(p,q,z);
+    double val = legacy_on ? pwave->wave_fi_c(p,q,z) : 0.0;
 
     if(pfield->size()>0)
     val += pfield->fi_c(p,q,z);
@@ -273,7 +275,7 @@ void wave_interface::wave_uvw_c(lexer *p, ghostcell *pgc, int q, double z, doubl
     
     z = MAX(z,-wD);
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     pwave->wave_uvw_c(p,q,z,u,v,w);
 
     if(pfield->size()>0)
@@ -323,4 +325,25 @@ double wave_interface::wave_paddle_Q(lexer *p, ghostcell *pgc, double z)
     val = pwave->wave_paddle_Q(p,z);
 
     return val;
+}
+
+void wave_interface::select_sources(const std::vector<int> *ids)
+{
+    legacy_on = true;
+    
+    if(ids!=nullptr)
+    {
+        legacy_on = false;
+        
+        for(int k : *ids)
+        if(k==1)
+        legacy_on = true;
+    }
+    
+    pfield->filter = ids;
+}
+
+bool wave_interface::source_exists(int k) const
+{
+    return k==1 || pfield->exists(k);
 }

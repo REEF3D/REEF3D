@@ -73,6 +73,10 @@ public:
     void prestep(lexer*, ghostcell*);
 
     static bool nonlinear(int);
+    bool exists(int) const;
+    
+    // sources used by the cached evaluation (eta_c, fi_c, uvw_c); nullptr: all
+    const std::vector<int> *filter = nullptr;
 
 private:
     void read(lexer*, ghostcell*);
@@ -91,6 +95,8 @@ private:
         double wavetime;
     };
 
+    bool use(const wave_source*) const;
+    
     std::vector<wave_source*> src;
 };
 

@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_stokes2",
+ "ctrl_set": {
+  "B 98": "3"
+ },
+ "description": "old input: SFLOW Dirichlet wave generation (B 98 3) with relaxation beach.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "iowave_sflow_wavegen"
+ ]
+}

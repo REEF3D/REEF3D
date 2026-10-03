@@ -72,13 +72,17 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_FNPF_WSF/*.dat",
     "REEF3D_FNPF_ProbePoint/*.dat",
     "REEF3D_FNPF_WSFLINE/*.dat",
+    "REEF3D_SFLOW_WSF/*.dat",
+    "REEF3D_SFLOW_ProbePoint/*.dat",
+    "REEF3D_SFLOW_WSFLINE/*.dat",
 ]
 
 # output folders deleted after a run unless --keep (large and not compared)
 BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals_VTP",
                "REEF3D_CFD_FSF", "DIVEMesh_Paraview",
                "REEF3D_NHFLOW_VTU", "REEF3D_NHFLOW_VTP_FSF", "REEF3D_NHFLOW_VTP_BED",
-               "REEF3D_FNPF_VTU", "REEF3D_FNPF_VTP_FSF", "REEF3D_FNPF_VTP_BED"]
+               "REEF3D_FNPF_VTU", "REEF3D_FNPF_VTP_FSF", "REEF3D_FNPF_VTP_BED",
+               "REEF3D_SFLOW_VTP_FSF", "REEF3D_SFLOW_VTP_BED"]
 
 LEVELS = ["identical", "close", "different", "failed"]
 
@@ -181,10 +185,13 @@ def write_inputs(c, rundir, steps_override=None):
         nsteps, tmax = "100000000", repr(float(c["time"]))
     else:
         nsteps, tmax = str(steps), "1.0e9"
-    ctrl = apply_overrides(c["ctrl_lines"],
-                           {"M 10": str(np_), "N 45": nsteps, "N 41": tmax,
-                            "P 20": None, "P 30": None, "P 40": None, "P 41": None,
-                            "P 42": None, "P 12": "10"}, [])
+    suite = {"M 10": str(np_), "N 45": nsteps, "N 41": tmax,
+             "P 20": None, "P 30": None, "P 40": None, "P 41": None,
+             "P 42": None, "P 12": "10"}
+    # "keep_keys": print keys a case needs (e.g. P 40 state files for a chain stage)
+    for k in c.get("keep_keys", []):
+        suite.pop(k, None)
+    ctrl = apply_overrides(c["ctrl_lines"], suite, [])
     with open(os.path.join(rundir, "control.txt"), "w") as f:
         f.write("\n".join(control) + "\n")
     with open(os.path.join(rundir, "ctrl.txt"), "w") as f:
@@ -198,6 +205,17 @@ def run_case(c, args, outroot):
     if os.path.isdir(rundir):
         shutil.rmtree(rundir)
     write_inputs(c, rundir, args.steps)
+    # "chain": earlier runs whose output folders this case reads (hydrodynamic coupling):
+    # [{"case": "<case>", "copy": ["REEF3D_FNPF_STATE", ...]}], run in <rundir>/_chain
+    for stage in c.get("chain", []):
+        sc = load_case(stage["case"])
+        sinfo = run_case(sc, args, os.path.join(rundir, "_chain"))
+        if sinfo["status"] != "ok":
+            info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
+                    "status": "chain stage %s: %s" % (stage["case"], sinfo["status"])}
+            return finish_run(rundir, info, args)
+        for d in stage.get("copy", []):
+            shutil.copytree(os.path.join(rundir, "_chain", stage["case"], d), os.path.join(rundir, d))
     info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
             "reef3d": os.path.abspath(args.reef3d), "divemesh": os.path.abspath(args.divemesh),
             "status": "ok", "time_divemesh": 0.0, "time_reef3d": 0.0}

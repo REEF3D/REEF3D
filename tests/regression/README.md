@@ -5,13 +5,12 @@ Small, fast cases that exercise the main code paths, plus tools to
 - **A/B-compare two binaries bitwise** (for refactors and clean-up: "did anything change?"), and
 - **check against stored references** with a tolerance (long-term regression testing).
 
-Pure Python 3 (standard library only) + bash. CFD, NHFLOW and FNPF cases; the layout is
-solver-independent (`"solver"` in `case.json`), SFLOW cases can be added the same way once its
-driver loop calls `regression_dump`.
+Pure Python 3 (standard library only) + bash. CFD, NHFLOW, FNPF and SFLOW cases; the layout is
+solver-independent (`"solver"` in `case.json`).
 
 ## How it works
 
-`src/regression_dump.{h,cpp}` is a small output class called from the CFD, NHFLOW and FNPF driver loops. It is
+`src/regression_dump.{h,cpp}` is a small output class called from the CFD, NHFLOW, FNPF and SFLOW driver loops. It is
 **inactive unless `REEF3D_REGRESSION_DIR` is set**, so normal runs are unchanged. When active, each
 rank writes into that directory
 
@@ -45,6 +44,11 @@ export REEF3D_MPIRUN="mpirun"          # e.g. "mpirun --oversubscribe" if fewer 
 ```
 
 The report is printed and written to `<out>/new/compare.md` (+ `compare.json`).
+
+A case can depend on earlier runs (hydrodynamic coupling): `"chain": [{"case": "<case>", "copy":
+["REEF3D_FNPF_STATE"]}]` runs that case first in `<rundir>/_chain` and copies the listed folders
+into the run directory before DIVEMesh; `"keep_keys": ["P 40", "P 41"]` keeps print keys the suite
+normally removes (state files for such a stage).
 
 Other commands:
 
@@ -117,12 +121,31 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_two_sources` (+ `_mpi2`) | 1/2 | wave_field: B 92 linear wave + linear source 2 with phase (B 500/501); P 50 prints the summed target |
 | `nhflow_2d_irregular_two_sources` | 1 | wave_field: two JONSWAP sources with their own seeds (B 139, B 504) |
 | `fnpf_2d_two_sources` | 1 | wave_field in FNPF (cached potential path) |
+| `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
+| `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
+| `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
+| `fnpf_3d_two_edges` | 2 | the same in FNPF |
+| `nhflow_2d_custom_zones` | 1 | old input: custom B 108 generation zone, two B 107 beach zones |
+| `nhflow_2d_origin` | 1 | old input: generation origin B 105 |
+| `fnpf_2d_custom_zones` | 1 | old input: custom B 107 / B 108 zones in FNPF |
+| `cfd_2d_nwt_custom_zones` | 1 | old input: custom B 107 / B 108 zones in CFD |
+| `nhflow_3d_amr_custom_zones` | 2 | old input with AMR: custom zones wider than B 96; only the B 96 ranges stay unrefined, as before |
+| `nhflow_2d_dirichlet_custom_zones` | 1 | old input: Dirichlet generation with two B 107 beach zones |
+| `nhflow_2d_awa_custom_zones` | 1 | old input: active generation (B 98 4) with a B 107 relaxation beach, waves reach the beach |
+| `fnpf_2d_dirichlet` | 1 | old input: FNPF Dirichlet generation with a B 107 beach |
+| `fnpf_2d_dirichlet_awa` | 1 | old input: FNPF Dirichlet generation with active absorption (B 99 3), waves reach the beach |
+| `sflow_2d_stokes2` (+ `_mpi2`) | 1/2 | SFLOW relaxation generation + beach, Stokes 2nd (tutorial 8_1) |
+| `sflow_2d_custom_zones` | 1 | old input: SFLOW with custom B 107 / B 108 zones |
+| `sflow_2d_dirichlet` | 1 | old input: SFLOW Dirichlet generation |
+| `fnpf_2d_hdc` (stage `fnpf_hdc_source`) | 1 | old input: hydrodynamic coupling FNPF -> FNPF (FNPF state P 44 3, DIVEMesh H 10 44, B 92 61), as in FNPF nesting |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
 
 ## Notes
 
+- Cases tagged `legacy` cover old input that must keep giving the same results as before
+  the iowave redesign; A/B them against a binary of the original code after every change.
 - Irregular-wave cases must fix the random seeds (`B 139`, and `B 138` for directional
   spreading); otherwise the phases come from `srand(time(0))` and no two runs agree.
 

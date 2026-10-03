@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"regression_dump.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -64,6 +65,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// ini
 	ini(p,b,pgc);
+	
+	regression_dump rdump(p);
+	rdump.sflow_ini(p,b,pgc);
 	
 	// Mainloop
     if(p->mpirank==0)
@@ -144,6 +148,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         pprint->start(p,b,pgc,pflow,pturb,psed);
 		pprintbed->start(p,b,pgc,psed);
+        rdump.sflow_step(p,b,pgc);
 		
 		p->printouttime=pgc->timer()-ptime;
 
@@ -223,6 +228,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout << endl;
 	}
+    
+    rdump.sflow_final(p,b,pgc);
     
     pgc->final();
 	

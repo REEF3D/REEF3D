@@ -163,6 +163,12 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 
     distgen_ini(p);
 
+    zones = bc_zone_set::from_legacy(p,pgc);
+    zones_check(p);
+    
+    if(zones.user_beach())
+    beach_relax=1;
+
 	
 	p->Darray(beta,p->B106);
 	p->Darray(tan_beta,p->B106);
