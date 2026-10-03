@@ -1621,10 +1621,10 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
 
     bool doprint=false;
 
-    if((p->count%p->P181==0 && p->P182<0.0 && p->P10==1 && p->P181>0) || (p->count==0 && p->P182<0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10>0 && p->P181>0) || (p->count==0 && p->P182<0.0))
     doprint=true;
 
-    if((p->simtime>printtime_amr && p->P182>0.0 && p->P10==1) || (p->count==0 && p->P182>0.0))
+    if((p->simtime>printtime_amr && p->P182>0.0 && p->P10>0) || (p->count==0 && p->P182>0.0))
     {
         doprint=true;
         printtime_amr += p->P182;
