@@ -192,7 +192,15 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ts<<"# membrane "<<nMem<<" "<<prm.name<<"  delta "<<delta<<"  Rn "<<prm.Rn<<"  Rt "<<prm.Rt<<"  Afloor "<<Afloor<<"\n";
         ts<<"# time  eta_in  eta_out  dh  Q_leak[m3/s]  Fx  Fy  Fz  Fz_floor  Fz_floor_hydrostatic(-rho g dh A)  max|u_n,rel|_layer  max|U|  water_volume"
             <<"  Fx_body  Fy_body  Fz_body  floor_z_mean  floor_z_min  max|u_node|  max_tension[N/m]"
-            <<(iterated() ? "  coupling_iterations  coupling_residual" : "")<<"\n";
+            <<(iterated() ? "  coupling_iterations  coupling_residual" : "");
+        
+        if(collar())
+        {
+            ts<<"  collar_x  collar_y  collar_z  collar_zmin  collar_zmax  collar_Mbend_max[Nm]  collar_Naxial_max[N]";
+            for(size_t m=0; m<prm.moor.size(); ++m)
+            ts<<"  T_mooring"<<m;
+        }
+        ts<<"\n";
         ts.close();
     }
 }
@@ -873,6 +881,7 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     else
     if(prm.structure==2 && finalize)
     {
+        sample_collar(p,d,pgc);
         advance_structure(p,p->dt);
         update_geometry();
         update_body_load(p);
@@ -889,6 +898,7 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 
     if(finalize)
     {
+        collar_step_end(p);
         print_timeseries(p,d,pgc);
 
         if(print_now(p))

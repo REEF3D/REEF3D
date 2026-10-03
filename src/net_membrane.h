@@ -98,6 +98,7 @@ class fdm_nhf;
 class ghostcell;
 class slice;
 
+#include<functional>
 using namespace std;
 
 struct membrane_param
@@ -142,6 +143,15 @@ struct membrane_param
     int ccols=100;                          //           IQN-ILS: maximum number of columns
     double cfilt=1.0e-2;                    //           IQN-ILS: QR filter (drop columns nearly dependent on newer ones)
     int cqn=0;                              //           quasi-Newton: 0 IQN-ILS, 1 IQN-IMVJ
+
+    // flexible collar (membrane.dat 'collar'): the top edge of a flexible bag is a floating pipe ring
+    int collar=0;
+    double cD=0.5;                          // pipe diameter [m]
+    double cm=60.0;                         // mass per length [kg/m] (pipe, brackets, walkway)
+    double cEA=4.5e7;                       // axial stiffness [N]
+    double cEI=1.2e6;                       // bending stiffness [N m^2]
+    double cCd=1.0, cCa=1.0;                // Morison drag and added-mass coefficients (normal to the pipe axis)
+    vector<array<double,5> > moor;          // mooring springs: anchor x y z, stiffness [N/m], pretension [N]
 };
 
 class net_membrane final : public net, public increment, private vtp3D
@@ -233,6 +243,24 @@ private:
     Eigen::Vector3d attached_position(int) const;
     Eigen::Vector3d body_velocity(const Eigen::Vector3d&) const;
     bool moving() const {return prm.structure>0;}
+
+    // flexible collar (net_membrane_collar.cpp)
+    void ini_collar(lexer*);
+    void sample_collar(lexer*, fdm_nhf*, ghostcell*);
+    void collar_step_end(lexer*);
+    void collar_assemble(lexer*, double, const vector<int>&, const function<void(int,int,const Eigen::Matrix3d&)>&, Eigen::VectorXd&);
+    void collar_output(lexer*);
+    bool collar() const {return prm.collar==1 && prm.structure==2;}
+    vector<int> cn_;                        // collar nodes in ring order
+    vector<double> cl_, cL0_;               // length per node, rest length of the segment i -> i+1
+    vector<Eigen::Vector3d> cxr_;           // reference ring relative to its centroid
+    vector<Eigen::Vector3d> cuf_, cuf0_, caf_;  // fluid velocity at the collar nodes (stage, last step), fluid acceleration
+    vector<double> ceta_;                   // free surface (absolute) above the collar nodes
+    double ctn_=-1.0;                       // time of cuf0_
+    vector<int> mfl_;                       // fairlead node of each mooring spring
+    vector<double> mL0_;                    // initial length of each mooring spring
+    vector<double> mT_;                     // mooring tensions
+    double cMmax_=0.0, cNmax_=0.0;          // largest bending moment and axial force in the collar
 
     // output (net_membrane_print.cpp)
     void print_timeseries(lexer*, fdm_nhf*, ghostcell*);

@@ -86,6 +86,25 @@ void net_membrane::print_timeseries(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(iterated())
         ts<<" "<<citstep_<<" "<<cres_;
         
+        if(collar())
+        {
+            Eigen::Vector3d c = Eigen::Vector3d::Zero();
+            double czmin=1.0e20, czmax=-1.0e20;
+            
+            for(int q : cn_)
+            {
+                c += x_[q];
+                czmin = MIN(czmin, x_[q](2));
+                czmax = MAX(czmax, x_[q](2));
+            }
+            c /= double(MAX(1,(int)cn_.size()));
+            
+            ts<<" "<<c(0)<<" "<<c(1)<<" "<<c(2)<<" "<<czmin<<" "<<czmax<<" "<<cMmax_<<" "<<cNmax_;
+            
+            for(double T : mT_)
+            ts<<" "<<T;
+        }
+        
         ts<<"\n";
     }
 }

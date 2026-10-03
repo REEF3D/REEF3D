@@ -100,7 +100,10 @@ bool net_membrane::couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     const double h = alpha*p->dt;
 
     if(it==0)
+    {
+    sample_collar(p,d,pgc);
     stage_begin(p,pgc,iter,alpha,WL);
+    }
 
     // loads of this iteration
     compute_loads(p,d,pgc,WL);

@@ -74,6 +74,14 @@ Author: Hans Bihs
 //                                      edge is coupled implicitly); 0: off. Rotations of a rigid bag: added
 //                                      inertia 4 rho x inertia of that water about the centre of gravity,
 //                                      scaled with M / (2 rho V_bag) when M is given
+//   collar      D m EA EI [Cd [Ca]]    flexible membrane: its top edge is a floating pipe ring (no floating body,
+//                                      X 10 0): diameter D [m], mass m [kg/m], axial and bending stiffness EA [N],
+//                                      EI [N m^2], Morison drag / added-mass coefficients (default 1, 1).
+//                                      Buoyancy from the local free surface, Froude-Krylov, added mass and drag
+//                                      normal to the pipe axis; corotational bending (net_membrane_collar.cpp).
+//                                      The collar centre line is the top edge of the bag (z_top). 3D only
+//   mooring     xa ya za k T0          linear mooring spring [N/m], pretension T0 [N], from the anchor (xa,ya,za)
+//                                      to the collar node nearest to it (horizontal distance); several lines
 //   coupling    staggered|iterated [rtol [n]]
 //                                      fluid-structure coupling of a flexible membrane. iterated (default): the
 //                                      projection of every RK stage is repeated until the node velocities of fluid
@@ -265,6 +273,37 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
             if(!(ls>>mp.back().sinker))
             error=true;
+        }
+        else if(key=="collar")
+        {
+            // collar D m EA EI [Cd [Ca]]
+            mp.back().collar=1;
+            
+            if(!(ls>>mp.back().cD>>mp.back().cm>>mp.back().cEA>>mp.back().cEI)
+               || mp.back().cD<=0.0 || mp.back().cm<0.0 || mp.back().cEA<=0.0 || mp.back().cEI<0.0)
+            error=true;
+            
+            double v;
+            if(ls>>v)
+            {
+                mp.back().cCd=v;
+                
+                if(ls>>v)
+                mp.back().cCa=v;
+            }
+            
+            if(mp.back().cCd<0.0 || mp.back().cCa<0.0)
+            error=true;
+        }
+        else if(key=="mooring")
+        {
+            // mooring xa ya za k T0: linear spring from the anchor to the collar node nearest to it
+            array<double,5> m;
+            
+            if(!(ls>>m[0]>>m[1]>>m[2]>>m[3]>>m[4]) || m[3]<0.0 || m[4]<0.0)
+            error=true;
+            else
+            mp.back().moor.push_back(m);
         }
         else if(key=="bodyaddedmass")
         {

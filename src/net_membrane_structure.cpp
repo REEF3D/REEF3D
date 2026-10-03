@@ -178,6 +178,9 @@ void net_membrane::ini_structure(lexer *p, ghostcell *pgc)
     if(x_[q](2) >= zatt - 1.0e-3*lmin)
     att_[q] = 1;
     
+    // flexible collar: the top edge nodes are free and carry the collar (net_membrane_collar.cpp)
+    ini_collar(p);
+    
     // groups: in 2D the two nodes across the cell row
     grp_.resize(nn);
     for(size_t q=0; q<nn; ++q)
@@ -603,6 +606,9 @@ void net_membrane::structure_solve(lexer *p, double dt, int nsub, const vector<E
             else
             rhs.segment<3>(3*gb) += B*vs_[a];
         }
+        
+        // flexible collar: pipe, fluid, bending and mooring terms
+        collar_assemble(p,h,gid,addblock,rhs);
         
         if(twod)
         for(int g=0; g<ng; ++g)
