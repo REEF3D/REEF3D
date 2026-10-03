@@ -69,8 +69,14 @@ void sixdof_obj::iniPosition_RBM(lexer *p, ghostcell *pgc)
 	}
 	
 
-	// Initialise quaternions from the Euler angles, stage and history copies
+	// Initialise quaternions from the Euler angles
     rb.quaternion_from_euler();
+    
+    // Initial angular velocity (X 103, body-fixed p, q, r in rad/s): angular momentum h = I omega
+    if(p->X103==1)
+    h_ = I_*Eigen::Vector3d(p->X103_p, p->X103_q, p->X103_r);
+    
+    // stage and history copies
     rb.init_history();
     
     // Initialise rotation matrices

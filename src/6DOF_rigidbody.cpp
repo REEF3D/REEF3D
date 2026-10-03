@@ -40,7 +40,7 @@ sixdof_rigidbody::sixdof_rigidbody() : twoD(false), mass(1.0), phi(0.0), theta(0
     pk.setZero(); dpk.setZero();
     ck.setZero(); dck.setZero();
     hk.setZero(); dhk.setZero();
-    ek.setZero(); dek.setZero();
+    ek.setZero(); dek.setZero(); er.setZero();
     pn1.setZero(); pn2.setZero(); pn3.setZero();
     cn1.setZero(); cn2.setZero(); cn3.setZero();
     hn1.setZero(); hn2.setZero(); hn3.setZero();
@@ -310,47 +310,59 @@ void sixdof_rigidbody::stage_rk2(int iter, double dt)
 
 void sixdof_rigidbody::stage_rk3(int iter, double dt)
 {
+    // TVD RK3 (Shu-Osher). The stage values of the quaternion are combined unnormalised (er) and
+    // only projected onto |e| = 1 for the kinematics of the stage (e). Normalising the combined
+    // stage values reduces the scheme to second order for the rotations.
     if(iter==0)
     {
         pk = p;
         ck = c;
         hk = h;
         ek = e;
-
+        
         p = pk + dt*dp;
         c = ck + dt*dc;
         h = hk + dt*dh;
-        e = ek + dt*de;
-        e.normalize();
+        er = ek + dt*de;
+        e = er.normalized();
     }
-
+    
     if(iter==1)
     {
         p = 0.75*pk + 0.25*p + 0.25*dt*dp;
         c = 0.75*ck + 0.25*c + 0.25*dt*dc;
         h = 0.75*hk + 0.25*h + 0.25*dt*dh;
-        e = 0.75*ek + 0.25*e + 0.25*dt*de;
-        e.normalize();
-    }
-
+        er = 0.75*ek + 0.25*er + 0.25*dt*de;
+        e = er.normalized();
+    }  
+    
     if(iter==2)
     {
         p = (1.0/3.0)*pk + (2.0/3.0)*p + (2.0/3.0)*dt*dp;
         c = (1.0/3.0)*ck + (2.0/3.0)*c + (2.0/3.0)*dt*dc;
         h = (1.0/3.0)*hk + (2.0/3.0)*h + (2.0/3.0)*dt*dh;
-        e = (1.0/3.0)*ek + (2.0/3.0)*e + (2.0/3.0)*dt*de;
-        e.normalize();
+        er = (1.0/3.0)*ek + (2.0/3.0)*er + (2.0/3.0)*dt*de;
+        e = er.normalized();
+        er = e;
     }
 }
 
-void sixdof_rigidbody::stage_rkls3(double gamma, double zeta, double dt)
+void sixdof_rigidbody::stage_rkls3(int iter, double gamma, double zeta, double dt)
 {
+    // low-storage RK3 (Williamson): the quaternion register er is updated unnormalised and
+    // projected for the kinematics of the stage, as in stage_rk3
+    if(iter==0)
+    er = e;
+    
     p = p + gamma*dt*dp + zeta*dt*dpk;
     c = c + gamma*dt*dc + zeta*dt*dck;
     h = h + gamma*dt*dh + zeta*dt*dhk;
-    e = e + gamma*dt*de + zeta*dt*dek;
-    e.normalize();
-
+    er = er + gamma*dt*de + zeta*dt*dek;
+    e = er.normalized();
+    
+    if(iter==2)
+    er = e;
+    
     dpk = dp;
     dck = dc;
     dhk = dh;

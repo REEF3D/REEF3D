@@ -41,12 +41,7 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
             p_(2) += p->X102_w[qn]*Mass_fb;
     }
     
-    if (p->X103==1)
-    {
-        h_(0) = p->X103_p;
-        h_(1) = p->X103_q;
-        h_(2) = p->X103_r;
-    }  
+    // initial angular velocity (X 103): set in iniPosition_RBM, once the inertia tensor is known
     
 	
     // Velocities

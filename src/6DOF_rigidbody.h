@@ -108,13 +108,14 @@ public:
     // ---- stage updates
     void stage_rk2(int, double);                        // TVD RK2 (Heun), stage iter, dt
     void stage_rk3(int, double);                        // TVD RK3 (Shu-Osher)
-    void stage_rkls3(double, double, double);           // low-storage RK3: gamma, zeta, dt
+    void stage_rkls3(int, double, double, double);      // low-storage RK3: stage iter, gamma, zeta, dt
     void stage_rk4(int, double);                        // classical RK4, stages 0..3
     void step_onestep(double);                          // single step with frozen derivatives (prescribed motion)
 
     void save_history(double);                          // shift n1..n3, argument: stage time step
 
 private:
+    Eigen::Vector4d er;   // unnormalised quaternion stage value (RK3, RKLS3)
     Eigen::Vector3d rk4_p[3], rk4_c[3], rk4_h[3];
     Eigen::Vector4d rk4_e[3];
 };

@@ -114,7 +114,7 @@ void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
     get_trans(p,pgc);    
     get_rot(p);
     
-    rb.stage_rkls3(gamma[iter],zeta[iter],p->dt);
+    rb.stage_rkls3(iter,gamma[iter],zeta[iter],p->dt);
 }
 
 void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc, bool finalize)
