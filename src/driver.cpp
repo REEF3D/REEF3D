@@ -166,6 +166,9 @@ void driver::fnpf_driver()
 
     driver_ini_fnpf();
 
+    preg = new regression_dump(p);
+    preg->fnpf_ini(p,c,pgc);
+
     // Start MAINLOOP
     loop_fnpf();
 }
@@ -184,6 +187,9 @@ void driver::nhflow_driver()
     logic_nhflow();
 
     driver_ini_nhflow();
+
+    preg = new regression_dump(p);
+    preg->nhflow_ini(p,d,pgc);
 
     // Start MAINLOOP
     loop_nhflow();

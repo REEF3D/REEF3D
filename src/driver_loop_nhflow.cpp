@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"nhflow_amr.h"
+#include"regression_dump.h"
 
 void driver::loop_nhflow()
 {
@@ -101,6 +102,7 @@ void driver::loop_nhflow()
         
         // printer
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+        preg->nhflow_step(p,d,pgc);
         
         if(pnhfamr!=nullptr)
         pnhfamr->print(p,d,pgc);
@@ -166,6 +168,8 @@ void driver::loop_nhflow()
     vollogout.close();
     solvlogout.close();
 	}
+
+    preg->nhflow_final(p,d,pgc);
 
     pgc->final();
 }

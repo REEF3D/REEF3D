@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "ctrl_set": {
+  "B 98": "4",
+  "B 99": "3",
+  "B 92": "2",
+  "B 93": "0.2 4.5"
+ },
+ "description": "NHFLOW active wave generation (B98=4) and active absorption beach (B99=3), 2nd-order Stokes.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "iowave_nhflow_active-wavegen",
+  "iowave_nhflow_active-beach"
+ ]
+}

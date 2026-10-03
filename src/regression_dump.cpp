@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"concentration.h"
+#include"fdm_nhf.h"
+#include"fdm_fnpf.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -233,4 +235,200 @@ void regression_dump::cfd_final(lexer *p, fdm *a, ghostcell *pgc, turbulence *pt
 
     steplog.flush();
     cfd_state(p,a,pturb,pconc);
+}
+
+// ---------------------------------------------------------------------
+// NHFLOW
+// ---------------------------------------------------------------------
+
+void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
+{
+    names.clear();
+    data.clear();
+
+    add("U",p->cellnum);
+    LOOP
+    data.back().push_back(d->U[IJK]);
+
+    add("V",p->cellnum);
+    LOOP
+    data.back().push_back(d->V[IJK]);
+
+    add("W",p->cellnum);
+    LOOP
+    data.back().push_back(d->W[IJK]);
+
+    add("UH",p->cellnum);
+    LOOP
+    data.back().push_back(d->UH[IJK]);
+
+    add("VH",p->cellnum);
+    LOOP
+    data.back().push_back(d->VH[IJK]);
+
+    add("WH",p->cellnum);
+    LOOP
+    data.back().push_back(d->WH[IJK]);
+
+    add("P",p->cellnum);
+    LOOP
+    data.back().push_back(d->P[IJK]);
+
+    add("eta",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(d->eta(i,j));
+
+    add("WL",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(d->WL(i,j));
+}
+
+void regression_dump::nhflow_state(lexer *p, fdm_nhf *d)
+{
+    if(last_written==p->count)
+    return;
+
+    nhflow_collect(p,d);
+    write_state(p);
+}
+
+void regression_dump::nhflow_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog<<"# count simtime dt  sum(U^2) sum(V^2) sum(W^2) sum(P^2) sum(eta^2) sum(WL^2)  (rank-local, hexfloat)"<<std::endl;
+
+    nhflow_state(p,d);
+}
+
+void regression_dump::nhflow_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    double su=0.0, sv=0.0, sw=0.0, sp=0.0, se=0.0, swl=0.0;
+
+    LOOP
+    {
+    su += d->U[IJK]*d->U[IJK];
+    sv += d->V[IJK]*d->V[IJK];
+    sw += d->W[IJK]*d->W[IJK];
+    sp += d->P[IJK]*d->P[IJK];
+    }
+
+    SLICELOOP4
+    {
+    se  += d->eta(i,j)*d->eta(i,j);
+    swl += d->WL(i,j)*d->WL(i,j);
+    }
+
+    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<"  "
+           <<su<<" "<<sv<<" "<<sw<<" "<<sp<<" "<<se<<" "<<swl<<"\n";
+
+    if(every>0 && p->count%every==0)
+    nhflow_state(p,d);
+}
+
+void regression_dump::nhflow_final(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog.flush();
+    nhflow_state(p,d);
+}
+
+// ---------------------------------------------------------------------
+// FNPF
+// ---------------------------------------------------------------------
+
+void regression_dump::fnpf_collect(lexer *p, fdm_fnpf *c)
+{
+    names.clear();
+    data.clear();
+
+    add("Fi",p->cellnum);
+    FLOOP
+    data.back().push_back(c->Fi[FIJK]);
+
+    add("U",p->cellnum);
+    FLOOP
+    data.back().push_back(c->U[FIJK]);
+
+    add("V",p->cellnum);
+    FLOOP
+    data.back().push_back(c->V[FIJK]);
+
+    add("W",p->cellnum);
+    FLOOP
+    data.back().push_back(c->W[FIJK]);
+
+    add("eta",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(c->eta(i,j));
+
+    add("Fifsf",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(c->Fifsf(i,j));
+
+    add("WL",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(c->WL(i,j));
+}
+
+void regression_dump::fnpf_state(lexer *p, fdm_fnpf *c)
+{
+    if(last_written==p->count)
+    return;
+
+    fnpf_collect(p,c);
+    write_state(p);
+}
+
+void regression_dump::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog<<"# count simtime dt  sum(Fi^2) sum(U^2) sum(W^2) sum(eta^2) sum(Fifsf^2) sum(WL^2)  (rank-local, hexfloat)"<<std::endl;
+
+    fnpf_state(p,c);
+}
+
+void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    double sfi=0.0, su=0.0, sw=0.0, se=0.0, sff=0.0, swl=0.0;
+
+    FLOOP
+    {
+    sfi += c->Fi[FIJK]*c->Fi[FIJK];
+    su  += c->U[FIJK]*c->U[FIJK];
+    sw  += c->W[FIJK]*c->W[FIJK];
+    }
+
+    SLICELOOP4
+    {
+    se  += c->eta(i,j)*c->eta(i,j);
+    sff += c->Fifsf(i,j)*c->Fifsf(i,j);
+    swl += c->WL(i,j)*c->WL(i,j);
+    }
+
+    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<"  "
+           <<sfi<<" "<<su<<" "<<sw<<" "<<se<<" "<<sff<<" "<<swl<<"\n";
+
+    if(every>0 && p->count%every==0)
+    fnpf_state(p,c);
+}
+
+void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog.flush();
+    fnpf_state(p,c);
 }

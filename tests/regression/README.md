@@ -5,13 +5,13 @@ Small, fast cases that exercise the main code paths, plus tools to
 - **A/B-compare two binaries bitwise** (for refactors and clean-up: "did anything change?"), and
 - **check against stored references** with a tolerance (long-term regression testing).
 
-Pure Python 3 (standard library only) + bash. Currently CFD cases; the layout is solver-independent
-(`"solver"` in `case.json`), NHFLOW/FNPF/SFLOW cases can be added the same way once their driver
-loops call `regression_dump`.
+Pure Python 3 (standard library only) + bash. CFD, NHFLOW and FNPF cases; the layout is
+solver-independent (`"solver"` in `case.json`), SFLOW cases can be added the same way once its
+driver loop calls `regression_dump`.
 
 ## How it works
 
-`src/regression_dump.{h,cpp}` is a small output class called from the CFD driver loops. It is
+`src/regression_dump.{h,cpp}` is a small output class called from the CFD, NHFLOW and FNPF driver loops. It is
 **inactive unless `REEF3D_REGRESSION_DIR` is set**, so normal runs are unchanged. When active, each
 rank writes into that directory
 
@@ -102,11 +102,23 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
 | `cfd_3d_pier_komega` (+ `_rkls3_sf`, `_t33`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop, T33 k-gradient source |
 | `cfd_3d_heave_sphere_6dof` (+ `_rk3`) | 4 | floating body 6DOF (FCLS3), N40=13→14 df loop |
+| `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
+| `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
+| `nhflow_2d_awa` | 1 | NHFLOW active wave generation + active absorption (B98=4/B99=3) |
+| `nhflow_2d_current` | 1 | NHFLOW waves on a current: discharge inflow (B60=1, W10), beach relaxes to the current (B97=1) |
+| `nhflow_2d_irregular_decomp` | 1 | NHFLOW JONSWAP waves, decomposed relaxation precalc (B89=1) |
+| `nhflow_3d_irregular_decomp` | 2 | NHFLOW 3D short-crested waves (B130=2), decomposed precalc, CFL 0.5 |
+| `fnpf_2d_regular` (+ `_mpi2`) | 1/2 | FNPF relaxation generation + beach, regular waves |
+| `fnpf_2d_irregular_decomp` | 1 | FNPF JONSWAP waves, decomposed relaxation precalc (B89=1) |
+| `fnpf_3d_shortcrested` | 2 | FNPF 3D short-crested waves (B130=2) |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
 
 ## Notes
+
+- Irregular-wave cases must fix the random seeds (`B 139`, and `B 138` for directional
+  spreading); otherwise the phases come from `srand(time(0))` and no two runs agree.
 
 - Runs use few steps on coarse grids: they test that code paths give the same numbers, not that
   the physics is right. Validation cases (long runs vs. measurements) are a separate set.

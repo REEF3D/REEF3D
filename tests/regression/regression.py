@@ -64,11 +64,20 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_CFD_Force/*.dat",
     "REEF3D_CFD_6DOF/*.dat",
     "REEF3D_CFD_WSFLINE/*.dat",
+    "REEF3D_NHFLOW_WSF/*.dat",
+    "REEF3D_NHFLOW_ProbePoint/*.dat",
+    "REEF3D_NHFLOW_Force/*.dat",
+    "REEF3D_NHFLOW_WSFLINE/*.dat",
+    "REEF3D_FNPF_WSF/*.dat",
+    "REEF3D_FNPF_ProbePoint/*.dat",
+    "REEF3D_FNPF_WSFLINE/*.dat",
 ]
 
 # output folders deleted after a run unless --keep (large and not compared)
 BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals_VTP",
-               "REEF3D_CFD_FSF", "DIVEMesh_Paraview"]
+               "REEF3D_CFD_FSF", "DIVEMesh_Paraview",
+               "REEF3D_NHFLOW_VTU", "REEF3D_NHFLOW_VTP_FSF", "REEF3D_NHFLOW_VTP_BED",
+               "REEF3D_FNPF_VTU", "REEF3D_FNPF_VTP_FSF", "REEF3D_FNPF_VTP_BED"]
 
 LEVELS = ["identical", "close", "different", "failed"]
 

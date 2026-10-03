@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"fnpf_ice.h"
 #include"fnpf_amr.h"
+#include"regression_dump.h"
 
 void driver::loop_fnpf()
 {
@@ -98,6 +99,8 @@ void driver::loop_fnpf()
         
         if(pfamr!=nullptr)
         pfamr->timestep(p,c,pgc);
+
+        preg->fnpf_step(p,c,pgc);
         
         if(pfice!=nullptr)
         pfice->timestep(p,c,pgc);
@@ -156,6 +159,8 @@ void driver::loop_fnpf()
     maxlogout.close();
     solvlogout.close();
 	}
+
+    preg->fnpf_final(p,c,pgc);
 
     pgc->final();
     
