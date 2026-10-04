@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), brkflag(p)
+nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), brkflag(p), count_n(-1)
 {
     SLICELOOP4
     d->breaking(i,j)=0;
@@ -98,6 +98,17 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
             
     }
     
+    // mesh refinement: no detection in the filled cells around a patch (their surface comes
+    // from the coarser grid and their outer cells see one-sided fluxes); their breaking comes
+    // from the source grid below
+    if(p->amrvb!=nullptr)
+    SLICELOOP4
+    if(p->amrvb[IJ]>=0.0)
+    {
+    bx(i,j)=0;
+    by(i,j)=0;
+    }
+
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
     
@@ -144,6 +155,11 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
         bx(i,j)=2;
     }
     
+    if(p->amrvb!=nullptr)
+    SLICELOOP4
+    if(p->amrvb[IJ]>=0.0)
+    bx(i,j)=0;
+
     pgc->gcsl_start4int(p,bx,50);
     
     SLICELOOP4
@@ -190,6 +206,13 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     
     
     
+    // mesh refinement: a filled cell breaks where its source cell carries the full breaking
+    // viscosity
+    if(p->amrvb!=nullptr)
+    SLICELOOP4
+    if(p->amrvb[IJ]>=p->A557 && brkflag(i,j)==0)
+    brkflag(i,j)=1;
+
     // ------------------------
     // fill breaking viscosity
     // ------------------------

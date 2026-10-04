@@ -102,6 +102,7 @@ public:
     int *wet,*wet_n;
     int *deep;
     int *wetfix = nullptr;          // mesh refinement (NHFLOW A 283): flag a cell keeps through wetdry, -1 none
+    double *amrvb = nullptr;        // mesh refinement (NHFLOW A 550): breaking viscosity of the source of a filled cell, -1 none
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
     int cms_flag;

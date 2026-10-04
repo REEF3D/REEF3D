@@ -155,6 +155,9 @@ public:
 
     // MPI exchange of the gc*_start functions on/off (SFLOW AMR patches run without it)
     bool set_comms(bool on) {bool old=do_comms; do_comms=on; return old;}
+    // mesh refinement: inside a patch kernel the global reductions return the local value (the
+    // patch lies on one rank), so solvers such as bicgstab_ijk run on the patch alone
+    bool set_local(bool on) {bool old=local_red; local_red=on; return old;}
     //Collective Communication
     void gather_int(int *, int, int *, int);
     void gatherv_int(int*, int, int*, int*, int*);
@@ -318,6 +321,7 @@ private:
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
                         MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
     bool do_comms = true;
+    bool local_red = false;
     
     int ndims;
 

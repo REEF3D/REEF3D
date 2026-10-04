@@ -133,6 +133,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A284;
     ii++;
+    ictrl[ii] = A285;
+    ii++;
 
     ictrl[ii] = A309;
     ii++;

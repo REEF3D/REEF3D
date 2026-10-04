@@ -50,6 +50,7 @@ class sixdof_obj;
 class ioflow;
 class patchBC_interface;
 class reefmg_core;
+class solver;
 
 using namespace std;
 
@@ -105,11 +106,17 @@ using namespace std;
 //
 //  Scope of this version: static refinement boxes, the body zone and the adaptive flags (A 270
 //  levels, A 276 boxes, A 277 boxes without refinement, A 275 tile width, A 272, A 273, A 282, A 278,
-//  A 279, A 271, A 280, A 281), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2, A 512 0, A 560 0,
-//  A 550 0, B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), S 10 0, no solids (A 580 1,
+//  A 279, A 271, A 280, A 281, A 283-A 285), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
+//  A 512 0/1/2, A 560 0, A 550 0 (A 550 1 with A 510 2), B 200 0, X 10 0/1/2 (X 60 1, X 16 0,
+//  A 516 0/1/3), S 10 0, no solids (A 580 1,
 //  A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches stay out of the relaxation
 //  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
 //  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
+//
+//  Breaking (A 550 1, RK2): every grid detects breaking and solves its own implicit diffusion
+//  with the breaking viscosity (A 512 2; a bicgstab_ijk per patch, its global sums local to the
+//  patch inside pscope); the viscous flux across a patch box is not matched (per grid).  A 285 1
+//  flags the cells with breaking viscosity for the adaptive mode.
 //
 //  Wetting and drying in the patches (A 283 1): the patches may cover dry and shallow cells, the
 //  NHFLOW wetting and drying (A 540) runs on every grid.  The coupling: the cells around a patch
@@ -129,6 +136,7 @@ struct nhflow_amr_patch : public reefamr_patch
     nhflow_reconstruct *precon = nullptr;
     nhflow_convection *pconv = nullptr;
     nhflow_diffusion *pdiff = nullptr;
+    solver *psolv = nullptr;
     nhflow_pressure *ppress = nullptr;
     nhflow_fsf *pfsf = nullptr;
     nhflow_forcing *pdf = nullptr;
@@ -140,6 +148,7 @@ struct nhflow_amr_patch : public reefamr_patch
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
     vector<int> wfix;               // A 283: flags of the filled cells, kept through wetdry (lexer::wetfix)
+    vector<double> vbfill;          // A 550: breaking viscosity of the source of the filled cells (lexer::amrvb)
 
     // box faces recorded by the flux hook: rec[ipol][side][r*knoz+k], r fine face index along the
     // side, k layer of the patch; side 0 low x, 1 high x, 2 low y, 3 high y; ipol 0: dfx/dfy (r
@@ -203,7 +212,7 @@ private:
     {
         ghostcell *g;
         fdm_nhf *dl0;
-        bool old;
+        bool old, oldlocal;
         pscope(ghostcell*, fdm_nhf*, fdm_nhf*);
         ~pscope();
     };
@@ -286,7 +295,8 @@ private:
     // wetting and drying in the patches (A 283 1): wet-aware interpolation, the flags of fresh
     // patches and of the covered coarse cells
     bool shore = false;
-    int nshore = 0;                 // shoreline flag (A 284): cells within nshore cells of the other wet state
+    int nshore = 0;
+    bool flagbreak = false;         // breaking flag (A 285): cells with breaking viscosity                 // shoreline flag (A 284): cells within nshore cells of the other wet state
     bool wet_at(lexer*, int, int, int) const;
     void dry_cell(lexer*, fdm_nhf*, slice&, double*, double*, double*, int, int);
     void patch_flags(nhflow_amr_patch&);

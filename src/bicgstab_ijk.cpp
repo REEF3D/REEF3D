@@ -42,6 +42,10 @@ bicgstab_ijk::bicgstab_ijk(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
 
 bicgstab_ijk::~bicgstab_ijk()
 {
+    // the solver of a mesh-refinement patch is deleted with the patch (on level 0 it lives
+    // for the whole run)
+    delete [] sj; delete [] rj; delete [] r0; delete [] vj; delete [] tj; delete [] pj;
+    delete [] ph; delete [] sh; delete [] aii; delete [] x; delete [] rhs;
 }
 
 void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)

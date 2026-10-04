@@ -25,6 +25,11 @@ Author: Hans Bihs
 
 void ghostcell::gcparaxijk_single(lexer* p, double *f, int gcv)
 {
+    // a patch kernel of the mesh refinement runs without the partition exchange (set_comms);
+    // bicgstab_ijk calls this directly, e.g. in the implicit diffusion of a patch
+    if(!do_comms)
+    return;
+
     starttime=timer();
 
     paramargin=1;

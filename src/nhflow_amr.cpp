@@ -35,6 +35,9 @@ Author: Hans Bihs
 #include"nhflow_HLL.h"
 #include"nhflow_HLLC.h"
 #include"nhflow_diff_void.h"
+#include"nhflow_ediff.h"
+#include"nhflow_idiff.h"
+#include"bicgstab_ijk.h"
 #include"nhflow_pjm.h"
 #include"nhflow_pjm_corr.h"
 #include"nhflow_pjm_hs.h"
@@ -152,6 +155,14 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     adaptive = true;
     }
 
+    // breaking flag (A 285 1, with A 550 1): a cell with breaking viscosity flags the next level,
+    // so the breaking zone stays on the finest grid as it moves
+    if(p->A285==1 && p->A550==1)
+    {
+    flagbreak = true;
+    adaptive = true;
+    }
+
     // the zone follows the body, the patches follow the flags: new patches every A 271 steps
     // (A 271 0: static), the layout is kept as long as it covers the flagged tiles with at most
     // 50 % excess (as fnpf_amr)
@@ -204,12 +215,14 @@ nhflow_amr::~nhflow_amr()
 nhflow_amr::pscope::pscope(ghostcell *gg, fdm_nhf *dp, fdm_nhf *d00) : g(gg), dl0(d00)
 {
     old = g->set_comms(false);
+    oldlocal = g->set_local(true);
     g->fdm_nhf_update(dp);
 }
 
 nhflow_amr::pscope::~pscope()
 {
     g->fdm_nhf_update(dl0);
+    g->set_local(oldlocal);
     g->set_comms(old);
 }
 
@@ -254,7 +267,10 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A510!=2 && p->A510!=3) ok=0;
     if(p->A511!=1 && p->A511!=2) ok=0;
     if(p->A520<0 || p->A520>2) ok=0;
-    if(p->A512!=0 || p->A560!=0 || p->A550!=0) ok=0;
+    if(p->A512<0 || p->A512>2 || p->A560!=0) ok=0;
+    // breaking (A 550 1): NHFLOW has it in RK2 only; it acts through the implicit diffusion
+    // (A 512 2), which every patch solves for itself
+    if(p->A550!=0 && (p->A550!=1 || p->A510!=2)) ok=0;
     if(p->B200!=0 || p->S10!=0 || p->X330!=0 || p->A599!=0) ok=0;
     if(p->X10!=0 && (b6==nullptr || p->X60!=1 || p->X16!=0 || p->X320!=0 || p->A516==2 || p->A516==4)) ok=0;
     if(p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0) ok=0;
@@ -265,7 +281,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (A 270): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0, A 560 0, A 550 0, B 200 0, S 10 0, "
+        cout<<"NHFLOW AMR (A 270): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0, "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles or rods, and 3D grids "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
@@ -345,6 +361,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<" second difference "<<tol_curv<<" m (A 282)";
     if(nshore>0)
     cout<<" shoreline within "<<nshore<<" cells (A 284)";
+    if(flagbreak)
+    cout<<" breaking (A 285)";
     }
     if(regrid_int>0)
     cout<<", regrid every "<<regrid_int<<" steps (A 271)"<<(par.zones ? ", the zone follows the body" : "");
@@ -433,6 +451,9 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
 
     // boundary list: bed and free surface of every fluid column of the computed range
     pp->gcb4_count = 2*nfluid;
+
+    // cells of the computed range (the residual of bicgstab_ijk for the implicit diffusion)
+    pp->cellnumtot = nfluid*pp->knoz;
     pp->Iarray(pp->gcb4,MAX(pp->gcb4_count,1),6);
     int n=0;
     for(int ii=0; ii<pp->knox; ++ii)
@@ -517,6 +538,14 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->wetfix = c->wfix.data();
     }
 
+    // A 550: the filled cells take their breaking from the source grid (nhflow_breaking does not
+    // detect in them)
+    if(pp->A550==1)
+    {
+        c->vbfill.assign(pp->imax*pp->jmax,-1.0);
+        pp->amrvb = c->vbfill.data();
+    }
+
     c->pBC = pBCv;
     c->pflow = pflowv;
     // the floating bodies on the patch grid (all calls do nothing without bodies)
@@ -530,7 +559,20 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(pp->A511==2)
     c->pconv = new nhflow_HLLC(pp,pgc,c->pBC);
 
+    // diffusion as on level 0 (A 512 1 explicit, 2 implicit with the breaking viscosity vb), the
+    // implicit one with a solver of its own: bicgstab_ijk on the patch, its global sums stay on
+    // the patch (pscope)
+    if(pp->A512==1)
+    c->pdiff = new nhflow_ediff(pp);
+    else if(pp->A512==2)
+    c->pdiff = new nhflow_idiff(pp);
+    else
     c->pdiff = new nhflow_diff_void(pp);
+    if(pp->A512==2)
+    c->psolv = new bicgstab_ijk(pp,nullptr,pgc);
+
+    // the breaking count of a patch is not printed (nhflow_breaking, P 12)
+    pp->P12 = 1<<30;
 
     if(pp->A514<=3)
     c->precon = new nhflow_reconstruct_hires(pp,c->pBC);
@@ -554,7 +596,7 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(pp->A510==3)
     c->pmom = new nhflow_momentum_RK3(pp,d,pgc,c->p6dof,c->pvrans,c->pdf);
 
-    c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,nullptr,nullptr,c->pfsf,c->pturb,c->pvrans};
+    c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
 
     // material and porosity as driver_ini_nhflow and nhflow_f::ini on level 0
     const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
@@ -589,6 +631,8 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     delete c->ppress;
     delete c->precon;
     delete c->pdiff;
+    // the solver interface has no virtual destructor: delete as the class it is
+    delete static_cast<bicgstab_ijk*>(c->psolv);
     delete c->pconv;
     delete c->pss;
 
@@ -631,6 +675,10 @@ void nhflow_amr::tag(int l, vector<unsigned char> &M)
             const int n = lij(q,a,b);
             return q->flagslice4[n]>0 && q->wet[n]==1 && d->WL(a,b)>wmin;
         };
+
+        // breaking (A 285): a cell with breaking viscosity
+        if(flagbreak && q->flagslice4[lij(q,ii,jj)]>0 && d->vb(ii,jj)>0.0)
+        return true;
 
         // shoreline (A 284): a fluid cell with a cell of the other wet state within nshore cells
         if(nshore>0 && q->flagslice4[lij(q,ii,jj)]>0)
@@ -1020,7 +1068,9 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
 {
     const int K = klev(l);
     const int Kc = klev(l-1);
-    const int nv = 3 + 3*K + K+1;
+    const bool brk = (p0->A550==1);
+    const int nb = 3 + 3*K + K+1;                // position of vb (A 550)
+    const int nv = nb + (brk ? 1 : 0);
     vector<double> uc(3*Kc);
 
     fill_run(l,nv,7100+l,
@@ -1064,6 +1114,9 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                          vcell(q,&uc[m*Kc],Kc,K/Kc,&v[3+m*K]);
                          pcol(f.g,f.si,f.sj,f.ox,f.oy,d->P,K,&v[3+3*K],2);
                      }
+                     // A 550: the breaking viscosity of the source cell
+                     if(brk)
+                     v[nb] = d->vb(f.si,f.sj);
                      return;
                  }
                  for(int m=0; m<nv; ++m)
@@ -1097,6 +1150,9 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                  }
                  for(int k=0; k<=K; ++k)
                  d->P[fidx(pp,ii,jj,k)] = w[3+3*K+k];
+
+                 if(brk)
+                 c->vbfill[lij(pp,ii,jj)] = w[nb];
 
                  // A 283: the flag of the source cell is kept through the patch's wetdry; a dry
                  // source cell gives a dry cell on the bed of the patch

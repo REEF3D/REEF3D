@@ -77,6 +77,7 @@ void control::ini_default()
     A282=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
     A283=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
     A284=0;      // int NHFLOW mesh refinement with A 283 1: flag the cells within this many cells (1-3) of the shoreline (0: off)
+    A285=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
 
 
     // FNPF
