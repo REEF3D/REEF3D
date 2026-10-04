@@ -92,7 +92,11 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         prm.floorp=0;
     }
 
-    if(prm.shape==2 && p->j_dir==0)
+    if(p->B60>0 && p->A511==1 && p->mpirank==0)
+    cout<<"Membrane "<<nMem<<": WARNING inflow with the HLL flux (A 511 1): in a current HLL smears the shear at the membrane "
+        <<"layer and the drag comes out several times too high, use HLLC (A 511 2)"<<endl;
+    
+    if(prm.shape>=2 && p->j_dir==0)
     {
         if(p->mpirank==0)
         cout<<"\n!!! X 330 membrane: cylinder bag in a 2D simulation, use a box bag !!!\n"<<endl;
@@ -140,6 +144,17 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     tn0_ = tn_;
     
+    // filling level: the water missing from the full bag (below the still water level) is taken from the inner level
+    if(prm.filling>0.0)
+    prm.fill = -(1.0-prm.filling)*MAX(0.0, p->wd - zbag());
+    
+    // drain: start full, pump the missing water out over the drain time (quasi-static deflation of a flexible bag)
+    if(prm.filling>0.0 && prm.drain>0.0)
+    {
+        dVdrain_ = -prm.fill*Abag(p);
+        prm.fill = 0.0;
+    }
+    
     ini_structure(p,pgc);
 
     // cell map storage
@@ -156,6 +171,8 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     tf_.assign(3*tri_.size(),0.0);
     nf_.assign(3*x_.size(),0.0);
     zf_.assign(p->imax*p->jmax,prm.zb);
+    zfx_.assign(p->imax*p->jmax,0.0);
+    zfy_.assign(p->imax*p->jmax,0.0);
     
     floor_geometry(p);
 
@@ -166,9 +183,12 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(prm.printdt!=0.0)
         mkdir(vtpdir.c_str(),0777);
 
-        cout<<"Membrane "<<nMem<<" ("<<prm.name<<"): "<<(prm.shape==1?"box":"cylinder")<<", "<<tri_.size()<<" triangles, "
+        cout<<"Membrane "<<nMem<<" ("<<prm.name<<"): "<<(prm.shape==1?"box":(prm.shape==2?"cylinder":"cylinder on a cone"))<<", "<<tri_.size()<<" triangles, "
             <<"delta = "<<delta<<" m, R_n = "<<prm.Rn<<" m/s (K_n = "<<Kn<<" 1/s), R_t = "<<prm.Rt<<" m/s, "
-            <<"floor area = "<<Afloor<<" m^2, fill = "<<prm.fill<<" m, floorpressure "<<prm.floorp
+            <<"floor area = "<<Afloor<<" m^2, fill = "<<prm.fill<<" m"
+            <<(prm.filling>0.0 ? " (filling "+to_string(prm.filling)+" of "+to_string(Abag(p)*MAX(0.0,p->wd-zbag()))+" m^3"
+              +(prm.drain>0.0 ? ", "+to_string(dVdrain_)+" m^3 pumped out over "+to_string(prm.drain)+" s" : string(""))+")" : string(""))
+            <<", floorpressure "<<prm.floorp
             <<", projections "<<prm.projections<<(prm.poisson==1?"":", Poisson mobility OFF")<<endl;
         
         const char *sname[3] = {"fixed","rigid","flexible"};
@@ -219,7 +239,7 @@ void net_membrane::mesh(lexer *p)
     ttag_.clear();
 
     const double h = prm.h;
-    const double lz = prm.zt - prm.zb;
+    const double lz = prm.zt - (prm.shape==3 ? prm.zc : prm.zb);
     const int nz = MAX(1,(int)ceil(lz/h));
 
     if(prm.shape==1)
@@ -255,18 +275,30 @@ void net_membrane::mesh(lexer *p)
         const int nt = MAX(16,(int)ceil(2.0*PI*prm.R/h));
         const int nr = MAX(1,(int)ceil(prm.R/h));
 
-        add_cylinder_wall(nt,nz);
-        add_disk(nt,nr);
+        add_cylinder_wall(nt,nz,prm.zb);
+        add_disk(nt,nr,prm.zb,prm.zb);
+    }
+
+    if(prm.shape==3)
+    {
+        // cylinder wall from the cone base up, cone from the tip to the base (the floor, tag 1)
+        const int nt = MAX(16,(int)ceil(2.0*PI*prm.R/h));
+        const double ls = sqrt(prm.R*prm.R + (prm.zc-prm.zb)*(prm.zc-prm.zb));
+        const int nr = MAX(1,(int)ceil(ls/h));
+
+        add_cylinder_wall(nt,nz,prm.zc);
+        add_disk(nt,nr,prm.zb,prm.zc);
     }
 
     merge_nodes();
     
     xdot_.assign(x_.size(),Eigen::Vector3d::Zero());
 
+    // floor area projected on the horizontal (sloped cone floor)
     Afloor=0.0;
     for(size_t t=0; t<tri_.size(); ++t)
     if(ttag_[t]==1)
-    Afloor += ta_[t];
+    Afloor += ta_[t]*fabs(tn_[t](2));
 
     // 2D: loads act on the width of the single cell row
     if(p->j_dir==0)
@@ -298,7 +330,7 @@ void net_membrane::add_panel(const Eigen::Vector3d &o, const Eigen::Vector3d &a,
     }
 }
 
-void net_membrane::add_cylinder_wall(int nt, int nz)
+void net_membrane::add_cylinder_wall(int nt, int nz, double z0)
 {
     const int n0 = x_.size();
 
@@ -306,7 +338,7 @@ void net_membrane::add_cylinder_wall(int nt, int nz)
     for(int it=0; it<nt; ++it)
     {
         const double th = 2.0*PI*double(it)/double(nt);
-        x_.push_back(Eigen::Vector3d(prm.xc + prm.R*cos(th), prm.yc + prm.R*sin(th), prm.zb + (prm.zt-prm.zb)*double(iz)/double(nz)));
+        x_.push_back(Eigen::Vector3d(prm.xc + prm.R*cos(th), prm.yc + prm.R*sin(th), z0 + (prm.zt-z0)*double(iz)/double(nz)));
     }
 
     for(int iz=0; iz<nz; ++iz)
@@ -325,12 +357,13 @@ void net_membrane::add_cylinder_wall(int nt, int nz)
     }
 }
 
-void net_membrane::add_disk(int nt, int nr)
+void net_membrane::add_disk(int nt, int nr, double z0, double z1)
 {
+    // floor disk, flat (z0 = z1) or a cone from the tip z0 at the centre to the rim z1; the outward normal points down
     const Eigen::Vector3d nout(0.0,0.0,-1.0);
     const int nc = x_.size();
 
-    x_.push_back(Eigen::Vector3d(prm.xc,prm.yc,prm.zb));
+    x_.push_back(Eigen::Vector3d(prm.xc,prm.yc,z0));
 
     const int n0 = x_.size();
 
@@ -339,7 +372,7 @@ void net_membrane::add_disk(int nt, int nr)
     {
         const double th = 2.0*PI*double(it)/double(nt);
         const double r = prm.R*double(ir)/double(nr);
-        x_.push_back(Eigen::Vector3d(prm.xc + r*cos(th), prm.yc + r*sin(th), prm.zb));
+        x_.push_back(Eigen::Vector3d(prm.xc + r*cos(th), prm.yc + r*sin(th), z0 + (z1-z0)*double(ir)/double(nr)));
     }
 
     // centre fan
@@ -491,6 +524,53 @@ bool net_membrane::outside_footprint(double xp, double yp, double margin) const
     const double r = sqrt((xp-prm.xc)*(xp-prm.xc) + (yp-prm.yc)*(yp-prm.yc));
 
     return r > prm.R + margin;
+}
+
+void net_membrane::drain_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // pump: lower the free surface in the interior of the bag (more than 2 delta from the wall) at a constant
+    // volume rate dV/drain until the missing water is out; the momentum of the columns is kept (U, V, W unchanged)
+    if(dVdrain_<=0.0 || Vdrained_>=dVdrain_)
+    return;
+    
+    double A=0.0, gx, gy;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1 && footprint_distance(p->XP[IP],p->YP[JP],gx,gy)>2.0*delta)
+    A += p->DXN[IP]*p->DYN[JP];
+    
+    A = pgc->globalsum(A);
+    
+    if(A<=0.0)
+    return;
+    
+    const double dV = MIN(dVdrain_/prm.drain*p->dt, dVdrain_-Vdrained_);
+    const double de = dV/A;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==1 && footprint_distance(p->XP[IP],p->YP[JP],gx,gy)>2.0*delta)
+    {
+        const double WLo = d->WL(i,j);
+        const double f = (WLo - de)/WLo;
+        
+        d->WL(i,j) -= de;
+        d->eta(i,j) -= de;
+        
+        KLOOP
+        {
+        d->UH[IJK] *= f;
+        d->VH[IJK] *= f;
+        d->WH[IJK] *= f;
+        }
+    }
+    
+    Vdrained_ += dV;
+    
+    pgc->gcsl_start4(p,d->WL,50);
+    pgc->gcsl_start4(p,d->eta,50);
+    pgc->start4V(p,d->UH,14);
+    pgc->start4V(p,d->VH,15);
+    pgc->start4V(p,d->WH,16);
 }
 
 void net_membrane::fill_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -903,6 +983,8 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
 
         if(print_now(p))
         print_vtp(p);
+        
+        drain_nhflow(p,d,pgc);
     }
 }
 
@@ -1029,8 +1111,9 @@ void net_membrane::kinematics_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void net_membrane::floor_geometry(lexer *p)
 {
-    // footprint offset from the floor edge and floor height per column for a moving membrane
-    if(!moving() || ring_.empty())
+    // footprint offset from the floor edge and floor height (and slope) per column for a moving membrane or a
+    // sloped (cone) floor
+    if((!moving() && !sloped()) || ring_.empty())
     return;
     
     Eigen::Vector3d c = Eigen::Vector3d::Zero();
@@ -1038,11 +1121,16 @@ void net_membrane::floor_geometry(lexer *p)
     c += x_[q];
     c /= double(ring_.size());
     
+    if(moving())
+    {
     offx_ = c(0) - ringc0_(0);
     offy_ = p->j_dir==1 ? c(1) - ringc0_(1) : 0.0;
+    }
     zring_ = c(2);
     
     fill(zf_.begin(),zf_.end(),zring_);
+    fill(zfx_.begin(),zfx_.end(),0.0);
+    fill(zfy_.begin(),zfy_.end(),0.0);
     
     // floor triangles: height at the column centres inside their horizontal projection
     for(size_t t=0; t<tri_.size(); ++t)
@@ -1084,14 +1172,27 @@ void net_membrane::floor_geometry(lexer *p)
             if(l1<-1.0e-10 || l2<-1.0e-10 || l1+l2>1.0+1.0e-10)
             continue;
             
-            zf_[(i-p->imin)*p->jmax + (j-p->jmin)] = a(2) + l1*(b(2)-a(2)) + l2*(e(2)-a(2));
+            const int q = (i-p->imin)*p->jmax + (j-p->jmin);
+            zf_[q] = a(2) + l1*(b(2)-a(2)) + l2*(e(2)-a(2));
+            
+            // slope of the triangle plane: dl1/dx = (e1-a1)/det, dl1/dy = -(e0-a0)/det, dl2/dx = -(b1-a1)/det, dl2/dy = (b0-a0)/det
+            zfx_[q] = ((e(1)-a(1))*(b(2)-a(2)) - (b(1)-a(1))*(e(2)-a(2)))/det;
+            zfy_[q] = (-(e(0)-a(0))*(b(2)-a(2)) + (b(0)-a(0))*(e(2)-a(2)))/det;
         }
     }
 }
 
 double net_membrane::zfloor(lexer *p, int ii, int jj) const
 {
-    return moving() ? zf_[(ii-p->imin)*p->jmax + (jj-p->jmin)] : prm.zb;
+    return (moving() || sloped()) ? zf_[(ii-p->imin)*p->jmax + (jj-p->jmin)] : prm.zb;
+}
+
+double net_membrane::Abag(lexer *p) const
+{
+    if(prm.shape>=2)
+    return PI*prm.R*prm.R;
+    
+    return (prm.x1-prm.x0)*(p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge]);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1387,6 +1488,15 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
         if(sz<=-delta)
         continue;
         
+        // slope of the floor (cone): B = B(z_f(x,y) - z) also varies horizontally
+        double zfx=0.0, zfy=0.0;
+        
+        if(moving() || sloped())
+        {
+            zfx = zfx_[(i-p->imin)*p->jmax + (j-p->jmin)];
+            zfy = zfy_[(i-p->imin)*p->jmax + (j-p->jmin)];
+        }
+        
         double A, Ax, Ay, fx, fy, fz;
         
         if(prm.floorp==1 || prm.floorp==3)
@@ -1446,8 +1556,8 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
             }
             
             // f = -grad(p_m)/rho,  p_m = -rho g (eta - eta_ref) W B
-            fx =  g*B*(A*Ex + E*Ax);
-            fy =  g*B*(A*Ey + E*Ay);
+            fx =  g*B*(A*Ex + E*Ax) + g*E*A*dB*zfx;
+            fy =  g*B*(A*Ey + E*Ay) + g*E*A*dB*zfy;
             fz = -g*E*A*dB;
         }
         else
@@ -1464,8 +1574,8 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
             d->MCHI[IJK] = MAX(d->MCHI[IJK], A*B);
             
             // f = -grad(p_m)/rho
-            fx =  g*dh*Ax*B;
-            fy =  g*dh*Ay*B;
+            fx =  g*dh*Ax*B + g*dh*A*dB*zfx;
+            fy =  g*dh*Ay*B + g*dh*A*dB*zfy;
             fz = -g*dh*A*dB;
         }
         

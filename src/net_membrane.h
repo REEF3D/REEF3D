@@ -83,6 +83,13 @@ Author: Hans Bihs
 //    and drops out at convergence; IQN-ILS accelerates the fixed point (iqn_ils.h). No artificial inertia.
 //    Defaults: membrane mesh 1.5 delta (shorter structural modes are not seen by the layer and stall the iteration),
 //    Robin matrix x16 with the tolerances / 16.
+//
+// 8. Current. In a steady current at low Froude number use the HLLC flux (A 511 2): HLL dissipates the shear at the
+//    edge of the frozen membrane layer with the gravity wave speed, and the thick, friction-like wake gave drag
+//    coefficients 4 - 7 times too high for the cage of Strand et al. (2013) (U/sqrt(g h) ~ 0.03); HLLC carries the
+//    shear wave. floorpressure 3 is unstable in a current, use 0. Slack (partly filled) bags: coupling staggered with
+//    a lower resistance (1e3) and compression 0.001 (the iterated coupling does not converge for wrinkling fabric).
+//    Shapes: box, cylinder, cylcone (cylinder on a cone; the cone is the floor, sloped floor in the static pressure).
 
 #include"net.h"
 #include"increment.h"
@@ -104,15 +111,18 @@ using namespace std;
 struct membrane_param
 {
     string name;
-    int shape=0;                // 1: box, 2: cylinder
+    int shape=0;                // 1: box, 2: cylinder, 3: cylinder on a cone (cylcone)
     double x0=0.0,x1=0.0,y0=0.0,y1=0.0;     // box footprint
     double xc=0.0,yc=0.0,R=0.0;             // cylinder footprint
-    double zb=0.0,zt=0.0;                   // bottom (floor) and top of the bag
+    double zb=0.0,zt=0.0;                   // bottom (floor) and top of the bag; cylcone: zb the cone tip
+    double zc=0.0;                          // cylcone: cone base = bottom of the cylinder
     double Rn=1.0e4, Rt=-1.0;               // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
     double delta=-1.0;                      // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
     double h=-1.0;                          // target triangle edge length [m], <0: min cell size (fixed), max cell size
                                             // (moving), 1.5 delta (coupling iterated)
     double fill=0.0;                        // initial inner water level above the undisturbed level [m]
+    double filling=-1.0;                    // filling level V_water/V_bag (<0: not given, fill applies)
+    double drain=0.0;                       // >0: the missing water is pumped out of the bag over this time [s]
     double printdt=-1.0;                    // vtp print interval [s]; <0: NHFLOW print control (P 20 / P 30), 0: off
     int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
     int poisson=1;                          // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
@@ -126,6 +136,7 @@ struct membrane_param
     double rhom=1300.0;                     // fabric density [kg/m^3] (buoyancy)
     double EA=5.0e5;                        // membrane stiffness E t [N/m]
     double zeta=0.1;                        // damping ratio of the edge dampers
+    double compr=0.01;                      // stiffness in compression as a fraction of E t (wrinkling fabric)
     double sinker=0.0;                      // submerged weight along the floor edge [N/m]
     double zattach=-1.0e20;                 // nodes at or above this height are attached, default: top edge
     double Mbody=-1.0;                      // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
@@ -187,8 +198,9 @@ public:
     Eigen::Matrix3d body_addedinertia(lexer*) const;
     Eigen::Matrix3d body_stiffness() const {return (moving() && body_) ? Eigen::Matrix3d(Jb_.block<3,3>(0,0)) : Eigen::Matrix3d::Zero();}
 
-    // initial inner water level
+    // initial inner water level, or water pumped out of the bag over the drain time
     void fill_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void drain_nhflow(lexer*, fdm_nhf*, ghostcell*);
 
     // strong coupling (net_membrane_coupling.cpp): forcing update for new node velocities, coupling iteration
     bool iterated() const {return prm.coupling==1 && prm.structure==2;}
@@ -203,8 +215,8 @@ private:
     void merge_nodes();
     void update_geometry();
     void add_panel(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, int, int, const Eigen::Vector3d&, int);
-    void add_cylinder_wall(int, int);
-    void add_disk(int, int);
+    void add_cylinder_wall(int, int, double);
+    void add_disk(int, int, double, double);
     void add_tri(int, int, int, const Eigen::Vector3d&, int);
     bool inside_footprint(double, double, double) const;
     bool outside_footprint(double, double, double) const;
@@ -226,6 +238,9 @@ private:
     double dstep(double) const;
     void floor_geometry(lexer*);
     double zfloor(lexer*, int, int) const;
+    double zbag() const {return prm.shape==3 ? prm.zc - (prm.zc-prm.zb)/3.0 : prm.zb;}   // flat floor of the same volume
+    double Abag(lexer*) const;              // waterplane area of the bag
+    bool sloped() const {return prm.shape==3;}  // floor height varies over the footprint
 
     // structure (net_membrane_structure.cpp)
     void ini_structure(lexer*, ghostcell*);
@@ -306,12 +321,13 @@ private:
     double dh, etaref;                      // eta_in - eta_out and eta_out used for the static floor pressure
     vector<double> etab_;                   // averaged free surface (floorpressure 3)
     double erefb=0.0, dhb=0.0;
+    double dVdrain_=0.0, Vdrained_=0.0;     // volume to pump out of the bag, pumped so far
 
     // moving floor: footprint offset (floor edge centroid), floor height per column
     vector<int> ring_;                      // nodes on the floor edge
     Eigen::Vector3d ringc0_;
     double offx_=0.0, offy_=0.0, zring_=0.0;
-    vector<double> zf_;
+    vector<double> zf_, zfx_, zfy_;         // floor height per column and its slope
 
     // structure
     vector<Eigen::Vector3d> x0_;            // initial node positions

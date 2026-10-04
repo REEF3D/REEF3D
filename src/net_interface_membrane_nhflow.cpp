@@ -39,6 +39,8 @@ Author: Hans Bihs
 //   # comment
 //   membrane box       x0 x1 y0 y1 z_bottom z_top     starts a new membrane (in 2D y0, y1 are ignored)
 //   membrane cylinder  xc yc R z_bottom z_top
+//   membrane cylcone   xc yc R z_tip z_cone z_top  cylinder (z_cone to z_top) on a cone bottom (z_tip to z_cone), as the
+//                                      closed flexible cage of Strand et al. (2013); the cone is the bag floor
 //   name        text                   optional label
 //   resistance  R_n [R_t]              hydraulic resistance [m/s], leakage u_n = (dp/rho)/R_n; default 1e4;
 //                                      R_t default 0 (fixed membrane), R_n (moving membrane: the layer moves with it)
@@ -46,6 +48,11 @@ Author: Hans Bihs
 //   mesh        h                      target triangle edge length [m]; default min(dx,dy) (fixed), max(dx,dy,dz) (moving),
 //                                      1.5 delta (coupling iterated)
 //   fill        dh                     initial inner water level above the outside level [m]; default 0
+//   filling     lambda                 filling level V_water/V_bag (V_bag below the still water level): the inner
+//                                      level starts lower by (1 - lambda) V_bag / A_waterplane, the flexible bag
+//                                      then deflates to the inner volume; overrides fill
+//   drain       T                      with filling: the bag starts full and the missing water is pumped out of its
+//                                      interior over T [s] (quasi-static deflation instead of the sudden inner level drop)
 //   print       dt                     vtp output interval [s] (REEF3D_NHFLOW_Membrane_VTP, with a .pvd
 //                                      collection); default: NHFLOW print control P 30 / P 20; 0: off
 //   floorpressure 0|1|3                static pressure below the floor: 0 uniform head difference,
@@ -66,6 +73,7 @@ Author: Hans Bihs
 //   density     rho                    fabric density [kg/m^3] (buoyancy); default 1300
 //   stiffness   Et                     membrane stiffness E t [N/m]; default 5e5
 //   damping     zeta                   damping ratio of the edge dampers; default 0.1
+//   compression f                      edge stiffness in compression as a fraction of E t (wrinkling); default 0.01
 //   sinker      w                      submerged weight along the floor edge [N/m]; default 0
 //   attach      z                      nodes at or above z are attached; default the top edge z_top
 //   bodyaddedmass M                    added mass [kg] of the stabilised coupling to the floating body
@@ -176,6 +184,12 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 if(!(ls>>m.xc>>m.yc>>m.R>>m.zb>>m.zt))
                 error=true;
             }
+            else if(shape=="cylcone")
+            {
+                m.shape=3;
+                if(!(ls>>m.xc>>m.yc>>m.R>>m.zb>>m.zc>>m.zt) || !(m.zb<m.zc && m.zc<m.zt))
+                error=true;
+            }
             else
             error=true;
 
@@ -208,6 +222,21 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         else if(key=="fill")
         {
             if(!(ls>>mp.back().fill))
+            error=true;
+        }
+        else if(key=="compression")
+        {
+            if(!(ls>>mp.back().compr) || mp.back().compr<0.0 || mp.back().compr>1.0)
+            error=true;
+        }
+        else if(key=="drain")
+        {
+            if(!(ls>>mp.back().drain) || mp.back().drain<0.0)
+            error=true;
+        }
+        else if(key=="filling")
+        {
+            if(!(ls>>mp.back().filling) || mp.back().filling<=0.0 || mp.back().filling>1.0)
             error=true;
         }
         else if(key=="floorpressure")

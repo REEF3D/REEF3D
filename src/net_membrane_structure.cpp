@@ -272,10 +272,10 @@ void net_membrane::attach_body(lexer *p, const Eigen::Vector3d &c, const Eigen::
     // 3D ring collar with a rigid cylinder bag, pitch free, waves: 2 rho diverged at 4 s, 4 rho stable
     Iab_.setZero();
     
-    const double hw = MAX(0.0, p->wd - prm.zb);
+    const double hw = MAX(0.0, p->wd - zbag());
     double Lx, Ly, xm, ym;
     
-    if(prm.shape==2)
+    if(prm.shape>=2)
     {
         Lx = Ly = 2.0*prm.R;
         xm = prm.xc;
@@ -289,13 +289,13 @@ void net_membrane::attach_body(lexer *p, const Eigen::Vector3d &c, const Eigen::
         ym = p->j_dir==1 ? 0.5*(prm.y0+prm.y1) : c(1);
     }
     
-    const double A = prm.shape==2 ? PI*prm.R*prm.R : Lx*Ly;
+    const double A = prm.shape>=2 ? PI*prm.R*prm.R : Lx*Ly;
     const double M = 4.0*p->W1*A*hw;
-    const Eigen::Vector3d d = R.transpose()*(Eigen::Vector3d(xm, ym, prm.zb + 0.5*hw) - c);
+    const Eigen::Vector3d d = R.transpose()*(Eigen::Vector3d(xm, ym, zbag() + 0.5*hw) - c);
     
     double Ixx, Iyy, Izz;
     
-    if(prm.shape==2)
+    if(prm.shape>=2)
     {
         Ixx = Iyy = M*(prm.R*prm.R/4.0 + hw*hw/12.0);
         Izz = 0.5*M*prm.R*prm.R;
@@ -326,8 +326,7 @@ Eigen::Matrix3d net_membrane::body_addedinertia(lexer *p) const
     
     if(prm.Mbody>=0.0)
     {
-        const double A = prm.shape==2 ? PI*prm.R*prm.R : (prm.x1-prm.x0)*(p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge]);
-        const double M0 = 2.0*p->W1*A*MAX(0.0, p->wd - prm.zb);
+        const double M0 = 2.0*p->W1*Abag(p)*MAX(0.0, p->wd - zbag());
         f = M0>0.0 ? prm.Mbody/M0 : 0.0;
     }
     
@@ -366,7 +365,7 @@ void net_membrane::internal_forces(lexer *p, const vector<Eigen::Vector3d> &x, c
         
         // fabric: compression wrinkles the membrane
         if(T<0.0)
-        T *= 0.01;
+        T *= prm.compr;
         
         T += ce_[e]*(v[b]-v[a]).dot(ev);
         
@@ -576,8 +575,8 @@ void net_membrane::structure_solve(lexer *p, double dt, int nsub, const vector<E
             const Eigen::Vector3d ev = dx/L;
             const Eigen::Matrix3d P = ev*ev.transpose();
             
-            // spring force on a at x^n, tension only (1 % stiffness in compression)
-            const double kef = L>L0_[e] ? ke_[e] : 0.01*ke_[e];
+            // spring force on a at x^n, tension only (fraction 'compression' of the stiffness in compression, default 1 %)
+            const double kef = L>L0_[e] ? ke_[e] : prm.compr*ke_[e];
             const double geo = L>L0_[e] ? 1.0 - L0_[e]/L : 0.0;
             const Eigen::Vector3d fa = kef*(L - L0_[e])*ev;
             
@@ -832,7 +831,7 @@ void net_membrane::attach_response(lexer *p, double dt, const vector<Eigen::Matr
         
         const Eigen::Vector3d ev = dx/L;
         const Eigen::Matrix3d P = ev*ev.transpose();
-        const double kef = L>L0_[e] ? ke_[e] : 0.01*ke_[e];
+        const double kef = L>L0_[e] ? ke_[e] : prm.compr*ke_[e];
         const double geo = L>L0_[e] ? 1.0 - L0_[e]/L : 0.0;
         
         Be[e] = h*h*kef*(P + geo*(Eigen::Matrix3d::Identity() - P)) + h*ce_[e]*P;
@@ -959,7 +958,5 @@ double net_membrane::body_addedmass(lexer *p) const
     return 0.0;
     
 
-    double A = prm.shape==2 ? PI*prm.R*prm.R : (prm.x1-prm.x0)*(p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge]);
-    
-    return 2.0*p->W1*A*MAX(0.0, p->wd - prm.zb);
+    return 2.0*p->W1*Abag(p)*MAX(0.0, p->wd - zbag());
 }
