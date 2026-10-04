@@ -162,7 +162,7 @@ int main()
     std::cout<<"MMG rudder"<<std::endl;
     {
         ship_models::rudder_param R;
-        R.AR=0.01; R.Lambda=1.8; R.xR=-0.5; R.zR=-0.05; R.tR=0.39; R.aH=0.3; R.xH=-0.45; R.eps=1.1; R.kappa=0.5; R.lR=-0.9; R.gammaR=0.4;
+        R.AR=0.01; R.Lambda=1.8; R.xR=-0.5; R.zR=-0.05; R.tR=0.39; R.aH=0.3; R.xH=-0.45; R.eps=1.1; R.kappa=0.5; R.lR=-0.9; R.gammaR=0.4; R.gammaRp=-1.0; R.falpha=0.0;
         double X,Y,N,K,aR,UR,FN;
         ship_models::rudder_mmg(1000.0,R,1.0,0.0,0.0,0.0,0.1,10.0,0.3,0.8,X,Y,N,K,aR,UR,FN);
         check(fabs(Y)<1e-14 && fabs(N)<1e-14 && fabs(X)<1e-14, "straight run, delta = 0: no rudder force");
@@ -180,6 +180,62 @@ int main()
         // ship drifting to port (v > 0) at delta = 0: flow on the rudder from port, force to starboard
         ship_models::rudder_mmg(1000.0,R,1.0,0.1,0.0,0.0,0.1,10.0,0.3,0.8,X,Y,N,K,aR,UR,FN);
         check(Y<0.0, "drift to port at delta = 0: rudder side force to starboard (course stability)");
+    }
+    
+    std::cout<<"MMG rudder options"<<std::endl;
+    {
+        ship_models::rudder_param R;
+        R.AR=0.0539; R.Lambda=0.345*0.345/0.0539; R.xR=-3.75; R.zR=0.0; R.tR=0.387; R.aH=0.312; R.xH=-3.248; R.eps=1.09; R.kappa=0.5;
+        R.lR=-0.71*7.0; R.gammaR=0.395; R.gammaRp=0.640; R.falpha=2.747;
+        double X,Y,N,K,aR,UR,FN,UR2,FN2;
+        // falpha given: F_N = 1/2 rho A_R U_R^2 falpha sin(alpha_R)
+        ship_models::rudder_mmg(1000.0,R,1.0,0.0,0.0,0.2,0.0,0.0,0.0,0.6,X,Y,N,K,aR,UR,FN);
+        check(fabs(FN - 0.5*1000.0*0.0539*UR*UR*2.747*sin(0.2))<1e-10, "rudder_falpha overrides 6.13 Lambda/(Lambda+2.25)");
+        // asymmetric flow straightening: beta_R > 0 (drift to port in the ship frame) uses gammaRp
+        ship_models::rudder_mmg(1000.0,R,1.0, 0.05,0.0,0.0,0.0,0.0,0.0,0.6,X,Y,N,K,aR,UR,FN);
+        ship_models::rudder_mmg(1000.0,R,1.0,-0.05,0.0,0.0,0.0,0.0,0.0,0.6,X,Y,N,K,aR,UR2,FN2);
+        const double U = sqrt(1.0+0.0025), b = atan2(0.05,1.0);
+        check(fabs(UR - sqrt(1.09*0.6*1.09*0.6 + pow(U*0.640*b,2)))<1e-12 && fabs(UR2 - sqrt(1.09*0.6*1.09*0.6 + pow(U*0.395*b,2)))<1e-12,
+              "rudder_gamma: gamma_R 0.640 for beta_R > 0, 0.395 for beta_R < 0 (KVLCC2)");
+    }
+    
+    std::cout<<"MMG hull (Yasukawa & Yoshimura 2015, KVLCC2)"<<std::endl;
+    {
+        const double c[17] = {0.022,-0.040,0.002,0.011,0.771,-0.315,0.083,-1.607,0.379,-0.391,0.008,-0.137,-0.049,-0.030,-0.294,0.055,-0.013};
+        const double rho=1000.0, L=7.0, d=0.46;
+        double X,Y,N;
+        // straight run: only the resistance -R0
+        ship_models::mmg_hull(rho,L,d,c,1.2,0.0,0.0,0.01,X,Y,N);
+        check(fabs(X + 0.5*rho*L*d*1.44*0.022)<1e-10 && Y==0.0 && N==0.0, "straight run: X = -1/2 rho L d U^2 R0', Y = N = 0");
+        // general state against the nondimensional form
+        const double u=1.1, vm=-0.12, r=0.03, U=sqrt(u*u+vm*vm), vp=vm/U, rp=r*L/U;
+        ship_models::mmg_hull(rho,L,d,c,u,vm,r,0.01,X,Y,N);
+        const double q=0.5*rho*L*d*U*U;
+        const double Xe=q*(-c[0]+c[1]*vp*vp+c[2]*vp*rp+c[3]*rp*rp+c[4]*pow(vp,4));
+        const double Ye=q*(c[5]*vp+c[6]*rp+c[7]*pow(vp,3)+c[8]*vp*vp*rp+c[9]*vp*rp*rp+c[10]*pow(rp,3));
+        const double Ne=q*L*(c[11]*vp+c[12]*rp+c[13]*pow(vp,3)+c[14]*vp*vp*rp+c[15]*vp*rp*rp+c[16]*pow(rp,3));
+        snprintf(s,300,"polynomial form = nondimensional form: X %.6f/%.6f, Y %.6f/%.6f, N %.6f/%.6f",X,Xe,Y,Ye,N,Ne);
+        check(fabs(X-Xe)<1e-10 && fabs(Y-Ye)<1e-10 && fabs(N-Ne)<1e-10, s);
+        // frame independence: (v, r) -> (-v, -r) flips Y and N, keeps X
+        double X2,Y2,N2;
+        ship_models::mmg_hull(rho,L,d,c,u,-vm,-r,0.01,X2,Y2,N2);
+        check(fabs(X2-X)<1e-12 && fabs(Y2+Y)<1e-12 && fabs(N2+N)<1e-12, "ship frame = MMG frame: Y, N odd and X even in (v, r)");
+        // course stability terms: sway to port (vm > 0) gives a force to starboard, yaw damping
+        ship_models::mmg_hull(rho,L,d,c,1.0,0.05,0.0,0.01,X,Y,N);
+        check(Y<0.0, "Y'v < 0: lateral damping");
+        ship_models::mmg_hull(rho,L,d,c,1.0,0.0,0.02,0.01,X,Y,N);
+        check(N<0.0, "N'r < 0: yaw damping");
+        // finite at rest with a yaw rate (U limited to Umin in the denominators)
+        ship_models::mmg_hull(rho,L,d,c,0.0,0.0,0.01,0.05,X,Y,N);
+        check(std::isfinite(X) && std::isfinite(Y) && std::isfinite(N), "finite at U = 0");
+    }
+    
+    std::cout<<"MMG wake"<<std::endl;
+    {
+        check(fabs(ship_models::mmg_wake(0.40,2.0,1.6,1.1,0.0)-0.40)<1e-15, "beta_P = 0: wP = wP0");
+        const double w1 = ship_models::mmg_wake(0.40,2.0,1.6,1.1,0.3), w2 = ship_models::mmg_wake(0.40,2.0,1.6,1.1,-0.3);
+        const double e1 = 1.0-0.6*(1.0+(1.0-exp(-0.6))*0.6), e2 = 1.0-0.6*(1.0+(1.0-exp(-0.6))*0.1);
+        check(fabs(w1-e1)<1e-14 && fabs(w2-e2)<1e-14, "C2 = 1.6 for beta_P > 0, 1.1 for beta_P < 0");
     }
     
     std::cout<<"roll damping"<<std::endl;

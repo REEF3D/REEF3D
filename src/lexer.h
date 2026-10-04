@@ -117,6 +117,10 @@ public:
 	int gcextra1,gcextra2,gcextra3,gcextra4,gcextra4a,gcextra6;
 
     int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
+    // boundary-cell lists of the V-type ghost-cell sweeps (gc_startV.cpp), one per grid and
+    // per type 1,2,3,4,7; gcbl_count: the step they were built for, -2: rebuild
+    std::vector<int> gcbl_ijk[8];
+    int gcbl_count[8];
     int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
     int gcsldfeta4_count,gcsldfbed4_count;
     int **gcsldfeta4,**gcsldfbed4;

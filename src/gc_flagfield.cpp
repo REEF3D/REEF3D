@@ -21,12 +21,12 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
-void gcbl_reset_all();
+void gcbl_reset_all(lexer*);
 #include"lexer.h"
 
 void ghostcell::flagfield(lexer *p)
 {
-    gcbl_reset_all();
+    gcbl_reset_all(p);
 
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)
     {

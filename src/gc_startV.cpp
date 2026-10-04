@@ -29,46 +29,40 @@ Author: Hans Bihs
 // entries are (i,j,k,h): h=1 if the cell has a flagged neighbour in x or y,
 // h=0 if only the bottom/top neighbour is flagged. For h=0 cells only the
 // vertical BC statements (the tail of each loop body) can fire.
-#define GCBL_LOOP(L,T) gcblist gcbl_tmp_; const gcblist &gcbl_L_ = gcbl_get(ghostcell::p,p,L,gcbl_tmp_,T,i,j,k); int gcbl_h=0; \
-    for(size_t qq_=0; qq_<gcbl_L_.ijk.size(); qq_+=4) \
-    if((i=gcbl_L_.ijk[qq_], j=gcbl_L_.ijk[qq_+1], k=gcbl_L_.ijk[qq_+2], gcbl_h=gcbl_L_.ijk[qq_+3], true))
+#define GCBL_LOOP(T) const std::vector<int> &gcbl_L_ = gcbl_get(p,T,i,j,k); int gcbl_h=0; \
+    for(size_t qq_=0; qq_<gcbl_L_.size(); qq_+=4) \
+    if((i=gcbl_L_[qq_], j=gcbl_L_[qq_+1], k=gcbl_L_[qq_+2], gcbl_h=gcbl_L_[qq_+3], true))
 
 // boundary-cell lists for the V-type BC sweeps (NHFLOW/FNPF):
 // cells of a ULOOP/VLOOP/WLOOP/LOOP/FLOOP that have at least one face
 // neighbour flagged <0. Only these cells can satisfy any of the BC branches,
 // so iterating over them in the original order gives identical results.
 // Rebuilt once per time step (p->count) and whenever flags are rebuilt.
-// A list belongs to the rank grid (the lexer the ghostcell object was built with); for any
-// other lexer (a mesh refinement patch, whose lexers come and go) the cells are collected per
-// call.  The owner must not be the first lexer that happens to call: a patch can call first
-// (NHFLOW AMR runs the patches before level 0), and a later patch allocated at the address of
-// a freed one in the same step would then get the old patch's cells.
+// The lists live in the lexer they were built from (lexer::gcbl_ijk), so every grid - the rank
+// grid and each mesh refinement patch - has its own, and a patch's lists go with its lexer.
 #include<vector>
-namespace
+
+void gcbl_reset_all(lexer *p)
 {
-    struct gcblist { std::vector<int> ijk; int count=-2; };
-    gcblist gcbl1, gcbl2, gcbl3, gcbl4, gcbl7;
+    for(int n=0; n<8; ++n)
+    p->gcbl_count[n]=-2;
 }
 
-void gcbl_reset_all()
-{
-    gcbl1.count=gcbl2.count=gcbl3.count=gcbl4.count=gcbl7.count=-2;
-}
-
-static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int &k)
+static void gcbl_build_impl(lexer *p, int type, int &i, int &j, int &k)
 {
     // during initialisation (count==0) flags may still change: always rebuild
-    if(L.count==p->count && p->count>0)
+    if(p->gcbl_count[type]==p->count && p->count>0)
     return;
 
-    L.ijk.clear();
+    std::vector<int> &L = p->gcbl_ijk[type];
+    L.clear();
 
     if(type==1)
     ULOOP
     {
     const int h = (p->flag1[Im1JK]<0 || p->flag1[Ip1JK]<0 || p->flag1[IJm1K]<0 || p->flag1[IJp1K]<0) ? 1 : 0;
     if(h==1 || p->flag1[IJKm1]<0 || p->flag1[IJKp1]<0)
-    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
     if(type==2)
@@ -76,7 +70,7 @@ static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int 
     {
     const int h = (p->flag2[Im1JK]<0 || p->flag2[Ip1JK]<0 || p->flag2[IJm1K]<0 || p->flag2[IJp1K]<0) ? 1 : 0;
     if(h==1 || p->flag2[IJKm1]<0 || p->flag2[IJKp1]<0)
-    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
     if(type==3)
@@ -84,7 +78,7 @@ static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int 
     {
     const int h = (p->flag3[Im1JK]<0 || p->flag3[Ip1JK]<0 || p->flag3[IJm1K]<0 || p->flag3[IJp1K]<0) ? 1 : 0;
     if(h==1 || p->flag3[IJKm1]<0 || p->flag3[IJKp1]<0)
-    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
     if(type==4)
@@ -92,7 +86,7 @@ static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int 
     {
     const int h = (p->flag4[Im1JK]<0 || p->flag4[Ip1JK]<0 || p->flag4[IJm1K]<0 || p->flag4[IJp1K]<0) ? 1 : 0;
     if(h==1 || p->flag4[IJKm1]<0 || p->flag4[IJKp1]<0)
-    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
     if(type==7)
@@ -100,22 +94,16 @@ static void gcbl_build_impl(lexer *p, gcblist &L, int type, int &i, int &j, int 
     {
     const int h = (p->flag7[FIm1JK]<0 || p->flag7[FIp1JK]<0 || p->flag7[FIJm1K]<0 || p->flag7[FIJp1K]<0) ? 1 : 0;
     if(h==1 || p->flag7[FIJKm1]<0 || p->flag7[FIJKp1]<0)
-    {L.ijk.push_back(i); L.ijk.push_back(j); L.ijk.push_back(k); L.ijk.push_back(h);}
+    {L.push_back(i); L.push_back(j); L.push_back(k); L.push_back(h);}
     }
 
-    L.count=p->count;
+    p->gcbl_count[type]=p->count;
 }
 
-static const gcblist& gcbl_get(lexer *owner, lexer *p, gcblist &L, gcblist &T, int type, int &i, int &j, int &k)
+static const std::vector<int>& gcbl_get(lexer *p, int type, int &i, int &j, int &k)
 {
-    if(p==owner)
-    {
-    gcbl_build_impl(p,L,type,i,j,k);
-    return L;
-    }
-
-    gcbl_build_impl(p,T,type,i,j,k);
-    return T;
+    gcbl_build_impl(p,type,i,j,k);
+    return p->gcbl_ijk[type];
 }
 
 void ghostcell::start1V(lexer *p, double *f, int gcv)
@@ -156,7 +144,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    GCBL_LOOP(gcbl1,1)
+    GCBL_LOOP(1)
     {
     if(gcbl_h==1)
     {
@@ -273,7 +261,7 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    GCBL_LOOP(gcbl2,2)
+    GCBL_LOOP(2)
     {
     if(gcbl_h==1)
     {
@@ -381,7 +369,7 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     // 12 W
     // 14 ETA
     starttime=timer();
-    GCBL_LOOP(gcbl3,3)
+    GCBL_LOOP(3)
     {
     if(gcbl_h==1)
     {
@@ -482,7 +470,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         outflow=1;
 
     starttime=timer();
-    GCBL_LOOP(gcbl4,4)
+    GCBL_LOOP(4)
     {
     if(gcbl_h==1)
     {
@@ -658,7 +646,7 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
 
 void ghostcell::start5V(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(gcbl4,4)
+    GCBL_LOOP(4)
     {
     if(gcbl_h==1)
     {
@@ -1341,7 +1329,7 @@ void ghostcell::start7V(lexer *p, double *f, sliceint &bc, int gcv)
 
 void ghostcell::start7P(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(gcbl7,7)
+    GCBL_LOOP(7)
     {
     if(gcbl_h==1)
     {
@@ -1383,7 +1371,7 @@ void ghostcell::start7P(lexer *p, double *f, int gcv)
 
 void ghostcell::start7S(lexer *p, double *f, int gcv)
 {
-    GCBL_LOOP(gcbl7,7)
+    GCBL_LOOP(7)
     {
     if(gcbl_h==1)
     {
