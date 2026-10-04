@@ -934,6 +934,9 @@ void control::read_control(lexer* p)
               case 514: ++B514;
                          clear(c,numint);
                          break;
+              case 515: ++B515;
+                         clear(c,numint);
+                         break;
               case 523: ++B523;
                          clear(c,numint);
                          break;
@@ -3424,6 +3427,10 @@ void control::read_control(lexer* p)
     Darray(B514_eta0,B514);
     Darray(B514_U,B514);
     Darray(B514_V,B514);
+    Iarray(B515_id,B515);
+    Darray(B515_x0,B515);
+    Darray(B515_y0,B515);
+    Darray(B515_href,B515);
     Iarray(B523_id,B523);
     Iarray(B523_bg,B523);
     
@@ -4202,6 +4209,7 @@ void control::read_control(lexer* p)
     int countB510=0;
     int countB511=0;
     int countB514=0;
+    int countB515=0;
     int countB523=0;
     int countB210=0;
     int countB212=0;
@@ -4463,6 +4471,11 @@ void control::read_control(lexer* p)
                          break;
                 case 514: control>>B514_id[countB514]>>B514_eta0[countB514]>>B514_U[countB514]>>B514_V[countB514];
                          ++countB514;
+                         clear(c,numint);
+                         break;
+                case 515: control>>B515_id[countB515]>>B515_x0[countB515]>>B515_y0[countB515]>>B515_href[countB515];
+                         p->XYin(B515_x0[countB515],B515_y0[countB515]);
+                         ++countB515;
                          clear(c,numint);
                          break;
                 case 523: control>>B523_id[countB523]>>B523_bg[countB523];

@@ -51,7 +51,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
             
             if(b>=0)
-            WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + bgs.eta(b) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
+            WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + bgs.eta(b,p->XP[IP],p->YP[JP]) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
             }
             ++count;
             }
@@ -73,7 +73,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             WL(i,j) = (1.0-relax4_nb(i,j))*depth(i,j) + relax4_nb(i,j)*WL(i,j);
             
             if(b>=0)
-            WL(i,j) = (1.0-relax4_nb(i,j))*(depth(i,j) + bgs.eta(b)) + relax4_nb(i,j)*WL(i,j);
+            WL(i,j) = (1.0-relax4_nb(i,j))*(depth(i,j) + bgs.eta(b,p->XP[IP],p->YP[JP])) + relax4_nb(i,j)*WL(i,j);
             }
             }
         }
@@ -110,9 +110,9 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             if(b>=0)
             {
             double ub,vb;
-            bgs.vel(b,col_h0[IJ],ub,vb);
+            bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
             const double ut = ub + ramp(p)*(uval[count]-p->Ui);
-            const double ht = col_h0[IJ] + bgs.eta(b) + ramp(p)*eta(i,j);
+            const double ht = col_h0[IJ] + bgs.eta(b,p->XP[IP],p->YP[JP]) + ramp(p)*eta(i,j);
             U[IJK]  = (1.0-relax4_wg(i,j))*ut + relax4_wg(i,j)*U[IJK];
             UH[IJK] = (1.0-relax4_wg(i,j))*ht*ut + relax4_wg(i,j)*UH[IJK];
             }
@@ -146,9 +146,9 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             if(p->B97==0 && b>=0)
             {
             double ub,vb;
-            bgs.vel(b,col_h0[IJ],ub,vb);
+            bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
             U[IJK]  = relax4_nb(i,j)*U[IJK]  + (1.0-relax4_nb(i,j))*ub;
-            UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*ub*(col_h0[IJ]+bgs.eta(b));
+            UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*ub*(col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
             }
             }
         }
@@ -186,9 +186,9 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             if(b>=0)
             {
             double ub,vb;
-            bgs.vel(b,col_h0[IJ],ub,vb);
+            bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
             const double vt = vb + ramp(p)*vval[count];
-            const double ht = col_h0[IJ] + bgs.eta(b) + ramp(p)*eta(i,j);
+            const double ht = col_h0[IJ] + bgs.eta(b,p->XP[IP],p->YP[JP]) + ramp(p)*eta(i,j);
             V[IJK]  = (1.0-relax4_wg(i,j))*vt + relax4_wg(i,j)*V[IJK];
             VH[IJK] = (1.0-relax4_wg(i,j))*ht*vt + relax4_wg(i,j)*VH[IJK];
             }
@@ -214,9 +214,9 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             if(b>=0)
             {
             double ub,vb;
-            bgs.vel(b,col_h0[IJ],ub,vb);
+            bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
             V[IJK]  = relax4_nb(i,j)*V[IJK]  + (1.0-relax4_nb(i,j))*vb;
-            VH[IJK] = relax4_nb(i,j)*VH[IJK] + (1.0-relax4_nb(i,j))*vb*(col_h0[IJ]+bgs.eta(b));
+            VH[IJK] = relax4_nb(i,j)*VH[IJK] + (1.0-relax4_nb(i,j))*vb*(col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
             }
             }
             
@@ -253,7 +253,7 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             
             if(b>=0)
             {
-            const double ht = col_h0[IJ] + bgs.eta(b) + ramp(p)*eta(i,j);
+            const double ht = col_h0[IJ] + bgs.eta(b,p->XP[IP],p->YP[JP]) + ramp(p)*eta(i,j);
             W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
             WH[IJK] = (1.0-relax4_wg(i,j))*ht*ramp(p)*wval[count] + relax4_wg(i,j)*WH[IJK];
             }

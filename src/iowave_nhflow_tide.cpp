@@ -139,9 +139,12 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             if(p->wet[IJ]==0 || hi<=1.0e-6 || h0<=1.0e-6)
             continue;
             
-            const double eb = bgs.eta(b);
+            // background at the boundary face
+            const double xf = side==1 ? p->XN[IP] : p->XN[IP1];
+            const double yf = p->YP[JP];
+            const double eb = bgs.eta(b,xf,yf);
             double ub, vb;
-            bgs.vel(b,h0,ub,vb);
+            bgs.vel(b,h0,xf,yf,ub,vb);
             
             const double ui = nhflow_col_ubar(p,d,d->U);
             double ug, hg;

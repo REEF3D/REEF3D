@@ -667,6 +667,8 @@ void control::ctrlrecv()
     ii++;
     B514 = ictrl[ii];
     ii++;
+    B515 = ictrl[ii];
+    ii++;
     B523 = ictrl[ii];
     ii++;
     B110 = ictrl[ii];
@@ -2816,6 +2818,14 @@ void control::ctrlrecv()
         Darray(B514_V,B514);
     }
 
+    if(B515>0)
+    {
+        Iarray(B515_id,B515);
+        Darray(B515_x0,B515);
+        Darray(B515_y0,B515);
+        Darray(B515_href,B515);
+    }
+
     if(B523>0)
     {
         Iarray(B523_id,B523);
@@ -4131,6 +4141,18 @@ void control::ctrlrecv()
         B514_U[n] = dctrl[dd];
         dd++;
         B514_V[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<B515;++n)
+    {
+        B515_id[n] = ictrl[ii];
+        ii++;
+        B515_x0[n] = dctrl[dd];
+        dd++;
+        B515_y0[n] = dctrl[dd];
+        dd++;
+        B515_href[n] = dctrl[dd];
         dd++;
     }
 
