@@ -176,4 +176,60 @@ private:
     void write_motion(int number, const body &b, const char *name, int width) const;
 };
 
+// Particles of a store (LAGOON SPEC.md section 10), written by rank 0 once the
+// particles of all ranks are gathered: the points of every output one after another
+// in growing arrays (shards of 16 inner chunks of 65536 rows), the end of each
+// output's points in point_end. Each output is written at once (the newest inner
+// chunk is written again until it is full), so the store can be read during a run.
+class lagoon_particles
+{
+public:
+    struct field
+    {
+        std::string name;
+        int components;  // 1 or 3
+        bool integer;    // int32, else float32
+    };
+
+    // key: the particle set, e.g. "nhflow_particles"; role: how LAGOON shows it
+    lagoon_particles(const std::string &path, const std::string &solver, const std::string &key,
+                     const std::string &role, const std::string &source, const std::string &run_json,
+                     const std::vector<field> &fields, int gzip_level=1);
+
+    // one output: n points (xyz), and for each field n*components values, float or
+    // int32 as declared, in the order of the fields. False when it could not be
+    // written (no more output to the store then: the VTP files are needed).
+    bool output(double time, long long step, size_t n, const float *xyz,
+                const std::vector<const void*> &values);
+
+    bool usable() const { return ok; }
+
+    static constexpr long long ROWS = 65536;
+    static constexpr int CHUNKS_PER_SHARD = 16;
+
+private:
+    struct growing
+    {
+        std::string dir, dtype, fill;
+        int components = 1, itemsize = 4;
+        long long rows = 0;
+        long long shard = 0;                  // the shard being filled
+        std::vector<std::string> encoded;     // its full inner chunks
+        std::vector<unsigned char> tail;      // rows of the inner chunk being filled
+    };
+    std::string path, solver, key, role, source, run_json, dir;
+    std::vector<field> fields;
+    int gzip_level;
+    bool ok, started;
+    std::vector<growing> arrays;  // position, then the fields
+    std::vector<long long> point_end;
+    lagoon_store store;
+
+    void start();
+    void append(growing &a, const unsigned char *data, size_t rows);
+    void write_shard(const growing &a, long long shard, const std::vector<std::string> &chunks) const;
+    void write_meta(const growing &a) const;
+    void write_point_end() const;
+};
+
 #endif
