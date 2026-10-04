@@ -1,0 +1,1 @@
+{"description": "CFD 2D open channel, k-omega with free-surface damping T36 3 (y = T37 h, lower bound with dimensionless weight).", "np": 1, "steps": 300, "tags": ["2d", "turbulence", "free surface"], "covers": ["komega_func::epsfsf T36 3"]}

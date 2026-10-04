@@ -47,24 +47,25 @@ void CPM::state_write(lexer *p, int num)
     if(P.Flag[n]>=ACTIVE)
     ++numpt;
     
-    int version=1;
+    // version 2: the hop length of the bedload layer (Q 58) follows the 8 values of a parcel
+    int version=2;
     result.write((char*)&version, sizeof(int));
     result.write((char*)&numpt, sizeof(int));
     result.write((char*)&P.ParcelFactor, sizeof(double));
     result.write((char*)&outvol, sizeof(double));
     
-    double val[8];
+    double val[9];
     int flag;
-    
+
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
     {
         val[0]=P.X[n]; val[1]=P.Y[n]; val[2]=P.Z[n];
         val[3]=P.U[n]; val[4]=P.V[n]; val[5]=P.W[n];
-        val[6]=P.D[n]; val[7]=P.RO[n];
+        val[6]=P.D[n]; val[7]=P.RO[n]; val[8]=P.Hop[n];
         flag=P.Flag[n];
-        
-        result.write((char*)val, 8*sizeof(double));
+
+        result.write((char*)val, 9*sizeof(double));
         result.write((char*)&flag, sizeof(int));
     }
     
@@ -111,12 +112,14 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         ++P.index_empty;
     }
     
-    double val[8];
+    double val[9];
     int flag;
-    
+    const int nval = version>=2 ? 9 : 8;
+    val[8]=0.0;
+
     for(int q=0;q<numpt;++q)
     {
-        result.read((char*)val, 8*sizeof(double));
+        result.read((char*)val, nval*sizeof(double));
         result.read((char*)&flag, sizeof(int));
         
         --P.index_empty;
@@ -131,7 +134,7 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         P.D[n]=val[6];
         P.RO[n]=val[7];
         P.Flag[n]=flag;
-        P.Hop[n]=0.0;
+        P.Hop[n]=val[8];
         
         // fixed parcels are released unless all parcels stay fixed (Q 44 1),
         // the open boundaries fix theirs again below
