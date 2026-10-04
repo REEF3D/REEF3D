@@ -1798,6 +1798,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = Q62;
     dd++;
+    dctrl[dd] = Q63;
+    dd++;
     ictrl[ii] = Q50;
     ii++;
     ictrl[ii] = Q51;

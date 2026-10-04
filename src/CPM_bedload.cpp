@@ -41,7 +41,8 @@ grading, slopes and exchange with the suspension follow from the parcels):
                     (distance from the bed level set, ks = S 21 d50)
       theta_c,d   : Q 60 (d/d50)^(-0.8)  (hiding of the small grains, equal mobility tendency)
       mu_s        : static friction Q 36
-      beyond the angle of repose |theta| > theta_c also without flow (avalanching)
+      the slope term is limited to tan(beta) = 0.9 mu_s: without flow the layer stays at rest,
+      slopes beyond the angle of repose avalanche through the packed-bed stress
 
   grain velocity (Fernandez Luque & van Beek 1976):
       u_b = Q 59 sqrt(R g d) (sqrt|theta| - 0.7 sqrt(theta_c,d)),  along theta
@@ -75,9 +76,11 @@ The flow moves the bed through the layer only:
     moving grains near the bed (settling, avalanches) see the resolved flow reduced as delta/h
   - the jumps of the layer parcels (pickup, hops, deposition) bypass the grid-limited step and
     are placed into the first cell with free volume (capacity as in the grid-limited step)
-  - bed surfaces (CPM_bedchange.cpp): the fluid and the layer see a single valued bed level per
-    column from the solid volume of the top cells (no staircase of the iso-surface), the parcels
-    keep the iso-surface of the solid fraction for exposure and the near-bed closure
+  - bed surfaces (CPM_bedchange.cpp): the layer uses a single valued bed level per column from the
+    resting parcels of the top cells (no staircase of the iso-surface); the fluid sees this level
+    relaxed in time (Q 63, 10 s), so that single parcels moving in and out of the top cells do not
+    switch fluid cells on and off; the parcels keep the iso-surface of the solid fraction for
+    exposure, the near-bed closure, the pressure and their own forcing inside the bed
 --------------------------------------------------------------------*/
 
 // bed column of a position: periodic sides wrap, beyond the local domain the edge column
@@ -171,14 +174,14 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             ok = false;
         }
 
-        return ok ? s->bedzh(ii,jj) : 0.0;
+        return ok ? zbl(s,ii,jj) : 0.0;
     };
 
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
         bool okm,okp;
-        double zc = s->bedzh(i,j);
+        double zc = zbl(s,i,j);
         double zm = zb(i-1,j,okm);
         double zp = zb(i+1,j,okp);
         double dx = (okm ? p->DXP[IM1] : 0.0) + (okp ? p->DXP[IP] : 0.0);
@@ -209,8 +212,19 @@ bool CPM::bedload_grain(lexer *p, int ic, int jc, double d, double &ub, double &
     double rg = (p->S22 - p->W1)*gmag*d;
     double tc = p->Q60*pow(d/p->S20,-0.8);
 
-    double tx = blTx(ic,jc)/rg - tc/mu_s*blGx(ic,jc);
-    double ty = p->j_dir==1 ? blTy(ic,jc)/rg - tc/mu_s*blGy(ic,jc) : 0.0;
+    // bed slope, at most 0.9 mu_s: beyond the angle of repose the packed bed avalanches by itself,
+    // the layer only adds the slope effect to the transport by the flow
+    double gx = blGx(ic,jc), gy = p->j_dir==1 ? blGy(ic,jc) : 0.0;
+    double gm = sqrt(gx*gx + gy*gy);
+    
+    if(gm>0.9*mu_s)
+    {
+        gx *= 0.9*mu_s/gm;
+        gy *= 0.9*mu_s/gm;
+    }
+    
+    double tx = blTx(ic,jc)/rg - tc/mu_s*gx;
+    double ty = p->j_dir==1 ? blTy(ic,jc)/rg - tc/mu_s*gy : 0.0;
     double tm = sqrt(tx*tx + ty*ty);
 
     te = tm - tc;
@@ -369,7 +383,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
 
             // hop length, exponential with the mean Q 62 d
             P.Hop[n] = -p->Q62*P.D[n]*log(MAX(1.0-uni(rng), 1.0e-12));
-            P.Z[n] = bedload_place(p,P.X[n],P.Y[n],P.Z[n],i,j,s->bedzh(i,j)+0.5*P.D[n],P.D[n]);
+            P.Z[n] = bedload_place(p,P.X[n],P.Y[n],P.Z[n],i,j,zbl(s,i,j)+0.5*P.D[n],P.D[n]);
             P.U[n] = P.V[n] = P.W[n] = 0.0;
             mov[c].push_back(n);
             ++bl_npick;
@@ -408,7 +422,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
                     size_t q = MIN(mn.size()-1, size_t(uni(rng)*mn.size()));
                     n = mn[q];
 
-                    double zr = s->bedzh(i,j) + ha;
+                    double zr = zbl(s,i,j) + ha;
 
                     P.Hop[n] = 0.0;
                     P.Z[n] = bedload_place(p,P.X[n],P.Y[n],P.Z[n],i,j,zr,P.D[n]);
@@ -452,7 +466,7 @@ void CPM::bedload_move(lexer *p, sediment_fdm *s, int q, double dt)
     P.YRK1[q] = p->j_dir==1 ? P.Y[q] + f*dt*vb : P.Y[q];
 
     bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc);
-    double zb = s->bedzh(ic,jc);
+    double zb = zbl(s,ic,jc);
 
     P.Test[q] = -1.0;
 
@@ -496,4 +510,10 @@ bool CPM::bedload_rest(lexer *p, fdm *a, int q)
     double sp = sqrt(P.U[q]*P.U[q] + P.V[q]*P.V[q] + P.W[q]*P.W[q]);
 
     return topo<h && sp<0.1*settling_velocity(p,P.D[q]);
+}
+
+// bed level of a column for the layer: the actual level from the parcels (the fluid sees it relaxed in time, Q 63)
+double CPM::zbl(sediment_fdm *s, int ic, int jc)
+{
+    return zbl_ok ? blZb(ic,jc) : s->bedzh(ic,jc);
 }

@@ -149,9 +149,34 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
 
     // solid forcing
     double fx,fy,fz;
+    
+    // with the bedload layer (Q 58) the bed level of the fluid is not the bed of the parcels (single
+    // valued, relaxed in time): the parcels feel the forcing of the solid bodies and of their own bed
+    // (iso-surface of the solid fraction), as the forcing of the fluid does without the layer
+    if(p->Q58>0 && p->S10==1)
+    {
+        i = p->posc_i(PX[n]);
+        j = p->posc_j(PY[n]);
+        k = p->posc_k(PZ[n]);
+        
+        double psi = p->X41*(p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]));
+        double phi = ptopo(p,a,PX[n],PY[n],PZ[n]);
+        
+        if(p->solidread>0)
+        phi = MIN(phi, p->ccipol4_b(a->solid,PX[n],PY[n],PZ[n]));
+        
+        double Hs = phi>=psi ? 0.0 : (phi<=-psi ? 1.0 : 0.5*(1.0 - phi/psi - (1.0/PI)*sin(PI*phi/psi)));
+        
+        fx = Hs*(0.0-PU[n])/dt;
+        fy = Hs*(0.0-PV[n])/dt;
+        fz = Hs*(0.0-PW[n])/dt;
+    }
+    else
+    {
     fx = p->ccipol1c(a->fbh1,PX[n],PY[n],PZ[n])*(0.0-PU[n])/dt;
     fy = p->ccipol2c(a->fbh2,PX[n],PY[n],PZ[n])*(0.0-PV[n])/dt;
     fz = p->ccipol3c(a->fbh3,PX[n],PY[n],PZ[n])*(0.0-PW[n])/dt;
+    }
 
     F += fx;
     G += fy;

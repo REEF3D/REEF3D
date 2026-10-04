@@ -24,7 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy(p), blGx(p), blGy(p), blH(p), blC(p), blCs(p), Tau(p), Ts(p),
+CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy(p), blGx(p), blGy(p), blH(p), blC(p), blCs(p), zbf(p), blZb(p), Tau(p), Ts(p),
                                                cellSum(p), Us(p), Vs(p), Ws(p), Pov(p), Kc(p), KUx(p), KUy(p), KUz(p), Dsrc(p), dSx(p), dSy(p), dSz(p), Locc(p), Lout(p), Lin(p), Ltc(p), Lloc(p), LA(p), Lh0(p), Lh1(p), Lh2(p), Lh3(p),
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p),
                                                Kt(p),dKx(p),dKy(p),dKz(p),T0e(p),Tiso(p),rng(20261003ULL+p->mpirank),gauss(0.0,1.0)

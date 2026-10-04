@@ -1790,6 +1790,8 @@ void control::ctrlrecv()
     dd++;
     Q62 = dctrl[dd];
     dd++;
+    Q63 = dctrl[dd];
+    dd++;
     Q50 = ictrl[ii];
     ii++;
     Q51 = ictrl[ii];

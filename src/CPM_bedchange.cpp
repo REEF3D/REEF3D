@@ -123,7 +123,8 @@ The iso-surface of the solid fraction depends on where the parcels sit inside th
 of the bed, so the bed level jumps by up to a cell between neighbouring columns and the
 fluid sees a staircase (form drag, sheltered columns without transport). With the bedload
 layer the bed surface is single valued: from the bottom face of the highest cell of the bed
-(theta >= theta_bed), that cell and the one above count with their solid volume,
+(theta >= theta_bed), that cell and the one above count with their solid volume (parcels in
+their nearest cell, without the bedload layer and the suspension),
 
     z_b = z_face + (theta_k/theta_0) dz_k + (theta_k+1/theta_0) dz_k+1,     topo = z - z_b.
 
@@ -132,16 +133,44 @@ Loose cells further down do not lower the surface, parcels further up (suspensio
 void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
 {
     const int nj = p->knoy+2;
+    const int nk = p->knoz;
+    const double vpar = P.ParcelFactor*Vp;
     std::vector<double> zb((p->knox+2)*nj, 0.0);
+    
+    // solid volume of the bed per cell: parcels in their nearest cell (no kernel spread of the bed
+    // into the cell above), without the parcels of the bedload layer and the suspension
+    // (moving faster than 0.1 w_s above the bed surface of the parcels)
+    std::vector<double> occ(size_t(p->knox)*p->knoy*nk, 0.0);
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]>=ACTIVE && P.Hop[n]<=0.0)
+    {
+        int ic = p->posc_i(P.X[n]);
+        int jc = p->j_dir==1 ? p->posc_j(P.Y[n]) : 0;
+        int kc = p->posc_k(P.Z[n]);
+        
+        if(ic<0 || ic>=p->knox || jc<0 || jc>=p->knoy || kc<0 || kc>=nk)
+        continue;
+        
+        double sp = sqrt(P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n]);
+        
+        if(sp>0.1*settling_velocity(p,P.D[n]) && ptopo(p,a,P.X[n],P.Y[n],P.Z[n])>=0.0)
+        continue;
+        
+        occ[(size_t(ic)*p->knoy + jc)*nk + kc] += vpar;
+    }
 
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
+        const double A = p->DXN[IP]*p->DYN[JP];
+        const double *oc = &occ[(size_t(i)*p->knoy + j)*nk];
+        
         // highest cell of the bed
         int ktop=-1;
 
-        for(k=0;k<p->knoz;++k)
-        if(Ts(i,j,k)>=theta_bed)
+        for(k=0;k<nk;++k)
+        if(oc[k] >= theta_bed*A*p->DZN[KP])
         ktop=k;
 
         // the cells below the highest cell of the bed count as full (dilated or loose cells inside
@@ -149,12 +178,25 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         int kb = MAX(ktop,0);
         double z = p->ZN[kb+marge];
 
-        for(k=kb;k<=MIN(kb+1,p->knoz-1);++k)
-        z += MIN(MAX(0.0,Ts(i,j,k))/theta_0, 1.0)*p->DZN[KP];
+        for(k=kb;k<=MIN(kb+1,nk-1);++k)
+        z += MIN(oc[k]/(theta_0*A*p->DZN[KP]), 1.0)*p->DZN[KP];
 
-        zb[(i+1)*nj + j+1] = z;
+        // the fluid sees the bed level relaxed in time (Q 63, default 10 s): single parcels moving in and
+        // out of the top cells (pickup, deposition from the suspension) make the level jump by
+        // V_p/(theta_0 A) each time; a bed boundary that crosses the cell centres back and forth
+        // switches fluid cells on and off and stalls the near-bed flow (bed shear stress down to 1/5)
+        blZb(i,j) = z;
+        zbl_ok = 1;
+        
+        if(zbf_ini==0)
+        zbf(i,j) = z;
+        
+        zbf(i,j) += MIN(1.0, p->dt/MAX(p->Q63,1.0e-12))*(z - zbf(i,j));
+        
+        zb[(i+1)*nj + j+1] = zbf(i,j);
     }
-
+    
+    zbf_ini=1;
     BASELOOP
     {
         double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);

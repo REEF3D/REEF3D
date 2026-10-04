@@ -904,6 +904,7 @@ void control::ini_default()
     Q59=6.5;            // double bedload layer: grain velocity coefficient, u_b = Q59 sqrt(R g d)(sqrt(theta) - 0.7 sqrt(theta_c))
     Q60=0.047;          // double bedload layer: critical Shields number theta_c of d50
     Q62=50.0;           // double bedload layer: mean hop length in grain diameters
+    Q63=10.0;           // double bedload layer: relaxation time [s] of the bed level seen by the fluid
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
     Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off
