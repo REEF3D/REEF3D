@@ -253,6 +253,7 @@ public:
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double wavetime;
+    int open_xm,open_xp;    // iowave Riemann / Flather edge on x- / x+ (NHFLOW): ghost cells set by iowave
 
 	// solver watch
 	int uiter,viter,witer;

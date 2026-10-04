@@ -1198,6 +1198,7 @@
       <VirtualDirectory Name="ioFlow">
         <File Name="iowave.h"/>
         <File Name="bc_zone.h"/>
+        <File Name="background_state.h"/>
         <File Name="ioflow_void.h"/>
         <File Name="ioflow_gravity.h"/>
         <File Name="ioflow_f.h"/>
@@ -3140,6 +3141,7 @@
           <File Name="iowave_active-beach.cpp"/>
           <File Name="iowave.cpp"/>
           <File Name="bc_zone.cpp"/>
+          <File Name="background_state.cpp"/>
           <VirtualDirectory Name="SFLOW">
             <File Name="iowave_sflow_wavegen.cpp"/>
             <File Name="iowave_sflow_waterlevel.cpp"/>
@@ -3157,6 +3159,7 @@
             <File Name="iowave_nhflow_ini.cpp"/>
             <File Name="iowave_nhflow_precalc.cpp"/>
             <File Name="iowave_nhflow_relax.cpp"/>
+            <File Name="iowave_nhflow_tide.cpp"/>
             <File Name="iowave_nhflow_precalc_relax.cpp"/>
             <File Name="iowave_nhflow_velsource.cpp"/>
             <File Name="iowave_nhflow_precalc_decomp_time.cpp"/>

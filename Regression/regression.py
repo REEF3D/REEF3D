@@ -64,6 +64,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_CFD_Force/*.dat",
     "REEF3D_CFD_6DOF/*.dat",
     "REEF3D_CFD_WSFLINE/*.dat",
+    "REEF3D_CFD_CPM_Particle/*.dat",
     "REEF3D_FEM/*.dat",
     "REEF3D_NHFLOW_WSF/*.dat",
     "REEF3D_NHFLOW_ProbePoint/*.dat",

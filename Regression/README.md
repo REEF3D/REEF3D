@@ -23,7 +23,7 @@ rank writes into that directory
 
 1. the exact final state, field by field (max abs diff, number of differing cells),
 2. the per-step record, giving the **first time step where the runs diverge**,
-3. the normal text output (wave gauges, probes, forces, 6DOF) with a tolerance.
+3. the normal text output (wave gauges, probes, forces, 6DOF, CPM sediment log) with a tolerance.
 
 Result per case: **identical** (bitwise) · **close** (within `--rtol/--atol`) · **different** · **failed**.
 
@@ -126,6 +126,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
+| `cfd_2d_cpm_bedload_layer` (+ `_susp`, `_mpi2`) | 1/2 | CPM MP-PIC sand bed in a periodic channel with the sub-grid bedload layer (Q 58 1 / 2): pickup, hops, deposition, release into the suspension, column bed level, one-sided solid forcing at the particle bed, CPM log |
 | `cfd_2d_fem_simple_wall` | 1 | FEM simple input (concrete C30 preset, fix base, monitor auto, resolution), settling with the initial water, hybrid loads, structural damping |
 | `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
 | `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
@@ -202,5 +203,5 @@ line is at the top of each file, run from `unit/`:
 |---|---|
 | `rigidbody_test.cpp` | 6DOF rigid-body core: quaternion/Euler, constant force, oscillator and torque-free top (orders of RK2/RK3/RKLS3/RK4), DOF modes, damping |
 | `ship_test.cpp` | ship module kernels: waterline clipping, wetted surface, draft strips, cross-flow drag, ITTC-1957 line, roll damping, propeller KT/KQ, actuator disk (discrete force and torque, swirl sense), MMG rudder (signs, symmetry, slipstream, course stability) |
-| `lagoon_store_test.cpp` | LAGOON store writer (P 18, needs `-lz`): VTU header parsing, σ-level offsets, shard files read back (append, CRC-32C index, inner chunks, components) |
+| `lagoon_store_test.cpp` | LAGOON store writer (P 18, needs `-lz`): VTU header parsing, σ-level offsets, shard files read back (append, CRC-32C index, inner chunks, components), Cartesian (CFD) blocks split in z |
 

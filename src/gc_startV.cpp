@@ -144,6 +144,13 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     if(p->B60>=1)
         outflow=1;
 
+    // iowave Riemann / Flather edges (B 520 method 3, 4)
+    if(p->open_xm==1)
+        inflow=1;
+
+    if(p->open_xp==1)
+        outflow=1;
+
     // 10 U
     // 11 V
     // 12 W
@@ -466,6 +473,13 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     // prescribes the velocity, the inflow ghost cells take it over (zero gradient) as without current
     if(p->B98==2 && p->B60>=1)
         inflow=0;
+
+    // iowave Riemann / Flather edges (B 520 method 3, 4): ghost cells set by iowave
+    if(p->open_xm==1)
+        inflow=1;
+
+    if(p->open_xp==1)
+        outflow=1;
 
     starttime=timer();
     GCBL_LOOP(gcbl4,4)

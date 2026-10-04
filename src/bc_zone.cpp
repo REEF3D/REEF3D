@@ -169,8 +169,8 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
     
     if(n==0)
     {
-        if(p->B521>0 || p->B524>0)
-        fail("B 521 / B 524 refer to zones, but no zone is defined by B 520");
+        if(p->B521>0 || p->B524>0 || p->B523>0)
+        fail("B 521 / B 523 / B 524 refer to zones, but no zone is defined by B 520");
         return;
     }
     
@@ -190,8 +190,8 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
     {
         if(find(p->B520_id[q])!=q)
         fail("zone id "+std::to_string(p->B520_id[q])+" defined twice in B 520");
-        if(p->B520_method[q]!=1 && p->B520_method[q]!=2)
-        fail("B 520 method is 1 (relaxation) or 2 (beach)");
+        if(p->B520_method[q]<1 || p->B520_method[q]>4)
+        fail("B 520 method is 1 (relaxation), 2 (beach), 3 (Riemann edge) or 4 (Flather edge)");
     }
     
     for(int m=0; m<p->B521; ++m)
@@ -215,6 +215,19 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         src[q].push_back(p->B524_src[m]);
     }
     
+    std::vector<int> bgid(n,0);
+    
+    for(int m=0; m<p->B523; ++m)
+    {
+        int q = find(p->B523_id[m]);
+        if(q<0)
+        fail("B 523 refers to zone "+std::to_string(p->B523_id[m])+", which has no B 520");
+        if(p->B523_bg[m]<1)
+        fail("B 523: background ids start at 1");
+        
+        bgid[q] = p->B523_bg[m];
+    }
+    
     const double fac = (p->B99==1) ? 2.0 : 1.0;
     const double ext = 10.0*p->DXM;
     
@@ -224,10 +237,14 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         
         if(e<1 || e>4)
         fail("zone "+std::to_string(k)+" needs a B 521 edge (1: x-, 2: x+, 3: y-, 4: y+)");
-        if(width[q]<=0.0)
+        if(width[q]<=0.0 && m<=2)
         fail("zone "+std::to_string(k)+": the B 521 width must be positive");
+        if(m>=3 && e>2)
+        fail("zone "+std::to_string(k)+": Riemann and Flather edges are available on the x edges (B 521 edge 1 or 2)");
+        if(m>=3 && bgid[q]==0)
+        fail("zone "+std::to_string(k)+": a Riemann or Flather edge needs a background (B 523)");
         
-        const double a=s0[q], b=s1[q], w=width[q];
+        const double a=s0[q], b=s1[q], w = m<=2 ? width[q] : p->DXM;
         const bool whole = b<=a;
         double xs,ys,xe,ye;
         
@@ -244,15 +261,28 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
             xe = whole ? p->xcoormax+ext : p->xcoormin+b;
         }
         
-        bc_zone z(k, m==1 ? bc_method::relax : bc_method::beach, xs,ys,xe,ye,w, m==1 ? 1.0 : fac);
+        const bc_method meth = m==1 ? bc_method::relax : m==2 ? bc_method::beach : m==3 ? bc_method::riemann : bc_method::flather;
+        
+        bc_zone z(k, meth, xs,ys,xe,ye,w, m==2 ? fac : 1.0);
         z.priority = p->B520_prio[q];
         z.user = true;
         z.sources = src[q];
+        z.bg = bgid[q];
+        z.edge = e;
         
         if(m==1)
         relax.push_back(z);
-        else
+        
+        if(m==2)
         beach.push_back(z);
+        
+        if(m>=3)
+        {
+            if(open_edge(e)!=nullptr)
+            fail("zone "+std::to_string(k)+": edge "+std::to_string(e)+" has two Riemann / Flather zones");
+            
+            edges.push_back(z);
+        }
     }
 }
 
@@ -278,6 +308,39 @@ bool bc_zone_set::has_sources() const
     return true;
 
     return false;
+}
+
+bool bc_zone_set::has_background() const
+{
+    for(const bc_zone &z : relax)
+    if(z.bg>0)
+    return true;
+
+    for(const bc_zone &z : beach)
+    if(z.bg>0)
+    return true;
+
+    return !edges.empty();
+}
+
+const bc_zone* bc_zone_set::beach_zone_at(double x0, double y0) const
+{
+    const bc_zone *best=nullptr;
+
+    for(const bc_zone &z : beach)
+    if(z.inside(x0,y0) && (best==nullptr || z.priority>best->priority))
+    best=&z;
+
+    return best;
+}
+
+const bc_zone* bc_zone_set::open_edge(int e) const
+{
+    for(const bc_zone &z : edges)
+    if(z.edge==e)
+    return &z;
+
+    return nullptr;
 }
 
 bool bc_zone_set::user_relax() const

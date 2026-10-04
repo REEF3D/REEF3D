@@ -665,6 +665,14 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = B524;
     ii++;
+    ictrl[ii] = B510;
+    ii++;
+    ictrl[ii] = B511;
+    ii++;
+    ictrl[ii] = B514;
+    ii++;
+    ictrl[ii] = B523;
+    ii++;
     ictrl[ii] = B110;
     ii++;
     dctrl[dd] = B110_zs;
@@ -2865,6 +2873,46 @@ void control::ctrlsend()
         ictrl[ii] = B524_id[n];
         ii++;
         ictrl[ii] = B524_src[n];
+        ii++;
+    }
+    for(n=0;n<B510;++n)
+    {
+        ictrl[ii] = B510_id[n];
+        ii++;
+        ictrl[ii] = B510_mode[n];
+        ii++;
+        dctrl[dd] = B510_dir[n];
+        dd++;
+        dctrl[dd] = B510_tramp[n];
+        dd++;
+    }
+    for(n=0;n<B511;++n)
+    {
+        ictrl[ii] = B511_id[n];
+        ii++;
+        dctrl[dd] = B511_a[n];
+        dd++;
+        dctrl[dd] = B511_T[n];
+        dd++;
+        dctrl[dd] = B511_phase[n];
+        dd++;
+    }
+    for(n=0;n<B514;++n)
+    {
+        ictrl[ii] = B514_id[n];
+        ii++;
+        dctrl[dd] = B514_eta0[n];
+        dd++;
+        dctrl[dd] = B514_U[n];
+        dd++;
+        dctrl[dd] = B514_V[n];
+        dd++;
+    }
+    for(n=0;n<B523;++n)
+    {
+        ictrl[ii] = B523_id[n];
+        ii++;
+        ictrl[ii] = B523_bg[n];
         ii++;
     }
     for(n=0;n<B210;++n)

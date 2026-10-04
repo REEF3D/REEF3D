@@ -150,6 +150,12 @@ public:
     int *B520_id,*B520_method,*B520_prio;
     int *B521_id,*B521_edge; double *B521_s0,*B521_s1,*B521_w;
     int *B524_id,*B524_src;
+    // iowave redesign: tidal / current background (B 510-514) and zone background (B 523), repeatable
+    int B510,B511,B514,B523;
+    int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
+    int *B511_id; double *B511_a,*B511_T,*B511_phase;
+    int *B514_id; double *B514_eta0,*B514_U,*B514_V;
+    int *B523_id,*B523_bg;
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;

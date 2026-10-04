@@ -177,6 +177,34 @@ int main()
               "velocity: the components of a point together");
     }
 
+    std::cout<<"Cartesian grid split in z (CFD)"<<std::endl;
+    {
+        const std::string path="lagoon_store_test_cfd.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        std::vector<double> x={0,1,2,3}, y={0,1,2}, z={0.0,0.5,1.0,1.5,2.0};
+        std::vector<lagoon_store::variable> vars={{"pressure",1,"Pa"}};
+        lagoon_store store(path,16,1);
+        store.create_root("CFD","");
+        store.create_output("volume","cartesian",x,y,z,vars,2,"test");
+        store.create_block("volume",0,0,0,4,3,3,vars,0,true,0);
+        store.create_block("volume",1,0,0,4,3,3,vars,1,true,2);
+        for(int b=0;b<2;++b)
+        {
+            std::vector<float> p(4*3*3);
+            for(int k=0;k<3;++k) for(int q=0;q<12;++q) p[k*12+q]=float(1000.0*(2.0-z[2*b+k]));
+            store.write("volume",b,0,"pressure",p.data());
+        }
+        store.commit("volume",0,0.0,0);
+        const std::string b1=slurp(path+"/volume/blocks/b0001/zarr.json");
+        check(b1.find("\"start\": [0, 0, 2]")!=std::string::npos && b1.find("\"size\": [4, 3, 3]")!=std::string::npos,
+              "block 1: start (0, 0, k0 = 2), size (4, 3, 3 levels)");
+        const std::string zs=slurp(path+"/volume/z/c/0");
+        double z4; std::memcpy(&z4,zs.data()+32,8);
+        check(zs.size()==5*8 && z4==2.0, "the heights of the levels: z (5 values)");
+        check(!std::ifstream((path+"/volume/blocks/b0000/z_bed/zarr.json").c_str()), "no heights per output");
+        check(slurp(path+"/volume/zarr.json").find("\"grid\": \"cartesian\"")!=std::string::npos, "grid: cartesian");
+    }
+
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

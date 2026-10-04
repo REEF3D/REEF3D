@@ -164,7 +164,16 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     distgen_ini(p);
 
     zones = bc_zone_set::from_legacy(p,pgc);
+    bgs.read(p);
     zones_check(p);
+    
+    // tidal / current background (NHFLOW)
+    if(zones.has_background())
+    {
+    bg_on = true;
+    p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;
+    p->open_xp = zones.open_edge(2)!=nullptr ? 1 : 0;
+    }
     
     if(zones.user_beach())
     beach_relax=1;

@@ -302,6 +302,21 @@ void iowave::zones_check(lexer *p)
     if(!z.sources.empty())
     err = "beach zone "+std::to_string(z.id)+" cannot have sources (B 524)";
     
+    for(const bc_zone &z : zones.edges)
+    if(!z.sources.empty())
+    err = "Riemann / Flather edge "+std::to_string(z.id)+" carries the background only, so far (no B 524); waves come from a relaxation zone";
+    
+    if(zones.has_background() && p->A10!=5)
+    err = "backgrounds (B 523) and Riemann / Flather edges are available for NHFLOW only, so far";
+    
+    if(zones.has_background() && p->B89==1)
+    err = "backgrounds (B 523) do not work with decomposed precalc (B 89 1) yet";
+    
+    for(const std::vector<bc_zone> *v : {&zones.relax, &zones.beach, &zones.edges})
+    for(const bc_zone &z : *v)
+    if(z.bg>0 && bgs.index(z.bg)<0)
+    err = "zone "+std::to_string(z.id)+" uses background "+std::to_string(z.bg)+", which has no B 510";
+    
     if(!err.empty())
     {
         if(p->mpirank==0)

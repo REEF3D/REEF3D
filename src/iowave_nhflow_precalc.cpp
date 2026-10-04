@@ -33,6 +33,9 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->wavetime = p->simtime;
     wave_prestep(p,pgc);
     
+    // tidal / current background (B 510-514)
+    nhflow_bg_update(p,d,pgc);
+    
     if(p->B89==0)
     {
         if(p->B98==2)
@@ -66,6 +69,8 @@ void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     p->wavetime = p->simtime;
     wave_prestep(p,pgc);
+    
+    nhflow_bg_update(p,d,pgc);
     
     if(p->B98==2)
     nhflow_precalc_relax_ini(p,d,pgc);

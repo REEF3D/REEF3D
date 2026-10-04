@@ -43,7 +43,16 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             if(dg<1.0e20)
             { 
             WETDRYDEEP
+            {
+            // with a background (B 523): background + ramped waves
+            const int b = bg_on ? gen_bg(p) : -1;
+            
+            if(b<0)
             WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            
+            if(b>=0)
+            WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + bgs.eta(b) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
+            }
             ++count;
             }
 		}
@@ -56,7 +65,16 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             if(db<1.0e20)
             {
             if(p->wet[IJ]==1)
+            {
+            // with a background (B 523): relax to the background level instead of still water
+            const int b = bg_on ? beach_bg(p) : -1;
+            
+            if(b<0)
             WL(i,j) = (1.0-relax4_nb(i,j))*depth(i,j) + relax4_nb(i,j)*WL(i,j);
+            
+            if(b>=0)
+            WL(i,j) = (1.0-relax4_nb(i,j))*(depth(i,j) + bgs.eta(b)) + relax4_nb(i,j)*WL(i,j);
+            }
             }
         }
     }
@@ -81,8 +99,23 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             {
             WETDRYDEEP
             {
+            const int b = bg_on ? gen_bg(p) : -1;
+            
+            if(b<0)
+            {
             U[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
+            }
+            
+            if(b>=0)
+            {
+            double ub,vb;
+            bgs.vel(b,col_h0[IJ],ub,vb);
+            const double ut = ub + ramp(p)*(uval[count]-p->Ui);
+            const double ht = col_h0[IJ] + bgs.eta(b) + ramp(p)*eta(i,j);
+            U[IJK]  = (1.0-relax4_wg(i,j))*ut + relax4_wg(i,j)*U[IJK];
+            UH[IJK] = (1.0-relax4_wg(i,j))*ht*ut + relax4_wg(i,j)*UH[IJK];
+            }
             }
             ++count;
             }
@@ -101,10 +134,21 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*ramp(p)*p->Ui*p->WL[IJ];
             }
             
-            if(p->B97==0)
+            const int b = bg_on ? beach_bg(p) : -1;
+            
+            if(p->B97==0 && b<0)
             {
             U[IJK] = relax4_nb(i,j)*U[IJK];
             UH[IJK] = relax4_nb(i,j)*UH[IJK];
+            }
+            
+            // background (B 523): relax to its current
+            if(p->B97==0 && b>=0)
+            {
+            double ub,vb;
+            bgs.vel(b,col_h0[IJ],ub,vb);
+            U[IJK]  = relax4_nb(i,j)*U[IJK]  + (1.0-relax4_nb(i,j))*ub;
+            UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*ub*(col_h0[IJ]+bgs.eta(b));
             }
             }
         }
@@ -131,8 +175,23 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             {
             WETDRYDEEP
             {
+            const int b = bg_on ? gen_bg(p) : -1;
+            
+            if(b<0)
+            {
             V[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
             VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
+            }
+            
+            if(b>=0)
+            {
+            double ub,vb;
+            bgs.vel(b,col_h0[IJ],ub,vb);
+            const double vt = vb + ramp(p)*vval[count];
+            const double ht = col_h0[IJ] + bgs.eta(b) + ramp(p)*eta(i,j);
+            V[IJK]  = (1.0-relax4_wg(i,j))*vt + relax4_wg(i,j)*V[IJK];
+            VH[IJK] = (1.0-relax4_wg(i,j))*ht*vt + relax4_wg(i,j)*VH[IJK];
+            }
             }
             ++count;
             }
@@ -144,8 +203,21 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             // Zone 2
             if(db<1.0e20)
             {
+            const int b = bg_on ? beach_bg(p) : -1;
+            
+            if(b<0)
+            {
             V[IJK] = relax4_nb(i,j)*V[IJK];
             VH[IJK] = relax4_nb(i,j)*VH[IJK];
+            }
+            
+            if(b>=0)
+            {
+            double ub,vb;
+            bgs.vel(b,col_h0[IJ],ub,vb);
+            V[IJK]  = relax4_nb(i,j)*V[IJK]  + (1.0-relax4_nb(i,j))*vb;
+            VH[IJK] = relax4_nb(i,j)*VH[IJK] + (1.0-relax4_nb(i,j))*vb*(col_h0[IJ]+bgs.eta(b));
+            }
             }
             
         }
@@ -171,8 +243,20 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             {
             WETDRYDEEP
             {
+            const int b = bg_on ? gen_bg(p) : -1;
+            
+            if(b<0)
+            {
             W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
             WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
+            }
+            
+            if(b>=0)
+            {
+            const double ht = col_h0[IJ] + bgs.eta(b) + ramp(p)*eta(i,j);
+            W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
+            WH[IJK] = (1.0-relax4_wg(i,j))*ht*ramp(p)*wval[count] + relax4_wg(i,j)*WH[IJK];
+            }
             }
             ++count;
             }

@@ -42,13 +42,17 @@ B 98, B 99, B 107 and B 108 into zones, with the same arithmetic as the
 former iowave functions, so results stay bitwise identical, and adds the
 zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
 
-  B 520 id method priority     method 1: relaxation (wave generation), 2: beach
+  B 520 id method priority     method 1: relaxation (wave generation), 2: beach,
+                               3: Riemann edge, 4: Flather edge (NHFLOW, edges 1 and 2)
   B 521 id edge s0 s1 width    edge 1: x-, 2: x+, 3: y-, 4: y+; along-edge range
                                [s0,s1] from the edge's start (s1 <= s0: whole edge)
   B 524 id source              source of the zone (repeatable; 1: the B 92 wave)
+  B 523 id background          tidal / current background of the zone (B 510); a relaxation
+                               zone then targets background + waves, a beach the background,
+                               a Riemann or Flather edge the background
 --------------------------------------------------------------------*/
 
-enum class bc_method {relax, beach};
+enum class bc_method {relax, beach, riemann, flather};
 
 class bc_zone
 {
@@ -65,6 +69,8 @@ public:
     int priority = 0;            // where zones overlap, the highest priority sets the target
     bool user = false;           // given by B 520 (not translated from B 96 / 107 / 108)
     std::vector<int> sources;    // B 524 source ids; empty: all sources
+    int bg = 0;                  // B 523 background id; 0: none (still water)
+    int edge = 0;                // B 521 edge (1: x-, 2: x+, 3: y-, 4: y+), user zones only
     bc_method method;
     double xs,ys,xe,ye,d;   // reference line and half width
     double fac;             // beach: distance factor (2 for B 99 1)
@@ -83,6 +89,13 @@ public:
     const bc_zone* relax_zone_at(double, double) const;
     
     bool has_sources() const;    // any zone with B 524 sources
+    bool has_background() const; // any zone with a B 523 background
+    
+    // the beach zone at (x,y) (highest priority, then first given); nullptr outside
+    const bc_zone* beach_zone_at(double, double) const;
+    
+    // Riemann / Flather edge zone on an edge (1: x-, 2: x+); nullptr: none
+    const bc_zone* open_edge(int) const;
     bool user_relax() const;     // any B 520 relaxation zone
     bool user_beach() const;     // any B 520 beach zone
 
@@ -96,7 +109,7 @@ public:
     // ranges for old input (unchanged), plus the box of every B 520 zone
     void norefine_boxes(lexer*, std::vector<double>&) const;
 
-    std::vector<bc_zone> relax, beach;
+    std::vector<bc_zone> relax, beach, edges;
     
 private:
     void read_input(lexer*, ghostcell*);

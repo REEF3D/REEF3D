@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"wave_interface.h"
 #include"bc_zone.h"
+#include"background_state.h"
 #include"field1.h"
 #include"field2.h"
 #include"field4.h"
@@ -282,6 +283,22 @@ private:
     void zones_check(lexer*);
     std::vector<int> gen_idx;
     bool gen_built=false;
+    
+    // tidal / current background (B 510-514, B 523; NHFLOW): background index of the
+    // generation and beach zone of each column (IJ), -1: none; still water depth per column
+    background_state bgs;
+    bool bg_on=false;
+    bool bg_built=false;
+    std::vector<int> col_gen_bg, col_beach_bg;
+    std::vector<double> col_h0, edge_h;
+    void bg_build(lexer*);
+    int gen_bg(lexer*);
+    int beach_bg(lexer*);
+    void nhflow_bg_update(lexer*,fdm_nhf*,ghostcell*);
+    void nhflow_open_edges(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&);
+    void nhflow_open_edges_rk(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+    void nhflow_open_edges_wl(lexer*,fdm_nhf*,slice&);
+    double nhflow_col_ubar(lexer*,fdm_nhf*,double*);
     
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
