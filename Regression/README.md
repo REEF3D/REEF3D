@@ -129,6 +129,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
 | `cfd_2d_cpm_bedload_layer` (+ `_susp`, `_mpi2`) | 1/2 | CPM MP-PIC sand bed in a periodic channel with the sub-grid bedload layer (Q 58 1 / 2): pickup, hops, deposition, release into the suspension, column bed level, one-sided solid forcing at the particle bed, CPM log |
 | `cfd_2d_fem_simple_wall` | 1 | FEM simple input (concrete C30 preset, fix base, monitor auto, resolution), settling with the initial water, hybrid loads, structural damping |
+| `cfd_2d_fem_floating` | 1 | FEM rigid body (floating box, `material rigid 500`) in the collapsing water column: rigid-body integration, pressure loads with the probe correction and the added-mass stabilisation |
 | `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
 | `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
 | `nhflow_2d_awa` | 1 | NHFLOW active wave generation + active absorption (B98=4/B99=3) |
@@ -204,5 +205,6 @@ line is at the top of each file, run from `unit/`:
 |---|---|
 | `rigidbody_test.cpp` | 6DOF rigid-body core: quaternion/Euler, constant force, oscillator and torque-free top (orders of RK2/RK3/RKLS3/RK4), DOF modes, damping |
 | `ship_test.cpp` | ship module kernels: waterline clipping, wetted surface, draft strips, cross-flow drag, ITTC-1957 line, roll damping, propeller KT/KQ, actuator disk (discrete force and torque, swirl sense), MMG rudder (signs, symmetry, slipstream, course stability) |
+| `fem_test.cpp` | FEM solid solver: cantilever (Timoshenko, frequency), objectivity, J2, crack band energy, contact, collapse, STL snapping, patch test, presets, settling/check, structural damping, rigid bodies, walls and inclined bed (stick/slide) |
 | `lagoon_store_test.cpp` | LAGOON store writer (P 18, needs `-lz`): VTU header parsing, σ-level offsets, shard files read back (append, CRC-32C index, inner chunks, components), Cartesian (CFD) blocks split in z |
 

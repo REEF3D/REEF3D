@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_add": [
+  "Z 30 1"
+ ],
+ "files": [
+  "fem.dat"
+ ],
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "fem",
+  "fsi",
+  "floating"
+ ],
+ "description": "2D dam break with a floating rigid box (FEM rigid body, material rigid 500) in the collapsing water column.",
+ "covers": [
+  "FEM rigid bodies (rigid material, rigid-body integration)",
+  "explicit pressure loads with the probe correction and the added-mass stabilisation",
+  "rigid-body summary and trajectory output",
+  "N10=1 REEFMG pressure solver"
+ ],
+ "ctrl_set": {
+  "N 10": "1"
+ }
+}

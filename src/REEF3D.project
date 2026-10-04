@@ -1055,6 +1055,10 @@
         <File Name="regression_dump.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Lagoon">
+          <File Name="lagoon_output.h"/>
+          <File Name="lagoon_store.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
           <File Name="runlog.h"/>
         </VirtualDirectory>
@@ -2910,6 +2914,10 @@
         <File Name="regression_dump.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
+        <VirtualDirectory Name="Lagoon">
+          <File Name="lagoon_store.cpp"/>
+          <File Name="lagoon_output.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Runlog">
           <File Name="runlog.cpp"/>
         </VirtualDirectory>
@@ -3307,6 +3315,7 @@
       <Linker Options="-lm">
         <LibraryPath Value="/usr/local/hypre/lib"/>
         <Library Value="HYPRE"/>
+        <Library Value="z"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
