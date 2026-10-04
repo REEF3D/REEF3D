@@ -290,7 +290,7 @@ void fem_solid::internal_forces(double dts)
     for(int e=0; e<nelem(); ++e)
     {
         element& el = elems[e];
-        if(!el.alive)
+        if(!el.alive || el.rigid)
         continue;
 
         const material& mt = mats[el.mat];

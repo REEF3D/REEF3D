@@ -104,6 +104,13 @@ void fem_solid::read(std::istream& is)
             }
             else if(q==tok.size() && type=="rubber")
             preset("rubber","default",mt);
+            else if(type=="rigid")
+            {
+                // material rigid <rho>: rigid body of the given density (debris, floating objects)
+                if(q>=tok.size() || !isnum(tok[q])) fail("material rigid: density missing (material rigid 500)");
+                mt.type = MAT_ELASTIC; mt.rho = std::strtod(tok[q++].c_str(),nullptr); mt.E = 1.0e9; mt.nu = 0.25;
+                mt.rigid = true; mt.name = "rigid";
+            }
             else
             {
                 std::vector<double> num;
@@ -120,9 +127,11 @@ void fem_solid::read(std::istream& is)
             }
 
             // key value overrides
-            while(q+1<tok.size())
+            while(q<tok.size())
             {
                 const std::string k = tok[q];
+                if(k=="rigid") {mt.rigid = true; ++q; continue;}
+                if(q+1>=tok.size()) break;
                 if(!isnum(tok[q+1])) fail("material: value missing for '"+k+"'");
                 const double val = std::strtod(tok[q+1].c_str(),nullptr);
                 if(k=="rho") mt.rho = val;
@@ -136,7 +145,7 @@ void fem_solid::read(std::istream& is)
                 else if(k=="fc") mt.fc = val;
                 else if(k=="Gc") mt.Gc = val;
                 else if(k=="derode") mt.derode = val;
-                else fail("material: unknown parameter '"+k+"' (rho E nu fy H eps_fail ft Gf fc Gc derode)");
+                else fail("material: unknown parameter '"+k+"' (rho E nu fy H eps_fail ft Gf fc Gc derode, or 'rigid')");
                 q += 2;
             }
             if(q<tok.size()) fail("material: cannot read '"+tok[q]+"'");
@@ -267,8 +276,18 @@ void fem_solid::read(std::istream& is)
         else if(kw=="erode_J")       need(static_cast<bool>(ls>>erode_J));
         else if(kw=="ground")
         {
-            need(static_cast<bool>(ls>>zground));
-            ground_on = true;
+            // ground z [kfac mu]  |  ground bed [kfac mu]: bed and solids of the fluid grid
+            std::string w;
+            need(static_cast<bool>(ls>>w));
+            if(w=="bed")
+            bed_on = true;
+            else
+            {
+                char* e = nullptr;
+                zground = std::strtod(w.c_str(),&e);
+                if(!(e && *e=='\0')) fail("ground: give a height or 'bed'");
+                ground_on = true;
+            }
             double k,mu;
             if(ls>>k) kground = k;
             if(ls>>mu) mu_ground = mu;
@@ -324,6 +343,12 @@ void fem_solid::read(std::istream& is)
                 if(!(e && *e=='\0') || copt.resolution<=0.0) fail("resolution: coarse, normal, fine or a factor of the fluid cell size");
             }
         }
+        else if(kw=="walls")
+        {
+            std::string w;
+            need(static_cast<bool>(ls>>w) && (w=="on" || w=="off"));
+            copt.walls = (w=="on") ? 1 : 0;
+        }
         else if(kw=="shear" || kw=="air_forcing")
         {
             std::string w;
@@ -349,6 +374,8 @@ void fem_solid::read(std::istream& is)
         else if(kw=="forcing")          need(static_cast<bool>(ls>>copt.forcing));
         else if(kw=="print")            need(static_cast<bool>(ls>>copt.print_dt));
         else if(kw=="hybrid_tau")       need(static_cast<bool>(ls>>copt.hybrid_tau));
+        else if(kw=="added_mass")       need(static_cast<bool>(ls>>copt.added_mass) && copt.added_mass>=0.0);
+        else if(kw=="rigid_contact_speed") need(static_cast<bool>(ls>>c_rigid) && c_rigid>0.0);
         else if(kw=="loads")
         {
             std::string t;

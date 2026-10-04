@@ -141,13 +141,22 @@ void fem_solid::build()
         }
     }
 
-    // critical time step of the explicit scheme (hex8, lumped mass)
+    // rigid bodies (free bodies of rigid materials)
+    build_surface();
+    count_bodies();
+    setup_rigid();
+
+    // critical time step of the explicit scheme (hex8, lumped mass); rigid
+    // bodies only need the contact time step (wave speed c_rigid)
     dtcrit = 1.0e30;
+    cp_contact = 0.0;
     double hmax = 0.0;
     for(const element& e : elems)
     {
         const egeom& G = geom(e);
-        dtcrit = std::min(dtcrit, G.L/mats[e.mat].cp);
+        const double c = e.rigid ? std::min(mats[e.mat].cp,c_rigid) : mats[e.mat].cp;
+        dtcrit = std::min(dtcrit, G.L/c);
+        cp_contact = std::max(cp_contact,c);
         hmax = std::max(hmax,G.h);
     }
 
@@ -248,6 +257,7 @@ void fem_solid::advance(double dt)
 
     const int nsub = std::max(1,(int)std::ceil(dt/(cfl*dtcrit*std::sqrt(rmin)) - 1.0e-9));
     const double dts = dt/double(nsub);
+    dts_cur = dts;
     nsub_last = nsub;
 
     // attached fluid parcels: their momentum exchange with the nodes over the
@@ -267,8 +277,16 @@ void fem_solid::advance(double dt)
         fpar[i](1) = 0.0;
     }
 
+    for(rigid_body& rb : rbs)
+    {
+        rb.V0 = rb.V;
+        rb.w0 = rb.w;
+        rb.fcstep = 0.0;
+    }
+
     std::vector<Vec3> vsum(nnode(),Vec3::Zero());
     std::vector<Vec3> vrig;
+    std::vector<Vec3> frig(rbs.empty() ? 0 : nnode(),Vec3::Zero());
 
     for(int s=0; s<nsub; ++s)
     {
@@ -277,7 +295,7 @@ void fem_solid::advance(double dt)
 
         internal_forces(dts);
 
-        if(ground_on)
+        if(ground_on || !planes.empty() || bed_on)
         contact_ground();
 
         if(contact_on && (nbodies>1 || surf_dirty || n_eroded()>0) && bodies_near())
@@ -295,6 +313,12 @@ void fem_solid::advance(double dt)
             continue;
 
             const Vec3 F = fext[i] + fcon[i] + fpar[i] - fint[i] + mr[i]*grav;
+
+            if(!rnode.empty() && rnode[i]>=0)
+            {
+                frig[i] = F;
+                continue;
+            }
 
             v[i] += dts*(F/mt[i] - alpha*v[i]);
             if(alpha_struct>0.0 && body[i]>=0)
@@ -320,11 +344,26 @@ void fem_solid::advance(double dt)
             vsum[i] += v[i];
         }
 
+        if(!rbs.empty())
+        {
+            rigid_step(dts,frig);
+            for(const rigid_body& rb : rbs)
+            for(int i : rb.nodes)
+            vsum[i] += v[i];
+        }
+
         t += dts;
     }
 
     for(int i=0; i<nnode(); ++i)
     vbar[i] = vsum[i]/double(nsub);
+
+    // accelerations of the rigid bodies over the fluid step (added-mass stabilisation)
+    for(rigid_body& rb : rbs)
+    {
+        rb.a_prev = (rb.V-rb.V0)/dt;
+        rb.al_prev = (rb.w-rb.w0)/dt;
+    }
 
     // force of the attached fluid on the nodes over the step
     fcpl = fpar;
@@ -422,7 +461,9 @@ fem_solid::Vec3 fem_solid::total_load() const
 {
     Vec3 F = Vec3::Zero();
     // fluid load: pressure/drag loads, direct-forcing reaction and buoyancy
+    // (deformable structure and debris; rigid bodies are reported on their own)
     for(int i=0; i<nnode(); ++i)
+    if(!is_rigid_node(i))
     F += fext[i] + fcpl[i] - mfl[i]*grav;
     return F;
 }
@@ -437,10 +478,171 @@ double fem_solid::max_vonmises() const
 
 double fem_solid::max_displacement() const
 {
+    // deformable structure and debris; rigid bodies are reported on their own
     double d = 0.0;
     for(int i=0; i<nnode(); ++i)
+    if(!is_rigid_node(i))
     d = std::max(d,(x[i]-X[i]).norm());
     return d;
+}
+
+// ----------------------------------------------------------------------
+// rigid bodies
+// ----------------------------------------------------------------------
+
+void fem_solid::setup_rigid()
+{
+    rbs.clear();
+    rnode.assign(nnode(),-1);
+    for(element& e : elems) e.rigid = false;
+
+    bool any = false;
+    for(const material& mt : mats) if(mt.rigid) any = true;
+    if(!any)
+    return;
+
+    // bodies whose intact elements are all rigid and that have no supports
+    const int nb = (int)body_fixed.size();
+    std::vector<int> allrigid(nb,1);
+    for(const element& e : elems)
+    if(e.alive)
+    {
+        const int b = body[e.n[0]];
+        if(b>=0 && !mats[e.mat].rigid) allrigid[b] = 0;
+    }
+    std::vector<int> rid(nb,-1);
+    for(int b=0; b<nb; ++b)
+    if(allrigid[b] && !body_fixed[b])
+    {
+        rid[b] = (int)rbs.size();
+        rbs.push_back(rigid_body());
+    }
+    for(element& e : elems)
+    if(e.alive && body[e.n[0]]>=0 && rid[body[e.n[0]]]>=0)
+    {
+        e.rigid = true;
+        rbs[rid[body[e.n[0]]]].Vol += geom(e).V;
+    }
+
+    for(int i=0; i<nnode(); ++i)
+    if(body[i]>=0 && rid[body[i]]>=0)
+    {
+        rnode[i] = rid[body[i]];
+        rbs[rnode[i]].nodes.push_back(i);
+    }
+
+    for(rigid_body& rb : rbs)
+    {
+        rb.M = 0.0;
+        rb.c0.setZero();
+        for(int i : rb.nodes) {rb.M += m[i]; rb.c0 += m[i]*X[i];}
+        rb.c0 /= rb.M;
+        rb.c = rb.c0;
+        rb.I0.setZero();
+        rb.r0.clear();
+        for(int i : rb.nodes)
+        {
+            const Vec3 r = X[i]-rb.c0;
+            rb.r0.push_back(r);
+            rb.I0 += m[i]*(r.squaredNorm()*Eigen::Matrix3d::Identity() - r*r.transpose());
+        }
+        rb.R.setIdentity();
+        rb.V.setZero(); rb.L.setZero(); rb.w.setZero();
+
+        // added mass per unit fluid density, upper estimate: plate of the two
+        // largest dimensions moving normal to itself, rho pi/4 L1 L2^2
+        // (2D: rho pi/4 L1^2 per slice width)
+        Vec3 lo = Vec3::Constant(1.0e300), hi = Vec3::Constant(-1.0e300);
+        for(const Vec3& r : rb.r0) {lo = lo.cwiseMin(r); hi = hi.cwiseMax(r);}
+        const Vec3 L = hi-lo;
+        if(plane_strain)
+        {
+            const double L1 = std::max(L(0),L(2));
+            rb.Aunit = 0.25*3.14159265358979*L1*L1*L(1);
+        }
+        else
+        {
+            double d[3] = {L(0),L(1),L(2)};
+            std::sort(d,d+3);
+            rb.Aunit = 0.25*3.14159265358979*d[2]*d[1]*d[1];
+        }
+    }
+}
+
+void fem_solid::rigid_step(double dts,const std::vector<Vec3>& F)
+{
+    for(rigid_body& rb : rbs)
+    {
+        Vec3 Ft = Vec3::Zero(), T = Vec3::Zero(), Fc = Vec3::Zero();
+        for(int i : rb.nodes)
+        {
+            Ft += F[i];
+            T += (x[i]-rb.c).cross(F[i]);
+            Fc += fcon[i];
+        }
+        if(plane_strain)
+        {
+            Ft(1) = 0.0;
+            T(0) = T(2) = 0.0;
+        }
+
+        // added-mass stabilisation of the explicit pressure loads: the body
+        // carries the added mass A, and A times its acceleration of the last
+        // fluid step is added back (exact for steady accelerations, stable
+        // for light bodies as long as A is not far below the true added mass)
+        const double ra = rb.A/rb.M;
+        rb.V += (dts/(rb.M+rb.A))*(Ft + rb.A*rb.a_prev);
+
+        const Eigen::Matrix3d I = rb.R*rb.I0*rb.R.transpose();
+        if(plane_strain)
+        {
+            const double Iy = I(1,1);
+            if(Iy>0.0)
+            rb.w(1) += dts*(T(1) + ra*Iy*rb.al_prev(1))/((1.0+ra)*Iy);
+            rb.w(0) = rb.w(2) = 0.0;
+        }
+        else
+        {
+            const Vec3 rhs = T + ra*(I*rb.al_prev) - rb.w.cross(I*rb.w);
+            rb.w += dts*I.ldlt().solve(rhs)/(1.0+ra);
+        }
+        rb.L = I*rb.w;
+
+        // rotation over the substep (Rodrigues), then re-orthonormalised
+        const double ang = rb.w.norm()*dts;
+        if(ang>0.0)
+        {
+            const Eigen::Matrix3d Q = Eigen::AngleAxisd(ang,rb.w/rb.w.norm()).toRotationMatrix();
+            rb.R = Q*rb.R;
+            Eigen::HouseholderQR<Eigen::Matrix3d> qr(rb.R);
+            Eigen::Matrix3d Qo = qr.householderQ();
+            // keep the orientation of the columns
+            for(int k=0; k<3; ++k) if(Qo.col(k).dot(rb.R.col(k))<0.0) Qo.col(k) *= -1.0;
+            rb.R = Qo;
+        }
+        rb.c += dts*rb.V;
+
+        for(size_t q=0; q<rb.nodes.size(); ++q)
+        {
+            const int i = rb.nodes[q];
+            const Vec3 r = rb.R*rb.r0[q];
+            x[i] = rb.c + r;
+            v[i] = rb.V + rb.w.cross(r);
+            if(plane_strain)
+            {
+                v[i](1) = 0.0;
+                x[i](1) = X[i](1);
+            }
+        }
+
+        if(!rb.c.allFinite() || !rb.V.allFinite())
+        throw std::runtime_error("FEM: non-finite rigid body motion");
+
+        rb.vmax = std::max(rb.vmax,rb.V.norm());
+        rb.dmax = std::max(rb.dmax,(rb.c-rb.c0).norm());
+        rb.fcmax = std::max(rb.fcmax,Fc.norm());
+        rb.fcstep = std::max(rb.fcstep,Fc.norm());
+    }
 }
 
 bool fem_solid::bodies_near() const

@@ -56,7 +56,7 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
     const int nd = (int)deb.size();
     const int nn = fs.nnode();
     const bool parcels = (fs.coupling().loads!=1);
-    const bool probes = (fs.coupling().loads!=2);
+    const bool probes = (fs.coupling().loads!=2) || fs.n_rigid()>0;
 
     // buffer: 8 per point, 8 per debris particle, in the final stage 2 per node
     const size_t nbuf = BP*size_t(np+nd) + (finalize ? 2*size_t(nn) : 0);
@@ -222,12 +222,16 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
     // 4. loads and solid time step (final stage)
     // ------------------------------------------------------------------
     if(finalize)
-    finish_step(p,pgc,alpha);
+    finish_step(p,a,pgc,alpha);
 }
 
-void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
+void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
 {
     fs.set_coupling_alpha(alpha);
+
+    // contact with the bed / solids of the fluid grid: distance and normal at the nodes
+    if(fs.bed_contact())
+    sample_bed(p,a,pgc);
     const int np = (int)pts.size();
     const std::vector<int>& deb = fs.debris();
     const int nd = (int)deb.size();
@@ -280,6 +284,8 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
 
             const lpoint& L = pts[q];
             const fem_solid::face& fc = fs.surface()[L.face];
+            if(fs.is_rigid_node(fc.n[0]))
+            continue;
             const double wgt[4] = {(1.0-L.s)*(1.0-L.t), L.s*(1.0-L.t), L.s*L.t, (1.0-L.s)*L.t};
             for(int k=0; k<4; ++k)
             fs.add_coupling(fc.n[k],wgt[k]*M,wgt[k]*Mu);
@@ -288,11 +294,11 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
         // fluid enclosed by the immersed boundary: buoyancy and inertia
         const double *bn = &buf[BP*size_t(np+nd)];
         for(int i=0; i<nn; ++i)
-        if(!fs.is_debris(i) && bn[2*i+1]>0.5)
+        if(!fs.is_debris(i) && !fs.is_rigid_node(i) && bn[2*i+1]>0.5)
         fs.set_fluid_mass(i,(bn[2*i]/bn[2*i+1])*fs.node_volume(i));
     }
 
-    if(mode!=2)
+    if(mode!=2 || fs.n_rigid()>0)
     {
         // pressure on the surface faces, probed outside the immersed boundary
         fprb.assign(nn,Vec3::Zero());
@@ -321,6 +327,33 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
             fs.add_load(i,fprb[i]);
         }
         else
+        {
+            // rigid bodies: explicit pressure loads on the whole body (full
+            // mass, no parcels): the probes see the outer flow only, so
+            // buoyancy and the restoring force of floating bodies are right
+            for(int i=0; i<nn; ++i)
+            if(fs.is_rigid_node(i))
+            fs.add_load(i,fprb[i]);
+        }
+
+        // rigid bodies: added mass for the stabilisation, by the wetted fraction
+        if(fs.n_rigid()>0)
+        {
+            std::vector<double> nw(fs.n_rigid(),0.0), nt(fs.n_rigid(),0.0);
+            for(int q=0; q<np; ++q)
+            {
+                const int k = fs.rigid_of_node(fs.surface()[pts[q].face].n[0]);
+                if(k<0)
+                continue;
+                const double *b = &buf[BP*q];
+                nt[k] += 1.0;
+                if(b[5]>0.5)
+                nw[k] += b[6]/b[5];
+            }
+            for(int k=0; k<fs.n_rigid(); ++k)
+            fs.set_rigid_added_mass(k, fs.coupling().added_mass*rho_w*fs.rigid(k).Aunit*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0));
+        }
+        if(mode==0)
         {
             // hybrid: the parcels carry the fast (added mass, impact) part of
             // the loads and keep the coupling stable; a slow correction moves
@@ -394,6 +427,18 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
         lg<<std::setprecision(9)<<fs.time()<<" "<<fs.last_substeps()<<" "<<fs.n_alive()<<" "<<fs.n_eroded()<<" "<<fs.debris().size()<<" "
           <<Ff(0)<<" "<<Ff(1)<<" "<<Ff(2)<<" "<<Fs(0)<<" "<<Fs(1)<<" "<<Fs(2)<<" "
           <<fs.max_vonmises()<<" "<<fs.max_displacement()<<" "<<fs.kinetic_energy()<<" "<<fs.dissipated_energy()<<"\n";
+
+        // rigid bodies: trajectory and contact force
+        for(int k=0; k<std::min(fs.n_rigid(),50); ++k)
+        {
+            const fem_solid::rigid_body& rb = fs.rigid(k);
+            std::ofstream rf((outdir+"/REEF3D_FEM_rigid_"+std::to_string(k+1)+".dat").c_str(),nstep==0 ? std::ios::out : std::ios::app);
+            if(nstep==0)
+            rf<<"# rigid body "<<k+1<<": mass "<<rb.M<<" kg, volume "<<rb.Vol<<" m3"<<(p->j_dir==0 ? " (2D: of the FEM slice)" : "")
+              <<"\n# time  centre x y z  velocity x y z  angular velocity x y z  max contact force in the step [N]\n";
+            rf<<std::setprecision(9)<<fs.time()<<" "<<rb.c(0)<<" "<<rb.c(1)<<" "<<rb.c(2)<<" "<<rb.V(0)<<" "<<rb.V(1)<<" "<<rb.V(2)
+              <<" "<<rb.w(0)<<" "<<rb.w(1)<<" "<<rb.w(2)<<" "<<rb.fcstep<<"\n";
+        }
 
         for(const fem_solid::monitor& mo : fs.monitors())
         {
@@ -599,5 +644,61 @@ void fem_coupling::pressure_loads(lexer *p, fdm *a, ghostcell *pgc, std::vector<
         const double wgt[4] = {(1.0-L.s)*(1.0-L.t), L.s*(1.0-L.t), L.s*L.t, (1.0-L.s)*L.t};
         for(int k=0; k<4; ++k)
         F[fc.n[k]] += wgt[k]*f;
+    }
+}
+
+void fem_coupling::sample_bed(lexer *p, fdm *a, ghostcell *pgc)
+{
+    // signed distance to the bed and to the solids of the fluid grid (the
+    // smaller of topo and solid) and its gradient, at the nodes of free bodies
+    // and debris particles near the bed; owner rank samples, one reduction
+    const int nn = fs.nnode();
+    std::vector<double> b(5*size_t(nn),0.0);
+    const double hb = 2.0*std::max(fs.hmin(),dxmin);
+
+    auto lsv = [&](double x,double y,double z)->double
+    {
+        return std::min(p->ccipol4a(a->topo,x,y,z),p->ccipol4a(a->solid,x,y,z));
+    };
+
+    for(int i=0; i<nn; ++i)
+    {
+        if(!fs.free_node(i))
+        continue;
+        Vec3 x = fs.pos(i);
+        if(p->j_dir==0)
+        x(1) = p->YP[marge];
+        if(x(0)<p->originx || x(0)>=p->endx || x(2)<p->originz || x(2)>=p->endz)
+        continue;
+        if(p->j_dir==1 && (x(1)<p->originy || x(1)>=p->endy))
+        continue;
+
+        const double phi = lsv(x(0),x(1),x(2));
+        if(phi>hb)
+        continue;
+
+        const double d = 0.5*dxmin;
+        Vec3 g;
+        g(0) = (lsv(x(0)+d,x(1),x(2)) - lsv(x(0)-d,x(1),x(2)))/(2.0*d);
+        g(1) = (p->j_dir==1) ? (lsv(x(0),x(1)+d,x(2)) - lsv(x(0),x(1)-d,x(2)))/(2.0*d) : 0.0;
+        g(2) = (lsv(x(0),x(1),x(2)+d) - lsv(x(0),x(1),x(2)-d))/(2.0*d);
+        double* q = &b[5*size_t(i)];
+        q[0] = phi; q[1] = g(0); q[2] = g(1); q[3] = g(2); q[4] = 1.0;
+    }
+
+    if(!b.empty())
+    MPI_Allreduce(MPI_IN_PLACE,b.data(),(int)b.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+
+    fs.clear_bed_samples();
+    for(int i=0; i<nn; ++i)
+    {
+        const double* q = &b[5*size_t(i)];
+        if(q[4]<0.5)
+        continue;
+        Vec3 n(q[1]/q[4],q[2]/q[4],q[3]/q[4]);
+        const double gn = n.norm();
+        if(gn<1.0e-6)
+        continue;
+        fs.set_bed_sample(i,q[0]/q[4],n/gn);
     }
 }

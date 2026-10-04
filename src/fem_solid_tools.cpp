@@ -213,6 +213,12 @@ void fem_solid::make_fixes()
             ++nc;
         }
 
+        // bodies made only of rigid materials (debris) are never supported by base / top
+        std::vector<int> deform(nc,0);
+        for(const element& e : elems)
+        if(!mats[e.mat].rigid && comp[e.n[0]]>=0)
+        deform[comp[e.n[0]]] = 1;
+
         std::vector<double> zlo(nc,1.0e300), zhi(nc,-1.0e300);
         for(int i=0; i<nnode(); ++i)
         if(comp[i]>=0)
@@ -224,7 +230,7 @@ void fem_solid::make_fixes()
         for(const fix_box& f : fixes)
         if(f.mode>0)
         for(int i=0; i<nnode(); ++i)
-        if(comp[i]>=0)
+        if(comp[i]>=0 && deform[comp[i]])
         {
             const bool hit = (f.mode==1) ? X[i](2)<=zlo[comp[i]]+0.01*hz : X[i](2)>=zhi[comp[i]]-0.01*hz;
             if(hit)
@@ -261,6 +267,8 @@ void fem_solid::fix_nodes(const std::vector<int>& nodes)
     fixes.clear();
     make_fixes();       // only recomputes the base centre (no boxes)
     fixes = keep;
+    if(built)
+    count_bodies();     // supported bodies changed
 }
 
 bool fem_solid::has_supports() const
@@ -289,6 +297,7 @@ bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_o
     throw std::runtime_error("FEM: settle() before build()");
 
     const double dts = cfl*dtcrit;
+    dts_cur = dts;
     double ke_prev = 0.0;
     double wref = 0.0;
     for(int i=0; i<nnode(); ++i)
@@ -305,7 +314,7 @@ bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_o
         std::fill(fint.begin(),fint.end(),Vec3::Zero());
         std::fill(fcon.begin(),fcon.end(),Vec3::Zero());
         internal_forces(dts);
-        if(ground_on)
+        if(ground_on || !planes.empty() || bed_on)
         contact_ground();
         if(contact_on && (nbodies>1 || surf_dirty || n_eroded()>0))
         contact_nodes();
@@ -315,8 +324,11 @@ bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_o
         {
             if(m[i]<=0.0)
             continue;
-            // free parts without ground would fall for ever: kept in place
+            // free parts without ground would fall for ever: kept in place;
+            // rigid bodies have nothing to settle
             if(supported_only && (body[i]<0 || !body_fixed[body[i]]))
+            continue;
+            if(is_rigid_node(i))
             continue;
             Vec3 F = fext[i] + fcon[i] - fint[i] + m[i]*grav;
             for(int d=0; d<3; ++d)
@@ -645,6 +657,18 @@ void fem_solid::write_check(std::ostream& os,const check_info& ci) const
     os<<"  supports:    "<<ci.nfixed<<" nodes";
     if(ci.nfixed>0) os<<", base centre "<<base_c(0)<<" "<<base_c(1)<<" "<<base_c(2)<<" m";
     os<<(ground_on ? ", ground contact on" : "")<<"\n";
+    if(!rbs.empty())
+    {
+        os<<"  rigid bodies: "<<rbs.size()<<" (move as rigid bodies, loads from the outer pressure)\n";
+        for(size_t k=0; k<rbs.size() && k<20; ++k)
+        {
+            const rigid_body& rb = rbs[k];
+            const double rho = rb.M/std::max(rb.Vol,1.0e-30);
+            os<<"     "<<k+1<<": mass "<<rb.M<<" kg, volume "<<rb.Vol<<" m3, density "<<rho<<" kg/m3, centre "<<rb.c0.transpose()
+              <<(rho<1000.0 ? "  (floats in water)" : "")<<"\n";
+        }
+        if(rbs.size()>20) os<<"     ... "<<rbs.size()-20<<" more\n";
+    }
     os<<"  time step:   "<<dtcrit*cfl<<" s (solid)\n";
     if(ci.nfixed>0 || ground_on)
     {

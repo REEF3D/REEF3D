@@ -29,41 +29,101 @@ Architect: Hans Bihs
 // element frequency (c_p/h)^2, i.e. it is of the order of the element stiffness
 // and stable with the element time step. Friction is regularised Coulomb.
 
+void fem_solid::contact_surface(int i,double pen,const Vec3& n,double mu)
+{
+    // penalty along the outward normal n of the wall; Coulomb friction with a
+    // tangential spring (sticks below mu Fn, slides above)
+    const double cpmax = cp_contact;
+    const double w2 = kground*(cpmax/hmin())*(cpmax/hmin());
+
+    const double kn = w2*m[i];
+    const double cn = 2.0*contact_zeta*std::sqrt(kn*m[i]);
+    const double vn = v[i].dot(n);
+    const double Fn = std::max(0.0, kn*pen - cn*vn);
+
+    fcon[i] += Fn*n;
+
+    Vec3 vt = v[i] - vn*n;
+    if(plane_strain) vt(1) = 0.0;
+
+    Vec3& u = tspring[i];
+    u -= u.dot(n)*n;                    // keep the spring in the tangent plane
+    u += dts_cur*vt;
+    if(plane_strain) u(1) = 0.0;
+
+    const double kt = kn;
+    const double ct = cn;
+    Vec3 Ft = -kt*u - ct*vt;
+    const double Fmax = mu*Fn;
+    const double fn = Ft.norm();
+    if(fn>Fmax)
+    {
+        // sliding: the spring is limited to the Coulomb force
+        if(fn>0.0) Ft *= Fmax/fn;
+        u = -(Ft + ct*vt)/kt;
+        const double un = u.norm(), umax = Fmax/kt;
+        if(un>umax && un>0.0) u *= umax/un;
+    }
+    fcon[i] += Ft;
+    touched[i] = 1;
+}
+
+void fem_solid::set_bed_sample(int i,double phi,const Vec3& n)
+{
+    if(bed_ok.size()!=(size_t)nnode())
+    clear_bed_samples();
+    bed_ok[i] = 1;
+    bed_phi[i] = phi;
+    bed_n[i] = n;
+    bed_x[i] = x[i];
+}
+
 void fem_solid::contact_ground()
 {
-    double cpmax = 0.0;
-    for(const material& mt : mats)
-    cpmax = std::max(cpmax,mt.cp);
-    const double w2 = kground*(cpmax/hmin())*(cpmax/hmin());
-    const double dts = cfl*dtcrit;
+    const Vec3 ez(0.0,0.0,1.0);
+    if(tspring.size()!=(size_t)nnode())
+    tspring.assign(nnode(),Vec3::Zero());
+    touched.assign(nnode(),0);
 
     for(int i=0; i<nnode(); ++i)
     {
         if(m[i]<=0.0)
         continue;
 
-        const double pen = zground - x[i](2);
-        if(pen<=0.0)
-        continue;
-
-        const double kn = w2*m[i];
-        const double cn = 2.0*contact_zeta*std::sqrt(kn*m[i]);
-        const double vn = v[i](2);
-        const double Fn = std::max(0.0, kn*pen - cn*vn);
-
-        Vec3 vt = v[i];
-        vt(2) = 0.0;
-        const double vtn = vt.norm();
-
-        fcon[i](2) += Fn;
-
-        if(vtn>1.0e-12)
+        // ground plane: all nodes
+        if(ground_on)
         {
-            const double ct = 0.5*m[i]/dts;
-            const double Ft = std::min(mu_ground*Fn, ct*vtn);
-            fcon[i] -= Ft*vt/vtn;
+            const double pen = zground - x[i](2);
+            if(pen>0.0)
+            contact_surface(i,pen,ez,mu_ground);
+        }
+
+        // domain walls and the bed of the fluid grid: free bodies and debris only
+        if(!planes.empty() || bed_on)
+        {
+            if(!free_node(i))
+            continue;
+
+            for(const cplane& pl : planes)
+            {
+                const double pen = pl.d - pl.n.dot(x[i]);
+                if(pen>0.0)
+                contact_surface(i,pen,pl.n,mu_ground);
+            }
+
+            if(bed_on && !bed_ok.empty() && bed_ok[i])
+            {
+                const double pen = -(bed_phi[i] + bed_n[i].dot(x[i]-bed_x[i]));
+                if(pen>0.0)
+                contact_surface(i,pen,bed_n[i],mu_ground);
+            }
         }
     }
+
+    // nodes out of contact: release the tangential springs
+    for(int i=0; i<nnode(); ++i)
+    if(!touched[i])
+    tspring[i].setZero();
 }
 
 bool fem_solid::share_alive_element(int a,int b) const
@@ -92,9 +152,7 @@ void fem_solid::contact_nodes()
     const double d0 = contact_dist*hmin();
     const double cs = d0;           // hash cell size
 
-    double cpmax = 0.0;
-    for(const material& mt : mats)
-    cpmax = std::max(cpmax,mt.cp);
+    const double cpmax = cp_contact;
     const double w2 = kcontact*(cpmax/hmin())*(cpmax/hmin());
     const double dts = cfl*dtcrit;
 

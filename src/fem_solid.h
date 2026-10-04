@@ -77,6 +77,9 @@ public:
         double ft = 0.0, Gf = 0.0, fc = 0.0, Gc = 0.0;
         // erosion threshold for damage
         double derode = 0.99;
+        // rigid: free bodies made only of rigid materials move as rigid bodies
+        // (no stresses, no stiffness time step limit), e.g. floating debris
+        bool rigid = false;
     };
 
     // history variables of one integration point
@@ -96,6 +99,7 @@ public:
         int geo = -1;                   // geometry: -1 regular voxel, else index into geos
         int shape = -1;                 // input shape that created the element
         bool alive = true;
+        bool rigid = false;             // part of a rigid body: no internal forces
         double svm = 0.0;               // von Mises (Cauchy) stress, averaged over the GPs
         double util = -1.0;             // utilisation (stress / strength), -1: elastic material
         double J = 1.0;
@@ -143,6 +147,8 @@ public:
         double hybrid_tau = 20.0;       // hybrid: filter time of the correction [fluid time steps]
         int    shear = 0;               // 1: tangential (no-slip) reaction of the parcels on the solid
         int    air_forcing = 0;         // 1: direct forcing also in the air (more than 1.5 cells from the water)
+        int    walls = 1;               // 1: the boundaries of the fluid domain are walls for free bodies and debris
+        double added_mass = 1.0;        // factor on the added-mass estimate of rigid bodies (stabilisation), 0: off
         int    settle = 1;              // 1: settle under gravity before the flow starts
         int    check = 0;               // 1: write the check report and stop
         double resolution = 1.0;        // element size in fluid cells if no lattice is given
@@ -190,6 +196,42 @@ public:
     // frequency, acts on the deformation only (rigid motion of free parts and
     // debris is not damped). prepare_damping() estimates the frequency.
     void set_damping_ratio(double z) {zeta = z;}
+    void set_rigid_contact_speed(double c) {c_rigid = c;}
+
+    // contact of free bodies and debris with planes (domain walls) and with the
+    // bed / solids of the fluid grid (signed distance phi and normal sampled per
+    // node at the start of each fluid step, linearised during the substeps)
+    void add_contact_plane(const Vec3& n,double d) {planes.push_back({n.normalized(),d});}
+    void set_bed_sample(int i,double phi,const Vec3& n);
+    void clear_bed_samples() {bed_ok.assign(nnode(),0); bed_phi.assign(nnode(),0.0); bed_n.assign(nnode(),Vec3::Zero()); bed_x.assign(nnode(),Vec3::Zero());}
+    bool free_node(int i) const {return m[i]>0.0 && (body[i]<0 || !body_fixed[body[i]]);}
+    bool bed_contact() const {return bed_on;}
+    void set_bed_contact(bool b) {bed_on = b;}
+
+    // rigid bodies: free bodies (no supports) made only of rigid materials
+    struct rigid_body
+    {
+        std::vector<int> nodes;
+        std::vector<Vec3> r0;           // node positions relative to the centre of mass, reference state
+        double M = 0.0;                 // mass
+        Vec3 c0 = Vec3::Zero(), c = Vec3::Zero(), V = Vec3::Zero(), L = Vec3::Zero(), w = Vec3::Zero();
+        Eigen::Matrix3d R = Eigen::Matrix3d::Identity(), I0 = Eigen::Matrix3d::Zero();
+        double vmax = 0.0, dmax = 0.0, fcmax = 0.0;   // max speed, max displacement of the centre, max contact force
+        double fcstep = 0.0;            // max contact force in the last fluid step
+        double Vol = 0.0;               // volume
+        double Aunit = 0.0, A = 0.0;    // added mass for the stabilisation: per unit fluid density, current
+        Vec3 V0 = Vec3::Zero(), w0 = Vec3::Zero(), a_prev = Vec3::Zero(), al_prev = Vec3::Zero();
+    };
+    void set_rigid_added_mass(int k,double A) {rbs[k].A = A;}
+    int rigid_of_node(int i) const {return rnode.empty() ? -1 : rnode[i];}
+    int n_rigid() const {return (int)rbs.size();}
+    const rigid_body& rigid(int k) const {return rbs[k];}
+    bool is_rigid_node(int i) const {return !rnode.empty() && rnode[i]>=0;}
+    bool node_rigid_material(int i) const       // all elements at the node are of rigid materials
+    {for(int q=node_elem_start[i]; q<node_elem_start[i+1]; ++q) if(!mats[elems[node_elem[q]].mat].rigid) return false; return node_elem_start[i]<node_elem_start[i+1];}
+    int n_deformable() const {int k = 0; for(const element& e : elems) if(e.alive && !e.rigid) ++k; return k;}
+    bool rigid_material_deformable() const      // rigid material in a supported or mixed body
+    {for(const element& e : elems) if(e.alive && mats[e.mat].rigid && !e.rigid) return true; return false;}
     double damping_ratio() const {return zeta;}
     void prepare_damping();
     double damping_alpha() const {return alpha_struct;}
@@ -392,10 +434,26 @@ private:
     double cfl = 0.5;
     double alpha_damp = 0.0;
     double zeta = 0.02, alpha_struct = 0.0, f_damp = 0.0;
+    double c_rigid = 40.0;                      // wave speed for the contact stiffness and time step of rigid bodies
+    struct cplane {Vec3 n; double d;};          // n.x >= d is outside the wall
+    std::vector<cplane> planes;
+    bool bed_on = false;
+    std::vector<unsigned char> bed_ok;
+    std::vector<double> bed_phi;
+    std::vector<Vec3> bed_n, bed_x;
+    void contact_surface(int i,double pen,const Vec3& n,double mu);
+    std::vector<Vec3> tspring;                  // tangential contact spring of the nodes on walls / bed / ground
+    std::vector<unsigned char> touched;
+    double dts_cur = 0.0;
+    double cp_contact = 0.0;                    // wave speed of the contact penalty
+    std::vector<rigid_body> rbs;
+    std::vector<int> rnode;                     // node -> rigid body (-1: deformable)
+    void setup_rigid();
+    bool bodies_near() const;
+    void rigid_step(double dts,const std::vector<Vec3>& F);
     std::vector<int> body;                      // node -> connected body (-1: debris / no intact element)
     std::vector<unsigned char> body_fixed;      // body has supported nodes
     void rigid_velocity(std::vector<Vec3>& vr) const;   // rigid-body velocity of the free bodies
-    bool bodies_near() const;                   // two bodies within the contact distance
     double relax_time = 0.0, relax_alpha = 0.0;
     double bulkq1 = 0.06, bulkq2 = 1.2;
     double erode_J = 0.05;

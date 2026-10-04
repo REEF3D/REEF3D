@@ -118,6 +118,19 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
     initialised = true;
 
     // supports on the bed and the solids of the fluid grid
+    // the boundaries of the fluid domain are walls for free bodies and debris
+    if(fs.coupling().walls)
+    {
+        fs.add_contact_plane(fem_solid::Vec3(1,0,0), p->global_xmin);
+        fs.add_contact_plane(fem_solid::Vec3(-1,0,0),-p->global_xmax);
+        fs.add_contact_plane(fem_solid::Vec3(0,0,1), p->global_zmin);
+        if(p->j_dir==1)
+        {
+            fs.add_contact_plane(fem_solid::Vec3(0,1,0), p->global_ymin);
+            fs.add_contact_plane(fem_solid::Vec3(0,-1,0),-p->global_ymax);
+        }
+    }
+
     if(fs.coupling().fix_bed)
     {
         std::vector<double> lv(fs.nnode(),1.0e30);
@@ -134,7 +147,7 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
         std::vector<int> bed;
         const double tol = 0.3*fs.hmin();
         for(int i=0; i<fs.nnode(); ++i)
-        if(lv[i]<=tol)
+        if(lv[i]<=tol && !fs.node_rigid_material(i))
         bed.push_back(i);
         fs.fix_nodes(bed);
         if(p->mpirank==0)
@@ -244,11 +257,18 @@ void fem_coupling::warnings(lexer *p, std::vector<std::string>& w)
 {
     std::ostringstream os;
 
-    if(fs.min_density() < 1.1*rho_w)
+    double rmin = 1.0e30;
+    for(int k=0; k<fs.material_count(); ++k)
+    if(!fs.mat(k).rigid)
+    rmin = std::min(rmin,fs.mat(k).rho);
+    if(rmin < 1.1*rho_w)
     {
-        os.str(""); os<<"a material is lighter than 1.1 x water ("<<fs.min_density()<<" kg/m3): floating or light structures are not supported by the coupling yet, the run may become unstable";
+        os.str(""); os<<"a deformable material is lighter than 1.1 x water ("<<rmin<<" kg/m3): light deformable structures can become unstable; "
+                       "for floating debris use a rigid material ('material timber C24 rigid' or 'material rigid 450')";
         w.push_back(os.str());
     }
+    if(fs.rigid_material_deformable())
+    w.push_back("a rigid material is used in a body with supports or together with deformable materials: it is computed as elastic there");
     if(fs.hmin() > 2.01*dxmin)
     {
         os.str(""); os<<"elements ("<<fs.hmin()<<" m) are more than twice the fluid cells ("<<dxmin<<" m): the flow is resolved, but stresses are coarse";
@@ -271,7 +291,7 @@ void fem_coupling::warnings(lexer *p, std::vector<std::string>& w)
        || (p->j_dir==1 && (lo(1)<p->global_ymin-tol || hi(1)>p->global_ymax+tol)))
     w.push_back("the structure reaches outside the fluid domain: parts outside get no fluid loads");
 
-    if(!fs.has_supports() && !fs.ground())
+    if(!fs.has_supports() && !fs.ground() && fs.n_rigid()==0)
     w.push_back("the structure has no supports ('fix base', 'fix bed' or a fix box) and no ground: it will fall or drift");
 }
 
@@ -347,6 +367,9 @@ void fem_coupling::write_summary(lexer *p)
     std::ofstream f((outdir+"/REEF3D_FEM_summary.txt").c_str());
     f<<std::setprecision(4);
     f<<"REEF3D FEM summary at t = "<<fs.time()<<" s\n\n";
+
+    if(fs.n_deformable()>0 || fs.n_rigid()==0)
+    {
     f<<"status:                  "<<st.str()<<"\n";
     f<<"max base shear:          "<<sm.shear/1000.0<<" kN"<<unit<<"  at t = "<<sm.t_shear<<" s\n";
     f<<"max overturning moment:  "<<sm.moment/1000.0<<" kNm"<<unit<<"  at t = "<<sm.t_moment<<" s  (about the base centre "<<fs.base_centre().transpose()<<")\n";
@@ -365,6 +388,25 @@ void fem_coupling::write_summary(lexer *p)
     else
     f<<"first element failure:   none\n";
     f<<"failed mass:             "<<100.0*ef<<" %,  debris particles "<<fs.debris().size()<<"\n";
+    }
+
+    // rigid bodies: floating and drifting debris
+    if(fs.n_rigid()>0)
+    {
+        f<<(fs.n_deformable()>0 ? "\n" : "")<<"rigid bodies (debris): "<<fs.n_rigid()<<(p->j_dir==0 ? "   (2D: mass and forces per metre width)" : "")<<"\n";
+        f<<"  body   mass [kg]  density   start centre                 current centre               max speed [m/s]  max drift [m]  max contact force [kN]\n";
+        const int nmax = std::min(fs.n_rigid(),50);
+        for(int k=0; k<nmax; ++k)
+        {
+            const fem_solid::rigid_body& rb = fs.rigid(k);
+            f<<"  "<<std::setw(4)<<k+1<<"  "<<std::setw(10)<<rb.M*force_scale<<"  "<<std::setw(7)<<rb.M/std::max(rb.Vol,1.0e-30)
+             <<"   ("<<std::setw(7)<<rb.c0(0)<<" "<<std::setw(7)<<rb.c0(1)<<" "<<std::setw(7)<<rb.c0(2)<<")"
+             <<"   ("<<std::setw(7)<<rb.c(0)<<" "<<std::setw(7)<<rb.c(1)<<" "<<std::setw(7)<<rb.c(2)<<")"
+             <<"   "<<std::setw(10)<<rb.vmax<<"   "<<std::setw(10)<<rb.dmax<<"   "<<std::setw(10)<<rb.fcmax*force_scale/1000.0<<"\n";
+        }
+        if(fs.n_rigid()>nmax)
+        f<<"  ... "<<fs.n_rigid()-nmax<<" more\n";
+    }
 }
 
 fem_coupling::~fem_coupling()

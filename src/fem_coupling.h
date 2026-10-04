@@ -81,7 +81,8 @@ private:
     double interpolate_kernel(lexer*, field&, double, double, double, int comp, field *ro=nullptr, double *rho=nullptr);
     void spread(lexer*, field&, field&, field&, const fem_solid::Vec3& xp, const fem_solid::Vec3& f, double A, const fem_solid::Vec3* n);
     double kernel(double) const;
-    void finish_step(lexer*, ghostcell*, double alpha);
+    void finish_step(lexer*, fdm*, ghostcell*, double alpha);
+    void sample_bed(lexer*, fdm*, ghostcell*);
     void probe_pressure(lexer*, fdm*, const fem_solid::Vec3& xp, const fem_solid::Vec3& n, double *b, bool hydrostatic=false);
     void pressure_loads(lexer*, fdm*, ghostcell*, std::vector<fem_solid::Vec3>& F, bool hydrostatic=false);
     void print(lexer*);
