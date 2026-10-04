@@ -1,0 +1,68 @@
+# Synolakis (1987) solitary wave on a 1:19.85 plane beach, breaking case H/d = 0.28
+# Free-surface profile at dimensionless time t*sqrt(g/d) = 65
+# SOURCE (secondary): Basilisk test data file 't-65', fetched via https://basilisk.fr/src/test/t-65?raw
+#   (used by https://basilisk.fr/src/test/beach.c: "reproduce this classical test case based on the
+#   experiments of Synolakis, 1987"; A = 0.28, h0 = 1, slope = 1/19.85, G = 1, i.e. all non-dimensional by d and g).
+# Coordinates (beach.c): "the origin is the intersection of the beach with the water level"; bed zb = max(x/19.85, -1),
+#   x positive onshore; t = 0 when the soliton crest is at x = -19.85 - L/2 with L = 2/k*acosh(sqrt(20)),
+#   k = sqrt(3*A/4) (beach.c). Whether this matches Synolakis' own time origin is NOT verified.
+# PROVENANCE WARNING: values appear DIGITIZED from a published figure (quantised eta levels, digitizer
+#   polyline order). The raw file lists points in polyline order with repeats / reversed copies; exact
+#   duplicate (x,eta) pairs were removed and rows sorted by x (stable). No value was changed.
+# columns: x/d[-]  eta/d[-]
+-19.156 0.0402019
+-18.0673 0.0503818
+-17.7029 0.0503818
+-17.0922 0.0402019
+-16.4816 0.0503818
+-15.8709 0.0605905
+-15.3927 0.0605905
+-14.1713 0.0503818
+-13.6933 0.0708134
+-13.1961 0.0605905
+-12.7179 0.0605905
+-12.2256 0.0805917
+-11.743 0.0708134
+-11.2648 0.0708134
+-10.7676 0.0503818
+-10.1615 0.0605905
+-9.43265 0.0503818
+-8.58976 0.0503818
+-8.34379 0.0402019
+-7.73326 0.0503818
+-7.00408 0.0402019
+-6.63968 0.0402019
+-6.16127 0.0312136
+-5.55083 0.0402019
+-5.18619 0.0210192
+-4.82183 0.0210192
+-4.57558 0.0112122
+-4.21584 0.0112122
+-3.72343 -0.00917622
+-3.60506 0.0112122
+-3.2404 -0.00917622
+-3.2404 -0.0393861
+-2.74826 -0.0891589
+-2.26523 -0.0891589
+-2.01917 -0.0393861
+-1.42289 -0.0193993
+-1.04878 -0.0193993
+-0.684245 -0.00917622
+-0.447441 0.0210192
+0.158203 0.0402019
+0.290752 0.0605905
+0.887207 0.0605905
+1.49799 0.0907788
+2.10877 0.120163
+2.58669 0.150373
+2.9515 0.160581
+3.56211 0.19975
+4.05444 0.220153
+4.41904 0.240161
+5.26176 0.279754
+5.99077 0.320144
+6.48299 0.340131
+7.08904 0.369522
+7.57194 0.38991
+8.06397 0.42012
+8.42844 0.439282

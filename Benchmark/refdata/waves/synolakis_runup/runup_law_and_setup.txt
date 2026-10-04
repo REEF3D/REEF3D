@@ -1,0 +1,17 @@
+# Synolakis (1987) The runup of solitary waves, J. Fluid Mech. 185, 523-545.
+# [S1] Synolakis et al. (2008) Validation and verification of tsunami numerical models, PAGEOPH 165:
+#      https://nctr.pmel.noaa.gov/Pdf/PAGEOPH_Synolakis_etal_2008.pdf  (as returned by the fetch tool)
+#   Run-up law (dimensionless with d):  R = 2.831 sqrt(cot beta) H^(5/4)
+#   "applies formally when sqrt(H) <= 0.288 tan beta" (non-breaking run-up)
+#   Tank 36.60 m long (S1) [NOTE: S2 says 31.73 m]; slope 1:19.85; depths 6.25-38.32 cm; H/d 0.021-0.626;
+#   breaking threshold H/d = 0.045 on this slope; most-used cases H/d = 0.0185 (non-breaking) and 0.3 (breaking);
+#   ramp toe 14.95 m from piston; comparison times t = 25, 35, 45, 55, 65 (dimensionless).
+#   Measured max run-up vs H/d: Figure 2 (plot only, slopes 1:19.85 ... 1:1) -- NOT tabulated.
+# [S2] NOAA NCTR benchmark page https://nctr.pmel.noaa.gov/benchmark/Laboratory/Laboratory_CanonicalBathymetry/index.html
+#   "31.73 m-long, 60.96 cm-deep, and 39.97 cm-wide California Institute of Technology" tank; "The ramp had a slope of
+#   1:19.85. The toe of the ramp was distant 14.95 m from the rest position of the piston generator."
+#   "Breaking occurs when H/d > 0.045."  Initial wave at X_s = X_0 + L/2, L/2 = (1/gamma) arccosh(sqrt(20)),
+#   gamma = sqrt(3(H/d)/4).
+#   Data files CanonicalBathymetry_H_0.0185.xls (t = 30..70) and CanonicalBathymetry_H_0.03.xls (t = 15..30) exist on
+#   that page but are binary Excel and could NOT be read in this session (no numbers taken from them).
+# Profiles shipped here: H/d = 0.28 (breaking) from Basilisk beach.c, files profile_Hd0.28_t*.txt (digitized, secondary).

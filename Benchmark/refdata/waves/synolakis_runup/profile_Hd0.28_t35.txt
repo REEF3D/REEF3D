@@ -1,0 +1,62 @@
+# Synolakis (1987) solitary wave on a 1:19.85 plane beach, breaking case H/d = 0.28
+# Free-surface profile at dimensionless time t*sqrt(g/d) = 35
+# SOURCE (secondary): Basilisk test data file 't-35', fetched via https://basilisk.fr/src/test/t-35?raw
+#   (used by https://basilisk.fr/src/test/beach.c: "reproduce this classical test case based on the
+#   experiments of Synolakis, 1987"; A = 0.28, h0 = 1, slope = 1/19.85, G = 1, i.e. all non-dimensional by d and g).
+# Coordinates (beach.c): "the origin is the intersection of the beach with the water level"; bed zb = max(x/19.85, -1),
+#   x positive onshore; t = 0 when the soliton crest is at x = -19.85 - L/2 with L = 2/k*acosh(sqrt(20)),
+#   k = sqrt(3*A/4) (beach.c). Whether this matches Synolakis' own time origin is NOT verified.
+# PROVENANCE WARNING: values appear DIGITIZED from a published figure (quantised eta levels, digitizer
+#   polyline order). The raw file lists points in polyline order with repeats / reversed copies; exact
+#   duplicate (x,eta) pairs were removed and rows sorted by x (stable). No value was changed.
+# columns: x/d[-]  eta/d[-]
+-19.4013 -0.00631909
+-19.155 0.0112122
+-18.0664 0.0112122
+-17.702 0.0112122
+-16.9776 -0.00631909
+-16.3671 0.0112122
+-15.8748 0.0112122
+-15.2641 0.0112122
+-13.9387 0.0189652
+-13.3281 0.0112122
+-12.7173 0.0112122
+-12.3529 0.0112122
+-11.7423 0.0112122
+-11.3825 0.0112122
+-10.8997 0.0112122
+-10.1613 0.0112122
+-9.20017 0.0112122
+-8.34342 0.0112122
+-7.733 0.0112122
+-6.89024 0.00183657
+-6.6439 0.0189652
+-6.27947 -0.00631909
+-5.55064 0.0189652
+-5.05831 0.0189652
+-4.57996 0.00183657
+-3.85112 0.0112122
+-3.24044 0.0189652
+-2.74829 0.0271423
+-2.38858 0.0442792
+-2.02405 0.0785664
+-1.54111 0.0695861
+-1.17666 0.0867219
+-0.57063 0.112029
+-0.452246 0.129165
+0.158158 0.129165
+0.40437 0.145476
+1.01507 0.170359
+1.8577 0.195673
+2.83307 0.22996
+3.68977 0.2634
+4.53231 0.288728
+5.14284 0.331156
+5.38906 0.322154
+5.98556 0.373599
+6.35001 0.356463
+6.47792 0.38991
+6.9605 0.398906
+7.32496 0.431952
+7.93089 0.40704
+8.29534 0.431952

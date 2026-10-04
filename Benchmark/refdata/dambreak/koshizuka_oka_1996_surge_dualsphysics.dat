@@ -1,0 +1,28 @@
+# Koshizuka & Oka (1996) dam-break tip position (as shipped by DualSPHysics, example 01_DamBreak)
+# Original reference (file header line): "S. Koshizuka and Y. Oka. Moving particle semi-implicit method for
+#   fragmentation of incompressible fluid. Nuclear Science and Engineering, Vol 123, pp. 421-434, 1996."
+# Secondary source (copied verbatim; blank lines removed):
+#   https://github.com/DualSPHysics/DualSPHysics/blob/master/examples/main/01_DamBreak/EXP_X-DamTipPosition_Koshizula%26Oka1996.txt
+#   File column header: "time Xmax(tip_dam)"
+# Units: NOT stated in the file. The companion case CaseDambreakVal2D_Def.xml (same folder) uses a fluid
+#   column drawbox of size x=1, z=2 (m) [L = 1 m, H = 2 m, i.e. n^2 = 2] with g = 9.81 m/s^2, so these
+#   values are presumably time [s] and Xmax [m] for a 1 m-wide column (equivalently Xmax = x/L).
+#   Unverified -- treat column 1 as dimensional time for L = 1 m, g = 9.81.
+#   If so: T = t*sqrt(2g/L) = t*sqrt(19.62) ~= 4.429*t  (conversion NOT applied below).
+# Rows: 15
+# time      Xmax
+0.092031603 1.128
+0.190699774 1.244
+0.266343115 1.464
+0.32214447 1.695
+0.368058691 1.903
+0.413950339 2.123
+0.446591422 2.365
+0.495801354 2.584
+0.521851016 2.804
+0.56462754 3.034
+0.594018059 3.219
+0.636591422 3.462
+0.669255079 3.704
+0.70214447 3.9
+0.751331828 4.132

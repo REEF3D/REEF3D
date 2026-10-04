@@ -1,0 +1,78 @@
+# 1D/2D shallow-water analytic solutions (dam break, Thacker) + solitary wave profile
+# PRIMARY SOURCE: Delestre, Lucas, Ksinant, Darboux, Laguerre, Vo, James, Cordier,
+#   "SWASHES: a compilation of Shallow Water Analytic Solutions for Hydraulic and Environmental Studies",
+#   arXiv:1110.0288v7 [math.NA], https://arxiv.org/pdf/1110.0288  (published in Int. J. Numer. Meth. Fluids 72 (2013) 269-300)
+#   Formulas below were rebuilt from the RAW pdf text extraction returned by the fetch tool (line-broken math);
+#   piecewise conditions for h that were lost in extraction are marked [inferred: same intervals as u].
+#   SWASHES contains NO solitary-wave solution (checked: no "solitary"/"sech" in the document).
+#
+# ===== 4.1.1 Dam break on a wet domain without friction (Stoker) =====
+# Initial: h = hl for 0 <= x <= x0, h = hr for x0 < x <= L, hl >= hr, u = 0.
+# h(t,x) = hl                                          x <= xA(t)            [inferred]
+#        = (4/(9g)) (sqrt(g hl) - (x - x0)/(2t))^2     xA(t) <= x <= xB(t)   [inferred]
+#        = cm^2 / g                                    xB(t) <= x <= xC(t)   [inferred]
+#        = hr                                          xC(t) < x             [inferred]
+# u(t,x) = 0                                           x <= xA(t)
+#        = (2/3) ((x - x0)/t + sqrt(g hl))             xA(t) <= x <= xB(t)
+#        = 2 (sqrt(g hl) - cm)                         xB(t) <= x <= xC(t)
+#        = 0                                           xC(t) <= x
+# xA(t) = x0 - t sqrt(g hl)
+# xB(t) = x0 + t (2 sqrt(g hl) - 3 cm)
+# xC(t) = x0 + t * 2 cm^2 (sqrt(g hl) - cm) / (cm^2 - g hr)
+# cm = sqrt(g hm) is the solution of:  -8 g hr cm^2 (sqrt(g hl) - cm)^2 + (cm^2 - g hr)^2 (cm^2 + g hr) = 0
+# SWASHES parameters: hl = 0.005 m, hr = 0.001 m, x0 = 5 m, L = 10 m, T = 6 s
+#
+# ===== 4.1.2 Dam break on a dry domain without friction (Ritter) =====
+# h(t,x) = hl                                          x <= xA(t)            [inferred]
+#        = (4/(9g)) (sqrt(g hl) - (x - x0)/(2t))^2     xA(t) <= x <= xB(t)   [inferred]
+#        = 0                                           xB(t) <= x            [inferred]
+# u(t,x) = 0                                           x <= xA(t)
+#        = (2/3) ((x - x0)/t + sqrt(g hl))             xA(t) <= x <= xB(t)
+#        = 0                                           xB(t) <= x
+# xA(t) = x0 - t sqrt(g hl),   xB(t) = x0 + 2 t sqrt(g hl)
+# SWASHES parameters: hl = 0.005 m, x0 = 5 m, L = 10 m, T = 6 s
+#
+# ===== 4.2.1 Planar surface in a parabola without friction (Thacker, 1D reduction) =====
+# z(x) = h0 ( (1/a^2) (x - L/2)^2 - 1 )
+# Initial: h(x) = -h0 ( ( (1/a)(x - L/2) + B/sqrt(2 g h0) )^2 - 1 ) for x1(0) <= x <= x2(0), 0 otherwise; u(x) = 0
+#   with B = sqrt(2 g h0) / (2a)
+# h(t,x) = -h0 ( ( (1/a)(x - L/2) + (B/sqrt(2 g h0)) cos( (sqrt(2 g h0)/a) t ) )^2 - 1 )   for x1(t) <= x <= x2(t), 0 otherwise
+# u(t,x) = B sin( (sqrt(2 g h0)/a) t )                                                    for x1(t) <= x <= x2(t), 0 otherwise
+# x1(t) = -(1/2) cos( (sqrt(2 g h0)/a) t ) - a + L/2
+# x2(t) = -(1/2) cos( (sqrt(2 g h0)/a) t ) + a + L/2
+# SWASHES parameters: a = 1 m, h0 = 0.5 m, L = 4 m, T = 10.0303 s (5 periods)
+#   (SWASHES 4.2.3 "Planar surface in a parabola with friction" (Sampson) exists but was not transcribed.)
+#
+# ===== 4.2.2 Two-dimensional cases (Thacker) =====
+# Topography (17): z(r) = -h0 (1 - r^2/a^2),  r = sqrt((x - L/2)^2 + (y - L/2)^2), (x,y) in [0,L]x[0,L]
+# -- Radially-symmetrical paraboloid --
+# h(r,t) = h0 ( sqrt(1 - A^2)/(1 - A cos(w t)) - 1 - (r^2/a^2) ( (1 - A^2)/(1 - A cos(w t))^2 - 1 ) ) - z(r)
+# u(x,y,t) = 1/(1 - A cos(w t)) * (1/2) w (x - L/2) A sin(w t)
+# v(x,y,t) = 1/(1 - A cos(w t)) * (1/2) w (y - L/2) A sin(w t)
+# w = sqrt(8 g h0)/a ;  A = (a^2 - r0^2)/(a^2 + r0^2) ; r0 = initial shoreline radius
+# Analytic solution at t = 0 is the initial condition. (h is understood as max(.,0) outside the wet region -- not stated in extract.)
+# SWASHES parameters: a = 1 m, r0 = 0.8 m, h0 = 0.1 m, L = 4 m, T = 3 * 2*pi/w
+# -- Planar surface in a paraboloid --
+# h(x,y,t) = (eta h0 / a^2) ( 2 (x - L/2) cos(w t) + 2 (y - L/2) sin(w t) - eta ) - z(x,y)
+# u(x,y,t) = -eta w sin(w t)
+# v(x,y,t) =  eta w cos(w t)
+# w = sqrt(2 g h0)/a ; eta is a parameter
+# SWASHES parameters: a = 1 m, h0 = 0.1 m, eta = 0.5, L = 4 m, T = 3 * 2*pi/w
+#
+# ===== Solitary wave (Synolakis 1987 canonical beach problem) =====
+# [P1] Synolakis et al. (2008) PAGEOPH 165, "Validation and verification of tsunami numerical models",
+#      https://nctr.pmel.noaa.gov/Pdf/PAGEOPH_Synolakis_etal_2008.pdf  (raw extraction, verbatim):
+#   "eta(x, t = 0) = H sech^2[c(x - Xs)] where c = sqrt(3H/4) and H is the dimensionless wave height, i.e., H = H~/d~."
+#   "Xs = X0 + (1/c) arccosh sqrt(20)"
+#   NOTE: the symbol printed as 'c' here is gamma in the NOAA benchmark page
+#   (https://nctr.pmel.noaa.gov/benchmark/Laboratory/Laboratory_CanonicalBathymetry/index.html):
+#   "gamma = sqrt(3(H~/d~)/4)", "X_s = X_0 + (L/2)", "L/2 = (1/gamma) arccosh sqrt(20)"   (x, eta, H scaled by depth d)
+#   Dimensional form (DERIVED here by rescaling, not quoted): eta = H sech^2( sqrt(3H/(4 d^3)) (x - Xs) )
+# [P2] Celerity c = sqrt(g (d + H)): verbatim code from Basilisk beach.c, https://basilisk.fr/src/test/beach.c?raw
+#   double c = sqrt(G*(1. + A)*h0), psi = x - c*t;
+#   double k = sqrt(3.*A*h0)/(2.*h0*sqrt(h0*(1. + A)));
+#   return A*h0*sech2 (k*psi);
+#   ... u.x[] = c*eta/(h0 + eta);
+#   L = 2./k*acosh(sqrt(1./0.05));
+#   (A = H/h0; Basilisk's k includes a 1/sqrt(1+A) factor, i.e. (algebra done here) k = sqrt(3A/(4 h0^2 (1+A))), unlike gamma in [P1].)
+#   Basilisk cites Yamazaki et al. 2009 for this setup.

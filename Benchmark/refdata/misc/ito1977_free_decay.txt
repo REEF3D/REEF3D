@@ -1,0 +1,27 @@
+# Ito (1977) heave free-decay experiment
+# IMPORTANT: Ito's MIT thesis is about a horizontal CIRCULAR CYLINDER (2D), NOT a sphere.
+#   Ito, Soichi (1977) "Study of the transient heave oscillation of a floating cylinder", M.S. thesis,
+#   MIT Dept. of Ocean Engineering, advisor Ronald W. Yeung. https://dspace.mit.edu/handle/1721.1/45172
+#   (PDF bitstream exists at https://dspace.mit.edu/bitstreams/3eee2df4-5964-4f1f-be5d-824c4b276f8f/download
+#    but returned HTTP 405 to the fetch tool -> thesis text NOT read.)
+#
+# Setup as used in REEF3D validation (verbatim from Section 4.1 "Heaving of a Circular Cylinder"):
+#   Bihs, Kamath, Lu (Jiayi Zheng), Arntsen (2017) "Simulation of Floating Bodies Using a Combined Immersed Boundary
+#   with the Level Set Method in REEF3D", MARINE 2017.
+#   https://upcommons.upc.edu/server/api/core/bitstreams/c9e92ca3-393a-4d8f-9b54-34b8af69ecf8/content
+#   "The spatial domain of the numerical wave tank (NWT) is 10m long and 1.8m high. The water depth is d=1.22m and the
+#    water is initially still. The density of the water is rho=1000kg/m3 ... The body is a horizontal circular cylinder
+#    with a radius r=0.0762m and half of water density, rho=500kg/m3. The cylinder is partially submerged with its
+#    centroid at h1=0.02454m above the free surface."
+#   (0.02454 m is printed as such; it may be a typo for 0.0254 m = 1 inch -- NOT verified against the thesis.)
+#   Reference entry in that paper (verbatim, contains errors): "Soichi. Ito. Study of the transient heave oscillation of a
+#   floating cylinder. BSc thesis, Massachusetts Institue of Technology, Tokyo, Japan, 1971."
+#   Measured decay curve: shown only as a plot (Figure 1, normalised displacement vs time). No tabulated period/damping found.
+#
+# r[m]      rho_body[kg/m3]  rho_water[kg/m3]  d[m]   h1_initial_centroid_above_SWL[m]  NWT_length[m]  NWT_height[m]
+  0.0762    500              1000              1.22   0.02454                           10             1.8
+#
+# NOT FOUND: any sphere free-decay data attributed to Ito (1977); tabulated decay curve, period or damping ratio.
+# Possible substitute (numbers NOT transcribed, fetch tool returned inconsistent values): Kramer et al. (2021)
+#   "Highly Accurate Experimental Heave Decay Tests with a Floating Sphere: A Public Benchmark Dataset...",
+#   Energies 14(2), 269, https://www.mdpi.com/1996-1073/14/2/269 (dataset in its Supplementary Materials).

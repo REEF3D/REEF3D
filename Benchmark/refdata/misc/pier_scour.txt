@@ -1,0 +1,70 @@
+# Local scour at piers / piles -- empirical reference equations (verbatim from fetched sources)
+#
+# ---------------------------------------------------------------------------------------------------------
+# (a) HEC-18 / CSU pier scour equation
+# [A1] FHWA-HRT-16-045 "Updating HEC-18 Pier Scour Equations for Noncohesive Soils", Figure 3, alt text (verbatim):
+#      https://www.fhwa.dot.gov/publications/research/infrastructure/structures/bridge/16045/001.cfm
+#   "General pier scour equation in HEC-18. The equation calculates y sub s divided by a exponent 0.65 divided by y sub 1
+#    exponent 0.35 as equal to 2.0 times K sub 1 times K sub 2 times K sub 3 times open bracket Froude number sub 1
+#    exponent 0.43 close bracket."
+#   i.e.  y_s / (a^0.65 * y_1^0.35) = 2.0 K1 K2 K3 Fr_1^0.43     <=>   y_s/a = 2.0 K1 K2 K3 (y_1/a)^0.35 Fr_1^0.43
+#   K3 = "Correction factor for bed condition, dimensionless."  Fr1 = "Approach flow Fr, dimensionless."
+#   EQUATION NUMBER in HEC-18 5th ed. (FHWA-HIF-12-003, 2012): NOT VERIFIED (PDF too long for fetch tool; only TOC seen).
+#
+# [A2] K-factor definitions -- USACE HEC-RAS 1D Technical Reference 6.5, "Computing Pier Scour With The CSU Equation"
+#      https://www.hec.usace.army.mil/confluence/rasdocs/ras1dtechref/6.5/estimating-scour-at-bridges/computing-local-scour-at-piers/computing-pier-scour-with-the-csu-equation
+#   (HEC-RAS form includes K4 (armoring, from HEC-18 4th ed.); the HEC-18 form in [A1] has K1 K2 K3 only)
+#   Eq. 1:  y_s = 2.0 K_1 K_2 K_3 K_4 a^0.65 y_1^0.35 Fr_1^0.43
+#   Table 10-1 "Correction Factor, K1, for Pier Nose Shape":
+#     Square nose 1.1 | Round nose 1.0 | Circular cylinder 1.0 | Group of cylinders 1.0 | Sharp nose (triangular) 0.9
+#   Eq. 2:  K_2 = ( cos(theta) + (L/a) sin(theta) )^0.65
+#     "If L/a is larger than 12, the program uses L/a = 12 as a maximum ... If the angle of attack is greater than 5 degrees,
+#      K2 dominates and K1 should be set to 1.0"
+#   Table 10-2 "Increase in Equilibrium Pier Scour Depth, K3, For Bed Condition" (dune height H in feet):
+#     Clear-Water Scour N/A 1.1 | Plane Bed and Antidune Flow N/A 1.1 | Small Dunes 10 > H >= 2  1.1 |
+#     Medium Dunes 30 > H >= 10  1.1 to 1.2 | Large Dunes H >= 30  1.3
+#   Limits: "For round nose piers aligned with the flow ... ys <= 2.4 times the pier width (a) for Fr1 <= 0.8;
+#            ys <= 3.0 times the pier width (a) for Fr1 > 0.8"
+#   K4 (HEC-RAS): applies for "D50 equal to or larger than 0.007 feet (0.002 m) and a D95 equal to or larger than 0.066 feet
+#     (0.020 m)"; minimum K4 = 0.4.
+#
+# ---------------------------------------------------------------------------------------------------------
+# (b) Wave-induced scour around a slender pile -- Sumer, Fredsoe & Christiansen (1992) J. Waterway Port Coastal Ocean Eng.
+#     118(1), 15-31.
+# [B1] Verbatim, Eq. (6) of MDPI J. Mar. Sci. Eng. 12(6), 963 (2024): https://www.mdpi.com/2077-1312/12/6/963
+#   S/D = 1.3{1 - exp[-0.03(KC - 6)]}     for KC >= 6        (KC = U_m T / D; no scour for KC < 6)
+# [B2] Steady current: Mostafa & Agamy (2011) IJEST 3(11) "Scour around single pile and pile groups subjected to waves and currents":
+#   https://www.idc-online.com/technical_references/pdfs/chemical_engineering/SCOUR%20AROUND%20SINGLE%20PILE%20AND%20PILE%20GROUPS%20SUBJECTED%20TO%20WAVES%20AND%20CURRENTS.pdf
+#   "Sumer et al. (1992) stated that the mean value and standard deviation for the normalized equilibrium scour depth (S/D)
+#    for a vertical cylindrical pile in steady current are 1.3 and 0.7, respectively."
+#   Corroborated by Frontiers in Marine Science 2024 (doi 10.3389/fmars.2024.1476071): "the average equilibrium scour depth of
+#    a vertical cylinder under uniform flow conditions is 1.3D, with a variance of 0.7D" citing Sumer et al. 1992 / Breusers et al. 1977.
+#   => S/D = 1.3, sigma_{S/D} = 0.7  (steady current, live-bed; Breusers, Nicollet & Shen 1977 via Sumer et al. 1992)
+#
+# ---------------------------------------------------------------------------------------------------------
+# (c) Melville (1997) K-factor method ("Pier and abutment scour: integrated approach", J. Hydraul. Eng. 123(2), 125-136)
+# [C1] Verbatim from V.M. Ponce, "Bridge scour" (SDSU), https://ponce.sdsu.edu/bridge_scour_1.html  (cites Melville 1997)
+#   Eq. 9:   d_s = K_yW K_I K_d K_s K_theta K_G          (pier: K_yW = K_yb; b = pier width, y = flow depth)
+#   Eq. 10a: K_yb = 2.4 b              b/y <= 0.7         (narrow piers)
+#   Eq. 10b: K_yb = 2 (y b)^0.5        0.7 < b/y <= 5.0   (intermediate)
+#   Eq. 10c: K_yb = 4.5 y              b/y > 5.0          (wide piers)
+#   Eq. 12a: K_I = [V - (V_a - V_c)] / V_c     if [V - (V_a - V_c)]/V_c < 1
+#   Eq. 12b: K_I = 1                           if [V - (V_a - V_c)]/V_c >= 1
+#   Eq. 13:  V_c / u*_c = 5.75 log(5.53 y / d50)
+#   Eq. 14:  V_ca / u*_ca = 5.75 log(5.53 y / d50a)
+#   Eq. 15a: u*_c = 0.0115 + 0.0125 d50^1.4            0.1 mm <= d50 < 1 mm      (quartz, 20 C; units as on page: d50 in mm, u* in m/s)
+#   Eq. 15b: u*_c = 0.0305 d50^0.5 - 0.0065 d50^-1     1 mm <= d50 < 100 mm
+#   Eq. 16a/b: same with d50a (armour size)
+#   Eq. 17a: K_d = 0.57 log(2.24 W / d50)   W/d50 <= 25     (W = pier width b for piers)
+#   Eq. 17b: K_d = 1                         W/d50 > 25
+#   Table 5 K_s (piers): circular cylinder 1.0, round nose 1.0, square nose 1.1, sharp nose 0.9
+#   Table 6 K_theta (piers):  theta[deg]  L/a=4  L/a=8  L/a=12
+#                               0          1.0    1.0    1.0
+#                              15          1.5    2.0    2.5
+#                              30          2.0    2.75   3.5
+#                              45          2.3    3.3    4.3
+#                              90          2.5    3.9    5.0
+#   K_G = 1 for piers ("the geometry of the canal does not affect the amount of scour").
+# Melville & Sutherland (1988) J. Hydraul. Eng. 114, 1210-1226 original form: only the structure was seen,
+#   "ys = KI·KH·Kd·Kσ·Ks·Kα·b" (Table 1 of MDPI Water 13(15), 2019, https://www.mdpi.com/2073-4441/13/15/2019);
+#   individual factor definitions NOT obtained.

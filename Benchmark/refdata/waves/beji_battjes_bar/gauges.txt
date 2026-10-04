@@ -1,0 +1,11 @@
+# Gauge positions used with the Basilisk data files (source: http://basilisk.fr/src/test/bar.c, Gauge gauges[] array)
+# Positions 10.5..17.3 also listed in https://www1.udel.edu/kirby/landslide/models/ma-etal-om12.pdf (NHWAVE, Fig. 7)
+# columns: name  x[m]
+WG4  10.5
+WG5  12.5
+WG6  13.5
+WG7  14.5
+WG8  15.7
+WG9  17.3
+WG10 19
+WG11 21
