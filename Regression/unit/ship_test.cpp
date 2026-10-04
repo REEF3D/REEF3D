@@ -1,10 +1,13 @@
+// Architect: Hans Bihs
 // Standalone verification of the ship module kernels (ship_hull, ship_models): no MPI, no REEF3D.
 // Build:  g++ -O2 -std=c++20 -I../../src ship_test.cpp ../../src/ship_hull.cpp ../../src/ship_models.cpp
-//         ../../src/geo_primitive.cpp -o ship_test
+//         ../../src/geo_primitive.cpp ../../src/6DOF_actuator_disk.cpp -I../../ThirdParty/eigen-5.0.0
+//         -DEIGEN_MPL2_ONLY -o ship_test
 // Run:    ./ship_test
 #include"ship_hull.h"
 #include"ship_models.h"
 #include"geo_primitive.h"
+#include"6DOF_load.h"
 #include<iostream>
 #include<cmath>
 #include<string>
@@ -103,6 +106,80 @@ int main()
         double Xm = ship_models::friction(rho,nu,S,Lw,k,-u,Re,CF);
         check(Xm==-X, "antisymmetric in u");
         check(ship_models::friction(rho,nu,S,Lw,k,0.0,Re,CF)==0.0, "zero at rest");
+    }
+    
+    std::cout<<"propeller open-water model"<<std::endl;
+    {
+        const double kt[3]={0.5,-0.4,-0.1}, kq[3]={0.06,-0.04,-0.01};
+        double J,KT,KQ,Tp,Qp;
+        ship_models::propeller(1000.0,10.0,0.2,kt,kq,1.0,J,KT,KQ,Tp,Qp);
+        const double Jex=0.5, KTex=0.5-0.2-0.025, KQex=0.06-0.02-0.0025;
+        snprintf(s,300,"J = %.6f, KT = %.6f, T = %.6f N (exact %.6f)",J,KT,Tp,1000.0*100.0*pow(0.2,4)*KTex);
+        check(fabs(J-Jex)<1e-14 && fabs(KT-KTex)<1e-14 && fabs(KQ-KQex)<1e-14 && fabs(Tp-1000.0*100.0*pow(0.2,4)*KTex)<1e-10
+              && fabs(Qp-1000.0*100.0*pow(0.2,5)*KQex)<1e-10, s);
+        ship_models::propeller(1000.0,10.0,0.2,kt,kq,0.0,J,KT,KQ,Tp,Qp);
+        check(J==0.0 && fabs(Tp-1000.0*100.0*pow(0.2,4)*0.5)<1e-10, "bollard pull J = 0: T = rho n^2 D^4 kt0");
+    }
+    
+    std::cout<<"actuator disk (Hough-Ordway)"<<std::endl;
+    {
+        sixdof_actuator_disk ad;
+        ad.centre = Eigen::Vector3d(1.0,0.5,-0.2);
+        ad.axis = Eigen::Vector3d(1.0,0.0,0.0);
+        ad.R = 0.1; ad.Rh = 0.02; ad.thickness = 0.04; ad.T = 5.0; ad.Q = 0.3; ad.sense = 1;
+        double wa,wt,r; Eigen::Vector3d et;
+        check(!ad.weights(Eigen::Vector3d(1.0,0.5,-0.2),wa,wt,et,r), "no weight on the hub");
+        check(!ad.weights(Eigen::Vector3d(1.03,0.55,-0.2),wa,wt,et,r), "no weight outside the thickness");
+        check(!ad.weights(Eigen::Vector3d(1.0,0.62,-0.2),wa,wt,et,r), "no weight outside the tip");
+        // a point on +y (port) of the axis: right-handed rotation about +x moves it to +z
+        bool in = ad.weights(Eigen::Vector3d(1.0,0.56,-0.2),wa,wt,et,r);
+        check(in && wa>0.0 && wt>0.0 && fabs(r-0.06)<1e-14 && (et-Eigen::Vector3d(0,0,1)).norm()<1e-14, "blade motion: +y -> +z for sense +1");
+        // discrete totals on a fine grid, normalised like the coupling: force T along -axis, torque Q
+        const int nx=40, ny=120, nz=120;
+        const double hx=0.05/nx, hy=0.24/ny, hz=0.24/nz;
+        double SA=0, ST=0;
+        for(int pass=0; pass<2; ++pass)
+        {
+            double Fx=0, Mx=0;
+            for(int i=0;i<nx;++i) for(int j=0;j<ny;++j) for(int k=0;k<nz;++k)
+            {
+                const Eigen::Vector3d x(0.975+(i+0.5)*hx, 0.38+(j+0.5)*hy, -0.32+(k+0.5)*hz);
+                if(!ad.weights(x,wa,wt,et,r)) continue;
+                const double V=hx*hy*hz;
+                if(pass==0) {SA+=wa*V; ST+=wt*r*V; continue;}
+                const Eigen::Vector3d f = -ad.T*wa/SA*ad.axis + ad.Q*wt/ST*et;
+                Fx += f(0)*V;
+                Mx += ((x-ad.centre).cross(f))(0)*V;
+            }
+            if(pass==1)
+            {
+                snprintf(s,300,"discrete force %.12f (-T = -5), torque about the axis %.12f (Q = 0.3)",Fx,Mx);
+                check(fabs(Fx+5.0)<1e-10 && fabs(Mx-0.3)<1e-10, s);
+            }
+        }
+    }
+    
+    std::cout<<"MMG rudder"<<std::endl;
+    {
+        ship_models::rudder_param R;
+        R.AR=0.01; R.Lambda=1.8; R.xR=-0.5; R.zR=-0.05; R.tR=0.39; R.aH=0.3; R.xH=-0.45; R.eps=1.1; R.kappa=0.5; R.lR=-0.9; R.gammaR=0.4;
+        double X,Y,N,K,aR,UR,FN;
+        ship_models::rudder_mmg(1000.0,R,1.0,0.0,0.0,0.0,0.1,10.0,0.3,0.8,X,Y,N,K,aR,UR,FN);
+        check(fabs(Y)<1e-14 && fabs(N)<1e-14 && fabs(X)<1e-14, "straight run, delta = 0: no rudder force");
+        const double d=10.0*3.14159265358979/180.0;
+        ship_models::rudder_mmg(1000.0,R,1.0,0.0,0.0,d,0.1,10.0,0.3,0.8,X,Y,N,K,aR,UR,FN);
+        snprintf(s,300,"delta = +10 deg: Y = %.5f N > 0, N = %.5f Nm < 0 (turn to starboard), X = %.5f N < 0",Y,N,X);
+        check(Y>0.0 && N<0.0 && X<0.0 && fabs(aR-d)<1e-14, s);
+        double X2,Y2,N2,K2;
+        ship_models::rudder_mmg(1000.0,R,1.0,0.0,0.0,-d,0.1,10.0,0.3,0.8,X2,Y2,N2,K2,aR,UR,FN);
+        check(fabs(Y2+Y)<1e-12 && fabs(N2+N)<1e-12 && fabs(X2-X)<1e-12, "antisymmetric in delta");
+        // propeller slipstream accelerates the rudder inflow
+        double UR0;
+        ship_models::rudder_mmg(1000.0,R,1.0,0.0,0.0,d,0.0,0.0,0.0,0.8,X,Y,N,K,aR,UR0,FN);
+        check(UR>UR0 && fabs(UR0-1.1*0.8)<1e-14, "slipstream: U_R with propeller > without (= eps uP)");
+        // ship drifting to port (v > 0) at delta = 0: flow on the rudder from port, force to starboard
+        ship_models::rudder_mmg(1000.0,R,1.0,0.1,0.0,0.0,0.1,10.0,0.3,0.8,X,Y,N,K,aR,UR,FN);
+        check(Y<0.0, "drift to port at delta = 0: rudder side force to starboard (course stability)");
     }
     
     std::cout<<"roll damping"<<std::endl;
