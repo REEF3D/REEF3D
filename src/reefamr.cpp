@@ -530,6 +530,7 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->gcslpara1_count = pp->gcslpara2_count = pp->gcslpara3_count = pp->gcslpara4_count = 0;
     pp->gcslparaco1_count = pp->gcslparaco2_count = pp->gcslparaco3_count = pp->gcslparaco4_count = 0;
     pp->nb1 = pp->nb2 = pp->nb3 = pp->nb4 = pp->nb5 = pp->nb6 = -2;
+    pp->periodic1 = pp->periodic2 = pp->periodic3 = 0;   // no periodic ghost copies on a patch (the lexer copy leaves them unset)
     pp->mpi_size = 1;
     pp->mpirank = p->mpirank;
 
