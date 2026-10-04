@@ -1,0 +1,28 @@
+# REEF3D validation cases
+
+Cases that check a model change against physics: analytical or equilibrium solutions, balances,
+serial against MPI, before against after a patch. Each folder has the inputs, the result plots and a
+README with the set-up, a results table, the builds that were compared and how to run it.
+
+| set | question | runs |
+|---|---|---|
+| `Regression/` | does the code give the **same** numbers as before? | short runs, stored references, automatic |
+| `Benchmark/` | does REEF3D reproduce the **published benchmarks**? | experiments and exact solutions, PASS/FAIL |
+| **`Validation/` (this)** | is a **model change** right? | cases and evaluation scripts written for one review, run by hand |
+
+## Layout
+
+```
+Validation/<topic>/tools/          shared run and evaluation scripts of a topic
+Validation/<topic>/NN_<name>/      README.md, cases/<case>/{control.txt,ctrl.txt}, results/
+```
+
+Cases run as-is: copy `control.txt` and `ctrl.txt` into a run folder, run DiveMESH and REEF3D
+(`<topic>/tools/run_case.sh` does this). The scripts need Python 3 with numpy (matplotlib for plots).
+
+## Contents
+
+| folder | what it checks |
+|---|---|
+| `turbulence/01_channels_mpi_freesurface` | SFLOW, NHFLOW and CFD k-ε / k-ω in open channels against the equilibrium (Rastogi–Rodi, log law), MPI against serial, free-surface damping T36 |
+| `turbulence/02_nhflow_momentum_diffusion_rk` | NHFLOW implicit momentum diffusion with the RK stage weight: momentum balance (ν+ν_t)du/dz = gS(h−z), RK2 against RK3 |

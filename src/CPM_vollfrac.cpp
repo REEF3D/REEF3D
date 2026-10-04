@@ -148,10 +148,12 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
             
             if(w>0.0)
             {
+            // the parcels of the sub-grid bedload layer (Q 58) do not move the pore water of the bed
+            double wu = P.Hop[n]>0.0 ? 0.0 : w;
             cellSum(ki[qi],kj[qj],kk[qk]) += w;
-            Us(ki[qi],kj[qj],kk[qk]) += w*PU[n];
-            Vs(ki[qi],kj[qj],kk[qk]) += w*PV[n];
-            Ws(ki[qi],kj[qj],kk[qk]) += w*PW[n];
+            Us(ki[qi],kj[qj],kk[qk]) += wu*PU[n];
+            Vs(ki[qi],kj[qj],kk[qk]) += wu*PV[n];
+            Ws(ki[qi],kj[qj],kk[qk]) += wu*PW[n];
             }
         }
     }

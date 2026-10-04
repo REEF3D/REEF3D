@@ -1,4 +1,5 @@
 #!/bin/bash
+# Architect: Hans Bihs
 # Run one level of the benchmark suite and make the plots.
 #
 #   tools/run_suite.sh nightly            # all nightly cases

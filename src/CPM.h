@@ -79,6 +79,9 @@ public:
     void update(lexer*, fdm*, ghostcell*, sediment_fdm*, field&, field&);
     void topo_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void bedzh_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void topo_column(lexer*, fdm*, ghostcell*);
+    void topo_iso(lexer*, ghostcell*, field&);
+    double ptopo(lexer*, fdm*, double, double, double);
 
     void timestep(lexer*, ghostcell*);
 
@@ -142,7 +145,7 @@ private:
     double contact_pressure(double, double);
     double contact_pressure_deriv(double, double);
     void dilatancy(lexer*, ghostcell*);
-    field4a T0e;
+    field4a T0e,Tiso;
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
@@ -247,6 +250,18 @@ private:
     void exposure_update(lexer*, fdm*);
     std::vector<double> expo;
     double expo_w=-1.0;
+    // sub-grid bedload layer (Q 58, S 10 1), see CPM_bedload.cpp
+    void bedload_columns(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void bedload_exchange(lexer*, fdm*, ghostcell*, sediment_fdm*, double);
+    void bedload_move(lexer*, sediment_fdm*, int, double);
+    bool bedload_grain(lexer*, int, int, double, double&, double&, double&);
+    void bedload_column(lexer*, double, double, int&, int&);
+    double settling_velocity(lexer*, double);
+    void bedload_occupancy(lexer*);
+    bool bedload_rest(lexer*, fdm*, int);
+    double bedload_place(lexer*, double, double, double, int, int, double, double);
+    slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
+    int bl_npick=0, bl_ndep=0, bl_nsus=0;
     double Urel,Vrel,Wrel;
     double Tsval;
     double dTx_val,dTy_val,dTz_val;

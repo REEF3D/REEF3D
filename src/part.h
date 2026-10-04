@@ -77,6 +77,9 @@ public:
 
     double *Test;
 
+    // CPM sub-grid bedload layer (Q 58): remaining hop length, > 0 for a parcel in the bedload layer
+    double *Hop;
+
     int *Empty,*Flag;
 
     double d50,rhosed;

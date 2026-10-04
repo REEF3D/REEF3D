@@ -54,6 +54,11 @@ void CPM::grid_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double 
     
     exposure_update(p,a);
     
+    // bed shear stress per column (bedload layer Q 58, log)
+    if(p->S10!=2)
+    bedload_columns(p,a,pgc,s);
+
+    if(p->Q58==0)
     bagnold_update(p,a,pgc,s);
 }
 
@@ -129,9 +134,21 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
 {
     double fac;
     
+    const bool layer = p->Q58>0 && p->S10!=2;
+    
+    if(layer)
+    bedload_exchange(p,a,pgc,s,dt);
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
+        // sub-grid bedload layer
+        if(layer && P.Hop[n]>0.0)
+        {
+            bedload_move(p,s,n,dt);
+            continue;
+        }
+        
         advec_mppic(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, dt);
@@ -153,7 +170,7 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.ZRK1[n] = P.Z[n] + dt*P.WRK1[n];
         
         // turbulent dispersion
-        if(p->Q52==1)
+        if(p->Q52==1 && !(layer && bedload_rest(p,a,n)))
         {
             double ddx,ddy,ddz;
             dispersion(p,P.X[n],P.Y[n],P.Z[n],ddx,ddy,ddz,dt);

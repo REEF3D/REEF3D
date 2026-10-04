@@ -110,6 +110,10 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
+        // parcels of the sub-grid bedload layer (Q 58) move along the bed surface, below the grid scale
+        if(p->Q58>0 && (P.Hop[n]>0.0 || P.Test[n]<0.0))
+        continue;
+        
         i0 = ci_of(X0[n]);
         j0 = p->j_dir==1 ? cj_of(Y0[n]) : 0;
         k0 = ck_of(Z0[n]);

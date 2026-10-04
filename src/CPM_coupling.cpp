@@ -105,7 +105,7 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     const bool porous = p->S10==2;
     
     for(n=0;n<P.index;++n)
-    if(P.Flag[n]>=ACTIVE)
+    if(P.Flag[n]>=ACTIVE && P.Hop[n]<=0.0)
     {
         // S 10 1: the bed is a solid boundary for the fluid (wall function at the bed),
         // see the comment at the top: only moving grains act on the fluid
@@ -117,7 +117,7 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             
             nearbed_velocity(p,a,P.X[n],P.Y[n],P.Z[n],P.D[n]);
             
-            double topo = p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]);
+            double topo = ptopo(p,a,P.X[n],P.Y[n],P.Z[n]);
             
             // grains inside the bed below the exposed layer: no coupling
             if(topo<0.0 && nb_w<=0.0)

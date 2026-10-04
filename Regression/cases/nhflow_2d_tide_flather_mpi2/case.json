@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_tide_flather",
+ "np": 2,
+ "description": "nhflow_2d_tide_flather on 2 ranks: the Riemann edge on rank 1, the Flather edge on rank 2.",
+ "tags": ["quick", "2d", "nhflow", "tide", "iowave", "bc_zone", "background", "mpi"],
+ "covers": ["Riemann / Flather edges on a decomposed grid"]
+}

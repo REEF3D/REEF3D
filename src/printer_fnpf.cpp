@@ -282,6 +282,9 @@ void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     pfsf->start(p,c,pgc);
 
     print(p,c,pgc);
+
+    if(plagoon)  // the last output of the LAGOON store is counted
+        plagoon->finish(p,pgc);
 }
 
 void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)

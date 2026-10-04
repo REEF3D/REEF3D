@@ -58,12 +58,24 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
 {
     double fac;
     
+    const bool layer = p->Q58>0 && p->S10!=2;
+    
+    if(layer)
+    bedload_exchange(p,a,pgc,s,dt);
+    
  // ------------------------
     // RK step 1, grid quantities from grid_update
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
+        // sub-grid bedload layer: one step for both stages
+        if(layer && P.Hop[n]>0.0)
+        {
+            bedload_move(p,s,n,dt);
+            continue;
+        }
+        
         advec_mppic(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, dt);
@@ -98,6 +110,9 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
+        if(layer && P.Test[n]<0.0)
+        continue;
+        
         advec_mppic(p, a, P, s, pturb,
                     P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,
                     F, G, H, dt);
@@ -121,7 +136,7 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
         P.WRK1[n] = P.W[n];
         
         // turbulent dispersion, once per step from the start position
-        if(p->Q52==1)
+        if(p->Q52==1 && !(layer && bedload_rest(p,a,n)))
         {
             double ddx,ddy,ddz;
             dispersion(p,P.X[n],P.Y[n],P.Z[n],ddx,ddy,ddz,dt);

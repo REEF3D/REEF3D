@@ -346,6 +346,9 @@ void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb
         pfsf->start(p,a,pgc);
 
     print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+
+    if(plagoon)  // the last output of the LAGOON store is counted
+        plagoon->finish(p,pgc);
 }
 
 void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)

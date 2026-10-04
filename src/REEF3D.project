@@ -2217,6 +2217,9 @@
         <File Name="nhflow_particle_f_move.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CPM">
+        <VirtualDirectory Name="Bedload">
+          <File Name="CPM_bedload.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Drag">
           <File Name="CPM_drag.cpp"/>
         </VirtualDirectory>

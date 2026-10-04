@@ -81,7 +81,8 @@ void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         
         if(p->S10!=2)
         {
-            hs = heaviside(a->topo(i,j,k)-epsi);
+            // inside the bed seen by the parcels: hydrostatic (with the bedload layer Q 58 the iso-surface)
+            hs = heaviside(((p->Q58>0 && zsplit==0) ? Tiso(i,j,k) : a->topo(i,j,k)) - epsi);
             
             dPx(i,j,k) = hs*dPx(i,j,k) + (1.0-hs)*p->W1*p->W20;
             dPy(i,j,k) = hs*dPy(i,j,k) + (1.0-hs)*p->W1*p->W21;

@@ -130,6 +130,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
                 P.RO[n] = p->S22;
 
                 P.Flag[n] = ACTIVE;
+                P.Hop[n] = 0.0;
             }
         }
         
@@ -151,6 +152,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             P.RO[n] = p->S22;
 
             P.Flag[n] = ACTIVE;
+            P.Hop[n] = 0.0;
         }
     }
     
@@ -194,6 +196,10 @@ void CPM::ini_fields(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     grid_update(p,a,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
     count_particles(p,a,pgc,s);
+    
+    // bed seen by the parcels with the bedload layer (Q 58)
+    if(p->Q58>0 && p->S10==1 && zsplit==0)
+    topo_iso(p,pgc,Tiso);
 }
 
 // parcel diameter: S 20, or for a mixture (S 51 d fa fs) a fraction drawn with the volume

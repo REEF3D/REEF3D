@@ -27,8 +27,8 @@ LDFLAGS      :=
 INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC          := $(filter-out src/hypre_%.cpp,$(wildcard src/*.cpp))
 endif
-# zlib: the LAGOON store output (P 18) compresses its chunks with gzip
-LDFLAGS      += -lz
+# zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
+LDFLAGS      += -lz -pthread
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 

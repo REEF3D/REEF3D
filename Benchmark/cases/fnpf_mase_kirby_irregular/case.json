@@ -1,0 +1,114 @@
+{
+ "description": "Irregular waves breaking on a 1:20 slope (Mase & Kirby 1992), FNPF. The waves are linear components (0.2-3 Hz, 1147 components; SFLOW 0.2-1.6 Hz with the improved-dispersion pressure A 220 3, since the depth-averaged model cannot carry the short components) from the FFT of the first 409.6 s of the measured record at the slope toe (h = 47 cm; waverecon.dat written by tools/mase_kirby_waverecon.py, the decomposition of FUNWAVE-TVD's fft4wavemaker.m), generated in a 2.5 m relaxation zone (B 92 51; the record is reproduced at the wave origin x = 0, the toe gauge sits at x = 2.75 m; B 105 cannot move the origin because it also moves the relaxation zone). Significant wave height Hm0 = 4 sigma and skewness at the gauges (h = 47 ... 2.5 cm) against the measured records over the same time window.",
+ "reference": {
+  "short": "Mase & Kirby (1992)",
+  "citation": "Mase, H. & Kirby, J.T. (1992) Hybrid frequency-domain KdV equation for random wave transformation. Proc. 23rd ICCE, 474-487; measured records (dt 0.05 s, 12 gauges on a 1:20 slope) from the FUNWAVE-TVD benchmark car_mase_kirby, see refdata/PROVENANCE_git_sources.md"
+ },
+ "tags": [
+  "fnpf",
+  "experiment",
+  "2dv",
+  "irregular",
+  "breaking"
+ ],
+ "np": 2,
+ "time": 420.0,
+ "generate": {
+  "script": "mase_kirby_waverecon.py",
+  "args": []
+ },
+ "check": {
+  "type": "wave_stats",
+  "gauges": [
+   {
+    "name": "h = 47 cm",
+    "index": 1,
+    "data": "waves/mase_kirby/mase_kirby_eta_h470mm.dat"
+   },
+   {
+    "name": "h = 35 cm",
+    "index": 2,
+    "data": "waves/mase_kirby/mase_kirby_eta_h350mm.dat"
+   },
+   {
+    "name": "h = 30 cm",
+    "index": 3,
+    "data": "waves/mase_kirby/mase_kirby_eta_h300mm.dat"
+   },
+   {
+    "name": "h = 25 cm",
+    "index": 4,
+    "data": "waves/mase_kirby/mase_kirby_eta_h250mm.dat"
+   },
+   {
+    "name": "h = 20 cm",
+    "index": 5,
+    "data": "waves/mase_kirby/mase_kirby_eta_h200mm.dat"
+   },
+   {
+    "name": "h = 17.5 cm",
+    "index": 6,
+    "data": "waves/mase_kirby/mase_kirby_eta_h175mm.dat"
+   },
+   {
+    "name": "h = 15 cm",
+    "index": 7,
+    "data": "waves/mase_kirby/mase_kirby_eta_h150mm.dat"
+   },
+   {
+    "name": "h = 12.5 cm",
+    "index": 8,
+    "data": "waves/mase_kirby/mase_kirby_eta_h125mm.dat"
+   },
+   {
+    "name": "h = 10 cm",
+    "index": 9,
+    "data": "waves/mase_kirby/mase_kirby_eta_h100mm.dat"
+   },
+   {
+    "name": "h = 7.5 cm",
+    "index": 10,
+    "data": "waves/mase_kirby/mase_kirby_eta_h075mm.dat"
+   },
+   {
+    "name": "h = 5 cm",
+    "index": 11,
+    "data": "waves/mase_kirby/mase_kirby_eta_h050mm.dat"
+   },
+   {
+    "name": "h = 2.5 cm",
+    "index": 12,
+    "data": "waves/mase_kirby/mase_kirby_eta_h025mm.dat"
+   }
+  ],
+  "t_start": 30.0,
+  "t_end": 409.0,
+  "data_dt": 0.05,
+  "data_y_factor": 0.01,
+  "tol_Hm0": 0.25,
+  "tol_skew": 0.3,
+  "note": "the measured record contains frequencies below 0.2 Hz that the generated waves do not (Hm0 at the toe gauge: 6.62 cm generated, 6.65 cm measured)"
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "time": 200.0,
+   "ctrl_set": {
+    "M 10": "1"
+   },
+   "control_set": {
+    "M 10": "1",
+    "B 2": "362 1 8"
+   },
+   "check_set": {
+    "t_start": 30.0,
+    "t_end": 200.0,
+    "tol_Hm0": 0.3,
+    "tol_skew": 0.35
+   }
+  },
+  "release": {
+   "xfail": "hans_dev ff1bb68, release grid (725 x 10): Hm0 too high in the inner surf zone, +18 % at h = 5 cm and +39 % at h = 2.5 cm (nightly grid: +9 % / +26 %); within 9 % for h >= 7.5 cm and skewness within 0.13 everywhere. The breaking dissipation decreases with grid refinement"
+  }
+ }
+}

@@ -59,9 +59,43 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     {
         shelter = shelter_factor(p,s,PX[n],PY[n],PZ[n],PU[n],PV[n],PW[n]);
         expo_w = expo.size()==P.index ? expo[n] : -1.0;
+
+        // sub-grid bedload layer (Q 58): the flow moves the bed through the layer only, the exposed
+        // grains are fully sheltered (fluid at rest at the grain level, drag against it, no lift)
+        if(p->Q58>0)
+        shelter = 0.0;
         nearbed_velocity(p,a,PX[n],PY[n],PZ[n],P.D[n]);
         shelter = 1.0;
         expo_w = -1.0;
+
+        // sub-grid bedload layer (Q 58): grains resting on the bed within one cell above the bed
+        // level are part of the bed surface, they are moved by the layer only (fluid at rest at the
+        // grain level); moving grains (suspension, settling, avalanches) see the resolved flow
+        // reduced towards the bed, u delta/h
+        if(p->Q58>0)
+        {
+            double topo = ptopo(p,a,PX[n],PY[n],PZ[n]);
+
+            if(topo>=0.0)
+            {
+                i = p->posc_i(PX[n]);
+                j = p->posc_j(PY[n]);
+                k = p->posc_k(PZ[n]);
+
+                double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+
+                if(topo<h)
+                {
+                    double sp = sqrt(PU[n]*PU[n] + PV[n]*PV[n] + PW[n]*PW[n]);
+                    double wgt = sp < 0.1*settling_velocity(p,P.D[n]) ? 0.0 : topo/h;
+
+                    uf *= wgt;
+                    vf *= wgt;
+                    wf *= wgt;
+                    liftx=lifty=liftz=0.0;
+                }
+            }
+        }
     }
     
     // two-way coupling, S 10 2 (porous bed): interstitial velocity u/eps
@@ -159,7 +193,7 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
     liftx=lifty=liftz=0.0;
     nb_w=nb_fac=0.0;
     
-    double topo = p->ccipol4_b(a->topo,xp,yp,zp);
+    double topo = ptopo(p,a,xp,yp,zp);
     
     if(topo>=0.0)
     return;
@@ -196,9 +230,9 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
     if(w>0.0)
     {
         // bed normal from the topo level set
-        double nx = (p->ccipol4_b(a->topo,xp+0.5*h,yp,zp) - p->ccipol4_b(a->topo,xp-0.5*h,yp,zp));
-        double ny = p->j_dir==1 ? (p->ccipol4_b(a->topo,xp,yp+0.5*h,zp) - p->ccipol4_b(a->topo,xp,yp-0.5*h,zp)) : 0.0;
-        double nz = (p->ccipol4_b(a->topo,xp,yp,zp+0.5*h) - p->ccipol4_b(a->topo,xp,yp,zp-0.5*h));
+        double nx = (ptopo(p,a,xp+0.5*h,yp,zp) - ptopo(p,a,xp-0.5*h,yp,zp));
+        double ny = p->j_dir==1 ? (ptopo(p,a,xp,yp+0.5*h,zp) - ptopo(p,a,xp,yp-0.5*h,zp)) : 0.0;
+        double nz = (ptopo(p,a,xp,yp,zp+0.5*h) - ptopo(p,a,xp,yp,zp-0.5*h));
         double nm = sqrt(nx*nx + ny*ny + nz*nz);
         
         if(nm>1.0e-10)
@@ -237,7 +271,7 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
         // lift on the exposed grains (Q 54 C_L, Wiberg & Smith 1985):
         //   F_L = 0.5 rho_f C_L A (u_T^2 - u_B^2),  u_T at the grain top, u_B = 0 in the roughness,
         //   per unit mass: 0.75 C_L rho_f/rho_p u_T^2/d, along the bed normal
-        if(p->Q54>0.0)
+        if(p->Q54>0.0 && shelter>0.0)
         {
             double ut = fac*ur, vt = fac*vr, wt = fac*wr;
             double un = ut*nx + vt*ny + wt*nz;
@@ -325,7 +359,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
         
         // grains of the bed below the exposed layer do not count
-        if(p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]) < -2.0*MIN(P.D[n],0.25*h))
+        if(ptopo(p,a,P.X[n],P.Y[n],P.Z[n]) < -2.0*MIN(P.D[n],0.25*h))
         continue;
         
         double ustar = sqrt(tauB[(i+1)*nj + j+1]/p->W1);
@@ -442,7 +476,7 @@ void CPM::exposure_update(lexer *p, fdm *a)
         if(i<0 || i>=p->knox || j<0 || j>=p->knoy)
         continue;
         
-        if(p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]) >= 0.0)
+        if(ptopo(p,a,P.X[n],P.Y[n],P.Z[n]) >= 0.0 || P.Hop[n]>0.0)
         continue;
         
         col[(i+1)*nj + j+1].push_back(std::make_pair(P.Z[n],int(n)));

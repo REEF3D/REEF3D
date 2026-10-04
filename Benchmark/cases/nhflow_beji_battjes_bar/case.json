@@ -1,0 +1,109 @@
+{
+ "description": "Regular waves (H = 2 cm, T = 2.02 s) over the Beji & Battjes submerged bar with NHFLOW, geometry of tutorial NHFLOW/2 (bar toe at x = 6 m as in the experiment). Surface elevation at WG4..WG11 against the measured series.",
+ "reference": {
+  "short": "Beji & Battjes (1993)",
+  "citation": "Beji, S. & Battjes, J.A. (1993) Experimental investigation of wave propagation over a bar. Coastal Engineering 19, 151-162; Luth, Klopman & Kitou (1994) / Dingemans (1994). Measured series: secondary, digitised (Basilisk test 'bar', gauge-4..11), see refdata/waves/PROVENANCE.md"
+ },
+ "tags": [
+  "nhflow",
+  "experiment",
+  "2dv",
+  "dispersion"
+ ],
+ "np": 4,
+ "time": 42.0,
+ "check": {
+  "type": "timeseries",
+  "signals": [
+   {
+    "name": "WG4",
+    "source": "gauge",
+    "index": 1,
+    "data": "waves/beji_battjes_bar/WG4_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG5",
+    "source": "gauge",
+    "index": 2,
+    "data": "waves/beji_battjes_bar/WG5_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG6",
+    "source": "gauge",
+    "index": 3,
+    "data": "waves/beji_battjes_bar/WG6_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG7",
+    "source": "gauge",
+    "index": 4,
+    "data": "waves/beji_battjes_bar/WG7_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG8",
+    "source": "gauge",
+    "index": 5,
+    "data": "waves/beji_battjes_bar/WG8_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG9",
+    "source": "gauge",
+    "index": 6,
+    "data": "waves/beji_battjes_bar/WG9_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG10",
+    "source": "gauge",
+    "index": 7,
+    "data": "waves/beji_battjes_bar/WG10_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   },
+   {
+    "name": "WG11",
+    "source": "gauge",
+    "index": 8,
+    "data": "waves/beji_battjes_bar/WG11_eta_timeseries.txt",
+    "data_y_factor": 0.01
+   }
+  ],
+  "align": [
+   "WG4",
+   "WG5",
+   "WG6",
+   "WG7",
+   "WG8",
+   "WG9",
+   "WG10",
+   "WG11"
+  ],
+  "lag_range": [
+   -1.2,
+   1.2
+  ],
+  "lag_step": 0.005,
+  "local_lag": 0.1,
+  "tol_rms": 0.35,
+  "tol_height": 0.3,
+  "note": "WG4..WG11 at x = 10.5..21 m from the wave board (bar toe at 6 m); the measured time origin is arbitrary, one common lag is fitted on all gauges, plus at most +-0.1 s (T/20) per gauge for the gauge position and digitising uncertainty"
+ },
+ "levels": {
+  "nightly": {
+   "np": 2,
+   "control_set": {
+    "B 2": "1000 1 8",
+    "M 10": "2"
+   },
+   "check_set": {
+    "tol_rms": 0.45,
+    "tol_height": 0.3
+   }
+  },
+  "release": {}
+ }
+}

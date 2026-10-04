@@ -153,7 +153,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     for(n=0;n<P.index;++n)
         if(P.Flag[n]>0)
         {
-            ffn=float(P.Flag[n]);
+            ffn=float(P.Hop[n]>0.0 ? MOVING : P.Flag[n]);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
             m+=sizeof(float);
         }

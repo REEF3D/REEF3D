@@ -149,12 +149,14 @@ target_link_options(REEF3D PRIVATE
 
 # ── Link libraries ────────────────────────────────────────────────────────────
 
-# zlib: the LAGOON store output (P 18) compresses its chunks with gzip
+# zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
 find_package(ZLIB REQUIRED)
+find_package(Threads REQUIRED)
 
 target_link_libraries(REEF3D PRIVATE
   MPI::MPI_CXX
   ZLIB::ZLIB
+  Threads::Threads
   $<$<BOOL:${REEF3D_USE_HYPRE}>:HYPRE::HYPRE>
   Eigen3::Eigen)
 

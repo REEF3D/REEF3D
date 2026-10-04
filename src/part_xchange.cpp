@@ -114,6 +114,10 @@ void part::xchange(lexer *p, ghostcell *pgc, slice &bedch, int mode)
     pgc->gcpartx(sendnum,recvnum,send,recv);
     xchange_fillback(p,pgc,Test);
 
+    xchange_fill(p,pgc,mode,Hop);
+    pgc->gcpartx(sendnum,recvnum,send,recv);
+    xchange_fillback(p,pgc,Hop);
+
     // Flag
     xchange_fillback_flag(p,pgc,bedch,mode);
     xchange_fill_flag(p,pgc,mode);

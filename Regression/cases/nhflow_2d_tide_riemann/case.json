@@ -1,0 +1,18 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "The tidal channel with Riemann edges at both ends; the x+ background carries the tide with its phase at 3 km.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "Riemann edge x+"
+ ]
+}

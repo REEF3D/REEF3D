@@ -1,0 +1,39 @@
+{
+ "description": "Free oscillation of the first sloshing mode in a closed rectangular tank (L = 1 m, h = 0.5 m, kh = pi/2), CFD: initial surface tilted plane with 5 mm at the walls (F 60 / F 62 / F 63), gauge at x = L/6 where the third mode has a node; period at a gauge against linear theory (T = 1.1816 s).",
+ "reference": {
+  "short": "Linear sloshing theory",
+  "citation": "Free oscillation of the first sloshing mode, linear potential theory T = 2 pi / sqrt(g k tanh kh), k = pi/L (e.g. Faltinsen & Timokha 2009, Sloshing, Ch. 4)"
+ },
+ "tags": [
+  "cfd",
+  "analytical",
+  "2dv",
+  "quick"
+ ],
+ "time": 12.0,
+ "check": {
+  "type": "oscillation_period",
+  "gauge": {
+   "index": 1
+  },
+  "L": 1.0,
+  "h": 0.5,
+  "datum": 0.5,
+  "tol": 0.01
+ },
+ "levels": {
+  "nightly": {
+   "control_set": {
+    "B 1": "0.02",
+    "B 10": "0.0 1.0 0.0 0.02 0.0 0.8"
+   },
+   "ctrl_set": {
+    "P 51": "0.1667 0.01"
+   },
+   "check_set": {
+    "tol": 0.02
+   }
+  },
+  "release": {}
+ }
+}

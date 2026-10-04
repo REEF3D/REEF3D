@@ -131,6 +131,7 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         P.D[n]=val[6];
         P.RO[n]=val[7];
         P.Flag[n]=flag;
+        P.Hop[n]=0.0;
         
         // fixed parcels are released unless all parcels stay fixed (Q 44 1),
         // the open boundaries fix theirs again below
@@ -157,7 +158,7 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
 {
     const double vpar = P.ParcelFactor*Vp;
     
-    double vol=0.0, qx=0.0, qy=0.0, vmov=0.0;
+    double vol=0.0, qx=0.0, qy=0.0, vmov=0.0, vbl=0.0, qbx=0.0;
     int np=0;
     
     for(n=0;n<P.index;++n)
@@ -170,13 +171,40 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         
         if(P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n] > 1.0e-6)
         vmov += vpar;
+        
+        if(P.Hop[n]>0.0)
+        {
+            vbl += vpar;
+            qbx += vpar*P.U[n];
+        }
     }
     
+    // mean bed shear stress of the bedload layer (Q 58)
+    double tb=0.0, nb=0.0;
+
+    if(p->S10!=2)
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    {
+        tb += sqrt(blTx(i,j)*blTx(i,j) + blTy(i,j)*blTy(i,j));
+        nb += 1.0;
+    }
+
+    tb = pgc->globalsum(tb);
+    nb = pgc->globalsum(nb);
+    tb = nb>0.0 ? tb/nb : 0.0;
+
     np = pgc->globalisum(np);
     vol = pgc->globalsum(vol);
     qx = pgc->globalsum(qx);
     qy = pgc->globalsum(qy);
     vmov = pgc->globalsum(vmov);
+    vbl = pgc->globalsum(vbl);
+    qbx = pgc->globalsum(qbx);
+    int npick = pgc->globalisum(bl_npick);
+    int ndep = pgc->globalisum(bl_ndep);
+    int nsus = pgc->globalisum(bl_nsus);
+    bl_npick = bl_ndep = bl_nsus = 0;
     double vout = pgc->globalsum(outvol);
     
     double Lx = p->global_xmax-p->global_xmin;
@@ -188,10 +216,10 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         {
             mkdir("./REEF3D_CFD_CPM_Particle",0777);
             logout.open("./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat");
-            logout<<"time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]"<<endl;
+            logout<<"time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]"<<endl;
             logini=1;
         }
         
-        logout<<p->simtime<<"\t"<<np<<"\t"<<vol<<"\t"<<vout<<"\t"<<vmov<<"\t"<<qx/(Lx*Ly)<<"\t"<<qy/(Lx*Ly)<<endl;
+        logout<<p->simtime<<"\t"<<np<<"\t"<<vol<<"\t"<<vout<<"\t"<<vmov<<"\t"<<qx/(Lx*Ly)<<"\t"<<qy/(Lx*Ly)<<"\t"<<vbl<<"\t"<<npick<<"\t"<<ndep<<"\t"<<nsus<<"\t"<<tb<<"\t"<<qbx/(Lx*Ly)<<endl;
     }
 }

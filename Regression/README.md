@@ -172,6 +172,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_hdc` (+ `_mpi2`, stage `fnpf_hdc_source_uvw`) | 1/2 | FNPF -> NHFLOW nesting: FNPF state with velocities (P 44 1), DIVEMesh H 10 4, NHFLOW reads eta, u, w (B 92 61) |
 | `nhflow_2d_hdc_single` (stage `fnpf_hdc_source_uvw_single`) | 1 | the same with one state file per step (P 45 1); same result as `nhflow_2d_hdc` |
 | `nhflow_2d_hdc_nhflow` (stage `nhflow_hdc_source`) | 1 | NHFLOW -> NHFLOW nesting (DIVEMesh H 10 5); target time step close to the source state interval |
+| `nhflow_2d_tide_flather` (+ `_mpi2`) | 1/2 | tidal background (B 510/511): progressive tide in through a Riemann edge (B 520 method 3), out through a Flather edge (method 4) |
+| `nhflow_2d_tide_riemann` | 1 | tidal channel with Riemann edges at both ends |
+| `nhflow_2d_tide_basin` | 1 | closed basin: Riemann edge at x-, wall at x+; the reflected tide leaves through the Riemann edge |
+| `nhflow_2d_tide_waves_beach` | 1 | tide + waves: generation zone with background + waves, beach relaxing to the tide (B 523) |
+| `nhflow_2d_current_background` | 1 | constant current background (B 514): Riemann in, Flather out, beach relaxing to the current |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.

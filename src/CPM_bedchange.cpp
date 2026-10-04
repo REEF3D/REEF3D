@@ -30,6 +30,20 @@ Authors: Hans Bihs, Alexander Hanke
 // first order level set estimate, reinitialised afterwards by reinitopo
 void CPM::topo_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
+    // sub-grid bedload layer (Q 58): the parcels keep the iso-surface (exposure, near-bed closure),
+    // the fluid and the layer get the single valued bed surface from the solid volume of each column
+    if(p->Q58>0 && p->S10==1 && zsplit==0)
+    {
+        topo_iso(p,pgc,Tiso);
+        topo_column(p,a,pgc);
+    }
+    
+    else
+    topo_iso(p,pgc,a->topo);
+}
+
+void CPM::topo_iso(lexer *p, ghostcell *pgc, field &f)
+{
     double gx,gy,gz,grad,h,val;
     double Tm,Tp;
     
@@ -61,10 +75,19 @@ void CPM::topo_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         val = MAX(val,-3.0*h);
         val = MIN(val, 3.0*h);
         
-        a->topo(i,j,k) = val;
+        f(i,j,k) = val;
     }
-    
-    pgc->start4a(p,a->topo,150);
+
+    pgc->start4a(p,f,150);
+}
+
+// bed level set seen by the parcels: the iso-surface of the solid fraction
+double CPM::ptopo(lexer *p, fdm *a, double xp, double yp, double zp)
+{
+    if(p->Q58>0 && p->S10==1 && zsplit==0)
+    return p->ccipol4a(Tiso,xp,yp,zp);
+
+    return p->ccipol4_b(a->topo,xp,yp,zp);
 }
 
 // bed elevation from the topo level set
@@ -91,4 +114,54 @@ void CPM::bedzh_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->bedzh,1);
     pgc->gcsl_start4(p,a->bed,50);
+}
+
+/*--------------------------------------------------------------------
+bed level from the solid volume of the columns (Q 58, S 10 1, no vertical decomposition)
+
+The iso-surface of the solid fraction depends on where the parcels sit inside the top cell
+of the bed, so the bed level jumps by up to a cell between neighbouring columns and the
+fluid sees a staircase (form drag, sheltered columns without transport). With the bedload
+layer the bed surface is single valued: from the bottom face of the highest cell of the bed
+(theta >= theta_bed), that cell and the one above count with their solid volume,
+
+    z_b = z_face + (theta_k/theta_0) dz_k + (theta_k+1/theta_0) dz_k+1,     topo = z - z_b.
+
+Loose cells further down do not lower the surface, parcels further up (suspension) do not count.
+--------------------------------------------------------------------*/
+void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
+{
+    const int nj = p->knoy+2;
+    std::vector<double> zb((p->knox+2)*nj, 0.0);
+
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    {
+        // highest cell of the bed
+        int ktop=-1;
+
+        for(k=0;k<p->knoz;++k)
+        if(Ts(i,j,k)>=theta_bed)
+        ktop=k;
+
+        // the cells below the highest cell of the bed count as full (dilated or loose cells inside
+        // the bed do not lower the surface), the highest cell and the one above with their solid volume
+        int kb = MAX(ktop,0);
+        double z = p->ZN[kb+marge];
+
+        for(k=kb;k<=MIN(kb+1,p->knoz-1);++k)
+        z += MIN(MAX(0.0,Ts(i,j,k))/theta_0, 1.0)*p->DZN[KP];
+
+        zb[(i+1)*nj + j+1] = z;
+    }
+
+    BASELOOP
+    {
+        double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        double val = p->ZP[KP] - zb[(i+1)*nj + j+1];
+
+        a->topo(i,j,k) = MAX(-3.0*h, MIN(3.0*h, val));
+    }
+
+    pgc->start4a(p,a->topo,150);
 }

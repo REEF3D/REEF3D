@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Architect: Hans Bihs
 """
 REEF3D literature benchmark suite.
 
@@ -340,13 +341,17 @@ def read_wsflines(rundir, model):
     for fn in glob.glob(os.path.join(rundir, "REEF3D_%s_WSFLINE" % model, "*.dat")):
         simtime = None
         xs, es = [], []
+        data = False
         with open(fn) as f:
             for l in f:
                 if l.startswith("simtime"):
                     simtime = float(l.split(":")[1])
                     continue
+                if l.startswith("X "):   # column header; the data rows follow
+                    data = True
+                    continue
                 t = l.split()
-                if len(t) >= 2 and is_num(t[0]) and is_num(t[1]) and simtime is not None:
+                if data and len(t) >= 2 and is_num(t[0]) and is_num(t[1]) and simtime is not None:
                     if l.count("\t") >= 1 and len(t) <= 3:
                         xs.append(float(t[0]))
                         es.append(float(t[1]))
@@ -469,7 +474,13 @@ def sim_signal(c, rundir, s):
         if g is None:
             return None
         i = gauge_index(g, s)
-        return g[2], eta_series(c, g, i)
+        if "datum" in s:
+            ys = [y - float(s["datum"]) for y in g[3][i]]
+        else:
+            ys = eta_series(c, g, i)
+        if "clip_min" in s:  # e.g. water depth gauges before the water arrives (no interface: -1e20)
+            ys = [max(y, s["clip_min"]) for y in ys]
+        return g[2], [s.get("factor", 1.0) * y for y in ys]
     if src == "force":
         f = read_force(rundir, model, s.get("n", 1))
         if f is None:
@@ -494,8 +505,9 @@ def ref_signal(s, window=None):
     window [t0, t1] (in SI time of the data)"""
     rows = read_refdata(s["data"])
     tf, to, yf = s.get("data_t_factor", 1.0), s.get("data_t_offset", 0.0), s.get("data_y_factor", 1.0)
+    col = s.get("data_col", 1)  # column of the value (0 = time) in multi-column files
     rows.sort(key=lambda r: r[0])
-    t, y = [r[0] * tf + to for r in rows], [r[1] * yf for r in rows]
+    t, y = [r[0] * tf + to for r in rows], [r[col] * yf for r in rows]
     if window:
         keep = [i for i, x in enumerate(t) if window[0] <= x <= window[1]]
         t, y = [t[i] for i in keep], [y[i] for i in keep]
@@ -521,29 +533,36 @@ def check_timeseries(c, rundir):
         sigs.append((s, sim, ref_signal(s, ck.get("window"))))
 
     def err_for(lag, subset):
-        tot, n = 0.0, 0
+        tot, n, m = 0.0, 0, 0
         for s, sim, ref in subset:
             for t, y in zip(*ref):
+                m += 1
                 v = interp(sim[0], sim[1], t + lag)
                 if v == v:
                     tot += (v - y) ** 2
                     n += 1
-        return tot / n if n else float("inf")
+        return tot / n if n and n >= 0.8 * m else float("inf")   # the simulation must cover the window
 
     align = [x for x in sigs if x[0].get("name") in ck.get("align", [])]
     lag = ck.get("lag", 0.0)
     if align:
         lo, hi = ck["lag_range"]
         step = ck.get("lag_step", 0.005)
-        best = (float("inf"), 0.0)
-        k = 0
-        while lo + k * step <= hi:
-            L = lo + k * step
-            e = err_for(L, align)
-            if e < best[0]:
-                best = (e, L)
-            k += 1
-        lag = best[1]
+
+        def scan(a, b_, h):
+            best = (float("inf"), a)
+            k = 0
+            while a + k * h <= b_ + 1e-12:
+                L = a + k * h
+                e = err_for(L, align)
+                if e < best[0]:
+                    best = (e, L)
+                k += 1
+            return best[1]
+        coarse = max(step, (hi - lo) / 400.0)  # coarse scan, then refine around the minimum
+        lag = scan(lo, hi, coarse)
+        if coarse > step:
+            lag = scan(max(lo, lag - 2 * coarse), min(hi, lag + 2 * coarse), step)
     ok, worst, txt = True, 0.0, ["time lag sim - data: %.3f s" % lag, ""]
     txt.append("| signal | rel. rms error | tol | height ratio | tol | extra lag [s] | |")
     txt.append("|---|---|---|---|---|---|---|")
@@ -815,7 +834,7 @@ def check_profiles(c, rundir):
         _, xs, es = line
         dd = []
         for xd, ed in rows:
-            v = interp(xs, es, x0 + xd * d)
+            v = interp(xs, es, x0 + ck.get("x_sign", 1.0) * xd * d)
             if v == v:
                 dd.append((v - swl) / d - ed)
         return rms(dd) * d / H if len(dd) > 0.7 * len(rows) else float("inf")
@@ -827,10 +846,13 @@ def check_profiles(c, rundir):
     ok, worst = True, 0.0
     txt = ["time origin fitted on t* = %g: t0 = %.3f s" % (t1, t0), "",
            "| t* | sim time [s] | rel. rms error (/H) | |", "|---|---|---|---|"]
+    # accept the nearest line within 0.05 t-units, or within 0.6 of the output interval (P 55) if coarser
+    dts = sorted(b[0] - a[0] for a, b in zip(lines, lines[1:]))
+    t_match = max(0.05 * tsc, 0.6 * dts[len(dts) // 2]) if dts else 0.05 * tsc
     for ts, rows in profs:
         tsim = t0 + ts * tsc
         L = min(lines, key=lambda L: abs(L[0] - tsim))
-        e = prof_err(L, rows) if abs(L[0] - tsim) < 0.05 * tsc else float("inf")
+        e = prof_err(L, rows) if abs(L[0] - tsim) <= t_match else float("inf")
         good = e <= ck["tol"]
         ok &= good
         worst = max(worst, e)
@@ -851,7 +873,7 @@ def check_section_heights(c, rundir):
     txt = ["| section | points | rms error of H/H0 | max error | |", "|---|---|---|---|---|"]
     ok = True
     for sec in ck["sections"]:
-        rows = read_refdata(sec["data"])
+        rows = [(r[0], r[sec.get("col", 1)] * sec.get("y_factor", 1.0)) for r in read_refdata(sec["data"])]
         errs = []
         for s, hd in rows:
             x = sec["x"] if "x" in sec else sec["sign"] * s + sec.get("offset", 0.0)
@@ -997,6 +1019,261 @@ def check_scour_depth(c, rundir):
                       SD, rows[-1][0], lo, hi, ck.get("hec18", float("nan"))), SD=SD)
 
 
+# ---------------------------------------------------------------------------------------------
+# checkers added in the second round (conical island, irregular waves, sloshing, Thacker, porous
+# dam break)
+# ---------------------------------------------------------------------------------------------
+
+def runup_line_points(ck, theta):
+    """gauge positions (x, y, bed elevation above SWL) on the radial line at the data angle theta
+    (deg); the data convention puts the side facing the incident wave at theta_front"""
+    phi = math.radians(theta - ck.get("theta_front", 270.0) + 180.0)
+    out = []
+    for r in ck["radii"]:
+        zb = min(max((ck["r_toe"] - r) * ck["slope"], 0.0), ck["height"]) - ck["depth"]
+        out.append((ck["xc"] + r * math.cos(phi), ck["yc"] + r * math.sin(phi), zb))
+    return out
+
+
+def check_runup_angles(c, rundir):
+    """Maximum run-up around a conical island (Briggs et al. 1995): wave gauges along radial lines
+    on the island slope; a gauge counts as wetted when its maximum surface elevation exceeds its
+    initial value by 'thr' (a dry gauge reports a constant level until the water arrives).
+    R(theta) = bed elevation of the highest wetted gauge, compared with the measured run-up at the
+    same angles. Error: rms(R_sim - R_exp)/d over the angles and max |R_sim - R_exp|/d."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    if g is None:
+        return fail("no gauge output")
+    data = {round(r[0], 3): r[1] * ck.get("data_y_factor", 0.01) for r in read_refdata(ck["data"])}
+    thr, d = ck.get("thr", 0.003), ck["depth"]
+    errs, txt = [], ["| angle | R sim [cm] | R exp [cm] | (R_sim - R_exp)/d |", "|---|---|---|---|"]
+    for th in ck["angles"]:
+        R = None
+        for x, y, zb in runup_line_points(ck, th):
+            i = gauge_index(g, {"x": x, "y": y})
+            if max(g[3][i]) > g[3][i][0] + thr:
+                R = zb if R is None else max(R, zb)
+        Re = data.get(round(th, 3))
+        if Re is None:
+            continue
+        if R is None:
+            R = -d
+        errs.append((R - Re) / d)
+        txt.append("| %g | %.2f | %.2f | %+.3f |" % (th, 100 * R, 100 * Re, (R - Re) / d))
+    e, em = rms(errs), max(abs(x) for x in errs)
+    ok = e <= ck["tol"] and em <= ck.get("tol_max", 1e9)
+    return result(ok, e, "rms %g / max %s" % (ck["tol"], ck.get("tol_max", "-")), "\n".join(txt), error_max=em)
+
+
+def moments(ys):
+    n = len(ys)
+    m = sum(ys) / n
+    v = sum((y - m) ** 2 for y in ys) / n
+    s3 = sum((y - m) ** 3 for y in ys) / n
+    return m, v, s3 / v ** 1.5 if v > 0 else float("nan")
+
+
+def check_wave_stats(c, rundir):
+    """Irregular waves on a slope (Mase & Kirby 1992): significant wave height Hm0 = 4 sigma and
+    skewness of the surface elevation at the gauges, from the simulation and from the measured
+    records over the same time window. Errors: max |Hm0_sim/Hm0_exp - 1| and max |skew_sim - skew_exp|."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    if g is None:
+        return fail("no gauge output")
+    t0, t1 = ck["t_start"], ck["t_end"]
+    eh, es = 0.0, 0.0
+    txt = ["| gauge | Hm0 sim [cm] | Hm0 exp [cm] | ratio | skew sim | skew exp |", "|---|---|---|---|---|---|"]
+    for gs in ck["gauges"]:
+        i = gauge_index(g, gs)
+        sim = window(g[2], g[3][i], t0, t1)
+        rows = read_refdata(gs["data"])
+        dt = ck.get("data_dt", 0.05)
+        exp = [r[0] * ck.get("data_y_factor", 0.01) for k, r in enumerate(rows) if t0 <= k * dt <= t1]
+        if len(sim) < 100 or len(exp) < 100:
+            return fail("time window not covered for %s" % gs["name"])
+        _, vs, ss = moments(sim)
+        _, ve, se = moments(exp)
+        hs, he = 4 * math.sqrt(vs), 4 * math.sqrt(ve)
+        eh = max(eh, abs(hs / he - 1))
+        es = max(es, abs(ss - se))
+        txt.append("| %s | %.2f | %.2f | %.3f | %.2f | %.2f |" % (gs["name"], 100 * hs, 100 * he, hs / he, ss, se))
+    ok = eh <= ck["tol_Hm0"] and es <= ck["tol_skew"]
+    return result(ok, eh, "Hm0 ±%g / skew ±%g" % (ck["tol_Hm0"], ck["tol_skew"]), "\n".join(txt), error_skew=es)
+
+
+def fft(a):
+    """in-place iterative radix-2 FFT of a list of complex numbers (length 2^n)"""
+    n = len(a)
+    j = 0
+    for i in range(1, n):
+        bit = n >> 1
+        while j & bit:
+            j ^= bit
+            bit >>= 1
+        j |= bit
+        if i < j:
+            a[i], a[j] = a[j], a[i]
+    length = 2
+    while length <= n:
+        w = complex(math.cos(2 * math.pi / length), -math.sin(2 * math.pi / length))
+        for i in range(0, n, length):
+            wk = 1.0
+            for k in range(length // 2):
+                u, v = a[i + k], a[i + k + length // 2] * wk
+                a[i + k], a[i + k + length // 2] = u + v, u - v
+                wk *= w
+        length <<= 1
+    return a
+
+
+def spectrum(ts, ys, t0, t1, dt=0.05, nband=8):
+    """band-averaged one-sided variance density spectrum (f [Hz], S [m^2/Hz]) of y(t) resampled
+    with dt in t0..t1 (largest power-of-two record)"""
+    n = 1
+    while n * 2 * dt <= t1 - t0:
+        n *= 2
+    y = [interp(ts, ys, t0 + k * dt) for k in range(n)]
+    m = sum(y) / n
+    a = fft([complex(v - m) for v in y])
+    df = 1.0 / (n * dt)
+    S = [2 * abs(a[k]) ** 2 * dt / n for k in range(1, n // 2)]
+    f = [k * df for k in range(1, n // 2)]
+    fb = [sum(f[i:i + nband]) / nband for i in range(0, len(f) - nband + 1, nband)]
+    Sb = [sum(S[i:i + nband]) / nband for i in range(0, len(S) - nband + 1, nband)]
+    return fb, Sb, df
+
+
+def jonswap(f, Hs, Tp, gamma):
+    """JONSWAP variance density S(f) [m^2/Hz] (DNV-RP-C205 Eq. 3.5.5.1 with A_gamma = 1 - 0.287 ln gamma)"""
+    wp = 2 * math.pi / Tp
+    w = 2 * math.pi * f
+    sig = 0.07 if w <= wp else 0.09
+    Sw = (1 - 0.287 * math.log(gamma)) * 5.0 / 16.0 * Hs ** 2 * wp ** 4 * w ** -5 * math.exp(-1.25 * (w / wp) ** -4) \
+        * gamma ** math.exp(-0.5 * ((w - wp) / (sig * wp)) ** 2)
+    return Sw * 2 * math.pi
+
+
+def check_spectrum(c, rundir):
+    """Irregular waves (JONSWAP): spectral significant wave height Hm0 = 4 sqrt(m0) and peak period
+    Tp of the simulated surface elevation at the gauges against the target spectrum (B 93, B 88),
+    and the rms deviation of S(f) from the target in 0.7 fp .. 2 fp relative to S(fp)."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    if g is None:
+        return fail("no gauge output")
+    Hs, Tp, gam = ck["Hs"], ck["Tp"], ck.get("gamma", 3.3)
+    fp = 1.0 / Tp
+    worst, ok = 0.0, True
+    txt = ["| x | Hm0 [m] | target | rel. error | Tp [s] | target | rel. error | shape rms |",
+           "|---|---|---|---|---|---|---|---|"]
+    for i, x in enumerate(g[0]):
+        f, S, df = spectrum(g[2], eta_series(c, g, i), ck["t_start"], ck["t_end"], ck.get("dt", 0.05), ck.get("nband", 8))
+        m0 = sum(S) * df * ck.get("nband", 8)
+        hm0 = 4 * math.sqrt(m0)
+        k = max(range(len(S)), key=lambda j: S[j])
+        tp = 1.0 / f[k]
+        St = jonswap(fp, Hs, Tp, gam)
+        sh = rms([(S[j] - jonswap(f[j], Hs, Tp, gam)) / St for j in range(len(f)) if 0.7 * fp <= f[j] <= 2 * fp])
+        eH, eT = hm0 / Hs - 1, tp / Tp - 1
+        good = abs(eH) <= ck["tol_Hm0"] and abs(eT) <= ck["tol_Tp"] and sh <= ck.get("tol_shape", 1e9)
+        ok &= good
+        worst = max(worst, abs(eH))
+        txt.append("| %.1f | %.4f | %.4f | %+.3f | %.3f | %.3f | %+.3f | %.3f | %s" % (
+            x, hm0, Hs, eH, tp, Tp, eT, sh, "" if good else "**FAIL**"))
+    return result(ok, worst, "Hm0 ±%g / Tp ±%g / shape %s" % (ck["tol_Hm0"], ck["tol_Tp"], ck.get("tol_shape", "-")),
+                  "\n".join(txt))
+
+
+def check_oscillation_period(c, rundir):
+    """Free oscillation of the first sloshing mode in a closed rectangular tank (length L, depth h):
+    period from the up-crossings of the surface elevation at a gauge near the wall, against linear
+    theory T = 2 pi / sqrt(g k tanh(k h)), k = pi/L; and the amplitude after n periods."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    if g is None:
+        return fail("no gauge output")
+    i = gauge_index(g, ck["gauge"])
+    ys = eta_series(c, g, i) if ck.get("datum", "initial") != "mean" else g[3][i]
+    m = sum(ys) / len(ys)
+    zc = zero_up_crossings(g[2], ys, ck.get("mean", 0.0) if ck.get("datum", "initial") != "mean" else m)
+    if len(zc) < 3:
+        return fail("less than two periods")
+    T = (zc[-1] - zc[0]) / (len(zc) - 1)
+    k = math.pi / ck["L"]
+    Tl = 2 * math.pi / math.sqrt(9.81 * k * math.tanh(k * ck["h"]))
+    e = T / Tl - 1
+    return result(abs(e) <= ck["tol"], abs(e), ck["tol"],
+                  "T = %.4f s from %d periods, linear theory %.4f s (L = %g m, h = %g m): %+.4f" % (
+                      T, len(zc) - 1, Tl, ck["L"], ck["h"], e), T=T)
+
+
+def thacker1d_depth(x, t, a, h0, L, g=9.81):
+    """Thacker (1981) planar surface in a parabola, as in SWASHES 4.2.1"""
+    w = math.sqrt(2 * g * h0) / a
+    B = math.sqrt(2 * g * h0) / (2 * a)
+    x1 = -0.5 * math.cos(w * t) - a + L / 2
+    x2 = -0.5 * math.cos(w * t) + a + L / 2
+    if x < x1 or x > x2:
+        return 0.0
+    return max(-h0 * (((x - L / 2) / a + B / math.sqrt(2 * g * h0) * math.cos(w * t)) ** 2 - 1), 0.0)
+
+
+def check_thacker1d(c, rundir):
+    """Thacker planar surface oscillating in a parabolic bowl (SWASHES 4.2.1): water depth at the
+    gauges (surface minus bed) against the exact solution; relative L1 error over gauges and time."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    if g is None:
+        return fail("no gauge output")
+    a, h0, L = ck["a"], ck["h0"], ck["L"]
+    num = den = 0.0
+    txt = ["| x | rel. L1 error |", "|---|---|"]
+    for i, x in enumerate(g[0]):
+        zb = h0 * (x - L / 2) ** 2 / a ** 2          # bed above the bowl bottom
+        n_ = d_ = 0.0
+        for t, y in zip(g[2], g[3][i]):
+            if ck["t_start"] <= t <= ck["t_end"]:
+                h = max(y + ck["swl"] - zb, 0.0)       # y: elevation relative to F 60
+                if h < ck.get("h_dry", 0.002):
+                    h = 0.0
+                he = thacker1d_depth(x, t, a, h0, L)
+                n_ += abs(h - he)
+                d_ += he
+        num += n_
+        den += d_
+        txt.append("| %.3f | %.4f |" % (x, n_ / d_ if d_ else float("nan")))
+    e = num / den
+    return result(e <= ck["tol"], e, ck["tol"], "\n".join(txt))
+
+
+def check_profiles_abs(c, rundir):
+    """Free-surface profiles z(x) at given physical times (e.g. Lin 1998 porous dam break) from the
+    WSFLINE output (P 52 with P 55 interval): rms(z_sim - z_exp)/h_ref at the measured points per
+    profile."""
+    ck = c["check"]
+    lines = read_wsflines(rundir, model_of(c))
+    if not lines:
+        return fail("no WSFLINE output (P 52)")
+    ok, worst = True, 0.0
+    txt = ["| t [s] | line at [s] | rel. rms error (/h_ref) | |", "|---|---|---|---|"]
+    for t, fn in ck["profiles"]:
+        rows = read_refdata(fn)
+        L = min(lines, key=lambda L: abs(L[0] - t))
+        if abs(L[0] - t) > ck.get("t_tol", 0.03):
+            e = float("inf")
+        else:
+            dd = [interp(L[1], L[2], x + ck.get("dx", 0.0)) - z for x, z in rows]
+            dd = [v for v in dd if v == v]
+            e = rms(dd) / ck["h_ref"] if len(dd) > 0.7 * len(rows) else float("inf")
+        good = e <= ck["tol"]
+        ok &= good
+        worst = max(worst, e)
+        txt.append("| %g | %.3f | %.3f | %s |" % (t, L[0], e, "" if good else "**FAIL**"))
+    return result(ok, worst, ck["tol"], "\n".join(txt))
+
+
 CHECKS = {
     "timeseries": check_timeseries,
     "theory_gauges": check_theory_gauges,
@@ -1010,12 +1287,40 @@ CHECKS = {
     "swe_dambreak": check_swe_dambreak,
     "solitary": check_solitary,
     "scour_depth": check_scour_depth,
+    "runup_angles": check_runup_angles,
+    "wave_stats": check_wave_stats,
+    "spectrum": check_spectrum,
+    "oscillation_period": check_oscillation_period,
+    "thacker1d": check_thacker1d,
+    "profiles_abs": check_profiles_abs,
 }
 
 
 # ==============================================================================================
 # report and plots
 # ==============================================================================================
+
+def run_checks(c, rd):
+    """the main check plus optional "extra_checks" (list of check dicts); all must pass"""
+    res = []
+    for k, ck in enumerate([c["check"]] + list(c.get("extra_checks", []))):
+        cc = dict(c, check=ck)
+        try:
+            r = CHECKS[ck["type"]](cc, rd)
+        except Exception as ex:  # a broken output file must not stop the report
+            r = fail("checker error: %r" % ex)
+        res.append((ck, r))
+    if len(res) == 1:
+        return res[0][1]
+    r = dict(res[0][1])
+    r["ok"] = all(x[1]["ok"] for x in res)
+    r["tol"] = "; ".join(str(x[1].get("tol", x[1].get("note", ""))) for x in res)
+    r["rows_text"] = "\n\n".join("**%s**\n\n%s" % (ck["type"], x.get("rows_text", "")) for ck, x in res)
+    r["extra"] = [{"type": ck["type"], "ok": x["ok"], "error": x["error"]} for ck, x in res[1:]]
+    if r.get("note") is not None and r["ok"]:
+        r.pop("note")
+    return r
+
 
 def evaluate(names, outroot, level):
     results = []
@@ -1026,10 +1331,7 @@ def evaluate(names, outroot, level):
         if st.get("status") != "ok":
             results.append((c, fail(st.get("status"))))
             continue
-        try:
-            r = CHECKS[c["check"]["type"]](c, rd)
-        except Exception as ex:  # a broken output file must not stop the report
-            r = fail("checker error: %r" % ex)
+        r = run_checks(c, rd)
         r["time_reef3d"] = st.get("time_reef3d")
         if c.get("xfail"):
             r["xfail"] = c["xfail"]
@@ -1076,6 +1378,12 @@ def plot_case(c, rundir, out_png):
     import matplotlib.pyplot as plt
     ck = c["check"]
     typ = ck["type"]
+    if typ == "runup_law":
+        # a single number: plot the profiles of an extra check instead, if there is one
+        extra = [x for x in c.get("extra_checks") or [] if x.get("type") == "profiles"]
+        if extra:
+            c = dict(c, check=extra[0])
+            ck, typ = extra[0], "profiles"
     model = model_of(c)
     if typ == "timeseries":
         res = check_timeseries(c, rundir)
@@ -1128,23 +1436,100 @@ def plot_case(c, rundir, out_png):
         ax.set_xlabel("t [s]")
         ax.set_ylabel("z_G [m]")
         ax.legend()
+    elif typ == "spectrum":
+        g = read_gauges(rundir, model)
+        fig, ax = plt.subplots(figsize=(7, 4))
+        for i, x in enumerate(g[0]):
+            f, S, df = spectrum(g[2], eta_series(c, g, i), ck["t_start"], ck["t_end"], ck.get("dt", 0.05), ck.get("nband", 8))
+            ax.plot(f, S, lw=1, label="REEF3D x=%.0f m" % x)
+        ff = [0.2 + 0.005 * k for k in range(400)]
+        ax.plot(ff, [jonswap(v, ck["Hs"], ck["Tp"], ck.get("gamma", 3.3)) for v in ff], "k--", label="JONSWAP target")
+        ax.set_xlim(0, 3.0 / ck["Tp"])
+        ax.set_xlabel("f [Hz]")
+        ax.set_ylabel("S [m2/Hz]")
+        ax.legend(fontsize=8)
+    elif typ == "wave_stats":
+        g = read_gauges(rundir, model)
+        fig, axs = plt.subplots(2, 1, figsize=(7, 5), sharex=True)
+        hs_s, hs_e, sk_s, sk_e, xs = [], [], [], [], []
+        for gs in ck["gauges"]:
+            i = gauge_index(g, gs)
+            sim = window(g[2], g[3][i], ck["t_start"], ck["t_end"])
+            rows = read_refdata(gs["data"])
+            exp = [r[0] * ck.get("data_y_factor", 0.01) for k, r in enumerate(rows)
+                   if ck["t_start"] <= k * ck.get("data_dt", 0.05) <= ck["t_end"]]
+            _, vs, ss = moments(sim)
+            _, ve, se = moments(exp)
+            xs.append(g[0][i]); hs_s.append(4 * math.sqrt(vs)); hs_e.append(4 * math.sqrt(ve)); sk_s.append(ss); sk_e.append(se)
+        axs[0].plot(xs, hs_e, "ko", label="measured"); axs[0].plot(xs, hs_s, "-", color="C3", label="REEF3D")
+        axs[0].set_ylabel("Hm0 [m]"); axs[0].legend(fontsize=8)
+        axs[1].plot(xs, sk_e, "ko"); axs[1].plot(xs, sk_s, "-", color="C3"); axs[1].set_ylabel("skewness")
+        axs[1].set_xlabel("x [m]")
+    elif typ == "runup_angles":
+        g = read_gauges(rundir, model)
+        data = read_refdata(ck["data"])
+        fig, ax = plt.subplots(figsize=(7, 4))
+        ax.plot([r[0] for r in data], [r[1] * ck.get("data_y_factor", 0.01) / ck["depth"] for r in data], "ko",
+                label="measured")
+        Rs = []
+        for th in ck["angles"]:
+            R = -ck["depth"]
+            for x, y, zb in runup_line_points(ck, th):
+                i = gauge_index(g, {"x": x, "y": y})
+                if max(g[3][i]) > g[3][i][0] + ck.get("thr", 0.003):
+                    R = max(R, zb)
+            Rs.append(R / ck["depth"])
+        ax.plot(ck["angles"], Rs, "s-", color="C3", label="REEF3D")
+        ax.set_xlabel("angle [deg] (270 = facing the wave)")
+        ax.set_ylabel("R/d")
+        ax.legend(fontsize=8)
+    elif typ in ("thacker1d", "oscillation_period"):
+        g = read_gauges(rundir, model)
+        fig, ax = plt.subplots(figsize=(8, 4))
+        for i, x in enumerate(g[0]):
+            if typ == "thacker1d":
+                zb = ck["h0"] * (x - ck["L"] / 2) ** 2 / ck["a"] ** 2
+                ax.plot(g[2], [max(y + ck["swl"] - zb, 0) for y in g[3][i]], color="C%d" % (i % 10), lw=1)
+                ax.plot(g[2], [thacker1d_depth(x, t, ck["a"], ck["h0"], ck["L"]) for t in g[2]], "--",
+                        color="C%d" % (i % 10), lw=1)
+                ax.set_ylabel("h [m] (solid REEF3D, dashed exact)")
+            else:
+                ax.plot(g[2], g[3][i], color="C3", lw=1)
+                ax.set_ylabel("surface at the gauge [m]")
+        ax.set_xlabel("t [s]")
+    elif typ == "profiles_abs":
+        lines = read_wsflines(rundir, model)
+        fig, ax = plt.subplots(figsize=(8, 4.5))
+        for k, (t, fn) in enumerate(ck["profiles"]):
+            rows = read_refdata(fn)
+            L = min(lines, key=lambda L: abs(L[0] - t))
+            off = 0.1 * k
+            ax.plot([r[0] for r in rows], [r[1] + off for r in rows], "o", ms=3, color="k")
+            ax.plot(L[1], [e + off for e in L[2]], color="C3", lw=1)
+            ax.text(L[1][-1], L[2][-1] + off, " t=%g s" % t, fontsize=8)
+        ax.set_xlabel("x [m]")
+        ax.set_ylabel("z [m] (offset 0.1 m per profile)")
     elif typ in ("section_heights", "breaking_point", "swe_dambreak", "solitary", "vortex_shedding", "runup_law",
                  "profiles", "scour_depth"):
         fig, ax = plt.subplots(figsize=(8, 4))
         if typ == "section_heights":
             g = read_gauges(rundir, model)
             for k, sec in enumerate(ck["sections"]):
-                rows = read_refdata(sec["data"])
-                ax.plot([r[0] + 10 * k for r in rows], [r[1] for r in rows], "o", ms=3, color="k")
+                rows = [(r[0], r[sec.get("col", 1)] * sec.get("y_factor", 1.0)) for r in read_refdata(sec["data"])]
+                # along-section coordinate, each section shifted so they do not overlap
+                xs = [sec.get("sign", 1.0) * r[0] for r in rows]
+                x0 = 14.0 * k - min(xs)
+                ax.plot([x + x0 for x in xs], [r[1] for r in rows], "o", ms=3, color="k")
                 hs = []
                 for s, _ in rows:
                     x = sec["x"] if "x" in sec else sec["sign"] * s + sec.get("offset", 0.0)
                     y = sec["y"] if "y" in sec else sec["sign"] * s + sec.get("offset", 0.0)
                     i = gauge_index(g, {"x": x + ck.get("dx", 0.0), "y": y + ck.get("dy", 0.0)})
                     hs.append(wave_height(g[2], g[3][i], ck["t_start"], ck["t_end"]) / ck["H0"])
-                ax.plot([r[0] + 10 * k for r in rows], hs, "-", color="C3")
-                ax.text(10 * k - 2, 2.2, sec["name"])
-            ax.set_ylabel("H/H0 (sections offset by 10 m)")
+                ax.plot([x + x0 for x in xs], hs, "-", color="C3")
+                ax.text(14.0 * k, 2.2, sec["name"].replace("section ", "sec. "), fontsize=8)
+            ax.set_ylabel("H/H0")
+            ax.set_xlabel("distance along the section [m] (sections side by side)")
         elif typ == "breaking_point":
             g = read_gauges(rundir, model)
             Hs = sorted((x, wave_height(g[2], g[3][i], ck["t_start"], ck["t_end"])) for i, x in enumerate(g[0]))
@@ -1175,15 +1560,21 @@ def plot_case(c, rundir, out_png):
             res = check_profiles(c, rundir)
             d = ck["d"]
             tsc = math.sqrt(d / 9.81)
+            off = min(0.3, 2.5 * ck["H_over_d"])
+            xr = []
             for k, (ts, fn) in enumerate(ck["profiles"]):
                 rows = read_refdata(fn)
+                xr += [r[0] for r in rows]
                 L = min(lines, key=lambda L: abs(L[0] - (res["t0"] + ts * tsc)))
-                ax.plot([r[0] for r in rows], [r[1] + 0.3 * k for r in rows], "o", ms=2, color="k")
-                ax.plot([(x - ck.get("x_shore", 0.0)) / d for x in L[1]], [(e - ck["swl"]) / d + 0.3 * k for e in L[2]],
-                        color="C3", lw=1)
-            ax.set_xlim(-20, 5)
+                ax.plot([r[0] for r in rows], [r[1] + off * k for r in rows], "o", ms=2, color="k")
+                ax.plot([ck.get("x_sign", 1.0) * (x - ck.get("x_shore", 0.0)) / d for x in L[1]],
+                        [(e - ck["swl"]) / d + off * k for e in L[2]], color="C3", lw=1)
+                ax.text(max(xr), off * k, " t*=%g" % ts, fontsize=8)
+            ax.set_xlim(min(xr) - 1, max(xr) + 2)
+            yr = [r[1] for ts, fn in ck["profiles"] for r in read_refdata(fn)]
+            ax.set_ylim(min(yr) - off, max(yr) + off * len(ck["profiles"]))
             ax.set_xlabel("x/d")
-            ax.set_ylabel("eta/d (offset 0.3 per profile)")
+            ax.set_ylabel("eta/d (offset %g per profile)" % off)
         else:
             ax.text(0.1, 0.5, "see benchmark.md", transform=ax.transAxes)
     else:

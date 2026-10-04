@@ -33,6 +33,8 @@ Architect: Hans Bihs
 #include"lagoon_store.h"
 #include"increment.h"
 #include<string>
+#include<thread>
+#include<utility>
 #include<vector>
 
 class lexer;
@@ -45,8 +47,13 @@ public:
 
     // one output of this rank's VTU piece: buffer holds the whole piece, its XML
     // header (point arrays, their offsets) before data_start, the appended data after
+    // The arrays are copied and compressed and written by a thread of this rank
+    // while the solver goes on; an output is counted (its time committed) at the
+    // next output, or at finish(), once every rank has written it.
     void vtu_piece(lexer*, ghostcell*, const std::vector<char> &buffer, size_t data_start, int num);
 
+    // the end of the run: wait for the last output and count it
+    void finish(lexer*, ghostcell*);
 
     // P 18 2: the VTU files are left out
     static bool vtu_files(lexer*);
@@ -59,9 +66,26 @@ private:
     bool cartesian;  // CFD: levels at fixed heights
     int t;
     int nx, ny, nz;
+    int rank;
     std::vector<double> sigma;
 
     bool start(lexer*, ghostcell*, const std::vector<lagoon_store::variable> &fields);
+
+    // the output being written in the background
+    struct job
+    {
+        int t = -1;
+        int num = 0;
+        double time = 0.0;
+        std::vector<float> z;  // σ-grids: heights of the points, levels outermost
+        std::vector<std::pair<std::string, std::vector<float> > > fields;
+        bool ok = true;
+    };
+    job pending;
+    std::thread worker;
+
+    void write_job(job *j);
+    bool settle(lexer*, ghostcell*);  // wait for the pending output, count it if all ranks wrote it
 };
 
 #endif

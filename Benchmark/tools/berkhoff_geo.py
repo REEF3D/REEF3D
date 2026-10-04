@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Architect: Hans Bihs
 """
 geo.dat (x y z bed points) for the Berkhoff, Booy & Radder (1982) elliptic shoal.
 
