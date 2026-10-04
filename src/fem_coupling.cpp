@@ -325,7 +325,10 @@ void fem_coupling::update_summary(lexer *p, bool write)
         int e = -1;
         const double u = fs.max_utilisation(&e);
         if(e>=0 && u>sm.util) {sm.util = u; sm.t_util = t; sm.x_util = fs.elem_centre(e);}
+    }
 
+    // first cracking / yielding: every step (it can precede the first failure by a few steps only)
+    {
         if(sm.t_crack<0.0)
         {
             int ed = -1, ep = -1;
