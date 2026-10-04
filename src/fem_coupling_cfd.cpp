@@ -577,7 +577,21 @@ void fem_coupling::probe_pressure(lexer *p, fdm *a, const Vec3& xp, const Vec3& 
 {
     // pressure probe outside the surface point (owner rank of the probe):
     // b[4] pressure, b[5] count, b[6] water at the probe
-    const double off = fs.coupling().pressure_offset;
+    // the probe offset is shortened when the probe would leave the fluid domain
+    // (a body close to the bottom or a side wall of the domain)
+    double off = fs.coupling().pressure_offset;
+    auto in_domain = [&](const Vec3& q)
+    {
+        const double eps = 1.0e-9;
+        return q(0)>p->global_xmin+eps && q(0)<p->global_xmax-eps && q(2)>p->global_zmin+eps && q(2)<p->global_zmax-eps
+            && (p->j_dir==0 || (q(1)>p->global_ymin+eps && q(1)<p->global_ymax-eps));
+    };
+    for(double f : {1.0, 2.0/3.0, 1.0/3.0})
+    {
+        off = f*fs.coupling().pressure_offset;
+        if(in_domain(xp + 1.01*off*dxmin*n))
+        break;
+    }
     Vec3 pr = xp + off*dxmin*n;
     if(p->j_dir==0)
     pr(1) = p->YP[marge];
@@ -594,10 +608,24 @@ void fem_coupling::probe_pressure(lexer *p, fdm *a, const Vec3& xp, const Vec3& 
     pr(1) = xp(1) + off*n(1)*p->DYN[std::max(0,std::min(jj,p->knoy-1))+marge];
     pr(2) = xp(2) + off*n(2)*p->DZN[std::max(0,std::min(kk,p->knoz-1))+marge];
 
-    // a probe inside the bed or a solid body is moved out horizontally (faces
-    // near the bed whose normal points slightly downwards), else it carries
-    // no pressure
+    // a probe inside the bed or a solid body is moved closer to the surface
+    // (a body near the bed), or out horizontally (faces near the bed whose
+    // normal points slightly downwards), else it carries no pressure
     auto inside = [&](const Vec3& q){return p->ccipol4a(a->solid,q(0),q(1),q(2))<0.0 || p->ccipol4a(a->topo,q(0),q(1),q(2))<0.0;};
+    // shorter offsets first (a body close to the bed), then horizontal
+    for(double f : {2.0/3.0, 1.0/3.0})
+    if(inside(pr))
+    {
+        Vec3 q = xp;
+        q(0) += f*off*n(0)*p->DXN[std::max(0,std::min(ii,p->knox-1))+marge];
+        if(p->j_dir==1)
+        q(1) += f*off*n(1)*p->DYN[std::max(0,std::min(jj,p->knoy-1))+marge];
+        else
+        q(1) = pr(1);
+        q(2) += f*off*n(2)*p->DZN[std::max(0,std::min(kk,p->knoz-1))+marge];
+        if(!inside(q))
+        pr = q;
+    }
     if(inside(pr))
     {
         Vec3 nh(n(0),n(1),0.0);
