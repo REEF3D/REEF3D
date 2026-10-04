@@ -54,6 +54,18 @@ point implicit in each RK stage of the momentum equation:
 
 K and KU are cell centred, averaged to the velocity faces.
 
+S 10 1 (bed as solid boundary with wall function, near-bed closure for the exposed grains):
+the fluid fraction is 1, the grains above the bed act on the fluid at their position; the
+exposed grains see the log-law velocity u_g = w fac u_ref + (1-w) u_s scaled from the
+reference point 0.5 h above the bed, their reaction acts there:
+
+    K = m D w fac/(rho_f V),   KU = m D (u_p - (1-w) u_s)/(rho_f V)
+
+A grain at rest is part of the bed roughness, whose drag is the bed shear stress of the wall
+function; the moving grains (mobility fm = min(1, |u_p|/(0.1 |u_g|))) carry momentum away from
+the near-bed flow. This is Bagnold's mechanism: the more grains move, the slower the near-bed
+flow, until the fluid stress on the bed is near critical. No mixture continuity source.
+
 Continuity: with u = eps u_i the superficial fluid velocity, the mixture is divergence free,
 
     div(u) = -div(theta u_p) = d theta/dt
@@ -71,6 +83,8 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     // current solid fraction
     volfrac_update(p,pgc,s,P.X,P.Y,P.Z,P.U,P.V,P.W);
     
+    // mixture continuity for the porous bed (S 10 2); with S 10 1 the bed is solid for the fluid
+    if(p->S10==2)
     continuity_source(p,pgc);
     
     int qi,qj,qk;
@@ -88,9 +102,75 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         KUz(i,j,k) = 0.0;
     }
     
+    const bool porous = p->S10==2;
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
     {
+        // S 10 1: the bed is a solid boundary for the fluid (wall function at the bed),
+        // see the comment at the top: only moving grains act on the fluid
+        if(!porous)
+        {
+            uf = p->ccipol1c(a->u,P.X[n],P.Y[n],P.Z[n]);
+            vf = p->j_dir==1 ? p->ccipol2c(a->v,P.X[n],P.Y[n],P.Z[n]) : 0.0;
+            wf = p->ccipol3c(a->w,P.X[n],P.Y[n],P.Z[n]);
+            
+            nearbed_velocity(p,a,P.X[n],P.Y[n],P.Z[n],P.D[n]);
+            
+            double topo = p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]);
+            
+            // grains inside the bed below the exposed layer: no coupling
+            if(topo<0.0 && nb_w<=0.0)
+            continue;
+            
+            slip = sqrt((uf-P.U[n])*(uf-P.U[n]) + (vf-P.V[n])*(vf-P.V[n]) + (wf-P.W[n])*(wf-P.W[n]));
+            D = drag_model(p,P.D[n],P.RO[n],slip,0.0);
+            double mD = P.RO[n]*vpar*D;
+            
+            double kf=1.0, kux=P.U[n], kuy=P.V[n], kuz=P.W[n];
+            double xk=P.X[n], yk=P.Y[n], zk=P.Z[n];
+            
+            if(topo<0.0)
+            {
+                // exposed grain: drag with the grain-scale velocity u_g = w fac u_ref + (1-w) u_s,
+                // reaction at the reference point of u_ref; a grain at rest is part of the bed
+                // roughness (its drag is in the wall function), the reaction of the moving grains
+                // takes the momentum they carry away from the near-bed flow (Bagnold)
+                double ug2 = uf*uf + vf*vf + wf*wf;
+                double up2 = P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n];
+                double fm = MIN(1.0, sqrt(up2/MAX(0.01*ug2,1.0e-20)));
+                
+                if(fm<=1.0e-6)
+                continue;
+                
+                mD *= fm;
+                kf = nb_w*nb_fac;
+                kux = P.U[n] - (1.0-nb_w)*nb_ug;
+                kuy = P.V[n] - (1.0-nb_w)*nb_vg;
+                kuz = P.W[n] - (1.0-nb_w)*nb_wg;
+                xk=nb_xr; yk=nb_yr; zk=nb_zr;
+            }
+            
+            kernel(p,xk,yk,zk);
+            
+            for(qi=0;qi<2;++qi)
+            for(qj=0;qj<2;++qj)
+            for(qk=0;qk<2;++qk)
+            {
+                w = kw[qi][qj][qk];
+                
+                if(w>0.0)
+                {
+                Kc(ki[qi],kj[qj],kk[qk])  += w*mD*kf;
+                KUx(ki[qi],kj[qj],kk[qk]) += w*mD*kux;
+                KUy(ki[qi],kj[qj],kk[qk]) += w*mD*kuy;
+                KUz(ki[qi],kj[qj],kk[qk]) += w*mD*kuz;
+                }
+            }
+            
+            continue;
+        }
+        
         Tsp = p->ccipol4a(Ts,P.X[n],P.Y[n],P.Z[n]);
         eps = MAX(1.0-Tsp, 1.0-theta_max);
         eps = MIN(eps,1.0);

@@ -345,6 +345,9 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
         Wsub = p->ccipol4a(Ws,xs,ys,zs);
     }
     
+    // a grain resting on a packed substrate or a wall: see the static friction below
+    bool packed = wall || Tsub >= p->ccipol4a(T0e,xs,ys,zs) - 0.05;
+    
     // normal load per unit mass: support by the contact network
     double Tsp = MAX(p->ccipol4a(Ts,xp,yp,zp),theta_bed);
     double dTe = p->ccipol4a(dTx,xp,yp,zp)*ex + (p->j_dir==1?p->ccipol4a(dTy,xp,yp,zp)*ey:0.0) + p->ccipol4a(dTz,xp,yp,zp)*ez;
@@ -367,15 +370,35 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     
     double smag = sqrt(sx*sx + sy*sy + sz*sz);
     
-    if(smag<1.0e-12)
-    return;
-    
     // static friction: stick
     if(smag <= fac*dt*mu_s*aN)
     {
         up -= sx;
         vp -= sy;
         wp -= sz;
+        
+        // a sticking grain on a packed substrate or a wall is at rest on it: also no velocity
+        // into it (inelastic normal contact). The contact network supports the grain on the
+        // grain scale; without this the grains sink inside a packed cell (the support from the
+        // cell-centred stress gradient is exact only on average over the cell), gather at the
+        // faces of the full cells below and jitter on the bottom. Sliding grains keep their
+        // normal velocity, so slopes can avalanche.
+        if(packed && sn>0.0)
+        {
+            up -= sn*ex;
+            vp -= sn*ey;
+            wp -= sn*ez;
+        }
+        
+        // inside the packed bed (own cell packed as well) the sticking grain is jammed:
+        // it moves with its substrate, also no drift away from it (the stress gradient
+        // balances gravity only on average over a cell, near the bottom with the ghost cells)
+        if(packed && p->ccipol4a(Ts,xp,yp,zp) >= p->ccipol4a(T0e,xp,yp,zp) - 0.05)
+        {
+            up = Usub;
+            vp = Vsub;
+            wp = Wsub;
+        }
         return;
     }
     

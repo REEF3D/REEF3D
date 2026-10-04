@@ -107,6 +107,18 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
 | `cfd_3d_pier_komega` (+ `_rkls3_sf`, `_t33`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop, T33 k-gradient source |
 | `cfd_3d_heave_sphere_6dof` (+ `_rk3`) | 4 | floating body 6DOF (FCLS3), N40=13→14 df loop |
+| `cfd_3d_heave_sphere_6dof_mooring` | 2 | 6DOF with spring mooring (X310=4), all DOFs free, rotational damping |
+| `nhflow_2d_6dof_box` (+ `_rk3`) | 1 | NHFLOW floating box in waves, two-way 6DOF, A510=2 / 3 |
+| `nhflow_2d_6dof_box_init` | 1 | + linear damping X25/X26, initial pitch X101, initial velocities X102/X103 |
+| `nhflow_2d_6dof_box_towed` | 1 | towed in surge (X11 u=2, X210) with velocity ramp X206 |
+| `nhflow_2d_6dof_box_oneway` | 1 | prescribed motion, one-way coupling (X10=2) |
+| `nhflow_2d_6dof_membrane_collar` | 2 | rigid membrane bag (X330) on a floating collar |
+| `nhflow_3d_6dof_box` | 2 | NHFLOW 3D box, all six DOFs free, initial roll/yaw |
+| `nhflow_3d_shipwave_box` | 1 | NHFLOW moving pressure patch, ship-wave mode (X10=3, X400=2) |
+| `sflow_shipwave_box` (+ `sflow_6dof_box_oneway`) | 1 | SFLOW ship pressure patch (X10=3) / one-way direct forcing (X10=2) |
+| `fnpf_2d_6dof_box` (+ `_rk4`) | 1 | FNPF resolved floating body, A310=3 / 4, added-mass coupling |
+| `nhflow_3d_ship_box_thrust` | 2 | ship module (X350, ship.dat): constant thrust with offset, ITTC-1957 friction + form factor |
+| `nhflow_3d_ship_box_6dof` | 2 | ship module, all six DOFs: cross-flow drag (strips), roll damping |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
@@ -160,3 +172,14 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
 - Runs use few steps on coarse grids: they test that code paths give the same numbers, not that
   the physics is right. Validation cases (long runs vs. measurements) are a separate set.
 - A run fails on NaN/Inf in the per-step norms, a non-zero exit code, a timeout or a missing dump.
+
+## Unit tests
+
+`unit/` holds standalone tests of solver-independent kernels (no MPI, no REEF3D binary); the build
+line is at the top of each file, run from `unit/`:
+
+| test | covers |
+|---|---|
+| `rigidbody_test.cpp` | 6DOF rigid-body core: quaternion/Euler, constant force, oscillator and torque-free top (orders of RK2/RK3/RKLS3/RK4), DOF modes, damping |
+| `ship_test.cpp` | ship module kernels: waterline clipping, wetted surface, draft strips, cross-flow drag, ITTC-1957 line, roll damping |
+

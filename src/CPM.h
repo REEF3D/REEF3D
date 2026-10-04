@@ -35,6 +35,7 @@ CPM : Continuum Particle Method
 #include"vtp3D.h"
 #include<fstream>
 #include<random>
+#include<vector>
 
 class lexer;
 class fdm;
@@ -231,6 +232,21 @@ private:
     double Bx,By,Bz;
     double uf,vf,wf;
     double liftx,lifty,liftz;
+    // near-bed closure of the last call: weight of the exposed layer, log-law factor,
+    // reference point of the fluid velocity, grid solid velocity (pore water)
+    double nb_w,nb_fac,nb_xr,nb_yr,nb_zr,nb_ug,nb_vg,nb_wg;
+    
+    // Bagnold sheltering (Q 57): stress carried by the moving grains per bed column
+    void bagnold_update(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    slice4 tauGf;
+    int bag_count=-1;
+    double shelter_factor(lexer*, sediment_fdm*, double, double, double, double, double, double);
+    std::vector<double> tauG,tauB;
+    double shelter=1.0;
+    // exposure of the parcels of the bed (S 10 1): the top grain layer of each bed column
+    void exposure_update(lexer*, fdm*);
+    std::vector<double> expo;
+    double expo_w=-1.0;
     double Urel,Vrel,Wrel;
     double Tsval;
     double dTx_val,dTy_val,dTz_val;

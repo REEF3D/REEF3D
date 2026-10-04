@@ -430,7 +430,7 @@ public:
     double Q17;
     double Q18;
     double Q26;
-    int Q19,Q27,Q28,Q44,Q50,Q51,Q52;
+    int Q19,Q27,Q28,Q44,Q50,Q51,Q52,Q57;
     double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
     double Q22;
     double Q23;

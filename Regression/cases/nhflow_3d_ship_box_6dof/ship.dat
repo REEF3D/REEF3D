@@ -1,0 +1,6 @@
+# all six DOFs: cross-flow drag and roll damping
+form_factor 0.1
+crossflow 0.8
+strips 20
+roll_damping 0.05 0.02
+thrust 0.5

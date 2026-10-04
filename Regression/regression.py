@@ -69,12 +69,15 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_ProbePoint/*.dat",
     "REEF3D_NHFLOW_Force/*.dat",
     "REEF3D_NHFLOW_WSFLINE/*.dat",
+    "REEF3D_NHFLOW_6DOF/*.dat",
     "REEF3D_FNPF_WSF/*.dat",
     "REEF3D_FNPF_ProbePoint/*.dat",
     "REEF3D_FNPF_WSFLINE/*.dat",
+    "REEF3D_FNPF_6DOF/*.dat",
     "REEF3D_SFLOW_WSF/*.dat",
     "REEF3D_SFLOW_ProbePoint/*.dat",
     "REEF3D_SFLOW_WSFLINE/*.dat",
+    "REEF3D_SFLOW_6DOF/*.dat",
 ]
 
 # output folders deleted after a run unless --keep (large and not compared)
@@ -82,7 +85,10 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
                "REEF3D_CFD_FSF", "DIVEMesh_Paraview",
                "REEF3D_NHFLOW_VTU", "REEF3D_NHFLOW_VTP_FSF", "REEF3D_NHFLOW_VTP_BED",
                "REEF3D_FNPF_VTU", "REEF3D_FNPF_VTP_FSF", "REEF3D_FNPF_VTP_BED",
-               "REEF3D_SFLOW_VTP_FSF", "REEF3D_SFLOW_VTP_BED"]
+               "REEF3D_SFLOW_VTP_FSF", "REEF3D_SFLOW_VTP_BED",
+               "REEF3D_NHFLOW_6DOF_VTP", "REEF3D_NHFLOW_6DOF_Normals_VTP", "REEF3D_NHFLOW_6DOF_STL",
+               "REEF3D_FNPF_6DOF_VTP", "REEF3D_FNPF_6DOF_Normals_VTP", "REEF3D_FNPF_6DOF_STL",
+               "REEF3D_CFD_6DOF_STL", "REEF3D_SFLOW_6DOF_VTP"]
 
 LEVELS = ["identical", "close", "different", "failed"]
 

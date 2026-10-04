@@ -1767,6 +1767,8 @@ void control::ctrlrecv()
     Q44 = ictrl[ii];
     ++ii;
     Q52 = ictrl[ii];
+    ++ii;
+    Q57 = ictrl[ii];
     ii++;
     Q50 = ictrl[ii];
     ii++;

@@ -51,6 +51,10 @@ void CPM::grid_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double 
     stress_gradient(p,a,pgc,s);
     
     dispersion_update(p,a,pgc);
+    
+    exposure_update(p,a);
+    
+    bagnold_update(p,a,pgc,s);
 }
 
 // adaptive sub-steps over the fluid time step:

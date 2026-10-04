@@ -354,6 +354,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     // a move across one face stops at the face, a diagonal move stays at the start
     int nrej=0;
     double gmag = sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
+    std::vector<double> ublk(P.index,0.0);
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE && state[n]==1)
@@ -396,6 +397,8 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         if(ck[n]!=sk[n])
         PW[n] = 0.0;
         
+        ublk[n] = ublock;
+        
         if(p->Q56>0.0 && ublock>0.0 && gmag>1.0e-10)
         {
             double up = p->Q56*ublock;
@@ -411,6 +414,51 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         }
         
         ++nrej;
+    }
+    
+    // ride-over displacement (Q 56): a grain blocked across gravity climbs into the cell
+    // above its own cell if that cell has free volume (the grain rolls over the grains ahead
+    // onto the top of the bed); checked against the occupancy after all moves of this step
+    if(p->Q56>0.0 && gmag>1.0e-10 && fabs(p->W22)>0.5*gmag)
+    {
+        int dk = p->W22<0.0 ? 1 : -1;
+        
+        for(i=-1;i<p->knox+1;++i)
+        for(j=-1;j<p->knoy+1;++j)
+        for(k=-1;k<p->knoz+1;++k)
+        Lloc(i,j,k) = 0.0;
+        
+        for(n=0;n<P.index;++n)
+        if(P.Flag[n]>=ACTIVE)
+        {
+            int a1=ci_of(X1[n]), b1=p->j_dir==1?cj_of(Y1[n]):0, c1=ck_of(Z1[n]);
+            
+            if(local(a1,b1,c1))
+            Lloc(a1,b1,c1) += vpar;
+        }
+        
+        for(n=0;n<P.index;++n)
+        if(P.Flag[n]==ACTIVE && state[n]==1 && ublk[n]>0.0)
+        {
+            int a1=si[n], b1=sj[n], c1=sk[n]+dk;
+            
+            if(!local(a1,b1,c1) || !local(si[n],sj[n],sk[n]))
+            continue;
+            
+            i=a1; j=b1; k=c1;
+            double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+            double t0 = p->Q12==2 ? T0e(i,j,k) : theta_0;
+            double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vpar*(1.0+1.0e-6));
+            
+            if(a->solid(i,j,k)<0.0 || Lloc(i,j,k) + vpar > cap)
+            continue;
+            
+            // just inside the cell above
+            Z1[n] = dk>0 ? p->ZN[c1+marge] + 1.0e-3*p->DZN[c1+marge] : p->ZN[c1+1+marge] - 1.0e-3*p->DZN[c1+marge];
+            
+            Lloc(i,j,k) += vpar;
+            Lloc(si[n],sj[n],sk[n]) -= vpar;
+        }
     }
     
     nrej_step += nrej;
