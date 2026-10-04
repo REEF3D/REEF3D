@@ -137,6 +137,15 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_two_sources` | 1 | wave_field in FNPF (cached potential path) |
 | `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
 | `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
+| `nhflow_3d_amr_still` | 1 | NHFLOW AMR static patch in a closed tank, bed ramps under the patch edges: still water stays still (fill, flux matching, restriction, composite pressure BiCGStab + FAC) |
+| `nhflow_3d_amr_waves_mpi2` | 2 | NHFLOW AMR regular waves through a static patch split at the partition edge: patches on two ranks, remote fills and face runs |
+| `nhflow_3d_amr_heave_mpi2` | 2 | NHFLOW AMR heave decay of a floating box (X 10 1), body zone A 278 across the partition edge: forcing on every grid, loads from the finest |
+| `nhflow_3d_amr_tow_zone` (+ `_vref_rk3`) | 1 | NHFLOW AMR towed box (X 10 2) with moving zone and wake wedge (A 278/279), regrid every step: from_old, prolongation, patch deletion; `_vref_rk3`: vertical refinement A 281, RK3, A 520 1 |
+| `nhflow_3d_amr_adaptive` | 1 | NHFLOW AMR solution-adaptive (A 273, A 282), ring wave from an F 72 hump, regrid every step: tagging, F 72 boxes on fresh patches |
+| `nhflow_3d_amr_wetdry` | 1 | NHFLOW AMR wetting and drying in the patches (A 283): beach and cone island, a box crossing the island shoreline, run-up at t = 0 (wet flags of the cells around a patch, lexer::wetfix, covered-cell flags) |
+| `nhflow_3d_amr_wetdry_adaptive` (+ `_mpi2`) | 1/2 | the same with the shoreline flag (A 284) only, regrid every step, layout changes from step 116; `_mpi2`: partition edge through the island |
+| `nhflow_3d_amr_breaking` | 1 | NHFLOW AMR wave breaking (A 550 1, A 512 2): a bore runs into a static patch; patch implicit diffusion with a patch-local BiCGStab, filled cells take the source grid's breaking (lexer::amrvb) |
+| `nhflow_3d_amr_breaking_adaptive` (+ `_mpi2`) | 1/2 | breaking with the adaptive patch following the bore (A 273, A 285), wetting and drying, regrid every step; `_mpi2`: different patch counts per rank (local reductions, gcparaxijk_single) |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
 | `fnpf_3d_two_edges` | 2 | the same in FNPF |
 | `nhflow_2d_custom_zones` | 1 | old input: custom B 108 generation zone, two B 107 beach zones |
@@ -170,6 +179,8 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
 - The stored references were blessed on hans_dev bacfbc4a2 (Linux, gcc, MPICH, `build_reef3d.sh`
   flags). `check` uses a tolerance, but another compiler or platform can still differ in the last
   digits; then bless once on your machine and keep using `ab` for bitwise checks.
+  The NHFLOW AMR cases of steps 5-7 (`nhflow_3d_amr_still` ... `_breaking_mpi2`) were blessed
+  on hans_dev 925e271a7 + REEFAMR patches 0001/0002 (patch lexer periodic flags, Z11 default).
 - The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
   `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).

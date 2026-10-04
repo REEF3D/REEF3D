@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW AMR heave decay of a floating box (X 10 1) with the body zone (A 278) across the partition edge: forcing on every grid, loads from the finest grid, 2 ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr_6dof",
+  "sixdof_obj::amr_grid_nhflow",
+  "A 278 zone"
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_3d_amr_breaking_adaptive on 2 ranks: patch-local diffusion solves with different patch counts per rank (the gcparaxijk_single hang).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking",
+  "adaptive",
+  "mpi"
+ ],
+ "covers": [
+  "gcparaxijk_single with comms off",
+  "2 ranks"
+ ],
+ "base": "nhflow_3d_amr_breaking_adaptive"
+}

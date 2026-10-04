@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW AMR wetting and drying in the patches (A 283): basin with a beach (S 61) and a cone island (S 43), the water raised around the island by an F 72 box (run-up at t = 0), a static box whose edges cross the island shoreline.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "A 283 pweights modes/dry_cell/patch_flags/restrict_flags",
+  "lexer::wetfix in nhflow_fsf_f::wetdry",
+  "t = 0 shoreline on the fine bed",
+  "F 72 wet flags"
+ ]
+}

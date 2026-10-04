@@ -1,0 +1,23 @@
+{
+ "description": "nhflow_3d_amr_tow_zone with vertical refinement (A 281 1), RK3 (A 510 3) and the full projection (A 520 1).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof"
+ ],
+ "covers": [
+  "A 281 vcell/pcol/restrict_col",
+  "nhflow_momentum_RK3 phases",
+  "nhflow_pjm amr_prepare/finish"
+ ],
+ "ctrl_add": [
+  "A 281 1",
+  "A 510 3",
+  "A 520 1"
+ ],
+ "base": "nhflow_3d_amr_tow_zone"
+}
