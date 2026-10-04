@@ -336,7 +336,7 @@ void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
             fs.add_load(i,fprb[i]);
         }
 
-        // rigid bodies: added mass for the stabilisation, by the wetted fraction
+        // rigid bodies: added mass for the stabilisation
         if(fs.n_rigid()>0)
         {
             std::vector<double> nw(fs.n_rigid(),0.0), nt(fs.n_rigid(),0.0);
@@ -350,8 +350,11 @@ void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
                 if(b[5]>0.5)
                 nw[k] += b[6]/b[5];
             }
+            // full estimate as soon as a third of the surface is wet (a floating
+            // body: the added mass of the water side is not smaller than that),
+            // less for a body that only touches the water, none in air
             for(int k=0; k<fs.n_rigid(); ++k)
-            fs.set_rigid_added_mass(k, fs.coupling().added_mass*rho_w*fs.rigid(k).Aunit*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0));
+            fs.set_rigid_added_mass(k, fs.coupling().added_mass*rho_w*fs.rigid(k).Aunit*std::min(1.0, 3.0*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0)));
         }
         if(mode==0)
         {
