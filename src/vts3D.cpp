@@ -22,6 +22,7 @@ Author: Alexander Hanke
 
 #include "vts3D.h"
 #include "lexer.h"
+#include "runlog.h"
 #include "fdm.h"
 #include "fdm_fnpf.h"
 #include "fdm_nhf.h"
@@ -73,7 +74,7 @@ void vts3D::beginning(lexer *p, std::ostream &result)
     vtkVersion(result);
     result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
     if(p->P16==1)
-        timeValue(result,p->P34<0.0?p->simtime:p->sedtime);
+        timeValue(result,p->P34<0.0?p->simtime:p->sedtime,p->plog?p->plog->id():std::string());
     result<<"<Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
 }
 
@@ -84,7 +85,7 @@ void vts3D::beginningParallel(lexer *p, std::ostream &result)
     vtkVersion(result);
     result<<"<PStructuredGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n";
     if(p->P16==1)
-        timeValue(result,p->P34<0.0?p->simtime:p->sedtime);
+        timeValue(result,p->P34<0.0?p->simtime:p->sedtime,p->plog?p->plog->id():std::string());
 }
 
 void vts3D::ending(std::ostream &result, const int *offset, int &n)
