@@ -280,7 +280,7 @@ void fem_solid::advance(double dt)
         if(ground_on)
         contact_ground();
 
-        if(contact_on && (nbodies>1 || surf_dirty || n_eroded()>0))
+        if(contact_on && (nbodies>1 || surf_dirty || n_eroded()>0) && bodies_near())
         contact_nodes();
 
         const double alpha = alpha_damp + (t<relax_time ? relax_alpha : 0.0);
@@ -441,4 +441,28 @@ double fem_solid::max_displacement() const
     for(int i=0; i<nnode(); ++i)
     d = std::max(d,(x[i]-X[i]).norm());
     return d;
+}
+
+bool fem_solid::bodies_near() const
+{
+    // part contact is only needed when two bodies come closer than the
+    // contact distance; with debris particles or eroded elements always
+    if(!orphan.empty() || n_eroded()>0 || surf_dirty)
+    return true;
+    const int nb = (int)body_fixed.size();
+    if(nb<2)
+    return false;
+    std::vector<Vec3> lo(nb,Vec3::Constant(1.0e300)), hi(nb,Vec3::Constant(-1.0e300));
+    for(int i=0; i<nnode(); ++i)
+    if(body[i]>=0)
+    {
+        lo[body[i]] = lo[body[i]].cwiseMin(x[i]);
+        hi[body[i]] = hi[body[i]].cwiseMax(x[i]);
+    }
+    const double d0 = contact_dist*hmin();
+    for(int a=0; a<nb; ++a)
+    for(int b=a+1; b<nb; ++b)
+    if((lo[a].array()-d0 <= hi[b].array()).all() && (lo[b].array()-d0 <= hi[a].array()).all())
+    return true;
+    return false;
 }

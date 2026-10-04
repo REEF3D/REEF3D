@@ -395,6 +395,7 @@ private:
     std::vector<int> body;                      // node -> connected body (-1: debris / no intact element)
     std::vector<unsigned char> body_fixed;      // body has supported nodes
     void rigid_velocity(std::vector<Vec3>& vr) const;   // rigid-body velocity of the free bodies
+    bool bodies_near() const;                   // two bodies within the contact distance
     double relax_time = 0.0, relax_alpha = 0.0;
     double bulkq1 = 0.06, bulkq2 = 1.2;
     double erode_J = 0.05;
