@@ -215,9 +215,14 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
         }
 
         double res = 0.0;
-        const bool ok = fs.settle(200000,1.0e-4,&res,!fs.ground());
+        const bool ok = fs.settle(200000,1.0e-4,&res,!fs.ground(),true);
         const fem_solid::Vec3 R = fs.support_force();
+        fs.update_utilisation();
+        const double u0 = fs.max_utilisation();
         fs.clear_loads();
+        if(p->mpirank==0 && u0>1.0)
+        std::cout<<"FEM WARNING: the structure is overloaded already in the initial state (utilisation "<<u0
+                 <<" under self weight and the still water): it will crack or yield at the start of the run"<<std::endl;
 
         if(p->mpirank==0)
         {

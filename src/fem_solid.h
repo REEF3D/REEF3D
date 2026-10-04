@@ -252,7 +252,7 @@ public:
     // tools
     // ------------------------------------------------------------------
     // static equilibrium under gravity (kinetic damping), velocities zero afterwards
-    bool settle(int maxsteps=200000,double tol=1.0e-4,double* residual=nullptr,bool supported_only=false);
+    bool settle(int maxsteps=200000,double tol=1.0e-4,double* residual=nullptr,bool supported_only=false,bool elastic=false);
     // check: geometry, mass, supports, frequencies, self-weight response, warnings
     check_info check();
     void write_check(std::ostream&,const check_info&) const;

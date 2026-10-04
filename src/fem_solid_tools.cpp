@@ -291,10 +291,17 @@ double fem_solid::min_density() const
 // the kinetic energy) converges to the static equilibrium
 // ----------------------------------------------------------------------
 
-bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_only)
+bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_only,bool elastic)
 {
     if(!built)
     throw std::runtime_error("FEM: settle() before build()");
+
+    // elastic: linear-elastic equilibrium (no cracking, yielding or erosion
+    // while settling); an overloaded structure then fails in the run
+    const std::vector<material> m0 = mats;
+    if(elastic)
+    for(material& mt : mats)
+    mt.type = MAT_ELASTIC;
 
     const double dts = cfl*dtcrit;
     dts_cur = dts;
@@ -362,6 +369,8 @@ bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_o
 
     std::fill(v.begin(),v.end(),Vec3::Zero());
     std::fill(vbar.begin(),vbar.end(),Vec3::Zero());
+    if(elastic)
+    mats = m0;
     if(surf_dirty)
     {
         build_surface();
