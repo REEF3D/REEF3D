@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 #include"wave_lib_hdc.h"
 #include"lexer.h"
+#include<iostream>
+#include<cstdlib>
 
 void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
 {
@@ -33,6 +35,13 @@ void wave_lib_hdc::read_header(lexer *p, ghostcell *pgc)
     
     // open header
     header.open(name, ios::binary);
+    
+    if(!header.is_open())
+    {
+    cout<<endl<<"!!! HDC: cannot open "<<name<<" (rank "<<p->mpirank<<"). Run DIVEMesh with H 10 "
+        <<(p->A10==3 ? "44 (FNPF source)" : "2, 4 or 5 (SFLOW, FNPF or NHFLOW source)")<<" for this grid first !!!"<<endl<<endl;
+    exit(1);
+    }
     
         // file_version
         header.read((char*)&iin, sizeof (int));

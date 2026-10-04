@@ -121,6 +121,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_6dof_box` (+ `_rk4`) | 1 | FNPF resolved floating body, A310=3 / 4, added-mass coupling |
 | `nhflow_3d_ship_box_thrust` | 2 | ship module (X350, ship.dat): constant thrust with offset, ITTC-1957 friction + form factor |
 | `nhflow_3d_ship_box_6dof` | 2 | ship module, all six DOFs: cross-flow drag (strips), roll damping |
+| `nhflow_3d_ship_box_propeller` | 2 | ship module propeller: KT/KQ, wake fraction, Hough-Ordway actuator disk as NHFLOW momentum source, shaft torque reaction |
+| `nhflow_3d_ship_box_zigzag` | 2 | ship module, surge/sway/heave/yaw: propeller with sampled inflow (NHFLOW velocity), MMG rudder, zig-zag steering with rudder rate |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
@@ -199,5 +201,5 @@ line is at the top of each file, run from `unit/`:
 | test | covers |
 |---|---|
 | `rigidbody_test.cpp` | 6DOF rigid-body core: quaternion/Euler, constant force, oscillator and torque-free top (orders of RK2/RK3/RKLS3/RK4), DOF modes, damping |
-| `ship_test.cpp` | ship module kernels: waterline clipping, wetted surface, draft strips, cross-flow drag, ITTC-1957 line, roll damping |
+| `ship_test.cpp` | ship module kernels: waterline clipping, wetted surface, draft strips, cross-flow drag, ITTC-1957 line, roll damping, propeller KT/KQ, actuator disk (discrete force and torque, swirl sense), MMG rudder (signs, symmetry, slipstream, course stability) |
 

@@ -136,15 +136,17 @@ double wave_lib_hdc::ccpol3D(lexer *p, double ***F, double xp, double yp, double
     {
         wc = (Z[i][j][k+1]-zp)/(Z[i][j][k+1]-Z[i][j][k]);
         
+        // CFD: scaled by the target cell height (as before); NHFLOW: by the HDC cell
+        // height, as the target's DZP is a sigma spacing there
         if(k<Nz-1)
-        if((Z[i][j][k+1]-zp)/p->DZP[KP]<0.0)
+        if((Z[i][j][k+1]-zp)/(p->A10==5 ? Z[i][j][k+1]-Z[i][j][k] : p->DZP[KP])<0.0)
         {
         wc = (Z[i][j][k+2]-zp)/(Z[i][j][k+2]-Z[i][j][k+1]);
         ++k;
         }
         
         if(k>0)
-        if((Z[i][j][k+1]-zp)/p->DZP[KP]>1.0)
+        if((Z[i][j][k+1]-zp)/(p->A10==5 ? Z[i][j][k+1]-Z[i][j][k] : p->DZP[KP])>1.0)
         {
         wc = (Z[i][j][k]-zp)/(Z[i][j][k]-Z[i][j][k-1]);
         --k;

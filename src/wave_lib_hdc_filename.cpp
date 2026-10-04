@@ -28,8 +28,8 @@ void wave_lib_hdc::filename_single(lexer *p, ghostcell *pgc,int num)
     if(p->A10==3)
     sprintf(name,"./REEF3D_FNPF_HDC_Input/REEF3D-HDC-Input-%08i-%06i.r3d",num,p->mpirank+1);  
     
-    if(p->A10==6)
-    printf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%08i-%06i.r3d",num,p->mpirank+1);  
+    if(p->A10==6 || p->A10==5)
+    sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%08i-%06i.r3d",num,p->mpirank+1);  
 }
 
 void wave_lib_hdc::filename_continuous(lexer *p, ghostcell *pgc)
@@ -37,7 +37,7 @@ void wave_lib_hdc::filename_continuous(lexer *p, ghostcell *pgc)
     if(p->A10==3)
     sprintf(name,"./REEF3D_FNPF_HDC_Input/REEF3D-HDC-Input-%06i.r3d",p->mpirank+1);
     
-    if(p->A10==6)
+    if(p->A10==6 || p->A10==5)
     sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-%06i.r3d",p->mpirank+1);
 }
 
@@ -46,6 +46,6 @@ void wave_lib_hdc::filename_header(lexer *p, ghostcell *pgc)
     if(p->A10==3)
 	sprintf(name,"./REEF3D_FNPF_HDC_Input/REEF3D-HDC-Input-Header-%06i.r3d",p->mpirank+1); 
 
-    if(p->A10==6)
+    if(p->A10==6 || p->A10==5)
 	sprintf(name,"./REEF3D_CFD_HDC_Input/REEF3D-HDC-Input-Header-%06i.r3d",p->mpirank+1);  
 }
