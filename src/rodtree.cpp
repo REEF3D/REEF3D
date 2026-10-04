@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include<map>
 #include<sstream>
 #include<fstream>
+#include<iomanip>
 #include<stdexcept>
 #include<algorithm>
 
@@ -1193,6 +1194,9 @@ void rodtree::write_vtp(const std::string& filename) const
     std::ofstream out(filename.c_str());
     const int ne = nelem();
     out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n<PolyData>\n";
+    // simulation time of this output (rod trees have their own output interval, Z 21)
+    out<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">"<<std::setprecision(12)<<t<<"</DataArray>\n</FieldData>\n";
+    out<<std::setprecision(6);
     out<<"<Piece NumberOfPoints=\""<<2*ne<<"\" NumberOfLines=\""<<ne<<"\">\n";
     out<<"<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
     for(int e=0; e<ne; ++e)

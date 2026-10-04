@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include<cstdio>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 rodtree_coupling::rodtree_coupling(lexer *p, ghostcell *pgc) : npts(0), tprev(0.0), have_prev(false), printtime(0.0), printcount(0)
 {
@@ -232,6 +233,8 @@ void rodtree_coupling::print(lexer *p)
         char name[256];
         std::snprintf(name,sizeof(name),"%s/REEF3D-RodTree-%08d.vtp",outdir.c_str(),printcount);
         rt.write_vtp(name);
+        if(p->plog)
+        p->plog->written(p,printcount,"rods","rod_tree",name,0);
         ++printcount;
         printtime += p->Z21;
     }

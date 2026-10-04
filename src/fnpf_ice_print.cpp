@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include<sys/types.h>
 #include<cstdio>
 #include<iomanip>
+#include"runlog.h"
 
 void fnpf_ice::print_ini(lexer *p)
 {
@@ -174,6 +175,9 @@ void fnpf_ice::print_vtp(lexer *p, int num)
     out<<"<?xml version=\"1.0\"?>"<<endl;
     out<<"<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">"<<endl;
     out<<"<PolyData>"<<endl;
+    // simulation time of this output (ice output has its own interval)
+    const double tv = (p->count==0) ? p->simtime : p->simtime + p->dt;
+    out<<"<FieldData>"<<endl<<"<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\">"<<setprecision(12)<<tv<<"</DataArray>"<<endl<<"</FieldData>"<<endl;
     out<<"<Piece NumberOfPoints=\""<<npts<<"\" NumberOfPolys=\""<<npoly<<"\">"<<endl;
 
     out<<"<Points>"<<endl;
@@ -266,4 +270,6 @@ void fnpf_ice::print_vtp(lexer *p, int num)
     out.close();
 
     (void)nconn;
+    if(p->plog)
+    p->plog->written(p,num,"ice","ice",name,0);
 }
