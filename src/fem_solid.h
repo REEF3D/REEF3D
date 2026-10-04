@@ -27,7 +27,12 @@ Author: Hans Bihs
 // (elastic deformation, stresses, material failure and collapse).
 //
 //  - mesh: 8-node hexahedra on a uniform voxel lattice, filled from boxes
-//    and closed STL surfaces (shared lattice nodes glue touching bodies)
+//    and closed STL surfaces (shared lattice nodes glue touching bodies);
+//    the surface nodes are snapped onto the STL / box surfaces, so only the
+//    elements at the surface are distorted
+//  - simple input: material presets (concrete C30, steel S355, ...), supports
+//    in words (fix base / bed), element size from the fluid grid, gravity
+//    settling, check mode with natural frequencies, engineering summary
 //  - element: hex8, full 2x2x2 integration or one-point integration with
 //    Flanagan-Belytschko stiffness hourglass control
 //  - materials: elastic (St. Venant-Kirchhoff), J2 plasticity with linear
@@ -47,6 +52,7 @@ Author: Hans Bihs
 #include<string>
 #include<iosfwd>
 #include<algorithm>
+#include<array>
 #include<Eigen/Dense>
 
 class fem_solid
@@ -62,6 +68,7 @@ public:
     {
         int id = 0;
         int type = MAT_ELASTIC;
+        std::string name;               // preset name or type
         double rho = 1000.0, E = 1.0e6, nu = 0.3;
         double lambda = 0.0, mu = 0.0, cp = 0.0;
         // J2
@@ -86,9 +93,26 @@ public:
         int n[8];
         int mat = 0;                    // index into mats
         int ix, iy, iz;                 // voxel index
+        int geo = -1;                   // geometry: -1 regular voxel, else index into geos
+        int shape = -1;                 // input shape that created the element
         bool alive = true;
         double svm = 0.0;               // von Mises (Cauchy) stress, averaged over the GPs
+        double util = -1.0;             // utilisation (stress / strength), -1: elastic material
         double J = 1.0;
+    };
+
+    // reference geometry of a hex8 element
+    struct egeom
+    {
+        double dN0[8][3];               // uniform (mean) gradient, one-point integration
+        double gam[4][8];               // Flanagan-Belytschko hourglass vectors
+        double bb;                      // sum of |dN0|^2
+        double V;                       // volume
+        double h;                       // crack-band length V^(1/3)
+        double L;                       // characteristic length for the time step (V / max face area)
+        double dNg[8][8][3];            // gradients at the 2x2x2 Gauss points
+        double wg[8];                   // Gauss weights times det J
+        double mw[8];                   // nodal mass weights (integral of N_a)
     };
 
     // surface face of an intact element, nodes ordered counter-clockwise seen
@@ -114,7 +138,31 @@ public:
         int    debris_reaction = 1;     // 1: debris drag acts back on the fluid
         int    forcing = 1;             // 1: direct forcing of the surface velocity on the fluid
         double print_dt = 0.0;          // VTU print interval, overrides Z 31 if > 0
-        int    loads = 0;               // 0: implicit direct-forcing reaction, 1: pressure integration (explicit)
+        int    loads = 0;               // 0: hybrid (parcels, corrected slowly toward the probed pressure),
+                                        // 1: pressure integration (explicit), 2: attached fluid parcels only
+        double hybrid_tau = 20.0;       // hybrid: filter time of the correction [fluid time steps]
+        int    shear = 0;               // 1: tangential (no-slip) reaction of the parcels on the solid
+        int    air_forcing = 0;         // 1: direct forcing also in the air (more than 1.5 cells from the water)
+        int    settle = 1;              // 1: settle under gravity before the flow starts
+        int    check = 0;               // 1: write the check report and stop
+        double resolution = 1.0;        // element size in fluid cells if no lattice is given
+        int    fix_bed = 0;             // 1: fix nodes touching the bed / solids of the fluid grid
+    };
+
+    // results of the check mode
+    struct check_info
+    {
+        double mass = 0.0, volume = 0.0;
+        Vec3 cog = Vec3::Zero(), lo = Vec3::Zero(), hi = Vec3::Zero();
+        int nfixed = 0;
+        double freq[3] = {0.0,0.0,0.0};     // Rayleigh estimate of the first frequency in x, y, z [Hz]
+        bool freq_ok[3] = {false,false,false};
+        double sw_maxdisp = 0.0, sw_maxvm = 0.0, sw_maxutil = -1.0;
+        Vec3 sw_support = Vec3::Zero();
+        bool settled = false;
+        double thin_fraction = 0.0;         // fraction of surface elements with exposed opposite faces
+        double surface_area = 0.0;
+        std::vector<std::string> warnings;
     };
 
     fem_solid();
@@ -138,8 +186,49 @@ public:
     void set_hourglass(double c) {hg_coef = c;}
     void set_cfl(double c) {cfl = c;}
     void set_damping(double a) {alpha_damp = a;}
+    // structural damping: ratio of critical damping at the first natural
+    // frequency, acts on the deformation only (rigid motion of free parts and
+    // debris is not damped). prepare_damping() estimates the frequency.
+    void set_damping_ratio(double z) {zeta = z;}
+    double damping_ratio() const {return zeta;}
+    void prepare_damping();
+    double damping_alpha() const {return alpha_struct;}
+    double damping_frequency() const {return f_damp;}
+    // first natural frequency per direction (Rayleigh quotient of the static
+    // deflection under 1 g), the state is restored afterwards
+    void rayleigh_frequencies(double f[3],bool ok[3]);
     void set_ground(double z,double kfac,double mu) {ground_on = true; zground = z; kground = kfac; mu_ground = mu;}
     void set_contact(bool on,double kfac,double mu) {contact_on = on; kcontact = kfac; mu_contact = mu;}
+    void set_snap(bool on) {snap_on = on;}
+    bool lattice_given() const {return hx>0.0 && hy>0.0 && hz>0.0;}
+    void set_default_spacing(double h,double hy=-1.0);   // lattice spacing when the input has none (resolution)
+    bool ground() const {return ground_on;}
+    static bool preset(const std::string& type,const std::string& name,material&);   // material presets
+    static std::string preset_list();
+
+    // ------------------------------------------------------------------
+    // tools
+    // ------------------------------------------------------------------
+    // static equilibrium under gravity (kinetic damping), velocities zero afterwards
+    bool settle(int maxsteps=200000,double tol=1.0e-4,double* residual=nullptr,bool supported_only=false);
+    // check: geometry, mass, supports, frequencies, self-weight response, warnings
+    check_info check();
+    void write_check(std::ostream&,const check_info&) const;
+    // fix the nodes of the given list (all dofs)
+    void fix_nodes(const std::vector<int>& nodes);
+    // utilisation (stress / strength) of every intact element from the current state
+    void update_utilisation();
+    double max_utilisation(int* elem=nullptr) const;
+    double max_damage(int* elem=nullptr) const;
+    double max_plastic_strain(int* elem=nullptr) const;
+    Vec3 elem_centre(int e) const;
+    Vec3 support_moment() const;                // overturning moment of the support forces about the base centre
+    Vec3 base_centre() const {return base_c;}
+    double eroded_mass_fraction() const;
+    bool has_supports() const;
+    int  material_count() const {return (int)mats.size();}
+    const material& mat(int i) const {return mats[i];}
+    double min_density() const;
 
     // ------------------------------------------------------------------
     // time stepping
@@ -159,10 +248,12 @@ public:
     const Vec3& ref_pos(int i) const {return X[i];}
     const Vec3& pos(int i) const {return x[i];}
     const Vec3& vel(int i) const {return v[i];}
+    const Vec3& vel_mean(int i) const {return vbar[i];}     // mean velocity over the last step (coupling)
     double mass(int i) const {return m[i];}
     double node_volume(int i) const {return vnode[i];}
     double node_density(int i) const {return vnode[i]>0.0 ? m[i]/vnode[i] : 0.0;}
     void set_vel(int i,const Vec3& vv) {v[i] = vv;}
+    bool is_fixed(int i) const {return fixed[i]!=0;}
     void set_pos(int i,const Vec3& xx) {x[i] = xx;}
     const element& elem(int e) const {return elems[e];}
     const gpstate& gp(int e,int q) const {return gps[e*ngp+q];}
@@ -186,8 +277,15 @@ public:
     //  - m_f: fluid mass in the node volume (buoyancy and inertia of the fluid
     //    enclosed by the immersed boundary)
     void clear_coupling();
-    void add_coupling(int i,double M,const Vec3& Mu) {Mcpl[i] += M; Mu_cpl[i] += Mu;}
+    void add_coupling(int i,const Vec3& M,const Vec3& Mu) {Mcpl[i] += M; Mu_cpl[i] += Mu;}
     void set_fluid_mass(int i,double mf) {mfl[i] = mf;}
+    // fluid load of the parcels and the enclosed fluid in the last step
+    Vec3 parcel_load(int i) const {return fcpl[i] - mfl[i]*grav;}
+    // node belongs to an intact body with supports (not a free fragment, not debris)
+    bool on_supported_body(int i) const {return body[i]>=0 && body_fixed[body[i]];}
+    // weight of the final RK stage of the flow solver: the forcing in that stage
+    // only removes alpha times the momentum the fluid exchanges over a step
+    void set_coupling_alpha(double a) {alpha_cpl = a;}
     double extent() const;                      // largest dimension of the initial geometry
 
     // ------------------------------------------------------------------
@@ -221,6 +319,11 @@ private:
     void count_bodies();
     int  voxel(int ix,int iy,int iz) const;
 
+    void snap_surface();
+    void make_fixes();
+    bool element_geometry(const Vec3* Xa,egeom& G) const;   // false if inverted
+    const egeom& geom(const element& el) const {return el.geo<0 ? vgeo : geos[el.geo];}
+
     // element / material
     void shape_derivatives();
     void internal_forces(double dts);
@@ -239,14 +342,19 @@ private:
     std::vector<int> vox_elem;                  // voxel -> element index (-1 empty)
 
     struct shape_box {double x0,x1,y0,y1,z0,z1; int mat; bool remove;};
-    struct shape_stl {std::string file; int mat; bool remove;};
-    struct fix_box {double x0,x1,y0,y1,z0,z1; bool f[3];};
+    struct shape_stl {std::string file; int mat; bool remove; double scale = 1.0, rot = 0.0; Vec3 move = Vec3::Zero();};
+    struct fix_box {double x0,x1,y0,y1,z0,z1; bool f[3]; int mode = 0;};   // mode 0 box, 1 base, 2 top
+    struct mon_auto {std::string name; int mode;};
     struct shape_cmd {int type; int idx;};      // 0 box, 1 stl (in input order)
     std::vector<shape_box> boxes;
     std::vector<shape_stl> stls;
     std::vector<shape_cmd> shapes;
     std::vector<fix_box> fixes;
     std::vector<std::pair<std::string,Vec3>> mon_pts;
+    std::vector<mon_auto> mon_autos;
+    std::vector<int> vox_shape;                 // voxel -> shape that filled / carved it (-1 none)
+    std::vector<std::vector<std::array<double,9>>> stl_tris;   // triangles per STL shape (transformed)
+    int cur_mat = -1;                           // material id used by shapes without id
 
     std::vector<material> mats;
 
@@ -257,17 +365,18 @@ private:
     std::vector<int> nalive;                    // number of intact elements per node
     std::vector<int> node_elem_start, node_elem; // node -> elements (CSR)
     std::vector<int> orphan;
-    std::vector<double> Mcpl, mfl;
-    std::vector<Vec3> Mu_cpl, fcpl;
+    std::vector<double> mfl;
+    std::vector<Vec3> Mcpl;                     // attached fluid mass per direction
+    std::vector<Vec3> Mu_cpl, fcpl, vbar;
 
     // elements
     std::vector<element> elems;
     std::vector<gpstate> gps;
     int ngp = 1;
-    double dN0[8][3];                           // centre derivatives (reduced)
-    double dNg[8][8][3];                        // [gp][node][dir] (full)
-    double gam[4][8];                           // hourglass base vectors
+    egeom vgeo;                                 // regular voxel
+    std::vector<egeom> geos;                    // distorted (snapped) elements
     double Vel = 0.0, helem = 0.0;
+    Vec3 base_c = Vec3::Zero();
 
     std::vector<face> faces;
     int surf_version = 0;
@@ -282,6 +391,10 @@ private:
     double hg_coef = 0.1;
     double cfl = 0.5;
     double alpha_damp = 0.0;
+    double zeta = 0.02, alpha_struct = 0.0, f_damp = 0.0;
+    std::vector<int> body;                      // node -> connected body (-1: debris / no intact element)
+    std::vector<unsigned char> body_fixed;      // body has supported nodes
+    void rigid_velocity(std::vector<Vec3>& vr) const;   // rigid-body velocity of the free bodies
     double relax_time = 0.0, relax_alpha = 0.0;
     double bulkq1 = 0.06, bulkq2 = 1.2;
     double erode_J = 0.05;
@@ -289,6 +402,8 @@ private:
     bool ground_on = false;
     double zground = 0.0, kground = 1.0, mu_ground = 0.5;
     bool contact_on = true;
+    bool snap_on = true;
+    double alpha_cpl = 1.0;
     double kcontact = 1.0, mu_contact = 0.5, contact_dist = 0.8, contact_zeta = 0.3;
     Vec3 grav = Vec3(0.0,0.0,-9.81);
 

@@ -29,39 +29,133 @@ static const double xin[8] = {-1, 1, 1,-1,-1, 1, 1,-1};
 static const double eta[8] = {-1,-1, 1, 1,-1,-1, 1, 1};
 static const double zet[8] = {-1,-1,-1,-1, 1, 1, 1, 1};
 
-void fem_solid::shape_derivatives()
+bool fem_solid::element_geometry(const Vec3* Xa,egeom& G) const
 {
-    // all elements are identical voxels: reference derivatives are computed once
-
-    // one-point (centre) integration
+    // isoparametric hex8: Gauss-point gradients, volume, uniform gradient
+    // (one-point integration), hourglass vectors orthogonal to linear fields
+    const double g = 1.0/std::sqrt(3.0);
+    bool ok = true;
+    G.V = 0.0;
     for(int a=0; a<8; ++a)
     {
-        dN0[a][0] = xin[a]/(4.0*hx);
-        dN0[a][1] = eta[a]/(4.0*hy);
-        dN0[a][2] = zet[a]/(4.0*hz);
+        G.mw[a] = 0.0;
+        for(int i=0; i<3; ++i)
+        G.dN0[a][i] = 0.0;
     }
 
-    // 2x2x2 Gauss points
-    const double g = 1.0/std::sqrt(3.0);
     for(int q=0; q<8; ++q)
     {
         const double xg = g*xin[q], eg = g*eta[q], zg = g*zet[q];
+        double dxi[8][3], N[8];
         for(int a=0; a<8; ++a)
         {
-            dNg[q][a][0] = 2.0/hx * xin[a]*(1.0+eta[a]*eg)*(1.0+zet[a]*zg)/8.0;
-            dNg[q][a][1] = 2.0/hy * eta[a]*(1.0+xin[a]*xg)*(1.0+zet[a]*zg)/8.0;
-            dNg[q][a][2] = 2.0/hz * zet[a]*(1.0+xin[a]*xg)*(1.0+eta[a]*eg)/8.0;
+            dxi[a][0] = xin[a]*(1.0+eta[a]*eg)*(1.0+zet[a]*zg)/8.0;
+            dxi[a][1] = eta[a]*(1.0+xin[a]*xg)*(1.0+zet[a]*zg)/8.0;
+            dxi[a][2] = zet[a]*(1.0+xin[a]*xg)*(1.0+eta[a]*eg)/8.0;
+            N[a] = (1.0+xin[a]*xg)*(1.0+eta[a]*eg)*(1.0+zet[a]*zg)/8.0;
+        }
+
+        Mat3 J = Mat3::Zero();
+        for(int a=0; a<8; ++a)
+        for(int i=0; i<3; ++i)
+        for(int j=0; j<3; ++j)
+        J(i,j) += Xa[a](i)*dxi[a][j];
+
+        const double detJ = J.determinant();
+        if(detJ<=0.0)
+        ok = false;
+
+        const Mat3 Jinv = J.inverse();
+        for(int a=0; a<8; ++a)
+        for(int i=0; i<3; ++i)
+        G.dNg[q][a][i] = Jinv(0,i)*dxi[a][0] + Jinv(1,i)*dxi[a][1] + Jinv(2,i)*dxi[a][2];
+
+        G.wg[q] = detJ;
+        G.V += detJ;
+        for(int a=0; a<8; ++a)
+        {
+            G.mw[a] += detJ*N[a];
+            for(int i=0; i<3; ++i)
+            G.dN0[a][i] += detJ*G.dNg[q][a][i];
         }
     }
 
-    // hourglass base vectors (for a rectangular box they are orthogonal to
-    // linear fields, so the Flanagan-Belytschko gamma vectors equal them)
+    if(G.V<=0.0)
+    return false;
+
+    G.bb = 0.0;
+    for(int a=0; a<8; ++a)
+    for(int i=0; i<3; ++i)
+    {
+        G.dN0[a][i] /= G.V;
+        G.bb += G.dN0[a][i]*G.dN0[a][i];
+    }
+
+    // hourglass base vectors, made orthogonal to the linear fields
     for(int a=0; a<8; ++a)
     {
-        gam[0][a] = xin[a]*eta[a];
-        gam[1][a] = eta[a]*zet[a];
-        gam[2][a] = zet[a]*xin[a];
-        gam[3][a] = xin[a]*eta[a]*zet[a];
+        G.gam[0][a] = xin[a]*eta[a];
+        G.gam[1][a] = eta[a]*zet[a];
+        G.gam[2][a] = zet[a]*xin[a];
+        G.gam[3][a] = xin[a]*eta[a]*zet[a];
+    }
+    for(int al=0; al<4; ++al)
+    {
+        double gx[3] = {0.0,0.0,0.0};
+        for(int b=0; b<8; ++b)
+        for(int i=0; i<3; ++i)
+        gx[i] += G.gam[al][b]*Xa[b](i);
+
+        double tmp[8];
+        for(int a=0; a<8; ++a)
+        tmp[a] = G.gam[al][a] - (gx[0]*G.dN0[a][0] + gx[1]*G.dN0[a][1] + gx[2]*G.dN0[a][2]);
+        for(int a=0; a<8; ++a)
+        G.gam[al][a] = tmp[a];
+    }
+
+    // characteristic length: volume / largest face area
+    static const int lf[6][4] = {{0,4,7,3},{1,2,6,5},{0,1,5,4},{3,7,6,2},{0,3,2,1},{4,5,6,7}};
+    double amax = 0.0;
+    for(int f=0; f<6; ++f)
+    {
+        const Vec3 c = (Xa[lf[f][2]]-Xa[lf[f][0]]).cross(Xa[lf[f][3]]-Xa[lf[f][1]]);
+        amax = std::max(amax,0.5*c.norm());
+    }
+    G.L = amax>0.0 ? G.V/amax : 0.0;
+    G.h = std::cbrt(G.V);
+
+    return ok;
+}
+
+void fem_solid::shape_derivatives()
+{
+    // regular voxel (shared by all elements that are not distorted)
+    Vec3 Xv[8];
+    for(int a=0; a<8; ++a)
+    Xv[a] = Vec3(0.5*(1.0+xin[a])*hx, 0.5*(1.0+eta[a])*hy, 0.5*(1.0+zet[a])*hz);
+    element_geometry(Xv,vgeo);
+
+    // distorted elements: their own geometry
+    geos.clear();
+    for(element& el : elems)
+    {
+        el.geo = -1;
+        Vec3 Xa[8];
+        bool regular = true;
+        const Vec3 base(ox+el.ix*hx, oy+el.iy*hy, oz+el.iz*hz);
+        for(int a=0; a<8; ++a)
+        {
+            Xa[a] = X[el.n[a]];
+            if((Xa[a]-base-Xv[a]).squaredNorm() > 1.0e-20*hx*hx)
+            regular = false;
+        }
+        if(regular)
+        continue;
+
+        egeom G;
+        element_geometry(Xa,G);
+        el.geo = (int)geos.size();
+        geos.push_back(G);
     }
 }
 
@@ -192,7 +286,6 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
 void fem_solid::internal_forces(double dts)
 {
     (void)dts;
-    const double w = Vel/double(ngp);
 
     for(int e=0; e<nelem(); ++e)
     {
@@ -201,6 +294,7 @@ void fem_solid::internal_forces(double dts)
         continue;
 
         const material& mt = mats[el.mat];
+        const egeom& G = geom(el);
 
         double xa[8][3], va[8][3];
         for(int a=0; a<8; ++a)
@@ -218,7 +312,8 @@ void fem_solid::internal_forces(double dts)
 
         for(int g=0; g<ngp; ++g)
         {
-            const double (*dN)[3] = (ngp==1) ? dN0 : dNg[g];
+            const double (*dN)[3] = (ngp==1) ? G.dN0 : G.dNg[g];
+            const double w = (ngp==1) ? G.V : G.wg[g];
 
             Mat3 F = Mat3::Zero(), Fd = Mat3::Zero();
             for(int a=0; a<8; ++a)
@@ -233,7 +328,7 @@ void fem_solid::internal_forces(double dts)
             double svm;
             bool failed;
             gpstate& st = gps[e*ngp+g];
-            stress(mt,st,F,Fd,helem,w,P,svm,failed);
+            stress(mt,st,F,Fd,G.h,w,P,svm,failed);
 
             if(failed) ++nfail;
             svm_sum += svm;
@@ -263,22 +358,18 @@ void fem_solid::internal_forces(double dts)
         // hourglass modes of the current positions, rotation invariant
         if(ngp==1)
         {
-            double bb = 0.0;
-            for(int a=0; a<8; ++a)
-            bb += dN0[a][0]*dN0[a][0] + dN0[a][1]*dN0[a][1] + dN0[a][2]*dN0[a][2];
-
-            const double k = hg_coef*(1.0-dmean)*(mt.lambda+2.0*mt.mu)*Vel*bb/8.0;
+            const double k = hg_coef*(1.0-dmean)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0;
 
             for(int al=0; al<4; ++al)
             {
                 double q[3] = {0.0,0.0,0.0};
                 for(int a=0; a<8; ++a)
                 for(int i=0; i<3; ++i)
-                q[i] += gam[al][a]*xa[a][i];
+                q[i] += G.gam[al][a]*xa[a][i];
 
                 for(int a=0; a<8; ++a)
                 for(int i=0; i<3; ++i)
-                fe[a][i] += k*gam[al][a]*q[i];
+                fe[a][i] += k*G.gam[al][a]*q[i];
             }
         }
 

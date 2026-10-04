@@ -64,7 +64,13 @@ void fem_solid::write_vtu(const std::string& filename) const
     f<<"</DataArray>\n";
     f<<"<DataArray type=\"Float64\" Name=\"load\" NumberOfComponents=\"3\" format=\"ascii\">\n";
     for(int i=0; i<nnode(); ++i)
-    f<<fext[i](0)<<" "<<fext[i](1)<<" "<<fext[i](2)<<"\n";
+    {
+        const Vec3 L = fext[i] + fcpl[i] - mfl[i]*grav;
+        f<<L(0)<<" "<<L(1)<<" "<<L(2)<<"\n";
+    }
+    f<<"</DataArray>\n";
+    f<<"<DataArray type=\"Int32\" Name=\"support\" format=\"ascii\">\n";
+    for(int i=0; i<nnode(); ++i) f<<(fixed[i] ? 1 : 0)<<"\n";
     f<<"</DataArray>\n";
     f<<"</PointData>\n";
 
@@ -92,6 +98,11 @@ void fem_solid::write_vtu(const std::string& filename) const
         f<<p/double(ngp)<<"\n";
     }
     for(int q=0; q<no; ++q) f<<"0\n";
+    f<<"</DataArray>\n";
+
+    f<<"<DataArray type=\"Float64\" Name=\"utilisation\" format=\"ascii\">\n";
+    for(int e : cells) f<<elems[e].util<<"\n";
+    for(int q=0; q<no; ++q) f<<"-1\n";
     f<<"</DataArray>\n";
 
     f<<"<DataArray type=\"Int32\" Name=\"material\" format=\"ascii\">\n";

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"fem_coupling.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"fdm.h"
 #include<mpi.h>
 #include<fstream>
 #include<sstream>
@@ -34,7 +35,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0.0), rho_w(1000.0), printtime(0.0), printcount(0), starttime(0.0)
+fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0.0), rho_w(1000.0), initialised(false), force_scale(1.0), nstep(0), printtime(0.0), printcount(0), starttime(0.0)
 {
     // rank 0 reads fem.dat, everybody parses the broadcast content
     std::string content;
@@ -67,26 +68,9 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
     if(len>0)
     MPI_Bcast(&content[0],len,MPI_CHAR,0,pgc->mpi_comm);
 
-    try
-    {
-        fs.set_gravity(fem_solid::Vec3(p->W20,p->W21,p->W22));
-        if(p->j_dir==0)
-        fs.set_plane_strain(true);
-
-        std::istringstream is(content);
-        fs.read(is);
-        fs.build();
-    }
-    catch(std::exception& e)
-    {
-        if(p->mpirank==0)
-        std::cout<<"\n!!! "<<e.what()<<" !!!\n"<<std::endl;
-        MPI_Abort(pgc->mpi_comm,1);
-    }
-
     rho_w = p->W1;
 
-    // smallest fluid cell size: spacing of the Lagrangian points
+    // smallest fluid cell size: spacing of the Lagrangian points, default element size
     double h = 1.0e20;
     for(int ii=0; ii<p->knox; ++ii)
     h = std::min(h,p->DXN[ii+marge]);
@@ -97,19 +81,153 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
     h = std::min(h,p->DZN[kk+marge]);
     dxmin = pgc->globalmin(h);
 
-    ini_points(p,pgc);
+    try
+    {
+        fs.set_gravity(fem_solid::Vec3(p->W20,p->W21,p->W22));
+        if(p->j_dir==0)
+        fs.set_plane_strain(true);
 
+        std::istringstream is(content);
+        fs.read(is);
+
+        // element size from the fluid grid ('resolution'), one layer across a 2D slice
+        if(!fs.lattice_given())
+        fs.set_default_spacing(fs.coupling().resolution*dxmin, p->j_dir==0 ? p->global_ymax-p->global_ymin : -1.0);
+
+        fs.build();
+    }
+    catch(std::exception& e)
+    {
+        if(p->mpirank==0)
+        std::cout<<"\n!!! "<<e.what()<<" !!!\n"<<std::endl;
+        MPI_Abort(pgc->mpi_comm,1);
+    }
+
+    force_scale = (p->j_dir==0) ? 1.0/fs.lattice_h(1) : 1.0;
     outdir = "./REEF3D_FEM";
 
     if(p->mpirank==0)
     {
         mkdir(outdir.c_str(),0777);
-
         fs.info(std::cout);
+    }
+}
+
+void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
+{
+    initialised = true;
+
+    // supports on the bed and the solids of the fluid grid
+    if(fs.coupling().fix_bed)
+    {
+        std::vector<double> lv(fs.nnode(),1.0e30);
+        for(int i=0; i<fs.nnode(); ++i)
+        {
+            fem_solid::Vec3 x = fs.ref_pos(i);
+            if(p->j_dir==0) x(1) = p->YP[marge];
+            if(x(0)>=p->originx && x(0)<p->endx && (p->j_dir==0 || (x(1)>=p->originy && x(1)<p->endy)) && x(2)>=p->originz && x(2)<p->endz)
+            lv[i] = std::min(p->ccipol4a(a->topo,x(0),x(1),x(2)),p->ccipol4a(a->solid,x(0),x(1),x(2)));
+        }
+        if(!lv.empty())
+        MPI_Allreduce(MPI_IN_PLACE,lv.data(),(int)lv.size(),MPI_DOUBLE,MPI_MIN,pgc->mpi_comm);
+
+        std::vector<int> bed;
+        const double tol = 0.3*fs.hmin();
+        for(int i=0; i<fs.nnode(); ++i)
+        if(lv[i]<=tol)
+        bed.push_back(i);
+        fs.fix_nodes(bed);
+        if(p->mpirank==0)
+        std::cout<<"FEM: fix bed: "<<bed.size()<<" nodes on the bed / solids of the grid"<<std::endl;
+    }
+
+    std::vector<std::string> warn;
+    warnings(p,warn);
+
+    // check mode: report and stop
+    if(fs.coupling().check)
+    {
+        fem_solid::check_info ci = fs.check();
+        for(const std::string& w : warn) ci.warnings.push_back(w);
+
+        // wetted surface at the start
+        double wet = 0.0;
+        for(const fem_solid::face& f : fs.surface())
+        {
+            fem_solid::Vec3 c = 0.25*(fs.pos(f.n[0])+fs.pos(f.n[1])+fs.pos(f.n[2])+fs.pos(f.n[3]));
+            if(p->j_dir==0) c(1) = p->YP[marge];
+            if(c(0)>=p->originx && c(0)<p->endx && (p->j_dir==0 || (c(1)>=p->originy && c(1)<p->endy)) && c(2)>=p->originz && c(2)<p->endz)
+            if(p->ccipol4(a->phi,c(0),c(1),c(2))>=0.0)
+            wet += 0.5*((fs.pos(f.n[2])-fs.pos(f.n[0])).cross(fs.pos(f.n[3])-fs.pos(f.n[1]))).norm();
+        }
+        wet = pgc->globalsum(wet);
+
+        if(p->mpirank==0)
+        {
+            std::ostringstream os;
+            fs.write_check(os,ci);
+            os<<"  wetted surface at the start: "<<wet<<" m2\n";
+            os<<"  fluid: smallest cell "<<dxmin<<" m, element size / fluid cell "<<fs.hmin()/dxmin<<"\n";
+            if(p->dt>0.0)
+            os<<"  substeps per fluid step of "<<p->dt<<" s: about "<<std::max(1,(int)std::ceil(p->dt/(0.5*fs.critical_dt())))<<"\n";
+            std::cout<<"\n"<<os.str()<<std::endl;
+            std::ofstream f((outdir+"/REEF3D_FEM_check.txt").c_str());
+            f<<os.str();
+            fs.write_vtu(outdir+"/REEF3D-FEM-check.vtu");
+            std::cout<<"FEM: check written to "<<outdir<<"/REEF3D_FEM_check.txt and REEF3D-FEM-check.vtu, stopping (remove 'check' from fem.dat to run)"<<std::endl;
+        }
+        pgc->final(false);
+    }
+
+    if(p->mpirank==0)
+    for(const std::string& w : warn)
+    std::cout<<"FEM WARNING: "<<w<<std::endl;
+
+    ini_points(p,pgc);
+
+    // settling before the flow: self weight and the pressure of the initial
+    // fluid (a structure standing in still water starts in equilibrium)
+    if(fs.coupling().settle && (fs.has_supports() || fs.ground()))
+    {
+        std::vector<fem_solid::Vec3> F0;
+        // initial pressure field, or hydrostatic below the initial free
+        // surface if the flow solver starts without one (I 12 0)
+        pressure_loads(p,a,pgc,F0,p->I12<1);
+        fem_solid::Vec3 Ft = fem_solid::Vec3::Zero();
+        fs.clear_loads();
+        for(int i=0; i<fs.nnode(); ++i)
+        {
+            fs.add_load(i,F0[i]);
+            Ft += F0[i];
+        }
+
+        double res = 0.0;
+        const bool ok = fs.settle(200000,1.0e-4,&res,!fs.ground());
+        const fem_solid::Vec3 R = fs.support_force();
+        fs.clear_loads();
+
+        if(p->mpirank==0)
+        {
+            double mass = 0.0;
+            for(int i=0; i<fs.nnode(); ++i) mass += fs.mass(i);
+            std::cout<<"FEM: settled under self weight"<<(Ft.norm()>1.0e-3*mass*9.81 ? " and the initial fluid pressure" : "")
+                     <<(ok ? "" : " (NOT converged)")<<": max displacement "<<fs.max_displacement()*1000.0
+                     <<" mm, weight "<<mass*9.81/1000.0<<" kN, initial fluid force "<<Ft(0)/1000.0<<" "<<Ft(1)/1000.0<<" "<<Ft(2)/1000.0
+                     <<" kN, support force "<<R(0)/1000.0<<" "<<R(1)/1000.0<<" "<<R(2)/1000.0<<" kN"<<std::endl;
+        }
+    }
+
+    // structural damping at the first natural frequency
+    fs.prepare_damping();
+    if(p->mpirank==0 && fs.damping_alpha()>0.0)
+    std::cout<<"FEM: structural damping "<<100.0*fs.damping_ratio()<<" % at the first natural frequency "<<fs.damping_frequency()<<" Hz (dry)"<<std::endl;
+
+    if(p->mpirank==0)
+    {
         std::cout<<"FEM: "<<pts.size()<<" Lagrangian points on the surface, critical solid time step "<<fs.critical_dt()<<" s"<<std::endl;
 
         std::ofstream lg((outdir+"/REEF3D_FEM_log.dat").c_str());
-        lg<<"# time  substeps  intact_elements  eroded  debris  F_fluid_x F_fluid_y F_fluid_z  F_support_x F_support_y F_support_z  max_vonMises  max_displacement  kinetic_energy  dissipated_energy  (SI units, support force = force of the structure on its supports)\n";
+        lg<<"# time  substeps  intact_elements  eroded  debris  F_fluid_x F_fluid_y F_fluid_z  F_support_x F_support_y F_support_z  max_vonMises  max_displacement  kinetic_energy  dissipated_energy  (SI units, support force = force of the structure on its supports"<<(p->j_dir==0 ? ", 2D: forces of the FEM slice" : "")<<")\n";
 
         for(const fem_solid::monitor& mo : fs.monitors())
         {
@@ -120,6 +238,133 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
     }
 
     print(p);
+}
+
+void fem_coupling::warnings(lexer *p, std::vector<std::string>& w)
+{
+    std::ostringstream os;
+
+    if(fs.min_density() < 1.1*rho_w)
+    {
+        os.str(""); os<<"a material is lighter than 1.1 x water ("<<fs.min_density()<<" kg/m3): floating or light structures are not supported by the coupling yet, the run may become unstable";
+        w.push_back(os.str());
+    }
+    if(fs.hmin() > 2.01*dxmin)
+    {
+        os.str(""); os<<"elements ("<<fs.hmin()<<" m) are more than twice the fluid cells ("<<dxmin<<" m): the flow is resolved, but stresses are coarse";
+        w.push_back(os.str());
+    }
+    if(fs.hmin() < 0.24*dxmin)
+    {
+        os.str(""); os<<"elements ("<<fs.hmin()<<" m) are much finer than the fluid cells ("<<dxmin<<" m): many substeps, details smaller than a fluid cell feel no flow";
+        w.push_back(os.str());
+    }
+
+    fem_solid::Vec3 lo = fem_solid::Vec3::Constant(1.0e300), hi = fem_solid::Vec3::Constant(-1.0e300);
+    for(int i=0; i<fs.nnode(); ++i)
+    {
+        lo = lo.cwiseMin(fs.ref_pos(i));
+        hi = hi.cwiseMax(fs.ref_pos(i));
+    }
+    const double tol = 1.0e-6;
+    if(lo(0)<p->global_xmin-tol || hi(0)>p->global_xmax+tol || lo(2)<p->global_zmin-tol || hi(2)>p->global_zmax+tol
+       || (p->j_dir==1 && (lo(1)<p->global_ymin-tol || hi(1)>p->global_ymax+tol)))
+    w.push_back("the structure reaches outside the fluid domain: parts outside get no fluid loads");
+
+    if(!fs.has_supports() && !fs.ground())
+    w.push_back("the structure has no supports ('fix base', 'fix bed' or a fix box) and no ground: it will fall or drift");
+}
+
+void fem_coupling::update_summary(lexer *p, bool write)
+{
+    const double t = fs.time();
+    const fem_solid::Vec3 R = fs.support_force();
+    const fem_solid::Vec3 M = fs.support_moment();
+    const fem_solid::Vec3 F = fs.total_load();
+
+    const double shear = std::sqrt(R(0)*R(0)+R(1)*R(1))*force_scale;
+    const double moment = std::sqrt(M(0)*M(0)+M(1)*M(1))*force_scale;
+    const double fluid = F.norm()*force_scale;
+    const double disp = fs.max_displacement();
+
+    if(shear>sm.shear) {sm.shear = shear; sm.t_shear = t;}
+    if(moment>sm.moment) {sm.moment = moment; sm.t_moment = t;}
+    if(fluid>sm.fluid) {sm.fluid = fluid; sm.t_fluid = t;}
+    if(disp>sm.disp) {sm.disp = disp; sm.t_disp = t;}
+
+    bool event = false;
+
+    if(write || nstep%5==0)
+    {
+        fs.update_utilisation();
+        int e = -1;
+        const double u = fs.max_utilisation(&e);
+        if(e>=0 && u>sm.util) {sm.util = u; sm.t_util = t; sm.x_util = fs.elem_centre(e);}
+
+        if(sm.t_crack<0.0)
+        {
+            int ed = -1, ep = -1;
+            const double d = fs.max_damage(&ed);
+            const double pl = fs.max_plastic_strain(&ep);
+            if(d>0.05 || pl>1.0e-4)
+            {
+                sm.t_crack = t;
+                sm.yielding = !(d>0.05);
+                sm.x_crack = fs.elem_centre(d>0.05 ? ed : ep);
+                event = true;
+                if(p->mpirank==0)
+                std::cout<<"FEM: first "<<(sm.yielding ? "yielding" : "cracking")<<" at t = "<<t<<" s at ("<<sm.x_crack.transpose()<<")"<<std::endl;
+            }
+        }
+    }
+
+    if(sm.t_fail<0.0 && fs.n_eroded()>0)
+    {
+        sm.t_fail = t;
+        for(int e=0; e<fs.nelem(); ++e)
+        if(!fs.elem(e).alive) {sm.x_fail = fs.elem_centre(e); break;}
+        event = true;
+        if(p->mpirank==0)
+        std::cout<<"FEM: first element failure at t = "<<t<<" s at ("<<sm.x_fail.transpose()<<")"<<std::endl;
+    }
+
+    if((write || event || nstep%20==0) && p->mpirank==0)
+    write_summary(p);
+}
+
+void fem_coupling::write_summary(lexer *p)
+{
+    const double ef = fs.eroded_mass_fraction();
+    const char* unit = (p->j_dir==0) ? " per metre width" : "";
+
+    std::ostringstream st;
+    if(ef>0.5) st<<"COLLAPSED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed";
+    else if(ef>0.0) st<<"PARTLY FAILED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed";
+    else if(sm.t_crack>=0.0) st<<(sm.yielding ? "YIELDED, no failure" : "CRACKED, no failure");
+    else if(sm.util>=0.0) st<<"INTACT, max utilisation "<<std::setprecision(3)<<sm.util;
+    else st<<"INTACT (elastic material, max von Mises "<<std::setprecision(4)<<fs.max_vonmises()/1.0e6<<" MPa)";
+
+    std::ofstream f((outdir+"/REEF3D_FEM_summary.txt").c_str());
+    f<<std::setprecision(4);
+    f<<"REEF3D FEM summary at t = "<<fs.time()<<" s\n\n";
+    f<<"status:                  "<<st.str()<<"\n";
+    f<<"max base shear:          "<<sm.shear/1000.0<<" kN"<<unit<<"  at t = "<<sm.t_shear<<" s\n";
+    f<<"max overturning moment:  "<<sm.moment/1000.0<<" kNm"<<unit<<"  at t = "<<sm.t_moment<<" s  (about the base centre "<<fs.base_centre().transpose()<<")\n";
+    f<<"max total fluid force:   "<<sm.fluid/1000.0<<" kN"<<unit<<"  at t = "<<sm.t_fluid<<" s\n";
+    f<<"max displacement:        "<<sm.disp*1000.0<<" mm  at t = "<<sm.t_disp<<" s\n";
+    if(sm.util>=0.0)
+    f<<"max utilisation:         "<<sm.util<<"  at t = "<<sm.t_util<<" s at ("<<sm.x_util.transpose()<<")   (stress / strength, > 1: cracking or yielding)\n";
+    else
+    f<<"max utilisation:         - (elastic materials only)\n";
+    if(sm.t_crack>=0.0)
+    f<<"first "<<(sm.yielding ? "yielding:          " : "cracking:          ")<<"t = "<<sm.t_crack<<" s at ("<<sm.x_crack.transpose()<<")\n";
+    else
+    f<<"first cracking:          none\n";
+    if(sm.t_fail>=0.0)
+    f<<"first element failure:   t = "<<sm.t_fail<<" s at ("<<sm.x_fail.transpose()<<")\n";
+    else
+    f<<"first element failure:   none\n";
+    f<<"failed mass:             "<<100.0*ef<<" %,  debris particles "<<fs.debris().size()<<"\n";
 }
 
 fem_coupling::~fem_coupling()
@@ -172,7 +417,7 @@ void fem_coupling::ini_points(lexer *p, ghostcell *pgc)
 
     surf_version = fs.surface_version();
 
-    buf.assign(8*(pts.size()+fs.debris().size()) + 2*size_t(fs.nnode()),0.0);
+    buf.assign(14*(pts.size()+fs.debris().size()) + 2*size_t(fs.nnode()),0.0);
     fdeb.assign(fs.debris().size(),fem_solid::Vec3::Zero());
 }
 
@@ -189,7 +434,7 @@ void fem_coupling::point_state(int q, fem_solid::Vec3& xp, fem_solid::Vec3& vp, 
     for(int a=0; a<4; ++a)
     {
         xp += w[a]*fs.pos(F.n[a]);
-        vp += w[a]*fs.vel(F.n[a]);
+        vp += w[a]*fs.vel_mean(F.n[a]);
     }
 
     const fem_solid::Vec3 c = (fs.pos(F.n[2])-fs.pos(F.n[0])).cross(fs.pos(F.n[3])-fs.pos(F.n[1]));
@@ -230,5 +475,6 @@ void fem_coupling::print(lexer *p)
         }
         ++printcount;
         printtime += dtp;
+        write_summary(p);
     }
 }

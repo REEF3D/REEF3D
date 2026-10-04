@@ -2301,6 +2301,7 @@
           <File Name="fem_solid_element.cpp"/>
           <File Name="fem_solid_contact.cpp"/>
           <File Name="fem_solid_print.cpp"/>
+          <File Name="fem_solid_tools.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Coupling CFD">
           <File Name="fem_coupling.cpp"/>

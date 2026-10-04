@@ -96,22 +96,17 @@ void fem_solid::build()
     if(elems.empty())
     throw std::runtime_error("FEM: the geometry does not contain any voxel");
 
+    if(snap_on)
+    snap_surface();
+
     shape_derivatives();
     compute_mass();
 
-    // fixed dofs
+    // supports
     fixed.assign(nnode(),0);
-    for(const fix_box& f : fixes)
-    for(int i=0; i<nnode(); ++i)
-    {
-        const Vec3& p = X[i];
-        const double eps = 1.0e-9*hmin();
-        if(p(0)>=f.x0-eps && p(0)<=f.x1+eps && p(1)>=f.y0-eps && p(1)<=f.y1+eps && p(2)>=f.z0-eps && p(2)<=f.z1+eps)
-        for(int d=0; d<3; ++d)
-        if(f.f[d]) fixed[i] |= (unsigned char)(1<<d);
-    }
+    make_fixes();
 
-    // monitors: nearest node
+    // monitors: nearest node, or the top of the structure
     mons.clear();
     for(auto& mp : mon_pts)
     {
@@ -124,22 +119,48 @@ void fem_solid::build()
         }
         mons.push_back({mp.first,best});
     }
+    if(!mon_autos.empty())
+    {
+        Vec3 c = Vec3::Zero();
+        double ms = 0.0;
+        for(int i=0; i<nnode(); ++i) {c += m[i]*X[i]; ms += m[i];}
+        c /= ms;
+        double zmax = -1.0e300;
+        for(int i=0; i<nnode(); ++i) zmax = std::max(zmax,X[i](2));
+        for(const mon_auto& ma : mon_autos)
+        {
+            int best = 0;
+            double dbest = 1.0e300;
+            for(int i=0; i<nnode(); ++i)
+            if(X[i](2)>zmax-0.01*hz)
+            {
+                const double d = std::pow(X[i](0)-c(0),2) + std::pow(X[i](1)-c(1),2);
+                if(d<dbest) {dbest = d; best = i;}
+            }
+            mons.push_back({ma.name,best});
+        }
+    }
 
     // critical time step of the explicit scheme (hex8, lumped mass)
     dtcrit = 1.0e30;
+    double hmax = 0.0;
     for(const element& e : elems)
-    dtcrit = std::min(dtcrit, hmin()/mats[e.mat].cp);
+    {
+        const egeom& G = geom(e);
+        dtcrit = std::min(dtcrit, G.L/mats[e.mat].cp);
+        hmax = std::max(hmax,G.h);
+    }
 
     // crack band check: the softening branch must not snap back
     for(const material& mt : mats)
     if(mt.type==MAT_CONCRETE)
     {
         double e0 = mt.ft/mt.E;
-        if(mt.ft>0.0 && mt.Gf/(mt.ft*helem) <= 0.5*e0)
-        throw std::runtime_error("FEM: concrete material "+std::to_string(mt.id)+": elements too large for the crack band (h > 2 E Gf / ft^2), refine the lattice or increase Gf");
+        if(mt.ft>0.0 && mt.Gf/(mt.ft*hmax) <= 0.5*e0)
+        throw std::runtime_error("FEM: concrete material "+std::to_string(mt.id)+": elements too large for the crack band (h > 2 E Gf / ft^2), use a finer resolution or increase Gf");
         double e0c = mt.fc/mt.E;
-        if(mt.fc>0.0 && mt.Gc/(mt.fc*helem) <= 0.5*e0c)
-        throw std::runtime_error("FEM: concrete material "+std::to_string(mt.id)+": elements too large for the compressive crack band (h > 2 E Gc / fc^2)");
+        if(mt.fc>0.0 && mt.Gc/(mt.fc*hmax) <= 0.5*e0c)
+        throw std::runtime_error("FEM: concrete material "+std::to_string(mt.id)+": elements too large for the compressive crack band (h > 2 E Gc / fc^2), use a finer resolution");
     }
 
     x = X;
@@ -147,10 +168,11 @@ void fem_solid::build()
     fint.assign(nnode(),Vec3::Zero());
     fext.assign(nnode(),Vec3::Zero());
     fcon.assign(nnode(),Vec3::Zero());
-    Mcpl.assign(nnode(),0.0);
+    Mcpl.assign(nnode(),Vec3::Zero());
     mfl.assign(nnode(),0.0);
     Mu_cpl.assign(nnode(),Vec3::Zero());
     fcpl.assign(nnode(),Vec3::Zero());
+    vbar.assign(nnode(),Vec3::Zero());
 
     build_surface();
     count_bodies();
@@ -166,13 +188,14 @@ void fem_solid::compute_mass()
     Vel = hx*hy*hz;
     helem = std::cbrt(Vel);
 
+    // lumped mass: integral of the shape functions (row sum)
     for(const element& e : elems)
     {
-        const double me = mats[e.mat].rho*Vel/8.0;
+        const egeom& G = geom(e);
         for(int a=0; a<8; ++a)
         {
-            m[e.n[a]] += me;
-            vnode[e.n[a]] += Vel/8.0;
+            m[e.n[a]] += mats[e.mat].rho*G.mw[a];
+            vnode[e.n[a]] += G.mw[a];
         }
     }
 }
@@ -188,7 +211,7 @@ void fem_solid::clear_loads()
 
 void fem_solid::clear_coupling()
 {
-    std::fill(Mcpl.begin(),Mcpl.end(),0.0);
+    std::fill(Mcpl.begin(),Mcpl.end(),Vec3::Zero());
     std::fill(mfl.begin(),mfl.end(),0.0);
     std::fill(Mu_cpl.begin(),Mu_cpl.end(),Vec3::Zero());
 }
@@ -227,22 +250,25 @@ void fem_solid::advance(double dt)
     const double dts = dt/double(nsub);
     nsub_last = nsub;
 
-    // merge the attached fluid parcels with the nodes (inelastic), the
-    // parcels move with the nodes during the step
+    // attached fluid parcels: their momentum exchange with the nodes over the
+    // step, M (u_f - v_0), is applied as a constant force over the substeps,
+    // and the parcels move with the nodes (mass m - m_f + M). Over one fluid
+    // step this equals an inelastic merge, without kicking the structure.
     std::vector<double> mt(nnode());
+    std::vector<Vec3> fpar(nnode());
     for(int i=0; i<nnode(); ++i)
     {
-        mt[i] = mr[i] + Mcpl[i];
-        if(Mcpl[i]>0.0 && mt[i]>0.0)
-        v[i] = (mr[i]*v[i] + Mu_cpl[i])/mt[i];
-
-        if(fixed[i])
-        for(int d=0; d<3; ++d)
-        if(fixed[i] & (1<<d)) v[i](d) = 0.0;
+        mt[i] = mr[i] + Mcpl[i].maxCoeff();
+        // relative to the mean velocity of the last step: vibrations faster
+        // than the fluid step are not resolved by the flow and must not be
+        // driven by the coupling
+        fpar[i] = (Mu_cpl[i] - Mcpl[i].cwiseProduct(vbar[i]))/(alpha_cpl*dt);
         if(plane_strain)
-        v[i](1) = 0.0;
-
+        fpar[i](1) = 0.0;
     }
+
+    std::vector<Vec3> vsum(nnode(),Vec3::Zero());
+    std::vector<Vec3> vrig;
 
     for(int s=0; s<nsub; ++s)
     {
@@ -259,14 +285,20 @@ void fem_solid::advance(double dt)
 
         const double alpha = alpha_damp + (t<relax_time ? relax_alpha : 0.0);
 
+        // structural damping of the deformation velocity
+        if(alpha_struct>0.0)
+        rigid_velocity(vrig);
+
         for(int i=0; i<nnode(); ++i)
         {
             if(m[i]<=0.0)
             continue;
 
-            const Vec3 F = fext[i] + fcon[i] - fint[i] + mr[i]*grav;
+            const Vec3 F = fext[i] + fcon[i] + fpar[i] - fint[i] + mr[i]*grav;
 
             v[i] += dts*(F/mt[i] - alpha*v[i]);
+            if(alpha_struct>0.0 && body[i]>=0)
+            v[i] -= (dts*alpha_struct)*(v[i]-vrig[i]);
 
             if(fixed[i])
             for(int d=0; d<3; ++d)
@@ -279,21 +311,23 @@ void fem_solid::advance(double dt)
             {
                 std::ostringstream os;
                 os<<"FEM: non-finite velocity at node "<<i<<" x "<<x[i].transpose()<<" m "<<m[i]<<" m_f "<<mfl[i]
-                  <<" M_cpl "<<Mcpl[i]<<" M u_f "<<Mu_cpl[i].transpose()<<" f_ext "<<fext[i].transpose()<<" f_int "<<fint[i].transpose()
+                  <<" M_cpl "<<Mcpl[i].transpose()<<" M u_f "<<Mu_cpl[i].transpose()<<" f_ext "<<fext[i].transpose()<<" f_int "<<fint[i].transpose()
                   <<" f_con "<<fcon[i].transpose()<<" intact elements "<<nalive[i];
                 throw std::runtime_error(os.str());
             }
 
             x[i] += dts*v[i];
+            vsum[i] += v[i];
         }
 
         t += dts;
     }
 
-    // force of the attached fluid on the nodes over the step: the parcels
-    // start with u_f and end with the node velocity
     for(int i=0; i<nnode(); ++i)
-    fcpl[i] = (Mcpl[i]>0.0) ? Vec3((Mu_cpl[i] - Mcpl[i]*v[i])/dt) : Vec3::Zero();
+    vbar[i] = vsum[i]/double(nsub);
+
+    // force of the attached fluid on the nodes over the step
+    fcpl = fpar;
 
     if(surf_dirty)
     {
@@ -340,7 +374,7 @@ double fem_solid::strain_energy() const
             for(int a=0; a<8; ++a)
             for(int i=0; i<3; ++i)
             for(int J=0; J<3; ++J)
-            F(i,J) += x[el.n[a]](i)*(ngp==1 ? dN0[a][J] : dNg[g][a][J]);
+            F(i,J) += x[el.n[a]](i)*(ngp==1 ? geom(el).dN0[a][J] : geom(el).dNg[g][a][J]);
 
             Mat3 E = 0.5*(F.transpose()*F - Mat3::Identity());
             const gpstate& st = gps[e*ngp+g];
@@ -355,7 +389,7 @@ double fem_solid::strain_energy() const
 
             const double tr = E.trace();
             Mat3 S = mt.lambda*tr*Mat3::Identity() + 2.0*mt.mu*E;
-            es += (1.0-st.d)*0.5*(S.array()*E.array()).sum()*Vel/double(ngp);
+            es += (1.0-st.d)*0.5*(S.array()*E.array()).sum()*(ngp==1 ? geom(el).V : geom(el).wg[g]);
         }
     }
     return es;
