@@ -47,7 +47,7 @@ void sixdof_obj::update_forces(lexer *p)
         double Fl[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
         
         for(size_t ql=0; ql<pload.size(); ++ql)
-        pload[ql]->add_load(p,rb,geom,Fl);
+        pload[ql]->add_load(p,rb,geom,pfluid,Fl);
         
         for(int qn=0; qn<6; ++qn)
         Fext[qn] += Fl[qn];

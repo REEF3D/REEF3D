@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ship.h"
@@ -30,15 +30,52 @@ Author: Hans Bihs
 #include<iostream>
 #include<sstream>
 #include<cstdio>
+#include<cmath>
+
+namespace
+{
+const double DEG = 3.14159265358979323846/180.0;
+
+double wrap_angle(double a)
+{
+    const double pi = 3.14159265358979323846;
+    while(a> pi) a -= 2.0*pi;
+    while(a<-pi) a += 2.0*pi;
+    return a;
+}
+}
 
 ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    lpp(0.0), S(0.0), k(0.0), nu(p->W2), B44(0.0), B44q(0.0), Cd(0.0),
                                    thrust(0.0), xthrust(0.0), zthrust(0.0),
                                    friction(1), nstrip(40), lpp_in(false), S_in(false),
                                    xa(0.0), xf(0.0), zw(0.0),
+                                   prop(false), xp(0.0), yp(0.0), zp(0.0), Dp(0.0), hub(0.2), nrps(0.0), thick(0.0),
+                                   wake(0.0), sample_d(0.0), tded(0.0),
+                                   sense(1), inflow_mode(0), psource(p->A10==5 ? 1 : 0),
+                                   Va(0.0), J(0.0), KT(0.0), KQ(0.0), Tp(0.0), Qp(0.0),
+                                   rud(false), rmmg_in(false), rmode(0), rcmd(0.0), zz_d(0.0), zz_psi(0.0), zz_t0(0.0),
+                                   ap_psi(0.0), ap_Kp(0.0), ap_Kd(0.0), ap_Ki(0.0),
+                                   rrate(15.0*DEG), rmax(35.0*DEG),
+                                   delta(0.0), tlast(-1.0), psi_c(0.0), psi_last(0.0), psi0(0.0), eint(0.0),
+                                   zz_sign(1), zz_started(false),
+                                   alphaR(0.0), UR(0.0), FN(0.0), XR(0.0), YR(0.0), NR(0.0), KR(0.0),
                                    ub(0.0), vb(0.0), wb(0.0), pb(0.0), qb(0.0), rb_(0.0),
                                    Re(0.0), CF(0.0), XF(0.0), Ycf(0.0), Ncf(0.0), Kroll(0.0)
 {
+    for(int q=0; q<3; ++q)
+    kt[q] = kq[q] = 0.0;
+    
+    // MMG defaults (KVLCC2, Yasukawa & Yoshimura 2015); xH, lR in units of L until ini
+    rp.AR = rp.Lambda = rp.xR = rp.zR = 0.0;
+    rp.tR = 0.39;
+    rp.aH = 0.3;
+    rp.xH = -0.45;
+    rp.eps = 1.1;
+    rp.kappa = 0.5;
+    rp.lR = -0.9;
+    rp.gammaR = 0.4;
+    
     // CFD resolves the wall shear (viscous momentum equations): no correlation-line friction by default
     if(p->A10==6)
     friction = 0;
@@ -52,6 +89,15 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
         
         if(p->mpirank==0)
         cout<<"ship: X 38 1 (local skin friction in the hull loads), ITTC-1957 friction switched off"<<endl;
+    }
+    
+    // the actuator disk is coupled to NHFLOW only
+    if(psource==1 && p->A10!=5)
+    {
+        psource = 0;
+        
+        if(p->mpirank==0)
+        cout<<"ship: propeller_source 1 needs NHFLOW, the thrust acts on the hull only"<<endl;
     }
 }
 
@@ -88,6 +134,7 @@ void ship::read(lexer *p)
         if(!(ls>>key))
         continue;
         
+        // hull
         if(key=="lpp")
         {
             ls>>lpp;
@@ -124,6 +171,113 @@ void ship::read(lexer *p)
             xthrust = zthrust = 0.0;
         }
         
+        // propeller
+        else if(key=="propeller")
+        {
+            ls>>xp>>yp>>zp>>Dp;
+            prop = Dp>0.0;
+        }
+        
+        else if(key=="propeller_hub")
+        ls>>hub;
+        
+        else if(key=="propeller_kt")
+        ls>>kt[0]>>kt[1]>>kt[2];
+        
+        else if(key=="propeller_kq")
+        ls>>kq[0]>>kq[1]>>kq[2];
+        
+        else if(key=="propeller_rps")
+        ls>>nrps;
+        
+        else if(key=="propeller_sense")
+        ls>>sense;
+        
+        else if(key=="propeller_thickness")
+        ls>>thick;
+        
+        else if(key=="propeller_inflow")
+        {
+            string mode;
+            ls>>mode;
+            
+            if(mode=="sample")
+            {
+                inflow_mode = 1;
+                ls>>sample_d;
+            }
+            else
+            {
+                inflow_mode = 0;
+                ls>>wake;
+            }
+        }
+        
+        else if(key=="propeller_source")
+        ls>>psource;
+        
+        else if(key=="thrust_deduction")
+        ls>>tded;
+        
+        // rudder
+        else if(key=="rudder")
+        {
+            ls>>rp.xR>>rp.zR>>rp.AR>>rp.Lambda;
+            rud = rp.AR>0.0 && rp.Lambda>0.0;
+        }
+        
+        else if(key=="rudder_mmg")
+        {
+            ls>>rp.tR>>rp.aH>>rp.xH>>rp.eps>>rp.kappa>>rp.lR>>rp.gammaR;
+            rmmg_in = true;
+        }
+        
+        else if(key=="rudder_angle")
+        {
+            string mode;
+            ls>>mode;
+            
+            if(mode=="zigzag")
+            {
+                rmode = 1;
+                ls>>zz_d>>zz_psi;
+                
+                if(!(ls>>zz_t0))
+                zz_t0 = 0.0;
+                
+                zz_d *= DEG;
+                zz_psi *= DEG;
+            }
+            else if(mode=="autopilot")
+            {
+                rmode = 2;
+                ls>>ap_psi>>ap_Kp>>ap_Kd;
+                
+                if(!(ls>>ap_Ki))
+                ap_Ki = 0.0;
+                
+                ap_psi *= DEG;
+            }
+            else
+            {
+                rmode = 0;
+                ls>>rcmd;
+                rcmd *= DEG;
+            }
+        }
+        
+        else if(key=="rudder_rate")
+        {
+            ls>>rrate;
+            rrate *= DEG;
+        }
+        
+        else if(key=="rudder_max")
+        {
+            ls>>rmax;
+            rmax *= DEG;
+        }
+        
         else if(p->mpirank==0)
         cout<<"ship: unknown keyword in ship.dat: "<<key<<endl;
     }
@@ -145,17 +299,137 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
     if(Cd>0.0)
     ship_hull::draft_strips(g.tri_x0,g.tri_y0,g.tri_z0,g.tricount,zw,xa,xf,nstrip,xs,dx,T);
     
+    // MMG positions in units of L
+    rp.xH *= lpp;
+    rp.lR *= lpp;
+    
+    // actuator disk thickness: resolved by at least 4 cells
+    if(prop && thick<=0.0)
+    thick = 0.2*Dp>4.0*p->DXM ? 0.2*Dp : 4.0*p->DXM;
+    
+    // heading
+    psi_last = psi_c = b.psi;
+    
     if(p->mpirank==0)
     {
         cout<<"ship "<<id<<": L = "<<lpp<<" m, S = "<<S<<" m^2, waterline x = "<<xa<<" .. "<<xf<<" m (from the CoG)"<<endl;
         cout<<"ship "<<id<<": friction "<<friction<<" (1+k) = "<<1.0+k<<", nu = "<<nu
             <<", roll damping "<<B44<<" "<<B44q<<", cross-flow Cd = "<<Cd<<", thrust "<<thrust<<endl;
+        
+        if(prop)
+        cout<<"ship "<<id<<": propeller D = "<<Dp<<" m at ("<<xp<<", "<<yp<<", "<<zp<<"), n = "<<nrps<<" 1/s, disk thickness "<<thick
+            <<" m, inflow "<<(inflow_mode==1 ? "sampled" : "wake fraction")<<", actuator disk in the fluid "<<psource<<endl;
+        
+        if(rud)
+        cout<<"ship "<<id<<": rudder AR = "<<rp.AR<<" m^2, Lambda = "<<rp.Lambda<<" at xR = "<<rp.xR<<" m, mode "
+            <<(rmode==0 ? "fixed" : (rmode==1 ? "zigzag" : "autopilot"))<<endl;
     }
     
     initialized = true;
 }
 
-void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g, double *F)
+void ship::steering(lexer *p, double psi, double r)
+{
+    // rudder machine: once per time step
+    if(!rud || p->simtime==tlast)
+    return;
+    
+    const double dt = tlast<0.0 ? 0.0 : p->simtime - tlast;
+    tlast = p->simtime;
+    
+    double cmd = 0.0;
+    
+    if(rmode==0)
+    cmd = rcmd;
+    
+    if(rmode==1 && p->simtime>=zz_t0)
+    {
+        // zig-zag: starboard rudder first (heading decreases), counter rudder at -psi / +psi
+        if(!zz_started)
+        {
+            zz_started = true;
+            psi0 = psi;
+            zz_sign = 1;
+        }
+        
+        const double dpsi = psi - psi0;
+        
+        if(zz_sign>0 && dpsi<=-zz_psi)
+        zz_sign = -1;
+        
+        else if(zz_sign<0 && dpsi>=zz_psi)
+        zz_sign = 1;
+        
+        cmd = double(zz_sign)*zz_d;
+    }
+    
+    if(rmode==2)
+    {
+        // heading error > 0: turn to port, i.e. rudder to port (delta < 0)
+        const double e = wrap_angle(ap_psi - psi);
+        eint += e*dt;
+        cmd = -ap_Kp*e + ap_Kd*r - ap_Ki*eint;
+    }
+    
+    cmd = cmd> rmax ?  rmax : cmd;
+    cmd = cmd<-rmax ? -rmax : cmd;
+    
+    // rudder rate
+    const double dmax = rrate*dt;
+    const double dd = cmd - delta;
+    
+    delta += dd>dmax ? dmax : (dd<-dmax ? -dmax : dd);
+}
+
+double ship::propeller_inflow(const sixdof_rigidbody &b, sixdof_fluid *fluid, const Eigen::Vector3d &centre, const Eigen::Vector3d &axis)
+{
+    // relative axial inflow on three rings (0.4, 0.7, 0.9 R) of 8 points, sample_d ahead of the disk
+    Eigen::Matrix<double,6,1> u6;
+    b.velocity(u6);
+    const Eigen::Vector3d U(u6(0),u6(1),u6(2)), W(u6(3),u6(4),u6(5));
+    
+    // two unit vectors normal to the axis
+    Eigen::Vector3d e1 = axis.cross(Eigen::Vector3d(0.0,0.0,1.0));
+    
+    if(e1.norm()<1.0e-6)
+    e1 = axis.cross(Eigen::Vector3d(0.0,1.0,0.0));
+    
+    e1.normalize();
+    const Eigen::Vector3d e2 = axis.cross(e1);
+    
+    const double rr[3] = {0.4,0.7,0.9};
+    const int npt = 24;
+    double xyz[3*npt], uvw[3*npt];
+    
+    for(int qr=0; qr<3; ++qr)
+    for(int qa=0; qa<8; ++qa)
+    {
+        const double ang = 2.0*3.14159265358979323846*double(qa)/8.0;
+        const Eigen::Vector3d x = centre + sample_d*axis + 0.5*Dp*rr[qr]*(cos(ang)*e1 + sin(ang)*e2);
+        const int q = 8*qr + qa;
+        
+        xyz[3*q] = x(0);
+        xyz[3*q+1] = x(1);
+        xyz[3*q+2] = x(2);
+    }
+    
+    fluid->velocity(npt,xyz,uvw);
+    
+    double va=0.0;
+    
+    for(int q=0; q<npt; ++q)
+    {
+        const Eigen::Vector3d x(xyz[3*q],xyz[3*q+1],xyz[3*q+2]);
+        const Eigen::Vector3d ubody = U + W.cross(x - b.c);
+        const Eigen::Vector3d uf(uvw[3*q],uvw[3*q+1],uvw[3*q+2]);
+        
+        va += (ubody - uf).dot(axis);
+    }
+    
+    return va/double(npt);
+}
+
+void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g, sixdof_fluid *fluid, double *F)
 {
     if(!initialized)
     ini(p,b,g);
@@ -172,9 +446,14 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     ub = u(0); vb = u(1); wb = u(2);
     pb = w(0); qb = w(1); rb_ = w(2);
     
+    // continuous heading
+    psi_c += wrap_angle(b.psi - psi_last);
+    psi_last = b.psi;
+    
     // loads in the ship frame
     Eigen::Vector3d Fs(0.0,0.0,0.0), Ms(0.0,0.0,0.0);
     
+    // hull
     XF = 0.0;
     if(friction==1 && S>0.0 && lpp>0.0)
     XF = ship_models::friction(p->W1,nu,S,lpp,k,ub,Re,CF);
@@ -192,6 +471,55 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     Ms(1) = zthrust*thrust;
     Ms(2) = Ncf;
     
+    // propeller
+    if(prop)
+    {
+        const Eigen::Vector3d pos(xp,yp,zp), axb(1.0,0.0,0.0);
+        const Eigen::Vector3d centre = b.c + b.R*pos;
+        const Eigen::Vector3d axis = b.R*axb;
+        
+        if(inflow_mode==1 && fluid!=nullptr)
+        Va = propeller_inflow(b,fluid,centre,axis);
+        else
+        Va = (1.0-wake)*ub;
+        
+        ship_models::propeller(p->W1,nrps,Dp,kt,kq,Va,J,KT,KQ,Tp,Qp);
+        
+        // thrust on the hull: with the actuator disk the thrust deduction comes from the flow
+        const double Th = psource==1 ? Tp : (1.0-tded)*Tp;
+        const Eigen::Vector3d Fp = Th*axb;
+        
+        Fs += Fp;
+        Ms += pos.cross(Fp);
+        
+        // shaft torque reaction on the hull
+        Ms += -double(sense)*Qp*axb;
+        
+        disk.centre = centre;
+        disk.axis = axis;
+        disk.R = 0.5*Dp;
+        disk.Rh = hub*0.5*Dp;
+        disk.thickness = thick;
+        disk.T = Tp;
+        disk.Q = Qp;
+        disk.sense = sense;
+    }
+    
+    // rudder
+    if(rud)
+    {
+        steering(p,psi_c,rb_);
+        
+        const double uP = prop ? Va : (1.0-wake)*ub;
+        
+        ship_models::rudder_mmg(p->W1,rp,ub,vb,rb_,delta,prop ? Dp : 0.0,nrps,KT,uP,XR,YR,NR,KR,alphaR,UR,FN);
+        
+        Fs(0) += XR;
+        Fs(1) += YR;
+        Ms(0) += KR;
+        Ms(2) += NR;
+    }
+    
     // inertial frame
     const Eigen::Vector3d FI = b.R*Fs;
     const Eigen::Vector3d MI = b.R*Ms;
@@ -201,6 +529,12 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         F[n]   += FI(n);
         F[n+3] += MI(n);
     }
+}
+
+void ship::actuator_disks(vector<sixdof_actuator_disk> &d) const
+{
+    if(prop && psource==1 && initialized)
+    d.push_back(disk);
 }
 
 void ship::print(lexer *p)
@@ -213,8 +547,12 @@ void ship::print(lexer *p)
         char name[1000];
         snprintf(name,sizeof(name),"%s/REEF3D_ship_%i.dat",sixdof_output_dir(p),id);
         out.open(name);
-        out<<"time \t u [m/s] \t v [m/s] \t r [rad/s] \t Re \t C_F \t X_F [N] \t Y_cf [N] \t N_cf [Nm] \t K_roll [Nm] \t T [N]"<<endl;
+        out<<"time \t u [m/s] \t v [m/s] \t r [rad/s] \t psi [deg] \t Re \t C_F \t X_F [N] \t Y_cf [N] \t N_cf [Nm] \t K_roll [Nm] \t T_const [N]"
+           <<" \t n [1/s] \t Va [m/s] \t J \t KT \t KQ \t T [N] \t Q [Nm]"
+           <<" \t delta [deg] \t alpha_R [deg] \t U_R [m/s] \t F_N [N] \t X_R [N] \t Y_R [N] \t N_R [Nm]"<<endl;
     }
     
-    out<<p->simtime<<" \t "<<ub<<" \t "<<vb<<" \t "<<rb_<<" \t "<<Re<<" \t "<<CF<<" \t "<<XF<<" \t "<<Ycf<<" \t "<<Ncf<<" \t "<<Kroll<<" \t "<<thrust<<endl;
+    out<<p->simtime<<" \t "<<ub<<" \t "<<vb<<" \t "<<rb_<<" \t "<<psi_c/DEG<<" \t "<<Re<<" \t "<<CF<<" \t "<<XF<<" \t "<<Ycf<<" \t "<<Ncf<<" \t "<<Kroll<<" \t "<<thrust
+       <<" \t "<<nrps<<" \t "<<Va<<" \t "<<J<<" \t "<<KT<<" \t "<<KQ<<" \t "<<Tp<<" \t "<<Qp
+       <<" \t "<<delta/DEG<<" \t "<<alphaR/DEG<<" \t "<<UR<<" \t "<<FN<<" \t "<<XR<<" \t "<<YR<<" \t "<<NR<<endl;
 }

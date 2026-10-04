@@ -41,6 +41,10 @@ void sixdof_nhflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+    // actuator disks of the load models (ship propellers)
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->actuator_source(p,d,pgc,WL,0,d->F);
+    
     if(p->X10==3)
     LOOP
     {
@@ -57,6 +61,10 @@ void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
 void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+    // actuator disks of the load models (ship propellers)
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->actuator_source(p,d,pgc,WL,1,d->G);
+    
     if(p->X10==3)
     LOOP
     {
@@ -73,6 +81,10 @@ void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
 void sixdof_nhflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+    // actuator disks of the load models (ship propellers)
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->actuator_source(p,d,pgc,WL,2,d->H);
+    
 }
 
 void sixdof_nhflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)

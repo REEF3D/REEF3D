@@ -2479,6 +2479,7 @@
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Core">
           <File Name="6DOF_rigidbody.cpp"/>
+          <File Name="6DOF_actuator_disk.cpp"/>
           <VirtualDirectory Name="Geometry">
             <File Name="6DOF_geometry.cpp"/>
             <File Name="6DOF_geometry_stl.cpp"/>
@@ -2576,6 +2577,7 @@
           <VirtualDirectory Name="Forces NHFLOW">
             <File Name="6DOF_obj_forcing_nhflow_porous.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_viscous.cpp"/>
+            <File Name="6DOF_obj_nhflow_actuator.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_volume.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_stl2.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_lsm.cpp"/>

@@ -1,0 +1,11 @@
+# Architect: Hans Bihs
+# Regression: cylinder-on-cone bag (Strand et al. 2013 cage, model scale), coarse grid
+# fixed bag in a current, HLLC (A 511 2), discharge inflow with potential-flow start
+membrane cylcone 1 1.2 0.38 0.9 1.2 1.53
+name strand2013
+resistance 1.0e3 1.0e3
+thickness 0.15000000000000002
+projections 2
+print 0
+structure fixed
+floorpressure 0

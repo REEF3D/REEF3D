@@ -27,6 +27,18 @@ Authors: Hans Bihs, Tobias Martin
 
 class nhflow_reinidisc_fsf;
 
+//  Fluid access of the load models (ship module) in NHFLOW: velocity at points, MPI-summed
+class sixdof_fluid_nhflow : public sixdof_fluid
+{
+public:
+    sixdof_fluid_nhflow(lexer *pp, fdm_nhf *dd, ghostcell *gc) : p(pp), d(dd), pgc(gc) {}
+    void velocity(int, const double*, double*) override;
+private:
+    lexer *p;
+    fdm_nhf *d;
+    ghostcell *pgc;
+};
+
 //  6DOF body coupled to REEF3D::NHFLOW: level set of the body on the sigma grid, direct
 //  forcing, hull pressure and viscous loads, membranes (X 330), porous bodies (X 16) and
 //  the wavemaker objects (X 10 4). The ship-wave mode (X 10 3) uses the 2D pressure patch.
@@ -61,6 +73,11 @@ public:
     void porosity_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void porous_damping_nhflow(lexer*, int);
     void ray_cast_nhflow_grid(lexer*, fdm_nhf*, ghostcell*, int*, int*, int*, double);
+    
+    // actuator disks of the load models (body-force propellers): momentum source of the
+    // component comp (0 x, 1 y, 2 z) added to the right-hand side F (NHFLOW form, times WL)
+    void actuator_source(lexer*, fdm_nhf*, ghostcell*, slice&, int, double*);
+    bool actuator_warned = false;
     double nhflow_dsm() const {return DSM;}
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;

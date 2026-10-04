@@ -75,8 +75,10 @@ public:
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
     
-    // external load models (e.g. the ship module, X 350), owned by the body
+    // external load models (e.g. the ship module, X 350), owned by the body, and the fluid access
+    // of the solver coupling during update_forces (nullptr: none)
     vector<sixdof_load*> pload;
+    sixdof_fluid *pfluid = nullptr;
 	
     
     

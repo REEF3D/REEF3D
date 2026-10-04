@@ -50,7 +50,13 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
 {
     externalForces_nhflow(p, d, pgc, alpha[iter], finalize);
 
+    // load models (ship module) sample the NHFLOW velocity
+    sixdof_fluid_nhflow fluid(p,d,pgc);
+    pfluid = &fluid;
+    
     update_forces(p);
+    
+    pfluid = nullptr;
     
     // membranes (X 330) attached to the body: added-mass stabilisation of the partitioned coupling
     if(p->X330>0)

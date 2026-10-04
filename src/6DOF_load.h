@@ -17,21 +17,57 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef SIXDOF_LOAD_H_
 #define SIXDOF_LOAD_H_
 
+#include<vector>
+#include<Eigen/Dense>
+
 class lexer;
 class sixdof_rigidbody;
 class sixdof_geometry;
+
+//  Fluid access of a load model, provided by the solver coupling (nullptr if the coupling has none):
+//   velocity: fluid velocity at n points xyz[3n] (inertial frame); all ranks call it with the
+//             same points and get the same result (points outside the domain: 0)
+class sixdof_fluid
+{
+public:
+    virtual ~sixdof_fluid() {}
+    
+    virtual void velocity(int n, const double *xyz, double *uvw)=0;
+};
+
+//  Actuator disk (body-force propeller) as a momentum source of the fluid, inertial frame.
+//  The propeller pushes the fluid with the force -T along the axis and swirls it with the
+//  torque Q in the direction of the blade motion; the body gets +T along the axis (and the
+//  shaft torque reaction, applied by the load model itself). The coupling distributes force
+//  and torque over the cells inside the disk with the Hough-Ordway radial distribution,
+//  normalised on its own grid so that the discrete totals are exactly T and Q.
+struct sixdof_actuator_disk
+{
+    Eigen::Vector3d centre;     // disk centre
+    Eigen::Vector3d axis;       // unit vector, direction of the thrust on the body
+    double R, Rh;               // tip and hub radius
+    double thickness;           // axial extent of the source region
+    double T, Q;                // thrust [N] and torque [Nm] of the propeller
+    int sense;                  // +1: blades turn right-handed about the axis, -1: left-handed
+    
+    // Hough-Ordway weights at point x: axial weight wa >= 0 (force density -T wa/sum(wa V) along
+    // the axis), tangential weight wt >= 0 (force density Q wt/sum(wt r V) along et) and et, the
+    // unit vector of the blade motion, with the distance r from the axis; false outside the disk
+    bool weights(const Eigen::Vector3d &x, double &wa, double &wt, Eigen::Vector3d &et, double &r) const;
+};
 
 //  External load model acting on a 6DOF body (solver independent), e.g. the ship module:
 //  evaluated with the body state of every stage, before the rigid-body right-hand side.
 //
 //  add_load: add the load to F[0..5] = X, Y, Z, K, M, N (inertial frame, moments about the
-//            centre of gravity)
+//            centre of gravity); fluid: velocity sampling of the coupling (may be nullptr)
+//  actuator_disks: momentum sources of the fluid (body-force propellers) of the last add_load
 //  print:    output once per time step (rank 0 decides inside)
 
 class sixdof_load
@@ -39,7 +75,8 @@ class sixdof_load
 public:
     virtual ~sixdof_load() {}
     
-    virtual void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, double*)=0;
+    virtual void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, sixdof_fluid*, double*)=0;
+    virtual void actuator_disks(std::vector<sixdof_actuator_disk>&) const {}
     virtual void print(lexer*) {}
 };
 
