@@ -553,10 +553,17 @@ void fem_coupling::probe_pressure(lexer *p, fdm *a, const Vec3& xp, const Vec3& 
     if(p->ccipol4a(a->solid,pr(0),pr(1),pr(2))>=0.0 && p->ccipol4a(a->topo,pr(0),pr(1),pr(2))>=0.0)
     {
         const double phi = p->ccipol4(a->phi,pr(0),pr(1),pr(2));
+        // the probe lies off*dx outside: its pressure is taken back to the
+        // surface with the hydrostatic gradient of the fluid at the probe
+        // (otherwise a floating body gets rho g A off*dx too much buoyancy)
         if(hydrostatic)
-        b[4] = (phi>=0.0) ? p->W1*std::fabs(p->W22)*std::max(p->phimean-pr(2),0.0) : 0.0;
+        b[4] = (phi>=0.0) ? p->W1*std::fabs(p->W22)*std::max(p->phimean-xp(2),0.0) : 0.0;
         else
-        b[4] = p->ccipol4a(a->press,pr(0),pr(1),pr(2)) - p->pressgage;
+        {
+            const double rho = p->ccipol4(a->ro,pr(0),pr(1),pr(2));
+            const double gdx = p->W20*(pr(0)-xp(0)) + (p->j_dir==1 ? p->W21*(pr(1)-xp(1)) : 0.0) + p->W22*(pr(2)-xp(2));
+            b[4] = p->ccipol4a(a->press,pr(0),pr(1),pr(2)) - p->pressgage - rho*gdx;
+        }
         b[5] = 1.0;
         b[6] = phi>=0.0 ? 1.0 : 0.0;
     }

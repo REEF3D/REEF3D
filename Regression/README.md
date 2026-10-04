@@ -123,6 +123,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_ship_box_6dof` | 2 | ship module, all six DOFs: cross-flow drag (strips), roll damping |
 | `nhflow_3d_ship_box_propeller` | 2 | ship module propeller: KT/KQ, wake fraction, Hough-Ordway actuator disk as NHFLOW momentum source, shaft torque reaction |
 | `nhflow_3d_ship_box_zigzag` | 2 | ship module, surge/sway/heave/yaw: propeller with sampled inflow (NHFLOW velocity), MMG rudder, zig-zag steering with rudder rate |
+| `nhflow_3d_ship_box_yawfree` | 2 | ship box with sway and yaw free, side faces through cell centres: level set = 0 on the surface, X 15 1 forcing ramp, no side force / yaw kick |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
