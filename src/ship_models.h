@@ -36,6 +36,9 @@ Architect: Hans Bihs
 //  roll:       linear and quadratic roll damping  K = -B44 p - B44q |p| p
 //  propeller:  T = rho n^2 D^4 KT(J), Q = rho n^2 D^5 KQ(J), J = Va/(n D)
 //  rudder:     MMG standard method (Yasukawa & Yoshimura 2015)
+//  mmg_hull:   MMG hull forces from hydrodynamic derivatives (Yasukawa & Yoshimura 2015), about
+//              midship, with the lateral velocity vm at midship
+//  mmg_wake:   MMG propeller wake fraction in manoeuvring, 1 - wP = (1 - wP0)(1 + (1 - exp(-C1 |bP|))(C2 - 1))
 
 class ship_models
 {
@@ -74,7 +77,9 @@ public:
         double eps;     // wake ratio of propeller and rudder (1-wR)/(1-wP)
         double kappa;   // propeller slipstream factor
         double lR;      // effective longitudinal position of the rudder for the flow straightening [m]
-        double gammaR;  // flow straightening coefficient
+        double gammaR;  // flow straightening coefficient (beta_R < 0, or both signs if gammaRp < 0)
+        double gammaRp; // flow straightening coefficient for beta_R > 0 (< 0: gammaR for both)
+        double falpha;  // lift gradient coefficient (<= 0: 6.13 Lambda/(Lambda + 2.25))
     };
     
     // u, v, r: ship velocities; delta [rad]; propeller (D, n, KT, uP = (1-wP) u; D = 0: none):
@@ -82,6 +87,20 @@ public:
     static void rudder_mmg(double rho, const rudder_param&, double u, double v, double r, double delta,
                            double D, double n, double KT, double uP,
                            double &X, double &Y, double &N, double &K, double &alphaR, double &UR, double &FN);
+    
+    // MMG hull hydrodynamic derivatives, nondimensional with 1/2 rho L d U^2 (forces) and
+    // 1/2 rho L^2 d U^2 (moment), v' = vm/U, r' = r L/U:
+    // c[17] = R0, Xvv, Xvr, Xrr, Xvvvv, Yv, Yr, Yvvv, Yvvr, Yvrr, Yrrr, Nv, Nr, Nvvv, Nvvr, Nvrr, Nrrr.
+    // The Y and N terms are odd and the X terms even in (v, r), so the same expressions hold in the
+    // ship frame (y to port, r positive to port) and in the MMG frame (y to starboard).
+    // u, vm: velocities at midship, r: yaw rate; returns X, Y and the yaw moment N about midship.
+    // U is limited to Umin in the denominators of the higher-order terms (start from rest).
+    static void mmg_hull(double rho, double L, double d, const double *c, double u, double vm, double r, double Umin,
+                         double &X, double &Y, double &N);
+    
+    // MMG wake fraction in manoeuvring; betaP = beta - x'P r' in the MMG frame, which is
+    // atan2(vm,u) + x'P r L/U in the ship frame (y to port); C2 for betaP > 0 and betaP < 0
+    static double mmg_wake(double wP0, double C1, double C2p, double C2n, double betaP);
 };
 
 #endif

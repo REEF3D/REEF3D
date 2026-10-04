@@ -42,6 +42,9 @@ void sixdof_obj::update_forces(lexer *p)
     double Fext[6] = {Xext + Xe, Yext + Ye, Zext + Ze, Kext + Ke, Mext + Me, Next + Ne};
     
     // load models (ship module): evaluated with the state of the stage
+    bool am_load = false;
+    Eigen::Matrix<double,6,6> A_load;
+    
     if(!pload.empty())
     {
         double Fl[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
@@ -49,8 +52,35 @@ void sixdof_obj::update_forces(lexer *p)
         for(size_t ql=0; ql<pload.size(); ++ql)
         pload[ql]->add_load(p,rb,geom,pfluid,Fl);
         
+        // hydrodynamic loads of the coupling that a model replaces (e.g. MMG manoeuvring)
+        double w[6] = {1.0,1.0,1.0,1.0,1.0,1.0};
+        
+        for(size_t ql=0; ql<pload.size(); ++ql)
+        pload[ql]->fluid_mask(w);
+        
+        const double Fh[6] = {Xe, Ye, Ze, Ke, Me, Ne};
+        
         for(int qn=0; qn<6; ++qn)
-        Fext[qn] += Fl[qn];
+        {
+            if(w[qn]!=1.0)
+            Fext[qn] -= (1.0 - w[qn])*Fh[qn];
+            
+            Fext[qn] += Fl[qn];
+        }
+        
+        // added mass of the models (body frame) -> inertial frame
+        Eigen::Matrix<double,6,6> Ab = Eigen::Matrix<double,6,6>::Zero();
+        
+        for(size_t ql=0; ql<pload.size(); ++ql)
+        am_load = pload[ql]->added_mass(rb,Ab) || am_load;
+        
+        if(am_load)
+        {
+            Eigen::Matrix<double,6,6> T = Eigen::Matrix<double,6,6>::Zero();
+            T.block<3,3>(0,0) = rb.R;
+            T.block<3,3>(3,3) = rb.R;
+            A_load = T*Ab*T.transpose();
+        }
     }
     
     rb.assemble_loads(Fext);
@@ -75,11 +105,11 @@ void sixdof_obj::update_forces(lexer *p)
     cout<<"Mfb_(2)....###"<<endl;
     
     // FNPF: instantaneous added mass (and implicit PTO terms, X 500 2) on the left-hand side
-    if(am_on_ || (pto_on_ && pto_implicit_))
-    apply_added_mass(p);
+    if(am_on_ || am_load || (pto_on_ && pto_implicit_))
+    apply_added_mass(p, am_load ? &A_load : nullptr);
 }
 
-void sixdof_obj::apply_added_mass(lexer *p)
+void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double,6,6> *A_extra)
 {
     // Rigid body with the instantaneous added mass A (inertial frame, moments about the CoG):
     //   [M I + A_tt   A_tr    ] [a    ]   [ F                ]
@@ -94,7 +124,17 @@ void sixdof_obj::apply_added_mass(lexer *p)
     const Eigen::Vector3d w = omega_I;
     const Eigen::Vector3d gyro = w.cross(II*w);
     
+    // FNPF added mass (am_on_) and that of the load models (A_extra, e.g. MMG)
     Eigen::Matrix<double,6,6> L = Aadd_;
+    
+    if(A_extra!=nullptr)
+    {
+        if(!am_on_)
+        L = *A_extra;
+        else
+        L += *A_extra;
+    }
+    
     L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
     L.block<3,3>(3,3) += II;
     

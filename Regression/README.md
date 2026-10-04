@@ -151,6 +151,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_amr_adaptive` | 1 | NHFLOW AMR solution-adaptive (A 273, A 282), ring wave from an F 72 hump, regrid every step: tagging, F 72 boxes on fresh patches |
 | `nhflow_3d_amr_wetdry` | 1 | NHFLOW AMR wetting and drying in the patches (A 283): beach and cone island, a box crossing the island shoreline, run-up at t = 0 (wet flags of the cells around a patch, lexer::wetfix, covered-cell flags) |
 | `nhflow_3d_amr_wetdry_adaptive` (+ `_mpi2`) | 1/2 | the same with the shoreline flag (A 284) only, regrid every step, layout changes from step 116; `_mpi2`: partition edge through the island |
+| `nhflow_3d_amr_wetdry_n14d` | 1 | `nhflow_3d_amr_wetdry` with the V-cycles of the AMR pressure preconditioner in double (N 14 64; the default N 14 32 keeps them in float) |
 | `nhflow_3d_amr_breaking` | 1 | NHFLOW AMR wave breaking (A 550 1, A 512 2): a bore runs into a static patch; patch implicit diffusion with a patch-local BiCGStab, filled cells take the source grid's breaking (lexer::amrvb) |
 | `nhflow_3d_amr_breaking_adaptive` (+ `_mpi2`) | 1/2 | breaking with the adaptive patch following the bore (A 273, A 285), wetting and drying, regrid every step; `_mpi2`: different patch counts per rank (local reductions, gcparaxijk_single) |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |

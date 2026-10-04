@@ -308,7 +308,7 @@ protected:
     
     // FNPF: classical RK4 stage derivatives and the added-mass coupling
     void rk4(lexer*, ghostcell*, int);
-    void apply_added_mass(lexer*);
+    void apply_added_mass(lexer*, const Eigen::Matrix<double,6,6>* = nullptr);
     bool p_fixed_dof(lexer*, int);
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;

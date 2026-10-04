@@ -51,6 +51,9 @@ using namespace std;
 //   strips         n            strips for the cross-flow drag         (default 40)
 //   thrust         T [x z]      constant thrust along the ship x-axis [N] at (x, z) relative
 //                               to the CoG in the ship frame           (default 0)
+//   current        Ux Uy        uniform current, inertial frame [m/s]: the hull, propeller and
+//                               rudder models use the velocity relative to it (ship held in a
+//                               current instead of towed)              (default 0 0)
 //
 //  propeller (body force, Hough-Ordway actuator disk)
 //   propeller      x y z D      disk centre relative to the CoG [m], diameter [m]
@@ -74,6 +77,21 @@ using namespace std;
 //   rudder_angle   autopilot psi Kp Kd [Ki]   heading autopilot, target heading [deg]
 //   rudder_rate    r            maximum rudder rate [deg/s]            (default 15)
 //   rudder_max     d            maximum rudder angle [deg]             (default 35)
+//   rudder_falpha  f            lift gradient coefficient              (default 6.13 Lambda/(Lambda+2.25))
+//   rudder_gamma   gn gp        flow straightening coefficient for beta_R < 0 and > 0
+//                               (default: gammaR of rudder_mmg for both)
+//   xH and lR are given in units of L; xH is measured from midship (the middle of the
+//   waterline), xR from the CoG.
+//
+//  MMG manoeuvring model (Yasukawa & Yoshimura 2015; nondimensional with L, d and U)
+//   mmg_hull       R0 Xvv Xvr Xrr Xvvvv Yv Yr Yvvv Yvvr Yvrr Yrrr Nv Nr Nvvv Nvvr Nvrr Nrrr
+//                               hull hydrodynamic derivatives about midship
+//   mmg_added_mass mx my Jz     added masses (about midship); solved implicitly by the coupling
+//   mmg_fluid      0|1          0: the hydrodynamic loads of the solver in surge, sway and yaw
+//                               (inertial X, Y, N) are replaced by the MMG model (default 1)
+//   mmg_draft      d            draft for the nondimensionalisation    (default: from the hull)
+//   propeller_wake_mmg C1 C2p C2n xP   MMG wake in manoeuvring with wP0 = propeller_inflow wake,
+//                               xP: propeller position from midship in units of L
 //
 //  The ship frame is the body frame of the 6DOF object (x forward, y to port, z up at the start);
 //  headings psi are counter-clockwise from x.
@@ -88,6 +106,8 @@ public:
     
     void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, sixdof_fluid*, double*) override;
     void actuator_disks(vector<sixdof_actuator_disk>&) const override;
+    bool added_mass(const sixdof_rigidbody&, Eigen::Matrix<double,6,6>&) const override;
+    void fluid_mask(double*) const override;
     void print(lexer*) override;
     
 private:
@@ -101,7 +121,7 @@ private:
     bool initialized;
     
     // hull
-    double lpp, S, k, nu, B44, B44q, Cd, thrust, xthrust, zthrust;
+    double lpp, S, k, nu, B44, B44q, Cd, thrust, xthrust, zthrust, Ucur[2];
     int friction, nstrip;
     bool lpp_in, S_in;
     double xa, xf, zw;
@@ -125,6 +145,13 @@ private:
     int zz_sign;
     bool zz_started;
     double alphaR, UR, FN, XR, YR, NR, KR;
+    
+    // MMG manoeuvring model
+    bool mmg, mmg_am, pwake_mmg, mmg_draft_in;
+    int mmg_fluid;
+    double mmgc[17], mmg_mx, mmg_my, mmg_Jz, mmg_d, xm, Umin, rho_am;
+    double wC1, wC2p, wC2n, wxP;
+    double XH, YH, NH;
     
     // loads of the last evaluation, ship frame
     double ub, vb, wb, pb, qb, rb_;

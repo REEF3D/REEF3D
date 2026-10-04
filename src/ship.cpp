@@ -60,11 +60,16 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    delta(0.0), tlast(-1.0), psi_c(0.0), psi_last(0.0), psi0(0.0), eint(0.0),
                                    zz_sign(1), zz_started(false),
                                    alphaR(0.0), UR(0.0), FN(0.0), XR(0.0), YR(0.0), NR(0.0), KR(0.0),
+                                   mmg(false), mmg_am(false), pwake_mmg(false), mmg_draft_in(false), mmg_fluid(1),
+                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0),
+                                   wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0),
                                    ub(0.0), vb(0.0), wb(0.0), pb(0.0), qb(0.0), rb_(0.0),
                                    Re(0.0), CF(0.0), XF(0.0), Ycf(0.0), Ncf(0.0), Kroll(0.0)
 {
     for(int q=0; q<3; ++q)
     kt[q] = kq[q] = 0.0;
+    
+    Ucur[0] = Ucur[1] = 0.0;
     
     // MMG defaults (KVLCC2, Yasukawa & Yoshimura 2015); xH, lR in units of L until ini
     rp.AR = rp.Lambda = rp.xR = rp.zR = 0.0;
@@ -75,6 +80,11 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
     rp.kappa = 0.5;
     rp.lR = -0.9;
     rp.gammaR = 0.4;
+    rp.gammaRp = -1.0;
+    rp.falpha = 0.0;
+    
+    for(int q=0; q<17; ++q)
+    mmgc[q] = 0.0;
     
     // CFD resolves the wall shear (viscous momentum equations): no correlation-line friction by default
     if(p->A10==6)
@@ -162,6 +172,9 @@ void ship::read(lexer *p)
         
         else if(key=="strips")
         ls>>nstrip;
+        
+        else if(key=="current")
+        ls>>Ucur[0]>>Ucur[1];
         
         else if(key=="thrust")
         {
@@ -278,6 +291,42 @@ void ship::read(lexer *p)
             rmax *= DEG;
         }
         
+        else if(key=="rudder_falpha")
+        ls>>rp.falpha;
+        
+        else if(key=="rudder_gamma")
+        ls>>rp.gammaR>>rp.gammaRp;
+        
+        // MMG manoeuvring model
+        else if(key=="mmg_hull")
+        {
+            for(int q=0; q<17; ++q)
+            ls>>mmgc[q];
+            
+            mmg = true;
+        }
+        
+        else if(key=="mmg_added_mass")
+        {
+            ls>>mmg_mx>>mmg_my>>mmg_Jz;
+            mmg_am = true;
+        }
+        
+        else if(key=="mmg_fluid")
+        ls>>mmg_fluid;
+        
+        else if(key=="mmg_draft")
+        {
+            ls>>mmg_d;
+            mmg_draft_in = true;
+        }
+        
+        else if(key=="propeller_wake_mmg")
+        {
+            ls>>wC1>>wC2p>>wC2n>>wxP;
+            pwake_mmg = true;
+        }
+        
         else if(p->mpirank==0)
         cout<<"ship: unknown keyword in ship.dat: "<<key<<endl;
     }
@@ -299,9 +348,29 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
     if(Cd>0.0)
     ship_hull::draft_strips(g.tri_x0,g.tri_y0,g.tri_z0,g.tricount,zw,xa,xf,nstrip,xs,dx,T);
     
-    // MMG positions in units of L
-    rp.xH *= lpp;
+    // midship: middle of the waterline, in the CoG frame
+    xm = 0.5*(xa + xf);
+    
+    // MMG positions in units of L; xH from midship
+    rp.xH = rp.xH*lpp + xm;
     rp.lR *= lpp;
+    
+    // MMG draft: deepest hull point below the still water level
+    if(!mmg_draft_in)
+    {
+        double zmin = zw;
+        
+        for(int n=0; n<g.tricount; ++n)
+        for(int q=0; q<3; ++q)
+        zmin = g.tri_z0[n][q]<zmin ? g.tri_z0[n][q] : zmin;
+        
+        mmg_d = zw - zmin;
+    }
+    
+    rho_am = p->W1;
+    
+    // velocity limit in the denominators of the MMG polynomials
+    Umin = 0.01*sqrt(9.81*(lpp>0.0 ? lpp : 1.0));
     
     // actuator disk thickness: resolved by at least 4 cells
     if(prop && thick<=0.0)
@@ -323,6 +392,10 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
         if(rud)
         cout<<"ship "<<id<<": rudder AR = "<<rp.AR<<" m^2, Lambda = "<<rp.Lambda<<" at xR = "<<rp.xR<<" m, mode "
             <<(rmode==0 ? "fixed" : (rmode==1 ? "zigzag" : "autopilot"))<<endl;
+        
+        if(mmg || mmg_am)
+        cout<<"ship "<<id<<": MMG hull "<<mmg<<", added mass "<<mmg_am<<", L = "<<lpp<<" m, d = "<<mmg_d
+            <<" m, midship at x = "<<xm<<" m from the CoG, fluid loads in surge/sway/yaw "<<(mmg_fluid==1 ? "on" : "off")<<endl;
     }
     
     initialized = true;
@@ -438,7 +511,8 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     Eigen::Matrix<double,6,1> u6;
     b.velocity(u6);
     
-    const Eigen::Vector3d uI(u6(0),u6(1),u6(2));
+    // velocity relative to the water: a uniform current (inertial frame) is subtracted
+    const Eigen::Vector3d uI(u6(0) - Ucur[0], u6(1) - Ucur[1], u6(2));
     const Eigen::Vector3d wI(u6(3),u6(4),u6(5));
     const Eigen::Vector3d u = b.R.transpose()*uI;
     const Eigen::Vector3d w = b.R.transpose()*wI;
@@ -471,6 +545,33 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     Ms(1) = zthrust*thrust;
     Ms(2) = Ncf;
     
+    // MMG hull forces about midship (xG = -xm: CoG ahead of midship), moved to the CoG
+    const double xG = -xm;
+    const double vm = vb - xG*rb_;
+    
+    XH = YH = NH = 0.0;
+    
+    if(mmg)
+    {
+        ship_models::mmg_hull(p->W1,lpp,mmg_d,mmgc,ub,vm,rb_,Umin,XH,YH,NH);
+        
+        Fs(0) += XH;
+        Fs(1) += YH;
+        Ms(2) += NH - xG*YH;
+    }
+    
+    // MMG added mass: velocity terms of the equations of motion (the acceleration terms are
+    // solved by the coupling with added_mass()); the Munk moment is part of N'v
+    if(mmg_am)
+    {
+        const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
+        const double mx = mmg_mx*fm, my = mmg_my*fm;
+        
+        Fs(0) += my*vm*rb_ - mx*vb*rb_;
+        Fs(1) += (my - mx)*ub*rb_;
+        Ms(2) += xG*(mx - my)*ub*rb_;
+    }
+    
     // propeller
     if(prop)
     {
@@ -480,6 +581,15 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         
         if(inflow_mode==1 && fluid!=nullptr)
         Va = propeller_inflow(b,fluid,centre,axis);
+        
+        else if(pwake_mmg)
+        {
+            const double U = sqrt(ub*ub + vm*vm);
+            const double betaP = U>1.0e-10 ? atan2(vm,ub) + wxP*rb_*lpp/U : 0.0;
+            
+            Va = (1.0 - ship_models::mmg_wake(wake,wC1,wC2p,wC2n,betaP))*ub;
+        }
+        
         else
         Va = (1.0-wake)*ub;
         
@@ -512,7 +622,7 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         
         const double uP = prop ? Va : (1.0-wake)*ub;
         
-        ship_models::rudder_mmg(p->W1,rp,ub,vb,rb_,delta,prop ? Dp : 0.0,nrps,KT,uP,XR,YR,NR,KR,alphaR,UR,FN);
+        ship_models::rudder_mmg(p->W1,rp,ub,vm,rb_,delta,prop ? Dp : 0.0,nrps,KT,uP,XR,YR,NR,KR,alphaR,UR,FN);
         
         Fs(0) += XR;
         Fs(1) += YR;
@@ -529,6 +639,32 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         F[n]   += FI(n);
         F[n+3] += MI(n);
     }
+}
+
+bool ship::added_mass(const sixdof_rigidbody &b, Eigen::Matrix<double,6,6> &A) const
+{
+    // MMG added masses about midship moved to the CoG (kinetic energy with vm = v - xG r):
+    // surge mx, sway my, yaw Jz + my xG^2, sway-yaw -my xG
+    if(!mmg_am || !initialized)
+    return false;
+    
+    const double f = 0.5*rho_am*lpp*lpp*mmg_d;
+    const double mx = mmg_mx*f, my = mmg_my*f, Jz = mmg_Jz*f*lpp*lpp;
+    const double xG = -xm;
+    
+    A(0,0) += mx;
+    A(1,1) += my;
+    A(5,5) += Jz + my*xG*xG;
+    A(1,5) += -my*xG;
+    A(5,1) += -my*xG;
+    
+    return true;
+}
+
+void ship::fluid_mask(double *w) const
+{
+    if((mmg || mmg_am) && mmg_fluid==0)
+    w[0] = w[1] = w[5] = 0.0;
 }
 
 void ship::actuator_disks(vector<sixdof_actuator_disk> &d) const
@@ -549,10 +685,20 @@ void ship::print(lexer *p)
         out.open(name);
         out<<"time \t u [m/s] \t v [m/s] \t r [rad/s] \t psi [deg] \t Re \t C_F \t X_F [N] \t Y_cf [N] \t N_cf [Nm] \t K_roll [Nm] \t T_const [N]"
            <<" \t n [1/s] \t Va [m/s] \t J \t KT \t KQ \t T [N] \t Q [Nm]"
-           <<" \t delta [deg] \t alpha_R [deg] \t U_R [m/s] \t F_N [N] \t X_R [N] \t Y_R [N] \t N_R [Nm]"<<endl;
+           <<" \t delta [deg] \t alpha_R [deg] \t U_R [m/s] \t F_N [N] \t X_R [N] \t Y_R [N] \t N_R [Nm]";
+        
+        if(mmg)
+        out<<" \t X_H [N] \t Y_H [N] \t N_H [Nm] (midship)";
+        
+        out<<endl;
     }
     
     out<<p->simtime<<" \t "<<ub<<" \t "<<vb<<" \t "<<rb_<<" \t "<<psi_c/DEG<<" \t "<<Re<<" \t "<<CF<<" \t "<<XF<<" \t "<<Ycf<<" \t "<<Ncf<<" \t "<<Kroll<<" \t "<<thrust
        <<" \t "<<nrps<<" \t "<<Va<<" \t "<<J<<" \t "<<KT<<" \t "<<KQ<<" \t "<<Tp<<" \t "<<Qp
-       <<" \t "<<delta/DEG<<" \t "<<alphaR/DEG<<" \t "<<UR<<" \t "<<FN<<" \t "<<XR<<" \t "<<YR<<" \t "<<NR<<endl;
+       <<" \t "<<delta/DEG<<" \t "<<alphaR/DEG<<" \t "<<UR<<" \t "<<FN<<" \t "<<XR<<" \t "<<YR<<" \t "<<NR;
+    
+    if(mmg)
+    out<<" \t "<<XH<<" \t "<<YH<<" \t "<<NH;
+    
+    out<<endl;
 }

@@ -68,6 +68,11 @@ struct sixdof_actuator_disk
 //  add_load: add the load to F[0..5] = X, Y, Z, K, M, N (inertial frame, moments about the
 //            centre of gravity); fluid: velocity sampling of the coupling (may be nullptr)
 //  actuator_disks: momentum sources of the fluid (body-force propellers) of the last add_load
+//  added_mass: adds the added mass of the model to A (body frame, about the centre of gravity,
+//            order surge, sway, heave, roll, pitch, yaw); true if the model has one. The coupling
+//            solves the equations of motion with M + A (implicit, as for the FNPF added mass).
+//  fluid_mask: weights w[6] of the hydrodynamic loads of the solver coupling (inertial X, Y, Z,
+//            K, M, N); the model sets entries to 0 when it supplies these loads itself
 //  print:    output once per time step (rank 0 decides inside)
 
 class sixdof_load
@@ -77,6 +82,8 @@ public:
     
     virtual void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, sixdof_fluid*, double*)=0;
     virtual void actuator_disks(std::vector<sixdof_actuator_disk>&) const {}
+    virtual bool added_mass(const sixdof_rigidbody&, Eigen::Matrix<double,6,6>&) const {return false;}
+    virtual void fluid_mask(double*) const {}
     virtual void print(lexer*) {}
 };
 

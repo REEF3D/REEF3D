@@ -81,7 +81,7 @@ void ship_models::rudder_mmg(double rho, const rudder_param &R, double u, double
 {
     const double U = sqrt(u*u + v*v);
     const double HR = sqrt(R.AR*R.Lambda);
-    const double falpha = 6.13*R.Lambda/(R.Lambda + 2.25);
+    const double falpha = R.falpha>0.0 ? R.falpha : 6.13*R.Lambda/(R.Lambda + 2.25);
     
     // longitudinal inflow: propeller slipstream on the fraction eta = D/HR of the rudder span,
     // written with KT n^2 D^2 = KT J^2 uP^2 / ... so that it holds at J = 0 (bollard)
@@ -104,7 +104,8 @@ void ship_models::rudder_mmg(double rho, const rudder_param &R, double u, double
     if(U>1.0e-10)
     {
         const double betaR = atan2(v,u) + R.lR*r/U;
-        vR = U*R.gammaR*betaR;
+        const double gR = (R.gammaRp>=0.0 && betaR>0.0) ? R.gammaRp : R.gammaR;
+        vR = U*gR*betaR;
     }
     
     alphaR = delta - atan2(vR, uR>1.0e-10 ? uR : 1.0e-10);
@@ -119,3 +120,28 @@ void ship_models::rudder_mmg(double rho, const rudder_param &R, double u, double
     K = -R.zR*Y;
 }
 
+
+void ship_models::mmg_hull(double rho, double L, double d, const double *c, double u, double vm, double r, double Umin,
+                           double &X, double &Y, double &N)
+{
+    // forces written as polynomials in (u, vm, r) with U^2 v' = U vm, U^2 r' = U r L, ... so that
+    // they stay finite at small speed
+    const double U = sqrt(u*u + vm*vm);
+    const double Ud = U>Umin ? U : Umin;
+    const double rl = r*L;
+    
+    const double fX = -c[0]*U*U + c[1]*vm*vm + c[2]*vm*rl + c[3]*rl*rl + c[4]*vm*vm*vm*vm/(Ud*Ud);
+    const double fY = U*(c[5]*vm + c[6]*rl) + (c[7]*vm*vm*vm + c[8]*vm*vm*rl + c[9]*vm*rl*rl + c[10]*rl*rl*rl)/Ud;
+    const double fN = U*(c[11]*vm + c[12]*rl) + (c[13]*vm*vm*vm + c[14]*vm*vm*rl + c[15]*vm*rl*rl + c[16]*rl*rl*rl)/Ud;
+    
+    X = 0.5*rho*L*d*fX;
+    Y = 0.5*rho*L*d*fY;
+    N = 0.5*rho*L*L*d*fN;
+}
+
+double ship_models::mmg_wake(double wP0, double C1, double C2p, double C2n, double betaP)
+{
+    const double C2 = betaP>0.0 ? C2p : C2n;
+    
+    return 1.0 - (1.0 - wP0)*(1.0 + (1.0 - exp(-C1*fabs(betaP)))*(C2 - 1.0));
+}
