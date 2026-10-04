@@ -1,0 +1,19 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "Tidal channel with one progressive background (B 515: phase travels from x = 0 as a long wave on h_ref = F 60) for the Riemann edges at both ends.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "progressive background (B 515)",
+  "background at the edge face"
+ ]
+}
