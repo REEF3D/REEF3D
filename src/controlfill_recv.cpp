@@ -1410,6 +1410,8 @@ void control::ctrlrecv()
     ii++;
     P16 = ictrl[ii];
     ii++;
+    P18 = ictrl[ii];
+    ii++;
     P19 = ictrl[ii];
     ii++;
     P20 = ictrl[ii];

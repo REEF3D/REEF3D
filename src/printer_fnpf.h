@@ -45,6 +45,7 @@ class fnpf_vel_probe;
 class fnpf_vel_probe_theory;
 class fnpf_runup;
 class fnpf_print_kinematics;
+class lagoon_output;
 
 using namespace std;
 
@@ -89,6 +90,7 @@ private:
     fnpf_vel_probe *pvel;
     fnpf_vel_probe_theory *pveltheo;
     fnpf_print_kinematics **pkin;
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 
 #endif

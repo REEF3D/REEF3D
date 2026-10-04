@@ -1,0 +1,624 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Architect: Hans Bihs
+--------------------------------------------------------------------*/
+
+#include"lagoon_store.h"
+
+#include<algorithm>
+#include<cerrno>
+#include<cmath>
+#include<cstdint>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<ctime>
+#include<fstream>
+#include<limits>
+#include<sstream>
+#include<stdexcept>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<zlib.h>
+
+namespace
+{
+const uint64_t EMPTY = std::numeric_limits<uint64_t>::max();
+const int CHUNK_VALUES = 2048;  // values an inner chunk should hold at least
+
+void make_dirs(const std::string &dir)
+{
+    std::string part;
+    std::stringstream ss(dir);
+    std::string item;
+    if(!dir.empty() && dir[0]=='/')
+        part = "/";
+    while(std::getline(ss,item,'/'))
+    {
+        if(item.empty())
+            continue;
+        part += item;
+        if(mkdir(part.c_str(),0777)!=0 && errno!=EEXIST)
+            throw std::runtime_error("lagoon_store: cannot create "+part);
+        part += "/";
+    }
+}
+
+// write a file so that a reader never sees half of it
+void write_file(const std::string &file, const std::string &content)
+{
+    const std::string temporary = file + ".tmp";
+    {
+        std::ofstream out(temporary.c_str(), std::ios::binary);
+        if(!out)
+            throw std::runtime_error("lagoon_store: cannot write "+file);
+        out.write(content.data(), content.size());
+    }
+    if(std::rename(temporary.c_str(), file.c_str())!=0)
+        throw std::runtime_error("lagoon_store: cannot rename "+temporary);
+}
+
+int tile_size(int n, int most)
+{
+    if(n<=most)
+        return std::max(n,1);
+    const int tiles = (n + most - 1)/most;
+    return (n + tiles - 1)/tiles;
+}
+
+uint32_t crc32c(const unsigned char *data, size_t n)
+{
+    static uint32_t table[256];
+    static bool ready = false;
+    if(!ready)
+    {
+        for(uint32_t i=0; i<256; ++i)
+        {
+            uint32_t c = i;
+            for(int k=0; k<8; ++k)
+                c = (c & 1) ? (c >> 1) ^ 0x82F63B78u : c >> 1;
+            table[i] = c;
+        }
+        ready = true;
+    }
+    uint32_t crc = 0xFFFFFFFFu;
+    for(size_t i=0; i<n; ++i)
+        crc = table[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
+    return crc ^ 0xFFFFFFFFu;
+}
+
+std::string gzip(const std::vector<unsigned char> &raw, int level)
+{
+    z_stream zs;
+    std::memset(&zs, 0, sizeof(zs));
+    if(deflateInit2(&zs, level, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY)!=Z_OK)  // 15+16: gzip
+        throw std::runtime_error("lagoon_store: deflateInit2 failed");
+    std::string out(deflateBound(&zs, raw.size()) + 32, '\0');
+    zs.next_in = const_cast<unsigned char*>(raw.data());
+    zs.avail_in = raw.size();
+    zs.next_out = reinterpret_cast<unsigned char*>(&out[0]);
+    zs.avail_out = out.size();
+    const int status = deflate(&zs, Z_FINISH);
+    deflateEnd(&zs);
+    if(status!=Z_STREAM_END)
+        throw std::runtime_error("lagoon_store: deflate failed");
+    out.resize(zs.total_out);
+    return out;
+}
+
+void put_u64(std::string &s, uint64_t v)
+{
+    for(int b=0; b<8; ++b)
+        s.push_back(char((v >> (8*b)) & 0xFF));
+}
+
+uint64_t get_u64(const unsigned char *p)
+{
+    uint64_t v = 0;
+    for(int b=7; b>=0; --b)
+        v = (v << 8) | p[b];
+    return v;
+}
+
+
+std::string utc_now()
+{
+    char text[32];
+    std::time_t now = std::time(nullptr);
+    std::strftime(text, sizeof(text), "%Y-%m-%dT%H:%M:%SZ", std::gmtime(&now));
+    return text;
+}
+
+std::string codecs_json(int level)
+{
+    std::ostringstream j;
+    j << "[{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}, "
+      << "{\"name\": \"numcodecs.shuffle\", \"configuration\": {\"elementsize\": 4}}, "
+      << "{\"name\": \"gzip\", \"configuration\": {\"level\": " << level << "}}]";
+    return j.str();
+}
+
+std::string ints_json(const std::vector<long long> &v)
+{
+    std::ostringstream j;
+    j << "[";
+    for(size_t i=0; i<v.size(); ++i)
+        j << (i ? ", " : "") << v[i];
+    j << "]";
+    return j.str();
+}
+
+std::string names_json(const std::vector<std::string> &v)
+{
+    std::string j = "[";
+    for(size_t i=0; i<v.size(); ++i)
+        j += (i ? ", " : "") + lagoon_store::json_string(v[i]);
+    return j + "]";
+}
+
+// a plain (unsharded, uncompressed) float64 or int64 array in one chunk
+void write_plain_array(const std::string &dir, const std::vector<double> &values,
+                       const std::string &dimension, const std::string &units)
+{
+    make_dirs(dir + "/c");
+    std::ostringstream j;
+    const size_t n = values.size();
+    j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << n << "], "
+      << "\"data_type\": \"float64\", "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": [" << std::max<size_t>(n,1) << "]}}, "
+      << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+      << "\"fill_value\": \"NaN\", "
+      << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
+      << "\"dimension_names\": [\"" << dimension << "\"], "
+      << "\"attributes\": {" << (units.empty() ? "" : "\"units\": \"" + units + "\"") << "}}";
+    write_file(dir + "/zarr.json", j.str());
+    std::string bytes(reinterpret_cast<const char*>(values.data()), n*sizeof(double));
+    write_file(dir + "/c/0", bytes);
+}
+}
+
+lagoon_store::lagoon_store(const std::string &path_, int shard_time_, int gzip_level_)
+    : path(path_), shard_time(std::max(shard_time_,1)), gzip_level(gzip_level_)
+{
+}
+
+std::string lagoon_store::json_string(const std::string &text)
+{
+    std::string out = "\"";
+    for(char c : text)
+    {
+        if(c=='"' || c=='\\')
+            out += '\\', out += c;
+        else if(c=='\n')
+            out += "\\n";
+        else if((unsigned char)c < 0x20)
+        {
+            char code[8];
+            std::snprintf(code, sizeof(code), "\\u%04x", c);
+            out += code;
+        }
+        else
+            out += c;
+    }
+    return out + "\"";
+}
+
+void lagoon_store::create_root(const std::string &solver, const std::string &run_json)
+{
+    make_dirs(path);
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {"
+      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.1\", \"solver\": " << json_string(solver)
+      << ", \"outputs\": [], \"created_by\": \"REEF3D\", \"created\": \"" << utc_now()
+      << "\", \"source\": \"REEF3D\"}";
+    if(!run_json.empty())
+        j << ", \"reef3d_run\": " << run_json;
+    j << "}}";
+    write_file(path + "/zarr.json", j.str());
+}
+
+void lagoon_store::create_output(const std::string &output, const std::string &grid,
+                                 const std::vector<double> &x, const std::vector<double> &y,
+                                 const std::vector<double> &sigma,
+                                 const std::vector<variable> &variables,
+                                 int blocks, const std::string &source)
+{
+    const std::string dir = path + "/" + output;
+    make_dirs(dir + "/blocks");
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
+      << "\"role\": " << json_string(output) << ", \"grid\": " << json_string(grid)
+      << ", \"shape\": {\"x\": " << x.size() << ", \"y\": " << y.size();
+    if(grid=="sigma")
+        j << ", \"level\": " << sigma.size();
+    j << "}, \"variables\": {";
+    for(size_t v=0; v<variables.size(); ++v)
+    {
+        j << (v ? ", " : "") << json_string(variables[v].name) << ": {\"components\": "
+          << variables[v].components;
+        if(!variables[v].units.empty())
+            j << ", \"units\": " << json_string(variables[v].units);
+        j << "}";
+    }
+    j << "}, \"blocks\": " << blocks;
+    if(!source.empty())
+        j << ", \"source\": " << json_string(source);
+    j << "}}}";
+    write_file(dir + "/zarr.json", j.str());
+    write_file(dir + "/blocks/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
+    write_plain_array(dir + "/x", x, "x", "m");
+    write_plain_array(dir + "/y", y, "y", "m");
+    if(grid=="sigma")
+        write_plain_array(dir + "/sigma", sigma, "level", "");
+    times[output].clear();
+    steps[output].clear();
+    commit(output, -1, 0.0, 0);  // empty time and step arrays
+
+    // the root lists its outputs
+    std::ifstream in((path + "/zarr.json").c_str());
+    std::stringstream root;
+    root << in.rdbuf();
+    std::string text = root.str();
+    const std::string key = "\"outputs\": [";
+    const size_t at = text.find(key);
+    if(at!=std::string::npos && text.find(json_string(output), at)==std::string::npos)
+    {
+        const size_t end = at + key.size();
+        const bool empty = text[end]==']';
+        text.insert(end, json_string(output) + (empty ? "" : ", "));
+        write_file(path + "/zarr.json", text);
+    }
+}
+
+void lagoon_store::create_block(const std::string &output, int block, int i0, int j0,
+                                int nx, int ny, int nz, const std::vector<variable> &variables, int rank)
+{
+    char name[16];
+    std::snprintf(name, sizeof(name), "b%04d", block);
+    const std::string dir = path + "/" + output + "/blocks/" + name;
+    make_dirs(dir);
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
+      << "\"start\": [" << i0 << ", " << j0 << "], \"size\": [" << nx << ", " << ny << "], "
+      << "\"rank\": " << rank << "}}}";
+    write_file(dir + "/zarr.json", j.str());
+
+    const int cy = tile_size(ny, 64);
+    const int cx = tile_size(nx, std::max(64, 2*CHUNK_VALUES/cy));
+    const int cz = cy*cx >= CHUNK_VALUES ? 1 : std::min(nz, (CHUNK_VALUES + cy*cx - 1)/(cy*cx));
+    std::vector<variable> all;
+    if(nz>1)
+    {
+        all.push_back({"z_bed",1,"m"});
+        all.push_back({"z_surface",1,"m"});
+        all.push_back({"z_offset",1,"m"});
+    }
+    else
+        all.push_back({"z",1,"m"});
+    all.insert(all.end(), variables.begin(), variables.end());
+    for(const variable &v : all)
+    {
+        array_info a;
+        a.dir = dir + "/" + v.name;
+        a.levels = nz>1 && v.name!="z_bed" && v.name!="z_surface";
+        a.nz = a.levels ? nz : 1;
+        a.ny = ny;
+        a.nx = nx;
+        a.components = v.components;
+        a.cz = a.levels ? std::max(cz,1) : 1;
+        a.cy = cy;
+        a.cx = cx;
+        a.fill = v.name=="z_offset" ? 0.0f : std::numeric_limits<float>::quiet_NaN();
+        arrays[output + "/" + std::to_string(block) + "/" + v.name] = a;
+        if(v.name!="z_offset")  // made when first written (it is 0 until then)
+            write_array_json(a, 0, v.units, v.name);
+    }
+}
+
+void lagoon_store::write_array_json(const array_info &a, int nt, const std::string &units,
+                                    const std::string &name) const
+{
+    make_dirs(a.dir);
+    std::vector<long long> shape, shard, inner;
+    std::vector<std::string> dims;
+    shape.push_back(nt); shard.push_back(shard_time); inner.push_back(1); dims.push_back("time");
+    if(a.levels)
+    {
+        shape.push_back(a.nz);
+        shard.push_back(((a.nz + a.cz - 1)/a.cz)*a.cz);
+        inner.push_back(a.cz);
+        dims.push_back("level");
+    }
+    shape.push_back(a.ny); shard.push_back(((a.ny + a.cy - 1)/a.cy)*a.cy); inner.push_back(a.cy); dims.push_back("y");
+    shape.push_back(a.nx); shard.push_back(((a.nx + a.cx - 1)/a.cx)*a.cx); inner.push_back(a.cx); dims.push_back("x");
+    if(a.components>1)
+    {
+        shape.push_back(a.components); shard.push_back(a.components); inner.push_back(a.components);
+        dims.push_back("component");
+    }
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": " << ints_json(shape)
+      << ", \"data_type\": \"float32\", "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": " << ints_json(shard) << "}}, "
+      << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+      << "\"fill_value\": " << (name=="z_offset" ? "0.0" : "\"NaN\"") << ", "
+      << "\"codecs\": [{\"name\": \"sharding_indexed\", \"configuration\": {"
+      << "\"chunk_shape\": " << ints_json(inner) << ", "
+      << "\"codecs\": " << codecs_json(gzip_level) << ", "
+      << "\"index_codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}, {\"name\": \"crc32c\"}], "
+      << "\"index_location\": \"end\"}}], "
+      << "\"dimension_names\": " << names_json(dims) << ", "
+      << "\"attributes\": {" << (units.empty() ? "" : "\"units\": " + json_string(units)) << "}}";
+    write_file(a.dir + "/zarr.json", j.str());
+}
+
+void lagoon_store::write(const std::string &output, int block, int t, const std::string &name,
+                         const float *data)
+{
+    const std::string key = output + "/" + std::to_string(block) + "/" + name;
+    std::map<std::string, array_info>::const_iterator it = arrays.find(key);
+    if(it==arrays.end())
+        throw std::runtime_error("lagoon_store: unknown array " + key);
+    const array_info &a = it->second;
+    if(name=="z_offset")
+    {
+        // all zero (the usual case): nothing to store, the fill value is 0
+        const size_t n = size_t(a.nz)*a.ny*a.nx;
+        bool any = false;
+        for(size_t i=0; i<n && !any; ++i)
+            any = data[i]!=0.0f;
+        struct stat info;
+        const bool exists = stat((a.dir + "/zarr.json").c_str(), &info)==0;
+        if(!any && !exists)
+            return;
+    }
+    write_shard(a, t, data);
+    write_array_json(a, t+1, name.rfind("z",0)==0 ? "m" : "", name);
+}
+
+void lagoon_store::write_shard(const array_info &a, int t, const float *data) const
+{
+    const int nzc = (a.nz + a.cz - 1)/a.cz;
+    const int nyc = (a.ny + a.cy - 1)/a.cy;
+    const int nxc = (a.nx + a.cx - 1)/a.cx;
+    const size_t entries = size_t(shard_time)*nzc*nyc*nxc;  // the component dimension has one chunk
+    const size_t index_bytes = 16*entries + 4;
+    const int shard = t/shard_time;
+    const int local = t%shard_time;
+
+    std::string file = a.dir + "/c/" + std::to_string(shard) + (a.levels ? "/0" : "") + "/0/0" + (a.components>1 ? "/0" : "");
+    make_dirs(file.substr(0, file.rfind('/')));
+
+    // the index so far (a shard that is new, or whose last index is not valid, starts empty)
+    std::vector<uint64_t> index(2*entries, EMPTY);
+    long long data_end = 0;
+    FILE *f = std::fopen(file.c_str(), "r+b");
+    if(f)
+    {
+        std::fseek(f, 0, SEEK_END);
+        const long long size = std::ftell(f);
+        data_end = size;
+        if(size >= (long long)index_bytes)
+        {
+            std::vector<unsigned char> raw(index_bytes);
+            std::fseek(f, size - (long long)index_bytes, SEEK_SET);
+            if(std::fread(raw.data(), 1, index_bytes, f)==index_bytes)
+            {
+                uint32_t stored = 0;
+                for(int b=3; b>=0; --b)
+                    stored = (stored << 8) | raw[16*entries + b];
+                if(stored==crc32c(raw.data(), 16*entries))
+                    for(size_t e=0; e<2*entries; ++e)
+                        index[e] = get_u64(&raw[8*e]);
+            }
+        }
+    }
+    else
+    {
+        f = std::fopen(file.c_str(), "wb");
+        if(!f)
+            throw std::runtime_error("lagoon_store: cannot write " + file);
+    }
+
+    // the inner chunks of output t: appended after everything there is
+    std::fseek(f, data_end, SEEK_SET);
+    long long offset = data_end;
+    const int comps = a.components;
+    std::vector<float> chunk(size_t(a.cz)*a.cy*a.cx*comps);
+    std::vector<unsigned char> shuffled(chunk.size()*4);
+    for(int kc=0; kc<nzc; ++kc)
+    for(int jc=0; jc<nyc; ++jc)
+    for(int ic=0; ic<nxc; ++ic)
+    {
+        bool all_fill = true;
+        size_t m = 0;
+        for(int k=kc*a.cz; k<(kc+1)*a.cz; ++k)
+        for(int j=jc*a.cy; j<(jc+1)*a.cy; ++j)
+        for(int i=ic*a.cx; i<(ic+1)*a.cx; ++i)
+        for(int c=0; c<comps; ++c)
+        {
+            float v = a.fill;
+            if(k<a.nz && j<a.ny && i<a.nx)
+                v = data[((size_t(k)*a.ny + j)*a.nx + i)*comps + c];
+            chunk[m++] = v;
+            if(!(v==a.fill || (std::isnan(v) && std::isnan(a.fill))))
+                all_fill = false;
+        }
+        if(all_fill)
+            continue;
+        // byte shuffle: all first bytes, then all second bytes, ... (little endian)
+        const unsigned char *bytes = reinterpret_cast<const unsigned char*>(chunk.data());
+        const size_t n = chunk.size();
+        for(size_t e=0; e<n; ++e)
+            for(int b=0; b<4; ++b)
+                shuffled[b*n + e] = bytes[4*e + b];
+        const std::string packed = gzip(shuffled, gzip_level);
+        std::fwrite(packed.data(), 1, packed.size(), f);
+        const size_t entry = ((size_t(local)*nzc + kc)*nyc + jc)*nxc + ic;
+        index[2*entry] = offset;
+        index[2*entry+1] = packed.size();
+        offset += packed.size();
+    }
+    // the new index after the chunks, with its checksum
+    std::string tail;
+    tail.reserve(index_bytes);
+    for(size_t e=0; e<2*entries; ++e)
+        put_u64(tail, index[e]);
+    const uint32_t crc = crc32c(reinterpret_cast<const unsigned char*>(tail.data()), tail.size());
+    for(int b=0; b<4; ++b)
+        tail.push_back(char((crc >> (8*b)) & 0xFF));
+    std::fwrite(tail.data(), 1, tail.size(), f);
+    std::fclose(f);
+}
+
+void lagoon_store::commit(const std::string &output, int t, double time, long long step)
+{
+    std::vector<double> &tv = times[output];
+    std::vector<long long> &sv = steps[output];
+    if(t>=0)
+    {
+        tv.resize(t+1, std::numeric_limits<double>::quiet_NaN());
+        sv.resize(t+1, 0);
+        tv[t] = time;
+        sv[t] = step;
+    }
+    const int chunk = 4096;
+    const std::string dir = path + "/" + output;
+    const size_t nt = tv.size();
+    for(int which=0; which<2; ++which)
+    {
+        const std::string adir = dir + (which==0 ? "/step" : "/time");  // step first, time last
+        make_dirs(adir + "/c");
+        if(nt>0)
+        {
+            const size_t first = (t>=0 ? size_t(t) : 0)/chunk*chunk;
+            std::string bytes;
+            for(size_t i=first; i<first+chunk; ++i)
+            {
+                if(which==0)
+                {
+                    const long long v = i<nt ? sv[i] : 0;
+                    put_u64(bytes, (uint64_t)v);
+                }
+                else
+                {
+                    const double v = i<nt ? tv[i] : std::numeric_limits<double>::quiet_NaN();
+                    uint64_t bits;
+                    std::memcpy(&bits, &v, 8);
+                    put_u64(bytes, bits);
+                }
+            }
+            write_file(adir + "/c/" + std::to_string(first/chunk), bytes);
+        }
+        std::ostringstream j;
+        j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << nt << "], "
+          << "\"data_type\": \"" << (which==0 ? "int64" : "float64") << "\", "
+          << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": [" << chunk << "]}}, "
+          << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+          << "\"fill_value\": " << (which==0 ? "0" : "\"NaN\"") << ", "
+          << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
+          << "\"dimension_names\": [\"time\"], "
+          << "\"attributes\": {" << (which==1 ? "\"units\": \"s\"" : "") << "}}";
+        write_file(adir + "/zarr.json", j.str());
+    }
+}
+
+int lagoon_store::committed(const std::string &output) const
+{
+    std::map<std::string, std::vector<double> >::const_iterator it = times.find(output);
+    return it==times.end() ? 0 : int(it->second.size());
+}
+
+void lagoon_store::level_offsets(const float *z, int nz, int n, const std::vector<double> &sigma,
+                                 std::vector<float> &offsets)
+{
+    offsets.assign(size_t(nz)*n, 0.0f);
+    for(int q=0; q<n; ++q)
+    {
+        const double bed = z[q];
+        const double top = z[size_t(nz-1)*n + q];
+        for(int k=0; k<nz; ++k)
+        {
+            const float zk = z[size_t(k)*n + q];
+            const double offset = double(zk) - (bed + sigma[k]*(top - bed));
+            const float a = std::fabs(zk);
+            const double step = std::nextafter(a, std::numeric_limits<float>::infinity()) - a;
+            if(std::fabs(offset) > 2.0*step)
+                offsets[size_t(k)*n + q] = float(offset);
+        }
+    }
+}
+
+namespace
+{
+std::string attribute(const std::string &tag, const std::string &name)
+{
+    const std::string key = " " + name + "=\"";
+    const size_t at = tag.find(key);
+    if(at==std::string::npos)
+        return "";
+    const size_t end = tag.find('"', at + key.size());
+    return tag.substr(at + key.size(), end - at - key.size());
+}
+
+std::string units_of(const std::string &name)
+{
+    if(name=="velocity") return "m/s";
+    if(name=="pressure") return "Pa";
+    if(name=="elevation" || name=="eta" || name=="Hs") return "m";
+    if(name=="Fi") return "m2/s";
+    return "";
+}
+}
+
+bool lagoon_store::parse_vtu_header(const std::string &header, std::vector<vtu_array> &fields, long long &points)
+{
+    fields.clear();
+    points = -1;
+    const size_t begin = header.find("<PointData>");
+    const size_t end = header.find("</PointData>");
+    const size_t at_points = header.find("<Points>");
+    if(begin==std::string::npos || end==std::string::npos || at_points==std::string::npos)
+        return false;
+    size_t at = begin;
+    while((at = header.find("<DataArray", at))!=std::string::npos && at<end)
+    {
+        const std::string tag = header.substr(at, header.find('>', at) - at);
+        const std::string name = attribute(tag, "Name");
+        const std::string components = attribute(tag, "NumberOfComponents");
+        const std::string offset = attribute(tag, "offset");
+        if(attribute(tag, "type")!="Float32" || name.empty() || offset.empty())
+            return false;
+        vtu_array a;
+        a.var.name = name;
+        a.var.components = components.empty() ? 1 : std::atoi(components.c_str());
+        a.var.units = units_of(name);
+        a.offset = std::atoll(offset.c_str());
+        fields.push_back(a);
+        at += tag.size();
+    }
+    const size_t tag_at = header.find("<DataArray", at_points);
+    if(tag_at==std::string::npos)
+        return false;
+    const std::string tag = header.substr(tag_at, header.find('>', tag_at) - tag_at);
+    points = std::atoll(attribute(tag, "offset").c_str());
+    return !fields.empty();
+}
+

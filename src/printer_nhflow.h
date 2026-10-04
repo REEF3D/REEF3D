@@ -54,6 +54,7 @@ class nhflow_print_Hs;
 class nhflow_turbulence;
 class nhflow_force;
 class nhflow_force_ale;
+class lagoon_output;
 class bedshear_probe;
 class bedshear_max;
 
@@ -109,6 +110,7 @@ private:
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 
 };
 
