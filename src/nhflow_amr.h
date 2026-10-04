@@ -24,11 +24,13 @@ Author: Hans Bihs
 #define NHFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"lexer.h"
 #include"nhflow_momentum_func.h"
 #include"nhflow_convection.h"
 #include"nhflow_timestep.h"
 #include<vector>
 #include<fstream>
+#include<unordered_map>
 
 class lexer;
 class fdm_nhf;
@@ -222,8 +224,10 @@ private:
 
     fdm_nhf* gfd(int g) { return (g<0) ? d0 : NP(g)->d; }
     nhflow_momentum_func* gmom(int g) { return (g<0) ? mom0 : NP(g)->pmom; }
-    int fidx(lexer*, int, int, int) const;      // FIJK of lexer q
-    int cidx(lexer*, int, int, int) const;      // IJK of lexer q
+    int fidx(lexer *q, int ii, int jj, int kk) const    // FIJK of lexer q
+    { return (ii-q->imin)*q->jmax*q->kmaxF + (jj-q->jmin)*q->kmaxF + kk - q->kmin; }
+    int cidx(lexer *q, int ii, int jj, int kk) const    // IJK of lexer q
+    { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kk - q->kmin; }
 
     // patch lexer: 3D flags, boundary list, sigma arrays
     void build_lexer3D(nhflow_amr_patch&);
@@ -235,6 +239,8 @@ private:
     void pweights(lexer*, int, int, int, int, double*, int=0);
     double pq(slice&, lexer*, int, int, int, int, int=0);
     double pq3(const double*, lexer*, int, int, int, int, int, bool, int=0);
+    double pqw(slice&, lexer*, int, int, const double*);
+    double pq3w(const double*, lexer*, int, int, int, bool, const double*);
     double plin(slice&, lexer*, int, int, int, int);
     void pcol(int, int, int, int, int, const double*, int, double*, int=0);
     void vcell(lexer*, const double*, int, int, double*);
@@ -291,6 +297,26 @@ private:
     int pr_it_last = 0;
     double pr_res_last = 0.0;
     int layout_id = 0;
+
+    // stencils and index lists of the composite solve, rebuilt in pr_prepare: they depend on the
+    // layout and on the flags, wet and deep, which do not change during a solve.  The same
+    // arithmetic in the same order as pcol, restrict_col and prolong_interior_col.
+    struct pstencil { int nw; int off[25]; double w[25]; };     // pcol: source offsets, weights
+    void pst_make(int, int, int, int, int, pstencil&);
+    void pst_col(const pstencil&, const double*, int, int, double*) const;
+    struct prblock { int id, g, mode, src, dst; double wa[4]; };    // restriction of a 2x2 block
+    vector<prblock> pr_rb;                  // all blocks, finest level first
+    struct pprol { int g, dst; pstencil st; };
+    vector<vector<pprol>> pr_pi;            // [patch id]: interior columns from the parent
+    std::unordered_map<const reefamr_fill*, pstencil> pr_fs;    // fills from the coarser grid
+    vector<long> pr_l0a, pr_l0z;            // level 0: active MG index, F index; inactive F index
+    vector<int> pr_l0f;
+    struct pact { long lq; int qq, rw; };
+    vector<vector<pact>> pr_pa;             // [patch id]: active unknowns of the patch MG
+    void pr_stencils();
+    template<class SEL> void pr_restrict(SEL);
+    template<class SEL> void pr_fill(int, int, SEL);
+    void pr_prolong(int, int);
 
     // wetting and drying in the patches (A 283 1): wet-aware interpolation, the flags of fresh
     // patches and of the covered coarse cells

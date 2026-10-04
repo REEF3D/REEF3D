@@ -227,16 +227,6 @@ nhflow_amr::pscope::~pscope()
 }
 
 // --------------------------------------------------------------------- grids
-int nhflow_amr::fidx(lexer *q, int ii, int jj, int kk) const
-{
-    return (ii-q->imin)*q->jmax*q->kmaxF + (jj-q->jmin)*q->kmaxF + kk - q->kmin;
-}
-
-int nhflow_amr::cidx(lexer *q, int ii, int jj, int kk) const
-{
-    return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kk - q->kmin;
-}
-
 // stage input of grid g at stage s (s<=0: the state at the start of the step)
 nhflow_amr::stg nhflow_amr::stage_in(int g, int s)
 {
@@ -942,7 +932,12 @@ double nhflow_amr::pq(slice &f, lexer *q, int ic, int jc, int ox, int oy, int mo
 {
     double w[25];
     pweights(q,ic,jc,ox,oy,w,mode);
+    return pqw(f,q,ic,jc,w);
+}
 
+// with the weights w of pweights
+double nhflow_amr::pqw(slice &f, lexer *q, int ic, int jc, const double *w)
+{
     double r = 0.0;
     for(int di=-2; di<=2; ++di)
     for(int dj=-2; dj<=2; ++dj)
@@ -959,7 +954,11 @@ double nhflow_amr::pq3(const double *f, lexer *q, int ic, int jc, int ox, int oy
 {
     double w[25];
     pweights(q,ic,jc,ox,oy,w,mode);
+    return pq3w(f,q,ic,jc,kk,cl,w);
+}
 
+double nhflow_amr::pq3w(const double *f, lexer *q, int ic, int jc, int kk, bool cl, const double *w)
+{
     double r = 0.0;
     for(int di=-2; di<=2; ++di)
     for(int dj=-2; dj<=2; ++dj)
@@ -1100,15 +1099,18 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                          // A 283: surface and velocities from wet cells, pressure from wet and
                          // deep cells; the flags are the parent's (a fine face on the patch box
                          // carries mass only where the coarse face can)
-                         v[0] = pq(d->eta,q,f.si,f.sj,f.ox,f.oy,1);
+                         // the weights of the wet cells once for the column
+                         double w1[25];
+                         pweights(q,f.si,f.sj,f.ox,f.oy,w1,1);
+                         v[0] = pqw(d->eta,q,f.si,f.sj,w1);
                          v[1] = q->wet[lij(q,f.si,f.sj)];
                          v[2] = q->deep[lij(q,f.si,f.sj)];
                          // layer by layer on the coarser grid, then (A 281) into the halves
                          for(int k=0; k<Kc; ++k)
                          {
-                             uc[k] = pq3(d->U,q,f.si,f.sj,f.ox,f.oy,k,true,1);
-                             uc[Kc+k] = pq3(d->V,q,f.si,f.sj,f.ox,f.oy,k,true,1);
-                             uc[2*Kc+k] = pq3(d->W,q,f.si,f.sj,f.ox,f.oy,k,true,1);
+                             uc[k] = pq3w(d->U,q,f.si,f.sj,k,true,w1);
+                             uc[Kc+k] = pq3w(d->V,q,f.si,f.sj,k,true,w1);
+                             uc[2*Kc+k] = pq3w(d->W,q,f.si,f.sj,k,true,w1);
                          }
                          for(int m=0; m<3; ++m)
                          vcell(q,&uc[m*Kc],Kc,K/Kc,&v[3+m*K]);
@@ -1248,16 +1250,18 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
             const int ox = a==0?-1:1, oy = b==0?-1:1;
             const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
 
-            d->eta(ii,jj) = pq(dc->eta,q,ic,jc,ox,oy,1);
-            d->detadt(ii,jj) = pq(dc->detadt,q,ic,jc,ox,oy,1);
+            double w1[25];
+            pweights(q,ic,jc,ox,oy,w1,1);
+            d->eta(ii,jj) = pqw(dc->eta,q,ic,jc,w1);
+            d->detadt(ii,jj) = pqw(dc->detadt,q,ic,jc,w1);
             const double wl = MAX(d->eta(ii,jj) + d->depth(ii,jj), pp->A544);
             d->WL(ii,jj) = wl;
 
             for(int kc=0; kc<Kc; ++kc)
             {
-                uc[kc] = pq3(dc->U,q,ic,jc,ox,oy,kc,true,1);
-                uc[Kc+kc] = pq3(dc->V,q,ic,jc,ox,oy,kc,true,1);
-                uc[2*Kc+kc] = pq3(dc->W,q,ic,jc,ox,oy,kc,true,1);
+                uc[kc] = pq3w(dc->U,q,ic,jc,kc,true,w1);
+                uc[Kc+kc] = pq3w(dc->V,q,ic,jc,kc,true,w1);
+                uc[2*Kc+kc] = pq3w(dc->W,q,ic,jc,kc,true,w1);
             }
             for(int m=0; m<3; ++m)
             vcell(q,&uc[m*Kc],Kc,fz,&uf[m*K]);
