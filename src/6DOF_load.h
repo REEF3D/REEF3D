@@ -20,30 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<sys/stat.h>
-#include<iostream>
-#include<fstream>
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#ifndef SIXDOF_LOAD_H_
+#define SIXDOF_LOAD_H_
 
-void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
+class lexer;
+class sixdof_rigidbody;
+class sixdof_geometry;
+
+//  External load model acting on a 6DOF body (solver independent), e.g. the ship module:
+//  evaluated with the body state of every stage, before the rigid-body right-hand side.
+//
+//  add_load: add the load to F[0..5] = X, Y, Z, K, M, N (inertial frame, moments about the
+//            centre of gravity)
+//  print:    output once per time step (rank 0 decides inside)
+
+class sixdof_load
 {
-	if(p->mpirank==0 && p->count%p->X19==0)
-    {
-        ofstream print;
-        char str[1000];
-        
-        
-        printpos<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
-
-
-        printvel<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
-
-    }
+public:
+    virtual ~sixdof_load() {}
     
-    // load models (ship module)
-    for(size_t ql=0; ql<pload.size(); ++ql)
-    pload[ql]->print(p);
-}
+    virtual void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, double*)=0;
+    virtual void print(lexer*) {}
+};
+
+#endif

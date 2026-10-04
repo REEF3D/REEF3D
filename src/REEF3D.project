@@ -947,11 +947,16 @@
         <File Name="benchmark_vortex3D.h"/>
         <File Name="benchmark_convection.h"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Ships"/>
+      <VirtualDirectory Name="Ships">
+        <File Name="ship.h"/>
+        <File Name="ship_hull.h"/>
+        <File Name="ship_models.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Core">
           <File Name="6DOF_rigidbody.h"/>
           <File Name="6DOF_geometry.h"/>
+          <File Name="6DOF_load.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="6DOF_pto.h"/>
@@ -2466,7 +2471,11 @@
         <File Name="heat_RK3.cpp"/>
         <File Name="heat_void.cpp"/>
       </VirtualDirectory>
-      <VirtualDirectory Name="Ships"/>
+      <VirtualDirectory Name="Ships">
+        <File Name="ship.cpp"/>
+        <File Name="ship_hull.cpp"/>
+        <File Name="ship_models.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="6DOF">
         <VirtualDirectory Name="Core">
           <File Name="6DOF_rigidbody.cpp"/>

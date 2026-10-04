@@ -39,7 +39,19 @@ void sixdof_obj_cfd::hydrodynamic_forces_cfd(lexer* p, fdm *a, ghostcell *pgc,fi
 void sixdof_obj::update_forces(lexer *p)
 {
     // Forces in inertial system: external loads, linear damping, DOF modes
-    const double Fext[6] = {Xext + Xe, Yext + Ye, Zext + Ze, Kext + Ke, Mext + Me, Next + Ne};
+    double Fext[6] = {Xext + Xe, Yext + Ye, Zext + Ze, Kext + Ke, Mext + Me, Next + Ne};
+    
+    // load models (ship module): evaluated with the state of the stage
+    if(!pload.empty())
+    {
+        double Fl[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+        
+        for(size_t ql=0; ql<pload.size(); ++ql)
+        pload[ql]->add_load(p,rb,geom,Fl);
+        
+        for(int qn=0; qn<6; ++qn)
+        Fext[qn] += Fl[qn];
+    }
     
     rb.assemble_loads(Fext);
     

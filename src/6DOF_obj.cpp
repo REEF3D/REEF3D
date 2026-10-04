@@ -33,6 +33,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_wavemaker.h"
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
+#include"ship.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                                 georay(p),n6DOF(number),
@@ -64,6 +65,10 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.Cdamp_r[0] = p->X25_Cp;
     rb.Cdamp_r[1] = p->X25_Cq;
     rb.Cdamp_r[2] = p->X25_Cr;
+    
+    // ship module (X 350): hull resistance, damping and propulsion models from ship.dat
+    if(p->X350==1)
+    pload.push_back(new ship(p,number));
 
     pnetinter = new net_interface(p,pgc);
     
@@ -152,5 +157,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
 
 sixdof_obj::~sixdof_obj()
 {
+    for(size_t ql=0; ql<pload.size(); ++ql)
+    delete pload[ql];
 }
     

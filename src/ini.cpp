@@ -1197,6 +1197,7 @@ void control::ini_default()
     X325_dt=0.001;   // double dynamic net time step
     X324=0;     // int number of nets
     X330=0;     // int impermeable membranes, geometry in membrane.dat
+    X350=0;     // int ship module, parameters in ship.dat
 	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
 	X400=0;         // sflow external pressure term
     X401_p0=0.0;    // sflow external pressure term p0

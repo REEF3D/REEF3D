@@ -40,6 +40,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"6DOF_pto_joint.h"
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
+#include"6DOF_load.h"
 #include<fstream>
 #include<iostream>
 #include<vector>
@@ -73,6 +74,9 @@ public:
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
+    
+    // external load models (e.g. the ship module, X 350), owned by the body
+    vector<sixdof_load*> pload;
 	
     
     

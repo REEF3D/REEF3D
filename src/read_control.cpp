@@ -3162,6 +3162,9 @@ void control::read_control(lexer* p)
                 case  330: control>>X330;
                          clear(c,numint);
                          break;
+                case  350: control>>X350;
+                         clear(c,numint);
+                         break;
                 case  400: control>>X400;
                          clear(c,numint);
                          break;

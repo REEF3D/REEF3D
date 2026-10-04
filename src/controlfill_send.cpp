@@ -2507,6 +2507,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X330;
     ii++;
+    ictrl[ii] = X350;
+    ii++;
     dctrl[dd] = X325_dt;
     dd++;
     dctrl[dd] = X325_relX;
