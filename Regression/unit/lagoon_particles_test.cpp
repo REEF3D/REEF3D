@@ -112,6 +112,42 @@ int main()
     float y;
     std::memcpy(&y, chunk.data() + 4*(3*5 + 1), 4);
     check(y == position(2*65536 + 5, 1), "positions read back");
+
+    // objects (ice floes): two quads, then one breaks off; a value per cell
+    {
+        std::vector<lagoon_particles::field> none;
+        std::vector<lagoon_particles::field> per_cell = {{"id", 1, true}, {"speed", 1, false}};
+        lagoon_particles floes(path, "FNPF", "fnpf_ice", "ice", "REEF3D_FNPF_ICE", "", none, 1, "polys", per_cell);
+        bool written = true;
+        for(int t=0; t<6; ++t)
+        {
+            const int quads = t<4 ? 2 : 1;
+            std::vector<float> xyz(12*quads);
+            for(size_t i=0; i<xyz.size(); ++i)
+                xyz[i] = float(t + 0.1*i);
+            std::vector<int32_t> connectivity(4*quads), offsets(quads), id(quads);
+            std::vector<float> speed(quads, float(t));
+            for(int q=0; q<quads; ++q)
+            {
+                for(int k=0; k<4; ++k)
+                    connectivity[4*q+k] = 4*q + k;
+                offsets[q] = 4*(q+1);
+                id[q] = 10 + q;
+            }
+            written = floes.output(t, t, 4*size_t(quads), xyz.data(), {}, connectivity, offsets, {id.data(), speed.data()}) && written;
+        }
+        const std::string ice = path + "/particles/fnpf_ice";
+        check(written, "6 outputs of ice floes (cells)");
+        check(slurp(ice + "/cell_sets/cell_end/zarr.json").find("\"shape\": [2]")!=std::string::npos,
+              "two cell sets for six outputs");
+        check(slurp(ice + "/cell_data/speed/zarr.json").find("\"shape\": [10]")!=std::string::npos,
+              "a value per cell and output (2*4 + 1*2)");
+        check(slurp(ice + "/zarr.json").find("\"cells\": \"polys\"")!=std::string::npos, "cells: polys");
+        std::vector<int32_t> bad = {0, 1, 2};
+        check(!floes.output(6, 6, 0, nullptr, {}, bad, {4}, {nullptr, nullptr}) && !floes.usable(),
+              "inconsistent cells are refused");
+    }
+
     std::cout<<(nfail ? "FAILED" : "all passed")<<std::endl;
     return nfail ? 1 : 0;
 }

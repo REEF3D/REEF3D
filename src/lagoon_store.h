@@ -37,6 +37,7 @@ Architect: Hans Bihs
 // checksum) is written after them, so a reader never sees a half-written index as
 // valid; the space of the old index stays unused.
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <utility>
@@ -176,11 +177,13 @@ private:
     void write_motion(int number, const body &b, const char *name, int width) const;
 };
 
-// Particles of a store (LAGOON SPEC.md section 10), written by rank 0 once the
-// particles of all ranks are gathered: the points of every output one after another
-// in growing arrays (shards of 16 inner chunks of 65536 rows), the end of each
-// output's points in point_end. Each output is written at once (the newest inner
-// chunk is written again until it is full), so the store can be read during a run.
+// Particles and objects of a store (LAGOON SPEC.md section 10), written by rank 0 once
+// the data of all ranks is gathered: the points of every output one after another in
+// growing arrays (shards of 16 inner chunks of 65536 rows), the end of each output's
+// points in point_end. Objects (DEM elements, ice floes) have cells: a cell set is
+// stored when the cells differ from those of the output before. Each output is
+// written at once (the newest inner chunk again until it is full), so the store can
+// be read during a run.
 class lagoon_particles
 {
 public:
@@ -192,15 +195,21 @@ public:
     };
 
     // key: the particle set, e.g. "nhflow_particles"; role: how LAGOON shows it
+    // ("particles", "dem", "ice"); cells: "" (points only), "polys" or "lines"
     lagoon_particles(const std::string &path, const std::string &solver, const std::string &key,
                      const std::string &role, const std::string &source, const std::string &run_json,
-                     const std::vector<field> &fields, int gzip_level=1);
+                     const std::vector<field> &fields, int gzip_level=1,
+                     const std::string &cells="", const std::vector<field> &cell_fields={});
 
     // one output: n points (xyz), and for each field n*components values, float or
-    // int32 as declared, in the order of the fields. False when it could not be
-    // written (no more output to the store then: the VTP files are needed).
+    // int32 as declared, in the order of the fields. Objects: their cells with the
+    // output's point numbers (VTK connectivity and offsets) and for each cell field
+    // a value per cell. False when it could not be written (no more output to the
+    // store then: the VTP files are needed).
     bool output(double time, long long step, size_t n, const float *xyz,
-                const std::vector<const void*> &values);
+                const std::vector<const void*> &values,
+                const std::vector<int32_t> &connectivity={}, const std::vector<int32_t> &offsets={},
+                const std::vector<const void*> &cell_values={});
 
     bool usable() const { return ok; }
 
@@ -212,24 +221,29 @@ private:
     {
         std::string dir, dtype, fill;
         int components = 1, itemsize = 4;
+        bool metre = false;
         long long rows = 0;
         long long shard = 0;                  // the shard being filled
         std::vector<std::string> encoded;     // its full inner chunks
         std::vector<unsigned char> tail;      // rows of the inner chunk being filled
     };
-    std::string path, solver, key, role, source, run_json, dir;
-    std::vector<field> fields;
+    std::string path, solver, key, role, source, run_json, dir, cells;
+    std::vector<field> fields, cell_fields;
     int gzip_level;
     bool ok, started;
-    std::vector<growing> arrays;  // position, then the fields
-    std::vector<long long> point_end;
+    std::vector<growing> arrays;       // position, then the fields
+    std::vector<growing> cell_arrays;  // offsets, connectivity, then the cell fields
+    std::vector<long long> point_end, cell_set, cell_data_end, cell_end, connectivity_end;
+    std::vector<int32_t> last_connectivity, last_offsets;
     lagoon_store store;
 
     void start();
+    growing make(const std::string &dir, const field &f) const;
     void append(growing &a, const unsigned char *data, size_t rows);
     void write_shard(const growing &a, long long shard, const std::vector<std::string> &chunks) const;
     void write_meta(const growing &a) const;
-    void write_point_end() const;
+    void write_rows(const std::string &name, const std::vector<long long> &rows, const char *dimension) const;
+    std::string fields_json(const std::vector<field> &list) const;
 };
 
 #endif

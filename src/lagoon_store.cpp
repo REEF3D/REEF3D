@@ -870,10 +870,11 @@ bool lagoon_bodies::output(int number, int points, const double *x0, const doubl
 // ======================================================================== particles
 lagoon_particles::lagoon_particles(const std::string &path_, const std::string &solver_, const std::string &key_,
                                    const std::string &role_, const std::string &source_,
-                                   const std::string &run_json_, const std::vector<field> &fields_, int gzip_level_)
+                                   const std::string &run_json_, const std::vector<field> &fields_, int gzip_level_,
+                                   const std::string &cells_, const std::vector<field> &cell_fields_)
     : path(path_), solver(solver_), key(key_), role(role_), source(source_), run_json(run_json_),
-      dir(path_ + "/particles/" + key_), fields(fields_), gzip_level(gzip_level_), ok(true), started(false),
-      store(path_)
+      dir(path_ + "/particles/" + key_), cells(cells_), fields(fields_), cell_fields(cells_.empty() ? std::vector<field>() : cell_fields_),
+      gzip_level(gzip_level_), ok(true), started(false), store(path_)
 {
 }
 
@@ -888,6 +889,35 @@ std::string array_name(const std::string &name)
             c = '_';
     return out.empty() ? "_" : out;
 }
+
+void write_group(const std::string &dir)
+{
+    make_dirs(dir);
+    write_file(dir + "/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
+}
+}
+
+lagoon_particles::growing lagoon_particles::make(const std::string &where, const field &f) const
+{
+    growing a;
+    a.dir = where;
+    a.dtype = f.integer ? "int32" : "float32";
+    a.fill = f.integer ? "0" : "\"NaN\"";
+    a.components = f.components;
+    a.itemsize = 4;
+    return a;
+}
+
+std::string lagoon_particles::fields_json(const std::vector<field> &list) const
+{
+    std::ostringstream j;
+    j << "{";
+    for(size_t f=0; f<list.size(); ++f)
+        j << (f ? ", " : "") << lagoon_store::json_string(list[f].name) << ": {\"components\": " << list[f].components
+          << ", \"data_type\": \"" << (list[f].integer ? "int32" : "float32") << "\", \"array\": "
+          << lagoon_store::json_string(array_name(list[f].name)) << "}";
+    j << "}";
+    return j.str();
 }
 
 void lagoon_particles::start()
@@ -897,40 +927,45 @@ void lagoon_particles::start()
         store.create_root(solver, run_json);
     make_dirs(path + "/particles");
     if(!exists(path + "/particles/zarr.json"))
-        write_file(path + "/particles/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
-    make_dirs(dir + "/point_data");
-    write_file(dir + "/point_data/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
+        write_group(path + "/particles");
+    write_group(dir + "/point_data");
 
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
-      << "\"kind\": \"particles\", \"cells\": null, \"point_fields\": {";
-    arrays.clear();
-    growing position;
-    position.dir = dir + "/position";
-    position.dtype = "float32"; position.fill = "\"NaN\""; position.components = 3; position.itemsize = 4;
-    arrays.push_back(position);
-    for(size_t f=0; f<fields.size(); ++f)
-    {
-        const field &fd = fields[f];
-        j << (f ? ", " : "") << lagoon_store::json_string(fd.name) << ": {\"components\": " << fd.components
-          << ", \"data_type\": \"" << (fd.integer ? "int32" : "float32") << "\", \"array\": "
-          << lagoon_store::json_string(array_name(fd.name)) << "}";
-        growing a;
-        a.dir = dir + "/point_data/" + array_name(fd.name);
-        a.dtype = fd.integer ? "int32" : "float32";
-        a.fill = fd.integer ? "0" : "\"NaN\"";
-        a.components = fd.components;
-        a.itemsize = 4;
-        arrays.push_back(a);
-    }
-    j << "}, \"cell_fields\": {}, \"dataset\": " << lagoon_store::json_string(key)
+      << "\"kind\": \"particles\", \"cells\": " << (cells.empty() ? "null" : lagoon_store::json_string(cells))
+      << ", \"point_fields\": " << fields_json(fields) << ", \"cell_fields\": " << fields_json(cell_fields)
+      << ", \"dataset\": " << lagoon_store::json_string(key)
       << ", \"role\": " << lagoon_store::json_string(role)
       << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
     write_file(dir + "/zarr.json", j.str());
+
+    arrays.clear();
+    growing position = make(dir + "/position", {"position", 3, false});
+    position.metre = true;
+    arrays.push_back(position);
+    for(const field &f : fields)
+        arrays.push_back(make(dir + "/point_data/" + array_name(f.name), f));
     for(const growing &a : arrays)
         write_meta(a);
     point_end.clear();
-    write_point_end();
+    write_rows("point_end", point_end, "time");
+    cell_arrays.clear();
+    if(!cells.empty())
+    {
+        write_group(dir + "/cell_sets");
+        write_group(dir + "/cell_data");
+        cell_arrays.push_back(make(dir + "/cell_sets/offsets", {"offsets", 1, true}));
+        cell_arrays.push_back(make(dir + "/cell_sets/connectivity", {"connectivity", 1, true}));
+        for(const field &f : cell_fields)
+            cell_arrays.push_back(make(dir + "/cell_data/" + array_name(f.name), f));
+        for(const growing &a : cell_arrays)
+            write_meta(a);
+        write_rows("cell_set", cell_set, "time");
+        write_rows("cell_sets/cell_end", cell_end, "set");
+        write_rows("cell_sets/connectivity_end", connectivity_end, "set");
+        if(!cell_fields.empty())
+            write_rows("cell_data_end", cell_data_end, "time");
+    }
     store.commit("particles/" + key, -1, 0.0, 0);  // empty time and step
     started = true;
 }
@@ -939,7 +974,7 @@ void lagoon_particles::write_meta(const growing &a) const
 {
     std::ostringstream j;
     std::vector<long long> shape = {a.rows}, shard = {ROWS*CHUNKS_PER_SHARD}, inner = {ROWS};
-    std::vector<std::string> dims = {"point"};
+    std::vector<std::string> dims = {"row"};
     if(a.components>1)
     {
         shape.push_back(a.components); shard.push_back(a.components); inner.push_back(a.components);
@@ -956,7 +991,7 @@ void lagoon_particles::write_meta(const growing &a) const
       << "\"index_codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}, {\"name\": \"crc32c\"}], "
       << "\"index_location\": \"end\"}}], "
       << "\"dimension_names\": " << names_json(dims) << ", "
-      << "\"attributes\": {" << (a.dir.size()>=9 && a.dir.compare(a.dir.size()-9, 9, "/position")==0 ? "\"units\": \"m\"" : "") << "}}";
+      << "\"attributes\": {" << (a.metre ? "\"units\": \"m\"" : "") << "}}";
     make_dirs(a.dir);
     write_file(a.dir + "/zarr.json", j.str());
 }
@@ -1011,6 +1046,8 @@ void lagoon_particles::append(growing &a, const unsigned char *data, size_t rows
             }
         }
     }
+    if(rows==0)
+        return;
     a.rows += (long long)rows;
     // the shard being filled, with the inner chunk being filled (padded with the fill value)
     if(!a.tail.empty() || !a.encoded.empty())
@@ -1033,18 +1070,18 @@ void lagoon_particles::append(growing &a, const unsigned char *data, size_t rows
     write_meta(a);
 }
 
-void lagoon_particles::write_point_end() const
+void lagoon_particles::write_rows(const std::string &name, const std::vector<long long> &rows, const char *dimension) const
 {
     const long long chunk = 4096;
-    const size_t nt = point_end.size();
-    const std::string adir = dir + "/point_end";
+    const size_t nt = rows.size();
+    const std::string adir = dir + "/" + name;
     make_dirs(adir + "/c");
     if(nt>0)
     {
         const size_t first = (nt-1)/chunk*chunk;
         std::string bytes;
         for(size_t i=first; i<first+chunk; ++i)
-            put_u64(bytes, (uint64_t)(i<nt ? point_end[i] : 0));
+            put_u64(bytes, (uint64_t)(i<nt ? rows[i] : 0));
         write_file(adir + "/c/" + std::to_string(first/chunk), bytes);
     }
     std::ostringstream j;
@@ -1054,33 +1091,62 @@ void lagoon_particles::write_point_end() const
       << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
       << "\"fill_value\": 0, "
       << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
-      << "\"dimension_names\": [\"time\"], \"attributes\": {}}";
+      << "\"dimension_names\": [\"" << dimension << "\"], \"attributes\": {}}";
     write_file(adir + "/zarr.json", j.str());
 }
 
 bool lagoon_particles::output(double time, long long step, size_t n, const float *xyz,
-                              const std::vector<const void*> &values)
+                              const std::vector<const void*> &values,
+                              const std::vector<int32_t> &connectivity, const std::vector<int32_t> &offsets,
+                              const std::vector<const void*> &cell_values)
 {
     if(!ok)
         return false;
     try
     {
-        if(values.size()!=fields.size())
-            throw std::runtime_error("lagoon_particles: " + std::to_string(values.size()) + " fields given, "
-                                     + std::to_string(fields.size()) + " declared");
+        if(values.size()!=fields.size() || cell_values.size()!=cell_fields.size())
+            throw std::runtime_error("lagoon_particles: the arrays given are not those declared");
+        if(cells.empty() && !offsets.empty())
+            throw std::runtime_error("lagoon_particles: cells given for a set of points");
+        if(!offsets.empty() && size_t(offsets.back())!=connectivity.size())
+            throw std::runtime_error("lagoon_particles: the last offset is not the number of corners");
         if(!started)
             start();
         append(arrays[0], reinterpret_cast<const unsigned char*>(xyz), n);
         for(size_t f=0; f<fields.size(); ++f)
             append(arrays[f+1], static_cast<const unsigned char*>(values[f]), n);
+        if(!cells.empty())
+        {
+            const bool same = !cell_end.empty() && connectivity==last_connectivity && offsets==last_offsets;
+            if(!same)  // a new cell set: its offsets and corners, then where they end
+            {
+                append(cell_arrays[0], reinterpret_cast<const unsigned char*>(offsets.data()), offsets.size());
+                append(cell_arrays[1], reinterpret_cast<const unsigned char*>(connectivity.data()), connectivity.size());
+                cell_end.push_back((cell_end.empty() ? 0 : cell_end.back()) + (long long)offsets.size());
+                connectivity_end.push_back((connectivity_end.empty() ? 0 : connectivity_end.back()) + (long long)connectivity.size());
+                write_rows("cell_sets/cell_end", cell_end, "set");
+                write_rows("cell_sets/connectivity_end", connectivity_end, "set");
+                last_connectivity = connectivity;
+                last_offsets = offsets;
+            }
+            for(size_t f=0; f<cell_fields.size(); ++f)
+                append(cell_arrays[f+2], static_cast<const unsigned char*>(cell_values[f]), offsets.size());
+            cell_set.push_back((long long)cell_end.size() - 1);
+            write_rows("cell_set", cell_set, "time");
+            if(!cell_fields.empty())
+            {
+                cell_data_end.push_back((cell_data_end.empty() ? 0 : cell_data_end.back()) + (long long)offsets.size());
+                write_rows("cell_data_end", cell_data_end, "time");
+            }
+        }
         point_end.push_back((point_end.empty() ? 0 : point_end.back()) + (long long)n);
-        write_point_end();
+        write_rows("point_end", point_end, "time");
         store.commit("particles/" + key, int(point_end.size()-1), time, step);  // step, then time
         return true;
     }
     catch(std::exception &problem)
     {
-        std::cout<<"LAGOON: "<<problem.what()<<"; no more particles in the LAGOON store"<<std::endl;
+        std::cout<<"LAGOON: "<<problem.what()<<"; no more "<<role<<" in the LAGOON store"<<std::endl;
         ok = false;
         return false;
     }

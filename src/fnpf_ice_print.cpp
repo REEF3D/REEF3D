@@ -29,6 +29,8 @@ Author: Hans Bihs
 #include<cstdio>
 #include<iomanip>
 #include"runlog.h"
+#include"lagoon_store.h"
+#include<vector>
 
 void fnpf_ice::print_ini(lexer *p)
 {
@@ -147,8 +149,6 @@ void fnpf_ice::print_vtp(lexer *p, int num)
     char name[256];
     snprintf(name,sizeof(name),"./REEF3D_FNPF_ICE/REEF3D-FNPF-ICE-%08i.vtp",num);
 
-    ofstream out(name);
-
     // removed floes are not drawn, rubble (type 3) as floes
     vector<fnpf_ice_floe> vis;
     for(size_t n=0; n<floe.size(); ++n)
@@ -162,6 +162,75 @@ void fnpf_ice::print_vtp(lexer *p, int num)
     hob = MAX(hob,fl.h);
     if(hob<=0.0)
     hob=1.0;
+
+    // P 18: the floes in the LAGOON store as well (fnpf_ice: the prisms' points and
+    // polygons, id, type, speed and contact force per polygon, as in the VTP file);
+    // P 18 2: instead of it
+    if(p->P18>0)
+    {
+        static lagoon_particles *writer = nullptr;
+        if(writer==nullptr)
+        {
+            std::string run;
+            if(p->plog)
+            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+            writer = new lagoon_particles("./REEF3D_FNPF.lagoon", "FNPF", "fnpf_ice", "ice", "REEF3D_FNPF_ICE", run,
+                                          {}, 1, "polys",
+                                          {{"id", 1, true}, {"type", 1, true}, {"speed", 1, false}, {"contact_force", 1, false}});
+        }
+        std::vector<float> xyz, speed, force;
+        std::vector<int32_t> connectivity, offsets, id, type;
+        int base = 0;
+        for(auto &fl : vis)
+        {
+            double R[3][3];
+            quat_to_matrix(fl.q,R);
+            const int nv = int(fl.bx.size());
+            for(int side=0; side<2; ++side)
+            for(int q=0; q<nv; ++q)
+            {
+                if(fl.type==0 || fl.type==3)
+                {
+                const double zb = side==0 ? -0.5*fl.h : 0.5*fl.h;
+                for(int c=0; c<3; ++c)
+                xyz.push_back(float(fl.x[c] + R[c][0]*fl.bx[q] + R[c][1]*fl.by[q] + R[c][2]*zb));
+                }
+                else
+                {
+                xyz.push_back(float(fl.x[0]+fl.bx[q]));
+                xyz.push_back(float(fl.x[1]+fl.by[q]));
+                xyz.push_back(float(wd + (side==0 ? -2.0*hob : 2.0*hob)));
+                }
+            }
+            // bottom (reversed, facing down), top, side quads
+            for(int q=nv-1; q>=0; --q) connectivity.push_back(base+q);
+            offsets.push_back(int32_t(connectivity.size()));
+            for(int q=0; q<nv; ++q) connectivity.push_back(base+nv+q);
+            offsets.push_back(int32_t(connectivity.size()));
+            for(int q=0; q<nv; ++q)
+            {
+                const int q2=(q+1)%nv;
+                connectivity.push_back(base+q); connectivity.push_back(base+q2);
+                connectivity.push_back(base+nv+q2); connectivity.push_back(base+nv+q);
+                offsets.push_back(int32_t(connectivity.size()));
+            }
+            for(int k=0; k<nv+2; ++k)
+            {
+                id.push_back(int32_t(fl.id));
+                type.push_back(int32_t(fl.type));
+                speed.push_back(float(sqrt(fl.v[0]*fl.v[0]+fl.v[1]*fl.v[1]+fl.v[2]*fl.v[2])));
+                force.push_back(float(sqrt(fl.Fc[0]*fl.Fc[0]+fl.Fc[1]*fl.Fc[1])));
+            }
+            base += 2*nv;
+        }
+        const double when = (p->count==0) ? p->simtime : p->simtime + p->dt;
+        const bool stored = writer->output(when, num, xyz.size()/3, xyz.data(), {}, connectivity, offsets,
+                                           {id.data(), type.data(), speed.data(), force.data()});
+        if(stored && p->P18==2)
+        return;
+    }
+
+    ofstream out(name);
 
     int npts=0, npoly=0, nconn=0;
     for(auto &fl : vis)
