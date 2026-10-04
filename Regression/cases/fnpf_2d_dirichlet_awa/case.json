@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "B 98": "3",
+  "B 99": "3"
+ },
+ "description": "old input: FNPF Dirichlet generation (B 98 3) with active absorption (B 99 3).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "iowave_fnpf_active-beach"
+ ],
+ "steps": 1200
+}

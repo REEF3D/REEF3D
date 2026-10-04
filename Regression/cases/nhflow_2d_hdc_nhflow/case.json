@@ -1,0 +1,26 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "chain": [
+  {
+   "case": "nhflow_hdc_source",
+   "copy": [
+    "REEF3D_NHFLOW_STATE"
+   ]
+  }
+ ],
+ "description": "hydrodynamic coupling NHFLOW -> NHFLOW: nhflow_hdc_source on 0-200 m, DIVEMesh H 10 5 for the 50-150 m grid, this run reads eta, u, w (B 92 61). The target time step is close to the source state interval, so time levels are skipped now and then. Needs DIVEMesh with the pressure skip in hdc_read_nhflow.cpp.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "hdc"
+ ],
+ "covers": [
+  "wave_lib_hdc (NHFLOW) from an NHFLOW source",
+  "HDC time levels skipped in a continuous file",
+  "DIVEMesh HDC 5"
+ ]
+}

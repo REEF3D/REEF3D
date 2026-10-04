@@ -180,8 +180,9 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
         
+        // dimensionless weight, 1 at vof = 0.5 (was the 1/m delta function capped at 1)
         if(a->vof(i,j,k)>p->F93 && a->vof(i,j,k)<p->F94)
-        dirac = (0.5/epsi)*(1.0 + cos(2*PI*(a->vof(i,j,k)-0.5)));
+        dirac = 0.5*(1.0 + cos(2.0*PI*(a->vof(i,j,k)-0.5)));
             
         else
         dirac=0.0;
@@ -189,9 +190,7 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         if(dirac>0.0)
         {
         sgs_val = pow(c_sgs,2.0)*(p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP])
-                 *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
-                 
-        dirac=MIN(dirac,1.0);
+                 *strainterm(p,a->u,a->v,a->w);   // strainterm is already sqrt(2 Sij Sij)
                  
         a->eddyv(i,j,k) = MAX(a->eddyv(i,j,k),dirac*sgs_val);
         }
@@ -261,6 +260,11 @@ void komega_func_PLIC::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
 {
     pflow->waterlevel_update(p,a,pgc);
     
+    // free-surface damping (T 36 > 0): turbulence length scale y' at the interface (Celik & Rodi 1984)
+    //   omega_s = k^0.5/(cmu^0.25 kappa y'),  T36 1: y' = T37,  2: 1/y' = 1/T37 + 1/walld,  3: y' = T37 h (h local water depth)
+    // applied as a lower bound omega = max(omega, w omega_s) with the dimensionless weight
+    // w = 0.5(1 + cos(pi phi/epsi)) in the band |phi| < epsi (w = 1 at the interface, 0 at the band edge),
+    // so the damping only ever lowers nu_t and does not depend on the grid spacing
 	if(p->T36>0)
 	LOOP
 	{
@@ -269,20 +273,25 @@ void komega_func_PLIC::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
     if(p->j_dir==0)
     epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
-    if(a->vof(i,j,k)>p->F93 && a->vof(i,j,k)<p->F94)
-        dirac = (0.5/epsi)*(1.0 + cos(2*PI*(a->vof(i,j,k)-0.5)));
-            
-    else
-        dirac=0.0;
-
-	if(dirac>0.0 && p->T36==1)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
-
-	if(dirac>0.0 && p->T36==2)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+    double w = 0.0;
     
-    if(dirac>0.0 && p->T36==3)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/(p->T37*a->WL(i,j)));
+    if(a->vof(i,j,k)>p->F93 && a->vof(i,j,k)<p->F94)
+    w = 0.5*(1.0 + cos(2.0*PI*(a->vof(i,j,k)-0.5)));
+
+	if(w>0.0)
+	{
+    double ly = p->T37;
+    
+    if(p->T36==2)
+    ly = 1.0/(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+    
+    if(p->T36==3)
+    ly = p->T37*a->WL(i,j);
+    
+    const double eps_s = 2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)/(ly>1.0e-20?ly:1.0e-20);
+    
+	eps(i,j,k) = MAX(eps(i,j,k), w*eps_s);
+	}
 	}
 }
 

@@ -152,6 +152,10 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_custom_zones` | 1 | old input: SFLOW with custom B 107 / B 108 zones |
 | `sflow_2d_dirichlet` | 1 | old input: SFLOW Dirichlet generation |
 | `fnpf_2d_hdc` (stage `fnpf_hdc_source`) | 1 | old input: hydrodynamic coupling FNPF -> FNPF (FNPF state P 44 3, DIVEMesh H 10 44, B 92 61), as in FNPF nesting |
+| `fnpf_2d_hdc_single` (stage `fnpf_hdc_source_single`) | 1 | the same with one state file per step (P 45 1); same result as `fnpf_2d_hdc` |
+| `nhflow_2d_hdc` (+ `_mpi2`, stage `fnpf_hdc_source_uvw`) | 1/2 | FNPF -> NHFLOW nesting: FNPF state with velocities (P 44 1), DIVEMesh H 10 4, NHFLOW reads eta, u, w (B 92 61) |
+| `nhflow_2d_hdc_single` (stage `fnpf_hdc_source_uvw_single`) | 1 | the same with one state file per step (P 45 1); same result as `nhflow_2d_hdc` |
+| `nhflow_2d_hdc_nhflow` (stage `nhflow_hdc_source`) | 1 | NHFLOW -> NHFLOW nesting (DIVEMesh H 10 5); target time step close to the source state interval |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
@@ -166,8 +170,9 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
 - The stored references were blessed on hans_dev bacfbc4a2 (Linux, gcc, MPICH, `build_reef3d.sh`
   flags). `check` uses a tolerance, but another compiler or platform can still differ in the last
   digits; then bless once on your machine and keep using `ab` for bitwise checks.
-- The HDC case (`fnpf_2d_hdc`) needs DIVEMesh 95ae3a4 or later (state file names in
-  `hdc_filename_in.cpp`).
+- The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
+  `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
+  `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).
 
 - Runs use few steps on coarse grids: they test that code paths give the same numbers, not that
   the physics is right. Validation cases (long runs vs. measurements) are a separate set.

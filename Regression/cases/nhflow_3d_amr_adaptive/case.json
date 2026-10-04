@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW AMR solution-adaptive refinement (A 273, A 282) of the ring wave from an F 72 hump, a regrid every step: tagging, F 72 boxes on fresh patches.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr::tag",
+  "ini_boxes",
+  "empty hierarchy start"
+ ]
+}

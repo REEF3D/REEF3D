@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 3D floating box in regular waves, all six DOFs free, initial roll and yaw (X101), 2 MPI ranks. Exercises the full quaternion / inertia-tensor path.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 20,
+ "tags": ["3d", "nhflow", "6dof", "floating", "mpi"],
+ "covers": ["sixdof_obj 6 DOF rotation", "quaternion kinematics", "6DOF MPI reductions NHFLOW"]
+}

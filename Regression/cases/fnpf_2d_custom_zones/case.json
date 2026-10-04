@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_add": [
+  "B 108 0.0 0.0 -1.0 1.0 6.0",
+  "B 107 40.0 40.0 -1.0 1.0 10.0"
+ ],
+ "description": "old input: custom generation (B 108) and beach (B 107) zones in FNPF, including the FNPF weight clamp next to the generation zone edge.",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "B 107/B 108 in FNPF",
+  "wgflag clamp"
+ ]
+}

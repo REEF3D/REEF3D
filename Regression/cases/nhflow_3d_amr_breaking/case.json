@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW AMR wave breaking on a static patch (A 550 1, A 512 2, A 276): the bore from an F 72 step runs into the patch box, so the cells filled around the patch see the breaking front of level 0.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking"
+ ],
+ "covers": [
+  "lexer::amrvb in nhflow_breaking (filled cells take the source vb)",
+  "nhflow_idiff + bicgstab_ijk on patches",
+  "ghostcell::set_local"
+ ]
+}

@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 2D floating box in regular waves (6DOF two-way, X10=1, box object X110, direct forcing). Surge, heave and pitch free, A510=2 (default, 6DOF rk2).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "tags": ["2d", "nhflow", "6dof", "floating"],
+ "covers": ["sixdof_nhflow::start_twoway", "sixdof_obj rk2", "6DOF ray cast NHFLOW", "NHFLOW 6DOF forces", "REEF3D_NHFLOW_6DOF output"]
+}

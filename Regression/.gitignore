@@ -1,1 +1,4 @@
 __pycache__/
+
+# the root .gitignore excludes *.json; the cases need case.json and reference.json
+!*.json

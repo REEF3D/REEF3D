@@ -1,0 +1,3 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_set": {"A 510": "3"},
+ "description": "as nhflow_2d_6dof_box with A510=3 (NHFLOW RK3, 6DOF rk3).",
+ "tags": ["2d", "nhflow", "6dof", "floating"], "covers": ["sixdof_obj rk3 (NHFLOW)"]}

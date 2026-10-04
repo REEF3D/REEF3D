@@ -1,0 +1,21 @@
+{
+ "description": "2D numerical wave tank, 2nd-order Stokes waves, relaxation generation/absorption, default scheme N40=3 (momentum_FC3, level set inside momentum), D20=2 implicit diffusion, laminar. Based on tutorial 11_6, coarse.",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "default"
+ ],
+ "covers": [
+  "N40=3 momentum_FC3",
+  "iowave relaxation B98=2/B99=2",
+  "reini_RK3",
+  "idiff2_FS",
+  "weno_hj_df_nug",
+  "wave gauges P51",
+  "probes P61"
+ ]
+}

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"kepsilon_func.h"
+#include"ioflow.h"
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -139,11 +140,18 @@ void  kepsilon_func::epssource(lexer *p, fdm* a, vrans* pvrans)
     pvrans->eps_source(p,a,kin,eps);
 }
 
-void  kepsilon_func::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
+void  kepsilon_func::epsfsf(lexer *p, fdm* a,ghostcell *pgc, ioflow *pflow)
 {
 	double epsi;
-	double dirac;
 	
+    // free-surface damping (T 36 > 0): turbulence length scale y' at the interface (Celik & Rodi 1984)
+    //   eps_s = cmu^0.75 k^1.5/(kappa y'),  T36 1: y' = T37,  2: 1/y' = 1/T37 + 1/walld,  3: y' = T37 h (h local water depth)
+    // applied as a lower bound eps = max(eps, w eps_s) with the dimensionless weight
+    // w = 0.5(1 + cos(pi phi/epsi)) in the band |phi| < epsi (w = 1 at the interface, 0 at the band edge),
+    // so the damping only ever lowers nu_t and does not depend on the grid spacing
+    if(p->T36==3)
+    pflow->waterlevel_update(p,a,pgc);
+    
 	if(p->T36>0)
 	LOOP
 	{
@@ -153,16 +161,24 @@ void  kepsilon_func::epsfsf(lexer *p, fdm* a,ghostcell *pgc)
             if(p->j_dir==1)
             epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
             
+        double w = 0.0;
+        
 		if(fabs(a->phi(i,j,k))<epsi)
-		dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-		
-		if(fabs(a->phi(i,j,k))>=epsi)
-		dirac=0.0;
+		w = 0.5*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
 	
-	if(dirac>0.0 && p->T36==1)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),1.5)*(1.0/p->T37);
-	
-	if(dirac>0.0 && p->T36==2)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),1.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+        if(w>0.0)
+        {
+        double ly = p->T37;
+        
+        if(p->T36==2)
+        ly = 1.0/(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+        
+        if(p->T36==3)
+        ly = p->T37*a->WL(i,j);
+        
+        const double eps_s = 2.5*pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),1.5)/(ly>1.0e-20?ly:1.0e-20);
+        
+        eps(i,j,k) = MAX(eps(i,j,k), w*eps_s);
+        }
 	}
 }

@@ -211,20 +211,19 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 
 void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    // free-surface value in the top sigma layer (A 567 > 0), turbulence length scale y' (Celik & Rodi 1984):
+    //   A567 1: y' = T37 (legacy k-omega meaning),  2: y' = T37,  3: y' = T37 h (h local water depth)
+    //   (2 and 3 mean the same in k-eps and k-omega, as T 36 1 and 3 in CFD)
+    // applied as a lower bound, so the free-surface value only ever lowers nu_t (as CFD T 36)
     k=p->knoz-1;
     
-	if(p->A567==1 || p->A567==2)
+	if(p->A567>=1 && p->A567<=3)
 	SLICELOOP4
-	{
 	if(p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37));
-	}
+	{
+    double ly = (p->A567==1) ? p->T37 : ((p->A567==2) ? p->T37 : p->T37*d->WL(i,j));
     
-    if(p->A567==3)
-	SLICELOOP4
-	{
-	if(p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37*d->WL(i,j)));
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)/(ly>1.0e-20?ly:1.0e-20));
 	}
 }
 

@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_nwt",
+ "ctrl_add": [
+  "B 108 0.0 0.0 -1.0 1.0 3.0",
+  "B 107 20.0 20.0 -1.0 1.0 6.0"
+ ],
+ "description": "old input: custom generation (B 108) and beach (B 107) zones in CFD.",
+ "tags": [
+  "2d",
+  "cfd",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "B 107/B 108 in CFD relaxation"
+ ]
+}

@@ -282,6 +282,15 @@ void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
     add("WL",p->cellnum);
     SLICELOOP4
     data.back().push_back(d->WL(i,j));
+
+    // turbulence (zero without a turbulence model)
+    add("EV",p->cellnum);
+    LOOP
+    data.back().push_back(d->EV[IJK]);
+
+    add("KIN",p->cellnum);
+    LOOP
+    data.back().push_back(d->KIN[IJK]);
 }
 
 void regression_dump::nhflow_state(lexer *p, fdm_nhf *d)
@@ -462,6 +471,15 @@ void regression_dump::sflow_collect(lexer *p, fdm2D *b)
     add("press",p->cellnum);
     SLICELOOP4
     data.back().push_back(b->press(i,j));
+
+    // turbulence (zero without a turbulence model; kin is filled by the k-eps and k-omega models)
+    add("eddyv",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(b->eddyv(i,j));
+
+    add("kin",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(b->kin(i,j));
 }
 
 void regression_dump::sflow_state(lexer *p, fdm2D *b)
