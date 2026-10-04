@@ -31,6 +31,7 @@ Architect: Hans Bihs
 #include<cstring>
 #include<ctime>
 #include<fstream>
+#include<iostream>
 #include<limits>
 #include<sstream>
 #include<stdexcept>
@@ -146,11 +147,11 @@ std::string utc_now()
     return text;
 }
 
-std::string codecs_json(int level)
+std::string codecs_json(int level, int itemsize=4)
 {
     std::ostringstream j;
     j << "[{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}, "
-      << "{\"name\": \"numcodecs.shuffle\", \"configuration\": {\"elementsize\": 4}}, "
+      << "{\"name\": \"numcodecs.shuffle\", \"configuration\": {\"elementsize\": " << itemsize << "}}, "
       << "{\"name\": \"gzip\", \"configuration\": {\"level\": " << level << "}}]";
     return j.str();
 }
@@ -171,6 +172,42 @@ std::string names_json(const std::vector<std::string> &v)
     for(size_t i=0; i<v.size(); ++i)
         j += (i ? ", " : "") + lagoon_store::json_string(v[i]);
     return j + "]";
+}
+
+// byte shuffle (all first bytes, then all second bytes, ...) and gzip: one chunk
+std::string shuffled_gzip(const void *data, size_t count, int itemsize, int level)
+{
+    const unsigned char *bytes = static_cast<const unsigned char*>(data);
+    std::vector<unsigned char> shuffled(count*itemsize);
+    for(size_t e=0; e<count; ++e)
+        for(int b=0; b<itemsize; ++b)
+            shuffled[b*count + e] = bytes[size_t(itemsize)*e + b];
+    return gzip(shuffled, level);
+}
+
+// zarr.json of a regular-chunked, compressed array
+void write_array_meta(const std::string &dir, const std::string &dtype, int itemsize,
+                      const std::vector<long long> &shape, const std::vector<long long> &chunks,
+                      const std::string &fill, const std::vector<std::string> &dims,
+                      const std::string &attributes, int level)
+{
+    make_dirs(dir);
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": " << ints_json(shape)
+      << ", \"data_type\": \"" << dtype << "\", "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": " << ints_json(chunks) << "}}, "
+      << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+      << "\"fill_value\": " << fill << ", "
+      << "\"codecs\": " << codecs_json(level, itemsize) << ", "
+      << "\"dimension_names\": " << names_json(dims) << ", "
+      << "\"attributes\": {" << attributes << "}}";
+    write_file(dir + "/zarr.json", j.str());
+}
+
+bool exists(const std::string &file)
+{
+    struct stat info;
+    return stat(file.c_str(), &info)==0;
 }
 
 // a plain (unsharded, uncompressed) float64 or int64 array in one chunk
@@ -225,7 +262,7 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
     make_dirs(path);
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {"
-      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.1\", \"solver\": " << json_string(solver)
+      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.2\", \"solver\": " << json_string(solver)
       << ", \"outputs\": [], \"created_by\": \"REEF3D\", \"created\": \"" << utc_now()
       << "\", \"source\": \"REEF3D\"}";
     if(!run_json.empty())
@@ -628,3 +665,203 @@ bool lagoon_store::parse_vtu_header(const std::string &header, std::vector<vtu_a
     return !fields.empty();
 }
 
+
+// ======================================================================== bodies
+lagoon_bodies::lagoon_bodies(const std::string &path_, const std::string &solver_, const std::string &key_,
+                             const std::string &source_, const std::string &run_json_, int gzip_level_)
+    : path(path_), solver(solver_), key(key_), source(source_), run_json(run_json_),
+      dir(path_ + "/bodies/" + key_), gzip_level(gzip_level_), ok(true), started(false), committed(0),
+      store(path_)
+{
+}
+
+void lagoon_bodies::quaternion(const double R[9], double q[4])
+{
+    const double m00=R[0], m01=R[1], m02=R[2], m10=R[3], m11=R[4], m12=R[5], m20=R[6], m21=R[7], m22=R[8];
+    const double trace = m00 + m11 + m22;
+    if(trace > 0.0)
+    {
+        const double s = 2.0*std::sqrt(trace + 1.0);
+        q[0] = 0.25*s; q[1] = (m21 - m12)/s; q[2] = (m02 - m20)/s; q[3] = (m10 - m01)/s;
+    }
+    else if(m00 > m11 && m00 > m22)
+    {
+        const double s = 2.0*std::sqrt(1.0 + m00 - m11 - m22);
+        q[0] = (m21 - m12)/s; q[1] = 0.25*s; q[2] = (m01 + m10)/s; q[3] = (m02 + m20)/s;
+    }
+    else if(m11 > m22)
+    {
+        const double s = 2.0*std::sqrt(1.0 + m11 - m00 - m22);
+        q[0] = (m02 - m20)/s; q[1] = (m01 + m10)/s; q[2] = 0.25*s; q[3] = (m12 + m21)/s;
+    }
+    else
+    {
+        const double s = 2.0*std::sqrt(1.0 + m22 - m00 - m11);
+        q[0] = (m10 - m01)/s; q[1] = (m02 + m20)/s; q[2] = (m12 + m21)/s; q[3] = 0.25*s;
+    }
+    const double norm = std::sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+    const double sign = q[0] < 0.0 ? -1.0 : 1.0;
+    for(int i=0; i<4; ++i)
+        q[i] *= sign/norm;
+}
+
+void lagoon_bodies::start()
+{
+    make_dirs(path);
+    if(!exists(path + "/zarr.json"))  // no P 18 volume output: the store is made here
+        store.create_root(solver, run_json);
+    make_dirs(path + "/bodies");
+    if(!exists(path + "/bodies/zarr.json"))
+        write_file(path + "/bodies/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
+    make_dirs(dir);
+    write_set_attributes();
+    store.commit("bodies/" + key, -1, 0.0, 0);  // empty time and step arrays
+    started = true;
+}
+
+void lagoon_bodies::write_set_attributes() const
+{
+    std::vector<long long> listed;
+    for(const std::pair<const int, body> &b : bodies)
+        if(b.second.listed)
+            listed.push_back(b.first);
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
+      << "\"kind\": \"bodies\", \"bodies\": " << ints_json(listed)
+      << ", \"dataset\": " << lagoon_store::json_string(key)
+      << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
+    write_file(dir + "/zarr.json", j.str());
+}
+
+void lagoon_bodies::write_body_attributes(int number, const body &b) const
+{
+    std::ostringstream j;
+    j.precision(17);
+    j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
+      << "\"rigid\": true, \"vertices\": " << b.points << ", \"fields\": {}, \"max_error\": "
+      << b.max_error << "}}}";
+    write_file(dir + "/body_" + std::to_string(number) + "/zarr.json", j.str());
+}
+
+void lagoon_bodies::write_motion(int number, const body &b, const char *name, int width) const
+{
+    const std::vector<double> &values = width==3 ? b.translation : b.rotation;
+    const long long rows = b.rows;
+    const long long chunk = 4096;
+    const long long first = (rows-1)/chunk*chunk;  // the chunk of the newest row, written again
+    std::vector<double> part(size_t(chunk)*width, std::numeric_limits<double>::quiet_NaN());
+    for(long long r=first; r<rows; ++r)
+        for(int c=0; c<width; ++c)
+            part[size_t(r-first)*width + c] = values[size_t(r)*width + c];
+    const std::string adir = dir + "/body_" + std::to_string(number) + "/" + name;
+    make_dirs(adir + "/c/" + std::to_string(first/chunk));
+    write_file(adir + "/c/" + std::to_string(first/chunk) + "/0", shuffled_gzip(part.data(), part.size(), 8, gzip_level));
+    write_array_meta(adir, "float64", 8, {rows, width}, {chunk, width}, "\"NaN\"",
+                     {"time", width==3 ? "xyz" : "wxyz"}, width==3 ? "\"units\": \"m\"" : "", gzip_level);
+}
+
+bool lagoon_bodies::output(int number, int points, const double *x0, const double *x, const double R[9],
+                           const double c[3], double time, long long step)
+{
+    if(!ok)
+        return false;
+    try
+    {
+        if(!started)
+            start();
+        body &b = bodies[number];
+        if(b.points==0)  // the mesh, once: vertices relative to the centre of gravity, triangles
+        {
+            b.points = points;
+            const std::string bdir = dir + "/body_" + std::to_string(number);
+            make_dirs(bdir);
+            write_body_attributes(number, b);
+            std::vector<float> vertices(size_t(points)*3);
+            for(size_t i=0; i<vertices.size(); ++i)
+                vertices[i] = float(x0[i]);
+            make_dirs(bdir + "/vertices/c/0");
+            write_file(bdir + "/vertices/c/0/0", shuffled_gzip(vertices.data(), vertices.size(), 4, gzip_level));
+            write_array_meta(bdir + "/vertices", "float32", 4, {points, 3}, {std::max(points,1), 3}, "\"NaN\"",
+                             {"vertex", "xyz"}, "\"units\": \"m\"", gzip_level);
+            const int triangles = points/3;
+            std::vector<int32_t> corners(size_t(triangles)*3);
+            for(size_t i=0; i<corners.size(); ++i)
+                corners[i] = int32_t(i);
+            make_dirs(bdir + "/triangles/c/0");
+            write_file(bdir + "/triangles/c/0/0", shuffled_gzip(corners.data(), corners.size(), 4, gzip_level));
+            write_array_meta(bdir + "/triangles", "int32", 4, {triangles, 3}, {std::max(triangles,1), 3}, "0",
+                             {"triangle", "corner"}, "", gzip_level);
+        }
+        if(points!=b.points)
+        {
+            std::cout<<"LAGOON: body "<<number<<" has another mesh now; no more bodies in the LAGOON store"<<std::endl;
+            ok = false;
+            return false;
+        }
+
+        // the motion as stored, and how far it puts each vertex from where it is
+        double q[4];
+        quaternion(R, q);
+        const double w=q[0], qx=q[1], qy=q[2], qz=q[3];
+        const double M[9] = {1-2*(qy*qy+qz*qz), 2*(qx*qy-w*qz),   2*(qx*qz+w*qy),
+                             2*(qx*qy+w*qz),   1-2*(qx*qx+qz*qz), 2*(qy*qz-w*qx),
+                             2*(qx*qz-w*qy),   2*(qy*qz+w*qx),   1-2*(qx*qx+qy*qy)};
+        double largest = 1.0, error = 0.0;
+        for(int i=0; i<points; ++i)
+        {
+            const double v0=float(x0[3*i]), v1=float(x0[3*i+1]), v2=float(x0[3*i+2]);
+            for(int r=0; r<3; ++r)
+            {
+                const float moved = float(M[3*r]*v0 + M[3*r+1]*v1 + M[3*r+2]*v2 + c[r]);
+                const float there = float(x[3*i+r]);
+                error = std::max(error, double(std::fabs(moved - there)));
+                largest = std::max(largest, double(std::fabs(there)));
+            }
+        }
+        const float big = float(largest);
+        const double tolerance = 4.0*double(std::nextafter(big, 2.0f*big) - big);
+        if(!(error <= tolerance))
+        {
+            std::cout<<"LAGOON: body "<<number<<" is "<<error<<" m off its rigid motion at output "<<step
+                     <<"; no more bodies in the LAGOON store (the VTP files are written)"<<std::endl;
+            ok = false;
+            return false;
+        }
+
+        b.translation.insert(b.translation.end(), c, c+3);
+        b.rotation.insert(b.rotation.end(), q, q+4);
+        ++b.rows;
+        write_motion(number, b, "translation", 3);
+        write_motion(number, b, "rotation", 4);
+        if(error > b.max_error || b.rows==1)
+        {
+            b.max_error = std::max(b.max_error, error);
+            write_body_attributes(number, b);
+        }
+        if(!b.listed)
+        {
+            b.listed = true;
+            write_set_attributes();
+        }
+        pending.insert(std::make_pair(b.rows-1, std::make_pair(time, step)));
+
+        // an output counts once every body has it: time last
+        long long rows = b.rows;
+        for(const std::pair<const int, body> &other : bodies)
+            rows = std::min(rows, other.second.rows);
+        while(committed < rows)
+        {
+            const std::pair<double, long long> &when = pending[committed];
+            store.commit("bodies/" + key, int(committed), when.first, when.second);
+            pending.erase(committed);
+            ++committed;
+        }
+        return true;
+    }
+    catch(std::exception &problem)
+    {
+        std::cout<<"LAGOON: "<<problem.what()<<"; no more bodies in the LAGOON store"<<std::endl;
+        ok = false;
+        return false;
+    }
+}

@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef LAGOON_STORE_H_
 #define LAGOON_STORE_H_
 
-// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.1): one Zarr v3
+// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.2): one Zarr v3
 // store per run, one group per output stream, one block per MPI rank.
 //
 // No MPI and no REEF3D types in here: every rank writes its own block's files
@@ -39,6 +39,7 @@ Architect: Hans Bihs
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 class lagoon_store
@@ -125,6 +126,54 @@ private:
     void write_array_json(const array_info &a, int nt, const std::string &units,
                           const std::string &name) const;
     void write_shard(const array_info &a, int t, const float *data) const;
+};
+
+// Floating bodies of a store (LAGOON SPEC.md section 9), written by rank 0: the mesh of
+// each 6DOF body once (its vertices relative to the centre of gravity at the start,
+// x0) and per output the rigid motion that moves it there, x = R x0 + c: the
+// translation c and the rotation R as a unit quaternion (w, x, y, z), w >= 0. The
+// set is bodies/<key> (e.g. bodies/nhflow_body); its time and step arrays count an
+// output once every body has it.
+class lagoon_bodies
+{
+public:
+    lagoon_bodies(const std::string &path, const std::string &solver, const std::string &key,
+                  const std::string &source, const std::string &run_json, int gzip_level=1);
+
+    // one output of one body: points vertices (3 per triangle, as REEF3D keeps them),
+    // x0 and x as xyz of each point, R (row major) and c as REEF3D moved them.
+    // False when the body is not in the store (the vertices are not where the motion
+    // puts them, or the store cannot be written): its VTP file is needed then; from
+    // then on no body is written to the store.
+    bool output(int body, int points, const double *x0, const double *x, const double R[9],
+                const double c[3], double time, long long step);
+
+    bool usable() const { return ok; }
+
+    // the unit quaternion (w, x, y, z), w >= 0, of a rotation matrix (row major)
+    static void quaternion(const double R[9], double q[4]);
+
+private:
+    struct body
+    {
+        int points = 0;
+        long long rows = 0;
+        std::vector<double> translation, rotation;  // 3 and 4 per output
+        bool listed = false;
+        double max_error = 0.0;
+    };
+    std::string path, solver, key, source, run_json, dir;
+    int gzip_level;
+    bool ok, started;
+    std::map<int, body> bodies;
+    std::map<long long, std::pair<double, long long> > pending;  // row: time, step
+    long long committed;
+    lagoon_store store;
+
+    void start();
+    void write_set_attributes() const;
+    void write_body_attributes(int number, const body &b) const;
+    void write_motion(int number, const body &b, const char *name, int width) const;
 };
 
 #endif

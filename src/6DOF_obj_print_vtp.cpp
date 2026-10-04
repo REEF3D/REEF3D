@@ -25,6 +25,31 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
+#include"lagoon_store.h"
+#include<cctype>
+#include<vector>
+
+namespace
+{
+// the LAGOON body writer of this run (P 18), rank 0: one for all bodies
+lagoon_bodies *lagoon_body_writer(lexer *p)
+{
+    static lagoon_bodies *writer = nullptr;
+    if(writer==nullptr)
+    {
+        const std::string solver = p->A10==6 ? "CFD" : p->A10==3 ? "FNPF" : p->A10==2 ? "SFLOW" : "NHFLOW";
+        std::string lower = solver;
+        for(char &ch : lower)
+            ch = char(std::tolower((unsigned char)ch));
+        std::string run;
+        if(p->plog)
+            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+        writer = new lagoon_bodies("./REEF3D_" + solver + ".lagoon", solver, lower + "_body",
+                                   "REEF3D_" + solver + "_6DOF_VTP", run);
+    }
+    return writer;
+}
+}
 
 void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 {
@@ -130,6 +155,29 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
             sprintf(path,(p->A10==3?"./REEF3D_FNPF_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp":"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp"),n6DOF,num);
         else if(p->A10==6)
             sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+
+        // P 18: the body in the LAGOON store, its mesh once and its motion (x = R x0 + c);
+        // P 18 2 leaves out the VTP file then
+        bool stored = false;
+        if(p->P18>0)
+        {
+            std::vector<double> x0(9*size_t(tricount)), x(9*size_t(tricount));
+            for(n=0;n<tricount;++n)
+            for(q=0;q<3;++q)
+            {
+                const size_t m = 9*size_t(n) + 3*q;
+                x0[m] = tri_x0[n][q]; x0[m+1] = tri_y0[n][q]; x0[m+2] = tri_z0[n][q];
+                x[m] = tri_x[n][q];   x[m+1] = tri_y[n][q];   x[m+2] = tri_z[n][q];
+            }
+            const double R[9] = {R_(0,0), R_(0,1), R_(0,2), R_(1,0), R_(1,1), R_(1,2), R_(2,0), R_(2,1), R_(2,2)};
+            const double c[3] = {c_(0), c_(1), c_(2)};
+            stored = lagoon_body_writer(p)->output(n6DOF, 3*tricount, x0.data(), x.data(), R, c, p->simtime, num);
+        }
+        if(stored && p->P18==2)
+        {
+            ++p->printcount_sixdof;
+            return;
+        }
 
         ofstream result;
         result.open(path, ios::binary);
