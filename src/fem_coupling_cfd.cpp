@@ -594,8 +594,28 @@ void fem_coupling::probe_pressure(lexer *p, fdm *a, const Vec3& xp, const Vec3& 
     pr(1) = xp(1) + off*n(1)*p->DYN[std::max(0,std::min(jj,p->knoy-1))+marge];
     pr(2) = xp(2) + off*n(2)*p->DZN[std::max(0,std::min(kk,p->knoz-1))+marge];
 
-    // probes inside the bed or a solid body carry no pressure
-    if(p->ccipol4a(a->solid,pr(0),pr(1),pr(2))>=0.0 && p->ccipol4a(a->topo,pr(0),pr(1),pr(2))>=0.0)
+    // a probe inside the bed or a solid body is moved out horizontally (faces
+    // near the bed whose normal points slightly downwards), else it carries
+    // no pressure
+    auto inside = [&](const Vec3& q){return p->ccipol4a(a->solid,q(0),q(1),q(2))<0.0 || p->ccipol4a(a->topo,q(0),q(1),q(2))<0.0;};
+    if(inside(pr))
+    {
+        Vec3 nh(n(0),n(1),0.0);
+        if(nh.norm()>0.3)
+        {
+            nh.normalize();
+            pr(0) = xp(0) + off*nh(0)*p->DXN[std::max(0,std::min(ii,p->knox-1))+marge];
+            if(p->j_dir==1)
+            pr(1) = xp(1) + off*nh(1)*p->DYN[std::max(0,std::min(jj,p->knoy-1))+marge];
+            pr(2) = xp(2);
+        }
+        if(pr(0)<p->originx || pr(0)>=p->endx || pr(2)<p->originz || pr(2)>=p->endz)
+        return;
+        if(p->j_dir==1 && (pr(1)<p->originy || pr(1)>=p->endy))
+        return;
+    }
+
+    if(!inside(pr))
     {
         const double phi = p->ccipol4(a->phi,pr(0),pr(1),pr(2));
         // the probe lies off*dx outside: its pressure is taken back to the

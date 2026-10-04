@@ -489,12 +489,15 @@ void fem_solid::snap_surface()
 
     // surface nodes and the shapes whose surface they may belong to
     std::vector<std::vector<int>> cand(nnode());
+    std::vector<unsigned char> open(nnode(),0);     // open voxel face directions at the node (bit f)
     for(const element& el : elems)
     for(int f=0; f<6; ++f)
     {
         const int nb = voxel(el.ix+off[f][0],el.iy+off[f][1],el.iz+off[f][2]);
         if(nb>=0 && vox[nb]>=0)
         continue;
+        for(int q=0; q<4; ++q)
+        open[el.n[lf[f][q]]] |= (unsigned char)(1<<f);
         for(int q=0; q<4; ++q)
         {
             std::vector<int>& c = cand[el.n[lf[f][q]]];
@@ -567,6 +570,28 @@ void fem_solid::snap_surface()
             {
                 const shape_box& bx = boxes[c.idx];
                 const double lo[3] = {bx.x0,bx.y0,bx.z0}, hi[3] = {bx.x1,bx.y1,bx.z1};
+                // box: each coordinate goes to the box plane on the side where the
+                // node lies on the mesh boundary, so edges and corners stay sharp
+                // (the closest point would bevel them)
+                q = p;
+                bool any = false;
+                for(int d=0; d<3; ++d)
+                {
+                    const bool mlo = open[i] & (1<<(2*d)), mhi = open[i] & (1<<(2*d+1));
+                    double t = p(d);
+                    if(mlo && mhi)
+                    t = (std::fabs(p(d)-lo[d])<std::fabs(p(d)-hi[d])) ? lo[d] : hi[d];
+                    else if(mlo)
+                    t = lo[d];
+                    else if(mhi)
+                    t = hi[d];
+                    if(std::fabs(t-p(d))<=dmax)
+                    {
+                        q(d) = t;
+                        any = true;
+                    }
+                }
+                if(!any)
                 q = closest_on_box(p,lo,hi);
             }
             else
