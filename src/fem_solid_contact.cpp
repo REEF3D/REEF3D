@@ -33,8 +33,9 @@ void fem_solid::contact_surface(int i,double pen,const Vec3& n,double mu)
 {
     // penalty along the outward normal n of the wall; Coulomb friction with a
     // tangential spring (sticks below mu Fn, slides above)
-    const double cpmax = cp_contact;
-    const double w2 = kground*(cpmax/hmin())*(cpmax/hmin());
+    // stiffness of the node's own material (rigid bodies: rigid_contact_speed)
+    const double c = cnode.empty() ? cp_contact : cnode[i];
+    const double w2 = kground*(c/hmin())*(c/hmin());
 
     const double kn = w2*m[i];
     const double cn = 2.0*contact_zeta*std::sqrt(kn*m[i]);
@@ -153,7 +154,6 @@ void fem_solid::contact_nodes()
     const double cs = d0;           // hash cell size
 
     const double cpmax = cp_contact;
-    const double w2 = kcontact*(cpmax/hmin())*(cpmax/hmin());
     const double dts = cfl*dtcrit;
 
     const int64_t B = 1<<20;
@@ -200,7 +200,9 @@ void fem_solid::contact_nodes()
 
                 const Vec3 n = r/d;
                 const double meff = m[a]*m[b]/(m[a]+m[b]);
-                const double kn = w2*meff;
+                // the softer of the two materials (springs in series)
+                const double c = cnode.empty() ? cpmax : std::min(cnode[a],cnode[b]);
+                const double kn = kcontact*(c/hmin())*(c/hmin())*meff;
                 const double cn = 2.0*contact_zeta*std::sqrt(kn*meff);
                 const Vec3 vr = v[a]-v[b];
                 const double vn = vr.dot(n);

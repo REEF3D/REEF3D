@@ -445,7 +445,8 @@ private:
     std::vector<Vec3> tspring;                  // tangential contact spring of the nodes on walls / bed / ground
     std::vector<unsigned char> touched;
     double dts_cur = 0.0;
-    double cp_contact = 0.0;                    // wave speed of the contact penalty
+    double cp_contact = 0.0;                    // wave speed of the contact penalty (largest)
+    std::vector<double> cnode;                  // contact wave speed per node
     std::vector<rigid_body> rbs;
     std::vector<int> rnode;                     // node -> rigid body (-1: deformable)
     void setup_rigid();

@@ -160,6 +160,15 @@ void fem_solid::build()
         hmax = std::max(hmax,G.h);
     }
 
+    // contact wave speed per node: the stiffest material at the node
+    cnode.assign(nnode(),0.0);
+    for(const element& e : elems)
+    {
+        const double c = e.rigid ? std::min(mats[e.mat].cp,c_rigid) : mats[e.mat].cp;
+        for(int a=0; a<8; ++a)
+        cnode[e.n[a]] = std::max(cnode[e.n[a]],c);
+    }
+
     // crack band check: the softening branch must not snap back
     for(const material& mt : mats)
     if(mt.type==MAT_CONCRETE)
