@@ -51,6 +51,10 @@ private:
     void wave_prestep_cfd(lexer*,ghostcell*);
     void wave_prestep_fnpf(lexer*,ghostcell*);
     
+    // time levels q1 <= t < q2 and their data in E1.. / E2..
+    void time_levels(lexer*,ghostcell*,bool);
+    void read_level(lexer*,ghostcell*,bool,int,int);
+    
     void read_header(lexer*,ghostcell*);
     void read_result_cfd(lexer*,ghostcell*,double**,double***,double***,double***,int);
     void read_result_fnpf(lexer*,ghostcell*,double**,double**,int);
@@ -127,6 +131,8 @@ private:
     
 
     int startup;
+    int L1,L2;      // time levels held in E1.. and E2.. (-1: none)
+    int qs;         // continuous file: level of the next record in the stream
     int numiter,diter,jdir;
     int file_iter;
 };
