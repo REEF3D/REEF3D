@@ -64,6 +64,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	// diffusion
 	if(p->A212==0)
 	pdiff =  new sflow_diffusion_void(p);
+    
+    if(p->A212==0 && p->A260>0 && p->mpirank==0)
+    cout<<"SFLOW warning: turbulence model A 260 "<<p->A260<<" with A 212 0: the eddy viscosity does not enter the momentum equations (set A 212 1 or 2)"<<endl;
 	
 	if(p->A212==1)
 	pdiff =  new sflow_ediff(p);

@@ -225,3 +225,32 @@ void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
         }
     }
 }
+
+// local water depth at the column (i,j) for the free-surface damping T 36 3: a->WL from the ioflow
+// waterlevel_update when it found the interface (ioflow_f, iowave), otherwise (ioflow_v and ioflow_gravity
+// leave WL = 0; WL = 1e-4 means no interface in the local column) the interface and the lowest fluid face
+// are searched in the local column. Returns -1 if this rank's column has no interface (e.g. z-decomposition).
+double rans_io::fsf_depth(lexer* p, fdm *a)
+{
+    if(a->WL(i,j)>2.0e-4)
+    return a->WL(i,j);
+    
+    const int k0 = k;
+    double zint=-1.0e20, zbed=1.0e20;
+    
+    KLOOP
+    PCHECK
+    {
+        if(a->topo(i,j,k)>0.0)
+        zbed = MIN(zbed, p->ZN[KP]);
+        
+        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+        zint = MAX(zint, p->ZP[KP] + a->phi(i,j,k)*p->DZP[KP]/(a->phi(i,j,k)-a->phi(i,j,k+1)));
+    }
+    k = k0;
+    
+    if(zint<-1.0e19 || zbed>1.0e19 || zint<=zbed)
+    return -1.0;
+    
+    return zint-zbed;
+}

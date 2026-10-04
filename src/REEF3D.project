@@ -86,6 +86,7 @@
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="Spectral"/>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Vorticity">
@@ -363,15 +364,6 @@
             <File Name="cds2_alt.h"/>
             <File Name="cds2.h"/>
           </VirtualDirectory>
-        </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Update"/>
-        <VirtualDirectory Name="Laplace"/>
-        <VirtualDirectory Name="FSFBC"/>
-        <VirtualDirectory Name="PTF"/>
-        <VirtualDirectory Name="FDM">
-          <VirtualDirectory Name="Time"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
@@ -1336,6 +1328,7 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
+      <VirtualDirectory Name="Spectral"/>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="WSF">
@@ -1681,13 +1674,6 @@
             </VirtualDirectory>
           </VirtualDirectory>
         </VirtualDirectory>
-      </VirtualDirectory>
-      <VirtualDirectory Name="PTF">
-        <VirtualDirectory Name="Breaking"/>
-        <VirtualDirectory Name="Update"/>
-        <VirtualDirectory Name="Laplace"/>
-        <VirtualDirectory Name="FSFBC"/>
-        <VirtualDirectory Name="PTF"/>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <VirtualDirectory Name="Convect">

@@ -174,11 +174,19 @@ void  kepsilon_func::epsfsf(lexer *p, fdm* a,ghostcell *pgc, ioflow *pflow)
         ly = 1.0/(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
         
         if(p->T36==3)
-        ly = p->T37*a->WL(i,j);
+        {
+        const double h = fsf_depth(p,a);
+        ly = (h>0.0) ? p->T37*h : -1.0;   // no interface in this rank's column: no damping
+        }
+        
+        if(ly>0.0)
+        {
+        ly = MAX(ly, 0.5*p->DZN[KP]);
         
         const double eps_s = 2.5*pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),1.5)/(ly>1.0e-20?ly:1.0e-20);
         
         eps(i,j,k) = MAX(eps(i,j,k), w*eps_s);
+        }
         }
 	}
 }

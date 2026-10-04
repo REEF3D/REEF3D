@@ -107,7 +107,7 @@ void bcmom::wall_law_u(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(z0/ks)));
+		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
     
 	a->F(i,j,k) -= ((fabs(a->u(i,j,k))*a->u(i,j,k))/(uplus*uplus*deltaZ));
 }
@@ -131,7 +131,7 @@ void bcmom::wall_law_v(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(z0/ks)));
+		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
 	a->G(i,j,k) -= ((fabs(a->v(i,j,k))*a->v(i,j,k))/(uplus*uplus*deltaZ));
 }
@@ -155,7 +155,7 @@ void bcmom::wall_law_w(fdm* a,lexer* p, turbulence *pturb,field& b,int ii,int jj
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*MAX(0.01,log(30.0*(z0/ks)));
+		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
 	a->H(i,j,k) -= ((fabs(a->w(i,j,k))*a->w(i,j,k))/(uplus*uplus*deltaZ));
 }

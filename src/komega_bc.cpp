@@ -104,7 +104,7 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
 		if(30.0*dist<ks)
 		dist=ks/30.0;
 		
-        uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+        uplus = (1.0/kappa)*MAX(1.0,log(30.0*(dist/ks)));
 
 	tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
 	
@@ -230,8 +230,9 @@ void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
     n=0;
     LOOP
     {
+        // y-neighbours only in 3D: in 2D the porosity y-ghosts are never set (start4a skips cs 2/3), they are 0
         if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
-                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99
+                                        || (p->j_dir==1 && (a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99))
                                         || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99))
         {
         if(p->j_dir==0)
@@ -267,7 +268,7 @@ void komega_bc::vrans_wall_law_kin(lexer *p,fdm *a,field &kin,field &eps)
             if(30.0*dist<ks)
             dist=ks/30.0;
             
-            uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+            uplus = (1.0/kappa)*MAX(1.0,log(30.0*(dist/ks)));
 
         tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
         
@@ -287,8 +288,9 @@ void komega_bc::vrans_wall_law_omega(lexer *p,fdm *a,field &kin,field &eps)
     n=0;
     LOOP
     {
+        // y-neighbours only in 3D: in 2D the porosity y-ghosts are never set (start4a skips cs 2/3), they are 0
         if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
-                                        || a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99
+                                        || (p->j_dir==1 && (a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99))
                                         || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99))
         {
         if(p->j_dir==0)

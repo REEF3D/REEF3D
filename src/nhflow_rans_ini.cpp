@@ -50,7 +50,7 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     }*/
     
     
-    if(p->B60==1)
+    if(p->B60>=1)
     {
     LOOP
     {
@@ -88,7 +88,7 @@ void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
     double evval,kinval,epsval;
     
-    if(p->B60==1)
+    if(p->B60>=1)
     for(n=0;n<p->gcin_count;n++)
     {
     i=p->gcin[n][0];

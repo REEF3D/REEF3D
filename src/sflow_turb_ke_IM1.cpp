@@ -106,7 +106,7 @@ void sflow_turb_ke_IM1::etimesave(lexer* p, fdm2D *b, ghostcell *pgc)
 void sflow_turb_ke_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
-    b->eddyv(i,j) = p->cmu*MAX(MIN(MAX(kin(i,j)*kin(i,j)
+    b->eddyv(i,j) = p->cmu*MAX(MIN(MAX(MAX(kin(i,j),0.0)*MAX(kin(i,j),0.0)
                         /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->A263*kin(i,j))/(S(i,j)>1.0e-20?S(i,j):1.0e-20)),
                         0.0001*p->W2);
                         
@@ -194,10 +194,10 @@ void sflow_turb_ke_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     vvel=0.0;
     
     //if(b->wet1(i,j)==0 && b->wet1(i-1,j))
-    uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
+    uvel = b->U(i,j);   // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
     
     //if(b->wet2(i,j)==0 && b->wet2(i,j-1))
-    vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
+    vvel = b->V(i,j);
 
     manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
 

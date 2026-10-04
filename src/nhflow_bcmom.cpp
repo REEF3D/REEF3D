@@ -52,7 +52,7 @@ void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(z0/ks));
+		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
 	if(fabs(z0*uplus)>1.0e-10)
 	F[IJK] -= (fabs(U[IJK])*U[IJK]*WL(i,j))/(uplus*uplus*deltaZ);
@@ -128,7 +128,7 @@ void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice
                 if(30.0*z0<ks)
                 z0=ks/30.0;
 
-                uplus = (1.0/kappa)*log(30.0*(z0/ks));
+                uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
                 if(fabs(z0*uplus)>1.0e-10)
                 F[IJK] -= (fabs(U[IJK])*U[IJK]*WL(i,j))/(uplus*uplus*deltaZ);
@@ -156,7 +156,7 @@ void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice
 		if(30.0*z0<ks)
 		z0=ks/30.0;
 
-		uplus = (1.0/kappa)*log(30.0*(z0/ks));
+		uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
 	if(fabs(z0*uplus)>1.0e-10)
 	G[IJK] -= (fabs(V[IJK])*V[IJK]*WL(i,j))/(uplus*uplus*deltaZ);
@@ -233,7 +233,7 @@ void nhflow_bcmom::roughness_v(lexer* p, fdm_nhf *d, double *V, double *G, slice
                 if(30.0*z0<ks)
                 z0=ks/30.0;
 
-                uplus = (1.0/kappa)*log(30.0*(z0/ks));
+                uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
                 if(fabs(z0*uplus)>1.0e-10)
                 G[IJK] -= (fabs(V[IJK])*V[IJK]*WL(i,j))/(uplus*uplus*deltaZ);
@@ -314,7 +314,7 @@ void nhflow_bcmom::roughness_w(lexer* p, fdm_nhf *d, double *W, double *H, slice
                 if(30.0*z0<ks)
                 z0=ks/30.0;
 
-                uplus = (1.0/kappa)*log(30.0*(z0/ks));
+                uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
 
                 if(fabs(z0*uplus)>1.0e-10)
                 H[IJK] -= (fabs(W[IJK])*W[IJK]*WL(i,j))/(uplus*uplus*deltaZ);

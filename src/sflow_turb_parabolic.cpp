@@ -49,8 +49,8 @@ void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_conve
     
     cf = pow(manning,2.0)*fabs(p->W22)/pow(HPIJ,1.0/3.0);
     
-    uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
-    vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
+    uvel = b->U(i,j);   // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
+    vvel = b->V(i,j);
     
     Ustar = sqrt(cf*(uvel*uvel + vvel*vvel));
     

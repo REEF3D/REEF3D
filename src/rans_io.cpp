@@ -134,6 +134,13 @@ void rans_io::gcupdate(lexer *p, fdm *a, ghostcell *pgc)
 {
     pgc->start4(p,kin,20);
 	pgc->start4(p,eps,30);
+    
+    // after a state read (cfd_state_read): eddyv0 is not in the state file; k-omega diffuses k and omega
+    // with it and uses it in the omega production, so restore it from the restored eddyv
+    LOOP
+    eddyv0(i,j,k) = a->eddyv(i,j,k);
+    
+    pgc->start4(p,eddyv0,24);
 }
 
 void rans_io::name_ParaView_parallel(lexer *p, ofstream &result)

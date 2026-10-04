@@ -24,8 +24,8 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"lexer.h"
 
-// inflow ghost cell with prescribed turbulence profile (B 60 1, see nhflow_rans_io::inflow): use the ghost value
-#define TURBIN(X) (p->B60==1 && p->IO[X]==1 && p->DF[X]>0)
+// inflow ghost cell with prescribed turbulence profile (B 60 >= 1, see nhflow_rans_io::inflow, which writes the i-1 ghosts): use the ghost value
+#define TURBIN(X) (p->B60>=1 && p->IO[X]==1 && p->DF[X]>0)
  
 nhflow_kepsilon_bc::nhflow_kepsilon_bc(lexer *p) : roughness(p)
 {
@@ -116,7 +116,7 @@ void nhflow_kepsilon_bc::wall_law_kin(lexer *p, fdm_nhf *d, double *KIN, double 
                 if(30.0*dist<ks)
                 dist=ks/30.0;
                 
-                uplus = (1.0/kappa)*MAX(0.01,log(30.0*(dist/ks)));
+                uplus = (1.0/kappa)*MAX(1.0,log(30.0*(dist/ks)));
                 
                 tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
                 
@@ -231,21 +231,21 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             
             if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))// && outflow==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*(TURBIN(Ip1JK)?KIN[Ip1JK]:KIN[IJK]);
+            d->rhsvec.V[n] -= d->M.n[n]*KIN[IJK];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*(TURBIN(IJm1K)?KIN[IJm1K]:KIN[IJK]);
+            d->rhsvec.V[n] -= d->M.e[n]*KIN[IJK];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*(TURBIN(IJp1K)?KIN[IJp1K]:KIN[IJK]);
+            d->rhsvec.V[n] -= d->M.w[n]*KIN[IJK];
             d->M.w[n] = 0.0;
             }
             
@@ -326,13 +326,13 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             // n
             if(p->flag4[Ip1JK]<0)// && outflow==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*(TURBIN(Ip1JK)?EPS[Ip1JK]:EPS[IJK]);
+            d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
             d->M.n[n] = 0.0;
             }
             
             if(p->DF[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*(TURBIN(Ip1JK)?EPS[Ip1JK]:EPS[IJK]);
+            d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
             d->M.n[n] = 0.0;
             }
             
@@ -340,14 +340,14 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             if(p->j_dir==1)
             if(p->flag4[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*(TURBIN(IJm1K)?EPS[IJm1K]:EPS[IJK]);
+            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->DF[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*(TURBIN(IJm1K)?EPS[IJm1K]:EPS[IJK]);
+            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
             d->M.e[n] = 0.0;
             }
             
@@ -355,14 +355,14 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             if(p->j_dir==1)
             if(p->flag4[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*(TURBIN(IJp1K)?EPS[IJp1K]:EPS[IJK]);
+            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
             d->M.w[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->DF[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*(TURBIN(IJp1K)?EPS[IJp1K]:EPS[IJK]);
+            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
             d->M.w[n] = 0.0;
             }
             

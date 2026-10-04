@@ -159,6 +159,65 @@ int main()
         }
     }
     
+    std::cout<<"actuator disk on a coarse staggered grid (CFD) and on cell centres (NHFLOW)"<<std::endl;
+    {
+        // disk of 2.4 cells diameter, off the cell centres, inclined shaft, part of the cells
+        // with a reduced fluid fraction (free surface, forcing zone of the hull)
+        sixdof_actuator_disk ad;
+        ad.centre = Eigen::Vector3d(0.913,0.587,0.41);
+        ad.axis = Eigen::Vector3d(1.0,0.0,0.15).normalized();
+        ad.R = 0.06; ad.Rh = 0.012; ad.thickness = 0.2; ad.T = 2.45; ad.Q = 0.04; ad.sense = -1;
+        const double h = 0.05;
+        auto fluid = [](const Eigen::Vector3d &x) {return x(2)>0.44 ? 0.3 : 1.0;};
+        for(int grid=0; grid<2; ++grid)
+        {
+            // grid 0: staggered (component c shifted by h/2 in direction c), grid 1: cell centres
+            auto point = [&](int c, int i, int j, int k)
+            {
+                Eigen::Vector3d x((i+0.5)*h, (j+0.5)*h, (k+0.5)*h);
+                if(grid==0) x(c) += 0.5*h;
+                return x;
+            };
+            sixdof_actuator_disk::sums S[3];
+            for(int c=0;c<3;++c)
+            for(int i=0;i<40;++i) for(int j=0;j<24;++j) for(int k=0;k<16;++k)
+            {
+                const Eigen::Vector3d x = point(c,i,j,k);
+                ad.accumulate(x,h*h*h,fluid(x),c,S[c]);
+            }
+            const double kappa = ad.swirl_factor(S);
+            Eigen::Vector3d F(0,0,0), M(0,0,0);
+            for(int c=0;c<3;++c)
+            for(int i=0;i<40;++i) for(int j=0;j<24;++j) for(int k=0;k<16;++k)
+            {
+                const Eigen::Vector3d x = point(c,i,j,k);
+                const double fc = ad.force(x,fluid(x),c,S[c],kappa);
+                F(c) += fc*h*h*h;
+                M += (x-ad.centre).cross(fc*Eigen::Vector3d::Unit(c))*h*h*h;
+            }
+            const Eigen::Vector3d Fex = -ad.T*ad.axis;
+            snprintf(s,300,"%s: force (%.3e, %.3e, %.3e) = -T axis, torque about the axis %.12f (sense Q = -0.04)",
+                     grid==0 ? "staggered" : "cell centres",F(0),F(1),F(2),M.dot(ad.axis));
+            check((F-Fex).norm()<1e-12 && fabs(M.dot(ad.axis)+0.04)<1e-12, s);
+            // the plain distribution Q wt et / sum(wt r V) on the same points: net side force of the swirl
+            if(grid==1)
+            {
+                double ST=0; Eigen::Vector3d Fs(0,0,0);
+                double wa,wt,r; Eigen::Vector3d et;
+                for(int pass=0;pass<2;++pass)
+                for(int i=0;i<40;++i) for(int j=0;j<24;++j) for(int k=0;k<16;++k)
+                {
+                    const Eigen::Vector3d x = point(0,i,j,k);
+                    if(!ad.weights(x,wa,wt,et,r)) continue;
+                    if(pass==0) ST += fluid(x)*wt*r*h*h*h;
+                    else Fs += ad.Q*fluid(x)*wt/ST*et*h*h*h;
+                }
+                snprintf(s,300,"without the correction the swirl has a net force of %.1f %% of T on this grid",100.0*Fs.norm()/ad.T);
+                check(Fs.norm()>0.01*ad.T, s);
+            }
+        }
+    }
+    
     std::cout<<"MMG rudder"<<std::endl;
     {
         ship_models::rudder_param R;

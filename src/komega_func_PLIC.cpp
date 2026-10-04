@@ -113,12 +113,12 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP], (1.0/3.0));
     
     if(p->T34==0)
-    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
+    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*MAX(eps(i,j,k),0.0)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
                 * MAX(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0), 0.0001*a->visc(i,j,k));
                           
     if(p->T34==1)
-    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
+    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*MAX(eps(i,j,k),0.0)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
                 * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
@@ -286,11 +286,19 @@ void komega_func_PLIC::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
     ly = 1.0/(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
     
     if(p->T36==3)
-    ly = p->T37*a->WL(i,j);
+    {
+    const double h = fsf_depth(p,a);
+    ly = (h>0.0) ? p->T37*h : -1.0;   // no interface in this rank's column: no damping
+    }
+    
+    if(ly>0.0)
+    {
+    ly = MAX(ly, 0.5*p->DZN[KP]);
     
     const double eps_s = 2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)/(ly>1.0e-20?ly:1.0e-20);
     
 	eps(i,j,k) = MAX(eps(i,j,k), w*eps_s);
+    }
 	}
 	}
 }
