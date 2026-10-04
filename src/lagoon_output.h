@@ -23,7 +23,8 @@ Architect: Hans Bihs
 #ifndef LAGOON_OUTPUT_H_
 #define LAGOON_OUTPUT_H_
 
-// LAGOON store output of a solver's VTU volume (P 18): every rank takes the arrays
+// LAGOON store output of a solver's VTU volume (P 18; FNPF and NHFLOW σ-grids, CFD
+// Cartesian grids): every rank takes the arrays
 // of its VTU piece, as the printer has just put them together, and writes them to
 // its block of ./REEF3D_<SOLVER>.lagoon (see lagoon_store.h). The VTU points are
 // columns of knoz+1 σ-levels, written x fastest, then y, then the level, which is
@@ -55,6 +56,7 @@ private:
     lagoon_store store;
     bool ready;
     bool usable;
+    bool cartesian;  // CFD: levels at fixed heights
     int t;
     int nx, ny, nz;
     std::vector<double> sigma;

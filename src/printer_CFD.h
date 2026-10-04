@@ -55,6 +55,7 @@ class probe_vel_theory;
 class exportfile;
 class flowfile_out;
 class print_averaging;
+class lagoon_output;
 
 using namespace std;
 
@@ -104,6 +105,7 @@ private:
     print_averaging *pmean;
     probe_vel *pvel;
     probe_vel_theory *pveltheo;
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 
 #endif

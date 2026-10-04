@@ -58,7 +58,7 @@ std::string stored_run(const std::string &path)
 }
 
 lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
-    : solver(solver_), store(store_path(solver_)), ready(false), usable(true), t(0), nx(0), ny(0), nz(0)
+    : solver(solver_), store(store_path(solver_)), ready(false), usable(true), cartesian(false), t(0), nx(0), ny(0), nz(0)
 {
     // a store holds one run: the store of an earlier run in this folder is moved aside
     if(p->mpirank==0)
@@ -86,7 +86,7 @@ bool lagoon_output::vtu_files(lexer *p)
 
 bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_store::variable> &fields)
 {
-    // σ-grid columns: no moving or tilted grids (B 180-192 change x and z per point)
+    // a structured grid: no moving or tilted grids (B 180-192 change x and z per point)
     if(p->B180>0 || p->B191>0 || p->B192>0)
     {
         if(p->mpirank==0)
@@ -108,14 +108,31 @@ bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_sto
         y[p->origin_j + j + 1] = p->YN[JP1];
     pgc->globalmax(x.data(), gnx);
     pgc->globalmax(y.data(), gny);
-    sigma.resize(nz);
-    for(k=-1; k<p->knoz; ++k)
-        sigma[k+1] = p->ZN[KP1];
+
+    // FNPF and NHFLOW: σ-levels, the same in every rank; CFD: Cartesian levels at
+    // fixed heights, the grid split in z as well
+    cartesian = solver=="CFD";
+    std::vector<double> levels;
+    if(cartesian)
+    {
+        levels.assign(p->gknoz + 1, -1.0e300);
+        for(k=-1; k<p->knoz; ++k)
+            levels[p->origin_k + k + 1] = p->ZN[KP1];
+        pgc->globalmax(levels.data(), int(levels.size()));
+    }
+    else
+    {
+        sigma.resize(nz);
+        for(k=-1; k<p->knoz; ++k)
+            sigma[k+1] = p->ZN[KP1];
+        levels = sigma;
+    }
 
     if(p->mpirank==0)
-        store.create_output("volume", "sigma", x, y, sigma, fields, p->M10>0 ? p->M10 : 1,
-                            std::string("REEF3D_") + solver + "_VTU");
-    store.create_block("volume", p->mpirank, p->origin_i, p->origin_j, nx, ny, nz, fields, p->mpirank);
+        store.create_output("volume", cartesian ? "cartesian" : "sigma", x, y, levels, fields,
+                            p->M10>0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU");
+    store.create_block("volume", p->mpirank, p->origin_i, p->origin_j, nx, ny, nz, fields, p->mpirank,
+                       cartesian, cartesian ? p->origin_k : 0);
     MPI_Barrier(pgc->mpi_comm);
     return true;
 }
@@ -142,17 +159,19 @@ void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> 
     if(ok)
     try
     {
-        // heights: the z of the points, levels outermost
-        const float *points = reinterpret_cast<const float*>(&buffer[data_start + points_offset + sizeof(int)]);
-        std::vector<float> z(n);
-        for(size_t q=0; q<n; ++q)
-            z[q] = points[3*q+2];
-        const size_t column = size_t(nx)*ny;
-        std::vector<float> offsets;
-        lagoon_store::level_offsets(z.data(), nz, int(column), sigma, offsets);
-        store.write("volume", p->mpirank, t, "z_bed", &z[0]);
-        store.write("volume", p->mpirank, t, "z_surface", &z[(nz-1)*column]);
-        store.write("volume", p->mpirank, t, "z_offset", offsets.data());
+        if(!cartesian)  // σ-grids: the heights of the levels in every column
+        {
+            const float *points = reinterpret_cast<const float*>(&buffer[data_start + points_offset + sizeof(int)]);
+            std::vector<float> z(n);
+            for(size_t q=0; q<n; ++q)
+                z[q] = points[3*q+2];
+            const size_t column = size_t(nx)*ny;
+            std::vector<float> offsets;
+            lagoon_store::level_offsets(z.data(), nz, int(column), sigma, offsets);
+            store.write("volume", p->mpirank, t, "z_bed", &z[0]);
+            store.write("volume", p->mpirank, t, "z_surface", &z[(nz-1)*column]);
+            store.write("volume", p->mpirank, t, "z_offset", offsets.data());
+        }
         for(const lagoon_store::vtu_array &a : parsed)
         {
             const float *values = reinterpret_cast<const float*>(&buffer[data_start + a.offset + sizeof(int)]);

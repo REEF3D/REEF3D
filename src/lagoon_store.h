@@ -58,18 +58,21 @@ public:
     void create_root(const std::string &solver, const std::string &run_json);
 
     // rank 0, once per output stream: the group, its grid lines and time arrays
-    // grid: "sigma" (volumes; sigma = the levels, 0 at the bed, 1 at the surface)
-    // or "surface" (sigma empty)
+    // grid: "sigma" (levels: their σ, 0 at the bed, 1 at the surface), "cartesian"
+    // (levels: their heights z, CFD) or "surface" (levels empty)
     void create_output(const std::string &output, const std::string &grid,
                        const std::vector<double> &x, const std::vector<double> &y,
-                       const std::vector<double> &sigma,
+                       const std::vector<double> &levels,
                        const std::vector<variable> &variables,
                        int blocks, const std::string &source);
 
     // every rank, once per output stream: its block (i0, j0: index of its first
-    // point in x and y; nx, ny: its number of points; nz: levels, 1 for surfaces)
+    // point in x and y; nx, ny: its number of points; nz: levels, 1 for surfaces).
+    // A Cartesian block (cartesian=true) has no height arrays and may hold the
+    // levels k0 ... k0+nz-1 only (CFD splits its grid in z too).
     void create_block(const std::string &output, int block, int i0, int j0,
-                      int nx, int ny, int nz, const std::vector<variable> &variables, int rank);
+                      int nx, int ny, int nz, const std::vector<variable> &variables, int rank,
+                      bool cartesian=false, int k0=0);
 
     // every rank, every output t (0, 1, 2, ...): one array of its block.
     // data: nz*ny*nx*components floats, x fastest, then y, then the level, with

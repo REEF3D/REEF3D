@@ -236,7 +236,7 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
 
 void lagoon_store::create_output(const std::string &output, const std::string &grid,
                                  const std::vector<double> &x, const std::vector<double> &y,
-                                 const std::vector<double> &sigma,
+                                 const std::vector<double> &levels,
                                  const std::vector<variable> &variables,
                                  int blocks, const std::string &source)
 {
@@ -246,8 +246,8 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
       << "\"role\": " << json_string(output) << ", \"grid\": " << json_string(grid)
       << ", \"shape\": {\"x\": " << x.size() << ", \"y\": " << y.size();
-    if(grid=="sigma")
-        j << ", \"level\": " << sigma.size();
+    if(grid=="sigma" || grid=="cartesian")
+        j << ", \"level\": " << levels.size();
     j << "}, \"variables\": {";
     for(size_t v=0; v<variables.size(); ++v)
     {
@@ -266,7 +266,9 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
     write_plain_array(dir + "/x", x, "x", "m");
     write_plain_array(dir + "/y", y, "y", "m");
     if(grid=="sigma")
-        write_plain_array(dir + "/sigma", sigma, "level", "");
+        write_plain_array(dir + "/sigma", levels, "level", "");
+    if(grid=="cartesian")
+        write_plain_array(dir + "/z", levels, "level", "m");
     times[output].clear();
     steps[output].clear();
     commit(output, -1, 0.0, 0);  // empty time and step arrays
@@ -288,7 +290,8 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
 }
 
 void lagoon_store::create_block(const std::string &output, int block, int i0, int j0,
-                                int nx, int ny, int nz, const std::vector<variable> &variables, int rank)
+                                int nx, int ny, int nz, const std::vector<variable> &variables, int rank,
+                                bool cartesian, int k0)
 {
     char name[16];
     std::snprintf(name, sizeof(name), "b%04d", block);
@@ -296,7 +299,8 @@ void lagoon_store::create_block(const std::string &output, int block, int i0, in
     make_dirs(dir);
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
-      << "\"start\": [" << i0 << ", " << j0 << "], \"size\": [" << nx << ", " << ny << "], "
+      << "\"start\": [" << i0 << ", " << j0 << (cartesian ? ", " + std::to_string(k0) : std::string())
+      << "], \"size\": [" << nx << ", " << ny << (cartesian ? ", " + std::to_string(nz) : std::string()) << "], "
       << "\"rank\": " << rank << "}}}";
     write_file(dir + "/zarr.json", j.str());
 
@@ -304,7 +308,9 @@ void lagoon_store::create_block(const std::string &output, int block, int i0, in
     const int cx = tile_size(nx, std::max(64, 2*CHUNK_VALUES/cy));
     const int cz = cy*cx >= CHUNK_VALUES ? 1 : std::min(nz, (CHUNK_VALUES + cy*cx - 1)/(cy*cx));
     std::vector<variable> all;
-    if(nz>1)
+    if(cartesian)
+        ;  // the heights are the output's z
+    else if(nz>1)
     {
         all.push_back({"z_bed",1,"m"});
         all.push_back({"z_surface",1,"m"});
@@ -317,7 +323,7 @@ void lagoon_store::create_block(const std::string &output, int block, int i0, in
     {
         array_info a;
         a.dir = dir + "/" + v.name;
-        a.levels = nz>1 && v.name!="z_bed" && v.name!="z_surface";
+        a.levels = (cartesian || nz>1) && v.name!="z_bed" && v.name!="z_surface";
         a.nz = a.levels ? nz : 1;
         a.ny = ny;
         a.nx = nx;
