@@ -1,0 +1,10 @@
+# rigid timber block on the dry bed, pushed by the dam-break surge onto an elastic post
+# Architect: Hans Bihs
+material timber C24 rigid stiffness 2.0e5
+box 0.17 0.21  0.0 0.01  0.0 0.03
+material elastic 2400 3.0e8 0.2
+box 0.30 0.32  0.0 0.01  0.0 0.10
+fix base
+ground 0.0
+monitor post 0.31 0.005 0.10
+resolution normal

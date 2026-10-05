@@ -3,7 +3,7 @@
 // Build:  g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
 //         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test
 // Run:    ./fem_test [test]      tests: cantilever freq rotation j2 crackband drop collapse snap patch
-//                                presets settle snapbeam damping rigid walls (default: all)
+//                                presets settle snapbeam damping rigid walls impact (default: all)
 #include"fem_solid.h"
 #include<iostream>
 #include<sstream>
@@ -519,7 +519,7 @@ static void test_walls()
         // place the block on the bed: rotate the reference frame by the slope
         fem_solid::rigid_body& rb=const_cast<fem_solid::rigid_body&>(s.rigid(0));
         rb.R = Eigen::AngleAxisd(-a,Vec3(0,1,0)).toRotationMatrix();
-        rb.c = Vec3(0,0.1,0) + 0.05*n + 0.001*n;          // centre 5 mm above... half thickness + 1 mm
+        rb.c = Vec3(0,0.1,0) + 0.05*n;                    // resting on the bed (half thickness)
         for(int i=0;i<s.nnode();++i) s.set_pos(i, rb.c + rb.R*(s.ref_pos(i)-rb.c0));
         double t=0;
         for(int k=0;k<600;++k)
@@ -529,7 +529,7 @@ static void test_walls()
             s.advance(1e-3); t+=1e-3;
         }
         const Vec3 tdir(std::cos(a),0.0,std::sin(a));     // up the slope
-        const double sdist = -(rb.c-(Vec3(0,0.1,0)+0.051*n)).dot(tdir);
+        const double sdist = -(rb.c-(Vec3(0,0.1,0)+0.05*n)).dot(tdir);
         const double aexp = std::max(0.0, g*(std::sin(a)-mu*std::cos(a)));
         const double sexp = 0.5*aexp*t*t;
         double pen=0; for(int i=0;i<s.nnode();++i) pen=std::max(pen,-n.dot(s.pos(i)));
@@ -558,6 +558,108 @@ static void test_walls()
     }
 }
 
+// one rigid block (and optionally a second one or a fixed elastic wall) thrown at a
+// wall: peak contact force, duration and rebound of the debris impact
+struct impact_result {double Fmax, dur, vreb, k, Fsup;};
+static impact_result impact_run(double k,double zeta,double cap,double A,int partner,double u=2.0)
+{
+    // block 0.4 x 0.2 x 0.2 m, rho 500 (8 kg), stiffness k [N/m] (k<=0: bar from E = 1e10)
+    fem_solid s;
+    s.set_lattice(0,0,0,0.05,0.05,0.05);
+    fem_solid::material m=elastic(1,500,1e10,0.3); m.rigid=true; m.kdebris=k>0?k:0.0; m.fcrush=cap;
+    s.add_material(m);
+    s.add_box(0,0.4,0,0.2,0,0.2,1);
+    if(partner==1)
+    {
+        // second rigid block 0.2 x 0.2 x 0.2 m (4 kg), twice as stiff, coming the other way
+        fem_solid::material m2=m; m2.id=2; m2.kdebris=2.0*k;
+        s.add_material(m2);
+        s.add_box(0.45,0.65,0,0.2,0,0.2,2);
+    }
+    else if(partner==2)
+    {
+        // fixed concrete-like wall (E 30 GPa) 0.2 m thick
+        s.add_material(elastic(2,2400,3e10,0.2));
+        s.add_box(0.45,0.65,-0.1,0.3,-0.1,0.3,2);
+        s.add_fix(0.65-1e-6,0.65+1e-6,-1,1,-1,1,true,true,true);
+    }
+    else
+    s.add_contact_plane(Vec3(-1,0,0),-0.45);         // wall at x = 0.45
+    s.set_gravity(Vec3(0,0,0));
+    s.set_debris_damping(zeta);
+    s.set_damping_ratio(0.0);
+    s.build();
+    fem_solid::rigid_body& rb=const_cast<fem_solid::rigid_body&>(s.rigid(0));
+    rb.V = Vec3(u,0,0);
+    if(partner==1) const_cast<fem_solid::rigid_body&>(s.rigid(1)).V = Vec3(-u,0,0);
+    if(A>0.0) s.set_rigid_added_mass(0,A);
+    impact_result r{0,0,0,rb.k,0};
+    const double dt=2e-5;
+    double t0=-1, t1=-1;
+    for(int n=0;n<5000;++n)
+    {
+        s.advance(dt);
+        const double F=rb.fcstep;
+        if(F>0 && t0<0) t0=s.time()-dt;
+        if(F>0) t1=s.time();
+        r.Fmax=std::max(r.Fmax,F);
+        if(partner==2) r.Fsup=std::max(r.Fsup,std::fabs(s.support_force()(0)));
+        if(t0>0 && F==0 && s.time()>t1+0.02) break;
+    }
+    r.dur=t1-t0; r.vreb=rb.V(0);
+    return r;
+}
+
+static void test_impact()
+{
+    std::cout<<"debris impact: rigid body as a spring k, peak u sqrt(k M), duration pi sqrt(M/k)"<<std::endl;
+    const double M=8.0, u=2.0, k=1.0e6;
+    const double F0=u*std::sqrt(k*M), T0=M_PI*std::sqrt(M/k);
+    {
+        impact_result r=impact_run(k,0.0,0.0,0.0,0);
+        std::printf("    wall, elastic: peak %.1f N (u sqrt(kM) %.1f), duration %.2f ms (%.2f), rebound %.3f m/s\n",r.Fmax,F0,1e3*r.dur,1e3*T0,r.vreb);
+        check(std::fabs(r.Fmax/F0-1)<0.02,"peak force u sqrt(k M) within 2 %");
+        check(std::fabs(r.dur/T0-1)<0.03,"impact duration pi sqrt(M/k) within 3 %");
+        check(std::fabs(r.vreb/u+1)<0.01,"elastic rebound -u within 1 %");
+    }
+    {
+        impact_result r=impact_run(k,0.5,0.0,0.0,0);
+        std::printf("    wall, damping 50 %% (unloading): peak %.1f N, duration %.2f ms, restitution %.3f\n",r.Fmax,1e3*r.dur,-r.vreb/u);
+        check(std::fabs(r.Fmax/F0-1)<0.02,"damping on unloading only: peak unchanged within 2 %");
+        check(-r.vreb/u>0.50 && -r.vreb/u<0.60,"restitution 0.55 +- 0.05");
+    }
+    {
+        impact_result r=impact_run(k,0.0,0.0,20.0,0);
+        std::printf("    wall, added mass 20 kg on the 8 kg body: peak %.1f N, rebound %.3f m/s\n",r.Fmax,r.vreb);
+        check(std::fabs(r.Fmax/F0-1)<0.02,"contact acts on the body mass alone (added mass of the fluid loads not in the impact)");
+    }
+    {
+        impact_result r=impact_run(k,0.0,0.5*F0,0.0,0);
+        std::printf("    wall, crushing force %.1f N: peak %.1f N, rebound %.3f m/s\n",0.5*F0,r.Fmax,r.vreb);
+        check(r.Fmax<=0.5*F0*1.001,"force capped at the crushing force");
+        check(std::fabs(r.vreb/u+0.5)<0.03,"rebound with the elastic part of the energy only (u/2 for a cap at half the peak)");
+    }
+    {
+        impact_result r=impact_run(0.0,0.0,0.0,0.0,0,1.0);
+        const double kb=1e10*(0.2*0.2)/0.4;
+        std::printf("    bar model E A / L: k %.3e N/m (%.3e), peak at 1 m/s %.0f N (%.0f)\n",r.k,kb,r.Fmax,std::sqrt(kb*M));
+        check(std::fabs(r.k/kb-1)<1e-9,"stiffness from the axial bar E A / L");
+        check(std::fabs(r.Fmax/std::sqrt(kb*M)-1)<0.03,"peak with the bar stiffness within 3 %");
+    }
+    {
+        impact_result r=impact_run(k,0.0,0.0,0.0,1);
+        const double ks=k*2*k/(3*k), me=M*4.0/12.0, F2=2*u*std::sqrt(ks*me);
+        std::printf("    two bodies head-on (8 kg at 2 m/s, 4 kg at -2 m/s, k and 2k): peak %.1f N (series %.1f)\n",r.Fmax,F2);
+        check(std::fabs(r.Fmax/F2-1)<0.03,"two bodies: springs in series, reduced mass, within 3 %");
+    }
+    {
+        impact_result r=impact_run(k,0.0,0.0,0.0,2);
+        std::printf("    fixed concrete wall (FEM): contact %.1f N, support force %.1f N (u sqrt(kM) %.1f)\n",r.Fmax,r.Fsup,F0);
+        check(std::fabs(r.Fmax/F0-1)<0.03,"debris much softer than the structure: contact u sqrt(k M) within 3 %");
+        check(r.Fsup>0.8*F0 && r.Fsup<1.3*F0,"support force of the stiff wall close to the contact force");
+    }
+}
+
 int main(int argc,char** argv)
 {
     std::string w = argc>1 ? argv[1] : "all";
@@ -576,6 +678,7 @@ int main(int argc,char** argv)
     if(w=="all"||w=="damping") test_damping();
     if(w=="all"||w=="rigid") test_rigid();
     if(w=="all"||w=="walls") test_walls();
+    if(w=="all"||w=="impact") test_impact();
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail? std::to_string(nfail):"")<<std::endl;
     return nfail ? 1 : 0;
 }
