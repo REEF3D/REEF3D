@@ -55,7 +55,7 @@ public:
     // the end of the run: wait for the last output and count it
     void finish(lexer*, ghostcell*);
 
-    // P 18 2: the VTU files are left out
+    // P 18 1: the VTU files are left out (P 18 2: written as well)
     static bool vtu_files(lexer*);
 
 private:
@@ -99,7 +99,7 @@ public:
     lagoon_surface(lexer*, const char *solver, const char *output, const char *source);
 
     // after a rank's VTP piece of an output was written to file (all ranks call it):
-    // into the store with P 18; with P 18 2 the file is removed again
+    // into the store with P 18; with P 18 1 the file is removed again
     static void piece_written(lexer*, ghostcell*, lagoon_surface *&writer, const char *solver,
                               const char *output, const char *source, const char *file, int num);
 

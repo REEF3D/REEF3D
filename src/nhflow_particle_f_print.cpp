@@ -84,12 +84,12 @@ void nhflow_particle_f::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-        // P 18: also in the LAGOON store; P 18 2: instead of the VTP files
+        // P 18: in the LAGOON store; P 18 1: instead of the VTP files, P 18 2: as well
         bool stored = false;
         if(p->P18>0 && (p->L62==1 || p->L62==3))
         stored = print_lagoon(p,all,printcount);
 
-        if((p->L62==1 || p->L62==3) && !(stored && p->P18==2))
+        if((p->L62==1 || p->L62==3) && !(stored && p->P18==1))
         print_vtp(p,all);
 
         if(p->L62==2 || p->L62==3)

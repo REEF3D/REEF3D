@@ -157,7 +157,7 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
             sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
 
         // P 18: the body in the LAGOON store, its mesh once and its motion (x = R x0 + c);
-        // P 18 2 leaves out the VTP file then
+        // P 18 1 leaves out the VTP file then (P 18 2 writes it as well)
         bool stored = false;
         if(p->P18>0)
         {
@@ -173,7 +173,7 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
             const double c[3] = {c_(0), c_(1), c_(2)};
             stored = lagoon_body_writer(p)->output(n6DOF, 3*tricount, x0.data(), x.data(), R, c, p->simtime, num);
         }
-        if(stored && p->P18==2)
+        if(stored && p->P18==1)
         {
             ++p->printcount_sixdof;
             return;

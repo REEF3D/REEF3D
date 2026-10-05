@@ -84,7 +84,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     else if(p->P15==2)
     num = p->count;
 
-    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 2: the store instead
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
     pvtp(p,num);
 
     // offsets
@@ -329,7 +329,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 
     result.close();
 
-    // P 18: the piece in the LAGOON store as well (P 18 2: instead of the file)
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
     lagoon_surface::piece_written(p,pgc,lagoon_free_surface,"FNPF","free_surface","REEF3D_FNPF_VTP_FSF",name,num);
 
     ++printcount;

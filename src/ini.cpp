@@ -734,7 +734,7 @@ void control::ini_default()
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
     P16=1;          // int add timestamp (and run id) to paraview files
-    P18=0;          // int LAGOON store of the volume: 1 with the vtu files, 2 instead of them
+    P18=0;          // int LAGOON store: 1 instead of the vtu/vtp files, 2 as well as them
     P19=2;          // int print NHFLOW floating  based on vtp or vtu interval
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out

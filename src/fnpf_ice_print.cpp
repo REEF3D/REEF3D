@@ -165,7 +165,7 @@ void fnpf_ice::print_vtp(lexer *p, int num)
 
     // P 18: the floes in the LAGOON store as well (fnpf_ice: the prisms' points and
     // polygons, id, type, speed and contact force per polygon, as in the VTP file);
-    // P 18 2: instead of it
+    // P 18 1: instead of it
     if(p->P18>0)
     {
         static lagoon_particles *writer = nullptr;
@@ -226,7 +226,7 @@ void fnpf_ice::print_vtp(lexer *p, int num)
         const double when = (p->count==0) ? p->simtime : p->simtime + p->dt;
         const bool stored = writer->output(when, num, xyz.size()/3, xyz.data(), {}, connectivity, offsets,
                                            {id.data(), type.data(), speed.data(), force.data()});
-        if(stored && p->P18==2)
+        if(stored && p->P18==1)
         return;
     }
 

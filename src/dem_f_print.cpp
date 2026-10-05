@@ -58,7 +58,7 @@ void dem_f::print(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
         // P 18: the elements in the LAGOON store as well (dem_dem: points, velocity,
-        // id, resolved and the triangles, as in the VTP file); P 18 2: instead of it
+        // id, resolved and the triangles, as in the VTP file); P 18 1: instead of it
         bool stored = false;
         if(p->P18>0)
         {
@@ -101,7 +101,7 @@ void dem_f::print(lexer *p, ghostcell *pgc)
             stored = writer->output(p->simtime, printcount, id.size(), xyz.data(),
                                     {velocity.data(), id.data(), resolved.data()}, connectivity, offsets);
         }
-        if(!(stored && p->P18==2))
+        if(!(stored && p->P18==1))
         print_vtp(p,all);
         print_state(p,all);
     }

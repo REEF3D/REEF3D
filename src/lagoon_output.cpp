@@ -110,7 +110,7 @@ lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
 
 bool lagoon_output::vtu_files(lexer *p)
 {
-    return p->P18!=2;
+    return p->P18!=1;
 }
 
 bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_store::variable> &fields)
@@ -267,7 +267,7 @@ void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&wr
     text << in.rdbuf();
     in.close();
     writer->vtp_piece(p, pgc, text.str(), num);
-    if(p->P18==2 && writer->usable)  // the store has it: no VTP file
+    if(p->P18==1 && writer->usable)  // the store has it: no VTP file
         std::remove(file);
 }
 
