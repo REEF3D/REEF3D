@@ -27,6 +27,12 @@ Author: Hans Bihs
 #include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"lagoon_output.h"
+
+namespace
+{
+lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
 
 nhflow_vtp_bed::nhflow_vtp_bed(lexer *p)
 {
@@ -53,7 +59,7 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     else if(p->P15==2)
         num = p->count;
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 2: the store instead
         pvtp(p,psed,num);
 
     // offsets
@@ -284,6 +290,9 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     vtp3D::footer(result);
 
     result.close();
+
+    // P 18: the piece in the LAGOON store as well (P 18 2: instead of the file)
+    lagoon_surface::piece_written(p,pgc,lagoon_bed,"NHFLOW","bed","REEF3D_NHFLOW_VTP_BED",name,num);
 
     ++printcount;
 }

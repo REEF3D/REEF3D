@@ -55,6 +55,35 @@ std::string stored_run(const std::string &path)
     const size_t end = s.find('"', at + key.size());
     return s.substr(at + key.size(), end - at - key.size());
 }
+
+// a structured grid: no moving or tilted grids (B 180-192 change x and z per point)
+bool fixed_grid(lexer *p)
+{
+    if(p->B180>0 || p->B191>0 || p->B192>0)
+    {
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: P 18 needs a fixed grid (no B 180, B 191, B 192); no LAGOON store written"<<std::endl;
+        return false;
+    }
+    return true;
+}
+
+// the global grid lines: each rank gives its own, an elementwise maximum joins them
+void grid_lines(lexer *p, ghostcell *pgc, std::vector<double> &x, std::vector<double> &y)
+{
+    const int gnx = p->gknox + 1;
+    const int gny = p->gknoy + 1;
+    x.assign(gnx, -1.0e300);
+    y.assign(gny, -1.0e300);
+    const int marge = increment::marge;  // for IP1, JP1
+    int i,j;
+    for(i=-1; i<p->knox; ++i)
+        x[p->origin_i + i + 1] = p->XN[IP1];
+    for(j=-1; j<p->knoy; ++j)
+        y[p->origin_j + j + 1] = p->YN[JP1];
+    pgc->globalmax(x.data(), gnx);
+    pgc->globalmax(y.data(), gny);
+}
 }
 
 lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
@@ -86,28 +115,14 @@ bool lagoon_output::vtu_files(lexer *p)
 
 bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_store::variable> &fields)
 {
-    // a structured grid: no moving or tilted grids (B 180-192 change x and z per point)
-    if(p->B180>0 || p->B191>0 || p->B192>0)
-    {
-        if(p->mpirank==0)
-            std::cout<<"LAGOON: P 18 needs a fixed grid (no B 180, B 191, B 192); no LAGOON store written"<<std::endl;
+    if(!fixed_grid(p))
         return false;
-    }
     nx = p->knox + 1;
     ny = p->knoy + 1;
     nz = p->knoz + 1;
-    const int gnx = p->gknox + 1;
-    const int gny = p->gknoy + 1;
-
-    // the global grid lines: each rank gives its own, an elementwise maximum joins them
-    std::vector<double> x(gnx, -1.0e300), y(gny, -1.0e300);
-    int i,j,k;
-    for(i=-1; i<p->knox; ++i)
-        x[p->origin_i + i + 1] = p->XN[IP1];
-    for(j=-1; j<p->knoy; ++j)
-        y[p->origin_j + j + 1] = p->YN[JP1];
-    pgc->globalmax(x.data(), gnx);
-    pgc->globalmax(y.data(), gny);
+    std::vector<double> x, y;
+    grid_lines(p, pgc, x, y);
+    int k;
 
     // FNPF and NHFLOW: σ-levels, the same in every rank; CFD: Cartesian levels at
     // fixed heights, the grid split in z as well
@@ -230,5 +245,139 @@ void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> 
         }
         worker = std::thread(&lagoon_output::write_job, this, &pending);
     }
+    ++t;
+}
+
+// ======================================================================== surfaces
+lagoon_surface::lagoon_surface(lexer *p, const char *solver_, const char *output_, const char *source_)
+    : solver(solver_), output(output_), source(source_), store(store_path(solver_)),
+      ready(false), usable(true), t(0), nx(0), ny(0), rank(p->mpirank)
+{
+}
+
+void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&writer, const char *solver,
+                                   const char *output, const char *source, const char *file, int num)
+{
+    if(p->P18<=0)
+        return;
+    if(writer==nullptr)
+        writer = new lagoon_surface(p, solver, output, source);
+    std::ifstream in(file, std::ios::binary);
+    std::stringstream text;
+    text << in.rdbuf();
+    in.close();
+    writer->vtp_piece(p, pgc, text.str(), num);
+    if(p->P18==2 && writer->usable)  // the store has it: no VTP file
+        std::remove(file);
+}
+
+bool lagoon_surface::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_store::variable> &fields)
+{
+    if(!fixed_grid(p))
+        return false;
+    nx = p->knox + 1;
+    ny = p->knoy + 1;
+    std::vector<double> x, y;
+    grid_lines(p, pgc, x, y);
+    if(p->mpirank==0)
+    {
+        struct stat info;
+        if(stat((store_path(solver.c_str()) + "/zarr.json").c_str(), &info)!=0)  // no volume output
+        {
+            std::string run;
+            if(p->plog)
+                run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+            store.create_root(solver, run);
+        }
+        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source);
+    }
+    MPI_Barrier(pgc->mpi_comm);
+    store.create_block(output, p->mpirank, p->origin_i, p->origin_j, nx, ny, 1, fields, p->mpirank);
+    MPI_Barrier(pgc->mpi_comm);
+    return true;
+}
+
+void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, const std::string &buffer, int num)
+{
+    if(!usable)
+        return;
+    const size_t appended = buffer.find("<AppendedData");
+    const size_t data_start = appended==std::string::npos ? std::string::npos : buffer.find('_', appended);
+    std::vector<lagoon_store::vtu_array> parsed;
+    long long points_offset = -1;
+    bool readable = data_start!=std::string::npos
+                    && lagoon_store::parse_vtu_header(buffer.substr(0, data_start), parsed, points_offset);
+    long long npoints = -1;
+    {
+        const size_t at = buffer.find("NumberOfPoints=\"");
+        if(at!=std::string::npos)
+            npoints = std::atoll(buffer.c_str() + at + 16);
+    }
+    std::vector<lagoon_store::variable> fields;
+    for(const lagoon_store::vtu_array &a : parsed)
+        fields.push_back(a.var);
+    if(!ready)
+    {
+        // the first output decides the variables; a piece that cannot be read stops it on every rank
+        const bool fine = pgc->globalmax(readable ? 0.0 : 1.0) <= 0.0;
+        usable = fine && start(p, pgc, fields);
+        ready = true;
+        if(!usable)
+        {
+            if(p->mpirank==0 && !fine)
+                std::cout<<"LAGOON: the "<<output<<" VTP cannot be read for the store; no LAGOON "<<output<<std::endl;
+            return;
+        }
+    }
+
+    // the points are the grid nodes, x outermost: z and the arrays with x fastest
+    const size_t n = size_t(nx)*ny;
+    bool ok = readable && npoints==(long long)n && data_start + 1 + size_t(points_offset) + 4 + 12*n <= buffer.size();
+    try
+    {
+        if(ok)
+        {
+            const char *data = buffer.data() + data_start + 1;
+            std::vector<float> values;
+            auto arranged = [&](long long offset, int components, int component)
+            {
+                values.assign(n, 0.0f);
+                const float *from = reinterpret_cast<const float*>(data + offset + sizeof(int));
+                for(int i=0; i<nx; ++i)
+                    for(int j=0; j<ny; ++j)
+                        values[size_t(j)*nx + i] = from[(size_t(i)*ny + j)*components + component];
+            };
+            arranged(points_offset, 3, 2);
+            store.write(output, rank, t, "z", values.data());
+            for(const lagoon_store::vtu_array &a : parsed)
+            {
+                if(data_start + 1 + size_t(a.offset) + 4 + size_t(4)*a.var.components*n > buffer.size())
+                    throw std::runtime_error("the VTP piece is shorter than its arrays");
+                std::vector<float> all(n*a.var.components);
+                for(int c=0; c<a.var.components; ++c)
+                {
+                    arranged(a.offset, a.var.components, c);
+                    for(size_t q=0; q<n; ++q)
+                        all[q*a.var.components + c] = values[q];
+                }
+                store.write(output, rank, t, a.var.name, all.data());
+            }
+        }
+    }
+    catch(std::exception &error)
+    {
+        std::cout<<"LAGOON rank "<<rank<<": "<<error.what()<<std::endl;
+        ok = false;
+    }
+    // every block has the output (also a barrier): only then is it counted
+    if(pgc->globalmax(ok ? 0.0 : 1.0) > 0.0)
+    {
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: a rank could not write its "<<output<<" block; no more LAGOON "<<output<<std::endl;
+        usable = false;
+        return;
+    }
+    if(p->mpirank==0)
+        store.commit(output, t, p->simtime, num);
     ++t;
 }

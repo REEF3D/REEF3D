@@ -88,4 +88,30 @@ private:
     bool settle(lexer*, ghostcell*);  // wait for the pending output, count it if all ranks wrote it
 };
 
+// LAGOON store output of a solver's free surface or bed VTP (P 18; FNPF, NHFLOW, CFD
+// topography): each rank's piece, just written, goes into its block of the output
+// "free_surface" or "bed" (grid "surface": the point heights z and the point arrays).
+// The VTP points are the grid nodes, x outermost (TPSLICELOOP); the store's blocks
+// have x fastest. Every rank writes its block, rank 0 then counts the output.
+class lagoon_surface
+{
+public:
+    lagoon_surface(lexer*, const char *solver, const char *output, const char *source);
+
+    // after a rank's VTP piece of an output was written to file (all ranks call it):
+    // into the store with P 18; with P 18 2 the file is removed again
+    static void piece_written(lexer*, ghostcell*, lagoon_surface *&writer, const char *solver,
+                              const char *output, const char *source, const char *file, int num);
+
+    void vtp_piece(lexer*, ghostcell*, const std::string &buffer, int num);
+
+private:
+    std::string solver, output, source;
+    lagoon_store store;
+    bool ready, usable;
+    int t, nx, ny, rank;
+
+    bool start(lexer*, ghostcell*, const std::vector<lagoon_store::variable> &fields);
+};
+
 #endif
