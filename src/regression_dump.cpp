@@ -29,6 +29,8 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"fdm_fnpf.h"
 #include"fdm2D.h"
+#include"fdm_spectral.h"
+#include"spectral_store.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -535,4 +537,107 @@ void regression_dump::sflow_final(lexer *p, fdm2D *b, ghostcell *pgc)
 
     steplog.flush();
     sflow_state(p,b);
+}
+
+// ---------------------------------------------------------------------
+// Spectral
+// ---------------------------------------------------------------------
+
+void regression_dump::spectral_collect(lexer *p, fdm_spectral *e)
+{
+    names.clear();
+    data.clear();
+
+    add("Hs",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->Hs(i,j));
+
+    add("Tm01",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->Tm01(i,j));
+
+    add("Tm10",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->Tm10(i,j));
+
+    add("Tp",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->Tp(i,j));
+
+    add("dir",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->dir(i,j));
+
+    add("spread",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->spread(i,j));
+
+    add("depth",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(e->depth(i,j));
+
+    // action density of every bin of the active cells
+    const int nbin = e->N->nbins();
+    add("N",p->cellnum2D*nbin);
+    SLICELOOP4
+    if(e->wet(i,j)==1)
+    {
+    const float *s = e->N->spec(i,j);
+    for(int b=0; b<nbin; ++b)
+    data.back().push_back(double(s[b]));
+    }
+}
+
+void regression_dump::spectral_state(lexer *p, fdm_spectral *e)
+{
+    if(last_written==p->count)
+    return;
+
+    spectral_collect(p,e);
+    write_state(p);
+}
+
+void regression_dump::spectral_ini(lexer *p, fdm_spectral *e, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog<<"# count simtime dt  sum(Hs^2) sum(Tm01^2) sum(N^2)  (rank-local, hexfloat)"<<std::endl;
+
+    spectral_state(p,e);
+}
+
+void regression_dump::spectral_step(lexer *p, fdm_spectral *e, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    double sh=0.0, st=0.0, sn=0.0;
+    const int nbin = e->N->nbins();
+
+    SLICELOOP4
+    if(e->wet(i,j)==1)
+    {
+    sh += e->Hs(i,j)*e->Hs(i,j);
+    st += e->Tm01(i,j)*e->Tm01(i,j);
+
+    const float *s = e->N->spec(i,j);
+    for(int b=0; b<nbin; ++b)
+    sn += double(s[b])*double(s[b]);
+    }
+
+    steplog<<p->count<<" "<<p->simtime<<" "<<p->dt<<"  "
+           <<sh<<" "<<st<<" "<<sn<<"\n";
+
+    if(every>0 && p->count%every==0)
+    spectral_state(p,e);
+}
+
+void regression_dump::spectral_final(lexer *p, fdm_spectral *e, ghostcell *pgc)
+{
+    if(!is_active)
+    return;
+
+    steplog.flush();
+    spectral_state(p,e);
 }

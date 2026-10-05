@@ -37,6 +37,7 @@ class field;
 class fdm_nhf;
 class fdm_fnpf;
 class fdm2D;
+class fdm_spectral;
 
 /*--------------------------------------------------------------------
 regression_dump: exact (double precision) state output for the
@@ -84,6 +85,11 @@ public:
     void sflow_step(lexer*, fdm2D*, ghostcell*);
     void sflow_final(lexer*, fdm2D*, ghostcell*);
 
+    // Spectral
+    void spectral_ini(lexer*, fdm_spectral*, ghostcell*);
+    void spectral_step(lexer*, fdm_spectral*, ghostcell*);
+    void spectral_final(lexer*, fdm_spectral*, ghostcell*);
+
 private:
     void cfd_state(lexer*, fdm*, turbulence*, concentration*);
     void cfd_collect(lexer*, fdm*, turbulence*, concentration*);
@@ -93,6 +99,8 @@ private:
     void fnpf_collect(lexer*, fdm_fnpf*);
     void sflow_state(lexer*, fdm2D*);
     void sflow_collect(lexer*, fdm2D*);
+    void spectral_state(lexer*, fdm_spectral*);
+    void spectral_collect(lexer*, fdm_spectral*);
     void add(const char*, int);
     void write_state(lexer*);
 
