@@ -276,6 +276,7 @@ void control::ini_default()
     A599=0;     // use dlm instead of df
 
     // Spectral
+    A700=1;           // int mode: 1 nonstationary, 2 stationary
     A701=32;          // int number of frequencies (logarithmic spacing)
     A702_fmin=0.04;   // double lowest frequency [Hz]
     A702_fmax=1.0;    // double highest frequency [Hz]
@@ -283,7 +284,19 @@ void control::ini_default()
     A704=16;          // int tile size (cells) of the block-sparse action storage
     A705=0.05;        // double minimum water depth of an active (wet) cell [m]
     A706=60.0;        // double time step [s]
+    A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
+    A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
+    A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file spectral-boundary.spc
+    A712_xm=1;        // int boundary spectrum on side x-
+    A712_xp=0;        // int boundary spectrum on side x+
+    A712_ym=0;        // int boundary spectrum on side y-
+    A712_yp=0;        // int boundary spectrum on side y+
+    A713=1;           // int depth and current refraction
+    A714=1;           // int frequency shift
+    A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
+    A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
+    A721_xs=A721_xe=0.0; // double xs, xe [m]
 
     // NHFLOW Lagrangian particles
     L10=0;       // int particle tracking
