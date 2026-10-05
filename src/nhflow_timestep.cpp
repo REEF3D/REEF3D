@@ -280,8 +280,8 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //if(p->B201==1)
     //p->dt = 0.1*p->dt;
     
-	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
+	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
     
     if(p->B94==0)
