@@ -33,7 +33,8 @@ void spectral_f::parameters(lexer *p, ghostcell *pgc)
 {
     // integrated wave parameters of every active cell
     spectral_param sp;
-    double esum=0.0, hssum=0.0, hmax=0.0;
+    double esum=0.0, hssum=0.0, hmax=0.0, vmin=0.0;
+    const int nbin = e->grid->nbin;
 
     IMALOOP
     JMALOOP
@@ -57,11 +58,16 @@ void spectral_f::parameters(lexer *p, ghostcell *pgc)
             esum  += sp.m0*p->DXN[IP]*p->DYN[JP];
             hssum += sp.Hs;
             hmax   = std::max(hmax,sp.Hs);
+
+            const float *s = e->N->spec(i,j);
+            for(int b=0; b<nbin; ++b)
+            vmin = std::min(vmin,double(s[b]));
             }
         }
     }
 
     etot   = pgc->globalsum(esum);
     hsmax  = pgc->globalmax(hmax);
+    nmin   = pgc->globalmin(vmin);
     hsmean = cells_active>0.0 ? pgc->globalsum(hssum)/cells_active : 0.0;
 }

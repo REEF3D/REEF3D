@@ -40,9 +40,16 @@ REEF3D::Spectral - field data on the 2D horizontal grid
   environment  bed, depth, eta, U, V: from the 2D grid in stand-alone
                runs, later from the coupled host model (SFLOW, NHFLOW)
   parameters   integrated wave parameters (spectral_param)
-  wet          active cells: fluid (flagslice4 > 0) and depth >= A 705
-  grid, N      spectral grid and block-sparse action density, owned by
-               spectral_f
+  wet          active cells: fluid (flagslice4 > 0), inside the global
+               domain and depth >= A 705
+  kinematics   depth and current gradients, depth of the previous step;
+               refr = 1 where no neighbour is land or dry (refraction and
+               frequency shift are switched off next to dry cells, as in
+               SWAN; at the edge of the domain one-sided gradients)
+  grid, N      spectral grid and block-sparse action density
+  kw, cg       wave number and group velocity per active cell and
+               frequency (block-sparse, nbin = nsig)
+  all owned by spectral_f
 --------------------------------------------------------------------*/
 
 class fdm_spectral : public increment
@@ -57,11 +64,16 @@ public:
     // integrated wave parameters
     slice4 Hs,Tm01,Tm10,Tp,dir,spread;
 
-    sliceint4 wet;
+    // kinematics
+    slice4 ddx,ddy,dUdx,dUdy,dVdx,dVdy,dddt,depth_n;
+
+    sliceint4 wet,refr;
     sliceint5 nodeval;
 
     spectral_grid *grid = nullptr;
     spectral_store *N = nullptr;
+    spectral_store *kw = nullptr;
+    spectral_store *cg = nullptr;
 };
 
 #endif

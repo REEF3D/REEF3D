@@ -25,6 +25,8 @@ Architect: Hans Bihs
 #include"spectral_grid.h"
 #include"spectral_store.h"
 #include"spectral_vtp.h"
+#include"spectral_exchange.h"
+#include"spectral_implicit.h"
 #include"regression_dump.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -32,10 +34,13 @@ Architect: Hans Bihs
 #include<iostream>
 #include<iomanip>
 
-spectral_f::spectral_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr),
-                                                  etot(0.0), hsmax(0.0), hsmean(0.0), cells_active(0.0),
+spectral_f::spectral_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr), pex(nullptr), psolv(nullptr), N0(nullptr),
+                                                  iter_max(1), iter_done(0), conv(0.0),
+                                                  etot(0.0), hsmax(0.0), hsmean(0.0), nmin(0.0), cells_active(0.0),
                                                   starttime(0.0), endtime(0.0)
 {
+    side[0]=side[1]=side[2]=side[3]=0;
+
     e = new fdm_spectral(p);
 }
 
@@ -43,6 +48,11 @@ spectral_f::~spectral_f()
 {
     delete pprint;
     delete preg;
+    delete pex;
+    delete psolv;
+    delete N0;
+    delete e->cg;
+    delete e->kw;
     delete e->N;
     delete e->grid;
     delete e;
@@ -90,7 +100,10 @@ void spectral_f::start(lexer *p, ghostcell *pgc)
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
-        cout<<"Hs max: "<<setprecision(5)<<hsmax<<"   Hs mean: "<<setprecision(5)<<hsmean<<endl;
+        cout<<"Hs max: "<<setprecision(5)<<hsmax<<"   Hs mean: "<<setprecision(5)<<hsmean<<"   iterations: "<<iter_done;
+        if(p->A700==2)
+        cout<<"   max. relative change of Hs: "<<setprecision(3)<<conv;
+        cout<<endl;
         cout<<"printouttime: "<<setprecision(3)<<p->printouttime<<endl;
         cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
         }
@@ -99,10 +112,10 @@ void spectral_f::start(lexer *p, ghostcell *pgc)
         p->xtime=0.0;
         p->printouttime=0.0;
 
-        if(hsmax!=hsmax)
+        if(hsmax!=hsmax || nmin<0.0)
         {
             if(p->mpirank==0)
-            cout<<endl<<"EMERGENCY STOP  --  Spectral: wave height is NaN"<<endl<<endl;
+            cout<<endl<<"EMERGENCY STOP  --  Spectral: wave height is NaN or the action density negative"<<endl<<endl;
 
             pprint->print2D(p,e,pgc);
             pgc->final(true);
@@ -127,8 +140,10 @@ void spectral_f::start(lexer *p, ghostcell *pgc)
 
 void spectral_f::step(lexer *p, ghostcell *pgc)
 {
-    // Phase 1: implicit transport in x, y, sigma, theta
-    // Phase 2: source terms
+    // implicit transport in x, y, sigma, theta (Phase 1)
+    // source terms follow in Phase 2
+
+    transport(p,pgc);
 
     parameters(p,pgc);
 }

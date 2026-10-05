@@ -25,6 +25,7 @@ Architect: Hans Bihs
 
 fdm_spectral::fdm_spectral(lexer *p) : bed(p),depth(p),eta(p),U(p),V(p),
                                       Hs(p),Tm01(p),Tm10(p),Tp(p),dir(p),spread(p),
-                                      wet(p),nodeval(p)
+                                      ddx(p),ddy(p),dUdx(p),dUdy(p),dVdx(p),dVdy(p),dddt(p),depth_n(p),
+                                      wet(p),refr(p),nodeval(p)
 {
 }

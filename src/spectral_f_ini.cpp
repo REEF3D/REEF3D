@@ -25,6 +25,8 @@ Architect: Hans Bihs
 #include"spectral_grid.h"
 #include"spectral_store.h"
 #include"spectral_vtp.h"
+#include"spectral_exchange.h"
+#include"spectral_implicit.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
@@ -67,7 +69,26 @@ void spectral_f::ini(lexer *p, ghostcell *pgc)
 
     environment(p,pgc);
     storage(p,pgc);
+    kinematics(p,pgc,0.0);
     initial(p,pgc);
+    boundary(p,pgc);
+
+    // transport
+    // nonstationary: 2 iterations on several ranks, so that the lagged halo values of the first
+    // sweep are corrected (energy conservation across rank borders)
+    iter_max = p->A707>0 ? p->A707 : (p->A700==2 ? 50 : (p->M10>1 ? 2 : 1));
+
+    pex   = new spectral_exchange(p,e->grid->nbin,1);
+    psolv = new spectral_implicit(p,e);
+
+    if(p->A700==1 && iter_max>1)
+    {
+    N0 = new spectral_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nbin,p->A704);
+    N0->build(e->wet.V);
+    }
+
+    pex->start(p,pgc,*e->N);
+
     parameters(p,pgc);
 
     pprint = new spectral_vtp(p,e,pgc);
@@ -83,14 +104,24 @@ void spectral_f::check_keys(lexer *p, ghostcell *pgc)
 {
     const char *msg = nullptr;
 
-    if(p->A704<1)
+    if(p->A700!=1 && p->A700!=2)
+    msg = "A 700: mode must be 1 (nonstationary) or 2 (stationary)";
+    else if(p->A704<1)
     msg = "A 704: the tile size must be at least 1";
     else if(p->A705<0.0)
     msg = "A 705: the minimum water depth must not be negative";
     else if(!(p->A706>0.0))
     msg = "A 706: the time step must be positive";
+    else if(p->A707<0)
+    msg = "A 707: the number of iterations must not be negative";
+    else if(!(p->A708>0.0))
+    msg = "A 708: the convergence criterion must be positive";
     else if(p->A710!=0 && p->A710!=1)
     msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
+    else if(p->A711<0 || p->A711>2)
+    msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric) or 2 (SWAN spectrum file)";
+    else if(p->A720!=0 && p->A720!=1)
+    msg = "A 720: prescribed current must be 0 (none) or 1 (linear in x, A 721)";
 
     if(msg!=nullptr)
     {
@@ -118,8 +149,18 @@ void spectral_f::environment(lexer *p, ghostcell *pgc)
     e->eta(i,j)=0.0;
     e->U(i,j)=0.0;
     e->V(i,j)=0.0;
-    e->depth(i,j)=p->flagslice4[IJ]>0 ? std::max(p->wd - e->bed(i,j),0.0) : 0.0;
-    e->wet(i,j)=(p->flagslice4[IJ]>0 && e->depth(i,j)>=p->A705) ? 1 : 0;
+
+    // prescribed current for stand-alone runs: U linear in x between xs and xe
+    if(p->A720==1)
+    {
+    const double xs = p->A721_xs, xe = p->A721_xe;
+    const double w = (xe>xs) ? std::min(std::max((p->XP[IP]-xs)/(xe-xs),0.0),1.0) : (p->XP[IP]>=xs ? 1.0 : 0.0);
+    e->U(i,j) = (1.0-w)*p->A721_us + w*p->A721_ue;
+    }
+    const bool inside = i+p->origin_i>=0 && i+p->origin_i<p->gknox && j+p->origin_j>=0 && j+p->origin_j<p->gknoy;
+
+    e->depth(i,j)=(inside && p->flagslice4[IJ]>0) ? std::max(p->wd - e->bed(i,j),0.0) : 0.0;
+    e->wet(i,j)=(inside && p->flagslice4[IJ]>0 && e->depth(i,j)>=p->A705) ? 1 : 0;
     }
 }
 
@@ -139,6 +180,12 @@ void spectral_f::storage(lexer *p, ghostcell *pgc)
     e->N = new spectral_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nbin,p->A704);
     e->N->build(e->wet.V);
 
+    // wave number and group velocity per frequency, same tiles
+    e->kw = new spectral_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nsig,p->A704);
+    e->kw->build(e->wet.V);
+    e->cg = new spectral_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nsig,p->A704);
+    e->cg->build(e->wet.V);
+
     // memory report
     int active=0;
     SLICELOOP4
@@ -153,6 +200,7 @@ void spectral_f::storage(lexer *p, ghostcell *pgc)
     const double mb       = pgc->globalsum(double(e->N->bytes()))/1048576.0;
     const double mb_dense = pgc->globalsum(double(e->N->bytes_dense()))/1048576.0;
     const double mb_rank  = pgc->globalmax(double(e->N->bytes())/1048576.0);
+    const double mb_kin   = pgc->globalsum(double(e->kw->bytes()+e->cg->bytes()))/1048576.0;
 
     if(p->mpirank==0)
     {
@@ -165,7 +213,11 @@ void spectral_f::storage(lexer *p, ghostcell *pgc)
         <<", allocated cells (incl. ghost cells) "<<long(cells_alloc)
         <<", tiles "<<long(tiles_alloc)<<" of "<<long(tiles_total)<<" ("<<p->A704<<" x "<<p->A704<<")"<<endl;
 
-    cout<<"Spectral memory: N "<<setprecision(1)<<mb<<" MB float32 (dense: "<<mb_dense<<" MB), max per rank "<<mb_rank<<" MB"<<endl<<endl;
+    cout<<"Spectral memory: N "<<setprecision(1)<<mb<<" MB float32 (dense: "<<mb_dense<<" MB), max per rank "<<mb_rank<<" MB; k and cg "<<mb_kin<<" MB"<<endl;
+    cout<<"Spectral mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
+    if(p->A720==1)
+    cout<<"Spectral current: U "<<p->A721_us<<" m/s at x "<<p->A721_xs<<" m to "<<p->A721_ue<<" m/s at x "<<p->A721_xe<<" m"<<endl;
+    cout<<endl;
     cout.unsetf(ios::floatfield);
     cout<<setprecision(6);
     }
@@ -192,7 +244,7 @@ void spectral_f::log_ini(lexer *p)
 
     integral<<"REEF3D::Spectral integral wave parameters"<<endl;
     integral<<"active cells: "<<long(cells_active)<<endl;
-    integral<<"#iteration \t #simtime \t #E_tot [m^4] \t #Hs_max [m] \t #Hs_mean [m]"<<endl;
+    integral<<"#iteration \t #simtime \t #E_tot [m^4] \t #Hs_max [m] \t #Hs_mean [m] \t #N_min \t #solver_iterations"<<endl;
 
     if(p->plog)
     p->plog->table_file(p,"spectral_integral","integral",path);
@@ -203,5 +255,5 @@ void spectral_f::log_step(lexer *p)
     if(p->mpirank!=0)
     return;
 
-    integral<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<etot<<" \t "<<hsmax<<" \t "<<hsmean<<endl;
+    integral<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<etot<<" \t "<<hsmax<<" \t "<<hsmean<<" \t "<<nmin<<" \t "<<iter_done<<endl;
 }

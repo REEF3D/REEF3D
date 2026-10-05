@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #include<cmath>
 #include<iostream>
 #include<iomanip>
+#include<string>
 #include<vector>
 
 /*--------------------------------------------------------------------
@@ -48,23 +49,40 @@ irregular wave generation:
 
 E(sig,theta) = S(sig) D(sig,theta), N = E/sig. D is normalised on the
 discrete directional grid for every frequency, so the directional
-spreading conserves the energy of S exactly. The same spectrum is set
-in every active cell.
+spreading conserves the energy of S exactly.
+
+  parametric_spectrum   the spectrum of one cell, also used as the
+                        boundary spectrum (A 711 1)
+  initial_parametric    the same spectrum in every active cell (A 710 1)
 --------------------------------------------------------------------*/
 
 void spectral_f::initial_parametric(lexer *p, ghostcell *pgc)
 {
+    std::vector<float> N;
+    parametric_spectrum(p,pgc,N,"A 710 1");
+
+    IMALOOP
+    JMALOOP
+    if(e->wet(i,j)==1)
+    {
+    float *s = e->N->spec(i,j);
+    std::copy(N.begin(),N.end(),s);
+    }
+}
+
+void spectral_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float> &N, const char *key)
+{
     const double pi = 3.14159265358979323846;
-    const char *msg = nullptr;
+    std::string msg;
 
     if(!(p->B93_1>0.0) || !(p->B93_2>0.0))
-    msg = "A 710 1 needs B 93 (Hs, Tp)";
+    msg = std::string(key) + " needs B 93 (Hs, Tp)";
     else if(p->B85!=1 && p->B85!=2 && p->B85!=3)
-    msg = "A 710 1: B 85 must be 1 (PM), 2 (JONSWAP) or 3 (Torsethaugen)";
+    msg = std::string(key) + ": B 85 must be 1 (PM), 2 (JONSWAP) or 3 (Torsethaugen)";
     else if(p->B130!=0 && p->B130!=1 && p->B130!=2)
-    msg = "A 710 1: B 130 must be 0, 1 or 2";
+    msg = std::string(key) + ": B 130 must be 0, 1 or 2";
 
-    if(msg!=nullptr)
+    if(!msg.empty())
     {
         if(p->mpirank==0)
         cout<<endl<<"Spectral input error  --  "<<msg<<endl<<endl;
@@ -88,7 +106,7 @@ void spectral_f::initial_parametric(lexer *p, ghostcell *pgc)
     mw += 2.0*pi;
     const int mmain = int(std::lround(mw/g.dtheta))%g.ndir;
 
-    std::vector<float> N(g.nbin,0.0f);
+    N.assign(g.nbin,0.0f);
     std::vector<double> D(g.ndir);
 
     for(int l=0; l<g.nsig; ++l)
@@ -135,20 +153,12 @@ void spectral_f::initial_parametric(lexer *p, ghostcell *pgc)
         N[g.bin(l,m)] = float(S*D[m]/sum/g.sig[l]);
     }
 
-    IMALOOP
-    JMALOOP
-    if(e->wet(i,j)==1)
-    {
-    float *s = e->N->spec(i,j);
-    std::copy(N.begin(),N.end(),s);
-    }
-
     spectral_param sp;
     sp.compute(g,N.data());
 
     if(p->mpirank==0)
     {
-    cout<<"Spectral initial spectrum (A 710 1): B 85 "<<p->B85<<", Hs "<<p->wHs<<" m, Tp "<<p->wTp<<" s, direction "<<p->B131<<" deg, B 130 "<<p->B130<<endl;
+    cout<<"Spectral parametric spectrum ("<<key<<"): B 85 "<<p->B85<<", Hs "<<p->wHs<<" m, Tp "<<p->wTp<<" s, direction "<<p->B131<<" deg, B 130 "<<p->B130<<endl;
     cout<<"  discrete: Hs "<<setprecision(5)<<sp.Hs<<" m, Tp "<<sp.Tp<<" s, Tm01 "<<sp.Tm01<<" s, direction "<<sp.dir<<" deg, spread "<<sp.spread<<" deg"<<endl<<endl;
     cout<<setprecision(6);
     }
