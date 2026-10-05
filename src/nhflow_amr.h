@@ -342,6 +342,14 @@ private:
     // over the leaf cells of all grids, then phase_M with a diffusion object that keeps the result
     bool cdiff = false;
     void diff_solve(lexer*, ghostcell*, int);
+
+    // breaking with G 31 1 (A 550 1): the patches run the detection, the flags and the viscosity
+    // of nhflow_breaking as three parts after phase_F of all grids; between them the cells around
+    // a patch that come from a sibling patch take its detection and flags of this stage (a patch
+    // split in pieces breaks as the whole patch)
+    bool brk_split = false;
+    void breaking_patches(ghostcell*);
+    void brk_exchange(int, int);
     void df_free();
     void df_core(lexer*);
     void df_sync(int);

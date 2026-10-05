@@ -192,6 +192,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // implicit diffusion (A 512 2): one composite solve over the leaf cells of all grids (G 31 1,
     // nhflow_amr_diff.cpp), or every grid its own (G 31 0)
     cdiff = (p->A512==2 && p->G31==1);
+    brk_split = (cdiff && p->A550==1);
 
     configure(q);
 
@@ -606,6 +607,11 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pmom = new nhflow_momentum_RK3(pp,d,pgc,c->p6dof,c->pvrans,c->pdf);
 
     c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
+
+    // breaking with G 31 1: the stage runner runs the parts of the breaking (breaking_patches)
+    if(brk_split)
+    if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom))
+    b->brk_defer = true;
 
     // material and porosity as driver_ini_nhflow and nhflow_f::ini on level 0
     const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
@@ -2085,6 +2091,11 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
             tm[2] += MPI_Wtime()-t0;
         }
         mom->phase_F(p,d,pgc,S0,s);
+
+        t0 = MPI_Wtime();
+        if(brk_split)
+        breaking_patches(pgc);
+        tm[1] += MPI_Wtime()-t0;
 
         t0 = MPI_Wtime();
         diff_solve(p,pgc,s);

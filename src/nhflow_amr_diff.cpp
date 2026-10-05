@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 #include"nhflow_diffusion.h"
+#include"nhflow_breaking.h"
 #include"reefamr_krylov.h"
 #include<cmath>
 #include<mpi.h>
@@ -561,4 +562,79 @@ void nhflow_amr::df_free()
     delete static_cast<df_keep*>(dkeep);
     dcap = nullptr;
     dkeep = nullptr;
+}
+
+// --------------------------------------------------------------------- breaking on split patches
+// G 31 1 with A 550 1: the parts of nhflow_breaking on every patch, coarse to fine.  A cell around
+// a patch filled from a sibling patch (fill kind 0) takes the sibling's detection (after part 0)
+// and its flags (after part 1) of this stage, and its breaking viscosity at the end, so that the
+// cells of a patch next to the cut see what the whole patch would; the cells filled from the
+// coarser grid keep the breaking of their source (lexer::amrvb, the stage fill).
+void nhflow_amr::breaking_patches(ghostcell *pgc)
+{
+    for(int part=0; part<3; ++part)
+    {
+        {
+        comms_off guard(pgc);
+        for(int n=0; n<(int)P.size(); ++n)
+        {
+            nhflow_amr_patch *c = NP(n);
+            nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom);
+            if(b==nullptr)
+            continue;
+            pscope ps(pgc,c->d,d0);
+            b->breaking_part(c->pp,c->d,pgc,part);
+        }
+        }
+
+        for(int l=1; l<=maxlev; ++l)
+        brk_exchange(l,part);
+    }
+}
+
+// values of the sibling-filled cells around the level-l patches: 0 detection (bx, by, bd), 1
+// flags, 2 breaking viscosity
+void nhflow_amr::brk_exchange(int l, int what)
+{
+    const int nv = (what==0) ? 3 : 1;
+
+    fill_run(l,nv,7840+10*what+l,
+             [&](const reefamr_fill &f, double *v)
+             {
+                 if(f.kind!=0 || f.g<0)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = -1.0;
+                     return;
+                 }
+                 nhflow_amr_patch *c = NP(f.g);
+                 nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom);
+                 if(what==0)
+                 {
+                     v[0] = b->brk_bx()(f.si,f.sj);
+                     v[1] = b->brk_by()(f.si,f.sj);
+                     v[2] = b->brk_bd()(f.si,f.sj);
+                 }
+                 else if(what==1)
+                 v[0] = b->brk_flag()(f.si,f.sj);
+                 else
+                 v[0] = c->d->vb(f.si,f.sj);
+             },
+             [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+             {
+                 if(w[0]<0.0)
+                 return;
+                 nhflow_amr_patch *c = NP(q);
+                 nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom);
+                 if(what==0)
+                 {
+                     b->brk_bx()(f.di,f.dj) = (int)w[0];
+                     b->brk_by()(f.di,f.dj) = (int)w[1];
+                     b->brk_bd()(f.di,f.dj) = (int)w[2];
+                 }
+                 else if(what==1)
+                 b->brk_flag()(f.di,f.dj) = (int)w[0];
+                 else
+                 c->d->vb(f.di,f.dj) = w[0];
+             });
 }

@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), brkflag(p), count_n(-1)
+nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), count_n(-1)
 {
     SLICELOOP4
     d->breaking(i,j)=0;
@@ -43,8 +43,35 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
 
 void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, slice &WL, double alpha)
 {
-    int ii,jj;
-    
+    // mesh refinement (nhflow_amr, brk_defer): the three parts run on all grids in turn, the
+    // patches exchange the detection and the flags of their sibling cells in between
+    if(brk_defer)
+    {
+    brk_eta = &eta;
+    brk_eta_n = &eta_n;
+    brk_WL = &WL;
+    brk_alpha = alpha;
+    return;
+    }
+
+    breaking_detect(p,d,pgc,eta,eta_n,WL,alpha);
+    breaking_flags(p,d,pgc);
+    breaking_vb(p,d,pgc,WL);
+}
+
+void nhflow_breaking::breaking_part(lexer *p, fdm_nhf *d, ghostcell *pgc, int part)
+{
+    if(part==0)
+    breaking_detect(p,d,pgc,*brk_eta,*brk_eta_n,*brk_WL,brk_alpha);
+    if(part==1)
+    breaking_flags(p,d,pgc);
+    if(part==2)
+    breaking_vb(p,d,pgc,*brk_WL);
+}
+
+// detection: steepness (bx, by: 10 / 20) and depth induced (bd: 2)
+void nhflow_breaking::breaking_detect(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, slice &WL, double alpha)
+{
     if(p->count>count_n)
     {
     SLICELOOP4
@@ -60,11 +87,13 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     {
     bx(i,j)=0;
     by(i,j)=0;
+    bd(i,j)=0;
     }
     
     pgc->gcsl_start4int(p,brkflag,50);
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
+    pgc->gcsl_start4int(p,bd,50);
     
     // steepness induced breaking
     if((p->A551==2 || p->A551==3) && p->count>1)
@@ -111,8 +140,32 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
 
     pgc->gcsl_start4int(p,bx,50);
     pgc->gcsl_start4int(p,by,50);
+    }
     
+    // depth induced breaking
+    if((p->A551==1 || p->A551==3) && p->count>1)
+    {
+    SLICELOOP4
+    if(p->wet[IJ]==1)
+    {
+        if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A554*sqrt(9.81*d->WL(i,j)))
+        bd(i,j)=2;
+    }
     
+    if(p->amrvb!=nullptr)
+    SLICELOOP4
+    if(p->amrvb[IJ]>=0.0)
+    bd(i,j)=0;
+
+    pgc->gcsl_start4int(p,bd,50);
+    }
+}
+
+// the breaking flags from the detection
+void nhflow_breaking::breaking_flags(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if((p->A551==2 || p->A551==3) && p->count>1)
+    {
     SLICELOOP4
     if(bx(i,j)>0 || by(i,j)>0)
     {
@@ -136,46 +189,32 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     brkflag(i,j)=1;
         
     }
-    
     }
     
-    
-    SLICELOOP4
-    bx(i,j)=0;
-    
-    pgc->gcsl_start4int(p,bx,50);
-    
-    // depth induced breaking
     if((p->A551==1 || p->A551==3) && p->count>1)
-    {
-    SLICELOOP4
-    if(p->wet[IJ]==1)
-    {
-        if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A554*sqrt(9.81*d->WL(i,j)))
-        bx(i,j)=2;
-    }
-    
-    if(p->amrvb!=nullptr)
-    SLICELOOP4
-    if(p->amrvb[IJ]>=0.0)
-    bx(i,j)=0;
-
-    pgc->gcsl_start4int(p,bx,50);
-    
     SLICELOOP4
     {
     // x
-    if(bx(i,j)==2 || bx(i-1,j)==2 || bx(i-2,j)==2 || bx(i+1,j)==2 || bx(i+2,j)==2)
+    if(bd(i,j)==2 || bd(i-1,j)==2 || bd(i-2,j)==2 || bd(i+1,j)==2 || bd(i+2,j)==2)
     brkflag(i,j)=2;
     
     // y
     if(p->j_dir==1)
-    if(bx(i,j)==2 || bx(i,j-1)==2 || bx(i,j-2)==2 || bx(i,j+1)==2 || bx(i,j+2)==2)
+    if(bd(i,j)==2 || bd(i,j-1)==2 || bd(i,j-2)==2 || bd(i,j+1)==2 || bd(i,j+2)==2)
     brkflag(i,j)=2;    
     }
-    }
     
-    
+    // mesh refinement: a filled cell breaks where its source cell carries the full breaking
+    // viscosity
+    if(p->amrvb!=nullptr)
+    SLICELOOP4
+    if(p->amrvb[IJ]>=p->A557 && brkflag(i,j)==0)
+    brkflag(i,j)=1;
+}
+
+// the breaking viscosity from the flags
+void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
     // ------------------------
     // fill flag
     // ------------------------
@@ -206,13 +245,6 @@ void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     
     
     
-    // mesh refinement: a filled cell breaks where its source cell carries the full breaking
-    // viscosity
-    if(p->amrvb!=nullptr)
-    SLICELOOP4
-    if(p->amrvb[IJ]>=p->A557 && brkflag(i,j)==0)
-    brkflag(i,j)=1;
-
     // ------------------------
     // fill breaking viscosity
     // ------------------------
