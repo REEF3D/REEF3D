@@ -260,10 +260,12 @@ static void test_collapse()
     }
     s.write_vtu("collapse_final.vtu");
     double zmin=1e9; for(int i=0;i<s.nnode();++i) zmin=std::min(zmin,s.pos(i)(2));
-    std::printf("    final: eroded %d of %d, debris %zu, min z %.3f, KE %.3e\n",n0-s.n_alive(),n0,s.debris().size(),zmin,s.kinetic_energy());
+    std::printf("    final: eroded %d of %d, debris %zu, min z %.3f, KE %.3e, rigid fragments %d, substeps per step %d\n",n0-s.n_alive(),n0,s.debris().size(),zmin,s.kinetic_energy(),s.n_rigid(),s.last_substeps());
     check(finite,"no NaN");
     check(s.n_alive()<n0,"the arm fails");
     check(zmin>-0.05,"fragments stay above the ground");
+    check(s.n_rigid()>=1 && s.rigid(0).fragment,"the broken arm becomes a rigid body (fragments rigid)");
+    check(s.kinetic_energy()<1.0 && zmin>-0.005,"the fragment comes to rest on the ground (penetration below 5 mm)");
 }
 
 
@@ -651,6 +653,33 @@ static void test_impact()
         const double ks=k*2*k/(3*k), me=M*4.0/12.0, F2=2*u*std::sqrt(ks*me);
         std::printf("    two bodies head-on (8 kg at 2 m/s, 4 kg at -2 m/s, k and 2k): peak %.1f N (series %.1f)\n",r.Fmax,F2);
         check(std::fabs(r.Fmax/F2-1)<0.03,"two bodies: springs in series, reduced mass, within 3 %");
+    }
+    {
+        // tilted block dropped on the ground with a low crushing force: the crushed corner
+        // must not let the other corners sink in when it rocks back (permanent set per point)
+        fem_solid s;
+        s.set_lattice(0,0,0,0.05,0.05,0.05);
+        fem_solid::material m=elastic(1,500,1e10,0.3); m.rigid=true; m.kdebris=1e6; m.fcrush=2000.0;
+        s.add_material(m);
+        s.add_box(0,0.4,0,0.2,0,0.2,1);
+        s.set_gravity(Vec3(0,0,-9.81));
+        s.set_ground(0.0,1.0,0.5);
+        s.set_debris_damping(0.95);                         // no rebound: the corner stays in contact
+        s.build();
+        fem_solid::rigid_body& rb=const_cast<fem_solid::rigid_body&>(s.rigid(0));
+        rb.R = Eigen::AngleAxisd(0.35,Vec3(0,1,0)).toRotationMatrix();
+        rb.c = Vec3(0.2,0.1,0.45);
+        for(int i=0;i<s.nnode();++i) s.set_pos(i, rb.c + rb.R*(s.ref_pos(i)-rb.c0));
+        double pmax=0;
+        for(int n=0;n<3000;++n)
+        {
+            s.advance(1e-3);
+            for(int i=0;i<s.nnode();++i) pmax=std::max(pmax,-s.pos(i)(2));
+        }
+        double zmin=1e9; for(int i=0;i<s.nnode();++i) zmin=std::min(zmin,s.pos(i)(2));
+        std::printf("    tilted block (8 kg) on the ground, crushing at 2 kN: max penetration %.4f m, at rest %.2e m, speed %.2e m/s\n",pmax,-zmin,rb.V.norm());
+        check(pmax>0.005,"the corner crushes");
+        check(-zmin<1e-3 && rb.V.norm()<1e-2,"comes to rest flat on the ground (no sinking of the other corners)");
     }
     {
         impact_result r=impact_run(k,0.0,0.0,0.0,2);

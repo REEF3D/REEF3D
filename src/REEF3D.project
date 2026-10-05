@@ -86,7 +86,11 @@
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
-      <VirtualDirectory Name="Spectral"/>
+      <VirtualDirectory Name="Spectral">
+        <File Name="spectral_grid.h"/>
+        <File Name="spectral_param.h"/>
+        <File Name="spectral_store.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Vorticity">
@@ -1329,7 +1333,11 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
-      <VirtualDirectory Name="Spectral"/>
+      <VirtualDirectory Name="Spectral">
+        <File Name="spectral_grid.cpp"/>
+        <File Name="spectral_param.cpp"/>
+        <File Name="spectral_store.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="WSF">
