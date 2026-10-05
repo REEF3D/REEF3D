@@ -213,7 +213,7 @@ void control::ini_default()
     A524=2;      // int sigma gradients
     A525=0;      // int 
     A526=1.1;    // double direct forcing factor
-    A527=0;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    A527=1;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A528=1.0e-5; // double NHFLOW TENO5 cutoff C_T (A527 2)
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
