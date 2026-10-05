@@ -1271,6 +1271,7 @@
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_amr_print.cpp"/>
         <File Name="nhflow_amr_press.cpp"/>
+        <File Name="nhflow_amr_diff.cpp"/>
         <File Name="nhflow_amr.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
       </VirtualDirectory>

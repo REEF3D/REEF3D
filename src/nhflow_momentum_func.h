@@ -89,6 +89,10 @@ public:
     virtual void step_begin(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&) = 0;
     virtual void phase_F(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;
     virtual void phase_M(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;
+    // the implicit diffusion of stage s alone, component m (0 UH, 1 VH, 2 WH), with the arguments
+    // phase_M gives it: nhflow_amr (G 31 1) assembles it on all grids for one composite solve and
+    // then runs phase_M with a diffusion object that keeps the result
+    virtual void phase_D(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int,int) = 0;
     void phase_P(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int);
     virtual void phase_P1(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;   // velocities, forcing
     virtual void phase_P2(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) = 0;   // velocities, reforcing

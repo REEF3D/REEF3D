@@ -48,6 +48,9 @@ class vrans_nhflow;
 class sixdof;
 class sediment;
 class sixdof_nhflow;
+class solver;
+class vec;
+class matrix_diag;
 class sixdof_obj;
 class ioflow;
 class patchBC_interface;
@@ -115,10 +118,12 @@ using namespace std;
 //  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
 //  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
 //
-//  Breaking (A 550 1, RK2): every grid detects breaking and solves its own implicit diffusion
-//  with the breaking viscosity (A 512 2; a bicgstab_ijk per patch, its global sums local to the
-//  patch inside pscope); the viscous flux across a patch box is not matched (per grid).  G 23 1
-//  flags the cells with breaking viscosity for the adaptive mode.
+//  Breaking (A 550 1, RK2): every grid detects breaking; the implicit diffusion with the breaking
+//  viscosity (A 512 2) is one composite solve over the leaf cells of all grids (G 31 1, the
+//  default: nhflow_amr_diff.cpp, a patch split in pieces gives the same result as the whole
+//  patch), or with G 31 0 every grid solves its own (a bicgstab_ijk per patch, its global sums
+//  local to the patch inside pscope).  The viscous flux across a coarse-fine interface is not
+//  matched.  G 23 1 flags the cells with breaking viscosity for the adaptive mode.
 //
 //  Wetting and drying in the patches (G 30 1): the patches may cover dry and shallow cells, the
 //  NHFLOW wetting and drying (A 540) runs on every grid.  The coupling: the cells around a patch
@@ -162,6 +167,9 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
     double *ptgt = nullptr;         // unknowns of the current solve (P or PCORR)
+
+    // composite implicit diffusion (G 31 1): Krylov vectors, cell layout
+    vector<vector<double>> dkv;
 };
 
 class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook
@@ -192,6 +200,18 @@ public:
     void pr_p(double, double);
     void pr_s(double);
     void pr_x(double, double);
+
+    // vector space of the composite implicit diffusion (nhflow_amr_diff.cpp, reefamr_bicgstab)
+    void df_apply(int, int);
+    void df_prec(int, int);
+    double df_dot(int, int);
+    void df_start();
+    void df_p(double, double);
+    void df_s(double);
+    void df_x(double, double);
+
+    // the matrix of a grid as nhflow_idiff assembles it (capture solver of phase_D)
+    void df_capture(double*, vec&, matrix_diag&, int);
 
 protected:
     // REEFAMR hooks
@@ -316,6 +336,36 @@ private:
     template<class SEL> void pr_restrict(SEL);
     template<class SEL> void pr_fill(int, int, SEL);
     void pr_prolong(int, int);               // level, vector
+
+    // composite implicit diffusion (G 31 1 with A 512 2, nhflow_amr_diff.cpp): phase_D of every
+    // grid assembles the rows of one component (a capture solver records them), one BiCGStab
+    // over the leaf cells of all grids, then phase_M with a diffusion object that keeps the result
+    bool cdiff = false;
+    void diff_solve(lexer*, ghostcell*, int);
+    void df_free();
+    void df_core(lexer*);
+    void df_sync(int);
+    double* dvec(int, int);         // grid, vector (-1: the unknowns of the solve)
+    struct dgrid
+    {
+        double *x = nullptr;        // UHDIFF, VHDIFF or WHDIFF of the grid
+        vec *rhs = nullptr;
+        matrix_diag *M = nullptr;
+        int var = 0;
+        vector<int> lq, lr;         // leaf cells: IJK, matrix row
+        vector<int> aq;             // all computed cells (LOOP): IJK
+    };
+    vector<dgrid> dg;               // [g+1]
+    int dcur = -1;                  // grid whose phase_D runs
+    vector<vector<double>> dkv0;    // level-0 vectors
+    struct dstencil { int nw; int off[25]; double w[25]; };     // fills from the coarser grid
+    std::unordered_map<const reefamr_fill*, dstencil> df_fs;
+    int df_stage = 0;
+    solver *dcap = nullptr;         // capture solver
+    nhflow_diffusion *dkeep = nullptr;  // diffusion object of phase_M: keeps UHDIFF ...
+    long df_it_total = 0, df_solves = 0;
+    int df_it_last = 0;
+    double tdiff = 0.0;
 
     // wetting and drying in the patches (G 30 1): wet-aware interpolation, the flags of fresh
     // patches and of the covered coarse cells

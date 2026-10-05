@@ -102,6 +102,8 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
         <<" s, patch stages "<<tm[1]<<" s, flux exchange "<<tm[2]<<" s, restriction "<<tm[3]<<" s, pressure "<<tm[4]
         <<" s (preconditioner "<<tm[5]<<" s, operator "<<tm[6]<<" s), mean iterations "
         <<(pr_solves>0 ? double(pr_it_total)/pr_solves : 0.0);
+    if(p->mpirank==0 && (doprint || p->count%500==0) && cdiff)
+    cout<<", diffusion "<<setprecision(4)<<tdiff<<" s, mean iterations "<<(df_solves>0 ? double(df_it_total)/df_solves : 0.0);
     if(p->mpirank==0 && (doprint || p->count%500==0) && regrid_int>0)
     cout<<", regrid "<<setprecision(4)<<tm[7]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
     if(p->mpirank==0 && (doprint || p->count%500==0))

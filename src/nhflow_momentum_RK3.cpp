@@ -331,6 +331,22 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     p->wtime+=pgc->timer()-starttime;
 }
 
+// stage s: the implicit diffusion of component m, as in phase_M
+void nhflow_momentum_RK3::phase_D(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s, int m)
+{
+    double *UHi = s==0?d->UH:(s==1?UHRK1:UHRK2);
+    double *VHi = s==0?d->VH:(s==1?VHRK1:VHRK2);
+    double *WHi = s==0?d->WH:(s==1?WHRK1:WHRK2);
+    slice &WL = stage_WL(d,s);
+
+    if(m==0)
+    S.pdiff->diff_u(p,d,pgc,S.pflow,S.psolv,UHDIFF,UHi,UHi,VHi,WHi,WL,1.0);
+    if(m==1)
+    S.pdiff->diff_v(p,d,pgc,S.pflow,S.psolv,VHDIFF,VHi,UHi,VHi,WHi,WL,1.0);
+    if(m==2)
+    S.pdiff->diff_w(p,d,pgc,S.pflow,S.psolv,WHDIFF,WHi,UHi,VHi,WHi,WL,1.0);
+}
+
 // stage s: velocities, forcing (before the pressure projection)
 void nhflow_momentum_RK3::phase_P1(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s)
 {

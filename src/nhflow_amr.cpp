@@ -189,6 +189,10 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
     q.rebalance = 0.1;
 
+    // implicit diffusion (A 512 2): one composite solve over the leaf cells of all grids (G 31 1,
+    // nhflow_amr_diff.cpp), or every grid its own (G 31 0)
+    cdiff = (p->A512==2 && p->G31==1);
+
     configure(q);
 
     if(p->F50==1) gcval_eta = 51;
@@ -212,6 +216,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
 nhflow_amr::~nhflow_amr()
 {
     free_patches();
+    df_free();
 
     for(auto v : kv0)
     delete [] v;
@@ -265,7 +270,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A520<0 || p->A520>2) ok=0;
     if(p->A512<0 || p->A512>2 || p->A560!=0) ok=0;
     // breaking (A 550 1): NHFLOW has it in RK2 only; it acts through the implicit diffusion
-    // (A 512 2), which every patch solves for itself
+    // (A 512 2), composite (G 31 1) or per grid (G 31 0)
     if(p->A550!=0 && (p->A550!=1 || p->A510!=2)) ok=0;
     if(p->B200!=0 || p->S10!=0 || p->X330!=0 || p->A599!=0) ok=0;
     if(p->X10!=0 && (b6==nullptr || p->X60!=1 || p->X16!=0 || p->X320!=0 || p->A516==2 || p->A516==4)) ok=0;
@@ -1937,6 +1942,20 @@ void nhflow_amr::exchange_fluxes(int l)
     for(size_t g=0; g<rmatch.size(); ++g)
     rval[g].resize(rmatch[g].size()*NF);
 
+    // G 31 1 exchanges after phase_F as well: a fresh patch has no momentum records yet (zero
+    // until its phase_M)
+    for(int id : lev[l])
+    for(int side=0; side<4; ++side)
+    {
+        nhflow_amr_patch *c = NP(id);
+        const size_t ns = side<2 ? c->ny : c->nx;
+        for(int ip=1; ip<=4; ++ip)
+        if(c->rec[ip][side].size()<ns*Kf)
+        c->rec[ip][side].resize(ns*Kf,0.0);
+        if(c->rec[0][side].size()<ns)
+        c->rec[0][side].resize(ns,0.0);
+    }
+
     face_run(l,NF,7200+l,
              [&](reefamr_patch *q, int side, int r, double *sb)
              {
@@ -2018,6 +2037,8 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         tm[0] += MPI_Wtime()-t0;
 
         // continuity and momentum fluxes, finest first: the coarser grids take the recorded fine fluxes
+        if(!cdiff)
+        {
         for(int l=maxlev; l>=1; --l)
         {
             t0 = MPI_Wtime();
@@ -2040,6 +2061,60 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
 
         mom->phase_F(p,d,pgc,S0,s);
         mom->phase_M(p,d,pgc,S0,s);
+        }
+        else
+        {
+        // G 31 1: continuity of all grids, the implicit diffusion of all grids in one solve,
+        // then their momentum (the momentum fluxes of the finer grids still before the coarser)
+        for(int l=maxlev; l>=1; --l)
+        {
+            t0 = MPI_Wtime();
+            {
+            comms_off guard(pgc);
+            for(int n : lev[l])
+            {
+                nhflow_amr_patch *c = NP(n);
+                pscope ps(pgc,c->d,d0);
+                c->pmom->phase_F(c->pp,c->d,pgc,c->S,s);
+            }
+            }
+            tm[1] += MPI_Wtime()-t0;
+
+            t0 = MPI_Wtime();
+            exchange_fluxes(l);
+            tm[2] += MPI_Wtime()-t0;
+        }
+        mom->phase_F(p,d,pgc,S0,s);
+
+        t0 = MPI_Wtime();
+        diff_solve(p,pgc,s);
+        tdiff += MPI_Wtime()-t0;
+
+        for(int l=maxlev; l>=1; --l)
+        {
+            t0 = MPI_Wtime();
+            {
+            comms_off guard(pgc);
+            for(int n : lev[l])
+            {
+                nhflow_amr_patch *c = NP(n);
+                pscope ps(pgc,c->d,d0);
+                nhflow_stage_obj S = c->S;
+                S.pdiff = dkeep;
+                c->pmom->phase_M(c->pp,c->d,pgc,S,s);
+            }
+            }
+            tm[1] += MPI_Wtime()-t0;
+
+            t0 = MPI_Wtime();
+            exchange_fluxes(l);
+            tm[2] += MPI_Wtime()-t0;
+        }
+
+        nhflow_stage_obj S = S0;
+        S.pdiff = dkeep;
+        mom->phase_M(p,d,pgc,S,s);
+        }
 
         t0 = MPI_Wtime();
         {

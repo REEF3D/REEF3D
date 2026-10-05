@@ -45,6 +45,7 @@ public:
     void step_begin(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&) override final;
     void phase_F(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) override final;
     void phase_M(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) override final;
+    void phase_D(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int,int) override final;
     void phase_P1(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) override final;
     void phase_P2(lexer*,fdm_nhf*,ghostcell*,nhflow_stage_obj&,int) override final;
     double stage_alpha(int s) const override final { return s==0?1.0:(s==1?0.25:2.0/3.0); }

@@ -647,6 +647,7 @@ void control::ini_default()
     G22=0;      // int SFLOW and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
     G23=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
     G30=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
+    G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G40=0;      // int NHFLOW mesh refinement on several ranks: 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks
     // grid
     G502=0;            // int sigma grid
