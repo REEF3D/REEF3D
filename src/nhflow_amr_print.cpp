@@ -106,6 +106,26 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<", diffusion "<<setprecision(4)<<tdiff<<" s, mean iterations "<<(df_solves>0 ? double(df_it_total)/df_solves : 0.0);
     if(p->mpirank==0 && (doprint || p->count%500==0) && regrid_int>0)
     cout<<", regrid "<<setprecision(4)<<tm[7]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
+    // load per rank (several ranks): the cells computed on the rank (level 0 including its covered
+    // columns, the patches without their EXT cells) and the time in the patch stages, max over mean
+    // of the ranks - what balancing the patches over the ranks could gain at most
+    if((doprint || p->count%500==0) && p->mpi_size>1)
+    {
+        double cl = double(p0->knox)*p0->knoy*p0->knoz;
+        for(auto q : P)
+        cl += double(q->nx)*q->ny*q->pp->knoz;
+
+        double v[2] = {cl, tm[1]};
+        double vmax[2] = {cl, tm[1]};
+        pgc->globalmax(vmax,2);
+        const double cmean = pgc->globalsum(v[0])/p->mpi_size;
+        const double tmean = pgc->globalsum(v[1])/p->mpi_size;
+
+        if(p->mpirank==0)
+        cout<<"; load max/mean over "<<p->mpi_size<<" ranks: cells "<<setprecision(3)<<(cmean>0.0 ? vmax[0]/cmean : 1.0)
+            <<", patch stages "<<(tmean>0.0 ? vmax[1]/tmean : 1.0);
+    }
+
     if(p->mpirank==0 && (doprint || p->count%500==0))
     cout<<"; water volume change "<<setprecision(3)<<(m0>0.0 ? (m-m0)/m0 : 0.0)<<endl;
 
