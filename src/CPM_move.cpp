@@ -29,6 +29,15 @@ Authors: Hans Bihs, Alexander Hanke
 
 void CPM::move(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
+    // fixed bed (Q 44 1): all parcels are fixed; only the bed shear stress of the layer for the log
+    if(p->Q44==1)
+    {
+        if(p->Q58>0 && p->S10!=2)
+        bedload_columns(p,a,pgc,s);
+        
+        return;
+    }
+    
     if(p->Q11==1)
     plain_RK2(p,a,pgc,s,pturb);
     

@@ -47,7 +47,8 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     pst->sedlog(p,pgc);
     
 
-    /// topo update
+    /// topo update; fixed bed (Q 44 1): all parcels are fixed and the bed does not change
+    if(p->Q44!=1)
     update_cfd(p,a,pgc,pflow,preto);
 
     p->sedsimtime=pgc->timer()-starttime;

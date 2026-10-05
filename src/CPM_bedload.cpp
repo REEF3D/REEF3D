@@ -125,8 +125,18 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
             if(a->topo(i,j,k) >= 0.5*h)
             {
-                ur = 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
-                vr = p->j_dir==1 ? 0.5*(a->v(i,j-1,k) + a->v(i,j,k)) : 0.0;
+                // a solid body above the bed (e.g. a pipeline with a small gap): the fluid cell
+                // below it if there is one, else no flow (the body rests on the bed)
+                bool body = p->solidread>0 && a->solid(i,j,k)<0.0;
+                
+                if(body && k>kb && a->topo(i,j,k-1)>0.0 && a->solid(i,j,k-1)>0.0)
+                {
+                    --k;
+                    body = false;
+                }
+                
+                ur = body ? 0.0 : 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
+                vr = (body || p->j_dir==0) ? 0.0 : 0.5*(a->v(i,j-1,k) + a->v(i,j,k));
                 zr = a->topo(i,j,k);
                 blH(i,j) = h;
                 found = true;
@@ -442,8 +452,9 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
 }
 
 // a parcel of the bedload layer: hop along the bed with the grain velocity, deposition at the end of the hop
-// or below the threshold; tentative position and velocity in XRK1, URK1 (Test = -1 marks the parcel as done)
-void CPM::bedload_move(lexer *p, sediment_fdm *s, int q, double dt)
+// or below the threshold; tentative position and velocity in XRK1, URK1 (Test = -1 marks the parcel as done);
+// a hop into a solid body (solid level set < d/2 at the target) ends where the parcel is
+void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
 {
     int ic,jc;
     double ub,vb,te;
@@ -467,6 +478,15 @@ void CPM::bedload_move(lexer *p, sediment_fdm *s, int q, double dt)
 
     bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc);
     double zb = zbl(s,ic,jc);
+
+    if(p->solidread>0 && p->ccipol4_b(a->solid,P.XRK1[q],P.YRK1[q],zb+0.5*P.D[q]) < 0.5*P.D[q])
+    {
+        P.XRK1[q] = P.X[q];
+        P.YRK1[q] = P.Y[q];
+        bedload_column(p,P.X[q],P.Y[q],ic,jc);
+        zb = zbl(s,ic,jc);
+        dep = true;
+    }
 
     P.Test[q] = -1.0;
 

@@ -257,7 +257,7 @@ private:
     // sub-grid bedload layer (Q 58, S 10 1), see CPM_bedload.cpp
     void bedload_columns(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void bedload_exchange(lexer*, fdm*, ghostcell*, sediment_fdm*, double);
-    void bedload_move(lexer*, sediment_fdm*, int, double);
+    void bedload_move(lexer*, fdm*, sediment_fdm*, int, double);
     bool bedload_grain(lexer*, int, int, double, double&, double&, double&);
     void bedload_column(lexer*, double, double, int&, int&);
     double settling_velocity(lexer*, double);

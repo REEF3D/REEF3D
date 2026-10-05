@@ -72,7 +72,7 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
         // sub-grid bedload layer: one step for both stages
         if(layer && P.Hop[n]>0.0)
         {
-            bedload_move(p,s,n,dt);
+            bedload_move(p,a,s,n,dt);
             continue;
         }
         

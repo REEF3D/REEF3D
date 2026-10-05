@@ -145,7 +145,7 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         // sub-grid bedload layer
         if(layer && P.Hop[n]>0.0)
         {
-            bedload_move(p,s,n,dt);
+            bedload_move(p,a,s,n,dt);
             continue;
         }
         
