@@ -191,20 +191,42 @@ bool reefmg_core::setup(MPI_Comm cart,
         MPI_Cart_shift(comm,1,1,&nby0,&nby1);
     }
 
-    //  How far can every rank coarsen?  All ranks must agree, so take the
-    //  global minimum.  Coarsening stops when a local extent
-    //  drops below 8 cells.
-    //  x and y are coarsened independently, so a 2D vertical run (ny==1)
-    //  simply keeps y at one cell on every level.
-    int mlx=0,mly=0;
+    //  Coarsening schedule, one (rx,ry) per step.  Both directions are
+    //  halved while the mean cell aspect ratio hx/hy stays within
+    //  [1/sqrt2, sqrt2]; outside it only the finer direction is halved until
+    //  the cells are near-square again.  Point and vertical-line smoothing
+    //  only smooth isotropically coupled errors in x and y, so coarsening the
+    //  weakly coupled direction of an anisotropic grid would leave errors
+    //  that neither the smoother nor the coarse grid removes.
+    std::vector<int> sch_rx, sch_ry;
     {
-        int ax=nx; while(ax>=8 && (maxlevel<=0 || mlx<maxlevel)){ax=(ax+1)/2; ++mlx;}
-        int ay=ny; while(ay>=8 && (maxlevel<=0 || mly<maxlevel)){ay=(ay+1)/2; ++mly;}
+        double sl[3]={0.0,0.0,(double)nx*ny};
+        for(int i=0;i<nx;++i) sl[0]+=(dxn? dxn[i+1] : 1.0)*ny;
+        for(int j=0;j<ny;++j) sl[1]+=(dyn? dyn[j+1] : 1.0)*nx;
+        double sg[3]={0.0,0.0,0.0};
+        MPI_Allreduce(sl,sg,3,MPI_DOUBLE,MPI_SUM,comm);
+        double Hx=sg[0]/sg[2], Hy=sg[1]/sg[2];
+
+        int ax=nx, ay=ny;
+        while(maxlevel<=0 || (int)sch_rx.size()<maxlevel)
+        {
+            int loc[2]={ax,ay}, glo[2]={0,0};
+            MPI_Allreduce(loc,glo,2,MPI_INT,MPI_MIN,comm);
+            const bool cx=glo[0]>=8, cy=glo[1]>=8;
+            int rx=cx?2:1, ry=cy?2:1;
+            if(cx && cy)
+            {
+                const double r=Hx/Hy;
+                if(r> 1.41421356) rx=1;      // y finer: halve y only
+                if(r< 0.70710678) ry=1;      // x finer: halve x only
+            }
+            if(rx==1 && ry==1) break;
+            sch_rx.push_back(rx); sch_ry.push_back(ry);
+            if(rx==2){ax=(ax+1)/2; Hx*=2.0;}
+            if(ry==2){ay=(ay+1)/2; Hy*=2.0;}
+        }
     }
-    int levx=0,levy=0;
-    MPI_Allreduce(&mlx,&levx,1,MPI_INT,MPI_MIN,comm);
-    MPI_Allreduce(&mly,&levy,1,MPI_INT,MPI_MIN,comm);
-    const int nlev=std::max(levx,levy);
+    const int nlev=(int)sch_rx.size();
 
     lev.resize(nlev+1);
     int ax=nx, ay=ny, agx=gnx, agy=gny;
@@ -214,8 +236,8 @@ bool reefmg_core::setup(MPI_Comm cart,
         sc_level &L=lev[l];
         L.lid=l;
         L.nx=ax; L.ny=ay; L.nz=nz; L.gnx=agx; L.gny=agy;
-        L.rx=(l>0 && l<=levx)?2:1;
-        L.ry=(l>0 && l<=levy)?2:1;
+        L.rx=(l>0)? sch_rx[l-1] : 1;
+        L.ry=(l>0)? sch_ry[l-1] : 1;
         const long N=L.size();
         //  coefficients in exactly one precision
         if(pcbits==32)
@@ -232,8 +254,8 @@ bool reefmg_core::setup(MPI_Comm cart,
         }
         L.u.assign(N,0.0); L.f.assign(N,0.0); L.r.assign(N,0.0);
         L.act.assign(N,0);
-        if(l<levx){ax=(ax+1)/2; agx=(agx+1)/2;}
-        if(l<levy){ay=(ay+1)/2; agy=(agy+1)/2;}
+        if(l<nlev && sch_rx[l]==2){ax=(ax+1)/2; agx=(agx+1)/2;}
+        if(l<nlev && sch_ry[l]==2){ay=(ay+1)/2; agy=(agy+1)/2;}
     }
 
     const long fn=lev[0].size();
@@ -1090,6 +1112,36 @@ void reefmg_core::precondition(std::vector<double> &rhs,
     F.f.swap(rhs);
 }
 
+//  One stationary V-cycle step on the fine level, F.r holding the residual
+//  of the current iterate.  In fp64 mode the cycle works on u directly.  In
+//  fp32 mode, or when the host operator is not the 7-point one held here,
+//  the cycle's own fine-level residual would use the stored approximation,
+//  and cycling on u would converge to that operator's solution - about
+//  1e-5 relative to the exact one in fp32.  Defect correction instead: the
+//  cycle approximates A^-1 r for the exact residual r, and u += that.
+void reefmg_core::cycle_step(int pre,int post)
+{
+    sc_level &F=lev[0];
+
+    if(pcbits==64 && !(fexact && fineop))
+    {
+        vcycle(0,pre,post);
+        return;
+    }
+
+    kp=F.r;
+    precondition(kp,kz,pre,post);
+
+    for(int i=0;i<F.nx;++i)
+    for(int j=0;j<F.ny;++j)
+    {
+        const long col=F.idx(i,j,0);
+        double *uc=&F.u[col];
+        const double *zc=&kz[col];
+        for(int k=0;k<F.nz;++k) uc[k]+=zc[k];
+    }
+}
+
 int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int post)
 {
     sc_level &F=lev[0];
@@ -1105,7 +1157,7 @@ int reefmg_core::solve_vcycle(double tol,int maxiter,double &relres,int pre,int 
 
     while(rn/bn>tol && it<maxiter)
     {
-        vcycle(0,pre,post);
+        cycle_step(pre,post);
         ++it;
         residual(F);
         rn=sqrt(dot(F,F.r,F.r));
@@ -1287,7 +1339,7 @@ int reefmg_core::solve_auto(double tol,int maxiter,double &relres,
 
     while(rn/bn>tol && it<maxiter)
     {
-        vcycle(0,pre,post);
+        cycle_step(pre,post);
         ++it;
         residual(F);
         prev=rn;

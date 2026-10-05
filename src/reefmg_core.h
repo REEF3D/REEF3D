@@ -224,6 +224,7 @@ private:
     void prolong_xy(const sc_level &C,sc_level &F);
     void apply(sc_level &L,int l,std::vector<double> &x,std::vector<double> &y);
     void precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void cycle_step(int pre,int post);   // one stationary step, defect correction in fp32
     void factor_lines();
 
     std::vector<sc_level> lev;
