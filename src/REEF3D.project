@@ -86,7 +86,9 @@
       <File Name="ghostcell.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
-      <VirtualDirectory Name="Spectral">
+      <VirtualDirectory Name="SEASTATE">
+        <File Name="spectral_vtp.h"/>
+        <File Name="spectral_swan_spc.h"/>
         <File Name="fdm_spectral.h"/>
         <File Name="spectral_dispersion.h"/>
         <File Name="spectral_f.h"/>
@@ -1336,7 +1338,8 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
-      <VirtualDirectory Name="Spectral">
+      <VirtualDirectory Name="SEASTATE">
+        <File Name="spectral_swan_spc.cpp"/>
         <File Name="fdm_spectral.cpp"/>
         <File Name="spectral_dispersion.cpp"/>
         <File Name="spectral_vtp.cpp"/>
