@@ -87,14 +87,17 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="SEASTATE">
-        <File Name="spectral_vtp.h"/>
-        <File Name="spectral_swan_spc.h"/>
-        <File Name="fdm_spectral.h"/>
-        <File Name="spectral_dispersion.h"/>
-        <File Name="spectral_f.h"/>
-        <File Name="spectral_grid.h"/>
-        <File Name="spectral_param.h"/>
-        <File Name="spectral_store.h"/>
+        <File Name="seastate_vtp.h"/>
+        <File Name="seastate_swan_spc.h"/>
+        <File Name="fdm_seastate.h"/>
+        <File Name="seastate_dispersion.h"/>
+        <File Name="seastate_f.h"/>
+        <File Name="seastate_grid.h"/>
+        <File Name="seastate_param.h"/>
+        <File Name="seastate_store.h"/>
+        <File Name="seastate.h"/>
+        <File Name="seastate_exchange.h"/>
+        <File Name="seastate_implicit.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
@@ -1339,16 +1342,21 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="SEASTATE">
-        <File Name="spectral_swan_spc.cpp"/>
-        <File Name="fdm_spectral.cpp"/>
-        <File Name="spectral_dispersion.cpp"/>
-        <File Name="spectral_vtp.cpp"/>
-        <File Name="spectral_f.cpp"/>
-        <File Name="spectral_f_initial.cpp"/>
-        <File Name="spectral_f_ini.cpp"/>
-        <File Name="spectral_grid.cpp"/>
-        <File Name="spectral_param.cpp"/>
-        <File Name="spectral_store.cpp"/>
+        <File Name="seastate_swan_spc.cpp"/>
+        <File Name="fdm_seastate.cpp"/>
+        <File Name="seastate_dispersion.cpp"/>
+        <File Name="seastate_vtp.cpp"/>
+        <File Name="seastate_f.cpp"/>
+        <File Name="seastate_f_initial.cpp"/>
+        <File Name="seastate_f_ini.cpp"/>
+        <File Name="seastate_grid.cpp"/>
+        <File Name="seastate_param.cpp"/>
+        <File Name="seastate_store.cpp"/>
+        <File Name="seastate_exchange.cpp"/>
+        <File Name="seastate_f_kinematics.cpp"/>
+        <File Name="seastate_f_param.cpp"/>
+        <File Name="seastate_f_transport.cpp"/>
+        <File Name="seastate_implicit.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">

@@ -115,7 +115,7 @@ std::string runlog::solver_name(lexer *p)
         case 3: return "FNPF";
         case 5: return "NHFLOW";
         case 6: return "CFD";
-        case 7: return "SPECTRAL";
+        case 7: return "SEASTATE";
         default: return "REEF3D";
     }
 }

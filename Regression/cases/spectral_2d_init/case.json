@@ -1,8 +1,0 @@
-{
- "description": "REEF3D::Spectral Phase 0 skeleton (A 10 7): 40 x 20 cells, a submerged shoal (depth 5 m) and a land block, JONSWAP Hs 2 m Tp 10 s with Mitsuyasu spreading (s 10, 30 deg) as initial spectrum on 24 x 24 bins, block-sparse storage with 8 x 8 tiles. No transport yet: the spectrum and the integrated parameters stay constant.",
- "solver": "spectral",
- "np": 1,
- "steps": 5,
- "tags": ["quick", "2d", "spectral"],
- "covers": ["spectral_f (A 10 7)", "keys A 701-706, A 710", "spectral_grid", "spectral_store tiles, land not allocated", "parametric initial spectrum (B 85 2, B 93, B 130 2)", "spectral_param", "spectral_vtp", "REEF3D_SPECTRAL_Log integral"]
-}

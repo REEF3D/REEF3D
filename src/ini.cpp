@@ -287,7 +287,7 @@ void control::ini_default()
     A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
     A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
-    A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file spectral-boundary.spc
+    A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc
     A712_xm=1;        // int boundary spectrum on side x-
     A712_xp=0;        // int boundary spectrum on side x+
     A712_ym=0;        // int boundary spectrum on side y-

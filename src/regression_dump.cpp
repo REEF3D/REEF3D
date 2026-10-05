@@ -29,8 +29,8 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"fdm_fnpf.h"
 #include"fdm2D.h"
-#include"fdm_spectral.h"
-#include"spectral_store.h"
+#include"fdm_seastate.h"
+#include"seastate_store.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -540,10 +540,10 @@ void regression_dump::sflow_final(lexer *p, fdm2D *b, ghostcell *pgc)
 }
 
 // ---------------------------------------------------------------------
-// Spectral
+// SEASTATE
 // ---------------------------------------------------------------------
 
-void regression_dump::spectral_collect(lexer *p, fdm_spectral *e)
+void regression_dump::seastate_collect(lexer *p, fdm_seastate *e)
 {
     names.clear();
     data.clear();
@@ -588,26 +588,26 @@ void regression_dump::spectral_collect(lexer *p, fdm_spectral *e)
     }
 }
 
-void regression_dump::spectral_state(lexer *p, fdm_spectral *e)
+void regression_dump::seastate_state(lexer *p, fdm_seastate *e)
 {
     if(last_written==p->count)
     return;
 
-    spectral_collect(p,e);
+    seastate_collect(p,e);
     write_state(p);
 }
 
-void regression_dump::spectral_ini(lexer *p, fdm_spectral *e, ghostcell *pgc)
+void regression_dump::seastate_ini(lexer *p, fdm_seastate *e, ghostcell *pgc)
 {
     if(!is_active)
     return;
 
     steplog<<"# count simtime dt  sum(Hs^2) sum(Tm01^2) sum(N^2)  (rank-local, hexfloat)"<<std::endl;
 
-    spectral_state(p,e);
+    seastate_state(p,e);
 }
 
-void regression_dump::spectral_step(lexer *p, fdm_spectral *e, ghostcell *pgc)
+void regression_dump::seastate_step(lexer *p, fdm_seastate *e, ghostcell *pgc)
 {
     if(!is_active)
     return;
@@ -630,14 +630,14 @@ void regression_dump::spectral_step(lexer *p, fdm_spectral *e, ghostcell *pgc)
            <<sh<<" "<<st<<" "<<sn<<"\n";
 
     if(every>0 && p->count%every==0)
-    spectral_state(p,e);
+    seastate_state(p,e);
 }
 
-void regression_dump::spectral_final(lexer *p, fdm_spectral *e, ghostcell *pgc)
+void regression_dump::seastate_final(lexer *p, fdm_seastate *e, ghostcell *pgc)
 {
     if(!is_active)
     return;
 
     steplog.flush();
-    spectral_state(p,e);
+    seastate_state(p,e);
 }

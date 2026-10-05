@@ -31,7 +31,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"patchBC.h"
 #include"runlog.h"
-#include"spectral_f.h"
+#include"seastate_f.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -78,7 +78,7 @@ driver::driver(int& argc, char **argv)
     cout<<endl<<"REEF3D::CFD" <<endl<<endl;
 
     if(p->A10==7)
-    cout<<endl<<"REEF3D::Spectral" <<endl<<endl;
+    cout<<endl<<"REEF3D::SEASTATE" <<endl<<endl;
     }
 
     // PTF (A 10 4) was removed
@@ -100,13 +100,13 @@ driver::driver(int& argc, char **argv)
         sflow_driver();
     }
 
-// 2D Framework - Spectral
+// 2D Framework - SEASTATE
     if(p->A10==7)
     {
         p->flagini2D();
         p->gridini2D();
         makegrid2D(p,pgc);
-        spectral_driver();
+        seastate_driver();
     }
 
 // 3D Framework
@@ -166,17 +166,17 @@ void driver::sflow_driver()
 	psflow->start(p,b,pgc);
 }
 
-void driver::spectral_driver()
+void driver::seastate_driver()
 {
     // 2D grid set-up of SFLOW without the SFLOW fdm (makegrid2D_cds)
     p->flagini2D();
     p->gridini2D();
     pgc->sizeS_update(p);
 
-    pspectral = new spectral_f(p,pgc);
+    pseastate = new seastate_f(p,pgc);
 
-    // Start Spectral
-    pspectral->start(p,pgc);
+    // Start SEASTATE
+    pseastate->start(p,pgc);
 }
 
 void driver::fnpf_driver()

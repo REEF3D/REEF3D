@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE stationary, opposing current increasing linearly to -0.5 m/s (A 720 1, A 721) at constant depth 20 m: frequency shift c_sigma and Doppler-shifted propagation. Validation in Dropbox SpectralWave/validation/04_current (wave action conservation).",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["frequency shift c_sigma (currents)", "prescribed current A 720/A 721", "current terms in cx"]
+}

@@ -1,7 +1,0 @@
-{
- "base": "spectral_2d_refraction",
- "np": 2,
- "description": "as spectral_2d_refraction on 2 MPI ranks (stationary: same converged result as 1 rank).",
- "tags": ["quick", "2d", "spectral", "mpi"],
- "covers": ["spectral_exchange halo exchange of the spectra"]
-}
