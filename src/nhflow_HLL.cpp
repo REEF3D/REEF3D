@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
+#include"nhflow_solid_flux.h"
 #include"nhflow_membrane_beta.h"
 #include"slice.h"
 #include"patchBC_interface.h"
@@ -265,6 +266,10 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     if(p->wet[IJm1]==0)
     d->FEy[IJm1K] = 0.0;
     }
+    
+    // cells inside FEM structures (Z 30): no continuity flux through their faces
+    if(d->solid_flux==1)
+    nhflow_solid_flux(p,d);
     
     pgc->start1V(p,d->FEx,14);
     pgc->start2V(p,d->FEy,14); 

@@ -89,6 +89,7 @@ public:
     double *MBZ = nullptr;      //   unallocated in the default layer mode (mobilities from MBETA)
     nhflow_thinbody *thinbody = nullptr;   // sharp thin bodies (membrane.dat 'mobility sharp'): wall fluxes, projection
                                            // right-hand side and hydrostatic head below closed floors, nhflow_thinbody.h
+    int solid_flux = 0;         // 1: no continuity flux through the faces of cells with p->DF < 0 (FEM structures, Z 30)
     double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;
     double *KIN;
