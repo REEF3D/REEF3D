@@ -264,12 +264,12 @@ private:
     void exchange_fluxes(int);
     vector<vector<double>> rval;    // [target grid id+1][rmatch index * NF]: fine face values from other ranks
     int NF = 0;                     // values per face entry: 4 variables x layers + dfx
-    void prolong_patch(ghostcell*, nhflow_amr_patch&);
-    void ini_boxes(nhflow_amr_patch&);
+    void prolong_patch(ghostcell*, int);         // fresh patches of level l
+    void ini_boxes(int);
     template<class F> void from_old(nhflow_amr_patch&, vector<reefamr_patch*>&, F);
     template<class SEL> void fill_col(int, int, SEL);
     template<class SEL> void restrict_col(SEL);
-    template<class SEL> void prolong_interior_col(nhflow_amr_patch&, SEL);
+    void rcol_block(reefamr_patch*, int, const double*, int, double*);
     int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic
 
     // composite pressure (nhflow_amr_press.cpp)
@@ -300,14 +300,14 @@ private:
 
     // stencils and index lists of the composite solve, rebuilt in pr_prepare: they depend on the
     // layout and on the flags, wet and deep, which do not change during a solve.  The same
-    // arithmetic in the same order as pcol, restrict_col and prolong_interior_col.
+    // arithmetic in the same order as pcol and restrict_col.
     struct pstencil { int nw; int off[25]; double w[25]; };     // pcol: source offsets, weights
     void pst_make(int, int, int, int, int, pstencil&);
     void pst_col(const pstencil&, const double*, int, int, double*) const;
-    struct prblock { int id, g, mode, src, dst; double wa[4]; };    // restriction of a 2x2 block
-    vector<prblock> pr_rb;                  // all blocks, finest level first
-    struct pprol { int g, dst; pstencil st; };
-    vector<vector<pprol>> pr_pi;            // [patch id]: interior columns from the parent
+    struct prblock { int mode, src; double wa[4]; };                // restriction of a 2x2 block
+    vector<vector<prblock>> pr_rbk;         // [patch id][block]
+    vector<vector<pstencil>> pr_pik;        // [l][4 key + child]: interior prolongation from the parent
+    vector<vector<char>> pr_pik_ok;         // made
     std::unordered_map<const reefamr_fill*, pstencil> pr_fs;    // fills from the coarser grid
     vector<long> pr_l0a, pr_l0z;            // level 0: active MG index, F index; inactive F index
     vector<int> pr_l0f;
@@ -316,7 +316,7 @@ private:
     void pr_stencils();
     template<class SEL> void pr_restrict(SEL);
     template<class SEL> void pr_fill(int, int, SEL);
-    void pr_prolong(int, int);
+    void pr_prolong(int, int);               // level, vector
 
     // wetting and drying in the patches (A 283 1): wet-aware interpolation, the flags of fresh
     // patches and of the covered coarse cells

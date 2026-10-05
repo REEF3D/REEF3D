@@ -819,28 +819,24 @@ void nhflow_amr::restrict_flags(ghostcell *pgc, int s)
     return;
 
     for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
-    {
-        nhflow_amr_patch *c = NP(id);
-        lexer *pp = c->pp;
-        const int nby = c->ny/2;
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-            lexer *q = glex(g);
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-            int wt = 1;
-            for(int a=0; a<2; ++a)
-            for(int b=0; b<2; ++b)
-            if(pp->wet[lij(pp,i0+a,j0+b)]!=1)
-            wt = 0;
-            q->wet[lij(q,c->ric[k],c->rjc[k])] = wt;
-        }
-    }
+    block_up(l,1,7300+l,
+             [&](reefamr_patch *c, int id, int k, double *v)
+             {
+                 lexer *pp = c->pp;
+                 const int nby = c->ny/2;
+                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 int wt = 1;
+                 for(int a=0; a<2; ++a)
+                 for(int b=0; b<2; ++b)
+                 if(pp->wet[lij(pp,i0+a,j0+b)]!=1)
+                 wt = 0;
+                 v[0] = wt;
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 lexer *q = glex(B.g);
+                 q->wet[lij(q,B.ic,B.jc)] = (int)v[0];
+             });
 
     // patches that hold covered cells (no partition exchange), then level 0 with its halo
     {
@@ -1219,188 +1215,211 @@ void nhflow_amr::fill_bed(ghostcell *pgc, int l)
              });
 }
 
-// interior state of a fresh patch from its parent: eta, U, V, W per layer and P (bicubic),
-// water level and momentum with the depth of the patch
-void nhflow_amr::prolong_patch(ghostcell *pgc, nhflow_amr_patch &c)
+// interior state of the fresh level-l patches from their parents: eta, U, V, W per layer and P
+// (bicubic), water level and momentum with the depth of the patch.  The parent of every 2x2 block
+// (on its rank) gives the interpolated columns of the four children and its own water level, wet
+// flag and momentum; the patch does the rest.
+void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
 {
-    lexer *pp = c.pp;
-    fdm_nhf *d = c.d;
-    const int K = pp->knoz;
-    const int nby = c.ny/2;
-    vector<double> uc, uf(3*K), v(K+1);
+    const int K = klev(l);
+    const int Kc = klev(l-1);
+    const int fz = K/Kc;
+    const int cs = 3+4*K;               // per child: eta, detadt, U, V, W (K each), P (K+1)
+    const int t0 = 4*cs;                // parent: WL, wet, UH VH WH per layer
+    const int nv = t0+2+3*Kc;
 
-    for(int bi=0; bi<c.nx/2; ++bi)
-    for(int bj=0; bj<nby; ++bj)
-    {
-        const int k = bi*nby+bj;
-        const int g = c.rgrid[k];
-        if(g<-1)
-        continue;
+    block_down_if(l,nv,7600+l,[](reefamr_patch *q) { return q->fresh; },
+               [&](const reefamr_block &B, int key, double *v)
+               {
+                   lexer *q = glex(B.g);
+                   fdm_nhf *dc = gfd(B.g);
+                   const int ic = B.ic, jc = B.jc;
+                   vector<double> uc(3*Kc);
 
-        lexer *q = glex(g);
-        fdm_nhf *dc = gfd(g);
-        const int ic = c.ric[k], jc = c.rjc[k];
-        const int Kc = q->knoz;
-        const int fz = K/Kc;
-        uc.resize(3*Kc);
+                   for(int a=0; a<2; ++a)
+                   for(int b=0; b<2; ++b)
+                   {
+                       const int ox = a==0?-1:1, oy = b==0?-1:1;
+                       double *w = &v[(2*a+b)*cs];
 
-        for(int a=0; a<2; ++a)
-        for(int b=0; b<2; ++b)
-        {
-            const int ox = a==0?-1:1, oy = b==0?-1:1;
-            const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
+                       double w1[25];
+                       pweights(q,ic,jc,ox,oy,w1,1);
+                       w[0] = pqw(dc->eta,q,ic,jc,w1);
+                       w[1] = pqw(dc->detadt,q,ic,jc,w1);
 
-            double w1[25];
-            pweights(q,ic,jc,ox,oy,w1,1);
-            d->eta(ii,jj) = pqw(dc->eta,q,ic,jc,w1);
-            d->detadt(ii,jj) = pqw(dc->detadt,q,ic,jc,w1);
-            const double wl = MAX(d->eta(ii,jj) + d->depth(ii,jj), pp->A544);
-            d->WL(ii,jj) = wl;
+                       for(int kc=0; kc<Kc; ++kc)
+                       {
+                           uc[kc] = pq3w(dc->U,q,ic,jc,kc,true,w1);
+                           uc[Kc+kc] = pq3w(dc->V,q,ic,jc,kc,true,w1);
+                           uc[2*Kc+kc] = pq3w(dc->W,q,ic,jc,kc,true,w1);
+                       }
+                       for(int m=0; m<3; ++m)
+                       vcell(q,&uc[m*Kc],Kc,fz,&w[2+m*K]);
 
-            for(int kc=0; kc<Kc; ++kc)
-            {
-                uc[kc] = pq3w(dc->U,q,ic,jc,kc,true,w1);
-                uc[Kc+kc] = pq3w(dc->V,q,ic,jc,kc,true,w1);
-                uc[2*Kc+kc] = pq3w(dc->W,q,ic,jc,kc,true,w1);
-            }
-            for(int m=0; m<3; ++m)
-            vcell(q,&uc[m*Kc],Kc,fz,&uf[m*K]);
+                       pcol(B.g,ic,jc,ox,oy,dc->P,K,&w[2+3*K],2);
+                   }
 
-            for(int kk=0; kk<K; ++kk)
-            {
-                const int n = cidx(pp,ii,jj,kk);
-                d->U[n] = uf[kk];
-                d->V[n] = uf[K+kk];
-                d->W[n] = uf[2*K+kk];
-                d->UH[n] = wl*d->U[n];
-                d->VH[n] = wl*d->V[n];
-                d->WH[n] = wl*d->W[n];
-            }
+                   v[t0] = dc->WL(ic,jc);
+                   v[t0+1] = q->wet[lij(q,ic,jc)];
+                   for(int kc=0; kc<Kc; ++kc)
+                   {
+                       const int nc = cidx(q,ic,jc,kc);
+                       v[t0+2+3*kc] = dc->UH[nc];
+                       v[t0+3+3*kc] = dc->VH[nc];
+                       v[t0+4+3*kc] = dc->WH[nc];
+                   }
+               },
+               [&](reefamr_patch *qq, int id, int k, const double *v)
+               {
+                   if(!qq->fresh)
+                   return;
 
-            pcol(g,ic,jc,ox,oy,dc->P,K,&v[0],2);
-            for(int kk=0; kk<=K; ++kk)
-            d->P[fidx(pp,ii,jj,kk)] = v[kk];
-        }
+                   nhflow_amr_patch &c = *NP(qq);
+                   lexer *pp = c.pp;
+                   fdm_nhf *d = c.d;
+                   const int nby = c.ny/2;
+                   const int bi = k/nby, bj = k%nby;
 
-        // conservative: the 2x2 block keeps the water level and, layer by layer, the momentum
-        // of its coarse cell (the restriction is the block mean, with A 281 over the 2x2x2
-        // cells of a coarse layer), a constant shift of the interpolated shape; the velocities
-        // follow
-        const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-        double wm = 0.0;
-        for(int a=0; a<2; ++a)
-        for(int b=0; b<2; ++b)
-        wm += 0.25*d->WL(i0+a,j0+b);
-        const double dwl = dc->WL(ic,jc) - wm;
+                   for(int a=0; a<2; ++a)
+                   for(int b=0; b<2; ++b)
+                   {
+                       const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
+                       const double *w = &v[(2*a+b)*cs];
 
-        // A 283, well balanced at the shoreline: a dry parent gives dry children on the bed of
-        // the patch; a block where a child falls dry (the interpolated surface, or the shift,
-        // below the bed + A 544) keeps the surface of the wet parent without the shift (eta
-        // flat at rest; the water volume of the block changes by the clipping) and its dry
-        // children lose their momentum
-        if(shore)
-        {
-            const double wdry = pp->A544 + 1.0e-6;
-            bool drych = (q->wet[lij(q,ic,jc)]!=1);
-            for(int a=0; a<2 && !drych; ++a)
-            for(int b=0; b<2 && !drych; ++b)
-            if(d->eta(i0+a,j0+b) + d->depth(i0+a,j0+b)<=wdry || d->WL(i0+a,j0+b) + dwl<=wdry)
-            drych = true;
+                       d->eta(ii,jj) = w[0];
+                       d->detadt(ii,jj) = w[1];
+                       const double wl = MAX(d->eta(ii,jj) + d->depth(ii,jj), pp->A544);
+                       d->WL(ii,jj) = wl;
 
-            if(drych)
-            {
-                const bool pdry = (q->wet[lij(q,ic,jc)]!=1);
+                       for(int kk=0; kk<K; ++kk)
+                       {
+                           const int n = cidx(pp,ii,jj,kk);
+                           d->U[n] = w[2+kk];
+                           d->V[n] = w[2+K+kk];
+                           d->W[n] = w[2+2*K+kk];
+                           d->UH[n] = wl*d->U[n];
+                           d->VH[n] = wl*d->V[n];
+                           d->WH[n] = wl*d->W[n];
+                       }
 
-                // at t = 0 the shoreline of the patch is set on its own bed with the initial
-                // surface of NHFLOW (the still water level and the F 72 boxes, as nhflow_f::ini
-                // and nhflow_fsf_f::ini on level 0): a fine cell below the water is wet even
-                // where its coarse parent is dry
-                if(p0->count==0)
-                for(int a=0; a<2; ++a)
-                for(int b=0; b<2; ++b)
-                {
-                    const int ii = i0+a, jj = j0+b;
-                    double e = 0.0;
-                    for(int qn=0; qn<p0->F72; ++qn)
-                    if(pp->XP[ii+marge]>=p0->F72_xs[qn] && pp->XP[ii+marge]<p0->F72_xe[qn]
-                    && pp->YP[jj+marge]>=p0->F72_ys[qn] && pp->YP[jj+marge]<p0->F72_ye[qn])
-                    e = p0->F72_h[qn] - p0->F60;
-                    if(pdry || d->eta(ii,jj) + d->depth(ii,jj)<=wdry)
-                    {
-                        d->eta(ii,jj) = e;
-                        d->WL(ii,jj) = MAX(e + d->depth(ii,jj),pp->A544);
-                        for(int kk=0; kk<K; ++kk)
-                        {
-                            const int n = cidx(pp,ii,jj,kk);
-                            d->U[n] = d->V[n] = d->W[n] = 0.0;
-                            d->UH[n] = d->VH[n] = d->WH[n] = 0.0;
-                        }
-                    }
-                }
+                       for(int kk=0; kk<=K; ++kk)
+                       d->P[fidx(pp,ii,jj,kk)] = w[2+3*K+kk];
+                   }
 
-                for(int a=0; a<2; ++a)
-                for(int b=0; b<2; ++b)
-                if((pdry && p0->count>0) || d->eta(i0+a,j0+b) + d->depth(i0+a,j0+b)<=wdry)
-                {
-                    dry_cell(pp,d,d->WL,d->UH,d->VH,d->WH,i0+a,j0+b);
-                    d->detadt(i0+a,j0+b) = 0.0;
-                }
-                continue;
-            }
-        }
-        for(int a=0; a<2; ++a)
-        for(int b=0; b<2; ++b)
-        {
-            d->WL(i0+a,j0+b) += dwl;
-            d->eta(i0+a,j0+b) += dwl;
-        }
+                   // conservative: the 2x2 block keeps the water level and, layer by layer, the momentum
+                   // of its coarse cell (the restriction is the block mean, with A 281 over the 2x2x2
+                   // cells of a coarse layer), a constant shift of the interpolated shape; the velocities
+                   // follow
+                   const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+                   double wm = 0.0;
+                   for(int a=0; a<2; ++a)
+                   for(int b=0; b<2; ++b)
+                   wm += 0.25*d->WL(i0+a,j0+b);
+                   const double dwl = v[t0] - wm;
+                   const bool pwet = ((int)v[t0+1]==1);
 
-        const double wb = 0.25/double(fz);
-        for(int kc=0; kc<Kc; ++kc)
-        {
-            const int nc = cidx(q,ic,jc,kc);
-            double um=0.0, vm=0.0, hm=0.0;
-            for(int kk=fz*kc; kk<fz*kc+fz; ++kk)
-            for(int a=0; a<2; ++a)
-            for(int b=0; b<2; ++b)
-            {
-                const int n = cidx(pp,i0+a,j0+b,kk);
-                um += wb*d->UH[n];
-                vm += wb*d->VH[n];
-                hm += wb*d->WH[n];
-            }
-            for(int kk=fz*kc; kk<fz*kc+fz; ++kk)
-            for(int a=0; a<2; ++a)
-            for(int b=0; b<2; ++b)
-            {
-                const int n = cidx(pp,i0+a,j0+b,kk);
-                const double wl = d->WL(i0+a,j0+b);
-                d->UH[n] += dc->UH[nc] - um;
-                d->VH[n] += dc->VH[nc] - vm;
-                d->WH[n] += dc->WH[nc] - hm;
-                const double wlvl = wl>pp->A544 ? wl : 1.0e20;
-                d->U[n] = d->UH[n]/wlvl;
-                d->V[n] = d->VH[n]/wlvl;
-                d->W[n] = d->WH[n]/wlvl;
-            }
-        }
-    }
+                   // A 283, well balanced at the shoreline: a dry parent gives dry children on the bed of
+                   // the patch; a block where a child falls dry (the interpolated surface, or the shift,
+                   // below the bed + A 544) keeps the surface of the wet parent without the shift (eta
+                   // flat at rest; the water volume of the block changes by the clipping) and its dry
+                   // children lose their momentum
+                   if(shore)
+                   {
+                       const double wdry = pp->A544 + 1.0e-6;
+                       bool drych = !pwet;
+                       for(int a=0; a<2 && !drych; ++a)
+                       for(int b=0; b<2 && !drych; ++b)
+                       if(d->eta(i0+a,j0+b) + d->depth(i0+a,j0+b)<=wdry || d->WL(i0+a,j0+b) + dwl<=wdry)
+                       drych = true;
+
+                       if(drych)
+                       {
+                           const bool pdry = !pwet;
+
+                           // at t = 0 the shoreline of the patch is set on its own bed with the initial
+                           // surface of NHFLOW (the still water level and the F 72 boxes, as nhflow_f::ini
+                           // and nhflow_fsf_f::ini on level 0): a fine cell below the water is wet even
+                           // where its coarse parent is dry
+                           if(p0->count==0)
+                           for(int a=0; a<2; ++a)
+                           for(int b=0; b<2; ++b)
+                           {
+                               const int ii = i0+a, jj = j0+b;
+                               double e = 0.0;
+                               for(int qn=0; qn<p0->F72; ++qn)
+                               if(pp->XP[ii+marge]>=p0->F72_xs[qn] && pp->XP[ii+marge]<p0->F72_xe[qn]
+                               && pp->YP[jj+marge]>=p0->F72_ys[qn] && pp->YP[jj+marge]<p0->F72_ye[qn])
+                               e = p0->F72_h[qn] - p0->F60;
+                               if(pdry || d->eta(ii,jj) + d->depth(ii,jj)<=wdry)
+                               {
+                                   d->eta(ii,jj) = e;
+                                   d->WL(ii,jj) = MAX(e + d->depth(ii,jj),pp->A544);
+                                   for(int kk=0; kk<K; ++kk)
+                                   {
+                                       const int n = cidx(pp,ii,jj,kk);
+                                       d->U[n] = d->V[n] = d->W[n] = 0.0;
+                                       d->UH[n] = d->VH[n] = d->WH[n] = 0.0;
+                                   }
+                               }
+                           }
+
+                           for(int a=0; a<2; ++a)
+                           for(int b=0; b<2; ++b)
+                           if((pdry && p0->count>0) || d->eta(i0+a,j0+b) + d->depth(i0+a,j0+b)<=wdry)
+                           {
+                               dry_cell(pp,d,d->WL,d->UH,d->VH,d->WH,i0+a,j0+b);
+                               d->detadt(i0+a,j0+b) = 0.0;
+                           }
+                           return;
+                       }
+                   }
+                   for(int a=0; a<2; ++a)
+                   for(int b=0; b<2; ++b)
+                   {
+                       d->WL(i0+a,j0+b) += dwl;
+                       d->eta(i0+a,j0+b) += dwl;
+                   }
+
+                   const double wb = 0.25/double(fz);
+                   for(int kc=0; kc<Kc; ++kc)
+                   {
+                       double um=0.0, vm=0.0, hm=0.0;
+                       for(int kk=fz*kc; kk<fz*kc+fz; ++kk)
+                       for(int a=0; a<2; ++a)
+                       for(int b=0; b<2; ++b)
+                       {
+                           const int n = cidx(pp,i0+a,j0+b,kk);
+                           um += wb*d->UH[n];
+                           vm += wb*d->VH[n];
+                           hm += wb*d->WH[n];
+                       }
+                       for(int kk=fz*kc; kk<fz*kc+fz; ++kk)
+                       for(int a=0; a<2; ++a)
+                       for(int b=0; b<2; ++b)
+                       {
+                           const int n = cidx(pp,i0+a,j0+b,kk);
+                           const double wl = d->WL(i0+a,j0+b);
+                           d->UH[n] += v[t0+2+3*kc] - um;
+                           d->VH[n] += v[t0+3+3*kc] - vm;
+                           d->WH[n] += v[t0+4+3*kc] - hm;
+                           const double wlvl = wl>pp->A544 ? wl : 1.0e20;
+                           d->U[n] = d->UH[n]/wlvl;
+                           d->V[n] = d->VH[n]/wlvl;
+                           d->W[n] = d->WH[n]/wlvl;
+                       }
+                   }
+               });
 }
 
-// initial water level boxes (F 72) on the interior of a fresh patch at t = 0.  The bicubic
-// prolongation of a box edge overshoots (12 % for the hump of 5f), so the blocks whose parent
-// stencil (parent cell +-2) or whose own cells see more than one box state are set on the patch
-// grid itself: the box height in a box, else the surface of the nearest parent-level cell
-// outside the boxes (piecewise constant).  All other blocks keep the prolonged state, and so
-// do U, V, W, P and detadt everywhere (initial waves or currents are not touched); UH, VH, WH
-// follow the new water level.
-void nhflow_amr::ini_boxes(nhflow_amr_patch &c)
+// initial water level boxes (F 72) on the interior of the fresh level-l patches at t = 0.  The
+// bicubic prolongation of a box edge overshoots (12 % for the hump of 5f), so the blocks whose
+// parent stencil (parent cell +-2) or whose own cells see more than one box state are set on the
+// patch grid itself: the box height in a box, else the surface of the nearest parent-level cell
+// outside the boxes (piecewise constant).  All other blocks keep the prolonged state, and so do U,
+// V, W, P and detadt everywhere (initial waves or currents are not touched); UH, VH, WH follow the
+// new water level.  The parent gives the boxes of its 5x5 cells and the surface of its 3x3 cells.
+void nhflow_amr::ini_boxes(int l)
 {
-    lexer *pp = c.pp;
-    fdm_nhf *d = c.d;
-    const int K = pp->knoz;
-    const int nby = c.ny/2;
-
     // last box that holds the point (the later box wins, as on level 0), -1 none
     auto boxof = [&](double x, double y)
     {
@@ -1411,67 +1430,80 @@ void nhflow_amr::ini_boxes(nhflow_amr_patch &c)
         return r;
     };
 
-    for(int bi=0; bi<c.nx/2; ++bi)
-    for(int bj=0; bj<nby; ++bj)
-    {
-        const int k = bi*nby+bj;
-        const int g = c.rgrid[k];
-        if(g<-1)
-        continue;
+    block_down_if(l,34,7610+l,[](reefamr_patch *q) { return q->fresh; },
+               [&](const reefamr_block &B, int key, double *v)
+               {
+                   lexer *q = glex(B.g);
+                   fdm_nhf *dq = gfd(B.g);
+                   for(int a=-2; a<=2; ++a)
+                   for(int b=-2; b<=2; ++b)
+                   v[(a+2)*5+(b+2)] = boxof(q->XP[B.ic+a+marge],q->YP[B.jc+b+marge]);
+                   for(int a=-1; a<=1; ++a)
+                   for(int b=-1; b<=1; ++b)
+                   v[25+(a+1)*3+(b+1)] = dq->eta(B.ic+a,B.jc+b);
+               },
+               [&](reefamr_patch *qq, int id, int k, const double *v)
+               {
+                   if(!qq->fresh)
+                   return;
 
-        lexer *q = glex(g);
-        fdm_nhf *dq = gfd(g);
-        const int ic = c.ric[k], jc = c.rjc[k];
-        auto cbox = [&](int a, int b) { return boxof(q->XP[ic+a+marge],q->YP[jc+b+marge]); };
+                   nhflow_amr_patch &c = *NP(qq);
+                   lexer *pp = c.pp;
+                   fdm_nhf *d = c.d;
+                   const int K = pp->knoz;
+                   const int nby = c.ny/2;
+                   const int bi = k/nby, bj = k%nby;
+                   auto cbox = [&](int a, int b) { return (int)v[(a+2)*5+(b+2)]; };
+                   auto ceta = [&](int a, int b) { return v[25+(a+1)*3+(b+1)]; };
 
-        const int b0 = cbox(0,0);
-        bool aff = false;
-        for(int a=-2; a<=2; ++a)
-        for(int b=-2; b<=2; ++b)
-        if(cbox(a,b)!=b0)
-        aff = true;
+                   const int b0 = cbox(0,0);
+                   bool aff = false;
+                   for(int a=-2; a<=2; ++a)
+                   for(int b=-2; b<=2; ++b)
+                   if(cbox(a,b)!=b0)
+                   aff = true;
 
-        for(int a=0; a<2; ++a)
-        for(int b=0; b<2; ++b)
-        if(boxof(pp->XP[EXT+2*bi+a+marge],pp->YP[EXT+2*bj+b+marge])!=b0)
-        aff = true;
+                   for(int a=0; a<2; ++a)
+                   for(int b=0; b<2; ++b)
+                   if(boxof(pp->XP[EXT+2*bi+a+marge],pp->YP[EXT+2*bj+b+marge])!=b0)
+                   aff = true;
 
-        if(!aff)
-        continue;
+                   if(!aff)
+                   return;
 
-        for(int a=0; a<2; ++a)
-        for(int b=0; b<2; ++b)
-        {
-            const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
-            const int bf = boxof(pp->XP[ii+marge],pp->YP[jj+marge]);
-            const int da = a ? 1 : -1, db = b ? 1 : -1;
+                   for(int a=0; a<2; ++a)
+                   for(int b=0; b<2; ++b)
+                   {
+                       const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
+                       const int bf = boxof(pp->XP[ii+marge],pp->YP[jj+marge]);
+                       const int da = a ? 1 : -1, db = b ? 1 : -1;
 
-            double e = dq->eta(ic,jc);
-            if(bf>=0)
-            e = p0->F72_h[bf] - p0->F60;
-            else
-            {
-                // the parent cell, else its neighbour on the side of this child
-                const int ca[4] = {0,da,0,da}, cb[4] = {0,0,db,db};
-                for(int n=0; n<4; ++n)
-                if(cbox(ca[n],cb[n])<0)
-                {
-                    e = dq->eta(ic+ca[n],jc+cb[n]);
-                    break;
-                }
-            }
+                       double e = ceta(0,0);
+                       if(bf>=0)
+                       e = p0->F72_h[bf] - p0->F60;
+                       else
+                       {
+                           // the parent cell, else its neighbour on the side of this child
+                           const int ca[4] = {0,da,0,da}, cb[4] = {0,0,db,db};
+                           for(int n=0; n<4; ++n)
+                           if(cbox(ca[n],cb[n])<0)
+                           {
+                               e = ceta(ca[n],cb[n]);
+                               break;
+                           }
+                       }
 
-            d->eta(ii,jj) = e;
-            d->WL(ii,jj) = MAX(e + d->depth(ii,jj), pp->A544);
-            for(int kk=0; kk<K; ++kk)
-            {
-                const int n = cidx(pp,ii,jj,kk);
-                d->UH[n] = d->WL(ii,jj)*d->U[n];
-                d->VH[n] = d->WL(ii,jj)*d->V[n];
-                d->WH[n] = d->WL(ii,jj)*d->W[n];
-            }
-        }
-    }
+                       d->eta(ii,jj) = e;
+                       d->WL(ii,jj) = MAX(e + d->depth(ii,jj), pp->A544);
+                       for(int kk=0; kk<K; ++kk)
+                       {
+                           const int n = cidx(pp,ii,jj,kk);
+                           d->UH[n] = d->WL(ii,jj)*d->U[n];
+                           d->VH[n] = d->WL(ii,jj)*d->V[n];
+                           d->WH[n] = d->WL(ii,jj)*d->W[n];
+                       }
+                   }
+               });
 }
 
 // cells of the fresh patch c that an old patch of the same level held (the zone moved with the
@@ -1502,83 +1534,77 @@ void nhflow_amr::from_old(nhflow_amr_patch &c, vector<reefamr_patch*> &oldP, F f
 void nhflow_amr::restrict_surface(int s)
 {
     for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
-    {
-        nhflow_amr_patch *c = NP(id);
-        stg F = stage_out(id,s);
-        fdm_nhf *df = c->d;
-        const int nby = c->ny/2;
-
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-
-            stg C = stage_out(g,s);
-            fdm_nhf *dc = gfd(g);
-            const int ic = c->ric[k], jc = c->rjc[k];
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-            slice &WLf = *F.WL;
-
-            const double wl = 0.25*(WLf(i0,j0)+WLf(i0+1,j0)+WLf(i0,j0+1)+WLf(i0+1,j0+1));
-            (*C.WL)(ic,jc) = wl;
-            dc->eta(ic,jc) = wl - dc->depth(ic,jc);
-            dc->detadt(ic,jc) = 0.25*(df->detadt(i0,j0)+df->detadt(i0+1,j0)+df->detadt(i0,j0+1)+df->detadt(i0+1,j0+1));
-        }
-    }
+    block_up(l,2,7310+l,
+             [&](reefamr_patch *q, int id, int k, double *v)
+             {
+                 nhflow_amr_patch *c = NP(q);
+                 stg F = stage_out(id,s);
+                 fdm_nhf *df = c->d;
+                 const int nby = c->ny/2;
+                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 slice &WLf = *F.WL;
+                 v[0] = 0.25*(WLf(i0,j0)+WLf(i0+1,j0)+WLf(i0,j0+1)+WLf(i0+1,j0+1));
+                 v[1] = 0.25*(df->detadt(i0,j0)+df->detadt(i0+1,j0)+df->detadt(i0,j0+1)+df->detadt(i0+1,j0+1));
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 stg C = stage_out(B.g,s);
+                 fdm_nhf *dc = gfd(B.g);
+                 (*C.WL)(B.ic,B.jc) = v[0];
+                 dc->eta(B.ic,B.jc) = v[0] - dc->depth(B.ic,B.jc);
+                 dc->detadt(B.ic,B.jc) = v[1];
+             });
 }
 
 // UH, VH, WH (and with P the pressure) of the covered coarse cells, U = UH/WL
 void nhflow_amr::restrict_momentum(int s, bool withP)
 {
     for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
     {
-        nhflow_amr_patch *c = NP(id);
-        lexer *pp = c->pp;
-        stg F = stage_out(id,s);
-        const int nby = c->ny/2;
+        const int K = klev(l-1);
+        block_up(l,3*K,7320+l,
+                 [&](reefamr_patch *q, int id, int k, double *v)
+                 {
+                     nhflow_amr_patch *c = NP(q);
+                     lexer *pp = c->pp;
+                     stg F = stage_out(id,s);
+                     const int nby = c->ny/2;
+                     const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                     const int fz = pp->knoz/K;
 
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-
-            lexer *q = glex(g);
-            stg C = stage_out(g,s);
-            fdm_nhf *dc = gfd(g);
-            const int ic = c->ric[k], jc = c->rjc[k];
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-            const double wl = (*C.WL)(ic,jc);
-            const double wlvl = fabs(wl)>p0->A544 ? wl : 1.0e20;
-            const int K = q->knoz;
-            const int fz = pp->knoz/K;
-
-            for(int kk=0; kk<K; ++kk)
-            {
-                // the 2x2 children of the layer, with A 281 in both fine layers (equal thickness)
-                auto avg = [&](const double *f)
-                {
-                    double r = 0.0;
-                    for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
-                    r += f[cidx(pp,i0,j0,kf)]+f[cidx(pp,i0+1,j0,kf)]+f[cidx(pp,i0,j0+1,kf)]+f[cidx(pp,i0+1,j0+1,kf)];
-                    return 0.25*r/double(fz);
-                };
-                const int n = cidx(q,ic,jc,kk);
-                C.UH[n] = avg(F.UH);
-                C.VH[n] = avg(F.VH);
-                C.WH[n] = avg(F.WH);
-                dc->U[n] = C.UH[n]/wlvl;
-                dc->V[n] = C.VH[n]/wlvl;
-                dc->W[n] = C.WH[n]/wlvl;
-            }
-        }
+                     for(int kk=0; kk<K; ++kk)
+                     {
+                         // the 2x2 children of the layer, with A 281 in both fine layers (equal thickness)
+                         auto avg = [&](const double *f)
+                         {
+                             double r = 0.0;
+                             for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
+                             r += f[cidx(pp,i0,j0,kf)]+f[cidx(pp,i0+1,j0,kf)]+f[cidx(pp,i0,j0+1,kf)]+f[cidx(pp,i0+1,j0+1,kf)];
+                             return 0.25*r/double(fz);
+                         };
+                         v[3*kk] = avg(F.UH);
+                         v[3*kk+1] = avg(F.VH);
+                         v[3*kk+2] = avg(F.WH);
+                     }
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
+                 {
+                     lexer *q = glex(B.g);
+                     stg C = stage_out(B.g,s);
+                     fdm_nhf *dc = gfd(B.g);
+                     const double wl = (*C.WL)(B.ic,B.jc);
+                     const double wlvl = fabs(wl)>p0->A544 ? wl : 1.0e20;
+                     for(int kk=0; kk<K; ++kk)
+                     {
+                         const int n = cidx(q,B.ic,B.jc,kk);
+                         C.UH[n] = v[3*kk];
+                         C.VH[n] = v[3*kk+1];
+                         C.WH[n] = v[3*kk+2];
+                         dc->U[n] = C.UH[n]/wlvl;
+                         dc->V[n] = C.VH[n]/wlvl;
+                         dc->W[n] = C.WH[n]/wlvl;
+                     }
+                 });
     }
 
     if(withP)
@@ -1629,24 +1655,23 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
     for(int l=1; l<=maxlev; ++l)
     {
-        // bed
-        for(int id : lev[l])
-        if(P[id]->fresh)
-        {
-            nhflow_amr_patch *c = NP(id);
-            const int nby = c->ny/2;
-            for(int bi=0; bi<c->nx/2; ++bi)
-            for(int bj=0; bj<nby; ++bj)
-            {
-                const int k = bi*nby+bj;
-                const int g = c->rgrid[k];
-                if(g<-1)
-                continue;
-                for(int a=0; a<2; ++a)
-                for(int b=0; b<2; ++b)
-                c->d->bed(EXT+2*bi+a,EXT+2*bj+b) = plin(gfd(g)->bed,glex(g),c->ric[k],c->rjc[k],a==0?-1:1,b==0?-1:1);
-            }
-        }
+        // bed: linear from the parent (on its rank)
+        block_down_if(l,4,7620+l,[](reefamr_patch *q) { return q->fresh; },
+                   [&](const reefamr_block &B, int key, double *v)
+                   {
+                       for(int a=0; a<2; ++a)
+                       for(int b=0; b<2; ++b)
+                       v[2*a+b] = plin(gfd(B.g)->bed,glex(B.g),B.ic,B.jc,a==0?-1:1,b==0?-1:1);
+                   },
+                   [&](reefamr_patch *q, int id, int k, const double *v)
+                   {
+                       if(!q->fresh)
+                       return;
+                       const int nby = q->ny/2;
+                       for(int a=0; a<2; ++a)
+                       for(int b=0; b<2; ++b)
+                       NP(q)->d->bed(EXT+2*(k/nby)+a,EXT+2*(k%nby)+b) = v[2*a+b];
+                   });
         fill_bed(pgc,l);
 
         for(int id : lev[l])
@@ -1665,8 +1690,16 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                 pp->bed[lij(pp,ii,jj)] = d->bed(ii,jj);
             }
             pgc->gcsl_start4(pp,d->depth,50);
+        }
 
-            prolong_patch(pgc,*c);
+        prolong_patch(pgc,l);
+
+        for(int id : lev[l])
+        if(P[id]->fresh)
+        {
+            nhflow_amr_patch *c = NP(id);
+            lexer *pp = c->pp;
+            fdm_nhf *d = c->d;
 
             // A 283: the flags from the prolonged water level
             if(shore)
@@ -1700,16 +1733,18 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                 for(int kk=0; kk<=K; ++kk)
                 d->P[fidx(pp,ii,jj,kk)] = od->P[fidx(op,io,jo,kk)];
             });
+        }
 
-            // at t = 0 the initial water level boxes (F 72) on the patch grid itself, as
-            // nhflow_fsf_ini on level 0 (the interpolated coarse box would overshoot at its edges);
-            // level 0 takes their mean in regrid_finish
-            if(p0->count==0 && p0->F72>0)
-            {
-                ini_boxes(*c);
-                if(shore)
-                patch_flags(*c);
-            }
+        // at t = 0 the initial water level boxes (F 72) on the patch grid itself, as
+        // nhflow_fsf_ini on level 0 (the interpolated coarse box would overshoot at its edges);
+        // level 0 takes their mean in regrid_finish
+        if(p0->count==0 && p0->F72>0)
+        {
+            ini_boxes(l);
+            if(shore)
+            for(int id : lev[l])
+            if(P[id]->fresh)
+            patch_flags(*NP(id));
         }
 
         fill_stage(pgc,l,-1);
@@ -1744,26 +1779,20 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 void nhflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 {
     for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
-    {
-        nhflow_amr_patch *c = NP(id);
-        fdm_nhf *df = c->d;
-        const int nby = c->ny/2;
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-            fdm_nhf *dc = gfd(g);
-            const int ic = c->ric[k], jc = c->rjc[k];
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-            const double wl = 0.25*(df->WL(i0,j0)+df->WL(i0+1,j0)+df->WL(i0,j0+1)+df->WL(i0+1,j0+1));
-            dc->WL(ic,jc) = wl;
-            dc->eta(ic,jc) = wl - dc->depth(ic,jc);
-        }
-    }
+    block_up(l,1,7330+l,
+             [&](reefamr_patch *q, int id, int k, double *v)
+             {
+                 fdm_nhf *df = NP(q)->d;
+                 const int nby = q->ny/2;
+                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 v[0] = 0.25*(df->WL(i0,j0)+df->WL(i0+1,j0)+df->WL(i0,j0+1)+df->WL(i0+1,j0+1));
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 fdm_nhf *dc = gfd(B.g);
+                 dc->WL(B.ic,B.jc) = v[0];
+                 dc->eta(B.ic,B.jc) = v[0] - dc->depth(B.ic,B.jc);
+             });
 
     // momentum, velocities and pressure: the end-of-step arrays are the last stage's output
     restrict_momentum(mom0->stages()-1,true);

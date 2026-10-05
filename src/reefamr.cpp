@@ -135,10 +135,99 @@ int reefamr::owner(int I, int J)
     return -1;
 }
 
-// patches are cut at the rank boxes of level 0: the owner of the level-0 cell below
+// the patch of level l at (I,J), from the global patch table: index into GP, -1 none
+int reefamr::gpatch_at(int l, int I, int J)
+{
+    if(l<1 || l>maxlev || I<0 || J<0)
+    return -1;
+
+    const int ti = I/tile, tj = J/tile;
+    if(ti>=gtnx[l] || tj>=gtny[l] || gtoff[l].empty())
+    return -1;
+
+    const size_t t = (size_t)ti*gtny[l]+tj;
+    for(int m=gtoff[l][t]; m<gtoff[l][t+1]; ++m)
+    {
+        const reefamr_gpatch &G = GP[gtlist[l][m]];
+        if(I>=G.I0 && I<=G.I1 && J>=G.J0 && J<=G.J1)
+        return gtlist[l][m];
+    }
+    return -1;
+}
+
+// the rank of the level-l patch at (I,J), else the holder of the parent cell, down to the owner of
+// the level-0 cell (with the patches cut at the rank boxes: the owner of the level-0 cell below)
 int reefamr::holder(int l, int I, int J)
 {
-    return owner(fsh(I,l),fsh(J,l));
+    for(int m=l; m>=1; --m)
+    {
+        const int q = gpatch_at(m,I,J);
+        if(q>=0)
+        return GP[q].rank;
+        I = fsh(I,1);
+        J = fsh(J,1);
+    }
+    return owner(I,J);
+}
+
+// global patch table: the patches of all ranks, and per level the patches of every global tile
+void reefamr::build_gtable()
+{
+    const int np = p0->mpi_size;
+
+    vector<int> mine;
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        reefamr_patch *c = P[id];
+        mine.push_back(c->lev); mine.push_back(c->I0); mine.push_back(c->I1);
+        mine.push_back(c->J0); mine.push_back(c->J1); mine.push_back(id);
+    }
+
+    int n = (int)mine.size();
+    vector<int> cnt(np), off(np,0);
+    MPI_Allgather(&n,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+    int tot=0;
+    for(int r=0; r<np; ++r)
+    {
+        off[r]=tot;
+        tot+=cnt[r];
+    }
+    vector<int> all(MAX(tot,1));
+    MPI_Allgatherv(mine.empty() ? nullptr : &mine[0],n,MPI_INT,&all[0],&cnt[0],&off[0],MPI_INT,MPI_COMM_WORLD);
+
+    GPold = GP;
+    GP.clear();
+    for(int r=0; r<np; ++r)
+    for(int k=off[r]; k<off[r]+cnt[r]; k+=6)
+    GP.push_back(reefamr_gpatch{all[k],all[k+1],all[k+2],all[k+3],all[k+4],r,all[k+5]});
+
+    gtoff.assign(maxlev+1,vector<int>());
+    gtlist.assign(maxlev+1,vector<int>());
+    for(int l=1; l<=maxlev; ++l)
+    {
+        const size_t nt = (size_t)gtnx[l]*gtny[l];
+        vector<int> &O = gtoff[l];
+        O.assign(nt+1,0);
+        for(const reefamr_gpatch &G : GP)
+        if(G.lev==l)
+        for(int ti=G.I0/tile; ti<=G.I1/tile; ++ti)
+        for(int tj=G.J0/tile; tj<=G.J1/tile; ++tj)
+        ++O[(size_t)ti*gtny[l]+tj+1];
+        for(size_t t=0; t<nt; ++t)
+        O[t+1] += O[t];
+
+        vector<int> pos(O.begin(),O.end()-1);
+        gtlist[l].assign(O[nt],0);
+        for(int q=0; q<(int)GP.size(); ++q)
+        {
+            const reefamr_gpatch &G = GP[q];
+            if(G.lev!=l)
+            continue;
+            for(int ti=G.I0/tile; ti<=G.I1/tile; ++ti)
+            for(int tj=G.J0/tile; tj<=G.J1/tile; ++tj)
+            gtlist[l][pos[(size_t)ti*gtny[l]+tj]++] = q;
+        }
+    }
 }
 
 // level-0 solid flags of the rank box and a halo of FH cells (the ghostcell halo
@@ -248,6 +337,13 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     fplan.assign(maxlev+1,reefamr_xplan());
     fsend.assign(maxlev+1,vector<int>());
     frecv.assign(maxlev+1,vector<int>());
+    bup.assign(maxlev+1,reefamr_xplan());
+    bdn.assign(maxlev+1,reefamr_xplan());
+    bloc.assign(maxlev+1,vector<int>());
+    bsrv.assign(maxlev+1,vector<reefamr_block>());
+    bnloc.assign(maxlev+1,0);
+    gtoff.assign(maxlev+1,vector<int>());
+    gtlist.assign(maxlev+1,vector<int>());
 
     vfac.assign(maxlev+1,1);
     for(int l=1; l<=maxlev; ++l)

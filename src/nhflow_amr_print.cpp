@@ -46,7 +46,7 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         if(p->flagslice4[lij(p,ii,jj)]<0)
         continue;
-        if(maxlev>=1 && patch_at(1,2*(ii+O0i),2*(jj+O0j))>=0)
+        if(maxlev>=1 && covered(1,2*(ii+O0i),2*(jj+O0j)))
         continue;
         v += d->WL(ii,jj)*p->DXN[ii+marge]*p->DYN[jj+marge];
     }
@@ -61,7 +61,7 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(pp->flagslice4[lij(pp,ii,jj)]<0)
             continue;
             const int I = ii-EXT+q->I0, J = jj-EXT+q->J0;
-            if(q->lev<maxlev && patch_at(q->lev+1,2*I,2*J)>=0)
+            if(q->lev<maxlev && covered(q->lev+1,2*I,2*J))
             continue;
             v += dd->WL(ii,jj)*pp->DXN[ii+marge]*pp->DYN[jj+marge];
         }

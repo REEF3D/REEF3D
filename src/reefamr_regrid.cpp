@@ -296,6 +296,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     regrid_ids();
 
     build_tiles();
+    build_gtable();
 
     // ---- time-independent data of the new patches (bed)
     regrid_static(pgc);
@@ -461,7 +462,11 @@ void reefamr::build_plans(ghostcell *pgc)
             }
         }
 
-        // ---- restriction targets
+        // ---- restriction targets: the parent cell of every 2x2 block, on this rank or (-3) on
+        //      the rank that holds it, through the block plans
+        vector<vector<int>> breq(np), bsrq, bdst(np);
+        bnloc[l] = 0;
+
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
@@ -475,6 +480,14 @@ void reefamr::build_plans(ghostcell *pgc)
                 int Ic = (c->I0>>1)+bi, Jc = (c->J0>>1)+bj;
                 if(flag0(fsh(Ic,l-1),fsh(Jc,l-1))<0)
                 continue;
+                int o = holder(l-1,Ic,Jc);
+                if(o>=0 && o!=me)
+                {
+                    c->rgrid[k]=-3;
+                    breq[o].push_back(Ic); breq[o].push_back(Jc);
+                    bdst[o].push_back(id); bdst[o].push_back(k);
+                    continue;
+                }
                 int g = patch_at(l-1,Ic,Jc);
                 if(g<-1)
                 {
@@ -486,7 +499,63 @@ void reefamr::build_plans(ghostcell *pgc)
                 c->rgrid[k]=g;
                 c->ric[k]=Ic-oi;
                 c->rjc[k]=Jc-oj;
+                ++bnloc[l];
             }
+        }
+
+        xsetup(breq,bsrq,2);
+
+        reefamr_xplan &BU = bup[l];
+        reefamr_xplan &BD = bdn[l];
+        BU = reefamr_xplan();
+        BD = reefamr_xplan();
+        bloc[l].clear();
+        bsrv[l].clear();
+
+        // my blocks with a parent on rank r: up to r, down from r
+        for(int r=0; r<np; ++r)
+        if(!breq[r].empty())
+        {
+            vector<int> items;
+            for(size_t k=0; k<bdst[r].size(); k+=2)
+            {
+                items.push_back((int)bloc[l].size()/2);
+                bloc[l].push_back(bdst[r][k]);
+                bloc[l].push_back(bdst[r][k+1]);
+            }
+            BU.speer.push_back(r);
+            BU.sitem.push_back(items);
+            BU.sbuf.push_back(vector<double>());
+            BD.rpeer.push_back(r);
+            BD.rcount.push_back((int)breq[r].size()/2);
+        }
+
+        // the parents I hold for blocks of rank r
+        for(int r=0; r<np; ++r)
+        if(!bsrq[r].empty())
+        {
+            vector<int> items;
+            for(size_t k=0; k<bsrq[r].size(); k+=2)
+            {
+                int Ic=bsrq[r][k], Jc=bsrq[r][k+1];
+                reefamr_block b{-2,0,0};
+                int g = patch_at(l-1,Ic,Jc);
+                if(g>=-1)
+                {
+                    int oi,oj;
+                    goff(g,oi,oj);
+                    b = reefamr_block{g,Ic-oi,Jc-oj};
+                }
+                else
+                ++violations;
+                items.push_back((int)bsrv[l].size());
+                bsrv[l].push_back(b);
+            }
+            BU.rpeer.push_back(r);
+            BU.rcount.push_back((int)bsrq[r].size()/2);
+            BD.speer.push_back(r);
+            BD.sitem.push_back(items);
+            BD.sbuf.push_back(vector<double>());
         }
 
         // ---- flux matching: coarse faces next to the patch boundary
@@ -518,7 +587,7 @@ void reefamr::build_plans(ghostcell *pgc)
 
                     if(o==me)
                     {
-                        if(patch_at(l,2*Ic,2*Jc)>=0)
+                        if(covered(l,2*Ic,2*Jc))
                         continue;
 
                         int g = patch_at(l-1,Ic,Jc);
@@ -582,7 +651,7 @@ void reefamr::build_plans(ghostcell *pgc)
                 int side=fsrv[r][k], Ic=fsrv[r][k+1], Jc=fsrv[r][k+2];
                 int tgt=-1, idx=-1;
 
-                if(patch_at(l,2*Ic,2*Jc)<0)
+                if(!covered(l,2*Ic,2*Jc))
                 {
                     int g = patch_at(l-1,Ic,Jc);
                     if(g>=-1)

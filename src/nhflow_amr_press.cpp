@@ -131,7 +131,7 @@ void nhflow_amr::pr_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-            const bool covered = (l<maxlev && patch_at(l+1,2*I,2*J)>=0);
+            const bool cov = (l<maxlev && covered(l+1,2*I,2*J));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -140,7 +140,7 @@ void nhflow_amr::pr_rows()
                 if(r<0)
                 continue;
 
-                if(covered)
+                if(cov)
                 L.cq.push_back(qq);
                 else
                 {
@@ -339,23 +339,22 @@ void nhflow_amr::pst_col(const pstencil &st, const double *src, int kc, int knf,
 // the restriction blocks, interior prolongation stencils and active index lists of this solve
 void nhflow_amr::pr_stencils()
 {
-    pr_rb.clear();
-    for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
+    // restriction: the blocks of the local patches (their parent on any rank)
+    pr_rbk.assign(P.size(),vector<prblock>());
+    for(int id=0; id<(int)P.size(); ++id)
     {
         reefamr_patch *c = P[id];
         lexer *pp = c->pp;
         const int nby = c->ny/2;
+        pr_rbk[id].resize(c->rgrid.size());
 
         for(int bi=0; bi<c->nx/2; ++bi)
         for(int bj=0; bj<nby; ++bj)
         {
             const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
+            if(c->rgrid[k]==-2)
             continue;
 
-            lexer *q = glex(g);
             const int i0 = EXT+2*bi, j0 = EXT+2*bj;
 
             bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
@@ -380,43 +379,21 @@ void nhflow_amr::pr_stencils()
                 wa[m] = (na>0) ? wa[m]/double(na) : 0.0;
             }
 
-            prblock B;
-            B.id = id;
-            B.g = g;
+            prblock &B = pr_rbk[id][k];
             B.mode = hi ? 1 : (na==4 ? 2 : 3);
             B.src = fidx(pp,i0,j0,0);
-            B.dst = fidx(q,c->ric[k],c->rjc[k],0);
             for(int m=0; m<4; ++m)
             B.wa[m] = wa[m];
-            pr_rb.push_back(B);
         }
     }
 
-    pr_pi.assign(P.size(),vector<pprol>());
-    for(int id=0; id<(int)P.size(); ++id)
+    // interior prolongation: the stencils of the parents this rank holds, made at first use
+    pr_pik.assign(maxlev+1,vector<pstencil>());
+    pr_pik_ok.assign(maxlev+1,vector<char>());
+    for(int l=1; l<=maxlev; ++l)
     {
-        nhflow_amr_patch *c = NP(id);
-        lexer *pp = c->pp;
-        const int nby = c->ny/2;
-
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-
-            for(int a=0; a<2; ++a)
-            for(int d=0; d<2; ++d)
-            {
-                pprol E;
-                E.g = g;
-                E.dst = fidx(pp,EXT+2*bi+a,EXT+2*bj+d,0);
-                pst_make(g,c->ric[k],c->rjc[k],a==0?-1:1,d==0?-1:1,E.st);
-                pr_pi[id].push_back(E);
-            }
-        }
+        pr_pik[l].resize(4*(size_t)block_keys(l));
+        pr_pik_ok[l].assign(4*(size_t)block_keys(l),0);
     }
 
     pr_fs.clear();
@@ -466,25 +443,36 @@ void nhflow_amr::pr_restrict(SEL sel)
 {
     using namespace nhflow_amr_detail;
 
-    for(const prblock &B : pr_rb)
+    for(int l=maxlev; l>=1; --l)
     {
-        lexer *pp = P[B.id]->pp;
-        lexer *q = glex(B.g);
-        const double *src = sel(B.id);
-        double *dst = sel(B.g);
-        const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
-        const int fz = pp->knoz/q->knoz;
+        const int Kc = klev(l-1);
+        block_up(l,Kc+1,7500+l,
+                 [&](reefamr_patch *c, int id, int k, double *v)
+                 {
+                     const prblock &B = pr_rbk[id][k];
+                     lexer *pp = c->pp;
+                     const double *src = sel(id);
+                     const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
+                     const int fz = pp->knoz/Kc;
 
-        for(int K=0; K<=q->knoz; ++K)
-        {
-            const int n0 = B.src + fz*K;
-            if(B.mode==1)
-            dst[B.dst+K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
-            else if(B.mode==2)
-            dst[B.dst+K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
-            else
-            dst[B.dst+K] = B.wa[0]*src[n0] + B.wa[2]*src[n0+sI] + B.wa[1]*src[n0+sJ] + B.wa[3]*src[n0+sI+sJ];
-        }
+                     for(int K=0; K<=Kc; ++K)
+                     {
+                         const int n0 = B.src + fz*K;
+                         if(B.mode==1)
+                         v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
+                         else if(B.mode==2)
+                         v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+                         else
+                         v[K] = B.wa[0]*src[n0] + B.wa[2]*src[n0+sI] + B.wa[1]*src[n0+sJ] + B.wa[3]*src[n0+sI+sJ];
+                     }
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
+                 {
+                     double *dst = sel(B.g);
+                     const int d0 = fidx(glex(B.g),B.ic,B.jc,0);
+                     for(int K=0; K<=Kc; ++K)
+                     dst[d0+K] = v[K];
+                 });
     }
 }
 
@@ -529,20 +517,43 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
              });
 }
 
-// prolong_interior_col of vector k with the stencils of pr_stencils
-void nhflow_amr::pr_prolong(int id, int k)
+// the coarse correction of vector k into the interior of the level-l patches: from the parent
+// of every 2x2 block (on its rank) with the stencils of the solve
+void nhflow_amr::pr_prolong(int l, int k)
 {
-    lexer *pp = P[id]->pp;
-    const int knf = pp->knoz;
-    vector<double> v(knf+1);
-    double *dst = pvec(id,k);
+    const int knf = klev(l);
+    const int nc = knf+1;
 
-    for(const pprol &E : pr_pi[id])
-    {
-        pst_col(E.st,pvec(E.g,k),glex(E.g)->knoz,knf,v.data());
-        for(int kk=0; kk<=knf; ++kk)
-        dst[E.dst+kk] = v[kk];
-    }
+    block_down(l,4*nc,7520+l,
+               [&](const reefamr_block &B, int key, double *v)
+               {
+                   lexer *q = glex(B.g);
+                   for(int a=0; a<2; ++a)
+                   for(int d=0; d<2; ++d)
+                   {
+                       const size_t m = 4*(size_t)key + 2*a+d;
+                       if(!pr_pik_ok[l][m])
+                       {
+                           pst_make(B.g,B.ic,B.jc,a==0?-1:1,d==0?-1:1,pr_pik[l][m]);
+                           pr_pik_ok[l][m] = 1;
+                       }
+                       pst_col(pr_pik[l][m],pvec(B.g,k),q->knoz,knf,&v[(2*a+d)*nc]);
+                   }
+               },
+               [&](reefamr_patch *c, int id, int kb, const double *v)
+               {
+                   lexer *pp = c->pp;
+                   const int nby = c->ny/2;
+                   const int bi = kb/nby, bj = kb%nby;
+                   double *dst = pvec(id,k);
+                   for(int a=0; a<2; ++a)
+                   for(int d=0; d<2; ++d)
+                   {
+                       const int d0 = fidx(pp,EXT+2*bi+a,EXT+2*bj+d,0);
+                       for(int kk=0; kk<=knf; ++kk)
+                       dst[d0+kk] = v[(2*a+d)*nc+kk];
+                   }
+               });
 }
 
 // covered columns, partition halo of level 0, columns around the patches
@@ -688,8 +699,7 @@ void nhflow_amr::pr_prec(int kr, int kz)
     for(int l=1; l<=maxlev; ++l)
     {
         // coarse correction interpolated into the patch interiors, then the columns around them
-        for(int id : lev[l])
-        pr_prolong(id,kz);
+        pr_prolong(l,kz);
 
         pr_fill(l,7700+l,selz);
 
