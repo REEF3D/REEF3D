@@ -1299,6 +1299,6 @@ void control::ini_default()
     Z12_ckx=Z12_cky=Z12_ckz=Z12_cdx=Z12_cdy=Z12_cdz=0.0;   // double fsi beam structural damping coefficients
     Z20=0;          // int flexible rod trees (soft corals, vegetation), 1: unresolved coupling, input rodtree.dat
     Z21=0.0;        // double rod-tree VTP print interval [s], 0: off
-    Z30=0;          // int FEM solid structures (elastic, plastic, concrete damage, collapse), 1: CFD coupling, input fem.dat
+    Z30=0;          // int FEM solid structures (elastic, plastic, concrete damage, collapse), 1: coupling with CFD or NHFLOW, input fem.dat
     Z31=0.0;        // double FEM VTU print interval [s], 0: off
 }

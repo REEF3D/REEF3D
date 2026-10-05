@@ -277,14 +277,14 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->X10!=0 && (b6==nullptr || p->X60!=1 || p->X16!=0 || p->X320!=0 || p->A516==2 || p->A516==4)) ok=0;
     if(p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0) ok=0;
     if(p->A580==1) ok=0;
-    if(p->E10>0 || p->L10>0 || p->Z20>0) ok=0;
+    if(p->E10>0 || p->L10>0 || p->Z20>0 || p->Z30>0) ok=0;
     if(p->j_dir!=1) ok=0;
 
     if(ok==0)
     {
         if(p->mpirank==0)
         cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0, "
-            <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles or rods, and 3D grids "
+            <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles, rods or FEM structures, and 3D grids "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
         return;

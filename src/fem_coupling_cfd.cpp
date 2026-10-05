@@ -33,15 +33,15 @@ Architect: Hans Bihs
 #include<iomanip>
 
 typedef fem_solid::Vec3 Vec3;
-static const size_t BP = 18;     // buffer entries per Lagrangian point / debris particle
 
 void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
                              field &u, field &v, field &w, field &fx, field &fy, field &fz, bool finalize)
 {
     starttime = pgc->timer();
+    cfd = a;
 
     if(!initialised)
-    first_call(p,a,pgc);
+    first_call(p,pgc);
 
     if(surf_version!=fs.surface_version())
     ini_points(p,pgc);
@@ -87,16 +87,7 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
 
     // rigid bodies: horizontal bounding boxes for the probes beside the body
     if(finalize && probes && fs.n_rigid()>0)
-    {
-        rb_lo.assign(fs.n_rigid(),Vec3::Constant(1.0e300));
-        rb_hi.assign(fs.n_rigid(),Vec3::Constant(-1.0e300));
-        for(int k=0; k<fs.n_rigid(); ++k)
-        for(int i : fs.rigid(k).nodes)
-        {
-            rb_lo[k] = rb_lo[k].cwiseMin(fs.pos(i));
-            rb_hi[k] = rb_hi[k].cwiseMax(fs.pos(i));
-        }
-    }
+    rigid_boxes();
 
     for(int q=0; q<np; ++q)
     {
@@ -178,44 +169,6 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
     // ------------------------------------------------------------------
     const double hy = fs.lattice_h(1);
 
-    // rigid bodies on the bed: the water in a gap of less than two cells under a
-    // face that looks at the bed (or the bottom of the domain) is not forced to
-    // move with the body, so that it drains and the body can ground (forced, it
-    // is carried with the body and holds it up)
-    auto on_bed = [&](int q,const Vec3& nf)->bool
-    {
-        const fem_solid::face& fc = fs.surface()[pts[q].face];
-        if(fs.rigid_of_node(fc.n[0])<0)
-        return false;
-        const lpoint& L = pts[q];
-        const double wgt[4] = {(1.0-L.s)*(1.0-L.t), L.s*(1.0-L.t), L.s*L.t, (1.0-L.s)*L.t};
-        if(fs.coupling().walls && nf(2)<-0.5)
-        {
-            double z = 0.0;
-            for(int k=0; k<4; ++k) z += wgt[k]*fs.pos(fc.n[k])(2);
-            if(z-p->global_zmin < 2.0*dxmin)
-            return true;
-        }
-        if(!fs.bed_contact())
-        return false;
-        double phi = 0.0, ws = 0.0;
-        Vec3 nb = Vec3::Zero(), n0;
-        for(int k=0; k<4; ++k)
-        {
-            double ph;
-            if(!fs.bed_sample(fc.n[k],ph,n0))
-            continue;
-            phi += wgt[k]*ph; nb += wgt[k]*n0; ws += wgt[k];
-        }
-        if(ws<=0.0)
-        return false;
-        phi /= ws;
-        const double nbn = nb.norm();
-        if(nbn<=0.0)
-        return false;
-        return phi < 2.0*dxmin && nf.dot(nb/nbn) < -0.5;
-    };
-
     if(fs.coupling().forcing)
     for(int q=0; q<np; ++q)
     {
@@ -231,7 +184,7 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
 
         point_state(q,xp,vp,n,A);
 
-        if(on_bed(q,n))
+        if(on_bed(q,n,p->global_zmin))
         continue;
 
         Vec3 uf(b[0]/b[3],b[1]/b[3],b[2]/b[3]);
@@ -286,16 +239,68 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
     // 4. loads and solid time step (final stage)
     // ------------------------------------------------------------------
     if(finalize)
-    finish_step(p,a,pgc,alpha);
+    {
+        // contact with the bed / solids of the fluid grid: distance and normal at the nodes
+        if(fs.bed_contact())
+        sample_bed(p,a,pgc);
+        finish_step(p,pgc,alpha);
+    }
 }
 
-void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
+void fem_coupling::rigid_boxes()
+{
+    rb_lo.assign(fs.n_rigid(),Vec3::Constant(1.0e300));
+    rb_hi.assign(fs.n_rigid(),Vec3::Constant(-1.0e300));
+    for(int k=0; k<fs.n_rigid(); ++k)
+    for(int i : fs.rigid(k).nodes)
+    {
+        rb_lo[k] = rb_lo[k].cwiseMin(fs.pos(i));
+        rb_hi[k] = rb_hi[k].cwiseMax(fs.pos(i));
+    }
+}
+
+bool fem_coupling::on_bed(int q, const Vec3& nf, double zmin) const
+{
+    // rigid bodies on the bed: the water in a gap of less than two cells under a
+    // face that looks at the bed (or the bottom of the domain) is not forced to
+    // move with the body, so that it drains and the body can ground (forced, it
+    // is carried with the body and holds it up)
+    const fem_solid::face& fc = fs.surface()[pts[q].face];
+    if(fs.rigid_of_node(fc.n[0])<0)
+    return false;
+    const lpoint& L = pts[q];
+    const double wgt[4] = {(1.0-L.s)*(1.0-L.t), L.s*(1.0-L.t), L.s*L.t, (1.0-L.s)*L.t};
+    if(fs.coupling().walls && nf(2)<-0.5)
+    {
+        double z = 0.0;
+        for(int k=0; k<4; ++k) z += wgt[k]*fs.pos(fc.n[k])(2);
+        if(z-zmin < 2.0*dxmin)
+        return true;
+    }
+    if(!fs.bed_contact())
+    return false;
+    double phi = 0.0, ws = 0.0;
+    Vec3 nb = Vec3::Zero(), n0;
+    for(int k=0; k<4; ++k)
+    {
+        double ph;
+        if(!fs.bed_sample(fc.n[k],ph,n0))
+        continue;
+        phi += wgt[k]*ph; nb += wgt[k]*n0; ws += wgt[k];
+    }
+    if(ws<=0.0)
+    return false;
+    phi /= ws;
+    const double nbn = nb.norm();
+    if(nbn<=0.0)
+    return false;
+    return phi < 2.0*dxmin && nf.dot(nb/nbn) < -0.5;
+}
+
+void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
 {
     fs.set_coupling_alpha(alpha);
 
-    // contact with the bed / solids of the fluid grid: distance and normal at the nodes
-    if(fs.bed_contact())
-    sample_bed(p,a,pgc);
     const int np = (int)pts.size();
     const std::vector<int>& deb = fs.debris();
     const int nd = (int)deb.size();
@@ -420,7 +425,7 @@ void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
             // body: the added mass of the water side is not smaller than that),
             // less for a body that only touches the water, none in air
             for(int k=0; k<fs.n_rigid(); ++k)
-            fs.set_rigid_added_mass(k, fs.coupling().added_mass*rho_w*fs.rigid(k).Aunit*std::min(1.0, 3.0*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0)));
+            fs.set_rigid_added_mass(k, added_mass_factor()*rho_w*fs.rigid(k).Aunit*std::min(1.0, 3.0*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0)));
         }
         if(mode==0)
         {
@@ -783,7 +788,7 @@ void fem_coupling::probe_pressure(lexer *p, fdm *a, const Vec3& xp, const Vec3& 
     }
 }
 
-void fem_coupling::pressure_loads(lexer *p, fdm *a, ghostcell *pgc, std::vector<Vec3>& F, bool hydrostatic)
+void fem_coupling::pressure_loads(lexer *p, ghostcell *pgc, std::vector<Vec3>& F, bool hydrostatic)
 {
     // nodal loads -p n dA of the current pressure field, or of the hydrostatic
     // pressure below the still water level (as I 12 1, all ranks)
@@ -795,7 +800,10 @@ void fem_coupling::pressure_loads(lexer *p, fdm *a, ghostcell *pgc, std::vector<
     for(int q=0; q<np; ++q)
     {
         point_state(q,xp,vp,n,A);
-        probe_pressure(p,a,xp,n,&b[BP*q],hydrostatic);
+        if(nhflow)
+        nhf_probe_pressure(p,xp,n,&b[BP*q]);
+        else
+        probe_pressure(p,cfd,xp,n,&b[BP*q],hydrostatic);
     }
     if(!b.empty())
     MPI_Allreduce(MPI_IN_PLACE,b.data(),(int)b.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);

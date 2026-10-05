@@ -70,13 +70,17 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
 
     rho_w = p->W1;
 
+    nhflow = (p->A10==5);
+
     // smallest fluid cell size: spacing of the Lagrangian points, default element size
+    // (NHFLOW: horizontal cells, the sigma layers change with the water depth)
     double h = 1.0e20;
     for(int ii=0; ii<p->knox; ++ii)
     h = std::min(h,p->DXN[ii+marge]);
     if(p->j_dir==1)
     for(int jj=0; jj<p->knoy; ++jj)
     h = std::min(h,p->DYN[jj+marge]);
+    if(!nhflow)
     for(int kk=0; kk<p->knoz; ++kk)
     h = std::min(h,p->DZN[kk+marge]);
     dxmin = pgc->globalmin(h);
@@ -113,8 +117,10 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
     }
 }
 
-void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
+void fem_coupling::first_call(lexer *p, ghostcell *pgc)
 {
+    fdm *a = cfd;
+
     initialised = true;
 
     // supports on the bed and the solids of the fluid grid
@@ -138,6 +144,12 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
         {
             fem_solid::Vec3 x = fs.ref_pos(i);
             if(p->j_dir==0) x(1) = p->YP[marge];
+            if(nhflow)
+            {
+                if(x(0)>=p->originx && x(0)<p->endx && (p->j_dir==0 || (x(1)>=p->originy && x(1)<p->endy)))
+                lv[i] = nhf_level(p,x);
+            }
+            else
             if(x(0)>=p->originx && x(0)<p->endx && (p->j_dir==0 || (x(1)>=p->originy && x(1)<p->endy)) && x(2)>=p->originz && x(2)<p->endz)
             lv[i] = std::min(p->ccipol4a(a->topo,x(0),x(1),x(2)),p->ccipol4a(a->solid,x(0),x(1),x(2)));
         }
@@ -169,6 +181,13 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
         {
             fem_solid::Vec3 c = 0.25*(fs.pos(f.n[0])+fs.pos(f.n[1])+fs.pos(f.n[2])+fs.pos(f.n[3]));
             if(p->j_dir==0) c(1) = p->YP[marge];
+            if(nhflow)
+            {
+                if(c(0)>=p->originx && c(0)<p->endx && (p->j_dir==0 || (c(1)>=p->originy && c(1)<p->endy)))
+                if(nhf_wet_column(p,c(0),c(1)) && c(2)<=nhf_surface(p,c(0),c(1)))
+                wet += 0.5*((fs.pos(f.n[2])-fs.pos(f.n[0])).cross(fs.pos(f.n[3])-fs.pos(f.n[1]))).norm();
+            }
+            else
             if(c(0)>=p->originx && c(0)<p->endx && (p->j_dir==0 || (c(1)>=p->originy && c(1)<p->endy)) && c(2)>=p->originz && c(2)<p->endz)
             if(p->ccipol4(a->phi,c(0),c(1),c(2))>=0.0)
             wet += 0.5*((fs.pos(f.n[2])-fs.pos(f.n[0])).cross(fs.pos(f.n[3])-fs.pos(f.n[1]))).norm();
@@ -204,8 +223,9 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
     {
         std::vector<fem_solid::Vec3> F0;
         // initial pressure field, or hydrostatic below the initial free
-        // surface if the flow solver starts without one (I 12 0)
-        pressure_loads(p,a,pgc,F0,p->I12<1);
+        // surface if the flow solver starts without one (I 12 0; NHFLOW: the
+        // hydrostatic part is always taken from the free surface)
+        pressure_loads(p,pgc,F0,p->I12<1);
         fem_solid::Vec3 Ft = fem_solid::Vec3::Zero();
         fs.clear_loads();
         for(int i=0; i<fs.nnode(); ++i)
@@ -480,6 +500,7 @@ void fem_coupling::ini_points(lexer *p, ghostcell *pgc)
     }
 
     surf_version = fs.surface_version();
+    pnh_bar.clear();     // NHFLOW pressure filter: new points
 
     buf.assign(14*(pts.size()+fs.debris().size()) + 2*size_t(fs.nnode()),0.0);
     fdeb.assign(fs.debris().size(),fem_solid::Vec3::Zero());

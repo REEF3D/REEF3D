@@ -154,7 +154,8 @@ public:
         int    shear = 0;               // 1: tangential (no-slip) reaction of the parcels on the solid
         int    air_forcing = 0;         // 1: direct forcing also in the air (more than 1.5 cells from the water)
         int    walls = 1;               // 1: the boundaries of the fluid domain are walls for free bodies and debris
-        double added_mass = 1.0;        // factor on the added-mass estimate of rigid bodies (stabilisation), 0: off
+        double added_mass = -1.0;       // factor on the added-mass estimate of rigid bodies (stabilisation), 0: off,
+                                        // < 0: default of the flow solver (CFD 1, NHFLOW 5)
         int    settle = 1;              // 1: settle under gravity before the flow starts
         int    check = 0;               // 1: write the check report and stop
         double resolution = 1.0;        // element size in fluid cells if no lattice is given

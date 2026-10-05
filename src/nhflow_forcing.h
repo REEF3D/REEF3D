@@ -37,6 +37,7 @@ class fsi;
 class dem;
 class nhflow_reinidisc_fsf;
 class rodtree_coupling;
+class fem_coupling;
 class nhflow_pressure;
 class solver;
 class ioflow;
@@ -105,6 +106,9 @@ private:
     
     // flexible rod trees (Z 20)
     rodtree_coupling *prodtree;
+
+    // FEM solid structures (Z 30)
+    fem_coupling *pfem;
 };
 
 #endif

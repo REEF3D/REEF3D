@@ -2330,6 +2330,9 @@
         <File Name="multiphase_f.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FEM">
+        <VirtualDirectory Name="Coupling NHFLOW">
+          <File Name="fem_coupling_nhflow.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="fem_solid.cpp"/>
           <File Name="fem_solid_read.cpp"/>
