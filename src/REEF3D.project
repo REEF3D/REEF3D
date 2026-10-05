@@ -2605,6 +2605,7 @@
             <File Name="6DOF_obj_forces_lsm_reconstruction.cpp"/>
             <File Name="6DOF_obj_forces_lsm.cpp"/>
             <File Name="6DOF_obj_forces_stl.cpp"/>
+            <File Name="6DOF_obj_cfd_actuator.cpp"/>
             <File Name="6DOF_obj_forces_external.cpp"/>
             <File Name="6DOF_obj_forces.cpp"/>
           </VirtualDirectory>

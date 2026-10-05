@@ -36,7 +36,7 @@ using namespace std;
 //  Ship module (X 350 1): semi-empirical hull loads, propulsion and steering of a 6DOF hull,
 //  read from ship.dat in the case folder. Solver independent: the hull is the 6DOF surface
 //  triangulation, the state that of the rigid-body core; the propeller acts on the fluid
-//  through the actuator disk of the coupling (NHFLOW).
+//  through the actuator disk of the coupling (NHFLOW, CFD).
 //
 //  ship.dat (one keyword per line, # comments; all optional):
 //
@@ -66,7 +66,7 @@ using namespace std;
 //   propeller_inflow wake w     axial inflow Va = (1-w) u              (default, w = 0)
 //   propeller_inflow sample d   Va from the fluid velocity on a ring d [m] ahead of the disk
 //   propeller_source 0|1        actuator disk in the fluid; 0: thrust (1-t) T on the hull only
-//                               (default 1 for NHFLOW, 0 otherwise)
+//                               (default 1 for NHFLOW and CFD, 0 otherwise)
 //   thrust_deduction t          for propeller_source 0                 (default 0)
 //
 //  rudder (MMG standard method)

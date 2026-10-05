@@ -52,7 +52,7 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    xa(0.0), xf(0.0), zw(0.0),
                                    prop(false), xp(0.0), yp(0.0), zp(0.0), Dp(0.0), hub(0.2), nrps(0.0), thick(0.0),
                                    wake(0.0), sample_d(0.0), tded(0.0),
-                                   sense(1), inflow_mode(0), psource(p->A10==5 ? 1 : 0),
+                                   sense(1), inflow_mode(0), psource((p->A10==5 || p->A10==6) ? 1 : 0),
                                    Va(0.0), J(0.0), KT(0.0), KQ(0.0), Tp(0.0), Qp(0.0),
                                    rud(false), rmmg_in(false), rmode(0), rcmd(0.0), zz_d(0.0), zz_psi(0.0), zz_t0(0.0),
                                    ap_psi(0.0), ap_Kp(0.0), ap_Kd(0.0), ap_Ki(0.0),
@@ -101,13 +101,13 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
         cout<<"ship: X 38 1 (local skin friction in the hull loads), ITTC-1957 friction switched off"<<endl;
     }
     
-    // the actuator disk is coupled to NHFLOW only
-    if(psource==1 && p->A10!=5)
+    // the actuator disk is coupled to NHFLOW and CFD
+    if(psource==1 && p->A10!=5 && p->A10!=6)
     {
         psource = 0;
         
         if(p->mpirank==0)
-        cout<<"ship: propeller_source 1 needs NHFLOW, the thrust acts on the hull only"<<endl;
+        cout<<"ship: propeller_source 1 needs NHFLOW or CFD, the thrust acts on the hull only"<<endl;
     }
 }
 

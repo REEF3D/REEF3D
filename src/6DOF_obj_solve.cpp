@@ -33,7 +33,13 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
 {
     externalForces_cfd(p, a, pgc, alpha[iter], finalize);
     
+    // load models (ship module) sample the CFD velocity
+    sixdof_fluid_cfd fluid(p,a,pgc);
+    pfluid = &fluid;
+    
     update_forces(p);
+    
+    pfluid = nullptr;
     
     if(p->N40==2 || p->N40==12 || p->N40==22)
     rk2(p,pgc,iter);

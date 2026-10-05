@@ -81,6 +81,11 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         }
     }
     
+    // actuator disks of the load models (ship propellers): momentum source of the fluid, after all
+    // bodies have set their Heaviside fbh1..3 (no source in the forcing zone of any body)
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->actuator_forcing(p,a,pgc,fx,fy,fz);
+    
     // ghostcell update
     pgc->gcdf_update(p,a);
 }

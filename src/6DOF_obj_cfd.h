@@ -25,6 +25,19 @@ Authors: Hans Bihs, Tobias Martin
 
 #include"6DOF_obj.h"
 
+//  Fluid access of the load models (ship module) in REEF3D::CFD: velocity interpolated from the
+//  staggered velocity fields
+class sixdof_fluid_cfd : public sixdof_fluid
+{
+public:
+    sixdof_fluid_cfd(lexer *pp, fdm *aa, ghostcell *gc) : p(pp), a(aa), pgc(gc) {}
+    void velocity(int, const double*, double*) override;
+private:
+    lexer *p;
+    fdm *a;
+    ghostcell *pgc;
+};
+
 //  6DOF body coupled to REEF3D::CFD: level set of the body on the Cartesian grid, direct
 //  forcing and surface force integration (X 60 1 STL triangles, 2 level-set triangulation).
 
@@ -40,6 +53,10 @@ public:
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
+    
+    // actuator disks of the load models (body-force propellers): acceleration of the fluid,
+    // added to the forcing terms fx, fy, fz of the stage (water part of the cells outside the body)
+    void actuator_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&);
     
     using sixdof_obj::print_vtp;
 
@@ -71,6 +88,10 @@ private:
     field4a f, frk1, L, dt;
     fieldint5 vertice, nodeflag;
     field5 eta;
+    
+    void actuator_point(lexer*, int, Eigen::Vector3d&, double&);
+    double actuator_fluid_fraction(lexer*, fdm*, int);
+    bool actuator_warned = false;
 };
 
 #endif
