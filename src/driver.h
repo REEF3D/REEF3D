@@ -74,6 +74,7 @@ class nhflow_forcing;
 class nhflow_potential;
 class vrans_nhflow;
 class sflow;
+class spectral;
 class fnpf_timestep;
 class nhflow_timestep;
 class patchBC_interface;
@@ -107,6 +108,7 @@ public:
     void nhflow_driver();
     void fnpf_driver();
     void sflow_driver();
+    void spectral_driver();
     
 	void loop_cfd(fdm*);
 	void loop_cfd_df(fdm*);
@@ -187,6 +189,7 @@ public:
     nhflow_amr *pnhfamr = nullptr;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
+    spectral *pspectral = nullptr;
     fnpf_timestep *pftstep;
     patchBC_interface *pBC;
     nhflow *pnhf;

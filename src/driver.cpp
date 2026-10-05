@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"patchBC.h"
 #include"runlog.h"
+#include"spectral_f.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -75,6 +76,9 @@ driver::driver(int& argc, char **argv)
 
     if(p->A10==6)
     cout<<endl<<"REEF3D::CFD" <<endl<<endl;
+
+    if(p->A10==7)
+    cout<<endl<<"REEF3D::Spectral" <<endl<<endl;
     }
 
     // PTF (A 10 4) was removed
@@ -94,6 +98,15 @@ driver::driver(int& argc, char **argv)
         makegrid2D(p,pgc);
         pBC->patchBC_ini(p,pgc);
         sflow_driver();
+    }
+
+// 2D Framework - Spectral
+    if(p->A10==7)
+    {
+        p->flagini2D();
+        p->gridini2D();
+        makegrid2D(p,pgc);
+        spectral_driver();
     }
 
 // 3D Framework
@@ -151,6 +164,19 @@ void driver::sflow_driver()
 
     // Start SFLOW
 	psflow->start(p,b,pgc);
+}
+
+void driver::spectral_driver()
+{
+    // 2D grid set-up of SFLOW without the SFLOW fdm (makegrid2D_cds)
+    p->flagini2D();
+    p->gridini2D();
+    pgc->sizeS_update(p);
+
+    pspectral = new spectral_f(p,pgc);
+
+    // Start Spectral
+    pspectral->start(p,pgc);
 }
 
 void driver::fnpf_driver()
