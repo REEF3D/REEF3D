@@ -55,6 +55,9 @@ void komega_IM1_PLIC::start(fdm* a, lexer* p, convection* pconvec, diffusion* pd
     bckomega_start(a,p,kin,eps,gcval_kin);
     bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
+    if(p->T45==1)   // buoyancy sink: keep k >= 0 also against the explicit convection
+    LOOP
+    kin(i,j,k) = MAX(kin(i,j,k),0.0);
 	pgc->start4(p,kin,gcval_kin);
     pgc->solid_forcing_lsm(p,a,kin);
 	p->kintime=pgc->timer()-starttime;

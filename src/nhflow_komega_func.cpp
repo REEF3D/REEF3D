@@ -171,10 +171,17 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
     }
     
     count=0;
+    // buoyancy (A 566 1), G_b = -PK_b: a sink is taken implicitly as (-G_b/k) k (Patankar), a source explicitly
     if(p->A566==1)
     LOOP
     {
-        d->rhsvec.V[count]  -= PK_b[IJK];
+        const double gb = -PK_b[IJK];
+        
+        if(gb<0.0)
+        d->M.p[count] += -gb/MAX(KIN[IJK],1.0e-10);
+        
+        if(gb>0.0)
+        d->rhsvec.V[count] += gb;
         
 	++count;
     }

@@ -60,6 +60,9 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
     bckepsilon_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
+    if(p->A566==1)   // buoyancy sink: keep k >= 0 also against the explicit convection
+    LOOP
+    KIN[IJK] = MAX(KIN[IJK],0.0);
     pgc->start20V(p,KIN,gcval_kin);
     kinupdate(p,d,pgc);
 	p->kintime=pgc->timer()-starttime;

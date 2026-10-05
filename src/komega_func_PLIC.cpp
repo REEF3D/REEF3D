@@ -221,10 +221,18 @@ void komega_func_PLIC::kinsource(lexer *p, fdm* a, vrans* pvrans)
     
     count=0;
     
+    // buoyancy (T 45 1), G_b = -pk_b: a sink (stable stratification) is taken implicitly as (-G_b/k) k, so it
+    // cannot drive k negative (Patankar); a source goes to the right-hand side
     if(p->T45==1)
     LOOP
     {
-        a->rhsvec.V[count]  -= pk_b(p,a,a->eddyv);
+        const double gb = -pk_b(p,a,a->eddyv);
+        
+        if(gb<0.0)
+        a->M.p[count] += -gb/MAX(kin(i,j,k),1.0e-10);
+        
+        if(gb>0.0)
+        a->rhsvec.V[count] += gb;
         
 	++count;
     }
