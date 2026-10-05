@@ -58,6 +58,10 @@ public:
     // P 18 1: the VTU files are left out (P 18 2: written as well)
     static bool vtu_files(lexer*);
 
+    // set when any LAGOON output of this run gave up (on every rank alike): from then
+    // on the VTU/VTP files are written again, also with P 18 1
+    static inline bool failed = false;
+
 private:
     std::string solver;
     lagoon_store store;

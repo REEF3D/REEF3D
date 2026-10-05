@@ -110,7 +110,7 @@ lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
 
 bool lagoon_output::vtu_files(lexer *p)
 {
-    return p->P18!=1;
+    return p->P18!=1 || failed;
 }
 
 bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_store::variable> &fields)
@@ -187,6 +187,7 @@ bool lagoon_output::settle(lexer *p, ghostcell *pgc)
         if(p->mpirank==0)
             std::cout<<"LAGOON: a rank could not write its block; no more LAGOON output"<<std::endl;
         usable = false;
+        failed = true;
         pending = job();
         return false;
     }
@@ -215,6 +216,8 @@ void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> 
     if(!ready)
     {
         usable = start(p, pgc, fields);
+        if(!usable)
+            failed = true;
         ready = true;
         if(!usable)
             return;
@@ -321,6 +324,8 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, const std::string &buff
         // the first output decides the variables; a piece that cannot be read stops it on every rank
         const bool fine = pgc->globalmax(readable ? 0.0 : 1.0) <= 0.0;
         usable = fine && start(p, pgc, fields);
+        if(!usable)
+            lagoon_output::failed = true;
         ready = true;
         if(!usable)
         {
@@ -375,6 +380,7 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, const std::string &buff
         if(p->mpirank==0)
             std::cout<<"LAGOON: a rank could not write its "<<output<<" block; no more LAGOON "<<output<<std::endl;
         usable = false;
+        lagoon_output::failed = true;
         return;
     }
     if(p->mpirank==0)
