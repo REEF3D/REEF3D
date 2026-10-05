@@ -178,6 +178,44 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
     // ------------------------------------------------------------------
     const double hy = fs.lattice_h(1);
 
+    // rigid bodies on the bed: the water in a gap of less than two cells under a
+    // face that looks at the bed (or the bottom of the domain) is not forced to
+    // move with the body, so that it drains and the body can ground (forced, it
+    // is carried with the body and holds it up)
+    auto on_bed = [&](int q,const Vec3& nf)->bool
+    {
+        const fem_solid::face& fc = fs.surface()[pts[q].face];
+        if(fs.rigid_of_node(fc.n[0])<0)
+        return false;
+        const lpoint& L = pts[q];
+        const double wgt[4] = {(1.0-L.s)*(1.0-L.t), L.s*(1.0-L.t), L.s*L.t, (1.0-L.s)*L.t};
+        if(fs.coupling().walls && nf(2)<-0.5)
+        {
+            double z = 0.0;
+            for(int k=0; k<4; ++k) z += wgt[k]*fs.pos(fc.n[k])(2);
+            if(z-p->global_zmin < 2.0*dxmin)
+            return true;
+        }
+        if(!fs.bed_contact())
+        return false;
+        double phi = 0.0, ws = 0.0;
+        Vec3 nb = Vec3::Zero(), n0;
+        for(int k=0; k<4; ++k)
+        {
+            double ph;
+            if(!fs.bed_sample(fc.n[k],ph,n0))
+            continue;
+            phi += wgt[k]*ph; nb += wgt[k]*n0; ws += wgt[k];
+        }
+        if(ws<=0.0)
+        return false;
+        phi /= ws;
+        const double nbn = nb.norm();
+        if(nbn<=0.0)
+        return false;
+        return phi < 2.0*dxmin && nf.dot(nb/nbn) < -0.5;
+    };
+
     if(fs.coupling().forcing)
     for(int q=0; q<np; ++q)
     {
@@ -192,6 +230,9 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
         continue;
 
         point_state(q,xp,vp,n,A);
+
+        if(on_bed(q,n))
+        continue;
 
         Vec3 uf(b[0]/b[3],b[1]/b[3],b[2]/b[3]);
         if(p->j_dir==0)

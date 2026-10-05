@@ -214,6 +214,8 @@ public:
     void clear_bed_samples() {bed_ok.assign(nnode(),0); bed_phi.assign(nnode(),0.0); bed_n.assign(nnode(),Vec3::Zero()); bed_x.assign(nnode(),Vec3::Zero());}
     bool free_node(int i) const {return m[i]>0.0 && (body[i]<0 || !body_fixed[body[i]]);}
     bool bed_contact() const {return bed_on;}
+    bool bed_sample(int i,double& phi,Vec3& n) const    // distance to the bed at the current position, bed normal
+    {if(bed_ok.empty() || !bed_ok[i]) return false; phi = bed_phi[i] + bed_n[i].dot(x[i]-bed_x[i]); n = bed_n[i]; return true;}
     void set_bed_contact(bool b) {bed_on = b;}
 
     // rigid bodies: free bodies (no supports) made only of rigid materials
