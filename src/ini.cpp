@@ -33,6 +33,7 @@ void control::ini_default()
     A210=3;		  // int time scheme for SFLOW velocities
     A211=4;		  // int convection scheme for SLOW velocities
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
+    A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A214=1;      // int convection for vertical velocity
     A215=0;      // int 
     A216=0;      // int
@@ -41,6 +42,7 @@ void control::ini_default()
     A219=1;      // int additional courant number constraint
     A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
     A221=1;		  // int non-hydrostatic pressure in very shallow regions
+    A222=1.0e-5; // double SFLOW TENO5 cutoff C_T (A 213 2)
     A223=0.5;    // double blending factor hydrostatic pressure gradient
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
     A230=0;      // int 

@@ -31,6 +31,9 @@ sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC
     pBC = ppBC;
 
     uf=vf=wf=0;
+
+    // nonlinear weights (A 213: 0 WENO-JS, 1 WENO-Z, 2 TENO5)
+    set_weno_weights(p->A213,p->A222);
 }
 
 sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC, int own) : weno_nug_func(p,own), dfdx(p), dfdy(p)
@@ -38,6 +41,9 @@ sflow_reconstruct_weno::sflow_reconstruct_weno(lexer* p, patchBC_interface *ppBC
     pBC = ppBC;
 
     uf=vf=wf=0;
+
+    // nonlinear weights (A 213: 0 WENO-JS, 1 WENO-Z, 2 TENO5)
+    set_weno_weights(p->A213,p->A222);
 }
 
 sflow_reconstruct_weno::~sflow_reconstruct_weno()
