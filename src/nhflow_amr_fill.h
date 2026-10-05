@@ -24,7 +24,7 @@ Author: Hans Bihs
 #define NHFLOW_AMR_FILL_H_
 
 // column fill, restriction and interpolation templates of nhflow_amr (F layout: the pressure
-// nodes 0..knoz of a column; with A 281 the nodes of a level are nested in those of the next), as
+// nodes 0..knoz of a column; with G 6 the nodes of a level are nested in those of the next), as
 // fnpf_amr_fill.h
 
 #include"nhflow_amr.h"
@@ -64,7 +64,7 @@ inline double rc4(F f)
 }
 
 // columns around the level-l patches; sel(g) gives the F-layout array of grid g (from the coarser
-// level with A 281: the coarse nodes and the midpoints between them)
+// level with G 6: the coarse nodes and the midpoints between them)
 template<class SEL>
 inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
 {
@@ -97,7 +97,7 @@ inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
 }
 
 // covered columns: restricted from the 2x2 children (cubic where possible), finest first; with
-// A 281 coarse node K is fine node 2K
+// G 6 coarse node K is fine node 2K
 template<class SEL>
 inline void nhflow_amr::restrict_col(SEL sel)
 {
@@ -135,7 +135,7 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
     const int fz = pp->knoz/Kc;
 
-    // A 283: only the children that are unknowns of the pressure (wet and deep); cubic only
+    // G 30: only the children that are unknowns of the pressure (wet and deep); cubic only
     // if the whole 4x4 stencil is; none of them: the coarse column is shallow or dry, P = 0
     int na = 4;
     double wa[4] = {0.25,0.25,0.25,0.25};

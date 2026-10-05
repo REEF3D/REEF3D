@@ -67,7 +67,7 @@ public:
     // body nodes
     virtual void velocity(lexer*, fdm_fnpf*, ghostcell*){}
     
-    // mesh refinement (fnpf_amr, A 270): the body is represented on every grid of the
+    // mesh refinement (fnpf_amr, G 1): the body is represented on every grid of the
     // hierarchy; fnpf_amr calls these around its composite phi solve and after each patch
     // stage value; the psi solves of the loads run on all grids as well
     virtual bool present() const {return false;}

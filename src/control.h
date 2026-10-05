@@ -50,10 +50,6 @@ public:
     int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
-    int A270,A271,A272,A274,A275,A276,A277,A278,A280,A281,A283,A284,A285,A286;
-    double A273,A278_r,A279_L,A279_a,A282;
-    double *A276_xs,*A276_xe,*A276_ys,*A276_ye;
-    double *A277_xs,*A277_xe,*A277_ys,*A277_ye;
     double A223,A224,A247,A249,A244,A251_val;
     double A250;
 
@@ -332,9 +328,15 @@ public:
     double *F399_xc, *F399_yc,*F399_zc, *F399_r;
 
     // Grid Options
-    int G1,G2,G5;
-    int G10,G11,G12,G20,G21,G22,G30;
-    int G40,G41;
+    // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
+    int G1,G2,G3,G4,G5,G6,G10,G11,G12,G22,G23,G30,G40;
+    double G12_r,G13_L,G13_a,G20,G21;
+    double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
+    double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
+    // grid
+    int G501,G502,G505;
+    int G510,G511,G512,G520,G521,G522,G530;
+    int G540,G541;
 
     // Heat Options
     double H1,H2;

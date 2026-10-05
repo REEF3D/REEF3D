@@ -60,25 +60,6 @@ void control::ini_default()
     A262=0.0667; // double parabolic turbulence model factor
     A263=10.0;   // double eddyv limiter factor set to high
     A264=3.6;    // double epsilon coefficient ce_gamma (Rastogi & Rodi 1978: nu_t = 0.077 u* h)
-    A270=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with A 278, NHFLOW: with A 278, A 273 or A 282)
-    A272=2;      // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells
-    A273=0.0;    // double SFLOW and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
-    A274=0;      // int SFLOW mesh refinement: flag the shoreline
-    A275=8;      // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
-    A276=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
-    A277=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
-    A278=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
-    A278_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
-    A279_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
-    A279_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
-    A280=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
-    A281=0;      // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
-    A282=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
-    A283=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
-    A284=0;      // int NHFLOW mesh refinement with A 283 1: flag the cells within this many cells (1-3) of the shoreline (0: off)
-    A285=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
-    A286=0;      // int NHFLOW mesh refinement on several ranks: 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks
 
 
     // FNPF
@@ -648,17 +629,37 @@ void control::ini_default()
     F399=0;             // int number of neg ls2 sphere
 
     // Grid
-    G2=0;            // int sigma grid
-    G5=0;             // int turn of topo and solid cells
-	G10=3;			// int xmargin inflow
-	G11=3;			// int ymargin right
-	G12=3;			// int zmargin bottom
-	G20=3;			// int xmargin outflow
-	G21=3;			// int ymargin left
-	G22=3;			// int zmargin top
-	G30=3;			// int extrapolated ghost cells
-    G40=3;         // int reini scheme for topo/solid/floating
-    G41=2;          // int reini iterations
+    // mesh refinement (SFLOW, FNPF, NHFLOW)
+    G1=0;       // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
+    G2=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with G 12, NHFLOW: with G 12, G 20 or G 21)
+    G3=2;       // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells
+    G4=8;       // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
+    G5=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+    G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
+    G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
+    G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
+    G12=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
+    G12_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
+    G13_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
+    G13_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
+    G20=0.0;    // double SFLOW and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
+    G21=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
+    G22=0;      // int SFLOW and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
+    G23=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
+    G30=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
+    G40=0;      // int NHFLOW mesh refinement on several ranks: 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks
+    // grid
+    G502=0;            // int sigma grid
+    G505=0;             // int turn of topo and solid cells
+	G510=3;			// int xmargin inflow
+	G511=3;			// int ymargin right
+	G512=3;			// int zmargin bottom
+	G520=3;			// int xmargin outflow
+	G521=3;			// int ymargin left
+	G522=3;			// int zmargin top
+	G530=3;			// int extrapolated ghost cells
+    G540=3;         // int reini scheme for topo/solid/floating
+    G541=2;          // int reini iterations
 
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water

@@ -241,7 +241,7 @@ void amr_fields(lexer *q, fdm_nhf *d, bool wet, FIELD field)
     field("bed",[&](int ii, int jj) { return d->bed(ii,jj); });
     field("u_top",[&](int ii, int jj) { return d->U[c3(ii,jj)]; });
     field("v_top",[&](int ii, int jj) { return d->V[c3(ii,jj)]; });
-    // A 283: the wet flag and the water depth
+    // G 30: the wet flag and the water depth
     if(wet)
     {
     field("wet",[&](int ii, int jj) { return double(q->wet[(ii-q->imin)*q->jmax + (jj-q->jmin)]); });

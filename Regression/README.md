@@ -129,6 +129,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_ship_kvlcc2_mmg` | 2 | ship module MMG model: KVLCC2 L7 hull derivatives, implicit added mass, MMG wake, rudder f_alpha / asymmetric gamma_R, fluid loads masked (mmg_fluid 0), zig-zag start |
 | `nhflow_3d_ship_box_current` | 2 | ship held in a current: discharge inflow, hull turned by 180 deg (X 101), friction from the velocity relative to the current |
 | `cfd_3d_ship_box_propeller` | 2 | ship module in CFD: box barge in a two-phase tank, actuator disk on the staggered velocity points (water part outside the hull, exact T and Q), velocity sampling, SSP-RK3 |
+| `fnpf_3d_ship_box_hybrid` | 2 | ship module in FNPF: box in head waves, six DOFs, hybrid MMG (mmg_fluid 2, Munk moment out of N'v), approach phase from rest, propeller inflow sampled from the FNPF velocity, FNPF psi_0 = chi (body-following time derivative) |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, the broken wall becomes a rigid fragment (`fragments rigid`), debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
@@ -152,19 +153,21 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
 | `nhflow_3d_amr_still` | 1 | NHFLOW AMR static patch in a closed tank, bed ramps under the patch edges: still water stays still (fill, flux matching, restriction, composite pressure BiCGStab + FAC) |
 | `nhflow_3d_amr_waves_mpi2` | 2 | NHFLOW AMR regular waves through a static patch split at the partition edge: patches on two ranks, remote fills and face runs |
-| `nhflow_3d_amr_heave_mpi2` | 2 | NHFLOW AMR heave decay of a floating box (X 10 1), body zone A 278 across the partition edge: forcing on every grid, loads from the finest |
-| `nhflow_3d_amr_tow_zone` (+ `_vref_rk3`) | 1 | NHFLOW AMR towed box (X 10 2) with moving zone and wake wedge (A 278/279), regrid every step: from_old, prolongation, patch deletion; `_vref_rk3`: vertical refinement A 281, RK3, A 520 1 |
-| `nhflow_3d_amr_adaptive` | 1 | NHFLOW AMR solution-adaptive (A 273, A 282), ring wave from an F 72 hump, regrid every step: tagging, F 72 boxes on fresh patches |
-| `nhflow_3d_amr_wetdry` | 1 | NHFLOW AMR wetting and drying in the patches (A 283): beach and cone island, a box crossing the island shoreline, run-up at t = 0 (wet flags of the cells around a patch, lexer::wetfix, covered-cell flags) |
-| `nhflow_3d_amr_wetdry_adaptive` (+ `_mpi2`) | 1/2 | the same with the shoreline flag (A 284) only, regrid every step, layout changes from step 116; `_mpi2`: partition edge through the island |
+| `nhflow_3d_amr_heave_mpi2` | 2 | NHFLOW AMR heave decay of a floating box (X 10 1), body zone G 12 across the partition edge: forcing on every grid, loads from the finest |
+| `nhflow_3d_amr_tow_zone` (+ `_vref_rk3`) | 1 | NHFLOW AMR towed box (X 10 2) with moving zone and wake wedge (G 12/279), regrid every step: from_old, prolongation, patch deletion; `_vref_rk3`: vertical refinement G 6, RK3, A 520 1 |
+| `nhflow_3d_amr_adaptive` | 1 | NHFLOW AMR solution-adaptive (G 20, G 21), ring wave from an F 72 hump, regrid every step: tagging, F 72 boxes on fresh patches |
+| `nhflow_3d_amr_wetdry` | 1 | NHFLOW AMR wetting and drying in the patches (G 30): beach and cone island, a box crossing the island shoreline, run-up at t = 0 (wet flags of the cells around a patch, lexer::wetfix, covered-cell flags) |
+| `nhflow_3d_amr_wetdry_adaptive` (+ `_mpi2`) | 1/2 | the same with the shoreline flag (G 22) only, regrid every step, layout changes from step 116; `_mpi2`: partition edge through the island |
 | `nhflow_3d_amr_wetdry_n14d` | 1 | `nhflow_3d_amr_wetdry` with the V-cycles of the AMR pressure preconditioner in double (N 14 64; the default N 14 32 keeps them in float) |
-| `nhflow_3d_amr_waves_place` | 2 | `nhflow_3d_amr_waves_mpi2` with the box on rank 1 only and the patches placed for the load of the ranks (A 286 1): pieces on rank 0 reach their parents on rank 1 through the block plans |
-| `nhflow_3d_amr_heave_place` | 2 | floating body with placed patches (A 286 1): hull triangles taken by the rank of the finest grid at their centroid |
-| `nhflow_3d_amr_tow_place2` | 2 | towed box with moving zone, placement test mode (A 286 2): patches migrate to other ranks at every regrid |
-| `nhflow_3d_amr_wetdry_place2` | 2 | adaptive wetting/drying, A 286 2: shoreline wet flags restricted and prolonged across ranks |
-| `nhflow_3d_amr_breaking_place2` | 2 | adaptive breaking (A 550 + A 512 2), A 286 2 |
-| `nhflow_3d_amr_breaking` | 1 | NHFLOW AMR wave breaking (A 550 1, A 512 2): a bore runs into a static patch; patch implicit diffusion with a patch-local BiCGStab, filled cells take the source grid's breaking (lexer::amrvb) |
-| `nhflow_3d_amr_breaking_adaptive` (+ `_mpi2`) | 1/2 | breaking with the adaptive patch following the bore (A 273, A 285), wetting and drying, regrid every step; `_mpi2`: different patch counts per rank (local reductions, gcparaxijk_single) |
+| `nhflow_3d_amr_waves_place` | 2 | `nhflow_3d_amr_waves_mpi2` with the box on rank 1 only and the patches placed for the load of the ranks (G 40 1): pieces on rank 0 reach their parents on rank 1 through the block plans |
+| `nhflow_3d_amr_heave_place` | 2 | floating body with placed patches (G 40 1): hull triangles taken by the rank of the finest grid at their centroid |
+| `nhflow_3d_amr_tow_place2` | 2 | towed box with moving zone, placement test mode (G 40 2): patches migrate to other ranks at every regrid |
+| `nhflow_3d_amr_wetdry_place2` | 2 | adaptive wetting/drying, G 40 2: shoreline wet flags restricted and prolonged across ranks |
+| `nhflow_3d_amr_breaking_place2` | 2 | adaptive breaking (A 550 + A 512 2), G 40 2 |
+| `nhflow_3d_amr_breaking` | 1 | NHFLOW AMR wave breaking (A 550 1, A 512 2): a bore runs into a static patch; the composite implicit diffusion over all grids (G 31 1, default), filled cells take the source grid's breaking (lexer::amrvb) |
+| `nhflow_3d_amr_breaking_adaptive` (+ `_mpi2`) | 1/2 | breaking with the adaptive patch following the bore (G 20, G 23), wetting and drying, regrid every step; `_mpi2`: different patch counts per rank (local reductions, gcparaxijk_single) |
+| `nhflow_3d_amr_breaking_g31_0` | 1 | `nhflow_3d_amr_breaking_adaptive` with the per-grid implicit diffusion of step 7 (G 31 0): a patch-local bicgstab_ijk per patch |
+| `nhflow_3d_amr_cdiff_vref_rk3` | 1 | `nhflow_3d_amr_tow_vref_rk3` with A 512 2: the composite implicit diffusion (G 31 1) with RK3 (phase_D), vertical refinement (G 6) and a regrid every step |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
 | `fnpf_3d_two_edges` | 2 | the same in FNPF |
 | `nhflow_2d_custom_zones` | 1 | old input: custom B 108 generation zone, two B 107 beach zones |

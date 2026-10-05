@@ -110,7 +110,7 @@ void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
 void reinitopo_RK3::step(lexer* p, fdm *a)
 {
 
-	reiniter=p->G41;
+	reiniter=p->G541;
 }
 
 void reinitopo_RK3::time_preproc(lexer* p)

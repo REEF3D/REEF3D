@@ -171,7 +171,7 @@ int position::posf_j(double ys)
 
 int position::posf_k(double zs)
 {
-    if(p->G2==0)
+    if(p->G502==0)
     {
     stop=0;
 
@@ -235,7 +235,7 @@ int position::posf_k(double zs)
     kk=MIN(kk,p->knoz);
     }
     
-    if(p->G2==1)
+    if(p->G502==1)
     {
     stop=0;
 

@@ -558,19 +558,19 @@ void driver::logic_cfd()
 	else
 	psed = new sediment_void();
 
-    if(p->S10>0 || p->G1==1 || p->toporead==1)
+    if(p->S10>0 || p->G501==1 || p->toporead==1)
     {
-    if(p->G40==0)
+    if(p->G540==0)
     preto = new reinitopo_void();
     
-    if(p->G40>0)
+    if(p->G540>0)
     preto = new reinitopo_RK3(p);
     }
 
-    if(p->solidread==0 || p->G40==0)
+    if(p->solidread==0 || p->G540==0)
     preso = new reinitopo_void();
 
-    if(p->solidread==1 && p->G40>0)
+    if(p->solidread==1 && p->G540>0)
     preso = new reinisolid_RK3(p);
     
 // 6DOF

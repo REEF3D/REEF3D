@@ -99,43 +99,41 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A264;
     dd++;
-    ictrl[ii] = A270;
+    ictrl[ii] = G1;
     ii++;
-    ictrl[ii] = A271;
+    ictrl[ii] = G2;
     ii++;
-    ictrl[ii] = A272;
+    ictrl[ii] = G3;
     ii++;
-    dctrl[dd] = A273;
+    dctrl[dd] = G20;
     dd++;
-    ictrl[ii] = A274;
+    ictrl[ii] = G4;
     ii++;
-    ictrl[ii] = A275;
+    ictrl[ii] = G10;
     ii++;
-    ictrl[ii] = A276;
+    ictrl[ii] = G11;
     ii++;
-    ictrl[ii] = A277;
+    ictrl[ii] = G12;
     ii++;
-    ictrl[ii] = A278;
-    ii++;
-    dctrl[dd] = A278_r;
+    dctrl[dd] = G12_r;
     dd++;
-    dctrl[dd] = A279_L;
+    dctrl[dd] = G13_L;
     dd++;
-    dctrl[dd] = A279_a;
+    dctrl[dd] = G13_a;
     dd++;
-    ictrl[ii] = A280;
+    ictrl[ii] = G5;
     ii++;
-    ictrl[ii] = A281;
+    ictrl[ii] = G6;
     ii++;
-    dctrl[dd] = A282;
+    dctrl[dd] = G21;
     dd++;
-    ictrl[ii] = A283;
+    ictrl[ii] = G30;
     ii++;
-    ictrl[ii] = A284;
+    ictrl[ii] = G22;
     ii++;
-    ictrl[ii] = A285;
+    ictrl[ii] = G23;
     ii++;
-    ictrl[ii] = A286;
+    ictrl[ii] = G40;
     ii++;
 
     ictrl[ii] = A309;
@@ -1269,29 +1267,29 @@ void control::ctrlsend()
     ii++;
 
 
-    ictrl[ii] = G1;
+    ictrl[ii] = G501;
     ii++;
-    ictrl[ii] = G2;
+    ictrl[ii] = G502;
     ii++;
-    ictrl[ii] = G5;
+    ictrl[ii] = G505;
     ii++;
-    ictrl[ii] = G10;
+    ictrl[ii] = G510;
     ii++;
-    ictrl[ii] = G11;
+    ictrl[ii] = G511;
     ii++;
-    ictrl[ii] = G12;
+    ictrl[ii] = G512;
     ii++;
-    ictrl[ii] = G20;
+    ictrl[ii] = G520;
     ii++;
-    ictrl[ii] = G21;
+    ictrl[ii] = G521;
     ii++;
-    ictrl[ii] = G22;
+    ictrl[ii] = G522;
     ii++;
-    ictrl[ii] = G30;
+    ictrl[ii] = G530;
     ii++;
-    ictrl[ii] = G40;
+    ictrl[ii] = G540;
     ii++;
-    ictrl[ii] = G41;
+    ictrl[ii] = G541;
     ii++;
 
     dctrl[dd] = H1;
@@ -3518,27 +3516,27 @@ void control::ctrlsend()
         dd++;
     }
 
-    for(n=0;n<A276;++n)
+    for(n=0;n<G10;++n)
     {
-        dctrl[dd] = A276_xs[n];
+        dctrl[dd] = G10_xs[n];
         dd++;
-        dctrl[dd] = A276_xe[n];
+        dctrl[dd] = G10_xe[n];
         dd++;
-        dctrl[dd] = A276_ys[n];
+        dctrl[dd] = G10_ys[n];
         dd++;
-        dctrl[dd] = A276_ye[n];
+        dctrl[dd] = G10_ye[n];
         dd++;
     }
 
-    for(n=0;n<A277;++n)
+    for(n=0;n<G11;++n)
     {
-        dctrl[dd] = A277_xs[n];
+        dctrl[dd] = G11_xs[n];
         dd++;
-        dctrl[dd] = A277_xe[n];
+        dctrl[dd] = G11_xe[n];
         dd++;
-        dctrl[dd] = A277_ys[n];
+        dctrl[dd] = G11_ys[n];
         dd++;
-        dctrl[dd] = A277_ye[n];
+        dctrl[dd] = G11_ye[n];
         dd++;
     }
 

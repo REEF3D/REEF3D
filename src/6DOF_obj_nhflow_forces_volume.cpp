@@ -54,7 +54,7 @@ void sixdof_obj_nhflow::hydrodynamic_forces_nhflow_volume
 
         rx = p->pos_x() - c_(0);
         ry = p->pos_y() - c_(1);
-        rz = p->pos_z() - c_(2);          // ZSP[IJK] under G2==1
+        rz = p->pos_z() - c_(2);          // ZSP[IJK] under G502==1
 
         // the forcing exactly as the momentum update applied it
         fx = CPORNH*FX[IJK];

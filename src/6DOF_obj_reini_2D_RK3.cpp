@@ -37,7 +37,7 @@ void sixdof_obj_2D::reini_2D(lexer *p, ghostcell *pgc, slice &f)
 	}
 
 	if(p->count>0)
-	reiniter=p->G41;
+	reiniter=p->G541;
 
     for(int q=0;q<reiniter;++q)
     {

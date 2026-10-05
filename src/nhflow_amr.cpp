@@ -88,27 +88,27 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
 
     reefamr_param q;
     q.name = "NHFLOW AMR";
-    q.maxlev = p->A270;
+    q.maxlev = p->G1;
     q.regrid = 0;
-    q.nbuf = MAX(p->A272,0);
-    q.tile = MAX(p->A275,4);
+    q.nbuf = MAX(p->G3,0);
+    q.tile = MAX(p->G4,4);
     q.tile += q.tile%2;
-    q.keep = MIN(MAX(p->A280,0),250);
+    q.keep = MIN(MAX(p->G5,0),250);
 
     // cells computed beyond the patch box: the WENO5 reconstruction reaches three cells; the patch
     // arrays reach EXT + margin fine cells beyond the patch, which the coarser level has to cover
     q.ext = 3;
     q.nest = MAX(3,(q.ext+p->margin+1)/2);
 
-    for(int k=0; k<p->A276; ++k)
+    for(int k=0; k<p->G10; ++k)
     {
-        q.rbox.push_back(p->A276_xs[k]); q.rbox.push_back(p->A276_xe[k]);
-        q.rbox.push_back(p->A276_ys[k]); q.rbox.push_back(p->A276_ye[k]);
+        q.rbox.push_back(p->G10_xs[k]); q.rbox.push_back(p->G10_xe[k]);
+        q.rbox.push_back(p->G10_ys[k]); q.rbox.push_back(p->G10_ye[k]);
     }
-    for(int k=0; k<p->A277; ++k)
+    for(int k=0; k<p->G11; ++k)
     {
-        q.fbox.push_back(p->A277_xs[k]); q.fbox.push_back(p->A277_xe[k]);
-        q.fbox.push_back(p->A277_ys[k]); q.fbox.push_back(p->A277_ye[k]);
+        q.fbox.push_back(p->G11_xs[k]); q.fbox.push_back(p->G11_xe[k]);
+        q.fbox.push_back(p->G11_ys[k]); q.fbox.push_back(p->G11_ye[k]);
     }
 
     // no refinement in the relaxation zones of the wave generation (B 98 2) and the numerical
@@ -116,59 +116,59 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     bc_zone_set::from_legacy(p,pgc).norefine_boxes(p,q.fbox);
     q.ioband = 4;
 
-    // refinement around the floating body: margin A 278 around the wetted hull, a rectangle
+    // refinement around the floating body: margin G 12 around the wetted hull, a rectangle
     // aligned with x and y (moored or oscillating bodies), built at t = 0
-    q.zones = (b6!=nullptr && p->A278>0);
-    q.zr = p->A278_r;
+    q.zones = (b6!=nullptr && p->G12>0);
+    q.zr = p->G12_r;
     q.zalign = true;
 
-    // optional wake wedge (A 279 L a, as SFLOW): the zone is oriented along the direction of
+    // optional wake wedge (G 13 L a, as SFLOW): the zone is oriented along the direction of
     // motion (the yaw angle at rest) and a wedge of half angle a reaches back from the bow by L
-    // at most, where the bow has been; without A 279 the rectangle aligned with x and y
-    if(p->A279_L>0.0)
+    // at most, where the bow has been; without G 13 the rectangle aligned with x and y
+    if(p->G13_L>0.0)
     {
     q.zalign = false;
-    q.zL = p->A279_L;
-    q.za = p->A279_a;
+    q.zL = p->G13_L;
+    q.za = p->G13_a;
     }
 
     // solution-adaptive flags (as sflow_amr): a cell of level l gets level l+1 where the surface
-    // jumps by more than A 273 to a neighbour cell or its second difference along x or y exceeds
-    // A 282 (both in m, so a finer level flags only steeper or shorter waves)
-    tol_eta = MAX(p->A273,0.0);
-    tol_curv = MAX(p->A282,0.0);
+    // jumps by more than G 20 to a neighbour cell or its second difference along x or y exceeds
+    // G 21 (both in m, so a finer level flags only steeper or shorter waves)
+    tol_eta = MAX(p->G20,0.0);
+    tol_curv = MAX(p->G21,0.0);
     adaptive = (tol_eta>0.0 || tol_curv>0.0);
 
-    // wetting and drying: with A 283 1 the patches may cover dry and shallow cells (the NHFLOW
+    // wetting and drying: with G 30 1 the patches may cover dry and shallow cells (the NHFLOW
     // wetting and drying runs on every grid, the coupling interpolates from wet cells only);
     // otherwise they are fully wet: no patch within 4 level-0 cells of a dry or shallow cell,
     // checked at every regrid (cell_unfit; a static box over dry cells loses those tiles as well)
-    shore = (p->A283==1);
+    shore = (p->G30==1);
     q.dryband = shore ? 0 : 4;
 
-    // shoreline flag (A 284 n, with A 283 1): a cell flags the next level where a cell of the other
+    // shoreline flag (G 22 n, with G 30 1): a cell flags the next level where a cell of the other
     // wet state lies within n cells (n <= 3: the halo of level 0 and the EXT cells of a patch),
     // so the patches follow run-up and run-down
-    if(shore && p->A284>0)
+    if(shore && p->G22>0)
     {
-    nshore = MIN(p->A284,3);
+    nshore = MIN(p->G22,3);
     adaptive = true;
     }
 
-    // breaking flag (A 285 1, with A 550 1): a cell with breaking viscosity flags the next level,
+    // breaking flag (G 23 1, with A 550 1): a cell with breaking viscosity flags the next level,
     // so the breaking zone stays on the finest grid as it moves
-    if(p->A285==1 && p->A550==1)
+    if(p->G23==1 && p->A550==1)
     {
     flagbreak = true;
     adaptive = true;
     }
 
-    // the zone follows the body, the patches follow the flags: new patches every A 271 steps
-    // (A 271 0: static), the layout is kept as long as it covers the flagged tiles with at most
+    // the zone follows the body, the patches follow the flags: new patches every G 2 steps
+    // (G 2 0: static), the layout is kept as long as it covers the flagged tiles with at most
     // 50 % excess (as fnpf_amr)
     if(q.zones || adaptive)
     {
-    q.regrid = MAX(p->A271,0);
+    q.regrid = MAX(p->G2,0);
     q.lazy = 1.5;
     }
 
@@ -176,17 +176,17 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // before the 6DOF initialisation builds them), as on the uniform fine grid
     if(q.zones)
     for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->amr_hfac = 1.0/double(1<<MAX(p->A270,0));
+    b6->object(nb)->amr_hfac = 1.0/double(1<<MAX(p->G1,0));
 
-    // vertical refinement (A 281 1): every level doubles the sigma layers of its parent, the
+    // vertical refinement (G 6 1): every level doubles the sigma layers of its parent, the
     // coarse nodes are nodes of the fine grid
-    vr = (p->A281==1) ? 2 : 1;
+    vr = (p->G6==1) ? 2 : 1;
     q.vref.assign(q.maxlev+1,vr);
 
-    // several ranks (A 286 1): the patches are not cut at the rank boxes but placed for the load of
+    // several ranks (G 40 1): the patches are not cut at the rank boxes but placed for the load of
     // the ranks; parents and old patches on other ranks are reached through the block plans and
     // old_run of the core
-    q.place = (p->A286>=1 && p->mpi_size>1) ? MIN(p->A286,2) : 0;
+    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
     q.rebalance = 0.1;
 
     configure(q);
@@ -277,7 +277,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (A 270): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0, "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0, "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles or rods, and 3D grids "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
@@ -353,23 +353,23 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
     cout<<"NHFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns, dt "<<p->dt;
     if(vr==2)
-    cout<<", sigma layers doubled on every level (A 281)";
+    cout<<", sigma layers doubled on every level (G 6)";
     if(shore)
-    cout<<", wetting and drying in the patches (A 283)";
+    cout<<", wetting and drying in the patches (G 30)";
     if(adaptive)
     {
     cout<<", flags:";
     if(tol_eta>0.0)
-    cout<<" surface jump "<<tol_eta<<" m (A 273)";
+    cout<<" surface jump "<<tol_eta<<" m (G 20)";
     if(tol_curv>0.0)
-    cout<<" second difference "<<tol_curv<<" m (A 282)";
+    cout<<" second difference "<<tol_curv<<" m (G 21)";
     if(nshore>0)
-    cout<<" shoreline within "<<nshore<<" cells (A 284)";
+    cout<<" shoreline within "<<nshore<<" cells (G 22)";
     if(flagbreak)
-    cout<<" breaking (A 285)";
+    cout<<" breaking (G 23)";
     }
     if(regrid_int>0)
-    cout<<", regrid every "<<regrid_int<<" steps (A 271)"<<(par.zones ? ", the zone follows the body" : "");
+    cout<<", regrid every "<<regrid_int<<" steps (G 2)"<<(par.zones ? ", the zone follows the body" : "");
     cout<<endl;
     }
 }
@@ -533,7 +533,7 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     fdm_nhf *d = c->d;
     pscope ps(pgc,d,d0);
 
-    // A 283: the cells around the patch keep the flags of their source cell through the
+    // G 30: the cells around the patch keep the flags of their source cell through the
     // wetting and drying of the patch (set by every fill), so that a fine face on the patch box
     // is open only where the coarse face is
     if(shore)
@@ -662,7 +662,7 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     free_lexer3D(*c);
 }
 
-// cells of level l that need level l+1 (the boxes A 276 and the body zone are marked by the
+// cells of level l that need level l+1 (the boxes G 10 and the body zone are marked by the
 // core): the end-of-step surface of the level-l grids, wet cells deeper than A 545 A 544 only
 void nhflow_amr::tag(int l, vector<unsigned char> &M)
 {
@@ -680,11 +680,11 @@ void nhflow_amr::tag(int l, vector<unsigned char> &M)
             return q->flagslice4[n]>0 && q->wet[n]==1 && d->WL(a,b)>wmin;
         };
 
-        // breaking (A 285): a cell with breaking viscosity
+        // breaking (G 23): a cell with breaking viscosity
         if(flagbreak && q->flagslice4[lij(q,ii,jj)]>0 && d->vb(ii,jj)>0.0)
         return true;
 
-        // shoreline (A 284): a fluid cell with a cell of the other wet state within nshore cells
+        // shoreline (G 22): a fluid cell with a cell of the other wet state within nshore cells
         if(nshore>0 && q->flagslice4[lij(q,ii,jj)]>0)
         {
             const int w0 = q->wet[lij(q,ii,jj)];
@@ -1106,7 +1106,7 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                      }
                      else
                      {
-                         // A 283: surface and velocities from wet cells, pressure from wet and
+                         // G 30: surface and velocities from wet cells, pressure from wet and
                          // deep cells; the flags are the parent's (a fine face on the patch box
                          // carries mass only where the coarse face can)
                          // the weights of the wet cells once for the column
@@ -1115,7 +1115,7 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                          v[0] = pqw(d->eta,q,f.si,f.sj,w1);
                          v[1] = q->wet[lij(q,f.si,f.sj)];
                          v[2] = q->deep[lij(q,f.si,f.sj)];
-                         // layer by layer on the coarser grid, then (A 281) into the halves
+                         // layer by layer on the coarser grid, then (G 6) into the halves
                          for(int k=0; k<Kc; ++k)
                          {
                              uc[k] = pq3w(d->U,q,f.si,f.sj,k,true,w1);
@@ -1166,7 +1166,7 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                  if(brk)
                  c->vbfill[lij(pp,ii,jj)] = w[nb];
 
-                 // A 283: the flag of the source cell is kept through the patch's wetdry; a dry
+                 // G 30: the flag of the source cell is kept through the patch's wetdry; a dry
                  // source cell gives a dry cell on the bed of the patch
                  if(shore)
                  c->wfix[lij(pp,ii,jj)] = (int)w[1];
@@ -1321,7 +1321,7 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
                    }
 
                    // conservative: the 2x2 block keeps the water level and, layer by layer, the momentum
-                   // of its coarse cell (the restriction is the block mean, with A 281 over the 2x2x2
+                   // of its coarse cell (the restriction is the block mean, with G 6 over the 2x2x2
                    // cells of a coarse layer), a constant shift of the interpolated shape; the velocities
                    // follow
                    const int i0 = EXT+2*bi, j0 = EXT+2*bj;
@@ -1332,7 +1332,7 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
                    const double dwl = v[t0] - wm;
                    const bool pwet = ((int)v[t0+1]==1);
 
-                   // A 283, well balanced at the shoreline: a dry parent gives dry children on the bed of
+                   // G 30, well balanced at the shoreline: a dry parent gives dry children on the bed of
                    // the patch; a block where a child falls dry (the interpolated surface, or the shift,
                    // below the bed + A 544) keeps the surface of the wet parent without the shift (eta
                    // flat at rest; the water volume of the block changes by the clipping) and its dry
@@ -1565,7 +1565,7 @@ void nhflow_amr::restrict_momentum(int s, bool withP)
 
                      for(int kk=0; kk<K; ++kk)
                      {
-                         // the 2x2 children of the layer, with A 281 in both fine layers (equal thickness)
+                         // the 2x2 children of the layer, with G 6 in both fine layers (equal thickness)
                          auto avg = [&](const double *f)
                          {
                              double r = 0.0;
@@ -1685,13 +1685,13 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
         prolong_patch(pgc,l);
 
-        // A 283: the flags from the prolonged water level
+        // G 30: the flags from the prolonged water level
         if(shore)
         for(int id : lev[l])
         if(P[id]->fresh)
         patch_flags(*NP(id));
 
-        // where an old patch of the same level was (on any rank), its state is taken over (A 283:
+        // where an old patch of the same level was (on any rank), its state is taken over (G 30:
         // with its flags, which carry the history of the wetting and drying)
         {
             const int K = klev(l);
@@ -1868,7 +1868,7 @@ void nhflow_amr::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, d
     return;
 
     // coarse faces next to the patches of this rank: mean of the two fine faces, layer by layer
-    // (A 281: of the two fine faces in both fine layers of the coarse layer; the fluxes are per
+    // (G 6: of the two fine faces in both fine layers of the coarse layer; the fluxes are per
     // unit sigma and the halves have the same thickness)
     for(auto &m : match[id])
     {
@@ -2100,7 +2100,7 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     regrid_step(p,pgc);
 }
 
-// the zone around the body moves, the flags move: new patches every A 271 steps, from the state
+// the zone around the body moves, the flags move: new patches every G 2 steps, from the state
 // at the end of the step
 void nhflow_amr::regrid_step(lexer *p, ghostcell *pgc)
 {

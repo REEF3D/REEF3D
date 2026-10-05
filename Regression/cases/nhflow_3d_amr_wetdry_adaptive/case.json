@@ -1,16 +1,16 @@
 {
  "base": "nhflow_3d_amr_wetdry",
  "ctrl_set": {
-  "A 276": null,
-  "A 275": "4"
+  "G 10": null,
+  "G 4": "4"
  },
  "ctrl_add": [
-  "A 284 2",
-  "A 272 1",
-  "A 271 1",
-  "A 280 0"
+  "G 22 2",
+  "G 3 1",
+  "G 2 1",
+  "G 5 0"
  ],
- "description": "nhflow_3d_amr_wetdry without the box: the shoreline flag (A 284) alone, a regrid every step; the layout changes from step 116 as the shoreline moves.",
+ "description": "nhflow_3d_amr_wetdry without the box: the shoreline flag (G 22) alone, a regrid every step; the layout changes from step 116 as the shoreline moves.",
  "solver": "nhflow",
  "np": 1,
  "steps": 140,
@@ -21,7 +21,7 @@
   "wetdry"
  ],
  "covers": [
-  "A 284 tag",
-  "regrid with A 283 (from_old flags)"
+  "G 22 tag",
+  "regrid with G 30 (from_old flags)"
  ]
 }

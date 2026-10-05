@@ -95,43 +95,41 @@ void control::ctrlrecv()
     dd++;
     A264 = dctrl[dd];
     dd++;
-    A270 = ictrl[ii];
+    G1 = ictrl[ii];
     ii++;
-    A271 = ictrl[ii];
+    G2 = ictrl[ii];
     ii++;
-    A272 = ictrl[ii];
+    G3 = ictrl[ii];
     ii++;
-    A273 = dctrl[dd];
+    G20 = dctrl[dd];
     dd++;
-    A274 = ictrl[ii];
+    G4 = ictrl[ii];
     ii++;
-    A275 = ictrl[ii];
+    G10 = ictrl[ii];
     ii++;
-    A276 = ictrl[ii];
+    G11 = ictrl[ii];
     ii++;
-    A277 = ictrl[ii];
+    G12 = ictrl[ii];
     ii++;
-    A278 = ictrl[ii];
-    ii++;
-    A278_r = dctrl[dd];
+    G12_r = dctrl[dd];
     dd++;
-    A279_L = dctrl[dd];
+    G13_L = dctrl[dd];
     dd++;
-    A279_a = dctrl[dd];
+    G13_a = dctrl[dd];
     dd++;
-    A280 = ictrl[ii];
+    G5 = ictrl[ii];
     ii++;
-    A281 = ictrl[ii];
+    G6 = ictrl[ii];
     ii++;
-    A282 = dctrl[dd];
+    G21 = dctrl[dd];
     dd++;
-    A283 = ictrl[ii];
+    G30 = ictrl[ii];
     ii++;
-    A284 = ictrl[ii];
+    G22 = ictrl[ii];
     ii++;
-    A285 = ictrl[ii];
+    G23 = ictrl[ii];
     ii++;
-    A286 = ictrl[ii];
+    G40 = ictrl[ii];
     ii++;
 
     A309 = ictrl[ii];
@@ -1263,29 +1261,29 @@ void control::ctrlrecv()
     F399 = ictrl[ii];
     ii++;
 
-    G1  = ictrl[ii];
+    G501  = ictrl[ii];
     ii++;
-    G2  = ictrl[ii];
+    G502  = ictrl[ii];
     ii++;
-    G5  = ictrl[ii];
+    G505  = ictrl[ii];
     ii++;
-    G10 = ictrl[ii];
+    G510 = ictrl[ii];
     ii++;
-    G11 = ictrl[ii];
+    G511 = ictrl[ii];
     ii++;
-    G12 = ictrl[ii];
+    G512 = ictrl[ii];
     ii++;
-    G20 = ictrl[ii];
+    G520 = ictrl[ii];
     ii++;
-    G21 = ictrl[ii];
+    G521 = ictrl[ii];
     ii++;
-    G22 = ictrl[ii];
+    G522 = ictrl[ii];
     ii++;
-    G30 = ictrl[ii];
+    G530 = ictrl[ii];
     ii++;
-    G40 = ictrl[ii];
+    G540 = ictrl[ii];
     ii++;
-    G41 = ictrl[ii];
+    G541 = ictrl[ii];
     ii++;
 
     H1 = dctrl[dd];
@@ -3223,20 +3221,20 @@ void control::ctrlrecv()
         Darray(F72_h,F72);
     }
 
-    if(A276>0)
+    if(G10>0)
     {
-        Darray(A276_xs,A276);
-        Darray(A276_xe,A276);
-        Darray(A276_ys,A276);
-        Darray(A276_ye,A276);
+        Darray(G10_xs,G10);
+        Darray(G10_xe,G10);
+        Darray(G10_ys,G10);
+        Darray(G10_ye,G10);
     }
 
-    if(A277>0)
+    if(G11>0)
     {
-        Darray(A277_xs,A277);
-        Darray(A277_xe,A277);
-        Darray(A277_ys,A277);
-        Darray(A277_ye,A277);
+        Darray(G11_xs,G11);
+        Darray(G11_xe,G11);
+        Darray(G11_ys,G11);
+        Darray(G11_ye,G11);
     }
 
     if(F112>0)
@@ -4746,27 +4744,27 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A276;++n)
+    for(n=0;n<G10;++n)
     {
-        A276_xs[n] = dctrl[dd];
+        G10_xs[n] = dctrl[dd];
         dd++;
-        A276_xe[n] = dctrl[dd];
+        G10_xe[n] = dctrl[dd];
         dd++;
-        A276_ys[n] = dctrl[dd];
+        G10_ys[n] = dctrl[dd];
         dd++;
-        A276_ye[n] = dctrl[dd];
+        G10_ye[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<A277;++n)
+    for(n=0;n<G11;++n)
     {
-        A277_xs[n] = dctrl[dd];
+        G11_xs[n] = dctrl[dd];
         dd++;
-        A277_xe[n] = dctrl[dd];
+        G11_xe[n] = dctrl[dd];
         dd++;
-        A277_ys[n] = dctrl[dd];
+        G11_ys[n] = dctrl[dd];
         dd++;
-        A277_ye[n] = dctrl[dd];
+        G11_ye[n] = dctrl[dd];
         dd++;
     }
 

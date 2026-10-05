@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 void lexer::gridini(ghostcell *pgc)
 {
-    if(G2==1)
+    if(G502==1)
     grid::sigma_coord_ini();
 
     grid::gridspacing(pgc);

@@ -60,7 +60,7 @@ using namespace std;
 //  hierarchy, patch lexers, fill and exchange plans, restriction map, flux matching registry).
 //
 //  Level 0 is the native NHFLOW grid.  A refined patch refines x and y by 2 per level, with the
-//  same sigma layers, or with A 281 1 the sigma layers of its parent halved (nested: the coarse
+//  same sigma layers, or with G 6 1 the sigma layers of its parent halved (nested: the coarse
 //  nodes are nodes of the fine grid).  Each patch has its own lexer (horizontal geometry from the core, 3D flags
 //  and the sigma arrays built here), its own fdm_nhf and its own instances of the NHFLOW classes
 //  (momentum RK2/RK3, reconstruction, HLL/HLLC, free surface, pressure), so the kernels run
@@ -71,15 +71,15 @@ using namespace std;
 //   - the cells around the patches are filled with the stage input (coarse to fine): a patch of
 //     the same level, or interpolated from the next coarser level (bicubic in x,y, layer by
 //     layer; eta, U, V, W and P, then WL = eta + depth of the patch and UH = WL U ...; with
-//     A 281 U, V, W linear in sigma within each coarse layer, minmod-limited slope, mean
+//     G 6 U, V, W linear in sigma within each coarse layer, minmod-limited slope, mean
 //     preserving, and P at the midpoints between the coarse nodes linear)
 //   - continuity and momentum part of the stage (phase_F, phase_M), finest patches first: the
 //     flux hook of a patch records the face fluxes on its box faces (FEx/FEy, Fx/Fy of UH, VH,
 //     WH, per sigma layer, and dfx/dfy), a coarse face next to a finer patch takes the mean of
-//     its two fine faces (A 281: and of both fine layers) -> mass and momentum conserved across
+//     its two fine faces (G 6: and of both fine layers) -> mass and momentum conserved across
 //     the interfaces
 //   - restriction of WL, eta, UH, VH, WH to the covered coarse cells (2x2 averages per layer,
-//     A 281: 2x2x2)
+//     G 6: 2x2x2)
 //   - pressure projection on all grids together: the Poisson rows of every grid (nhflow_poisson,
 //     assembled per grid), the unknowns are the leaf nodes; BiCGStab with a FAC preconditioner
 //     (REEFMG V-cycle on level 0, patch-local reefmg_core), as the composite Laplace of FNPF AMR
@@ -90,25 +90,25 @@ using namespace std;
 //  Floating bodies (6DOF_nhflow, X 10 1/2): the body is advanced on level 0, before the patches
 //  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
 //  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
-//  triangle on the finest grid at its centroid (pressure, free surface, shear).  A 278 refines
-//  around the wetted hull (margin A 278, rectangle aligned with x and y; with A 279 L a oriented
+//  triangle on the finest grid at its centroid (pressure, free surface, shear).  G 12 refines
+//  around the wetted hull (margin G 12, rectangle aligned with x and y; with G 13 L a oriented
 //  along the motion plus a wake wedge of length L and half angle a, as SFLOW); the hull triangles
 //  (X 185) are then sized for the finest level, as on a uniform fine grid.  The zone follows the
-//  body: a regrid every A 271 steps at the end of the step (A 271 0: static), the layout kept
-//  while it covers the flagged tiles with at most 50 % excess, A 280 regrids of hysteresis.  A
+//  body: a regrid every G 2 steps at the end of the step (G 2 0: static), the layout kept
+//  while it covers the flagged tiles with at most 50 % excess, G 5 regrids of hysteresis.  A
 //  fresh patch takes the state of the old patches of its level where they overlap; elsewhere it
 //  is prolonged from its parent, conservatively (every 2x2 block keeps the water level and,
 //  layer by layer, the momentum of its coarse cell).
 //
 //  Solution-adaptive refinement (as sflow_amr): a cell of level l flags level l+1 where its surface
-//  jumps by more than A 273 to a neighbour or its second difference along x or y exceeds A 282;
-//  A 272 buffer cells, regrid every A 271 steps with the machinery of the body zone (lazy layout,
-//  A 280 hysteresis).  The hierarchy may be empty: the first patches appear with the first flags.
+//  jumps by more than G 20 to a neighbour or its second difference along x or y exceeds G 21;
+//  G 3 buffer cells, regrid every G 2 steps with the machinery of the body zone (lazy layout,
+//  G 5 hysteresis).  The hierarchy may be empty: the first patches appear with the first flags.
 //  At t = 0 the patches take the initial water level boxes (F 72) on their own grid.
 //
-//  Scope of this version: static refinement boxes, the body zone and the adaptive flags (A 270
-//  levels, A 276 boxes, A 277 boxes without refinement, A 275 tile width, A 272, A 273, A 282, A 278,
-//  A 279, A 271, A 280, A 281, A 283-A 285), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
+//  Scope of this version: static refinement boxes, the body zone and the adaptive flags (G 1
+//  levels, G 10 boxes, G 11 boxes without refinement, G 4 tile width, G 3, G 20, G 21, G 12,
+//  G 13, G 2, G 5, G 6, G 22, G 23, G 30, G 40), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
 //  A 512 0/1/2, A 560 0, A 550 0 (A 550 1 with A 510 2), B 200 0, X 10 0/1/2 (X 60 1, X 16 0,
 //  A 516 0/1/3), S 10 0, no solids (A 580 1,
 //  A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches stay out of the relaxation
@@ -117,10 +117,10 @@ using namespace std;
 //
 //  Breaking (A 550 1, RK2): every grid detects breaking and solves its own implicit diffusion
 //  with the breaking viscosity (A 512 2; a bicgstab_ijk per patch, its global sums local to the
-//  patch inside pscope); the viscous flux across a patch box is not matched (per grid).  A 285 1
+//  patch inside pscope); the viscous flux across a patch box is not matched (per grid).  G 23 1
 //  flags the cells with breaking viscosity for the adaptive mode.
 //
-//  Wetting and drying in the patches (A 283 1): the patches may cover dry and shallow cells, the
+//  Wetting and drying in the patches (G 30 1): the patches may cover dry and shallow cells, the
 //  NHFLOW wetting and drying (A 540) runs on every grid.  The coupling: the cells around a patch
 //  take the flags of their source cell (a fine face on the patch box carries mass only where the
 //  coarse face can) and are interpolated from wet source cells only (pressure: wet and deep), a
@@ -149,7 +149,7 @@ struct nhflow_amr_patch : public reefamr_patch
     ioflow *pflow = nullptr;
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
-    vector<int> wfix;               // A 283: flags of the filled cells, kept through wetdry (lexer::wetfix)
+    vector<int> wfix;               // G 30: flags of the filled cells, kept through wetdry (lexer::wetfix)
     vector<double> vbfill;          // A 550: breaking viscosity of the source of the filled cells (lexer::amrvb)
 
     // box faces recorded by the flux hook: rec[ipol][side][r*knoz+k], r fine face index along the
@@ -234,7 +234,7 @@ private:
     void free_lexer3D(nhflow_amr_patch&);
 
     // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy); the last argument
-    // (A 283) selects the coarse cells the stencil may use: 0 fluid, 1 wet (surface, velocities),
+    // (G 30) selects the coarse cells the stencil may use: 0 fluid, 1 wet (surface, velocities),
     // 2 wet and deep (pressure)
     void pweights(lexer*, int, int, int, int, double*, int=0);
     double pq(slice&, lexer*, int, int, int, int, int=0);
@@ -245,7 +245,7 @@ private:
     void pcol(int, int, int, int, int, const double*, int, double*, int=0);
     void vcell(lexer*, const double*, int, int, double*);
 
-    // vertical refinement (A 281): the sigma layers doubled on every level (vr 2), nested
+    // vertical refinement (G 6): the sigma layers doubled on every level (vr 2), nested
     int vr = 1;
     int klev(int l) const { return p0->knoz*((vr==2) ? (1<<l) : 1); }
 
@@ -317,18 +317,18 @@ private:
     template<class SEL> void pr_fill(int, int, SEL);
     void pr_prolong(int, int);               // level, vector
 
-    // wetting and drying in the patches (A 283 1): wet-aware interpolation, the flags of fresh
+    // wetting and drying in the patches (G 30 1): wet-aware interpolation, the flags of fresh
     // patches and of the covered coarse cells
     bool shore = false;
     int nshore = 0;
-    bool flagbreak = false;         // breaking flag (A 285): cells with breaking viscosity                 // shoreline flag (A 284): cells within nshore cells of the other wet state
+    bool flagbreak = false;         // breaking flag (G 23): cells with breaking viscosity                 // shoreline flag (G 22): cells within nshore cells of the other wet state
     bool wet_at(lexer*, int, int, int) const;
     void dry_cell(lexer*, fdm_nhf*, slice&, double*, double*, double*, int, int);
     void patch_flags(nhflow_amr_patch&);
     void restrict_flags(ghostcell*, int);
     void deep_rule(lexer*, slice&);
 
-    // solution-adaptive flags (A 273 surface jump, A 282 second difference) and the regrid of a
+    // solution-adaptive flags (G 20 surface jump, G 21 second difference) and the regrid of a
     // step
     double tol_eta = 0.0, tol_curv = 0.0;
     bool adaptive = false;

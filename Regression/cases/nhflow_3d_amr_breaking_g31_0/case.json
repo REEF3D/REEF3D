@@ -1,0 +1,21 @@
+{
+ "description": "nhflow_3d_amr_breaking_adaptive with the per-grid implicit diffusion of step 7 (G 31 0): every grid solves its own diffusion with a patch-local bicgstab_ijk.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking",
+  "adaptive",
+  "cdiff"
+ ],
+ "covers": [
+  "G 31 0: nhflow_idiff + bicgstab_ijk on patches, ghostcell::set_local"
+ ],
+ "ctrl_add": [
+  "G 31 0"
+ ],
+ "base": "nhflow_3d_amr_breaking_adaptive"
+}

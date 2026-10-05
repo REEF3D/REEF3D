@@ -83,15 +83,15 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
 
     reefamr_param q;
     q.name = "SFLOW AMR";
-    q.maxlev = p->A270;
-    q.regrid = p->A271;
-    q.nbuf = MAX(p->A272,0);
-    tol_eta = p->A273;
-    shore = p->A274;
-    q.tile = MAX(p->A275,4);
+    q.maxlev = p->G1;
+    q.regrid = p->G2;
+    q.nbuf = MAX(p->G3,0);
+    tol_eta = p->G20;
+    shore = p->G22;
+    q.tile = MAX(p->G4,4);
     q.tile += q.tile%2;
     q.nest = 3;
-    q.keep = MIN(MAX(p->A280,0),250);
+    q.keep = MIN(MAX(p->G5,0),250);
 
     // cells computed beyond the patch box: the wet-dry step of a stage needs the new state
     // two cells further out, the discharge limiter (B 60) three
@@ -133,27 +133,27 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     }
 
     // boxes only: static patches
-    if(tol_eta<=0.0 && shore==0 && (p->A278==0 || shipmode==0))
+    if(tol_eta<=0.0 && shore==0 && (p->G12==0 || shipmode==0))
     q.regrid = 0;
 
-    // refinement boxes (A 276), no refinement in the A 277 boxes and next to in- and outflow
-    for(int k=0; k<p->A276; ++k)
+    // refinement boxes (G 10), no refinement in the G 11 boxes and next to in- and outflow
+    for(int k=0; k<p->G10; ++k)
     {
-        q.rbox.push_back(p->A276_xs[k]); q.rbox.push_back(p->A276_xe[k]);
-        q.rbox.push_back(p->A276_ys[k]); q.rbox.push_back(p->A276_ye[k]);
+        q.rbox.push_back(p->G10_xs[k]); q.rbox.push_back(p->G10_xe[k]);
+        q.rbox.push_back(p->G10_ys[k]); q.rbox.push_back(p->G10_ye[k]);
     }
-    for(int k=0; k<p->A277; ++k)
+    for(int k=0; k<p->G11; ++k)
     {
-        q.fbox.push_back(p->A277_xs[k]); q.fbox.push_back(p->A277_xe[k]);
-        q.fbox.push_back(p->A277_ys[k]); q.fbox.push_back(p->A277_ye[k]);
+        q.fbox.push_back(p->G11_xs[k]); q.fbox.push_back(p->G11_xe[k]);
+        q.fbox.push_back(p->G11_ys[k]); q.fbox.push_back(p->G11_ye[k]);
     }
     q.ioband = 4;
 
-    // refinement around the moving body (A 278 margin, A 279 wake wedge)
-    q.zones = (shipmode>0 && p->A278>0);
-    q.zr = p->A278_r;
-    q.zL = p->A279_L;
-    q.za = p->A279_a;
+    // refinement around the moving body (G 12 margin, G 13 wake wedge)
+    q.zones = (shipmode>0 && p->G12>0);
+    q.zr = p->G12_r;
+    q.zL = p->G13_L;
+    q.za = p->G13_a;
 
     configure(q);
 
@@ -214,7 +214,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (A 270): only for A 220 0-4, A 210 3, A 260 0, S 10 0, X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0, S 10 0, X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -247,9 +247,9 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         cout<<", regrid every "<<regrid_int<<" steps";
         cout<<endl;
         if(shipmode>0)
-        cout<<"SFLOW AMR: moving body X 10 "<<shipmode<<" on the patches"<<(p->A278>0?", refinement around the body (A 278)":"")<<endl;
-        if(p->A278>0 && shipmode==0)
-        cout<<"SFLOW AMR: A 278 needs a moving body (X 10 2/3) -- ignored"<<endl;
+        cout<<"SFLOW AMR: moving body X 10 "<<shipmode<<" on the patches"<<(p->G12>0?", refinement around the body (G 12)":"")<<endl;
+        if(p->G12>0 && shipmode==0)
+        cout<<"SFLOW AMR: G 12 needs a moving body (X 10 2/3) -- ignored"<<endl;
     }
 }
 

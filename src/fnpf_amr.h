@@ -49,7 +49,7 @@ using namespace std;
 //  Patch-based mesh refinement for REEF3D::FNPF, the FNPF module of REEFAMR (reefamr.h).
 //
 //  Level 0 is the native FNPF grid.  A refined patch refines x and y by 2 per level and,
-//  with A 281 1, also the sigma layers (nested: every coarse node is a fine node).  Each
+//  with G 6 1, also the sigma layers (nested: every coarse node is a fine node).  Each
 //  patch has its own lexer (horizontal geometry from the core, sigma grid and flags built
 //  here), its own fdm_fnpf and its own instances of the FNPF classes (free-surface
 //  discretisation, sigma transformation, Laplace assembly), so the kernels run unchanged.
@@ -70,15 +70,15 @@ using namespace std;
 //
 //  Resolved body (fnpf_6DOF, X 10 1): every grid carries the body at its own resolution (ray
 //  cast, footprint, body band); the phi and psi solves are composite solves over all grids,
-//  every hull triangle is integrated on the finest grid that holds its centroid.  A 278 r
+//  every hull triangle is integrated on the finest grid that holds its centroid.  G 12 r
 //  refines a margin r around the wetted hull at t = 0.
 //
-//  Regridding (A 271 steps, default 4) only with the zone around the body (A 278): the zone is
+//  Regridding (G 2 steps, default 4) only with the zone around the body (G 12): the zone is
 //  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
 //  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
 //
-//  Scope of this version: refinement A 270 levels, A 276 boxes, A 277 boxes without
-//  refinement, A 275 tile width, A 278 zone around the body; RK3 (A 310 3), no wetting-drying
+//  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
+//  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), no wetting-drying
 //  (A 343 0), no breaking (A 350 0), X 10 0 or 1, no ice (A 380 0), A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 

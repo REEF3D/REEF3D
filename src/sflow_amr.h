@@ -75,9 +75,9 @@ using namespace std;
 //     face fluxes and face depths (sflow_HLL calls hll_hook between flux_bc and
 //     the divergence); across a partition edge the fine values are sent
 //   - one global time step, the stages of all grids in lockstep
-//   - every A 271 steps the patches are rebuilt from refinement flags (A 273
-//     surface jump, A 274 shoreline, A 276 boxes) with a buffer of A 272 cells.
-//     Flags mark tiles of A 275 cells on the global index space of each level;
+//   - every G 2 steps the patches are rebuilt from refinement flags (G 20
+//     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
+//     Flags mark tiles of G 4 cells on the global index space of each level;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
 //     the partition edges.
@@ -87,7 +87,7 @@ using namespace std;
 //     evaluate it on their own cells (sflow_amr_ship.cpp): the level set is interpolated
 //     from level 0, the draft is ray-cast from the hull triangles at the patch cell centres,
 //     and the pressure (X 10 3) or the direct forcing (X 10 2) is applied in the patch
-//     kernels.  A 278 refines a margin around the hull, A 279 a wake wedge behind the bow,
+//     kernels.  G 12 refines a margin around the hull, G 13 a wake wedge behind the bow,
 //     both moving with the body.
 
 struct sflow_amr_patch : public reefamr_patch
@@ -206,7 +206,7 @@ private:
     long bq_it_total = 0, bq_solves = 0;
     int nh_it_last;
 
-    // moving ship (X 10 2/3): body fields on the patches, refinement zone A 278/A 279
+    // moving ship (X 10 2/3): body fields on the patches, refinement zone G 12/G 13
     int shipmode;                   // X 10 of the body, 0: none
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch&, bool);

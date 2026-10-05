@@ -91,7 +91,7 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
     {
         gather_nodes(gz,p->gknoz,p->origin_k,p->knoz,p->ZN);
 
-        if(p->G2==1)
+        if(p->G502==1)
         {
             const double zb = p->global_zmin;
             const double zt = p->wd>zb ? p->wd : p->global_zmax;

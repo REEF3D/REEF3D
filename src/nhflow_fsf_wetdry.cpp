@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {
-        // mesh refinement (A 283): the cells around a patch keep the flags and the state of their
+        // mesh refinement (G 30): the cells around a patch keep the flags and the state of their
         // source cell (wetfix >= 0); everywhere else nothing changes
         auto fixed = [&]() { return p->wetfix!=nullptr && p->wetfix[IJ]>=0; };
 

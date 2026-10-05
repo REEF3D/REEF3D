@@ -109,7 +109,7 @@ void driver::logic_fnpf()
     ppfsg = new fnpf_RK4(p,c,pgc);
     
 //  Mesh refinement
-    if(p->A270>0)
+    if(p->G1>0)
     {
     pfamr = new fnpf_amr(p,c,pgc);
     ppfsg->attach_amr(pfamr);

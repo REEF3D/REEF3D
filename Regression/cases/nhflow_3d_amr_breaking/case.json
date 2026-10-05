@@ -1,5 +1,5 @@
 {
- "description": "NHFLOW AMR wave breaking on a static patch (A 550 1, A 512 2, A 276): the bore from an F 72 step runs into the patch box, so the cells filled around the patch see the breaking front of level 0.",
+ "description": "NHFLOW AMR wave breaking on a static patch (A 550 1, A 512 2, G 10): the bore from an F 72 step runs into the patch box, so the cells filled around the patch see the breaking front of level 0.",
  "solver": "nhflow",
  "np": 1,
  "steps": 60,

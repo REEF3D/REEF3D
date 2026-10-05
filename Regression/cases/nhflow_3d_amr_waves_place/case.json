@@ -1,5 +1,5 @@
 {
- "description": "Placed patches (A 286 1): nhflow_3d_amr_waves_mpi2 with the box on the second rank only; the patch is split and partly placed on the first rank, whose patches reach their parents on the other rank through the block plans.",
+ "description": "Placed patches (G 40 1): nhflow_3d_amr_waves_mpi2 with the box on the second rank only; the patch is split and partly placed on the first rank, whose patches reach their parents on the other rank through the block plans.",
  "solver": "nhflow",
  "np": 2,
  "steps": 60,
@@ -17,9 +17,9 @@
  ],
  "base": "nhflow_3d_amr_waves_mpi2",
  "ctrl_set": {
-  "A 276": "12.5 18.5 0.0 0.8"
+  "G 10": "12.5 18.5 0.0 0.8"
  },
  "ctrl_add": [
-  "A 286 1"
+  "G 40 1"
  ]
 }

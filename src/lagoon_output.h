@@ -119,7 +119,7 @@ private:
 };
 
 // LAGOON store output of an AMR solver's free surface (P 18; FNPF, NHFLOW, SFLOW with
-// A 270): the grids of every rank (its level 0 and its patches, as its .vtr files have
+// G 1): the grids of every rank (its level 0 and its patches, as its .vtr files have
 // them) are gathered on rank 0, which writes them to the AMR set <solver>_amr of
 // ./REEF3D_<SOLVER>.lagoon (lagoon_store.h, lagoon_amr): level 0 of all ranks first,
 // then the patches, rank by rank, as the .vtm lists them.

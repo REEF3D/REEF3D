@@ -34,7 +34,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     // -----------------------------------------------------------
     // FLAG
-    if(p->G5==1)
+    if(p->G505==1)
     {
     BASELOOP
     {
