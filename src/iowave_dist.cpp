@@ -26,106 +26,49 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<string>
 
+// Wave-frame coordinates of a point: xgen along the wave direction B 105_1,
+// ygen along the crest (90 deg counter-clockwise), both measured from the
+// origin (B 105_2, B 105_3) and signed. Unsigned distances mirror the wave
+// field at the B 105 line, so an origin inside the domain reversed the phase
+// of everything upstream of it (generation zone included).
+static inline double wave_xframe(double x1, double y1, double x0, double y0, double g)
+{
+    return (x1-x0)*cos(g) + (y1-y0)*sin(g);
+}
+
+static inline double wave_yframe(double x1, double y1, double x0, double y0, double g)
+{
+    return -(x1-x0)*sin(g) + (y1-y0)*cos(g);
+}
+
 double iowave::xgen_calc(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_xframe(p->pos_x(),p->pos_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::xgen1(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos1_x();
-	y1 = p->pos1_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_xframe(p->pos1_x(),p->pos1_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::xgen2(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos2_x();
-	y1 = p->pos2_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_xframe(p->pos2_x(),p->pos2_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::ygen_calc(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-    
-	return dist;
+	return wave_yframe(p->pos_x(),p->pos_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::ygen1(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos1_x();
-	y1 = p->pos1_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_yframe(p->pos1_x(),p->pos1_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::ygen2(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos2_x();
-	y1 = p->pos2_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_yframe(p->pos2_x(),p->pos2_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::distgen_calc(lexer *p)
@@ -194,7 +137,7 @@ void iowave::dist_cache_build(lexer *p)
     j=js;
 }
 
-// xgen/ygen additionally depend on tan_alpha (set at the end of the constructor)
+// xgen/ygen additionally depend on gamma (set at the end of the constructor)
 void iowave::xy_cache_build(lexer *p)
 {
     const int is=i, js=j;
