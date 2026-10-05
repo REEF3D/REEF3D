@@ -121,133 +121,121 @@ inline double fnpf_amr::rc4(F f)
     return r;
 }
 
-// covered cells: restricted from the 2x2 children, finest first
+// covered cells: restricted from the 2x2 children, finest first (the parent may lie on another
+// rank: block plans)
 template<class SEL>
 inline void fnpf_amr::restrict_sl(int ns, SEL sel)
 {
     for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
-    {
-        reefamr_patch *c = P[id];
-        const int nby = c->ny/2;
-
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-            const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(c->pp,i0,j0);
-            for(int m=0; m<ns; ++m)
-            {
-                slice &f = sel(id,m);
-                if(hi)
-                sel(g,m)(c->ric[k],c->rjc[k]) = rc4([&](int a, int b) { return f(i0+a,j0+b); });
-                else
-                sel(g,m)(c->ric[k],c->rjc[k]) = 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1));
-            }
-        }
-    }
+    block_up(l,ns,7550+l,
+             [&](reefamr_patch *c, int id, int k, double *v)
+             {
+                 const int nby = c->ny/2;
+                 const int bi = k/nby, bj = k%nby;
+                 const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+                 const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(c->pp,i0,j0);
+                 for(int m=0; m<ns; ++m)
+                 {
+                     slice &f = sel(id,m);
+                     if(hi)
+                     v[m] = rc4([&](int a, int b) { return f(i0+a,j0+b); });
+                     else
+                     v[m] = 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1));
+                 }
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 for(int m=0; m<ns; ++m)
+                 sel(B.g,m)(B.ic,B.jc) = v[m];
+             });
 }
 
 template<class SEL>
 inline void fnpf_amr::restrict_col(SEL sel)
 {
     for(int l=maxlev; l>=1; --l)
-    for(int id : lev[l])
     {
-        reefamr_patch *c = P[id];
-        lexer *pp = c->pp;
-        const double *src = sel(id);
-        const int nby = c->ny/2;
-
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            const int k = bi*nby+bj;
-            const int g = c->rgrid[k];
-            if(g<-1)
-            continue;
-
-            lexer *q = glex(g);
-            const int knc = q->knoz;
-            const int fz = pp->knoz/knc;
-            double *dst = sel(g);
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-
-            const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
-            const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
-            for(int K=0; K<=knc; ++K)
-            {
-                const int kf = fz*K;
-                const int n0 = fidx(pp,i0,j0,kf);
-                if(hi)
-                dst[fidx(q,c->ric[k],c->rjc[k],K)] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
-                else
-                dst[fidx(q,c->ric[k],c->rjc[k],K)] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
-            }
-        }
+        const int knc = klev(l-1);
+        block_up(l,knc+1,7560+l,
+                 [&](reefamr_patch *c, int id, int k, double *v)
+                 {
+                     lexer *pp = c->pp;
+                     const double *src = sel(id);
+                     const int nby = c->ny/2;
+                     const int bi = k/nby, bj = k%nby;
+                     const int fz = pp->knoz/knc;
+                     const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+                     const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
+                     const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
+                     for(int K=0; K<=knc; ++K)
+                     {
+                         const int kf = fz*K;
+                         const int n0 = fidx(pp,i0,j0,kf);
+                         if(hi)
+                         v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
+                         else
+                         v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+                     }
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
+                 {
+                     lexer *q = glex(B.g);
+                     double *dst = sel(B.g);
+                     for(int K=0; K<=knc; ++K)
+                     dst[fidx(q,B.ic,B.jc,K)] = v[K];
+                 });
     }
 }
 
-// interior of a patch from its parent grid
-template<class SEL>
-inline void fnpf_amr::prolong_interior_sl(fnpf_amr_patch &c, int ns, SEL sel)
+// interior of the level-l patches with need(patch) from their parent grids (on the parent's rank)
+template<class ND, class SEL>
+inline void fnpf_amr::prolong_interior_sl(int l, ND need, int ns, SEL sel)
 {
-    int id=-1;
-    for(int n=0; n<(int)P.size(); ++n)
-    if(P[n]==&c)
-    id=n;
-
-    const int nby = c.ny/2;
-    for(int bi=0; bi<c.nx/2; ++bi)
-    for(int bj=0; bj<nby; ++bj)
-    {
-        const int k = bi*nby+bj;
-        const int g = c.rgrid[k];
-        if(g<-1)
-        continue;
-
-        for(int a=0; a<2; ++a)
-        for(int d=0; d<2; ++d)
-        for(int m=0; m<ns; ++m)
-        sel(id,m)(EXT+2*bi+a,EXT+2*bj+d) = pq(sel(g,m),glex(g),c.ric[k],c.rjc[k],a==0?-1:1,d==0?-1:1);
-    }
+    block_down_if(l,4*ns,7570+l,need,
+                  [&](const reefamr_block &B, int key, double *v)
+                  {
+                      for(int a=0; a<2; ++a)
+                      for(int d=0; d<2; ++d)
+                      for(int m=0; m<ns; ++m)
+                      v[(2*a+d)*ns+m] = pq(sel(B.g,m),glex(B.g),B.ic,B.jc,a==0?-1:1,d==0?-1:1);
+                  },
+                  [&](reefamr_patch *c, int id, int k, const double *v)
+                  {
+                      const int nby = c->ny/2;
+                      const int bi = k/nby, bj = k%nby;
+                      for(int a=0; a<2; ++a)
+                      for(int d=0; d<2; ++d)
+                      for(int m=0; m<ns; ++m)
+                      sel(id,m)(EXT+2*bi+a,EXT+2*bj+d) = v[(2*a+d)*ns+m];
+                  });
 }
 
-template<class SEL>
-inline void fnpf_amr::prolong_interior_col(fnpf_amr_patch &c, SEL sel)
+// columns of the interior of the level-l patches with need(patch): src(g) on the parent's rank,
+// dst(id) on the patch
+template<class ND, class SRC, class DST>
+inline void fnpf_amr::prolong_interior_col(int l, ND need, SRC src, DST dst)
 {
-    int id=-1;
-    for(int n=0; n<(int)P.size(); ++n)
-    if(P[n]==&c)
-    id=n;
+    const int knf = klev(l);
+    const int nc = knf+1;
 
-    lexer *pp = c.pp;
-    const int knf = pp->knoz;
-    vector<double> v(knf+1);
-    double *dst = sel(id);
-
-    const int nby = c.ny/2;
-    for(int bi=0; bi<c.nx/2; ++bi)
-    for(int bj=0; bj<nby; ++bj)
-    {
-        const int k = bi*nby+bj;
-        const int g = c.rgrid[k];
-        if(g<-1)
-        continue;
-
-        for(int a=0; a<2; ++a)
-        for(int d=0; d<2; ++d)
-        {
-            pcol(g,c.ric[k],c.rjc[k],a==0?-1:1,d==0?-1:1,sel(g),knf,&v[0]);
-            for(int kk=0; kk<=knf; ++kk)
-            dst[fidx(pp,EXT+2*bi+a,EXT+2*bj+d,kk)] = v[kk];
-        }
-    }
+    block_down_if(l,4*nc,7580+l,need,
+                  [&](const reefamr_block &B, int key, double *v)
+                  {
+                      for(int a=0; a<2; ++a)
+                      for(int d=0; d<2; ++d)
+                      pcol(B.g,B.ic,B.jc,a==0?-1:1,d==0?-1:1,src(B.g),knf,&v[(2*a+d)*nc]);
+                  },
+                  [&](reefamr_patch *c, int id, int k, const double *v)
+                  {
+                      lexer *pp = c->pp;
+                      double *f = dst(id);
+                      const int nby = c->ny/2;
+                      const int bi = k/nby, bj = k%nby;
+                      for(int a=0; a<2; ++a)
+                      for(int d=0; d<2; ++d)
+                      for(int kk=0; kk<=knf; ++kk)
+                      f[fidx(pp,EXT+2*bi+a,EXT+2*bj+d,kk)] = v[(2*a+d)*nc+kk];
+                  });
 }
 
 

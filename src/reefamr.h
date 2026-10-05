@@ -184,6 +184,9 @@ struct reefamr_param
                                 // rank below, so that parents and old patches are mostly on other ranks
     double rebalance = 0.1;     // place 1: a new placement when it lowers the predicted maximum load by
                                 // more than this fraction, else the patches keep their ranks
+    bool place_whole_zones = false; // place 1/2: a rectangle that reaches the hull of a body (its box
+                                // grown by zr) is placed whole, not split (FNPF: the footprint
+                                // extension of the body is local to a patch)
 };
 
 // switches the MPI exchange of the ghostcell class off while patch kernels run

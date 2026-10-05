@@ -127,6 +127,13 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     q.zalign = true;
     q.lazy = 1.5;
 
+    // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
+    // patches on other ranks are reached through the block plans and old_run of the core, the
+    // hull triangles are taken by the rank of the finest grid at their centroid (owns_point)
+    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
+    q.rebalance = 0.1;
+    q.place_whole_zones = true;
+
     configure(q);
 
     gcval_eta = 55;
@@ -185,9 +192,34 @@ slice& fnpf_amr::patch_tendency(int n, int m)
     return (m==0) ? static_cast<slice&>(*FP(n)->ek) : static_cast<slice&>(*FP(n)->fk);
 }
 
-void fnpf_amr::prolong_col(int n, double **f)
+void fnpf_amr::prolong_cols(double **f, const vector<char> &need)
 {
-    prolong_interior_col(*FP(n),[&](int g) -> double* { return f[g+1]; });
+    auto sel = [&](int g) -> double* { return f[g+1]; };
+    vector<reefamr_patch*> nd;
+    for(int n=0; n<(int)P.size(); ++n)
+    if(need[n])
+    nd.push_back(P[n]);
+    auto need_fn = [&](reefamr_patch *c) { return std::find(nd.begin(),nd.end(),c)!=nd.end(); };
+    for(int l=1; l<=maxlev; ++l)
+    prolong_interior_col(l,need_fn,sel,sel);
+}
+
+int fnpf_amr::klev(int l) const
+{
+    return p0->knoz*((vref==2) ? (1<<l) : 1);
+}
+
+bool fnpf_amr::owns_point(double x, double y, int id)
+{
+    // placed patches: the rank of the finest grid at (x,y), then its local grid
+    if(par.place>0)
+    return finest_rank(x,y)==p0->mpirank && finest_at(x,y)==id;
+
+    if(!(x >= p0->originx && x < p0->endx))
+    return false;
+    if(p0->j_dir==1 && !(y >= p0->originy && y < p0->endy))
+    return false;
+    return finest_at(x,y)==id;
 }
 
 // the finest local grid whose interior holds (x,y)
@@ -634,30 +666,6 @@ void fnpf_amr::regrid_static(ghostcell *pgc)
 {
 }
 
-// cells of the fresh patch c that an old patch of the same level held: fn(old patch, ii, jj,
-// io, jo) with the lexer indices on c and on the old patch (interior cells of the old patch)
-template<class F>
-void fnpf_amr::from_old(fnpf_amr_patch &c, vector<reefamr_patch*> &oldP, F fn)
-{
-    for(auto q : oldP)
-    {
-        if(q==&c || q->lev!=c.lev)
-        continue;
-
-        // kept patches are in both lists; only patches that are gone or kept can be sources,
-        // both still hold the state of the end of the step
-        const int I0 = MAX(c.I0,q->I0), I1 = MIN(c.I1,q->I1);
-        const int J0 = MAX(c.J0,q->J0), J1 = MIN(c.J1,q->J1);
-        if(I0>I1 || J0>J1)
-        continue;
-
-        fnpf_amr_patch *o = FP(q);
-        for(int I=I0; I<=I1; ++I)
-        for(int J=J0; J<=J1; ++J)
-        fn(*o, I-c.I0+EXT, J-c.J0+EXT, I-q->I0+EXT, J-q->J0+EXT);
-    }
-}
-
 // state of the new patches, coarse to fine: bed, depth and its derivatives, eta and Fifsf,
 // sigma grid, Fi and Fz.  Where an old patch of the same level was (the zone moved with the
 // body), its values are taken over; elsewhere they are interpolated from the parent level.
@@ -688,9 +696,7 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
     for(int l=1; l<=maxlev; ++l)
     {
         // bed
-        for(int id : lev[l])
-        if(P[id]->fresh)
-        prolong_interior_sl(*FP(id),1,sbed);
+        prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },1,sbed);
         fill_sl(l,1,7510+l,sbed);
 
         for(int id : lev[l])
@@ -716,21 +722,24 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             p->bed[lij(p,ii,jj)] = cc->bed(ii,jj);
         }
 
-        // surface
-        for(int id : lev[l])
-        if(P[id]->fresh)
-        {
-            fnpf_amr_patch *c = FP(id);
-            prolong_interior_sl(*c,2,sst);
-            prolong_interior_sl(*c,1,sfz);
-
-            from_old(*c,oldP,[&](fnpf_amr_patch &o, int ii, int jj, int io, int jo)
-            {
-                c->c->eta(ii,jj) = o.c->eta(io,jo);
-                c->c->Fifsf(ii,jj) = o.c->Fifsf(io,jo);
-                c->c->Fz(ii,jj) = o.c->Fz(io,jo);
-            });
-        }
+        // surface: prolonged, then the cells of the old patches (on any rank)
+        prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },2,sst);
+        prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },1,sfz);
+        old_run(l,3,7590+l,oldP,
+                [&](reefamr_patch *o, int io, int jo, double *v)
+                {
+                    fdm_fnpf *oc = FP(o)->c;
+                    v[0] = oc->eta(io,jo);
+                    v[1] = oc->Fifsf(io,jo);
+                    v[2] = oc->Fz(io,jo);
+                },
+                [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
+                {
+                    fdm_fnpf *cc = FP(q)->c;
+                    cc->eta(ii,jj) = v[0];
+                    cc->Fifsf(ii,jj) = v[1];
+                    cc->Fz(ii,jj) = v[2];
+                });
         fill_sl(l,2,7520+l,sst);
         fill_sl(l,1,7530+l,sfz);
 
@@ -767,19 +776,21 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             c->psig->sigma_update(p,cc,pgc,c->pf,cc->eta);
         }
 
-        // Fi
-        for(int id : lev[l])
-        if(P[id]->fresh)
+        // Fi: prolonged, then the columns of the old patches
+        prolong_interior_col(l,[&](reefamr_patch *c) { return c->fresh; },sfi,sfi);
         {
-            fnpf_amr_patch *c = FP(id);
-            prolong_interior_col(*c,sfi);
-
-            lexer *pp = c->pp;
-            from_old(*c,oldP,[&](fnpf_amr_patch &o, int ii, int jj, int io, int jo)
-            {
-                for(int kk=0; kk<=pp->knoz; ++kk)
-                c->c->Fi[fidx(pp,ii,jj,kk)] = o.c->Fi[fidx(o.pp,io,jo,kk)];
-            });
+        const int knf = klev(l);
+        old_run(l,knf+1,7595+l,oldP,
+                [&](reefamr_patch *o, int io, int jo, double *v)
+                {
+                    for(int kk=0; kk<=knf; ++kk)
+                    v[kk] = FP(o)->c->Fi[fidx(o->pp,io,jo,kk)];
+                },
+                [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
+                {
+                    for(int kk=0; kk<=knf; ++kk)
+                    FP(q)->c->Fi[fidx(q->pp,ii,jj,kk)] = v[kk];
+                });
         }
         fill_col(l,7540+l,sfi);
 

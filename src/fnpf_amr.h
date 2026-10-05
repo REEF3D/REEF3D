@@ -73,6 +73,13 @@ using namespace std;
 //  every hull triangle is integrated on the finest grid that holds its centroid.  G 12 r
 //  refines a margin r around the wetted hull at t = 0.
 //
+//  Several ranks: the patches are cut at the level-0 rank boxes, or with G 40 1 placed for the
+//  load of the ranks; parents and old patches on other ranks are then reached through the block
+//  plans and old_run of the core (restrict_sl/col, prolong_interior_sl/col, regrid_state), the
+//  hull triangles are taken by the rank of the finest grid at their centroid (owns_point).  A
+//  rectangle at a body is placed whole (place_whole_zones): the footprint extension and the
+//  interior fill of the body are local to a patch.
+//
 //  Regridding (G 2 steps, default 4) only with the zone around the body (G 12): the zone is
 //  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
 //  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
@@ -141,9 +148,13 @@ public:
     int patch_serial(int n) { return FP(n)->serial; }
     void patch_walls_fi(int n, double *f) { walls_fi(*FP(n),f); }
     int finest_at(double, double);      // local grid id whose interior holds (x,y), -1: level 0
-    // a Fi-layout array of patch n from its coarser grid (initial guess of a fresh body grid);
-    // f[g+1] is the array of grid g
-    void prolong_col(int n, double **f);
+    // the hull triangle with centroid (x,y) belongs to local grid id: the finest grid that holds
+    // the point is grid id of this rank (with placed patches the patch may be on another rank)
+    bool owns_point(double, double, int);
+    // Fi-layout arrays of the patches with need[n] from their coarser grids, coarse to fine
+    // (initial guess of the fresh body grids); f[g+1] is the array of grid g.  Collective: all
+    // ranks call it (the parent may be on another rank)
+    void prolong_cols(double **f, const vector<char> &need);
     int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
@@ -203,10 +214,11 @@ private:
     int rorder = 4;                 // restriction: 2 average of the children, 4 cubic
     int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic
     template<class SEL> void restrict_col(SEL);
-    template<class SEL> void prolong_interior_sl(fnpf_amr_patch&, int, SEL);
-    template<class SEL> void prolong_interior_col(fnpf_amr_patch&, SEL);
+    template<class ND, class SEL> void prolong_interior_sl(int, ND, int, SEL);
+    template<class ND, class SRC, class DST> void prolong_interior_col(int, ND, SRC, DST);
+    int klev(int l) const;          // sigma layers of level l
     void walls_sl(fnpf_amr_patch&, slice&, int);
-    template<class F> void from_old(fnpf_amr_patch&, vector<reefamr_patch*>&, F);
+
     int layout_id = 0;
     int serial_next = 0;
 

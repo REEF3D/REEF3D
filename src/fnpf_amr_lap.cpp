@@ -132,7 +132,7 @@ void fnpf_amr::lap_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-            const bool covered = (l<maxlev && patch_at(l+1,2*I,2*J)>=0);
+            const bool covered = (l<maxlev && reefamr::covered(l+1,2*I,2*J));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -550,17 +550,16 @@ void fnpf_amr::lap_prec(int kr, int kz)
             d[m] = z[m] - d[m];
         }
 
-        // the increment interpolated into the patch interiors (NRP) and added
+        // the increment interpolated into the patch interiors (NRP, from the parent on its rank)
+        // and added
+        prolong_interior_col(l,[](reefamr_patch*) { return true; },
+                             [&](int g) -> double* { return (g<0) ? lvec(-1,kz) : lvec(g,NPRE); },
+                             [&](int id) -> double* { return lvec(id,NRP); });
+
         for(int id : lev[l])
         {
             fnpf_amr_patch *c = FP(id);
             lexer *pp = c->pp;
-            prolong_interior_col(*c,[&](int g) -> double*
-            {
-                if(g<0)
-                return lvec(-1,kz);
-                return (P[g]->lev==l) ? lvec(g,NRP) : lvec(g,NPRE);
-            });
 
             double *z = lvec(id,kz);
             const double *t = lvec(id,NRP);

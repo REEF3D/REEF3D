@@ -760,28 +760,36 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
     // psi0 and the unit modes of a fresh grid: prolonged from the coarser grid as the initial
     // guess of the next psi solves (gp is in patch order, coarse levels first).  Left at zero
     // they started the composite solves with a jump at the patch edge
+    // (all ranks together, level by level: the parent may be on another rank, G 40)
     vector<double*> fg(gp.size()+1);
-    auto prolong_psi = [&](fnpf_6DOF_grid &G, int m)
-    {
-        fg[0] = (m<0) ? g0.psi0 : g0.psi[m];
-        for(size_t k=0; k<gp.size(); ++k)
-        fg[k+1] = (m<0) ? gp[k].psi0 : gp[k].psi[m];
-        if(fg[0]!=nullptr && fg[G.id+1]!=nullptr)
-        amr->prolong_col(G.id,&fg[0]);
-    };
     
     if(initialized)
-    for(auto &G : gp)
-    if(G.fresh)
     {
-        geometry(G,pgc);
-        extrapolate(G,pgc,G.c->Fi);
-        amr->patch_walls_fi(G.id,G.c->Fi);
+        vector<char> need(gp.size(),0);
+        for(auto &G : gp)
+        if(G.fresh)
+        {
+            geometry(G,pgc);
+            extrapolate(G,pgc,G.c->Fi);
+            amr->patch_walls_fi(G.id,G.c->Fi);
+            need[G.id] = 1;
+        }
         
-        prolong_psi(G,-1);
-        for(int m=0; m<6; ++m)
-        prolong_psi(G,m);
+        for(int m=-1; m<6; ++m)
+        {
+            fg[0] = (m<0) ? g0.psi0 : g0.psi[m];
+            vector<char> nd = need;
+            for(size_t k=0; k<gp.size(); ++k)
+            {
+                fg[k+1] = (m<0) ? gp[k].psi0 : gp[k].psi[m];
+                if(fg[k+1]==nullptr)
+                nd[k] = 0;
+            }
+            if(fg[0]!=nullptr)
+            amr->prolong_cols(&fg[0],nd);
+        }
         
+        for(auto &G : gp)
         G.fresh = false;
     }
 }
@@ -968,11 +976,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
             const int id = G.id;
             std::function<bool(double,double)> own = [&](double x, double y)
             {
-                if(!(x >= p->originx && x < p->endx))
-                return false;
-                if(p->j_dir==1 && !(y >= p->originy && y < p->endy))
-                return false;
-                return amr->finest_at(x,y)==id;
+                return amr->owns_point(x,y,id);
             };
             const double del = (g<0) ? 0.5*fb_obj[nb]->fnpf_dsm() : G.del;
             fb_obj[nb]->forces_fnpf_sum(G.p,G.c,G.psi0,G.psi,computeA,del,&own,S);

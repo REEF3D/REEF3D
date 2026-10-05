@@ -791,6 +791,16 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         const double w = work(c.lev,I0,I1,J0,J1);
         const int nti = c.I1-c.I0+1, ntj = c.J1-c.J0+1;
         int n = MAX(1,(int)ceil(w/wmax));
+
+        // rectangles at a body: whole (par.place_whole_zones)
+        if(par.place_whole_zones)
+        for(const reefamr_zone &z : zones)
+        {
+            const double x0 = gnode(0,c.lev,I0), x1 = gnode(0,c.lev,I1+1);
+            const double y0 = gnode(1,c.lev,J0), y1 = gnode(1,c.lev,J1+1);
+            if(x1>=z.bx0-par.zr && x0<=z.bx1+par.zr && (p->j_dir==0 || (y1>=z.by0-par.zr && y0<=z.by1+par.zr)))
+            n = 1;
+        }
         const bool alongx = (nti>=ntj);
         n = MIN(n,alongx ? nti : ntj);
 
