@@ -124,6 +124,44 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
         const int b = bgs.index(z->bg);
         const int count = side==1 ? p->gcin_count : p->gcout_count;
         int **gc = side==1 ? p->gcin : p->gcout;
+        
+        // waves of the edge's sources (B 524, Riemann only): eta and depth averaged u per column
+        const bool waves = z->method==bc_method::riemann && !z->sources.empty();
+        
+        if(waves)
+        {
+            select_sources(&z->sources);
+            
+            if(edge_etaw.empty())
+            {
+            edge_etaw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+            edge_uw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+            }
+            
+            const int cs = side==1 ? p->gcslin_count : p->gcslout_count;
+            int **gs = side==1 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            {
+            i=gs[n][0];
+            j=gs[n][1];
+            
+            if(gs[n][3]!=(side==1 ? 1 : 4))
+            continue;
+            
+                xg = xgen(p);
+                yg = ygen(p);
+                
+                edge_etaw[IJ] = wave_eta(p,pgc,xg,yg);
+                
+                double s = 0.0;
+                for(k=0; k<p->knoz; ++k)
+                s += wave_u(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                
+                edge_uw[IJ] = s;
+            }
+        }
+        
         for(n=0;n<count;++n)
         {
         i=gc[n][0];
@@ -149,20 +187,38 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             const double ui = nhflow_col_ubar(p,d,d->U);
             double ug, hg;
             
+            // waves of the layer and of the column (ramped), added to the background
+            double uwk=0.0, vwk=0.0, wwk=0.0, ewc=0.0, uwc=0.0;
+            
+            if(waves)
+            {
+                xg = xgen(p);
+                yg = ygen(p);
+                const double zk = p->ZSP[IJK]-p->phimean;
+                const double rw = ramp(p);
+                
+                uwk = rw*wave_u(p,pgc,xg,yg,zk);
+                vwk = rw*wave_v(p,pgc,xg,yg,zk);
+                wwk = rw*wave_w(p,pgc,xg,yg,zk);
+                ewc = rw*edge_etaw[IJ];
+                uwc = rw*edge_uw[IJ];
+            }
+            
             if(z->method==bc_method::riemann)
             {
-                const double hb = fmax(h0+eb,1.0e-6);
+                const double hb = fmax(h0+eb+ewc,1.0e-6);
+                const double ubt = ub + uwc;
                 double Rin, Rout;
                 
                 if(side==1)
                 {
-                Rin  = ub + 2.0*sqrt(g*hb);
+                Rin  = ubt + 2.0*sqrt(g*hb);
                 Rout = ui - 2.0*sqrt(g*hi);
                 hg = pow(Rin-Rout,2.0)/(16.0*g);
                 }
                 else
                 {
-                Rin  = ub - 2.0*sqrt(g*hb);
+                Rin  = ubt - 2.0*sqrt(g*hb);
                 Rout = ui + 2.0*sqrt(g*hi);
                 hg = pow(Rout-Rin,2.0)/(16.0*g);
                 }
@@ -181,28 +237,33 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             // inflow: tangential velocity of the background, outflow: of the interior
             const bool in = (side==1) ? ug>0.0 : ug<0.0;
             
-            const double vg = in ? vb : V[IJK];
-            const double wg = in ? 0.0 : W[IJK];
+            // depth average from the characteristics, vertical profile of the waves
+            const double ugk = ug + (uwk - uwc);
+            const double vg = in ? vb + vwk : V[IJK];
+            const double wg = in ? wwk : W[IJK];
             
             if(side==1)
             {
-            U[Im1JK]=U[Im2JK]=U[Im3JK]=ug;
+            U[Im1JK]=U[Im2JK]=U[Im3JK]=ugk;
             V[Im1JK]=V[Im2JK]=V[Im3JK]=vg;
             W[Im1JK]=W[Im2JK]=W[Im3JK]=wg;
-            UH[Im1JK]=UH[Im2JK]=UH[Im3JK]=hg*ug;
+            UH[Im1JK]=UH[Im2JK]=UH[Im3JK]=hg*ugk;
             VH[Im1JK]=VH[Im2JK]=VH[Im3JK]=hg*vg;
             WH[Im1JK]=WH[Im2JK]=WH[Im3JK]=hg*wg;
             }
             else
             {
-            U[Ip1JK]=U[Ip2JK]=U[Ip3JK]=ug;
+            U[Ip1JK]=U[Ip2JK]=U[Ip3JK]=ugk;
             V[Ip1JK]=V[Ip2JK]=V[Ip3JK]=vg;
             W[Ip1JK]=W[Ip2JK]=W[Ip3JK]=wg;
-            UH[Ip1JK]=UH[Ip2JK]=UH[Ip3JK]=hg*ug;
+            UH[Ip1JK]=UH[Ip2JK]=UH[Ip3JK]=hg*ugk;
             VH[Ip1JK]=VH[Ip2JK]=VH[Ip3JK]=hg*vg;
             WH[Ip1JK]=WH[Ip2JK]=WH[Ip3JK]=hg*wg;
             }
         }
+        
+        if(waves)
+        select_sources(nullptr);
     }
 }
 

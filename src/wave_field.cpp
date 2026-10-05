@@ -286,7 +286,7 @@ double wave_field::eta(lexer *p, double x, double y)
     double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         s->local(x,y,xs,ys);
         scope sc(p,*s);
@@ -301,7 +301,7 @@ double wave_field::u(lexer *p, double x, double y, double z)
     double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         s->local(x,y,xs,ys);
         scope sc(p,*s);
@@ -316,7 +316,7 @@ double wave_field::v(lexer *p, double x, double y, double z)
     double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         s->local(x,y,xs,ys);
         scope sc(p,*s);
@@ -331,7 +331,7 @@ double wave_field::w(lexer *p, double x, double y, double z)
     double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         s->local(x,y,xs,ys);
         scope sc(p,*s);
@@ -346,7 +346,7 @@ double wave_field::fi(lexer *p, double x, double y, double z)
     double val=0.0, xs, ys;
 
     for(wave_source *s : src)
-    if(s->active(p))
+    if(use(s) && s->active(p))
     {
         s->local(x,y,xs,ys);
         scope sc(p,*s);

@@ -46,7 +46,8 @@ zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
                                3: Riemann edge, 4: Flather edge (NHFLOW, edges 1 and 2)
   B 521 id edge s0 s1 width    edge 1: x-, 2: x+, 3: y-, 4: y+; along-edge range
                                [s0,s1] from the edge's start (s1 <= s0: whole edge)
-  B 524 id source              source of the zone (repeatable; 1: the B 92 wave)
+  B 524 id source              source of the zone (repeatable; 1: the B 92 wave); a Riemann
+                               edge carries the waves of its B 524 sources (none without B 524)
   B 523 id background          tidal / current background of the zone (B 510); a relaxation
                                zone then targets background + waves, a beach the background,
                                a Riemann or Flather edge the background

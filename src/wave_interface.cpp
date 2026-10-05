@@ -172,7 +172,7 @@ double wave_interface::wave_u(lexer *p, ghostcell *pgc, double x, double y, doub
     
     z = MAX(z,-wD);
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     uvel = pwave->wave_u(p,x,y,z);
 
     if(pfield->size()>0)
@@ -187,7 +187,7 @@ double wave_interface::wave_v(lexer *p, ghostcell *pgc, double x, double y, doub
     
     z = MAX(z,-wD);
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     vvel = pwave->wave_v(p,x,y,z);
 
     if(pfield->size()>0)
@@ -202,7 +202,7 @@ double wave_interface::wave_w(lexer *p, ghostcell *pgc, double x, double y, doub
     
     z = MAX(z,-wD);
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     wvel = pwave->wave_w(p,x,y,z);
 
     if(pfield->size()>0)
@@ -215,7 +215,7 @@ double wave_interface::wave_h(lexer *p, ghostcell *pgc, double x, double y, doub
 {
     double lsv=p->phimean;
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     lsv=p->phimean + pwave->wave_eta(p,x,y);
 
     if(pfield->size()>0)
@@ -230,6 +230,7 @@ double wave_interface::wave_fi(lexer *p, ghostcell *pgc, double x, double y, dou
     
     z = MAX(z,-wD);
     
+    if(legacy_on)
     pval = pwave->wave_fi(p,x,y,z);
 
     if(pfield->size()>0)
@@ -286,7 +287,7 @@ double wave_interface::wave_eta(lexer *p, ghostcell *pgc, double x, double y)
 {
     double eta=0.0;
     
-    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
     eta = pwave->wave_eta(p,x,y);
 
     if(pfield->size()>0)

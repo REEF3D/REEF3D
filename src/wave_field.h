@@ -75,7 +75,7 @@ public:
     static bool nonlinear(int);
     bool exists(int) const;
     
-    // sources used by the cached evaluation (eta_c, fi_c, uvw_c); nullptr: all
+    // sources used by the evaluation (direct and cached); nullptr: all
     const std::vector<int> *filter = nullptr;
 
 private:

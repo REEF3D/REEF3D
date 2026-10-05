@@ -290,7 +290,7 @@ private:
     bool bg_on=false;
     bool bg_built=false;
     std::vector<int> col_gen_bg, col_beach_bg;
-    std::vector<double> col_h0, edge_h;
+    std::vector<double> col_h0, edge_h, edge_etaw, edge_uw;
     void bg_build(lexer*);
     int gen_bg(lexer*);
     int beach_bg(lexer*);
