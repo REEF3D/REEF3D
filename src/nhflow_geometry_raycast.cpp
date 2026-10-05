@@ -71,6 +71,11 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
         }
     }
     
+    // cell centres on the surface (distance at round-off level) get LS = 0 exactly: the parity
+    // test perturbs the ray in a fixed direction, so such cells would be inside on one side of
+    // the solid and outside on the other (asymmetric level set of a symmetric solid)
+    const double ls_eps = 1.0e-10*DSM;
+    
     LOOP
     WETDRY
     {
@@ -80,6 +85,9 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
         
         if(IO[IJK]==1)
         LS[IJK]=fabs(LS[IJK]);
+        
+        if(fabs(LS[IJK])<ls_eps)
+        LS[IJK]=0.0;
     }
 	
 	LOOP

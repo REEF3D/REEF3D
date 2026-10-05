@@ -70,6 +70,12 @@ void sixdof_obj_nhflow::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pg
     
     int nband=0;
 
+    // cell centres on the surface (distance at round-off level, e.g. a box face through a row of
+    // cell centres) get FB = 0 exactly: the parity test perturbs the ray position in a fixed
+    // direction, so such cells would come out inside on one side of the body and outside on the
+    // other, and the sign-dependent forcing (X 15) would make a symmetric body asymmetric
+    const double fb_eps = 1.0e-10*DSM;
+    
     LOOP
     WETDRY
     {
@@ -78,6 +84,9 @@ void sixdof_obj_nhflow::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pg
         
         if(IO[IJK]==1)
         d->FB[IJK]=fabs(d->FB[IJK]);
+        
+        if(fabs(d->FB[IJK])<fb_eps)
+        d->FB[IJK]=0.0;
         
         d->test[IJK] = IO[IJK];
     }
