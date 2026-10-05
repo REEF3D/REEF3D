@@ -32,7 +32,7 @@ void control::ini_default()
     A209=1;      // int interpolation sweeps for bed
     A210=3;		  // int time scheme for SFLOW velocities
     A211=4;		  // int convection scheme for SLOW velocities
-    A212=0;		  // int diffusion treatment for SLOW velocities
+    A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A214=1;      // int convection for vertical velocity
     A215=0;      // int 
     A216=0;      // int
@@ -59,7 +59,7 @@ void control::ini_default()
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
     A263=10.0;   // double eddyv limiter factor set to high
-    A264=2.7;    // double epsilon coefficient ce_gamma
+    A264=3.6;    // double epsilon coefficient ce_gamma (Rastogi & Rodi 1978: nu_t = 0.077 u* h)
     A270=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
     A271=4;      // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with A 278, NHFLOW: with A 278, A 273 or A 282)
     A272=2;      // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells

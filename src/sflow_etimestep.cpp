@@ -123,6 +123,33 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     cmin = MIN(cmin, dtd/(2.0*cfl));
     }
     
+    // explicit horizontal diffusion (A 212 1): dt <= 0.5/(nu_eff (1/dx^2 + 1/dy^2)),
+    // nu_eff = nu + nu_t (+ A 250 in breaking cells with A 246 2), as in sflow_ediff::viscosity
+    if(p->A212==1)
+    {
+    double dtv = 1.0e20;
+    double visc;
+    
+        SLICELOOP4
+        WETDRY
+        {
+        visc = p->W2 + b->eddyv(i,j);
+        
+        if(p->A246==2 && b->breaking(i,j)==1)
+        visc += p->A250;
+        
+        p->viscmax = MAX(p->viscmax,visc);
+        
+        dtv = MIN(dtv, 0.5/(visc*(1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0e-20));
+        }
+        
+    dtv = pgc->globalmin(dtv);
+    p->viscmax = pgc->globalmax(p->viscmax);
+    
+    // cmin is scaled by 2*N47 below
+    cmin = MIN(cmin, dtv/(2.0*cfl));
+    }
+    
     if(cmin>1.0e19)
     cmin = p->DXM/sqrt(g*MAX(p->wd,wd_criterion));
 

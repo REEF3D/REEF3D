@@ -66,7 +66,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pdiff =  new sflow_diffusion_void(p);
     
     if(p->A212==0 && p->A260>0 && p->mpirank==0)
-    cout<<"SFLOW warning: turbulence model A 260 "<<p->A260<<" with A 212 0: the eddy viscosity does not enter the momentum equations (set A 212 1 or 2)"<<endl;
+    cout<<"SFLOW warning: turbulence model A 260 "<<p->A260<<" with A 212 0 set in ctrl.txt: the eddy viscosity does not enter the momentum equations (leave out A 212 or set 1 or 2)"<<endl;
 	
 	if(p->A212==1)
 	pdiff =  new sflow_ediff(p);
@@ -104,7 +104,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pturb =  new sflow_turb_parabolic(p);
     
     if(p->A260==5)
-	pturb =  new sflow_turb_kw_IM1_v1(p);
+    {
+    if(p->mpirank==0)
+    cout<<"SFLOW: A 260 5 (k-omega v1) is no longer available, use A 260 2 (depth-averaged k-omega)"<<endl;
+    
+    exit(1);
+    }
     
     // Sediment
     if(p->S10==0)
