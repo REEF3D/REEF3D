@@ -59,6 +59,7 @@ public:
     
     // impermeable membranes (X 330, membrane.dat), NHFLOW
     void membrane_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void membrane_links_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
     void membrane_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void membrane_reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
     void membrane_pgrad(lexer*, fdm_nhf*, double, double*, double*, double*, slice&, int);

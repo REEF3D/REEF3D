@@ -104,6 +104,7 @@ class fdm;
 class fdm_nhf;
 class ghostcell;
 class slice;
+class nhflow_thinbody;
 
 #include<functional>
 using namespace std;
@@ -118,6 +119,7 @@ struct membrane_param
     double zc=0.0;                          // cylcone: cone base = bottom of the cylinder
     double Rn=1.0e4, Rt=-1.0;               // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
                                             // (link mode: 0)
+    int Rngiven=0;                          // 1: resistance given in membrane.dat (sharp mode default R_n 1e5)
     double delta=-1.0;                      // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
     double h=-1.0;                          // target triangle edge length [m], <0: min cell size (fixed), max cell size
                                             // (moving), 1.5 delta (coupling iterated)
@@ -128,7 +130,8 @@ struct membrane_param
     int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
     int poisson=1;                          // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
     int link=0;                             // pressure coupling: 0 layer (isotropic mobility of the layer cells), 1 link
-                                            // (porous-jump mobility only on the links crossing the membrane)
+                                            // (porous-jump mobility only on the links crossing the membrane), 2 sharp
+                                            // (blocked links only, wall fluxes, nhflow_thinbody)
     int floorp=-1;                          // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp;
                                             // -1: 3 for a fixed membrane, 0 for a moving one
     double tau=2.0;                         // averaging time of the ramp shape (floorpressure 3), frozen at 2 tau [s]
@@ -334,6 +337,9 @@ private:
     vector<Eigen::Vector3d> fimp_;          // per layer cell: force of the forcing on the membrane in this stage [N]
     struct blockedlink {int i,j,k,dir,t; double w[3];};
     vector<blockedlink> blocked_;           // links crossing the membrane in this stage
+public:
+    nhflow_thinbody *tb_=nullptr;           // sharp mode: thin-body service (blocked links, wall fluxes)
+private:
 
 
     // loads

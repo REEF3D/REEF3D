@@ -192,7 +192,10 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
     
     d->M.p[n] = -(d->M.n[n] + d->M.s[n] + d->M.w[n] + d->M.e[n]) - bt*ct - bb*cb;
     
-    d->rhsvec.V[n] = rhs0 + bF*(d->rhsvec.V[n] - rhs0);
+    // sharp thin bodies: the explicit sigma cross terms of a node next to a blocked link would reach across the body
+    const double bX = d->thinbody!=nullptr ? MIN(bF,MIN(MIN(MIN(bn,bs),MIN(bw,be)),MIN(bt,bb))) : bF;
+    
+    d->rhsvec.V[n] = rhs0 + bX*(d->rhsvec.V[n] - rhs0);
 }
 
 // face correction velocities dU_f of the projection with the total pressure P (after the correction),

@@ -975,6 +975,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Membrane">
           <File Name="nhflow_membrane_beta.h"/>
+          <File Name="nhflow_thinbody.h"/>
           <File Name="net_membrane.h"/>
           <File Name="iqn_ils.h"/>
         </VirtualDirectory>
@@ -1917,6 +1918,7 @@
             <File Name="nhflow_scalar_iweno.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_HLLC.cpp"/>
+          <File Name="nhflow_thinbody.cpp"/>
           <File Name="nhflow_flux_build_f.cpp"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="nhflow_signal_speed.cpp"/>

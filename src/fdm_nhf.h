@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"matrix2D.h"
 
 class lexer;
+class nhflow_thinbody;
 
 using namespace std;
 
@@ -86,6 +87,8 @@ public:
     double *MBX = nullptr;      // membrane (X 330), 'mobility link': mobility of the link cell (i,j,k) -> (i+1,j,k),
     double *MBY = nullptr;      //   (i,j,k) -> (i,j+1,k) and of the vertical link node k -> k+1 through cell k;
     double *MBZ = nullptr;      //   unallocated in the default layer mode (mobilities from MBETA)
+    nhflow_thinbody *thinbody = nullptr;   // sharp thin bodies (membrane.dat 'mobility sharp'): wall fluxes, projection
+                                           // right-hand side and hydrostatic head below closed floors, nhflow_thinbody.h
     double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;
     double *KIN;

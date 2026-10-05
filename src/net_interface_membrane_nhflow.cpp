@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 #include"nhflow_membrane_beta.h"
+#include"nhflow_thinbody.h"
 #include"vrans_definitions.h"
 #include<mpi.h>
 #include<fstream>
@@ -70,6 +71,14 @@ Author: Hans Bihs
 //                                      (R_t default 0), the normal resistance of the layer stays. Loads: momentum taken
 //                                      out by the forcing + pressure difference across the blocked links.
 //                                      Link mode: projections 1, coupling staggered (flexible), delta >= cell size
+//               sharp                  only the links crossing the membrane are blocked (mobility 1/(1 + a R_n/l),
+//                                      default R_n 1e5 m/s), no layer forcing: the cells on either side are free fluid.
+//                                      Wall fluxes at the blocked faces, wall velocity at the blocked links in the
+//                                      projection, cut cells below/above a floor, hydrostatic head below closed floors
+//                                      from the outer free surface (no floorpressure); see nhflow_thinbody.h.
+//                                      A 520 1, projections 1, structure fixed or rigid (a flexible membrane needs the
+//                                      damping of the layer: staggered coupling unstable). Loads: pressure jump across
+//                                      the blocked links (no shear)
 //   poisson     0|1                    membrane mobility in the pressure Poisson equation; default 1
 //                                      (0 only to demonstrate the splitting leakage of the projection)
 //
@@ -217,6 +226,7 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(!(ls>>mp.back().Rn))
             error=true;
             ls>>mp.back().Rt;
+            mp.back().Rngiven=1;
         }
         else if(key=="thickness")
         {
@@ -272,6 +282,8 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             mp.back().link=0;
             else if(mode=="link")
             mp.back().link=1;
+            else if(mode=="sharp")
+            mp.back().link=2;
             else
             error=true;
         }
@@ -486,11 +498,14 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // link mode: Rhie-Chow flux of the single projection (the converged wide divergence would average the cell
     // velocities across the blocked links)
-    bool link=false;
+    bool link=false, sharp=false;
     
     for(size_t m=0; m<mp.size(); ++m)
-    if(mp[m].link==1)
+    if(mp[m].link>=1)
     {
+        if(mp[m].link==2)
+        sharp=true;
+        
         link=true;
         
         if(mp[m].projections>1 && p->mpirank==0)
@@ -512,21 +527,35 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(size_t m=0; m<mp.size(); ++m)
     d->MPROJ = MAX(d->MPROJ, mp[m].projections);
 
+    // sharp mode: thin-body service (wall fluxes, projection right-hand side, cut cells, head below the floors)
+    if(sharp && d->thinbody==nullptr)
+    d->thinbody = new nhflow_thinbody(p,d,pgc);
+    
     for(size_t m=0; m<mp.size(); ++m)
     {
         pmem.push_back(new net_membrane(m,mp[m]));
+        
+        if(mp[m].link==2)
+        pmem.back()->tb_ = d->thinbody;
+        
         pmem.back()->initialize_nhflow(p,d,pgc);
         pmem.back()->fill_nhflow(p,d,pgc);
     }
+    
+    // sharp mode: blocked links of the initial state, so that the first fluxes already see the walls
+    if(d->thinbody!=nullptr)
+    {
+        membrane_links_nhflow(p,d,pgc,1.0);
+        
+        const int nl = d->thinbody->nlower(p,pgc);
+        
+        if(p->mpirank==0)
+        cout<<"X 330 sharp: "<<nl<<" cells below closed floors"<<endl;
+    }
 }
 
-void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
-                                            double *UH, double *VH, double *WH, slice &WL)
+void net_interface::membrane_links_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
 {
-    // 0. membrane positions for this stage (moving membranes)
-    for(auto m : pmem)
-    m->kinematics_nhflow(p,d,pgc);
-    
     // 1. mobility field beta (also builds the membrane cell maps for this stage)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
     d->MBETA[qn]=1.0;
@@ -534,6 +563,9 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     if(d->MBX!=nullptr)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
     d->MBX[qn]=d->MBY[qn]=d->MBZ[qn]=1.0;
+    
+    if(d->thinbody!=nullptr)
+    d->thinbody->begin(p);
 
     for(auto m : pmem)
     m->mobility_nhflow(p,d,pgc,alpha);
@@ -546,6 +578,20 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     pgc->start4V(p,d->MBY,1);
     pgc->start4V(p,d->MBZ,1);
     }
+    
+    if(d->thinbody!=nullptr)
+    d->thinbody->finish(p,d,pgc);
+}
+
+void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
+                                            double *UH, double *VH, double *WH, slice &WL)
+{
+    // 0. membrane positions for this stage (moving membranes)
+    for(auto m : pmem)
+    m->kinematics_nhflow(p,d,pgc);
+    
+    // 1. mobility field beta, blocked links (also builds the membrane cell maps for this stage)
+    membrane_links_nhflow(p,d,pgc,alpha);
 
     // 2. static overpressure of the bag below its floor (prescribed pressure, see net_membrane)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
@@ -573,6 +619,10 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
 
     if(incremental)
     membrane_pgrad(p,d,alpha,UH,VH,WH,WL,-1);
+    
+    // sharp mode: vertical velocity of the cut cells (below / above a floor)
+    if(d->thinbody!=nullptr)
+    d->thinbody->cut_forcing(p,d,WH,WL);
 }
 
 void net_interface::membrane_pgrad(lexer *p, fdm_nhf *d, double alpha, double *UH, double *VH, double *WH, slice &WL, int mode)

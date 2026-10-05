@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"vrans_header.h"
 #include"nhflow_header.h"
+#include"nhflow_thinbody.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -140,6 +141,10 @@ void driver::driver_ini_nhflow()
     
     // 6DOF ini
     p6dof->initialize(p, d, pgc);
+    
+    // sharp thin bodies (membranes X 330 'mobility sharp'): wall fluxes through the flux hook of the convection
+    if(d->thinbody!=nullptr)
+    pnhfconvec->set_hook(d->thinbody,0);
     
     // VRANS ini
     pnhfvrans->initialize(p,d,pgc);

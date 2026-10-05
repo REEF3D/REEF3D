@@ -81,11 +81,38 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(prm.Rt<0.0)
     prm.Rt = (moving() && prm.link==0) ? prm.Rn : 0.0;
     
-    if(prm.link==1 && iterated())
+    if(prm.link>=1 && iterated())
     {
         if(p->mpirank==0)
-        cout<<"\n!!! X 330 membrane "<<nMem<<": mobility link with coupling iterated is not implemented, use coupling staggered !!!\n"<<endl;
+        cout<<"\n!!! X 330 membrane "<<nMem<<": mobility link/sharp with coupling iterated is not implemented, use coupling staggered !!!\n"<<endl;
         MPI_Abort(pgc->mpi_comm,1);
+    }
+    
+    // sharp mode: the blocked links carry the membrane alone (no layer forcing), leakage (dp/rho)/R_n
+    if(prm.link==2)
+    {
+        if(p->A520!=1)
+        {
+            if(p->mpirank==0)
+            cout<<"\n!!! X 330 membrane "<<nMem<<": mobility sharp needs the pressure scheme A 520 1 !!!\n"<<endl;
+            MPI_Abort(pgc->mpi_comm,1);
+        }
+        
+        // a flexible membrane gets its loads from the pressure jumps alone, without the implicit damping of a layer:
+        // the staggered coupling of the light fabric with the water is unstable (added mass); not implemented
+        if(prm.structure==2)
+        {
+            if(p->mpirank==0)
+            cout<<"\n!!! X 330 membrane "<<nMem<<": mobility sharp is for fixed and rigid membranes, a flexible one needs "
+                <<"the layer or link mode !!!\n"<<endl;
+            MPI_Abort(pgc->mpi_comm,1);
+        }
+        
+        if(prm.structure==1 && p->mpirank==0)
+        cout<<"Membrane "<<nMem<<": WARNING mobility sharp with a moving rigid membrane is not validated"<<endl;
+        
+        if(!prm.Rngiven)
+        prm.Rn = 1.0e5;
     }
     
     // floorpressure 3 matches the discrete free-surface ramp in grid coordinates, a moving membrane uses 0
@@ -145,7 +172,7 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     prm.h = iterated() ? 1.5*delta : (moving() ? dmax : hmin);
 
     // link mode: the map has to reach the end points of every link that crosses the membrane
-    rmap_ = prm.link==1 ? MAX(delta, 1.01*dmax) : delta;
+    rmap_ = prm.link>=1 ? MAX(delta, 1.01*dmax) : delta;
     
     // the integral of the indicator across the layer is 1.5 delta (plateau delta, two tapers delta/4)
     Kn = prm.Rn/(1.5*delta);
@@ -168,7 +195,7 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     ini_structure(p,pgc);
     
-    if(prm.link==1)
+    if(prm.link>=1)
     link_ini(p);
 
     // cell map storage
@@ -224,6 +251,10 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         if(prm.link==1)
         cout<<"Membrane "<<nMem<<": mobility link (porous-jump mobility on the links crossing the membrane, R_t = "<<prm.Rt<<")"
+            <<", map radius "<<rmap_<<" m"<<endl;
+        
+        if(prm.link==2)
+        cout<<"Membrane "<<nMem<<": mobility sharp (blocked links with wall fluxes, no layer forcing, R_n = "<<prm.Rn<<" m/s)"
             <<", map radius "<<rmap_<<" m"<<endl;
 
         ofstream ts((outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+".dat").c_str());
@@ -593,6 +624,25 @@ void net_membrane::drain_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void net_membrane::fill_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    // sharp mode: the water in the bag starts at rest (a potential-flow start, I 11 1, passes through the bag; the
+    // blocked walls would trap that flow inside)
+    if(prm.link==2)
+    {
+        LOOP
+        if(inside_footprint(p->XP[IP],p->YP[JP],0.0) && p->ZSP[IJK]>zfloor(p,i,j))
+        {
+            d->U[IJK]=d->V[IJK]=d->W[IJK]=0.0;
+            d->UH[IJK]=d->VH[IJK]=d->WH[IJK]=0.0;
+        }
+        
+        pgc->start4V(p,d->U,10);
+        pgc->start4V(p,d->V,11);
+        pgc->start4V(p,d->W,12);
+        pgc->start4V(p,d->UH,14);
+        pgc->start4V(p,d->VH,15);
+        pgc->start4V(p,d->WH,16);
+    }
+    
     if(fabs(prm.fill)<1.0e-20)
     return;
 
@@ -911,7 +961,7 @@ void net_membrane::mobility_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     
     const double a = alpha*p->dt;
     
-    if(prm.link==1)
+    if(prm.link>=1)
     {
         link_mobility(p,d,pgc,a);
         return;
@@ -935,8 +985,12 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
     xdotf_ = xdot_;
     
     // link mode: force of the forcing on the membrane per layer cell (loads)
-    if(prm.link==1)
+    if(prm.link>=1)
     fimp_.assign(cells_.size(),Eigen::Vector3d::Zero());
+    
+    // sharp mode: no layer forcing, the blocked links and the cut cells carry the membrane (nhflow_thinbody)
+    if(prm.link==2)
+    return;
     
     size_t s=0;
 
@@ -1111,7 +1165,7 @@ void net_membrane::compute_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL
     }
     
     // link mode: momentum taken out by the forcing (normal and tangential) + pressure across the blocked links
-    if(prm.link==1)
+    if(prm.link>=1)
     link_loads(p,d,pgc,WL,[&](int t, const double *w, const Eigen::Vector3d &f)
     {
         tf_[3*t+0] += f(0);
@@ -1480,6 +1534,8 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     // ring 1 - 3 delta outside the footprint. The gradient of p_m is added as a body force in the stage.
     double ein=0.0, ain=0.0, eout=0.0, aout=0.0, gx, gy;
     
+    // sharp mode: the static jump across the floor is carried by the blocked vertical links (nhflow_thinbody,
+    // head eta_L below the floor); the levels are still evaluated for the time series
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
@@ -1509,6 +1565,9 @@ void net_membrane::static_pressure_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     
     dh = ein/ain - eout/aout;
     etaref = eout/aout;
+    
+    if(prm.link==2)
+    return;
     
     // floorpressure 3: shape of the discrete free-surface ramp, running average (relaxation time tau) until
     // t = 2 tau, frozen afterwards. A shape that keeps following the free surface also absorbs slow drifts of the

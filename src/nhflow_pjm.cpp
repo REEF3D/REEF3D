@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"nhflow_membrane_beta.h"
+#include"nhflow_thinbody.h"
 #include"ghostcell.h"
 #include"nhflow_poisson.h"
 #include"solver.h"
@@ -241,6 +242,10 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
                             
     ++n;
     }
+    
+    // sharp thin bodies (X 330 'mobility sharp'): wall velocity at the blocked links
+    if(d->thinbody!=nullptr)
+    d->thinbody->projection_rhs(p,d,U,V,W,alpha);
 }
 
 void nhflow_pjm::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
