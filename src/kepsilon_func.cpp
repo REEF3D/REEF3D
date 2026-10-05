@@ -89,6 +89,51 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
 	LOOP
 	a->eddyv(i,j,k) = MIN(a->eddyv(i,j,k), p->DXM*p->cmu*pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5));
     
+    // active wave generation / absorption: no eddy viscosity in the air next to the boundary (as komega_func)
+    if(p->B98==3||p->B98==4||p->B99==3||p->B99==4||p->B99==5)
+    {
+		for(int q=0;q<5;++q)
+		for(int n=0;n<p->gcin_count;++n)
+		{
+		i=p->gcin[n][0]+q;
+		j=p->gcin[n][1];
+		k=p->gcin[n][2];
+        
+        if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
+        continue;
+
+		if(a->phi(i,j,k)<0.0)
+		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
+		}
+    }
+    
+    // free surface eddyv minimum (T 39 1, as komega_func): Smagorinsky value in the interface band
+    if(p->T39==1)
+    {
+    const double c_sgs=0.2;
+    
+        LOOP
+        {
+        epsi = p->T38*(1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
+
+        if(p->j_dir==0)
+        epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
+        
+        double dirac = 0.0;
+        
+        if(fabs(a->phi(i,j,k))<epsi)
+        dirac = 0.5*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
+        
+        if(dirac>0.0)
+        {
+        const double sgs_val = pow(c_sgs,2.0)*(p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP])
+                 *strainterm(p,a->u,a->v,a->w);
+                 
+        a->eddyv(i,j,k) = MAX(a->eddyv(i,j,k),dirac*sgs_val);
+        }
+        }
+    }
+    
     pvrans->eddyv_func(p,a);
     
 	pgc->start4(p,a->eddyv,24);
@@ -107,6 +152,23 @@ void  kepsilon_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
 	a->rhsvec.V[count]  += pk(p,a,a->eddyv);
 	}
 	
+	++count;
+    }
+
+    // buoyancy (T 45 1), G_b = -pk_b: a sink (stable stratification) is taken implicitly as (-G_b/k) k, so it
+    // cannot drive k negative (Patankar); a source goes to the right-hand side (as komega_func)
+    count=0;
+    if(p->T45==1)
+    LOOP
+    {
+        const double gb = -pk_b(p,a,a->eddyv);
+        
+        if(gb<0.0)
+        a->M.p[count] += -gb/MAX(kin(i,j,k),1.0e-10);
+        
+        if(gb>0.0)
+        a->rhsvec.V[count] += gb;
+        
 	++count;
     }
 
