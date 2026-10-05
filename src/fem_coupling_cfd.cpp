@@ -33,7 +33,7 @@ Architect: Hans Bihs
 #include<iomanip>
 
 typedef fem_solid::Vec3 Vec3;
-static const size_t BP = 15;     // buffer entries per Lagrangian point / debris particle
+static const size_t BP = 18;     // buffer entries per Lagrangian point / debris particle
 
 void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
                              field &u, field &v, field &w, field &fx, field &fy, field &fz, bool finalize)
@@ -80,9 +80,23 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
     //    [0-3] fluid velocity, count  [4-6] pressure, count, water at probe
     //    [7] cell size normal to the surface  [8-10] momentum rho u  [11-13] density  [14] level set
     //    (kernel weighted on the staggered faces: the momentum the forcing acts on)
+    //    [15-17] rigid bodies: pressure, count, water beside the body at the height of the point
     // ------------------------------------------------------------------
     Vec3 xp, vp, n;
     double A;
+
+    // rigid bodies: horizontal bounding boxes for the probes beside the body
+    if(finalize && probes && fs.n_rigid()>0)
+    {
+        rb_lo.assign(fs.n_rigid(),Vec3::Constant(1.0e300));
+        rb_hi.assign(fs.n_rigid(),Vec3::Constant(-1.0e300));
+        for(int k=0; k<fs.n_rigid(); ++k)
+        for(int i : fs.rigid(k).nodes)
+        {
+            rb_lo[k] = rb_lo[k].cwiseMin(fs.pos(i));
+            rb_hi[k] = rb_hi[k].cwiseMax(fs.pos(i));
+        }
+    }
 
     for(int q=0; q<np; ++q)
     {
@@ -112,7 +126,16 @@ void fem_coupling::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha,
         }
 
         if(finalize && probes)
-        probe_pressure(p,a,xp,n,b);
+        {
+            probe_pressure(p,a,xp,n,b);
+            // rigid bodies: second probe beside the body, used for faces that
+            // cannot be probed along the normal (on the bottom of the domain,
+            // in the bed or a solid): without it those faces carry no pressure
+            // and the others push the body, e.g. into the bed
+            Vec3 fb;
+            if(probe_fallback(q,xp,fb))
+            probe_beside(p,a,xp,fb,b+15);
+        }
     }
 
     // debris particles: velocity, count, water, density
@@ -305,12 +328,12 @@ void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
         for(int q=0; q<np; ++q)
         {
             const double *b = &buf[BP*q];
-            if(b[5]<0.5)
+            if(b[5]<0.5 && b[16]<0.5)
             continue;
 
             point_state(q,xp,vp,n,A);
 
-            const double pr = b[4]/b[5];
+            const double pr = b[5]>0.5 ? b[4]/b[5] : b[15]/b[16];
             const Vec3 F = -pr*A*n;
 
             const lpoint& L = pts[q];
@@ -349,6 +372,8 @@ void fem_coupling::finish_step(lexer *p, fdm *a, ghostcell *pgc, double alpha)
                 nt[k] += 1.0;
                 if(b[5]>0.5)
                 nw[k] += b[6]/b[5];
+                else if(b[16]>0.5)
+                nw[k] += b[17]/b[16];
             }
             // full estimate as soon as a third of the surface is wet (a floating
             // body: the added mass of the water side is not smaller than that),
@@ -574,6 +599,58 @@ void fem_coupling::spread(lexer *p, field &fx, field &fy, field &fz, const Vec3&
             }
         }
     }
+}
+
+bool fem_coupling::probe_fallback(int q, const Vec3& xp, Vec3& fb) const
+{
+    // point on a rigid body: the same height, horizontally just outside the
+    // bounding box of the body, on the side of the point
+    if(rb_lo.empty())
+    return false;
+    const int k = fs.rigid_of_node(fs.surface()[pts[q].face].n[0]);
+    if(k<0 || k>=(int)rb_lo.size())
+    return false;
+    const Vec3 c = 0.5*(rb_lo[k]+rb_hi[k]);
+    Vec3 e = xp-c;
+    e(2) = 0.0;
+    if(fs.plane_strain_on())
+    e(1) = 0.0;
+    if(e.norm()<=1.0e-9)
+    e = Vec3(-1.0,0.0,0.0);
+    e.normalize();
+    double t = 1.0e300;
+    for(int d=0; d<2; ++d)
+    if(std::fabs(e(d))>1.0e-12)
+    t = std::min(t, ((e(d)>0.0 ? rb_hi[k](d) : rb_lo[k](d)) - xp(d))/e(d));
+    if(!(t<1.0e299))
+    return false;
+    fb = xp + (std::max(t,0.0) + fs.coupling().pressure_offset*dxmin)*e;
+    return true;
+}
+
+void fem_coupling::probe_beside(lexer *p, fdm *a, const Vec3& xp, Vec3 q, double *b)
+{
+    // pressure at q (owner rank), taken to the height of xp hydrostatically:
+    // b[0] pressure, b[1] count, b[2] water
+    if(p->j_dir==0)
+    q(1) = p->YP[marge];
+    // not below the first cell centres of the domain, and lifted out of the bed / a solid
+    q(2) = std::max(q(2), p->global_zmin + 0.5*dxmin);
+    auto inside = [&](const Vec3& r){return p->ccipol4a(a->solid,r(0),r(1),r(2))<0.0 || p->ccipol4a(a->topo,r(0),r(1),r(2))<0.0;};
+    if(q(0)<p->originx || q(0)>=p->endx || q(2)<p->originz || q(2)>=p->endz)
+    return;
+    if(p->j_dir==1 && (q(1)<p->originy || q(1)>=p->endy))
+    return;
+    for(int lift=0; lift<2 && inside(q); ++lift)
+    q(2) += 0.5*dxmin;
+    if(inside(q) || q(2)>=p->endz)
+    return;
+    const double phi = p->ccipol4(a->phi,q(0),q(1),q(2));
+    const double rho = p->ccipol4(a->ro,q(0),q(1),q(2));
+    const double gdx = p->W20*(q(0)-xp(0)) + (p->j_dir==1 ? p->W21*(q(1)-xp(1)) : 0.0) + p->W22*(q(2)-xp(2));
+    b[0] = p->ccipol4a(a->press,q(0),q(1),q(2)) - p->pressgage - rho*gdx;
+    b[1] = 1.0;
+    b[2] = phi>=0.0 ? 1.0 : 0.0;
 }
 
 void fem_coupling::probe_pressure(lexer *p, fdm *a, const Vec3& xp, const Vec3& n, double *b, bool hydrostatic)

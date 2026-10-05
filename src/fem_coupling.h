@@ -84,6 +84,9 @@ private:
     void finish_step(lexer*, fdm*, ghostcell*, double alpha);
     void sample_bed(lexer*, fdm*, ghostcell*);
     void probe_pressure(lexer*, fdm*, const fem_solid::Vec3& xp, const fem_solid::Vec3& n, double *b, bool hydrostatic=false);
+    bool probe_fallback(int q, const fem_solid::Vec3& xp, fem_solid::Vec3& fb) const;   // probe beside a rigid body, at the height of the point
+    void probe_beside(lexer*, fdm*, const fem_solid::Vec3& xp, fem_solid::Vec3 q, double *b);
+    std::vector<fem_solid::Vec3> rb_lo, rb_hi;                // horizontal bounding boxes of the rigid bodies
     void pressure_loads(lexer*, fdm*, ghostcell*, std::vector<fem_solid::Vec3>& F, bool hydrostatic=false);
     void print(lexer*);
     void first_call(lexer*, fdm*, ghostcell*);     // supports on the bed, check mode, gravity settling

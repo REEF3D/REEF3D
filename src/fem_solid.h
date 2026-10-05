@@ -187,6 +187,7 @@ public:
     void build();                                   // voxelise, nodes, mass, surface
     void set_gravity(const Vec3& g) {grav = g;}
     void set_plane_strain(bool b) {plane_strain = b;}
+    bool plane_strain_on() const {return plane_strain;}
 
     // programmatic setup (tests): same as the input keywords
     void set_lattice(double ox,double oy,double oz,double hx,double hy,double hz);
