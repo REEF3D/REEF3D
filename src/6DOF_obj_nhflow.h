@@ -60,6 +60,7 @@ public:
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
+    double Hpsi_nhflow(lexer*, fdm_nhf*);
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
     bool membrane_iterated();
