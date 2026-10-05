@@ -266,6 +266,7 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pnhfturb->ksource(p,d);
     pflow->ksource_nhflow(p,d,pgc,pvrans,WL); 
     ppress->wpgrad(p,d,WL);
+    roughness_w(p,d,d->W,d->H,WL);   // side-wall friction on w (A519 2)
     krhs(p,d,pgc);
     pconvec->start(p,d,3,WL,WHo);
     pnhfdiff->diff_w(p,d,pgc,pflow,psolv,WHDIFF,WHi,UHi,VHi,WHi,WL,1.0);   // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)

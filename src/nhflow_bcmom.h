@@ -40,6 +40,7 @@ public:
 	void roughness_u(lexer*, fdm_nhf*, double*, double*, slice&);
 	void roughness_v(lexer*, fdm_nhf*, double*, double*, slice&);
 	void roughness_w(lexer*, fdm_nhf*, double*, double*, slice&);
+	void wall_friction(lexer*, fdm_nhf*, int, double*, double*, slice&);
 
 private:
 	const double kappa;

@@ -506,6 +506,7 @@
           <VirtualDirectory Name="SST"/>
           <VirtualDirectory Name="Strain">
             <File Name="nhflow_strain.h"/>
+            <File Name="nhflow_wall.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="LES">
             <File Name="nhflow_LES_Smagorinsky.h"/>
