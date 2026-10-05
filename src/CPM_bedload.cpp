@@ -370,7 +370,8 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
         for(double r : rn)
         rsum += r;
 
-        blC(i,j) += rsum*dt;
+        // morphological factor Q 65: the bed evolves Q 65 times faster than the flow (bedload only)
+        blC(i,j) += p->Q65*rsum*dt;
 
         while(blC(i,j)>=vpar && !cn.empty())
         {
