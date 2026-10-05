@@ -99,6 +99,7 @@
         <File Name="seastate_exchange.h"/>
         <File Name="seastate_implicit.h"/>
         <File Name="seastate_source.h"/>
+        <File Name="seastate_sflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
@@ -1360,6 +1361,8 @@
         <File Name="seastate_f_transport.cpp"/>
         <File Name="seastate_implicit.cpp"/>
         <File Name="seastate_source.cpp"/>
+        <File Name="seastate_sflow.cpp"/>
+        <File Name="seastate_f_handover.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">

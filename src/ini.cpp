@@ -294,6 +294,12 @@ void control::ini_default()
     A743=0.038;       // double JONSWAP friction coefficient [m^2/s^3]
     A744=0;           // int triads: 0 off, 1 LTA (Eldeberky)
     A745=0.05;        // double triads proportionality coefficient alpha_EB
+    A750=0;           // int coupling with SFLOW (A 10 2): 0 off, 1 SEASTATE <-> SFLOW (wave forcing, water level and currents back)
+    A751=1;           // int wave forcing of SFLOW: 1 radiation stress, 2 vortex force (SFLOW velocity Eulerian, Stokes transport in the continuity)
+    A752=0.0;         // double ramp-up time of the wave forcing [s], 0: none
+    A753=2;           // int feedback SFLOW -> SEASTATE: 0 none, 1 water level, 2 water level and currents
+    A760=0;           // int number of handover points (A 760 x y): 2D spectrum files for the wave generation (B 85 11)
+    A761=90.0;        // double half-width of the handover direction sector around the mean direction [deg]
 
     // NHFLOW Lagrangian particles
     L10=0;       // int particle tracking

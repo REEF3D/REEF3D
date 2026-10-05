@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"seastate_sflow.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
 
@@ -72,6 +73,10 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     WETDRY
     K(i,j) = -(b->FEx(i,j) - b->FEx(i-1,j))/p->DXN[IP] 
              -(b->FEy(i,j) - b->FEy(i,j-1))/p->DYN[JP]*p->y_dir;
+
+    // REEF3D::SEASTATE vortex force (A 751 2): Stokes transport
+    if(b->wave!=nullptr)
+    b->wave->mass_source(p,b,K);
     
     SLICELOOP4
     WLout(i,j) = a*WL0(i,j) + (1.0-a)*(WLs(i,j) + p->dt*K(i,j));

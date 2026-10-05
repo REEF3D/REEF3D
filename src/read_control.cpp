@@ -730,6 +730,24 @@ void control::read_control(lexer* p)
                 case 745: control>>A745;
                          clear(c,numint);
                          break;
+                case 750: control>>A750;
+                         clear(c,numint);
+                         break;
+                case 751: control>>A751;
+                         clear(c,numint);
+                         break;
+                case 752: control>>A752;
+                         clear(c,numint);
+                         break;
+                case 753: control>>A753;
+                         clear(c,numint);
+                         break;
+                case 760: ++A760;
+                         clear(c,numint);
+                         break;
+                case 761: control>>A761;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 
@@ -3788,6 +3806,9 @@ void control::read_control(lexer* p)
     Darray(G11_ys,G11);
     Darray(G11_ye,G11);
 
+    Darray(A760_x,A760);
+    Darray(A760_y,A760);
+
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
 
@@ -4353,6 +4374,7 @@ void control::read_control(lexer* p)
     int countF72=0;
     int countG10=0;
     int countG11=0;
+    int countA760=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -4451,6 +4473,11 @@ void control::read_control(lexer* p)
             case 'A': control>>numint;
                 switch(numint)
                 {
+                case 760: control>>A760_x[countA760]>>A760_y[countA760];
+                         p->XYin(A760_x[countA760],A760_y[countA760]);
+                         ++countA760;
+                         clear(c,numint);
+                         break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];
                          p->XYin(A581_xs[countA581],A581_ys[countA581]);
                          p->XYin(A581_xe[countA581],A581_ye[countA581]);

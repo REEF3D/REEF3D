@@ -36,7 +36,7 @@ Architect: Hans Bihs
 #include<iomanip>
 
 seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr), pex(nullptr), psolv(nullptr), N0(nullptr), psrc(nullptr),
-                                                  iter_max(1), iter_done(0), conv(0.0),
+                                                  iter_max(1), iter_done(0), dtw(0.0), coupled(false), conv(0.0),
                                                   etot(0.0), hsmax(0.0), hsmean(0.0), nmin(0.0), cells_active(0.0),
                                                   starttime(0.0), endtime(0.0)
 {
@@ -87,6 +87,10 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         step(p,pgc);
 
         p->simtime+=p->dt;
+
+        // 2D spectra for the wave generation of FNPF/NHFLOW
+        if(p->A760>0)
+        handover(p,pgc);
 
         // printer
         double ptime=pgc->timer();
@@ -147,4 +151,41 @@ void seastate_f::step(lexer *p, ghostcell *pgc)
     transport(p,pgc);
 
     parameters(p,pgc);
+}
+
+void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
+{
+    dtw = dt;
+
+    // the host has written depth, eta, U, V: cells of the initial active set dry and re-wet
+    // with the host's water depth; a cell that dries loses its spectrum
+    const int nbin = e->grid->nbin;
+
+    IMALOOP
+    JMALOOP
+    {
+    const int w = (e->wet0(i,j)==1 && e->depth(i,j)>=p->A705) ? 1 : 0;
+
+        if(w==0 && e->wet(i,j)==1)
+        {
+        float *s = e->N->spec(i,j);
+
+        if(s!=nullptr)
+        for(int b=0; b<nbin; ++b)
+        s[b] = 0.0f;
+        }
+
+    e->wet(i,j) = w;
+    }
+
+    kinematics(p,pgc,dt);
+
+    transport(p,pgc);
+
+    parameters(p,pgc);
+
+    log_step(p);
+
+    if(p->A760>0)
+    handover(p,pgc);
 }

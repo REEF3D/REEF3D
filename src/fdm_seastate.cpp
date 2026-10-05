@@ -26,6 +26,6 @@ Architect: Hans Bihs
 fdm_seastate::fdm_seastate(lexer *p) : bed(p),depth(p),eta(p),U(p),V(p),
                                       Hs(p),Tm01(p),Tm10(p),Tp(p),dir(p),spread(p),
                                       ddx(p),ddy(p),dUdx(p),dUdy(p),dVdx(p),dVdy(p),dddt(p),depth_n(p),
-                                      wet(p),refr(p),nodeval(p)
+                                      wet(p),wet0(p),refr(p),nodeval(p)
 {
 }

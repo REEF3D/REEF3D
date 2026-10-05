@@ -58,6 +58,20 @@ whitecapping and quadruplets (Komen, DIA), depth-induced breaking
 gradient sides (A 712 2). Stationary runs with the deep-water physics
 iterate in pseudo time with the time step A 706.
 
+Phase 3: coupling and handover.
+  ini_coupled   set-up inside a host model (SFLOW, seastate_sflow): the
+                host's time step, step counter and print counters are
+                not touched, VTP files get their own numbering
+  step_coupled  one wave step of length dt after the host has written
+                the environment (depth, eta, U, V): cells of the initial
+                active set dry and re-wet with the host's water depth
+                (A 705), kinematics with dd/dt, transport, parameters,
+                integral log; the host prints (printer, add_field)
+  handover      2D spectra E(omega,theta) at the points A 760 for the
+                irregular wave generation of FNPF/NHFLOW (B 85 11,
+                spectrum-file-2d.dat format), sector A 761 around the
+                mean direction, written every step
+
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
   step    one time step of length A 706, so that a host model
@@ -75,9 +89,17 @@ public:
     void ini(lexer*, ghostcell*);
     void step(lexer*, ghostcell*);
 
+    void ini_coupled(lexer*, ghostcell*);
+    void step_coupled(lexer*, ghostcell*, double dt);
+
     fdm_seastate *e;
 
+    const seastate_source *source() const {return psrc;}
+    seastate_vtp *printer() {return pprint;}
+
 private:
+    void ini_common(lexer*, ghostcell*, bool coupled);
+    void handover(lexer*, ghostcell*);
     void check_keys(lexer*, ghostcell*);
     void environment(lexer*, ghostcell*);
     void storage(lexer*, ghostcell*);
@@ -103,6 +125,8 @@ private:
     std::vector<float> Nb;      // boundary spectrum
     int side[4];                // sides with the boundary spectrum: x-, x+, y-, y+
     int iter_max, iter_done;
+    double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
+    bool coupled;
     double conv;
     std::vector<double> hs_old;
 

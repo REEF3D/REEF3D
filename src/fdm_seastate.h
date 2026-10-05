@@ -42,6 +42,8 @@ REEF3D::SEASTATE - field data on the 2D horizontal grid
   parameters   integrated wave parameters (seastate_param)
   wet          active cells: fluid (flagslice4 > 0), inside the global
                domain and depth >= A 705
+  wet0         the active cells at the start, which have spectral storage;
+               a coupled host can dry and re-wet them (wet <= wet0)
   kinematics   depth and current gradients, depth of the previous step;
                refr = 1 where no neighbour is land or dry (refraction and
                frequency shift are switched off next to dry cells, as in
@@ -67,7 +69,7 @@ public:
     // kinematics
     slice4 ddx,ddy,dUdx,dUdy,dVdx,dVdy,dddt,depth_n;
 
-    sliceint4 wet,refr;
+    sliceint4 wet,wet0,refr;
     sliceint5 nodeval;
 
     seastate_grid *grid = nullptr;

@@ -40,8 +40,24 @@ Architect: Hans Bihs
 
 void seastate_f::ini(lexer *p, ghostcell *pgc)
 {
+    ini_common(p,pgc,false);
+}
+
+void seastate_f::ini_coupled(lexer *p, ghostcell *pgc)
+{
+    ini_common(p,pgc,true);
+}
+
+void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
+{
+    coupled = coupled_;
+
     check_keys(p,pgc);
 
+    dtw = p->A706;
+
+    if(!coupled)
+    {
     p->count=0;
     p->printcount=0;
     p->dt=p->A706;
@@ -68,6 +84,18 @@ void seastate_f::ini(lexer *p, ghostcell *pgc)
     ++p->cellnum2D;
 
     p->cellnumtot2D=pgc->globalisum(p->cellnum2D);
+    }
+    else
+    {
+    // the host has set the point and polygon counts (same 2D grid, same numbering as SFLOW)
+    int count=0;
+
+    TPSLICELOOP
+    {
+    ++count;
+    e->nodeval(i,j)=count;
+    }
+    }
 
     environment(p,pgc);
     storage(p,pgc);
@@ -95,13 +123,18 @@ void seastate_f::ini(lexer *p, ghostcell *pgc)
 
     parameters(p,pgc);
 
-    pprint = new seastate_vtp(p,e,pgc);
+    pprint = new seastate_vtp(p,e,pgc,coupled);
 
     log_ini(p);
 
-    // initial state
+    // initial state (coupled: printed by the host after it has added its fields)
+    if(!coupled)
     pprint->start(p,e,pgc);
+
     log_step(p);
+
+    if(coupled && p->A760>0)
+    handover(p,pgc);
 }
 
 void seastate_f::check_keys(lexer *p, ghostcell *pgc)
@@ -154,6 +187,16 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 744: triads must be 0 (off) or 1 (LTA)";
     else if(!(p->A745>=0.0))
     msg = "A 745: the triad coefficient must not be negative";
+    else if(p->A750==1 && p->A10!=2)
+    msg = "A 750 1: the coupling with SFLOW needs A 10 2 (SFLOW as the host model)";
+    else if(p->A750==1 && p->A751!=1 && p->A751!=2)
+    msg = "A 751: the wave forcing must be 1 (radiation stress) or 2 (vortex force)";
+    else if(p->A750==1 && (p->A753<0 || p->A753>2))
+    msg = "A 753: the feedback must be 0 (none), 1 (water level) or 2 (water level and currents)";
+    else if(!(p->A752>=0.0))
+    msg = "A 752: the ramp-up time must not be negative";
+    else if(!(p->A761>0.0))
+    msg = "A 761: the half-width of the handover sector must be positive";
 
     if(msg!=nullptr)
     {
@@ -193,6 +236,7 @@ void seastate_f::environment(lexer *p, ghostcell *pgc)
 
     e->depth(i,j)=(inside && p->flagslice4[IJ]>0) ? std::max(p->wd - e->bed(i,j),0.0) : 0.0;
     e->wet(i,j)=(inside && p->flagslice4[IJ]>0 && e->depth(i,j)>=p->A705) ? 1 : 0;
+    e->wet0(i,j)=e->wet(i,j);
     }
 }
 

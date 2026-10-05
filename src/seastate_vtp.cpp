@@ -30,12 +30,15 @@ Architect: Hans Bihs
 
 const char *seastate_vtp::scalar_name[seastate_vtp::nscalar] = {"Hs","Tm01","Tm-10","Tp","dir","spread","depth","wet"};
 
-seastate_vtp::seastate_vtp(lexer *p, fdm_seastate *e, ghostcell *pgc)
+seastate_vtp::seastate_vtp(lexer *p, fdm_seastate *e, ghostcell *pgc, bool coupled) : own(coupled), ownprint(0)
 {
+    if(!own)
+    {
     if(p->I40==0)
     p->printtime=0.0;
 
     p->printcount=0;
+    }
 
     if(p->mpirank==0)
     mkdir("./REEF3D_SEASTATE_VTP",0777);
@@ -88,7 +91,9 @@ void seastate_vtp::write_scalar(lexer *p, fdm_seastate *e, slice &f, ofstream &r
 void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
 {
     int num = 0;
-    if(p->P15==1)
+    if(own)
+    num = ownprint;
+    else if(p->P15==1)
     num = p->printcount;
     else if(p->P15==2)
     num = p->count;
@@ -100,6 +105,9 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
     pgc->gcsl_start4(p,e->Tp,50);
     pgc->gcsl_start4(p,e->dir,50);
     pgc->gcsl_start4(p,e->spread,50);
+
+    for(size_t q=0; q<xfield.size(); ++q)
+    pgc->gcsl_start4(p,*xfield[q],50);
 
     if(p->mpirank==0)
     pvtp(p,num);
@@ -114,7 +122,7 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
     ++n;
 
     // scalars
-    for(int q=0; q<nscalar; ++q)
+    for(int q=0; q<nscalar+int(xfield.size()); ++q)
     {
     offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
@@ -139,6 +147,11 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
     for(int q=0; q<nscalar; ++q)
     {
     result<<"<DataArray type=\"Float32\" Name=\""<<scalar_name[q]<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
+    for(size_t q=0; q<xfield.size(); ++q)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\""<<xname[q]<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
     result<<"</PointData>\n";
@@ -189,6 +202,9 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
     result.write((char*)&ffn, sizeof(float));
     }
 
+    for(size_t q=0; q<xfield.size(); ++q)
+    write_scalar(p,e,*xfield[q],result);
+
     // connectivity
     iin=sizeof(int)*p->polygon_sum*3;
     result.write((char*)&iin, sizeof(int));
@@ -228,6 +244,9 @@ void seastate_vtp::print2D(lexer *p, fdm_seastate *e, ghostcell *pgc)
 
     result.close();
 
+    if(own)
+    ++ownprint;
+    else
     ++p->printcount;
 }
 
@@ -245,6 +264,8 @@ void seastate_vtp::pvtp(lexer *p, int num)
     result<<"<PPointData>\n";
     for(int q=0; q<nscalar; ++q)
     result<<"<PDataArray type=\"Float32\" Name=\""<<scalar_name[q]<<"\"/>\n";
+    for(size_t q=0; q<xname.size(); ++q)
+    result<<"<PDataArray type=\"Float32\" Name=\""<<xname[q]<<"\"/>\n";
     result<<"</PPointData>\n";
 
     char pname[200];

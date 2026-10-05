@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
 #include"regression_dump.h"
+#include"seastate_sflow.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -66,6 +67,13 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// ini
 	ini(p,b,pgc);
+
+    // REEF3D::SEASTATE coupling (A 750 1)
+    if(p->A750==1)
+    {
+    b->wave = new seastate_sflow(p,b,pgc);
+    b->wave->ini(p,b,pgc);
+    }
 	
 	regression_dump rdump(p);
 	rdump.sflow_ini(p,b,pgc);
@@ -94,6 +102,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         }
         
         pflow->wavegen_2D_precalc(p,b,pgc);
+
+        // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
+        if(b->wave!=nullptr)
+        b->wave->start(p,b,pgc);
 
         // outer loop
 		double temptime=pgc->timer();
