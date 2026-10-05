@@ -52,6 +52,16 @@ reefamr_comms_off::~reefamr_comms_off()
     g->set_comms(old);
 }
 
+int reefamr::my_rank() const
+{
+    return p0->mpirank;
+}
+
+int reefamr::n_ranks() const
+{
+    return p0->mpi_size;
+}
+
 reefamr::reefamr(lexer *p, ghostcell *pgc) : patches_total(0), p0(p), pgc0(pgc)
 {
     maxlev = 0;

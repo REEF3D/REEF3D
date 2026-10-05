@@ -474,6 +474,10 @@ protected:
 
     int block_keys(int l) const { return bnloc[l] + (int)bsrv[l].size(); }
 
+    // rank and number of ranks (lexer is incomplete in this header: the templates use these)
+    int my_rank() const;
+    int n_ranks() const;
+
     // the cells of the fresh level-l patches that an old patch of the same level held (regrid_state,
     // old patches still alive): pack(reefamr_patch *old, int io, int jo, double*) gives nv values of
     // the old patch on its rank, unpack(reefamr_patch*, int id, int ii, int jj, const double*) puts
@@ -481,8 +485,8 @@ protected:
     template<class PK, class UP>
     void old_run(int l, int nv, int tag, vector<reefamr_patch*> &oldP, PK &&pack, UP &&unpack)
     {
-        const int me = p0->mpirank;
-        const int np = p0->mpi_size;
+        const int me = my_rank();
+        const int np = n_ranks();
         vector<vector<int>> req(np), srv, dst(np);
         vector<double> v(nv);
 
