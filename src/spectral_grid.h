@@ -40,6 +40,10 @@ REEF3D::Spectral - spectral (frequency-direction) grid
   bin index of (l,m): l*ndir + m  (direction fastest), the layout of
   one spectrum in spectral_store
 
+  direction faces theta_m + dtheta/2 (costhf, sinthf) for the fluxes in
+  theta; quad[m]: quadrant of direction m for the four sweeps of the
+  implicit solver
+
 No lexer or MPI dependency, so the class is unit-testable stand-alone.
 --------------------------------------------------------------------*/
 
@@ -58,6 +62,8 @@ public:
 
     std::vector<double> f, sig, dsig;           // size nsig
     std::vector<double> theta, costh, sinth;    // size ndir
+    std::vector<double> costhf, sinthf;         // faces theta_m + dtheta/2, size ndir
+    std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2)
 
 private:
     std::string error;

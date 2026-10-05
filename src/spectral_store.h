@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #ifndef SPECTRAL_STORE_H_
 #define SPECTRAL_STORE_H_
 
+#include<algorithm>
 #include<cstddef>
 #include<vector>
 
@@ -32,7 +33,8 @@ N(x,y,sigma,theta), single precision.
 
 The 2D index range of a rank, ghost cells included (imin..imin+ni-1,
 jmin..jmin+nj-1, the same range and cell order as the IJ macro), is cut
-into square tiles of tile x tile cells. Storage is allocated only for
+into square tiles of tile x tile cells (clipped at the end of the range,
+so narrow domains are not padded). Storage is allocated only for
 tiles that contain at least one active (sea) cell, so land and dry
 areas cost no spectral memory. Inside a tile each cell holds one
 contiguous spectrum of nbin floats (layout: see spectral_grid::bin).
@@ -42,6 +44,7 @@ contiguous spectrum of nbin floats (layout: see spectral_grid::bin).
                 tile is not allocated
   active(i,j)   cell is active (allocated tiles also hold inactive
                 cells, which are kept at zero)
+  copy_from(s)  copy all spectra of a store with the same layout
 
 No lexer or MPI dependency, so the class is unit-testable stand-alone.
 --------------------------------------------------------------------*/
@@ -53,6 +56,7 @@ public:
 
     void build(const int *mask);
     void fill(float val);
+    bool copy_from(const spectral_store&);      // same layout only (same index range, tiles and mask)
 
     float *spec(int i, int j)
     {
@@ -77,9 +81,9 @@ public:
     int tile_size() const {return tile;}
     int tiles_total() const {return ntx*nty;}
     int tiles_allocated() const {return ntile_alloc;}
-    long cells_allocated() const {return long(ntile_alloc)*tile*tile;}
+    long cells_allocated() const {return ncell_alloc;}
     long cells_active() const {return ncell_active;}
-    size_t bytes() const {return pool.size()*sizeof(float) + toff.size()*sizeof(int) + act.size();}
+    size_t bytes() const {return pool.size()*sizeof(float) + toff.size()*(sizeof(int)+sizeof(long)) + act.size();}
     size_t bytes_dense() const {return size_t(ni)*nj*nbin*sizeof(float);}
 
 private:
@@ -90,19 +94,23 @@ private:
 
         const int ii = i-imin;
         const int jj = j-jmin;
-        const int t  = toff[size_t(ii/tile)*nty + jj/tile];
+        const int tj = jj/tile;
+        const size_t t = size_t(ii/tile)*nty + tj;
 
-        if(t<0)
+        if(toff[t]<0)
         return -1;
 
-        return (long(t)*tile*tile + long(ii%tile)*tile + (jj%tile))*nbin;
+        const int wj = std::min(tile,nj-tj*tile);
+
+        return (tbase[t] + long(ii%tile)*wj + (jj%tile))*nbin;
     }
 
     int imin, jmin, ni, nj, nbin, tile;
     int ntx, nty, ntile_alloc;
-    long ncell_active;
+    long ncell_active, ncell_alloc;
 
     std::vector<int> toff;      // tile -> allocated tile number, -1: not allocated
+    std::vector<long> tbase;    // tile -> first cell of the tile in the pool
     std::vector<char> act;      // active flag per cell
     std::vector<float> pool;    // allocated tiles x tile^2 cells x nbin
 };

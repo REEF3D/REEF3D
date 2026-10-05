@@ -87,6 +87,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="Spectral">
+        <File Name="fdm_spectral.h"/>
+        <File Name="spectral_dispersion.h"/>
         <File Name="spectral_f.h"/>
         <File Name="spectral_grid.h"/>
         <File Name="spectral_param.h"/>
@@ -1335,6 +1337,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="Spectral">
+        <File Name="fdm_spectral.cpp"/>
+        <File Name="spectral_dispersion.cpp"/>
         <File Name="spectral_vtp.cpp"/>
         <File Name="spectral_f.cpp"/>
         <File Name="spectral_f_initial.cpp"/>

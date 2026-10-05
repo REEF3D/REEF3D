@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"spectral_grid.h"
+#include<algorithm>
 #include<cmath>
 
 spectral_grid::spectral_grid(int nsig_, double fmin_, double fmax_, int ndir_)
@@ -72,11 +73,17 @@ spectral_grid::spectral_grid(int nsig_, double fmin_, double fmax_, int ndir_)
     theta.resize(ndir);
     costh.resize(ndir);
     sinth.resize(ndir);
+    costhf.resize(ndir);
+    sinthf.resize(ndir);
+    quad.resize(ndir);
 
     for(int m=0; m<ndir; ++m)
     {
-    theta[m] = double(m)*dtheta;
-    costh[m] = std::cos(theta[m]);
-    sinth[m] = std::sin(theta[m]);
+    theta[m]  = double(m)*dtheta;
+    costh[m]  = std::cos(theta[m]);
+    sinth[m]  = std::sin(theta[m]);
+    costhf[m] = std::cos(theta[m]+0.5*dtheta);
+    sinthf[m] = std::sin(theta[m]+0.5*dtheta);
+    quad[m]   = std::min(int(4.0*double(m)/double(ndir)),3);
     }
 }
