@@ -43,6 +43,7 @@ private:
     const double epsi;
     double vol1,vol2;
     double inivol,netvol;
+    bool vol_ini;   // reference volume taken (first volcalc)
 };
 
 #endif

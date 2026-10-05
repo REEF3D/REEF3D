@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45*p->DXM)
+picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45*p->DXM), vol1(0.0), vol2(0.0), inivol(0.0), netvol(0.0), vol_ini(false)
 {
 }
 
@@ -56,10 +56,14 @@ void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 	vol1 = pgc->globalsum(vol1);
 
 
-	if(p->count==1)
+	// reference volume from the first call: the time loop can call the
+	// momentum scheme already during the initialisation (count 0), so
+	// count==1 came too late and the correction removed all the water
+	if(!vol_ini)
 	{
 	inivol=vol1;
 	netvol=vol1;
+	vol_ini=true;
 	}
 }
 
@@ -91,6 +95,9 @@ void picard_lsm::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
     double r1,r2;
     double w;
+    
+    if(!vol_ini)
+    return;
 
     netvol=netvol + p->Qi*p->dt - p->Qo*p->dt;
 

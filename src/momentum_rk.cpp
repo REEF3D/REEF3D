@@ -284,6 +284,10 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
     if(stages==3)
 	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
 
+    // reference volume of the level set at the start of the step (F 46)
+    if(levelset)
+    ppicard->volcalc(p,a,pgc,a->phi);
+
     for(int s=0; s<stages; ++s)
     {
         const bool final = (s==stages-1);
@@ -382,6 +386,9 @@ void momentum_rk::levelset_ssp(lexer *p, fdm *a, ghostcell *pgc, int s)
 
     p->F44 = final ? 3 : 2;
     preini->start(a,p,fout,pgc,pflow);
+    
+    // volume correction once per time step (it also adds Qi*dt-Qo*dt to the target volume)
+    if(final)
     ppicard->correct_ls(p,a,pgc,fout);
 }
 
@@ -594,6 +601,10 @@ void momentum_rk::step_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *pvran
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 
+    // reference volume of the level set at the start of the step (F 46)
+    if(levelset)
+    ppicard->volcalc(p,a,pgc,a->phi);
+
     for(int s=0; s<3; ++s)
     {
         const bool final = (s==2);
@@ -668,6 +679,9 @@ void momentum_rk::levelset_lowstorage(lexer *p, fdm *a, ghostcell *pgc, int s)
 
     p->F44 = (s==2) ? 3 : 2;
     preini->start(a,p,a->phi,pgc,pflow);
+    
+    // volume correction once per time step (it also adds Qi*dt-Qo*dt to the target volume)
+    if(s==2)
     ppicard->correct_ls(p,a,pgc,a->phi);
 
     pupdate->start(p,a,pgc,a->u,a->v,a->w);

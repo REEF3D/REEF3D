@@ -25,7 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-picard_f::picard_f(lexer *p) : gradient(p), epsi(p->F45*p->DXM)
+picard_f::picard_f(lexer *p) : gradient(p), epsi(p->F45*p->DXM), vol1(0.0), vol2(0.0)
 {
 }
 
@@ -86,6 +86,10 @@ void picard_f::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
     double starttime, endtime;
 
     starttime=pgc->timer();
+    
+    // no reference volume yet (volcalc not called)
+    if(vol1<=0.0)
+    return;
 
     for(int n=0;n<p->F47;++n)
     {
