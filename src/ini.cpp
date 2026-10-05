@@ -356,7 +356,7 @@ void control::ini_default()
 	B107=0;			// int read numerical beach origin
     B108=0;        // int read wave generation  origin
     B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
-    B510=B511=B514=B515=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
+    B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end
@@ -738,7 +738,9 @@ void control::ini_default()
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
     P22=0.0;         // double start averging after transients
-	P23=0;			// int print test to vtu file
+	P23=0;
+
+			// int print test to vtu file
     P24=0;			// int print density to vtu file
     P25=0;			// int print solid to vtu file
 	P26=0;			// int print cbed and conc to vtu file
@@ -904,7 +906,6 @@ void control::ini_default()
     Q59=6.5;            // double bedload layer: grain velocity coefficient, u_b = Q59 sqrt(R g d)(sqrt(theta) - 0.7 sqrt(theta_c))
     Q60=0.047;          // double bedload layer: critical Shields number theta_c of d50
     Q62=50.0;           // double bedload layer: mean hop length in grain diameters
-    Q63=10.0;           // double bedload layer: relaxation time [s] of the bed level seen by the fluid
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
     Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off
