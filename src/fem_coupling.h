@@ -130,7 +130,9 @@ private:
     bool nhf_in_solid(lexer*, const fem_solid::Vec3& x) const;  // bed, solids of the grid, cells marked solid
     double nhf_hv(lexer*, int i, int j, double z) const;       // vertical kernel width at the point
     double nhf_kernel_ipol(lexer*, double *f, const fem_solid::Vec3& x) const;
-    void nhf_spread(lexer*, double *UH, double *VH, double *WH, const fem_solid::Vec3& xp, const fem_solid::Vec3& f, double A, const fem_solid::Vec3* n);
+    void nhf_spread(lexer*, const fem_solid::Vec3& xp, const fem_solid::Vec3& du, double A, const fem_solid::Vec3* n);
+    void nhf_apply_forcing(lexer*, double *UH, double *VH, double *WH);   // summed increments, at most one full correction per cell
+    std::vector<double> sp_w, sp_u;
     void nhf_probe_pressure(lexer*, const fem_solid::Vec3& xp, const fem_solid::Vec3& n, double *b);
     void nhf_probe_beside(lexer*, const fem_solid::Vec3& xp, fem_solid::Vec3 q, double *b);
     void nhf_sample_bed(lexer*, ghostcell*);

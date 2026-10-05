@@ -225,12 +225,14 @@ double fem_coupling::nhf_kernel_ipol(lexer *p, double *f, const Vec3& x) const
     return ws>0.0 ? s/ws : 0.0;
 }
 
-void fem_coupling::nhf_spread(lexer *p, double *UH, double *VH, double *WH, const Vec3& xp, const Vec3& du, double A, const Vec3* n)
+void fem_coupling::nhf_spread(lexer *p, const Vec3& xp, const Vec3& du, double A, const Vec3* n)
 {
     // velocity increment du at the point, spread onto the own cells (ghost cells
     // are exchanged by nhflow_forcing): with a normal n, A is the point area and
     // the volume A times the cell size along n; without, A is the volume.
     // Vertically renormalised over the wet column (no loss at bed and surface).
+    // The weights and weighted increments are summed per cell (sp_w, sp_u) and
+    // applied by nhf_apply_forcing.
     if(xp(0)<p->originx-2.0*p->DXN[marge] || xp(0)>p->endx+2.0*p->DXN[p->knox-1+marge])
     return;
     if(p->j_dir==1 && (xp(1)<p->originy-2.0*p->DYN[marge] || xp(1)>p->endy+2.0*p->DYN[p->knoy-1+marge]))
@@ -283,17 +285,45 @@ void fem_coupling::nhf_spread(lexer *p, double *UH, double *VH, double *WH, cons
             {
                 if(Dz[k]==0.0) continue;
                 const double w = fac*Dz[k];
-                nhf->U[IJK] += w*du(0);
-                UH[IJK]     += w*du(0)*wl;
-                if(p->j_dir==1)
-                {
-                nhf->V[IJK] += w*du(1);
-                VH[IJK]     += w*du(1)*wl;
-                }
-                nhf->W[IJK] += w*du(2);
-                WH[IJK]     += w*du(2)*wl;
+                const size_t c = IJK;
+                sp_w[c] += w;
+                sp_u[3*c]   += w*du(0);
+                sp_u[3*c+1] += w*du(1);
+                sp_u[3*c+2] += w*du(2);
             }
         }
+    }
+}
+
+void fem_coupling::nhf_apply_forcing(lexer *p, double *UH, double *VH, double *WH)
+{
+    // The kernel weights of a cell add up to the volume of the forcing layer over
+    // the water volume of the cell. In a thin column (the front of a surge on the
+    // dry bed, a column next to a structure that has just been wetted) that is far
+    // above 1: the cell was pushed many times past the structural velocity, the
+    // fluxes drained it below zero and the clipping of the wet/dry scheme added
+    // water (1 % in 10 s with three piers; the water piled up 5 m deep behind them).
+    // The summed increment is therefore limited to one full correction:
+    // du_cell = sum(w du) / max(1, sum(w)).
+    int i,j,k;
+    for(i=0; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        const size_t c = IJK;
+        if(sp_w[c]<=0.0)
+        continue;
+        const double cw = 1.0/std::max(1.0,sp_w[c]);
+        const double wl = (*WLn)(i,j);
+        nhf->U[c] += cw*sp_u[3*c];
+        UH[c]     += cw*sp_u[3*c]*wl;
+        if(p->j_dir==1)
+        {
+        nhf->V[c] += cw*sp_u[3*c+1];
+        VH[c]     += cw*sp_u[3*c+1]*wl;
+        }
+        nhf->W[c] += cw*sp_u[3*c+2];
+        WH[c]     += cw*sp_u[3*c+2]*wl;
     }
 }
 
@@ -710,6 +740,12 @@ void fem_coupling::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
     // ------------------------------------------------------------------
     const double hy = fs.lattice_h(1);
 
+    {
+        const size_t nc = size_t(p->imax)*p->jmax*p->kmax;
+        sp_w.assign(nc,0.0);
+        sp_u.assign(3*nc,0.0);
+    }
+
     if(fs.coupling().forcing)
     for(int q=0; q<np; ++q)
     {
@@ -731,7 +767,7 @@ void fem_coupling::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
         Vec3 x2 = xp;
         if(p->j_dir==0)
         x2(1) = p->YP[marge];
-        nhf_spread(p,UH,VH,WH,x2,du,Aeff,&n);
+        nhf_spread(p,x2,du,Aeff,&n);
     }
 
     // ------------------------------------------------------------------
@@ -766,9 +802,11 @@ void fem_coupling::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
             Vec3 x = fs.pos(i);
             if(p->j_dir==0)
             x(1) = p->YP[marge];
-            nhf_spread(p,UH,VH,WH,x,alpha*p->dt*fr,1.0,nullptr);
+            nhf_spread(p,x,alpha*p->dt*fr,1.0,nullptr);
         }
     }
+
+    nhf_apply_forcing(p,UH,VH,WH);
 
     // ghost cells of U,V,W,UH,VH,WH are updated by nhflow_forcing::forcing
 
