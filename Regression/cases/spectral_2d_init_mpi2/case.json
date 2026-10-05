@@ -1,0 +1,7 @@
+{
+ "base": "spectral_2d_init",
+ "np": 2,
+ "description": "as spectral_2d_init on 2 MPI ranks.",
+ "tags": ["quick", "2d", "spectral", "mpi"],
+ "covers": ["Spectral storage and global sums across MPI ranks"]
+}

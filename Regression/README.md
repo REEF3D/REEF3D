@@ -38,6 +38,8 @@ cd Regression
 # no hypre by default (as the Makefile); -H <hypre prefix> builds with hypre
 
 export REEF3D_MPIRUN="mpirun"          # e.g. "mpirun --oversubscribe" if fewer cores than ranks
+# or cap the ranks of all cases for an A/B run on a small machine: --max-np 2 (env REEF3D_MAX_NP);
+# both binaries then use the same reduced decomposition, so ab stays valid (not for bless/check)
 
 # run both and compare (default: must be bitwise identical)
 ./regression.py ab --ref-bin ~/reef3d_reg/ref/REEF3D --new-bin ~/reef3d_reg/new/REEF3D \
@@ -155,6 +157,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_amr_wetdry` | 1 | NHFLOW AMR wetting and drying in the patches (A 283): beach and cone island, a box crossing the island shoreline, run-up at t = 0 (wet flags of the cells around a patch, lexer::wetfix, covered-cell flags) |
 | `nhflow_3d_amr_wetdry_adaptive` (+ `_mpi2`) | 1/2 | the same with the shoreline flag (A 284) only, regrid every step, layout changes from step 116; `_mpi2`: partition edge through the island |
 | `nhflow_3d_amr_wetdry_n14d` | 1 | `nhflow_3d_amr_wetdry` with the V-cycles of the AMR pressure preconditioner in double (N 14 64; the default N 14 32 keeps them in float) |
+| `nhflow_3d_amr_waves_place` | 2 | `nhflow_3d_amr_waves_mpi2` with the box on rank 1 only and the patches placed for the load of the ranks (A 286 1): pieces on rank 0 reach their parents on rank 1 through the block plans |
+| `nhflow_3d_amr_heave_place` | 2 | floating body with placed patches (A 286 1): hull triangles taken by the rank of the finest grid at their centroid |
+| `nhflow_3d_amr_tow_place2` | 2 | towed box with moving zone, placement test mode (A 286 2): patches migrate to other ranks at every regrid |
+| `nhflow_3d_amr_wetdry_place2` | 2 | adaptive wetting/drying, A 286 2: shoreline wet flags restricted and prolonged across ranks |
+| `nhflow_3d_amr_breaking_place2` | 2 | adaptive breaking (A 550 + A 512 2), A 286 2 |
 | `nhflow_3d_amr_breaking` | 1 | NHFLOW AMR wave breaking (A 550 1, A 512 2): a bore runs into a static patch; patch implicit diffusion with a patch-local BiCGStab, filled cells take the source grid's breaking (lexer::amrvb) |
 | `nhflow_3d_amr_breaking_adaptive` (+ `_mpi2`) | 1/2 | breaking with the adaptive patch following the bore (A 273, A 285), wetting and drying, regrid every step; `_mpi2`: different patch counts per rank (local reductions, gcparaxijk_single) |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
@@ -183,6 +190,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_current_background` | 1 | constant current background (B 514): Riemann in, Flather out, beach relaxing to the current |
 | `nhflow_2d_tide_progressive` | 1 | one progressive background (B 515) for the Riemann edges at both ends |
 | `nhflow_2d_tide_timeseries` | 1 | time-series background (B 510 mode 2, `background-1.dat`): Riemann in, Flather out |
+| `nhflow_2d_riemann_waves` | 1 | waves from a Riemann edge with a wave source (B 524), no relaxation zone; beach at x+ |
+| `nhflow_2d_riemann_waves_wall` | 1 | waves from a Riemann edge in a channel closed by a wall; the reflected waves leave through the edge |
+| `nhflow_2d_tide_waves_riemann` | 1 | tide + waves through a Riemann edge (background + source), no generation zone |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
@@ -190,6 +200,12 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_cylinder_kepsilon_mpi2` | 2 | NHFLOW 3D channel with a cylinder (A580), k-ε, ranks split in y: k/ε and ν_t across the rank interface |
 | `sflow_1d_channel_ke` (+ `_kw`) | 1 | SFLOW depth-averaged k-ε / k-ω (A260 1/2): k, ε/ω relax to the Rastogi–Rodi equilibrium |
 | `sflow_2d_channel_walls_kw_mpi2` | 2 | SFLOW k-ω with side walls, ranks split in y: production at wall cells, uniform k/ω across the width |
+| `cfd_3d_heave_sphere_6dof_kepsilon` | 4 | k-ε at a direct-forcing body: wall functions at gcdf4 cells, flagsf4 turn-off, solid forcing for k/ε |
+| `cfd_2d_channel_veg_kepsilon` | 1 | vegetation box (B 310, B 308 0): drag ½ Cd a \|u\| u_i, Lopez & Garcia k/ε sources |
+| `cfd_2d_freesurface_komega_t45` | 1 | k-ω buoyancy term T 45 1: implicit sink, k ≥ 0 at the interface |
+| `cfd_2d_channel_les_t21_2` | 1 | LES Smagorinsky with the second-order high-pass filter T 21 2 |
+| `nhflow_3d_channel_walls_kepsilon_mpi2` | 2 | NHFLOW side walls with A519 2: friction and turbulence wall functions per wall face (nhflow_wall.h), ranks split in y |
+| `spectral_2d_init` (+ `_mpi2`) | 1/2 | REEF3D::Spectral Phase 0 (A 10 7): shoal + land block, JONSWAP initial spectrum with Mitsuyasu spreading (A 610 1), block-sparse storage (8 x 8 tiles); no transport yet, the spectrum stays constant |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
@@ -227,4 +243,5 @@ line is at the top of each file, run from `unit/`:
 | `lagoon_store_test.cpp` | LAGOON store writer (P 18, needs `-lz`): VTU header parsing, σ-level offsets, shard files read back (append, CRC-32C index, inner chunks, components), Cartesian (CFD) blocks split in z |
 | `lagoon_bodies_test.cpp` | LAGOON body writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): quaternion of REEF3D's rotation matrix, two rigid bodies over 8 outputs (set and body attributes, mesh once, motion arrays, time counted once every body has it), a body off its rigid motion refused |
 | `lagoon_particles_test.cpp` | LAGOON particle writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): 5 outputs of 0 to 700000 particles (inner chunks and shards crossed), field names and their arrays, int32 fields, values read back from the shard files; objects with cells (ice floes: a cell set stored only when the cells change, a value per cell), inconsistent cells refused (needs patch 0009) |
+| `spectral_test.cpp` | REEF3D::Spectral Phase 0 kernels: spectral grid (logarithmic frequencies, bin widths, directions), block-sparse action storage (land tiles not allocated, ghost cells, no overlap), integrated parameters (Hs, Tp, Tm01, Tm-1,0, direction, spread vs. single bin, JONSWAP, PM, cos^2s), memory budget |
 

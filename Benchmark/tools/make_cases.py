@@ -640,8 +640,10 @@ W 22 -9.81
         case["levels"]["nightly"]["xfail"] = (
             "hans_dev ff1bb68, dx = 0.1 m (L/15): the wave heights are about 60 % of the measured ones on all "
             "sections, already at the first point of section 7 (H/H0 0.67 vs 1.07); 5 or 8 sigma layers give "
-            "the same (rms 0.34-0.72 on sections 1-7, 0.20 on section 8). FNPF on the same grid is within "
-            "0.07-0.31. Cause not investigated (horizontal numerical damping or 3D wave generation)")
+            "the same (rms 0.34-0.72 on sections 1-7, 0.20 on section 8). Not a 3D effect: a 2D flume with the same "
+            "wave at dx = 0.1 m loses 16 % of the height over 14 m with the default WENO-JS reconstruction "
+            "(dx 0.05: 2 %, dx 0.025: none). WENO-Z (A 527 1) keeps 0.95 along the flume and reduces the "
+            "Berkhoff error to 0.09-0.49 (overall 0.31); the rest is the coarse grid over the shoal (L/10)")
     write_case("%s_berkhoff_shoal" % model, control, ctrl, case)
 
 
@@ -1041,7 +1043,9 @@ W 10 %(Q)g
                                   "tol_Cd": 0.15},
                         "xfail": "hans_dev ff1bb68, D/25: St = 0.1745 (+6 %) and the lift amplitude C_L = 0.31 "
                                  "(rms 0.22, literature 0.225-0.235) agree, but the P 81 drag gives C_D = 1.01 "
-                                 "instead of 1.33 (-24 %)"},
+                                 "instead of 1.33 (-24 %): the viscous force in force_force.cpp was multiplied "
+                                 "by signed normal components and cancelled around the body. Fixed by patch "
+                                 "0002 (C_D 1.33 at 4bb681b + patch): remove this entry once it is applied"},
             "release": {}},
     }
     ctrl = ctrl % {"nu": nu, "Q": U * Hz * 0.002}
@@ -1823,7 +1827,10 @@ W 22 -9.81
         case["levels"]["release"]["xfail"] = (
             "hans_dev ff1bb68, release grid (725 x 10): Hm0 too high in the inner surf zone, +18 % at h = 5 cm "
             "and +39 % at h = 2.5 cm (nightly grid: +9 % / +26 %); within 9 % for h >= 7.5 cm and skewness "
-            "within 0.13 everywhere. The breaking dissipation decreases with grid refinement")
+            "within 0.13 everywhere. Not the breaking model: in the wind-wave band (f > 0.3 Hz) FNPF is "
+            "within 6 % at all gauges; the excess is infragravity energy (f < 0.3 Hz, about 2x measured at "
+            "the shoreline, 1.6x already at the toe): free long waves from the linear (first-order) wave "
+            "generation, reflected at the static coastline")
     write_case("%s_mase_kirby_irregular" % model, control, ctrl, case)
 
 

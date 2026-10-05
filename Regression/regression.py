@@ -80,6 +80,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_SFLOW_ProbePoint/*.dat",
     "REEF3D_SFLOW_WSFLINE/*.dat",
     "REEF3D_SFLOW_6DOF/*.dat",
+    "REEF3D_SPECTRAL_Log/*.dat",
 ]
 
 # output folders deleted after a run unless --keep (large and not compared)
@@ -90,7 +91,7 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
                "REEF3D_SFLOW_VTP_FSF", "REEF3D_SFLOW_VTP_BED",
                "REEF3D_NHFLOW_6DOF_VTP", "REEF3D_NHFLOW_6DOF_Normals_VTP", "REEF3D_NHFLOW_6DOF_STL",
                "REEF3D_FNPF_6DOF_VTP", "REEF3D_FNPF_6DOF_Normals_VTP", "REEF3D_FNPF_6DOF_STL",
-               "REEF3D_CFD_6DOF_STL", "REEF3D_SFLOW_6DOF_VTP"]
+               "REEF3D_CFD_6DOF_STL", "REEF3D_SFLOW_6DOF_VTP", "REEF3D_SPECTRAL_VTP"]
 
 LEVELS = ["identical", "close", "different", "failed"]
 
@@ -98,6 +99,12 @@ LEVELS = ["identical", "close", "different", "failed"]
 # ----------------------------------------------------------------------------------------------
 # case definitions
 # ----------------------------------------------------------------------------------------------
+
+# cap on the number of ranks of every case (--max-np): both binaries of an A/B run use the same
+# reduced decomposition, so the comparison stays valid on a small machine; the stored references
+# (bless/check) are for the case's own np
+MAX_NP = 0
+
 
 def load_case(name, _seen=None):
     """Load a case, resolving 'base' inheritance. Returns dict with resolved control/ctrl lines."""
@@ -131,6 +138,8 @@ def load_case(name, _seen=None):
     c["ctrl_lines"] = ctrl
     c["files_abs"] = files
     c.setdefault("np", 1)
+    if MAX_NP > 0:
+        c["np"] = min(c["np"], MAX_NP)
     c.setdefault("steps", 50)
     c.setdefault("dump_every", 0)
     c.setdefault("solver", "cfd")
@@ -742,6 +751,8 @@ def main():
         p.add_argument("--steps", type=int, help="override number of steps for all cases")
         p.add_argument("--timeout", type=int, default=1800)
         p.add_argument("--keep", action="store_true", help="keep grids and bulk output")
+        p.add_argument("--max-np", type=int, default=int(os.environ.get("REEF3D_MAX_NP", "0")),
+                       help="cap the ranks of every case (A/B on a small machine; env REEF3D_MAX_NP)")
 
     def tol(p):
         p.add_argument("--rtol", type=float, default=1e-6)
@@ -767,6 +778,8 @@ def main():
     p.set_defaults(func=cmd_check)
 
     args = ap.parse_args()
+    global MAX_NP
+    MAX_NP = getattr(args, "max_np", 0) or 0
     sys.exit(args.func(args))
 
 

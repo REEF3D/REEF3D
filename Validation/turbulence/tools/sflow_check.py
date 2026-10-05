@@ -2,10 +2,22 @@
 """Compare SFLOW k, eps/omega, nu_t with the local depth-averaged equilibrium (Rastogi & Rodi):
    cf = g n^2/h^(1/3), n = ks^(1/6)/20 (as sflow_rough_manning), u* = sqrt(cf)|U|
    k = u*^2/(ceg sqrt(cmu) cf^(1/4)), eps = u*^3/(sqrt(cf) h), omega = eps/(cmu k), nu_t = cmu k^2/eps
+ceg = A 264 from <run>/ctrl.txt, else the default (3.6 since the 2026-10 turbulence patch, 2.7 before;
+--ceg <value> sets the default for runs made with an older build).
+usage: sflow_check.py [--ceg 2.7] <run> ...
 """
 import sys, glob, numpy as np
 import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); import r3read
-def check(run, ks=0.01, ceg=2.7, cmu=0.09, g=9.81, model='ke', xr=(100, 900)):
+def a264(run, default):
+    try:
+        for line in open(os.path.join(run, 'ctrl.txt')):
+            t = line.split()
+            if len(t) >= 3 and t[0] == 'A' and t[1] == '264': return float(t[2])
+    except OSError:
+        pass
+    return default
+
+def check(run, ks=0.01, ceg=3.6, cmu=0.09, g=9.81, model='ke', xr=(100, 900)):
     fs = sorted(glob.glob(run + '/REEF3D_SFLOW_VTP_FSF/*-000001.vtp'))
     if not fs: return None
     d = r3read.read_vtk(fs[-1])
@@ -24,9 +36,12 @@ def check(run, ks=0.01, ceg=2.7, cmu=0.09, g=9.81, model='ke', xr=(100, 900)):
     r['_y'] = y[sel]
     return r
 if __name__ == '__main__':
-    for run in sys.argv[1:]:
-        model = 'kw' if run.endswith('_kw') else ('parab' if 'parab' in run else 'ke')
-        r = check(run, model=model)
+    args = sys.argv[1:]; ceg0 = 3.6
+    if '--ceg' in args:
+        i = args.index('--ceg'); ceg0 = float(args[i + 1]); del args[i:i + 2]
+    for run in args:
+        model = 'kw' if run.rstrip('/').endswith('_kw') else ('parab' if 'parab' in run else 'ke')
+        r = check(run, ceg=a264(run, ceg0), model=model)
         if r is None: print(run, 'no output'); continue
         print(run)
         for k, v in r.items():

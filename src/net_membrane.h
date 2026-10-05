@@ -117,6 +117,7 @@ struct membrane_param
     double zb=0.0,zt=0.0;                   // bottom (floor) and top of the bag; cylcone: zb the cone tip
     double zc=0.0;                          // cylcone: cone base = bottom of the cylinder
     double Rn=1.0e4, Rt=-1.0;               // hydraulic resistance normal / tangential [m/s]; Rt<0: 0 fixed, Rn moving
+                                            // (link mode: 0)
     double delta=-1.0;                      // half width of the smeared layer [m], <0: 1.5 max(dx,dy,dz)
     double h=-1.0;                          // target triangle edge length [m], <0: min cell size (fixed), max cell size
                                             // (moving), 1.5 delta (coupling iterated)
@@ -126,6 +127,8 @@ struct membrane_param
     double printdt=-1.0;                    // vtp print interval [s]; <0: NHFLOW print control (P 20 / P 30), 0: off
     int projections=1;                      // projection passes per stage (1: Rhie-Chow flux, >1: converged wide divergence)
     int poisson=1;                          // 1: membrane mobility in the pressure Poisson equation, 0: off (diagnostics)
+    int link=0;                             // pressure coupling: 0 layer (isotropic mobility of the layer cells), 1 link
+                                            // (porous-jump mobility only on the links crossing the membrane)
     int floorp=-1;                          // static pressure below the floor: 0 uniform dh, 1 local, 3 averaged ramp;
                                             // -1: 3 for a fixed membrane, 0 for a moving one
     double tau=2.0;                         // averaging time of the ramp shape (floorpressure 3), frozen at 2 tau [s]
@@ -297,6 +300,7 @@ private:
 
     // smeared layer
     double delta, Kn, Kt;
+    double rmap_=-1.0;                      // radius of the cell map (delta; link mode: at least the longest link)
 
     struct cellentry
     {
@@ -313,6 +317,24 @@ private:
     vector<cellentry> cells_;
     vector<int> slot_;
     vector<double> xc_, yc_;                // local cell centres for the bounding box search
+
+    // link mode (net_membrane_link.cpp): cell centres and nodes on either side of the membrane, link mobilities,
+    // loads from the forcing impulse and the pressure difference across the blocked links
+    void link_ini(lexer*);
+    void pseudonormals();
+    int side_of(const Eigen::Vector3d&, int, double, double, double) const;
+    int side_near(const Eigen::Vector3d&, const cellentry&) const;
+    void link_mobility(lexer*, fdm_nhf*, ghostcell*, double);
+    void link_loads(lexer*, fdm_nhf*, ghostcell*, slice&, const function<void(int,const double*,const Eigen::Vector3d&)>&);
+    double *sideC_=nullptr;                 // side of the cell centres in the layer: +1 outside, -1 inside, 0 not set
+    vector<signed char> sideN_;             // side of the nodes (FIJK) in the layer
+    vector<int> sideCq_, sideNq_;           // indices set in this stage
+    vector<Eigen::Vector3d> vpn_, epn_;     // angle-weighted vertex and edge pseudo normals
+    vector<array<int,2> > etri_;            // triangles of each edge (-1: boundary edge)
+    vector<Eigen::Vector3d> fimp_;          // per layer cell: force of the forcing on the membrane in this stage [N]
+    struct blockedlink {int i,j,k,dir,t; double w[3];};
+    vector<blockedlink> blocked_;           // links crossing the membrane in this stage
+
 
     // loads
     vector<double> tf_;                     // 3 per triangle, reaction on the membrane [N]

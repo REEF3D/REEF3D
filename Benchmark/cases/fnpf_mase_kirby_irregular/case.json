@@ -108,7 +108,7 @@
    }
   },
   "release": {
-   "xfail": "hans_dev ff1bb68, release grid (725 x 10): Hm0 too high in the inner surf zone, +18 % at h = 5 cm and +39 % at h = 2.5 cm (nightly grid: +9 % / +26 %); within 9 % for h >= 7.5 cm and skewness within 0.13 everywhere. The breaking dissipation decreases with grid refinement"
+   "xfail": "hans_dev ff1bb68, release grid (725 x 10): Hm0 too high in the inner surf zone, +18 % at h = 5 cm and +39 % at h = 2.5 cm (nightly grid: +9 % / +26 %); within 9 % for h >= 7.5 cm and skewness within 0.13 everywhere. Not the breaking model: in the wind-wave band (f > 0.3 Hz) FNPF is within 6 % at all gauges; the excess is infragravity energy (f < 0.3 Hz, about 2x measured at the shoreline, 1.6x already at the toe): free long waves from the linear (first-order) wave generation, reflected at the static coastline"
   }
  }
 }

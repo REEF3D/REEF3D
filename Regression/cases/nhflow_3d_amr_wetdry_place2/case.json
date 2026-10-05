@@ -1,0 +1,22 @@
+{
+ "description": "nhflow_3d_amr_wetdry_mpi2 with the placement test mode (A 286 2): shoreline flags, wet flags of the covered cells and of migrated patches across the ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 140,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "restrict_flags through block_up",
+  "old_run with wet and deep",
+  "prolong_patch through block_down with A 283"
+ ],
+ "base": "nhflow_3d_amr_wetdry_mpi2",
+ "ctrl_add": [
+  "A 286 2"
+ ]
+}

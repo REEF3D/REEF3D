@@ -61,6 +61,15 @@ Author: Hans Bihs
 //                                      default 3 (fixed membrane), 0 (moving membrane)
 //   tau         t                      averaging time of floorpressure 3 [s]; default 2
 //   projections n                      projection passes per stage (default 1: Rhie-Chow continuity flux)
+//   mobility    layer|link             pressure coupling of the membrane. layer (default): the implicit porous factor
+//                                      1/(1 + a K_n H) is the (isotropic) mobility of all cells of the smeared layer;
+//                                      the layer fluid can then not be moved along the membrane by pressure and is held
+//                                      with it (R_t = R_n for a moving membrane). link: only the links between two cell
+//                                      centres (nodes, vertically) on opposite sides of the membrane get the porous-jump
+//                                      mobility 1/(1 + a R_n/l); the layer fluid moves freely along the membrane
+//                                      (R_t default 0), the normal resistance of the layer stays. Loads: momentum taken
+//                                      out by the forcing + pressure difference across the blocked links.
+//                                      Link mode: projections 1, coupling staggered (flexible), delta >= cell size
 //   poisson     0|1                    membrane mobility in the pressure Poisson equation; default 1
 //                                      (0 only to demonstrate the splitting leakage of the projection)
 //
@@ -252,6 +261,18 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         else if(key=="projections")
         {
             if(!(ls>>mp.back().projections) || mp.back().projections<1)
+            error=true;
+        }
+        else if(key=="mobility")
+        {
+            string mode;
+            ls>>mode;
+            
+            if(mode=="layer")
+            mp.back().link=0;
+            else if(mode=="link")
+            mp.back().link=1;
+            else
             error=true;
         }
         else if(key=="poisson")
@@ -463,6 +484,31 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     d->MCHI[qn]=0.0;
     }
 
+    // link mode: Rhie-Chow flux of the single projection (the converged wide divergence would average the cell
+    // velocities across the blocked links)
+    bool link=false;
+    
+    for(size_t m=0; m<mp.size(); ++m)
+    if(mp[m].link==1)
+    {
+        link=true;
+        
+        if(mp[m].projections>1 && p->mpirank==0)
+        cout<<"Membrane "<<m<<": mobility link uses projections 1"<<endl;
+        
+        mp[m].projections=1;
+    }
+    
+    if(link)
+    {
+        p->Darray(d->MBX,p->imax*p->jmax*(p->kmax+2));
+        p->Darray(d->MBY,p->imax*p->jmax*(p->kmax+2));
+        p->Darray(d->MBZ,p->imax*p->jmax*(p->kmax+2));
+        
+        for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
+        d->MBX[qn]=d->MBY[qn]=d->MBZ[qn]=1.0;
+    }
+    
     for(size_t m=0; m<mp.size(); ++m)
     d->MPROJ = MAX(d->MPROJ, mp[m].projections);
 
@@ -484,11 +530,22 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     // 1. mobility field beta (also builds the membrane cell maps for this stage)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
     d->MBETA[qn]=1.0;
+    
+    if(d->MBX!=nullptr)
+    for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
+    d->MBX[qn]=d->MBY[qn]=d->MBZ[qn]=1.0;
 
     for(auto m : pmem)
     m->mobility_nhflow(p,d,pgc,alpha);
 
     pgc->start4V(p,d->MBETA,1);
+    
+    if(d->MBX!=nullptr)
+    {
+    pgc->start4V(p,d->MBX,1);
+    pgc->start4V(p,d->MBY,1);
+    pgc->start4V(p,d->MBZ,1);
+    }
 
     // 2. static overpressure of the bag below its floor (prescribed pressure, see net_membrane)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
@@ -538,7 +595,7 @@ void net_interface::membrane_pgrad(lexer *p, fdm_nhf *d, double alpha, double *U
         continue;
 
         a = alpha*p->dt*CPORNH;
-        const double bv = d->MBETA[IJK];
+        const double bv = nhflow_mbz(d,IJK);
         const double dPk = (P[FIJKp1]-P[FIJK])/p->DZN[KP];
 
         sx = 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*dPk;

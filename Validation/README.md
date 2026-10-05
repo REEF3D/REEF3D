@@ -26,3 +26,4 @@ Cases run as-is: copy `control.txt` and `ctrl.txt` into a run folder, run DiveME
 |---|---|
 | `turbulence/01_channels_mpi_freesurface` | SFLOW, NHFLOW and CFD k-ε / k-ω in open channels against the equilibrium (Rastogi–Rodi, log law), MPI against serial, free-surface damping T36 |
 | `turbulence/02_nhflow_momentum_diffusion_rk` | NHFLOW implicit momentum diffusion with the RK stage weight: momentum balance (ν+ν_t)du/dz = gS(h−z), RK2 against RK3 |
+| `turbulence/03_turbulence_options` | NHFLOW side-wall turbulence vs momentum walls, buoyancy term T45, vegetation sources, LES T21 2, SFLOW defaults (A212, A264) |

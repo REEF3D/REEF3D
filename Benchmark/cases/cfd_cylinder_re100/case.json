@@ -57,7 +57,7 @@
     "tol_St": 0.08,
     "tol_Cd": 0.15
    },
-   "xfail": "hans_dev ff1bb68, D/25: St = 0.1745 (+6 %) and the lift amplitude C_L = 0.31 (rms 0.22, literature 0.225-0.235) agree, but the P 81 drag gives C_D = 1.01 instead of 1.33 (-24 %)"
+   "xfail": "hans_dev ff1bb68, D/25: St = 0.1745 (+6 %) and the lift amplitude C_L = 0.31 (rms 0.22, literature 0.225-0.235) agree, but the P 81 drag gives C_D = 1.01 instead of 1.33 (-24 %): the viscous force in force_force.cpp was multiplied by signed normal components and cancelled around the body. Fixed by patch 0002 (C_D 1.33 at 4bb681b + patch): remove this entry once it is applied"
   },
   "release": {}
  }

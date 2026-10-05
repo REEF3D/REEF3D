@@ -83,6 +83,9 @@ public:
     double *MRCX = nullptr;     // membrane (X 330): face correction velocities of the last projection,
     double *MRCY = nullptr;     //                   Rhie-Chow continuity flux next to the membrane
     int MPROJ = 1;              // membrane (X 330): projections per stage (membrane.dat: projections)
+    double *MBX = nullptr;      // membrane (X 330), 'mobility link': mobility of the link cell (i,j,k) -> (i+1,j,k),
+    double *MBY = nullptr;      //   (i,j,k) -> (i,j+1,k) and of the vertical link node k -> k+1 through cell k;
+    double *MBZ = nullptr;      //   unallocated in the default layer mode (mobilities from MBETA)
     double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;
     double *KIN;

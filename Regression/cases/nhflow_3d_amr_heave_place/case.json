@@ -1,0 +1,21 @@
+{
+ "description": "nhflow_3d_amr_heave_mpi2 with placed patches (A 286 1): the hull triangles are taken by the rank of the finest grid at their centroid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sixdof_obj_nhflow::amr_owner_nhflow, reefamr::finest_rank",
+  "placed patches with a floating body"
+ ],
+ "base": "nhflow_3d_amr_heave_mpi2",
+ "ctrl_add": [
+  "A 286 1"
+ ]
+}

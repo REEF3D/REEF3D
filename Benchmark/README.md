@@ -192,16 +192,22 @@ errors of 0.1-0.6 as tolerances rather than tighter values.
 
 ## Findings on hans_dev while setting up the suite
 
-Observed while building and running the cases (hans_dev `ff1bb6819`, Linux, MPICH 4.2.3, REEFMG,
-`make all`). Worth a look; none of them was changed in the code.
+Observed while building and running the cases (hans_dev `ff1bb6819`, later `4bb681b`, Linux,
+MPICH 4.2.3, REEFMG, `make all`). The fixes are delivered as patches in
+`~/Dropbox/Claude/REEF3D_benchmark_suite/patches/` (on `4bb681b`); the cases keep their xfail
+entries until the patches are applied (they then report XPASS).
 
 1. (Fixed on hans_dev in the meantime: `src/momentum_FCC3.cpp`, which still included the deleted
    `momentum_FCC3.h` and broke `make`, has been removed after `ff1bb68`.)
 2. **CFD implicit diffusion at solids (default `D 22 1`)**: the laminar cylinder at Re = 100 with
-   `D 20 2` and the default `D 22 1` gives C_D = 0.62 and no vortex shedding after 40 s (400 D/U);
-   explicit diffusion (`D 20 1`) or `D 22 2` give C_D = 0.92 at t = 0.8 s and the expected
-   behaviour. Zero normal gradient towards solid cells removes the wall shear in the implicit
-   diffusion (the earlier `tests/validation` README noted the same for walls). Consider `D 22 2` as the default.
+   `D 20 2` and the default `D 22 1` gave C_D = 0.62 and no vortex shedding after 40 s (400 D/U);
+   explicit diffusion (`D 20 1`) or `D 22 2` give the expected behaviour. **Cause:** in
+   `idiff2_FS[uvw]*.cpp` a fluid face next to a direct-forcing solid face (`DF < 0`) got a Neumann
+   coupling (`M.p += M.s`), i.e. a free-slip wall in the implicit diffusion. **Fixed in patch 0003**
+   (Dirichlet u = 0 at the forced solid face; domain walls unchanged): the cylinder sheds with
+   `D 22 1` (St 0.172, C_L 0.30, C_D 1.19 at 8-15 s; `D 22 2`: St 0.175, C_D 1.33). The remaining
+   10 % in C_D is the staircase position of the wall (one face instead of the level-set distance);
+   `D 22 2` (already forced for `X 10` bodies) is the more accurate choice and a candidate default.
 3. **`B 20 3` with a DIVEMesh solid**: with `B 20 3` + `D 22 2` the cylinder force is ~0
    (-5e-5 N instead of 0.18 N) and u_max drops from 1.28 to 1.15 m/s, i.e. the flow does not see
    the solid. `B 20 3` seems to act on domain walls only.
@@ -210,14 +216,21 @@ Observed while building and running the cases (hans_dev `ff1bb6819`, Linux, MPIC
    `sflow_eta_wetdry.cpp`: option 1 only sets `wet = 1` where the water level is already above the
    threshold.
 5. **3D dam break with box (Kleefsman set-up, dx = 0.025 m, N 40 3, level set)**: the water volume
-   drops from 0.656 to 0.532 m3 (-19 %) until t = 1.7 s and the run stops at t = 1.71 s with the
-   N 61 velocity limit (u_max 365 m/s). The impact at P1 comes 0.07 s late (9.4 vs 10.9 kPa).
-   Reproduced with the exact SPHERIC Test 2 geometry (box 0.6635-0.8245 m, water from x = 1.992 m,
-   probes 5 mm off the box): volume 0.67 -> 0.55 m3 (-18 %), stop at t = 1.77 s. Up to t = 1.7 s the
-   front pressures agree (P1 peak 10.6 vs 11.2 kPa, 0.05 s late; rms P1-P3 0.41-0.45, P4 0.64 -
-   underpredicted after the impact), the top probes P5-P8 read close to zero (rms 0.83-0.95, film
-   not resolved at dx = 0.025 m), reservoir height rms 0.01, heights at x = 1.456 / 0.960 m rms
-   0.17 / 0.12 (about 15 % high late), behind the box (x = 0.464 m) the water arrives late (rms 0.46).
+   drops from 0.67 to 0.55 m3 (-18 %) until t = 1.7 s and the run stops at t = 1.77 s with the N 61
+   velocity limit (u_max 365 m/s). Up to t = 1.7 s the front pressures agree (P1 peak 10.6 vs
+   11.2 kPa, 0.05 s late; rms P1-P3 0.41-0.45, P4 0.64), the top probes P5-P8 read close to zero
+   (rms 0.83-0.95), heights at x = 1.456 / 0.960 m rms 0.17 / 0.12, behind the box (x = 0.464 m) the
+   water arrives late (rms 0.46). **Cause:** the level set is not mass conserving (coarse grid
+   dx = 0.05: -33 % with `N 40 3`, -26 % with `N 40 13`, so not the per-stage reinitialisation of the
+   RK scheme), and the volume correction `F 46` was broken with `N 40 2/3/4`: `momentum_rk` never
+   called `volcalc`, and `picard_lsm` took its reference at `count == 1` while the scheme is already
+   called at `count 0`, so `F 46 3` removed all the water in the first step. **Fixed in patch 0004.**
+   With the patch and `F 46 3` (`F 47 10`): volume 0.673 -> 0.668 m3 (-0.7 %), the run passes
+   t = 1.77 s (stopped at 1.85 s for time, u_max 30-50 m/s in the air after the impact), and up to
+   1.8 s all signals are within the nightly tolerances: P1 peak 10.8 vs 11.2 kPa (0.05 s late),
+   rms P1-P3 0.38-0.44, P4 0.59, P5-P8 0.63-0.74, heights at x = 2.606 / 1.456 / 0.960 / 0.464 m
+   0.02 / 0.23 / 0.20 / 0.39. The case
+   itself keeps the defaults (no `F 46`) until the patch is applied; then `F 46 3` is recommended.
 6. **FNPF plunging breaker (tutorial 9_3 set-up)**: at the tutorial resolution (dx = 0.05 m) the
    maximum wave height is reached 1.9 m before the measured breaking point; at dx = 0.025 m the
    wave train becomes irregular at t ~ 75 s and the run stops at t = 91 s (N 61).
@@ -225,14 +238,21 @@ Observed while building and running the cases (hans_dev `ff1bb6819`, Linux, MPIC
    theory (phase lead 0.017 s at x = 15 m, 0.032 s at x = 25 m), independent of the grid level.
 8. **P 81 drag of the cylinder (Re = 100, nightly grid D/25, `D 22 2`)**: shedding frequency
    (St = 0.1745, +6 % with 6 % blockage) and lift amplitude (C_L = 0.31, i.e. rms 0.22 vs. 0.225-0.235
-   in the literature) are right, but the mean drag is C_D = 1.01 instead of 1.33. The viscous part
-   in `force_force.cpp` uses u/dx one cell off the wall and the pressure is sampled P 91 cells off the
-   surface; one of the two probably underestimates the force.
-9. **`B 105` also moves the relaxation zone**: with irregular-wave reconstruction (`B 92 51`) and
-   `B 105` set to the toe gauge (x0 = 2.75 m, to place the phase origin there) the generated waves
-   were about 13x too small: `iowave_dist.cpp` measures the generation-zone distance from the `B 105`
-   line, so the zone moved off the inlet. The Mase & Kirby cases leave `B 105` at its default and
-   put the reconstruction origin at x = 0.
+   in the literature) are right, but the mean drag was C_D = 1.01 instead of 1.33. **Cause:** the
+   viscous force in `force_force.cpp` was `mu*A*(du*ny+du*nz)`, the wall shear multiplied by signed
+   normal components, so the friction drag cancelled between the upper and lower half of the body
+   (the same in `6DOF_obj_forces_lsm.cpp`). **Fixed in patch 0002** (tau = mu u_t/dn with the
+   tangential velocity, relative to the body for 6DOF): C_D = 1.33 at 4bb681b + patch, lift unchanged;
+   6DOF sphere heave decay unchanged (T and zeta within 0.1 %).
+9. **`B 105` origin inside the domain mirrors the waves**: with irregular-wave reconstruction
+   (`B 92 51`) and `B 105` at the toe gauge (x0 = 2.75 m) the generated waves were 13x too small
+   (Hm0 15 % of measured at 4bb681b). **Cause:** `xgen`/`ygen` in `iowave_dist.cpp` (the coordinates
+   the wave theories are evaluated at) were unsigned distances to the `B 105` line, so the wave
+   field was mirrored there and the generation zone upstream of it got reversed phases (the zone
+   itself is not moved, as first assumed). `ygen` was also not perpendicular to `xgen` for oblique
+   `B 105_1`. **Fixed in patch 0001** (signed wave-frame coordinates): the Mase & Kirby case with
+   `B 105 0 2.75 0` then gives the same result as with the default origin; regression case
+   `nhflow_2d_origin` (origin at x = 10 m) run to 60 s: wave height 0.992 of theory (0.964 before).
 10. **`B 92 20` (Dirichlet wave maker) in SFLOW**: with a measured time series as Dirichlet input the
    SFLOW wave heights came out 1.7x too large (consistent with a shallow-water velocity transfer
    applied to intermediate-depth waves), and FNPF stopped (no ramp). The cases use `B 92 51` with
@@ -245,11 +265,27 @@ Observed while building and running the cases (hans_dev `ff1bb6819`, Linux, MPIC
    about one cell of bed rise at the nightly grid (dx = 0.02 m) and half of it at the release grid.
    The checkers therefore treat a gauge as wet only when its level rises above its initial value
    (conical-island run-up) and mask dry gauges (Thacker, `h_dry`).
-13. **FNPF breaking in the inner surf zone (Mase & Kirby)**: Hm0 is too high in the shallowest
-   gauges and the deviation grows with grid refinement: +9 % / +26 % at h = 5 / 2.5 cm on the nightly
-   grid (362 x 8), +18 % / +39 % on the release grid (725 x 10), while h >= 7.5 cm stays within 9 %
-   and the skewness within 0.13. The breaking dissipation seems to depend on the grid spacing.
-14. Housekeeping: my first `git status` on the repo left an empty `.git/index.lock` (the sandbox
+13. **FNPF in the inner surf zone (Mase & Kirby)**: Hm0 is too high in the shallowest gauges and the
+   deviation grows with grid refinement: +9 % / +26 % at h = 5 / 2.5 cm on the nightly grid
+   (362 x 8), +18 % / +39 % on the release grid (725 x 10). **Not the breaking model**: switching
+   the breaking filter off (`A 352 0`), an 8x / 40x larger breaking viscosity (`A 365`), a lower
+   slope criterion or a wider coastline sponge change it by a few per cent only. Split into bands
+   (now in the report), FNPF is within 6 % in the wind-wave band (f > 0.3 Hz) at every gauge; the
+   excess is infragravity energy (f < 0.3 Hz): 1.6x measured at the toe, 1.9x at h = 2.5 cm. The
+   linear (first-order) wave generation radiates free long waves that the static coastline
+   reflects. Second-order (subharmonic) generation or an absorbing shoreline would address it.
+14. **NHFLOW numerical damping at coarse resolution (Berkhoff shoal)**: the nightly Berkhoff case
+   (dx = 0.1 m) gave about 60 % of the measured wave heights. **Not a 3D effect**: a 2D flume with
+   the same wave (T = 1 s, h = 0.45 m, flat bed) loses 16 % of the height over 14 m at dx = 0.1 m
+   (L/15), 2 % at dx = 0.05 m and nothing at dx = 0.025 m, independent of the number of sigma
+   layers, HLL/HLLC (`A 511`) and RK2/RK3 (`A 510`). The default WENO-JS reconstruction damps;
+   **WENO-Z (`A 527 1`)** keeps 0.95 along the flume at dx = 0.1 m and reduces the Berkhoff error
+   from 0.44 to 0.31 (centreline section 7: 0.72 -> 0.49), the rest being the coarse grid over the
+   shoal (L/10). The same damping shows in Mase & Kirby: NHFLOW is 10 % low in the wind-wave band
+   already at the toe. WENO-Z as the NHFLOW default is optional patch 0005: the NHFLOW nightly
+   benchmarks pass with it with practically unchanged errors (Beji & Battjes 0.355 -> 0.37, Mase &
+   Kirby 0.217 -> 0.203, Stokes 5 / Synolakis / sloshing within 0.002).
+15. Housekeeping: my first `git status` on the repo left an empty `.git/index.lock` (the sandbox
    cannot delete files there); I renamed it to `.git/stale_index.lock_from_claude` so git works.
    That file can be deleted.
 

@@ -1,0 +1,21 @@
+{
+ "description": "nhflow_3d_amr_breaking_mpi2 with the placement test mode (A 286 2): breaking viscosity of the source grid in the fills, patch diffusion on small pieces.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "breaking (A 550, A 512 2) on placed patches",
+  "adaptive regrid every step with migration"
+ ],
+ "base": "nhflow_3d_amr_breaking_mpi2",
+ "ctrl_add": [
+  "A 286 2"
+ ]
+}

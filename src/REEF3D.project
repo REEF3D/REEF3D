@@ -2494,6 +2494,7 @@
           <File Name="net_membrane_print.cpp"/>
           <File Name="net_membrane_coupling.cpp"/>
           <File Name="net_membrane_collar.cpp"/>
+          <File Name="net_membrane_link.cpp"/>
           <File Name="iqn_ils.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">

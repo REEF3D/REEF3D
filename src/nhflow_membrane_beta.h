@@ -60,12 +60,32 @@ Author: Hans Bihs
 
 // mobility of the vertical velocity correction in cell (i,j,k): compact difference of the nodes k, k+1,
 // exactly the vertical face of the Poisson matrix
-#define MBETAVAL (d->MBETA!=nullptr ? d->MBETA[IJK] : 1.0)
+#define MBETAVAL (d->MBZ!=nullptr ? d->MBZ[IJK] : (d->MBETA!=nullptr ? d->MBETA[IJK] : 1.0))
 
 
 inline double nhflow_membrane_harm(double a, double b)
 {
     return 2.0*a*b/(a+b);
+}
+
+// Link mobilities. Layer mode (default): harmonic mean of the cell mobilities beta of the two cells. Link mode
+// (membrane.dat 'mobility link', d->MBX/MBY/MBZ allocated): the mobility of the link itself, small only where the
+// link between the two cell centres (nodes for the vertical links) crosses the membrane; the fluid in the layer
+// moves freely along the membrane (anisotropic: normal flow blocked on the crossing links, tangential flow free).
+// q: cell (i,j,k), qp: its +x / +y neighbour
+inline double nhflow_mbx(const fdm_nhf *d, int q, int qp)
+{
+    return d->MBX!=nullptr ? d->MBX[q] : nhflow_membrane_harm(d->MBETA[q],d->MBETA[qp]);
+}
+
+inline double nhflow_mby(const fdm_nhf *d, int q, int qp)
+{
+    return d->MBY!=nullptr ? d->MBY[q] : nhflow_membrane_harm(d->MBETA[q],d->MBETA[qp]);
+}
+
+inline double nhflow_mbz(const fdm_nhf *d, int q)
+{
+    return d->MBZ!=nullptr ? d->MBZ[q] : d->MBETA[q];
 }
 
 // cell whose horizontal correction differs from the plain wide gradient
@@ -95,7 +115,7 @@ inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i
     
     const double dxp = p->DXP[IP], dxm = p->DXP[IM1];
     
-    return (nhflow_membrane_harm(B[IJK],B[Ip1JK])*(Pn-Pc) + nhflow_membrane_harm(B[IJK],B[Im1JK])*(Pc-Ps))/(dxp+dxm);
+    return (nhflow_mbx(d,IJK,Ip1JK)*(Pn-Pc) + nhflow_mbx(d,Im1JK,IJK)*(Pc-Ps))/(dxp+dxm);
 }
 
 inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i, int j, int k)
@@ -109,7 +129,7 @@ inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i
     
     const double dyp = p->DYP[JP], dym = p->DYP[JM1];
     
-    return (nhflow_membrane_harm(B[IJK],B[IJp1K])*(Pw-Pc) + nhflow_membrane_harm(B[IJK],B[IJm1K])*(Pc-Pe))/(dyp+dym);
+    return (nhflow_mby(d,IJK,IJp1K)*(Pw-Pc) + nhflow_mby(d,IJm1K,IJK)*(Pc-Pe))/(dyp+dym);
 }
 
 inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n, double ct, double cb, double sxx, double rhs0)
@@ -125,20 +145,36 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
     const int marge = increment::marge;
     const double *B = d->MBETA;
     
-    const double bc  = B[IJK];
-    const double bcm = k>0 ? B[IJKm1] : bc;
-    
     const double fac = k>0 ? p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]) : 0.0;
     
-    auto hmean = [&](double a0, double a1, double b0, double b1)
-    {
-        return (1.0-fac)*nhflow_membrane_harm(a0,a1) + fac*nhflow_membrane_harm(b0,b1);
-    };
+    double bc, bcm, bn, bs, bw, be;
     
-    const double bn = hmean(bc,B[Ip1JK], bcm,k>0?B[Ip1JKm1]:B[Ip1JK]);
-    const double bs = hmean(bc,B[Im1JK], bcm,k>0?B[Im1JKm1]:B[Im1JK]);
-    const double bw = p->j_dir==1 ? hmean(bc,B[IJp1K], bcm,k>0?B[IJp1Km1]:B[IJp1K]) : 1.0;
-    const double be = p->j_dir==1 ? hmean(bc,B[IJm1K], bcm,k>0?B[IJm1Km1]:B[IJm1K]) : 1.0;
+    if(d->MBX!=nullptr)
+    {
+        // link mode: the node links are the cell links of cells k and k-1, weighted like the velocities
+        bc  = d->MBZ[IJK];
+        bcm = k>0 ? d->MBZ[IJKm1] : bc;
+        
+        bn = (1.0-fac)*d->MBX[IJK]   + fac*(k>0 ? d->MBX[IJKm1]   : d->MBX[IJK]);
+        bs = (1.0-fac)*d->MBX[Im1JK] + fac*(k>0 ? d->MBX[Im1JKm1] : d->MBX[Im1JK]);
+        bw = p->j_dir==1 ? (1.0-fac)*d->MBY[IJK]   + fac*(k>0 ? d->MBY[IJKm1]   : d->MBY[IJK])   : 1.0;
+        be = p->j_dir==1 ? (1.0-fac)*d->MBY[IJm1K] + fac*(k>0 ? d->MBY[IJm1Km1] : d->MBY[IJm1K]) : 1.0;
+    }
+    else
+    {
+        bc  = B[IJK];
+        bcm = k>0 ? B[IJKm1] : bc;
+        
+        auto hmean = [&](double a0, double a1, double b0, double b1)
+        {
+            return (1.0-fac)*nhflow_membrane_harm(a0,a1) + fac*nhflow_membrane_harm(b0,b1);
+        };
+        
+        bn = hmean(bc,B[Ip1JK], bcm,k>0?B[Ip1JKm1]:B[Ip1JK]);
+        bs = hmean(bc,B[Im1JK], bcm,k>0?B[Im1JKm1]:B[Im1JK]);
+        bw = p->j_dir==1 ? hmean(bc,B[IJp1K], bcm,k>0?B[IJp1Km1]:B[IJp1K]) : 1.0;
+        be = p->j_dir==1 ? hmean(bc,B[IJm1K], bcm,k>0?B[IJm1Km1]:B[IJm1K]) : 1.0;
+    }
     const double bF = (1.0-fac)*bc + fac*bcm;
     const double bt = bc;
     const double bb = bcm;
@@ -175,14 +211,14 @@ inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         
         const double cx = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[Ip1JK]));
         
-        d->MRCX[IJK] = -a*cx/p->W1*nhflow_membrane_harm(B[IJK],B[Ip1JK])*(Pn-Pc)/p->DXP[IP];
+        d->MRCX[IJK] = -a*cx/p->W1*nhflow_mbx(d,IJK,Ip1JK)*(Pn-Pc)/p->DXP[IP];
         
         if(p->j_dir==1)
         {
         const double Pw = 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
         const double cy = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[IJp1K]));
         
-        d->MRCY[IJK] = -a*cy/p->W1*nhflow_membrane_harm(B[IJK],B[IJp1K])*(Pw-Pc)/p->DYP[JP];
+        d->MRCY[IJK] = -a*cy/p->W1*nhflow_mby(d,IJK,IJp1K)*(Pw-Pc)/p->DYP[JP];
         }
     }
     
@@ -232,7 +268,9 @@ inline void nhflow_membrane_rc_flux(lexer *p, fdm_nhf *d)
         const double dUi  = (dxc*d->MRCX[IJK]   + dxs*d->MRCX[Im1JK])/(dxc+dxs);
         const double dUi1 = (dxn*d->MRCX[Ip1JK] + dxc*d->MRCX[IJK])/(dxn+dxc);
         
-        const double rc = d->MPROJ>1 ? 0.0 : 0.5*(dUi + dUi1) - d->MRCX[IJK];
+        // link mode: U_f = avg(U*) + dU_f = avg(U) - avg(dU) + dU_f (the cells next to a blocked link are corrected
+        // through their open faces, the blocked face is not)
+        const double rc = d->MPROJ>1 ? 0.0 : (d->MBX!=nullptr ? d->MRCX[IJK] - 0.5*(dUi + dUi1) : 0.5*(dUi + dUi1) - d->MRCX[IJK]);
         const double Uf = 0.5*(d->U[IJK] + d->U[Ip1JK]) + rc;
         
         d->FEx[IJK] = 0.5*(d->Ds(i,j) + d->Dn(i,j))*Uf;
@@ -247,7 +285,7 @@ inline void nhflow_membrane_rc_flux(lexer *p, fdm_nhf *d)
         const double dVj  = (dyc*d->MRCY[IJK]   + dys*d->MRCY[IJm1K])/(dyc+dys);
         const double dVj1 = (dyn*d->MRCY[IJp1K] + dyc*d->MRCY[IJK])/(dyn+dyc);
         
-        const double rc = d->MPROJ>1 ? 0.0 : 0.5*(dVj + dVj1) - d->MRCY[IJK];
+        const double rc = d->MPROJ>1 ? 0.0 : (d->MBX!=nullptr ? d->MRCY[IJK] - 0.5*(dVj + dVj1) : 0.5*(dVj + dVj1) - d->MRCY[IJK]);
         const double Vf = 0.5*(d->V[IJK] + d->V[IJp1K]) + rc;
         
         d->FEy[IJK] = 0.5*(d->De(i,j) + d->Dw(i,j))*Vf;

@@ -1084,7 +1084,12 @@ def check_wave_stats(c, rundir):
         return fail("no gauge output")
     t0, t1 = ck["t_start"], ck["t_end"]
     eh, es = 0.0, 0.0
-    txt = ["| gauge | Hm0 sim [cm] | Hm0 exp [cm] | ratio | skew sim | skew exp |", "|---|---|---|---|---|---|"]
+    fs = ck.get("f_split", 0.3)
+    txt = ["| gauge | Hm0 sim [cm] | Hm0 exp [cm] | ratio | skew sim | skew exp | "
+           "Hm0 f<%g Hz sim / exp [cm] | Hm0 f>%g Hz sim / exp [cm] |" % (fs, fs),
+           "|---|---|---|---|---|---|---|---|"]
+    ts = [t for t in g[2] if t0 <= t <= t1]
+    dts = (ts[-1] - ts[0]) / (len(ts) - 1) if len(ts) > 1 else 0.05
     for gs in ck["gauges"]:
         i = gauge_index(g, gs)
         sim = window(g[2], g[3][i], t0, t1)
@@ -1098,9 +1103,26 @@ def check_wave_stats(c, rundir):
         hs, he = 4 * math.sqrt(vs), 4 * math.sqrt(ve)
         eh = max(eh, abs(hs / he - 1))
         es = max(es, abs(ss - se))
-        txt.append("| %s | %.2f | %.2f | %.3f | %.2f | %.2f |" % (gs["name"], 100 * hs, 100 * he, hs / he, ss, se))
+        bands = (band_hm0(sim, dts, 0.0, fs), band_hm0(exp, dt, 0.0, fs),
+                 band_hm0(sim, dts, fs, 1.0e9), band_hm0(exp, dt, fs, 1.0e9))
+        txt.append("| %s | %.2f | %.2f | %.3f | %.2f | %.2f | %.2f / %.2f | %.2f / %.2f |"
+                   % ((gs["name"], 100 * hs, 100 * he, hs / he, ss, se) + tuple(100 * v for v in bands)))
     ok = eh <= ck["tol_Hm0"] and es <= ck["tol_skew"]
     return result(ok, eh, "Hm0 ±%g / skew ±%g" % (ck["tol_Hm0"], ck["tol_skew"]), "\n".join(txt), error_skew=es)
+
+
+def band_hm0(y, dt, f0, f1):
+    """Hm0 = 4 sqrt(m0) of the band f0 <= f < f1 (periodogram of the zero-padded record)"""
+    n = len(y)
+    if n < 2:
+        return 0.0
+    m = sum(y) / n
+    N = 1 << (n - 1).bit_length()
+    X = [complex(v - m) for v in y] + [0j] * (N - n)
+    fft(X)
+    df = 1.0 / (N * dt)
+    m0 = sum(2.0 * abs(X[k]) ** 2 for k in range(1, N // 2) if f0 <= k * df < f1) / (N * n)
+    return 4.0 * math.sqrt(m0)
 
 
 def fft(a):

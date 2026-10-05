@@ -77,8 +77,16 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // tangential resistance: a moving membrane carries the fluid of its layer along (the Poisson mobility beta is
     // isotropic, so the layer can not be moved tangentially by pressure); a fixed one only blocks the normal flow
+    // link mode: the pressure moves the layer fluid along the membrane, no tangential resistance by default
     if(prm.Rt<0.0)
-    prm.Rt = moving() ? prm.Rn : 0.0;
+    prm.Rt = (moving() && prm.link==0) ? prm.Rn : 0.0;
+    
+    if(prm.link==1 && iterated())
+    {
+        if(p->mpirank==0)
+        cout<<"\n!!! X 330 membrane "<<nMem<<": mobility link with coupling iterated is not implemented, use coupling staggered !!!\n"<<endl;
+        MPI_Abort(pgc->mpi_comm,1);
+    }
     
     // floorpressure 3 matches the discrete free-surface ramp in grid coordinates, a moving membrane uses 0
     if(prm.floorp<0)
@@ -136,6 +144,9 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(prm.h<=0.0)
     prm.h = iterated() ? 1.5*delta : (moving() ? dmax : hmin);
 
+    // link mode: the map has to reach the end points of every link that crosses the membrane
+    rmap_ = prm.link==1 ? MAX(delta, 1.01*dmax) : delta;
+    
     // the integral of the indicator across the layer is 1.5 delta (plateau delta, two tapers delta/4)
     Kn = prm.Rn/(1.5*delta);
     Kt = prm.Rt/(1.5*delta);
@@ -156,6 +167,9 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
     
     ini_structure(p,pgc);
+    
+    if(prm.link==1)
+    link_ini(p);
 
     // cell map storage
     slot_.assign(p->imax*p->jmax*(p->kmax+2),-1);
@@ -205,8 +219,12 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
         cout<<endl;
 
-        if(delta < 1.5*dmax)
+        if(delta < 1.5*dmax && prm.link==0)
         cout<<"Membrane "<<nMem<<": delta < 1.5 max(dx,dy,dz) - the smeared layer may leave gaps between cells"<<endl;
+        
+        if(prm.link==1)
+        cout<<"Membrane "<<nMem<<": mobility link (porous-jump mobility on the links crossing the membrane, R_t = "<<prm.Rt<<")"
+            <<", map radius "<<rmap_<<" m"<<endl;
 
         ofstream ts((outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+".dat").c_str());
         ts<<"# membrane "<<nMem<<" "<<prm.name<<"  delta "<<delta<<"  Rn "<<prm.Rn<<"  Rt "<<prm.Rt<<"  Afloor "<<Afloor<<"\n";
@@ -699,10 +717,11 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Cost ~ (triangles) x (cells in the delta-expanded bounding box of a triangle).
     cells_.clear();
 
-    const double xs = p->XN[0+marge]-delta;
-    const double xe = p->XN[p->knox+marge]+delta;
-    const double ys = p->YN[0+marge]-delta;
-    const double ye = p->YN[p->knoy+marge]+delta;
+    const double rm = rmap_>0.0 ? rmap_ : delta;
+    const double xs = p->XN[0+marge]-rm;
+    const double xe = p->XN[p->knox+marge]+rm;
+    const double ys = p->YN[0+marge]-rm;
+    const double ye = p->YN[p->knoy+marge]+rm;
 
     // normals closer than this are treated as the same surface
     const double samenormal = 0.9;
@@ -715,12 +734,12 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
         const Eigen::Vector3d &b = x_[tri_[t][1]];
         const Eigen::Vector3d &c = x_[tri_[t][2]];
 
-        const double bxmin = min(a(0),min(b(0),c(0)))-delta;
-        const double bxmax = max(a(0),max(b(0),c(0)))+delta;
-        const double bymin = min(a(1),min(b(1),c(1)))-delta;
-        const double bymax = max(a(1),max(b(1),c(1)))+delta;
-        const double bzmin = min(a(2),min(b(2),c(2)))-delta;
-        const double bzmax = max(a(2),max(b(2),c(2)))+delta;
+        const double bxmin = min(a(0),min(b(0),c(0)))-rm;
+        const double bxmax = max(a(0),max(b(0),c(0)))+rm;
+        const double bymin = min(a(1),min(b(1),c(1)))-rm;
+        const double bymax = max(a(1),max(b(1),c(1)))+rm;
+        const double bzmin = min(a(2),min(b(2),c(2)))-rm;
+        const double bzmax = max(a(2),max(b(2),c(2)))+rm;
 
         if(bxmax<xs || bxmin>xe)
         continue;
@@ -766,7 +785,7 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 const Eigen::Vector3d C = closest_point(P,a,b,c,u,v,w);
                 const double dist = (P-C).norm();
 
-                if(dist>=delta)
+                if(dist>=rm)
                 continue;
                 
                 // moving membrane, beyond a corner edge (the cell projects outside the triangle across an edge
@@ -774,7 +793,7 @@ void net_membrane::build_map(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 // on the inner side of the corner and seal it; on the outer side the water has to pass freely
                 // below the edge of a moving floor, the rounded outer layer would have to be dragged along.
                 // A fixed membrane keeps the rounded corner (it steadies the wall columns below the floor edge).
-                if(moving() && !cornerE_.empty())
+                if(moving() && !cornerE_.empty() && prm.link==0)
                 {
                     const Eigen::Vector3d dP = P-C;
                     const Eigen::Vector3d dtan = dP - dP.dot(tn_[t])*tn_[t];
@@ -892,6 +911,12 @@ void net_membrane::mobility_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     
     const double a = alpha*p->dt;
     
+    if(prm.link==1)
+    {
+        link_mobility(p,d,pgc,a);
+        return;
+    }
+    
     // mobility in the pressure Poisson equation and velocity correction
     for(const auto &e : cells_)
     {
@@ -908,14 +933,26 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
     // node velocities of this forcing (strong coupling: reforce_nhflow adds the response to their change)
     if(iterated())
     xdotf_ = xdot_;
+    
+    // link mode: force of the forcing on the membrane per layer cell (loads)
+    if(prm.link==1)
+    fimp_.assign(cells_.size(),Eigen::Vector3d::Zero());
+    
+    size_t s=0;
 
     for(const auto &e : cells_)
     {
         i=e.i; j=e.j; k=e.k;
+        ++s;
 
         // f = -sum_r K_n H_r n_r n_r^T (u - u_m,r) - K_t H_c (I - n_c n_c^T)(u - u_m,c)
         Eigen::Matrix3d A;
         Eigen::Vector3d b;
+        
+        // link mode: cells of the map beyond delta (the map reaches the end points of all crossing links) have H = 0
+        if(e.Hmax<=0.0 && e.Hc<=0.0)
+        continue;
+        
         layer_matrix(e,xdot_,A,b);
 
         Eigen::Vector3d u(d->U[IJK], d->V[IJK], d->W[IJK]);
@@ -941,6 +978,10 @@ void net_membrane::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double a
 
         d->W[IJK] += du(2);
         WH[IJK]   += du(2)*WL(i,j);
+        
+        // the forcing takes rho du/a dV out of the fluid, the membrane gets it
+        if(prm.link==1)
+        fimp_[s-1] = -p->W1*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j)/a*du;
     }
 }
 
@@ -1035,11 +1076,15 @@ void net_membrane::compute_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL
             const double un = nr.dot(Eigen::Vector3d(d->U[IJK]-umr(0), p->j_dir==1 ? d->V[IJK]-umr(1) : 0.0, d->W[IJK]-umr(2)));
             const Eigen::Vector3d f = rho*dV*e.H[r]*Kn*un*nr;
 
+            // layer mode: the projected velocity in the layer is consistent with the implicit forcing
+            if(prm.link==0)
+            {
             tf_[3*e.t[r]+0] += f(0);
             tf_[3*e.t[r]+1] += f(1);
             tf_[3*e.t[r]+2] += f(2);
             
             addnode(e.t[r],e.bw[r],f);
+            }
             
             hun += e.H[r]*un;
             
@@ -1048,7 +1093,7 @@ void net_membrane::compute_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL
         }
         
         // tangential resistance, closest triangle
-        if(Kt>0.0)
+        if(Kt>0.0 && prm.link==0)
         {
             const Eigen::Vector3d &nc = tn_[e.tc];
             const Eigen::Vector3d f = rho*dV*e.Hc*Kt*(rel - nc.dot(rel)*nc);
@@ -1064,6 +1109,16 @@ void net_membrane::compute_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL
         // flux through the membrane: int u_n dA = (1/(1.5 delta)) int H u_n dV, outward positive
         Q += hun*dV/(1.5*delta);
     }
+    
+    // link mode: momentum taken out by the forcing (normal and tangential) + pressure across the blocked links
+    if(prm.link==1)
+    link_loads(p,d,pgc,WL,[&](int t, const double *w, const Eigen::Vector3d &f)
+    {
+        tf_[3*t+0] += f(0);
+        tf_[3*t+1] += f(1);
+        tf_[3*t+2] += f(2);
+        addnode(t,w,f);
+    });
 
     MPI_Allreduce(MPI_IN_PLACE,tf_.data(),(int)tf_.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
     MPI_Allreduce(MPI_IN_PLACE,nf_.data(),(int)nf_.size(),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
