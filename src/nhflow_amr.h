@@ -266,7 +266,6 @@ private:
     int NF = 0;                     // values per face entry: 4 variables x layers + dfx
     void prolong_patch(ghostcell*, int);         // fresh patches of level l
     void ini_boxes(int);
-    template<class F> void from_old(nhflow_amr_patch&, vector<reefamr_patch*>&, F);
     template<class SEL> void fill_col(int, int, SEL);
     template<class SEL> void restrict_col(SEL);
     void rcol_block(reefamr_patch*, int, const double*, int, double*);

@@ -105,6 +105,15 @@ lexer* reefamr::glex(int g)
 
 int reefamr::patch_at(int l, int I, int J)
 {
+    // placed patches: from the global table, -3 where a patch of another rank holds the cell
+    if(par.place>0 && l>=1)
+    {
+        const int q = gpatch_at(l,I,J);
+        if(q<0)
+        return -2;
+        return (GP[q].rank==p0->mpirank) ? GP[q].lid : -3;
+    }
+
     if(I<bxlo(l) || I>bxhi(l) || J<bylo(l) || J>byhi(l))
     return -3;
 
@@ -237,6 +246,9 @@ int reefamr::flag0(int I, int J)
     if(I<0 || I>=GNX || J<0 || J>=GNY)
     return -10;
 
+    if(par.place>0)
+    return gfl0[(size_t)I*GNY+J];
+
     int ii = I-O0i+FH, jj = J-O0j+FH;
     if(ii<0 || jj<0 || ii>=NX0+2*FH || jj>=NY0+2*FH)
     return -10;
@@ -300,6 +312,67 @@ void reefamr::build_flags(lexer *p)
     }
 }
 
+// place 1: global level-0 node K (linear extrapolation outside the global arrays)
+double reefamr::x0g(int K) const
+{
+    const int m = marge, n = (int)gxn.size();
+    const int a = K+m;
+    if(a<0)   return gxn[0] + a*(gxn[1]-gxn[0]);
+    if(a>=n)  return gxn[n-1] + (a-n+1)*(gxn[n-1]-gxn[n-2]);
+    return gxn[a];
+}
+
+double reefamr::y0g(int K) const
+{
+    const int m = marge, n = (int)gyn.size();
+    const int a = K+m;
+    if(a<0)   return gyn[0] + a*(gyn[1]-gyn[0]);
+    if(a>=n)  return gyn[n-1] + (a-n+1)*(gyn[n-1]-gyn[n-2]);
+    return gyn[a];
+}
+
+// place 1: x (dir 0) or y (dir 1) of global node N of level l, as build_lexer sets the patch nodes
+double reefamr::gnode(int dir, int l, int N)
+{
+    const double rl = double(1<<l);
+    const int K = fsh(N,l);
+    const int r = N-(K<<l);
+    if(dir==0)
+    return (r==0) ? x0g(K) : x0g(K) + (x0g(K+1)-x0g(K))*(double(r)/rl);
+    return (r==0) ? y0g(K) : y0g(K) + (y0g(K+1)-y0g(K))*(double(r)/rl);
+}
+
+// place 1: rank of the finest grid whose interior holds (x,y): the finest patch (its node coordinates
+// as on its lexer), else the rank whose level-0 box holds the point; -1 outside
+int reefamr::finest_rank(double x, double y)
+{
+    // 2D: one cell in y, the point may lie beyond the strip (as the 6DOF ownership test)
+    if(p0->j_dir==0)
+    y = 0.5*(gyn[marge]+gyn[marge+GNY]);
+
+    int best=-1, bl=0;
+    for(const reefamr_gpatch &G : GP)
+    {
+        if(G.lev<=bl)
+        continue;
+        if(x>=gnode(0,G.lev,G.I0) && x<gnode(0,G.lev,G.I1+1) && y>=gnode(1,G.lev,G.J0) && y<gnode(1,G.lev,G.J1+1))
+        {
+            best = G.rank;
+            bl = G.lev;
+        }
+    }
+    if(best>=0)
+    return best;
+
+    // level 0: the cell from the global nodes (node K at index K+marge)
+    const int m = marge;
+    if(x<gxn[m] || x>=gxn[m+GNX] || y<gyn[m] || y>=gyn[m+GNY])
+    return -1;
+    const int I = int(std::upper_bound(gxn.begin()+m,gxn.begin()+m+GNX+1,x) - (gxn.begin()+m)) - 1;
+    const int J = int(std::upper_bound(gyn.begin()+m,gyn.begin()+m+GNY+1,y) - (gyn.begin()+m)) - 1;
+    return owner(I,J);
+}
+
 // --------------------------------------------------------------------- setup
 // rank boxes, level arrays, tiles, level-0 flags and the no-refinement cells
 void reefamr::setup(lexer *p, ghostcell *pgc)
@@ -360,6 +433,70 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     build_tiles();
     build_flags(p);
 
+    // placed patches: the global level-0 nodes and solid flags (a patch may lie outside the rank box)
+    if(par.place>0)
+    {
+        const int np = p->mpi_size;
+        const int m = marge;
+
+        auto nodes = [&](const double *XN, int n0, int nloc, int gn, vector<double> &g)
+        {
+            // every rank sends its node array (first entry: global node n0-m), entries overlap
+            const int na = nloc+1+4*m;
+            vector<int> cnt(np), off(np), st(np);
+            int me0 = n0;
+            MPI_Allgather(&na,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+            MPI_Allgather(&me0,1,MPI_INT,&st[0],1,MPI_INT,MPI_COMM_WORLD);
+            int tot=0;
+            for(int r=0; r<np; ++r) { off[r]=tot; tot+=cnt[r]; }
+            vector<double> all(tot);
+            MPI_Allgatherv(XN,na,MPI_DOUBLE,&all[0],&cnt[0],&off[0],MPI_DOUBLE,MPI_COMM_WORLD);
+
+            // global node K at index K+m, K in [-m, gn+m]; a rank's interior nodes take precedence
+            g.assign(gn+1+2*m,0.0);
+            vector<char> set(g.size(),0);
+            for(int pass=0; pass<2; ++pass)
+            for(int r=0; r<np; ++r)
+            for(int a=0; a<cnt[r]; ++a)
+            {
+                const int K = st[r]-m+a;
+                if(K<-m || K>gn+m)
+                continue;
+                const bool interior = (a>=m && a<=cnt[r]-1-3*m);
+                if((pass==0 && interior) || (pass==1 && !set[K+m]))
+                {
+                    g[K+m] = all[off[r]+a];
+                    set[K+m] = 1;
+                }
+            }
+        };
+        nodes(p->XN,O0i,NX0,GNX,gxn);
+        nodes(p->YN,O0j,NY0,GNY,gyn);
+
+        vector<short> mine((size_t)NX0*NY0);
+        for(int ii=0; ii<NX0; ++ii)
+        for(int jj=0; jj<NY0; ++jj)
+        {
+            const int f = p->flagslice4[lij(p,ii,jj)];
+            mine[(size_t)ii*NY0+jj] = (short)MAX(MIN(f,32767),-32768);
+        }
+        vector<int> cnt(np), off(np);
+        int nm = NX0*NY0;
+        MPI_Allgather(&nm,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+        int tot=0;
+        for(int r=0; r<np; ++r) { off[r]=tot; tot+=cnt[r]; }
+        vector<short> all(tot);
+        MPI_Allgatherv(&mine[0],nm,MPI_SHORT,&all[0],&cnt[0],&off[0],MPI_SHORT,MPI_COMM_WORLD);
+        gfl0.assign((size_t)GNX*GNY,-10);
+        for(int r=0; r<np; ++r)
+        {
+            const int nyr = rby1[r]-rby0[r]+1;
+            for(int I=rbx0[r]; I<=rbx1[r]; ++I)
+            for(int J=rby0[r]; J<=rby1[r]; ++J)
+            gfl0[(size_t)I*GNY+J] = all[off[r]+(size_t)(I-rbx0[r])*nyr+(J-rby0[r])];
+        }
+    }
+
     // no refinement next to in- and outflow boundaries and in the no-refinement boxes
     forbid0.assign((size_t)GNX*GNY,0);
     const int B = par.ioband;
@@ -393,6 +530,8 @@ void reefamr::build_tiles()
         tny[l] = byhi(l)/tile - ttj0[l] + 1;
         tmap[l].assign(tnx[l]*tny[l],-2);
 
+        // (placed patches are looked up in the global table)
+        if(par.place==0)
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
@@ -534,6 +673,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
 
     auto x0 = [&](int K)   // global level-0 node K, linear extrapolation outside the rank arrays
     {
+        if(par.place>0)
+        return x0g(K);
         int a = K-O0i+m;
         if(a<0)      return p->XN[0] + a*(p->XN[1]-p->XN[0]);
         if(a>=pnxa)  return p->XN[pnxa-1] + (a-pnxa+1)*(p->XN[pnxa-1]-p->XN[pnxa-2]);
@@ -541,6 +682,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     };
     auto y0 = [&](int K)
     {
+        if(par.place>0)
+        return y0g(K);
         int a = K-O0j+m;
         if(a<0)      return p->YN[0] + a*(p->YN[1]-p->YN[0]);
         if(a>=pnya)  return p->YN[pnya-1] + (a-pnya+1)*(p->YN[pnya-1]-p->YN[pnya-2]);

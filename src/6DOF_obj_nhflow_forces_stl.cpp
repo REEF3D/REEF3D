@@ -93,11 +93,19 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
         // NHFLOW is decomposed in x and y only, and originz/endz are the bounds of the (sigma)
         // mesh, not physical heights -> no z test. In 2D the STL may be wider than the one-cell
         // strip -> no y test either (same convention as ray_cast_z and band_distance).
+        if(amr_owner_nhflow)
+        {
+            if(!amr_owner_nhflow(xc,yc))
+            continue;
+        }
+        else
+        {
         if(!(xc >= p->originx && xc < p->endx))
         continue;
         
         if(p->j_dir==1 && !(yc >= p->originy && yc < p->endy))
         continue;
+        }
         
         // mesh refinement (nhflow_amr): the triangle is sampled on the finest grid at its centroid
         lexer *pl = p;

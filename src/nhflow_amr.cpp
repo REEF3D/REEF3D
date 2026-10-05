@@ -183,6 +183,12 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     vr = (p->A281==1) ? 2 : 1;
     q.vref.assign(q.maxlev+1,vr);
 
+    // several ranks (A 286 1): the patches are not cut at the rank boxes but placed for the load of
+    // the ranks; parents and old patches on other ranks are reached through the block plans and
+    // old_run of the core
+    q.place = (p->A286>=1 && p->mpi_size>1) ? MIN(p->A286,2) : 0;
+    q.rebalance = 0.1;
+
     configure(q);
 
     if(p->F50==1) gcval_eta = 51;
@@ -327,6 +333,14 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(g<0)
             return sixdof_obj_nhflow::nhflow_grid{glex(-1),d0,(cur_stage<0) ? &d0->WL : stage_out(-1,cur_stage).WL};
             return sixdof_obj_nhflow::nhflow_grid{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL};
+        };
+
+        // placed patches: the rank of the finest grid at the centroid takes the triangle
+        if(par.place>0)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_owner_nhflow = [this](double x, double y)
+        {
+            return finest_rank(x,y)==p0->mpirank;
         };
 
         cur_stage = -1;
@@ -1506,29 +1520,6 @@ void nhflow_amr::ini_boxes(int l)
                });
 }
 
-// cells of the fresh patch c that an old patch of the same level held (the zone moved with the
-// body): fn(old patch, ii, jj, io, jo) with the lexer indices on c and on the old patch
-template<class F>
-void nhflow_amr::from_old(nhflow_amr_patch &c, vector<reefamr_patch*> &oldP, F fn)
-{
-    for(auto q : oldP)
-    {
-        if(q==&c || q->lev!=c.lev)
-        continue;
-
-        // kept and removed patches both hold the state of the end of the step
-        const int I0 = MAX(c.I0,q->I0), I1 = MIN(c.I1,q->I1);
-        const int J0 = MAX(c.J0,q->J0), J1 = MIN(c.J1,q->J1);
-        if(I0>I1 || J0>J1)
-        continue;
-
-        nhflow_amr_patch *o = NP(q);
-        for(int I=I0; I<=I1; ++I)
-        for(int J=J0; J<=J1; ++J)
-        fn(*o, I-c.I0+EXT, J-c.J0+EXT, I-q->I0+EXT, J-q->J0+EXT);
-    }
-}
-
 // --------------------------------------------------------------------- restriction
 // water level and surface of the covered coarse cells after the continuity part of stage s
 void nhflow_amr::restrict_surface(int s)
@@ -1694,45 +1685,65 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
         prolong_patch(pgc,l);
 
+        // A 283: the flags from the prolonged water level
+        if(shore)
         for(int id : lev[l])
         if(P[id]->fresh)
+        patch_flags(*NP(id));
+
+        // where an old patch of the same level was (on any rank), its state is taken over (A 283:
+        // with its flags, which carry the history of the wetting and drying)
         {
-            nhflow_amr_patch *c = NP(id);
-            lexer *pp = c->pp;
-            fdm_nhf *d = c->d;
-
-            // A 283: the flags from the prolonged water level
-            if(shore)
-            patch_flags(*c);
-
-            // where an old patch of the same level was, its state is taken over (A 283: with
-            // its flags, which carry the history of the wetting and drying)
-            const int K = pp->knoz;
-            from_old(*c,oldP,[&](nhflow_amr_patch &o, int ii, int jj, int io, int jo)
-            {
-                fdm_nhf *od = o.d;
-                lexer *op = o.pp;
-                if(shore)
-                {
-                    pp->wet[lij(pp,ii,jj)] = op->wet[lij(op,io,jo)];
-                    pp->deep[lij(pp,ii,jj)] = op->deep[lij(op,io,jo)];
-                }
-                d->eta(ii,jj) = od->eta(io,jo);
-                d->WL(ii,jj) = od->WL(io,jo);
-                d->detadt(ii,jj) = od->detadt(io,jo);
-                for(int kk=0; kk<K; ++kk)
-                {
-                    const int n = cidx(pp,ii,jj,kk), m = cidx(op,io,jo,kk);
-                    d->U[n] = od->U[m];
-                    d->V[n] = od->V[m];
-                    d->W[n] = od->W[m];
-                    d->UH[n] = od->UH[m];
-                    d->VH[n] = od->VH[m];
-                    d->WH[n] = od->WH[m];
-                }
-                for(int kk=0; kk<=K; ++kk)
-                d->P[fidx(pp,ii,jj,kk)] = od->P[fidx(op,io,jo,kk)];
-            });
+            const int K = klev(l);
+            const int nv = 3 + 2 + 6*K + K+1;
+            old_run(l,nv,7630+l,oldP,
+                    [&](reefamr_patch *o, int io, int jo, double *v)
+                    {
+                        fdm_nhf *od = NP(o)->d;
+                        lexer *op = o->pp;
+                        v[0] = op->wet[lij(op,io,jo)];
+                        v[1] = op->deep[lij(op,io,jo)];
+                        v[2] = od->eta(io,jo);
+                        v[3] = od->WL(io,jo);
+                        v[4] = od->detadt(io,jo);
+                        for(int kk=0; kk<K; ++kk)
+                        {
+                            const int m = cidx(op,io,jo,kk);
+                            v[5+6*kk] = od->U[m];
+                            v[6+6*kk] = od->V[m];
+                            v[7+6*kk] = od->W[m];
+                            v[8+6*kk] = od->UH[m];
+                            v[9+6*kk] = od->VH[m];
+                            v[10+6*kk] = od->WH[m];
+                        }
+                        for(int kk=0; kk<=K; ++kk)
+                        v[5+6*K+kk] = od->P[fidx(op,io,jo,kk)];
+                    },
+                    [&](reefamr_patch *c, int id, int ii, int jj, const double *v)
+                    {
+                        fdm_nhf *d = NP(c)->d;
+                        lexer *pp = c->pp;
+                        if(shore)
+                        {
+                            pp->wet[lij(pp,ii,jj)] = (int)v[0];
+                            pp->deep[lij(pp,ii,jj)] = (int)v[1];
+                        }
+                        d->eta(ii,jj) = v[2];
+                        d->WL(ii,jj) = v[3];
+                        d->detadt(ii,jj) = v[4];
+                        for(int kk=0; kk<K; ++kk)
+                        {
+                            const int n = cidx(pp,ii,jj,kk);
+                            d->U[n] = v[5+6*kk];
+                            d->V[n] = v[6+6*kk];
+                            d->W[n] = v[7+6*kk];
+                            d->UH[n] = v[8+6*kk];
+                            d->VH[n] = v[9+6*kk];
+                            d->WH[n] = v[10+6*kk];
+                        }
+                        for(int kk=0; kk<=K; ++kk)
+                        d->P[fidx(pp,ii,jj,kk)] = v[5+6*K+kk];
+                    });
         }
 
         // at t = 0 the initial water level boxes (F 72) on the patch grid itself, as

@@ -24,6 +24,10 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<mpi.h>
+#include<cmath>
+#include<iomanip>
+#include<algorithm>
+#include<iostream>
 
 namespace
 {
@@ -214,6 +218,9 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     vector<reefamr_patch*> newP;
     vector<vector<int>> newlev(maxlev+1);
 
+    if(par.place>0)
+    place_patches(p,pgc,M,oldP,kept,newP,newlev);
+    else
     for(int l=1; l<=maxlev; ++l)
     {
         gtile[l] = M[l];
@@ -682,4 +689,246 @@ void reefamr::build_plans(ghostcell *pgc)
     violations = pgc->globalisum(violations);
     if(violations>0 && p0->mpirank==0)
     cout<<par.name<<": "<<violations<<" cells without a coarser grid (nesting)"<<endl;
+}
+
+// --------------------------------------------------------------------- placement (par.place 1)
+//  The marked tiles of every level are merged into rectangles over the whole domain (not cut at
+//  the rank boxes), the same on every rank.  Rectangles whose work is more than a quarter of the
+//  mean work of a rank are split along their longer side at tile edges (finer pieces balance
+//  better on few ranks, at the price of more patch edges).  The work of a rank is its level-0
+//  cells plus the cells of its patches (EXT cells and layers included).  The pieces are placed
+//  largest first: on the rank of the level-0 cell at their centre if it stays within 5 % of the
+//  mean work, else on the rank with the least work.  The previous placement is kept (kept boxes on
+//  their rank, new pieces placed as above) unless the new one lowers the predicted maximum work by
+//  more than par.rebalance.  Every rank computes the same placement and makes its own patches.
+void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned char>> &M, vector<reefamr_patch*> &oldP,
+                            vector<char> &kept, vector<reefamr_patch*> &newP, vector<vector<int>> &newlev)
+{
+    const int T = tile;
+    const int me = p->mpirank;
+    const int np = p->mpi_size;
+
+    struct piece { int lev, I0, I1, J0, J1; double w; int rank; };
+    vector<piece> pcs;
+
+    auto work = [&](int l, int I0, int I1, int J0, int J1)
+    {
+        return double(I1-I0+1+2*EXT)*double(J1-J0+1+2*EXT)*double(p->knoz*vfac[l]);
+    };
+
+    // rectangles of marked tiles, all levels
+    for(int l=1; l<=maxlev; ++l)
+    {
+        gtile[l] = M[l];
+
+        struct R { int ta,tb,tj0,tj1; };
+        vector<R> open, done;
+
+        for(int tj=0; tj<gtny[l]; ++tj)
+        {
+            vector<R> next;
+            int ti=0;
+            while(ti<gtnx[l])
+            {
+                if(!M[l][(size_t)ti*gtny[l]+tj]) { ++ti; continue; }
+                int ta=ti;
+                while(ti<gtnx[l] && M[l][(size_t)ti*gtny[l]+tj]) ++ti;
+                int tb=ti-1;
+
+                bool ext=false;
+                for(auto &o : open)
+                if(o.ta==ta && o.tb==tb && o.tj1==tj-1)
+                {
+                    o.tj1=tj;
+                    next.push_back(o);
+                    o.ta=-1;
+                    ext=true;
+                    break;
+                }
+                if(!ext)
+                next.push_back({ta,tb,tj,tj});
+            }
+            for(auto &o : open)
+            if(o.ta>=0)
+            done.push_back(o);
+            open = next;
+        }
+        for(auto &o : open)
+        done.push_back(o);
+
+        for(auto &o : done)
+        pcs.push_back({l,o.ta,o.tb,o.tj0,o.tj1,0.0,-1});      // tile ranges for now
+    }
+
+    // work per rank on level 0 and the mean work per rank
+    vector<double> base(np);
+    double wtot = 0.0;
+    for(int r=0; r<np; ++r)
+    {
+        base[r] = double(rbx1[r]-rbx0[r]+1)*double(rby1[r]-rby0[r]+1)*double(p->knoz);
+        wtot += base[r];
+    }
+    auto box = [&](const piece &c, int &I0, int &I1, int &J0, int &J1)
+    {
+        I0 = c.I0*T; I1 = MIN((c.I1+1)*T-1,(GNX<<c.lev)-1);
+        J0 = c.J0*T; J1 = MIN((c.J1+1)*T-1,(GNY<<c.lev)-1);
+    };
+    for(auto &c : pcs)
+    {
+        int I0,I1,J0,J1;
+        box(c,I0,I1,J0,J1);
+        wtot += work(c.lev,I0,I1,J0,J1);
+    }
+    const double wmean = wtot/np;
+    const double wmax = (par.place==2 ? 0.125 : 0.25)*wmean;
+
+    // split the large rectangles at tile edges, then cell boxes, only pieces with fluid
+    vector<piece> parts;
+    for(auto &c : pcs)
+    {
+        int I0,I1,J0,J1;
+        box(c,I0,I1,J0,J1);
+        const double w = work(c.lev,I0,I1,J0,J1);
+        const int nti = c.I1-c.I0+1, ntj = c.J1-c.J0+1;
+        int n = MAX(1,(int)ceil(w/wmax));
+        const bool alongx = (nti>=ntj);
+        n = MIN(n,alongx ? nti : ntj);
+
+        for(int s=0; s<n; ++s)
+        {
+            piece q = c;
+            if(alongx)
+            {
+                q.I0 = c.I0 + (s*nti)/n;
+                q.I1 = c.I0 + ((s+1)*nti)/n - 1;
+            }
+            else
+            {
+                q.J0 = c.J0 + (s*ntj)/n;
+                q.J1 = c.J0 + ((s+1)*ntj)/n - 1;
+            }
+            int a0,a1,b0,b1;
+            box(q,a0,a1,b0,b1);
+
+            int fluid=0;
+            for(int a=(a0>>q.lev); a<=(a1>>q.lev) && fluid==0; ++a)
+            for(int d=(b0>>q.lev); d<=(b1>>q.lev) && fluid==0; ++d)
+            if(flag0(a,d)>0)
+            fluid=1;
+            if(fluid==0)
+            continue;
+
+            q.I0=a0; q.I1=a1; q.J0=b0; q.J1=b1;
+            q.w = work(q.lev,a0,a1,b0,b1);
+            parts.push_back(q);
+        }
+    }
+
+    // the mean work per rank of the pieces (their EXT cells add to the work of the rectangles)
+    double wpl = 0.0;
+    for(int r=0; r<np; ++r)
+    wpl += base[r];
+    for(auto &q : parts)
+    wpl += q.w;
+    const double wmeanp = wpl/np;
+
+    // largest first (ties: level, box), deterministic
+    vector<int> ord(parts.size());
+    for(size_t k=0; k<ord.size(); ++k)
+    ord[k]=(int)k;
+    std::sort(ord.begin(),ord.end(),[&](int a, int b)
+    {
+        const piece &A = parts[a], &B = parts[b];
+        if(A.w!=B.w) return A.w>B.w;
+        if(A.lev!=B.lev) return A.lev<B.lev;
+        if(A.I0!=B.I0) return A.I0<B.I0;
+        return A.J0<B.J0;
+    });
+
+    auto least = [&](const vector<double> &ld)
+    {
+        int r=0;
+        for(int q=1; q<np; ++q)
+        if(ld[q]<ld[r])
+        r=q;
+        return r;
+    };
+
+    auto greedy = [&](const piece &c, vector<double> &ld)
+    {
+        const int o = owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>c.lev);
+        if(par.place==1 && o>=0 && ld[o]+c.w<=1.05*wmeanp)
+        return o;
+        return least(ld);
+    };
+
+    // the new placement
+    vector<int> rnew(parts.size());
+    vector<double> lnew = base;
+    for(int k : ord)
+    {
+        rnew[k] = greedy(parts[k],lnew);
+        lnew[rnew[k]] += parts[k].w;
+    }
+
+    // the previous placement: boxes of the last layout keep their rank
+    vector<int> rold(parts.size(),-1);
+    vector<double> lold = base;
+    bool anyold = false;
+    for(int k : ord)
+    {
+        const piece &c = parts[k];
+        for(const reefamr_gpatch &G : GP)
+        if(G.lev==c.lev && G.I0==c.I0 && G.I1==c.I1 && G.J0==c.J0 && G.J1==c.J1)
+        {
+            rold[k] = G.rank;
+            anyold = true;
+            break;
+        }
+        if(rold[k]>=0)
+        lold[rold[k]] += c.w;
+    }
+    for(int k : ord)
+    if(rold[k]<0)
+    {
+        rold[k] = greedy(parts[k],lold);
+        lold[rold[k]] += parts[k].w;
+    }
+
+    double mnew=0.0, mold=0.0;
+    for(int r=0; r<np; ++r)
+    {
+        mnew = MAX(mnew,lnew[r]);
+        mold = MAX(mold,lold[r]);
+    }
+    const bool fresh = !anyold || (mold-mnew > par.rebalance*mold) || par.place==2;
+    const vector<int> &rk = fresh ? rnew : rold;
+
+    // my patches, level by level in the order of the pieces (kept: same box, on this rank before)
+    for(int l=1; l<=maxlev; ++l)
+    for(size_t k=0; k<parts.size(); ++k)
+    {
+        const piece &c = parts[k];
+        if(c.lev!=l || rk[k]!=me)
+        continue;
+
+        reefamr_patch *q=nullptr;
+        for(size_t m=0; m<oldP.size(); ++m)
+        if(!kept[m] && oldP[m]->lev==l && oldP[m]->I0==c.I0 && oldP[m]->I1==c.I1 && oldP[m]->J0==c.J0 && oldP[m]->J1==c.J1)
+        {
+            kept[m]=1;
+            q = oldP[m];
+            q->fresh = false;
+            break;
+        }
+
+        if(q==nullptr)
+        q = make_patch(p,pgc,l,c.I0,c.I1,c.J0,c.J1);
+
+        newlev[l].push_back((int)newP.size());
+        newP.push_back(q);
+    }
+
+    if(me==0 && regrids>0 && fresh && anyold)
+    cout<<par.name<<": patches placed anew, predicted load max/mean "<<setprecision(3)<<mold/wmeanp<<" -> "<<mnew/wmeanp<<endl;
 }

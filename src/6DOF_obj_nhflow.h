@@ -81,6 +81,9 @@ public:
     double nhflow_dsm() const {return DSM;}
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;
+    // mesh refinement with placed patches (A 286 1): this rank takes the triangle with the centroid
+    // (x,y) (it holds the finest grid there), instead of the level-0 subdomain test
+    std::function<bool(double,double)> amr_owner_nhflow;
 
 private:
     

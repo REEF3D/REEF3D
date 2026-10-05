@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<cstddef>
+#include<algorithm>
 
 class lexer;
 class ghostcell;
@@ -175,6 +176,14 @@ struct reefamr_param
                                 // tiles, an unchanged layout skips the regrid (0: off)
     int dryband = 0;            // regrid: no refinement within this many level-0 cells of a cell the
                                 // module reports as unfit for a patch (cell_unfit, e.g. dry), 0: off
+    int place = 0;              // patches on several ranks: 0 cut at the rank boxes, on the rank of the
+                                // level-0 cells below; 1 not cut, split to the work per rank and placed
+                                // for the load of the ranks (the module must reach parents through the
+                                // block plans and old patches through old_run); 2 test of 1: small
+                                // pieces, placed anew at every regrid without the preference for the
+                                // rank below, so that parents and old patches are mostly on other ranks
+    double rebalance = 0.1;     // place 1: a new placement when it lowers the predicted maximum load by
+                                // more than this fraction, else the patches keep their ranks
 };
 
 // switches the MPI exchange of the ghostcell class off while patch kernels run
@@ -233,6 +242,8 @@ protected:
     int holder(int, int, int);              // rank that holds cell (I,J) of level l (the patch of level l there, else its parent)
     int gpatch_at(int, int, int);           // level, I, J: index into GP of the patch of that level there, -1: none
     bool covered(int l, int I, int J) { return l>=1 && gpatch_at(l,I,J)>=0; }   // a level-l patch (any rank) holds (I,J)
+    double gnode(int, int, int);            // place 1: x (dir 0) or y (dir 1) of global node N of level l
+    int finest_rank(double, double);        // place 1: rank of the finest grid at (x,y), -1 outside
     int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
     void goff(int, int&, int&);             // grid id: local index = global index - offset
     lexer* glex(int);                       // grid id: lexer
@@ -463,6 +474,90 @@ protected:
 
     int block_keys(int l) const { return bnloc[l] + (int)bsrv[l].size(); }
 
+    // the cells of the fresh level-l patches that an old patch of the same level held (regrid_state,
+    // old patches still alive): pack(reefamr_patch *old, int io, int jo, double*) gives nv values of
+    // the old patch on its rank, unpack(reefamr_patch*, int id, int ii, int jj, const double*) puts
+    // them into the fresh patch (lexer indices)
+    template<class PK, class UP>
+    void old_run(int l, int nv, int tag, vector<reefamr_patch*> &oldP, PK &&pack, UP &&unpack)
+    {
+        const int me = p0->mpirank;
+        const int np = p0->mpi_size;
+        vector<vector<int>> req(np), srv, dst(np);
+        vector<double> v(nv);
+
+        for(int id : lev[l])
+        {
+            reefamr_patch *c = P[id];
+            if(!c->fresh)
+            continue;
+
+            for(const reefamr_gpatch &G : GPold)
+            {
+                if(G.lev!=l)
+                continue;
+                const int I0 = std::max(c->I0,G.I0), I1 = std::min(c->I1,G.I1);
+                const int J0 = std::max(c->J0,G.J0), J1 = std::min(c->J1,G.J1);
+                if(I0>I1 || J0>J1)
+                continue;
+
+                if(G.rank==me)
+                {
+                    reefamr_patch *o = oldP[G.lid];
+                    if(o==c)
+                    continue;
+                    for(int I=I0; I<=I1; ++I)
+                    for(int J=J0; J<=J1; ++J)
+                    {
+                        pack(o,I-o->I0+EXT,J-o->J0+EXT,&v[0]);
+                        unpack(c,id,I-c->I0+EXT,J-c->J0+EXT,&v[0]);
+                    }
+                    continue;
+                }
+
+                for(int I=I0; I<=I1; ++I)
+                for(int J=J0; J<=J1; ++J)
+                {
+                    req[G.rank].push_back(G.lid); req[G.rank].push_back(I); req[G.rank].push_back(J);
+                    dst[G.rank].push_back(id); dst[G.rank].push_back(I-c->I0+EXT); dst[G.rank].push_back(J-c->J0+EXT);
+                }
+            }
+        }
+
+        xsetup(req,srv,3);
+
+        reefamr_xplan X;
+        for(int r=0; r<np; ++r)
+        {
+            if(!srv[r].empty())
+            {
+                X.speer.push_back(r);
+                X.sitem.push_back(vector<int>());
+                vector<double> sb(srv[r].size()/3*nv);
+                for(size_t k=0; k<srv[r].size(); k+=3)
+                {
+                    reefamr_patch *o = oldP[srv[r][k]];
+                    pack(o,srv[r][k+1]-o->I0+EXT,srv[r][k+2]-o->J0+EXT,&sb[k/3*nv]);
+                }
+                X.sbuf.push_back(sb);
+            }
+            if(!req[r].empty())
+            {
+                X.rpeer.push_back(r);
+                X.rcount.push_back((int)req[r].size()/3);
+            }
+        }
+
+        xrun(X,nv,tag);
+
+        for(size_t k=0; k<X.rpeer.size(); ++k)
+        {
+            const vector<int> &D = dst[X.rpeer[k]];
+            for(size_t m=0; m<D.size(); m+=3)
+            unpack(P[D[m]],D[m],D[m+1],D[m+2],&X.rbuf[k][m/3*nv]);
+        }
+    }
+
     // ---- moving bodies
     void zone_setup(lexer*);
     bool zone_test(double, double);
@@ -525,6 +620,8 @@ private:
     void build_flags(lexer*);
     void build_tiles();
     void build_gtable();
+    void place_patches(lexer*, ghostcell*, vector<vector<unsigned char>>&, vector<reefamr_patch*>&, vector<char>&,
+                       vector<reefamr_patch*>&, vector<vector<int>>&);
     void build_plans(ghostcell*);
 
     vector<int> fl0;
@@ -549,6 +646,12 @@ private:
     vector<double> zx0, zy0;
 
     vector<double> fillv, blockv;
+
+    // place 1: global level-0 nodes (index K+marge) and solid flags
+    vector<double> gxn, gyn;
+    vector<short> gfl0;
+    double x0g(int) const;
+    double y0g(int) const;
 };
 
 #endif

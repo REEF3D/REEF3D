@@ -78,6 +78,7 @@ void control::ini_default()
     A283=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
     A284=0;      // int NHFLOW mesh refinement with A 283 1: flag the cells within this many cells (1-3) of the shoreline (0: off)
     A285=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
+    A286=0;      // int NHFLOW mesh refinement on several ranks: 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks
 
 
     // FNPF
