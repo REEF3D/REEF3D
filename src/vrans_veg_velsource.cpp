@@ -26,7 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 void vrans_veg::u_source(lexer *p, fdm *a)
-{	
+{
+    double uabs;	
 	// VRANS Vegetation porosity
     count=0;
     if(p->B310>0 || p->B321>0 || p->B322>0)
@@ -38,7 +39,12 @@ void vrans_veg::u_source(lexer *p, fdm *a)
         
         Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->u(i,j,k) - unn(i,j,k))/p->dt);
         
-        Fd = 0.5*Cd_val*N_val*D_val*a->u(i,j,k)*fabs(a->u(i,j,k));
+        // drag 1/2 Cd a |u| u_i with the full velocity magnitude (v, w averaged to the u point)
+        uabs = sqrt(a->u(i,j,k)*a->u(i,j,k)
+             + pow(0.25*(a->v(i,j,k)+a->v(i+1,j,k)+a->v(i,j-1,k)+a->v(i+1,j-1,k)),2.0)
+             + pow(0.25*(a->w(i,j,k)+a->w(i+1,j,k)+a->w(i,j,k-1)+a->w(i+1,j,k-1)),2.0));
+        
+        Fd = 0.5*Cd_val*N_val*D_val*a->u(i,j,k)*uabs;
         
     	
     a->rhsvec.V[count] += (-Fi -Fd);
@@ -48,6 +54,7 @@ void vrans_veg::u_source(lexer *p, fdm *a)
 
 void vrans_veg::v_source(lexer *p, fdm *a)
 {
+    double uabs;
 	// VRANS porosity
     count=0;
     if(p->B310>0 || p->B321>0 || p->B322>0)
@@ -59,7 +66,11 @@ void vrans_veg::v_source(lexer *p, fdm *a)
         
         Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->v(i,j,k) - vnn(i,j,k))/p->dt);
         
-        Fd = 0.5*Cd_val*N_val*D_val*a->v(i,j,k)*fabs(a->v(i,j,k));
+        uabs = sqrt(a->v(i,j,k)*a->v(i,j,k)
+             + pow(0.25*(a->u(i,j,k)+a->u(i,j+1,k)+a->u(i-1,j,k)+a->u(i-1,j+1,k)),2.0)
+             + pow(0.25*(a->w(i,j,k)+a->w(i,j+1,k)+a->w(i,j,k-1)+a->w(i,j+1,k-1)),2.0));
+        
+        Fd = 0.5*Cd_val*N_val*D_val*a->v(i,j,k)*uabs;
 
 	
     a->rhsvec.V[count] += (-Fi -Fd);
@@ -69,6 +80,7 @@ void vrans_veg::v_source(lexer *p, fdm *a)
 
 void vrans_veg::w_source(lexer *p, fdm *a)
 {
+    double uabs;
 	// VRANS porosity
     count=0;
     if(p->B310>0 || p->B321>0 || p->B322>0)
@@ -80,10 +92,14 @@ void vrans_veg::w_source(lexer *p, fdm *a)
         
         Fi = p->B309*0.25*PI*pow(D_val,2.0)*N_val*((a->w(i,j,k) - wnn(i,j,k))/p->dt);
         
-        Fd = 0.5*Cd_val*N_val*D_val*a->w(i,j,k)*fabs(a->w(i,j,k));
+        uabs = sqrt(a->w(i,j,k)*a->w(i,j,k)
+             + pow(0.25*(a->u(i,j,k)+a->u(i,j,k+1)+a->u(i-1,j,k)+a->u(i-1,j,k+1)),2.0)
+             + pow(0.25*(a->v(i,j,k)+a->v(i,j,k+1)+a->v(i,j-1,k)+a->v(i,j-1,k+1)),2.0));
+        
+        Fd = 0.5*Cd_val*N_val*D_val*a->w(i,j,k)*uabs;
 
 	
-    a->rhsvec.V[count] -= (-Fi -Fd);
+    a->rhsvec.V[count] += (-Fi -Fd);   // was -=: the drag accelerated w
 	++count;
 	}
 }

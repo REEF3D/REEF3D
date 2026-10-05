@@ -25,31 +25,18 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
+// S_eps = C_feps eps/k S_k, C_feps = 1.33 (Lopez & Garcia 2001, see vrans_veg_k.cpp)
 void vrans_veg::eps_source(lexer *p, fdm *a, field &kin, field &eps)
 {
-	int count;
-    double uvel,vvel,wvel,uu;
-    double ew;
-    double Cep=3.5;
+	int count=0;
+    const double C_feps=1.33;
     
-    count=0;
 	if(p->B295==1)
     LOOP
     {
-    if(a->porosity(i,j,k)<1.0)
-    {
-        uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
-        vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
-        wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
-        
-        uu = uvel*uvel + vvel*vvel + wvel*wvel;
-        
-        ew = Cep*Cd(i,j,k)*D(i,j,k)*N(i,j,k)*sqrt(uu*MAX(eps(i,j,k),0.0));
-
-        a->rhsvec.V[count] += ew;
+    if(N(i,j,k)*D(i,j,k)>0.0)
+    a->rhsvec.V[count] += C_feps*MAX(eps(i,j,k),0.0)/MAX(kin(i,j,k),1.0e-10)*veg_sk(p,a);
     
-    }
     ++count;
     }
-
 }
