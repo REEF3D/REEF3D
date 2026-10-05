@@ -275,7 +275,9 @@ void fem_solid::rigid_contact_forces()
     }
 
     std::stable_sort(rpairs.begin(),rpairs.end(),[](const rpair& p,const rpair& q){return p.key<q.key;});
-    std::map<long long,double> rnew;
+    std::map<std::pair<long long,long long>,double> rnew;
+    const long long nn1 = nnode()+1;
+    std::vector<double> de;
 
     size_t q0 = 0;
     while(q0<rpairs.size())
@@ -288,21 +290,6 @@ void fem_solid::rigid_contact_forces()
         const rigid_body& A = rbs[r];
         const bool plane = code<=1001;
 
-        double S = 0.0, dmax = 0.0;
-        for(size_t q=q0; q<q1; ++q)
-        {
-            S += rpairs[q].pen;
-            dmax = std::max(dmax,rpairs[q].pen);
-        }
-        if(S<=0.0)
-        {
-            q0 = q1;
-            continue;
-        }
-        double vG = 0.0;
-        for(size_t q=q0; q<q1; ++q)
-        vG += rpairs[q].pen/S*rpairs[q].vn;
-
         double k = A.k, meff = A.M, cap = A.Fcap, mu = plane ? mu_ground : mu_contact;
         if(code>=2000)
         {
@@ -313,13 +300,13 @@ void fem_solid::rigid_contact_forces()
         }
         else if(code==1002)
         {
+            // the surface of the deformable part acts in series with the debris:
+            // penalty of its nodes, of the order of the element stiffness and
+            // stable with the element time step (as the contact of deformable parts)
             std::vector<int> part;
             for(size_t q=q0; q<q1; ++q) part.push_back(rpairs[q].b);
             std::sort(part.begin(),part.end());
             part.erase(std::unique(part.begin(),part.end()),part.end());
-            // the surface of the deformable part acts in series with the debris:
-            // penalty of its nodes, of the order of the element stiffness and
-            // stable with the element time step (as the contact of deformable parts)
             double mP = 0.0, KP = 0.0;
             for(int b : part)
             {
@@ -332,32 +319,55 @@ void fem_solid::rigid_contact_forces()
             k = A.k*KP/(A.k+KP);
         }
 
-        // elastic-perfectly plastic spring: crushing beyond the cap leaves a permanent set
-        double dp = 0.0;
-        auto it = rset.find(key);
-        if(it!=rset.end()) dp = it->second;
-        const double C = 2.0*debris_zeta*std::sqrt(k*meff);
-        double F = 0.0;
-        if(dmax>dp)
+        // elastic-perfectly plastic spring: crushing beyond the cap leaves a
+        // permanent set at the contact points that carry it
+        auto pid = [&](const rpair& c){return std::make_pair(key,(long long)c.a*nn1 + (long long)(c.b+1));};
+        de.assign(q1-q0,0.0);
+        std::vector<double> dp(q1-q0,0.0);
+        double S = 0.0, dmax = 0.0;
+        for(size_t q=q0; q<q1; ++q)
         {
-            double Fel = k*(dmax-dp);
-            if(cap>0.0 && Fel>cap)
-            {
-                dp = dmax - cap/k;
-                Fel = cap;
-            }
-            // damping only while the contact unloads: the peak force stays the
-            // elastic u sqrt(k M), the rebound loses energy (restitution 0.55 at 50 %)
-            F = std::max(0.0, Fel - C*std::max(vG,0.0));
-            if(cap>0.0) F = std::min(F,cap);
+            auto it = rset.find(pid(rpairs[q]));
+            if(it!=rset.end()) dp[q-q0] = it->second;
+            de[q-q0] = std::max(0.0, rpairs[q].pen - dp[q-q0]);
+            dmax = std::max(dmax,de[q-q0]);
         }
-        if(dp>0.0)
-        rnew[key] = dp;
+        double Fel = k*dmax;
+        if(cap>0.0 && Fel>cap)
+        {
+            const double dc = cap/k;
+            for(size_t q=q0; q<q1; ++q)
+            if(de[q-q0]>dc)
+            {
+                dp[q-q0] = rpairs[q].pen - dc;
+                de[q-q0] = dc;
+            }
+            Fel = cap;
+        }
+        for(size_t q=q0; q<q1; ++q)
+        {
+            S += de[q-q0];
+            if(dp[q-q0]>0.0) rnew[pid(rpairs[q])] = dp[q-q0];
+        }
+        if(S<=0.0)
+        {
+            q0 = q1;
+            continue;
+        }
+        double vG = 0.0;
+        for(size_t q=q0; q<q1; ++q)
+        vG += de[q-q0]/S*rpairs[q].vn;
+
+        // damping only while the contact unloads: the peak force stays the
+        // elastic u sqrt(k M), the rebound loses energy (restitution 0.55 at 50 %)
+        const double C = 2.0*debris_zeta*std::sqrt(k*meff);
+        double F = std::max(0.0, Fel - C*std::max(vG,0.0));
+        if(cap>0.0) F = std::min(F,cap);
 
         for(size_t q=q0; q<q1; ++q)
         {
             const rpair& c = rpairs[q];
-            const double w = c.pen/S;
+            const double w = de[q-q0]/S;
             const double fn = F*w;
             fcon[c.a] += fn*c.n;
             if(c.b>=0) fcon[c.b] -= fn*c.n;

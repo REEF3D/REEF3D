@@ -461,7 +461,7 @@ private:
     // stiffness k against each partner (wall, bed, another body, the deformable parts)
     struct rpair {int a, b; long long key; Vec3 n; double pen, vn;};
     std::vector<rpair> rpairs;
-    std::map<long long,double> rset;            // permanent set of crushed contacts per group
+    std::map<std::pair<long long,long long>,double> rset;   // permanent set of crushed contact points (group, point)
     void rigid_contact_forces();
     double debris_zeta = 0.5;                   // damping ratio of the debris contact (unloading only)
     std::vector<Vec3> tspring;                  // tangential contact spring of the nodes on walls / bed / ground
