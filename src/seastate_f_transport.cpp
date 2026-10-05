@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"seastate_exchange.h"
 #include"seastate_implicit.h"
 #include"seastate_swan_spc.h"
+#include"seastate_source.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
@@ -73,7 +74,10 @@ void seastate_f::boundary(lexer *p, ghostcell *pgc)
 void seastate_f::transport(lexer *p, ghostcell *pgc)
 {
     const bool stationary = (p->A700==2);
-    const double rdt = stationary ? 0.0 : 1.0/p->dt;
+
+    // stationary: 1/dt = 0; with the deep-water physics pseudo time step A 706 (the wind-sea
+    // source terms are lagged by one iteration, the pseudo time step damps the iteration)
+    const double rdt = stationary ? ((psrc!=nullptr && psrc->param().komen) ? 1.0/p->A706 : 0.0) : 1.0/p->dt;
     const bool refraction = (p->A713==1);
     const bool fshift = (p->A714==1);
 

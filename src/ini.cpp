@@ -269,15 +269,29 @@ void control::ini_default()
     A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
     A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc
-    A712_xm=1;        // int boundary spectrum on side x-
-    A712_xp=0;        // int boundary spectrum on side x+
-    A712_ym=0;        // int boundary spectrum on side y-
-    A712_yp=0;        // int boundary spectrum on side y+
+    A712_xm=1;        // int side x-: 0 open (no incoming waves), 1 boundary spectrum, 2 zero gradient
+    A712_xp=0;        // int side x+ (as x-)
+    A712_ym=0;        // int side y- (as x-)
+    A712_yp=0;        // int side y+ (as x-)
     A713=1;           // int depth and current refraction
     A714=1;           // int frequency shift
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
+    A730=0;           // int wind: 0 none, 1 uniform (A 731)
+    A731_u10=0.0;     // double wind speed U10 [m/s]
+    A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
+    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733)
+    A733=1;           // int quadruplets with A 732 1: 0 off, 1 DIA
+    A734=1.5e-3;      // double linear wind growth (Cavaleri and Malanotte-Rizzoli), 0 off
+    A735=0.1;         // double action density limiter with A 732 1 (SWAN, Ris 1997), 0 off
+    A740=0;           // int depth-induced breaking: 0 off, 1 Battjes-Janssen
+    A741_alpha=1.0;   // double breaking alpha
+    A741_gamma=0.73;  // double breaking gamma
+    A742=0;           // int bottom friction: 0 off, 1 JONSWAP
+    A743=0.038;       // double JONSWAP friction coefficient [m^2/s^3]
+    A744=0;           // int triads: 0 off, 1 LTA (Eldeberky)
+    A745=0.05;        // double triads proportionality coefficient alpha_EB
 
     // NHFLOW Lagrangian particles
     L10=0;       // int particle tracking

@@ -1,13 +1,14 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
-// storage, integrated wave parameters, dispersion relation, SWAN spectrum files. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp -o seastate_test
+// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms. No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_grid.h"
 #include"seastate_store.h"
 #include"seastate_param.h"
 #include"seastate_dispersion.h"
 #include"seastate_swan_spc.h"
+#include"seastate_source.h"
 #include<cstdio>
 #include<fstream>
 #include<cmath>
@@ -345,6 +346,244 @@ static void test_swan_spc()
     check(!bad.read("no_such_file.spc",err),"missing file reported");
 }
 
+// ---------------------------------------------------------------------------------------------
+// source terms
+// ---------------------------------------------------------------------------------------------
+struct cell_kin
+{
+    std::vector<float> k, cg;
+    cell_kin(const seastate_grid &sg, double d) : k(sg.nsig), cg(sg.nsig)
+    {
+        for(int l=0;l<sg.nsig;++l)
+        {
+            k[l]=float(seastate_wavenumber(sg.sig[l],d));
+            cg[l]=float(seastate_cg(sg.sig[l],k[l],d));
+        }
+    }
+};
+
+// directionally integrated energy rate sig*S(sig) [m^2/rad], energy and action budgets
+struct budget
+{
+    std::vector<double> s1d;
+    double dE=0.0, absE=0.0, dA=0.0, absA=0.0;
+    budget(const seastate_grid &sg, const std::vector<double> &S) : s1d(sg.nsig,0.0)
+    {
+        for(int l=0;l<sg.nsig;++l)
+        for(int m=0;m<sg.ndir;++m)
+        {
+            const double a=S[sg.bin(l,m)]*sg.dsig[l]*sg.dtheta;
+            s1d[l]+=sg.sig[l]*S[sg.bin(l,m)]*sg.dtheta;
+            dE+=sg.sig[l]*a; absE+=std::fabs(sg.sig[l]*a);
+            dA+=a; absA+=std::fabs(a);
+        }
+    }
+};
+
+static void test_source()
+{
+    std::cout<<"seastate_source"<<std::endl;
+
+    seastate_grid sg(36,0.04,1.0,36);
+    const int nb=sg.nbin;
+    std::vector<double> P(nb), D(nb), S(nb);
+
+    // Battjes-Janssen fraction of breaking waves: SWAN FRABRE vs. the implicit relation (1-Qb)/(-ln Qb) = (Hrms/Hm)^2
+    check(seastate_source::Qb_bj(0.2,1.0)==0.0 && seastate_source::Qb_bj(1.0,1.0)==1.0 && seastate_source::Qb_bj(1.3,1.0)==1.0,"Qb = 0 for Hrms/Hm <= 0.2, 1 for Hrms/Hm >= 1");
+    double qerr=0.0;
+    for(double b=0.3;b<0.99;b+=0.05)
+    {
+        double lo=1e-300, hi=1.0-1e-15;            // bisection of the exact relation
+        for(int it=0;it<200;++it)
+        {
+            const double q=0.5*(lo+hi);
+            ((1.0-q)/(-std::log(q))<b*b ? lo : hi)=q;
+        }
+        qerr=std::max(qerr,std::fabs(seastate_source::Qb_bj(b,1.0)-0.5*(lo+hi)));
+    }
+    std::cout<<"        Qb: max. deviation from the implicit relation "<<qerr<<std::endl;
+    check(qerr<0.02,"Qb within 0.02 of the implicit Battjes-Janssen relation for Hrms/Hm 0.3 - 0.95");
+
+    // bottom friction (JONSWAP): D = Cb/g^2 (sig/sinh(kd))^2, P = 0
+    {
+        seastate_source_param sp; sp.friction=true;
+        seastate_source src(sg,sp);
+        const double d=8.0;
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,1.0,8.0,3.3,0.0,10.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        double err=0.0, pmax=0.0;
+        for(int l=0;l<sg.nsig;++l)
+        for(int m=0;m<sg.ndir;++m)
+        {
+            const double ex=0.038/(g*g)*std::pow(sg.sig[l]/std::sinh(std::min(30.0,double(ck.k[l])*d)),2.0);
+            err=std::max(err,std::fabs(D[sg.bin(l,m)]-ex)/ex);
+            pmax=std::max(pmax,std::fabs(P[sg.bin(l,m)]));
+        }
+        check(err<1e-6 && pmax==0.0,"friction: D = C_b/g^2 (sig/sinh kd)^2, P = 0");
+    }
+
+    // depth-induced breaking (Battjes-Janssen)
+    {
+        seastate_source_param sp; sp.breaking=true;
+        seastate_source src(sg,sp);
+        const double d=1.5;
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,1.5,8.0,3.3,0.0,10.0);      // Hrms = 1.06 m > Hm = 1.095 m? -> close to saturation
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        const double Hrms=std::sqrt(8.0*src.Etot), Hm=0.73*d, bb=Hrms*Hrms/(Hm*Hm);
+        const double Qb=seastate_source::Qb_bj(Hrms,Hm);
+        const double ex=(bb<1.0 ? Qb/bb : 1.0)*src.sigm01/pi;
+        std::cout<<"        breaking: Hrms/Hm "<<Hrms/Hm<<", Qb "<<src.Qb<<", D "<<D[0]<<" 1/s"<<std::endl;
+        const double sbrd=ex*(1.0-Qb)/(bb-Qb);
+        double nerr=0.0;
+        for(int b : {0,100,nb-1}) nerr=std::max(nerr,std::fabs((P[b]-D[b]*N[b])-(-ex*N[b]))/(ex*N[b]+1e-300));
+        check(close(D[0],ex+sbrd,1e-12) && close(D[nb-1],ex+sbrd,1e-12) && close(P[100],sbrd*N[100],1e-12) && src.Qb==Qb,"breaking: D = ws + sbrd, P = sbrd N (Newton linearisation, SWAN SbrD), ws = alpha/pi Qb sig_01 Hm^2/Hrms^2");
+        check(nerr<1e-6,"breaking: net source P - D N = -ws N at the linearisation point");
+        std::vector<float> N2=make_spectrum(sg,3.0,8.0,3.3,0.0,10.0);
+        src.compute(N2.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        check(src.Qb==1.0 && close(D[0],src.sigm01/pi,1e-12),"breaking: Hrms >= Hm gives Qb = 1 and D = alpha/pi sig_01");
+        std::vector<float> N3=make_spectrum(sg,0.1,8.0,3.3,0.0,10.0);
+        src.compute(N3.data(),20.0,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        check(src.Qb==0.0 && D[0]==0.0,"breaking: no dissipation for Hrms/Hm <= 0.2");
+    }
+
+    // integral parameters with the sig^-4 tail: Pierson-Moskowitz, Tm01 = 0.772 Tp
+    {
+        seastate_source_param sp; sp.friction=true;
+        seastate_source src(sg,sp);
+        cell_kin ck(sg,1000.0);
+        std::vector<float> N=make_spectrum(sg,2.0,10.0,1.0,0.0,10.0);
+        src.compute(N.data(),1000.0,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        std::cout<<"        PM Hs 2 m, Tp 10 s: Hs "<<src.Hs<<", Tm01 "<<2.0*pi/src.sigm01<<", Tm-10 "<<2.0*pi/src.sigm_10<<std::endl;
+        check(close(src.Hs,2.0,0.01) && close(2.0*pi/src.sigm01,7.72,0.01) && close(2.0*pi/src.sigm_10,8.57,0.01),"moments with tail: PM Hs, Tm01 = 0.772 Tp, Tm-1,0 = 0.857 Tp within 1 %");
+        const double kp=std::pow(2.0*pi/10.0,2.0)/g;
+        check(src.km_wam>kp && src.km_wam<2.0*kp,"k_WAM between k_p and 2 k_p");
+    }
+
+    // whitecapping (Komen): D proportional to k^2, value
+    {
+        seastate_source_param sp; sp.komen=true;
+        seastate_source src(sg,sp);
+        cell_kin ck(sg,1000.0);
+        std::vector<float> N=make_spectrum(sg,2.0,8.0,3.3,0.0,10.0);
+        src.compute(N.data(),1000.0,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        const double stp=src.km_wam*std::sqrt(src.Etot)/std::sqrt(3.02e-3);
+        const double ex=2.36e-5*std::pow(stp,4.0)*src.sigm_10*std::pow(ck.k[20]/src.km_wam,2.0);
+        check(close(D[sg.bin(20,3)],ex,1e-10) && close(D[sg.bin(30,0)]/D[sg.bin(10,0)],std::pow(double(ck.k[30])/ck.k[10],2.0),1e-6),"whitecapping: D = C_ds (s/s_PM)^4 sig_-10 (k/k_WAM)^2");
+    }
+
+    // wind input
+    {
+        seastate_source_param sp; sp.wind=true; sp.komen=true; sp.U10=20.0; sp.wdir=0.0;
+        seastate_source src(sg,sp);
+        const double us=seastate_source::ustar_wu(20.0);
+        check(close(us,std::sqrt((0.8+0.065*20.0)*1e-3)*20.0,1e-12) && close(seastate_source::ustar_wu(5.0),std::sqrt(1.2875e-3)*5.0,1e-12),"u* with the drag of Wu (1982)");
+        cell_kin ck(sg,1000.0);
+        std::vector<float> N0(nb,0.0f);
+        src.compute(N0.data(),1000.0,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        const int l=20;
+        const double sig=sg.sig[l], spm=g/(28.0*us);
+        const double exA=1.5e-3/(2.0*pi*g*g*sig)*std::pow(us,4.0)*std::exp(-std::pow(std::min(2.0,spm/sig),4.0));
+        check(close(P[sg.bin(l,0)],exA,1e-10) && P[sg.bin(l,18)]==0.0 && P[sg.bin(l,9)]<1e-12*P[sg.bin(l,0)],"linear growth along the wind, none across or against it");
+        check(P[sg.bin(0,0)]==0.0,"no linear growth below 0.7 sig_PM");
+        std::vector<float> N=make_spectrum(sg,0.5,4.0,3.3,0.0,10.0);
+        std::vector<double> P1(nb), D1(nb);
+        src.compute(N.data(),1000.0,ck.k.data(),ck.cg.data(),P1.data(),D1.data());
+        sp.dia=false;
+        const double B=std::max(0.0,0.25*1.28/1025.0*(28.0*us*ck.k[l]/sig-1.0))*sig;
+        check(close(P1[sg.bin(l,0)]-P[sg.bin(l,0)],B*N[sg.bin(l,0)],1e-6),"exponential growth B N (Komen) along the wind");
+        check(P1[sg.bin(l,18)]==0.0,"no exponential growth against the wind");
+    }
+
+    // quadruplets (DIA)
+    {
+        seastate_source_param sp; sp.komen=true; sp.dia=true;
+        seastate_source src(sg,sp);
+        cell_kin ck(sg,1000.0);
+        std::vector<float> N=make_spectrum(sg,4.0,10.0,3.3,0.0,10.0);
+        src.quadruplets(N.data(),1000.0,ck.k.data(),S.data());
+        budget bu(sg,S);
+        const double fp=0.1;
+        auto at=[&](double f){int lb=0; for(int l=0;l<sg.nsig;++l) if(std::fabs(sg.f[l]-f)<std::fabs(sg.f[lb]-f)) lb=l; return bu.s1d[lb];};
+        std::cout<<"        DIA (JONSWAP Hs 4 m, Tp 10 s, deep): energy balance "<<bu.dE/bu.absE<<", action balance "<<bu.dA/bu.absA
+                 <<"; sig S(sig) at 0.85 fp "<<at(0.085)<<", 1.4 fp "<<at(0.14)<<", 2.5 fp "<<at(0.25)<<std::endl;
+        check(std::fabs(bu.dE/bu.absE)<2e-3,"DIA conserves energy (relative to the transferred energy)");
+        check(std::fabs(bu.dA/bu.absA)<2e-2,"DIA conserves action (within the grid interpolation)");
+        check(at(0.085)>0.0 && at(0.14)<0.0 && at(0.25)>0.0,"DIA: gain below the peak, loss above it, gain in the tail");
+        double asym=0.0, smax=0.0;
+        for(int l=0;l<sg.nsig;++l)
+        for(int m=1;m<sg.ndir;++m)
+        {
+            asym=std::max(asym,std::fabs(S[sg.bin(l,m)]-S[sg.bin(l,sg.ndir-m)]));
+            smax=std::max(smax,std::fabs(S[sg.bin(l,m)]));
+        }
+        check(asym<=1e-10*smax,"DIA symmetric for a spectrum symmetric in theta");
+        // diagonal derivative dS/dN against a finite difference (depth scaling and k_WAM frozen: deep water)
+        std::vector<double> L(nb), Sp(nb), Sm(nb);
+        src.quadruplets(N.data(),1000.0,ck.k.data(),S.data(),L.data());
+        double derr=0.0;
+        for(int l : {8,10,13,20})
+        {
+            const int b=sg.bin(l,0);
+            std::vector<float> Np=N, Nm=N;
+            const double h=1e-3*N[b];
+            Np[b]+=float(h); Nm[b]-=float(h);
+            const double hh=double(Np[b])-double(Nm[b]);
+            src.quadruplets(Np.data(),1000.0,ck.k.data(),Sp.data());
+            src.quadruplets(Nm.data(),1000.0,ck.k.data(),Sm.data());
+            const double fd=(Sp[b]-Sm[b])/hh;
+            derr=std::max(derr,std::fabs(fd-L[b])/std::fabs(fd));
+        }
+        std::cout<<"        DIA: diagonal derivative vs. finite difference, max. rel. deviation "<<derr<<std::endl;
+        check(derr<1e-6,"DIA: diagonal derivative dS/dN (SWAN DSNL) matches a central finite difference");
+        std::vector<double> S2(nb);
+        src.quadruplets(N.data(),5.0,ck.k.data(),S2.data());
+        check(std::fabs(S2[sg.bin(9,0)])>std::fabs(S[sg.bin(9,0)]),"DIA enhanced in shallow water (WAM depth scaling)");
+        std::vector<float> Z(nb,0.0f);
+        src.quadruplets(Z.data(),1000.0,ck.k.data(),S2.data());
+        double z=0.0; for(double v : S2) z=std::max(z,std::fabs(v));
+        check(z==0.0,"DIA: zero spectrum, zero transfer");
+    }
+
+    // triads (LTA)
+    {
+        seastate_source_param sp; sp.triads=true;
+        seastate_source src(sg,sp);
+        const double d=2.0;
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,0.6,8.0,3.3,0.0,20.0);
+        src.triads(N.data(),d,ck.k.data(),ck.cg.data(),S.data());
+        budget bu(sg,S);
+        int lp=0; for(int l=0;l<sg.nsig;++l) if(std::fabs(sg.f[l]-0.125)<std::fabs(sg.f[lp]-0.125)) lp=l;
+        int l2=0; for(int l=0;l<sg.nsig;++l) if(std::fabs(sg.f[l]-0.25)<std::fabs(sg.f[l2]-0.25)) l2=l;
+        std::cout<<"        LTA (Hs 0.6 m, Tp 8 s, d 2 m): Ursell "<<src.ursell<<", energy balance "<<bu.dE/bu.absE
+                 <<"; sig S(sig) at fp "<<bu.s1d[lp]<<", 2 fp "<<bu.s1d[l2]<<std::endl;
+        check(src.ursell>=0.1,"LTA case is above the Ursell limit");
+        check(std::fabs(bu.dE/bu.absE)<0.03,"LTA conserves energy (within the interpolation at 2 sig)");
+        check(bu.s1d[lp]<0.0 && bu.s1d[l2]>0.0,"LTA: energy from the peak to the second harmonic");
+        std::vector<float> Nd=make_spectrum(sg,0.6,8.0,3.3,0.0,20.0);
+        cell_kin ckd(sg,50.0);
+        src.triads(Nd.data(),50.0,ckd.k.data(),ckd.cg.data(),S.data());
+        double z=0.0; for(double v : S) z=std::max(z,std::fabs(v));
+        check(src.ursell<0.1 && z==0.0,"LTA inactive below the Ursell limit");
+    }
+
+    // Patankar split of all terms together: P >= 0, D >= 0
+    {
+        seastate_source_param sp; sp.wind=true; sp.U10=15.0; sp.wdir=0.5; sp.komen=true; sp.dia=true;
+        sp.breaking=true; sp.friction=true; sp.triads=true;
+        seastate_source src(sg,sp);
+        const double d=3.0;
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,1.2,7.0,3.3,0.3,5.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        double pmin=0.0, dmin=0.0;
+        for(int b=0;b<nb;++b) {pmin=std::min(pmin,P[b]); dmin=std::min(dmin,D[b]);}
+        check(pmin>=0.0 && dmin>=0.0,"Patankar split: P >= 0 and D >= 0 with all source terms");
+    }
+}
+
 int main()
 {
     test_grid();
@@ -352,6 +591,7 @@ int main()
     test_param();
     test_dispersion();
     test_swan_spc();
+    test_source();
     test_memory();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;

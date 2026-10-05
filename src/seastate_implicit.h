@@ -31,6 +31,7 @@ class ghostcell;
 class fdm_seastate;
 class seastate_store;
 class seastate_exchange;
+class seastate_source;
 
 using namespace std;
 
@@ -57,16 +58,28 @@ per frequency (tridiagonal in theta, Thomas algorithm); frequencies and
 the directions of the other quadrants use the latest values. Halo
 exchange after each sweep (block Gauss-Seidel across ranks).
 
+Source terms (Phase 2, seastate_source): dN/dt = P - D N with P >= 0
+added to the right-hand side and D >= 0 to the diagonal, computed per
+cell from the latest spectrum in every sweep (Gauss-Seidel), so the
+matrix stays an M-matrix. With the deep-water physics the change of N
+per iteration is limited by the action density limiter of the source
+terms (seastate_source::limit), which keeps N >= 0.
+
 Boundaries: land (inactive cells) absorbs (outflow, no inflow). Domain
 sides with side[s] = 1 (x-, x+, y-, y+) let the boundary spectrum Nb
-enter; other sides are open without incoming waves. Frequency range
-ends: outflow only. Directions: periodic (full circle).
+enter; sides with side[s] = 2 are zero-gradient (the inflow spectrum
+is the spectrum of the boundary cell itself, implicit as long as the
+diagonal stays dominant, otherwise with the latest value); other sides
+are open without incoming waves. Frequency range ends: outflow only.
+Directions: periodic (full circle).
 --------------------------------------------------------------------*/
 
 class seastate_implicit : public increment
 {
 public:
     seastate_implicit(lexer*, fdm_seastate*);
+
+    void sources(seastate_source *s) {src = s;}
 
     void iterate(lexer*, ghostcell*, fdm_seastate*, seastate_exchange*, const seastate_store *N0,
                  double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
@@ -79,6 +92,8 @@ private:
               const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
 
     int nsig, ndir;
+    seastate_source *src;
+    vector<double> P, D;                // source terms of the cell (src != nullptr)
     vector<int> m0, m1;                 // first and last direction of each quadrant
     vector<double> csig;                // c_sigma of the cell, per frequency, for the current direction
     vector<double> la, di, up, rhs, sol, cp, dp;   // tridiagonal system of one frequency

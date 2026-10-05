@@ -32,6 +32,7 @@ class fdm_seastate;
 class seastate_vtp;
 class seastate_exchange;
 class seastate_implicit;
+class seastate_source;
 class seastate_store;
 class regression_dump;
 
@@ -49,8 +50,13 @@ Phase 1: implicit transport in x, y, sigma, theta (seastate_implicit),
 nonstationary (A 700 1, time step A 706) or stationary (A 700 2),
 iterations A 707, stationary convergence A 708, boundary spectrum
 A 711 on the sides A 712, refraction A 713, frequency shift A 714,
-halo exchange of the spectra (seastate_exchange). Source terms follow
-in Phase 2.
+halo exchange of the spectra (seastate_exchange).
+
+Phase 2: source terms (seastate_source, A 730-745): wind input,
+whitecapping and quadruplets (Komen, DIA), depth-induced breaking
+(Battjes-Janssen), bottom friction (JONSWAP), triads (LTA); zero-
+gradient sides (A 712 2). Stationary runs with the deep-water physics
+iterate in pseudo time with the time step A 706.
 
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
@@ -79,6 +85,7 @@ private:
     void initial_parametric(lexer*, ghostcell*);
     void parametric_spectrum(lexer*, ghostcell*, std::vector<float>&, const char*);
     void boundary(lexer*, ghostcell*);
+    void sources(lexer*, ghostcell*);
     void kinematics(lexer*, ghostcell*, double);
     void transport(lexer*, ghostcell*);
     void parameters(lexer*, ghostcell*);
@@ -91,6 +98,7 @@ private:
     seastate_exchange *pex;
     seastate_implicit *psolv;
     seastate_store *N0;
+    seastate_source *psrc;
 
     std::vector<float> Nb;      // boundary spectrum
     int side[4];                // sides with the boundary spectrum: x-, x+, y-, y+

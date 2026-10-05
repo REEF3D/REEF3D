@@ -27,10 +27,12 @@ Architect: Hans Bihs
 #include"seastate_vtp.h"
 #include"seastate_exchange.h"
 #include"seastate_implicit.h"
+#include"seastate_source.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
 #include<algorithm>
+#include<cmath>
 #include<iostream>
 #include<iomanip>
 #include<sys/stat.h>
@@ -81,6 +83,8 @@ void seastate_f::ini(lexer *p, ghostcell *pgc)
     pex   = new seastate_exchange(p,e->grid->nbin,1);
     psolv = new seastate_implicit(p,e);
 
+    sources(p,pgc);
+
     if(p->A700==1 && iter_max>1)
     {
     N0 = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nbin,p->A704);
@@ -120,8 +124,36 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
     else if(p->A711<0 || p->A711>2)
     msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric) or 2 (SWAN spectrum file)";
+    else if(p->A712_xm<0 || p->A712_xm>2 || p->A712_xp<0 || p->A712_xp>2 || p->A712_ym<0 || p->A712_ym>2 || p->A712_yp<0 || p->A712_yp>2)
+    msg = "A 712: each side must be 0 (open), 1 (boundary spectrum) or 2 (zero gradient)";
     else if(p->A720!=0 && p->A720!=1)
     msg = "A 720: prescribed current must be 0 (none) or 1 (linear in x, A 721)";
+    else if(p->A730!=0 && p->A730!=1)
+    msg = "A 730: wind must be 0 (none) or 1 (uniform, A 731)";
+    else if(p->A730==1 && !(p->A731_u10>=0.0))
+    msg = "A 731: the wind speed must not be negative";
+    else if(p->A730==1 && p->A732!=1)
+    msg = "A 730 1: wind input needs the deep-water physics A 732 1 (Komen)";
+    else if(p->A732!=0 && p->A732!=1)
+    msg = "A 732: deep-water physics must be 0 (off) or 1 (Komen)";
+    else if(p->A733!=0 && p->A733!=1)
+    msg = "A 733: quadruplets must be 0 (off) or 1 (DIA)";
+    else if(!(p->A734>=0.0))
+    msg = "A 734: the linear growth coefficient must not be negative";
+    else if(!(p->A735>=0.0))
+    msg = "A 735: the limiter coefficient must not be negative";
+    else if(p->A740!=0 && p->A740!=1)
+    msg = "A 740: depth-induced breaking must be 0 (off) or 1 (Battjes-Janssen)";
+    else if(p->A740==1 && !(p->A741_alpha>0.0 && p->A741_gamma>0.0))
+    msg = "A 741: the breaking coefficients alpha and gamma must be positive";
+    else if(p->A742!=0 && p->A742!=1)
+    msg = "A 742: bottom friction must be 0 (off) or 1 (JONSWAP)";
+    else if(!(p->A743>=0.0))
+    msg = "A 743: the friction coefficient must not be negative";
+    else if(p->A744!=0 && p->A744!=1)
+    msg = "A 744: triads must be 0 (off) or 1 (LTA)";
+    else if(!(p->A745>=0.0))
+    msg = "A 745: the triad coefficient must not be negative";
 
     if(msg!=nullptr)
     {
@@ -256,4 +288,59 @@ void seastate_f::log_step(lexer *p)
     return;
 
     integral<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<etot<<" \t "<<hsmax<<" \t "<<hsmean<<" \t "<<nmin<<" \t "<<iter_done<<endl;
+}
+
+void seastate_f::sources(lexer *p, ghostcell *pgc)
+{
+    seastate_source_param sp;
+
+    sp.wind = (p->A730==1);
+    sp.U10  = p->A731_u10;
+    sp.wdir = p->A731_dir*3.14159265358979323846/180.0;
+    sp.Alin = p->A734;
+
+    sp.komen = (p->A732==1);
+    sp.dia   = (p->A732==1 && p->A733==1);
+    sp.limiter = p->A735;
+
+    sp.breaking = (p->A740==1);
+    sp.alpha    = p->A741_alpha;
+    sp.gamma    = p->A741_gamma;
+
+    sp.friction = (p->A742==1);
+    sp.Cb       = p->A743;
+
+    sp.triads  = (p->A744==1);
+    sp.alphaEB = p->A745;
+
+    if(!sp.any())
+    return;
+
+    psrc = new seastate_source(*e->grid,sp);
+    psolv->sources(psrc);
+
+    if(p->mpirank==0)
+    {
+    cout<<"SEASTATE source terms:";
+    if(sp.wind)
+    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg (Komen, linear growth "<<sp.Alin<<"),";
+    if(sp.komen)
+    cout<<" whitecapping (Komen),";
+    if(sp.dia)
+    cout<<" quadruplets (DIA),";
+    if(sp.komen)
+    cout<<" action density limiter "<<sp.limiter<<",";
+    if(sp.breaking)
+    cout<<" breaking (Battjes-Janssen, alpha "<<sp.alpha<<", gamma "<<sp.gamma<<"),";
+    if(sp.friction)
+    cout<<" bottom friction (JONSWAP, "<<sp.Cb<<" m^2/s^3),";
+    if(sp.triads)
+    cout<<" triads (LTA, alpha "<<sp.alphaEB<<"),";
+    cout<<endl;
+
+    if(p->A700==2 && sp.komen)
+    cout<<"SEASTATE stationary with the deep-water physics: pseudo time step "<<p->A706<<" s"<<endl;
+
+    cout<<endl;
+    }
 }

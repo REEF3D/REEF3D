@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"seastate_vtp.h"
 #include"seastate_exchange.h"
 #include"seastate_implicit.h"
+#include"seastate_source.h"
 #include"regression_dump.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -34,7 +35,7 @@ Architect: Hans Bihs
 #include<iostream>
 #include<iomanip>
 
-seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr), pex(nullptr), psolv(nullptr), N0(nullptr),
+seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr), pex(nullptr), psolv(nullptr), N0(nullptr), psrc(nullptr),
                                                   iter_max(1), iter_done(0), conv(0.0),
                                                   etot(0.0), hsmax(0.0), hsmean(0.0), nmin(0.0), cells_active(0.0),
                                                   starttime(0.0), endtime(0.0)
@@ -51,6 +52,7 @@ seastate_f::~seastate_f()
     delete pex;
     delete psolv;
     delete N0;
+    delete psrc;
     delete e->cg;
     delete e->kw;
     delete e->N;
@@ -140,8 +142,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
 
 void seastate_f::step(lexer *p, ghostcell *pgc)
 {
-    // implicit transport in x, y, sigma, theta (Phase 1)
-    // source terms follow in Phase 2
+    // implicit transport in x, y, sigma, theta with the source terms (if any)
 
     transport(p,pgc);
 

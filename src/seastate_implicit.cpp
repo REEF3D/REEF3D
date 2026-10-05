@@ -25,18 +25,22 @@ Architect: Hans Bihs
 #include"seastate_grid.h"
 #include"seastate_store.h"
 #include"seastate_dispersion.h"
+#include"seastate_source.h"
 #include"fdm_seastate.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
 #include<cmath>
 
-seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e)
+seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr)
 {
     const seastate_grid &g = *e->grid;
 
     nsig = g.nsig;
     ndir = g.ndir;
+
+    P.assign(g.nbin,0.0);
+    D.assign(g.nbin,0.0);
 
     m0.assign(4,ndir);
     m1.assign(4,-1);
@@ -91,12 +95,13 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
 
 namespace
 {
-    // neighbour of a cell: active cell, boundary with incoming spectrum, or nothing (land, open side)
+    // neighbour of a cell: active cell, boundary with incoming spectrum, zero-gradient side, or nothing (land, open side)
     struct neighbour
     {
         const float *N = nullptr;     // spectrum (cell or boundary), nullptr: no inflow
         const float *cg = nullptr;    // group velocity, nullptr: no active cell
         double U = 0.0, V = 0.0;
+        bool self = false;            // zero-gradient side: inflow of the cell's own spectrum
     };
 
     void set_neighbour(lexer *p, fdm_seastate *e, int ni, int nj, const vector<float> &Nb, const int side[4], neighbour &nb)
@@ -127,6 +132,9 @@ namespace
 
         if(s>=0 && side[s]==1 && !Nb.empty())
         nb.N = Nb.data();
+
+        if(s>=0 && side[s]==2)
+        nb.self = true;
     }
 
     inline double pos(double a) {return a>0.0 ? a : 0.0;}
@@ -163,6 +171,12 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     const double dddt = e->dddt(ic,jc);
 
     const int ma = m0[q], mb = m1[q], nq = mb-ma+1;
+
+    // source terms from the latest spectrum of the cell
+    if(src!=nullptr)
+    src->compute(N,d,kc,cgc,P.data(),D.data());
+
+    const double *lim = (src!=nullptr) ? src->limit() : nullptr;
 
     for(int l=0; l<nsig; ++l)
     {
@@ -222,12 +236,34 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
         const double cys = S.cg  ? 0.5*(cyc + double(S.cg[l])*sn + S.V)   : cyc;
         const double cyn = Nn.cg ? 0.5*(cyc + double(Nn.cg[l])*sn + Nn.V) : cyc;
 
-        // diagonal: 1/dt + outflow
-        di[n] = rdt + (pos(cxe) - neg(cxw))*rdx + (pos(cyn) - neg(cys))*rdy
-                    + (pos(csu) - neg(csl))*rdsig + (pos(ctp) - neg(ctm))*rdth;
+        // diagonal: 1/dt + outflow (+ D)
+        const double dg = rdt + (pos(cxe) - neg(cxw))*rdx + (pos(cyn) - neg(cys))*rdy
+                              + (pos(csu) - neg(csl))*rdsig + (src!=nullptr ? D[b] : 0.0);
 
-        // right-hand side: old time level + inflow from neighbours
+        di[n] = dg + (pos(ctp) - neg(ctm))*rdth;
+
+        // right-hand side: old time level + inflow from neighbours (+ P)
         double r = rdt*(N0!=nullptr ? double(N0[b]) : double(N[b]));
+
+        if(src!=nullptr)
+        r += P[b];
+
+        // zero-gradient sides: inflow of the cell's own spectrum, implicit while the
+        // non-theta part of the diagonal stays at least half of its value (M-matrix),
+        // otherwise with the latest value
+        double aself = 0.0;
+        if(W.self)  aself += pos(cxw)*rdx;
+        if(E.self)  aself -= neg(cxe)*rdx;
+        if(S.self)  aself += pos(cys)*rdy;
+        if(Nn.self) aself -= neg(cyn)*rdy;
+
+            if(aself>0.0)
+            {
+                if(dg-aself>=0.5*dg)
+                di[n] -= aself;
+                else
+                r += aself*double(N[b]);
+            }
 
         if(W.N)  r += pos(cxw)*rdx*W.N[b];
         if(E.N)  r -= neg(cxe)*rdx*E.N[b];
@@ -284,6 +320,14 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
         sol[nq-1] = dp[nq-1];
         for(int n=nq-2; n>=0; --n)
         sol[n] = dp[n] - cp[n]*sol[n+1];
+
+        // action density limiter (wind sea, seastate_source): |change per iteration| <= dNmax
+        if(lim!=nullptr)
+        for(int n=0; n<nq; ++n)
+        {
+        const double o = double(N[g.bin(l,ma+n)]);
+        sol[n] = std::min(std::max(sol[n],o-lim[l]),o+lim[l]);
+        }
 
         for(int n=0; n<nq; ++n)
         N[g.bin(l,ma+n)] = float(sol[n]);

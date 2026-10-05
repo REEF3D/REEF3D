@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE stationary surf zone: JONSWAP Hs 2 m Tp 8 s at 15 deg from x- on a plane slope 10 m -> 0.5 m (DIVEMesh wedge S 61) with Battjes-Janssen breaking (A 740 1), JONSWAP bottom friction (A 742 1) and LTA triads (A 744 1), zero-gradient lateral sides; 120 x 2 cells of 10 m. Validation of the single terms in Dropbox SEASTATE/validation/06_breaking, 07_friction, 08_triads.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_source breaking (Newton linearisation), friction, triads", "zero-gradient sides with oblique waves", "stationary without pseudo time"]
+}

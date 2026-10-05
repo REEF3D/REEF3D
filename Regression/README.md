@@ -100,10 +100,12 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 |---|---|---|
 | `cfd_2d_nwt` | 1 | default N40=3 (FC3), relaxation waves, level set, implicit diffusion, gauges/probes |
 | `cfd_2d_nwt_rk3` / `_rk2` / `_fc2` / `_rkls3` | 1 | N40=13 / 12 / 2 / 44 momentum + level-set variants |
+| `cfd_2d_nwt_wenoz` | 1 | WENO-Z weights for momentum (D 12 1) and level set + reini (F 37 1) |
 | `cfd_2d_nwt_komega` / `_kepsilon` | 1 | RANS models with free surface |
 | `cfd_2d_nwt_porous_komega` | 1 | VRANS porous box + k-ω porous sources (B295) |
 | `cfd_2d_nug_breaking_komega` | 1 | stretched grid, cnoidal waves, k-ω T36=2, slope solid |
 | `cfd_2d_dambreak` (+ `_fcc3`, `_fcls3`, `_mpi2`) | 1/2 | closed tank, walls, N40=33 / 4, 2D MPI |
+| `cfd_2d_dambreak_teno` | 1 | TENO5 weights for momentum (D 12 2) and level set + reini (F 37 2) |
 | `cfd_2d_dambreak_plic` (+ `_rk3`, `_fcc3`) | 1 | PLIC VOF (F80=4) with N40=3 / 13 / 33 |
 | `cfd_2d_cylinder_singlephase` | 1 | single phase, explicit diffusion, inflow/outflow, forces |
 | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
@@ -180,6 +182,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_dirichlet` | 1 | old input: FNPF Dirichlet generation with a B 107 beach |
 | `fnpf_2d_dirichlet_awa` | 1 | old input: FNPF Dirichlet generation with active absorption (B 99 3), waves reach the beach |
 | `sflow_2d_stokes2` (+ `_mpi2`) | 1/2 | SFLOW relaxation generation + beach, Stokes 2nd (tutorial 8_1) |
+| `sflow_2d_stokes2_wenojs` | 1 | SFLOW with the previous WENO-JS weights (A 213 0; default WENO-Z) |
 | `sflow_2d_custom_zones` | 1 | old input: SFLOW with custom B 107 / B 108 zones |
 | `sflow_2d_dirichlet` | 1 | old input: SFLOW Dirichlet generation |
 | `fnpf_2d_hdc` (stage `fnpf_hdc_source`) | 1 | old input: hydrodynamic coupling FNPF -> FNPF (FNPF state P 44 3, DIVEMesh H 10 44, B 92 61), as in FNPF nesting |
@@ -212,11 +215,14 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_channel_les_t21_2` | 1 | LES Smagorinsky with the second-order high-pass filter T 21 2 |
 | `nhflow_3d_channel_walls_kepsilon_mpi2` | 2 | NHFLOW side walls with A519 2: friction and turbulence wall functions per wall face (nhflow_wall.h), ranks split in y |
 | `seastate_2d_init` (+ `_mpi2`) | 1/2 | REEF3D::SEASTATE (A 10 7): shoal + land block, JONSWAP initial spectrum with Mitsuyasu spreading (A 710 1), block-sparse storage (8 x 8 tiles), no boundary spectrum: the waves leave the domain through its open sides |
-| `seastate_2d_shoaling` | 1 | REEF3D::SEASTATE stationary (A 700 2) shoaling on a plane slope, unidirectional JONSWAP from x- (A 711 1); validated against energy-flux conservation (Dropbox SpectralWave/validation/01_shoaling) |
+| `seastate_2d_shoaling` | 1 | REEF3D::SEASTATE stationary (A 700 2) shoaling on a plane slope, unidirectional JONSWAP from x- (A 711 1); validated against energy-flux conservation (Dropbox SEASTATE/validation/01_shoaling) |
 | `seastate_2d_refraction` (+ `_mpi2`) | 1/2 | REEF3D::SEASTATE stationary refraction at 30 deg on parallel contours, boundary spectrum on x- and y-, 72 directions; 2 ranks give the 1-rank result (halo exchange `seastate_exchange`) |
 | `seastate_2d_front` (+ `_mpi2`) | 1/2 | REEF3D::SEASTATE nonstationary (A 700 1) front in a 20 km channel, dt 60 s (Courant ~8): implicit M-matrix, N >= 0, energy conservation; 2 ranks with 2 iterations per step |
 | `seastate_2d_current` | 1 | REEF3D::SEASTATE opposing current (A 720 1, A 721): frequency shift c_sigma and Doppler term |
 | `seastate_2d_spc` | 1 | REEF3D::SEASTATE boundary spectrum from a SWAN 2D spectral file (A 711 2, `seastate-boundary.spc`, nautical directions) |
+| `seastate_2d_wind` | 1 | REEF3D::SEASTATE stationary fetch-limited wind sea (A 730-735): Komen wind input and whitecapping, DIA, action density limiter, pseudo time step, zero-gradient lateral sides (A 712 2); validated in Dropbox SEASTATE/validation/05_fetch_limited |
+| `seastate_2d_windsea_mpi2` | 2 | REEF3D::SEASTATE nonstationary wind-sea growth from rest, oblique wind, 2 ranks: source terms with the limiter and the halo exchange |
+| `seastate_2d_surf` | 1 | REEF3D::SEASTATE stationary surf zone on a plane slope: Battjes-Janssen breaking (A 740), JONSWAP friction (A 742), LTA triads (A 744), oblique Mitsuyasu spectrum, zero-gradient sides; single terms validated in Dropbox SEASTATE/validation/06-08 |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
@@ -256,5 +262,5 @@ line is at the top of each file, run from `unit/`:
 | `lagoon_bodies_test.cpp` | LAGOON body writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): quaternion of REEF3D's rotation matrix, two rigid bodies over 8 outputs (set and body attributes, mesh once, motion arrays, time counted once every body has it), a body off its rigid motion refused |
 | `lagoon_particles_test.cpp` | LAGOON particle writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): 5 outputs of 0 to 700000 particles (inner chunks and shards crossed), field names and their arrays, int32 fields, values read back from the shard files; objects with cells (ice floes: a cell set stored only when the cells change, a value per cell), inconsistent cells refused (needs patch 0009) |
 | `lagoon_amr_test.cpp` | LAGOON AMR writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): 4 outputs of 3 and 4 grids (level 0 of two ranks, a moving patch, a second one from the second output), set attributes and an int32 field, format version 0.3, grid_end and the grid table, coordinates as float64, levels, coordinates and cell values read back from the shard files; grids packed for MPI and back, a cut buffer refused; a grid with too few values refused and the set stopped (needs patch 0013) |
-| `seastate_test.cpp` | REEF3D::SEASTATE kernels: spectral grid (logarithmic frequencies, bin widths, directions, direction faces, quadrants), block-sparse action storage (land tiles not allocated, tiles clipped at the range end, ghost cells, no overlap), integrated parameters (Hs, Tp, Tm01, Tm-1,0, direction, spread), dispersion relation (deep/shallow limits, residual, cg), SWAN 2D spectral file reader (CDIR/NDIR, VaDens/EnDens), memory budget |
+| `seastate_test.cpp` | REEF3D::SEASTATE kernels: spectral grid (logarithmic frequencies, bin widths, directions, direction faces, quadrants), block-sparse action storage (land tiles not allocated, tiles clipped at the range end, ghost cells, no overlap), integrated parameters (Hs, Tp, Tm01, Tm-1,0, direction, spread), dispersion relation (deep/shallow limits, residual, cg), SWAN 2D spectral file reader (CDIR/NDIR, VaDens/EnDens), memory budget, source terms (Battjes-Janssen Q_b, breaking with Newton linearisation, JONSWAP friction, moments with the spectral tail, Komen whitecapping, wind input with the Wu drag, DIA energy and action conservation, symmetry, shallow-water scaling and diagonal derivative, LTA energy conservation and Ursell limit, P >= 0 and D >= 0) |
 

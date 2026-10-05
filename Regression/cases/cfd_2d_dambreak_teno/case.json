@@ -1,0 +1,4 @@
+{"base": "cfd_2d_dambreak", "ctrl_set": {"D 12": "2", "F 37": "2"},
+ "description": "as cfd_2d_dambreak with TENO5 weights (cutoff D 13 / F 38 1e-5) for the momentum and the level set convection and reini.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "weno"],
+ "covers": ["D 12 2 weno_flux_nug TENO5", "F 37 2 weno_hj_df_nug TENO5", "F 37 2 reinidisc_f TENO5"]}
