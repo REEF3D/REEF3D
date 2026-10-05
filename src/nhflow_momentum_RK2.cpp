@@ -266,6 +266,7 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pnhfturb->ksource(p,d);
     pflow->ksource_nhflow(p,d,pgc,pvrans,WL); 
     ppress->wpgrad(p,d,WL);
+    p6dof->ksource(p,d,pgc,WL);
     roughness_w(p,d,d->W,d->H,WL);   // side-wall friction on w (A519 2)
     krhs(p,d,pgc);
     pconvec->start(p,d,3,WL,WHo);

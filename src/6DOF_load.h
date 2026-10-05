@@ -56,10 +56,29 @@ struct sixdof_actuator_disk
     double T, Q;                // thrust [N] and torque [Nm] of the propeller
     int sense;                  // +1: blades turn right-handed about the axis, -1: left-handed
     
-    // Hough-Ordway weights at point x: axial weight wa >= 0 (force density -T wa/sum(wa V) along
-    // the axis), tangential weight wt >= 0 (force density Q wt/sum(wt r V) along et) and et, the
-    // unit vector of the blade motion, with the distance r from the axis; false outside the disk
+    // Hough-Ordway weights at point x: axial weight wa >= 0 (thrust density ~ wa along the axis),
+    // tangential weight wt >= 0 (swirl density ~ wt along et) and et, the unit vector of the blade
+    // motion, with the distance r from the axis; false outside the disk
     bool weights(const Eigen::Vector3d &x, double &wa, double &wt, Eigen::Vector3d &et, double &r) const;
+    
+    // discrete distribution on the grid of the coupling, per force component c (the source points
+    // of component c, e.g. the staggered velocity points of CFD or the cell centres of NHFLOW):
+    //  accumulate: sums over the points x with volume V and fluid fraction fl (0..1) of the cell;
+    //              the coupling sums them over the MPI ranks
+    //  swirl_factor: scale of the tangential force from the sums of all three components
+    //  force:      force density of component c [N/m^3] at point x
+    // The thrust part gives exactly -T along the axis on each grid. The swirl part has no net
+    // force on each grid (the tangential unit vectors of the few cells of a disk on a coarse grid
+    // do not cancel by themselves), and with the thrust part (which has a small torque when the
+    // components sit on different grids) exactly the torque Q about the axis.
+    struct sums
+    {
+        double SA0=0.0, SA=0.0, SW=0.0, SE=0.0, G1=0.0, G0=0.0, GA=0.0;
+    };
+    
+    void accumulate(const Eigen::Vector3d &x, double V, double fl, int c, sums&) const;
+    double swirl_factor(const sums*) const;
+    double force(const Eigen::Vector3d &x, double fl, int c, const sums&, double kappa) const;
 };
 
 //  External load model acting on a 6DOF body (solver independent), e.g. the ship module:

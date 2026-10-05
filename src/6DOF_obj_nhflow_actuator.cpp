@@ -62,33 +62,36 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
     for(size_t qd=0; qd<disks.size(); ++qd)
     {
         const sixdof_actuator_disk &ad = disks[qd];
-        double wa, wt, r;
-        Eigen::Vector3d et;
         
-        // discrete integrals of the Hough-Ordway weights over the cells of the disk: the
-        // force and the torque given to the fluid are exactly T and Q on this grid
+        // discrete sums of the distribution over the cells of the disk (cell centres for all three
+        // components): the force and the torque given to the fluid are exactly T and Q on this grid
         // only the fluid part of a cell gets the source (1 - FHB, FHB: Heaviside of the bodies of the
         // direct forcing), so no thrust is put into the forcing zone of the hull, where the forcing
         // would take it out again and hand it to the hull as a resistance
-        double SA=0.0, ST=0.0, SA0=0.0;
+        sixdof_actuator_disk::sums S[3];
         
         LOOP
         {
             const Eigen::Vector3d x(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
+            const double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+            const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
             
-            if(ad.weights(x,wa,wt,et,r))
-            {
-                const double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
-                const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
-                SA0 += wa*V;
-                SA += fl*wa*V;
-                ST += fl*wt*r*V;
-            }
+            for(int c=0; c<3; ++c)
+            ad.accumulate(x,V,fl,c,S[c]);
         }
         
-        SA0 = pgc->globalsum(SA0);
-        SA = pgc->globalsum(SA);
-        ST = pgc->globalsum(ST);
+        for(int c=0; c<3; ++c)
+        {
+            S[c].SA0 = pgc->globalsum(S[c].SA0);
+            S[c].SA  = pgc->globalsum(S[c].SA);
+            S[c].SW  = pgc->globalsum(S[c].SW);
+            S[c].SE  = pgc->globalsum(S[c].SE);
+            S[c].G1  = pgc->globalsum(S[c].G1);
+            S[c].G0  = pgc->globalsum(S[c].G0);
+            S[c].GA  = pgc->globalsum(S[c].GA);
+        }
+        
+        const double SA0 = S[0].SA0, SA = S[0].SA;
         
         if(SA0>0.0 && SA<0.95*SA0 && !actuator_warned)
         {
@@ -107,21 +110,15 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
             continue;
         }
         
+        const double kappa = ad.swirl_factor(S);
+        
         LOOP
         {
+            // force density on the fluid [N/m^3]: thrust reaction along -axis, swirl along the blade motion
             const Eigen::Vector3d x(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
+            const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
             
-            if(ad.weights(x,wa,wt,et,r))
-            {
-                // force density on the fluid [N/m^3]: thrust reaction along -axis, swirl along et
-                const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
-                Eigen::Vector3d f = -fl*ad.T*wa/SA*ad.axis;
-                
-                if(ST>0.0)
-                f += fl*ad.Q*wt/ST*et;
-                
-                F[IJK] += WL(i,j)*f(comp)/p->W1;
-            }
+            F[IJK] += WL(i,j)*ad.force(x,fl,comp,S[comp],kappa)/p->W1;
         }
     }
 }

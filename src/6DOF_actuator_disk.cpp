@@ -56,3 +56,60 @@ bool sixdof_actuator_disk::weights(const Eigen::Vector3d &x, double &wa, double 
     
     return true;
 }
+
+void sixdof_actuator_disk::accumulate(const Eigen::Vector3d &x, double V, double fl, int c, sums &s) const
+{
+    double wa, wt, r;
+    Eigen::Vector3d et;
+    
+    if(!weights(x,wa,wt,et,r))
+    return;
+    
+    // lever of a force along the unit vector of component c about the axis
+    const double g = (x - centre).cross(Eigen::Vector3d::Unit(c)).dot(axis);
+    
+    s.SA0 += wa*V;
+    s.SA  += fl*wa*V;
+    s.SW  += fl*wt*V;
+    s.SE  += fl*wt*et(c)*V;
+    s.G1  += fl*wt*g*et(c)*V;
+    s.G0  += fl*wt*g*V;
+    s.GA  += fl*wa*g*V;
+}
+
+double sixdof_actuator_disk::swirl_factor(const sums *s) const
+{
+    // tangential force density kappa fl wt (et_c - SE_c/SW_c): no net force in component c, and
+    // the torque about the axis of all components together, thrust part included, is sense Q
+    double den = 0.0, tT = 0.0;
+    
+    for(int c=0; c<3; ++c)
+    {
+        if(s[c].SW>0.0)
+        den += s[c].G1 - s[c].SE/s[c].SW*s[c].G0;
+        
+        if(s[c].SA>0.0)
+        tT -= T*axis(c)/s[c].SA*s[c].GA;
+    }
+    
+    return fabs(den)>1.0e-30 ? (double(sense)*Q - tT)/den : 0.0;
+}
+
+double sixdof_actuator_disk::force(const Eigen::Vector3d &x, double fl, int c, const sums &s, double kappa) const
+{
+    double wa, wt, r;
+    Eigen::Vector3d et;
+    
+    if(!weights(x,wa,wt,et,r))
+    return 0.0;
+    
+    double f = 0.0;
+    
+    if(s.SA>0.0)
+    f -= fl*T*wa/s.SA*axis(c);
+    
+    if(s.SW>0.0)
+    f += kappa*fl*wt*(et(c) - s.SE/s.SW);
+    
+    return f;
+}
