@@ -235,9 +235,26 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
             if(wval!=wval)
             wval=0.0;
             
-            du = uval/p->DXN[IP];
-            dv = vval/p->DYN[JP];
-            dw = wval/p->DZN[KP];
+            // wall shear tau = mu * u_t/dn: velocity relative to the body surface
+            // (u_b = U + Omega x r at the surface point), tangential part, over the
+            // distance of the sample point from the surface
+            {
+            const double rx = xc - c_(0);
+            const double ry = yc - c_(1);
+            const double rz = zc - c_(2);
+            
+            uval -= u_fb(0) + u_fb(4)*rz - u_fb(5)*ry;
+            vval -= u_fb(1) + u_fb(5)*rx - u_fb(3)*rz;
+            wval -= u_fb(2) + u_fb(3)*ry - u_fb(4)*rx;
+            
+            double dn = sqrt(pow(nx*p->DXP[IP],2.0) + pow(ny*p->DYP[JP],2.0) + pow(nz*p->DZP[KP],2.0));
+            dn = dn>1.0e-20?dn:1.0e20;
+            const double un = uval*nx + vval*ny + wval*nz;
+            
+            du = (uval - un*nx)/dn;
+            dv = (vval - un*ny)/dn;
+            dw = (wval - un*nz)/dn;
+            }
             
             pval =      p->ccipol4a(a->press,xloc,yloc,zloc) - p->pressgage;
             density =   p->ccipol4a(a->ro,xloc,yloc,zloc);
@@ -258,9 +275,9 @@ void sixdof_obj_cfd::forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc, int iter,
             
             //cout<<"nx: "<<nx<<" ny: "<<ny<<" nz: "<<nz<<endl;
 
-            Fv_x = density*viscosity*A*(du*ny+du*nz);
-            Fv_y = density*viscosity*A*(dv*nx+dv*nz);
-            Fv_z = density*viscosity*A*(dw*nx+dw*ny); 
+            Fv_x = density*viscosity*A*du;
+            Fv_y = density*viscosity*A*dv;
+            Fv_z = density*viscosity*A*dw; 
             
             if(Fv_x!=Fv_x)
             cout<<"density: "<<density<<" viscosity: "<<viscosity<<" uval: "<<uval<<" du: "<<du<<" i: "<<i<<" p->DXP[IP]: "<<p->DXP[IP]<<endl;
