@@ -463,6 +463,13 @@ private:
     void contact_surface(int i,double pen,const Vec3& n,double mu);
     // contact of rigid bodies: every rigid body acts as one spring of its effective
     // stiffness k against each partner (wall, bed, another body, the deformable parts)
+    // node contact: list of the node pairs within the contact distance plus a skin
+    // that can touch (not of one element, not of one rigid body), rebuilt when the
+    // candidate nodes, the failed elements or the rigid bodies change, or a node
+    // has moved more than half the skin since the last build (contact_nodes)
+    std::vector<int> nl_cand, nl_start, nl_nb;
+    std::vector<Vec3> nl_x0;
+    int nl_builds = 0, nl_neroded = -1, nl_nrigid = -1;
     struct rpair {int a, b; long long key; Vec3 n; double pen, vn;};
     std::vector<rpair> rpairs;
     std::map<std::pair<long long,long long>,double> rset;   // permanent set of crushed contact points (group, point)

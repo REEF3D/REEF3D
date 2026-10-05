@@ -166,94 +166,154 @@ void fem_solid::contact_nodes()
     cand.push_back(i);
 
     const double d0 = contact_dist*hmin();
-    const double cs = d0;           // hash cell size
+    const double cs = d0;           // hash cell size of the pair order
 
     const double cpmax = cp_contact;
     const double dts = cfl*(dtcrit_el<1.0e30 ? dtcrit_el : dtcrit);
 
-    const int64_t B = 1<<20;
-    auto key = [&](int ix,int iy,int iz)->int64_t
+    // neighbour list with a skin: the pairs closer than d0 + skin that can touch
+    // (pairs of one intact element or of one rigid body never do); valid while no
+    // candidate has moved more than skin/2 and no element has failed since the build
+    const double skin = 0.5*hmin();
+    bool rebuild = (cand!=nl_cand) || nl_x0.size()!=cand.size() || nl_neroded!=n_eroded() || nl_nrigid!=(int)rbs.size();
+    if(!rebuild)
+    for(size_t q=0; q<cand.size(); ++q)
+    if((x[cand[q]]-nl_x0[q]).squaredNorm() > 0.25*skin*skin)
     {
-        return ((int64_t)(ix+B/2)) + B*(((int64_t)(iy+B/2)) + B*((int64_t)(iz+B/2)));
+        rebuild = true;
+        break;
+    }
+
+    if(rebuild)
+    {
+        const double rl = d0 + skin;
+        const int64_t B = 1<<20;
+        auto key = [&](int ix,int iy,int iz)->int64_t
+        {
+            return ((int64_t)(ix+B/2)) + B*(((int64_t)(iy+B/2)) + B*((int64_t)(iz+B/2)));
+        };
+
+        std::vector<std::pair<int64_t,int>> cells(cand.size());
+        std::vector<int> ci(3*cand.size());
+        for(size_t q=0; q<cand.size(); ++q)
+        {
+            const Vec3& p = x[cand[q]];
+            const int ix = (int)std::floor(p(0)/rl), iy = (int)std::floor(p(1)/rl), iz = (int)std::floor(p(2)/rl);
+            ci[3*q]=ix; ci[3*q+1]=iy; ci[3*q+2]=iz;
+            cells[q] = std::make_pair(key(ix,iy,iz),(int)q);
+        }
+        std::sort(cells.begin(),cells.end());
+
+        nl_cand = cand;
+        nl_x0.resize(cand.size());
+        nl_start.assign(cand.size()+1,0);
+        nl_nb.clear();
+        for(size_t q=0; q<cand.size(); ++q)
+        {
+            nl_x0[q] = x[cand[q]];
+            const int a = cand[q];
+            for(int dz=-1; dz<=1; ++dz)
+            for(int dy=-1; dy<=1; ++dy)
+            for(int dx=-1; dx<=1; ++dx)
+            {
+                const int64_t k = key(ci[3*q]+dx,ci[3*q+1]+dy,ci[3*q+2]+dz);
+                auto it = std::lower_bound(cells.begin(),cells.end(),std::make_pair(k,-1));
+                for(; it!=cells.end() && it->first==k; ++it)
+                {
+                    const int b = cand[it->second];
+                    if(b<=a || (x[a]-x[b]).squaredNorm() >= rl*rl)
+                    continue;
+                    if(!rnode.empty() && rnode[a]>=0 && rnode[a]==rnode[b])
+                    continue;
+                    if(share_alive_element(a,b))
+                    continue;
+                    nl_nb.push_back(b);
+                }
+            }
+            nl_start[q+1] = (int)nl_nb.size();
+        }
+        nl_neroded = n_eroded();
+        nl_nrigid = (int)rbs.size();
+        ++nl_builds;
+    }
+
+    // the pairs closer than d0, in the order of a hash grid of cell size d0 (the
+    // 27 cells around a, then the node number), as without the list
+    auto contact_pair = [&](int a,int b,double d)
+    {
+        const Vec3 r = x[a]-x[b];
+
+        if(share_alive_element(a,b))
+        return;
+
+        // nodes of rigid bodies: contact of the whole body
+        const int ra = rnode.empty() ? -1 : rnode[a], rb = rnode.empty() ? -1 : rnode[b];
+        if(ra>=0 || rb>=0)
+        {
+            if(ra==rb)
+            return;
+            // node of the (lower) rigid body first, normal from the partner to it
+            int p = a, o = b, rp = ra, ro = rb;
+            if(rp<0 || (ro>=0 && ro<rp)) {std::swap(p,o); std::swap(rp,ro);}
+            const Vec3 n = (x[p]-x[o])/d;
+            const int code = ro>=0 ? 2000+ro : 1002;
+            rpairs.push_back({p,o,((long long)rp<<24) + code,n,d0-d,(v[p]-v[o]).dot(n)});
+            return;
+        }
+
+        const Vec3 n = r/d;
+        const double meff = m[a]*m[b]/(m[a]+m[b]);
+        // the softer of the two materials (springs in series)
+        const double c = cnode.empty() ? cpmax : std::min(cnode[a],cnode[b]);
+        const double kn = kcontact*(c/hmin())*(c/hmin())*meff;
+        const double cn = 2.0*contact_zeta*std::sqrt(kn*meff);
+        const Vec3 vr = v[a]-v[b];
+        const double vn = vr.dot(n);
+        const double Fn = std::max(0.0, kn*(d0-d) - cn*vn);
+
+        if(Fn<=0.0)
+        return;
+
+        Vec3 F = Fn*n;
+
+        const Vec3 vt = vr - vn*n;
+        const double vtn = vt.norm();
+        if(vtn>1.0e-12)
+        {
+            const double ct = 0.5*meff/dts;
+            F -= std::min(mu_contact*Fn, ct*vtn)*vt/vtn;
+        }
+
+        fcon[a] += F;
+        fcon[b] -= F;
     };
 
-    std::vector<std::pair<int64_t,int>> cells(cand.size());
-    std::vector<int> ci(3*cand.size());
-    for(size_t q=0; q<cand.size(); ++q)
-    {
-        const Vec3& p = x[cand[q]];
-        const int ix = (int)std::floor(p(0)/cs), iy = (int)std::floor(p(1)/cs), iz = (int)std::floor(p(2)/cs);
-        ci[3*q]=ix; ci[3*q+1]=iy; ci[3*q+2]=iz;
-        cells[q] = std::make_pair(key(ix,iy,iz),cand[q]);
-    }
-    std::sort(cells.begin(),cells.end());
-
+    std::vector<std::pair<int,int>> near;   // (cell offset, partner)
     for(size_t q=0; q<cand.size(); ++q)
     {
         const int a = cand[q];
-
-        for(int dz=-1; dz<=1; ++dz)
-        for(int dy=-1; dy<=1; ++dy)
-        for(int dx=-1; dx<=1; ++dx)
+        near.clear();
+        const Vec3& pa = x[a];
+        const int ax = (int)std::floor(pa(0)/cs), ay = (int)std::floor(pa(1)/cs), az = (int)std::floor(pa(2)/cs);
+        for(int p=nl_start[q]; p<nl_start[q+1]; ++p)
         {
-            const int64_t k = key(ci[3*q]+dx,ci[3*q+1]+dy,ci[3*q+2]+dz);
-            auto it = std::lower_bound(cells.begin(),cells.end(),std::make_pair(k,-1));
-
-            for(; it!=cells.end() && it->first==k; ++it)
-            {
-                const int b = it->second;
-                if(b<=a)
-                continue;
-
-                Vec3 r = x[a]-x[b];
-                const double d = r.norm();
-                if(d>=d0 || d<1.0e-14)
-                continue;
-
-                if(share_alive_element(a,b))
-                continue;
-
-                // nodes of rigid bodies: contact of the whole body
-                const int ra = rnode.empty() ? -1 : rnode[a], rb = rnode.empty() ? -1 : rnode[b];
-                if(ra>=0 || rb>=0)
-                {
-                    if(ra==rb)
-                    continue;
-                    // node of the (lower) rigid body first, normal from the partner to it
-                    int p = a, o = b, rp = ra, ro = rb;
-                    if(rp<0 || (ro>=0 && ro<rp)) {std::swap(p,o); std::swap(rp,ro);}
-                    const Vec3 n = (x[p]-x[o])/d;
-                    const int code = ro>=0 ? 2000+ro : 1002;
-                    rpairs.push_back({p,o,((long long)rp<<24) + code,n,d0-d,(v[p]-v[o]).dot(n)});
-                    continue;
-                }
-
-                const Vec3 n = r/d;
-                const double meff = m[a]*m[b]/(m[a]+m[b]);
-                // the softer of the two materials (springs in series)
-                const double c = cnode.empty() ? cpmax : std::min(cnode[a],cnode[b]);
-                const double kn = kcontact*(c/hmin())*(c/hmin())*meff;
-                const double cn = 2.0*contact_zeta*std::sqrt(kn*meff);
-                const Vec3 vr = v[a]-v[b];
-                const double vn = vr.dot(n);
-                const double Fn = std::max(0.0, kn*(d0-d) - cn*vn);
-
-                if(Fn<=0.0)
-                continue;
-
-                Vec3 F = Fn*n;
-
-                const Vec3 vt = vr - vn*n;
-                const double vtn = vt.norm();
-                if(vtn>1.0e-12)
-                {
-                    const double ct = 0.5*meff/dts;
-                    F -= std::min(mu_contact*Fn, ct*vtn)*vt/vtn;
-                }
-
-                fcon[a] += F;
-                fcon[b] -= F;
-            }
+            const int b = nl_nb[p];
+            const Vec3& pb = x[b];
+            if((pa-pb).squaredNorm() > 1.000001*d0*d0)     // the exact test follows
+            continue;
+            const int ox = (int)std::floor(pb(0)/cs)-ax, oy = (int)std::floor(pb(1)/cs)-ay, oz = (int)std::floor(pb(2)/cs)-az;
+            if(ox<-1 || ox>1 || oy<-1 || oy>1 || oz<-1 || oz>1)
+            continue;
+            near.push_back(std::make_pair((oz+1)*9+(oy+1)*3+(ox+1),b));
+        }
+        std::sort(near.begin(),near.end());
+        for(const std::pair<int,int>& c : near)
+        {
+            const int b = c.second;
+            const double d = (x[a]-x[b]).norm();
+            if(d>=d0 || d<1.0e-14)
+            continue;
+            contact_pair(a,b,d);
         }
     }
 }
