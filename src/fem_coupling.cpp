@@ -414,6 +414,17 @@ void fem_coupling::write_summary(lexer *p)
         }
         if(fs.n_rigid()>nmax)
         f<<"  ... "<<fs.n_rigid()-nmax<<" more\n";
+        // impact model: the debris as a spring of stiffness k
+        f<<"  body   impact stiffness [N/m]  duration pi sqrt(M/k) [ms]  force per m/s u sqrt(k M) [kN]  crushing [kN]  stiffness from\n";
+        const char* src[3] = {"given", "axial bar E A / L", "rigid_contact_speed (set 'stiffness')"};
+        for(int k=0; k<nmax; ++k)
+        {
+            const fem_solid::rigid_body& rb = fs.rigid(k);
+            f<<"  "<<std::setw(4)<<k+1<<"  "<<std::setw(22)<<rb.k*force_scale<<"  "<<std::setw(26)<<1000.0*3.14159265358979*std::sqrt(rb.M/rb.k)
+             <<"  "<<std::setw(30)<<std::sqrt(rb.k*rb.M)*force_scale/1000.0<<"  "<<std::setw(13);
+            if(rb.Fcap>0.0) f<<rb.Fcap*force_scale/1000.0; else f<<"-";
+            f<<"  "<<src[rb.ksrc]<<"\n";
+        }
     }
 }
 

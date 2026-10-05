@@ -147,27 +147,46 @@ void fem_solid::build()
     setup_rigid();
 
     // critical time step of the explicit scheme (hex8, lumped mass); rigid
-    // bodies only need the contact time step (wave speed c_rigid)
+    // bodies have no internal forces and only need the contact time step
     dtcrit = 1.0e30;
     cp_contact = 0.0;
     double hmax = 0.0;
     for(const element& e : elems)
     {
         const egeom& G = geom(e);
-        const double c = e.rigid ? std::min(mats[e.mat].cp,c_rigid) : mats[e.mat].cp;
+        hmax = std::max(hmax,G.h);
+        if(e.rigid)
+        continue;
+        const double c = mats[e.mat].cp;
         dtcrit = std::min(dtcrit, G.L/c);
         cp_contact = std::max(cp_contact,c);
-        hmax = std::max(hmax,G.h);
     }
 
-    // contact wave speed per node: the stiffest material at the node
+    // contact wave speed per node: the stiffest material at the node (deformable parts)
     cnode.assign(nnode(),0.0);
     for(const element& e : elems)
+    if(!e.rigid)
+    for(int a=0; a<8; ++a)
+    cnode[e.n[a]] = std::max(cnode[e.n[a]],mats[e.mat].cp);
+
+    // rigid bodies: the impact (duration pi sqrt(M/k)) is resolved with at least
+    // 20 time steps when a body can touch a wall, the ground, the bed or another
+    // rigid body within the step (against deformable parts the contact is limited
+    // to the penalty of their surface nodes, stable with the element time step)
+    dtcrit_rig = 1.0e30;
+    if(!rbs.empty())
     {
-        const double c = e.rigid ? std::min(mats[e.mat].cp,c_rigid) : mats[e.mat].cp;
-        for(int a=0; a<8; ++a)
-        cnode[e.n[a]] = std::max(cnode[e.n[a]],c);
+        double Mmin = 1.0e300, kmax = 0.0;
+        for(const rigid_body& rb : rbs)
+        {
+            Mmin = std::min(Mmin,rb.M);
+            kmax = std::max(kmax,rb.k);
+        }
+        if(kmax>0.0)
+        dtcrit_rig = 3.14159265358979*std::sqrt(Mmin/kmax)/20.0;
     }
+    dtcrit_el = dtcrit;
+    dtcrit = std::min(dtcrit_el,dtcrit_rig);
 
     // crack band check: the softening branch must not snap back
     for(const material& mt : mats)
@@ -264,7 +283,12 @@ void fem_solid::advance(double dt)
         rmin = std::min(rmin, mr[i]/m[i]);
     }
 
-    const int nsub = std::max(1,(int)std::ceil(dt/(cfl*dtcrit*std::sqrt(rmin)) - 1.0e-9));
+    double dts_max = cfl*dtcrit_el*std::sqrt(rmin);
+    if(dtcrit_rig<1.0e30 && rigid_contact_near(dt))
+    dts_max = std::min(dts_max,cfl*dtcrit_rig);
+    if(dts_max>=1.0e29)
+    dts_max = dt;           // rigid bodies only, free motion
+    const int nsub = std::max(1,(int)std::ceil(dt/dts_max - 1.0e-9));
     const double dts = dt/double(nsub);
     dts_cur = dts;
     nsub_last = nsub;
@@ -291,6 +315,8 @@ void fem_solid::advance(double dt)
         rb.V0 = rb.V;
         rb.w0 = rb.w;
         rb.fcstep = 0.0;
+        rb.Jc.setZero();
+        rb.Hc.setZero();
     }
 
     std::vector<Vec3> vsum(nnode(),Vec3::Zero());
@@ -304,11 +330,15 @@ void fem_solid::advance(double dt)
 
         internal_forces(dts);
 
+        rpairs.clear();
         if(ground_on || !planes.empty() || bed_on)
         contact_ground();
 
         if(contact_on && (nbodies>1 || surf_dirty || n_eroded()>0) && bodies_near())
         contact_nodes();
+
+        if(!rbs.empty())
+        rigid_contact_forces();
 
         const double alpha = alpha_damp + (t<relax_time ? relax_alpha : 0.0);
 
@@ -367,11 +397,20 @@ void fem_solid::advance(double dt)
     for(int i=0; i<nnode(); ++i)
     vbar[i] = vsum[i]/double(nsub);
 
-    // accelerations of the rigid bodies over the fluid step (added-mass stabilisation)
+    // accelerations of the rigid bodies over the fluid step without the contact
+    // (added-mass stabilisation of the fluid loads)
     for(rigid_body& rb : rbs)
     {
-        rb.a_prev = (rb.V-rb.V0)/dt;
-        rb.al_prev = (rb.w-rb.w0)/dt;
+        rb.a_prev = (rb.V-rb.V0-rb.Jc/rb.M)/dt;
+        const Eigen::Matrix3d I = rb.R*rb.I0*rb.R.transpose();
+        Vec3 dwc = Vec3::Zero();
+        if(plane_strain)
+        {
+            if(I(1,1)>0.0) dwc(1) = rb.Hc(1)/I(1,1);
+        }
+        else
+        dwc = I.ldlt().solve(rb.Hc);
+        rb.al_prev = (rb.w-rb.w0-dwc)/dt;
     }
 
     // force of the attached fluid on the nodes over the step
@@ -575,6 +614,34 @@ void fem_solid::setup_rigid()
             std::sort(d,d+3);
             rb.Aunit = 0.25*3.14159265358979*d[2]*d[1]*d[1];
         }
+
+        // impact stiffness of the debris: given, or the axial stiffness of a
+        // bar along the longest dimension, k = E A / L with A = V / L (the
+        // contact-stiffness approach of ASCE 7 for logs and poles); materials
+        // without E ('material rigid <rho>') use E = rho c^2 (rigid_contact_speed)
+        rb.Lbar = plane_strain ? std::max(L(0),L(2)) : L.maxCoeff();
+        const double wslice = plane_strain ? std::max(L(1),1.0e-30) : 1.0;
+        std::map<int,double> vm;
+        for(const element& e : elems)
+        if(e.rigid && rnode[e.n[0]]==(int)(&rb-&rbs[0]))
+        vm[e.mat] += geom(e).V;
+        int md = -1;
+        double vmax = -1.0;
+        for(const auto& q : vm)
+        if(q.second>vmax) {vmax = q.second; md = q.first;}
+        const material& mt = mats[md];
+        if(mt.kdebris>0.0)
+        {
+            rb.k = mt.kdebris*wslice;
+            rb.ksrc = 0;
+        }
+        else
+        {
+            const double Eb = mt.Egiven ? mt.E : mt.rho*c_rigid*c_rigid;
+            rb.k = Eb*(rb.Vol/rb.Lbar)/rb.Lbar;
+            rb.ksrc = mt.Egiven ? 1 : 2;
+        }
+        rb.Fcap = mt.fcrush*wslice;
     }
 }
 
@@ -582,38 +649,43 @@ void fem_solid::rigid_step(double dts,const std::vector<Vec3>& F)
 {
     for(rigid_body& rb : rbs)
     {
-        Vec3 Ft = Vec3::Zero(), T = Vec3::Zero(), Fc = Vec3::Zero();
+        Vec3 Ft = Vec3::Zero(), T = Vec3::Zero(), Fc = Vec3::Zero(), Tc = Vec3::Zero();
         for(int i : rb.nodes)
         {
             Ft += F[i];
             T += (x[i]-rb.c).cross(F[i]);
             Fc += fcon[i];
+            Tc += (x[i]-rb.c).cross(fcon[i]);
         }
         if(plane_strain)
         {
-            Ft(1) = 0.0;
-            T(0) = T(2) = 0.0;
+            Ft(1) = 0.0; Fc(1) = 0.0;
+            T(0) = T(2) = 0.0; Tc(0) = Tc(2) = 0.0;
         }
 
         // added-mass stabilisation of the explicit pressure loads: the body
         // carries the added mass A, and A times its acceleration of the last
         // fluid step is added back (exact for steady accelerations, stable
-        // for light bodies as long as A is not far below the true added mass)
+        // for light bodies as long as A is not far below the true added mass).
+        // The contact (impact, bed, walls) acts on the mass of the body alone.
         const double ra = rb.A/rb.M;
-        rb.V += (dts/(rb.M+rb.A))*(Ft + rb.A*rb.a_prev);
+        rb.V += (dts/(rb.M+rb.A))*(Ft - Fc + rb.A*rb.a_prev) + (dts/rb.M)*Fc;
+        rb.Jc += dts*Fc;
+        rb.Hc += dts*Tc;
 
         const Eigen::Matrix3d I = rb.R*rb.I0*rb.R.transpose();
         if(plane_strain)
         {
             const double Iy = I(1,1);
             if(Iy>0.0)
-            rb.w(1) += dts*(T(1) + ra*Iy*rb.al_prev(1))/((1.0+ra)*Iy);
+            rb.w(1) += dts*(T(1) - Tc(1) + ra*Iy*rb.al_prev(1))/((1.0+ra)*Iy) + dts*Tc(1)/Iy;
             rb.w(0) = rb.w(2) = 0.0;
         }
         else
         {
-            const Vec3 rhs = T + ra*(I*rb.al_prev) - rb.w.cross(I*rb.w);
-            rb.w += dts*I.ldlt().solve(rhs)/(1.0+ra);
+            const Vec3 rhs = T - Tc + ra*(I*rb.al_prev) - rb.w.cross(I*rb.w);
+            const Eigen::LDLT<Eigen::Matrix3d> Id = I.ldlt();
+            rb.w += dts*Id.solve(rhs)/(1.0+ra) + dts*Id.solve(Tc);
         }
         rb.L = I*rb.w;
 
@@ -675,5 +747,41 @@ bool fem_solid::bodies_near() const
     for(int b=a+1; b<nb; ++b)
     if((lo[a].array()-d0 <= hi[b].array()).all() && (lo[b].array()-d0 <= hi[a].array()).all())
     return true;
+    return false;
+}
+
+bool fem_solid::rigid_contact_near(double dt) const
+{
+    // can a rigid body reach a wall, the ground, the bed or another rigid body within dt?
+    const double d0 = contact_dist*hmin();
+    const int nr = (int)rbs.size();
+    std::vector<double> marg(nr);
+    std::vector<Vec3> lo(nr,Vec3::Constant(1.0e300)), hi(nr,Vec3::Constant(-1.0e300));
+    for(int k=0; k<nr; ++k)
+    {
+        const rigid_body& rb = rbs[k];
+        double rmax = 0.0;
+        for(const Vec3& r : rb.r0) rmax = std::max(rmax,r.norm());
+        marg[k] = 2.0*(rb.V.norm() + rb.w.norm()*rmax)*dt + grav.norm()*dt*dt + d0 + 0.5*hmin();
+        for(int i : rb.nodes)
+        {
+            lo[k] = lo[k].cwiseMin(x[i]);
+            hi[k] = hi[k].cwiseMax(x[i]);
+            if(ground_on && x[i](2)-zground<marg[k])
+            return true;
+            for(const cplane& pl : planes)
+            if(pl.n.dot(x[i])-pl.d<marg[k])
+            return true;
+            if(bed_on && !bed_ok.empty() && bed_ok[i] && bed_phi[i] + bed_n[i].dot(x[i]-bed_x[i])<marg[k])
+            return true;
+        }
+    }
+    for(int a=0; a<nr; ++a)
+    for(int b=a+1; b<nr; ++b)
+    {
+        const double g = marg[a]+marg[b];
+        if((lo[a].array()-g <= hi[b].array()).all() && (lo[b].array()-g <= hi[a].array()).all())
+        return true;
+    }
     return false;
 }

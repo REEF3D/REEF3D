@@ -303,7 +303,7 @@ bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_o
     for(material& mt : mats)
     mt.type = MAT_ELASTIC;
 
-    const double dts = cfl*dtcrit;
+    const double dts = cfl*(dtcrit_el<1.0e30 ? dtcrit_el : dtcrit);
     dts_cur = dts;
     double ke_prev = 0.0;
     double wref = 0.0;
@@ -321,10 +321,13 @@ bool fem_solid::settle(int maxsteps,double tol,double* residual,bool supported_o
         std::fill(fint.begin(),fint.end(),Vec3::Zero());
         std::fill(fcon.begin(),fcon.end(),Vec3::Zero());
         internal_forces(dts);
+        rpairs.clear();
         if(ground_on || !planes.empty() || bed_on)
         contact_ground();
         if(contact_on && (nbodies>1 || surf_dirty || n_eroded()>0))
         contact_nodes();
+        if(!rbs.empty())
+        rigid_contact_forces();
 
         double ke = 0.0, r2 = 0.0;
         for(int i=0; i<nnode(); ++i)
@@ -619,7 +622,7 @@ fem_solid::check_info fem_solid::check()
         ci.settled = settle(200000,1.0e-4,&res,!ground_on);
         std::fill(fint.begin(),fint.end(),Vec3::Zero());
         std::fill(fcon.begin(),fcon.end(),Vec3::Zero());
-        internal_forces(cfl*dtcrit);
+        internal_forces(cfl*(dtcrit_el<1.0e30 ? dtcrit_el : dtcrit));
         ci.sw_maxdisp = max_displacement();
         ci.sw_maxvm = max_vonmises();
         update_utilisation();
@@ -675,10 +678,17 @@ void fem_solid::write_check(std::ostream& os,const check_info& ci) const
             const double rho = rb.M/std::max(rb.Vol,1.0e-30);
             os<<"     "<<k+1<<": mass "<<rb.M<<" kg, volume "<<rb.Vol<<" m3, density "<<rho<<" kg/m3, centre "<<rb.c0.transpose()
               <<(rho<1000.0 ? "  (floats in water)" : "")<<"\n";
+            const char* src[3] = {"given", "axial bar E A / L", "E = rho c^2 from rigid_contact_speed, set 'stiffness' for a physical value"};
+            os<<"        impact: stiffness "<<rb.k<<" N/m ("<<src[rb.ksrc]<<(rb.ksrc==1 ? ", L = "+std::to_string(rb.Lbar)+" m" : std::string(""))<<"), "
+              <<"duration pi sqrt(M/k) "<<1000.0*3.14159265358979*std::sqrt(rb.M/rb.k)<<" ms, force u sqrt(k M) "<<std::sqrt(rb.k*rb.M)/1000.0<<" kN per m/s";
+            if(rb.Fcap>0.0) os<<", crushing at "<<rb.Fcap/1000.0<<" kN";
+            os<<"\n";
         }
+        os<<"     debris contact damping "<<100.0*debris_zeta<<" % of critical\n";
         if(rbs.size()>20) os<<"     ... "<<rbs.size()-20<<" more\n";
     }
-    os<<"  time step:   "<<dtcrit*cfl<<" s (solid)\n";
+    if(dtcrit_el<1.0e30) os<<"  time step:   "<<dtcrit_el*cfl<<" s (solid)\n";
+    if(dtcrit_rig<1.0e30) os<<"  time step:   "<<dtcrit_rig*cfl<<" s (rigid-body impact, used while a body is close to a wall, the bed or another body)\n";
     if(ci.nfixed>0 || ground_on)
     {
         os<<"  self weight: "<<(ci.settled ? "in equilibrium" : "NOT in equilibrium")<<", max displacement "<<ci.sw_maxdisp*1000.0<<" mm, max von Mises "<<ci.sw_maxvm/1.0e6<<" MPa";

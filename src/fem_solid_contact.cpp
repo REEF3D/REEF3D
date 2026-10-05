@@ -86,6 +86,20 @@ void fem_solid::contact_ground()
     tspring.assign(nnode(),Vec3::Zero());
     touched.assign(nnode(),0);
 
+    // deformable nodes: penalty per node; nodes of rigid bodies: collected for
+    // the contact of the whole body (rigid_contact_forces)
+    auto touch = [&](int i,double pen,const Vec3& n,int code)
+    {
+        const int r = rnode.empty() ? -1 : rnode[i];
+        if(r<0)
+        contact_surface(i,pen,n,mu_ground);
+        else
+        {
+            rpairs.push_back({i,-1,((long long)r<<24) + code,n,pen,v[i].dot(n)});
+            touched[i] = 1;
+        }
+    };
+
     for(int i=0; i<nnode(); ++i)
     {
         if(m[i]<=0.0)
@@ -96,7 +110,7 @@ void fem_solid::contact_ground()
         {
             const double pen = zground - x[i](2);
             if(pen>0.0)
-            contact_surface(i,pen,ez,mu_ground);
+            touch(i,pen,ez,0);
         }
 
         // domain walls and the bed of the fluid grid: free bodies and debris only
@@ -105,18 +119,19 @@ void fem_solid::contact_ground()
             if(!free_node(i))
             continue;
 
-            for(const cplane& pl : planes)
+            for(size_t j=0; j<planes.size(); ++j)
             {
+                const cplane& pl = planes[j];
                 const double pen = pl.d - pl.n.dot(x[i]);
                 if(pen>0.0)
-                contact_surface(i,pen,pl.n,mu_ground);
+                touch(i,pen,pl.n,1+(int)std::min<size_t>(j,998));
             }
 
             if(bed_on && !bed_ok.empty() && bed_ok[i])
             {
                 const double pen = -(bed_phi[i] + bed_n[i].dot(x[i]-bed_x[i]));
                 if(pen>0.0)
-                contact_surface(i,pen,bed_n[i],mu_ground);
+                touch(i,pen,bed_n[i],1001);
             }
         }
     }
@@ -154,7 +169,7 @@ void fem_solid::contact_nodes()
     const double cs = d0;           // hash cell size
 
     const double cpmax = cp_contact;
-    const double dts = cfl*dtcrit;
+    const double dts = cfl*(dtcrit_el<1.0e30 ? dtcrit_el : dtcrit);
 
     const int64_t B = 1<<20;
     auto key = [&](int ix,int iy,int iz)->int64_t
@@ -198,6 +213,21 @@ void fem_solid::contact_nodes()
                 if(share_alive_element(a,b))
                 continue;
 
+                // nodes of rigid bodies: contact of the whole body
+                const int ra = rnode.empty() ? -1 : rnode[a], rb = rnode.empty() ? -1 : rnode[b];
+                if(ra>=0 || rb>=0)
+                {
+                    if(ra==rb)
+                    continue;
+                    // node of the (lower) rigid body first, normal from the partner to it
+                    int p = a, o = b, rp = ra, ro = rb;
+                    if(rp<0 || (ro>=0 && ro<rp)) {std::swap(p,o); std::swap(rp,ro);}
+                    const Vec3 n = (x[p]-x[o])/d;
+                    const int code = ro>=0 ? 2000+ro : 1002;
+                    rpairs.push_back({p,o,((long long)rp<<24) + code,n,d0-d,(v[p]-v[o]).dot(n)});
+                    continue;
+                }
+
                 const Vec3 n = r/d;
                 const double meff = m[a]*m[b]/(m[a]+m[b]);
                 // the softer of the two materials (springs in series)
@@ -226,4 +256,151 @@ void fem_solid::contact_nodes()
             }
         }
     }
+}
+
+void fem_solid::rigid_contact_forces()
+{
+    // Each rigid body acts as one spring of its effective stiffness k (the
+    // debris) against each partner: a wall plane, the ground, the bed, another
+    // rigid body (springs in series) or the deformable parts (their own
+    // flexibility comes from the FEM). The force of a group is k times the
+    // largest penetration, F = k delta_max (+ damping), capped at the crushing
+    // force with a permanent set; it is shared by the contact points in
+    // proportion to their penetration. A face-on impact at speed u gives the
+    // peak u sqrt(k M) after (pi/2) sqrt(M/k).
+    if(rpairs.empty())
+    {
+        rset.clear();
+        return;
+    }
+
+    std::stable_sort(rpairs.begin(),rpairs.end(),[](const rpair& p,const rpair& q){return p.key<q.key;});
+    std::map<long long,double> rnew;
+
+    size_t q0 = 0;
+    while(q0<rpairs.size())
+    {
+        const long long key = rpairs[q0].key;
+        size_t q1 = q0;
+        while(q1<rpairs.size() && rpairs[q1].key==key) ++q1;
+
+        const int r = (int)(key>>24), code = (int)(key & 0xFFFFFF);
+        const rigid_body& A = rbs[r];
+        const bool plane = code<=1001;
+
+        double S = 0.0, dmax = 0.0;
+        for(size_t q=q0; q<q1; ++q)
+        {
+            S += rpairs[q].pen;
+            dmax = std::max(dmax,rpairs[q].pen);
+        }
+        if(S<=0.0)
+        {
+            q0 = q1;
+            continue;
+        }
+        double vG = 0.0;
+        for(size_t q=q0; q<q1; ++q)
+        vG += rpairs[q].pen/S*rpairs[q].vn;
+
+        double k = A.k, meff = A.M, cap = A.Fcap, mu = plane ? mu_ground : mu_contact;
+        if(code>=2000)
+        {
+            const rigid_body& B = rbs[code-2000];
+            k = A.k*B.k/(A.k+B.k);
+            meff = A.M*B.M/(A.M+B.M);
+            cap = (A.Fcap>0.0 && B.Fcap>0.0) ? std::min(A.Fcap,B.Fcap) : std::max(A.Fcap,B.Fcap);
+        }
+        else if(code==1002)
+        {
+            std::vector<int> part;
+            for(size_t q=q0; q<q1; ++q) part.push_back(rpairs[q].b);
+            std::sort(part.begin(),part.end());
+            part.erase(std::unique(part.begin(),part.end()),part.end());
+            // the surface of the deformable part acts in series with the debris:
+            // penalty of its nodes, of the order of the element stiffness and
+            // stable with the element time step (as the contact of deformable parts)
+            double mP = 0.0, KP = 0.0;
+            for(int b : part)
+            {
+                mP += m[b];
+                const double c = cnode.empty() ? cp_contact : cnode[b];
+                KP += kcontact*(c/hmin())*(c/hmin())*m[b];
+            }
+            meff = A.M*mP/(A.M+mP);
+            if(KP>0.0)
+            k = A.k*KP/(A.k+KP);
+        }
+
+        // elastic-perfectly plastic spring: crushing beyond the cap leaves a permanent set
+        double dp = 0.0;
+        auto it = rset.find(key);
+        if(it!=rset.end()) dp = it->second;
+        const double C = 2.0*debris_zeta*std::sqrt(k*meff);
+        double F = 0.0;
+        if(dmax>dp)
+        {
+            double Fel = k*(dmax-dp);
+            if(cap>0.0 && Fel>cap)
+            {
+                dp = dmax - cap/k;
+                Fel = cap;
+            }
+            // damping only while the contact unloads: the peak force stays the
+            // elastic u sqrt(k M), the rebound loses energy (restitution 0.55 at 50 %)
+            F = std::max(0.0, Fel - C*std::max(vG,0.0));
+            if(cap>0.0) F = std::min(F,cap);
+        }
+        if(dp>0.0)
+        rnew[key] = dp;
+
+        for(size_t q=q0; q<q1; ++q)
+        {
+            const rpair& c = rpairs[q];
+            const double w = c.pen/S;
+            const double fn = F*w;
+            fcon[c.a] += fn*c.n;
+            if(c.b>=0) fcon[c.b] -= fn*c.n;
+
+            if(fn<=0.0)
+            continue;
+
+            if(plane)
+            {
+                // Coulomb friction with a tangential spring (share w of the body stiffness)
+                Vec3 vt = v[c.a] - v[c.a].dot(c.n)*c.n;
+                if(plane_strain) vt(1) = 0.0;
+                Vec3& u = tspring[c.a];
+                u -= u.dot(c.n)*c.n;
+                u += dts_cur*vt;
+                if(plane_strain) u(1) = 0.0;
+                const double kt = k*w, ct = C*w;
+                Vec3 Ft = -kt*u - ct*vt;
+                const double Fmax = mu*fn, ftn = Ft.norm();
+                if(ftn>Fmax)
+                {
+                    if(ftn>0.0) Ft *= Fmax/ftn;
+                    u = -(Ft + ct*vt)/kt;
+                    const double un = u.norm(), umax = Fmax/kt;
+                    if(un>umax && un>0.0) u *= umax/un;
+                }
+                fcon[c.a] += Ft;
+            }
+            else
+            {
+                const Vec3 vr = v[c.a]-v[c.b];
+                const Vec3 vt = vr - vr.dot(c.n)*c.n;
+                const double vtn = vt.norm();
+                if(vtn>1.0e-12)
+                {
+                    const double mn = m[c.a]*m[c.b]/(m[c.a]+m[c.b]);
+                    const Vec3 Ft = -std::min(mu*fn, 0.5*mn/dts_cur*vtn)*vt/vtn;
+                    fcon[c.a] += Ft;
+                    fcon[c.b] -= Ft;
+                }
+            }
+        }
+        q0 = q1;
+    }
+    rset.swap(rnew);
 }

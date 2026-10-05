@@ -109,7 +109,7 @@ void fem_solid::read(std::istream& is)
                 // material rigid <rho>: rigid body of the given density (debris, floating objects)
                 if(q>=tok.size() || !isnum(tok[q])) fail("material rigid: density missing (material rigid 500)");
                 mt.type = MAT_ELASTIC; mt.rho = std::strtod(tok[q++].c_str(),nullptr); mt.E = 1.0e9; mt.nu = 0.25;
-                mt.rigid = true; mt.name = "rigid";
+                mt.rigid = true; mt.name = "rigid"; mt.Egiven = false;
             }
             else
             {
@@ -135,7 +135,7 @@ void fem_solid::read(std::istream& is)
                 if(!isnum(tok[q+1])) fail("material: value missing for '"+k+"'");
                 const double val = std::strtod(tok[q+1].c_str(),nullptr);
                 if(k=="rho") mt.rho = val;
-                else if(k=="E") mt.E = val;
+                else if(k=="E") {mt.E = val; mt.Egiven = true;}
                 else if(k=="nu") mt.nu = val;
                 else if(k=="fy" || k=="sigma_y") mt.sigy = val;
                 else if(k=="H") mt.H = val;
@@ -145,7 +145,9 @@ void fem_solid::read(std::istream& is)
                 else if(k=="fc") mt.fc = val;
                 else if(k=="Gc") mt.Gc = val;
                 else if(k=="derode") mt.derode = val;
-                else fail("material: unknown parameter '"+k+"' (rho E nu fy H eps_fail ft Gf fc Gc derode, or 'rigid')");
+                else if(k=="stiffness") {if(val<=0.0) fail("material: stiffness must be positive [N/m]"); mt.kdebris = val;}
+                else if(k=="crush") {if(val<=0.0) fail("material: crush must be positive [N]"); mt.fcrush = val;}
+                else fail("material: unknown parameter '"+k+"' (rho E nu fy H eps_fail ft Gf fc Gc derode stiffness crush, or 'rigid')");
                 q += 2;
             }
             if(q<tok.size()) fail("material: cannot read '"+tok[q]+"'");
@@ -376,6 +378,19 @@ void fem_solid::read(std::istream& is)
         else if(kw=="hybrid_tau")       need(static_cast<bool>(ls>>copt.hybrid_tau));
         else if(kw=="added_mass")       need(static_cast<bool>(ls>>copt.added_mass) && copt.added_mass>=0.0);
         else if(kw=="rigid_contact_speed") need(static_cast<bool>(ls>>c_rigid) && c_rigid>0.0);
+        else if(kw=="debris_damping")
+        {
+            // debris_damping 5%  |  debris_damping 0.05
+            std::string t;
+            need(static_cast<bool>(ls>>t));
+            bool pct = false;
+            if(!t.empty() && t.back()=='%') {pct = true; t.pop_back();}
+            double z = -1.0;
+            try {z = std::stod(t);} catch(...) {fail("debris_damping: give a ratio (0.05) or a percentage (5%)");}
+            if(pct) z *= 0.01;
+            if(z<0.0 || z>=1.0) fail("debris_damping: the ratio of critical damping must be between 0 and 1");
+            debris_zeta = z;
+        }
         else if(kw=="loads")
         {
             std::string t;

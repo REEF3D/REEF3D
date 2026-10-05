@@ -53,6 +53,7 @@ Architect: Hans Bihs
 #include<iosfwd>
 #include<algorithm>
 #include<array>
+#include<map>
 #include<Eigen/Dense>
 
 class fem_solid
@@ -80,6 +81,11 @@ public:
         // rigid: free bodies made only of rigid materials move as rigid bodies
         // (no stresses, no stiffness time step limit), e.g. floating debris
         bool rigid = false;
+        bool Egiven = true;             // false: 'material rigid <rho>' (no elastic modulus given)
+        // impact of rigid debris: effective stiffness [N/m] (0: axial bar E A / L)
+        // and crushing force [N] that caps the contact force (0: no cap);
+        // 2D: per metre width
+        double kdebris = 0.0, fcrush = 0.0;
     };
 
     // history variables of one integration point
@@ -197,6 +203,7 @@ public:
     // debris is not damped). prepare_damping() estimates the frequency.
     void set_damping_ratio(double z) {zeta = z;}
     void set_rigid_contact_speed(double c) {c_rigid = c;}
+    void set_debris_damping(double z) {debris_zeta = z;}
 
     // contact of free bodies and debris with planes (domain walls) and with the
     // bed / solids of the fluid grid (signed distance phi and normal sampled per
@@ -221,6 +228,11 @@ public:
         double Vol = 0.0;               // volume
         double Aunit = 0.0, A = 0.0;    // added mass for the stabilisation: per unit fluid density, current
         Vec3 V0 = Vec3::Zero(), w0 = Vec3::Zero(), a_prev = Vec3::Zero(), al_prev = Vec3::Zero();
+        // impact: effective contact stiffness [N/m] (debris acting as a spring), crushing force cap [N],
+        // length of the axial bar, how k was obtained (0 given, 1 E A/L, 2 rigid_contact_speed)
+        double k = 0.0, Fcap = 0.0, Lbar = 0.0;
+        int ksrc = 0;
+        Vec3 Jc = Vec3::Zero(), Hc = Vec3::Zero();   // contact impulse and its moment over the fluid step
     };
     void set_rigid_added_mass(int k,double A) {rbs[k].A = A;}
     int rigid_of_node(int i) const {return rnode.empty() ? -1 : rnode[i];}
@@ -434,7 +446,7 @@ private:
     double cfl = 0.5;
     double alpha_damp = 0.0;
     double zeta = 0.02, alpha_struct = 0.0, f_damp = 0.0;
-    double c_rigid = 40.0;                      // wave speed for the contact stiffness and time step of rigid bodies
+    double c_rigid = 40.0;                      // rigid materials without E: contact stiffness from E = rho c^2
     struct cplane {Vec3 n; double d;};          // n.x >= d is outside the wall
     std::vector<cplane> planes;
     bool bed_on = false;
@@ -442,6 +454,13 @@ private:
     std::vector<double> bed_phi;
     std::vector<Vec3> bed_n, bed_x;
     void contact_surface(int i,double pen,const Vec3& n,double mu);
+    // contact of rigid bodies: every rigid body acts as one spring of its effective
+    // stiffness k against each partner (wall, bed, another body, the deformable parts)
+    struct rpair {int a, b; long long key; Vec3 n; double pen, vn;};
+    std::vector<rpair> rpairs;
+    std::map<long long,double> rset;            // permanent set of crushed contacts per group
+    void rigid_contact_forces();
+    double debris_zeta = 0.5;                   // damping ratio of the debris contact (unloading only)
     std::vector<Vec3> tspring;                  // tangential contact spring of the nodes on walls / bed / ground
     std::vector<unsigned char> touched;
     double dts_cur = 0.0;
@@ -469,7 +488,8 @@ private:
 
     // state
     double t = 0.0;
-    double dtcrit = 0.0;
+    double dtcrit = 0.0, dtcrit_el = 1.0e30, dtcrit_rig = 1.0e30;   // overall, elements, rigid-body impact
+    bool rigid_contact_near(double dt) const;
     int nsub_last = 0;
     double wdiss = 0.0;
     bool built = false;
