@@ -43,6 +43,15 @@ public:
     
 	void start(lexer*, fdm*, ghostcell*,field&,field&,field&,int) override final;
 
+private:
+    // G: the (1,2,1)/4 filter of LES_filter_f1, applied in x, y and z; out = G(f)
+    void filter_u(lexer*, ghostcell*, field&, field&, int);
+    void filter_v(lexer*, ghostcell*, field&, field&, int);
+    void filter_w(lexer*, ghostcell*, field&, field&, int);
+    
+    field1 u1,ut1,ut2,ut3;
+    field2 v1,vt1,vt2,vt3;
+    field3 w1,wt1,wt2,wt3;
 };
 
 #endif
