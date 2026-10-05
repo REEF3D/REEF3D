@@ -366,6 +366,13 @@ void fem_solid::read(std::istream& is)
             if(kw=="settle") copt.settle = on ? 1 : 0;
             else snap_on = on;
         }
+        else if(kw=="fragments")
+        {
+            // fragments rigid|deformable: parts that break off a supported structure
+            std::string w;
+            need(static_cast<bool>(ls>>w) && (w=="rigid" || w=="deformable"));
+            fragments_rigid = (w=="rigid");
+        }
         else if(kw=="check")
         copt.check = 1;
         // coupling options

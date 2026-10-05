@@ -205,6 +205,7 @@ public:
     void set_damping_ratio(double z) {zeta = z;}
     void set_rigid_contact_speed(double c) {c_rigid = c;}
     void set_debris_damping(double z) {debris_zeta = z;}
+    void set_fragments_rigid(bool b) {fragments_rigid = b;}
 
     // contact of free bodies and debris with planes (domain walls) and with the
     // bed / solids of the fluid grid (signed distance phi and normal sampled per
@@ -235,6 +236,7 @@ public:
         // length of the axial bar, how k was obtained (0 given, 1 E A/L, 2 rigid_contact_speed)
         double k = 0.0, Fcap = 0.0, Lbar = 0.0;
         int ksrc = 0;
+        bool fragment = false;          // broken off a supported structure during the run
         Vec3 Jc = Vec3::Zero(), Hc = Vec3::Zero();   // contact impulse and its moment over the fluid step
     };
     void set_rigid_added_mass(int k,double A) {rbs[k].A = A;}
@@ -282,6 +284,7 @@ public:
     Vec3 support_moment() const;                // overturning moment of the support forces about the base centre
     Vec3 base_centre() const {return base_c;}
     double eroded_mass_fraction() const;
+    double fragment_mass_fraction() const;          // intact elements of rigid fragments
     bool has_supports() const;
     int  material_count() const {return (int)mats.size();}
     const material& mat(int i) const {return mats[i];}
@@ -472,6 +475,10 @@ private:
     std::vector<rigid_body> rbs;
     std::vector<int> rnode;                     // node -> rigid body (-1: deformable)
     void setup_rigid();
+    void rigid_props(rigid_body& rb,int k);         // added mass, impact stiffness and crushing force
+    bool fragments_rigid = true;                    // parts that break off a supported structure become rigid bodies
+    void make_rigid_fragments(const std::vector<unsigned char>& was_supported);
+    void update_time_steps();
     bool bodies_near() const;
     void rigid_step(double dts,const std::vector<Vec3>& F);
     std::vector<int> body;                      // node -> connected body (-1: debris / no intact element)

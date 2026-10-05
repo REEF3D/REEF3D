@@ -418,8 +418,14 @@ void fem_solid::advance(double dt)
 
     if(surf_dirty)
     {
+        // parts that broke off a supported structure in this step become rigid bodies
+        std::vector<unsigned char> sup(nnode(),0);
+        for(int i=0; i<nnode(); ++i)
+        sup[i] = body[i]>=0 && body_fixed[body[i]];
         build_surface();
         count_bodies();
+        if(fragments_rigid)
+        make_rigid_fragments(sup);
     }
 }
 
@@ -597,51 +603,69 @@ void fem_solid::setup_rigid()
         rb.R.setIdentity();
         rb.V.setZero(); rb.L.setZero(); rb.w.setZero();
 
-        // added mass per unit fluid density, upper estimate: plate of the two
-        // largest dimensions moving normal to itself, rho pi/4 L1 L2^2
-        // (2D: rho pi/4 L1^2 per slice width)
-        Vec3 lo = Vec3::Constant(1.0e300), hi = Vec3::Constant(-1.0e300);
-        for(const Vec3& r : rb.r0) {lo = lo.cwiseMin(r); hi = hi.cwiseMax(r);}
-        const Vec3 L = hi-lo;
-        if(plane_strain)
-        {
-            const double L1 = std::max(L(0),L(2));
-            rb.Aunit = 0.25*3.14159265358979*L1*L1*L(1);
-        }
-        else
-        {
-            double d[3] = {L(0),L(1),L(2)};
-            std::sort(d,d+3);
-            rb.Aunit = 0.25*3.14159265358979*d[2]*d[1]*d[1];
-        }
+        rigid_props(rb,(int)(&rb-&rbs[0]));
+    }
+}
 
-        // impact stiffness of the debris: given, or the axial stiffness of a
-        // bar along the longest dimension, k = E A / L with A = V / L (the
-        // contact-stiffness approach of ASCE 7 for logs and poles); materials
-        // without E ('material rigid <rho>') use E = rho c^2 (rigid_contact_speed)
-        rb.Lbar = plane_strain ? std::max(L(0),L(2)) : L.maxCoeff();
-        const double wslice = plane_strain ? std::max(L(1),1.0e-30) : 1.0;
-        std::map<int,double> vm;
-        for(const element& e : elems)
-        if(e.rigid && rnode[e.n[0]]==(int)(&rb-&rbs[0]))
-        vm[e.mat] += geom(e).V;
-        int md = -1;
-        double vmax = -1.0;
-        for(const auto& q : vm)
-        if(q.second>vmax) {vmax = q.second; md = q.first;}
-        const material& mt = mats[md];
-        if(mt.kdebris>0.0)
+void fem_solid::rigid_props(rigid_body& rb,int k)
+{
+    // added mass per unit fluid density, upper estimate: plate of the two
+    // largest dimensions moving normal to itself, rho pi/4 L1 L2^2
+    // (2D: rho pi/4 L1^2 per slice width)
+    Vec3 lo = Vec3::Constant(1.0e300), hi = Vec3::Constant(-1.0e300);
+    for(const Vec3& r : rb.r0) {lo = lo.cwiseMin(r); hi = hi.cwiseMax(r);}
+    const Vec3 L = hi-lo;
+    if(plane_strain)
+    {
+        const double L1 = std::max(L(0),L(2));
+        rb.Aunit = 0.25*3.14159265358979*L1*L1*L(1);
+    }
+    else
+    {
+        double d[3] = {L(0),L(1),L(2)};
+        std::sort(d,d+3);
+        rb.Aunit = 0.25*3.14159265358979*d[2]*d[1]*d[1];
+    }
+
+    // impact stiffness of the debris: given, or the axial stiffness of a
+    // bar along the longest dimension, k = E A / L with A = V / L (the
+    // contact-stiffness approach of ASCE 7 for logs and poles); materials
+    // without E ('material rigid <rho>') use E = rho c^2 (rigid_contact_speed)
+    rb.Lbar = plane_strain ? std::max(L(0),L(2)) : L.maxCoeff();
+    const double wslice = plane_strain ? std::max(L(1),1.0e-30) : 1.0;
+    std::map<int,double> vm;
+    for(const element& e : elems)
+    if(e.alive && e.rigid && rnode[e.n[0]]==k)
+    vm[e.mat] += geom(e).V;
+    int md = -1;
+    double vmax = -1.0;
+    for(const auto& q : vm)
+    if(q.second>vmax) {vmax = q.second; md = q.first;}
+    const material& mt = mats[md];
+    if(mt.kdebris>0.0)
+    {
+        rb.k = mt.kdebris*wslice;
+        rb.ksrc = 0;
+    }
+    else
+    {
+        const double Eb = mt.Egiven ? mt.E : mt.rho*c_rigid*c_rigid;
+        rb.k = Eb*(rb.Vol/rb.Lbar)/rb.Lbar;
+        rb.ksrc = mt.Egiven ? 1 : 2;
+    }
+    rb.Fcap = mt.fcrush*wslice;
+    if(rb.fragment)
+    {
+        // a fragment of the structure: its stiffness is the bar of its own
+        // material, and it crushes at the strength of its cross-section
+        // (concrete f_c A, steel f_y A) unless a crushing force is given
+        rb.ksrc = 3;
+        if(mt.fcrush<=0.0)
         {
-            rb.k = mt.kdebris*wslice;
-            rb.ksrc = 0;
+            const double A = rb.Vol/rb.Lbar;
+            if(mt.type==MAT_CONCRETE) rb.Fcap = mt.fc*A;
+            else if(mt.type==MAT_J2) rb.Fcap = mt.sigy*A;
         }
-        else
-        {
-            const double Eb = mt.Egiven ? mt.E : mt.rho*c_rigid*c_rigid;
-            rb.k = Eb*(rb.Vol/rb.Lbar)/rb.Lbar;
-            rb.ksrc = mt.Egiven ? 1 : 2;
-        }
-        rb.Fcap = mt.fcrush*wslice;
     }
 }
 
@@ -784,4 +808,106 @@ bool fem_solid::rigid_contact_near(double dt) const
         return true;
     }
     return false;
+}
+
+void fem_solid::make_rigid_fragments(const std::vector<unsigned char>& was_supported)
+{
+    // a free body (no supports) with nodes that belonged to a supported body
+    // before the last failure has broken off the structure: it becomes a rigid
+    // body with the momentum and angular momentum of its nodes, its current
+    // (cracked, deformed) shape as reference and the bar stiffness of its
+    // material for impacts. It does not crack further; its elements no longer
+    // limit the time step, and its loads are the probed pressure with the
+    // added-mass stabilisation like other floating debris.
+    const int nb = (int)body_fixed.size();
+    std::vector<int> frag(nb,0);
+    for(int i=0; i<nnode(); ++i)
+    if(body[i]>=0 && !body_fixed[body[i]] && was_supported[i] && (rnode.empty() || rnode[i]<0))
+    frag[body[i]] = 1;
+
+    bool any = false;
+    for(int b=0; b<nb; ++b) any = any || frag[b];
+    if(!any)
+    return;
+
+    if(rnode.empty())
+    rnode.assign(nnode(),-1);
+
+    std::vector<int> rid(nb,-1);
+    for(int b=0; b<nb; ++b)
+    if(frag[b])
+    {
+        rid[b] = (int)rbs.size();
+        rbs.push_back(rigid_body());
+        rbs.back().fragment = true;
+    }
+    for(element& e : elems)
+    if(e.alive && body[e.n[0]]>=0 && rid[body[e.n[0]]]>=0)
+    {
+        e.rigid = true;
+        rbs[rid[body[e.n[0]]]].Vol += geom(e).V;
+    }
+    for(int i=0; i<nnode(); ++i)
+    if(body[i]>=0 && rid[body[i]]>=0)
+    {
+        rnode[i] = rid[body[i]];
+        rbs[rnode[i]].nodes.push_back(i);
+    }
+
+    for(int b=0; b<nb; ++b)
+    if(rid[b]>=0)
+    {
+        rigid_body& rb = rbs[rid[b]];
+        rb.M = 0.0;
+        Vec3 c = Vec3::Zero(), P = Vec3::Zero();
+        for(int i : rb.nodes) {rb.M += m[i]; c += m[i]*x[i]; P += m[i]*v[i];}
+        c /= rb.M;
+        rb.c0 = rb.c = c;
+        rb.V = P/rb.M;
+        rb.I0.setZero();
+        rb.r0.clear();
+        Vec3 Lm = Vec3::Zero();
+        for(int i : rb.nodes)
+        {
+            const Vec3 r = x[i]-c;
+            rb.r0.push_back(r);
+            rb.I0 += m[i]*(r.squaredNorm()*Eigen::Matrix3d::Identity() - r*r.transpose());
+            Lm += m[i]*r.cross(v[i]-rb.V);
+        }
+        rb.R.setIdentity();
+        rb.w.setZero();
+        if(plane_strain)
+        {
+            rb.V(1) = 0.0;
+            if(rb.I0(1,1)>0.0) rb.w(1) = Lm(1)/rb.I0(1,1);
+        }
+        else
+        rb.w = rb.I0.ldlt().solve(Lm);
+        rb.L = rb.I0*rb.w;
+        rb.V0 = rb.V; rb.w0 = rb.w;
+        for(size_t q=0; q<rb.nodes.size(); ++q)
+        v[rb.nodes[q]] = rb.V + rb.w.cross(rb.r0[q]);
+        rigid_props(rb,rid[b]);
+    }
+    update_time_steps();
+}
+
+void fem_solid::update_time_steps()
+{
+    // deformable elements (failed ones too: their nodes are debris particles whose
+    // contact penalty follows the element frequency) and the impacts of the rigid bodies
+    dtcrit_el = 1.0e30;
+    for(const element& e : elems)
+    if(!e.rigid)
+    dtcrit_el = std::min(dtcrit_el, geom(e).L/mats[e.mat].cp);
+    dtcrit_rig = 1.0e30;
+    double Mmin = 1.0e300, kmax = 0.0;
+    for(const rigid_body& rb : rbs)
+    {
+        Mmin = std::min(Mmin,rb.M);
+        kmax = std::max(kmax,rb.k);
+    }
+    if(kmax>0.0)
+    dtcrit_rig = 3.14159265358979*std::sqrt(Mmin/kmax)/20.0;
+    dtcrit = std::min(dtcrit_el,dtcrit_rig);
 }

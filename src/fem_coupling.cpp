@@ -363,11 +363,14 @@ void fem_coupling::update_summary(lexer *p, bool write)
 void fem_coupling::write_summary(lexer *p)
 {
     const double ef = fs.eroded_mass_fraction();
+    const double ff = fs.fragment_mass_fraction();
     const char* unit = (p->j_dir==0) ? " per metre width" : "";
 
     std::ostringstream st;
-    if(ef>0.5) st<<"COLLAPSED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed";
-    else if(ef>0.0) st<<"PARTLY FAILED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed";
+    std::ostringstream fr;
+    if(ff>0.0) fr<<", "<<std::setprecision(3)<<100.0*ff<<" % broke off (rigid fragments)";
+    if(ef+ff>0.5) st<<"COLLAPSED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed"<<fr.str();
+    else if(ef>0.0 || ff>0.0) st<<"PARTLY FAILED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed"<<fr.str();
     else if(sm.t_crack>=0.0) st<<(sm.yielding ? "YIELDED, no failure" : "CRACKED, no failure");
     else if(sm.util>=0.0) st<<"INTACT, max utilisation "<<std::setprecision(3)<<sm.util;
     else st<<"INTACT (elastic material, max von Mises "<<std::setprecision(4)<<fs.max_vonmises()/1.0e6<<" MPa)";
@@ -376,7 +379,7 @@ void fem_coupling::write_summary(lexer *p)
     f<<std::setprecision(4);
     f<<"REEF3D FEM summary at t = "<<fs.time()<<" s\n\n";
 
-    if(fs.n_deformable()>0 || fs.n_rigid()==0)
+    if(fs.n_deformable()>0 || fs.n_rigid()==0 || ff>0.0)
     {
     f<<"status:                  "<<st.str()<<"\n";
     f<<"max base shear:          "<<sm.shear/1000.0<<" kN"<<unit<<"  at t = "<<sm.t_shear<<" s\n";
@@ -416,7 +419,7 @@ void fem_coupling::write_summary(lexer *p)
         f<<"  ... "<<fs.n_rigid()-nmax<<" more\n";
         // impact model: the debris as a spring of stiffness k
         f<<"  body   impact stiffness [N/m]  duration pi sqrt(M/k) [ms]  force per m/s u sqrt(k M) [kN]  crushing [kN]  stiffness from\n";
-        const char* src[3] = {"given", "axial bar E A / L", "rigid_contact_speed (set 'stiffness')"};
+        const char* src[4] = {"given", "axial bar E A / L", "rigid_contact_speed (set 'stiffness')", "fragment: bar E A / L, crushing at the strength"};
         for(int k=0; k<nmax; ++k)
         {
             const fem_solid::rigid_body& rb = fs.rigid(k);

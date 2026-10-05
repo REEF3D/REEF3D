@@ -535,6 +535,18 @@ double fem_solid::eroded_mass_fraction() const
     return mt>0.0 ? me/mt : 0.0;
 }
 
+double fem_solid::fragment_mass_fraction() const
+{
+    double mf = 0.0, mt = 0.0;
+    for(const element& e : elems)
+    {
+        const double mm = mats[e.mat].rho*geom(e).V;
+        mt += mm;
+        if(e.alive && e.rigid && !rnode.empty() && rnode[e.n[0]]>=0 && rbs[rnode[e.n[0]]].fragment) mf += mm;
+    }
+    return mt>0.0 ? mf/mt : 0.0;
+}
+
 // ----------------------------------------------------------------------
 // check mode
 // ----------------------------------------------------------------------
@@ -678,7 +690,7 @@ void fem_solid::write_check(std::ostream& os,const check_info& ci) const
             const double rho = rb.M/std::max(rb.Vol,1.0e-30);
             os<<"     "<<k+1<<": mass "<<rb.M<<" kg, volume "<<rb.Vol<<" m3, density "<<rho<<" kg/m3, centre "<<rb.c0.transpose()
               <<(rho<1000.0 ? "  (floats in water)" : "")<<"\n";
-            const char* src[3] = {"given", "axial bar E A / L", "E = rho c^2 from rigid_contact_speed, set 'stiffness' for a physical value"};
+            const char* src[4] = {"given", "axial bar E A / L", "E = rho c^2 from rigid_contact_speed, set 'stiffness' for a physical value", "fragment of the structure: bar E A / L"};
             os<<"        impact: stiffness "<<rb.k<<" N/m ("<<src[rb.ksrc]<<(rb.ksrc==1 ? ", L = "+std::to_string(rb.Lbar)+" m" : std::string(""))<<"), "
               <<"duration pi sqrt(M/k) "<<1000.0*3.14159265358979*std::sqrt(rb.M/rb.k)<<" ms, force u sqrt(k M) "<<std::sqrt(rb.k*rb.M)/1000.0<<" kN per m/s";
             if(rb.Fcap>0.0) os<<", crushing at "<<rb.Fcap/1000.0<<" kN";
