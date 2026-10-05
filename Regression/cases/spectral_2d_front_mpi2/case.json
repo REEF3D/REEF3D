@@ -3,5 +3,5 @@
  "np": 2,
  "description": "as spectral_2d_front on 2 MPI ranks (2 iterations per step by default with several ranks).",
  "tags": ["quick", "2d", "spectral", "mpi"],
- "covers": ["spectral_exchange in the nonstationary mode", "A 607 default for several ranks"]
+ "covers": ["spectral_exchange in the nonstationary mode", "A 707 default for several ranks"]
 }

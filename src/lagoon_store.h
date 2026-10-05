@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef LAGOON_STORE_H_
 #define LAGOON_STORE_H_
 
-// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.2): one Zarr v3
+// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.3): one Zarr v3
 // store per run, one group per output stream, one block per MPI rank.
 //
 // No MPI and no REEF3D types in here: every rank writes its own block's files
@@ -177,6 +177,47 @@ private:
     void write_motion(int number, const body &b, const char *name, int width) const;
 };
 
+// Growing arrays of a store (LAGOON SPEC.md sections 10 and 11): rows appended at the
+// end, in shards of 16 inner chunks of 65536 rows (byte shuffle + gzip). The shard
+// being filled is written again with every append, its last inner chunk padded with
+// the fill value, so the store can be read while it grows. Per-output (or per-set)
+// int64 arrays are written whole, in chunks of 4096.
+class lagoon_rows
+{
+public:
+    struct array
+    {
+        std::string dir, dtype, fill, dimension = "row";
+        int components = 1, itemsize = 4;
+        bool metre = false;
+        long long rows = 0;
+        long long shard = 0;                  // the shard being filled
+        std::vector<std::string> encoded;     // its full inner chunks
+        std::vector<unsigned char> tail;      // rows of the inner chunk being filled
+    };
+
+    explicit lagoon_rows(int gzip_level=1) : gzip_level(gzip_level) {}
+
+    // an empty array in dir; dtype "float32", "float64", "int32" or "int64"
+    static array make(const std::string &dir, const std::string &dtype, int components=1,
+                      bool metre=false, const std::string &dimension="row");
+
+    // rows (components values each, of the array's type) after its last row; the
+    // shard and the array's zarr.json are written
+    void append(array &a, const unsigned char *data, size_t rows) const;
+    void write_meta(const array &a) const;
+
+    // an int64 array dir with these values, written whole (end of each output's rows)
+    void write_ends(const std::string &dir, const std::vector<long long> &rows, const char *dimension) const;
+
+    static constexpr long long ROWS = 65536;
+    static constexpr int CHUNKS_PER_SHARD = 16;
+
+private:
+    int gzip_level;
+    void write_shard(const array &a, long long shard, const std::vector<std::string> &chunks) const;
+};
+
 // Particles and objects of a store (LAGOON SPEC.md section 10), written by rank 0 once
 // the data of all ranks is gathered: the points of every output one after another in
 // growing arrays (shards of 16 inner chunks of 65536 rows), the end of each output's
@@ -213,20 +254,11 @@ public:
 
     bool usable() const { return ok; }
 
-    static constexpr long long ROWS = 65536;
-    static constexpr int CHUNKS_PER_SHARD = 16;
+    static constexpr long long ROWS = lagoon_rows::ROWS;
+    static constexpr int CHUNKS_PER_SHARD = lagoon_rows::CHUNKS_PER_SHARD;
 
 private:
-    struct growing
-    {
-        std::string dir, dtype, fill;
-        int components = 1, itemsize = 4;
-        bool metre = false;
-        long long rows = 0;
-        long long shard = 0;                  // the shard being filled
-        std::vector<std::string> encoded;     // its full inner chunks
-        std::vector<unsigned char> tail;      // rows of the inner chunk being filled
-    };
+    using growing = lagoon_rows::array;
     std::string path, solver, key, role, source, run_json, dir, cells;
     std::vector<field> fields, cell_fields;
     int gzip_level;
@@ -236,14 +268,72 @@ private:
     std::vector<long long> point_end, cell_set, cell_data_end, cell_end, connectivity_end;
     std::vector<int32_t> last_connectivity, last_offsets;
     lagoon_store store;
+    lagoon_rows rw;
 
     void start();
     growing make(const std::string &dir, const field &f) const;
-    void append(growing &a, const unsigned char *data, size_t rows);
-    void write_shard(const growing &a, long long shard, const std::vector<std::string> &chunks) const;
-    void write_meta(const growing &a) const;
-    void write_rows(const std::string &name, const std::vector<long long> &rows, const char *dimension) const;
+    void append(growing &a, const unsigned char *data, size_t rows) { rw.append(a, data, rows); }
+    void write_meta(const growing &a) const { rw.write_meta(a); }
+    void write_rows(const std::string &name, const std::vector<long long> &rows, const char *dimension) const
+    { rw.write_ends(dir + "/" + name, rows, dimension); }
     std::string fields_json(const std::vector<field> &list) const;
+};
+
+// Adaptive mesh refinement surfaces of a store (LAGOON SPEC.md section 11), written by
+// rank 0 once the grids of all ranks are gathered: per output, level 0 of every rank
+// and the refined patches as 2D rectilinear grids with cell values. The grids of all
+// outputs follow one after another: a table of the grids (level, rank, size, where
+// their coordinates and cells end), their node coordinates and their cell fields,
+// growing arrays as for particles; grid_end gives each output's last grid. Each output
+// is written at once, so the store can be read during a run.
+class lagoon_amr
+{
+public:
+    struct field
+    {
+        std::string name;
+        bool integer;    // int32, else float32
+    };
+
+    struct grid
+    {
+        int level = 0;
+        int rank = -1;              // the MPI rank that has it
+        int nx = 0, ny = 0;         // cells
+        std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising
+        std::vector<double> values; // nx*ny per field (x fastest), the fields one after another
+    };
+
+    // key: the AMR set, e.g. "nhflow_amr"; source: "REEF3D_NHFLOW_AMR"
+    lagoon_amr(const std::string &path, const std::string &solver, const std::string &key,
+               const std::string &source, const std::string &run_json,
+               const std::vector<field> &fields, int gzip_level=1);
+
+    // one output: its grids, level 0 first. False when it could not be written (no more
+    // output to the store then: the .vtr and .vtm files are needed).
+    bool output(double time, long long step, const std::vector<grid> &grids);
+
+    bool usable() const { return ok; }
+
+    // grids as doubles for MPI (count, then per grid level, nx, ny, x, y, values) and back;
+    // unpack appends the grids of one rank
+    static void pack(const std::vector<grid> &grids, int fields, std::vector<double> &out);
+    static bool unpack(const double *data, size_t n, int fields, int rank, std::vector<grid> &out);
+
+private:
+    std::string path, solver, key, source, run_json, dir;
+    std::vector<field> fields;
+    int gzip_level;
+    bool ok, started;
+    std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end
+    std::vector<lagoon_rows::array> nodes;  // x, y
+    std::vector<lagoon_rows::array> cells;  // the fields
+    std::vector<long long> grid_end;
+    long long x_end, y_end, cell_end;
+    lagoon_store store;
+    lagoon_rows rw;
+
+    void start();
 };
 
 #endif

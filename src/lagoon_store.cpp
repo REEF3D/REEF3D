@@ -263,7 +263,7 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
     make_dirs(path);
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {"
-      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.2\", \"solver\": " << json_string(solver)
+      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.3\", \"solver\": " << json_string(solver)
       << ", \"outputs\": [], \"created_by\": \"REEF3D\", \"created\": \"" << utc_now()
       << "\", \"source\": \"REEF3D\"}";
     if(!run_json.empty())
@@ -874,7 +874,7 @@ lagoon_particles::lagoon_particles(const std::string &path_, const std::string &
                                    const std::string &cells_, const std::vector<field> &cell_fields_)
     : path(path_), solver(solver_), key(key_), role(role_), source(source_), run_json(run_json_),
       dir(path_ + "/particles/" + key_), cells(cells_), fields(fields_), cell_fields(cells_.empty() ? std::vector<field>() : cell_fields_),
-      gzip_level(gzip_level_), ok(true), started(false), store(path_)
+      gzip_level(gzip_level_), ok(true), started(false), store(path_), rw(gzip_level_)
 {
 }
 
@@ -899,13 +899,7 @@ void write_group(const std::string &dir)
 
 lagoon_particles::growing lagoon_particles::make(const std::string &where, const field &f) const
 {
-    growing a;
-    a.dir = where;
-    a.dtype = f.integer ? "int32" : "float32";
-    a.fill = f.integer ? "0" : "\"NaN\"";
-    a.components = f.components;
-    a.itemsize = 4;
-    return a;
+    return lagoon_rows::make(where, f.integer ? "int32" : "float32", f.components);
 }
 
 std::string lagoon_particles::fields_json(const std::vector<field> &list) const
@@ -970,11 +964,26 @@ void lagoon_particles::start()
     started = true;
 }
 
-void lagoon_particles::write_meta(const growing &a) const
+// ======================================================================== growing arrays
+lagoon_rows::array lagoon_rows::make(const std::string &dir, const std::string &dtype, int components,
+                                     bool metre, const std::string &dimension)
+{
+    array a;
+    a.dir = dir;
+    a.dtype = dtype;
+    a.fill = (dtype=="float32" || dtype=="float64") ? "\"NaN\"" : "0";
+    a.components = components;
+    a.itemsize = (dtype=="float64" || dtype=="int64") ? 8 : 4;
+    a.metre = metre;
+    a.dimension = dimension;
+    return a;
+}
+
+void lagoon_rows::write_meta(const array &a) const
 {
     std::ostringstream j;
     std::vector<long long> shape = {a.rows}, shard = {ROWS*CHUNKS_PER_SHARD}, inner = {ROWS};
-    std::vector<std::string> dims = {"row"};
+    std::vector<std::string> dims = {a.dimension};
     if(a.components>1)
     {
         shape.push_back(a.components); shard.push_back(a.components); inner.push_back(a.components);
@@ -996,7 +1005,7 @@ void lagoon_particles::write_meta(const growing &a) const
     write_file(a.dir + "/zarr.json", j.str());
 }
 
-void lagoon_particles::write_shard(const growing &a, long long shard, const std::vector<std::string> &chunks) const
+void lagoon_rows::write_shard(const array &a, long long shard, const std::vector<std::string> &chunks) const
 {
     std::string content;
     std::vector<uint64_t> index(2*CHUNKS_PER_SHARD, EMPTY);
@@ -1022,7 +1031,7 @@ void lagoon_particles::write_shard(const growing &a, long long shard, const std:
     write_file(folder + "/" + (a.components>1 ? "0" : std::to_string(shard)), content);
 }
 
-void lagoon_particles::append(growing &a, const unsigned char *data, size_t rows)
+void lagoon_rows::append(array &a, const unsigned char *data, size_t rows) const
 {
     const size_t row_bytes = size_t(a.itemsize)*a.components;
     const size_t chunk_bytes = size_t(ROWS)*row_bytes;
@@ -1063,6 +1072,12 @@ void lagoon_particles::append(growing &a, const unsigned char *data, size_t rows
                 for(size_t b=a.tail.size(); b<chunk_bytes; b+=4)
                     std::memcpy(&padded[b], &nan, 4);
             }
+            else if(a.dtype=="float64")
+            {
+                const double nan = std::numeric_limits<double>::quiet_NaN();
+                for(size_t b=a.tail.size(); b<chunk_bytes; b+=8)
+                    std::memcpy(&padded[b], &nan, 8);
+            }
             chunks.push_back(shuffled_gzip(padded.data(), values_per_chunk, a.itemsize, gzip_level));
         }
         write_shard(a, a.shard, chunks);
@@ -1070,11 +1085,10 @@ void lagoon_particles::append(growing &a, const unsigned char *data, size_t rows
     write_meta(a);
 }
 
-void lagoon_particles::write_rows(const std::string &name, const std::vector<long long> &rows, const char *dimension) const
+void lagoon_rows::write_ends(const std::string &adir, const std::vector<long long> &rows, const char *dimension) const
 {
     const long long chunk = 4096;
     const size_t nt = rows.size();
-    const std::string adir = dir + "/" + name;
     make_dirs(adir + "/c");
     if(nt>0)
     {
@@ -1150,4 +1164,186 @@ bool lagoon_particles::output(double time, long long step, size_t n, const float
         ok = false;
         return false;
     }
+}
+
+// ======================================================================== AMR surfaces
+lagoon_amr::lagoon_amr(const std::string &path_, const std::string &solver_, const std::string &key_,
+                       const std::string &source_, const std::string &run_json_,
+                       const std::vector<field> &fields_, int gzip_level_)
+    : path(path_), solver(solver_), key(key_), source(source_), run_json(run_json_),
+      dir(path_ + "/amr/" + key_), fields(fields_), gzip_level(gzip_level_), ok(true), started(false),
+      x_end(0), y_end(0), cell_end(0), store(path_), rw(gzip_level_)
+{
+}
+
+void lagoon_amr::start()
+{
+    make_dirs(path);
+    if(!exists(path + "/zarr.json"))
+        store.create_root(solver, run_json);
+    make_dirs(path + "/amr");
+    if(!exists(path + "/amr/zarr.json"))
+        write_group(path + "/amr");
+    write_group(dir + "/grids");
+    write_group(dir + "/cell_data");
+
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {\"lagoon\": {"
+      << "\"kind\": \"amr\", \"fields\": {";
+    for(size_t f=0; f<fields.size(); ++f)
+        j << (f ? ", " : "") << lagoon_store::json_string(fields[f].name) << ": {\"components\": 1, \"data_type\": \""
+          << (fields[f].integer ? "int32" : "float32") << "\", \"array\": "
+          << lagoon_store::json_string(array_name(fields[f].name)) << "}";
+    j << "}, \"dataset\": " << lagoon_store::json_string(key)
+      << ", \"role\": \"amr\", \"refinement\": 2"
+      << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
+    write_file(dir + "/zarr.json", j.str());
+
+    table = {lagoon_rows::make(dir + "/grids/level", "int32", 1, false, "grid"),
+             lagoon_rows::make(dir + "/grids/rank", "int32", 1, false, "grid"),
+             lagoon_rows::make(dir + "/grids/size", "int32", 2, false, "grid"),
+             lagoon_rows::make(dir + "/grids/x_end", "int64", 1, false, "grid"),
+             lagoon_rows::make(dir + "/grids/y_end", "int64", 1, false, "grid"),
+             lagoon_rows::make(dir + "/grids/cell_end", "int64", 1, false, "grid")};
+    nodes = {lagoon_rows::make(dir + "/x", "float64", 1, true, "node"),
+             lagoon_rows::make(dir + "/y", "float64", 1, true, "node")};
+    cells.clear();
+    for(const field &f : fields)
+        cells.push_back(lagoon_rows::make(dir + "/cell_data/" + array_name(f.name),
+                                          f.integer ? "int32" : "float32", 1, false, "cell"));
+    for(const lagoon_rows::array &a : table)
+        rw.write_meta(a);
+    for(const lagoon_rows::array &a : nodes)
+        rw.write_meta(a);
+    for(const lagoon_rows::array &a : cells)
+        rw.write_meta(a);
+    grid_end.clear();
+    rw.write_ends(dir + "/grid_end", grid_end, "time");
+    store.commit("amr/" + key, -1, 0.0, 0);  // empty time and step
+    started = true;
+}
+
+bool lagoon_amr::output(double time, long long step, const std::vector<grid> &grids)
+{
+    if(!ok)
+        return false;
+    try
+    {
+        const size_t nf = fields.size();
+        std::vector<int32_t> level, rank, size;
+        std::vector<int64_t> xe, ye, ce;
+        std::vector<double> x, y;
+        std::vector<std::vector<unsigned char> > values(nf);
+        for(const grid &g : grids)
+        {
+            const size_t n = size_t(g.nx)*size_t(g.ny);
+            if(g.nx<1 || g.ny<1 || g.x.size()!=size_t(g.nx+1) || g.y.size()!=size_t(g.ny+1)
+               || g.values.size()!=nf*n)
+                throw std::runtime_error("lagoon_amr: a grid's sizes do not fit");
+            level.push_back(g.level);
+            rank.push_back(g.rank);
+            size.push_back(g.nx);
+            size.push_back(g.ny);
+            x.insert(x.end(), g.x.begin(), g.x.end());
+            y.insert(y.end(), g.y.begin(), g.y.end());
+            x_end += g.nx + 1;
+            y_end += g.ny + 1;
+            cell_end += (long long)n;
+            xe.push_back(x_end);
+            ye.push_back(y_end);
+            ce.push_back(cell_end);
+            for(size_t f=0; f<nf; ++f)
+            {
+                std::vector<unsigned char> &out = values[f];
+                const size_t at = out.size();
+                out.resize(at + 4*n);
+                for(size_t c=0; c<n; ++c)
+                {
+                    const double v = g.values[f*n + c];
+                    if(fields[f].integer)
+                    {
+                        const int32_t i = int32_t(std::lround(v));
+                        std::memcpy(&out[at + 4*c], &i, 4);
+                    }
+                    else
+                    {
+                        const float r = float(v);
+                        std::memcpy(&out[at + 4*c], &r, 4);
+                    }
+                }
+            }
+        }
+        if(!started)
+            start();
+        const size_t ng = grids.size();
+        // the rows first, the table, then where the output ends, time last
+        for(size_t f=0; f<nf; ++f)
+            rw.append(cells[f], values[f].data(), values[f].size()/4);
+        rw.append(nodes[0], reinterpret_cast<const unsigned char*>(x.data()), x.size());
+        rw.append(nodes[1], reinterpret_cast<const unsigned char*>(y.data()), y.size());
+        rw.append(table[0], reinterpret_cast<const unsigned char*>(level.data()), ng);
+        rw.append(table[1], reinterpret_cast<const unsigned char*>(rank.data()), ng);
+        rw.append(table[2], reinterpret_cast<const unsigned char*>(size.data()), ng);
+        rw.append(table[3], reinterpret_cast<const unsigned char*>(xe.data()), ng);
+        rw.append(table[4], reinterpret_cast<const unsigned char*>(ye.data()), ng);
+        rw.append(table[5], reinterpret_cast<const unsigned char*>(ce.data()), ng);
+        grid_end.push_back((grid_end.empty() ? 0 : grid_end.back()) + (long long)ng);
+        rw.write_ends(dir + "/grid_end", grid_end, "time");
+        store.commit("amr/" + key, int(grid_end.size()-1), time, step);  // step, then time
+        return true;
+    }
+    catch(std::exception &problem)
+    {
+        std::cout<<"LAGOON: "<<problem.what()<<"; no more AMR output in the LAGOON store"<<std::endl;
+        ok = false;
+        return false;
+    }
+}
+
+void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double> &out)
+{
+    out.push_back(double(grids.size()));
+    for(const grid &g : grids)
+    {
+        out.push_back(g.level);
+        out.push_back(g.nx);
+        out.push_back(g.ny);
+        out.insert(out.end(), g.x.begin(), g.x.end());
+        out.insert(out.end(), g.y.begin(), g.y.end());
+        const size_t n = size_t(nf)*size_t(g.nx)*size_t(g.ny);
+        if(g.values.size()!=n)
+            throw std::runtime_error("lagoon_amr: a grid's values do not fit its size");
+        out.insert(out.end(), g.values.begin(), g.values.end());
+    }
+}
+
+bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vector<grid> &out)
+{
+    if(n<1)
+        return false;
+    size_t at = 0;
+    const long long count = (long long)data[at++];
+    for(long long q=0; q<count; ++q)
+    {
+        if(at + 3 > n)
+            return false;
+        grid g;
+        g.level = int(data[at]);
+        g.nx = int(data[at+1]);
+        g.ny = int(data[at+2]);
+        g.rank = rank;
+        at += 3;
+        const size_t need = size_t(g.nx+1) + size_t(g.ny+1) + size_t(nf)*size_t(g.nx)*size_t(g.ny);
+        if(g.nx<1 || g.ny<1 || at + need > n)
+            return false;
+        g.x.assign(data + at, data + at + g.nx + 1);
+        at += g.nx + 1;
+        g.y.assign(data + at, data + at + g.ny + 1);
+        at += g.ny + 1;
+        const size_t nv = size_t(nf)*size_t(g.nx)*size_t(g.ny);
+        g.values.assign(data + at, data + at + nv);
+        at += nv;
+        out.push_back(std::move(g));
+    }
+    return at==n;
 }

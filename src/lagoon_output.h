@@ -118,4 +118,30 @@ private:
     bool start(lexer*, ghostcell*, const std::vector<lagoon_store::variable> &fields);
 };
 
+// LAGOON store output of an AMR solver's free surface (P 18; FNPF, NHFLOW, SFLOW with
+// A 270): the grids of every rank (its level 0 and its patches, as its .vtr files have
+// them) are gathered on rank 0, which writes them to the AMR set <solver>_amr of
+// ./REEF3D_<SOLVER>.lagoon (lagoon_store.h, lagoon_amr): level 0 of all ranks first,
+// then the patches, rank by rank, as the .vtm lists them.
+class lagoon_amr_output
+{
+public:
+    // solver: "FNPF", "NHFLOW", "SFLOW"; fields: the cell fields of every grid, in order
+    lagoon_amr_output(const char *solver, const std::vector<lagoon_amr::field> &fields);
+
+    // every rank, at every AMR output, with its grids. True on every rank when the output
+    // is in the store; false (on every rank) when the .vtr and .vtm files are needed
+    // instead: from then on nothing more goes to the store.
+    bool write(lexer*, ghostcell*, const std::vector<lagoon_amr::grid> &grids, int printcount);
+
+    // with P 18 1, an output in the store has no .vtr and .vtm files
+    static bool files_needed(lexer*, bool stored);
+
+private:
+    std::string solver;
+    std::vector<lagoon_amr::field> fields;
+    lagoon_amr *writer;
+    bool usable;
+};
+
 #endif

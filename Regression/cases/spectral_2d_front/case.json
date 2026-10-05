@@ -1,5 +1,5 @@
 {
- "description": "REEF3D::Spectral nonstationary (A 600 1): unidirectional JONSWAP enters a 20 km channel at constant depth, implicit time step 60 s (Courant number up to ~8), 15 steps. Validation in Dropbox SpectralWave/validation/03_front (energy conservation to 4e-8, N >= 0, front at cg t).",
+ "description": "REEF3D::Spectral nonstationary (A 700 1): unidirectional JONSWAP enters a 20 km channel at constant depth, implicit time step 60 s (Courant number up to ~8), 15 steps. Validation in Dropbox SpectralWave/validation/03_front (energy conservation to 4e-8, N >= 0, front at cg t).",
  "solver": "spectral",
  "np": 1,
  "steps": 15,

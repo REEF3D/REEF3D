@@ -24,11 +24,14 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
+#include<cctype>
 #include<cstdio>
 #include<cstdlib>
 #include<cstring>
 #include<fstream>
 #include<iostream>
+#include<iterator>
+#include<limits>
 #include<sstream>
 #include<sys/stat.h>
 
@@ -386,4 +389,106 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, const std::string &buff
     if(p->mpirank==0)
         store.commit(output, t, p->simtime, num);
     ++t;
+}
+
+// ======================================================================== AMR surfaces
+lagoon_amr_output::lagoon_amr_output(const char *solver_, const std::vector<lagoon_amr::field> &fields_)
+    : solver(solver_), fields(fields_), writer(nullptr), usable(true)
+{
+}
+
+bool lagoon_amr_output::files_needed(lexer *p, bool stored)
+{
+    return !(stored && p->P18==1);
+}
+
+bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon_amr::grid> &grids, int printcount)
+{
+    if(!usable || lagoon_output::failed)  // the same on every rank
+        return false;
+
+    int ok = 1;
+    std::vector<double> mine;
+    try
+    {
+        lagoon_amr::pack(grids, int(fields.size()), mine);
+    }
+    catch(std::exception &problem)
+    {
+        std::cout<<"LAGOON: "<<problem.what()<<std::endl;
+        mine.clear();
+        ok = 0;
+    }
+    if(mine.size() > size_t(std::numeric_limits<int>::max()))
+    {
+        mine.clear();
+        ok = 0;
+    }
+    int ok_all = 0;
+    MPI_Allreduce(&ok,&ok_all,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
+
+    // every rank's grids to rank 0
+    int count = int(mine.size());
+    std::vector<int> counts(p->mpi_size,0), starts(p->mpi_size,0);
+    MPI_Gather(&count,1,MPI_INT,counts.data(),1,MPI_INT,0,pgc->mpi_comm);
+    std::vector<double> all;
+    if(p->mpirank==0)
+    {
+        long long total = 0;
+        for(int r=0; r<p->mpi_size; ++r)
+        {
+            starts[r] = int(total);
+            total += counts[r];
+        }
+        if(total > (long long)std::numeric_limits<int>::max())
+            ok_all = 0;
+        else
+            all.resize(size_t(total));
+    }
+    MPI_Bcast(&ok_all,1,MPI_INT,0,pgc->mpi_comm);
+    if(ok_all==1)
+        MPI_Gatherv(mine.data(),count,MPI_DOUBLE,all.data(),counts.data(),starts.data(),MPI_DOUBLE,0,pgc->mpi_comm);
+
+    if(p->mpirank==0 && ok_all==1)
+    {
+        // level 0 of every rank, then the patches, rank by rank (as the .vtm lists them)
+        std::vector<lagoon_amr::grid> level0, patches;
+        for(int r=0; r<p->mpi_size && ok_all==1; ++r)
+        {
+            std::vector<lagoon_amr::grid> one;
+            if(!lagoon_amr::unpack(all.data() + starts[r], size_t(counts[r]), int(fields.size()), r, one))
+            {
+                std::cout<<"LAGOON: the AMR grids of rank "<<r<<" did not arrive whole"<<std::endl;
+                ok_all = 0;
+                break;
+            }
+            for(lagoon_amr::grid &g : one)
+                (g.level==0 ? level0 : patches).push_back(std::move(g));
+        }
+        if(ok_all==1)
+        {
+            if(writer==nullptr)
+            {
+                std::string run;
+                if(p->plog)
+                    run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+                std::string key = solver;
+                for(char &c : key)
+                    c = char(std::tolower((unsigned char)c));
+                writer = new lagoon_amr(store_path(solver.c_str()), solver, key + "_amr",
+                                        "REEF3D_" + solver + "_AMR", run, fields);
+            }
+            level0.insert(level0.end(), std::make_move_iterator(patches.begin()), std::make_move_iterator(patches.end()));
+            ok_all = writer->output(p->simtime, printcount, level0) ? 1 : 0;
+        }
+    }
+    MPI_Bcast(&ok_all,1,MPI_INT,0,pgc->mpi_comm);
+    if(ok_all!=1)
+    {
+        usable = false;
+        lagoon_output::failed = true;
+        if(p->mpirank==0)
+            std::cout<<"LAGOON: no more "<<solver<<" AMR output in the store; the .vtr and .vtm files are written"<<std::endl;
+    }
+    return ok_all==1;
 }

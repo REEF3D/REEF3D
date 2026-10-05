@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"lagoon_output.h"
 #include<mpi.h>
 #include<iomanip>
 #include<cstdio>
@@ -32,7 +33,8 @@ Author: Hans Bihs
 //  Output of NHFLOW AMR: the free surface of level 0 and of every patch as VTK rectilinear grids
 //  (REEF3D_NHFLOW_AMR/*.vtr, indexed by a .vtm per output time, P 20 / P 30 as the NHFLOW
 //  output), the wave gauges P 51 from the finest grid that holds them (bilinear between the cell
-//  centres), and a log with the water volume of the leaf cells.
+//  centres), and a log with the water volume of the leaf cells. P 18: the grids also in the
+//  LAGOON store (P 18 1: instead of the .vtr and .vtm files).
 
 using namespace nhflow_amr_detail;
 
@@ -107,6 +109,17 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(!doprint)
     return;
+
+    // P 18: the grids in the LAGOON store; P 18 1: instead of the .vtr and .vtm files
+    bool stored = false;
+    if(p->P18>0)
+    stored = print_lagoon(p,d,pgc);
+
+    if(!lagoon_amr_output::files_needed(p,stored))
+    {
+        ++printcount_amr;
+        return;
+    }
 
     write_vtr0(p,d);
 
@@ -215,21 +228,11 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 namespace
 {
-// cell data of a 2D window [i0,i1)x[j0,j1) of a grid: eta, elevation, bed, and the velocities of
-// the top layer
-void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int j1, bool wet)
+// the cell fields of a grid: eta, elevation, bed, and the velocities of the top layer;
+// field(name, value(ii,jj)) for each, in the order of the .vtr files (and the LAGOON store)
+template<class FIELD>
+void amr_fields(lexer *q, fdm_nhf *d, bool wet, FIELD field)
 {
-    auto field = [&](const char *nm, auto f)
-    {
-        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
-        for(int jj=j0; jj<j1; ++jj)
-        {
-            for(int ii=i0; ii<i1; ++ii)
-            out<<setprecision(17)<<f(ii,jj)<<" ";
-            out<<"\n";
-        }
-        out<<"</DataArray>\n";
-    };
     const int kt = q->knoz-1;
     auto c3 = [&](int ii, int jj) { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kt-q->kmin; };
 
@@ -244,6 +247,22 @@ void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int
     field("wet",[&](int ii, int jj) { return double(q->wet[(ii-q->imin)*q->jmax + (jj-q->jmin)]); });
     field("WL",[&](int ii, int jj) { return d->WL(ii,jj); });
     }
+}
+
+// cell data of a 2D window [i0,i1)x[j0,j1) of a grid, as ASCII .vtr data arrays
+void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int j1, bool wet)
+{
+    amr_fields(q,d,wet,[&](const char *nm, auto f)
+    {
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=j0; jj<j1; ++jj)
+        {
+            for(int ii=i0; ii<i1; ++ii)
+            out<<setprecision(17)<<f(ii,jj)<<" ";
+            out<<"\n";
+        }
+        out<<"</DataArray>\n";
+    });
 }
 }
 
@@ -295,4 +314,39 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
     out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
+}
+
+// P 18: this rank's grids as its .vtr files have them (amr_fields), gathered into the LAGOON
+// store; true when the output is there
+bool nhflow_amr::print_lagoon(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    static lagoon_amr_output *writer = nullptr;
+    const int m = marge;
+    vector<lagoon_amr::grid> grids;
+    vector<lagoon_amr::field> fields;
+    auto take = [&](lexer *q, fdm_nhf *dd, int i0, int j0, int nx, int ny, int level)
+    {
+        lagoon_amr::grid g;
+        g.level = level;
+        g.nx = nx;
+        g.ny = ny;
+        for(int ii=i0; ii<=i0+nx; ++ii) g.x.push_back(q->XN[ii+m]);
+        for(int jj=j0; jj<=j0+ny; ++jj) g.y.push_back(q->YN[jj+m]);
+        fields.clear();
+        amr_fields(q,dd,shore,[&](const char *nm, auto f)
+        {
+            fields.push_back({nm,false});
+            for(int jj=j0; jj<j0+ny; ++jj)
+            for(int ii=i0; ii<i0+nx; ++ii)
+            g.values.push_back(f(ii,jj));
+        });
+        grids.push_back(std::move(g));
+    };
+    take(p,d,0,0,p->knox,p->knoy,0);
+    for(int n=0; n<(int)P.size(); ++n)
+    take(NP(n)->pp,NP(n)->d,EXT,EXT,NP(n)->nx,NP(n)->ny,NP(n)->lev);
+
+    if(writer==nullptr)
+    writer = new lagoon_amr_output("NHFLOW",fields);
+    return writer->write(p,pgc,grids,printcount_amr);
 }

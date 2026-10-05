@@ -241,6 +241,7 @@ private:
     // output
     void write_vtr(lexer*, fnpf_amr_patch&, int);
     void write_vtr0(lexer*, fdm_fnpf*);
+    bool print_lagoon(lexer*, fdm_fnpf*, ghostcell*);
     void gauges(lexer*, fdm_fnpf*, ghostcell*);
     ofstream gaugeout, logout;
 

@@ -4,5 +4,5 @@
  "np": 1,
  "steps": 5,
  "tags": ["quick", "2d", "spectral"],
- "covers": ["spectral_f (A 10 7)", "keys A 601-606, A 610", "spectral_grid", "spectral_store tiles, land not allocated", "parametric initial spectrum (B 85 2, B 93, B 130 2)", "spectral_param", "spectral_vtp", "REEF3D_SPECTRAL_Log integral"]
+ "covers": ["spectral_f (A 10 7)", "keys A 701-706, A 710", "spectral_grid", "spectral_store tiles, land not allocated", "parametric initial spectrum (B 85 2, B 93, B 130 2)", "spectral_param", "spectral_vtp", "REEF3D_SPECTRAL_Log integral"]
 }

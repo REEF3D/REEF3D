@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"lagoon_output.h"
 #include<mpi.h>
 #include<iomanip>
 #include<cstdio>
@@ -31,7 +32,8 @@ Author: Hans Bihs
 //  Output of FNPF AMR: the free surface of level 0 and of every patch as VTK rectilinear
 //  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time, P 20 / P 30 as the FNPF
 //  output), the wave gauges P 51 from the finest grid that holds them (bilinear between the
-//  cell centres), and a log.
+//  cell centres), and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of
+//  the .vtr and .vtm files).
 
 namespace
 {
@@ -94,6 +96,17 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     if(!doprint)
     return;
+
+    // P 18: the grids in the LAGOON store; P 18 1: instead of the .vtr and .vtm files
+    bool stored = false;
+    if(p->P18>0)
+    stored = print_lagoon(p,c,pgc);
+
+    if(!lagoon_amr_output::files_needed(p,stored))
+    {
+        ++printcount_amr;
+        return;
+    }
 
     write_vtr0(p,c);
 
@@ -284,4 +297,42 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
     out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
+}
+
+// P 18: this rank's grids as its .vtr files have them (the fields of write_vtr0 and
+// write_vtr), gathered into the LAGOON store; true when the output is there
+bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    static lagoon_amr_output *writer = nullptr;
+    if(writer==nullptr)
+    writer = new lagoon_amr_output("FNPF", {{"eta",false}, {"elevation",false}, {"Fifsf",false}, {"Fz",false}, {"bed",false}});
+
+    const int m = marge;
+    vector<lagoon_amr::grid> grids;
+    auto take = [&](lexer *q, fdm_fnpf *f, int i0, int j0, int nx, int ny, int level)
+    {
+        lagoon_amr::grid g;
+        g.level = level;
+        g.nx = nx;
+        g.ny = ny;
+        for(int ii=i0; ii<=i0+nx; ++ii) g.x.push_back(q->XN[ii+m]);
+        for(int jj=j0; jj<=j0+ny; ++jj) g.y.push_back(q->YN[jj+m]);
+        auto field = [&](slice &s, double shift)
+        {
+            for(int jj=j0; jj<j0+ny; ++jj)
+            for(int ii=i0; ii<i0+nx; ++ii)
+            g.values.push_back(s(ii,jj)+shift);
+        };
+        field(f->eta,0.0);
+        field(f->eta,p->wd);
+        field(f->Fifsf,0.0);
+        field(f->Fz,0.0);
+        field(f->bed,0.0);
+        grids.push_back(std::move(g));
+    };
+    take(p,c,0,0,p->knox,p->knoy,0);
+    for(int n=0; n<(int)P.size(); ++n)
+    take(FP(n)->pp,FP(n)->c,EXT,EXT,FP(n)->nx,FP(n)->ny,FP(n)->lev);
+
+    return writer->write(p,pgc,grids,printcount_amr);
 }
