@@ -693,6 +693,27 @@ void control::read_control(lexer* p)
                 case 599: control>>A599;
                          clear(c,numint);
                          break;
+                case 701: control>>A701;
+                         clear(c,numint);
+                         break;
+                case 702: control>>A702_fmin>>A702_fmax;
+                         clear(c,numint);
+                         break;
+                case 703: control>>A703;
+                         clear(c,numint);
+                         break;
+                case 704: control>>A704;
+                         clear(c,numint);
+                         break;
+                case 705: control>>A705;
+                         clear(c,numint);
+                         break;
+                case 706: control>>A706;
+                         clear(c,numint);
+                         break;
+                case 710: control>>A710;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

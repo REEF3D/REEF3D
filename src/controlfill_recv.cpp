@@ -518,6 +518,22 @@ void control::ctrlrecv()
     ii++;
     A599 = ictrl[ii];
     ii++;
+    A701 = ictrl[ii];
+    ii++;
+    A702_fmin = dctrl[dd];
+    dd++;
+    A702_fmax = dctrl[dd];
+    dd++;
+    A703 = ictrl[ii];
+    ii++;
+    A704 = ictrl[ii];
+    ii++;
+    A705 = dctrl[dd];
+    dd++;
+    A706 = dctrl[dd];
+    dd++;
+    A710 = ictrl[ii];
+    ii++;
 
     B10 = ictrl[ii];
     ii++;

@@ -522,6 +522,22 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A599;
     ii++;
+    ictrl[ii] = A701;
+    ii++;
+    dctrl[dd] = A702_fmin;
+    dd++;
+    dctrl[dd] = A702_fmax;
+    dd++;
+    ictrl[ii] = A703;
+    ii++;
+    ictrl[ii] = A704;
+    ii++;
+    dctrl[dd] = A705;
+    dd++;
+    dctrl[dd] = A706;
+    dd++;
+    ictrl[ii] = A710;
+    ii++;
 
     ictrl[ii] = B10;
     ii++;

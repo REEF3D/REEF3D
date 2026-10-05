@@ -116,6 +116,10 @@ public:
     double A592_dx,A592_dy,A592_dz;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
 
+    // Spectral
+    int A701,A703,A704,A710;
+    double A702_fmin,A702_fmax,A705,A706;
+
     // NHFLOW Lagrangian particles
     int L10,L11;
     int L21,L22,L23;

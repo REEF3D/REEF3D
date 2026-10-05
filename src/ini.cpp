@@ -26,7 +26,7 @@ Author: Hans Bihs
 void control::ini_default()
 {
     // Hydrodynamic Models
-    A10=6;       // int hydrodynamic models
+    A10=6;       // int hydrodynamic models: 2 SFLOW, 3 FNPF, 5 NHFLOW, 6 CFD, 7 Spectral
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
@@ -274,6 +274,16 @@ void control::ini_default()
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
     A599=0;     // use dlm instead of df
+
+    // Spectral
+    A701=32;          // int number of frequencies (logarithmic spacing)
+    A702_fmin=0.04;   // double lowest frequency [Hz]
+    A702_fmax=1.0;    // double highest frequency [Hz]
+    A703=36;          // int number of directions (full circle)
+    A704=16;          // int tile size (cells) of the block-sparse action storage
+    A705=0.05;        // double minimum water depth of an active (wet) cell [m]
+    A706=60.0;        // double time step [s]
+    A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
 
     // NHFLOW Lagrangian particles
     L10=0;       // int particle tracking
