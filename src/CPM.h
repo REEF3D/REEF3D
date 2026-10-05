@@ -234,6 +234,7 @@ private:
     double Vp;
     
     double Dpx,Dpy,Dpz;
+    double Hjam;    // jammed-bed weight of the current parcel (Q 58, S 10 1), set by advec_mppic
     double dPx_val,dPy_val,dPz_val;
     double Bx,By,Bz;
     double uf,vf,wf;

@@ -89,6 +89,11 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
         if(p->Q12==2 && p->Q13==1)
         friction(p,a,P.X[n],P.Y[n],P.Z[n],P.URK1[n],P.VRK1[n],P.WRK1[n],dt,fac);
         
+        // jammed bed
+        P.URK1[n] *= 1.0-Hjam;
+        P.VRK1[n] *= 1.0-Hjam;
+        P.WRK1[n] *= 1.0-Hjam;
+        
         P.XRK1[n] = P.X[n] + dt*P.URK1[n];
         P.YRK1[n] = P.Y[n] + dt*P.VRK1[n];
         P.ZRK1[n] = P.Z[n] + dt*P.WRK1[n];
@@ -125,6 +130,11 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
         
         if(p->Q12==2 && p->Q13==1)
         friction(p,a,P.XRK1[n],P.YRK1[n],P.ZRK1[n],P.U[n],P.V[n],P.W[n],0.5*dt,fac);
+        
+        // jammed bed
+        P.U[n] *= 1.0-Hjam;
+        P.V[n] *= 1.0-Hjam;
+        P.W[n] *= 1.0-Hjam;
         
         // tentative position in XRK1, velocity in URK1
         P.XRK1[n] = 0.5*P.X[n] + 0.5*P.XRK1[n] + 0.5*dt*P.U[n];

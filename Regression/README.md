@@ -119,6 +119,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_6dof_membrane_collar` | 2 | rigid membrane bag (X330) on a floating collar |
 | `nhflow_3d_membrane_cylcone_current` | 2 | fixed membrane bag `cylcone` (cylinder on a cone, sloped floor) in a current: B60=1 + potential start, HLLC (needs patch 0002) |
 | `nhflow_3d_membrane_cylcone_drain` | 2 | flexible `cylcone` bag, filling + drain, staggered coupling, compression; hydrograph inflow B60=2 (needs patches 0001, 0002) |
+| `nhflow_3d_membrane_sharp_static80` | 2 | fixed `cylcone` bag filled to 80 % in still water, `mobility sharp` (nhflow_thinbody: blocked links, wall fluxes, head below the floor, rigid lid) (needs patch 0004) |
+| `nhflow_3d_membrane_sharp_current` | 2 | fixed `cylcone` bag in a current with `mobility sharp`: B60=1 + potential start, guarded fluxes near the bag (needs patch 0004) |
 | `nhflow_3d_6dof_box` | 2 | NHFLOW 3D box, all six DOFs free, initial roll/yaw |
 | `nhflow_3d_shipwave_box` | 1 | NHFLOW moving pressure patch, ship-wave mode (X10=3, X400=2) |
 | `sflow_shipwave_box` (+ `sflow_6dof_box_oneway`) | 1 | SFLOW ship pressure patch (X10=3) / one-way direct forcing (X10=2) |
@@ -139,6 +141,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_fem_simple_wall` | 1 | FEM simple input (concrete C30 preset, fix base, monitor auto, resolution), settling with the initial water, hybrid loads, structural damping |
 | `cfd_2d_fem_floating` | 1 | FEM rigid body (floating box, `material rigid 500`) in the collapsing water column: rigid-body integration, pressure loads with the probe correction and the added-mass stabilisation |
 | `cfd_2d_fem_debris_impact` | 1 | FEM rigid timber block (`stiffness 2e5`) on the dry bed pushed by the dam-break surge onto an elastic post: debris impact as one spring of the debris stiffness, ground contact, pressure beside the body for faces on the floor |
+| `nhflow_2d_fem_wall` | 1 | FEM coupled with NHFLOW (Z 30, A 10 5): concrete wall holding a 0.3 m water column on the dry bed; cells inside the structure marked solid (p->DF -1, no continuity flux, d->solid_flux), water at rest, hydrostatic load (needs patches 0016, 0017) |
+| `nhflow_2d_fem_floating` | 1 | FEM rigid floating box in NHFLOW still water: probed pressure (filtered non-hydrostatic part plus hydrostatic of the free surface), added-mass factor 5, heave towards the 5 cm draft (needs patches 0016, 0017) |
+| `nhflow_2d_fem_debris_impact` (+ `_mpi2`) | 1/2 | FEM rigid timber block carried by an NHFLOW dam-break surge over the dry bed onto a concrete post that stands dry: wet/dry columns, debris contact, probes kept out of solid cells, subdomain border at the post (needs patches 0016, 0017) |
 | `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
 | `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
 | `nhflow_2d_awa` | 1 | NHFLOW active wave generation + active absorption (B98=4/B99=3) |
@@ -170,6 +175,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_amr_breaking_adaptive` (+ `_mpi2`) | 1/2 | breaking with the adaptive patch following the bore (G 20, G 23), wetting and drying, regrid every step; `_mpi2`: different patch counts per rank (local reductions, gcparaxijk_single) |
 | `nhflow_3d_amr_breaking_g31_0` | 1 | `nhflow_3d_amr_breaking_adaptive` with the per-grid implicit diffusion of step 7 (G 31 0): a patch-local bicgstab_ijk per patch |
 | `nhflow_3d_amr_cdiff_vref_rk3` | 1 | `nhflow_3d_amr_tow_vref_rk3` with A 512 2: the composite implicit diffusion (G 31 1) with RK3 (phase_D), vertical refinement (G 6) and a regrid every step |
+| `sflow_2d_amr_dambreak` (+ `_mpi2`, `_place`, `_place2`) | 1/2 | SFLOW AMR dam break (tutorial 8_6): 2 levels following the surface jump (G 20), regrid every 4 steps; `_mpi2` patches cut at the rank boxes, `_place` G 40 1, `_place2` G 40 2 (remote parents, migration: restrict_levels, ini_patch_old/prolong) |
+| `sflow_2d_amr_bar_nh` (+ `_place2`) | 1/2 | SFLOW AMR non-hydrostatic bar (tutorial 8_7, A 220 1): static boxes, composite pressure; `_place2` through the block plans |
+| `sflow_2d_amr_bar_bous` (+ `_place2`) | 1/2 | the bar with Boussinesq (A 220 4): u_a on the leaf cells of all levels; `_place2` G 40 2 |
+| `fnpf_3d_amr_basin` (+ `_mpi2`, `_place2`) | 1/2 | FNPF AMR waves through a static box (composite Laplace); `_place2` G 40 2: remote parents in the FAC preconditioner |
+| `fnpf_3d_amr_tow` (+ `_place2`) | 1/2 | FNPF AMR towed floating body (X 10 1, X 210), the zone follows it (G 12, G 2 4); `_place2` G 40 2: zone patch placed whole, body grids and triangle ownership |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
 | `fnpf_3d_two_edges` | 2 | the same in FNPF |
 | `nhflow_2d_custom_zones` | 1 | old input: custom B 108 generation zone, two B 107 beach zones |
@@ -223,6 +233,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_wind` | 1 | REEF3D::SEASTATE stationary fetch-limited wind sea (A 730-735): Komen wind input and whitecapping, DIA, action density limiter, pseudo time step, zero-gradient lateral sides (A 712 2); validated in Dropbox SEASTATE/validation/05_fetch_limited |
 | `seastate_2d_windsea_mpi2` | 2 | REEF3D::SEASTATE nonstationary wind-sea growth from rest, oblique wind, 2 ranks: source terms with the limiter and the halo exchange |
 | `seastate_2d_surf` | 1 | REEF3D::SEASTATE stationary surf zone on a plane slope: Battjes-Janssen breaking (A 740), JONSWAP friction (A 742), LTA triads (A 744), oblique Mitsuyasu spectrum, zero-gradient sides; single terms validated in Dropbox SEASTATE/validation/06-08 |
+| `seastate_2d_handover` | 1 | REEF3D::SEASTATE handover of 2D spectra for the FNPF/NHFLOW wave generation (A 760/A 761, `REEF3D_SEASTATE_Spectra/spectrum-file-2d_P<n>.dat`, B 85 11 format), incl. a point outside the domain; validated in Dropbox SEASTATE/validation/11_handover |
+| `seastate_sflow_setup` | 1 | REEF3D::SEASTATE coupled with SFLOW (A 10 2, A 750 1), radiation stress (A 751 1): set-down and set-up on a plane beach in a closed basin, water level and currents fed back, drying cells; validated in Dropbox SEASTATE/validation/09_setup |
+| `seastate_sflow_vf_mpi2` | 2 | REEF3D::SEASTATE coupled with SFLOW on 2 ranks, vortex force (A 751 2) with the Stokes transport in the SFLOW continuity, oblique Mitsuyasu spectrum, handover point in a coupled run |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,

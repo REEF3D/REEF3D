@@ -1,0 +1,19 @@
+{
+ "description": "sflow_2d_amr_bar_nh with the Boussinesq model (A 220 4): u_a on the leaf cells of all levels.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "bous"
+ ],
+ "covers": [
+  "sflow_amr_bous"
+ ],
+ "base": "sflow_2d_amr_bar_nh",
+ "ctrl_set": {
+  "A 220": "4"
+ }
+}

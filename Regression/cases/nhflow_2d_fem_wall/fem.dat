@@ -1,0 +1,7 @@
+# concrete wall holding a 0.3 m water column on the dry bed (NHFLOW): hydrostatic load 4.41 N on the slice
+# Architect: Hans Bihs
+material concrete C30
+box 0.15 0.17 0.0 0.01 0.0 0.40
+fix base
+monitor top auto
+resolution normal

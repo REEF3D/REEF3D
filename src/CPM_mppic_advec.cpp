@@ -150,26 +150,35 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // solid forcing
     double fx,fy,fz;
     
-    // with the bedload layer (Q 58) the bed level of the fluid is not the bed of the parcels (single
-    // valued, relaxed in time): the parcels feel the forcing of the solid bodies and of their own bed
-    // (iso-surface of the solid fraction), as the forcing of the fluid does without the layer
+    // jammed bed (Q 58, S 10 1): below a mobile surface layer of thickness psi = Q 64 h the bed of the
+    // parcels (iso-surface of the solid fraction) is rigid, as are the solid bodies. The surface layer
+    // is free (no constraint), the transition to the rigid bed is a smooth Heaviside over -2 psi .. -psi.
+    // Slopes then fail by avalanches of the surface layer, held by the Coulomb friction (repose);
+    // deep failures are not represented.
+    // The constraint is applied to the new velocity after drag and friction, u -> (1 - Hs) u
+    // (Hjam, in the time schemes): an explicit forcing would leave the velocity dt*F of the
+    // other forces in the jammed bed, a creep of mm/s. A partial constraint is a relaxation per
+    // sub-step, so it is kept out of the mobile layer.
+    // (Without the layer the forcing of the fluid does the same with the fluid's bed, X 41.)
+    Hjam = 0.0;
+    
     if(p->Q58>0 && p->S10==1)
     {
         i = p->posc_i(PX[n]);
         j = p->posc_j(PY[n]);
         k = p->posc_k(PZ[n]);
         
-        double psi = p->X41*(p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]));
+        double psi = p->Q64*(p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]));
         double phi = ptopo(p,a,PX[n],PY[n],PZ[n]);
         
         if(p->solidread>0)
         phi = MIN(phi, p->ccipol4_b(a->solid,PX[n],PY[n],PZ[n]));
         
-        double Hs = phi>=psi ? 0.0 : (phi<=-psi ? 1.0 : 0.5*(1.0 - phi/psi - (1.0/PI)*sin(PI*phi/psi)));
+        double xi = phi + 1.5*psi;
+        double hw = 0.5*psi;
+        Hjam = xi>=hw ? 0.0 : (xi<=-hw ? 1.0 : 0.5*(1.0 - xi/hw - (1.0/PI)*sin(PI*xi/hw)));
         
-        fx = Hs*(0.0-PU[n])/dt;
-        fy = Hs*(0.0-PV[n])/dt;
-        fz = Hs*(0.0-PW[n])/dt;
+        fx = fy = fz = 0.0;
     }
     else
     {

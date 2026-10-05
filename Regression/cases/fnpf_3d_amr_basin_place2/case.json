@@ -1,0 +1,21 @@
+{
+ "description": "fnpf_3d_amr_basin on 2 ranks, placement test mode (G 40 2): small pieces away from the rank below.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "FNPF placement: block plans in the composite Laplace"
+ ],
+ "base": "fnpf_3d_amr_basin",
+ "ctrl_add": [
+  "G 40 2"
+ ]
+}

@@ -72,6 +72,8 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_WSFLINE/*.dat",
     "REEF3D_NHFLOW_6DOF/*.dat",
     "REEF3D_NHFLOW_AMR/*.dat",
+    "REEF3D_SFLOW_AMR/*.dat",
+    "REEF3D_FNPF_AMR/*.dat",
     "REEF3D_FNPF_WSF/*.dat",
     "REEF3D_FNPF_ProbePoint/*.dat",
     "REEF3D_FNPF_WSFLINE/*.dat",
@@ -81,6 +83,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_SFLOW_WSFLINE/*.dat",
     "REEF3D_SFLOW_6DOF/*.dat",
     "REEF3D_SEASTATE_Log/*.dat",
+    "REEF3D_SEASTATE_Spectra/*.dat",
 ]
 
 # output folders deleted after a run unless --keep (large and not compared)

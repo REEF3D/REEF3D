@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 3D fixed membrane bag 'membrane cylcone' filled to 80 % in still water with 'mobility sharp' (nhflow_thinbody: blocked links, wall fluxes, hydrostatic head eta_L below the floor, rigid lid). The inner level 8 cm below the outer one has to stay at rest. Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "files": ["membrane.dat"],
+ "tags": ["3d", "nhflow", "membrane", "mpi"],
+ "covers": ["nhflow_thinbody flux_hook / projection_rhs / cut_forcing", "update_etaL", "lid_correction", "net_membrane link_mobility sharp", "link_loads sharp"]
+}

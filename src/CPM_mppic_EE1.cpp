@@ -164,6 +164,11 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         if(p->Q12==2 && p->Q13==1)
         friction(p,a,P.X[n],P.Y[n],P.Z[n],P.URK1[n],P.VRK1[n],P.WRK1[n],dt,fac);
         
+        // jammed bed
+        P.URK1[n] *= 1.0-Hjam;
+        P.VRK1[n] *= 1.0-Hjam;
+        P.WRK1[n] *= 1.0-Hjam;
+        
         // tentative position
         P.XRK1[n] = P.X[n] + dt*P.URK1[n];
         P.YRK1[n] = P.Y[n] + dt*P.VRK1[n];

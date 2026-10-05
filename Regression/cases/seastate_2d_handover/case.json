@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE handover of 2D spectra for the phase-resolved wave generation (A 760, B 85 11 format): stationary shoaling of a Mitsuyasu spectrum (20 deg) on a plane slope with zero-gradient lateral sides, spectra at x = 3000 m and 4500 m (default sector +-90 deg) and a point outside the domain (reported, no file). Validation of the handover (SEASTATE -> FNPF) in Dropbox SEASTATE/validation/11_handover.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_f handover, spectrum-file-2d format, sector, energy-preserving domega"]
+}

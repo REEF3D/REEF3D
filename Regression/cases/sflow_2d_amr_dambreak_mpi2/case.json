@@ -1,0 +1,17 @@
+{
+ "description": "sflow_2d_amr_dambreak on 2 ranks, patches cut at the rank boxes (G 40 0).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr owner placement on 2 ranks"
+ ],
+ "base": "sflow_2d_amr_dambreak"
+}

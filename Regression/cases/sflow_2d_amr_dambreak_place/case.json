@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_amr_dambreak on 2 ranks with placed patches (G 40 1).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "SFLOW placement: block plans, old_run"
+ ],
+ "base": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 40 1"
+ ]
+}

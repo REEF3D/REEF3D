@@ -63,6 +63,15 @@ soil mechanics picture of an enduring contact network:
 
 4) dilatancy (Q 55): theta_0 is lowered in sheared layers, theta_0(I), see dilatancy()
 
+5) jammed bed: the parcels below a mobile surface layer of the bed are held at rest (the forcing
+   of the fluid bed, X 41 h, without the bedload layer; with it a constraint on the parcel velocity
+   below the layer of thickness Q 64 h under the iso-surface of the parcels, see advec_mppic).
+   The friction 3) holds the parcels of the surface layer: a 30 degree slope stays, steeper slopes
+   fail by avalanches of the surface layer to 29-32 degrees (submerged wedge, mu_s = 0.63).
+   A collapsing sand tower spreads further (17-20 degrees, run-out of the dynamic collapse).
+   Without 5) the isotropic stress (K = 1) and the grain-scale friction do not hold the deeper bed;
+   deep failures need a frictional stress on the grid (open, WP4).
+
 Ps = Pov + Pc acts on the parcels with -grad(Ps)/(theta rho_s).
 --------------------------------------------------------------------*/
 
