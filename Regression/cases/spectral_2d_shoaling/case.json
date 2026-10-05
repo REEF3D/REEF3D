@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::Spectral stationary shoaling (A 600 2): unidirectional JONSWAP Hs 1 m Tp 8 s from x- (A 611 1, A 612 1 0 0 0) on a plane slope 20 m -> 2 m (DIVEMesh wedge S 61), 100 x 2 cells. Validation in Dropbox SpectralWave/validation/01_shoaling (Hs within 0.9 % of energy-flux conservation).",
+ "solver": "spectral",
+ "np": 1,
+ "steps": 1,
+ "tags": ["quick", "2d", "spectral"],
+ "covers": ["spectral_implicit stationary", "spectral_f_kinematics (k, cg)", "boundary spectrum A 611 1", "stationary convergence A 607/A 608"]
+}

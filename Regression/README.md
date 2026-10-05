@@ -206,7 +206,12 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_freesurface_komega_t45` | 1 | k-ω buoyancy term T 45 1: implicit sink, k ≥ 0 at the interface |
 | `cfd_2d_channel_les_t21_2` | 1 | LES Smagorinsky with the second-order high-pass filter T 21 2 |
 | `nhflow_3d_channel_walls_kepsilon_mpi2` | 2 | NHFLOW side walls with A519 2: friction and turbulence wall functions per wall face (nhflow_wall.h), ranks split in y |
-| `spectral_2d_init` (+ `_mpi2`) | 1/2 | REEF3D::Spectral Phase 0 (A 10 7): shoal + land block, JONSWAP initial spectrum with Mitsuyasu spreading (A 610 1), block-sparse storage (8 x 8 tiles); no transport yet, the spectrum stays constant |
+| `spectral_2d_init` (+ `_mpi2`) | 1/2 | REEF3D::Spectral (A 10 7): shoal + land block, JONSWAP initial spectrum with Mitsuyasu spreading (A 610 1), block-sparse storage (8 x 8 tiles), no boundary spectrum: the waves leave the domain through its open sides |
+| `spectral_2d_shoaling` | 1 | REEF3D::Spectral stationary (A 600 2) shoaling on a plane slope, unidirectional JONSWAP from x- (A 611 1); validated against energy-flux conservation (Dropbox SpectralWave/validation/01_shoaling) |
+| `spectral_2d_refraction` (+ `_mpi2`) | 1/2 | REEF3D::Spectral stationary refraction at 30 deg on parallel contours, boundary spectrum on x- and y-, 72 directions; 2 ranks give the 1-rank result (halo exchange `spectral_exchange`) |
+| `spectral_2d_front` (+ `_mpi2`) | 1/2 | REEF3D::Spectral nonstationary (A 600 1) front in a 20 km channel, dt 60 s (Courant ~8): implicit M-matrix, N >= 0, energy conservation; 2 ranks with 2 iterations per step |
+| `spectral_2d_current` | 1 | REEF3D::Spectral opposing current (A 620 1, A 621): frequency shift c_sigma and Doppler term |
+| `spectral_2d_spc` | 1 | REEF3D::Spectral boundary spectrum from a SWAN 2D spectral file (A 611 2, `spectral-boundary.spc`, nautical directions) |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
@@ -244,5 +249,5 @@ line is at the top of each file, run from `unit/`:
 | `lagoon_store_test.cpp` | LAGOON store writer (P 18, needs `-lz`): VTU header parsing, σ-level offsets, shard files read back (append, CRC-32C index, inner chunks, components), Cartesian (CFD) blocks split in z |
 | `lagoon_bodies_test.cpp` | LAGOON body writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): quaternion of REEF3D's rotation matrix, two rigid bodies over 8 outputs (set and body attributes, mesh once, motion arrays, time counted once every body has it), a body off its rigid motion refused |
 | `lagoon_particles_test.cpp` | LAGOON particle writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): 5 outputs of 0 to 700000 particles (inner chunks and shards crossed), field names and their arrays, int32 fields, values read back from the shard files; objects with cells (ice floes: a cell set stored only when the cells change, a value per cell), inconsistent cells refused (needs patch 0009) |
-| `spectral_test.cpp` | REEF3D::Spectral Phase 0 kernels: spectral grid (logarithmic frequencies, bin widths, directions), block-sparse action storage (land tiles not allocated, ghost cells, no overlap), integrated parameters (Hs, Tp, Tm01, Tm-1,0, direction, spread vs. single bin, JONSWAP, PM, cos^2s), memory budget |
+| `spectral_test.cpp` | REEF3D::Spectral kernels: spectral grid (logarithmic frequencies, bin widths, directions, direction faces, quadrants), block-sparse action storage (land tiles not allocated, tiles clipped at the range end, ghost cells, no overlap), integrated parameters (Hs, Tp, Tm01, Tm-1,0, direction, spread), dispersion relation (deep/shallow limits, residual, cg), SWAN 2D spectral file reader (CDIR/NDIR, VaDens/EnDens), memory budget |
 

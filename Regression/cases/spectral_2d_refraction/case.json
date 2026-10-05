@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::Spectral stationary refraction: unidirectional JONSWAP at 30 deg from x- and y- onto a plane slope with straight, parallel contours (20 m -> 4 m), 20 x 40 cells of 200 m, 72 directions. Validation (100 m cells) in Dropbox SpectralWave/validation/02_refraction (Snell: Hs within 1.1 %, direction within 0.8 deg).",
+ "solver": "spectral",
+ "np": 1,
+ "steps": 1,
+ "tags": ["quick", "2d", "spectral"],
+ "covers": ["depth refraction c_theta", "theta-implicit line solve", "boundary spectrum on two sides"]
+}
