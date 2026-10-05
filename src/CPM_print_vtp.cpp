@@ -36,12 +36,14 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
     {
         print_vtp(p,s);
+        print_bed(p,s);
         ++printcount;
     }
 
     if((p->simtime>printtime || p->count==0) && (p->Q180==1 && p->Q181<0 && p->Q182>0.0))
     {
         print_vtp(p,s);
+        print_bed(p,s);
         printtime+=p->Q182;
         
         // hotstart: continue from the restart time, not from zero
@@ -50,6 +52,26 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
         
         ++printcount;
     }
+}
+
+// bed level and bed shear stress of the bedload layer per column (Q 58), with the parcel output (Q 182):
+// REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-<print>-<rank>.dat, columns x y z_bed tau_x tau_y [Pa]
+void CPM::print_bed(lexer* p, sediment_fdm *s)
+{
+    if(p->Q58<=0 || p->S10==2)
+    return;
+    
+    char name[200];
+    snprintf(name,sizeof(name),"./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-%08i-%06i.dat",printcount,p->mpirank+1);
+    
+    ofstream out(name);
+    out<<"# time "<<p->simtime<<"\n# x y z_bed tau_x tau_y\n";
+    
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    out<<p->XP[IP]<<" "<<p->YP[JP]<<" "<<zbl(s,i,j)<<" "<<blTx(i,j)<<" "<<blTy(i,j)<<"\n";
+    
+    out.close();
 }
 
 void CPM::print_vtp(lexer* p, sediment_fdm *s)

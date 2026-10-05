@@ -57,6 +57,10 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     // cells to seed: below the initial bed or with the centre in a box Q 110
     auto seedcell = [&]()
     {
+        // not inside solid bodies (their parcels are removed below; they must not count for the parcel volume)
+        if(p->solidread>0 && a->solid(i,j,k)<0.0)
+        return false;
+        
         if(a->topo(i,j,k)<=0.0)
         return true;
         
@@ -69,27 +73,58 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         return false;
     };
     
-    // estimate number of parcels and the bed volume
-    int count=0;
-    double volsum=0.0;
+    // non-uniform grids: all parcels have the same volume, so a cell gets parcels in proportion to its
+    // size; Q 24 holds for the smallest seeded cell, larger cells get ppd*dx/dx_min parcels per
+    // direction (rounded; stretched grids should use cell sizes that are multiples of the smallest)
+    double dxr=1.0e20, dyr=1.0e20, dzr=1.0e20;
+    
+    BASELOOP
+    if(seedcell())
+    {
+        dxr = MIN(dxr, p->DXN[IP]);
+        dyr = MIN(dyr, p->DYN[JP]);
+        dzr = MIN(dzr, p->DZN[KP]);
+    }
+    
+    dxr = pgc->globalmin(dxr);
+    dyr = pgc->globalmin(dyr);
+    dzr = pgc->globalmin(dzr);
+    
+    auto npx = [&](){return MAX(1, int(double(ppd)*p->DXN[IP]/dxr + 0.5));};
+    auto npy = [&](){return p->j_dir==1 ? MAX(1, int(double(ppdy)*p->DYN[JP]/dyr + 0.5)) : 1;};
+    auto npz = [&](){return MAX(1, int(double(ppd)*p->DZN[KP]/dzr + 0.5));};
+    auto npc = [&](){return p->Q29==3 ? MAX(1, int(double(nppc)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]/(dxr*(p->j_dir==1?dyr:p->DYN[JP])*dzr) + 0.5)) : npx()*npy()*npz();};
+    
+    // number of parcels, bed volume, largest deviation of the packing from uniform
+    int count=0, npar=0;
+    double volsum=0.0, dev=0.0;
     
     BASELOOP
     if(seedcell())
     {
         ++count;
+        npar += npc();
         volsum += p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+        dev = MAX(dev, fabs(double(npc())*dxr*(p->j_dir==1?dyr:p->DYN[JP])*dzr/(double(nppc)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]) - 1.0));
     }
     
     double cellsum = double(pgc->globalsum(count));
+    double parsum = double(pgc->globalsum(npar));
     volsum = pgc->globalsum(volsum);
+    dev = pgc->globalmax(dev);
     
     if(cellsum>0.0)
-    P.ParcelFactor = (p->Q45>0.0 ? p->Q45 : 1.0-p->S24)*volsum/(cellsum*double(nppc)*Vp);
+    P.ParcelFactor = (p->Q45>0.0 ? p->Q45 : 1.0-p->S24)*volsum/(parsum*Vp);
     
     if(p->mpirank==0)
+    {
     cout<<"CPM ParcelFactor: "<<P.ParcelFactor<<" particles per parcel, parcels per cell: "<<nppc<<endl;
+    
+    if(dev>0.02)
+    cout<<"CPM warning: non-uniform grid, the packing of the seeded cells deviates by up to "<<int(100.0*dev+0.5)<<"% (cell sizes not multiples of the smallest)"<<endl;
+    }
 
-    P.resize(p,int(double((count+100)*nppc)*MAX(p->Q25,1.0)));
+    P.resize(p,int(double(npar+100*nppc)*MAX(p->Q25,1.0)));
     
     double xs,ys,zs;
     
@@ -98,21 +133,23 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     {
         if(p->Q29==1 || p->Q29==2)
         {
-            for(int ii = 0; ii < ppd; ++ii)
-            for(int jj = 0; jj < ppdy; ++jj)
-            for(int kk = 0; kk < ppd; ++kk)
+            const int nx=npx(), ny=npy(), nz=npz();
+            
+            for(int ii = 0; ii < nx; ++ii)
+            for(int jj = 0; jj < ny; ++jj)
+            for(int kk = 0; kk < nz; ++kk)
             {
-                xs = p->XN[IP] + (double(ii)+0.5)*p->DXN[IP]/double(ppd);
-                ys = p->j_dir==1 ? p->YN[JP] + (double(jj)+0.5)*p->DYN[JP]/double(ppd) : p->YP[JP];
-                zs = p->ZN[KP] + (double(kk)+0.5)*p->DZN[KP]/double(ppd);
+                xs = p->XN[IP] + (double(ii)+0.5)*p->DXN[IP]/double(nx);
+                ys = p->j_dir==1 ? p->YN[JP] + (double(jj)+0.5)*p->DYN[JP]/double(ny) : p->YP[JP];
+                zs = p->ZN[KP] + (double(kk)+0.5)*p->DZN[KP]/double(nz);
                 
                 if(p->Q29==2)
                 {
-                    xs += 0.5*(double(rand() % irand)/drand-0.5)*p->DXN[IP]/double(ppd);
-                    zs += 0.5*(double(rand() % irand)/drand-0.5)*p->DZN[KP]/double(ppd);
+                    xs += 0.5*(double(rand() % irand)/drand-0.5)*p->DXN[IP]/double(nx);
+                    zs += 0.5*(double(rand() % irand)/drand-0.5)*p->DZN[KP]/double(nz);
                     
                     if(p->j_dir==1)
-                    ys += 0.5*(double(rand() % irand)/drand-0.5)*p->DYN[JP]/double(ppd);
+                    ys += 0.5*(double(rand() % irand)/drand-0.5)*p->DYN[JP]/double(ny);
                 }
                 
                 if(P.index_empty<=0)
@@ -135,7 +172,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         }
         
         if(p->Q29==3)
-        for(int qn=0;qn<nppc;++qn)
+        for(int qn=0;qn<npc();++qn)
         {
             if(P.index_empty<=0)
             break;

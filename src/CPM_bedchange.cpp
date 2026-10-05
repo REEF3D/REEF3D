@@ -170,15 +170,35 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         int ktop=-1;
 
         for(k=0;k<nk;++k)
-        if(oc[k] >= theta_bed*A*p->DZN[KP])
-        ktop=k;
+        {
+            // the bed ends at a solid body above it (parcels at or in a pipeline are no bed level);
+            // solid cells below the bed (a fixed floor) are skipped
+            if(p->solidread>0 && a->solid(i,j,k)<0.0)
+            {
+                if(ktop>=0)
+                break;
+                
+                continue;
+            }
+            
+            if(oc[k] >= theta_bed*A*p->DZN[KP])
+            ktop=k;
+        }
 
         // the cells below the highest cell of the bed count as full (dilated or loose cells inside
         // the bed do not lower the surface), the highest cell and the one above with their solid volume
+        // no bed cell (only a solid floor): the top of the floor
         int kb = MAX(ktop,0);
+        
+        if(ktop<0 && p->solidread>0)
+        for(k=0;k<nk && a->solid(i,j,k)<0.0;++k)
+        kb = k+1;
+        
+        kb = MIN(kb,nk-1);
         double z = p->ZN[kb+marge];
 
         for(k=kb;k<=MIN(kb+1,nk-1);++k)
+        if(!(p->solidread>0 && a->solid(i,j,k)<0.0))
         z += MIN(oc[k]/(theta_0*A*p->DZN[KP]), 1.0)*p->DZN[KP];
 
         // the fluid sees the bed level relaxed in time (Q 63, default 10 s): single parcels moving in and

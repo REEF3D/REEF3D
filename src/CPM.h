@@ -202,6 +202,7 @@ private:
     double epsi,HS;
 
     void print_vtp(lexer*,sediment_fdm*);
+    void print_bed(lexer*,sediment_fdm*);
     void pvtp(lexer*,int);
 
     boundarycheck boundaries;
@@ -263,7 +264,7 @@ private:
     double settling_velocity(lexer*, double);
     void bedload_occupancy(lexer*);
     bool bedload_rest(lexer*, fdm*, int);
-    double bedload_place(lexer*, double, double, double, int, int, double, double);
+    double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
     int bl_npick=0, bl_ndep=0, bl_nsus=0;
     double Urel,Vrel,Wrel;
