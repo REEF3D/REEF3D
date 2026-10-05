@@ -80,7 +80,10 @@ using namespace std;
 //     Flags mark tiles of G 4 cells on the global index space of each level;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
-//     the partition edges.
+//     the partition edges, or with G 40 1 placed for the load of the ranks
+//     (parents and old patches on other ranks through the block plans and old_run
+//     of the core: restrict_levels, ini_patch_old, ini_patch_prolong; not with the
+//     moving body)
 //   - Boussinesq (A 220 4): u_a is solved on the leaf cells of all levels together
 //     (sflow_amr_bous.cpp), the patch stages stop before it and continue afterwards
 //   - moving body (X 10 2/3): the body stays on level 0 (sixdof_sflow); the patches
@@ -120,6 +123,8 @@ struct sflow_amr_patch : public reefamr_patch
 
     // line solver of the Boussinesq u_a inversion (A 220 4)
     solver2D *psolv = nullptr;
+    // regrid: blocks of a fresh patch that took the state of an old patch
+    vector<char> blkold;
 };
 
 class sflow_amr : public reefamr
@@ -227,7 +232,12 @@ private:
     void tag_level(int, vector<unsigned char>&);
     double bed_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
-    void ini_patch_state(lexer*, ghostcell*, sflow_amr_patch&, vector<reefamr_patch*>&);
+    void ini_patch_defaults(sflow_amr_patch&);
+    void ini_patch_old(int, vector<reefamr_patch*>&);
+    void ini_patch_prolong(int);
+    void ini_block(sflow_amr_patch&, int, int, const double*);
+    void ini_patch_finish(lexer*, sflow_amr_patch&);
+    bool block_solid(sflow_amr_patch&, int, int);
 
     // coupling
     void cache_stage(int);
@@ -241,8 +251,11 @@ private:
     void eval_fill(const reefamr_fill&, double*);
     void store_fill(sflow_amr_patch*, int, int, int, const double*);
     void prolong(int, int, int, int, int, double, double*);
+    static const int NPR = 9;       // values of prolong_parts
+    void prolong_parts(int, int, int, int, int, double*);
+    void prolong_finish(const double*, double, double*);
     void apply_bc(ghostcell*, sflow_amr_patch&, int);
-    void restrict_patch(lexer*, sflow_amr_patch&, int);
+    void restrict_levels(lexer*, int);   // all patches into their parents, finest first (block plans)
     void exchange_level0(lexer*, fdm2D*, ghostcell*, int);
     void exchange_fluxes(int);
 
