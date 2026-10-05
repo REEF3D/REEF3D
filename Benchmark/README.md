@@ -194,8 +194,8 @@ errors of 0.1-0.6 as tolerances rather than tighter values.
 
 Observed while building and running the cases (hans_dev `ff1bb6819`, later `4bb681b`, Linux,
 MPICH 4.2.3, REEFMG, `make all`). The fixes are delivered as patches in
-`~/Dropbox/Claude/REEF3D_benchmark_suite/patches/` (on `4bb681b`); the cases keep their xfail
-entries until the patches are applied (they then report XPASS).
+`~/Dropbox/Claude/REEF3D_benchmark_suite/patches/` (0001-0005 on `4bb681b`, applied in `d80a861`;
+0006-0007 on `d80a861`).
 
 1. (Fixed on hans_dev in the meantime: `src/momentum_FCC3.cpp`, which still included the deleted
    `momentum_FCC3.h` and broke `make`, has been removed after `ff1bb68`.)
@@ -208,13 +208,18 @@ entries until the patches are applied (they then report XPASS).
    `D 22 1` (St 0.172, C_L 0.30, C_D 1.19 at 8-15 s; `D 22 2`: St 0.175, C_D 1.33). The remaining
    10 % in C_D is the staircase position of the wall (one face instead of the level-set distance);
    `D 22 2` (already forced for `X 10` bodies) is the more accurate choice and a candidate default.
-3. **`B 20 3` with a DIVEMesh solid**: with `B 20 3` + `D 22 2` the cylinder force is ~0
-   (-5e-5 N instead of 0.18 N) and u_max drops from 1.28 to 1.15 m/s, i.e. the flow does not see
-   the solid. `B 20 3` seems to act on domain walls only.
+3. **`B 20 3` with a DIVEMesh solid**: with `B 20 3` the flow did not see the solid (cylinder force
+   ~0, u_max 1.15 instead of 1.28 m/s). **Cause:** `ghostcell::solid_forcing`
+   (`gc_solid_forcing.cpp`) built the direct forcing of solids only for `B 20 1` and `B 20 2` (with
+   `B 21 1`); for `B 20 3/4` no branch ran and the forcing stayed zero. `B 20` only selects the
+   ghost-cell condition at domain walls and topo, and the `B 20 1` block was an identical copy of
+   the `B 20 2` block. **Fixed in patch 0007** (forcing depends on `B 21` only): `B 20 3` gives
+   C_D = 1.165 at t = 1-2 s, the same as `B 20 2`.
 4. **SFLOW `A 243 1`**: cells that are dry at the start never become wet, so a dam break onto a
-   dry bed does not move at all (u_max ~ 1e-11). Default `A 243 2` works.
-   `sflow_eta_wetdry.cpp`: option 1 only sets `wet = 1` where the water level is already above the
-   threshold.
+   dry bed does not move at all (u_max ~ 1e-11). Default `A 243 2` works. By design option 1 is a
+   pure depth criterion ("depth criterion"; option 2 adds "wetting from higher wet neighbours"):
+   continuity and the HLL fluxes skip dry cells, so a dry cell can never gain water. Not changed;
+   option 1 is only suitable for drying (worth a note in the user guide, or an input warning).
 5. **3D dam break with box (Kleefsman set-up, dx = 0.025 m, N 40 3, level set)**: the water volume
    drops from 0.67 to 0.55 m3 (-18 %) until t = 1.7 s and the run stops at t = 1.77 s with the N 61
    velocity limit (u_max 365 m/s). Up to t = 1.7 s the front pressures agree (P1 peak 10.6 vs
@@ -253,18 +258,30 @@ entries until the patches are applied (they then report XPASS).
    `B 105_1`. **Fixed in patch 0001** (signed wave-frame coordinates): the Mase & Kirby case with
    `B 105 0 2.75 0` then gives the same result as with the default origin; regression case
    `nhflow_2d_origin` (origin at x = 10 m) run to 60 s: wave height 0.992 of theory (0.964 before).
-10. **`B 92 20` (Dirichlet wave maker) in SFLOW**: with a measured time series as Dirichlet input the
-   SFLOW wave heights came out 1.7x too large (consistent with a shallow-water velocity transfer
-   applied to intermediate-depth waves), and FNPF stopped (no ramp). The cases use `B 92 51` with
-   relaxation generation instead.
+10. **`B 92 20` (wave maker from a measured time series) in SFLOW**: the SFLOW wave heights came out
+   1.7x too large for the Mase & Kirby record. **Cause** (code reading): `wave_lib_piston_eta`
+   derives the velocity with the shallow-water transfer u = eta sqrt(g/h), uniform in depth; for the
+   intermediate-depth spectrum (kh = 1.4-5) that overestimates the depth-averaged velocity by
+   sqrt(kh/tanh kh) = 1.26 at the peak and 1.7-2.3 at 1.5-2 fp. The inflow then acts as a reflecting
+   velocity boundary (the ghost eta is overwritten by the Neumann update), so outgoing long waves are
+   re-reflected. Fix proposal (not implemented, it belongs to the iowave redesign): a linear transfer
+   per frequency component (FFT of the record, u = eta omega/(k h)) and a Riemann/Flather-type
+   generating-absorbing inflow; also `wave_fi` of that class returns an uninitialised value. The cases
+   use `B 92 51` with relaxation generation instead.
 11. **CFD initial free surface `F 57` / `F 70`**: a sloping plane (`F 57`) or a cosine built from
-   `F 70` strips is resolved only to the cell (staircase), which gives a 60 % error in the linear
-   sloshing period check; the exact linear surface with `F 60` / `F 62` / `F 63` gives +0.4 %.
-12. **SFLOW gauge level in dry cells**: a gauge in a dry cell reports eta = wd - (F 60 - bed), i.e.
-   it does not read the bed level; in the Thacker parabola the dry-gauge level is off from the bed by
-   about one cell of bed rise at the nightly grid (dx = 0.02 m) and half of it at the release grid.
-   The checkers therefore treat a gauge as wet only when its level rises above its initial value
-   (conical-island run-up) and mask dry gauges (Thacker, `h_dry`).
+   `F 70` strips is resolved only to the cell (staircase): `ini_phi.cpp` sets the level set to an
+   inside/outside value per cell, so the interface lies on cell faces. That gives a 60 % error in
+   the linear sloshing period check; the exact linear surface with `F 60` / `F 62` / `F 63` gives
+   +0.4 %. Not changed (a signed-distance initialisation would change all dam-break cases; for
+   grid-aligned boxes it makes no difference).
+12. **SFLOW wave gauges read the neighbouring cell**: in the Thacker parabola the gauge level was off
+   by about one cell of bed rise near the shoreline. **Cause:** `sflow_print_wsf::ini_location`
+   rounded (x - x0)/dx to the nearest integer, so a gauge in the upper half of cell i read cell
+   i+1 (and a uniform dx was assumed). **Fixed in patch 0006** (the containing cell, `posc_i/j`, as
+   the other SFLOW probes): Thacker error 0.065 -> 0.051 (gauges x = 0.75 / 3.25 m: 0.139 -> 0.093,
+   0.499 -> 0.100). A dry gauge reports bed + `A 244` (relative to `F 60`). The checkers still treat
+   a gauge as wet only when its level rises above its initial value (conical-island run-up) and mask
+   dry gauges (Thacker, `h_dry`).
 13. **FNPF in the inner surf zone (Mase & Kirby)**: Hm0 is too high in the shallowest gauges and the
    deviation grows with grid refinement: +9 % / +26 % at h = 5 / 2.5 cm on the nightly grid
    (362 x 8), +18 % / +39 % on the release grid (725 x 10). **Not the breaking model**: switching
@@ -324,8 +341,8 @@ run was possible they are provisional (marked below).
 | `fnpf_mase_kirby_irregular` | PASS, Hm0 ratio 0.98-1.09, 1.26 at h = 2.5 cm | XFAIL, Hm0 ratio 0.99-1.09 for h >= 7.5 cm, 1.18 / 1.39 at h = 5 / 2.5 cm (finding 13) |
 | `fnpf_jonswap_spectrum` | PASS, Hm0 -3..-4 %, Tp 1.44 vs 1.50 s, shape rms 0.09 | PASS, Hm0 -0.2..-0.8 %, Tp 1.44-1.48 s, shape rms 0.06 |
 | `cfd_dambreak_2d_martin_moyce` | PASS, mean 8 %, max 18 % (Z = 1.5) | PASS, mean 7 %, max 20 % |
-| `cfd_dambreak_3d_kleefsman` | **FAIL**: N 61 stop at t = 1.77 s (volume -18 %); up to 1.7 s P1-P3 rms 0.41-0.45, P1 peak -6 %, 0.05 s late | not run |
-| `cfd_cylinder_re100` | XFAIL: St +6 %, C_L ok, C_D 1.01 (-24 %) | not run (tol provisional) |
+| `cfd_dambreak_3d_kleefsman` | ff1bb68 without `F 46`: **FAIL**, N 61 stop at t = 1.77 s (volume -18 %). With `F 46 3` (patch 0004, now in the case): volume -0.7 %, passes 1.77 s, all signals within tolerance up to 1.8 s (P1 peak -4 %, 0.05 s late); run to 2 s not completed (small time step after the impact, > 1 h on 2 cores) | not run |
+| `cfd_cylinder_re100` | ff1bb68: XFAIL, C_D 1.01 (P 81 sign error); with patch 0002: PASS, C_D 1.33, St +6 % (blockage), C_L 0.31 | not run (tol provisional) |
 | `cfd_beji_battjes_bar` | PASS, rms <= 0.33, heights -15 % | not run (tol provisional) |
 | `cfd_sphere_heave_decay` | PASS, T +4.1 %, zeta +1 %, equilibrium 0.001 R | not run (tol provisional) |
 | `cfd_sloshing_linear` | PASS, T +0.44 % | PASS, T +0.13 % |

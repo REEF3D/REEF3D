@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "An oblique tide (direction 30) crossing a 3 km x 3 km basin with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+.",
+ "tags": ["quick", "3d", "nhflow", "tide", "iowave", "bc_zone", "background"],
+ "covers": ["Riemann / Flather edges on all four sides", "corners between open edges"]
+}

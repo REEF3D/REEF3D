@@ -194,6 +194,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_riemann_waves` | 1 | waves from a Riemann edge with a wave source (B 524), no relaxation zone; beach at x+ |
 | `nhflow_2d_riemann_waves_wall` | 1 | waves from a Riemann edge in a channel closed by a wall; the reflected waves leave through the edge |
 | `nhflow_2d_tide_waves_riemann` | 1 | tide + waves through a Riemann edge (background + source), no generation zone |
+| `nhflow_3d_tide_ychannel` (+ `_mpi2`) | 1/2 | tidal channel along y: Riemann edge at y- (B 520 method 3), Flather edge at y+ (method 4), progressive background at 90 deg; `_mpi2` splits the ranks in y |
+| `nhflow_3d_tide_oblique` (+ `_mpi2`) | 1/2 | oblique tide (30 deg) in a basin with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+; `_mpi2` splits the ranks in x |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
@@ -212,6 +214,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_front` (+ `_mpi2`) | 1/2 | REEF3D::SEASTATE nonstationary (A 700 1) front in a 20 km channel, dt 60 s (Courant ~8): implicit M-matrix, N >= 0, energy conservation; 2 ranks with 2 iterations per step |
 | `seastate_2d_current` | 1 | REEF3D::SEASTATE opposing current (A 720 1, A 721): frequency shift c_sigma and Doppler term |
 | `seastate_2d_spc` | 1 | REEF3D::SEASTATE boundary spectrum from a SWAN 2D spectral file (A 711 2, `seastate-boundary.spc`, nautical directions) |
+| `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.

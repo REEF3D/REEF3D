@@ -126,6 +126,7 @@
   "tol_rms": 0.6,
   "tol_height": null,
   "rms_about_mean": false,
+  "note_mass": "F 46 3 (level-set volume correction, works with N 40 3 since hans_dev d80a861): without it the volume drops by 18 % and the run stops at t = 1.77 s",
   "peak": {
    "signals": [
     "P1"

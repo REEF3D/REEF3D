@@ -13,7 +13,7 @@ h = 1.5 m, shoreline at y = 35 m, discharge 41 m³/s (U ≈ 1 m/s), Manning roug
 1500 s. Evaluation over x = 250–350 m: depth-averaged u against the local Manning velocity
 U_eq = h^(2/3) S^(1/2)/n (`../tools/sflow_bank.py`, reads the regression dump).
 
-- **before:** hans_dev 06b5df103 + patches 0008–0013
+- **before:** hans_dev 06b5df103 + patches 0008–0013 (the turbulence patches now in hans_dev)
 - **after:** + patch 0014
 - Built in a Linux sandbox, g++ 13 `-O2`, single rank.
 

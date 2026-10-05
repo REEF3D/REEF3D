@@ -1041,11 +1041,9 @@ W 10 %(Q)g
                         "check": {"type": "vortex_shedding", "U": U, "D": D, "W": 0.004, "nu": nu, "rho": 1000.0,
                                   "lift": "Fz", "Cd_ref": 1.33, "t_start": 25.0, "t_end": 40.0, "tol_St": 0.08,
                                   "tol_Cd": 0.15},
-                        "xfail": "hans_dev ff1bb68, D/25: St = 0.1745 (+6 %) and the lift amplitude C_L = 0.31 "
-                                 "(rms 0.22, literature 0.225-0.235) agree, but the P 81 drag gives C_D = 1.01 "
-                                 "instead of 1.33 (-24 %): the viscous force in force_force.cpp was multiplied "
-                                 "by signed normal components and cancelled around the body. Fixed by patch "
-                                 "0002 (C_D 1.33 at 4bb681b + patch): remove this entry once it is applied"},
+                        # ff1bb68: C_D 1.01 from the sign error in the P 81 wall shear (patch 0002,
+                        # in hans_dev since d80a861): C_D 1.33, St 0.1745, C_L 0.31 on this grid
+                        },
             "release": {}},
     }
     ctrl = ctrl % {"nu": nu, "Q": U * Hz * 0.002}
@@ -1587,6 +1585,8 @@ D 20 2
 D 30 1
 F 30 3
 F 40 3
+F 46 3
+F 47 10
 F 51 1.992
 F 56 0.55
 N 40 3
@@ -1617,6 +1617,8 @@ P 51 2.606 0.5
         "time": 6.0,
         "check": {"type": "timeseries", "signals": sig, "align": [], "lag": 0.0, "tol_rms": 0.6, "tol_height": None,
                   "rms_about_mean": False,
+                  "note_mass": "F 46 3 (level-set volume correction, works with N 40 3 since hans_dev d80a861): "
+                               "without it the volume drops by 18 % and the run stops at t = 1.77 s",
                   "peak": {"signals": ["P1"], "window": [0.3, 0.8], "tol_value": 0.3, "tol_time": 0.03},
                   "note": "the water-height columns follow AQUAgpusph's reading (column 10 = gauge nearest the "
                           "reservoir); the labels H1-H4 of the data file are therefore not used"},

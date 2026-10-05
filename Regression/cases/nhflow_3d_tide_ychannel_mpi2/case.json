@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_3d_tide_ychannel",
+ "np": 2,
+ "description": "nhflow_3d_tide_ychannel on 2 ranks split along y: the Riemann edge on rank 1, the Flather edge on rank 2.",
+ "tags": ["quick", "3d", "nhflow", "tide", "iowave", "bc_zone", "background", "mpi"],
+ "covers": ["open y edges on a grid decomposed along y"]
+}
