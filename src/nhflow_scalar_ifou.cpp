@@ -44,6 +44,12 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
     return;
     }
     
+    if(advective==2)
+    {
+    start_conservative(p,d,F,ipol,U,V,W);
+    return;
+    }
+    
     // conservative form: (F_i+1/2 - F_i-1/2)/dx_i with the upwind value per face (as ifou); was one direction
     // per cell and the width of the upstream cell for positive flow (not conservative on stretched grids)
     count=0;
@@ -114,6 +120,79 @@ void nhflow_scalar_ifou::start_advective(lexer* p, fdm_nhf *d, double *F, int ip
 	 
 	 d->M.b[count] = -wp1/dzc;
 	 d->M.t[count] =  wm2/dzc;
+     
+	 ++count;
+    }
+}
+
+void nhflow_scalar_ifou::start_conservative(lexer* p, fdm_nhf *d, double *F, int ipol, double *U, double *V, double *W)
+{
+    // Implicit first-order upwind for the conservative (in D) scalar equation in sigma coordinates:
+    //   d(D F)/dt + d(D u F)/dx|s + d(D v F)/dy|s + d(W F)/ds = ...
+    // W is the vertical volume flux through the sigma faces (D*ds/dt, e.g. omegaF - ws), [m/s].
+    // One flux per face, evaluated identically by both cells sharing it -> fluxes cancel in the domain sum.
+    // Coefficients are divided by the cell depth D_p, the unknown stays F; the time term of the
+    // calling class has to supply the depth ratio D^n/D^(n+1) (geometric conservation).
+    // Closed faces: bed and free surface (bed exchange as a source), dry or solid neighbours,
+    // outer domain faces.
+    double qx1,qx2,qy1,qy2,qz1,qz2;
+    double hp,hw,he,hs,hn;
+    double dxc,dyc,dzc;
+    
+    count=0;
+    LOOP
+    {
+    padvec->uadvec(ipol,U,ivel1,ivel2);
+    padvec->vadvec(ipol,V,jvel1,jvel2);
+    padvec->wadvec(ipol,W,kvel1,kvel2);
+    
+    hp = MAX(d->WL(i,j),1.0e-20);
+    hw = 0.5*(d->WL(i,j) + d->WL(i-1,j));
+    he = 0.5*(d->WL(i,j) + d->WL(i+1,j));
+    hs = 0.5*(d->WL(i,j) + d->WL(i,j-1));
+    hn = 0.5*(d->WL(i,j) + d->WL(i,j+1));
+    
+    qx1 = hw*ivel1;
+    qx2 = he*ivel2;
+    qy1 = hs*jvel1;
+    qy2 = hn*jvel2;
+    qz1 = kvel1;
+    qz2 = kvel2;
+    
+    if(i+p->origin_i==0 || p->wet[Im1J]==0 || p->DF[Im1JK]<0)
+    qx1 = 0.0;
+    
+    if(i+p->origin_i==p->gknox-1 || p->wet[Ip1J]==0 || p->DF[Ip1JK]<0)
+    qx2 = 0.0;
+    
+    if(j+p->origin_j==0 || p->wet[IJm1]==0 || p->DF[IJm1K]<0)
+    qy1 = 0.0;
+    
+    if(j+p->origin_j==p->gknoy-1 || p->wet[IJp1]==0 || p->DF[IJp1K]<0)
+    qy2 = 0.0;
+    
+    if(k==0)
+    qz1 = 0.0;
+    
+    if(k==p->knoz-1)
+    qz2 = 0.0;
+    
+    dxc = hp*p->DXN[IP];
+    dyc = hp*p->DYN[JP];
+    dzc = hp*p->DZN[KP];
+    
+	 d->M.p[count] =    (MAX(qx2,0.0) - MIN(qx1,0.0))/dxc
+					+  ((MAX(qy2,0.0) - MIN(qy1,0.0))/dyc)*p->y_dir
+					+   (MAX(qz2,0.0) - MIN(qz1,0.0))/dzc;
+	 
+	 d->M.s[count] = -MAX(qx1,0.0)/dxc;
+	 d->M.n[count] =  MIN(qx2,0.0)/dxc;
+	 
+	 d->M.e[count] = -MAX(qy1,0.0)/dyc*p->y_dir;
+	 d->M.w[count] =  MIN(qy2,0.0)/dyc*p->y_dir;
+	 
+	 d->M.b[count] = -MAX(qz1,0.0)/dzc;
+	 d->M.t[count] =  MIN(qz2,0.0)/dzc;
      
 	 ++count;
     }

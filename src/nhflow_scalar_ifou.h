@@ -40,11 +40,13 @@ public:
 
 private:
     void start_advective(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
+    void start_conservative(lexer*,fdm_nhf*,double*,int,double*,double*,double*);
 
 private:
 
 	int count;
-    const int advective; // 0: flux form d(uF)/dx (default), 1: advective form u dF/dx (sigma-consistent for non-D-weighted scalars)
+    const int advective; // 0: flux form d(uF)/dx (default), 1: advective form u dF/dx (sigma-consistent for non-D-weighted scalars),
+                         // 2: conservative form d(D F)/dt + d(D u F)/dx + d(W F)/dsigma, coefficients divided by D (suspended load)
     
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
     double udir,vdir,wdir;

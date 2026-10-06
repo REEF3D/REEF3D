@@ -35,6 +35,8 @@ nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p)
 	gcval_susp=60;
 
     p->Darray(WVEL,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(WLN,p->imax*p->jmax);
+    wl_ini=0;
 }
 
 nhflow_suspended_IM1::~nhflow_suspended_IM1()
@@ -54,6 +56,12 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     psolv->startV(p,pgc,d->CONC,d->rhsvec,d->M,4);
 	pgc->start60V(p,d->CONC,gcval_susp);
     fillconc(p,d,pgc,s);
+    
+    // depth belonging to the new concentration, for the D^n/D^(n+1) ratio of the next time step
+    SLICELOOP4
+    WLN[IJ] = d->WL(i,j);
+    wl_ini=1;
+    
 	p->susptime=pgc->timer()-starttime;
 	p->suspiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -62,13 +70,20 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 
 void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 {
+    // conservative form for D*C with the transport coefficients divided by D^(n+1):
+    //   (D^(n+1) C^(n+1) - D^n C^n)/(D^(n+1) dt) = C^(n+1)/dt - (D^n/D^(n+1)) C^n/dt
+    // D^n: depth at the end of the last solve (includes bed changes and the flow step since then)
     int count=0;
+    double hn,ho;
 
     LOOP
     {
+        hn = MAX(d->WL(i,j),1.0e-20);
+        ho = wl_ini==1?MAX(WLN[IJ],0.0):hn;
+        
         d->M.p[count]+= 1.0/p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + d->CONC[IJK]/p->dt;
+        d->rhsvec.V[count] += d->L[IJK] + (ho/hn)*d->CONC[IJK]/p->dt;
 
 	++count;
     }
@@ -80,8 +95,8 @@ void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 {
-    // WVEL: vertical transport velocity across sigma faces for the advective (form=1) ifou scheme,
-    // same convention as k-epsilon/k-omega: omegaF is the face volume flux D*dsigma/dt [m/s],
+    // WVEL: vertical volume flux across the sigma faces for the conservative (form=2) ifou scheme:
+    // omegaF is the face volume flux D*dsigma/dt [m/s],
     // settling across a sigma face is -ws (D*dsigma/dt of -ws = -ws).
     // Face k lies between cells k-1 and k; bed (k=0) and surface (k=knoz) faces stay closed,
     // bed exchange is handled by suspsource().
