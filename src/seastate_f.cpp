@@ -31,6 +31,8 @@ Architect: Hans Bihs
 #include"seastate_surfbeat.h"
 #include"seastate_roller.h"
 #include"seastate_forcing.h"
+#include"seastate_amr.h"
+#include"seastate_bathy.h"
 #include"slice4.h"
 #include"regression_dump.h"
 #include"lexer.h"
@@ -44,7 +46,8 @@ seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr
                                                   etot(0.0), hsmax(0.0), hsmean(0.0), nmin(0.0), cells_active(0.0),
                                                   starttime(0.0), endtime(0.0),
                                                   sb(nullptr), gin(nullptr), proll(nullptr), tnew(0.0), trep(0.0),
-                                                  bser(nullptr), wser(nullptr), tref(0.0), wU10(nullptr), wdir(nullptr), wUx(nullptr), wUy(nullptr)
+                                                  bser(nullptr), wser(nullptr), tref(0.0), wU10(nullptr), wdir(nullptr), wUx(nullptr), wUy(nullptr),
+                                                  pamr(nullptr), bathy(nullptr)
 {
     side[0]=side[1]=side[2]=side[3]=0;
 
@@ -53,6 +56,8 @@ seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr
 
 seastate_f::~seastate_f()
 {
+    delete pamr;
+    delete bathy;
     delete pprint;
     delete preg;
     delete pex;
@@ -107,9 +112,14 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         if(p->A760>0)
         handover(p,pgc);
 
-        // printer
+        // printer (mesh refinement: the patches with every print of level 0)
         double ptime=pgc->timer();
+        const int pc = p->printcount;
         pprint->start(p,e,pgc);
+        if(pamr!=nullptr && p->printcount!=pc)
+        pamr->print(p,pgc);
+        if(pamr!=nullptr)
+        pamr->log(p,pgc,iter_done);
         log_step(p);
         preg->seastate_step(p,e,pgc);
         p->printouttime=pgc->timer()-ptime;

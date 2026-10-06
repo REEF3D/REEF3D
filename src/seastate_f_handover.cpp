@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_f.h"
+#include"seastate_amr.h"
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -109,6 +110,13 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
         if(owner==0)
         continue;
 
+    // mesh refinement: the finest grid that holds the point
+    lexer *q = p;
+    fdm_seastate *ee = e;
+
+    if(pamr!=nullptr)
+    pamr->locate(xp,yp,q,ee,ci,cj);
+
     i = ci;
     j = cj;
 
@@ -120,13 +128,13 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     sprintf(iname,"./REEF3D_SEASTATE_Spectra/seastate-wavegen_P%i.txt",n+1);
     ofstream info(iname);
 
-        if(e->wet(i,j)==0 || e->N->spec(i,j)==nullptr)
+        if(ee->wet(i,j)==0 || ee->N->spec(i,j)==nullptr)
         {
         info<<"REEF3D::SEASTATE handover point "<<n+1<<" ("<<xp<<", "<<yp<<"): the cell is dry or land, no spectrum"<<endl;
         continue;
         }
 
-    const float *N = e->N->spec(i,j);
+    const float *N = ee->N->spec(i,j);
 
     seastate_param sp;
     sp.compute(g,N);
@@ -183,8 +191,8 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     const double hs_sec = 4.0*std::sqrt(std::max(m0sec,0.0));
 
     info<<"REEF3D::SEASTATE handover point "<<n+1<<endl;
-    info<<"location "<<xp<<" "<<yp<<", cell centre "<<p->XP[IP]<<" "<<p->YP[JP]<<", simtime "<<p->simtime<<endl;
-    info<<"water depth "<<e->depth(i,j)<<" m"<<endl;
+    info<<"location "<<xp<<" "<<yp<<", cell centre "<<q->XP[IP]<<" "<<q->YP[JP]<<", cell size "<<q->DXN[IP]<<" m, simtime "<<p->simtime<<endl;
+    info<<"water depth "<<ee->depth(i,j)<<" m"<<endl;
     info<<"Hs "<<sp.Hs<<" m (full spectrum), "<<hs_sec<<" m (written sector "<<double(ma)*g.dtheta*180.0/pi<<" to "<<double(mb)*g.dtheta*180.0/pi<<" deg)"<<endl;
     info<<"Tp "<<sp.Tp<<" s, Tm01 "<<sp.Tm01<<" s, mean direction "<<sp.dir<<" deg, spread "<<sp.spread<<" deg"<<endl;
     info<<endl;
@@ -192,7 +200,7 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     info<<"B 85 11"<<endl;
     info<<"B 92 31          (linear; 32 or 33 for second order, with B 89 0)"<<endl;
     info<<"B 93 "<<sp.Hs<<" "<<sp.Tp<<endl;
-    info<<"B 94 "<<e->depth(i,j)<<endl;
+    info<<"B 94 "<<ee->depth(i,j)<<endl;
     info<<"B 130 1          (needed with B 85 11; the spreading comes from the file)"<<endl;
     info<<"directions are absolute (propagation, ccw from +x): rotate the SEASTATE frame into the phase-resolved frame if needed"<<endl;
     info.close();

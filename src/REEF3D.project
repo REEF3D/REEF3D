@@ -105,6 +105,8 @@
         <File Name="seastate_coupling.h"/>
         <File Name="seastate_nhflow.h"/>
         <File Name="seastate_forcing.h"/>
+        <File Name="seastate_amr.h"/>
+        <File Name="seastate_bathy.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
@@ -1375,6 +1377,8 @@
         <File Name="seastate_f_surfbeat.cpp"/>
         <File Name="seastate_forcing.cpp"/>
         <File Name="seastate_f_forcing.cpp"/>
+        <File Name="seastate_amr.cpp"/>
+        <File Name="seastate_bathy.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">

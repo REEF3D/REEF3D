@@ -269,6 +269,7 @@ void control::ini_default()
     A706=60.0;        // double time step [s]
     A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
     A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
+    A709=100.0;       // double stationary convergence: percentage of the active cells that must meet A 708 (SWAN npnts, e.g. 99.5)
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
     A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc, 3 time series of spectra at many locations (seastate-boundary.spc)
     A712_xm=1;        // int side x-: 0 open (no incoming waves), 1 boundary spectrum, 2 zero gradient
@@ -294,6 +295,10 @@ void control::ini_default()
     A743=0.038;       // double JONSWAP friction coefficient [m^2/s^3]
     A744=0;           // int triads: 0 off, 1 LTA (Eldeberky)
     A745=0.05;        // double triads proportionality coefficient alpha_EB
+    A736_cutfr=2.5;   // double triads: highest sum frequency / sigma_m01 (SWAN cutfr)
+    A736_urcrit=0.63; // double triads: critical Ursell number of the biphase (SWAN urcrit; SWAN 40.x-41.31: 0.2)
+    A736_urslim=0.1;  // double triads: lowest Ursell number with triads (SWAN urslim; SWAN 40.x-41.31: 0.01)
+    A737=1;           // int with Battjes-Janssen breaking (A 740 1): 1 the total energy of a cell is limited to (gamma d)^2/4 as in SWAN, 0 off
     A746=10.0;        // double Roelvink breaking (A 740 2) exponent n
     A747=2.0;         // double surfbeat: maximum wave height to water depth ratio H/h (cap)
     A748=1;           // int surfbeat: roller 0 off, 1 on
@@ -310,6 +315,11 @@ void control::ini_default()
     A773=1;           // int surfbeat: seed of the random phases and directions
     A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
     A780=0.0;         // double model start date-time YYYYMMDD.HHMMSS of the forcing files (A 711 3, A 730 2), 0: first time in the files
+    A790=0;           // int bathymetry raster seastate-bathy.dat (stand-alone): 0 off (bed of the 2D grid, patches interpolated), 1 bed of all grids from the raster
+    A791=0.0;         // double mesh refinement (G 1): refine where the water depth is below this value [m], 0 off
+    A792=0;           // int mesh refinement (G 1): refine within this many cells of a dry or land cell (1-3), 0 off
+    A793=0.0;         // double mesh refinement (G 1): refine where the depth changes by more than this fraction to a neighbour cell, 0 off
+    A794=4;           // int mesh refinement (G 1): no refinement within this many level-0 cells of the sides with boundary spectra or zero gradient (A 712 1, 2)
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
     // NHFLOW Lagrangian particles

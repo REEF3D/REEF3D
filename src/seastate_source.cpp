@@ -198,6 +198,49 @@ void seastate_source::moments(const float *N, double depth, const float *k)
     ursell = seastate_gravity*Hs/(2.0*std::sqrt(2.0)*sigm01*sigm01*depth*depth);
 }
 
+bool seastate_source::cap(float *N, double depth) const
+{
+    if(!prm.emax || !prm.breaking || prm.breaking_model!=1 || !(depth>0.0))
+    return false;
+
+    // total energy with the sig^-4 tail, as moments
+    double etot=0.0, elast=0.0;
+
+    for(int l=0; l<nsig; ++l)
+    {
+    double el=0.0;
+
+        for(int m=0; m<ndir; ++m)
+        el += double(N[g.bin(l,m)]);
+
+    el *= g.sig[l]*g.dtheta;
+    etot += el*g.dsig[l];
+
+        if(l==nsig-1)
+        elast = el;
+    }
+
+    if(nsig>1)
+    {
+    const double smax = g.sig[nsig-1];
+    const double se = smax*std::sqrt(g.ratio);
+    etot += elast*std::pow(smax,tail_p)*std::pow(se,1.0-tail_p)/(tail_p-1.0);
+    }
+
+    const double hm = prm.gamma*depth;
+    const double emax = 0.25*hm*hm;
+
+    if(!(etot>emax))
+    return false;
+
+    const float f = float(emax/etot);
+
+    for(int b=0; b<nbin; ++b)
+    N[b] *= f;
+
+    return true;
+}
+
 void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D)
 {
     moments(N,depth,k);

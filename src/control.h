@@ -117,10 +117,14 @@ public:
     double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe;
     int A730,A732,A733,A740,A742,A744;
     double A731_u10,A731_dir,A734,A735,A741_alpha,A741_gamma,A743,A745;
+    int A737;
+    double A736_cutfr,A736_urcrit,A736_urslim;
     int A750,A751,A753,A760;
     double A752,A761;
     int A748,A770,A773,A774,A775;
     double A746,A747,A749,A771,A772,A780;
+    int A790,A792,A794;
+    double A709,A791,A793;
     double *A760_x,*A760_y;
 
     // NHFLOW Lagrangian particles

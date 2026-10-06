@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_f.h"
+#include"seastate_amr.h"
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -65,6 +66,11 @@ void seastate_f::parameters(lexer *p, ghostcell *pgc)
             }
         }
     }
+
+    // mesh refinement: parameters of the patches; Hs max and N min over the leaf cells of all grids
+    // (E_tot and the mean Hs from level 0, whose covered cells hold the restricted spectra)
+    if(pamr!=nullptr)
+    pamr->parameters(nullptr,hmax,vmin);
 
     etot   = pgc->globalsum(esum);
     hsmax  = pgc->globalmax(hmax);

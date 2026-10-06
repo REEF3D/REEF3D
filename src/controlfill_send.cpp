@@ -602,6 +602,14 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = A745;
     dd++;
+    dctrl[dd] = A736_cutfr;
+    dd++;
+    dctrl[dd] = A736_urcrit;
+    dd++;
+    dctrl[dd] = A736_urslim;
+    dd++;
+    ictrl[ii] = A737;
+    ii++;
     ictrl[ii] = A750;
     ii++;
     ictrl[ii] = A751;
@@ -636,6 +644,18 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = A780;
     dd++;
+    ictrl[ii] = A790;
+    ii++;
+    dctrl[dd] = A709;
+    dd++;
+    dctrl[dd] = A791;
+    dd++;
+    ictrl[ii] = A792;
+    ii++;
+    dctrl[dd] = A793;
+    dd++;
+    ictrl[ii] = A794;
+    ii++;
 
     ictrl[ii] = B10;
     ii++;

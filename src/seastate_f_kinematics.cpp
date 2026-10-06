@@ -44,16 +44,17 @@ these quantities (plan Section 6: no per-bin velocity arrays):
           - cg k (cos^2(theta) dU/dx + sin(theta)cos(theta)(dU/dy + dV/dx) + sin^2(theta) dV/dy)
 --------------------------------------------------------------------*/
 
-// neighbour status: 1 active, 0 outside the domain (edge), -1 land or dry
-static int status(lexer *p, int i, int j, sliceint &wet)
+// neighbour status: 1 active, 0 outside the domain (edge), -1 land or dry; the global index of
+// local cell (i,j) is (i+gi0, j+gj0), the domain has gnx x gny cells
+static int status(int i, int j, sliceint &wet, int gi0, int gj0, int gnx, int gny)
 {
     if(wet(i,j)==1)
     return 1;
 
-    const int gi = i + p->origin_i;
-    const int gj = j + p->origin_j;
+    const int gi = i + gi0;
+    const int gj = j + gj0;
 
-    if(gi<0 || gi>=p->gknox || gj<0 || gj>=p->gknoy)
+    if(gi<0 || gi>=gnx || gj<0 || gj>=gny)
     return 0;
 
     return -1;
@@ -61,7 +62,14 @@ static int status(lexer *p, int i, int j, sliceint &wet)
 
 void seastate_f::kinematics(lexer *p, ghostcell *pgc, double dt_depth)
 {
-    auto status = [&](lexer *pp, int ii, int jj) {return ::status(pp,ii,jj,e->wet);};
+    seastate_kinematics(p,e,dt_depth,p->origin_i,p->origin_j,p->gknox,p->gknoy);
+}
+
+// also for the patches of the mesh refinement (seastate_amr): global index and size of their level
+void seastate_kinematics(lexer *p, fdm_seastate *e, double dt_depth, int gi0, int gj0, int gnx, int gny)
+{
+    auto status = [&](lexer *pp, int ii, int jj) {return ::status(ii,jj,e->wet,gi0,gj0,gnx,gny);};
+    int i,j;
 
     const seastate_grid &g = *e->grid;
 
@@ -103,7 +111,7 @@ void seastate_f::kinematics(lexer *p, ghostcell *pgc, double dt_depth)
 
                 if(ie>iw)
                 {
-                const double rdx = 1.0/(p->XP[ie+marge]-p->XP[iw+marge]);
+                const double rdx = 1.0/(p->XP[ie+increment::marge]-p->XP[iw+increment::marge]);
                 e->ddx(i,j)  = (e->depth(ie,j)-e->depth(iw,j))*rdx;
                 e->dUdx(i,j) = (e->U(ie,j)-e->U(iw,j))*rdx;
                 e->dVdx(i,j) = (e->V(ie,j)-e->V(iw,j))*rdx;
@@ -111,7 +119,7 @@ void seastate_f::kinematics(lexer *p, ghostcell *pgc, double dt_depth)
 
                 if(jn>js)
                 {
-                const double rdy = 1.0/(p->YP[jn+marge]-p->YP[js+marge]);
+                const double rdy = 1.0/(p->YP[jn+increment::marge]-p->YP[js+increment::marge]);
                 e->ddy(i,j)  = (e->depth(i,jn)-e->depth(i,js))*rdy;
                 e->dUdy(i,j) = (e->U(i,jn)-e->U(i,js))*rdy;
                 e->dVdy(i,j) = (e->V(i,jn)-e->V(i,js))*rdy;

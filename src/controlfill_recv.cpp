@@ -598,6 +598,14 @@ void control::ctrlrecv()
     ii++;
     A745 = dctrl[dd];
     dd++;
+    A736_cutfr = dctrl[dd];
+    dd++;
+    A736_urcrit = dctrl[dd];
+    dd++;
+    A736_urslim = dctrl[dd];
+    dd++;
+    A737 = ictrl[ii];
+    ii++;
     A750 = ictrl[ii];
     ii++;
     A751 = ictrl[ii];
@@ -632,6 +640,18 @@ void control::ctrlrecv()
     ii++;
     A780 = dctrl[dd];
     dd++;
+    A790 = ictrl[ii];
+    ii++;
+    A709 = dctrl[dd];
+    dd++;
+    A791 = dctrl[dd];
+    dd++;
+    A792 = ictrl[ii];
+    ii++;
+    A793 = dctrl[dd];
+    dd++;
+    A794 = ictrl[ii];
+    ii++;
 
     B10 = ictrl[ii];
     ii++;

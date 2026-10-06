@@ -8,6 +8,8 @@ REEF3D::SEASTATE forcing converter: NetCDF spectra and wind -> REEF3D input file
             in model coordinates (A 711 3)
   wind      10 m wind u10, v10 on a lon/lat (or projected) grid, e.g. ERA5 or NORA3 atmosphere
             -> seastate-wind.dat on a regular grid aligned with the model axes (A 730 2)
+  bathy     bathymetry raster seastate-bathy.dat (A 790 1) from a SWAN bottom file, scattered x y z points
+            (as the DIVEMesh geo.dat) or a NetCDF elevation grid (GEBCO, EMODnet)
   point     lon/lat -> model coordinates (to check the set-up)
 
 Model coordinates. The model's x axis points east rotated counter-clockwise by --rotation degrees; the
@@ -28,7 +30,17 @@ Written as YYYYMMDD.HHMMSS; set A 780 to the model start time (or 0: the first t
 
 NetCDF backends: netCDF4 (NetCDF-3 and -4), otherwise scipy.io (NetCDF-3 only).
 
+Bathymetry: seastate-bathy.dat holds the bed level z [m] (positive up, the datum of F 60) on a regular
+raster in model coordinates. SWAN bottom files hold the depth (positive down): z = level - fac * depth.
+  --swan-bot FILE --swan-grid MX MY DX DY [--xp YP] [--idla 1|3|4] [--fac F] [--level L]
+                                 INPGRID BOTTOM xpinp ypinp 0 mxinp myinp dxinp dyinp, READINP ... idla
+  --xyz FILE --domain X0 X1 Y0 Y1 --spacing D [--depth]
+                                 scattered points x y z in model coordinates, linear interpolation
+  NETCDF --var elevation --domain ... --spacing D [--depth] + model frame (--origin or --crs)
+                                 elevation on 1D lon/lat axes (GEBCO, EMODnet)
+
 Examples
+  python3 seastate_forcing.py bathy --swan-bot Sula_bottom_file_2.bot --swan-grid 1249 799 20 20 --idla 4
   python3 seastate_forcing.py spectra ww3_points.nc --origin 5.9 62.3 --rotation 20 -o seastate-boundary.spc
   python3 seastate_forcing.py wind era5_wind.nc --origin 5.9 62.3 --rotation 20 \\
           --domain 0 60000 0 40000 --spacing 2000 -o seastate-wind.dat
@@ -341,6 +353,74 @@ def wind(args):
     print("%s: %d x %d nodes, spacing %g m, %d times (%s - %s)" % (args.output, nx, ny, args.spacing, len(keep), stamp(times[keep[0]]), stamp(times[keep[-1]])))
 
 
+def write_bathy(path, z, x0, y0, dx, dy, title):
+    ny, nx = z.shape
+    out = open(path, "w")
+    out.write("REEF3D-SEASTATE bathymetry: %s (tools/seastate_forcing.py)\n" % title)
+    out.write("%d %d\n%.6f %.6f %.6f %.6f\n" % (nx, ny, x0, y0, dx, dy))
+    for j in range(ny):
+        out.write(" ".join("%.3f" % v for v in z[j]) + "\n")
+    out.close()
+    print("%s: %d x %d nodes, spacing %g x %g m, bed level %.2f to %.2f m" % (path, nx, ny, dx, dy, np.nanmin(z), np.nanmax(z)))
+
+
+def bathy(args):
+    if args.swan_bot is not None:
+        if args.swan_grid is None:
+            sys.exit("--swan-bot needs --swan-grid MX MY DX DY (INPGRID BOTTOM)")
+        mx, my = int(args.swan_grid[0]), int(args.swan_grid[1])
+        dx, dy = args.swan_grid[2], args.swan_grid[3]
+        vals = np.loadtxt(args.swan_bot).reshape(-1)
+        nx, ny = mx + 1, my + 1
+        if vals.size < nx * ny:
+            sys.exit("%s: %d values, INPGRID needs %d" % (args.swan_bot, vals.size, nx * ny))
+        vals = vals[:nx * ny]
+        # SWAN idla: 1 rows from the top (north) to the bottom, 3 and 4 from the bottom up (row by row in x)
+        if args.idla in (3, 4):
+            d = vals.reshape(ny, nx)
+        elif args.idla == 1:
+            d = vals.reshape(ny, nx)[::-1, :]
+        else:
+            sys.exit("--idla %d: only 1, 3 and 4 (row by row) are supported" % args.idla)
+        z = args.level - args.fac * d
+        write_bathy(args.output, z, args.xp[0], args.xp[1], dx, dy, args.swan_bot)
+        return
+
+    if args.domain is None or args.spacing is None:
+        sys.exit("--xyz and NetCDF input need --domain X0 X1 Y0 Y1 and --spacing")
+    x0, x1, y0, y1 = args.domain
+    nx = int(round((x1 - x0) / args.spacing)) + 1
+    ny = int(round((y1 - y0) / args.spacing)) + 1
+    X, Y = np.meshgrid(x0 + args.spacing * np.arange(nx), y0 + args.spacing * np.arange(ny))
+    sign = -1.0 if args.depth else 1.0
+
+    if args.xyz is not None:
+        from scipy.interpolate import griddata
+        pts = np.loadtxt(args.xyz, usecols=(0, 1, 2))
+        z = griddata(pts[:, :2], sign * pts[:, 2], (X, Y), method="linear")
+        bad = np.isnan(z)
+        if bad.any():
+            z[bad] = griddata(pts[:, :2], sign * pts[:, 2], (X[bad], Y[bad]), method="nearest")
+        write_bathy(args.output, z, x0, y0, args.spacing, args.spacing, args.xyz)
+        return
+
+    if args.input is None:
+        sys.exit("bathy: give --swan-bot, --xyz or a NetCDF file")
+    nc = NC(args.input)
+    fr = Frame(args)
+    lon = nc.get(args.lon)
+    lat = nc.get(args.lat)
+    elev = nc.get(args.var)
+    from scipy.interpolate import RegularGridInterpolator
+    LON, LAT = fr.to_geo(X, Y)
+    la, lo, fld = lat, lon, elev
+    if la[0] > la[-1]:
+        la, fld = la[::-1], fld[::-1, :]
+    g = RegularGridInterpolator((la, lo), fld, bounds_error=False, fill_value=None)
+    z = sign * g(np.column_stack([LAT.reshape(-1), LON.reshape(-1)])).reshape(X.shape)
+    write_bathy(args.output, z, x0, y0, args.spacing, args.spacing, args.input)
+
+
 def point(args):
     fr = Frame(args)
     x, y = fr.to_model(args.lon, args.lat)
@@ -391,6 +471,25 @@ def main(argv=None):
     w.add_argument("--start")
     w.add_argument("--end")
     w.set_defaults(func=wind)
+
+    b = sub.add_parser("bathy")
+    b.add_argument("input", nargs="?")
+    b.add_argument("-o", "--output", default="seastate-bathy.dat")
+    b.add_argument("--swan-bot")
+    b.add_argument("--swan-grid", type=float, nargs=4, metavar=("MX", "MY", "DX", "DY"))
+    b.add_argument("--xp", type=float, nargs=2, default=(0.0, 0.0), metavar=("XP", "YP"))
+    b.add_argument("--idla", type=int, default=4)
+    b.add_argument("--fac", type=float, default=1.0)
+    b.add_argument("--level", type=float, default=0.0, help="still water level (F 60) [m]")
+    b.add_argument("--xyz")
+    b.add_argument("--depth", action="store_true", help="input values are depths (positive down)")
+    b.add_argument("--var", default="elevation")
+    b.add_argument("--lon", default="lon")
+    b.add_argument("--lat", default="lat")
+    b.add_argument("--domain", type=float, nargs=4, metavar=("X0", "X1", "Y0", "Y1"))
+    b.add_argument("--spacing", type=float)
+    frame(b)
+    b.set_defaults(func=bathy)
 
     q = sub.add_parser("point")
     q.add_argument("lon", type=float)

@@ -29,6 +29,8 @@ Architect: Hans Bihs
 #include"seastate_implicit.h"
 #include"seastate_source.h"
 #include"seastate_roller.h"
+#include"seastate_amr.h"
+#include"seastate_bathy.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
@@ -151,6 +153,17 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     pex->start(p,pgc,*e->N);
 
+    // mesh refinement (G 1): static hierarchy of patches
+    if(p->G1>0)
+    {
+    pamr = new seastate_amr(p,pgc);
+    seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wser,tref};
+    pamr->ini(p,pgc,l0);
+
+        if(wser!=nullptr)
+        pamr->wind(tref+p->simtime);
+    }
+
     parameters(p,pgc);
 
     pprint = new seastate_vtp(p,e,pgc,coupled);
@@ -172,7 +185,12 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     // initial state (coupled: printed by the host after it has added its fields)
     if(!coupled)
+    {
+    const int pc = p->printcount;
     pprint->start(p,e,pgc);
+    if(pamr!=nullptr && p->printcount!=pc)
+    pamr->print(p,pgc);
+    }
 
     log_step(p);
 
@@ -234,6 +252,10 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 744: triads must be 0 (off) or 1 (LTA)";
     else if(!(p->A745>=0.0))
     msg = "A 745: the triad coefficient must not be negative";
+    else if(!(p->A736_cutfr>1.0) || !(p->A736_urcrit>0.0) || !(p->A736_urslim>=0.0))
+    msg = "A 736: the triad parameters cutfr (> 1), urcrit (> 0) and urslim (>= 0) are out of range";
+    else if(p->A737!=0 && p->A737!=1)
+    msg = "A 737: the maximum energy must be 0 (off) or 1 (on)";
     else if(p->A750==1 && p->A10!=2 && p->A10!=5)
     msg = "A 750 1: the coupling needs SFLOW (A 10 2) or NHFLOW (A 10 5) as the host model";
     else if(p->A750==1 && p->A751!=1 && p->A751!=2)
@@ -256,6 +278,22 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 770 1: the surfbeat model starts from rest (A 710 0)";
     else if(p->A780<0.0 || (p->A780>0.0 && p->A780<10000101.0))
     msg = "A 780: the start date-time must be YYYYMMDD.HHMMSS (or 0)";
+    else if(!(p->A709>0.0) || p->A709>100.0)
+    msg = "A 709: the percentage of converged cells must be in (0, 100]";
+    else if(p->A790!=0 && p->A790!=1)
+    msg = "A 790: the bathymetry raster must be 0 (off) or 1 (seastate-bathy.dat)";
+    else if(p->A790==1 && coupled)
+    msg = "A 790 1: the bathymetry raster is for stand-alone runs (A 10 7); a host model sets the bed";
+    else if(p->G1>0 && coupled)
+    msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not with the coupling (A 750)";
+    else if(p->G1>0 && p->A770==1)
+    msg = "G 1: mesh refinement is not available with the surfbeat model (A 770 1)";
+    else if(p->G1>0 && p->G40!=0)
+    msg = "G 40: SEASTATE patches are cut at the rank boxes (G 40 0)";
+    else if(p->G1>0 && (p->G4<4 || p->G4%2!=0))
+    msg = "G 4: the tile size must be even and at least 4";
+    else if(p->A791<0.0 || p->A792<0 || p->A792>3 || p->A793<0.0 || p->A794<0)
+    msg = "A 791-794: the refinement criteria must not be negative (A 792 at most 3)";
     else if(p->A770==1 && p->A711!=1 && p->A711!=2)
     msg = "A 770 1: the surfbeat model needs a boundary spectrum (A 711 1 parametric or 2 SWAN file)";
     else if(p->A770==1 && p->A712_xm!=1)
@@ -297,6 +335,28 @@ void seastate_f::environment(lexer *p, ghostcell *pgc)
     e->bed(i,j)=p->bed[IJ];
 
     pgc->gcsl_start4(p,e->bed,50);
+
+    // bathymetry raster (A 790 1): the bed of every cell (halo included) from seastate-bathy.dat
+    if(p->A790==1)
+    {
+    bathy = new seastate_bathy;
+    std::string err;
+
+        if(!bathy->read("seastate-bathy.dat",err))
+        {
+            if(p->mpirank==0)
+            cout<<endl<<"SEASTATE input error  --  A 790 1: "<<err<<endl<<endl;
+
+            pgc->final(true);
+        }
+
+        IMALOOP
+        JMALOOP
+        e->bed(i,j) = bathy->cell(p->XN[IP],p->XN[IP1],p->YN[JP],p->YN[JP1],p->wd-p->A705);
+
+        if(p->mpirank==0)
+        cout<<"SEASTATE bathymetry (A 790 1): seastate-bathy.dat, "<<bathy->nx<<" x "<<bathy->ny<<" nodes, spacing "<<bathy->dx<<" x "<<bathy->dy<<" m"<<endl;
+    }
 
     IMALOOP
     JMALOOP
@@ -448,6 +508,10 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
 
     sp.triads  = (p->A744==1);
     sp.alphaEB = p->A745;
+    sp.cutfr   = p->A736_cutfr;
+    sp.urcrit  = p->A736_urcrit;
+    sp.urslim  = p->A736_urslim;
+    sp.emax    = (p->A740==1 && p->A737==1);
 
     if(!sp.any())
     return;
@@ -474,8 +538,10 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     cout<<" breaking (Roelvink, alpha "<<sp.alpha<<", gamma "<<sp.gamma<<", n "<<sp.nroel<<"),";
     if(sp.friction)
     cout<<" bottom friction (JONSWAP, "<<sp.Cb<<" m^2/s^3),";
+    if(sp.emax)
+    cout<<" maximum energy (gamma d)^2/4,";
     if(sp.triads)
-    cout<<" triads (LTA, alpha "<<sp.alphaEB<<"),";
+    cout<<" triads (LTA, alpha "<<sp.alphaEB<<", cutfr "<<sp.cutfr<<", urcrit "<<sp.urcrit<<", urslim "<<sp.urslim<<"),";
     cout<<endl;
 
     if(p->A700==2 && sp.komen)

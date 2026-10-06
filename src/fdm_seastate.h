@@ -78,4 +78,8 @@ public:
     seastate_store *cg = nullptr;
 };
 
+// k, cg, depth and current gradients, refraction flags (seastate_f_kinematics.cpp); (i+gi0, j+gj0)
+// is the global index of local cell (i,j), the domain has gnx x gny cells of the grid's level
+void seastate_kinematics(lexer*, fdm_seastate*, double dt_depth, int gi0, int gj0, int gnx, int gny);
+
 #endif

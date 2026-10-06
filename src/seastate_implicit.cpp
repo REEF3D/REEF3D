@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"seastate_dispersion.h"
 #include"seastate_source.h"
 #include"fdm_seastate.h"
+#include"sliceint.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
@@ -85,11 +86,18 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
     const bool idown = (q==1 || q==2);
     const bool jdown = (q==2 || q==3);
 
-    for(int ii=0; ii<p->knox; ++ii)
-    for(int jj=0; jj<p->knoy; ++jj)
+    // the whole grid, or (mesh refinement) the interior of a patch
+    const int ia = ranged ? ri0 : 0, ib = ranged ? ri1 : p->knox-1;
+    const int ja = ranged ? rj0 : 0, jb = ranged ? rj1 : p->knoy-1;
+
+    for(int ii=ia; ii<=ib; ++ii)
+    for(int jj=ja; jj<=jb; ++jj)
     {
-    i = idown ? p->knox-1-ii : ii;
-    j = jdown ? p->knoy-1-jj : jj;
+    i = idown ? ia+ib-ii : ii;
+    j = jdown ? ja+jb-jj : jj;
+
+        if(skp!=nullptr && (*skp)(i,j)==1)
+        continue;
 
         if(e->wet(i,j)==1)
         {
@@ -112,13 +120,23 @@ namespace
         bool self = false;            // zero-gradient side: inflow of the cell's own spectrum
     };
 
-    void set_neighbour(lexer *p, fdm_seastate *e, int ni, int nj, const vector<float> &Nb, const vector<float> *const Nbs[4], const int side[4], neighbour &nb)
+    // fs: side of the neighbour that faces the cell (mesh refinement: spectrum on the face of a covered cell)
+    void set_neighbour(lexer *p, fdm_seastate *e, int ni, int nj, const vector<float> &Nb, const vector<float> *const Nbs[4], const int side[4], neighbour &nb,
+                       sliceint *skp = nullptr, const seastate_faces *fcs = nullptr, int fs = 0)
     {
         nb = neighbour();
 
         if(e->wet(ni,nj)==1)
         {
         nb.N  = e->N->spec(ni,nj);
+
+            if(fcs!=nullptr && skp!=nullptr && (*skp)(ni,nj)==1)
+            {
+            const float *f = fcs->face(ni,nj,fs);
+            if(f!=nullptr)
+            nb.N = f;
+            }
+
         nb.cg = e->cg->spec(ni,nj);
         nb.U  = e->U(ni,nj);
         nb.V  = e->V(ni,nj);
@@ -192,10 +210,10 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     const int ic = i, jc = j;
 
     neighbour W,E,S,Nn;
-    set_neighbour(p,e,ic-1,jc,Nb,Nbs,side,W);
-    set_neighbour(p,e,ic+1,jc,Nb,Nbs,side,E);
-    set_neighbour(p,e,ic,jc-1,Nb,Nbs,side,S);
-    set_neighbour(p,e,ic,jc+1,Nb,Nbs,side,Nn);
+    set_neighbour(p,e,ic-1,jc,Nb,Nbs,side,W,skp,fcs,1);
+    set_neighbour(p,e,ic+1,jc,Nb,Nbs,side,E,skp,fcs,0);
+    set_neighbour(p,e,ic,jc-1,Nb,Nbs,side,S,skp,fcs,3);
+    set_neighbour(p,e,ic,jc+1,Nb,Nbs,side,Nn,skp,fcs,2);
 
     const double rdx = 1.0/p->DXN[IP];
     const double rdy = 1.0/p->DYN[JP];
@@ -216,8 +234,12 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     if(src!=nullptr && wU!=nullptr)
     src->set_wind((*wU)(ic,jc),(*wD)(ic,jc));
 
+    // maximum energy (A 737 1, SWAN SINTGRL), then the source terms from the latest spectrum
     if(src!=nullptr)
+    {
+    src->cap(N,d);
     src->compute(N,d,kc,cgc,P.data(),D.data());
+    }
 
     const double *lim = (src!=nullptr) ? src->limit() : nullptr;
 

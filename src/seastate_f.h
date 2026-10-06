@@ -39,6 +39,8 @@ class seastate_surfbeat;
 class seastate_roller;
 class seastate_spc_series;
 class seastate_wind_series;
+class seastate_amr;
+class seastate_bathy;
 class slice4;
 class regression_dump;
 
@@ -111,6 +113,14 @@ Phase 5a: external forcing (seastate_f_forcing.cpp).
                    cell drives the source terms (seastate_implicit)
   Stationary runs with forcing are a sequence of stationary solves,
   one per A 706 interval (as SWAN's quasi-stationary mode).
+
+Phase 5b: static mesh refinement on REEFAMR (seastate_amr, G 1, stand-
+alone runs): refined patches from boxes (G 10, G 11) and criteria
+(A 791 depth, A 792 coastline, A 793 bathymetry gradient), composite
+solve over all levels per directional quadrant; bathymetry raster
+seastate-bathy.dat for all grids (A 790 1, seastate_bathy). Also the
+SWAN maximum energy with Battjes-Janssen breaking (A 737) and the
+triad parameters (A 736).
 
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
@@ -209,6 +219,11 @@ private:
     struct bweight {int a, b; float wa, wb;};
     std::vector<bweight> bw[4];
     slice4 *wU10, *wdir, *wUx, *wUy;        // wind of every cell: speed, direction [rad], components
+
+    // mesh refinement (G 1), bathymetry raster (A 790 1)
+    seastate_amr *pamr;
+    seastate_bathy *bathy;
+    void transport_amr(lexer*, ghostcell*);
 };
 
 #endif

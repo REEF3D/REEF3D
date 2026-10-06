@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 
 #include"seastate_f.h"
+#include"seastate_amr.h"
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_forcing.h"
@@ -248,5 +249,9 @@ void seastate_f::forcing_update(lexer *p, ghostcell *pgc, double t)
         (*wU10)(i,j) = std::sqrt(u*u + v*v);
         (*wdir)(i,j) = std::atan2(v,u);
         }
+
+        // mesh refinement: the wind of the patch cells
+        if(pamr!=nullptr)
+        pamr->wind(tf);
     }
 }

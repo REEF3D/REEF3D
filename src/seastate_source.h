@@ -76,6 +76,11 @@ in brackets):
                    sig_01, Madsen and Sorensen (1993) interaction
                    coefficient, biphase pi/2 (tanh(0.63/Ur) - 1),
                    active for Ursell numbers Ur >= 0.1               -> P, D
+                   (cutfr, urcrit, urslim: A 736; the SWAN versions
+                   40.x-41.31 used urcrit 0.2, urslim 0.01)
+  maximum energy   with Battjes-Janssen breaking the total energy of a
+                   cell is limited to (gamma d)^2/4 before the source
+                   terms are evaluated (SWAN SINTGRL, A 737 1): cap
 
 Integral parameters (SINTGRL): E_tot, sig_01, sig_-10, k_WAM with a
 sig^-4 tail above the frequency grid, Hs = 4 sqrt(E_tot),
@@ -96,6 +101,7 @@ struct seastate_source_param
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
 
     bool breaking = false;
+    bool emax = false;                   // Battjes-Janssen: total energy limited to (gamma d)^2/4 (SWAN SINTGRL)
     int breaking_model = 1;              // 1 Battjes-Janssen, 2 Roelvink (1993) for wave groups (surfbeat)
     double alpha = 1.0, gamma = 0.73, nroel = 10.0;
 
@@ -120,6 +126,10 @@ public:
 
     // N of one cell (nbin), k and cg of the cell (nsig); P and D of size nbin (overwritten)
     void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D);
+
+    // maximum energy (prm.emax, Battjes-Janssen breaking): scales the spectrum of a cell down to the
+    // total energy (gamma d)^2/4 (tail included, as SWAN SINTGRL); true if it was scaled
+    bool cap(float *N, double depth) const;
 
     // single terms as dN/dt [N/s], for tests and diagnostics (S of size nbin, overwritten)
     void quadruplets(const float *N, double depth, const float *k, double *S, double *dSdN = nullptr);
