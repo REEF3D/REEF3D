@@ -90,23 +90,31 @@ void komega_bc::wall_law_kin(fdm* a,lexer* p,field& kin,field& eps,int ii,int jj
         vvel=0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel=0.5*(a->w(i,j,k)+a->w(i,j,k-1));
         
+        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);   // cell velocity: production tau u/y
+
+		if(30.0*dist<ks)
+		dist=ks/30.0;
+		
+        uplus = (1.0/kappa)*MAX(1.0,log(30.0*(dist/ks)));
+        
+        // bed shear: with sediment (S 10 > 0) the velocity is sampled at T 44 cells above the bed, and the log
+        // law is evaluated at that height (it used the cell distance with the sampled velocity)
+        double u_tau = u_abs;
+        double uplus_tau = uplus;
+        
         if((bc==5 || (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0)) && p->S10>0)
         {
         zval = a->bed(i,j) + p->T44*p->DZN[KP];
         
             uvel=p->ccipol1(a->u,p->XP[IP],p->YP[JP],zval);
             vvel=p->ccipol2(a->v,p->XP[IP],p->YP[JP],zval);
-            wvel=p->ccipol3(a->w,p->XP[IP],p->YP[JP],zval);    
+            wvel=p->ccipol3(a->w,p->XP[IP],p->YP[JP],zval);
+            
+        u_tau = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
+        uplus_tau = (1.0/kappa)*MAX(1.0,log(30.0*MAX(p->T44*p->DZN[KP],ks/30.0)/ks));
         }
-        
-        u_abs = sqrt(uvel*uvel + vvel*vvel + wvel*wvel);
 
-		if(30.0*dist<ks)
-		dist=ks/30.0;
-		
-        uplus = (1.0/kappa)*MAX(1.0,log(30.0*(dist/ks)));
-
-	tau = (u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
+	tau = (u_tau*u_tau)/(uplus_tau*uplus_tau);
 	
 	a->M.p[id] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j,k)),0.5)*uplus)/dist;
 	a->rhsvec.V[id] += (tau*u_abs)/dist;
@@ -126,6 +134,12 @@ void komega_bc::wall_law_omega(fdm* a,lexer* p,field& kin,field& eps,int ii,int 
     
     if(cs==5 || cs==6)
     dist = 0.5*p->DZN[KP];
+    
+    // y >= ks/30, as in wall_law_kin
+    ks=ks_val(p,a,ii,jj,kk,cs,bc);
+    
+    if(30.0*dist<ks)
+    dist=ks/30.0;
 
 	eps_star = pow((kin(i,j,k)>(0.0)?(kin(i,j,k)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     

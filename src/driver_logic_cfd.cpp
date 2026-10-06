@@ -338,6 +338,9 @@ void driver::logic_cfd()
 	// momentum and scalars
 	if(p->D20==0)
 	pdiff=new diff_void;
+    
+    if(p->D20==0 && p->T10>0 && p->mpirank==0)
+    cout<<"CFD warning: turbulence model T 10 "<<p->T10<<" with D 20 0: no diffusion, the eddy viscosity does not enter the momentum equations and k, eps/omega are not diffused"<<endl;
 
 	if(p->D20==1 && p->j_dir==1)
 	pdiff=new ediff2(p);
