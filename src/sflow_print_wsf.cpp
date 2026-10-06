@@ -119,13 +119,15 @@ void sflow_print_wsf::ini_location(lexer *p, fdm2D *b)
 {
     for(n=0;n<gauge_num;++n)
     {
-    iloc[n]=conv((x[n]-p->originx)/p->DXM);
+    // the cell that contains the gauge (rounding (x-x0)/dx gave the next cell for a gauge in the
+    // upper half of a cell, and assumed a uniform grid)
+    iloc[n]=p->posc_i(x[n]);
     
     if(p->j_dir==0)
     jloc[n]=0;
     
     if(p->j_dir==1)
-    jloc[n]=conv((y[n]-p->originy)/p->DXM);
+    jloc[n]=p->posc_j(y[n]);
 
     if(iloc[n]>=0 && iloc[n]<p->knox)
     if(jloc[n]>=0 && jloc[n]<p->knoy)
