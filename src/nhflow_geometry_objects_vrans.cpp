@@ -236,7 +236,7 @@ void nhflow_geometry::objects_allocate_vrans(lexer *p, ghostcell *pgc)
     {
 	r = p->B215_r[n];
 	U = 2.0*PI*r;
-	ds = 0.85*(DSM);
+	ds = 0.5*(DSM);     // as nhflow_geometry::sphere (geo_primitive::segments with 0.5*DSM)
     snum = MAX(int(U/ds), 40);
     trisum+=snum*snum*2;
     
