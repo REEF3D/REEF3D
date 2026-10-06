@@ -1,8 +1,9 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms, surfbeat boundary generator, forcing files. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp -o seastate_test
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp -o seastate_test
 // Run:    ./seastate_test
+#include"seastate_bathy.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
 #include"seastate_param.h"
@@ -796,6 +797,98 @@ static void test_forcing()
     check(std::fabs(uc-(5.0+0.01*100.0+0.002*250.0+2.0))<1e-12,"wind field: clamped to the grid outside");
 }
 
+// Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)
+static void test_bathy()
+{
+    std::cout<<"seastate_bathy, maximum energy"<<std::endl;
+
+    // raster of a linear bed z = -20 + 0.01 x - 0.02 y on 6 x 4 nodes, 50 m x 100 m spacing, origin (1000, 2000)
+    const std::string f = "seastate_test_bathy.dat";
+    {
+        std::ofstream o(f);
+        o<<"$ test raster\n6 4   $ nodes\n1000 2000 50 100\n";
+        for(int j=0; j<4; ++j)
+        {
+            for(int i=0; i<6; ++i)
+            o<<(-20.0 + 0.01*(1000.0+50.0*i) - 0.02*(2000.0+100.0*j))<<" ";
+            o<<"\n";
+        }
+    }
+    auto zl = [](double x, double y) {return -20.0 + 0.01*x - 0.02*y;};
+
+    seastate_bathy b;
+    std::string err;
+    const bool ok = b.read(f,err);
+    if(!ok) std::cout<<"        "<<err<<std::endl;
+    check(ok && b.nx==6 && b.ny==4 && b.dx==50.0 && b.dy==100.0,"raster header and values read ($ comments)");
+
+    double e1=0.0;
+    for(double x : {1000.0,1033.0,1210.0,1250.0}) for(double y : {2000.0,2077.0,2300.0})
+    e1 = std::max(e1,std::fabs(b.at(x,y)-zl(x,y)));
+    check(e1<1e-12,"bilinear interpolation exact for a linear bed");
+    check(std::fabs(b.at(0.0,0.0)-zl(1000.0,2000.0))<1e-12 && std::fabs(b.at(5000.0,9000.0)-zl(1250.0,2300.0))<1e-12,"clamped outside the raster");
+
+    // cell [1000,1100) x [2000,2200): nodes x 1000, 1050 and y 2000, 2100 -> mean at (1025, 2050)
+    check(std::fabs(b.cell(1000.0,1100.0,2000.0,2200.0)-zl(1025.0,2050.0))<1e-12,"cell value: mean of the nodes inside the cell");
+    // cell finer than the raster: no node inside -> bilinear at the centre
+    check(std::fabs(b.cell(1010.0,1030.0,2010.0,2030.0)-zl(1020.0,2020.0))<1e-12,"cell without nodes: bilinear at the centre");
+
+    // majority rule with zdry: a cell with 3 dry nodes (z = +2) and 1 wet node (z = -10) is dry (bed +2),
+    // with 1 dry and 3 wet nodes wet with the mean of the wet nodes (-10), without zdry the plain mean
+    {
+        std::ofstream o("seastate_test_bathy2.dat");
+        o<<"islet\n2 2\n0 0 10 10\n2 2\n2 -10\n";
+        std::ofstream o2("seastate_test_bathy3.dat");
+        o2<<"islet\n2 2\n0 0 10 10\n-10 -10\n2 -10\n";
+    }
+    seastate_bathy b2, b3;
+    b2.read("seastate_test_bathy2.dat",err);
+    b3.read("seastate_test_bathy3.dat",err);
+    check(std::fabs(b2.cell(-5.0,15.0,-5.0,15.0,-0.05)-2.0)<1e-12 && std::fabs(b3.cell(-5.0,15.0,-5.0,15.0,-0.05)+10.0)<1e-12,"cell: majority of wet/dry nodes, mean bed of the majority");
+    check(std::fabs(b2.cell(-5.0,15.0,-5.0,15.0)+1.0)<1e-12,"cell without zdry: mean of all nodes");
+
+    {
+        std::ofstream o("seastate_test_bathy_bad.dat");
+        o<<"title\n3 3\n0 0 1 1\n1 2 3\n4 5\n";
+    }
+    seastate_bathy bb;
+    check(!bb.read("seastate_test_bathy_bad.dat",err),"incomplete raster rejected");
+    check(!bb.read("does_not_exist.dat",err),"missing file rejected");
+
+    // maximum energy: E_tot (tail included) <= (gamma d)^2/4 with Battjes-Janssen breaking
+    seastate_grid sg(30,0.05,1.0,24);
+    std::vector<float> N = make_spectrum(sg,3.0,8.0,3.3,0.0,10.0);
+    std::vector<float> Nc = N;
+
+    seastate_source_param sp; sp.breaking=true; sp.emax=true; sp.gamma=0.73;
+    seastate_source src(sg,sp);
+    const double d = 2.0;
+    const bool capped = src.cap(Nc.data(),d);
+
+    cell_kin ck(sg,d);
+    seastate_param pm; pm.compute(sg,Nc.data());
+    std::vector<double> P(sg.nbin), D(sg.nbin);
+    src.compute(Nc.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+    const double emax = 0.25*(0.73*d)*(0.73*d);
+    std::cout<<"        E_tot after the cap "<<src.Etot<<", (gamma d)^2/4 = "<<emax<<std::endl;
+    check(capped && std::fabs(src.Etot-emax)<1e-6*emax,"cap: E_tot (with tail) = (gamma d)^2/4");
+    double rat=-1.0; bool shape=true;
+    for(int bn=0; bn<sg.nbin; ++bn)
+    if(N[bn]>0.0f)
+    {
+        const double r = double(Nc[bn])/double(N[bn]);
+        if(rat<0.0) rat=r; else if(std::fabs(r-rat)>1e-5*rat) shape=false;
+    }
+    check(shape,"cap: the spectral shape is kept (one factor)");
+
+    std::vector<float> N2 = N;
+    check(!src.cap(N2.data(),50.0) && N2==N,"no cap in deep water");
+    seastate_source_param sp0; sp0.breaking=true; sp0.emax=false;
+    seastate_source src0(sg,sp0);
+    std::vector<float> N3 = N;
+    check(!src0.cap(N3.data(),d) && N3==N,"no cap with A 737 0");
+}
+
 int main()
 {
     test_grid();
@@ -806,6 +899,7 @@ int main()
     test_source();
     test_surfbeat();
     test_forcing();
+    test_bathy();
     test_memory();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;

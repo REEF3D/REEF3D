@@ -1,0 +1,21 @@
+{
+ "description": "REEF3D::SEASTATE static mesh refinement on 2 ranks (G 1 1): the island case of seastate_2d_amr_static, nonstationary from rest with uniform wind (Komen, DIA), 2 iterations per step (N0 of the patches), patches cut at the rank boxes, fills and restriction across ranks, 30 min. Validation in Dropbox SEASTATE/validation/19-23.",
+ "solver": "seastate",
+ "np": 2,
+ "steps": 6,
+ "time": 1800.0,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_amr on 2 ranks",
+  "nonstationary composite iterations",
+  "source terms on the patches"
+ ]
+}

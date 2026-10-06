@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::SEASTATE bathymetry raster without refinement (A 790 1): the island case of seastate_2d_amr_static on the 200 m grid only (cells take the majority of the raster nodes, wet or dry), stationary with whitecapping, breaking and the SWAN maximum energy (A 737), triads with SWAN 41.31 parameters (A 736), SWAN-type convergence (A 709 99.5). Validation in Dropbox SEASTATE/validation/23_swan_cases.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "time": 1.0,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "2d",
+  "seastate",
+  "quick"
+ ],
+ "covers": [
+  "seastate_bathy on level 0",
+  "A 736, A 737, A 709 without refinement"
+ ]
+}
