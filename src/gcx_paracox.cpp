@@ -26,13 +26,24 @@ Author: Hans Bihs
 
 void ghostcell::gcparacox(lexer* p, field& f, int gcv)
 {
+    const int off[6] = {0,0,0,0,0,0};
+
+    gcparaco_pack(p,f,off);
+
+    Sendrecv_double(p->gcparaco1_count,p->gcparaco2_count,p->gcparaco3_count,p->gcparaco4_count,p->gcparaco5_count,p->gcparaco6_count);
+
+    gcparaco_unpack(p,f,off);
+}
+
+void ghostcell::gcparaco_pack(lexer* p, field& f, const int *off)
+{
     //  FILL SEND
     for(q=0;q<p->gcparaco1_count;++q)
     {
         i=p->gcparaco1[q][0];
         j=p->gcparaco1[q][1];
         k=p->gcparaco1[q][2];
-        send1[q]=f(i,j,k);
+        send1[off[0]+q]=f(i,j,k);
     }
 
     for(q=0;q<p->gcparaco3_count;++q)
@@ -40,7 +51,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco3[q][0];
         j=p->gcparaco3[q][1];
         k=p->gcparaco3[q][2];
-        send3[q]=f(i,j,k);
+        send3[off[2]+q]=f(i,j,k);
     }
 
     for(q=0;q<p->gcparaco5_count;++q)
@@ -48,7 +59,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco5[q][0];
         j=p->gcparaco5[q][1];
         k=p->gcparaco5[q][2];
-        send5[q]=f(i,j,k);
+        send5[off[4]+q]=f(i,j,k);
     }
 
     for(q=0;q<p->gcparaco4_count;++q)
@@ -56,7 +67,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco4[q][0];
         j=p->gcparaco4[q][1];
         k=p->gcparaco4[q][2];
-        send4[q]=f(i,j,k);
+        send4[off[3]+q]=f(i,j,k);
     }
 
     for(q=0;q<p->gcparaco2_count;++q)
@@ -64,7 +75,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco2[q][0];
         j=p->gcparaco2[q][1];
         k=p->gcparaco2[q][2];
-        send2[q]=f(i,j,k);
+        send2[off[1]+q]=f(i,j,k);
     }
 
     for(q=0;q<p->gcparaco6_count;++q)
@@ -72,18 +83,19 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco6[q][0];
         j=p->gcparaco6[q][1];
         k=p->gcparaco6[q][2];
-        send6[q]=f(i,j,k);
+        send6[off[5]+q]=f(i,j,k);
     }
+}
 
-    Sendrecv_double(p->gcparaco1_count,p->gcparaco2_count,p->gcparaco3_count,p->gcparaco4_count,p->gcparaco5_count,p->gcparaco6_count);
-
+void ghostcell::gcparaco_unpack(lexer* p, field& f, const int *off)
+{
     //  FILL RECEIVE
     for(q=0;q<p->gcparaco1_count;++q)
     {
         i=p->gcparaco1[q][0];
         j=p->gcparaco1[q][1];
         k=p->gcparaco1[q][2];
-        f(i-1,j,k)=recv1[q];
+        f(i-1,j,k)=recv1[off[0]+q];
     }
 
     for(q=0;q<p->gcparaco3_count;++q)
@@ -91,7 +103,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco3[q][0];
         j=p->gcparaco3[q][1];
         k=p->gcparaco3[q][2];
-        f(i,j-1,k)=recv3[q];
+        f(i,j-1,k)=recv3[off[2]+q];
     }
 
     for(q=0;q<p->gcparaco5_count;++q)
@@ -99,7 +111,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco5[q][0];
         j=p->gcparaco5[q][1];
         k=p->gcparaco5[q][2];
-        f(i,j,k-1)=recv5[q];
+        f(i,j,k-1)=recv5[off[4]+q];
     }
 
     for(q=0;q<p->gcparaco4_count;++q)
@@ -107,7 +119,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco4[q][0];
         j=p->gcparaco4[q][1];
         k=p->gcparaco4[q][2];
-        f(i+1,j,k)=recv4[q];
+        f(i+1,j,k)=recv4[off[3]+q];
     }
 
     for(q=0;q<p->gcparaco2_count;++q)
@@ -115,7 +127,7 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco2[q][0];
         j=p->gcparaco2[q][1];
         k=p->gcparaco2[q][2];
-        f(i,j+1,k)=recv2[q];
+        f(i,j+1,k)=recv2[off[1]+q];
     }
 
     for(q=0;q<p->gcparaco6_count;++q)
@@ -123,6 +135,6 @@ void ghostcell::gcparacox(lexer* p, field& f, int gcv)
         i=p->gcparaco6[q][0];
         j=p->gcparaco6[q][1];
         k=p->gcparaco6[q][2];
-        f(i,j,k+1)=recv6[q];
+        f(i,j,k+1)=recv6[off[5]+q];
     }
 }

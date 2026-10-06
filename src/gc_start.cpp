@@ -30,8 +30,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,1);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,1);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
@@ -57,7 +56,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
         gc_periodic(p, f, 1, 3);
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol1(p,f,gcv);
+        dgcpol(p,f,p->dgc1,p->dgc1_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -69,8 +68,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,2);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,2);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
@@ -99,7 +97,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     }
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol2(p,f,gcv);
+        dgcpol(p,f,p->dgc2,p->dgc2_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -111,8 +109,7 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,3);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,3);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
@@ -137,7 +134,7 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
         gc_periodic(p, f, 3, 3);
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol3(p,f,gcv);
+        dgcpol(p,f,p->dgc3,p->dgc3_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -149,8 +146,7 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,4);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,4);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
@@ -175,7 +171,7 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
         gc_periodic(p, f, 4, 3);
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol4(p,f,gcv);
+        dgcpol(p,f,p->dgc4,p->dgc4_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);

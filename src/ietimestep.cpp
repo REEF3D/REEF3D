@@ -66,28 +66,50 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
 	sqd=1.0/(p->DXM*p->DXM);
 	
-// maximum velocities
-
+// maximum values: local first, then one reduction over all ranks
 	ULOOP
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
-
-	p->umax=pgc->globalmax(p->umax);
-    
-    
-
 
 	VLOOP
 	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-	p->vmax=pgc->globalmax(p->vmax);
-
-
 	WLOOP
 	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
 
-	p->wmax=pgc->globalmax(p->wmax);
-    
-    velmax=max(p->umax,p->vmax,p->wmax);
+	LOOP
+	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
+
+	LOOP
+	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
+
+    LOOP
+	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
+
+    LOOP
+    {
+	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
+	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
+    }
+
+    {
+    double gmax[12] = {p->umax, p->vmax, p->wmax, a->maxF, a->maxG, a->maxH, p->fbmax,
+                       p->viscmax, p->kinmax, p->epsmax, p->pressmax, -p->pressmin};
+
+    pgc->globalmax(gmax,12);
+
+    p->umax=gmax[0];
+    p->vmax=gmax[1];
+    p->wmax=gmax[2];
+    a->maxF=gmax[3];
+    a->maxG=gmax[4];
+    a->maxH=gmax[5];
+    p->fbmax=gmax[6];
+    p->viscmax=gmax[7];
+    p->kinmax=gmax[8];
+    p->epsmax=gmax[9];
+    p->pressmax=gmax[10];
+    p->pressmin=-gmax[11];
+    }
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
@@ -101,51 +123,15 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
     velmax=max(p->umax,p->vmax,p->wmax);
-    
-    // rhs globalmax
-    a->maxF=pgc->globalmax(a->maxF);
-    a->maxG=pgc->globalmax(a->maxG);
-    a->maxH=pgc->globalmax(a->maxH);
-    p->fbmax=pgc->globalmax(p->fbmax);
-    p->fbmax=pgc->globalmax(p->fbmax);
-
-    // maximum viscosity
-	LOOP
-	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
-
-	p->viscmax=pgc->globalmax(p->viscmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"viscmax: "<<p->viscmax<<endl;
-    
-	//----kin
-	LOOP
-	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
-
-	p->kinmax=pgc->globalmax(p->kinmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"kinmax: "<<p->kinmax<<endl;
 
-	//---eps
-    LOOP
-	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
-
-	p->epsmax=pgc->globalmax(p->epsmax);
-
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"epsmax: "<<p->epsmax<<endl;
-
-
-	//---press
-    LOOP
-    {
-	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
-	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
-    }
-
-	p->pressmax=pgc->globalmax(p->pressmax);
-	p->pressmin=pgc->globalmin(p->pressmin);
 
 
 // maximum reynolds stress source term
@@ -185,10 +171,6 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
     cu = MIN3(cu,cv,cw);
     
-	p->dt=p->N47*cu;
-	p->dt=pgc->timesync(p->dt);
-    
-    
     // fbdt
     LOOP
     {
@@ -197,8 +179,16 @@ void ietimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	cb = MIN(cb, 2.0/sqrt((4.0*fabs(p->fbmax))/dx));
     }
     
+    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    {
+    double gmax[2] = {-cu,-cb};
+    pgc->globalmax(gmax,2);
+    cu=-gmax[0];
+    cb=-gmax[1];
+    }
+    
+	p->dt=p->N47*cu;
     p->fbdt=p->N47*cb;
-    p->fbdt=pgc->timesync(p->fbdt);
 
 	a->maxF=0.0;
 	a->maxG=0.0;
@@ -297,10 +287,10 @@ void ietimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
     cu = MIN3(cu,cv,cw);
     
+    cu = pgc->globalmin(cu);
+    
 	p->dt=p->N47*cu*0.25;
     p->dt = MAX(p->dt,1.0e-6);
-    
-	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
     
     a->maxF = fabs(a->gi);

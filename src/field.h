@@ -28,7 +28,7 @@ Author: Hans Bihs
 class field : public field_base<double>
 {
 public:
-    field(lexer* p) : field_base<double>(p) {}
+    field(lexer* p, bool allocate=true) : field_base<double>(p,allocate) {}
     virtual ~field() = default;
 };
 

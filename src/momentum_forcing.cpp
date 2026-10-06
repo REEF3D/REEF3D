@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum_forcing.h"
+#include<algorithm>
 #include"6DOF.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -51,19 +52,11 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
 
 	starttime=pgc->timer();
     
-        // Forcing
-        ULOOP
-        fx(i,j,k) = 0.0;
-       
-        VLOOP
-        fy(i,j,k) = 0.0;
-      
-        WLOOP
-        fz(i,j,k) = 0.0;
-        
-        pgc->start1(p,fx,10);
-        pgc->start2(p,fy,11);
-        pgc->start3(p,fz,12); 
+        // Forcing: zero everywhere, halos included (only the interior is applied to u/v/w below,
+        // the forcing modules that spread into fx/fy/fz update the halos themselves)
+        std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
          
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         
@@ -130,10 +123,13 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         psed->forcing_cfd(p,a,pgc,alpha,u,v,w);
         
         
-    // ghostcell update
+    // ghostcell update: the flags depend on the geometry only (solid, topo, fb), rebuild when it changed
+    if(pgc->geometry_changed(p,a))
+    {
     pgc->solid_forcing_flag_update(p,a);
     pgc->gcdf_update(p,a);
     pgc->gcb_velflagio(p,a);
+    }
 }
 
 

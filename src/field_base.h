@@ -29,9 +29,10 @@ template<typename T>
 class field_base
 {
 public:
-    field_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
+    // allocate=false: the field is not used in this run (V stays nullptr, any access fails at once)
+    field_base(lexer* p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
     {
-        V = new T[imax*jkmax] {};
+        V = allocate ? new T[imax*jkmax] {} : nullptr;
     }
     virtual ~field_base()
     {

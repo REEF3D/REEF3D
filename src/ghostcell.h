@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 #include<mpi.h>
 #include"increment.h"
+#include<vector>
+#include<cstdint>
 
 class fdm;
 class fdm2D;
@@ -83,10 +85,7 @@ public:
     void startintV(lexer*,int*,int);
     void startintVF(lexer*,int*,int);
     
-    void dgcpol1(lexer*,field&, int);
-    void dgcpol2(lexer*,field&, int);
-    void dgcpol3(lexer*,field&, int);
-    void dgcpol4(lexer*,field&, int);
+    void dgcpol(lexer*,field&,int**,int);
 
 // particle
     void gcpartnum(int[6],int[6]);
@@ -119,6 +118,7 @@ public:
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
     void solid_forcing_flag_update(lexer*,fdm*);
+    bool geometry_changed(lexer*,fdm*);   // signs of solid/topo/fb changed since the last call (on any rank)
     void solid_forcing_lsm(lexer*,fdm*,field&);
     void solid_forcing_eta(lexer*,slice&);
     void solid_forcing_bed(lexer*,slice&);
@@ -135,6 +135,7 @@ public:
 
 // PARALLEL
     void gcparax(lexer*, field&, int);
+    void gcparax_co(lexer*, field&, int);
     void gcparaxint(lexer*, fieldint&, int);
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
@@ -312,9 +313,7 @@ private:
 // PARALLEL
     void Sendrecv_double(int,int,int,int,int,int);
     void Sendrecv_int(int,int,int,int,int,int);
-    void Sendrecv_1D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-    void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-    void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
@@ -322,6 +321,13 @@ private:
                         MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
     bool do_comms = true;
     bool local_red = false;
+    bool periodic_comms = true;     // any rank has periodic partition neighbours (gcperiodicx)
+    std::vector<uint16_t> geo_sig;  // geometry_changed: per cell sign classes of solid, topo, fb
+
+    void gcparax_pack(lexer*, field&, int);
+    void gcparax_unpack(lexer*, field&, int);
+    void gcparaco_pack(lexer*, field&, const int*);
+    void gcparaco_unpack(lexer*, field&, const int*);
     
     int ndims;
 

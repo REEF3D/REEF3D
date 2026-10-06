@@ -28,3 +28,4 @@ Cases run as-is: copy `control.txt` and `ctrl.txt` into a run folder, run DiveME
 | `turbulence/02_nhflow_momentum_diffusion_rk` | NHFLOW implicit momentum diffusion with the RK stage weight: momentum balance (ν+ν_t)du/dz = gS(h−z), RK2 against RK3 |
 | `turbulence/03_turbulence_options` | NHFLOW side-wall turbulence vs momentum walls, buoyancy term T45, vegetation sources, LES T21 2, SFLOW defaults (A212, A264) |
 | `turbulence/04_sflow_shoreline_diffusion` | SFLOW horizontal momentum diffusion at the shoreline: free slip at dry neighbours (A212 1/2), sloping bank against the local Manning velocity |
+| `analytic/` | CFD against analytical solutions, automatic PASS/FAIL (`validation.py`, Regression runner): laminar channel start-up for all momentum schemes (also PLIC, single phase, 2 MPI ranks with periodic partition faces), time-step convergence, divergence after the projection, conservation of a diffusing scalar, NWT wave height, log law in the turbulent channel |
