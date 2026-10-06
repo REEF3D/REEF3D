@@ -1,0 +1,1 @@
+{"description": "NHFLOW 3D channel with a sloping bank (T 62) and a shoreline along x, k-eps (A 560 1), bed shear A 519 1: zero gradient of k and eps towards dry columns.", "solver": "nhflow", "np": 1, "steps": 200, "tags": ["nhflow", "turbulence", "wetdry"], "covers": ["nhflow_kepsilon_bc dry neighbours", "nhflow turbulence boundary elimination"]}

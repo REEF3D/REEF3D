@@ -119,9 +119,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_6dof_membrane_collar` | 2 | rigid membrane bag (X330) on a floating collar |
 | `nhflow_3d_membrane_cylcone_current` | 2 | fixed membrane bag `cylcone` (cylinder on a cone, sloped floor) in a current: B60=1 + potential start, HLLC (needs patch 0002) |
 | `nhflow_3d_membrane_cylcone_drain` | 2 | flexible `cylcone` bag, filling + drain, staggered coupling, compression; hydrograph inflow B60=2 (needs patches 0001, 0002) |
-| `nhflow_3d_membrane_sharp_static80` | 2 | fixed `cylcone` bag filled to 80 % in still water, `mobility sharp` (nhflow_thinbody: blocked links, wall fluxes, head below the floor, rigid lid) (needs patch 0004) |
-| `nhflow_3d_membrane_sharp_current` | 2 | fixed `cylcone` bag in a current with `mobility sharp`: B60=1 + potential start, guarded fluxes near the bag (needs patch 0004) |
-| `nhflow_3d_membrane_sharp_kw` | 2 | as `nhflow_3d_membrane_sharp_current` with k-ω (A560=2): fabric as wall of the diffusion and the turbulence model (needs patches 0004, 0005) |
+| `nhflow_3d_membrane_sharp_static80` | 2 | fixed `cylcone` bag filled to 80 % in still water, `mobility sharp` (nhflow_thinbody: blocked links, wall fluxes, head below the floor, rigid lid) (needs patches 0004-0006) |
+| `nhflow_3d_membrane_sharp_current` | 2 | fixed `cylcone` bag in a current with `mobility sharp`: B60=1 + potential start, guarded fluxes near the bag (needs patches 0004-0006) |
+| `nhflow_3d_membrane_sharp_kw` | 2 | as `nhflow_3d_membrane_sharp_current` with k-ω (A560=2): fabric as wall of the diffusion and the turbulence model (needs patches 0004-0006) |
 | `nhflow_3d_6dof_box` | 2 | NHFLOW 3D box, all six DOFs free, initial roll/yaw |
 | `nhflow_3d_shipwave_box` | 1 | NHFLOW moving pressure patch, ship-wave mode (X10=3, X400=2) |
 | `sflow_shipwave_box` (+ `sflow_6dof_box_oneway`) | 1 | SFLOW ship pressure patch (X10=3) / one-way direct forcing (X10=2) |
@@ -141,10 +141,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_cpm_bedload_layer` (+ `_susp`, `_mpi2`) | 1/2 | CPM MP-PIC sand bed in a periodic channel with the sub-grid bedload layer (Q 58 1 / 2): pickup, hops, deposition, release into the suspension, column bed level, one-sided solid forcing at the particle bed, CPM log |
 | `cfd_2d_fem_simple_wall` | 1 | FEM simple input (concrete C30 preset, fix base, monitor auto, resolution), settling with the initial water, hybrid loads, structural damping |
 | `cfd_2d_fem_floating` | 1 | FEM rigid body (floating box, `material rigid 500`) in the collapsing water column: rigid-body integration, pressure loads with the probe correction and the added-mass stabilisation |
-| `cfd_2d_fem_debris_impact` | 1 | FEM rigid timber block (`stiffness 2e5`) on the dry bed pushed by the dam-break surge onto an elastic post: debris impact as one spring of the debris stiffness, ground contact, pressure beside the body for faces on the floor |
+| `cfd_2d_fem_debris_impact` | 1 | FEM rigid timber block (`stiffness 2e5`) on the dry bed pushed by the dam-break surge onto an elastic post: debris impact as one spring of the debris stiffness, ground contact, pressure beside the body for faces on the floor (reference with patch 0021: the floor of the domain is no second ground under `ground 0.0`) |
 | `nhflow_2d_fem_wall` | 1 | FEM coupled with NHFLOW (Z 30, A 10 5): concrete wall holding a 0.3 m water column on the dry bed; cells inside the structure marked solid (p->DF -1, no continuity flux, d->solid_flux), water at rest, hydrostatic load (needs patches 0016, 0017, 0019; references with 0019) |
 | `nhflow_2d_fem_floating` | 1 | FEM rigid floating box in NHFLOW still water: probed pressure (filtered non-hydrostatic part plus hydrostatic of the free surface), added-mass factor 5, heave towards the 5 cm draft (needs patches 0016, 0017, 0019; references with 0019) |
-| `nhflow_2d_fem_debris_impact` (+ `_mpi2`) | 1/2 | FEM rigid timber block carried by an NHFLOW dam-break surge over the dry bed onto a concrete post that stands dry: wet/dry columns, debris contact, probes kept out of solid cells, subdomain border at the post (needs patches 0016, 0017, 0019; references with 0019) |
+| `nhflow_2d_fem_debris_impact` (+ `_mpi2`) | 1/2 | FEM rigid timber block carried by an NHFLOW dam-break surge over the dry bed onto a concrete post that stands dry: wet/dry columns, debris contact, probes kept out of solid cells, subdomain border at the post (needs patches 0016–0021; references with 0021) |
+| `nhflow_2d_fem_light_debris` | 1 | FEM empty 20 ft container (rigid, 59.3 kg/m3, 2D slice) dropped 5 m onto 4 m of still NHFLOW water: added-mass factor limited to 30 body masses, speed relative to the water at most the terminal speed (needs patches 0016–0021) |
 | `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
 | `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
 | `nhflow_2d_awa` | 1 | NHFLOW active wave generation + active absorption (B98=4/B99=3) |
@@ -247,6 +248,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_wind_field_mpi2` | 2 | REEF3D::SEASTATE wind field in space and time (A 730 2, seastate-wind.dat) with Komen physics and DIA, boundary spectra from a stationary 2-location file, 2 ranks; validated in Dropbox SEASTATE/validation/17-18 |
 | `seastate_2d_forcing_stationary` | 1 | REEF3D::SEASTATE quasi-stationary sequence (A 700 2, one stationary solve per A 706) with boundary spectra changing in time and Battjes-Janssen breaking |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
+| `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
+| `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |
+| `nhflow_3d_bank_kepsilon` | 1 | NHFLOW 3D channel with a sloping bank (T 62) and a shoreline along x, k-ε: zero gradient of k and ε towards dry columns |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
