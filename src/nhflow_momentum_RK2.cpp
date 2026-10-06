@@ -115,6 +115,12 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
     phase_P(p,d,pgc,S,s);
     phase_E(p,d,pgc,S,s);
     }
+    
+    // turbulence (A 560 > 0): the k, eps/omega step at the start of the next time step runs before the next
+    // sigma_update, so the metrics are refreshed here at the final water level (they were those of the last
+    // stage level, and newly wetted cells had sigz = 0)
+    if(p->A560>0)
+    sigma_update(p,d,pgc,d->WL);
 }
 
 slice& nhflow_momentum_RK2::stage_WL(fdm_nhf *d, int s)

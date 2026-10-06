@@ -793,6 +793,14 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
     //gcparacoxV(p, f, gcv);
 }
 
+// x- inflow ghost cells of k, eps/omega and nu_t keep their values only where nhflow_rans_io::inflow writes the
+// equilibrium profile (RANS with a discharge inflow, B 60 >= 1, IO 1); all other inflows (LES, wave generation
+// B 98 >= 3) get zero gradient (the ghosts were never written and stayed 0)
+static inline bool nhflow_turb_profile_ghost(lexer *p, int ijk)
+{
+    return p->B60>=1 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22) && p->IO[ijk]==1;
+}
+
 void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
 {
     if(do_comms)
@@ -819,7 +827,7 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
 
         // xxxxxxx
         // s
-        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0))
+        if((p->flag4[Im1JK]<0 && (inflow==0 || !nhflow_turb_profile_ghost(p,Im1JK))) || (p->DF[Im1JK]<0))
         {
             if(p->B11==1)
             {
@@ -957,7 +965,7 @@ void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
     {
         // xxxxxxx
         // s
-        if(p->flag4[Im1JK]<0 && inflow==0)
+        if(p->flag4[Im1JK]<0 && (inflow==0 || !nhflow_turb_profile_ghost(p,Im1JK)))
         {
             f[Im1JK] = f[IJK];
             f[Im2JK] = f[IJK];
@@ -1056,7 +1064,7 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
     {
         // xxxxxxx
         // s
-        if((p->flag4[Im1JK]<0 && inflow==0) || (p->DF[Im1JK]<0))
+        if((p->flag4[Im1JK]<0 && (inflow==0 || !nhflow_turb_profile_ghost(p,Im1JK))) || (p->DF[Im1JK]<0))
         {
             f[Im1JK] = f[IJK];
             f[Im2JK] = f[IJK];

@@ -113,43 +113,77 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
             {
             if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))// && inflow==0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*(TURBIN(Im1JK)?KIN[Im1JK]:KIN[IJK]);
+            if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*KIN[Im1JK];   // discharge inflow profile (Dirichlet)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
             d->M.s[n] = 0.0;
             }
             
             if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))// && outflow==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*KIN[IJK];
+            d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*KIN[IJK];
+            d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*KIN[IJK];
+            d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*KIN[IJK];
+            d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*KIN[IJK];
+            d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
             }
             }
 
+        ++n;
+        }
+        
+        // wet/dry front: a dry neighbour column is not a wall, zero gradient (implicit) instead of k = eps = 0
+        n=0;
+        LOOP
+        {
+            if(p->flag4[IJK]>0 && p->DF[IJK]>0 && p->wet[IJ]==1)
+            {
+            if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0 && p->wet[Im1J]==0)
+            {
+            d->M.p[n] += d->M.s[n];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0 && p->wet[Ip1J]==0)
+            {
+            d->M.p[n] += d->M.n[n];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0 && p->wet[IJm1]==0)
+            {
+            d->M.p[n] += d->M.e[n];
+            d->M.e[n] = 0.0;
+            }
+            
+            if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0 && p->wet[IJp1]==0)
+            {
+            d->M.p[n] += d->M.w[n];
+            d->M.w[n] = 0.0;
+            }
+            }
         ++n;
         }
         
@@ -201,26 +235,28 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             // s
             if(p->flag4[Im1JK]<0)// && inflow==0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*(TURBIN(Im1JK)?EPS[Im1JK]:EPS[IJK]);
+            if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
             d->M.s[n] = 0.0;
             }
             
             if(p->DF[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*(TURBIN(Im1JK)?EPS[Im1JK]:EPS[IJK]);
+            if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
+            else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
             d->M.s[n] = 0.0;
             }
             
             // n
             if(p->flag4[Ip1JK]<0)// && outflow==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
+            d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
             if(p->DF[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*EPS[IJK];
+            d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
@@ -228,14 +264,14 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             if(p->j_dir==1)
             if(p->flag4[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
+            d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->DF[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*EPS[IJK];
+            d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
@@ -243,40 +279,40 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             if(p->j_dir==1)
             if(p->flag4[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
+            d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->DF[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*EPS[IJK];
+            d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
             }
             
             // b
             if(p->flag4[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*EPS[IJK];
+            d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;
             }
             
             if(p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*EPS[IJK];
+            d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;
             }
             
             // t
             if(p->flag4[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*EPS[IJK];
+            d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
             }
             
             if(p->DF[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*EPS[IJK];
+            d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
             }
             }
@@ -285,6 +321,39 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
         }
         
         // turn off inside direct forcing body
+        // wet/dry front: a dry neighbour column is not a wall, zero gradient (implicit) instead of k = eps = 0
+        n=0;
+        LOOP
+        {
+            if(p->flag4[IJK]>0 && p->DF[IJK]>0 && p->wet[IJ]==1)
+            {
+            if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0 && p->wet[Im1J]==0)
+            {
+            d->M.p[n] += d->M.s[n];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0 && p->wet[Ip1J]==0)
+            {
+            d->M.p[n] += d->M.n[n];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0 && p->wet[IJm1]==0)
+            {
+            d->M.p[n] += d->M.e[n];
+            d->M.e[n] = 0.0;
+            }
+            
+            if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0 && p->wet[IJp1]==0)
+            {
+            d->M.p[n] += d->M.w[n];
+            d->M.w[n] = 0.0;
+            }
+            }
+        ++n;
+        }
+        
         n=0;
         LOOP
         {
