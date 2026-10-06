@@ -102,6 +102,10 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     storage(p,pgc);
     kinematics(p,pgc,0.0);
     initial(p,pgc);
+
+    if(p->A711==3 || p->A730==2)
+    forcing_ini(p,pgc);
+
     boundary(p,pgc);
 
     // transport
@@ -118,6 +122,18 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     if(sb!=nullptr)
     psolv->boundary_rows(&Nbx,&Nbx0);
+
+    if(bser!=nullptr)
+    {
+    const std::vector<float> *s[4] = {&Nside[0],&Nside[1],&Nside[2],&Nside[3]};
+    psolv->boundary_sides(s);
+    }
+
+    if(wser!=nullptr)
+    psolv->wind_field(wU10,wdir);
+
+    if(bser!=nullptr || wser!=nullptr)
+    forcing_update(p,pgc,p->simtime);
 
     psolv->second_order(second);
 
@@ -138,6 +154,12 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     parameters(p,pgc);
 
     pprint = new seastate_vtp(p,e,pgc,coupled);
+
+    if(wser!=nullptr)
+    {
+    pprint->add_field("U10x",wUx);
+    pprint->add_field("U10y",wUy);
+    }
 
     if(proll!=nullptr)
     {
@@ -176,18 +198,18 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 708: the convergence criterion must be positive";
     else if(p->A710!=0 && p->A710!=1)
     msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
-    else if(p->A711<0 || p->A711>2)
-    msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric) or 2 (SWAN spectrum file)";
+    else if(p->A711<0 || p->A711>3)
+    msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric), 2 (SWAN spectrum file) or 3 (time series of spectra at many locations)";
     else if(p->A712_xm<0 || p->A712_xm>2 || p->A712_xp<0 || p->A712_xp>2 || p->A712_ym<0 || p->A712_ym>2 || p->A712_yp<0 || p->A712_yp>2)
     msg = "A 712: each side must be 0 (open), 1 (boundary spectrum) or 2 (zero gradient)";
     else if(p->A720!=0 && p->A720!=1)
     msg = "A 720: prescribed current must be 0 (none) or 1 (linear in x, A 721)";
-    else if(p->A730!=0 && p->A730!=1)
-    msg = "A 730: wind must be 0 (none) or 1 (uniform, A 731)";
+    else if(p->A730<0 || p->A730>2)
+    msg = "A 730: wind must be 0 (none), 1 (uniform, A 731) or 2 (field, seastate-wind.dat)";
     else if(p->A730==1 && !(p->A731_u10>=0.0))
     msg = "A 731: the wind speed must not be negative";
-    else if(p->A730==1 && p->A732!=1)
-    msg = "A 730 1: wind input needs the deep-water physics A 732 1 (Komen)";
+    else if(p->A730>=1 && p->A732!=1)
+    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen)";
     else if(p->A732!=0 && p->A732!=1)
     msg = "A 732: deep-water physics must be 0 (off) or 1 (Komen)";
     else if(p->A733!=0 && p->A733!=1)
@@ -232,6 +254,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 770 1: the handover (A 760) needs a frequency spectrum, not the wave groups";
     else if(p->A770==1 && p->A710!=0)
     msg = "A 770 1: the surfbeat model starts from rest (A 710 0)";
+    else if(p->A780<0.0 || (p->A780>0.0 && p->A780<10000101.0))
+    msg = "A 780: the start date-time must be YYYYMMDD.HHMMSS (or 0)";
     else if(p->A770==1 && p->A711!=1 && p->A711!=2)
     msg = "A 770 1: the surfbeat model needs a boundary spectrum (A 711 1 parametric or 2 SWAN file)";
     else if(p->A770==1 && p->A712_xm!=1)
@@ -404,7 +428,7 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
 {
     seastate_source_param sp;
 
-    sp.wind = (p->A730==1);
+    sp.wind = (p->A730==1 || p->A730==2);
     sp.U10  = p->A731_u10;
     sp.wdir = p->A731_dir*3.14159265358979323846/180.0;
     sp.Alin = p->A734;
@@ -434,8 +458,10 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(p->mpirank==0)
     {
     cout<<"SEASTATE source terms:";
-    if(sp.wind)
+    if(sp.wind && p->A730==1)
     cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg (Komen, linear growth "<<sp.Alin<<"),";
+    if(sp.wind && p->A730==2)
+    cout<<" wind field seastate-wind.dat (Komen, linear growth "<<sp.Alin<<"),";
     if(sp.komen)
     cout<<" whitecapping (Komen),";
     if(sp.dia)

@@ -1,7 +1,7 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
-// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms, surfbeat boundary generator. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp -o seastate_test
+// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms, surfbeat boundary generator, forcing files. No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -10,6 +10,7 @@
 #include"seastate_swan_spc.h"
 #include"seastate_source.h"
 #include"seastate_surfbeat.h"
+#include"seastate_forcing.h"
 #include<cstdio>
 #include<fstream>
 #include<cmath>
@@ -701,6 +702,100 @@ static void test_surfbeat()
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// external forcing: date-times, series of SWAN spectra, wind field
+// ---------------------------------------------------------------------------------------------
+static void test_forcing()
+{
+    std::cout<<"seastate_forcing"<<std::endl;
+
+    check(seastate_datetime(19700101.000000)==0.0 && seastate_datetime(20000301.000000)==951868800.0
+          && seastate_datetime(20261005.123045)==1791203445.0 && seastate_datetime(19991231.235959)==946684799.0,
+          "date-time YYYYMMDD.HHMMSS -> seconds since 1970 (leap years, end of year)");
+
+    // series of spectra: 2 locations, 3 times (1 h apart), nautical directions, energy density
+    seastate_grid sg(20,0.05,0.5,24);
+    const char *spc = "/tmp/seastate_test_series.spc";
+    {
+        std::ofstream o(spc);
+        o<<"SWAN   1\n$ test\nTIME\n     1\nLOCATIONS\n     2\n   0.0  0.0\n   0.0  1000.0\nAFREQ\n     3\n 0.08\n 0.10\n 0.12\nNDIR\n     4\n 0.0\n 90.0\n 180.0\n 270.0\n";
+        o<<"QUANT\n     1\nEnDens\nJ/m2/Hz/degr\n -0.9900E+02\n";
+        const char *t[3] = {"20261005.000000","20261005.010000","20261005.020000"};
+        for(int k=0;k<3;++k)
+        {
+            o<<t[k]<<"\n";
+            for(int l=0;l<2;++l)
+            {
+                if(k==1 && l==1) {o<<"ZERO\n"; continue;}
+                o<<"FACTOR\n  1.0\n";
+                for(int fq=0;fq<3;++fq)
+                    o<<"  "<<(k+1)*(l+1)*10.0*1025.0*9.81<<"  0  0  "<<(fq==1 ? -99 : 0)<<"\n";   // waves from north (nautical 0): propagate to -y
+            }
+        }
+    }
+    seastate_spc_series ser;
+    std::string err;
+    const bool ok = ser.open(spc,sg,err);
+    if(!ok) std::cout<<"        "<<err<<std::endl;
+    check(ok && ser.nloc==2 && ser.ys[1]==1000.0 && !ser.stationary() && ser.time(0)==seastate_datetime(20261005.0) && ser.time(1)-ser.time(0)==3600.0,
+          "spectra series: header, locations, first two records");
+
+    // reference: the same record through the stationary reader's interpolation
+    seastate_swan_spc ref;
+    ref.f={0.08,0.10,0.12}; ref.dir={0.0,90.0,180.0,270.0}; ref.E.assign(12,0.0);
+    for(int fq=0;fq<3;++fq) ref.E[fq*4+3]=10.0;          // nautical 0 -> Cartesian 270 (to -y), sorted last
+    std::vector<float> Nr; ref.to_grid(sg,Nr);
+    double e0=0.0, e1=0.0;
+    for(int b=0;b<sg.nbin;++b)
+    {
+        e0=std::max(e0,double(std::fabs(ser.N(0,0)[b]-Nr[b])+std::fabs(ser.N(0,1)[b]-2.0f*Nr[b])));
+        e1=std::max(e1,double(std::fabs(ser.N(1,1)[b])));
+    }
+    check(e0<2e-5*Nr[sg.bin(5,18)] && e1==0.0 && Nr[sg.bin(5,18)]>0.0f,"spectra series: EnDens / rho g, nautical -> Cartesian, exception value, ZERO block");
+    const double t2 = ser.time(0)+5400.0;
+    const bool adv = ser.advance(t2,err);
+    check(adv && ser.time(0)==seastate_datetime(20261005.01) && ser.time(1)==seastate_datetime(20261005.02) && std::fabs(ser.weight(t2)-0.5)<1e-12
+          && std::fabs(ser.N(1,0)[sg.bin(5,18)]-3.0f*Nr[sg.bin(5,18)])<2e-5*Nr[sg.bin(5,18)],"spectra series: advance and linear time weight");
+    ser.advance(ser.time(1)+1e5,err);
+    check(ser.weight(ser.time(1)+1e5)==1.0 && ser.records==3,"spectra series: clamped after the last record");
+
+    // wind field: linear in x and y, two times
+    const char *wf = "/tmp/seastate_test_wind.dat";
+    {
+        std::ofstream o(wf);
+        o<<"wind test\n3 2\n100.0 -50.0 200.0 300.0\n";
+        for(int k=0;k<2;++k)
+        {
+            o<<(k==0 ? "20261005.000000" : "20261005.060000")<<"\n";
+            for(int c=0;c<2;++c)
+            for(int jj=0;jj<2;++jj)
+            {
+                for(int ii=0;ii<3;++ii)
+                {
+                    const double x=100.0+200.0*ii, y=-50.0+300.0*jj;
+                    o<<(c==0 ? 5.0+0.01*x+0.002*y+k*4.0 : -3.0+0.004*x-0.01*y)<<" ";
+                }
+                o<<"$ row\n";
+            }
+        }
+    }
+    seastate_wind_series ws;
+    const bool okw = ws.open(wf,err);
+    if(!okw) std::cout<<"        "<<err<<std::endl;
+    double werr=0.0;
+    const double tw = seastate_datetime(20261005.03);
+    ws.advance(tw,err);
+    for(double x : {100.0,230.0,499.0}) for(double y : {-50.0,10.0,250.0})
+    {
+        double u,v; ws.at(tw,x,y,u,v);
+        werr=std::max(werr,std::fabs(u-(5.0+0.01*x+0.002*y+2.0))+std::fabs(v-(-3.0+0.004*x-0.01*y)));
+    }
+    double uc,vc; ws.at(tw,-1000.0,1000.0,uc,vc);
+    std::cout<<"        wind: max. interpolation error "<<werr<<std::endl;
+    check(okw && ws.nx==3 && ws.ny==2 && werr<1e-12,"wind field: bilinear in space and linear in time are exact for a linear field");
+    check(std::fabs(uc-(5.0+0.01*100.0+0.002*250.0+2.0))<1e-12,"wind field: clamped to the grid outside");
+}
+
 int main()
 {
     test_grid();
@@ -710,6 +805,7 @@ int main()
     test_swan_spc();
     test_source();
     test_surfbeat();
+    test_forcing();
     test_memory();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;

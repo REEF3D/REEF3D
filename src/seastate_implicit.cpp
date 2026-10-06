@@ -32,8 +32,11 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<cmath>
 
-seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), Nbx(nullptr), Nbx0(nullptr), second(false)
+seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), wU(nullptr), wD(nullptr), second(false)
 {
+    for(int k=0; k<4; ++k)
+    Nbs[k] = Nbs0[k] = nullptr;
+
     const seastate_grid &g = *e->grid;
 
     nsig = g.nsig;
@@ -109,7 +112,7 @@ namespace
         bool self = false;            // zero-gradient side: inflow of the cell's own spectrum
     };
 
-    void set_neighbour(lexer *p, fdm_seastate *e, int ni, int nj, const vector<float> &Nb, const vector<float> *Nbx, const int side[4], neighbour &nb)
+    void set_neighbour(lexer *p, fdm_seastate *e, int ni, int nj, const vector<float> &Nb, const vector<float> *const Nbs[4], const int side[4], neighbour &nb)
     {
         nb = neighbour();
 
@@ -138,9 +141,13 @@ namespace
         if(s>=0 && side[s]==1 && !Nb.empty())
         nb.N = Nb.data();
 
-        // surfbeat: x- boundary spectrum of the row
-        if(s==0 && side[0]==1 && Nbx!=nullptr && nj>=0 && nj<p->knoy)
-        nb.N = Nbx->data() + size_t(nj)*size_t(e->N->nbins());
+        // surfbeat (x-) and boundary series (A 711 3): spectrum of the boundary cell
+        if(s>=0 && side[s]==1 && Nbs[s]!=nullptr)
+        {
+        const int k = (s<2) ? nj : ni;
+            if(k>=0 && k<((s<2) ? p->knoy : p->knox))
+            nb.N = Nbs[s]->data() + size_t(k)*size_t(e->N->nbins());
+        }
 
         if(s>=0 && side[s]==2)
         nb.self = true;
@@ -185,10 +192,10 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     const int ic = i, jc = j;
 
     neighbour W,E,S,Nn;
-    set_neighbour(p,e,ic-1,jc,Nb,Nbx,side,W);
-    set_neighbour(p,e,ic+1,jc,Nb,Nbx,side,E);
-    set_neighbour(p,e,ic,jc-1,Nb,Nbx,side,S);
-    set_neighbour(p,e,ic,jc+1,Nb,Nbx,side,Nn);
+    set_neighbour(p,e,ic-1,jc,Nb,Nbs,side,W);
+    set_neighbour(p,e,ic+1,jc,Nb,Nbs,side,E);
+    set_neighbour(p,e,ic,jc-1,Nb,Nbs,side,S);
+    set_neighbour(p,e,ic,jc+1,Nb,Nbs,side,Nn);
 
     const double rdx = 1.0/p->DXN[IP];
     const double rdy = 1.0/p->DYN[JP];
@@ -205,7 +212,10 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     const int ma = m0[q], mb = m1[q], nq = mb-ma+1;
 
 
-    // source terms from the latest spectrum of the cell
+    // source terms from the latest spectrum of the cell (wind field: the wind of the cell)
+    if(src!=nullptr && wU!=nullptr)
+    src->set_wind((*wU)(ic,jc),(*wD)(ic,jc));
+
     if(src!=nullptr)
     src->compute(N,d,kc,cgc,P.data(),D.data());
 
@@ -396,10 +406,10 @@ void seastate_implicit::cell_surfbeat(lexer *p, fdm_seastate *e, int q, const se
     const float *Nc0 = (N0s!=nullptr) ? N0s->spec(ic,jc) : N;
 
     neighbour W,E,S,Nn;
-    set_neighbour(p,e,ic-1,jc,Nb,Nbx,side,W);
-    set_neighbour(p,e,ic+1,jc,Nb,Nbx,side,E);
-    set_neighbour(p,e,ic,jc-1,Nb,Nbx,side,S);
-    set_neighbour(p,e,ic,jc+1,Nb,Nbx,side,Nn);
+    set_neighbour(p,e,ic-1,jc,Nb,Nbs,side,W);
+    set_neighbour(p,e,ic+1,jc,Nb,Nbs,side,E);
+    set_neighbour(p,e,ic,jc-1,Nb,Nbs,side,S);
+    set_neighbour(p,e,ic,jc+1,Nb,Nbs,side,Nn);
 
     // old values of the neighbours: active cells from N0, the x- rows of the previous step, Nb
     auto old = [&](const neighbour &nb, int ni, int nj) -> const float*
@@ -410,8 +420,8 @@ void seastate_implicit::cell_surfbeat(lexer *p, fdm_seastate *e, int q, const se
         if(nb.cg!=nullptr)
         return (N0s!=nullptr) ? N0s->spec(ni,nj) : nb.N;
 
-        if(ni+p->origin_i<0 && Nbx0!=nullptr && nj>=0 && nj<p->knoy)
-        return Nbx0->data() + size_t(nj)*size_t(nbin);
+        if(ni+p->origin_i<0 && Nbs0[0]!=nullptr && nj>=0 && nj<p->knoy)
+        return Nbs0[0]->data() + size_t(nj)*size_t(nbin);
 
         return nb.N;
     };

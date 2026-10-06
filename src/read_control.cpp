@@ -778,6 +778,9 @@ void control::read_control(lexer* p)
                 case 775: control>>A775;
                          clear(c,numint);
                          break;
+                case 780: control>>A780;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

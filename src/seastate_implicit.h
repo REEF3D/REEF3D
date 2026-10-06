@@ -32,6 +32,7 @@ class fdm_seastate;
 class seastate_store;
 class seastate_exchange;
 class seastate_source;
+class slice;
 
 using namespace std;
 
@@ -71,7 +72,9 @@ enter; sides with side[s] = 2 are zero-gradient (the inflow spectrum
 is the spectrum of the boundary cell itself, implicit as long as the
 diagonal stays dominant, otherwise with the latest value); other sides
 are open without incoming waves. Surfbeat (boundary_rows): the x- side
-takes a spectrum per row j instead of Nb. Frequency range ends: outflow only.
+takes a spectrum per row j instead of Nb; with a boundary series (A 711 3,
+boundary_sides) every side with side[s] = 1 takes a spectrum per boundary
+cell. Frequency range ends: outflow only.
 
 Surfbeat (second_order, A 775 2, cell_surfbeat): the wave groups travel
 far compared with their length, so the transport is Crank-Nicolson in
@@ -93,7 +96,14 @@ public:
 
     // surfbeat: spectra of the x- boundary per row j (local, 0..knoy-1), nbin each, at the new
     // and the previous time level; nullptr: Nb
-    void boundary_rows(const vector<float> *rows, const vector<float> *rows_old) {Nbx = rows; Nbx0 = rows_old;}
+    void boundary_rows(const vector<float> *rows, const vector<float> *rows_old) {Nbs[0] = rows; Nbs0[0] = rows_old;}
+
+    // boundary spectra per side and boundary cell (A 711 3): x-, x+ per local row j, y-, y+ per
+    // local column i, nbin each; nullptr: Nb
+    void boundary_sides(const vector<float> *const s[4]) {for(int k=0; k<4; ++k) Nbs[k] = s[k];}
+
+    // wind field (A 730 2): U10 [m/s] and direction [rad] per cell for the source terms
+    void wind_field(slice *U10, slice *dir) {wU = U10; wD = dir;}
 
     // surfbeat (A 775 2): Crank-Nicolson, second-order geographic fluxes (cell_surfbeat);
     // needs N0 (2 iterations) and 2 halo layers
@@ -114,7 +124,8 @@ private:
 
     int nsig, ndir;
     seastate_source *src;
-    const vector<float> *Nbx, *Nbx0;
+    const vector<float> *Nbs[4], *Nbs0[4];
+    slice *wU, *wD;
     bool second;
     vector<double> P, D;                // source terms of the cell (src != nullptr)
     vector<int> m0, m1;                 // first and last direction of each quadrant

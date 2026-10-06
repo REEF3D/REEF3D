@@ -270,7 +270,7 @@ void control::ini_default()
     A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
     A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
     A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
-    A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc
+    A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc, 3 time series of spectra at many locations (seastate-boundary.spc)
     A712_xm=1;        // int side x-: 0 open (no incoming waves), 1 boundary spectrum, 2 zero gradient
     A712_xp=0;        // int side x+ (as x-)
     A712_ym=0;        // int side y- (as x-)
@@ -280,7 +280,7 @@ void control::ini_default()
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
-    A730=0;           // int wind: 0 none, 1 uniform (A 731)
+    A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 field in space and time from seastate-wind.dat
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
     A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733)
@@ -309,6 +309,7 @@ void control::ini_default()
     A772=3600.0;      // double surfbeat: record length of the boundary time series [s] (repeats afterwards)
     A773=1;           // int surfbeat: seed of the random phases and directions
     A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
+    A780=0.0;         // double model start date-time YYYYMMDD.HHMMSS of the forcing files (A 711 3, A 730 2), 0: first time in the files
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
     // NHFLOW Lagrangian particles

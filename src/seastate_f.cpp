@@ -30,6 +30,8 @@ Architect: Hans Bihs
 #include"seastate_source.h"
 #include"seastate_surfbeat.h"
 #include"seastate_roller.h"
+#include"seastate_forcing.h"
+#include"slice4.h"
 #include"regression_dump.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -41,7 +43,8 @@ seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr
                                                   iter_max(1), iter_done(0), dtw(0.0), coupled(false), conv(0.0),
                                                   etot(0.0), hsmax(0.0), hsmean(0.0), nmin(0.0), cells_active(0.0),
                                                   starttime(0.0), endtime(0.0),
-                                                  sb(nullptr), gin(nullptr), proll(nullptr), tnew(0.0), trep(0.0)
+                                                  sb(nullptr), gin(nullptr), proll(nullptr), tnew(0.0), trep(0.0),
+                                                  bser(nullptr), wser(nullptr), tref(0.0), wU10(nullptr), wdir(nullptr), wUx(nullptr), wUy(nullptr)
 {
     side[0]=side[1]=side[2]=side[3]=0;
 
@@ -57,6 +60,12 @@ seastate_f::~seastate_f()
     delete N0;
     delete psrc;
     delete proll;
+    delete bser;
+    delete wser;
+    delete wU10;
+    delete wdir;
+    delete wUx;
+    delete wUy;
     delete sb;
     delete gin;
     delete e->cg;
@@ -155,6 +164,9 @@ void seastate_f::step(lexer *p, ghostcell *pgc)
     // implicit transport in x, y, sigma, theta with the source terms (if any)
     tnew = p->simtime + dtw;
 
+    if(bser!=nullptr || wser!=nullptr)
+    forcing_update(p,pgc,tnew);
+
     if(sb!=nullptr)
     surfbeat_boundary(p,tnew);
 
@@ -195,6 +207,9 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
 
     // the host calls at the start of its step: the wave field is advanced to the host's time
     tnew = p->simtime;
+
+    if(bser!=nullptr || wser!=nullptr)
+    forcing_update(p,pgc,tnew);
 
     if(sb!=nullptr)
     surfbeat_boundary(p,tnew);

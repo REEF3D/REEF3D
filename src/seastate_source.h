@@ -115,6 +115,9 @@ public:
 
     const seastate_source_param &param() const {return prm;}
 
+    // wind field (A 730 2): wind of the cell before compute [m/s], direction the wind blows to [rad]
+    void set_wind(double U10, double wdir) {prm.U10 = U10; prm.wdir = wdir;}
+
     // N of one cell (nbin), k and cg of the cell (nsig); P and D of size nbin (overwritten)
     void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D);
 

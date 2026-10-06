@@ -50,6 +50,13 @@ void seastate_f::boundary(lexer *p, ghostcell *pgc)
     return;
     }
 
+    // time series of spectra at many locations (seastate_f_forcing.cpp)
+    if(p->A711==3)
+    {
+    boundary_series(p,pgc);
+    return;
+    }
+
     boundary_spectrum(p,pgc,*e->grid,Nb);
 }
 

@@ -37,6 +37,9 @@ class seastate_store;
 class seastate_grid;
 class seastate_surfbeat;
 class seastate_roller;
+class seastate_spc_series;
+class seastate_wind_series;
+class slice4;
 class regression_dump;
 
 using namespace std;
@@ -93,6 +96,22 @@ of the host model.
   roller             roller energy balance (seastate_roller, A 748),
                      source: the breaking dissipation (A 740 2)
 
+Phase 5a: external forcing (seastate_f_forcing.cpp).
+  forcing_ini      opens the forcing files: seastate-boundary.spc with
+                   spectra at many locations and times (A 711 3),
+                   seastate-wind.dat with the wind field (A 730 2);
+                   model time 0 = A 780 (YYYYMMDD.HHMMSS) or the first
+                   time in the files
+  boundary_series  boundary spectrum of every boundary cell of the sides
+                   with A 712 1: the two nearest locations, weights by
+                   inverse distance (= linear interpolation between two
+                   locations on a straight side)
+  forcing_update   spectra and wind at the new time level, linear in time
+                   (clamped at the ends of the files); the wind of every
+                   cell drives the source terms (seastate_implicit)
+  Stationary runs with forcing are a sequence of stationary solves,
+  one per A 706 interval (as SWAN's quasi-stationary mode).
+
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
   step    one time step of length A 706, so that a host model
@@ -140,6 +159,10 @@ private:
     void transport(lexer*, ghostcell*);
     void parameters(lexer*, ghostcell*);
 
+    void forcing_ini(lexer*, ghostcell*);
+    void boundary_series(lexer*, ghostcell*);
+    void forcing_update(lexer*, ghostcell*, double t);
+
     void surfbeat_input(lexer*, ghostcell*);
     void surfbeat_ini(lexer*, ghostcell*);
     void surfbeat_boundary(lexer*, double);
@@ -177,6 +200,15 @@ private:
     std::vector<float> Nbx0;    // the rows of the previous time level
     double tnew;                // time of the new time level
     double trep;                // representative period [s]
+
+    // external forcing (A 711 3, A 730 2)
+    seastate_spc_series *bser;
+    seastate_wind_series *wser;
+    double tref;                            // file time [s since 1970] of model time 0
+    std::vector<float> Nside[4];            // boundary spectra per side and boundary cell
+    struct bweight {int a, b; float wa, wb;};
+    std::vector<bweight> bw[4];
+    slice4 *wU10, *wdir, *wUx, *wUy;        // wind of every cell: speed, direction [rad], components
 };
 
 #endif
