@@ -70,10 +70,13 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),d
 	else
 	ppicard = new picard_void(p);
 
-	prdisc = new reinidisc_f(p);
-    
-    time_preproc(p);   
-    
+    // level-set reini discretisation, nonlinear weights F 37: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    reinidisc_f *prdisc_f = new reinidisc_f(p);
+    prdisc_f->set_weno_weights(p->F37,p->F38);
+	prdisc = prdisc_f;
+
+    time_preproc(p);
+
     p->reini_iter = p->F44;
 }
 

@@ -547,6 +547,8 @@ void control::ini_default()
     // Discretization
 	D10=4;			// int convection scheme
 	D11=2;			// int convection velocity scheme
+    D12=0;          // int WENO5 nonlinear weights for momentum (D 10 4,5): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    D13=1.0e-5;     // double TENO5 cutoff C_T (D 12 2)
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
     D22=1;            // int diffusion wall boundary condition
@@ -563,6 +565,8 @@ void control::ini_default()
 	F34=5000;		// printout iteration for pls
 	F35=5;			    // int convection scheme for fsf
 	F36=1;				// int RK3 scheme
+    F37=0;              // int WENO5 nonlinear weights for level set convection (F 35 4,5; F 305 4,5) and reini (F 40 3,23): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    F38=1.0e-5;         // double TENO5 cutoff C_T (F 37 2)
 	F39=0.5;			    // double reini constraint relaxation factor
 	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength

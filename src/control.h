@@ -270,11 +270,12 @@ public:
     double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
     // discretization
-    int D10,D11,D20,D21,D22,D23,D30,D31,D37;
+    int D10,D11,D12,D20,D21,D22,D23,D30,D31,D37;
+    double D13;
 
     // Free Surface
-    int F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F50,F150,F151;
-    double F33,F39,F42,F43,F45;
+    int F30,F31,F32,F34,F35,F36,F37,F40,F44,F46,F47,F50,F150,F151;
+    double F33,F38,F39,F42,F43,F45;
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
     double F57_1,F57_2,F57_3,F57_4;

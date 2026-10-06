@@ -110,10 +110,18 @@ void driver::logic_cfd()
 	pconvec=new quick(p);
 
 	if(p->D10==4)
-	pconvec=new weno_flux_nug(p);
+    {
+    weno_flux_nug *pweno = new weno_flux_nug(p);
+    pweno->set_weno_weights(p->D12,p->D13);   // D 12: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+	pconvec=pweno;
+    }
 
 	if(p->D10==5)
-	pconvec=new weno_hj_nug(p);
+    {
+    weno_hj_nug *pweno = new weno_hj_nug(p);
+    pweno->set_weno_weights(p->D12,p->D13);
+	pconvec=pweno;
+    }
 
 	if(p->D10==6)
 	pconvec=new cds4(p);
@@ -156,10 +164,18 @@ void driver::logic_cfd()
 	pfsfdisc=new quick(p);
 
 	if(p->F35==4)
-	pfsfdisc=new weno_flux_nug(p);
+    {
+    weno_flux_nug *pweno = new weno_flux_nug(p);
+    pweno->set_weno_weights(p->F37,p->F38);   // F 37: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+	pfsfdisc=pweno;
+    }
 
 	if(p->F35==5)
-	pfsfdisc=new weno_hj_df_nug(p);
+    {
+    weno_hj_df_nug *pweno = new weno_hj_df_nug(p);
+    pweno->set_weno_weights(p->F37,p->F38);
+	pfsfdisc=pweno;
+    }
 
     if(p->F35==6)
 	pfsfdisc=new cds4(p);
@@ -191,10 +207,18 @@ void driver::logic_cfd()
 	pmpconvec=new quick(p);
 
 	if(p->F305==4)
-	pmpconvec=new weno_flux_nug(p);
+    {
+    weno_flux_nug *pweno = new weno_flux_nug(p);
+    pweno->set_weno_weights(p->F37,p->F38);
+	pmpconvec=pweno;
+    }
 
 	if(p->F305==5)
-	pmpconvec=new weno_hj_nug(p);
+    {
+    weno_hj_nug *pweno = new weno_hj_nug(p);
+    pweno->set_weno_weights(p->F37,p->F38);
+	pmpconvec=pweno;
+    }
 	
 	if(p->F305==6)
 	pmpconvec=new cds4(p);
