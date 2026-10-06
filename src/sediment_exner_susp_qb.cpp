@@ -36,6 +36,15 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
     if(p->S62==1 && p->count>p->S43)
     val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
     
+    // NHFLOW: same exchange condition as the water column (nhflow_suspended_IM1::suspsource: k=0, wet, DF>0),
+    // the bed cannot erode or deposit suspended sediment the water column never receives or loses
+    if(p->A10==5)
+    {
+    k=0;
+    if(p->wet[IJ]==0 || p->DF[IJK]<0)
+    val = 0.0;
+    }
+    
     // multi-fraction bed: exchange with the single suspended class weighted by F_k
     if(frac_k>=0)
     val *= (*s->pmix->F[frac_k])(i,j);
