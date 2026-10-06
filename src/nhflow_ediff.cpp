@@ -42,11 +42,11 @@ nhflow_ediff::~nhflow_ediff()
 {
 }
 
+// explicit momentum diffusion (A 512 1), the same operator as nhflow_idiff: backward differences with the
+// backward spacing (was DXP[IP] on both sides), face metrics, the sigxx term, factor 2 only on the normal
+// stress (in w only on sigz^2), and the v equation uses VH in its sigma cross terms (it used UH)
 void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *UHdiff, double *UHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    
-	starttime=pgc->timer();
-    
     LOOP
     UHdiff[IJK] = UHin[IJK];
     
@@ -58,26 +58,26 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     {
     visc = d->VISC[IJK] + d->EV[IJK];
     
-    sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+    // vertical coefficient at the faces k-1/2 and k+1/2
+    const double s2b = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+    const double s2t = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + pow(p->sigz[IJ],2.0);
     
-
-    d->F[IJK] +=  2.0*visc*((UH[Ip1JK]-UH[IJK])/p->DXP[IP] - (UH[IJK]-UH[Im1JK])/p->DXP[IP])/p->DXN[IP]
+    d->F[IJK] += 2.0*visc*((UH[Ip1JK]-UH[IJK])/p->DXP[IP] - (UH[IJK]-UH[Im1JK])/p->DXP[IM1])/p->DXN[IP]
     
-                   + visc*((UH[IJp1K]-UH[IJK])/p->DYP[JP] - (UH[IJK]-UH[IJm1K])/p->DYP[JP])/p->DYN[JP]*p->y_dir
+                   + visc*((UH[IJp1K]-UH[IJK])/p->DYP[JP] - (UH[IJK]-UH[IJm1K])/p->DYP[JM1])/p->DYN[JP]*p->y_dir
                    
-                   + visc*sigxyz2*((UH[IJKp1]-UH[IJK])/p->DZP[KP] - (UH[IJK]-UH[IJKm1])/p->DZP[KP])/p->DZN[KP]
-    
-        
-         + visc*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYN[JP]+p->DYN[JM1]))
-         
-         + visc*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))*p->sigz[IJ]
-        
+                   + visc*(s2t*(UH[IJKp1]-UH[IJK])/p->DZP[KP] - s2b*(UH[IJK]-UH[IJKm1])/p->DZP[KM1])/p->DZN[KP]
+                   
+                   + visc*p->sigxx[FIJK]*(UH[IJKp1]-UH[IJKm1])/(p->DZP[KP]+p->DZP[KM1])
+        // transpose stress (leading order, as nhflow_idiff)
+         + visc*((VH[Ip1Jp1K]-VH[Im1Jp1K]) - (VH[Ip1Jm1K]-VH[Im1Jm1K]))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]))*p->y_dir
+         + visc*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]
+
         + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
-                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]))
                         
         + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(UH[IJp1Kp1] - UH[IJm1Kp1] - UH[IJp1Km1] + UH[IJm1Km1])
-                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-		
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
 	}
 }
 
@@ -89,32 +89,31 @@ void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pgc->start4V(p,VHdiff,gcval_vh);
     
     pflow->rkinflow_nhflow(p,d,pgc,VHdiff,VHin);
-    
-    
+
     LOOP
     {
     visc = d->VISC[IJK] + d->EV[IJK];
     
-    sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+    // vertical coefficient at the faces k-1/2 and k+1/2
+    const double s2b = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+    const double s2t = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + pow(p->sigz[IJ],2.0);
     
-
-    d->G[IJK] +=    visc*((VH[Ip1JK]-VH[IJK])/p->DXP[IP] - (VH[IJK]-VH[Im1JK])/p->DXP[IP])/p->DXN[IP]
+    d->G[IJK] += visc*((VH[Ip1JK]-VH[IJK])/p->DXP[IP] - (VH[IJK]-VH[Im1JK])/p->DXP[IM1])/p->DXN[IP]
     
-                   + 2.0*visc*((VH[IJp1K]-VH[IJK])/p->DYP[JP] - (VH[IJK]-VH[IJm1K])/p->DYP[JP])/p->DYN[JP]
+                   + 2.0*visc*((VH[IJp1K]-VH[IJK])/p->DYP[JP] - (VH[IJK]-VH[IJm1K])/p->DYP[JM1])/p->DYN[JP]*p->y_dir
                    
-                   + visc*sigxyz2*((VH[IJKp1]-VH[IJK])/p->DZP[KP] - (VH[IJK]-VH[IJKm1])/p->DZP[KP])/p->DZN[KP]
-    
-    
-        
-         + visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYN[JP]+p->DYN[JM1])*(p->DXP[IP]+p->DXP[IM1]))
-         +  visc*((WH[IJp1Kp1]-WH[IJm1Kp1]) - (WH[IJp1Km1]-WH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->sigz[IJ]
-        
-        + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
-                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                   + visc*(s2t*(VH[IJKp1]-VH[IJK])/p->DZP[KP] - s2b*(VH[IJK]-VH[IJKm1])/p->DZP[KM1])/p->DZN[KP]
+                   
+                   + visc*p->sigxx[FIJK]*(VH[IJKp1]-VH[IJKm1])/(p->DZP[KP]+p->DZP[KM1])
+        // transpose stress (leading order, as nhflow_idiff)
+         + visc*((UH[Ip1Jp1K]-UH[Ip1Jm1K]) - (UH[Im1Jp1K]-UH[Im1Jm1K]))/((p->DYP[JP]+p->DYP[JM1])*(p->DXP[IP]+p->DXP[IM1]))
+         + visc*((WH[IJp1Kp1]-WH[IJm1Kp1]) - (WH[IJp1Km1]-WH[IJm1Km1]))/((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]
+
+        + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(VH[Ip1JKp1] - VH[Im1JKp1] - VH[Ip1JKm1] + VH[Im1JKm1])
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]))
                         
-        + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(UH[IJp1Kp1] - UH[IJm1Kp1] - UH[IJp1Km1] + UH[IJm1Km1])
-                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-		
+        + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(VH[IJp1Kp1] - VH[IJm1Kp1] - VH[IJp1Km1] + VH[IJm1Km1])
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
 	}
 }
 
@@ -126,32 +125,31 @@ void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pgc->start4V(p,WHdiff,gcval_wh);
     
     pflow->rkinflow_nhflow(p,d,pgc,WHdiff,WHin);
-    
-    
+
     LOOP
     {
     visc = d->VISC[IJK] + d->EV[IJK];
     
-    sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+    // vertical coefficient at the faces k-1/2 and k+1/2; w: + sigz^2 once more from 2 dw/dz
+    const double s2b = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + 2.0*pow(p->sigz[IJ],2.0);
+    const double s2t = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + 2.0*pow(p->sigz[IJ],2.0);
     
-
-    d->H[IJK] +=     visc*((WH[Ip1JK]-WH[IJK])/p->DXP[IP] - (WH[IJK]-WH[Im1JK])/p->DXP[IP])/p->DXN[IP]
+    d->H[IJK] += visc*((WH[Ip1JK]-WH[IJK])/p->DXP[IP] - (WH[IJK]-WH[Im1JK])/p->DXP[IM1])/p->DXN[IP]
     
-                   + visc*((WH[IJp1K]-WH[IJK])/p->DYP[JP] - (WH[IJK]-WH[IJm1K])/p->DYP[JP])/p->DYN[JP]
+                   + visc*((WH[IJp1K]-WH[IJK])/p->DYP[JP] - (WH[IJK]-WH[IJm1K])/p->DYP[JM1])/p->DYN[JP]*p->y_dir
                    
-                   + 2.0*visc*sigxyz2*((WH[IJKp1]-WH[IJK])/p->DZP[KP] - (WH[IJK]-WH[IJKm1])/p->DZP[KP])/p->DZN[KP]
-    
-    
-        
-         + visc*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))*p->sigz[IJ]
-         + visc*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJm1Kp1]-VH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->sigz[IJ]
-        
+                   + visc*(s2t*(WH[IJKp1]-WH[IJK])/p->DZP[KP] - s2b*(WH[IJK]-WH[IJKm1])/p->DZP[KM1])/p->DZN[KP]
+                   
+                   + visc*p->sigxx[FIJK]*(WH[IJKp1]-WH[IJKm1])/(p->DZP[KP]+p->DZP[KM1])
+        // transpose stress (leading order, as nhflow_idiff)
+         + visc*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZP[KP]+p->DZP[KM1])*(p->DXP[IP]+p->DXP[IM1]))*p->sigz[IJ]
+         + visc*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJm1Kp1]-VH[IJm1Km1]))/((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]*p->y_dir
+
         + visc*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1])
-                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]))
                         
         + visc*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(WH[IJp1Kp1] - WH[IJm1Kp1] - WH[IJp1Km1] + WH[IJm1Km1])
-                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
-		
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
 	}
 }
 

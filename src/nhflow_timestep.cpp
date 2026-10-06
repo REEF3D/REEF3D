@@ -131,6 +131,17 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cu = MIN(cu, 1.0/(0.00001
     
             + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
+    
+    // explicit momentum diffusion (A 512 1): dt <= 0.25/(nu_eff (1/dx^2 + 1/dy^2 + sigz^2/dsigma^2)),
+    // with the factor 2 of the normal stresses (0.5 of the forward-Euler limit); cu is scaled by N 47 below
+    if(p->A512==1)
+    {
+    const double visc = d->VISC[IJK] + d->EV[IJK];
+    const double lam = 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]) + 1.0/(dz*dz);
+    
+    p->viscmax = MAX(p->viscmax, visc);
+    cu = MIN(cu, 0.25/(visc*lam + 1.0e-20)/MAX(p->N47,1.0e-20));
+    }
     }
     
     // refined patches: the same limits with their smallest cells
