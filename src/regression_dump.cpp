@@ -293,6 +293,15 @@ void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
     add("KIN",p->cellnum);
     LOOP
     data.back().push_back(d->KIN[IJK]);
+
+    // sediment (zero without sediment transport): suspended concentration and bed level
+    add("CONC",p->cellnum);
+    LOOP
+    data.back().push_back(d->CONC[IJK]);
+
+    add("bed",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(d->bed(i,j));
 }
 
 void regression_dump::nhflow_state(lexer *p, fdm_nhf *d)
