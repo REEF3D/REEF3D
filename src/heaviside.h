@@ -20,36 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef REINIDISC_FSF_RIG_H_
-#define REINIDISC_FSF_RIG_H_
+#ifndef HEAVISIDE_H_
+#define HEAVISIDE_H_
 
-#include"reinidisc.h"
-#include"ddweno_nug.h"
-#include"vec.h"
+#include<cmath>
+#include"definitions.h"
 
-class picard;
-
-using namespace std;
-
-class reinidisc_fsf_rig final : public reinidisc, public ddweno_nug
+// smoothed Heaviside step of a signed distance x over the half width e:
+// 0 for x < -e, 1 for x > e, 0.5 (1 + x/e + sin(pi x/e)/pi) in between
+inline double heaviside(double x, double e)
 {
-public:
-	reinidisc_fsf_rig(lexer* p);
-	virtual ~reinidisc_fsf_rig();
-	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
-	
-private:
-	void disc(lexer*, fdm*, ghostcell*, field&, field&);
-	
-	double xmin,xplus,ymin,yplus,zmin,zplus;
-	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
-	double uwx,uwy,uwz,ddt;
-	double lsv,dv,lsSig;
-	
-	double dx, dy, dz, dnorm, sign;
-	double sx,sy,sz,snorm,op;
-	
-	double deltax,denom;
-};
+    if(x>e)
+    return 1.0;
+
+    if(x<-e)
+    return 0.0;
+
+    return 0.5*(1.0 + x/e + (1.0/PI)*sin((PI*x)/e));
+}
 
 #endif

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"heaviside.h"
 
 void initialize::droplet_ini(lexer* p, fdm *a, ghostcell* pgc)
 {
@@ -58,14 +59,7 @@ if(p->F58_4>0.0)
 	{
         epsi = (1.6/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]);
         
-		if(a->phi(i,j,k)>=0)
-		H=1.0;
-
-		if(a->phi(i,j,k)<0)
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		H = heaviside(a->phi(i,j,k),epsi);
 
 		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);

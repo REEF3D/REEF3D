@@ -23,6 +23,7 @@ Authors: Hans Bihs, Tobias Martin, Ahmet Soydan
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"heaviside.h"
 
 double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
@@ -48,14 +49,7 @@ double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     phival_sf = 0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc));
     
 	
-    if (-phival_sf > psi)
-    H = 1.0;
-
-    else if (-phival_sf < -psi)
-    H = 0.0;
-
-    else
-    H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
+    H = heaviside(-phival_sf,psi);
 
     // particle bed (CPM, S 10 1): the bed level is the iso-surface of the solid fraction of the parcels and
     // moves freely inside the top cell of the bed; the forcing must not reach into the fluid above it
@@ -82,14 +76,7 @@ double ghostcell::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
             double ps = -0.5*(a->solid(i,j,k) + a->solid(i+aa,j+bb,k+cc));
             double Hs;
             
-            if(ps > psi)
-            Hs = 1.0;
-            
-            else if(ps < -psi)
-            Hs = 0.0;
-            
-            else
-            Hs = 0.5*(1.0 + ps/psi + (1.0/PI)*sin((PI*ps)/psi));
+            Hs = heaviside(ps,psi);
             
             H = MAX(H,Hs);
         }

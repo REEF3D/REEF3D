@@ -34,7 +34,10 @@ Authors: Tobias Martin, Fabian Knoblauch
 #include"heat.h"
 #include"hires.h"
 #include"interpolation.h"
+#include"picard.h"
 #include"picard_f.h"
+#include"picard_lsm.h"
+#include"picard_void.h"
 
 
 VOF_PLIC::VOF_PLIC
@@ -65,7 +68,14 @@ VOF_PLIC::VOF_PLIC
 
     preini = new reini_RK3(p,1);
     
-    ppicard = new picard_f(p);
+	if(p->F46==2)
+	ppicard = new picard_f(p);
+
+	if(p->F46==3)
+	ppicard = new picard_lsm(p);
+
+	if(p->F46!=2 && p->F46!=3)
+	ppicard = new picard_void(p);
     
     ipol = new interpolation(p);
     
@@ -192,7 +202,9 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
         RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
         
-        p->F44=3;
+        p->reini_iter=3;
+        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
+        ppicard->volcalc(p,a,pgc,a->phi);
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
@@ -236,7 +248,9 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
         RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
         
-        p->F44=3;
+        p->reini_iter=3;
+        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
+        ppicard->volcalc(p,a,pgc,a->phi);
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
@@ -274,7 +288,9 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
         RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
         
-        p->F44=4;
+        p->reini_iter=4;
+        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
+        ppicard->volcalc(p,a,pgc,a->phi);
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }

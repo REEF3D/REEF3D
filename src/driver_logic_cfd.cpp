@@ -571,7 +571,7 @@ void driver::logic_cfd()
     preso = new reinitopo_void();
 
     if(p->solidread==1 && p->G540>0)
-    preso = new reinisolid_RK3(p);
+    preso = new reinitopo_RK3(p,"solid");
     
 // 6DOF
     if(p->X10==0)

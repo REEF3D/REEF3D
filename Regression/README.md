@@ -107,6 +107,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak` (+ `_fcc3`, `_fcls3`, `_mpi2`) | 1/2 | closed tank, walls, N40=33 / 4, 2D MPI |
 | `cfd_2d_dambreak_teno` | 1 | TENO5 weights for momentum (D 12 2) and level set + reini (F 37 2) |
 | `cfd_2d_dambreak_plic` (+ `_rk3`, `_fcc3`) | 1 | PLIC VOF (F80=4) with N40=3 / 13 / 33 |
+| `cfd_2d_dambreak_picard`, `cfd_2d_dambreak_plic_picard_lsm` | 1 | Picard volume correction: F46=2 (once per step), F46=3 with PLIC redistancing (F92=1) |
 | `cfd_2d_cylinder_singlephase` | 1 | single phase, explicit diffusion, inflow/outflow, forces |
 | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
 | `cfd_3d_pier_komega` (+ `_rkls3_sf`, `_t33`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop, T33 k-gradient source |

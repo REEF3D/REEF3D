@@ -151,7 +151,9 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pplic->RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
         
-        p->F44=3;
+        p->reini_iter=3;
+        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
+        ppicard->volcalc(p,a,pgc,a->phi);
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
@@ -340,7 +342,9 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pplic->RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
         
-        p->F44=3;
+        p->reini_iter=3;
+        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
+        ppicard->volcalc(p,a,pgc,a->phi);
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }
@@ -516,7 +520,9 @@ void momentum_FC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, s
         pplic->RK_redistance(a,p,pgc);
         pgc->start4(p,a->phi,gcval_phi);
         
-        p->F44=4;
+        p->reini_iter=4;
+        if(p->count>0) // at count 0 reini_RK3 corrects the volume itself
+        ppicard->volcalc(p,a,pgc,a->phi);
         preini->start(a,p,a->phi, pgc, pflow);
         ppicard->correct_ls(p,a,pgc,a->phi);
     }

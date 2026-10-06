@@ -25,12 +25,21 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<utility>
+#include"heaviside.h"
 
 void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 {
     double r;
     double phidiff, xdiff;
     p->phimean=p->F56;
+
+    // interface width used for the initial density and viscosity below; inipsi() refines it later
+    // (p->psi was used here before it was set)
+    if(p->j_dir==0)
+    p->psi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
+
+    if(p->j_dir==1)
+    p->psi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
 
     LOOP
@@ -104,14 +113,7 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 
 	BASELOOP
 	{
-		if(a->phi(i,j,k)>(p->psi))
-		H=1.0;
-
-		if(a->phi(i,j,k)<-(p->psi))
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=(p->psi))
-		H=0.5*(1.0 + a->phi(i,j,k)/(p->psi) + (1.0/PI)*sin((PI*a->phi(i,j,k))/(p->psi)));
+		H = heaviside(a->phi(i,j,k),p->psi);
 
 		a->ro(i,j,k)=p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"density_sf.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"heaviside.h"
 
 density_sf::density_sf(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
@@ -48,14 +49,7 @@ double density_sf::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
     phival = a->phi(i+aa,j+bb,k+cc);
 
-    if(phival>p->psi)
-    H=1.0;
-
-    if(phival<-p->psi)
-    H=0.0;
-
-    if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/(p->psi) + (1.0/PI)*sin((PI*phival)/(p->psi)));
+    H = heaviside(phival,p->psi);
     
 
 

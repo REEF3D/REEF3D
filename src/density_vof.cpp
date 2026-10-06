@@ -25,6 +25,7 @@ Author: Fabian Knoblauch
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"heaviside.h"
 
 density_vof::density_vof(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
@@ -55,14 +56,7 @@ double density_vof::roface(lexer *p, fdm *a, int d_i, int d_j, int d_k)
         phival = 0.5*(a->phi(i,j,k) + a->phi(i+d_i,j+d_j,k+d_k));
         psiro = p->psi;
         
-        if(phival>psiro)
-            H=1.0;
-
-        if(phival<-psiro)
-            H=0.0;
-
-        if(fabs(phival)<=psiro)
-            H=0.5*(1.0 + phival/(psiro) + (1.0/PI)*sin((PI*phival)/(psiro)));
+        H = heaviside(phival,psiro);
     
         roval = p->W1*H + p->W3*(1.0-H);
     }

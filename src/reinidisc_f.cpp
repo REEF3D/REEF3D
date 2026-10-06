@@ -25,7 +25,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"reinidisc_f.h"
 
-reinidisc_f::reinidisc_f(lexer *p) :  ddweno_nug_sf(p)
+// fixed_interface: cells with a sign change to a neighbour keep L=0 (6DOF / topo / solid level sets)
+reinidisc_f::reinidisc_f(lexer *p, bool fixed_interface) :  ddweno_nug(p), fixed_interface(fixed_interface)
 {
 }
 
@@ -33,29 +34,28 @@ reinidisc_f::~reinidisc_f()
 {
 }
 
+// ipol 5: fluid cells (LOOP), ipol 4 and 6: all cells (BASELOOP)
 void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, int ipol)
 {	
-	if(ipol==4)
-    {
-        BASELOOP
-        L.V[IJK] = 0.0;
-
-        BASELOOP
-        disc(p,a,pgc,f,L);
-    }
-	
+    BASELOOP
+    L.V[IJK] = 0.0;
+    
 	if(ipol==5)
-    {
-        BASELOOP
-        L.V[IJK] = 0.0;
-        
-        BASELOOP
-        disc(p,a,pgc,f,L);
-    }
+    LOOP
+    disc(p,a,pgc,f,L);
+	
+	if(ipol==4 || ipol==6)
+    BASELOOP
+    disc(p,a,pgc,f,L);
 }
 
 void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 {
+    if(fixed_interface)
+    if(!((f.V[IJK]>=0.0 && f.V[Ip1JK]>=0.0 && f.V[Im1JK]>=0.0 && f.V[IJp1K]>=0.0 && f.V[IJm1K]>=0.0 && f.V[IJKp1]>=0.0 && f.V[IJKm1]>=0.0) 
+	|| (f.V[IJK]<0.0  && f.V[Ip1JK]<0.0  && f.V[Im1JK]<0.0  && f.V[IJp1K]<0.0  && f.V[IJm1K]<0.0   && f.V[IJKp1]<0.0  && f.V[IJKm1]<0.0)))
+    return;
+    
 	dx=0.0;
 	dy=0.0;
 	dz=0.0;

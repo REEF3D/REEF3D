@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"patchBC_interface.h"
+#include"heaviside.h"
 
 void iowave::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
 {
@@ -73,14 +74,7 @@ void iowave::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
                 
             eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-            if(a->phi(i,j,k)>eps)
-            H=1.0;
-
-            if(a->phi(i,j,k)<-eps)
-            H=0.0;
-
-            if(fabs(a->phi(i,j,k))<=eps)
-            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+            H = heaviside(a->phi(i,j,k),eps);
         
         
             pval=(1.0-H)*a->press(i,j,k);

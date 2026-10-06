@@ -292,6 +292,7 @@ public:
 
     // free surface
     double psi,psi0;
+    int reini_iter;     // reinitialisation iterations of the next reini call (the momentum classes set it per stage, default F44)
 	int pressval;
 
 // PARALELL
