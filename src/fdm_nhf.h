@@ -36,6 +36,7 @@ Author: Hans Bihs
 
 class lexer;
 class nhflow_thinbody;
+class seastate_nhflow;
 
 using namespace std;
 
@@ -126,6 +127,8 @@ public:
     double maxF,maxG,maxH;
     double wd_criterion;
     
+    // REEF3D::SEASTATE coupling (A 750 1), nullptr without
+    seastate_nhflow *wave = nullptr;
 };
 
 #endif

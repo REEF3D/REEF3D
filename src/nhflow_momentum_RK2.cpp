@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_momentum_RK2.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"seastate_nhflow.h"
 #include"ghostcell.h"
 #include"nhflow_bcmom.h"
 #include"nhflow_reconstruct.h"
@@ -135,6 +136,13 @@ void nhflow_momentum_RK2::step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     S.pflow->discharge_nhflow(p,d,pgc);
     S.pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
     S.pflow->rkinflow_nhflow(p,d,pgc,d->U,d->V,d->W,UHRK1,VHRK1,WHRK1,WLRK1);
+    
+    // REEF3D::SEASTATE surfbeat: long-wave boundary (A 770 1)
+    if(d->wave!=nullptr)
+    {
+    d->wave->ghostcells(p,d,d->UH,d->VH,d->WH);
+    d->wave->ghostcells(p,d,UHRK1,VHRK1,WHRK1);
+    }
 }
 
 // stage s: sigma, reconstruction, continuity flux, water level, omega, breaking
@@ -212,6 +220,8 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	ppress->upgrad(p,d,WL);
     p6dof->isource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WL, d->eta);
+    if(d->wave!=nullptr)
+    d->wave->u_source(p,d);
     roughness_u(p,d,d->U,d->F,WL);
     irhs(p,d,pgc);
     pconvec->start(p,d,1,WL,UHo);
@@ -240,6 +250,8 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     ppress->vpgrad(p,d,WL);
     p6dof->jsource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WL, d->eta);
+    if(d->wave!=nullptr)
+    d->wave->v_source(p,d);
     roughness_v(p,d,d->V,d->G,WL);
     jrhs(p,d,pgc);
     pconvec->start(p,d,2,WL,VHo);

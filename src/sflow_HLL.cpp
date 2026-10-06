@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"sflow_flux_build_f.h"
 #include"sflow_amr.h"
+#include"seastate_sflow.h"
 
 sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -394,4 +395,8 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
         if(ipol==4)
         Fx(i,j) = wl*b->U(i+1,j);
     }
+    
+    // REEF3D::SEASTATE surfbeat: long-wave boundary at x-, physical flux of the ghost state (A 770 1)
+    if(b->wave!=nullptr)
+    b->wave->flux_bc(p,b,ipol,Fx);
 }

@@ -46,6 +46,12 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     S.assign(nbin,0.0);
     L.assign(nbin,0.0);
     dNmax.assign(nsig,0.0);
+    EL.assign(nsig,0.0);
+    TQ.assign(nsig,0.0);
+
+    // single-frequency grid (surfbeat): no DIA and no triads, so no frequency interpolation
+    if(nsig<2)
+    return;
 
     // DIA interpolation (SWAN FAC4WW)
     const double lamm2 = (1.0-dia_lambda)*(1.0-dia_lambda);
@@ -113,8 +119,6 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     twp  = (2.0 - std::pow(xis,tsp))/(std::pow(xis,tsp1) - std::pow(xis,tsp));
     twp1 = 1.0-twp;
 
-    EL.assign(nsig,0.0);
-    TQ.assign(nsig,0.0);
     SAL.assign(nsig+tsp1+1,0.0);
 }
 
@@ -164,7 +168,9 @@ void seastate_source::moments(const float *N, double depth, const float *k)
         emax = el;
     }
 
-    // tail E = emax (sig/sigmax)^-4 above the upper edge of the last bin
+    // tail E = emax (sig/sigmax)^-4 above the upper edge of the last bin (not for a single-frequency grid)
+    if(nsig>1)
+    {
     const double smax = g.sig[nsig-1];
     const double se = smax*std::sqrt(g.ratio);
     const double a = emax*std::pow(smax,tail_p);
@@ -174,6 +180,7 @@ void seastate_source::moments(const float *N, double depth, const float *k)
     actot += a*std::pow(se,-tail_p)/tail_p;
     etot1 += a*std::pow(se,2.0-tail_p)/(tail_p-2.0);
     edrk  += a*smax/std::sqrt(kmax)*std::pow(se,-tail_p)/tail_p;
+    }
 
     Etot = etot;
     Hs = 0.0;
@@ -267,8 +274,24 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
             }
         }
 
+        // depth-induced breaking, Roelvink (1993) for the wave groups of the surfbeat mode (XBeach 'roelvink2'):
+        // Qb = 1 - exp(-(H/(gamma h))^n), D/E = 2 alpha f_rep Qb H/h, H = sqrt(8 E) of the instantaneous group
+        brk_rate = 0.0;
+
+        if(prm.breaking && prm.breaking_model==2 && depth>0.0)
+        {
+        const double H = std::sqrt(8.0*Etot);
+        const double arg = std::pow(H/(prm.gamma*depth),prm.nroel);
+
+        Qb = std::min(1.0,1.0-std::exp(-std::min(arg,100.0)));
+        brk_rate = 2.0*prm.alpha*g.f[0]*Qb*H/depth;
+
+            for(int b=0; b<nbin; ++b)
+            D[b] += brk_rate;
+        }
+
         // depth-induced breaking (Battjes-Janssen)
-        if(prm.breaking && depth>0.0)
+        if(prm.breaking && prm.breaking_model==1 && depth>0.0)
         {
         const double Hm = prm.gamma*depth;
         const double bb = 8.0*Etot/(Hm*Hm);

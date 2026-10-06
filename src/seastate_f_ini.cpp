@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"seastate_exchange.h"
 #include"seastate_implicit.h"
 #include"seastate_source.h"
+#include"seastate_roller.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
@@ -105,13 +106,26 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     // transport
     // nonstationary: 2 iterations on several ranks, so that the lagged halo values of the first
-    // sweep are corrected (energy conservation across rank borders)
-    iter_max = p->A707>0 ? p->A707 : (p->A700==2 ? 50 : (p->M10>1 ? 2 : 1));
+    // sweep are corrected (energy conservation across rank borders); surfbeat: always 2 (the
+    // second-order correction is lagged, results independent of the decomposition)
+    iter_max = p->A707>0 ? p->A707 : (p->A700==2 ? 50 : ((p->M10>1 || p->A770==1) ? 2 : 1));
 
-    pex   = new seastate_exchange(p,e->grid->nbin,1);
+    // surfbeat with second-order advection (A 775 2): 2 halo layers
+    const bool second = (p->A770==1 && p->A775==2);
+
+    pex   = new seastate_exchange(p,e->grid->nbin,second ? 2 : 1);
     psolv = new seastate_implicit(p,e);
 
+    if(sb!=nullptr)
+    psolv->boundary_rows(&Nbx,&Nbx0);
+
+    psolv->second_order(second);
+
     sources(p,pgc);
+
+    // surfbeat roller (source: Roelvink breaking)
+    if(p->A770==1 && p->A748==1 && p->A740==2)
+    proll = new seastate_roller(p,e,p->A749);
 
     if(p->A700==1 && iter_max>1)
     {
@@ -124,6 +138,13 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     parameters(p,pgc);
 
     pprint = new seastate_vtp(p,e,pgc,coupled);
+
+    if(proll!=nullptr)
+    {
+    pprint->add_field("roller",&proll->R);
+    pprint->add_field("Dr",&proll->Dr);
+    pprint->add_field("Dw",&proll->Dw);
+    }
 
     log_ini(p);
 
@@ -175,9 +196,13 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 734: the linear growth coefficient must not be negative";
     else if(!(p->A735>=0.0))
     msg = "A 735: the limiter coefficient must not be negative";
-    else if(p->A740!=0 && p->A740!=1)
-    msg = "A 740: depth-induced breaking must be 0 (off) or 1 (Battjes-Janssen)";
-    else if(p->A740==1 && !(p->A741_alpha>0.0 && p->A741_gamma>0.0))
+    else if(p->A740!=0 && p->A740!=1 && p->A740!=2)
+    msg = "A 740: depth-induced breaking must be 0 (off), 1 (Battjes-Janssen) or 2 (Roelvink, surfbeat)";
+    else if(p->A740==2 && p->A770!=1)
+    msg = "A 740 2: Roelvink breaking is the breaking of the surfbeat model (A 770 1)";
+    else if(p->A740==1 && p->A770==1)
+    msg = "A 740 1: the surfbeat model (A 770 1) needs Roelvink breaking (A 740 2) or none";
+    else if(p->A740>=1 && !(p->A741_alpha>0.0 && p->A741_gamma>0.0))
     msg = "A 741: the breaking coefficients alpha and gamma must be positive";
     else if(p->A742!=0 && p->A742!=1)
     msg = "A 742: bottom friction must be 0 (off) or 1 (JONSWAP)";
@@ -187,8 +212,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 744: triads must be 0 (off) or 1 (LTA)";
     else if(!(p->A745>=0.0))
     msg = "A 745: the triad coefficient must not be negative";
-    else if(p->A750==1 && p->A10!=2)
-    msg = "A 750 1: the coupling with SFLOW needs A 10 2 (SFLOW as the host model)";
+    else if(p->A750==1 && p->A10!=2 && p->A10!=5)
+    msg = "A 750 1: the coupling needs SFLOW (A 10 2) or NHFLOW (A 10 5) as the host model";
     else if(p->A750==1 && p->A751!=1 && p->A751!=2)
     msg = "A 751: the wave forcing must be 1 (radiation stress) or 2 (vortex force)";
     else if(p->A750==1 && (p->A753<0 || p->A753>2))
@@ -197,6 +222,36 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 752: the ramp-up time must not be negative";
     else if(!(p->A761>0.0))
     msg = "A 761: the half-width of the handover sector must be positive";
+    else if(p->A770!=0 && p->A770!=1)
+    msg = "A 770: surfbeat must be 0 (off) or 1 (on)";
+    else if(p->A770==1 && p->A700!=1)
+    msg = "A 770 1: the surfbeat model is nonstationary (A 700 1)";
+    else if(p->A770==1 && (p->A730!=0 || p->A732!=0 || p->A744!=0))
+    msg = "A 770 1: wind input, whitecapping, quadruplets and triads need a frequency spectrum (A 730 0, A 732 0, A 744 0)";
+    else if(p->A770==1 && p->A760>0)
+    msg = "A 770 1: the handover (A 760) needs a frequency spectrum, not the wave groups";
+    else if(p->A770==1 && p->A710!=0)
+    msg = "A 770 1: the surfbeat model starts from rest (A 710 0)";
+    else if(p->A770==1 && p->A711!=1 && p->A711!=2)
+    msg = "A 770 1: the surfbeat model needs a boundary spectrum (A 711 1 parametric or 2 SWAN file)";
+    else if(p->A770==1 && p->A712_xm!=1)
+    msg = "A 770 1: the wave groups enter through the x- side (A 712 1 ...)";
+    else if(p->A770==1 && !(p->A772>0.0))
+    msg = "A 772: the record length must be positive";
+    else if(p->A770==1 && p->A771<0.0)
+    msg = "A 771: the representative period must not be negative";
+    else if(p->A770==1 && (p->A774<0 || p->A774>1))
+    msg = "A 774: the long waves must be 0 (absorbing only) or 1 (bound long wave)";
+    else if(p->A770==1 && (p->A748<0 || p->A748>1))
+    msg = "A 748: the roller must be 0 (off) or 1 (on)";
+    else if(p->A770==1 && !(p->A749>0.0))
+    msg = "A 749: the roller slope must be positive";
+    else if(p->A770==1 && !(p->A746>0.0))
+    msg = "A 746: the Roelvink exponent must be positive";
+    else if(p->A770==1 && p->A775!=1 && p->A775!=2)
+    msg = "A 775: the advection of the wave groups must be 1 (first-order upwind) or 2 (second order)";
+    else if(p->A770==1 && p->A747<0.0)
+    msg = "A 747: the maximum H/h must not be negative";
 
     if(msg!=nullptr)
     {
@@ -209,7 +264,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
 
 void seastate_f::environment(lexer *p, ghostcell *pgc)
 {
-    // bathymetry from the 2D grid; still water level F 60 (as SFLOW)
+    // bathymetry from the 2D grid; still water level F 60 (as SFLOW); a coupled host has set it
+    if(!coupled)
     p->phimean = p->wd = p->F60;
 
     ILOOP
@@ -242,6 +298,13 @@ void seastate_f::environment(lexer *p, ghostcell *pgc)
 
 void seastate_f::storage(lexer *p, ghostcell *pgc)
 {
+    // surfbeat: one representative frequency, from the boundary spectrum on the grid A 701-703
+    if(p->A770==1)
+    {
+    surfbeat_input(p,pgc);
+    e->grid = new seastate_grid(1.0/trep,p->A703);
+    }
+    else
     e->grid = new seastate_grid(p->A701,p->A702_fmin,p->A702_fmax,p->A703);
 
     if(!e->grid->valid())
@@ -290,6 +353,9 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
         <<", tiles "<<long(tiles_alloc)<<" of "<<long(tiles_total)<<" ("<<p->A704<<" x "<<p->A704<<")"<<endl;
 
     cout<<"SEASTATE memory: N "<<setprecision(1)<<mb<<" MB float32 (dense: "<<mb_dense<<" MB), max per rank "<<mb_rank<<" MB; k and cg "<<mb_kin<<" MB"<<endl;
+    if(p->A770==1)
+    cout<<"SEASTATE mode: surfbeat, nonstationary, time step "<<(coupled ? "of the host" : "A 706")<<", refraction "<<p->A713<<", no frequency shift"<<endl;
+    else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
     if(p->A720==1)
     cout<<"SEASTATE current: U "<<p->A721_us<<" m/s at x "<<p->A721_xs<<" m to "<<p->A721_ue<<" m/s at x "<<p->A721_xe<<" m"<<endl;
@@ -347,9 +413,11 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.dia   = (p->A732==1 && p->A733==1);
     sp.limiter = p->A735;
 
-    sp.breaking = (p->A740==1);
+    sp.breaking = (p->A740==1 || p->A740==2);
+    sp.breaking_model = (p->A740==2) ? 2 : 1;
     sp.alpha    = p->A741_alpha;
     sp.gamma    = p->A741_gamma;
+    sp.nroel    = p->A746;
 
     sp.friction = (p->A742==1);
     sp.Cb       = p->A743;
@@ -374,8 +442,10 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     cout<<" quadruplets (DIA),";
     if(sp.komen)
     cout<<" action density limiter "<<sp.limiter<<",";
-    if(sp.breaking)
+    if(sp.breaking && sp.breaking_model==1)
     cout<<" breaking (Battjes-Janssen, alpha "<<sp.alpha<<", gamma "<<sp.gamma<<"),";
+    if(sp.breaking && sp.breaking_model==2)
+    cout<<" breaking (Roelvink, alpha "<<sp.alpha<<", gamma "<<sp.gamma<<", n "<<sp.nroel<<"),";
     if(sp.friction)
     cout<<" bottom friction (JONSWAP, "<<sp.Cb<<" m^2/s^3),";
     if(sp.triads)

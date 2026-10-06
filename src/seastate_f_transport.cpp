@@ -43,8 +43,20 @@ void seastate_f::boundary(lexer *p, ghostcell *pgc)
 
     Nb.clear();
 
+    // surfbeat: boundary time series from the input spectrum (seastate_f_surfbeat.cpp)
+    if(p->A770==1)
+    {
+    surfbeat_ini(p,pgc);
+    return;
+    }
+
+    boundary_spectrum(p,pgc,*e->grid,Nb);
+}
+
+void seastate_f::boundary_spectrum(lexer *p, ghostcell *pgc, const seastate_grid &g, std::vector<float> &N)
+{
     if(p->A711==1)
-    parametric_spectrum(p,pgc,Nb,"A 711 1");
+    parametric_spectrum(p,pgc,g,N,"A 711 1");
 
     // SWAN 2D spectrum file, first location and time
     if(p->A711==2)
@@ -60,10 +72,10 @@ void seastate_f::boundary(lexer *p, ghostcell *pgc)
             pgc->final(true);
         }
 
-    spc.to_grid(*e->grid,Nb);
+    spc.to_grid(g,N);
 
     seastate_param sp;
-    sp.compute(*e->grid,Nb.data());
+    sp.compute(g,N.data());
 
         if(p->mpirank==0)
         cout<<"SEASTATE boundary spectrum (A 711 2): seastate-boundary.spc, "<<spc.f.size()<<" frequencies "<<spc.f.front()<<" - "<<spc.f.back()
@@ -79,7 +91,7 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     // source terms are lagged by one iteration, the pseudo time step damps the iteration)
     const double rdt = stationary ? ((psrc!=nullptr && psrc->param().komen) ? 1.0/p->A706 : 0.0) : 1.0/dtw;
     const bool refraction = (p->A713==1);
-    const bool fshift = (p->A714==1);
+    const bool fshift = (p->A714==1 && sb==nullptr);      // surfbeat: one frequency, no frequency shift
 
     iter_done = 0;
     conv = 0.0;

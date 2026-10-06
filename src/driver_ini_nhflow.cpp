@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"vrans_header.h"
 #include"nhflow_header.h"
 #include"nhflow_thinbody.h"
+#include"seastate_nhflow.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -132,6 +133,13 @@ void driver::driver_ini_nhflow()
     
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
+    
+    // REEF3D::SEASTATE coupling (A 750 1)
+    if(p->A750==1)
+    {
+    d->wave = new seastate_nhflow(p,d,pgc);
+    d->wave->ini(p,d,pgc);
+    }
     
     // turbulence ini
     pnhfturb->ini(p, d, pgc);

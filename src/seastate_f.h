@@ -34,6 +34,9 @@ class seastate_exchange;
 class seastate_implicit;
 class seastate_source;
 class seastate_store;
+class seastate_grid;
+class seastate_surfbeat;
+class seastate_roller;
 class regression_dump;
 
 using namespace std;
@@ -59,7 +62,8 @@ gradient sides (A 712 2). Stationary runs with the deep-water physics
 iterate in pseudo time with the time step A 706.
 
 Phase 3: coupling and handover.
-  ini_coupled   set-up inside a host model (SFLOW, seastate_sflow): the
+  ini_coupled   set-up inside a host model (seastate_coupling: SFLOW
+                seastate_sflow, NHFLOW seastate_nhflow): the
                 host's time step, step counter and print counters are
                 not touched, VTP files get their own numbering
   step_coupled  one wave step of length dt after the host has written
@@ -71,6 +75,23 @@ Phase 3: coupling and handover.
                 irregular wave generation of FNPF/NHFLOW (B 85 11,
                 spectrum-file-2d.dat format), sector A 761 around the
                 mean direction, written every step
+
+Phase 4: surfbeat (A 770 1), the wave-group action balance of XBeach
+type (Roelvink 1993; Reniers et al. 2004) on a single representative
+frequency (seastate_grid(f_rep, ndir)), nonstationary on the time step
+of the host model.
+  surfbeat_input     the boundary spectrum on the multi-frequency
+                     grid A 701-703 (A 711 1 parametric, 2 SWAN file),
+                     f_rep = 1/A 771 or 1/Tm-1,0 of that spectrum
+  surfbeat_ini       wave-group generator (seastate_surfbeat): energy
+                     envelope E(t,y) and bound long wave at the x- side
+  surfbeat_boundary  x- boundary rows N(theta) = E(t,y) Dbar(theta)/sig
+                     for the implicit solver at the new time level
+  surfbeat_cap       H = sqrt(8E) <= A 747 h
+  longwave           incoming long wave of a boundary row for the host
+                     (zeta_b, q_b), A 774
+  roller             roller energy balance (seastate_roller, A 748),
+                     source: the breaking dissipation (A 740 2)
 
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
@@ -97,6 +118,12 @@ public:
     const seastate_source *source() const {return psrc;}
     seastate_vtp *printer() {return pprint;}
 
+    // surfbeat (A 770 1)
+    bool surfbeat() const {return sb!=nullptr;}
+    const seastate_surfbeat *generator() const {return sb;}
+    seastate_roller *roller() {return proll;}
+    bool longwave(lexer*, int j, double t, double &zeta, double &qx, double &qy) const;
+
 private:
     void ini_common(lexer*, ghostcell*, bool coupled);
     void handover(lexer*, ghostcell*);
@@ -105,12 +132,19 @@ private:
     void storage(lexer*, ghostcell*);
     void initial(lexer*, ghostcell*);
     void initial_parametric(lexer*, ghostcell*);
-    void parametric_spectrum(lexer*, ghostcell*, std::vector<float>&, const char*);
+    void parametric_spectrum(lexer*, ghostcell*, const seastate_grid&, std::vector<float>&, const char*);
     void boundary(lexer*, ghostcell*);
+    void boundary_spectrum(lexer*, ghostcell*, const seastate_grid&, std::vector<float>&);
     void sources(lexer*, ghostcell*);
     void kinematics(lexer*, ghostcell*, double);
     void transport(lexer*, ghostcell*);
     void parameters(lexer*, ghostcell*);
+
+    void surfbeat_input(lexer*, ghostcell*);
+    void surfbeat_ini(lexer*, ghostcell*);
+    void surfbeat_boundary(lexer*, double);
+    void surfbeat_cap(lexer*);
+    void surfbeat_step(lexer*, ghostcell*);
 
     void log_ini(lexer*);
     void log_step(lexer*);
@@ -133,6 +167,16 @@ private:
     ofstream integral;
     double etot, hsmax, hsmean, nmin, cells_active;
     double starttime, endtime;
+
+    // surfbeat
+    seastate_surfbeat *sb;
+    seastate_grid *gin;         // multi-frequency grid of the boundary spectrum
+    seastate_roller *proll;
+    std::vector<float> Nin;     // boundary spectrum on gin
+    std::vector<float> Nbx;     // x- boundary rows (local j), ndir each
+    std::vector<float> Nbx0;    // the rows of the previous time level
+    double tnew;                // time of the new time level
+    double trep;                // representative period [s]
 };
 
 #endif

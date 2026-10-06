@@ -714,6 +714,10 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     // velocities
     vel_bc(p,b,pgc,b->U,b->V,b->W);
     
+    // REEF3D::SEASTATE surfbeat: long-wave boundary (A 770 1)
+    if(b->wave!=nullptr)
+    b->wave->ghostcells(p,b);
+    
     // Boussinesq: reference level velocity and volume flux
     if(bous==1)
     {

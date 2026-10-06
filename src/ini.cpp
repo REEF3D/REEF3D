@@ -294,12 +294,22 @@ void control::ini_default()
     A743=0.038;       // double JONSWAP friction coefficient [m^2/s^3]
     A744=0;           // int triads: 0 off, 1 LTA (Eldeberky)
     A745=0.05;        // double triads proportionality coefficient alpha_EB
+    A746=10.0;        // double Roelvink breaking (A 740 2) exponent n
+    A747=2.0;         // double surfbeat: maximum wave height to water depth ratio H/h (cap)
+    A748=1;           // int surfbeat: roller 0 off, 1 on
+    A749=0.1;         // double surfbeat: roller front slope beta
     A750=0;           // int coupling with SFLOW (A 10 2): 0 off, 1 SEASTATE <-> SFLOW (wave forcing, water level and currents back)
     A751=1;           // int wave forcing of SFLOW: 1 radiation stress, 2 vortex force (SFLOW velocity Eulerian, Stokes transport in the continuity)
     A752=0.0;         // double ramp-up time of the wave forcing [s], 0: none
     A753=2;           // int feedback SFLOW -> SEASTATE: 0 none, 1 water level, 2 water level and currents
     A760=0;           // int number of handover points (A 760 x y): 2D spectrum files for the wave generation (B 85 11)
     A761=90.0;        // double half-width of the handover direction sector around the mean direction [deg]
+    A770=0;           // int surfbeat (wave-group action balance, single representative frequency): 0 off, 1 on
+    A771=0.0;         // double surfbeat: representative period T_rep [s], 0: Tm-1,0 of the boundary spectrum
+    A772=3600.0;      // double surfbeat: record length of the boundary time series [s] (repeats afterwards)
+    A773=1;           // int surfbeat: seed of the random phases and directions
+    A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
+    A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
     // NHFLOW Lagrangian particles
     L10=0;       // int particle tracking

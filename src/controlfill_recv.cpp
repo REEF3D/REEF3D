@@ -610,6 +610,26 @@ void control::ctrlrecv()
     ii++;
     A761 = dctrl[dd];
     dd++;
+    A746 = dctrl[dd];
+    dd++;
+    A747 = dctrl[dd];
+    dd++;
+    A748 = ictrl[ii];
+    ii++;
+    A749 = dctrl[dd];
+    dd++;
+    A770 = ictrl[ii];
+    ii++;
+    A771 = dctrl[dd];
+    dd++;
+    A772 = dctrl[dd];
+    dd++;
+    A773 = ictrl[ii];
+    ii++;
+    A774 = ictrl[ii];
+    ii++;
+    A775 = ictrl[ii];
+    ii++;
 
     B10 = ictrl[ii];
     ii++;

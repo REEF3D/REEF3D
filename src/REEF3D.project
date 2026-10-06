@@ -100,6 +100,10 @@
         <File Name="seastate_implicit.h"/>
         <File Name="seastate_source.h"/>
         <File Name="seastate_sflow.h"/>
+        <File Name="seastate_surfbeat.h"/>
+        <File Name="seastate_roller.h"/>
+        <File Name="seastate_coupling.h"/>
+        <File Name="seastate_nhflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
@@ -1365,6 +1369,11 @@
         <File Name="seastate_source.cpp"/>
         <File Name="seastate_sflow.cpp"/>
         <File Name="seastate_f_handover.cpp"/>
+        <File Name="seastate_surfbeat.cpp"/>
+        <File Name="seastate_roller.cpp"/>
+        <File Name="seastate_coupling.cpp"/>
+        <File Name="seastate_nhflow.cpp"/>
+        <File Name="seastate_f_surfbeat.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">

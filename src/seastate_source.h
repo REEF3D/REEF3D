@@ -63,7 +63,10 @@ in brackets):
                    lambda 0.25, C 3e7, shallow-water scaling
                    1 + 5.5/x (1 - 0.833 x) exp(-1.25 x),
                    x = max(0.75 k_WAM d, 0.5)                       -> P, D
-  breaking         Battjes and Janssen (1978) (SSURF, FRABRE):
+  breaking (2)     Roelvink (1993) for the wave groups of the surfbeat
+                   mode (XBeach 'roelvink2'): Qb = 1 - exp(-(H/(gamma h))^n),
+                   D/E = 2 alpha f_rep Qb H/h, H = sqrt(8 E)          -> D
+  breaking (1)     Battjes and Janssen (1978) (SSURF, FRABRE):
                    alpha 1, gamma 0.73, mean frequency sig_01,
                    Newton linearisation as SWAN (SbrD)               -> P, D
   bottom friction  JONSWAP (SBOT): C_b/g^2 (sig/sinh(kd))^2,
@@ -93,7 +96,8 @@ struct seastate_source_param
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
 
     bool breaking = false;
-    double alpha = 1.0, gamma = 0.73;
+    int breaking_model = 1;              // 1 Battjes-Janssen, 2 Roelvink (1993) for wave groups (surfbeat)
+    double alpha = 1.0, gamma = 0.73, nroel = 10.0;
 
     bool friction = false;
     double Cb = 0.038;
@@ -124,6 +128,7 @@ public:
     // integral parameters of the last call
     double Etot = 0.0, sigm01 = 0.0, sigm_10 = 0.0, km_wam = 0.0, Hs = 0.0, Qb = 0.0, ursell = 0.0;
     double ustar = 0.0;
+    double brk_rate = 0.0;              // Roelvink breaking: dissipation rate D/E [1/s] of the last call (roller source)
 
     static double Qb_bj(double Hrms, double Hm);      // Battjes-Janssen fraction of breaking waves
     static double ustar_wu(double U10);               // friction velocity, drag of Wu (1982)

@@ -70,7 +70,17 @@ sides with side[s] = 1 (x-, x+, y-, y+) let the boundary spectrum Nb
 enter; sides with side[s] = 2 are zero-gradient (the inflow spectrum
 is the spectrum of the boundary cell itself, implicit as long as the
 diagonal stays dominant, otherwise with the latest value); other sides
-are open without incoming waves. Frequency range ends: outflow only.
+are open without incoming waves. Surfbeat (boundary_rows): the x- side
+takes a spectrum per row j instead of Nb. Frequency range ends: outflow only.
+
+Surfbeat (second_order, A 775 2, cell_surfbeat): the wave groups travel
+far compared with their length, so the transport is Crank-Nicolson in
+time (theta = 1/2 with the old values N0 of the step) and the
+geographic fluxes get a second-order correction
+F2 - F1 = c/2 phi(r) (N_down - N_up) (van Leer limiter, r = (N_up -
+N_upup)/(N_down - N_up)) between active cells, with the latest values
+(deferred correction); the source terms stay implicit, N is clipped at
+zero. The first-order path (cell) is unchanged.
 Directions: periodic (full circle).
 --------------------------------------------------------------------*/
 
@@ -80,6 +90,14 @@ public:
     seastate_implicit(lexer*, fdm_seastate*);
 
     void sources(seastate_source *s) {src = s;}
+
+    // surfbeat: spectra of the x- boundary per row j (local, 0..knoy-1), nbin each, at the new
+    // and the previous time level; nullptr: Nb
+    void boundary_rows(const vector<float> *rows, const vector<float> *rows_old) {Nbx = rows; Nbx0 = rows_old;}
+
+    // surfbeat (A 775 2): Crank-Nicolson, second-order geographic fluxes (cell_surfbeat);
+    // needs N0 (2 iterations) and 2 halo layers
+    void second_order(bool s) {second = s;}
 
     void iterate(lexer*, ghostcell*, fdm_seastate*, seastate_exchange*, const seastate_store *N0,
                  double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
@@ -91,8 +109,13 @@ private:
     void cell(lexer*, fdm_seastate*, int q, const float *N0, double rdt,
               const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
 
+    void cell_surfbeat(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
+                       const vector<float> &Nb, const int side[4], bool refraction);
+
     int nsig, ndir;
     seastate_source *src;
+    const vector<float> *Nbx, *Nbx0;
+    bool second;
     vector<double> P, D;                // source terms of the cell (src != nullptr)
     vector<int> m0, m1;                 // first and last direction of each quadrant
     vector<double> csig;                // c_sigma of the cell, per frequency, for the current direction

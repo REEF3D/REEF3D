@@ -40,6 +40,12 @@ REEF3D::SEASTATE - spectral (frequency-direction) grid
   bin index of (l,m): l*ndir + m  (direction fastest), the layout of
   one spectrum in seastate_store
 
+  single-frequency grid (surfbeat, A 770 1): seastate_grid(frep, ndir),
+               one frequency frep with dsig = 1, so that sig N(theta) is
+               the frequency-integrated energy per direction E(theta)
+               [m^2/rad] and the integrals of seastate_param apply
+               unchanged (m0 = sum E dtheta)
+
   direction faces theta_m + dtheta/2 (costhf, sinthf) for the fluxes in
   theta; quad[m]: quadrant of direction m for the four sweeps of the
   implicit solver
@@ -51,6 +57,7 @@ class seastate_grid
 {
 public:
     seastate_grid(int nsig, double fmin, double fmax, int ndir);
+    seastate_grid(double frep, int ndir);            // single frequency (surfbeat)
 
     bool valid() const {return error.empty();}
     const std::string &message() const {return error;}
@@ -66,6 +73,7 @@ public:
     std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2)
 
 private:
+    void directions();
     std::string error;
 };
 

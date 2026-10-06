@@ -51,15 +51,17 @@ E(sig,theta) = S(sig) D(sig,theta), N = E/sig. D is normalised on the
 discrete directional grid for every frequency, so the directional
 spreading conserves the energy of S exactly.
 
-  parametric_spectrum   the spectrum of one cell, also used as the
-                        boundary spectrum (A 711 1)
+  parametric_spectrum   the spectrum of one cell on the grid g, also
+                        used as the boundary spectrum (A 711 1) and as
+                        the input spectrum of the surfbeat boundary
+                        (A 770 1, multi-frequency grid A 701-703)
   initial_parametric    the same spectrum in every active cell (A 710 1)
 --------------------------------------------------------------------*/
 
 void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
 {
     std::vector<float> N;
-    parametric_spectrum(p,pgc,N,"A 710 1");
+    parametric_spectrum(p,pgc,*e->grid,N,"A 710 1");
 
     IMALOOP
     JMALOOP
@@ -70,7 +72,7 @@ void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
     }
 }
 
-void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float> &N, const char *key)
+void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_grid &g, std::vector<float> &N, const char *key)
 {
     const double pi = 3.14159265358979323846;
     std::string msg;
@@ -89,8 +91,6 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float
 
         pgc->final(true);
     }
-
-    const seastate_grid &g = *e->grid;
 
     p->wHs = p->B93_1;
     p->wTp = p->B93_2;

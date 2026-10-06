@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"nhflow_header.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"seastate_nhflow.h"
 #include"nhflow_amr.h"
 #include"regression_dump.h"
 #include"runlog.h"
@@ -71,6 +72,10 @@ void driver::loop_nhflow()
         
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc_nhflow(p,d,pgc);
+        
+        // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
+        if(d->wave!=nullptr)
+        d->wave->start(p,d,pgc);
 			
         pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pnhfvrans);        
         

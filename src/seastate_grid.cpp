@@ -68,6 +68,37 @@ seastate_grid::seastate_grid(int nsig_, double fmin_, double fmax_, int ndir_)
     dsig[l] = hi - lo;
     }
 
+    directions();
+}
+
+seastate_grid::seastate_grid(double frep, int ndir_)
+    : nsig(1), ndir(ndir_), nbin(0), fmin(frep), fmax(frep), ratio(1.0), dtheta(0.0)
+{
+    const double pi = 3.14159265358979323846;
+
+    if(!(frep>0.0))
+    error = "A 771: the representative frequency must be positive";
+    else if(ndir<4)
+    error = "A 703: at least 4 directions are needed";
+
+    if(!error.empty())
+    {
+    nsig = ndir = 0;
+    return;
+    }
+
+    nbin = ndir;
+    f.assign(1,frep);
+    sig.assign(1,2.0*pi*frep);
+    dsig.assign(1,1.0);
+
+    directions();
+}
+
+void seastate_grid::directions()
+{
+    const double pi = 3.14159265358979323846;
+
     dtheta = 2.0*pi/double(ndir);
 
     theta.resize(ndir);
