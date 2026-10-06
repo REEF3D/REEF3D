@@ -120,6 +120,9 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.nest = MAX(q.nest,(q.ext+p->margin+1)/2);
     nh_it_total = nh_solves = 0;
     nh_it_last = 0;
+    sub = 0;
+    hstage = 0;
+    tint = -1.0;
     nh_rebuild0 = true;
 
     // moving body (X 10 2: direct forcing, X 10 3: pressure of the ship)
@@ -184,6 +187,7 @@ sflow_amr::~sflow_amr()
 
     for(auto v : nh0_v)
     delete v;
+    told_free(told0);
     delete nhmg0;
     delete nhr0;
 }
@@ -228,6 +232,16 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
     }
 
+    // subcycling (G 7 1): hydrostatic only (the elliptic parts of A 220 1-4 are solved on all
+    // levels at the same time), not with the moving body
+    sub = (p->G7==1) ? 1 : 0;
+    if(sub==1 && (p->A220!=0 || shipmode>0))
+    {
+        if(p->mpirank==0)
+        cout<<"SFLOW AMR: G 7 1 (subcycling) only for A 220 0 without a moving body -- one time step for all levels"<<endl;
+        sub = 0;
+    }
+
     // hierarchy: rank boxes, tiles, level-0 flags, no-refinement cells
     setup(p,pgc);
 
@@ -252,8 +266,12 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->mpirank==0)
     {
         cout<<"SFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined cells";
-        if(regrid_int>0)
+        if(regrid_int>0 && sub==0)
         cout<<", regrid every "<<regrid_int<<" steps";
+        if(regrid_int>0 && sub==1)
+        cout<<", regrid every "<<MAX(regrid_int>>maxlev,1)<<" level-0 steps";
+        if(sub==1)
+        cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
         cout<<endl;
         if(shipmode>0)
         cout<<"SFLOW AMR: moving body X 10 "<<shipmode<<" on the patches"<<(p->G12>0?", refinement around the body (G 12)":"")<<endl;
@@ -324,6 +342,15 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         c->rec[ip][2].assign(c->nx,0.0);
         c->rec[ip][3].assign(c->nx,0.0);
     }
+
+    if(sub==1)
+    for(int ip=0; ip<5; ++ip)
+    {
+        c->freg[ip][0].assign(c->ny,0.0);
+        c->freg[ip][1].assign(c->ny,0.0);
+        c->freg[ip][2].assign(c->nx,0.0);
+        c->freg[ip][3].assign(c->nx,0.0);
+    }
 }
 
 void sflow_amr::patch_delete(reefamr_patch *q)
@@ -333,6 +360,7 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     for(auto v : c->nv)
     delete v;
     delete c->mg;
+    told_free(c->told);
 
     delete c->pmom;
     delete c->pship;
@@ -850,17 +878,37 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
     for(int m=0; m<NPR; ++m)
     r[m] = 0.0;
 
+    // parent state: the stage input, or with G 7 1 (tint >= 0) linear in time between the start
+    // of the parent step (told) and its end (the current state); wet where either was wet and the
+    // interpolated water level is above the wet-dry depth
+    const bool ti = (tint>=0.0);
+    sflow_amr_told *O = ti ? &told(g) : nullptr;
+    auto tv = [&](int k, slice &N, int a, int bb) { return (1.0-tint)*(*O->f[k])(a,bb) + tint*N(a,bb); };
+    auto wlat = [&](int a, int bb) { return ti ? tv(0,pb->WL,a,bb) : WLp(a,bb); };
+    auto uhat = [&](int a, int bb) { return ti ? tv(1,pb->UH,a,bb) : UHp(a,bb); };
+    auto vhat = [&](int a, int bb) { return ti ? tv(2,pb->VH,a,bb) : VHp(a,bb); };
+    auto what = [&](int a, int bb) { return ti ? tv(3,pb->WH,a,bb) : WHp(a,bb); };
+    auto wetat = [&](int a, int bb, double wlc)
+    {
+        const int k = lij(q,a,bb);
+        if(!ti || tint==1.0)
+        return q->wet[k];
+        if(tint==0.0)
+        return O->wet[k];
+        return ((O->wet[k]==1 || q->wet[k]==1) && wlc>wd+eps) ? 1 : 0;
+    };
+
     auto get = [&](int a, int bb, double &e, double &u, double &vv, double &ww, int &wt)
     {
-        double wlc = WLp(a,bb);
+        double wlc = wlat(a,bb);
         e = wlc - pb->depth(a,bb);
-        wt = q->wet[lij(q,a,bb)];
+        wt = wetat(a,bb,wlc);
         if(q->flagslice4[lij(q,a,bb)]<0)
         wt = -1;
         double wlvl = fabs(wlc)>wd ? wlc : 1.0e20;
-        u = wt==1 ? UHp(a,bb)/wlvl : 0.0;
-        vv = wt==1 ? VHp(a,bb)/wlvl : 0.0;
-        ww = wt==1 ? WHp(a,bb)/wlvl : 0.0;
+        u = wt==1 ? uhat(a,bb)/wlvl : 0.0;
+        vv = wt==1 ? vhat(a,bb)/wlvl : 0.0;
+        ww = wt==1 ? what(a,bb)/wlvl : 0.0;
     };
 
     // Boussinesq: u_a and M/H of the coarse cell (the parent state at the start of the stage)
@@ -891,11 +939,11 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
     if(w0!=1)
     return;
 
-    double hc = WLp(ic,jc);
+    double hc = wlat(ic,jc);
     if(hc<3.0*wd)
     {
         r[0] = 1.0;
-        r[1] = hc; r[2] = UHp(ic,jc); r[3] = VHp(ic,jc); r[4] = WHp(ic,jc);
+        r[1] = hc; r[2] = uhat(ic,jc); r[3] = vhat(ic,jc); r[4] = what(ic,jc);
         if(bous==1)
         partb(0.0,0.0);
         return;
@@ -1091,9 +1139,14 @@ void sflow_amr::apply_bc(ghostcell *pgc, sflow_amr_patch &c, int s)
 // finest level first; the parent cells may lie on another rank (block plans)
 void sflow_amr::restrict_levels(lexer *p, int s)
 {
+    for(int l=maxlev; l>=1; --l)
+    restrict_level(p,l,s);
+}
+
+void sflow_amr::restrict_level(lexer *p, int l, int s)
+{
     const int nv = (bous==1) ? 8 : 4;
 
-    for(int l=maxlev; l>=1; --l)
     block_up(l,nv,7020+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
@@ -1201,6 +1254,14 @@ void sflow_amr::exchange_fluxes(int l)
 // --------------------------------------------------------------------- stages
 void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // G 7 1: level 0 steps alone, the patches follow in step_end
+    if(sub==1)
+    {
+        if(maxlev>=1 && patches_total>0)
+        sub_begin(p,b,pgc);
+        return;
+    }
+
     comms_off guard(pgc);
 
     for(auto q : P)
@@ -1222,6 +1283,13 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 {
     if(maxlev<1 || patches_total==0)
     return;
+
+    // G 7 1: level 0 alone, its coarse face fluxes go into the flux registers (hll_hook)
+    if(sub==1)
+    {
+        hstage = s;
+        return;
+    }
 
     double t0 = MPI_Wtime();
     cache_stage(s);
@@ -1252,7 +1320,7 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
 void sflow_amr::stage_end(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 {
-    if(maxlev<1 || patches_total==0)
+    if(maxlev<1 || patches_total==0 || sub==1)
     return;
 
     double t0 = MPI_Wtime();
@@ -1267,6 +1335,13 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     if(maxlev<1)
     return;
 
+    // G 7 1: the patches take their steps now (two per step of the parent), refluxing, restriction
+    if(sub==1)
+    {
+        if(patches_total>0)
+        sub_end(p,b,pgc);
+    }
+    else
     // end of the step as for level 0 in sflow_f::mainloop: breaking flags cleared (A 248 0),
     // water depth and wet-dry state updated
     {
@@ -1286,7 +1361,10 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     }
 
-    if(regrid_int>0 && p->count%regrid_int==0)
+    // G 7 1: G 2 counts steps of the finest level, as without subcycling (a level-0 step is 2^G1 of them)
+    const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
+
+    if(regrid_int>0 && p->count%rint==0)
     {
     double t0 = MPI_Wtime();
     regrid(p,pgc,false);
@@ -1331,10 +1409,57 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
                 c.rec[0][3][r] = b->dfy(EXT+r,jh);
             }
         }
+
+        // G 7 1: fine register, the face fluxes of this stage with its weight in the step
+        if(sub==1)
+        {
+            const double wdt = (hstage==2 ? 2.0/3.0 : 1.0/6.0)*p->dt;
+            for(int side=0; side<4; ++side)
+            for(size_t r=0; r<c.rec[ipol][side].size(); ++r)
+            c.freg[ipol][side][r] += wdt*c.rec[ipol][side][r];
+        }
     }
 
     if(id>=(int)match.size())
     return;
+
+    // G 7 1: the coarse faces keep their own flux (the fine one is not there yet, refluxing at the
+    // end of the fine steps) and add it to the coarse register; the face depth is the fine one
+    // as in the synchronous coupling (well balanced: the same face depth in the flux and in the
+    // bed slope term of the coarse cell, the face depths of the bed are static)
+    if(sub==1)
+    {
+        const double wdt = (hstage==2 ? 2.0/3.0 : 1.0/6.0)*p->dt;
+
+        for(size_t k=0; k<match[id].size(); ++k)
+        {
+            reefamr_match &m = match[id][k];
+            if(ipol==4)
+            {
+                sflow_amr_patch &c = *SP(m.child);
+                double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+1]);
+                if(m.dir==0)
+                b->dfx(m.fi,m.fj) = df;
+                else
+                b->dfy(m.fi,m.fj) = df;
+            }
+            cregL[id][5*k+ipol] += wdt*(m.dir==0 ? Fx(m.fi,m.fj) : Fy(m.fi,m.fj));
+        }
+
+        for(size_t k=0; k<rmatch[id].size(); ++k)
+        {
+            reefamr_match &m = rmatch[id][k];
+            if(ipol==4)
+            {
+                if(m.dir==0)
+                b->dfx(m.fi,m.fj) = m.val[0];
+                else
+                b->dfy(m.fi,m.fj) = m.val[0];
+            }
+            cregR[id][5*k+ipol] += wdt*(m.dir==0 ? Fx(m.fi,m.fj) : Fy(m.fi,m.fj));
+        }
+        return;
+    }
 
     // coarse faces next to the patches of this rank: mean of the two fine faces
     for(auto &m : match[id])
@@ -1384,6 +1509,10 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
     // initial time step (sflow_etimestep::ini): linear in DXM, so scale with the finest patch
     if(p->count==0)
     {
+        // G 7 1: every level at its own CFL number, the step of level 0 as without patches
+        if(sub==1)
+        return;
+
         double r=1.0;
         for(auto c : P)
         r = MIN(r, c->pp->DXM/p->DXM);
@@ -1397,6 +1526,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
     // same CFL as sflow_etimestep (unsplit 2D: x and y Courant numbers add up), over the wet real patch cells
     const double g = fabs(p->W22);
     double cmin = 1.0e20;
+    vector<double> cl(maxlev+1,1.0e20);     // G 7 1: per level
 
     for(auto q : P)
     {
@@ -1413,10 +1543,13 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
             if(p->j_dir==1)
             sigma += (fabs(pb->V(ii,jj))+cc)/pp->DYN[jj+marge];
 
-            cmin = MIN(cmin, 1.0/sigma);
+            double cv = 1.0/sigma;
 
             if(p->A219==2)
-            cmin = MIN(cmin, pp->DXN[ii+marge]/(fabs(pb->U(ii,jj))>1.0e-20?fabs(pb->U(ii,jj)):1.0e-20));
+            cv = MIN(cv, pp->DXN[ii+marge]/(fabs(pb->U(ii,jj))>1.0e-20?fabs(pb->U(ii,jj)):1.0e-20));
+
+            cmin = MIN(cmin, cv);
+            cl[c->lev] = MIN(cl[c->lev], cv);
         }
     }
 
@@ -1445,6 +1578,15 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
     const double cfl = (p->A220==4) ? MIN(p->N47,0.25) : p->N47;
 
     double dtp = MIN(cfl*2.0*cmin, dtd);
+
+    // G 7 1: level l takes 2^l steps per step of level 0 (dtd: A 220 3, not subcycled)
+    if(sub==1)
+    {
+        dtp = 1.0e20;
+        for(int l=1; l<=maxlev; ++l)
+        dtp = MIN(dtp, cfl*2.0*cl[l]*double(1<<l));
+    }
+
     dtp = pgc->globalmin(dtp);
 
     if(p->N48==1)

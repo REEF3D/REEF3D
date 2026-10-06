@@ -1,0 +1,23 @@
+{
+ "description": "sflow_2d_amr_dambreak_sub on 2 ranks, placement test mode (G 40 2): remote parents of the time-interpolated fills, fine flux sums across ranks (face_run_at).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 30,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "subcycling",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr_sub: remote refluxing, placed patches"
+ ],
+ "base": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 7 1",
+  "G 40 2"
+ ]
+}

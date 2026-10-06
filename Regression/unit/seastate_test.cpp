@@ -1,7 +1,7 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
-// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp -o seastate_test
+// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms, surfbeat boundary generator. No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -9,6 +9,7 @@
 #include"seastate_dispersion.h"
 #include"seastate_swan_spc.h"
 #include"seastate_source.h"
+#include"seastate_surfbeat.h"
 #include<cstdio>
 #include<fstream>
 #include<cmath>
@@ -584,6 +585,122 @@ static void test_source()
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// surfbeat: single-frequency grid, Roelvink breaking, wave-group boundary generator, bound wave
+// ---------------------------------------------------------------------------------------------
+static void test_surfbeat()
+{
+    std::cout<<"seastate_surfbeat"<<std::endl;
+
+    // single-frequency grid of the wave-group model
+    {
+        seastate_grid sg(0.1,24);
+        check(sg.valid() && sg.nsig==1 && sg.nbin==24 && sg.dsig[0]==1.0 && close(sg.sig[0],2.0*pi*0.1,1e-15),"single-frequency grid: nsig 1, nbin = ndir, dsig 1");
+        seastate_grid bad(0.0,24);
+        check(!bad.valid(),"single-frequency grid: f_rep <= 0 rejected");
+    }
+
+    // Roelvink (1993) breaking: D/E = 2 alpha f_rep Qb H/h, Qb = 1 - exp(-(H/(gamma h))^n)
+    {
+        seastate_grid sg(0.1,24);
+        seastate_source_param sp; sp.breaking=true; sp.breaking_model=2; sp.alpha=1.0; sp.gamma=0.55; sp.nroel=10.0;
+        seastate_source src(sg,sp);
+        const double d=2.0, H=1.0;
+        cell_kin ck(sg,d);
+        std::vector<float> N(sg.nbin,0.0f);
+        N[0]=float(H*H/8.0/sg.dtheta/sg.sig[0]);       // E = sig N dsig dtheta = H^2/8
+        std::vector<double> P(sg.nbin), D(sg.nbin);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        const double Qb=1.0-std::exp(-std::pow(H/(0.55*d),10.0));
+        const double ex=2.0*0.1*Qb*H/d;
+        std::cout<<"        Roelvink: Qb "<<Qb<<", D/E "<<D[5]<<" (exact "<<ex<<")"<<std::endl;
+        check(close(D[0],ex,1e-5) && close(D[5],ex,1e-5) && close(src.brk_rate,ex,1e-5) && P[0]==0.0,"Roelvink breaking: D/E = 2 alpha f_rep Qb H/h in every direction, P = 0");
+        std::fill(N.begin(),N.end(),0.0f);
+        N[0]=float(0.01/8.0/sg.dtheta/sg.sig[0]);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        check(D[0]<1e-12,"Roelvink breaking: no dissipation for small waves");
+    }
+
+    // Herbers (1994) coefficient vs. Longuet-Higgins and Stewart (1962) for narrow-band collinear groups
+    for(double kh : {0.8,1.2,2.0})
+    {
+        const double h=2.0, k1=kh/h;
+        const double w1=std::sqrt(g*k1*std::tanh(kh));
+        const double f1=w1/(2.0*pi), f2=f1*1.001;
+        const double k2=seastate_wavenumber(2.0*pi*f2,h);
+        double c3, th3;
+        const double D=seastate_surfbeat::herbers(f1,0.0,k1,f2,0.0,k2,h,c3,th3);
+        const double cg=seastate_cg(w1,k1,h), n=cg/(w1/k1);
+        const double lhs=-g*(2.0*n-0.5)/(g*h-cg*cg);
+        std::cout<<"        kh "<<kh<<": D "<<D<<", LHS62 "<<lhs<<", c3/cg "<<c3/cg<<std::endl;
+        check(close(D,lhs,0.01) && std::fabs(th3)<1e-12,"Herbers D -> LHS62 -g(2n-1/2)/(gh-cg^2) for narrow-band collinear waves, kh "+std::to_string(kh).substr(0,3));
+    }
+
+    // bichromatic waves: envelope and bound wave time series
+    {
+        seastate_grid sg(0.4,24);
+        std::vector<float> N0(sg.nbin,0.0f);
+        seastate_surfbeat sb(sg,N0.data(),1.0,1);
+        check(sb.K==0,"generator: empty spectrum gives no components");
+
+        const double h=0.85, T=15.0, f1=6.0/15.0, f2=7.0/15.0, a1=0.09, a2=0.01;   // GLOBEX B1
+        sb.trec=T; sb.df=1.0/T; sb.trep=1.0/f1; sb.frep=f1; sb.m0=0.5*(a1*a1+a2*a2);
+        sb.fk={f1,f2}; sb.ak={a1,a2}; sb.thk={0.0,0.0}; sb.phk={0.3,1.1}; sb.K=2;
+        sb.series({0.0},{h},true);
+        const double k1=seastate_wavenumber(2.0*pi*f1,h), k2=seastate_wavenumber(2.0*pi*f2,h);
+        double c3, th3;
+        const double D=seastate_surfbeat::herbers(f1,0.0,k1,f2,0.0,k2,h,c3,th3);
+        double eE=0.0, eZ=0.0, eQ=0.0;
+        for(int n=0;n<60;++n)
+        {
+            const double t=n*0.25;
+            double E, z, qx, qy;
+            sb.at(0,t,E,z,qx,qy);
+            const double ps=2.0*pi*(f2-f1)*t+1.1-0.3;
+            eE=std::max(eE,std::fabs(E-0.5*(a1*a1+a2*a2+2.0*a1*a2*std::cos(ps))));
+            eZ=std::max(eZ,std::fabs(z-D*a1*a2*std::cos(ps)));
+            eQ=std::max(eQ,std::fabs(qx-c3*D*a1*a2*std::cos(ps))+std::fabs(qy));
+        }
+        std::cout<<"        bichromatic: D "<<D<<" 1/m, bound amplitude "<<D*a1*a2<<" m, max. errors E "<<eE<<", zeta "<<eZ<<", q "<<eQ<<std::endl;
+        check(eE<2e-4*sb.m0 && eZ<2e-3*std::fabs(D*a1*a2) && eQ<2e-3*std::fabs(c3*D*a1*a2),"bichromatic: E = (a1^2+a2^2+2a1a2 cos)/2, zeta_b = D a1 a2 cos, q = c3 zeta_b (time interpolation)");
+    }
+
+    // random-phase generator from a directional JONSWAP spectrum
+    {
+        seastate_grid sg(36,0.04,1.0,36);
+        std::vector<float> N=make_spectrum(sg,1.0,8.0,3.3,0.2,10.0);
+        seastate_param prm; prm.compute(sg,N.data());
+        seastate_surfbeat sb(sg,N.data(),1200.0,7), sb2(sg,N.data(),1200.0,7), sb3(sg,N.data(),1200.0,8);
+        double var=0.0, dsum=0.0, cx=0.0, cy=0.0;
+        for(int m=0;m<sb.K;++m) {var+=0.5*sb.ak[m]*sb.ak[m]; cx+=sb.ak[m]*sb.ak[m]*std::cos(sb.thk[m]); cy+=sb.ak[m]*sb.ak[m]*std::sin(sb.thk[m]);}
+        for(double d : sb.Dbar) dsum+=d*sg.dtheta;
+        const double mth=std::atan2(cy,cx);
+        std::cout<<"        JONSWAP Hs 1 m: "<<sb.K<<" components, Hm0 "<<4.0*std::sqrt(var)<<", T_rep "<<sb.trep<<" s, mean component direction "<<mth<<" rad"<<std::endl;
+        check(sb.K>100 && close(var,sb.m0,1e-12) && close(4.0*std::sqrt(sb.m0),1.0,0.01),"generator: component variance = m0 of the spectrum");
+        check(close(sb.trep,prm.Tm10,0.05) && close(dsum,1.0,1e-12) && std::fabs(mth-0.2)<0.05,"generator: T_rep = Tm-1,0, mean directional distribution normalised, directions around the main direction");
+        sb.series({0.0,50.0},{8.0,8.0},true);
+        sb2.series({0.0,50.0},{8.0,8.0},true);
+        sb3.series({0.0,50.0},{8.0,8.0},true);
+        const int nt=int(std::lround(sb.trec/sb.dtbc));
+        double Em=0.0, Zm=0.0, Z2=0.0, Emax=0.0, dif2=0.0, dif3=0.0, dify=0.0;
+        for(int n=0;n<nt;++n)
+        {
+            double E,z,qx,qy, E2,z2,qx2,qy2, E3,z3,qx3,qy3, Ey,zy,qxy,qyy;
+            sb.at(0,n*sb.dtbc,E,z,qx,qy);
+            sb2.at(0,n*sb.dtbc,E2,z2,qx2,qy2);
+            sb3.at(0,n*sb.dtbc,E3,z3,qx3,qy3);
+            sb.at(1,n*sb.dtbc,Ey,zy,qxy,qyy);
+            Em+=E/nt; Zm+=z/nt; Z2+=z*z/nt; Emax=std::max(Emax,E);
+            dif2=std::max(dif2,std::fabs(E-E2)+std::fabs(z-z2)+std::fabs(qx-qx2));
+            dif3=std::max(dif3,std::fabs(E-E3));
+            dify=std::max(dify,std::fabs(E-Ey));
+        }
+        std::cout<<"        envelope mean "<<Em<<" (m0 "<<sb.m0<<"), max/mean "<<Emax/Em<<", bound wave mean "<<Zm<<" m, rms "<<std::sqrt(Z2)<<" m"<<std::endl;
+        check(close(Em,sb.m0,1e-10) && std::fabs(Zm)<1e-12 && std::sqrt(Z2)>1e-4 && std::sqrt(Z2)<0.05,"envelope mean = m0 over T_rec, bound wave zero-mean and small");
+        check(dif2==0.0 && dif3>0.1*sb.m0 && dify>0.1*sb.m0,"generator: identical for the same seed, different for another seed and along the boundary");
+    }
+}
+
 int main()
 {
     test_grid();
@@ -592,6 +709,7 @@ int main()
     test_dispersion();
     test_swan_spc();
     test_source();
+    test_surfbeat();
     test_memory();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;

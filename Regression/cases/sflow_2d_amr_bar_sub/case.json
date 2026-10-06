@@ -1,0 +1,22 @@
+{
+ "description": "hydrostatic waves over the submerged bar (sflow_2d_amr_bar_nh with A 220 0), static boxes, 2 levels, subcycling (G 7 1).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 50,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_sub: static patches, wave generation on level 0, well balanced coarse faces"
+ ],
+ "base": "sflow_2d_amr_bar_nh",
+ "ctrl_set": {
+  "A 220": "0"
+ },
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

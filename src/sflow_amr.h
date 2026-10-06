@@ -74,7 +74,12 @@ using namespace std;
 //   - a coarse face on a coarse-fine interface takes the mean of the two fine
 //     face fluxes and face depths (sflow_HLL calls hll_hook between flux_bc and
 //     the divergence); across a partition edge the fine values are sent
-//   - one global time step, the stages of all grids in lockstep
+//   - one global time step, the stages of all grids in lockstep; with G 7 1 (hydrostatic,
+//     sflow_amr_sub.cpp) every level takes two steps of half the size per step of the next
+//     coarser level (Berger-Oliger): the cells around a patch are filled from the parent state
+//     interpolated in time between the start and the end of its step, the coarse cells next to
+//     a patch are corrected afterwards by the difference of the fine and coarse face fluxes
+//     summed over the steps (flux registers, refluxing)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
 //     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
 //     Flags mark tiles of G 4 cells on the global index space of each level;
@@ -92,6 +97,14 @@ using namespace std;
 //     and the pressure (X 10 3) or the direct forcing (X 10 2) is applied in the patch
 //     kernels.  G 12 refines a margin around the hull, G 13 a wake wedge behind the bow,
 //     both moving with the body.
+
+// G 7 1: state of a grid at the start of its step (WL, UH, VH, WH and the wet flags), the
+// parent state of the time-interpolated fills
+struct sflow_amr_told
+{
+    slice *f[4] = {nullptr,nullptr,nullptr,nullptr};
+    vector<int> wet;
+};
 
 struct sflow_amr_patch : public reefamr_patch
 {
@@ -125,6 +138,11 @@ struct sflow_amr_patch : public reefamr_patch
     solver2D *psolv = nullptr;
     // regrid: blocks of a fresh patch that took the state of an old patch
     vector<char> blkold;
+
+    // G 7 1: state at the start of the step, fine face fluxes summed over the steps of the
+    // patch within one step of its parent (dt * RK weight), freg[ipol][side][fine index]
+    sflow_amr_told told;
+    vector<double> freg[5][4];
 };
 
 class sflow_amr : public reefamr
@@ -256,8 +274,27 @@ private:
     void prolong_finish(const double*, double, double*);
     void apply_bc(ghostcell*, sflow_amr_patch&, int);
     void restrict_levels(lexer*, int);   // all patches into their parents, finest first (block plans)
+    void restrict_level(lexer*, int, int);   // the level-l patches into their parents
     void exchange_level0(lexer*, fdm2D*, ghostcell*, int);
     void exchange_fluxes(int);
+
+    // G 7 1: subcycling (sflow_amr_sub.cpp)
+    int sub;                        // 1: subcycled (G 7 1, hydrostatic)
+    int hstage;                     // RK3 stage of the grids running (flux register weights)
+    double tint;                    // fill time of the parent level in its step [0,1], <0: synchronous
+    sflow_amr_told told0;           // level 0
+    vector<vector<double>> cregL, cregR, rflux;   // [id+1]: coarse face fluxes summed over the step (5 per match / rmatch entry), received fine sums
+    sflow_amr_told& told(int);
+    void told_free(sflow_amr_told&);
+    void sub_snapshot(int);
+    void sub_creg_reset(int);
+    void sub_dfx();
+    void sub_begin(lexer*, fdm2D*, ghostcell*);
+    void sub_end(lexer*, fdm2D*, ghostcell*);
+    void sub_level(lexer*, ghostcell*, int, int, double, double);
+    void sub_sync(lexer*, ghostcell*, int);
+    void sub_reflux(int);
+    long sub_steps[8] = {0,0,0,0,0,0,0,0};
 
     double mass(lexer*, fdm2D*, ghostcell*);
     void write_vtr(lexer*, sflow_amr_patch&, int);

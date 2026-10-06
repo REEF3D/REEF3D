@@ -1,0 +1,20 @@
+{
+ "description": "sflow_2d_amr_dambreak with subcycling (G 7 1): level l takes 2^l steps per level-0 step, time-interpolated fills, refluxing; regrid every level-0 step (G 2 4 counts finest steps).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_sub: level recursion, time-interpolated prolongation, flux registers, refluxing, per-level time step"
+ ],
+ "base": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

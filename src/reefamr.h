@@ -364,6 +364,38 @@ protected:
         }
     }
 
+    // as face_run, unpack(int tgt, int idx, const double*) gets the remote match entry by its
+    // target grid (id+1) and its index in rmatch[tgt] (module arrays parallel to rmatch)
+    template<class PK, class UP>
+    void face_run_at(int l, int nv, int tag, PK &&pack, UP &&unpack)
+    {
+        reefamr_xplan &F = fplan[l];
+
+        for(size_t k=0; k<F.speer.size(); ++k)
+        {
+            vector<double> &sb = F.sbuf[k];
+            sb.resize(F.sitem[k].size()*nv);
+            for(size_t m=0; m<F.sitem[k].size(); ++m)
+            {
+                int it = F.sitem[k][m];
+                reefamr_patch *c = P[fsend[l][3*it]];
+                pack(c,fsend[l][3*it+1],fsend[l][3*it+2],&sb[m*nv]);
+            }
+        }
+
+        xrun(F,nv,tag);
+
+        size_t it=0;
+        for(size_t k=0; k<F.rpeer.size(); ++k)
+        for(int m=0; m<F.rcount[k]; ++m)
+        {
+            int tgt = frecv[l][2*it], idx = frecv[l][2*it+1];
+            if(tgt>=0)
+            unpack(tgt,idx,&F.rbuf[k][(size_t)m*nv]);
+            ++it;
+        }
+    }
+
     // parent cells of the 2x2 blocks of the level-l patches.  Every block has a key, unique on the
     // rank for the level and fixed for the layout: the blocks of the local patches (lev[l], block
     // order) first, then the blocks this rank serves to other ranks; block_keys(l) is their number.
