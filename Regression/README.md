@@ -124,6 +124,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_membrane_sharp_current` | 2 | fixed `cylcone` bag in a current with `mobility sharp`: B60=1 + potential start, guarded fluxes near the bag (needs patches 0004-0006) |
 | `nhflow_3d_membrane_sharp_kw` | 2 | as `nhflow_3d_membrane_sharp_current` with k-ω (A560=2): fabric as wall of the diffusion and the turbulence model (needs patches 0004-0006) |
 | `nhflow_3d_6dof_box` | 2 | NHFLOW 3D box, all six DOFs free, initial roll/yaw |
+| `nhflow_3d_sphere_force` | 1 | NHFLOW force integration P 81 in still water: submerged sphere (A 586) on 6 sigma layers, marching-tetra quads split into two triangles: Fx = Fy = 0 to round-off, Fz = rho g V of the reconstructed surface (needs patch 0001 of NHFLOW Forces; reference with 0001) |
+| `nhflow_3d_cylinder_force_mpi2` | 2 | P 81 on the vertical cylinder in the k-eps channel (base `nhflow_3d_cylinder_kepsilon_mpi2`), surface across the rank interface, globalsum of the forces (needs patch 0001 of NHFLOW Forces; reference with 0001) |
 | `nhflow_3d_shipwave_box` | 1 | NHFLOW moving pressure patch, ship-wave mode (X10=3, X400=2) |
 | `sflow_shipwave_box` (+ `sflow_6dof_box_oneway`) | 1 | SFLOW ship pressure patch (X10=3) / one-way direct forcing (X10=2) |
 | `fnpf_2d_6dof_box` (+ `_rk4`) | 1 | FNPF resolved floating body, A310=3 / 4, added-mass coupling |

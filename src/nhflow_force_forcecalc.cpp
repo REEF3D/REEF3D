@@ -39,62 +39,47 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     { 
             // triangle
             if(numpt[n]==3)
+            add_triangle(p,d,facet[n][0],facet[n][1],facet[n][2]);
+            
+            // quadrilateral: vertex cycle 0-1-3-2 (marching tetrahedra), split along the diagonal 0-3
+            // pressure at each sub-triangle centroid, the vertex average is not the area centroid of the quad
+            if(numpt[n]==4)
             {
-            // tri1
-            x1 = ccpt[facet[n][0]][0];
-            y1 = ccpt[facet[n][0]][1];
-            z1 = ccpt[facet[n][0]][2];
+            add_triangle(p,d,facet[n][0],facet[n][1],facet[n][3]);
+            add_triangle(p,d,facet[n][0],facet[n][3],facet[n][2]);
+            }
+    }
+    
+    
+    Fx = pgc->globalsum(Fx);
+    Fy = pgc->globalsum(Fy);
+    Fz = pgc->globalsum(Fz);
+    
+    Ax = pgc->globalsum(Ax);
+    Ay = pgc->globalsum(Ay);
+    Az = pgc->globalsum(Az);
+    A_tot = pgc->globalsum(A_tot);
+}
+
+void nhflow_force::add_triangle(lexer* p, fdm_nhf *d, int q1, int q2, int q3)
+{
+            x1 = ccpt[q1][0];
+            y1 = ccpt[q1][1];
+            z1 = ccpt[q1][2];
             
-            x2 = ccpt[facet[n][1]][0];
-            y2 = ccpt[facet[n][1]][1];
-            z2 = ccpt[facet[n][1]][2];
+            x2 = ccpt[q2][0];
+            y2 = ccpt[q2][1];
+            z2 = ccpt[q2][2];
             
-            x3 = ccpt[facet[n][2]][0];
-            y3 = ccpt[facet[n][2]][1];
-            z3 = ccpt[facet[n][2]][2];
+            x3 = ccpt[q3][0];
+            y3 = ccpt[q3][1];
+            z3 = ccpt[q3][2];
             
             xc = (1.0/3.0)*(x1 + x2 + x3);
             yc = (1.0/3.0)*(y1 + y2 + y3);
             zc = (1.0/3.0)*(z1 + z2 + z3);
             
-            at = sqrt(pow(x2-x1,2.0) + pow(y2-y1,2.0) + pow(z2-z1,2.0));
-            bt = sqrt(pow(x2-x3,2.0) + pow(y2-y3,2.0) + pow(z2-z3,2.0));
-            ct = sqrt(pow(x3-x1,2.0) + pow(y3-y1,2.0) + pow(z3-z1,2.0));
-            
-            st = 0.5*(at+bt+ct);
-            
             A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
-            }
-            
-            //quadrilidral
-            if(numpt[n]==4)
-            {
-            x1 = ccpt[facet[n][0]][0];
-            y1 = ccpt[facet[n][0]][1];
-            z1 = ccpt[facet[n][0]][2];
-            
-            x2 = ccpt[facet[n][1]][0];
-            y2 = ccpt[facet[n][1]][1];
-            z2 = ccpt[facet[n][1]][2];
-            
-            x3 = ccpt[facet[n][3]][0];
-            y3 = ccpt[facet[n][3]][1];
-            z3 = ccpt[facet[n][3]][2];
-            
-            x4 = ccpt[facet[n][2]][0];
-            y4 = ccpt[facet[n][2]][1];
-            z4 = ccpt[facet[n][2]][2];
-            
-            xc = (1.0/4.0)*(x1 + x2 + x3 + x4);
-            yc = (1.0/4.0)*(y1 + y2 + y3 + y4);
-            zc = (1.0/4.0)*(z1 + z2 + z3 + z4);
-            
-            //tri1
-            A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
-            
-            //tri2
-            A += triangle_area(p,x1,y1,z1,x3,y3,z3,x4,y4,z4);
-            }
             
             xp1 = x2-x1;
             yp1 = y2-y1;
@@ -171,17 +156,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
     Az+=A*nz;
     
     A_tot+=A;
-    }
-    
-    
-    Fx = pgc->globalsum(Fx);
-    Fy = pgc->globalsum(Fy);
-    Fz = pgc->globalsum(Fz);
-    
-    Ax = pgc->globalsum(Ax);
-    Ay = pgc->globalsum(Ay);
-    Az = pgc->globalsum(Az);
-    A_tot = pgc->globalsum(A_tot);
 }
 
 double nhflow_force::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
