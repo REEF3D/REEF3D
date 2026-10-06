@@ -169,6 +169,10 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     nhflow_fsf *pfsf = S.pfsf;
     nhflow_convection *pconvec = S.pconvec;
     
+    // B 95: relaxation targets at the time of the stage output
+    if(p->B95!=0.0)
+    pflow->wavegen_stage_nhflow(p,d,pgc,p->simtime + (s==1 ? 0.5 : 1.0)*p->dt);
+    
     if(s==0)
     {
     sigma_update(p,d,pgc,d->WL);

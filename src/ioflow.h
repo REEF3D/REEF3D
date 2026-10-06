@@ -93,6 +93,8 @@ public:
 	virtual void pm_relax(lexer*,ghostcell*,slice&)=0;
     
     virtual void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*)=0;
+    // B 95: relaxation targets at the time of the stage output, relaxation factor for the step (iowave only)
+    virtual void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) {}
     virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*)=0;
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*)=0;
@@ -120,6 +122,7 @@ public:
     
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
+    virtual void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) {}
     virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;

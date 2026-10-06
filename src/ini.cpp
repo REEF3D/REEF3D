@@ -379,6 +379,7 @@ void control::ini_default()
 	B93_2=0.0;      // double wave period
     B94=0;     // int set water depth for wave theory
     B94_wdt=0.0;    // double water depth for wave theory
+    B95=0.0;        // double SFLOW and NHFLOW relaxation zones (B 98 2): 0 as before; >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)

@@ -194,6 +194,8 @@ public:
     
     // NHFLOW
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
+    void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override final;
+    void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) override final;
     void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
@@ -235,6 +237,10 @@ private:
     slice1 relax1_wg, relax1_nb;
     slice2 relax2_wg, relax2_nb;
     slice4 relax4_wg, relax4_nb;
+    // B 95: the relaxation functions as computed at the start (relax4_wg/nb then hold r^(dt/dt_ref))
+    slice4 *relax4_wg0 = nullptr, *relax4_nb0 = nullptr;
+    double relax_fac = 1.0;
+    void relax_stage_factor(lexer*);
     bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
     sliceint4 wgflag;
 	

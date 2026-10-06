@@ -3192,6 +3192,7 @@
             <File Name="iowave_sflow_relax.cpp"/>
             <File Name="iowave_sflow_precalc_ini.cpp"/>
             <File Name="iowave_sflow_precalc.cpp"/>
+        <File Name="iowave_stage.cpp"/>
             <File Name="iowave_sflow_ini.cpp"/>
             <File Name="iowave_sflow_inflow.cpp"/>
             <File Name="iowave_sflow_fullini.cpp"/>

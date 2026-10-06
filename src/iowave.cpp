@@ -278,4 +278,6 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 
 iowave::~iowave()
 {
+    delete relax4_wg0;
+    delete relax4_nb0;
 }

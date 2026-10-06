@@ -143,7 +143,7 @@ public:
     int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
     double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
-    double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
+    double B91_1,B91_2,B93_1,B93_2,B94_wdt,B95,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
     double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
     double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
