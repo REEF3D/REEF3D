@@ -44,37 +44,31 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
     return;
     }
     
+    // conservative form: (F_i+1/2 - F_i-1/2)/dx_i with the upwind value per face (as ifou); was one direction
+    // per cell and the width of the upstream cell for positive flow (not conservative on stretched grids)
     count=0;
     LOOP
     {
-    udir=vdir=wdir=0.0;
-    
     padvec->uadvec(ipol,U,ivel1,ivel2);
     padvec->vadvec(ipol,V,jvel1,jvel2);
     padvec->wadvec(ipol,W,kvel1,kvel2);
-
-	if(0.5*(ivel1+ivel2)>=0.0)
-    udir=1.0;
     
-    if(0.5*(jvel1+jvel2)>=0.0)
-    vdir=1.0;
-    
-    if(0.5*(kvel1+kvel2)>=0.0)
-    wdir=1.0;
+    const double dxc = p->DXN[IP];
+    const double dyc = p->DYN[JP];
+    const double dzc = p->DZN[KP]*(p->WL[IJ]>1.0e-20?p->WL[IJ]:1.0e20);
 
+	 d->M.p[count] =    (MAX(ivel2,0.0) - MIN(ivel1,0.0))/dxc
+					+ (MAX(jvel2,0.0) - MIN(jvel1,0.0))/dyc*p->y_dir
+					+  (MAX(kvel2,0.0) - MIN(kvel1,0.0))/dzc;
 	 
-	 d->M.p[count] =    udir*ivel2/p->DXN[IM1] - (1.0-udir)*ivel1/p->DXN[IP]
-					+ (vdir*jvel2/p->DYN[JM1] - (1.0-vdir)*jvel1/p->DYN[JP])*p->y_dir
-					+  wdir*kvel2/(p->DZN[KM1]*p->WL[IJ]) - (1.0-wdir)*kvel1/(p->DZN[KP]*p->WL[IJ]);
+	 d->M.s[count] = -MAX(ivel1,0.0)/dxc;
+	 d->M.n[count] =  MIN(ivel2,0.0)/dxc;
 	 
-	 d->M.s[count] = -udir*ivel1/p->DXN[IM1];
-	 d->M.n[count] =  (1.0-udir)*ivel2/p->DXN[IP];
+	 d->M.e[count] = -MAX(jvel1,0.0)/dyc*p->y_dir;
+	 d->M.w[count] =  MIN(jvel2,0.0)/dyc*p->y_dir;
 	 
-	 d->M.e[count] = -vdir*jvel1/p->DYN[JM1]*p->y_dir;
-	 d->M.w[count] =  (1.0-vdir)*jvel2/p->DYN[JP]*p->y_dir;
-	 
-	 d->M.b[count] = -wdir*kvel1/(p->DZN[KM1]*p->WL[IJ]);
-	 d->M.t[count] =  (1.0-wdir)*kvel2/(p->DZN[KP]*p->WL[IJ]);
+	 d->M.b[count] = -MAX(kvel1,0.0)/dzc;
+	 d->M.t[count] =  MIN(kvel2,0.0)/dzc;
      
 	 ++count;
     }

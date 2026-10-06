@@ -75,15 +75,19 @@ void sflow_ifou::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vv
     vr=1.0;
 
 	 
-	 b->M.p[count] = ur*ivel2/p->DXM - (1.0-ul)*ivel1/p->DXM
-                   + (vr*jvel2/p->DXM - (1.0-vl)*jvel1/p->DXM)*p->y_dir;
+    // control-volume widths (were the mean spacing DXM, wrong on stretched grids)
+    const double dx = (ipol==1) ? p->DXP[IP] : p->DXN[IP];
+    const double dy = (ipol==2) ? p->DYP[JP] : p->DYN[JP];
+	 
+	 b->M.p[count] = ur*ivel2/dx - (1.0-ul)*ivel1/dx
+                   + (vr*jvel2/dy - (1.0-vl)*jvel1/dy)*p->y_dir;
 
 	 
-	 b->M.s[count] = -ul*ivel1/p->DXM;
-	 b->M.n[count] =  (1.0-ur)*ivel2/p->DXM;
+	 b->M.s[count] = -ul*ivel1/dx;
+	 b->M.n[count] =  (1.0-ur)*ivel2/dx;
 	 
-	 b->M.e[count] = -vl*jvel1/p->DXM*p->y_dir;
-	 b->M.w[count] =  (1.0-vr)*jvel2/p->DXM*p->y_dir;
+	 b->M.e[count] = -vl*jvel1/dy*p->y_dir;
+	 b->M.w[count] =  (1.0-vr)*jvel2/dy*p->y_dir;
      
 	 
 	 ++count;
