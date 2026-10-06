@@ -271,6 +271,7 @@ void fem_solid::advance(double dt)
 
     if(dt<=0.0)
     return;
+    dt_last = dt;
 
     // effective masses: the enclosed fluid reduces the mass that is accelerated
     // by the structural forces (at most to 10 %), the time step follows
@@ -619,12 +620,14 @@ void fem_solid::rigid_props(rigid_body& rb,int k)
     {
         const double L1 = std::max(L(0),L(2));
         rb.Aunit = 0.25*3.14159265358979*L1*L1*L(1);
+        rb.Aface = L1*L(1);
     }
     else
     {
         double d[3] = {L(0),L(1),L(2)};
         std::sort(d,d+3);
         rb.Aunit = 0.25*3.14159265358979*d[2]*d[1]*d[1];
+        rb.Aface = d[2]*d[1];
     }
 
     // impact stiffness of the debris: given, or the axial stiffness of a
@@ -772,6 +775,38 @@ bool fem_solid::bodies_near() const
     if((lo[a].array()-d0 <= hi[b].array()).all() && (lo[b].array()-d0 <= hi[a].array()).all())
     return true;
     return false;
+}
+
+double fem_solid::rigid_terminal_speed(int k,double rho_f,double g) const
+{
+    // speed at which the drag on the largest face (cd 1) balances buoyancy minus weight
+    const rigid_body& rb = rbs[k];
+    if(rb.Aface<=0.0 || rho_f<=0.0)
+    return 1.0;
+    return std::max(1.0, std::sqrt(2.0*g*std::fabs(rho_f*rb.Vol-rb.M)/(rho_f*rb.Aface)));
+}
+
+void fem_solid::limit_rigid_speed(int k,const Vec3& uf,double vmax)
+{
+    // speed of rigid body k relative to the water uf after the fluid step: the
+    // velocity change without the contact impulse may not raise it above
+    // max(vmax, speed at the start of the step), and above vmax if it reverses
+    rigid_body& rb = rbs[k];
+    const Vec3 vc = rb.Jc/rb.M;
+    const Vec3 vf = rb.V - vc;
+    const Vec3 w0 = rb.V0 - uf, w1 = vf - uf;
+    const double n1 = w1.norm();
+    const double lim = w1.dot(w0)<0.0 ? vmax : std::max(vmax,w0.norm());
+    if(n1<=lim)
+    return;
+    Vec3 dV = uf + (lim/n1)*w1 - vf;
+    if(plane_strain)
+    dV(1) = 0.0;
+    rb.V += dV;
+    rb.a_prev += dV/std::max(dt_last,1.0e-30);
+    for(int i : rb.nodes)
+    v[i] += dV;
+    ++rb.nlimit;
 }
 
 bool fem_solid::rigid_contact_near(double dt) const

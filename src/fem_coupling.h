@@ -94,7 +94,7 @@ private:
         double frac;        // fraction of the face area
     };
 
-    static constexpr size_t BP = 20;     // buffer entries per Lagrangian point / debris particle
+    static constexpr size_t BP = 23;     // buffer entries per Lagrangian point / debris particle
 
     void ini_points(lexer*, ghostcell*);
     void point_state(int q, fem_solid::Vec3& xp, fem_solid::Vec3& vp, fem_solid::Vec3& n, double& A) const;
@@ -139,12 +139,18 @@ private:
     void nhf_mark_solid(lexer*, ghostcell*, bool dfreset);    // cells inside the deformable structure: p->DF = -1
     std::vector<int> df_cells, df_save;
     bool warned_overtop = false;
-    // factor on the added-mass estimate of rigid bodies: given, or 1 (CFD) / 5 (NHFLOW: the
+    // factor on the added-mass estimate of rigid body k: given, or 1 (CFD); NHFLOW: 5 (the
     // non-hydrostatic pressure responds more strongly to the forcing of a body; with 1, light
-    // debris in a shallow, fast flow became unstable)
-    double added_mass_factor() const {return fs.coupling().added_mass>=0.0 ? fs.coupling().added_mass : (nhflow ? 5.0 : 1.0);}
+    // debris in a shallow, fast flow became unstable), but at most 30 body masses and at least
+    // 2 (a much larger added mass delays the response of very light bodies such as empty
+    // containers: the impulse of a slam was stored and given back, the body was thrown out;
+    // see also nhf_limit_rigid)
+    double added_mass_factor(int k) const;
     std::vector<double> pnh_bar, pnh_bar_b;    // NHFLOW: filtered non-hydrostatic pressure at the probes
     void nhf_filter_pressure();
+    void nhf_limit_rigid(lexer*, bool apply);     // rigid bodies: speed relative to the water at most the terminal speed
+    std::vector<fem_solid::Vec3> lim_u;
+    std::vector<double> lim_vt;
     void warnings(lexer*, std::vector<std::string>&);
     void update_summary(lexer*, bool write);
     void write_summary(lexer*);

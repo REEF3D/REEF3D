@@ -425,7 +425,7 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
             // body: the added mass of the water side is not smaller than that),
             // less for a body that only touches the water, none in air
             for(int k=0; k<fs.n_rigid(); ++k)
-            fs.set_rigid_added_mass(k, added_mass_factor()*rho_w*fs.rigid(k).Aunit*std::min(1.0, 3.0*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0)));
+            fs.set_rigid_added_mass(k, added_mass_factor(k)*rho_w*fs.rigid(k).Aunit*std::min(1.0, 3.0*(nt[k]>0.0 ? nw[k]/nt[k] : 0.0)));
         }
         if(mode==0)
         {
@@ -464,6 +464,8 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
         fs.add_load(i, fdeb[d] - rho*fs.node_volume(i)*g);
     }
 
+    if(nhflow)
+    nhf_limit_rigid(p,false);
     try
     {
         fs.advance(p->dt);
@@ -474,6 +476,8 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
         std::cout<<"\n!!! "<<e.what()<<" !!!\n"<<std::endl;
         MPI_Abort(pgc->mpi_comm,1);
     }
+    if(nhflow)
+    nhf_limit_rigid(p,true);
 
     // hybrid: filtered parcel loads of the step
     if(fs.coupling().loads==0)

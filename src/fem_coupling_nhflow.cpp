@@ -120,6 +120,71 @@ double fem_coupling::nhf_level(lexer *p, const Vec3& x) const
     return lv;
 }
 
+double fem_coupling::added_mass_factor(int k) const
+{
+    if(fs.coupling().added_mass>=0.0)
+    return fs.coupling().added_mass;
+    if(!nhflow)
+    return 1.0;
+    const double ma = rho_w*fs.rigid(k).Aunit;
+    if(ma<=0.0)
+    return 5.0;
+    return std::max(2.0, std::min(5.0, 30.0*fs.rigid(k).M/ma));
+}
+
+void fem_coupling::nhf_limit_rigid(lexer *p, bool apply)
+{
+    // Rigid bodies in the water: the fluid loads of a step may not drive a body
+    // relative to the surrounding water faster than its terminal speed, unless it
+    // was already that fast (it then may not get faster). A very light body (an
+    // empty container, 1/17 of the density of water) follows a change of the fluid
+    // force only with the delay of the added-mass stabilisation; after falling into
+    // the water it was thrown out again at 20-34 m/s. The water velocity is the
+    // mean over the wet pressure probes of the body; at least a tenth of the
+    // surface must be wet. The contact impulse of the step is not limited.
+    // apply false: water velocity at the bodies (before fs.advance), true: limit.
+    if(apply)
+    {
+        for(size_t k=0; k<lim_u.size() && (int)k<fs.n_rigid(); ++k)
+        if(lim_vt[k]>0.0)
+        fs.limit_rigid_speed((int)k,lim_u[k],lim_vt[k]);
+        return;
+    }
+    const int nr = fs.n_rigid();
+    lim_u.assign(nr,Vec3::Zero());
+    lim_vt.assign(nr,0.0);
+    if(nr==0)
+    return;
+    const int np = (int)pts.size();
+    std::vector<Vec3> uf(nr,Vec3::Zero());
+    std::vector<double> aw(nr,0.0), at(nr,0.0);
+    Vec3 xp, vp, n;
+    double A;
+    for(int q=0; q<np; ++q)
+    {
+        const int k = fs.rigid_of_node(fs.surface()[pts[q].face].n[0]);
+        if(k<0)
+        continue;
+        const double *b = &buf[BP*q];
+        point_state(q,xp,vp,n,A);
+        at[k] += A;
+        if(b[5]>0.5 && b[6]/b[5]>0.5)
+        {
+            uf[k] += (A/b[5])*Vec3(b[20],b[21],b[22]);
+            aw[k] += A;
+        }
+    }
+    const double g = std::fabs(p->W22);
+    for(int k=0; k<nr; ++k)
+    if(at[k]>0.0 && aw[k]>=0.1*at[k])
+    {
+        lim_u[k] = uf[k]/aw[k];
+        if(p->j_dir==0)
+        lim_u[k](1) = 0.0;
+        lim_vt[k] = fs.rigid_terminal_speed(k,rho_w,g);
+    }
+}
+
 void fem_coupling::nhf_filter_pressure()
 {
     // The non-hydrostatic pressure next to the forced surface jumps from step to
@@ -393,6 +458,13 @@ void fem_coupling::nhf_probe_pressure(lexer *p, const Vec3& xp, const Vec3& n, d
     b[4] = pnh + p->W1*std::fabs(p->W22)*std::max(0.0,eta-xp(2));
     b[18] = pnh;
     b[6] = pr(2)<=eta ? 1.0 : 0.0;
+    if(b[6]>0.5)
+    {
+        // velocity of the water at the probe (relative speed limit of rigid bodies)
+        b[20] = nhf_ipol(p,nhf->U,pr(0),pr(1),pr(2),false);
+        b[21] = nhf_ipol(p,nhf->V,pr(0),pr(1),pr(2),false);
+        b[22] = nhf_ipol(p,nhf->W,pr(0),pr(1),pr(2),false);
+    }
 }
 
 void fem_coupling::nhf_probe_beside(lexer *p, const Vec3& xp, Vec3 q, double *b)

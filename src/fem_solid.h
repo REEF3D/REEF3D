@@ -232,6 +232,8 @@ public:
         double fcstep = 0.0;            // max contact force in the last fluid step
         double Vol = 0.0;               // volume
         double Aunit = 0.0, A = 0.0;    // added mass for the stabilisation: per unit fluid density, current
+        double Aface = 0.0;             // largest face (terminal speed)
+        int nlimit = 0;                 // fluid steps with the relative speed limited
         Vec3 V0 = Vec3::Zero(), w0 = Vec3::Zero(), a_prev = Vec3::Zero(), al_prev = Vec3::Zero();
         // impact: effective contact stiffness [N/m] (debris acting as a spring), crushing force cap [N],
         // length of the axial bar, how k was obtained (0 given, 1 E A/L, 2 rigid_contact_speed)
@@ -241,6 +243,8 @@ public:
         Vec3 Jc = Vec3::Zero(), Hc = Vec3::Zero();   // contact impulse and its moment over the fluid step
     };
     void set_rigid_added_mass(int k,double A) {rbs[k].A = A;}
+    double rigid_terminal_speed(int k,double rho_f,double g) const;
+    void limit_rigid_speed(int k,const Vec3& uf,double vmax);   // after advance: speed relative to the water uf
     int rigid_of_node(int i) const {return rnode.empty() ? -1 : rnode[i];}
     int n_rigid() const {return (int)rbs.size();}
     const rigid_body& rigid(int k) const {return rbs[k];}
@@ -457,6 +461,7 @@ private:
     struct cplane {Vec3 n; double d;};          // n.x >= d is outside the wall
     std::vector<cplane> planes;
     bool bed_on = false;
+    double dt_last = 0.0;           // last fluid step (advance)
     std::vector<unsigned char> bed_ok;
     std::vector<double> bed_phi;
     std::vector<Vec3> bed_n, bed_x;

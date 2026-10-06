@@ -448,6 +448,17 @@ void fem_coupling::write_summary(lexer *p)
             if(rb.Fcap>0.0) f<<rb.Fcap*force_scale/1000.0; else f<<"-";
             f<<"  "<<src[rb.ksrc]<<"\n";
         }
+        // NHFLOW: fluid steps in which the speed relative to the water was limited
+        int nl = 0;
+        for(int k=0; k<fs.n_rigid(); ++k) nl += fs.rigid(k).nlimit;
+        if(nl>0)
+        {
+            f<<"  speed relative to the water limited to the terminal speed (NHFLOW, fluid steps):";
+            for(int k=0; k<fs.n_rigid(); ++k)
+            if(fs.rigid(k).nlimit>0)
+            f<<" body "<<k+1<<": "<<fs.rigid(k).nlimit;
+            f<<"\n";
+        }
     }
 }
 
