@@ -241,14 +241,26 @@ bool seastate_source::cap(float *N, double depth) const
     return true;
 }
 
-void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D)
+void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb)
 {
     moments(N,depth,k);
 
-    std::fill(P,P+nbin,0.0);
-    std::fill(D,D+nbin,0.0);
+    wa = ma;
+    wb = (mb<0) ? ndir-1 : mb;
+
+    for(int l=0; l<nsig; ++l)
+    for(int m=wa; m<=wb; ++m)
+    {
+    const int b = g.bin(l,m);
+    P[b] = D[b] = S[b] = L[b] = 0.0;
+    }
+
+    // DIA writes all bins
+    if(prm.dia)
+    {
     std::fill(S.begin(),S.end(),0.0);
     std::fill(L.begin(),L.end(),0.0);
+    }
 
     const double grav = seastate_gravity;
 
@@ -280,7 +292,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         const double reduc = (freq>1.0) ? 1.0/(freq*freq*freq) : 1.0;
         const double cinv = double(k[l])/sig;
 
-            for(int m=0; m<ndir; ++m)
+            for(int m=wa; m<=wb; ++m)
             {
             const int b = g.bin(l,m);
             const double cosdif = g.costh[m]*cw + g.sinth[m]*sw;
@@ -312,7 +324,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
             const double r = double(k[l])/km_wam;
             const double w = ck*r*sigm_10*r;
 
-            for(int m=0; m<ndir; ++m)
+            for(int m=wa; m<=wb; ++m)
             D[g.bin(l,m)] += w;
             }
         }
@@ -329,8 +341,9 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         Qb = std::min(1.0,1.0-std::exp(-std::min(arg,100.0)));
         brk_rate = 2.0*prm.alpha*g.f[0]*Qb*H/depth;
 
-            for(int b=0; b<nbin; ++b)
-            D[b] += brk_rate;
+            for(int l=0; l<nsig; ++l)
+            for(int m=wa; m<=wb; ++m)
+            D[g.bin(l,m)] += brk_rate;
         }
 
         // depth-induced breaking (Battjes-Janssen)
@@ -347,8 +360,10 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         // P += sbrd N, D += ws + sbrd with sbrd = ws (1 - Qb)/(bb - Qb) >= 0
         const double sbrd = (bb<1.0 && bb-Qb>1.0e-12) ? ws*(1.0-Qb)/(bb-Qb) : 0.0;
 
-            for(int b=0; b<nbin; ++b)
+            for(int l=0; l<nsig; ++l)
+            for(int m=wa; m<=wb; ++m)
             {
+            const int b = g.bin(l,m);
             D[b] += ws + sbrd;
             P[b] += sbrd*double(N[b]);
             }
@@ -369,7 +384,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     const double s = g.sig[l]/std::sinh(kd);
     const double w = prm.Cb/(grav*grav)*s*s;
 
-        for(int m=0; m<ndir; ++m)
+        for(int m=wa; m<=wb; ++m)
         D[g.bin(l,m)] += w;
     }
 
@@ -378,8 +393,11 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
 void seastate_source::split(const float *N, double *P, double *D)
 {
-    for(int b=0; b<nbin; ++b)
+    for(int l=0; l<nsig; ++l)
+    for(int m=wa; m<=wb; ++m)
     {
+    const int b = g.bin(l,m);
+
         if(S[b]>0.0)
         P[b] += S[b];
 
@@ -397,6 +415,8 @@ void seastate_source::split(const float *N, double *P, double *D)
 void seastate_source::quadruplets(const float *N, double depth, const float *k, double *Sout, double *dSdN)
 {
     moments(N,depth,k);
+    wa = 0;
+    wb = ndir-1;
     std::fill(S.begin(),S.end(),0.0);
     std::fill(L.begin(),L.end(),0.0);
 
@@ -412,6 +432,8 @@ void seastate_source::quadruplets(const float *N, double depth, const float *k, 
 void seastate_source::triads(const float *N, double depth, const float *k, const float *cg, double *Sout)
 {
     moments(N,depth,k);
+    wa = 0;
+    wb = ndir-1;
     std::fill(S.begin(),S.end(),0.0);
 
     if(Etot>0.0)
@@ -572,7 +594,7 @@ void seastate_source::lta(const float *N, double depth, const float *k, const fl
     q[l] = prm.alphaEB*double(cg[l])*c0*J*J*sinbph;
     }
 
-    for(int m=0; m<ndir; ++m)
+    for(int m=wa; m<=wb; ++m)
     {
         for(int l=0; l<nsig; ++l)
         EL[l] = 2.0*pi*g.sig[l]*double(N[g.bin(l,m)]);

@@ -125,7 +125,9 @@ public:
     void set_wind(double U10, double wdir) {prm.U10 = U10; prm.wdir = wdir;}
 
     // N of one cell (nbin), k and cg of the cell (nsig); P and D of size nbin (overwritten)
-    void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D);
+    // directions ma..mb only (the quadrant of a sweep; mb<0: all). The integral parameters use the whole
+    // spectrum; P and D outside the window are not set. With DIA the transfers are computed for all bins.
+    void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma=0, int mb=-1);
 
     // maximum energy (prm.emax, Battjes-Janssen breaking): scales the spectrum of a cell down to the
     // total energy (gamma d)^2/4 (tail included, as SWAN SINTGRL); true if it was scaled
@@ -151,6 +153,7 @@ private:
     void dia(const float *N, double depth);
     void lta(const float *N, double depth, const float *k, const float *cg);
     void split(const float *N, double *P, double *D);
+    int wa = 0, wb = 0;             // direction window of the current compute
 
     double &ue(int l, int m) {return UE[size_t(l+uoff)*ndir + m];}
     double &sa1(int l, int m) {return SA1[size_t(l+soff)*ndir + m];}

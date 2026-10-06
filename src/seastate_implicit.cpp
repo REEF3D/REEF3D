@@ -56,6 +56,7 @@ seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), 
     }
 
     csig.assign(nsig,0.0);
+    Ar.assign(nsig,0.0);
     la.assign(ndir,0.0);
     di.assign(ndir,0.0);
     up.assign(ndir,0.0);
@@ -234,12 +235,18 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     if(src!=nullptr && wU!=nullptr)
     src->set_wind((*wU)(ic,jc),(*wD)(ic,jc));
 
-    // maximum energy (A 737 1, SWAN SINTGRL), then the source terms from the latest spectrum
+    // maximum energy (A 737 1, SWAN SINTGRL), then the source terms from the latest spectrum,
+    // for the directions of the quadrant
     if(src!=nullptr)
     {
     src->cap(N,d);
-    src->compute(N,d,kc,cgc,P.data(),D.data());
+    src->compute(N,d,kc,cgc,P.data(),D.data(),ma,mb);
     }
+
+    // depth refraction coefficient sig/sinh(2kd) per frequency
+    if(kin)
+    for(int l=0; l<nsig; ++l)
+    Ar[l] = seastate_refraction(g.sig[l],kc[l],d);
 
     const double *lim = (src!=nullptr) ? src->limit() : nullptr;
 
@@ -247,7 +254,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
     {
     const double sig = g.sig[l];
     const double cgl = cgc[l];
-    const double A = kin ? seastate_refraction(sig,kc[l],d) : 0.0;
+    const double A = kin ? Ar[l] : 0.0;
     const double rdsig = 1.0/g.dsig[l];
 
         for(int n=0; n<nq; ++n)
@@ -266,7 +273,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, const float *N0, 
 
             for(int ll=std::max(l-1,0); ll<=std::min(l+1,nsig-1); ++ll)
             {
-            const double Al = seastate_refraction(g.sig[ll],kc[ll],d);
+            const double Al = Ar[ll];
             const double c = kc[ll]*Al*dep - double(cgc[ll])*kc[ll]*cur;
 
             if(ll==l-1) csm=c;

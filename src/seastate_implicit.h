@@ -161,6 +161,7 @@ private:
     sliceint *skp = nullptr;
     const seastate_faces *fcs = nullptr;
     vector<double> P, D;                // source terms of the cell (src != nullptr)
+    vector<double> Ar;                  // sig/sinh(2kd) of the cell per frequency
     vector<int> m0, m1;                 // first and last direction of each quadrant
     vector<double> csig;                // c_sigma of the cell, per frequency, for the current direction
     vector<double> la, di, up, rhs, sol, cp, dp;   // tridiagonal system of one frequency
