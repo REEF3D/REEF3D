@@ -101,7 +101,7 @@ inline void nhflow_amr::fill_col(int l, int tag, SEL sel)
 template<class SEL>
 inline void nhflow_amr::restrict_col(SEL sel)
 {
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     {
         const int Kc = klev(l-1);
         block_up(l,Kc+1,7400+l,
@@ -130,8 +130,12 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     const int i0 = EXT+2*bi, j0 = EXT+2*bj;
 
     // cubic only on interior blocks: on the edge blocks the 4x4 stencil would read the
-    // EXT cells of the patch, which are not unknowns of the composite solve (as fnpf_amr)
-    bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
+    // EXT cells of the patch, which are not unknowns of the composite solve (as fnpf_amr).
+    // G 7 1: the average everywhere - the edge blocks depend on how a level is cut into patches,
+    // and with subcycling the covered pressure enters the level-0 step and the parent pressure
+    // of the fills (placed patches, G 40 2, against one rank: 2.4e-7 m with the cubic blocks,
+    // 2e-13 m without; the flume the same to 4 digits)
+    bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0) && sub==0;
     const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
     const int fz = pp->knoz/Kc;
 

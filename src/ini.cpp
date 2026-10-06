@@ -674,7 +674,7 @@ void control::ini_default()
     G4=8;       // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
     G5=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
-    G7=0;       // int SFLOW mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
+    G7=0;       // int SFLOW and NHFLOW mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
     G12=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)

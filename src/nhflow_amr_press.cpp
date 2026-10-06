@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include<mpi.h>
 #include<iomanip>
 #include<algorithm>
+#include<limits>
 
 //  Composite pressure projection of REEF3D::NHFLOW on level 0 and the patches (A 520 1, 2).
 //
@@ -122,6 +123,11 @@ void nhflow_amr::pr_rows()
         vector<int> &row = (g<0) ? rowmap0 : NP(g)->row;
         pgrid &L = pg[g+1];
         const int l = (g<0) ? 0 : P[g]->lev;
+
+        // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling)
+        if(l<wlo || l>wtop())
+        continue;
+
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
         else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
@@ -131,7 +137,7 @@ void nhflow_amr::pr_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-            const bool cov = (l<maxlev && covered(l+1,2*I,2*J));
+            const bool cov = (l<wtop() && covered(l+1,2*I,2*J));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -156,9 +162,17 @@ void nhflow_amr::pr_rows()
 // vectors, multigrids and their coefficients for this solve
 void nhflow_amr::pr_prepare(ghostcell *pgc)
 {
-    if(pr_layout!=layout_id)
+    // row lists of the layout and of the level window (G 7 1: level solves and synchronisation
+    // projections over part of the levels)
+    const int wkey = wlo*1000 + wtop();
+    if(pr_layout!=layout_id || pr_wkey!=wkey)
     {
         pr_rows();
+        pr_wkey = wkey;
+    }
+
+    if(pr_layout!=layout_id)
+    {
 
         const int n0 = p0->imax*p0->jmax*(p0->kmax+2);
         if(kv0.empty())
@@ -239,6 +253,7 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
     };
 
     // level 0: all rows of the rank grid
+    if(wlo==0)
     {
         sc_level &L = mg0->fine();
         clear(L);
@@ -264,6 +279,9 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
     // patches: interior rows, couplings to the cells around the patch dropped
     for(auto q : P)
     {
+        if(q->lev<wlo || q->lev>wtop())
+        continue;
+
         nhflow_amr_patch *c = NP(q);
         lexer *pp = c->pp;
         sc_level &L = c->mg->fine();
@@ -357,7 +375,7 @@ void nhflow_amr::pr_stencils()
 
             const int i0 = EXT+2*bi, j0 = EXT+2*bj;
 
-            bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
+            bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0) && sub==0;
 
             int na = 4;
             double wa[4] = {0.25,0.25,0.25,0.25};
@@ -398,6 +416,7 @@ void nhflow_amr::pr_stencils()
 
     pr_fs.clear();
 
+    if(wlo==0)
     {
         const sc_level &L = mg0->fine();
         pr_l0a.clear();
@@ -443,7 +462,7 @@ void nhflow_amr::pr_restrict(SEL sel)
 {
     using namespace nhflow_amr_detail;
 
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     {
         const int Kc = klev(l-1);
         block_up(l,Kc+1,7500+l,
@@ -483,6 +502,11 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
     const int knf = klev(l);
     const int nv = knf+1;
 
+    // G 7 1, the lowest level of the window above level 0: its parent columns are fixed (the
+    // parent pressure of the level solve, 0 for a correction); they keep their values in the
+    // unknowns and are 0 in the Krylov vectors
+    const bool edge = (pr_edge && l==wlo);
+
     fill_run(l,nv,tag,
              [&](const reefamr_fill &f, double *v)
              {
@@ -492,6 +516,11 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
                      const double *src = sel(f.g);
                      for(int kk=0; kk<=knf; ++kk)
                      v[kk] = src[fidx(q,f.si,f.sj,kk)];
+                 }
+                 else if(f.kind==1 && edge)
+                 {
+                     for(int kk=0; kk<=knf; ++kk)
+                     v[kk] = std::numeric_limits<double>::quiet_NaN();
                  }
                  else if(f.kind==1)
                  {
@@ -512,6 +541,13 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
              {
                  lexer *pp = c->pp;
                  double *dst = sel(id);
+                 if(edge && std::isnan(w[0]))
+                 {
+                     if(pr_dir)
+                     for(int kk=0; kk<=knf; ++kk)
+                     dst[fidx(pp,f.di,f.dj,kk)] = 0.0;
+                     return;
+                 }
                  for(int kk=0; kk<=knf; ++kk)
                  dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
              });
@@ -561,16 +597,18 @@ void nhflow_amr::pr_sync(int k)
 {
     auto sel = [&](int g) -> double* { return pvec(g,k); };
 
+    pr_dir = (k>=0);
+
     pr_restrict(sel);
 
-    if(p0->mpi_size>1)
+    if(p0->mpi_size>1 && wlo==0)
     {
         double *x0 = pvec(-1,k);
         pgc0->gcparax7(p0,x0,7);
         pgc0->gcparax7co(p0,x0,7);
     }
 
-    for(int l=1; l<=maxlev; ++l)
+    for(int l=MAX(wlo,1); l<=wtop(); ++l)
     pr_fill(l,7600+l,sel);
 }
 
@@ -668,8 +706,10 @@ void nhflow_amr::pr_x(double alp, double om)
 void nhflow_amr::pr_prec(int kr, int kz)
 {
     pr_restrict([&](int g) -> double* { return pvec(g,kr); });
+    pr_dir = true;
 
     // level 0: one V-cycle on the whole rank grid
+    if(wlo==0)
     {
         sc_level &L = mg0->fine();
         const double *r = pvec(-1,kr);
@@ -696,11 +736,29 @@ void nhflow_amr::pr_prec(int kr, int kz)
 
     auto selz = [&](int g) -> double* { return pvec(g,kz); };
 
-    for(int l=1; l<=maxlev; ++l)
+    // G 7 1, a window above level 0: its lowest level starts from 0 (the parent is fixed)
+    if(wlo>0)
+    for(int id : lev[wlo])
+    {
+        lexer *pp = P[id]->pp;
+        double *z = pvec(id,kz);
+        std::fill(z,z+(size_t)pp->imax*pp->jmax*(pp->kmax+2),0.0);
+    }
+
+    for(int l=MAX(wlo,1); l<=wtop(); ++l)
     {
         // coarse correction interpolated into the patch interiors, then the columns around them
+        if(l>wlo)
         pr_prolong(l,kz);
 
+        // G 7 1, the level solve of a level with several patches: the patch-local corrections
+        // are repeated once with the siblings' corrections filled in between (with one pass every
+        // patch corrects against zero at its sibling edges: the ring wave with 3-7 patches needs
+        // 21 BiCGStab iterations with one pass, 11 with two, 7.7 with four, for the same time)
+        const int npass = (l==wlo && wlo>0 && nlevg[l]>1) ? 2 : 1;
+
+        for(int pass=0; pass<npass; ++pass)
+        {
         pr_fill(l,7700+l,selz);
 
         // patch-local corrections of the residual left by the coarse correction
@@ -731,8 +789,9 @@ void nhflow_amr::pr_prec(int kr, int kz)
             for(const pact &A : pr_pa[id])
             z[A.qq] += L.u[A.lq];
         }
+        }
 
-        if(l<maxlev)
+        if(l<wtop())
         pr_fill(l,7700+l,selz);
     }
 }

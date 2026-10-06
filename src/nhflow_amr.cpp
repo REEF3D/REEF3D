@@ -194,6 +194,12 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     cdiff = (p->A512==2 && p->G31==1);
     brk_split = (cdiff && p->A550==1);
 
+    // subcycling (G 7 1, nhflow_amr_sub.cpp): not with floating bodies; every grid solves its own
+    // implicit diffusion (G 31 1 needs all grids at the same time)
+    sub = (p->G7==1 && b6==nullptr) ? 1 : 0;
+    if(sub==1)
+    cdiff = brk_split = false;
+
     configure(q);
 
     if(p->F50==1) gcval_eta = 51;
@@ -374,9 +380,17 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(flagbreak)
     cout<<" breaking (G 23)";
     }
-    if(regrid_int>0)
+    if(regrid_int>0 && sub==0)
     cout<<", regrid every "<<regrid_int<<" steps (G 2)"<<(par.zones ? ", the zone follows the body" : "");
+    if(regrid_int>0 && sub==1)
+    cout<<", regrid every "<<MAX(regrid_int>>maxlev,1)<<" level-0 steps (G 2)";
+    if(sub==1)
+    cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
     cout<<endl;
+    if(p->G7==1 && sub==0)
+    cout<<"NHFLOW AMR: G 7 1 (subcycling) not with floating bodies -- one time step for all levels"<<endl;
+    if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
+    cout<<"NHFLOW AMR: G 7 1: every grid solves its own implicit diffusion (G 31 1 needs all grids at the same time)"<<endl;
     }
 }
 
@@ -843,7 +857,7 @@ void nhflow_amr::restrict_flags(ghostcell *pgc, int s)
     if(!shore)
     return;
 
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     block_up(l,1,7300+l,
              [&](reefamr_patch *c, int id, int k, double *v)
              {
@@ -866,7 +880,7 @@ void nhflow_amr::restrict_flags(ghostcell *pgc, int s)
     // patches that hold covered cells (no partition exchange), then level 0 with its halo
     {
     comms_off guard(pgc);
-    for(int l=1; l<maxlev; ++l)
+    for(int l=MAX(wlo,1); l<wtop(); ++l)
     for(int id : lev[l])
     {
         nhflow_amr_patch *c = NP(id);
@@ -877,6 +891,9 @@ void nhflow_amr::restrict_flags(ghostcell *pgc, int s)
         pgc->gcsl_start4Vint(pp,pp->deep,50);
     }
     }
+
+    if(wlo>0)
+    return;
 
     slice &WL0 = (s<0) ? d0->WL : *stage_out(-1,s).WL;
     pgc->gcsl_start4Vint(p0,p0->wet,50);
@@ -1535,7 +1552,7 @@ void nhflow_amr::ini_boxes(int l)
 // water level and surface of the covered coarse cells after the continuity part of stage s
 void nhflow_amr::restrict_surface(int s)
 {
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     block_up(l,2,7310+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
@@ -1561,7 +1578,7 @@ void nhflow_amr::restrict_surface(int s)
 // UH, VH, WH (and with P the pressure) of the covered coarse cells, U = UH/WL
 void nhflow_amr::restrict_momentum(int s, bool withP)
 {
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     {
         const int K = klev(l-1);
         block_up(l,3*K,7320+l,
@@ -1875,6 +1892,63 @@ void nhflow_amr::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, d
         }
     }
 
+    // G 7 1: the fine register of the patch; the coarse faces keep their own flux (the fine one is
+    // not there yet, refluxing after the fine steps) and add it to the coarse register, with the
+    // fine face depth as in the synchronous coupling
+    if(sub==1)
+    {
+        const double wdt = rkw(hstage)*p->dt;
+
+        if(id>0)
+        {
+            nhflow_amr_patch &c = *NP(id-1);
+            for(int side=0; side<4; ++side)
+            {
+                vector<double> &R = c.rec[ipol][side];
+                vector<double> &G = c.freg[ipol][side];
+                for(size_t n=0; n<R.size() && n<G.size(); ++n)
+                G[n] += wdt*R[n];
+            }
+        }
+
+        if(id>=(int)match.size())
+        return;
+
+        for(size_t n=0; n<match[id].size(); ++n)
+        {
+            const reefamr_match &m = match[id][n];
+            if(ipol==4)
+            {
+                nhflow_amr_patch &c = *NP(m.child);
+                const double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+1]);
+                if(m.dir==0)
+                d->dfx(m.fi,m.fj) = df;
+                else
+                d->dfy(m.fi,m.fj) = df;
+            }
+            double *cr = &cregL[id][(4*n+ipol-1)*K];
+            for(int k=0; k<K; ++k)
+            cr[k] += wdt*((m.dir==0) ? Fx[cidx(p,m.fi,m.fj,k)] : Fy[cidx(p,m.fi,m.fj,k)]);
+        }
+
+        for(size_t n=0; n<rmatch[id].size(); ++n)
+        {
+            const reefamr_match &m = rmatch[id][n];
+            if(ipol==4 && id<(int)rval.size())
+            {
+                const double df = rval[id][n*NF+4*K];
+                if(m.dir==0)
+                d->dfx(m.fi,m.fj) = df;
+                else
+                d->dfy(m.fi,m.fj) = df;
+            }
+            double *cr = &cregR[id][(4*n+ipol-1)*K];
+            for(int k=0; k<K; ++k)
+            cr[k] += wdt*((m.dir==0) ? Fx[cidx(p,m.fi,m.fj,k)] : Fy[cidx(p,m.fi,m.fj,k)]);
+        }
+        return;
+    }
+
     if(id>=(int)match.size())
     return;
 
@@ -2010,6 +2084,14 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         }
 
         // adaptive flags: the first patches appear when the flags do
+        regrid_step(p,pgc);
+        return;
+    }
+
+    // G 7 1: subcycling
+    if(sub==1)
+    {
+        sub_step(p,d,pgc,mom,S0);
         regrid_step(p,pgc);
         return;
     }
@@ -2190,7 +2272,10 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
 // at the end of the step
 void nhflow_amr::regrid_step(lexer *p, ghostcell *pgc)
 {
-    if(maxlev>0 && regrid_int>0 && p->count%regrid_int==0)
+    // G 7 1: G 2 counts steps of the finest level (a level-0 step is 2^G1 of them)
+    const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
+
+    if(maxlev>0 && regrid_int>0 && p->count%rint==0)
     {
         const double t0 = MPI_Wtime();
         regrid(p,pgc,false);
@@ -2283,6 +2368,11 @@ void nhflow_amr::dt_cell_size(int wetonly, double &dx, double &dz)
         nhflow_amr_patch *c = NP(q);
         lexer *pp = c->pp;
         fdm_nhf *d = c->d;
+
+        // G 7 1: level l takes 2^l steps per level-0 step, its cells limit the level-0 step as
+        // cells 2^l times larger
+        const double sc = (sub==1) ? double(1<<c->lev) : 1.0;
+
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
         for(int jj=EXT; jj<EXT+c->ny; ++jj)
         {
@@ -2296,10 +2386,10 @@ void nhflow_amr::dt_cell_size(int wetonly, double &dx, double &dz)
             h = MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]);
             else
             h = pp->DXN[ii+marge];
-            dx = MIN(dx,h);
+            dx = MIN(dx,sc*h);
 
             for(int kk=0; kk<pp->knoz; ++kk)
-            dz = MIN(dz,pp->DZN[kk+marge]*d->WL(ii,jj));
+            dz = MIN(dz,sc*pp->DZN[kk+marge]*d->WL(ii,jj));
         }
     }
 }

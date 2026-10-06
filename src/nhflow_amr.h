@@ -89,6 +89,10 @@ using namespace std;
 //     (nhflow_amr_press.cpp)
 //   - restriction of the corrected UH, VH, WH and P, relaxation zones and ghost cells
 //   - one global time step from the finest grid (nhflow_timestep with the patch hook)
+//  With G 7 1 (subcycling, nhflow_amr_sub.cpp) level l takes 2^l steps per level-0 step: level 0
+//  steps alone with its own pressure, every finer level after it with fills interpolated in time,
+//  flux registers, a pressure solve per level and stage, refluxing and a synchronisation projection
+//  over the finer levels after each of its steps; not with floating bodies.
 //
 //  Floating bodies (6DOF_nhflow, X 10 1/2): the body is advanced on level 0, before the patches
 //  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
@@ -170,6 +174,10 @@ struct nhflow_amr_patch : public reefamr_patch
 
     // composite implicit diffusion (G 31 1): Krylov vectors, cell layout
     vector<vector<double>> dkv;
+
+    // G 7 1: fine face fluxes summed over the steps of the patch within one step of its parent
+    // (dt * RK weight), freg[ipol][side][r*knoz+k], ipol 1-4
+    vector<double> freg[5][4];
 };
 
 class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook
@@ -398,6 +406,45 @@ private:
     int finest_at(double, double);
     void body_patch(ghostcell*, nhflow_amr_patch&);
     void body_loads(lexer*, ghostcell*);
+
+    // G 7 1: subcycling (nhflow_amr_sub.cpp)
+    int sub = 0;                    // 1: subcycled
+    int hstage = 0;                 // RK stage of the grids running (flux register weights)
+    int wlo = 0, whi = -1;          // level window of the restriction and of the composite solve (whi<0: maxlev)
+    int wtop() const { return whi<0 ? maxlev : whi; }
+    bool pr_edge = false;           // composite solve with its lowest level > 0: the parent columns are fixed
+    bool pr_dir = false;            // pr_fill of a Krylov vector (the fixed parent columns are 0)
+    int pr_wkey = -1;               // window of the current row lists
+    struct tcol                     // parent columns read by the fills of the next level, their start-of-step values
+    {
+        vector<int> ci, cj;
+        vector<double> old, live;
+        int layout = -1;
+    };
+    vector<tcol> tc;                // [g+1]
+    int tc_nv(int g);
+    void tc_build(int);
+    void tc_pack(int, int, double*);
+    void tc_unpack(int, int, const double*);
+    void sub_snapshot(int);
+    void sub_swap_in(int, double);
+    void sub_swap_out(int);
+    void sub_fill(ghostcell*, int, int, double);
+    vector<vector<double>> cregL, cregR, rflux;   // [id+1]: coarse face fluxes summed over the step (4 K per entry), received fine sums
+    vector<double> dtlev;           // step of each level in the current level-0 step
+    void sub_creg_reset(int);
+    void sub_dfx();
+    void sub_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    void sub_level(lexer*, ghostcell*, int, int, double, double);
+    void sub_sync(lexer*, ghostcell*, int);
+    void sub_reflux(int);
+    void sub_press_level(lexer*, ghostcell*, int, int, int);
+    void sub_project(lexer*, ghostcell*, int);
+    long sub_lv_it = 0, sub_lv_n = 0, sub_sy_it = 0, sub_sy_n = 0;   // level and synchronisation solves: iterations, count
+    double tsync = 0.0;
+    double rkw(int) const;          // weight of stage s in the step
+    double rkc(int) const;          // time of the input of stage s in the step
+    double rko(int) const;          // time of the output of stage s in the step
 
     // output
     void write_vtr(lexer*, nhflow_amr_patch&, int);
