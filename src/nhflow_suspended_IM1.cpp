@@ -150,30 +150,33 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
         {
             if(p->DF[IJK]>0 && p->wet[IJ]==1)
             {
-                
+            // closed faces (walls, domain edges, solid and dry neighbours, bed, free surface):
+            // implicit zero gradient, the off-diagonal is folded into the diagonal, so the
+            // diffusive flux through the face is exactly zero (explicit C^n left a flux ~ C^(n+1)-C^n);
+            // at inflow edges the inflow concentration is the cell value
             if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 || p->wet[Im1J]==0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*CONC[IJK];
+            d->M.p[n] += d->M.s[n];
             d->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*CONC[IJK];
+            d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJK];
+            d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
             if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0 || p->wet[IJp1]==0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJK];
+            d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
             }
             
@@ -186,13 +189,13 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             
             if((p->flag4[IJKm1]<0 || p->DF[IJKm1]<0) && k>0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
+            d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;
             }
             
             if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k<p->knoz-1)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*CONC[IJK];
+            d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
             }
             
