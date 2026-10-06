@@ -177,7 +177,14 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            // bed: no diffusive flux, the exchange with the bed is in suspsource (implicit zero gradient)
+            if(k==0)
+            {
+            d->M.p[n] += d->M.b[n];
+            d->M.b[n] = 0.0;
+            }
+            
+            if((p->flag4[IJKm1]<0 || p->DF[IJKm1]<0) && k>0)
             {
             d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
             d->M.b[n] = 0.0;
@@ -189,9 +196,10 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             d->M.t[n] = 0.0;
             }
             
-            if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k==p->knoz-1)
+            // free surface: impermeable, implicit zero gradient (was a ghost value C = 0: diffusive loss)
+            if(k==p->knoz-1)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*0.0;
+            d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
             }
             }
