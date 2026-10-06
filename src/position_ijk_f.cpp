@@ -25,6 +25,10 @@ Author: Hans Bihs
 
 int position::posf_i(double xs)
 {
+    // inside the grid: the interval of the cell centres, without the bisection (same result)
+    if(xs>=p->XP[0+marge] && xs<p->XP[p->knox-p->ulast+marge])
+    return fast_index(fffi,p->XP,0,p->knox-p->ulast,xs);
+    
     stop=0;
 
     is = 0;
@@ -102,6 +106,10 @@ int position::posf_j(double ys)
     return jj;
     }
     
+    // inside the grid: the interval of the cell centres, without the bisection (same result)
+    if(ys>=p->YP[0+marge] && ys<p->YP[p->knoy-p->vlast+marge])
+    return fast_index(fffj,p->YP,0,p->knoy-p->vlast,ys);
+    
     count=0;
     do{
     jloc = ihalf(js,je);
@@ -173,6 +181,10 @@ int position::posf_k(double zs)
 {
     if(p->G502==0)
     {
+    // inside the grid: the interval of the cell centres, without the bisection (same result)
+    if(zs>=p->ZP[0+marge] && zs<p->ZP[p->knoz-1+marge])
+    return fast_index(fffk,p->ZP,0,p->knoz-1,zs);
+    
     stop=0;
 
     ks = 0;
