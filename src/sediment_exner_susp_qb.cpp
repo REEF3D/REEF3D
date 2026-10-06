@@ -36,6 +36,12 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
     if(p->S62==1 && p->count>p->S43)
     val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
     
+    // NHFLOW (S10 1): the suspended solver ran before bedconc and used the reference concentration
+    // of the previous sediment step (cbn); erode the bed with the same value, otherwise every
+    // wet/dry cycle of a swash cell leaves ws*dt*(cbe^n - cbe^(n-1)) unbalanced
+    if(p->S62==1 && p->count>p->S43 && p->A10==5 && p->S10==1)
+    val = (-s->ws)*(s->cb(i,j) - s->cbn(i,j)); 
+    
     // NHFLOW: same exchange condition as the water column (nhflow_suspended_IM1::suspsource: k=0, wet, DF>0),
     // the bed cannot erode or deposit suspended sediment the water column never receives or loses
     if(p->A10==5)
