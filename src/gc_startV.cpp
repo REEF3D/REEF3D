@@ -278,39 +278,74 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
         }
 
     // e
+        // iowave Riemann / Flather edge on y- (ghost cells set by iowave): fluxes from the ghost cell
+        const int openm = (p->open_ym==1 && p->origin_j+j==0) ? 1 : 0;
+        const int openp = (p->open_yp==1 && p->origin_j+j+1==p->gknoy-1) ? 1 : 0;
+        
+        if(p->flag2[IJm1K]<0 && p->j_dir==1 && openm==1)
+        {
+        if(gcv==11)
+        f[IJm1K] = d->VH[IJm1K]*d->V[IJm1K] + 0.5*fabs(p->W22)*d->eta(i,j-1)*d->eta(i,j-1) + fabs(p->W22)*d->eta(i,j-1)*d->dfy(i,j);
+        
+        if(gcv==14)
+        f[IJm1K] = d->VH[IJm1K];
+        
+        if(gcv==10)
+        f[IJm1K] = d->UH[IJm1K]*d->V[IJm1K];
+        
+        if(gcv==12)
+        f[IJm1K] = d->WH[IJm1K]*d->V[IJm1K];
+        }
+        
         // V
-        if(p->flag2[IJm1K]<0 &&  gcv==11 && p->j_dir==1)
+        if(p->flag2[IJm1K]<0 &&  gcv==11 && p->j_dir==1 && openm==0)
         {
         f[IJm1K] = 0.5*fabs(p->W22)*d->eta(i,j-1)*d->eta(i,j-1) + fabs(p->W22)*d->eta(i,j-1)*d->dfy(i,j);
         }
 
         // ETA
-        if(p->flag2[IJm1K]<0 &&  gcv==14 && p->j_dir==1)
+        if(p->flag2[IJm1K]<0 &&  gcv==14 && p->j_dir==1 && openm==0)
         {
         f[IJm1K] = 0.0;
         }
 
         // U,W
-        if(p->flag2[IJm1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1)
+        if(p->flag2[IJm1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1 && openm==0)
         {
         f[IJm1K] = 0.0;
         }
 
     // w
+        // iowave Riemann / Flather edge on y+: fluxes from the first ghost cell
+        if(p->flag2[IJp1K]<0 && p->j_dir==1 && openp==1)
+        {
+        if(gcv==11)
+        f[IJp1K] = d->VH[IJp2K]*d->V[IJp2K] + 0.5*fabs(p->W22)*d->eta(i,j+2)*d->eta(i,j+2) + fabs(p->W22)*d->eta(i,j+2)*d->dfy(i,j+1);
+        
+        if(gcv==14)
+        f[IJp1K] = d->VH[IJp2K];
+        
+        if(gcv==10)
+        f[IJp1K] = d->UH[IJp2K]*d->V[IJp2K];
+        
+        if(gcv==12)
+        f[IJp1K] = d->WH[IJp2K]*d->V[IJp2K];
+        }
+        
         // V
-        if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1)
+        if(p->flag2[IJp1K]<0 &&  gcv==11 && p->j_dir==1 && openp==0)
         {
         f[IJp1K] = 0.5*fabs(p->W22)*d->eta(i,j+2)*d->eta(i,j+2) + fabs(p->W22)*d->eta(i,j+2)*d->dfy(i,j+1);
         }
 
         // ETA
-        if(p->flag2[IJp1K]<0 &&  gcv==14 && p->j_dir==1)
+        if(p->flag2[IJp1K]<0 &&  gcv==14 && p->j_dir==1 && openp==0)
         {
         f[IJp1K] = 0.0;
         }
 
         // U,W
-        if(p->flag2[IJp1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1)
+        if(p->flag2[IJp1K]<0 && gcv!=11 && gcv!=14 && p->j_dir==1 && openp==0)
         {
         f[IJp1K] = 0.0;
         }
@@ -531,28 +566,28 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         // antisymmetrically, all other fields (U, W, UH, WH, scalars) symmetrically.
         // (Setting the tangential components to 0 acted like a no-slip wall and, through
         // the reconstruction and the HLL dissipation, damped waves in 3D.)
-        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15))
+        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15) && (p->open_ym==0 || p->origin_j+j>0))
         {
             f[IJm1K] = -f[IJK];
             f[IJm2K] = -f[IJp1K];
             f[IJm3K] = -f[IJp2K];
         }
 
-        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15))
+        if(p->flag4[IJm1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15) && (p->open_ym==0 || p->origin_j+j>0))
         {
             f[IJm1K] = f[IJK];
             f[IJm2K] = f[IJp1K];
             f[IJm3K] = f[IJp2K];
         }
 
-        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15))
+        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv==11 || gcv==15) && (p->open_yp==0 || p->origin_j+j<p->gknoy-1))
         {
             f[IJp1K] = -f[IJK];
             f[IJp2K] = -f[IJm1K];
             f[IJp3K] = -f[IJm2K];
         }
 
-        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15))
+        if(p->flag4[IJp1K]<0 && p->j_dir==1 && (gcv!=11 && gcv!=15) && (p->open_yp==0 || p->origin_j+j<p->gknoy-1))
         {
             f[IJp1K] = f[IJK];
             f[IJp2K] = f[IJm1K];

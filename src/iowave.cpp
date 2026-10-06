@@ -173,6 +173,8 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     bg_on = true;
     p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;
     p->open_xp = zones.open_edge(2)!=nullptr ? 1 : 0;
+    p->open_ym = zones.open_edge(3)!=nullptr ? 1 : 0;
+    p->open_yp = zones.open_edge(4)!=nullptr ? 1 : 0;
     }
     
     if(zones.user_beach())

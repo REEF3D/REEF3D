@@ -43,7 +43,7 @@ former iowave functions, so results stay bitwise identical, and adds the
 zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
 
   B 520 id method priority     method 1: relaxation (wave generation), 2: beach,
-                               3: Riemann edge, 4: Flather edge (NHFLOW, edges 1 and 2)
+                               3: Riemann edge, 4: Flather edge (NHFLOW; y edges in 3D only)
   B 521 id edge s0 s1 width    edge 1: x-, 2: x+, 3: y-, 4: y+; along-edge range
                                [s0,s1] from the edge's start (s1 <= s0: whole edge)
   B 524 id source              source of the zone (repeatable; 1: the B 92 wave); a Riemann

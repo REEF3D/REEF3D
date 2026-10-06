@@ -239,8 +239,6 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         fail("zone "+std::to_string(k)+" needs a B 521 edge (1: x-, 2: x+, 3: y-, 4: y+)");
         if(width[q]<=0.0 && m<=2)
         fail("zone "+std::to_string(k)+": the B 521 width must be positive");
-        if(m>=3 && e>2)
-        fail("zone "+std::to_string(k)+": Riemann and Flather edges are available on the x edges (B 521 edge 1 or 2)");
         if(m>=3 && bgid[q]==0)
         fail("zone "+std::to_string(k)+": a Riemann or Flather edge needs a background (B 523)");
         

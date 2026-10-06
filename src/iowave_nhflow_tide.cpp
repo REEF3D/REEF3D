@@ -105,9 +105,25 @@ double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
     return s;
 }
 
+// side code of the ghostcell lists (1: x-, 2: y+, 3: y-, 4: x+) and ghost offset of an edge (1: x-, 2: x+, 3: y-, 4: y+)
+static void edge_geometry(int e, int &sc, int &di, int &dj, double &nx, double &ny)
+{
+    sc = e==1 ? 1 : e==2 ? 4 : e==3 ? 3 : 2;
+    di = e==1 ? -1 : e==2 ? 1 : 0;
+    dj = e==3 ? -1 : e==4 ? 1 : 0;
+    nx = -double(di);    // inward normal
+    ny = -double(dj);
+}
+
+// edge e is a Riemann / Flather edge with its ghost cells set here (lexer flags, set in iowave::ini)
+static int edge_open(const lexer *p, int e)
+{
+    return e==1 ? p->open_xm : e==2 ? p->open_xp : e==3 ? p->open_ym : p->open_yp;
+}
+
 void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    if(p->open_xm==0 && p->open_xp==0)
+    if(p->open_xm==0 && p->open_xp==0 && p->open_ym==0 && p->open_yp==0)
     return;
     
     if(edge_h.empty())
@@ -115,17 +131,20 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
     
     const double g = fabs(p->W22);
     
-    for(int side : {1,2})
+    for(int side : {1,2,3,4})
     {
         const bc_zone *z = zones.open_edge(side);
-        if(z==nullptr)
+        if(z==nullptr || edge_open(p,side)==0)
         continue;
         
-        const int b = bgs.index(z->bg);
-        const int count = side==1 ? p->gcin_count : p->gcout_count;
-        int **gc = side==1 ? p->gcin : p->gcout;
+        int sc, di, dj;
+        double nx, ny;
+        edge_geometry(side,sc,di,dj,nx,ny);
+        const bool xedge = side<=2;
         
-        // waves of the edge's sources (B 524, Riemann only): eta and depth averaged u per column
+        const int b = bgs.index(z->bg);
+        
+        // waves of the edge's sources (B 524, Riemann only): eta and depth averaged u, v per column
         const bool waves = z->method==bc_method::riemann && !z->sources.empty();
         
         if(waves)
@@ -136,17 +155,20 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             {
             edge_etaw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
             edge_uw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+            edge_vw.assign(size_t(p->imax)*size_t(p->jmax),0.0);
             }
             
-            const int cs = side==1 ? p->gcslin_count : p->gcslout_count;
-            int **gs = side==1 ? p->gcslin : p->gcslout;
+            for(int list=0; list<2; ++list)
+            {
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
             
             for(n=0;n<cs;++n)
             {
             i=gs[n][0];
             j=gs[n][1];
             
-            if(gs[n][3]!=(side==1 ? 1 : 4))
+            if(gs[n][3]!=sc)
             continue;
             
                 xg = xgen(p);
@@ -154,13 +176,25 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 
                 edge_etaw[IJ] = wave_eta(p,pgc,xg,yg);
                 
-                double s = 0.0;
+                double su = 0.0, sv = 0.0;
                 for(k=0; k<p->knoz; ++k)
-                s += wave_u(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                {
+                su += wave_u(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
                 
-                edge_uw[IJ] = s;
+                if(!xedge)
+                sv += wave_v(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                }
+                
+                edge_uw[IJ] = su;
+                edge_vw[IJ] = sv;
+            }
             }
         }
+        
+        for(int list=0; list<2; ++list)
+        {
+        const int count = list==0 ? p->gcin_count : p->gcout_count;
+        int **gc = list==0 ? p->gcin : p->gcout;
         
         for(n=0;n<count;++n)
         {
@@ -168,7 +202,7 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
         j=gc[n][1];
         k=gc[n][2];
         
-        if(gc[n][3]!=(side==1 ? 1 : 4))
+        if(gc[n][3]!=sc)
         continue;
         
             const double h0 = d->depth(i,j);
@@ -178,17 +212,18 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             continue;
             
             // background at the boundary face
-            const double xf = side==1 ? p->XN[IP] : p->XN[IP1];
-            const double yf = p->YP[JP];
+            const double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
+            const double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
             const double eb = bgs.eta(b,xf,yf);
             double ub, vb;
             bgs.vel(b,h0,xf,yf,ub,vb);
             
-            const double ui = nhflow_col_ubar(p,d,d->U);
-            double ug, hg;
+            // normal (inward) and tangential velocities: x edges U / V, y edges V / U
+            const double nn = xedge ? nx : ny;
+            const double ui = xedge ? nhflow_col_ubar(p,d,d->U) : nhflow_col_ubar(p,d,d->V);
             
             // waves of the layer and of the column (ramped), added to the background
-            double uwk=0.0, vwk=0.0, wwk=0.0, ewc=0.0, uwc=0.0;
+            double uwk=0.0, vwk=0.0, wwk=0.0, ewc=0.0, uwc=0.0, vwc=0.0;
             
             if(waves)
             {
@@ -202,64 +237,66 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 wwk = rw*wave_w(p,pgc,xg,yg,zk);
                 ewc = rw*edge_etaw[IJ];
                 uwc = rw*edge_uw[IJ];
+                vwc = rw*edge_vw[IJ];
             }
+            
+            const double unb = xedge ? nn*(ub + uwc) : nn*(vb + vwc);   // target, normal
+            const double uni = nn*ui;                                  // interior, normal
+            double ung, hg;
             
             if(z->method==bc_method::riemann)
             {
                 const double hb = fmax(h0+eb+ewc,1.0e-6);
-                const double ubt = ub + uwc;
-                double Rin, Rout;
+                const double Rin  = unb + 2.0*sqrt(g*hb);
+                const double Rout = uni - 2.0*sqrt(g*hi);
                 
-                if(side==1)
-                {
-                Rin  = ubt + 2.0*sqrt(g*hb);
-                Rout = ui - 2.0*sqrt(g*hi);
-                hg = pow(Rin-Rout,2.0)/(16.0*g);
-                }
-                else
-                {
-                Rin  = ubt - 2.0*sqrt(g*hb);
-                Rout = ui + 2.0*sqrt(g*hi);
-                hg = pow(Rout-Rin,2.0)/(16.0*g);
-                }
-                
-                ug = 0.5*(Rin+Rout);
+                hg  = pow(Rin-Rout,2.0)/(16.0*g);
+                ung = 0.5*(Rin+Rout);
             }
             else
             {
-                // outward normal: -x at x-, +x at x+
+                // q_n(outward) = q_n,b + sqrt(g h) (eta - eta_b)
                 hg = hi;
-                ug = side==1 ? ub - sqrt(g/hi)*((hi-h0) - eb) : ub + sqrt(g/hi)*((hi-h0) - eb);
+                ung = (xedge ? nn*ub : nn*vb) - sqrt(g/hi)*((hi-h0) - eb);
             }
             
             edge_h[IJ] = hg;
             
-            // inflow: tangential velocity of the background, outflow: of the interior
-            const bool in = (side==1) ? ug>0.0 : ug<0.0;
+            // inflow: tangential velocity of the background (+ waves), outflow: of the interior
+            const bool in = ung>0.0;
             
             // depth average from the characteristics, vertical profile of the waves
-            const double ugk = ug + (uwk - uwc);
-            const double vg = in ? vb + vwk : V[IJK];
-            const double wg = in ? wwk : W[IJK];
+            double ug, vg;
             
-            if(side==1)
+            if(xedge)
             {
-            U[Im1JK]=U[Im2JK]=U[Im3JK]=ugk;
-            V[Im1JK]=V[Im2JK]=V[Im3JK]=vg;
-            W[Im1JK]=W[Im2JK]=W[Im3JK]=wg;
-            UH[Im1JK]=UH[Im2JK]=UH[Im3JK]=hg*ugk;
-            VH[Im1JK]=VH[Im2JK]=VH[Im3JK]=hg*vg;
-            WH[Im1JK]=WH[Im2JK]=WH[Im3JK]=hg*wg;
+            ug = nn*ung + (uwk - uwc);
+            vg = in ? vb + vwk : V[IJK];
             }
             else
             {
-            U[Ip1JK]=U[Ip2JK]=U[Ip3JK]=ugk;
-            V[Ip1JK]=V[Ip2JK]=V[Ip3JK]=vg;
-            W[Ip1JK]=W[Ip2JK]=W[Ip3JK]=wg;
-            UH[Ip1JK]=UH[Ip2JK]=UH[Ip3JK]=hg*ugk;
-            VH[Ip1JK]=VH[Ip2JK]=VH[Ip3JK]=hg*vg;
-            WH[Ip1JK]=WH[Ip2JK]=WH[Ip3JK]=hg*wg;
+            vg = nn*ung + (vwk - vwc);
+            ug = in ? ub + uwk : U[IJK];
             }
+            
+            const double wg = in ? wwk : W[IJK];
+            
+            const int ii=i, jj=j;
+            for(int q=1; q<=3; ++q)
+            {
+                i = ii + q*di;
+                j = jj + q*dj;
+                
+                U[IJK] = ug;
+                V[IJK] = vg;
+                W[IJK] = wg;
+                UH[IJK] = hg*ug;
+                VH[IJK] = hg*vg;
+                WH[IJK] = hg*wg;
+            }
+            i = ii;
+            j = jj;
+        }
         }
         
         if(waves)
@@ -269,59 +306,87 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
 
 void iowave::nhflow_open_edges_rk(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    // x+ ghost cells of the RK arrays (the x- ones are copied for all inflow cells)
-    if(p->open_xp==0)
-    return;
-    
-    for(n=0;n<p->gcout_count;++n)
+    // ghost cells of the RK arrays from the step's ghost cells
+    for(int side : {1,2,3,4})
     {
-    i=p->gcout[n][0];
-    j=p->gcout[n][1];
-    k=p->gcout[n][2];
-    
-    if(p->gcout[n][3]!=4)
-    continue;
-    
-        U[Ip1JK]=d->U[Ip1JK]; U[Ip2JK]=d->U[Ip2JK]; U[Ip3JK]=d->U[Ip3JK];
-        V[Ip1JK]=d->V[Ip1JK]; V[Ip2JK]=d->V[Ip2JK]; V[Ip3JK]=d->V[Ip3JK];
-        W[Ip1JK]=d->W[Ip1JK]; W[Ip2JK]=d->W[Ip2JK]; W[Ip3JK]=d->W[Ip3JK];
-        UH[Ip1JK]=d->UH[Ip1JK]; UH[Ip2JK]=d->UH[Ip2JK]; UH[Ip3JK]=d->UH[Ip3JK];
-        VH[Ip1JK]=d->VH[Ip1JK]; VH[Ip2JK]=d->VH[Ip2JK]; VH[Ip3JK]=d->VH[Ip3JK];
-        WH[Ip1JK]=d->WH[Ip1JK]; WH[Ip2JK]=d->WH[Ip2JK]; WH[Ip3JK]=d->WH[Ip3JK];
+        if(edge_open(p,side)==0)
+        continue;
+        
+        int sc, di, dj;
+        double nx, ny;
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
+        {
+        const int count = list==0 ? p->gcin_count : p->gcout_count;
+        int **gc = list==0 ? p->gcin : p->gcout;
+        
+        for(n=0;n<count;++n)
+        {
+        i=gc[n][0];
+        j=gc[n][1];
+        k=gc[n][2];
+        
+        if(gc[n][3]!=sc)
+        continue;
+        
+            const int ii=i, jj=j;
+            for(int q=1; q<=3; ++q)
+            {
+                i = ii + q*di;
+                j = jj + q*dj;
+                
+                U[IJK]=d->U[IJK];
+                V[IJK]=d->V[IJK];
+                W[IJK]=d->W[IJK];
+                UH[IJK]=d->UH[IJK];
+                VH[IJK]=d->VH[IJK];
+                WH[IJK]=d->WH[IJK];
+            }
+            i = ii;
+            j = jj;
+        }
+        }
     }
 }
 
 void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
 {
-    if(p->open_xm==0 && p->open_xp==0)
+    if(p->open_xm==0 && p->open_xp==0 && p->open_ym==0 && p->open_yp==0)
     return;
     
-    for(int side : {1,2})
+    for(int side : {1,2,3,4})
     {
         const bc_zone *z = zones.open_edge(side);
-        if(z==nullptr)
+        if(z==nullptr || edge_open(p,side)==0)
         continue;
         
-        const int count = side==1 ? p->gcslin_count : p->gcslout_count;
-        int **gc = side==1 ? p->gcslin : p->gcslout;
+        int sc, di, dj;
+        double nx, ny;
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
+        {
+        const int count = list==0 ? p->gcslin_count : p->gcslout_count;
+        int **gc = list==0 ? p->gcslin : p->gcslout;
         
         for(n=0;n<count;++n)
         {
         i=gc[n][0];
         j=gc[n][1];
         
-        if(gc[n][3]!=(side==1 ? 1 : 4))
+        if(gc[n][3]!=sc)
         continue;
         
             // Riemann: h_g of this step; Flather: zero gradient
             const double hg = (z->method==bc_method::riemann && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] : WL(i,j);
-            const int s = side==1 ? -1 : 1;
             
             for(int q=1; q<=3; ++q)
             {
-            WL(i+s*q,j) = hg;
-            d->eta(i+s*q,j) = hg - d->depth(i,j);
+            WL(i+q*di,j+q*dj) = hg;
+            d->eta(i+q*di,j+q*dj) = hg - d->depth(i,j);
             }
+        }
         }
     }
 }

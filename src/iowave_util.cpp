@@ -287,6 +287,22 @@ void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->gcin_count=count1;
     p->gcout_count=count2;
     
+    // the legacy inflow ghost cells (gcin) are written along x: an open y edge must be an outflow side in DIVEMesh
+    if(p->open_ym==1 || p->open_yp==1)
+    {
+        int yin=0;
+        for(n=0;n<p->gcin_count;++n)
+        if((p->open_ym==1 && p->gcin[n][3]==3) || (p->open_yp==1 && p->gcin[n][3]==2))
+        ++yin;
+        
+        if(pgc->globalisum(yin)>0)
+        {
+            if(p->mpirank==0)
+            cout<<endl<<"!!! iowave: a Riemann / Flather edge at y- or y+ needs that side flagged as outflow in DIVEMesh (C 12 / C 13 2) !!!"<<endl<<endl;
+            exit(1);
+        }
+    }
+    
     
 
     //if(p->I10==1)
