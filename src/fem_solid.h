@@ -267,6 +267,7 @@ public:
     bool lattice_given() const {return hx>0.0 && hy>0.0 && hz>0.0;}
     void set_default_spacing(double h,double hy=-1.0);   // lattice spacing when the input has none (resolution)
     bool ground() const {return ground_on;}
+    double ground_level() const {return zground;}
     static bool preset(const std::string& type,const std::string& name,material&);   // material presets
     static std::string preset_list();
 

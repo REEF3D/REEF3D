@@ -129,6 +129,9 @@ void fem_coupling::first_call(lexer *p, ghostcell *pgc)
     {
         fs.add_contact_plane(fem_solid::Vec3(1,0,0), p->global_xmin);
         fs.add_contact_plane(fem_solid::Vec3(-1,0,0),-p->global_xmax);
+        // the floor of the domain only below a ground plane: both at the same height
+        // were two springs, twice the stiffness and the crushing force of debris
+        if(!fs.ground() || fs.ground_level() < p->global_zmin - 1.0e-9)
         fs.add_contact_plane(fem_solid::Vec3(0,0,1), p->global_zmin);
         if(p->j_dir==1)
         {
