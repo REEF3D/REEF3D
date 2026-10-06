@@ -108,7 +108,7 @@ private:
     void convection_conservative(lexer*, fdm*, ghostcell*, int);
     void component_lowstorage(lexer*, fdm*, ghostcell*, vrans*, int, int);
 
-    void sources(lexer*, fdm*, ghostcell*, vrans*, int);
+    void sources(lexer*, fdm*, ghostcell*, vrans*, int, field&);
     void rhs(lexer*, fdm*, int);
     void convection_start(lexer*, fdm*, int, field&, field&, field&, field&);
     void diffusion_start(lexer*, fdm*, ghostcell*, int, field&, field&, field&, field&, double);

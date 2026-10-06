@@ -49,6 +49,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     Pk_b_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
     inflow(p,d,pgc);
+    wetting_ini(p,d,KN,EN,true);   // newly wetted columns start from the wet neighbours
 
 //kin
     starttime=pgc->timer();
@@ -81,6 +82,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
     //bckomega_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
+    length_limit(p,d,true);   // l <= kappa h (A 564 >= 1)
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

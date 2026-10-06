@@ -162,6 +162,15 @@ void driver::logic_nhflow()
     pnhpress = new nhflow_pjm_yl(p,d,pgc,pBC);
 
 //Turbulence
+    // unknown A 560: no model would be created (pnhfturb uninitialised) and the run crashed later
+    if(p->A560!=0 && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22 && p->A560!=31)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 560: unknown NHFLOW turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega) or 31 (LES Smagorinsky)."<<endl<<endl;
+        
+        pgc->final(true);
+    }
+    
     if(p->A560==0)
 	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
     

@@ -207,24 +207,30 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     for(int qq=0;qq<pBC->obj_count;++qq)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     {
+    // patch faces (B 4xx): IO 3, the cell taken from the patch (i,j,k were left from the loop above, so one
+    // unrelated cell got IO 1 and the patch faces none). IO 1 would make the turbulence ghosts at the patch
+    // Dirichlet (komega_bc, kepsilon_bc, NHFLOW start20V/30V/24V) without a profile written there.
+    i=pBC->patch[qq]->gcb[n][0];
+    j=pBC->patch[qq]->gcb[n][1];
+    k=pBC->patch[qq]->gcb[n][2];
     
     if(pBC->patch[qq]->gcb[n][3]==1)
-    p->IO[Im1JK] = 1;
+    p->IO[Im1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==4)
-    p->IO[Ip1JK] = 1;
+    p->IO[Ip1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==3)
-    p->IO[IJm1K] = 1;
+    p->IO[IJm1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==2)
-    p->IO[IJp1K] = 1;
+    p->IO[IJp1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==5)
-    p->IO[IJKm1] = 1;
+    p->IO[IJKm1] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==6)
-    p->IO[IJKp1] = 1;
+    p->IO[IJKp1] = 3;
     }
     
 }
@@ -378,24 +384,30 @@ void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int qq=0;qq<pBC->obj_count;++qq)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     {
+    // patch faces (B 4xx): IO 3, the cell taken from the patch (i,j,k were left from the loop above, so one
+    // unrelated cell got IO 1 and the patch faces none). IO 1 would make the turbulence ghosts at the patch
+    // Dirichlet (komega_bc, kepsilon_bc, NHFLOW start20V/30V/24V) without a profile written there.
+    i=pBC->patch[qq]->gcb[n][0];
+    j=pBC->patch[qq]->gcb[n][1];
+    k=pBC->patch[qq]->gcb[n][2];
     
     if(pBC->patch[qq]->gcb[n][3]==1)
-    p->IO[Im1JK] = 1;
+    p->IO[Im1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==4)
-    p->IO[Ip1JK] = 1;
+    p->IO[Ip1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==3)
-    p->IO[IJm1K] = 1;
+    p->IO[IJm1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==2)
-    p->IO[IJp1K] = 1;
+    p->IO[IJp1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==5)
-    p->IO[IJKm1] = 1;
+    p->IO[IJKm1] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==6)
-    p->IO[IJKp1] = 1;
+    p->IO[IJKp1] = 3;
     }
     
 }

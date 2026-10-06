@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"bc_noflux.h"
+#include<vector>
 
 void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
@@ -157,42 +158,55 @@ void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 //   k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z),
 //   i.e. nu_t = kappa u* z (1-z/H); (1-z/H) is bounded below by 0.1 at the free surface.
 // Air cells and all other inflow types (e.g. wave generation) get zero gradient.
+// discharge inflow (B 60 >= 1): equilibrium open-channel profile in the inflow ghost cells, per inflow column
+//   u* = Ui/(2.5 ln(11 H/ks)),  k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z)
+// H is the local water depth of the column: from the lowest wet face to the interpolated interface (was the top
+// face of the highest wet cell over the whole inflow, up to one cell too deep). Columns of this rank without an
+// interface (z-decomposition) use the inflow-wide values. ks is the bed roughness of roughness::ks_val (B 55 or
+// B 50; with sediment S 21 S 20 or S 20 by S 28). Air cells and the wave-only inflow (B 60 0) keep zero gradient.
 void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
 {
     const double kappa = 0.4;
-    double hmin=+1.0e20;
-    double hmax=-1.0e20;
-    double H=0.0, ks, ustar=0.0, z, fz, kval, eval;
+    double zbed_g=+1.0e20, zint_g=-1.0e20;
+    double ks, z, fz, kval, eval, H, zb, ustar;
     int n,q;
     
     const bool keps = (p->T10==1 || p->T10==11 || p->T10==21);
     
+    std::vector<double> zbed, zint;
+    
     if(p->B60>=1)
     {
+        zbed.assign(p->jmax, +1.0e20);
+        zint.assign(p->jmax, -1.0e20);
+        
         for(n=0;n<p->gcin_count;++n)
         {
         i=p->gcin[n][0];
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
+            const int jj = j - p->jmin;
+            
             if(a->phi(i,j,k)>0.0)
-            {
-            hmin=MIN(hmin,p->ZN[KP]);
-            hmax=MAX(hmax,p->ZN[KP1]);
-            }
+            zbed[jj] = MIN(zbed[jj], p->ZN[KP]);
+            
+            if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+            zint[jj] = MAX(zint[jj], p->ZP[KP] + a->phi(i,j,k)*p->DZP[KP]/(a->phi(i,j,k)-a->phi(i,j,k+1)));
+            
+            zbed_g = MIN(zbed_g, zbed[jj]);
+            zint_g = MAX(zint_g, zint[jj]);
         }
-        hmax=pgc->globalmax(hmax);
-        hmin=pgc->globalmin(hmin);
+        zbed_g = pgc->globalmin(zbed_g);
+        zint_g = pgc->globalmax(zint_g);
         
-        H = hmax-hmin;
+        ks = (p->B55>0.0) ? p->B55 : p->B50;
         
-        ks = (p->S10==0) ? p->B50 : p->S20*p->S21;
+        if(p->S10>0)
+        ks = (p->S28==1) ? p->S21*p->S20 : p->S20;
         
         if(ks<=0.0)
         ks=0.0001;
-        
-        if(H>0.0)
-        ustar = fabs(p->Ui)/(2.5*log(MAX(11.0*H/ks,2.0)));
     }
     
     for(n=0;n<p->gcin_count;++n)
@@ -204,18 +218,34 @@ void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
         kval = kin(i,j,k);
         eval = eps(i,j,k);
         
-        if(p->B60>=1 && H>0.0 && ustar>0.0 && a->phi(i,j,k)>0.0)
+        if(p->B60>=1 && a->phi(i,j,k)>0.0)
         {
-        z  = MAX(p->ZP[KP]-hmin, 0.5*p->DZN[KP]);
-        fz = MAX(1.0 - z/H, 0.1);
-        
-        kval = ustar*ustar/sqrt(p->cmu)*fz;
-        
-        if(keps)
-        eval = pow(ustar,3.0)/(kappa*z)*fz;
-        
-        if(!keps)
-        eval = ustar/(sqrt(p->cmu)*kappa*z);
+            const int jj = j - p->jmin;
+            
+            zb = zbed[jj];
+            H  = zint[jj] - zb;
+            
+            if(zint[jj]<-1.0e19 || zb>1.0e19 || H<=0.0)
+            {
+            zb = zbed_g;
+            H  = zint_g - zbed_g;
+            }
+            
+            if(H>0.0 && zb<1.0e19)
+            {
+            ustar = fabs(p->Ui)/(2.5*log(MAX(11.0*H/ks,2.0)));
+            
+            z  = MAX(p->ZP[KP]-zb, 0.5*p->DZN[KP]);
+            fz = MAX(1.0 - z/H, 0.1);
+            
+            kval = ustar*ustar/sqrt(p->cmu)*fz;
+            
+            if(keps)
+            eval = pow(ustar,3.0)/(kappa*z)*fz;
+            
+            if(!keps)
+            eval = ustar/(sqrt(p->cmu)*kappa*z);
+            }
         }
         
         for(q=1;q<=3;++q)

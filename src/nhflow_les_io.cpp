@@ -49,12 +49,13 @@ void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc,  std::vector<
     {
     jj=j;
     j=0;
-	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
+	ffn=float(0.25*(d->EV[IJK]+d->EV[Ip1JK]+d->EV[IJKp1]+d->EV[Ip1JKp1]));
     j=jj;
     }
     
     if(p->j_dir==1)
-	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
+	ffn=float(0.125*(d->EV[IJK]+d->EV[Ip1JK]+d->EV[IJp1K]+d->EV[Ip1Jp1K]
+                        +d->EV[IJKp1]+d->EV[Ip1JKp1]+d->EV[IJp1Kp1]+d->EV[Ip1Jp1Kp1]));
         
         
 	std::memcpy(&buffer[m],&ffn,sizeof(float));
@@ -151,10 +152,6 @@ void nhflow_les_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {
 }
 
-
-void nhflow_les_io::plain_wallfunc(lexer* p, fdm_nhf *d, ghostcell* pgc)
-{
-}
 
 void nhflow_les_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
 {

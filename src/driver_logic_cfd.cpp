@@ -70,6 +70,12 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->T10==12,"T 10 12: EARSM has been removed, use T 10 2 (k-omega; the EARSM stresses were not coupled to the momentum equations).");
     removed_option(p,pgc,p->F80==1 || p->F80==3,"F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
     removed_option(p,pgc,p->F85>=51 && p->F85<=53,"F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
+    
+    // unknown turbulence options: no model or convection scheme would be created and the run would crash later
+    const bool T10_ok = (p->T10==0 || p->T10==1 || p->T10==21 || p->T10==2 || p->T10==22 || p->T10==31 || p->T10==33 || p->T10==12);
+    removed_option(p,pgc,!T10_ok,"T 10: unknown turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega), 31 (LES Smagorinsky) or 33 (LES WALE).");
+    removed_option(p,pgc,p->T10>0 && p->T12!=0 && p->T12!=1 && p->T12!=5 && p->T12!=55,"T 12: unknown convection scheme for k, epsilon/omega; use 0, 1 (first-order upwind), 5 or 55 (WENO).");
+    removed_option(p,pgc,(p->T10==31 || p->T10==33) && p->T21!=0 && p->T21!=1 && p->T21!=2,"T 21: unknown LES filter; use 0, 1 or 2.");
 
 
 // time stepping

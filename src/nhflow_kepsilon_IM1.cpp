@@ -49,6 +49,7 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
     Pk_b_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
     inflow(p,d,pgc);
+    wetting_ini(p,d,KN,EN,false);   // newly wetted columns start from the wet neighbours
 
 //kin
     starttime=pgc->timer();
@@ -80,6 +81,7 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
     bckepsilon_start(p,d,KIN,EPS,gcval_eps);   // wall-function epsilon, must act on M/rhs before the solve
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
 	epsfsf(p,d,pgc);
+    length_limit(p,d,false);   // l <= kappa h (A 564 >= 1)
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

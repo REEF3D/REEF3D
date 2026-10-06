@@ -408,7 +408,7 @@ void momentum_rk::component_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans,
     const double as=ssp_a[s];
     const double bs=ssp_b[s];
 
-	sources(p,a,pgc,pvrans,c);
+	sources(p,a,pgc,pvrans,c,uin);
 	rhs(p,a,c);
 
 	// combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -702,7 +702,7 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
     const double gs = ls_gamma[s];
     const double zs = ls_zeta[s];
 
-    sources(p,a,pgc,pvrans,c);
+    sources(p,a,pgc,pvrans,c,un);
     rhs(p,a,c);
 
     // combine the explicit terms first (sources, pressure, convection), then solve the implicit diffusion
@@ -737,13 +737,14 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
 // common parts of a stage
 // ---------------------------------------------------------------------------------------------
 
-void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c)
+// ust: the velocity component c of the stage, used by the explicit wall shear (was u(n) in every stage)
+void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c, field &ust)
 {
     if(c==0)
     {
 	pturb->isource(p,a);
 	pflow->isource(p,a,pgc,pvrans);
-	bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
+	bcmom_start(a,p,pgc,pturb,ust,gcval_u);
 	ppress->upgrad(p,a,a->eta,a->eta_n);
     }
 
@@ -751,7 +752,7 @@ void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c
     {
 	pturb->jsource(p,a);
 	pflow->jsource(p,a,pgc,pvrans);
-	bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
+	bcmom_start(a,p,pgc,pturb,ust,gcval_v);
 	ppress->vpgrad(p,a,a->eta,a->eta_n);
     }
 
@@ -759,7 +760,7 @@ void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c
     {
 	pturb->ksource(p,a);
 	pflow->ksource(p,a,pgc,pvrans);
-	bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
+	bcmom_start(a,p,pgc,pturb,ust,gcval_w);
 	ppress->wpgrad(p,a,a->eta,a->eta_n);
     }
 }
