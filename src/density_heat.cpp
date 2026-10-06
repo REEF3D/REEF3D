@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"heat.h"
+#include"heaviside.h"
 
 density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
 {
@@ -78,14 +79,7 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         }
         
     
-        if(phival>psi)
-        H=1.0;
-
-        if(phival<-psi)
-        H=0.0;
-
-        if(fabs(phival)<=psi)
-        H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
+        H = heaviside(phival,psi);
         
         roval = ro_1*H + ro_2*(1.0-H);
 

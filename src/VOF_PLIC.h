@@ -34,7 +34,7 @@ Authors: Tobias Martin, Fabian Knoblauch
 #include"interpolation.h"
 #include<vector>
 
-class picard_f;
+class picard;
 class heat;
 class fluid_update;
 
@@ -188,7 +188,7 @@ private:
     int S_S[6][3];
     int S_2D[2][2];
     
-    picard_f *ppicard;
+    picard *ppicard;
     
 };
 #endif

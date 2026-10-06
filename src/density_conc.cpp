@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"concentration.h"
+#include"heaviside.h"
 
 density_conc::density_conc(lexer* p, concentration *& ppconc) 
 {
@@ -51,14 +52,7 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         concval = 0.5*(pconc->val(i,j,k) + pconc->val(i+aa,j+bb,k+cc));
         
 
-        if(phival>psi)
-        H=1.0;
-
-        if(phival<-psi)
-        H=0.0;
-
-        if(fabs(phival)<=psi)
-        H=0.5*(1.0 + phival/psi + (1.0/PI)*sin((PI*phival)/psi));
+        H = heaviside(phival,psi);
         
         roval = (p->W1+concval*p->C1)*H + (p->W3+concval*p->C3)*(1.0-H);
     

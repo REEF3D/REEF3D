@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"field.h"
 #include"lexer.h"
+#include"heaviside.h"
 
 
 double interpolation::ipol1(field& b)
@@ -432,14 +433,7 @@ double interpolation::ipol4ro(fdm *a, field& b)
 
     phival=0.125*(v1+v2+v3+v4+v5+v6+v7+v8);
 	
-	if(phival>epsi)
-	H=1.0;
-
-	if(phival<-epsi)
-	H=0.0;
-
-	if(fabs(phival)<=epsi)
-	H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+	H = heaviside(phival,epsi);
 		
 	roval = p->W1*H + p->W3*(1.0-H);
 	

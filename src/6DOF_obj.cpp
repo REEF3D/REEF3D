@@ -25,7 +25,6 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_f.h"
-#include"reinidisc_fsf.h"
 #include"nhflow_reinidisc_fsf.h"
 #include"6DOF_motionext_fixed.h"
 #include"6DOF_motionext_file.h"

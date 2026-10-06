@@ -384,7 +384,8 @@ void momentum_rk::levelset_ssp(lexer *p, fdm *a, ghostcell *pgc, int s)
 
     pgc->start4(p,fout,gcval_phi);
 
-    p->F44 = final ? 3 : 2;
+    // F44 iterations in the final stage, one less in the others (default 3 / 2)
+    p->reini_iter = final ? p->F44 : MAX(p->F44-1,1);
     preini->start(a,p,fout,pgc,pflow);
     
     // volume correction once per time step (it also adds Qi*dt-Qo*dt to the target volume)
@@ -677,7 +678,8 @@ void momentum_rk::levelset_lowstorage(lexer *p, fdm *a, ghostcell *pgc, int s)
 
     pgc->start4(p,a->phi,gcval_phi);
 
-    p->F44 = (s==2) ? 3 : 2;
+    // F44 iterations in the final stage, one less in the others (default 3 / 2)
+    p->reini_iter = (s==2) ? p->F44 : MAX(p->F44-1,1);
     preini->start(a,p,a->phi,pgc,pflow);
     
     // volume correction once per time step (it also adds Qi*dt-Qo*dt to the target volume)

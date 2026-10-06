@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"density_pst.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"heaviside.h"
 
 density_pst::density_pst(lexer* p)
 { 
@@ -36,14 +37,7 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    if(phival>p->psi)
-    H=1.0;
-
-    if(phival<-p->psi)
-    H=0.0;
-
-    if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
+    H = heaviside(phival,p->psi);
     
     roval = p->W1*H + p->W3*(1.0-H);
     
@@ -51,14 +45,7 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     // ----
     topoval = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc));
 
-    if(topoval>p->psi)
-    H=1.0;
-
-    if(topoval<-p->psi)
-    H=0.0;
-
-    if(fabs(topoval)<=p->psi)
-    H=0.5*(1.0 + topoval/p->psi + (1.0/PI)*sin((PI*topoval)/p->psi));
+    H = heaviside(topoval,p->psi);
     
     roval = roval*H + p->S22*(1.0-H);
 

@@ -255,8 +255,6 @@
             <File Name="reini_RK3.h"/>
             <File Name="reini.h"/>
             <VirtualDirectory Name="Reinidisc">
-              <File Name="reinidisc_fsf_rig.h"/>
-              <File Name="reinidisc_fsf.h"/>
               <File Name="reinidisc_f.h"/>
               <File Name="reinidisc.h"/>
             </VirtualDirectory>
@@ -281,6 +279,7 @@
             <File Name="etimestep.h"/>
           </VirtualDirectory>
           <File Name="fdm.h"/>
+          <File Name="heaviside.h"/>
           <VirtualDirectory Name="Surftens">
             <File Name="surftens.h"/>
           </VirtualDirectory>
@@ -347,7 +346,6 @@
             <File Name="weno_nug_func.h"/>
             <File Name="weno3_nug_func.h"/>
             <File Name="ddweno_nug_sig.h"/>
-            <File Name="ddweno_nug_sf.h"/>
             <File Name="ddweno_nug.h"/>
             <File Name="ddweno_f_nug.h"/>
             <File Name="ddweno3_f_nug.h"/>
@@ -1180,7 +1178,6 @@
           <File Name="slice4.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
-          <File Name="reinisolid_RK3.h"/>
           <File Name="solid.h"/>
         </VirtualDirectory>
         <File Name="slice_base.h"/>
@@ -1564,7 +1561,6 @@
             <File Name="weno3_nug_func_is.cpp"/>
             <File Name="weno3_nug_func.cpp"/>
             <File Name="ddweno_nug_sig.cpp"/>
-            <File Name="ddweno_nug_sf.cpp"/>
             <File Name="ddweno_nug.cpp"/>
             <File Name="ddweno_f_nug.cpp"/>
             <File Name="ddweno3_f_nug.cpp"/>
@@ -1707,8 +1703,6 @@
             <File Name="reini_void.cpp"/>
             <File Name="reini_RK3.cpp"/>
             <VirtualDirectory Name="Reinidisc">
-              <File Name="reinidisc_fsf_rig.cpp"/>
-              <File Name="reinidisc_fsf.cpp"/>
               <File Name="reinidisc_f.cpp"/>
             </VirtualDirectory>
           </VirtualDirectory>
@@ -2986,6 +2980,7 @@
           <File Name="position_xyz.cpp"/>
           <File Name="position_ihalf.cpp"/>
           <File Name="position.cpp"/>
+          <File Name="position_fast.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interpolation">
           <File Name="interpolation_ccipol_V.cpp"/>
@@ -3066,7 +3061,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
-          <File Name="reinisolid_RK3.cpp"/>
           <File Name="solid.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>

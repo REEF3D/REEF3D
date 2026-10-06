@@ -25,6 +25,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"fdm.h"
 #include"ghostcell.h"
 #include<cmath>
+#include"heaviside.h"
 
 rheology_f::rheology_f(lexer *p) : strain(p), tau_x(p), tau_y(p), tau_z(p), gravity(sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)), density_interstitial_fluid(1000.0)
 {
@@ -57,14 +58,7 @@ double rheology_f::heaviside(double phival)
 {
     double H;
     
-    if(phival>epsi)
-    H=1.0;
-    
-    else if(phival<-epsi)
-    H=0.0;
-    
-    else
-    H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+    H = ::heaviside(phival,epsi);
 
     return H;
 }

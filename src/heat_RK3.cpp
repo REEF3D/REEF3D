@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"solver.h"
 #include"fluid_update_fsf_heat.h"
+#include"heaviside.h"
 
 heat_RK3::heat_RK3(lexer* p, fdm* a, ghostcell *pgc, heat *&pheat) : bcheat(p), heat_print(p,a), thermdiff(p),ark1(p),ark2(p),Tdiff(p)
 {
@@ -115,14 +116,7 @@ void heat_RK3::diff_update(lexer *p, fdm *a, ghostcell *pgc)
     
     LOOP
 	{
-		if(a->phi(i,j,k)>epsi)
-		H=1.0;
-
-		if(a->phi(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		H = heaviside(a->phi(i,j,k),epsi);
 
 		thermdiff(i,j,k) = alpha_1*H + alpha_2*(1.0-H);
 	}

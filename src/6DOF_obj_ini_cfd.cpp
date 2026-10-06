@@ -33,13 +33,13 @@ Author: Tobias Martin
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
 #include"net_interface.h"
-#include"reinidisc_fsf.h"
+#include"reinidisc_f.h"
 
 sixdof_obj_cfd::sixdof_obj_cfd(lexer *p, ghostcell *pgc, int number) : sixdof_obj(p,pgc,number),
                                                                        cutl(p),cutr(p),fbio(p),f(p),frk1(p),L(p),dt(p),
                                                                        vertice(p),nodeflag(p),eta(p)
 {
-    prdisc = new reinidisc_fsf(p);
+    prdisc = new reinidisc_f(p,true);
 }
 
 sixdof_obj_cfd::~sixdof_obj_cfd()

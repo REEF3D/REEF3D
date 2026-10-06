@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"patch_obj.h"
+#include"heaviside.h"
 
 void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
 {
@@ -42,14 +43,7 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
                 
     eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-    if(a->phi(i,j,k)>eps)
-    H=1.0;
-
-    if(a->phi(i,j,k)<-eps)
-    H=0.0;
-
-    if(fabs(a->phi(i,j,k))<=eps)
-    H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+    H = heaviside(a->phi(i,j,k),eps);
         
     //pval=(1.0-H)*a->press(i,j,k);
     
