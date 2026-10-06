@@ -18,6 +18,19 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Architect: Hans Bihs
+--------------------------------------------------------------------
+Parts of this file are C++ translations of routines of SWAN 41.51:
+FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads),
+SSURF (Newton linearisation of the Battjes-Janssen dissipation) and
+SINTGRL (maximum energy with Battjes-Janssen breaking).
+
+  SWAN (Simulating WAves Nearshore); a third generation wave model
+  Copyright (C) 1993-2024  Delft University of Technology
+
+  SWAN is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 --------------------------------------------------------------------*/
 
 #include"seastate_source.h"

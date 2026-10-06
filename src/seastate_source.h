@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Architect: Hans Bihs
+--------------------------------------------------------------------
+The DIA, LTA, Battjes-Janssen linearisation and maximum energy of
+seastate_source.cpp are translations of SWAN 41.51 routines,
+Copyright (C) 1993-2024 Delft University of Technology, GNU GPL
+version 3 or later (see seastate_source.cpp).
 --------------------------------------------------------------------*/
 
 #ifndef SEASTATE_SOURCE_H_
