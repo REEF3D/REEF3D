@@ -26,6 +26,34 @@ Author: Hans Bihs
 
 void ghostcell::gcparax(lexer* p, field& f, int gcv)
 {
+    gcparax_pack(p,f,gcv);
+
+    Sendrecv_double(p->gcpara1_count*paramargin,p->gcpara2_count*paramargin,p->gcpara3_count*paramargin,p->gcpara4_count*paramargin,p->gcpara5_count*paramargin,p->gcpara6_count*paramargin);
+
+    gcparax_unpack(p,f,gcv);
+}
+
+// gcparax and gcparacox in one message: the paraco cells follow the gcpara cells in the buffers
+// (the receive order is the same as gcparax followed by gcparacox)
+void ghostcell::gcparax_co(lexer* p, field& f, int gcv)
+{
+    paramargin=margin;
+
+    const int off[6] = {p->gcpara1_count*paramargin, p->gcpara2_count*paramargin, p->gcpara3_count*paramargin,
+                        p->gcpara4_count*paramargin, p->gcpara5_count*paramargin, p->gcpara6_count*paramargin};
+
+    gcparax_pack(p,f,gcv);
+    gcparaco_pack(p,f,off);
+
+    Sendrecv_double(off[0]+p->gcparaco1_count,off[1]+p->gcparaco2_count,off[2]+p->gcparaco3_count,
+                    off[3]+p->gcparaco4_count,off[4]+p->gcparaco5_count,off[5]+p->gcparaco6_count);
+
+    gcparax_unpack(p,f,gcv);
+    gcparaco_unpack(p,f,off);
+}
+
+void ghostcell::gcparax_pack(lexer* p, field& f, int gcv)
+{
     paramargin=margin;
 
     //  FILL SEND
@@ -118,9 +146,10 @@ void ghostcell::gcparax(lexer* p, field& f, int gcv)
             ++count;
         }
     }
+}
 
-    Sendrecv_double(p->gcpara1_count*paramargin,p->gcpara2_count*paramargin,p->gcpara3_count*paramargin,p->gcpara4_count*paramargin,p->gcpara5_count*paramargin,p->gcpara6_count*paramargin);
-
+void ghostcell::gcparax_unpack(lexer* p, field& f, int gcv)
+{
     //  FILL RECEIVE
     count=0;
     for(q=0;q<p->gcpara1_count;++q)

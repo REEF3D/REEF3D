@@ -33,8 +33,8 @@ fdm::fdm(lexer *p) :
             L(p),
             ro(p),visc(p),
             phi(p),
-            vof(p),vof_nt(p),vof_nb(p),vof_st(p),vof_sb(p),phasemarker(p),
-            vof_nte(p),vof_ntw(p),vof_nbe(p),vof_nbw(p),vof_ste(p),vof_stw(p),vof_sbe(p),vof_sbw(p),
+            vof(p),vof_nt(p,p->F80>0),vof_nb(p,p->F80>0),vof_st(p,p->F80>0),vof_sb(p,p->F80>0),phasemarker(p,p->F80>0),
+            vof_nte(p,p->F80>0),vof_ntw(p,p->F80>0),vof_nbe(p,p->F80>0),vof_nbw(p,p->F80>0),vof_ste(p,p->F80>0),vof_stw(p,p->F80>0),vof_sbe(p,p->F80>0),vof_sbw(p,p->F80>0),
             conc(p),
             topo(p),solid(p),
             test(p),
@@ -46,7 +46,7 @@ fdm::fdm(lexer *p) :
             Fifsf(p),K(p),
             P(p),Q(p),bed(p),
             rhsvec(p),M(p),
-            nX(p),nY(p),nZ(p),Alpha(p)
+            nX(p,p->F80>0),nY(p,p->F80>0),nZ(p,p->F80>0),Alpha(p,p->F80>0)
             
 {
 	maxF=0.0;

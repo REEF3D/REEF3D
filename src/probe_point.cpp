@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"probe_point.h"
+#include<vector>
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -77,38 +78,29 @@ probe_point::~probe_point()
 void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
 	double xp,yp,zp;
+    std::vector<double> val(7*probenum,-1.0e20);   // u v w p k eps eddyv per probe, one reduction for all
 	
 	for(n=0;n<probenum;++n)
+	if(flag[n]>0)
 	{
-	uval=vval=wval=pval=kval=eval=edval=-1.0e20;
-	
-		if(flag[n]>0)
-		{
 		xp=p->P61_x[n];
 		yp=p->P61_y[n];
 		zp=p->P61_z[n];
 		
-		uval = p->ccipol1(a->u, xp, yp, zp);
-		vval = p->ccipol2(a->v, xp, yp, zp);
-		wval = p->ccipol3(a->w, xp, yp, zp);
-		pval = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
-		kval = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
-		eval = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
-		edval = p->ccipol4a(a->eddyv, xp, yp, zp);
-		}
+		val[7*n+0] = p->ccipol1(a->u, xp, yp, zp);
+		val[7*n+1] = p->ccipol2(a->v, xp, yp, zp);
+		val[7*n+2] = p->ccipol3(a->w, xp, yp, zp);
+		val[7*n+3] = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
+		val[7*n+4] = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
+		val[7*n+5] = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
+		val[7*n+6] = p->ccipol4a(a->eddyv, xp, yp, zp);
+	}
 	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
-	pval=pgc->globalmax(pval);
-	kval=pgc->globalmax(kval);
-	eval=pgc->globalmax(eval);
-	edval=pgc->globalmax(edval);
+	pgc->globalmax(val.data(),7*probenum);
 
-	
 	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<kval<<" \t "<<eval<<" \t "<<edval<<endl;
-	}			
+	for(n=0;n<probenum;++n)
+	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<val[7*n+0]<<" \t "<<val[7*n+1]<<" \t "<<val[7*n+2]<<" \t "<<val[7*n+3]<<" \t "<<val[7*n+4]<<" \t "<<val[7*n+5]<<" \t "<<val[7*n+6]<<endl;
 }
 
 void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)

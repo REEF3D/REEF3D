@@ -24,28 +24,27 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"field.h"
 
-void ghostcell::dgcpol4(lexer* p,field& f,int gcv)
+// diagonal ghost cells (Y 40): dgc[n] = {i,j,k, di,dj,dk, bc}, bc 1 copy of (i,j,k), bc 2 zero
+void ghostcell::dgcpol(lexer* p, field& f, int **dgc, int dgc_count)
 {
     int di,dj,dk,bc;
     
-    for(n=0;n<p->dgc4_count;++n)
+    for(n=0;n<dgc_count;++n)
     {
-        i=p->dgc4[n][0];
-        j=p->dgc4[n][1];
-        k=p->dgc4[n][2];
+        i=dgc[n][0];
+        j=dgc[n][1];
+        k=dgc[n][2];
         
+        di=dgc[n][3];
+        dj=dgc[n][4];
+        dk=dgc[n][5];
         
-        di=p->dgc4[n][3];
-        dj=p->dgc4[n][4];
-        dk=p->dgc4[n][5];
-        
-        bc=p->dgc4[n][6];
+        bc=dgc[n][6];
         
         if(bc==1)
         f(i+di,j+dj,k+dk) = f(i,j,k);  
 
         if(bc==2)
-        f(i+di,j+dj,k+dk) = 0.0;    
-        
+        f(i+di,j+dj,k+dk) = 0.0;        
     }
 }

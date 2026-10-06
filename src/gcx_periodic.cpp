@@ -26,6 +26,10 @@ Author: Hans Bihs
 
 void ghostcell::gcperiodicx(lexer* p, field& f, int gcv)
 {
+    // no rank has periodic partition neighbours: nothing to exchange (the decision is the same on all ranks)
+    if(!periodic_comms)
+    return;
+
     paramargin=margin;
 
     int aa,bb,cc;

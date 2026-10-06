@@ -41,10 +41,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     LOOP
     a->fbh4(i,j,k) = 0.0;
 
-    start1(p,a->fbh1,10);
-    start2(p,a->fbh2,11);
-    start3(p,a->fbh3,12);
-    start4(p,a->fbh4,40);
+    // no halo update of the zeroed fields: fbh is built from the interior values below,
+    // the halos are set once at the end
 
 // Calculate forcing fields
     double H,Ht, uf, vf, wf;
@@ -439,8 +437,6 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     start3(p,a->fbh3,12);
     start4(p,a->fbh4,40);
 
-    start1(p,fx,10);
-    start2(p,fy,11);
-    start3(p,fz,12);         
+    // fx/fy/fz: only the interior is applied to the velocities (momentum_forcing_start)
 }
 

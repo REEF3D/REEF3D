@@ -39,6 +39,11 @@ void ghostcell::mpi_check(lexer* p)
 
 void ghostcell::gcx_ini(lexer* p)
 {
+    int nperiodic = (p->gcpara1_count-p->periodicX1) + (p->gcpara2_count-p->periodicX2) + (p->gcpara3_count-p->periodicX3)
+                  + (p->gcpara4_count-p->periodicX4) + (p->gcpara5_count-p->periodicX5) + (p->gcpara6_count-p->periodicX6);
+
+    periodic_comms = globalisum(nperiodic)>0;
+
     
     int gcx_count[6];
     gcx_count[0] = (p->gcpara1_count+p->flast)*paramargin + p->gcparaco1_count*paramargin;

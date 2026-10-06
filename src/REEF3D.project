@@ -2861,16 +2861,14 @@
         <File Name="gcx_walldist.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="DGC">
-        <File Name="gc_dgcpol4.cpp"/>
-        <File Name="gc_dgcpol3.cpp"/>
-        <File Name="gc_dgcpol2.cpp"/>
-        <File Name="gc_dgcpol1.cpp"/>
+        <File Name="gc_dgcpol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Parallel Particle">
         <File Name="gcx_partx.cpp"/>
         <File Name="gcx_partnum.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Forcing">
+        <File Name="gc_geometry_changed.cpp"/>
         <File Name="gc_solid_forcing_flag_udpate.cpp"/>
         <File Name="gcsldf_update.cpp"/>
         <File Name="gc_solid_forcing_eta.cpp"/>

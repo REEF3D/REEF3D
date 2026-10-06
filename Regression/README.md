@@ -268,7 +268,7 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).
 
 - Runs use few steps on coarse grids: they test that code paths give the same numbers, not that
-  the physics is right. Validation cases (long runs vs. measurements) are a separate set.
+  the physics is right. Cases with an analytical or reference solution are in `Validation/`.
 - A run fails on NaN/Inf in the per-step norms, a non-zero exit code, a timeout or a missing dump.
 
 ## Unit tests
