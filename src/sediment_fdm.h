@@ -61,6 +61,7 @@ public:
     
     slice4 qb,qbe,qbs;
     slice4 cbe,cb,cbn,conc;
+    slice4 dryd;    // NHFLOW: suspended sediment volume per area of columns that fell dry, deposited at the next bed update
     
     slice4 waterlevel;
     slice4 guard;

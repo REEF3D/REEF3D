@@ -128,6 +128,14 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
     SEDSLICELOOP
     s->dh(i,j) = p->dtsed*s->vz(i,j);
+    
+    // NHFLOW: deposit the suspended sediment of columns that fell dry
+    if(p->A10==5 && p->S12>0)
+    SEDSLICELOOP
+    {
+    s->dh(i,j) += s->dryd(i,j)/(1.0-p->S24);
+    s->dryd(i,j) = 0.0;
+    }
 
 	
 	SEDSLICELOOP

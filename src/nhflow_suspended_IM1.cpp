@@ -46,6 +46,7 @@ nhflow_suspended_IM1::~nhflow_suspended_IM1()
 void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, sediment_fdm *s)
 {
     starttime=pgc->timer();
+    drysave(p,d,s);
     clearrhs(p,d);
     fill_wvel(p,d,pgc,s);
     pconvec->start(p,d,d->CONC,4,d->U,d->V,WVEL);
@@ -91,6 +92,22 @@ void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
 
 void nhflow_suspended_IM1::ctimesave(lexer *p, fdm_nhf *d)
 {
+}
+
+void nhflow_suspended_IM1::drysave(lexer *p, fdm_nhf *d, sediment_fdm *s)
+{
+    // columns that fell dry since the last solve: the solve sets their concentration to zero,
+    // so the sediment they still hold (D^n C^n) is handed to the bed (deposited by the Exner step)
+    if(wl_ini==0)
+    return;
+    
+    SLICELOOP4
+    if(p->wet[IJ]==0)
+    {
+        KLOOP
+        PCHECK
+        s->dryd(i,j) += MAX(d->CONC[IJK],0.0)*p->DZN[KP]*MAX(WLN[IJ],0.0);
+    }
 }
 
 void nhflow_suspended_IM1::fill_wvel(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
