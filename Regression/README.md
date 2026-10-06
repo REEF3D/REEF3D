@@ -227,6 +227,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
 | `nhflow_2d_channel_kepsilon` | 1 | NHFLOW open channel, discharge inflow with the equilibrium turbulence profile, k-ε, bed roughness A519 |
+| `nhflow_2d_channel_suspended` | 1 | NHFLOW open channel with suspended load only (S 11 0, S 12 1), k-ε: conservative D·C scheme with FEx face fluxes, sediment leaving through the outflow, bed exchange only in the erodible region S 71 (needs Suspended Sediment patches 0001-0009) |
+| `nhflow_2d_beach_suspended_mpi2` | 2 | NHFLOW waves on a 1:12 sand beach, bedload + suspended load, swash wetting/drying (dry-column deposit, Exner with the c_be the water column used), S 38, FEx across the MPI interface (needs Suspended Sediment patches 0001-0009) |
 | `nhflow_3d_cylinder_kepsilon_mpi2` | 2 | NHFLOW 3D channel with a cylinder (A580), k-ε, ranks split in y: k/ε and ν_t across the rank interface |
 | `sflow_1d_channel_ke` (+ `_kw`) | 1 | SFLOW depth-averaged k-ε / k-ω (A260 1/2): k, ε/ω relax to the Rastogi–Rodi equilibrium |
 | `sflow_2d_channel_walls_kw_mpi2` | 2 | SFLOW k-ω with side walls, ranks split in y: production at wall cells, uniform k/ω across the width |
