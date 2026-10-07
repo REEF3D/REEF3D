@@ -106,6 +106,32 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
         if(w[5] && comp!=2)
         F[IJK] -= nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), dz, p->B57, WL(i,j));
     }
+    
+    // sharp thin bodies (X 330 'mobility sharp') with a turbulence model: wall friction at the faces at the body
+    // (the turbulence model sees them as walls with a wall function, nhflow_wall.h)
+    if(d->thinbody!=nullptr && p->A560>0)
+    LOOP
+    if(p->DF[IJK]>0 && p->wet[IJ]==1)
+    {
+    d->thinbody->wall_faces(p,i,j,k,w);
+    
+    U=d->U[IJK];
+    V=d->V[IJK];
+    W=d->W[IJK];
+    dz = p->DZN[KP]*WL(i,j);
+    
+        n = w[0]+w[1];
+        if(n>0 && comp!=0)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(V*V + W*W), p->DXN[IP], p->B57, WL(i,j));
+        
+        n = w[2]+w[3];
+        if(n>0 && comp!=1)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + W*W), p->DYN[JP], p->B57, WL(i,j));
+        
+        n = w[4]+w[5];
+        if(n>0 && comp!=2)
+        F[IJK] -= n*nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), dz, p->B57, WL(i,j));
+    }
 }
 
 void nhflow_bcmom::roughness_u(lexer* p, fdm_nhf *d, double *U, double *F, slice &WL)

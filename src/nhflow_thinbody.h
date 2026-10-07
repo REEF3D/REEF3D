@@ -72,10 +72,13 @@ using namespace std;
 // 3. Cut cells (cut_forcing, before the projection): the vertical velocity of a cell with a blocked vertical node link
 //    is the wall velocity (its W is the link velocity of the vertical Poisson control volumes).
 //
+// Diffusion and turbulence: the implicit diffusion steps (momentum, k, epsilon/omega) get zero gradient across the
+// blocked faces (matrix_walls), the faces at the body are walls with a wall function for the turbulence model and,
+// with a turbulence model, wall friction in the momentum equations (nhflow_wall.h, nhflow_bcmom; ks = B57).
+//
 // Loads: total pressure jump across a blocked link (hydrostatic with eta / eta_L, plus P) times the face area
 // (link_force). Shear on the body and the momentum of the cut-cell forcing are not included.
-// Not covered: VRANS porosity at blocked faces, diffusion and turbulence across the body (laminar runs: negligible),
-// the incremental pressure scheme A 520 2.
+// Not covered: VRANS porosity at blocked faces, the incremental pressure scheme A 520 2, flexible membranes.
 
 class nhflow_thinbody : public nhflow_flux_hook, public increment
 {
@@ -99,6 +102,14 @@ public:
     
     // 3. cut cells
     void cut_forcing(lexer*, fdm_nhf*, double*, slice&);
+    
+    // walls for diffusion and turbulence (nhflow_wall.h): faces of cell (i,j,k) at the body, 0 x-, 1 x+, 2 y-,
+    // 3 y+, 4 below, 5 above (blocked links; vertically the faces between cell centres on opposite sides)
+    void wall_faces(lexer*, int, int, int, int*) const;
+    
+    // zero gradient across the blocked faces in d->M / d->rhsvec of an implicit step of F (momentum diffusion,
+    // k, epsilon/omega): no diffusive or eddy-viscous exchange through the body
+    void matrix_walls(lexer*, fdm_nhf*, const double*);
     
     // loads: force on the body [N] of the blocked link dir (0 x, 1 y, 2 vertical) of cell (i,j,k), in +dir
     double link_force(lexer*, fdm_nhf*, int, int, int, int);

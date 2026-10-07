@@ -40,10 +40,13 @@ Architect: Hans Bihs
 // diffusion). Side and top walls only with A519 2; otherwise they are slip walls in the momentum
 // equations and the turbulence sees them with zero gradient, without a wall function.
 // B11 0 switches the turbulence wall functions off (and with them the wall cells in WALLF).
+// Sharp thin bodies (nhflow_thinbody, X 330 'mobility sharp'): the faces at the body are walls with a wall
+// function (ks = B57), and with a turbulence model (A 560 > 0) wall friction in the momentum equations.
 
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"increment.h"
+#include"nhflow_thinbody.h"
 #include<cmath>
 
 inline void nhflow_wall_faces(lexer *p, int i, int j, int k, int *w)
@@ -102,6 +105,37 @@ inline int nhflow_turb_wall(lexer *p, fdm_nhf *d, int i, int j, int k, double &d
         }
 
         if(w[5] && dz<dist)
+        {
+        dist = dz;
+        ks = p->B57;
+        ut = sqrt(U*U + V*V);
+        found = 1;
+        }
+    }
+
+    // sharp thin bodies (X 330 'mobility sharp'): the faces at the body are walls with a wall function
+    if(d->thinbody!=nullptr)
+    {
+        int tw[6];
+        d->thinbody->wall_faces(p,i,j,k,tw);
+        
+        if((tw[0] || tw[1]) && 0.5*p->DXN[IP]<dist)
+        {
+        dist = 0.5*p->DXN[IP];
+        ks = p->B57;
+        ut = sqrt(V*V + W*W);
+        found = 1;
+        }
+        
+        if((tw[2] || tw[3]) && 0.5*p->DYN[JP]<dist)
+        {
+        dist = 0.5*p->DYN[JP];
+        ks = p->B57;
+        ut = sqrt(U*U + W*W);
+        found = 1;
+        }
+        
+        if((tw[4] || tw[5]) && dz<dist)
         {
         dist = dz;
         ks = p->B57;

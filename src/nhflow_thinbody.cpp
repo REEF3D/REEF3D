@@ -145,6 +145,68 @@ void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->gcsl_start4(p,fp,1);
 }
 
+void nhflow_thinbody::wall_faces(lexer *p, int i, int j, int k, int *w) const
+{
+    w[0] = bx[Im1JK]>0.5;
+    w[1] = bx[IJK]>0.5;
+    w[2] = p->j_dir==1 && by[IJm1K]>0.5;
+    w[3] = p->j_dir==1 && by[IJK]>0.5;
+    w[4] = k>0 && fz[IJKm1]>0.5;
+    w[5] = k<p->knoz-1 && fz[IJK]>0.5;
+}
+
+void nhflow_thinbody::matrix_walls(lexer *p, fdm_nhf *d, const double *F)
+{
+    int w[6];
+    int n=0;
+    
+    LOOP
+    {
+        if(p->wet[IJ]==1)
+        {
+            wall_faces(p,i,j,k,w);
+            
+            if(w[0])
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*F[IJK];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(w[1])
+            {
+            d->rhsvec.V[n] -= d->M.n[n]*F[IJK];
+            d->M.n[n] = 0.0;
+            }
+            
+            if(w[2])
+            {
+            d->rhsvec.V[n] -= d->M.e[n]*F[IJK];
+            d->M.e[n] = 0.0;
+            }
+            
+            if(w[3])
+            {
+            d->rhsvec.V[n] -= d->M.w[n]*F[IJK];
+            d->M.w[n] = 0.0;
+            }
+            
+            if(w[4])
+            {
+            d->rhsvec.V[n] -= d->M.b[n]*F[IJK];
+            d->M.b[n] = 0.0;
+            }
+            
+            if(w[5])
+            {
+            d->rhsvec.V[n] -= d->M.t[n]*F[IJK];
+            d->M.t[n] = 0.0;
+            }
+        }
+        
+        ++n;
+    }
+}
+
 int nhflow_thinbody::nlower(lexer *p, ghostcell *pgc)
 {
     return pgc->globalisum(nlow);

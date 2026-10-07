@@ -92,6 +92,10 @@ void nhflow_kepsilon_bc::wall_law_epsilon(lexer *p, fdm_nhf *d, double *KIN, dou
 
 void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
+    // sharp thin bodies (X 330 'mobility sharp'): zero gradient across the body (the wall function, nhflow_wall.h)
+    if(d->thinbody!=nullptr)
+    d->thinbody->matrix_walls(p,d,KIN);
+
 	int q;
     int inflow=0;
     int outflow=0;
@@ -213,6 +217,10 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
 
 void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, double *EPS)
 {
+    // sharp thin bodies (X 330 'mobility sharp'): zero gradient across the body (the wall function, nhflow_wall.h)
+    if(d->thinbody!=nullptr)
+    d->thinbody->matrix_walls(p,d,EPS);
+
 	int q;
     int inflow=0;
     int outflow=0;

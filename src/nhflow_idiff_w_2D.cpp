@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_idiff_2D.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_thinbody.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"solver.h"
@@ -189,6 +190,10 @@ void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 	}
     }
 	
+    // sharp thin bodies (X 330 'mobility sharp'): no diffusive exchange through the body
+    if(d->thinbody!=nullptr)
+    d->thinbody->matrix_walls(p,d,WH);
+    
     psolv->startV(p,pgc,WHdiff,d->rhsvec,d->M,4);
     
 	
