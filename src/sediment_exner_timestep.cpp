@@ -47,6 +47,10 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
 	maxvz = MAX(fabs(s->vz(i,j)),maxvz);
 
 	maxvz=pgc->globalmax(maxvz);
+    
+    // multi-fraction bed: fastest single fraction (set in start_mixture, 0 otherwise)
+    maxvz = MAX(maxvz,maxvz_k);
+    maxvz_k = 0.0;
 	
     // 
     if(p->S29==0)

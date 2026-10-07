@@ -85,6 +85,8 @@ private:
     double tau_crit, shearvel_crit, shields_crit;
     
     slice4 q0;
+    
+    double maxvz_k=0.0;   // multi-fraction bed: max |vz| of the single fractions (time step)
 };
 
 #endif

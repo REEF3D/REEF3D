@@ -133,6 +133,7 @@ private:
     slice4 **out;
     int *order;
     double *Fe, *V, *FI, *dhc;
+    int *inS;
     double *clip_k, *clip_sum;
     double rho_s, S20;
     int hide_type;

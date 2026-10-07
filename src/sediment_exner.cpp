@@ -287,6 +287,14 @@ void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
     pgc->gcsl_start4(p,s->vz,1);
     pgc->gcsl_start4(p,s->qb,1);
     
+    // time step: in sorting zones the total vz ~ 0 while the fractions change fast
+    maxvz_k=0.0;
+    SEDSLICELOOP
+    for(int q=0;q<m->nf;++q)
+    maxvz_k = MAX(maxvz_k,fabs((*m->vz_k[q])(i,j)));
+    
+    maxvz_k = pgc->globalmax(maxvz_k);
+    
     // Bedch
     timestep(p,pgc,s);
     
