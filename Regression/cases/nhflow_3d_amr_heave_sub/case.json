@@ -1,0 +1,22 @@
+{
+ "description": "nhflow_3d_amr_heave_mpi2 with subcycling (G 7 1): the finest level advances the floating box with its stages and loads, level 0 a predicted copy; the zone across the partition edge, 2 ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "subcycling",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr_sub: sub_body_stage, sub_body_end, sub_body_mask",
+  "sixdof_nhflow::amr_predict, sixdof_obj_nhflow::amr_save/amr_stage/amr_restore"
+ ],
+ "base": "nhflow_3d_amr_heave_mpi2",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

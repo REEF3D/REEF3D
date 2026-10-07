@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_amr_mpi2",
+ "ctrl_add": ["A 797 1"],
+ "description": "as seastate_2d_amr_mpi2 (nonstationary, wind, DIA, patches cut at the rank boxes) with the composite sweep across the refinement levels (A 797 1, Phase 7): the ring cells held by the other rank from the exchange at the start of each quadrant sweep, the level-0 halo after it. Validation in Dropbox SEASTATE/validation/28_amr_composite.",
+ "tags": ["2d", "seastate", "amr", "mpi"],
+ "covers": ["seastate_amr composite sweep on 2 ranks", "N0 of the patches with the composite sweep"]
+}

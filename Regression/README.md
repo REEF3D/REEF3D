@@ -23,7 +23,7 @@ rank writes into that directory
 
 1. the exact final state, field by field (max abs diff, number of differing cells),
 2. the per-step record, giving the **first time step where the runs diverge**,
-3. the normal text output (wave gauges, probes, forces, 6DOF, CPM sediment log) with a tolerance.
+3. the normal text output (wave gauges, probes, forces, 6DOF, CPM sediment log, NHFLOW particle log, NHFLOW boom forces) with a tolerance.
 
 Result per case: **identical** (bitwise) · **close** (within `--rtol/--atol`) · **different** · **failed**.
 
@@ -149,6 +149,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_fem_floating` | 1 | FEM rigid floating box in NHFLOW still water: probed pressure (filtered non-hydrostatic part plus hydrostatic of the free surface), added-mass factor 5, heave towards the 5 cm draft (needs patches 0016, 0017, 0019; references with 0019) |
 | `nhflow_2d_fem_debris_impact` (+ `_mpi2`) | 1/2 | FEM rigid timber block carried by an NHFLOW dam-break surge over the dry bed onto a concrete post that stands dry: wet/dry columns, debris contact, probes kept out of solid cells, subdomain border at the post (needs patches 0016–0021; references with 0021) |
 | `nhflow_2d_fem_light_debris` | 1 | FEM empty 20 ft container (rigid, 59.3 kg/m3, 2D slice) dropped 5 m onto 4 m of still NHFLOW water: added-mass factor limited to 30 body masses, speed relative to the water at most the terminal speed (needs patches 0016–0021) |
+| `cfd_2d_fem_rc_wall` | 1 | FEM reinforced concrete (`rebar`): weak concrete wall with 1 % model steel (f_y 30 MPa) holding the dam-break column; cracks at the base, the bars yield, the wall bends 7.5 mm and stands; unilateral damage, steel utilisation and first yield in the summary (needs patch 0022) |
 | `nhflow_2d_nwt_stokes5` (+ `_mpi2`) | 1/2 | NHFLOW relaxation generation + beach (B98=2/B99=1), Stokes 5th |
 | `nhflow_2d_nwt_stokes5_b95` | 1 | the same with the step-size consistent relaxation zones (B 95 0.01): targets at the stage output times, factor r^(dt/0.01) |
 | `nhflow_2d_dirichlet` | 1 | NHFLOW Dirichlet wave generation (B98=3) |
@@ -185,6 +186,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_amr_adaptive_sub` | 1 | ring wave with G 7 1, a regrid every level-0 step: flux registers, refluxing, a level of several patches |
 | `nhflow_3d_amr_waves_place_sub` | 2 | placed patches (G 40 1) with G 7 1 and B 95 -1: remote fills in time, remote refluxing, the level solve across ranks |
 | `nhflow_3d_amr_breaking_sub` | 1 | G 7 1 with RK2, breaking (A 550 1, per-grid diffusion) and wetting and drying in the patches (G 30 1) |
+| `nhflow_3d_amr_heave_sub` (+ `heave_place_sub`) | 2 | heave decay with subcycling (G 7 1): the finest level advances the body with its stages and loads, level 0 a predicted copy, the synchronisation leaves the forcing band alone; `heave_place_sub` with placed patches (G 40 1) |
+| `nhflow_3d_amr_tow_zone_sub` | 1 | towed box (X 10 2) with G 7 1: prescribed motion on every level at its own step, the moving zone regridded every level-0 step |
 | `sflow_2d_amr_dambreak` (+ `_mpi2`, `_place`, `_place2`) | 1/2 | SFLOW AMR dam break (tutorial 8_6): 2 levels following the surface jump (G 20), regrid every 4 steps; `_mpi2` patches cut at the rank boxes, `_place` G 40 1, `_place2` G 40 2 (remote parents, migration: restrict_levels, ini_patch_old/prolong) |
 | `sflow_2d_amr_bar_nh` (+ `_place2`) | 1/2 | SFLOW AMR non-hydrostatic bar (tutorial 8_7, A 220 1): static boxes, composite pressure; `_place2` through the block plans |
 | `sflow_2d_amr_bar_bous` (+ `_place2`) | 1/2 | the bar with Boussinesq (A 220 4): u_a on the leaf cells of all levels; `_place2` G 40 2 |
@@ -225,6 +228,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_tide_waves_riemann` | 1 | tide + waves through a Riemann edge (background + source), no generation zone |
 | `nhflow_3d_tide_ychannel` (+ `_mpi2`) | 1/2 | tidal channel along y: Riemann edge at y- (B 520 method 3), Flather edge at y+ (method 4), progressive background at 90 deg; `_mpi2` splits the ranks in y |
 | `nhflow_3d_tide_oblique` (+ `_mpi2`) | 1/2 | oblique tide (30 deg) in a basin with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+; `_mpi2` splits the ranks in x |
+| `nhflow_2d_waves_current_doppler` (+ `_mpi2`) | 1/2 | linear waves on a following current (B 514) with Doppler (B 530 2 10): k from omega = sigma + k U, blended during the current spin-up |
+| `nhflow_2d_waves_setup_heff` | 1 | linear waves on a 1 m set-up (B 514 eta) with B 530 1 10: k on h_eff |
+| `nhflow_2d_tide_waves_doppler` | 1 | `nhflow_2d_tide_waves_beach` with B 530 2 10: k follows the tide level and current |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
@@ -261,12 +267,17 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_amr_static` | 1 | REEF3D::SEASTATE static mesh refinement (G 1 2, REEFAMR): island on a slope from the bathymetry raster (A 790 1, all grids), criteria depth/coastline/gradient (A 791-793), box G 10, no refinement next to the forced side (A 794), stationary composite solve with whitecapping, breaking with the SWAN maximum energy (A 737), triads with SWAN 41.31 parameters (A 736), SWAN-type convergence (A 709), handover on the patches; validated in Dropbox SEASTATE/validation/19-23 |
 | `seastate_2d_amr_mpi2` | 2 | REEF3D::SEASTATE mesh refinement on 2 ranks (G 1 1): the island case nonstationary from rest with wind (Komen, DIA), 2 iterations per step, patches cut at the rank boxes, fills and restriction across ranks |
 | `seastate_2d_bathy_raster` | 1 | REEF3D::SEASTATE bathymetry raster without refinement (A 790 1, majority of wet/dry raster nodes per cell) with A 736, A 737, A 709 |
+| `seastate_2d_phase7_sparse` | 1 | REEF3D::SEASTATE spectral sparsity (A 795 1e-6, Phase 7) on the refraction case: per cell, frequency and quadrant only the window of bins that can hold energy is solved; validated in Dropbox SEASTATE/validation/25, 26 |
+| `seastate_2d_phase7_sordup_mpi2` | 2 | REEF3D::SEASTATE second-order upwind geographic fluxes (A 796 2, SORDUP type, Phase 7) on the refraction case, two halo layers; validated in Dropbox SEASTATE/validation/27 |
+| `seastate_2d_phase7_composite` | 1 | REEF3D::SEASTATE composite sweep across the refinement levels (A 797 1, Phase 7) on the island case with A 795 and A 796 2; validated in Dropbox SEASTATE/validation/28 |
+| `seastate_2d_phase7_composite_mpi2` | 2 | REEF3D::SEASTATE composite sweep (A 797 1) on the nonstationary island case with wind and DIA, patches cut at the rank boxes |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |
 | `nhflow_3d_bank_kepsilon` | 1 | NHFLOW 3D channel with a sloping bank (T 62) and a shoreline along x, k-ε: zero gradient of k and ε towards dry columns |
 | `cfd_2d_patch_inflow_komega` | 1 | CFD channel with a discharge inflow patch (B 441, B 411) instead of B 60, k-ω: IO flags at the patch faces, turbulence zero gradient there |
 | `nhflow_2d_bore_beach_kepsilon` | 1 | NHFLOW 2D bore running up a dry 1:20 beach, k-ε: newly wetted columns start from the wet neighbours, length-scale limit l ≤ κh |
+| `nhflow_3d_boom_particles_mpi2` | 2 | NHFLOW river plastic interceptor: angled boom (B 350, skirt depth below the moving free surface, normal-only resistance), catamaran hulls and a permeable conveyor as surface-piercing drag boxes (B 351), floating and buoyant particles blocked above the draft and passing under it (L 71), capture zone at the conveyor (L 72), boom/hull force output (REEF3D_NHFLOW_Boom); particles cross the rank interface along the boom (needs River Interceptor patches 0001-0002) |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
@@ -300,7 +311,7 @@ line is at the top of each file, run from `unit/`:
 |---|---|
 | `rigidbody_test.cpp` | 6DOF rigid-body core: quaternion/Euler, constant force, oscillator and torque-free top (orders of RK2/RK3/RKLS3/RK4), DOF modes, damping |
 | `ship_test.cpp` | ship module kernels: waterline clipping, wetted surface, draft strips, cross-flow drag, ITTC-1957 line, roll damping, propeller KT/KQ, actuator disk (discrete force and torque, swirl sense), MMG rudder (signs, symmetry, slipstream, course stability, f_alpha, asymmetric gamma_R), MMG hull polynomials, MMG wake |
-| `fem_test.cpp` | FEM solid solver: cantilever (Timoshenko, frequency), objectivity, J2, crack band energy, contact, collapse, STL snapping, patch test, presets, settling/check, structural damping, rigid bodies, walls and inclined bed (stick/slide), debris impact (peak u √(kM), duration, restitution, crushing, two bodies in series, deformable wall, added mass not in the impact, crushing set per contact point), collapse with a rigid fragment |
+| `fem_test.cpp` | FEM solid solver: cantilever (Timoshenko, frequency), objectivity, J2, crack band energy, contact, collapse, STL snapping, patch test, presets, settling/check, structural damping, rigid bodies, walls and inclined bed (stick/slide), debris impact (peak u √(kM), duration, restitution, crushing, two bodies in series, deformable wall, added mass not in the impact, crushing set per contact point), collapse with a rigid fragment, reinforced concrete (bars in the skin, reinforced tie: ρσ_s and rupture, RC cantilever pushover against a section analysis, plain concrete brittle) |
 | `lagoon_store_test.cpp` | LAGOON store writer (P 18, needs `-lz`): VTU header parsing, σ-level offsets, shard files read back (append, CRC-32C index, inner chunks, components), Cartesian (CFD) blocks split in z |
 | `lagoon_bodies_test.cpp` | LAGOON body writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): quaternion of REEF3D's rotation matrix, two rigid bodies over 8 outputs (set and body attributes, mesh once, motion arrays, time counted once every body has it), a body off its rigid motion refused |
 | `lagoon_particles_test.cpp` | LAGOON particle writer (P 18, needs `-lz`; built with `../../src/lagoon_store.cpp`): 5 outputs of 0 to 700000 particles (inner chunks and shards crossed), field names and their arrays, int32 fields, values read back from the shard files; objects with cells (ice floes: a cell set stored only when the cells change, a value per cell), inconsistent cells refused (needs patch 0009) |

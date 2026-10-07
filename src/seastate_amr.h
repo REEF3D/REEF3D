@@ -88,6 +88,18 @@ Composite solve, per directional quadrant q of every iteration
      (without this every pass through a patch costs one iteration);
      level 0 only in the window downstream of the level-1 patches of
      the rank; halo exchange of level 0
+Composite sweep (A 797 1, Phase 7) instead of steps 1-4: one sweep of
+level 0 per quadrant in which every covered cell, where the sweep
+reaches it, sweeps its four children in the order of the quadrant
+(recursively for finer levels), each fine cell after the ring cells
+next to it took the latest spectra of their sources (copy or constant
+prolongation), then takes the mean of the children and the spectra on
+its faces. Every cell is solved after its upwind neighbours on all
+levels, so one sweep carries the waves through the whole hierarchy and
+the refined grids need the iterations of a uniform grid. Ring cells
+held by other ranks: the exchange at the start of each quadrant sweep
+(lagged, as the level-0 halo). With parents on other ranks (G 40) the
+level-by-level sweeps are used.
 Nonstationary runs keep the spectra of the start of the step on every
 grid (N0); stationary runs iterate until the largest relative change
 of Hs on all grids is below A 708.
@@ -207,6 +219,18 @@ private:
     void fill_local(seastate_amr_patch*);
     vector<vector<int>> order[4];           // [q][l]: patches of level l in the downstream order of quadrant q
     void sweep_level(int l, int q, double rdt, bool refraction, bool fshift);
+
+    // composite sweep (A 797 1): the cells of a patch are solved where the sweep of the coarser grid
+    // reaches their parent cell, so that one sweep carries the waves through all levels
+    static long long ckey(int g, int i, int j) {return ((long long)(g+1)<<42) | ((long long)(i+1048576)<<21) | (long long)(j+1048576);}
+    unordered_map<long long,pair<int,int>> childof; // ckey(g,I,J) of a covered cell -> patch id, block
+    vector<unordered_map<long long,int>> ghostof;   // [id]: ckey(-1,i,j) of a ring cell -> fill entry (this rank)
+    unordered_map<long long,vector<pair<int,int>>> flinkof;   // ckey(g,I,J) -> faces of the cell: level, index in flinks[l]
+    void composite_maps();
+    void composite_sweep(lexer*, ghostcell*, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
+                         const int side[4], bool refraction, bool fshift);
+    void descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift);
+    void ghost_fill(seastate_amr_patch*, int id, int fi, int fj);
     bool remote_blocks = false;             // a parent cell on another rank (restriction through the block plans)
 
     lexer *p0;

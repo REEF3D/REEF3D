@@ -122,6 +122,12 @@ seastate-bathy.dat for all grids (A 790 1, seastate_bathy). Also the
 SWAN maximum energy with Battjes-Janssen breaking (A 737) and the
 triad parameters (A 736).
 
+Phase 7: performance (seastate_implicit, seastate_amr): restructured
+cell kernel, spectral sparsity (A 795, stationary), second-order upwind
+geographic fluxes (A 796 2), composite sweep across the refinement
+levels (A 797 1); convergence history of stationary runs in
+REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat.
+
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
   step    one time step of length A 706, so that a host model
@@ -196,6 +202,7 @@ private:
     bool coupled;
     double conv;
     std::vector<double> hs_old;
+    std::ofstream convlog;              // stationary convergence history (rank 0)
 
     ofstream integral;
     double etot, hsmax, hsmean, nmin, cells_active;

@@ -436,6 +436,8 @@ void seastate_amr::regrid_static(ghostcell*)
 
     c->solv = new seastate_implicit(pp,c->e);
     c->solv->sources(L0.src);
+    c->solv->sparsity(p0->A795);
+    c->solv->geographic_order(p0->A796);
     c->solv->range(EXT,EXT+c->nx-1,EXT,EXT+c->ny-1);
 
         if(L0.wser!=nullptr)
@@ -505,6 +507,7 @@ void seastate_amr::regrid_state(ghostcell*, vector<reefamr_patch*>&)
 void seastate_amr::regrid_finish(ghostcell *pgc, int)
 {
     covered();
+    composite_maps();
 
     // restriction without the block plans when every parent cell is on the rank of its patch
     int rem = 0;
@@ -788,6 +791,166 @@ void seastate_amr::restrict_level(int l)
     }
 }
 
+// --------------------------------------------------------------------- composite sweep (A 797 1)
+void seastate_amr::composite_maps()
+{
+    childof.clear();
+    flinkof.clear();
+    ghostof.assign(P.size(),unordered_map<long long,int>());
+
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+    seastate_amr_patch *c = SP(id);
+
+        for(size_t k=0; k<c->rgrid.size(); ++k)
+        if(c->rgrid[k]>=-1)
+        childof[ckey(c->rgrid[k],c->ric[k],c->rjc[k])] = std::make_pair(id,int(k));
+
+        for(int k : c->ring)
+        {
+        const reefamr_fill &f = c->fill[k];
+        if(f.kind==0 || f.kind==1)
+        ghostof[id][ckey(-1,f.di,f.dj)] = k;
+        }
+    }
+
+    for(int l=1; l<=maxlev; ++l)
+    for(int n=0; n<(int)flinks[l].size(); ++n)
+    {
+    const seastate_amr_flink &L = flinks[l][n];
+    const int ic = int(((L.key>>2)/16777216L) - 64L), jc = int(((L.key>>2)%16777216L) - 64L);
+    flinkof[ckey(L.g,ic,jc)].push_back(std::make_pair(l,n));
+    }
+}
+
+// the ring cell next to fine cell (fi,fj) of patch id, from its source on this rank (the latest value)
+void seastate_amr::ghost_fill(seastate_amr_patch *c, int id, int fi, int fj)
+{
+    const int di[4] = {-1,1,0,0}, dj[4] = {0,0,-1,1};
+
+    for(int s=0; s<4; ++s)
+    {
+    const int a = fi+di[s], b = fj+dj[s];
+    if(a>=EXT && a<EXT+c->nx && b>=EXT && b<EXT+c->ny)
+    continue;
+
+    auto it = ghostof[id].find(ckey(-1,a,b));
+    if(it==ghostof[id].end())
+    continue;
+
+    const reefamr_fill &f = c->fill[it->second];
+    float *d = c->e->N->spec(f.di,f.dj);
+    if(d==nullptr)
+    continue;
+
+    fdm_seastate *e = gfd(f.g);
+    const float *src = (e->wet(f.si,f.sj)==1) ? e->N->spec(f.si,f.sj) : nullptr;
+
+        if(src!=nullptr)
+        std::copy(src,src+nbin,d);
+        else
+        std::fill(d,d+nbin,0.0f);
+    }
+}
+
+// the four children of covered cell (I,J) of grid g, in the order of quadrant q (recursively), then the
+// mean of the children into the cell and the spectra on its faces
+void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift)
+{
+    static const int side0[4] = {0,0,0,0};
+    static const vector<float> none;
+
+    auto it = childof.find(ckey(g,I,J));
+    if(it==childof.end())
+    return;
+
+    const int id = it->second.first, k = it->second.second;
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
+    const int bi = k/nby, bj = k%nby;
+    const bool idown = (q==1 || q==2), jdown = (q==2 || q==3);
+
+    for(int aa=0; aa<2; ++aa)
+    for(int dd=0; dd<2; ++dd)
+    {
+    const int a = idown ? 1-aa : aa, d = jdown ? 1-dd : dd;
+    const int fi = EXT+2*bi+a, fj = EXT+2*bj+d;
+
+        if((*c->cov)(fi,fj)==1)
+        descend(id,fi,fj,q,rdt,refraction,fshift);
+        else if(c->e->wet(fi,fj)==1)
+        {
+        ghost_fill(c,id,fi,fj);
+        c->solv->solve(c->pp,c->e,q,fi,fj,c->N0,rdt,none,side0,refraction,fshift);
+        }
+    }
+
+    // restriction into the parent cell
+    fdm_seastate *e = gfd(g);
+    float *s = (e->wet(I,J)==1) ? e->N->spec(I,J) : nullptr;
+
+    if(s!=nullptr)
+    {
+    const float *ch[4];
+    int n=0;
+
+        for(int a=0; a<2; ++a)
+        for(int d=0; d<2; ++d)
+        {
+        const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+        if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
+        ch[n++] = c->e->N->spec(ii,jj);
+        }
+
+        for(int b=0; b<nbin; ++b)
+        {
+        float v = 0.0f;
+        for(int m=0; m<n; ++m)
+        v += ch[m][b];
+        s[b] = 0.25f*v;
+        }
+    }
+
+    // the faces of the cell next to solved coarse cells
+    auto fl = flinkof.find(ckey(g,I,J));
+    if(fl!=flinkof.end())
+    for(const auto &code : fl->second)
+    {
+    const seastate_amr_flink &L = flinks[code.first][code.second];
+    seastate_amr_patch *cc = SP(L.id);
+    float *F = gfaces(L.g)->F[L.key].data();
+    const float *a = (cc->e->wet(L.i0,L.j0)==1) ? cc->e->N->spec(L.i0,L.j0) : nullptr;
+    const float *b = (cc->e->wet(L.i1,L.j1)==1) ? cc->e->N->spec(L.i1,L.j1) : nullptr;
+
+        for(int n=0; n<nbin; ++n)
+        F[n] = 0.5f*((a!=nullptr ? a[n] : 0.0f) + (b!=nullptr ? b[n] : 0.0f));
+    }
+}
+
+void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
+                                   const int side[4], bool refraction, bool fshift)
+{
+    // the ring cells of all patches: the values held by other ranks (lagged, as the level-0 halo)
+    double t0 = pgc->timer();
+    for(int l=1; l<=maxlev; ++l)
+    fill_level(l);
+    double t1 = pgc->timer();
+    tm[2] += t1-t0;
+
+    std::function<void(int,int)> f0 = [&](int I, int J) {descend(-1,I,J,q,rdt,refraction,fshift);};
+
+    L0.solv->visit(&f0);
+    L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
+    L0.solv->visit(nullptr);
+    t0 = pgc->timer();
+    tm[0] += t0-t1;
+
+    L0.pex->start(p,pgc,*L0.e->N);
+    tm[3] += pgc->timer()-t0;
+
+    ++sweeps;
+}
+
 void seastate_amr::step_begin()
 {
     for(auto q : P)
@@ -811,6 +974,13 @@ void seastate_amr::sweep_level(int l, int q, double rdt, bool refraction, bool f
 void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, double rdt, const vector<float> &Nb,
                            const int side[4], bool refraction, bool fshift)
 {
+    if(p->A797==1 && !remote_blocks)
+    {
+    for(int q=0; q<4; ++q)
+    composite_sweep(p,pgc,q,N0,rdt,Nb,side,refraction,fshift);
+    return;
+    }
+
     for(int q=0; q<4; ++q)
     {
         // down: level 0, then the patches level by level

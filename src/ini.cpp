@@ -320,6 +320,9 @@ void control::ini_default()
     A792=0;           // int mesh refinement (G 1): refine within this many cells of a dry or land cell (1-3), 0 off
     A793=0.0;         // double mesh refinement (G 1): refine where the depth changes by more than this fraction to a neighbour cell, 0 off
     A794=4;           // int mesh refinement (G 1): no refinement within this many level-0 cells of the sides with boundary spectra or zero gradient (A 712 1, 2)
+    A795=0.0;         // double spectral sparsity (stationary): bins with less than this fraction of the energy of the cell are set to zero and not solved, 0 off
+    A796=1;           // int geographic advection: 1 first-order upwind, 2 second order (van Leer limiter, deferred correction)
+    A797=0;           // int mesh refinement (G 1): 0 sweeps level by level (V-cycle), 1 composite sweep (the finer cells within the sweep of their parent cell)
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
     // NHFLOW Lagrangian particles

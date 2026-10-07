@@ -61,6 +61,18 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     dNmax.assign(nsig,0.0);
     EL.assign(nsig,0.0);
     TQ.assign(nsig,0.0);
+    row.assign(nsig,0.0);
+
+    // powers of the spectral tail (moments, cap, DIA), once
+    {
+    const double smax = g.sig[nsig-1];
+    const double se = smax*std::sqrt(g.ratio);
+    pw_smax = std::pow(smax,tail_p);
+    pw_se0 = std::pow(se,-tail_p);
+    pw_se1 = std::pow(se,1.0-tail_p);
+    pw_se2 = std::pow(se,2.0-tail_p);
+    pw_fachfr = std::pow(g.ratio,-tail_p);
+    }
 
     // single-frequency grid (surfbeat): no DIA and no triads, so no frequency interpolation
     if(nsig<2)
@@ -162,12 +174,14 @@ void seastate_source::moments(const float *N, double depth, const float *k)
 {
     double etot=0.0, actot=0.0, etot1=0.0, edrk=0.0, emax=0.0;
 
+    // row sums: from cap() on the same spectrum, else here
+    if(!rows_ready)
+    rows(N);
+    rows_ready = false;
+
     for(int l=0; l<nsig; ++l)
     {
-    double el=0.0;
-
-        for(int m=0; m<ndir; ++m)
-        el += double(N[g.bin(l,m)]);
+    double el = row[l];
 
     el *= g.sig[l]*g.dtheta;        // E(sig) [m^2 s/rad]
 
@@ -186,13 +200,13 @@ void seastate_source::moments(const float *N, double depth, const float *k)
     {
     const double smax = g.sig[nsig-1];
     const double se = smax*std::sqrt(g.ratio);
-    const double a = emax*std::pow(smax,tail_p);
+    const double a = emax*pw_smax;
     const double kmax = std::max(double(k[nsig-1]),1.0e-12);
 
-    etot  += a*std::pow(se,1.0-tail_p)/(tail_p-1.0);
-    actot += a*std::pow(se,-tail_p)/tail_p;
-    etot1 += a*std::pow(se,2.0-tail_p)/(tail_p-2.0);
-    edrk  += a*smax/std::sqrt(kmax)*std::pow(se,-tail_p)/tail_p;
+    etot  += a*pw_se1/(tail_p-1.0);
+    actot += a*pw_se0/tail_p;
+    etot1 += a*pw_se2/(tail_p-2.0);
+    edrk  += a*smax/std::sqrt(kmax)*pw_se0/tail_p;
     }
 
     Etot = etot;
@@ -211,6 +225,30 @@ void seastate_source::moments(const float *N, double depth, const float *k)
     ursell = seastate_gravity*Hs/(2.0*std::sqrt(2.0)*sigm01*sigm01*depth*depth);
 }
 
+// sum of n values, eight partial sums (vectorised)
+static inline double rowsum(const float *v, int n)
+{
+    double s[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+    int m=0;
+
+    for(; m+8<=n; m+=8)
+    for(int k=0; k<8; ++k)
+    s[k] += double(v[m+k]);
+
+    for(; m<n; ++m)
+    s[0] += double(v[m]);
+
+    return ((s[0]+s[1])+(s[2]+s[3]))+((s[4]+s[5])+(s[6]+s[7]));
+}
+
+// sums over the directions per frequency of N (rows), kept for the next moments() of the same spectrum
+void seastate_source::rows(const float *N) const
+{
+    for(int l=0; l<nsig; ++l)
+    row[l] = rowsum(N+g.bin(l,0),ndir);
+    rows_ready = true;
+}
+
 bool seastate_source::cap(float *N, double depth) const
 {
     if(!prm.emax || !prm.breaking || prm.breaking_model!=1 || !(depth>0.0))
@@ -219,12 +257,12 @@ bool seastate_source::cap(float *N, double depth) const
     // total energy with the sig^-4 tail, as moments
     double etot=0.0, elast=0.0;
 
+    if(!rows_ready)
+    rows(N);
+
     for(int l=0; l<nsig; ++l)
     {
-    double el=0.0;
-
-        for(int m=0; m<ndir; ++m)
-        el += double(N[g.bin(l,m)]);
+    double el = row[l];
 
     el *= g.sig[l]*g.dtheta;
     etot += el*g.dsig[l];
@@ -237,7 +275,7 @@ bool seastate_source::cap(float *N, double depth) const
     {
     const double smax = g.sig[nsig-1];
     const double se = smax*std::sqrt(g.ratio);
-    etot += elast*std::pow(smax,tail_p)*std::pow(se,1.0-tail_p)/(tail_p-1.0);
+    etot += elast*pw_smax*pw_se1/(tail_p-1.0);
     }
 
     const double hm = prm.gamma*depth;
@@ -251,17 +289,22 @@ bool seastate_source::cap(float *N, double depth) const
     for(int b=0; b<nbin; ++b)
     N[b] *= f;
 
+    for(int l=0; l<nsig; ++l)
+    row[l] *= double(f);
+
     return true;
 }
 
-void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb)
+void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb, int la, int lb)
 {
     moments(N,depth,k);
 
     wa = ma;
     wb = (mb<0) ? ndir-1 : mb;
+    fa = la;
+    fb = (lb<0) ? nsig-1 : lb;
 
-    for(int l=0; l<nsig; ++l)
+    for(int l=fa; l<=fb; ++l)
     for(int m=wa; m<=wb; ++m)
     {
     const int b = g.bin(l,m);
@@ -279,7 +322,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
     // action density limiter: gamma alpha_PM/(2 sig k^3 c_g)
     if(prm.komen && prm.limiter>0.0)
-    for(int l=0; l<nsig; ++l)
+    for(int l=fa; l<=fb; ++l)
     {
     const double kl = std::max(double(k[l]),1.0e-12);
     dNmax[l] = prm.limiter*0.0081/(2.0*g.sig[l]*kl*kl*kl*std::max(double(cg[l]),1.0e-12));
@@ -296,7 +339,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     const double spm = grav/(28.0*ustar);
     const double ta = prm.Alin/(grav*grav*2.0*pi);
 
-        for(int l=0; l<nsig; ++l)
+        for(int l=fa; l<=fb; ++l)
         {
         const double sig = g.sig[l];
         const double argu = std::min(2.0,spm/sig);
@@ -332,7 +375,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         const double stp = km_wam*std::sqrt(Etot)/std::sqrt(wc_stpm);
         const double ck = wc_cds*stp*stp*stp*stp;
 
-            for(int l=0; l<nsig; ++l)
+            for(int l=fa; l<=fb; ++l)
             {
             const double r = double(k[l])/km_wam;
             const double w = ck*r*sigm_10*r;
@@ -354,7 +397,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         Qb = std::min(1.0,1.0-std::exp(-std::min(arg,100.0)));
         brk_rate = 2.0*prm.alpha*g.f[0]*Qb*H/depth;
 
-            for(int l=0; l<nsig; ++l)
+            for(int l=fa; l<=fb; ++l)
             for(int m=wa; m<=wb; ++m)
             D[g.bin(l,m)] += brk_rate;
         }
@@ -373,7 +416,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         // P += sbrd N, D += ws + sbrd with sbrd = ws (1 - Qb)/(bb - Qb) >= 0
         const double sbrd = (bb<1.0 && bb-Qb>1.0e-12) ? ws*(1.0-Qb)/(bb-Qb) : 0.0;
 
-            for(int l=0; l<nsig; ++l)
+            for(int l=fa; l<=fb; ++l)
             for(int m=wa; m<=wb; ++m)
             {
             const int b = g.bin(l,m);
@@ -391,7 +434,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
     // bottom friction (JONSWAP)
     if(prm.friction && depth>0.0)
-    for(int l=0; l<nsig; ++l)
+    for(int l=fa; l<=fb; ++l)
     {
     const double kd = std::min(30.0,double(k[l])*depth);
     const double s = g.sig[l]/std::sinh(kd);
@@ -406,21 +449,22 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
 void seastate_source::split(const float *N, double *P, double *D)
 {
-    for(int l=0; l<nsig; ++l)
-    for(int m=wa; m<=wb; ++m)
+    for(int l=fa; l<=fb; ++l)
     {
-    const int b = g.bin(l,m);
+    const int b0 = g.bin(l,wa), nw = wb-wa+1;
+    const float *Nl = N+b0;
+    const double *Sl = S.data()+b0, *Ll = L.data()+b0;
+    double *Pl = P+b0, *Dl = D+b0;
 
-        if(S[b]>0.0)
-        P[b] += S[b];
-
-        else if(S[b]<0.0 && N[b]>0.0f)
-        D[b] -= S[b]/double(N[b]);
-
-        if(L[b]<0.0)
+        #pragma GCC ivdep
+        for(int n=0; n<nw; ++n)
         {
-        P[b] -= L[b]*double(N[b]);
-        D[b] -= L[b];
+        const double s = Sl[n], lv = Ll[n], v = double(Nl[n]);
+        const double neg = (s<0.0 && v>0.0) ? -s/(v>0.0 ? v : 1.0) : 0.0;
+        const double ln = lv<0.0 ? lv : 0.0;
+
+        Pl[n] += (s>0.0 ? s : 0.0) - ln*v;
+        Dl[n] += neg - ln;
         }
     }
 }
@@ -430,6 +474,8 @@ void seastate_source::quadruplets(const float *N, double depth, const float *k, 
     moments(N,depth,k);
     wa = 0;
     wb = ndir-1;
+    fa = 0;
+    fb = nsig-1;
     std::fill(S.begin(),S.end(),0.0);
     std::fill(L.begin(),L.end(),0.0);
 
@@ -447,6 +493,8 @@ void seastate_source::triads(const float *N, double depth, const float *k, const
     moments(N,depth,k);
     wa = 0;
     wb = ndir-1;
+    fa = 0;
+    fb = nsig-1;
     std::fill(S.begin(),S.end(),0.0);
 
     if(Etot>0.0)
@@ -459,7 +507,7 @@ void seastate_source::triads(const float *N, double depth, const float *k, const
 void seastate_source::dia(const float *N, double depth)
 {
     const double grav = seastate_gravity;
-    const double fachfr = std::pow(g.ratio,-tail_p);
+    const double fachfr = pw_fachfr;
     const int lhi = nsig - 1 - ism1 + isp1;     // last row of UE
     const int shi = nsig - 1 - ism1;            // last row of SA
 
@@ -526,11 +574,12 @@ void seastate_source::dia(const float *N, double depth)
     for(int n=0; n<8; ++n)
     swg[n] = awg[n]*awg[n];
 
-    for(int l=0; l<nsig; ++l)
+    // the transfers into the bins of the window of this compute (the quadrant of the sweep)
+    for(int l=fa; l<=fb; ++l)
     {
     const double rsigpi = 1.0/(2.0*pi*g.sig[l]);
 
-        for(int m=0; m<ndir; ++m)
+        for(int m=wa; m<=wb; ++m)
         {
         const double sfnl = -2.0*(sa1(l,m) + sa2(l,m))
             + awg[0]*(sa1(l-isp1,dw(m-idp1)) + sa2(l-isp1,dw(m+idp1)))
@@ -623,7 +672,7 @@ void seastate_source::lta(const float *N, double depth, const float *k, const fl
         SAL[l] = std::max(0.0,q[l]*(em*(em-e0) - e0*em));
         }
 
-        for(int l=0; l<nsig; ++l)
+        for(int l=fa; l<=fb; ++l)
         {
         const double stri = SAL[l] - 2.0*(twp*SAL[l+tsp1] + twp1*SAL[l+tsp]);
 

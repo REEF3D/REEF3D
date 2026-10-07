@@ -119,8 +119,10 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     // surfbeat with second-order advection (A 775 2): 2 halo layers
     const bool second = (p->A770==1 && p->A775==2);
 
-    pex   = new seastate_exchange(p,e->grid->nbin,second ? 2 : 1);
+    pex   = new seastate_exchange(p,e->grid->nbin,(second || p->A796==2) ? 2 : 1);
     psolv = new seastate_implicit(p,e);
+    psolv->sparsity(p->A795);
+    psolv->geographic_order(p->A796);
 
     if(sb!=nullptr)
     psolv->boundary_rows(&Nbx,&Nbx0);
@@ -314,6 +316,16 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 775: the advection of the wave groups must be 1 (first-order upwind) or 2 (second order)";
     else if(p->A770==1 && p->A747<0.0)
     msg = "A 747: the maximum H/h must not be negative";
+    else if(p->A795<0.0 || p->A795>=1.0)
+    msg = "A 795: the threshold of the spectral sparsity must be in [0,1)";
+    else if(p->A795>0.0 && p->A700!=2)
+    msg = "A 795: the spectral sparsity is for stationary runs (A 700 2)";
+    else if(p->A796!=1 && p->A796!=2)
+    msg = "A 796: the geographic advection must be 1 (first-order upwind) or 2 (second order)";
+    else if(p->A796==2 && p->A770==1)
+    msg = "A 796 2: not with the surfbeat model (its advection is set by A 775)";
+    else if(p->A797!=0 && p->A797!=1)
+    msg = "A 797: the sweeps with mesh refinement must be 0 (level by level) or 1 (composite)";
 
     if(msg!=nullptr)
     {
@@ -441,6 +453,14 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE mode: surfbeat, nonstationary, time step "<<(coupled ? "of the host" : "A 706")<<", refraction "<<p->A713<<", no frequency shift"<<endl;
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
+    if(p->A795>0.0 || p->A796==2 || (p->A797==1 && p->G1>0))
+    {
+    cout<<"SEASTATE solver:";
+    if(p->A795>0.0) cout<<" spectral sparsity (A 795, threshold "<<scientific<<setprecision(1)<<p->A795<<defaultfloat<<setprecision(6)<<" of the cell energy per bin)";
+    if(p->A796==2) cout<<(p->A795>0.0 ? "," : "")<<" second-order geographic advection (A 796 2)";
+    if(p->A797==1 && p->G1>0) cout<<(p->A795>0.0 || p->A796==2 ? "," : "")<<" composite sweep across the refinement levels (A 797 1)";
+    cout<<endl;
+    }
     if(p->A720==1)
     cout<<"SEASTATE current: U "<<p->A721_us<<" m/s at x "<<p->A721_xs<<" m to "<<p->A721_ue<<" m/s at x "<<p->A721_xe<<" m"<<endl;
     cout<<endl;

@@ -308,50 +308,51 @@ MPICH 4.2.3, REEFMG, `make all`). The fixes are delivered as patches in
 
 ## Verification run
 
-Run in the Claude cloud workspace on hans_dev `ff1bb6819` (+ the orphan `momentum_FCC3.cpp`
-removed), `make all` (-O3, REEFMG, no hypre), MPICH 4.2.3, **2 cores** (`--max-np 2`; the release
-runs of the newer cases with `--max-np 1`). Nightly: 29 of 33 cases run, 25 PASS, 3 XFAIL, 1 FAIL
-(Kleefsman). Release: 19 cases run, 18 PASS, 1 XFAIL. Reports and
-one plot per case are in `~/Dropbox/Claude/REEF3D_benchmark_suite/results/` (`nightly_ff1bb68/`,
-`release_ff1bb68/`). The tolerances in `case.json` were set from these runs with a margin; where no
-run was possible they are provisional (marked below).
+**Nightly baseline at hans_dev `5fa7054`** (DIVEMesh `fbf87fb`; contains the fixes 0001-0009, NHFLOW
+and SFLOW with WENO-Z by default), Claude cloud workspace, `make all` (-O3, REEFMG, no hypre),
+MPICH 4.2.3, **2 cores** (`--max-np 2`): 29 of 32 nightly cases run, **28 PASS, 1 XFAIL**
+(FNPF Ting & Kirby), total REEF3D time 3.5 h. The three CFD cases left out (Ting & Kirby, Chen,
+pier scour) need the cluster. The release column is from the earlier runs (`ff1bb68`, the
+Berkhoff / Synolakis / Mase & Kirby rows on `4bb681b` + fixes), 1 core per case.
+Reports and plots: `~/Dropbox/Claude/REEF3D_benchmark_suite/results/` (`nightly_5fa7054/`,
+`nightly_ff1bb68/`, `release_ff1bb68/`). Tolerances were set from these runs with a margin; where no
+run was possible they are provisional (marked).
 
-| case | nightly | release |
-|---|---|---|
-| `sflow_dambreak_ritter` | PASS, L1 0.021 | PASS, 0.020 |
-| `sflow_dambreak_stoker` | PASS, L1 0.0026 | PASS, 0.0005 |
-| `sflow_solitary_celerity` | PASS, c -0.2 %, H -1.1 % | PASS, c -0.2 %, H -1.1 % |
-| `sflow_beji_battjes_bar` | PASS, rms <= 0.28 | PASS, rms <= 0.29 |
-| `sflow_thacker_parabola` | PASS, L1 0.065 (wet gauges) | PASS, 0.041 |
-| `sflow_conical_island_A` | PASS, gauges rms 0.36-0.43, run-up rms 0.055 d | not run (about 4 h on 1 core; tol provisional) |
-| `sflow_conical_island_C` | PASS, gauges rms 0.32-0.48, run-up -0.11..+0.08 d | not run (tol provisional) |
-| `sflow_mase_kirby_irregular` | PASS, Hm0 ratio 0.89-1.14, skewness within 0.26 | not run (tol provisional) |
-| `nhflow_stokes5_propagation` | PASS, rms <= 0.067 | PASS, rms <= 0.057 |
-| `nhflow_beji_battjes_bar` | PASS, rms <= 0.36 | PASS, rms <= 0.29 |
-| `nhflow_synolakis_runup_nonbreaking` | PASS, R/d -8 %; profiles rms/H 0.09-0.15 (t* 30-60), 0.32 (t* 70) | PASS, R/d -5 %; profiles 0.09-0.16, 0.33 (t* 70) |
-| `nhflow_synolakis_breaking_profiles` | PASS, rms/H <= 0.12 | PASS, rms/H <= 0.16 |
-| `nhflow_berkhoff_shoal` | XFAIL, H/H0 ~60 % of measured (rms 0.34-0.72 on sections 1-7) | not run (tol provisional) |
-| `nhflow_conical_island_C` | PASS, gauges rms 0.33-0.48, run-up within 0.06 d | not run (tol provisional) |
-| `nhflow_mase_kirby_irregular` | PASS, Hm0 ratio 0.78-0.93 (low), skewness within 0.31 | PASS, Hm0 ratio 0.83-0.95 (low), skewness within 0.14 |
-| `nhflow_sloshing_linear` | PASS, T -0.6 % | PASS, T -0.3 % |
-| `fnpf_stokes2_propagation` | PASS, rms <= 0.13 (phase lead) | PASS, rms <= 0.12 |
-| `fnpf_beji_battjes_bar` | PASS, rms <= 0.24 | PASS, rms <= 0.25 |
-| `fnpf_ting_kirby_plunging` | XFAIL, max. H 1.7 m before x_b | xfail entry; dx = 0.025 m stopped at t = 91 s, release now at dx = 0.05 m (not run) |
-| `fnpf_berkhoff_shoal` | PASS, rms 0.07-0.27 on sections 1-6, 8; 0.31 on section 7 (focus) | PASS, rms 0.09-0.18 on sections 1-6, 8; 0.21 on section 7 (focus 7 % high) |
-| `fnpf_mase_kirby_irregular` | PASS, Hm0 ratio 0.98-1.09, 1.26 at h = 2.5 cm | XFAIL, Hm0 ratio 0.99-1.09 for h >= 7.5 cm, 1.18 / 1.39 at h = 5 / 2.5 cm (finding 13) |
-| `fnpf_jonswap_spectrum` | PASS, Hm0 -3..-4 %, Tp 1.44 vs 1.50 s, shape rms 0.09 | PASS, Hm0 -0.2..-0.8 %, Tp 1.44-1.48 s, shape rms 0.06 |
-| `cfd_dambreak_2d_martin_moyce` | PASS, mean 8 %, max 18 % (Z = 1.5) | PASS, mean 7 %, max 20 % |
-| `cfd_dambreak_3d_kleefsman` | ff1bb68 without `F 46`: **FAIL**, N 61 stop at t = 1.77 s (volume -18 %). With `F 46 3` (patch 0004, now in the case): volume -0.7 %, passes 1.77 s, all signals within tolerance up to 1.8 s (P1 peak -4 %, 0.05 s late); run to 2 s not completed (small time step after the impact, > 1 h on 2 cores) | not run |
-| `cfd_cylinder_re100` | ff1bb68: XFAIL, C_D 1.01 (P 81 sign error); with patch 0002: PASS, C_D 1.33, St +6 % (blockage), C_L 0.31 | not run (tol provisional) |
-| `cfd_beji_battjes_bar` | PASS, rms <= 0.33, heights -15 % | not run (tol provisional) |
-| `cfd_sphere_heave_decay` | PASS, T +4.1 %, zeta +1 %, equilibrium 0.001 R | not run (tol provisional) |
-| `cfd_sloshing_linear` | PASS, T +0.44 % | PASS, T +0.13 % |
-| `cfd_porous_dambreak_lin1998` | PASS, profiles rms 0.023-0.060 h | PASS, 0.022-0.047 h |
-| `cfd_ting_kirby_plunging` | smoke test only (20 steps); a nightly run reached t = 0.7 s in 12 min on 2 shared cores (about 12 h for 45 s), stopped - run on the cluster | not run |
-| `cfd_wave_force_chen2014` | smoke test only (20 steps); 3D, not run (cluster) | not run |
-| `cfd_pier_scour` | smoke test only (20 steps) | not run |
-| `cfd_breaking_wave_force_irschik2002` | (release only) | not run |
+| case | nightly, hans_dev 5fa7054 | change against ff1bb68 | release |
+|---|---|---|---|
+| `sflow_dambreak_ritter` | PASS, L1 0.021 | - | PASS, 0.020 |
+| `sflow_dambreak_stoker` | PASS, L1 0.0026 | - | PASS, 0.0005 |
+| `sflow_solitary_celerity` | PASS, c -0.2 %, H -1.1 % | - | PASS, c -0.2 %, H -1.1 % |
+| `sflow_beji_battjes_bar` | PASS, rms 0.09-0.29 | WENO-Z: 0.284 -> 0.287 | PASS, rms <= 0.29 |
+| `sflow_thacker_parabola` | PASS, L1 0.051 | gauge cell fix (0006): 0.065 -> 0.051 | PASS, 0.041 |
+| `sflow_conical_island_A` | PASS, gauges rms 0.36-0.43, run-up rms 0.055 d | - | not run (about 4 h on 1 core; tol provisional) |
+| `sflow_conical_island_C` | PASS, gauges rms 0.32-0.48, run-up -0.11..+0.08 d | - (runtime 583 -> 304 s) | not run (tol provisional) |
+| `sflow_mase_kirby_irregular` | PASS, Hm0 ratio 0.90-1.23, worst 0.23 | WENO-Z: 0.14 -> 0.23 (closer on the slope, higher in the swash gauge) | not run (tol provisional) |
+| `nhflow_stokes5_propagation` | PASS, rms <= 0.068 | WENO-Z: 0.067 -> 0.068 | PASS, rms <= 0.057 |
+| `nhflow_beji_battjes_bar` | PASS, rms 0.09-0.37 | WENO-Z: 0.36 -> 0.37 | PASS, rms <= 0.29 |
+| `nhflow_synolakis_runup_nonbreaking` | PASS, R/d -8 %; profiles rms/H <= 0.32 | - | PASS, R/d -5 %; profiles 0.09-0.16, 0.33 (t* 70) |
+| `nhflow_synolakis_breaking_profiles` | PASS, rms/H <= 0.12 | - | PASS, rms/H <= 0.16 |
+| `nhflow_berkhoff_shoal` | PASS, rms 0.09-0.39, 0.49 on section 7 (tol 0.55, coarse grid) | WENO-Z: was XFAIL, H/H0 ~60 % (rms up to 0.72) | not run (tol provisional) |
+| `nhflow_conical_island_C` | PASS, gauges rms 0.32-0.48, run-up within 0.06 d | - | not run (tol provisional) |
+| `nhflow_mase_kirby_irregular` | PASS, Hm0 ratio 0.80-0.95, worst 0.20 | WENO-Z: 0.217 -> 0.203 | PASS, Hm0 ratio 0.83-0.95 (low), skewness within 0.14 |
+| `nhflow_sloshing_linear` | PASS, T -0.6 % | - | PASS, T -0.3 % |
+| `fnpf_stokes2_propagation` | PASS, rms <= 0.13 (phase lead) | - | PASS, rms <= 0.12 |
+| `fnpf_beji_battjes_bar` | PASS, rms <= 0.24 | - | PASS, rms <= 0.25 |
+| `fnpf_ting_kirby_plunging` | XFAIL, max. H 1.7 m before x_b | - | xfail entry; dx = 0.025 m stopped at t = 91 s, release now at dx = 0.05 m (not run) |
+| `fnpf_berkhoff_shoal` | PASS, rms 0.07-0.27, 0.31 on section 7 | - | PASS, rms 0.09-0.18; 0.21 on section 7 (focus 7 % high) |
+| `fnpf_mase_kirby_irregular` | PASS, Hm0 ratio 0.98-1.09, 1.26 at h = 2.5 cm | - | XFAIL, 1.18 / 1.39 at h = 5 / 2.5 cm (infragravity, finding 13) |
+| `fnpf_jonswap_spectrum` | PASS, Hm0 -3..-4 %, Tp 1.44 vs 1.50 s, shape rms 0.09 | - | PASS, Hm0 -0.2..-0.8 %, shape rms 0.06 |
+| `cfd_dambreak_2d_martin_moyce` | PASS, mean 8 %, max 18 % | - | PASS, mean 7 %, max 20 % |
+| `cfd_dambreak_3d_kleefsman` | PASS (with `F 46 3`): volume -0.9 %, P1 peak -4 % / 0.05 s late, rms P1-P4 0.38-0.58, P5-P8 0.62-0.69, heights 0.03-0.53; 33 min | F 46 fix (0004): was FAIL, -18 % volume, N 61 stop at 1.77 s | not run |
+| `cfd_cylinder_re100` | PASS, C_D 1.331, St 0.1745 (+6 %, blockage), C_L 0.33 | P 81 fix (0002): C_D 1.01 -> 1.33, was XFAIL | not run (tol provisional) |
+| `cfd_beji_battjes_bar` | PASS, rms 0.16-0.33, heights -15 % | - | not run (tol provisional) |
+| `cfd_sphere_heave_decay` | PASS, T +4.2 %, zeta +1 %, equilibrium 0.001 R | - (6DOF shear fix: < 0.1 %) | not run (tol provisional) |
+| `cfd_sloshing_linear` | PASS, T +0.44 % | - | PASS, T +0.13 % |
+| `cfd_porous_dambreak_lin1998` | PASS, profiles rms 0.023-0.060 h | - | PASS, 0.022-0.047 h |
+| `cfd_ting_kirby_plunging` | not run: about 12 h on 2 cores (cluster) | | not run |
+| `cfd_wave_force_chen2014` | not run: 3D (cluster) | | not run |
+| `cfd_pier_scour` | not run (cluster) | | not run |
+| `cfd_breaking_wave_force_irschik2002` | (release only) | | not run |
 
-Smoke test = inputs accepted, grid and output files written. The 3D CFD cases (and the 2D CFD
-plunging breaker) need several hours each at the nightly level, more than the 2-core sandbox
-allows; their nightly and release levels are meant for the cluster.
+The 3D CFD cases (and the 2D CFD plunging breaker) need several hours each at the nightly level,
+more than the 2-core sandbox allows; their nightly and release levels are meant for the cluster.

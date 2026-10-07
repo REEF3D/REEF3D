@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "nhflow_2d_tide_waves_beach with waves on the tide (B 530 2 10): k follows h_eff and the tidal current of the generation zone.",
+ "tags": ["quick", "2d", "nhflow", "tide", "iowave", "bc_zone", "background", "doppler"],
+ "covers": ["B 530 with a harmonic tide"]
+}

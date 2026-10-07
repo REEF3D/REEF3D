@@ -637,13 +637,13 @@ W 22 -9.81
         case["levels"]["release"]["check_set"] = {"tol": 0.25}
     if model == "nhflow":
         case["levels"]["nightly"]["control_set"]["B 2"] = "250 200 5"
-        case["levels"]["nightly"]["xfail"] = (
-            "hans_dev ff1bb68, dx = 0.1 m (L/15): the wave heights are about 60 % of the measured ones on all "
-            "sections, already at the first point of section 7 (H/H0 0.67 vs 1.07); 5 or 8 sigma layers give "
-            "the same (rms 0.34-0.72 on sections 1-7, 0.20 on section 8). Not a 3D effect: a 2D flume with the same "
-            "wave at dx = 0.1 m loses 16 % of the height over 14 m with the default WENO-JS reconstruction "
-            "(dx 0.05: 2 %, dx 0.025: none). WENO-Z (A 527 1) keeps 0.95 along the flume and reduces the "
-            "Berkhoff error to 0.09-0.49 (overall 0.31); the rest is the coarse grid over the shoal (L/10)")
+        # hans_dev 5fa7054 (WENO-Z default, A 527 1), dx = 0.1 m: rms 0.09-0.39 on sections 1-6 and 8,
+        # 0.49 on the centreline section 7 behind the shoal, where the grid has only ~10 points per
+        # wavelength. With the former WENO-JS default the heights were ~60 % of the measured ones
+        # (rms up to 0.72; 2D flume at dx 0.1: -16 % over 14 m, numerical damping, not a 3D effect).
+        # The nightly level therefore only guards against a regression; the release grid (dx 0.04)
+        # is the accuracy test.
+        case["levels"]["nightly"]["check_set"]["tol"] = 0.55
     write_case("%s_berkhoff_shoal" % model, control, ctrl, case)
 
 

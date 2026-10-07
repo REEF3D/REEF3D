@@ -72,6 +72,8 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_WSFLINE/*.dat",
     "REEF3D_NHFLOW_6DOF/*.dat",
     "REEF3D_NHFLOW_AMR/*.dat",
+    "REEF3D_NHFLOW_Particles/*.dat",
+    "REEF3D_NHFLOW_Boom/*.dat",
     "REEF3D_SFLOW_AMR/*.dat",
     "REEF3D_FNPF_AMR/*.dat",
     "REEF3D_FNPF_WSF/*.dat",

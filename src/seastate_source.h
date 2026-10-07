@@ -129,10 +129,22 @@ public:
     // wind field (A 730 2): wind of the cell before compute [m/s], direction the wind blows to [rad]
     void set_wind(double U10, double wdir) {prm.U10 = U10; prm.wdir = wdir;}
 
+    // spectral sparsity (A 795): energy may appear in any bin of the cell (wind input, DIA)
+    bool fills_spectrum() const {return (prm.wind && prm.U10>0.0) || prm.dia;}
+    // LTA triads: the lowest frequency offset (negative) that feeds a bin, 0 without triads
+    int triad_reach() const {return (prm.triads && nsig>1) ? tsm1 : 0;}
+    // the triads acted in the last compute (Ursell number above urslim)
+    bool triads_active() const {return prm.triads && ursell>=prm.urslim;}
+    // row sums (over the directions per frequency) of the spectrum of the next cap()/compute(), known
+    // to the caller (spectral sparsity: the sums over the active ranges)
+    void set_rows(const double *r) const {for(int l=0; l<nsig; ++l) row[l] = r[l]; rows_ready = true;}
+
     // N of one cell (nbin), k and cg of the cell (nsig); P and D of size nbin (overwritten)
-    // directions ma..mb only (the quadrant of a sweep; mb<0: all). The integral parameters use the whole
-    // spectrum; P and D outside the window are not set. With DIA the transfers are computed for all bins.
-    void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma=0, int mb=-1);
+    // directions ma..mb and frequencies la..lb only (the quadrant of a sweep, the band of the spectral
+    // sparsity; mb, lb < 0: all). The integral parameters use the whole spectrum; P and D outside are not
+    // set. With DIA the transfers are computed for all bins.
+    void compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma=0, int mb=-1,
+                 int la=0, int lb=-1);
 
     // maximum energy (prm.emax, Battjes-Janssen breaking): scales the spectrum of a cell down to the
     // total energy (gamma d)^2/4 (tail included, as SWAN SINTGRL); true if it was scaled
@@ -159,6 +171,7 @@ private:
     void lta(const float *N, double depth, const float *k, const float *cg);
     void split(const float *N, double *P, double *D);
     int wa = 0, wb = 0;             // direction window of the current compute
+    int fa = 0, fb = 0;             // frequency band of the current compute
 
     double &ue(int l, int m) {return UE[size_t(l+uoff)*ndir + m];}
     double &sa1(int l, int m) {return SA1[size_t(l+soff)*ndir + m];}
@@ -184,6 +197,10 @@ private:
     int tsm, tsm1, tsp, tsp1;
     double twm, twm1, twp, twp1;
     std::vector<double> EL, SAL, TQ;
+    mutable std::vector<double> row;    // sums over the directions per frequency (rows)
+    mutable bool rows_ready = false;
+    double pw_smax = 0.0, pw_se0 = 0.0, pw_se1 = 0.0, pw_se2 = 0.0, pw_fachfr = 0.0;   // tail powers
+    void rows(const float *N) const;
 };
 
 #endif

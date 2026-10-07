@@ -35,6 +35,9 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include<algorithm>
 #include<cmath>
+#include<fstream>
+#include<iomanip>
+#include<sys/stat.h>
 
 void seastate_f::boundary(lexer *p, ghostcell *pgc)
 {
@@ -174,17 +177,28 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     conv = pgc->globalmax(cmax);
     hs_old.swap(hs);
 
+    nok = pgc->globalsum(nok);
+    nall = pgc->globalsum(nall);
+    const double percent = nall>0.0 ? 100.0*nok/nall : 100.0;
+
+        // convergence history (rank 0): REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat
+        if(p->mpirank==0)
+        {
+            if(!convlog.is_open())
+            {
+            mkdir("./REEF3D_SEASTATE_Log",0777);
+            convlog.open("./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat");
+            convlog<<"# count \t iteration \t max. relative change of Hs \t percentage of the cells within A 708"<<endl;
+            }
+        convlog<<p->count<<" \t "<<iter_done<<" \t "<<setprecision(6)<<conv<<" \t "<<percent<<endl;
+        }
+
         if(conv<p->A708)
         break;
 
         // SWAN-type criterion (A 709 < 100): the percentage of cells within A 708
-        if(p->A709<100.0)
-        {
-        nok = pgc->globalsum(nok);
-        nall = pgc->globalsum(nall);
-        if(nall>0.0 && 100.0*nok/nall>=p->A709)
+        if(p->A709<100.0 && percent>=p->A709)
         break;
-        }
     }
 }
 
