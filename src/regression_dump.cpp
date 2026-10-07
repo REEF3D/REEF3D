@@ -491,6 +491,11 @@ void regression_dump::sflow_collect(lexer *p, fdm2D *b)
     add("kin",p->cellnum);
     SLICELOOP4
     data.back().push_back(b->kin(i,j));
+    
+    // bed level (changes with sediment transport)
+    add("bed",p->cellnum);
+    SLICELOOP4
+    data.back().push_back(b->bed(i,j));
 }
 
 void regression_dump::sflow_state(lexer *p, fdm2D *b)
