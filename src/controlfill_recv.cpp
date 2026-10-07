@@ -815,6 +815,10 @@ void control::ctrlrecv()
     ii++;
     B523 = ictrl[ii];
     ii++;
+    B530 = ictrl[ii];
+    ii++;
+    B530_N = ictrl[ii];
+    ii++;
     B110 = ictrl[ii];
     ii++;
     B110_zs = dctrl[dd];

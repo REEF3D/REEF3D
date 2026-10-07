@@ -99,6 +99,16 @@ public:
         w=wave_w_c(p,q,z);
     }
 
+    // ---- waves on a background (iowave, B 530) ----------------------------
+    // A wave on a tide or current keeps its absolute frequency omega; iowave
+    // re-solves k on the background depth h_eff (and with Doppler from
+    // omega = sigma + k U_n) and hands the state back. The libraries that
+    // support it evaluate eta and the phase with k, the orbital velocities
+    // with sigma and sinh(k h_eff); the height above the bed stays wdt + z.
+    // wave_state: k, depth, sigma, omega and the construction depth
+    virtual bool wave_state(double &k, double &h, double &sigma, double &omega, double &h0) const {return false;}
+    virtual void wave_state_set(double k, double h, double sigma) {}
+
     virtual ~wave_lib() = default;
 
 protected:

@@ -58,6 +58,7 @@ public:
     ~wave_field();
 
     int size() const {return (int)src.size();}
+    wave_source *source(int n) const {return src[n];}
 
     double eta(lexer*, double, double);
     double u(lexer*, double, double, double);

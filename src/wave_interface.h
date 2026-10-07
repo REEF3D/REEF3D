@@ -90,6 +90,10 @@ public:
     // ids as in B 524 (1: the B 92 wave); nullptr: all sources
     void select_sources(const std::vector<int>*);
     bool source_exists(int) const;
+    
+    // all sources, n = 0 the B 92 wave, n >= 1 the B 500 ones: library, id, B 92 type, direction relative to B 105 [deg]
+    int wave_nsources() const;
+    wave_lib *wave_source_lib(int n, int &id, int &type, double &rot) const;
 
     double wave_paddle_Q(lexer*,ghostcell*,double);
 

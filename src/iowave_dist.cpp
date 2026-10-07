@@ -265,6 +265,26 @@ void iowave::zones_check(lexer *p)
     if(z.bg>0 && bgs.index(z.bg)<0)
     err = "zone "+std::to_string(z.id)+" uses background "+std::to_string(z.bg)+", which has no B 510";
     
+    // waves on the background (B 530)
+    if(p->B530!=0)
+    {
+        if(p->B530<0 || p->B530>2)
+        err = "B 530 mode is 1 (waves on h_eff) or 2 (h_eff + Doppler)";
+        
+        if(!zones.has_background() || p->A10!=5)
+        err = "waves on the background (B 530) need a background (B 510, B 523) in NHFLOW";
+        
+        for(int n=0; n<wave_nsources(); ++n)
+        {
+            int id, type;
+            double rot;
+            wave_source_lib(n,id,type,rot);
+            
+            if(type!=2 && !(n==0 && type==0))
+            err = "waves on the background (B 530) work with linear waves (type 2) only, so far; source "+std::to_string(id)+" is type "+std::to_string(type);
+        }
+    }
+    
     if(!err.empty())
     {
         if(p->mpirank==0)

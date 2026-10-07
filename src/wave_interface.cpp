@@ -348,3 +348,25 @@ bool wave_interface::source_exists(int k) const
 {
     return k==1 || pfield->exists(k);
 }
+
+int wave_interface::wave_nsources() const
+{
+    return 1 + pfield->size();
+}
+
+wave_lib *wave_interface::wave_source_lib(int n, int &id, int &type, double &rot) const
+{
+    if(n==0)
+    {
+        id = 1;
+        type = wtype;
+        rot = 0.0;
+        return pwave;
+    }
+    
+    const wave_source *s = pfield->source(n-1);
+    id = s->id;
+    type = s->type;
+    rot = s->rot;
+    return s->lib;
+}

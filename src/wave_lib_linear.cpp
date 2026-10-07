@@ -29,6 +29,10 @@ wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters
 { 
     parameters(p,pgc);
     
+    // waves on a background (B 530): sigma and depth of the orbital velocities, as constructed
+    wsig = ww;
+    wdk = wdt;
+    
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: linear waves "<<endl;
@@ -68,7 +72,7 @@ double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * cos(teta);
+    vel = wsig*wa*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * cos(teta);
 
     return vel;
 }
@@ -79,7 +83,7 @@ double wave_lib_linear::wave_w(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = ww*wa*( sinh(wk*(wdt+z))/sinh(wk*wdt) ) * sin(teta);
+    vel = wsig*wa*( sinh(wk*(wdt+z))/sinh(wk*wdk) ) * sin(teta);
 
     return vel;
 }
@@ -101,9 +105,9 @@ double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
     
     teta = wk*x-ww*(p->wavetime) + pshift;
     
-    fi = ((ww*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * sin(teta);
+    fi = ((wsig*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * sin(teta);
     
-    vel = ww*wa*( cosh(wk*(wdt+z))/sinh(wk*wdt) ) * cos(teta);
+    vel = wsig*wa*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * cos(teta);
     
     return fi;
 }
@@ -114,4 +118,22 @@ void wave_lib_linear::parameters(lexer *p, ghostcell *pgc)
 
 void wave_lib_linear::wave_prestep(lexer *p, ghostcell *pgc)
 {
+}
+
+bool wave_lib_linear::wave_state(double &k, double &h, double &sigma, double &omega, double &h0) const
+{
+    k = wk;
+    h = wdk;
+    sigma = wsig;
+    omega = ww;
+    h0 = wdt;
+    
+    return true;
+}
+
+void wave_lib_linear::wave_state_set(double k, double h, double sigma)
+{
+    wk = k;
+    wdk = h;
+    wsig = sigma;
 }

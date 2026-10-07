@@ -40,6 +40,10 @@ background_state: tidal / current background of the boundary zones
                                F 60) from (x0,y0); without B 515 the background is
                                uniform in space
   file background-<id>.dat     mode 2: lines "t eta" or "t eta U V", linear in time
+  B 530 mode N                 waves on the background (iowave, linear waves): every N steps
+                               k of each source from the background of its zones,
+                               mode 1: on h_eff = h + eta_b, 2: h_eff and Doppler
+                               omega = sigma + k U_n (iowave_nhflow_tide.cpp)
 
   eta_b = r(t) eta0 + eta_t,   eta_t = r(t) sum a cos(2 pi t/T - phase - k s)  (mode 1)
                                      = r(t) eta_file(t - s/c)                  (mode 2)

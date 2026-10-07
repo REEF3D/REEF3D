@@ -24,6 +24,8 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"wave_lib.h"
+#include<algorithm>
 
 /*--------------------------------------------------------------------
 Tidal / current background in NHFLOW (iowave redesign, step 4):
@@ -90,6 +92,10 @@ void iowave::nhflow_bg_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     SLICELOOP4
     col_h0[IJ] = d->depth(i,j);
+    
+    // waves on the background (B 530): k on h_eff, Doppler
+    if(p->B530>0)
+    nhflow_wave_background(p,pgc);
 }
 
 double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
@@ -388,5 +394,216 @@ void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
             }
         }
         }
+    }
+}
+
+/*--------------------------------------------------------------------
+Waves on the background (B 530 mode N; iowave redesign, step 4e)
+
+Every source keeps its absolute frequency omega = 2 pi / T. Every N steps
+the depth h_eff = h_0 + eta_b and the current U_n = U_b cos(dir) + V_b sin(dir)
+are averaged over the columns where the source generates waves (relaxation
+zones and Riemann edges with a background), and k is re-solved from
+
+    omega = sqrt(g k tanh(k h_eff)) + k U_n     (mode 2, Doppler)
+    omega = sqrt(g k tanh(k h_eff))             (mode 1, U_n = 0)
+
+k, h_eff and U_n are blended linearly to the new values over the next N
+steps, so the phase k x - omega t never jumps. The library evaluates the
+orbital velocities with sigma = omega - k U_n and sinh(k h_eff).
+--------------------------------------------------------------------*/
+
+// root of omega = sqrt(g k tanh(k h)) + k un on the branch that starts at k = 0;
+// false if an opposing current blocks the waves (no root)
+static bool doppler_k(double omega, double h, double un, double g, double &k)
+{
+    auto F = [&](double kk) {return sqrt(g*kk*tanh(kk*h)) + kk*un - omega;};
+    
+    double klo = 0.0;
+    double khi = omega*omega/g;
+    
+    int it = 0;
+    while(F(khi)<0.0)
+    {
+        const double kn = 1.2*khi;
+        
+        if(F(kn)<=F(khi) || ++it>400)
+        return false;
+        
+        klo = khi;
+        khi = kn;
+    }
+    
+    for(int q=0; q<200; ++q)
+    {
+        const double km = 0.5*(klo+khi);
+        
+        if(F(km)<0.0)
+        klo = km;
+        else
+        khi = km;
+        
+        if(khi-klo<=1.0e-15*khi)
+        break;
+    }
+    
+    k = 0.5*(klo+khi);
+    
+    return true;
+}
+
+void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
+{
+    // once per step
+    if(p->count==wbg_count)
+    return;
+    
+    wbg_count = p->count;
+    
+    const int ns = wave_nsources();
+    
+    if((int)wbg.size()!=ns)
+    wbg.assign(ns,wave_bg_state());
+    
+    if(!gen_built && p->B98==2)
+    genzone4_build(p,pgc);
+    
+    const int N = p->B530_N>1 ? p->B530_N : 1;
+    const double g = fabs(p->W22);
+    const bool update = p->count%N==0;
+    
+    for(int n=0; n<ns; ++n)
+    {
+        int id, type;
+        double rot;
+        wave_lib *lib = wave_source_lib(n,id,type,rot);
+        
+        double kc, hc, sc, om, h0;
+        if(lib==nullptr || !lib->wave_state(kc,hc,sc,om,h0))
+        continue;
+        
+        wave_bg_state &s = wbg[n];
+        
+        // first call: start from the state of the library
+        if(!s.on)
+        {
+            s.k0 = s.k1 = kc;
+            s.h0 = s.h1 = hc;
+            s.u0 = s.u1 = kc>0.0 ? (om-sc)/kc : 0.0;
+            s.c0 = p->count;
+            s.on = true;
+        }
+        
+        // current state of the blend
+        const double f = std::min(1.0, double(p->count-s.c0)/double(N));
+        const double kb = s.k0 + (s.k1-s.k0)*f;
+        const double hb = s.h0 + (s.h1-s.h0)*f;
+        const double ub = s.u0 + (s.u1-s.u0)*f;
+        
+        if(update)
+        {
+            // background over the columns where this source generates waves
+            double se=0.0, su=0.0, sv=0.0;
+            int nc=0;
+            
+            auto add = [&](int b)
+            {
+                double u, v;
+                se += bgs.eta(b,p->XP[IP],p->YP[JP]);
+                bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],u,v);
+                su += u;
+                sv += v;
+                ++nc;
+            };
+            
+            auto has = [&](const std::vector<int> &ids) {return std::find(ids.begin(),ids.end(),id)!=ids.end();};
+            
+            if(p->B98==2)
+            for(size_t q=0; q<gen_i.size(); ++q)
+            {
+                i = gen_i[q];
+                j = gen_j[q];
+                
+                const int b = col_gen_bg[IJ];
+                
+                if(b<0 || (gen_src[q]!=nullptr && !has(*gen_src[q])))
+                continue;
+                
+                add(b);
+            }
+            
+            for(int side : {1,2,3,4})
+            {
+                const bc_zone *z = zones.open_edge(side);
+                
+                if(z==nullptr || edge_open(p,side)==0 || z->method!=bc_method::riemann || !has(z->sources))
+                continue;
+                
+                const int b = bgs.index(z->bg);
+                
+                int sc_, di, dj;
+                double nx, ny;
+                edge_geometry(side,sc_,di,dj,nx,ny);
+                
+                for(int list=0; list<2; ++list)
+                {
+                const int cnt = list==0 ? p->gcslin_count : p->gcslout_count;
+                int **gs = list==0 ? p->gcslin : p->gcslout;
+                
+                for(int q=0; q<cnt; ++q)
+                if(gs[q][3]==sc_)
+                {
+                    i = gs[q][0];
+                    j = gs[q][1];
+                    add(b);
+                }
+                }
+            }
+            
+            se = pgc->globalsum(se);
+            su = pgc->globalsum(su);
+            sv = pgc->globalsum(sv);
+            nc = pgc->globalisum(nc);
+            
+            // restart the blend from the current state towards the new target
+            s.k0 = kb;
+            s.h0 = hb;
+            s.u0 = ub;
+            s.c0 = p->count;
+            
+            if(nc>0)
+            {
+                const double dir = (p->B105_1 + rot)*(PI/180.0);
+                const double h = h0 + se/double(nc);
+                const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
+                double k;
+                
+                if(h>0.0 && doppler_k(om,h,un,g,k))
+                {
+                    s.k1 = k;
+                    s.h1 = h;
+                    s.u1 = un;
+                }
+                else
+                if(!wbg_blocked)
+                {
+                    wbg_blocked = true;
+                    
+                    if(p->mpirank==0)
+                    cout<<"iowave B 530: no wave solution for source "<<id<<" (h_eff "<<h<<" m, U_n "<<un<<" m/s, blocked by an opposing current?), k kept"<<endl;
+                }
+            }
+            
+            if(p->mpirank==0 && (p->count==0 || p->count%(100*N)==0))
+            cout<<"iowave B 530: source "<<id<<"  k "<<s.k1<<"  L "<<2.0*PI/s.k1<<"  h_eff "<<s.h1<<"  U_n "<<s.u1<<endl;
+        }
+        
+        // state of this step
+        const double fs = std::min(1.0, double(p->count-s.c0)/double(N));
+        const double k = s.k0 + (s.k1-s.k0)*fs;
+        const double h = s.h0 + (s.h1-s.h0)*fs;
+        const double u = s.u0 + (s.u1-s.u0)*fs;
+        
+        lib->wave_state_set(k,h,om-k*u);
     }
 }
