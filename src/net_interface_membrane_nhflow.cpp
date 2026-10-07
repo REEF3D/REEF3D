@@ -592,6 +592,10 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     
     // 1. mobility field beta, blocked links (also builds the membrane cell maps for this stage)
     membrane_links_nhflow(p,d,pgc,alpha);
+    
+    // sharp mode: cells that crossed the body with the moving sigma grid
+    if(d->thinbody!=nullptr)
+    d->thinbody->side_change(p,d,UH,VH,WH,WL);
 
     // 2. static overpressure of the bag below its floor (prescribed pressure, see net_membrane)
     for(int qn=0; qn<p->imax*p->jmax*(p->kmax+2); ++qn)
@@ -622,7 +626,7 @@ void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc
     
     // sharp mode: vertical velocity of the cut cells (below / above a floor)
     if(d->thinbody!=nullptr)
-    d->thinbody->cut_forcing(p,d,WH,WL);
+    d->thinbody->cut_forcing(p,d,UH,VH,WH,WL);
 }
 
 void net_interface::membrane_pgrad(lexer *p, fdm_nhf *d, double alpha, double *UH, double *VH, double *WH, slice &WL, int mode)

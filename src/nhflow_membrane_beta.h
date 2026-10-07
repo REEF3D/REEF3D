@@ -57,6 +57,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"increment.h"
 #include"vrans_definitions.h"
+#include"nhflow_thinbody.h"
 
 // mobility of the vertical velocity correction in cell (i,j,k): compact difference of the nodes k, k+1,
 // exactly the vertical face of the Poisson matrix
@@ -109,9 +110,10 @@ inline double nhflow_membrane_gradx(lexer *p, fdm_nhf *d, const double *P, int i
     const int marge = increment::marge;
     const double *B = d->MBETA;
     
-    const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
-    const double Pn = 0.5*(P[FIp1JK]+P[FIp1JKp1]);
-    const double Ps = 0.5*(P[FIm1JK]+P[FIm1JKp1]);
+    const nhflow_thinbody *tb = d->thinbody;
+    const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
+    const double Pn = tb!=nullptr ? tb->pcell(p,P,i+1,j,k) : 0.5*(P[FIp1JK]+P[FIp1JKp1]);
+    const double Ps = tb!=nullptr ? tb->pcell(p,P,i-1,j,k) : 0.5*(P[FIm1JK]+P[FIm1JKp1]);
     
     const double dxp = p->DXP[IP], dxm = p->DXP[IM1];
     
@@ -123,9 +125,10 @@ inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i
     const int marge = increment::marge;
     const double *B = d->MBETA;
     
-    const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
-    const double Pw = 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
-    const double Pe = 0.5*(P[FIJm1K]+P[FIJm1Kp1]);
+    const nhflow_thinbody *tb = d->thinbody;
+    const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
+    const double Pw = tb!=nullptr ? tb->pcell(p,P,i,j+1,k) : 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
+    const double Pe = tb!=nullptr ? tb->pcell(p,P,i,j-1,k) : 0.5*(P[FIJm1K]+P[FIJm1Kp1]);
     
     const double dyp = p->DYP[JP], dym = p->DYP[JM1];
     
@@ -159,6 +162,36 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
         bs = (1.0-fac)*d->MBX[Im1JK] + fac*(k>0 ? d->MBX[Im1JKm1] : d->MBX[Im1JK]);
         bw = p->j_dir==1 ? (1.0-fac)*d->MBY[IJK]   + fac*(k>0 ? d->MBY[IJKm1]   : d->MBY[IJK])   : 1.0;
         be = p->j_dir==1 ? (1.0-fac)*d->MBY[IJm1K] + fac*(k>0 ? d->MBY[IJm1Km1] : d->MBY[IJm1K]) : 1.0;
+        
+        // sharp thin bodies: a horizontal node link whose nodes lie on opposite sides of the body is blocked as well
+        // (next to a sloping floor the node control volume straddles the floor, the cell layers do not see it), and the
+        // half face of a layer whose two cells lie on the other side of the body than the node is closed
+        if(d->thinbody!=nullptr)
+        {
+            const nhflow_thinbody *tb = d->thinbody;
+            const double bmin = 1.0e-4;
+            const double sN = tb->nside(p,i,j,k);
+            
+            auto lay = [&](const double *MB, int qa, int qb) {return tb->other_side(qa,qb,sN) ? MIN(MB[qa],bmin) : MB[qa];};
+            
+            bn = (1.0-fac)*lay(d->MBX,IJK,Ip1JK)   + fac*(k>0 ? lay(d->MBX,IJKm1,Ip1JKm1)   : lay(d->MBX,IJK,Ip1JK));
+            bs = (1.0-fac)*lay(d->MBX,Im1JK,IJK)   + fac*(k>0 ? lay(d->MBX,Im1JKm1,IJKm1)   : lay(d->MBX,Im1JK,IJK));
+            
+            if(p->j_dir==1)
+            {
+            bw = (1.0-fac)*lay(d->MBY,IJK,IJp1K)   + fac*(k>0 ? lay(d->MBY,IJKm1,IJp1Km1)   : lay(d->MBY,IJK,IJp1K));
+            be = (1.0-fac)*lay(d->MBY,IJm1K,IJK)   + fac*(k>0 ? lay(d->MBY,IJm1Km1,IJKm1)   : lay(d->MBY,IJm1K,IJK));
+            }
+            
+            if(tb->node_cut_x(p,i,j,k))   bn = MIN(bn, MIN(MIN(d->MBX[IJK],k>0?d->MBX[IJKm1]:1.0),bmin));
+            if(tb->node_cut_x(p,i-1,j,k)) bs = MIN(bs, MIN(MIN(d->MBX[Im1JK],k>0?d->MBX[Im1JKm1]:1.0),bmin));
+            
+            if(p->j_dir==1)
+            {
+            if(tb->node_cut_y(p,i,j,k))   bw = MIN(bw, MIN(MIN(d->MBY[IJK],k>0?d->MBY[IJKm1]:1.0),bmin));
+            if(tb->node_cut_y(p,i,j-1,k)) be = MIN(be, MIN(MIN(d->MBY[IJm1K],k>0?d->MBY[IJm1Km1]:1.0),bmin));
+            }
+        }
     }
     else
     {
@@ -209,8 +242,9 @@ inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const
     
     LOOP
     {
-        const double Pc = 0.5*(P[FIJK]+P[FIJKp1]);
-        const double Pn = 0.5*(P[FIp1JK]+P[FIp1JKp1]);
+        const nhflow_thinbody *tb = d->thinbody;
+        const double Pc = tb!=nullptr ? tb->pcell(p,P,i,j,k)   : 0.5*(P[FIJK]+P[FIJKp1]);
+        const double Pn = tb!=nullptr ? tb->pcell(p,P,i+1,j,k) : 0.5*(P[FIp1JK]+P[FIp1JKp1]);
         
         const double cx = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[Ip1JK]));
         
@@ -218,7 +252,7 @@ inline void nhflow_membrane_rc_store(lexer *p, fdm_nhf *d, ghostcell *pgc, const
         
         if(p->j_dir==1)
         {
-        const double Pw = 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
+        const double Pw = tb!=nullptr ? tb->pcell(p,P,i,j+1,k) : 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
         const double cy = 0.5*(CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[IJp1K]));
         
         d->MRCY[IJK] = -a*cy/p->W1*nhflow_mby(d,IJK,IJp1K)*(Pw-Pc)/p->DYP[JP];

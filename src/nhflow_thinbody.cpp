@@ -42,6 +42,12 @@ nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p
     p->Darray(uy,ncell);
     p->Darray(uz,ncell);
     p->Darray(low,ncell);
+    p->Darray(pw,ncell);
+    p->Darray(side0,ncell);
+    p->Darray(sideN,p->imax*p->jmax*p->kmaxF);
+    
+    for(int q=0; q<ncell; ++q)
+    pw[q]=0.5;
     p->Darray(fz,ncell);
     
     SLICELOOP4
@@ -64,6 +70,9 @@ nhflow_thinbody::~nhflow_thinbody()
     delete [] uy;
     delete [] uz;
     delete [] low;
+    delete [] pw;
+    delete [] side0;
+    delete [] sideN;
     delete [] fz;
 }
 
@@ -71,6 +80,9 @@ void nhflow_thinbody::begin(lexer *p)
 {
     for(int q=0; q<ncell; ++q)
     bx[q]=by[q]=bz[q]=ux[q]=uy[q]=uz[q]=0.0;
+    
+    for(int q=0; q<p->imax*p->jmax*p->kmaxF; ++q)
+    sideN[q]=0.0;
 }
 
 void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -139,6 +151,25 @@ void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     pgc->gcsl_start4(p,cbx,1);
     pgc->gcsl_start4(p,cby,1);
+    
+    // cell pressure next to the body: only the node on the cell's own side
+    for(int q=0; q<ncell; ++q)
+    pw[q]=0.5;
+    
+    LOOP
+    if(sideC[IJK]!=0.0)
+    {
+        const double s = sideC[IJK];
+        const bool ok0 = !(sideN[FIJK]*s<0.0), ok1 = !(sideN[FIJKp1]*s<0.0);
+        
+        if(!ok0 && ok1)
+        pw[IJK]=0.0;
+        
+        if(ok0 && !ok1)
+        pw[IJK]=1.0;
+    }
+    
+    pgc->start4V(p,pw,1);
     
     pgc->start4V(p,low,1);
     pgc->start4V(p,fz,1);
@@ -581,11 +612,19 @@ void nhflow_thinbody::projection_rhs(lexer *p, fdm_nhf *d, double *U, double *V,
                 const int qe  = (i+1-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + kk-p->kmin;
                 const int qw  = (i-1-p->imin)*p->jmax*p->kmax + (j-p->jmin)*p->kmax + kk-p->kmin;
                 
+                const double sN = nside(p,i,j,k);
+                
                 if(bx[q]>0.5)
                 d->rhsvec.V[n] += wx*(0.5*(U[q]+U[qe]) - ux[q])*cx;
+                else
+                if(other_side(q,qe,sN))
+                d->rhsvec.V[n] += wx*0.5*(U[q]+U[qe])*cx;
                 
                 if(bx[qw]>0.5)
                 d->rhsvec.V[n] += wx*(ux[qw] - 0.5*(U[qw]+U[q]))*cx;
+                else
+                if(other_side(qw,q,sN))
+                d->rhsvec.V[n] -= wx*0.5*(U[qw]+U[q])*cx;
                 
                 if(p->j_dir==1)
                 {
@@ -594,9 +633,15 @@ void nhflow_thinbody::projection_rhs(lexer *p, fdm_nhf *d, double *U, double *V,
                 
                 if(by[q]>0.5)
                 d->rhsvec.V[n] += wy*(0.5*(V[q]+V[qn]) - uy[q])*cy;
+                else
+                if(other_side(q,qn,sN))
+                d->rhsvec.V[n] += wy*0.5*(V[q]+V[qn])*cy;
                 
                 if(by[qs]>0.5)
                 d->rhsvec.V[n] += wy*(uy[qs] - 0.5*(V[qs]+V[q]))*cy;
+                else
+                if(other_side(qs,q,sN))
+                d->rhsvec.V[n] -= wy*0.5*(V[qs]+V[q])*cy;
                 }
             }
         }
@@ -605,7 +650,67 @@ void nhflow_thinbody::projection_rhs(lexer *p, fdm_nhf *d, double *U, double *V,
     }
 }
 
-void nhflow_thinbody::cut_forcing(lexer *p, fdm_nhf *d, double *WH, slice &WL)
+void nhflow_thinbody::side_change(lexer *p, fdm_nhf *d, double *UH, double *VH, double *WH, slice &WL)
+{
+    // a cell whose centre crossed the body since the last stage keeps the velocity of the other side; it is replaced
+    // by the mean of its face neighbours on its new side that did not cross (no neighbour: at rest)
+    auto flipped = [&](int q) {return sideC[q]*side0[q]<0.0;};
+    int n=0;
+    
+    LOOP
+    if(p->wet[IJ]==1 && flipped(IJK))
+    {
+        const double s = sideC[IJK];
+        const int nb[6] = {Im1JK,Ip1JK,IJm1K,IJp1K,IJKm1,IJKp1};
+        double su=0.0, sv=0.0, sw=0.0;
+        int c=0;
+        
+        for(int r=0; r<6; ++r)
+        {
+            const int q = nb[r];
+            
+            if(r>=2 && r<4 && p->j_dir==0)
+            continue;
+            
+            if(r==4 && k==0)
+            continue;
+            
+            if(r==5 && k==p->knoz-1)
+            continue;
+            
+            if(p->flag4[q]<=0 || flipped(q) || sideC[q]*s<0.0)
+            continue;
+            
+            // neighbours far from the body (side 0) are on the same side only if not across a blocked link
+            if(sideC[q]==0.0 && ((r==0 && bx[Im1JK]>0.5) || (r==1 && bx[IJK]>0.5) || (r==2 && by[IJm1K]>0.5) || (r==3 && by[IJK]>0.5)))
+            continue;
+            
+            su += d->U[q];
+            sv += d->V[q];
+            sw += d->W[q];
+            ++c;
+        }
+        
+        const double u = c>0 ? su/c : 0.0, v = c>0 ? sv/c : 0.0, w = c>0 ? sw/c : 0.0;
+        
+        d->U[IJK] = u;
+        d->V[IJK] = v;
+        d->W[IJK] = w;
+        UH[IJK] = u*WL(i,j);
+        VH[IJK] = v*WL(i,j);
+        WH[IJK] = w*WL(i,j);
+        ++n;
+    }
+    
+    for(int q=0; q<ncell; ++q)
+    side0[q] = sideC[q];
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
+}
+
+void nhflow_thinbody::cut_forcing(lexer *p, fdm_nhf *d, double *UH, double *VH, double *WH, slice &WL)
 {
     LOOP
     if(bz[IJK]>0.5 && p->wet[IJ]==1)
@@ -614,6 +719,45 @@ void nhflow_thinbody::cut_forcing(lexer *p, fdm_nhf *d, double *WH, slice &WL)
         WH[IJK] = uz[IJK]*WL(i,j);
     }
     
+    // pockets of the staircase: three or more blocked faces, the cell moves with the body (mean wall velocity of its
+    // blocked links)
+    LOOP
+    if(p->wet[IJ]==1)
+    {
+        int n=0;
+        double u=0.0, v=0.0, w=0.0, nu=0.0, nv=0.0, nw=0.0;
+        
+        if(bx[Im1JK]>0.5) {++n; u+=ux[Im1JK]; nu+=1.0;}
+        if(bx[IJK]>0.5)   {++n; u+=ux[IJK];   nu+=1.0;}
+        
+        if(p->j_dir==1)
+        {
+        if(by[IJm1K]>0.5) {++n; v+=uy[IJm1K]; nv+=1.0;}
+        if(by[IJK]>0.5)   {++n; v+=uy[IJK];   nv+=1.0;}
+        }
+        
+        if(k>0 && fz[IJKm1]>0.5) {++n; w+=0.0; nw+=1.0;}
+        if(k<p->knoz-1 && fz[IJK]>0.5) {++n; w+=0.0; nw+=1.0;}
+        
+        if(n<3)
+        continue;
+        
+        if(bz[IJK]>0.5) {w+=uz[IJK]; nw+=1.0;}
+        
+        u = nu>0.0 ? u/nu : 0.0;
+        v = nv>0.0 ? v/nv : 0.0;
+        w = nw>0.0 ? w/nw : 0.0;
+        
+        d->U[IJK] = u;
+        d->V[IJK] = v;
+        d->W[IJK] = w;
+        UH[IJK] = u*WL(i,j);
+        VH[IJK] = v*WL(i,j);
+        WH[IJK] = w*WL(i,j);
+    }
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
     pgc->start4V(p,d->W,12);
 }
 
@@ -624,8 +768,8 @@ double nhflow_thinbody::link_force(lexer *p, fdm_nhf *d, int dir, int i, int j, 
     
     if(dir==0)
     {
-        const double pa = rg*head(p,d,i,j,k)   + 0.5*(P[FIJK]+P[FIJKp1]);
-        const double pb = rg*head(p,d,i+1,j,k) + 0.5*(P[FIp1JK]+P[FIp1JKp1]);
+        const double pa = rg*head(p,d,i,j,k)   + pcell(p,P,i,j,k);
+        const double pb = rg*head(p,d,i+1,j,k) + pcell(p,P,i+1,j,k);
         const double D = 0.5*(d->eta(i,j)+d->depth(i,j) + d->eta(i+1,j)+d->depth(i+1,j));
         
         return (pa-pb)*p->DYN[JP]*p->DZN[KP]*D;
@@ -633,8 +777,8 @@ double nhflow_thinbody::link_force(lexer *p, fdm_nhf *d, int dir, int i, int j, 
     
     if(dir==1)
     {
-        const double pa = rg*head(p,d,i,j,k)   + 0.5*(P[FIJK]+P[FIJKp1]);
-        const double pb = rg*head(p,d,i,j+1,k) + 0.5*(P[FIJp1K]+P[FIJp1Kp1]);
+        const double pa = rg*head(p,d,i,j,k)   + pcell(p,P,i,j,k);
+        const double pb = rg*head(p,d,i,j+1,k) + pcell(p,P,i,j+1,k);
         const double D = 0.5*(d->eta(i,j)+d->depth(i,j) + d->eta(i,j+1)+d->depth(i,j+1));
         
         return (pa-pb)*p->DXN[IP]*p->DZN[KP]*D;

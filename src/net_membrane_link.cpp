@@ -193,6 +193,11 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
 
     // neighbours across subdomain borders
     pgc->start4V(p,sideC_,1);
+    
+    // sharp mode: node sides to the thin-body service (cell pressure next to the floor)
+    if(prm.link==2 && tb_!=nullptr)
+    for(int q : sideNq_)
+    tb_->sideN[q] = sideN_[q];
 
     // blocked links: porous-jump mobility 1/(1 + a R_n/l)
     blocked_.clear();

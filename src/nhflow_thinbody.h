@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"nhflow_convection.h"
 #include"increment.h"
 #include"slice4.h"
+#include"lexer.h"
 
 class lexer;
 class fdm_nhf;
@@ -66,11 +67,19 @@ using namespace std;
 //                     free surface only sees the inner fluxes)
 //    The non-hydrostatic pressure P then carries only the dynamic part; the static jump rho g (eta_L - eta) across
 //    the floor is carried by the body.
-// 2. Projection right-hand side (projection_rhs, nhflow_pjm::rhs): the face velocity of a blocked link in the
-//    divergence is the wall velocity, not the average of the two cell velocities; with the (near) zero link mobility
-//    the projected face flux through the body is the wall flux.
+// 2. Projection (projection_rhs in nhflow_pjm::rhs, nhflow_membrane_row, nhflow_membrane_gradx/grady): the face
+//    velocity of a blocked link in the divergence is the wall velocity, not the average of the two cell velocities;
+//    with the (near) zero link mobility the projected face flux through the body is the wall flux. Next to a floor
+//    the vertical control volume of a pressure node spans two cell layers: the half face of a layer whose cells both
+//    lie on the other side of the body than the node is closed (divergence and matrix), a horizontal node link
+//    between nodes on opposite sides gets the blocked mobility, and the cell pressure of the velocity correction is
+//    the node on the cell's own side (pcell). Without this the flow below the bag drives the water inside it.
+//    Cells that crossed the body with the moving sigma grid get the velocity of their new side (side_change).
 // 3. Cut cells (cut_forcing, before the projection): the vertical velocity of a cell with a blocked vertical node link
-//    is the wall velocity (its W is the link velocity of the vertical Poisson control volumes).
+//    is the wall velocity (its W is the link velocity of the vertical Poisson control volumes). Pockets of the staircase
+//    (cells with three or more blocked faces, e.g. below the rim of a cone floor) move with the body: in such a
+//    corner cell the collocated pressure correction acts through one or two faces only and the cell velocity can grow
+//    unchecked.
 //
 // Diffusion and turbulence: the implicit diffusion steps (momentum, k, epsilon/omega) get zero gradient across the
 // blocked faces (matrix_walls), the faces at the body are walls with a wall function for the turbulence model and,
@@ -91,6 +100,7 @@ public:
     void finish(lexer*, fdm_nhf*, ghostcell*);
     
     double *sideC;              // side of the cell centre, written by the clients
+    double *sideN;              // side of the nodes (FIJK), written by the clients
     double *bx,*by,*bz;         // 1: blocked link
     double *ux,*uy,*uz;         // wall velocity along the blocked link
     
@@ -101,7 +111,11 @@ public:
     void projection_rhs(lexer*, fdm_nhf*, double*, double*, double*, double);
     
     // 3. cut cells
-    void cut_forcing(lexer*, fdm_nhf*, double*, slice&);
+    void cut_forcing(lexer*, fdm_nhf*, double*, double*, double*, slice&);
+    
+    // cells that changed side since the last stage (the sigma grid moves with the free surface, a cell centre next
+    // to a floor can cross it): velocity of the neighbours on the new side, so that no momentum is carried through
+    void side_change(lexer*, fdm_nhf*, double*, double*, double*, slice&);
     
     // walls for diffusion and turbulence (nhflow_wall.h): faces of cell (i,j,k) at the body, 0 x-, 1 x+, 2 y-,
     // 3 y+, 4 below, 5 above (blocked links; vertically the faces between cell centres on opposite sides)
@@ -110,6 +124,41 @@ public:
     // zero gradient across the blocked faces in d->M / d->rhsvec of an implicit step of F (momentum diffusion,
     // k, epsilon/omega): no diffusive or eddy-viscous exchange through the body
     void matrix_walls(lexer*, fdm_nhf*, const double*);
+    
+    // pressure of a cell for the horizontal velocity correction: the mean of its two nodes, next to a floor only the
+    // node on the cell's own side (a cut layer would otherwise mix the pressure of both sides of the body)
+    inline double pcell(lexer *p, const double *P, int ii, int jj, int kk) const
+    {
+        const int q = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;
+        const int f = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin;
+        return pw[q]*P[f] + (1.0-pw[q])*P[f+1];
+    }
+    
+    // nodes (i,j,k) and its +x / +y neighbour on opposite sides of the body (horizontal node link of the Poisson
+    // equation crossing it)
+    inline bool node_cut_x(lexer *p, int ii, int jj, int kk) const
+    {
+        const int f = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin;
+        return sideN[f]*sideN[f+p->jmax*p->kmaxF]<0.0;
+    }
+    
+    inline bool node_cut_y(lexer *p, int ii, int jj, int kk) const
+    {
+        const int f = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin;
+        return sideN[f]*sideN[f+p->kmaxF]<0.0;
+    }
+    
+    // node control volumes straddling a floor: the half face of layer l of the node row belongs to the other side when
+    // both cells of that layer lie on the other side of the body than the node (side sN)
+    inline double nside(lexer *p, int ii, int jj, int kk) const
+    {
+        return sideN[(ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin];
+    }
+    
+    inline bool other_side(int qa, int qb, double sN) const
+    {
+        return sN!=0.0 && sideC[qa]*sN<0.0 && sideC[qb]*sN<0.0;
+    }
     
     // loads: force on the body [N] of the blocked link dir (0 x, 1 y, 2 vertical) of cell (i,j,k), in +dir
     double link_force(lexer*, fdm_nhf*, int, int, int, int);
@@ -127,6 +176,8 @@ private:
     int ncell;
     
     double *low;                // 1: lower cell (below a closed floor)
+    double *pw;                 // weight of node k in the cell pressure (pcell), 0.5 away from the body
+    double *side0;              // sideC of the previous stage
     double *fz;                 // 1: vertical momentum face between cells k and k+1 blocked (cell centres)
     slice4 etaL;                // hydrostatic head below closed floors
     slice4 fp;                  // 1: column with lower cells (footprint of a closed floor)
