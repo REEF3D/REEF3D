@@ -38,6 +38,8 @@ using namespace std;
 class sixdof
 {
 public:
+    virtual ~sixdof() {}
+
     virtual void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool)=0;
     virtual void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool)=0;
     virtual void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool)=0;
@@ -47,6 +49,10 @@ public:
     // impermeable membranes (X 330): implicit forcing before the projection, loads after it
     virtual void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
     virtual void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool) {};
+    // strong coupling (membrane.dat 'coupling iterated'): repeated projection, see nhflow_forcing::projection
+    virtual bool membrane_iterated() {return false;};
+    virtual void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
+    virtual bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int) {return true;};
     
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"fsf_vtp.h"
 #include"lexer.h"
+#include"runlog.h"
 
 void fsf_vtp::pvtp(lexer* p, int num)
 {
@@ -49,4 +50,6 @@ void fsf_vtp::pvtp(lexer* p, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"fsf","free_surface",name,p->M10);
 }

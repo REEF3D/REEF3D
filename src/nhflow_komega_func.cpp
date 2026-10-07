@@ -171,10 +171,17 @@ void nhflow_komega_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
     }
     
     count=0;
+    // buoyancy (A 566 1), G_b = -PK_b: a sink is taken implicitly as (-G_b/k) k (Patankar), a source explicitly
     if(p->A566==1)
     LOOP
     {
-        d->rhsvec.V[count]  -= PK_b[IJK];
+        const double gb = -PK_b[IJK];
+        
+        if(gb<0.0)
+        d->M.p[count] += -gb/MAX(KIN[IJK],1.0e-10);
+        
+        if(gb>0.0)
+        d->rhsvec.V[count] += gb;
         
 	++count;
     }
@@ -192,7 +199,15 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
         {
 		d->M.p[count] += kw_beta * MAX(EPS[IJK],0.0);
 
-        d->rhsvec.V[count] +=  kw_alpha * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*PK0[IJK];
+        // alpha omega/k P(nu_t0) = alpha S^2 for nu_t0 = k/omega; bounded by alpha S^2 where the
+        // 1e-4 nu floor makes nu_t0 > k/omega (same treatment as CFD komega_func::epssource)
+        const double ratio = MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
+
+        if(ratio*d->EV0[IJK]<=1.0 || d->EV0[IJK]<=1.0e-20)
+        d->rhsvec.V[count] +=  kw_alpha * ratio * PK0[IJK];
+        
+        else
+        d->rhsvec.V[count] +=  kw_alpha * PK0[IJK]/d->EV0[IJK];
         ++count;
         }
 
@@ -203,20 +218,19 @@ void nhflow_komega_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 
 void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    // free-surface value in the top sigma layer (A 567 > 0), turbulence length scale y' (Celik & Rodi 1984):
+    //   A567 1: y' = T37 (legacy k-omega meaning),  2: y' = T37,  3: y' = T37 h (h local water depth)
+    //   (2 and 3 mean the same in k-eps and k-omega, as T 36 1 and 3 in CFD)
+    // applied as a lower bound, so the free-surface value only ever lowers nu_t (as CFD T 36)
     k=p->knoz-1;
     
-	if(p->A567==1 || p->A567==2)
+	if(p->A567>=1 && p->A567<=3)
 	SLICELOOP4
-	{
 	if(p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37));
-	}
+	{
+    double ly = (p->A567==1) ? p->T37 : ((p->A567==2) ? p->T37 : p->T37*d->WL(i,j));
     
-    if(p->A567==3)
-	SLICELOOP4
-	{
-	if(p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)*(1.0/(p->T37*d->WL(i,j)));
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)/(ly>1.0e-20?ly:1.0e-20));
 	}
 }
 

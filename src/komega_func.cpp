@@ -54,7 +54,7 @@ void komega_func::isource(lexer *p, fdm* a)
     
     if(p->T33==1)
     ULOOP
-	a->F(i,j,k) = (2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
+	a->F(i,j,k) = -(2.0/3.0)*(kin(i+1,j,k)-kin(i,j,k))/p->DXP[IP];
 }
 
 void komega_func::jsource(lexer *p, fdm* a)
@@ -65,7 +65,7 @@ void komega_func::jsource(lexer *p, fdm* a)
     
     if(p->T33==1)
     VLOOP
-	a->G(i,j,k) = (2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
+	a->G(i,j,k) = -(2.0/3.0)*(kin(i,j+1,k)-kin(i,j,k))/p->DYP[JP];
 }
 
 void komega_func::ksource(lexer *p, fdm* a)
@@ -76,7 +76,7 @@ void komega_func::ksource(lexer *p, fdm* a)
     
     if(p->T33==1)
     WLOOP
-	a->H(i,j,k) = (2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
+	a->H(i,j,k) = -(2.0/3.0)*(kin(i,j,k+1)-kin(i,j,k))/p->DZP[KP];
 }
 
 void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
@@ -101,7 +101,7 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 
 			
 		eddyv0(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
 		}
 		
@@ -117,14 +117,14 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
     dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP], (1.0/3.0));
     
     if(p->T34==0)
-    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
+    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*MAX(eps(i,j,k),0.0)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
                 * MAX(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0), 0.0001*a->visc(i,j,k));
                           
     if(p->T34==1)
-    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*eps(i,j,k)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
+    eddyv0(i,j,k) = MIN(1.0, dxm*p->cmu*p->T23*MAX(eps(i,j,k),0.0)/   pow((kin(i,j,k)>(1.0e-20)?(kin(i,j,k)):(1.0e20)),0.5))
     
-                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/strainterm(p,a)),
+                * MAX(MIN(MAX(kin(i,j,k)/((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
     }
     
@@ -155,13 +155,16 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
 		i=p->gcin[n][0]+q;
 		j=p->gcin[n][1];
 		k=p->gcin[n][2];
+        
+        if(i>=p->knox || p->flag4[IJK]<0)   // stay inside the local subdomain and the fluid
+        continue;
 
 		if(a->phi(i,j,k)<0.0)
 		a->eddyv(i,j,k)=MIN(a->eddyv(i,j,k),1.0e-4);
         
         if(a->phi(i,j,k)>=0.0)
 		a->eddyv(i,j,k) = MAX(MIN(MAX(kin(i,j,k)
-						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(0.212*kin(i,j,k))/strainterm(p,a)),
+						  /((eps(i,j,k))>(1.0e-20)?(eps(i,j,k)):(1.0e20)),0.0),fabs(p->T31*kin(i,j,k))/(strainterm(p,a)+1.0e-20)),
 						  0.0001*a->visc(i,j,k));
 		}
     }
@@ -181,18 +184,17 @@ void komega_func::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
         
+        // dimensionless weight, 1 at the interface and 0 at the band edge (was the 1/m delta function capped at 1)
         if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
+        dirac = 0.5*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
             
         if(fabs(a->phi(i,j,k))>=epsi)
         dirac=0.0;
         
         if(dirac>0.0)
         {
-        sgs_val = pow(c_sgs,2.0)*pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0)
-                 *sqrt(2.0)*strainterm(p,a->u,a->v,a->w);
-                 
-        dirac=MIN(dirac,1.0);
+        sgs_val = pow(c_sgs,2.0)*(p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP])
+                 *strainterm(p,a->u,a->v,a->w);   // strainterm is already sqrt(2 Sij Sij)
                  
         a->eddyv(i,j,k) = MAX(a->eddyv(i,j,k),dirac*sgs_val);
         }
@@ -223,10 +225,18 @@ void komega_func::kinsource(lexer *p, fdm* a, vrans* pvrans)
     
     count=0;
     
+    // buoyancy (T 45 1), G_b = -pk_b: a sink (stable stratification) is taken implicitly as (-G_b/k) k, so it
+    // cannot drive k negative (Patankar); a source goes to the right-hand side
     if(p->T45==1)
     LOOP
     {
-        a->rhsvec.V[count]  -= pk_b(p,a,a->eddyv);
+        const double gb = -pk_b(p,a,a->eddyv);
+        
+        if(gb<0.0)
+        a->M.p[count] += -gb/MAX(kin(i,j,k),1.0e-10);
+        
+        if(gb>0.0)
+        a->rhsvec.V[count] += gb;
         
 	++count;
     }
@@ -243,7 +253,17 @@ void komega_func::epssource(lexer *p, fdm* a, vrans* pvrans, field &kin)
         {
 		a->M.p[count] += kw_beta * MAX(eps(i,j,k),0.0);
 
-        a->rhsvec.V[count] +=  kw_alpha * (MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20)))*pk(p,a,eddyv0);
+        // alpha omega/k P(nu_t0): with nu_t0 = k/omega this is alpha S^2; it is bounded by alpha S^2 where
+        // nu_t0 exceeds k/omega (the lower clip 1e-4 nu when k -> 0), otherwise omega/k blows up
+        const double ratio = MAX(eps(i,j,k),0.0)/(kin(i,j,k)>(1.0e-10)?(fabs(kin(i,j,k))):(1.0e20));
+        const double pk0 = pk(p,a,eddyv0);
+
+        if(ratio*eddyv0(i,j,k)<=1.0)
+        a->rhsvec.V[count] +=  kw_alpha * ratio * pk0;
+
+        if(ratio*eddyv0(i,j,k)>1.0)
+        a->rhsvec.V[count] +=  kw_alpha * pk0/eddyv0(i,j,k);
+
         ++count;
         }
 
@@ -254,6 +274,11 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
 {
     pflow->waterlevel_update(p,a,pgc);
     
+    // free-surface damping (T 36 > 0): turbulence length scale y' at the interface (Celik & Rodi 1984)
+    //   omega_s = k^0.5/(cmu^0.25 kappa y'),  T36 1: y' = T37,  2: 1/y' = 1/T37 + 1/walld,  3: y' = T37 h (h local water depth)
+    // applied as a lower bound omega = max(omega, w omega_s) with the dimensionless weight
+    // w = 0.5(1 + cos(pi phi/epsi)) in the band |phi| < epsi (w = 1 at the interface, 0 at the band edge),
+    // so the damping only ever lowers nu_t and does not depend on the grid spacing
 	if(p->T36>0)
 	LOOP
 	{
@@ -262,20 +287,33 @@ void komega_func::epsfsf(lexer *p, fdm* a, ghostcell *pgc, ioflow *pflow)
     if(p->j_dir==0)
     epsi = p->T38*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]); 
         
-    if(fabs(a->phi(i,j,k))<epsi)
-    dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-		
-    if(fabs(a->phi(i,j,k))>=epsi)
-    dirac=0.0;
-
-	if(dirac>0.0 && p->T36==1)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37);
-
-	if(dirac>0.0 && p->T36==2)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+    double w = 0.0;
     
-    if(dirac>0.0 && p->T36==3)
-	eps(i,j,k) = dirac*2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)*(1.0/(p->T37*a->WL(i,j)));
+    if(fabs(a->phi(i,j,k))<epsi)
+    w = 0.5*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
+
+	if(w>0.0)
+	{
+    double ly = p->T37;
+    
+    if(p->T36==2)
+    ly = 1.0/(1.0/p->T37 + 1.0/(a->walld(i,j,k)>1.0e-20?a->walld(i,j,k):1.0e20));
+    
+    if(p->T36==3)
+    {
+    const double h = fsf_depth(p,a);
+    ly = (h>0.0) ? p->T37*h : -1.0;   // no interface in this rank's column: no damping
+    }
+    
+    if(ly>0.0)
+    {
+    ly = MAX(ly, 0.5*p->DZN[KP]);
+    
+    const double eps_s = 2.5*pow(p->cmu,-0.25)*pow(fabs(kin(i,j,k)),0.5)/(ly>1.0e-20?ly:1.0e-20);
+    
+	eps(i,j,k) = MAX(eps(i,j,k), w*eps_s);
+    }
+	}
 	}
 }
 

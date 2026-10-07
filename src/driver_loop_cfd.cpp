@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
  #include"driver.h"
+#include"regression_dump.h"
 #include"dem.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -38,17 +39,13 @@ Author: Hans Bihs
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
+#include"runlog.h"
 
 
 void driver::loop_cfd(fdm* a)
 {
     if(p->mpirank==0)
     cout<<"starting mainloop.CFD"<<endl;
-    
-    //vec_test(p,a,pgc,a->test);
-    //pos_test(p,a,pgc);
-    //ipol_test(p,a,pgc);
-    //bedslope_test(p,pgc);
     
 //-----------MAINLOOP CFD----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
@@ -108,6 +105,7 @@ void driver::loop_cfd(fdm* a)
         
         // printer
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+        preg->cfd_step(p,a,pgc,pturb,pconc);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -147,13 +145,15 @@ void driver::loop_cfd(fdm* a)
     
     pgc->gcparax(p,a->press,4);
     
-    
     stop(p,a,pgc);
 	}
 
 	if(p->mpirank==0)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
+
+	if(p->plog)
+	p->plog->end(p,"finished");
 
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout << endl;
@@ -162,6 +162,8 @@ void driver::loop_cfd(fdm* a)
     maxlogout.close();
     solvlogout.close();
 	}
+
+    preg->cfd_final(p,a,pgc,pturb,pconc);
 
     pgc->final();
 }

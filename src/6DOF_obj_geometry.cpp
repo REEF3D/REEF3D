@@ -21,6 +21,8 @@ Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -42,27 +44,8 @@ void sixdof_obj::geometry_stl(lexer *p, ghostcell *pgc)
 {
     if(p->X180==1)
     {
-        double x1, x2, x3, y1, y2, y3, z1, z2, z3;
-        Vfb=0.0;
-        for (int n = 0; n < tricount; ++n)
-        {
-        
-            
-            x1 = tri_x[n][0];
-            x2 = tri_x[n][1];
-            x3 = tri_x[n][2];
-            
-            y1 = tri_y[n][0];
-            y2 = tri_y[n][1];
-            y3 = tri_y[n][2];
-            
-            z1 = tri_z[n][0];
-            z2 = tri_z[n][1];
-            z3 = tri_z[n][2];  
-                
-            Vfb += (1.0/6.0)*(-x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
-        }
-        
+        Vfb = geom.volume();
+    
         if (p->X22==1)
         {
             Mass_fb = p->X22_m;
@@ -78,7 +61,7 @@ void sixdof_obj::geometry_stl(lexer *p, ghostcell *pgc)
     }
 }
 
-void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 {
 	// Total Volume
 	double H;
@@ -235,7 +218,7 @@ void sixdof_obj::geometry_ls(lexer *p, fdm *a, ghostcell *pgc)
 }
 
 
-void sixdof_obj::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 	// Total Volume
 	double H;

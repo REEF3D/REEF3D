@@ -1,0 +1,46 @@
+# Submerged-bar experiment (Beji & Battjes 1993 / Luth, Klopman & Kitou 1994; Dingemans 1994), regular waves T = 2.02 s
+# Gauge WG5, x = 12.5 m (Basilisk coordinate: wave-board-side bar toe at x = 6 m; see geometry.txt)
+# SOURCE (secondary): Basilisk test-case data file 'gauge-5', fetched via
+#   http://basilisk.fr/src/test/gauge-5?raw   (used by http://basilisk.fr/src/test/bar.c and bar-ml.c)
+# bar.c text: "The location of the gauges is difficult to find in the litterature, we used a combination of
+#   Yamazaki et al, 2009 and Dingemans, 1994." Experimental points are plotted as circles against model
+#   output plotted as ($1+t0):($2*100.) with t0 = -0.24, i.e. the data columns are t [s] and eta [cm].
+# PROVENANCE WARNING: values look DIGITIZED from a published figure (irregular dt ~0.16-0.2 s, repeated
+#   quantized eta values, only ~3 wave periods 33-39 s). Original instrument records (Dingemans 1994,
+#   Delft Hydraulics report H1684) are NOT this file. Time origin is that of the digitized plot.
+# The raw file contained the same sequence twice; the exact duplicate copy has been dropped. No value changed.
+# columns: t[s]  eta[cm]
+33.1076 -0.119475
+33.2848 -0.515876
+33.4476 -0.774973
+33.6248 -1.05711
+33.8048 -1.17144
+33.9648 -1.02661
+34.1448 -0.0127345
+34.3249 2.03772
+34.5048 1.10015
+34.682 0.452112
+34.842 0.345509
+35.0249 -0.0127345
+35.2021 -0.340689
+35.382 -0.668278
+35.542 -0.95048
+35.722 -1.20962
+35.9021 -1.13331
+36.0792 -0.592146
+36.2593 1.28312
+36.4392 1.81678
+36.5992 0.673326
+36.7793 0.414138
+36.9565 0.12434
+37.1193 -0.157679
+37.2964 -0.485451
+37.4765 -0.813223
+37.6536 -1.09524
+37.8164 -1.17144
+37.9965 -0.95048
+38.1736 0.345509
+38.3565 2.1825
+38.5164 0.9553
+38.6937 0.482767
+38.8736 0.307351

@@ -38,16 +38,21 @@ bedload_einstein::~bedload_einstein()
 
 void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
-    // Einstein-Brown:  Phi = 2.15*exp(-0.391/theta)  for theta < 0.182
+    // Einstein-Brown:  Phi = qb/(F sqrt(R g d^3)), F: Rubey fall-velocity factor
+    //                  Phi = 2.15*exp(-0.391/theta)  for theta < 0.182
     //                  Phi = 40*theta^3              for theta >= 0.182
-    double qb,Tb,Rstar;
+    double qb,Tb,Rstar,Fr;
+    const double visc = p->W2;
 
     d50 = s->dk;
 
 	SEDSLICELOOP
     {
-        rhowat = s->ro(i,j);
+        rhowat = p->W1;      // water density (s->ro is the density at the bed cell, air in dry CFD cells)
         Rstar = (rhosed-rhowat)/rhowat;
+        
+        // Rubey (1933) fall-velocity factor: Phi = qb/(F sqrt(R g d^3))
+        Fr = sqrt(2.0/3.0 + 36.0*visc*visc/(g*Rstar*d50*d50*d50)) - sqrt(36.0*visc*visc/(g*Rstar*d50*d50*d50));
 
         Tb = s->shields_eff(i,j);
 
@@ -61,7 +66,7 @@ void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
             if(Tb>=0.182)
             qb = 40.0*Tb*Tb*Tb;
 
-        qb *= sqrt(Rstar*g*d50*d50*d50);
+        qb *= Fr*sqrt(Rstar*g*d50*d50*d50);
         }
 
         s->qbe(i,j) = qb;

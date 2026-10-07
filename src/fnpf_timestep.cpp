@@ -105,9 +105,10 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     if(p->j_dir==1 )
     cu = MIN(cu,cv);
     
+    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    cu = pgc->globalmin(cu);
+
    	p->dt=p->N47*cu;
-    
-	p->dt=pgc->timesync(p->dt);
     
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"dt: "<<p->dt<<endl;

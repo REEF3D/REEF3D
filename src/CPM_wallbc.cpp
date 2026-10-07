@@ -26,24 +26,26 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
+// parcels in the first cell column at the in- and outflow boundaries are fixed (BEDBC),
+// they retain the bed at the open boundaries
 void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     for(size_t n=0;n<P.index;n++)
     if(P.Flag[n]==ACTIVE)
     {
         i=p->posc_i(P.X[n]);
-        j=p->posc_j(P.Y[n]);
-        k=p->posc_k(P.Z[n]);
-            
         
-        if(k==0||i==0||i==p->knox-1||j==0||j==p->knoy-1)
+        if((i<=0 && p->nb1<0 && open_side[0]==1) || (i>=p->knox-1 && p->nb4<0 && open_side[3]==1))
         {
         P.Flag[n]=BEDBC;
+        
+        P.U[n] = P.V[n] = P.W[n] = 0.0;
         
         P.XRK1[n] = P.X[n];
         P.YRK1[n] = P.Y[n];
         P.ZRK1[n] = P.Z[n];
+        
+        P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
         }
     }
-    
 }

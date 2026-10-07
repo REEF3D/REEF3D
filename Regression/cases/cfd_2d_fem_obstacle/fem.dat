@@ -1,0 +1,6 @@
+# elastic obstacle 20 mm x 120 mm, clamped at the bottom
+lattice 0.005 0.01 0.005  0 0 0
+material 1 elastic 2500 1.0e6 0.0
+box 0.20 0.22 0.0 0.01 0.0 0.12 1
+fix -1 1 -1 1 -0.0001 0.0001 xyz
+monitor tip 0.20 0.0 0.12

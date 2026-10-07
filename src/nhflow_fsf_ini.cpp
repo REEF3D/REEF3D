@@ -115,6 +115,16 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
             d->eta(i,j)= p->F72_h[qn] - p->F60;
 
         }
+
+        // water level and wet flags of the boxes, as nhflow_f::ini sets them for eta = 0: a cell
+        // a box raises above the bed is wet, a cell it lowers below the bed is dry
+        SLICELOOP4
+        {
+        d->WL(i,j) = d->eta(i,j) + d->depth(i,j);
+        p->wet[IJ] = (d->WL(i,j)<p->A544) ? 0 : 1;
+        }
+
+        pgc->gcsl_start4Vint(p,p->wet,50);
     }
     
     

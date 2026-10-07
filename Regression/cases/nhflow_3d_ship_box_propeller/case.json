@@ -1,0 +1,9 @@
+{
+ "description": "Ship module (X 350): NHFLOW 3D box barge (draft 0.15 m) with a body-force propeller at fixed rps behind the stern: KT/KQ polynomials, wake fraction, Hough-Ordway actuator disk as momentum source in the fluid, shaft torque reaction; surge, heave and pitch free, 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": ["ship.dat"],
+ "tags": ["3d", "nhflow", "6dof", "ship", "propeller", "mpi"],
+ "covers": ["ship propeller (ship_models::propeller)", "sixdof_actuator_disk weights", "sixdof_obj_nhflow::actuator_source (momentum source, MPI sums)", "sixdof_load::actuator_disks", "REEF3D_ship output (propeller columns)"]
+}

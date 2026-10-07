@@ -34,7 +34,7 @@ sixdof_nhflow::sixdof_nhflow(lexer *p, ghostcell *pgc) : press(p)
     number6DOF = 1;
     
     for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj.push_back(new sixdof_obj(p,pgc,nb));
+    fb_obj.push_back(new sixdof_obj_nhflow(p,pgc,nb));
 }
 
 sixdof_nhflow::~sixdof_nhflow()
@@ -45,6 +45,13 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
     starttime = pgc->timer();
+    
+    if(amr_predict && (p->X10==1 || p->X10==2))
+    {
+    start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,false);
+    p->fbtime+=pgc->timer()-starttime;
+    return;
+    }
     
     if(p->X10==1)
     start_twoway(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
@@ -206,6 +213,14 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
 void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    // subcycling (G 7 1): the predicted body of level 0 takes no loads
+    if(amr_predict)
+    {
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+    return;
+    }
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // 1. re-impose no-slip at the position the fluid was solved with
@@ -248,4 +263,31 @@ void sixdof_nhflow::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pg
 {
     for (int nb=0; nb<number6DOF;++nb)
     fb_obj[nb]->membrane_reaction_nhflow(p,d,pgc,alpha,WL,finalize);
+}
+
+bool sixdof_nhflow::membrane_iterated()
+{
+    bool it=false;
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    it = fb_obj[nb]->membrane_iterated() || it;
+    
+    return it;
+}
+
+void sixdof_nhflow::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+{
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->membrane_reforce_nhflow(p,d,pgc,alpha,UH,VH,WH,WL);
+}
+
+bool sixdof_nhflow::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
+{
+    // every body iterates its membranes; converged when all are
+    bool conv=true;
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    conv = fb_obj[nb]->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it) && conv;
+    
+    return conv;
 }

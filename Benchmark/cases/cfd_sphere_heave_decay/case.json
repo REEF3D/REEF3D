@@ -1,0 +1,52 @@
+{
+ "description": "Free heave decay of a sphere R = 0.5 m of half the water density (tutorial 11_16, heave only, initial offset 0.1 m = 0.2 R, damping zones at the walls). Equilibrium from Archimedes (centre at the still water level), damped period and damping ratio of the first periods against linear potential theory with Hulme's (1982) hemisphere coefficients (T = 1.386 s, zeta = 0.084). The offset is moderate, so a few per cent nonlinear deviation is expected and allowed in the tolerances.",
+ "reference": {
+  "short": "Hulme (1982) linear theory",
+  "citation": "Hulme, A. (1982) The wave forces acting on a floating hemisphere undergoing forced periodic oscillations. J. Fluid Mech. 121, 443-463 (added mass and damping, table via LHEEA Hulme_Heaving_Sphere), see refdata/misc/hulme_hemisphere_heave.txt; equilibrium: Archimedes"
+ },
+ "tags": [
+  "cfd",
+  "semi-analytical",
+  "3d",
+  "two-phase",
+  "6dof"
+ ],
+ "np": 32,
+ "time": 8.0,
+ "files": [
+  "floating.stl"
+ ],
+ "check": {
+  "type": "heave_decay",
+  "R": 0.5,
+  "mass_ratio": 1.0,
+  "z_eq": 2.0,
+  "n_periods": 2,
+  "hulme": "misc/hulme_hemisphere_heave.txt",
+  "tol_T": 0.05,
+  "tol_zeta": 0.25,
+  "tol_eq": 0.02,
+  "eq_window": 1.0
+ },
+ "levels": {
+  "nightly": {
+   "np": 4,
+   "control_set": {
+    "B 1": "0.05",
+    "B 127": "0.05 0.3 3.0 1.5 1.1",
+    "B 128": "0.05 0.3 3.0 1.5 1.1",
+    "B 129": "0.05 0.3 2.0 1.5 1.1",
+    "M 10": "4"
+   },
+   "ctrl_set": {
+    "M 10": "4"
+   },
+   "check_set": {
+    "tol_T": 0.06,
+    "tol_zeta": 0.25,
+    "tol_eq": 0.02
+   }
+  },
+  "release": {}
+ }
+}

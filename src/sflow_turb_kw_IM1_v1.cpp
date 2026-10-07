@@ -102,7 +102,7 @@ void sflow_turb_kw_IM1_v1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = MAX(MIN(MAX(kin(i,j)
-                        /pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5),0.0),fabs(p->T31*kin(i,j))/(S(i,j)>1.0e-20?S(i,j):1.0e-20)),
                         0.0001*p->W2);
 
 	pgc->gcsl_start4(p,b->eddyv,24);
@@ -114,7 +114,7 @@ void sflow_turb_kw_IM1_v1::kin_source(lexer* p, fdm2D *b)
     SLICELOOP4
     {
     if(wallf(i,j)==0)
-    b->M.p[count] += p->cmu / pow(((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.5);
+    b->M.p[count] += p->cmu * sqrt(MAX(eps(i,j),0.0)); // beta* omega, with omega = sqrt(W)
     
     if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
@@ -138,7 +138,7 @@ void sflow_turb_kw_IM1_v1::omega_source(lexer* p, fdm2D *b)
                        
                        + 3.5*b->eddyv(i,j)*Qw(i,j)
                        
-                       + (7.184/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.5)) * (pow(ustar(i,j),3.0)/(HP*HP*HP));
+                       + (7.184/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,-1.5)) * (pow(ustar(i,j),3.0)/(HP*HP*HP));   // cmu^-1.5: equilibrium with the 0.17 W^1.5 sink
     ++count;
     }
 
@@ -147,6 +147,7 @@ void sflow_turb_kw_IM1_v1::omega_source(lexer* p, fdm2D *b)
 void sflow_turb_kw_IM1_v1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     double dudx,dvdy,dudy,dvdx;
+    double uc,up,um,vc,vp,vm;
     
     SLICELOOP4
     {
@@ -155,8 +156,19 @@ void sflow_turb_kw_IM1_v1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
-    dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
-    dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
+    // cross derivatives: walls (free-slip in SFLOW momentum), open boundaries and dry neighbours
+    // are treated as zero-gradient (mirror) instead of no-slip; no y-derivatives in 1D (as sflow_turb_ke_IM1)
+    uc = 0.5*(b->P(i,j)+b->P(i-1,j));
+    up = (p->flagslice4[IJp1]<0 || p->wet[IJp1]==0) ? uc : 0.5*(b->P(i,j+1)+b->P(i-1,j+1));
+    um = (p->flagslice4[IJm1]<0 || p->wet[IJm1]==0) ? uc : 0.5*(b->P(i,j-1)+b->P(i-1,j-1));
+    dudy = (up - um)/(2.0*p->DXM)*p->y_dir;
+    
+    vc = 0.5*(b->Q(i,j)+b->Q(i,j-1));
+    vp = (p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0) ? vc : 0.5*(b->Q(i+1,j)+b->Q(i+1,j-1));
+    vm = (p->flagslice4[Im1J]<0 || p->wet[Im1J]==0) ? vc : 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1));
+    dvdx = (vp - vm)/(2.0*p->DXM)*p->y_dir;
+    
+    dvdy *= p->y_dir;
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     
@@ -174,12 +186,12 @@ void sflow_turb_kw_IM1_v1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     SLICELOOP4
     {
-    uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
-    vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
+    uvel = b->U(i,j);   // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
+    vvel = b->V(i,j);
     
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
     
-    cf(i,j) = pow(manning,2.0)*9.81/pow(HP,1.0/3.0);
+    cf(i,j) = pow(manning,2.0)*fabs(p->W22)/pow(HP,1.0/3.0);
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
@@ -299,7 +311,7 @@ void sflow_turb_kw_IM1_v1::wall_law_omega(lexer* p, fdm2D *b)
     
     SLICELOOP4
     if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
-    eps(i,j) = (kin(i,j)>(0.0)?(kin(i,j)):(0.0)) / (0.4*0.4*dist*dist*pow(p->cmu, 0.25));
+    eps(i,j) = (kin(i,j)>(0.0)?(kin(i,j)):(0.0)) / (0.4*0.4*dist*dist*pow(p->cmu, 0.5)); // W = omega^2 = k/(kappa^2 y^2 sqrt(cmu))
     
     
     n=0;

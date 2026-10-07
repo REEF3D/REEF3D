@@ -47,14 +47,10 @@ public:
     int A10;
 
     // SFLOW
-    int A209,A210,A211,A212,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
+    int A209,A210,A211,A212,A213,A214,A215,A216,A217,A218,A219,A220,A221,A230,A240,A241,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
-    int A270,A271,A272,A274,A275,A276,A277,A278,A280,A281;
-    double A273,A278_r,A279_L,A279_a;
-    double *A276_xs,*A276_xe,*A276_ys,*A276_ye;
-    double *A277_xs,*A277_xe,*A277_ys,*A277_ye;
-    double A223,A224,A247,A249,A244,A251_val;
+    double A222,A223,A224,A247,A249,A244,A251_val;
     double A250;
 
     // FNPF
@@ -116,6 +112,21 @@ public:
     double A592_dx,A592_dy,A592_dz;
     double A593_x,A593_y,A593_z,A593_phi,A593_theta,A593_psi;
 
+    // Spectral
+    int A700,A701,A703,A704,A707,A710,A711,A712_xm,A712_xp,A712_ym,A712_yp,A713,A714,A720;
+    double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe;
+    int A730,A732,A733,A740,A742,A744;
+    double A731_u10,A731_dir,A734,A735,A741_alpha,A741_gamma,A743,A745;
+    int A737;
+    double A736_cutfr,A736_urcrit,A736_urslim;
+    int A750,A751,A753,A760;
+    double A752,A761;
+    int A748,A770,A773,A774,A775;
+    double A746,A747,A749,A771,A772,A780;
+    int A790,A792,A794,A796,A797;
+    double A709,A791,A793,A795;
+    double *A760_x,*A760_y;
+
     // NHFLOW Lagrangian particles
     int L10,L11;
     int L21,L22,L23;
@@ -136,10 +147,28 @@ public:
     int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
     double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
-    double B91_1,B91_2,B93_1,B93_2,B94_wdt,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
+    double B91_1,B91_2,B93_1,B93_2,B94_wdt,B95,B96_1,B96_2,B102,B105_1,B105_2,B105_3;
     double *B71_val,*B71_dist,*B71_b,*B71_x,*B71_y;
     double *B106_b,*B106_x,*B106_y;
     double *B107_xs,*B107_xe,*B107_ys, *B107_ye, *B107_d;
+
+    // iowave redesign: wave sources (B 500-504) and boundary zones (B 520-524), repeatable
+    int B500,B501,B502,B504,B520,B521,B524;
+    int *B500_id,*B500_type; double *B500_H,*B500_T;
+    int *B501_id; double *B501_dir,*B501_phase,*B501_ts,*B501_te,*B501_tramp;
+    int *B502_id; double *B502_x,*B502_y;
+    int *B504_id,*B504_seed;
+    int *B520_id,*B520_method,*B520_prio;
+    int *B521_id,*B521_edge; double *B521_s0,*B521_s1,*B521_w;
+    int *B524_id,*B524_src;
+    // iowave redesign: tidal / current background (B 510-514) and zone background (B 523), repeatable
+    int B510,B511,B514,B515,B523;
+    int B530,B530_N;    // iowave redesign: waves on the background (B 530 mode N)
+    int *B515_id; double *B515_x0,*B515_y0,*B515_href;
+    int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
+    int *B511_id; double *B511_a,*B511_T,*B511_phase;
+    int *B514_id; double *B514_eta0,*B514_U,*B514_V;
+    int *B523_id,*B523_bg;
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;
@@ -246,11 +275,12 @@ public:
     double *C75_x,*C75_z,*C75_a,*C75_s,*C75_l,*C75_v;
 
     // discretization
-    int D10,D11,D20,D21,D22,D30,D31,D37;
+    int D10,D11,D12,D20,D21,D22,D23,D30,D31,D37;
+    double D13;
 
     // Free Surface
-    int F30,F31,F32,F34,F35,F36,F40,F44,F46,F47,F50,F150,F151;
-    double F33,F39,F42,F43,F45;
+    int F30,F31,F32,F34,F35,F36,F37,F40,F44,F46,F47,F50,F150,F151;
+    double F33,F38,F39,F42,F43,F45;
     double F51,F52,F53,F54,F55,F56;
     int F50_flag;
     double F57_1,F57_2,F57_3,F57_4;
@@ -311,9 +341,15 @@ public:
     double *F399_xc, *F399_yc,*F399_zc, *F399_r;
 
     // Grid Options
-    int G1,G2,G5;
-    int G10,G11,G12,G20,G21,G22,G30;
-    int G40,G41;
+    // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40;
+    double G12_r,G13_L,G13_a,G20,G21;
+    double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
+    double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
+    // grid
+    int G501,G502,G505;
+    int G510,G511,G512,G520,G521,G522,G530;
+    int G540,G541;
 
     // Heat Options
     double H1,H2;
@@ -342,7 +378,7 @@ public:
     int M10;
 
     // Print options
-    int P10,P11,P12,P15,P16,P19,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
+    int P10,P11,P12,P15,P16,P18,P19,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
     int P61,P62,P63,P64,P65,P66,P67,P68,P69,P71,P72,P73,P74,P75,P76,P77,P78,P79,P80,P81,P82,P85,P88,P92,P99,P101,P120,P121,P122,P123,P124,P125,P126;
     int P144,P145,P146,P147,P148,P140,P150,P151,P152,P166,P167,P168,P180,P181,P184,P185,P186,P190,P191,P194,P195;
     double P22,P30,P34,P39,P42;
@@ -418,9 +454,13 @@ public:
     double Q15;
     double Q16;
     double Q17;
+    double Q18;
+    double Q26;
+    int Q19,Q27,Q28,Q44,Q50,Q51,Q52,Q57,Q58;
+    double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
     double Q22;
     double Q23;
-    double Q25,Q30;
+    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
@@ -491,7 +531,7 @@ public:
     double W112;
 
     // 6DOF
-    int X10,X12,X14,X15,X16,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X37,X38;
+    int X10,X12,X14,X15,X16,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
     int X39,X40,X45,X46,X48,X49,X50,X60,X110,X120,X131,X132,X133;
     int X100,X101,X102,X103,X141,X142,X143,X153,X170,X171,X172;
     int X180,X181,X182,X183,X210,X211;
@@ -504,7 +544,6 @@ public:
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
     double X41,X42,X43,X44;
-    double X37_val,X39_Lwl,X39_k;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;
     double *X102_u, *X102_v, *X102_w;
@@ -555,16 +594,22 @@ public:
     double *X322_D,*X322_L,*X322_x0,*X322_y0,*X322_z0,*X322_phi,*X322_theta,*X322_psi;
     int X324;
     int X330;
+    int X350;
     double X323_m,X323_d,X323_l;
     double *X324_x,*X324_y,*X324_z;
     double X325_dt,X325_relX,X325_relY,X325_relZ;
     int X400;
     double X401_p0,X401_cl,X401_cb,X401_a;
     int X410;
+    int X500,X501,X502,X503,X504;
+    double X501_ax,X501_ay,X501_az,X501_xa,X501_ya,X501_za;
+    double X502_B;
+    double X503_K,X503_B;
+    double X504_qmin,X504_qmax,X504_K,X504_C;
 
     // FSI
-    int Z10,Z11,Z20;
-    double Z21;
+    int Z10,Z11,Z20,Z30;
+    double Z21,Z31;
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
     double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
 

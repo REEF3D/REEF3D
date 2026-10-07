@@ -100,10 +100,9 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         bcmom_start(a,p,pgc,pturb,a->u,gcval_u);
         ppress->upgrad(p,a,a->eta,a->eta_n);
         irhs(p,a,pgc,a->u,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_u(p,a,pgc,psolv,urk,a->u,a->u,a->v,a->w,2.0*alpha(loop));
-
+        // combine the explicit terms first (sources, pressure, convection), then solve the implicit diffusion
         ULOOP
-        urk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR1*a->F(i,j,k);
+        urk(i,j,k) = a->u(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR1*a->F(i,j,k);
 
         // Add convection
         ULOOP
@@ -117,6 +116,15 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         ULOOP
         Cu(i,j,k)=a->F(i,j,k);
 
+        ULOOP
+        a->F(i,j,k)=0.0;
+
+        pdiff->diff_u(p,a,pgc,psolv,urk,urk,a->u,a->v,a->w,2.0*alpha(loop));
+
+        // explicit diffusion (D 20 1) adds to F; zero for the implicit schemes
+        ULOOP
+        urk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR1*a->F(i,j,k);
+
         p->utime+=pgc->timer()-starttime;
         
     // -------------------
@@ -129,10 +137,9 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         bcmom_start(a,p,pgc,pturb,a->v,gcval_v);
         ppress->vpgrad(p,a,a->eta,a->eta_n);
         jrhs(p,a,pgc,a->v,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_v(p,a,pgc,psolv,vrk,a->v,a->u,a->v,a->w,2.0*alpha(loop));
-        
+        // combine the explicit terms first (sources, pressure, convection), then solve the implicit diffusion
         VLOOP
-        vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
+        vrk(i,j,k) = a->v(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
 
         // Add convection
         VLOOP
@@ -146,6 +153,15 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         VLOOP
         Cv(i,j,k)=a->G(i,j,k);
 
+        VLOOP
+        a->G(i,j,k)=0.0;
+
+        pdiff->diff_v(p,a,pgc,psolv,vrk,vrk,a->u,a->v,a->w,2.0*alpha(loop));
+
+        // explicit diffusion (D 20 1) adds to G; zero for the implicit schemes
+        VLOOP
+        vrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR2*a->G(i,j,k);
+
         p->vtime+=pgc->timer()-starttime;
 
     // -------------------
@@ -158,10 +174,9 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         bcmom_start(a,p,pgc,pturb,a->w,gcval_w);
         ppress->wpgrad(p,a,a->eta,a->eta_n);
         krhs(p,a,pgc,a->w,a->u,a->v,a->w,2.0*alpha(loop));
-        pdiff->diff_w(p,a,pgc,psolv,wrk,a->w,a->u,a->v,a->w,2.0*alpha(loop));
-
+        // combine the explicit terms first (sources, pressure, convection), then solve the implicit diffusion
         WLOOP
-        wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
+        wrk(i,j,k) = a->w(i,j,k) + 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
         
         // Add convection
         WLOOP
@@ -174,6 +189,15 @@ void momentum_RKLS3_df::starti(lexer* p, fdm* a, ghostcell* pgc, sixdof* p6dof, 
         
         WLOOP
         Cw(i,j,k)=a->H(i,j,k);
+
+        WLOOP
+        a->H(i,j,k)=0.0;
+
+        pdiff->diff_w(p,a,pgc,psolv,wrk,wrk,a->u,a->v,a->w,2.0*alpha(loop));
+
+        // explicit diffusion (D 20 1) adds to H; zero for the implicit schemes
+        WLOOP
+        wrk(i,j,k) += 2.0*alpha(loop)*p->dt*CPOR3*a->H(i,j,k);
 
         p->wtime+=pgc->timer()-starttime;
 

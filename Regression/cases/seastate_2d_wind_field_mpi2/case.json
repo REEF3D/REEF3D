@@ -1,0 +1,22 @@
+{
+ "description": "REEF3D::SEASTATE wind field in space and time (A 730 2, seastate-wind.dat: 9 x 5 nodes, 4 hourly records, wind 10 -> 22 m/s turning by 45 deg, weaker towards y+) with Komen physics and DIA, boundary spectra from a stationary file with 2 locations (A 711 3), 2 ranks; 20 x 10 cells of 2 km, deep water, 3 h. Validation in Dropbox SEASTATE/validation/17-18.",
+ "solver": "seastate",
+ "np": 2,
+ "steps": 18,
+ "time": 10800.0,
+ "files": [
+  "seastate-boundary.spc",
+  "seastate-wind.dat"
+ ],
+ "tags": [
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_wind_series reader and interpolation",
+  "per-cell wind in the source terms (seastate_implicit wind_field)",
+  "boundary spectra per rank",
+  "VTP fields U10x, U10y"
+ ]
+}

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"heaviside.h"
 
 fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm* a, ghostcell* pgc) : dx(p->DXM),
 												visc_air(p->W4),visc_water(p->W2),ro_water(p->W1)
@@ -59,14 +60,7 @@ void fluid_update_fsf_comp::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
         
 		ro_air = (0.0035*(101325.0 + a->press(i,j,k)))  / (273.15 + p->W31);
 		
-		if(a->phi(i,j,k)>epsi)
-		H=1.0;
-
-		if(a->phi(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+		H = heaviside(a->phi(i,j,k),epsi);
 		
 		if(a->phi(i,j,k)>=0.0)
 		Hro=1.0;

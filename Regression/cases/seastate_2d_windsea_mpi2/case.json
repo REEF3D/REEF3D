@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE nonstationary wind-sea growth from rest on 2 ranks (A 700 1, dt 300 s, 2 iterations per step): Komen wind input (U10 15 m/s, 20 deg) and whitecapping, DIA, action density limiter, halo exchange of the spectra, zero-gradient lateral sides; 40 x 3 cells of 1 km, 10 steps.",
+ "solver": "seastate",
+ "np": 2,
+ "steps": 10,
+ "tags": ["quick", "2d", "seastate", "mpi"],
+ "covers": ["seastate_source nonstationary with the limiter", "seastate_exchange with source terms", "oblique wind"]
+}

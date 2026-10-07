@@ -25,6 +25,10 @@ Author: Hans Bihs
 
 int position::posc_i(double xs)
 {
+    // inside the grid: the node interval, without the bisection (same result)
+    if(xs>=p->XN[0+marge] && xs<p->XN[p->knox+marge])
+    return fast_index(ffci,p->XN,0,p->knox,xs);
+    
     stop=0;
     count=0;
 
@@ -92,6 +96,10 @@ int position::posc_i(double xs)
 
 int position::posc_j(double ys)
 {
+    // inside the grid: the node interval, without the bisection (same result)
+    if(ys>=p->YN[0+marge] && ys<p->YN[p->knoy+marge])
+    return fast_index(ffcj,p->YN,0,p->knoy,ys);
+    
     stop=0;
     
     js = 0;
@@ -166,6 +174,10 @@ int position::posc_j(double ys)
 
 int position::posc_k(double zs)
 {
+    // inside the grid: the node interval, without the bisection (same result)
+    if(zs>=p->ZN[0+marge] && zs<p->ZN[p->knoz+marge])
+    return fast_index(ffck,p->ZN,0,p->knoz,zs);
+    
     stop=0;
     
     ks = 0;

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
 {
     // porous floating body: Darcy-Forchheimer resistance instead of rigid direct forcing
@@ -96,19 +96,18 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
 		nz /= norm > 1.0e-20 ? norm : 1.0e20;
         
         
-        if(d->FB[IJK]<=0.0)
-        {
-        FX[IJK] += H*(uf - U[IJK])/(alpha[iter]*p->dt);
-        FY[IJK] += H*(vf - V[IJK])/(alpha[iter]*p->dt);
-        FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
-        }
-
-        if(d->FB[IJK]>0.0)
-        {
-        FX[IJK] += fabs(nx)*H*(uf - U[IJK])/(alpha[iter]*p->dt);
-        FY[IJK] += fabs(ny)*H*(vf - V[IJK])/(alpha[iter]*p->dt);
-        FZ[IJK] += fabs(nz)*H*(wf - W[IJK])/(alpha[iter]*p->dt);
-        }
+        // full forcing inside the body, normal-weighted forcing (tangential velocity kept) outside,
+        // ramped over a thin shell |FB| < dsh around the surface. A sharp switch at FB = 0 jumps
+        // for cell centres on or next to the surface (a flat side through a row of cell centres):
+        // the smallest rotation moves the row partly inside and partly outside, and the jump in
+        // the forcing kicks a symmetric hull into sway and yaw.
+        const double dsh = 0.25*Hpsi_nhflow(p,d);
+        const double tb = MIN(MAX(0.5*(1.0 - d->FB[IJK]/dsh), 0.0), 1.0);
+        const double sb = tb*tb*(3.0 - 2.0*tb);
+        
+        FX[IJK] += (sb + (1.0-sb)*fabs(nx))*H*(uf - U[IJK])/(alpha[iter]*p->dt);
+        FY[IJK] += (sb + (1.0-sb)*fabs(ny))*H*(vf - V[IJK])/(alpha[iter]*p->dt);
+        FZ[IJK] += (sb + (1.0-sb)*fabs(nz))*H*(wf - W[IJK])/(alpha[iter]*p->dt);
     
     }
     
@@ -180,7 +179,16 @@ void sixdof_obj::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     pgc->start5V(p,d->FHB,50);
 }
     
-double sixdof_obj::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
+double sixdof_obj_nhflow::Hpsi_nhflow(lexer *p, fdm_nhf *d)
+{
+    // half width of the smoothed Heaviside of the direct forcing (as in Hsolidface_nhflow)
+    if(p->j_dir==0)
+    return p->A526*p->DXN[IP];
+    
+    return p->A526*0.5*(p->DXN[IP] + p->DYN[JP]);
+}
+
+double sixdof_obj_nhflow::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
     

@@ -26,29 +26,31 @@ Authors: Hans Bihs, Alexander Hanke
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 
+// Snider (2001): Ps theta^beta / max(theta_cs - theta, eps (1-theta))
 void CPM::stress_snider(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double Ps = 100.0;
-    double beta = 5.0;
-    double epsilon = 1.0e-7;
-    double Tc = 0.0002;
-    double Tmax = (1.0-p->S24) + 0.05;
+    const double Ps = p->Q14;
+    const double beta = p->Q15;
+    const double eps = p->Q16;
+    const double thcs = p->Q17;
     
-    double maxTau = 1.0e7;
+    double denom,dPdT;
+    
+    cmax=0.0;
 
-    LOOP
-    {        
-        if(Ts(i,j,k)<=Tc)
-        Tau(i,j,k) = 0.0;
+    BASELOOP
+    {
+        denom = MAX(thcs-Ts(i,j,k), eps*(1.0-Ts(i,j,k)));
         
-        if(Ts(i,j,k)>Tc)
-        Tau(i,j,k) = Ps*pow(Ts(i,j,k),beta)/MAX(Tmax-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)));
+        Tau(i,j,k) = Ps*pow(MAX(Ts(i,j,k),0.0),beta)/denom;
         
-        Tau(i,j,k) = MIN(Tau(i,j,k), maxTau);
+        // wave speed of the particle stress, dTau/dtheta
+        dPdT = Tau(i,j,k)*(beta/MAX(Ts(i,j,k),1.0e-6) + (thcs-Ts(i,j,k)>eps*(1.0-Ts(i,j,k))?1.0/denom:0.0));
         
-        //cout<<"Tau: "<<Tau(i,j,k)<<" Ts: "<<Ts(i,j,k)<<" MAXfunc: "<<MAX(Tc-Ts(i,j,k),epsilon*(1.0-Ts(i,j,k)))<<endl;
+        cmax = MAX(cmax,dPdT);
     }
+    
+    cmax = sqrt(pgc->globalmax(cmax)/p->S22);
 
     pgc->start4a(p,Tau,1);
-    pgc->start4a(p,Ts,1);
 }

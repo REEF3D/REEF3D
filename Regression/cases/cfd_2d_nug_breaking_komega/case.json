@@ -1,0 +1,6 @@
+{
+ "description": "2D plunging breaker set-up on a slope with a non-uniform (stretched) grid, cnoidal waves (B92=8), k-omega with T36=2, solid slope S61. Based on tutorial 11_12, coarse. Sensitive to stretched-grid stencils.",
+ "np": 1, "steps": 50,
+ "tags": ["quick", "2d", "waves", "turbulence", "nug", "solid"],
+ "covers": ["non-uniform grid B2/B101/B103", "idiff2_scalar on stretched grid", "T36=2", "wave theory B92=8"]
+}

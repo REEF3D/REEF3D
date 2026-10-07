@@ -68,7 +68,7 @@ void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,sol
     {
         double MagSqrSd = magSqrSd(p,uprime,vprime,wprime);
         double _denominator = pow(strainterm(p,uprime,vprime,wprime) / sqrt(2.0), 5.0) + pow(fabs(MagSqrSd), 5.0/4.0);
-        a->eddyv(i,j,k) = _denominator==0?0.0:(pow(c_wale,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0) *  (pow(fabs(MagSqrSd), 3.0/2.0) / _denominator));
+        a->eddyv(i,j,k) = _denominator==0?0.0:(pow(c_wale,2.0) * (p->j_dir==1?pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0):p->DXN[IP]*p->DZN[KP]) *  (pow(fabs(MagSqrSd), 3.0/2.0) / _denominator));
     }
 
     pgc->start4(p,a->eddyv,gcval_sgs);

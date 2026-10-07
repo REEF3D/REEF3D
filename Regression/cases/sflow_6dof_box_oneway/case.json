@@ -1,0 +1,3 @@
+{"base": "sflow_shipwave_box", "ctrl_set": {"X 10": "2"},
+ "description": "as sflow_shipwave_box with X10=2: one-way direct forcing of the towed box in SFLOW (update_forcing_sflow).",
+ "tags": ["2d", "sflow", "6dof"], "covers": ["sixdof_sflow::start_oneway", "update_forcing_sflow", "solve_eqmotion_oneway_sflow"]}

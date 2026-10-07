@@ -1,0 +1,235 @@
+{
+ "description": "Solitary wave H/d = 0.181 (case C, d = 0.32 m) on the conical island of Briggs et al. (1995) with SFLOW: island of 7.2 m toe diameter, 1:4 slope, 0.625 m high, centred at (15, 13.8) m; bathymetry from geo.dat (tools/conical_geo.py). Surface elevation at gauges 6 (toe, front), 9 (front slope), 16 (side) and 22 (lee) against the measured records (common lag fitted), and the maximum run-up on 12 radial lines (gauges every 0.03 m along the slope) against the measured run-up. Gauge radii from the FUNWAVE-TVD grid indices (3.60, 2.45, 2.55, 2.55 m).",
+ "reference": {
+  "short": "Briggs et al. (1995) conical island",
+  "citation": "Briggs, M.J., Synolakis, C.E., Harkins, G.S. & Green, D.R. (1995) Laboratory experiments of tsunami runup on a circular island. Pure Appl. Geophys. 144, 569-593 (NTHMP benchmark BP6). Gauges 6, 9, 16, 22 (FUNWAVE-TVD), run-up around the island (NHWAVE), see refdata/PROVENANCE_git_sources.md"
+ },
+ "tags": [
+  "sflow",
+  "experiment",
+  "3d",
+  "runup"
+ ],
+ "np": 8,
+ "time": 25.0,
+ "generate": {
+  "script": "conical_geo.py",
+  "args": [
+   0.05
+  ]
+ },
+ "check": {
+  "type": "timeseries",
+  "signals": [
+   {
+    "name": "gauge 6",
+    "source": "gauge",
+    "index": 1,
+    "data": "waves/conical_island/briggs_caseC_gauges_6_9_16_22.dat",
+    "data_col": 1
+   },
+   {
+    "name": "gauge 9",
+    "source": "gauge",
+    "index": 2,
+    "data": "waves/conical_island/briggs_caseC_gauges_6_9_16_22.dat",
+    "data_col": 2
+   },
+   {
+    "name": "gauge 16",
+    "source": "gauge",
+    "index": 3,
+    "data": "waves/conical_island/briggs_caseC_gauges_6_9_16_22.dat",
+    "data_col": 3
+   },
+   {
+    "name": "gauge 22",
+    "source": "gauge",
+    "index": 4,
+    "data": "waves/conical_island/briggs_caseC_gauges_6_9_16_22.dat",
+    "data_col": 4
+   }
+  ],
+  "align": [
+   "gauge 6",
+   "gauge 9",
+   "gauge 16",
+   "gauge 22"
+  ],
+  "lag_range": [
+   -40.0,
+   0.0
+  ],
+  "lag_step": 0.01,
+  "local_lag": 0.2,
+  "window": [
+   24.76,
+   40.760000000000005
+  ],
+  "tol_rms": 0.5,
+  "tol_height": 0.25
+ },
+ "extra_checks": [
+  {
+   "type": "runup_angles",
+   "data": "waves/conical_island/briggs_caseC_runup.dat",
+   "data_y_factor": 0.01,
+   "angles": [
+    0.0,
+    45.0,
+    67.5,
+    90.0,
+    112.5,
+    135.0,
+    180.0,
+    225.0,
+    247.5,
+    270.0,
+    292.5,
+    315.0
+   ],
+   "radii": [
+    1.4,
+    1.43,
+    1.46,
+    1.49,
+    1.52,
+    1.55,
+    1.58,
+    1.61,
+    1.64,
+    1.67,
+    1.7,
+    1.73,
+    1.76,
+    1.79,
+    1.82,
+    1.85,
+    1.88,
+    1.91,
+    1.94,
+    1.97,
+    2.0,
+    2.03,
+    2.06,
+    2.09,
+    2.12,
+    2.15,
+    2.18,
+    2.21,
+    2.24,
+    2.27,
+    2.3,
+    2.33,
+    2.36,
+    2.39,
+    2.42,
+    2.45
+   ],
+   "xc": 15.0,
+   "yc": 13.8,
+   "r_toe": 3.6,
+   "slope": 0.25,
+   "height": 0.625,
+   "depth": 0.32,
+   "theta_front": 270.0,
+   "thr": 0.003,
+   "tol": 0.08,
+   "tol_max": 0.12,
+   "note": "run-up angle convention taken from the data: 270 deg faces the incident wave (largest run-up), 90 deg is the lee side; not stated in the source"
+  }
+ ],
+ "levels": {
+  "nightly": {
+   "np": 4,
+   "control_set": {
+    "B 1": "0.1",
+    "M 10": "4"
+   },
+   "ctrl_set": {
+    "M 10": "4"
+   },
+   "generate": {
+    "script": "conical_geo.py",
+    "args": [
+     0.05
+    ]
+   },
+   "check_set": {
+    "tol_rms": 0.6,
+    "tol_height": 0.4
+   },
+   "extra_checks": [
+    {
+     "type": "runup_angles",
+     "data": "waves/conical_island/briggs_caseC_runup.dat",
+     "data_y_factor": 0.01,
+     "angles": [
+      0.0,
+      45.0,
+      67.5,
+      90.0,
+      112.5,
+      135.0,
+      180.0,
+      225.0,
+      247.5,
+      270.0,
+      292.5,
+      315.0
+     ],
+     "radii": [
+      1.4,
+      1.43,
+      1.46,
+      1.49,
+      1.52,
+      1.55,
+      1.58,
+      1.61,
+      1.64,
+      1.67,
+      1.7,
+      1.73,
+      1.76,
+      1.79,
+      1.82,
+      1.85,
+      1.88,
+      1.91,
+      1.94,
+      1.97,
+      2.0,
+      2.03,
+      2.06,
+      2.09,
+      2.12,
+      2.15,
+      2.18,
+      2.21,
+      2.24,
+      2.27,
+      2.3,
+      2.33,
+      2.36,
+      2.39,
+      2.42,
+      2.45
+     ],
+     "xc": 15.0,
+     "yc": 13.8,
+     "r_toe": 3.6,
+     "slope": 0.25,
+     "height": 0.625,
+     "depth": 0.32,
+     "theta_front": 270.0,
+     "thr": 0.003,
+     "tol": 0.1,
+     "tol_max": 0.15,
+     "note": "run-up angle convention taken from the data: 270 deg faces the incident wave (largest run-up), 90 deg is the lee side; not stated in the source"
+    }
+   ]
+  },
+  "release": {}
+ }
+}

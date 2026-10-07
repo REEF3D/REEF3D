@@ -25,6 +25,12 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment.h"
+#include"lagoon_output.h"
+
+namespace
+{
+lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
 
 void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
 {
@@ -34,7 +40,7 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     else if(p->P15==2)
         num = p->count;
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
         pvtp(p,psed,num);
 
     //---------------------------------------------
@@ -204,4 +210,7 @@ void topo_vtp::print(lexer* p, fdm* a, ghostcell *pgc, sediment *psed)
     vtp3D::footer(result);
 
     result.close();
+
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    lagoon_surface::piece_written(p,pgc,lagoon_bed,"CFD","bed","REEF3D_CFD_Topo",name,num);
 }

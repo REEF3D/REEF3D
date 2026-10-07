@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 #include<mpi.h>
 #include"increment.h"
+#include<vector>
+#include<cstdint>
 
 class fdm;
 class fdm2D;
@@ -83,13 +85,9 @@ public:
     void startintV(lexer*,int*,int);
     void startintVF(lexer*,int*,int);
     
-    void dgcpol1(lexer*,field&, int);
-    void dgcpol2(lexer*,field&, int);
-    void dgcpol3(lexer*,field&, int);
-    void dgcpol4(lexer*,field&, int);
+    void dgcpol(lexer*,field&,int**,int);
 
 // particle
-	void parapls(lexer*,double**,double**,int*,int*);
     void gcpartnum(int[6],int[6]);
     void gcpartx(int[6],int[6],double*[6],double*[6]);
 
@@ -120,6 +118,7 @@ public:
     void solid_forcing(lexer*,fdm*,double,field&,field&,field&,field&,field&,field&);
     void solid_forcing_ini(lexer*,fdm*);
     void solid_forcing_flag_update(lexer*,fdm*);
+    bool geometry_changed(lexer*,fdm*);   // signs of solid/topo/fb changed since the last call (on any rank)
     void solid_forcing_lsm(lexer*,fdm*,field&);
     void solid_forcing_eta(lexer*,slice&);
     void solid_forcing_bed(lexer*,slice&);
@@ -136,15 +135,14 @@ public:
 
 // PARALLEL
     void gcparax(lexer*, field&, int);
+    void gcparax_co(lexer*, field&, int);
     void gcparaxint(lexer*, fieldint&, int);
-    void gcparaxijk(lexer*, double*, int);
     void gcparaxijk_single(lexer*, double*, int);
     void gcparax7(lexer*, double*&, int);
     void gcparax7co(lexer*, double*, int);
     void gcparax7int(lexer*, int*&, int);
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
-    void gcparacox4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
     void gcparaxintV(lexer*, int*, int);
     void gcparaxV1(lexer*, double*, int);
@@ -158,10 +156,12 @@ public:
 
     // MPI exchange of the gc*_start functions on/off (SFLOW AMR patches run without it)
     bool set_comms(bool on) {bool old=do_comms; do_comms=on; return old;}
+    // mesh refinement: inside a patch kernel the global reductions return the local value (the
+    // patch lies on one rank), so solvers such as bicgstab_ijk run on the patch alone
+    bool set_local(bool on) {bool old=local_red; local_red=on; return old;}
     //Collective Communication
     void gather_int(int *, int, int *, int);
     void gatherv_int(int*, int, int*, int*, int*);
-    void allgather_int(int *, int, int *, int);
     void allgatherv_int(int *, int, int *, int*, int*);
     void gather_double(double *, int, double *, int);
     void gatherv_double(double *, int, double *, int*, int*);
@@ -284,6 +284,7 @@ public:
     void fivec2D_vel(lexer*,double*,sliceint&);
     void fivec_buildlist(lexer*);
     void gc_periodic(lexer*,field&,int,int);
+    void gc_periodic_ijk(lexer*,double*);
     
     //NHFLOW
     void gciobc_update(lexer*, fdm_nhf*);
@@ -312,16 +313,21 @@ private:
 // PARALLEL
     void Sendrecv_double(int,int,int,int,int,int);
     void Sendrecv_int(int,int,int,int,int,int);
-    void Sendrecv_1D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-    void Sendrecv_2D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-    void Sendrecv_3D(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
+    void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
     
-    void gcwait(lexer*);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
                         MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
     bool do_comms = true;
+    bool local_red = false;
+    bool periodic_comms = true;     // any rank has periodic partition neighbours (gcperiodicx)
+    std::vector<uint16_t> geo_sig;  // geometry_changed: per cell sign classes of solid, topo, fb
+
+    void gcparax_pack(lexer*, field&, int);
+    void gcparax_unpack(lexer*, field&, int);
+    void gcparaco_pack(lexer*, field&, const int*);
+    void gcparaco_unpack(lexer*, field&, const int*);
     
     int ndims;
 
@@ -338,8 +344,6 @@ private:
     MPI_Request sreq[6],rreq[6];
     MPI_Status status;
     
-    MPI_Request sreq1,sreq2,sreq3,sreq4,sreq5,sreq6;
-    MPI_Request rreq1,rreq2,rreq3,rreq4,rreq5,rreq6;
     
     double v1,v2,v3,v4;
     double wa,wb;

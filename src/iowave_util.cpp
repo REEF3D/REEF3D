@@ -207,24 +207,30 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     for(int qq=0;qq<pBC->obj_count;++qq)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     {
+    // patch faces (B 4xx): IO 3, the cell taken from the patch (i,j,k were left from the loop above, so one
+    // unrelated cell got IO 1 and the patch faces none). IO 1 would make the turbulence ghosts at the patch
+    // Dirichlet (komega_bc, kepsilon_bc, NHFLOW start20V/30V/24V) without a profile written there.
+    i=pBC->patch[qq]->gcb[n][0];
+    j=pBC->patch[qq]->gcb[n][1];
+    k=pBC->patch[qq]->gcb[n][2];
     
     if(pBC->patch[qq]->gcb[n][3]==1)
-    p->IO[Im1JK] = 1;
+    p->IO[Im1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==4)
-    p->IO[Ip1JK] = 1;
+    p->IO[Ip1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==3)
-    p->IO[IJm1K] = 1;
+    p->IO[IJm1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==2)
-    p->IO[IJp1K] = 1;
+    p->IO[IJp1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==5)
-    p->IO[IJKm1] = 1;
+    p->IO[IJKm1] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==6)
-    p->IO[IJKp1] = 1;
+    p->IO[IJKp1] = 3;
     }
     
 }
@@ -286,6 +292,22 @@ void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     p->gcin_count=count1;
     p->gcout_count=count2;
+    
+    // the legacy inflow ghost cells (gcin) are written along x: an open y edge must be an outflow side in DIVEMesh
+    if(p->open_ym==1 || p->open_yp==1)
+    {
+        int yin=0;
+        for(n=0;n<p->gcin_count;++n)
+        if((p->open_ym==1 && p->gcin[n][3]==3) || (p->open_yp==1 && p->gcin[n][3]==2))
+        ++yin;
+        
+        if(pgc->globalisum(yin)>0)
+        {
+            if(p->mpirank==0)
+            cout<<endl<<"!!! iowave: a Riemann / Flather edge at y- or y+ needs that side flagged as outflow in DIVEMesh (C 12 / C 13 2) !!!"<<endl<<endl;
+            exit(1);
+        }
+    }
     
     
 
@@ -362,24 +384,30 @@ void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int qq=0;qq<pBC->obj_count;++qq)
     for(n=0;n<pBC->patch[qq]->gcb_count;++n)
     {
+    // patch faces (B 4xx): IO 3, the cell taken from the patch (i,j,k were left from the loop above, so one
+    // unrelated cell got IO 1 and the patch faces none). IO 1 would make the turbulence ghosts at the patch
+    // Dirichlet (komega_bc, kepsilon_bc, NHFLOW start20V/30V/24V) without a profile written there.
+    i=pBC->patch[qq]->gcb[n][0];
+    j=pBC->patch[qq]->gcb[n][1];
+    k=pBC->patch[qq]->gcb[n][2];
     
     if(pBC->patch[qq]->gcb[n][3]==1)
-    p->IO[Im1JK] = 1;
+    p->IO[Im1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==4)
-    p->IO[Ip1JK] = 1;
+    p->IO[Ip1JK] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==3)
-    p->IO[IJm1K] = 1;
+    p->IO[IJm1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==2)
-    p->IO[IJp1K] = 1;
+    p->IO[IJp1K] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==5)
-    p->IO[IJKm1] = 1;
+    p->IO[IJKm1] = 3;
     
     if(pBC->patch[qq]->gcb[n][3]==6)
-    p->IO[IJKp1] = 1;
+    p->IO[IJKp1] = 3;
     }
     
 }
@@ -665,10 +693,6 @@ void iowave::gen_ini(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 	//cout<<p->mpirank<<" GCGEN_COUNT: "<<gcgen4_count<<endl;	
-}
-
-void iowave::awa_update(lexer *p, fdm *a, ghostcell *pgc)
-{
 }
 
 void iowave::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)

@@ -25,7 +25,7 @@ Author: Hans Bihs
 
 void lexer::gridini(ghostcell *pgc)
 {
-    if(G2==1)
+    if(G502==1)
     grid::sigma_coord_ini();
 
     grid::gridspacing(pgc);
@@ -122,8 +122,10 @@ void lexer::flagini()
 
     // gcsldf
     gcsldfeta4_count=1;
+    gcsldfbed4_count=1;
 
     Iarray(gcsldfeta4,gcsldfeta4_count,6);
+    Iarray(gcsldfbed4,gcsldfbed4_count,6);
 }
 
 int lexer::conv(double a)

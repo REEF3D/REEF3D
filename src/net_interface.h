@@ -59,13 +59,18 @@ public:
     
     // impermeable membranes (X 330, membrane.dat), NHFLOW
     void membrane_ini_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void membrane_links_nhflow(lexer*, fdm_nhf*, ghostcell*, double);
     void membrane_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void membrane_reaction_nhflow(lexer*, fdm_nhf*, ghostcell*, double, slice&, bool);
     void membrane_pgrad(lexer*, fdm_nhf*, double, double*, double*, double*, slice&, int);
+    bool membrane_iterated();
+    void membrane_reforce_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    bool membrane_couple_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, slice&, int);
     void membrane_attach_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&);
     void membrane_body_nhflow(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
     void membraneForces_nhflow(lexer*, const Eigen::Vector3d&, const Eigen::Matrix3d&, double&, double&, double&, double&, double&, double&);
     double membrane_addedmass_nhflow(lexer*);
+    Eigen::Matrix3d membrane_addedinertia_nhflow(lexer*);
     Eigen::Matrix3d membrane_stiffness_nhflow(lexer*);
     
     typedef vector<Eigen::Vector3d> EigenMat;

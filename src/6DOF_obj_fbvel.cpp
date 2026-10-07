@@ -27,56 +27,9 @@ Authors: Hans Bihs, Tobias Martin
 
 void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)         
 {
-    // Determine floating body velocities
-        // U
-        if(p->X11_u==0)
-        u_fb(0) = 0.0;
-        
-        if(p->X11_u==1)
-        u_fb(0) = p_(0)/Mass_fb;
-        
-        if(p->X11_u==2)
-        u_fb(0) = dc_(0);
-        
-        
-        // V
-        if(p->X11_v==0 || p->j_dir==0)
-        u_fb(1) = 0.0;
-        
-        if(p->X11_v==1 && p->j_dir==1)
-        u_fb(1) = p_(1)/Mass_fb;
-        
-        if(p->X11_v==2)
-        u_fb(1) = dc_(1);
-        
-        
-        // W
-        if(p->X11_w==0)
-        u_fb(2) = 0.0;
-        
-        if(p->X11_w==1)
-        u_fb(2) = p_(2)/Mass_fb;
-        
-        if(p->X11_w==2)
-        u_fb(2) = dc_(2);
-        
-        
-        // rotation
-        if(p->j_dir==0)
-        {
-        u_fb(3) = 0.0;
-        u_fb(4) = omega_I(1);
-        u_fb(5) = 0.0;
-        }
-        
-        if(p->j_dir==1)
-        {
-        u_fb(3) = omega_I(0);
-        u_fb(4) = omega_I(1);
-        u_fb(5) = omega_I(2);
-        }
-        
-        
+    // Determine floating body velocities (free: momentum, prescribed: motionext)
+    rb.velocity(u_fb);
+    
     // Velocities
 	p->ufbi = p_(0)/Mass_fb;
 	p->vfbi = p_(1)/Mass_fb;
@@ -101,41 +54,8 @@ void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
 
 void sixdof_obj::saveTimeStep(lexer *p, int iter)
 {
-    deltan3_ = deltan2_;
-    deltan2_ = deltan1_;
-    deltan1_ = delta_;
-
-    dpn3_ = dpn2_;
-    dpn2_ = dpn1_;
-    dpn1_ = dp_;
-    dcn3_ = dcn2_;
-    dcn2_ = dcn1_;
-    dcn1_ = dc_;
-    dhn3_ = dhn2_;
-    dhn2_ = dhn1_;
-    dhn1_ = dh_;
-    den3_ = den2_;
-    den2_ = den1_;
-    den1_ = de_;
-    
-    pn3_ = pn2_;
-    pn2_ = pn1_;
-    pn1_ = p_;
-    cn3_ = cn2_;
-    cn2_ = cn1_;
-    cn1_ = c_;
-    hn3_ = hn2_;
-    hn2_ = hn1_;
-    hn1_ = h_;
-    en3_ = en2_;
-    en2_ = en1_;   
-    en1_ = e_;
-    
-    dtn3 = dtn2;
-    dtn2 = dtn1;
-    dtn1 = alpha[iter]*p->dt;   
+    rb.save_history(alpha[iter]*p->dt);
 }
-
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)
 {

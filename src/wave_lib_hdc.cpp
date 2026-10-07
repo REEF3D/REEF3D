@@ -33,7 +33,7 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     if(p->A10==3)
     allocate_fnpf(p,pgc);
     
-    if(p->A10==6)
+    if(p->A10==6 || p->A10==5)
     allocate_cfd(p,pgc);
     
     // time_interpol
@@ -49,20 +49,6 @@ wave_lib_hdc::wave_lib_hdc(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc
     startup=0;
     endseries=0;
     
-    /*
-    // testfile
-    if(p->mpirank==0)
-    {
-    ifstream testfile;
-    
-    testfile.open("testfile.dat", ios::binary);
-    
-        for(int qn=0;qn<100;++qn)
-        {
-        testfile.read((char*)&ffn, sizeof (float));
-        cout<<"ffn: "<<ffn<<endl;
-        }
-    }*/
 }
 
 wave_lib_hdc::~wave_lib_hdc()
@@ -143,6 +129,6 @@ void wave_lib_hdc::wave_prestep(lexer *p, ghostcell *pgc)
     if(p->A10==3)
     wave_prestep_fnpf(p,pgc);
     
-    if(p->A10==6)
+    if(p->A10==6 || p->A10==5)
     wave_prestep_cfd(p,pgc);
 }

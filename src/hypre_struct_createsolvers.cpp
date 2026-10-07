@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #include "hypre_struct.h"
 #include "lexer.h"
 #include "fdm.h"
@@ -307,7 +309,7 @@ void hypre_struct::delete_solver44(lexer* p,ghostcell* pgc)
 void hypre_struct::precon_switch(lexer* p,ghostcell* pgc)
 {
     if(num_iterations>p->N20 && precon_type==11 && p->count>0
-       && ((p->N22==1&&p->A10==2) || (p->N23==1&&p->A10==3) || (p->N24==1&&p->A10==4) || (p->N25==1&&p->A10==5) || (p->N26==1&&p->A10==6)))
+       && ((p->N22==1&&p->A10==2) || (p->N23==1&&p->A10==3) || (p->N25==1&&p->A10==5) || (p->N26==1&&p->A10==6)))
     {
         precon_type=12;
 
@@ -315,3 +317,5 @@ void hypre_struct::precon_switch(lexer* p,ghostcell* pgc)
         cout<<"!!! Preconditioner switch !!!"<<endl;
     }
 }
+
+#endif  // REEF3D_USE_HYPRE

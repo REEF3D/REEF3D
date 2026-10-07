@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"wave_interface.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 fnpf_print_wsfline::fnpf_print_wsfline(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {	
@@ -205,6 +206,8 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
         }
         
     wsfout.close();
+    if(p->plog)
+    p->plog->written(p,num,"wsfline","profiles",name,0);
     }
 }
 

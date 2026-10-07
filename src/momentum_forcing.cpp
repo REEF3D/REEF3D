@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"momentum_forcing.h"
+#include<algorithm>
 #include"6DOF.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -28,9 +29,11 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include"FSI.h"
 #include"rodtree_coupling.h"
+#include"fem_coupling.h"
 #include"dem.h"
+#include"sediment.h"
 
-momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr)
+momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr), pfem(nullptr)
 {
     gcval_u=10;
 	gcval_v=11;
@@ -40,6 +43,7 @@ momentum_forcing::momentum_forcing(lexer* p) : prodtree(nullptr)
 momentum_forcing::~momentum_forcing()
 {
     delete prodtree;
+    delete pfem;
 }
 
 void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, sixdof* p6dof, fsi* pfsi,
@@ -48,19 +52,11 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
 
 	starttime=pgc->timer();
     
-        // Forcing
-        ULOOP
-        fx(i,j,k) = 0.0;
-       
-        VLOOP
-        fy(i,j,k) = 0.0;
-      
-        WLOOP
-        fz(i,j,k) = 0.0;
-        
-        pgc->start1(p,fx,10);
-        pgc->start2(p,fy,11);
-        pgc->start3(p,fz,12); 
+        // Forcing: zero everywhere, halos included (only the interior is applied to u/v/w below,
+        // the forcing modules that spread into fx/fy/fz update the halos themselves)
+        std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
+        std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
          
         pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);         
         
@@ -75,6 +71,15 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
             prodtree = new rodtree_coupling(p,pgc);
             
             prodtree->start_cfd(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
+        }
+
+        // FEM solid structures: surface direct forcing, fluid loads, advance solid (final stage)
+        if(p->Z30>0)
+        {
+            if(pfem==nullptr)
+            pfem = new fem_coupling(p,pgc);
+
+            pfem->start_cfd(p,a,pgc,alpha,u,v,w,fx,fy,fz,final);
         }
  
         ULOOP
@@ -113,11 +118,18 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
         if(pdem!=nullptr)
         pdem->forcing_cfd(p,a,pgc,iter,alpha,u,v,w,final);
         
+        // particle sediment (CPM): two-way coupling
+        if(psed!=nullptr)
+        psed->forcing_cfd(p,a,pgc,alpha,u,v,w);
         
-    // ghostcell update
+        
+    // ghostcell update: the flags depend on the geometry only (solid, topo, fb), rebuild when it changed
+    if(pgc->geometry_changed(p,a))
+    {
     pgc->solid_forcing_flag_update(p,a);
     pgc->gcdf_update(p,a);
     pgc->gcb_velflagio(p,a);
+    }
 }
 
 

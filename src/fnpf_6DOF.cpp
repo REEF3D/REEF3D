@@ -21,7 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_6DOF.h"
-#include"6DOF_obj.h"
+#include"6DOF_obj_fnpf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -65,7 +65,7 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     nbody = 1;
     
     for(int nb=0; nb<nbody; ++nb)
-    fb_obj.push_back(new sixdof_obj(p,pgc,nb));
+    fb_obj.push_back(new sixdof_obj_fnpf(p,pgc,nb));
     
     gcval = (p->j_dir==0) ? 150 : 250;
     
@@ -135,6 +135,7 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     pgc->gcparax7(p,c->U,7);
     pgc->gcparax7(p,c->V,7);
     pgc->gcparax7(p,c->W,7);
+    body_velocities(g0,pgc);
     
     if(amr_on())
     {
@@ -145,7 +146,10 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
         
         reefamr_comms_off guard(pgc);
         for(auto &G : gp)
+        {
         G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
+        body_velocities(G,pgc);
+        }
         
         forces_amr(p,c,pgc,psolv,pf,Keta,Kfi,iter);
     }
@@ -174,6 +178,103 @@ void fnpf_6DOF::surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice
 {
     if(initialized)
     footprint(g0,pgc,eta,Fifsf,gcval_eta,gcval_fifsf);
+}
+
+void fnpf_6DOF::velocity(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    if(initialized)
+    body_velocities(g0,pgc);
+}
+
+void fnpf_6DOF::body_velocities(fnpf_6DOF_grid &G, ghostcell *pgc)
+{
+    // Velocities at the body nodes, layer by layer from the fluid inwards: the average of the
+    // fluid (or already filled) neighbours.  velcalc_sig differentiates the body-band values
+    // of Fi there with 4th-order stencils that reach two nodes into the body, where the
+    // extrapolation is only a continuation; at the free-surface node of a footprint column
+    // W is Fz from the extended Fifsf over the body interior.  Both gave |U|,|W| of several
+    // m/s that alternate from column to column (moored box, X 311, from about 7 s on: 4-5
+    // m/s with a body velocity of 0.2-0.5 m/s).  The hull loads sample U,V,W half a cell off
+    // the hull with trilinear weights that include these nodes, and umax/wmax (time step,
+    // N 61 stop, output) took them up.  The fluid velocity continued into the body keeps the
+    // slip velocity at the hull and the normal velocity of the fluid next to it.
+    // On a patch (mesh refinement) the fill is local to the patch.
+    lexer *p = G.p;
+    fdm_fnpf *c = G.c;
+    int *mark = G.mark;
+    double *U = c->U, *V = c->V, *W = c->W;
+    const double *FBF = c->FBF;
+    const int size = p->imax*p->jmax*(p->kmax+2);
+    const int sI = p->jmax*p->kmaxF;
+    const int sJ = p->kmaxF;
+    
+    for(int n=0; n<size; ++n)
+    mark[n]=0;
+    
+    const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
+    
+    for(int pass=0; pass<maxpass; ++pass)
+    {
+        int filled=0;
+        
+        ILOOP
+        JLOOP
+        FKLOOP
+        {
+            const int q = FIJK;
+            
+            if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
+            {
+                int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+                int nn = 6;
+                
+                if(p->j_dir==0)
+                {
+                nbr[2] = q-1;
+                nbr[3] = q+1;
+                nn = 4;
+                }
+                
+                double su=0.0, sv=0.0, sw=0.0;
+                int cnt=0;
+                
+                for(int m=0; m<nn; ++m)
+                {
+                    const int r = nbr[m];
+                    
+                    if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
+                    {
+                    su += U[r];
+                    sv += V[r];
+                    sw += W[r];
+                    ++cnt;
+                    }
+                }
+                
+                if(cnt>0)
+                {
+                U[q] = su/double(cnt);
+                V[q] = sv/double(cnt);
+                W[q] = sw/double(cnt);
+                mark[q] = pass+1;
+                ++filled;
+                }
+            }
+        }
+        
+        if(G.l0)
+        {
+        pgc->gcparax7(p,U,7);
+        pgc->gcparax7(p,V,7);
+        pgc->gcparax7(p,W,7);
+        pgc->gcparax7int(p,mark,7);
+        
+        filled = pgc->globalisum(filled);
+        }
+        
+        if(filled==0)
+        break;
+    }
 }
 
 fnpf_6DOF::~fnpf_6DOF()
@@ -384,9 +485,21 @@ void fnpf_6DOF::geometry(fnpf_6DOF_grid &G, ghostcell *pgc)
 
 void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
 {
-    // All body nodes, layer by layer from the fluid inwards: average of the fluid (or
-    // already filled) neighbours. The first layers feed the lagged cross terms of the
-    // Laplace rhs and the sampling of the hull pressure.
+    // All body nodes, layer by layer from the fluid inwards. A body node takes the
+    // average over its fluid (or already filled) neighbours r of the value continued
+    // with the Neumann data of the face between them,
+    //     f_q = f_r + V_e(q)*(x_q - x_r),   V_e = (FBu,FBv,FBw).e,
+    // i.e. the same ghost value the Laplace assembly eliminates on that face
+    // (fnpf_body_bc), and deeper inside a linear continuation with the body velocity.
+    // The body nodes act as consistent ghost nodes for every stencil that reaches into
+    // the body: the free-surface Fz of columns over a submerged part of the hull (tilted
+    // walls, corners of a body that is not aligned with the grid), velcalc_sig next to
+    // the hull, the lagged cross terms of the Laplace rhs and the sampling of the hull
+    // loads. A plain average gave a zero normal gradient there instead of V_e: wrong Fz
+    // and kinematic FSBC in those columns, a local dip or spike of eta at the hull that
+    // grew until the emergency stop.
+    // Face data: the mode of the solve that produced f (geometry() sets -1 before the
+    // phi solve, solve_psi the mode of each psi solve).
     // The whole interior has to be filled, not only two layers: the body nodes are
     // identity rows, so deeper nodes would keep the value from the time they were
     // covered. phi drifts in time (Bernoulli constant, set-down), the stale interior
@@ -401,6 +514,10 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
     const int sI = p->jmax*p->kmaxF;
     const int sJ = p->kmaxF;
     const double *FBF = c->FBF;
+    const double *FBu = c->FBu;
+    const double *FBv = c->FBv;
+    const double *FBw = c->FBw;
+    const double *ZSN = p->ZSN;
     
     for(int n=0; n<size; ++n)
     mark[n]=0;
@@ -421,13 +538,22 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
             
             if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
             {
+                // neighbour and continuation f_q - f_r = V_e*(x_q - x_r) towards it
                 int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+                double dv[6] = { FBu[q]*(p->XP[IP]-p->XP[IM1]),
+                                -FBu[q]*(p->XP[IP1]-p->XP[IP]),
+                                 FBv[q]*(p->YP[JP]-p->YP[JM1]),
+                                -FBv[q]*(p->YP[JP1]-p->YP[JP]),
+                                 FBw[q]*(ZSN[q]-ZSN[q-1]),
+                                -FBw[q]*(ZSN[q+1]-ZSN[q])};
                 const int nn = (p->j_dir==1) ? 6 : 4;
                 
                 if(p->j_dir==0)
                 {
                 nbr[2] = q-1;
                 nbr[3] = q+1;
+                dv[2] = dv[4];
+                dv[3] = dv[5];
                 }
                 
                 double sum=0.0;
@@ -439,7 +565,7 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
                     
                     if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
                     {
-                    sum += f[r];
+                    sum += f[r] + dv[m];
                     ++cnt;
                     }
                 }
@@ -631,13 +757,39 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
     
     amr_layout = amr->layout();
     
+    // psi0 and the unit modes of a fresh grid: prolonged from the coarser grid as the initial
+    // guess of the next psi solves (gp is in patch order, coarse levels first).  Left at zero
+    // they started the composite solves with a jump at the patch edge
+    // (all ranks together, level by level: the parent may be on another rank, G 40)
+    vector<double*> fg(gp.size()+1);
+    
     if(initialized)
-    for(auto &G : gp)
-    if(G.fresh)
     {
-        geometry(G,pgc);
-        extrapolate(G,pgc,G.c->Fi);
-        amr->patch_walls_fi(G.id,G.c->Fi);
+        vector<char> need(gp.size(),0);
+        for(auto &G : gp)
+        if(G.fresh)
+        {
+            geometry(G,pgc);
+            extrapolate(G,pgc,G.c->Fi);
+            amr->patch_walls_fi(G.id,G.c->Fi);
+            need[G.id] = 1;
+        }
+        
+        for(int m=-1; m<6; ++m)
+        {
+            fg[0] = (m<0) ? g0.psi0 : g0.psi[m];
+            vector<char> nd = need;
+            for(size_t k=0; k<gp.size(); ++k)
+            {
+                fg[k+1] = (m<0) ? gp[k].psi0 : gp[k].psi[m];
+                if(fg[k+1]==nullptr)
+                nd[k] = 0;
+            }
+            if(fg[0]!=nullptr)
+            amr->prolong_cols(&fg[0],nd);
+        }
+        
+        for(auto &G : gp)
         G.fresh = false;
     }
 }
@@ -815,7 +967,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         }
         
         // every hull triangle on the finest grid that holds its centroid
-        sixdof_obj::fnpf_force_sum S;
+        sixdof_obj_fnpf::fnpf_force_sum S;
         fb_obj[nb]->forces_fnpf_zero(p,S);
         
         for(int g=-1; g<(int)gp.size(); ++g)
@@ -824,11 +976,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
             const int id = G.id;
             std::function<bool(double,double)> own = [&](double x, double y)
             {
-                if(!(x >= p->originx && x < p->endx))
-                return false;
-                if(p->j_dir==1 && !(y >= p->originy && y < p->endy))
-                return false;
-                return amr->finest_at(x,y)==id;
+                return amr->owns_point(x,y,id);
             };
             const double del = (g<0) ? 0.5*fb_obj[nb]->fnpf_dsm() : G.del;
             fb_obj[nb]->forces_fnpf_sum(G.p,G.c,G.psi0,G.psi,computeA,del,&own,S);

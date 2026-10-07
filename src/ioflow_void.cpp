@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"rheology_f.h"
 #include"turbulence.h"
 #include"patchBC_interface.h"
+#include"heaviside.h"
 
 ioflow_v::ioflow_v(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : flowfile_in(p,pgc)
 {
@@ -472,14 +473,7 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
                 
             eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-            if(a->phi(i,j,k)>eps)
-            H=1.0;
-
-            if(a->phi(i,j,k)<-eps)
-            H=0.0;
-
-            if(fabs(a->phi(i,j,k))<=eps)
-            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
+            H = heaviside(a->phi(i,j,k),eps);
         
             pval=(1.0-H)*a->press(i,j,k);
             
@@ -512,14 +506,7 @@ void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
         {
             dist = sqrt(pow(p->W41_xc[qn]-p->pos1_x(),2.0) + pow(p->W41_yc[qn]-p->pos_y(),2.0));
             
-            if(dist>epsi)
-            H=1.0;
-
-            if(dist<-epsi)
-            H=0.0;
-
-            if(fabs(dist)<=epsi)
-            H=0.5*(1.0 + dist/epsi + (1.0/PI)*sin((PI*dist)/epsi));	
+            H = heaviside(dist,epsi);	
             
         
             
@@ -544,14 +531,7 @@ void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
         {
             dist = sqrt(pow(p->W41_xc[qn]-p->pos_x(),2.0) + pow(p->W41_yc[qn]-p->pos2_y(),2.0));
             
-            if(dist>epsi)
-            H=1.0;
-
-            if(dist<-epsi)
-            H=0.0;
-
-            if(fabs(dist)<=epsi)
-            H=0.5*(1.0 + dist/epsi + (1.0/PI)*sin((PI*dist)/epsi));	
+            H = heaviside(dist,epsi);	
             
         
             
@@ -576,14 +556,7 @@ void ioflow_v::p_relax(lexer *p, fdm *a, ghostcell *pgc, field &press)
     {
         phival = a->phi(i,j,k);
     
-        if(phival>epsi)
-        H=1.0;
-
-        if(phival<-epsi)
-        H=0.0;
-
-        if(fabs(phival)<=epsi)
-        H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));   
+        H = heaviside(phival,epsi);   
     
     
         // get gamma from rheology

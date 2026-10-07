@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"seastate_sflow.h"
 #include"ioflow.h"
 #include"sflow_fsf.h"
 #include"sflow_signal_speed.h"
@@ -259,6 +260,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     prough->u_source(p,b,b->U,b->V,WLs);
     prheo->u_source(p,b,b->U,b->V,WLs);
     p6dof->isource2D(p,b,pgc);
+    if(b->wave!=nullptr)
+    b->wave->u_source(p,b);
 	irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WLs,alpha);
     p->utime+=pgc->timer()-starttime;
@@ -272,6 +275,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     prough->v_source(p,b,b->U,b->V,WLs);
     prheo->v_source(p,b,b->U,b->V,WLs);
     p6dof->jsource2D(p,b,pgc);
+    if(b->wave!=nullptr)
+    b->wave->v_source(p,b);
 	jrhs(p,b);
     }
 	pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WLs,alpha);
@@ -708,6 +713,10 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     
     // velocities
     vel_bc(p,b,pgc,b->U,b->V,b->W);
+    
+    // REEF3D::SEASTATE surfbeat: long-wave boundary (A 770 1)
+    if(b->wave!=nullptr)
+    b->wave->ghostcells(p,b);
     
     // Boussinesq: reference level velocity and volume flux
     if(bous==1)

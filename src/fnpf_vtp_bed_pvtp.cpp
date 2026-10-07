@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"fnpf_vtp_bed.h"
 #include"lexer.h"
+#include"runlog.h"
 
 void fnpf_vtp_bed::pvtp(lexer *p, int num)
 {
@@ -48,4 +49,6 @@ void fnpf_vtp_bed::pvtp(lexer *p, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"bed","bed",name,p->M10);
 }

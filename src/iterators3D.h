@@ -89,24 +89,6 @@ Author: Hans Bihs
 #define Im1Jp1K  (i-p->imin-1)*p->jmax*p->kmax + (j-p->jmin+1)*p->kmax + k-p->kmin
 #define Ip1Jm1K  (i-p->imin+1)*p->jmax*p->kmax + (j-p->jmin-1)*p->kmax + k-p->kmin
 
-#define IJK6 (i-p->imin)*p->jmax6*p->kmax6 + (j-p->jmin)*p->kmax6 + k-p->kmin
-
-#define Im1JK6 (i-p->imin-1)*p->jmax6*p->kmax6 + (j-p->jmin)*p->kmax6 + k-p->kmin
-#define Ip1JK6 (i-p->imin+1)*p->jmax6*p->kmax6 + (j-p->jmin)*p->kmax6 + k-p->kmin
-#define IJm1K6 (i-p->imin)*p->jmax6*p->kmax6 + (j-p->jmin-1)*p->kmax6 + k-p->kmin
-#define IJp1K6 (i-p->imin)*p->jmax6*p->kmax6 + (j-p->jmin+1)*p->kmax6 + k-p->kmin
-#define IJKm16 (i-p->imin)*p->jmax6*p->kmax6 + (j-p->jmin)*p->kmax6 + k-p->kmin-1
-#define IJKp16 (i-p->imin)*p->jmax6*p->kmax6 + (j-p->jmin)*p->kmax6 + k-p->kmin+1
-
-#define IJK6cv (i-p->imin6)*p->jmax6*p->kmax6 + (j-p->jmin6)*p->kmax6 + k-p->kmin6
-
-#define Im1JK6cv (i-p->imin6-1)*p->jmax6*p->kmax6 + (j-p->jmin6)*p->kmax6 + k-p->kmin6
-#define Ip1JK6cv (i-p->imin6+1)*p->jmax6*p->kmax6 + (j-p->jmin6)*p->kmax6 + k-p->kmin6
-#define IJm1K6cv (i-p->imin6)*p->jmax6*p->kmax6 + (j-p->jmin6-1)*p->kmax6 + k-p->kmin6
-#define IJp1K6cv (i-p->imin6)*p->jmax6*p->kmax6 + (j-p->jmin6+1)*p->kmax6 + k-p->kmin6
-#define IJKm16cv (i-p->imin6)*p->jmax6*p->kmax6 + (j-p->jmin6)*p->kmax6 + k-p->kmin6-1
-#define IJKp16cv (i-p->imin6)*p->jmax6*p->kmax6 + (j-p->jmin6)*p->kmax6 + k-p->kmin6+1
-
 
 #define FIJK  (i-p->imin)*p->jmax*p->kmaxF + (j-p->jmin)*p->kmaxF + k-p->kmin
 

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"fnpf_amr.h"
 #include"lexer.h"
+#include"bc_zone.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"slice4.h"
@@ -78,12 +79,12 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
 
     reefamr_param q;
     q.name = "FNPF AMR";
-    q.maxlev = p->A270;
+    q.maxlev = p->G1;
     q.regrid = 0;
-    q.nbuf = MAX(p->A272,0);
-    q.tile = MAX(p->A275,4);
+    q.nbuf = MAX(p->G3,0);
+    q.tile = MAX(p->G4,4);
     q.tile += q.tile%2;
-    q.keep = MIN(MAX(p->A280,0),250);
+    q.keep = MIN(MAX(p->G5,0),250);
 
     // cells computed beyond the patch box: the free-surface derivatives (WENO5, CDS4) reach
     // three cells; the patch arrays reach EXT + margin fine cells beyond the patch, which the
@@ -91,44 +92,47 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     q.ext = 3;
     q.nest = MAX(3,(q.ext+p->margin+1)/2);
 
-    // vertical refinement: every refined level doubles the sigma layers (A 281 1)
-    vref = (p->A281==1) ? 2 : 1;
+    // vertical refinement: every refined level doubles the sigma layers (G 6 1)
+    vref = (p->G6==1) ? 2 : 1;
     q.vref.assign(q.maxlev+1,vref);
 
-    for(int k=0; k<p->A276; ++k)
+    for(int k=0; k<p->G10; ++k)
     {
-        q.rbox.push_back(p->A276_xs[k]); q.rbox.push_back(p->A276_xe[k]);
-        q.rbox.push_back(p->A276_ys[k]); q.rbox.push_back(p->A276_ye[k]);
+        q.rbox.push_back(p->G10_xs[k]); q.rbox.push_back(p->G10_xe[k]);
+        q.rbox.push_back(p->G10_ys[k]); q.rbox.push_back(p->G10_ye[k]);
     }
-    for(int k=0; k<p->A277; ++k)
+    for(int k=0; k<p->G11; ++k)
     {
-        q.fbox.push_back(p->A277_xs[k]); q.fbox.push_back(p->A277_xe[k]);
-        q.fbox.push_back(p->A277_ys[k]); q.fbox.push_back(p->A277_ye[k]);
+        q.fbox.push_back(p->G11_xs[k]); q.fbox.push_back(p->G11_xe[k]);
+        q.fbox.push_back(p->G11_ys[k]); q.fbox.push_back(p->G11_ye[k]);
     }
 
-    // no refinement in the relaxation zones of the wave generation (B 98 2) and the
-    // numerical beach (B 99 1, 2), measured from the ends of the domain in x
-    const double big = 1.0e20;
-    if(p->B98==2 && p->B96_1>0.0)
-    {
-        q.fbox.push_back(-big); q.fbox.push_back(p->global_xmin+p->B96_1);
-        q.fbox.push_back(-big); q.fbox.push_back(big);
-    }
-    if((p->B99==1 || p->B99==2) && p->B96_2>0.0)
-    {
-        q.fbox.push_back(p->global_xmax-p->B96_2); q.fbox.push_back(big);
-        q.fbox.push_back(-big); q.fbox.push_back(big);
-    }
+    // no refinement in the relaxation zones of the wave generation (B 98 2) and the numerical
+    // beach (B 99 1, 2), measured from the ends of the domain in x, and in the B 520 zones (bc_zone)
+    bc_zone_set::from_legacy(p,pgc).norefine_boxes(p,q.fbox);
     q.ioband = 4;
 
-    // refinement around the resolved body (X 10 1): margin A 278 around the wetted hull,
-    // rebuilt every A 271 steps so that the zone follows the body (A 271 0: static)
-    q.zones = (p->X10==1 && p->A278>0);
-    q.zr = p->A278_r;
-    q.zL = p->A279_L;
-    q.za = p->A279_a;
+    // refinement around the resolved body (X 10 1): margin G 12 around the wetted hull,
+    // rebuilt every G 2 steps so that the zone follows the body (G 2 0: static)
+    q.zones = (p->X10==1 && p->G12>0);
+    q.zr = p->G12_r;
+    q.zL = p->G13_L;
+    q.za = p->G13_a;
     if(q.zones)
-    q.regrid = MAX(p->A271,0);
+    q.regrid = MAX(p->G2,0);
+
+    // the FNPF bodies are moored or oscillate: the zone is aligned with x and y (the heading of
+    // the SFLOW ship zone swings with every reversal of the motion), and the layout is kept as
+    // long as it covers the flagged tiles with at most 50 % excess
+    q.zalign = true;
+    q.lazy = 1.5;
+
+    // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
+    // patches on other ranks are reached through the block plans and old_run of the core, the
+    // hull triangles are taken by the rank of the finest grid at their centroid (owns_point)
+    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
+    q.rebalance = 0.1;
+    q.place_whole_zones = true;
 
     configure(q);
 
@@ -186,6 +190,36 @@ fnpf_fsf* fnpf_amr::patch_fsf(int n)
 slice& fnpf_amr::patch_tendency(int n, int m)
 {
     return (m==0) ? static_cast<slice&>(*FP(n)->ek) : static_cast<slice&>(*FP(n)->fk);
+}
+
+void fnpf_amr::prolong_cols(double **f, const vector<char> &need)
+{
+    auto sel = [&](int g) -> double* { return f[g+1]; };
+    vector<reefamr_patch*> nd;
+    for(int n=0; n<(int)P.size(); ++n)
+    if(need[n])
+    nd.push_back(P[n]);
+    auto need_fn = [&](reefamr_patch *c) { return std::find(nd.begin(),nd.end(),c)!=nd.end(); };
+    for(int l=1; l<=maxlev; ++l)
+    prolong_interior_col(l,need_fn,sel,sel);
+}
+
+int fnpf_amr::klev(int l) const
+{
+    return p0->knoz*((vref==2) ? (1<<l) : 1);
+}
+
+bool fnpf_amr::owns_point(double x, double y, int id)
+{
+    // placed patches: the rank of the finest grid at (x,y), then its local grid
+    if(par.place>0)
+    return finest_rank(x,y)==p0->mpirank && finest_at(x,y)==id;
+
+    if(!(x >= p0->originx && x < p0->endx))
+    return false;
+    if(p0->j_dir==1 && !(y >= p0->originy && y < p0->endy))
+    return false;
+    return finest_at(x,y)==id;
 }
 
 // the finest local grid whose interior holds (x,y)
@@ -249,7 +283,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (A 270): only for A 310 3, A 311 other than 3, A 343 0, A 350 0, X 10 0/1, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 343 0, A 350 0, X 10 0/1, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -261,7 +295,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->mpirank==0)
     {
         logout.open("./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_log.dat");
-        logout<<"# count \t simtime \t dt \t patches \t cells \t Laplace iterations \t residual"<<endl;
+        logout<<"# count \t simtime \t dt \t patches \t cells \t Laplace iterations (last phi) \t residual \t max phi iterations \t max psi iterations \t solves \t iterations \t layout \t regrids skipped"<<endl;
     }
 
     Se0 = &c0->eta;
@@ -274,14 +308,20 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(body!=nullptr)
     body->amr_grids(p,pgc);
 
+    // load: the patches stay with the rank of the level-0 cells below them
+    const double cmax = pgc->globalmax(double(cells_local));
+    const double c0n = pgc->globalmax(double(p->knox*p->knoy));
+
     if(p->mpirank==0)
     {
         cout<<"FNPF AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns";
         if(vref==2)
-        cout<<", sigma layers doubled on every level (A 281)";
+        cout<<", sigma layers doubled on every level (G 6)";
         if(regrid_int>0)
-        cout<<", regrid every "<<regrid_int<<" steps (A 271), the zone follows the body";
+        cout<<", regrid every "<<regrid_int<<" steps (G 2), the zone follows the body";
         cout<<endl;
+        cout<<"FNPF AMR: refined columns per rank max "<<(long)cmax<<", mean "<<setprecision(4)<<double(cells_total)/p->mpi_size
+            <<" (level-0 columns per rank "<<(long)c0n<<")"<<endl;
     }
 }
 
@@ -469,7 +509,7 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
 
 void fnpf_amr::tag(int l, vector<unsigned char> &M)
 {
-    // static refinement: the boxes (A 276) are marked by the core
+    // static refinement: the boxes (G 10) are marked by the core
 }
 
 // --------------------------------------------------------------------- interpolation
@@ -626,30 +666,6 @@ void fnpf_amr::regrid_static(ghostcell *pgc)
 {
 }
 
-// cells of the fresh patch c that an old patch of the same level held: fn(old patch, ii, jj,
-// io, jo) with the lexer indices on c and on the old patch (interior cells of the old patch)
-template<class F>
-void fnpf_amr::from_old(fnpf_amr_patch &c, vector<reefamr_patch*> &oldP, F fn)
-{
-    for(auto q : oldP)
-    {
-        if(q==&c || q->lev!=c.lev)
-        continue;
-
-        // kept patches are in both lists; only patches that are gone or kept can be sources,
-        // both still hold the state of the end of the step
-        const int I0 = MAX(c.I0,q->I0), I1 = MIN(c.I1,q->I1);
-        const int J0 = MAX(c.J0,q->J0), J1 = MIN(c.J1,q->J1);
-        if(I0>I1 || J0>J1)
-        continue;
-
-        fnpf_amr_patch *o = FP(q);
-        for(int I=I0; I<=I1; ++I)
-        for(int J=J0; J<=J1; ++J)
-        fn(*o, I-c.I0+EXT, J-c.J0+EXT, I-q->I0+EXT, J-q->J0+EXT);
-    }
-}
-
 // state of the new patches, coarse to fine: bed, depth and its derivatives, eta and Fifsf,
 // sigma grid, Fi and Fz.  Where an old patch of the same level was (the zone moved with the
 // body), its values are taken over; elsewhere they are interpolated from the parent level.
@@ -680,9 +696,7 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
     for(int l=1; l<=maxlev; ++l)
     {
         // bed
-        for(int id : lev[l])
-        if(P[id]->fresh)
-        prolong_interior_sl(*FP(id),1,sbed);
+        prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },1,sbed);
         fill_sl(l,1,7510+l,sbed);
 
         for(int id : lev[l])
@@ -708,21 +722,24 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             p->bed[lij(p,ii,jj)] = cc->bed(ii,jj);
         }
 
-        // surface
-        for(int id : lev[l])
-        if(P[id]->fresh)
-        {
-            fnpf_amr_patch *c = FP(id);
-            prolong_interior_sl(*c,2,sst);
-            prolong_interior_sl(*c,1,sfz);
-
-            from_old(*c,oldP,[&](fnpf_amr_patch &o, int ii, int jj, int io, int jo)
-            {
-                c->c->eta(ii,jj) = o.c->eta(io,jo);
-                c->c->Fifsf(ii,jj) = o.c->Fifsf(io,jo);
-                c->c->Fz(ii,jj) = o.c->Fz(io,jo);
-            });
-        }
+        // surface: prolonged, then the cells of the old patches (on any rank)
+        prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },2,sst);
+        prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },1,sfz);
+        old_run(l,3,7590+l,oldP,
+                [&](reefamr_patch *o, int io, int jo, double *v)
+                {
+                    fdm_fnpf *oc = FP(o)->c;
+                    v[0] = oc->eta(io,jo);
+                    v[1] = oc->Fifsf(io,jo);
+                    v[2] = oc->Fz(io,jo);
+                },
+                [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
+                {
+                    fdm_fnpf *cc = FP(q)->c;
+                    cc->eta(ii,jj) = v[0];
+                    cc->Fifsf(ii,jj) = v[1];
+                    cc->Fz(ii,jj) = v[2];
+                });
         fill_sl(l,2,7520+l,sst);
         fill_sl(l,1,7530+l,sfz);
 
@@ -759,19 +776,21 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             c->psig->sigma_update(p,cc,pgc,c->pf,cc->eta);
         }
 
-        // Fi
-        for(int id : lev[l])
-        if(P[id]->fresh)
+        // Fi: prolonged, then the columns of the old patches
+        prolong_interior_col(l,[&](reefamr_patch *c) { return c->fresh; },sfi,sfi);
         {
-            fnpf_amr_patch *c = FP(id);
-            prolong_interior_col(*c,sfi);
-
-            lexer *pp = c->pp;
-            from_old(*c,oldP,[&](fnpf_amr_patch &o, int ii, int jj, int io, int jo)
-            {
-                for(int kk=0; kk<=pp->knoz; ++kk)
-                c->c->Fi[fidx(pp,ii,jj,kk)] = o.c->Fi[fidx(o.pp,io,jo,kk)];
-            });
+        const int knf = klev(l);
+        old_run(l,knf+1,7595+l,oldP,
+                [&](reefamr_patch *o, int io, int jo, double *v)
+                {
+                    for(int kk=0; kk<=knf; ++kk)
+                    v[kk] = FP(o)->c->Fi[fidx(o->pp,io,jo,kk)];
+                },
+                [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
+                {
+                    for(int kk=0; kk<=knf; ++kk)
+                    FP(q)->c->Fi[fidx(q->pp,ii,jj,kk)] = v[kk];
+                });
         }
         fill_col(l,7540+l,sfi);
 
@@ -937,7 +956,7 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     }
 
-    // the zone around the body moves: new patches every A 271 steps
+    // the zone around the body moves: new patches every G 2 steps
     if(regrid_int>0 && p->count%regrid_int==0)
     {
         double t0 = MPI_Wtime();

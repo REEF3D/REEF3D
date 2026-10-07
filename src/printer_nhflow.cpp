@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"printer_nhflow.h"
+#include"lagoon_output.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -99,6 +100,9 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     // Create Folder
     if(p->mpirank==0)
         outputFormat->folder("NHFLOW");
+
+    if(p->P18>0 && (p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts))
+        plagoon = new lagoon_output(p,pgc,"NHFLOW");
 
     pwsf = new nhflow_print_wsf(p,d);
 
@@ -361,6 +365,9 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
 
     if(p->P180==1)
         pfsf->start(p,d,pgc,psed);
+
+    if(plagoon)  // the last output of the LAGOON store is counted
+        plagoon->finish(p,pgc);
 }
 
 void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
@@ -407,6 +414,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
             num = p->count;
 
         if(p->mpirank==0)
+            if(lagoon_output::vtu_files(p))
             parallel(p,d,pgc,pnhfturb,psed,num);
 
         if(initial_print)
@@ -561,6 +569,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         outputFormat->ending(result,offset,n);
 
         file_offset = result.str().length();
+        const size_t data_start = file_offset;  // the appended data begins here
         const size_t total_size = file_offset + offset[n] + 27;
         buffer.resize(total_size);
         std::memcpy(&buffer[0], result.str().data(), file_offset);
@@ -832,9 +841,13 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         // -----------------------
 
         outputFormat->structureWrite(p,d,buffer,file_offset);
+        if(plagoon)
+            plagoon->vtu_piece(p,pgc,buffer,data_start,num);
+
         outputFormat->fileName(name,sizeof(name),"NHFLOW",num,p->mpirank+1);
 
-        writeFile(name, total_size);
+        if(lagoon_output::vtu_files(p))
+            writeFile(name, total_size);
 
         ++printcount;
     }

@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE nonstationary (A 700 1): unidirectional JONSWAP enters a 20 km channel at constant depth, implicit time step 60 s (Courant number up to ~8), 15 steps. Validation in Dropbox SEASTATE/validation/03_front (energy conservation to 4e-8, N >= 0, front at cg t).",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 15,
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_implicit nonstationary BDF1", "positivity at large time steps", "integral log N_min"]
+}

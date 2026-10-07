@@ -1,6 +1,8 @@
 # Codelite build files
 src/Makefile*
 **/.codelite
+.DS_Store
+**/.DS_Store
 All
 Release
 Dev
@@ -10,6 +12,7 @@ src/*.mk
 # GNUMake build files
 bin
 build
+build_hypre
 # Ctags files
 src/.ctagsd
 # Temp files
@@ -21,3 +24,11 @@ src/.ctagsd
 *.json
 # MacOS files
 .DS_Store
+
+# regression suite run directories
+tests/regression/runs/
+__pycache__/
+!tests/regression/cases/**/*.json
+!tests/validation/cases/**/*.json
+# benchmark suite case files
+!Benchmark/cases/**/*.json

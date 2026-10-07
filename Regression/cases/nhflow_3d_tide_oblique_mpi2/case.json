@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_3d_tide_oblique",
+ "np": 2,
+ "description": "nhflow_3d_tide_oblique on 2 ranks (split along x): the corners between open edges on both ranks.",
+ "tags": ["quick", "3d", "nhflow", "tide", "iowave", "bc_zone", "background", "mpi"],
+ "covers": ["open y edges on a decomposed grid"]
+}

@@ -72,6 +72,7 @@ void driver::logic_fnpf()
     if(p->N10==3 && p->j_dir==1)
 	plapsolv = new bicgstab_ijk(p,a,pgc);
 	
+#ifdef REEF3D_USE_HYPRE
 	if(p->N10>=10 && p->N10<20)
     plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     
@@ -80,6 +81,7 @@ void driver::logic_fnpf()
     
 	if(p->N10>=30 && p->N10<40)
 	plapsolv = new hypre_sstruct(p,a,pgc);
+#endif
     
     
     
@@ -107,7 +109,7 @@ void driver::logic_fnpf()
     ppfsg = new fnpf_RK4(p,c,pgc);
     
 //  Mesh refinement
-    if(p->A270>0)
+    if(p->G1>0)
     {
     pfamr = new fnpf_amr(p,c,pgc);
     ppfsg->attach_amr(pfamr);

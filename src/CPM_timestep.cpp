@@ -30,50 +30,64 @@ void CPM::timestep(lexer *p, ghostcell *pgc)
     double maxvz=0.0;
 
     for(size_t n=0;n<P.index;n++)
+    if(P.Flag[n]==ACTIVE)
     {
-        if(P.Flag[n]>=0)
-        {
-            maxVelU = MAX(maxVelU,fabs(P.U[n]));
-            maxVelV = MAX(maxVelV,fabs(P.V[n]));
-            maxVelW = MAX(maxVelW,fabs(P.W[n]));
-        }
+        maxVelU = MAX(maxVelU,fabs(P.U[n]));
+        maxVelV = MAX(maxVelV,fabs(P.V[n]));
+        maxVelW = MAX(maxVelW,fabs(P.W[n]));
     }
-
-    maxvz = MAX(maxVelU,maxVelV);
-    maxvz = MAX(maxvz,maxVelV);
-
-    maxvz = pgc->globalmax(maxvz);
 
     maxVelU = pgc->globalmax(maxVelU);
     maxVelV = pgc->globalmax(maxVelV);
     maxVelW = pgc->globalmax(maxVelW);
-
-    if(timestep_ini<5)
+    
+    maxvz = MAX(maxVelU,maxVelV);
+    maxvz = MAX(maxvz,maxVelW);
+    
+    // MP-PIC: synchronised with the fluid, adaptive sub-steps in CPM::substep_size
+    if(p->Q11==2)
+    p->dtsed = p->dt;
+    
+    // grid-limited step: rejected moves in the previous step and largest occupancy
+    int nrej = pgc->globalisum(nrej_step);
+    int nclip = pgc->globalisum(nclip_step);
+    int nit = pgc->globalimax(nit_step);
+    nrej_step = 0;
+    nclip_step = 0;
+    nit_step = 0;
+    double omax = (p->Q11==2 && p->Q19==1) ? occupancy_max(p,pgc) : 0.0;
+    
+    if(p->Q11==1)
     {
-        maxvz = 1000.0;
-        ++timestep_ini;
+        if(timestep_ini<5)
+        {
+            maxvz = 1000.0;
+            ++timestep_ini;
+        }
+
+        if(p->S15==0)
+            p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+        else if(p->S15==1)
+            p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
+        else if(p->S15==2)
+            p->dtsed=p->S13;
+
+        p->dtsed=pgc->timesync(p->dtsed);
     }
-
-    if(p->S15==0)
-        p->dtsed=MIN(p->S13, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
-    else if(p->S15==1)
-        p->dtsed=MIN(p->dt, (p->S14*p->DXM)/(fabs(maxvz)>1.0e-15?maxvz:1.0e-15));
-    else if(p->S15==2)
-        p->dtsed=p->S13;
-
-    p->dtsed=pgc->timesync(p->dtsed);
-
-    //
 
     p->sedtime+=p->dtsed;
 
     if(p->mpirank==0)
     {
-        cout<<p->mpirank<<" maxvz: "<<setprecision(4)<<maxvz<<" Sediment Timestep: "<<setprecision(4)<<p->dtsed<<endl;
-        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(4)<<p->sedtime<<endl;
+        cout<<"Sediment Iter: "<<p->sediter<<"  Sediment Time: "<<setprecision(4)<<p->sedtime<<"  Sediment Timestep: "<<setprecision(4)<<p->dtsed<<endl;
+        
+        if(p->Q11==2)
+        cout<<"CPM sub-steps (previous step): "<<nsub<<"  mean dt_sub: "<<setprecision(4)<<dtsub<<"  stress wave speed: "<<setprecision(4)<<cmax<<endl;
+        
+        if(p->Q11==2 && p->Q19==1)
+        cout<<"CPM grid-limited step: rejected moves "<<nrej<<"  shortened moves "<<nclip<<"  max occupancy "<<setprecision(4)<<omax<<" (capacity "<<MAX(theta_max, theta_0 + P.ParcelFactor*Vp/(p->DXM*p->DXM*(p->j_dir==1?p->DXM:p->DYN[marge])))<<")  fix-up passes "<<nit<<endl;
+        
+        cout<<"Up_max: "<<setprecision(4)<<maxVelU<<"  Vp_max: "<<maxVelV<<"  Wp_max: "<<maxVelW<<endl;
         cout<<defaultfloat;
-        cout<<"Up_max: "<<maxVelU<<endl;
-        cout<<"Vp_max: "<<maxVelV<<endl;
-        cout<<"Wp_max: "<<maxVelW<<endl;
     }
 }

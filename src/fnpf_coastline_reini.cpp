@@ -73,7 +73,7 @@ void fnpf_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 
 void fnpf_coastline::step(lexer* p)
 {
-	reiniter=p->G41;
+	reiniter=p->G541;
 }
 
 void fnpf_coastline::time_preproc(lexer* p)

@@ -21,6 +21,7 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"printer_CFD.h"
+#include"lagoon_output.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -163,6 +164,9 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
     // Create Folder
     if(p->mpirank==0)
         outputFormat->folder("CFD");
+
+    if(p->P18>0 && (p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts))
+        plagoon = new lagoon_output(p,pgc,"CFD");
 }
 
 void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
@@ -342,6 +346,9 @@ void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb
         pfsf->start(p,a,pgc);
 
     print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+
+    if(plagoon)  // the last output of the LAGOON store is counted
+        plagoon->finish(p,pgc);
 }
 
 void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
@@ -367,7 +374,7 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         else if(p->P15==2)
             num = p->count;
 
-        if(p->mpirank==0)
+        if(p->mpirank==0 && lagoon_output::vtu_files(p))
             parallel(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed,num);
 
         if(initial_print)
@@ -419,12 +426,6 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             }
             // VOF
             if(p->P72==1)
-            {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
-                ++n;
-            }
-            // Fi
-            if(p->A10==4)
             {
                 offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
                 ++n;
@@ -552,12 +553,6 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             ++n;
         }
 
-        if(p->A10==4)
-        {
-            result<<"<DataArray type=\"Float32\" Name=\"Fi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-            ++n;
-        }
-
         if(p->P26==1)
         {
             result<<"<DataArray type=\"Float32\" Name=\"ST_conc\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -623,6 +618,7 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         outputFormat->ending(result,offset,n);
 
         file_offset = result.str().length();
+        const size_t data_start = file_offset;  // the appended data begins here
         const size_t total_size = file_offset + offset[n] + 27;
         buffer.resize(total_size);
         memcpy(&buffer[0], result.str().data(), file_offset);
@@ -738,20 +734,6 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             TPLOOP
             {
                 ffn=float(p->ipol4(a->vof));
-                memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
-            }
-        }
-
-        //  Fi
-        if(p->A10==4)
-        {
-            iin=sizeof(float)*p->pointnum;
-            memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
-            TPLOOP
-            {
-                ffn=float(p->ipol4press(a->Fi));
                 memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
             }
@@ -888,9 +870,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         outputFormat->structureWrite(p,a,buffer,file_offset);
 
+        if(plagoon)
+            plagoon->vtu_piece(p,pgc,buffer,data_start,num);
+
         outputFormat->fileName(name,sizeof(name),"CFD",num,p->mpirank+1);
 
-        writeFile(name, total_size);
+        if(lagoon_output::vtu_files(p))
+            writeFile(name, total_size);
 
         ++p->printcount;
 

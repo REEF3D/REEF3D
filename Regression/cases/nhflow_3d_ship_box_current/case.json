@@ -1,0 +1,9 @@
+{
+ "description": "Ship module held in a current: NHFLOW discharge inflow (B 60 1, 0.3 m/s), box barge rotated by 180 deg (X 101) so that its bow faces the current, surge fixed, heave and pitch free; ITTC friction from the velocity relative to the current (ship.dat current), 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": ["ship.dat"],
+ "tags": ["3d", "nhflow", "6dof", "ship", "current", "mpi"],
+ "covers": ["ship current (relative velocity)", "X 101 180 deg body frame", "NHFLOW discharge inflow with a floating body"]
+}

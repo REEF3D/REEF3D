@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"regression_dump.h"
 #include"dem.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -39,6 +40,7 @@ Author: Hans Bihs
 #include"field_header.h"
 #include"6DOF_header.h"
 #include"FSI_header.h"
+#include"runlog.h"
 
 void driver::loop_cfd_sf(fdm* a)
 {
@@ -112,6 +114,7 @@ void driver::loop_cfd_sf(fdm* a)
 
         // printer
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+        preg->cfd_step(p,a,pgc,pturb,pconc);
 
         // Shell-Printout
         if(p->mpirank==0)
@@ -158,6 +161,9 @@ void driver::loop_cfd_sf(fdm* a)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
 
+	if(p->plog)
+	p->plog->end(p,"finished");
+
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout << endl;
 
@@ -165,6 +171,8 @@ void driver::loop_cfd_sf(fdm* a)
     maxlogout.close();
     solvlogout.close();
 	}
+
+    preg->cfd_final(p,a,pgc,pturb,pconc);
 
     pgc->final();
 }

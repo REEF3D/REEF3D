@@ -47,6 +47,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     SEDSLICELOOP
     {
         k=0;
+        tau_eff = 0.0;   // unsupported S 16 options: no shear instead of an uninitialised value
         
         if(p->S16==1 && p->B22==1)
         {
@@ -58,9 +59,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
+        u_plus = uplus(dist,s->ks_eff(i,j));
 
-        tau_eff=density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau_eff=density*(uabs*uabs)/(u_plus*u_plus);
         
         us = sqrt(tau_eff/density);
         
@@ -68,7 +69,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
             {
             usn = us;
             
-            us = uabs/((1.0/kappa) * log(dist*(us>1.0e-10?us:1.0e-10)/visc) + 5.5);
+            us = uabs/((1.0/kappa) * log(MAX(dist*(us>1.0e-10?us:1.0e-10)/visc,1.0)) + 5.5);
             
             us += 0.5*(usn - us);
             }
@@ -85,9 +86,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
+        u_plus = uplus(dist,s->ks_eff(i,j));
 
-        tau_eff = density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau_eff = density*(uabs*uabs)/(u_plus*u_plus);
         }
         
         
@@ -101,9 +102,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
+        u_plus = uplus(dist,s->ks_eff(i,j));
 
-        tau_eff = MAX(density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*d->KIN[IJK]*0.3);
+        tau_eff = MAX(density*(uabs*uabs)/(u_plus*u_plus), density*d->KIN[IJK]*0.3);
         }
         
         if(p->S16==3)
@@ -142,8 +143,10 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
             wh+=p->DZN[KP]*d->WL(i,j);
         }
         
-        U=U/wh;
-        V=V/wh;
+        k=0;
+        
+        U=wh>1.0e-20?U/wh:0.0;
+        V=wh>1.0e-20?V/wh:0.0;
         
         u_abs = sqrt(U*U + V*V);
 
@@ -151,7 +154,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         //tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
         
         manning = pow(s->ks(i,j),1.0/6.0)/20.0;
-        cf = pow(manning,2.0)/pow(d->WL(i,j),1.0/3.0);
+        cf = pow(manning,2.0)/pow(MAX(d->WL(i,j),1.0e-6),1.0/3.0);
         
         //cf = sqrt(9.81)/log(12.0*d->WL(i,j)/(s->ks(i,j)));
     
@@ -169,9 +172,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         uabs = sqrt(U*U + V*V + W*W);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
+        u_plus = uplus(dist,s->ks(i,j));
 
-        tau_i = density*(uabs*uabs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau_i = density*(uabs*uabs)/(u_plus*u_plus);
         
         
         // blend with shallow water
@@ -188,14 +191,16 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
             wh+=p->DZN[KP]*d->WL(i,j);
             }
         
-            U=U/wh;
-            V=V/wh;
+            k=0;
+            
+            U=wh>1.0e-20?U/wh:0.0;
+            V=wh>1.0e-20?V/wh:0.0;
 
             
             u_abs = sqrt(U*U + V*V);
 
             manning = pow(s->ks(i,j),1.0/6.0)/20.0;
-            cf = pow(manning,2.0)/pow(d->WL(i,j),1.0/3.0);
+            cf = pow(manning,2.0)/pow(MAX(d->WL(i,j),1.0e-6),1.0/3.0);
 
             tau_s = p->W1*9.81*cf*u_abs*u_abs; 
             
@@ -227,8 +232,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
             
             //cout<<tau_acc<<endl;
             
-            tau_eff += tau_acc;
-            tau_i += tau_acc;
+            // the inertia term is signed: no negative shear stress (sqrt below)
+            tau_eff = MAX(tau_eff + tau_acc, 0.0);
+            tau_i = MAX(tau_i + tau_acc, 0.0);
             
         }
 

@@ -33,9 +33,10 @@ Author: Hans Bihs
 #include"vec2D.h"
 #include"matrix_diag.h"
 #include"matrix2D.h"
-#include"cpt2D.h"
 
 class lexer;
+class nhflow_thinbody;
+class seastate_nhflow;
 
 using namespace std;
 
@@ -84,6 +85,12 @@ public:
     double *MRCX = nullptr;     // membrane (X 330): face correction velocities of the last projection,
     double *MRCY = nullptr;     //                   Rhie-Chow continuity flux next to the membrane
     int MPROJ = 1;              // membrane (X 330): projections per stage (membrane.dat: projections)
+    double *MBX = nullptr;      // membrane (X 330), 'mobility link': mobility of the link cell (i,j,k) -> (i+1,j,k),
+    double *MBY = nullptr;      //   (i,j,k) -> (i,j+1,k) and of the vertical link node k -> k+1 through cell k;
+    double *MBZ = nullptr;      //   unallocated in the default layer mode (mobilities from MBETA)
+    nhflow_thinbody *thinbody = nullptr;   // sharp thin bodies (membrane.dat 'mobility sharp'): wall fluxes, projection
+                                           // right-hand side and hydrostatic head below closed floors, nhflow_thinbody.h
+    int solid_flux = 0;         // 1: no continuity flux through the faces of cells with p->DF < 0 (FEM structures, Z 30)
     double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;
     double *KIN;
@@ -120,6 +127,8 @@ public:
     double maxF,maxG,maxH;
     double wd_criterion;
     
+    // REEF3D::SEASTATE coupling (A 750 1), nullptr without
+    seastate_nhflow *wave = nullptr;
 };
 
 #endif

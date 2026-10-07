@@ -83,33 +83,9 @@ void nhflow_forcing::dlm_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
                         
                         
             // RANS turbulence forcing
-            /*if(p->A560==2)
-            if(i_it>=0 && j_it>=0 && k_it>=0 && i_it<p->knox && j_it<p->knoy && k_it<p->knoz)
-            {
-            dist = (p->XP[IP] - EL_X[n][q])/dx;
-            D = kernel(dist);
-            dist = (p->YP[JP] - EL_Y[n][q])/dy;
-            D *= kernel(dist);
-            dist = (p->ZN[KP] - EL_Z[n][q])/dz;
-            D *= kernel(dist);
-                        
-            kin = pturb->kinval(i_it,j_it,k_it);
-            eps_star = turb_force_fac*D*pow((kin>(0.0)?(kin):(0.0)),0.5) /(0.4*0.33*(dx+dy+dz)*pow(p->cmu, 0.25));
-                        
-            eps0(i_it,j_it,k_it) += eps_star;
-            }*/
 
         }     
     }
-    
 
-    /*
-    if(p->T10==2)
-    LOOP
-    if(eps0(i,j,k)>1.0e-8)
-    {
-    eps_star = eps0(i,j,k);
-    pturb->epsget(i,j,k,eps_star);
-    }*/
-    
+
 }

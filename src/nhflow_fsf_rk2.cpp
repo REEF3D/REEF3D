@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_fsf_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"seastate_nhflow.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
@@ -49,6 +50,7 @@ nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, 
 
 nhflow_fsf_f::~nhflow_fsf_f()
 {
+    delete [] temp;
 }
 
 void nhflow_fsf_f::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
@@ -78,6 +80,10 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     K(i,j) /= PORVALNH;
     }
     
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave!=nullptr)
+    d->wave->mass_source(p,d,K);
+    
     
     SLICELOOP4
     WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
@@ -85,6 +91,8 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
      
     pflow->WL_relax(p,pgc,WLRK1,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,WLRK1);
+    if(d->wave!=nullptr)
+    d->wave->wl_ghostcells(p,d,WLRK1);
     pgc->gcsl_start4(p,WLRK1,gcval_eta);
     
     SLICELOOP4
@@ -127,11 +135,17 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     K(i,j) /= PORVALNH;
     }
     
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave!=nullptr)
+    d->wave->mass_source(p,d,K);
+    
     SLICELOOP4
     d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
     
     pflow->WL_relax(p,pgc,d->WL,d->depth);
     pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
+    if(d->wave!=nullptr)
+    d->wave->wl_ghostcells(p,d,d->WL);
     pgc->gcsl_start4(p,d->WL,gcval_eta);
     
     SLICELOOP4

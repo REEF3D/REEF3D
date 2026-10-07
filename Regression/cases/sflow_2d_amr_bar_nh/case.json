@@ -1,0 +1,15 @@
+{
+ "description": "SFLOW AMR non-hydrostatic waves over the submerged bar (tutorial SFLOW/8_7, A 220 1): static boxes, 2 levels, the composite pressure.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh"
+ ],
+ "covers": [
+  "sflow_amr_nh: composite pressure, nh_restrict_vec, interior prolongation of the preconditioner"
+ ]
+}

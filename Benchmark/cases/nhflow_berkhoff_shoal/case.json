@@ -1,0 +1,119 @@
+{
+ "description": "Berkhoff et al. (1982) elliptic shoal on a 1:50 slope rotated by 20 deg, regular waves T = 1 s, H = 4.64 cm (3D refraction, diffraction, nonlinear focusing behind the shoal) with NHFLOW. Wave heights H/H0 along sections 1-5 (across the tank at x = 1, 3, 5, 7, 9 m behind the shoal centre) and 6-8 (along the tank at y = -2, 0, 2 m) against the measurements. Bathymetry from geo.dat written by tools/berkhoff_geo.py (Basilisk shoal.c formula, minimum depth 0.07 m).",
+ "reference": {
+  "short": "Berkhoff, Booy & Radder (1982)",
+  "citation": "Berkhoff, J.C.W., Booy, N. & Radder, A.C. (1982) Verification computations with linear wave propagation models. Coastal Engineering 6, 255-279. Sections 1-8 (amplitudes) from the FUNWAVE-TVD benchmark car_berkhoff_2d, see refdata/PROVENANCE_git_sources.md"
+ },
+ "tags": [
+  "nhflow",
+  "experiment",
+  "3d",
+  "refraction"
+ ],
+ "np": 16,
+ "time": 30.0,
+ "generate": {
+  "script": "berkhoff_geo.py",
+  "args": [
+   0.04
+  ]
+ },
+ "check": {
+  "type": "section_heights",
+  "sections": [
+   {
+    "name": "section 1",
+    "x": 1.0,
+    "sign": 1.0,
+    "col": 1,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section1.dat"
+   },
+   {
+    "name": "section 2",
+    "x": 3.0,
+    "sign": 1.0,
+    "col": 1,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section2.dat"
+   },
+   {
+    "name": "section 3",
+    "x": 5.0,
+    "sign": 1.0,
+    "col": 1,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section3.dat"
+   },
+   {
+    "name": "section 4",
+    "x": 7.0,
+    "sign": 1.0,
+    "col": 1,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section4.dat"
+   },
+   {
+    "name": "section 5",
+    "x": 9.0,
+    "sign": 1.0,
+    "col": 1,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section5.dat"
+   },
+   {
+    "name": "section 6",
+    "y": -2.0,
+    "sign": -1.0,
+    "col": 1,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section678.dat"
+   },
+   {
+    "name": "section 7",
+    "y": 0.0,
+    "sign": -1.0,
+    "col": 2,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section678.dat"
+   },
+   {
+    "name": "section 8",
+    "y": 2.0,
+    "sign": -1.0,
+    "col": 3,
+    "y_factor": 0.04310344827586207,
+    "data": "waves/berkhoff_shoal_funwave/section678.dat"
+   }
+  ],
+  "dx": 10.0,
+  "dy": 10.0,
+  "H0": 0.0464,
+  "t_start": 22.0,
+  "t_end": 30.0,
+  "tol": 0.15,
+  "note": "sections 1-8 from FUNWAVE-TVD (amplitudes, H/H0 = a/23.2 mm); y in the FUNWAVE frame, which matches the Basilisk shoal.c frame used for the bathymetry (checked against the Basilisk copy of section 5: rms difference 0.03)"
+ },
+ "levels": {
+  "nightly": {
+   "np": 4,
+   "control_set": {
+    "B 2": "250 200 5",
+    "M 10": "4"
+   },
+   "ctrl_set": {
+    "M 10": "4"
+   },
+   "generate": {
+    "script": "berkhoff_geo.py",
+    "args": [
+     0.1
+    ]
+   },
+   "check_set": {
+    "tol": 0.55
+   }
+  },
+  "release": {}
+ }
+}

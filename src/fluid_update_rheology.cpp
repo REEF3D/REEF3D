@@ -25,6 +25,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"fdm.h"
 #include"ghostcell.h"
 #include"rheology_f.h"
+#include"heaviside.h"
 
 fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3), visc2(p->W4)
 {
@@ -62,14 +63,7 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
     // density, viscosity & volumes
     LOOP
     {  
-        if(a->phi(i,j,k)>epsi)
-        H_phi=1.0;
-        
-        else if(a->phi(i,j,k)<-epsi)
-        H_phi=0.0;
-
-        else
-        H_phi=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+        H_phi = heaviside(a->phi(i,j,k),epsi);
         
 
         a->ro(i,j,k) = ro1*H_phi + ro2*(1.0-H_phi);

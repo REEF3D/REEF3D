@@ -49,7 +49,6 @@ public:
     void wallf_update(lexer*,fdm*,ghostcell*,fieldint&);
     double strainterm(lexer*,fdm*);
     double strainterm(lexer*,field&,field&,field&);
-    double rotationterm(lexer*,fdm*);
     double rotationterm(lexer*,field&,field&,field&);
     double magSqrSd(lexer*,fdm*);
     double magSqrSd(lexer*,field&,field&,field&);

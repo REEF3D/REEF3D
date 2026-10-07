@@ -21,6 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"momentum.h"
 #include"ghostcell.h"
@@ -31,37 +32,8 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     // external velocity
       Uext = Vext = Wext = Pext = Qext = Rext = 0.0; 
 
-    // Rigid body motion ini    
-    R_ << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-    e_ << 0.0, 0.0, 0.0, 0.0;
-    p_ << 0.0, 0.0, 0.0;
-    c_ << 0.0, 0.0, 0.0;
-    h_ << 0.0, 0.0, 0.0;
-    
-    dp_   << 0.0, 0.0, 0.0;
-    dpn1_ << 0.0, 0.0, 0.0;
-    dpn2_ << 0.0, 0.0, 0.0;
-    dpn3_ << 0.0, 0.0, 0.0;
-    
-    dc_   << 0.0, 0.0, 0.0;
-    dcn1_ << 0.0, 0.0, 0.0;
-    dcn2_ << 0.0, 0.0, 0.0;
-    dcn3_ << 0.0, 0.0, 0.0;
-    
-    dh_   << 0.0, 0.0, 0.0;
-    dhn1_ << 0.0, 0.0, 0.0;
-    dhn2_ << 0.0, 0.0, 0.0;
-    dhn3_ << 0.0, 0.0, 0.0;
-    
-    de_   << 0.0, 0.0, 0.0, 0.0;
-    den1_ << 0.0, 0.0, 0.0, 0.0;
-    den2_ << 0.0, 0.0, 0.0, 0.0;
-    den3_ << 0.0, 0.0, 0.0, 0.0;
-    
-    omega_B << 0.0, 0.0, 0.0;
-    omega_I << 0.0, 0.0, 0.0;
-    
-    
+    // Rigid body motion ini: state, derivatives, history, angles and loads
+    rb.reset();
     
     for(int qn=0;qn<p->X102;++qn)
     {
@@ -70,19 +42,8 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
             p_(2) += p->X102_w[qn]*Mass_fb;
     }
     
-    if (p->X103==1)
-    {
-        h_(0) = p->X103_p;
-        h_(1) = p->X103_q;
-        h_(2) = p->X103_r;
-    }  
+    // initial angular velocity (X 103): set in iniPosition_RBM, once the inertia tensor is known
     
-	if (p->X103==1)
-	{
-		h_(0) = p->X103_p;
-		h_(1) = p->X103_q;
-		h_(2) = p->X103_r;
-	}  
 	
     // Velocities
 	p->ufb = p->vfb = p->wfb = 0.0;
@@ -104,13 +65,8 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
         p->rfbi = p->X211_r;
 	}
 
-    // Positions
-    phi = theta = psi = 0.0;
-    
     // Forces
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;
-    Ffb_ << 0.0, 0.0, 0.0;
-    Mfb_ << 0.0, 0.0, 0.0;
     
     // Printing
 	printtime = 0.0;
@@ -118,7 +74,7 @@ void sixdof_obj::ini_fbvel(lexer *p, ghostcell *pgc)
     p->printcount_sixdof = 0;
 }
 
-void sixdof_obj::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::ini_parameter_stl(lexer *p, fdm *a, ghostcell *pgc)
 {
     
     

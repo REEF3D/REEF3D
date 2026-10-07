@@ -173,10 +173,17 @@ void nhflow_kepsilon_func::kinsource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
     }
     
     count=0;
+    // buoyancy (A 566 1), G_b = -PK_b: a sink is taken implicitly as (-G_b/k) k (Patankar), a source explicitly
     if(p->A566==1)
     LOOP
     {
-        d->rhsvec.V[count]  -= PK_b[IJK];
+        const double gb = -PK_b[IJK];
+        
+        if(gb<0.0)
+        d->M.p[count] += -gb/MAX(KIN[IJK],1.0e-10);
+        
+        if(gb>0.0)
+        d->rhsvec.V[count] += gb;
         
 	++count;
     }
@@ -193,7 +200,16 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
         {
 		d->M.p[count] += ke_c_2e * MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
 
-        d->rhsvec.V[count] +=  ke_c_1e * (MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20)))*PK0[IJK];
+        // c1 eps/k P(nu_t0) = c1 cmu k S^2 for nu_t0 = cmu k^2/eps; bounded by that value where the
+        // 1e-4 nu floor makes nu_t0 > cmu k^2/eps, otherwise eps/k * nu_floor blows up for k -> 0
+        const double ratio = MAX(EPS[IJK],0.0)/(KIN[IJK]>(1.0e-10)?(fabs(KIN[IJK])):(1.0e20));
+        const double kpos  = MAX(KIN[IJK],0.0);
+
+        if(ratio*d->EV0[IJK]<=p->cmu*kpos || d->EV0[IJK]<=1.0e-20)
+        d->rhsvec.V[count] +=  ke_c_1e * ratio * PK0[IJK];
+        
+        else
+        d->rhsvec.V[count] +=  ke_c_1e * p->cmu*kpos * PK0[IJK]/d->EV0[IJK];
         
         ++count;
         }
@@ -204,13 +220,19 @@ void nhflow_kepsilon_func::epssource(lexer *p, fdm_nhf *d, vrans_nhflow* pvrans)
 
 void nhflow_kepsilon_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    // free-surface value in the top sigma layer (A 567 > 0), turbulence length scale y' (Celik & Rodi 1984):
+    //   A567 1: y' = T37 h (legacy k-eps meaning),  2: y' = T37,  3: y' = T37 h (h local water depth)
+    //   (2 and 3 mean the same in k-eps and k-omega, as T 36 1 and 3 in CFD)
+    // applied as a lower bound, so the free-surface value only ever lowers nu_t (as CFD T 36)
     k=p->knoz-1;
     
-	if(p->A567==1)
+	if(p->A567>=1 && p->A567<=3)
 	SLICELOOP4
-	{
 	if(p->DF[IJK]>0)
-	EPS[IJK] = 2.5*pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),1.5)*(1.0/(p->T37*d->WL(i,j)));
+	{
+    double ly = (p->A567==1) ? p->T37*d->WL(i,j) : ((p->A567==2) ? p->T37 : p->T37*d->WL(i,j));
+    
+	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,0.75)*pow(fabs(KIN[IJK]),1.5)/(ly>1.0e-20?ly:1.0e-20));
 	}
 }
 

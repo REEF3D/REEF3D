@@ -1,0 +1,58 @@
+{
+ "description": "2D collapse of a water column a x 2a (n^2 = 2, a = 2.25 in = 0.05715 m) in a closed tank, two-phase CFD with level set (set-up of tutorial 11_1 scaled to the experiment). Surge-front arrival at gauges Z = x/a = 1.5..10 as T = t sqrt(2g/a) against Martin & Moyce (1952). The front has arrived when the surface is 0.05 a above the bed.",
+ "reference": {
+  "short": "Martin & Moyce (1952)",
+  "citation": "Martin, J.C. & Moyce, W.J. (1952) An experimental study of the collapse of liquid columns on a rigid horizontal plane. Phil. Trans. R. Soc. A 244, 312-324; n^2 = 2, a = 2.25 in, surge front Z(T) digitised from Fig. 3 (secondary: PySPH db_exp_data.py), see refdata/dambreak/PROVENANCE.md"
+ },
+ "tags": [
+  "cfd",
+  "experiment",
+  "2dv",
+  "two-phase",
+  "quick"
+ ],
+ "np": 2,
+ "time": 0.5,
+ "check": {
+  "type": "front_arrival",
+  "a": 0.05715,
+  "x_wall": 0.0,
+  "z_bed": 0.0,
+  "h_thr": 0.0028575000000000002,
+  "datum": 0.0,
+  "data": "dambreak/martin_moyce_1952_surge_n2_2_a2.25in_pysph.dat",
+  "tol_max": 0.25,
+  "tol_mean": 0.08,
+  "note": "the largest deviation is at Z = 1.5 (front 20 % early): the experiment includes the opening of the column, the simulation starts from rest without it"
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "control_set": {
+    "B 1": "0.0028575",
+    "B 10": "0.0 0.80010 0.0 0.0028575 0.0 0.17145",
+    "M 10": "1"
+   },
+   "ctrl_set": {
+    "M 10": "1",
+    "P 51": [
+     "0.08572 0.00142875",
+     "0.11430 0.00142875",
+     "0.17145 0.00142875",
+     "0.22860 0.00142875",
+     "0.28575 0.00142875",
+     "0.34290 0.00142875",
+     "0.40005 0.00142875",
+     "0.45720 0.00142875",
+     "0.51435 0.00142875",
+     "0.57150 0.00142875"
+    ]
+   },
+   "check_set": {
+    "tol_max": 0.25,
+    "tol_mean": 0.1
+   }
+  },
+  "release": {}
+ }
+}

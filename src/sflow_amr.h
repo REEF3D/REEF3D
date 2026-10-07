@@ -74,21 +74,37 @@ using namespace std;
 //   - a coarse face on a coarse-fine interface takes the mean of the two fine
 //     face fluxes and face depths (sflow_HLL calls hll_hook between flux_bc and
 //     the divergence); across a partition edge the fine values are sent
-//   - one global time step, the stages of all grids in lockstep
-//   - every A 271 steps the patches are rebuilt from refinement flags (A 273
-//     surface jump, A 274 shoreline, A 276 boxes) with a buffer of A 272 cells.
-//     Flags mark tiles of A 275 cells on the global index space of each level;
+//   - one global time step, the stages of all grids in lockstep; with G 7 1 (hydrostatic,
+//     sflow_amr_sub.cpp) every level takes two steps of half the size per step of the next
+//     coarser level (Berger-Oliger): the cells around a patch are filled from the parent state
+//     interpolated in time between the start and the end of its step, the coarse cells next to
+//     a patch are corrected afterwards by the difference of the fine and coarse face fluxes
+//     summed over the steps (flux registers, refluxing)
+//   - every G 2 steps the patches are rebuilt from refinement flags (G 20
+//     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
+//     Flags mark tiles of G 4 cells on the global index space of each level;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
-//     the partition edges.
+//     the partition edges, or with G 40 1 placed for the load of the ranks
+//     (parents and old patches on other ranks through the block plans and old_run
+//     of the core: restrict_levels, ini_patch_old, ini_patch_prolong; not with the
+//     moving body)
 //   - Boussinesq (A 220 4): u_a is solved on the leaf cells of all levels together
 //     (sflow_amr_bous.cpp), the patch stages stop before it and continue afterwards
 //   - moving body (X 10 2/3): the body stays on level 0 (sixdof_sflow); the patches
 //     evaluate it on their own cells (sflow_amr_ship.cpp): the level set is interpolated
 //     from level 0, the draft is ray-cast from the hull triangles at the patch cell centres,
 //     and the pressure (X 10 3) or the direct forcing (X 10 2) is applied in the patch
-//     kernels.  A 278 refines a margin around the hull, A 279 a wake wedge behind the bow,
+//     kernels.  G 12 refines a margin around the hull, G 13 a wake wedge behind the bow,
 //     both moving with the body.
+
+// G 7 1: state of a grid at the start of its step (WL, UH, VH, WH and the wet flags), the
+// parent state of the time-interpolated fills
+struct sflow_amr_told
+{
+    slice *f[4] = {nullptr,nullptr,nullptr,nullptr};
+    vector<int> wet;
+};
 
 struct sflow_amr_patch : public reefamr_patch
 {
@@ -120,6 +136,13 @@ struct sflow_amr_patch : public reefamr_patch
 
     // line solver of the Boussinesq u_a inversion (A 220 4)
     solver2D *psolv = nullptr;
+    // regrid: blocks of a fresh patch that took the state of an old patch
+    vector<char> blkold;
+
+    // G 7 1: state at the start of the step, fine face fluxes summed over the steps of the
+    // patch within one step of its parent (dt * RK weight), freg[ipol][side][fine index]
+    sflow_amr_told told;
+    vector<double> freg[5][4];
 };
 
 class sflow_amr : public reefamr
@@ -206,7 +229,7 @@ private:
     long bq_it_total = 0, bq_solves = 0;
     int nh_it_last;
 
-    // moving ship (X 10 2/3): body fields on the patches, refinement zone A 278/A 279
+    // moving ship (X 10 2/3): body fields on the patches, refinement zone G 12/G 13
     int shipmode;                   // X 10 of the body, 0: none
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch&, bool);
@@ -227,7 +250,12 @@ private:
     void tag_level(int, vector<unsigned char>&);
     double bed_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
-    void ini_patch_state(lexer*, ghostcell*, sflow_amr_patch&, vector<reefamr_patch*>&);
+    void ini_patch_defaults(sflow_amr_patch&);
+    void ini_patch_old(int, vector<reefamr_patch*>&);
+    void ini_patch_prolong(int);
+    void ini_block(sflow_amr_patch&, int, int, const double*);
+    void ini_patch_finish(lexer*, sflow_amr_patch&);
+    bool block_solid(sflow_amr_patch&, int, int);
 
     // coupling
     void cache_stage(int);
@@ -241,14 +269,37 @@ private:
     void eval_fill(const reefamr_fill&, double*);
     void store_fill(sflow_amr_patch*, int, int, int, const double*);
     void prolong(int, int, int, int, int, double, double*);
+    static const int NPR = 9;       // values of prolong_parts
+    void prolong_parts(int, int, int, int, int, double*);
+    void prolong_finish(const double*, double, double*);
     void apply_bc(ghostcell*, sflow_amr_patch&, int);
-    void restrict_patch(lexer*, sflow_amr_patch&, int);
+    void restrict_levels(lexer*, int);   // all patches into their parents, finest first (block plans)
+    void restrict_level(lexer*, int, int);   // the level-l patches into their parents
     void exchange_level0(lexer*, fdm2D*, ghostcell*, int);
     void exchange_fluxes(int);
+
+    // G 7 1: subcycling (sflow_amr_sub.cpp)
+    int sub;                        // 1: subcycled (G 7 1, hydrostatic)
+    int hstage;                     // RK3 stage of the grids running (flux register weights)
+    double tint;                    // fill time of the parent level in its step [0,1], <0: synchronous
+    sflow_amr_told told0;           // level 0
+    vector<vector<double>> cregL, cregR, rflux;   // [id+1]: coarse face fluxes summed over the step (5 per match / rmatch entry), received fine sums
+    sflow_amr_told& told(int);
+    void told_free(sflow_amr_told&);
+    void sub_snapshot(int);
+    void sub_creg_reset(int);
+    void sub_dfx();
+    void sub_begin(lexer*, fdm2D*, ghostcell*);
+    void sub_end(lexer*, fdm2D*, ghostcell*);
+    void sub_level(lexer*, ghostcell*, int, int, double, double);
+    void sub_sync(lexer*, ghostcell*, int);
+    void sub_reflux(int);
+    long sub_steps[8] = {0,0,0,0,0,0,0,0};
 
     double mass(lexer*, fdm2D*, ghostcell*);
     void write_vtr(lexer*, sflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm2D*);
+    bool print_lagoon(lexer*, fdm2D*, ghostcell*);
     void gauges(lexer*, fdm2D*, ghostcell*);
     ofstream gaugeout;
 

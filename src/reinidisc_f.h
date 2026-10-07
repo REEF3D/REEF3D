@@ -24,18 +24,15 @@ Author: Hans Bihs
 #define REINIDISC_F_H_
 
 #include"reinidisc.h"
-#include"ddweno_nug_sf.h"
+#include"ddweno_nug.h"
 #include"field.h"
-
-class picard;
-class cpt;
 
 using namespace std;
 
-class reinidisc_f final : public reinidisc, public ddweno_nug_sf
+class reinidisc_f final : public reinidisc, public ddweno_nug
 {
 public:
-	reinidisc_f(lexer* p);
+	reinidisc_f(lexer* p, bool fixed_interface=false);
 	virtual ~reinidisc_f();
 	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
 	
@@ -51,6 +48,8 @@ private:
 	double sx,sy,sz,snorm,op;
 	
 	double deltax,denom;
+    
+    const bool fixed_interface;
 };
 
 #endif

@@ -76,6 +76,35 @@ void sflow_idiff::bc(lexer *p, fdm2D *b, slice &u)
 		b->M.w[n] = 0.0;
 		}
         
+        // dry neighbours inside the domain: free slip, zero normal gradient (the coupling goes to the diagonal);
+        // the dry cell itself is solved as f = 0 and would otherwise act as a no-slip wall at the shoreline
+        if(p->wet[IJ]==1)
+        {
+            if(p->flagslice4[Im1J]>0 && p->wet[Im1J]==0)
+            {
+            b->M.p[n] += b->M.s[n];
+            b->M.s[n] = 0.0;
+            }
+            
+            if(p->flagslice4[Ip1J]>0 && p->wet[Ip1J]==0)
+            {
+            b->M.p[n] += b->M.n[n];
+            b->M.n[n] = 0.0;
+            }
+            
+            if(p->flagslice4[IJm1]>0 && p->wet[IJm1]==0)
+            {
+            b->M.p[n] += b->M.e[n];
+            b->M.e[n] = 0.0;
+            }
+            
+            if(p->flagslice4[IJp1]>0 && p->wet[IJp1]==0)
+            {
+            b->M.p[n] += b->M.w[n];
+            b->M.w[n] = 0.0;
+            }
+        }
+        
         if(p->wet[IJ]==0)
         {
         b->M.p[n] = 1.0;
@@ -106,7 +135,8 @@ void sflow_idiff::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     cym = visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
     
     dxy=0.0;
-    if(p->j_dir==1 && p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0)
+    if(p->j_dir==1 && p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0
+       && p->wet[Ip1Jp1]==1 && p->wet[Ip1Jm1]==1 && p->wet[Im1Jp1]==1 && p->wet[Im1Jm1]==1)
     dxy = (V(i+1,j+1) - V(i+1,j-1) - V(i-1,j+1) + V(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
     
 	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);
@@ -159,7 +189,8 @@ void sflow_idiff::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     cym = 2.0*visc/(p->DYP[JM1]*p->DYN[JP]);
     
     dxy=0.0;
-    if(p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0)
+    if(p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0
+       && p->wet[Ip1Jp1]==1 && p->wet[Ip1Jm1]==1 && p->wet[Im1Jp1]==1 && p->wet[Im1Jm1]==1)
     dxy = (U(i+1,j+1) - U(i+1,j-1) - U(i-1,j+1) + U(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));
     
 	b->M.p[n] = cxp + cxm + cyp + cym + 1.0/(alpha*p->dt);

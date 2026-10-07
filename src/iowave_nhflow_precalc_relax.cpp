@@ -31,6 +31,8 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(!gen_built) genzone4_build(p,pgc);
     
+    const bool zsel = zones.has_sources();
+    
 // ETA (SLICELOOP4 order)
     if(p->B98==2)
     for(size_t q=0; q<gen_i.size(); ++q)
@@ -38,9 +40,15 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
         i = gen_i[q];
         j = gen_j[q];
         
+        if(zsel)
+        select_sources(gen_src[q]);
+        
         PSLICECHECK4
         eta(i,j) = wave_eta_c(p,pgc,int(q));
     }
+    
+    if(zsel)
+    select_sources(nullptr);
     pgc->gcsl_start4(p,eta,50);
     
 // U, V, W in one pass over the generation-zone cells (LOOP order), with the
@@ -55,6 +63,9 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
         j = gen_j[q];
         
         const double hval = eta(i,j) + d->depth(i,j);
+        
+        if(zsel)
+        select_sources(gen_src[q]);
         
         KLOOP
         PCHECK
@@ -82,5 +93,8 @@ void iowave::nhflow_precalc_relax(lexer *p, fdm_nhf *d, ghostcell *pgc)
             ++count;
         }
     }
+    
+    if(zsel)
+    select_sources(nullptr);
 }
     

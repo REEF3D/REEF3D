@@ -1,0 +1,21 @@
+{
+ "description": "nhflow_3d_amr_tow_vref_rk3 with the implicit diffusion (A 512 2): the composite diffusion (G 31 1, default) with RK3 (phase_D of nhflow_momentum_RK3), vertical refinement (the coarse layers split linearly into the fine ones) and a moving zone with a regrid every step.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "cdiff"
+ ],
+ "covers": [
+  "nhflow_amr_diff.cpp: composite diffusion, G 6 fill and restriction",
+  "nhflow_momentum_RK3::phase_D"
+ ],
+ "ctrl_add": [
+  "A 512 2"
+ ],
+ "base": "nhflow_3d_amr_tow_vref_rk3"
+}

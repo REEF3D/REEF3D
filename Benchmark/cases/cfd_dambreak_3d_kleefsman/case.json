@@ -1,0 +1,291 @@
+{
+ "description": "MARIN 3D dam break with a box obstacle (Kleefsman et al. 2005, SPHERIC Test 2): tank 3.22 x 1 x 1 m, water column 1.228 x 1 x 0.55 m behind the door at x = 1.992 m, box 0.161 x 0.403 x 0.161 m with its water-facing side at x = 0.8245 m (SPHERIC/AQUAgpusph dimensions). Pressures P1-P4 on the box front (z = 0.021-0.141 m) and P5-P8 on its top, water heights at x = 1.456, 0.960, 0.464 (behind the box) and 2.606 m (reservoir) against the measured records: rms errors, peak value and time of P1. The probes sit 5 mm off the box surface (one cell centre at the nightly grid).",
+ "reference": {
+  "short": "Kleefsman et al. (2005), SPHERIC Test 2",
+  "citation": "Kleefsman, K.M.T. et al. (2005) A volume-of-fluid based simulation method for wave impact problems. J. Comput. Phys. 206, 363-393 (MARIN, SPHERIC Test 2). Measured P1-P8 and H1-H4 (instrument records, dt 1 ms) from the AQUAgpusph repository, see refdata/PROVENANCE_git_sources.md"
+ },
+ "tags": [
+  "cfd",
+  "experiment",
+  "3d",
+  "two-phase",
+  "impact"
+ ],
+ "np": 16,
+ "time": 6.0,
+ "check": {
+  "type": "timeseries",
+  "signals": [
+   {
+    "name": "P1",
+    "source": "pressure",
+    "n": 1,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 1,
+    "tol_rms": 0.6
+   },
+   {
+    "name": "P2",
+    "source": "pressure",
+    "n": 2,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 2,
+    "tol_rms": 0.6
+   },
+   {
+    "name": "P3",
+    "source": "pressure",
+    "n": 3,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 3,
+    "tol_rms": 0.6
+   },
+   {
+    "name": "P4",
+    "source": "pressure",
+    "n": 4,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 4,
+    "tol_rms": 0.6
+   },
+   {
+    "name": "P5",
+    "source": "pressure",
+    "n": 5,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 5,
+    "tol_rms": 0.9
+   },
+   {
+    "name": "P6",
+    "source": "pressure",
+    "n": 6,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 6,
+    "tol_rms": 0.9
+   },
+   {
+    "name": "P7",
+    "source": "pressure",
+    "n": 7,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 7,
+    "tol_rms": 0.9
+   },
+   {
+    "name": "P8",
+    "source": "pressure",
+    "n": 8,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 8,
+    "tol_rms": 0.9
+   },
+   {
+    "name": "H x=1.456",
+    "source": "gauge",
+    "index": 1,
+    "datum": 0.0,
+    "clip_min": 0.0,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 9,
+    "tol_rms": 0.35
+   },
+   {
+    "name": "H x=0.960",
+    "source": "gauge",
+    "index": 2,
+    "datum": 0.0,
+    "clip_min": 0.0,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 10,
+    "tol_rms": 0.35
+   },
+   {
+    "name": "H x=0.464",
+    "source": "gauge",
+    "index": 3,
+    "datum": 0.0,
+    "clip_min": 0.0,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 11,
+    "tol_rms": 0.5
+   },
+   {
+    "name": "H x=2.606",
+    "source": "gauge",
+    "index": 4,
+    "datum": 0.0,
+    "clip_min": 0.0,
+    "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+    "data_col": 12,
+    "tol_rms": 0.35
+   }
+  ],
+  "align": [],
+  "lag": 0.0,
+  "tol_rms": 0.6,
+  "tol_height": null,
+  "rms_about_mean": false,
+  "note_mass": "F 46 3 (level-set volume correction, works with N 40 3 since hans_dev d80a861): without it the volume drops by 18 % and the run stops at t = 1.77 s",
+  "peak": {
+   "signals": [
+    "P1"
+   ],
+   "window": [
+    0.3,
+    0.8
+   ],
+   "tol_value": 0.3,
+   "tol_time": 0.03
+  },
+  "note": "the water-height columns follow AQUAgpusph's reading (column 10 = gauge nearest the reservoir); the labels H1-H4 of the data file are therefore not used"
+ },
+ "levels": {
+  "nightly": {
+   "np": 4,
+   "time": 2.0,
+   "control_set": {
+    "B 1": "0.025",
+    "M 10": "4"
+   },
+   "ctrl_set": {
+    "M 10": "4",
+    "P 64": [
+     "0.8375 0.5 0.021",
+     "0.8375 0.5 0.061",
+     "0.8375 0.5 0.101",
+     "0.8375 0.5 0.141",
+     "0.8035 0.5 0.1875",
+     "0.7635 0.5 0.1875",
+     "0.7235 0.5 0.1875",
+     "0.6835 0.5 0.1875"
+    ]
+   },
+   "check_set": {
+    "tol_rms": 0.7,
+    "window": [
+     0.0,
+     2.0
+    ],
+    "signals": [
+     {
+      "name": "P1",
+      "source": "pressure",
+      "n": 1,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 1,
+      "tol_rms": 0.7
+     },
+     {
+      "name": "P2",
+      "source": "pressure",
+      "n": 2,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 2,
+      "tol_rms": 0.7
+     },
+     {
+      "name": "P3",
+      "source": "pressure",
+      "n": 3,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 3,
+      "tol_rms": 0.7
+     },
+     {
+      "name": "P4",
+      "source": "pressure",
+      "n": 4,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 4,
+      "tol_rms": 0.7
+     },
+     {
+      "name": "P5",
+      "source": "pressure",
+      "n": 5,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 5,
+      "tol_rms": 1.0
+     },
+     {
+      "name": "P6",
+      "source": "pressure",
+      "n": 6,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 6,
+      "tol_rms": 1.0
+     },
+     {
+      "name": "P7",
+      "source": "pressure",
+      "n": 7,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 7,
+      "tol_rms": 1.0
+     },
+     {
+      "name": "P8",
+      "source": "pressure",
+      "n": 8,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 8,
+      "tol_rms": 1.0
+     },
+     {
+      "name": "H x=1.456",
+      "source": "gauge",
+      "index": 1,
+      "datum": 0.0,
+      "clip_min": 0.0,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 9,
+      "tol_rms": 0.35
+     },
+     {
+      "name": "H x=0.960",
+      "source": "gauge",
+      "index": 2,
+      "datum": 0.0,
+      "clip_min": 0.0,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 10,
+      "tol_rms": 0.35
+     },
+     {
+      "name": "H x=0.464",
+      "source": "gauge",
+      "index": 3,
+      "datum": 0.0,
+      "clip_min": 0.0,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 11,
+      "tol_rms": 0.6
+     },
+     {
+      "name": "H x=2.606",
+      "source": "gauge",
+      "index": 4,
+      "datum": 0.0,
+      "clip_min": 0.0,
+      "data": "dambreak/spheric_test2/spheric_test2_P1-P8_H1-H4.dat",
+      "data_col": 12,
+      "tol_rms": 0.35
+     }
+    ],
+    "peak": {
+     "signals": [
+      "P1"
+     ],
+     "window": [
+      0.3,
+      0.8
+     ],
+     "tol_value": 0.3,
+     "tol_time": 0.1
+    }
+   }
+  },
+  "release": {}
+ }
+}

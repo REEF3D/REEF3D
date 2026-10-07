@@ -1,0 +1,1 @@
+{"description": "CFD 2D open channel with free surface, k-omega with the buoyancy term T 45 1: implicit sink, k >= 0 at the interface.", "np": 1, "steps": 200, "tags": ["2d", "turbulence", "freesurface"], "covers": ["komega_func::kinsource T45", "komega_IM1 k clip"]}

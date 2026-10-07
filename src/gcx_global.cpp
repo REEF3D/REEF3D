@@ -26,42 +26,56 @@ Author: Hans Bihs
 
 double ghostcell::globalsum(double sendsum)
 {
+    if(local_red)
+    return sendsum;
     MPI_Allreduce(&sendsum,&recvsum,1,MPI_DOUBLE,MPI_SUM,mpi_comm);
     return recvsum;
 }
 
 int ghostcell::globalisum(int sendisum)
 {
+    if(local_red)
+    return sendisum;
     MPI_Allreduce(&sendisum,&recvisum,1,MPI_INT,MPI_SUM,mpi_comm);
     return recvisum;
 }
 
 double ghostcell::globalmin(double sendmin)
 {
+    if(local_red)
+    return sendmin;
     MPI_Allreduce(&sendmin,&recvmin,1,MPI_DOUBLE,MPI_MIN,mpi_comm);
     return recvmin;
 }
 
 void ghostcell::globalmax(double *vals, int num)
 {
+    if(local_red)
+    return;
     if(num>0)
     MPI_Allreduce(MPI_IN_PLACE,vals,num,MPI_DOUBLE,MPI_MAX,mpi_comm);
 }
 
 double ghostcell::globalmax(double sendmax)
 {
+    if(local_red)
+    return sendmax;
     MPI_Allreduce(&sendmax,&recvmax,1,MPI_DOUBLE,MPI_MAX,mpi_comm);
     return recvmax;
 }
 
 int ghostcell::globalimin(int sendimin)
 {
+    if(local_red)
+    return sendimin;
     MPI_Allreduce(&sendimin,&recvimin,1,MPI_INT,MPI_MIN,mpi_comm);
     return recvimin;
 }
 
 int ghostcell::globalimax(int sendimax)
 {
+    if(local_red)
+    return sendimax;
     MPI_Allreduce(&sendimax,&recvimax,1,MPI_INT,MPI_MAX,mpi_comm);
     return recvimax;
 }

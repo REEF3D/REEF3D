@@ -26,6 +26,7 @@ Author: Alexander Hanke
 #include <ostream>
 #include <sstream>
 #include <vector>
+#include <string>
 #include <cstring>
 #include <iomanip>
 
@@ -58,7 +59,22 @@ class vtk3D
     protected:
         void xmlVersion(std::ostream &result) {result<<"<?xml version=\"1.0\"?>\n";};
         void vtkVersion(std::ostream &result) {result<<"version=\"1.0\" byte_order=\"LittleEndian\">\n";}; // header_type=\"UInt32\"
-        void timeValue(std::ostream &result, const double time) {result<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\"> "<<std::setprecision(7)<<time<<"\n</DataArray>\n</FieldData>\n";};
+        // field data: the simulation time (ParaView reads TimeValue as the time of the
+        // file) and, with a run log, the run that wrote it (LAGOON RUN.md). VTK writes
+        // ASCII strings as their character codes, each string ending in 0.
+        void timeValue(std::ostream &result, const double time, const std::string &run_id=std::string())
+        {
+            result<<"<FieldData>\n<DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\" format=\"ascii\"> "
+                  <<std::setprecision(15)<<time<<"\n</DataArray>\n";
+            if(!run_id.empty())
+            {
+                result<<"<DataArray type=\"String\" Name=\"RunId\" NumberOfTuples=\"1\" format=\"ascii\">";
+                for(unsigned char c : run_id)
+                result<<" "<<int(c);
+                result<<" 0\n</DataArray>\n";
+            }
+            result<<"</FieldData>\n";
+        };
         void appendData(std::ostream &result) {result<<"<AppendedData encoding=\"raw\">\n_";};
         void structureWriteEnd(std::vector<char> &buffer, size_t &m) {
             std::stringstream result;

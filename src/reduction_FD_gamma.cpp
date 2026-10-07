@@ -40,16 +40,16 @@ void reduction_FD_gamma::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     
     SEDSLICELOOP
     {
-    u0=0.5*(s->P(i,j)+s->P(i-1,j));
-    v0=0.5*(s->Q(i,j)+s->Q(i,j-1));
-    
-    uvel = (cos(s->beta(i,j))*u0-sin(s->beta(i,j))*v0);
-	vvel = (sin(s->beta(i,j))*u0+cos(s->beta(i,j))*v0);
+    // weights from the angle between the flow and the steepest bed gradient: teta and alpha are the
+    // bed slopes along and across the flow (bedslope::slope_cds). (Rotating the velocity by s->beta,
+    // minus the flow angle, always gave fx = 1, fy = 0: the transverse factor was never applied.)
+    uvel = fabs(tan(s->teta(i,j)));
+    vvel = fabs(tan(s->alpha(i,j)));
     
     uabs=sqrt(uvel*uvel + vvel*vvel);
     
-    fx = fabs(uvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
-    fy = fabs(vvel)/(fabs(uabs)>1.0e-10?uabs:1.0e10);
+    fx = uabs>1.0e-10?uvel/uabs:1.0;
+    fy = uabs>1.0e-10?vvel/uabs:0.0;
     
     r = fx*cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j))) + (1.0-fx);
     

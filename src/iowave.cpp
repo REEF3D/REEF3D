@@ -163,6 +163,23 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 
     distgen_ini(p);
 
+    zones = bc_zone_set::from_legacy(p,pgc);
+    bgs.read(p);
+    zones_check(p);
+    
+    // tidal / current background (NHFLOW)
+    if(zones.has_background())
+    {
+    bg_on = true;
+    p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;
+    p->open_xp = zones.open_edge(2)!=nullptr ? 1 : 0;
+    p->open_ym = zones.open_edge(3)!=nullptr ? 1 : 0;
+    p->open_yp = zones.open_edge(4)!=nullptr ? 1 : 0;
+    }
+    
+    if(zones.user_beach())
+    beach_relax=1;
+
 	
 	p->Darray(beta,p->B106);
 	p->Darray(tan_beta,p->B106);
@@ -263,4 +280,6 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 
 iowave::~iowave()
 {
+    delete relax4_wg0;
+    delete relax4_nb0;
 }

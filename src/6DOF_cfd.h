@@ -24,7 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_CFD_H_
 
 #include"6DOF.h"
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include<vector>
 
 class mooring;
@@ -64,7 +64,7 @@ private:
    void setup(lexer*,fdm*,ghostcell*);
    
     int number6DOF;
-    vector<sixdof_obj*> fb_obj;
+    vector<sixdof_obj_cfd*> fb_obj;
 
 };
 

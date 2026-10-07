@@ -27,13 +27,10 @@ Author: Fabian Knoblauch
 #include"ghostcell.h"
 #include"convection.h"
 #include"solver.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"weno_hj.h"
-#include"hric.h"
 
 // in 2D scheme one function is used for Fields
 void VOF_PLIC::vof_transport_COSMIC2D_RK

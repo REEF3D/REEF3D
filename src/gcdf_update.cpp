@@ -21,20 +21,20 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
-void gcbl_reset_all();
+void gcbl_reset_all(lexer*);
 #include"lexer.h"
 #include"fdm.h"
 #include"fieldint4.h"
 
 void ghostcell::gcdf_update(lexer *p, fdm *a)
 {
-    gcbl_reset_all();
+    gcbl_reset_all(p);
 
     double psi;
     
     // -----------------------------------------------------------
     // FLAG
-    if(p->G5==1)
+    if(p->G505==1)
     {
     BASELOOP
     {

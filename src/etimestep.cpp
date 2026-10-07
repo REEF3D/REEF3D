@@ -65,25 +65,49 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
 	sqd=1.0/(p->DXM*p->DXM);
 	
-// maximum velocities
-
-
+// maximum values: local first, then one reduction over all ranks
 	ULOOP
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
-
-	p->umax=pgc->globalmax(p->umax);
-
 
 	VLOOP
 	p->vmax=MAX(p->vmax,fabs(a->v(i,j,k)));
 
-	p->vmax=pgc->globalmax(p->vmax);
-
-
 	WLOOP
 	p->wmax=MAX(p->wmax,fabs(a->w(i,j,k)));
 
-	p->wmax=pgc->globalmax(p->wmax);
+	LOOP
+	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
+
+	LOOP
+	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
+
+    LOOP
+	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
+
+    LOOP
+    {
+	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
+	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
+    }
+
+    {
+    double gmax[12] = {p->umax, p->vmax, p->wmax, a->maxF, a->maxG, a->maxH, 0.0,
+                       p->viscmax, p->kinmax, p->epsmax, p->pressmax, -p->pressmin};
+
+    pgc->globalmax(gmax,12);
+
+    p->umax=gmax[0];
+    p->vmax=gmax[1];
+    p->wmax=gmax[2];
+    a->maxF=gmax[3];
+    a->maxG=gmax[4];
+    a->maxH=gmax[5];
+    p->viscmax=gmax[7];
+    p->kinmax=gmax[8];
+    p->epsmax=gmax[9];
+    p->pressmax=gmax[10];
+    p->pressmin=-gmax[11];
+    }
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
@@ -97,48 +121,15 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 	p->wmax=MAX(p->wmax,p->wfbmax);
 
     velmax=max(p->umax,p->vmax,p->wmax);
-    
-     // rhs globalmax
-    a->maxF=pgc->globalmax(a->maxF);
-    a->maxG=pgc->globalmax(a->maxG);
-    a->maxH=pgc->globalmax(a->maxH);
-
-// maximum viscosity
-	LOOP
-	p->viscmax=MAX(p->viscmax, a->visc(i,j,k)+a->eddyv(i,j,k));
-
-	p->viscmax=pgc->globalmax(p->viscmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"viscmax: "<<p->viscmax<<endl;
-	//----kin
-	LOOP
-	p->kinmax=MAX(p->kinmax,pturb->kinval(i,j,k));
-
-	p->kinmax=pgc->globalmax(p->kinmax);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"kinmax: "<<p->kinmax<<endl;
 
-	//---eps
-    LOOP
-	p->epsmax=MAX(p->epsmax,pturb->epsval(i,j,k));
-
-	p->epsmax=pgc->globalmax(p->epsmax);
-
     if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"epsmax: "<<p->epsmax<<endl;
-
-
-	//---press
-    LOOP
-    {
-	p->pressmax=MAX(p->pressmax,a->press(i,j,k));
-	p->pressmin=MIN(p->pressmin,a->press(i,j,k));
-    }
-
-	p->pressmax=pgc->globalmax(p->pressmax);
-	p->pressmin=pgc->globalmin(p->pressmin);
 
 
 // maximum reynolds stress source term
@@ -157,7 +148,7 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
 	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx +  visc*(6.0/pow(dx,2.0)))
     
-            +sqrt(pow(sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx+visc,2.0)
+            +sqrt(pow(sqrt(p->umax*p->umax + p->vmax*p->vmax + p->wmax*p->wmax)/dx+visc*(6.0/pow(dx,2.0)),2.0)
             
             + (4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
@@ -171,30 +162,31 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
     
 	cu = MIN(cu, 2.0/((sqrt(p->umax*p->umax)/p->DXP[IP] +  visc*(6.0/pow(p->DXP[IP],2.0)))
     
-            +sqrt(pow(sqrt(p->umax*p->umax)/p->DXP[IP]+visc,2.0)
+            +sqrt(pow(sqrt(p->umax*p->umax)/p->DXP[IP]+visc*(6.0/pow(p->DXP[IP],2.0)),2.0)
             
             + (4.0*fabs(a->maxF))/p->DXN[IP])));
             
             
     cv = MIN(cv, 2.0/((sqrt(p->vmax*p->vmax)/p->DYN[JP] +  visc*(6.0/pow(p->DYN[JP],2.0)))
     
-            +sqrt(pow(sqrt(p->vmax*p->vmax)/p->DYN[JP]+visc,2.0)
+            +sqrt(pow(sqrt(p->vmax*p->vmax)/p->DYN[JP]+visc*(6.0/pow(p->DYN[JP],2.0)),2.0)
             
             + (4.0*fabs(a->maxG))/p->DYN[JP])));
             
             
     cw = MIN(cw, 2.0/((sqrt(p->wmax*p->wmax)/p->DZN[KP] +  visc*(6.0/pow(p->DZN[KP],2.0)))
     
-            +sqrt(pow(sqrt(p->wmax*p->wmax)/p->DZN[KP]+visc,2.0)
+            +sqrt(pow(sqrt(p->wmax*p->wmax)/p->DZN[KP]+visc*(6.0/pow(p->DZN[KP],2.0)),2.0)
             
             + (4.0*fabs(a->maxH))/p->DZN[KP])));
     }
     
     cu = MIN3(cu,cv,cw);
 
+    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    cu = pgc->globalmin(cu);
+
 	p->dt=p->N47*cu;
-    
-	p->dt=pgc->timesync(p->dt);
    // p->dt = MIN(p->dt,10.0*p->dt_old);
     p->dt_old=p->dt;
     
@@ -272,6 +264,7 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 	visccrit=(p->viscmax*(6.0/pow(p->DXM,2.0)));
 
 	dx = p->DXM;
+    cu = 1.0e10;
     
     LOOP
     {
@@ -281,42 +274,10 @@ void etimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
     
             + sqrt((4.0*fabs(MAX3(a->maxF,a->maxG,a->maxH)))/dx)));
     }
+    cu = pgc->globalmin(cu);
+
 	p->dt=p->N47*cu*0.25;
-	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
-}
-
-double etimestep::min(double val1,double val2,double val3)
-{
-	double mini;
-
-	mini=val1;
-
-	if(mini>val2)
-	mini=val2;
-
-	if(mini>val3)
-	mini=val3;
-
-	if(mini<0.0)
-	mini=0.0;
-
-	return mini;
-}
-
-double etimestep::min(double val1,double val2)
-{
-	double mini;
-
-	mini=val1;
-
-	if(mini>val2)
-	mini=val2;
-
-	if(mini<0.0)
-	mini=0.0;
-
-	return mini;
 }
 
 double etimestep::max(double val1,double val2,double val3)
@@ -330,21 +291,6 @@ double etimestep::max(double val1,double val2,double val3)
 
 	if(maxi<val3)
 	maxi=val3;
-
-	if(maxi<0.0)
-	maxi=0.0;
-
-	return maxi;
-}
-
-double etimestep::max(double val1,double val2)
-{
-	double maxi;
-
-	maxi=val1;
-
-	if(maxi<val2)
-	maxi=val2;
 
 	if(maxi<0.0)
 	maxi=0.0;

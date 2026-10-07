@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
 {
@@ -43,6 +44,8 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
     {
     // open WSF file
 	wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
+	if(p->plog)
+	p->plog->table_file(p,"wsf","gauges","./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
 
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;

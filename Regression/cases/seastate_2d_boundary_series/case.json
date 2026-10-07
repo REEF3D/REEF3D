@@ -1,0 +1,21 @@
+{
+ "description": "REEF3D::SEASTATE time series of boundary spectra at many locations (A 711 3, nonstationary SWAN file seastate-boundary.spc): 3 locations, 4 hourly records with changing Hs, Tp and direction, spectra on the x- and y- sides from the two nearest locations (inverse distance), zero gradient at y+, model start 00:30 after the first record (A 780), linear in time; 20 x 10 cells of 1 km, depth 30 m, 2 h. Validation in Dropbox SEASTATE/validation/15-16.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 12,
+ "time": 7200.0,
+ "files": [
+  "seastate-boundary.spc"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_spc_series streaming reader",
+  "seastate_f boundary_series weights, forcing_update",
+  "seastate_implicit boundary_sides on x- and y-",
+  "A 780 start date-time"
+ ]
+}

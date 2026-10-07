@@ -24,169 +24,61 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include<string>
+
+// Wave-frame coordinates of a point: xgen along the wave direction B 105_1,
+// ygen along the crest (90 deg counter-clockwise), both measured from the
+// origin (B 105_2, B 105_3) and signed. Unsigned distances mirror the wave
+// field at the B 105 line, so an origin inside the domain reversed the phase
+// of everything upstream of it (generation zone included).
+static inline double wave_xframe(double x1, double y1, double x0, double y0, double g)
+{
+    return (x1-x0)*cos(g) + (y1-y0)*sin(g);
+}
+
+static inline double wave_yframe(double x1, double y1, double x0, double y0, double g)
+{
+    return -(x1-x0)*sin(g) + (y1-y0)*cos(g);
+}
 
 double iowave::xgen_calc(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_xframe(p->pos_x(),p->pos_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::xgen1(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos1_x();
-	y1 = p->pos1_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_xframe(p->pos1_x(),p->pos1_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::xgen2(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos2_x();
-	y1 = p->pos2_y();
-	
-	dist = fabs(y1 - tan_alpha*x1 + tan_alpha*x0 - y0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_xframe(p->pos2_x(),p->pos2_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::ygen_calc(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos_x();
-	y1 = p->pos_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-    
-	return dist;
+	return wave_yframe(p->pos_x(),p->pos_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::ygen1(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos1_x();
-	y1 = p->pos1_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_yframe(p->pos1_x(),p->pos1_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::ygen2(lexer *p)
 {
-	double x1,y1;
-	double x0,y0;
-	double dist=0.0;
-	
-	x0=p->B105_2;
-	y0=p->B105_3;
-	
-	x1 = p->pos2_x();
-	y1 = p->pos2_y();
-	
-	dist = fabs(x1 - tan_alpha*y1 + tan_alpha*y0 - x0)/sqrt(pow(tan_alpha,2.0)+1.0);
-	
-	return dist;
+	return wave_yframe(p->pos2_x(),p->pos2_y(),p->B105_2,p->B105_3,gamma);
 }
 
 double iowave::distgen_calc(lexer *p)
 {
-    double x0,y0,denom;
-	double dist=1.0e20;
-    int test1,test2;    
-    
-    x0 = p->pos_x();
-    y0 = p->pos_y();
-    
-    for(int qn=0;qn<p->B108;++qn)
-    {
-    test1=0;
-    test2=0;
-    
-    test1=intriangle(p,G1[qn][0],G1[qn][1],G3[qn][0],G3[qn][1],G2[qn][0],G2[qn][1],x0,y0);
-    test2=intriangle(p,G3[qn][0],G3[qn][1],G4[qn][0],G4[qn][1],G2[qn][0],G2[qn][1],x0,y0);
-
-        if(test1==1||test2==1)
-        {
-        denom = sqrt(pow(Ge[qn][1]-Gs[qn][1],2.0) + pow(Ge[qn][0]-Gs[qn][0],2.0));
-        denom = denom>1.0e-20?denom:1.0e20;
-        
-        dist = MIN(fabs((Ge[qn][1]-Gs[qn][1])*x0 - (Ge[qn][0]-Gs[qn][0])*y0 
-                  + Ge[qn][0]*Gs[qn][1] - Ge[qn][1]*Gs[qn][0])/denom,dist);
-        
-        }
-    }
-    
-	return dist;
+    return zones.relax_dist(p->pos_x(),p->pos_y());
 }
 
 double iowave::distbeach_calc(lexer *p)
 {
-    double x0,y0,denom;
-	double dist=1.0e20;
-    int test1,test2;    
-    
-    x0 = p->pos_x();
-    y0 = p->pos_y();
-    
-    for(int qn=0;qn<p->B107;++qn)
-    {
-    test1=0;
-    test2=0;
-    
-    test1=intriangle(p,B1[qn][0],B1[qn][1],B3[qn][0],B3[qn][1],B2[qn][0],B2[qn][1],x0,y0);
-    test2=intriangle(p,B3[qn][0],B3[qn][1],B4[qn][0],B4[qn][1],B2[qn][0],B2[qn][1],x0,y0);
-
-        if(test1==1||test2==1)
-        {
-        denom = sqrt(pow(Be[qn][1]-Bs[qn][1],2.0) + pow(Be[qn][0]-Bs[qn][0],2.0));
-        denom = denom>1.0e-20?denom:1.0e20;
-        
-        dist = MIN(fabs((Be[qn][1]-Bs[qn][1])*x0 - (Be[qn][0]-Bs[qn][0])*y0 
-                  + Be[qn][0]*Bs[qn][1] - Be[qn][1]*Bs[qn][0])/denom,dist);
-        
-        }
-    }
-    
-	return dist;
+    return zones.beach_dist(p->pos_x(),p->pos_y());
 }
 
 // distgen()/distbeach() test every slice cell against all B107/B108 zone
@@ -245,7 +137,7 @@ void iowave::dist_cache_build(lexer *p)
     j=js;
 }
 
-// xgen/ygen additionally depend on tan_alpha (set at the end of the constructor)
+// xgen/ygen additionally depend on gamma (set at the end of the constructor)
 void iowave::xy_cache_build(lexer *p)
 {
     const int is=i, js=j;
@@ -302,7 +194,7 @@ double iowave::ygen(lexer *p)
 // functions that consume the value arrays.
 void iowave::genzone4_build(lexer *p, ghostcell *pgc)
 {
-    gen_i.clear(); gen_j.clear();
+    gen_i.clear(); gen_j.clear(); gen_src.clear();
     gen_idx.assign(size_t(p->imax)*size_t(p->jmax),-1);
     
     std::vector<double> xg_, yg_;
@@ -317,6 +209,9 @@ void iowave::genzone4_build(lexer *p, ghostcell *pgc)
         gen_idx[IJ] = int(gen_i.size());
         gen_i.push_back(i);
         gen_j.push_back(j);
+        
+        const bc_zone *z = zones.relax_zone_at(p->pos_x(),p->pos_y());
+        gen_src.push_back((z!=nullptr && !z->sources.empty()) ? &z->sources : nullptr);
         xg_.push_back(xgen(p));
         yg_.push_back(ygen(p));
         }
@@ -325,4 +220,75 @@ void iowave::genzone4_build(lexer *p, ghostcell *pgc)
     wave_cache_points(p,pgc,xg_,yg_);
     
     gen_built=true;
+}
+
+// zone input (B 520-524) that iowave cannot honour yet
+void iowave::zones_check(lexer *p)
+{
+    std::string err;
+    
+    if(zones.user_relax() && p->B98!=2)
+    err = "relaxation zones (B 520 method 1) need relaxation wave generation (B 98 2)";
+    
+    if(zones.has_sources() && p->A10!=3 && p->A10!=5)
+    err = "zone sources (B 524) are available for FNPF and NHFLOW only, so far";
+    
+    if(zones.has_sources() && p->B89==1)
+    err = "zone sources (B 524) do not work with decomposed precalc (B 89 1) yet";
+    
+    for(const bc_zone &z : zones.relax)
+    for(int s : z.sources)
+    if(!source_exists(s))
+    err = "zone "+std::to_string(z.id)+" uses source "+std::to_string(s)+", which is not defined (B 92 is 1, B 500 the others)";
+    
+    for(const bc_zone &z : zones.beach)
+    if(!z.sources.empty())
+    err = "beach zone "+std::to_string(z.id)+" cannot have sources (B 524)";
+    
+    for(const bc_zone &z : zones.edges)
+    if(!z.sources.empty() && z.method==bc_method::flather)
+    err = "Flather edge "+std::to_string(z.id)+" carries the background only (no B 524); waves come in through a Riemann edge or a relaxation zone";
+    
+    for(const bc_zone &z : zones.edges)
+    for(int s : z.sources)
+    if(!source_exists(s))
+    err = "zone "+std::to_string(z.id)+" uses source "+std::to_string(s)+", which is not defined (B 92 is 1, B 500 the others)";
+    
+    if(zones.has_background() && p->A10!=5)
+    err = "backgrounds (B 523) and Riemann / Flather edges are available for NHFLOW only, so far";
+    
+    if(zones.has_background() && p->B89==1)
+    err = "backgrounds (B 523) do not work with decomposed precalc (B 89 1) yet";
+    
+    for(const std::vector<bc_zone> *v : {&zones.relax, &zones.beach, &zones.edges})
+    for(const bc_zone &z : *v)
+    if(z.bg>0 && bgs.index(z.bg)<0)
+    err = "zone "+std::to_string(z.id)+" uses background "+std::to_string(z.bg)+", which has no B 510";
+    
+    // waves on the background (B 530)
+    if(p->B530!=0)
+    {
+        if(p->B530<0 || p->B530>2)
+        err = "B 530 mode is 1 (waves on h_eff) or 2 (h_eff + Doppler)";
+        
+        if(!zones.has_background() || p->A10!=5)
+        err = "waves on the background (B 530) need a background (B 510, B 523) in NHFLOW";
+        
+        for(int n=0; n<wave_nsources(); ++n)
+        {
+            int id, type;
+            double rot;
+            wave_source_lib(n,id,type,rot);
+            
+            if(type!=2 && !(n==0 && type==0))
+            err = "waves on the background (B 530) work with linear waves (type 2) only, so far; source "+std::to_string(id)+" is type "+std::to_string(type);
+        }
+    }
+    
+    if(!err.empty())
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! iowave: "<<err<<" !!!"<<endl<<endl;
+        exit(1);
+    }
 }

@@ -40,6 +40,8 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"fnpf_ice.h"
 #include"fnpf_amr.h"
+#include"regression_dump.h"
+#include"runlog.h"
 
 void driver::loop_fnpf()
 {
@@ -98,6 +100,8 @@ void driver::loop_fnpf()
         
         if(pfamr!=nullptr)
         pfamr->timestep(p,c,pgc);
+
+        preg->fnpf_step(p,c,pgc);
         
         if(pfice!=nullptr)
         pfice->timestep(p,c,pgc);
@@ -148,6 +152,9 @@ void driver::loop_fnpf()
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
 
+	if(p->plog)
+	p->plog->end(p,"finished");
+
 	cout<<"modelled time: "<<p->simtime<<endl;
     cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
 	cout << endl;
@@ -156,6 +163,8 @@ void driver::loop_fnpf()
     maxlogout.close();
     solvlogout.close();
 	}
+
+    preg->fnpf_final(p,c,pgc);
 
     pgc->final();
     

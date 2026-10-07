@@ -1,0 +1,23 @@
+{
+ "description": "REEF3D::SEASTATE static mesh refinement (G 1 2, REEFAMR): 30 x 15 cells of 200 m, slope 30 -> 6 m with a Gaussian island from the bathymetry raster (A 790 1, all grids), refinement by depth (A 791), coastline (A 792), bathymetry gradient (A 793) and a box (G 10), no refinement next to the boundary side (A 794); stationary composite solve with whitecapping, breaking with the SWAN maximum energy (A 737), triads with SWAN 41.31 parameters (A 736), SWAN-type convergence (A 709); handover points on the patches. Validation in Dropbox SEASTATE/validation/19-23.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "time": 1.0,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "2d",
+  "seastate",
+  "amr",
+  "quick"
+ ],
+ "covers": [
+  "seastate_amr hierarchy, criteria and patches",
+  "composite block Gauss-Seidel over the levels (fills, restriction, face spectra)",
+  "seastate_bathy raster on all grids",
+  "A 736, A 737, A 709",
+  "handover on the finest grid"
+ ]
+}

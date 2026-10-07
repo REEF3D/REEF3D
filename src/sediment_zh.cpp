@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"vrans_v.h"
 #include"vrans_f.h"
+#include"heaviside.h"
 
 void sediment_f::bedlevel(lexer *p, ghostcell *pgc)
 {
@@ -63,9 +64,11 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
     
 	pgc->gcsl_start4(p,s->bedzh,1);
 	
+    // inside the S 77 window, and outside wherever the bed has changed (sand slide receivers next
+    // to the window, S 75 relaxation): the CFD has to see every bed change of bedzh
     LOOP
     {
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+    if((p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe) || fabs(s->bedzh(i,j)-s->bedzh0(i,j))>1.0e-12)
     a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
     }
     
@@ -97,14 +100,7 @@ void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 	{
        epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
-		if(a->topo(i,j,k)>epsi)
-		H=1.0;
-
-		if(a->topo(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(a->topo(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->topo(i,j,k)/epsi + (1.0/PI)*sin((PI*a->topo(i,j,k))/epsi));
+		H = heaviside(a->topo(i,j,k),epsi);
 
 		volume += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H);
 	}

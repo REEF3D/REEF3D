@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_2d_hdc",
+ "chain": [{"case": "fnpf_hdc_source_single", "copy": ["REEF3D_FNPF_STATE"]}],
+ "description": "fnpf_2d_hdc with one HDC input file per time step (source P 45 1).",
+ "tags": ["2d", "fnpf", "waves", "iowave", "hdc"],
+ "covers": ["wave_lib_hdc single-file input (FNPF format)"]
+}

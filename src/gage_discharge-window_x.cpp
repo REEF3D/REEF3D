@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"heaviside.h"
 
 gage_discharge_window_x::gage_discharge_window_x(lexer *p, fdm* a, ghostcell *pgc)
 {
@@ -79,27 +80,6 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
 
     i=iloc[n];
 		
-        /*
-        if(flag[n]==1)
-        JLOOP
-        KLOOP
-        PCHECK
-        {
-			area=0.0;
-            if(a->phi(i,j,k)>-0.5*p->DZN[KP]-1.0e-20 && a->topo(i,j,k)>0.0)
-			{
-            if(a->phi(i,j,k)>=0.5*p->DZN[KP])
-            area=p->DYN[JP]*p->DZN[KP];
-
-            if(a->phi(i,j,k)<0.5*p->DZN[KP] && a->phi(i,j,k)>0.0)
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 + a->phi(i,j,k));
-			
-			if(a->phi(i,j,k)>=-0.5*p->DZN[KP] -1.0e-20 && a->phi(i,j,k)<=0.0*p->DZN[KP])
-            area=p->DYN[JP]*(p->DZN[KP]*0.5 - fabs(a->phi(i,j,k)));
-
-            q[n]+=area*0.5*(a->u(i,j,k) + a->u(i-1,j,k));
-			}
-        }*/
         
         if(flag[n]==1)
         JLOOP
@@ -109,14 +89,7 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
         {
             epsi = 1.6*p->DXN[KP];
             
-            if(a->phi(i,j,k)>epsi)
-            H=1.0;
-
-            if(a->phi(i,j,k)<-epsi)
-            H=0.0;
-
-            if(fabs(a->phi(i,j,k))<=epsi)
-            H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
+            H = heaviside(a->phi(i,j,k),epsi);
 
             area=H*p->DYN[JP]*p->DZN[KP];
 

@@ -1,0 +1,1 @@
+{"description": "CFD 2D open channel, k-eps, vegetation box (B 310, B 308 0, B 295 1): vegetation drag 1/2 Cd a |u| u_i and the Lopez & Garcia k and eps sources.", "np": 1, "steps": 200, "tags": ["2d", "turbulence", "vrans"], "covers": ["vrans_veg velsource", "vrans_veg ke_source / eps_source"]}

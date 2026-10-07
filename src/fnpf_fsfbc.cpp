@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "field4.h"
 #include "convection.h"
-#include "convection.h"
 #include "ioflow.h"
 #include "solver.h"
 #include "reini.h"
@@ -36,10 +35,11 @@ Author: Hans Bihs
 #include "wind_f.h"
 #include "fnpf_ice.h"
 #include "wind_v.h"
+#include "fnpf_hj_godunov.h"
 
 using namespace std;
 
-fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc), ef(p), df(p), pconvec(std::in_place_type<fnpf_voiddisc>, p),
+fnpf_fsfbc::fnpf_fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_breaking(p,c,pgc), ef(p), df(p), eqxm(p), eqxp(p), eqym(p), eqyp(p), pconvec(std::in_place_type<fnpf_voiddisc>, p),
                                                                                                             pddx(std::in_place_type<fnpf_ddx_cds2>)
 {
     if(p->A311==1)
@@ -134,6 +134,12 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
                     c->Fx(i,j) = conv.dswenox_dq_upsym(*dqF,uvel);
                     c->Exu(i,j) = conv.dswenox_dq_upsym(*dqE,evel);
                     c->Ex(i,j) = (p->A315==2) ? conv.dswenox_dq_sym(*dqE) : conv.dswenox_dq_upsym(*dqE,uvel);
+                    
+                    if(p->A315==3)
+                    {
+                    eqxm(i,j) = conv.dswenox_dq(*dqE,1.0);
+                    eqxp(i,j) = conv.dswenox_dq(*dqE,-1.0);
+                    }
                 }
 
                 c->Exx(i,j) = ddx.sxx(p,eta);
@@ -162,6 +168,12 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
                         c->Fy(i,j) = conv.dswenoy_dq_upsym(*dqF,vvel);
                         c->Eyu(i,j) = conv.dswenoy_dq_upsym(*dqE,evel);
                         c->Ey(i,j) = (p->A315==2) ? conv.dswenoy_dq_sym(*dqE) : conv.dswenoy_dq_upsym(*dqE,vvel);
+                        
+                        if(p->A315==3)
+                        {
+                        eqym(i,j) = conv.dswenoy_dq(*dqE,1.0);
+                        eqyp(i,j) = conv.dswenoy_dq(*dqE,-1.0);
+                        }
                     }
 
                     c->Eyy(i,j) = ddx.syy(p,eta);
@@ -193,6 +205,12 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
                     c->Fx(i,j) = sxu(Fifsf,ivel);
                     c->Exu(i,j) = sxu(eta,evel);
                     c->Ex(i,j) = (p->A315==2) ? sxs(eta) : sxu(eta,ivel);
+                    
+                    if(p->A315==3)
+                    {
+                    eqxm(i,j) = conv.sx(p,eta,1.0);
+                    eqxp(i,j) = conv.sx(p,eta,-1.0);
+                    }
                 }
 
                 c->Exx(i,j) = ddx.sxx(p,eta);
@@ -215,6 +233,12 @@ void fnpf_fsfbc::fsfdisc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slic
                         c->Fy(i,j) = syu(Fifsf,jvel);
                         c->Eyu(i,j) = syu(eta,evel);
                         c->Ey(i,j) = (p->A315==2) ? sys(eta) : syu(eta,jvel);
+                        
+                        if(p->A315==3)
+                        {
+                        eqym(i,j) = conv.sy(p,eta,1.0);
+                        eqyp(i,j) = conv.sy(p,eta,-1.0);
+                        }
                     }
 
                     c->Eyy(i,j) = ddx.syy(p,eta);
@@ -294,6 +318,14 @@ void fnpf_fsfbc::kfsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     else if(p->A314==2)
     {
+        // A315 3: Godunov gradient with the Fx,Fy,Fz of this stage (fnpf_hj_godunov.h)
+        if(p->A315==3)
+        SLICELOOP4
+        {
+        c->Exu(i,j) = fnpf_hj_godunov(eqxm(i,j),eqxp(i,j),c->Fx(i,j),c->Fz(i,j));
+        c->Eyu(i,j) = p->j_dir ? fnpf_hj_godunov(eqym(i,j),eqyp(i,j),c->Fy(i,j),c->Fz(i,j)) : 0.0;
+        }
+        
         // Exu,Eyu: upwinded eta gradient (equal to Ex,Ey for A315==0)
         SLICELOOP4
         c->K(i,j) =  - c->Fx(i,j)*c->Exu(i,j) - c->Fy(i,j)*c->Eyu(i,j)

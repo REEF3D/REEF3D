@@ -29,6 +29,7 @@ class lexer;
 class fdm;
 class ghostcell;
 class wave_lib;
+class wave_field;
 
 using namespace std;
 
@@ -84,12 +85,23 @@ public:
     double wave_fi_time_cos(lexer*,ghostcell*,int);
     
     void wave_prestep(lexer*,ghostcell*);
+    
+    // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
+    // ids as in B 524 (1: the B 92 wave); nullptr: all sources
+    void select_sources(const std::vector<int>*);
+    bool source_exists(int) const;
+    
+    // all sources, n = 0 the B 92 wave, n >= 1 the B 500 ones: library, id, B 92 type, direction relative to B 105 [deg]
+    int wave_nsources() const;
+    wave_lib *wave_source_lib(int n, int &id, int &type, double &rot) const;
 
     double wave_paddle_Q(lexer*,ghostcell*,double);
 
 
 private:
-    wave_lib *pwave;
+    wave_lib *pwave;      // source 1: the B 92 wave, unchanged path
+    wave_field *pfield;   // additional sources (B 500-504), summed on top
+    bool legacy_on;       // the B 92 wave is among the selected sources
     
     
     int n,m,count;

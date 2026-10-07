@@ -23,6 +23,7 @@ Author: Alexander Hanke
 #include "vtp3D.h"
 
 #include "lexer.h"
+#include "runlog.h"
 
 void vtp3D::beginning(lexer *p, std::ostream &result, int numPoints, int numVerts, int numLines, int numStrips, int numPolys)
 {
@@ -31,7 +32,7 @@ void vtp3D::beginning(lexer *p, std::ostream &result, int numPoints, int numVert
     vtkVersion(result);
     result<<"<PolyData>\n";
     if(p->P16==1)
-        timeValue(result,p->simtime);
+        timeValue(result,p->simtime,p->plog?p->plog->id():std::string());
     result<<"<Piece NumberOfPoints=\""<<numPoints<<"\" NumberOfVerts=\""<<numVerts<<"\" NumberOfLines=\""<<numLines<<"\" NumberOfStrips=\""<<numStrips<<"\" NumberOfPolys=\""<<numPolys<<"\">\n";
 }
 
@@ -42,7 +43,7 @@ void vtp3D::beginningParallel(lexer *p, std::ostream &result)
     vtkVersion(result);
     result<<"<PPolyData GhostLevel=\"0\">\n";
     if(p->P16==1)
-        timeValue(result,p->simtime);
+        timeValue(result,p->simtime,p->plog?p->plog->id():std::string());
 }
 
 void vtp3D::points(std::ostream &result, const int *offset, int &n)

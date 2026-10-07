@@ -42,10 +42,10 @@ bicgstab_ijk::bicgstab_ijk(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
 
 bicgstab_ijk::~bicgstab_ijk()
 {
-}
-
-void bicgstab_ijk::setup(lexer* p, ghostcell* pgc, int var)
-{
+    // the solver of a mesh-refinement patch is deleted with the patch (on level 0 it lives
+    // for the whole run)
+    delete [] sj; delete [] rj; delete [] r0; delete [] vj; delete [] tj; delete [] pj;
+    delete [] ph; delete [] sh; delete [] aii; delete [] x; delete [] rhs;
 }
 
 void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec, int var)
@@ -134,6 +134,7 @@ void bicgstab_ijk::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &M, 
  restart:
     r_j=norm_r0=0.0;	
 	pgc->gcparaxijk_single(p,x,var);
+        pgc->gc_periodic_ijk(p,x);
 	
 	matvec_axb(p,x,rj,M);
 	
@@ -156,7 +157,8 @@ void bicgstab_ijk::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &M, 
 		
 		// -------------------------
 		precon_solve(p,pgc,ph,pj,M);
-		pgc->gcparaxijk_single(p,ph,var);				
+		pgc->gcparaxijk_single(p,ph,var);
+        pgc->gc_periodic_ijk(p,ph);				
 		// -------------------------
 		
 		matvec_std(p,ph,vj,M);
@@ -204,7 +206,8 @@ void bicgstab_ijk::solve(lexer* p, ghostcell* pgc, vec& rhsvec, matrix_diag &M, 
 	{
         // -------------------------
         precon_solve(p,pgc,sh,sj,M);
-        pgc->gcparaxijk_single(p,sh,var);		
+        pgc->gcparaxijk_single(p,sh,var);
+        pgc->gc_periodic_ijk(p,sh);		
         // -------------------------
 
 		matvec_std(p,sh,tj,M);

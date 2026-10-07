@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::force_calc_stl2(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
+void sixdof_obj_nhflow::force_calc_stl2(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
     double x0,x1,x2,y0,y1,y2,z0,z1,z2;
     double xs0,xs1,xs2,ys0,ys1,ys2,zs0,zs1,zs2;
@@ -188,7 +188,7 @@ void sixdof_obj::force_calc_stl2(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL
     }
 }
 
-double sixdof_obj::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
+double sixdof_obj_nhflow::triangle_area(lexer *p, double x0, double y0, double z0, double x1, double y1, double z1, double x2, double y2, double z2)
 {
     double ax,ay,az;
     double bx,by,bz;
@@ -212,7 +212,7 @@ double sixdof_obj::triangle_area(lexer *p, double x0, double y0, double z0, doub
 
 // Parameter along the segment a->b where the height above the local free
 // surface (already evaluated at each endpoint) crosses zero.
-double sixdof_obj::clip_edge(double ha, double hb)
+double sixdof_obj_nhflow::clip_edge(double ha, double hb)
 {
     double dh,f;
 
@@ -234,7 +234,7 @@ double sixdof_obj::clip_edge(double ha, double hb)
 // fsf values -- and identical cut points -- along that shared edge, which
 // is what keeps the wetted patch closed across facet boundaries.
 // Returns false when the facet is entirely dry.
-bool sixdof_obj::clip_facet(lexer *p,
+bool sixdof_obj_nhflow::clip_facet(lexer *p,
                             double x0,double y0,double z0,
                             double x1,double y1,double z1,
                             double x2,double y2,double z2,

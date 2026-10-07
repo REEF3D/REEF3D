@@ -39,14 +39,15 @@ Author: Hans Bihs
 #include"nhflow_header.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"seastate_nhflow.h"
+#include"nhflow_amr.h"
+#include"regression_dump.h"
+#include"runlog.h"
 
 void driver::loop_nhflow()
 {
     if(p->mpirank==0)
     cout<<"starting mainloop.NHFLOW"<<endl;
-    
-    //bedslope_test(p,pgc);
-    //ipol_test(p,d,pgc);
     
 //-----------MAINLOOP NHFLOW----------------------------
 	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
@@ -71,6 +72,10 @@ void driver::loop_nhflow()
         
         pflow->flowfile(p,a,pgc,pturb);
         pflow->wavegen_precalc_nhflow(p,d,pgc);
+        
+        // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
+        if(d->wave!=nullptr)
+        d->wave->start(p,d,pgc);
 			
         pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pnhfvrans);        
         
@@ -103,6 +108,10 @@ void driver::loop_nhflow()
         
         // printer
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+        preg->nhflow_step(p,d,pgc);
+        
+        if(pnhfamr!=nullptr)
+        pnhfamr->print(p,d,pgc);
 
         // Shell-Printout
         p->wavecalctime = pgc->globalmax(p->wavecalctime);
@@ -157,6 +166,9 @@ void driver::loop_nhflow()
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
 
+	if(p->plog)
+	p->plog->end(p,"finished");
+
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout<<endl;
 
@@ -165,6 +177,8 @@ void driver::loop_nhflow()
     vollogout.close();
     solvlogout.close();
 	}
+
+    preg->nhflow_final(p,d,pgc);
 
     pgc->final();
 }

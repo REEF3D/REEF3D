@@ -37,6 +37,11 @@ class fsi;
 class dem;
 class nhflow_reinidisc_fsf;
 class rodtree_coupling;
+class fem_coupling;
+class nhflow_pressure;
+class solver;
+class ioflow;
+class nhflow_momentum_func;
 
 using namespace std;
 
@@ -51,6 +56,10 @@ public:
                  
     void reforcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
                  int, double, double*, double*, double*, slice&, bool);
+    
+    // pressure projection of a RK stage, repeated for strongly coupled membranes (nhflow_momentum_func::phase_P)
+    void projection(lexer*, fdm_nhf*, ghostcell*, sixdof*, nhflow_pressure*, solver*, ioflow*, nhflow_momentum_func*,
+                 int, double, double*, double*, double*, slice&);
     
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
@@ -70,6 +79,7 @@ public:
     
 private:
     double *FX,*FY,*FZ;
+    double *CUH=nullptr,*CVH,*CWH,*CU,*CV,*CW,*CP;     // projection: predicted state for the coupling iterations
     slice4 fe;
     double starttime;
     
@@ -96,6 +106,9 @@ private:
     
     // flexible rod trees (Z 20)
     rodtree_coupling *prodtree;
+
+    // FEM solid structures (Z 30)
+    fem_coupling *pfem;
 };
 
 #endif

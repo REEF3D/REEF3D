@@ -25,6 +25,7 @@ Author: Fabian Knoblauch
 #include"fdm.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"diff_wallghost.h"
 
 void idiff2_PLIC::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field &diff, field &v_in, field &u, field &v, field &w, double alpha)
 {
@@ -131,41 +132,81 @@ void idiff2_PLIC::diff_v(lexer* p, fdm* a, ghostcell *pgc, solver *psolv, field 
 	 ++count;
 	}
     
+    // walls: couple the ghost cell to the new values (instead of the old stage field)
+    double c1,c2;
+    pwall->update(p,pgc,1,gcval_v);
+
     n=0;
 	VLOOP
 	{
-		if(p->flag2[Im1JK]<0)
+		if(p->flag2[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,1,c1,c2) && (c2==0.0 || p->flag2[Ip1JK]>0))
+		{
+		a->M.p[n] += a->M.s[n]*c1;
+		a->M.n[n] += a->M.s[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.s[n]*v(i-1,j,k);
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->flag2[Ip1JK]<0)
+		if(p->flag2[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
+		if(pwall->coef(p,i,j,k,4,c1,c2) && (c2==0.0 || p->flag2[Im1JK]>0))
+		{
+		a->M.p[n] += a->M.n[n]*c1;
+		a->M.s[n] += a->M.n[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.n[n]*v(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->flag2[IJm1K]<0)
+		if(p->flag2[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0))
 		{
+		if(pwall->coef(p,i,j,k,3,c1,c2) && (c2==0.0 || p->flag2[IJp1K]>0))
+		{
+		a->M.p[n] += a->M.e[n]*c1;
+		a->M.w[n] += a->M.e[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.e[n]*v(i,j-1,k);
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->flag2[IJp1K]<0)
+		if(p->flag2[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0))
 		{
+		if(pwall->coef(p,i,j,k,2,c1,c2) && (c2==0.0 || p->flag2[IJm1K]>0))
+		{
+		a->M.p[n] += a->M.w[n]*c1;
+		a->M.e[n] += a->M.w[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.w[n]*v(i,j+1,k);
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKm1]<0)
+		if(p->flag2[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,5,c1,c2) && (c2==0.0 || p->flag2[IJKp1]>0))
+		{
+		a->M.p[n] += a->M.b[n]*c1;
+		a->M.t[n] += a->M.b[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.b[n]*v(i,j,k-1);
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->flag2[IJKp1]<0)
+		if(p->flag2[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0))
 		{
+		if(pwall->coef(p,i,j,k,6,c1,c2) && (c2==0.0 || p->flag2[IJKm1]>0))
+		{
+		a->M.p[n] += a->M.t[n]*c1;
+		a->M.b[n] += a->M.t[n]*c2;
+		}
+		else
 		a->rhsvec.V[n] -= a->M.t[n]*v(i,j,k+1);
 		a->M.t[n] = 0.0;
 		}

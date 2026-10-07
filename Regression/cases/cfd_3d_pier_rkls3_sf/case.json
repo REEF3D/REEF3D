@@ -1,0 +1,3 @@
+{"base": "cfd_3d_pier_komega", "ctrl_set": {"N 40": "14"},
+ "description": "as cfd_3d_pier_komega with N40=14: separate driver loop loop_cfd_sf + momentum_RKLS3_sf.",
+ "tags": ["3d", "inflow", "momentum"], "covers": ["driver_loop_cfd_sf", "momentum_RKLS3_sf"]}

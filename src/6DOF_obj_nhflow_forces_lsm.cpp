@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"gradient.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -29,7 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+void sixdof_obj_nhflow::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {  
     double f_jdir;
     Ax=0.0;
@@ -220,7 +220,7 @@ void sixdof_obj::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     }*/
 }
 
-void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     p->Iarray(tri,numtri,4);
     p->Darray(pt,numvert,3);
@@ -262,7 +262,7 @@ void sixdof_obj::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
     }
 }
 
-void sixdof_obj::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
+void sixdof_obj_nhflow::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
     p->del_Iarray(tri,numtri,4);
     p->del_Darray(pt,numvert,3);

@@ -1,0 +1,56 @@
+{
+ "description": "1D dam break on a flat frictionless bed, h_l = 0.5 m, h_r = 0 m, dam at x = 20 m, hydrostatic SFLOW (A 220 0), WENO reconstruction; depth time series at 8 gauges for 0 < t < 4 s against the exact Ritter (dry bed) solution.",
+ "reference": {
+  "short": "Ritter (1892), SWASHES",
+  "citation": "Ritter, A. (1892) Die Fortpflanzung der Wasserwellen. Z. Verein Deutscher Ing. 36; exact solution as in Delestre et al. (2013) SWASHES, Int. J. Numer. Meth. Fluids 72, 269-300"
+ },
+ "tags": [
+  "sflow",
+  "analytical",
+  "1d",
+  "quick"
+ ],
+ "time": 4.0,
+ "check": {
+  "type": "swe_dambreak",
+  "x0": 20.0,
+  "hl": 0.5,
+  "hr": 0.0,
+  "z_bed": -0.0001,
+  "datum": 0.0,
+  "t_start": 0.0,
+  "t_end": 4.0,
+  "tol": 0.025
+ },
+ "levels": {
+  "nightly": {
+   "control_set": {
+    "B 1": "0.05",
+    "B 10": "0.0 40.0 0.0 0.05 0.0 1.0"
+   },
+   "ctrl_set": {
+    "P 51": [
+     "12.0000 0.025",
+     "16.0000 0.025",
+     "19.0000 0.025",
+     "21.0000 0.025",
+     "24.0000 0.025",
+     "28.0000 0.025",
+     "32.0000 0.025",
+     "36.0000 0.025"
+    ]
+   },
+   "check_set": {
+    "tol": 0.03
+   }
+  },
+  "release": {
+   "np": 2
+  }
+ },
+ "baseline": {
+  "nightly": 0.0212,
+  "release": 0.0198,
+  "commit": "ff1bb68"
+ }
+}

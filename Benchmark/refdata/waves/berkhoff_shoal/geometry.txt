@@ -1,0 +1,27 @@
+# Berkhoff, Booy & Radder (1982) elliptic shoal on a 1:50 slope (Coastal Engineering 6, 255-279)
+#
+# [S1] Basilisk example https://basilisk.fr/src/examples/shoal.c (raw ?raw), code verbatim:
+#   double h0 = 0.45;
+#   double cosa = cos (20.*pi/180.), sina = sin (20.*pi/180.);
+#   double xr = x*cosa - y*sina, yr = x*sina + y*cosa;
+#   double z0 = xr >= -5.82 ? (5.82 + xr)/50. : 0.;
+#   double zs = sq(xr/3.) + sq(yr/4.) <= 1. ? -0.3 + 0.5*sqrt(1. - sq(xr/3.75) - sq(yr/5.)) : 0.;
+#   zb[] = z0 + zs - h0;
+#   i.e. depth h = 0.45 for x' < -5.82 ; h = 0.45 - 0.02*(5.82 + x') otherwise (slope 1:50, contours rotated 20 deg),
+#   minus the shoal thickness -0.3 + 0.5*sqrt(1 - (x'/3.75)^2 - (y'/5)^2) inside (x'/3)^2 + (y'/4)^2 <= 1.
+#   Basilisk domain X0 = -10, L0 = 25, Y0 = -L0/2 ; T0 = 1 s.
+#   Section lines (gnuplot labels/interpolation in shoal.c): section 2 at x = 3, section 3 at x = 5,
+#   section 5 at x = 9, section 7 along y = 0 [m]; model normalised by a0 = 0.026 m.
+# [S2] NHWAVE, https://www1.udel.edu/kirby/landslide/models/ma-etal-om12.pdf (as returned by fetch tool; minus signs may
+#   have been lost in extraction): "h = 0.45 x' < 5.84", "h = max(0.07, 0.45 - 0.02(5.84 + x')) x' >= 5.84";
+#   "Regular wave with wave period of 1.0 s and wave height of 4.64 cm"; eight sections (plots only).
+#   NOTE the 5.82 (Basilisk) vs 5.84 (NHWAVE text) discrepancy is unresolved here.
+# [S3] FUNWAVE-TVD manual https://www1.udel.edu/kirby/papers/shi-etal-cacr-11-04-version2.1.pdf :
+#   "The bottom topography consists of an elliptic shoal resting on a plane beach with a constant slope 1/50.
+#    Bottom contours on the slope are oriented at an angle of 20 deg to the y axis." Regular waves, period 1 s,
+#   amplitude 2.32 cm; wavemaker at x = -10 m; side walls at y = -10 m and y = 10 m; "Experiment data are
+#   collected along 8 transects" (figures only).
+# [S4] XBeach non-hydrostatic report (Deltares), https://oss.deltares.nl/documents/4142077/4199062/non-hydrostatic_report_draft.pdf/eadc1aff-6e19-6e82-2747-3c11c30457ee?t=1624871720408 :
+#   "Monochromatic waves with a frequency of 1 Hz. and wave height of 4.64 cm"; tank 35 x 20 m; wavemaker at
+#   x = -10 m; origin at shoal top; transect 5 at x = 9 m, transect 8 at y = 2 m.
+# Positions of sections 1, 4, 6 were NOT confirmed from a fetched source.

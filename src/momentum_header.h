@@ -23,16 +23,9 @@ Author: Hans Bihs
 #ifndef MOMENTUM_HEADER_H_
 #define MOMENTUM_HEADER_H_
 
-#include"momentum_RK2.h"
-#include"momentum_RK3.h"
+#include"momentum_rk.h"
 #include"momentum_RK3_PLIC.h"
-#include"momentum_RK3CN.h"
-#include"momentum_RKLS3.h"
-#include"momentum_FCLS3.h"
-#include"momentum_FC2.h"
-#include"momentum_FC3.h"
 #include"momentum_FC3_PLIC.h"
-#include"momentum_FCC3.h"
 #include"momentum_FCC3_PLIC.h"
 #include"momentum_void.h"
 #include"momentum_RKLS3_df.h"

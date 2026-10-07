@@ -1,0 +1,1 @@
+{"description": "NHFLOW 2D open channel, h = 2 m, discharge inflow (B60 1) with the equilibrium turbulence profile, k-eps (A560 1), bed roughness A519.", "solver": "nhflow", "np": 1, "steps": 300, "tags": ["nhflow", "turbulence", "inflow"], "covers": ["nhflow_rans_io::inflow_profile", "nhflow_kepsilon", "sigma-coordinate diffusion"]}

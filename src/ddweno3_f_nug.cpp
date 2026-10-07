@@ -26,7 +26,6 @@ Author: Hans Bihs
 #include"slice.h"
 #include"ghostcell.h"
 #include"vec.h"
-#include"cpt.h"
 
 ddweno3_f_nug::ddweno3_f_nug(lexer* pp):weno3_nug_func(pp)
 {
@@ -103,42 +102,6 @@ double ddweno3_f_nug::ddwenoy(field& f, double uw)
          + w2y*(qfy[JP][vf][3][0]*q1 + qfy[JP][vf][3][1]*q2);
 	}
 
-	return grad;
-}
-
-double ddweno3_f_nug::ddwenoz(field& f, double uw)
-{
-    DX = p->DXP;
-    DY = p->DYP;
-    DZ = p->DZP;
-    wf=0;
-    
-    
-	grad=0.0;
-
-	if(uw>=0.0)
-	{
-	kqmin(p,f);
-	is_min_z();
-	weight_min_z();
-
-	grad = w1z*(qfz[KP][wf][0][0]*q2 + qfz[KP][wf][0][1]*q3)
-    
-         + w2z*(qfz[KP][wf][1][0]*q2 - qfz[KP][wf][1][1]*q1);
-	}
-
-
-	if(uw<0.0)
-	{
-	kqmax(p,f);
-	is_max_z();
-	weight_max_z();
-    
-	grad = w1z*(qfz[KP][wf][2][0]*q2 - qfz[KP][wf][2][1]*q3)
-    
-         + w2z*(qfz[KP][wf][3][0]*q1 + qfz[KP][wf][3][1]*q2);
-	}
-    
 	return grad;
 }
 
@@ -226,13 +189,6 @@ void ddweno3_f_nug::jqmin(lexer *p,field& f)
 	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
 }
 
-void ddweno3_f_nug::kqmin(lexer *p,field& f)
-{
-	q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
-	q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
-	q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
-}
-
 void ddweno3_f_nug::iqmax(lexer *p,field& f)
 {
     q1 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
@@ -245,13 +201,6 @@ void ddweno3_f_nug::jqmax(lexer *p,field& f)
 	q1 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
 	q2 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
 	q3 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
-}
-
-void ddweno3_f_nug::kqmax(lexer *p,field& f)
-{
-	q1 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
-	q2 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
-	q3 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 }
 
 

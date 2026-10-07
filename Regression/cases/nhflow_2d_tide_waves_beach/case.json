@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "Tide (T 300 s) and linear waves (H 0.5 m, T 6 s): Riemann edges with the local tide, generation zone with background + waves (B 523), beach relaxing to the tide (beach background).",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "relaxation zone with background",
+  "beach zone with background",
+  "ramp on waves only"
+ ]
+}

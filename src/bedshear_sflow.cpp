@@ -40,6 +40,8 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     
     SEDSLICELOOP
     {
+    tau = 0.0;
+    
     U = 0.5*(s->P(i,j) + s->P(i-1,j));
     V = 0.5*(s->Q(i,j) + s->Q(i,j-1));
 
@@ -54,18 +56,13 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     tau = p->W1*9.81*cf*uabs*uabs; 
     }
     
-    if(p->S16==2)
+    // Keulegan: U/u* = 2.5 ln(12h/ks), tau = rho U^2/(U/u*)^2 (the factor g was too much: theta 9.81x too high),
+    // 12h/ks clamped to e as in the 3D log laws (no singular shear in thin water)
+    if(p->S16==2 || p->S16==3)
     {    
-    cf = 2.5*log(12.0*b->hp(i,j)/(s->ks(i,j)));
+    cf = 2.5*log(MAX(12.0*b->hp(i,j)/s->ks_eff(i,j),2.718281828459045));
     
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
-    }
-    
-    if(p->S16==3)
-    {    
-    cf = 2.5*log(12.0*b->hp(i,j)/(s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
+    tau = p->W1*uabs*uabs/(cf*cf); 
     }
     
     if(p->S16==4)
@@ -74,6 +71,7 @@ void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     }
     
     s->tau_eff(i,j) = tau;
+    s->tau_i(i,j) = tau;     // depth-averaged: no separate grain shear stress (was never set in SFLOW)
     s->shearvel_eff(i,j) = sqrt(tau/density);
     s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
     }

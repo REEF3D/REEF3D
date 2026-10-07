@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"lexer.h"
 #include"sediment.h"
+#include"runlog.h"
 
 void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed, int num)
 {
@@ -63,4 +64,6 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"fsf","free_surface",name,p->M10);
 }

@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"poisson.h"
 #include"increment.h"
+#include<vector>
 
 class heat;
 class concentration;
@@ -46,6 +47,8 @@ private:
 
 	double pval;
 	int count,n,q;
+
+    std::vector<int> noflux;   // per cell: bit (cs-1) set for a no-flux face on side cs (bc_noflux.h)
     
     density *pd;
 };

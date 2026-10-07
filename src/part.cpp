@@ -35,7 +35,7 @@ part::part(lexer *p, ghostcell *pgc)
     d50 = p->S20;
     rhosed = p->S22;
 
-    ParcelFactor = (1.0-p->S24)*((p->DXM*p->DXM*p->DXM)/(p->Q24*(1.0/6.0)*pow(p->S20,3.0)*PI));
+    ParcelFactor = (1.0-p->S24)*((p->DXM*p->DXM*p->DXM)/(double(MAX(p->Q24,1))*(1.0/6.0)*pow(p->S20,3.0)*PI));
 
     if(p->mpirank==0)
         cout<<"ParcelFactor: "<<ParcelFactor<<" DXM: "<<p->DXM<<endl;
@@ -65,9 +65,14 @@ part::part(lexer *p, ghostcell *pgc)
     p->Darray(RO,capacity);
 
     p->Darray(Test,capacity);
+    p->Darray(Hop,capacity);
 
     p->Iarray(Flag,capacity);
     p->Iarray(Empty,capacity);
+    
+    // Empty[0..index_empty-1] holds the free slots
+    Flag[0] = EMPTY;
+    Empty[0] = 0;
 
     // parallel
     capacity_para=1000;
@@ -122,6 +127,8 @@ part::~part()
 
     delete[] Test;
     Test=nullptr;
+    delete[] Hop;
+    Hop=nullptr;
 
     delete[] Empty;
     Empty=nullptr;

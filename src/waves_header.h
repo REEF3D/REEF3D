@@ -23,12 +23,7 @@ Author: Hans Bihs
 #ifndef WAVES_HEADER_H_
 #define WAVES_HEADER_H_
 
-#include"sflow_v.h"
 #include"sflow_f.h"
-#include"ptf_v.h"
-#include"fnpf_v.h"
-#include"ptf_RK3.h"
-#include"ptf_RK4.h"
 #include"fnpf_RK3.h"
 #include"fnpf_RK4.h"
 #include"printer_fnpf.h"

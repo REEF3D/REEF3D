@@ -39,6 +39,7 @@ public:
 	void bckomega_start(fdm*,lexer*,field&,field&, int);
     void bckin_matrix(fdm*,lexer*,field&,field&);
     void bcomega_matrix(fdm*,lexer*,field&,field&);
+    void bc_matrix(fdm*,lexer*,field&);
 	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
 	void wall_law_omega(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
     void vrans_wall_law_kin(lexer*,fdm*,field&,field&);

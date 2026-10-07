@@ -27,7 +27,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"iowave.h"
 #include"sediment.h"
+#ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
+#endif
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
 #include"sflow_eta.h"

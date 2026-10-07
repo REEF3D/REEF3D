@@ -1,0 +1,17 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 2,
+ "description": "as fnpf_2d_regular on 2 MPI ranks.",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "mpi"
+ ],
+ "covers": [
+  "FNPF MPI halos",
+  "iowave relaxation across partition edges"
+ ]
+}

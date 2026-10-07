@@ -60,6 +60,7 @@ sediment_mixture::sediment_mixture(lexer *p) : Hs(p),d50(p),d90(p),dm(p),qbe_raw
     V = new double[nf];
     FI = new double[nf];
     dhc = new double[nf];
+    inS = new int[nf];
     clip_k = new double[nf];
     clip_sum = new double[nf];
     noneq_ini_k = new int[nf];
@@ -255,6 +256,9 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     cout<<"  fraction "<<q+1<<"  d = "<<d[q]<<" m   F_active = "<<Fe[q]<<"   F_substrate = "<<Fs[q]->V[0]<<endl;
 
     mkdir("./REEF3D_Log",0777);
+    
+    // ini() runs twice with a hotstart: a second open() on an open stream fails all later writes
+    if(!mixlog.is_open())
     mixlog.open("./REEF3D_Log/REEF3D_sediment_mixture.dat");
     mixlog<<"# multi-fraction sediment bed, bed volume per fraction (incl. pores) and cumulative limiter volume"<<endl;
     mixlog<<"# sediter \t sedtime";
@@ -416,8 +420,17 @@ void sediment_mixture::bedchange(lexer *p, ghostcell *pgc, sediment_fdm *s, slic
         dz0 += dhc[q];
         }
 
-        // limit the erosion of fractions that are not available
-        for(int it=0;it<20;++it)
+        // limit the erosion of fractions that are not available:
+        // for the set S of fractions that would become negative, V_q = 0 is solved exactly,
+        //   dhc_q = dhk_q + x_q,  x_q = X FI_q - V_q,  X = -sum_S V_q/(1 - sum_S FI_q)
+        // (V_q at dhk, FI fixed). S only grows; FI changes with the sign of dz, so the
+        // solve is repeated until S and the sign are consistent (a few passes).
+        // (The previous fixed-point update reduced the deficit only by FI_q per pass and
+        // could stop after 20 passes with a remaining deficit, e.g. armoured beds.)
+        for(int q=0;q<nf;++q)
+        inS[q]=0;
+        
+        for(int it=0;it<2*nf+4;++it)
         {
             dz=0.0;
             for(int q=0;q<nf;++q)
@@ -431,16 +444,55 @@ void sediment_mixture::bedchange(lexer *p, ghostcell *pgc, sediment_fdm *s, slic
             {
             V[q] = La*(*F[q])(i,j) + dhc[q] - dz*FI[q];
 
-                if(V[q]<-1.0e-12*La)
+                if(V[q]<-1.0e-12*La && inS[q]==0)
+                {
+                inS[q]=1;
                 neg=1;
+                }
             }
 
             if(neg==0)
             break;
-
+            
+            // exact solve for S, starting from the unlimited bed change
+            double sumV=0.0, sumFI=0.0, dzk=0.0;
+            
             for(int q=0;q<nf;++q)
-            if(V[q]<0.0)
-            dhc[q] -= V[q];
+            dzk += (*dhk[q])(i,j);
+            
+            for(int q=0;q<nf;++q)
+            FI[q] = dzk>=0.0?(*F[q])(i,j):(*Fs[q])(i,j);
+            
+            for(int q=0;q<nf;++q)
+            if(inS[q]==1)
+            {
+            sumV  += La*(*F[q])(i,j) + (*dhk[q])(i,j) - dzk*FI[q];
+            sumFI += FI[q];
+            }
+            
+            if(sumFI>1.0-1.0e-12)
+            break;
+            
+            double X = -sumV/(1.0-sumFI);
+            
+            for(int q=0;q<nf;++q)
+            {
+            dhc[q] = (*dhk[q])(i,j);
+            
+            if(inS[q]==1)
+            dhc[q] += X*FI[q] - (La*(*F[q])(i,j) + (*dhk[q])(i,j) - dzk*FI[q]);
+            }
+        }
+        
+        // final volumes with the limited bed change
+        dz=0.0;
+        for(int q=0;q<nf;++q)
+        dz += dhc[q];
+        
+        for(int q=0;q<nf;++q)
+        {
+        FI[q] = dz>=0.0?(*F[q])(i,j):(*Fs[q])(i,j);
+        V[q] = La*(*F[q])(i,j) + dhc[q] - dz*FI[q];
         }
 
         // bookkeeping of the limited volume
@@ -470,8 +522,16 @@ void sediment_mixture::bedchange(lexer *p, ghostcell *pgc, sediment_fdm *s, slic
         Hs(i,j) += dz;
         }
 
+        // degradation: the active layer takes dz*Fs from the substrate; beyond its thickness
+        // there is nothing left, the missing volume is booked as limiter volume
         if(dz<=0.0)
+        {
+            if(Hs(i,j)+dz<0.0)
+            for(int q=0;q<nf;++q)
+            clip_k[q] += -(Hs(i,j)+dz)*(*Fs[q])(i,j)*area;
+            
         Hs(i,j) = MAX(Hs(i,j)+dz,0.0);
+        }
 
         // active layer
         Vs=0.0;
@@ -533,7 +593,7 @@ void sediment_mixture::slide_transfer(int i0, int j0, int i1, int j1, double x)
 }
 
 // flux form sandslide (S90 5): upwind composition at each face
-void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, int jj, double fc)
+void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, int jj, double *fc)
 {
     const int ni[4] = {1,-1,0,0};
     const int nj[4] = {0,0,1,-1};
@@ -544,7 +604,7 @@ void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, i
     int i1 = ii+ni[f];
     int j1 = jj+nj[f];
 
-    flux = fc*(s->bedzh(i1,j1)-s->bedzh(ii,jj))*0.5*(ci(i1,j1)+ci(ii,jj));
+    flux = fc[f]*(s->bedzh(i1,j1)-s->bedzh(ii,jj))*0.5*(ci(i1,j1)+ci(ii,jj));
 
         for(int q=0;q<nf;++q)
         (*fh_k[q])(ii,jj) += flux*(flux>0.0?(*F[q])(i1,j1):(*F[q])(ii,jj));
@@ -587,8 +647,9 @@ void sediment_mixture::slide_finish(lexer *p, ghostcell *pgc, sediment_fdm *s)
                 if(x>0.0)
                 for(int q=0;q<nf;++q)
                 {
+                // receiver height with the area ratio (volume conserving, as the bed sand slide)
                 (*fh_k[q])(i,j) -= x*Fe[q];
-                (*fh_k[q])(i+dir/3-1,j+dir%3-1) += x*Fe[q];
+                (*fh_k[q])(i+dir/3-1,j+dir%3-1) += x*Fe[q]*(p->DXN[IP]*p->DYN[JP])/(p->DXN[IP+dir/3-1]*p->DYN[JP+dir%3-1]);
                 }
             }
         }

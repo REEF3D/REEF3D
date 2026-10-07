@@ -26,6 +26,12 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"lagoon_output.h"
+
+namespace
+{
+lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
 
 fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
@@ -52,7 +58,7 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     else if(p->P15==2)
         num = p->count;
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
         pvtp(p,num);
 
     // offsets
@@ -174,6 +180,9 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     vtp3D::footer(result);
 
     result.close();
+
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    lagoon_surface::piece_written(p,pgc,lagoon_bed,"FNPF","bed","REEF3D_FNPF_VTP_BED",name,num);
 
     ++printcount;
 }

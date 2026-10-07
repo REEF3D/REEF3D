@@ -25,7 +25,6 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_f.h"
-#include"reinidisc_fsf.h"
 #include"nhflow_reinidisc_fsf.h"
 #include"6DOF_motionext_fixed.h"
 #include"6DOF_motionext_file.h"
@@ -33,18 +32,43 @@ Authors: Tobias Martin, Hans Bihs
 #include"6DOF_motionext_wavemaker.h"
 #include"6DOF_motionext_void.h"
 #include"net_interface.h"
+#include"ship.h"
 
-sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), dt(p), L(p), 
-                                                                                f(p), frk1(p), cutl(p), cutr(p), 
-                                                                                fbio(p),georay(p),n6DOF(number),
-                                                                                epsifb(1.6*p->DXM), epsi(1.6),vertice(p),
-                                                                                nodeflag(p),interfac(1.6),zero(0.0),eta(p),
-                                                                                lrk1(p),lrk2(p),K(p),dts(p),
-                                                                                fs(p),fsio(p),cr(p),cl(p),Ls(p),Bs(p),
-                                                                                Rxmin(p),Rxmax(p),Rymin(p),Rymax(p),draft(p),press(p)
+sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
+                                                                                georay(p),n6DOF(number),
+                                                                                epsifb(1.6*p->DXM), epsi(1.6),
+                                                                                interfac(1.6),zero(0.0),
+                                                                                Mass_fb(rb.mass),
+                                                                                p_(rb.p),c_(rb.c),h_(rb.h),dc_(rb.dc),e_(rb.e),
+                                                                                R_(rb.R),I_(rb.I),quatRotMat(rb.R),
+                                                                                omega_B(rb.omega_B),omega_I(rb.omega_I),
+                                                                                phi(rb.phi),theta(rb.theta),psi(rb.psi),
+                                                                                Ffb_(rb.F),Mfb_(rb.M),
+                                                                                geom(number),amr_hfac(geom.amr_hfac),
+                                                                                tri_x(geom.tri_x),tri_y(geom.tri_y),tri_z(geom.tri_z),
+                                                                                tri_x0(geom.tri_x0),tri_y0(geom.tri_y0),tri_z0(geom.tri_z0),
+                                                                                entity_sum(geom.entity_sum),tstart(geom.tstart),tend(geom.tend),
+                                                                                tricount(geom.tricount),entity_count(geom.entity_count)
 {
-    prdisc = new reinidisc_fsf(p);
+    // rigid-body core: DOF modes (X 11) and linear damping (X 25, X 26)
+    rb.dof[0] = p->X11_u;
+    rb.dof[1] = p->X11_v;
+    rb.dof[2] = p->X11_w;
+    rb.dof[3] = p->X11_p;
+    rb.dof[4] = p->X11_q;
+    rb.dof[5] = p->X11_r;
+    rb.twoD = (p->j_dir==0);
+    rb.Cdamp_t[0] = p->X26_Cu;
+    rb.Cdamp_t[1] = p->X26_Cv;
+    rb.Cdamp_t[2] = p->X26_Cw;
+    rb.Cdamp_r[0] = p->X25_Cp;
+    rb.Cdamp_r[1] = p->X25_Cq;
+    rb.Cdamp_r[2] = p->X25_Cr;
     
+    // ship module (X 350): hull resistance, damping and propulsion models from ship.dat
+    if(p->X350==1)
+    pload.push_back(new ship(p,number));
+
     pnetinter = new net_interface(p,pgc);
     
     triangle_token=0;
@@ -122,22 +146,6 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
     }
     
     
-    if(p->A10==5)
-    {
-    pnhfrdisc = new nhflow_reinidisc_fsf(p);
-    
-    p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
-    }
     
     if(p->X10==4)
     {
@@ -148,5 +156,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p), 
 
 sixdof_obj::~sixdof_obj()
 {
+    for(size_t ql=0; ql<pload.size(); ++ql)
+    delete pload[ql];
 }
     

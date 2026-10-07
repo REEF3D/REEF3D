@@ -39,6 +39,21 @@ public:
     
     void breaking_baquet(lexer*,fdm_nhf*,ghostcell*,slice&,slice&,slice&,double);
 
+    // the parts of breaking_baquet: detection (bx, by, bd), flags (brkflag), viscosity (vb)
+    void breaking_detect(lexer*,fdm_nhf*,ghostcell*,slice&,slice&,slice&,double);
+    void breaking_flags(lexer*,fdm_nhf*,ghostcell*);
+    void breaking_vb(lexer*,fdm_nhf*,ghostcell*,slice&);
+
+    // mesh refinement (nhflow_amr): with brk_defer breaking() only keeps its arguments, the stage
+    // runner calls the parts on all grids (part 0, 1, 2) and exchanges the detection and the flags
+    // of the cells around the patches between sibling patches in between
+    bool brk_defer = false;
+    void breaking_part(lexer*,fdm_nhf*,ghostcell*,int);
+    sliceint4& brk_bx() { return bx; }
+    sliceint4& brk_by() { return by; }
+    sliceint4& brk_bd() { return bd; }
+    sliceint4& brk_flag() { return brkflag; }
+
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
 
     
@@ -47,7 +62,9 @@ private:
     double visc;
     int count_n;
     
-    sliceint4 bx,by,brkflag;
+    sliceint4 bx,by,bd,brkflag;
+    slice *brk_eta = nullptr, *brk_eta_n = nullptr, *brk_WL = nullptr;
+    double brk_alpha = 1.0;
 };
 
 #endif

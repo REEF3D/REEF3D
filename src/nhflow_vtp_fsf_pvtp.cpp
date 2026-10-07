@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_vtp_fsf.h"
 #include"lexer.h"
+#include"runlog.h"
 
 void nhflow_vtp_fsf::pvtp(lexer *p, int num)
 {
@@ -61,6 +62,8 @@ void nhflow_vtp_fsf::pvtp(lexer *p, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"fsf","free_surface",name,p->M10);
 }
 
 void nhflow_vtp_fsf::pvtp_avg(lexer *p, int num)
@@ -88,4 +91,6 @@ void nhflow_vtp_fsf::pvtp_avg(lexer *p, int num)
 
     vtp3D::endingParallel(result);
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"fsf_timeavg","free_surface_mean",name,p->M10);
 }

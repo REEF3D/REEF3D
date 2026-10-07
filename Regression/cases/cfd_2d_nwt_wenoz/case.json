@@ -1,0 +1,4 @@
+{"base": "cfd_2d_nwt", "ctrl_set": {"D 12": "1", "F 37": "1"},
+ "description": "as cfd_2d_nwt with WENO-Z weights for the momentum (D 12 1) and the level set convection and reini (F 37 1).",
+ "tags": ["quick", "2d", "waves", "levelset", "weno"],
+ "covers": ["D 12 1 weno_flux_nug WENO-Z", "F 37 1 weno_hj_df_nug WENO-Z", "F 37 1 reinidisc_f WENO-Z"]}

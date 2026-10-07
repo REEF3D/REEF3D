@@ -1,0 +1,37 @@
+# Berkhoff, Booy & Radder (1982) elliptic shoal on 1:50 slope, T = 1 s, H = 0.0464 m
+# section 5 (line x = 9 m; model plotted vs -y)
+# SOURCE (secondary): Basilisk example data file 'section-5', fetched via
+#   https://basilisk.fr/src/examples/section-5?raw   (used by https://basilisk.fr/src/examples/shoal.c)
+# shoal.c: "We follow Lannes and Marche, 2014 and try to reproduce the experiment of Berkhoff et al, 1982."
+#   gnuplot: plot '../section-5' pt 7 (experimental symbols) vs model maxa/a0 with a0 = 0.026
+#   => column 2 is the normalised wave height (H/H0 = amplitude/incident amplitude), column 1 the
+#   coordinate along the section [m] in the Berkhoff (shoal-centred) frame.
+# PROVENANCE WARNING: values appear DIGITIZED from a published figure (irregular abscissae near a
+#   0.25/0.5 m grid). Not the original tabulated measurements. Only sections 2, 3, 5, 7 are provided by Basilisk.
+# columns: s[m]  H/H0[-]
+-4.2145 0.764233
+-3.69503 0.849661
+-3.18383 0.500325
+-2.69162 0.472179
+-2.22364 0.84528
+-1.73122 0.873425
+-1.22544 0.264528
+-0.963099 0.567349
+-0.714324 0.938315
+-0.468073 1.27358
+-0.23551 1.50504
+-9.69846e-05 1.65966
+0.297439 1.82514
+0.53807 1.83817
+0.751731 1.7884
+1.03591 1.67808
+1.28456 1.46291
+1.51997 1.07031
+1.73905 0.599793
+2.01227 0.293716
+2.26125 0.152079
+2.50732 0.409472
+2.77779 0.686314
+3.29711 0.727439
+3.80823 0.404081
+4.25471 0.510016

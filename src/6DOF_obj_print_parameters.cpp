@@ -42,4 +42,8 @@ void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
         printvel<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
 
     }
+    
+    // load models (ship module)
+    for(size_t ql=0; ql<pload.size(); ++ql)
+    pload[ql]->print(p);
 }

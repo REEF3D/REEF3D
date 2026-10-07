@@ -25,20 +25,14 @@ Authors: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"heaviside.h"
 
 double CPM::heaviside(double phival)
 {
 
 double H;
     
-    if(phival>epsi)
-    H=1.0;
-    
-    else if(phival<-epsi)
-    H=0.0;
-    
-    else
-    H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+    H = ::heaviside(phival,epsi);
 
     return H;
     

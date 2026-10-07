@@ -22,6 +22,7 @@ Author: Alexander Hanke
 
 #include "vtu3D.h"
 #include "lexer.h"
+#include "runlog.h"
 #include "fdm.h"
 #include "fdm_fnpf.h"
 #include "fdm_nhf.h"
@@ -66,7 +67,7 @@ void vtu3D::beginning(lexer *p, std::ostream &result)
     vtkVersion(result);
     result<<"<UnstructuredGrid>\n";
     if(p->P16==1)
-        timeValue(result,p->P34<0.0?p->simtime:p->sedtime);
+        timeValue(result,p->P34<0.0?p->simtime:p->sedtime,p->plog?p->plog->id():std::string());
     result<<"<Piece NumberOfPoints=\""<<p->pointnum<<"\" NumberOfCells=\""<<p->tpcellnum<<"\">\n";
 }
 
@@ -77,7 +78,7 @@ void vtu3D::beginningParallel(lexer *p, std::ostream &result)
     vtkVersion(result);
     result<<"<PUnstructuredGrid GhostLevel=\"0\">\n";
     if(p->P16==1)
-        timeValue(result,p->P34<0.0?p->simtime:p->sedtime);
+        timeValue(result,p->P34<0.0?p->simtime:p->sedtime,p->plog?p->plog->id():std::string());
 }
 
 void vtu3D::ending(std::ostream &result, const int *offset, int &n)

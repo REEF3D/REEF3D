@@ -44,6 +44,8 @@ class geo_mesh;
 
 using namespace std;
 
+class runlog;
+
 class lexer : virtual public resize_class, public grid, public control,
               public position, public interpolation, public coordinates
 {
@@ -99,6 +101,8 @@ public:
 	double *topobed,*solidbed,*bed,*depth,*WL;
     int *wet,*wet_n;
     int *deep;
+    int *wetfix = nullptr;          // mesh refinement (NHFLOW G 30): flag a cell keeps through wetdry, -1 none
+    double *amrvb = nullptr;        // mesh refinement (NHFLOW A 550): breaking viscosity of the source of a filled cell, -1 none
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;
     int cms_flag;
@@ -113,6 +117,10 @@ public:
 	int gcextra1,gcextra2,gcextra3,gcextra4,gcextra4a,gcextra6;
 
     int gcdf1_count,gcdf2_count,gcdf3_count,gcdf4_count;
+    // boundary-cell lists of the V-type ghost-cell sweeps (gc_startV.cpp), one per grid and
+    // per type 1,2,3,4,7; gcbl_count: the step they were built for, -2: rebuild
+    std::vector<int> gcbl_ijk[8];
+    int gcbl_count[8];
     int **gcdf1,**gcdf2,**gcdf3,**gcdf4;
     int gcsldfeta4_count,gcsldfbed4_count;
     int **gcsldfeta4,**gcsldfbed4;
@@ -249,6 +257,7 @@ public:
 	double field4time;
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double wavetime;
+    int open_xm,open_xp,open_ym,open_yp;    // iowave Riemann / Flather edge on x- / x+ / y- / y+ (NHFLOW): ghost cells set by iowave
 
 	// solver watch
 	int uiter,viter,witer;
@@ -283,10 +292,14 @@ public:
 
     // free surface
     double psi,psi0;
+    int reini_iter;     // reinitialisation iterations of the next reini call (the momentum classes set it per stage, default F44)
 	int pressval;
 
 // PARALELL
     int mpirank;
+
+    // run log (REEF3D_Case/REEF3D_<SOLVER>_run.jsonl); writers call it after an output
+    runlog *plog = nullptr;
 	int gcx_1range1[7],gcx_3range1[7];
 	int gcx_1range2[7],gcx_3range2[7];
 	int gcx_1range3[7],gcx_3range3[7];

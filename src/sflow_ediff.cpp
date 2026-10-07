@@ -79,9 +79,17 @@ double sflow_ediff::viscosity(lexer *p, fdm2D *b)
     return visc;
 }
 
+// dry neighbours (inside the domain, wet 0) are free-slip, zero normal gradient: the cell's own value is
+// used instead of the dry cell's (U = 0 there would act as a no-slip wall at the shoreline); walls and
+// open boundaries keep their ghost values
+#define SFLOW_DRY(X) (p->flagslice4[X]>0 && p->wet[X]==0)
+
 double sflow_ediff::dxx(lexer *p, slice &f)
 {
-    return ((f(i+1,j) - f(i,j))/p->DXP[IP] - (f(i,j) - f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
+    const double fp = SFLOW_DRY(Ip1J) ? f(i,j) : f(i+1,j);
+    const double fm = SFLOW_DRY(Im1J) ? f(i,j) : f(i-1,j);
+    
+    return ((fp - f(i,j))/p->DXP[IP] - (f(i,j) - fm)/p->DXP[IM1])/p->DXN[IP];
 }
 
 double sflow_ediff::dyy(lexer *p, slice &f)
@@ -89,7 +97,10 @@ double sflow_ediff::dyy(lexer *p, slice &f)
     if(p->j_dir==0)
     return 0.0;
     
-    return ((f(i,j+1) - f(i,j))/p->DYP[JP] - (f(i,j) - f(i,j-1))/p->DYP[JM1])/p->DYN[JP];
+    const double fp = SFLOW_DRY(IJp1) ? f(i,j) : f(i,j+1);
+    const double fm = SFLOW_DRY(IJm1) ? f(i,j) : f(i,j-1);
+    
+    return ((fp - f(i,j))/p->DYP[JP] - (f(i,j) - fm)/p->DYP[JM1])/p->DYN[JP];
 }
 
 double sflow_ediff::dxy(lexer *p, slice &f)
@@ -98,6 +109,9 @@ double sflow_ediff::dxy(lexer *p, slice &f)
     return 0.0;
     
     if(p->flagslice4[Ip1Jp1]<0 || p->flagslice4[Ip1Jm1]<0 || p->flagslice4[Im1Jp1]<0 || p->flagslice4[Im1Jm1]<0)
+    return 0.0;
+    
+    if(p->wet[Ip1Jp1]==0 || p->wet[Ip1Jm1]==0 || p->wet[Im1Jp1]==0 || p->wet[Im1Jm1]==0)   // no cross term next to dry cells
     return 0.0;
     
     return (f(i+1,j+1) - f(i+1,j-1) - f(i-1,j+1) + f(i-1,j-1))/((p->DXP[IP]+p->DXP[IM1])*(p->DYP[JP]+p->DYP[JM1]));

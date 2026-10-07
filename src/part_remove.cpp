@@ -26,6 +26,7 @@ Authors: Hans Bihs, Alexander Hanke
 void part::remove(int n)
 {
     Flag[n] = EMPTY;
+    Hop[n] = 0.0;
 
     Empty[index_empty] = n;
     ++index_empty;

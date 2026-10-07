@@ -104,7 +104,9 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     count=0;
     LOOP
     {
-        if(p->DF[IJK]>0)
+        // exchange with the bed only where the Exner equation applies it (DFBED>0, erodible window
+        // S 71 - S 72) and in water: erosion into an air cell is deleted by sedfsf()
+        if(p->DF[IJK]>0 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72 && a->phi(i,j,k)>=0.0)
         if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
         {
         zdist = p->DZN[KP];
@@ -190,17 +192,20 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 
 void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
 {
-    GCDF4LOOP
+    // near-bed concentration of the first fluid cell above the bed (s->bedk), the cell of the
+    // bed exchange in suspsource(). (The loop over the solid-forcing cells gcdf4 kept the last
+    // entry of each column: next to structures and walls a cell high up the structure.)
+    // The reference concentration cbe is given at the same cell centre (bedconc_VR), so cb is the
+    // cell value; S 61 2 (Rouse transfer to z = 2 d50) would compare two different levels.
+    SLICELOOP4
     {
-        i=p->gcdf4[n][0];
-        j=p->gcdf4[n][1];
-        k=p->gcdf4[n][2];
-        
-        if(p->S61==1)
-        s->cb(i,j) = a->conc(i,j,k);
-        
-        if(p->S61==2)
-        s->cb(i,j) = Rouse_formula(p,a,s,a->conc(i,j,k));
+    s->cb(i,j) = 0.0;
+    
+    k = s->bedk(i,j);
+    
+    if(k>=0 && k<p->knoz)
+    if(a->phi(i,j,k)>=0.0)
+    s->cb(i,j) = MAX(a->conc(i,j,k),0.0);
     }
     
     pgc->gcsl_start4(p,s->cb,1);

@@ -49,23 +49,38 @@ Author: Hans Bihs
 //  the coarser level (the columns around a patch: biquadratic, vertically linear in sigma; a
 //  sibling patch or the owner rank across a partition edge).
 //
-//  BiCGStab (reefamr_bicgstab), right preconditioned by one FAC sweep: a REEFMG V-cycle on
-//  level 0 (the whole rank grid, covered columns included), then level by level the coarse
-//  correction interpolated into the patches and patch-local REEFMG V-cycles (MPI_COMM_SELF,
-//  correction 0 at the patch edge) on the residual it leaves (LPASS passes, the siblings'
-//  corrections filled in between).
+//  BiCGStab (reefamr_bicgstab), right preconditioned by one multiplicative FAC sweep (lap_prec):
+//  patch-local REEFMG V-cycles (MPI_COMM_SELF, correction 0 at the patch edge) as pre-smoothing,
+//  a REEFMG V-cycle on level 0 (the whole rank grid, covered columns included) on the composite
+//  residual they leave, then level by level the coarse increment interpolated into the patches
+//  and patch-local V-cycles as post-smoothing (LPASS passes, the siblings' corrections filled in
+//  between).
 
 namespace
 {
 typedef reefamr_comms_off comms_off;
 
 enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
-       NPH=REEFAMR_NPH, NSH=REEFAMR_NSH, NVEC=REEFAMR_NVEC };
+       NPH=REEFAMR_NPH, NSH=REEFAMR_NSH,
+       NRP=REEFAMR_NTMP,        // preconditioner: residual after the pre-smoothing, prolonged increment
+       NPRE=REEFAMR_NVEC,       // preconditioner: z after the pre-smoothing (patches)
+       NVEC=REEFAMR_NVEC+1 };
 
 // patch-local passes per level: more passes let sibling patches see each other's corrections
 // before the next Krylov step; for patches split at partition edges the iteration count did
 // not change with 2 or 4 passes (the level-0 correction couples them), only the cost
 const int LPASS = 1;
+
+// smoothing sweeps (pre and post) of the patch-local V-cycles of the FAC sweep.  With the pre-
+// smoothing one sweep is enough (moored box, 700 steps: max 4 iterations, 8 % less Laplace time
+// than two sweeps)
+const int PSWEEP = 1;
+
+// safety net: a solve that stagnates again after a BiCGStab restart stops if its relative
+// residual is below STAGTOL*N 44 (0: run to N 46).  With the coarse-first FAC sweep of the
+// first version about 2 % of the psi solves of a moored box stagnated at 1e-8..3e-7 relative;
+// with the pre-smoothing neither the restart nor the stop has triggered
+const double STAGTOL = 100.0;
 
 inline long ijk4(const lexer *q, int ii, int jj, int kk)
 {
@@ -117,7 +132,7 @@ void fnpf_amr::lap_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-            const bool covered = (l<maxlev && patch_at(l+1,2*I,2*J)>=0);
+            const bool covered = (l<maxlev && reefamr::covered(l+1,2*I,2*J));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -143,6 +158,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
 {
     if(lap_layout!=layout_id)
     {
+        const double ts = MPI_Wtime();
+
         lap_rows();
 
         const int n0 = p0->imax*p0->jmax*(p0->kmax+2);
@@ -181,6 +198,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         }
 
         lap_layout = layout_id;
+        tm[5] += MPI_Wtime()-ts;
     }
 
     // fixed rows (identity rows of the assembly: nodes inside a resolved body) are no unknowns:
@@ -345,6 +363,22 @@ void fnpf_amr::lap_start()
     }
 }
 
+// restart of the BiCGStab recurrence from the current residual (reefamr_bicgstab)
+void fnpf_amr::lap_restart()
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = lvec(g,NR);
+        double *vrh = lvec(g,NRH), *vp = lvec(g,NPV), *vv = lvec(g,NVV);
+        for(int qq : lg[g+1].lq)
+        {
+            vrh[qq] = vr[qq];
+            vp[qq] = 0.0;
+            vv[qq] = 0.0;
+        }
+    }
+}
+
 void fnpf_amr::lap_p(double beta, double om)
 {
     for(int g=-1; g<(int)P.size(); ++g)
@@ -381,15 +415,96 @@ void fnpf_amr::lap_x(double alp, double om)
     }
 }
 
-// z = M^-1 r: one FAC sweep
+// patch-local correction: z += V-cycle on (r - A z) over the interior of patch id, with the
+// current z around the patch (correction 0 at the patch edge)
+void fnpf_amr::lap_local(int id, int kr, int kz)
+{
+    fnpf_amr_patch *c = FP(id);
+    lexer *pp = c->pp;
+    const matrix_diag &M = c->c->M;
+    const double *r = lvec(id,kr);
+    double *z = lvec(id,kz);
+    sc_level &L = c->mg->fine();
+    const int sI = pp->jmax*pp->kmaxF;
+    const int sJ = pp->kmaxF;
+
+    std::fill(L.u.begin(),L.u.end(),0.0);
+    std::fill(L.f.begin(),L.f.end(),0.0);
+    for(int ii=EXT; ii<EXT+c->nx; ++ii)
+    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    for(int kk=0; kk<pp->knoz; ++kk)
+    {
+        const long lq = L.idx(ii-EXT,jj-EXT,kk);
+        if(L.act[lq]==0)
+        continue;
+
+        const int qq = fidx(pp,ii,jj,kk);
+        const int rw = c->row[qq];
+        const double az = M.p[rw]*z[qq] + M.n[rw]*z[qq+sI] + M.s[rw]*z[qq-sI] + M.w[rw]*z[qq+sJ] + M.e[rw]*z[qq-sJ]
+                        + M.t[rw]*z[qq+1] + M.b[rw]*z[qq-1];
+        L.f[lq] = r[qq] - az;
+    }
+
+    c->mg->vcycle(0,PSWEEP,PSWEEP);
+
+    for(int ii=EXT; ii<EXT+c->nx; ++ii)
+    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    for(int kk=0; kk<pp->knoz; ++kk)
+    {
+        const long lq = L.idx(ii-EXT,jj-EXT,kk);
+        if(L.act[lq])
+        z[fidx(pp,ii,jj,kk)] += L.u[lq];
+    }
+}
+
+// z = M^-1 r: one multiplicative FAC sweep
+//  1. pre-smoothing: z = 0, patch-local V-cycles on r (all levels)
+//  2. composite residual r' = r - A z, restricted into the covered columns
+//  3. level 0: one V-cycle on r' over the whole rank grid (covered columns included)
+//  4. coarse to fine: the increment of the coarser grid since its pre-smoothing interpolated
+//     into the patch interiors and added, the columns around the patches filled, then
+//     post-smoothing with patch-local V-cycles on r - A z
+//  Without step 1 (coarse correction first) the residual restricted next to a resolved body
+//  carried the unsmoothed fine error at the hull into the level-0 correction, and the roll and
+//  pitch unit-mode psi solves stagnated (1e-8..3e-7 relative, up to N 46 iterations)
 void fnpf_amr::lap_prec(int kr, int kz)
 {
-    restrict_col([&](int g) -> double* { return lvec(g,kr); });
+    auto selz = [&](int g) -> double* { return lvec(g,kz); };
 
-    // level 0: one V-cycle on the whole rank grid
+    // 1. pre-smoothing
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        lexer *q = glex(g);
+        double *z = lvec(g,kz);
+        std::fill(z,z+q->imax*q->jmax*(q->kmax+2),0.0);
+    }
+
+    for(int id=0; id<(int)P.size(); ++id)
+    lap_local(id,kr,kz);
+
+    // 2. composite residual (lap_apply also fills the covered columns and the columns around
+    //    the patches of z), z after the pre-smoothing kept in NPRE
+    lap_apply(kz,NRP);
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *r = lvec(g,kr);
+        double *t = lvec(g,NRP);
+        for(int qq : lg[g+1].lq)
+        t[qq] = r[qq] - t[qq];
+    }
+
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        lexer *q = glex(id);
+        std::copy(lvec(id,kz),lvec(id,kz)+q->imax*q->jmax*(q->kmax+2),lvec(id,NPRE));
+    }
+
+    restrict_col([&](int g) -> double* { return lvec(g,NRP); });
+
+    // 3. level 0: one V-cycle on the whole rank grid
     {
         sc_level &L = mg0->fine();
-        const double *r = lvec(-1,kr);
+        const double *r = lvec(-1,NRP);
         double *z = lvec(-1,kz);
 
         std::fill(L.u.begin(),L.u.end(),0.0);
@@ -420,18 +535,47 @@ void fnpf_amr::lap_prec(int kr, int kz)
         }
     }
 
-    auto selz = [&](int g) -> double* { return lvec(g,kz); };
-
+    // 4. coarse to fine
     for(int l=1; l<=maxlev; ++l)
     {
-        // coarse correction interpolated into the patch interiors, then the columns around them
+        // increment of the level l-1 patches since their pre-smoothing (level 0: z itself)
+        if(l>1)
+        for(int id : lev[l-1])
+        {
+            lexer *q = glex(id);
+            const double *z = lvec(id,kz);
+            double *d = lvec(id,NPRE);
+            const int n = q->imax*q->jmax*(q->kmax+2);
+            for(int m=0; m<n; ++m)
+            d[m] = z[m] - d[m];
+        }
+
+        // the increment interpolated into the patch interiors (NRP, from the parent on its rank)
+        // and added
+        prolong_interior_col(l,[](reefamr_patch*) { return true; },
+                             [&](int g) -> double* { return (g<0) ? lvec(-1,kz) : lvec(g,NPRE); },
+                             [&](int id) -> double* { return lvec(id,NRP); });
+
         for(int id : lev[l])
-        prolong_interior_col(*FP(id),selz);
+        {
+            fnpf_amr_patch *c = FP(id);
+            lexer *pp = c->pp;
+
+            double *z = lvec(id,kz);
+            const double *t = lvec(id,NRP);
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int kk=0; kk<=pp->knoz; ++kk)
+            {
+                const int qq = fidx(pp,ii,jj,kk);
+                z[qq] += t[qq];
+            }
+        }
 
         fill_col(l,7700+l,selz);
 
-        // patch-local corrections of the residual left by the coarse correction; repeated
-        // passes let siblings see each other's corrections through the filled columns
+        // post-smoothing; repeated passes let siblings see each other's corrections through
+        // the filled columns
         const int npass = (nlevg[l]>1) ? LPASS : 1;
         for(int pass=0; pass<npass; ++pass)
         {
@@ -439,44 +583,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
             fill_col(l,7700+l,selz);
 
             for(int id : lev[l])
-            {
-                fnpf_amr_patch *c = FP(id);
-                lexer *pp = c->pp;
-                const matrix_diag &M = c->c->M;
-                const double *r = lvec(id,kr);
-                double *z = lvec(id,kz);
-                sc_level &L = c->mg->fine();
-                const int sI = pp->jmax*pp->kmaxF;
-                const int sJ = pp->kmaxF;
-
-                std::fill(L.u.begin(),L.u.end(),0.0);
-                std::fill(L.f.begin(),L.f.end(),0.0);
-                for(int ii=EXT; ii<EXT+c->nx; ++ii)
-                for(int jj=EXT; jj<EXT+c->ny; ++jj)
-                for(int kk=0; kk<pp->knoz; ++kk)
-                {
-                    const long lq = L.idx(ii-EXT,jj-EXT,kk);
-                    if(L.act[lq]==0)
-                    continue;
-
-                    const int qq = fidx(pp,ii,jj,kk);
-                    const int rw = c->row[qq];
-                    const double az = M.p[rw]*z[qq] + M.n[rw]*z[qq+sI] + M.s[rw]*z[qq-sI] + M.w[rw]*z[qq+sJ] + M.e[rw]*z[qq-sJ]
-                                    + M.t[rw]*z[qq+1] + M.b[rw]*z[qq-1];
-                    L.f[lq] = r[qq] - az;
-                }
-
-                c->mg->vcycle(0,1,1);
-
-                for(int ii=EXT; ii<EXT+c->nx; ++ii)
-                for(int jj=EXT; jj<EXT+c->ny; ++jj)
-                for(int kk=0; kk<pp->knoz; ++kk)
-                {
-                    const long lq = L.idx(ii-EXT,jj-EXT,kk);
-                    if(L.act[lq])
-                    z[fidx(pp,ii,jj,kk)] += L.u[lq];
-                }
-            }
+            lap_local(id,kr,kz);
         }
 
         if(l<maxlev)
@@ -498,6 +605,7 @@ struct lap_space
     void op_p(double beta, double om) { a->lap_p(beta,om); }
     void op_s(double alp) { a->lap_s(alp); }
     void op_x(double alp, double om) { a->lap_x(alp,om); }
+    void op_restart() { a->lap_restart(); }
 };
 }
 
@@ -523,14 +631,32 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     lap_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3]);
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls);
 
-    lap_it_last = it;
+    const double res = bn>0.0 ? rn/bn : 0.0;
     lap_it_total += it;
     ++lap_solves;
-    lap_res_last = bn>0.0 ? rn/bn : 0.0;
+    lap_it_step += it;
+    ++lap_solves_step;
+    if(lap_kind==0)
+    {
+        lap_it_last = it;
+        lap_res_last = res;
+        lap_it_phi_max = MAX(lap_it_phi_max,it);
+    }
+    else
+    lap_it_psi_max = MAX(lap_it_psi_max,it);
     p->solveriter = it;
-    p->final_res = lap_res_last;
+    p->final_res = res;
+
+    // the uniform REEFMG path warns at the iteration limit; a stalled composite solve was silent
+    if(it>=p->N46 && res>p->N44)
+    {
+        ++lap_capped;
+        if(p->mpirank==0)
+        cout<<"FNPF AMR WARNING - "<<(lap_kind==0 ? "phi" : "psi")<<" Laplace iteration limit N 46 = "<<p->N46
+            <<" reached, res "<<setprecision(3)<<res<<" (N 44 = "<<p->N44<<")"<<endl;
+    }
 
     lap_sync(-1);
 }
@@ -583,6 +709,7 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, f
     for(int id=0; id<(int)P.size(); ++id)
     ltgt[id+1] = FP(id)->c->Fi;
 
+    lap_kind = 0;
     lap_core(p,pgc);
 
     // body band
@@ -626,7 +753,9 @@ void fnpf_amr::lap_solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
 
     ltgt.assign(f,f+P.size()+1);
 
+    lap_kind = 1;
     lap_core(p,pgc);
+    lap_kind = 0;
 
     tm[1] += MPI_Wtime()-t0;
 }

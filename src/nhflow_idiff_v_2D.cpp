@@ -29,4 +29,7 @@ Author: Hans Bihs
 
 void nhflow_idiff_2D::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
+    // 2D (no y direction): no v diffusion, but VHdiff has to hold the input (it was left unset)
+    LOOP
+    VHdiff[IJK] = VHin[IJK];
 }

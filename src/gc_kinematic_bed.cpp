@@ -24,7 +24,6 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"field.h"
-#include"cpt.h"
 
 void ghostcell::kinematic_bed(lexer *p,field& f,double dist,int gcv, int bc, int cs)
 {

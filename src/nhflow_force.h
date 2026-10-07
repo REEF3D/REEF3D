@@ -69,6 +69,7 @@ private:
 	
 	
     void force_calc(lexer*,fdm_nhf*,ghostcell*);
+    void add_triangle(lexer*,fdm_nhf*,int,int,int);
     
     
 	void print_force(lexer*,fdm_nhf*,ghostcell*);

@@ -30,8 +30,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,1);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,1);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
@@ -57,7 +56,7 @@ void ghostcell::start1(lexer *p, field& f, int gcv)
         gc_periodic(p, f, 1, 3);
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol1(p,f,gcv);
+        dgcpol(p,f,p->dgc1,p->dgc1_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -69,8 +68,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,2);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,2);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
@@ -80,7 +78,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     {
         starttime=timer();
         QQGC2LOOP
-        if((p->gcb1[qq][3]!=2 && p->gcb1[qq][3]!=3) || p->j_dir==1)
+        if((p->gcb2[qq][3]!=2 && p->gcb2[qq][3]!=3) || p->j_dir==1)
             gcdistro2(p,f,p->gcb2[qq][0], p->gcb2[qq][1], p->gcb2[qq][2], p->gcb2[qq][5], p->gcd2[qq], gcv, p->gcb2[qq][4], p->gcb2[qq][3]);
         endtime=timer();
         p->gctime+=endtime-starttime;
@@ -99,7 +97,7 @@ void ghostcell::start2(lexer *p, field& f, int gcv)
     }
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol2(p,f,gcv);
+        dgcpol(p,f,p->dgc2,p->dgc2_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -111,15 +109,14 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,3);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,3);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
 
     starttime=timer();
     QQGC3LOOP
-    if((p->gcb1[qq][3]!=2 && p->gcb1[qq][3]!=3) || p->j_dir==1)
+    if((p->gcb3[qq][3]!=2 && p->gcb3[qq][3]!=3) || p->j_dir==1)
         gcdistro3(p,f,p->gcb3[qq][0], p->gcb3[qq][1], p->gcb3[qq][2], p->gcb3[qq][5], p->gcd3[qq], gcv, p->gcb3[qq][4], p->gcb3[qq][3]);
     endtime=timer();
     p->gctime+=endtime-starttime;
@@ -137,7 +134,7 @@ void ghostcell::start3(lexer *p, field& f, int gcv)
         gc_periodic(p, f, 3, 3);
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol3(p,f,gcv);
+        dgcpol(p,f,p->dgc3,p->dgc3_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -149,15 +146,14 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
     if(do_comms)
     {
         starttime=timer();
-        gcparax(p,f,4);
-        gcparacox(p,f,gcv);
+        gcparax_co(p,f,4);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }
 
     starttime=timer();
     QQGC4LOOP
-    if((p->gcb1[qq][3]!=2 && p->gcb1[qq][3]!=3) || p->j_dir==1)
+    if((p->gcb4[qq][3]!=2 && p->gcb4[qq][3]!=3) || p->j_dir==1)
         gcdistro4(p,f,p->gcb4[qq][0],p->gcb4[qq][1], p->gcb4[qq][2], p->gcb4[qq][5], p->gcd4[qq], gcv, p->gcb4[qq][4], p->gcb4[qq][3]);
     endtime=timer();
     p->gctime+=endtime-starttime;
@@ -175,7 +171,7 @@ void ghostcell::start4(lexer *p, field &f, int gcv)
         gc_periodic(p, f, 4, 3);
 
     if(p->Y40==1  || p->Y40==3)
-        dgcpol4(p,f,gcv);
+        dgcpol(p,f,p->dgc4,p->dgc4_count);
 
     if(do_comms)
         gcparacox(p,f,gcv);
@@ -195,7 +191,7 @@ void ghostcell::start4a(lexer *p, field& f, int gcv)
 
     starttime=timer();
     QQGC4ALOOP
-    if((p->gcb1[qq][3]!=2 && p->gcb1[qq][3]!=3) || p->j_dir==1)
+    if((p->gcb4a[qq][3]!=2 && p->gcb4a[qq][3]!=3) || p->j_dir==1)
         gcdistro4a(p,f,p->gcb4a[qq][0], p->gcb4a[qq][1], p->gcb4a[qq][2], p->gcb4a[qq][5], p->gcd4a[qq], gcv, p->gcb4a[qq][4], p->gcb4a[qq][3]);
     endtime=timer();
     p->gctime+=endtime-starttime;
@@ -223,7 +219,6 @@ void ghostcell::start4a_sum(lexer *p, field& f, int gcv)
     {
         starttime=timer();
         gcparax4a_sum(p,f,5);
-        //gcparacox4a_sum(p,f,5);
         endtime=timer();
         p->xtime+=endtime-starttime;
     }

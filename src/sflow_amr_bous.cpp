@@ -101,7 +101,7 @@ void sflow_amr::bq_setup()
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
 
-            (*G.act)[c] = (l<maxlev && patch_at(l+1,2*I,2*J)>=0) ? -1 : 1;
+            (*G.act)[c] = (l<maxlev && covered(l+1,2*I,2*J)) ? -1 : 1;
         }
 
         bqgrid &B = bqg[g+1];

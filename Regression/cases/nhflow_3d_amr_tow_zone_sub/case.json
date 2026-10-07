@@ -1,0 +1,20 @@
+{
+ "description": "nhflow_3d_amr_tow_zone with subcycling (G 7 1): prescribed motion (X 10 2) on every level at its own step, the moving zone regridded every level-0 step.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr_sub with X 10 2 and the moving zone (G 12, G 13)"
+ ],
+ "base": "nhflow_3d_amr_tow_zone",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

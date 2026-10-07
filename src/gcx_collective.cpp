@@ -44,11 +44,6 @@ void ghostcell::gatherv_double(double *sendbuf, int sendcount, double *recvbuf, 
     MPI_Gatherv(sendbuf,sendcount, MPI_DOUBLE, recvbuf, recvcount, recvdispl, MPI_DOUBLE, 0, mpi_comm);
 }
 
-void ghostcell::allgather_int(int *sendbuf, int sendcount, int *recvbuf, int recvcount)
-{
-    MPI_Allgather(sendbuf,sendcount, MPI_INT, recvbuf, recvcount, MPI_INT, mpi_comm);
-}
-
 void ghostcell::allgatherv_int(int *sendbuf, int sendcount, int *recvbuf, int *recvcount, int *recvdispl)
 {
     MPI_Allgatherv(sendbuf,sendcount, MPI_INT, recvbuf, recvcount, recvdispl, MPI_INT, mpi_comm);

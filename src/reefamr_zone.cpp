@@ -28,7 +28,8 @@ Author: Hans Bihs
 //  Refinement zone of the moving bodies (zone_bodies of the module): a margin zr around the
 //  wetted hull, reaching ahead of the bow by the distance travelled until the next regrid,
 //  and a wake wedge behind the bow with half angle za and length zL at most (only where the
-//  bow has been).  zone_setup also lists the hull triangles below the still water level
+//  bow has been).  With zalign the rectangle is aligned with x and y and grown on every side
+//  by the distance travelled until the next regrid, without wake.  zone_setup also lists the hull triangles below the still water level
 //  (ztri), which the module can use to evaluate the body on its patches.
 
 // triangles below the still water level and the refinement zone of every body
@@ -63,9 +64,16 @@ void reefamr::zone_setup(lexer *p)
         z.cx = o->amr_c(0);
         z.cy = o->amr_c(1);
 
-        // heading: direction of motion, the yaw angle for a body at rest
+        // heading: direction of motion, the yaw angle for a body at rest; zalign: the x axis
+        // (a moored body has no meaningful heading, and every swing of it changed the zone)
         double ux = o->amr_u(0), uy = o->amr_u(1);
         double sp = sqrt(ux*ux + uy*uy);
+        if(par.zalign)
+        {
+            z.ex = 1.0;
+            z.ey = 0.0;
+        }
+        else
         if(sp>1.0e-6)
         {
             z.ex = ux/sp;
@@ -107,14 +115,27 @@ void reefamr::zone_setup(lexer *p)
         }
 
         // the zone reaches ahead of the bow by the distance travelled until the next regrid
-        z.sfront = z.smax + par.zr + 1.5*sp*p->dt*MAX(regrid_int,1);
+        const double ahead = 1.5*sp*p->dt*MAX(regrid_int,1);
+        z.sfront = z.smax + par.zr + ahead;
+        z.sback = z.smin - par.zr;
+        z.nlo = z.nmin - par.zr;
+        z.nhi = z.nmax + par.zr;
 
         // the wake wedge reaches back to where the bow has been
         double trav = sqrt(pow(z.cx-zx0[nb],2.0) + pow(z.cy-zy0[nb],2.0));
         z.wake = MIN(par.zL, (z.smax-z.smin) + trav + par.zr);
 
+        // aligned zone: the travel distance on every side, no wake
+        if(par.zalign)
+        {
+            z.sback -= ahead;
+            z.nlo -= ahead;
+            z.nhi += ahead;
+            z.wake = 0.0;
+        }
+
         if(z.smin>z.smax)       // no part of the body in the water
-        z.smin = z.smax = z.nmin = z.nmax = z.sfront = z.wake = 0.0;
+        z.smin = z.smax = z.nmin = z.nmax = z.sfront = z.sback = z.nlo = z.nhi = z.wake = 0.0;
     }
 }
 
@@ -133,7 +154,7 @@ bool reefamr::zone_test(double x, double y)
         double n = -dx*z.ey + dy*z.ex;
 
         // hull
-        if(s>=z.smin-r && s<=z.sfront && n>=z.nmin-r && n<=z.nmax+r)
+        if(s>=z.sback && s<=z.sfront && n>=z.nlo && n<=z.nhi)
         return true;
 
         // wake: wedge from the bow with half angle za, length zL at most (only where the bow has been)

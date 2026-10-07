@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 3D still water, submerged sphere (A 586) off the grid lines on coarse sigma layers (6), force integration P 81: marching-tetrahedra surface, quads split into two triangles (exact hydrostatic quadrature, Fx = Fy = 0, Fz = rho g V of the reconstructed surface).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 10,
+ "tags": ["quick", "nhflow", "3d", "force"],
+ "covers": ["nhflow_force::triangulation / reconstruct", "nhflow_force::force_calc quad split (add_triangle)", "REEF3D_NHFLOW_Force output"]
+}

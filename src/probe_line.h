@@ -47,7 +47,6 @@ public:
 private:
 	void ini_global_location(lexer*, fdm*, ghostcell*);
     void ini_location(lexer*, fdm*, ghostcell*);
-    void write(lexer*, fdm*, ghostcell*);
     int conv(double);
 	char name[100];
 

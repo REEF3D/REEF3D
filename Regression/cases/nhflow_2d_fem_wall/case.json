@@ -1,0 +1,14 @@
+{
+ "description": "NHFLOW 2D: a concrete wall (fix base, 0.4 m) holds a 0.3 m water column on the dry bed. The water stays at rest and the wall carries the hydrostatic load (4.41 N on the 1 cm slice).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "files": ["fem.dat"],
+ "tags": ["quick", "2d", "nhflow", "fem", "fsi"],
+ "covers": [
+  "fem_coupling::start_nhflow (Z 30 with A 10 5): sigma-grid kernel sampling and forcing of U,V,W / UH,VH,WH",
+  "cells inside the structure marked solid (p->DF -1) and no continuity flux through them (d->solid_flux, nhflow_solid_flux)",
+  "probed pressure: non-hydrostatic P plus hydrostatic pressure of the local free surface, settling under the initial water",
+  "hybrid loads in NHFLOW"
+ ]
+}

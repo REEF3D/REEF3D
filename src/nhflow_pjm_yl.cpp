@@ -27,7 +27,6 @@ Author: Hans Bihs
 #include"nhflow_poisson.h"
 #include"solver.h"
 #include"ioflow.h"
-#include"nhflow_poisson.h"
 #include"density_f.h"
 #include"patchBC_interface.h"
 #include"vrans.h"

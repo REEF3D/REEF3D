@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "ctrl_add": [
+  "B 105 0.0 10.0 0.0"
+ ],
+ "description": "old input: wave generation origin moved to x = 10 (B 105).",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "B 105 generation frame",
+  "xgen/ygen"
+ ]
+}

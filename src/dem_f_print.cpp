@@ -27,6 +27,22 @@ Author: Hans Bihs
 #include<iomanip>
 #include<cstdio>
 #include<mpi.h>
+#include"runlog.h"
+#include"lagoon_store.h"
+
+namespace
+{
+// the run's LAGOON store and run record (P 18)
+std::string lagoon_solver(lexer *p)
+{
+    return p->A10==6 ? "CFD" : p->A10==3 ? "FNPF" : p->A10==2 ? "SFLOW" : "NHFLOW";
+}
+
+std::string lagoon_run(lexer *p)
+{
+    return p->plog ? "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}" : "";
+}
+}
 
 void dem_f::print(lexer *p, ghostcell *pgc)
 {
@@ -41,6 +57,51 @@ void dem_f::print(lexer *p, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
+        // P 18: the elements in the LAGOON store as well (dem_dem: points, velocity,
+        // id, resolved and the triangles, as in the VTP file); P 18 1: instead of it
+        bool stored = false;
+        if(p->P18>0)
+        {
+            static lagoon_particles *writer = nullptr;
+            if(writer==nullptr)
+            {
+                const std::string solver = lagoon_solver(p);
+                writer = new lagoon_particles("./REEF3D_" + solver + ".lagoon", solver, "dem_dem", "dem",
+                                              "REEF3D_DEM_VTP", lagoon_run(p),
+                                              {{"velocity", 3, false}, {"id", 1, true}, {"resolved", 1, true}},
+                                              1, "polys");
+            }
+            std::vector<float> xyz, velocity;
+            std::vector<int32_t> id, resolved, connectivity, offsets;
+            int offset = 0;
+            for(auto &B : all)
+            if(B.active)
+            {
+                const dem_shape &S = core.shapes[B.shape];
+                for(auto &v : S.vert)
+                {
+                    const dem_vec x = B.x + B.R*v;
+                    const dem_vec u = B.v + B.w.cross(B.R*v);
+                    for(int c=0; c<3; ++c)
+                    {
+                        xyz.push_back(float(x(c)));
+                        velocity.push_back(float(u(c)));
+                    }
+                    id.push_back(int32_t(B.id));
+                    resolved.push_back(int32_t(B.mode));
+                }
+                for(size_t t=0; t<S.tri.size(); t+=3)
+                {
+                    for(int k=0; k<3; ++k)
+                    connectivity.push_back(int32_t(S.tri[t+k] + offset));
+                    offsets.push_back(int32_t(connectivity.size()));
+                }
+                offset += int(S.vert.size());
+            }
+            stored = writer->output(p->simtime, printcount, id.size(), xyz.data(),
+                                    {velocity.data(), id.data(), resolved.data()}, connectivity, offsets);
+        }
+        if(!(stored && p->P18==1))
         print_vtp(p,all);
         print_state(p,all);
     }
@@ -155,6 +216,10 @@ void dem_f::print_vtp(lexer *p, const vector<dem_body> &bodies)
     out<<"</DataArray>\n</Polys>\n";
 
     out<<"</Piece>\n</PolyData>\n</VTKFile>\n";
+    out.close();
+
+    if(p->plog)
+    p->plog->written(p,printcount,"dem","dem",name,0);
 }
 
 void dem_f::print_state(lexer *p, const vector<dem_body> &bodies)

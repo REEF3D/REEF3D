@@ -1,0 +1,8 @@
+{
+ "description": "SFLOW moving pressure patch (ship-wave mode X10=3, X400=2 box pressure) towed at constant speed (X210): sixdof_sflow / sixdof_obj_2D.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": ["2d", "sflow", "6dof", "ship"],
+ "covers": ["sixdof_sflow", "sixdof_obj_2D pressure patch", "updateForcing_box", "ray_cast_2D"]
+}

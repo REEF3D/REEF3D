@@ -29,8 +29,10 @@ Author: Hans Bihs
 
 #include"reefmg.h"
 
+#ifdef REEF3D_USE_HYPRE
 #include"hypre_aij.h"
 #include"hypre_struct.h"
 #include"hypre_sstruct.h"
+#endif
 
 #endif

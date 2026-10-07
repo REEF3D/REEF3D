@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_refraction",
+ "np": 2,
+ "description": "as seastate_2d_refraction on 2 MPI ranks (stationary: same converged result as 1 rank).",
+ "tags": ["quick", "2d", "seastate", "mpi"],
+ "covers": ["seastate_exchange halo exchange of the spectra"]
+}

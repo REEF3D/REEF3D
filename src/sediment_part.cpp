@@ -23,6 +23,8 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_part.h"
 #include"lexer.h"
 #include"bedshear.h"
+#include"momentum_forcing.h"
+#include"CPM.h"
 #include<sys/stat.h>
 
 sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
@@ -31,6 +33,10 @@ sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *pptur
     pturb = ppturb;
 
     sediment_logic(p,pgc);
+    
+    // two-way coupling: momentum source of the parcels on the fluid
+    if(p->Q50==1 && p->Q11==2)
+    momentum_forcing::psed = this;
 
     // Create Folder
     if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
@@ -75,6 +81,12 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
         waterlevel(p,a,pgc);
         pbedshear->taubed(p,a,pgc,s);
     }
+    
+    // two-way coupling once the parcels move (S 41, S 43/S 45: the fluid spins up first)
+    if(!sedcalc)
+    pst->coupling_update(p,a,pgc,s);
+    else
+    pst->coupling_reset(p,pgc);
     
     print_particles(p,s);
     

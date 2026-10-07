@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 #include"ioflow.h"
 #include"wave_interface.h"
+#include"bc_zone.h"
+#include"background_state.h"
 #include"field1.h"
 #include"field2.h"
 #include"field4.h"
@@ -71,8 +73,6 @@ public:
     
     void flowfile(lexer*,fdm*,ghostcell*,turbulence*) override final;
     
-    void hydrograph_in_read(lexer*,fdm*,ghostcell*);
-	void hydrograph_out_read(lexer*,fdm*,ghostcell*);
 	double hydrograph_ipol(lexer*,ghostcell*,double**,int);
 	
     
@@ -151,12 +151,8 @@ public:
     void velini(lexer*,fdm*,ghostcell*);
     void pressure_outlet(lexer*,fdm*,ghostcell*);
     void pressure_inlet(lexer*,fdm*,ghostcell*);
-    void pressure_wall(lexer*,fdm*,ghostcell*);
-    void pressure_bed(lexer*,fdm*,ghostcell*);
-    double local_fsf(lexer*,fdm*,ghostcell*);
 	
 	void awa_ini(lexer*,fdm*,ghostcell*);
-	void awa_update(lexer*,fdm*,ghostcell*);
 	void gen_ini(lexer*,fdm*,ghostcell*);
     
     void waterlevel_update(lexer*,fdm*,ghostcell*) override final;
@@ -198,6 +194,8 @@ public:
     
     // NHFLOW
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
+    void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override final;
+    void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) override final;
     void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
@@ -239,10 +237,13 @@ private:
     slice1 relax1_wg, relax1_nb;
     slice2 relax2_wg, relax2_nb;
     slice4 relax4_wg, relax4_nb;
+    // B 95: the relaxation functions as computed at the start (relax4_wg/nb then hold r^(dt/dt_ref))
+    slice4 *relax4_wg0 = nullptr, *relax4_nb0 = nullptr;
+    double relax_fac = 1.0;
+    void relax_stage_factor(lexer*);
+    bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
     sliceint4 wgflag;
 	
-	double rb1(lexer*,double);
-    double rb3(lexer*,double);
     
     double rb1_ext(lexer*,int);
     double rb3_ext(lexer*,int);
@@ -284,13 +285,43 @@ private:
     // (wave_lib.h). gen_idx maps a slice cell IJ to its index, -1 outside.
     void genzone4_build(lexer*,ghostcell*);
     std::vector<int> gen_i, gen_j;
+    std::vector<const std::vector<int>*> gen_src;   // sources of the column's zone (B 524), nullptr: all
+    void zones_check(lexer*);
     std::vector<int> gen_idx;
     bool gen_built=false;
     
+    // tidal / current background (B 510-514, B 523; NHFLOW): background index of the
+    // generation and beach zone of each column (IJ), -1: none; still water depth per column
+    background_state bgs;
+    bool bg_on=false;
+    bool bg_built=false;
+    std::vector<int> col_gen_bg, col_beach_bg;
+    std::vector<double> col_h0, edge_h, edge_etaw, edge_uw, edge_vw;
+    void bg_build(lexer*);
+    int gen_bg(lexer*);
+    int beach_bg(lexer*);
+    void nhflow_bg_update(lexer*,fdm_nhf*,ghostcell*);
+    void nhflow_open_edges(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&);
+    void nhflow_open_edges_rk(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+    void nhflow_open_edges_wl(lexer*,fdm_nhf*,slice&);
+    double nhflow_col_ubar(lexer*,fdm_nhf*,double*);
+
+    // waves on the background (B 530): per source the wave state (k, h_eff, U_n) of the
+    // last update (0) and the target (1), blended over B 530 N steps from step c0
+    struct wave_bg_state
+    {
+        double k0=0.0, h0=0.0, u0=0.0, k1=0.0, h1=0.0, u1=0.0;
+        int c0=0;
+        bool on=false;
+    };
+    std::vector<wave_bg_state> wbg;
+    int wbg_count=-1;
+    bool wbg_blocked=false;
+    void nhflow_wave_background(lexer*,ghostcell*);
+
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC
-    double V0Calc_PLIC(lexer*, fdm*, double, double, double, double);
     slice4 vofheight;
     slice4 genheight;
 
@@ -365,7 +396,6 @@ private:
     patchBC_interface *pBC;
     
     
-    double ramp_corr(lexer*);
     
     double netQ,netQ_n,netV;
     double netV_corr,netV_corr_n;
@@ -375,7 +405,6 @@ private:
     linear_regression_cont *linreg;
     
     
-    double cosh_func(double);
     
 };
 

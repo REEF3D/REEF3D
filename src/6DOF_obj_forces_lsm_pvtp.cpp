@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 
-void sixdof_obj::pvtp(lexer* p, int num)
+void sixdof_obj_cfd::pvtp(lexer* p, int num)
 {
     sprintf(name,"./REEF3D_CFD_6DOF/REEF3D-FB-%08i.pvtp",num);
 

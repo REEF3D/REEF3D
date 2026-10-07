@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_nhf.h"
+#include"nhflow_solid_flux.h"
 #include"nhflow_membrane_beta.h"
 #include"slice.h"
 #include"patchBC_interface.h"
@@ -43,6 +44,7 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
 
 nhflow_HLL::~nhflow_HLL()
 {
+    delete pflux;
 }
 
 void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)
@@ -152,6 +154,9 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     pgc->start2V(p,d->Fy,10);
     pgc->start3V(p,d->Fz,10);
     
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,1,d->Fx,d->Fy);
+    
     LOOP
     WETDRY
     {
@@ -182,6 +187,9 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     pgc->start2V(p,d->Fy,11);
     pgc->start3V(p,d->Fz,11);
     
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,2,d->Fx,d->Fy);
+    
     LOOP
     WETDRY
     {
@@ -211,6 +219,9 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     pgc->start1V(p,d->Fx,12);
     pgc->start2V(p,d->Fy,12);
     pgc->start3V(p,d->Fz,12);
+    
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,3,d->Fx,d->Fy);
     
     LOOP
     WETDRY
@@ -256,8 +267,15 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     d->FEy[IJm1K] = 0.0;
     }
     
+    // cells inside FEM structures (Z 30): no continuity flux through their faces
+    if(d->solid_flux==1)
+    nhflow_solid_flux(p,d);
+    
     pgc->start1V(p,d->FEx,14);
     pgc->start2V(p,d->FEy,14); 
+    
+    if(phook!=nullptr)
+    phook->flux_hook(p,d,hook_id,4,d->FEx,d->FEy);
 }
 
 void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)

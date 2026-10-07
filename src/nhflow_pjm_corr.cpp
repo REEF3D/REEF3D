@@ -53,6 +53,9 @@ nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_i
 
 nhflow_pjm_corr::~nhflow_pjm_corr()
 {
+    delete pd;
+    delete ppois;
+    delete [] PCORR;
 }
 
 void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL,
@@ -102,9 +105,15 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
         wcorr(p,d,WL,WH,PCORR,alpha);
     }
     
-    // membranes (X 330): face corrections of the total pressure for the Rhie-Chow continuity flux
+    // membranes (X 330): face corrections of the pressure increment for the Rhie-Chow continuity flux.
+    // The old pressure P^n acts on the cell velocities through the predictor (wide gradient), and the Poisson
+    // right-hand side is the divergence of those cell velocities averaged to the faces. The face field the
+    // compact matrix makes divergence free is therefore avg(U) + avg(dU(PCORR)) - dU_f(PCORR): only the
+    // increment is corrected. With the total pressure the face flux contains avg(G_wide P^n) - G_compact P^n,
+    // a divergence the projection never sees; it moves the free surface of the layer columns in an odd-even
+    // pattern that grows (seen with moving membranes, R_t = R_n and floorpressure 0).
     if(d->MBETA!=nullptr)
-    nhflow_membrane_rc_store(p,d,pgc,d->P,alpha*p->dt);
+    nhflow_membrane_rc_store(p,d,pgc,PCORR,alpha*p->dt);
 
     p->poissoniter=p->solveriter;
 
@@ -113,6 +122,27 @@ void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc,
 
 	if(p->mpirank==0 && p->count%p->P12==0)
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
+}
+
+// mesh refinement: start() without the solve (the membrane passes X 330 are not supported there)
+double* nhflow_pjm_corr::amr_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
+{
+    rhs(p,d,pgc,d->U,d->V,d->W,alpha);
+    ppois->start(p,d,PCORR);
+    
+    return PCORR;
+}
+
+void nhflow_pjm_corr::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *UH, double *VH, double *WH, double alpha)
+{
+    presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
+    
+    pgc->start7P(p,d->P,gcval_press);
+    pgc->start7P(p,PCORR,gcval_press);
+    
+	ucorr(p,d,WL,UH,PCORR,alpha);
+	vcorr(p,d,WL,VH,PCORR,alpha);
+	wcorr(p,d,WL,WH,PCORR,alpha);
 }
 
 void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)

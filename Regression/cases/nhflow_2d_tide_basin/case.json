@@ -1,0 +1,18 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "Closed basin: tide in through a Riemann edge at x-, wall at x+; the reflected wave leaves through the Riemann edge.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "Riemann edge with outgoing waves"
+ ]
+}

@@ -42,7 +42,6 @@ Author: Hans Bihs
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
-#include"cpt.h"
 #include"looping.h"
 #include<iostream>
 #include<vector>

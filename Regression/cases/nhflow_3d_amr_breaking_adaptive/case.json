@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW AMR wave breaking, adaptive (A 550 1, A 512 2): a bore from an F 72 step runs up a slope, the patch follows it with the surface-jump and breaking flags (G 20, G 23), wetting and drying (G 30), a regrid every step.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking",
+  "adaptive"
+ ],
+ "covers": [
+  "nhflow_idiff + bicgstab_ijk on patches",
+  "ghostcell::set_local",
+  "G 23 tag",
+  "patch solvers deleted at every regrid"
+ ]
+}

@@ -29,6 +29,44 @@ Author: Hans Bihs
 #include<cstdio>
 #include<cstdint>
 #include<iomanip>
+#include"runlog.h"
+#include"lagoon_store.h"
+
+namespace
+{
+// P 18: the particles of an output in the run's LAGOON store (rank 0, all gathered);
+// false if they could not be written there
+bool print_lagoon(lexer *p, const std::vector<nhflow_particle_data> &all, int printcount)
+{
+    static lagoon_particles *writer = nullptr;
+    if(writer==nullptr)
+    {
+        std::string run;
+        if(p->plog)
+            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+        const std::vector<lagoon_particles::field> fields = {
+            {"velocity", 3, false}, {"id", 1, true}, {"release", 1, true}, {"state", 1, true}, {"age", 1, false}};
+        writer = new lagoon_particles("./REEF3D_NHFLOW.lagoon", "NHFLOW", "nhflow_particles", "particles",
+                                      "REEF3D_NHFLOW_Particles", run, fields);
+    }
+    // the arrays as the VTP file has them
+    const size_t n = all.size();
+    std::vector<float> xyz(3*n), velocity(3*n), age(n);
+    std::vector<int32_t> id(n), release(n), state(n);
+    for(size_t q=0; q<n; ++q)
+    {
+        const nhflow_particle_data &a = all[q];
+        xyz[3*q] = float(a.x); xyz[3*q+1] = float(a.y); xyz[3*q+2] = float(a.z);
+        velocity[3*q] = float(a.u); velocity[3*q+1] = float(a.v); velocity[3*q+2] = float(a.w);
+        id[q] = int32_t(a.id);
+        release[q] = int32_t(a.src);
+        state[q] = int32_t(a.state);
+        age[q] = float(p->simtime - a.t0);
+    }
+    return writer->output(p->simtime, printcount, n, xyz.data(),
+                          {velocity.data(), id.data(), release.data(), state.data(), age.data()});
+}
+}
 
 // output every L 61 seconds of simulation time
 // L 62 = 1: VTP (ParaView), 2: CSV tracks, 3: both
@@ -46,7 +84,12 @@ void nhflow_particle_f::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-        if(p->L62==1 || p->L62==3)
+        // P 18: in the LAGOON store; P 18 1: instead of the VTP files, P 18 2: as well
+        bool stored = false;
+        if(p->P18>0 && (p->L62==1 || p->L62==3))
+        stored = print_lagoon(p,all,printcount);
+
+        if((p->L62==1 || p->L62==3) && !(stored && p->P18==1))
         print_vtp(p,all);
 
         if(p->L62==2 || p->L62==3)
@@ -173,6 +216,8 @@ void nhflow_particle_f::print_vtp(lexer *p, const std::vector<nhflow_particle_da
 
     result<<"\n</AppendedData>\n</VTKFile>\n";
     result.close();
+    if(p->plog)
+    p->plog->written(p,printcount,"particles","particles",name,0);
 }
 
 void nhflow_particle_f::print_csv(lexer *p, const std::vector<nhflow_particle_data> &all)

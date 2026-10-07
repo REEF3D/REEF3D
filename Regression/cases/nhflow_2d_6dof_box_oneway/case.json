@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_set": {"X 10": "2", "X 11": "2 0 2 0 2 0"},
+ "ctrl_add": ["X 210 0.3 0.0 0.02", "X 211 0.0 0.1 0.0"],
+ "description": "as nhflow_2d_6dof_box with prescribed motion, one-way coupling (X10=2): surge, heave and pitch rate prescribed.",
+ "tags": ["2d", "nhflow", "6dof"], "covers": ["sixdof_nhflow::start_oneway", "sixdof_motionext_fixed (rotation)"]}

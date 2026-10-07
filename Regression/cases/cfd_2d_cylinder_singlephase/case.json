@@ -1,0 +1,18 @@
+{
+ "description": "2D single-phase flow past a cylinder: no free surface (F30=0), explicit diffusion D20=1, constant-discharge inflow (B60=1, W10 = 0.01 m3/s -> 0.5 m/s), outflow, cylinder solid S32, potential-flow initialisation I11. Based on tutorial 11_3 (higher discharge), coarse.",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid"
+ ],
+ "covers": [
+  "F30=0 single phase",
+  "ediff2 explicit diffusion",
+  "I11 potential initialisation",
+  "force P81"
+ ]
+}

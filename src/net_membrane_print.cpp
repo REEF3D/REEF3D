@@ -80,7 +80,32 @@ void net_membrane::print_timeseries(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ofstream ts((outdir+"/REEF3D_NHFLOW_Membrane_"+to_string(nMem)+".dat").c_str(), ios::app);
         ts<<setprecision(10)<<p->simtime<<" "<<etain<<" "<<etaout<<" "<<dhl<<" "<<Qleak<<" "
           <<Fx<<" "<<Fy<<" "<<Fz<<" "<<Fzfloor<<" "<<-p->W1*fabs(p->W22)*dhl*Afloor<<" "<<urelmax<<" "<<umax<<" "<<vol<<" "
-          <<Fb_(0)+Ffl_(0)<<" "<<Fb_(1)+Ffl_(1)<<" "<<Fb_(2)+Ffl_(2)<<" "<<zm<<" "<<zmin<<" "<<vmax_<<" "<<Tmax_<<"\n";
+          <<Fb_(0)+Ffl_(0)<<" "<<Fb_(1)+Ffl_(1)<<" "<<Fb_(2)+Ffl_(2)<<" "<<zm<<" "<<zmin<<" "<<vmax_<<" "<<Tmax_;
+        
+        // strong coupling: iterations of the time step (all stages), largest relative residual at the end of a stage
+        if(iterated())
+        ts<<" "<<citstep_<<" "<<cres_;
+        
+        if(collar())
+        {
+            Eigen::Vector3d c = Eigen::Vector3d::Zero();
+            double czmin=1.0e20, czmax=-1.0e20;
+            
+            for(int q : cn_)
+            {
+                c += x_[q];
+                czmin = MIN(czmin, x_[q](2));
+                czmax = MAX(czmax, x_[q](2));
+            }
+            c /= double(MAX(1,(int)cn_.size()));
+            
+            ts<<" "<<c(0)<<" "<<c(1)<<" "<<c(2)<<" "<<czmin<<" "<<czmax<<" "<<cMmax_<<" "<<cNmax_;
+            
+            for(double T : mT_)
+            ts<<" "<<T;
+        }
+        
+        ts<<"\n";
     }
 }
 

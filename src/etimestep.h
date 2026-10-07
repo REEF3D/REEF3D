@@ -41,9 +41,6 @@ public:
 
 private:
 	double max(double,double,double);
-	double max(double,double);
-	double min(double,double,double);
-	double min(double,double);
 
 	double visccrit,sqd,wallu,wallv,wallw;
 	double uplus;

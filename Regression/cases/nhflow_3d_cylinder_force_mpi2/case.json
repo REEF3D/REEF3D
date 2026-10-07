@@ -1,0 +1,9 @@
+{
+ "base": "nhflow_3d_cylinder_kepsilon_mpi2",
+ "ctrl_add": ["P 81 10.5 13.5 1.5 4.5 -0.5 2.5"],
+ "np": 2,
+ "steps": 40,
+ "tags": ["nhflow", "3d", "force", "mpi"],
+ "description": "NHFLOW 3D channel flow past a vertical cylinder (A 584) with the force integration P 81 on 2 ranks split in y: cylinder surface across the rank interface, quads split into two triangles, globalsum of the forces.",
+ "covers": ["nhflow_force::force_calc quad split (add_triangle)", "nhflow_force MPI globalsum", "REEF3D_NHFLOW_Force output"]
+}

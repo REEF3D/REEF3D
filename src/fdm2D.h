@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include<iostream>
 
 class lexer;
+class seastate_sflow;
 
 using namespace std;
 
@@ -125,6 +126,9 @@ public:
     slice4 ks;
 	
 	vec2D xvec,rhsvec;
+
+    // REEF3D::SEASTATE coupling (A 750 1), nullptr otherwise
+    seastate_sflow *wave = nullptr;
 
 	matrix2D M;
 

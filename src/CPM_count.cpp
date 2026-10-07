@@ -51,6 +51,6 @@ void CPM::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     cout<<"Particle_count_global: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
 
     for(n=0;n<P.index_empty;++n)
-    if(P.Empty[P.index_empty]<0)
-    cout<<p->mpirank<<"EMPTY_NEG: "<<P.Empty[P.index_empty]<<endl;
+    if(P.Empty[n]<0 || P.Empty[n]>=P.capacity)
+    cout<<p->mpirank<<" CPM EMPTY list corrupt: "<<P.Empty[n]<<endl;
 }

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_momentum_RK2.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"ioflow.h"
 #include"ghostcell.h"
 #include"sflow_fsf.h"
 
@@ -46,10 +47,14 @@ void sflow_momentum_RK2::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
 //Step 1
 //--------------------------------------------------------
+    if(p->B95!=0.0)
+    pflow->wavegen_2D_stage(p,b,pgc,p->simtime + p->dt);
     stage(p,b,pgc, b->WL,b->UH,b->VH,b->WH, WLRK1,UHRK1,VHRK1,WHRK1, 0.0, 0, 0);
     
 //Step 2
 //--------------------------------------------------------
+    if(p->B95!=0.0)
+    pflow->wavegen_2D_stage(p,b,pgc,p->simtime + p->dt);
     stage(p,b,pgc, WLRK1,UHRK1,VHRK1,WHRK1, b->WL,b->UH,b->VH,b->WH, 0.5, 1, 1);
     
     pfsf->breaking_persist(p,b,pgc,b->eta,b->eta_n,1.0);

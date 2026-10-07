@@ -1,0 +1,11 @@
+# Reference: Mase, H. & Kirby, J.T. (1992), Proc. 23rd ICCE, 474-487 (irregular waves on a 1:20 slope, offshore depth 47 cm).
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96, path benchmarks/car_mase_kirby/postprocessing/mkskew_man.out
+# Content: skewness (row 1) and asymmetry (row 2) of surface elevation, called 'standard data' in comp_mkskew.m:
+#   'mkskew=load('mkskew_man.out'); ske=mkskew(1,:);  %skewness ; ae=mkskew(2,:);   %asymmetry', plotted as 'skewness (data)' / 'asymmetry (data)'
+#   against 'h=[47 35 30 25 20 17.5 15 12.5 10 7.5 5 2.5]' (water depth in cm, xlabel 'Water Depth (cm)') using columns 1..12 only ('n=1:12').
+# Columns 1..12 correspond to h = 47 35 30 25 20 17.5 15 12.5 10 7.5 5 2.5 cm. Column 13 is present in the file but never used; its meaning is UNKNOWN.
+# Dimensionless. These are statistics derived from the measured records (asymmetry from Hilbert transform per comp_mkskew.m), by an unknown processor
+# (the file header in comp_mkskew.m refers to 'the standard result of Example 4.1', presumably the FUNWAVE 1.0 manual example) -> confidence B.
+# The companion file mkskew_kirby.out is MODEL output (Kirby et al.), not extracted.
+1.3793282e-01 1.8505268e-01 2.2394301e-01 2.9718720e-01 3.7832612e-01 4.9099800e-01 6.4381784e-01 7.0860111e-01 8.0886920e-01 9.3071746e-01 9.3272603e-01 7.8144291e-01
+2.6943056e-02 -2.7110172e-02 8.7730827e-03 1.0424360e-02 -3.0837924e-02 1.2567960e-02 1.7775208e-02 7.2301615e-02 2.5076200e-01 4.5453920e-01 7.7276797e-01 9.1655418e-01

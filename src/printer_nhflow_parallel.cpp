@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"sediment.h"
 #include"nhflow_turbulence.h"
+#include"runlog.h"
 
 void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed, int num)
 {
@@ -63,4 +64,6 @@ void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbu
     outputFormat->endingParallel(result,"NHFLOW",p->M10,num);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"volume","volume",name,p->M10);
 }

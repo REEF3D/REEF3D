@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"regression_dump.h"
 #include"ghostcell.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -29,6 +30,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"waves_header.h"
 #include"patchBC.h"
+#include"runlog.h"
+#include"seastate_f.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -38,7 +41,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261002");
+    sprintf(version,"v_261005");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -56,6 +59,9 @@ driver::driver(int& argc, char **argv)
     p->gridini(pgc);
     patchBC_logic();
 
+    // run log: REEF3D_Case/REEF3D_<SOLVER>_run.jsonl (rank 0 writes)
+    p->plog = new runlog(p,VERSION);
+
 
     if(p->mpirank==0)
     {
@@ -65,14 +71,23 @@ driver::driver(int& argc, char **argv)
     if(p->A10==3)
     cout<<endl<<"REEF3D::FNPF" <<endl<<endl;
 
-    if(p->A10==4)
-    cout<<endl<<"REEF3D::PTF" <<endl<<endl;
-
     if(p->A10==5)
     cout<<endl<<"REEF3D::NHFLOW"<<endl<<endl;
 
     if(p->A10==6)
     cout<<endl<<"REEF3D::CFD" <<endl<<endl;
+
+    if(p->A10==7)
+    cout<<endl<<"REEF3D::SEASTATE" <<endl<<endl;
+    }
+
+    // PTF (A 10 4) was removed
+    if(p->A10==4)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 10 4: REEF3D::PTF has been removed, use REEF3D::FNPF (A 10 3) or REEF3D::CFD (A 10 6)."<<endl<<endl;
+
+        pgc->final(true);
     }
 
 // 2D Framework - SFLOW
@@ -83,6 +98,15 @@ driver::driver(int& argc, char **argv)
         makegrid2D(p,pgc);
         pBC->patchBC_ini(p,pgc);
         sflow_driver();
+    }
+
+// 2D Framework - SEASTATE
+    if(p->A10==7)
+    {
+        p->flagini2D();
+        p->gridini2D();
+        makegrid2D(p,pgc);
+        seastate_driver();
     }
 
 // 3D Framework
@@ -112,18 +136,14 @@ driver::driver(int& argc, char **argv)
         nhflow_driver();
     }
 
-    // fixed grid - PTF & NSEWAVE & CFD
-    if(p->A10==4 || p->A10==6)
+    // fixed grid - CFD
+    if(p->A10==6)
     {
         p->flagini();
         pgc->flagfield(p);
         makegrid(p,pgc);
         makegrid2D(p,pgc);
 
-        if(p->A10==4)
-        ptf_driver();
-
-        if(p->A10==6)
         cfd_driver();
     }
 }
@@ -146,6 +166,19 @@ void driver::sflow_driver()
 	psflow->start(p,b,pgc);
 }
 
+void driver::seastate_driver()
+{
+    // 2D grid set-up of SFLOW without the SFLOW fdm (makegrid2D_cds)
+    p->flagini2D();
+    p->gridini2D();
+    pgc->sizeS_update(p);
+
+    pseastate = new seastate_f(p,pgc);
+
+    // Start SEASTATE
+    pseastate->start(p,pgc);
+}
+
 void driver::fnpf_driver()
 {
     if(p->mpirank==0)
@@ -163,26 +196,11 @@ void driver::fnpf_driver()
 
     driver_ini_fnpf();
 
+    preg = new regression_dump(p);
+    preg->fnpf_ini(p,c,pgc);
+
     // Start MAINLOOP
     loop_fnpf();
-}
-
-void driver::ptf_driver()
-{
-    if(p->mpirank==0)
-	cout<<"initialize fdm"<<endl;
-
-    a=new fdm(p);
-
-    aa=a;
-    pgc->fdm_update(a);
-
-    logic_ptf();
-
-    driver_ini_ptf();
-
-    // Start MAINLOOP
-    loop_ptf(a);
 }
 
 void driver::nhflow_driver()
@@ -199,6 +217,9 @@ void driver::nhflow_driver()
     logic_nhflow();
 
     driver_ini_nhflow();
+
+    preg = new regression_dump(p);
+    preg->nhflow_ini(p,d,pgc);
 
     // Start MAINLOOP
     loop_nhflow();
@@ -217,6 +238,9 @@ void driver::cfd_driver()
     logic_cfd();
 
     driver_ini_cfd();
+
+    preg = new regression_dump(p);
+    preg->cfd_ini(p,a,pgc,pturb,pconc);
 
     // Start MAINLOOP
     if(p->X10==0 && p->Z10==0 && p->N40==14)

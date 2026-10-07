@@ -1,0 +1,19 @@
+{
+ "description": "Diffusion of a passive concentration blob (C 10 3, no convection C 15 0, no buoyancy C 1 0) in the centre of a closed tank filled with still water, on a strongly stretched grid (B 101/103 5, refinement at the centre), short enough that the blob does not reach the walls. Implicit scalar diffusion (D 20 2, idiff2_FS::diff_scalar) must conserve the total amount: integral of conc*vol constant. Tests the scalar diffusion stencil on non-uniform grids (and the y terms in 2D).",
+ "np": 1,
+ "steps": 40,
+ "dump_every": 0,
+ "tags": [
+  "quick",
+  "diffusion",
+  "scalar",
+  "nug",
+  "2d",
+  "conservation"
+ ],
+ "check": {
+  "type": "conserved_integral",
+  "field": "conc",
+  "tol": 1e-06
+ }
+}

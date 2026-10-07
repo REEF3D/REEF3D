@@ -1,0 +1,5 @@
+{"base": "channel_2d_fc3", "np": 2,
+ "control_set": {"B 10": "0.0 0.8 0.0 0.05 0.0 1.0", "M 10": "2"},
+ "ctrl_set": {"M 10": "2"},
+ "description": "as channel_2d_fc3 on 2 MPI ranks, 16 cells in x: the periodic faces are partition boundaries (gcperiodicx, periodic neighbours in the halo exchange and the solvers).",
+ "tags": ["quick", "diffusion", "laminar", "2d", "mpi"]}

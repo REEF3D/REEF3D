@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_amr_dambreak on 2 ranks, placement test mode (G 40 2): small pieces placed anew at every regrid away from the rank below.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "SFLOW placement: remote parents, migration"
+ ],
+ "base": "sflow_2d_amr_dambreak",
+ "ctrl_add": [
+  "G 40 2"
+ ]
+}

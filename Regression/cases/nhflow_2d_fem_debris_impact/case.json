@@ -1,0 +1,14 @@
+{
+ "description": "NHFLOW 2D dam break on the dry bed: a rigid timber block (stiffness 2e5 N/m) is carried by the surge onto a concrete post (fix base, 0.3 m, stands dry).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 500,
+ "files": ["fem.dat"],
+ "tags": ["2d", "nhflow", "fem", "fsi", "debris", "impact", "wetdry"],
+ "covers": [
+  "rigid debris transported over the dry bed by an NHFLOW surge (wet/dry columns)",
+  "debris contact with the ground plane and the deformable post",
+  "solid marking of a structure standing dry (full column)",
+  "probes kept out of the cells marked solid"
+ ]
+}

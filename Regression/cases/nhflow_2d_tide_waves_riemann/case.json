@@ -1,0 +1,19 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "Tide + waves through a Riemann edge (background + source 1), no generation zone; beach relaxing to the tide, Riemann edge at x+.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "waves",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "Riemann edge with background and waves"
+ ]
+}

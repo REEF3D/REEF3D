@@ -1,0 +1,6 @@
+{
+ "description": "3D open-channel flow around a circular pier: inflow (B60=1) / outflow, free surface, k-omega with wall functions, cylinder solid (S33), 2 MPI ranks. Based on tutorial 11_5, coarse.",
+ "np": 2, "steps": 40,
+ "tags": ["quick", "3d", "inflow", "turbulence", "solid", "mpi"],
+ "covers": ["ioflow_f inflow/outflow", "bcmom wall law", "komega_bc", "force P81", "I10 potential flow initialisation"]
+}

@@ -30,7 +30,7 @@ Author: Hans Bihs
 void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
 {
     double ux,vy,wz,vel,pressure,density,viscosity;
-    double du,dv,dw;
+    double du,dv,dw,dn,un;
     double xloc,yloc,zloc;
 	double xlocvel,ylocvel,zlocvel;
     double sgnx,sgny,sgnz;
@@ -162,9 +162,15 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             vval = p->ccipol2_a(a->v,xlocvel,ylocvel,zlocvel);
             wval = p->ccipol3_a(a->w,xlocvel,ylocvel,zlocvel);
             
-            du = uval/p->DXN[IP];
-            dv = vval/p->DYN[JP];
-            dw = wval/p->DZN[KP];
+            // wall shear tau = mu * u_t/dn: tangential velocity at the sample
+            // point (u = 0 on the fixed wall) over its distance from the wall
+            dn = sqrt(pow(nx*p->DXP[IP],2.0) + pow(ny*p->DYP[JP],2.0) + pow(nz*p->DZP[KP],2.0));
+            dn = dn>1.0e-20?dn:1.0e20;
+            un = uval*nx + vval*ny + wval*nz;
+            
+            du = (uval - un*nx)/dn;
+            dv = (vval - un*ny)/dn;
+            dw = (wval - un*nz)/dn;
             
             pval =      p->ccipol4a(a->press,xloc,yloc,zloc) - p->pressgage;
             density =   p->ccipol4a(a->ro,xloc,yloc,zloc);
@@ -182,13 +188,13 @@ void force::force_calc(lexer* p, fdm *a, ghostcell *pgc)
             if((phival>-1.6*p->DXM || p->P92==1) && a->topo(i,j,k)>0.0)
             {
             Fx += -(pval)*A*nx
-                       + density*viscosity*A*(du*ny+du*nz);
+                       + density*viscosity*A*du;
                        
             Fy += -(pval)*A*ny
-                       + density*viscosity*A*(dv*nx+dv*nz);
+                       + density*viscosity*A*dv;
                     
             Fz += -(pval)*A*nz
-                       + density*viscosity*A*(dw*nx+dw*ny);   
+                       + density*viscosity*A*dw;   
                        
             }
     Ax+=A*nx;

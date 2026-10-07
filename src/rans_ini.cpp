@@ -24,12 +24,16 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"bc_noflux.h"
+#include<vector>
 
 void rans_io::ini(lexer* p, fdm*a, ghostcell* pgc)
 {
 	gcval_kin=20;
 	gcval_eps=30;
 	gcval_edv=24;
+	
+	uref=0.0;
 	
 	if(p->B60>=1)
 	uref=p->Ui;
@@ -90,14 +94,14 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 	eps(i,j,k)=(0.09*kin(i,j,k)*kin(i,j,k))/(a->eddyv(i,j,k)+1.0e-20);
 
 	if(p->T10==2 || p->T10==12 || p->T10==22)
-	eps(i,j,k)=(kin(i,j,k))/(a->eddyv(i,j,k));
+	eps(i,j,k)=(kin(i,j,k))/(a->eddyv(i,j,k)+1.0e-20);
 
 	if(p->T10==3 || p->T10==13)
 	eps(i,j,k)=(kin(i,j,k))/(a->eddyv(i,j,k));
 	}
 
 	GC4LOOP
-	if(p->gcb4[n][4]==21 || p->gcb4[n][4]==5)
+	if((p->gcb4[n][4]==21 || p->gcb4[n][4]==5) && !bc_periodic_face(p,p->gcb4[n][0],p->gcb4[n][1],p->gcb4[n][2],p->gcb4[n][3]))
 	{
 		i=p->gcb4[n][0];
 		j=p->gcb4[n][1];
@@ -105,13 +109,13 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 
         kin(i,j,k)=kinbed;
 
-        if(p->T10==1 || p->T10==11)
+        if(p->T10==1 || p->T10==11 || p->T10==21)
         {
         eps(i,j,k)=(pow(0.09,0.75)*pow(kin(i,j,k),1.5))/(0.5*0.4*p->DXM);
         a->eddyv(i,j,k) = p->cmu*kin(i,j,k)*kin(i,j,k)/eps(i,j,k);
         }
 
-        if(p->T10==2 || p->T10==12)
+        if(p->T10==2 || p->T10==12 || p->T10==22)
         {
         eps(i,j,k)=pow(kin(i,j,k),0.5)/(0.5*0.4*p->DXM*pow(0.09,0.25));
         a->eddyv(i,j,k) = kin(i,j,k)/eps(i,j,k);
@@ -128,41 +132,12 @@ void rans_io::plain_wallfunc(lexer* p, fdm*a, ghostcell* pgc)
 	pgc->start4(p,eps,30);
 	pgc->start4(p,a->eddyv,24);
 
-}
+    // k-omega diffuses k and omega with the unlimited eddy viscosity eddyv0, set before the first step
+    LOOP
+    eddyv0(i,j,k)=a->eddyv(i,j,k);
 
-void rans_io::inflow(lexer* p, fdm*a, ghostcell* pgc)
-{
-        GC4LOOP
-        if(p->gcb4[n][4]==1)
-        {
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
+    pgc->start4(p,eddyv0,24);
 
-		eps(i-1,j,k)=eps(i,j,k);
-		eps(i-2,j,k)=eps(i,j,k);
-		eps(i-2,j,k)=eps(i,j,k);
-
-		kin(i-1,j,k)=kin(i,j,k);
-		kin(i-2,j,k)=kin(i,j,k);
-		kin(i-3,j,k)=kin(i,j,k);
-        }
-        
-        GC4LOOP
-        if(p->gcb4[n][4]==2)
-        {
-		i=p->gcb4[n][0];
-		j=p->gcb4[n][1];
-		k=p->gcb4[n][2];
-
-		eps(i+1,j,k)=eps(i,j,k);
-		eps(i+2,j,k)=eps(i,j,k);
-		eps(i+2,j,k)=eps(i,j,k);
-
-		kin(i+1,j,k)=kin(i,j,k);
-		kin(i+2,j,k)=kin(i,j,k);
-		kin(i+3,j,k)=kin(i,j,k);
-        }
 }
 
 void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
@@ -174,4 +149,138 @@ void rans_io::tau_calc(fdm* a, lexer* p, double maxwdist)
 	I=pow(uref/(M*pow(H,(2.0/3.0))),2.0);
 	tau=(9.81*H*I);
 	kinbed = tau/sqrt(0.09);
+}
+
+// inflow turbulence for discharge inflow (B 60 >= 1), written into the inflow ghost cells i-1..i-3 before
+// each k and eps/omega solve; the bc routines take these values as Dirichlet data.
+// Equilibrium open-channel profile, consistent with the log law and the wall functions:
+//   u* = Ui/(2.5 ln(11 H/ks))          (as ioflow_f::inflow_log)
+//   k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z),
+//   i.e. nu_t = kappa u* z (1-z/H); (1-z/H) is bounded below by 0.1 at the free surface.
+// Air cells and all other inflow types (e.g. wave generation) get zero gradient.
+// discharge inflow (B 60 >= 1): equilibrium open-channel profile in the inflow ghost cells, per inflow column
+//   u* = Ui/(2.5 ln(11 H/ks)),  k = u*^2/sqrt(cmu) (1-z/H),  eps = u*^3/(kappa z) (1-z/H),  omega = u*/(sqrt(cmu) kappa z)
+// H is the local water depth of the column: from the lowest wet face to the interpolated interface (was the top
+// face of the highest wet cell over the whole inflow, up to one cell too deep). Columns of this rank without an
+// interface (z-decomposition) use the inflow-wide values. ks is the bed roughness of roughness::ks_val (B 55 or
+// B 50; with sediment S 21 S 20 or S 20 by S 28). Air cells and the wave-only inflow (B 60 0) keep zero gradient.
+void rans_io::inflow_turb(lexer* p, fdm* a, ghostcell* pgc)
+{
+    const double kappa = 0.4;
+    double zbed_g=+1.0e20, zint_g=-1.0e20;
+    double ks, z, fz, kval, eval, H, zb, ustar;
+    int n,q;
+    
+    const bool keps = (p->T10==1 || p->T10==11 || p->T10==21);
+    
+    std::vector<double> zbed, zint;
+    
+    if(p->B60>=1)
+    {
+        zbed.assign(p->jmax, +1.0e20);
+        zint.assign(p->jmax, -1.0e20);
+        
+        for(n=0;n<p->gcin_count;++n)
+        {
+        i=p->gcin[n][0];
+        j=p->gcin[n][1];
+        k=p->gcin[n][2];
+        
+            const int jj = j - p->jmin;
+            
+            if(a->phi(i,j,k)>0.0)
+            zbed[jj] = MIN(zbed[jj], p->ZN[KP]);
+            
+            if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+            zint[jj] = MAX(zint[jj], p->ZP[KP] + a->phi(i,j,k)*p->DZP[KP]/(a->phi(i,j,k)-a->phi(i,j,k+1)));
+            
+            zbed_g = MIN(zbed_g, zbed[jj]);
+            zint_g = MAX(zint_g, zint[jj]);
+        }
+        zbed_g = pgc->globalmin(zbed_g);
+        zint_g = pgc->globalmax(zint_g);
+        
+        ks = (p->B55>0.0) ? p->B55 : p->B50;
+        
+        if(p->S10>0)
+        ks = (p->S28==1) ? p->S21*p->S20 : p->S20;
+        
+        if(ks<=0.0)
+        ks=0.0001;
+    }
+    
+    for(n=0;n<p->gcin_count;++n)
+    {
+    i=p->gcin[n][0];
+    j=p->gcin[n][1];
+    k=p->gcin[n][2];
+    
+        kval = kin(i,j,k);
+        eval = eps(i,j,k);
+        
+        if(p->B60>=1 && a->phi(i,j,k)>0.0)
+        {
+            const int jj = j - p->jmin;
+            
+            zb = zbed[jj];
+            H  = zint[jj] - zb;
+            
+            if(zint[jj]<-1.0e19 || zb>1.0e19 || H<=0.0)
+            {
+            zb = zbed_g;
+            H  = zint_g - zbed_g;
+            }
+            
+            if(H>0.0 && zb<1.0e19)
+            {
+            ustar = fabs(p->Ui)/(2.5*log(MAX(11.0*H/ks,2.0)));
+            
+            z  = MAX(p->ZP[KP]-zb, 0.5*p->DZN[KP]);
+            fz = MAX(1.0 - z/H, 0.1);
+            
+            kval = ustar*ustar/sqrt(p->cmu)*fz;
+            
+            if(keps)
+            eval = pow(ustar,3.0)/(kappa*z)*fz;
+            
+            if(!keps)
+            eval = ustar/(sqrt(p->cmu)*kappa*z);
+            }
+        }
+        
+        for(q=1;q<=3;++q)
+        {
+        kin(i-q,j,k) = kval;
+        eps(i-q,j,k) = eval;
+        }
+    }
+}
+
+// local water depth at the column (i,j) for the free-surface damping T 36 3: a->WL from the ioflow
+// waterlevel_update when it found the interface (ioflow_f, iowave), otherwise (ioflow_v and ioflow_gravity
+// leave WL = 0; WL = 1e-4 means no interface in the local column) the interface and the lowest fluid face
+// are searched in the local column. Returns -1 if this rank's column has no interface (e.g. z-decomposition).
+double rans_io::fsf_depth(lexer* p, fdm *a)
+{
+    if(a->WL(i,j)>2.0e-4)
+    return a->WL(i,j);
+    
+    const int k0 = k;
+    double zint=-1.0e20, zbed=1.0e20;
+    
+    KLOOP
+    PCHECK
+    {
+        if(a->topo(i,j,k)>0.0)
+        zbed = MIN(zbed, p->ZN[KP]);
+        
+        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+        zint = MAX(zint, p->ZP[KP] + a->phi(i,j,k)*p->DZP[KP]/(a->phi(i,j,k)-a->phi(i,j,k+1)));
+    }
+    k = k0;
+    
+    if(zint<-1.0e19 || zbed>1.0e19 || zint<=zbed)
+    return -1.0;
+    
+    return zint-zbed;
 }

@@ -1,0 +1,7 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "np": 2,
+ "tags": ["2d", "cpm", "mpi"],
+ "description": "as cfd_2d_cpm_bedload_layer on 2 ranks (x split, parallel periodic sides)",
+ "covers": ["CPM bedload layer across subdomains: exchange of the hop length with the parcels, columns at the subdomain border"]
+}

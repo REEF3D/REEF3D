@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"momentum.h"
 #include"fdm_nhf.h"
@@ -32,8 +32,34 @@ Author: Tobias Martin
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
 #include"net_interface.h"
+#include"nhflow_reinidisc_fsf.h"
 
-void sixdof_obj::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+sixdof_obj_nhflow::sixdof_obj_nhflow(lexer *p, ghostcell *pgc, int number) : sixdof_obj_2D(p,pgc,number)
+{
+    if(p->A10==5)
+    {
+    pnhfrdisc = new nhflow_reinidisc_fsf(p);
+    
+    p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(DTT,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(LL,p->imax*p->jmax*(p->kmax+2));
+    
+    p->Darray(fsf,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(vert,p->imax*p->jmax*(p->kmax+2));
+    p->Iarray(nflag,p->imax*p->jmax*(p->kmax+2));
+    }
+}
+
+sixdof_obj_nhflow::~sixdof_obj_nhflow()
+{
+}
+
+
+void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<"6DOF_df_ini "<<endl;

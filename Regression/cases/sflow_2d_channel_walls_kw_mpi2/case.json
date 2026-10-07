@@ -1,0 +1,1 @@
+{"description": "SFLOW 2D channel with side walls (C12/13 21), k-omega, 2 ranks split in y: k and omega uniform across the width (no side-wall functions).", "solver": "sflow", "np": 2, "steps": 200, "tags": ["sflow", "turbulence", "mpi"], "covers": ["sflow_turb_kw_IM1 walls", "SFLOW turbulence across a y rank interface"]}

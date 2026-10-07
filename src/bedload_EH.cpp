@@ -49,7 +49,7 @@ void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 	SEDSLICELOOP
     {
-        rhowat = s->ro(i,j);
+        rhowat = p->W1;      // water density (s->ro is the density at the bed cell, air in dry CFD cells)
         Rstar = (rhosed-rhowat)/rhowat;
 
         Ts = s->shields_crit(i,j);

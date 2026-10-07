@@ -37,6 +37,8 @@ void vrans_f::eps_source(lexer *p, fdm *a, field &kin, field &eps)
 	if(p->B295==1)
     LOOP
     {
+    if(a->porosity(i,j,k)<1.0)
+    {
         uvel = 0.5*(a->u(i,j,k)+a->u(i-1,j,k));
         vvel = 0.5*(a->v(i,j,k)+a->v(i,j-1,k));
         wvel = 0.5*(a->w(i,j,k)+a->w(i,j,k-1));
@@ -48,7 +50,8 @@ void vrans_f::eps_source(lexer *p, fdm *a, field &kin, field &eps)
         einf = 39.0*pow(1.0-por,2.5)*pow(por,2.0)*pow(uu,1.5)*(1.0/a->porpart(i,j,k));
         
         a->rhsvec.V[count] += por*(ke_c_2e*einf*einf)/(kinf>1.0e-20?kinf:1.0e20);
-        ++count;  
+    }
+    ++count;
     }
 
 }

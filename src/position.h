@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define POSITION_H_
 
 #include"increment.h"
+#include<vector>
 
 class fdm;
 class lexer;
@@ -72,9 +73,20 @@ public:
     
     int ihalf(int,int);
     
-    int conv(double);
     
 private:
+    // cell index lookup by a bucket table (position_fast.cpp)
+    struct fastfind
+    {
+        std::vector<int> tbl;
+        const double *A=nullptr;
+        double X0=0.0, X1=0.0, w=0.0;
+        int lo=0, hi=-1;
+    };
+    
+    fastfind ffci, ffcj, ffck, fffi, fffj, fffk;
+    int fast_index(fastfind&, const double*, int, int, double);
+    
     lexer *p;
     
     double pos;

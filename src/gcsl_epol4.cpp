@@ -80,6 +80,11 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
+    // eta / WL at iowave Riemann / Flather edges: set by iowave
+    else
+    if(((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1)) && (bc==1||bc==2||bc==6||bc==7||bc==8) && (gcv==51||gcv==52||gcv==53||gcv==54))
+    return -1;
+    
     // eta
     else
     if((bc==1||bc==6) && (gcv==52||gcv==54)  && (p->B98<3 || p->A515<=2))

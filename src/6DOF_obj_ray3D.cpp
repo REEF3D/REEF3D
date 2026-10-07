@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
 
-void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
+void sixdof_obj_cfd::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
 {
 	LOOP
 	{
@@ -73,6 +73,11 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
     
+    // cell centres on the surface (distance at round-off level) get fb = 0 exactly: the parity
+    // test perturbs the ray in a fixed direction, so such cells would be inside on one side of
+    // the body and outside on the other (asymmetric level set of a symmetric body)
+    const double fb_eps = 1.0e-10*p->DXM;
+    
     LOOP
     {
         if(fbio(i,j,k)==-1)
@@ -81,6 +86,9 @@ void sixdof_obj::ray_cast(lexer *p, fdm *a, ghostcell *pgc)
         
         if(fbio(i,j,k)==1)
         a->fb(i,j,k)=fabs(a->fb(i,j,k));
+        
+        if(fabs(a->fb(i,j,k))<fb_eps)
+        a->fb(i,j,k)=0.0;
     }
     
 	

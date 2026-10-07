@@ -28,14 +28,13 @@ Author: Hans Bihs
 #include"increment.h"
 
 class reinidisc;
-class picard;
 
 using namespace std;
 
 class reinitopo_RK3 final : public reinitopo, public increment
 {
 public:
-	reinitopo_RK3(lexer* p);
+	reinitopo_RK3(lexer* p, const char *name="topo");
 	virtual ~reinitopo_RK3();
 	void start(lexer*,fdm*,ghostcell*,field&) override final;
 
@@ -51,6 +50,7 @@ private:
 
 	int gcval,gcval_topo,gcval_initopo,reiniter,n;
 	const double epsi;
+	const char *name;
 };
 
 #endif

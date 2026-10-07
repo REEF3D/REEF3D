@@ -35,6 +35,8 @@ roughness::~roughness()
 
 double roughness::ks_val(lexer *p, fdm* a,int ii,int jj, int kk, int cs, int bc)
 {
+	// the sediment test uses the cell (ii,jj,kk) passed in (was the global loop indices i,j,k; the same cell in
+	// every current caller)
 	ks=p->B50;
     if(ks<=0.0) ks=0.0001;
 	
@@ -59,11 +61,14 @@ double roughness::ks_val(lexer *p, fdm* a,int ii,int jj, int kk, int cs, int bc)
 	if(bc==5)
 	ks=p->S21*p->S20;
     
-    if(p->S10>0 && p->S28==0 && (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k-1)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0))
+    if(p->S10>0 && p->S28==0 && (a->topo(ii-1,jj,kk)<0.0 || a->topo(ii+1,jj,kk)<0.0 || a->topo(ii,jj-1,kk)<0.0 || a->topo(ii,jj+1,kk)<0.0 || a->topo(ii,jj,kk-1)<0.0))
     ks=p->S20;
     
-    if(p->S10>0 && p->S28==1 && (a->topo(i-1,j,k)<0.0 || a->topo(i+1,j,k-1)<0.0 || a->topo(i,j-1,k)<0.0 || a->topo(i,j+1,k)<0.0 || a->topo(i,j,k-1)<0.0))
+    if(p->S10>0 && p->S28==1 && (a->topo(ii-1,jj,kk)<0.0 || a->topo(ii+1,jj,kk)<0.0 || a->topo(ii,jj-1,kk)<0.0 || a->topo(ii,jj+1,kk)<0.0 || a->topo(ii,jj,kk-1)<0.0))
     ks=p->S21*p->S20;
+    
+    if(ks<=0.0)
+    ks=0.0001;
 			
 		
 	return ks;

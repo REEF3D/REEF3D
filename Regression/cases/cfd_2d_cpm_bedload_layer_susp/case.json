@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {"Q 58": "2", "W 20": "10.0"},
+ "steps": 200,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer with pickup into the suspension (Q 58 2, van Rijn reference concentration)",
+ "covers": ["CPM bedload layer: release of layer parcels into the resolved suspension, near-bed band of the resolved drag"]
+}

@@ -36,7 +36,9 @@ class vrans;
 class mooring;
 class fsi;
 class rodtree_coupling;
+class fem_coupling;
 class dem;
+class sediment;
 
 using namespace std;
 
@@ -50,6 +52,7 @@ public:
 
     // DEM coupling, set by the CFD driver (shared by all momentum schemes)
     inline static dem *pdem = nullptr;
+    inline static sediment *psed = nullptr;
 
 private:
 	double uplus,ks_plus,dist,ks,ustar;
@@ -60,5 +63,8 @@ private:
     
     // flexible rod trees (Z 20), created on first use
     rodtree_coupling *prodtree;
+
+    // FEM solid structures (Z 30), created on first use
+    fem_coupling *pfem;
 };
 #endif

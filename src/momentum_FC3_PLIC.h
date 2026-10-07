@@ -57,9 +57,6 @@ public:
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_FC3_PLIC();
 	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override final;
-    void utimesave(lexer*, fdm*, ghostcell*);
-    void vtimesave(lexer*, fdm*, ghostcell*);
-    void wtimesave(lexer*, fdm*, ghostcell*);
 
     field1 udiff,urk1,urk2,fx;
 	field2 vdiff,vrk1,vrk2,fy;

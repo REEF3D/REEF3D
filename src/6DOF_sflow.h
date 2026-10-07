@@ -26,7 +26,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"6DOF.h"
 #include<vector>
 #include"increment.h"
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 
 class lexer;
 class fdm2D;
@@ -73,7 +73,7 @@ public:
 
     // bodies, for the SFLOW mesh refinement
     int objects() const {return number6DOF;}
-    sixdof_obj* object(int n) {return fb_obj[n];}
+    sixdof_obj_2D* object(int n) {return fb_obj[n];}
 
 private:
 	
@@ -86,7 +86,7 @@ private:
 
 
     int number6DOF;
-    vector<sixdof_obj*> fb_obj;
+    vector<sixdof_obj_2D*> fb_obj;
 
     slice4 press;
 

@@ -36,15 +36,42 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
     {
         print_vtp(p,s);
+        print_bed(p,s);
         ++printcount;
     }
 
     if((p->simtime>printtime || p->count==0) && (p->Q180==1 && p->Q181<0 && p->Q182>0.0))
     {
         print_vtp(p,s);
+        print_bed(p,s);
         printtime+=p->Q182;
+        
+        // hotstart: continue from the restart time, not from zero
+        if(printtime<p->simtime)
+        printtime = p->simtime + p->Q182;
+        
         ++printcount;
     }
+}
+
+// bed level and bed shear stress of the bedload layer per column (Q 58), with the parcel output (Q 182):
+// REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-<print>-<rank>.dat, columns x y z_bed tau_x tau_y [Pa]
+void CPM::print_bed(lexer* p, sediment_fdm *s)
+{
+    if(p->Q58<=0 || p->S10==2)
+    return;
+    
+    char name[200];
+    snprintf(name,sizeof(name),"./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Bed-%08i-%06i.dat",printcount,p->mpirank+1);
+    
+    ofstream out(name);
+    out<<"# time "<<p->simtime<<"\n# x y z_bed tau_x tau_y\n";
+    
+    for(i=0;i<p->knox;++i)
+    for(j=0;j<p->knoy;++j)
+    out<<p->XP[IP]<<" "<<p->YP[JP]<<" "<<zbl(s,i,j)<<" "<<blTx(i,j)<<" "<<blTy(i,j)<<"\n";
+    
+    out.close();
 }
 
 void CPM::print_vtp(lexer* p, sediment_fdm *s)
@@ -146,9 +173,9 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
-            ffn=float(P.Flag[n]);
+            ffn=float(P.Hop[n]>0.0 ? MOVING : P.Flag[n]);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
             m+=sizeof(float);
         }
@@ -160,7 +187,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
         std::memcpy(&buffer[m],&iin,sizeof(int));
         m+=sizeof(int);
         for(n=0;n<P.index;++n)
-            if(P.Flag[n]>=0)
+            if(P.Flag[n]>0)
             {
                 ffn=float(P.Test[n]);
                 std::memcpy(&buffer[m],&ffn,sizeof(float));
@@ -173,7 +200,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             ffn=float(P.U[n]);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
@@ -193,7 +220,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             ffn=float(P.d50/2);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
@@ -205,7 +232,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             ffn=float(P.Uf[n]);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
@@ -225,7 +252,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             //ffn=float(p->ccslipol4(s->bedch,P.X[n],P.Y[n]));
             ffn=float(p->ccslipol4(s->bedzh,P.X[n],P.Y[n])-p->ccslipol4(s->bedzh0,P.X[n],P.Y[n]));
@@ -238,7 +265,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             ffn=float(P.X[n]);
             std::memcpy(&buffer[m],&ffn,sizeof(float));
@@ -259,7 +286,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             iin=int(count);
             std::memcpy(&buffer[m],&iin,sizeof(int));
@@ -273,7 +300,7 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     std::memcpy(&buffer[m],&iin,sizeof(int));
     m+=sizeof(int);
     for(n=0;n<P.index;++n)
-        if(P.Flag[n]>=0)
+        if(P.Flag[n]>0)
         {
             iin=int(count);
             std::memcpy(&buffer[m],&iin,sizeof(int));

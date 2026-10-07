@@ -41,6 +41,7 @@ class nhflow_turbulence;
 class vrans_nhflow;
 class sixdof;
 class nhflow_forcing;
+class nhflow_stage_runner;
 
 using namespace std;
 
@@ -51,6 +52,9 @@ public:
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_signal_speed*, nhflow_reconstruct*, nhflow_convection*, 
                         nhflow_diffusion*, nhflow_pressure*, solver*, solver*, nhflow*, nhflow_fsf*, nhflow_turbulence*, vrans_nhflow*)=0;
     virtual void inidisc(lexer*, fdm_nhf*, ghostcell*, nhflow_fsf*)=0;
+    
+    // mesh refinement (nhflow_amr): the stages of all grids are run by the AMR module
+    virtual void attach_runner(nhflow_stage_runner*) {}
 
 };
 

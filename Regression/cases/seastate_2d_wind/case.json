@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE stationary fetch-limited wind-sea growth (A 730 1, A 731 10 m/s, A 732 1): Komen wind input and whitecapping, DIA quadruplets, action density limiter, pseudo time step A 706, zero-gradient lateral sides (A 712 0 0 2 2); 40 x 3 cells of 1 km, depth 1000 m, 30 iterations. Validation in Dropbox SEASTATE/validation/05_fetch_limited.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_source wind input, whitecapping, DIA, limiter", "seastate_implicit sources P/D, zero-gradient sides", "stationary pseudo time A 706"]
+}

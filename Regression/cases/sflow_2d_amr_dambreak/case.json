@@ -1,0 +1,15 @@
+{
+ "description": "SFLOW AMR dam break (tutorial SFLOW/8_6): 2 levels following the surface jump (G 20), a regrid every 4 steps.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "sflow_amr regrid, ini_patch_old/ini_patch_prolong, restrict_levels"
+ ]
+}

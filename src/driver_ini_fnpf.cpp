@@ -38,7 +38,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"benchmark_header.h"
 #include"6DOF_header.h"
 #include"waves_header.h"
-#include"lexer.h"
 #include"fnpf_amr.h"
 #include<sys/stat.h>
 #include<sys/types.h>

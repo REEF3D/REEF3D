@@ -27,10 +27,14 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, double *VH, double *WH, slice &WL)
 {
+        // mesh refinement (G 30): the cells around a patch keep the flags and the state of their
+        // source cell (wetfix >= 0); everywhere else nothing changes
+        auto fixed = [&]() { return p->wetfix!=nullptr && p->wetfix[IJ]>=0; };
+
         if(p->count==0)
         {
             SLICELOOP4
-            if(WL(i,j)<=p->A544+eps)
+            if(WL(i,j)<=p->A544+eps && !fixed())
             {
             temp[IJ]=0;
             d->eta(i,j) =  p->A544 - d->depth(i,j);
@@ -61,6 +65,9 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     {
     SLICELOOP4
     {
+        if(fixed())
+        continue;
+
         if(p->wet[IJ]==0)
         {
             if(p->wet[Ip1J]==1 && d->eta(i,j)<d->eta(i+1,j) && WL(i+1,j)>p->A544+eps)
@@ -99,6 +106,9 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
         SLICELOOP4
         {
+            if(fixed())
+            continue;
+
             if(WL(i,j)>=p->A544)
             p->wet[IJ]=1;
             
@@ -113,7 +123,7 @@ void nhflow_fsf_f::wetdry(lexer* p, fdm_nhf* d, ghostcell* pgc, double *UH, doub
     
     // avoid isolated wetdry
     SLICELOOP4
-    if(p->wet[IJ]==1)
+    if(p->wet[IJ]==1 && !fixed())
     {
     if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
     p->wet[IJ]=0;

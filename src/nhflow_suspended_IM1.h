@@ -45,9 +45,12 @@ public:
 
 private:
     void timesource(lexer*, fdm_nhf*, double*);
+    void drysave(lexer*, fdm_nhf*, sediment_fdm*);
     double starttime;
     void fill_wvel(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*); 
     double *WVEL;
+    double *WLN;    // water depth belonging to the stored concentration (end of the last solve)
+    int wl_ini;
     double Rouse_formula(lexer*,fdm_nhf*,sediment_fdm*,double); 
     
     int count,q;

@@ -189,6 +189,9 @@ void cfd_state::read(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, sedime
 	pgc->start4(p,a->conc,40);
 	
 	result.close();
+    
+    // particle sediment (CPM)
+    psed->state_read(p,pgc,p->I41);
 }
 
 

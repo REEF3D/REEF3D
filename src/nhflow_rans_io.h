@@ -43,8 +43,8 @@ public:
     void print_2D(lexer*, fdm_nhf*, ghostcell*,ofstream&,int) override final;
     void print_3D(lexer*, fdm_nhf*, ghostcell*, std::vector<char>&, size_t&) override final;
     void ini(lexer*, fdm_nhf*, ghostcell*) override final;
-    void plain_wallfunc(lexer*, fdm_nhf*, ghostcell*);
     void inflow(lexer*, fdm_nhf*, ghostcell*);
+    void inflow_profile(lexer*, double, double, double&, double&, double&);
     double kinval(int,int,int) override final;
     double epsval(int,int,int) override final;
 	void gcupdate(lexer*, fdm_nhf*, ghostcell*) override final;
@@ -65,16 +65,17 @@ public:
     
     double *KIN,*EPS;
     int *WALLF;
+    int *WETN;   // wet state of the column after the last turbulence step (newly wetted columns)
+    
+    void wetting_ini(lexer*, fdm_nhf*, double*, double*, bool);
+    void length_limit(lexer*, fdm_nhf*, bool);
 	
 	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
 	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
 	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
-    void tau_calc(lexer*,fdm_nhf*,ghostcell*);
-    void bedval_calc(lexer*, fdm_nhf*,ghostcell*);
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);
-    void flowdepth_inflow(lexer*, fdm_nhf*, ghostcell*);
 
 	float ffn;
 	int q,iin,ii,jj,kk;
@@ -83,7 +84,7 @@ private:
 	double M,I,tau,H,B,ks,shearvel,kinbed,epsbed,omegabed;
     double uvel,refwalldist,fc,ev_fac, beddist, dist;
 	double kinw,epsw;
-	double walld,ddn,depth,depth_inflow;
+	double walld,ddn,depth;
     
 };
 

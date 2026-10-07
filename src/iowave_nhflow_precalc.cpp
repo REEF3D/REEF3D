@@ -29,7 +29,12 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     starttime=pgc->timer();
     
+    // time of this step for wave_prestep (HDC reads its time levels there)
+    p->wavetime = p->simtime;
     wave_prestep(p,pgc);
+    
+    // tidal / current background (B 510-514)
+    nhflow_bg_update(p,d,pgc);
     
     if(p->B89==0)
     {
@@ -62,7 +67,10 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    p->wavetime = p->simtime;
     wave_prestep(p,pgc);
+    
+    nhflow_bg_update(p,d,pgc);
     
     if(p->B98==2)
     nhflow_precalc_relax_ini(p,d,pgc);

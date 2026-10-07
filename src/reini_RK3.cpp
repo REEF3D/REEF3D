@@ -24,13 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"picard_f.h"
 #include"picard_lsm.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
-#include"reinidisc_fsf.h"
 
 reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),dt(p)
 {
@@ -62,17 +60,24 @@ reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),d
 	if(type==41)
 	gcval_iniphi=50;
 
-    
+
+    // volume correction (F 46) only for the initial reinitialisation (count 0);
+    // during the time stepping it is done once per time step by the level-set / momentum classes
 	if(p->F46==2)
 	ppicard = new picard_f(p);
     else if(p->F46==3)
     ppicard = new picard_lsm(p);
 	else
 	ppicard = new picard_void(p);
-	
-	prdisc = new reinidisc_f(p);
-    
-    time_preproc(p);   
+
+    // level-set reini discretisation, nonlinear weights F 37: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    reinidisc_f *prdisc_f = new reinidisc_f(p);
+    prdisc_f->set_weno_weights(p->F37,p->F38);
+	prdisc = prdisc_f;
+
+    time_preproc(p);
+
+    p->reini_iter = p->F44;
 }
 
 reini_RK3::~reini_RK3()
@@ -89,6 +94,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
     if(p->count>0)
     gcval = gcval_phi;
     
+    if(p->count==0)
 	ppicard->volcalc(p,a,pgc,f);
 	
 	if(p->count==0)
@@ -135,6 +141,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         pgc->start4(p,f,gcval);
 	}
     
+    if(p->count==0)
 	ppicard->correct_ls(p,a,pgc,f);
 	
 	p->reinitime+=pgc->timer()-starttime;
@@ -142,7 +149,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
 
 void reini_RK3::step(lexer* p, fdm *a)
 {
-	reiniter=p->F44;
+	reiniter=p->reini_iter;
 }
 
 void reini_RK3::time_preproc(lexer* p)

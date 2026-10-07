@@ -30,7 +30,9 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"ioflow_f.h"
 #include"ioflow_void.h"
+#ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
+#endif
 #include"reefmg2D.h"
 #include"sflow_bicgstab.h"
 #include"sflow_forcing.h"
@@ -39,8 +41,6 @@ Author: Hans Bihs
 #include"sflow_fixtimestep.h"
 #include"sflow_fou.h"
 #include"sflow_weno_flux.h"
-#include"sflow_weno_hj.h"
-#include"sflow_voidconv.h"
 #include"sflow_HLL.h"
 #include"sflow_signal_speed.h"
 #include"sflow_reconstruct_hires.h"

@@ -1,0 +1,8 @@
+{
+ "base": "seastate_2d_refraction",
+ "np": 2,
+ "ctrl_add": ["A 796 2"],
+ "description": "as seastate_2d_refraction on 2 ranks with second-order upwind geographic fluxes (A 796 2, SWAN SORDUP type, Phase 7): two upwind cells per face, two halo layers. Validation in Dropbox SEASTATE/validation/27_second_order.",
+ "tags": ["quick", "2d", "seastate", "mpi"],
+ "covers": ["seastate_implicit second-order upwind fluxes", "seastate_exchange with two halo layers"]
+}

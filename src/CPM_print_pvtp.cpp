@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 void CPM::pvtp(lexer* p, int num)
 {
@@ -39,9 +40,9 @@ void CPM::pvtp(lexer* p, int num)
     result<<"<PDataArray type=\"Float32\" Name=\"Flag\"/>\n";
     if(p->P23==1)
     result<<"<PDataArray type=\"Float32\" Name=\"Test\"/>\n";
-    result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
-    result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>\n";
     result<<"</PPointData>\n";
 
@@ -57,4 +58,6 @@ void CPM::pvtp(lexer* p, int num)
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+    p->plog->written(p,num,"cpm","cpm_particles",name,p->M10);
 }

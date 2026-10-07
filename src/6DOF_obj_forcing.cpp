@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_cfd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"heaviside.h"
 
-void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
+void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     
 // Calculate forcing fields
@@ -261,7 +262,7 @@ void sixdof_obj::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, fi
     pgc->start3(p,fz,12);         
 };
 
-double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
+double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	
@@ -274,19 +275,12 @@ double sixdof_obj::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     // Construct solid heaviside function
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
 	
-    if (-phival_fb > psi)
-    H = 1.0;
-
-    else if (-phival_fb < -psi)
-    H = 0.0;
-
-    else
-    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+    H = heaviside(-phival_fb,psi);
     
     return H;
 }
 
-double sixdof_obj::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
+double sixdof_obj_cfd::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     double psi, H, phival_fb,dirac;
 	
@@ -301,14 +295,7 @@ double sixdof_obj::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
     // Construct solid heaviside function
     phival_fb = 0.5*(a->fb(i,j,k) + a->fb(i+aa,j+bb,k+cc));
 	
-    if(-phival_fb > psi)
-    H = 1.0;
-
-    else if(-phival_fb < -psi)
-    H = 0.0;
-
-    else
-    H = 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+    H = heaviside(-phival_fb,psi);
 	
     return H;
 }

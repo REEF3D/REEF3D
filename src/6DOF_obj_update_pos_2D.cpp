@@ -20,22 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_obj_2D::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc);
+    rb.euler_angles();
     
     // Update STL mesh
     update_trimesh_2D(p,pgc);
 
     // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
     SLICELOOP4
     fsglobal(i,j) = fs(i,j);
@@ -49,24 +48,10 @@ void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
     }
 }
 
-void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
+void sixdof_obj_2D::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
 	// Update position of triangles 
-	for(n=0; n<tricount; ++n)
-	{
-        for(int q=0; q<3; q++)
-        {
-            // Update coordinates of triangles 
-            // (tri_x0 is vector between tri_x and xg)
-            Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-					
-            point = R_*point;
-        
-            tri_x[n][q] = point(0) + c_(0);
-            tri_y[n][q] = point(1) + c_(1);
-            tri_z[n][q] = point(2) + c_(2);
-        }
-	}
+    geom.transform(R_,c_);
 
     // Update floating level set function
 	ray_cast_2D(p,pgc);

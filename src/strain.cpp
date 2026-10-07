@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"strain.h"
 #include"lexer.h"
+#include"bc_noflux.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"fieldint.h"
@@ -37,8 +38,11 @@ void strain::wallf_update(lexer *p, fdm *a, ghostcell *pgc, fieldint &wallf)
     LOOP
         wallf(i,j,k)=0;
     
+    // walls only: the wave generation, outflow and beach boundaries (bc 6, 7, 8) have no wall law, so their
+    // cells keep the bulk production and dissipation (they were wall cells without a wall function)
     GC4LOOP
-    if((p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5 || p->gcb4[n][4]==41  || p->gcb4[n][4]==42 || p->gcb4[n][4]==43 || p->gcb4[n][4]==6 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8))
+    if((p->gcb4[n][4]==21 || p->gcb4[n][4]==22 || p->gcb4[n][4]==5 || p->gcb4[n][4]==41  || p->gcb4[n][4]==42 || p->gcb4[n][4]==43)
+    && !bc_periodic_face(p,p->gcb4[n][0],p->gcb4[n][1],p->gcb4[n][2],p->gcb4[n][3]))
     {
         i = p->gcb4[n][0];
         j = p->gcb4[n][1];
@@ -55,6 +59,15 @@ void strain::wallf_update(lexer *p, fdm *a, ghostcell *pgc, fieldint &wallf)
         
         wallf(i,j,k)=1;
     }
+    
+    // VRANS wall-law cells (komega_bc / kepsilon_bc vrans_wall_law_*): the wall law replaces the bulk
+    // production and dissipation there as well (they were added on top)
+    if(p->S10==2 || p->B200==1 || p->B200==2)
+    LOOP
+    if(a->porosity(i,j,k)>=0.99 &&  (a->porosity(i-1,j,k)<0.99 || a->porosity(i+1,j,k)<0.99 
+                                    || (p->j_dir==1 && (a->porosity(i,j-1,k)<0.99 || a->porosity(i,j+1,k)<0.99))
+                                    || a->porosity(i,j,k-1)<0.99 || a->porosity(i,j,k+1)<0.99))
+    wallf(i,j,k)=1;
 }
 
 double strain::sij(lexer *p, fdm *a, int ii, int jj)

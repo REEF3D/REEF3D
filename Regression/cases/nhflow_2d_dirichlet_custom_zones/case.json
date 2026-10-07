@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_dirichlet",
+ "ctrl_add": [
+  "B 107 200.0 200.0 -1.0 1.0 40.0",
+  "B 107 150.0 150.0 -1.0 1.0 5.0"
+ ],
+ "description": "old input: Dirichlet generation (B 98 3) with two custom beach zones (B 107).",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "Dirichlet generation with B 107 beaches"
+ ]
+}

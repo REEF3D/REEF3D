@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #include "hypre_struct.h"
 #include "lexer.h"
 #include "fdm.h"
@@ -232,3 +234,5 @@ void hypre_struct::make_grid_perm_2Dvert(lexer* p,ghostcell* pgc)
     HYPRE_StructVectorInitialize(b);
     HYPRE_StructVectorInitialize(x);
 }
+
+#endif  // REEF3D_USE_HYPRE

@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_amr_bar_bous on 2 ranks, placement test mode (G 40 2).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "bous",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr_bous with placed patches"
+ ],
+ "base": "sflow_2d_amr_bar_bous",
+ "ctrl_add": [
+  "G 40 2"
+ ]
+}

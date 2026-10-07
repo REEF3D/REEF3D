@@ -26,7 +26,9 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"iowave.h"
 #include"sediment.h"
+#ifdef REEF3D_USE_HYPRE
 #include"hypre_struct2D.h"
+#endif
 #include"sflow_etimestep.h"
 #include"sflow_weno_flux.h"
 #include"sflow_eta.h"
@@ -38,10 +40,13 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"regression_dump.h"
+#include"seastate_sflow.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"runlog.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -62,6 +67,16 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 	// ini
 	ini(p,b,pgc);
+
+    // REEF3D::SEASTATE coupling (A 750 1)
+    if(p->A750==1)
+    {
+    b->wave = new seastate_sflow(p,b,pgc);
+    b->wave->ini(p,b,pgc);
+    }
+	
+	regression_dump rdump(p);
+	rdump.sflow_ini(p,b,pgc);
 	
 	// Mainloop
     if(p->mpirank==0)
@@ -87,6 +102,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         }
         
         pflow->wavegen_2D_precalc(p,b,pgc);
+
+        // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
+        if(b->wave!=nullptr)
+        b->wave->start(p,b,pgc);
 
         // outer loop
 		double temptime=pgc->timer();
@@ -142,6 +161,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         pprint->start(p,b,pgc,pflow,pturb,psed);
 		pprintbed->start(p,b,pgc,psed);
+        rdump.sflow_step(p,b,pgc);
 		
 		p->printouttime=pgc->timer()-ptime;
 
@@ -218,9 +238,14 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	{
 	cout<<endl<<"******************************"<<endl<<endl;
 
+	if(p->plog)
+	p->plog->end(p,"finished");
+
 	cout<<"modelled time: "<<p->simtime<<endl;
 	cout << endl;
 	}
+    
+    rdump.sflow_final(p,b,pgc);
     
     pgc->final();
 	

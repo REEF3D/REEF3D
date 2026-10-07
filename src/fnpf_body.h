@@ -45,7 +45,8 @@ class sixdof_obj;
 // Per RK stage the scheme calls
 //   stage()   with the tendencies deta/dt, dFifsf/dt of the current state, before the
 //             stage value is formed (body loads and body RK stage),
-//   surface() after the stage values eta/Fifsf are formed, before fsfdisc/sigma_update.
+//   surface() after the stage values eta/Fifsf are formed, before fsfdisc/sigma_update,
+//   velocity() after the velocities of the end of the step are computed.
 // Geometry and body-band extrapolation around the Laplace solve are hidden behind the
 // solver returned by laplace().
 
@@ -62,8 +63,11 @@ public:
     virtual void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int){}
     virtual void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int){}
     virtual fnpf_laplace* laplace(fnpf_laplace *plap){return plap;}
+    // after velcalc_sig of the end of a time step (output, time step): velocities at the
+    // body nodes
+    virtual void velocity(lexer*, fdm_fnpf*, ghostcell*){}
     
-    // mesh refinement (fnpf_amr, A 270): the body is represented on every grid of the
+    // mesh refinement (fnpf_amr, G 1): the body is represented on every grid of the
     // hierarchy; fnpf_amr calls these around its composite phi solve and after each patch
     // stage value; the psi solves of the loads run on all grids as well
     virtual bool present() const {return false;}

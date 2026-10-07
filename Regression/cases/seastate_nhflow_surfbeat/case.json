@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE surfbeat coupled with NHFLOW (A 10 5, A 750 1), radiation stress with roller, 2 sigma layers: wave groups on the GLOBEX profile, wave force uniform over the layers, long-wave ghost cells at the x- edge (open, lexer open_xm), 450 x 1 x 2 cells, 40 s.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 2000,
+ "time": 40.0,
+ "tags": ["2d", "nhflow", "seastate"],
+ "covers": ["seastate_nhflow host: depth-averaged velocity, layer force, long-wave ghost cells", "nhflow_momentum_RK2/RK3 and nhflow_fsf hooks", "driver_ini/loop_nhflow hooks"]
+}

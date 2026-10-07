@@ -1,0 +1,27 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_add": [
+  "Z 30 1"
+ ],
+ "files": [
+  "fem.dat"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "dambreak",
+  "fem",
+  "fsi",
+  "reinforced"
+ ],
+ "description": "2D water column held by a weak reinforced concrete wall (model steel): the concrete cracks at the base, the bars yield and the wall bends about 7.5 mm but stands (FEM solid, Z 30, rebar).",
+ "covers": [
+  "smeared reinforcement (rebar): skin placement, elastic-plastic bars with kinematic hardening",
+  "reinforced concrete: unilateral damage, cracked concrete keeps shear stiffness, cracks do not erode",
+  "steel utilisation and first yield in the summary"
+ ],
+ "ctrl_set": {
+  "N 10": "1"
+ }
+}

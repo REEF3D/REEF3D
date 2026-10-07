@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_forcing_sflow(lexer *p, ghostcell *pgc, 
+void sixdof_obj_2D::update_forcing_sflow(lexer *p, ghostcell *pgc, 
                              slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &eta, int iter)
 {
     // Calculate forcing fields

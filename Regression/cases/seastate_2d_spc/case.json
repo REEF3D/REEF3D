@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE boundary spectrum from a SWAN 2D spectral file (A 711 2, seastate-boundary.spc: NDIR, VaDens, FACTOR table; JONSWAP Hs 1.2 m Tp 9 s from 250 deg nautical = 20 deg Cartesian) on the sides x-, y-, y+ at constant depth 20 m, stationary: the boundary spectrum fills the domain.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "files": ["seastate-boundary.spc"],
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_swan_spc reader (A 711 2)", "nautical -> Cartesian directions", "interpolation onto the spectral grid"]
+}

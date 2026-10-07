@@ -20,22 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_nhflow.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
+void sixdof_obj_nhflow::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc);
+    rb.euler_angles();
     
     // Update STL mesh
     update_trimesh_nhflow(p,d,pgc,finalize);
 
     // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
+    rb.update_omega();
     
     k=p->knoz-1;
     
@@ -51,30 +50,17 @@ void sixdof_obj::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
     }
 }
 
-void sixdof_obj::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
+void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)
 {
 	// Update position of triangles 
-	for(n=0; n<tricount; ++n)
-	{
-        for(int q=0; q<3; q++)
-        {
-            // Update coordinates of triangles 
-            Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-					
-            point = R_*point;
-        
-            tri_x[n][q] = point(0) + c_(0);
-            tri_y[n][q] = point(1) + c_(1);
-            tri_z[n][q] = point(2) + c_(2);
-        }
-	}
+    geom.transform(R_,c_);
     
     // Update floating level set function
 	ray_cast(p,d,pgc);
 	nhflow_reini_RK2(p,d,pgc,d->FB);
 }
 
-void sixdof_obj::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
+void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
 {
     // Update position of wavemaker
     if(p->X170==1)

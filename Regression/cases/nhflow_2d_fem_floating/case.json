@@ -1,0 +1,13 @@
+{
+ "description": "NHFLOW 2D: a floating rigid box (material rigid 500) released 2 cm above its equilibrium in still water heaves towards a draft of 5 cm.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "files": ["fem.dat"],
+ "tags": ["quick", "2d", "nhflow", "fem", "fsi", "floating"],
+ "covers": [
+  "FEM rigid bodies in NHFLOW: probed pressure loads (filtered non-hydrostatic part), added-mass stabilisation (NHFLOW default factor 5)",
+  "kernel interpolation and spreading over the wet sigma column",
+  "rigid-body trajectory output"
+ ]
+}

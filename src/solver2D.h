@@ -28,7 +28,6 @@ class fdm2D;
 class ghostcell;
 class slice;
 class vec2D;
-class cpt2D;
 class matrix2D;
 
 using namespace std;

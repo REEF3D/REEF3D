@@ -50,29 +50,39 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
 	depthmax=MAX(depthmax,d->WL(i,j));
 	
+    if(phook!=nullptr)
+    depthmax=MAX(depthmax,phook->dt_local_max(0));
 	depthmax=pgc->globalmax(depthmax);
 
 
     LOOP
 	p->umax=MAX(p->umax,fabs(d->U[IJK]));
 
+    if(phook!=nullptr)
+    p->umax=MAX(p->umax,phook->dt_local_max(1));
 	p->umax=pgc->globalmax(p->umax);
 
 
 	LOOP
 	p->vmax=MAX(p->vmax,fabs(d->V[IJK]));
 
+    if(phook!=nullptr)
+    p->vmax=MAX(p->vmax,phook->dt_local_max(2));
 	p->vmax=pgc->globalmax(p->vmax);
 
 
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
     
+    if(phook!=nullptr)
+    p->wmax=MAX(p->wmax,phook->dt_local_max(3));
     p->wmax=pgc->globalmax(p->wmax);
     
     FLOOP
 	p->omegamax=MAX(p->omegamax,fabs(d->omegaF[FIJK]));
     
+    if(phook!=nullptr)
+    p->omegamax=MAX(p->omegamax,phook->dt_local_max(4));
 	p->omegamax=pgc->globalmax(p->omegamax);
     
 	
@@ -121,6 +131,37 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cu = MIN(cu, 1.0/(0.00001
     
             + sqrt((4.0*fabs(MAX3(d->maxF,d->maxG,d->maxH)))/MIN(dx,dz))));
+    
+    // explicit momentum diffusion (A 512 1): dt <= 0.25/(nu_eff (1/dx^2 + 1/dy^2 + sigz^2/dsigma^2)),
+    // with the factor 2 of the normal stresses (0.5 of the forward-Euler limit); cu is scaled by N 47 below
+    if(p->A512==1)
+    {
+    const double visc = d->VISC[IJK] + d->EV[IJK];
+    const double lam = 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]) + 1.0/(dz*dz);
+    
+    p->viscmax = MAX(p->viscmax, visc);
+    cu = MIN(cu, 0.25/(visc*lam + 1.0e-20)/MAX(p->N47,1.0e-20));
+    }
+    }
+    
+    // refined patches: the same limits with their smallest cells
+    if(phook!=nullptr)
+    {
+    double dxp=1.0e20, dzp=1.0e20;
+    phook->dt_cell_size(1,dxp,dzp);
+    
+        if(dxp<1.0e19)
+        {
+        cu = MIN(cu, dxp/(p->umax + sqrt(9.81*depthmax)));
+        
+        if(p->j_dir==1 )
+        cv = MIN(cv, dxp/(p->vmax + sqrt(9.81*depthmax)));
+        
+        cw = MIN(cw, dxp/(p->wmax));
+        
+        if(p->A533==1)
+        cw = MIN(cw, dzp/(p->wmax));
+        }
     }
     
     cu = pgc->globalmin(cu);
@@ -224,6 +265,21 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     co = MIN(co, 1.0/((fabs(p->omegamax)/dx)));
     }
 
+    // refined patches: the same limits with their smallest cells
+    if(phook!=nullptr)
+    {
+    double dxp=1.0e20, dzp=1.0e20;
+    phook->dt_cell_size(0,dxp,dzp);
+    
+        if(dxp<1.0e19)
+        {
+        cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dxp)));
+        cv = MIN(cv, 1.0/((fabs((p->vmax + sqrt(9.81*depthmax)))/dxp)));
+        cw = MIN(cw, 1.0/((fabs(p->wmax)/dxp)));
+        co = MIN(co, 1.0/((fabs(p->omegamax)/dxp)));
+        }
+    }
+    
 	cu = MIN(cu,cv);
     
     cu = MIN(cu,cw);
@@ -235,8 +291,8 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //if(p->B201==1)
     //p->dt = 0.1*p->dt;
     
-	p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
+	p->dt=pgc->timesync(p->dt);
 	p->dt_old=p->dt;
     
     if(p->B94==0)

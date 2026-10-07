@@ -31,6 +31,20 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0)
     control::read_control(this);
 
+    // SFLOW: A 212 not given in ctrl.txt -> explicit horizontal diffusion when a turbulence model is on (A 260 > 0),
+    // so that the eddy viscosity reaches the momentum equations; no diffusion otherwise (the previous default)
+    if(mpirank==0 && A212<0)
+    A212 = (A260>0) ? 1 : 0;
+
+#ifndef REEF3D_USE_HYPRE
+    // built without hypre (the default; hypre is opt-in via make HYPRE=1): the hypre solvers N 10 10-39 are replaced by REEFMG (N 10 1)
+    if(mpirank==0 && N10>=10)
+    {
+        std::cout<<"N 10 "<<N10<<": this build has no hypre (hypre is opt-in: make HYPRE=1), using REEFMG (N 10 1)"<<std::endl;
+        N10=1;
+    }
+#endif
+
     Iarray(ictrl,ctrlsize);
     Darray(dctrl,ctrlsize);
 

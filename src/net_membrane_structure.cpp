@@ -178,6 +178,9 @@ void net_membrane::ini_structure(lexer *p, ghostcell *pgc)
     if(x_[q](2) >= zatt - 1.0e-3*lmin)
     att_[q] = 1;
     
+    // flexible collar: the top edge nodes are free and carry the collar (net_membrane_collar.cpp)
+    ini_collar(p);
+    
     // groups: in 2D the two nodes across the cell row
     grp_.resize(nn);
     for(size_t q=0; q<nn; ++q)
@@ -262,6 +265,72 @@ void net_membrane::attach_body(lexer *p, const Eigen::Vector3d &c, const Eigen::
     body_ = true;
     cb_ = c;
     Rb_ = R;
+    
+    // rotational counterpart of body_addedmass: 4 rho x the inertia of the bag water below the still water level
+    // about the centre of gravity (solid block of water: cylinder or box, parallel-axis term to its centroid),
+    // in the body frame. Twice the factor of the translations: the outer water adds relatively more inertia in pitch;
+    // 3D ring collar with a rigid cylinder bag, pitch free, waves: 2 rho diverged at 4 s, 4 rho stable
+    Iab_.setZero();
+    
+    const double hw = MAX(0.0, p->wd - zbag());
+    double Lx, Ly, xm, ym;
+    
+    if(prm.shape>=2)
+    {
+        Lx = Ly = 2.0*prm.R;
+        xm = prm.xc;
+        ym = prm.yc;
+    }
+    else
+    {
+        Lx = prm.x1-prm.x0;
+        Ly = p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge];
+        xm = 0.5*(prm.x0+prm.x1);
+        ym = p->j_dir==1 ? 0.5*(prm.y0+prm.y1) : c(1);
+    }
+    
+    const double A = prm.shape>=2 ? PI*prm.R*prm.R : Lx*Ly;
+    const double M = 4.0*p->W1*A*hw;
+    const Eigen::Vector3d d = R.transpose()*(Eigen::Vector3d(xm, ym, zbag() + 0.5*hw) - c);
+    
+    double Ixx, Iyy, Izz;
+    
+    if(prm.shape>=2)
+    {
+        Ixx = Iyy = M*(prm.R*prm.R/4.0 + hw*hw/12.0);
+        Izz = 0.5*M*prm.R*prm.R;
+    }
+    else
+    {
+        Ixx = M*(Ly*Ly + hw*hw)/12.0;
+        Iyy = M*(Lx*Lx + hw*hw)/12.0;
+        Izz = M*(Lx*Lx + Ly*Ly)/12.0;
+    }
+    
+    Iab_(0,0) = Ixx + M*(d(1)*d(1) + d(2)*d(2));
+    Iab_(1,1) = Iyy + M*(d(0)*d(0) + d(2)*d(2));
+    Iab_(2,2) = Izz + M*(d(0)*d(0) + d(1)*d(1));
+    Iab_(0,1) = Iab_(1,0) = -M*d(0)*d(1);
+    Iab_(0,2) = Iab_(2,0) = -M*d(0)*d(2);
+    Iab_(1,2) = Iab_(2,1) = -M*d(1)*d(2);
+}
+
+Eigen::Matrix3d net_membrane::body_addedinertia(lexer *p) const
+{
+    // rigid bag: added inertia of the stabilised coupling for the rotations, world frame (see body_addedmass); scaled
+    // with bodyaddedmass when that is given
+    if(!moving() || !body_ || prm.structure!=1)
+    return Eigen::Matrix3d::Zero();
+    
+    double f = 1.0;
+    
+    if(prm.Mbody>=0.0)
+    {
+        const double M0 = 2.0*p->W1*Abag(p)*MAX(0.0, p->wd - zbag());
+        f = M0>0.0 ? prm.Mbody/M0 : 0.0;
+    }
+    
+    return f*Rb_*Iab_*Rb_.transpose();
 }
 
 void net_membrane::set_body(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Vector3d &v, const Eigen::Vector3d &w)
@@ -296,7 +365,7 @@ void net_membrane::internal_forces(lexer *p, const vector<Eigen::Vector3d> &x, c
         
         // fabric: compression wrinkles the membrane
         if(T<0.0)
-        T *= 0.01;
+        T *= prm.compr;
         
         T += ce_[e]*(v[b]-v[a]).dot(ev);
         
@@ -356,6 +425,67 @@ void net_membrane::advance_structure(lexer *p, double dt)
         n = l>1.0e-20 ? Eigen::Vector3d(n/l) : Eigen::Vector3d(0.0,0.0,1.0);
     }
     
+    // attached nodes: from their positions at the start of the step to the current body position
+    vector<Eigen::Vector3d> xa1(nn);
+    
+    for(size_t q=0; q<nn; ++q)
+    if(att_[q])
+    xa1[q] = attached_position(q);
+    
+    const vector<Eigen::Vector3d> xs = x_;
+    
+    // implicit coupling: F_fluid(v) = F^n - C (v - v_seen), v_seen the velocity the fluid step used
+    structure_solve(p,dt,nsub_,Cq,xdot_,xan_,xa1);
+    
+    // end of the step
+    vmax_ = 0.0;
+    
+    for(size_t q=0; q<nn; ++q)
+    {
+        if(att_[q])
+        {
+            xdot_[q] = body_velocity(x_[q]);
+            xan_[q] = x_[q];
+        }
+        else
+        {
+            // the fluid sees the step-averaged velocity
+            xdot_[q] = (x_[q] - xs[q])/dt;
+            vmax_ = MAX(vmax_, xdot_[q].norm());
+        }
+    }
+    
+    // largest membrane tension, E t strain
+    Tmax_ = 0.0;
+    for(size_t e=0; e<edge_.size(); ++e)
+    if(grp_[edge_[e][0]]!=grp_[edge_[e][1]])
+    Tmax_ = MAX(Tmax_, prm.EA*((x_[edge_[e][1]]-x_[edge_[e][0]]).norm() - L0_[e])/L0_[e]);
+}
+
+struct structure_factor
+{
+    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
+};
+
+void net_membrane::free_factor()
+{
+    delete sfac_;
+    sfac_ = nullptr;
+    sfac_ok_ = false;
+}
+
+void net_membrane::structure_solve(lexer *p, double dt, int nsub, const vector<Eigen::Matrix3d> &Cq, const vector<Eigen::Vector3d> &vseen,
+                                   const vector<Eigen::Vector3d> &xa0, const vector<Eigen::Vector3d> &xa1, bool reuse)
+{
+    // reuse (single step only): the matrix depends on the base geometry, dt and Cq, not on the loads or vseen; it is
+    // factorised at the first call after sfac_ok_ was reset and reused until the next reset (coupling iterations)
+    // linearised backward Euler of the mass-spring membrane from x_, vs_ over dt in nsub sub-steps, fluid load
+    // nf_ held, linearised in the node velocity with the matrices Cq about vseen; the attached nodes move from
+    // xa0 to xa1. Result in x_, vs_ (attached nodes: xa1 and their mean velocity).
+    const size_t nn = x_.size();
+    const int ng = gm_.size();
+    const double h = dt/double(nsub);
+    
     vector<int> gid(nn,-1);
     vector<Eigen::Matrix3d> Mg(ng,Eigen::Matrix3d::Zero());
     
@@ -366,26 +496,22 @@ void net_membrane::advance_structure(lexer *p, double dt)
         Mg[g] += mn_[q]*Eigen::Matrix3d::Identity() + h*Cq[q];
     }
     
-    // attached nodes: from their positions at the start of the step to the current body position
-    vector<Eigen::Vector3d> xa1(nn), va(nn,Eigen::Vector3d::Zero());
+    // attached nodes: from xa0 to xa1 over the step
+    vector<Eigen::Vector3d> va(nn,Eigen::Vector3d::Zero());
     
     for(size_t q=0; q<nn; ++q)
     if(att_[q])
-    {
-        xa1[q] = attached_position(q);
-        va[q] = (xa1[q] - xan_[q])/dt;
-    }
+    va[q] = (xa1[q] - xa0[q])/dt;
     
     // forces held over the step: fluid, weight, sinker, and the added-mass force of the last step
     vector<Eigen::Vector3d> Fc(nn);
     external_forces(p,Fc);
     
-    // implicit coupling: F_fluid(v) = F^n - C (v - v_seen), v_seen the velocity the fluid step used
+    // linearised fluid load: F_fluid(v) = F^n - C (v - v_seen)
     for(size_t q=0; q<nn; ++q)
     if(!att_[q])
-    Fc[q] += Cq[q]*xdot_[q];
+    Fc[q] += Cq[q]*vseen[q];
     
-    const vector<Eigen::Vector3d> xs = x_;
     const bool twod = p->j_dir==0;
     
     typedef Eigen::Triplet<double> Trip;
@@ -400,14 +526,14 @@ void net_membrane::advance_structure(lexer *p, double dt)
         trip.push_back(Trip(3*ga+r,3*gb+c,B(r,c)));
     };
     
-    for(int s=0; s<nsub_; ++s)
+    for(int s=0; s<nsub; ++s)
     {
-        const double r0 = double(s)/double(nsub_);
+        const double r0 = double(s)/double(nsub);
         
         for(size_t q=0; q<nn; ++q)
         if(att_[q])
         {
-            x_[q] = xan_[q] + r0*(xa1[q] - xan_[q]);
+            x_[q] = xa0[q] + r0*(xa1[q] - xa0[q]);
             vs_[q] = va[q];
         }
         
@@ -449,8 +575,8 @@ void net_membrane::advance_structure(lexer *p, double dt)
             const Eigen::Vector3d ev = dx/L;
             const Eigen::Matrix3d P = ev*ev.transpose();
             
-            // spring force on a at x^n, tension only (1 % stiffness in compression)
-            const double kef = L>L0_[e] ? ke_[e] : 0.01*ke_[e];
+            // spring force on a at x^n, tension only (fraction 'compression' of the stiffness in compression, default 1 %)
+            const double kef = L>L0_[e] ? ke_[e] : prm.compr*ke_[e];
             const double geo = L>L0_[e] ? 1.0 - L0_[e]/L : 0.0;
             const Eigen::Vector3d fa = kef*(L - L0_[e])*ev;
             
@@ -480,16 +606,38 @@ void net_membrane::advance_structure(lexer *p, double dt)
             rhs.segment<3>(3*gb) += B*vs_[a];
         }
         
+        // flexible collar: pipe, fluid, bending and mooring terms
+        collar_assemble(p,h,gid,addblock,rhs);
+        
         if(twod)
         for(int g=0; g<ng; ++g)
         rhs(3*g+1) = 0.0;
         
+        if(reuse && nsub==1)
+        {
+            if(!sfac_ok_)
+            {
+                Eigen::SparseMatrix<double> A(3*ng,3*ng);
+                A.setFromTriplets(trip.begin(),trip.end());
+                
+                if(sfac_==nullptr)
+                sfac_ = new structure_factor;
+                
+                sfac_->solver.compute(A);
+                sfac_ok_ = true;
+            }
+            
+            sol = sfac_->solver.solve(rhs);
+        }
+        else
+        {
         Eigen::SparseMatrix<double> A(3*ng,3*ng);
         A.setFromTriplets(trip.begin(),trip.end());
         
         Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
         solver.compute(A);
         sol = solver.solve(rhs);
+        }
         
         for(int g=0; g<ng; ++g)
         {
@@ -506,31 +654,12 @@ void net_membrane::advance_structure(lexer *p, double dt)
         }
     }
     
-    // end of the step
-    vmax_ = 0.0;
-    
     for(size_t q=0; q<nn; ++q)
+    if(att_[q])
     {
-        if(att_[q])
-        {
-            x_[q] = xa1[q];
-            vs_[q] = va[q];
-            xdot_[q] = body_velocity(x_[q]);
-            xan_[q] = x_[q];
-        }
-        else
-        {
-            // the fluid sees the step-averaged velocity
-            xdot_[q] = (x_[q] - xs[q])/dt;
-            vmax_ = MAX(vmax_, xdot_[q].norm());
-        }
+        x_[q] = xa1[q];
+        vs_[q] = va[q];
     }
-    
-    // largest membrane tension, E t strain
-    Tmax_ = 0.0;
-    for(size_t e=0; e<edge_.size(); ++e)
-    if(grp_[edge_[e][0]]!=grp_[edge_[e][1]])
-    Tmax_ = MAX(Tmax_, prm.EA*((x_[edge_[e][1]]-x_[edge_[e][0]]).norm() - L0_[e])/L0_[e]);
 }
 
 void net_membrane::update_body_load(lexer *p)
@@ -619,7 +748,7 @@ void net_membrane::body_load(lexer *p, const Eigen::Vector3d &c, const Eigen::Ma
     N = Mc(2);
 }
 
-void net_membrane::attach_response(lexer *p, double dt)
+void net_membrane::attach_response(lexer *p, double dt, const vector<Eigen::Matrix3d> *Cext)
 {
     // Impedance of the flexible membrane at its attached edge: response of the load on the body to a body motion
     // over the next time step, from the same linearised backward-Euler system as advance_structure (one step dt,
@@ -642,6 +771,12 @@ void net_membrane::attach_response(lexer *p, double dt)
     
     vector<Eigen::Matrix3d> Cq(nn,Eigen::Matrix3d::Zero());
     
+    // fluid response of the free nodes: given (strong coupling: local response of the layer fluid),
+    // otherwise the implicit porous damper of advance_structure
+    if(Cext!=nullptr)
+    Cq = *Cext;
+    
+    else
     for(size_t t=0; t<tri_.size(); ++t)
     for(int q=0; q<3; ++q)
     {
@@ -696,7 +831,7 @@ void net_membrane::attach_response(lexer *p, double dt)
         
         const Eigen::Vector3d ev = dx/L;
         const Eigen::Matrix3d P = ev*ev.transpose();
-        const double kef = L>L0_[e] ? ke_[e] : 0.01*ke_[e];
+        const double kef = L>L0_[e] ? ke_[e] : prm.compr*ke_[e];
         const double geo = L>L0_[e] ? 1.0 - L0_[e]/L : 0.0;
         
         Be[e] = h*h*kef*(P + geo*(Eigen::Matrix3d::Identity() - P)) + h*ce_[e]*P;
@@ -823,7 +958,5 @@ double net_membrane::body_addedmass(lexer *p) const
     return 0.0;
     
 
-    double A = prm.shape==2 ? PI*prm.R*prm.R : (prm.x1-prm.x0)*(p->j_dir==1 ? prm.y1-prm.y0 : p->DYN[0+marge]);
-    
-    return 2.0*p->W1*A*MAX(0.0, p->wd - prm.zb);
+    return 2.0*p->W1*Abag(p)*MAX(0.0, p->wd - zbag());
 }

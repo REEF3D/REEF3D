@@ -37,7 +37,6 @@ public:
 
 	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double) override final;
     void ini(lexer*,fdm*,ghostcell*) override final;
-	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	void ucorr(lexer*p,fdm*,field&,double) override final;
 	void vcorr(lexer*p,fdm*,field&,double) override final;
 	void wcorr(lexer*p,fdm*,field&,double) override final;

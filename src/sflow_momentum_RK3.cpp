@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_momentum_RK3.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"ioflow.h"
 #include"ghostcell.h"
 #include"sflow_fsf.h"
 #include"sflow_amr.h"
@@ -69,6 +70,10 @@ void sflow_momentum_RK3::start(lexer *p, fdm2D* b, ghostcell* pgc)
 
 void sflow_momentum_RK3::rk_stage(lexer *p, fdm2D* b, ghostcell* pgc, int s)
 {
+    // B 95: relaxation targets at the time of the stage output
+    if(p->B95!=0.0)
+    pflow->wavegen_2D_stage(p,b,pgc,p->simtime + (s==1 ? 0.5 : 1.0)*p->dt);
+
 //Step 1
 //--------------------------------------------------------
     if(s==0)

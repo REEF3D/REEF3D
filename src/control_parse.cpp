@@ -40,12 +40,12 @@ void control::parse(lexer* p)
     if(F80>0 && F35>0)
     F35=0;
 
-    G1=0;
+    G501=0;
     if(S10>0 || p->toporead>0 || p->solidread==1)
-    G1=1;
+    G501=1;
 
     if(A10==3 || A10==5)
-    G2=1;
+    G502=1;
 
     if(I10==1)
     {

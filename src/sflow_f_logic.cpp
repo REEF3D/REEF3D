@@ -64,6 +64,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	// diffusion
 	if(p->A212==0)
 	pdiff =  new sflow_diffusion_void(p);
+    
+    if(p->A212==0 && p->A260>0 && p->mpirank==0)
+    cout<<"SFLOW warning: turbulence model A 260 "<<p->A260<<" with A 212 0 set in ctrl.txt: the eddy viscosity does not enter the momentum equations (leave out A 212 or set 1 or 2)"<<endl;
 	
 	if(p->A212==1)
 	pdiff =  new sflow_ediff(p);
@@ -101,7 +104,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pturb =  new sflow_turb_parabolic(p);
     
     if(p->A260==5)
-	pturb =  new sflow_turb_kw_IM1_v1(p);
+    {
+    if(p->mpirank==0)
+    cout<<"SFLOW: A 260 5 (k-omega v1) is no longer available, use A 260 2 (depth-averaged k-omega)"<<endl;
+    
+    exit(1);
+    }
     
     // Sediment
     if(p->S10==0)
@@ -116,8 +124,13 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N10==1)
 	ppoissonsolv = new reefmg2D(p,pgc);
     
+#ifdef REEF3D_USE_HYPRE
     if(p->N10!=1)
 	ppoissonsolv = new hypre_struct2D(p,pgc);
+#else
+    if(p->N10!=1)
+	ppoissonsolv = new reefmg2D(p,pgc);
+#endif
     
     
     psolv = new sflow_bicgstab(p,pgc);
@@ -152,8 +165,8 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	if(p->A210!=2)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
-    // mesh refinement (A 270): static boxes (A 276) and/or flagged regions (A 273, A 274)
-    if(p->A270>0 && (p->A276>0 || p->A273>0.0 || p->A274>0 || p->A278>0))
+    // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20, G 22)
+    if(p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0))
     {
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     

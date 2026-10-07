@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_stokes2",
+ "np": 2,
+ "description": "as sflow_2d_stokes2 on 2 MPI ranks.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "iowave",
+  "mpi",
+  "legacy"
+ ],
+ "covers": [
+  "SFLOW MPI halos with relaxation zones"
+ ]
+}

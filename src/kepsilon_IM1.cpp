@@ -42,6 +42,7 @@ kepsilon_IM1::~kepsilon_IM1()
 
 void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans *pvrans)
 {
+    inflow_turb(p,a,pgc);   // discharge inflow k, eps/omega into the inflow ghost cells (B 60 >= 1)
 	wallf_update(p,a,pgc,wallf);
 
 // kin
@@ -52,8 +53,13 @@ void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	kinsource(p,a,pvrans);
 	timesource(p,a,kn);
     bckeps_start(a,p,kin,eps,gcval_kin);
+    bckin_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,kin,a->rhsvec,4);
+    if(p->T45==1)   // buoyancy sink: keep k >= 0 also against the explicit convection
+    LOOP
+    kin(i,j,k) = MAX(kin(i,j,k),0.0);
 	pgc->start4(p,kin,gcval_kin);
+    pgc->solid_forcing_lsm(p,a,kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -66,16 +72,19 @@ void kepsilon_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff
 	pdiff->idiff_scalar(p,a,pgc,psolv,eps,a->eddyv,ke_sigma_e,1.0);
 	epssource(p,a,pvrans);
 	timesource(p,a,en);
+	bckeps_start(a,p,kin,eps,gcval_eps);   // wall-function epsilon must act on M/rhs before the solve
+    bceps_matrix(a,p,kin,eps);
 	psolv->start(p,a,pgc,eps,a->rhsvec,4);
-	epsfsf(p,a,pgc);
-	bckeps_start(a,p,kin,eps,gcval_eps);
+	epsfsf(p,a,pgc,pflow);
 	pgc->start4(p,eps,gcval_eps);
+    pgc->solid_forcing_lsm(p,a,eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"epsiter: "<<p->epsiter<<"  epstime: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(a,p,pgc,pvrans);
+    pflow->turb_relax(p,a,pgc,a->eddyv);
 	pgc->start4(p,a->eddyv,24);
 }
 

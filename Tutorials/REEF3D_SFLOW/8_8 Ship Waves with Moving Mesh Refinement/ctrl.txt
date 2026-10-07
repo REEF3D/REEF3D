@@ -54,13 +54,13 @@ P 51 30 15.5
 P 51 30 16.5
 P 51 25 14.0
 P 51 25 15.0
-A 270 2
-A 271 4
-A 272 2
-A 277 -1 6 -1 19
-A 277 41 51 -1 19
-A 278 0.5
-A 279 25 25
+G 1 2
+G 2 4
+G 3 2
+G 11 -1 6 -1 19
+G 11 41 51 -1 19
+G 12 0.5
+G 13 25 25
 
 // ship hull: floating.stl in the case folder (X 180 1), not included
-// refinement: A 278 margin around the hull, A 279 length and half angle of the wake wedge
+// refinement: G 12 margin around the hull, G 13 length and half angle of the wake wedge

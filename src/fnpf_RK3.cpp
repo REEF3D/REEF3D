@@ -249,6 +249,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 
     bedbc_sig(p,c,pgc,c->Fi,pf);
     velcalc_sig(p,c,pgc,c->Fi);
+    pbody->velocity(p,c,pgc);
     
     pf->coastline_vel(p,c,pgc,c->U);
     pf->coastline_vel(p,c,pgc,c->V);
@@ -258,7 +259,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pamr->step_end(p,c,pgc);
 }
 
-// mesh refinement (A 270): the Laplace equation is solved on all grids together
+// mesh refinement (G 1): the Laplace equation is solved on all grids together
 void fnpf_RK3::attach_amr(fnpf_amr *a)
 {
     pamr = a;
@@ -306,6 +307,7 @@ void fnpf_RK3::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     {
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     velcalc_sig(p,c,pgc,c->Fi);
+    pbody->velocity(p,c,pgc);
     }
 }
 

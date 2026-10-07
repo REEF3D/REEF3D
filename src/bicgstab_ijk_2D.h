@@ -50,8 +50,6 @@ public:
 	void fillxvecV(lexer*,double*,vec&);
 	void finalizeV(lexer*,double*);
     
-    void fillxvecF(lexer*,double*,vec&);
-	void finalizeF(lexer*,double*);
 
 	double res_calc(lexer*,ghostcell*, double*, matrix_diag&);
 	void matvec_axb(lexer*, double*, double*, matrix_diag&);

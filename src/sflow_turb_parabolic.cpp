@@ -38,20 +38,26 @@ sflow_turb_parabolic::~sflow_turb_parabolic()
 void sflow_turb_parabolic::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convection *pconvec, sflow_diffusion *pdiff, solver2D *psolv, ioflow *pflow)
 {
     double dudx,dvdy,dudy,dvdx;
-    double alpha_t,Ustar;
+    double alpha_t,Ustar,uvel,vvel;
     double manning,cf;
     
     alpha_t = p->A262;
     
 	SLICELOOP4
     {
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
     
-    cf = pow(manning,2.0)*9.81/pow(HPIJ,1.0/3.0);
+    cf = pow(manning,2.0)*fabs(p->W22)/pow(HPIJ,1.0/3.0);
     
-    Ustar = sqrt(cf*(b->P(i,j)*b->P(i,j) + b->Q(i,j)*b->Q(i,j)));
+    uvel = b->U(i,j);   // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
+    vvel = b->V(i,j);
+    
+    Ustar = sqrt(cf*(uvel*uvel + vvel*vvel));
     
     b->eddyv(i,j) = alpha_t*Ustar*b->hp(i,j);
+    
+    if(p->wet[IJ]==0)
+    b->eddyv(i,j) = 0.0;
     }
     
     pgc->gcsl_start4(p,b->eddyv,24);

@@ -39,7 +39,7 @@ public:
 	void ksource(lexer*,fdm*) override final;
 	void kinsource(lexer*,fdm*,vrans*);
 	void epssource(lexer*,fdm*,vrans*);
-	void epsfsf(lexer*,fdm*,ghostcell*);
+	void epsfsf(lexer*,fdm*,ghostcell*,ioflow*);
 	void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
 	void clearfield(lexer*,fdm*,field&);
 

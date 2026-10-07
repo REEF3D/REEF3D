@@ -1,0 +1,1 @@
+{"description": "CFD 2D open channel, LES Smagorinsky (T 10 31) with the second-order high-pass filter T 21 2.", "np": 1, "steps": 100, "tags": ["2d", "turbulence", "les"], "covers": ["LES_filter_f2", "LES_smagorinsky"]}

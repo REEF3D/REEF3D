@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_idiff.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_thinbody.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"solver.h"
@@ -74,7 +75,9 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             visc_KP1 += d->vb(i,j);
             }
             
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
+            // vertical coefficient at the faces k-1/2 (sigma metrics at FIJK) and k+1/2 (FIJKp1); w: the transpose stress adds sigz^2 d2w/dsigma2 once (2 dw/dz)
+            sigxyz2_b = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0) + pow(p->sigz[IJ],2.0);
+            sigxyz2_t = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + pow(p->sigz[IJ],2.0) + pow(p->sigz[IJ],2.0);
             
             
             d->M.p[n]  =  visc_IP1/(p->DXP[IP]*p->DXN[IP])
@@ -83,8 +86,8 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
                         + visc_JP1/(p->DYP[JP]*p->DYN[JP])*p->y_dir
                         + visc_JM1/(p->DYP[JM1]*p->DYN[JP])*p->y_dir
                         
-                        + 2.0*(visc_KP1*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
-                        + 2.0*(visc_KM1*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
+                        + (visc_KP1*sigxyz2_t)/(p->DZP[KP]*p->DZN[KP])
+                        + (visc_KM1*sigxyz2_b)/(p->DZP[KM1]*p->DZN[KP])
                         
                         + CPORNH/(alpha*p->dt);
 
@@ -95,23 +98,23 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             d->M.w[n] = -visc_JP1/(p->DYP[JP]*p->DYN[JP])*p->y_dir;
             d->M.e[n] = -visc_JM1/(p->DYP[JM1]*p->DYN[JP])*p->y_dir;
 
-            d->M.t[n] = -2.0*(visc_KP1*sigxyz2)/(p->DZP[KP]*p->DZN[KP])
-                        -2.0*visc_KP1*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
+            d->M.t[n] = -(visc_KP1*sigxyz2_t)/(p->DZP[KP]*p->DZN[KP])
+                        - visc_KP1*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
                         
-            d->M.b[n] = -2.0*(visc_KM1*sigxyz2)/(p->DZP[KM1]*p->DZN[KP])
-                        +2.0*visc_KM1*p->sigxx[FIJK]/((p->DZN[KP]+p->DZN[KM1]));
+            d->M.b[n] = -(visc_KM1*sigxyz2_b)/(p->DZP[KM1]*p->DZN[KP])
+                        + visc_KM1*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
             
             
-            d->rhsvec.V[n] =  visc_IP*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZN[KP]+p->DZN[KM1])*(p->DXP[IP]+p->DXP[IM1]))
-						 +  visc_IP*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJp1Kp1]-VH[IJm1Km1]))/((p->DYN[JP]+p->DYN[JM1])*(p->DZN[KP]+p->DZN[KM1]))
+            d->rhsvec.V[n] =  visc_IP*((UH[Ip1JKp1]-UH[Ip1JKm1]) - (UH[Im1JKp1]-UH[Im1JKm1]))/((p->DZP[KP]+p->DZP[KM1])*(p->DXP[IP]+p->DXP[IM1]))*p->sigz[IJ]
+						 +  visc_IP*((VH[IJp1Kp1]-VH[IJp1Km1]) - (VH[IJm1Kp1]-VH[IJm1Km1]))/((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]
 
 						 + (CPORNH*WHin[IJK])/(alpha*p->dt)
                             
                             + visc_IP*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1])
-                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                            /((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]))
                         
                             + visc_IP*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(WH[IJp1Kp1] - WH[IJm1Kp1] - WH[IJp1Km1] + WH[IJm1Km1])
-                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                            /((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
         }
         
         if(p->wet[IJ]==0 || p->flag4[IJK]<0 || p->DF[IJK]<0)
@@ -230,6 +233,10 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	}
     }
 	
+    // sharp thin bodies (X 330 'mobility sharp'): no diffusive exchange through the body
+    if(d->thinbody!=nullptr)
+    d->thinbody->matrix_walls(p,d,WH);
+    
     psolv->startV(p,pgc,WHdiff,d->rhsvec,d->M,4);
 	
     pgc->start4V(p,WHdiff,gcval_wh);

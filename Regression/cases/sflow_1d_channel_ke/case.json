@@ -1,0 +1,1 @@
+{"description": "SFLOW 1D frictionless channel (A218 0), discharge inflow, depth-averaged k-eps (A260 1). Bed-generated k and eps relax to the local Rastogi-Rodi equilibrium (Turbulence Review test case).", "solver": "sflow", "np": 1, "steps": 400, "tags": ["quick", "sflow", "turbulence"], "covers": ["sflow_turb_ke_IM1", "A264 default", "1D production (no y-derivatives)"]}

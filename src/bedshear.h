@@ -53,6 +53,14 @@ public:
 
 	const double kappa;
     
+    // rough-wall log law u/u* = ln(30 z/ks)/kappa, with z0 = ks/30 clamped so that u+ >= 1/kappa
+    // (as the NHFLOW wall drag): no singular shear stress when z approaches ks/30 in thin water
+    double uplus(double z, double ks) const
+    {
+    double r = 30.0*z/(ks>1.0e-12?ks:1.0e-12);
+    return (1.0/kappa)*log(r>2.718281828459045?r:2.718281828459045);
+    }
+    
 
 private:
     turbulence *pturb;

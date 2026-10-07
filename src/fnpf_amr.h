@@ -49,7 +49,7 @@ using namespace std;
 //  Patch-based mesh refinement for REEF3D::FNPF, the FNPF module of REEFAMR (reefamr.h).
 //
 //  Level 0 is the native FNPF grid.  A refined patch refines x and y by 2 per level and,
-//  with A 281 1, also the sigma layers (nested: every coarse node is a fine node).  Each
+//  with G 6 1, also the sigma layers (nested: every coarse node is a fine node).  Each
 //  patch has its own lexer (horizontal geometry from the core, sigma grid and flags built
 //  here), its own fdm_fnpf and its own instances of the FNPF classes (free-surface
 //  discretisation, sigma transformation, Laplace assembly), so the kernels run unchanged.
@@ -70,11 +70,22 @@ using namespace std;
 //
 //  Resolved body (fnpf_6DOF, X 10 1): every grid carries the body at its own resolution (ray
 //  cast, footprint, body band); the phi and psi solves are composite solves over all grids,
-//  every hull triangle is integrated on the finest grid that holds its centroid.  A 278 r
+//  every hull triangle is integrated on the finest grid that holds its centroid.  G 12 r
 //  refines a margin r around the wetted hull at t = 0.
 //
-//  Scope of this version: static refinement (A 270 levels, A 276 boxes, A 277 boxes without
-//  refinement, A 275 tile width, A 278 zone around the body), RK3 (A 310 3), no wetting-drying
+//  Several ranks: the patches are cut at the level-0 rank boxes, or with G 40 1 placed for the
+//  load of the ranks; parents and old patches on other ranks are then reached through the block
+//  plans and old_run of the core (restrict_sl/col, prolong_interior_sl/col, regrid_state), the
+//  hull triangles are taken by the rank of the finest grid at their centroid (owns_point).  A
+//  rectangle at a body is placed whole (place_whole_zones): the footprint extension and the
+//  interior fill of the body are local to a patch.
+//
+//  Regridding (G 2 steps, default 4) only with the zone around the body (G 12): the zone is
+//  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
+//  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
+//
+//  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
+//  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), no wetting-drying
 //  (A 343 0), no breaking (A 350 0), X 10 0 or 1, no ice (A 380 0), A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
@@ -137,13 +148,22 @@ public:
     int patch_serial(int n) { return FP(n)->serial; }
     void patch_walls_fi(int n, double *f) { walls_fi(*FP(n),f); }
     int finest_at(double, double);      // local grid id whose interior holds (x,y), -1: level 0
+    // the hull triangle with centroid (x,y) belongs to local grid id: the finest grid that holds
+    // the point is grid id of this rank (with placed patches the patch may be on another rank)
+    bool owns_point(double, double, int);
+    // Fi-layout arrays of the patches with need[n] from their coarser grids, coarse to fine
+    // (initial guess of the fresh body grids); f[g+1] is the array of grid g.  Collective: all
+    // ranks call it (the parent may be on another rank)
+    void prolong_cols(double **f, const vector<char> &need);
     int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
     void lap_apply(int, int);
     void lap_prec(int, int);
+    void lap_local(int, int, int);
     double lap_dot(int, int);
     void lap_start();
+    void lap_restart();
     void lap_p(double, double);
     void lap_s(double);
     void lap_x(double, double);
@@ -194,10 +214,11 @@ private:
     int rorder = 4;                 // restriction: 2 average of the children, 4 cubic
     int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic
     template<class SEL> void restrict_col(SEL);
-    template<class SEL> void prolong_interior_sl(fnpf_amr_patch&, int, SEL);
-    template<class SEL> void prolong_interior_col(fnpf_amr_patch&, SEL);
+    template<class ND, class SEL> void prolong_interior_sl(int, ND, int, SEL);
+    template<class ND, class SRC, class DST> void prolong_interior_col(int, ND, SRC, DST);
+    int klev(int l) const;          // sigma layers of level l
     void walls_sl(fnpf_amr_patch&, slice&, int);
-    template<class F> void from_old(fnpf_amr_patch&, vector<reefamr_patch*>&, F);
+
     int layout_id = 0;
     int serial_next = 0;
 
@@ -222,10 +243,17 @@ private:
     long lap_it_total, lap_solves;
     int lap_it_last;
     double lap_res_last;
+    int lap_kind = 0;               // solve of lap_core: 0 phi, 1 psi (body loads)
+    int lap_it_phi_max = 0, lap_it_psi_max = 0, lap_solves_step = 0;   // this step (log)
+    long lap_it_step = 0;
+    int lap_capped = 0;             // solves that reached N 46
+    int lap_restarts = 0;           // BiCGStab restarts after stagnation
+    int lap_stalls = 0;             // solves stopped after a second stagnation (STAGTOL)
 
     // output
     void write_vtr(lexer*, fnpf_amr_patch&, int);
     void write_vtr0(lexer*, fdm_fnpf*);
+    bool print_lagoon(lexer*, fdm_fnpf*, ghostcell*);
     void gauges(lexer*, fdm_fnpf*, ghostcell*);
     ofstream gaugeout, logout;
 

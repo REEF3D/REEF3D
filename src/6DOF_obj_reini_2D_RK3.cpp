@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_2D.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"slice.h"
 
-void sixdof_obj::reini_2D(lexer *p, ghostcell *pgc, slice &f)
+void sixdof_obj_2D::reini_2D(lexer *p, ghostcell *pgc, slice &f)
 {
 	if(p->count==0)
 	{
@@ -37,7 +37,7 @@ void sixdof_obj::reini_2D(lexer *p, ghostcell *pgc, slice &f)
 	}
 
 	if(p->count>0)
-	reiniter=p->G41;
+	reiniter=p->G541;
 
     for(int q=0;q<reiniter;++q)
     {
@@ -72,7 +72,7 @@ void sixdof_obj::reini_2D(lexer *p, ghostcell *pgc, slice &f)
 }
 
 
-void sixdof_obj::disc_2D(lexer *p, ghostcell *pgc, slice &f)
+void sixdof_obj_2D::disc_2D(lexer *p, ghostcell *pgc, slice &f)
 {
     double dx,dy,xmin,xplus,ymin,yplus;
     double lsv,lsSig;
@@ -130,7 +130,7 @@ void sixdof_obj::disc_2D(lexer *p, ghostcell *pgc, slice &f)
 }
 
 
-void sixdof_obj::time_preproc_2D(lexer* p)
+void sixdof_obj_2D::time_preproc_2D(lexer* p)
 {	
     n=0;
 	SLICELOOP4

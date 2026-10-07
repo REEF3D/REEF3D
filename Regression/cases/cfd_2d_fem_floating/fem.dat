@@ -1,0 +1,5 @@
+# floating rigid box (rho 500) in the water column of the dam break
+# Architect: Hans Bihs
+material rigid 500
+box 0.04 0.10  0.0 0.01  0.28 0.32
+resolution normal

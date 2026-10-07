@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
+#include"6DOF_obj_fnpf.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<algorithm>
 
-void sixdof_obj::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *FBF, slice &foot)
+void sixdof_obj_fnpf::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *FBF, slice &foot)
 {
     // Vertical ray per sigma column: the z-crossings with the trimesh give an exact
     // inside/outside test (parity) for every sigma node of the column.
@@ -70,7 +70,7 @@ void sixdof_obj::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *FB
     }
 }
 
-void sixdof_obj::face_data_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int mode, double *FBF, double *U, double *V, double *W)
+void sixdof_obj_fnpf::face_data_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int mode, double *FBF, double *U, double *V, double *W)
 {
     // Neumann data of the staircase body faces, stored at the body nodes:
     // the Laplace assembly imposes d(f)/dx_face = (U,V,W).e_face on every
@@ -117,7 +117,7 @@ void sixdof_obj::face_data_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int mode,
     }
 }
 
-void sixdof_obj::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0, double **psi, bool computeA)
+void sixdof_obj_fnpf::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0, double **psi, bool computeA)
 {
     // Pressure from Bernoulli with psi = phi_t split as psi = psi_0 + sum_j a_j psi_j:
     //   p = -rho*(psi_0 + 0.5|grad phi|^2) + rho*g*(wd - z)  - rho*sum_j a_j psi_j
@@ -133,7 +133,7 @@ void sixdof_obj::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0
     forces_fnpf_set(p,pgc,S,computeA);
 }
 
-void sixdof_obj::forces_fnpf_zero(lexer *p, fnpf_force_sum &S)
+void sixdof_obj_fnpf::forces_fnpf_zero(lexer *p, fnpf_force_sum &S)
 {
     curr_time = p->simtime;
     
@@ -146,7 +146,7 @@ void sixdof_obj::forces_fnpf_zero(lexer *p, fnpf_force_sum &S)
     S.Atot=0.0;
 }
 
-void sixdof_obj::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, double **psi, bool computeA, double del,
+void sixdof_obj_fnpf::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, double **psi, bool computeA, double del,
                                  const std::function<bool(double,double)> *own, fnpf_force_sum &S)
 {
     const double rho = p->W1;
@@ -308,7 +308,7 @@ void sixdof_obj::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, double **p
 	}
 }
 
-void sixdof_obj::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &S, bool computeA)
+void sixdof_obj_fnpf::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &S, bool computeA)
 {
     double *F = S.F;
     double *Mo = S.Mo;

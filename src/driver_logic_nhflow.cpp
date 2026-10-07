@@ -40,6 +40,35 @@ Author: Hans Bihs
 #include"6DOF_void.h"
 #include"6DOF_nhflow.h"
 #include"dem_header.h"
+#include"nhflow_amr.h"
+#include<fstream>
+#include<sstream>
+#include<string>
+
+// membranes (X 330): true if membrane.dat contains a moving membrane (structure rigid or flexible); rank 0 reads
+static bool nhflow_membrane_moving(lexer *p, ghostcell *pgc)
+{
+    int moving=0;
+
+    if(p->mpirank==0)
+    {
+        std::ifstream f("membrane.dat");
+        std::string line;
+
+        while(std::getline(f,line))
+        {
+            std::istringstream ls(line.substr(0,line.find('#')));
+            std::string key, val;
+
+            if(ls>>key>>val && key=="structure" && (val=="rigid" || val=="flexible"))
+            moving=1;
+        }
+    }
+
+    MPI_Bcast(&moving,1,MPI_INT,0,pgc->mpi_comm);
+
+    return moving==1;
+}
 
 void driver::logic_nhflow()
 {    
@@ -108,6 +137,18 @@ void driver::logic_nhflow()
     precon = new nhflow_reconstruct_weno(p,pBC);
     
 //pressure scheme
+    // moving membranes (X 330, structure rigid or flexible) need the full projection: with the incremental scheme
+    // the old pressure in the membrane layer, where the mobility is ~ 1/(1 + a K) << 1, is only weakly controlled by
+    // the projection and drifts; when the layer moves, cells leaving it release that pressure (2D flexible bag:
+    // unstable after 2.7 s, collar cases within 2 s)
+    if(p->X330>0 && p->A520==2 && nhflow_membrane_moving(p,pgc))
+    {
+        if(p->mpirank==0)
+        cout<<"X 330: moving membrane, pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+
+        p->A520=1;
+    }
+
     if(p->A520==0)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);
     
@@ -121,6 +162,15 @@ void driver::logic_nhflow()
     pnhpress = new nhflow_pjm_yl(p,d,pgc,pBC);
 
 //Turbulence
+    // unknown A 560: no model would be created (pnhfturb uninitialised) and the run crashed later
+    if(p->A560!=0 && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22 && p->A560!=31)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 560: unknown NHFLOW turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega) or 31 (LES Smagorinsky)."<<endl<<endl;
+        
+        pgc->final(true);
+    }
+    
     if(p->A560==0)
 	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
     
@@ -169,6 +219,7 @@ void driver::logic_nhflow()
     if(p->N10==3 && p->j_dir==1)
 	ppoissonsolv = new bicgstab_ijk(p,a,pgc);
 	
+#ifdef REEF3D_USE_HYPRE
 	if(p->N10>=10 && p->N10<20)
 	ppoissonsolv = new hypre_struct(p,pgc,p->N10,p->N11);
     
@@ -177,6 +228,7 @@ void driver::logic_nhflow()
     
 	if(p->N10>=30 && p->N10<40)
 	ppoissonsolv = new hypre_sstruct(p,a,pgc);
+#endif
 
 //Printer
     if(p->P150==0)
@@ -245,6 +297,10 @@ void driver::logic_nhflow()
 
     if(p->A510==3)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
+
+// mesh refinement (G 1): patches on the NHFLOW grid
+    if(p->G1>0)
+    pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep,p6dof);
 
 //Lagrangian particles
     if(p->L10==0)

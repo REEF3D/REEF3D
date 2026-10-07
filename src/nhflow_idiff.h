@@ -46,7 +46,7 @@ private:
     double time,starttime,endtime;
     
     double visc;
-    double sigxyz2;
+    double sigxyz2,sigxyz2_b,sigxyz2_t;
 
 };
 

@@ -26,13 +26,14 @@ Author: Hans Bihs
 void control::ini_default()
 {
     // Hydrodynamic Models
-    A10=6;       // int hydrodynamic models
+    A10=6;       // int hydrodynamic models: 2 SFLOW, 3 FNPF, 5 NHFLOW, 6 CFD, 7 Spectral
     
     // SFLOW
     A209=1;      // int interpolation sweeps for bed
     A210=3;		  // int time scheme for SFLOW velocities
     A211=4;		  // int convection scheme for SLOW velocities
-    A212=0;		  // int diffusion treatment for SLOW velocities
+    A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
+    A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A214=1;      // int convection for vertical velocity
     A215=0;      // int 
     A216=0;      // int
@@ -41,6 +42,7 @@ void control::ini_default()
     A219=1;      // int additional courant number constraint
     A220=2;		  // int non-hydrostatic pressure scheme for SFLOW
     A221=1;		  // int non-hydrostatic pressure in very shallow regions
+    A222=1.0e-5; // double SFLOW TENO5 cutoff C_T (A 213 2)
     A223=0.5;    // double blending factor hydrostatic pressure gradient
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
     A230=0;      // int 
@@ -59,21 +61,7 @@ void control::ini_default()
     A261=0.267;  // double length scale factor
     A262=0.0667; // double parabolic turbulence model factor
     A263=10.0;   // double eddyv limiter factor set to high
-    A263=2.7;   // double epsisolon coefficient ce_gamma
-    A270=0;      // int SFLOW and FNPF mesh refinement: number of refined levels
-    A271=4;      // int SFLOW mesh refinement: regrid interval in time steps (0: static)
-    A272=2;      // int SFLOW mesh refinement: buffer cells around flagged cells
-    A273=0.0;    // double SFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
-    A274=0;      // int SFLOW mesh refinement: flag the shoreline
-    A275=8;      // int SFLOW and FNPF mesh refinement: tile size in cells of the refined level
-    A276=0;      // int SFLOW and FNPF mesh refinement: number of static refinement boxes
-    A277=0;      // int SFLOW and FNPF mesh refinement: number of boxes without refinement
-    A278=0;      // int SFLOW and FNPF mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1)
-    A278_r=0.5;  // double SFLOW and FNPF mesh refinement: margin around the hull
-    A279_L=0.0;  // double SFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
-    A279_a=19.47;// double SFLOW mesh refinement: half angle of the wake wedge in degrees
-    A280=4;      // int SFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
-    A281=0;      // int FNPF mesh refinement: 1 doubles the sigma layers on every refined level
+    A264=3.6;    // double epsilon coefficient ce_gamma (Rastogi & Rodi 1978: nu_t = 0.077 u* h)
 
 
     // FNPF
@@ -83,7 +71,7 @@ void control::ini_default()
     A312=2;      // int discretization for second-order gradient
     A313=3;      // int discretization for bed bc
     A314=2;      // int linear/non-linear
-    A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC)
+    A315=1;      // int eta gradient treatment: 0 legacy, 1 kinematic FSBC upwinded by dH/deta_x and symmetric at zero speed, 2 as 1 plus symmetric Ex,Ey for geometry (sigma metrics, breaking, wind, dynamic FSBC), 3 as 1 with the Godunov gradient (sonic points) in the kinematic FSBC
     A316=1;      // int wet-dry WENO5 near the shoreline: 0 legacy (zero gradient), 1 first-order fallback from wet neighbours
     A317=1;      // int bed metrics: 0 legacy (Bxx=Byy=0, left-biased Bx without wetting-drying), 1 bed curvature on, symmetric Bx
     A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
@@ -208,7 +196,7 @@ void control::ini_default()
     A524=2;      // int sigma gradients
     A525=0;      // int 
     A526=1.1;    // double direct forcing factor
-    A527=0;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    A527=1;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A528=1.0e-5; // double NHFLOW TENO5 cutoff C_T (A527 2)
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
@@ -269,6 +257,73 @@ void control::ini_default()
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
     A594=0;     // int invert STL
     A599=0;     // use dlm instead of df
+
+    // Spectral
+    A700=1;           // int mode: 1 nonstationary, 2 stationary
+    A701=32;          // int number of frequencies (logarithmic spacing)
+    A702_fmin=0.04;   // double lowest frequency [Hz]
+    A702_fmax=1.0;    // double highest frequency [Hz]
+    A703=36;          // int number of directions (full circle)
+    A704=16;          // int tile size (cells) of the block-sparse action storage
+    A705=0.05;        // double minimum water depth of an active (wet) cell [m]
+    A706=60.0;        // double time step [s]
+    A707=0;           // int iterations per time step (0: 1 nonstationary, 50 stationary)
+    A708=0.001;       // double stationary convergence: max. relative change of Hs per iteration
+    A709=100.0;       // double stationary convergence: percentage of the active cells that must meet A 708 (SWAN npnts, e.g. 99.5)
+    A710=0;           // int initial spectrum: 0 zero, 1 parametric (B 85 spectrum, B 93 Hs Tp, B 88 gamma, B 130/131/134 spreading)
+    A711=0;           // int boundary spectrum: 0 none, 1 parametric (as A 710 1), 2 SWAN 2D spectrum file seastate-boundary.spc, 3 time series of spectra at many locations (seastate-boundary.spc)
+    A712_xm=1;        // int side x-: 0 open (no incoming waves), 1 boundary spectrum, 2 zero gradient
+    A712_xp=0;        // int side x+ (as x-)
+    A712_ym=0;        // int side y- (as x-)
+    A712_yp=0;        // int side y+ (as x-)
+    A713=1;           // int depth and current refraction
+    A714=1;           // int frequency shift
+    A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
+    A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
+    A721_xs=A721_xe=0.0; // double xs, xe [m]
+    A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 field in space and time from seastate-wind.dat
+    A731_u10=0.0;     // double wind speed U10 [m/s]
+    A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
+    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733)
+    A733=1;           // int quadruplets with A 732 1: 0 off, 1 DIA
+    A734=1.5e-3;      // double linear wind growth (Cavaleri and Malanotte-Rizzoli), 0 off
+    A735=0.1;         // double action density limiter with A 732 1 (SWAN, Ris 1997), 0 off
+    A740=0;           // int depth-induced breaking: 0 off, 1 Battjes-Janssen
+    A741_alpha=1.0;   // double breaking alpha
+    A741_gamma=0.73;  // double breaking gamma
+    A742=0;           // int bottom friction: 0 off, 1 JONSWAP
+    A743=0.038;       // double JONSWAP friction coefficient [m^2/s^3]
+    A744=0;           // int triads: 0 off, 1 LTA (Eldeberky)
+    A745=0.05;        // double triads proportionality coefficient alpha_EB
+    A736_cutfr=2.5;   // double triads: highest sum frequency / sigma_m01 (SWAN cutfr)
+    A736_urcrit=0.63; // double triads: critical Ursell number of the biphase (SWAN urcrit; SWAN 40.x-41.31: 0.2)
+    A736_urslim=0.1;  // double triads: lowest Ursell number with triads (SWAN urslim; SWAN 40.x-41.31: 0.01)
+    A737=1;           // int with Battjes-Janssen breaking (A 740 1): 1 the total energy of a cell is limited to (gamma d)^2/4 as in SWAN, 0 off
+    A746=10.0;        // double Roelvink breaking (A 740 2) exponent n
+    A747=2.0;         // double surfbeat: maximum wave height to water depth ratio H/h (cap)
+    A748=1;           // int surfbeat: roller 0 off, 1 on
+    A749=0.1;         // double surfbeat: roller front slope beta
+    A750=0;           // int coupling with SFLOW (A 10 2): 0 off, 1 SEASTATE <-> SFLOW (wave forcing, water level and currents back)
+    A751=1;           // int wave forcing of SFLOW: 1 radiation stress, 2 vortex force (SFLOW velocity Eulerian, Stokes transport in the continuity)
+    A752=0.0;         // double ramp-up time of the wave forcing [s], 0: none
+    A753=2;           // int feedback SFLOW -> SEASTATE: 0 none, 1 water level, 2 water level and currents
+    A760=0;           // int number of handover points (A 760 x y): 2D spectrum files for the wave generation (B 85 11)
+    A761=90.0;        // double half-width of the handover direction sector around the mean direction [deg]
+    A770=0;           // int surfbeat (wave-group action balance, single representative frequency): 0 off, 1 on
+    A771=0.0;         // double surfbeat: representative period T_rep [s], 0: Tm-1,0 of the boundary spectrum
+    A772=3600.0;      // double surfbeat: record length of the boundary time series [s] (repeats afterwards)
+    A773=1;           // int surfbeat: seed of the random phases and directions
+    A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
+    A780=0.0;         // double model start date-time YYYYMMDD.HHMMSS of the forcing files (A 711 3, A 730 2), 0: first time in the files
+    A790=0;           // int bathymetry raster seastate-bathy.dat (stand-alone): 0 off (bed of the 2D grid, patches interpolated), 1 bed of all grids from the raster
+    A791=0.0;         // double mesh refinement (G 1): refine where the water depth is below this value [m], 0 off
+    A792=0;           // int mesh refinement (G 1): refine within this many cells of a dry or land cell (1-3), 0 off
+    A793=0.0;         // double mesh refinement (G 1): refine where the depth changes by more than this fraction to a neighbour cell, 0 off
+    A794=4;           // int mesh refinement (G 1): no refinement within this many level-0 cells of the sides with boundary spectra or zero gradient (A 712 1, 2)
+    A795=0.0;         // double spectral sparsity (stationary): bins with less than this fraction of the energy of the cell are set to zero and not solved, 0 off
+    A796=1;           // int geographic advection: 1 first-order upwind, 2 second order (van Leer limiter, deferred correction)
+    A797=0;           // int mesh refinement (G 1): 0 sweeps level by level (V-cycle), 1 composite sweep (the finer cells within the sweep of their parent cell)
+    A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
     // NHFLOW Lagrangian particles
     L10=0;       // int particle tracking
@@ -337,6 +392,7 @@ void control::ini_default()
 	B93_2=0.0;      // double wave period
     B94=0;     // int set water depth for wave theory
     B94_wdt=0.0;    // double water depth for wave theory
+    B95=0.0;        // double SFLOW and NHFLOW relaxation zones (B 98 2): 0 as before; >0 step-size consistent, reference step [s]: targets at the time of every stage output, relaxation factor r^(dt/B95) per stage; -1 the same with the reference step of the finest level (dt/2^G1 with G 7 1, else dt)
 	B96_1=0.0;      // double dist1 for wave relax
 	B96_2=0.0;      // double dist2 for wave relax
 	B97=0;          // int NHFLOW numerical beach (B 99 1|2) relaxes to the inflow current (waves on a current)
@@ -351,6 +407,10 @@ void control::ini_default()
 	B106=0;			// int read wave generation origin
 	B107=0;			// int read numerical beach origin
     B108=0;        // int read wave generation  origin
+    B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
+    B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
+    B530=0;        // int iowave redesign: waves on the background, 1: on h_eff, 2: h_eff + Doppler
+    B530_N=10;     // int iowave redesign: k update interval [steps] of B 530
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end
@@ -503,9 +563,12 @@ void control::ini_default()
     // Discretization
 	D10=4;			// int convection scheme
 	D11=2;			// int convection velocity scheme
+    D12=0;          // int WENO5 nonlinear weights for momentum (D 10 4,5): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    D13=1.0e-5;     // double TENO5 cutoff C_T (D 12 2)
 	D20=2;			// int diffusion scheme
 	D21=0;			// int print out implicit diffusion time and iterations
     D22=1;            // int diffusion wall boundary condition
+    D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
     D31=0;			// int normalize pressure to free surface
     D37=0;          // int type of FSFBC for single fluid flow
@@ -518,6 +581,8 @@ void control::ini_default()
 	F34=5000;		// printout iteration for pls
 	F35=5;			    // int convection scheme for fsf
 	F36=1;				// int RK3 scheme
+    F37=0;              // int WENO5 nonlinear weights for level set convection (F 35 4,5; F 305 4,5) and reini (F 40 3,23): 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    F38=1.0e-5;         // double TENO5 cutoff C_T (F 37 2)
 	F39=0.5;			    // double reini constraint relaxation factor
 	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength
@@ -617,17 +682,39 @@ void control::ini_default()
     F399=0;             // int number of neg ls2 sphere
 
     // Grid
-    G2=0;            // int sigma grid
-    G5=0;             // int turn of topo and solid cells
-	G10=3;			// int xmargin inflow
-	G11=3;			// int ymargin right
-	G12=3;			// int zmargin bottom
-	G20=3;			// int xmargin outflow
-	G21=3;			// int ymargin left
-	G22=3;			// int zmargin top
-	G30=3;			// int extrapolated ghost cells
-    G40=3;         // int reini scheme for topo/solid/floating
-    G41=2;          // int reini iterations
+    // mesh refinement (SFLOW, FNPF, NHFLOW)
+    G1=0;       // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
+    G2=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with G 12, NHFLOW: with G 12, G 20 or G 21)
+    G3=2;       // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells
+    G4=8;       // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
+    G5=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+    G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
+    G7=0;       // int SFLOW and NHFLOW mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
+    G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
+    G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
+    G12=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
+    G12_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
+    G13_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
+    G13_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
+    G20=0.0;    // double SFLOW and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
+    G21=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
+    G22=0;      // int SFLOW and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
+    G23=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
+    G30=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
+    G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
+    G40=0;      // int NHFLOW mesh refinement on several ranks: 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks
+    // grid
+    G502=0;            // int sigma grid
+    G505=0;             // int turn of topo and solid cells
+	G510=3;			// int xmargin inflow
+	G511=3;			// int ymargin right
+	G512=3;			// int zmargin bottom
+	G520=3;			// int xmargin outflow
+	G521=3;			// int ymargin left
+	G522=3;			// int zmargin top
+	G530=3;			// int extrapolated ghost cells
+    G540=3;         // int reini scheme for topo/solid/floating
+    G541=2;          // int reini iterations
 
 	// Heat
 	H1=1.4e-7;      // thermal diffusivity water
@@ -691,7 +778,7 @@ void control::ini_default()
     I241=0.0;       // double delta t for flowfile
 
     // Numerics
-	N10=14;			// int linear poisson solver
+	N10=1;			// int linear poisson solver: 1 REEFMG; hypre (10-39) only in builds with make HYPRE=1
 	N11=11;         // int precondioner
     N12=0;         //  int REEFMG solver mode
     N13=0;         //  int REEFMG max number of coarse levels, 0: automatic
@@ -725,12 +812,15 @@ void control::ini_default()
     P11=10;			 // int log print frequency
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
-    P16=0;          // int add timestamp to paraview files
+    P16=1;          // int add timestamp (and run id) to paraview files
+    P18=0;          // int LAGOON store: 1 instead of the vtu/vtp files, 2 as well as them
     P19=2;          // int print NHFLOW floating  based on vtp or vtu interval
 	P20=-10;		// ith iteration file printed
     P21=0;          // int time averaged vtu print out
     P22=0.0;         // double start averging after transients
-	P23=0;			// int print test to vtu file
+	P23=0;
+
+			// int print test to vtu file
     P24=0;			// int print density to vtu file
     P25=0;			// int print solid to vtu file
 	P26=0;			// int print cbed and conc to vtu file
@@ -859,14 +949,26 @@ void control::ini_default()
     E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
 
     // Particles
-    Q10=0;              // int time scheme
-    Q11=1;              // int tim
-    Q12=0;              // int 
-    Q13=0;              // int 
+    Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2
+    Q11=1;              // int particle movement model: 1 plain (empirical threshold), 2 MP-PIC
+    Q12=2;              // int inter-particle stress model: 0 off, 1 Snider (2001), 2 packed bed (Johnson-Jackson contact pressure + mu(I) friction)
+    Q13=1;              // int frictional shear stress for Q 12 2: 0 off, 1 on
     Q14=10;             // double continuum particle stress model parameter following Snider (2001) [Pressure]
     Q15=3.5;            // double continuum particle stress model parameter following Snider (2001)
     Q16=10e-7;          // double continuum particle stress model parameter following Snider (2001)
     Q17=0.6;            // double critical solid volume fraction
+    Q18=0.5;            // double CFL coefficient for the particle sub-step based on the particle stress wave speed
+    Q19=1;              // int grid-limited step: parcels enter a cell only if it has free volume (0 off, 1 on)
+    Q26=0.5;            // double bed interface: solid fraction threshold relative to 1-S 24
+    Q27=1;              // int number of smoothing passes for the solid volume fraction
+    Q28=100;            // int maximum number of particle sub-steps per fluid time step
+    Q32=-1.0;           // double packed bed: close packing, maximum solid fraction (<0: 1-S 24 + 0.035)
+    Q33=0.05;           // double packed bed: contact pressure coefficient Fr [Pa] (Johnson & Jackson 1987), 0 off
+    Q34=3.0;            // double packed bed: contact pressure exponent eta0
+    Q35=5.0;            // double packed bed: contact pressure exponent eta1
+    Q36=0.63;           // double packed bed: static friction coefficient mu_s
+    Q37=1.13;           // double packed bed: dynamic friction coefficient mu_2
+    Q38=0.6;            // double packed bed: inertial number scale I0
     Q20=-1;             // int iterations between cleanup cycles
     Q22=1.0;            // double absolute spacing
     Q23=1.0;            // double relative spacing in terms of diameter
@@ -876,6 +978,24 @@ void control::ini_default()
     Q30=0.58;           // double friction factor
     Q41=0;              // double default parcel factor
     Q43=0;              // int number of water iteration, before particle transport starts
+    Q45=-1.0;           // double solid fraction of the seeded region, default 1-S 24
+    Q44=0;              // int all parcels fixed (e.g. flow through a fixed bed), 0 off, 1 on
+    Q50=0;              // int fluid coupling of the parcels: 0 one-way, 1 two-way (drag reaction on the fluid, mixture continuity in the pressure equation)
+    Q51=1;              // int drag law: 1 Andrews & O'Rourke (1996), 2 Gidaspow (Ergun below fluid fraction 0.8, Wen & Yu above)
+    Q58=0;              // int sub-grid bedload layer (S 10 1): 0 off (resolved near-bed drag), 1 bedload layer, 2 bedload layer and pickup into the suspension
+    Q59=6.5;            // double bedload layer: grain velocity coefficient, u_b = Q59 sqrt(R g d)(sqrt(theta) - 0.7 sqrt(theta_c))
+    Q60=0.047;          // double bedload layer: critical Shields number theta_c of d50
+    Q62=50.0;           // double bedload layer: mean hop length in grain diameters
+    Q63=10.0;           // double bedload layer: relaxation time [s] of the bed level seen by the fluid
+    Q64=0.6;            // double bedload layer: thickness of the mobile surface layer of the bed in cells, the bed below is jammed
+    Q65=1.0;            // double bedload layer: morphological factor, the pickup into the layer is multiplied by Q 65
+    Q66=0.0;            // double bedload layer: reference height of the bed shear stress in cells above the bed, 0: first cell
+    Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
+    Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
+    Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off
+    Q55=0.0;            // double dilatancy: theta_0(I) = theta_0 - Q55 I in sheared layers (Q 12 2), 0: off
+    Q54=0.0;            // double lift coefficient C_L on the exposed grains (S 10 1 near-bed closure), 0: no lift
+    Q53=1.0;            // double turbulent Schmidt number for Q 52
     Q61=0;              // point source x,y,z, iterations between particles
     Q73=0;              // int relax 
     Q101=0;             // int ini particle as topo
@@ -916,8 +1036,8 @@ void control::ini_default()
     S28=1;              // int use S21 in roughness BC
     S29=0;              // int sediment time step ramp up
     S30=0.047;          // double Shields parameter
-    S31=2;              // int type of Exner formulation
-    S32=1;              // int exner discretization
+    S31=2;              // int Exner formulation: 1 face flux qb*s_face, 2 upwinded cell flux vector qb*s (both conservative), 3 advective s*grad(qb) (not conservative)
+    S32=1;              // int Exner discretisation: 1 FOU, 2 CDS, 4 WENO flux (conservative); 3 CDS-HJ (not conservative with S 31 1), 5 WENO-HJ (not conservative)
     S33=0;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor
@@ -1086,12 +1206,8 @@ void control::ini_default()
     X32=1;        // int 
     X33=1;        // int 
     X34=0;        // int 
-    X37=0;       // int velocity for the NHFLOW ITTC viscous force: 0 fixed distance X43, 1 boundary-layer edge search, 2 reference speed
-    X37_val=6.0; // double X37=1: max. search distance [mean cell sizes], X37=2: reference speed U_ref [m/s]
     X38=0;       // int type of viscous force calculation CFD
-    X39=0;       // int type of viscous force calculation NHFLOW: 1 ITTC-1957 CF(Re_L), 2 local ITTC-consistent cf(Re_x)
-    X39_Lwl=1.0; // double reference (waterline) length for ITTC-1957 friction line [m]
-    X39_k=0.0;   // double form factor k (total viscous resistance = (1+k)*R_F0)
+    X39=0;       // int type of viscous force calculation NHFLOW
     X40=3;		// int type of force calculation
 	X41=0.6;    // double eps for continuous forcing heaviside
 	X42=0.0;    // double distance for pressure force evaluation
@@ -1173,6 +1289,7 @@ void control::ini_default()
     X325_dt=0.001;   // double dynamic net time step
     X324=0;     // int number of nets
     X330=0;     // int impermeable membranes, geometry in membrane.dat
+    X350=0;     // int ship module, parameters in ship.dat
 	X325_relX=X325_relY=X325_relZ=0.01; // double dynamic net relaxation factors
 	X400=0;         // sflow external pressure term
     X401_p0=0.0;    // sflow external pressure term p0
@@ -1180,6 +1297,19 @@ void control::ini_default()
     X401_cb=16.0;   // sflow external pressure term cb
     X401_a=16.0;    // sflow external pressure term a
     X410=0;         // int etaval for draft
+    X500=0;         // int PTO: 0 off, 1 explicit, 2 linearly implicit coupling
+    X501=0;         // int PTO joint attachment point given
+    X501_ax=X501_ay=0.0; // double PTO joint axis
+    X501_az=1.0;
+    X501_xa=X501_ya=X501_za=0.0; // double PTO joint attachment point, default CoG
+    X502=0;         // int PTO linear damper
+    X502_B=0.0;     // double damping coefficient [N s/m]
+    X503=0;         // int PTO spring-damper
+    X503_K=X503_B=0.0; // double stiffness [N/m], damping [N s/m]
+    X504=0;         // int PTO end-stops
+    X504_qmin=-1.0e20; // double lower stroke limit [m]
+    X504_qmax=1.0e20;  // double upper stroke limit [m]
+    X504_K=X504_C=0.0; // double end-stop stiffness [N/m], damping [N s/m]
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model
@@ -1197,7 +1327,10 @@ void control::ini_default()
 
 	// FSI
 	Z10=0;		// int turn FSI on
+    Z11=0;      // int number of FSI beams (counted in read_control)
     Z12_ckx=Z12_cky=Z12_ckz=Z12_cdx=Z12_cdy=Z12_cdz=0.0;   // double fsi beam structural damping coefficients
     Z20=0;          // int flexible rod trees (soft corals, vegetation), 1: unresolved coupling, input rodtree.dat
     Z21=0.0;        // double rod-tree VTP print interval [s], 0: off
+    Z30=0;          // int FEM solid structures (elastic, plastic, concrete damage, collapse), 1: coupling with CFD or NHFLOW, input fem.dat
+    Z31=0.0;        // double FEM VTU print interval [s], 0: off
 }

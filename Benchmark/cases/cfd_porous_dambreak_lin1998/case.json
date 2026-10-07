@@ -1,0 +1,63 @@
+{
+ "description": "Dam break through a porous dam of crushed rock (Lin 1998; Liu et al. 1999): reservoir 0.29 m long and 0.35 m deep, 25 mm water downstream, porous dam at x = 0.30-0.59 m (n = 0.49, d50 = 15.9 mm), CFD with VRANS (B 270, alpha = 500, beta = 2.0, added mass 0.34), set-up of the olaFlow tutorial CR35_dambreak. Free-surface profiles at t = 0.35 ... 1.95 s against the measured profiles.",
+ "reference": {
+  "short": "Lin (1998), Liu et al. (1999)",
+  "citation": "Lin, P. (1998) Numerical modeling of breaking waves. PhD thesis, Cornell University; Liu, P.L.-F., Lin, P., Chang, K.-A. & Sakakiyama, T. (1999) Numerical modeling of wave interaction with porous structures. J. Waterway, Port, Coastal, Ocean Eng. 125, 322-330. Digitised profiles from the olaFlow tutorial CR35_dambreak, see refdata/PROVENANCE_git_sources.md"
+ },
+ "tags": [
+  "cfd",
+  "experiment",
+  "2dv",
+  "two-phase",
+  "porous"
+ ],
+ "np": 2,
+ "time": 2.0,
+ "check": {
+  "type": "profiles_abs",
+  "h_ref": 0.35,
+  "t_tol": 0.03,
+  "tol": 0.12,
+  "profiles": [
+   [
+    0.35,
+    "porous/lin1998/lin1998_CR35_t0.35s.dat"
+   ],
+   [
+    0.75,
+    "porous/lin1998/lin1998_CR35_t0.75s.dat"
+   ],
+   [
+    1.15,
+    "porous/lin1998/lin1998_CR35_t1.15s.dat"
+   ],
+   [
+    1.55,
+    "porous/lin1998/lin1998_CR35_t1.55s.dat"
+   ],
+   [
+    1.95,
+    "porous/lin1998/lin1998_CR35_t1.95s.dat"
+   ]
+  ],
+  "note": "VRANS coefficients alpha = 500, beta = 2.0 as in the REEF3D regression case; olaFlow's tutorial uses a = 50, b = 2.0 in its own formulation"
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "control_set": {
+    "B 1": "0.01",
+    "B 10": "0.0 0.89 0.0 0.01 0.0 0.58",
+    "M 10": "1"
+   },
+   "ctrl_set": {
+    "M 10": "1",
+    "P 52": "0.005"
+   },
+   "check_set": {
+    "tol": 0.15
+   }
+  },
+  "release": {}
+ }
+}

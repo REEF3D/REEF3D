@@ -42,6 +42,11 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     geobed=nullptr;
     net_count=0;
     mooring_count=0;
+    for(int n=0; n<8; ++n)
+    gcbl_count[n]=-2;
+
+    // iowave Riemann / Flather edges: set by iowave on the base grid only (AMR patch grids have none)
+    open_xm=open_xp=open_ym=open_yp=0;
 }
 
 lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this), cmu(0.09)
@@ -74,6 +79,11 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
     lsmtime=0.0;
     solver_error=0;
     wenofunc=nullptr;
+    for(int n=0; n<8; ++n)
+    gcbl_count[n]=-2;
+
+    // iowave Riemann / Flather edges: set by iowave on the base grid only (AMR patch grids have none)
+    open_xm=open_xp=open_ym=open_yp=0;
 }
 
 lexer::~lexer()

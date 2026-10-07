@@ -49,6 +49,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     Pk_b_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
     inflow(p,d,pgc);
+    wetting_ini(p,d,KN,EN,true);   // newly wetted columns start from the wet neighbours
 
 //kin
     starttime=pgc->timer();
@@ -60,8 +61,10 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     bckomega_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
+    if(p->A566==1)   // buoyancy sink: keep k >= 0 also against the explicit convection
+    LOOP
+    KIN[IJK] = MAX(KIN[IJK],0.0);
     pgc->start20V(p,KIN,gcval_kin);
-    kinupdate(p,d,pgc);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
@@ -79,6 +82,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
     //bckomega_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
+    length_limit(p,d,true);   // l <= kappa h (A 564 >= 1)
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;
@@ -86,9 +90,15 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
     eddyvisc(p,d,pgc,pvrans);
+    // relaxation zones: k and both eddy viscosities with the same factor (omega = eps/(cmu k) is unchanged),
+    // then d->KIN (was copied before the relaxation)
     pflow->turb_relax_nhflow(p,d,pgc,KIN);
     pflow->turb_relax_nhflow(p,d,pgc,d->EV);
+    pflow->turb_relax_nhflow(p,d,pgc,d->EV0);
+    pgc->start20V(p,KIN,gcval_kin);
+    kinupdate(p,d,pgc);
     pgc->start24V(p,d->EV,24);
+    pgc->start24V(p,d->EV0,24);
 }
 
 void nhflow_komega_IM1::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)

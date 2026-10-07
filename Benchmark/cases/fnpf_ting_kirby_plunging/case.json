@@ -1,0 +1,42 @@
+{
+ "description": "Plunging breaker of Ting & Kirby (1995): cnoidal waves H = 0.128 m, T = 5 s on a 1:35 slope, FNPF with the viscosity breaking model (tutorial 9_3 at its resolution dx = 0.05 m, Dirichlet generation). Breaking point = location of the maximum wave height from 101 gauges between x = 8 and 18 m, against the measured breaking point x_b = 7.795 m from the x = 0 station (d = 0.38 m, here x = 6.50 m).",
+ "reference": {
+  "short": "Ting & Kirby (1995)",
+  "citation": "Ting, F.C.K. & Kirby, J.T. (1995) Dynamics of surf-zone turbulence in a strong plunging breaker. Coastal Engineering 24, 177-204 (plunging case H = 0.128 m, T = 5 s, 1:35 slope); breaking point x_b = 7.795 m from Derakhti et al. (2016) Table 1, see refdata/waves/ting_kirby_breaking/setup.txt"
+ },
+ "tags": [
+  "fnpf",
+  "experiment",
+  "2dv",
+  "breaking"
+ ],
+ "np": 2,
+ "time": 100.0,
+ "check": {
+  "type": "breaking_point",
+  "x_b": 7.795,
+  "x_offset": 6.5,
+  "t_start": 70.0,
+  "t_end": 100.0,
+  "tol": 0.4
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "time": 70.0,
+   "control_set": {
+    "M 10": "1"
+   },
+   "ctrl_set": {
+    "M 10": "1"
+   },
+   "check_set": {
+    "t_start": 45.0,
+    "t_end": 70.0,
+    "tol": 0.8
+   }
+  },
+  "release": {}
+ },
+ "xfail": "on hans_dev ff1bb68 (dx = 0.05 m, tutorial resolution) the maximum wave height is reached at x = 12.4 m (d = 0.21 m, H = 0.20 m), 1.9 m before the measured breaking point (d = 0.157 m); with dx = 0.025 m the run stops at t = 91 s (N 61 velocity limit) after the wave train becomes irregular at t ~ 75 s"
+}

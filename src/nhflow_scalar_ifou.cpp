@@ -44,37 +44,37 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
     return;
     }
     
+    if(advective==2)
+    {
+    start_conservative(p,d,F,ipol,U,V,W);
+    return;
+    }
+    
+    // conservative form: (F_i+1/2 - F_i-1/2)/dx_i with the upwind value per face (as ifou); was one direction
+    // per cell and the width of the upstream cell for positive flow (not conservative on stretched grids)
     count=0;
     LOOP
     {
-    udir=vdir=wdir=0.0;
-    
     padvec->uadvec(ipol,U,ivel1,ivel2);
     padvec->vadvec(ipol,V,jvel1,jvel2);
     padvec->wadvec(ipol,W,kvel1,kvel2);
-
-	if(0.5*(ivel1+ivel2)>=0.0)
-    udir=1.0;
     
-    if(0.5*(jvel1+jvel2)>=0.0)
-    vdir=1.0;
-    
-    if(0.5*(kvel1+kvel2)>=0.0)
-    wdir=1.0;
+    const double dxc = p->DXN[IP];
+    const double dyc = p->DYN[JP];
+    const double dzc = p->DZN[KP]*(p->WL[IJ]>1.0e-20?p->WL[IJ]:1.0e20);
 
+	 d->M.p[count] =    (MAX(ivel2,0.0) - MIN(ivel1,0.0))/dxc
+					+ (MAX(jvel2,0.0) - MIN(jvel1,0.0))/dyc*p->y_dir
+					+  (MAX(kvel2,0.0) - MIN(kvel1,0.0))/dzc;
 	 
-	 d->M.p[count] =    udir*ivel2/p->DXN[IM1] - (1.0-udir)*ivel1/p->DXN[IP]
-					+ (vdir*jvel2/p->DYN[JM1] - (1.0-vdir)*jvel1/p->DYN[JP])*p->y_dir
-					+  wdir*kvel2/(p->DZN[KM1]*p->WL[IJ]) - (1.0-wdir)*kvel1/(p->DZN[KP]*p->WL[IJ]);
+	 d->M.s[count] = -MAX(ivel1,0.0)/dxc;
+	 d->M.n[count] =  MIN(ivel2,0.0)/dxc;
 	 
-	 d->M.s[count] = -udir*ivel1/p->DXN[IM1];
-	 d->M.n[count] =  (1.0-udir)*ivel2/p->DXN[IP];
+	 d->M.e[count] = -MAX(jvel1,0.0)/dyc*p->y_dir;
+	 d->M.w[count] =  MIN(jvel2,0.0)/dyc*p->y_dir;
 	 
-	 d->M.e[count] = -vdir*jvel1/p->DYN[JM1]*p->y_dir;
-	 d->M.w[count] =  (1.0-vdir)*jvel2/p->DYN[JP]*p->y_dir;
-	 
-	 d->M.b[count] = -wdir*kvel1/(p->DZN[KM1]*p->WL[IJ]);
-	 d->M.t[count] =  (1.0-wdir)*kvel2/(p->DZN[KP]*p->WL[IJ]);
+	 d->M.b[count] = -MAX(kvel1,0.0)/dzc;
+	 d->M.t[count] =  MIN(kvel2,0.0)/dzc;
      
 	 ++count;
     }
@@ -120,6 +120,77 @@ void nhflow_scalar_ifou::start_advective(lexer* p, fdm_nhf *d, double *F, int ip
 	 
 	 d->M.b[count] = -wp1/dzc;
 	 d->M.t[count] =  wm2/dzc;
+     
+	 ++count;
+    }
+}
+
+void nhflow_scalar_ifou::start_conservative(lexer* p, fdm_nhf *d, double *F, int ipol, double *U, double *V, double *W)
+{
+    // Implicit first-order upwind for the conservative (in D) scalar equation in sigma coordinates:
+    //   d(D F)/dt + d(D u F)/dx|s + d(D v F)/dy|s + d(W F)/ds = ...
+    // W is the vertical volume flux through the sigma faces (D*ds/dt, e.g. omegaF - ws), [m/s].
+    // One flux per face, evaluated identically by both cells sharing it -> fluxes cancel in the domain sum.
+    // Horizontal fluxes: the continuity fluxes of the flow solver (FEx, FEy = D u per layer, from which
+    // omegaF is built), so the scheme is consistent with the depth change of the flow step, walls give
+    // zero flux and inflow/outflow boundaries stay open.
+    // Coefficients are divided by the cell depth D_p, the unknown stays F; the time term of the
+    // calling class has to supply the depth ratio D^n/D^(n+1) (geometric conservation).
+    // Closed faces: bed and free surface (bed exchange as a source), dry or solid neighbours.
+    double qx1,qx2,qy1,qy2,qz1,qz2;
+    double hp;
+    double dxc,dyc,dzc;
+    
+    count=0;
+    LOOP
+    {
+    padvec->uadvec(ipol,U,ivel1,ivel2);
+    padvec->vadvec(ipol,V,jvel1,jvel2);
+    padvec->wadvec(ipol,W,kvel1,kvel2);
+    
+    hp = MAX(d->WL(i,j),1.0e-20);
+    
+    qx1 = d->FEx[Im1JK];
+    qx2 = d->FEx[IJK];
+    qy1 = d->FEy[IJm1K];
+    qy2 = d->FEy[IJK];
+    qz1 = kvel1;
+    qz2 = kvel2;
+    
+    if(p->wet[Im1J]==0 || p->DF[Im1JK]<0)
+    qx1 = 0.0;
+    
+    if(p->wet[Ip1J]==0 || p->DF[Ip1JK]<0)
+    qx2 = 0.0;
+    
+    if(p->wet[IJm1]==0 || p->DF[IJm1K]<0)
+    qy1 = 0.0;
+    
+    if(p->wet[IJp1]==0 || p->DF[IJp1K]<0)
+    qy2 = 0.0;
+    
+    if(k==0)
+    qz1 = 0.0;
+    
+    if(k==p->knoz-1)
+    qz2 = 0.0;
+    
+    dxc = hp*p->DXN[IP];
+    dyc = hp*p->DYN[JP];
+    dzc = hp*p->DZN[KP];
+    
+	 d->M.p[count] =    (MAX(qx2,0.0) - MIN(qx1,0.0))/dxc
+					+  ((MAX(qy2,0.0) - MIN(qy1,0.0))/dyc)*p->y_dir
+					+   (MAX(qz2,0.0) - MIN(qz1,0.0))/dzc;
+	 
+	 d->M.s[count] = -MAX(qx1,0.0)/dxc;
+	 d->M.n[count] =  MIN(qx2,0.0)/dxc;
+	 
+	 d->M.e[count] = -MAX(qy1,0.0)/dyc*p->y_dir;
+	 d->M.w[count] =  MIN(qy2,0.0)/dyc*p->y_dir;
+	 
+	 d->M.b[count] = -MAX(qz1,0.0)/dzc;
+	 d->M.t[count] =  MIN(qz2,0.0)/dzc;
      
 	 ++count;
     }

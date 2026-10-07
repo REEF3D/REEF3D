@@ -29,13 +29,10 @@ Author: Fabian Knoblauch
 
 #include"convection.h"
 #include"solver.h"
-#include"ghostcell.h"
 #include"ioflow.h"
 #include"fluid_update_vof.h"
 #include"heat.h"
 #include"hires.h"
-#include"weno_hj.h"
-#include"hric.h"
 
 void VOF_PLIC::reconstructPlane_alt(fdm* a, lexer* p, field& voffield)
 {

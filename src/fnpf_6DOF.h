@@ -37,6 +37,7 @@ class fnpf_fsf;
 class fnpf_bed_update;
 class fnpf_fsf_update;
 class sixdof_obj;
+class sixdof_obj_fnpf;
 class slice;
 class fnpf_amr;
 
@@ -94,6 +95,7 @@ public:
     void initialize(lexer*, fdm_fnpf*, ghostcell*) override;
     void stage(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int) override;
     void surface(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&, int, int) override;
+    void velocity(lexer*, fdm_fnpf*, ghostcell*) override;
     fnpf_laplace* laplace(fnpf_laplace*) override;
     
     // mesh refinement (fnpf_amr)
@@ -115,6 +117,7 @@ public:
 private:
     void geometry(fnpf_6DOF_grid&, ghostcell*);
     void extrapolate(fnpf_6DOF_grid&, ghostcell*, double*);
+    void body_velocities(fnpf_6DOF_grid&, ghostcell*);
     void ini(lexer*, fdm_fnpf*, ghostcell*);
     void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
     void forces_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
@@ -127,7 +130,7 @@ private:
     void free_grid(fnpf_6DOF_grid&);
     bool amr_on() const;
     
-    vector<sixdof_obj*> fb_obj;
+    vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;
     int gcval;
     double *psi0;

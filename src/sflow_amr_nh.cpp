@@ -152,7 +152,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc)
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
 
-            if(l<maxlev && patch_at(l+1,2*I,2*J)>=0)
+            if(l<maxlev && covered(l+1,2*I,2*J))
             {
                 (*G.act)[c] = -1;
                 continue;
@@ -230,28 +230,23 @@ void sflow_amr::nh_prepare(ghostcell *pgc)
     }
 }
 
-// covered cells: average of their children, finest first
+// covered cells: average of their children, finest first (the parent may lie on another rank)
 void sflow_amr::nh_restrict_vec(int k)
 {
     for(int l=maxlev; l>=1; --l)
-    for(int n : lev[l])
-    {
-        sflow_amr_patch *c = SP(n);
-        slice &x = nh_vec(n,k);
-        const int nby = c->ny/2;
-
-        for(int bi=0; bi<c->nx/2; ++bi)
-        for(int bj=0; bj<nby; ++bj)
-        {
-            int kk = bi*nby+bj;
-            int g = c->rgrid[kk];
-            if(g<-1)
-            continue;
-
-            int i0 = EXT+2*bi, j0 = EXT+2*bj;
-            nh_vec(g,k)(c->ric[kk],c->rjc[kk]) = 0.25*(x(i0,j0)+x(i0+1,j0)+x(i0,j0+1)+x(i0+1,j0+1));
-        }
-    }
+    block_up(l,1,7040+l,
+             [&](reefamr_patch *q, int n, int kk, double *v)
+             {
+                 sflow_amr_patch *c = SP(q);
+                 slice &x = nh_vec(n,k);
+                 const int nby = c->ny/2;
+                 const int i0 = EXT+2*(kk/nby), j0 = EXT+2*(kk%nby);
+                 v[0] = 0.25*(x(i0,j0)+x(i0+1,j0)+x(i0,j0+1)+x(i0+1,j0+1));
+             },
+             [&](const reefamr_block &B, int key, const double *v)
+             {
+                 nh_vec(B.g,k)(B.ic,B.jc) = v[0];
+             });
 }
 
 // value of a filled cell: sibling copy or linear interpolation of the coarser level
@@ -440,34 +435,39 @@ void sflow_amr::nh_prec(int kr, int kz)
 
     for(int l=1; l<=maxlev; ++l)
     {
-        // coarse correction interpolated into the patch interior, then the cells around it
+        // coarse correction interpolated into the patch interior (from the parent of every 2x2
+        // block, on its rank), then the cells around it; blocks without a parent get 0
         for(int n : lev[l])
         {
             sflow_amr_patch *c = SP(n);
             slice &z = nh_vec(n,kz);
-            const int nby = c->ny/2;
-
-            for(int bi=0; bi<c->nx/2; ++bi)
-            for(int bj=0; bj<nby; ++bj)
-            {
-                int kk = bi*nby+bj;
-                int g = c->rgrid[kk];
-                for(int a=0;a<2;++a)
-                for(int d=0;d<2;++d)
-                {
-                    int ii=EXT+2*bi+a, jj=EXT+2*bj+d;
-                    if(g<-1)
-                    {
-                        z(ii,jj) = 0.0;
-                        continue;
-                    }
-                    reefamr_fill f;
-                    f.kind=1; f.g=g; f.si=c->ric[kk]; f.sj=c->rjc[kk];
-                    f.ox = a==0 ? -1 : 1; f.oy = d==0 ? -1 : 1;
-                    z(ii,jj) = nh_eval(f,kz);
-                }
-            }
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            z(ii,jj) = 0.0;
         }
+
+        block_down(l,4,7060+l,
+                   [&](const reefamr_block &B, int key, double *v)
+                   {
+                       for(int a=0;a<2;++a)
+                       for(int d=0;d<2;++d)
+                       {
+                           reefamr_fill f;
+                           f.kind=1; f.g=B.g; f.si=B.ic; f.sj=B.jc;
+                           f.ox = a==0 ? -1 : 1; f.oy = d==0 ? -1 : 1;
+                           v[2*a+d] = nh_eval(f,kz);
+                       }
+                   },
+                   [&](reefamr_patch *q, int n, int kb, const double *v)
+                   {
+                       sflow_amr_patch *c = SP(q);
+                       slice &z = nh_vec(n,kz);
+                       const int nby = c->ny/2;
+                       const int bi = kb/nby, bj = kb%nby;
+                       for(int a=0;a<2;++a)
+                       for(int d=0;d<2;++d)
+                       z(EXT+2*bi+a,EXT+2*bj+d) = v[2*a+d];
+                   });
 
         nh_qfill(l,kz);
 

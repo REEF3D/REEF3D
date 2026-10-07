@@ -38,7 +38,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"6DOF_header.h"
 #include"FSI_header.h"
 #include"waves_header.h"
-#include"lexer.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -97,8 +96,11 @@ void driver::driver_ini_cfd()
     // Sediment
 	if(p->S10>0)
     {
-        if(p->Q10==2)
+        if(p->Q10>=1)
+        {
             psed->ini_cfd(p,a,pgc);
+            psed->update_cfd(p,a,pgc,pflow,preto);
+        }
         else
         {
             psed->ini_cfd(p,a,pgc);
@@ -196,7 +198,7 @@ void driver::driver_ini_cfd()
     {
 	pini->stateini(p,a,pgc,pturb,psed);
     
-    if(p->S10==1||(p->Q10==2&&p->S10==2))
+    if(p->S10==1||(p->Q10>=1 && p->S10==2))
     psed->ini_cfd(p,a,pgc);
     }
 

@@ -1,0 +1,24 @@
+{
+ "description": "As nhflow_2d_fem_debris_impact on 2 MPI ranks (x decomposition: the subdomain boundary lies at the post, the probes of the block reach across it).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 500,
+ "files": [
+  "fem.dat"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "fem",
+  "fsi",
+  "debris",
+  "impact",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "owner-rank sampling and one reduction per stage in NHFLOW",
+  "spreading onto the own cells of each rank, ghost-cell exchange by nhflow_forcing",
+  "solid marking with the halo of p->DF"
+ ]
+}

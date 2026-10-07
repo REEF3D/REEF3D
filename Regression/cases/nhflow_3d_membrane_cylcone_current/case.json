@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 3D fixed membrane bag 'membrane cylcone' (cylinder on a cone, Strand et al. 2013 closed cage at model scale) in a current: discharge inflow B60=1 with potential-flow start (I11=1), HLLC (A511=2), sloped cone floor in the static floor pressure (floorpressure 0). Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "files": ["membrane.dat"],
+ "tags": ["3d", "nhflow", "membrane", "current", "mpi"],
+ "covers": ["net_membrane cylcone mesh", "floor_geometry sloped floor (zfx/zfy)", "static_pressure_nhflow slope term", "HLLC membrane mobility"]
+}

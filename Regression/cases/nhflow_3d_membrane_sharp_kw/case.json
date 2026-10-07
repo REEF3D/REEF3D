@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 3D fixed membrane bag 'membrane cylcone' in a current with 'mobility sharp' and k-omega (A560=2): the faces at the fabric are walls of the turbulence model (wall functions, nhflow_wall.h), zero gradient across the fabric in the implicit diffusion of momentum, k and omega, wall friction. Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "files": ["membrane.dat"],
+ "tags": ["3d", "nhflow", "membrane", "current", "turbulence", "mpi"],
+ "covers": ["nhflow_thinbody wall_faces / matrix_walls", "nhflow_turb_wall thin bodies", "nhflow_bcmom thin-body friction"]
+}

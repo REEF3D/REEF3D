@@ -30,7 +30,6 @@ class ghostcell;
 class field;
 class vec;
 class matrix_diag;
-class cpt;
 
 using namespace std;
 

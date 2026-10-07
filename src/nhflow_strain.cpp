@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_strain.h"
+#include"nhflow_wall.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -39,34 +40,16 @@ nhflow_strain::~nhflow_strain()
 
 void nhflow_strain::wallf_update(lexer *p, fdm_nhf *d, ghostcell *pgc, int *WALLF)
 {
+    double dist,ks,ut;
+    
 	LOOP
 	WALLF[IJK]=0;
     
+    // wall cells: production and dissipation come from the wall function there (nhflow_wall.h:
+    // the bed always, side and top walls with A519 2, none with B11 0)
     LOOP
-    if(p->DF[IJK]>0)
-    {  
-        // x: a boundary ghost cell is a wall unless it is an inflow/outflow cell
-        if((p->flag4[Im1JK]<0 && p->IO[Im1JK]==0)  || p->DF[Im1JK]<0)
-        WALLF[IJK]=1;
-
-        if((p->flag4[Ip1JK]<0  && p->IO[Ip1JK]==0)  || p->DF[Ip1JK]<0)
-        WALLF[IJK]=1;
-
-        // y: only in 3D; in 2D the y-ghost cells carry flag4<0 and would mark every cell as a wall cell
-        if(p->j_dir==1)
-        if((p->flag4[IJm1K]<0 && p->IO[IJm1K]==0) || p->DF[IJm1K]<0)
-        WALLF[IJK]=1;
-
-        if(p->j_dir==1)
-        if((p->flag4[IJp1K]<0 && p->IO[IJp1K]==0) || p->DF[IJp1K]<0)
-        WALLF[IJK]=1;
-        
-        if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
-        WALLF[IJK]=1;
-
-        if((p->flag4[IJKp1]<0 || p->DF[IJKp1]<0) && k!=p->knoz-1)
-        WALLF[IJK]=1;
-    }
+    if(nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1)
+    WALLF[IJK]=1;
 }
 
 void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)

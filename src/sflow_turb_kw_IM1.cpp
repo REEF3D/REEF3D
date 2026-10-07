@@ -30,10 +30,10 @@ Author: Hans Bihs
 #include"sflow_ifou.h"
 
 
-#define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
+#define HP (fabs(b->hp(i,j))>(p->A244)?b->hp(i,j):1.0e20)
 
 sflow_turb_kw_IM1::sflow_turb_kw_IM1(lexer* p) : sflow_turb_io(p), kn(p), wn(p), Pk(p), S(p), ustar(p), cf(p),
-                                                 wallf(p), Vw(p), Qw(p),
+                                                 Vw(p), Qw(p),
                                                  kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     gcval_kin=20;
@@ -84,6 +84,11 @@ void sflow_turb_kw_IM1::start(lexer *p, fdm2D *b, ghostcell *pgc, sflow_convecti
 	cout<<"omega_iter: "<<p->epsiter<<"  omega_time: "<<setprecision(3)<<p->epstime<<endl;
 
 	eddyvisc(p,b,pgc);
+    
+    SLICELOOP4
+    b->kin(i,j) = kin(i,j);
+    
+    pgc->gcsl_start4(p,b->kin,gcval_kin);
 }
 
 void sflow_turb_kw_IM1::ktimesave(lexer* p, fdm2D *b, ghostcell *pgc)
@@ -102,8 +107,16 @@ void sflow_turb_kw_IM1::eddyvisc(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     SLICELOOP4
     b->eddyv(i,j) = MAX(MIN(MAX(kin(i,j)
-                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/S(i,j)),
+                        /((eps(i,j))>(1.0e-20)?(eps(i,j)):(1.0e20)),0.0),fabs(p->T31*kin(i,j))/(S(i,j)>1.0e-20?S(i,j):1.0e-20)),
                         0.0001*p->W2);
+    
+    SLICELOOP4
+    if(p->wet[IJ]==0)
+    {
+    kin(i,j) = 0.0;
+    eps(i,j) = 0.0;
+    b->eddyv(i,j) = 0.0;
+    }
 
 	pgc->gcsl_start4(p,b->eddyv,24);
 }
@@ -113,10 +126,8 @@ void sflow_turb_kw_IM1::kin_source(lexer* p, fdm2D *b)
     count=0;
     SLICELOOP4
     {
-    if(wallf(i,j)==0)
     b->M.p[count] +=  p->cmu * MAX(eps(i,j),0.0);
     
-    if(wallf(i,j)==0)
 	b->rhsvec.V[count]  += Pk(i,j)
                     
                         + (1.0/sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))*pow(ustar(i,j),3.0)/HP;
@@ -134,7 +145,9 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
 
     b->rhsvec.V[count] +=   kw_alpha * (MAX(eps(i,j),0.0)/(kin(i,j)>(1.0e-10)?(fabs(kin(i,j))):(1.0e20)))*Pk(i,j)
     
-                       + (3.456/(pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,1.0)) * (pow(ustar(i,j),4.0)/(HP*HP));
+                       // depth-averaged bed source P_wv = beta*omega_eq^2 = ceg^2*beta/(cmu*sqrt(cf)) * u*^2/h^2,
+                       // from the Rastogi-Rodi equilibrium (ceg = A264, as in sflow_turb_ke_IM1) with omega = eps/(cmu k)
+                       + (pow(p->A264,2.0)*kw_beta/(p->cmu*sqrt(fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20))) * (pow(ustar(i,j),2.0)/(HP*HP));
                        
                        //+ (ceg*ce2/pow((fabs(cf(i,j))>1.0e-20?cf(i,j):1.0e20),0.75))*pow(p->cmu,0.5)*pow(ustar(i,j),4.0)/(HP*HP);
     ++count;
@@ -145,6 +158,7 @@ void sflow_turb_kw_IM1::omega_source(lexer* p, fdm2D *b)
 void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
 {
     double dudx,dvdy,dudy,dvdx;
+    double uc,up,um,vc,vp,vm;
     
     SLICELOOP4
     {
@@ -153,8 +167,19 @@ void sflow_turb_kw_IM1::Pk_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     dudx = (b->P(i,j) - b->P(i-1,j))/(p->DXM);
     dvdy = (b->Q(i,j) - b->Q(i,j-1))/(p->DXM);
-    dudy = (0.5*(b->P(i,j+1)+b->P(i-1,j+1)) - 0.5*(b->P(i,j-1)+b->P(i-1,j-1)))/(2.0*p->DXM);
-    dvdx = (0.5*(b->Q(i+1,j)+b->Q(i+1,j-1)) - 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1)))/(2.0*p->DXM);
+    // cross derivatives: walls (free-slip in SFLOW momentum), open boundaries and dry neighbours
+    // are treated as zero-gradient (mirror) instead of no-slip; no y-derivatives in 1D (as sflow_turb_ke_IM1)
+    uc = 0.5*(b->P(i,j)+b->P(i-1,j));
+    up = (p->flagslice4[IJp1]<0 || p->wet[IJp1]==0) ? uc : 0.5*(b->P(i,j+1)+b->P(i-1,j+1));
+    um = (p->flagslice4[IJm1]<0 || p->wet[IJm1]==0) ? uc : 0.5*(b->P(i,j-1)+b->P(i-1,j-1));
+    dudy = (up - um)/(2.0*p->DXM)*p->y_dir;
+    
+    vc = 0.5*(b->Q(i,j)+b->Q(i,j-1));
+    vp = (p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0) ? vc : 0.5*(b->Q(i+1,j)+b->Q(i+1,j-1));
+    vm = (p->flagslice4[Im1J]<0 || p->wet[Im1J]==0) ? vc : 0.5*(b->Q(i-1,j)+b->Q(i-1,j-1));
+    dvdx = (vp - vm)/(2.0*p->DXM)*p->y_dir;
+    
+    dvdy *= p->y_dir;
 
     Pk(i,j) = b->eddyv(i,j)*(2.0*pow(dudx,2.0) + 2.0*pow(dvdy,2.0) + pow(dudy+dvdx,2.0));
     
@@ -172,29 +197,17 @@ void sflow_turb_kw_IM1::ustar_update(lexer* p, fdm2D *b, ghostcell *pgc)
     
     SLICELOOP4
     {
-    uvel = 0.5*(b->P(i,j) + b->P(i-1,j));
-    vvel = 0.5*(b->Q(i,j) + b->Q(i,j-1));
+    uvel = b->U(i,j);   // cell-centred velocity, as sflow_rough_manning (face averages are halved next to dry cells)
+    vvel = b->V(i,j);
     
-    manning = pow(b->ks(i,j),1.0/6.0)/26.0;
+    manning = pow(b->ks(i,j),1.0/6.0)/20.0;   // same as sflow_rough_manning
     
-    cf(i,j) = pow(manning,2.0)*9.81/pow(HP,1.0/3.0);
+    cf(i,j) = pow(manning,2.0)*fabs(p->W22)/pow(HP,1.0/3.0);
     
     ustar(i,j) = sqrt(cf(i,j)*(uvel*uvel + vvel*vvel));
     }
     
     
-    int n;
-	SLICELOOP4
-	wallf(i,j)=0;
-	
-	GCSL4LOOP
-	if(p->gcbsl4[n][4]==21)
-	{
-	i = p->gcbsl4[n][0];
-	j = p->gcbsl4[n][1];
-	
-	wallf(i,j)=1;
-	}
 }
 
 void sflow_turb_kw_IM1::timesource(lexer* p, fdm2D *b, slice &fn)
@@ -226,65 +239,56 @@ void sflow_turb_kw_IM1::clearrhs(lexer* p, fdm2D *b)
 // ****************************
 void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
 {
-    double uvel,vvel;
-    double dist=0.5*p->DXM;
-    double u_abs,uplus,tau,kappa;
-    kappa=0.4;
-    
-    n=0;
-	SLICELOOP4
-	{
-        uvel=0.5*(b->P(i,j)+b->P(i-1,j));
-
-        vvel=0.5*(b->Q(i,j)+b->Q(i,j-1));
-
-        u_abs = sqrt(uvel*uvel + vvel*vvel);
-
-		if(30.0*dist<b->ks(i,j))
-		dist=b->ks(i,j)/30.0;
-
-		uplus = (1.0/kappa)*log(30.0*(dist/b->ks(i,j)));
-
-        tau=(u_abs*u_abs)/pow((uplus>0.0?uplus:(1.0e20)),2.0);
-    
-    
-		if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
-		{
-		b->M.p[n] += (pow(p->cmu,0.75)*pow(fabs(kin(i,j)),0.5)*uplus)/dist;
-        b->rhsvec.V[n] += (tau*u_abs)/dist;
-		}
-		
-	++n;
-	}
+    // SFLOW side walls are free-slip in the momentum equations (sflow_momentum_func), so they get
+    // zero-gradient k and omega without wall functions, as in sflow_turb_ke_IM1
     
     
     n=0;
 	SLICELOOP4
 	{
-		if(p->flagslice4[Im1J]<0)
+        if(p->wet[IJ]==1)
+        {
+		if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
 		{
         b->rhsvec.V[n] -= b->M.s[n]*kin(i,j);
 		b->M.s[n] = 0.0;
 		}
         
-        if(p->flagslice4[Ip1J]<0)
+        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
 		{
         b->rhsvec.V[n] -= b->M.n[n]*kin(i,j);
 		b->M.n[n] = 0.0;
 		}
         
-        if(p->flagslice4[IJm1]<0)
+        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
 		{
         b->rhsvec.V[n] -= b->M.e[n]*kin(i,j);
 		b->M.e[n] = 0.0;
 		}
         
-        if(p->flagslice4[IJp1]<0)
+        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
 		{
         b->rhsvec.V[n] -= b->M.w[n]*kin(i,j);
 		b->M.w[n] = 0.0;
 		}
+        }
 		
+	++n;
+	}
+    
+    // dry cells: identity rows
+    n=0;
+    SLICELOOP4
+	{
+        if(p->wet[IJ]==0)
+        {
+        b->M.p[n] = 1.0;
+        b->M.n[n] = 0.0;
+        b->M.s[n] = 0.0;
+        b->M.w[n] = 0.0;
+        b->M.e[n] = 0.0;
+        b->rhsvec.V[n] = 0.0;
+        }
 	++n;
 	}
 
@@ -293,40 +297,54 @@ void sflow_turb_kw_IM1::wall_law_kin(lexer* p, fdm2D *b)
 void sflow_turb_kw_IM1::wall_law_omega(lexer* p, fdm2D *b)
 {
 
-    double dist=0.5*p->DXM;
-    
-    SLICELOOP4
-    if(p->flagslice4[Im1J]<0 || p->flagslice4[Ip1J]<0 || p->flagslice4[IJm1]<0 || p->flagslice4[IJp1]<0)
-    eps(i,j) = pow((kin(i,j)>(0.0)?(kin(i,j)):(0.0)),0.5) / (0.4*dist*pow(p->cmu, 0.25));
     
     
     n=0;
 	SLICELOOP4
 	{
-		if(p->flagslice4[Im1J]<0)
+        if(p->wet[IJ]==1)
+        {
+		if(p->flagslice4[Im1J]<0 || p->wet[Im1J]==0)
 		{
         b->rhsvec.V[n] -= b->M.s[n]*eps(i,j);
 		b->M.s[n] = 0.0;
 		}
         
-        if(p->flagslice4[Ip1J]<0)
+        if(p->flagslice4[Ip1J]<0 || p->wet[Ip1J]==0)
 		{
         b->rhsvec.V[n] -= b->M.n[n]*eps(i,j);
 		b->M.n[n] = 0.0;
 		}
         
-        if(p->flagslice4[IJm1]<0)
+        if(p->flagslice4[IJm1]<0 || p->wet[IJm1]==0)
 		{
         b->rhsvec.V[n] -= b->M.e[n]*eps(i,j);
 		b->M.e[n] = 0.0;
 		}
         
-        if(p->flagslice4[IJp1]<0)
+        if(p->flagslice4[IJp1]<0 || p->wet[IJp1]==0)
 		{
         b->rhsvec.V[n] -= b->M.w[n]*eps(i,j);
 		b->M.w[n] = 0.0;
 		}
+        }
 		
+	++n;
+	}
+    
+    // dry cells: identity rows
+    n=0;
+    SLICELOOP4
+	{
+        if(p->wet[IJ]==0)
+        {
+        b->M.p[n] = 1.0;
+        b->M.n[n] = 0.0;
+        b->M.s[n] = 0.0;
+        b->M.w[n] = 0.0;
+        b->M.e[n] = 0.0;
+        b->rhsvec.V[n] = 0.0;
+        }
 	++n;
 	}
 }

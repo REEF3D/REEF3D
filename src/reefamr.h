@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<cstddef>
+#include<algorithm>
 
 class lexer;
 class ghostcell;
@@ -67,10 +68,12 @@ using namespace std;
 //  index is i = I-I0+EXT.  Grid id -1 is level 0, otherwise an index into P.  Per grid
 //  arrays of the core (match, rmatch) are indexed with id+1.
 //
-//  Ownership: holder(l,I,J) is the rank that holds cell (I,J) of level l and its coarser
-//  ancestors.  Patches are cut at the level-0 rank boxes, so this is the owner of the
-//  level-0 cell below.  All plans ask holder(), so that patches can later be placed on
-//  other ranks (load balancing) by changing holder() and the patch placement only.
+//  Ownership: holder(l,I,J) is the rank that holds cell (I,J) of level l: the rank of the
+//  level-l patch there (the global patch table GP), else the holder of its parent cell, down to
+//  the owner of the level-0 cell.  Patches are cut at the level-0 rank boxes, so this is the
+//  owner of the level-0 cell below.  All plans ask holder(), and the parent cells of the 2x2
+//  blocks of a patch are reached through the block plans (block_up, block_down), so that patches
+//  can be placed on other ranks (load balancing) by changing the patch placement only.
 
 // a cell outside the patch interior, filled before each stage
 struct reefamr_fill
@@ -82,6 +85,18 @@ struct reefamr_fill
     int ox,oy;          // prolongation: quadrant of the fine cell (-1/+1)
     int slot;           // remote: position in the receive buffer of the level
     double aux;         // module value of the destination cell (SFLOW: still water depth)
+};
+
+// the parent cell of a 2x2 block of a patch, on the rank that holds it: grid id, local cell
+struct reefamr_block
+{
+    int g, ic, jc;
+};
+
+// a patch of the hierarchy, known to all ranks: level, global box, rank, index into P on that rank
+struct reefamr_gpatch
+{
+    int lev, I0, I1, J0, J1, rank, lid;
 };
 
 // base of the module patches
@@ -98,7 +113,8 @@ struct reefamr_patch
     // cells filled before each stage
     vector<reefamr_fill> fill;
 
-    // restriction: coarse target (grid id, i, j) for every 2x2 block (-2: wall)
+    // restriction: coarse target (grid id, i, j) for every 2x2 block (-2: wall, -3: on another
+    // rank, served through the block plans: block_up, block_down)
     vector<int> rgrid, ric, rjc;
 
     bool fresh;                     // created by the current regrid
@@ -130,6 +146,7 @@ struct reefamr_xplan
 struct reefamr_zone
 {
     double cx,cy,ex,ey,smin,smax,nmin,nmax,sfront,wake,bx0,bx1,by0,by1;
+    double sback,nlo,nhi;       // hull rectangle in (s,n): [sback,sfront] x [nlo,nhi]
 };
 
 // parameters set by the module (configure)
@@ -151,6 +168,25 @@ struct reefamr_param
     double zr = 0.0;            // zone: margin around the hull
     double zL = 0.0;            // zone: length of the wake wedge (at most)
     double za = 0.0;            // zone: half angle of the wake wedge in degrees
+    bool zalign = false;        // zone: rectangle aligned with x and y around the wetted hull, grown by
+                                // the distance travelled until the next regrid (moored and
+                                // oscillating bodies), instead of aligned with the direction of motion
+    double lazy = 0.0;          // regrid: the refined tiles of the current layout are kept as long as
+                                // the union with the flagged tiles has at most lazy times the flagged
+                                // tiles, an unchanged layout skips the regrid (0: off)
+    int dryband = 0;            // regrid: no refinement within this many level-0 cells of a cell the
+                                // module reports as unfit for a patch (cell_unfit, e.g. dry), 0: off
+    int place = 0;              // patches on several ranks: 0 cut at the rank boxes, on the rank of the
+                                // level-0 cells below; 1 not cut, split to the work per rank and placed
+                                // for the load of the ranks (the module must reach parents through the
+                                // block plans and old patches through old_run); 2 test of 1: small
+                                // pieces, placed anew at every regrid without the preference for the
+                                // rank below, so that parents and old patches are mostly on other ranks
+    double rebalance = 0.1;     // place 1: a new placement when it lowers the predicted maximum load by
+                                // more than this fraction, else the patches keep their ranks
+    bool place_whole_zones = false; // place 1/2: a rectangle that reaches the hull of a body (its box
+                                // grown by zr) is placed whole, not split (FNPF: the footprint
+                                // extension of the body is local to a patch)
 };
 
 // switches the MPI exchange of the ghostcell class off while patch kernels run
@@ -197,6 +233,8 @@ protected:
     virtual double serve_aux(int, int, int) {return 0.0;}
     // moving bodies of the refinement zone
     virtual void zone_bodies(vector<sixdof_obj*>&) {}
+    // level-0 cell (ii,jj) of this rank that no patch may cover at this regrid (par.dryband > 0)
+    virtual bool cell_unfit(int, int) {return false;}
 
     // ---- hierarchy
     void setup(lexer*, ghostcell*);
@@ -204,7 +242,11 @@ protected:
     void free_patches();                    // all patches (module destructor)
     int patch_at(int, int, int);            // level, I, J: interior patch on this rank, -1: level 0 (l==0), -2: none, -3: outside the rank box
     int owner(int, int);                    // rank of the level-0 cell (I,J), -1: outside the domain
-    int holder(int, int, int);              // rank that holds cell (I,J) of level l and its ancestors
+    int holder(int, int, int);              // rank that holds cell (I,J) of level l (the patch of level l there, else its parent)
+    int gpatch_at(int, int, int);           // level, I, J: index into GP of the patch of that level there, -1: none
+    bool covered(int l, int I, int J) { return l>=1 && gpatch_at(l,I,J)>=0; }   // a level-l patch (any rank) holds (I,J)
+    double gnode(int, int, int);            // place 1: x (dir 0) or y (dir 1) of global node N of level l
+    int finest_rank(double, double);        // place 1: rank of the finest grid at (x,y), -1 outside
     int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
     void goff(int, int&, int&);             // grid id: local index = global index - offset
     lexer* glex(int);                       // grid id: lexer
@@ -322,6 +364,239 @@ protected:
         }
     }
 
+    // as face_run, unpack(int tgt, int idx, const double*) gets the remote match entry by its
+    // target grid (id+1) and its index in rmatch[tgt] (module arrays parallel to rmatch)
+    template<class PK, class UP>
+    void face_run_at(int l, int nv, int tag, PK &&pack, UP &&unpack)
+    {
+        reefamr_xplan &F = fplan[l];
+
+        for(size_t k=0; k<F.speer.size(); ++k)
+        {
+            vector<double> &sb = F.sbuf[k];
+            sb.resize(F.sitem[k].size()*nv);
+            for(size_t m=0; m<F.sitem[k].size(); ++m)
+            {
+                int it = F.sitem[k][m];
+                reefamr_patch *c = P[fsend[l][3*it]];
+                pack(c,fsend[l][3*it+1],fsend[l][3*it+2],&sb[m*nv]);
+            }
+        }
+
+        xrun(F,nv,tag);
+
+        size_t it=0;
+        for(size_t k=0; k<F.rpeer.size(); ++k)
+        for(int m=0; m<F.rcount[k]; ++m)
+        {
+            int tgt = frecv[l][2*it], idx = frecv[l][2*it+1];
+            if(tgt>=0)
+            unpack(tgt,idx,&F.rbuf[k][(size_t)m*nv]);
+            ++it;
+        }
+    }
+
+    // parent cells of the 2x2 blocks of the level-l patches.  Every block has a key, unique on the
+    // rank for the level and fixed for the layout: the blocks of the local patches (lev[l], block
+    // order) first, then the blocks this rank serves to other ranks; block_keys(l) is their number.
+    //
+    // down: eval(const reefamr_block&, int key, double*) gives nv values of the parent on its rank,
+    // store(reefamr_patch*, int id, int k, const double*) puts them into block k of patch id
+    template<class EV, class ST>
+    void block_down(int l, int nv, int tag, EV &&eval, ST &&store)
+    {
+        block_down_if(l,nv,tag,[](reefamr_patch*) { return true; },eval,store);
+    }
+
+    // as block_down, for the local patches with need(reefamr_patch*) only (the served parents are
+    // all evaluated and sent)
+    template<class ND, class EV, class ST>
+    void block_down_if(int l, int nv, int tag, ND &&need, EV &&eval, ST &&store)
+    {
+        reefamr_xplan &X = bdn[l];
+
+        for(size_t k=0; k<X.speer.size(); ++k)
+        {
+            vector<double> &sb = X.sbuf[k];
+            sb.resize(X.sitem[k].size()*nv);
+            for(size_t m=0; m<X.sitem[k].size(); ++m)
+            {
+                const int it = X.sitem[k][m];
+                if(bsrv[l][it].g<-1)
+                {
+                    for(int v=0; v<nv; ++v)
+                    sb[m*nv+v] = 0.0;
+                    continue;
+                }
+                eval(bsrv[l][it],bnloc[l]+it,&sb[m*nv]);
+            }
+        }
+
+        xrun(X,nv,tag);
+
+        blockv.resize(nv);
+        int key=0;
+        for(int id : lev[l])
+        {
+            reefamr_patch *c = P[id];
+            const bool nd = need(c);
+            for(size_t k=0; k<c->rgrid.size(); ++k)
+            if(c->rgrid[k]>=-1)
+            {
+                if(nd)
+                {
+                    eval(reefamr_block{c->rgrid[k],c->ric[k],c->rjc[k]},key,&blockv[0]);
+                    store(c,id,(int)k,&blockv[0]);
+                }
+                ++key;
+            }
+        }
+
+        size_t it=0;
+        for(size_t k=0; k<X.rpeer.size(); ++k)
+        for(int m=0; m<X.rcount[k]; ++m)
+        {
+            const int id = bloc[l][2*it], kb = bloc[l][2*it+1];
+            if(need(P[id]))
+            store(P[id],id,kb,&X.rbuf[k][(size_t)m*nv]);
+            ++it;
+        }
+    }
+
+    // up: compute(reefamr_patch*, int id, int k, double*) gives nv values of block k of patch id,
+    // store(const reefamr_block&, int key, const double*) puts them into the parent on its rank
+    template<class CP, class ST>
+    void block_up(int l, int nv, int tag, CP &&compute, ST &&store)
+    {
+        reefamr_xplan &X = bup[l];
+
+        for(size_t k=0; k<X.speer.size(); ++k)
+        {
+            vector<double> &sb = X.sbuf[k];
+            sb.resize(X.sitem[k].size()*nv);
+            for(size_t m=0; m<X.sitem[k].size(); ++m)
+            {
+                const int it = X.sitem[k][m];
+                const int id = bloc[l][2*it], kb = bloc[l][2*it+1];
+                compute(P[id],id,kb,&sb[m*nv]);
+            }
+        }
+
+        xrun(X,nv,tag);
+
+        blockv.resize(nv);
+        int key=0;
+        for(int id : lev[l])
+        {
+            reefamr_patch *c = P[id];
+            for(size_t k=0; k<c->rgrid.size(); ++k)
+            if(c->rgrid[k]>=-1)
+            {
+                compute(c,id,(int)k,&blockv[0]);
+                store(reefamr_block{c->rgrid[k],c->ric[k],c->rjc[k]},key++,&blockv[0]);
+            }
+        }
+
+        size_t it=0;
+        for(size_t k=0; k<X.rpeer.size(); ++k)
+        for(int m=0; m<X.rcount[k]; ++m)
+        {
+            if(bsrv[l][it].g>=-1)
+            store(bsrv[l][it],bnloc[l]+(int)it,&X.rbuf[k][(size_t)m*nv]);
+            ++it;
+        }
+    }
+
+    int block_keys(int l) const { return bnloc[l] + (int)bsrv[l].size(); }
+
+    // rank and number of ranks (lexer is incomplete in this header: the templates use these)
+    int my_rank() const;
+    int n_ranks() const;
+
+    // the cells of the fresh level-l patches that an old patch of the same level held (regrid_state,
+    // old patches still alive): pack(reefamr_patch *old, int io, int jo, double*) gives nv values of
+    // the old patch on its rank, unpack(reefamr_patch*, int id, int ii, int jj, const double*) puts
+    // them into the fresh patch (lexer indices)
+    template<class PK, class UP>
+    void old_run(int l, int nv, int tag, vector<reefamr_patch*> &oldP, PK &&pack, UP &&unpack)
+    {
+        const int me = my_rank();
+        const int np = n_ranks();
+        vector<vector<int>> req(np), srv, dst(np);
+        vector<double> v(nv);
+
+        for(int id : lev[l])
+        {
+            reefamr_patch *c = P[id];
+            if(!c->fresh)
+            continue;
+
+            for(const reefamr_gpatch &G : GPold)
+            {
+                if(G.lev!=l)
+                continue;
+                const int I0 = std::max(c->I0,G.I0), I1 = std::min(c->I1,G.I1);
+                const int J0 = std::max(c->J0,G.J0), J1 = std::min(c->J1,G.J1);
+                if(I0>I1 || J0>J1)
+                continue;
+
+                if(G.rank==me)
+                {
+                    reefamr_patch *o = oldP[G.lid];
+                    if(o==c)
+                    continue;
+                    for(int I=I0; I<=I1; ++I)
+                    for(int J=J0; J<=J1; ++J)
+                    {
+                        pack(o,I-o->I0+EXT,J-o->J0+EXT,&v[0]);
+                        unpack(c,id,I-c->I0+EXT,J-c->J0+EXT,&v[0]);
+                    }
+                    continue;
+                }
+
+                for(int I=I0; I<=I1; ++I)
+                for(int J=J0; J<=J1; ++J)
+                {
+                    req[G.rank].push_back(G.lid); req[G.rank].push_back(I); req[G.rank].push_back(J);
+                    dst[G.rank].push_back(id); dst[G.rank].push_back(I-c->I0+EXT); dst[G.rank].push_back(J-c->J0+EXT);
+                }
+            }
+        }
+
+        xsetup(req,srv,3);
+
+        reefamr_xplan X;
+        for(int r=0; r<np; ++r)
+        {
+            if(!srv[r].empty())
+            {
+                X.speer.push_back(r);
+                X.sitem.push_back(vector<int>());
+                vector<double> sb(srv[r].size()/3*nv);
+                for(size_t k=0; k<srv[r].size(); k+=3)
+                {
+                    reefamr_patch *o = oldP[srv[r][k]];
+                    pack(o,srv[r][k+1]-o->I0+EXT,srv[r][k+2]-o->J0+EXT,&sb[k/3*nv]);
+                }
+                X.sbuf.push_back(sb);
+            }
+            if(!req[r].empty())
+            {
+                X.rpeer.push_back(r);
+                X.rcount.push_back((int)req[r].size()/3);
+            }
+        }
+
+        xrun(X,nv,tag);
+
+        for(size_t k=0; k<X.rpeer.size(); ++k)
+        {
+            const vector<int> &D = dst[X.rpeer[k]];
+            for(size_t m=0; m<D.size(); m+=3)
+            unpack(P[D[m]],D[m],D[m+1],D[m+2],&X.rbuf[k][m/3*nv]);
+        }
+    }
+
     // ---- moving bodies
     void zone_setup(lexer*);
     bool zone_test(double, double);
@@ -338,7 +613,9 @@ protected:
     int maxlev, nest, tile, nbuf, regrid_int, keep;
     int EXT;                        // extra computed cells on each side of a patch
     int regrids;
+    int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;
+    long cells_local = 0;           // refined columns of the patches on this rank
 
     // rank boxes of level 0 (global cell indices), all ranks
     int O0i,O0j,NX0,NY0,GNX,GNY;
@@ -357,6 +634,18 @@ protected:
     vector<vector<reefamr_fill>> gserve;        // [l]: served cells (kind 0/1/3)
     vector<vector<reefamr_fill*>> grecv;        // [l]: receive slot -> fill entry
 
+    // patches of all ranks (built at every regrid, the same on every rank) and, per level and
+    // global tile, the patches that overlap the tile; the table of the previous layout
+    vector<reefamr_gpatch> GP, GPold;
+    vector<vector<int>> gtoff, gtlist;          // [l]: per global tile the range gtoff[t]..gtoff[t+1]-1 of gtlist
+
+    // block plans per level: on the rank of a patch the blocks whose parent is on another rank
+    // ((id,k) pairs, in the order of the peers), on the rank of the parent the blocks it serves
+    vector<reefamr_xplan> bup, bdn;
+    vector<vector<int>> bloc;
+    vector<vector<reefamr_block>> bsrv;
+    vector<int> bnloc;                          // [l]: blocks of the local patches with a local parent
+
     // fine face records sent across partition edges, per level
     vector<reefamr_xplan> fplan;
     vector<vector<int>> fsend;                  // [l]: (patch, side, r) triplets
@@ -369,6 +658,9 @@ private:
     void build_vertical(lexer*, reefamr_patch&);
     void build_flags(lexer*);
     void build_tiles();
+    void build_gtable();
+    void place_patches(lexer*, ghostcell*, vector<vector<unsigned char>>&, vector<reefamr_patch*>&, vector<char>&,
+                       vector<reefamr_patch*>&, vector<vector<int>>&);
     void build_plans(ghostcell*);
 
     vector<int> fl0;
@@ -385,13 +677,20 @@ private:
     // vertical refinement factor of each level over level 0
     vector<int> vfac;
 
-    // no refinement: global level-0 cells
+    // no refinement: global level-0 cells, static and (dryband) at the current regrid
     vector<unsigned char> forbid0;
+    vector<unsigned char> forbidd;
 
     // initial position of every body of the refinement zone
     vector<double> zx0, zy0;
 
-    vector<double> fillv;
+    vector<double> fillv, blockv;
+
+    // place 1: global level-0 nodes (index K+marge) and solid flags
+    vector<double> gxn, gyn;
+    vector<short> gfl0;
+    double x0g(int) const;
+    double y0g(int) const;
 };
 
 #endif

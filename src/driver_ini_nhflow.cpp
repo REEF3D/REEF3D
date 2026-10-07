@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"driver.h"
 #include"ghostcell.h"
 #include"lexer.h"
+#include"nhflow_amr.h"
 #include"fdm_nhf.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
@@ -39,7 +40,8 @@ Author: Hans Bihs
 #include"6DOF_header.h"
 #include"vrans_header.h"
 #include"nhflow_header.h"
-#include"lexer.h"
+#include"nhflow_thinbody.h"
+#include"seastate_nhflow.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -132,6 +134,13 @@ void driver::driver_ini_nhflow()
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
     
+    // REEF3D::SEASTATE coupling (A 750 1)
+    if(p->A750==1)
+    {
+    d->wave = new seastate_nhflow(p,d,pgc);
+    d->wave->ini(p,d,pgc);
+    }
+    
     // turbulence ini
     pnhfturb->ini(p, d, pgc);
     
@@ -141,10 +150,21 @@ void driver::driver_ini_nhflow()
     // 6DOF ini
     p6dof->initialize(p, d, pgc);
     
+    // sharp thin bodies (membranes X 330 'mobility sharp'): wall fluxes through the flux hook of the convection
+    if(d->thinbody!=nullptr)
+    pnhfconvec->set_hook(d->thinbody,0);
+    
     // VRANS ini
     pnhfvrans->initialize(p,d,pgc);
     
+    // mesh refinement ini: patches from the initial state
+    if(pnhfamr!=nullptr)
+    pnhfamr->ini(p,d,pgc);
+    
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+    
+    if(pnhfamr!=nullptr)
+    pnhfamr->print(p,d,pgc);
 
     // Lagrangian particles ini
     pnhfpart->ini(p,d,pgc);

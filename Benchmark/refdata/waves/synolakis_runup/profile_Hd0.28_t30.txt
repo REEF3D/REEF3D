@@ -1,0 +1,57 @@
+# Synolakis (1987) solitary wave on a 1:19.85 plane beach, breaking case H/d = 0.28
+# Free-surface profile at dimensionless time t*sqrt(g/d) = 30
+# SOURCE (secondary): Basilisk test data file 't-30', fetched via https://basilisk.fr/src/test/t-30?raw
+#   (used by https://basilisk.fr/src/test/beach.c: "reproduce this classical test case based on the
+#   experiments of Synolakis, 1987"; A = 0.28, h0 = 1, slope = 1/19.85, G = 1, i.e. all non-dimensional by d and g).
+# Coordinates (beach.c): "the origin is the intersection of the beach with the water level"; bed zb = max(x/19.85, -1),
+#   x positive onshore; t = 0 when the soliton crest is at x = -19.85 - L/2 with L = 2/k*acosh(sqrt(20)),
+#   k = sqrt(3*A/4) (beach.c). Whether this matches Synolakis' own time origin is NOT verified.
+# PROVENANCE WARNING: values appear DIGITIZED from a published figure (quantised eta levels, digitizer
+#   polyline order). The raw file lists points in polyline order with repeats / reversed copies; exact
+#   duplicate (x,eta) pairs were removed and rows sorted by x (stable). No value was changed.
+# columns: x/d[-]  eta/d[-]
+-19.2876 -0.0063699
+-18.3127 0.00262223
+-17.8297 0.00262223
+-16.9871 0.0108296
+-16.4948 0.00262223
+-16.012 0.00262223
+-15.406 0.00262223
+-13.9623 0.00262223
+-13.7161 0.0198373
+-13.3516 0.00262223
+-12.6225 0.0108296
+-12.1446 0.0108296
+-11.6618 -0.0063699
+-11.4156 0.0198373
+-11.0509 -0.0063699
+-10.3267 0.0108296
+-9.96233 0.00262223
+-9.3659 0.00262223
+-8.39071 0.00262223
+-7.66188 0.00262223
+-6.81911 0.00262223
+-6.09028 0.00262223
+-5.48418 0.0198373
+-4.75517 0.0198373
+-4.15891 0.0370379
+-3.79449 0.0452451
+-3.18373 0.0624378
+-2.34104 0.0796387
+-1.85844 0.0878461
+-1.37544 0.0878461
+-1.01573 0.122239
+-0.405067 0.114032
+-0.286832 0.165647
+0.442297 0.148446
+1.16663 0.173855
+2.01384 0.199234
+2.73826 0.233649
+3.10271 0.216455
+3.58522 0.250827
+3.94508 0.242642
+4.30964 0.268049
+4.55585 0.259863
+5.28491 0.302463
+5.53104 0.27746
+6.00907 0.311877
