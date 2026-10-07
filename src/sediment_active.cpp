@@ -64,6 +64,8 @@ void sediment_f::active_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     LOOP
     a->test(i,j,k) = p->DFBED[IJ];
+    
+    dfbed_comms(p,pgc);
 }
 
 void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
@@ -87,6 +89,8 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
+    
+    dfbed_comms(p,pgc);
 }
 
 void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -109,6 +113,8 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
+    
+    dfbed_comms(p,pgc);
 }
 
 void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -131,6 +137,8 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->DF[IJK]<0)
     p->DFBED[IJ]=-1;
     }
+    
+    dfbed_comms(p,pgc);
 }
 
 void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -159,6 +167,8 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     p->DFBED[IJ]=-1;
     }
     
+    
+    dfbed_comms(p,pgc);
 }
 
 void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -191,6 +201,8 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     p->DFBED[IJ]=-1;
     }
     
+    
+    dfbed_comms(p,pgc);
 }
 
 void sediment_f::active_zone(lexer *p, ghostcell *pgc)
@@ -200,4 +212,12 @@ void sediment_f::active_zone(lexer *p, ghostcell *pgc)
     if(p->XP[IP]>p->S74_xs[n] && p->XP[IP]<p->S74_xe[n] && p->YP[JP]>p->S74_ys[n] && p->YP[JP]<p->S74_ye[n])
     s->active(i,j)=0;
 
+}
+void sediment_f::dfbed_comms(lexer *p, ghostcell *pgc)
+{
+    // sediment cell flag of the neighbour subdomains: the Exner face closure, the bed filter,
+    // the non-equilibrium relaxation and the sand slide test DFBED of the ghost cells.
+    // Physical boundary ghost cells keep 1 (open), closed walls have zero face velocity.
+    pgc->gcslparaxV_int(p,p->DFBED,4);
+    pgc->gcslparacoxV_int(p,p->DFBED,1);
 }

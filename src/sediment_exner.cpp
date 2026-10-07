@@ -102,6 +102,8 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     if(p->S33>0)
     non_equillibrium_solve(p,pgc,s); 
     
+    qb_clear(p,s);
+    
     pgc->gcsl_start4(p,s->qb,1);
     
     // suspended qs
@@ -155,6 +157,8 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     // non-eq.
     if(p->S33>0)
     non_equillibrium_solve(p,pgc,s); 
+    
+    qb_clear(p,s);
     
     pgc->gcsl_start4(p,s->qb,1);
     
@@ -235,6 +239,8 @@ void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
             m->noneq_ini_k[q] = noneq_ini;
         }
         
+        qb_clear(p,s);
+        
         pgc->gcsl_start4(p,s->qb,1);
         
         // suspended load exchange distributed with the active layer composition
@@ -303,4 +309,14 @@ void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
     (*m->dh_k[q])(i,j) = p->dtsed*(*m->vz_k[q])(i,j);
     
     m->bedchange(p,pgc,s,m->dh_k);
+}
+
+void sediment_exner::qb_clear(lexer *p, sediment_fdm *s)
+{
+    // no bedload outside the sediment cells: s->qb is only written on SEDSLICELOOP, stale values
+    // in cells that stopped being sediment cells were read as upwind neighbours (and, with a
+    // multi-fraction bed, summed nf times per step)
+    SLICEBASELOOP
+    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    s->qb(i,j) = 0.0;
 }
