@@ -180,6 +180,9 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
         
         if(p->S32==5)
         cout<<"WARNING S 32 5: WENO-HJ derivative, not conservative; use S 32 1, 2 or 4"<<endl;
+        
+        if(p->S80>0 && p->S85==1)
+        cout<<"NOTE S 80 "<<p->S80<<" with S 85 1: the bed slope reduces the critical shear stress and scales the bedload (1-1.3 dz/ds), slope effect counted twice; S 85 0 uses the critical shear stress reduction only"<<endl;
     }
     
     // Suspended Sediments
