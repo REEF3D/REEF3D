@@ -42,6 +42,20 @@ std::string store_path(const char *solver)
     return std::string("./REEF3D_") + solver + ".lagoon";
 }
 
+// rank 0, once an output is counted in the store: into the run log (stream
+// "lagoon_<output>"; group: where in the store, "volume", "free_surface", "bed",
+// "amr/<solver>_amr"), so the run log lists the outputs also when no file is written
+void log_stored(lexer *p, const std::string &output, const std::string &group, const std::string &solver,
+                int num, double time, long long iteration, int pieces)
+{
+    if(p->mpirank!=0 || !p->plog)
+        return;
+    const std::string path = store_path(solver.c_str());
+    const std::string role = group.rfind("amr/", 0)==0 ? "amr" : output;
+    p->plog->stored(p, num, time, iteration, ("lagoon_" + output).c_str(), role.c_str(),
+                    path.c_str(), group.c_str(), pieces);
+}
+
 // the run id in a store's root metadata, or "" if there is none
 std::string stored_run(const std::string &path)
 {
@@ -195,7 +209,10 @@ bool lagoon_output::settle(lexer *p, ghostcell *pgc)
         return false;
     }
     if(p->mpirank==0)
+    {
         store.commit("volume", pending.t, pending.time, pending.num);
+        log_stored(p, "volume", "volume", solver, pending.num, pending.time, pending.iteration, p->M10);
+    }
     pending = job();
     return true;
 }
@@ -234,6 +251,7 @@ void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> 
     pending.t = t;
     pending.num = num;
     pending.time = p->simtime;
+    pending.iteration = p->count;
     pending.ok = readable && size_t(p->pointnum)==n;
     if(pending.ok)
     {
@@ -387,7 +405,10 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, const std::string &buff
         return;
     }
     if(p->mpirank==0)
+    {
         store.commit(output, t, p->simtime, num);
+        log_stored(p, output, output, solver, num, p->simtime, p->count, p->M10);
+    }
     ++t;
 }
 
@@ -480,6 +501,13 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
             }
             level0.insert(level0.end(), std::make_move_iterator(patches.begin()), std::make_move_iterator(patches.end()));
             ok_all = writer->output(p->simtime, printcount, level0) ? 1 : 0;
+            if(ok_all==1)
+            {
+                std::string key = solver;
+                for(char &c : key)
+                    c = char(std::tolower((unsigned char)c));
+                log_stored(p, key + "_amr", "amr/" + key + "_amr", solver, printcount, p->simtime, p->count, 0);
+            }
         }
     }
     MPI_Bcast(&ok_all,1,MPI_INT,0,pgc->mpi_comm);

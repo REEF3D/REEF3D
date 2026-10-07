@@ -81,6 +81,7 @@ private:
         int t = -1;
         int num = 0;
         double time = 0.0;
+        long long iteration = 0;
         std::vector<float> z;  // σ-grids: heights of the points, levels outermost
         std::vector<std::pair<std::string, std::vector<float> > > fields;
         bool ok = true;

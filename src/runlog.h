@@ -58,6 +58,14 @@ public:
     void output(lexer*, int step, const char *stream, const char *role,
                 const char *folder, const char *files, const char *format, int pieces);
 
+    // an output that went into a LAGOON store (P 18) rather than to files: store is
+    // the store folder (./REEF3D_<SOLVER>.lagoon), group the output in it ("volume",
+    // "free_surface", "bed", "<solver>_amr"). Time and iteration are given, since the
+    // store counts an output only once every rank has written it, which can be at
+    // the next output.
+    void stored(lexer*, int step, double time, long long iteration, const char *stream,
+                const char *role, const char *store, const char *group, int pieces=0);
+
     // a table that grows over the run (gauges, forces, motions), or a static file
     void table(lexer*, const char *stream, const char *role, const char *folder,
                const char *file, const char *format="dat");
@@ -77,6 +85,7 @@ private:
     void start(lexer*);
     void write(const std::string &line);
     void stream(const char *stream, const std::string &json);
+    void output_line(int step, double time, long long iteration, const char *stream);
     static std::string quote(const std::string&);
     static std::string number(double);
     static std::string utc(const char *format);
