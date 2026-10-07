@@ -473,9 +473,14 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         // level-0 step
         if(b6!=nullptr && l==maxlev)
         {
+            // the force file labels the loads with the start of the finest step, as with one
+            // step for all levels
             const bool fin = (s==ns-1 && bfin==(1<<maxlev)-1);
+            const double ts = p->simtime;
+            p->simtime = t;
             for(int nb=0; nb<b6->objects(); ++nb)
             b6->object(nb)->hydrodynamic_forces_nhflow(p,d0,pgc,d0->WL,fin);
+            p->simtime = ts;
         }
     }
     cur_stage = -1;
@@ -552,9 +557,15 @@ void nhflow_amr::sub_body_stage(lexer *p, ghostcell *pgc, int l, int s, double t
 }
 
 // end of the level-0 step: the hull on level 0 at the final pose (FB, the position line) and the
-// output of the bodies, once per level-0 step as with one step for all levels
+// output of the bodies, once per level-0 step.  The body output labels the state at the end of a
+// step with the start of that step (6DOF_obj_print_parameters, simtime); here the start of the
+// last finest step, so that the label lags by one finest step as with one step for all levels
+// (with the level-0 start it lagged by dt - dt/2^L more)
 void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
 {
+    const double ts = p->simtime;
+    p->simtime = ts + dtlev[0] - dtlev[maxlev];
+
     for(int nb=0; nb<b6->objects(); ++nb)
     {
         sixdof_obj_nhflow *o = b6->object(nb);
@@ -568,6 +579,8 @@ void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
 
         o->print_parameter(p,pgc);
     }
+
+    p->simtime = ts;
 }
 
 // the pressure of stage s of step k of level l: one solve over the level-l patches, the parent

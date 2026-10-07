@@ -1,9 +1,9 @@
 // Standalone verification of the REEF3D FEM solid solver (no MPI, no REEF3D).
 // Architect: Hans Bihs
 // Build:  g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
-//         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test
+//         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test          (add -fopenmp for the threads test)
 // Run:    ./fem_test [test]      tests: cantilever freq rotation j2 crackband drop collapse snap patch
-//                                presets settle snapbeam damping rigid walls impact rebar tie rc (default: all)
+//                                presets settle snapbeam damping rigid walls impact rebar tie rc threads (default: all)
 #include"fem_solid.h"
 #include<iostream>
 #include<sstream>
@@ -11,6 +11,7 @@
 #include<string>
 #include<vector>
 #include<cstdio>
+#include<cstring>
 
 typedef fem_solid::Vec3 Vec3;
 static int nfail = 0;
@@ -819,6 +820,66 @@ static void test_rc_column()
     check(er0>0 && Mend0<0.2*Mpk0,"plain concrete: the section breaks");
 }
 
+// ----------------------------------------------------------------------
+// threads (OpenMP): the results must not depend on the number of threads
+// ----------------------------------------------------------------------
+
+static void threads_run(int nthr,std::vector<double>& state,int* eroded,int* nrigid,double* wd)
+{
+    // a weak plain concrete wall broken by a rigid block (erosion, fragments, node and
+    // ground contact), a reinforced column hit by a second block (bars, unilateral damage)
+    std::istringstream in(
+        "lattice 0.05 0.05 0.05\n"
+        "material 1 concrete 2400 3e9 0.2 2e4 50 2e6 5e3\n"
+        "material 2 concrete C30\n"
+        "rebar B500B z 1%\n"
+        "box 0.5 0.6 0 0.4 0 0.8 1\n"
+        "box 1.2 1.4 0 0.2 0 1.0 2\n"
+        "fix -1 3 -1 1 -0.001 0.001 xyz\n"
+        "ground 0.0\n"
+        "contact on\n");
+    fem_solid s;
+    s.read(in);
+    fem_solid::material m=elastic(3,500,1e10,0.3); m.rigid=true; m.kdebris=1e7;
+    s.add_material(m);
+    s.add_box(0.1,0.3,0.1,0.3,0.3,0.5,3);
+    s.add_box(0.85,1.05,0.0,0.2,0.4,0.6,3);
+    s.build();
+    s.use_threads(nthr);
+    for(int k=0;k<s.n_rigid();++k)
+    {
+        fem_solid::rigid_body& rb=const_cast<fem_solid::rigid_body&>(s.rigid(k));
+        rb.V = Vec3(rb.c(0)<0.5 ? 15.0 : 10.0,0,0);
+    }
+    const int n0=s.n_alive();
+    for(int n=0;n<60;++n) s.advance(1e-3);
+    state.clear();
+    for(int i=0;i<s.nnode();++i) for(int d=0;d<3;++d) {state.push_back(s.pos(i)(d)); state.push_back(s.vel(i)(d));}
+    for(int e=0;e<s.nelem();++e) for(int q=0;q<s.ngauss();++q)
+    {
+        const fem_solid::gpstate& g=s.gp(e,q);
+        state.push_back(g.d); state.push_back(g.kt); state.push_back(g.kc);
+        for(int k=0;k<3;++k) state.push_back(g.es[k]);
+    }
+    for(int k=0;k<s.n_rigid();++k) for(int d=0;d<3;++d) {state.push_back(s.rigid(k).c(d)); state.push_back(s.rigid(k).V(d));}
+    *eroded=n0-s.n_alive(); *nrigid=s.n_rigid(); *wd=s.dissipated_energy();
+    state.push_back(*wd);
+}
+
+static void test_threads()
+{
+    const int T=std::max(2,fem_solid::max_threads());
+    std::cout<<"threads: 1 and "<<T<<" threads give bitwise the same results"
+             <<(fem_solid::max_threads()>1 ? "" : " (built without OpenMP: one thread)")<<std::endl;
+    std::vector<double> a,b;
+    int ea,eb,ra,rb; double wa,wb;
+    threads_run(1,a,&ea,&ra,&wa);
+    threads_run(T,b,&eb,&rb,&wb);
+    std::printf("    eroded %d / %d elements, rigid bodies %d / %d, dissipated %.6f / %.6f J, %zu values\n",ea,eb,ra,rb,wa,wb,a.size());
+    check(ea>0 && ra>2,"the wall breaks: eroded elements and rigid fragments");
+    check(a.size()==b.size() && std::memcmp(a.data(),b.data(),a.size()*sizeof(double))==0,"positions, velocities, damage, bar strains, rigid bodies, dissipated energy bitwise equal");
+}
+
 int main(int argc,char** argv)
 {
     std::string w = argc>1 ? argv[1] : "all";
@@ -841,6 +902,7 @@ int main(int argc,char** argv)
     if(w=="all"||w=="rebar") test_rebar_input();
     if(w=="all"||w=="tie") test_rebar_tension();
     if(w=="all"||w=="rc") test_rc_column();
+    if(w=="all"||w=="threads") test_threads();
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail? std::to_string(nfail):"")<<std::endl;
     return nfail ? 1 : 0;
 }
