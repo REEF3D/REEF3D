@@ -217,6 +217,11 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
     }
     
     zbf_ini=1;
+    
+    // layer bed level of the neighbour subdomains: the slope in CPM_bedload reads blZb(-1,j) etc.
+    // at subdomain boundaries (was never exchanged, 0 there: spurious slope at every boundary)
+    pgc->gcsl_start4(p,blZb,1);
+    
     BASELOOP
     {
         double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);

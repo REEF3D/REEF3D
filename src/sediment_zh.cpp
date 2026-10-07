@@ -64,9 +64,11 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a,ghostcell *pgc, sediment_fdm *s
     
 	pgc->gcsl_start4(p,s->bedzh,1);
 	
+    // inside the S 77 window, and outside wherever the bed has changed (sand slide receivers next
+    // to the window, S 75 relaxation): the CFD has to see every bed change of bedzh
     LOOP
     {
-    if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
+    if((p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe) || fabs(s->bedzh(i,j)-s->bedzh0(i,j))>1.0e-12)
     a->topo(i,j,k)=-s->bedzh(i,j)+p->pos_z();
     }
     
