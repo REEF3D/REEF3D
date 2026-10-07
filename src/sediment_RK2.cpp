@@ -155,6 +155,20 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     SEDSLICELOOP
     s->bedzh(i,j) = 0.5*bedzh_n(i,j) +  0.5*s->bedzh(i,j) + 0.5*p->dtsed*s->vz(i,j);
     
+    // suspended sediment of columns that fell dry (nhflow_suspended_IM1::drysave), once per step
+    if(p->S12>0)
+    {
+    SEDSLICELOOP
+    {
+    s->bedzh(i,j) += s->dryd(i,j)/(1.0-p->S24);
+    s->dryd(i,j) = 0.0;
+    }
+    
+    SLICEBASELOOP
+    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    s->dryd(i,j) = 0.0;
+    }
+    
     // sandslide ********
     if(p->sediter%p->S94==0)
     pslide->start(p,pgc,s);

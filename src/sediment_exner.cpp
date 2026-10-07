@@ -132,12 +132,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     s->dh(i,j) = p->dtsed*s->vz(i,j);
     
     // NHFLOW: deposit the suspended sediment of columns that fell dry
-    if(p->A10==5 && p->S12>0)
-    SEDSLICELOOP
-    {
-    s->dh(i,j) += s->dryd(i,j)/(1.0-p->S24);
-    s->dryd(i,j) = 0.0;
-    }
+    dry_deposit(p,s);
 
 	
 	SEDSLICELOOP
@@ -298,15 +293,24 @@ void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
     SEDSLICELOOP
     s->dh(i,j) = p->dtsed*s->vz(i,j);
     
-    SEDSLICELOOP
-    s->bedzh(i,j) += s->dh(i,j);
-    
-	pgc->gcsl_start4(p,s->bedzh,1);
-    
     // sorting: active layer and substrate
     for(int q=0;q<m->nf;++q)
     SLICELOOP4
     (*m->dh_k[q])(i,j) = p->dtsed*(*m->vz_k[q])(i,j);
+    
+    // NHFLOW: suspended sediment of columns that fell dry, distributed with the active layer
+    // composition like the suspended exchange (susp_ED)
+    if(p->A10==5 && p->S12>0)
+    SEDSLICELOOP
+    for(int q=0;q<m->nf;++q)
+    (*m->dh_k[q])(i,j) += (*m->F[q])(i,j)*s->dryd(i,j)/(1.0-p->S24);
+    
+    dry_deposit(p,s);
+    
+    SEDSLICELOOP
+    s->bedzh(i,j) += s->dh(i,j);
+    
+	pgc->gcsl_start4(p,s->bedzh,1);
     
     m->bedchange(p,pgc,s,m->dh_k);
 }
@@ -319,4 +323,24 @@ void sediment_exner::qb_clear(lexer *p, sediment_fdm *s)
     SLICEBASELOOP
     if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
     s->qb(i,j) = 0.0;
+}
+
+void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)
+{
+    // NHFLOW: the suspended sediment of columns that fell dry since the last bed update
+    // (nhflow_suspended_IM1::drysave) is deposited as bed change dh. Columns without an
+    // erodible bed (DFBED<0, solids) never exchange with the bed, their dryd is discarded
+    // instead of growing without limit.
+    if(p->A10!=5 || p->S12==0)
+    return;
+    
+    SEDSLICELOOP
+    {
+    s->dh(i,j) += s->dryd(i,j)/(1.0-p->S24);
+    s->dryd(i,j) = 0.0;
+    }
+    
+    SLICEBASELOOP
+    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    s->dryd(i,j) = 0.0;
 }
