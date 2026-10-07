@@ -237,6 +237,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_channel_kepsilon` | 1 | NHFLOW open channel, discharge inflow with the equilibrium turbulence profile, k-ε, bed roughness A519 |
 | `nhflow_2d_channel_suspended` | 1 | NHFLOW open channel with suspended load only (S 11 0, S 12 1), k-ε: conservative D·C scheme with FEx face fluxes, sediment leaving through the outflow, bed exchange only in the erodible region S 71 (needs Suspended Sediment patches 0001-0009) |
 | `nhflow_2d_beach_suspended_mpi2` | 2 | NHFLOW waves on a 1:12 sand beach, bedload + suspended load, swash wetting/drying (dry-column deposit, Exner with the c_be the water column used), S 38, FEx across the MPI interface (needs Suspended Sediment patches 0001-0009) |
+| `sflow_2d_sediment_basin` | 1 | SFLOW closed basin, corner dam break over an MPM sand bed, default Exner (S 31 2, FOU, bed filter): no bedload through the walls, SFLOW sediment start-up (needs Exner Review patches 0001-0016) |
+| `sflow_2d_sediment_basin_noneq_mpi2` | 2 | as above with S 31 1, WENO flux Exner (S 32 4) and non-equilibrium bedload (S 33 1) across the subdomain boundary (needs Exner Review patches 0001-0016) |
+| `nhflow_3d_sediment_pier_mpi2` | 2 | NHFLOW closed basin with a pier, default Exner S 31 2 with closed faces at the structure, NHFLOW bed shear with the thin-water clamp, sand slide S 90 1 (needs Exner Review patches 0001-0016) |
+| `nhflow_3d_sediment_pier_rk2` | 1 | as above with the fully coupled RK2 sediment step S 10 12 (bed advanced in both stages of every flow step, dtsed = S 17 dt) (needs Exner Review patches 0001-0016) |
+| `cfd_2d_sediment_flume` | 1 | CFD 2D flume, MPM sand bed with a submerged block, k-ω, bed shear S 16 1 at the velocity sample height, CFD topo update, sand slide (needs Exner Review patches 0001-0016) |
 | `nhflow_3d_cylinder_kepsilon_mpi2` | 2 | NHFLOW 3D channel with a cylinder (A580), k-ε, ranks split in y: k/ε and ν_t across the rank interface |
 | `sflow_1d_channel_ke` (+ `_kw`) | 1 | SFLOW depth-averaged k-ε / k-ω (A260 1/2): k, ε/ω relax to the Rastogi–Rodi equilibrium |
 | `sflow_2d_channel_walls_kw_mpi2` | 2 | SFLOW k-ω with side walls, ranks split in y: production at wall cells, uniform k/ω across the width |
