@@ -86,6 +86,17 @@ public:
         // and crushing force [N] that caps the contact force (0: no cap);
         // 2D: per metre width
         double kdebris = 0.0, fcrush = 0.0;
+        // reinforcement of concrete (smeared bars, perfect bond): steel volume
+        // fraction of the member for bars along x, y, z (As / Ac of the gross
+        // section for longitudinal bars), placed in the outer 'rskin' element
+        // zone of the member (rskin: thickness [m], -1: the outer element layer,
+        // 0: uniform over the section); steel elastic-plastic with linear kinematic
+        // hardening, bars rupture at the strain seu
+        double rs[3] = {0.0,0.0,0.0};
+        double sfy = 0.0, sE = 2.0e11, sH = 0.0, seu = 0.0;
+        double rskin = -1.0;
+        std::string sname;
+        bool reinforced() const {return rs[0]>0.0 || rs[1]>0.0 || rs[2]>0.0;}
     };
 
     // history variables of one integration point
@@ -95,6 +106,8 @@ public:
         double d = 0.0;                 // total damage
         double ep = 0.0;                // equivalent plastic strain
         double Ep[6] = {0,0,0,0,0,0};   // plastic Green-Lagrange strain (xx yy zz xy yz zx)
+        double es[3] = {0,0,0};         // plastic strain of the bars along x y z
+        unsigned char sfail = 0;        // ruptured bars (bit per direction)
     };
 
     struct element
@@ -109,6 +122,9 @@ public:
         double svm = 0.0;               // von Mises (Cauchy) stress, averaged over the GPs
         double util = -1.0;             // utilisation (stress / strength), -1: elastic material
         double J = 1.0;
+        double rs[3] = {0.0,0.0,0.0};   // local steel volume fraction of the bars along x y z
+        double sutil = -1.0;            // steel utilisation |sigma_s| / f_y, -1: no reinforcement
+        bool reinforced() const {return rs[0]>0.0 || rs[1]>0.0 || rs[2]>0.0;}
     };
 
     // reference geometry of a hex8 element
@@ -269,6 +285,7 @@ public:
     bool ground() const {return ground_on;}
     double ground_level() const {return zground;}
     static bool preset(const std::string& type,const std::string& name,material&);   // material presets
+    static bool rebar_preset(const std::string& name,material&);     // reinforcing steel: B500A B500B B500C GR60
     static std::string preset_list();
 
     // ------------------------------------------------------------------
@@ -286,6 +303,10 @@ public:
     double max_utilisation(int* elem=nullptr) const;
     double max_damage(int* elem=nullptr) const;
     double max_plastic_strain(int* elem=nullptr) const;
+    double max_steel_utilisation(int* elem=nullptr) const;   // -1: no reinforcement
+    bool steel_yielded(int* elem=nullptr) const;
+    int bars_ruptured() const;                                // integration points with ruptured bars
+    bool any_reinforcement() const;
     Vec3 elem_centre(int e) const;
     Vec3 support_moment() const;                // overturning moment of the support forces about the base centre
     Vec3 base_centre() const {return base_c;}
@@ -393,7 +414,9 @@ private:
     // element / material
     void shape_derivatives();
     void internal_forces(double dts);
-    void stress(const material&,gpstate&,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed);
+    void stress(const material&,gpstate&,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed,const double* rs=nullptr);
+    void setup_rebar();             // local steel fractions of the elements of reinforced materials
+    double elem_cp(const element&) const;   // wave speed incl. the bars
     double damage_exp(double kappa,double e0,double ef) const;
 
     // contact

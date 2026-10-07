@@ -348,6 +348,33 @@ void fem_coupling::update_summary(lexer *p, bool write)
         int e = -1;
         const double u = fs.max_utilisation(&e);
         if(e>=0 && u>sm.util) {sm.util = u; sm.t_util = t; sm.x_util = fs.elem_centre(e);}
+        const double us = fs.max_steel_utilisation();
+        if(us>sm.sutil) {sm.sutil = us; sm.t_sutil = t;}
+    }
+
+    // reinforcement: first yielding of the bars, ruptured bars
+    if(sm.t_syield<0.0 && fs.any_reinforcement())
+    {
+        int ey = -1;
+        if(fs.steel_yielded(&ey))
+        {
+            sm.t_syield = t;
+            sm.x_syield = fs.elem_centre(ey);
+            event = true;
+            if(p->mpirank==0)
+            std::cout<<"FEM: first yielding of the reinforcement at t = "<<t<<" s at ("<<sm.x_syield.transpose()<<")"<<std::endl;
+        }
+    }
+    if(sm.t_syield>=0.0)
+    {
+        const int nr = fs.bars_ruptured();
+        if(nr>sm.nrupt)
+        {
+            if(sm.nrupt==0 && p->mpirank==0)
+            std::cout<<"FEM: first rupture of the reinforcement at t = "<<t<<" s"<<std::endl;
+            event = event || sm.nrupt==0;
+            sm.nrupt = nr;
+        }
     }
 
     // first cracking / yielding: every step (it can precede the first failure by a few steps only)
@@ -394,6 +421,8 @@ void fem_coupling::write_summary(lexer *p)
     if(ff>0.0) fr<<", "<<std::setprecision(3)<<100.0*ff<<" % broke off (rigid fragments)";
     if(ef+ff>0.5) st<<"COLLAPSED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed"<<fr.str();
     else if(ef>0.0 || ff>0.0) st<<"PARTLY FAILED: "<<std::setprecision(3)<<100.0*ef<<" % of the mass has failed"<<fr.str();
+    else if(sm.t_crack>=0.0 && sm.t_syield>=0.0) st<<"CRACKED, REINFORCEMENT YIELDED"<<(sm.nrupt>0 ? " AND PARTLY RUPTURED" : "")<<", no failure";
+    else if(sm.t_crack>=0.0 && fs.any_reinforcement()) st<<"CRACKED, reinforcement elastic, no failure";
     else if(sm.t_crack>=0.0) st<<(sm.yielding ? "YIELDED, no failure" : "CRACKED, no failure");
     else if(sm.util>=0.0) st<<"INTACT, max utilisation "<<std::setprecision(3)<<sm.util;
     else st<<"INTACT (elastic material, max von Mises "<<std::setprecision(4)<<fs.max_vonmises()/1.0e6<<" MPa)";
@@ -417,6 +446,14 @@ void fem_coupling::write_summary(lexer *p)
     f<<"first "<<(sm.yielding ? "yielding:          " : "cracking:          ")<<"t = "<<sm.t_crack<<" s at ("<<sm.x_crack.transpose()<<")\n";
     else
     f<<"first cracking:          none\n";
+    if(fs.any_reinforcement())
+    {
+    f<<"max steel utilisation:   "<<std::max(sm.sutil,0.0)<<"  at t = "<<sm.t_sutil<<" s   (bar stress / f_y, 1: yielding)\n";
+    if(sm.t_syield>=0.0)
+    f<<"first yield of the bars: t = "<<sm.t_syield<<" s at ("<<sm.x_syield.transpose()<<")"<<(sm.nrupt>0 ? ", bars ruptured" : "")<<"\n";
+    else
+    f<<"first yield of the bars: none\n";
+    }
     if(sm.t_fail>=0.0)
     f<<"first element failure:   t = "<<sm.t_fail<<" s at ("<<sm.x_fail.transpose()<<")\n";
     else

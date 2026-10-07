@@ -105,6 +105,14 @@ void fem_solid::write_vtu(const std::string& filename) const
     for(int q=0; q<no; ++q) f<<"-1\n";
     f<<"</DataArray>\n";
 
+    if(any_reinforcement())
+    {
+        f<<"<DataArray type=\"Float64\" Name=\"steel_utilisation\" format=\"ascii\">\n";
+        for(int e : cells) f<<elems[e].sutil<<"\n";
+        for(int q=0; q<no; ++q) f<<"-1\n";
+        f<<"</DataArray>\n";
+    }
+
     f<<"<DataArray type=\"Int32\" Name=\"material\" format=\"ascii\">\n";
     for(int e : cells) f<<mats[elems[e].mat].id<<"\n";
     for(int q=0; q<no; ++q) f<<"-1\n";
@@ -146,6 +154,13 @@ void fem_solid::info(std::ostream& os) const
           <<" rho "<<mt.rho<<" E "<<mt.E<<" nu "<<mt.nu<<" c_p "<<mt.cp;
         if(mt.type==MAT_J2) os<<" sigma_y "<<mt.sigy<<" H "<<mt.H<<" eps_fail "<<mt.epsfail;
         if(mt.type==MAT_CONCRETE) os<<" ft "<<mt.ft<<" Gf "<<mt.Gf<<" fc "<<mt.fc<<" Gc "<<mt.Gc;
+        if(mt.type==MAT_CONCRETE && mt.reinforced())
+        {
+            os<<", reinforced "<<(mt.sname.empty() ? "steel" : mt.sname)<<" f_y "<<mt.sfy<<" H "<<mt.sH<<" eps_u "<<mt.seu<<", bars";
+            const char* ax[3] = {"x","y","z"};
+            for(int k=0; k<3; ++k) if(mt.rs[k]>0.0) os<<" "<<ax[k]<<" "<<100.0*mt.rs[k]<<" %";
+            if(mt.rskin==0.0) os<<" uniform"; else if(mt.rskin>0.0) os<<" in a skin of "<<mt.rskin<<" m"; else os<<" in the outer element layer";
+        }
         os<<"\n";
     }
 
