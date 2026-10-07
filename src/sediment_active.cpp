@@ -149,20 +149,30 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4int(p,s->active,1);
     
     
-    // assign gcsldfeta entries
-    k=p->knoz-1;
+    // sediment cells: SFLOW has no 3D grid flags (DF), use the 2D cell flag
     SLICEBASELOOP
     {
-    if(p->DF[IJK]>0)
+    if(p->flagslice4[IJ]>0)
     p->DFBED[IJ]=1;
     
-    if(p->DF[IJK]<0)
+    if(p->flagslice4[IJ]<0)
     p->DFBED[IJ]=-1;
     }
+    
 }
 
 void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // flagini() (3D grids) is not called for SFLOW: allocate the sediment cell flag here
+    if(p->DFBED==nullptr)
+    {
+    p->Iarray(p->DFBED,p->imax*p->jmax);
+    
+    for(i=-p->margin; i<p->knox+p->margin; ++i)
+    for(j=-p->margin; j<p->knoy+p->margin; ++j)
+    p->DFBED[(i-p->imin)*p->jmax + j-p->jmin] = 1;
+    }
+    
     SLICEBASELOOP
     s->active(i,j)=1;
     
@@ -171,16 +181,16 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4int(p,s->active,1);
     
     
-    // assign gcsldfeta entries
-    k=p->knoz-1;
+    // sediment cells: SFLOW has no 3D grid flags (DF), use the 2D cell flag
     SLICEBASELOOP
     {
-    if(p->DF[IJK]>0)
+    if(p->flagslice4[IJ]>0)
     p->DFBED[IJ]=1;
     
-    if(p->DF[IJK]<0)
+    if(p->flagslice4[IJ]<0)
     p->DFBED[IJ]=-1;
     }
+    
 }
 
 void sediment_f::active_zone(lexer *p, ghostcell *pgc)

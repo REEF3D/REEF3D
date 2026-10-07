@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"fdm2D.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
@@ -110,8 +111,13 @@ void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice
     SLICELOOP2
     s->Q(i,j) = Q(i,j);
     
+    // water depth (non-equilibrium S33 4, van Rijn reference concentration, Engelund-Hansen)
+    SLICELOOP4
+    s->waterlevel(i,j) = b->hp(i,j);
+    
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
+    pgc->gcsl_start4(p,s->waterlevel,1);
 }
 
 double sediment_f::qbeval(int ii, int jj)
