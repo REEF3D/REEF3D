@@ -51,6 +51,10 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
     val = 0.0;
     }
     
+    // CFD: same exchange condition as the water column (suspended_IM1::suspsource: water at the bed)
+    if(p->A10==6 && s->waterlevel(i,j)<=0.0)
+    val = 0.0;
+    
     // multi-fraction bed: exchange with the single suspended class weighted by F_k
     if(frac_k>=0)
     val *= (*s->pmix->F[frac_k])(i,j);
