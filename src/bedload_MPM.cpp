@@ -45,7 +45,9 @@ void bedload_MPM::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 
 	SEDSLICELOOP
     {
-        rhowat = s->ro(i,j);
+        qb=0.0;   // also for a NaN shear stress, where neither branch below applies
+        
+        rhowat = p->W1;      // water density (s->ro is the density at the bed cell, air in dry CFD cells)
         
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);

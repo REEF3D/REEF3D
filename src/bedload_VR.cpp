@@ -47,10 +47,12 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	
 	SEDSLICELOOP
     {
+        qb=0.0;
+        
         Ts = s->shields_crit(i,j);
 	    Tb = s->shields_eff(i,j);
         
-        rhowat = s->ro(i,j);
+        rhowat = p->W1;      // water density (s->ro is the density at the bed cell, air in dry CFD cells)
         Rstar=(rhosed-rhowat)/rhowat;
         Ds= d50*pow((Rstar*g)/(visc*visc),1.0/3.0);
 
@@ -66,6 +68,6 @@ void bedload_VR::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 		s->qbe(i,j) = qb;
 	}
     
-    pgc->gcsl_start4a(p,s->qbe,1);    
+    pgc->gcsl_start4(p,s->qbe,1);    
     
 }
