@@ -92,15 +92,17 @@ using namespace std;
 //  With G 7 1 (subcycling, nhflow_amr_sub.cpp) level l takes 2^l steps per level-0 step: level 0
 //  steps alone with its own pressure, every finer level after it with fills interpolated in time,
 //  flux registers, a pressure solve per level and stage, refluxing and a synchronisation projection
-//  over the finer levels after each of its steps; not with floating bodies.
+//  over the finer levels after each of its steps.  Floating bodies need the zone (G 12): the finest
+//  level advances the body with its stages and loads, the coarser levels a predicted copy.
 //
 //  Floating bodies (6DOF_nhflow, X 10 1/2): the body is advanced on level 0, before the patches
-//  take their forcing; every patch casts the hull on its own sigma grid and adds the direct
-//  forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are integrated once, every hull
-//  triangle on the finest grid at its centroid (pressure, free surface, shear).  G 12 refines
-//  around the wetted hull (margin G 12, rectangle aligned with x and y; with G 13 L a oriented
-//  along the motion plus a wake wedge of length L and half angle a, as SFLOW); the hull triangles
-//  (X 185) are then sized for the finest level, as on a uniform fine grid.  The zone follows the
+//  take their forcing (G 7 1: by the finest level); every patch casts the hull on its own sigma
+//  grid and adds the direct forcing of the rigid-body velocity (nhflow_amr_6dof); the loads are
+//  integrated once, every hull triangle on the finest grid at its centroid (pressure, free
+//  surface, shear).  G 12 refines around the wetted hull (margin G 12, rectangle aligned with x
+//  and y; with G 13 L a oriented along the motion plus a wake wedge of length L and half angle
+//  a, as SFLOW); the hull triangles (X 185) are then sized for the finest level, as on a uniform
+//  fine grid.  The zone follows the
 //  body: a regrid every G 2 steps at the end of the step (G 2 0: static), the layout kept
 //  while it covers the flagged tiles with at most 50 % excess, G 5 regrids of hysteresis.  A
 //  fresh patch takes the state of the old patches of its level where they overlap; elsewhere it
@@ -440,6 +442,10 @@ private:
     void sub_reflux(int);
     void sub_press_level(lexer*, ghostcell*, int, int, int);
     void sub_project(lexer*, ghostcell*, int);
+    int bfin = 0;                   // finest steps of the level-0 step done (the bodies)
+    void sub_body_stage(lexer*, ghostcell*, int, int, double, double);
+    void sub_body_end(lexer*, ghostcell*);
+    void sub_body_mask(lexer*, fdm_nhf*);
     long sub_lv_it = 0, sub_lv_n = 0, sub_sy_it = 0, sub_sy_n = 0;   // level and synchronisation solves: iterations, count
     double tsync = 0.0;
     double rkw(int) const;          // weight of stage s in the step

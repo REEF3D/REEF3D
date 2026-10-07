@@ -2622,6 +2622,7 @@
             <File Name="6DOF_obj_forcing_2D.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forces NHFLOW">
+            <File Name="6DOF_obj_nhflow_amr.cpp"/>
             <File Name="6DOF_obj_forcing_nhflow_porous.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_viscous.cpp"/>
             <File Name="6DOF_obj_nhflow_actuator.cpp"/>
@@ -3197,7 +3198,7 @@
             <File Name="iowave_sflow_relax.cpp"/>
             <File Name="iowave_sflow_precalc_ini.cpp"/>
             <File Name="iowave_sflow_precalc.cpp"/>
-        <File Name="iowave_stage.cpp"/>
+            <File Name="iowave_stage.cpp"/>
             <File Name="iowave_sflow_ini.cpp"/>
             <File Name="iowave_sflow_inflow.cpp"/>
             <File Name="iowave_sflow_fullini.cpp"/>

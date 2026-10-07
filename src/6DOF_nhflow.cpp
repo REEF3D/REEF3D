@@ -46,6 +46,13 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 {
     starttime = pgc->timer();
     
+    if(amr_predict && (p->X10==1 || p->X10==2))
+    {
+    start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,false);
+    p->fbtime+=pgc->timer()-starttime;
+    return;
+    }
+    
     if(p->X10==1)
     start_twoway(p,d,pgc,iter,FX,FY,FZ,WL,fe,finalize);
     
@@ -206,6 +213,14 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
 void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    // subcycling (G 7 1): the predicted body of level 0 takes no loads
+    if(amr_predict)
+    {
+    for (int nb=0; nb<number6DOF;++nb)
+    fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+    return;
+    }
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // 1. re-impose no-slip at the position the fluid was solved with

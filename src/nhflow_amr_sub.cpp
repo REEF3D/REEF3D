@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_pressure.h"
+#include"6DOF_nhflow.h"
 #include<cmath>
 #include<mpi.h>
 #include<algorithm>
@@ -342,6 +343,16 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     sub_snapshot(-1);
     sub_creg_reset(-1);
 
+    // floating bodies: level 0 with a predicted copy (the finest level advances the body)
+    const bool bpred = (b6!=nullptr && maxlev>0);
+    if(bpred)
+    {
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_save();
+        b6->amr_predict = true;
+    }
+    bfin = 0;
+
     // level 0 alone, with its own pressure
     for(int s=0; s<ns; ++s)
     {
@@ -353,6 +364,13 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
         mom->phase_E(p,d,pgc,S0,s);
     }
     cur_stage = -1;
+
+    if(bpred)
+    {
+        b6->amr_predict = false;
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_restore(p,pgc);
+    }
 
     // the finer levels, two steps each, then refluxing, restriction and the synchronisation
     for(int id : lev[1])
@@ -367,6 +385,9 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     sub_level(p,pgc,1,1,t+0.5*dt,0.5*dt);
 
     sub_sync(p,pgc,0);
+
+    if(bpred)
+    sub_body_end(p,pgc);
 }
 
 // step k (0, 1) of the level-l patches from time t with dt, within the step of level l-1; then
@@ -392,6 +413,12 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
     }
     }
 
+    // floating bodies: a level coarser than the finest steps with a predicted copy
+    const bool bpred = (b6!=nullptr && l<maxlev);
+    if(bpred)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_save();
+
     for(int s=0; s<ns; ++s)
     {
         // columns around the patches at the stage input time, the parents interpolated in time
@@ -407,6 +434,10 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
 
         cur_stage = s;
         hstage = s;
+
+        // the bodies at the stage output of this level
+        if(b6!=nullptr)
+        sub_body_stage(p,pgc,l,s,t,dt);
 
         t0 = MPI_Wtime();
         {
@@ -436,8 +467,32 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         }
         }
         tm[1] += MPI_Wtime()-t0;
+
+        // the finest level: the loads after its stage, every hull triangle on the finest grid at
+        // the stage output (amr_grid_nhflow with cur_stage); the force output at the end of the
+        // level-0 step
+        if(b6!=nullptr && l==maxlev)
+        {
+            const bool fin = (s==ns-1 && bfin==(1<<maxlev)-1);
+            for(int nb=0; nb<b6->objects(); ++nb)
+            b6->object(nb)->hydrodynamic_forces_nhflow(p,d0,pgc,d0->WL,fin);
+        }
     }
     cur_stage = -1;
+
+    if(b6!=nullptr && l==maxlev)
+    {
+        const double dts = p->dt;
+        p->dt = dt;
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->saveTimeStep(p,ns-1);
+        p->dt = dts;
+        ++bfin;
+    }
+
+    if(bpred)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_restore(p,pgc);
 
     if(l>=maxlev)
     return;
@@ -457,6 +512,62 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
     sub_level(p,pgc,l+1,1,t+0.5*dt,0.5*dt);
 
     sub_sync(p,pgc,l);
+}
+
+// --------------------------------------------------------------------- floating bodies
+// the synchronisation leaves the cells next to the body forcing alone: the divergence the
+// reforcing of the last stage leaves there is not a mismatch of the levels, the next stage
+// projects it as on one grid.  The forcing acts where the hull level set FB < psi (the half width
+// of the smoothed Heaviside, A 526); a cell with a forced neighbour has FB < psi + one cell (FB is
+// a distance), from its own value only: the same on any partition
+void nhflow_amr::sub_body_mask(lexer *p, fdm_nhf *d)
+{
+    int i,j,k;
+    size_t n=0;
+    vector<double> &V = d->rhsvec.V;
+    LOOP
+    {
+        const double psi = p->A526*0.5*(p->DXN[IP] + p->DYN[JP]);
+        if(d->FB[IJK] < psi + MAX(p->DXN[IP],p->DYN[JP]))
+        if(n<V.size())
+        V[n] = 0.0;
+        ++n;
+    }
+}
+
+// stage s of the bodies with the step of level l (from t with dt): the finest level advances the
+// body (external forces, the loads of its last stage), a coarser one its predicted copy (the
+// loads frozen); the patches cast the hull and take their forcing in phase_P1
+void nhflow_amr::sub_body_stage(lexer *p, ghostcell *pgc, int l, int s, double t, double dt)
+{
+    const double dts = p->dt, ts = p->simtime;
+    p->dt = dt;
+    p->simtime = t;
+
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_stage(p,d0,pgc,s,l<maxlev);
+
+    p->dt = dts;
+    p->simtime = ts;
+}
+
+// end of the level-0 step: the hull on level 0 at the final pose (FB, the position line) and the
+// output of the bodies, once per level-0 step as with one step for all levels
+void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
+{
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+        sixdof_obj_nhflow *o = b6->object(nb);
+        o->update_position_nhflow(p,d0,pgc,d0->fs,true);
+
+        if(p->X50==1)
+        o->print_vtp(p,pgc);
+
+        if(p->X50==2)
+        o->print_stl(p,pgc);
+
+        o->print_parameter(p,pgc);
+    }
 }
 
 // the pressure of stage s of step k of level l: one solve over the level-l patches, the parent
@@ -719,6 +830,11 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
         pscope ps(pgc,c->d,d0);
         c->ptgt = c->ppress->amr_prepare(c->pp,c->d,pgc,1.0);
     }
+
+    // floating bodies: not the divergence the reforcing leaves next to the body
+    if(b6!=nullptr)
+    for(int g : grids)
+    sub_body_mask(glex(g),gfd(g));
 
     wlo = l;
     whi = maxlev;

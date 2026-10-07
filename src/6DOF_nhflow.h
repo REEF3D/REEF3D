@@ -83,6 +83,10 @@ public:
     int objects() const {return number6DOF;}
     sixdof_obj_nhflow* object(int nb) {return fb_obj[nb];}
     
+    // subcycling (G 7 1): level 0 steps with a predicted copy of the bodies (X 10 1/2): the RK
+    // stages with the loads frozen, the trimesh, ray cast and forcing; no loads, no output
+    bool amr_predict = false;
+    
 private:
 	
     // hires gradient

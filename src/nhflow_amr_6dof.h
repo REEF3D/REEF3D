@@ -32,8 +32,8 @@ using namespace std;
 
 //  The floating bodies (6DOF_nhflow, X 10 1/2) on a refined NHFLOW grid (nhflow_amr): the
 //  sixdof object of a patch.  The body is advanced on level 0 (sixdof_nhflow, before the patches
-//  take their forcing); a patch casts the hull on its own sigma grid (level set FB, ray-cast
-//  workspace of the patch size) and adds the direct forcing of the rigid-body velocity, as
+//  take their forcing; with subcycling, G 7 1, by the finest level: nhflow_amr_sub.cpp); a patch
+//  casts the hull on its own sigma grid (level set FB, ray-cast workspace of the patch size) and adds the direct forcing of the rigid-body velocity, as
 //  sixdof_nhflow::start_twoway/reforce_nhflow do it on level 0.  The loads are integrated once,
 //  on level 0, with every hull triangle sampled on the finest grid (sixdof_obj::amr_grid_nhflow).
 //  Without bodies (nullptr) all calls do nothing.

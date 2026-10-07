@@ -194,9 +194,10 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     cdiff = (p->A512==2 && p->G31==1);
     brk_split = (cdiff && p->A550==1);
 
-    // subcycling (G 7 1, nhflow_amr_sub.cpp): not with floating bodies; every grid solves its own
-    // implicit diffusion (G 31 1 needs all grids at the same time)
-    sub = (p->G7==1 && b6==nullptr) ? 1 : 0;
+    // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12:
+    // the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
+    // needs all grids at the same time)
+    sub = (p->G7==1 && (b6==nullptr || p->G12>0)) ? 1 : 0;
     if(sub==1)
     cdiff = brk_split = false;
 
@@ -388,7 +389,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
     cout<<endl;
     if(p->G7==1 && sub==0)
-    cout<<"NHFLOW AMR: G 7 1 (subcycling) not with floating bodies -- one time step for all levels"<<endl;
+    cout<<"NHFLOW AMR: G 7 1 (subcycling) with floating bodies needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
     if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
     cout<<"NHFLOW AMR: G 7 1: every grid solves its own implicit diffusion (G 31 1 needs all grids at the same time)"<<endl;
     }
