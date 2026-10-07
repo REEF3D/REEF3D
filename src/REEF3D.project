@@ -1352,6 +1352,22 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="SEASTATE">
+        <VirtualDirectory Name="AMR">
+          <File Name="seastate_grid.cpp"/>
+          <File Name="seastate_amr.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Sources">
+          <File Name="seastate_source.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Coupling">
+          <File Name="seastate_f_forcing.cpp"/>
+          <File Name="seastate_forcing.cpp"/>
+          <File Name="seastate_f_surfbeat.cpp"/>
+          <File Name="seastate_surfbeat.cpp"/>
+          <File Name="seastate_coupling.cpp"/>
+          <File Name="seastate_nhflow.cpp"/>
+          <File Name="seastate_sflow.cpp"/>
+        </VirtualDirectory>
         <File Name="seastate_swan_spc.cpp"/>
         <File Name="fdm_seastate.cpp"/>
         <File Name="seastate_dispersion.cpp"/>
@@ -1359,7 +1375,6 @@
         <File Name="seastate_f.cpp"/>
         <File Name="seastate_f_initial.cpp"/>
         <File Name="seastate_f_ini.cpp"/>
-        <File Name="seastate_grid.cpp"/>
         <File Name="seastate_param.cpp"/>
         <File Name="seastate_store.cpp"/>
         <File Name="seastate_exchange.cpp"/>
@@ -1367,17 +1382,8 @@
         <File Name="seastate_f_param.cpp"/>
         <File Name="seastate_f_transport.cpp"/>
         <File Name="seastate_implicit.cpp"/>
-        <File Name="seastate_source.cpp"/>
-        <File Name="seastate_sflow.cpp"/>
         <File Name="seastate_f_handover.cpp"/>
-        <File Name="seastate_surfbeat.cpp"/>
         <File Name="seastate_roller.cpp"/>
-        <File Name="seastate_coupling.cpp"/>
-        <File Name="seastate_nhflow.cpp"/>
-        <File Name="seastate_f_surfbeat.cpp"/>
-        <File Name="seastate_forcing.cpp"/>
-        <File Name="seastate_f_forcing.cpp"/>
-        <File Name="seastate_amr.cpp"/>
         <File Name="seastate_bathy.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
