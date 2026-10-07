@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"bedslope.h"
 #include"bedshear_reduction.h"
 #include"bedload_direction.h"
+#include"sediment_roughness.h"
 
 sediment_RK2::sediment_RK2(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC) : sediment_f(p,pgc,pturb,ppBC), bedzh_n(p)
 {
@@ -53,7 +54,16 @@ sediment_RK2::~sediment_RK2()
 
 void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-    if(p->count>=p->S43)
+    // fully coupled: the bed is advanced in both RK stages of every flow time step once the
+    // sediment transport has started (start criteria S 41 / S 43, S 45, S 47); the interval
+    // criteria S 42 / S 44, S 46, S 48 of the explicit sediment step do not apply.
+    // Stage 2 runs only if stage 1 ran in this time step.
+    rk_on = 0;
+    
+    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47 && p->count>0))
+	rk_on = 1;
+    
+    if(rk_on==1)
     {
         
     starttime=pgc->timer();
@@ -73,6 +83,9 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     // bedslope reduction ******
     preduce->start(p,pgc,s);
     
+    // bed roughness -------
+    pks->start(p,pgc,s,d->WL);
+    
     // bedshear stress -------
 	pbedshear->taubed(p,d,pgc,s);
     pbedshear->taucritbed(p,d,pgc,s);
@@ -91,7 +104,10 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     
     // Exner *******
     ptopo->start_RK(p,pgc,s);
-    ptopo->timestep(p,pgc,s);
+    
+    // fully coupled: the bed advances with the flow time step (S 17: morphological factor, default 1);
+    // the S 15 / S 13 / S 14 sediment time step of start_RK() is not used
+    p->dtsed = p->S17*p->dt;
     p->sedtime+=p->dtsed;
     
     // RK Step 1
@@ -119,7 +135,7 @@ void sediment_RK2::RK2_step1_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
 
 void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-    if(p->count>=p->S43)
+    if(rk_on==1)
     {
     starttime=pgc->timer();
     
@@ -142,14 +158,16 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
     
-    // suspended load -------
-    pcbed->start(p,pgc,s);
+    // suspended load: the reference concentration of stage 1 is kept, the suspended solver of
+    // this time step ran with it (cbn, see susp_ED)
 	
     // relax *******
 	prelax->start(p,pgc,s);
     
-    // Exner *******
+    // Exner ******* (both stages with the stage-1 dtsed: start_RK recomputes it from the stage-2 rates)
+    dtsed_rk = p->dtsed;
     ptopo->start_RK(p,pgc,s);
+    p->dtsed = dtsed_rk;
     
     // RK Step 2
     SEDSLICELOOP

@@ -46,6 +46,8 @@ private:
     sediment_RK2 *psed;
    
 	slice4 bedzh_n;
+    int rk_on=0;
+    double dtsed_rk=0.0;
 };
 
 #endif
