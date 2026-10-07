@@ -169,6 +169,19 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     
     ptopo = new sediment_exner(p,pgc);
     
+    // Exner formulations that do not conserve the bed volume
+    if(p->mpirank==0)
+    {
+        if(p->S31==3)
+        cout<<"WARNING S 31 3: advective Exner form sign(u)*dqb/dx, not conservative where the transport direction turns; use S 31 1 or 2"<<endl;
+        
+        if(p->S32==3 && p->S31==1)
+        cout<<"WARNING S 32 3 with S 31 1: advective (HJ) form, not conservative; use S 32 1, 2 or 4"<<endl;
+        
+        if(p->S32==5)
+        cout<<"WARNING S 32 5: WENO-HJ derivative, not conservative; use S 32 1, 2 or 4"<<endl;
+    }
+    
     // Suspended Sediments
     // Suspended NHFLOW
     if(p->A10==5)
