@@ -139,14 +139,16 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
             if((di == 0 && dj == 0)||p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
             continue;
             
+            // no transfer into physical boundary ghost cells (lost) or across rows in 2D
+            if(!SLIDE_NB(di,dj))
+            continue;
+            
             tan_phi = tan(s->phi(i,j));
             
-            // Compute distance
-            double d;
-            if(di != 0 && dj != 0)
-                d = dx * sqrt(2.0);
-            else
-                d = dx;
+            // distance between the cell centres (was 0.5*(dx+dy) and sqrt(2) of it: wrong for dx != dy)
+            double ddx = di<0?p->DXP[IM1]:(di>0?p->DXP[IP]:0.0);
+            double ddy = dj<0?p->DYP[JM1]:(dj>0?p->DYP[JP]:0.0);
+            double d = sqrt(ddx*ddx + ddy*ddy);
             
             // Elevation difference (positive = downslope)
             double dz = z0 - s->bedzh(i+di, j+dj);
@@ -202,7 +204,7 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
             for(int k = 0; k < count; ++k)
             {
                 double fraction = weights[k] / total_weight;
-                fh(ni[k], nj[k]) += total_flux * fraction;
+                fh(ni[k], nj[k]) += total_flux * fraction * SLIDE_AR(ni[k]-i,nj[k]-j);
                 
                 if(s->pmix!=nullptr)
                 s->pmix->slide_transfer(i,j,ni[k],nj[k],total_flux * fraction);

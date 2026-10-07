@@ -101,7 +101,7 @@ public:
     // sandslide hooks
     void slide_zero(lexer*, ghostcell*);
     void slide_transfer(int,int,int,int,double);
-    void slide_pde(lexer*, sediment_fdm*, slice&, int, int, double);
+    void slide_pde(lexer*, sediment_fdm*, slice&, int, int, double*);
     void slide_finish(lexer*, ghostcell*, sediment_fdm*);
 
     // grain size statistics and roughness

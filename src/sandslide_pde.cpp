@@ -58,6 +58,17 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
     ci(i,j)=0.0;
     }
     
+    // smallest cell for the pseudo time step
+    dxmin=1.0e20;
+    SLICELOOP4
+    {
+    dxmin = MIN(dxmin,p->DXN[IP]);
+    
+    if(p->j_dir==1 && p->gknoy>1)
+    dxmin = MIN(dxmin,p->DYN[JP]);
+    }
+    dxmin = pgc->globalmin(dxmin);
+    
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
@@ -79,8 +90,8 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         
 
         
-        // slide loop
-        SLICEBASELOOP
+        // slide loop: sediment cells in the S 77 window only
+        SEDSLICELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);
@@ -89,7 +100,7 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         pgc->gcslparax_fh(p,fh,4);
         
         // fill back
-        SLICEBASELOOP
+        SEDSLICELOOP
         {
         s->slide_fh(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
@@ -115,20 +126,39 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double dt = 0.1*p->DXM*p->DXM;
-    double sqd = (1.0/(p->DXM*p->DXM));
+    // finite-volume diffusion of the bed where it is steeper than the angle of repose:
+    // face coefficients dt/(cell width * centre distance), so the face flux is the same seen from
+    // both cells (conservative on non-uniform grids); faces to cells without an erodible bed
+    // (structures, DFBED<0, solids, domain boundary) and to cells outside the S 77 window are closed.
+    // pseudo time step from the smallest cell (dxmin, start())
+    double dt = 0.1*dxmin*dxmin;
+    double fcf[4];
+    const int ni[4] = {1,-1,0,0};
+    const int nj[4] = {0,0,1,-1};
+    
+    fcf[0] = dt/(p->DXN[IP]*p->DXP[IP]);
+    fcf[1] = dt/(p->DXN[IP]*p->DXP[IM1]);
+    fcf[2] = dt/(p->DYN[JP]*p->DYP[JP]);
+    fcf[3] = dt/(p->DYN[JP]*p->DYP[JM1]);
+    
+    for(int f=0;f<4;++f)
+    {
+    int ii=i+ni[f];
+    int jj=j+nj[f];
+    
+        if(!SLIDE_NB(ni[f],nj[f]) || p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]<0 || p->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]<0
+          || p->XP[IP+ni[f]]<=p->S77_xs || p->XP[IP+ni[f]]>=p->S77_xe)
+        fcf[f] = 0.0;
+    }
 
-    fh(i,j) =  dt*sqd*( (s->bedzh(i+1,j)-s->bedzh(i,j))*0.5*(ci(i+1,j)+ci(i,j)) 
-                        -(s->bedzh(i,j)-s->bedzh(i-1,j))*0.5*(ci(i,j)+ci(i-1,j))
-                                
-                        +(s->bedzh(i,j+1)-s->bedzh(i,j))*0.5*(ci(i,j+1)+ci(i,j)) 
-                        -(s->bedzh(i,j)-s->bedzh(i,j-1))*0.5*(ci(i,j)+ci(i,j-1)));
+    fh(i,j) = 0.0;
+    
+    for(int f=0;f<4;++f)
+    fh(i,j) += fcf[f]*(s->bedzh(i+ni[f],j+nj[f])-s->bedzh(i,j))*0.5*(ci(i+ni[f],j+nj[f])+ci(i,j));
     
     // multi-fraction bed: face fluxes with upwind composition
     if(s->pmix!=nullptr)
-    s->pmix->slide_pde(p,s,ci,i,j,dt*sqd);
-    
-  
+    s->pmix->slide_pde(p,s,ci,i,j,fcf);
 }
 
 void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)

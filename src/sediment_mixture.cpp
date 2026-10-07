@@ -593,7 +593,7 @@ void sediment_mixture::slide_transfer(int i0, int j0, int i1, int j1, double x)
 }
 
 // flux form sandslide (S90 5): upwind composition at each face
-void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, int jj, double fc)
+void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, int jj, double *fc)
 {
     const int ni[4] = {1,-1,0,0};
     const int nj[4] = {0,0,1,-1};
@@ -604,7 +604,7 @@ void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, i
     int i1 = ii+ni[f];
     int j1 = jj+nj[f];
 
-    flux = fc*(s->bedzh(i1,j1)-s->bedzh(ii,jj))*0.5*(ci(i1,j1)+ci(ii,jj));
+    flux = fc[f]*(s->bedzh(i1,j1)-s->bedzh(ii,jj))*0.5*(ci(i1,j1)+ci(ii,jj));
 
         for(int q=0;q<nf;++q)
         (*fh_k[q])(ii,jj) += flux*(flux>0.0?(*F[q])(i1,j1):(*F[q])(ii,jj));
@@ -647,8 +647,9 @@ void sediment_mixture::slide_finish(lexer *p, ghostcell *pgc, sediment_fdm *s)
                 if(x>0.0)
                 for(int q=0;q<nf;++q)
                 {
+                // receiver height with the area ratio (volume conserving, as the bed sand slide)
                 (*fh_k[q])(i,j) -= x*Fe[q];
-                (*fh_k[q])(i+dir/3-1,j+dir%3-1) += x*Fe[q];
+                (*fh_k[q])(i+dir/3-1,j+dir%3-1) += x*Fe[q]*(p->DXN[IP]*p->DYN[JP])/(p->DXN[IP+dir/3-1]*p->DYN[JP+dir%3-1]);
                 }
             }
         }
