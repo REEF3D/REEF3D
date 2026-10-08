@@ -21,6 +21,9 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fem_solid.h"
+#ifdef _OPENMP
+#include<omp.h>
+#endif
 #include<set>
 #include<map>
 #include<tuple>
@@ -35,6 +38,15 @@ fem_solid::fem_solid()
 
 fem_solid::~fem_solid()
 {
+}
+
+int fem_solid::max_threads()
+{
+#ifdef _OPENMP
+    return omp_get_max_threads();
+#else
+    return 1;
+#endif
 }
 
 void fem_solid::set_lattice(double ox_,double oy_,double oz_,double hx_,double hy_,double hz_)
@@ -163,6 +175,7 @@ void fem_solid::add_fix(double x0,double x1,double y0,double y1,double z0,double
 
 void fem_solid::build()
 {
+    act_dirty = true;
     if(mats.empty())
     throw std::runtime_error("FEM: no material defined");
 
@@ -406,10 +419,14 @@ void fem_solid::advance(double dt)
 
     for(int s=0; s<nsub; ++s)
     {
-        std::fill(fint.begin(),fint.end(),Vec3::Zero());
-        std::fill(fcon.begin(),fcon.end(),Vec3::Zero());
+        {
+            const int nn = nnode();
+            FEM_OMP(omp parallel for schedule(static) num_threads(nthr) if(par(nn,8*PAR_NODES)))
+            for(int i=0; i<nn; ++i)
+            fcon[i].setZero();
+        }
 
-        internal_forces(dts);
+        internal_forces(dts);           // sets fint of all nodes
 
         rpairs.clear();
         if(ground_on || !planes.empty() || bed_on)
@@ -427,7 +444,10 @@ void fem_solid::advance(double dt)
         if(alpha_struct>0.0)
         rigid_velocity(vrig);
 
-        for(int i=0; i<nnode(); ++i)
+        const int nn = nnode();
+        int bad = nn;                   // first node with a non-finite velocity
+        FEM_OMP(omp parallel for schedule(static) num_threads(nthr) if(par(nn,PAR_NODES)) reduction(min:bad))
+        for(int i=0; i<nn; ++i)
         {
             if(m[i]<=0.0)
             continue;
@@ -453,22 +473,31 @@ void fem_solid::advance(double dt)
 
             if(!v[i].allFinite())
             {
-                std::ostringstream os;
-                os<<"FEM: non-finite velocity at node "<<i<<" x "<<x[i].transpose()<<" m "<<m[i]<<" m_f "<<mfl[i]
-                  <<" M_cpl "<<Mcpl[i].transpose()<<" M u_f "<<Mu_cpl[i].transpose()<<" f_ext "<<fext[i].transpose()<<" f_int "<<fint[i].transpose()
-                  <<" f_con "<<fcon[i].transpose()<<" intact elements "<<nalive[i];
-                throw std::runtime_error(os.str());
+                bad = std::min(bad,i);
+                continue;
             }
 
             x[i] += dts*v[i];
             vsum[i] += v[i];
         }
 
+        if(bad<nn)
+        {
+            const int i = bad;
+            std::ostringstream os;
+            os<<"FEM: non-finite velocity at node "<<i<<" x "<<x[i].transpose()<<" m "<<m[i]<<" m_f "<<mfl[i]
+              <<" M_cpl "<<Mcpl[i].transpose()<<" M u_f "<<Mu_cpl[i].transpose()<<" f_ext "<<fext[i].transpose()<<" f_int "<<fint[i].transpose()
+              <<" f_con "<<fcon[i].transpose()<<" intact elements "<<nalive[i];
+            throw std::runtime_error(os.str());
+        }
+
         if(!rbs.empty())
         {
             rigid_step(dts,frig);
-            for(const rigid_body& rb : rbs)
-            for(int i : rb.nodes)
+            const int nb = (int)rbs.size();
+            FEM_OMP(omp parallel for schedule(dynamic,1) num_threads(std::min(nthr,nb)) if(nb>1 && par(nnode(),PAR_NODES)))
+            for(int k=0; k<nb; ++k)
+            for(int i : rbs[k].nodes)
             vsum[i] += v[i];
         }
 
@@ -516,6 +545,9 @@ void fem_solid::advance(double dt)
 
 int fem_solid::n_alive() const
 {
+    // counted with the active list (build_gather), else here
+    if(!act_dirty)
+    return nalive_el;
     int n = 0;
     for(const element& e : elems)
     if(e.alive) ++n;
@@ -630,6 +662,7 @@ void fem_solid::setup_rigid()
     rbs.clear();
     rnode.assign(nnode(),-1);
     for(element& e : elems) e.rigid = false;
+    act_dirty = true;
 
     bool any = false;
     for(const material& mt : mats) if(mt.rigid) any = true;
@@ -754,8 +787,13 @@ void fem_solid::rigid_props(rigid_body& rb,int k)
 
 void fem_solid::rigid_step(double dts,const std::vector<Vec3>& F)
 {
-    for(rigid_body& rb : rbs)
+    // the bodies are independent (own nodes): threads over the bodies
+    const int nb = (int)rbs.size();
+    int bad = 0;
+    FEM_OMP(omp parallel for schedule(dynamic,1) num_threads(std::min(nthr,nb)) if(nb>1 && par(nnode(),PAR_NODES)) reduction(max:bad))
+    for(int kb=0; kb<nb; ++kb)
     {
+        rigid_body& rb = rbs[kb];
         Vec3 Ft = Vec3::Zero(), T = Vec3::Zero(), Fc = Vec3::Zero(), Tc = Vec3::Zero();
         for(int i : rb.nodes)
         {
@@ -824,13 +862,15 @@ void fem_solid::rigid_step(double dts,const std::vector<Vec3>& F)
         }
 
         if(!rb.c.allFinite() || !rb.V.allFinite())
-        throw std::runtime_error("FEM: non-finite rigid body motion");
+        bad = 1;
 
         rb.vmax = std::max(rb.vmax,rb.V.norm());
         rb.dmax = std::max(rb.dmax,(rb.c-rb.c0).norm());
         rb.fcmax = std::max(rb.fcmax,Fc.norm());
         rb.fcstep = std::max(rb.fcstep,Fc.norm());
     }
+    if(bad)
+    throw std::runtime_error("FEM: non-finite rigid body motion");
 }
 
 bool fem_solid::bodies_near() const
@@ -842,12 +882,36 @@ bool fem_solid::bodies_near() const
     const int nb = (int)body_fixed.size();
     if(nb<2)
     return false;
-    std::vector<Vec3> lo(nb,Vec3::Constant(1.0e300)), hi(nb,Vec3::Constant(-1.0e300));
-    for(int i=0; i<nnode(); ++i)
-    if(body[i]>=0)
+    // bounding boxes of the bodies (min / max: exact in any order, threads)
+    const int nn = nnode();
+    const int nt = par(nn,PAR_NODES) ? nthr : 1;
+    std::vector<tls<std::vector<Vec3>>> lt(nt), ht(nt);
+    for(int tn=0; tn<nt; ++tn)
     {
-        lo[body[i]] = lo[body[i]].cwiseMin(x[i]);
-        hi[body[i]] = hi[body[i]].cwiseMax(x[i]);
+        lt[tn].v.assign(nb,Vec3::Constant(1.0e300));
+        ht[tn].v.assign(nb,Vec3::Constant(-1.0e300));
+    }
+    FEM_OMP(omp parallel num_threads(nthr) if(par(nn,PAR_NODES)))
+    {
+        const int tn = thread_num();
+        std::vector<Vec3>& l = lt[tn].v;
+        std::vector<Vec3>& h = ht[tn].v;
+        FEM_OMP(omp for schedule(static))
+        for(int i=0; i<nn; ++i)
+        {
+            const int b = body[i];
+            if(b<0)
+            continue;
+            l[b] = l[b].cwiseMin(x[i]);
+            h[b] = h[b].cwiseMax(x[i]);
+        }
+    }
+    std::vector<Vec3> lo(nb,Vec3::Constant(1.0e300)), hi(nb,Vec3::Constant(-1.0e300));
+    for(int tn=0; tn<nt; ++tn)
+    for(int b=0; b<nb; ++b)
+    {
+        lo[b] = lo[b].cwiseMin(lt[tn].v[b]);
+        hi[b] = hi[b].cwiseMax(ht[tn].v[b]);
     }
     const double d0 = contact_dist*hmin();
     for(int a=0; a<nb; ++a)
@@ -956,6 +1020,7 @@ void fem_solid::make_rigid_fragments(const std::vector<unsigned char>& was_suppo
         rbs.push_back(rigid_body());
         rbs.back().fragment = true;
     }
+    act_dirty = true;
     for(element& e : elems)
     if(e.alive && body[e.n[0]]>=0 && rid[body[e.n[0]]]>=0)
     {

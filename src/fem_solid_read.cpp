@@ -293,6 +293,19 @@ void fem_solid::read(std::istream& is)
             if(ls>>hg) hg_coef = hg;
         }
         else if(kw=="cfl")           need(static_cast<bool>(ls>>cfl) && cfl>0.0 && cfl<=1.0);
+        else if(kw=="threads")
+        {
+            // threads <n> | threads auto: threads of the solid (OpenMP builds)
+            std::string t;
+            need(static_cast<bool>(ls>>t));
+            if(t=="auto")
+            nthr_req = 0;
+            else
+            {
+                std::istringstream ts(t);
+                need(static_cast<bool>(ts>>nthr_req) && nthr_req>=1);
+            }
+        }
         else if(kw=="damping")
         {
             // damping 2%  |  damping 0.02  |  damping off  |  damping mass alpha[1/s]
