@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"wave_lib.h"
 #include<algorithm>
+#include<iomanip>
 
 /*--------------------------------------------------------------------
 Tidal / current background in NHFLOW (iowave redesign, step 4):
@@ -39,6 +40,11 @@ Tidal / current background in NHFLOW (iowave redesign, step 4):
     u_g = (R+ + R-)/2, h_g = (R+ - R-)^2/(16 g)
 - Flather edge (B 520 method 4): h_g = h_i, u_g = u_b -+ sqrt(g/h_i) (eta_i - eta_b)
   (x- / x+), i.e. q_n = q_b + sqrt(g h) (eta - eta_b) with the outward normal
+- clamped level edge (method 5): h_g = h_0 + eta_b, u_g = u_i (normal)
+- clamped discharge edge (method 6): h_g = h_i, u_g = u_b (normal) or, with
+  B 525 Q, u_g = r(t) Q / sum(h_i ds) along the edge
+- B 529 M: every M steps the volume and the flux through each open edge
+  (numerical continuity flux at the boundary face) to REEF3D_Log
 
 The edges set U, V, W, UH, VH, WH (depth uniform) and WL, eta in the three
 ghost cells; ghostcell treats the edge as open (lexer open_xm / open_xp).
@@ -96,6 +102,10 @@ void iowave::nhflow_bg_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // waves on the background (B 530): k on h_eff, Doppler
     if(p->B530>0)
     nhflow_wave_background(p,pgc);
+    
+    // edge mass balance (B 529)
+    if(p->B529>0)
+    nhflow_mass_balance(p,d,pgc);
 }
 
 double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
@@ -148,7 +158,38 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
         edge_geometry(side,sc,di,dj,nx,ny);
         const bool xedge = side<=2;
         
-        const int b = bgs.index(z->bg);
+        const int b = z->bg>0 ? bgs.index(z->bg) : -1;
+        
+        // clamped discharge edge with B 525: normal velocity Q / (sum of h ds along the edge), ramped
+        double uq = 0.0;
+        
+        if(z->method==bc_method::clamp_q && z->has_Q)
+        {
+            double area = 0.0;
+            
+            for(int list=0; list<2; ++list)
+            {
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            if(gs[n][3]==sc)
+            {
+                i=gs[n][0];
+                j=gs[n][1];
+                
+                if(p->wet[IJ]==1)
+                area += d->WL(i,j)*(xedge ? p->DYN[JP] : p->DXN[IP]);
+            }
+            }
+            
+            area = pgc->globalsum(area);
+            
+            const double pi = 3.14159265358979323846;
+            const double r = (z->Q_tramp>0.0 && p->simtime<z->Q_tramp) ? 0.5*(1.0-cos(pi*fmax(p->simtime,0.0)/z->Q_tramp)) : 1.0;
+            
+            uq = area>1.0e-12 ? r*z->Q/area : 0.0;
+        }
         
         // waves of the edge's sources (B 524, Riemann only): eta and depth averaged u, v per column
         const bool waves = z->method==bc_method::riemann && !z->sources.empty();
@@ -220,8 +261,9 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             // background at the boundary face
             const double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
             const double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
-            const double eb = bgs.eta(b,xf,yf);
-            double ub, vb;
+            const double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            double ub=0.0, vb=0.0;
+            if(b>=0)
             bgs.vel(b,h0,xf,yf,ub,vb);
             
             // normal (inward) and tangential velocities: x edges U / V, y edges V / U
@@ -260,10 +302,24 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 ung = 0.5*(Rin+Rout);
             }
             else
+            if(z->method==bc_method::flather)
             {
                 // q_n(outward) = q_n,b + sqrt(g h) (eta - eta_b)
                 hg = hi;
                 ung = (xedge ? nn*ub : nn*vb) - sqrt(g/hi)*((hi-h0) - eb);
+            }
+            else
+            if(z->method==bc_method::clamp_level)
+            {
+                // level of the background, normal velocity of the interior
+                hg = fmax(h0+eb,1.0e-6);
+                ung = uni;
+            }
+            else
+            {
+                // clamped discharge: normal velocity of the background or B 525, depth of the interior
+                hg = hi;
+                ung = z->has_Q ? uq : (xedge ? nn*ub : nn*vb);
             }
             
             edge_h[IJ] = hg;
@@ -384,8 +440,9 @@ void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
         if(gc[n][3]!=sc)
         continue;
         
-            // Riemann: h_g of this step; Flather: zero gradient
-            const double hg = (z->method==bc_method::riemann && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] : WL(i,j);
+            // Riemann, clamped level: h_g of this step; Flather, clamped discharge: zero gradient
+            const bool own_h = z->method==bc_method::riemann || z->method==bc_method::clamp_level;
+            const double hg = (own_h && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] : WL(i,j);
             
             for(int q=1; q<=3; ++q)
             {
@@ -657,4 +714,123 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
         lib->wave_depth_set(s.h0 + (s.h1-s.h0)*fs);
         lib->wave_comp_update();
     }
+}
+
+/*--------------------------------------------------------------------
+Edge mass balance (B 529 M)
+
+Once per step the volume flux into the domain through each open edge,
+from the continuity flux of the solver at the boundary face
+(sum_k DZN FEx, FEy times the face width; the last stage of the previous
+step), is integrated in time; every M steps a line with the volume V,
+dV/dt over the interval, the mean flux of each edge and the residual
+dV/dt - sum goes to REEF3D_Log/REEF3D-NHFLOW-iowave-mass-balance.dat.
+The residual holds what relaxation and beach zones add or remove, and
+the time discretisation of the sampled flux.
+--------------------------------------------------------------------*/
+
+void iowave::nhflow_mass_balance(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const double t = p->simtime;
+    
+    if(t==mb_t)
+    return;
+    
+    // flux into the domain through each open edge [m3/s]
+    double q[5]={0.0,0.0,0.0,0.0,0.0};
+    
+    for(int side : {1,2,3,4})
+    {
+        const bc_zone *z = zones.open_edge(side);
+        if(z==nullptr || edge_open(p,side)==0)
+        continue;
+        
+        int sc, di, dj;
+        double nx, ny;
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
+        {
+        const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+        int **gs = list==0 ? p->gcslin : p->gcslout;
+        
+        for(int m=0; m<cs; ++m)
+        if(gs[m][3]==sc)
+        {
+            i = gs[m][0];
+            j = gs[m][1];
+            
+            double f = 0.0;
+            for(k=0; k<p->knoz; ++k)
+            {
+                if(side==1) f += p->DZN[KP]*d->FEx[Im1JK];
+                if(side==2) f -= p->DZN[KP]*d->FEx[IJK];
+                if(side==3) f += p->DZN[KP]*d->FEy[IJm1K];
+                if(side==4) f -= p->DZN[KP]*d->FEy[IJK];
+            }
+            
+            q[side] += f*(side<=2 ? p->DYN[JP] : p->DXN[IP]);
+        }
+        }
+        
+        q[side] = pgc->globalsum(q[side]);
+    }
+    
+    double V = 0.0;
+    SLICELOOP4
+    V += d->WL(i,j)*p->DXN[IP]*p->DYN[JP];
+    V = pgc->globalsum(V);
+    
+    // first call: header and start of the first interval
+    if(mb_t<0.0)
+    {
+        if(p->mpirank==0)
+        {
+            mb_out.open("./REEF3D_Log/REEF3D-NHFLOW-iowave-mass-balance.dat");
+            mb_out<<"# iowave edge mass balance (B 529 "<<p->B529<<"): flux into the domain [m3/s], mean over the interval"<<std::endl;
+            mb_out<<"# residual = dV/dt - sum of the edges: relaxation / beach zones and time discretisation"<<std::endl;
+            mb_out<<"# t  V  dV/dt";
+            for(int side : {1,2,3,4})
+            if(zones.open_edge(side)!=nullptr && edge_open(p,side)==1)
+            mb_out<<"  Q_edge"<<side<<"(zone "<<zones.open_edge(side)->id<<")";
+            mb_out<<"  sum  residual"<<std::endl;
+        }
+        
+        mb_t = mb_t0 = t;
+        mb_V0 = V;
+        mb_n = 0;
+        return;
+    }
+    
+    const double dt = t - mb_t;
+    for(int side : {1,2,3,4})
+    mb_int[side] += q[side]*dt;
+    
+    mb_t = t;
+    ++mb_n;
+    
+    if(mb_n<p->B529)
+    return;
+    
+    const double T = t - mb_t0;
+    
+    if(p->mpirank==0 && T>0.0)
+    {
+        double sum = 0.0;
+        mb_out<<std::setprecision(10)<<t<<"  "<<V<<"  "<<(V-mb_V0)/T;
+        for(int side : {1,2,3,4})
+        if(zones.open_edge(side)!=nullptr && edge_open(p,side)==1)
+        {
+            mb_out<<"  "<<mb_int[side]/T;
+            sum += mb_int[side]/T;
+        }
+        mb_out<<"  "<<sum<<"  "<<(V-mb_V0)/T - sum<<std::endl;
+    }
+    
+    for(int side : {1,2,3,4})
+    mb_int[side] = 0.0;
+    
+    mb_t0 = t;
+    mb_V0 = V;
+    mb_n = 0;
 }

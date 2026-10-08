@@ -166,11 +166,14 @@ public:
     // iowave redesign: tidal / current background (B 510-514) and zone background (B 523), repeatable
     int B510,B511,B514,B515,B523;
     int B530,B530_N;    // iowave redesign: waves on the background (B 530 mode N)
+    int B529;           // iowave redesign: edge mass balance log every B 529 steps (0: off)
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
     int *B514_id; double *B514_eta0,*B514_U,*B514_V;
     int *B523_id,*B523_bg;
+    int B525;
+    int *B525_id; double *B525_Q,*B525_tramp;    // iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;

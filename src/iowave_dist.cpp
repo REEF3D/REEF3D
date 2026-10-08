@@ -247,8 +247,8 @@ void iowave::zones_check(lexer *p)
     err = "beach zone "+std::to_string(z.id)+" cannot have sources (B 524)";
     
     for(const bc_zone &z : zones.edges)
-    if(!z.sources.empty() && z.method==bc_method::flather)
-    err = "Flather edge "+std::to_string(z.id)+" carries the background only (no B 524); waves come in through a Riemann edge or a relaxation zone";
+    if(!z.sources.empty() && z.method!=bc_method::riemann)
+    err = "Flather / clamped edge "+std::to_string(z.id)+" carries the background only (no B 524); waves come in through a Riemann edge or a relaxation zone";
     
     for(const bc_zone &z : zones.edges)
     for(int s : z.sources)
