@@ -154,7 +154,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // parcels (iso-surface of the solid fraction) is rigid, as are the solid bodies. The surface layer
     // is free (no constraint), the transition to the rigid bed is a smooth Heaviside over -2 psi .. -psi.
     // Slopes then fail by avalanches of the surface layer, held by the Coulomb friction (repose);
-    // deep failures are not represented.
+    // deep failures need the yield of the column, Q 67.
     // The constraint is applied to the new velocity after drag and friction, u -> (1 - Hs) u
     // (Hjam, in the time schemes): an explicit forcing would leave the velocity dt*F of the
     // other forces in the jammed bed, a creep of mm/s. A partial constraint is a relaxation per

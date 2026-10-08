@@ -520,7 +520,9 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     double Tsp = MAX(p->ccipol4a(Ts,xp,yp,zp),theta_bed);
     double dTe = p->ccipol4a(dTx,xp,yp,zp)*ex + (p->j_dir==1?p->ccipol4a(dTy,xp,yp,zp)*ey:0.0) + p->ccipol4a(dTz,xp,yp,zp)*ez;
     
-    double aN = MAX(dTe,0.0)/(Tsp*p->S22);
+    // (the same solid fraction as for the stress force on the parcel in advec_mppic, MAX(Ts, 0.5 theta_bed):
+    // with MAX(Ts, theta_bed) the grains in the dilute surface cells of a slope had up to half the normal load)
+    double aN = MAX(dTe,0.0)/(MAX(p->ccipol4a(Ts,xp,yp,zp),0.5*theta_bed)*p->S22);
     
     if(aN<1.0e-12)
     return;
