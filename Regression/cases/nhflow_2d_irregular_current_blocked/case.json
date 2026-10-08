@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "nhflow_2d_irregular_current_doppler against an opposing current of 1 m/s (spin-up 2 s): the components above omega = g/(4|U|) are blocked and fade out (B 530 2 10).",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler"],
+ "covers": ["B 530 blocked components"]
+}

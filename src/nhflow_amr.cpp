@@ -201,6 +201,16 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     if(sub==1)
     cdiff = brk_split = false;
 
+    // G 7 1 with bodies: the coarse levels step first with their own coarse picture of the body,
+    // and its near field reaches the finest level through the fills and the edge pressure of the
+    // level solves.  The zone margin is at least 12 cells of level 0: the towed box of 0020 with
+    // two and three levels then within the error of one step for all levels (0.2 m = 4 cells:
+    // 4.5x that error).  Following the finer levels in the covered cells during a coarse step was
+    // tried and brought little (0.39 -> 0.35 N, the heave box worse)
+    zr_user = q.zr;
+    if(sub==1 && q.zones)
+    q.zr = MAX(q.zr, 12.0*p->DXM);
+
     configure(q);
 
     if(p->F50==1) gcval_eta = 51;
@@ -390,6 +400,8 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<endl;
     if(p->G7==1 && sub==0)
     cout<<"NHFLOW AMR: G 7 1 (subcycling) with floating bodies needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
+    if(sub==1 && par.zones && par.zr>zr_user)
+    cout<<"NHFLOW AMR: G 7 1 with bodies: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
     if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
     cout<<"NHFLOW AMR: G 7 1: every grid solves its own implicit diffusion (G 31 1 needs all grids at the same time)"<<endl;
     }

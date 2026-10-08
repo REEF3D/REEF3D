@@ -23,7 +23,7 @@ rank writes into that directory
 
 1. the exact final state, field by field (max abs diff, number of differing cells),
 2. the per-step record, giving the **first time step where the runs diverge**,
-3. the normal text output (wave gauges, probes, forces, 6DOF, CPM sediment log, NHFLOW particle log, NHFLOW boom forces) with a tolerance.
+3. the normal text output (wave gauges, probes, forces, 6DOF, CPM sediment log, NHFLOW particle log, NHFLOW boom forces, DEM state and fixed-particle loads) with a tolerance.
 
 Result per case: **identical** (bitwise) · **close** (within `--rtol/--atol`) · **different** · **failed**.
 
@@ -138,6 +138,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_ship_box_current` | 2 | ship held in a current: discharge inflow, hull turned by 180 deg (X 101), friction from the velocity relative to the current |
 | `cfd_3d_ship_box_propeller` | 2 | ship module in CFD: box barge in a two-phase tank, actuator disk on the staggered velocity points (water part outside the hull, exact T and Q), velocity sampling, SSP-RK3 |
 | `fnpf_3d_ship_box_hybrid` | 2 | ship module in FNPF: box in head waves, six DOFs, hybrid MMG (mmg_fluid 2, Munk moment out of N'v), approach phase from rest, propeller inflow sampled from the FNPF velocity, FNPF psi_0 = chi (body-following time derivative), X 17 relaxation of eta next to the footprint |
+| `fnpf_3d_ship_box_hybrid_x18` | 2 | as `fnpf_3d_ship_box_hybrid` with X 18 0.5: the running mean of chi at body-fixed points (second-order low-pass) removed from the psi_0 free-surface data next to the hull (patch 0015) |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, the broken wall becomes a rigid fragment (`fragments rigid`), debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
@@ -198,6 +199,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_amr_bar_sub_b95` | 1 | the subcycled bar with B 95 -1 (reference step of the finest level) |
 | `fnpf_3d_amr_basin` (+ `_mpi2`, `_place2`) | 1/2 | FNPF AMR waves through a static box (composite Laplace); `_place2` G 40 2: remote parents in the FAC preconditioner |
 | `fnpf_3d_amr_tow` (+ `_place2`) | 1/2 | FNPF AMR towed floating body (X 10 1, X 210), the zone follows it (G 12, G 2 4); `_place2` G 40 2: zone patch placed whole, body grids and triangle ownership |
+| `fnpf_3d_amr_basin_sub` (+ `basin3_sub`, `basin_sub_place`) | 1/1/2 | FNPF waves with subcycling (G 7 1): level 0 alone, the patch steps with fills in time, the Laplace solve on the level window with fixed parent columns, the restriction after the steps; `basin3_sub` three levels (G 1 2), `basin_sub_place` 2 ranks with placed patches (G 40 1) |
+| `fnpf_3d_amr_tow_sub` | 1 | FNPF towed body with G 7 1: the finest level advances the body (psi_0 solve on its patches), level 0 with a predicted copy, the zone margin widened to 12 level-0 cells |
+| `fnpf_3d_amr_decay_sub` | 1 | FNPF moored cylinder, heave decay with G 7 1: the free body, its added mass from all grids at the start of the level-0 step |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
 | `fnpf_3d_two_edges` | 2 | the same in FNPF |
 | `nhflow_2d_custom_zones` | 1 | old input: custom B 108 generation zone, two B 107 beach zones |
@@ -233,6 +237,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_waves_current_doppler` (+ `_mpi2`) | 1/2 | linear waves on a following current (B 514) with Doppler (B 530 2 10): k from omega = sigma + k U, blended during the current spin-up |
 | `nhflow_2d_waves_setup_heff` | 1 | linear waves on a 1 m set-up (B 514 eta) with B 530 1 10: k on h_eff |
 | `nhflow_2d_tide_waves_doppler` | 1 | `nhflow_2d_tide_waves_beach` with B 530 2 10: k follows the tide level and current |
+| `nhflow_2d_irregular_current_doppler` | 1 | JONSWAP irregular waves (B 92 31, 20 components) on a following current with B 530 2 10: k of every component, cached phases rebuilt |
+| `nhflow_2d_irregular_current_blocked` | 1 | the same against an opposing current of 1 m/s: components above omega = g/(4 abs(U)) blocked and faded out |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
@@ -278,6 +284,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase7_sordup_mpi2` | 2 | REEF3D::SEASTATE second-order upwind geographic fluxes (A 796 2, SORDUP type, Phase 7) on the refraction case, two halo layers; validated in Dropbox SEASTATE/validation/27 |
 | `seastate_2d_phase7_composite` | 1 | REEF3D::SEASTATE composite sweep across the refinement levels (A 797 1, Phase 7) on the island case with A 795 and A 796 2; validated in Dropbox SEASTATE/validation/28 |
 | `seastate_2d_phase7_composite_mpi2` | 2 | REEF3D::SEASTATE composite sweep (A 797 1) on the nonstationary island case with wind and DIA, patches cut at the rank boxes |
+| `seastate_2d_phase7b_threads_mpi2` | 2 | REEF3D::SEASTATE 2 threads per rank (A 798 2, Phase 7b, wavefront order) on the refraction case with A 795 and A 796 2; the result of the serial sweep; validated in Dropbox SEASTATE/validation/30 |
+| `seastate_2d_phase7b_sector` | 1 | REEF3D::SEASTATE fine direction sector (A 715 330 70 3, Phase 7b) on the handover case: bins of different width, handover spectra on uniform directions; validated in Dropbox SEASTATE/validation/32 |
+| `seastate_2d_phase7b_windsea` | 1 | REEF3D::SEASTATE source iterations per cell (A 738 8, A 739 1e-4), distance-to-solution convergence test (A 799 1) and 2 threads on the fetch-limited wind-sea case; validated in Dropbox SEASTATE/validation/31 |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |
@@ -285,6 +294,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_patch_inflow_komega` | 1 | CFD channel with a discharge inflow patch (B 441, B 411) instead of B 60, k-ω: IO flags at the patch faces, turbulence zero gradient there |
 | `nhflow_2d_bore_beach_kepsilon` | 1 | NHFLOW 2D bore running up a dry 1:20 beach, k-ε: newly wetted columns start from the wet neighbours, length-scale limit l ≤ κh |
 | `nhflow_3d_boom_particles_mpi2` | 2 | NHFLOW river plastic interceptor: angled boom (B 350, skirt depth below the moving free surface, normal-only resistance), catamaran hulls and a permeable conveyor as surface-piercing drag boxes (B 351), floating and buoyant particles blocked above the draft and passing under it (L 71), capture zone at the conveyor (L 72), boom/hull force output (REEF3D_NHFLOW_Boom); particles cross the rank interface along the boom (needs River Interceptor patches 0001-0002) |
+| `nhflow_3d_dem_boom_mat` | 1 | NHFLOW + DEM: floating debris parcels (light and heavy) driven against a boom that acts on the flow as B 350 and on the parcels as a fixed DEM box; contact loads on fixed particles (REEF3D_DEM/REEF3D-DEM-Fixed-Loads.dat) and heave/roll damping of floating unresolved particles (E 31) (needs River Interceptor patches 0001-0004) |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.

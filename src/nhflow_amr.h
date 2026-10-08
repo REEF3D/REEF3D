@@ -416,6 +416,7 @@ private:
     int wtop() const { return whi<0 ? maxlev : whi; }
     bool pr_edge = false;           // composite solve with its lowest level > 0: the parent columns are fixed
     bool pr_dir = false;            // pr_fill of a Krylov vector (the fixed parent columns are 0)
+    double zr_user = 0.0;           // G 12 as given (G 7 1 with bodies widens the zone margin)
     int pr_wkey = -1;               // window of the current row lists
     struct tcol                     // parent columns read by the fills of the next level, their start-of-step values
     {
