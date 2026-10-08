@@ -161,7 +161,8 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             {
                 if(p->B76==0 || p->B90==1)
                 {
-                pval=0.0;
+                // iowave open edge with waves: the non-hydrostatic pressure of the incoming waves
+                pval = (p->open_xm==1 && d->Pbc!=nullptr) ? d->Pbc[FIm1JK] : 0.0;
                 d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
                 d->M.s[n] = 0.0;
                 }

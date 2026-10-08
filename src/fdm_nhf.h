@@ -77,6 +77,7 @@ public:
     double *UH,*VH,*WH;
     
     double *P,*RO,*VISC,*EV,*EV0;
+    double *Pbc = nullptr;   // iowave: non-hydrostatic pressure of the incoming waves at an open x- edge (Poisson)
     double *F,*G,*H,*L;
     double *Fext,*Gext,*Hext;
     double *POR,*PORPART;

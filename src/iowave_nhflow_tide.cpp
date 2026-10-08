@@ -234,6 +234,41 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 
                 edge_uw[IJ] = su;
                 edge_vw[IJ] = sv;
+                
+                // x- edge: non-hydrostatic pressure of the incoming waves at the pressure nodes of
+                // the column, p_nh(z) = rho int_z^eta dw/dt dz (linear), the Dirichlet value of the
+                // Poisson equation at the edge (nhflow_poisson); with p = 0 the edge generated
+                // waves up to 11 % too high for kh 2-3
+                if(side==1)
+                {
+                    if(d->Pbc==nullptr)
+                    p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
+                    
+                    const double rw = ramp(p);
+                    const double dt = p->dt>0.0 ? p->dt : 1.0e-3;
+                    const double wt = p->wavetime;
+                    std::vector<double> a(p->knoz+1), zz(p->knoz+1);
+                    
+                    for(k=0; k<=p->knoz; ++k)
+                    {
+                        zz[k] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
+                        a[k] = wave_w(p,pgc,xg,yg,zz[k]-p->phimean);
+                    }
+                    
+                    p->wavetime = wt - dt;
+                    for(k=0; k<=p->knoz; ++k)
+                    a[k] = rw*(a[k] - wave_w(p,pgc,xg,yg,zz[k]-p->phimean))/dt;
+                    p->wavetime = wt;
+                    
+                    double pn = 0.0;
+                    k = p->knoz;
+                    d->Pbc[FIm1JK] = 0.0;
+                    for(k=p->knoz-1; k>=0; --k)
+                    {
+                        pn += p->W1*0.5*(a[k]+a[k+1])*(zz[k+1]-zz[k]);
+                        d->Pbc[FIm1JK] = pn;
+                    }
+                }
             }
             }
         }
