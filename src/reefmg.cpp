@@ -120,14 +120,13 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     cx = crd[0];
     cy = nd>1 ? crd[1] : 0;
 
-    //  Periodic boundaries wrap the matrix around the global edge; the halo
-    //  exchange here has no wraparound, so the operator would silently be the
-    //  wrong one.  Refuse rather than solve a different problem.
-    if(p->periodic1>0 || p->periodic2>0 || p->periodic3>0)
+    //  Periodic x/y boundaries: the halo exchange wraps around (setup).  A
+    //  periodic z direction would need cyclic column solves.
+    if(p->periodic3>0)
     {
         if(p->mpirank==0)
-        cout<<"REEFMG periodic boundaries are not supported yet - the halo "
-            <<"exchange has no wraparound.  "<<REEFMG_ALT<<endl;
+        cout<<"REEFMG periodic boundaries in z are not supported - the vertical "
+            <<"line solver needs closed columns.  "<<REEFMG_ALT<<endl;
 
         MPI_Abort(MPI_COMM_WORLD,-2749);
     }
@@ -184,7 +183,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     //  grids behave instead of costing iterations.
     if(!mg.setup(pgc->cart(),
                  p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,p->N13,
-                 p->DXN+p->marge-1, p->DYN+p->marge-1))
+                 p->DXN+p->marge-1, p->DYN+p->marge-1,
+                 p->periodic1>0, p->periodic2>0 && p->j_dir==1))
     {
         if(p->mpirank==0)
         cout<<"REEFMG "<<mg.err()<<endl;
@@ -201,6 +201,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         if(mg.agglomerated())
         cout<<"REEFMG coarse-grid agglomeration: "<<mg.agglomerated_cells()
             <<" cells gathered on every rank"<<endl;
+        else if(p->N15==1 && npx*npy>1 && (p->periodic1>0 || p->periodic2>0))
+        cout<<"REEFMG coarse-grid agglomeration is not used with periodic boundaries"<<endl;
         else if(p->N15==1 && npx*npy>1)
         cout<<"REEFMG coarse-grid agglomeration refused: the gathered problem ("
             <<mg.agglomerated_cells()<<" cells) is too large to hold on every rank"<<endl;
@@ -301,7 +303,8 @@ void reefmg::start_solver44(lexer *p, fdm *a, ghostcell *pgc, field *ff, double 
 
     if(!pot.setup(pgc->cart(),
                   p->knox,p->knoy,p->knoz,p->gknox,p->gknoy,0,
-                  p->DXN+p->marge-1, p->DYN+p->marge-1))
+                  p->DXN+p->marge-1, p->DYN+p->marge-1,
+                 p->periodic1>0, p->periodic2>0 && p->j_dir==1))
     {
         if(p->mpirank==0)
         cout<<"REEFMG potential: "<<pot.err()<<endl;

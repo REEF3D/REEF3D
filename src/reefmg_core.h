@@ -106,7 +106,8 @@ public:
     //  four, which is what makes ragged and stretched grids behave.
     bool setup(MPI_Comm cart,
                int nx,int ny,int nz,int gnx,int gny,int maxlevel,
-               const double *dxn=0,const double *dyn=0);
+               const double *dxn=0,const double *dyn=0,
+               int perx=0,int pery=0);   // periodic in x / y
 
     sc_level& fine(){return lev[0];}
     const sc_level& coarsest() const {return lev.back();}
