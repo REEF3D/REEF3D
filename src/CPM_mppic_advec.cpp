@@ -182,6 +182,19 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         if(p->Q67>0 && Hjam>0.0)
         Hjam *= yield_weight(p,PX[n],PY[n],PZ[n]);
         
+        // Q 69: the bed is jammed only where the seepage leaves its contact network loaded,
+        // ratio of the overburden with and without the seepage: none below 5 %, full above 30 %
+        if(p->Q69>0 && Hjam>0.0)
+        {
+            double pn = p->ccipol4a(Pnos,PX[n],PY[n],PZ[n]);
+            
+            if(pn>1.0e-12)
+            {
+                double r = p->ccipol4a(Pov,PX[n],PY[n],PZ[n])/pn;
+                Hjam *= MAX(0.0, MIN(1.0, (r-0.05)/0.25));
+            }
+        }
+        
         fx = fy = fz = 0.0;
     }
     else

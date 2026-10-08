@@ -1992,6 +1992,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = Q68;
     ii++;
+    ictrl[ii] = Q69;
+    ii++;
+    dctrl[dd] = Q70;
+    dd++;
     ictrl[ii] = Q50;
     ii++;
     ictrl[ii] = Q51;

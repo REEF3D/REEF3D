@@ -68,16 +68,21 @@ void CPM::stress_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 }
 
 // fluid pressure gradient at the particles
-// S 10 1: the bed is a solid boundary for the fluid, inside the bed the pore pressure is hydrostatic.
+// S 10 1: the bed is a solid boundary for the fluid, inside the bed the pore pressure is hydrostatic,
+// or with the seepage flow Q 69 the pore pressure of the Darcy flow (CPM_seepage.cpp).
 // The fluid solves no pressure in the cells of its bed (topo < 0) and of solid bodies: the values there
 // are what the initialisation and the ghost-cell updates left, not a pore pressure. Next to such a cell
-// the gradient takes the hydrostatic continuation of the cell itself instead, and inside it the
-// hydrostatic gradient; otherwise the parcels near a sloping bed surface feel a lateral pressure
-// gradient that depends on the initial pressure field (with the initial pressure of the fluid the bed
-// was held by a suction, a 30 degree wedge stood only with it).
+// the gradient takes the pore pressure of the cell instead (hydrostatic continuation of the cell itself,
+// or the seepage pressure), and inside it the gradient of the pore pressure; otherwise the parcels near a
+// sloping bed surface feel a lateral pressure gradient that depends on the initial pressure field (with
+// the initial pressure of the fluid the bed was held by a suction, a 30 degree wedge stood only with it).
 void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     double hs;
+    const bool seep = p->Q69>0 && p->S10!=2;
+    
+    if(seep)
+    seepage_update(p,a,pgc);
     
     auto nofluid = [&](int ii, int jj, int kk) -> bool
     {
@@ -88,9 +93,23 @@ void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     auto pnb = [&](int ii, int jj, int kk, double dx, double dy, double dz) -> double
     {
         if(p->S10!=2 && nofluid(ii,jj,kk))
-        return a->press(i,j,k) + p->W1*(p->W20*dx + p->W21*dy + p->W22*dz);
+        {
+            if(seep && seep_bed(p,a,ii,jj,kk))
+            return Pse(ii,jj,kk) + p->W1*(p->W20*p->XP[ii+marge] + p->W21*p->YP[jj+marge] + p->W22*p->ZP[kk+marge]);
+            
+            return a->press(i,j,k) + p->W1*(p->W20*dx + p->W21*dy + p->W22*dz);
+        }
         
         return a->press(ii,jj,kk);
+    };
+    
+    // seepage: gradient of p* in a cell of the bed; walls and solid bodies mirror the cell
+    auto pse = [&](int ii, int jj, int kk) -> double
+    {
+        if(wallcell(p,ii,jj,kk) || (p->solidread>0 && a->solid(ii,jj,kk)<0.0))
+        return Pse(i,j,k);
+        
+        return Pse(ii,jj,kk);
     };
     
     BASELOOP
@@ -101,6 +120,19 @@ void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             dPy(i,j,k) = p->W1*p->W21;
             dPz(i,j,k) = p->W1*p->W22;
             
+            // excess pore pressure of the seepage: the force on the bed per unit volume, taken by the grains
+            if(seep && seep_bed(p,a,i,j,k))
+            {
+                double tdiv = MAX(Ts(i,j,k), 0.5*theta_bed);
+                
+                dPx(i,j,k) += (pse(i+1,j,k) - pse(i-1,j,k))/(p->DXP[IM1]+p->DXP[IP])/tdiv;
+                
+                if(p->j_dir==1)
+                dPy(i,j,k) += (pse(i,j+1,k) - pse(i,j-1,k))/(p->DYP[JM1]+p->DYP[JP])/tdiv;
+                
+                dPz(i,j,k) += Gsz(i,j,k)/tdiv;
+            }
+            
             continue;
         }
         
@@ -110,7 +142,7 @@ void CPM::pressure_gradient(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         
         if(p->S10!=2)
         {
-            // inside the bed seen by the parcels (with the bedload layer Q 58 the iso-surface): hydrostatic,
+            // inside the bed seen by the parcels (with the bedload layer Q 58 the iso-surface): the pore pressure,
             // switched at the bed surface (a smooth step over the interface width of the free surface,
             // F 45 h, would replace the dynamic pressure gradient of the flow in the first cells above the bed)
             hs = ((p->Q58>0 && zsplit==0) ? Tiso(i,j,k) : a->topo(i,j,k)) >= 0.0 ? 1.0 : 0.0;

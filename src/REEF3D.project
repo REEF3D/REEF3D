@@ -2294,6 +2294,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Ini">
           <File Name="CPM_seed.cpp"/>
+          <File Name="CPM_seepage.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="CPM_Heaviside.cpp"/>

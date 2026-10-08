@@ -38,6 +38,9 @@ void CPM::name_ParaView_parallel_CPM(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"CPM_Us\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"CPM_Ws\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"CPM_Kt\"/>\n";
+    
+    if(p->Q69>0)
+    result<<"<PDataArray type=\"Float32\" Name=\"CPM_Pstar\"/>\n";
 }
 
 void CPM::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
@@ -52,6 +55,13 @@ void CPM::name_ParaView_CPM(lexer *p, ostream &result, int *offset, int &n)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"CPM_Kt\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+    
+    // seepage (Q 69): piezometric pressure p* = p - rho_f g.x, pore pressure in the bed, fluid above
+    if(p->Q69>0)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"CPM_Pstar\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
 }
 
 void CPM::offset_ParaView_CPM(lexer *p, int *offset, int &n)
@@ -66,6 +76,12 @@ void CPM::offset_ParaView_CPM(lexer *p, int *offset, int &n)
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    
+    if(p->Q69>0)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    }
 }
 
 void CPM::print_3D_CPM(lexer* p, ghostcell *pgc, vector<char> &buffer, size_t &m)
@@ -131,6 +147,21 @@ void CPM::print_3D_CPM(lexer* p, ghostcell *pgc, vector<char> &buffer, size_t &m
         ffn=float(p->ipol4_a(Kt));
         memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
+    }
+    
+    // piezometric pressure (Q 69)
+    if(p->Q69>0)
+    {
+    iin=sizeof(float)*p->pointnum;
+    memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    
+    TPLOOP
+    {
+        ffn=float(p->ipol4_a(Pse));
+        memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
+    }
     }
 }
 

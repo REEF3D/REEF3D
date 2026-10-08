@@ -219,6 +219,16 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
     double change,old,Lk,Lkp;
     bool above;
     
+    // seepage (Q 69): the excess pore pressure gradient dp*/dz loads (downward flow) or unloads (upward flow)
+    // the contact network; Pnos keeps the overburden without it for the jam (unloading ratio)
+    const bool seep = p->Q69>0 && p->S10!=2;
+    
+    auto load = [&](int kk, double gs) -> double
+    {
+        double ramp = MIN(1.0,(Ts(i,j,kk)-tgap)/tgap);
+        return (rog*Ts(i,j,kk) + gs)*ramp;
+    };
+    
     int itermax = zsplit==1 ? 1000 : 1;
     
     for(int qn=0; qn<itermax; ++qn)
@@ -234,22 +244,36 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
             old = Pov(i,j,k);
             
             if(Ts(i,j,k)<tgap)
-            Pov(i,j,k) = 0.0;
+            {
+                Pov(i,j,k) = 0.0;
+                
+                if(seep)
+                Pnos(i,j,k) = 0.0;
+            }
             
             else
             {
-                Lk = rog*Ts(i,j,k)*MIN(1.0,(Ts(i,j,k)-tgap)/tgap);
+                Lk = load(k, seep ? Gsz(i,j,k) : 0.0);
                 
                 above = (k+1<p->knoz || p->nb6>=0) && Ts(i,j,k+1)>=tgap;
                 
                 if(above)
                 {
-                Lkp = rog*Ts(i,j,k+1)*MIN(1.0,(Ts(i,j,k+1)-tgap)/tgap);
+                Lkp = load(k+1, seep ? Gsz(i,j,k+1) : 0.0);
                 Pov(i,j,k) = Pov(i,j,k+1) + 0.5*Lkp*p->DZN[KP1] + 0.5*Lk*p->DZN[KP];
                 }
                 
                 else
                 Pov(i,j,k) = 0.5*Lk*p->DZN[KP];
+                
+                // no tension in the contact network: a fluidised layer carries nothing
+                if(seep)
+                {
+                    Pov(i,j,k) = MAX(Pov(i,j,k), 0.0);
+                    
+                    Pnos(i,j,k) = above ? Pnos(i,j,k+1) + 0.5*load(k+1,0.0)*p->DZN[KP1] + 0.5*load(k,0.0)*p->DZN[KP]
+                                        : 0.5*load(k,0.0)*p->DZN[KP];
+                }
             }
             
             change = MAX(change, fabs(Pov(i,j,k)-old));
@@ -257,6 +281,9 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
         }
         
         pgc->start4a(p,Pov,1);
+        
+        if(seep)
+        pgc->start4a(p,Pnos,1);
         
         if(zsplit==1)
         {

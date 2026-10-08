@@ -463,11 +463,11 @@ public:
     double Q17;
     double Q18;
     double Q26;
-    int Q19,Q27,Q28,Q44,Q50,Q51,Q52,Q57,Q58,Q67,Q68;
+    int Q19,Q27,Q28,Q44,Q50,Q51,Q52,Q57,Q58,Q67,Q68,Q69;
     double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
     double Q22;
     double Q23;
-    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66;
+    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
