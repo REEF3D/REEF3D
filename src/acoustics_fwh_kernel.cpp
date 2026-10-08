@@ -28,6 +28,14 @@ fwh_permeable::fwh_permeable(double c0_, double rho0_, double dto_) : c0(c0_), r
                                                                       nlev(0), k0(0), tau_first_mid(0.0), tau_last_mid(0.0), spread_any(false)
 {
     tau[0]=tau[1]=tau[2]=0.0;
+    Um[0]=Um[1]=Um[2]=0.0;
+}
+
+void fwh_permeable::set_medium_velocity(const double *U)
+{
+    Um[0]=U[0];
+    Um[1]=U[1];
+    Um[2]=U[2];
 }
 
 void fwh_permeable::add_panel(const fwh_panel &pan)
@@ -127,12 +135,13 @@ void fwh_permeable::integrand()
         const double und = ud[0]*pan.n[0] + ud[1]*pan.n[1] + ud[2]*pan.n[2];
 
         const double Qd = rhod*un + rho*und;
+        const double Q  = rho*un - rho0*(Um[0]*pan.n[0] + Um[1]*pan.n[1] + Um[2]*pan.n[2]);
 
         double L[3], Ld[3];
         for(int q=0; q<3; ++q)
         {
-            L[q]  = pm*pan.n[q] + rho*um[q]*un;
-            Ld[q] = pd*pan.n[q] + rhod*um[q]*un + rho*(ud[q]*un + um[q]*und);
+            L[q]  = pm*pan.n[q] + rho*(um[q]-Um[q])*un;
+            Ld[q] = pd*pan.n[q] + rhod*(um[q]-Um[q])*un + rho*(ud[q]*un + (um[q]-Um[q])*und);
         }
 
         for(observer &ob : obs)
@@ -145,8 +154,9 @@ void fwh_permeable::integrand()
 
             const double Lr  = (L[0]*rx  + L[1]*ry  + L[2]*rz)/r;
             const double Ldr = (Ld[0]*rx + Ld[1]*ry + Ld[2]*rz)/r;
+            const double vr  = -(Um[0]*rx + Um[1]*ry + Um[2]*rz)/r;
 
-            const double f = pt.w*fac*pan.dS*(Qd/r + Ldr/(c0*r) + Lr/(r*r));
+            const double f = pt.w*fac*pan.dS*(Qd/r + Ldr/(c0*r) + Lr/(r*r) + Q*vr/(r*r));
 
             spread(ob,f,r/c0,tau[0],tau[1],tau[2]);
         }

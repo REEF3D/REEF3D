@@ -52,7 +52,7 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    xa(0.0), xf(0.0), zw(0.0),
                                    prop(false), xp(0.0), yp(0.0), zp(0.0), Dp(0.0), hub(0.2), nrps(0.0), thick(0.0),
                                    wake(0.0), sample_d(0.0), tded(0.0),
-                                   sense(1), inflow_mode(0), psource((p->A10==5 || p->A10==6) ? 1 : 0),
+                                   sense(1), inflow_mode(0), psource((p->A10==5 || p->A10==6) ? 1 : 0), blades(0), lwidth(0.0),
                                    Va(0.0), J(0.0), KT(0.0), KQ(0.0), Tp(0.0), Qp(0.0),
                                    rud(false), rmmg_in(false), rmode(0), rcmd(0.0), zz_d(0.0), zz_psi(0.0), zz_t0(0.0),
                                    ap_psi(0.0), ap_Kp(0.0), ap_Kd(0.0), ap_Ki(0.0),
@@ -208,6 +208,12 @@ void ship::read(lexer *p)
         
         else if(key=="propeller_thickness")
         ls>>thick;
+        
+        else if(key=="propeller_blades")
+        ls>>blades;
+        
+        else if(key=="propeller_line_width")
+        ls>>lwidth;
         
         else if(key=="propeller_inflow")
         {
@@ -376,6 +382,10 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
     if(prop && thick<=0.0)
     thick = 0.2*Dp>4.0*p->DXM ? 0.2*Dp : 4.0*p->DXM;
     
+    // actuator line width: 2 cells
+    if(prop && blades>0 && lwidth<=0.0)
+    lwidth = 2.0*p->DXM;
+    
     // heading
     psi_last = psi_c = b.psi;
     
@@ -388,6 +398,10 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
         if(prop)
         cout<<"ship "<<id<<": propeller D = "<<Dp<<" m at ("<<xp<<", "<<yp<<", "<<zp<<"), n = "<<nrps<<" 1/s, disk thickness "<<thick
             <<" m, inflow "<<(inflow_mode==1 ? "sampled" : "wake fraction")<<", actuator disk in the fluid "<<psource<<endl;
+        
+        if(prop && blades>0)
+        cout<<"ship "<<id<<": actuator line, "<<blades<<" blades, width "<<lwidth<<" m; the blade tip moves "
+            <<2.0*PI*nrps*0.5*Dp<<" m/s, keep the time step below width / tip speed = "<<lwidth/(2.0*PI*fabs(nrps)*0.5*Dp+1.0e-20)<<" s"<<endl;
         
         if(rud)
         cout<<"ship "<<id<<": rudder AR = "<<rp.AR<<" m^2, Lambda = "<<rp.Lambda<<" at xR = "<<rp.xR<<" m, mode "
@@ -613,6 +627,12 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         disk.T = Tp;
         disk.Q = Qp;
         disk.sense = sense;
+        
+        // actuator line: blade 0 at the body z-axis at t = 0
+        disk.blades = blades;
+        disk.width = lwidth;
+        disk.phase = 2.0*PI*nrps*p->simtime;
+        disk.eref = b.R*Eigen::Vector3d(0.0,0.0,1.0);
     }
     
     // rudder

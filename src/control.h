@@ -616,6 +616,7 @@ public:
     // Underwater acoustics
     int U10,U21,U22,U30,U40;
     double U11,U22_d,U31,U32,U41;
+    double U50_x,U50_y,U50_z;
     double U20_xs,U20_xe,U20_ys,U20_ye,U20_zs,U20_ze;
     double *U30_x,*U30_y,*U30_z;
 

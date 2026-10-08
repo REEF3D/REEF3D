@@ -1346,4 +1346,5 @@ void control::ini_default()
     U32=0.0;        // double start time of the sampling [s]
     U40=0;          // int pressure-release free surface by image observers (Lloyd's mirror)
     U41=-1.0e20;    // double z of the mirror plane, default: still water level
+    U50_x=U50_y=U50_z=0.0;  // double uniform mean flow through the box (ship or propeller held in a current) [m/s]
 }

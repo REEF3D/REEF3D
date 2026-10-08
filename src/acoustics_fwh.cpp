@@ -129,6 +129,9 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
     
     pfwh = new fwh_permeable(p->U11,rho0,dto);
     
+    const double Umean[3] = {p->U50_x,p->U50_y,p->U50_z};
+    pfwh->set_medium_velocity(Umean);
+    
     for(const face &f : fc)
     {
         fwh_panel P;
@@ -174,7 +177,8 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     {
         std::cout<<"FW-H: "<<npan<<" panels, box "<<box[0]<<" "<<box[1]<<" "<<box[2]<<" "<<box[3]<<" "<<box[4]<<" "<<box[5]
-                 <<", open face "<<p->U21<<", end caps "<<capx.size()<<", observer dt "<<dto<<", mirror "<<p->U40<<" at z = "<<zfs<<std::endl;
+                 <<", open face "<<p->U21<<", end caps "<<capx.size()<<", observer dt "<<dto<<", mirror "<<p->U40<<" at z = "<<zfs
+                 <<", mean flow "<<p->U50_x<<" "<<p->U50_y<<" "<<p->U50_z<<std::endl;
         
         mkdir("./REEF3D_CFD_Acoustics",0777);
         
@@ -191,7 +195,7 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
             out<<"x_coord     y_coord     z_coord"<<std::endl;
             out<<p->U30_x[n]<<" \t "<<p->U30_y[n]<<" \t "<<p->U30_z[n]<<std::endl<<std::endl;
             out<<"box: "<<box[0]<<" "<<box[1]<<" "<<box[2]<<" "<<box[3]<<" "<<box[4]<<" "<<box[5]<<", panels: "<<npan<<", open face: "<<p->U21<<std::endl;
-            out<<"c0: "<<p->U11<<", rho0: "<<rho0<<", mirror: "<<p->U40<<" at z = "<<zfs<<std::endl;
+            out<<"c0: "<<p->U11<<", rho0: "<<rho0<<", mirror: "<<p->U40<<" at z = "<<zfs<<", mean flow: "<<p->U50_x<<" "<<p->U50_y<<" "<<p->U50_z<<std::endl;
             out<<"delay min/max: "<<dmin[size_t(n)]<<" "<<dmax[size_t(n)]<<std::endl<<std::endl;
             out<<"time \t p'"<<std::endl;
         }

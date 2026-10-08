@@ -1,0 +1,15 @@
+# open-water propeller as actuator line: hub sphere held in a current of 0.8 m/s, J = 0.8
+friction 0
+lpp 1.0
+wetted_surface 1.0
+current 0.8 0.0
+propeller 0.0 0.0 0.0 1.0
+propeller_hub 0.2
+propeller_kt 0.2 0.0 0.0
+propeller_kq 0.03 0.0 0.0
+propeller_rps 1.0
+propeller_sense 1
+propeller_inflow wake 0.0
+propeller_source 1
+propeller_blades 4
+propeller_line_width 0.1

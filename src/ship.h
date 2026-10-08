@@ -63,6 +63,10 @@ using namespace std;
 //   propeller_rps  n            revolutions per second                 (default 0)
 //   propeller_sense s           +1 right-handed (clockwise seen from aft), -1 left (default 1)
 //   propeller_thickness dx      axial extent of the actuator disk [m]  (default max(0.2 D, 4 dx))
+//   propeller_blades Z          actuator line with Z rotating blades instead of the disk (default 0:
+//                               disk); same T, Q and radial distribution, blade 0 at the body z-axis
+//                               at t = 0, angle 2 pi n t
+//   propeller_line_width eps    Gaussian width of the actuator lines [m]  (default 2 dx)
 //   propeller_inflow wake w     axial inflow Va = (1-w) u              (default, w = 0)
 //   propeller_inflow sample d   Va from the fluid velocity on a ring d [m] ahead of the disk
 //   propeller_source 0|1        actuator disk in the fluid; 0: thrust (1-t) T on the hull only
@@ -130,7 +134,8 @@ private:
     // propeller
     bool prop;
     double xp, yp, zp, Dp, hub, kt[3], kq[3], nrps, thick, wake, sample_d, tded;
-    int sense, inflow_mode, psource;
+    int sense, inflow_mode, psource, blades;
+    double lwidth;
     double Va, J, KT, KQ, Tp, Qp;
     sixdof_actuator_disk disk;
     

@@ -218,6 +218,77 @@ int main()
         }
     }
     
+    std::cout<<"actuator line (blades > 0)"<<std::endl;
+    {
+        sixdof_actuator_disk ad;
+        ad.centre = Eigen::Vector3d(0.0,0.0,0.0);
+        ad.axis = Eigen::Vector3d(1.0,0.0,0.0);
+        ad.R = 0.1; ad.Rh = 0.02; ad.thickness = 0.04; ad.T = 5.0; ad.Q = 0.3; ad.sense = 1;
+        ad.blades = 4; ad.width = 0.01; ad.phase = 0.0; ad.eref = Eigen::Vector3d(0.0,0.0,1.0);
+        double wa,wt,r,wa2,wt2,r2; Eigen::Vector3d et,et2;
+        // blade 0 along +z; right-handed about +x moves +z to -y, so blade 1 lies on -y
+        ad.weights(Eigen::Vector3d(0.0,0.0,0.06),wa,wt,et,r);
+        ad.weights(Eigen::Vector3d(0.0,0.06*sin(0.25*M_PI),0.06*cos(0.25*M_PI)),wa2,wt2,et2,r2);
+        snprintf(s,300,"weight on blade 0 %.4f, half-way between two blades %.2e",wa,wa2);
+        check(wa>0.0 && wa2<1e-6*wa, s);
+        ad.weights(Eigen::Vector3d(0.0,-0.06,0.0),wa2,wt2,et2,r2);
+        check(fabs(wa2-wa)<1e-14 && (et2-Eigen::Vector3d(0,0,-1)).norm()<1e-14, "blade 1 a quarter turn on in the sense of rotation (-y), et towards -z");
+        check(!ad.weights(Eigen::Vector3d(0.035,0.0,0.06),wa2,wt2,et2,r2), "no weight beyond 3 widths from the rotor plane");
+        // rotating the point and the blades by the same angle gives the same weights
+        const double ph = 0.37;
+        const Eigen::Vector3d x0(0.004,0.013,0.051);
+        ad.weights(x0,wa,wt,et,r);
+        sixdof_actuator_disk ad2 = ad; ad2.phase = ph;
+        const Eigen::AngleAxisd rot(ph,ad.axis);
+        ad2.weights(rot*x0,wa2,wt2,et2,r2);
+        check(fabs(wa2-wa)<1e-14 && fabs(wt2-wt)<1e-14 && (et2-rot*et).norm()<1e-14, "phase: weights rotate with the blades (right-handed about the axis)");
+        ad2.phase = 2.0*M_PI/4.0;
+        ad2.weights(x0,wa2,wt2,et2,r2);
+        check(fabs(wa2-wa)<1e-10*wa, "periodic in the phase with 2 pi / blades");
+
+        // coarse staggered grid: exact T along -axis and Q about the axis at any phase, the force
+        // pattern moves with the blades (thrust in a sector of +-15 deg around the direction of
+        // blade 0 at phase 0)
+        const double h = 0.01;
+        sixdof_actuator_disk al = ad;
+        al.centre = Eigen::Vector3d(0.2037,0.2011,0.1983);
+        al.axis = Eigen::Vector3d(1.0,0.0,0.1).normalized();
+        al.width = 1.5*h; al.sense = -1; al.Q = 0.07;
+        auto point = [&](int c, int i, int j, int k) {Eigen::Vector3d x((i+0.5)*h,(j+0.5)*h,(k+0.5)*h); x(c) += 0.5*h; return x;};
+        const Eigen::Vector3d e1 = (al.eref - al.eref.dot(al.axis)*al.axis).normalized();
+        const Eigen::Vector3d e2 = double(al.sense)*al.axis.cross(e1);
+        double Fs0=0.0;
+        bool ok=true;
+        for(int pass=0; pass<2; ++pass)
+        {
+            al.phase = pass==0 ? 0.0 : 0.5*M_PI/4.0;
+            sixdof_actuator_disk::sums S[3];
+            for(int c=0;c<3;++c)
+            for(int i=0;i<40;++i) for(int j=0;j<40;++j) for(int k=0;k<40;++k)
+            al.accumulate(point(c,i,j,k),h*h*h,1.0,c,S[c]);
+            const double kappa = al.swirl_factor(S);
+            Eigen::Vector3d F(0,0,0), M(0,0,0);
+            double Fsec=0.0;
+            for(int c=0;c<3;++c)
+            for(int i=0;i<40;++i) for(int j=0;j<40;++j) for(int k=0;k<40;++k)
+            {
+                const Eigen::Vector3d x = point(c,i,j,k);
+                const double fc = al.force(x,1.0,c,S[c],kappa);
+                F(c) += fc*h*h*h;
+                M += (x-al.centre).cross(fc*Eigen::Vector3d::Unit(c))*h*h*h;
+                const Eigen::Vector3d dx = x-al.centre;
+                if(fabs(atan2(dx.dot(e2),dx.dot(e1)))<M_PI/12.0) Fsec += fc*al.axis(c)*h*h*h;
+            }
+            ok = ok && (F+al.T*al.axis).norm()<1e-12 && fabs(M.dot(al.axis)+0.07)<1e-12;
+            if(pass==0) Fs0 = Fsec;
+            else
+            {
+                snprintf(s,300,"exact -T axis and sense Q at two phases; axial force in the +-15 deg sector of blade 0: %.3f N, after 1/8 rev %.3f N",Fs0,Fsec);
+                check(ok && Fs0<-0.15*al.T && fabs(Fsec)<0.3*fabs(Fs0), s);
+            }
+        }
+    }
+
     std::cout<<"MMG rudder"<<std::endl;
     {
         ship_models::rudder_param R;

@@ -43,7 +43,8 @@ class fwh_permeable;
 //  the panel. The box integrals (Box.dat) are averaged the same way.
 //
 //  p' is the pressure without the hydrostatic part rho0 g.(x - x_fs), rho0 = W 1. The observers
-//  U 30 get image points across z = U 41 with weight -1 for U 40 1.
+//  U 30 get image points across z = U 41 with weight -1 for U 40 1. U 50 is the uniform mean flow
+//  through the box (e.g. the inflow of a body held in a current), see fwh_permeable.
 //
 //  Output: REEF3D_CFD_Acoustics/REEF3D-CFD-FWH-Observer-<n>.dat, time and p' of the observer
 //  times that are complete (all panels and both neighbour samples have contributed), appended

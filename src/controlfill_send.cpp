@@ -4760,6 +4760,12 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = U41;
     dd++;
+    dctrl[dd] = U50_x;
+    dd++;
+    dctrl[dd] = U50_y;
+    dd++;
+    dctrl[dd] = U50_z;
+    dd++;
 
     for(n=0;n<U30;++n)
     {

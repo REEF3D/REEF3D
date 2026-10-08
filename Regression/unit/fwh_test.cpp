@@ -23,14 +23,17 @@ static void check(bool ok, const std::string &what)
     if(!ok) ++nfail;
 }
 
-static const double c0   = 1500.0;
+static double c0         = 1500.0;                 // set to 1e7 for the incompressible tests with mean flow
+static double Uf[3]      = {0.0,0.0,0.0};           // uniform mean flow of the field
 static const double rho0 = 1000.0;
 static const double A    = 1.0e-3;                 // volume flow amplitude [m^3/s]
-static const double w1   = 2.0*M_PI*400.0;
-static const double w2   = 2.0*M_PI*1500.0;        // shortest wavelength 1 m
+static double w1         = 2.0*M_PI*400.0;
+static double w2         = 2.0*M_PI*1500.0;        // shortest wavelength 1 m
 
 // point monopole of volume flow s*q(t): phi = -s q(t-R/c0)/(4 pi R)
 //  p' = rho0 s q'(tau)/(4 pi R),  u = s Rhat (q'(tau)/(4 pi R c0) + q(tau)/(4 pi R^2))
+// in a uniform mean flow Uf (incompressible limit, c0 -> infinity): p' = -rho0 (d/dt + Uf.grad) phi
+//  adds -rho0 s q Uf.Rhat/(4 pi R^2), and u = Uf + grad phi
 struct source
 {
     double x[3];
@@ -42,7 +45,10 @@ static double qd(double t) {return A*(w1*cos(w1*t) + 0.5*w2*cos(w2*t+0.7));}
 
 static void field(const std::vector<source> &src, const double *x, double t, double &p, double *u)
 {
-    p = u[0] = u[1] = u[2] = 0.0;
+    p = 0.0;
+    u[0] = Uf[0];
+    u[1] = Uf[1];
+    u[2] = Uf[2];
 
     for(const source &m : src)
     {
@@ -51,6 +57,7 @@ static void field(const std::vector<source> &src, const double *x, double t, dou
         const double tau = t - R/c0;
 
         p += rho0*m.s*qd(tau)/(4.0*M_PI*R);
+        p -= rho0*m.s*q(tau)*(Uf[0]*r[0] + Uf[1]*r[1] + Uf[2]*r[2])/(4.0*M_PI*R*R*R);
 
         const double ur = m.s*(qd(tau)/(4.0*M_PI*R*c0) + q(tau)/(4.0*M_PI*R*R));
         for(int c=0; c<3; ++c)
@@ -103,6 +110,7 @@ struct setup
     double dtvar;                   // relative random variation of the time step (adaptive)
     bool mirror;
     int nsplit;                     // panels distributed round robin over nsplit "ranks"
+    bool flow;                      // FW-H with the mean flow Uf (set_medium_velocity)
     std::vector<obs_point> ob;
 };
 
@@ -127,6 +135,10 @@ static result run(const setup &S)
         idx[i%S.nsplit].push_back(i);
     }
 
+    for(fwh_permeable &f : rk)
+    if(S.flow)
+    f.set_medium_velocity(Uf);
+    
     for(fwh_permeable &f : rk)
     for(const obs_point &o : S.ob)
     {
@@ -231,6 +243,7 @@ static setup base()
     S.dtvar = 0.0;
     S.mirror = false;
     S.nsplit = 1;
+    S.flow = false;
     return S;
 }
 
@@ -413,6 +426,50 @@ int main()
         check(R1.k0==R3.k0 && R1.sig[0].size()==R3.sig[0].size() && dmax/pmax<1.0e-12,s);
     }
 
+    // --- uniform mean flow, incompressible limit (c0 = 1e7), slow sources so that the convective part
+    //     U q/(4 pi R^2) is comparable to the unsteady part: FW-H with set_medium_velocity against the
+    //     exact field; the static-medium formulation misses the convective part
+    {
+        std::cout<<"uniform mean flow (incompressible limit)"<<std::endl;
+        c0 = 1.0e7;
+        w1 = 2.0*M_PI*0.5;
+        w2 = 2.0*M_PI*1.3;
+        Uf[0] = 0.8; Uf[1] = 0.3; Uf[2] = -0.2;
+        
+        for(int dip=0; dip<2; ++dip)
+        {
+            setup S = base();
+            if(dip==1)
+            {
+                S.src   = {{{0.0,0.0,0.05},1.0},{{0.0,0.0,-0.05},-1.0}};
+                S.exact = S.src;
+            }
+            S.dt   = 0.01;
+            S.dto  = S.dt;
+            S.tend = 3.0;
+            S.ob = {point(1.5,0.0,0.0), point(0.0,-1.2,0.9), point(-2.0,1.0,0.5)};
+            S.flow = true;
+            result R = run(S);
+            S.flow = false;
+            result R0 = run(S);
+            
+            double e=0.0, e0=1.0e30;
+            for(size_t o=0; o<S.ob.size(); ++o)
+            {
+                e  = std::max(e,R.err[o]);
+                e0 = std::min(e0,R0.err[o]);
+            }
+            char s[200];
+            snprintf(s,sizeof(s),"%s: max relative error %.2e < 1e-2; static medium: min %.2e > 0.05",dip==0 ? "monopole" : "dipole pair",e,e0);
+            check(e<1.0e-2 && e0>0.05,s);
+        }
+        
+        c0 = 1500.0;
+        w1 = 2.0*M_PI*400.0;
+        w2 = 2.0*M_PI*1500.0;
+        Uf[0] = Uf[1] = Uf[2] = 0.0;
+    }
+    
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

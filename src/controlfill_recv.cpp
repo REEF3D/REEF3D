@@ -5992,6 +5992,12 @@ void control::ctrlrecv()
     ii++;
     U41 = dctrl[dd];
     dd++;
+    U50_x = dctrl[dd];
+    dd++;
+    U50_y = dctrl[dd];
+    dd++;
+    U50_z = dctrl[dd];
+    dd++;
 
     Darray(U30_x,U30);
     Darray(U30_y,U30);

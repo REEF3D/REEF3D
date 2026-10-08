@@ -30,8 +30,9 @@ bool sixdof_actuator_disk::weights(const Eigen::Vector3d &x, double &wa, double 
     
     const Eigen::Vector3d d = x - centre;
     const double a = d.dot(axis);
+    const bool line = blades>0 && width>0.0;
     
-    if(fabs(a) > 0.5*thickness || R<=0.0)
+    if(fabs(a) > (line ? 3.0*width : 0.5*thickness) || R<=0.0)
     return false;
     
     const Eigen::Vector3d rv = d - a*axis;
@@ -45,9 +46,35 @@ bool sixdof_actuator_disk::weights(const Eigen::Vector3d &x, double &wa, double 
     const double rs = (r/R - rh)/(1.0 - rh);
     const double shape = rs*sqrt(1.0 - rs);
     
-    // smooth axial profile over the thickness of the source region
-    const double ca = cos(PI*a/thickness);
-    const double fa = ca*ca;
+    double fa;
+    
+    if(line)
+    {
+        // actuator line: Gaussian of the distance to the blade lines, blade q at the angle
+        // phase + 2 pi q/blades from eref in the direction of the blade motion
+        const Eigen::Vector3d e1 = (eref - eref.dot(axis)*axis).normalized();
+        const Eigen::Vector3d e2 = double(sense)*axis.cross(e1);
+        const double th = atan2(rv.dot(e2),rv.dot(e1));
+        
+        fa = 0.0;
+        
+        for(int q=0; q<blades; ++q)
+        {
+            const double dth = th - phase - 2.0*PI*double(q)/double(blades);
+            
+            if(cos(dth)<=0.0)
+            continue;
+            
+            const double s = r*sin(dth);
+            fa += exp(-(a*a + s*s)/(width*width));
+        }
+    }
+    else
+    {
+        // smooth axial profile over the thickness of the source region
+        const double ca = cos(PI*a/thickness);
+        fa = ca*ca;
+    }
     
     wa = shape*fa;
     wt = shape/(rs*(1.0 - rh) + rh)*fa;

@@ -1,0 +1,22 @@
+{
+ "description": "Open-water propeller as actuator line (ship module X 350, propeller_blades 4, KT/KQ constant, J = 0.8) on a fixed hub sphere held in a current (B 60 1, X 101 yaw 180 deg), single phase, 4 MPI ranks; permeable FW-H box around the rotor with the uniform mean flow U 50. Coarse version of Regression/validation/fwh 11.",
+ "np": 4,
+ "steps": 20,
+ "files": [
+  "ship.dat",
+  "../cfd_3d_fwh_oscillating_sphere/floating.stl"
+ ],
+ "tags": [
+  "3d",
+  "6dof",
+  "ship",
+  "acoustics",
+  "inflow",
+  "mpi"
+ ],
+ "covers": [
+  "sixdof_actuator_disk with blades > 0 (actuator line) in the CFD coupling",
+  "ship.dat propeller_blades / propeller_line_width, blade phase 2 pi n t",
+  "fwh_permeable with the mean flow (U 50)"
+ ]
+}

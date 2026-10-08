@@ -49,6 +49,19 @@ Author: Ahmet Soydan
 //  both neighbours are known, so only three time levels of the panel data are stored and
 //  adaptive time steps need no special treatment.
 //
+//  Mean flow: with set_medium_velocity(U) the medium moves uniformly with U through the surface and
+//  the observers at rest (CFD frame of a ship or a propeller in a current; incompressible input).
+//  The formulation is applied in the frame of the medium at rest, where surface and observers move
+//  with v = -U (Galilean transformation, Farassat 1A for a moving permeable surface):
+//
+//   4 pi p'(x,t) = int [ Qdot/r + Ldot_r/(c0 r) + L_r/r^2 + Q v_r/r^2 ]_ret dS
+//
+//   Q   = rho u_n - rho0 U_n,   L_i = p' n_i + rho (u_i - U_i) u_n,   v_r = -U.rhat
+//
+//  u is the fluid velocity of the CFD frame, so the uniform stream itself gives Q = L = 0. The
+//  Doppler factors 1/(1-M_r) and the other terms of order M = |U|/c0 are neglected (M ~ 1e-3 in
+//  water); the term Q v_r/r^2 is the part of order 1 (c0 M_r). U = 0 gives the formulation above.
+//
 //  Images: an observer can carry image points with a weight, e.g. the mirror image across a
 //  pressure-release free surface with weight -1 (Lloyd's mirror): evaluating the real sources at
 //  the image point equals evaluating the image sources at the observer.
@@ -68,6 +81,7 @@ public:
     void add_panel(const fwh_panel&);
     int add_observer(const double *x);                              // returns the observer id
     void add_image(int obs, const double *x, double weight);        // extra point of observer obs
+    void set_medium_velocity(const double *U);                      // uniform mean flow, default 0
 
     // one source time level: p'[np] and u[3*np] on the panels, in the order of add_panel
     void step(double tau, const double *p, const double *u);
@@ -105,6 +119,7 @@ private:
     void integrand();
 
     const double c0, rho0, dto;
+    double Um[3];
 
     std::vector<fwh_panel> panel;
     std::vector<observer> obs;

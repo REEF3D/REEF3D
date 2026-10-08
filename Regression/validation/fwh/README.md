@@ -3,7 +3,7 @@
 Long validation runs of the permeable-surface FW-H module (`U` keywords, `src/acoustics_fwh*`,
 kernel `src/acoustics_fwh_kernel.*`). The short regression versions are
 `cases/cfd_3d_fwh_oscillating_sphere` and `cases/cfd_3d_fwh_sphere_endcaps`, the kernel unit test is
-`unit/fwh_test.cpp`.
+`unit/fwh_test.cpp`; `cases/cfd_3d_fwh_propeller_al` is the short version of 12.
 
 Each case directory holds `ctrl.txt`, `control.txt` and `results.txt` (the output of the analysis
 scripts for the runs below). The runs used `ahmet_dev`: 01–05 a build before the Box.dat diagnostic
@@ -88,6 +88,31 @@ the end-cap / non-compactness error; `endcap.py` compares two runs of the same C
   less than the convected wavelength U·T, so the cancellation is partial.
 - The weighted box momentum balance equals the closed box (295 / 295 N, Fy rms 7.59 / 7.66),
   which checks the cap weights.
+
+## 11–12 Open-water propeller as actuator line
+
+Ship module (`X 350`, `ship.dat`) on a fixed hub sphere (radius 0.1, `make_inputs.py hub`) held in a
+current of 0.8 m/s (`B 60 1`, `X 101 0 0 180`): D = 1, n = 1 rps, Z = 4 (`propeller_blades 4`),
+KT = 0.2, KQ = 0.03 constant (T = 200 N, Q = 30 Nm, J = 0.8), line width ε = 0.1 m, Δx = 0.05 at the
+rotor (240×88×88), fixed Δt = 0.01 s (25 steps per BPF period), 5 s. Box [−0.75, 1]×[−0.75, 0.75]².
+11 without, 12 with the mean flow `U 50 0.8 0 0`.
+
+References (`al_reference.py`, `al_reference_smeared.py`): the linear incompressible pressure of the
+momentum source, ∇²p = ∇·f, i.e. the sum of the rotating dipoles p = 1/(4π) Σ f·(x − y)/|x − y|³,
+for thin lines and for the smeared distribution exactly as the code applies it.
+
+| BPF amplitude [Pa] | thin lines | smeared (as applied) | FW-H 11 (no U 50) | FW-H 12 (U 50) | probe |
+|---|---|---|---|---|---|
+| (0, 1, 0), r = 2R | 0.656 | 0.444 | 0.496 | 0.451 | 0.470 |
+| (0, 0, 1.5) | 0.083 | 0.057 | 0.057 | 0.058 | 0.068 |
+| (0.5, 1.2, 0.3) | 0.125 | 0.089 | 0.083 | 0.089 | 0.105 |
+
+- With the mean flow the BPF of FW-H agrees with the applied force distribution within 0–2 %; the
+  phase lags by ~6° (the blade angle is taken at the start of the time step).
+- Without `U 50` the steady part is wrong by O(100 Pa) (ρ U U_n on the box and the linear terms
+  ρ U u' outside it); with `U 50` it is within ~1 Pa (the slipstream leaving the box remains).
+- The Gaussian smearing reduces the BPF (azimuthal mode Z) by ~30 % against thin lines at ε = 0.1,
+  R = 0.5: the line width is part of the model.
 
 ## Notes
 

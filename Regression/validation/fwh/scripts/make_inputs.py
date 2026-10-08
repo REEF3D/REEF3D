@@ -2,6 +2,7 @@
 #
 #   python3 make_inputs.py oscillating   floating.stl (icosphere, radius 0.1 m, 5120 triangles)
 #                                        6DOF_motion.dat (surge x = X0 (1 - cos wt), X0 = 0.01 m, f = 1 Hz)
+#   python3 make_inputs.py hub           floating.stl (icosphere, radius 0.1 m, 1280 triangles; 11-12)
 #   python3 make_inputs.py shedding      6DOF_motion.dat (one lateral kick y = A (1 - cos(2 pi t/4))/2,
 #                                        A = 0.1 m, 0 <= t <= 4 s, then at rest); the sphere of
 #                                        diameter 1 is Regression/cases/cfd_3d_heave_sphere_6dof/floating.stl
@@ -55,6 +56,8 @@ if mode == "oscillating":
         for i in range(int(2.2/0.0005)+1):
             t = i*0.0005
             f.write(f"{t:.6f} {X0*(1-math.cos(w*t)):.10e} 0.0\n")
+elif mode == "hub":
+    icosphere(0.1, 3, 'floating.stl')
 elif mode == "shedding":
     A = 0.1
     with open('6DOF_motion.dat', 'w') as f:

@@ -3034,6 +3034,9 @@ void control::read_control(lexer* p)
                 case 41: control>>U41;
                          clear(c,numint);
                          break;
+                case 50: control>>U50_x>>U50_y>>U50_z;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

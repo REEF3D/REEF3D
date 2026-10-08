@@ -47,6 +47,9 @@ public:
 //  shaft torque reaction, applied by the load model itself). The coupling distributes force
 //  and torque over the cells inside the disk with the Hough-Ordway radial distribution,
 //  normalised on its own grid so that the discrete totals are exactly T and Q.
+//  With blades > 0 the source is an actuator line: the same radial distribution, concentrated on
+//  blades rotating lines (Gaussian of width `width` of the distance to the line) instead of the
+//  axial profile over the thickness; totals T and Q as for the disk.
 struct sixdof_actuator_disk
 {
     Eigen::Vector3d centre;     // disk centre
@@ -55,6 +58,12 @@ struct sixdof_actuator_disk
     double thickness;           // axial extent of the source region
     double T, Q;                // thrust [N] and torque [Nm] of the propeller
     int sense;                  // +1: blades turn right-handed about the axis, -1: left-handed
+    
+    // actuator line (blades > 0)
+    int blades = 0;             // number of blades, 0: actuator disk
+    double phase = 0.0;         // angle of blade 0 from eref in the direction of the blade motion [rad]
+    double width = 0.0;         // Gaussian width of the lines [m]
+    Eigen::Vector3d eref = Eigen::Vector3d::UnitZ();   // reference direction, projected normal to the axis
     
     // Hough-Ordway weights at point x: axial weight wa >= 0 (thrust density ~ wa along the axis),
     // tangential weight wt >= 0 (swirl density ~ wt along et) and et, the unit vector of the blade
