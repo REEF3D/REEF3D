@@ -72,6 +72,12 @@ public:
     // rigid-body core: state, kinematics and time integration (solver independent)
     sixdof_rigidbody rb;
     
+    // mesh refinement with subcycling (G 7 1, 6DOF_obj_amr.cpp): the coarser levels step with a
+    // predicted copy of the body; the state is saved before and put back after
+    void amr_save();
+    void amr_restore(lexer*, ghostcell*);
+    sixdof_rigidbody rb_amr;
+    
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
     

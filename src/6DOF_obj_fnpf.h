@@ -38,6 +38,9 @@ public:
     void initialize_fnpf(lexer*, fdm_fnpf*, ghostcell*);
     void solve_eqmotion_fnpf(lexer*, ghostcell*, int, bool);
     void update_position_fnpf(lexer*, ghostcell*, bool);
+    // mesh refinement with subcycling (fnpf_amr, G 7 1): the stage of the predicted copy, the
+    // loads frozen (6DOF_obj_amr.cpp)
+    void amr_predict_fnpf(lexer*, ghostcell*, int);
     void print_fnpf(lexer*, ghostcell*, int);
     void ray_cast_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, slice&);
     void face_data_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, double*, double*, double*, double*);

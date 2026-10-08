@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"reefmg_core.h"
 #include"fnpf_amr_fill.h"
 #include"fnpf_body.h"
+#include"fnpf_6DOF.h"
 #include<cmath>
 #include<algorithm>
 #include<mpi.h>
@@ -57,7 +58,8 @@ public:
 
     void start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf) override
     {
-        if(!a->active())
+        // without patches, or subcycled (G 7 1): level 0 alone with its own solver
+        if(!a->active() || a->sub_on())
         {
             outer->start(p,c,pgc,psolv,pf,f,Fifsf);
             return;
@@ -126,6 +128,14 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     // long as it covers the flagged tiles with at most 50 % excess
     q.zalign = true;
     q.lazy = 1.5;
+
+    // subcycling (G 7 1, fnpf_amr_sub.cpp): level l takes 2^l steps per level-0 step; bodies with
+    // the zone around the hull (G 12: the finest level advances the body), its margin at least
+    // 12 level-0 cells (the coarse levels step first with their own coarse picture of the body)
+    sub = (p->G7==1 && (p->X10==0 || q.zones)) ? 1 : 0;
+    zr_user = q.zr;
+    if(sub==1 && q.zones)
+    q.zr = MAX(q.zr,12.0*p->DXM);
 
     // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
     // patches on other ranks are reached through the block plans and old_run of the core, the
@@ -317,9 +327,17 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         cout<<"FNPF AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns";
         if(vref==2)
         cout<<", sigma layers doubled on every level (G 6)";
-        if(regrid_int>0)
+        if(regrid_int>0 && sub==0)
         cout<<", regrid every "<<regrid_int<<" steps (G 2), the zone follows the body";
+        if(regrid_int>0 && sub==1)
+        cout<<", regrid every "<<MAX(regrid_int>>maxlev,1)<<" level-0 steps (G 2), the zone follows the body";
+        if(sub==1)
+        cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
         cout<<endl;
+        if(p->G7==1 && sub==0)
+        cout<<"FNPF AMR: G 7 1 (subcycling) with a body needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
+        if(sub==1 && par.zones && par.zr>zr_user)
+        cout<<"FNPF AMR: G 7 1 with a body: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
         cout<<"FNPF AMR: refined columns per rank max "<<(long)cmax<<", mean "<<setprecision(4)<<double(cells_total)/p->mpi_size
             <<" (level-0 columns per rank "<<(long)c0n<<")"<<endl;
     }
@@ -832,6 +850,21 @@ void fnpf_amr::stage_tendency(lexer *p, fdm_fnpf *c, ghostcell *pgc, int s)
     if(!active())
     return;
 
+    // G 7 1: level 0 steps alone; at its first stage (all grids at the start of the step) the
+    // parent columns of level 1, the body saved before its predicted stages, and the patch
+    // tendencies for the loads of all grids
+    if(sub_on())
+    {
+        if(s>0)
+        return;
+        sub_snapshot(-1);
+        fnpf_6DOF *b = dynamic_cast<fnpf_6DOF*>(body);
+        if(b!=nullptr)
+        b->amr_save();
+        if(b==nullptr)
+        return;
+    }
+
     double t0 = MPI_Wtime();
 
     comms_off guard(pgc);
@@ -874,7 +907,7 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
     Sf0 = &Sf;
     stg = s;
 
-    if(!active())
+    if(!active() || sub_on())
     return;
 
     double t0 = MPI_Wtime();
@@ -946,6 +979,10 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(maxlev<1)
     return;
 
+    // G 7 1: the finer levels after level 0
+    if(sub_on())
+    sub_step(p,c,pgc);
+
     {
     comms_off guard(pgc);
     for(auto q : P)
@@ -956,8 +993,10 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
     }
 
-    // the zone around the body moves: new patches every G 2 steps
-    if(regrid_int>0 && p->count%regrid_int==0)
+    // the zone around the body moves: new patches every G 2 steps (G 7 1: G 2 counts steps of the
+    // finest level)
+    const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
+    if(regrid_int>0 && p->count%rint==0)
     {
         double t0 = MPI_Wtime();
         Se0 = &c0->eta;
@@ -977,9 +1016,12 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->N48==0)
     return;
 
+    // G 7 1: a patch cell of level l limits the level-0 step as a cell 2^l times larger
+    auto sc = [&](reefamr_patch *q) { return (sub==1) ? double(1<<q->lev) : 1.0; };
+
     double r=1.0;
     for(auto q : P)
-    r = MIN(r, q->pp->DXM/p->DXM);
+    r = MIN(r, sc(q)*q->pp->DXM/p->DXM);
     r = pgc->globalmin(r);
 
     if(p->count==0)
@@ -1002,7 +1044,7 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         for(int jj=EXT; jj<EXT+q->ny; ++jj)
         if(pp->flagslice4[lij(pp,ii,jj)]>0)
         {
-            double dx = MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]);
+            double dx = sc(q)*MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]);
             cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
             cu = MIN(cu, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
         }

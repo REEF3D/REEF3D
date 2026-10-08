@@ -88,13 +88,10 @@ public:
     
     // mesh refinement with subcycling (nhflow_amr, G 7 1, 6DOF_obj_nhflow_amr.cpp): the finest
     // level advances the body; the coarser levels step before it with a predicted copy
-    void amr_save();
-    void amr_restore(lexer*, ghostcell*);
+    // (sixdof_obj::amr_save, amr_restore)
     void amr_stage(lexer*, fdm_nhf*, ghostcell*, int, bool);
 
 private:
-    
-    sixdof_rigidbody rb_amr;   // the body at the start of a predicted step (amr_save)
     
     void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, int, bool);
     void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);

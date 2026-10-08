@@ -29,6 +29,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"slice.h"
+#include<cmath>
+#include<limits>
 
 // --------------------------------------------------------------------- fill, restriction
 // cells around the level-l patches; sel(g,m) gives the slice m of grid g
@@ -62,10 +64,17 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
     const int knf = p0->knoz*((vref==2) ? (1<<l) : 1);
     const int nv = knf+1;
 
+    // G 7 1, the lowest level of a window above level 0: its parent columns are fixed (the parent
+    // at the time of the stage output in the unknowns, 0 in the Krylov vectors)
+    const bool edge = (lap_edge && l==wlo);
+
     fill_run(l,nv,tag,
              [&](const reefamr_fill &f, double *v)
              {
-                 if(f.kind==0)
+                 if(f.kind==1 && edge)
+                 for(int kk=0; kk<=knf; ++kk)
+                 v[kk] = std::numeric_limits<double>::quiet_NaN();
+                 else if(f.kind==0)
                  {
                      lexer *q = glex(f.g);
                      const double *src = sel(f.g);
@@ -82,6 +91,13 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
              {
                  lexer *pp = c->pp;
                  double *dst = sel(id);
+                 if(edge && std::isnan(w[0]))
+                 {
+                     if(lap_dir)
+                     for(int kk=0; kk<=knf; ++kk)
+                     dst[fidx(pp,f.di,f.dj,kk)] = 0.0;
+                     return;
+                 }
                  for(int kk=0; kk<=knf; ++kk)
                  dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
              });
@@ -126,7 +142,7 @@ inline double fnpf_amr::rc4(F f)
 template<class SEL>
 inline void fnpf_amr::restrict_sl(int ns, SEL sel)
 {
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     block_up(l,ns,7550+l,
              [&](reefamr_patch *c, int id, int k, double *v)
              {
@@ -153,7 +169,7 @@ inline void fnpf_amr::restrict_sl(int ns, SEL sel)
 template<class SEL>
 inline void fnpf_amr::restrict_col(SEL sel)
 {
-    for(int l=maxlev; l>=1; --l)
+    for(int l=wtop(); l>=wlo+1; --l)
     {
         const int knc = klev(l-1);
         block_up(l,knc+1,7560+l,

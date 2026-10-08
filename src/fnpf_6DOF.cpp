@@ -137,6 +137,35 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     pgc->gcparax7(p,c->W,7);
     body_velocities(g0,pgc);
     
+    // subcycling (G 7 1): level 0 steps first with a predicted copy of the body; the loads and
+    // the added mass of all grids at the start of the step (all grids at the same time), the
+    // finest level advances the body later (fnpf_6DOF_sub.cpp)
+    if(amr_sub())
+    {
+        g0.pf = pf;
+        
+        if(iter==0)
+        {
+            amr_grids(p,pgc);
+            
+            {
+            reefamr_comms_off guard(pgc);
+            for(auto &G : gp)
+            {
+            G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
+            body_velocities(G,pgc);
+            }
+            }
+            
+            forces_amr(p,c,pgc,psolv,pf,Keta,Kfi,iter);
+        }
+        
+        for(int nb=0; nb<nbody; ++nb)
+        fb_obj[nb]->amr_predict_fnpf(p,pgc,iter);
+        
+        return;
+    }
+    
     if(amr_on())
     {
         g0.pf = pf;
@@ -659,6 +688,11 @@ void fnpf_6DOF::exchange_face(fnpf_6DOF_grid &G, ghostcell *pgc)
 bool fnpf_6DOF::amr_on() const
 {
     return amr!=nullptr && amr->active();
+}
+
+bool fnpf_6DOF::amr_sub() const
+{
+    return amr!=nullptr && amr->sub_on();
 }
 
 void fnpf_6DOF::amr_attach(fnpf_amr *a)
