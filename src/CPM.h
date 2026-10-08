@@ -143,6 +143,8 @@ private:
     void stress_snider(lexer*, ghostcell*, sediment_fdm*);
     void stress_packedbed(lexer*, ghostcell*, sediment_fdm*);
     void stress_overburden(lexer*, ghostcell*, sediment_fdm*);
+    void stress_yield(lexer*, ghostcell*);
+    double yield_weight(lexer*, double, double, double);
     void friction(lexer*, fdm*, double, double, double, double&, double&, double&, double, double);
     void gradient(lexer*, ghostcell*, field&, field&, field&, field&);
     double contact_pressure(double, double);
@@ -187,6 +189,7 @@ private:
     field4a cellSum;
     field4a Us,Vs,Ws;
     field4a Pov;
+    field4a Fxy,Yr;  // column integral of the lateral load |int grad_h(Pov) dz| and the yield ratio Fxy/(mu_s Pov) (Q 67)
     field4a Kc,KUx,KUy,KUz;
     field4a dSx,dSy,dSz;
     field4a Locc,Lout,Lin,Ltc,Lloc,LA,Lh0,Lh1,Lh2,Lh3;

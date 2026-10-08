@@ -178,6 +178,10 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         double hw = 0.5*psi;
         Hjam = xi>=hw ? 0.0 : (xi<=-hw ? 1.0 : 0.5*(1.0 - xi/hw - (1.0/PI)*sin(PI*xi/hw)));
         
+        // Q 67: the bed below the surface layer is jammed only within the Mohr-Coulomb yield of its column
+        if(p->Q67>0 && Hjam>0.0)
+        Hjam *= yield_weight(p,PX[n],PY[n],PZ[n]);
+        
         fx = fy = fz = 0.0;
     }
     else

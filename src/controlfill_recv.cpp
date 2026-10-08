@@ -1968,6 +1968,8 @@ void control::ctrlrecv()
     dd++;
     Q66 = dctrl[dd];
     dd++;
+    Q67 = ictrl[ii];
+    ii++;
     Q50 = ictrl[ii];
     ii++;
     Q51 = ictrl[ii];

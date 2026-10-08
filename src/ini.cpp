@@ -997,6 +997,7 @@ void control::ini_default()
     Q64=0.6;            // double bedload layer: thickness of the mobile surface layer of the bed in cells, the bed below is jammed
     Q65=1.0;            // double bedload layer: morphological factor, the pickup into the layer is multiplied by Q 65
     Q66=0.0;            // double bedload layer: reference height of the bed shear stress in cells above the bed, 0: first cell
+    Q67=0;              // int bedload layer: jammed bed only within the Mohr-Coulomb yield of the column (deep slope failures), 0 off, 1 on
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
     Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off

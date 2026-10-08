@@ -184,6 +184,9 @@ void CPM::stress_packedbed(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     stress_overburden(p,pgc,s);
     
+    if(p->Q67>0 && p->Q58>0 && p->S10==1)
+    stress_yield(p,pgc);
+    
     dilatancy(p,pgc);
     
     cmax=0.0;
@@ -263,6 +266,162 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
             break;
         }
     }
+}
+
+/*--------------------------------------------------------------------
+yield of the jammed bed (Q 67), Mohr-Coulomb in the column
+
+The jammed bed (Q 64) holds every parcel below the mobile surface layer at rest, so a slope
+steeper than the angle of repose fails only by avalanches of the surface layer, and an
+undercut flank never fails as a whole. With Q 67 the bed below the surface layer is jammed
+only where its contact network can carry the load in friction. The lateral load of the
+column above a point is the integral of the horizontal gradient of the overburden stress,
+
+    F(z) = | int_z^top grad_h(Pov) dz' |,
+
+the frictional resistance on the plane below is mu_s Pov(z). For an infinite slope of angle
+beta, F/Pov = tan(beta) at any depth, so the bed yields at tan(beta) > mu_s down to the
+bottom, as in the classical infinite-slope analysis; under a flat bed F = 0. The yield ratio
+
+    Yr = F/(mu_s Pov)
+
+releases the jam smoothly between Yr = 0.95 and 1.05 (yield_weight); the parcels of the yielding
+bed are then held only by the Coulomb/mu(I) friction on their substrate, and the bed jams
+again once its slope is below the angle of repose. A free face (vertical wall of sand, the
+flank of a scour hole) has a large lateral gradient and yields from its top down.
+
+The gradient is central, one-sided next to cells without load (outside the bed, solids,
+walls); the column integration follows stress_overburden (repeated with a vertical domain
+decomposition until the values from above have arrived).
+--------------------------------------------------------------------*/
+
+void CPM::stress_yield(lexer *p, ghostcell *pgc)
+{
+    double rog = (p->S22 - p->W1)*fabs(p->W22);
+    double tgap = 0.5*theta_bed;
+    double change,old;
+    
+    auto dPdh = [&](int di, int dj, double &gx)
+    {
+        // horizontal derivative of Pov in direction (di,dj) at (i,j,k), one-sided at cells without load
+        bool okm = p->flag4[(i-di-p->imin)*p->jmax*p->kmax + (j-dj-p->jmin)*p->kmax + k-p->kmin]>0;
+        bool okp = p->flag4[(i+di-p->imin)*p->jmax*p->kmax + (j+dj-p->jmin)*p->kmax + k-p->kmin]>0;
+        double h = di==1 ? p->DXN[IP] : p->DYN[JP];
+        double pm = Pov(i-di,j-dj,k), pp = Pov(i+di,j+dj,k), pc = Pov(i,j,k);
+        
+        if(okm && okp)
+        gx = (pp - pm)/(2.0*h);
+        
+        else if(okp)
+        gx = (pp - pc)/h;
+        
+        else if(okm)
+        gx = (pc - pm)/h;
+        
+        else
+        gx = 0.0;
+    };
+    
+    int itermax = zsplit==1 ? 1000 : 1;
+    
+    // column integral of the lateral load: Fxy holds int grad_x, Yr temporarily int grad_y
+    for(int qn=0; qn<itermax; ++qn)
+    {
+        change = 0.0;
+        
+        ILOOP
+        JLOOP
+        {
+            double fxa=0.0, fya=0.0;   // integrand at the cell above
+            
+            for(k=p->knoz-1; k>=0; --k)
+            {
+                PBASECHECK
+                {
+                old = Fxy(i,j,k);
+                
+                if(Ts(i,j,k)<tgap || Pov(i,j,k)<=0.0)
+                {
+                    Fxy(i,j,k) = Yr(i,j,k) = 0.0;
+                    fxa = fya = 0.0;
+                }
+                
+                else
+                {
+                    double gx=0.0, gy=0.0;
+                    dPdh(1,0,gx);
+                    
+                    if(p->j_dir==1)
+                    dPdh(0,1,gy);
+                    
+                    bool above = (k+1<p->knoz || p->nb6>=0) && Ts(i,j,k+1)>=tgap && Pov(i,j,k+1)>0.0;
+                    
+                    if(above)
+                    {
+                        // integrand of the cell above from this loop; at the top of a subdomain
+                        // (vertical split) the one of this cell
+                        double fx1 = k+1<p->knoz ? fxa : gx;
+                        double fy1 = k+1<p->knoz ? fya : gy;
+                        
+                        Fxy(i,j,k) = Fxy(i,j,k+1) + 0.5*fx1*p->DZN[KP1] + 0.5*gx*p->DZN[KP];
+                        Yr(i,j,k)  = Yr(i,j,k+1)  + 0.5*fy1*p->DZN[KP1] + 0.5*gy*p->DZN[KP];
+                    }
+                    
+                    else
+                    {
+                        Fxy(i,j,k) = 0.5*gx*p->DZN[KP];
+                        Yr(i,j,k)  = 0.5*gy*p->DZN[KP];
+                    }
+                    
+                    fxa = gx;
+                    fya = gy;
+                }
+                
+                change = MAX(change, fabs(Fxy(i,j,k)-old));
+                }
+            }
+        }
+        
+        pgc->start4a(p,Fxy,1);
+        pgc->start4a(p,Yr,1);
+        
+        if(zsplit==1)
+        {
+            change = pgc->globalmax(change);
+            
+            if(change<1.0e-8*rog*hmin)
+            break;
+        }
+    }
+    
+    // yield ratio
+    BASELOOP
+    {
+        double F = sqrt(Fxy(i,j,k)*Fxy(i,j,k) + Yr(i,j,k)*Yr(i,j,k));
+        double Pv = Pov(i,j,k);
+        
+        Fxy(i,j,k) = F;
+        Yr(i,j,k) = Pv>1.0e-6*rog*hmin ? F/(mu_s*Pv) : 0.0;
+    }
+    
+    pgc->start4a(p,Fxy,1);
+    pgc->start4a(p,Yr,1);
+}
+
+// jam weight of the yield (Q 67): 1 within the yield (Yr <= 0.95), 0 at Yr >= 1.05, smooth in between
+double CPM::yield_weight(lexer *p, double xp, double yp, double zp)
+{
+    double yr = p->ccipol4a(Yr,xp,yp,zp);
+    
+    if(yr<=0.95)
+    return 1.0;
+    
+    if(yr>=1.05)
+    return 0.0;
+    
+    double xi = (yr-0.95)/0.1;
+    
+    return 0.5*(1.0 + cos(PI*xi));
 }
 
 /*--------------------------------------------------------------------
