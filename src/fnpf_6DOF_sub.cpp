@@ -85,7 +85,7 @@ void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int
     
     for(int nb=0; nb<nbody; ++nb)
     {
-        fb_obj[nb]->solve_eqmotion_fnpf(p,pgc,iter,finalize && last);
+        fb_obj[nb]->solve_eqmotion_fnpf(p,c,pgc,iter,finalize && last);
         fb_obj[nb]->update_position_fnpf(p,pgc,finalize && last);
         
         if(finalize && last)
@@ -159,6 +159,10 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
         // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
         SLICELOOP4
         D(i,j) = Kf(i,j) - G.c->Fz(i,j)*Ke(i,j);
+        
+        // one body: + V.grad(phi), the body-following derivative chi (as in forces_amr)
+        if(nbody==1)
+        fb_obj[0]->chi_fsf(p,G.c,D,*G.foot);
         
         pgc->gcsl_start4(p,D,50);
         

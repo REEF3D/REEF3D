@@ -2410,6 +2410,10 @@ void control::ctrlrecv()
     dd++;
     X26_Cw = dctrl[dd];
     dd++;
+    X17 = dctrl[dd];
+    dd++;
+    X18 = dctrl[dd];
+    dd++;
     X31 = ictrl[ii];
     ii++;
     X32 = ictrl[ii];

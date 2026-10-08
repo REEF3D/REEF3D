@@ -2419,6 +2419,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = X26_Cw;
     dd++;
+    dctrl[dd] = X17;
+    dd++;
+    dctrl[dd] = X18;
+    dd++;
     ictrl[ii] = X31;
     ii++;
     ictrl[ii] = X32;

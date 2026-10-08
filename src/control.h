@@ -544,6 +544,7 @@ public:
     double X24_Ix,X24_Iy,X24_Iz;
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
+    double X17,X18;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;
