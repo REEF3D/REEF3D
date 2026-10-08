@@ -341,6 +341,23 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             ug = in ? ub + uwk : U[IJK];
             }
             
+            // inflow with a vertical profile of the background current (B 513)
+            if(in && bgs.profiled(b))
+            {
+                const double fp = bg_prof(p,b,fmax(h0+eb,1.0e-6));
+                
+                if(xedge)
+                {
+                ug = nn*ung*fp + (uwk - uwc);
+                vg = vb*fp + vwk;
+                }
+                else
+                {
+                vg = nn*ung*fp + (vwk - vwc);
+                ug = ub*fp + uwk;
+                }
+            }
+            
             const double wg = in ? wwk : W[IJK];
             
             const int ii=i, jj=j;
@@ -833,4 +850,26 @@ void iowave::nhflow_mass_balance(lexer *p, fdm_nhf *d, ghostcell *pgc)
     mb_t0 = t;
     mb_V0 = V;
     mb_n = 0;
+}
+
+// B 513: profile factor of the current layer k (member), f(zeta_k) / sum_m DZN_m f(zeta_m), so
+// that the depth average of the profiled current stays the background's
+double iowave::bg_prof(lexer *p, int b, double h)
+{
+    const int kk = k;
+    double zc=0.0, s=0.0, fk=1.0;
+    
+    for(int m=0; m<p->knoz; ++m)
+    {
+        const double dz = p->DZN[m+marge];
+        const double f = bgs.shape(b,zc+0.5*dz,h);
+        s += dz*f;
+        
+        if(m==kk)
+        fk = f;
+        
+        zc += dz;
+    }
+    
+    return s>0.0 ? fk/s : 1.0;
 }

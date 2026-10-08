@@ -115,6 +115,12 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             {
             double ub,vb;
             bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            if(bgs.profiled(b))
+            {
+            const double fp = bg_prof(p,b,col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
+            ub *= fp;
+            vb *= fp;
+            }
             const double ut = ub + ramp(p)*(uval[count]-p->Ui);
             const double ht = col_h0[IJ] + bgs.eta(b,p->XP[IP],p->YP[JP]) + ramp(p)*eta(i,j);
             U[IJK]  = (1.0-relax4_wg(i,j))*ut + relax4_wg(i,j)*U[IJK];
@@ -151,6 +157,12 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             {
             double ub,vb;
             bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            if(bgs.profiled(b))
+            {
+            const double fp = bg_prof(p,b,col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
+            ub *= fp;
+            vb *= fp;
+            }
             U[IJK]  = relax4_nb(i,j)*U[IJK]  + (1.0-relax4_nb(i,j))*ub;
             UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*ub*(col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
             }
@@ -191,6 +203,12 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             {
             double ub,vb;
             bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            if(bgs.profiled(b))
+            {
+            const double fp = bg_prof(p,b,col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
+            ub *= fp;
+            vb *= fp;
+            }
             const double vt = vb + ramp(p)*vval[count];
             const double ht = col_h0[IJ] + bgs.eta(b,p->XP[IP],p->YP[JP]) + ramp(p)*eta(i,j);
             V[IJK]  = (1.0-relax4_wg(i,j))*vt + relax4_wg(i,j)*V[IJK];
@@ -219,6 +237,12 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             {
             double ub,vb;
             bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            if(bgs.profiled(b))
+            {
+            const double fp = bg_prof(p,b,col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
+            ub *= fp;
+            vb *= fp;
+            }
             V[IJK]  = relax4_nb(i,j)*V[IJK]  + (1.0-relax4_nb(i,j))*vb;
             VH[IJK] = relax4_nb(i,j)*VH[IJK] + (1.0-relax4_nb(i,j))*vb*(col_h0[IJ]+bgs.eta(b,p->XP[IP],p->YP[JP]));
             }

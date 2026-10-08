@@ -35,6 +35,9 @@ background_state: tidal / current background of the boundary zones
                                dir [deg]: direction of propagation; t_ramp [s]: spin-up
   B 511 id a T phase           harmonic constituent (repeatable): a cos(2 pi t/T - phase)
   B 514 id eta0 U V            constant level offset [m] and current [m/s]
+  B 513 id profile par         vertical profile of the current (default uniform): 1 log-law
+                               ln(1 + z/z0) with z0 = par [m], 2 power law (z/h)^(1/n) with
+                               n = par (7 if <= 0); scaled to the depth average per column
   B 515 id x0 y0 h_ref         progressive background: the tide travels in direction dir
                                as a long wave on the depth h_ref (<= 0: still water level
                                F 60) from (x0,y0); without B 515 the background is
@@ -67,6 +70,8 @@ public:
     
     double eta(int b, double x, double y) const;
     bool carries_current(int b) const;      // tide, time series or constant U, V != 0
+    bool profiled(int b) const {return b>=0 && bg[b].prof>0;}
+    double shape(int b, double zeta, double h) const;   // profile at zeta = height above bed / h, depth mean 1 (continuous)
     bool carries_level(int b) const;        // tide, time series or constant eta0 != 0
     void vel(int b, double h, double x, double y, double &u, double &v) const;   // depth averaged
     
@@ -82,6 +87,8 @@ private:
         double x0=0.0, y0=0.0, href=0.0, cel=0.0;
         std::vector<double> ft, feta, fu, fv;   // time series (mode 2)
         double r=1.0;                            // at the time of the last update
+        int prof=0;                              // B 513: 0 uniform, 1 log-law, 2 power law
+        double ppar=0.0;                         // z0 [m] (log-law) or n (power law 1/n)
     };
     std::vector<item> bg;
     double g=9.81, time=0.0;

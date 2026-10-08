@@ -311,6 +311,7 @@ private:
     int wbg_count=-1;
     void nhflow_wave_background(lexer*,ghostcell*);
     void b530_auto(lexer*);
+    double bg_prof(lexer*,int,double);   // B 513 profile factor of layer k, depth average 1 per column
     
     // edge mass balance (B 529): flux through each open edge integrated since the last line
     void nhflow_mass_balance(lexer*,fdm_nhf*,ghostcell*);

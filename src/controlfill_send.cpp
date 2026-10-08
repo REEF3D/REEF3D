@@ -839,6 +839,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = B523;
     ii++;
+    ictrl[ii] = B513;
+    ii++;
     ictrl[ii] = B525;
     ii++;
     ictrl[ii] = B530;
@@ -3129,6 +3131,16 @@ void control::ctrlsend()
         ii++;
         ictrl[ii] = B523_bg[n];
         ii++;
+    }
+
+    for(n=0;n<B513;++n)
+    {
+        ictrl[ii] = B513_id[n];
+        ii++;
+        ictrl[ii] = B513_profile[n];
+        ii++;
+        dctrl[dd] = B513_par[n];
+        dd++;
     }
 
     for(n=0;n<B525;++n)
