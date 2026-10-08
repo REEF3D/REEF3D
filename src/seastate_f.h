@@ -42,6 +42,7 @@ class seastate_wind_series;
 class seastate_amr;
 class seastate_bathy;
 class slice4;
+class seastate_obstacle;
 class regression_dump;
 
 using namespace std;
@@ -231,6 +232,14 @@ private:
     seastate_amr *pamr;
     seastate_bathy *bathy;
     void transport_amr(lexer*, ghostcell*);
+
+    // Phase 6: diffraction (A 718), obstacles (A 722)
+    void diffraction(lexer*, ghostcell*);
+    void obstacles(lexer*, ghostcell*);
+    seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;   // Ca and its gradient per frequency
+    slice4 *dfS = nullptr, *dfT = nullptr, *dfK = nullptr, *dfC = nullptr;
+    int dfsmooth = -1;                      // smoothing steps of the diffraction parameter (A 719)
+    seastate_obstacle *pobs = nullptr;
 };
 
 #endif

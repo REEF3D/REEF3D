@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_tide_waves_beach",
+ "description": "nhflow_2d_tide_waves_beach with B 530 0: waves on the tide without h_eff and Doppler, as before B 530 became the default with a background.",
+ "tags": ["quick", "2d", "nhflow", "tide", "iowave", "bc_zone", "background"],
+ "covers": ["B 530 0 turns the default off"],
+ "ctrl_set": {"B 530": "0 10"}
+}

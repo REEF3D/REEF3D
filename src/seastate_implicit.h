@@ -56,9 +56,12 @@ struct seastate_neighbour
     const float *cg = nullptr;    // group velocity, nullptr: no active cell
     double U = 0.0, V = 0.0;
     bool self = false;            // zero-gradient side: inflow of the cell's own spectrum
+    const float *ca = nullptr;    // diffraction (A 718): Ca per frequency of the neighbour
+    double tf = 1.0;              // obstacle on the face (A 722): energy transmission Kt^2
 };
 
 class seastate_grid;
+class seastate_obstacle;
 
 /*--------------------------------------------------------------------
 REEF3D::SEASTATE - implicit transport of the wave action density
@@ -197,6 +200,10 @@ public:
     // diagonal i+j = const at the same time (level 0 without refinement, not the surfbeat model)
     void threads(int n) {nthreads = std::max(n,1);}
 
+    // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency; obstacles (A 722)
+    void diffraction(const seastate_store *ca, const seastate_store *cax, const seastate_store *cay) {dca = ca; dcax = cax; dcay = cay;}
+    void obstacles(const seastate_obstacle *o) {pob = o;}
+
     // mesh refinement, composite sweep: solve the one cell (i,j) for quadrant q
     void solve(lexer*, fdm_seastate*, int q, int ci, int cj, const seastate_store *N0, double rdt,
                const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
@@ -212,6 +219,9 @@ private:
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
     int nthreads = 1;
+    const seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;
+    const seastate_obstacle *pob = nullptr;
+    vector<double> cdp, cdm;            // diffraction: c_theta at the faces m+1/2, m-1/2 per frequency and direction
 
     void cell_surfbeat(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction);

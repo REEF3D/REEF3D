@@ -31,6 +31,8 @@ Architect: Hans Bihs
 #include"seastate_roller.h"
 #include"seastate_amr.h"
 #include"seastate_bathy.h"
+#include"seastate_obstacle.h"
+#include"slice4.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
@@ -154,6 +156,35 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     {
     N0 = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,e->grid->nbin,p->A704);
     N0->build(e->wet.V);
+    }
+
+    // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency
+    if(p->A718>=1)
+    {
+    const int ns = e->grid->nsig;
+    dca  = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ns,p->A704);
+    dcax = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ns,p->A704);
+    dcay = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,ns,p->A704);
+    dca->build(e->wet.V);
+    dcax->build(e->wet.V);
+    dcay->build(e->wet.V);
+    dfS = new slice4(p);
+    dfT = new slice4(p);
+    dfK = new slice4(p);
+    dfC = new slice4(p);
+    psolv->diffraction(dca,dcax,dcay);
+    }
+
+    // Phase 6: line obstacles (A 722)
+    if(p->A722>0)
+    {
+    pobs = new seastate_obstacle(p);
+    pobs->build(p);
+    psolv->obstacles(pobs);
+
+    const double nf = pgc->globalsum(double(pobs->faces_blocked()));
+    if(p->mpirank==0)
+    cout<<"SEASTATE obstacles: "<<p->A722<<" (A 722), faces blocked "<<long(nf)<<" (incl. ghost cells)"<<endl;
     }
 
     pex->start(p,pgc,*e->N);
@@ -341,6 +372,26 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 798: at least one thread per rank";
     else if(p->A799!=0 && p->A799!=1)
     msg = "A 799: the convergence test must be 0 (change per iteration) or 1 (estimated distance to the solution)";
+    else if(p->A718<0 || p->A718>2)
+    msg = "A 718: diffraction must be 0 (off), 1 (as SWAN, total energy) or 2 (per frequency)";
+    else if(p->A718>=1 && (p->G1>0 || p->A770==1))
+    msg = "A 718 1: diffraction is not available with mesh refinement (G 1) or the surfbeat model (A 770 1)";
+    else if(p->A719<0)
+    msg = "A 719: the number of smoothing steps must not be negative";
+    else if(p->A722>0 && (p->G1>0 || p->A770==1))
+    msg = "A 722: obstacles are not available with mesh refinement (G 1) or the surfbeat model (A 770 1)";
+    else if(p->A722>0 && p->A796==2)
+    msg = "A 722: obstacles need the first-order geographic fluxes (A 796 1)";
+
+    for(int n=0; n<p->A722 && msg==nullptr; ++n)
+    {
+        if(p->A722_kt[n]>1.0 || p->A722_kr[n]<0.0 || p->A722_kr[n]>1.0)
+        msg = "A 722: Kt must be at most 1 (or negative for Goda), Kr in [0,1]";
+        else if(p->A722_kt[n]>=0.0 && p->A722_kt[n]*p->A722_kt[n] + p->A722_kr[n]*p->A722_kr[n]>1.0+1.0e-9)
+        msg = "A 722: Kt^2 + Kr^2 must not exceed 1";
+        else if(p->A722_kr[n]>0.0 && p->A795>0.0)
+        msg = "A 722: reflecting obstacles (Kr > 0) are not available with the spectral sparsity (A 795)";
+    }
 
     if(msg!=nullptr)
     {
@@ -507,6 +558,12 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->G1>0 || p->A770==1 ? ", not used with mesh refinement or surfbeat" : "");
     if(p->A700==2 && p->A738>1) cout<<(p->A798>1 ? "," : "")<<" up to "<<p->A738<<" source iterations per cell, tolerance "<<scientific<<setprecision(1)<<p->A739<<defaultfloat<<setprecision(6)<<" (A 738, A 739)";
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
+    cout<<endl;
+    }
+    if(p->A718>=1)
+    {
+    cout<<"SEASTATE solver (Phase 6):";
+    cout<<" diffraction"<<(p->A718==1 ? " (total energy, as SWAN)" : " (per frequency)")<<", smoothing "<<(p->A719>0 ? std::to_string(p->A719)+" steps" : std::string("from the wavelength"))<<" (A 718, A 719)";
     cout<<endl;
     }
     if(p->A720==1)

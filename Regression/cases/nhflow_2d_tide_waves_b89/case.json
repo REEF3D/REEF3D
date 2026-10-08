@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_tide_waves_beach",
+ "description": "nhflow_2d_tide_waves_beach with JONSWAP irregular waves (B 92 31, 40 components) and decomposed precalc (B 89 1): the waves on the tide from the precomputed space and time parts; B 530 stays off by default with B 89 1.",
+ "tags": ["quick", "2d", "nhflow", "tide", "iowave", "bc_zone", "background", "decomp", "irregular"],
+ "covers": ["B 89 1 with a background", "B 530 default off with B 89 1"],
+ "ctrl_set": {"B 89": "1", "B 92": "31", "B 84": "1", "B 85": "2", "B 86": "40", "B 87": "0.6 2.0", "B 88": "3.3", "B 139": "7", "B 93": "0.5 6.0"}
+}

@@ -325,6 +325,9 @@ void control::ini_default()
     A715_th1=0.0;     // double fine direction sector from this direction ... [deg], ccw from +x
     A715_th2=0.0;     // double ... counter-clockwise to this direction [deg]
     A715_k=1;         // int ... the A 703 directions with centres in the sector divided into this many bins each (1 off)
+    A718=0;           // int diffraction (phase-decoupled, Holthuijsen et al. 2003): 0 off, 1 from the total energy (as SWAN), 2 per frequency
+    A719=0;           // int diffraction: smoothing steps of the energy (0: 0.4 (L/dx)^2 from the mean wavelength and the smallest cell)
+    A722=0;           // int number of obstacles (A 722 xs ys xe ye Kt Kr zc): line obstacles, energy transmission Kt^2 (Kt < 0: Goda with crest level zc), reflection Kr^2
     A738=1;           // int stationary: source iterations per cell and sweep (max.), the source terms evaluated again from the spectrum just solved
     A739=1.0e-4;      // double ... until the estimated distance of the energy of the cell to its balance is below this fraction
     A798=1;           // int threads per MPI rank for the sweeps (wavefront order)

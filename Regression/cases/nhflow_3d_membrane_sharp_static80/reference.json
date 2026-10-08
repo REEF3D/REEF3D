@@ -77,6 +77,20 @@
    "l1": 0.0,
    "l2": 0.0,
    "linf": 0.0
+  },
+  "CONC": {
+   "n": 8640,
+   "sum": 0.0,
+   "l1": 0.0,
+   "l2": 0.0,
+   "linf": 0.0
+  },
+  "bed": {
+   "n": 720,
+   "sum": 0.0,
+   "l1": 0.0,
+   "l2": 0.0,
+   "linf": 0.0
   }
  },
  "text": {},
@@ -123,7 +137,7 @@
   0.007820618870057722,
   0.007820618870057722
  ],
- "blessed_from": "/home/claude/REEF3D_sharp13",
- "date": "2026-10-07",
- "note": "hans_dev 4c91acf (0004) + patches 0005, 0006"
+ "blessed_from": "/home/claude/REEF3D_p9",
+ "date": "2026-10-08",
+ "note": "hans_dev 28ee3c8 + patches 0007, 0008"
 }

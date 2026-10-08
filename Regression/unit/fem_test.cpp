@@ -3,7 +3,7 @@
 // Build:  g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
 //         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test          (add -fopenmp for the threads test)
 // Run:    ./fem_test [test]      tests: cantilever freq rotation j2 crackband drop collapse snap patch
-//                                presets settle snapbeam damping rigid walls impact rebar tie rc threads (default: all)
+//                                presets settle snapbeam damping rigid walls impact rebar tie rc adaptive threads (default: all)
 #include"fem_solid.h"
 #include<iostream>
 #include<sstream>
@@ -762,7 +762,7 @@ static void test_rebar_tension()
     check(s.bars_ruptured()>0 && std::fabs(sf)<1e-3*pk,"the bars rupture beyond eps_u, the tie carries nothing");
 }
 
-static void rc_push(double h,int full,double ratio,double umax,double v,double* Mcr,double* My,double* uy,double* M3,double* Mpk,double* Mend,int* rupt,int* eroded)
+static void rc_push(double h,int full,double ratio,double umax,double v,double* Mcr,double* My,double* uy,double* M3,double* Mpk,double* Mend,int* rupt,int* eroded,int* nfull=nullptr,int* nel=nullptr,int* ntop=nullptr)
 {
     // plane-strain cantilever 0.5 x 3 m pushed at the top through a stiff spring
     const double L=3.0, D=0.5, B=h;
@@ -799,6 +799,10 @@ static void rc_push(double h,int full,double ratio,double umax,double v,double* 
         *Mpk=std::max(*Mpk,M);
     }
     *Mend=M; *rupt=s.bars_ruptured(); *eroded=s.n_eroded();
+    if(nfull) *nfull=s.n_full_elements();
+    if(nel) *nel=s.n_alive();
+    // below the loaded top row, z > 0.93 L: M < 0.07 M_max (a fifth of the cracking moment)
+    if(ntop) {*ntop=0; for(int e=0;e<s.nelem();++e) if(s.elem(e).full && s.elem(e).iz*h>0.93*L-1e-9 && (s.elem(e).iz+1)*h<L-1e-9) ++*ntop;}
 }
 
 static void test_rc_column()
@@ -814,10 +818,23 @@ static void test_rc_column()
     check(uy>0.017 && uy<0.032,"yield drift: phi_y L^2/3 = 24 mm plus shear (17-32 mm)");
     check(M3>0.95*My && M3<1.25*My,"ductile: at 3 % drift the moment stays between 0.95 and 1.25 M_y");
     double Mcr0,My0,uy0,M30,Mpk0,Mend0; int rupt0,er0;
-    rc_push(0.05,0,0.0,0.03,0.05,&Mcr0,&My0,&uy0,&M30,&Mpk0,&Mend0,&rupt0,&er0);
+    rc_push(0.05,0,0.0,0.03,0.05,&Mcr0,&My0,&uy0,&M30,&Mpk0,&Mend0,&rupt0,&er0);   // one-point elements
     std::printf("    plain: max %.0f kNm/m (f_t W = 121), end %.0f, eroded %d\n",Mpk0/1e3,Mend0/1e3,er0);
     check(Mpk0>121e3 && Mpk0<0.4*My,"plain concrete: brittle, the peak moment is a fraction of the RC yield moment");
     check(er0>0 && Mend0<0.2*Mpk0,"plain concrete: the section breaks");
+}
+
+static void test_adaptive()
+{
+    std::cout<<"adaptive integration: RC cantilever as with full integration, the elastic part on one point"<<std::endl;
+    double Mcr,My,uy,M3,Mpk,Mend; int rupt,er,nf,ne,nt;
+    double Mcr1,My1,uy1,M31,Mpk1,Mend1; int rupt1,er1;
+    rc_push(0.1,2,0.01,0.1,0.1,&Mcr,&My,&uy,&M3,&Mpk,&Mend,&rupt,&er,&nf,&ne,&nt);
+    rc_push(0.1,1,0.01,0.1,0.1,&Mcr1,&My1,&uy1,&M31,&Mpk1,&Mend1,&rupt1,&er1);
+    std::printf("    adaptive: first yield %.0f kNm/m at %.1f mm, at 3 %% drift %.0f, max %.0f; full: %.0f at %.1f mm, %.0f, %.0f; %d of %d elements on 2x2x2 points (near the top: %d)\n",
+                My/1e3,1e3*uy,M3/1e3,Mpk/1e3,My1/1e3,1e3*uy1,M31/1e3,Mpk1/1e3,nf,ne,nt);
+    check(std::fabs(My/My1-1)<0.02 && std::fabs(M3/M31-1)<0.03,"first yield within 2 %, moment at 3 % drift within 3 % of full integration");
+    check(nf>0 && nf<ne && nt==0,"the cracked part switches to 2x2x2 points, the elastic top (moment below a fifth of cracking, below the loaded row) stays on one point");
 }
 
 // ----------------------------------------------------------------------
@@ -902,6 +919,7 @@ int main(int argc,char** argv)
     if(w=="all"||w=="rebar") test_rebar_input();
     if(w=="all"||w=="tie") test_rebar_tension();
     if(w=="all"||w=="rc") test_rc_column();
+    if(w=="all"||w=="adaptive") test_adaptive();
     if(w=="all"||w=="threads") test_threads();
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail? std::to_string(nfail):"")<<std::endl;
     return nfail ? 1 : 0;

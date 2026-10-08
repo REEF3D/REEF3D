@@ -763,6 +763,15 @@ void control::read_control(lexer* p)
                 case 760: ++A760;
                          clear(c,numint);
                          break;
+                case 722: ++A722;
+                         clear(c,numint);
+                         break;
+                case 718: control>>A718;
+                         clear(c,numint);
+                         break;
+                case 719: control>>A719;
+                         clear(c,numint);
+                         break;
                 case 761: control>>A761;
                          clear(c,numint);
                          break;
@@ -3920,6 +3929,14 @@ void control::read_control(lexer* p)
     Darray(A760_x,A760);
     Darray(A760_y,A760);
 
+    Darray(A722_xs,A722);
+    Darray(A722_ys,A722);
+    Darray(A722_xe,A722);
+    Darray(A722_ye,A722);
+    Darray(A722_kt,A722);
+    Darray(A722_kr,A722);
+    Darray(A722_zc,A722);
+
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
 
@@ -4486,6 +4503,7 @@ void control::read_control(lexer* p)
     int countG10=0;
     int countG11=0;
     int countA760=0;
+    int countA722=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -4587,6 +4605,12 @@ void control::read_control(lexer* p)
                 case 760: control>>A760_x[countA760]>>A760_y[countA760];
                          p->XYin(A760_x[countA760],A760_y[countA760]);
                          ++countA760;
+                         clear(c,numint);
+                         break;
+                case 722: control>>A722_xs[countA722]>>A722_ys[countA722]>>A722_xe[countA722]>>A722_ye[countA722]>>A722_kt[countA722]>>A722_kr[countA722]>>A722_zc[countA722];
+                         p->XYin(A722_xs[countA722],A722_ys[countA722]);
+                         p->XYin(A722_xe[countA722],A722_ye[countA722]);
+                         ++countA722;
                          clear(c,numint);
                          break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];

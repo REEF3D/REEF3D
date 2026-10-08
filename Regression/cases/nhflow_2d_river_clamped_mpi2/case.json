@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_river_clamped",
+ "np": 2,
+ "tags": ["2d", "nhflow", "iowave", "bc_zone", "clamped", "mpi"],
+ "description": "as nhflow_2d_river_clamped on 2 ranks (x split): each edge on one rank",
+ "covers": ["B 525 edge area and B 529 sums across ranks"]
+}
