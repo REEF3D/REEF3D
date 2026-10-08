@@ -3,7 +3,7 @@
 // Build:  g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
 //         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test          (add -fopenmp for the threads test)
 // Run:    ./fem_test [test]      tests: cantilever freq rotation j2 crackband drop collapse snap patch
-//                                presets settle snapbeam damping rigid walls impact rebar tie rc adaptive threads (default: all)
+//                                presets settle snapbeam damping rigid walls impact rebar tie rc adaptive threads ranks (default: all)
 #include"fem_solid.h"
 #include<iostream>
 #include<sstream>
@@ -841,7 +841,7 @@ static void test_adaptive()
 // threads (OpenMP): the results must not depend on the number of threads
 // ----------------------------------------------------------------------
 
-static void threads_run(int nthr,std::vector<double>& state,int* eroded,int* nrigid,double* wd)
+static void threads_run(int nthr,std::vector<double>& state,int* eroded,int* nrigid,double* wd,fem_comm* comm=nullptr)
 {
     // a weak plain concrete wall broken by a rigid block (erosion, fragments, node and
     // ground contact), a reinforced column hit by a second block (bars, unilateral damage)
@@ -863,6 +863,7 @@ static void threads_run(int nthr,std::vector<double>& state,int* eroded,int* nri
     s.add_box(0.85,1.05,0.0,0.2,0.4,0.6,3);
     s.build();
     s.use_threads(nthr);
+    if(comm) {s.set_comm(comm); s.set_distribute(1);}
     for(int k=0;k<s.n_rigid();++k)
     {
         fem_solid::rigid_body& rb=const_cast<fem_solid::rigid_body&>(s.rigid(k));
@@ -897,6 +898,64 @@ static void test_threads()
     check(a.size()==b.size() && std::memcmp(a.data(),b.data(),a.size()*sizeof(double))==0,"positions, velocities, damage, bar strains, rigid bodies, dissipated energy bitwise equal");
 }
 
+// ----------------------------------------------------------------------
+// ranks: the solid split over ranks (threads with a shared-memory communicator
+// stand in for MPI) gives the results of one rank
+// ----------------------------------------------------------------------
+#include<thread>
+#include<barrier>
+struct shared_comm
+{
+    int P;
+    std::barrier<> bar;
+    std::vector<std::vector<char>> bufs;
+    std::vector<int> ints;
+    explicit shared_comm(int p) : P(p), bar(p), bufs(p), ints(p) {}
+};
+struct thread_comm : public fem_comm
+{
+    shared_comm* sh; int r;
+    thread_comm(shared_comm* s,int rr) : sh(s), r(rr) {}
+    int size() const override {return sh->P;}
+    int rank() const override {return r;}
+    void allgatherv(const void* send,int nbytes,void* recv,const int* counts,const int* displs) override
+    {
+        sh->bufs[r].assign((const char*)send,(const char*)send+nbytes);
+        sh->bar.arrive_and_wait();
+        for(int q=0;q<sh->P;++q) if(counts[q]>0) std::memcpy((char*)recv+displs[q],sh->bufs[q].data(),counts[q]);
+        sh->bar.arrive_and_wait();
+    }
+    void allgather_int(int v,int* all) override
+    {
+        sh->ints[r]=v;
+        sh->bar.arrive_and_wait();
+        for(int q=0;q<sh->P;++q) all[q]=sh->ints[q];
+        sh->bar.arrive_and_wait();
+    }
+};
+
+static void test_ranks()
+{
+    std::cout<<"ranks: the solid split over 1 and 3 ranks gives bitwise the same results"<<std::endl;
+    std::vector<double> a; int ea,ra; double wa;
+    threads_run(1,a,&ea,&ra,&wa);
+    const int P=3;
+    shared_comm sh(P);
+    std::vector<std::vector<double>> st(P);
+    std::vector<int> er(P),rr(P); std::vector<double> wd(P);
+    std::vector<std::thread> th;
+    for(int r=0;r<P;++r)
+    th.emplace_back([&,r]{thread_comm c(&sh,r); threads_run(1,st[r],&er[r],&rr[r],&wd[r],&c);});
+    for(std::thread& t:th) t.join();
+    bool same=true;
+    for(int r=0;r<P;++r)
+    same = same && st[r].size()==a.size() && std::memcmp(st[r].data(),a.data(),a.size()*sizeof(double))==0;
+    std::printf("    1 rank: eroded %d, rigid bodies %d, dissipated %.6f J; 3 ranks: eroded %d %d %d, dissipated %.6f %.6f %.6f\n",
+                ea,ra,wa,er[0],er[1],er[2],wd[0],wd[1],wd[2]);
+    check(ea>0 && ra>2,"the wall breaks: eroded elements and rigid fragments");
+    check(same,"every rank holds the state of the run on one rank (positions, velocities, damage, bar strains, rigid bodies, dissipated energy)");
+}
+
 int main(int argc,char** argv)
 {
     std::string w = argc>1 ? argv[1] : "all";
@@ -921,6 +980,7 @@ int main(int argc,char** argv)
     if(w=="all"||w=="rc") test_rc_column();
     if(w=="all"||w=="adaptive") test_adaptive();
     if(w=="all"||w=="threads") test_threads();
+    if(w=="all"||w=="ranks") test_ranks();
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail? std::to_string(nfail):"")<<std::endl;
     return nfail ? 1 : 0;
 }
