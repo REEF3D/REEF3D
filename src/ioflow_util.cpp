@@ -84,49 +84,6 @@ void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     if(p->I10==1 && p->count==0)
     velini(p,a,pgc);
     
-    // 4a ---------------
-    
-    count1=0;
-    count2=0;
-    GC4ALOOP
-    {
-        if(p->gcb4a[n][4]==1 || p->gcb4a[n][4]==6)
-        ++count1;
-
-        if(p->gcb4a[n][4]==2 || p->gcb4a[n][4]==7 || p->gcb4a[n][4]==8)
-        ++count2;
-    }
-    
-    p->Iresize(p->gcin4a,p->gcin4a_count, count1, 6, 6); 
-	p->Iresize(p->gcout4a,p->gcout4a_count, count2, 6, 6); 
-	
-	count1=0;
-    count2=0;
-    GC4ALOOP
-    {
-        if(p->gcb4a[n][4]==1)
-        {
-        p->gcin4a[count1][0]=p->gcb4a[n][0];
-        p->gcin4a[count1][1]=p->gcb4a[n][1];
-        p->gcin4a[count1][2]=p->gcb4a[n][2];
-        p->gcin4a[count1][3]=p->gcb4a[n][3];
-        p->gcin4a[count1][5]=p->gcb4a[n][5];
-        ++count1;
-        }
-
-        if(p->gcb4a[n][4]==2)
-        {
-        p->gcout4a[count2][0]=p->gcb4a[n][0];
-        p->gcout4a[count2][1]=p->gcb4a[n][1];
-        p->gcout4a[count2][2]=p->gcb4a[n][2];
-        p->gcout4a[count2][3]=p->gcb4a[n][3];
-        p->gcout4a[count2][5]=p->gcb4a[n][5];
-        ++count2;
-        }
-    }
-
-    p->gcin4a_count=count1;
-    p->gcout4a_count=count2;
     
     
     // IO update: reset first (as in the NHFLOW version and iowave)

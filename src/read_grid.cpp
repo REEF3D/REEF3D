@@ -366,14 +366,8 @@ void lexer::read_grid()
     if(!sc.good || !sc.done())
     gf.fail(this,"section SURF inconsistent");
     
-    gcin4a_count=gcin_count;
-    gcout4a_count=gcout_count;
-    
     Iarray(gcin, gcin_count,6);
     Iarray(gcout, gcout_count,6);
-    
-    Iarray(gcin4a, gcin_count,6);
-    Iarray(gcout4a, gcout_count,6);
     
     // --------------------------------------------------------------------------------------------
     // PARA: parallel surfaces
@@ -528,7 +522,4 @@ void lexer::read_grid()
         if(!sc.good || !sc.done())
         gf.fail(this,"section DATA inconsistent");
     }
-    
-    gcin4a_count=gcin_count;
-    gcout4a_count=gcout_count;
 }

@@ -84,35 +84,6 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     p->gcin_count=count1;
     p->gcout_count=count2;
     
-     // 4a ---------------
-	
-	count1=0;
-    count2=0;
-    GC4ALOOP
-    {
-        if(p->gcb4a[n][4]==1)
-        {
-        p->gcin4a[count1][0]=p->gcb4a[n][0];
-        p->gcin4a[count1][1]=p->gcb4a[n][1];
-        p->gcin4a[count1][2]=p->gcb4a[n][2];
-        p->gcin4a[count1][3]=p->gcb4a[n][3];
-        p->gcin4a[count1][5]=p->gcb4a[n][5];
-        ++count1;
-        }
-
-        if(p->gcb4a[n][4]==2)
-        {
-        p->gcout4a[count2][0]=p->gcb4a[n][0];
-        p->gcout4a[count2][1]=p->gcb4a[n][1];
-        p->gcout4a[count2][2]=p->gcb4a[n][2];
-        p->gcout4a[count2][3]=p->gcb4a[n][3];
-        p->gcout4a[count2][5]=p->gcb4a[n][5];
-        ++count2;
-        }
-    }
-
-    p->gcin4a_count=count1;
-    p->gcout4a_count=count2;
 
     if(p->I10==1)
     velini(p,a,pgc);
