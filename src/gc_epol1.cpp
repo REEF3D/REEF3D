@@ -23,98 +23,71 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 
+// ghost-cell label of u (kernel chosen in gcdistro1)
+// gcv: 1/10 u, 7 projection, 14 / 110 / 114 / 117 special treatments, 50 Neumann; cs: side of the face
 int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
 {
-    
-	if(gcv==50)
-	return 4;
-//	Velocities
+    const bool para = (cs==2||cs==3||cs==5||cs==6);          // face parallel to u
+    const bool orth = (cs==1||cs==4);                        // face normal to u
+    const bool wall = (bc==21||bc==22||(bc==7&&awa_lable==0)); // walls; beach without active absorption
+    const bool walltopo = (bc==21||bc==22||bc==5);
+    const bool patch = (bc==111||bc==112||bc==121||bc==122);
+    const bool outflow = (bc==2 && gclabel_outflow==1);
 
-    // Parallel
-	//Wall
-	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1))
-	return gclabel_u;
-	
-	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
-	return 5;
-	
-	if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==114))
-	return gclabel_u;
-    
-    if((bc==21||bc==22||(bc==7&&awa_lable==0))&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==117))
-	return 4;
-    
-    // Topo
-    if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==10||gcv==1))
-	return gclabel_utopo;
-	
-	if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==110))
-	return 5;
-	
-	if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==114))
-	return gclabel_utopo;
-    
-    if((bc==5)&&(cs==2||cs==3||cs==5||cs==6)&&(gcv==117))
-	return gclabel_utopo;
-	
-	else
-	if((bc==21||bc==22||bc==5)&& gcv==14)
-	return 4;
-	
-    // Orthogonal
-	else
-	if((bc==21||bc==22||bc==5)&&(cs==1||cs==4)&&(gcv==10||gcv==1))
-	return gclabel_u_orth;
+    switch(gcv)
+    {
+    case 50:
+        return 4;
 
-	else
-	if((bc==21||bc==22||bc==5)&&(cs==1||cs==4)&&gcv==7)
-	return gclabel_vel;
+    case 1:
+    case 10:
+        if(para)
+        {
+            if(wall)                return gclabel_u;
+            if(bc==5)               return gclabel_utopo;
+            if(outflow || bc==3)    return 4;
+            if(bc==9 && cs==6)      return 4;
+        }
+        if(orth)
+        {
+            if(walltopo || bc==3)   return gclabel_u_orth;
+            if(bc==6)               return gclabel_u_in;
+            if(outflow)             return gclabel_u_out;
+            if((bc==7||bc==8) && gclabel_outflow==1 && p->I10==1) return 4;
+        }
+        if(patch)                   return 4;
+        return 0;
 
-//Inflow
-    else
-	if((bc==6 && (cs==1||cs==4) && (gcv==10||gcv==1||gcv==7)))
-	return gclabel_u_in;   
+    case 7:
+        if(orth && walltopo)        return gclabel_vel;
+        if(orth && bc==6)           return gclabel_u_in;
+        if(patch)                   return 4;
+        return 0;
 
-//Patch    
-    else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==7))
-	return 4;
-    
-//Outflow
-	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==2||cs==3||cs==5||cs==6))
-	return 4;
-	
-	else
-	if((bc==2 && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==1||cs==4))
-	return gclabel_u_out;
-    
-    else
-	if(((bc==8 || bc==7) && gclabel_outflow==1) && (gcv==10||gcv==1) && (cs==1||cs==4) && p->I10==1)
-	return 4;
+    case 14:
+        return walltopo ? 4 : 0;
 
-//Free Surface
-	else
-	if(bc==3 && (cs==2||cs==3||cs==5||cs==6) && (gcv==10||gcv==17||gcv==1))
-	return 4;
+    case 17:
+        if(bc==3 && para)           return 4;
+        if(bc==3 && orth)           return gclabel_u_orth;
+        if(bc==9 && cs==6)          return 4;
+        return 0;
 
-	else
-	if(bc==3 && (cs==1||cs==4)&&(gcv==10||gcv==17||gcv==1))
-	return gclabel_u_orth;
-	
-	else
-	if((bc==9) && cs==6 && (gcv==10||gcv==17||gcv==1))
-	return 4;
-	
-// 6DOF
-	else
-	if(bc==41||bc==42||bc==43)
-	return 9;
+    case 110:
+        return (para && (wall || bc==5)) ? 5 : 0;
 
+    case 114:
+        if(para && wall)            return gclabel_u;
+        if(para && bc==5)           return gclabel_utopo;
+        return 0;
 
+    case 117:
+        if(para && wall)            return 4;
+        if(para && bc==5)           return gclabel_utopo;
+        return 0;
+    }
 
-	else
-	return 0;
+    return 0;
 }
 
 void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
@@ -126,28 +99,15 @@ void ghostcell::gcdistro1(lexer *p,field& f, int ii, int jj, int kk, int nn, dou
 
 	bc_label=gceval1(p,gcv,bc,cs);
 
-	if(bc_label==1)
-	dirichlet_ortho(p,f,dist,gcv,bc,cs);
-
-	if(bc_label==2)
-	dirichlet_para(p,f,dist,gcv,bc,cs);
-
-
-	if(bc_label==4)
-	neumann(f,gcv,bc,cs);
-
-	if(bc_label==5)
-	noslip(f,dist,gcv,bc,cs);
-	
-	if(bc_label==6)
-	outflow(p,f,gcv,bc,cs);
-    
-	
-    if(bc_label==11)
-	dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs);
-
-	if(bc_label==12)
-	dirichlet_para_reflect(p,f,dist,gcv,bc,cs);
-    
+    switch(bc_label)
+    {
+    case 1: dirichlet_ortho(p,f,dist,gcv,bc,cs); break;
+    case 2: dirichlet_para(p,f,dist,gcv,bc,cs); break;
+    case 4: neumann(f,gcv,bc,cs); break;
+    case 5: noslip(f,dist,gcv,bc,cs); break;
+    case 6: outflow(p,f,gcv,bc,cs); break;
+    case 11: dirichlet_ortho_reflect(p,f,dist,gcv,bc,cs); break;
+    case 12: dirichlet_para_reflect(p,f,dist,gcv,bc,cs); break;
+    }
 }
 
