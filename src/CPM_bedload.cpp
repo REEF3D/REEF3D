@@ -25,6 +25,7 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"turbulence.h"
 #include<vector>
 
 /*--------------------------------------------------------------------
@@ -38,7 +39,7 @@ grading, slopes and exchange with the suspension follow from the parcels):
   Shields vector of a grain d in a bed column, with the bed slope (gravity along the bed):
       theta = tau_b/((rho_s-rho_f) g d) - theta_c,d/mu_s grad(z_b)
       tau_b       : bed shear stress, log law at the first fluid cell at least 0.5 h above the bed
-                    (distance from the bed level set, ks = S 21 d50)
+                    (distance from the bed level set, ks = S 21 d50); Q 68 1: at least 0.3 rho k
       theta_c,d   : Q 60 (d/d50)^(-0.8)  (hiding of the small grains, equal mobility tendency)
       mu_s        : static friction Q 36
       the slope term is limited to tan(beta) = 0.9 mu_s: without flow the layer stays at rest,
@@ -215,6 +216,12 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double uplus = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
         double us = um/uplus;
         double tau = p->W1*us*us;
+        
+        // Q 68 1: the turbulence near the bed moves the grains as well, tau = max(log law, 0.3 rho k) with the
+        // turbulent kinetic energy of the first fluid cell (as S 16 2 of the Eulerian bed); in a non-equilibrium
+        // flow (wake, reattachment, gap jet) k is not tied to the mean velocity of the cell
+        if(p->Q68==1 && pturb_!=nullptr && !rest)
+        tau = MAX(tau, 0.3*p->W1*MAX(pturb_->kinval(i,j,k),0.0));
 
         blTx(i,j) = um>1.0e-12 ? tau*ur/um : 0.0;
         blTy(i,j) = um>1.0e-12 ? tau*vr/um : 0.0;

@@ -154,6 +154,9 @@ private:
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    
+    turbulence *pturb_=nullptr;   // turbulence model of the last call of move (bed shear stress of the layer, Q 68)
+    
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
     void kernel(lexer*, double, double, double);
