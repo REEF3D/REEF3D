@@ -290,6 +290,7 @@ void lagoon_output::finish(lexer *p, ghostcell *pgc)
 
 void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> &buffer, size_t data_start, int num)
 {
+    lagoon_surface::settle_all(p, pgc);  // a surface written once (the bed) is counted now
     if(!usable)
         return;
     std::vector<lagoon_store::vtu_array> parsed;
@@ -358,6 +359,7 @@ void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&wr
 {
     if(p->P18<=0)
         return;
+    settle_all(p, pgc);  // the outputs before this one, also of the other surfaces (the bed)
     if(writer==nullptr)
         writer = new lagoon_surface(p, pgc, solver, output, source);
     std::ifstream in(file, std::ios::binary);
@@ -365,6 +367,15 @@ void lagoon_surface::piece_written(lexer *p, ghostcell *pgc, lagoon_surface *&wr
     text << in.rdbuf();
     in.close();
     writer->vtp_piece(p, pgc, text.str(), num, file);
+}
+
+void lagoon_surface::settle_all(lexer *p, ghostcell *pgc)
+{
+    // not an output of this iteration (the free surface just before the volume): it
+    // goes on being written while the solver computes
+    for(lagoon_surface *writer : all())
+        if(writer->usable && !writer->finished && writer->pending.t>=0 && writer->pending.iteration<p->count)
+            writer->settle(p, pgc);
 }
 
 void lagoon_surface::finish_all(lexer *p, ghostcell *pgc)

@@ -122,8 +122,8 @@ private:
 // "free_surface" or "bed" (grid "surface": the point heights z and the point arrays).
 // The VTP points are the grid nodes, x outermost (TPSLICELOOP); the store's blocks
 // have x fastest. As for the volume, a thread of each rank writes its block while
-// the solver goes on; at the next output (or finish_all), once every rank has
-// written it, rank 0 counts the output.
+// the solver goes on; at the next LAGOON output of any stream (or finish_all), once
+// every rank has written it, rank 0 counts the output.
 class lagoon_surface
 {
 public:
@@ -136,6 +136,11 @@ public:
                               const char *output, const char *source, const char *file, int num);
 
     void vtp_piece(lexer*, ghostcell*, std::string buffer, int num, const std::string &file);
+
+    // every rank, at each LAGOON output (volume or surface): the surfaces' outputs
+    // written so far are counted, so a surface written once (the bed) is counted
+    // soon after the start, not only at the end of the run
+    static void settle_all(lexer*, ghostcell*);
 
     // the end of the run (all ranks, from lagoon_output::finish_all): wait for the
     // last output of every surface and count it
