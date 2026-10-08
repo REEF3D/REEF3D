@@ -128,6 +128,9 @@ public:
     double A709,A791,A793,A795,A739;
     double *A760_x,*A760_y;
     double *A722_xs,*A722_ys,*A722_xe,*A722_ye,*A722_kt,*A722_kr,*A722_zc;
+    int A724,A725,A726,A754,A756;
+    double A723_kr,A723_pown,A755_h,A755_d,A755_n,A755_cd;
+    double *A725_n,*A725_t,*A725_a,*A725_b,*A725_c,*A726_n,*A726_p;
 
     // NHFLOW Lagrangian particles
     int L10,L11;

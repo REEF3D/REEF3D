@@ -41,6 +41,7 @@ class seastate_bathy;
 class seastate_wind_series;
 class slice4;
 class sliceint4;
+class seastate_obstacle;
 
 using namespace std;
 
@@ -122,6 +123,12 @@ struct seastate_amr_patch : public reefamr_patch
     slice4 *wU = nullptr, *wD = nullptr;    // wind field (A 730 2)
     vector<int> ring;                       // fill entries next to the interior (inflow of the sweeps), local sources
     vector<int> ringr;                      // the same, held by other ranks
+
+    // Phase 6b: obstacles and coasts, diffraction (Ca, its gradient; smoothed energy, work slices), vegetation
+    seastate_obstacle *pobs = nullptr;
+    seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;
+    slice4 *dS = nullptr, *dT = nullptr, *dK = nullptr, *dC = nullptr, *dE = nullptr;
+    slice4 *vN = nullptr;
 };
 
 // spectra on the faces of the covered cells of one grid
@@ -163,6 +170,8 @@ public:
         const seastate_bathy *bathy;
         seastate_wind_series *wser;
         double tref;
+        seastate_obstacle *pobs = nullptr;      // obstacles and coasts of level 0 (A 722 - A 726)
+        const seastate_bathy *veg = nullptr;    // vegetation raster (A 756 1)
     };
 
     void ini(lexer*, ghostcell*, const level0&);
@@ -183,6 +192,16 @@ public:
 
     // wind field on the patches (A 730 2), time t of the model
     void wind(double t);
+
+    // Phase 6b: obstacles and coasts of the patches from their present spectra (before every iteration)
+    void obstacles();
+
+    // Phase 6b: diffraction parameter of the patches, level by level (A 718 mode 1: frequencies l0..l1
+    // together, 2: one frequency), after level 0: the energy of every patch is smoothed with the values of
+    // the next coarser grid in the ring around the interior (the smoothed energy and Ca, bilinear), the
+    // number of steps 0.4 (L/dx)^2 of the patch (A 719 n: n 4^level), at most 400
+    void diffraction(lexer*, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
+                     slice4 &T0);
 
     // finest grid on this rank that holds the point: lexer, field data, cell
     bool locate(double x, double y, lexer *&q, fdm_seastate *&ee, int &ci, int &cj);
@@ -211,6 +230,7 @@ private:
     seastate_amr_faces* gfaces(int g) {return &faces[g+1];}
 
     void environment(seastate_amr_patch&);
+    bool coarse_value(int l, int I, int J, int what, slice4 &E0, slice4 &T0, double &v);
     double bed_at(int l, int I, int J);
     void covered();
     void restrict_all();

@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"seastate_source.h"
 #include"seastate_bathy.h"
 #include"seastate_forcing.h"
+#include"seastate_obstacle.h"
 #include"fdm_seastate.h"
 #include"slice4.h"
 #include"sliceint4.h"
@@ -223,6 +224,19 @@ void seastate_amr::patch_delete(reefamr_patch *q)
     delete c->cov;
     delete c->wU;
     delete c->wD;
+    delete c->pobs;
+    delete c->dca;
+    delete c->dcax;
+    delete c->dcay;
+    delete c->dS;
+    delete c->dT;
+    delete c->dK;
+    delete c->dC;
+    delete c->dE;
+    delete c->vN;
+    c->pobs = nullptr;
+    c->dca = c->dcax = c->dcay = nullptr;
+    c->dS = c->dT = c->dK = c->dC = c->dE = c->vN = nullptr;
 
     if(c->e!=nullptr)
     {
@@ -445,6 +459,45 @@ void seastate_amr::regrid_static(ghostcell*)
         c->wU = new slice4(pp);
         c->wD = new slice4(pp);
         c->solv->wind_field(c->wU,c->wD);
+        }
+
+        // Phase 6b: obstacles and coasts on the patch (its own faces from the segments and land cells)
+        if(L0.pobs!=nullptr)
+        {
+        c->pobs = new seastate_obstacle(*L0.pobs);
+        c->pobs->build(pp,c->e,c->I0-EXT,c->J0-EXT,GNX<<c->lev,GNY<<c->lev);
+        c->solv->obstacles(c->pobs);
+        }
+
+        // Phase 6b: diffraction (A 718)
+        if(p0->A718>=1)
+        {
+        c->dca  = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+        c->dcax = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+        c->dcay = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nsig,ptile);
+        c->dca->build(mask.data());
+        c->dcax->build(mask.data());
+        c->dcay->build(mask.data());
+        c->dca->fill(1.0f);
+        c->dcax->fill(0.0f);
+        c->dcay->fill(0.0f);
+        c->dS = new slice4(pp);
+        c->dT = new slice4(pp);
+        c->dK = new slice4(pp);
+        c->dC = new slice4(pp);
+        c->dE = new slice4(pp);
+        c->solv->diffraction(c->dca,c->dcax,c->dcay);
+        }
+
+        // Phase 6b: vegetation field (A 756 1), stems per m^2 of the patch cells from the raster
+        if(L0.veg!=nullptr)
+        {
+        c->vN = new slice4(pp);
+        const int m = marge;
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            (*c->vN)(ii,jj) = L0.veg->cell(pp->XN[ii+m],pp->XN[ii+1+m],pp->YN[jj+m],pp->YN[jj+1+m]);
+        c->solv->vegetation_field(c->vN);
         }
     }
 }
@@ -1093,6 +1146,279 @@ void seastate_amr::parameters(vector<double> *hs, double &hmax, double &vmin, ve
             vmin = std::min(vmin,double(s[b]));
             }
         }
+    }
+}
+
+// --------------------------------------------------------------------- Phase 6b: obstacles, diffraction
+void seastate_amr::obstacles()
+{
+    for(auto q : P)
+    {
+    seastate_amr_patch *c = SP(q);
+    if(c->pobs!=nullptr && c->pobs->active())
+    c->pobs->update(c->pp,c->e);
+    }
+}
+
+// value of the next coarser grid at the centre of cell (I,J) of level l (global index of level l): bilinear
+// between the coarse cell of (I,J) and its neighbours towards the centre (weights 3/4, 1/4), over the active
+// coarse cells; what 0: smoothed energy, 1: Ca. Coarse cells outside the patches of level l-1 on this
+// rank: the next coarser level at the centre of the coarse cell
+bool seastate_amr::coarse_value(int l, int I, int J, int what, slice4 &E0, slice4 &T0, double &v)
+{
+    const int lc = l-1;
+    const int Ic = fsh(I,1), Jc = fsh(J,1);
+    const int In = Ic + ((I&1) ? 1 : -1), Jn = Jc + ((J&1) ? 1 : -1);
+    bool found = false;
+
+    auto at = [&](int a, int b, double &val) -> bool
+    {
+        if(lc==0)
+        {
+        const int i = a-O0i, j = b-O0j;
+        if(i<-p0->margin || i>=p0->knox+p0->margin || j<-p0->margin || j>=p0->knoy+p0->margin)
+        return false;
+        if(L0.e->wet(i,j)!=1)
+        return false;
+        val = (what==0) ? E0(i,j) : T0(i,j);
+        return true;
+        }
+
+        for(int id : lev[lc])
+        {
+        seastate_amr_patch *c = SP(id);
+            if(a>=c->I0 && a<=c->I1 && b>=c->J0 && b<=c->J1)
+            {
+            const int ii = a-c->I0+EXT, jj = b-c->J0+EXT;
+            if(c->e->wet(ii,jj)!=1 || c->dE==nullptr)
+            return false;
+            val = (what==0) ? (*c->dE)(ii,jj) : (*c->dT)(ii,jj);
+            return true;
+            }
+        }
+        return false;
+    };
+
+    const int ca[4] = {Ic,In,Ic,In}, cb[4] = {Jc,Jc,Jn,Jn};
+    const double w[4] = {0.5625,0.1875,0.1875,0.0625};
+    double s = 0.0, ws = 0.0;
+
+    for(int k=0; k<4; ++k)
+    {
+    double val;
+    if(at(ca[k],cb[k],val))
+    {
+    s += w[k]*val;
+    ws += w[k];
+    found = true;
+    }
+    }
+
+    if(found)
+    {
+    v = s/ws;
+    return true;
+    }
+
+    if(lc>0)
+    return coarse_value(lc,Ic,Jc,what,E0,T0,v);
+
+    return false;
+}
+
+void seastate_amr::diffraction(lexer*, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
+                               slice4 &T0)
+{
+    const seastate_grid &g = *L0.e->grid;
+
+    for(int lv=1; lv<=maxlev; ++lv)
+    for(int id : lev[lv])
+    {
+    seastate_amr_patch *c = SP(id);
+    if(c->dE==nullptr)
+    continue;
+
+    lexer *pp = c->pp;
+    fdm_seastate *e = c->e;
+    const seastate_obstacle *pob = c->pobs;
+    slice4 &S = *c->dS, &T = *c->dT, &KM = *c->dK, &CM = *c->dC, &Es = *c->dE;
+    const int m = marge;
+    const int ia = EXT, ib = EXT+c->nx-1, ja = EXT, jb = EXT+c->ny-1;
+
+    // smoothing steps of the patch: 0.4 (L/dx)^2 (the same length as on level 0), or A 719 n 4^level
+    const double dx = dmin0/double(1<<lv);
+    int ns = (p0->A719>0) ? p0->A719*(1<<(2*lv)) : ((L>0.0) ? int(std::ceil(0.4*(L/dx)*(L/dx))) : 1);
+    ns = std::min(std::max(ns,1),400);
+
+    auto active = [&](int ii, int jj) {return e->wet(ii,jj)==1 && e->N->spec(ii,jj)!=nullptr;};
+    auto nb = [&](int ii, int jj, int sd)
+    {
+        const int ni = ii + (sd==1) - (sd==0), nj = jj + (sd==3) - (sd==2);
+        if(!active(ni,nj))
+        return false;
+        if(pob==nullptr)
+        return true;
+        const seastate_obstacle::face *f = (sd==0) ? pob->east(ii-1,jj) : (sd==1) ? pob->east(ii,jj) : (sd==2) ? pob->north(ii,jj-1) : pob->north(ii,jj);
+        return f==nullptr;
+    };
+
+    // the ring around the interior (4-neighbours of the interior cells)
+    std::vector<std::pair<int,int>> ring;
+    for(int ii=ia; ii<=ib; ++ii)
+    {
+    ring.push_back(std::make_pair(ii,ja-1));
+    ring.push_back(std::make_pair(ii,jb+1));
+    }
+    for(int jj=ja; jj<=jb; ++jj)
+    {
+    ring.push_back(std::make_pair(ia-1,jj));
+    ring.push_back(std::make_pair(ib+1,jj));
+    }
+
+    // energy, k and cg of the interior and the ring
+    for(int ii=ia-1; ii<=ib+1; ++ii)
+    for(int jj=ja-1; jj<=jb+1; ++jj)
+    {
+    double et = 0.0, ek = 0.0, ec = 0.0;
+        if(active(ii,jj))
+        {
+        const float *N = e->N->spec(ii,jj), *kk = e->kw->spec(ii,jj), *cc = e->cg->spec(ii,jj);
+            for(int l=l0; l<=l1; ++l)
+            {
+            double s = 0.0;
+            const float *Nl = N + g.bin(l,0);
+            for(int mm=0; mm<g.ndir; ++mm)
+            s += double(Nl[mm])*g.wth[mm];
+            const double el = (mode==1) ? s*g.sig[l]*g.dsig[l]*g.dtheta : s;
+            et += el;
+            ek += el*double(kk[l]);
+            ec += el*double(cc[l]);
+            }
+        }
+    S(ii,jj) = et;
+    KM(ii,jj) = (mode==1) ? (et>0.0 ? ek/et : 0.0) : (active(ii,jj) ? double(e->kw->spec(ii,jj)[l0]) : 0.0);
+    CM(ii,jj) = (mode==1) ? (et>0.0 ? ec/et : 0.0) : (active(ii,jj) ? double(e->cg->spec(ii,jj)[l0]) : 0.0);
+    }
+
+    // the ring: the smoothed energy of the coarser grid (fixed during the smoothing)
+    for(auto &r : ring)
+    {
+    double v;
+    if(active(r.first,r.second) && coarse_value(lv,r.first-EXT+c->I0,r.second-EXT+c->J0,0,E0,T0,v))
+    S(r.first,r.second) = v;
+    }
+
+    // smoothing of the interior
+    for(int it=0; it<ns; ++it)
+    {
+        for(int ii=ia; ii<=ib; ++ii)
+        for(int jj=ja; jj<=jb; ++jj)
+        {
+        double t = S(ii,jj);
+            if(active(ii,jj))
+            {
+            if(nb(ii,jj,0)) t -= 0.2*(S(ii,jj)-S(ii-1,jj));
+            if(nb(ii,jj,1)) t -= 0.2*(S(ii,jj)-S(ii+1,jj));
+            if(nb(ii,jj,2)) t -= 0.2*(S(ii,jj)-S(ii,jj-1));
+            if(nb(ii,jj,3)) t -= 0.2*(S(ii,jj)-S(ii,jj+1));
+            }
+        T(ii,jj) = t;
+        }
+
+        for(int ii=ia; ii<=ib; ++ii)
+        for(int jj=ja; jj<=jb; ++jj)
+        S(ii,jj) = T(ii,jj);
+    }
+
+    for(int ii=ia-1; ii<=ib+1; ++ii)
+    for(int jj=ja-1; jj<=jb+1; ++jj)
+    {
+    Es(ii,jj) = S(ii,jj);
+    S(ii,jj) = std::sqrt(std::max(S(ii,jj),0.0));
+    }
+
+    auto F = [&](int ii, int jj) {return KM(ii,jj)>0.0 ? CM(ii,jj)/KM(ii,jj) : 0.0;};
+
+    // Ca of the interior; the ring from the coarser grid
+    for(int ii=ia; ii<=ib; ++ii)
+    for(int jj=ja; jj<=jb; ++jj)
+    {
+    double ca = 1.0;
+
+        if(active(ii,jj) && S(ii,jj)*S(ii,jj)>1.0e-6*smax && smax>0.0)
+        {
+        const double k = KM(ii,jj), cgm = CM(ii,jj), Fp = F(ii,jj);
+        const double rdx2 = 1.0/(pp->DXN[ii+m]*pp->DXN[ii+m]), rdy2 = 1.0/(pp->DYN[jj+m]*pp->DYN[jj+m]);
+        double div = 0.0;
+
+        if(nb(ii,jj,0)) div += 0.5*(Fp+F(ii-1,jj))*(S(ii-1,jj)-S(ii,jj))*rdx2;
+        if(nb(ii,jj,1)) div += 0.5*(Fp+F(ii+1,jj))*(S(ii+1,jj)-S(ii,jj))*rdx2;
+        if(nb(ii,jj,2)) div += 0.5*(Fp+F(ii,jj-1))*(S(ii,jj-1)-S(ii,jj))*rdy2;
+        if(nb(ii,jj,3)) div += 0.5*(Fp+F(ii,jj+1))*(S(ii,jj+1)-S(ii,jj))*rdy2;
+
+            if(k>0.0 && cgm>0.0)
+            {
+            const double delta = div/(k*cgm*S(ii,jj));
+            if(delta>-1.0)
+            ca = std::sqrt(1.0+delta);
+            }
+        }
+
+    T(ii,jj) = ca;
+    }
+
+    for(auto &r : ring)
+    {
+    double v = 1.0;
+    if(!(active(r.first,r.second) && coarse_value(lv,r.first-EXT+c->I0,r.second-EXT+c->J0,1,E0,T0,v)))
+    v = 1.0;
+    T(r.first,r.second) = v;
+    }
+
+    // Ca and its gradient into the stores of the patch
+    for(int ii=ia-1; ii<=ib+1; ++ii)
+    for(int jj=ja-1; jj<=jb+1; ++jj)
+    {
+    float *cc = c->dca->spec(ii,jj);
+    if(cc!=nullptr)
+    for(int l=l0; l<=l1; ++l)
+    cc[l] = active(ii,jj) ? float(T(ii,jj)) : 1.0f;
+    }
+
+    for(int ii=ia; ii<=ib; ++ii)
+    for(int jj=ja; jj<=jb; ++jj)
+    {
+    float *cx = c->dcax->spec(ii,jj), *cy = c->dcay->spec(ii,jj);
+    if(cx==nullptr || cy==nullptr)
+    continue;
+
+    double gx = 0.0, gy = 0.0;
+
+        if(active(ii,jj))
+        {
+        const bool w = nb(ii,jj,0), ea = nb(ii,jj,1), s = nb(ii,jj,2), n = nb(ii,jj,3);
+
+        if(w && ea)
+        gx = (T(ii+1,jj)-T(ii-1,jj))/(pp->XP[ii+1+m]-pp->XP[ii-1+m]);
+        else if(ea)
+        gx = (T(ii+1,jj)-T(ii,jj))/(pp->XP[ii+1+m]-pp->XP[ii+m]);
+        else if(w)
+        gx = (T(ii,jj)-T(ii-1,jj))/(pp->XP[ii+m]-pp->XP[ii-1+m]);
+
+        if(s && n)
+        gy = (T(ii,jj+1)-T(ii,jj-1))/(pp->YP[jj+1+m]-pp->YP[jj-1+m]);
+        else if(n)
+        gy = (T(ii,jj+1)-T(ii,jj))/(pp->YP[jj+1+m]-pp->YP[jj+m]);
+        else if(s)
+        gy = (T(ii,jj)-T(ii,jj-1))/(pp->YP[jj+m]-pp->YP[jj-1+m]);
+        }
+
+        for(int l=l0; l<=l1; ++l)
+        {
+        cx[l] = float(gx);
+        cy[l] = float(gy);
+        }
+    }
     }
 }
 

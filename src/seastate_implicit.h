@@ -58,6 +58,7 @@ struct seastate_neighbour
     bool self = false;            // zero-gradient side: inflow of the cell's own spectrum
     const float *ca = nullptr;    // diffraction (A 718): Ca per frequency of the neighbour
     double tf = 1.0;              // obstacle on the face (A 722): energy transmission Kt^2
+    const float *tff = nullptr;   // ... per frequency (structures, A 725), nullptr: tf
 };
 
 class seastate_grid;
@@ -152,6 +153,14 @@ Phase 7 (performance):
   are solved before it in the sweep), first order where a face has no
   two active upwind cells; not monotone, the solution is clipped at zero;
   two halo layers.
+
+Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
+reflecting coasts transmit Kt^2 of the inflow (per frequency for the
+structures of A 725) and return Kr^2 of the outflow into the mirrored
+direction (specular or diffuse); the spectral sparsity solves the whole
+quadrant in a cell with a reflecting face, the second-order fluxes stay
+first order next to a blocked face. Diffraction (A 718): face
+velocities Ca c_g and the turning c_g dCa/dn.
 --------------------------------------------------------------------*/
 
 class seastate_implicit : public increment
@@ -171,6 +180,9 @@ public:
 
     // wind field (A 730 2): U10 [m/s] and direction [rad] per cell for the source terms
     void wind_field(slice *U10, slice *dir) {wU = U10; wD = dir;}
+
+    // vegetation field (A 756 1): stems per m^2 per cell for the source terms
+    void vegetation_field(slice *nv) {vN = nv;}
 
     // surfbeat (A 775 2): Crank-Nicolson, second-order geographic fluxes (cell_surfbeat);
     // needs N0 (2 iterations) and 2 halo layers
@@ -230,6 +242,7 @@ private:
     seastate_source *src;
     const vector<float> *Nbs[4], *Nbs0[4];
     slice *wU, *wD;
+    slice *vN = nullptr;
     bool second;
     bool ranged = false;
     int ri0 = 0, ri1 = -1, rj0 = 0, rj1 = -1;
@@ -275,7 +288,8 @@ private:
     bool managed(lexer*, fdm_seastate*, int ci, int cj) const;
     uint16_t *ranges(lexer*, fdm_seastate*, int ci, int cj);
     void windows(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N, const seastate_neighbour &W,
-                 const seastate_neighbour &E, const seastate_neighbour &S, const seastate_neighbour &Nn, bool rf, bool fs);
+                 const seastate_neighbour &E, const seastate_neighbour &S, const seastate_neighbour &Nn, bool rf, bool fs,
+                 bool all=false);
     void keep(lexer*, fdm_seastate*, int q, int ci, int cj);
     const float *usable(lexer*, fdm_seastate*, int ci, int cj) const;
     vector<int> m0, m1;                 // first and last direction of each quadrant

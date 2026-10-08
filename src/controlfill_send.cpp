@@ -670,6 +670,28 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A722;
     ii++;
+    dctrl[dd] = A723_kr;
+    dd++;
+    dctrl[dd] = A723_pown;
+    dd++;
+    ictrl[ii] = A724;
+    ii++;
+    ictrl[ii] = A725;
+    ii++;
+    ictrl[ii] = A726;
+    ii++;
+    ictrl[ii] = A754;
+    ii++;
+    dctrl[dd] = A755_h;
+    dd++;
+    dctrl[dd] = A755_d;
+    dd++;
+    dctrl[dd] = A755_n;
+    dd++;
+    dctrl[dd] = A755_cd;
+    dd++;
+    ictrl[ii] = A756;
+    ii++;
     dctrl[dd] = A715_th1;
     dd++;
     dctrl[dd] = A715_th2;
@@ -3737,6 +3759,28 @@ void control::ctrlsend()
         dctrl[dd] = A722_kr[n];
         dd++;
         dctrl[dd] = A722_zc[n];
+        dd++;
+    }
+
+    for(n=0;n<A725;++n)
+    {
+        dctrl[dd] = A725_n[n];
+        dd++;
+        dctrl[dd] = A725_t[n];
+        dd++;
+        dctrl[dd] = A725_a[n];
+        dd++;
+        dctrl[dd] = A725_b[n];
+        dd++;
+        dctrl[dd] = A725_c[n];
+        dd++;
+    }
+
+    for(n=0;n<A726;++n)
+    {
+        dctrl[dd] = A726_n[n];
+        dd++;
+        dctrl[dd] = A726_p[n];
         dd++;
     }
 

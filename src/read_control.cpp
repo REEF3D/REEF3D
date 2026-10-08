@@ -766,6 +766,27 @@ void control::read_control(lexer* p)
                 case 722: ++A722;
                          clear(c,numint);
                          break;
+                case 723: control>>A723_kr>>A723_pown;
+                         clear(c,numint);
+                         break;
+                case 724: control>>A724;
+                         clear(c,numint);
+                         break;
+                case 725: ++A725;
+                         clear(c,numint);
+                         break;
+                case 726: ++A726;
+                         clear(c,numint);
+                         break;
+                case 754: control>>A754;
+                         clear(c,numint);
+                         break;
+                case 755: control>>A755_h>>A755_d>>A755_n>>A755_cd;
+                         clear(c,numint);
+                         break;
+                case 756: control>>A756;
+                         clear(c,numint);
+                         break;
                 case 718: control>>A718;
                          clear(c,numint);
                          break;
@@ -3961,6 +3982,14 @@ void control::read_control(lexer* p)
     Darray(A722_kr,A722);
     Darray(A722_zc,A722);
 
+    Darray(A725_n,A725);
+    Darray(A725_t,A725);
+    Darray(A725_a,A725);
+    Darray(A725_b,A725);
+    Darray(A725_c,A725);
+    Darray(A726_n,A726);
+    Darray(A726_p,A726);
+
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
 
@@ -4530,6 +4559,8 @@ void control::read_control(lexer* p)
     int countG11=0;
     int countA760=0;
     int countA722=0;
+    int countA725=0;
+    int countA726=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -4637,6 +4668,14 @@ void control::read_control(lexer* p)
                          p->XYin(A722_xs[countA722],A722_ys[countA722]);
                          p->XYin(A722_xe[countA722],A722_ye[countA722]);
                          ++countA722;
+                         clear(c,numint);
+                         break;
+                case 725: control>>A725_n[countA725]>>A725_t[countA725]>>A725_a[countA725]>>A725_b[countA725]>>A725_c[countA725];
+                         ++countA725;
+                         clear(c,numint);
+                         break;
+                case 726: control>>A726_n[countA726]>>A726_p[countA726];
+                         ++countA726;
                          clear(c,numint);
                          break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];

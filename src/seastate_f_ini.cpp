@@ -40,8 +40,21 @@ Architect: Hans Bihs
 #include<cmath>
 #include<iostream>
 #include<iomanip>
+#include<sstream>
+#include<string>
 #include<sys/stat.h>
 #include<sys/types.h>
+
+namespace
+{
+    // a number as cout prints it (printouts)
+    std::string fmt(double v)
+    {
+        std::ostringstream o;
+        o<<v;
+        return o.str();
+    }
+}
 
 void seastate_f::ini(lexer *p, ghostcell *pgc)
 {
@@ -172,20 +185,40 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     dfT = new slice4(p);
     dfK = new slice4(p);
     dfC = new slice4(p);
+    if(p->G1>0)
+    dfE = new slice4(p);
     psolv->diffraction(dca,dcax,dcay);
     }
 
-    // Phase 6: line obstacles (A 722)
-    if(p->A722>0)
+    // Phase 6: line obstacles (A 722), structures (A 725), reflecting coasts (A 723)
+    if(p->A722>0 || p->A723_kr>0.0)
     {
-    pobs = new seastate_obstacle(p);
-    pobs->build(p);
+    pobs = new seastate_obstacle(p,e->grid);
+    pobs->build(p,e,p->origin_i,p->origin_j,p->gknox,p->gknoy,pgc);
     psolv->obstacles(pobs);
 
-    const double nf = pgc->globalsum(double(pobs->faces_blocked()));
-    if(p->mpirank==0)
-    cout<<"SEASTATE obstacles: "<<p->A722<<" (A 722), faces blocked "<<long(nf)<<" (incl. ghost cells)"<<endl;
+    const double nf = pgc->globalsum(double(pobs->faces_blocked()-pobs->faces_coast()));
+    const double nc = pgc->globalsum(double(pobs->faces_coast()));
+        if(p->mpirank==0)
+        {
+        if(p->A722>0)
+        cout<<"SEASTATE obstacles: "<<p->A722<<" (A 722), faces blocked "<<long(nf)<<" (incl. ghost cells)"<<endl;
+        for(int k=0; k<p->A725; ++k)
+        {
+        const int t = int(std::lround(p->A725_t[k]));
+        cout<<"SEASTATE structure (A 725): obstacle "<<int(std::lround(p->A725_n[k]))<<", "
+            <<(t==1 ? "d'Angremond et al. (1996)" : t==2 ? "Kt, Kr per frequency from seastate-obstacle-n.dat" : "porous (Madsen 1974)")<<endl;
+        }
+        if(p->A723_kr>0.0)
+        cout<<"SEASTATE reflecting coasts (A 723): Kr "<<p->A723_kr<<(p->A723_pown>0.0 ? ", diffuse cos^" : ", specular")
+            <<(p->A723_pown>0.0 ? fmt(p->A723_pown) : std::string(""))<<", coastline from the faces within "<<std::min(std::max(p->A724,0),3)
+            <<" cells (A 724), coast faces "<<long(nc)<<" (incl. ghost cells)"<<endl;
+        }
     }
+
+    // Phase 6b: vegetation field (A 756 1)
+    if(p->A754>0 && p->A756==1)
+    vegetation_ini(p,pgc);
 
     pex->start(p,pgc,*e->N);
 
@@ -193,7 +226,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->G1>0)
     {
     pamr = new seastate_amr(p,pgc);
-    seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wser,tref};
+    seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wser,tref,pobs,vegr};
     pamr->ini(p,pgc,l0);
 
         if(wser!=nullptr)
@@ -374,14 +407,25 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 799: the convergence test must be 0 (change per iteration) or 1 (estimated distance to the solution)";
     else if(p->A718<0 || p->A718>2)
     msg = "A 718: diffraction must be 0 (off), 1 (as SWAN, total energy) or 2 (per frequency)";
-    else if(p->A718>=1 && (p->G1>0 || p->A770==1))
-    msg = "A 718 1: diffraction is not available with mesh refinement (G 1) or the surfbeat model (A 770 1)";
+    else if(p->A718>=1 && p->A770==1)
+    msg = "A 718: diffraction is not available with the surfbeat model (A 770 1)";
+
     else if(p->A719<0)
     msg = "A 719: the number of smoothing steps must not be negative";
-    else if(p->A722>0 && (p->G1>0 || p->A770==1))
-    msg = "A 722: obstacles are not available with mesh refinement (G 1) or the surfbeat model (A 770 1)";
-    else if(p->A722>0 && p->A796==2)
-    msg = "A 722: obstacles need the first-order geographic fluxes (A 796 1)";
+    else if((p->A722>0 || p->A723_kr>0.0) && p->A770==1)
+    msg = "A 722, A 723: obstacles and reflecting coasts are not available with the surfbeat model (A 770 1)";
+    else if(p->A723_kr<0.0 || p->A723_kr>1.0 || p->A723_pown<0.0)
+    msg = "A 723: the coast reflection Kr must be in [0,1], pown not negative";
+    else if(p->A724<0 || p->A724>3)
+    msg = "A 724: the coast normal needs 0 to 3 cells";
+    else if(p->A754<0 || p->A754>2)
+    msg = "A 754: vegetation must be 0 (off), 1 (Dalrymple, Suzuki et al. 2011) or 2 (per frequency, Jacobsen et al. 2019)";
+    else if(p->A754>0 && (p->A755_h<=0.0 || p->A755_d<=0.0 || p->A755_cd<0.0 || (p->A756!=1 && p->A755_n<=0.0)))
+    msg = "A 755: vegetation needs a positive height, stem diameter and number of stems per m^2, and a drag coefficient >= 0";
+    else if(p->A754>0 && p->A770==1)
+    msg = "A 754: vegetation is not available with the surfbeat model (A 770 1)";
+    else if(p->A756!=0 && p->A756!=1)
+    msg = "A 756: the vegetation field must be 0 (A 755) or 1 (seastate-vegetation.dat)";
 
     for(int n=0; n<p->A722 && msg==nullptr; ++n)
     {
@@ -389,8 +433,26 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
         msg = "A 722: Kt must be at most 1 (or negative for Goda), Kr in [0,1]";
         else if(p->A722_kt[n]>=0.0 && p->A722_kt[n]*p->A722_kt[n] + p->A722_kr[n]*p->A722_kr[n]>1.0+1.0e-9)
         msg = "A 722: Kt^2 + Kr^2 must not exceed 1";
-        else if(p->A722_kr[n]>0.0 && p->A795>0.0)
-        msg = "A 722: reflecting obstacles (Kr > 0) are not available with the spectral sparsity (A 795)";
+    }
+
+    for(int k=0; k<p->A725 && msg==nullptr; ++k)
+    {
+    const int n = int(std::lround(p->A725_n[k])), t = int(std::lround(p->A725_t[k]));
+        if(n<1 || n>p->A722)
+        msg = "A 725: the obstacle number must refer to an A 722 obstacle (counted from 1)";
+        else if(t<1 || t>3)
+        msg = "A 725: the structure type must be 1 (d'Angremond), 2 (per frequency from seastate-obstacle-n.dat) or 3 (porous)";
+        else if(t==1 && (!(p->A725_a[k]>0.0) || p->A725_a[k]>=90.0 || p->A725_b[k]<0.0))
+        msg = "A 725 n 1: the slope must be in (0,90) deg and the crest width not negative";
+        else if(t==3 && (!(p->A725_a[k]>0.0) || !(p->A725_b[k]>0.0) || p->A725_b[k]>=1.0 || !(p->A725_c[k]>0.0)))
+        msg = "A 725 n 3: the porous structure needs a positive width, a porosity in (0,1) and a positive stone diameter";
+    }
+
+    for(int k=0; k<p->A726 && msg==nullptr; ++k)
+    {
+    const int n = int(std::lround(p->A726_n[k]));
+        if(n<1 || n>p->A722 || p->A726_p[k]<0.0)
+        msg = "A 726: the obstacle number must refer to an A 722 obstacle (counted from 1), pown not negative";
     }
 
     if(msg!=nullptr)
@@ -564,6 +626,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     {
     cout<<"SEASTATE solver (Phase 6):";
     cout<<" diffraction"<<(p->A718==1 ? " (total energy, as SWAN)" : " (per frequency)")<<", smoothing "<<(p->A719>0 ? std::to_string(p->A719)+" steps" : std::string("from the wavelength"))<<" (A 718, A 719)";
+    if(p->G1>0) cout<<", on every refinement level";
     cout<<endl;
     }
     if(p->A720==1)
@@ -638,6 +701,12 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.urslim  = p->A736_urslim;
     sp.emax    = (p->A740==1 && p->A737==1);
 
+    sp.vegetation = p->A754;
+    sp.vh  = p->A755_h;
+    sp.vd  = p->A755_d;
+    sp.vn  = p->A755_n;
+    sp.vcd = p->A755_cd;
+
     if(!sp.any())
     return;
 
@@ -667,6 +736,9 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     cout<<" maximum energy (gamma d)^2/4,";
     if(sp.triads)
     cout<<" triads (LTA, alpha "<<sp.alphaEB<<", cutfr "<<sp.cutfr<<", urcrit "<<sp.urcrit<<", urslim "<<sp.urslim<<"),";
+    if(sp.vegetation>0)
+    cout<<" vegetation ("<<(sp.vegetation==1 ? "Dalrymple, Suzuki et al. 2011" : "per frequency, Jacobsen et al. 2019")<<", height "<<sp.vh<<" m, diameter "<<sp.vd
+        <<" m, "<<(p->A756==1 ? std::string("stems from seastate-vegetation.dat") : fmt(sp.vn)+" stems/m^2")<<", Cd "<<sp.vcd<<"),";
     cout<<endl;
 
     if(p->A700==2 && sp.komen)
@@ -674,4 +746,31 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
 
     cout<<endl;
     }
+}
+
+// vegetation field (A 756 1): stems per m^2 of every cell (halo included) from seastate-vegetation.dat, the
+// mean of the raster nodes inside the cell (raster format of seastate-bathy.dat)
+void seastate_f::vegetation_ini(lexer *p, ghostcell *pgc)
+{
+    vegr = new seastate_bathy;
+    std::string err;
+
+    if(!vegr->read("seastate-vegetation.dat",err))
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  A 756 1: "<<err<<endl<<endl;
+
+        pgc->final(true);
+    }
+
+    vegN = new slice4(p);
+
+    IMALOOP
+    JMALOOP
+    (*vegN)(i,j) = std::max(vegr->cell(p->XN[IP],p->XN[IP1],p->YN[JP],p->YN[JP1]),0.0);
+
+    psolv->vegetation_field(vegN);
+
+    if(p->mpirank==0)
+    cout<<"SEASTATE vegetation field (A 756 1): seastate-vegetation.dat, "<<vegr->nx<<" x "<<vegr->ny<<" nodes, spacing "<<vegr->dx<<" x "<<vegr->dy<<" m"<<endl;
 }

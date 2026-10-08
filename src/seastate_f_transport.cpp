@@ -247,6 +247,8 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
 
         for(int it=0; it<iter_max; ++it)
         {
+        diffraction(p,pgc);
+        obstacles(p,pgc);
         pamr->iterate(p,pgc,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
         }
@@ -285,6 +287,9 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
 
     for(int it=0; it<iter_max; ++it)
     {
+    // Phase 6: diffraction, obstacles and coasts on all grids (A 718, A 722 - A 726)
+    diffraction(p,pgc);
+    obstacles(p,pgc);
     pamr->iterate(p,pgc,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
 

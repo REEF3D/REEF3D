@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"seastate_store.h"
 #include"slice4.h"
 #include"seastate_obstacle.h"
+#include"seastate_amr.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
@@ -45,8 +46,10 @@ active neighbours, E - 0.2 sum (E - E_neighbour) (SWAN smpar 0.2, smnum
 n) before the square root; n = A 719, or (A 719 0) n = 0.4 (L/dx)^2 from
 the mean wavelength L = 2 pi/k of the domain and the smallest cell size
 (smoothing over a fixed fraction of the wavelength: on finer grids the
-curvature of sqrt E is noisier and Ca starts to oscillate), 1 to 50. Ca = 1 where E is below 10^-6 of
-its maximum. The solver scales the geographic velocities with Ca and
+curvature of sqrt E is noisier and Ca starts to oscillate), 1 to 400. Ca = 1 where E is below 10^-6 of
+its maximum. With mesh refinement (G 1, seastate_amr::diffraction) every patch smooths its own energy
+with 0.4 (L/dx)^2 steps of its cell size (A 719 n: n 4^level), the ring around its interior held at the
+smoothed energy and Ca of the next coarser grid. The solver scales the geographic velocities with Ca and
 adds the turning
 
   c_theta += cg dCa/dn = cg (-sin(theta) dCa/dx + cos(theta) dCa/dy)
@@ -100,7 +103,11 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
         dmin = pgc->globalmin(dmin);
         const double L = (ek>0.0 && et>0.0) ? 2.0*3.14159265358979323846*et/ek : 0.0;
         if(L>0.0)
-        dfsmooth = std::min(std::max(int(std::ceil(0.4*(L/dmin)*(L/dmin))),1),50);
+        {
+        dfsmooth = std::min(std::max(int(std::ceil(0.4*(L/dmin)*(L/dmin))),1),400);
+        dfL = L;
+        dfdmin = dmin;
+        }
         }
 
         if(dfsmooth>0 && p->mpirank==0)
@@ -123,7 +130,9 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
         return f==nullptr;
     };
 
-    // Ca into T from the energy in S and the wave number and group velocity in KM, CM
+    // Ca into T from the energy in S and the wave number and group velocity in KM, CM; the smoothed
+    // energy into dfE (mesh refinement: the values next to the patches)
+    double smax = 0.0;
     auto ca_field = [&]()
     {
         pgc->gcsl_start4(p,S,50);
@@ -151,7 +160,14 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
             pgc->gcsl_start4(p,S,50);
         }
 
-        double smax = 0.0;
+        if(dfE!=nullptr)
+        {
+        IMALOOP
+        JMALOOP
+        (*dfE)(i,j) = S(i,j);
+        }
+
+        smax = 0.0;
         SLICELOOP4
         smax = std::max(smax,S(i,j));
         smax = pgc->globalmax(smax);
@@ -267,6 +283,9 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
 
         ca_field();
         store(0,g.nsig-1);
+
+        if(pamr!=nullptr && pamr->active())
+        pamr->diffraction(p,1,0,g.nsig-1,smax,dfL,dfdmin,*dfE,T);
         return;
     }
 
@@ -288,12 +307,20 @@ void seastate_f::diffraction(lexer *p, ghostcell *pgc)
 
         ca_field();
         store(l,l);
+
+        if(pamr!=nullptr && pamr->active())
+        pamr->diffraction(p,2,l,l,smax,dfL,dfdmin,*dfE,T);
     }
 }
 
-// obstacles (A 722): transmission after Goda from the present wave heights, before every iteration
+// obstacles, structures and coasts (A 722 - A 726): transmission after Goda, d'Angremond and of the porous
+// structures from the present spectra, coasts after wetting and drying, before every iteration; also on the
+// patches of the mesh refinement
 void seastate_f::obstacles(lexer *p, ghostcell*)
 {
     if(pobs!=nullptr && pobs->active())
     pobs->update(p,e);
+
+    if(pobs!=nullptr && pamr!=nullptr && pamr->active())
+    pamr->obstacles();
 }

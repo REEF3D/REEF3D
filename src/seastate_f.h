@@ -129,6 +129,13 @@ geographic fluxes (A 796 2), composite sweep across the refinement
 levels (A 797 1); convergence history of stationary runs in
 REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat.
 
+Phase 6: phase-decoupled diffraction (A 718, A 719,
+seastate_f_diffraction.cpp), line obstacles (A 722) and, Phase 6b,
+structures (A 725: d'Angremond, per frequency, porous; seastate_structure),
+diffuse reflection (A 726), reflecting coasts (A 723, A 724;
+seastate_obstacle), vegetation (A 754 - A 756, seastate_source), all of
+them also on the patches of the mesh refinement.
+
   start   stand-alone run: ini, then the time loop calling step
   ini     set-up (environment, storage, initial spectrum)
   step    one time step of length A 706, so that a host model
@@ -240,6 +247,14 @@ private:
     slice4 *dfS = nullptr, *dfT = nullptr, *dfK = nullptr, *dfC = nullptr;
     int dfsmooth = -1;                      // smoothing steps of the diffraction parameter (A 719)
     seastate_obstacle *pobs = nullptr;
+
+    // Phase 6b: diffraction with mesh refinement (smoothed energy of level 0 for the patches, the mean
+    // wavelength and the smallest level-0 cell), vegetation field (A 756 1)
+    slice4 *dfE = nullptr;
+    double dfL = 0.0, dfdmin = 0.0;
+    slice4 *vegN = nullptr;
+    seastate_bathy *vegr = nullptr;
+    void vegetation_ini(lexer*, ghostcell*);
 };
 
 #endif

@@ -94,6 +94,7 @@
         <File Name="seastate_f.h"/>
         <File Name="seastate_grid.h"/>
         <File Name="seastate_obstacle.h"/>
+        <File Name="seastate_structure.h"/>
         <File Name="seastate_param.h"/>
         <File Name="seastate_store.h"/>
         <File Name="seastate.h"/>
@@ -1358,6 +1359,7 @@
         <VirtualDirectory Name="AMR">
           <File Name="seastate_grid.cpp"/>
           <File Name="seastate_obstacle.cpp"/>
+          <File Name="seastate_structure.cpp"/>
           <File Name="seastate_f_diffraction.cpp"/>
           <File Name="seastate_amr.cpp"/>
         </VirtualDirectory>

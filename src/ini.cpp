@@ -327,6 +327,17 @@ void control::ini_default()
     A715_k=1;         // int ... the A 703 directions with centres in the sector divided into this many bins each (1 off)
     A718=0;           // int diffraction (phase-decoupled, Holthuijsen et al. 2003): 0 off, 1 from the total energy (as SWAN), 2 per frequency
     A719=0;           // int diffraction: smoothing steps of the energy (0: 0.4 (L/dx)^2 from the mean wavelength and the smallest cell)
+    A723_kr=0.0;      // double reflecting coasts (A 723 Kr pown): wave-height reflection coefficient of the faces to land (0: off)
+    A723_pown=0.0;    // double reflecting coasts: 0 specular, > 0 diffuse with cos^pown around the specular direction (as SWAN RDIFF)
+    A724=3;           // int reflecting coasts: the coastline from the land faces within this many cells (0: the face itself, at most 3)
+    A725=0;           // int number of obstacle structures (A 725 n type a b c): 1 d'Angremond (slope [deg], crest width), 2 per frequency from seastate-obstacle-n.dat, 3 porous (width, porosity, stone diameter)
+    A726=0;           // int number of diffuse obstacle reflections (A 726 n pown)
+    A754=0;           // int vegetation: 0 off, 1 Dalrymple / Suzuki et al. (2011) (as SWAN VEGETATION 1), 2 per frequency, Jacobsen et al. (2019) (SWAN 2)
+    A755_h=0.0;       // double vegetation: height [m]
+    A755_d=0.0;       // double vegetation: stem diameter [m]
+    A755_n=0.0;       // double vegetation: stems per m^2
+    A755_cd=1.0;      // double vegetation: drag coefficient
+    A756=0;           // int vegetation: 1 stems per m^2 per cell from seastate-vegetation.dat (raster as seastate-bathy.dat)
     A722=0;           // int number of obstacles (A 722 xs ys xe ye Kt Kr zc): line obstacles, energy transmission Kt^2 (Kt < 0: Goda with crest level zc), reflection Kr^2
     A738=1;           // int stationary: source iterations per cell and sweep (max.), the source terms evaluated again from the spectrum just solved
     A739=1.0e-4;      // double ... until the estimated distance of the energy of the cell to its balance is below this fraction

@@ -21,8 +21,9 @@ Architect: Hans Bihs
 --------------------------------------------------------------------
 Parts of this file are C++ translations of routines of SWAN 41.51:
 FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads),
-SSURF (Newton linearisation of the Battjes-Janssen dissipation) and
-SINTGRL (maximum energy with Battjes-Janssen breaking).
+SSURF (Newton linearisation of the Battjes-Janssen dissipation),
+SINTGRL (maximum energy with Battjes-Janssen breaking) and SVEG
+(vegetation, one layer).
 
   SWAN (Simulating WAves Nearshore); a third generation wave model
   Copyright (C) 1993-2024  Delft University of Technology
@@ -60,6 +61,9 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     L.assign(nbin,0.0);
     dNmax.assign(nsig,0.0);
     EL.assign(nsig,0.0);
+    VE.assign(nsig,0.0);
+    VS.assign(nsig,0.0);
+    VQ.assign(nsig,0.0);
     TQ.assign(nsig,0.0);
     row.assign(nsig,0.0);
 
@@ -455,7 +459,86 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         D[g.bin(l,m)] += w;
     }
 
+    // vegetation (SWAN SVEG, one layer)
+    if(prm.vegetation>0 && depth>0.0 && prm.vn>0.0 && prm.vh>0.0 && Etot>0.0)
+    vegetation(N,depth,k,D);
+
     split(N,P,D);
+}
+
+void seastate_source::vegetation(const float *N, double depth, const float *k, double *D)
+{
+    const double grav = seastate_gravity;
+    const double cdn = prm.vcd*prm.vd*prm.vn;
+
+    // Dalrymple et al. (1984), Suzuki et al. (2011): IVEG 1
+    if(prm.vegetation==1)
+    {
+    if(!(km_wam>0.0) || !(sigm01>0.0))
+    return;
+
+    const double kd = km_wam*depth;
+    if(kd>10.0)
+    return;
+
+    const double ch = std::cosh(kd);
+    const double c = 3.0*km_wam*ch*ch*ch;
+    const double kos = km_wam/sigm01;
+    const double sv1 = std::sqrt(2.0/pi)*grav*grav*kos*kos*kos*std::sqrt(Etot)/c;
+    const double sh = std::sinh(km_wam*std::min(prm.vh,depth));
+    const double sv = sv1*cdn*(sh*sh*sh + 3.0*sh);
+
+        for(int l=fa; l<=fb; ++l)
+        for(int m=wa; m<=wb; ++m)
+        D[g.bin(l,m)] += sv;
+
+    return;
+    }
+
+    // Jacobsen et al. (2019): IVEG 2, Simpson over the height of the canopy (20 intervals)
+    const int nip = 20;
+    const double sv1 = std::sqrt(2.0/pi)/grav*cdn;
+    const double dz = std::min(prm.vh,depth)/double(nip);
+
+    // energy per frequency E(sig) dsig
+    for(int l=0; l<nsig; ++l)
+    {
+    double s = 0.0;
+    const float *Nl = N + g.bin(l,0);
+    for(int m=0; m<ndir; ++m)
+    s += double(Nl[m])*g.wth[m];
+    VE[l] = s*g.sig[l]*g.dsig[l]*g.dtheta;
+    }
+
+    std::vector<double> &sv = VS;
+    std::fill(sv.begin(),sv.end(),0.0);
+
+    for(int ik=0; ik<=nip; ++ik)
+    {
+    const double zh = dz*double(ik);
+    double mu = 0.0;
+
+        for(int l=0; l<nsig; ++l)
+        {
+        const double kl = double(k[l]), kd = kl*depth;
+        const double fdd = (kd<20.0) ? g.sig[l]*std::cosh(kl*zh)/std::sinh(kd) : g.sig[l]*std::exp(kl*(zh-depth));
+        VQ[l] = fdd*fdd;
+        mu += VQ[l]*VE[l];
+        }
+
+    const double w = (ik==0 || ik==nip) ? 1.0/3.0 : ((ik%2==0) ? 2.0/3.0 : 4.0/3.0);
+    const double smu = std::sqrt(mu);
+
+    for(int l=0; l<nsig; ++l)
+    sv[l] += w*VQ[l]*smu;
+    }
+
+    for(int l=fa; l<=fb; ++l)
+    {
+    const double v = sv1*sv[l]*dz;
+    for(int m=wa; m<=wb; ++m)
+    D[g.bin(l,m)] += v;
+    }
 }
 
 void seastate_source::split(const float *N, double *P, double *D)
