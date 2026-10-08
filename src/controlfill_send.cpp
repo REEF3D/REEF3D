@@ -4727,6 +4727,46 @@ void control::ctrlsend()
         dd++;
     }
 
+    // Underwater acoustics
+    ictrl[ii] = U10;
+    ii++;
+    dctrl[dd] = U11;
+    dd++;
+    dctrl[dd] = U20_xs;
+    dd++;
+    dctrl[dd] = U20_xe;
+    dd++;
+    dctrl[dd] = U20_ys;
+    dd++;
+    dctrl[dd] = U20_ye;
+    dd++;
+    dctrl[dd] = U20_zs;
+    dd++;
+    dctrl[dd] = U20_ze;
+    dd++;
+    ictrl[ii] = U21;
+    ii++;
+    ictrl[ii] = U30;
+    ii++;
+    dctrl[dd] = U31;
+    dd++;
+    dctrl[dd] = U32;
+    dd++;
+    ictrl[ii] = U40;
+    ii++;
+    dctrl[dd] = U41;
+    dd++;
+
+    for(n=0;n<U30;++n)
+    {
+        dctrl[dd] = U30_x[n];
+        dd++;
+        dctrl[dd] = U30_y[n];
+        dd++;
+        dctrl[dd] = U30_z[n];
+        dd++;
+    }
+
     ii_send=ii;
     dd_send=dd;
 }

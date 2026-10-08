@@ -94,6 +94,7 @@ class particle_base;
 using namespace std;
 
 class regression_dump;
+class acoustics;
 
 class driver : public increment
 {
@@ -145,6 +146,7 @@ public:
 
 	printer* pprint;
     regression_dump* preg;
+    acoustics* pacoustic;
 	initialize* pini;
 	diffusion* pdiff;
 	diffusion* pturbdiff;

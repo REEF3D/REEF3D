@@ -613,6 +613,12 @@ public:
     double *Z11_x,*Z11_y,*Z11_z,*Z11_l,*Z11_w,*Z11_t,*Z11_rho,*Z11_e,*Z11_ix,*Z11_iy,*Z11_iz,*Z11_nu,*Z11_n;
     double Z12_ckx,Z12_cky,Z12_ckz,Z12_cdx,Z12_cdy,Z12_cdz;
 
+    // Underwater acoustics
+    int U10,U21,U30,U40;
+    double U11,U31,U32,U41;
+    double U20_xs,U20_xe,U20_ys,U20_ye,U20_zs,U20_ze;
+    double *U30_x,*U30_y,*U30_z;
+
     // Grid
     int Y40,Y50,Y60,Y71,Y72,Y73,Y74;
 

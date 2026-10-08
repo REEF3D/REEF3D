@@ -168,6 +168,7 @@ public:
     void bcast_int(int*, int);
     void bcast_double(double *, int, int=0);
     double globalsum(double);
+    void globalsum(double*,int);   // in-place elementwise sum over all ranks, one MPI_Allreduce
     int globalisum(int);
     double globalmax(double);
     void globalmax(double*,int);   // in-place elementwise max over all ranks, one MPI_Allreduce

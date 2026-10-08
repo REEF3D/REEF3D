@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"solver_header.h"
 #include"field_header.h"
 #include"6DOF_header.h"
+#include"acoustics.h"
 #include"runlog.h"
 
 
@@ -105,6 +106,7 @@ void driver::loop_cfd(fdm* a)
         
         // printer
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+        pacoustic->start(p,a,pgc);
         preg->cfd_step(p,a,pgc,pturb,pconc);
 
         // Shell-Printout

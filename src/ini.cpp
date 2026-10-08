@@ -1333,4 +1333,15 @@ void control::ini_default()
     Z21=0.0;        // double rod-tree VTP print interval [s], 0: off
     Z30=0;          // int FEM solid structures (elastic, plastic, concrete damage, collapse), 1: coupling with CFD or NHFLOW, input fem.dat
     Z31=0.0;        // double FEM VTU print interval [s], 0: off
+
+    // Underwater acoustics
+    U10=0;          // int FW-H acoustic analogy: 0 off, 1 permeable surface (CFD)
+    U11=1500.0;     // double speed of sound [m/s]
+    U20_xs=U20_xe=U20_ys=U20_ye=U20_zs=U20_ze=0.0;  // double permeable box, snapped to the nearest grid nodes
+    U21=0;          // int open face of the box (end cap): 0 none, 1 xs, 2 xe, 3 ys, 4 ye, 5 zs, 6 ze
+    U30=0;          // int number of observers (counted in read_control)
+    U31=0.0;        // double observer sampling interval [s], 0: first time step
+    U32=0.0;        // double start time of the sampling [s]
+    U40=0;          // int pressure-release free surface by image observers (Lloyd's mirror)
+    U41=-1.0e20;    // double z of the mirror plane, default: still water level
 }

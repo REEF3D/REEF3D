@@ -3001,6 +3001,39 @@ void control::read_control(lexer* p)
                 }
                 break;
 
+            case 'U': control>>numint;
+                switch(numint)
+                {
+                case 10: control>>U10;
+                         clear(c,numint);
+                         break;
+                case 11: control>>U11;
+                         clear(c,numint);
+                         break;
+                case 20: control>>U20_xs>>U20_xe>>U20_ys>>U20_ye>>U20_zs>>U20_ze;
+                         clear(c,numint);
+                         break;
+                case 21: control>>U21;
+                         clear(c,numint);
+                         break;
+                case 30: ++U30;
+                         clear(c,numint);
+                         break;
+                case 31: control>>U31;
+                         clear(c,numint);
+                         break;
+                case 32: control>>U32;
+                         clear(c,numint);
+                         break;
+                case 40: control>>U40;
+                         clear(c,numint);
+                         break;
+                case 41: control>>U41;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
             case 'W': control>>numint;
                 switch(numint)
                 {
@@ -3515,6 +3548,11 @@ void control::read_control(lexer* p)
     control.clear();
 
     // re-read
+
+    // U
+    Darray(U30_x,U30);
+    Darray(U30_y,U30);
+    Darray(U30_z,U30);
 
     // L
     Darray(L21_val,9*L21);
@@ -4540,6 +4578,7 @@ void control::read_control(lexer* p)
     int countX322=0;
     int countX324=0;
     int countZ11=0;
+    int countU30=0;
     int countL21=0;
     int countL22=0;
     int countL23=0;
@@ -5263,6 +5302,17 @@ void control::read_control(lexer* p)
                          break;
                 case 75: control>>S75_x[countS75]>>S75_dist[countS75];
                          ++countS75;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
+            case 'U': control>>numint;
+                switch(numint)
+                {
+                case 30: control>>U30_x[countU30]>>U30_y[countU30]>>U30_z[countU30];
+                         p->XYin(U30_x[countU30],U30_y[countU30]);
+                         ++countU30;
                          clear(c,numint);
                          break;
                 }

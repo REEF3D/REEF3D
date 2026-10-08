@@ -5959,6 +5959,50 @@ void control::ctrlrecv()
         dd++;
     }
 
+    // Underwater acoustics
+    U10 = ictrl[ii];
+    ii++;
+    U11 = dctrl[dd];
+    dd++;
+    U20_xs = dctrl[dd];
+    dd++;
+    U20_xe = dctrl[dd];
+    dd++;
+    U20_ys = dctrl[dd];
+    dd++;
+    U20_ye = dctrl[dd];
+    dd++;
+    U20_zs = dctrl[dd];
+    dd++;
+    U20_ze = dctrl[dd];
+    dd++;
+    U21 = ictrl[ii];
+    ii++;
+    U30 = ictrl[ii];
+    ii++;
+    U31 = dctrl[dd];
+    dd++;
+    U32 = dctrl[dd];
+    dd++;
+    U40 = ictrl[ii];
+    ii++;
+    U41 = dctrl[dd];
+    dd++;
+
+    Darray(U30_x,U30);
+    Darray(U30_y,U30);
+    Darray(U30_z,U30);
+
+    for(n=0;n<U30;++n)
+    {
+        U30_x[n] = dctrl[dd];
+        dd++;
+        U30_y[n] = dctrl[dd];
+        dd++;
+        U30_z[n] = dctrl[dd];
+        dd++;
+    }
+
     ii_recv=ii;
     dd_recv=dd;
 }

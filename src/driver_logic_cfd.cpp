@@ -40,6 +40,8 @@ Author: Hans Bihs
 #include"FSI_header.h"
 #include"vrans_header.h"
 #include"waves_header.h"
+#include"acoustics_fwh.h"
+#include"acoustics_void.h"
 
 // stop for input options whose code was removed
 static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
@@ -571,6 +573,12 @@ void driver::logic_cfd()
 
 // Printer
     pprint = new printer_CFD(p,a,pgc);
+
+    if(p->U10==0)
+    pacoustic = new acoustics_void();
+
+    if(p->U10>0)
+    pacoustic = new acoustics_fwh(p,a,pgc);
 
     if(p->P150==0)
 	pdata = new expdata_void(p,a,pgc);
