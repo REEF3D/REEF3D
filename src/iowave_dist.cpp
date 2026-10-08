@@ -347,3 +347,45 @@ void iowave::b530_auto(lexer *p)
     if(p->B530>0 && p->mpirank==0)
     cout<<"iowave: waves on the background (B 530 "<<p->B530<<" "<<p->B530_N<<", default with a background "<<(p->B530==2?"current":"level")<<")"<<endl;
 }
+
+// NHFLOW active beach (B 99 3 / 4): the old ghost-cell velocity eta sqrt(g/h) (or the linear-theory
+// profile) with a zero-gradient water level reflected 0.6-0.8 of the waves (validation 10). The
+// x+ outflow now becomes an absorbing Riemann edge with still water outside: h_g and the depth
+// mean u_g from the outgoing characteristic of the interior and the incoming one of still water.
+// The old condition left the ghost water level at still water and imposed the outflow velocity on
+// top, so the HLL flux at the boundary face counted the outgoing wave twice. B 99 4 is treated as
+// B 99 3: a linear-theory profile or the celerity omega / k in the characteristic gave more
+// reflection for kh 2-3 (0.09-0.18 against 0.08-0.12).
+// A Riemann / Flather / clamped edge of the user at x+ (B 520, B 521 edge 2) takes precedence.
+void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
+{
+    nhf_active_edge = false;
+    
+    if(p->A10!=5 || (p->B99!=3 && p->B99!=4))
+    return;
+    
+    // only with an outflow boundary at x+
+    int nout = 0;
+    for(int q=0; q<p->gcslout_count; ++q)
+    if(p->gcslout[q][3]==4)
+    ++nout;
+    
+    if(pgc->globalisum(nout)==0)
+    return;
+    
+    if(zones.open_edge(2)!=nullptr)
+    {
+        if(p->mpirank==0)
+        cout<<"iowave: B 99 "<<p->B99<<" ignored at x+: the edge of B 520 zone "<<zones.open_edge(2)->id<<" is used"<<endl;
+        return;
+    }
+    
+    bc_zone e(-99,bc_method::riemann,0.0,0.0,0.0,0.0,0.0,1.0);
+    e.edge = 2;
+    e.active = p->B99;
+    zones.edges.push_back(e);
+    nhf_active_edge = true;
+    
+    if(p->mpirank==0)
+    cout<<"iowave: active beach B 99 "<<p->B99<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+}

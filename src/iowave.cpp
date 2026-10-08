@@ -167,11 +167,12 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     bgs.read(p);
     b530_auto(p);
     zones_check(p);
+    nhflow_active_beach_edge(p,pgc);
     
     // tidal / current background (NHFLOW)
-    if(zones.has_background())
+    if(zones.has_background() || nhf_active_edge)
     {
-    bg_on = true;
+    bg_on = zones.has_background();
     p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;
     p->open_xp = zones.open_edge(2)!=nullptr ? 1 : 0;
     p->open_ym = zones.open_edge(3)!=nullptr ? 1 : 0;

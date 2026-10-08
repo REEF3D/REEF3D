@@ -77,6 +77,8 @@ public:
     int bg = 0;                  // B 523 background id; 0: none (still water)
     int edge = 0;                // B 521 edge (1: x-, 2: x+, 3: y-, 4: y+), user zones only
     bool has_Q = false;          // B 525 given (clamped discharge edge)
+    int active = 0;              // NHFLOW active beach B 99 3 / 4 as a Riemann edge at x+ with still
+                                 // water outside (the B 99 value; 0: a zone of the user)
     double Q = 0.0, Q_tramp = 0.0;
     bc_method method;
     double xs,ys,xe,ye,d;   // reference line and half width
