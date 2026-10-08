@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "River channel 3 km, 10 m deep: discharge 40 m3/s in through a clamped discharge edge (B 520 method 6, B 525, no background, ramp 50 s), out through a clamped level edge (method 5) at still water; edge mass balance every 5 steps (B 529).",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "clamped"],
+ "covers": ["B 525 discharge edge without a background", "clamped level edge x+", "B 529 edge mass balance"]
+}

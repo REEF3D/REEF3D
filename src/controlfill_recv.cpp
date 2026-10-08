@@ -660,6 +660,12 @@ void control::ctrlrecv()
     ii++;
     A738 = ictrl[ii];
     ii++;
+    A718 = ictrl[ii];
+    ii++;
+    A719 = ictrl[ii];
+    ii++;
+    A722 = ictrl[ii];
+    ii++;
     A715_th1 = dctrl[dd];
     dd++;
     A715_th2 = dctrl[dd];
@@ -829,9 +835,15 @@ void control::ctrlrecv()
     ii++;
     B523 = ictrl[ii];
     ii++;
+    B513 = ictrl[ii];
+    ii++;
+    B525 = ictrl[ii];
+    ii++;
     B530 = ictrl[ii];
     ii++;
     B530_N = ictrl[ii];
+    ii++;
+    B529 = ictrl[ii];
     ii++;
     B110 = ictrl[ii];
     ii++;
@@ -3015,6 +3027,20 @@ void control::ctrlrecv()
         Iarray(B523_id,B523);
         Iarray(B523_bg,B523);
     }
+
+    if(B513>0)
+    {
+        Iarray(B513_id,B513);
+        Iarray(B513_profile,B513);
+        Darray(B513_par,B513);
+    }
+
+    if(B525>0)
+    {
+        Iarray(B525_id,B525);
+        Darray(B525_Q,B525);
+        Darray(B525_tramp,B525);
+    }
     
     if(B210>0)
     {
@@ -3377,6 +3403,17 @@ void control::ctrlrecv()
     {
         Darray(A760_x,A760);
         Darray(A760_y,A760);
+    }
+
+    if(A722>0)
+    {
+        Darray(A722_xs,A722);
+        Darray(A722_ys,A722);
+        Darray(A722_xe,A722);
+        Darray(A722_ye,A722);
+        Darray(A722_kt,A722);
+        Darray(A722_kr,A722);
+        Darray(A722_zc,A722);
     }
 
     if(F112>0)
@@ -4353,6 +4390,26 @@ void control::ctrlrecv()
         B523_bg[n] = ictrl[ii];
         ii++;
     }
+
+    for(n=0;n<B513;++n)
+    {
+        B513_id[n] = ictrl[ii];
+        ii++;
+        B513_profile[n] = ictrl[ii];
+        ii++;
+        B513_par[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<B525;++n)
+    {
+        B525_id[n] = ictrl[ii];
+        ii++;
+        B525_Q[n] = dctrl[dd];
+        dd++;
+        B525_tramp[n] = dctrl[dd];
+        dd++;
+    }
     
     for(n=0;n<B210;++n)
     {
@@ -4915,6 +4972,24 @@ void control::ctrlrecv()
         A760_x[n] = dctrl[dd];
         dd++;
         A760_y[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<A722;++n)
+    {
+        A722_xs[n] = dctrl[dd];
+        dd++;
+        A722_ys[n] = dctrl[dd];
+        dd++;
+        A722_xe[n] = dctrl[dd];
+        dd++;
+        A722_ye[n] = dctrl[dd];
+        dd++;
+        A722_kt[n] = dctrl[dd];
+        dd++;
+        A722_kr[n] = dctrl[dd];
+        dd++;
+        A722_zc[n] = dctrl[dd];
         dd++;
     }
 

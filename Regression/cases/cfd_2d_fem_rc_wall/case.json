@@ -15,7 +15,7 @@
   "fsi",
   "reinforced"
  ],
- "description": "2D water column held by a weak reinforced concrete wall (model steel): the concrete cracks at the base, the bars yield and the wall bends about 7.5 mm but stands (FEM solid, Z 30, rebar).",
+ "description": "2D water column held by a weak reinforced concrete wall (model steel): the concrete cracks at the base, the bars yield and the wall bends about 9 mm but stands (FEM solid, Z 30, rebar).",
  "covers": [
   "smeared reinforcement (rebar): skin placement, elastic-plastic bars with kinematic hardening",
   "reinforced concrete: unilateral damage, cracked concrete keeps shear stiffness, cracks do not erode",

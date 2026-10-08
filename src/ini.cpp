@@ -325,6 +325,9 @@ void control::ini_default()
     A715_th1=0.0;     // double fine direction sector from this direction ... [deg], ccw from +x
     A715_th2=0.0;     // double ... counter-clockwise to this direction [deg]
     A715_k=1;         // int ... the A 703 directions with centres in the sector divided into this many bins each (1 off)
+    A718=0;           // int diffraction (phase-decoupled, Holthuijsen et al. 2003): 0 off, 1 from the total energy (as SWAN), 2 per frequency
+    A719=0;           // int diffraction: smoothing steps of the energy (0: 0.4 (L/dx)^2 from the mean wavelength and the smallest cell)
+    A722=0;           // int number of obstacles (A 722 xs ys xe ye Kt Kr zc): line obstacles, energy transmission Kt^2 (Kt < 0: Goda with crest level zc), reflection Kr^2
     A738=1;           // int stationary: source iterations per cell and sweep (max.), the source terms evaluated again from the spectrum just solved
     A739=1.0e-4;      // double ... until the estimated distance of the energy of the cell to its balance is below this fraction
     A798=1;           // int threads per MPI rank for the sweeps (wavefront order)
@@ -415,9 +418,12 @@ void control::ini_default()
 	B107=0;			// int read numerical beach origin
     B108=0;        // int read wave generation  origin
     B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
+    B525=0;        // int iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    B513=0;          // int iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
-    B530=0;        // int iowave redesign: waves on the background, 1: on h_eff, 2: h_eff + Doppler
+    B530=-1;       // int iowave redesign: waves on the background, 1: on h_eff, 2: h_eff + Doppler, -1: auto (2 with a current, 1 with a level only)
     B530_N=10;     // int iowave redesign: k update interval [steps] of B 530
+    B529=0;        // int iowave redesign: edge mass balance log every B 529 steps (0: off)
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end

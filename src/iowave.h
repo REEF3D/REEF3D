@@ -44,6 +44,7 @@ class linear_regression_cont;
 using namespace std;
 #include <memory>
 #include<vector>
+#include<fstream>
 
 class iowave final : public ioflow, public wave_interface, public increment, public flowfile_in
 {
@@ -309,6 +310,15 @@ private:
     std::vector<wave_bg_state> wbg;
     int wbg_count=-1;
     void nhflow_wave_background(lexer*,ghostcell*);
+    void b530_auto(lexer*);
+    double bg_prof(lexer*,int,double);   // B 513 profile factor of layer k, depth average 1 per column
+    
+    // edge mass balance (B 529): flux through each open edge integrated since the last line
+    void nhflow_mass_balance(lexer*,fdm_nhf*,ghostcell*);
+    std::ofstream mb_out;
+    double mb_t=-1.0, mb_t0=0.0, mb_V0=0.0;
+    double mb_int[5]={0.0,0.0,0.0,0.0,0.0};
+    int mb_n=0;
 
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     

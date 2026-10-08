@@ -1,0 +1,19 @@
+{
+ "description": "as seastate_2d_phase6_diffraction on 2 ranks with 2 threads per rank and the diffraction per frequency (A 718 2, Phase 6): the smoothed energy and Ca exchanged across the rank border before every iteration.",
+ "solver": "seastate",
+ "np": 2,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f diffraction per frequency, halo exchange of the smoothed energy and Ca",
+  "diffraction with threads"
+ ]
+}

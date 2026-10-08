@@ -763,6 +763,15 @@ void control::read_control(lexer* p)
                 case 760: ++A760;
                          clear(c,numint);
                          break;
+                case 722: ++A722;
+                         clear(c,numint);
+                         break;
+                case 718: control>>A718;
+                         clear(c,numint);
+                         break;
+                case 719: control>>A719;
+                         clear(c,numint);
+                         break;
                 case 761: control>>A761;
                          clear(c,numint);
                          break;
@@ -1082,7 +1091,16 @@ void control::read_control(lexer* p)
               case 523: ++B523;
                          clear(c,numint);
                          break;
+              case 513: ++B513;
+                         clear(c,numint);
+                         break;
+              case 525: ++B525;
+                         clear(c,numint);
+                         break;
               case 530: control>>B530>>B530_N;
+                         clear(c,numint);
+                         break;
+              case 529: control>>B529;
                          clear(c,numint);
                          break;
               case 110: control>>B110_zs>>B110_ze;
@@ -3666,6 +3684,12 @@ void control::read_control(lexer* p)
     Darray(B515_href,B515);
     Iarray(B523_id,B523);
     Iarray(B523_bg,B523);
+    Iarray(B513_id,B513);
+    Iarray(B513_profile,B513);
+    Darray(B513_par,B513);
+    Iarray(B525_id,B525);
+    Darray(B525_Q,B525);
+    Darray(B525_tramp,B525);
     
     Darray(B210_xs,B210);
     Darray(B210_xe,B210);
@@ -3919,6 +3943,14 @@ void control::read_control(lexer* p)
 
     Darray(A760_x,A760);
     Darray(A760_y,A760);
+
+    Darray(A722_xs,A722);
+    Darray(A722_ys,A722);
+    Darray(A722_xe,A722);
+    Darray(A722_ye,A722);
+    Darray(A722_kt,A722);
+    Darray(A722_kr,A722);
+    Darray(A722_zc,A722);
 
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
@@ -4447,6 +4479,8 @@ void control::read_control(lexer* p)
     int countB514=0;
     int countB515=0;
     int countB523=0;
+    int countB513=0;
+    int countB525=0;
     int countB210=0;
     int countB212=0;
     int countB213=0;
@@ -4486,6 +4520,7 @@ void control::read_control(lexer* p)
     int countG10=0;
     int countG11=0;
     int countA760=0;
+    int countA722=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -4587,6 +4622,12 @@ void control::read_control(lexer* p)
                 case 760: control>>A760_x[countA760]>>A760_y[countA760];
                          p->XYin(A760_x[countA760],A760_y[countA760]);
                          ++countA760;
+                         clear(c,numint);
+                         break;
+                case 722: control>>A722_xs[countA722]>>A722_ys[countA722]>>A722_xe[countA722]>>A722_ye[countA722]>>A722_kt[countA722]>>A722_kr[countA722]>>A722_zc[countA722];
+                         p->XYin(A722_xs[countA722],A722_ys[countA722]);
+                         p->XYin(A722_xe[countA722],A722_ye[countA722]);
+                         ++countA722;
                          clear(c,numint);
                          break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];
@@ -4710,6 +4751,14 @@ void control::read_control(lexer* p)
                          break;
                 case 523: control>>B523_id[countB523]>>B523_bg[countB523];
                          ++countB523;
+                         clear(c,numint);
+                         break;
+                case 513: control>>B513_id[countB513]>>B513_profile[countB513]>>B513_par[countB513];
+                         ++countB513;
+                         clear(c,numint);
+                         break;
+                case 525: control>>B525_id[countB525]>>B525_Q[countB525]>>B525_tramp[countB525];
+                         ++countB525;
                          clear(c,numint);
                          break;
                 case 210: control>>B210_xs[countB210]>>B210_xe[countB210]>>B210_ys[countB210]>>B210_ye[countB210]>>B210_zs[countB210]>>B210_ze[countB210];

@@ -137,6 +137,8 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
         for(int it=0; it<iter_max; ++it)
         {
+        diffraction(p,pgc);
+        obstacles(p,pgc);
         psolv->iterate(p,pgc,e,pex,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
         }
@@ -160,6 +162,9 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
     for(int it=0; it<iter_max; ++it)
     {
+    // Phase 6: diffraction parameter and obstacle transmission from the latest spectra (A 718, A 722)
+    diffraction(p,pgc);
+    obstacles(p,pgc);
     psolv->iterate(p,pgc,e,pex,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
 

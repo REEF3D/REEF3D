@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"seastate_store.h"
 #include"seastate_dispersion.h"
 #include"seastate_source.h"
+#include"seastate_obstacle.h"
 #include"fdm_seastate.h"
 #include"sliceint.h"
 #include"lexer.h"
@@ -61,6 +62,8 @@ seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), 
     Ar.assign(nsig,0.0);
     qc.assign(ndir,0.0);
     rth.assign(ndir,0.0);
+    cdp.assign(size_t(nsig)*ndir,0.0);
+    cdm.assign(size_t(nsig)*ndir,0.0);
     qs.assign(ndir,0.0);
     cur.assign(ndir,0.0);
     tAp.assign(ndir,0.0);
@@ -723,6 +726,35 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     const double rdy = 1.0/p->DYN[JP];
     const double rdth = 1.0/g.dtheta;
 
+    // obstacles (A 722) on the faces of the cell: the inflow through a face is transmitted with Kt^2
+    const seastate_obstacle::face *oW = nullptr, *oE = nullptr, *oS = nullptr, *oN = nullptr;
+    if(pob!=nullptr)
+    {
+    oW = pob->east(ic-1,jc);
+    oE = pob->east(ic,jc);
+    oS = pob->north(ic,jc-1);
+    oN = pob->north(ic,jc);
+    if(oW) W.tf = oW->kt2;
+    if(oE) E.tf = oE->kt2;
+    if(oS) S.tf = oS->kt2;
+    if(oN) Nn.tf = oN->kt2;
+    }
+    const double rdxW = rdx*W.tf, rdxE = rdx*E.tf, rdyS = rdy*S.tf, rdyN = rdy*Nn.tf;
+    const bool refl = (oW && oW->kr2>0.0f) || (oE && oE->kr2>0.0f) || (oS && oS->kr2>0.0f) || (oN && oN->kr2>0.0f);
+
+    // diffraction (A 718): Ca and its gradient of the cell and Ca of the neighbours
+    const float *cac = (dca!=nullptr) ? dca->spec(ic,jc) : nullptr;
+    const float *cax = (dcax!=nullptr) ? dcax->spec(ic,jc) : nullptr;
+    const float *cay = (dcay!=nullptr) ? dcay->spec(ic,jc) : nullptr;
+    const bool dif = (cac!=nullptr && cax!=nullptr && cay!=nullptr);
+    if(dif)
+    {
+    if(W.cg)  W.ca  = dca->spec(ic-1,jc);
+    if(E.cg)  E.ca  = dca->spec(ic+1,jc);
+    if(S.cg)  S.ca  = dca->spec(ic,jc-1);
+    if(Nn.cg) Nn.ca = dca->spec(ic,jc+1);
+    }
+
     const double d = e->depth(ic,jc);
     const double U = e->U(ic,jc), V = e->V(ic,jc);
     const bool kin = (e->refr(ic,jc)==1);
@@ -750,7 +782,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     if(sparse)
     {
-    windows(p,e,q,ic,jc,N,W,E,S,Nn,rf,fs);
+    windows(p,e,q,ic,jc,N,W,E,S,Nn,rf || dif,fs);
 
     wmin = nq; wmax = -1;
     lmin = nsig; lmax = -1;
@@ -871,6 +903,24 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     if(fs || wlo[l]<=whi[l])
     Ar[l] = seastate_refraction(g.sig[l],kc[l],d);
 
+    // diffraction: c_theta = Ca (depth refraction) + current refraction + cg dCa/dn, n = (-sin, cos) the
+    // normal to the direction (as SWAN), at the faces of the directions of the quadrant
+    if(dif)
+    for(int l=0; l<nsig; ++l)
+    if(wlo[l]<=whi[l])
+    {
+    const double A = (kin ? Ar[l] : 0.0)*double(cac[l]);
+    const double ax = double(cgc[l])*double(cax[l]), ay = double(cgc[l])*double(cay[l]);
+    double *dp = &cdp[size_t(l)*ndir], *dm = &cdm[size_t(l)*ndir];
+
+        for(int n=0; n<nq; ++n)
+        {
+        const int m = ma+n, mm = (m-1+ndir)%ndir;
+        dp[n] = A*tAp[n] + tCp[n] - ax*g.sinthf[m]  + ay*g.costhf[m];
+        dm[n] = A*tAm[n] + tCm[n] - ax*g.sinthf[mm] + ay*g.costhf[mm];
+        }
+    }
+
     // c_sigma at the cell centre, per frequency and direction of the quadrant (zero without
     // frequency shift)
     if(!fs)
@@ -918,11 +968,24 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     const double A = kin ? Ar[l] : 0.0;
     const double rdsig = 1.0/g.dsig[l];
 
-    // geographic face velocities: (c_cell + c_neighbour)/2 = cg_face cos(theta) + U_face
-    const double cgW = W.cg  ? 0.5*(cgl + double(W.cg[l]))  : cgl, UW = W.cg  ? 0.5*(U + W.U)  : U;
-    const double cgE = E.cg  ? 0.5*(cgl + double(E.cg[l]))  : cgl, UE = E.cg  ? 0.5*(U + E.U)  : U;
-    const double cgS = S.cg  ? 0.5*(cgl + double(S.cg[l]))  : cgl, VS = S.cg  ? 0.5*(V + S.V)  : V;
-    const double cgN = Nn.cg ? 0.5*(cgl + double(Nn.cg[l])) : cgl, VN = Nn.cg ? 0.5*(V + Nn.V) : V;
+    // geographic face velocities: (c_cell + c_neighbour)/2 = cg_face cos(theta) + U_face; with
+    // diffraction Ca cg
+    double cgW = W.cg  ? 0.5*(cgl + double(W.cg[l]))  : cgl;
+    double cgE = E.cg  ? 0.5*(cgl + double(E.cg[l]))  : cgl;
+    double cgS = S.cg  ? 0.5*(cgl + double(S.cg[l]))  : cgl;
+    double cgN = Nn.cg ? 0.5*(cgl + double(Nn.cg[l])) : cgl;
+    const double UW = W.cg  ? 0.5*(U + W.U)  : U, UE = E.cg  ? 0.5*(U + E.U)  : U;
+    const double VS = S.cg  ? 0.5*(V + S.V)  : V, VN = Nn.cg ? 0.5*(V + Nn.V) : V;
+
+    if(dif)
+    {
+    const double cdl = double(cac[l])*cgl;
+    auto face = [&](const neighbour &nb) {return nb.cg ? 0.5*(cdl + (nb.ca ? double(nb.ca[l]) : 1.0)*double(nb.cg[l])) : cdl;};
+    cgW = face(W);
+    cgE = face(E);
+    cgS = face(S);
+    cgN = face(Nn);
+    }
 
     const double *cc = &csg[size_t(l)*ndir];
     const double *cm = (l>0)      ? &csg[size_t(l-1)*ndir] : cc;
@@ -938,6 +1001,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     const double *__restrict qc_ = qc.data(), *__restrict qs_ = qs.data(), *__restrict rth_ = rth.data();
     const double *__restrict tAp_ = tAp.data(), *__restrict tCp_ = tCp.data(), *__restrict tAm_ = tAm.data(), *__restrict tCm_ = tCm.data();
     const double *__restrict cc_ = cc, *__restrict cu_ = cu, *__restrict cm_ = cm;
+    const double *__restrict cdp_ = &cdp[size_t(l)*ndir], *__restrict cdm_ = &cdm[size_t(l)*ndir];
     double *__restrict di_ = &tdi[o], *__restrict la_ = &tla[o], *__restrict up_ = &tup[o];
     double *__restrict rh_ = &trh[o], *__restrict si_ = &tsi[o];
 
@@ -953,8 +1017,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         const double csl = 0.5*(csc + cm_[n]);
 
         // c_theta at the faces m+1/2 and m-1/2 (zero without refraction)
-        const double ctp = A*tAp_[n] + tCp_[n];
-        const double ctm = A*tAm_[n] + tCm_[n];
+        const double ctp = dif ? cdp_[n] : A*tAp_[n] + tCp_[n];
+        const double ctm = dif ? cdm_[n] : A*tAm_[n] + tCm_[n];
 
         const double cxw = cgW*cs + UW, cxe = cgE*cs + UE;
         const double cys = cgS*sn + VS, cyn = cgN*sn + VN;
@@ -965,8 +1029,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
         // right-hand side: old time level + inflow from the neighbours and from l+1 (+ P)
         rh_[n] = rdt*double(Nol[n]) + Pl[n]
-               + pos(cxw)*rdx*double(NWl[n]) - neg(cxe)*rdx*double(NEl[n])
-               + pos(cys)*rdy*double(NSl[n]) - neg(cyn)*rdy*double(NNl[n])
+               + pos(cxw)*rdxW*double(NWl[n]) - neg(cxe)*rdxE*double(NEl[n])
+               + pos(cys)*rdyS*double(NSl[n]) - neg(cyn)*rdyN*double(NNl[n])
                - neg(csu)*rdsig*double(Nlp_[n]);
 
         // theta: within the window implicit (tridiagonal)
@@ -977,12 +1041,62 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     // theta: outside the window (other quadrants, empty bins) with the latest values
     {
-    const double ctm0 = A*tAm[na] + tCm[na], ctp1 = A*tAp[nb] + tCp[nb];
+    const double ctm0 = dif ? cdm_[na] : A*tAm[na] + tCm[na], ctp1 = dif ? cdp_[nb] : A*tAp[nb] + tCp[nb];
     rh_[na] += pos(ctm0)*rth[na]*double(N[g.bin(l,(ma+na-1+ndir)%ndir)]);
     rh_[nb] -= neg(ctp1)*rth[nb]*double(N[g.bin(l,(ma+nb+1)%ndir)]);
     la_[na] = 0.0;
     up_[nb] = 0.0;
     }
+
+        // obstacles (A 722): the flux leaving the cell through a reflecting face in the direction
+        // theta_i = 2 alpha - theta re-enters it in theta (specular at the obstacle line), Kr^2 of it;
+        // N(theta_i) with the latest values, linear between the bin centres
+        if(refl)
+        {
+        const double pi2 = 6.28318530717958647692;
+        const float *Nl0 = N + g.bin(l,0);
+
+        auto ninterp = [&](double t)
+        {
+            t = std::fmod(t,pi2);
+            if(t<0.0)
+            t += pi2;
+            const int b = int(std::upper_bound(g.theta.begin(),g.theta.end(),t) - g.theta.begin());
+            const int m1 = (b==0) ? ndir-1 : b-1, m2 = (b==ndir) ? 0 : b;
+            double d1 = g.theta[m1], d2 = g.theta[m2];
+            if(d1>t) d1 -= pi2;
+            if(d2<t) d2 += pi2;
+            const double w = (d2>d1) ? (t-d1)/(d2-d1) : 0.0;
+            return (1.0-w)*double(Nl0[m1]) + w*double(Nl0[m2]);
+        };
+
+        auto reflect = [&](const seastate_obstacle::face *f, int side)
+        {
+            if(f==nullptr || !(f->kr2>0.0f))
+            return;
+
+            for(int n=na; n<=nb; ++n)
+            {
+            const double tn = g.theta[ma+n], ti = 2.0*double(f->alpha) - tn;
+            double cout = 0.0, r = 0.0;
+
+            if(side==0) {cout = -(cgW*std::cos(ti) + UW); r = rdx;}
+            if(side==1) {cout =  (cgE*std::cos(ti) + UE); r = rdx;}
+            if(side==2) {cout = -(cgS*std::sin(ti) + VS); r = rdy;}
+            if(side==3) {cout =  (cgN*std::sin(ti) + VN); r = rdy;}
+
+            // the reflected direction leaves the line on the incident side; on the staircase of faces it
+            // may also cross a face of the cell, where it is transmitted and reflected again
+            if(cout>0.0)
+            rh_[n] += double(f->kr2)*cout*r*ninterp(ti);
+            }
+        };
+
+        reflect(oW,0);
+        reflect(oE,1);
+        reflect(oS,2);
+        reflect(oN,3);
+        }
 
         // zero-gradient sides: inflow of the cell's own spectrum, implicit while the non-theta part
         // of the diagonal stays at least half of its value (M-matrix), otherwise with the latest value
@@ -992,7 +1106,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         const double cs = qc[n], sn = qs[n];
         const double cxw = cgW*cs + UW, cxe = cgE*cs + UE;
         const double cys = cgS*sn + VS, cyn = cgN*sn + VN;
-        const double ctp = A*tAp[n] + tCp[n], ctm = A*tAm[n] + tCm[n];
+        const double ctp = dif ? cdp_[n] : A*tAp[n] + tCp[n], ctm = dif ? cdm_[n] : A*tAm[n] + tCm[n];
         const double dg = di_[n] - (pos(ctp) - neg(ctm))*rth[n];
 
         double aself = 0.0;
@@ -1125,7 +1239,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         // over the diagonal of the end bin
         const float *Nl = N + g.bin(l,ma);
         const double A = kin ? Ar[l] : 0.0;
-        const double ctm0 = A*tAm[na] + tCm[na], ctp1 = A*tAp[nb] + tCp[nb];
+        const double ctm0 = dif ? cdm[size_t(l)*ndir+na] : A*tAm[na] + tCm[na];
+        const double ctp1 = dif ? cdp[size_t(l)*ndir+nb] : A*tAp[nb] + tCp[nb];
         const int o = l*ndir;
         const bool lo = (na>0    && -neg(ctm0)*rth[na-1]*double(Nl[na])>thr[l]*tdi[o+na]);
         const bool hi = (nb<nq-1 &&  pos(ctp1)*rth[nb+1]*double(Nl[nb])>thr[l]*tdi[o+nb]);

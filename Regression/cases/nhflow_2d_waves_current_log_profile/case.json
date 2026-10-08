@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "Linear waves (H 0.1 m, T 4 s) on a 1 m/s current with a log-law profile (B 513): generation zone and beach with the background, Riemann edges; B 530 on by default (mode 2).",
+ "tags": ["quick", "2d", "nhflow", "current", "iowave", "bc_zone", "background", "profile", "doppler"],
+ "covers": ["B 513 in the generation and beach zones", "B 530 default with a current"]
+}
