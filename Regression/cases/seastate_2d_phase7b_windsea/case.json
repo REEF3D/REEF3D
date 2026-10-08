@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_add": ["A 738 8", "A 739 1.0e-4", "A 799 1", "A 708 0.001", "A 798 2"],
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, DIA) with source iterations per cell (A 738 8, A 739 1e-4, Phase 7b), the convergence test on the estimated distance to the solution (A 799 1, A 708 1e-3) and 2 threads (A 798 2, each with a copy of the source terms). Validation in Dropbox SEASTATE/validation/31_windsea_source_iterations.",
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_implicit source iterations (contraction-based stop)", "seastate_f transport A 799 distance test", "threads with source terms (DIA)"]
+}

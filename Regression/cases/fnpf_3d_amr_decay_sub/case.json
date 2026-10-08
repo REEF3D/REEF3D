@@ -1,0 +1,20 @@
+{
+ "description": "FNPF AMR heave decay of a moored floating cylinder (X 10 1, X 310 4) with subcycling (G 7 1): the free body advanced by the finest level with its loads and the added mass of all grids at the start of the level-0 step.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "subcycling"
+ ],
+ "covers": [
+  "fnpf_6DOF_sub with a free body and added mass",
+  "fnpf_6DOF::stage in sub mode (composite loads at the level-0 start)"
+ ],
+ "files": [
+  "floating.stl"
+ ]
+}

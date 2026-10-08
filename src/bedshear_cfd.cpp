@@ -55,6 +55,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     xip= p->XP[IP];
 	yip= p->YP[JP];
     dist = p->DZN[KP];
+    tau_eff = 0.0;
 		
     density = s->ro(i,j);
     
@@ -72,9 +73,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
 
-    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
+    // log law at the height of the velocity sample
+    u_plus = uplus(1.6*dist,s->ks_eff(i,j));
 
-    tau_eff = density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    tau_eff = density*(u_abs*u_abs)/(u_plus*u_plus);
     }
     
     
@@ -90,12 +92,12 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
     u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
 
-    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks_eff(i,j)));
+    u_plus = uplus(dist,s->ks_eff(i,j));
     
     
     zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
 
-    tau_eff = MAX(density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0), density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3);
+    tau_eff = MAX(density*(u_abs*u_abs)/(u_plus*u_plus), density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3);
     }
     
     if(p->S16==3)
@@ -117,7 +119,8 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     u_abs = sqrt(uvel*uvel + vvel*vvel);
     
-    tau_eff = density*(v_d + v_t)*(u_abs/dist);
+    // velocity gradient between the bed and the sample at 0.6 DZN
+    tau_eff = density*(v_d + v_t)*(u_abs/(0.6*p->DZN[KP]));
     }
     
 	if(p->S16==4)
@@ -137,10 +140,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 			   
-    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
+    u_plus = uplus(0.5*p->DZN[KP],s->ks(i,j));
 
 
-    tauvel=density*(u_abs*u_abs)/pow((u_plus)>(0.0)?(u_plus):(1.0e20),2.0);
+    tauvel=density*(u_abs*u_abs)/(u_plus*u_plus);
 	
 	taukin=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
 	
@@ -165,18 +168,28 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
             }
         }
 
+        // dry column: no shear
+        tau_eff = 0.0;
+        
+        if(count>0)
+        {
         uvel=uvel/double(count);
         vvel=vvel/double(count);
 
-        Cval=18.0*log10((12.0*wh)/s->ks(i,j));
+        Cval=18.0*log10(MAX((12.0*wh)/s->ks(i,j),10.0));
 
         u_abs = sqrt(uvel*uvel + vvel*vvel);
 	
-    tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
+        tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
+        }
+        
+        k = s->bedk(i,j);
     }
     
     if(p->S16==7)
     {
+    // horizontal velocity at half the first cell height (zval was not set in this branch)
+    zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
 
     uvel=p->ccipol1(a->u,xip,yip,zval);
     vvel=p->ccipol2(a->v,xip,yip,zval);
@@ -184,9 +197,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
     u_abs = sqrt(uvel*uvel + vvel*vvel);
 
-    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
+    u_plus = uplus(0.5*p->DZN[KP],s->ks(i,j));
 
-    tau_eff = density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    tau_eff = density*(u_abs*u_abs)/(u_plus*u_plus);
     }
     
     
@@ -208,9 +221,10 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 
         
     // predictor    
+    dist = 1.6*p->DZN[KP];
     u_abs = sqrt(uvel*uvel + vvel*vvel);
-    u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
-    tau0=tau=density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+    u_plus = uplus(dist,s->ks(i,j));
+    tau0=tau=density*(u_abs*u_abs)/(u_plus*u_plus);
     ustar=sqrt(tau/density);
     
     visc = v_d;
@@ -223,7 +237,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         
         ks_plus = visc + 0.246*ustar*s->ks(i,j);
         
-        u_plus = (1.0/kappa)*(log(MAX(y_plus/ks_plus,1.0)) + 5.0);
+        u_plus = (1.0/kappa)*log(MAX(y_plus/ks_plus,1.0)) + 5.0;
 
         
         tau_eff = MIN(density*(u_abs*u_abs)/pow((u_plus>1.0e-4?u_plus:1.0e20),2.0), tau0*3.5);
@@ -232,20 +246,20 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
     }
     
-    // tau_i for Ti
-        zval = s->bedzh(i,j) + 1.6*dist;
+    // tau_i for Ti: grain roughness, log law at the height of the velocity sample
+        dist = 1.6*p->DZN[KP];
+        
+        zval = s->bedzh(i,j) + dist;
         
         uvel=p->ccipol1(a->u,xip,yip,zval);
         vvel=p->ccipol2(a->v,xip,yip,zval);
         wvel=p->ccipol3(a->w,xip,yip,zval);
         
-        dist = p->DZN[KP];
-        
         u_abs = sqrt(uvel*uvel + vvel*vvel  + wvel*wvel);
         
-        u_plus = (1.0/kappa)*log(30.0*(dist/s->ks(i,j)));
+        u_plus = uplus(dist,s->ks(i,j));
 
-        tau_i = density*(u_abs*u_abs)/pow((u_plus>0.0?u_plus:1.0e20),2.0);
+        tau_i = density*(u_abs*u_abs)/(u_plus*u_plus);
     
     s->tau_eff(i,j) = tau_eff;
     s->tau_i(i,j) = tau_i;
@@ -258,11 +272,10 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 {
 	double density = p->W1;
     
-    k=0;
-    
     SEDSLICELOOP
     {
-    density = a->ro(i,j,k);
+    // water density (a->ro(i,j,0) was the density of the lowest grid layer, not of the bed cell)
+    density = p->W1;
     
     tauc = s->reduce(i,j) * (p->S30*fabs(p->W22)*(p->S22-density))*p->S20;
   

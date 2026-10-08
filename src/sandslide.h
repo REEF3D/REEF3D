@@ -31,6 +31,14 @@ class sliceint;
 
 using namespace std;
 
+// sand slide transfer helpers (used inside the slide loops, with the increment macros IP, JP):
+// SLIDE_AR: area ratio donor/receiver, a slid height a of the donor is a*SLIDE_AR on the receiver
+//           (volume conserving on non-uniform grids)
+// SLIDE_NB: the neighbour lies inside the global domain (no transfer into physical boundary ghost
+//           cells, where it was lost) and, in 2D (j_dir 0), in the same row
+#define SLIDE_AR(di,dj) ((p->DXN[IP]*p->DYN[JP])/(p->DXN[IP+(di)]*p->DYN[JP+(dj)]))
+#define SLIDE_NB(di,dj) (i+p->origin_i+(di)>=0 && i+p->origin_i+(di)<p->gknox && j+p->origin_j+(dj)>=0 && j+p->origin_j+(dj)<p->gknoy && ((dj)==0 || (p->j_dir==1 && p->gknoy>1)))
+
 class sandslide  
 {
 public:

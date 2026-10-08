@@ -21,6 +21,9 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fem_solid.h"
+#include<set>
+#include<map>
+#include<tuple>
 #include<cmath>
 #include<stdexcept>
 #include<algorithm>
@@ -56,6 +59,82 @@ int fem_solid::add_material(const material& mt)
 
     mats.push_back(q);
     return (int)mats.size()-1;
+}
+
+double fem_solid::elem_cp(const element& e) const
+{
+    // dilatational wave speed, with the axial stiffness of the bars of reinforced elements
+    const material& mt = mats[e.mat];
+    if(!e.reinforced())
+    return mt.cp;
+    const double rsm = std::max(e.rs[0],std::max(e.rs[1],e.rs[2]));
+    return std::sqrt((mt.lambda+2.0*mt.mu + rsm*mt.sE)/mt.rho);
+}
+
+void fem_solid::setup_rebar()
+{
+    // Smeared bars of reinforced concrete materials. For bars along direction d
+    // the steel of every layer of a member (elements of one material and one body
+    // with the same lattice index along d) is placed in its skin: the elements
+    // within rskin of the member surface, seen across the bars (in 2D
+    // plane strain only within the plane). The steel volume of the layer is kept:
+    // local fraction = rs * (elements of the layer) / (skin elements of the layer).
+    bool any = false;
+    for(const material& mt : mats)
+    if(mt.type==MAT_CONCRETE && mt.reinforced())
+    any = true;
+    for(element& el : elems)
+    el.rs[0] = el.rs[1] = el.rs[2] = 0.0;
+    if(!any)
+    return;
+
+    auto key = [](int i,int j,int k,int mat){return std::make_tuple(i,j,k,mat);};
+    std::set<std::tuple<int,int,int,int>> occ;
+    for(const element& el : elems)
+    if(el.alive && !el.rigid && mats[el.mat].type==MAT_CONCRETE && mats[el.mat].reinforced())
+    occ.insert(key(el.ix,el.iy,el.iz,el.mat));
+
+    for(int d=0; d<3; ++d)
+    {
+        std::map<std::tuple<int,int,int>,std::pair<int,int>> layer;   // (body, material, index along d) -> (all, skin)
+        std::vector<char> skin(elems.size(),0);
+        for(size_t e=0; e<elems.size(); ++e)
+        {
+            const element& el = elems[e];
+            const material& mt = mats[el.mat];
+            if(!el.alive || el.rigid || mt.type!=MAT_CONCRETE || mt.rs[d]<=0.0)
+            continue;
+            const int idx[3] = {el.ix,el.iy,el.iz};
+            const double hl[3] = {hx,hy,hz};
+            bool sk = (mt.rskin==0.0);
+            for(int p=0; p<3 && !sk; ++p)
+            {
+                if(p==d || (plane_strain && p==1))
+                continue;
+                const int nl = mt.rskin<0.0 ? 1 : std::max(1,(int)std::lround(mt.rskin/hl[p]));
+                for(int s0=1; s0<=nl && !sk; ++s0)
+                for(int sg=-1; sg<=1 && !sk; sg+=2)
+                {
+                    int j[3] = {idx[0],idx[1],idx[2]};
+                    j[p] += sg*s0;
+                    if(!occ.count(key(j[0],j[1],j[2],el.mat)))
+                    sk = true;
+                }
+            }
+            skin[e] = sk;
+            auto& c = layer[std::make_tuple(body[el.n[0]],el.mat,idx[d])];
+            ++c.first;
+            if(sk) ++c.second;
+        }
+        for(size_t e=0; e<elems.size(); ++e)
+        if(skin[e])
+        {
+            element& el = elems[e];
+            const int idx[3] = {el.ix,el.iy,el.iz};
+            const auto& c = layer[std::make_tuple(body[el.n[0]],el.mat,idx[d])];
+            el.rs[d] = mats[el.mat].rs[d]*double(c.first)/double(std::max(1,c.second));
+        }
+    }
 }
 
 void fem_solid::add_box(double x0,double x1,double y0,double y1,double z0,double z1,int matid)
@@ -145,6 +224,7 @@ void fem_solid::build()
     build_surface();
     count_bodies();
     setup_rigid();
+    setup_rebar();
 
     // critical time step of the explicit scheme (hex8, lumped mass); rigid
     // bodies have no internal forces and only need the contact time step
@@ -157,7 +237,7 @@ void fem_solid::build()
         hmax = std::max(hmax,G.h);
         if(e.rigid)
         continue;
-        const double c = mats[e.mat].cp;
+        const double c = elem_cp(e);
         dtcrit = std::min(dtcrit, G.L/c);
         cp_contact = std::max(cp_contact,c);
     }
@@ -167,7 +247,7 @@ void fem_solid::build()
     for(const element& e : elems)
     if(!e.rigid)
     for(int a=0; a<8; ++a)
-    cnode[e.n[a]] = std::max(cnode[e.n[a]],mats[e.mat].cp);
+    cnode[e.n[a]] = std::max(cnode[e.n[a]],elem_cp(e));
 
     // rigid bodies: the impact (duration pi sqrt(M/k)) is resolved with at least
     // 20 time steps when a body can touch a wall, the ground, the bed or another
@@ -934,7 +1014,7 @@ void fem_solid::update_time_steps()
     dtcrit_el = 1.0e30;
     for(const element& e : elems)
     if(!e.rigid)
-    dtcrit_el = std::min(dtcrit_el, geom(e).L/mats[e.mat].cp);
+    dtcrit_el = std::min(dtcrit_el, geom(e).L/elem_cp(e));
     dtcrit_rig = 1.0e30;
     double Mmin = 1.0e300, kmax = 0.0;
     for(const rigid_body& rb : rbs)

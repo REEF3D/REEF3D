@@ -51,6 +51,9 @@ private:
     void topovel1(lexer*,ghostcell*,sediment_fdm*);
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
+    void face_closure(lexer*,double&,double&,double&,double&);
+    void qb_clear(lexer*,sediment_fdm*);
+    void dry_deposit(lexer*,sediment_fdm*);
     
     double ramp_dt(lexer*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
@@ -82,6 +85,8 @@ private:
     double tau_crit, shearvel_crit, shields_crit;
     
     slice4 q0;
+    
+    double maxvz_k=0.0;   // multi-fraction bed: max |vz| of the single fractions (time step)
 };
 
 #endif

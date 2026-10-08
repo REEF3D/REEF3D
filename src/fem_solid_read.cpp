@@ -158,6 +158,57 @@ void fem_solid::read(std::istream& is)
             add_material(mt);
             cur_mat = mt.id;
         }
+        else if(kw=="rebar" || kw=="reinforcement")
+        {
+            // rebar [B500A|B500B|B500C|GR60] [fy v] [E v] [H v] [eps_u v] [x r] [y r] [z r] [skin t | uniform]
+            // reinforcement of the last concrete material: r = steel volume fraction
+            // of the member for bars along x, y or z (As / Ac of the gross section,
+            // '1%' or 0.01); the bars lie in the skin of thickness t [m] (default: the
+            // outer element layer), 'uniform' spreads them over the section
+            if(cur_mat<0) fail("rebar: no material defined before");
+            material* mp = nullptr;
+            for(material& m0 : mats) if(m0.id==cur_mat) mp = &m0;
+            if(!mp || mp->type!=MAT_CONCRETE) fail("rebar: the last material must be concrete");
+            material mt = *mp;
+            if(!rebar_preset("B500B",mt)) fail("rebar: preset missing");
+            std::vector<std::string> tok;
+            std::string w;
+            while(ls>>w) tok.push_back(w);
+            auto num = [&](const std::string& t)->double
+            {
+                std::string u = t;
+                double sc = 1.0;
+                if(!u.empty() && u.back()=='%') {u.pop_back(); sc = 0.01;}
+                char* e = nullptr;
+                const double v = std::strtod(u.c_str(),&e);
+                if(!(e && *e=='\0') || u.empty()) fail("rebar: cannot read the number '"+t+"'");
+                return v*sc;
+            };
+            bool dir = false;
+            for(size_t q=0; q<tok.size(); ++q)
+            {
+                const std::string& k = tok[q];
+                if(q==0 && rebar_preset(k,mt)) continue;
+                if(k=="uniform") {mt.rskin = 0.0; continue;}
+                if(q+1>=tok.size()) fail("rebar: value missing for '"+k+"'");
+                const double v = num(tok[++q]);
+                if(k=="x" || k=="y" || k=="z")
+                {
+                    if(v<0.0 || v>0.2) fail("rebar: steel fraction must be between 0 and 20 %");
+                    mt.rs[k=="x" ? 0 : k=="y" ? 1 : 2] = v;
+                    dir = true;
+                }
+                else if(k=="fy") mt.sfy = v;
+                else if(k=="E") mt.sE = v;
+                else if(k=="H") mt.sH = v;
+                else if(k=="eps_u") mt.seu = v;
+                else if(k=="skin") {if(v<=0.0) fail("rebar: skin must be positive [m] (or 'uniform')"); mt.rskin = v;}
+                else fail("rebar: unknown parameter '"+k+"' (B500A B500B B500C GR60, fy E H eps_u, x y z, skin, uniform)");
+            }
+            if(!dir) fail("rebar: give the steel fraction of at least one direction (e.g. 'rebar B500B z 1.5%')");
+            if(mt.sfy<=0.0 || mt.sE<=0.0 || mt.sH<0.0 || mt.seu<0.0) fail("rebar: invalid steel constants");
+            add_material(mt);
+        }
         else if(kw=="box")
         {
             double a[6];

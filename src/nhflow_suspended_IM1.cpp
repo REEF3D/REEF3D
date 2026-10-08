@@ -263,11 +263,9 @@ void nhflow_suspended_IM1::fillconc(lexer* p, fdm_nhf *d, ghostcell *pgc, sedime
     
         if(p->DF[IJK]>0 && p->wet[IJ]==1)
         {
-            if(p->S61==1)
-            s->cb(i,j) = MAX(MIN(d->CONC[IJK],0.1),0.0);
-
-            if(p->S61==2)
-            s->cb(i,j) = Rouse_formula(p,d,s,d->CONC[IJK]);
+            // cell value at the level of cbe (bedconc_VR gives cbe at the first cell centre); no upper
+            // cap, the bed exchange in suspsource() uses the unclipped concentration
+            s->cb(i,j) = MAX(d->CONC[IJK],0.0);
         }
     }    
     pgc->gcsl_start4(p,s->cb,1);

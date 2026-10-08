@@ -54,7 +54,7 @@ public:
     // boundary conditions
     int *IO,*IOSL;
     int *DF,*DF1,*DF2,*DF3,*DFF;
-    int *DFBED;
+    int *DFBED=nullptr;   // sediment cell flag (2D), allocated in flagini() or, for SFLOW, by the sediment module
 
     bool i_dir,j_dir,k_dir;
     double x_dir,y_dir,z_dir;

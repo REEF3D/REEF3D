@@ -169,6 +169,35 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     
     ptopo = new sediment_exner(p,pgc);
     
+    // Exner formulations that do not conserve the bed volume
+    if(p->mpirank==0)
+    {
+        if(p->S31==3)
+        cout<<"WARNING S 31 3: advective Exner form sign(u)*dqb/dx, not conservative where the transport direction turns; use S 31 1 or 2"<<endl;
+        
+        if(p->S32==3 && p->S31==1)
+        cout<<"WARNING S 32 3 with S 31 1: advective (HJ) form, not conservative; use S 32 1, 2 or 4"<<endl;
+        
+        if(p->S32==5)
+        cout<<"WARNING S 32 5: WENO-HJ derivative, not conservative; use S 32 1, 2 or 4"<<endl;
+        
+        if(p->S61==2)
+        cout<<"NOTE S 61 2: the reference concentration is evaluated at the first cell centre (bedconc_VR), the near-bed concentration is taken there as well (S 61 1)"<<endl;
+        
+        if(p->S62==2 && p->A10!=5)
+        cout<<"WARNING S 62 2: the suspended flux qbs is only computed by NHFLOW, S 62 1 (exchange E - D in the Exner equation) is used"<<endl;
+        
+        if(p->S62==2 && p->A10==5 && p->S12>0)
+        cout<<"NOTE S 62 2: the bed sees div(qbs) while the suspended solver still exchanges E - D with the water column, suspended sediment is counted twice; S 62 1 is the conservative coupling"<<endl;
+        
+        if(p->S80>0 && p->S85==1)
+        cout<<"NOTE S 80 "<<p->S80<<" with S 85 1: the bed slope reduces the critical shear stress and scales the bedload (1-1.3 dz/ds), slope effect counted twice; S 85 0 uses the critical shear stress reduction only"<<endl;
+    }
+
+    // S 62 2 needs qbs, which only NHFLOW computes
+    if(p->S62==2 && p->A10!=5)
+    p->S62=1;
+    
     // Suspended Sediments
     // Suspended NHFLOW
     if(p->A10==5)

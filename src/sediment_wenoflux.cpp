@@ -43,40 +43,35 @@ sediment_wenoflux::~sediment_wenoflux()
 
 double sediment_wenoflux::sx(lexer *p, slice &f, double ivel1, double ivel2)
 {
+    // every interior face uses the WENO face value, from both sides, so the face flux is unique
+    // (conservative); only the domain boundary faces use the first-order upwind value.
+    // (The boundary cells used to switch both faces to FOU and average the face directions,
+    // so the face between the first two cells had two different fluxes.)
     grad=0.0;
     
-    if(i+p->origin_i==0 || i+p->origin_i>=p->gknox-1)
+    // face i-1/2
+    if(i+p->origin_i==0)
+    fu1 = ivel1>=0.0?f(i-1,j):f(i,j);
+    
+    if(i+p->origin_i>0)
     {
-        if(ivel1>=0.0)
-        fu1 = f(i-1,j);
-        
-        if(ivel1<0.0)
-        fu1 = f(i,j);
-        
-        if(ivel2>=0.0)
-        fu2 = f(i,j);
-        
-        if(ivel2<0.0)
-        fu2 = f(i+1,j);
-        
-    ivel1=ivel2=0.5*(ivel1+ivel2);
+    i-=1;
+    fu1 = ffx(p,f,ivel1);
+    i+=1;
     }
     
+    // face i+1/2
+    if(i+p->origin_i>=p->gknox-1)
+    fu2 = ivel2>=0.0?f(i,j):f(i+1,j);
     
-    if(i+p->origin_i > 0 && i+p->origin_i<p->gknox-1)
-    {
+    if(i+p->origin_i<p->gknox-1)
+    fu2 = ffx(p,f,ivel2);
     
-		i-=1;
-		fu1 = ffx(p,f,ivel1);
-		i+=1;
-		
-		fu2 = ffx(p,f,ivel2);
-    }
         if(p->S31==1)
         grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
         
         if(p->S31>=2)
-        grad = ((fu2-fu1)/p->DXN[IP]);
+        grad = ((fu2*(ivel2!=0.0?1.0:0.0) - fu1*(ivel1!=0.0?1.0:0.0))/p->DXN[IP]);
         
     return grad;
 }
@@ -85,37 +80,29 @@ double sediment_wenoflux::sy(lexer *p, slice &f, double jvel1, double jvel2)
 {
     grad=0.0;
     
-    if(j+p->origin_j==0 ||j+p->origin_j==p->gknoy-1)
+    // face j-1/2
+    if(j+p->origin_j==0)
+    fv1 = jvel1>=0.0?f(i,j-1):f(i,j);
+    
+    if(j+p->origin_j>0)
     {
-        if(jvel1>=0.0)
-        fv1 = f(i,j-1);
-        
-        if(jvel1<0.0)
-        fv1 = f(i,j);
-        
-        if(jvel2>=0.0)
-        fv2 = f(i,j);
-        
-        if(jvel2<0.0)
-        fv2 = f(i,j+1); 
-        
-    jvel1=jvel2=0.5*(jvel1+jvel2);
+    j-=1;
+    fv1 = ffy(p,f,jvel1);
+    j+=1;
     }
-      
-    if(j+p->origin_j>0 && j+p->origin_j<p->gknoy-1)
-    {
-		j-=1;
-		fv1 = ffy(p,f,jvel1);
-		j+=1;
-		
-		fv2 = ffy(p,f,jvel2);
-    }
+    
+    // face j+1/2
+    if(j+p->origin_j>=p->gknoy-1)
+    fv2 = jvel2>=0.0?f(i,j):f(i,j+1);
+    
+    if(j+p->origin_j<p->gknoy-1)
+    fv2 = ffy(p,f,jvel2);
         
         if(p->S31==1)
         grad = ((fv2*jvel2-fv1*jvel1)/p->DYN[JP]);
         
         if(p->S31>=2)
-        grad = ((fv2-fv1)/p->DYN[JP]);
+        grad = ((fv2*(jvel2!=0.0?1.0:0.0) - fv1*(jvel1!=0.0?1.0:0.0))/p->DYN[JP]);
 			  
     return grad;  
 }

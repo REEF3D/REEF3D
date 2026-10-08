@@ -41,6 +41,28 @@ namespace
     }
 }
 
+bool fem_solid::rebar_preset(const std::string& name_in,material& mt)
+{
+    // reinforcing steel, mean values like the concrete presets: f_y = 1.1 f_yk,
+    // tensile strength k f_y and rupture at the strain at maximum force eps_uk
+    // (EN 1992-1-1 Annex C; ASTM A615 Grade 60: f_yk 420 MPa, f_u / f_y 1.5, 9 %)
+    const std::string name = upper(name_in);
+    struct row {const char* n; double fyk, k, eu;};
+    static const row tab[] = {{"B500A",500,1.05,0.025},{"B500B",500,1.08,0.05},{"B500C",500,1.15,0.075},{"GR60",420,1.5,0.09}};
+    for(const row& r : tab)
+    if(name==r.n)
+    {
+        mt.sname = r.n;
+        mt.sE = 2.0e11;
+        mt.sfy = 1.1*r.fyk*1.0e6;
+        mt.seu = r.eu;
+        const double fu = r.k*mt.sfy;
+        mt.sH = (fu-mt.sfy)/(r.eu - fu/mt.sE);
+        return true;
+    }
+    return false;
+}
+
 bool fem_solid::preset(const std::string& type,const std::string& name_in,material& mt)
 {
     const std::string name = upper(name_in);
@@ -396,6 +418,7 @@ void fem_solid::update_utilisation()
     {
         element& el = elems[e];
         el.util = -1.0;
+        el.sutil = -1.0;
         if(!el.alive)
         continue;
 
@@ -433,6 +456,23 @@ void fem_solid::update_utilisation()
                 S = mt.lambda*Ee.trace()*I + 2.0*mt.mu*Ee;
             }
             else
+            if(mt.type==MAT_CONCRETE && mt.reinforced())
+            {
+                // reinforced concrete: unilateral damage as in stress()
+                const Mat3 S0 = mt.lambda*E.trace()*I + 2.0*mt.mu*E;
+                double dt = 0.0, dc = 0.0;
+                if(mt.ft>0.0) {const double e0 = mt.ft/mt.E; dt = damage_exp(st.kt,e0,0.5*e0 + mt.Gf/(mt.ft*G.h));}
+                if(mt.fc>0.0) {const double e0 = mt.fc/mt.E; dc = damage_exp(st.kc,e0,0.5*e0 + mt.Gc/(mt.fc*G.h));}
+                Eigen::SelfAdjointEigenSolver<Mat3> ev;
+                ev.computeDirect(S0,Eigen::ComputeEigenvectors);
+                S.setZero();
+                for(int i=0; i<3; ++i)
+                {
+                    const double si = ev.eigenvalues()(i);
+                    S += (si>0.0 ? (1.0-dt)*si : (1.0-dc)*si)*ev.eigenvectors().col(i)*ev.eigenvectors().col(i).transpose();
+                }
+            }
+            else
             S = (1.0-st.d)*(mt.lambda*E.trace()*I + 2.0*mt.mu*E);
 
             const Mat3 sig = F*S*F.transpose()/Jd;
@@ -452,9 +492,70 @@ void fem_solid::update_utilisation()
                 if(mt.ft>0.0) u = std::max(u, sp(2)/mt.ft);
                 if(mt.fc>0.0) u = std::max(u, -sp(0)/mt.fc);
             }
+
+            // bars: |sigma_s| / f_y (ruptured bars: 0)
+            if(el.reinforced() && mt.type==MAT_CONCRETE)
+            {
+                if(el.sutil<0.0) el.sutil = 0.0;
+                for(int k=0; k<3; ++k)
+                if(el.rs[k]>0.0 && !(st.sfail & (1u<<k)))
+                {
+                    const double ss = mt.sE*(E(k,k)-st.es[k]);
+                    el.sutil = std::max(el.sutil, std::fabs(ss)/mt.sfy);
+                }
+            }
         }
         el.util = u;
     }
+}
+
+double fem_solid::max_steel_utilisation(int* elem) const
+{
+    double u = -1.0;
+    int best = -1;
+    for(int e=0; e<nelem(); ++e)
+    if(elems[e].alive && elems[e].sutil>u)
+    {
+        u = elems[e].sutil;
+        best = e;
+    }
+    if(elem) *elem = best;
+    return u;
+}
+
+bool fem_solid::steel_yielded(int* elem) const
+{
+    for(int e=0; e<nelem(); ++e)
+    if(elems[e].reinforced())
+    for(int g=0; g<ngp; ++g)
+    {
+        const gpstate& st = gps[e*ngp+g];
+        if(std::fabs(st.es[0])+std::fabs(st.es[1])+std::fabs(st.es[2])>0.0)
+        {
+            if(elem) *elem = e;
+            return true;
+        }
+    }
+    return false;
+}
+
+int fem_solid::bars_ruptured() const
+{
+    int n = 0;
+    for(int e=0; e<nelem(); ++e)
+    if(elems[e].reinforced())
+    for(int g=0; g<ngp; ++g)
+    if(gps[e*ngp+g].sfail)
+    ++n;
+    return n;
+}
+
+bool fem_solid::any_reinforcement() const
+{
+    for(const element& el : elems)
+    if(el.reinforced())
+    return true;
+    return false;
 }
 
 double fem_solid::max_utilisation(int* elem) const

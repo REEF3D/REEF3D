@@ -1036,8 +1036,8 @@ void control::ini_default()
     S28=1;              // int use S21 in roughness BC
     S29=0;              // int sediment time step ramp up
     S30=0.047;          // double Shields parameter
-    S31=2;              // int type of Exner formulation
-    S32=1;              // int exner discretization
+    S31=2;              // int Exner formulation: 1 face flux qb*s_face, 2 upwinded cell flux vector qb*s (both conservative), 3 advective s*grad(qb) (not conservative)
+    S32=1;              // int Exner discretisation: 1 FOU, 2 CDS, 4 WENO flux (conservative); 3 CDS-HJ (not conservative with S 31 1), 5 WENO-HJ (not conservative)
     S33=0;              // int non-equillibrium bedload 
     S34=1;              // int type of suspedned load D and E calculation
     S35=1.0;            // double Exner magnification factor

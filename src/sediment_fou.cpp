@@ -51,8 +51,9 @@ double sediment_fou::sx(lexer *p, slice &f, double ivel1, double ivel2)
         if(p->S31==1)
         grad = ((fu2*ivel2-fu1*ivel1)/p->DXN[IP]);
         
+        // S 31 2/3: face value of the cell-centred flux component, closed faces (zero face direction) carry none
         if(p->S31>=2)
-        grad = ((fu2-fu1)/p->DXN[IP]);
+        grad = ((fu2*(ivel2!=0.0?1.0:0.0) - fu1*(ivel1!=0.0?1.0:0.0))/p->DXN[IP]);
         
     return grad;
 }
@@ -75,7 +76,7 @@ double sediment_fou::sy(lexer *p, slice &f, double jvel1, double jvel2)
         grad = ((fv2*jvel2-fv1*jvel1)/p->DYN[JP]);
         
         if(p->S31>=2)
-        grad = ((fv2-fv1)/p->DYN[JP]);
+        grad = ((fv2*(jvel2!=0.0?1.0:0.0) - fv1*(jvel1!=0.0?1.0:0.0))/p->DYN[JP]);
 			  
     return grad;  
 }

@@ -185,6 +185,10 @@ private:
         double t_fail = -1.0;
         fem_solid::Vec3 x_fail = fem_solid::Vec3::Zero();
         bool yielding = false;
+        double sutil = -1.0, t_sutil = 0.0;          // reinforcement
+        double t_syield = -1.0;
+        fem_solid::Vec3 x_syield = fem_solid::Vec3::Zero();
+        int nrupt = 0;
     } sm;
 
     double printtime;

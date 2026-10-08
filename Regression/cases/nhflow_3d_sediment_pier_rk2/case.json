@@ -1,0 +1,10 @@
+{
+ "base": "nhflow_3d_sediment_pier_mpi2",
+ "description": "As nhflow_3d_sediment_pier_mpi2 with the fully coupled NHFLOW RK2 sediment step (S 10 12, A 510 2): bed advanced in both RK stages of every flow step with dtsed = S 17 dt, S 31 1, one subdomain.",
+ "ctrl_set": {"S 10": "12", "S 31": "1"},
+ "ctrl_add": ["A 510 2"],
+ "np": 1,
+ "steps": 150,
+ "tags": ["3d", "nhflow", "sediment", "closed", "structure", "rk2"],
+ "covers": ["sediment_RK2 (dtsed = S 17 dt in both stages, roughness, S 41 start criterion)", "sediment_exner::start_RK", "topovel1"]
+}

@@ -1,0 +1,20 @@
+{
+ "description": "fnpf_3d_amr_tow with subcycling (G 7 1): the finest level advances the body (loads from the psi_0 solve of its patches), level 0 with a predicted copy, the zone margin widened to 12 level-0 cells, a regrid every 2 level-0 steps.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 12,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "subcycling"
+ ],
+ "covers": [
+  "fnpf_6DOF_sub: amr_sub_finest, amr_sub_predict, forces_level, sub_psi_edges"
+ ],
+ "base": "fnpf_3d_amr_tow",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

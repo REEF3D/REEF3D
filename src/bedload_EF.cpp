@@ -45,6 +45,8 @@ void bedload_EF::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 	
 	SEDSLICELOOP
     {
+        qb=0.0;   // also for a NaN shear stress, where neither branch below applies
+        
         Ts = s->shields_crit(i,j);
         Tb = s->shields_eff(i,j);
         

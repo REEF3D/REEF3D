@@ -1,0 +1,23 @@
+{
+ "description": "fnpf_3d_amr_basin_sub on 2 ranks with placed patches (G 40 1): remote parent columns in time, the window solve across ranks.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "subcycling",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "fnpf_amr_sub across ranks (gserve columns, block plans)"
+ ],
+ "base": "fnpf_3d_amr_basin",
+ "ctrl_add": [
+  "G 40 1",
+  "G 7 1"
+ ]
+}

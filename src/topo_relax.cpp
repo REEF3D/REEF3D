@@ -47,9 +47,15 @@ topo_relax::~topo_relax()
 
 void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    // S 73 zones: bed relaxed towards the zone level S73_val, transport quantities damped with r.
+    // Overlapping zones: blend weights w_n = (1 - d_n/sum(d))/(N-1), which sum to 1 for any N
+    // (the unnormalised weights summed to N-1), and the cell values are taken once before the
+    // zone loop (they used to be re-read after the first zone had set them to zero).
+	double relax,distot,wn,wsum;
+	double zhval,qbval,cbval,tauval,shearvelval,shieldsval;
+    double zhnew,qbnew,cbnew,taunew,shearvelnew,shieldsnew;
+    int distcount;
     
-	double relax,distot,distcount,zhval,qbval,cbval;
-	double tauval, shearvelval, shieldsval;
 	if(p->S73>0)
 	SLICELOOP4
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
@@ -62,52 +68,56 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 		
 			if(dist_S73[n]<p->S73_dist[n])
 			{
-			zhval = s->bedzh(i,j);
-            qbval = s->qbe(i,j);
-            cbval =  s->cbe(i,j);
-            tauval = s->tau_eff(i,j);
-            shearvelval = s->shearvel_eff(i,j);
-            shieldsval = s->shields_eff(i,j);
-			s->bedzh(i,j)=0.0;
-            s->qbe(i,j)=0.0;
-            s->cbe(i,j)=0.0;
-            s->tau_eff(i,j)=0.0;
-            s->shearvel_eff(i,j)=0.0;
-            s->shields_eff(i,j)=0.0;
 			distot += dist_S73[n];
 			++distcount;
 			}
 		}
+        
+        if(distcount>0)
+        {
+        zhval = s->bedzh(i,j);
+        qbval = s->qbe(i,j);
+        cbval = s->cbe(i,j);
+        tauval = s->tau_eff(i,j);
+        shearvelval = s->shearvel_eff(i,j);
+        shieldsval = s->shields_eff(i,j);
+        
+        zhnew=qbnew=cbnew=taunew=shearvelnew=shieldsnew=0.0;
+        wsum=0.0;
 		
-		for(n=0;n<p->S73;++n)
-		{
+            for(n=0;n<p->S73;++n)
             if(dist_S73[n]<p->S73_dist[n])
-			{
-			relax = r1(p,dist_S73[n],p->S73_dist[n]);
-			
-			if(distcount==1)
-			{
-			s->bedzh(i,j) += (1.0-relax)*p->S73_val[n] + relax*zhval;
-            s->qbe(i,j) +=  relax*qbval;
-            s->cbe(i,j) +=  relax*cbval;
-            s->tau_eff(i,j)=relax*tauval;
-            s->shearvel_eff(i,j)=relax*shearvelval;
-            s->shields_eff(i,j)=relax*shieldsval;
-			}
-			
-			
-			if(distcount>1)
-			{
-			s->bedzh(i,j) += ((1.0-relax)*p->S73_val[n] + relax*zhval) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            s->qbe(i,j) +=  relax*qbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            s->cbe(i,j) +=  relax*cbval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            s->tau_eff(i,j) +=  relax*tauval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            s->shearvel_eff(i,j) +=  relax*shearvelval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-            s->shields_eff(i,j) +=  relax*shieldsval * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-			}
-			
-			}
-		}
+            {
+            relax = r1(p,dist_S73[n],p->S73_dist[n]);
+            
+            wn = 1.0;
+            
+            if(distcount>1)
+            wn = (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20))/double(distcount-1);
+            
+            // all zones on top of each other (distot = 0): equal weights
+            if(distcount>1 && distot<=1.0e-10)
+            wn = 1.0/double(distcount);
+            
+            wsum += wn;
+            
+            zhnew += wn*((1.0-relax)*p->S73_val[n] + relax*zhval);
+            qbnew += wn*relax*qbval;
+            cbnew += wn*relax*cbval;
+            taunew += wn*relax*tauval;
+            shearvelnew += wn*relax*shearvelval;
+            shieldsnew += wn*relax*shieldsval;
+            }
+        
+        wsum = wsum>1.0e-20?wsum:1.0;
+        
+        s->bedzh(i,j) = zhnew/wsum;
+        s->qbe(i,j) = qbnew/wsum;
+        s->cbe(i,j) = cbnew/wsum;
+        s->tau_eff(i,j) = taunew/wsum;
+        s->shearvel_eff(i,j) = shearvelnew/wsum;
+        s->shields_eff(i,j) = shieldsnew/wsum;
+        }
     }
     
     
@@ -138,8 +148,11 @@ void topo_relax::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 double topo_relax::rf(lexer *p, ghostcell *pgc)
 {
-    double relax,distot,distcount;
+    // Exner rate factor, same zone weights as start() (val was reset inside the zone loop,
+    // so only the last overlapping zone counted)
+    double relax,distot,wn,wsum;
     double val=1.0;
+    int distcount;
     
         distot = 0.0;
 		distcount=0;
@@ -154,25 +167,32 @@ double topo_relax::rf(lexer *p, ghostcell *pgc)
 			}
 		}
 		
-		
-		for(n=0;n<p->S73;++n)
-		{
+        if(distcount>0)
+        {
+        val=0.0;
+        wsum=0.0;
+        
+            for(n=0;n<p->S73;++n)
             if(dist_S73[n]<p->S73_dist[n])
-			{
-            val=0.0;
-			relax = r1(p,dist_S73[n],p->S73_dist[n]);
-			
-			if(distcount==1)
-            val=(relax);
-                
-			if(distcount>1)
-            val += (relax) * (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20));
-
-			}
-		}
+            {
+            relax = r1(p,dist_S73[n],p->S73_dist[n]);
+            
+            wn = 1.0;
+            
+            if(distcount>1)
+            wn = (1.0 - dist_S73[n]/(distot>1.0e-10?distot:1.0e20))/double(distcount-1);
+            
+            if(distcount>1 && distot<=1.0e-10)
+            wn = 1.0/double(distcount);
+            
+            wsum += wn;
+            val += wn*relax;
+            }
+        
+        val = val/(wsum>1.0e-20?wsum:1.0);
+        }
         
     return val;
-    
 }
 
 double topo_relax::r1(lexer *p, double x, double threshold)

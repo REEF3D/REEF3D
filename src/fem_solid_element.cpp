@@ -167,7 +167,7 @@ double fem_solid::damage_exp(double kappa,double e0,double ef) const
     return 1.0 - e0/kappa*std::exp(-(kappa-e0)/(ef-e0));
 }
 
-void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed)
+void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed,const double* rs)
 {
     const Mat3 I = Mat3::Identity();
     const double J = F.determinant();
@@ -258,10 +258,69 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
             st.d = dnew;
         }
 
-        S = (1.0-st.d)*S0;
+        if(!rs)
+        {
+            S = (1.0-st.d)*S0;
+            if(st.d>=mt.derode)
+            failed = true;
+        }
+        else
+        {
+            // reinforced concrete (elements of a reinforced member, with or without
+            // bars): unilateral damage, the tension damage acts on the tensile
+            // principal stresses only, so cracks close again under compression
+            // (a cracked member still carries compression, the bars the tension).
+            // The cracked concrete keeps 1 % of its shear stiffness. Cracks alone
+            // do not break the member apart: an element fails when the concrete is
+            // crushed, or when it is cracked open beyond the rupture strain of the
+            // bars and its own bars (if any) have ruptured
+            Eigen::SelfAdjointEigenSolver<Mat3> ev;
+            ev.computeDirect(S0,Eigen::ComputeEigenvectors);
+            const Eigen::Vector3d sv = ev.eigenvalues();
+            const Mat3 V = ev.eigenvectors();
+            S.setZero();
+            for(int i=0; i<3; ++i)
+            {
+                const double si = sv(i)>0.0 ? (1.0-dt)*sv(i) : (1.0-dc)*sv(i);
+                S += si*V.col(i)*V.col(i).transpose();
+            }
+            const double r = std::max(0.0,0.01-(1.0-st.d))*2.0*mt.mu;
+            S(0,1) += r*E(0,1); S(1,0) += r*E(1,0);
+            S(1,2) += r*E(1,2); S(2,1) += r*E(2,1);
+            S(0,2) += r*E(0,2); S(2,0) += r*E(2,0);
 
-        if(st.d>=mt.derode)
-        failed = true;
+            // bars along the reference axes: 1D elastic-plastic, linear kinematic
+            // hardening, axial Green-Lagrange strain, perfect bond
+            bool intact = false;
+            for(int k=0; k<3; ++k)
+            {
+                if(rs[k]<=0.0 || (st.sfail & (1u<<k)))
+                continue;
+                const double eps = E(k,k);
+                if(mt.seu>0.0 && eps>=mt.seu)
+                {
+                    // rupture: the elastic energy of the bar is released
+                    const double se = mt.sE*(eps-st.es[k]);
+                    wdiss += w*rs[k]*0.5*se*se/mt.sE;
+                    st.sfail |= (unsigned char)(1u<<k);
+                    continue;
+                }
+                intact = true;
+                double sig = mt.sE*(eps-st.es[k]);
+                const double xi = sig - mt.sH*st.es[k];
+                const double f = std::fabs(xi) - mt.sfy;
+                if(f>0.0)
+                {
+                    const double dp = (xi>0.0 ? 1.0 : -1.0)*f/(mt.sE+mt.sH);
+                    st.es[k] += dp;
+                    sig -= mt.sE*dp;
+                    wdiss += w*rs[k]*(mt.sfy + 0.5*mt.sH*std::fabs(dp))*std::fabs(dp);
+                }
+                S(k,k) += rs[k]*sig;
+            }
+            if(dc>=mt.derode || (st.d>=mt.derode && st.kt>=mt.seu && !intact))
+            failed = true;
+        }
     }
 
     // first Piola-Kirchhoff stress
@@ -295,6 +354,7 @@ void fem_solid::internal_forces(double dts)
 
         const material& mt = mats[el.mat];
         const egeom& G = geom(el);
+        const bool reinf = el.reinforced();
 
         double xa[8][3], va[8][3];
         for(int a=0; a<8; ++a)
@@ -328,7 +388,7 @@ void fem_solid::internal_forces(double dts)
             double svm;
             bool failed;
             gpstate& st = gps[e*ngp+g];
-            stress(mt,st,F,Fd,G.h,w,P,svm,failed);
+            stress(mt,st,F,Fd,G.h,w,P,svm,failed,(mt.type==MAT_CONCRETE && mt.reinforced()) ? el.rs : nullptr);
 
             if(failed) ++nfail;
             svm_sum += svm;
@@ -358,7 +418,12 @@ void fem_solid::internal_forces(double dts)
         // hourglass modes of the current positions, rotation invariant
         if(ngp==1)
         {
-            const double k = hg_coef*(1.0-dmean)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0;
+            // reinforced member: at least 1 % of the concrete stiffness (as the shear of
+            // cracked concrete); the bars add none: within one element they have one
+            // strain, an elastic hourglass stiffness of the bars stiffened the plastic hinge
+            const double k = (mt.type==MAT_CONCRETE && mt.reinforced())
+                           ? hg_coef*std::max(1.0-dmean,0.01)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0
+                           : hg_coef*(1.0-dmean)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0;
 
             for(int al=0; al<4; ++al)
             {

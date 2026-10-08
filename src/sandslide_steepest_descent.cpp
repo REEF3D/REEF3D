@@ -142,7 +142,7 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
             
             // Accumulate flux (don't modify topo directly yet)
             fh(i,j) -= transfer;
-            fh(i_steep, j_steep) += transfer;
+            fh(i_steep, j_steep) += transfer*SLIDE_AR(i_steep-i,j_steep-j);
             
             if(s->pmix!=nullptr)
             s->pmix->slide_transfer(i,j,i_steep,j_steep,transfer);
@@ -158,11 +158,10 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
                                                         double& max_slope, double& dist_steep)
 {
     double z0 = zh(i,j);
-    double dx = 0.5*(p->DXN[IP] + p->DYN[JP]);
     max_slope = 0.0;
     i_steep = i;
     j_steep = j;
-    dist_steep = dx;
+    dist_steep = p->DXP[IP];
     
     // 8-connectivity: check all surrounding cells
     for(int di = -1; di <= 1; ++di)
@@ -171,13 +170,15 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
         {
             if((di == 0 && dj == 0)||p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
             continue;
+            
+            // no transfer into physical boundary ghost cells (lost) or across rows in 2D
+            if(!SLIDE_NB(di,dj))
+            continue;
                 
-            // Compute horizontal distance
-            double dist;
-            if(di != 0 && dj != 0)
-                dist = dx * sqrt(2.0);  // Diagonal: dx * sqrt(2)
-            else
-                dist = dx;              // Cardinal: dx
+            // distance between the cell centres (was 0.5*(dx+dy) and sqrt(2) of it: wrong for dx != dy)
+            double ddx = di<0?p->DXP[IM1]:(di>0?p->DXP[IP]:0.0);
+            double ddy = dj<0?p->DYP[JM1]:(dj>0?p->DYP[JP]:0.0);
+            double dist = sqrt(ddx*ddx + ddy*ddy);
                 
             // Elevation difference (positive means neighbor is lower)
             double dz = z0 - zh(i+di, j+dj);
