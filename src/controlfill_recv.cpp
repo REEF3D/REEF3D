@@ -5978,6 +5978,10 @@ void control::ctrlrecv()
     dd++;
     U21 = ictrl[ii];
     ii++;
+    U22 = ictrl[ii];
+    ii++;
+    U22_d = dctrl[dd];
+    dd++;
     U30 = ictrl[ii];
     ii++;
     U31 = dctrl[dd];

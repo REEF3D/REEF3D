@@ -103,6 +103,28 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
         exit(1);
     }
     
+    // U 22 end caps, snapped to grid nodes, from the face U 21 inwards
+    capx.clear();
+    
+    if(p->U21>0 && p->U22>0)
+    {
+        const int od = (p->U21-1)/2;
+        const double sgn = (p->U21-1)%2==1 ? -1.0 : 1.0;
+        
+        for(int k=0; k<p->U22; ++k)
+        {
+            const double xk = box[p->U21-1] + sgn*(p->U22>1 ? p->U22_d*double(k)/double(p->U22-1) : 0.0);
+            capx.push_back(snap(pgc,N[od],K[od],xk));
+        }
+        
+        if(capx.back()<=box[2*od] || capx.back()>=box[2*od+1])
+        {
+            if(p->mpirank==0)
+            std::cout<<"U 22: the end caps must lie inside the box U 20"<<std::endl;
+            exit(1);
+        }
+    }
+    
     box_faces(p,a,pgc);
     
     pfwh = new fwh_permeable(p->U11,rho0,dto);
@@ -152,7 +174,7 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     {
         std::cout<<"FW-H: "<<npan<<" panels, box "<<box[0]<<" "<<box[1]<<" "<<box[2]<<" "<<box[3]<<" "<<box[4]<<" "<<box[5]
-                 <<", open face "<<p->U21<<", observer dt "<<dto<<", mirror "<<p->U40<<" at z = "<<zfs<<std::endl;
+                 <<", open face "<<p->U21<<", end caps "<<capx.size()<<", observer dt "<<dto<<", mirror "<<p->U40<<" at z = "<<zfs<<std::endl;
         
         mkdir("./REEF3D_CFD_Acoustics",0777);
         
@@ -287,13 +309,31 @@ void acoustics_fwh::box_faces(lexer *p, fdm *a, ghostcell *pgc)
     
     fc.clear();
     
+    // planes of the surface: the box faces, or for the face U 21 the end caps
+    struct plane {int dir; double X, sgn, w;};
+    std::vector<plane> pl;
+    const int od = p->U21>0 ? (p->U21-1)/2 : -1;
+    const int os = p->U21>0 ? (p->U21-1)%2 : -1;
+    const double nc = double(capx.size());
+    
     for(int dir=0; dir<3; ++dir)
     for(int side=0; side<2; ++side)
     {
-        if(p->U21==2*dir+side+1)
-        continue;
+        const double sgn = side==0 ? -1.0 : 1.0;
         
-        const double X = box[2*dir+side];
+        if(p->U21==2*dir+side+1)
+        {
+            for(double xk : capx)
+            pl.push_back({dir,xk,sgn,1.0/nc});
+        }
+        else
+        pl.push_back({dir,box[2*dir+side],sgn,1.0});
+    }
+    
+    for(const plane &pn : pl)
+    {
+        const int dir = pn.dir;
+        const double X = pn.X;
         
         // the face belongs to the rank with the node in its range [0,K)
         int nd=-1;
@@ -315,6 +355,25 @@ void acoustics_fwh::box_faces(lexer *p, fdm *a, ghostcell *pgc)
             if(N[c][tc+marge]<box[2*c]-tol || N[c][tc+1+marge]>box[2*c+1]+tol)
             continue;
             
+            // side faces with end caps: fraction of the closed surfaces that contain the panel
+            double w = pn.w;
+            
+            if(nc>0.0 && dir!=od)
+            {
+                const int t = od==b ? tb : tc;
+                const double lo = N[od][t+marge], hi = N[od][t+1+marge];
+                int cnt=0;
+                
+                for(double xk : capx)
+                if(os==1 ? hi<=xk+tol : lo>=xk-tol)
+                ++cnt;
+                
+                w = double(cnt)/nc;
+            }
+            
+            if(w<=0.0)
+            continue;
+            
             int idx[3];
             idx[dir] = nd-1;
             idx[b] = tb;
@@ -325,11 +384,11 @@ void acoustics_fwh::box_faces(lexer *p, fdm *a, ghostcell *pgc)
             f.jj = idx[1];
             f.kk = idx[2];
             f.dir = dir;
-            f.sgn = side==0 ? -1.0 : 1.0;
+            f.sgn = pn.sgn;
             f.x[dir] = X;
             f.x[b] = P[b][tb+marge];
             f.x[c] = P[c][tc+marge];
-            f.dS = D[b][tb+marge]*D[c][tc+marge];
+            f.dS = w*D[b][tb+marge]*D[c][tc+marge];
             fc.push_back(f);
             
             // both cells must be fluid: no solid, no floating body, no air

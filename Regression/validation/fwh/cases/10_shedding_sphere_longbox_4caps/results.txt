@@ -1,0 +1,34 @@
+## FW-H vs own box-force dipole 25-50 s
+window 25.0..50.0: FW-H vs compact dipole of the own box force (fluctuations)
+      observer  ratio   corr rms diff/dipole
+    (0, 50, 0)  1.072  0.985           0.193
+    (0, 0, 50)  1.004  0.981           0.196
+    (50, 0, 0)  1.270  0.566           1.085
+   (0, -50, 0)  0.962  0.984           0.178
+
+## 4 averaged caps vs closed long box (09), same CFD
+window 25.0..50.0: variant vs closed box (fluctuations)
+      observer rms ratio   corr rms diff/closed
+    (0, 50, 0)     0.933  0.996           0.113
+    (0, 0, 50)     0.952  0.993           0.122
+    (50, 0, 0)     0.676  0.965           0.390
+   (0, -50, 0)     0.964  0.991           0.136
+
+## boxforce 25-50 s (weighted)
+window 25.0..50.0 s, 536 samples
+mean [N]   -Lp      -Lm      +V     -dM/dt |  F_fwh    F_box  | F REEF3D  (pressure part)
+  Fx   346.71   -56.69    0.41     4.82 |   294.83   295.24 |   204.52 (182.49)
+  Fy    -8.98    -7.24   -0.03    -0.78 |   -17.00   -17.03 |   -15.91 (-13.22)
+  Fz     1.68    -0.45    0.00    -0.59 |     0.65     0.65 |    -3.42 (-0.94)
+fluct. rms  F_fwh   F_box   F      fwh/F  box/F  corr(fwh,F)  rms(V)
+  Fx   2.739   2.715   2.083   1.315  1.303   0.991       0.064
+  Fy   7.457   7.587   6.457   1.155  1.175   0.997       0.172
+  Fz   6.440   6.504   5.468   1.178  1.189   0.997       0.104
+
+## FW-H vs Curle 25-50 s
+window 25.0..50.0 s, fluctuations (means removed)
+      observer   rms FW-H  rms Curle  ratio   corr rms diff/Curle
+    (0, 50, 0)  2.541e-04  2.052e-04  1.238  0.983          0.314
+    (0, 0, 50)  2.063e-04  1.740e-04  1.185  0.975          0.306
+    (50, 0, 0)  1.140e-04  6.641e-05  1.717  0.600          1.374
+   (0, -50, 0)  2.280e-04  2.052e-04  1.111  0.982          0.229

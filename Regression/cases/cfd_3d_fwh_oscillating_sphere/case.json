@@ -1,0 +1,22 @@
+{
+ "description": "3D permeable-surface FW-H (U 10) around a sphere in prescribed surge oscillation (6DOF motion file X 240, X 11 2 0 0 0 0 0), closed tank, single phase, sinh-stretched grid, 4 MPI ranks, N40=4 (loop_cfd). Observers near the box and outside the domain, image observers across z = 1.5 (U 40/41). Coarse version of Regression/validation/fwh 01.",
+ "np": 4,
+ "steps": 20,
+ "files": [
+  "floating.stl",
+  "6DOF_motion.dat"
+ ],
+ "tags": [
+  "3d",
+  "6dof",
+  "acoustics",
+  "mpi"
+ ],
+ "covers": [
+  "acoustics_fwh: box snapped to grid nodes, panels split over ranks, staggered sampling",
+  "fwh_permeable kernel: advanced time, image observers",
+  "REEF3D_CFD_Acoustics observer and Box.dat output",
+  "U keywords through read_control/controlfill",
+  "6DOF prescribed motion from file"
+ ]
+}

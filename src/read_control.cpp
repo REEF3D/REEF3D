@@ -3016,6 +3016,9 @@ void control::read_control(lexer* p)
                 case 21: control>>U21;
                          clear(c,numint);
                          break;
+                case 22: control>>U22>>U22_d;
+                         clear(c,numint);
+                         break;
                 case 30: ++U30;
                          clear(c,numint);
                          break;

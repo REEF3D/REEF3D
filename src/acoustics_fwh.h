@@ -36,7 +36,11 @@ class fwh_permeable;
 //  are cell faces: the normal velocity is the staggered velocity on the face, the pressure and
 //  the tangential velocities are averaged from the neighbour cells. Each face belongs to the rank
 //  of the cell above it (half-open node range), so no panel is counted twice. The face U 21 can
-//  be left open (end cap where the wake leaves the box).
+//  be left open (end cap where the wake leaves the box), or closed by U 22 n end caps spread
+//  over the distance U 22 d inwards from it, whose results are averaged (Shur, Spalart & Strelets
+//  2005). The surface integral is linear in the panels, so the average is one integral with
+//  weights: 1/n on each cap, on the side faces the fraction of the closed surfaces that contain
+//  the panel. The box integrals (Box.dat) are averaged the same way.
 //
 //  p' is the pressure without the hydrostatic part rho0 g.(x - x_fs), rho0 = W 1. The observers
 //  U 30 get image points across z = U 41 with weight -1 for U 40 1.
@@ -66,7 +70,7 @@ private:
         int dir;
         double sgn;     // normal +-1 along dir, out of the box
         double x[3];
-        double dS;
+        double dS;      // panel area times the end-cap weight
     };
     
     void ini(lexer*, fdm*, ghostcell*);
@@ -86,6 +90,7 @@ private:
     std::ofstream bout;
     
     double box[6];
+    std::vector<double> capx;           // positions of the U 22 end caps
     double zfs, rho0;
     double tprev;                       // first source time, for the default observer time step
     int nobs;

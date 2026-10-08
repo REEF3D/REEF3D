@@ -1,0 +1,17 @@
+## open end cap vs closed box A (same CFD), 25-50 s
+window 25.0..50.0: variant vs closed box (fluctuations)
+      observer rms ratio   corr rms diff/closed
+    (0, 50, 0)    93.855  0.046          93.814
+    (0, 0, 50)   110.985 -0.213         111.202
+    (50, 0, 0)   266.376  0.291         266.087
+   (0, -50, 0)    97.734 -0.086          97.825
+     (0, 3, 0)     4.259 -0.182           4.548
+     (0, 0, 3)     4.512 -0.283           4.890
+
+## FW-H vs Curle 25-50 s
+window 25.0..50.0 s, fluctuations (means removed)
+      observer   rms FW-H  rms Curle  ratio   corr rms diff/Curle
+    (0, 50, 0)  2.294e-02  2.052e-04 111.815  0.159        111.661
+    (0, 0, 50)  2.226e-02  1.740e-04 127.910 -0.205        128.118
+    (50, 0, 0)  2.265e-02  6.641e-05 341.133 -0.220        341.354
+   (0, -50, 0)  2.201e-02  2.052e-04 107.290 -0.094        107.388

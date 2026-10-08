@@ -1339,6 +1339,8 @@ void control::ini_default()
     U11=1500.0;     // double speed of sound [m/s]
     U20_xs=U20_xe=U20_ys=U20_ye=U20_zs=U20_ze=0.0;  // double permeable box, snapped to the nearest grid nodes
     U21=0;          // int open face of the box (end cap): 0 none, 1 xs, 2 xe, 3 ys, 4 ye, 5 zs, 6 ze
+    U22=0;          // int end caps averaged on the face U 21 (Shur et al. 2005), 0: face open
+    U22_d=0.0;      // double distance over which the U 22 end caps are spread inwards from the face U 21
     U30=0;          // int number of observers (counted in read_control)
     U31=0.0;        // double observer sampling interval [s], 0: first time step
     U32=0.0;        // double start time of the sampling [s]

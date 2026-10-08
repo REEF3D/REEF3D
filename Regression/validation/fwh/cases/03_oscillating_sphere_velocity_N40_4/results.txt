@@ -1,0 +1,6 @@
+u_x on the x axis: sin coefficient vs potential flow X0 w a^3/r^3; p: cos coefficient (minus probe at theta=90) vs rho a^3 X0 w^2/(2 r^2)
+    r      u an     u CFD  ratio     p an    p CFD  ratio
+ 0.15   0.01862   0.03055  1.641   8.7730   7.4879  0.854
+ 0.20   0.00785   0.01155  1.471   4.9348   3.9816  0.807
+ 0.30   0.00233   0.00315  1.352   2.1932   1.6953  0.773
+ 0.50   0.00050   0.00064  1.270   0.7896   0.5946  0.753

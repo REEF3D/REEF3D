@@ -138,6 +138,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_ship_box_current` | 2 | ship held in a current: discharge inflow, hull turned by 180 deg (X 101), friction from the velocity relative to the current |
 | `cfd_3d_ship_box_propeller` | 2 | ship module in CFD: box barge in a two-phase tank, actuator disk on the staggered velocity points (water part outside the hull, exact T and Q), velocity sampling, SSP-RK3 |
 | `fnpf_3d_ship_box_hybrid` | 2 | ship module in FNPF: box in head waves, six DOFs, hybrid MMG (mmg_fluid 2, Munk moment out of N'v), approach phase from rest, propeller inflow sampled from the FNPF velocity, FNPF psi_0 = chi (body-following time derivative), X 17 relaxation of eta next to the footprint |
+| `cfd_3d_fwh_oscillating_sphere` | 4 | FW-H acoustics (U 10): permeable box on grid nodes over 4 ranks, sphere in prescribed surge (X 240), loop_cfd, image observers (U 40/41), REEF3D_CFD_Acoustics output incl. Box.dat |
+| `cfd_3d_fwh_sphere_endcaps` | 4 | FW-H around a fixed sphere in an inflow, df loop (N40=14), downstream face closed by 3 averaged end caps (U 21 2, U 22 3 0.8) |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, the broken wall becomes a rigid fragment (`fragments rigid`), debris, ground and part contact |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
@@ -308,6 +310,10 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
 - Runs use few steps on coarse grids: they test that code paths give the same numbers, not that
   the physics is right. Cases with an analytical or reference solution are in `Validation/`.
 - A run fails on NaN/Inf in the per-step norms, a non-zero exit code, a timeout or a missing dump.
+
+## Validation
+
+`validation/fwh/`: long FW-H validation runs (oscillating and vortex-shedding sphere, box-size independence, end caps) with inputs, analysis scripts and results; see its README.
 
 ## Unit tests
 

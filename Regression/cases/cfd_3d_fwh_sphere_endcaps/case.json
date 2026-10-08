@@ -1,0 +1,20 @@
+{
+ "description": "3D permeable-surface FW-H around a fixed sphere (6DOF, all DOFs fixed) in a uniform inflow (B 60 1), single phase, Re = 500, N40=14 (loop_cfd_df), 4 MPI ranks. Downstream face closed by 3 averaged end caps (U 21 2, U 22 3 0.8, Shur et al. 2005). Coarse version of Regression/validation/fwh 10.",
+ "np": 4,
+ "steps": 20,
+ "files": [
+  "../cfd_3d_heave_sphere_6dof/floating.stl"
+ ],
+ "tags": [
+  "3d",
+  "6dof",
+  "acoustics",
+  "inflow",
+  "mpi"
+ ],
+ "covers": [
+  "acoustics_fwh in the direct-forcing loop (driver_loop_cfd_df)",
+  "U 21/U 22 end caps as panel weights",
+  "box integrals with viscous traction (Box.dat)"
+ ]
+}
