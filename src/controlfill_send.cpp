@@ -861,6 +861,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = B523;
     ii++;
+    ictrl[ii] = B505;
+    ii++;
     ictrl[ii] = B513;
     ii++;
     ictrl[ii] = B525;
@@ -3158,6 +3160,14 @@ void control::ctrlsend()
         ictrl[ii] = B523_id[n];
         ii++;
         ictrl[ii] = B523_bg[n];
+        ii++;
+    }
+
+    for(n=0;n<B505;++n)
+    {
+        ictrl[ii] = B505_id[n];
+        ii++;
+        ictrl[ii] = B505_frame[n];
         ii++;
     }
 

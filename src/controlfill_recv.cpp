@@ -857,6 +857,8 @@ void control::ctrlrecv()
     ii++;
     B523 = ictrl[ii];
     ii++;
+    B505 = ictrl[ii];
+    ii++;
     B513 = ictrl[ii];
     ii++;
     B525 = ictrl[ii];
@@ -3056,6 +3058,12 @@ void control::ctrlrecv()
         Iarray(B523_bg,B523);
     }
 
+    if(B505>0)
+    {
+        Iarray(B505_id,B505);
+        Iarray(B505_frame,B505);
+    }
+
     if(B513>0)
     {
         Iarray(B513_id,B513);
@@ -4431,6 +4439,14 @@ void control::ctrlrecv()
         B523_id[n] = ictrl[ii];
         ii++;
         B523_bg[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n=0;n<B505;++n)
+    {
+        B505_id[n] = ictrl[ii];
+        ii++;
+        B505_frame[n] = ictrl[ii];
         ii++;
     }
 

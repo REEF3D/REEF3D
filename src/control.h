@@ -175,6 +175,8 @@ public:
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
     int *B514_id; double *B514_eta0,*B514_U,*B514_V;
     int *B523_id,*B523_bg;
+    int B505;
+    int *B505_id,*B505_frame;    // iowave: frame of a wave source (B 505 id frame; 0: B 92 generation frame, 1: global)
     int B513;
     int *B513_id,*B513_profile; double *B513_par;    // iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     int B525;

@@ -42,6 +42,9 @@ Input (ctrl.txt, repeatable; read with the other keys into lexer, control.h):
   B 500 id type H T                 source id (>= 2), B 92 type, H (Hs), T (Tp)
   B 501 id dir phase ts te t_ramp   direction and phase [deg], time window and ramp [s]
   B 502 id x0 y0                    origin in the legacy generation frame [m]
+  B 505 id frame                    0: direction (B 501) and origin (B 502) in the generation
+                                    frame of the B 92 wave (B 105, default); 1: in the global
+                                    frame (direction from the x axis, origin in domain coordinates)
   B 504 id seed                     random phases of an irregular source
 Spectrum shape, spreading and depth are taken from the B 8x / B 13x / B 94
 input of the legacy source.

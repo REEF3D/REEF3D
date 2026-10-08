@@ -431,6 +431,7 @@ void control::ini_default()
     B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
     B525=0;        // int iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
     B513=0;          // int iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
+    B505=0;          // int iowave: frame of a wave source (B 505 id frame; 0: B 92 generation frame, 1: global)
     B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
     B530=-1;       // int iowave redesign: waves on the background, 1: on h_eff, 2: h_eff + Doppler, -1: auto (2 with a current, 1 with a level only)
     B530_N=10;     // int iowave redesign: k update interval [steps] of B 530

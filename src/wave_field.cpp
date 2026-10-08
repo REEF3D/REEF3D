@@ -160,6 +160,36 @@ void wave_field::read(lexer *p, ghostcell *pgc)
         s->seed = p->B504_seed[n];
     }
     
+    for(int n=0; n<p->B505; ++n)
+    {
+        wave_source *s = find(p->B505_id[n]);
+        if(s==nullptr)
+        fail("B 505 refers to source "+std::to_string(p->B505_id[n])+", which has no B 500");
+        if(p->B505_frame[n]!=0 && p->B505_frame[n]!=1)
+        fail("B 505 frame is 0 (B 92 generation frame) or 1 (global frame)");
+        
+        s->global = p->B505_frame[n]==1;
+    }
+    
+    // global frame (B 505 id 1): direction and origin given in domain coordinates; turned into
+    // the generation frame of the B 92 wave (B 105 angle, origin), in which the sources are
+    // evaluated, so the evaluation stays the same for both frames
+    for(wave_source *s : src)
+    if(s->global)
+    {
+        const double g  = p->B105_1*(3.14159265358979323846/180.0);
+        const double dx = s->x0 - p->B105_2;
+        const double dy = s->y0 - p->B105_3;
+        
+        s->dir_in = s->rot;
+        s->x0_in = s->x0;
+        s->y0_in = s->y0;
+        
+        s->rot = s->rot - p->B105_1;
+        s->x0 =  dx*cos(g) + dy*sin(g);
+        s->y0 = -dx*sin(g) + dy*cos(g);
+    }
+    
     for(wave_source *s : src)
     {
         const double r = s->rot*(3.14159265358979323846/180.0);
@@ -269,7 +299,11 @@ void wave_field::log(lexer *p)
     for(wave_source *s : src)
     {
         std::cout<<"  B 500 "<<s->id<<" "<<s->type<<" "<<s->H<<" "<<s->T<<std::endl;
-        std::cout<<"  B 501 "<<s->id<<" "<<s->rot<<" "<<s->phase<<" "<<s->ts<<" "<<s->te<<" "<<s->t_ramp<<std::endl;
+        std::cout<<"  B 501 "<<s->id<<" "<<(s->global?s->dir_in:s->rot)<<" "<<s->phase<<" "<<s->ts<<" "<<s->te<<" "<<s->t_ramp<<std::endl;
+        if(s->global)
+        std::cout<<"  B 502 "<<s->id<<" "<<s->x0_in<<" "<<s->y0_in<<std::endl
+                 <<"  B 505 "<<s->id<<" 1      (global frame; in the B 92 frame: direction "<<s->rot<<", origin "<<s->x0<<" "<<s->y0<<")"<<std::endl;
+        else
         if(s->x0!=0.0 || s->y0!=0.0)
         std::cout<<"  B 502 "<<s->id<<" "<<s->x0<<" "<<s->y0<<std::endl;
         if(s->seed>0)

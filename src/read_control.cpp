@@ -1112,6 +1112,9 @@ void control::read_control(lexer* p)
               case 523: ++B523;
                          clear(c,numint);
                          break;
+              case 505: ++B505;
+                         clear(c,numint);
+                         break;
               case 513: ++B513;
                          clear(c,numint);
                          break;
@@ -3714,6 +3717,8 @@ void control::read_control(lexer* p)
     Darray(B515_href,B515);
     Iarray(B523_id,B523);
     Iarray(B523_bg,B523);
+    Iarray(B505_id,B505);
+    Iarray(B505_frame,B505);
     Iarray(B513_id,B513);
     Iarray(B513_profile,B513);
     Darray(B513_par,B513);
@@ -4517,6 +4522,7 @@ void control::read_control(lexer* p)
     int countB514=0;
     int countB515=0;
     int countB523=0;
+    int countB505=0;
     int countB513=0;
     int countB525=0;
     int countB210=0;
@@ -4799,6 +4805,10 @@ void control::read_control(lexer* p)
                          break;
                 case 523: control>>B523_id[countB523]>>B523_bg[countB523];
                          ++countB523;
+                         clear(c,numint);
+                         break;
+                case 505: control>>B505_id[countB505]>>B505_frame[countB505];
+                         ++countB505;
                          clear(c,numint);
                          break;
                 case 513: control>>B513_id[countB513]>>B513_profile[countB513]>>B513_par[countB513];
