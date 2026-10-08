@@ -79,16 +79,16 @@ void CPM::dispersion(lexer *p, double xp, double yp, double zp, double &dx, doub
     if(p->Q52!=1)
     return;
     
-    double K = MAX(0.0, p->ccipol4a(Kt,xp,yp,zp));
+    double K = MAX(0.0, cip4a(p,Kt,xp,yp,zp));
     
     if(K<=0.0)
     return;
     
     double sd = sqrt(2.0*K*dt);
     
-    dx = p->ccipol4a(dKx,xp,yp,zp)*dt + sd*gauss(rng);
-    dz = p->ccipol4a(dKz,xp,yp,zp)*dt + sd*gauss(rng);
+    dx = cip4a(p,dKx,xp,yp,zp)*dt + sd*gauss(rng);
+    dz = cip4a(p,dKz,xp,yp,zp)*dt + sd*gauss(rng);
     
     if(p->j_dir==1)
-    dy = p->ccipol4a(dKy,xp,yp,zp)*dt + sd*gauss(rng);
+    dy = cip4a(p,dKy,xp,yp,zp)*dt + sd*gauss(rng);
 }

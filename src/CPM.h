@@ -164,6 +164,17 @@ private:
     
     turbulence *pturb_=nullptr;   // turbulence model of the last call of move (bed shear stress of the layer, Q 68)
     
+    // interpolation of the cell-centred fields with the stencils of the last two points (WP9), as ccipol4a
+    struct stencil
+    {
+        bool ok=false;
+        double x=0.0,y=0.0,z=0.0,wa=0.0,wb=0.0,wc=0.0;
+        int i=0,j=0,k=0;
+    };
+    stencil st[2];
+    int st_last=0;
+    double cip4a(lexer*, field&, double, double, double);
+    
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
     void kernel(lexer*, double, double, double);

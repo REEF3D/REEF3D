@@ -2303,6 +2303,7 @@
           <File Name="CPM_count.cpp"/>
           <File Name="CPM_boundcheck.cpp"/>
           <File Name="CPM_gradient.cpp"/>
+          <File Name="CPM_ipol.cpp"/>
           <File Name="CPM_vollfrac.cpp"/>
           <File Name="CPM_limiter.cpp"/>
           <File Name="CPM_state.cpp"/>

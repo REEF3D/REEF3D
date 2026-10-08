@@ -438,7 +438,7 @@ void CPM::stress_yield(lexer *p, ghostcell *pgc)
 // jam weight of the yield (Q 67): 1 within the yield (Yr <= 0.95), 0 at Yr >= 1.05, smooth in between
 double CPM::yield_weight(lexer *p, double xp, double yp, double zp)
 {
-    double yr = p->ccipol4a(Yr,xp,yp,zp);
+    double yr = cip4a(p,Yr,xp,yp,zp);
     
     if(yr<=0.95)
     return 1.0;
@@ -482,9 +482,9 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
     
     // contact normal: bed normal at the surface, gravity inside the bed
-    double gx = p->ccipol4a(dSx,xp,yp,zp);
-    double gy = p->j_dir==1 ? p->ccipol4a(dSy,xp,yp,zp) : 0.0;
-    double gz = p->ccipol4a(dSz,xp,yp,zp);
+    double gx = cip4a(p,dSx,xp,yp,zp);
+    double gy = p->j_dir==1 ? cip4a(p,dSy,xp,yp,zp) : 0.0;
+    double gz = cip4a(p,dSz,xp,yp,zp);
     double gr = sqrt(gx*gx + gy*gy + gz*gz);
     
     double w = MIN(1.0, gr*h/(0.5*theta_0));
@@ -530,26 +530,26 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     }
     else
     {
-        Tsub = p->ccipol4a(Ts,xs,ys,zs);
+        Tsub = cip4a(p,Ts,xs,ys,zs);
         
         if(Tsub<theta_bed)
         return;
         
-        Usub = p->ccipol4a(Us,xs,ys,zs);
-        Vsub = p->j_dir==1 ? p->ccipol4a(Vs,xs,ys,zs) : 0.0;
-        Wsub = p->ccipol4a(Ws,xs,ys,zs);
+        Usub = cip4a(p,Us,xs,ys,zs);
+        Vsub = p->j_dir==1 ? cip4a(p,Vs,xs,ys,zs) : 0.0;
+        Wsub = cip4a(p,Ws,xs,ys,zs);
     }
     
     // a grain resting on a packed substrate or a wall: see the static friction below
-    bool packed = wall || Tsub >= p->ccipol4a(T0e,xs,ys,zs) - 0.05;
+    bool packed = wall || Tsub >= cip4a(p,T0e,xs,ys,zs) - 0.05;
     
     // normal load per unit mass: support by the contact network
-    double Tsp = MAX(p->ccipol4a(Ts,xp,yp,zp),theta_bed);
-    double dTe = p->ccipol4a(dTx,xp,yp,zp)*ex + (p->j_dir==1?p->ccipol4a(dTy,xp,yp,zp)*ey:0.0) + p->ccipol4a(dTz,xp,yp,zp)*ez;
+    double Tsp = MAX(cip4a(p,Ts,xp,yp,zp),theta_bed);
+    double dTe = cip4a(p,dTx,xp,yp,zp)*ex + (p->j_dir==1?cip4a(p,dTy,xp,yp,zp)*ey:0.0) + cip4a(p,dTz,xp,yp,zp)*ez;
     
     // (the same solid fraction as for the stress force on the parcel in advec_mppic, MAX(Ts, 0.5 theta_bed):
     // with MAX(Ts, theta_bed) the grains in the dilute surface cells of a slope had up to half the normal load)
-    double aN = MAX(dTe,0.0)/(MAX(p->ccipol4a(Ts,xp,yp,zp),0.5*theta_bed)*p->S22);
+    double aN = MAX(dTe,0.0)/(MAX(cip4a(p,Ts,xp,yp,zp),0.5*theta_bed)*p->S22);
     
     if(aN<1.0e-12)
     return;
@@ -590,7 +590,7 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
         // inside the packed bed (own cell packed as well) the sticking grain is jammed:
         // it moves with its substrate, also no drift away from it (the stress gradient
         // balances gravity only on average over a cell, near the bottom with the ghost cells)
-        if(packed && p->ccipol4a(Ts,xp,yp,zp) >= p->ccipol4a(T0e,xp,yp,zp) - 0.05)
+        if(packed && cip4a(p,Ts,xp,yp,zp) >= cip4a(p,T0e,xp,yp,zp) - 0.05)
         {
             up = Usub;
             vp = Vsub;
@@ -600,7 +600,7 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     }
     
     // kinetic friction, mu(I) with I = d50 gamma / sqrt(P/rho_p)
-    double Peff = MAX(p->ccipol4a(Tau,xp,yp,zp), (p->S22-p->W1)*gmag*Tsp*p->S20);
+    double Peff = MAX(cip4a(p,Tau,xp,yp,zp), (p->S22-p->W1)*gmag*Tsp*p->S20);
     double gamma = smag/h;
     double I = p->S20*gamma/sqrt(Peff/p->S22);
     double mu = mu_s + (mu_2-mu_s)/(I0/MAX(I,1.0e-10) + 1.0);

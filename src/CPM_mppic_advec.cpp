@@ -38,9 +38,9 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
                         double &F, double &G, double &H, double dt)
 {
     // fluid pressure gradient
-    dPx_val = p->ccipol4a(dPx,PX[n],PY[n],PZ[n]);
-    dPy_val = p->j_dir==1 ? p->ccipol4a(dPy,PX[n],PY[n],PZ[n]) : 0.0;
-    dPz_val = p->ccipol4a(dPz,PX[n],PY[n],PZ[n]);
+    dPx_val = cip4a(p,dPx,PX[n],PY[n],PZ[n]);
+    dPy_val = p->j_dir==1 ? cip4a(p,dPy,PX[n],PY[n],PZ[n]) : 0.0;
+    dPz_val = cip4a(p,dPz,PX[n],PY[n],PZ[n]);
 
     // gravity
     Bx = p->W20;
@@ -101,7 +101,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // two-way coupling, S 10 2 (porous bed): interstitial velocity u/eps
     if(p->Q50==1 && p->S10==2)
     {
-        double eps = MAX(1.0-p->ccipol4a(Ts,PX[n],PY[n],PZ[n]), 1.0-theta_max);
+        double eps = MAX(1.0-cip4a(p,Ts,PX[n],PY[n],PZ[n]), 1.0-theta_max);
         eps = MIN(eps,1.0);
         uf/=eps;
         vf/=eps;
@@ -117,7 +117,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     Vrel = vf-PV[n];
     Wrel = wf-PW[n];
     
-    Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
+    Tsval = cip4a(p,Ts,PX[n],PY[n],PZ[n]);
     
     // drag coefficient
     Dpx = drag_model(p,P.D[n],P.RO[n],sqrt(Urel*Urel + Vrel*Vrel + Wrel*Wrel),Tsval);
@@ -131,9 +131,9 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // inter-particle normal stress
     if(p->Q12>0)
     {
-    dTx_val = p->ccipol4a(dTx,PX[n],PY[n],PZ[n]);
-    dTy_val = p->j_dir==1 ? p->ccipol4a(dTy,PX[n],PY[n],PZ[n]) : 0.0;
-    dTz_val = p->ccipol4a(dTz,PX[n],PY[n],PZ[n]);
+    dTx_val = cip4a(p,dTx,PX[n],PY[n],PZ[n]);
+    dTy_val = p->j_dir==1 ? cip4a(p,dTy,PX[n],PY[n],PZ[n]) : 0.0;
+    dTz_val = cip4a(p,dTz,PX[n],PY[n],PZ[n]);
     
     double Tdiv = P.RO[n]*MAX(Tsval, 0.5*theta_bed);
     
@@ -186,11 +186,11 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         // ratio of the overburden with and without the seepage: none below 5 %, full above 30 %
         if(p->Q69>0 && Hjam>0.0)
         {
-            double pn = p->ccipol4a(Pnos,PX[n],PY[n],PZ[n]);
+            double pn = cip4a(p,Pnos,PX[n],PY[n],PZ[n]);
             
             if(pn>1.0e-12)
             {
-                double r = p->ccipol4a(Pov,PX[n],PY[n],PZ[n])/pn;
+                double r = cip4a(p,Pov,PX[n],PY[n],PZ[n])/pn;
                 Hjam *= MAX(0.0, MIN(1.0, (r-0.05)/0.25));
             }
         }
@@ -257,9 +257,9 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
     double delta = -topo;
     
     // pore water with the grains
-    double ug = p->ccipol4a(Us,xp,yp,zp);
-    double vg = p->j_dir==1 ? p->ccipol4a(Vs,xp,yp,zp) : 0.0;
-    double wg = p->ccipol4a(Ws,xp,yp,zp);
+    double ug = cip4a(p,Us,xp,yp,zp);
+    double vg = p->j_dir==1 ? cip4a(p,Vs,xp,yp,zp) : 0.0;
+    double wg = cip4a(p,Ws,xp,yp,zp);
     
     nb_ug=ug; nb_vg=vg; nb_wg=wg;
     
