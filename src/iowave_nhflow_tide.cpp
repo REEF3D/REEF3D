@@ -628,9 +628,13 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
             // background over the columns where this source generates waves
             double se=0.0, su=0.0, sv=0.0;
             int nc=0;
+            int bprof=-1;   // a background with a vertical profile (B 513)
             
             auto add = [&](int b)
             {
+                if(bgs.profiled(b))
+                bprof = b;
+                
                 double u, v;
                 se += bgs.eta(b,p->XP[IP],p->YP[JP]);
                 bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],u,v);
@@ -717,11 +721,36 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
                         const double dir = (p->B105_1 + rot)*(PI/180.0) + b;
                         const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
                         double k;
+                        double ueff = un;
+                        bool ok = doppler_k(om,h,un,g,k);
                         
-                        if(doppler_k(om,h,un,g,k))
+                        // current with a vertical profile (B 513): the wave sees the current weighted
+                        // with its own kinematics, U_eff = U_n (2k / sinh(2kh)) int_0^h f(z) cosh(2kz) dz
+                        // (Stewart & Joy 1974), solved together with k
+                        if(ok && bprof>=0 && un!=0.0)
+                        for(int it=0; it<20; ++it)
+                        {
+                            const double ue = un*bg_kweight(bprof,k,h);
+                            double kn;
+                            
+                            if(!doppler_k(om,h,ue,g,kn))
+                            {
+                            ok = false;
+                            break;
+                            }
+                            
+                            const bool conv = fabs(kn-k)<=1.0e-12*kn;
+                            k = kn;
+                            ueff = ue;
+                            
+                            if(conv)
+                            break;
+                        }
+                        
+                        if(ok)
                         {
                             s.k1[m] = k;
-                            s.u1[m] = un;
+                            s.u1[m] = ueff;
                             s.a1[m] = 1.0;
                         }
                         else
@@ -907,4 +936,29 @@ double iowave::bg_prof(lexer *p, int b, double h)
     }
     
     return s>0.0 ? fk/s : 1.0;
+}
+
+// weight of a profiled current for a wave of wavenumber k on the depth h (B 513 with B 530):
+// (2k / sinh(2kh)) int_0^h f(z) cosh(2kz) dz with the profile f (depth mean 1); 1 for a uniform current
+double iowave::bg_kweight(int b, double k, double h)
+{
+    const int M = 400;
+    const double kh2 = 2.0*k*h;
+    
+    if(kh2<1.0e-8)
+    return 1.0;
+    
+    double s = 0.0;
+    
+    for(int q=0; q<=M; ++q)
+    {
+        const double zeta = double(q)/double(M);
+        const double w = (q==0 || q==M) ? 1.0 : (q%2==1 ? 4.0 : 2.0);
+        // cosh(2k z) / sinh(2k h), z = zeta h, without overflow
+        const double c = (exp(kh2*(zeta-1.0)) + exp(-kh2*(zeta+1.0)))/(1.0 - exp(-2.0*kh2));
+        s += w*bgs.shape(b,zeta,h)*c;
+    }
+    
+    // int_0^h dz = h int_0^1 dzeta (Simpson), times 2k
+    return 2.0*k*h*s/(3.0*double(M));
 }
