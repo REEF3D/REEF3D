@@ -309,6 +309,7 @@ private:
     std::vector<wave_bg_state> wbg;
     int wbg_count=-1;
     void nhflow_wave_background(lexer*,ghostcell*);
+    void b530_auto(lexer*);
 
     int intriangle(lexer*,double,double,double,double,double,double,double,double);
     

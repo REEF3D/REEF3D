@@ -270,3 +270,24 @@ void background_state::vel(int k, double h, double x, double y, double &u, doubl
     u = b.r*b.U + et*c*cos(b.dir);
     v = b.r*b.V + et*c*sin(b.dir);
 }
+
+bool background_state::carries_current(int b) const
+{
+    if(b<0)
+    return false;
+    
+    const item &it = bg[b];
+    
+    // a tide or a time series always drives a current (long wave or file U, V)
+    return it.mode==1 || it.mode==2 || it.U!=0.0 || it.V!=0.0;
+}
+
+bool background_state::carries_level(int b) const
+{
+    if(b<0)
+    return false;
+    
+    const item &it = bg[b];
+    
+    return it.mode==1 || it.mode==2 || it.eta0!=0.0;
+}

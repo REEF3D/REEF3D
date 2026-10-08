@@ -293,3 +293,52 @@ void iowave::zones_check(lexer *p)
         exit(1);
     }
 }
+
+// B 530 not given (-1): waves on the background with Doppler whenever a zone's background
+// carries a current, on h_eff when it only sets a level; off without a background, without
+// waves, or for wave types that do not support it
+void iowave::b530_auto(lexer *p)
+{
+    if(p->B530>=0)
+    return;
+    
+    int mode = 0;
+    
+    if(zones.has_background() && p->A10==5)
+    for(const std::vector<bc_zone> *v : {&zones.relax, &zones.beach, &zones.edges})
+    for(const bc_zone &z : *v)
+    {
+        const int b = z.bg>0 ? bgs.index(z.bg) : -1;
+        
+        if(bgs.carries_current(b))
+        mode = 2;
+        
+        if(mode==0 && bgs.carries_level(b))
+        mode = 1;
+    }
+    
+    bool waves=false, ok=true;
+    
+    for(int n=0; n<wave_nsources(); ++n)
+    {
+        int id, type;
+        double rot;
+        const wave_lib *lib = wave_source_lib(n,id,type,rot);
+        
+        if(n==0 && type==0)
+        continue;
+        
+        waves = true;
+        
+        if(lib==nullptr || lib->wave_ncomp()==0)
+        ok = false;
+    }
+    
+    if(mode>0 && waves && !ok && p->mpirank==0)
+    cout<<"iowave: waves on the background (B 530) stay off: the wave type does not support it (linear 2 and irregular 31 do)"<<endl;
+    
+    p->B530 = (waves && ok) ? mode : 0;
+    
+    if(p->B530>0 && p->mpirank==0)
+    cout<<"iowave: waves on the background (B 530 "<<p->B530<<" "<<p->B530_N<<", default with a background "<<(p->B530==2?"current":"level")<<")"<<endl;
+}

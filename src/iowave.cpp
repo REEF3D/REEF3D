@@ -165,6 +165,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 
     zones = bc_zone_set::from_legacy(p,pgc);
     bgs.read(p);
+    b530_auto(p);
     zones_check(p);
     
     // tidal / current background (NHFLOW)

@@ -43,7 +43,9 @@ background_state: tidal / current background of the boundary zones
   B 530 mode N                 waves on the background (iowave, linear and irregular waves): every N steps
                                k of each source from the background of its zones,
                                mode 1: on h_eff = h + eta_b, 2: h_eff and Doppler
-                               omega = sigma + k U_n (iowave_nhflow_tide.cpp)
+                               omega = sigma + k U_n (iowave_nhflow_tide.cpp); 0: off.
+                               Without B 530: mode 2 if a zone's background carries a
+                               current, 1 if it only sets a level, N = 10
 
   eta_b = r(t) eta0 + eta_t,   eta_t = r(t) sum a cos(2 pi t/T - phase - k s)  (mode 1)
                                      = r(t) eta_file(t - s/c)                  (mode 2)
@@ -64,6 +66,8 @@ public:
     int index(int) const;                   // of a background id; -1: none
     
     double eta(int b, double x, double y) const;
+    bool carries_current(int b) const;      // tide, time series or constant U, V != 0
+    bool carries_level(int b) const;        // tide, time series or constant eta0 != 0
     void vel(int b, double h, double x, double y, double &u, double &v) const;   // depth averaged
     
 private:
