@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<functional>
+#include<memory>
 #include<cstdint>
 
 class lexer;
@@ -190,6 +191,11 @@ public:
     // and second-order geographic fluxes (A 796 2)
     void sparsity(double e_) {eps = e_;}
     void geographic_order(int o) {order2 = (o==2);}
+    void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
+
+    // threads per rank (A 798): the cells of a quadrant sweep in wavefront order, the cells of one
+    // diagonal i+j = const at the same time (level 0 without refinement, not the surfbeat model)
+    void threads(int n) {nthreads = std::max(n,1);}
 
     // mesh refinement, composite sweep: solve the one cell (i,j) for quadrant q
     void solve(lexer*, fdm_seastate*, int q, int ci, int cj, const seastate_store *N0, double rdt,
@@ -200,8 +206,12 @@ public:
 
 private:
 
-    void cell(lexer*, fdm_seastate*, int q, const float *N0, double rdt,
+    void cell(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
               const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+
+    void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
+                       const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+    int nthreads = 1;
 
     void cell_surfbeat(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction);
@@ -218,6 +228,7 @@ private:
     vector<double> P, D;                // source terms of the cell (src != nullptr)
     vector<double> Ar;                  // sig/sinh(2kd) of the cell per frequency
     vector<double> qc, qs, cur;         // cos, sin and current shear term per direction of the quadrant
+    vector<double> rth;                 // 1/dth per direction of the quadrant
     vector<double> tAp, tCp, tAm, tCm;  // c_theta = A tA + tC at the faces m+1/2 (p) and m-1/2 (m)
     vector<double> csg;                 // c_sigma per frequency and direction of the quadrant (nsig x ndir)
     vector<float> zero;                 // zero spectrum (no inflow)
@@ -229,16 +240,26 @@ private:
     // spectral sparsity
     double eps = 0.0;
     bool order2 = false;
+    int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
+    double srctol = 0.0;                // ... until the relative energy change of the cell is below this
     vector<int> wlo, whi;               // window of directions solved per frequency (quadrant index)
     vector<double> thr;                 // threshold per frequency (action density)
-    vector<uint16_t> rg;                // active ranges per cell, quadrant, frequency
-    vector<uint16_t> rv;                // per cell: 1 ranges set, 2 triads active, 4<<q quadrant q holds energy,
+    // the active ranges are shared with the copies of the solver that work the threads (A 798)
+    struct shared_ranges
+    {
+    vector<uint16_t> rg, rv, rb;
+    int rni = 0, rnj = 0, rimin = 0, rjmin = 0;
+    };
+    std::shared_ptr<shared_ranges> sr = std::make_shared<shared_ranges>();
+    vector<uint16_t> &rg = sr->rg;      // active ranges per cell, quadrant, frequency
+    vector<uint16_t> &rv = sr->rv;      // per cell: 1 ranges set, 2 triads active, 4<<q quadrant q holds energy,
                                         // 64<<2q / 128<<2q energy in the first / last direction of quadrant q
     void summary(int ci, int cj, int q, const uint16_t *r);
     vector<double> rsum;                // row sums of the active ranges
-    vector<uint16_t> rb;                // per cell and quadrant: band of frequencies with energy (lo<<8 | hi)
+    vector<float> Nsit;                 // source iterations: the spectrum of the cell before the last solve
+    vector<uint16_t> &rb = sr->rb;      // per cell and quadrant: band of frequencies with energy (lo<<8 | hi)
     int lmin = 0, lmax = -1;            // band of the windows of the current cell
-    int rni = 0, rnj = 0, rimin = 0, rjmin = 0;
+    int &rni = sr->rni, &rnj = sr->rnj, &rimin = sr->rimin, &rjmin = sr->rjmin;
     std::function<void(int,int)> *vis = nullptr;
     double energy(const seastate_grid&, const float *N) const;
     bool managed(lexer*, fdm_seastate*, int ci, int cj) const;

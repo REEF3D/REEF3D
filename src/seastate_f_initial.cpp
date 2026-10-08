@@ -104,7 +104,7 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
     double mw = std::fmod(main,2.0*pi);
     if(mw<0.0)
     mw += 2.0*pi;
-    const int mmain = int(std::lround(mw/g.dtheta))%g.ndir;
+    const int mmain = g.direction_bin(mw);
 
     N.assign(g.nbin,0.0f);
     std::vector<double> D(g.ndir);
@@ -135,7 +135,7 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
             if(!(D[m]>0.0))
             D[m] = 0.0;
 
-            sum += D[m]*g.dtheta;
+            sum += D[m]*g.dth[m];
             }
 
         p->B131 = b131;
@@ -146,7 +146,7 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
         {
         std::fill(D.begin(),D.end(),0.0);
         D[mmain] = 1.0;
-        sum = g.dtheta;
+        sum = g.dth[mmain];
         }
 
         for(int m=0; m<g.ndir; ++m)

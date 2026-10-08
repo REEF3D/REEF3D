@@ -244,8 +244,19 @@ static inline double rowsum(const float *v, int n)
 // sums over the directions per frequency of N (rows), kept for the next moments() of the same spectrum
 void seastate_source::rows(const float *N) const
 {
+    if(g.uniform)
     for(int l=0; l<nsig; ++l)
     row[l] = rowsum(N+g.bin(l,0),ndir);
+    else
+    for(int l=0; l<nsig; ++l)
+    {
+    // fine direction sector (A 715): N dth/dtheta
+    const float *Nl = N+g.bin(l,0);
+    double s = 0.0;
+    for(int m=0; m<ndir; ++m)
+    s += double(Nl[m])*g.wth[m];
+    row[l] = s;
+    }
     rows_ready = true;
 }
 

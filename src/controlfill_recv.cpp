@@ -658,6 +658,20 @@ void control::ctrlrecv()
     ii++;
     A797 = ictrl[ii];
     ii++;
+    A738 = ictrl[ii];
+    ii++;
+    A715_th1 = dctrl[dd];
+    dd++;
+    A715_th2 = dctrl[dd];
+    dd++;
+    A715_k = ictrl[ii];
+    ii++;
+    A739 = dctrl[dd];
+    dd++;
+    A798 = ictrl[ii];
+    ii++;
+    A799 = ictrl[ii];
+    ii++;
 
     B10 = ictrl[ii];
     ii++;

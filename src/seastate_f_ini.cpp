@@ -123,6 +123,9 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     psolv = new seastate_implicit(p,e);
     psolv->sparsity(p->A795);
     psolv->geographic_order(p->A796);
+    psolv->threads(p->A798);
+    if(p->A700==2)
+    psolv->source_iterations(p->A738,p->A739);
 
     if(sb!=nullptr)
     psolv->boundary_rows(&Nbx,&Nbx0);
@@ -326,6 +329,18 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 796 2: not with the surfbeat model (its advection is set by A 775)";
     else if(p->A797!=0 && p->A797!=1)
     msg = "A 797: the sweeps with mesh refinement must be 0 (level by level) or 1 (composite)";
+    else if(p->A715_k<1)
+    msg = "A 715: the division of the sector directions must be at least 1";
+    else if(p->A715_k>1 && p->A770==1)
+    msg = "A 715: the fine direction sector is not available with the surfbeat model (A 770 1)";
+    else if(p->A715_k>1 && p->A732==1 && p->A733==1)
+    msg = "A 715: the DIA quadruplets (A 733 1) need uniform directions";
+    else if(p->A738<1 || !(p->A739>=0.0))
+    msg = "A 738, A 739: at least one source iteration, the tolerance must not be negative";
+    else if(p->A798<1)
+    msg = "A 798: at least one thread per rank";
+    else if(p->A799!=0 && p->A799!=1)
+    msg = "A 799: the convergence test must be 0 (change per iteration) or 1 (estimated distance to the solution)";
 
     if(msg!=nullptr)
     {
@@ -401,7 +416,29 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     e->grid = new seastate_grid(1.0/trep,p->A703);
     }
     else
+    {
     e->grid = new seastate_grid(p->A701,p->A702_fmin,p->A702_fmax,p->A703);
+
+        // fine direction sector (A 715)
+        if(p->A715_k>1 && e->grid->valid())
+        e->grid->sector(p->A715_th1*3.14159265358979323846/180.0,p->A715_th2*3.14159265358979323846/180.0,p->A715_k);
+    }
+
+    // spectral sparsity (A 795): the ranges of directions are stored in one byte each
+    if(p->A795>0.0 && e->grid->valid())
+    {
+    int nq[4] = {0,0,0,0};
+    for(int m=0; m<e->grid->ndir; ++m)
+    ++nq[e->grid->quad[m]];
+
+        if(std::max(std::max(nq[0],nq[1]),std::max(nq[2],nq[3]))>250)
+        {
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  A 795: the spectral sparsity allows at most 250 directions per quadrant (A 703, A 715)"<<endl<<endl;
+
+        pgc->final(true);
+        }
+    }
 
     if(!e->grid->valid())
     {
@@ -442,7 +479,10 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     const seastate_grid &g = *e->grid;
 
     cout<<endl<<"SEASTATE grid: "<<g.nsig<<" frequencies "<<fixed<<setprecision(3)<<g.fmin<<" - "<<g.fmax<<" Hz (ratio "<<setprecision(4)<<g.ratio<<"), "
-        <<g.ndir<<" directions ("<<setprecision(2)<<g.dtheta*180.0/3.14159265358979323846<<" deg), "<<g.nbin<<" bins"<<endl;
+        <<g.ndir<<" directions ("<<setprecision(2)<<g.dtheta*180.0/3.14159265358979323846<<" deg";
+    if(!g.uniform)
+    cout<<", fine sector "<<p->A715_th1<<" to "<<p->A715_th2<<" deg divided by "<<p->A715_k;
+    cout<<"), "<<g.nbin<<" bins"<<endl;
 
     cout<<"SEASTATE storage: active cells "<<long(cells_active)<<" of "<<p->cellnumtot2D
         <<", allocated cells (incl. ghost cells) "<<long(cells_alloc)
@@ -459,6 +499,14 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A795>0.0) cout<<" spectral sparsity (A 795, threshold "<<scientific<<setprecision(1)<<p->A795<<defaultfloat<<setprecision(6)<<" of the cell energy per bin)";
     if(p->A796==2) cout<<(p->A795>0.0 ? "," : "")<<" second-order geographic advection (A 796 2)";
     if(p->A797==1 && p->G1>0) cout<<(p->A795>0.0 || p->A796==2 ? "," : "")<<" composite sweep across the refinement levels (A 797 1)";
+    cout<<endl;
+    }
+    if(p->A798>1 || (p->A700==2 && (p->A738>1 || p->A799==1)))
+    {
+    cout<<"SEASTATE solver (Phase 7b):";
+    if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->G1>0 || p->A770==1 ? ", not used with mesh refinement or surfbeat" : "");
+    if(p->A700==2 && p->A738>1) cout<<(p->A798>1 ? "," : "")<<" up to "<<p->A738<<" source iterations per cell, tolerance "<<scientific<<setprecision(1)<<p->A739<<defaultfloat<<setprecision(6)<<" (A 738, A 739)";
+    if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
     cout<<endl;
     }
     if(p->A720==1)

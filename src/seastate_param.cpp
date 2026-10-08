@@ -44,7 +44,7 @@ void seastate_param::compute(const seastate_grid &g, const float *N)
 
         for(int m=0; m<g.ndir; ++m)
         {
-        const double E = sig*double(N[g.bin(l,m)]);
+        const double E = sig*double(N[g.bin(l,m)])*g.wth[m];
         e1 += E;
         ec += E*g.costh[m];
         es += E*g.sinth[m];
