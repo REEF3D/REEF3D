@@ -63,8 +63,9 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // default coupling of a flexible membrane: iterated. The staggered scheme gives the fabric an extra inertia
     // ~ rho R_n dt per area, so its dynamics depend on the time step; it stays available as 'coupling staggered'
+    // (mobility sharp: staggered, see below)
     if(prm.coupling<0)
-    prm.coupling = prm.structure==2 ? 1 : 0;
+    prm.coupling = (prm.structure==2 && prm.link!=2) ? 1 : 0;
     
     if(prm.coupling==1 && prm.structure!=2 && p->mpirank==0)
     cout<<"Membrane "<<nMem<<": coupling iterated applies to flexible membranes only, ignored"<<endl;
@@ -98,14 +99,28 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             MPI_Abort(pgc->mpi_comm,1);
         }
         
-        // a flexible membrane gets its loads from the pressure jumps alone, without the implicit damping of a layer:
-        // the staggered coupling of the light fabric with the water is unstable (added mass); not implemented
+        // a flexible membrane gets its loads from the pressure jumps alone, without the implicit damping of a layer.
+        // Staggered coupling with an added mass in the structure step (advance_structure): the light fabric is
+        // integrated with the inertia m + m_a against the load of the last fluid step (added-mass instability of the
+        // explicit coupling for m_a = 0)
         if(prm.structure==2)
         {
+            if(prm.ma<0.0)
+            {
+                // the water around the bag (L) and the inner water column above the floor (H): the floor of a closed
+                // bag carries the inner water (Strand et al. cage: m_a = 2 rho (0.38 + 0.6) m; 2 rho R alone oscillated
+                // up at the floor with a growth factor of -1.45 per step, i.e. an added mass of ~1100 kg/m^2)
+                const double L = prm.shape>=2 ? prm.R : 0.5*(p->j_dir==1 ? MIN(prm.x1-prm.x0,prm.y1-prm.y0) : prm.x1-prm.x0);
+                const double H = MAX(0.0, p->wd - prm.zb);
+                prm.ma = 2.0*p->W1*(L + H);
+            }
+            
+            if(prm.smooth<0)
+            prm.smooth = 2;
+            
             if(p->mpirank==0)
-            cout<<"\n!!! X 330 membrane "<<nMem<<": mobility sharp is for fixed and rigid membranes, a flexible one needs "
-                <<"the layer or link mode !!!\n"<<endl;
-            MPI_Abort(pgc->mpi_comm,1);
+            cout<<"Membrane "<<nMem<<": mobility sharp, flexible: staggered coupling with an added mass of "<<prm.ma<<" kg/m^2"
+                <<", geometry of the fluid smoothed with "<<prm.smooth<<" passes"<<endl;
         }
         
         if(prm.structure==1 && p->mpirank==0)
@@ -168,8 +183,20 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // node of the structure receives loads from the cells of the layer
     // strong coupling: elements as large as the coupling layer (1.5 delta); shorter structural modes are not seen by the
     // smeared layer, are nearly free and make the coupled fixed point slow to converge (3D: 7 instead of > 100 iterations)
+    // mobility sharp, moving: the largest horizontal cell size (the loads come from the links between cell centres)
+    double hhmax=0.0;
+    for(i=0; i<p->knox; ++i)
+    hhmax = MAX(hhmax, p->DXN[IP]);
+    if(p->j_dir==1)
+    for(j=0; j<p->knoy; ++j)
+    hhmax = MAX(hhmax, p->DYN[JP]);
+    hhmax = pgc->globalmax(hhmax);
+    
     if(prm.h<=0.0)
-    prm.h = iterated() ? 1.5*delta : (moving() ? dmax : hmin);
+    prm.h = iterated() ? 1.5*delta : (moving() ? (prm.link==2 ? hhmax : dmax) : hmin);
+    
+    // hysteresis of the sides of a moving sharp membrane
+    hyst_ = 0.02*hmin;
 
     // link mode: the map has to reach the end points of every link that crosses the membrane
     rmap_ = prm.link>=1 ? MAX(delta, 1.01*dmax) : delta;
@@ -261,7 +288,8 @@ void net_membrane::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ts<<"# membrane "<<nMem<<" "<<prm.name<<"  delta "<<delta<<"  Rn "<<prm.Rn<<"  Rt "<<prm.Rt<<"  Afloor "<<Afloor<<"\n";
         ts<<"# time  eta_in  eta_out  dh  Q_leak[m3/s]  Fx  Fy  Fz  Fz_floor  Fz_floor_hydrostatic(-rho g dh A)  max|u_n,rel|_layer  max|U|  water_volume"
             <<"  Fx_body  Fy_body  Fz_body  floor_z_mean  floor_z_min  max|u_node|  max_tension[N/m]"
-            <<(iterated() ? "  coupling_iterations  coupling_residual" : "");
+            <<(iterated() ? "  coupling_iterations  coupling_residual" : "")
+            <<(prm.link==2 ? "  water_volume_inside" : "");
         
         if(collar())
         {
@@ -1056,6 +1084,9 @@ void net_membrane::reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
     else
     if(prm.structure==2 && finalize)
     {
+        // the structure works on its own geometry (not the smoothed one of the fluid)
+        restore_geometry();
+        
         sample_collar(p,d,pgc);
         advance_structure(p,p->dt);
         update_geometry();
@@ -1206,6 +1237,8 @@ void net_membrane::kinematics_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(!moving())
     return;
     
+    restore_geometry();
+    
     if(body_)
     for(size_t q=0; q<x_.size(); ++q)
     if(prm.structure==1 || att_[q])
@@ -1214,8 +1247,78 @@ void net_membrane::kinematics_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         xdot_[q] = body_velocity(x_[q]);
     }
     
+    // mobility sharp, flexible: the fluid sees the membrane with its displacement smoothed at the scale of the mesh
+    smooth_geometry();
+    
     update_geometry();
     floor_geometry(p);
+}
+
+void net_membrane::smooth_geometry()
+{
+    // displacement d = x - x0 and velocity of the free nodes, smooth passes d_i <- (d_i + mean_j d_j)/2 (removes the mode
+    // of wavelength two elements, keeps the rest shape): folds and wrinkles at the scale of a cell would split the sharp
+    // walls into pockets; the structure keeps its own positions (restore_geometry before its step)
+    if(prm.link!=2 || prm.structure!=2 || prm.smooth<=0)
+    return;
+    
+    const size_t nn = x_.size();
+    
+    if(nbr_.empty())
+    {
+        nbr_.assign(nn,vector<int>());
+        for(const auto &e : edge_)
+        {
+            nbr_[e[0]].push_back(e[1]);
+            nbr_[e[1]].push_back(e[0]);
+        }
+    }
+    
+    xst_ = x_;
+    vst_ = xdot_;
+    fluidgeo_ = true;
+    
+    vector<Eigen::Vector3d> dx(nn);
+    
+    for(size_t q=0; q<nn; ++q)
+    dx[q] = x_[q] - x0_[q];
+    
+    for(int it=0; it<prm.smooth; ++it)
+    {
+        vector<Eigen::Vector3d> dn = dx, wn = xdot_;
+        
+        for(size_t q=0; q<nn; ++q)
+        if(!att_[q] && !nbr_[q].empty())
+        {
+            Eigen::Vector3d md = Eigen::Vector3d::Zero(), mw = Eigen::Vector3d::Zero();
+            
+            for(int r : nbr_[q])
+            {
+                md += dx[r];
+                mw += xdot_[r];
+            }
+            
+            dn[q] = 0.5*(dx[q] + md/double(nbr_[q].size()));
+            wn[q] = 0.5*(xdot_[q] + mw/double(nbr_[q].size()));
+        }
+        
+        dx = dn;
+        xdot_ = wn;
+    }
+    
+    for(size_t q=0; q<nn; ++q)
+    x_[q] = x0_[q] + dx[q];
+}
+
+void net_membrane::restore_geometry()
+{
+    if(!fluidgeo_)
+    return;
+    
+    x_ = xst_;
+    xdot_ = vst_;
+    fluidgeo_ = false;
+    update_geometry();
 }
 
 void net_membrane::floor_geometry(lexer *p)

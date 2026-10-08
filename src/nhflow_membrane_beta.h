@@ -229,6 +229,17 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
     const double bX = d->thinbody!=nullptr ? MIN(bF,MIN(MIN(MIN(bn,bs),MIN(bw,be)),MIN(bt,bb))) : bF;
     
     d->rhsvec.V[n] = rhs0 + bX*(d->rhsvec.V[n] - rhs0);
+    
+    // sharp thin bodies: a node control volume enclosed by the body on all sides (a fold of a flexible membrane, a
+    // corner pocket) has no open link; its divergence is scaled with the largest link mobility, so that the near
+    // singular row does not turn the wall fluxes of the pocket into a pressure spike (no change for open nodes)
+    if(d->thinbody!=nullptr)
+    {
+        const double bmx = MAX(MAX(MAX(bn,bs),MAX(bw,be)),MAX(bt,bb));
+        
+        if(bmx<1.0)
+        d->rhsvec.V[n] *= bmx;
+    }
 }
 
 // face correction velocities dU_f of the projection with the total pressure P (after the correction),
