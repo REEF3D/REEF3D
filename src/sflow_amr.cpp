@@ -234,14 +234,9 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // subcycling (G 7 1, sflow_amr_sub.cpp): hydrostatic, non-hydrostatic (A 220 1-3: level solves
     // and synchronisation projections) and Boussinesq (A 220 4: u_a per level), sflow_amr_subnh.cpp;
-    // not with the moving body
+    // the moving body (X 10 2/3) on the patches linear in time within the level-0 step
+    // (sflow_amr_ship.cpp)
     sub = (p->G7==1) ? 1 : 0;
-    if(sub==1 && shipmode>0)
-    {
-        if(p->mpirank==0)
-        cout<<"SFLOW AMR: G 7 1 (subcycling) not with a moving body -- one time step for all levels"<<endl;
-        sub = 0;
-    }
 
     // hierarchy: rank boxes, tiles, level-0 flags, no-refinement cells
     setup(p,pgc);

@@ -36,7 +36,8 @@ Architect: Hans Bihs
 //  Subcycling in time (G 7 1): Berger-Oliger with refluxing.  The non-hydrostatic pressure (A 220
 //  1-3) and the Boussinesq u_a (A 220 4) of a level-l stage are solved over the level-l patches,
 //  the synchronisation adds a projection (A 220 1-3) or rebuilds u_a (A 220 4) after the refluxing
-//  (sflow_amr_subnh.cpp, sflow_amr_bous.cpp).
+//  (sflow_amr_subnh.cpp, sflow_amr_bous.cpp); a moving body (X 10 2/3) is taken linear in time
+//  within the level-0 step (sflow_amr_ship.cpp).
 //
 //  Level 0 takes its RK3 step alone (sflow_momentum_RK3::start, the patches are not touched in
 //  the stage hooks).  Its faces next to a patch keep their own flux; hll_hook sums it over the
@@ -161,6 +162,9 @@ void sflow_amr::sub_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     sub_creg_reset(-1);
     hstage = 0;
 
+    // moving body: the level-0 body at the start of the step (sflow_amr_ship.cpp)
+    if(shipmode>0)
+    ship_save(sh_old);
     ++sub_steps[0];
 
     tm[2] += MPI_Wtime()-t0;
@@ -170,6 +174,8 @@ void sflow_amr::sub_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_amr::sub_end(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     const double t = p->simtime, dt = p->dt;
+    sub_t0 = t;
+    sub_dt0 = dt;
 
     // A 220 1-3: the level-0 rows changed (level solves: rebuild its multigrid once), the residual
     // of level 0 at the end of its own step
@@ -220,6 +226,12 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         tint = 0.5*(double(k)+rkc[s]);
         fill_level(pgc,l,s);
         tint = -1.0;
+
+        // moving body at the stage time: X 10 3 its pressure once per step, X 10 2 every stage
+        if(shipmode==3 && s==0)
+        ship_level(l,t,true);
+        if(shipmode==2)
+        ship_level(l,t+rkc[s]*dt,false);
 
         // start state of the step (with the filled cells) for the fills of the finer level
         if(s==0 && l<maxlev)

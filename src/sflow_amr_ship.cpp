@@ -166,10 +166,12 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
     const int i0 = pp->imin, i1 = pp->imin+pp->imax;
     const int j0 = pp->jmin, j1 = pp->jmin+pp->jmax;
 
+    // (G 7 1: linear in time within the level-0 step, ship_level)
+    const double th = ship_th;
     for(int n=0; n<6; ++n)
-    s->u[n] = o0->amr_u(n);
+    s->u[n] = (th<0.0) ? o0->amr_u(n) : (1.0-th)*sh_old[0].u[n] + th*o0->amr_u(n);
     for(int n=0; n<3; ++n)
-    s->c[n] = o0->amr_c(n);
+    s->c[n] = (th<0.0) ? o0->amr_c(n) : (1.0-th)*sh_old[0].c[n] + th*o0->amr_c(n);
     s->zref = p0->ZP[marge];
 
     const double psi = 1.0e-8*p0->DXM;
@@ -369,6 +371,92 @@ void sflow_amr::ship_patches(bool withpress)
 
     for(auto c : P)
     ship_fields(*SP(c),withpress);
+
+    tm[8] += MPI_Wtime()-t0;
+}
+
+// G 7 1: the level-0 body now (the triangles, the level set, u, c)
+void sflow_amr::ship_save(vector<shipsave> &S)
+{
+    const int nb = ship6->objects();
+    S.resize(nb);
+    for(int k=0; k<nb; ++k)
+    {
+        sixdof_obj *o = ship6->object(k);
+        const int nt = o->amr_tricount();
+        for(int d=0; d<3; ++d)
+        {
+            double **t = o->amr_tri(d);
+            S[k].t[d].resize(3*(size_t)nt);
+            for(int n=0; n<nt; ++n)
+            for(int v=0; v<3; ++v)
+            S[k].t[d][3*n+v] = t[n][v];
+        }
+        slice &f = ship6->object(k)->amr_fs();
+        S[k].fs.assign(f.V,f.V+(size_t)p0->imax*p0->jmax);
+        for(int n=0; n<6; ++n)
+        S[k].u[n] = o->amr_u(n);
+        for(int n=0; n<3; ++n)
+        S[k].c[n] = o->amr_c(n);
+    }
+}
+
+// into the level-0 objects: A, or (1-th) A + th B
+void sflow_amr::ship_put(const vector<shipsave> &A, const vector<shipsave> *B, double th)
+{
+    for(int k=0; k<(int)A.size(); ++k)
+    {
+        sixdof_obj *o = ship6->object(k);
+        const int nt = o->amr_tricount();
+        for(int d=0; d<3; ++d)
+        {
+            double **t = o->amr_tri(d);
+            for(int n=0; n<nt; ++n)
+            for(int v=0; v<3; ++v)
+            t[n][v] = (B==nullptr) ? A[k].t[d][3*n+v] : (1.0-th)*A[k].t[d][3*n+v] + th*(*B)[k].t[d][3*n+v];
+        }
+        slice &f = ship6->object(k)->amr_fs();
+        const size_t nc = A[k].fs.size();
+        for(size_t m=0; m<nc; ++m)
+        f.V[m] = (B==nullptr) ? A[k].fs[m] : (1.0-th)*A[k].fs[m] + th*(*B)[k].fs[m];
+    }
+}
+
+// G 7 1: the body on the level-l patches at time t (in the level-0 step that started at sub_t0):
+// the level-0 body linear in time between the start and the end of that step
+void sflow_amr::ship_level(int l, double t, bool withpress)
+{
+    if(shipmode==0 || lev[l].empty())
+    return;
+
+    double t0 = MPI_Wtime();
+
+    double th = (t - sub_t0)/sub_dt0;
+    th = MAX(MIN(th,1.0),0.0);
+    const bool ti = (th<1.0-1.0e-12) && !sh_old.empty();
+
+    const double simt = p0->simtime;
+    p0->simtime = t;
+
+    if(ti)
+    {
+        ship_save(sh_new);
+        ship_put(sh_old,&sh_new,th);
+        ship_th = th;
+    }
+
+    zone_setup(p0);
+    for(int n : lev[l])
+    ship_fields(*SP(n),withpress);
+
+    if(ti)
+    {
+        ship_put(sh_new,nullptr,0.0);
+        ship_th = -1.0;
+        zone_setup(p0);
+    }
+
+    p0->simtime = simt;
 
     tm[8] += MPI_Wtime()-t0;
 }

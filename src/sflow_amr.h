@@ -81,7 +81,8 @@ using namespace std;
 //     interpolated in time between the start and the end of its step, the coarse cells next to
 //     a patch are corrected afterwards by the difference of the fine and coarse face fluxes
 //     summed over the steps (flux registers, refluxing); the non-hydrostatic pressure and the
-//     Boussinesq u_a are solved level by level (sflow_amr_subnh.cpp, sflow_amr_bous.cpp)
+//     Boussinesq u_a are solved level by level, the body is taken linear in time
+//     (sflow_amr_subnh.cpp, sflow_amr_ship.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
 //     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
 //     Flags mark tiles of G 4 cells on the global index space of each level;
@@ -262,6 +263,15 @@ private:
     void ship_fields(sflow_amr_patch&, bool);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch&, int, int);
+    // G 7 1: the level-0 body at the start of the level-0 step (hull triangles, level set, u, c);
+    // the patches take it linear in time between the start and the end of that step
+    struct shipsave { vector<double> t[3], fs; double u[6], c[3]; };
+    vector<shipsave> sh_old, sh_new;
+    double ship_th = -1.0;          // weight of the end of the level-0 step, < 0: the current body
+    double sub_t0 = 0.0, sub_dt0 = 1.0;
+    void ship_save(vector<shipsave>&);
+    void ship_put(const vector<shipsave>&, const vector<shipsave>*, double);
+    void ship_level(int, double, bool);
 
     // grid handles: id -1 is level 0, otherwise an index into P
     struct gh
