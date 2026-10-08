@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_irregular_two_sources",
+ "description": "nhflow_2d_irregular_two_sources with decomposed precalc (B 89 1): the components of the B 92 wave and of source 2 in one decomposition (wave_field::dspace / dtime).",
+ "tags": ["quick", "2d", "nhflow", "waves", "iowave", "wave_field", "irregular", "decomp"],
+ "covers": ["B 89 1 with several sources (NHFLOW)", "per-source time parts with phase, window and ramp"],
+ "ctrl_set": {"B 89": "1"}
+}

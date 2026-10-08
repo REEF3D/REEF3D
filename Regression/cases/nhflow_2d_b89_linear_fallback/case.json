@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_two_sources",
+ "description": "nhflow_2d_two_sources (linear waves) with B 89 1: decomposed precalc is not available for linear waves, iowave falls back to B 89 0 with a message; bitwise the same as nhflow_2d_two_sources.",
+ "tags": ["quick", "2d", "nhflow", "waves", "iowave", "wave_field", "decomp"],
+ "covers": ["B 89 1 fallback for wave types without decomposition"],
+ "ctrl_set": {"B 89": "1"}
+}

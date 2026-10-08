@@ -32,10 +32,11 @@ Architect: Hans Bihs
 //
 // Each array of a block is a sharded Zarr array: a shard file holds `shard_time`
 // outputs of the whole block, cut into inner chunks of one output, a few levels
-// and a tile of at most 64 x 64 points (byte shuffle + gzip). A shard grows by one
-// output at a time: the new chunks are appended and a new index (with a CRC-32C
-// checksum) is written after them, so a reader never sees a half-written index as
-// valid; the space of the old index stays unused.
+// and a tile of at most 64 x 64 points (byte shuffle + gzip; a byte plane that is
+// noise, the low bytes of the mantissas, is stored in the gzip stream as it is).
+// A shard grows by one output at a time: the new chunks are appended and a new
+// index (with a CRC-32C checksum) is written after them, so a reader never sees a
+// half-written index as valid; the space of the old index stays unused.
 
 #include <cstdint>
 #include <map>
@@ -97,6 +98,9 @@ public:
 
     static std::string json_string(const std::string &text);
 
+    // threads that compress the chunks of an array (1: only the calling thread)
+    void set_threads(int n) { threads = n<1 ? 1 : n; }
+
     // the Float32 point arrays and the points of a VTK XML header (appended data):
     // name, components and offset (from the '_' that starts the appended data)
     struct vtu_array
@@ -119,6 +123,7 @@ private:
     std::string path;
     int shard_time;
     int gzip_level;
+    int threads = 1;
     std::map<std::string, array_info> arrays;   // "output/block/name"
     std::map<std::string, std::vector<double> > times;
     std::map<std::string, std::vector<long long> > steps;

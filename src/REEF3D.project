@@ -1273,6 +1273,7 @@
         <File Name="sflow_amr.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_6DOF_sub.cpp"/>
         <File Name="fnpf_amr_sub.cpp"/>
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
@@ -2614,6 +2615,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
           <VirtualDirectory Name="Forces FNPF">
+            <File Name="6DOF_obj_amr.cpp"/>
             <File Name="6DOF_obj_fnpf.cpp"/>
             <File Name="6DOF_obj_fnpf_forces.cpp"/>
           </VirtualDirectory>

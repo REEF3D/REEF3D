@@ -368,6 +368,7 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
+    lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
 void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)

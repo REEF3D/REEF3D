@@ -1,0 +1,20 @@
+{
+ "description": "REEF3D::SEASTATE structures (A 725, Phase 6b): three obstacles across a channel (50 x 10 cells of 30 m, depth 20 m, zero-gradient sides): a rubble-mound breakwater after d'Angremond et al. (1996) with crest 0.5 m above the water level (type 1, Kr 0.1), Kt and Kr per frequency from seastate-obstacle-2.dat (type 2), and a porous breakwater per frequency (type 3, width 10 m, porosity 0.4, D50 0.5 m) with diffuse reflection (A 726). Validation in Dropbox SEASTATE/validation/37_structures.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat",
+  "seastate-obstacle-2.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_structure d'Angremond and porous slab",
+  "seastate_obstacle per-frequency coefficients",
+  "seastate_implicit transmission per frequency"
+ ]
+}

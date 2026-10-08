@@ -1,0 +1,20 @@
+{
+ "description": "as seastate_2d_phase6b_vegetation with the vegetation per frequency (A 754 2, Jacobsen et al. 2019, SWAN VEGETATION 2) and the stems per m^2 from seastate-vegetation.dat (A 756 1: 1000 for x > 60 m), on 2 ranks.",
+ "solver": "seastate",
+ "np": 2,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat",
+  "seastate-vegetation.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_source vegetation (IVEG 2)",
+  "seastate_f vegetation field"
+ ]
+}

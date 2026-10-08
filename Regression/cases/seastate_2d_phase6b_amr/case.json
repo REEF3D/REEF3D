@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::SEASTATE Phase 6 on the mesh refinement (Phase 6b): diffraction (A 718 1) on every level, reflecting coasts (A 723 0.3, the breakwater sides) and a transmitting and reflecting obstacle on the patch (A 722, Kt 0.5, Kr 0.5); a breakwater 60 m thick, level 0 of 30 m, one level of 15 m around the tip and the shadow (G 10), composite sweep (A 797 1). Validation in Dropbox SEASTATE/validation/39_refinement.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr diffraction (ring from the coarser grid)",
+  "seastate_amr obstacles and coasts of the patches"
+ ]
+}

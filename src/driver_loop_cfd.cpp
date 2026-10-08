@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"field_header.h"
 #include"6DOF_header.h"
 #include"runlog.h"
+#include"lagoon_output.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -147,6 +148,9 @@ void driver::loop_cfd(fdm* a)
     
     stop(p,a,pgc);
 	}
+
+	// the last outputs of the LAGOON store are counted (P 18)
+	lagoon_output::finish_all(p,pgc);
 
 	if(p->mpirank==0)
 	{

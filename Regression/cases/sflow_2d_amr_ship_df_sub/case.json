@@ -1,0 +1,24 @@
+{
+ "description": "sflow_2d_amr_ship_sub with the direct forcing of the towed box (X 10 2): the body every stage at the stage time.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 10,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "6dof",
+  "nh",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_ship: X 10 2 with G 7 1"
+ ],
+ "base": "sflow_2d_amr_ship",
+ "ctrl_set": {
+  "X 10": "2"
+ },
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

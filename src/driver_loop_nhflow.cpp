@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"nhflow_amr.h"
 #include"regression_dump.h"
 #include"runlog.h"
+#include"lagoon_output.h"
 
 void driver::loop_nhflow()
 {
@@ -161,6 +162,9 @@ void driver::loop_nhflow()
 	
     stop(p,a,pgc);
 	}
+
+	// the last outputs of the LAGOON store are counted (P 18)
+	lagoon_output::finish_all(p,pgc);
 
 	if(p->mpirank==0)
 	{
