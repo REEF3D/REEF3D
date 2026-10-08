@@ -1172,7 +1172,7 @@ void ghostcell::start49V(lexer *p, double *f, int gcv)
         //     f[Im1JK] = f[IJK];
 
         if(p->flag4[Im1JK]<0)
-            f[Im1JK] = p->Ui*p->DXP[IP] + f[IJK];
+            f[Im1JK] = f[IJK] - p->Ui*p->DXP[IM1];   // dpsi/dx = Ui at the inflow, same sign as the Laplace rhs in nhflow_potential_f
 
         // if(p->flag4[Ip1JK]<0 && p->IO[Ip1JK]!=2)
         //     f[Ip1JK] = f[IJK];
