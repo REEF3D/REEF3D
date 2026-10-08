@@ -510,7 +510,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
 
                     double zr = zbl(s,i,j) + ha;
 
-                    P.Hop[n] = 0.0;
+                    P.Hop[n] = -1.0;   // in the flow, deposited when it settles back onto the bed
                     P.Z[n] = bedload_place(p,a,P.X[n],P.Y[n],P.Z[n],i,j,zr,P.D[n]);
                     P.U[n] = p->ccipol1c(a->u,P.X[n],P.Y[n],zr);
                     P.V[n] = p->j_dir==1 ? p->ccipol2c(a->v,P.X[n],P.Y[n],zr) : 0.0;
@@ -587,6 +587,70 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
         P.VRK1[q] = vb;
         P.WRK1[q] = 0.0;
     }
+}
+
+// a parcel settling from the flow onto the bed (suspension, ejected grains) is deposited where its
+// tentative step reaches the bed level of the layer, as at the end of a hop (placed just inside the
+// bed surface, at rest). The bed absorbs the arriving grains: the deposition flux is the settling
+// flux at the bed, w_s c_b, as for the Eulerian suspension. Without it a grain that reached the bed
+// stayed in the flow above the top cell when that cell was full: it skated with the near-bed flow
+// (u delta/h), was not at rest and was dispersed into the flow again (the suspension of rung 8 was
+// 3.6 x van Rijn's c_a). The rule holds for the parcels released into the suspension (Hop = -1 from
+// the release until they settle back); grains of the bed, of the surface layer and of avalanches are
+// not affected (on a steep face a grain is more than a cell above the bed level of the next column).
+bool CPM::bedload_settle(lexer *p, fdm *a, sediment_fdm *s, int q)
+{
+    if(P.Hop[q]>=0.0 || P.Test[q]<0.0)
+    return false;
+    
+    int ic,jc;
+    
+    bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc);
+    double zb = zbl(s,ic,jc);
+    
+    // the bed level, or a quarter cell above it: the top cell of the bed can be full above the
+    // level, the grid-limited step then holds the grain there (released half a cell above the level)
+    if(P.ZRK1[q] - 0.5*P.D[q] > zb + 0.25*blH(ic,jc))
+    return false;
+    
+    P.Hop[q] = 0.0;
+    
+    // never into a solid body
+    if(p->solidread>0 && p->ccipol4_b(a->solid,P.XRK1[q],P.YRK1[q],zb+0.5*P.D[q]) < 0.5*P.D[q])
+    return false;
+    
+    double zl = zb - 0.5*P.D[q];
+    
+    if(p->nb5<0)
+    zl = MAX(zl, p->ZN[0+marge] + 0.5*P.D[q]);
+    
+    P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zl,P.D[q]);
+    P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
+    P.Test[q] = -1.0;
+    ++bl_ndep;
+    
+    return true;
+}
+
+// no turbulent dispersion: grains at rest, and with the suspension of the layer the grains within one cell
+// above the bed level that were not released into the suspension (Hop = 0): the release (Q 58 2) is the
+// only path into the suspension. Without it the grains of the top cell that move with the near-bed flow
+// were dispersed into the flow as a second, uncontrolled pickup, and never deposited by bedload_settle.
+bool CPM::bedload_nodisp(lexer *p, fdm *a, int q)
+{
+    if(bedload_rest(p,a,q))
+    return true;
+    
+    if(P.Hop[q]<0.0)
+    return false;
+    
+    i = p->posc_i(P.X[q]);
+    j = p->posc_j(P.Y[q]);
+    k = p->posc_k(P.Z[q]);
+    
+    double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+    
+    return ptopo(p,a,P.X[q],P.Y[q],P.Z[q]) < h;
 }
 
 // a grain at rest in the bed or on the bed surface (within one cell above the bed level): with the

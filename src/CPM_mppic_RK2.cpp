@@ -146,7 +146,7 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
         P.WRK1[n] = P.W[n];
         
         // turbulent dispersion, once per step from the start position
-        if(p->Q52==1 && !(layer && bedload_rest(p,a,n)))
+        if(p->Q52==1 && !(layer && bedload_nodisp(p,a,n)))
         {
             double ddx,ddy,ddz;
             dispersion(p,P.X[n],P.Y[n],P.Z[n],ddx,ddy,ddz,dt);
@@ -154,6 +154,10 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
             P.YRK1[n] += ddy;
             P.ZRK1[n] += ddz;
         }
+        
+        // sub-grid bedload layer: a parcel settling from the flow onto the bed is deposited
+        if(layer)
+        bedload_settle(p,a,s,n);
     }
 
     boundcheck(p,1);

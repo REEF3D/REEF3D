@@ -267,6 +267,8 @@ private:
     double settling_velocity(lexer*, double);
     void bedload_occupancy(lexer*);
     bool bedload_rest(lexer*, fdm*, int);
+    bool bedload_settle(lexer*, fdm*, sediment_fdm*, int);
+    bool bedload_nodisp(lexer*, fdm*, int);
     double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
     int bl_npick=0, bl_ndep=0, bl_nsus=0;
