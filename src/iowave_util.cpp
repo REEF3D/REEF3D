@@ -27,20 +27,6 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"patchBC_interface.h"
 
-int iowave::iozonecheck(lexer *p, fdm*a)
-{	
-	int check=1;
-	
-	dg = distgen(p);
-	db = distbeach(p);
-	
-	if(p->B98==2)
-	if(dg<dist1 || db<dist2)
-	check=0;
-
-	return check;		
-}
-
 void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
 	
@@ -410,63 +396,6 @@ void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->IO[IJKp1] = 3;
     }
     
-}
-
-void iowave::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
-{
-    int count1,count2;
-	
-	count1=0;
-    count2=0;
-    GC4LOOP
-    {
-        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
-        ++count1;
-
-        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
-        ++count2;
-    }
-	
-	
-	p->Iresize(p->gcin,p->gcin_count, count1, 6, 6); 
-	p->Iresize(p->gcout,p->gcout_count, count2, 6, 6); 
-
-    count1=0;
-    count2=0;
-    GC4LOOP
-    {
-        if(p->gcb4[n][4]==1 || p->gcb4[n][4]==6)
-        {
-        p->gcin[count1][0]=p->gcb4[n][0];
-        p->gcin[count1][1]=p->gcb4[n][1];
-        p->gcin[count1][2]=p->gcb4[n][2];
-        p->gcin[count1][3]=p->gcb4[n][3];
-        p->gcin[count1][5]=p->gcb4[n][5];
-        ++count1;
-        }
-
-        if(p->gcb4[n][4]==2 || p->gcb4[n][4]==7 || p->gcb4[n][4]==8)
-        {
-        p->gcout[count2][0]=p->gcb4[n][0];
-        p->gcout[count2][1]=p->gcb4[n][1];
-        p->gcout[count2][2]=p->gcb4[n][2];
-        p->gcout[count2][3]=p->gcb4[n][3];
-        p->gcout[count1][5]=p->gcb4[n][5];
-        ++count2;
-        }
-    }
-
-    p->gcin_count=count1;
-    p->gcout_count=count2;
-	
-	if(p->I10==1)
-    velini(p,a,pgc);
-	
-	if(p->B98==4)
-	gen_ini(p,a,pgc);
-	
-	if(p->B99==3||p->B99==4||p->B99==5)
-	awa_ini(p,a,pgc);
 }
 
 void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)

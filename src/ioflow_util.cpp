@@ -415,45 +415,6 @@ void ioflow_f::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pco
     }
 }
 
-void ioflow_f::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
-{
-    int count1,count2;
-
-    count1=0;
-    count2=0;
-    GC4LOOP
-    {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
-        
-        if(p->gcb4[n][4]==1 && p->flagsf4[IJK]>0)
-        {
-        p->gcin[count1][0]=p->gcb4[n][0];
-        p->gcin[count1][1]=p->gcb4[n][1];
-        p->gcin[count1][2]=p->gcb4[n][2];
-        p->gcin[count1][3]=p->gcb4[n][3];
-        p->gcin[count1][5]=p->gcb4[n][5];
-        ++count1;
-        }
-
-        if(p->gcb4[n][4]==2 && p->flagsf4[IJK]>0)
-        {
-        p->gcout[count2][0]=p->gcb4[n][0];
-        p->gcout[count2][1]=p->gcb4[n][1];
-        p->gcout[count2][2]=p->gcb4[n][2];
-        p->gcout[count2][3]=p->gcb4[n][3];
-        p->gcout[count2][5]=p->gcb4[n][5];
-        ++count2;
-        }
-    }
-
-    p->gcin_count=count1;
-    p->gcout_count=count2;
-    
-    
-}
-
 void ioflow_f::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
     pvrans->veltimesave(p,a,pgc);

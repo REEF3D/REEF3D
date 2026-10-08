@@ -213,48 +213,6 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &WH, slice &WL)
     p->wavecalctime+=pgc->timer()-starttime;
 }
 
-void iowave::ws_relax(lexer *p, ghostcell *pgc, slice &W, slice &bed, slice &eta)
-{
-    starttime=pgc->timer();
-    
-	double wval=0.0;
-    
-    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
-    if(!rz4_built) relaxzone4_build(p);
-    for(size_t rzq=0; rzq<rz4_i.size(); ++rzq)
-    {
-        i = rz4_i[rzq];
-        j = rz4_j[rzq];
-        xg = rz4_xg[rzq];
-        yg = rz4_yg[rzq];
-        dg = rz4_dg[rzq];
-        db = rz4_db[rzq];
-
-        z=eta(i,j);
-
-        wval = wave_w(p,pgc,xg,yg,z);
-        
-        
-        // Wave Generation
-		if(p->B98==2 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            W(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*wval + relax4_wg(i,j)*W(i,j);
-		}
-		
-		// Numerical Beach
-        if(p->B99==1 || p->B99==2)
-		{
-            // Zone 2
-            if(db<1.0e20)
-            W(i,j) = relax4_nb(i,j)*W(i,j);
-        }
-    }
-    
-    p->wavecalctime+=pgc->timer()-starttime;
-}
-
 void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 {
 	starttime=pgc->timer();

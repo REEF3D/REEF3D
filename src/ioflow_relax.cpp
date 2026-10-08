@@ -111,19 +111,7 @@ void ioflow_f::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
 }
 
-void ioflow_f::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
-{
-}
-
-void ioflow_f::fivec_relax(lexer *p, ghostcell *pgc, double *f)
-{
-}
-
 void ioflow_f::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
-{
-}
-
-void ioflow_f::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 
@@ -141,10 +129,6 @@ void ioflow_f::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &e
 }
 
 void ioflow_f::wm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
-{
-}
-
-void ioflow_f::ws_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
 {
 }
 
@@ -176,29 +160,12 @@ double ioflow_f::distcalc(lexer *p,double x0, double y0, double tan_beta)
 	return dist;
 }
 
-int ioflow_f::iozonecheck(lexer *p, fdm*a)
-{	
-	int check = 1;
-	
-	return check;
-}
-
 void ioflow_f::wavegen_precalc(lexer *p, ghostcell *pgc)
 {
     
 }
 
-void ioflow_f::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
-{
-    
-}
-
 void ioflow_f::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    
-}
-
-void ioflow_f::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 {
     
 }

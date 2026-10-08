@@ -148,10 +148,6 @@ void ioflow_gravity::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
     pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
-void ioflow_gravity::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void  ioflow_gravity::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
 	NLOOP4
@@ -318,10 +314,6 @@ void ioflow_gravity::pressure_io(lexer *p, fdm *a, ghostcell *pgc)
     pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
-void ioflow_gravity::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
-{
-}
-
 void ioflow_gravity::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 {
 }
@@ -369,20 +361,8 @@ void ioflow_gravity::P_relax(lexer *p, ghostcell *pgc, double *P)
 void ioflow_gravity::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
 }
-
-void ioflow_gravity::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
-{
-}
-
-void ioflow_gravity::fivec_relax(lexer *p, ghostcell *pgc, double *f)
-{
-}
     
 void ioflow_gravity::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
-{
-}
-
-void ioflow_gravity::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 
@@ -400,10 +380,6 @@ void ioflow_gravity::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, sl
 }
 
 void ioflow_gravity::wm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
-{
-}
-
-void ioflow_gravity::ws_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
 {
 }
 
@@ -439,13 +415,6 @@ double ioflow_gravity::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, d
     return val;
 }
 
-int ioflow_gravity::iozonecheck(lexer *p, fdm*a)
-{	
-	int check = 1;
-	
-	return check;
-}
-
 void ioflow_gravity::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 }
@@ -462,11 +431,6 @@ void ioflow_gravity::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 {
 }
 void ioflow_gravity::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
-{
-    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
-}
-
-void ioflow_gravity::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
@@ -491,11 +455,6 @@ void ioflow_gravity::ini(lexer *p, fdm* a, ghostcell* pgc)
 	pgc->start4a(p,a->porosity,1);
 }
 
-void ioflow_gravity::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-	
-}
-
 void ioflow_gravity::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 {
 }
@@ -505,28 +464,13 @@ void ioflow_gravity::wavegen_precalc(lexer *p, ghostcell *pgc)
     
 }
 
-void ioflow_gravity::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
-{
-    
-}
-
 void ioflow_gravity::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    
-}
-
-void ioflow_gravity::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 {
     
 }
 
 void ioflow_gravity::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-}
-
-void ioflow_gravity::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
-{
-    
 }
 
 void ioflow_gravity::ini2D(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -542,10 +486,6 @@ void ioflow_gravity::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans
 void ioflow_gravity::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
-}
-
-void ioflow_gravity::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
-{
 }
 
 void ioflow_gravity::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc, vrans *pvrans)
@@ -574,11 +514,6 @@ void ioflow_gravity::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, doubl
 }
 
 void ioflow_gravity::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    
-}
-
-void ioflow_gravity::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     
 }

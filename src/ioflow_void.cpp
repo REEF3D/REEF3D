@@ -327,10 +327,6 @@ void ioflow_v::fsfrkin(lexer *p, fdm *a, ghostcell *pgc, field& f)
     pBC->patchBC_waterlevel(p,a,pgc,f);
 }
 
-void ioflow_v::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
-{
-}
-
 void  ioflow_v::isource(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 {
     double porousterm;
@@ -488,10 +484,6 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
     pBC->patchBC_pressure(p,a,pgc,a->press);
 }
 
-void ioflow_v::turbulence_io(lexer *p, fdm* a, ghostcell* pgc)
-{
-}
-
 void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 {
 	double epsi,H,fbval;
@@ -623,19 +615,7 @@ void ioflow_v::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
 }
 
-void ioflow_v::fi_relax(lexer *p, ghostcell *pgc, field &f, field &phi)
-{
-}
-
-void ioflow_v::fivec_relax(lexer *p, ghostcell *pgc, double *f)
-{
-}
-
 void ioflow_v::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
-{
-}
-
-void ioflow_v::visc_relax(lexer *p, ghostcell *pgc, slice& f)
 {
 }
 
@@ -652,10 +632,6 @@ void ioflow_v::vm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &e
 }
 
 void ioflow_v::wm_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
-{
-}
-
-void ioflow_v::ws_relax(lexer *p, ghostcell *pgc, slice &Q, slice &bed, slice &eta)
 {
 }
 
@@ -691,13 +667,6 @@ double ioflow_v::wave_zvel(lexer *p, ghostcell *pgc, double x, double y, double 
     return val;
 }
 
-int ioflow_v::iozonecheck(lexer *p, fdm*a)
-{	
-	int check =1;
-	
-	return check;
-}
-
 void ioflow_v::inflow_walldist(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec, reini *preini, ioflow *pflow)
 {
 }
@@ -717,11 +686,6 @@ void ioflow_v::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
 }
 
 void ioflow_v::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
-{
-    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
-}
-
-void ioflow_v::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
 }
@@ -747,10 +711,6 @@ void ioflow_v::ini(lexer *p, fdm* a, ghostcell* pgc)
     prheo = new rheology_v();
 }
 
-void ioflow_v::full_initialize2D(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-}
-
 void ioflow_v::flowfile(lexer *p, fdm* a, ghostcell* pgc, turbulence *pturb)
 {
 }
@@ -760,17 +720,7 @@ void ioflow_v::wavegen_precalc(lexer *p, ghostcell *pgc)
     
 }
 
-void ioflow_v::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
-{
-    
-}
-
 void ioflow_v::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-    
-}
-
-void ioflow_v::wavegen_2D_precalc_ini(lexer *p, ghostcell *pgc)
 {
     
 }
@@ -783,11 +733,6 @@ void ioflow_v::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
-void ioflow_v::ini_ptf(lexer *p, fdm* a, ghostcell* pgc)
-{
-    
-}
-
 void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans) 
 {
     
@@ -796,10 +741,6 @@ void ioflow_v::veltimesave(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
 void ioflow_v::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, double *Uin,slice &Fifsf, slice &eta)
 {
 
-}
-
-void ioflow_v::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
-{
 }
 
 void ioflow_v::vrans_sed_update(lexer *p,fdm *a,ghostcell *pgc,vrans *pvrans)
@@ -828,11 +769,6 @@ void ioflow_v::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
 }
 
 void ioflow_v::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-    
-}
-
-void ioflow_v::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     
 }
