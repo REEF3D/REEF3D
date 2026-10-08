@@ -60,6 +60,11 @@ void sflow_pjm_lin::start(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, i
     amr->nh_solve(p,b,pgc,UH,VH,WH,WL,alpha);
     
     else
+    // G 7 1: level 0 alone, the cells under the patches fixed at their restricted pressure
+    if(amr!=nullptr && amr->nh_level0())
+    amr->nh_solve0(p,b,pgc);
+    
+    else
     psolv->start(p,pgc,b->press,b->M,b->xvec,b->rhsvec,4);
 
         p->poissontime=pgc->timer()-solvtime;

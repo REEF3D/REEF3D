@@ -1269,6 +1269,7 @@
         <File Name="sflow_amr_ship.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>
+        <File Name="sflow_amr_subnh.cpp"/>
         <File Name="sflow_amr_linesolve.cpp"/>
         <File Name="sflow_amr_bous.cpp"/>
         <File Name="sflow_amr.cpp"/>

@@ -74,12 +74,13 @@ using namespace std;
 //   - a coarse face on a coarse-fine interface takes the mean of the two fine
 //     face fluxes and face depths (sflow_HLL calls hll_hook between flux_bc and
 //     the divergence); across a partition edge the fine values are sent
-//   - one global time step, the stages of all grids in lockstep; with G 7 1 (hydrostatic,
-//     sflow_amr_sub.cpp) every level takes two steps of half the size per step of the next
+//   - one global time step, the stages of all grids in lockstep; with G 7 1
+//     (sflow_amr_sub.cpp) every level takes two steps of half the size per step of the next
 //     coarser level (Berger-Oliger): the cells around a patch are filled from the parent state
 //     interpolated in time between the start and the end of its step, the coarse cells next to
 //     a patch are corrected afterwards by the difference of the fine and coarse face fluxes
-//     summed over the steps (flux registers, refluxing)
+//     summed over the steps (flux registers, refluxing); the non-hydrostatic pressure is solved
+//     level by level (sflow_amr_subnh.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
 //     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
 //     Flags mark tiles of G 4 cells on the global index space of each level;
@@ -100,9 +101,11 @@ using namespace std;
 
 // G 7 1: state of a grid at the start of its step (WL, UH, VH, WH and the wet flags), the
 // parent state of the time-interpolated fills
+// (A 220 1-3: and the pressure)
 struct sflow_amr_told
 {
-    slice *f[4] = {nullptr,nullptr,nullptr,nullptr};
+    static const int NF = 5;        // WL UH VH WH press
+    slice *f[NF] = {nullptr,nullptr,nullptr,nullptr,nullptr};
     vector<int> wet;
 };
 
@@ -143,6 +146,9 @@ struct sflow_amr_patch : public reefamr_patch
     // patch within one step of its parent (dt * RK weight), freg[ipol][side][fine index]
     sflow_amr_told told;
     vector<double> freg[5][4];
+
+    // G 7 1, A 220 1-3: constraint residual at the end of the patch's own step (synchronisation)
+    vector<double> rend;
 };
 
 class sflow_amr : public reefamr
@@ -163,8 +169,12 @@ public:
     void hll_hook(lexer*, fdm2D*, int, int);
 
     // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
-    bool nh_patches() const { return maxlev>0 && patches_total>0 && nh==1; }
+    // (G 7 1: level 0 solves alone, the patches level by level in sflow_amr_sub.cpp)
+    bool nh_patches() const { return maxlev>0 && patches_total>0 && nh==1 && sub==0; }
     void nh_solve(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
+    // G 7 1: the level-0 pressure with the cells under level 1 fixed (sflow_amr_nh.cpp)
+    bool nh_level0() const { return maxlev>0 && patches_total>0 && nh==1 && sub==1; }
+    void nh_solve0(lexer*, fdm2D*, ghostcell*);
 
     // vector space of the composite solve (reefamr_krylov.h)
     void nh_apply(int, int);
@@ -174,6 +184,9 @@ public:
     void op_p(double, double);
     void op_s(double);
     void op_x(double, double);
+
+    // level-0 non-hydrostatic pressure (G 7 1: the synchronisation projection assembles its rows)
+    sflow_pressure_nh *pnh0 = nullptr;
 
     // Boussinesq u_a on the leaf cells of all levels, called by the level-0 stage after its rows
     // (sflow_momentum_func::stage); the patch stages continue afterwards
@@ -213,7 +226,10 @@ private:
     struct nhg { lexer *q; fdm2D *b; vector<signed char> *act; vector<int> *row; vector<slice*> *v; };
     nhg nh_grid(int);
     slice& nh_vec(int, int);        // grid, vector (-1: press)
-    void nh_prepare(ghostcell*);
+    void nh_prepare(ghostcell*, bool);
+    void nh_core(lexer*);
+    void nh_prolong(int, int);
+    double nh_eval_t(const reefamr_fill&, double);
     void nh_restrict_vec(int);
     void nh_sync(int);
     void nh_qfill(int, int);
@@ -226,6 +242,14 @@ private:
     vec2D *nhr0 = nullptr;
     bool nh_rebuild0;
     long nh_it_total, nh_solves;
+    // G 7 1: level window of the composite solve (wlo..wtop; all levels without subcycling), the
+    // cells around the patches of level wlo > 0 fixed (nh_edge)
+    int wlo = 0, whi = -1;
+    int wtop() const { return whi<0 ? maxlev : whi; }
+    bool nh_edge = false;
+    bool nh_m0_new = true;          // level-0 rows changed since the last level-0 multigrid setup
+    long sub_lv_it = 0, sub_lv_n = 0, sub_sy_it = 0, sub_sy_n = 0;
+    vector<double> nh0_rend;
     long bq_it_total = 0, bq_solves = 0;
     int nh_it_last;
 
@@ -292,9 +316,14 @@ private:
     void sub_begin(lexer*, fdm2D*, ghostcell*);
     void sub_end(lexer*, fdm2D*, ghostcell*);
     void sub_level(lexer*, ghostcell*, int, int, double, double);
-    void sub_sync(lexer*, ghostcell*, int);
+    void sub_sync(lexer*, ghostcell*, int, double);
     void sub_reflux(int);
     long sub_steps[8] = {0,0,0,0,0,0,0,0};
+    // A 220 1-3 (sflow_amr_subnh.cpp): level solves, synchronisation projection
+    void nh_level(lexer*, ghostcell*, int, int, int);
+    void nh_project(lexer*, ghostcell*, int, double);
+    void nh_resid(int, vector<double>&);
+    void nh_store_end(int);
 
     double mass(lexer*, fdm2D*, ghostcell*);
     void write_vtr(lexer*, sflow_amr_patch&, int);

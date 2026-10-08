@@ -232,13 +232,14 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
     }
 
-    // subcycling (G 7 1): hydrostatic only (the elliptic parts of A 220 1-4 are solved on all
-    // levels at the same time), not with the moving body
+    // subcycling (G 7 1, sflow_amr_sub.cpp): hydrostatic and non-hydrostatic (A 220 1-3: level
+    // solves and synchronisation projections, sflow_amr_subnh.cpp); not Boussinesq, not with the
+    // moving body
     sub = (p->G7==1) ? 1 : 0;
-    if(sub==1 && (p->A220!=0 || shipmode>0))
+    if(sub==1 && (p->A220>3 || shipmode>0))
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR: G 7 1 (subcycling) only for A 220 0 without a moving body -- one time step for all levels"<<endl;
+        cout<<"SFLOW AMR: G 7 1 (subcycling) only for A 220 0-3 without a moving body -- one time step for all levels"<<endl;
         sub = 0;
     }
 
@@ -1553,8 +1554,9 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
-    // explicit dispersion correction of A 220 3, as sflow_etimestep
+    // explicit dispersion correction of A 220 3, as sflow_etimestep (G 7 1: per level)
     double dtd = 1.0e20;
+    vector<double> dl(maxlev+1,1.0e20);
     if(p->A220==3 && p->A224>1.0)
     {
         const double B = (p->A224-1.0)/3.0;
@@ -1569,7 +1571,9 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
             {
                 double hh = MAX(pb->WL(ii,jj),p->A244);
                 double dx = pp->DXN[ii+marge], dy = pp->DYN[jj+marge];
-                dtd = MIN(dtd, 1.2/((1.0/(dx*dx) + p->y_dir/(dy*dy))*sqrt(g*B*hh*hh*hh)));
+                const double dv = 1.2/((1.0/(dx*dx) + p->y_dir/(dy*dy))*sqrt(g*B*hh*hh*hh));
+                dtd = MIN(dtd, dv);
+                dl[c->lev] = MIN(dl[c->lev], dv);
             }
         }
     }
@@ -1579,12 +1583,12 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 
     double dtp = MIN(cfl*2.0*cmin, dtd);
 
-    // G 7 1: level l takes 2^l steps per step of level 0 (dtd: A 220 3, not subcycled)
+    // G 7 1: level l takes 2^l steps per step of level 0
     if(sub==1)
     {
         dtp = 1.0e20;
         for(int l=1; l<=maxlev; ++l)
-        dtp = MIN(dtp, cfl*2.0*cl[l]*double(1<<l));
+        dtp = MIN(dtp, MIN(cfl*2.0*cl[l], dl[l])*double(1<<l));
     }
 
     dtp = pgc->globalmin(dtp);
@@ -1636,6 +1640,8 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     cout<<"; u_a "<<tm[9]<<" s, mean iterations "<<(bq_solves>0 ? double(bq_it_total)/bq_solves : 0.0);
     if(p->mpirank==0 && doprint && nh==1)
     cout<<"; pressure "<<tm[5]<<" s (preconditioner "<<tm[6]<<" s, operator "<<tm[7]<<" s), mean iterations "<<(nh_solves>0 ? double(nh_it_total)/nh_solves : 0.0);
+    if(p->mpirank==0 && doprint && nh==1 && sub==1)
+    cout<<" (level solves "<<(sub_lv_n>0 ? double(sub_lv_it)/sub_lv_n : 0.0)<<", synchronisation "<<(sub_sy_n>0 ? double(sub_sy_it)/sub_sy_n : 0.0)<<")";
     if(p->mpirank==0 && doprint)
     cout<<endl;
 
