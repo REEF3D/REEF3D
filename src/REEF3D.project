@@ -1273,6 +1273,7 @@
         <File Name="sflow_amr.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_amr_sub.cpp"/>
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
         <File Name="fnpf_amr.cpp"/>
