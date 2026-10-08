@@ -29,6 +29,10 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
     starttime=pgc->timer();
     
+    // beach zones given as B 520 method 2 relax the water level too, like B 99 1 / 2
+    // (and like FNPF); before, only their velocities were relaxed
+    const bool beach_wl = p->B99==1 || p->B99==2 || zones.user_beach();
+    
 	count=0;
     SLICELOOP4
     {
@@ -59,7 +63,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
         
 		
 		// Numerical Beach
-		if(p->B99==1 || p->B99==2)
+		if(beach_wl)
 		{
             // Zone 2
             if(db<1.0e20)
