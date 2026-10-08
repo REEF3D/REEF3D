@@ -258,8 +258,10 @@ void iowave::zones_check(lexer *p)
     if(zones.has_background() && p->A10!=5)
     err = "backgrounds (B 523) and Riemann / Flather edges are available for NHFLOW only, so far";
     
-    if(zones.has_background() && p->B89==1)
-    err = "backgrounds (B 523) do not work with decomposed precalc (B 89 1) yet";
+    // decomposed precalc (B 89 1) keeps the spatial parts of the waves from the start, so k
+    // cannot follow the background
+    if(p->B530>0 && p->B89==1)
+    err = "waves on the background (B 530) do not work with decomposed precalc (B 89 1); B 530 0 or B 89 0";
     
     for(const std::vector<bc_zone> *v : {&zones.relax, &zones.beach, &zones.edges})
     for(const bc_zone &z : *v)
@@ -296,7 +298,7 @@ void iowave::zones_check(lexer *p)
 
 // B 530 not given (-1): waves on the background with Doppler whenever a zone's background
 // carries a current, on h_eff when it only sets a level; off without a background, without
-// waves, or for wave types that do not support it
+// waves, with decomposed precalc (B 89 1), or for wave types that do not support it
 void iowave::b530_auto(lexer *p)
 {
     if(p->B530>=0)
@@ -337,7 +339,10 @@ void iowave::b530_auto(lexer *p)
     if(mode>0 && waves && !ok && p->mpirank==0)
     cout<<"iowave: waves on the background (B 530) stay off: the wave type does not support it (linear 2 and irregular 31 do)"<<endl;
     
-    p->B530 = (waves && ok) ? mode : 0;
+    if(mode>0 && waves && ok && p->B89==1 && p->mpirank==0)
+    cout<<"iowave: waves on the background (B 530) stay off with decomposed precalc (B 89 1)"<<endl;
+    
+    p->B530 = (waves && ok && p->B89==0) ? mode : 0;
     
     if(p->B530>0 && p->mpirank==0)
     cout<<"iowave: waves on the background (B 530 "<<p->B530<<" "<<p->B530_N<<", default with a background "<<(p->B530==2?"current":"level")<<")"<<endl;
