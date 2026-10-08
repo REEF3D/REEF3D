@@ -83,6 +83,15 @@ public:
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
+    // waves on a background (iowave B 530, see wave_lib.h): irregular waves from a spectrum (B 92 31)
+    int wave_ncomp() const override final {return bg_ok ? bg_n : 0;}
+    void wave_comp(int, double&, double&, double&, double&, double&) const override final;
+    double wave_depth0() const override final {return wdt;}
+    double wave_depth() const override final {return bg_h;}
+    void wave_comp_set(int, double, double, double) override final;
+    void wave_depth_set(double) override final;
+    void wave_comp_update() override final;
+    
 private:
     double singamma,cosgamma;    
     double T,vel,eta,fi;
@@ -98,6 +107,13 @@ private:
     std::vector<double> ezb;                    // exp(k z) scratch, [n]
     double cache_t=-1.0e300;
     double **fixy,*fin;
+    
+    // B 530 state: the orbital velocities use sigma through sinhkd = sinh(k h_eff) omega/sigma
+    // and the cached amplitudes; Ai = Ai0 * amplitude factor
+    bool bg_ok=false, bg_dirty=false, bg_used=false;
+    int bg_n=0;
+    double bg_h=0.0;
+    std::vector<double> bg_Ai0, bg_si, bg_af;
 };
 
 #endif

@@ -321,7 +321,14 @@ void control::ini_default()
     A793=0.0;         // double mesh refinement (G 1): refine where the depth changes by more than this fraction to a neighbour cell, 0 off
     A794=4;           // int mesh refinement (G 1): no refinement within this many level-0 cells of the sides with boundary spectra or zero gradient (A 712 1, 2)
     A795=0.0;         // double spectral sparsity (stationary): bins with less than this fraction of the energy of the cell are set to zero and not solved, 0 off
-    A796=1;           // int geographic advection: 1 first-order upwind, 2 second order (van Leer limiter, deferred correction)
+    A796=1;           // int geographic advection: 1 first-order upwind, 2 second-order upwind (SORDUP type)
+    A715_th1=0.0;     // double fine direction sector from this direction ... [deg], ccw from +x
+    A715_th2=0.0;     // double ... counter-clockwise to this direction [deg]
+    A715_k=1;         // int ... the A 703 directions with centres in the sector divided into this many bins each (1 off)
+    A738=1;           // int stationary: source iterations per cell and sweep (max.), the source terms evaluated again from the spectrum just solved
+    A739=1.0e-4;      // double ... until the estimated distance of the energy of the cell to its balance is below this fraction
+    A798=1;           // int threads per MPI rank for the sweeps (wavefront order)
+    A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution
     A797=0;           // int mesh refinement (G 1): 0 sweeps level by level (V-cycle), 1 composite sweep (the finer cells within the sweep of their parent cell)
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
@@ -990,6 +997,7 @@ void control::ini_default()
     Q64=0.6;            // double bedload layer: thickness of the mobile surface layer of the bed in cells, the bed below is jammed
     Q65=1.0;            // double bedload layer: morphological factor, the pickup into the layer is multiplied by Q 65
     Q66=0.0;            // double bedload layer: reference height of the bed shear stress in cells above the bed, 0: first cell
+    Q67=0;              // int bedload layer: jammed bed only within the Mohr-Coulomb yield of the column (deep slope failures), 0 off, 1 on
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
     Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off
@@ -1192,6 +1200,8 @@ void control::ini_default()
     X16_d50=0.01;   // double characteristic grain / element size of the floating body
     X16_alpha=1000.0; // double linear (Darcy) resistance coefficient
     X16_beta=1.1;   // double quadratic (Forchheimer) resistance coefficient
+    X17=0.0;        // double FNPF: relaxation of eta in the free-surface columns next to the footprint of a body (0: off)
+    X18=0.0;        // double FNPF: time constant [s] of the running mean of chi at body-fixed points, removed from the psi_0 free-surface data (0: off)
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body

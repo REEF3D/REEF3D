@@ -117,4 +117,107 @@ void seastate_grid::directions()
     sinthf[m] = std::sin(theta[m]+0.5*dtheta);
     quad[m]   = std::min(int(4.0*double(m)/double(ndir)),3);
     }
+
+    dth.assign(ndir,dtheta);
+    wth.assign(ndir,1.0);
+}
+
+void seastate_grid::sector(double th1, double th2, int k)
+{
+    const double pi = 3.14159265358979323846;
+
+    if(k<=1 || ndir==0)
+    return;
+
+    auto wrap = [&](double a)
+    {
+        a = std::fmod(a,2.0*pi);
+        return (a<0.0) ? a+2.0*pi : a;
+    };
+
+    const double width = wrap(th2-th1);
+
+    if(!(width>0.0))
+    {
+    error = "A 715: the direction sector is empty";
+    return;
+    }
+
+    // bins (centre, lower face, upper face) of the uniform grid, the ones in the sector divided
+    std::vector<double> c, lo, hi;
+
+    for(int m=0; m<ndir; ++m)
+    {
+    const double t = theta[m];
+
+        if(wrap(t-th1)<=width)
+        for(int n=0; n<k; ++n)
+        {
+        const double a = t - 0.5*dtheta + dtheta*double(n)/double(k);
+        const double b = t - 0.5*dtheta + dtheta*double(n+1)/double(k);
+        c.push_back(wrap(0.5*(a+b)));
+        lo.push_back(a);
+        hi.push_back(b);
+        }
+        else
+        {
+        c.push_back(t);
+        lo.push_back(t-0.5*dtheta);
+        hi.push_back(t+0.5*dtheta);
+        }
+    }
+
+    std::vector<int> o(c.size());
+    for(size_t n=0; n<o.size(); ++n)
+    o[n] = int(n);
+    std::sort(o.begin(),o.end(),[&](int a, int b){return c[a]<c[b];});
+
+    ndir = int(c.size());
+    nbin = nsig*ndir;
+    uniform = false;
+
+    theta.resize(ndir);
+    costh.resize(ndir);
+    sinth.resize(ndir);
+    costhf.resize(ndir);
+    sinthf.resize(ndir);
+    quad.resize(ndir);
+    dth.resize(ndir);
+    wth.resize(ndir);
+
+    for(int m=0; m<ndir; ++m)
+    {
+    const int n = o[m];
+    theta[m]  = c[n];
+    costh[m]  = std::cos(c[n]);
+    sinth[m]  = std::sin(c[n]);
+    costhf[m] = std::cos(hi[n]);
+    sinthf[m] = std::sin(hi[n]);
+    dth[m]    = hi[n]-lo[n];
+    wth[m]    = dth[m]/dtheta;
+    quad[m]   = std::min(int(c[n]/(0.5*pi)),3);
+    }
+}
+
+int seastate_grid::direction_bin(double th) const
+{
+    const double pi = 3.14159265358979323846;
+
+    double t = std::fmod(th,2.0*pi);
+    if(t<0.0)
+    t += 2.0*pi;
+
+    if(uniform)
+    return int(std::lround(t/dtheta))%ndir;
+
+    // the bin whose faces enclose t (upper face of bin m: theta_m + dth_m/2)
+    for(int m=0; m<ndir; ++m)
+    {
+    double d = t - theta[m];
+    if(d>pi)  d -= 2.0*pi;
+    if(d<-pi) d += 2.0*pi;
+        if(std::fabs(d)<=0.5*dth[m])
+        return m;
+    }
+    return 0;
 }

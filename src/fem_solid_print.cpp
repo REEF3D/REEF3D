@@ -146,6 +146,8 @@ void fem_solid::info(std::ostream& os) const
       <<nnode()<<" nodes, lattice "<<nx<<"x"<<ny<<"x"<<nz<<" h = "<<hx<<" "<<hy<<" "<<hz
       <<", "<<faces.size()<<" surface faces, "<<nbodies<<" bodies, dt_crit "<<dtcrit<<" s"
       <<(plane_strain ? ", plane strain" : "")<<"\n";
+    if(nthr>1)
+    os<<"FEM: "<<nthr<<" threads (OpenMP)\n";
 
     for(const material& mt : mats)
     {

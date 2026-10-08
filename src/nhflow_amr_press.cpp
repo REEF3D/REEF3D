@@ -252,8 +252,8 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
         std::fill(L.act.begin(),L.act.end(),0);
     };
 
-    // level 0: all rows of the rank grid
-    if(wlo==0)
+    // level 0: all rows of the rank grid (G 7 1, a level solve: the operator of the coarse
+    // correction, from the matrix of the last level-0 solve)
     {
         sc_level &L = mg0->fine();
         clear(L);
@@ -416,7 +416,7 @@ void nhflow_amr::pr_stencils()
 
     pr_fs.clear();
 
-    if(wlo==0)
+    // the level-0 rows of the V-cycle (G 7 1: also for the coarse correction of a level solve)
     {
         const sc_level &L = mg0->fine();
         pr_l0a.clear();
@@ -736,13 +736,59 @@ void nhflow_amr::pr_prec(int kr, int kz)
 
     auto selz = [&](int g) -> double* { return pvec(g,kz); };
 
-    // G 7 1, a window above level 0: its lowest level starts from 0 (the parent is fixed)
+    // G 7 1, the level solve of level wlo > 0 with a coarse correction: its residual restricted
+    // through the levels below down to level 0 (in the vectors of the grids below the window,
+    // which have no rows in this solve: scratch, 0 outside the covered cells), one level-0
+    // V-cycle, the correction interpolated back up into the patch interiors; then the patch-local
+    // passes below.  The patch-local V-cycles alone do not reduce the error that spans several
+    // patches or a large patch (the ring wave of 0019: 11 BiCGStab iterations against 5 of the
+    // composite solve with its level-0 cycle)
     if(wlo>0)
-    for(int id : lev[wlo])
     {
-        lexer *pp = P[id]->pp;
-        double *z = pvec(id,kz);
-        std::fill(z,z+(size_t)pp->imax*pp->jmax*(pp->kmax+2),0.0);
+        const int wl = wlo;
+
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            if(g>=0 && P[g]->lev>=wl)
+            continue;
+            lexer *q = glex(g);
+            const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
+            std::fill(pvec(g,kr),pvec(g,kr)+n,0.0);
+            std::fill(pvec(g,kz),pvec(g,kz)+n,0.0);
+        }
+
+        wlo = 0;
+        pr_restrict([&](int g) -> double* { return pvec(g,kr); });
+
+        sc_level &L = mg0->fine();
+        const double *r = pvec(-1,kr);
+        double *z = pvec(-1,kz);
+        std::fill(L.u.begin(),L.u.end(),0.0);
+        std::fill(L.f.begin(),L.f.end(),0.0);
+        for(size_t n=0; n<pr_l0a.size(); ++n)
+        L.f[pr_l0a[n]] = r[pr_l0f[n]];
+
+        mg0->vcycle(0,1,1);
+
+        for(size_t n=0; n<pr_l0a.size(); ++n)
+        z[pr_l0f[n]] = L.u[pr_l0a[n]];
+        for(long qq : pr_l0z)
+        z[qq] = 0.0;
+
+        if(p0->mpi_size>1)
+        {
+            pgc0->gcparax7(p0,z,7);
+            pgc0->gcparax7co(p0,z,7);
+        }
+
+        for(int l=1; l<=wl; ++l)
+        {
+            pr_prolong(l,kz);
+            if(l<wl)
+            pr_fill(l,7800+l,selz);
+        }
+
+        wlo = wl;
     }
 
     for(int l=MAX(wlo,1); l<=wtop(); ++l)

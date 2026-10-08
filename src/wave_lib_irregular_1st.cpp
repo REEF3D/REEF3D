@@ -101,6 +101,14 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 
     for(n=0;n<p->wN;++n)
     sinhkd[n] = sinh(ki[n]*wdt);
+    
+    // waves on a background (B 530): spectrum based irregular waves only
+    bg_ok = p->B92==31 && p->B85!=4 && p->B85!=5 && p->B85!=6;
+    bg_n = p->wN;
+    bg_h = wdt;
+    bg_Ai0.assign(Ai,Ai+bg_n);
+    bg_si.assign(wi,wi+bg_n);
+    bg_af.assign(bg_n,1.0);
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()
@@ -431,6 +439,13 @@ void wave_lib_irregular_1st::wave_cache_points(lexer *p, const std::vector<doubl
     }
 
     cache_t=-1.0e300;
+    
+    // registered after a B 530 update: cached data from the current wave state
+    if(bg_used)
+    {
+        bg_dirty = true;
+        wave_comp_update();
+    }
 }
 
 void wave_lib_irregular_1st::cache_time(lexer *p)
@@ -592,4 +607,80 @@ void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, do
     }
 
     u=au; v=av; w=aw;
+}
+
+// ---------------------------------------------------------------------
+// waves on a background (iowave B 530, wave_lib.h)
+// ---------------------------------------------------------------------
+
+void wave_lib_irregular_1st::wave_comp(int n, double &k, double &omega, double &sigma, double &b, double &af) const
+{
+    k = ki[n];
+    omega = wi[n];
+    sigma = bg_si[n];
+    b = beta[n];
+    af = bg_af[n];
+}
+
+void wave_lib_irregular_1st::wave_comp_set(int n, double k, double sigma, double af)
+{
+    if(k==ki[n] && sigma==bg_si[n] && af==bg_af[n])
+    return;
+    
+    bg_used = true;
+    ki[n] = k;
+    bg_si[n] = sigma;
+    bg_af[n] = af;
+    Ai[n] = bg_Ai0[n]*af;
+    bg_dirty = true;
+}
+
+void wave_lib_irregular_1st::wave_depth_set(double h)
+{
+    if(h==bg_h)
+    return;
+    
+    bg_used = true;
+    bg_h = h;
+    bg_dirty = true;
+}
+
+void wave_lib_irregular_1st::wave_comp_update()
+{
+    if(!bg_dirty)
+    return;
+    
+    bg_dirty = false;
+    
+    // direct evaluation: omega A cosh(k (wdt+z)) / sinhkd = sigma A cosh(k (wdt+z)) / sinh(k h_eff)
+    for(int m=0; m<bg_n; ++m)
+    sinhkd[m] = sinh(ki[m]*bg_h)*wi[m]/bg_si[m];
+    
+    // cached evaluation: spatial phases with the new k, cosh(k (wdt+z))/sinh(k h_eff)
+    //   = (exp(k z) + exp(-2 k wdt) exp(-k z)) exp(k (wdt-h_eff)) / (1 - exp(-2 k h_eff))
+    if(em2kd.empty())
+    return;
+    
+    const int N = int(cache_x.size());
+    const int M = bg_n;
+    
+    for(int q=0;q<N;++q)
+    for(int m=0;m<M;++m)
+    {
+        const double a = ki[m]*(cosbeta[m]*cache_x[q] + sinbeta[m]*cache_y[q]);
+        cS[size_t(q)*M+m] = cos(a);
+        sS[size_t(q)*M+m] = sin(a);
+    }
+    
+    for(int m=0;m<M;++m)
+    {
+        em2kd[m]  = exp(-2.0*ki[m]*wdt);
+        invden[m] = exp(ki[m]*(wdt-bg_h))/(1.0 - exp(-2.0*ki[m]*bg_h));
+        
+        Aeta[m] = Ai[m];
+        Afi[m]  = (bg_si[m]*Ai[m])/ki[m];
+        Au[m]   = bg_si[m]*Ai[m]*cosbeta[m];
+        Av[m]   = bg_si[m]*Ai[m]*sinbeta[m];
+        Aw[m]   = bg_si[m]*Ai[m];
+    }
 }

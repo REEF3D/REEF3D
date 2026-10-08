@@ -746,7 +746,7 @@ fem_solid::check_info fem_solid::check()
         if(n_eroded()>0)
         ci.warnings.push_back("elements fail under the self weight alone");
 
-        x = x0; gps = g0; elems = e0; wdiss = wdiss0;
+        x = x0; gps = g0; elems = e0; wdiss = wdiss0; act_dirty = true;
         build_surface();
         count_bodies();
     }
@@ -872,7 +872,7 @@ void fem_solid::rayleigh_frequencies(double f[3],bool ok[3])
             f[d] = std::sqrt(num/den)/(2.0*3.14159265358979);
             ok[d] = true;
         }
-        x = x0; gps = g0; elems = e0; wdiss = wdiss0;
+        x = x0; gps = g0; elems = e0; wdiss = wdiss0; act_dirty = true;
         build_surface();
         count_bodies();
     }

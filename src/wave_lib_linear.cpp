@@ -32,6 +32,8 @@ wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters
     // waves on a background (B 530): sigma and depth of the orbital velocities, as constructed
     wsig = ww;
     wdk = wdt;
+    wa0 = wa;
+    waf = 1.0;
     
     if(p->mpirank==0)
     {
@@ -120,20 +122,19 @@ void wave_lib_linear::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
 
-bool wave_lib_linear::wave_state(double &k, double &h, double &sigma, double &omega, double &h0) const
+void wave_lib_linear::wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const
 {
     k = wk;
-    h = wdk;
-    sigma = wsig;
     omega = ww;
-    h0 = wdt;
-    
-    return true;
+    sigma = wsig;
+    beta = 0.0;
+    af = waf;
 }
 
-void wave_lib_linear::wave_state_set(double k, double h, double sigma)
+void wave_lib_linear::wave_comp_set(int n, double k, double sigma, double af)
 {
     wk = k;
-    wdk = h;
     wsig = sigma;
+    waf = af;
+    wa = wa0*af;
 }

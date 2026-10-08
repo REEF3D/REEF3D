@@ -76,7 +76,13 @@ void sixdof_obj_fnpf::face_data_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int 
     // the Laplace assembly imposes d(f)/dx_face = (U,V,W).e_face on every
     // fluid/body face.
     //  mode -1: rigid-body velocity           u_c + w x r     (Laplace for phi)
-    //  mode -2: centripetal acceleration      w x (w x r)     (psi_0 = phi_t, m-terms neglected)
+    //  mode -2: psi_0, the velocity-dependent part of the time derivative of phi:
+    //           chi_on (one body): psi_0 = chi = phi_t + V.grad(phi), V = u_c + w x r, the time
+    //           derivative following the body points. Its Neumann data on the rigid body are
+    //           exactly  w x (w x r) + V x w  (from d/dt (grad(phi).n - V.n) = 0 along the body,
+    //           grad(V.grad(phi)) = (V.grad)grad(phi) - w x grad(phi) for a rigid V): no second
+    //           derivatives of phi, no m-terms to neglect
+    //           otherwise psi_0 = phi_t with  w x (w x r)  (m-terms neglected)
     //  mode 0-2: unit translation             e_j             (added-mass modes)
     //  mode 3-5: unit rotation                e_j x r
     
@@ -96,7 +102,12 @@ void sixdof_obj_fnpf::face_data_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int 
         v = uc + w.cross(r);
         
         else if(mode==-2)
+        {
         v = w.cross(w.cross(r));
+        
+        if(chi_on)
+        v += (uc + w.cross(r)).cross(w);
+        }
         
         else if(mode<3)
         {
@@ -117,10 +128,109 @@ void sixdof_obj_fnpf::face_data_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int 
     }
 }
 
+bool sixdof_obj_fnpf::chi_on = false;
+
+void sixdof_obj_fnpf::chi_fsf(lexer *p, fdm_fnpf *c, slice &D, slice &foot)
+{
+    if(!chi_on)
+    return;
+    
+    const Eigen::Vector3d w(u_fb(3),u_fb(4),u_fb(5));
+    const Eigen::Vector3d uc(u_fb(0),u_fb(1),u_fb(2));
+    
+    FFILOOP4
+    if(foot(i,j)<0.5)
+    {
+        const Eigen::Vector3d r(p->XP[IP]-c_(0), p->YP[JP]-c_(1), p->ZSN[FIJK]-c_(2));
+        const Eigen::Vector3d V = uc + w.cross(r);
+        
+        D(i,j) += V(0)*c->U[FIJK] + V(1)*c->V[FIJK] + V(2)*c->W[FIJK];
+    }
+}
+
+void sixdof_obj_fnpf::chi_mean(lexer *p, ghostcell *pgc, slice &D, slice &foot)
+{
+    // X 18 tau: in a statistically steady state (steady manoeuvre, regular waves) the time mean
+    // of the exact chi = d phi/dt following a body point is zero. Next to a moving
+    // surface-piercing hull the free-surface data psi_D + V.grad(phi) are not: columns entering
+    // and leaving the footprint leave a mean residual near the waterline, which biases the hull
+    // pressure (in a steady turn it gives a drift-yaw interaction of about a third of the Munk
+    // moment, validation 11). The running mean of chi is kept on a body-frame grid around the
+    // body (horizontal extent of the body plus 5 cells) and removed from the free-surface data
+    // there. The mean is a second-order low-pass (two exponential stages with time constant
+    // tau each): the oscillating part (waves, heave and pitch) is kept, at a frequency w the mean
+    // takes up about 1/(w tau)^2 of it with a phase near 180 deg, i.e. no spurious damping. (A
+    // first-order mean takes up 1/(w tau) at 90 deg, which acts as negative damping in heave and
+    // pitch and made a free hull unstable.)
+    if(!chi_on || p->X18<=0.0)
+    return;
+    
+    const double psi = atan2(R_(1,0),R_(0,0));
+    const double cp = cos(psi), sp = sin(psi);
+    
+    if(chim_nx==0)
+    {
+        // horizontal extent of the body in the body frame
+        double xmin=1.0e20, xmax=-1.0e20, ymin=1.0e20, ymax=-1.0e20;
+        for(int n=0; n<tricount; ++n)
+        for(int q=0; q<3; ++q)
+        {
+            const double rx = tri_x[n][q]-c_(0), ry = tri_y[n][q]-c_(1);
+            const double xb =  cp*rx + sp*ry;
+            const double yb = -sp*rx + cp*ry;
+            xmin = MIN(xmin,xb); xmax = MAX(xmax,xb);
+            ymin = MIN(ymin,yb); ymax = MAX(ymax,yb);
+        }
+        xmin = pgc->globalmin(xmin); ymin = pgc->globalmin(ymin);
+        xmax = pgc->globalmax(xmax); ymax = pgc->globalmax(ymax);
+        
+        chim_h = p->DXM;
+        const double margin = 5.0*chim_h;
+        chim_x0 = xmin - margin;
+        chim_y0 = ymin - margin;
+        chim_nx = int((xmax - xmin + 2.0*margin)/chim_h) + 2;
+        chim_ny = int((ymax - ymin + 2.0*margin)/chim_h) + 2;
+        chim_.assign(chim_nx*chim_ny,0.0);
+        chim2_.assign(chim_nx*chim_ny,0.0);
+    }
+    
+    // update once per time step (forces() is called in every stage)
+    const bool update = (p->count != chim_count);
+    chim_count = p->count;
+    const double alpha = MIN(1.0, p->dt/p->X18);
+    
+    SLICELOOP4
+    if(foot(i,j)<0.5)
+    {
+        const double rx = p->XP[IP]-c_(0), ry = p->YP[JP]-c_(1);
+        const double xb =  cp*rx + sp*ry;
+        const double yb = -sp*rx + cp*ry;
+        const int bi = int(floor((xb - chim_x0)/chim_h + 0.5));
+        const int bj = int(floor((yb - chim_y0)/chim_h + 0.5));
+        
+        if(bi<0 || bj<0 || bi>=chim_nx || bj>=chim_ny)
+        continue;
+        
+        double &m1 = chim_[bj*chim_nx + bi];
+        double &m2 = chim2_[bj*chim_nx + bi];
+        
+        if(update)
+        {
+        m1 += alpha*(D(i,j) - m1);
+        m2 += alpha*(m1 - m2);
+        }
+        
+        D(i,j) -= m2;
+    }
+    
+    pgc->gcsl_start4(p,D,50);
+}
+
 void sixdof_obj_fnpf::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *psi0, double **psi, bool computeA)
 {
     // Pressure from Bernoulli with psi = phi_t split as psi = psi_0 + sum_j a_j psi_j:
     //   p = -rho*(psi_0 + 0.5|grad phi|^2) + rho*g*(wd - z)  - rho*sum_j a_j psi_j
+    // (chi_on: psi_0 - V.grad(phi) instead of psi_0, see face_data_fnpf mode -2)
     // F_0 = -int p_0 N dS goes to Xe..Ne, the last term is -A a with
     //   A_ij = -rho int psi_j N_i dS,   N = (n, r x n),  n pointing into the fluid.
     // Integration over the trimesh clipped at the local free surface (as NHFLOW),
@@ -268,7 +378,17 @@ void sixdof_obj_fnpf::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, doubl
                 const double wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
                 const double ps0  = p->ccipol7V(psi0,  c->WL, c->bed, xp, yp, zp);
                 
-                const double pres = -rho*(ps0 + 0.5*(uval*uval + vval*vval + wval*wval)) 
+                // chi_on: phi_t = chi - V.grad(phi) with V the rigid-body velocity at the sample point
+                double vgp = 0.0;
+                
+                if(chi_on)
+                {
+                    const Eigen::Vector3d Vs = Eigen::Vector3d(u_fb(0),u_fb(1),u_fb(2))
+                                             + Eigen::Vector3d(u_fb(3),u_fb(4),u_fb(5)).cross(Eigen::Vector3d(xp-c_(0),yp-c_(1),zp-c_(2)));
+                    vgp = Vs(0)*uval + Vs(1)*vval + Vs(2)*wval;
+                }
+                
+                const double pres = -rho*(ps0 - vgp + 0.5*(uval*uval + vval*vval + wval*wval)) 
                                   + rho*grav*(p->wd - mz[q]);
                 
                 const double wgt = A_sub/3.0;

@@ -34,6 +34,10 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<cstdlib>
+#ifdef _OPENMP
+#include<omp.h>
+#endif
 
 fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0.0), rho_w(1000.0), initialised(false), force_scale(1.0), nstep(0), printtime(0.0), printcount(0), starttime(0.0)
 {
@@ -106,6 +110,27 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
         std::cout<<"\n!!! "<<e.what()<<" !!!\n"<<std::endl;
         MPI_Abort(pgc->mpi_comm,1);
     }
+
+    // threads of the solid (OpenMP builds): 'threads <n>' in fem.dat, else the cores of the
+    // node shared by its MPI ranks (every rank computes the whole solid), at most OMP_NUM_THREADS:
+    // more threads than cores (ranks x threads) slow the run down many times
+    int nthr = fs.threads_requested();
+#ifdef _OPENMP
+    if(nthr<=0)
+    {
+        MPI_Comm node;
+        MPI_Comm_split_type(pgc->mpi_comm,MPI_COMM_TYPE_SHARED,0,MPI_INFO_NULL,&node);
+        int nlocal = 1;
+        MPI_Comm_size(node,&nlocal);
+        MPI_Comm_free(&node);
+        nthr = std::max(1,omp_get_num_procs()/std::max(1,nlocal));
+        if(std::getenv("OMP_NUM_THREADS"))
+        nthr = std::min(nthr,omp_get_max_threads());
+    }
+#else
+    nthr = 1;
+#endif
+    fs.use_threads(nthr);
 
     force_scale = (p->j_dir==0) ? 1.0/fs.lattice_h(1) : 1.0;
     outdir = "./REEF3D_FEM";

@@ -160,6 +160,27 @@ target_link_libraries(REEF3D PRIVATE
   $<$<BOOL:${REEF3D_USE_HYPRE}>:HYPRE::HYPRE>
   Eigen3::Eigen)
 
+# ── OpenMP threads for the FEM solid (Z 30) ──────────────────────────────────
+# On by default when the compiler supports OpenMP; without it the solid runs on one
+# thread per MPI rank. Apple clang: brew install libomp (found with brew --prefix libomp).
+option(REEF3D_USE_OPENMP "OpenMP threads for the FEM solid" ON)
+if(REEF3D_USE_OPENMP)
+  if(APPLE AND NOT OpenMP_ROOT AND NOT DEFINED ENV{OpenMP_ROOT})
+    execute_process(COMMAND brew --prefix libomp
+      OUTPUT_VARIABLE _libomp_prefix OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    if(_libomp_prefix AND EXISTS "${_libomp_prefix}")
+      set(OpenMP_ROOT "${_libomp_prefix}")
+    endif()
+  endif()
+  find_package(OpenMP COMPONENTS CXX)
+  if(OpenMP_CXX_FOUND)
+    target_link_libraries(REEF3D PRIVATE OpenMP::OpenMP_CXX)
+    message(STATUS "OpenMP ${OpenMP_CXX_VERSION}: threads for the FEM solid")
+  else()
+    message(STATUS "OpenMP not found: the FEM solid runs on one thread per MPI rank")
+  endif()
+endif()
+
 # ── Vectorised libm for irregular-wave generation (glibc libmvec) ──────────────
 # wave_lib_irregular_1st sums sin/cos/cosh over all spectral components for every
 # relaxation-zone cell each step; with libmvec this is ~4.5x faster.

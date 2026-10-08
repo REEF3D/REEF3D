@@ -123,8 +123,9 @@ public:
     double A752,A761;
     int A748,A770,A773,A774,A775;
     double A746,A747,A749,A771,A772,A780;
-    int A790,A792,A794,A796,A797;
-    double A709,A791,A793,A795;
+    int A790,A792,A794,A796,A797,A738,A798,A799,A715_k;
+    double A715_th1,A715_th2;
+    double A709,A791,A793,A795,A739;
     double *A760_x,*A760_y;
 
     // NHFLOW Lagrangian particles
@@ -456,7 +457,7 @@ public:
     double Q17;
     double Q18;
     double Q26;
-    int Q19,Q27,Q28,Q44,Q50,Q51,Q52,Q57,Q58;
+    int Q19,Q27,Q28,Q44,Q50,Q51,Q52,Q57,Q58,Q67;
     double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
     double Q22;
     double Q23;
@@ -543,6 +544,7 @@ public:
     double X24_Ix,X24_Iy,X24_Iz;
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
+    double X17,X18;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;

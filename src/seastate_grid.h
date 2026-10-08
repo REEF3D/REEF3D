@@ -50,6 +50,13 @@ REEF3D::SEASTATE - spectral (frequency-direction) grid
   theta; quad[m]: quadrant of direction m for the four sweeps of the
   implicit solver
 
+  fine direction sector (A 715, sector()): the directions with centres in
+  the sector th1 .. th2 (counter-clockwise) are divided into k bins each;
+  the directions are then sorted by angle in [0, 2 pi), dth[m] is the
+  width of bin m, its upper face theta_m + dth/2 (costhf, sinthf), quad[m]
+  from the angle. wth[m] = dth[m]/dtheta, exactly 1 on the uniform grid,
+  so that the integrals sum N wth and multiply by dtheta in both cases
+
 No lexer or MPI dependency, so the class is unit-testable stand-alone.
 --------------------------------------------------------------------*/
 
@@ -58,6 +65,12 @@ class seastate_grid
 public:
     seastate_grid(int nsig, double fmin, double fmax, int ndir);
     seastate_grid(double frep, int ndir);            // single frequency (surfbeat)
+
+    // fine direction sector (A 715): th1, th2 [rad], k bins per direction of the sector
+    void sector(double th1, double th2, int k);
+
+    // the bin that holds direction th [rad]
+    int direction_bin(double th) const;
 
     bool valid() const {return error.empty();}
     const std::string &message() const {return error;}
@@ -71,6 +84,8 @@ public:
     std::vector<double> theta, costh, sinth;    // size ndir
     std::vector<double> costhf, sinthf;         // faces theta_m + dtheta/2, size ndir
     std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2)
+    std::vector<double> dth, wth;               // bin widths, dth/dtheta (1 on the uniform grid)
+    bool uniform = true;
 
 private:
     void directions();

@@ -35,18 +35,6 @@ Architect: Hans Bihs
 //  only: no external forces, no output) and put back at the end of their step.  Only the cells
 //  under the finer levels see the predicted body; the restriction overwrites them.
 
-void sixdof_obj_nhflow::amr_save()
-{
-    rb_amr = rb;
-}
-
-void sixdof_obj_nhflow::amr_restore(lexer *p, ghostcell *pgc)
-{
-    rb = rb_amr;
-    geom.transform(R_,c_);
-    update_fbvel(p,pgc);
-}
-
 // stage iter of the body (p->dt, p->simtime: the step of the level), without the level-0 ray
 // cast: the grids cast the hull themselves; predict: the RK stage with the frozen loads
 void sixdof_obj_nhflow::amr_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool predict)

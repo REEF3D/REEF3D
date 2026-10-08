@@ -123,6 +123,11 @@ void fnpf_amr::lap_rows()
         vector<int> &row = (g<0) ? rowmap0 : FP(g)->row;
         lgrid &L = lg[g+1];
         const int l = (g<0) ? 0 : P[g]->lev;
+
+        // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling)
+        if(l<wlo || l>wtop())
+        continue;
+
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
         else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
@@ -132,7 +137,7 @@ void fnpf_amr::lap_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-            const bool covered = (l<maxlev && reefamr::covered(l+1,2*I,2*J));
+            const bool covered = (l<wtop() && reefamr::covered(l+1,2*I,2*J));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -156,11 +161,19 @@ void fnpf_amr::lap_rows()
 // vectors, multigrids and their coefficients for this solve
 void fnpf_amr::lap_prepare(ghostcell *pgc)
 {
+    const int wkey = wlo*1000 + wtop();
+    if(lap_layout==layout_id && lap_wkey!=wkey)
+    {
+        lap_rows();
+        lap_wkey = wkey;
+    }
+
     if(lap_layout!=layout_id)
     {
         const double ts = MPI_Wtime();
 
         lap_rows();
+        lap_wkey = wkey;
 
         const int n0 = p0->imax*p0->jmax*(p0->kmax+2);
         if(kv0.empty())
@@ -261,6 +274,9 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
     // patches: interior rows, couplings to the cells around the patch dropped
     for(auto q : P)
     {
+        if(q->lev<wlo || q->lev>wtop())
+        continue;
+
         fnpf_amr_patch *c = FP(q);
         lexer *pp = c->pp;
         sc_level &L = c->mg->fine();
@@ -296,16 +312,18 @@ void fnpf_amr::lap_sync(int k)
 {
     auto sel = [&](int g) -> double* { return lvec(g,k); };
 
+    lap_dir = (k>=0);
+
     restrict_col(sel);
 
-    if(p0->mpi_size>1)
+    if(p0->mpi_size>1 && wlo==0)
     {
         double *x0 = lvec(-1,k);
         pgc0->gcparax7(p0,x0,7);
         pgc0->gcparax7co(p0,x0,7);
     }
 
-    for(int l=1; l<=maxlev; ++l)
+    for(int l=MAX(wlo,1); l<=wtop(); ++l)
     fill_col(l,7600+l,sel);
 }
 
@@ -469,6 +487,12 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
 //  pitch unit-mode psi solves stagnated (1e-8..3e-7 relative, up to N 46 iterations)
 void fnpf_amr::lap_prec(int kr, int kz)
 {
+    if(wlo>0)
+    {
+        lap_prec_win(kr,kz);
+        return;
+    }
+
     auto selz = [&](int g) -> double* { return lvec(g,kz); };
 
     // 1. pre-smoothing

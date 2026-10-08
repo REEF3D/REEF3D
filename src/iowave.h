@@ -296,17 +296,18 @@ private:
     void nhflow_open_edges_wl(lexer*,fdm_nhf*,slice&);
     double nhflow_col_ubar(lexer*,fdm_nhf*,double*);
 
-    // waves on the background (B 530): per source the wave state (k, h_eff, U_n) of the
-    // last update (0) and the target (1), blended over B 530 N steps from step c0
+    // waves on the background (B 530): per source the wave state of the last update (0) and
+    // the target (1), blended over B 530 N steps from step c0: h_eff, and per component k,
+    // U_n and the amplitude factor (0 for a component blocked by an opposing current)
     struct wave_bg_state
     {
-        double k0=0.0, h0=0.0, u0=0.0, k1=0.0, h1=0.0, u1=0.0;
-        int c0=0;
+        std::vector<double> k0, k1, u0, u1, a0, a1;
+        double h0=0.0, h1=0.0;
+        int c0=0, nblock=0;
         bool on=false;
     };
     std::vector<wave_bg_state> wbg;
     int wbg_count=-1;
-    bool wbg_blocked=false;
     void nhflow_wave_background(lexer*,ghostcell*);
 
     int intriangle(lexer*,double,double,double,double,double,double,double,double);

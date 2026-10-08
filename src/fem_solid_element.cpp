@@ -167,8 +167,12 @@ double fem_solid::damage_exp(double kappa,double e0,double ef) const
     return 1.0 - e0/kappa*std::exp(-(kappa-e0)/(ef-e0));
 }
 
-void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed,const double* rs)
+void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed,const double* rs,
+                       double* wl,unsigned char* wn)
 {
+    // dissipated energy: logged per element when the elements run on threads (added to
+    // wdiss afterwards in the order of the elements), else added directly
+    auto wadd = [&](double q) {if(wl) wl[(*wn)++] = q; else wdiss += q;};
     const Mat3 I = Mat3::Identity();
     const double J = F.determinant();
 
@@ -210,7 +214,7 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
             Ep += dp*nrm;
             s *= 1.0 - 3.0*mt.mu*dp/seq;
             st.ep += dp;
-            wdiss += w*(fy + 0.5*mt.H*dp)*dp;
+            wadd(w*(fy + 0.5*mt.H*dp)*dp);
 
             st.Ep[0]=Ep(0,0); st.Ep[1]=Ep(1,1); st.Ep[2]=Ep(2,2);
             st.Ep[3]=Ep(0,1); st.Ep[4]=Ep(1,2); st.Ep[5]=Ep(0,2);
@@ -227,8 +231,10 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
         // on the principal effective stresses, crack-band regularised
         const Mat3 S0 = mt.lambda*E.trace()*I + 2.0*mt.mu*E;
 
+        // (reinforced: with the eigenvectors for the unilateral damage below; the
+        // eigenvalues are the same as without)
         Eigen::SelfAdjointEigenSolver<Mat3> es;
-        es.computeDirect(S0,Eigen::EigenvaluesOnly);
+        es.computeDirect(S0,rs ? Eigen::ComputeEigenvectors : Eigen::EigenvaluesOnly);
         const Eigen::Vector3d sp = es.eigenvalues();   // ascending
 
         const double et = std::max(sp(2),0.0)/mt.E;
@@ -254,7 +260,7 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
         if(dnew>st.d)
         {
             const double psi0 = 0.5*(S0.array()*E.array()).sum();
-            wdiss += w*psi0*(dnew-st.d);
+            wadd(w*psi0*(dnew-st.d));
             st.d = dnew;
         }
 
@@ -274,10 +280,8 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
             // do not break the member apart: an element fails when the concrete is
             // crushed, or when it is cracked open beyond the rupture strain of the
             // bars and its own bars (if any) have ruptured
-            Eigen::SelfAdjointEigenSolver<Mat3> ev;
-            ev.computeDirect(S0,Eigen::ComputeEigenvectors);
-            const Eigen::Vector3d sv = ev.eigenvalues();
-            const Mat3 V = ev.eigenvectors();
+            const Eigen::Vector3d& sv = sp;
+            const Mat3 V = es.eigenvectors();
             S.setZero();
             for(int i=0; i<3; ++i)
             {
@@ -301,7 +305,7 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
                 {
                     // rupture: the elastic energy of the bar is released
                     const double se = mt.sE*(eps-st.es[k]);
-                    wdiss += w*rs[k]*0.5*se*se/mt.sE;
+                    wadd(w*rs[k]*0.5*se*se/mt.sE);
                     st.sfail |= (unsigned char)(1u<<k);
                     continue;
                 }
@@ -314,7 +318,7 @@ void fem_solid::stress(const material& mt,gpstate& st,const Mat3& F,const Mat3& 
                     const double dp = (xi>0.0 ? 1.0 : -1.0)*f/(mt.sE+mt.sH);
                     st.es[k] += dp;
                     sig -= mt.sE*dp;
-                    wdiss += w*rs[k]*(mt.sfy + 0.5*mt.sH*std::fabs(dp))*std::fabs(dp);
+                    wadd(w*rs[k]*(mt.sfy + 0.5*mt.sH*std::fabs(dp))*std::fabs(dp));
                 }
                 S(k,k) += rs[k]*sig;
             }
@@ -346,15 +350,23 @@ void fem_solid::internal_forces(double dts)
 {
     (void)dts;
 
-    for(int e=0; e<nelem(); ++e)
+    if(act_dirty)
+    build_gather();
+
+    // guided schedule: balances threads of different speed (efficiency cores); the results
+    // do not depend on which thread computes an element
+    const int na = (int)act.size();
+    FEM_OMP(omp parallel for schedule(guided,8) num_threads(nthr) if(par(na,PAR_ELEMS)))
+    for(int k=0; k<na; ++k)
     {
+        const int e = act[k];
         element& el = elems[e];
-        if(!el.alive || el.rigid)
-        continue;
 
         const material& mt = mats[el.mat];
         const egeom& G = geom(el);
-        const bool reinf = el.reinforced();
+        double* wl = &wl_buf[(size_t)e*WLOG];
+        unsigned char& wn = wl_n[e];
+        wn = 0;
 
         double xa[8][3], va[8][3];
         for(int a=0; a<8; ++a)
@@ -388,7 +400,7 @@ void fem_solid::internal_forces(double dts)
             double svm;
             bool failed;
             gpstate& st = gps[e*ngp+g];
-            stress(mt,st,F,Fd,G.h,w,P,svm,failed,(mt.type==MAT_CONCRETE && mt.reinforced()) ? el.rs : nullptr);
+            stress(mt,st,F,Fd,G.h,w,P,svm,failed,(mt.type==MAT_CONCRETE && mt.reinforced()) ? el.rs : nullptr,wl,&wn);
 
             if(failed) ++nfail;
             svm_sum += svm;
@@ -405,12 +417,11 @@ void fem_solid::internal_forces(double dts)
         dmean /= double(ngp);
 
         // erosion: failure in at least half of the integration points
+        // (the counts of the nodes are updated below)
         if(2*nfail>=ngp && nfail>0)
         {
             el.alive = false;
-            surf_dirty = true;
-            for(int a=0; a<8; ++a)
-            --nalive[el.n[a]];
+            fe_on[e] = 0;
             continue;
         }
 
@@ -421,9 +432,9 @@ void fem_solid::internal_forces(double dts)
             // reinforced member: at least 1 % of the concrete stiffness (as the shear of
             // cracked concrete); the bars add none: within one element they have one
             // strain, an elastic hourglass stiffness of the bars stiffened the plastic hinge
-            const double k = (mt.type==MAT_CONCRETE && mt.reinforced())
-                           ? hg_coef*std::max(1.0-dmean,0.01)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0
-                           : hg_coef*(1.0-dmean)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0;
+            const double kh = (mt.type==MAT_CONCRETE && mt.reinforced())
+                            ? hg_coef*std::max(1.0-dmean,0.01)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0
+                            : hg_coef*(1.0-dmean)*(mt.lambda+2.0*mt.mu)*G.V*G.bb/8.0;
 
             for(int al=0; al<4; ++al)
             {
@@ -434,12 +445,96 @@ void fem_solid::internal_forces(double dts)
 
                 for(int a=0; a<8; ++a)
                 for(int i=0; i<3; ++i)
-                fe[a][i] += k*G.gam[al][a]*q[i];
+                fe[a][i] += kh*G.gam[al][a]*q[i];
             }
         }
 
+        double* fb = &fe_buf[(size_t)e*24];
         for(int a=0; a<8; ++a)
         for(int i=0; i<3; ++i)
-        fint[el.n[a]](i) += fe[a][i];
+        fb[3*a+i] = fe[a][i];
+        fe_on[e] = 1;
     }
+
+    // in the order of the elements (as a serial loop): dissipated energy, eroded elements
+    for(int k=0; k<na; ++k)
+    {
+        const int e = act[k];
+        const double* wl = &wl_buf[(size_t)e*WLOG];
+        for(int q=0; q<wl_n[e]; ++q)
+        wdiss += wl[q];
+        if(!elems[e].alive)
+        {
+            surf_dirty = true;
+            act_dirty = true;
+            for(int a=0; a<8; ++a)
+            --nalive[elems[e].n[a]];
+        }
+    }
+
+    // nodal forces: sum over the elements of the node in the order of the elements
+    // (nodes without intact deformable elements keep fint = 0)
+    const int ng = (int)g_node.size();
+    FEM_OMP(omp parallel for schedule(static) num_threads(nthr) if(par(ng,PAR_NODES)))
+    for(int k=0; k<ng; ++k)
+    {
+        Vec3 f = Vec3::Zero();
+        for(int q=g_start[k]; q<g_start[k+1]; ++q)
+        {
+            if(!fe_on[g_elem[q]])
+            continue;
+            const double* fb = &fe_buf[g_off[q]];
+            f(0) += fb[0];
+            f(1) += fb[1];
+            f(2) += fb[2];
+        }
+        fint[g_node[k]] = f;
+    }
+}
+
+void fem_solid::build_gather()
+{
+    // intact deformable elements, and for every node of them its elements among
+    // them in ascending order (the order of the serial assembly)
+    const int ne = nelem(), nn = nnode();
+    act.clear();
+    nalive_el = 0;
+    for(int e=0; e<ne; ++e)
+    if(elems[e].alive)
+    {
+        ++nalive_el;
+        if(!elems[e].rigid)
+        act.push_back(e);
+    }
+    if(fe_buf.size()!=(size_t)ne*24)
+    {
+        fe_buf.assign((size_t)ne*24,0.0);
+        wl_buf.assign((size_t)ne*WLOG,0.0);
+        wl_n.assign(ne,0);
+    }
+    fe_on.assign(ne,0);
+    std::vector<unsigned char> on(ne,0);
+    for(int e : act)
+    on[e] = 1;
+
+    g_node.clear(); g_start.assign(1,0); g_off.clear(); g_elem.clear();
+    for(int i=0; i<nn; ++i)
+    {
+        const int q0 = (int)g_off.size();
+        for(int q=node_elem_start[i]; q<node_elem_start[i+1]; ++q)
+        {
+            const int e = node_elem[q];
+            if(!on[e])
+            continue;
+            g_elem.push_back(e);
+            g_off.push_back(e*24+3*node_elem_a[q]);
+        }
+        if((int)g_off.size()>q0)
+        {
+            g_node.push_back(i);
+            g_start.push_back((int)g_off.size());
+        }
+    }
+    std::fill(fint.begin(),fint.end(),Vec3::Zero());
+    act_dirty = false;
 }
