@@ -1,38 +1,36 @@
-# hypre is opt-in, for benchmarking only: make HYPRE=1 builds the hypre solvers N 10 10-39 (needs hypre in HYPRE_DIR).
-# The default build has no hypre dependency; N 10 10-39 then fall back to REEFMG (N 10 1).
 HYPRE        ?= 0
-ifeq ($(HYPRE),1)
-OBJ_DIR      := ./build_hypre
-else
+OMP          ?= auto
+
 OBJ_DIR      := ./build
-endif
 APP_DIR      := ./bin
 TARGET       := REEF3D
 APP          := $(APP_DIR)/$(TARGET)
 CXX          := mpicxx
+CXXFLAGS     := -std=c++20 -pthread
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT   := $(shell git rev-parse --short=7 HEAD)
 GIT_DIRTY    := $(shell git diff --quiet --ignore-submodules HEAD -- || echo -dirty)
 GIT_VERSION  := $(GIT_COMMIT)$(GIT_DIRTY)
-HYPRE_DIR    := /usr/local/hypre
+CXXFLAGS     += -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
 EIGEN_DIR    := ThirdParty/eigen-5.0.0
-CXXFLAGS     := -std=c++20 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
-ifeq ($(HYPRE),1)
-CXXFLAGS     += -DREEF3D_USE_HYPRE
-LDFLAGS      := -L ${HYPRE_DIR}/lib/ -lHYPRE
-INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
-SRC          := $(wildcard src/*.cpp)
-else
-LDFLAGS      :=
-INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
+INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY
+LDFLAGS      := -lz -pthread
 SRC          := $(filter-out src/hypre_%.cpp,$(wildcard src/*.cpp))
+
+# hypre is opt-in, for benchmarking only: make HYPRE=1 builds the hypre solvers N 10 10-39 (needs hypre in HYPRE_DIR).
+# The default build has no hypre dependency; N 10 10-39 then fall back to REEFMG (N 10 1).
+ifeq ($(HYPRE),1)
+OBJ_DIR      := ./build_hypre
+HYPRE_DIR    := /usr/local/hypre
+CXXFLAGS     += -DREEF3D_USE_HYPRE
+INCLUDE      += -I ${HYPRE_DIR}/include
+LDFLAGS      += -L ${HYPRE_DIR}/lib/ -lHYPRE
+SRC          := $(wildcard src/*.cpp)
 endif
-# zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
-LDFLAGS      += -lz -pthread
+
 # OpenMP threads for the FEM solid (Z 30): on when the compiler can build OpenMP code (OMP=auto,
 # the default; OMP=0 builds without). GCC: -fopenmp; Apple clang: libomp (brew install libomp),
 # found with brew --prefix libomp or OMP_PREFIX=<dir>
-OMP          ?= auto
 ifeq ($(shell uname -s)$(shell $(CXX) --version 2>/dev/null | grep -c -i clang),Darwin1)
 OMP_PREFIX   ?= $(shell brew --prefix libomp 2>/dev/null)
 OMP_CFLAGS   := -Xpreprocessor -fopenmp -I$(OMP_PREFIX)/include
@@ -51,6 +49,7 @@ ifeq ($(USE_OMP),1)
 OMPFLAGS     := $(OMP_CFLAGS)
 OMPLIBS      := $(OMP_LIBS)
 endif
+
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
