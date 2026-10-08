@@ -222,7 +222,15 @@ bool reefmg_core::setup(MPI_Comm cart,
         {
             int loc[2]={ax,ay}, glo[2]={0,0};
             MPI_Allreduce(loc,glo,2,MPI_INT,MPI_MIN,comm);
-            const bool cx=glo[0]>=8, cy=glo[1]>=8;
+            //  A direction with fewer than 8 cells per rank is still halved -
+            //  down to one cell - while the other one keeps coarsening.  Otherwise
+            //  a narrow direction (a flume a few cells wide) stays fine while the
+            //  long one is coarsened: the coarse cells become ever more
+            //  anisotropic, and the modes that are smooth in x and z but vary
+            //  across the few cells in y are neither smoothed nor corrected
+            //  (1600 x 4 x 80: ~180 cycles instead of ~10).
+            const bool cx=glo[0]>=8 || (glo[0]>=2 && glo[1]>=8);
+            const bool cy=glo[1]>=8 || (glo[1]>=2 && glo[0]>=8);
             int rx=cx?2:1, ry=cy?2:1;
             if(cx && cy)
             {
