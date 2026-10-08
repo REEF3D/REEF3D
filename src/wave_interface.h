@@ -86,6 +86,10 @@ public:
     
     void wave_prestep(lexer*,ghostcell*);
     
+    // decomposed precalc (B 89 1): number of components of all sources (the B 92 wave first);
+    // components from decomp_L on belong to the additional sources (wave_field)
+    int decomp_ncomp(lexer*);
+    
     // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
     // ids as in B 524 (1: the B 92 wave); nullptr: all sources
     void select_sources(const std::vector<int>*);
@@ -102,6 +106,7 @@ private:
     wave_lib *pwave;      // source 1: the B 92 wave, unchanged path
     wave_field *pfield;   // additional sources (B 500-504), summed on top
     bool legacy_on;       // the B 92 wave is among the selected sources
+    int decomp_L = 1<<30; // decomposed components of the B 92 wave (set by decomp_ncomp)
     
     
     int n,m,count;

@@ -31,6 +31,7 @@ using namespace std;
 class wave_lib_Stokes_5th final : public wave_lib, public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_Stokes_5th(lexer*, ghostcell*);
 	virtual ~wave_lib_Stokes_5th();
     

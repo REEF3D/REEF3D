@@ -235,7 +235,7 @@ void iowave::zones_check(lexer *p)
     err = "zone sources (B 524) are available for FNPF and NHFLOW only, so far";
     
     if(zones.has_sources() && p->B89==1)
-    err = "zone sources (B 524) do not work with decomposed precalc (B 89 1) yet";
+    err = "zone sources (B 524) do not work with decomposed precalc (B 89 1) yet: B 89 1 generates all sources in every zone";
     
     for(const bc_zone &z : zones.relax)
     for(int s : z.sources)

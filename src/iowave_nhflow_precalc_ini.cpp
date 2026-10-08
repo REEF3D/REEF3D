@@ -32,14 +32,9 @@ void iowave::nhflow_precalc_relax_ini(lexer *p,fdm_nhf *d, ghostcell *pgc)
     
     upt_count=ept_count=0;
     
+    // B 92 wave (5, 31, 41, 51) and the additional sources (wave_field)
     if(p->B89==1)
-    {
-        if(p->B92==5)
-        wave_comp = 5;
-        
-        if(p->B92==31 || p->B92==41 || p->B92==51)
-        wave_comp = p->wN;
-    }
+    wave_comp = decomp_ncomp(p);
     
     // U ------------------------------------------------
     BASELOOP
@@ -113,14 +108,9 @@ void iowave::nhflow_precalc_dirichlet_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     upt_count=ept_count = p->gcin_count;
     
+    // B 92 wave (5, 31, 41, 51) and the additional sources (wave_field)
     if(p->B89==1)
-    {
-        if(p->B92==5)
-        wave_comp = 5;
-        
-        if(p->B92==31 || p->B92==41 || p->B92==51)
-        wave_comp = p->wN;
-    }
+    wave_comp = decomp_ncomp(p);
   
     // precalc array alloc
 

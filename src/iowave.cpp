@@ -37,13 +37,29 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     // decomposed precalc (B 89 1) needs the space / time parts of the wave theory, which only
     // the 5th-order Stokes (B 92 5) and the irregular theories (31, 41, 51) provide; with any
-    // other wave type it generated no waves at all, so it now falls back to B 89 0
-    if(p->B89==1 && p->B92!=5 && p->B92!=31 && p->B92!=41 && p->B92!=51)
+    // other wave type it generated no waves at all, so it now falls back to B 89 0. Additional
+    // sources (B 500) are decomposed too (wave_field) and need these types as well.
+    if(p->B89==1)
     {
-        if(p->mpirank==0)
-        cout<<"iowave: decomposed precalc (B 89 1) is available for wave types B 92 5, 31, 41, 51; wave type "<<p->B92<<" runs with B 89 0"<<endl;
+        int bad = -1;
         
-        p->B89 = 0;
+        for(int q=0; q<wave_nsources(); ++q)
+        {
+            int sid, stype;
+            double srot;
+            wave_source_lib(q,sid,stype,srot);
+            
+            if(!(q==0 && stype==0) && stype!=5 && stype!=31 && stype!=41 && stype!=51)
+            bad = stype;
+        }
+        
+        if(bad>=0)
+        {
+            if(p->mpirank==0)
+            cout<<"iowave: decomposed precalc (B 89 1) is available for wave types 5, 31, 41, 51; wave type "<<bad<<" runs with B 89 0"<<endl;
+            
+            p->B89 = 0;
+        }
     }
 
     if(p->F80==4)

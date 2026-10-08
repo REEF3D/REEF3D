@@ -120,6 +120,11 @@ public:
     virtual void wave_depth_set(double h) {}
     virtual void wave_comp_update() {}
 
+    // lexer fields the evaluation reads (iowave redesign, step 2): 0 none (the wave parameters are
+    // members, set at construction), 1 only wN and B130 (irregular theories), 2 the whole wave
+    // context (default). wave_field swaps a source's context into the lexer only as far as needed.
+    virtual int wave_lexer_fields() const {return 2;}
+
     virtual ~wave_lib() = default;
 
 protected:

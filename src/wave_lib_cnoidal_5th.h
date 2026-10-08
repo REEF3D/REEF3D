@@ -34,6 +34,7 @@ class wave_lib_cnoidal_5th final : public wave_lib_precalc, public wave_lib_para
                                  public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_cnoidal_5th(lexer*, ghostcell*);
 	virtual ~wave_lib_cnoidal_5th();
     

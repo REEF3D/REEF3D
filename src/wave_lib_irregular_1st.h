@@ -34,6 +34,7 @@ class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters
                                public increment
 {
 public:
+    int wave_lexer_fields() const override {return 1;}
     wave_lib_irregular_1st(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_1st();
     

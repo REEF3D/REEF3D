@@ -50,8 +50,9 @@ Spectrum shape, spreading and depth are taken from the B 8x / B 13x / B 94
 input of the legacy source.
 
 Rules (checked at setup): at most one nonlinear source in total; no HDC
-or wavemaker (paddle) source beyond the legacy one; no decomposed
-precalc (B 89 1) with more than one source until phase 2.
+or wavemaker (paddle) source beyond the legacy one. Decomposed precalc
+(B 89 1) takes the components of all sources (types 5, 31, 41, 51; others
+fall back to B 89 0, iowave).
 --------------------------------------------------------------------*/
 
 class wave_field
@@ -76,6 +77,14 @@ public:
 
     void prestep(lexer*, ghostcell*);
 
+    // decomposed precalc (B 89 1, roadmap step 6): the components of the additional sources follow
+    // those of the B 92 wave; space parts in the source's frame, time parts with its phase shift,
+    // time window and ramp. kind: 0 u, 1 v, 2 w, 3 eta, 4 fi; sc: 0 sin, 1 cos
+    static int decomp_ncomp(int type, int wN);   // components of a wave type; -1: not decomposable
+    int decomp_build(lexer*);                    // maps the components, returns their number
+    double dspace(lexer*, int kind, int sc, int n, double x, double y, double z);
+    double dtime(lexer*, int kind, int sc, int n);
+
     static bool nonlinear(int);
     bool exists(int) const;
     
@@ -95,13 +104,16 @@ private:
         ~scope();
         lexer *p;
         wave_source &s;
+        int mode;
         wave_lexer_context keep;
         double wavetime;
+        int wN=0, B130=0;
     };
 
     bool use(const wave_source*) const;
     
     std::vector<wave_source*> src;
+    std::vector<int> dsrc, dloc;     // decomposed component -> source, its own component index
 };
 
 #endif

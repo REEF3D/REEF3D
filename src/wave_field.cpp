@@ -31,10 +31,25 @@ Author: Hans Bihs
 
 wave_lib* wave_lib_create(lexer*, ghostcell*, int);
 
-wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss)
+// The evaluation of a source sees its own wave context (wT, wN, B 92, ...) and its phase shift.
+// Libraries that keep their parameters as members (wave_lexer_fields 0) only need the shifted
+// time; the irregular theories (1) read wN and B130; all others (2) get the whole context.
+wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss), mode(ss.lib!=nullptr ? ss.lib->wave_lexer_fields() : 2)
 {
+    if(mode==2)
+    {
     keep.save(p);
     s.ctx.load(p);
+    }
+    
+    if(mode==1)
+    {
+    wN = p->wN;
+    B130 = p->B130;
+    p->wN = s.ctx.wN;
+    p->B130 = s.ctx.B130;
+    }
+    
     wavetime = p->wavetime;
     p->wavetime = wavetime - s.tshift;
 }
@@ -42,8 +57,18 @@ wave_field::scope::scope(lexer *pp, wave_source &ss) : p(pp), s(ss)
 wave_field::scope::~scope()
 {
     p->wavetime = wavetime;
+    
+    if(mode==2)
+    {
     s.ctx.save(p);
     keep.load(p);
+    }
+    
+    if(mode==1)
+    {
+    p->wN = wN;
+    p->B130 = B130;
+    }
 }
 
 wave_field::wave_field(lexer *p, ghostcell *pgc)
@@ -232,8 +257,6 @@ void wave_field::check(lexer *p)
     if(nnonlin>1)
     err = "at most one nonlinear wave theory may be superposed with linear ones ("+std::to_string(nnonlin)+" given)";
 
-    if(p->B89==1)
-    err = "decomposed precalc (B 89 1) supports one wave source only, until the precalc engine of phase 2";
 
     if(!err.empty())
     {
@@ -456,4 +479,73 @@ void wave_field::prestep(lexer *p, ghostcell *pgc)
         scope sc(p,*s);
         s->lib->wave_prestep(p,pgc);
     }
+}
+
+// ---------------------------------------------------------------------
+// decomposed precalc (B 89 1) with several sources
+// ---------------------------------------------------------------------
+
+int wave_field::decomp_ncomp(int type, int wN)
+{
+    if(type==5)
+    return 5;
+    
+    if(type==31 || type==41 || type==51)
+    return wN;
+    
+    return -1;
+}
+
+int wave_field::decomp_build(lexer *p)
+{
+    dsrc.clear();
+    dloc.clear();
+    
+    for(int q=0; q<(int)src.size(); ++q)
+    {
+        const int nc = decomp_ncomp(src[q]->type,src[q]->ctx.wN);
+        
+        for(int m=0; m<nc; ++m)
+        {
+        dsrc.push_back(q);
+        dloc.push_back(m);
+        }
+    }
+    
+    return (int)dsrc.size();
+}
+
+double wave_field::dspace(lexer *p, int kind, int sc, int n, double x, double y, double z)
+{
+    wave_source *s = src[dsrc[n]];
+    const int m = dloc[n];
+    double xs, ys;
+    s->local(x,y,xs,ys);
+    scope ss(p,*s);
+    wave_lib *L = s->lib;
+    
+    if(kind==0) return sc==0 ? L->wave_u_space_sin(p,xs,ys,z,m) : L->wave_u_space_cos(p,xs,ys,z,m);
+    if(kind==1) return sc==0 ? L->wave_v_space_sin(p,xs,ys,z,m) : L->wave_v_space_cos(p,xs,ys,z,m);
+    if(kind==2) return sc==0 ? L->wave_w_space_sin(p,xs,ys,z,m) : L->wave_w_space_cos(p,xs,ys,z,m);
+    if(kind==3) return sc==0 ? L->wave_eta_space_sin(p,xs,ys,m) : L->wave_eta_space_cos(p,xs,ys,m);
+    return sc==0 ? L->wave_fi_space_sin(p,xs,ys,z,m) : L->wave_fi_space_cos(p,xs,ys,z,m);
+}
+
+double wave_field::dtime(lexer *p, int kind, int sc, int n)
+{
+    wave_source *s = src[dsrc[n]];
+    
+    if(!s->active(p))
+    return 0.0;
+    
+    const int m = dloc[n];
+    const double r = s->ramp(p);
+    scope ss(p,*s);
+    wave_lib *L = s->lib;
+    
+    if(kind==0) return r*(sc==0 ? L->wave_u_time_sin(p,m) : L->wave_u_time_cos(p,m));
+    if(kind==1) return r*(sc==0 ? L->wave_v_time_sin(p,m) : L->wave_v_time_cos(p,m));
+    if(kind==2) return r*(sc==0 ? L->wave_w_time_sin(p,m) : L->wave_w_time_cos(p,m));
+    if(kind==3) return r*(sc==0 ? L->wave_eta_time_sin(p,m) : L->wave_eta_time_cos(p,m));
+    return r*(sc==0 ? L->wave_fi_time_sin(p,m) : L->wave_fi_time_cos(p,m));
 }

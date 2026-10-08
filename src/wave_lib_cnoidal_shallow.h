@@ -34,6 +34,7 @@ class wave_lib_cnoidal_shallow final : public wave_lib_precalc, public wave_lib_
                                  public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_cnoidal_shallow(lexer*, ghostcell*);
 	virtual ~wave_lib_cnoidal_shallow();
 
