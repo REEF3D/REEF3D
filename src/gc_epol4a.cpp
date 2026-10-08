@@ -108,7 +108,7 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
 	bc_label=gceval4a(p,gcv,bc,cs);
 
 	if(bc_label==74 || bc_label==75)
-	neumann_all(f,gcv,bc,cs);
+	neumann(f,gcv,bc,cs);
     
     if(bc_label==79)
     extend(p,f,dist,gcv,bc,cs);
