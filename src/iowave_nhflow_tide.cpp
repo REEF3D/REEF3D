@@ -400,17 +400,21 @@ void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
 /*--------------------------------------------------------------------
 Waves on the background (B 530 mode N; iowave redesign, step 4e)
 
-Every source keeps its absolute frequency omega = 2 pi / T. Every N steps
-the depth h_eff = h_0 + eta_b and the current U_n = U_b cos(dir) + V_b sin(dir)
-are averaged over the columns where the source generates waves (relaxation
-zones and Riemann edges with a background), and k is re-solved from
+Every wave component (one for linear waves, all spectral components for
+irregular waves, steps 4e / 4f) keeps its absolute frequency omega. Every
+N steps the background level eta_b and current (U_b, V_b) are averaged over
+the columns where the source generates waves (relaxation zones and Riemann
+edges with a background), and k of each component is re-solved from
 
     omega = sqrt(g k tanh(k h_eff)) + k U_n     (mode 2, Doppler)
     omega = sqrt(g k tanh(k h_eff))             (mode 1, U_n = 0)
 
-k, h_eff and U_n are blended linearly to the new values over the next N
-steps, so the phase k x - omega t never jumps. The library evaluates the
-orbital velocities with sigma = omega - k U_n and sinh(k h_eff).
+with h_eff = h_0 + eta_b and U_n = U_b cos(dir) + V_b sin(dir), dir the
+direction of the component. k, h_eff and U_n are blended linearly to the
+new values over the next N steps, so the phase k x - omega t never jumps.
+A component blocked by an opposing current (no root) fades out over the
+same N steps. The library evaluates the orbital velocities with
+sigma = omega - k U_n and sinh(k h_eff).
 --------------------------------------------------------------------*/
 
 // root of omega = sqrt(g k tanh(k h)) + k un on the branch that starts at k = 0;
@@ -478,8 +482,9 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
         double rot;
         wave_lib *lib = wave_source_lib(n,id,type,rot);
         
-        double kc, hc, sc, om, h0;
-        if(lib==nullptr || !lib->wave_state(kc,hc,sc,om,h0))
+        const int nc_ = lib!=nullptr ? lib->wave_ncomp() : 0;
+        
+        if(nc_==0)
         continue;
         
         wave_bg_state &s = wbg[n];
@@ -487,18 +492,27 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
         // first call: start from the state of the library
         if(!s.on)
         {
-            s.k0 = s.k1 = kc;
-            s.h0 = s.h1 = hc;
-            s.u0 = s.u1 = kc>0.0 ? (om-sc)/kc : 0.0;
+            s.k0.resize(nc_); s.u0.resize(nc_); s.a0.resize(nc_);
+            
+            for(int m=0; m<nc_; ++m)
+            {
+                double k, om, sg, b, af;
+                lib->wave_comp(m,k,om,sg,b,af);
+                s.k0[m] = k;
+                s.u0[m] = k>0.0 ? (om-sg)/k : 0.0;
+                s.a0[m] = af;
+            }
+            
+            s.k1 = s.k0;
+            s.u1 = s.u0;
+            s.a1 = s.a0;
+            s.h0 = s.h1 = lib->wave_depth();
             s.c0 = p->count;
             s.on = true;
         }
         
         // current state of the blend
         const double f = std::min(1.0, double(p->count-s.c0)/double(N));
-        const double kb = s.k0 + (s.k1-s.k0)*f;
-        const double hb = s.h0 + (s.h1-s.h0)*f;
-        const double ub = s.u0 + (s.u1-s.u0)*f;
         
         if(update)
         {
@@ -566,44 +580,81 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
             nc = pgc->globalisum(nc);
             
             // restart the blend from the current state towards the new target
-            s.k0 = kb;
-            s.h0 = hb;
-            s.u0 = ub;
+            for(int m=0; m<nc_; ++m)
+            {
+                s.k0[m] = s.k0[m] + (s.k1[m]-s.k0[m])*f;
+                s.u0[m] = s.u0[m] + (s.u1[m]-s.u0[m])*f;
+                s.a0[m] = s.a0[m] + (s.a1[m]-s.a0[m])*f;
+            }
+            s.h0 = s.h0 + (s.h1-s.h0)*f;
             s.c0 = p->count;
             
             if(nc>0)
             {
-                const double dir = (p->B105_1 + rot)*(PI/180.0);
-                const double h = h0 + se/double(nc);
-                const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
-                double k;
+                const double h = lib->wave_depth0() + se/double(nc);
+                const double ub = su/double(nc);    // for the message
+                const double vb = sv/double(nc);
+                int nblock = 0;
                 
-                if(h>0.0 && doppler_k(om,h,un,g,k))
+                if(h>0.0)
                 {
-                    s.k1 = k;
                     s.h1 = h;
-                    s.u1 = un;
-                }
-                else
-                if(!wbg_blocked)
-                {
-                    wbg_blocked = true;
                     
-                    if(p->mpirank==0)
-                    cout<<"iowave B 530: no wave solution for source "<<id<<" (h_eff "<<h<<" m, U_n "<<un<<" m/s, blocked by an opposing current?), k kept"<<endl;
+                    for(int m=0; m<nc_; ++m)
+                    {
+                        double kc, om, sg, b, af;
+                        lib->wave_comp(m,kc,om,sg,b,af);
+                        
+                        const double dir = (p->B105_1 + rot)*(PI/180.0) + b;
+                        const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
+                        double k;
+                        
+                        if(doppler_k(om,h,un,g,k))
+                        {
+                            s.k1[m] = k;
+                            s.u1[m] = un;
+                            s.a1[m] = 1.0;
+                        }
+                        else
+                        {
+                            // blocked: fade the component out, keep its last k
+                            s.a1[m] = 0.0;
+                            ++nblock;
+                        }
+                    }
                 }
+                
+                if(p->mpirank==0 && nblock!=s.nblock)
+                cout<<"iowave B 530: source "<<id<<": "<<nblock<<" of "<<nc_<<" components blocked by the opposing current (U "<<ub<<" "<<vb<<" m/s), faded out"<<endl;
+                
+                s.nblock = nblock;
             }
             
             if(p->mpirank==0 && (p->count==0 || p->count%(100*N)==0))
-            cout<<"iowave B 530: source "<<id<<"  k "<<s.k1<<"  L "<<2.0*PI/s.k1<<"  h_eff "<<s.h1<<"  U_n "<<s.u1<<endl;
+            {
+                if(nc_==1)
+                cout<<"iowave B 530: source "<<id<<"  k "<<s.k1[0]<<"  L "<<2.0*PI/s.k1[0]<<"  h_eff "<<s.h1<<"  U_n "<<s.u1[0]<<endl;
+                else
+                cout<<"iowave B 530: source "<<id<<"  "<<nc_<<" components  h_eff "<<s.h1<<"  blocked "<<s.nblock<<endl;
+            }
         }
         
         // state of this step
         const double fs = std::min(1.0, double(p->count-s.c0)/double(N));
-        const double k = s.k0 + (s.k1-s.k0)*fs;
-        const double h = s.h0 + (s.h1-s.h0)*fs;
-        const double u = s.u0 + (s.u1-s.u0)*fs;
         
-        lib->wave_state_set(k,h,om-k*u);
+        for(int m=0; m<nc_; ++m)
+        {
+            double kc, om, sg, b, af;
+            lib->wave_comp(m,kc,om,sg,b,af);
+            
+            const double k = s.k0[m] + (s.k1[m]-s.k0[m])*fs;
+            const double u = s.u0[m] + (s.u1[m]-s.u0[m])*fs;
+            const double a = s.a0[m] + (s.a1[m]-s.a0[m])*fs;
+            
+            lib->wave_comp_set(m,k,om-k*u,a);
+        }
+        
+        lib->wave_depth_set(s.h0 + (s.h1-s.h0)*fs);
+        lib->wave_comp_update();
     }
 }

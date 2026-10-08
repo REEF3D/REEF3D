@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"wave_lib.h"
 #include<string>
 
 // Wave-frame coordinates of a point: xgen along the wave direction B 105_1,
@@ -278,10 +279,10 @@ void iowave::zones_check(lexer *p)
         {
             int id, type;
             double rot;
-            wave_source_lib(n,id,type,rot);
+            const wave_lib *lib = wave_source_lib(n,id,type,rot);
             
-            if(type!=2 && !(n==0 && type==0))
-            err = "waves on the background (B 530) work with linear waves (type 2) only, so far; source "+std::to_string(id)+" is type "+std::to_string(type);
+            if((lib==nullptr || lib->wave_ncomp()==0) && !(n==0 && type==0))
+            err = "waves on the background (B 530) work with linear waves (type 2) and spectral irregular waves (type 31) only, so far; source "+std::to_string(id)+" is type "+std::to_string(type);
         }
     }
     

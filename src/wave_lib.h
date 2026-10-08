@@ -100,14 +100,25 @@ public:
     }
 
     // ---- waves on a background (iowave, B 530) ----------------------------
-    // A wave on a tide or current keeps its absolute frequency omega; iowave
-    // re-solves k on the background depth h_eff (and with Doppler from
-    // omega = sigma + k U_n) and hands the state back. The libraries that
-    // support it evaluate eta and the phase with k, the orbital velocities
-    // with sigma and sinh(k h_eff); the height above the bed stays wdt + z.
-    // wave_state: k, depth, sigma, omega and the construction depth
-    virtual bool wave_state(double &k, double &h, double &sigma, double &omega, double &h0) const {return false;}
-    virtual void wave_state_set(double k, double h, double sigma) {}
+    // A wave on a tide or current keeps the absolute frequency omega of each
+    // component; iowave re-solves k on the background depth h_eff (and with
+    // Doppler from omega = sigma + k U_n) and hands the state back. The
+    // libraries that support it evaluate eta and the phase with k, the orbital
+    // velocities with sigma and sinh(k h_eff); the height above the bed stays
+    // wdt + z. A component blocked by an opposing current gets amplitude
+    // factor 0.
+    //   wave_ncomp        number of components (0: not supported)
+    //   wave_comp         component n: k, omega, sigma, direction beta [rad] relative
+    //                     to the library's B 105 frame, amplitude factor
+    //   wave_depth0/depth construction depth wdt / current h_eff
+    //   wave_comp_set, wave_depth_set, then wave_comp_update once to refresh derived data
+    virtual int wave_ncomp() const {return 0;}
+    virtual void wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const {}
+    virtual double wave_depth0() const {return 0.0;}
+    virtual double wave_depth() const {return 0.0;}
+    virtual void wave_comp_set(int n, double k, double sigma, double af) {}
+    virtual void wave_depth_set(double h) {}
+    virtual void wave_comp_update() {}
 
     virtual ~wave_lib() = default;
 

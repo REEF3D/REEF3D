@@ -46,12 +46,17 @@ public:
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
-    bool wave_state(double&, double&, double&, double&, double&) const override final;
-    void wave_state_set(double, double, double) override final;
+    int wave_ncomp() const override final {return 1;}
+    void wave_comp(int, double&, double&, double&, double&, double&) const override final;
+    double wave_depth0() const override final {return wdt;}
+    double wave_depth() const override final {return wdk;}
+    void wave_comp_set(int, double, double, double) override final;
+    void wave_depth_set(double h) override final {wdk = h;}
     
 private:
     double singamma,cosgamma;
     double wsig,wdk;    // intrinsic frequency and depth of the orbital velocities (ww and wdt unless iowave B 530 changes them)
+    double wa0,waf;     // amplitude as constructed and the B 530 factor (blocked wave: 0)
 };
 
 #endif
