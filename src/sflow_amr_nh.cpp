@@ -304,17 +304,23 @@ double sflow_amr::nh_eval(const reefamr_fill &f, int k)
     return 0.0;
 }
 
-// G 7 1: the pressure of a filled cell with the parent pressure linear in time between the start
-// of the parent step (told) and its end (th: 0..1)
-double sflow_amr::nh_eval_t(const reefamr_fill &f, double th)
+// G 7 1: the value of a filled cell, field fld of sflow_amr_told (4 pressure, 5 u_a, 6 v_a), the
+// parent linear in time between the start of its step (told) and its end (th: 0..1)
+double sflow_amr::nh_eval_t(const reefamr_fill &f, double th, int fld)
 {
+    auto field = [&](int g) -> slice&
+    {
+        fdm2D *pb = (g<0) ? b0 : SP(g)->b;
+        return fld==4 ? pb->press : (fld==5 ? pb->UA : pb->VA);
+    };
+
     if(f.kind==0)
-    return nh_vec(f.g,-1)(f.si,f.sj);
+    return field(f.g)(f.si,f.sj);
 
     if(f.kind==1)
     {
-        slice &x = nh_vec(f.g,-1);
-        slice *xo = told(f.g).f[4];
+        slice &x = field(f.g);
+        slice *xo = told(f.g).f[fld];
         lexer *q = glex(f.g);
         const int ic=f.si, jc=f.sj;
         auto at = [&](int a, int bb) { return (th>=1.0 || xo==nullptr) ? x(a,bb) : (1.0-th)*(*xo)(a,bb) + th*x(a,bb); };
@@ -346,7 +352,7 @@ void sflow_amr::nh_qfill(int l, int k)
              {
                  if(edge && std::isnan(w[0]))
                  {
-                     if(k>=0)
+                     if(k!=nh_keep)
                      nh_vec(n,k)(f.di,f.dj) = 0.0;
                      return;
                  }

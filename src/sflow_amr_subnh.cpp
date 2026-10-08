@@ -75,7 +75,7 @@ void sflow_amr::nh_level(lexer *p, ghostcell *pgc, int l, int k, int s)
     // the previous pressure, overwritten by the solve)
     const double th = 0.5*(double(k)+rko[s]);
     fill_run(l,1,7350+l,
-             [&](const reefamr_fill &f, double *v) { v[0] = nh_eval_t(f,th); },
+             [&](const reefamr_fill &f, double *v) { v[0] = nh_eval_t(f,th,4); },
              [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { nh_vec(n,-1)(f.di,f.dj) = w[0]; });
 
     wlo = whi = l;

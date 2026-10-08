@@ -232,14 +232,14 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         return;
     }
 
-    // subcycling (G 7 1, sflow_amr_sub.cpp): hydrostatic and non-hydrostatic (A 220 1-3: level
-    // solves and synchronisation projections, sflow_amr_subnh.cpp); not Boussinesq, not with the
-    // moving body
+    // subcycling (G 7 1, sflow_amr_sub.cpp): hydrostatic, non-hydrostatic (A 220 1-3: level solves
+    // and synchronisation projections) and Boussinesq (A 220 4: u_a per level), sflow_amr_subnh.cpp;
+    // not with the moving body
     sub = (p->G7==1) ? 1 : 0;
-    if(sub==1 && (p->A220>3 || shipmode>0))
+    if(sub==1 && shipmode>0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR: G 7 1 (subcycling) only for A 220 0-3 without a moving body -- one time step for all levels"<<endl;
+        cout<<"SFLOW AMR: G 7 1 (subcycling) not with a moving body -- one time step for all levels"<<endl;
         sub = 0;
     }
 
@@ -912,9 +912,21 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
         ww = wt==1 ? what(a,bb)/wlvl : 0.0;
     };
 
-    // Boussinesq: u_a and M/H of the coarse cell (the parent state at the start of the stage)
+    // Boussinesq: u_a and M/H of the coarse cell (the parent state at the start of the stage; G 7 1:
+    // linear in time as above)
     auto getb = [&](int a, int bb, double *w)
     {
+        if(ti)
+        {
+            double wlc = wlat(a,bb);
+            double wlvl = fabs(wlc)>wd ? wlc : 1.0e20;
+            int wt = wetat(a,bb,wlc)==1 && q->flagslice4[lij(q,a,bb)]>0;
+            w[0] = wt ? tv(5,pb->UA,a,bb) : 0.0;
+            w[1] = wt ? tv(6,pb->VA,a,bb) : 0.0;
+            w[2] = wt ? tv(7,pb->MX,a,bb)/wlvl : 0.0;
+            w[3] = wt ? tv(8,pb->MY,a,bb)/wlvl : 0.0;
+            return;
+        }
         double wlc = WLp(a,bb);
         double wlvl = fabs(wlc)>wd ? wlc : 1.0e20;
         int wt = q->wet[lij(q,a,bb)]==1 && q->flagslice4[lij(q,a,bb)]>0;

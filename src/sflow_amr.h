@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include<vector>
 #include<fstream>
 #include<unordered_map>
+#include<map>
 #include<cstdint>
 
 class lexer;
@@ -79,8 +80,8 @@ using namespace std;
 //     coarser level (Berger-Oliger): the cells around a patch are filled from the parent state
 //     interpolated in time between the start and the end of its step, the coarse cells next to
 //     a patch are corrected afterwards by the difference of the fine and coarse face fluxes
-//     summed over the steps (flux registers, refluxing); the non-hydrostatic pressure is solved
-//     level by level (sflow_amr_subnh.cpp)
+//     summed over the steps (flux registers, refluxing); the non-hydrostatic pressure and the
+//     Boussinesq u_a are solved level by level (sflow_amr_subnh.cpp, sflow_amr_bous.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
 //     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
 //     Flags mark tiles of G 4 cells on the global index space of each level;
@@ -101,11 +102,11 @@ using namespace std;
 
 // G 7 1: state of a grid at the start of its step (WL, UH, VH, WH and the wet flags), the
 // parent state of the time-interpolated fills
-// (A 220 1-3: and the pressure)
+// (A 220 1-3: and the pressure; A 220 4: and UA, VA, MX, MY)
 struct sflow_amr_told
 {
-    static const int NF = 5;        // WL UH VH WH press
-    slice *f[NF] = {nullptr,nullptr,nullptr,nullptr,nullptr};
+    static const int NF = 9;        // WL UH VH WH press UA VA MX MY
+    slice *f[NF] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
     vector<int> wet;
 };
 
@@ -128,7 +129,6 @@ struct sflow_amr_patch : public reefamr_patch
     // non-hydrostatic pressure (A 220 1), solved on all grids together
     sflow_pressure_nh *pnh = nullptr;
     vector<slice*> nv;              // Krylov vectors
-    vector<int> bqneed[2];          // Boussinesq u_a: fill entries next to a leaf cell along x, y
     vector<signed char> act;        // -2 no row, -1 covered by a finer patch, 0 q = 0 row, 1 active
     vector<int> row;                // matrix row of a cell (SLICELOOP4 order), -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
@@ -136,6 +136,9 @@ struct sflow_amr_patch : public reefamr_patch
 
     // moving body on the patch (X 10 2/3)
     sflow_amr_ship *pship = nullptr;
+
+    // its grid id (Boussinesq u_a, set by bq_setup)
+    int bqid = -1;
 
     // line solver of the Boussinesq u_a inversion (A 220 4)
     solver2D *psolv = nullptr;
@@ -190,7 +193,7 @@ public:
 
     // Boussinesq u_a on the leaf cells of all levels, called by the level-0 stage after its rows
     // (sflow_momentum_func::stage); the patch stages continue afterwards
-    bool bous_patches() const { return maxlev>0 && patches_total>0 && bous==1; }
+    bool bous_patches() const { return maxlev>0 && patches_total>0 && bous==1 && sub==0; }
     void bous_solve(ghostcell*);
 
     // vector space of the composite u_a solve (sflow_amr_bous.cpp)
@@ -229,7 +232,7 @@ private:
     void nh_prepare(ghostcell*, bool);
     void nh_core(lexer*);
     void nh_prolong(int, int);
-    double nh_eval_t(const reefamr_fill&, double);
+    double nh_eval_t(const reefamr_fill&, double, int);
     void nh_restrict_vec(int);
     void nh_sync(int);
     void nh_qfill(int, int);
@@ -288,8 +291,16 @@ private:
     void bq_setup();
     void bq_sync(int, int);
     int bq_layout = -1;
-    struct bqgrid { vector<int> leaf, seg[2]; };  // leaf cells, line segments (start, length)
-    vector<bqgrid> bqg;                           // [g+1]
+    // leaf cells, line segments (start, length), the fill entries of a patch next to a leaf cell
+    // along x, y
+    struct bqgrid { vector<int> leaf, seg[2], need[2]; };
+    map<int,vector<bqgrid>> bqw;                  // per level window (G 7 1), [g+1]
+    vector<bqgrid> *bqc = nullptr;                // the current one
+    int nh_keep = -1;                             // vector whose fixed cells around the patches keep their values (nh_edge)
+    // G 7 1: u_a of the level-l stage, the coarse u_a after a synchronisation
+    void bous_level(lexer*, ghostcell*, int, int, int);
+    void bous_sync(lexer*, ghostcell*, int, int);
+    void bous_window(ghostcell*, int, double);
     void eval_fill(const reefamr_fill&, double*);
     void store_fill(sflow_amr_patch*, int, int, int, const double*);
     void prolong(int, int, int, int, int, double, double*);
@@ -316,7 +327,7 @@ private:
     void sub_begin(lexer*, fdm2D*, ghostcell*);
     void sub_end(lexer*, fdm2D*, ghostcell*);
     void sub_level(lexer*, ghostcell*, int, int, double, double);
-    void sub_sync(lexer*, ghostcell*, int, double);
+    void sub_sync(lexer*, ghostcell*, int, int, double);
     void sub_reflux(int);
     long sub_steps[8] = {0,0,0,0,0,0,0,0};
     // A 220 1-3 (sflow_amr_subnh.cpp): level solves, synchronisation projection
