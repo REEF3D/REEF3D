@@ -114,6 +114,28 @@ for thin lines and for the smeared distribution exactly as the code applies it.
 - The Gaussian smearing reduces the BPF (azimuthal mode Z) by ~30 % against thin lines at ε = 0.1,
   R = 0.5: the line width is part of the model.
 
+## 13 KP505, resolved rotating propeller (direct forcing), coarse grid
+
+KP505 (KCS propeller, D = 0.25 m model scale, Z = 5, P/D 0.95). The CAD (one blade with the whole
+hub, STEP solid, full scale) is turned into the 5-bladed model-scale STL by `scripts/convert.py`
+(gmsh with OpenCASCADE: rotated copies minus the original leave the blades, fused, scaled by
+1/31600, 1.5 mm triangles; `stlcheck.py`: closed, consistently oriented, volume −0.2 % of the CAD,
+P/D 0.997 at 0.7R as on the drawing). Right-handed: for an inflow along +x the propeller turns
+about −x (`X 11 0 0 0 2 0 0`, `X 211 -31.4159 0 0`, n = 5 rps, ramp `X 205 2`, `X 206 0 0.1`).
+J = 0.6 (U = 0.75 m/s), single phase, laminar, 4 mm cells at the rotor (`B 101/102/103 11`,
+`B 127-129` cell-based spacing, 115×123×123), fixed Δt = 3e-4 s (654 steps per revolution), 3
+revolutions (~70 min on 8 ranks). `kp505_analysis.py 0.4 0.6`.
+
+- With the default `X 41 0.6` the run diverged at t = 0.0375 s, when the blades (about one cell
+  thick at 0.7R, t = 3.7 mm) first swept a cell, in both `N 40 4` and `N 40 14`; `X 41 1.5` is
+  stable.
+- FW-H against the pressure probes at BPF (25 Hz): 6.20 / 6.15 Pa at r = 2R in the rotor plane
+  (phase 122 / 125°), 1.98 / 2.07 Pa off the plane; 0.66 / 1.09 Pa at r = 3R.
+- Forces are not usable at this resolution: the surface integral gives KT = 0.059, 10 KQ = 0.132
+  but a mean side force Fz = −5.1 N as large as the thrust (zero for a symmetric propeller); the box
+  momentum balance gives a thrust of only 0.3 N (pressure −11.5 N and momentum flux +11.8 N on the
+  box nearly cancel). The blades need several cells across the thickness (≤ 1 mm, HPC).
+
 ## Notes
 
 - `X 120` (analytic sphere) gives no surface triangles with the current grid code; STL spheres used.
