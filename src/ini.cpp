@@ -948,7 +948,7 @@ void control::ini_default()
     Q44=0;              // int all parcels fixed (e.g. flow through a fixed bed), 0 off, 1 on
     Q50=0;              // int fluid coupling of the parcels: 0 one-way, 1 two-way (drag reaction on the fluid, mixture continuity in the pressure equation)
     Q51=1;              // int drag law: 1 Andrews & O'Rourke (1996), 2 Gidaspow (Ergun below fluid fraction 0.8, Wen & Yu above)
-    Q58=0;              // int sub-grid bedload layer (S 10 1): 0 off (resolved near-bed drag), 1 bedload layer, 2 bedload layer and pickup into the suspension
+    Q58=0;              // int sub-grid bedload layer (S 10 1): 0 off (resolved near-bed drag), 1 bedload layer, 2 bedload layer and pickup into the suspension, 3 bedload layer and Eulerian suspended load (hybrid), 4 as 3 without the onset criterion of the suspension (as the Eulerian model)
     Q59=6.5;            // double bedload layer: grain velocity coefficient, u_b = Q59 sqrt(R g d)(sqrt(theta) - 0.7 sqrt(theta_c))
     Q60=0.047;          // double bedload layer: critical Shields number theta_c of d50
     Q62=50.0;           // double bedload layer: mean hop length in grain diameters

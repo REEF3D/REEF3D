@@ -41,6 +41,9 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_exner.h"
 #include"topo_relax.h"
 #include"bedshear.h"
+#include"suspended_IM1.h"
+#include"idiff2.h"
+#include"ifou.h"
 
 void sediment_part::sediment_logic(lexer *p, ghostcell *pgc)
 {
@@ -100,5 +103,13 @@ void sediment_part::sediment_logic(lexer *p, ghostcell *pgc)
     prelax = new topo_relax(p);
 
     pbedshear = new bedshear(p,pturb);
+    
+    // hybrid suspension (Q 58 3 and 4, S 10 1): Eulerian suspended load over the parcel bed
+    if(p->Q58>=3 && p->S10==1)
+    {
+    psusp = new suspended_IM1(p);
+    psuspdiff = new idiff2(p);
+    psuspdisc = new ifou(p);
+    }
 }
 
