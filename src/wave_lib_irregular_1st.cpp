@@ -114,6 +114,10 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     // spreading switch of this wave, as constructed
     Nw = p->wN;
     B130v = p->B130;
+    
+    // reconstructed waves with directions: evaluated as a directional sea
+    if(recon_dir)
+    B130v = 1;
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()

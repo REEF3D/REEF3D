@@ -20,6 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<sstream>
+#include<string>
+#include<vector>
+#include<fstream>
 #include"wave_lib_spectrum.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -48,11 +52,12 @@ void wave_lib_spectrum::recon_parameters(lexer *p, ghostcell *pgc)
     p->Darray(cosbeta,p->wN);
     p->Darray(sinbeta,p->wN);
     
+    // direction of the 4th column of waverecon.dat, else along x
     for(int n=0;n<p->wN;++n)
     {
-    beta[n]=0.0;
-    sinbeta[n]=0.0;
-    cosbeta[n]=1.0;
+    beta[n] = recon_dir ? recon[n][3]*(PI/180.0) : 0.0;
+    sinbeta[n] = recon_dir ? sin(beta[n]) : 0.0;
+    cosbeta[n] = recon_dir ? cos(beta[n]) : 1.0;
     }
     
     
@@ -81,53 +86,53 @@ void wave_lib_spectrum::recon_parameters(lexer *p, ghostcell *pgc)
 
 void wave_lib_spectrum::recon_read(lexer *p, ghostcell* pgc)
 {
-	char name[100];
-	double val,val0,val1,val2,val0n,val1n,val2n;
-	int count;
-	
-	sprintf(name,"waverecon.dat");
-
-// open file------------
-	ifstream file(name, ios_base::in);
+    // waverecon.dat: one component per line, "A omega phase" or "A omega phase direction",
+    // direction [deg] from the x axis of the generation frame (all lines the same form)
+    std::ifstream file("waverecon.dat", std::ios_base::in);
 	
 	if(!file)
 	cout<<endl<<("no 'waverecon.dat' file found")<<endl<<endl;
-	
-    val0n=val1n=val2n=0.0;
-	count=0;
-	while(!file.eof())
-	{
-    val0n=val0;
-    val1n=val1;
-    val2n=val2;
     
-	file>>val0>>val1>>val2;
-	++count;
-	}
+    std::vector<std::vector<double>> rows;
+    std::string line;
+    int ncol = 0;
     
-    if(val0==val0n && val1==val1n && val2==val2n)
-    --count;
+    while(std::getline(file,line))
+    {
+        std::istringstream ls(line);
+        std::vector<double> v;
+        double x;
+        
+        while(ls>>x)
+        v.push_back(x);
+        
+        if(v.size()<3)
+        continue;
+        
+        if(ncol==0)
+        ncol = v.size()>=4 ? 4 : 3;
+        
+        v.resize(4,0.0);
+        if(ncol==3)
+        v[3] = 0.0;
+        
+        rows.push_back(v);
+    }
 	
 	file.close();
 
-    wavenum=count;
+    wavenum = int(rows.size());
+    recon_dir = ncol==4;
 	
-	p->Darray(recon,wavenum,3);
+	p->Darray(recon,wavenum,4);
 	
-	file.open ("waverecon.dat", ios_base::in);
-	
-	count=0;
 	for(int n=0; n<wavenum;++n)
-	{
-	file>>val0>>val1>>val2;
-
-	recon[n][0] = val0;
-	recon[n][1] = val1;
-    recon[n][2] = val2;
-	}	
+	for(int q=0; q<4; ++q)
+	recon[n][q] = rows[n][q];
     
-    
-	
+    if(wavenum>0)
+    {
 	ts = recon[0][0];
 	te = recon[wavenum-1][0];
+    }
 }

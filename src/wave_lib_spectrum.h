@@ -79,6 +79,7 @@ public:
     int wavenum;
     double ts,te;
     double **recon;
+    bool recon_dir=false;   // waverecon.dat with a direction column (B 92 51, 52, 53)
 
 private:
     double S,Sval,sigma,wD;
