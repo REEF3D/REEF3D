@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include "lexer.h"
 #include "field.h"
 #include "slice.h"
+#include <array>
+#include <vector>
 
 using namespace std;
 
@@ -94,7 +96,7 @@ class weno_nug_func : public increment
 public:
     weno_nug_func(lexer*);
     weno_nug_func(lexer*, int);   // own coefficient tables for the grid of this lexer
-    virtual ~weno_nug_func();
+    virtual ~weno_nug_func() = default;
 
     void precalc_qf(lexer*);
     void precalc_cf(lexer*);
@@ -206,7 +208,7 @@ public:
         // same arithmetic as before; the shared sum is formed once and the
         // coefficient row is loaded once (the member stores in between kept
         // the compiler from doing either)
-        const double *const cf = cfx[IP][uf];
+        const auto &cf = cfx[IP][uf];
         const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
 
         if(wtype!=0)
@@ -234,7 +236,7 @@ public:
         // same arithmetic as before; the shared sum is formed once and the
         // coefficient row is loaded once (the member stores in between kept
         // the compiler from doing either)
-        const double *const cf = cfx[IP][uf];
+        const auto &cf = cfx[IP][uf];
         const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
 
         if(wtype!=0)
@@ -264,7 +266,7 @@ public:
         // same arithmetic as before; the shared sum is formed once and the
         // coefficient row is loaded once (the member stores in between kept
         // the compiler from doing either)
-        const double *const cf = cfy[JP][vf];
+        const auto &cf = cfy[JP][vf];
         const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
 
         if(wtype!=0)
@@ -292,7 +294,7 @@ public:
         // same arithmetic as before; the shared sum is formed once and the
         // coefficient row is loaded once (the member stores in between kept
         // the compiler from doing either)
-        const double *const cf = cfy[JP][vf];
+        const auto &cf = cfy[JP][vf];
         const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
 
         if(wtype!=0)
@@ -322,7 +324,7 @@ public:
         // same arithmetic as before; the shared sum is formed once and the
         // coefficient row is loaded once (the member stores in between kept
         // the compiler from doing either)
-        const double *const cf = cfz[KP][wf];
+        const auto &cf = cfz[KP][wf];
         const double c1 = cf[0], c2 = cf[1], c3 = cf[2];
 
         if(wtype!=0)
@@ -350,7 +352,7 @@ public:
         // same arithmetic as before; the shared sum is formed once and the
         // coefficient row is loaded once (the member stores in between kept
         // the compiler from doing either)
-        const double *const cf = cfz[KP][wf];
+        const auto &cf = cfz[KP][wf];
         const double c1 = cf[3], c2 = cf[4], c3 = cf[5];
 
         if(wtype!=0)
@@ -374,16 +376,26 @@ public:
         w3z = c3/(epsilon + a3*sum);
     }
 
+    // per-cell coefficient tables, indexed [cell][face/centre][row]...
+    using qf_t  = std::array<std::array<std::array<double, 2>, 6>, 2>;
+    using cf_t  = std::array<std::array<double, 6>, 2>;
+    using isf_t = std::array<std::array<std::array<double, 3>, 6>, 2>;
+
     // coefficient tables: by default shared by all instances (static storage, built
     // once for the rank grid); an instance built with weno_nug_func(p,1) owns tables
-    // for the grid of its own lexer (SFLOW AMR patches)
-    double ****qfx,****qfy,****qfz;
-    double ***cfx,***cfy,***cfz;
-    double ****isfx,****isfy,****isfz;
+    // for the grid of its own lexer (SFLOW AMR patches). The pointers are views into
+    // whichever storage this instance uses, so the hot loops index them unchanged.
+    qf_t  *qfx,*qfy,*qfz;
+    cf_t  *cfx,*cfy,*cfz;
+    isf_t *isfx,*isfy,*isfz;
 
-    static double ****s_qfx,****s_qfy,****s_qfz;
-    static double ***s_cfx,***s_cfy,***s_cfz;
-    static double ****s_isfx,****s_isfy,****s_isfz;
+    std::vector<qf_t>  own_qfx, own_qfy, own_qfz;
+    std::vector<cf_t>  own_cfx, own_cfy, own_cfz;
+    std::vector<isf_t> own_isfx, own_isfy, own_isfz;
+
+    static inline std::vector<qf_t>  s_qfx, s_qfy, s_qfz;
+    static inline std::vector<cf_t>  s_cfx, s_cfy, s_cfz;
+    static inline std::vector<isf_t> s_isfx, s_isfy, s_isfz;
 
     static inline lexer *s_lexer = nullptr;          // the lexer the shared tables were built for
     void own_ini(lexer*);
@@ -405,10 +417,6 @@ public:
     int uf,vf,wf;
 
     int wtype = 0;
-
-    int own_nx = 0, own_ny = 0, own_nz = 0;
-
-    bool own_tables = false;
 
 protected:
     inline void iqmin(field& f)
