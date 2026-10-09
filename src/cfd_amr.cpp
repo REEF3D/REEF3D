@@ -1014,16 +1014,12 @@ void cfd_amr::patch_fields_ini(int id)
         pp->topoforcing = p->topoforcing;
     }
 
-    // no porous media, solids or bodies: also in the cells around the patch (initialize sets
-    // the interior; PORVAL at the patch edge reads the cell outside)
-    const int na = pp->imax*pp->jmax*pp->kmax;
-    for(int n=0; n<na; ++n)
-    {
-        c->a->porosity.data()[n] = 1.0;
-        c->a->fb.data()[n] = 1.0;
-        c->a->topo.data()[n] = 1.0;
-        c->a->solid.data()[n] = 1.0e8;
-    }
+        // no porous media, solids or bodies: also in the cells around the patch (initialize sets
+        // the interior; PORVAL at the patch edge reads the cell outside)
+        std::ranges::fill(c->a->porosity,1.0);
+        std::ranges::fill(c->a->fb,1.0);
+        std::ranges::fill(c->a->topo,1.0);
+        std::ranges::fill(c->a->solid,1.0e8);
 
     pp->maxlength = p->maxlength;
     pp->xcoormax = p->xcoormax; pp->xcoormin = p->xcoormin;

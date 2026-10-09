@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"reefamr_krylov.h"
 #include<cmath>
 #include<limits>
+#include<algorithm>
 
 //  Boussinesq u_a (A 220 4) on the leaf cells of all levels.
 //
@@ -403,11 +404,7 @@ void sflow_amr::bous_window(ghostcell *pgc, int l, double th)
         // initial guess: u_a of the stage; right-hand side
         for(int g=-1; g<ng-1; ++g)
         {
-            lexer *q = (g<0) ? p0 : P[g]->pp;
-            const double *u = ua(g,dir).data();
-            double *x = vx[g+1];
-            for(int n=0; n<q->imax*q->jmax; ++n)
-            x[n] = u[n];
+            std::ranges::copy(ua(g,dir),vx[g+1]);
 
             if((*bqc)[g+1].leaf.empty())
             continue;
@@ -637,12 +634,7 @@ void sflow_amr::cq_apply(int kx, int ky, bool lin, int dir)
 {
     if(lin)
     for(int g=-1; g<(int)P.size(); ++g)
-    {
-        lexer *q = (g<0) ? p0 : P[g]->pp;
-        double *o = cq_vec(g,kx,1-dir).data();
-        for(int n=0; n<q->imax*q->jmax; ++n)
-        o[n] = 0.0;
-    }
+    std::ranges::fill(cq_vec(g,kx,1-dir),0.0);
 
     cq_sync(kx);
 
@@ -785,18 +777,14 @@ void sflow_amr::bous_window_curv(ghostcell *pgc, int l, double th)
     for(int g=-1; g<ng-1; ++g)
     {
         fdm2D *b = (g<0) ? b0 : SP(g)->b;
-        for(int n=0; n<cells(g); ++n)
-        {
-            cq_vec(g,CQX,0).data()[n] = b->UA.data()[n];
-            cq_vec(g,CQX,1).data()[n] = b->VA.data()[n];
-        }
+        std::ranges::copy(b->UA,cq_vec(g,CQX,0).begin());
+        std::ranges::copy(b->VA,cq_vec(g,CQX,1).begin());
     }
 
     // the lagged component: the start values (the stage state also around the patches)
     for(int g=-1; g<ng-1; ++g)
     for(int c=0; c<2; ++c)
-    for(int n=0; n<cells(g); ++n)
-    cq_vec(g,CQO,c).data()[n] = cq_vec(g,CQX,c).data()[n];
+    std::ranges::copy(cq_vec(g,CQX,c),cq_vec(g,CQO,c).begin());
 
     if(l>=0)
     fill_run(l,2,7360+l,
@@ -824,10 +812,9 @@ void sflow_amr::bous_window_curv(ghostcell *pgc, int l, double th)
         // constant part C0 = A(0), A x0 with the lagged other component
         for(int g=-1; g<ng-1; ++g)
         for(int c=0; c<2; ++c)
-        for(int n=0; n<cells(g); ++n)
         {
-            cq_vec(g,CQPH,c).data()[n] = 0.0;
-            cq_vec(g,CQT,c).data()[n] = (c==dir) ? cq_vec(g,CQX,c).data()[n] : cq_vec(g,CQO,c).data()[n];
+            std::ranges::fill(cq_vec(g,CQPH,c),0.0);
+            std::ranges::copy(cq_vec(g,(c==dir) ? CQX : CQO,c),cq_vec(g,CQT,c).begin());
         }
         cq_apply(CQPH,CQC0,false,dir);
         cq_apply(CQT,CQVV,false,dir);

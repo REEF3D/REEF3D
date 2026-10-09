@@ -260,7 +260,7 @@ void sandslide_steepest_descent::find_steepest_neighbor_curv(lexer* p, slice& zh
 int sandslide_steepest_descent::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     count=0;
-    std::fill(fh.data(),fh.data()+p->imax*p->jmax,0.0);
+    std::ranges::fill(fh,0.0);
 
     slide(p,pgc,s);
 

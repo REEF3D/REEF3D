@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 #include"reinidisc.h"
+#include<algorithm>
 
 //  The level set fb of a body on the grid of a patch of the CFD mesh refinement (cfd_amr_6dof):
 //  as ray_cast and reini_RK2, with the workspace of the patch grid and over the cells around the
@@ -125,9 +126,7 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
 	dtt.data()[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 
-    const int n = p->imax*p->jmax*p->kmax;
-    for(int q=0; q<n; ++q)
-    frk.data()[q] = f.data()[q];
+    std::ranges::copy(f,frk.begin());
 
     for(int q=0;q<5;++q)
 	{

@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"picard_lsm.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
+#include<algorithm>
 
 reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
 {
@@ -111,8 +112,10 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
     // patch of the mesh refinement (cfd_amr): the cells around the patch keep the values filled
     // into f (no exchange on a patch), the stage fields take them over
     if(p->amr_patch==1)
-    for(int n=0; n<p->imax*p->jmax*p->kmax; ++n)
-    frk1.data()[n] = frk2.data()[n] = f.data()[n];
+    {
+    std::ranges::copy(f,frk1.begin());
+    std::ranges::copy(f,frk2.begin());
+    }
 
 	pflow->fsfrkin(p,a,pgc,frk1);
     pflow->fsfrkin(p,a,pgc,frk2);
