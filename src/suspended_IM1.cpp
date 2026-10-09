@@ -125,12 +125,14 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 {
     double cval;
     
-    // CPM hybrid suspension (Q 58 3, 4): the bed exchanges with the concentration only through
-    // suspsource (erosion w_s c_be, deposition w_s c_1), which the parcels balance. The faces to the
-    // cells of the bed (topo < 0), of solid bodies, to the air and to the walls of the domain are closed:
-    // no settling, convective or diffusive flux (the outflow and diffusion terms of the face are taken
-    // out of the diagonal); in- and outflow boundaries stay open
-    const bool hyb = p->Q10>0 && p->Q58>=3;
+    // The bed exchanges with the concentration only through suspsource (erosion w_s c_be, deposition
+    // w_s c_1), which the Exner equation (susp_ED) and the CPM hybrid (Q 58 3, 4) apply to the bed.
+    // The faces to the cells of the bed (topo < 0), of solid bodies, to the air and to the walls of the
+    // domain are closed: no settling, convective or diffusive flux (the outflow and diffusion terms of
+    // the face are taken out of the diagonal); in- and outflow boundaries stay open. With the bed face
+    // open, the deposition left the water a second time by settling through the face, and the bed never
+    // received it: most of the sand eroded into suspension was lost (pipeline scour: 73-91 %).
+    // Above a fixed, non-erodible bed (no exchange) the sand stays in suspension.
     
     auto closed = [&](int ii, int jj, int kk)
     {
@@ -148,7 +150,6 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
         n=0;
         LOOP
         {
-            if(hyb)
             {
             const double dx=p->DXN[IP], dy=p->DYN[JP], dz=p->DZN[KP];
             double vel;
