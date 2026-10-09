@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"reinidisc_f.h"
 
 // topo and solid level set reinitialisation (name: "topo" or "solid", used in the start message)
-reinitopo_RK3::reinitopo_RK3(lexer* p, const char *name) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p),name(name)
+reinitopo_RK3::reinitopo_RK3(lexer* p, const char *name) : f(p),frk1(p),frk2(p),L(p),dt(p),name(name)
 {
 
 	if(p->S50==1)

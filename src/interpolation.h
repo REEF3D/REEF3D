@@ -46,31 +46,22 @@ public:
     double ccipol3(field&,double,double,double);
     double ccipol3c(field&,double,double,double);
     double ccipol4(field&,double,double,double);
-    double ccipol4phi(fdm*,field&,double,double,double);
-    double ccipol4press(fdm*,field&,double,double,double);
     double ccipol4V(double*,slice&,slice&,double,double,double);
-    double ccipol4c(double*,double,double,double);
     double ccipol7V(double*,slice&,slice&,double,double,double);
 	double ccipol1_a(field&,double,double,double);
     double ccipol2_a(field&,double,double,double);
     double ccipol3_a(field&,double,double,double);
     double ccipol4a(field&,double,double,double);
     double ccipol4_b(field&,double,double,double);
-    double ccipol4_c(field&,double,double,double);
     double ccipol4_kin(field&,double,double,double);
     
-    double cctripol4_a(fdm*,field&,double,double,double);
-	double cint4a(double,double,double,double,double);
-	double tricubic4a(lexer*,fdm*,field&,int&,int&,int&,double,double,double);
     
     double ipol1(field&);
     double ipol2(field&);
     double ipol3(field&);
     double ipol4(field&);    
 
-	double ipol4ro(fdm*,field&);
     double ipol4phi(fdm*,field&);
-    double ipol4topo(fdm*,field&);
     double ipol4press(field&);
     double ipol4_a(field&);
     double ipol4_a_slice(slice&);
@@ -85,11 +76,8 @@ public:
     double lint3(field&,int&,int&,int&,double,double,double);
     double lint3c(field&,int&,int&,int&,double,double,double);
     double lint4(field&,int&,int&,int&,double,double,double);
-    double lint4c(field&,int&,int&,int&,double,double,double);
     double lint4V(double*,int&,int&,int&,double,double,double);
     double lint7V(double*,int&,int&,int&,double,double,double);
-    double lint4c(double*,int&,int&,int&,double,double,double);
-    double lint4phi(fdm*,field&,int&,int&,int&,double,double,double);
     double lint_a(field&,int&,int&,int&,double,double,double);
     double lint4b(field&,int&,int&,int&,double,double,double);
     double lint4kin(field&,int&,int&,int&,double,double,double);
@@ -101,22 +89,15 @@ public:
     double lint4V_2D(double*,int&,int&,int&,double,double,double);
     double lint7V_2D(double*,int&,int&,int&,double,double,double);
     double lint_a_2D(field&,int&,int&,int&,double,double,double);
-    double lint4phi_2D(fdm*,field&,int&,int&,int&,double,double,double);
     
-    double tricubic4a(field&,int&,int&,int&,double,double,double);
     
     
     // slice
-    double sl_ipol1(slice&);
-    double sl_ipol2(slice&);
 	double sl_ipol1a(slice&);
     double sl_ipol2a(slice&);
     double sl_ipol4(slice&);
-    double sl_ipol1eta(int*,slice&,slice&);
-    double sl_ipol2eta(int*,slice&,slice&);
     double sl_ipol4eta(int*,slice&,slice&);
     double sl_ipol4eta_wd(int*,slice&,slice&);
-    double sl_ipolint(sliceint&);
     
     double nhf_ipol4eta(int*,slice&,slice&);
     

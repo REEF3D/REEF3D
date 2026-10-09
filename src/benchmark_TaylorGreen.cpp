@@ -225,14 +225,6 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 			{
 			
 			
-//			x = i;
-//			y = j;
-//			z = k;
-
-//			x = p->pos3_x();
-//       		y = p->pos3_y();
-//        		z = p->pos3_z();
-
 			X1NM1P = p->XP[IP];
 
                         if (p->XP[IP] < 0)
@@ -449,5 +441,4 @@ void benchmark_TaylorGreen::start(lexer* p, fdm *a, ghostcell *pgc, convection *
 
 
 }
-
 

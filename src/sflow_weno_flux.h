@@ -41,7 +41,6 @@ public:
 private:
     double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
     
-    double aij_fou(lexer*, fdm2D*, slice&, int, slice&, slice&);
 
 	double fx(lexer*, fdm2D*, slice&, int, double);
 	double fy(lexer*, fdm2D*, slice&, int, double);

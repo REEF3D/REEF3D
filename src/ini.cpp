@@ -35,8 +35,6 @@ void control::ini_default()
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A214=1;      // int convection for vertical velocity
-    A215=0;      // int 
-    A216=0;      // int
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
@@ -45,9 +43,7 @@ void control::ini_default()
     A222=1.0e-5; // double SFLOW TENO5 cutoff C_T (A 213 2)
     A223=0.5;    // double blending factor hydrostatic pressure gradient
     A224=1.159;  // double dispersion parameter alpha for A 220 3 (1: quadratic, 1.159: optimised)
-    A230=0;      // int 
     A240=1;      // int FSF algorithm SFLOW
-    A241=0;          // int
     A242=0;          // int non-hydostatic pressure for shallow areas
     A243=2;      // int turn on wetting-drying
     A244=0.001; // double absolute wetting criterion value
@@ -77,9 +73,6 @@ void control::ini_default()
     A318=0;      // int WENO5 nonlinear weights for FNPF free-surface gradients: 0 WENO-JS, 1 WENO-Z, 2 TENO5
     A319=1.0e-5; // double TENO5 cutoff C_T for FNPF (A318 2)
     A320=1;		  // int order of Laplace equation
-    A321=1;      // int boundary condition order for 4th-order Laplace equation
-    A322=0;      // int 
-    A323=1;      // int PTF FSF extrapolation
     A324=0;      // int FNPF Laplace: max Picard iterations for the explicit sigma cross-derivative terms (0 = lagged by one RK stage, legacy)
     A325=1.0e-3; // double FNPF Laplace: Picard stop when the change is below A325 times the change of the first solve (A324>0)
     A328=0;      // int FNPF Laplace: 1 sigma cross-derivatives implicit, 15-point (2D: 9-point) operator in REEFMG's BiCGStab, 7-point V-cycle preconditioner (N 10 1 only); 0 explicit
@@ -97,7 +90,6 @@ void control::ini_default()
     A337=1;      // int static coastline (A343 1): 0 legacy; 1 wet-only Fifsf clamp average, clamp volume redistribution (A334), wet-only eta gradients and Exx=0 at the coast (A336), viscosity A346 ramped inside the coastline band and in thin-film cells (WL < 10*A344); 2 as 1 but A346 only in thin-film cells (thin coastline)
     A338=1;      // int remove wet areas not connected to the main water body (coastline ini): 1 on, 0 off
     A339=1;      // int coastline initialization: 1 = fast sweeping, 0 = PDE reinitialization
-    A340=1.0e20;    // double minimum water depth
     A341=0.0;    // double coastline damping distance factor for dxm
     A342=0.0;    // double coastline damping absolute distance
     A343=1;      // int wetting-drying: 0 off, 1 static coastline, 2 dynamic runup and rundown (no coastline damping), 3 dynamic rundown only
@@ -110,19 +102,15 @@ void control::ini_default()
     A350=0;      // int turn on breaking (which method)
     A351=3;      // int type of breaking detection (deep / shallow)
     A352=0;      // int additional filtering to viscosity based breaking
-    A353=1;      // int 
     A354=0.6;    // double breaking parameter alpha
     A355=1.25;   // double breaking parameter slope alpha
     A356=0.1;   // double breaking parameter slope beta
     A357=1;     // int breaking for Fi and eta
-    A358=1;     // int breaking algorithm version
     
     A361=5;      // int breaking filter outer iter
     A362=2;      // int breaking filter inner iter
-    A363=1;      // int breaking filter width
     A365=1.86;   // double viscosity breaking wave
     A366=1.0;   // double viscosity breaking wave alpha_eta
-    A368=0;      // int
     
     A370=0;      // int wind model
     A371_u=0.0;  // double wind velocity
@@ -173,8 +161,6 @@ void control::ini_default()
 
     
     // PTF
-    A410=1;      // int scheme eta
-    A440=1.6;    // double epsi for depth integration
     
     
     // NHFLOW
@@ -192,9 +178,7 @@ void control::ini_default()
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
     A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
-    A523=1.0;    // double p_gamma
     A524=2;      // int sigma gradients
-    A525=0;      // int 
     A526=1.1;    // double direct forcing factor
     A527=1;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A528=1.0e-5; // double NHFLOW TENO5 cutoff C_T (A527 2)
@@ -202,20 +186,15 @@ void control::ini_default()
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
     A540=1;      // int NFHLOW wetdry scheme
-    A541=0.0;    // double coastline damping distance factor for dxm
-    A542=0.0;    // double coastline damping absolute distance
-    A543=1;		// int NHFLOW wetting & drying or coastline
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion
     
     A550=0;      // int turn on breaking (which method)
     A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
-    A553=0;      // int breaking in very shallow regions turned onf
 
     A554=0.6;    // double breaking parameter alpha
     A555=1.25;   // double breaking parameter slope alpha
-    A556=0.1;   // double breaking parameter slope beta
     A557=1.86;   // double viscosity breaking wave
     
     A560=0;      // int turbulence model
@@ -224,7 +203,6 @@ void control::ini_default()
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
     A568=1.0;      // double URANS C3 coefficient
-    A569=0;      // int 
     
     A570=0;      // int wind model
     A571_u=0.0;  // double wind velocity
@@ -255,7 +233,6 @@ void control::ini_default()
     A592_dx=A592_dy=A592_dz=0.0;  // double translation of stl geometry
     A593=0;
     A593_x=A593_y=A593_z=A593_phi=A593_theta=A593_psi=0.0;
-    A594=0;     // int invert STL
     A599=0;     // use dlm instead of df
 
     // Spectral
@@ -453,7 +430,6 @@ void control::ini_default()
     B118=1.0;        // double wavemaker correction factor for NHFLOW
     B119=0;          // int FNPF paddle BC with 2nd-order Taylor terms (moving paddle) for piston/flap
     B120=-90.0;       // doubel delta t for wave generation
-    B122=1.0;        // int air velocity on/off for active wave generation
     B123=0.0;       // double flap AWA hinge location
     B125=0;         // int take 2D slice input for HDC
     B125_y=0.0;     // double 2D slice y-coor input for HDC
@@ -519,7 +495,6 @@ void control::ini_default()
     B232_dx=B232_dy=B232_dz=0.0;  // double translation of stl geometry
     B233=0;
     B233_x=B233_y=B233_z=B233_phi=B233_theta=B233_psi=0.0;
-    B234=0;     // int invert STL
 
     
 	B240=0;			// int porous media
@@ -529,7 +504,6 @@ void control::ini_default()
     B260=0.34;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B265=0;         // int NHFLOW VRANS inertia factor: 0 1/(1+C(1-n)/n^2), 1 n/(1+C(1-n)/n)
-    B267=0.001;     // double d50 for VRANS
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction
@@ -562,8 +536,6 @@ void control::ini_default()
 	C2=0.0;			// double viscosity water + concentration
 	C3=10.0;		// double density concentration in air
 	C4=0.0;			// double viscosity air + concentration
-	C5=1.0;			// double Schmidt number
-    C9=1;          // int only phase 1 concentration
 	C10=0;          // int concentration transfer on/off
 	C15=0;          // int concentration convection
 	C20=0;          // int concentration diffusion
@@ -595,20 +567,12 @@ void control::ini_default()
     D22=1;            // int diffusion wall boundary condition
     D23=2;            // int time accuracy of the implicit momentum diffusion (D 20 2): 1 first order, 2 second order
 	D30=1;			// int pressure scheme
-    D31=0;			// int normalize pressure to free surface
-    D37=0;          // int type of FSFBC for single fluid flow
 
     // Free Surface
 	F30=3;			    // int level set scheme
-	F31=0;             // particle level set
-	F32=64;			// number of particles per cell
-	F33=0.5;		// factor for pls vec allocation
-	F34=5000;		// printout iteration for pls
 	F35=5;			    // int convection scheme for fsf
-	F36=1;				// int RK3 scheme
     F37=0;              // int WENO5 nonlinear weights for level set convection (F 35 4,5; F 305 4,5) and reini (F 40 3,23): 0 WENO-JS, 1 WENO-Z, 2 TENO5
     F38=1.0e-5;         // double TENO5 cutoff C_T (F 37 2)
-	F39=0.5;			    // double reini constraint relaxation factor
 	F40=3;			    // int reini scheme
 	F42=-1.0;		// double maxlength
 	F43=0.55;		// double factor for reini timestep
@@ -648,10 +612,8 @@ void control::ini_default()
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
 	F80=0;             // int time scheme VOF
-	F84=1.0;             // double cgamma for vof compression
     F85=0;             // int convection scheme VOF
     F88=10;             // int normal calculation method for VOF PLIC,2D MYC as default
-    F89=0;             // int phi transport schome for VOF PLIC, turned off by default
     F90=4;             // int vof transport scheme for VOF PLIC, 2D COSMIC as default
     F91=0.1;          // rho threshold input for FCCRK3 PLIC
     F92=2;              // PLIC density method, fine vof-based as default
@@ -685,7 +647,6 @@ void control::ini_default()
     F321=1.6;         // double epsi12
     F322=1.6;         // double epsi13
     F323=1.6;         // double epsi23
-    F350=0;             // int multiphase flow fix level set inflow/outflow
     F360=-1.0e20;  // double ini x-dir ls1
     F361=-1.0e20;  // double ini y-dir ls1
     F362=-1.0e20;  // double ini z-dir ls1
@@ -731,13 +692,6 @@ void control::ini_default()
     // grid
     G502=0;            // int sigma grid
     G505=0;             // int turn of topo and solid cells
-	G510=3;			// int xmargin inflow
-	G511=3;			// int ymargin right
-	G512=3;			// int zmargin bottom
-	G520=3;			// int xmargin outflow
-	G521=3;			// int ymargin left
-	G522=3;			// int zmargin top
-	G530=3;			// int extrapolated ghost cells
     G540=3;         // int reini scheme for topo/solid/floating
     G541=2;          // int reini iterations
 
@@ -799,7 +753,6 @@ void control::ini_default()
     I231=0.0;       // double starting x for flowfile
     I232=0.0;       // double starting y for flowfile
     I233=0.0;       // double starting z for flowfile
-    I240=0;         // int read flowfile
     I241=0.0;       // double delta t for flowfile
 
     // Numerics
@@ -813,7 +766,6 @@ void control::ini_default()
     N22=0;         //  int precondioner switch SFLOW
     N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on
     N23=0;         //  int precondioner switch FNPF
-    N24=0;         //  int precondioner switch
     N25=0;         //  int precondioner switch NHFLOW
     N26=1;         //  int precondioner switch CFD
 	N40=3;			// int time scheme
@@ -826,7 +778,6 @@ void control::ini_default()
 	N48=1;          // int adaptive timestepping
 	N49=1.0;		// double max timestep or fixed timesteps
     N50=1;          // int adaptive timestepping method
-	N60=10;        // int maximum iteration of pjm correction
 	N61=500.0;      // double stopping criteria velocities
 
     // MPI
@@ -834,7 +785,6 @@ void control::ini_default()
 
     // Printer
 	P10=1;			 // int print file type
-    P11=10;			 // int log print frequency
 	P12=1;			 // int terminal print frequency
 	P15=1;          // int print file numbering
     P16=1;          // int add timestamp (and run id) to paraview files
@@ -857,7 +807,6 @@ void control::ini_default()
 	P35=0;        	// int print for interval
     P37=1;			// int print restart state file
 	P38=100;			// int print restartstate file each ith iteration
-    P39=-1.0;			// double print restartstate file every ith second
 	P40=0;				// int print state file
 	P41=1;			// int print state file each ith iteration
 	P42=-1.0;			// double print state file each ith sec
@@ -901,11 +850,9 @@ void control::ini_default()
     P88=0;            // int kinematics print out for FNPF
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
-    P99=0;              // int print wave generation and beach relaxation zone flag to vtp
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
-    P120=1;          // int
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction
@@ -913,7 +860,6 @@ void control::ini_default()
 	P125=0;             // int bed shear stress gages
 	P126=0;             // int bed shear stress maxval
     P131=0;             // int max wetdry in vtp
-    P132=0;             // int max wetdry as file
     P133=0;             // int runup gage x-crossection
     P134=0;             // int runup gage y-crossection
     P140=0;             // int runup gage cylinder
@@ -946,7 +892,6 @@ void control::ini_default()
     P250=0;             // int print CPM variables to vtu
     P310=0;             // int print breaking to fnpf vtu
     P311=0;             // int print breaking viscosity to fnpf vtu
-    P312=0;             // int 
 	P351=0;             // int print out wsf lsm1
 	P352=0;             // int print out wsf lsm2
     
@@ -994,15 +939,11 @@ void control::ini_default()
     Q36=0.63;           // double packed bed: static friction coefficient mu_s
     Q37=1.13;           // double packed bed: dynamic friction coefficient mu_2
     Q38=0.6;            // double packed bed: inertial number scale I0
-    Q20=-1;             // int iterations between cleanup cycles
-    Q22=1.0;            // double absolute spacing
-    Q23=1.0;            // double relative spacing in terms of diameter
     Q24=0;              // int particles per cell
     Q25=1.25;           // double safety factor particle allocate
     Q29=1;              // int seed type
     Q30=0.58;           // double friction factor
     Q41=0;              // double default parcel factor
-    Q43=0;              // int number of water iteration, before particle transport starts
     Q45=-1.0;           // double solid fraction of the seeded region, default 1-S 24
     Q44=0;              // int all parcels fixed (e.g. flow through a fixed bed), 0 off, 1 on
     Q50=0;              // int fluid coupling of the parcels: 0 one-way, 1 two-way (drag reaction on the fluid, mixture continuity in the pressure equation)
@@ -1027,20 +968,11 @@ void control::ini_default()
     Q53=1.0;            // double turbulent Schmidt number for Q 52
     Q61=0;              // point source x,y,z, iterations between particles
     Q73=0;              // int relax 
-    Q101=0;             // int ini particle as topo
-    Q102=0.9;           // double max distance from topo = Q102*dz
     Q110=0;             // int ini particle as box
     Q111=0;             // int ini particle as box for dummy particles
-    Q120=0;             // int seed particles in suspension
-    Q121=1;             // int iterations between pariticle seeding in suspension
-    Q122=2;             // int particles per cell in susp seeding      
     Q180=0;             // int print vtp
     Q181=-10;           // int print vtp iter interval
     Q182=-1.0;          // double print vtp time interval
-    Q183=0;             // int flag and above to print
-    Q200 = 1;           // int movement model erosion
-    Q201 = 0;           // int movement model deposition
-    Q202 = 1;           // int movement model transport
 
 	// Sediment Transport
 	S10=0;                  // int sediment transport module
@@ -1092,10 +1024,8 @@ void control::ini_default()
     S56=0;                  // int grain size for bed roughness ks=S21*d, 0: S20, 1: local d50, 2: local dm, 3: local d90
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
-    S60=0;                  // int time stepping for suspended sediments
     S61=1;              // int reference height for cb
     S62=1;              // int type of suspended Exner solution
-    S66=0;              // int 
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed
@@ -1105,11 +1035,9 @@ void control::ini_default()
     S77_xs=-1.0e20; // double active sediment domain x_start
     S77_xe= 1.0e20; // double active sediment domain x_end
     S78=1;          // int inflow guard
-    S79=0;          // int outflow guard
     S80=0;                  // int type of slope reduction
     S81=35.0;              // double midphi for slope reduction
     S82=5.0;              // double delta phi for slope reduction
-    S83=2;                // double type of bedslope calc
     S84=1;                  // int type of critical bed shear stress reduction limiters
     S85=1;                  // int bedload direction Koch and Flokstra
     S90=0;                  // int sandslide on/off
@@ -1136,7 +1064,6 @@ void control::ini_default()
     T39=0;              // blend fsf eddyv with sgs-eddyv
     T41=0;              // int RANS stabilization
     T42=0.05;           // double lambda1 factor
-    T43=1.0;            // double komega_func wall BC velocity factor
     T44=1.0;            // double komega_func wall BC velocity factor for DF
     T45=0;              // int buoyancy term
 
@@ -1347,9 +1274,7 @@ void control::ini_default()
     Y2=0;   // int turn external moments on/off
     Y3=0;
     Y4=0;
-    Y5=0;
     Y40=3;
-    Y50=0;
 	Y60=1;  // int require
     Y71=0;  // int turn on/off solid gcparax
     Y72=0;  // int turn on/off solid gcparax

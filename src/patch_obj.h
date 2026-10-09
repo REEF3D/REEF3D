@@ -38,7 +38,6 @@ public:
 	patch_obj(lexer*,int);
 	virtual ~patch_obj();
     
-    void patch_obj_ini(lexer *p, ghostcell *pgc);
     
     void patch_obj_gcb_generate(lexer *p, ghostcell *pgc);
     

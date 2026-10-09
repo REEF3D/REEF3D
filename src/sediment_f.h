@@ -126,7 +126,6 @@ public:
     void waterlevel(lexer*,fdm*,ghostcell*);
 	void topo_zh_update(lexer*,fdm*,ghostcell*,sediment_fdm*);
     void volume_calc(lexer*,fdm*,ghostcell*);
-	void filter(lexer*,ghostcell*,slice&,int,int);
     
     // print
     void print_probes(lexer*, ghostcell*,sediment_fdm*, ioflow*) override final;

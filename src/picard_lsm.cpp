@@ -20,13 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"picard_lsm.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"heaviside.h"
 
-picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45*p->DXM), vol1(0.0), vol2(0.0), inivol(0.0), netvol(0.0), vol_ini(false)
+picard_lsm::picard_lsm(lexer *p) : gradient(p), vol1(0.0), vol2(0.0), dvol2(0.0), inivol(0.0), netvol(0.0), vol_ini(false)
 {
 }
 
@@ -42,9 +43,9 @@ void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 
     LOOP
 	{
-		H = heaviside(b(i,j,k),epsi);
+		H = heaviside(b(i,j,k),interface_width(p,b,i,j,k));
 
-		vol1+=pow(p->DXM, 3.0)*H;
+		vol1+=p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
 	}
 
 	vol1 = pgc->globalsum(vol1);
@@ -63,48 +64,49 @@ void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 
 void picard_lsm::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
-    double H = 0.0;
+    // volume and its derivative with respect to a uniform shift of the level set,
+    // dV/dw = sum delta(phi) dV (the interface area for a signed distance)
+    double V = 0.0;
     vol2=0.0;
+    dvol2=0.0;
 
     LOOP
 	{
-		H = heaviside(b(i,j,k),epsi);
+        V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
 
-		vol2+=pow(p->DXM, 3.0)*H;
+        double epsi = interface_width(p,b,i,j,k);
+
+		vol2  += V*heaviside(b(i,j,k),epsi);
+		dvol2 += V*heaviside_delta(b(i,j,k),epsi);
 	}
 
-	vol2 = pgc->globalsum(vol2);
+	vol2  = pgc->globalsum(vol2);
+	dvol2 = pgc->globalsum(dvol2);
 
 }
 
 
 void picard_lsm::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
 {
-    double r1,r2;
     double w;
-    
+
     if(!vol_ini)
     return;
 
     netvol=netvol + p->Qi*p->dt - p->Qo*p->dt;
 
-    //cout<<p->mpirank<<"  NETVOL: "<<netvol<<"  INIVOL: "<<inivol<<endl;
-
+    // Newton iterations for a uniform shift w of the level set that restores the
+    // net volume: w = (V_net - V) / (dV/dw)
     for(int n=0;n<p->F47;++n)
     {
-
     volcalc2(p,a,pgc,b);
 
-	r1=pow((0.75/PI)*netvol,1.0/3.0);
-	r2=pow((0.75/PI)*vol2,1.0/3.0);
+    if(dvol2<=1.0e-20)
+    break;
 
-    w=r1-r2;
+    w = (netvol-vol2)/dvol2;
 
     LOOP
     b(i,j,k)+=w;
-
     }
-
-
-
 }

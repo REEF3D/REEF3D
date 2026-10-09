@@ -26,7 +26,7 @@ Author: Hans Bihs
 // ghost-cell label of w (kernel chosen in gcdistro3)
 // gcv: 3/12 w, 9 projection, 16 / 112 / 116 / 119 special treatments, 17 omega_sig, 19, 50 Neumann;
 // cs: side of the face. The bottom face (cs 5) of walls is treated only for A10 = 5 and 6;
-// the lid (3) depends on the solver (A10)
+// the lid (3) is a wall for CFD, Neumann for FNPF (A10 3), not set for NHFLOW (A10 5)
 int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 {
     const bool para = (cs==1||cs==2||cs==3||cs==4);          // face parallel to w
@@ -53,7 +53,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
         {
             if((walltopo || wall) && (cs==6 || p->A10==5 || p->A10==6)) return gclabel_w_orth;
             if(outflow)             return gclabel_w_out;
-            if(bc==3)               return p->A10==3 ? 4 : (p->A10==5 ? 0 : 5);
+            if(bc==3)               return p->A10==3 ? 4 : (p->A10==5 ? 0 : gclabel_w_orth);
             if(bc==9 && cs==6)      return 4;
         }
         if(bc==6)                   return gclabel_w_in;
@@ -76,7 +76,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
 
     case 19:
         if(bc==3 && para)           return 4;
-        if(bc==3 && orth)           return p->A10==3 ? 4 : (p->A10==5 ? 0 : 5);
+        if(bc==3 && orth)           return p->A10==3 ? 4 : (p->A10==5 ? 0 : gclabel_w_orth);
         if(bc==9 && cs==6)          return 4;
         return 0;
 
@@ -89,7 +89,9 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
         return 0;
 
     case 119:
-        return (para && (wall || bc==5)) ? 4 : 0;
+        if(para && wall)            return 4;
+        if(para && bc==5)           return gclabel_wtopo;
+        return 0;
     }
 
     return 0;

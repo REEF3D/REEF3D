@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"outflow_pressure.h"
 #include"poisson_pcorr.h"
 #include"bc_noflux.h"
 #include<mpi.h>
@@ -212,46 +213,19 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		a->M.s[n] = 0.0;
 		}*/
 		
-        // outflow
-		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && (p->IO[Ip1JK]!=2 || (p->B60!=1&&p->B99<3)))
+        // outflow (IO 2): the ghost pressure is outflow_pressure(), the value pressure_io has put
+        // into the ghost cells before the projection, so the correction there is its difference
+        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->IO[Ip1JK]==2)
+		{
+		a->rhsvec.V[n] -= a->M.n[n]*(outflow_pressure(p,a,i,j,k) - a->press(i+1,j,k));
+		a->M.n[n] = 0.0;
+		}
+
+		if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0))
 		{
 		a->rhsvec.V[n] -= a->M.n[n]*press(i+1,j,k);
 		a->M.n[n] = 0.0;
 		}
-        
-         // controlled outflow
-         if( (p->IO[Ip1JK]==2))
-		{
-             if(p->B77==1)
-             {
-             if(p->F50==2 || p->F50==3)
-             pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-             
-             if(p->F50==1 || p->F50==4)
-             pval=a->press(i,j,k);
-             }
-             
-             if(p->B77==2)
-             {
-             pval=a->press(i,j,k);
-             }
-             
-             if(p->B77==10)
-             pval=0.0;
-        
-		a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);
-		a->M.n[n] = 0.0;
-		}
-        
-        // AWA outflow
-        if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) 
-            && (p->IO[Ip1JK]==2 && p->B90==1 && p->B99>2))
-        {
-        pval = (p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-        
-        a->rhsvec.V[n] -= a->M.n[n]*(-a->press(i,j,k)+pval);        
-        a->M.n[n] = 0.0;
-        }
         
     // ----
 		if(p->flag4[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0) && p->j_dir==1)

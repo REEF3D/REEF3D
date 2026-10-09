@@ -25,18 +25,6 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-void net_barQuasiStatic::update_velocity_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{
-
-    //- Get velocities at knots
-    updateField_nhflow(p, d, pgc, 0);
-    updateField_nhflow(p, d, pgc, 1);	
-    updateField_nhflow(p, d, pgc, 2);
-    
-    //- Get density at knots
-    updateField_nhflow(p, d, pgc, 3);  
-}
-
 void net_barQuasiStatic::updateField_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int cmp)
 {
 	int *recField, *count;

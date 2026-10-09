@@ -243,14 +243,6 @@ void driver::cfd_driver()
     preg->cfd_ini(p,a,pgc,pturb,pconc);
 
     // Start MAINLOOP
-    if(p->X10==0 && p->Z10==0 && p->N40==14)
-    loop_cfd_sf(a);
-
-    else
-    if((p->X10==1  || p->Z10!=0) && (p->N40==14))
-    loop_cfd_df(a);
-
-    else
     loop_cfd(a);
 }
 

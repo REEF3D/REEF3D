@@ -107,7 +107,6 @@ private:
     void print_force(lexer*,fdm_nhf*,ghostcell*);
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
-    void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
     void hydrodynamic_viscous_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, double&,double&,double&,double,double,double,double,double,double,double);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
@@ -115,9 +114,7 @@ private:
     void addpoint(lexer*,fdm_nhf*,int,int);
     void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
-    double clip_edge(double,double);
     double clip_edge_vol(double,double,double);
-    bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double, double,double,double,double&,double&,double&,double&);
     void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double&, double&, double&, double&);
     
     nhflow_reinidisc_fsf *pnhfrdisc;

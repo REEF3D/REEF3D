@@ -130,19 +130,3 @@ double sixdof_motionext_wavemaker::ramp_vel(lexer *p)
 
     return f;
 }
-
-double sixdof_motionext_wavemaker::ramp_draft(lexer *p)
-{
-    double f=1.0;
-
-    if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    f = p->simtime/(p->X207_te-p->X207_ts);
-
-    if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
-    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
-
-    if(p->X207==1 && p->simtime<p->X207_ts)
-    f=0.0;
-
-    return f;
-}

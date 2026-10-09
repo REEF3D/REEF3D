@@ -20,11 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"surftens.h"
 #include"lexer.h"
 #include"fdm.h"
 
-surftens::surftens(lexer* p):gradient(p),epsi(p->F45*p->DXM)
+surftens::surftens(lexer* p):gradient(p),epsi(0.0)
 {
 	tension=p->W5;
 }
@@ -41,6 +42,7 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
 	ULOOP
 	{
 	dirac=0.0;
+	epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
 		if(fabs(0.5*(a->phi(i,j,k)+a->phi(i+1,j,k)))<epsi && (p->F30!=0 || p->F40!=0))
 		{
 		dirac = (0.5/epsi)*(1.0 + cos((PI*0.5*(a->phi(i,j,k)+a->phi(i+1,j,k)))/epsi));
@@ -63,6 +65,7 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
 	VLOOP
 	{
 	dirac=0.0;
+	epsi = interface_width_face(p,a->phi,i,j,k,0,1,0);
 		if( fabs(0.5*(a->phi(i,j,k)+a->phi(i,j+1,k)))<epsi && (p->F30!=0 || p->F40!=0))
 		{
 		dirac = (0.5/epsi)*(1.0 + cos((PI*0.5*(a->phi(i,j,k)+a->phi(i,j+1,k)))/epsi));
@@ -85,6 +88,7 @@ void surftens::surface_tension(fdm* a,lexer*p,field& surf,int gcval)
 	WLOOP
 	{
 	dirac=0.0;
+	epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
 		if(fabs(0.5*(a->phi(i,j,k)+a->phi(i,j,k+1)))<epsi && (p->F30!=0 || p->F40!=0))
 		{
 		dirac = (0.5/epsi)*(1.0 + cos((PI*0.5*(a->phi(i,j,k)+a->phi(i,j,k+1)))/epsi));

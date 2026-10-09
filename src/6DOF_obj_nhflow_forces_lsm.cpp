@@ -140,13 +140,6 @@ void sixdof_obj_nhflow::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             ylocvel = yc + ny*p->DYP[JP];
             zlocvel = zc + nz*p->DZP[KP]*d->WL(i,j);
             
-            /*uval = p->ccipol4V(d->U, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-            vval = p->ccipol4V(d->V, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-            wval = p->ccipol4V(d->W, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-            
-            du = uval/p->DXN[IP];
-            dv = vval/p->DYN[JP];
-            dw = wval/(p->DZN[KP]*d->WL(i,j));*/
             
             density =   p->ccipol4V(d->RO, d->WL, d->bed,xloc,yloc,zloc);
             viscosity = p->ccipol4V(d->VISC, d->WL, d->bed,xloc,yloc,zloc);

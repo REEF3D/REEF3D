@@ -144,13 +144,6 @@ double wave_lib_irregular_2nd_a::wave_v(lexer *p, double x, double y, double z)
     return vel;
 }
 
-double wave_lib_irregular_2nd_a::wave_horzvel(lexer *p, double x, double y, double z)
-{
-    double vel=0.0;
-    
-    return vel;
-}
-
 double wave_lib_irregular_2nd_a::wave_w(lexer *p, double x, double y, double z)
 {
     vel=0.0;

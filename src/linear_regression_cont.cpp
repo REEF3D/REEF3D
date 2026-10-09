@@ -38,24 +38,3 @@ linear_regression_cont::~linear_regression_cont()
 {
 }
 
-void linear_regression_cont::linreg_cont_func(lexer*,ghostcell*,double xval, double yval, double &b0, double &b1)
-{
-    // y(x) = b1*x + b0
-    
-    num += 1.0;
-    
-    xsum += xval;
-    ysum += yval;
-    
-    xx_sum += xval*xval;
-    xy_sum += xval*yval;
-    
-    
-    SS_xx = xx_sum - xsum*xsum/num;
-    SS_xy = xy_sum - xsum*ysum/num;
-    
-    b1 = SS_xy/SS_xx;
-    
-    b0 = (ysum/num)  - b1*(xsum/num);    
-}
-

@@ -36,15 +36,3 @@ double fnpf_breaking::rb3(lexer *p, double x)
 
 	return r;
 }
-
-double fnpf_breaking::rb4(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist4-fabs(x))/(dist4);
-    x=MAX(x,0.0);
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-
-	return r;
-}

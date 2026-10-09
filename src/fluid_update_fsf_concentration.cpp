@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"fluid_update_fsf_concentration.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -55,16 +56,11 @@ void fluid_update_fsf_concentration::start(lexer *p, fdm* a, ghostcell* pgc, fie
     iocheck=0;
 	iter=p->count;
     
-    if(p->j_dir==0)        
-    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
-        
-    if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
 	LOOP
 	{        
         
-		H = heaviside(a->phi(i,j,k),epsi);
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
 		
 		conc=pconcentration->val(i,j,k);
 

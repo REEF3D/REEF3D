@@ -138,23 +138,6 @@ void fnpf_fsf_update::velcalc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     pgc->start7V(p,c->W,c->bc,gcval);
     
     
-    /*
-    k = p->knoz;
-    
-    SLICELOOP4
-    if(fabs(c->W[FIJK])>100.0 && p->YP[JP]>9000 && p->YP[JP]<9400)
-    {
-    FKLOOP
-    {
-    cout<<c->Fi[FIJK]<<" "<<((c->Fi[FIJKp1]-c->Fi[FIJKm1])/(p->DZP[KP]+p->DZP[KM1]))<<" "<<p->sigz[IJ]<<" "<<c->WL(i,j)<<" "<<p->wd-c->bed(i,j)<<" "<<c->depth(i,j)<<endl;
-    }
-    cout<<endl;
-    }
-    
-    LOOP
-    c->test[IJK] = p->sigz[IJ];
-    */
-    
     SLICELOOP4
     c->eta_n(i,j) = c->eta(i,j);
 

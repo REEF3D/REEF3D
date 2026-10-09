@@ -28,19 +28,9 @@ void cfd_state::filename(lexer *p, fdm *a, ghostcell *pgc, int num)
     sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-%08i-%06i.r3d",num,p->mpirank+1);
 }
 
-void cfd_state::filename_single(lexer *p, fdm *a, ghostcell *pgc, int num)
-{
-    sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%08i-%06i.r3d",num,p->mpirank+1);
-}
-
 void cfd_state::filename_continuous(lexer *p, fdm *a, ghostcell *pgc)
 {
     sprintf(name,"./REEF3D_CFD_STATE/REEF3D_CFD-State-%06i.r3d",p->mpirank+1);
-}
-
-void cfd_state::filename_header(lexer *p, fdm *a, ghostcell *pgc)
-{
-	sprintf(name,"./REEF3D_CFD_STATE/REEF3D-CFD-State-Header-%06i.r3d",p->mpirank+1);
 }
 
 

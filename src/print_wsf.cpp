@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"probe_core.h"
 #include"print_wsf.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -218,18 +219,7 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     pgc->globalmax(wsf,gauge_num);
 
     // write to file
-    if(p->mpirank==0)
-    {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    {
-        wsfout<<setprecision(9)<<wsf[n]<<"\t";
-        // flush print to disc limited to prevent data loss for many gauges
-        if(n%fileFlushMaxCount==0&&n!=0)
-            wsfout<<std::flush;
-    }
-    wsfout<<endl;
-    }
+    gauge_row(p,wsfout,wsf,gauge_num,fileFlushMaxCount);
 }
 
 void print_wsf::write(lexer *p, fdm *a, ghostcell *pgc)

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"probe_core.h"
 #include"fnpf_vel_probe.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
@@ -34,6 +35,7 @@ fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
 	p->Iarray(jloc,probenum);
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
+    p->Darray(val,probenum*4);
 	
 	// Create Folder
 	if(p->mpirank==0)
@@ -97,15 +99,13 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         fival = p->ccipol7V(c->Fi, c->WL, c->bed, xp, yp, zp);
 		}
 	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
-    fival=pgc->globalmax(fival);
+	val[n*4+0]=uval;
+	val[n*4+1]=vval;
+	val[n*4+2]=wval;
+	val[n*4+3]=fival;
+	}
 
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<fival<<endl;
-	}	
+    probe_rows(p,pgc,pout,val,probenum,4);	
 }
 
 void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)

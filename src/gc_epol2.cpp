@@ -24,13 +24,12 @@ Author: Hans Bihs
 
 // ghost-cell label of v (kernel chosen in gcdistro2)
 // gcv: 2/11 v, 8 projection, 15 / 111 / 115 / 118 special treatments, 18, 50 Neumann; cs: side of the face
-// differences to u and w: wavegen (6) and beach (7, also with active absorption) are walls for the
-// parallel faces, the beach also for the orthogonal faces; the lid (3) uses label 1 instead of gclabel_v_orth
+// walls, beach, lid, wave generation and topography as for u and w
 int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 {
     const bool para = (cs==1||cs==4||cs==5||cs==6);          // face parallel to v
     const bool orth = (cs==2||cs==3);                        // face normal to v
-    const bool wall = (bc==21||bc==22||bc==7||bc==6);
+    const bool wall = (bc==21||bc==22||(bc==7&&awa_lable==0)); // walls; beach without active absorption
     const bool walltopo = (bc==21||bc==22||bc==5);
     const bool patch = (bc==111||bc==112||bc==121||bc==122);
     const bool outflow = (bc==2 && gclabel_outflow==1);
@@ -51,16 +50,15 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
         }
         if(orth)
         {
-            if(walltopo || bc==7)   return gclabel_v_orth;
+            if(walltopo || wall || bc==3) return gclabel_v_orth;
             if(outflow)             return gclabel_v_out;
-            if(bc==3)               return 1;
         }
         if(bc==6)                   return gclabel_v_in;
         if(patch)                   return 4;
         return 0;
 
     case 8:
-        if(orth && (walltopo || bc==7)) return gclabel_vel;
+        if(orth && (walltopo || wall)) return gclabel_vel;
         if(bc==6)                   return gclabel_v_in;
         if(patch)                   return 4;
         return 0;
@@ -70,7 +68,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
 
     case 18:
         if(bc==3 && para)           return 4;
-        if(bc==3 && orth)           return 1;
+        if(bc==3 && orth)           return gclabel_v_orth;
         if(bc==9 && cs==6)          return 4;
         return 0;
 
@@ -83,7 +81,9 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
         return 0;
 
     case 118:
-        return (para && (wall || bc==5)) ? 4 : 0;
+        if(para && wall)            return 4;
+        if(para && bc==5)           return gclabel_vtopo;
+        return 0;
     }
 
     return 0;

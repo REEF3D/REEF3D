@@ -1,0 +1,7 @@
+{
+ "base": "closed_dambreak_2d_div",
+ "description": "Dam break in the closed 2D tank without volume correction: the mass (integral of the density, linear in the smoothed Heaviside of the level set) at the end relative to the start. Reference for closed_dambreak_2d_picard_mass.",
+ "steps": 300,
+ "tags": ["levelset", "closed", "2d"],
+ "check": {"type": "conserved_integral", "field": "ro", "tol": 0.05}
+}

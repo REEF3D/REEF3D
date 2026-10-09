@@ -105,7 +105,6 @@ public:
     void print_parameter(lexer*,ghostcell*);
     void print_ini_vtp(lexer*,ghostcell*);
 	void print_vtp(lexer*,ghostcell*);
-    void print_normals_vtp(lexer*,ghostcell*);
     void print_ini_stl(lexer*,ghostcell*);
 	void print_stl(lexer*,ghostcell*);
 	void update_fbvel(lexer*,ghostcell*);

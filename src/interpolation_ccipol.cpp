@@ -159,99 +159,6 @@ double interpolation::ccipol4(field& f, double xp, double yp, double zp)
     return value;
 }
 
-double interpolation::ccipol4_c(field& f, double xp, double yp, double zp)
-{
-    ii=i;
-    jj=j;
-    kk=k;
-    
-    i = p->posf_i(xp);
-    j = p->posf_j(yp);
-    k = p->posf_k(zp);
-		
-    // wa
-    wa = (p->XP[IP1]-xp)/p->DXP[IP];
-    
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYP[JP];
-    
-    //wc
-    wc = (p->ZP[KP1]-zp)/p->DZP[KP];
-
-    // lint
-    if(p->j_dir==0)
-    value = lint4_2D(f,i,j,k,wa,wb,wc);
-    
-    if(p->j_dir==1)
-    value = lint4c(f,i,j,k,wa,wb,wc);
-
-    i=ii;
-    j=jj;
-    k=kk;
-    
-    return value;
-}
-
-double interpolation::ccipol4phi(fdm *a,field& f, double xp, double yp, double zp)
-{
-    ii=i;
-    jj=j;
-    kk=k;
-    
-    i = p->posf_i(xp);
-    j = p->posf_j(yp);
-    k = p->posf_k(zp);
-		
-    // wa
-    wa = (p->XP[IP1]-xp)/p->DXP[IP];
-    
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYP[JP];
-    
-    //wc
-    wc = (p->ZP[KP1]-zp)/p->DZP[KP];
-    
-    if(p->j_dir==0)
-    value =  lint4phi_2D(a,f,i,j,k,wa,wb,wc);
-    
-    if(p->j_dir==1)
-    value =  lint4phi(a,f,i,j,k,wa,wb,wc);
-
-    i=ii;
-    j=jj;
-    k=kk;
-
-    return value;
-}
-
-double interpolation::ccipol4press(fdm *a,field& f, double xp, double yp, double zp)
-{
-    ii=i;
-    jj=j;
-    kk=k;
-    
-    i = p->posf_i(xp);
-    j = p->posf_j(yp);
-    k = p->posf_k(zp);
-    
-    // wa
-    wa = (p->XP[IP1]-xp)/p->DXP[IP];
-    
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYP[JP];
-    
-    //wc
-    wc = (p->ZP[KP1]-zp)/p->DZN[KP];
-
-    value =  lint4phi(a,f,i,j,k,wa,wb,wc);
-
-    i=ii;
-    j=jj;
-    k=kk;
-
-    return value;
-}
-
 double interpolation::ccipol1_a(field& f, double xp, double yp, double zp)
 {
     ii=i;
@@ -519,39 +426,6 @@ double interpolation::ccipol3c(field& f, double xp, double yp, double zp)
     i=ii;
     j=jj;
     k=kk;
-
-    return value;
-}
-
-double interpolation::ccipol4c(double *f, double xp, double yp, double zp)
-{
-    ii=i;
-    jj=j;
-    kk=k;
-    
-    i = p->posf_i(xp);
-    j = p->posf_j(yp);
-    k = p->posf_k(zp);
-		
-    // wa
-    wa = (p->XP[IP1]-xp)/p->DXP[IP];
-
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYP[JP];
-    
-    //wc
-    wc = (p->ZP[KP1]-zp)/p->DZP[KP];
-
-    if(p->j_dir==0)
-    value = lint4c(f,i,j,k,wa,wb,wc);
-    
-    if(p->j_dir==1)
-    value = lint4c(f,i,j,k,wa,wb,wc);
-
-    i=ii;
-    j=jj;
-    k=kk;
-    
 
     return value;
 }

@@ -176,19 +176,6 @@ void mooring_barQuasiStatic::start(lexer *p, ghostcell *pgc)
 	print(p,pgc);	
 }
 
-vector<double> mooring_barQuasiStatic::getC(double theta)
-{
-    vector<double> c_(3,0);
-    
-	theta *= 180/PI;
-	
-	c_[0] = max(0.0, -0.000000016676062*pow(theta,4.0) + 0.000001614232301*pow(theta,3.0) + 0.000132218750548*pow(theta,2.0) - 0.001335313221272*theta + 0.023082880162714);
-	c_[1] = max(0.0, 0.000000019889794877*pow(theta,4.0) - 0.000005200545357615*pow(theta,3.0) + 0.000309491763289986*pow(theta,2.0) + 0.000866335727454720*theta - 0.000960622162325914);
-	c_[2] = max(0.0, -0.000000028334918*pow(theta,4.0) + 0.000000348243732*pow(theta,3.0) + 0.000255407378882*pow(theta,2.0) - 0.006366497021954*theta + 0.049082170481768);
-
-    return c_;
-}
-
 vector< vector<double> > mooring_barQuasiStatic::solveGauss
 (
 	std::vector< std::vector<double> > A, 

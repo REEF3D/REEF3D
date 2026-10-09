@@ -39,7 +39,6 @@ public:
 	linear_regression_cont (lexer *);
 	virtual ~linear_regression_cont();
 
-	void linreg_cont_func(lexer*,ghostcell*,double, double, double &b0, double &b1);
 
 private:
     double num;

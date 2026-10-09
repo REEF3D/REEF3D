@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -98,7 +99,7 @@ void sediment_f::volume_calc(lexer *p, fdm *a,ghostcell *pgc)
 
 	LOOP
 	{
-       epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+       epsi = interface_width(p,a->topo,i,j,k);
         
 		H = heaviside(a->topo(i,j,k),epsi);
 

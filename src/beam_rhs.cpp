@@ -134,13 +134,6 @@ Eigen::Vector4d beam::f0_
 
     moment.tail(3) -= Ckappa*kappa;
 
-    // Strain velocity
-    /*mult = qMult(qconj(qdotl),qr);
-    kappa = 2.0/dZ*sqrt(2.0/(1.0 + mult(0)))*mult.tail(3);
-
-    mult = qMult(qconj(ql),qdotr);
-    kappa += 2.0/dZ*sqrt(2.0/(1.0 + mult(0)))*mult.tail(3);
-    */
 
     mult = qMult(qconj(ql),qr);
     double zeta = sqrt(2.0/(1.0 + mult(0)));

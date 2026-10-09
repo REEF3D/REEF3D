@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"probe_core.h"
 #include"nhflow_probe_vel_theory.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -35,6 +36,7 @@ nhflow_probe_vel_theory::nhflow_probe_vel_theory(lexer *p, fdm_nhf *d) : probenu
 	p->Iarray(jloc,probenum);
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
+    p->Darray(val,probenum*3);
 	
 	// Create Folder
 	if(p->mpirank==0)
@@ -102,14 +104,12 @@ void nhflow_probe_vel_theory::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
          uval = vval = wval = 0.0;
 		}
 	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
+	val[n*3+0]=uval;
+	val[n*3+1]=vval;
+	val[n*3+2]=wval;
+	}
 
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
-	}	
+    probe_rows(p,pgc,pout,val,probenum,3);	
 }
 
 void nhflow_probe_vel_theory::ini_location(lexer *p, fdm_nhf *d)

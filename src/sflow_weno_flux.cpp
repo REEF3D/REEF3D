@@ -78,39 +78,6 @@ double sflow_weno_flux::aij(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, sl
 		return L;
 }
 
-double sflow_weno_flux::aij_fou(lexer* p,fdm2D* b,slice& f,int ipol, slice& uvel, slice& vvel)
-{
-    double q1,q2;
-    
-	ul=ur=vl=vr=dx=dy=0.0;
-    
-    pflux->u_flux(ipol,uvel,ivel1,ivel2);
-    pflux->v_flux(ipol,vvel,jvel1,jvel2);
-		
-        // X-dir
-		if(ivel1>=0.0)
-		ul=1.0;
-
-		if(ivel2>=0.0)
-		ur=1.0;
-
-		dx= (ivel2*(ur*f(i,j) +  (1.0-ur)*f(i+1,j))  -  ivel1*(ul*f(i-1,j) +  (1.0-ul)*f(i,j)))/(p->DXM);
-
-        // Y-dir
-		if(jvel1>=0.0)
-		vl=1.0;
-
-		if(jvel2>=0.0)
-		vr=1.0;
-
-		dy= (jvel2*(vr*f(i,j) +  (1.0-vr)*f(i,j+1))  -  jvel1*(vl*f(i,j-1) +  (1.0-vl)*f(i,j)))/(p->DXM);
-        
-		
-		L = -dx-dy;
-
-		return L;
-}
-
 double sflow_weno_flux::fx(lexer *p,fdm2D *b, slice& f, int ipol, double advec)
 {
     grad = 0.0;

@@ -53,7 +53,6 @@ private:
 	double starttime,endtime;
 
 	int gcval_phi,gcval_ro,gcval_iniphi,reiniter,n, gcval;
-	const double epsi;
 };
 
 #endif

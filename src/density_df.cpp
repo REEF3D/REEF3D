@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"density_df.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"heaviside.h"
 
-density_df::density_df(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_df::density_df(lexer* p)
 {
     H=0.0;
 }
@@ -38,7 +39,7 @@ double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {     
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    H = heaviside(phival,p->psi);
+    H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
     
     
     roval = p->W1*H + p->W3*(1.0-H);

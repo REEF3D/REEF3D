@@ -39,60 +39,56 @@ void patchBC::patchBC_pressure(lexer *p, fdm *a, ghostcell *pgc, field &press)
     j=patch[qq]->gcb[n][1];
     k=patch[qq]->gcb[n][2];
     
-    double eps,H;
+    double eps,H,pval;
                 
     eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
         
     H = heaviside(a->phi(i,j,k),eps);
-        
-    //pval=(1.0-H)*a->press(i,j,k);
+    
+    // patch pressure in the liquid, the cell value in the gas, blended once from the
+    // cell value; the interior cell itself is left to the pressure solution
+    pval = H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
     
         if(patch[qq]->gcb[n][3]==1)
         {
-        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i-1,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i-2,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i-3,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
+        press(i-1,j,k) = pval;
+        press(i-2,j,k) = pval;
+        press(i-3,j,k) = pval;
         }
         
         if(patch[qq]->gcb[n][3]==2)
         {
-        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j+1,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j+2,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j+3,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
+        press(i,j+1,k) = pval;
+        press(i,j+2,k) = pval;
+        press(i,j+3,k) = pval;
         }
         
         if(patch[qq]->gcb[n][3]==3)
         {
-        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j-1,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j-2,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j-3,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
+        press(i,j-1,k) = pval;
+        press(i,j-2,k) = pval;
+        press(i,j-3,k) = pval;
         }
         
         if(patch[qq]->gcb[n][3]==4)
         {
-        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i+1,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i+2,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i+3,j,k) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
+        press(i+1,j,k) = pval;
+        press(i+2,j,k) = pval;
+        press(i+3,j,k) = pval;
         }
         
         if(patch[qq]->gcb[n][3]==5)
         {
-        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j,k-1) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j,k-2) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j,k-3) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
+        press(i,j,k-1) = pval;
+        press(i,j,k-2) = pval;
+        press(i,j,k-3) = pval;
         }
         
         if(patch[qq]->gcb[n][3]==6)
         {
-        press(i,j,k)   =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j,k+1) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j,k+2) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
-        press(i,j,k+3) =  H*patch[qq]->pressure + (1.0-H)*press(i,j,k);
+        press(i,j,k+1) = pval;
+        press(i,j,k+2) = pval;
+        press(i,j,k+3) = pval;
         }
     
     }

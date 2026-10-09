@@ -50,7 +50,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
         }
         if(orth)
         {
-            if(walltopo || bc==3)   return gclabel_u_orth;
+            if(walltopo || wall || bc==3) return gclabel_u_orth;
             if(bc==6)               return gclabel_u_in;
             if(outflow)             return gclabel_u_out;
             if((bc==7||bc==8) && gclabel_outflow==1 && p->I10==1) return 4;
@@ -59,7 +59,7 @@ int ghostcell::gceval1(lexer *p, int gcv, int bc, int cs)
         return 0;
 
     case 7:
-        if(orth && walltopo)        return gclabel_vel;
+        if(orth && (walltopo || wall)) return gclabel_vel;
         if(orth && bc==6)           return gclabel_u_in;
         if(patch)                   return 4;
         return 0;

@@ -130,26 +130,3 @@ void bedshear_probe::ini_location(lexer *p, ghostcell *pgc)
     flag[n]=1;
     }
 }
-
-
-int bedshear_probe::conv(double a)
-{
-
-    int b,c;
-    double d,diff;
-
-    c= int( a);
-    d=double(c);
-    diff=a-d;
-
-    b=c;
-
-    if(diff>0.5)
-    b=c+1;
-
-    if(diff<=-0.5)
-    b=c-1;
-
-    return b;
-
-}

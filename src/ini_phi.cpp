@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"initialize.h"
 #include"fdm.h"
 #include"lexer.h"
@@ -113,7 +114,7 @@ void initialize::iniphi(lexer* p, fdm* a, ghostcell* pgc)
 
 	BASELOOP
 	{
-		H = heaviside(a->phi(i,j,k),p->psi);
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
 
 		a->ro(i,j,k)=p->W1*H + p->W3*(1.0-H);
 		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);

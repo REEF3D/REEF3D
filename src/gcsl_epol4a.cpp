@@ -23,15 +23,3 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"slice.h"
-
-void ghostcell::gcsldistro4a(lexer *p, slice &f, int ii, int jj, int nn, int gcv, int bc, int cs)
-{
-    i=ii;
-    j=jj;
-    n=nn;
-
-    bc_label=4;
-
-    if(bc_label==4)
-        gcsl_neumann(f,gcv,bc,cs);
-}

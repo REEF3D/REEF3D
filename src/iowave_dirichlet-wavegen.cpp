@@ -51,7 +51,6 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 		H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
 
             
-
 			u(i-1,j,k)=uvel*H + p->Ui;
 			u(i-2,j,k)=uvel*H + p->Ui;
 			u(i-3,j,k)=uvel*H + p->Ui;
@@ -72,60 +71,6 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
             u(i-3,j,k)+=p->W50;
             }
             
-            /*
-			if(a->phi(i-1,j,k)>=0.0)
-			{
-			u(i-1,j,k)=uvel+p->Ui;
-			u(i-2,j,k)=uvel+p->Ui;
-			u(i-3,j,k)=uvel+p->Ui;
-            
-            v(i-1,j,k)=vvel;
-			v(i-2,j,k)=vvel;
-			v(i-3,j,k)=vvel;
-			
-			w(i-1,j,k)=wvel;
-			w(i-2,j,k)=wvel;
-			w(i-3,j,k)=wvel;
-			}
-
-			if(a->phi(i-1,j,k)<0.0 && a->phi(i-1,j,k)>=-p->F45*p->DZP[KP])
-			{
-			fac= p->B122*(1.0 - fabs(a->phi(i-1,j,k))/(p->F45*p->DZP[KP]));
-            
-			u(i-1,j,k)=uvel*fac + p->Ui;
-			u(i-2,j,k)=uvel*fac + p->Ui;
-			u(i-3,j,k)=uvel*fac + p->Ui;
-            
-            v(i-1,j,k)=vvel*fac;
-			v(i-2,j,k)=vvel*fac;
-			v(i-3,j,k)=vvel*fac;
-            
-			w(i-1,j,k)=wvel*fac;
-			w(i-2,j,k)=wvel*fac;
-			w(i-3,j,k)=wvel*fac;
-			}
-
-			if(a->phi(i-1,j,k)<-p->F45*p->DXM)
-			{
-			u(i-1,j,k)=0.0 + p->Ui;
-			u(i-2,j,k)=0.0 + p->Ui;
-			u(i-3,j,k)=0.0 + p->Ui;
-            
-            if(p->W50_air==1)
-            {
-            u(i-1,j,k)+=p->W50;
-            u(i-2,j,k)+=p->W50;
-            u(i-3,j,k)+=p->W50;
-            }
-            
-            v(i-1,j,k)=0.0;
-			v(i-2,j,k)=0.0;
-			v(i-3,j,k)=0.0;
-
-			w(i-1,j,k)=0.0;
-			w(i-2,j,k)=0.0;
-			w(i-3,j,k)=0.0;
-			}*/
         ++count;
 		}
         
@@ -145,6 +90,5 @@ void iowave::dirichlet_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field
 		pgc->start4(p,a->eddyv,24);
 		}
         
-    
     
 }

@@ -127,16 +127,6 @@ void potential_water::wcalc(lexer *p, fdm *a, field &phi)
 	a->w(i,j,k)=0.0;
 }
 
-void potential_water::rhs(lexer *p, fdm* a)
-{
-    count=0;
-    LOOP
-    {
-    a->rhsvec.V[count] = 0.0;
-    count++;
-    }
-}
-
 void potential_water::laplace(lexer *p, fdm *a, field &phi)
 {
     a->M.reset();

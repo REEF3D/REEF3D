@@ -48,7 +48,6 @@ public:
 	void initialize(lexer*, ghostcell*) override final;
 	void mooringForces(double&, double&, double&) override final;
 	
-	void getForce(lexer*, ghostcell*, double&, double&);
 	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);
 	void iniShape(lexer*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
 	

@@ -38,7 +38,6 @@ public:
     wave_lib_irregular_2nd_b(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_2nd_b();
 
-    double wave_horzvel(lexer*,double,double,double);
     
     double wave_u(lexer*,double,double,double) override final;
     double wave_v(lexer*,double,double,double) override final;

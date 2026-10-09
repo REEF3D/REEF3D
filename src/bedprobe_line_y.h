@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include<fstream>
 
 class lexer;
+class wsfline_core;
 class sediment_fdm;
 class ghostcell;
 class field;
@@ -47,20 +48,14 @@ public:
 
 private:
     void ini_location(lexer*, ghostcell*,sediment_fdm*);
-    void sort(double*, double*, int*, int,int);
-    void remove_multientry(lexer*,double*, double*, int*, int&);
-
-    int *iloc,**flag,**flag_all,*rowflag,*wsfpoints;
-    double **wsf,**wsf_all;
-    double **yloc, **yloc_all;
+    int *iloc;
     int n,q;
     ofstream wsfout;
 
     double xcoor;
 	
 	wave_theory *pwave;
-
-    int maxknox,sumknox;
+    wsfline_core *pcore;
 
 };
 

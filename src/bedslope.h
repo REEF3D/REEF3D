@@ -40,10 +40,7 @@ public:
     bedslope(lexer*);
     virtual ~bedslope();
     
-    void slope_analytical(lexer*,ghostcell*,sediment_fdm*);
     void slope_cds(lexer*,ghostcell*,sediment_fdm*);
-	void slope_weno(lexer*, ghostcell*,sediment_fdm*);
-    void slope_weno_topo(lexer*, ghostcell*,sediment_fdm*,field&);
     
 
 private:

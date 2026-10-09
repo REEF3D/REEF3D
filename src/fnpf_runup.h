@@ -54,7 +54,6 @@ private:
 	double dvdsig(lexer*, fdm_fnpf*, ghostcell*);
 	double dudxi(lexer*, fdm_fnpf*, ghostcell*);
 	double dvdxi(lexer*, fdm_fnpf*, ghostcell*);
-    double roundFunc(double, int);
 	
     // run-up variabes
     double un,vn,xc,yc,rc,etan;

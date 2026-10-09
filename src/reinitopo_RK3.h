@@ -49,7 +49,6 @@ private:
 	double starttime,endtime;
 
 	int gcval,gcval_topo,gcval_initopo,reiniter,n;
-	const double epsi;
 	const char *name;
 };
 

@@ -42,12 +42,3 @@ fnpf_ini::~fnpf_ini()
 void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini)
 {	
 }
-
-void fnpf_ini::lsm_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
-{
-}
-
-void fnpf_ini::velcalc(lexer *p, fdm_fnpf *c, ghostcell *pgc, field &f)
-{
-   
-}

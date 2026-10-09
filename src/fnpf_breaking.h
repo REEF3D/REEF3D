@@ -45,7 +45,6 @@ public:
     
     void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     
-    void breaking_baquet(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     void breaking_baquet_wd(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     
     void breaking_kennedy(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
@@ -80,7 +79,6 @@ private:
     
     
     double rb3(lexer*,double);
-    double rb4(lexer*,double);
     
     double dist3,dist4,db;
     

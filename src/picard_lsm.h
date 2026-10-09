@@ -40,8 +40,7 @@ public:
     void correct_ls(lexer*, fdm*, ghostcell*, field&) override final;
 
 private:
-    const double epsi;
-    double vol1,vol2;
+    double vol1,vol2,dvol2;
     double inivol,netvol;
     bool vol_ini;   // reference volume taken (first volcalc)
 };

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"fluid_update_fsf_heat_Bouss.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -71,11 +72,6 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc, field 
     iocheck=0;
 	iter=p->count;
     
-    if(p->j_dir==0)        
-    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
-        
-    if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 
    //
 	LOOP
@@ -124,7 +120,7 @@ void fluid_update_fsf_heat_Bouss::start(lexer *p, fdm* a, ghostcell* pgc, field 
             }
         }
 
-		H = heaviside(a->phi(i,j,k),epsi);
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
 
 		a->ro(i,j,k)=     ro_1*H +   ro_2*(1.0-H);
 		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);

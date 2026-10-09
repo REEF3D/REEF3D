@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"probe_core.h"
 #include"nhflow_probe_press.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -34,6 +35,7 @@ nhflow_probe_press::nhflow_probe_press(lexer *p, fdm_nhf *d) : probenum(p->P64)
 	p->Iarray(jloc,probenum);
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
+    p->Darray(val,probenum*1);
 	
 	// Create Folder
 	if(p->mpirank==0)
@@ -101,13 +103,10 @@ void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
          pval = 0.0;
 		}
 	
-	pval=pgc->globalmax(pval);
+	val[n*1+0]=pval;
+	}
 
-
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<pval<<endl;
-	}	
+    probe_rows(p,pgc,pout,val,probenum,1);	
 }
 
 void nhflow_probe_press::ini_location(lexer *p, fdm_nhf *d)

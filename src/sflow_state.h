@@ -39,11 +39,7 @@ public:
 	sflow_state(lexer*,fdm2D*,ghostcell*,int);
 	virtual ~sflow_state();
 	void write(lexer*,fdm2D*,ghostcell*);
-    void write_single(lexer*,fdm2D*,ghostcell*);
-    void write_contiuous(lexer*,fdm2D*,ghostcell*);
-    void write_restart(lexer*,fdm2D*,ghostcell*);
     
-    void read(lexer*,fdm2D*,ghostcell*);
     
     void ini_mainheader(lexer*,fdm2D*,ghostcell*);
     

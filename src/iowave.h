@@ -79,7 +79,6 @@ public:
     void wavegen_precalc_space_dirichlet(lexer*,ghostcell*);
     void wavegen_precalc_time(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax(lexer*,ghostcell*);
-    void wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
     
     void u_relax(lexer*,fdm*,ghostcell*,field&) override final;
     void v_relax(lexer*,fdm*,ghostcell*,field&) override final;
@@ -128,7 +127,6 @@ public:
     
 	void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    void full_initialize_ptf(lexer*,fdm*,ghostcell*);
 	void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -170,7 +168,6 @@ public:
     void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&) override final;
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
-    void fnpf_precalc_parallel_relax(lexer*,ghostcell*);
     void fnpf_precalc_parallel_relax_ini(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
@@ -323,7 +320,6 @@ private:
     double mb_int[5]={0.0,0.0,0.0,0.0,0.0};
     int mb_n=0;
 
-    int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC
     slice4 vofheight;

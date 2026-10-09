@@ -80,19 +80,3 @@ void sflow_state::write(lexer *p, fdm2D *c, ghostcell *pgc)
     if(flag==1)
     write_result(p,c,pgc);
 }
-
-void sflow_state::write_single(lexer *p, fdm2D *c, ghostcell *pgc)
-{
-    
-}
-
-void sflow_state::write_contiuous(lexer *p, fdm2D *c, ghostcell *pgc)
-{
-    
-}
-
-
-void sflow_state::write_restart(lexer *p, fdm2D *c, ghostcell *pgc)
-{
-    
-}

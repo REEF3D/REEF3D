@@ -507,21 +507,6 @@ double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
     return fi;
 }
 
-void wave_lib_Stokes_5th::wave_fi_precalc_xy_ini(lexer*,int)
-{
-    
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_xy(lexer*,double,double,int)
-{
-    
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_n(lexer*)
-{
-    
-}
-
 double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
     double fi;

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"ioflow_gcio.h"
 #include"ioflow_gravity.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -47,35 +48,8 @@ ioflow_gravity::~ioflow_gravity()
 
 void ioflow_gravity::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    int count1,count2,n;
-
-    count1=0;
-    count2=0;
-    GC4LOOP
-    {
-        if(p->gcb4[n][4]==1)
-        {
-        p->gcin[count1][0]=p->gcb4[n][0];
-        p->gcin[count1][1]=p->gcb4[n][1];
-        p->gcin[count1][2]=p->gcb4[n][2];
-        p->gcin[count1][3]=p->gcb4[n][3];
-        p->gcin[count1][4]=p->gcb4[n][5];
-        ++count1;
-        }
-
-        if(p->gcb4[n][4]==2)
-        {
-        p->gcout[count2][0]=p->gcb4[n][0];
-        p->gcout[count2][1]=p->gcb4[n][1];
-        p->gcout[count2][2]=p->gcb4[n][2];
-        p->gcout[count2][3]=p->gcb4[n][3];
-        p->gcout[count2][4]=p->gcb4[n][5];
-        ++count2;
-        }
-    }
-
-    p->gcin_count=count1;
-    p->gcout_count=count2;
+    // inflow / outflow ghost cell lists only (no IO marks)
+    ioflow_gcio_lists(p,p->flagsf4,nullptr);
 }
 
 void ioflow_gravity::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)

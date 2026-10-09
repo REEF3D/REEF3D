@@ -39,4 +39,13 @@ inline double heaviside(double x, double e)
     return 0.5*(1.0 + x/e + (1.0/PI)*sin((PI*x)/e));
 }
 
+// derivative of heaviside(x,e) with respect to x (smoothed delta function)
+inline double heaviside_delta(double x, double e)
+{
+    if(fabs(x)>e)
+    return 0.0;
+
+    return 0.5*(1.0 + cos((PI*x)/e))/e;
+}
+
 #endif

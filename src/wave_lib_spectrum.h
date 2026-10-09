@@ -45,7 +45,6 @@ public:
     double TMA(lexer*, double);
 	  double Torsethaugen(lexer*, double);
 	  double spectrum_file(lexer*, double);
-	  double spectrum_file_2d(lexer*, double, double);
 
 	  void spectrum_file_read(lexer*);
 	  void spectrum_file_2d_read(lexer*);
