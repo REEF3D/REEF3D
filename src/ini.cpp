@@ -255,6 +255,8 @@ void control::ini_default()
     A712_yp=0;        // int side y+ (as x-)
     A713=1;           // int depth and current refraction
     A714=1;           // int frequency shift
+    A716_w=0.0;       // double automatic fine direction sector around the parametric boundary spectrum: largest bin width there [deg] (0 off)
+    A716_m=15.0;      // double ... margin on both sides of the boundary spreading [deg]
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
