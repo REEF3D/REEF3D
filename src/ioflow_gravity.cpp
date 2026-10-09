@@ -49,7 +49,7 @@ ioflow_gravity::~ioflow_gravity()
 void ioflow_gravity::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
     // inflow / outflow ghost cell lists only (no IO marks)
-    ioflow_gcio_lists(p,p->flagsf4,nullptr);
+    ioflow_gcio_lists(p,p->DF,nullptr);
 }
 
 void ioflow_gravity::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
