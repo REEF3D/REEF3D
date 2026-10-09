@@ -69,8 +69,8 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 
         if(p->flagsf4[IJK]>0)
         {
-            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H_phi-(1.0-a->porosity(i,j,k)));
-            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi-(1.0-a->porosity(i,j,k)));
+            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H_phi*a->porosity(i,j,k);
+            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi)*a->porosity(i,j,k);
         }
     }
 

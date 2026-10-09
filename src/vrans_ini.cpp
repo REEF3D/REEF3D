@@ -110,13 +110,13 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     {
 		zmin=MIN(p->B282_zs[qn],p->B282_ze[qn]);
         
-            if(p->B282_xs[qn]<=p->B282_xe[qn])
+            if(p->B282_ys[qn]<=p->B282_ye[qn])
             {
             ys = p->B282_ys[qn];
             ye = p->B282_ye[qn];
             }
             
-            if(p->B282_xs[qn]>p->B282_xe[qn])
+            if(p->B282_ys[qn]>p->B282_ye[qn])
             {
             ys = p->B282_ye[qn];
             ye = p->B282_ys[qn];
@@ -140,7 +140,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     for(qn=0;qn<p->B291;++qn)
     {
 		zmin=MIN(p->B291_zs[qn],p->B291_ze[qn]);
-        zmin=MAX(p->B291_zs[qn],p->B291_ze[qn]);
+        zmax=MAX(p->B291_zs[qn],p->B291_ze[qn]) + p->B291_d[qn];
         
             if(p->B291_xs[qn]<=p->B291_xe[qn])
             {
@@ -163,8 +163,8 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 		&& p->pos_z()>=zmin 
         && p->pos_z()<=zmax 
         
-        && p->pos_z()<slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]+p->B291_d[qn] //lower
-        && p->pos_z()>slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]) // upper
+        && p->pos_z()<slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]+p->B291_d[qn] // upper
+        && p->pos_z()>slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]) // lower
 		{
 		a->porosity(i,j,k)=p->B291_n[qn];
 		a->porpart(i,j,k) =p->B291_d50[qn];
