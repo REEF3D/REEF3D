@@ -126,6 +126,7 @@ public:
     int A748,A770,A773,A774,A775;
     double A746,A747,A749,A771,A772,A780;
     int A790,A792,A794,A796,A797,A738,A798,A799,A715_k,A718,A719,A722;
+    int A762;
     double A715_th1,A715_th2;
     double A757_br;
     double A757_cds2;

@@ -324,6 +324,7 @@ void control::ini_default()
     A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution
     A757_cds2=5.0e-5; // double A 732 2 (van der Westhuysen): coefficient Cds2 of the saturation-based whitecapping (SWAN cds2)
     A757_br=1.75e-3;  // double ... saturation threshold B_r (SWAN br)
+    A762=0;           // int mesh refinement (G 1): refine where the water width (shortest wet run through the level-0 cell along x, y and the diagonals) is below this many cells of the level, 0 off
     A797=0;           // int mesh refinement (G 1): 0 sweeps level by level (V-cycle), 1 composite sweep (the finer cells within the sweep of their parent cell)
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 

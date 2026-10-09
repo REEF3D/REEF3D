@@ -61,6 +61,9 @@ criteria evaluated on each level for the next finer one:
   A 792  within this many cells of a dry or land cell (coastline)
   A 793  relative depth change |d_nb - d|/max(d, d_nb) to a neighbour
          cell above this value (bathymetry gradient)
+  A 762  water width below this many cells of the level (Phase 9): the
+         shortest wet run through the level-0 cell along x, y and the
+         diagonals, runs open to the domain edge do not count
 No refinement within A 794 level-0 cells of the sides with boundary
 spectra or zero gradient (A 712 1, 2): the forcing acts on level 0.
 
@@ -258,6 +261,8 @@ private:
     int nbin, nsig;
     int fills, sweeps;
     vector<double> bed0;                    // level-0 bed of the whole domain (global index I*GNY+J)
+    vector<double> width0;                  // water width of the level-0 cells [m] (A 762)
+    void water_width(const vector<unsigned char> &wet0, double dx, double dy);
     unordered_map<unsigned long long,double> bedmemo;
     sliceint4 *cov0 = nullptr;
     vector<seastate_amr_faces> faces;       // [g+1]

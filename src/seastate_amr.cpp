@@ -149,6 +149,7 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     mine.push_back(double(i+p->origin_i));
     mine.push_back(double(j+p->origin_j));
     mine.push_back(L0.e->bed(i,j));
+    mine.push_back(double(L0.e->wet(i,j)));
     }
 
     const int np = p->mpi_size;
@@ -161,8 +162,16 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     MPI_Allgatherv(mine.data(),nm,MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,MPI_COMM_WORLD);
 
     bed0.assign(size_t(GNX)*GNY,0.0);
-    for(int k=0; k+2<tot; k+=3)
+    vector<unsigned char> wet0(size_t(GNX)*GNY,0);
+    for(int k=0; k+3<tot; k+=4)
+    {
     bed0[size_t(all[k])*GNY + size_t(all[k+1])] = all[k+2];
+    wet0[size_t(all[k])*GNY + size_t(all[k+1])] = all[k+3]>0.5 ? 1 : 0;
+    }
+
+    // water width (A 762): the shortest wet run through each level-0 cell along x, y and the two diagonals
+    if(p->A762>0)
+    water_width(wet0,p->DXM,p->DXM);
     }
 
     cov0 = new sliceint4(p);
@@ -331,14 +340,54 @@ void seastate_amr::environment(seastate_amr_patch &c)
 }
 
 // --------------------------------------------------------------------- refinement criteria
+// water width of every level-0 cell (A 762): the shortest of the wet runs through the cell along x, y and the two
+// diagonals, in metres (a channel at an angle is measured across by one of the diagonals within a factor 1.08)
+void seastate_amr::water_width(const vector<unsigned char> &wet0, double dx, double dy)
+{
+    width0.assign(size_t(GNX)*GNY,1.0e30);
+    const double dd = std::sqrt(dx*dx+dy*dy);
+    const int di[4] = {1,0,1,1}, dj[4] = {0,1,1,-1};
+    const double len[4] = {dx,dy,dd,dd};
+
+    auto wet = [&](int I, int J) {return I>=0 && I<GNX && J>=0 && J<GNY && wet0[size_t(I)*GNY+J]==1;};
+
+    for(int k=0; k<4; ++k)
+    for(int I=0; I<GNX; ++I)
+    for(int J=0; J<GNY; ++J)
+    {
+        // start of a run: wet, and the previous cell along the line is not
+        if(!wet(I,J) || wet(I-di[k],J-dj[k]))
+        continue;
+
+        int n = 0;
+        while(wet(I+n*di[k],J+n*dj[k]))
+        ++n;
+
+        // runs that reach the edge of the domain continue outside: no limit from them
+        const bool open = (I-di[k]<0 || I-di[k]>=GNX || J-dj[k]<0 || J-dj[k]>=GNY)
+                       || (I+n*di[k]<0 || I+n*di[k]>=GNX || J+n*dj[k]<0 || J+n*dj[k]>=GNY);
+        const double w = open ? 1.0e30 : double(n)*len[k];
+
+        for(int m=0; m<n; ++m)
+        {
+        double &v = width0[size_t(I+m*di[k])*GNY + (J+m*dj[k])];
+        v = std::min(v,w);
+        }
+    }
+}
+
 void seastate_amr::tag(int l, vector<unsigned char> &M)
 {
     const double dsh = p0->A791;
     const int nco = p0->A792;
     const double rgr = p0->A793;
+    const int nwd = p0->A762;
 
-    if(!(dsh>0.0) && nco<=0 && !(rgr>0.0))
+    if(!(dsh>0.0) && nco<=0 && !(rgr>0.0) && nwd<=0)
     return;
+
+    // cell size of level l
+    const double dxl = p0->DXM/double(1<<l);
 
     auto test = [&](lexer *q, fdm_seastate *e, int ii, int jj, int gi0, int gj0, int gnx, int gny)
     {
@@ -346,6 +395,14 @@ void seastate_amr::tag(int l, vector<unsigned char> &M)
         return false;
 
         const double d = e->depth(ii,jj);
+
+        // water width below A 762 cells of this level (the width from the level-0 wet cells)
+        if(nwd>0 && !width0.empty())
+        {
+        const int I = (ii+gi0)>>l, J = (jj+gj0)>>l;
+        if(I>=0 && I<GNX && J>=0 && J<GNY && width0[size_t(I)*GNY+J]<double(nwd)*dxl)
+        return true;
+        }
 
         if(dsh>0.0 && d<dsh)
         return true;

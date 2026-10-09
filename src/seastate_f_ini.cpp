@@ -363,8 +363,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "G 40: SEASTATE patches are cut at the rank boxes (G 40 0)";
     else if(p->G1>0 && (p->G4<4 || p->G4%2!=0))
     msg = "G 4: the tile size must be even and at least 4";
-    else if(p->A791<0.0 || p->A792<0 || p->A792>3 || p->A793<0.0 || p->A794<0)
-    msg = "A 791-794: the refinement criteria must not be negative (A 792 at most 3)";
+    else if(p->A791<0.0 || p->A792<0 || p->A792>3 || p->A793<0.0 || p->A794<0 || p->A762<0)
+    msg = "A 791-794, A 762: the refinement criteria must not be negative (A 792 at most 3)";
     else if(p->A770==1 && p->A711!=1 && p->A711!=2)
     msg = "A 770 1: the surfbeat model needs a boundary spectrum (A 711 1 parametric or 2 SWAN file)";
     else if(p->A770==1 && p->A712_xm!=1)
