@@ -274,6 +274,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_irregular_2nd_b` | 1 | as above with 2nd-order irregular waves B (B 92 33) |
 | `nhflow_3d_irregular_2nd_dir` | 2 | `nhflow_3d_irregular_decomp` with directional 2nd-order irregular waves A and B 89 0 |
 | `fnpf_2d_irregular_2nd_b` | 1 | FNPF 2D, 2nd-order irregular waves B (B 92 33): cached potential (`wave_fi_c`) and eta of the pair terms |
+| `fnpf_2d_irregular_2nd_b_deep` | 1 | `fnpf_2d_irregular_decomp` (600 m, Hs 5 m) with 2nd-order irregular waves B and B 89 0: the corrected second-order theory in deep water (the former coefficients stopped with a HYPRE breakdown) |
+| `nhflow_3d_two_edges_irregular_b89` | 2 | `nhflow_3d_two_edges` with irregular waves and B 89 1: zone sources (B 524) with decomposed precalc |
+| `fnpf_3d_two_edges_irregular_b89` | 2 | as above for FNPF |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
@@ -331,6 +334,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase6b_vegetation` | 1 | REEF3D::SEASTATE vegetation (A 754 1, Phase 6b, as SWAN VEGETATION 1) in a flume; validated in Dropbox SEASTATE/validation/38 |
 | `seastate_2d_phase6b_vegetation_field_mpi2` | 2 | REEF3D::SEASTATE vegetation per frequency (A 754 2, as SWAN VEGETATION 2) with the stems from seastate-vegetation.dat (A 756 1) on 2 ranks |
 | `seastate_2d_phase6b_amr` | 1 | REEF3D::SEASTATE Phase 6 on the mesh refinement (Phase 6b): diffraction (A 718 1) on every level, reflecting coasts and an obstacle on the patch, composite sweep; validated in Dropbox SEASTATE/validation/39 |
+| `seastate_2d_phase8_autosector` | 1 | REEF3D::SEASTATE automatic fine direction sector (A 716 2.5 15, Phase 8) around the Mitsuyasu boundary spectrum of the handover case, with spectral sparsity (A 795); validated in Dropbox SEASTATE/validation/41 |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |

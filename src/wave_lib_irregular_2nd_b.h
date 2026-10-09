@@ -35,10 +35,9 @@ class wave_lib_irregular_2nd_b final : public wave_lib_precalc, public wave_lib_
                                public increment
 {
 public:
-    int wave_lexer_fields() const override {return 1;}
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_irregular_2nd_b(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_2nd_b();
-
     
     double wave_u(lexer*,double,double,double) override final;
     double wave_v(lexer*,double,double,double) override final;
@@ -59,38 +58,17 @@ public:
     void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
     void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
     
-private: 
-    double wave_A_plus(double,double,double,double);
-	double wave_A_minus(double,double,double,double);
-    double wave_D_plus(double,double,double,double);
-	double wave_D_minus(double,double,double,double);
-	double wave_G_plus(double,double,double,double);
-	double wave_G_minus(double,double,double,double);
-	double wave_H_plus(double,double,double,double);
-	double wave_H_minus(double,double,double,double);
-	double wave_F_plus(double,double,double,double);
-	double wave_F_minus(double,double,double,double);
+private:
+    void terms(lexer*);
+    void direct(lexer*, double, double);
+    void rotate(lexer*, double&, double&);
     
-    double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;
-    double **P1val,**P2val,*P3val,*P4val;   // denominators of the 2nd-order terms
-    
-    double *cosh_kpk,*cosh_kmk,*cosh_2k,*sinh_4kh;
-    int m;
     double singamma,cosgamma;
-    double T,vel,eta,fi;
-    double denom1,denom2,denom3;
     
+    wave_lib_irregular_2nd_terms tt;      // second-order theory
+    wave_lib_irregular_2nd_cache cc, dc;  // cached points / direct evaluation
     
-    double *sinhkd;
-    
-    wave_lib_irregular_2nd_cache cc;
-    bool coeffs_on=false;
-    void cache_coeffs(lexer*);
-    double eta_pairs(lexer*, const wave_lib_irregular_2nd_cache&);
-    std::vector<double> qUp,qUm,qVp,qVm,qWp,qWm,qFp,qFm,qHp,qHm;   // pair coefficients, n < m in loop order
-    std::vector<double> fU,fV,fW,fF;                               // 1st-order coefficients
-    std::vector<double> dU,dF,dH;                                  // self-interaction (n = m) coefficients
-    
+    int Nw=0, B130v=0;   // p->wN, p->B130 at construction
 };
 
 #endif

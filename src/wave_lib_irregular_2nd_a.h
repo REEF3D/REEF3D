@@ -35,10 +35,9 @@ class wave_lib_irregular_2nd_a final : public wave_lib_precalc, public wave_lib_
                                public increment
 {
 public:
-    int wave_lexer_fields() const override {return 1;}
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_irregular_2nd_a(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_2nd_a();
-    
     
     double wave_u(lexer*,double,double,double) override final;
     double wave_v(lexer*,double,double,double) override final;
@@ -46,38 +45,30 @@ public:
     double wave_eta(lexer*,double,double) override final;
     double wave_fi(lexer*,double,double,double) override final;
     
-    
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
-    // cached-point evaluation (wave_lib_irregular_2nd_cache.h); wave_fi_c stays the direct evaluation
+    // cached-point evaluation (wave_lib_irregular_2nd_cache.h)
     void wave_cache_points(lexer*, const std::vector<double>&, const std::vector<double>&) override final;
     double wave_eta_c(lexer*, int) override final;
+    double wave_fi_c(lexer*, int, double) override final;
     double wave_u_c(lexer*, int, double) override final;
     double wave_v_c(lexer*, int, double) override final;
     double wave_w_c(lexer*, int, double) override final;
     void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
     void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
     
-private: 
-    double wave_C(double,double,double,double);
-    double wave_D(double,double,double,double);
-    double wave_E(double,double,double,double,double,double);
-    double wave_F(double,double,double,double,double,double);
+private:
+    void terms(lexer*);
+    void direct(lexer*, double, double);
+    void rotate(lexer*, double&, double&);
     
-    double **Cval,**Dval,**Eval,**Fval;
-    double **D1val,**D2val;   // velocity denominators per pair
-    int m;
     double singamma,cosgamma;
-    double T,vel,eta,fi;
-    double denom1,denom2,denom3;
     
-    wave_lib_irregular_2nd_cache cc;
-    bool coeffs_on=false;
-    void cache_coeffs(lexer*);
-    double eta_pairs(lexer*, const wave_lib_irregular_2nd_cache&);
-    std::vector<double> qU1,qU2,qV1,qV2,qW1,qW2,qE1,qE2;   // pair coefficients, n < m in loop order
-    std::vector<double> fU,fV,fW;                          // 1st-order coefficients
+    wave_lib_irregular_2nd_terms tt;      // second-order theory
+    wave_lib_irregular_2nd_cache cc, dc;  // cached points / direct evaluation
+    
+    int Nw=0, B130v=0;   // p->wN, p->B130 at construction
 };
 
 #endif

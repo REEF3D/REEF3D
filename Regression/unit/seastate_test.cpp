@@ -1,7 +1,7 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
-// structure formulas (d'Angremond, porous). No MPI, no REEF3D binary.
+// structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
 // Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
@@ -1016,6 +1016,50 @@ static void test_structure()
     check(std::fabs(kt2[1]-t2)<2e-3,"porous: long waves within 2e-3 of Madsen (1974)");
 }
 
+// ---------------------------------------------------------------------------------------------
+// Phase 8: DIA of the window of a sweep (only the interaction terms it needs, periodic directions)
+// ---------------------------------------------------------------------------------------------
+static void test_dia_window()
+{
+    std::cout<<"DIA of a sweep window (Phase 8)"<<std::endl;
+
+    for(int ndir : {36,72})
+    {
+    seastate_grid sg(31,0.04,1.0,ndir);
+    const int nb=sg.nbin;
+    seastate_source_param sp; sp.dia=true;
+    seastate_source src(sg,sp);
+    const double d=15.0;
+    cell_kin ck(sg,d);
+    std::vector<float> N=make_spectrum(sg,1.5,6.0,3.3,0.6,4.0);
+    for(int b=0;b<nb;b+=7) N[b]=0.0f;                               // some empty bins
+
+    // the full DIA, split as in compute: P = S+ - L- N, D = -S-/N - L-
+    std::vector<double> S(nb), L(nb), P(nb), D(nb);
+    src.quadruplets(N.data(),d,ck.k.data(),S.data(),L.data());
+    double err=0.0;
+    for(int q=0;q<4;++q)
+    for(int sub=0;sub<2;++sub)
+    {
+        const int a=q*ndir/4+sub, b=(q+1)*ndir/4-1-2*sub, la=3*sub, lb=sg.nsig-1-4*sub;
+        std::fill(P.begin(),P.end(),0.0); std::fill(D.begin(),D.end(),0.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),a,b,la,lb);
+        for(int l=la;l<=lb;++l)
+        for(int m=a;m<=b;++m)
+        {
+            const int x=sg.bin(l,m);
+            const double s=S[x], v=N[x], ln=std::min(L[x],0.0);
+            const double pe=std::max(s,0.0)-ln*v, de=((s<0.0 && v>0.0) ? -s/v : 0.0)-ln;
+            err=std::max(err,std::fabs(P[x]-pe)/(std::fabs(pe)+std::fabs(de)*v+1e-300));
+            err=std::max(err,std::fabs(D[x]-de)/(std::fabs(de)+1e-300));
+        }
+    }
+    std::cout<<"        "<<ndir<<" directions: windows (quadrants and sub-windows) vs the full DIA, max. rel. difference "<<err<<std::endl;
+    check(err<1e-10,"DIA of a window equals the full DIA in the window (to round-off), "+std::to_string(ndir)+" directions");
+
+    }
+}
+
 int main()
 {
     test_grid();
@@ -1029,6 +1073,7 @@ int main()
     test_bathy();
     test_vegetation();
     test_structure();
+    test_dia_window();
     test_memory();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;
