@@ -38,10 +38,7 @@ public:
 	virtual ~wave_lib_parameters();
     
     double sinhfunc(double);
-    double coshfunc(double);
     
-    double sinfunc(double);
-    double cosfunc(double);
     
     double teta;
     double wk,ww,wdt,wa,wH,wL,wf,wT,wL0,k0,S0;

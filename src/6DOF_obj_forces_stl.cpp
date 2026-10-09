@@ -69,27 +69,7 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 		yc = (y0 + y1 + y2)/3.0;
 		zc = (z0 + z1 + z2)/3.0;
         
-             /*at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-			bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-			ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-				
-			st = 0.5*(at+bt+ct);
-				
-			A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
-				
-
-			// Normal vectors (always pointing outwards)      
-            nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
-            ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0); 
-            nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
-
-			norm = sqrt(nx*nx + ny*ny + nz*nz);
-			
-			nx /= norm > 1.0e-20 ? norm : 1.0e20;
-			ny /= norm > 1.0e-20 ? norm : 1.0e20;
-			nz /= norm > 1.0e-20 ? norm : 1.0e20;*/
         
- 
 		if (xc >= p->originx && xc < p->endx &&
 			yc >= p->originy && yc < p->endy &&
 			zc >= p->originz && zc < p->endz)
@@ -203,19 +183,6 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             
             double delta = sqrt(pow(xc-xlocvel,2.0) + pow(yc-ylocvel,2.0) + pow(zc-zlocvel,2.0));
             
-            /*
-            dudx = (uval)/(p->DXP[IP]);
-            dudy = (uval)/(p->DYP[JP]);
-            dudz = (uval)/(p->DZP[KP]);
-                                                                           
-            dvdx = (vval)/(p->DXP[IP]);
-            dvdy = (vval)/(p->DYP[JP]);
-            dvdz = (vval)/(p->DZP[KP]);
-                                                                            
-            dwdx = (wval)/(p->DXP[IP]);
-            dwdy = (wval)/(p->DYP[JP]);
-            dwdz = (wval)/(p->DZP[KP]);
-            */
             dudx = (uval)/delta;
             dudy = (uval)/delta;
             dudz = (uval)/delta;
@@ -280,7 +247,6 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
   
             Fv_z = dir*fabs(sqrt(nx*nx + ny*ny)*A_triang*rho_int*(wval*wval)/pow((wplus>0.0?wplus:1.0e20),2.0));
             }
-            
             
             
             if(p->X38==3)

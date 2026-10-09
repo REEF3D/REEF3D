@@ -42,7 +42,6 @@ public:
 
 
 private:
-    void rhs(lexer*,fdm*);
 	void ucalc(lexer*,fdm*,field&);
 	void vcalc(lexer*,fdm*,field&);
 	void wcalc(lexer*,fdm*,field&);

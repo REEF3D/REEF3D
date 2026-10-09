@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 
-// Darcy-Forchheimer resistance of the static porous structures (B 201, B 210-230).
+// Darcy-Forchheimer resistance of the static porous structures (B 201, B 202 layers, B 210-230).
 // The coefficients use the static-structure porosity n_s = 1 - H(1 - n), not d->POR, so that
 // porous floating bodies (X 16), which carry their own resistance, are not counted twice.
 // (1 - n_s) -> 0 outside the structure, so no additional Heaviside weighting is needed.
@@ -34,9 +34,26 @@ void vrans_nhflow_f::porous_coeff(lexer *p, fdm_nhf *d)
 {
     H = Hporface(p,d,0,0,0);
     
-    porval  = 1.0 - H*(1.0 - p->B201_n);
-    Aporval = Apor(porval,p->B201_d50,p->B201_alpha,d->VISC[IJK]);
-    Bporval = Bpor(porval,p->B201_d50,p->B201_beta);
+    // porous layers (B 202): cell values, B 201 otherwise
+    if(p->B202>0)
+    {
+    porval   = LN[IJK];
+    partval  = LD50[IJK];
+    alphaval = LALPHA[IJK];
+    betaval  = LBETA[IJK];
+    }
+    
+    else
+    {
+    porval   = p->B201_n;
+    partval  = p->B201_d50;
+    alphaval = p->B201_alpha;
+    betaval  = p->B201_beta;
+    }
+    
+    porval  = 1.0 - H*(1.0 - porval);
+    Aporval = Apor(porval,partval,alphaval,d->VISC[IJK]);
+    Bporval = Bpor(porval,partval,betaval);
 }
 
 void vrans_nhflow_f::u_source(lexer *p, fdm_nhf *d, slice &WL)

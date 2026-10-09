@@ -43,17 +43,21 @@ former iowave functions, so results stay bitwise identical, and adds the
 zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
 
   B 520 id method priority     method 1: relaxation (wave generation), 2: beach,
-                               3: Riemann edge, 4: Flather edge (NHFLOW; y edges in 3D only)
+                               3: Riemann edge, 4: Flather edge, 5: clamped level edge,
+                               6: clamped discharge edge (3-6 NHFLOW; y edges in 3D only)
   B 521 id edge s0 s1 width    edge 1: x-, 2: x+, 3: y-, 4: y+; along-edge range
                                [s0,s1] from the edge's start (s1 <= s0: whole edge)
   B 524 id source              source of the zone (repeatable; 1: the B 92 wave); a Riemann
                                edge carries the waves of its B 524 sources (none without B 524)
   B 523 id background          tidal / current background of the zone (B 510); a relaxation
                                zone then targets background + waves, a beach the background,
-                               a Riemann or Flather edge the background
+                               a Riemann or Flather edge the background, a clamped level edge
+                               its level, a clamped discharge edge its normal current
+  B 525 id Q t_ramp            discharge [m3/s] into the domain through a clamped discharge
+                               edge, cosine ramp over t_ramp [s]; replaces the background current
 --------------------------------------------------------------------*/
 
-enum class bc_method {relax, beach, riemann, flather};
+enum class bc_method {relax, beach, riemann, flather, clamp_level, clamp_q};
 
 class bc_zone
 {
@@ -72,6 +76,10 @@ public:
     std::vector<int> sources;    // B 524 source ids; empty: all sources
     int bg = 0;                  // B 523 background id; 0: none (still water)
     int edge = 0;                // B 521 edge (1: x-, 2: x+, 3: y-, 4: y+), user zones only
+    bool has_Q = false;          // B 525 given (clamped discharge edge)
+    int active = 0;              // NHFLOW active beach B 99 3 / 4 as a Riemann edge at x+ with still
+                                 // water outside (the B 99 value; 0: a zone of the user)
+    double Q = 0.0, Q_tramp = 0.0;
     bc_method method;
     double xs,ys,xe,ye,d;   // reference line and half width
     double fac;             // beach: distance factor (2 for B 99 1)

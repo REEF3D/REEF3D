@@ -53,6 +53,7 @@ public:
     void correct(lexer*, fdm2D*, slice&, slice&, slice&, slice&, double) override final;
     int is_active(lexer*, fdm2D*, int, int) override final;
     int gcval() const override final {return gcval_press;}
+    void coef(double &cbq, double &cwq) const override final {cbq=cb; cwq=cb;}
 
 private:
     void rhs(lexer*, fdm2D*, slice&, double);

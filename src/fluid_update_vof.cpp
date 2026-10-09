@@ -77,8 +77,8 @@ void fluid_update_vof::start(lexer *p, fdm* a, ghostcell* pgc,field& uvel, field
         a->ro(i,j,k)=     ro_water*H +   ro_air*(1.0-H);
         a->visc(i,j,k)= visc_water*H + visc_air*(1.0-H);
             
-        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+        p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*PORVAL4;
+        p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H)*PORVAL4;
 	}
     
 	pgc->start4(p,a->ro,gcval_ro);

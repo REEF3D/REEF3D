@@ -29,6 +29,9 @@ Authors: Hans Bihs, Alexander Hanke
 
 void CPM::move(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
+    // turbulence model for the bed shear stress of the layer (Q 68)
+    pturb_ = pturb;
+    
     // fixed bed (Q 44 1): all parcels are fixed; only the bed shear stress of the layer for the log
     if(p->Q44==1)
     {

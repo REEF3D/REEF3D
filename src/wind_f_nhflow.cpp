@@ -27,17 +27,6 @@ Author: Hans Bihs
 #include"slice.h"
 #include"slice4.h"
 
-// NHFLOW wind forcing, momentum sources d(UH)/dt = F, d(VH)/dt = G
-//
-// A573 == 1 : surface shear stress tau = rho_a*Cd*U10^2 in the top sigma layer,
-//             F += tau_x/(rho_w*dsigma_top), i.e. an acceleration tau_x/(rho_w*dz_top) in that layer
-//             (same scaling as the bed shear stress in nhflow_bcmom::roughness_u).
-//             Depth-integrated: d(hU)/dt = tau_x/rho_w, closed-basin setup g*h*deta/dx = tau_x/rho_w.
-// A573 == 2 : deprecated (crest-masked stress), treated as A573 == 1.
-// A573 == 3 : Miles/Plant wave growth via surface pressure,  A573 == 4 : modified Jeffreys,
-//             see wind_f::wind_pressure (A 575, A 576, A 578). The atmospheric pressure is transmitted
-//             through the water column, so it acts in every layer: F -= WL/rho_w * dp_a/dx.
-// A574 == 1 (with A572): cos^2 downwind decay over [xs,xe], all modes.
 
 void wind_f::wind_forcing_nhf_x(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *F, slice &WL, slice &eta)
 {

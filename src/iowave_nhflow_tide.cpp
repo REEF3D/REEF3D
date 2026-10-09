@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"wave_lib.h"
 #include<algorithm>
+#include<iomanip>
 
 /*--------------------------------------------------------------------
 Tidal / current background in NHFLOW (iowave redesign, step 4):
@@ -39,6 +40,11 @@ Tidal / current background in NHFLOW (iowave redesign, step 4):
     u_g = (R+ + R-)/2, h_g = (R+ - R-)^2/(16 g)
 - Flather edge (B 520 method 4): h_g = h_i, u_g = u_b -+ sqrt(g/h_i) (eta_i - eta_b)
   (x- / x+), i.e. q_n = q_b + sqrt(g h) (eta - eta_b) with the outward normal
+- clamped level edge (method 5): h_g = h_0 + eta_b, u_g = u_i (normal)
+- clamped discharge edge (method 6): h_g = h_i, u_g = u_b (normal) or, with
+  B 525 Q, u_g = r(t) Q / sum(h_i ds) along the edge
+- B 529 M: every M steps the volume and the flux through each open edge
+  (numerical continuity flux at the boundary face) to REEF3D_Log
 
 The edges set U, V, W, UH, VH, WH (depth uniform) and WL, eta in the three
 ghost cells; ghostcell treats the edge as open (lexer open_xm / open_xp).
@@ -96,6 +102,10 @@ void iowave::nhflow_bg_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // waves on the background (B 530): k on h_eff, Doppler
     if(p->B530>0)
     nhflow_wave_background(p,pgc);
+    
+    // edge mass balance (B 529)
+    if(p->B529>0)
+    nhflow_mass_balance(p,d,pgc);
 }
 
 double iowave::nhflow_col_ubar(lexer *p, fdm_nhf *d, double *F)
@@ -148,7 +158,38 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
         edge_geometry(side,sc,di,dj,nx,ny);
         const bool xedge = side<=2;
         
-        const int b = bgs.index(z->bg);
+        const int b = z->bg>0 ? bgs.index(z->bg) : -1;
+        
+        // clamped discharge edge with B 525: normal velocity Q / (sum of h ds along the edge), ramped
+        double uq = 0.0;
+        
+        if(z->method==bc_method::clamp_q && z->has_Q)
+        {
+            double area = 0.0;
+            
+            for(int list=0; list<2; ++list)
+            {
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            if(gs[n][3]==sc)
+            {
+                i=gs[n][0];
+                j=gs[n][1];
+                
+                if(p->wet[IJ]==1)
+                area += d->WL(i,j)*(xedge ? p->DYN[JP] : p->DXN[IP]);
+            }
+            }
+            
+            area = pgc->globalsum(area);
+            
+            const double pi = 3.14159265358979323846;
+            const double r = (z->Q_tramp>0.0 && p->simtime<z->Q_tramp) ? 0.5*(1.0-cos(pi*fmax(p->simtime,0.0)/z->Q_tramp)) : 1.0;
+            
+            uq = area>1.0e-12 ? r*z->Q/area : 0.0;
+        }
         
         // waves of the edge's sources (B 524, Riemann only): eta and depth averaged u, v per column
         const bool waves = z->method==bc_method::riemann && !z->sources.empty();
@@ -193,6 +234,13 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 
                 edge_uw[IJ] = su;
                 edge_vw[IJ] = sv;
+                
+                // x- edge: non-hydrostatic pressure of the incoming waves at the pressure nodes of
+                // the column, p_nh(z) = rho int_z^eta dw/dt dz (linear), the Dirichlet value of the
+                // Poisson equation at the edge (nhflow_poisson); with p = 0 the edge generated
+                // waves up to 11 % too high for kh 2-3
+                if(side==1)
+                nhflow_edge_pressure(p,d,pgc,xg,yg);
             }
             }
         }
@@ -220,8 +268,9 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             // background at the boundary face
             const double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
             const double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
-            const double eb = bgs.eta(b,xf,yf);
-            double ub, vb;
+            const double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            double ub=0.0, vb=0.0;
+            if(b>=0)
             bgs.vel(b,h0,xf,yf,ub,vb);
             
             // normal (inward) and tangential velocities: x edges U / V, y edges V / U
@@ -260,10 +309,24 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 ung = 0.5*(Rin+Rout);
             }
             else
+            if(z->method==bc_method::flather)
             {
                 // q_n(outward) = q_n,b + sqrt(g h) (eta - eta_b)
                 hg = hi;
                 ung = (xedge ? nn*ub : nn*vb) - sqrt(g/hi)*((hi-h0) - eb);
+            }
+            else
+            if(z->method==bc_method::clamp_level)
+            {
+                // level of the background, normal velocity of the interior
+                hg = fmax(h0+eb,1.0e-6);
+                ung = uni;
+            }
+            else
+            {
+                // clamped discharge: normal velocity of the background or B 525, depth of the interior
+                hg = hi;
+                ung = z->has_Q ? uq : (xedge ? nn*ub : nn*vb);
             }
             
             edge_h[IJ] = hg;
@@ -283,6 +346,23 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             {
             vg = nn*ung + (vwk - vwc);
             ug = in ? ub + uwk : U[IJK];
+            }
+            
+            // inflow with a vertical profile of the background current (B 513)
+            if(in && bgs.profiled(b))
+            {
+                const double fp = bg_prof(p,b,fmax(h0+eb,1.0e-6));
+                
+                if(xedge)
+                {
+                ug = nn*ung*fp + (uwk - uwc);
+                vg = vb*fp + vwk;
+                }
+                else
+                {
+                vg = nn*ung*fp + (vwk - vwc);
+                ug = ub*fp + uwk;
+                }
             }
             
             const double wg = in ? wwk : W[IJK];
@@ -384,8 +464,9 @@ void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
         if(gc[n][3]!=sc)
         continue;
         
-            // Riemann: h_g of this step; Flather: zero gradient
-            const double hg = (z->method==bc_method::riemann && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] : WL(i,j);
+            // Riemann, clamped level: h_g of this step; Flather, clamped discharge: zero gradient
+            const bool own_h = z->method==bc_method::riemann || z->method==bc_method::clamp_level;
+            const double hg = (own_h && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] : WL(i,j);
             
             for(int q=1; q<=3; ++q)
             {
@@ -400,17 +481,21 @@ void iowave::nhflow_open_edges_wl(lexer *p, fdm_nhf *d, slice &WL)
 /*--------------------------------------------------------------------
 Waves on the background (B 530 mode N; iowave redesign, step 4e)
 
-Every source keeps its absolute frequency omega = 2 pi / T. Every N steps
-the depth h_eff = h_0 + eta_b and the current U_n = U_b cos(dir) + V_b sin(dir)
-are averaged over the columns where the source generates waves (relaxation
-zones and Riemann edges with a background), and k is re-solved from
+Every wave component (one for linear waves, all spectral components for
+irregular waves, steps 4e / 4f) keeps its absolute frequency omega. Every
+N steps the background level eta_b and current (U_b, V_b) are averaged over
+the columns where the source generates waves (relaxation zones and Riemann
+edges with a background), and k of each component is re-solved from
 
     omega = sqrt(g k tanh(k h_eff)) + k U_n     (mode 2, Doppler)
     omega = sqrt(g k tanh(k h_eff))             (mode 1, U_n = 0)
 
-k, h_eff and U_n are blended linearly to the new values over the next N
-steps, so the phase k x - omega t never jumps. The library evaluates the
-orbital velocities with sigma = omega - k U_n and sinh(k h_eff).
+with h_eff = h_0 + eta_b and U_n = U_b cos(dir) + V_b sin(dir), dir the
+direction of the component. k, h_eff and U_n are blended linearly to the
+new values over the next N steps, so the phase k x - omega t never jumps.
+A component blocked by an opposing current (no root) fades out over the
+same N steps. The library evaluates the orbital velocities with
+sigma = omega - k U_n and sinh(k h_eff).
 --------------------------------------------------------------------*/
 
 // root of omega = sqrt(g k tanh(k h)) + k un on the branch that starts at k = 0;
@@ -478,8 +563,9 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
         double rot;
         wave_lib *lib = wave_source_lib(n,id,type,rot);
         
-        double kc, hc, sc, om, h0;
-        if(lib==nullptr || !lib->wave_state(kc,hc,sc,om,h0))
+        const int nc_ = lib!=nullptr ? lib->wave_ncomp() : 0;
+        
+        if(nc_==0)
         continue;
         
         wave_bg_state &s = wbg[n];
@@ -487,27 +573,40 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
         // first call: start from the state of the library
         if(!s.on)
         {
-            s.k0 = s.k1 = kc;
-            s.h0 = s.h1 = hc;
-            s.u0 = s.u1 = kc>0.0 ? (om-sc)/kc : 0.0;
+            s.k0.resize(nc_); s.u0.resize(nc_); s.a0.resize(nc_);
+            
+            for(int m=0; m<nc_; ++m)
+            {
+                double k, om, sg, b, af;
+                lib->wave_comp(m,k,om,sg,b,af);
+                s.k0[m] = k;
+                s.u0[m] = k>0.0 ? (om-sg)/k : 0.0;
+                s.a0[m] = af;
+            }
+            
+            s.k1 = s.k0;
+            s.u1 = s.u0;
+            s.a1 = s.a0;
+            s.h0 = s.h1 = lib->wave_depth();
             s.c0 = p->count;
             s.on = true;
         }
         
         // current state of the blend
         const double f = std::min(1.0, double(p->count-s.c0)/double(N));
-        const double kb = s.k0 + (s.k1-s.k0)*f;
-        const double hb = s.h0 + (s.h1-s.h0)*f;
-        const double ub = s.u0 + (s.u1-s.u0)*f;
         
         if(update)
         {
             // background over the columns where this source generates waves
             double se=0.0, su=0.0, sv=0.0;
             int nc=0;
+            int bprof=-1;   // a background with a vertical profile (B 513)
             
             auto add = [&](int b)
             {
+                if(bgs.profiled(b))
+                bprof = b;
+                
                 double u, v;
                 se += bgs.eta(b,p->XP[IP],p->YP[JP]);
                 bgs.vel(b,col_h0[IJ],p->XP[IP],p->YP[JP],u,v);
@@ -566,44 +665,307 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
             nc = pgc->globalisum(nc);
             
             // restart the blend from the current state towards the new target
-            s.k0 = kb;
-            s.h0 = hb;
-            s.u0 = ub;
+            for(int m=0; m<nc_; ++m)
+            {
+                s.k0[m] = s.k0[m] + (s.k1[m]-s.k0[m])*f;
+                s.u0[m] = s.u0[m] + (s.u1[m]-s.u0[m])*f;
+                s.a0[m] = s.a0[m] + (s.a1[m]-s.a0[m])*f;
+            }
+            s.h0 = s.h0 + (s.h1-s.h0)*f;
             s.c0 = p->count;
             
             if(nc>0)
             {
-                const double dir = (p->B105_1 + rot)*(PI/180.0);
-                const double h = h0 + se/double(nc);
-                const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
-                double k;
+                const double h = lib->wave_depth0() + se/double(nc);
+                const double ub = su/double(nc);    // for the message
+                const double vb = sv/double(nc);
+                int nblock = 0;
                 
-                if(h>0.0 && doppler_k(om,h,un,g,k))
+                if(h>0.0)
                 {
-                    s.k1 = k;
                     s.h1 = h;
-                    s.u1 = un;
-                }
-                else
-                if(!wbg_blocked)
-                {
-                    wbg_blocked = true;
                     
-                    if(p->mpirank==0)
-                    cout<<"iowave B 530: no wave solution for source "<<id<<" (h_eff "<<h<<" m, U_n "<<un<<" m/s, blocked by an opposing current?), k kept"<<endl;
+                    for(int m=0; m<nc_; ++m)
+                    {
+                        double kc, om, sg, b, af;
+                        lib->wave_comp(m,kc,om,sg,b,af);
+                        
+                        const double dir = (p->B105_1 + rot)*(PI/180.0) + b;
+                        const double un = p->B530==2 ? (su*cos(dir) + sv*sin(dir))/double(nc) : 0.0;
+                        double k;
+                        double ueff = un;
+                        bool ok = doppler_k(om,h,un,g,k);
+                        
+                        // current with a vertical profile (B 513): the wave sees the current weighted
+                        // with its own kinematics, U_eff = U_n (2k / sinh(2kh)) int_0^h f(z) cosh(2kz) dz
+                        // (Stewart & Joy 1974), solved together with k
+                        if(ok && bprof>=0 && un!=0.0)
+                        for(int it=0; it<20; ++it)
+                        {
+                            const double ue = un*bg_kweight(bprof,k,h);
+                            double kn;
+                            
+                            if(!doppler_k(om,h,ue,g,kn))
+                            {
+                            ok = false;
+                            break;
+                            }
+                            
+                            const bool conv = fabs(kn-k)<=1.0e-12*kn;
+                            k = kn;
+                            ueff = ue;
+                            
+                            if(conv)
+                            break;
+                        }
+                        
+                        if(ok)
+                        {
+                            s.k1[m] = k;
+                            s.u1[m] = ueff;
+                            s.a1[m] = 1.0;
+                        }
+                        else
+                        {
+                            // blocked: fade the component out, keep its last k
+                            s.a1[m] = 0.0;
+                            ++nblock;
+                        }
+                    }
                 }
+                
+                if(p->mpirank==0 && nblock!=s.nblock)
+                cout<<"iowave B 530: source "<<id<<": "<<nblock<<" of "<<nc_<<" components blocked by the opposing current (U "<<ub<<" "<<vb<<" m/s), faded out"<<endl;
+                
+                s.nblock = nblock;
             }
             
             if(p->mpirank==0 && (p->count==0 || p->count%(100*N)==0))
-            cout<<"iowave B 530: source "<<id<<"  k "<<s.k1<<"  L "<<2.0*PI/s.k1<<"  h_eff "<<s.h1<<"  U_n "<<s.u1<<endl;
+            {
+                if(nc_==1)
+                cout<<"iowave B 530: source "<<id<<"  k "<<s.k1[0]<<"  L "<<2.0*PI/s.k1[0]<<"  h_eff "<<s.h1<<"  U_n "<<s.u1[0]<<endl;
+                else
+                cout<<"iowave B 530: source "<<id<<"  "<<nc_<<" components  h_eff "<<s.h1<<"  blocked "<<s.nblock<<endl;
+            }
         }
         
         // state of this step
         const double fs = std::min(1.0, double(p->count-s.c0)/double(N));
-        const double k = s.k0 + (s.k1-s.k0)*fs;
-        const double h = s.h0 + (s.h1-s.h0)*fs;
-        const double u = s.u0 + (s.u1-s.u0)*fs;
         
-        lib->wave_state_set(k,h,om-k*u);
+        for(int m=0; m<nc_; ++m)
+        {
+            double kc, om, sg, b, af;
+            lib->wave_comp(m,kc,om,sg,b,af);
+            
+            const double k = s.k0[m] + (s.k1[m]-s.k0[m])*fs;
+            const double u = s.u0[m] + (s.u1[m]-s.u0[m])*fs;
+            const double a = s.a0[m] + (s.a1[m]-s.a0[m])*fs;
+            
+            lib->wave_comp_set(m,k,om-k*u,a);
+        }
+        
+        lib->wave_depth_set(s.h0 + (s.h1-s.h0)*fs);
+        lib->wave_comp_update();
+    }
+}
+
+/*--------------------------------------------------------------------
+Edge mass balance (B 529 M)
+
+Once per step the volume flux into the domain through each open edge,
+from the continuity flux of the solver at the boundary face
+(sum_k DZN FEx, FEy times the face width; the last stage of the previous
+step), is integrated in time; every M steps a line with the volume V,
+dV/dt over the interval, the mean flux of each edge and the residual
+dV/dt - sum goes to REEF3D_Log/REEF3D-NHFLOW-iowave-mass-balance.dat.
+The residual holds what relaxation and beach zones add or remove, and
+the time discretisation of the sampled flux.
+--------------------------------------------------------------------*/
+
+void iowave::nhflow_mass_balance(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const double t = p->simtime;
+    
+    if(t==mb_t)
+    return;
+    
+    // flux into the domain through each open edge [m3/s]
+    double q[5]={0.0,0.0,0.0,0.0,0.0};
+    
+    for(int side : {1,2,3,4})
+    {
+        const bc_zone *z = zones.open_edge(side);
+        if(z==nullptr || edge_open(p,side)==0)
+        continue;
+        
+        int sc, di, dj;
+        double nx, ny;
+        edge_geometry(side,sc,di,dj,nx,ny);
+        
+        for(int list=0; list<2; ++list)
+        {
+        const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+        int **gs = list==0 ? p->gcslin : p->gcslout;
+        
+        for(int m=0; m<cs; ++m)
+        if(gs[m][3]==sc)
+        {
+            i = gs[m][0];
+            j = gs[m][1];
+            
+            double f = 0.0;
+            for(k=0; k<p->knoz; ++k)
+            {
+                if(side==1) f += p->DZN[KP]*d->FEx[Im1JK];
+                if(side==2) f -= p->DZN[KP]*d->FEx[IJK];
+                if(side==3) f += p->DZN[KP]*d->FEy[IJm1K];
+                if(side==4) f -= p->DZN[KP]*d->FEy[IJK];
+            }
+            
+            q[side] += f*(side<=2 ? p->DYN[JP] : p->DXN[IP]);
+        }
+        }
+        
+        q[side] = pgc->globalsum(q[side]);
+    }
+    
+    double V = 0.0;
+    SLICELOOP4
+    V += d->WL(i,j)*p->DXN[IP]*p->DYN[JP];
+    V = pgc->globalsum(V);
+    
+    // first call: header and start of the first interval
+    if(mb_t<0.0)
+    {
+        if(p->mpirank==0)
+        {
+            mb_out.open("./REEF3D_Log/REEF3D-NHFLOW-iowave-mass-balance.dat");
+            mb_out<<"# iowave edge mass balance (B 529 "<<p->B529<<"): flux into the domain [m3/s], mean over the interval"<<std::endl;
+            mb_out<<"# residual = dV/dt - sum of the edges: relaxation / beach zones and time discretisation"<<std::endl;
+            mb_out<<"# t  V  dV/dt";
+            for(int side : {1,2,3,4})
+            if(zones.open_edge(side)!=nullptr && edge_open(p,side)==1)
+            mb_out<<"  Q_edge"<<side<<"(zone "<<zones.open_edge(side)->id<<")";
+            mb_out<<"  sum  residual"<<std::endl;
+        }
+        
+        mb_t = mb_t0 = t;
+        mb_V0 = V;
+        mb_n = 0;
+        return;
+    }
+    
+    const double dt = t - mb_t;
+    for(int side : {1,2,3,4})
+    mb_int[side] += q[side]*dt;
+    
+    mb_t = t;
+    ++mb_n;
+    
+    if(mb_n<p->B529)
+    return;
+    
+    const double T = t - mb_t0;
+    
+    if(p->mpirank==0 && T>0.0)
+    {
+        double sum = 0.0;
+        mb_out<<std::setprecision(10)<<t<<"  "<<V<<"  "<<(V-mb_V0)/T;
+        for(int side : {1,2,3,4})
+        if(zones.open_edge(side)!=nullptr && edge_open(p,side)==1)
+        {
+            mb_out<<"  "<<mb_int[side]/T;
+            sum += mb_int[side]/T;
+        }
+        mb_out<<"  "<<sum<<"  "<<(V-mb_V0)/T - sum<<std::endl;
+    }
+    
+    for(int side : {1,2,3,4})
+    mb_int[side] = 0.0;
+    
+    mb_t0 = t;
+    mb_V0 = V;
+    mb_n = 0;
+}
+
+// B 513: profile factor of the current layer k (member), f(zeta_k) / sum_m DZN_m f(zeta_m), so
+// that the depth average of the profiled current stays the background's
+double iowave::bg_prof(lexer *p, int b, double h)
+{
+    const int kk = k;
+    double zc=0.0, s=0.0, fk=1.0;
+    
+    for(int m=0; m<p->knoz; ++m)
+    {
+        const double dz = p->DZN[m+marge];
+        const double f = bgs.shape(b,zc+0.5*dz,h);
+        s += dz*f;
+        
+        if(m==kk)
+        fk = f;
+        
+        zc += dz;
+    }
+    
+    return s>0.0 ? fk/s : 1.0;
+}
+
+// weight of a profiled current for a wave of wavenumber k on the depth h (B 513 with B 530):
+// (2k / sinh(2kh)) int_0^h f(z) cosh(2kz) dz with the profile f (depth mean 1); 1 for a uniform current
+double iowave::bg_kweight(int b, double k, double h)
+{
+    const int M = 400;
+    const double kh2 = 2.0*k*h;
+    
+    if(kh2<1.0e-8)
+    return 1.0;
+    
+    double s = 0.0;
+    
+    for(int q=0; q<=M; ++q)
+    {
+        const double zeta = double(q)/double(M);
+        const double w = (q==0 || q==M) ? 1.0 : (q%2==1 ? 4.0 : 2.0);
+        // cosh(2k z) / sinh(2k h), z = zeta h, without overflow
+        const double c = (exp(kh2*(zeta-1.0)) + exp(-kh2*(zeta+1.0)))/(1.0 - exp(-2.0*kh2));
+        s += w*bgs.shape(b,zeta,h)*c;
+    }
+    
+    // int_0^h dz = h int_0^1 dzeta (Simpson), times 2k
+    return 2.0*k*h*s/(3.0*double(M));
+}
+
+// non-hydrostatic pressure of the incoming waves in the ghost column (i-1,j) at an x- edge,
+// p_nh(z) = rho int_z^eta dw/dt dz (linear), the Dirichlet value of the Poisson equation there
+// (nhflow_poisson); used by the Riemann edge with waves and by Dirichlet / active generation
+// (B 98 3, 4). With p = 0 these generated waves up to 11-15 % too high for kh 2-3.
+void iowave::nhflow_edge_pressure(lexer *p, fdm_nhf *d, ghostcell *pgc, double xs, double ys)
+{
+    if(d->Pbc==nullptr)
+    p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
+    
+    const double rw = ramp(p);
+    const double dt = p->dt>0.0 ? p->dt : 1.0e-3;
+    const double wt = p->wavetime;
+    std::vector<double> a(p->knoz+1), zz(p->knoz+1);
+    
+    for(k=0; k<=p->knoz; ++k)
+    {
+        zz[k] = p->ZN[KP]*d->WL(i,j) + d->bed(i,j);
+        a[k] = wave_w(p,pgc,xs,ys,zz[k]-p->phimean);
+    }
+    
+    p->wavetime = wt - dt;
+    for(k=0; k<=p->knoz; ++k)
+    a[k] = rw*(a[k] - wave_w(p,pgc,xs,ys,zz[k]-p->phimean))/dt;
+    p->wavetime = wt;
+    
+    double pn = 0.0;
+    k = p->knoz;
+    d->Pbc[FIm1JK] = 0.0;
+    for(k=p->knoz-1; k>=0; --k)
+    {
+        pn += p->W1*0.5*(a[k]+a[k+1])*(zz[k+1]-zz[k]);
+        d->Pbc[FIm1JK] = pn;
     }
 }

@@ -45,10 +45,8 @@ public:
     void filter_sg(lexer*, ghostcell*, slice& in, slice& out);
     
     // linear filter with predictor corrector step
-    void filter_pc(lexer*, ghostcell*, slice&);
 
     // dump the convolution kernel (rank 0) for inspection
-    void print_kernel(lexer*);
 
 private:
     void build_coeffs(lexer*);

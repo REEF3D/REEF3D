@@ -81,10 +81,10 @@ void control::read_control(lexer* p)
                 case 214: control>>A214;
                          clear(c,numint);
                          break;
-                case 215: control>>A215;
+                case 215: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 216: control>>A216;
+                case 216: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 217: control>>A217;
@@ -111,13 +111,13 @@ void control::read_control(lexer* p)
                 case 224: control>>A224;
                          clear(c,numint);
                          break;
-                case 230: control>>A230;
+                case 230: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 240: control>>A240;
                          clear(c,numint);
                          break;
-                case 241: control>>A241;
+                case 241: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 242: control>>A242;
@@ -199,13 +199,13 @@ void control::read_control(lexer* p)
                 case 320: control>>A320;
                          clear(c,numint);
                          break;
-                case 321: control>>A321;
+                case 321: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 322: control>>A322;
+                case 322: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 323: control>>A323;
+                case 323: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 324: control>>A324;
@@ -253,7 +253,7 @@ void control::read_control(lexer* p)
                 case 339: control>>A339;
                          clear(c,numint);
                          break;
-                case 340: control>>A340;
+                case 340: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 341: control>>A341;
@@ -268,7 +268,7 @@ void control::read_control(lexer* p)
                 case 344: control>>A344;
                          clear(c,numint);
                          break;
-                case 345: control>>A345;
+                case 345: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 346: control>>A346;
@@ -292,7 +292,7 @@ void control::read_control(lexer* p)
                 case 352: control>>A352;
                          clear(c,numint);
                          break;
-                case 353: control>>A353;
+                case 353: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 354: control>>A354;
@@ -307,7 +307,7 @@ void control::read_control(lexer* p)
                 case 357: control>>A357;
                          clear(c,numint);
                          break;
-                case 358: control>>A358;
+                case 358: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 361: control>>A361;
@@ -316,7 +316,7 @@ void control::read_control(lexer* p)
                 case 362: control>>A362;
                          clear(c,numint);
                          break;
-                case 363: control>>A363;
+                case 363: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 365: control>>A365;
@@ -325,7 +325,7 @@ void control::read_control(lexer* p)
                 case 366: control>>A366;
                          clear(c,numint);
                          break;
-                case 368: control>>A368;
+                case 368: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 370: control>>A370;
@@ -431,10 +431,10 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
 
-                case 410: control>>A410;
+                case 410: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 440: control>>A440;
+                case 440: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
 
@@ -480,13 +480,13 @@ void control::read_control(lexer* p)
                 case 522: control>>A522;
                          clear(c,numint);
                          break;
-                case 523: control>>A523;
+                case 523: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 524: control>>A524;
                          clear(c,numint);
                          break;
-                case 525: control>>A525;
+                case 525: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 526: control>>A526;
@@ -510,13 +510,13 @@ void control::read_control(lexer* p)
                 case 540: control>>A540;
                          clear(c,numint);
                          break;
-                case 541: control>>A541;
+                case 541: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 542: control>>A542;
+                case 542: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 543: control>>A543;
+                case 543: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 544: control>>A544;
@@ -534,7 +534,7 @@ void control::read_control(lexer* p)
                 case 552: control>>A552;
                          clear(c,numint);
                          break;
-                case 553: control>>A553;
+                case 553: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 554: control>>A554;
@@ -543,7 +543,7 @@ void control::read_control(lexer* p)
                 case 555: control>>A555;
                          clear(c,numint);
                          break;
-                case 556: control>>A556;
+                case 556: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 557: control>>A557;
@@ -567,7 +567,7 @@ void control::read_control(lexer* p)
                 case 568: control>>A568;
                          clear(c,numint);
                          break;
-                case 569: control>>A569;
+                case 569: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 570: control>>A570;
@@ -640,7 +640,7 @@ void control::read_control(lexer* p)
                          A593=1;
                          clear(c,numint);
                          break;
-                case 594: control>>A594;
+                case 594: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 599: control>>A599;
@@ -763,6 +763,36 @@ void control::read_control(lexer* p)
                 case 760: ++A760;
                          clear(c,numint);
                          break;
+                case 722: ++A722;
+                         clear(c,numint);
+                         break;
+                case 723: control>>A723_kr>>A723_pown;
+                         clear(c,numint);
+                         break;
+                case 724: control>>A724;
+                         clear(c,numint);
+                         break;
+                case 725: ++A725;
+                         clear(c,numint);
+                         break;
+                case 726: ++A726;
+                         clear(c,numint);
+                         break;
+                case 754: control>>A754;
+                         clear(c,numint);
+                         break;
+                case 755: control>>A755_h>>A755_d>>A755_n>>A755_cd;
+                         clear(c,numint);
+                         break;
+                case 756: control>>A756;
+                         clear(c,numint);
+                         break;
+                case 718: control>>A718;
+                         clear(c,numint);
+                         break;
+                case 719: control>>A719;
+                         clear(c,numint);
+                         break;
                 case 761: control>>A761;
                          clear(c,numint);
                          break;
@@ -809,6 +839,24 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 797: control>>A797;
+                         clear(c,numint);
+                         break;
+                case 715: control>>A715_th1>>A715_th2>>A715_k;
+                         clear(c,numint);
+                         break;
+                case 738: control>>A738;
+                         clear(c,numint);
+                         break;
+                case 739: control>>A739;
+                         clear(c,numint);
+                         break;
+                case 798: control>>A798;
+                         clear(c,numint);
+                         break;
+                case 799: control>>A799;
+                         clear(c,numint);
+                         break;
+                case 716: control>>A716_w>>A716_m;
                          clear(c,numint);
                          break;
                 case 780: control>>A780;
@@ -1067,7 +1115,19 @@ void control::read_control(lexer* p)
               case 523: ++B523;
                          clear(c,numint);
                          break;
+              case 505: ++B505;
+                         clear(c,numint);
+                         break;
+              case 513: ++B513;
+                         clear(c,numint);
+                         break;
+              case 525: ++B525;
+                         clear(c,numint);
+                         break;
               case 530: control>>B530>>B530_N;
+                         clear(c,numint);
+                         break;
+              case 529: control>>B529;
                          clear(c,numint);
                          break;
               case 110: control>>B110_zs>>B110_ze;
@@ -1104,7 +1164,7 @@ void control::read_control(lexer* p)
                 case 120: control>>B120;
                          clear(c,numint);
                          break;
-                case 122: control>>B122;
+                case 122: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 123: control>>B123;
@@ -1181,6 +1241,12 @@ void control::read_control(lexer* p)
                          B201=1;
                          clear(c,numint);
                          break;
+                case 202: ++B202;
+                         clear(c,numint);
+                         break;
+                case 203: control>>B203;
+                         clear(c,numint);
+                         break;
                 case 208: control>>B208;
                          clear(c,numint);
                          break;
@@ -1235,7 +1301,7 @@ void control::read_control(lexer* p)
                          B233=1;
                          clear(c,numint);
                          break;
-               case 234: control>>B234;
+               case 234: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                case 240: ++B240;
@@ -1259,7 +1325,13 @@ void control::read_control(lexer* p)
                case 265: control>>B265;
                          clear(c,numint);
                          break;
-               case 267: control>>B267;
+               case 266: control>>B266;
+                         clear(c,numint);
+                         break;
+               case 267: retired_key(control,p,c,numint);
+                         clear(c,numint);
+                         break;
+               case 268: control>>B268;
                          clear(c,numint);
                          break;
                case 270: ++B270;
@@ -1362,10 +1434,10 @@ void control::read_control(lexer* p)
                 case 4: control>>C4;
                          clear(c,numint);
                          break;
-                case 5: control>>C5;
+                case 5: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 9: control>>C9;
+                case 9: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 10: control>>C10;
@@ -1440,10 +1512,10 @@ void control::read_control(lexer* p)
                 case 30: control>>D30;
                          clear(c,numint);
                          break;
-                case 31: control>>D31;
+                case 31: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 37: control>>D37;
+                case 37: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 }
@@ -1524,22 +1596,22 @@ void control::read_control(lexer* p)
                 case 30: control>>F30;
                          clear(c,numint);
                          break;
-                case 31: control>>F31;
+                case 31: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 32: control>>F32;
+                case 32: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 33: control>>F33;
+                case 33: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 34: control>>F34;
+                case 34: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 35: control>>F35;
                          clear(c,numint);
                          break;
-                case 36: control>>F36;
+                case 36: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 37: control>>F37;
@@ -1548,7 +1620,7 @@ void control::read_control(lexer* p)
                 case 38: control>>F38;
                          clear(c,numint);
                          break;
-                case 39: control>>F39;
+                case 39: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 40: control>>F40;
@@ -1641,7 +1713,7 @@ void control::read_control(lexer* p)
                 case 80: control>>F80;
                          clear(c,numint);
                          break;
-                case 84: control>>F84;
+                case 84: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 85: control>>F85;
@@ -1650,7 +1722,7 @@ void control::read_control(lexer* p)
                 case 88: control>>F88;
                          clear(c,numint);
                          break;
-                case 89: control>>F89;
+                case 89: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 90: control>>F90;
@@ -1726,7 +1798,7 @@ void control::read_control(lexer* p)
                 case 323: control>>F323;
                          clear(c,numint);
                          break;
-                case 350: control>>F350;
+                case 350: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 360: control>>F360;
@@ -1850,25 +1922,25 @@ void control::read_control(lexer* p)
                 case 505: control>>G505;
                          clear(c,numint);
                          break;
-                case 510: control>>G510;
+                case 510: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 511: control>>G511;
+                case 511: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 512: control>>G512;
+                case 512: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 520: control>>G520;
+                case 520: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 521: control>>G521;
+                case 521: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 522: control>>G522;
+                case 522: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 530: control>>G530;
+                case 530: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 540: control>>G540;
@@ -2013,7 +2085,7 @@ void control::read_control(lexer* p)
                 case 233: control>>I233;
                          clear(c,numint);
                          break;
-                case 240: control>>I240;
+                case 240: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 241: control>>I241;
@@ -2119,7 +2191,7 @@ void control::read_control(lexer* p)
                 case 23: control>>N23;
                          clear(c,numint);
                          break;
-                case 24: control>>N24;
+                case 24: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 25: control>>N25;
@@ -2158,7 +2230,7 @@ void control::read_control(lexer* p)
                 case 50: control>>N50;
                          clear(c,numint);
                          break;
-                case 60: control>>N60;
+                case 60: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 61: control>>N61;
@@ -2173,7 +2245,7 @@ void control::read_control(lexer* p)
                 case 10: control>>P10;
                          clear(c,numint);
                          break;
-                case 11: control>>P11;
+                case 11: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 12: control>>P12;
@@ -2236,7 +2308,7 @@ void control::read_control(lexer* p)
                 case 38: control>>P38;
                          clear(c,numint);
                          break;
-                case 39: control>>P39;
+                case 39: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 40: control>>P40;
@@ -2373,7 +2445,7 @@ void control::read_control(lexer* p)
                 case 92: control>>P92;
                          clear(c,numint);
                          break;
-                case 99: control>>P99;
+                case 99: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 101: control>>P101_xm>>P101_ym>>P101_zs>>P101_ze>>P101_r1>>P101_r2;
@@ -2381,7 +2453,7 @@ void control::read_control(lexer* p)
                          P101=1;
                          clear(c,numint);
                          break;
-                case 120: control>>P120;
+                case 120: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 110: control>>P110;
@@ -2411,7 +2483,7 @@ void control::read_control(lexer* p)
                 case 131: control>>P131;
                          clear(c,numint);
                          break;
-                case 132: control>>P132;
+                case 132: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 133: ++P133;
@@ -2507,7 +2579,7 @@ void control::read_control(lexer* p)
                 case 311: control>>P311;
                          clear(c,numint);
                          break;
-                case 312: control>>P312;
+                case 312: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 351: ++P351;
@@ -2552,13 +2624,13 @@ void control::read_control(lexer* p)
                 case 19: control>>Q19;
                          clear(c,numint);
                          break;
-                case 20: control>>Q20;
+                case 20: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 22: control>>Q22;
+                case 22: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 23: control>>Q23;
+                case 23: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 24: control>>Q24;
@@ -2606,7 +2678,7 @@ void control::read_control(lexer* p)
                 case 41: control>>Q41;
                          clear(c,numint);
                          break;
-                case 43: control>>Q43;
+                case 43: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 44: control>>Q44;
@@ -2645,6 +2717,18 @@ void control::read_control(lexer* p)
                 case 66: control>>Q66;
                          clear(c,numint);
                          break;
+                case 67: control>>Q67;
+                         clear(c,numint);
+                         break;
+                case 68: control>>Q68;
+                         clear(c,numint);
+                         break;
+                case 69: control>>Q69;
+                         clear(c,numint);
+                         break;
+                case 70: control>>Q70;
+                         clear(c,numint);
+                         break;
                 case 56: control>>Q56;
                          clear(c,numint);
                          break;
@@ -2669,10 +2753,10 @@ void control::read_control(lexer* p)
                 case 73: ++Q73;
                          clear(c,numint);
                          break;
-                case 101: control>>Q101;
+                case 101: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 102: control>>Q102;
+                case 102: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 110: ++Q110;
@@ -2681,13 +2765,13 @@ void control::read_control(lexer* p)
                 case 111: ++Q111;
                          clear(c,numint);
                          break;
-                case 120: control>>Q120;
+                case 120: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 121: control>>Q121;
+                case 121: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 122: control>>Q122;
+                case 122: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 180: control>>Q180;
@@ -2699,16 +2783,16 @@ void control::read_control(lexer* p)
                 case 182: control>>Q182;
                          clear(c,numint);
                          break;
-                case 183: control>>Q183;
+                case 183: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 200: control>>Q200;
+                case 200: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 201: control>>Q201;
+                case 201: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
-                case 202: control>>Q202;
+                case 202: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 }
@@ -2862,7 +2946,7 @@ void control::read_control(lexer* p)
                 case 57: control>>S57;
                          clear(c,numint);
                          break;
-                case 60: control>>S60;
+                case 60: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 61: control>>S61;
@@ -2871,7 +2955,7 @@ void control::read_control(lexer* p)
                 case 62: control>>S62;
                          clear(c,numint);
                          break;
-                case 66: control>>S66;
+                case 66: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 71: control>>S71;
@@ -2896,7 +2980,7 @@ void control::read_control(lexer* p)
                 case 78: control>>S78;
                          clear(c,numint);
                          break;
-                case 79: control>>S79;
+                case 79: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 80: control>>S80;
@@ -2908,7 +2992,7 @@ void control::read_control(lexer* p)
                 case 82: control>>S82;
                          clear(c,numint);
                          break;
-                case 83: control>>S83;
+                case 83: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 84: control>>S84;
@@ -2942,6 +3026,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 103: control>>S103;
+                         clear(c,numint);
+                         break;
+                case 104: control>>S104;
                          clear(c,numint);
                          break;
                 }
@@ -2989,7 +3076,7 @@ void control::read_control(lexer* p)
                 case 42: control>>T42;
                          clear(c,numint);
                          break;
-                case 43: control>>T43;
+                case 43: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 44: control>>T44;
@@ -3179,6 +3266,9 @@ void control::read_control(lexer* p)
                 case  12: control>>X12;
                          clear(c,numint);
                          break;
+                case  13: control>>X13;
+                         clear(c,numint);
+                         break;
                 case  14: control>>X14;
                          clear(c,numint);
                          break;
@@ -3187,6 +3277,12 @@ void control::read_control(lexer* p)
                          break;
                 case  16: control>>X16_n>>X16_d50>>X16_alpha>>X16_beta;
                          X16=1;
+                         clear(c,numint);
+                         break;
+                case  17: control>>X17;
+                         clear(c,numint);
+                         break;
+                case  18: control>>X18;
                          clear(c,numint);
                          break;
                 case  19: control>>X19;
@@ -3471,6 +3567,22 @@ void control::read_control(lexer* p)
                          X504=1;
                          clear(c,numint);
                          break;
+                case  505: control>>X505_Fmax>>X505_Pmax;
+                         X505=1;
+                         clear(c,numint);
+                         break;
+                case  506: control>>X506_T>>X506_C;
+                         X506=1;
+                         clear(c,numint);
+                         break;
+                case  507: control>>X507_t>>X507_K>>X507_C;
+                         X507=1;
+                         clear(c,numint);
+                         break;
+                case  508: control>>X508_t;
+                         X508=1;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 
@@ -3489,13 +3601,13 @@ void control::read_control(lexer* p)
                 case 4: control>>Y4;
                          clear(c,numint);
                          break;
-                case 5: control>>Y5;
+                case 5: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 40: control>>Y40;
                          clear(c,numint);
                          break;
-                case 50: control>>Y50;
+                case 50: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
                 case 60: control>>Y60;
@@ -3686,6 +3798,20 @@ void control::read_control(lexer* p)
     Darray(B515_href,B515);
     Iarray(B523_id,B523);
     Iarray(B523_bg,B523);
+    Iarray(B505_id,B505);
+    Iarray(B505_frame,B505);
+    Iarray(B513_id,B513);
+    Iarray(B513_profile,B513);
+    Darray(B513_par,B513);
+    Iarray(B525_id,B525);
+    Darray(B525_Q,B525);
+    Darray(B525_tramp,B525);
+    
+    Darray(B202_t,B202);
+    Darray(B202_n,B202);
+    Darray(B202_d50,B202);
+    Darray(B202_alpha,B202);
+    Darray(B202_beta,B202);
     
     Darray(B210_xs,B210);
     Darray(B210_xe,B210);
@@ -3939,6 +4065,22 @@ void control::read_control(lexer* p)
 
     Darray(A760_x,A760);
     Darray(A760_y,A760);
+
+    Darray(A722_xs,A722);
+    Darray(A722_ys,A722);
+    Darray(A722_xe,A722);
+    Darray(A722_ye,A722);
+    Darray(A722_kt,A722);
+    Darray(A722_kr,A722);
+    Darray(A722_zc,A722);
+
+    Darray(A725_n,A725);
+    Darray(A725_t,A725);
+    Darray(A725_a,A725);
+    Darray(A725_b,A725);
+    Darray(A725_c,A725);
+    Darray(A726_n,A726);
+    Darray(A726_p,A726);
 
     Darray(F112_xs,F112);
     Darray(F112_xe,F112);
@@ -4467,6 +4609,10 @@ void control::read_control(lexer* p)
     int countB514=0;
     int countB515=0;
     int countB523=0;
+    int countB505=0;
+    int countB513=0;
+    int countB525=0;
+    int countB202=0;
     int countB210=0;
     int countB212=0;
     int countB213=0;
@@ -4506,6 +4652,9 @@ void control::read_control(lexer* p)
     int countG10=0;
     int countG11=0;
     int countA760=0;
+    int countA722=0;
+    int countA725=0;
+    int countA726=0;
     int countF112=0;
     int countF113=0;
     int countF114=0;
@@ -4608,6 +4757,20 @@ void control::read_control(lexer* p)
                 case 760: control>>A760_x[countA760]>>A760_y[countA760];
                          p->XYin(A760_x[countA760],A760_y[countA760]);
                          ++countA760;
+                         clear(c,numint);
+                         break;
+                case 722: control>>A722_xs[countA722]>>A722_ys[countA722]>>A722_xe[countA722]>>A722_ye[countA722]>>A722_kt[countA722]>>A722_kr[countA722]>>A722_zc[countA722];
+                         p->XYin(A722_xs[countA722],A722_ys[countA722]);
+                         p->XYin(A722_xe[countA722],A722_ye[countA722]);
+                         ++countA722;
+                         clear(c,numint);
+                         break;
+                case 725: control>>A725_n[countA725]>>A725_t[countA725]>>A725_a[countA725]>>A725_b[countA725]>>A725_c[countA725];
+                         ++countA725;
+                         clear(c,numint);
+                         break;
+                case 726: control>>A726_n[countA726]>>A726_p[countA726];
+                         ++countA726;
                          clear(c,numint);
                          break;
                 case 581: control>>A581_xs[countA581]>>A581_xe[countA581]>>A581_ys[countA581]>>A581_ye[countA581]>>A581_zs[countA581]>>A581_ze[countA581];
@@ -4731,6 +4894,22 @@ void control::read_control(lexer* p)
                          break;
                 case 523: control>>B523_id[countB523]>>B523_bg[countB523];
                          ++countB523;
+                         clear(c,numint);
+                         break;
+                case 505: control>>B505_id[countB505]>>B505_frame[countB505];
+                         ++countB505;
+                         clear(c,numint);
+                         break;
+                case 513: control>>B513_id[countB513]>>B513_profile[countB513]>>B513_par[countB513];
+                         ++countB513;
+                         clear(c,numint);
+                         break;
+                case 525: control>>B525_id[countB525]>>B525_Q[countB525]>>B525_tramp[countB525];
+                         ++countB525;
+                         clear(c,numint);
+                         break;
+                case 202: control>>B202_t[countB202]>>B202_n[countB202]>>B202_d50[countB202]>>B202_alpha[countB202]>>B202_beta[countB202];
+                         ++countB202;
                          clear(c,numint);
                          break;
                 case 210: control>>B210_xs[countB210]>>B210_xe[countB210]>>B210_ys[countB210]>>B210_ye[countB210]>>B210_zs[countB210]>>B210_ze[countB210];
@@ -5448,6 +5627,16 @@ void control::read_control(lexer* p)
     }
 
     control.close();
+}
+
+// keys that are read for old ctrl.txt files but no longer used: the values are skipped with a warning
+void control::retired_key(std::ifstream &control, lexer *p, char c, int numint)
+{
+    std::string rest;
+    std::getline(control,rest);
+
+    if(p->mpirank==0)
+    cout<<"ctrl.txt: "<<c<<" "<<numint<<" is no longer used and is ignored"<<endl;
 }
 
 void control::clear(char& b, int& j)

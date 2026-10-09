@@ -22,31 +22,3 @@ Author: Hans Bihs
 
 #include"6DOF_obj_cfd.h"
 #include"lexer.h"
-
-void sixdof_obj_cfd::pvtp(lexer* p, int num)
-{
-    sprintf(name,"./REEF3D_CFD_6DOF/REEF3D-FB-%08i.pvtp",num);
-
-    ofstream result;
-    result.open(name);
-
-    vtp3D::beginningParallel(p,result);
-
-    vtp3D::pointsParallel(result);
-
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
-    result<<"</PPointData>\n";
-
-    char pname[100];
-    for(n=0; n<p->M10; ++n)
-    {
-        sprintf(pname,"REEF3D-FB-%08i-%06i.vtp",num,n+1);
-        result<<"<Piece Source=\""<<pname<<"\"/>\n";
-    }
-
-    vtp3D::endingParallel(result);
-
-    result.close();
-}

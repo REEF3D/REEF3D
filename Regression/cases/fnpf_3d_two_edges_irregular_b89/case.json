@@ -1,0 +1,9 @@
+{
+ "base": "fnpf_3d_two_edges",
+ "steps": 150,
+ "description": "fnpf_3d_two_edges with irregular waves (B 92 31 and source 2 B 500 2 31, own seed) and decomposed precalc (B 89 1): zone sources (B 524) select the components of their source in the decomposed space parts.",
+ "tags": ["quick", "3d", "fnpf", "waves", "iowave", "bc_zone", "wave_field", "decomp", "mpi"],
+ "covers": ["B 524 with B 89 1", "wave_interface decomposed space parts per source"],
+ "ctrl_set": {"B 92": "31", "B 500": "2 31 0.06 3.0"},
+ "ctrl_add": ["B 84 2", "B 85 2", "B 86 16", "B 87 0.6 3.0", "B 88 3.3", "B 139 16000", "B 504 2 4242", "B 89 1"]
+}

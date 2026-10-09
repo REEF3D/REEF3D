@@ -45,22 +45,10 @@ public:
     double sxx(slice&);
     double syy(slice&);
     
-    double dslwenox(slice&, double);
-    double dslwenoy(slice&, double);
     
-    void iqminsl(slice&, double);
-	void jqminsl(slice&, double);
-	void iqmaxsl(slice&, double);
-	void jqmaxsl(slice&, double);
 	//--------------------------------
     
-    double dwenox(double*, double);
-    double dwenoy(double*, double);
     
-    void iqmin(double*, double);
-	void jqmin(double*, double);
-	void iqmax(double*, double);
-	void jqmax(double*, double);
     //--------------------------------
 
 	//u
@@ -103,9 +91,6 @@ private:
     double X1,X2,X3,X4,X0;
     double Y1,Y2,Y3,Y4,Y0;
     
-    void is();
-	void alpha();
-	void weight();
 };
 
 #endif

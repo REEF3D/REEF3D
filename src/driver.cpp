@@ -41,7 +41,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261005");
+    sprintf(version,"v_261009");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -243,14 +243,6 @@ void driver::cfd_driver()
     preg->cfd_ini(p,a,pgc,pturb,pconc);
 
     // Start MAINLOOP
-    if(p->X10==0 && p->Z10==0 && p->N40==14)
-    loop_cfd_sf(a);
-
-    else
-    if((p->X10==1  || p->Z10!=0) && (p->N40==14))
-    loop_cfd_df(a);
-
-    else
     loop_cfd(a);
 }
 

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"fluid_update_rheology.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -34,11 +35,6 @@ fluid_update_rheology::fluid_update_rheology(lexer *p) : ro1(p->W1), ro2(p->W3),
     
     prheo = new rheology_f(p);
 
-    if(p->j_dir==0)
-    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM); 
-    
-    if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 }
 
 fluid_update_rheology::~fluid_update_rheology()
@@ -63,7 +59,7 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
     // density, viscosity & volumes
     LOOP
     {  
-        H_phi = heaviside(a->phi(i,j,k),epsi);
+        H_phi = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
         
 
         a->ro(i,j,k) = ro1*H_phi + ro2*(1.0-H_phi);
@@ -73,8 +69,8 @@ void fluid_update_rheology::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 
         if(p->flagsf4[IJK]>0)
         {
-            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H_phi-(1.0-a->porosity(i,j,k)));
-            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi-(1.0-a->porosity(i,j,k)));
+            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H_phi*a->porosity(i,j,k);
+            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H_phi)*a->porosity(i,j,k);
         }
     }
 

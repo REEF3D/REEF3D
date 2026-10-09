@@ -1,0 +1,7 @@
+# empty 20 ft container (2D slice, 59.3 kg/m3) dropped from 5 m onto 4 m deep still water (NHFLOW),
+# strong coupling: the fluid step is repeated until the motion of the container converges
+# Architect: Hans Bihs
+material rigid 59.3
+box 27.0 33.06  0.0 0.25  9.0 11.59
+resolution normal
+strong on

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"bc_noflux.h"
 #include"lexer.h"
+#include"patchBC_codes.h"
 
 void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what)
 {
@@ -48,12 +49,15 @@ void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what)
         if((what & BC_NOFLUX_INFLOW) && (bc==1 || bc==6))
         noflux=true;
 
-        // patchBC codes: hundreds = velocity, tens = pressure (1 Neumann, 2 Dirichlet)
-        if((what & BC_NOFLUX_INFLOW) && bc>=100 && bc<=222 && bc/100==2 && (bc/10)%10==1)
+        // patch inlets: velocity prescribed, pressure Neumann (patch outlets: pressure Dirichlet)
+        if((what & BC_NOFLUX_INFLOW) && patch_inlet(bc))
         noflux=true;
 
         if((what & BC_NOFLUX_SCALAR) && fixed_scalar[cs]==1)
         noflux=false;
+        
+        if((what & BC_PATCH_OUTLET) && patch_outlet(bc))
+        noflux=true;
 
         if(noflux)
         {

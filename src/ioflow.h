@@ -54,19 +54,16 @@ public:
 	virtual void fsfinflow(lexer*,fdm*,ghostcell*)=0;
 	virtual void fsfrkin(lexer*,fdm*,ghostcell*,field&)=0;
 	virtual void fsfrkout(lexer*,fdm*,ghostcell*,field&)=0;
-    virtual void iogcb_update(lexer*,fdm*,ghostcell*)=0;
     virtual void isource(lexer*,fdm*,ghostcell*,vrans*)=0;
     virtual void jsource(lexer*,fdm*,ghostcell*,vrans*)=0;
     virtual void ksource(lexer*,fdm*,ghostcell*,vrans*)=0;
     virtual void pressure_io(lexer*,fdm*,ghostcell*)=0;
-    virtual void turbulence_io(lexer*,fdm*,ghostcell*)=0;
     virtual void veltimesave(lexer*,fdm*,ghostcell*,vrans*)=0;
     
     virtual void flowfile(lexer*,fdm*,ghostcell*,turbulence*)=0;
     
     
     virtual void wavegen_precalc(lexer*,ghostcell*)=0;
-    virtual void wavegen_precalc_ini(lexer*,ghostcell*)=0;
     virtual void u_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void v_relax(lexer*,fdm*,ghostcell*,field&)=0;
     virtual void w_relax(lexer*,fdm*,ghostcell*,field&)=0;
@@ -79,33 +76,25 @@ public:
     virtual void W_relax(lexer*,ghostcell*,double*,double*)=0;
     virtual void P_relax(lexer*,ghostcell*,double*)=0;
     virtual void WL_relax(lexer*,ghostcell*,slice&,slice&)=0;
-    virtual void fi_relax(lexer*,ghostcell*,field&,field&)=0;
-    virtual void fivec_relax(lexer*, ghostcell*, double*)=0;
     virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
-    virtual void test_relax(lexer*, ghostcell*, slice&){};
-    virtual void visc_relax(lexer*, ghostcell*, slice&)=0;
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
     // SFLOW: um/vm/wm_relax(U,UH,WL) at the cell centres
     virtual void um_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
     virtual void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
 	virtual void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
-    virtual void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&)=0;
 	virtual void pm_relax(lexer*,ghostcell*,slice&)=0;
     
     virtual void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*)=0;
     // B 95: relaxation targets at the time of the stage output, relaxation factor for the step (iowave only)
     virtual void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) {}
-    virtual void wavegen_2D_precalc_ini(lexer*,ghostcell*)=0;
     
     virtual void discharge2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&)=0;
     virtual void Qin2D(lexer*,fdm2D*,ghostcell*)=0;
 	virtual void Qout2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
-	virtual void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&)=0;
 	virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
-	virtual void full_initialize2D(lexer*,fdm2D*,ghostcell*)=0;
     
     virtual void ini(lexer*,fdm*,ghostcell*)=0;
     
@@ -116,14 +105,11 @@ public:
     virtual void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;
     virtual void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*)=0;
     virtual void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&)=0;
-    virtual void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     
-    virtual void ini_ptf(lexer*,fdm*,ghostcell*)=0;
     
     // nhflow
     virtual void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) {}
-    virtual void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void ini_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
     virtual void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&)=0;
@@ -144,7 +130,6 @@ public:
     virtual double wave_yvel(lexer*,ghostcell*,double,double,double)=0;
     virtual double wave_zvel(lexer*,ghostcell*,double,double,double)=0;
 	
-	virtual int iozonecheck(lexer*,fdm*)=0;
     
     virtual void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*)=0;
 	

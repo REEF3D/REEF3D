@@ -23,17 +23,18 @@ Author: Hans Bihs
 #ifndef PATCHBC_H_
 #define PATCHBC_H_
 
-#include"patchBC_interface.h"
+#include"patchBC_core.h"
 
 using namespace std;
 
-class patchBC final : public patchBC_interface, public increment
+// patch boundary conditions ::CFD
+class patchBC final : public patchBC_core
 {
 public:
 	patchBC(lexer*,ghostcell*);
 	virtual ~patchBC();
     
-    void patchBC_ini(lexer *p, ghostcell *pgc) override final;
+    void patchBC_ini(lexer*, ghostcell*) override final;
     
     // BC update ::CFD
     void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
@@ -44,38 +45,15 @@ public:
     
     // BC update ::SFLOW
     void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
-    void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
-    void patchBC_pressure2D(lexer*, ghostcell*, slice&) override final;
-    void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&) override final;
-    void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&) override final;
     void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
-
-    void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&) override final;
         
 private:
-     // ini
-    void patchBC_gcb_count(lexer *p, ghostcell *pgc);
-    void patchBC_gcb_convert(lexer *p, ghostcell *pgc);
-    void patchBC_IDcount(lexer *p, ghostcell *pgc);
-    void patchBC_fillobj(lexer *p, ghostcell *pgc);
+    // index of component comp (0 u, 1 v, 2 w) in ghost layer q (1..3) of the face (i,j,k,cs);
+    // the normal component of the faces 2, 4, 6 starts at the boundary face itself
+    void ghost(int cs, int q, int comp, int &ii, int &jj, int &kk);
     
-    void patchBC_hydrograph_Q_read(lexer *p, ghostcell *pgc,int,int);
-    double patchBC_hydrograph_Q_ipol(lexer *p, ghostcell *pgc,int,int);
-    
-    void patchBC_hydrograph_FSF_read(lexer *p, ghostcell *pgc,int,int);
-    double patchBC_hydrograph_FSF_ipol(lexer *p, ghostcell *pgc,int,int);
-    
-    
-    int q,n,qn,qq,count,ID_count;
-    int istart,iend,jstart,jend,kstart,kend;
-    
-    int *inflow_ID;
-    int *outflow_ID;
-    
-    int geo_count;
-    int *ID_array;
-    
+    int fsf_domain=-1;   // free surface method active (F 30, F 80): hydrostatic outlet pressure
 };
 
 #endif

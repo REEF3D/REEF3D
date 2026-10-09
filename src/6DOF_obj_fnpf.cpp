@@ -173,11 +173,41 @@ bool sixdof_obj_fnpf::fnpf_fixed(lexer *p)
     return all;
 }
 
-void sixdof_obj_fnpf::solve_eqmotion_fnpf(lexer *p, ghostcell *pgc, int iter, bool finalize)
+void sixdof_fluid_fnpf::velocity(int n, const double *xyz, double *uvw)
+{
+    // each point is interpolated by the rank that owns it (FNPF is decomposed horizontally),
+    // the others contribute 0; U, V, W from velcalc_sig of the current stage
+    for(int q=0; q<n; ++q)
+    {
+        const double x = xyz[3*q], y = xyz[3*q+1], z = xyz[3*q+2];
+        
+        uvw[3*q] = uvw[3*q+1] = uvw[3*q+2] = 0.0;
+        
+        const bool own = (x>=p->originx && x<p->endx) && (p->j_dir==0 || (y>=p->originy && y<p->endy));
+        
+        if(own)
+        {
+            uvw[3*q]   = p->ccipol7V(c->U, c->WL, c->bed, x, y, z);
+            uvw[3*q+1] = p->ccipol7V(c->V, c->WL, c->bed, x, y, z);
+            uvw[3*q+2] = p->ccipol7V(c->W, c->WL, c->bed, x, y, z);
+        }
+    }
+    
+    for(int q=0; q<3*n; ++q)
+    uvw[q] = pgc->globalsum(uvw[q]);
+}
+
+void sixdof_obj_fnpf::solve_eqmotion_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter, bool finalize)
 {
     externalForces_fnpf(p,pgc,iter,finalize);
     
+    // load models (ship module) sample the FNPF velocity
+    sixdof_fluid_fnpf fluid(p,c,pgc);
+    pfluid = &fluid;
+    
     update_forces(p);
+    
+    pfluid = nullptr;
     
     // stage-synchronous with fnpf_RK3 (TVD Shu-Osher, as the kernel's rk3) or fnpf_RK4
     if(p->A310==3)

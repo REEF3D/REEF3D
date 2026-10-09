@@ -1,0 +1,27 @@
+{
+ "base": "fnpf_2d_regular",
+ "description": "FNPF 2D, 2nd-order irregular waves B (B 92 33, JONSWAP Hs 0.04 m Tp 1.6 s, 32 components, 2 m deep): cached-point evaluation of the potential (wave_fi_c) and eta of the pair terms.",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular"
+ ],
+ "covers": [
+  "wave_lib_irregular_2nd_b cached evaluation, FNPF"
+ ],
+ "ctrl_set": {
+  "B 92": "33"
+ },
+ "ctrl_add": [
+  "B 93 0.04 1.6",
+  "B 84 2",
+  "B 85 2",
+  "B 86 32",
+  "B 87 2.5 8.0",
+  "B 88 3.3",
+  "B 139 16000"
+ ]
+}

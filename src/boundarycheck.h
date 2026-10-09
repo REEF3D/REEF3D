@@ -38,12 +38,7 @@ public:
 
 	int boundcheck(lexer*,int,int,int,int);
     int boundcheck_ik(lexer*,int,int,int,int);
-	int positioncheck(lexer*,double,double,double,int);
-	int minboundcheck(lexer*,int,int,int,int);
-	int maxboundcheck(lexer*,int,int,int,int);
 
-    int globalminboundcheck(lexer*,int,int,int);
-	int globalmaxboundcheck(lexer*,int,int,int);
 
 	int ij_boundcheck(lexer*,int,int,int);
 	int ij_boundcheck_topo(lexer*,int,int,int);

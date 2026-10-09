@@ -38,6 +38,7 @@ Authors: Hans Bihs, Tobias Martin
 #include"geo_raycast.h"
 #include"6DOF_pto.h"
 #include"6DOF_pto_joint.h"
+#include"6DOF_pto_controller.h"
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
 #include"6DOF_load.h"
@@ -72,6 +73,12 @@ public:
     // rigid-body core: state, kinematics and time integration (solver independent)
     sixdof_rigidbody rb;
     
+    // mesh refinement with subcycling (G 7 1, 6DOF_obj_amr.cpp): the coarser levels step with a
+    // predicted copy of the body; the state is saved before and put back after
+    void amr_save();
+    void amr_restore(lexer*, ghostcell*);
+    sixdof_rigidbody rb_amr;
+    
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
     
@@ -99,7 +106,6 @@ public:
     void print_parameter(lexer*,ghostcell*);
     void print_ini_vtp(lexer*,ghostcell*);
 	void print_vtp(lexer*,ghostcell*);
-    void print_normals_vtp(lexer*,ghostcell*);
     void print_ini_stl(lexer*,ghostcell*);
 	void print_stl(lexer*,ghostcell*);
 	void update_fbvel(lexer*,ghostcell*);
@@ -313,17 +319,19 @@ protected:
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
 
-    // FNPF: power take-off (X 500 - X 504, 6DOF_obj_pto.cpp)
+    // FNPF: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
     void pto_stability_check(lexer*);
     pto_joint_prismatic pto_joint_;
     pto_composite pto_;
+    std::vector<std::unique_ptr<pto_controller>> pto_ctrl_;
+    void pto_tuned_passive(lexer*, ghostcell*);
     pto_state pto_s_;
     pto_output pto_out_;
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
-    double pto_E_ = 0.0, pto_Pn_ = 0.0, pto_tn_ = -1.0;
+    double pto_E_ = 0.0, pto_Estep_ = 0.0;
     ofstream printpto;
 };
 

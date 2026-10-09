@@ -74,7 +74,11 @@ void control::parse(lexer* p)
     if((N40==3 || N40==23 ) && X10>0)
     N40=4;
     else if(N40==13 && X10>0)
-    N40=14;
+    N40=44;
+
+    // N 40 14 (low-storage RK3, before with its own time loop and momentum classes) is N 40 44
+    if(N40==14)
+    N40=44;
 
     if(S10>=1 || p->toporead==1)
     P27=1;

@@ -56,10 +56,15 @@ private:
     
     double Hporface(lexer*, fdm_nhf*, int, int, int);
     void porous_coeff(lexer*, fdm_nhf*);
+    void layer_prop(lexer*, fdm_nhf*);
     void turb_inf(lexer*, fdm_nhf*, double&, double&);
     
     double *UN,*VN,*WN;
     double *P;
+    
+    // porous layers (B 202): depth below the exposed surface, layered n, d50, alpha, beta
+    double *LDEP,*LN,*LD50,*LALPHA,*LBETA;
+    vector<double> layer_T;
     
     ofstream fout;
     char name[100];

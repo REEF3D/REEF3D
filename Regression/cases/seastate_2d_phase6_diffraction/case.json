@@ -1,0 +1,18 @@
+{
+ "description": "REEF3D::SEASTATE phase-decoupled diffraction (A 718 1, Phase 6, as SWAN: total energy, smoothed A 719 5 times): narrow swell (JONSWAP gamma 10, cos^50, Tp 8 s) from x- past a semi-infinite breakwater (bathymetry raster, land at x = 450 m for y <= 750 m), 50 x 50 cells of 30 m, depth 20 m, 36 directions. Validation in Dropbox SEASTATE/validation/34_diffraction (Sommerfeld solution for random waves, SWAN DIFFRAC).",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f diffraction (total energy, Ca and its gradient)",
+  "seastate_implicit Ca cg face velocities and the diffraction turning"
+ ]
+}

@@ -266,7 +266,7 @@ void seastate_coupling::forces(lexer *p, ghostcell *pgc, slice &U, slice &V)
             {
             const int bb = g.bin(l,m);
             const double cs = g.costh[m], sn = g.sinth[m];
-            const double E = sig*double(N[bb])*w;               // [m^2]
+            const double E = sig*double(N[bb])*w*g.wth[m];      // [m^2]
 
             Mx(i,j) += grav*E*k/sig*cs;
             My(i,j) += grav*E*k/sig*sn;
@@ -284,7 +284,7 @@ void seastate_coupling::forces(lexer *p, ghostcell *pgc, slice &U, slice &V)
 
                     if(pnet!=nullptr)
                     {
-                    const double S = (P[bb] - D[bb]*double(N[bb]))*w;   // net source dN/dt dsig dtheta
+                    const double S = (P[bb] - D[bb]*double(N[bb]))*w*g.wth[m];   // net source dN/dt dsig dtheta
                     Fdx(i,j) -= grav*S*k*cs;
                     Fdy(i,j) -= grav*S*k*sn;
                     }

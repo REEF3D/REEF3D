@@ -27,14 +27,6 @@ beam::beam(int number):nBeam(number),iout(0),imas(0),ijac(0)
     rtoler = nullptr;
     atoler = nullptr;
     
-    // Call from derived class
-    
-    // iniBeam(Ne, E, A, rho, L, G, IX, IY, IZ);
-    // iniMaterial();
-    // meshBeam(x,y,z);
-    // iniSolver();
-    // setConstantLoads(Fext,Mext,c,cdot,q,qdot);
-    // Integrate(t_old, t_new);
 }
 
 beam::~beam()

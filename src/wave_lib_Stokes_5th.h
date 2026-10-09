@@ -31,6 +31,7 @@ using namespace std;
 class wave_lib_Stokes_5th final : public wave_lib, public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_Stokes_5th(lexer*, ghostcell*);
 	virtual ~wave_lib_Stokes_5th();
     
@@ -65,13 +66,13 @@ public:
     double wave_eta_time_cos(lexer*,int) override final;
     
     double wave_fi(lexer*,double,double,double) override final;
-    void wave_fi_precalc_xy_ini(lexer*,int);
-    void wave_fi_precalc_xy(lexer*,double,double,int);
-    void wave_fi_precalc_n(lexer*);
     double wave_fi_space_sin(lexer*,double,double,double,int) override final;
     double wave_fi_space_cos(lexer*,double,double,double,int) override final;
     double wave_fi_time_sin(lexer*,int) override final;
     double wave_fi_time_cos(lexer*,int) override final;
+    
+    // cached-point evaluation: u, v share the horizontal velocity
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
     
     
     void wave_parameters(lexer*,ghostcell*);
@@ -93,6 +94,7 @@ private:
     
     
     double eps,c0,c2,c4; 
+    double U0,F0,A1,A2,A3,A4,A5,E1,E2,E3,E4,E5;   // harmonic coefficients (parameters)
     double S,C;
     double wC,ubar;
     double wS;

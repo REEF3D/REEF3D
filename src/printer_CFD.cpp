@@ -349,6 +349,7 @@ void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
+    lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
 void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)

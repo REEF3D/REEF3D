@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"probe_core.h"
 #include"fnpf_vel_probe_theory.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
@@ -35,6 +36,7 @@ fnpf_vel_probe_theory::fnpf_vel_probe_theory(lexer *p, fdm_fnpf *c) : probenum(p
 	p->Iarray(jloc,probenum);
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
+    p->Darray(val,probenum*3);
 	
 	// Create Folder
 	if(p->mpirank==0)
@@ -97,14 +99,12 @@ void fnpf_vel_probe_theory::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow 
 		wval = pflow->wave_zvel(p,pgc, xp, yp, zp);
 		}
 	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
+	val[n*3+0]=uval;
+	val[n*3+1]=vval;
+	val[n*3+2]=wval;
+	}
 
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<endl;
-	}	
+    probe_rows(p,pgc,pout,val,probenum,3);	
 }
 
 void fnpf_vel_probe_theory::ini_location(lexer *p, fdm_fnpf *c)

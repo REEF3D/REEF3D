@@ -43,7 +43,6 @@ public:
 	
 	double H,H_fb,roval,phival,fbval;
 	int ii,jj,kk;
-	const double epsi,eps;
     double chi;
     double r,s;
 

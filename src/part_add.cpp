@@ -24,8 +24,3 @@ Authors: Hans Bihs, Alexander Hanke
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::add(lexer *p, ghostcell *pgc, double xp, double yp, double zp, double d, double ro)
-{
-
-}
-

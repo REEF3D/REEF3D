@@ -41,14 +41,13 @@ public:
 private:
 
     void slide(lexer*,ghostcell*,sediment_fdm*);
-    void diff_update(lexer*,ghostcell*,sediment_fdm*);
 
-    slice4 fh,ci;
+    slice4 fh;
     
     int gcval_topo,count;
 
     double fac1, fac2;
-    double dxmin;
+    double tol;
     double dh,maxdh,maxdhs,dxs,dh_corr;
     double slide_dh,slide_dhs;
 	double teta, alpha, beta, gamma;

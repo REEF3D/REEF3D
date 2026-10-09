@@ -263,6 +263,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
 void fnpf_RK3::attach_amr(fnpf_amr *a)
 {
     pamr = a;
+    a->attach_level0(pf,this,this,this);
     a->attach_body(pbody);
     pbody->amr_attach(a);
     plap = a->laplace(plap,plap0);

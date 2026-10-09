@@ -285,6 +285,7 @@ void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
+    lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
 void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)

@@ -58,6 +58,8 @@ void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbu
     result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
     if(p->B200==1)
     result<<"<PDataArray type=\"Float32\" Name=\"porstruc\"/>\n";
+    if(p->B200==1 && p->B202>0)
+    result<<"<PDataArray type=\"Float32\" Name=\"porosity\"/>\n";
 
     result<<"</PPointData>\n";
 

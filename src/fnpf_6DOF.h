@@ -107,6 +107,17 @@ public:
     void amr_surface(lexer*, ghostcell*, int, slice&, slice&) override;
     void amr_bodies(vector<sixdof_obj*>&) override;
     
+    // mesh refinement with subcycling (fnpf_amr G 7 1, fnpf_6DOF_sub.cpp): the finest level
+    // advances the body with its stages and the loads of a psi solve on its patches; level 0
+    // (the loads and the added mass of all grids at the start of its step) and the levels in
+    // between step with a predicted copy
+    void amr_save();
+    void amr_restore(lexer*, ghostcell*);
+    void amr_sub_predict(lexer*, ghostcell*, int, double);
+    void amr_sub_finest(lexer*, fdm_fnpf*, ghostcell*, int, int, double, double, bool, bool);
+    void amr_geometry_level(lexer*, ghostcell*, int);
+    void amr_post_solve_level(lexer*, ghostcell*, int);
+    
     // used by the decorated Laplace solver around the phi solve:
     // body geometry on the new sigma grid, then extrapolation of the body band
     void pre_solve(lexer*, fdm_fnpf*, ghostcell*);
@@ -129,6 +140,8 @@ private:
     void exchange_face(fnpf_6DOF_grid&, ghostcell*);
     void free_grid(fnpf_6DOF_grid&);
     bool amr_on() const;
+    bool amr_sub() const;
+    void forces_level(lexer*, fdm_fnpf*, ghostcell*, int);
     
     vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;

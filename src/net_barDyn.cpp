@@ -237,22 +237,6 @@ void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int& iter)
         xdot_.col(1) *= 0.0;
     }
 
-    /*MatrixXd xdot_new(nK,3); 
-    
-    xdot_new = 
-        1.0/coeffs_(0)*
-        (
-            xdotdot_ - coeffs_(1)*xdot_ - coeffs_(2)*xdotn_ - coeffs_(3)*xdotnn_
-        );
-    */
-
-    // Under-relaxation for velocities below rigid top knots
-/*    xdot_new.block(nK-niK,0,niK,1) = xdot_.block(nK-niK,0,niK,1) + p->X325_relX*(xdot_new.block(nK-niK,0,niK,1) - xdot_.block(nK-niK,0,niK,1));
-    xdot_new.block(nK-niK,1,niK,1) = xdot_.block(nK-niK,1,niK,1) + p->X325_relY*(xdot_new.block(nK-niK,1,niK,1) - xdot_.block(nK-niK,1,niK,1));
-    xdot_new.block(nK-niK,2,niK,1) = xdot_.block(nK-niK,2,niK,1) + p->X325_relZ*(xdot_new.block(nK-niK,2,niK,1) - xdot_.block(nK-niK,2,niK,1));
-*/
-
-    //- Advance position
     x_ =         
         1.0/coeffs_(0)*
         (

@@ -64,7 +64,6 @@ private:
     double rr11,rr22,rr33,rr12,rr13,rr23;
     double q11,q22,q33,q12,q13,q23;
 	double pkterm,s,q,val;
-	const double epsi;
 
 };
 

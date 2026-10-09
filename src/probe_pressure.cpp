@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"probe_core.h"
 #include"probe_pressure.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -34,6 +35,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 	p->Iarray(jloc,probenum);
 	p->Iarray(kloc,probenum);
 	p->Iarray(flag,probenum);
+    p->Darray(val,probenum*1);
 	
     //cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
     
@@ -94,11 +96,10 @@ void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		pval = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
 		}
 	
-	pval=pgc->globalmax(pval);
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<pval<<endl;
-	}		
+	val[n*1+0]=pval;
+	}
+
+    probe_rows(p,pgc,pout,val,probenum,1);		
 }
 
 void probe_pressure::ini_location(lexer *p, fdm *a, ghostcell *pgc)

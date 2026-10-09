@@ -53,7 +53,6 @@ public:
     
 private:
     double ramp_vel(lexer*);
-    double ramp_draft(lexer*);
     
     void read_format_1(lexer*,ghostcell*);
     void read_format_2(lexer*,ghostcell*);

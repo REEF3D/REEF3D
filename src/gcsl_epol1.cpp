@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
+#include"patchBC_codes.h"
 #include"slice.h"
 
 int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
@@ -43,9 +44,9 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
 
 //Inflow: none
 
-//Patch    
+//Patch outlet: zero gradient (inlet: set by patchBC)
     else
-	if((bc==111 || bc==112 || bc==121 || bc==122) && (gcv==10||gcv==1||gcv==20||gcv==7))
+	if(patch_outlet(bc) && (gcv==10||gcv==1||gcv==20||gcv==7))
 	return 4;
 	
 //Outflow
@@ -85,11 +86,11 @@ int ghostcell::gcsleval1(lexer *p, int gcv, int bc, int cs)
     
     //Patch Hx  
     else
-	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
+	if((patch_bc(bc) && !patch_fsf(bc)) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
 	return 41;
     
     else
-	if((bc==222 || bc==212 || bc==122 || bc==112) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
+	if(patch_fsf(bc) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
     else

@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"nhflow_fsf.h"
 #include"vrans.h"
+#include"nhflow_fsf_body.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -50,11 +51,13 @@ nhflow_momentum_func::nhflow_momentum_func(lexer *p, fdm_nhf *d, ghostcell *pgc)
     gcval_uh=14;
 	gcval_vh=15;
 	gcval_wh=16;
-   
+    
+    pfsfbody = new nhflow_fsf_body(p);
 }
 
 nhflow_momentum_func::~nhflow_momentum_func()
 {
+    delete pfsfbody;
 }
 
 void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 

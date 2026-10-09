@@ -39,9 +39,12 @@ multiple of 0.1 s after the ramp is a full revolution, and the angle is
 so for a restart from any state at t = 0.1, 0.2, ... add to `ctrl.txt`
 
     I 40 1
-    I 41 <number of the state file>
+    I 41 0
     X 101 -107.05 0.0 0.0
 
-(`X 206` can stay: the ramp is 1 after 0.1 s). The FW-H files are appended to after a restart.
+(`P 40 1` overwrites state 0 each time, so `I 41 0` is the last state; `X 206` can stay: the
+ramp is 1 after 0.1 s). The state can be up to 0.1 s older than the last FW-H samples: the
+samples after the restart overlap those, keep the later ones (the analysis scripts use the last
+value of each time). The FW-H files are appended to after a restart.
 Check the angle against `REEF3D_CFD_6DOF/REEF3D_6DOF_position_0.dat` of the first run (in case 13,
 n = 5, the formula gives −69.7° at t = 0.509 s, the output −70.2°).

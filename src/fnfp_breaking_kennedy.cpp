@@ -148,19 +148,6 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             //cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  breaking: "<<c->breaking(i, j)<<" eta_t: "<<eta_t(i, j)<<endl;
         }
         
-        /*else
-        if(c->breaking(i,j)==2)
-        {
-        c->vb(i,j) = p->A365;
-        c->vb(i-1,j) = p->A365;
-        c->vb(i+1,j) = p->A365;
-        
-        if(p->j_dir==1)
-        {
-        c->vb(i,j-1) = p->A365;
-        c->vb(i,j+1) = p->A365;
-        }
-        }*/
         
         else
         {

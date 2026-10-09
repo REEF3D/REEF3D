@@ -215,18 +215,3 @@ void nhflow_filter::invert(std::vector<std::vector<double> > M,
         }
     }
 }
-
-void nhflow_filter::print_kernel(lexer *p)
-{
-    if(p->mpirank!=0)
-        return;
-
-    printf("\n Savitzky-Golay kernel (order %d, %dx%d window):\n", order, nw, nw);
-    int k=0;
-    for(int dv=-hw; dv<=hw; ++dv)
-    {
-        for(int du=-hw; du<=hw; ++du)
-            printf(" % .5f", kernel[k++]);
-        printf("\n");
-    }
-}

@@ -89,6 +89,20 @@ void background_state::read(lexer *p)
         bg[b].V = p->B514_V[n];
     }
     
+    for(int n=0; n<p->B513; ++n)
+    {
+        int b = index(p->B513_id[n]);
+        if(b<0)
+        fail("B 513 refers to background "+std::to_string(p->B513_id[n])+", which has no B 510");
+        if(p->B513_profile[n]<0 || p->B513_profile[n]>2)
+        fail("B 513 profile is 0 (uniform), 1 (log-law) or 2 (power law)");
+        if(p->B513_profile[n]==1 && p->B513_par[n]<=0.0)
+        fail("B 513: the log-law needs a roughness length z0 > 0");
+        
+        bg[b].prof = p->B513_profile[n];
+        bg[b].ppar = p->B513_profile[n]==2 && p->B513_par[n]<=0.0 ? 7.0 : p->B513_par[n];
+    }
+    
     for(int n=0; n<p->B515; ++n)
     {
         int b = index(p->B515_id[n]);
@@ -269,4 +283,47 @@ void background_state::vel(int k, double h, double x, double y, double &u, doubl
     
     u = b.r*b.U + et*c*cos(b.dir);
     v = b.r*b.V + et*c*sin(b.dir);
+}
+
+bool background_state::carries_current(int b) const
+{
+    if(b<0)
+    return false;
+    
+    const item &it = bg[b];
+    
+    // a tide or a time series always drives a current (long wave or file U, V)
+    return it.mode==1 || it.mode==2 || it.U!=0.0 || it.V!=0.0;
+}
+
+bool background_state::carries_level(int b) const
+{
+    if(b<0)
+    return false;
+    
+    const item &it = bg[b];
+    
+    return it.mode==1 || it.mode==2 || it.eta0!=0.0;
+}
+
+double background_state::shape(int k, double zeta, double h) const
+{
+    const item &b = bg[k];
+    zeta = fmin(fmax(zeta,0.0),1.0);
+    
+    if(b.prof==1)
+    {
+        // ln(1 + z/z0), divided by its depth average ((h+z0) ln(1+h/z0) - h)/h
+        const double z0 = b.ppar;
+        const double m = ((h+z0)*log(1.0+h/z0) - h)/h;
+        return m>0.0 ? log(1.0 + zeta*h/z0)/m : 1.0;
+    }
+    
+    if(b.prof==2)
+    {
+        const double n = b.ppar;
+        return (n+1.0)/n*pow(zeta,1.0/n);
+    }
+    
+    return 1.0;
 }

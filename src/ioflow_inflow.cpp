@@ -353,8 +353,3 @@ void ioflow_f::inflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, double *Fi, doub
 {
 
 }
-
-void ioflow_f::rkinflow_fnpf(lexer *p, fdm_fnpf*, ghostcell *pgc, slice &frk, slice &f)
-{
-    
-}

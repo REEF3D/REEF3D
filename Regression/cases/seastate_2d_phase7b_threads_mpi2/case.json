@@ -1,0 +1,8 @@
+{
+ "base": "seastate_2d_refraction",
+ "np": 2,
+ "ctrl_add": ["A 798 2", "A 795 1.0e-6", "A 796 2"],
+ "description": "as seastate_2d_refraction on 2 ranks with 2 threads per rank (A 798 2, Phase 7b), spectral sparsity (A 795 1e-6) and second-order geographic fluxes (A 796 2): the cells of a quadrant sweep in wavefront order, the cells of one diagonal at the same time, each thread with a copy of the solver; the result is the one of the serial sweep (bitwise). Validation in Dropbox SEASTATE/validation/30_threads.",
+ "tags": ["quick", "2d", "seastate", "mpi"],
+ "covers": ["seastate_implicit sweep_threads (wavefront order, shared active ranges)", "threads with sparsity, second order and the halo exchange"]
+}

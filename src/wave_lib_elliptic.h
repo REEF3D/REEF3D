@@ -40,8 +40,6 @@ public:
 	double E_elliptic_1(double);
 	double K_elliptic_5(double);
 	double E_elliptic_5(double);
-	double K_elliptic(double);
-	double E_elliptic(double);
     
     double Km,Em,ell,eta2;
     const double epsi;

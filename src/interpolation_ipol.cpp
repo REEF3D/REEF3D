@@ -53,34 +53,6 @@ double interpolation::ipol1(field& b)
     }
     
     value= 0.5*(v1+v2);
-/*
-    if(p->flag5[Ip1JK]==-4)
-    {
-    if(p->flag1[Ip1JK]>0)
-    v5=b(i+1,j,k);
-    if(p->flag1[Ip1Jp1K]>0)
-    v6=b(i+1,j+1,k);
-    if(p->flag1[Ip1JKp1]>0)
-    v7=b(i+1,j,k+1);
-    if(p->flag1[Ip1Jp1Kp1]>0)
-    v8=b(i+1,j+1,k+1);
-
-    value= 0.5*(value + 0.25*(v5+v6+v7+v8));
-    }
-
-    if(p->flag5[IJK]==-1)
-    {
-    if(p->flag1[Ip1JK]>0)
-    v5=b(i+1,j,k);
-    if(p->flag1[Ip1Jp1K]>0)
-    v6=b(i+1,j+1,k);
-    if(p->flag1[Ip1JKp1]>0)
-    v7=b(i+1,j,k+1);
-    if(p->flag1[Ip1Jp1Kp1]>0)
-    v8=b(i+1,j+1,k+1);
-
-    value= 0.5*(value + 0.25*(v5+v6+v7+v8));
-    }*/
     
     }
     
@@ -203,44 +175,6 @@ double interpolation::ipol3( field& b)
     }
 
     value= 0.5*(v1+v2);
-/*
-    if(p->flag5[IJKp1]==-6)
-    {
-    if(p->flag3[IJKp1]>0)
-    v5=b(i,j,k+1);
-    if(p->flag3[IJp1Kp1]>0)
-    v6=b(i,j+1,k+1);
-    if(p->flag3[Ip1JKp1]>0)
-    v7=b(i+1,j,k+1);
-    if(p->flag3[Ip1Jp1Kp1]>0)
-    v8=b(i+1,j+1,k+1);
-
-    value= 0.5*(value + 0.25*(v5+v6+v7+v8));
-    }
-
-     if(p->flag5[IJK]==-5)
-    {
-    if(p->flag3[IJKp1]>0)
-    v5=b(i,j,k+1);
-    if(p->flag3[IJp1Kp1]>0)
-    v6=b(i,j+1,k+1);
-    if(p->flag3[Ip1JKp1]>0)
-    v7=b(i+1,j,k+1);
-    if(p->flag3[Ip1Jp1Kp1]>0)
-    v8=b(i+1,j+1,k+1);
-
-    value= 0.5*(value + 0.25*(v5+v6+v7+v8));
-    }
-    
-    if(p->flag5[IJKp1]==3)
-    {
-    v5=b(i,j,k+1);
-    v6=b(i,j+1,k+1);
-    v7=b(i+1,j,k+1);
-    v8=b(i+1,j+1,k+1);
-
-    value= 0.5*(value + 0.25*(v5+v6+v7+v8));
-    }*/
     }
 
     if(p->j_dir==1)
@@ -301,7 +235,6 @@ double interpolation::ipol3( field& b)
 double interpolation::ipol4( field& b)
 {
     v1=v2=v3=v4=v5=v6=v7=v8=0.0;
-    
     
     
     if(p->j_dir==0)
@@ -405,39 +338,6 @@ double interpolation::ipol4press( field& b)
 	 value=(1.0/denom)*(v1+v2+v3+v4+v5+v6+v7+v8);
 	 
 	 return value;
-}
-
-double interpolation::ipol4ro(fdm *a, field& b)
-{
-	double phival,H,roval;
-	double epsi=1.6*p->DXM;
-	
-    v1=v2=v3=v4=v5=v6=v7=v8=0.0;
-
-    if(p->flag4[IJK]>0)
-    v1=a->phi(i,j,k);
-    if(p->flag4[IJp1K]>0)
-    v2=a->phi(i,j+1,k);
-    if(p->flag4[Ip1JK]>0)
-    v3=a->phi(i+1,j,k);
-    if(p->flag4[Ip1Jp1K]>0)
-    v4=a->phi(i+1,j+1,k);
-    if(p->flag4[IJKp1]>0)
-    v5=a->phi(i,j,k+1);
-    if(p->flag4[IJp1Kp1]>0)
-    v6=a->phi(i,j+1,k+1);
-    if(p->flag4[Ip1JKp1]>0)
-    v7=a->phi(i+1,j,k+1);
-    if(p->flag4[Ip1Jp1Kp1]>0)
-    v8=a->phi(i+1,j+1,k+1);
-
-    phival=0.125*(v1+v2+v3+v4+v5+v6+v7+v8);
-	
-	H = heaviside(phival,epsi);
-		
-	roval = p->W1*H + p->W3*(1.0-H);
-	
-    return roval;
 }
 
 
@@ -554,34 +454,4 @@ double interpolation::ipol4_a_sliceint(sliceint& b)
                  
     return value;
 }
-
-double interpolation::ipol4topo(fdm *a, field& b)
-{
-    double epphi=2.6*p->DXM;
-
-    v1=v2=v3=v4=v5=v6=v7=v8 = p->S57-p->pos_z()-0.5*p->DXM;
-
-    if(a->solid(i,j,k)>-epphi)
-    v1=b(i,j,k);
-    if(a->solid(i,j+1,k)>-epphi)
-    v2=b(i,j+1,k);
-    if(a->solid(i+1,j,k)>-epphi)
-    v3=b(i+1,j,k);
-    if(a->solid(i+1,j+1,k)>-epphi)
-    v4=b(i+1,j+1,k);
-    if(a->solid(i,j,k+1)>-epphi)
-    v5=b(i,j,k+1);
-    if(a->solid(i,j+1,k+1)>-epphi)
-    v6=b(i,j+1,k+1);
-    if(a->solid(i+1,j,k+1)>-epphi)
-    v7=b(i+1,j,k+1);
-    if(a->solid(i+1,j+1,k+1)>-epphi)
-    v8=b(i+1,j+1,k+1);
-
-    value=0.125*(v1+v2+v3+v4+v5+v6+v7+v8);
-	 
-    return value;
-	
-}
-
 

@@ -34,6 +34,33 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
                                           vofheight(p),genheight(p)
 {
     pBC = ppBC;
+    
+    // decomposed precalc (B 89 1) needs the space / time parts of the wave theory, which only
+    // the 5th-order Stokes (B 92 5) and the irregular theories (31, 41, 51) provide; with any
+    // other wave type it generated no waves at all, so it now falls back to B 89 0. Additional
+    // sources (B 500) are decomposed too (wave_field) and need these types as well.
+    if(p->B89==1)
+    {
+        int bad = -1;
+        
+        for(int q=0; q<wave_nsources(); ++q)
+        {
+            int sid, stype;
+            double srot;
+            wave_source_lib(q,sid,stype,srot);
+            
+            if(!(q==0 && stype==0) && stype!=5 && stype!=31 && stype!=41 && stype!=51)
+            bad = stype;
+        }
+        
+        if(bad>=0)
+        {
+            if(p->mpirank==0)
+            cout<<"iowave: decomposed precalc (B 89 1) is available for wave types 5, 31, 41, 51; wave type "<<bad<<" runs with B 89 0"<<endl;
+            
+            p->B89 = 0;
+        }
+    }
 
     if(p->F80==4)
     vofgen = std::make_unique<field4>(p);
@@ -165,12 +192,14 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 
     zones = bc_zone_set::from_legacy(p,pgc);
     bgs.read(p);
+    b530_auto(p);
     zones_check(p);
+    nhflow_active_beach_edge(p,pgc);
     
     // tidal / current background (NHFLOW)
-    if(zones.has_background())
+    if(zones.has_background() || nhf_active_edge)
     {
-    bg_on = true;
+    bg_on = zones.has_background();
     p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;
     p->open_xp = zones.open_edge(2)!=nullptr ? 1 : 0;
     p->open_ym = zones.open_edge(3)!=nullptr ? 1 : 0;

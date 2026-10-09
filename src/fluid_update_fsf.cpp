@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"fluid_update_fsf.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -50,7 +51,7 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
     
 	BASELOOP
 	{    
-		H = heaviside(a->phi(i,j,k),p->psi);
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
 
 
         a->ro(i,j,k)   = ro_water*H +   ro_air*(1.0-H);
@@ -58,8 +59,8 @@ void fluid_update_fsf::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &
             
             if(p->flagsf4[IJK]>0)
             {
-            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+            p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*PORVAL4;
+            p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H)*PORVAL4;
             }
 	}
     

@@ -28,7 +28,6 @@ Author: Hans Bihs
 
 patchBC_void::patchBC_void(lexer *p) 
 {
-    obj_count=0;
 }
 
 patchBC_void::~patchBC_void()
@@ -62,23 +61,7 @@ void patchBC_void::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &p
 void patchBC_void::patchBC_ioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
 {
 }
-void patchBC_void::patchBC_rkioflow2D(lexer *p, ghostcell*, slice&, slice&, slice&, slice&)
-{
-}
-
 void patchBC_void::patchBC_discharge2D(lexer *p, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&)
-{
-}
-
-void patchBC_void::patchBC_pressure2D(lexer*, ghostcell*, slice&)
-{
-}
-
-void patchBC_void::patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&)
-{
-}
-
-void patchBC_void::patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&)
 {
 }
 
@@ -86,6 +69,3 @@ void patchBC_void::patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&)
 {
 }
 
-void patchBC_void::patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&)
-{
-}

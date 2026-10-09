@@ -393,41 +393,6 @@ void wave_lib_ssgw::writeResult(const std::string folderName)
     myFile.close();
 }
 
-void wave_lib_ssgw::computePotentialField(std::vector<double>& x, std::vector<double>& y, std::vector<double>& phi)
-{
-    if (!surfaceCalculated)
-    {
-        getPhysicsParameters();
-        surfaceCalculated = computeSurfaceVariables();
-    }
-    
-    double dal = 0.5*ParameterValue.waveLength/static_cast<double>(N);
-    std::complex<double> i1(0.0,1.0);
-    std::complex<double> integralScaler = 0.5*i1*ParameterValue.phaseVelocity*dal/M_PI;
-    std::complex<double> kd2i = 2.0*i1*ParameterValue.waterDepth*ParameterValue.waveNumber;
-    std::complex<double> kdi  = i1*ParameterValue.waterDepth*ParameterValue.waveNumber;
-
-    Eigen::VectorXcd kzs       = ParameterValue.waveNumber*zs.array()*scaleLength;
-    Eigen::VectorXcd kzsconj   = kzs.array().conjugate();
-    Eigen::RowVectorXcd BB     = dzs.array()-1.0;
-    Eigen::RowVectorXcd BBconj = BB.array().conjugate();
-    Eigen::VectorXcd DDnominator = (0.5*(kzs.array()+kdi)).sin();
-    Eigen::VectorXcd EEnominator = (0.5*(kzsconj.array()-kdi)).sin();
-    
-    for (int j=0;j<phi.size();j++)
-    {
-        std::complex<double> kz   = ParameterValue.waveNumber*(x[j] + i1*y[j]);
-        Eigen::VectorXcd DD = (DDnominator.array()/(0.5*(kzs.array()-kz)).sin()).log();
-        Eigen::VectorXcd EE_ = (EEnominator.array()/(0.5*(kzsconj.array()-kd2i-kz)).sin()).log();
-                
-        std::complex<double> f  = BB*DD;
-        std::complex<double> fm = BBconj*EE_;
-        std::complex<double> F = f - fm;// Because of periodity this sum is trapez integration !!!!!
-        F *= integralScaler;
-        phi[j] = F.real();
-    }
-}
-
 void wave_lib_ssgw::computeVelocityField(std::vector<double>& x, std::vector<double>& y, std::vector<double>& u, std::vector<double>& v)
 {
     if (!surfaceCalculated)

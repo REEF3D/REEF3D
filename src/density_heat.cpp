@@ -20,13 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"density_heat.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"heat.h"
 #include"heaviside.h"
 
-density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_heat::density_heat(lexer* p, heat *& ppheat)
 {
     visc_2 = p->W4;
 	visc_1 = p->W2;
@@ -41,11 +42,6 @@ density_heat::density_heat(lexer* p, heat *& ppheat) : epsi(p->F45*p->DXM), eps(
     pheat = ppheat;
     
     
-    if(p->j_dir==0)        
-    psi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
-        
-    if(p->j_dir==1)
-    psi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
 }
 
 density_heat::~density_heat()
@@ -79,7 +75,7 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         }
         
     
-        H = heaviside(phival,psi);
+        H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
         
         roval = ro_1*H + ro_2*(1.0-H);
 

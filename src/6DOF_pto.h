@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include<memory>
 #include<string>
 #include<vector>
+#include<cmath>
 
 // Power take-off (PTO) library of the 6DOF kernel.
 //
@@ -34,9 +35,9 @@ Author: Hans Bihs
 //   element   (6DOF_pto_elements.h) : F(q,qd,t) along the joint and its Jacobians dF/dq, dF/dqd
 //   composite (this file)           : sum of elements = one PTO
 //
-// The Jacobians of stiff elements (end-stops) let the 6DOF step treat them linearly implicit
-// together with the added mass (X 500 2). Controllers act on the elements via
-// set_param() (not used yet).
+// The Jacobians of stiff elements (end-stops, latch) let the 6DOF step treat them linearly
+// implicit together with the added mass (X 500 2). Controllers (6DOF_pto_controller.h) act on
+// the elements via set_param() and on the composite's generator gain.
 
 struct pto_state
 {
@@ -84,13 +85,17 @@ public:
 class pto_composite : public pto_base
 {
 public:
+    // Sum of the elements. The generator part (useful elements: damper, spring-damper) is
+    // scaled by gain (declutching) and limited by Fmax and Pmax (X 505); the other elements
+    // (end-stops, latch) act unchanged. The element forces in F_last are as delivered.
+
     void add(std::unique_ptr<pto_base> e) {elem.push_back(std::move(e));}
 
     bool empty() const {return elem.empty();}
 
     pto_output force(const pto_state &s) override
     {
-        pto_output out;
+        pto_output out, gen;
 
         for(auto &e : elem)
         {
@@ -98,12 +103,19 @@ public:
 
             e->F_last = o.F;
 
+            if(e->useful())
+            {
+            gen.F     += o.F;
+            gen.dFdq  += o.dFdq;
+            gen.dFdqd += o.dFdqd;
+            }
+
+            else
+            {
             out.F     += o.F;
             out.dFdq  += o.dFdq;
             out.dFdqd += o.dFdqd;
-
-            if(e->useful())
-            out.P += o.P;
+            }
 
             if(e->stiff())
             {
@@ -111,6 +123,41 @@ public:
             out.dFdqd_s += o.dFdqd;
             }
         }
+
+        // generator: gain (0 in the declutching window [t_off0, t_off1) at the stage time),
+        // force limit, power limit
+        const double g = (s.t>=t_off0 && s.t<t_off1) ? 0.0 : gain;
+        double F = g*gen.F;
+        double dFdq = g*gen.dFdq;
+        double dFdqd = g*gen.dFdqd;
+
+        sat_last = 0;
+
+        if(Fmax>0.0 && fabs(F)>Fmax)
+        {
+            F = (F>0.0 ? Fmax : -Fmax);
+            dFdq = dFdqd = 0.0;
+            sat_last = 1;
+        }
+
+        if(Pmax>0.0 && fabs(F*s.qd)>Pmax)
+        {
+            F = (F>0.0 ? 1.0 : -1.0)*Pmax/fabs(s.qd);
+            dFdq = 0.0;
+            dFdqd = -F/s.qd;
+            sat_last = 2;
+        }
+
+        const double r = (gen.F!=0.0) ? F/gen.F : 0.0;
+
+        for(auto &e : elem)
+        if(e->useful())
+        e->F_last *= r;
+
+        out.F     += F;
+        out.dFdq  += dFdq;
+        out.dFdqd += dFdqd;
+        out.P      = -F*s.qd;
 
         F_last = out.F;
 
@@ -129,9 +176,30 @@ public:
         e->set_param(key,val);
     }
 
+    // set_param on the elements of one type only, e.g. ("damper","B",...)
+    bool set_param(const std::string &type, const std::string &key, double val)
+    {
+        bool found=false;
+
+        for(auto &e : elem)
+        if(type==e->name())
+        {
+        e->set_param(key,val);
+        found=true;
+        }
+
+        return found;
+    }
+
     const char* name() const override {return "composite";}
 
     std::vector<std::unique_ptr<pto_base>> elem;
+
+    double gain=1.0;    // generator scaling
+    double t_off0=0.0, t_off1=0.0;  // generator off for t_off0 <= t < t_off1 (declutching)
+    double Fmax=0.0;    // generator force limit, 0: none
+    double Pmax=0.0;    // generator power limit, 0: none
+    int sat_last=0;     // 0: free, 1: force limited, 2: power limited
 };
 
 #endif

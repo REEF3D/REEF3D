@@ -34,6 +34,7 @@ class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters
                                public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_irregular_1st(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_1st();
     
@@ -83,6 +84,15 @@ public:
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
+    // waves on a background (iowave B 530, see wave_lib.h): irregular waves from a spectrum (B 92 31)
+    int wave_ncomp() const override final {return bg_ok ? bg_n : 0;}
+    void wave_comp(int, double&, double&, double&, double&, double&) const override final;
+    double wave_depth0() const override final {return wdt;}
+    double wave_depth() const override final {return bg_h;}
+    void wave_comp_set(int, double, double, double) override final;
+    void wave_depth_set(double) override final;
+    void wave_comp_update() override final;
+    
 private:
     double singamma,cosgamma;    
     double T,vel,eta,fi;
@@ -97,7 +107,19 @@ private:
     std::vector<double> Aeta, Afi, Au, Av, Aw;  // component amplitudes of each quantity
     std::vector<double> ezb;                    // exp(k z) scratch, [n]
     double cache_t=-1.0e300;
+    std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
+    int ph_q=-1;
+    double ph_t=-1.0e300;
     double **fixy,*fin;
+    
+    // B 530 state: the orbital velocities use sigma through sinhkd = sinh(k h_eff) omega/sigma
+    // and the cached amplitudes; Ai = Ai0 * amplitude factor
+    bool bg_ok=false, bg_dirty=false, bg_used=false;
+    int bg_n=0;
+    double bg_h=0.0;
+    std::vector<double> bg_Ai0, bg_si, bg_af;
+    
+    int Nw=0, B130v=0;   // p->wN, p->B130 at construction
 };
 
 #endif

@@ -45,8 +45,6 @@ public:
 
 private:
     void ini_location(lexer*, ghostcell*, sediment_fdm*);
-    void write(lexer*, ghostcell*, sediment_fdm*);
-    int conv(double);
 
     int *iloc,*jloc,*flag;
     double *wsf;

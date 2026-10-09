@@ -41,14 +41,9 @@ public:
     fnpf_fsf_update(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_fsf_update();
     
-    void fsfepol(lexer*, fdm_fnpf*, ghostcell*,slice&,field&);
-	void fsfupdate(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice&);
     void etaloc_sig(lexer*, fdm_fnpf*, ghostcell*);
-    void etaloc(lexer*, fdm_fnpf*, ghostcell*);
     void fsfbc_sig(lexer*, fdm_fnpf*, ghostcell*,slice&,double*);
-    void fsfbc(lexer*, fdm_fnpf*, ghostcell*,slice&,field&);
     
-    void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
     void velcalc_sig(lexer*, fdm_fnpf*, ghostcell *pgc, double*);
     
 private: 

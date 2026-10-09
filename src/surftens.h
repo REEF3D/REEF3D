@@ -35,7 +35,7 @@ public:
 	void surface_tension(fdm*,lexer*,field&,int);
 
 private:
-    const double epsi;
+    double epsi;
 	double tension,dirac,curv;
 
 };

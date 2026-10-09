@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_3d_irregular_decomp",
+ "steps": 30,
+ "description": "nhflow_3d_irregular_decomp with directional 2nd-order irregular waves A (B 92 32) and B 89 0: cached-point evaluation with several directions.",
+ "tags": ["quick", "3d", "nhflow", "waves", "iowave", "irregular"],
+ "covers": ["wave_lib_irregular_2nd_a cached evaluation, directional"],
+ "ctrl_set": {"B 92": "32", "B 89": "0"}
+}

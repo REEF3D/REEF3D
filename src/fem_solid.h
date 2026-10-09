@@ -56,6 +56,15 @@ Architect: Hans Bihs
 #include<map>
 #include<Eigen/Dense>
 
+// OpenMP pragmas of the solid (nothing without OpenMP, no unknown-pragma warnings)
+#ifdef _OPENMP
+#include<omp.h>
+#define FEM_OMP_STR(...) #__VA_ARGS__
+#define FEM_OMP(...) _Pragma(FEM_OMP_STR(__VA_ARGS__))
+#else
+#define FEM_OMP(...)
+#endif
+
 class fem_solid
 {
 public:
@@ -280,6 +289,12 @@ public:
     void set_ground(double z,double kfac,double mu) {ground_on = true; zground = z; kground = kfac; mu_ground = mu;}
     void set_contact(bool on,double kfac,double mu) {contact_on = on; kcontact = kfac; mu_contact = mu;}
     void set_snap(bool on) {snap_on = on;}
+    // threads for the solid (OpenMP builds); 0: automatic (cores / MPI ranks on the node)
+    void set_threads(int n) {nthr_req = n;}
+    int threads_requested() const {return nthr_req;}
+    void use_threads(int n) {nthr = std::max(1,n);}
+    int threads() const {return nthr;}
+    static int max_threads();                   // 1 without OpenMP
     bool lattice_given() const {return hx>0.0 && hy>0.0 && hz>0.0;}
     void set_default_spacing(double h,double hy=-1.0);   // lattice spacing when the input has none (resolution)
     bool ground() const {return ground_on;}
@@ -414,7 +429,9 @@ private:
     // element / material
     void shape_derivatives();
     void internal_forces(double dts);
-    void stress(const material&,gpstate&,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed,const double* rs=nullptr);
+    // wl, wn: log of the dissipated-energy increments of the element (threads), else added to wdiss
+    void stress(const material&,gpstate&,const Mat3& F,const Mat3& Fdot,double h,double w,Mat3& P,double& svm,bool& failed,const double* rs=nullptr,
+                double* wl=nullptr,unsigned char* wn=nullptr);
     void setup_rebar();             // local steel fractions of the elements of reinforced materials
     double elem_cp(const element&) const;   // wave speed incl. the bars
     double damage_exp(double kappa,double e0,double ef) const;
@@ -453,6 +470,32 @@ private:
     std::vector<unsigned char> fixed;           // bit 0,1,2: fixed dof
     std::vector<int> nalive;                    // number of intact elements per node
     std::vector<int> node_elem_start, node_elem; // node -> elements (CSR)
+    std::vector<unsigned char> node_elem_a;     // local index of the node in the element
+    // threads: the element forces go to per-element buffers and are gathered per node in
+    // the order of the elements, so the results do not depend on the number of threads
+    int nthr = 1;
+    // threads only for loops with enough work (small solids: the fork costs more than it saves)
+    static const int PAR_NODES = 1024, PAR_ELEMS = 16;
+    bool par(int n,int nmin) const {return nthr>1 && n>=nmin;}
+    static int thread_num()                     // in a parallel region (0 outside)
+    {
+#ifdef _OPENMP
+        return omp_get_thread_num();
+#else
+        return 0;
+#endif
+    }
+    std::vector<int> act;                       // intact deformable elements
+    int nalive_el = 0;                          // intact elements (valid while !act_dirty)
+    bool act_dirty = true;                      // elements failed or became rigid: rebuild act and the gather lists
+    std::vector<int> g_node, g_start, g_off;    // nodes of act, their (element, local node) entries as offsets into fe_buf
+    std::vector<int> g_elem;
+    void build_gather();
+    std::vector<double> fe_buf;                 // element nodal forces (24 per element)
+    std::vector<unsigned char> fe_on;           // element contributes in this substep
+    static const int WLOG = 32;                 // dissipation increments per element and substep (8 points x 4)
+    std::vector<double> wl_buf;
+    std::vector<unsigned char> wl_n;
     std::vector<int> orphan;
     std::vector<double> mfl;
     std::vector<Vec3> Mcpl;                     // attached fluid mass per direction
@@ -500,6 +543,14 @@ private:
     std::vector<Vec3> nl_x0;
     int nl_builds = 0, nl_neroded = -1, nl_nrigid = -1;
     struct rpair {int a, b; long long key; Vec3 n; double pen, vn;};
+    // per-thread buffers of the contact (kept between the substeps)
+    struct cevent {int a, b; Vec3 F; bool rigid; rpair rp;};
+    // (each on its own cache line: no false sharing between the threads)
+    template<class T> struct alignas(64) tls {T v;};
+    std::vector<tls<std::vector<rpair>>> thr_rp;
+    std::vector<tls<std::vector<int>>> thr_i;
+    std::vector<tls<std::vector<cevent>>> thr_ev;
+    std::vector<tls<std::vector<std::pair<int,int>>>> thr_near;
     std::vector<rpair> rpairs;
     std::map<std::pair<long long,long long>,double> rset;   // permanent set of crushed contact points (group, point)
     void rigid_contact_forces();
@@ -540,6 +591,7 @@ private:
     int nsub_last = 0;
     double wdiss = 0.0;
     bool built = false;
+    int nthr_req = 0;
 };
 
 #endif

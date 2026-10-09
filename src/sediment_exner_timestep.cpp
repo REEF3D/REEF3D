@@ -76,53 +76,78 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     p->dtsed = MIN(p->dtsed,ramp_dt(p));
     }
 
-    // bed celerity limit (S103>0)
+    // flow time since the previous bed update (S 44 steps, S 46 seconds, ...)
+    double dtflow = (simtime_last>=0.0 && p->simtime>simtime_last) ? p->simtime-simtime_last : p->dt;
+    simtime_last = p->simtime;
+    dtflow = pgc->timesync(dtflow);
+    
+    // S 15 4: morphological factor S 17 on the flow time since the last bed update
+    // (S 15 3 uses the current flow step only: with S 44 > 1 the factor is S 17/S 44)
+    if(p->S29==0 && p->S15==4)
+    p->dtsed = p->S17*dtflow;
+    
+    // bed celerity (Roe-type estimate across each sediment face, only where |dz| > d50 so that
+    // transport gradients over a flat bed do not produce spurious celerities)
     // Exner: dz/dt + S35/(1-n) * dqb/dx = 0  ->  celerity c = S35/(1-n) * dqb/dz
-    // Roe-type estimate across each sediment face, only where |dz| > d50 so that
-    // transport gradients over a flat bed do not produce spurious celerities.
-    // dtsed <= S103 * dx/c
-    if(p->S103>0.0)
-    {
-    double cdx=0.0;
+    // and the near-bed flow speed U = |(P,Q)|
+    double cmax=0.0, cdx=0.0, umax=0.0;
     double dz,dq;
     const double dzmin = MAX(p->S20,1.0e-10);
     const double cfac = p->S35/(1.0-p->S24);
-
+    
         SEDSLICELOOP
         {
             if(i+p->origin_i<p->gknox-1 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
             {
             dz = fabs(s->bedzh(i+1,j)-s->bedzh(i,j));
             dq = fabs(s->qb(i+1,j)-s->qb(i,j));
-
             if(dz>dzmin)
+            {
+            cmax = MAX(cmax, cfac*dq/dz);
             cdx = MAX(cdx, cfac*dq/(dz*p->DXP[IP]));
             }
-
+            }
+            
             if(p->j_dir==1 && p->gknoy>1)
             if(j+p->origin_j<p->gknoy-1 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
             {
             dz = fabs(s->bedzh(i,j+1)-s->bedzh(i,j));
             dq = fabs(s->qb(i,j+1)-s->qb(i,j));
-
             if(dz>dzmin)
+            {
+            cmax = MAX(cmax, cfac*dq/dz);
             cdx = MAX(cdx, cfac*dq/(dz*p->DYP[JP]));
             }
+            }
+            
+        umax = MAX(umax, sqrt(s->P(i,j)*s->P(i,j) + s->Q(i,j)*s->Q(i,j)));
         }
-
+        
+    cmax = pgc->globalmax(cmax);
     cdx = pgc->globalmax(cdx);
-
-    if(cdx>1.0e-20)
+    umax = pgc->globalmax(umax);
+    
+    // bed celerity limit (S103>0): dtsed <= S103 * dx/c
+    if(p->S103>0.0 && cdx>1.0e-20)
     p->dtsed = MIN(p->dtsed, p->S103/cdx);
-    }
-
+    
+    // morphological acceleration limit (S104>0): the bed forms move relative to the flow at most
+    // at S104 times the near-bed flow speed, c*dtsed/dtflow <= S104*U; the error of the
+    // morphological acceleration is of the order of this ratio (validation case 02)
+    if(p->S104>0.0 && cmax>1.0e-20 && umax>1.0e-20)
+    p->dtsed = MIN(p->dtsed, p->S104*umax*dtflow/cmax);
+    
     p->dtsed=pgc->timesync(p->dtsed);
     
-    //
+    // effective morphological factor and bed celerity / flow speed
+    morfac = p->S35*p->dtsed/MAX(dtflow,1.0e-20);
+    c_U = umax>1.0e-20 ? cmax*p->dtsed/(MAX(dtflow,1.0e-20)*umax) : 0.0;
+    
     maxdh=p->dtsed*maxvz;
 	
 	if(p->mpirank==0)
-	cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed<<endl;
+	cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed
+        <<" morph. factor: "<<setprecision(4)<<morfac<<" c/U: "<<setprecision(3)<<c_U<<endl;
 }
 
 double sediment_exner::ramp_dt(lexer *p)

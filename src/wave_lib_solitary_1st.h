@@ -32,6 +32,7 @@ using namespace std;
 class wave_lib_solitary_1st final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_solitary_1st(lexer*, ghostcell*);
 	virtual ~wave_lib_solitary_1st();
     

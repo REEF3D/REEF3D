@@ -133,12 +133,12 @@ double wave_lib_Stokes_5th::wave_horzvel(lexer *p, double x, double y, double z)
 {
 	T = wk*x-ww*(p->wavetime) + pshift;
     
-    vel = c0*sqrt(9.81/wk)
-         *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*cos(T)
-         + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*cos(2.0*T)
-         + 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*cos(3.0*T)
-         + 4.0*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*cos(4.0*T)
-         + 5.0*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*cos(5.0*T));
+    vel = U0
+         *(A1*cosh(wk*(wdt+z))*cos(T)
+         + A2*cosh(2.0*wk*(wdt+z))*cos(2.0*T)
+         + A3*cosh(3.0*wk*(wdt+z))*cos(3.0*T)
+         + A4*cosh(4.0*wk*(wdt+z))*cos(4.0*T)
+         + A5*cosh(5.0*wk*(wdt+z))*cos(5.0*T));
 
     return vel;
 }
@@ -251,12 +251,12 @@ double wave_lib_Stokes_5th::wave_w(lexer *p, double x, double y, double z)
 	
 	T = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = c0*sqrt(9.81/wk)
-         *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*sinh(wk*(wdt+z))*sin(T)
-         + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*sinh(2.0*wk*(wdt+z))*sin(2.0*T)
-         + 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*sinh(3.0*wk*(wdt+z))*sin(3.0*T)
-         + 4.0*(pow(eps,4.0)*a44)*sinh(4.0*wk*(wdt+z))*sin(4.0*T)
-         + 5.0*(pow(eps,5.0)*a55)*sinh(5.0*wk*(wdt+z))*sin(5.0*T));
+    vel = U0
+         *(A1*sinh(wk*(wdt+z))*sin(T)
+         + A2*sinh(2.0*wk*(wdt+z))*sin(2.0*T)
+         + A3*sinh(3.0*wk*(wdt+z))*sin(3.0*T)
+         + A4*sinh(4.0*wk*(wdt+z))*sin(4.0*T)
+         + A5*sinh(5.0*wk*(wdt+z))*sin(5.0*T));
 
     return vel;
 }
@@ -381,11 +381,11 @@ double wave_lib_Stokes_5th::wave_eta(lexer *p, double x, double y)
 	
 	T = wk*x-ww*(p->wavetime) + pshift;
 
-    eta =  (1.0/wk)*((eps + pow(eps,3.0)*b31 - pow(eps,5.0)*(b53 + b55))*cos(T)
-                    + (pow(eps,2.0)*b22 + pow(eps,4.0)*b42)*cos(2.0*T)
-                    + (-pow(eps,3.0)*b31 + pow(eps,5.0)*b53)*cos(3.0*T)
-                    + pow(eps,4.0)*b44*cos(4.0*T)
-                    + pow(eps,5.0)*b55*cos(5.0*T));
+    eta =  (1.0/wk)*(E1*cos(T)
+                    + E2*cos(2.0*T)
+                    + E3*cos(3.0*T)
+                    + E4*cos(4.0*T)
+                    + E5*cos(5.0*T));
 
     return eta;
 }
@@ -497,29 +497,14 @@ double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
     
     T = wk*x-ww*(p->wavetime) + pshift;
 
-    fi = c0*sqrt(9.81/pow(wk,3.0))
-         *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*sin(T)
-         + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*sin(2.0*T)
-         + 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*sin(3.0*T)
-         + 4.0*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*sin(4.0*T)
-         + 5.0*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*sin(5.0*T));
+    fi = F0
+         *(A1*cosh(wk*(wdt+z))*sin(T)
+         + A2*cosh(2.0*wk*(wdt+z))*sin(2.0*T)
+         + A3*cosh(3.0*wk*(wdt+z))*sin(3.0*T)
+         + A4*cosh(4.0*wk*(wdt+z))*sin(4.0*T)
+         + A5*cosh(5.0*wk*(wdt+z))*sin(5.0*T));
         
     return fi;
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_xy_ini(lexer*,int)
-{
-    
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_xy(lexer*,double,double,int)
-{
-    
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_n(lexer*)
-{
-    
 }
 
 double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
@@ -833,6 +818,29 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
 
     e4 = (tanh(wk*wdt)*(8.0 + 12.0*S - 152.0*S*S - 308.0*pow(S,3.0) - 42.0*pow(S,4.0) + 77.0*pow(S,5.0)))/(32.0*pow(1.0 - S, 5.0));
     
+    // coefficients of the harmonics, once (they were recomputed with 10 pow per evaluation;
+    // same expressions, so the same values)
+    U0 = c0*sqrt(9.81/wk);
+    F0 = c0*sqrt(9.81/pow(wk,3.0));
+    A1 = (eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51);
+    A2 = 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42);
+    A3 = 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53);
+    A4 = 4.0*(pow(eps,4.0)*a44);
+    A5 = 5.0*(pow(eps,5.0)*a55);
+    E1 = (eps + pow(eps,3.0)*b31 - pow(eps,5.0)*(b53 + b55));
+    E2 = (pow(eps,2.0)*b22 + pow(eps,4.0)*b42);
+    E3 = (-pow(eps,3.0)*b31 + pow(eps,5.0)*b53);
+    E4 = pow(eps,4.0)*b44;
+    E5 = pow(eps,5.0)*b55;
+}
+
+void wave_lib_Stokes_5th::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    const double vh = wave_horzvel(p,cache_x[q],cache_y[q],z);
+    
+    u = cosgamma*vh;
+    v = singamma*vh;
+    w = wave_w(p,cache_x[q],cache_y[q],z);
 }
 
 void wave_lib_Stokes_5th::wave_prestep(lexer *p, ghostcell *pgc)

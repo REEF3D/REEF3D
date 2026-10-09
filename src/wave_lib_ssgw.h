@@ -80,7 +80,6 @@ private:
     bool computeSurfaceVariables();
     void writeResult(const std::string folderName);
     void computeVelocityField(std::vector<double>& x, std::vector<double>& y, std::vector<double>& u, std::vector<double>& v);
-    void computePotentialField(std::vector<double>& x, std::vector<double>& y, std::vector<double>& phi);
     Parameters ParameterValue;
     std::vector<double> xs, ys, us, vs, phis;
     

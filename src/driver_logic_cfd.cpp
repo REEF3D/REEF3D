@@ -154,8 +154,9 @@ void driver::logic_cfd()
     if(p->T12==5)
 	pturbdisc=new iweno_hj_df_nug(p);
 
+    // T 12 55 (implicit WENO for uniform grids) is T 12 5
     if(p->T12==55)
-	pturbdisc=new iweno_hj(p);
+	pturbdisc=new iweno_hj_df_nug(p);
 
 
 	//  Convection FSF
@@ -273,7 +274,7 @@ void driver::logic_cfd()
 	pconcdisc=new hires(p,p->C15);
 
 	if(p->S12>=1)
-	pconcdisc=new iweno_hj(p);
+	pconcdisc=new iweno_hj_df_nug(p);
     
   
 //turbulence model
@@ -347,8 +348,9 @@ void driver::logic_cfd()
     if(p->H15==8)
 	pheatdisc=new weno3_hj(p);
 
+    // H 15 9 (WENO flux for uniform grids) is H 15 4
     if(p->H15==9)
-	pheatdisc=new weno_flux(p);
+	pheatdisc=new weno_flux_nug(p);
 
 	if(p->H15>=10 && p->H15<30)
 	pheatdisc=new hires(p,p->H15);
@@ -514,10 +516,14 @@ void driver::logic_cfd()
 #endif
 
 //VRANS
-    if(p->B200==0)
+    // porous structures (B 200 1) or the continuum VRANS sediment bed (S 10 2, Q 10 0); the particle
+    // sediment (Q 10 >= 1) has its own vrans_f for the porosity, its drag is in the particle coupling
+    const bool vrans_porous = p->B200==1 || (p->B200==0 && p->S10==2 && p->Q10==0);
+
+    if(p->B200==0 && !vrans_porous)
 	pvrans = new vrans_v(p,pgc);
 
-	if(p->B200==1)
+	if(vrans_porous)
 	pvrans = new vrans_f(p,pgc);
 
     if(p->B200==2)
@@ -629,9 +635,6 @@ void driver::logic_cfd()
 
     momentum_forcing::pdem = pdem;
 
-    if(p->E10>0 && p->N40==14 && p->E11>0 && p->mpirank==0)
-    cout<<"DEM: warning, the DEM fluid forcing is not applied with N 40 14, use N 40 3"<<endl;
-
 // FSI
     if(p->Z10==0)
     pfsi = new fsi_void(p,pgc);
@@ -646,9 +649,23 @@ void driver::logic_cfd()
     
     // RK2, RK3 and low-storage RK3 with the level set outside (12, 13, 44) or inside the stages
     // (2, 3, 4), conservative form (33)
+    bool mom_rk=false;
+
     if(p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
     || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
+    {
 	pmom = new momentum_rk(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    mom_rk=true;
+    }
+
+    // the point-implicit VRANS resistance (B 268 1) is in momentum_rk, explicit for the other schemes
+    if(!mom_rk && p->B268==1)
+    {
+    p->B268=0;
+
+        if(p->mpirank==0 && (p->B200==1 || p->S10==2))
+        cout<<"VRANS: B 268 1 needs momentum_rk, explicit resistance used"<<endl;
+    }
 
     if((p->N40==3 || p->N40==23) && p->F80==4)
     pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
@@ -658,18 +675,6 @@ void driver::logic_cfd()
 
     if(p->N40==33 && p->F80==4)
     pmom = new momentum_FCC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
-
-    if(p->N40==14 && (p->X10==0 && p->Z10==0))
-    {
-    pmom_sf = new momentum_RKLS3_sf(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
-    pmom = new momentum_void();
-    }
-    
-    if(p->N40==14 && (p->X10==1 || p->Z10>0))
-    {
-    pmom_df = new momentum_RKLS3_df(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow); 
-    pmom = new momentum_void();
-    }
 
 
 }

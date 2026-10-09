@@ -25,62 +25,37 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
+// particle sediment (CPM, Q 10 >= 1): porosity from the solid volume fraction of the parcels.
+// The grain drag on the fluid is in the particle coupling (CPM_coupling), so these cells get no
+// Darcy-Forchheimer resistance; the porous structures B 270 - B 291 are kept and take precedence.
 void vrans_f::sedpart_update(lexer *p, fdm *a, ghostcell *pgc, field &por, field &d50)
 {
-    // particle sediment: porosity from the solid volume fraction of the parcels
+    structures(p,a);
+    
     BASELOOP
-	{
-	a->porosity(i,j,k)= por(i,j,k); //porosity
-	a->porpart(i,j,k) = d50(i,j,k);  //d50
-	alpha(i,j,k) = por(i,j,k)<1.0 ? p->S26_a : 0.0;  //alpha
-	beta(i,j,k) = por(i,j,k)<1.0 ? p->S26_b : 0.0;    //beta
-	}
+    if(por(i,j,k)<1.0 && a->porosity(i,j,k)>=1.0)
+    set_cell(p,a,por(i,j,k),d50(i,j,k),0.0,0.0);
     
-    
-    pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
-    
+    exchange(p,a,pgc);
 }
 
+// continuum sediment (S 10 2, Q 10 0): the bed below topo = 0 is a porous layer (S 24, S 20, S 26)
 void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-	int qn;
-    double zmin,zmax,slope;
-    double xs,xe;
+    if(p->Q10>0)
+    return;
     
     if(p->mpirank==0)
     cout<<"Update sediment for VRANS"<<endl;
 	
-	LOOP
-	{
-	a->porosity(i,j,k)=1.0;
-	a->porpart(i,j,k)=0.01;
-	alpha(i,j,k)=0.0;
-	beta(i,j,k)=0.0;
-	}
-	
-	pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
-	
-	
-	// Topo
-    LOOP
-	if(a->topo(i,j,k)<0.0)
-	{
-	a->porosity(i,j,k)= p->S24; //porosity
-	a->porpart(i,j,k) = p->S20;  //d50
-	alpha(i,j,k) = p->S26_a;  //alpha
-	beta(i,j,k) = p->S26_b;    //beta
-	}
-    
-    
-    pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
+    structures(p,a);
+    sediment_bed(p,a);
+    exchange(p,a,pgc);
 }
 
+void vrans_f::sediment_bed(lexer *p, fdm *a)
+{
+    LOOP
+	if(a->topo(i,j,k)<0.0)
+	set_cell(p,a,p->S24,p->S20,p->S26_a,p->S26_b);
+}

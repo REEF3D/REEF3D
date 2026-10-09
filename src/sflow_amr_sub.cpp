@@ -33,7 +33,11 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<mpi.h>
 
-//  Subcycling in time (G 7 1, hydrostatic SFLOW A 220 0): Berger-Oliger with refluxing.
+//  Subcycling in time (G 7 1): Berger-Oliger with refluxing.  The non-hydrostatic pressure (A 220
+//  1-3) and the Boussinesq u_a (A 220 4) of a level-l stage are solved over the level-l patches,
+//  the synchronisation adds a projection (A 220 1-3) or rebuilds u_a (A 220 4) after the refluxing
+//  (sflow_amr_subnh.cpp, sflow_amr_bous.cpp); a moving body (X 10 2/3) is taken linear in time
+//  within the level-0 step (sflow_amr_ship.cpp).
 //
 //  Level 0 takes its RK3 step alone (sflow_momentum_RK3::start, the patches are not touched in
 //  the stage hooks).  Its faces next to a patch keep their own flux; hll_hook sums it over the
@@ -92,9 +96,14 @@ void sflow_amr::sub_snapshot(int g)
     sflow_amr_told &T = told(g);
     const size_t n = (size_t)G.q->imax*G.q->jmax;
 
-    slice *src[4] = {&G.b->WL,&G.b->UH,&G.b->VH,&G.b->WH};
-    for(int k=0; k<4; ++k)
+    // WL UH VH WH, the pressure (A 220 1-3), u_a and M (A 220 4)
+    slice *src[sflow_amr_told::NF] = {&G.b->WL,&G.b->UH,&G.b->VH,&G.b->WH,&G.b->press,&G.b->UA,&G.b->VA,&G.b->MX,&G.b->MY};
+    for(int k=0; k<sflow_amr_told::NF; ++k)
     {
+        if(k==4 && nh==0)
+        continue;
+        if(k>=5 && bous==0)
+        continue;
         if(T.f[k]==nullptr)
         T.f[k] = new slice(G.q);
         memcpy(T.f[k]->V,src[k]->V,n*sizeof(double));
@@ -152,6 +161,10 @@ void sflow_amr::sub_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     sub_snapshot(-1);
     sub_creg_reset(-1);
     hstage = 0;
+
+    // moving body: the level-0 body at the start of the step (sflow_amr_ship.cpp)
+    if(shipmode>0)
+    ship_save(sh_old);
     ++sub_steps[0];
 
     tm[2] += MPI_Wtime()-t0;
@@ -161,6 +174,16 @@ void sflow_amr::sub_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_amr::sub_end(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     const double t = p->simtime, dt = p->dt;
+    sub_t0 = t;
+    sub_dt0 = dt;
+
+    // A 220 1-3: the level-0 rows changed (level solves: rebuild its multigrid once), the residual
+    // of level 0 at the end of its own step
+    if(nh==1)
+    {
+        nh_m0_new = true;
+        nh_store_end(-1);
+    }
 
     for(int n : lev[1])
     for(int ip=0; ip<5; ++ip)
@@ -170,7 +193,7 @@ void sflow_amr::sub_end(lexer *p, fdm2D *b, ghostcell *pgc)
     sub_level(p,pgc,1,0,t,0.5*dt);
     sub_level(p,pgc,1,1,t+0.5*dt,0.5*dt);
 
-    sub_sync(p,pgc,0);
+    sub_sync(p,pgc,0,0,dt);
 }
 
 // step k (0, 1) of the level-l patches from time t with dt, within the step of level l-1; then
@@ -204,6 +227,12 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         fill_level(pgc,l,s);
         tint = -1.0;
 
+        // moving body at the stage time: X 10 3 its pressure once per step, X 10 2 every stage
+        if(shipmode==3 && s==0)
+        ship_level(l,t,true);
+        if(shipmode==2)
+        ship_level(l,t+rkc[s]*dt,false);
+
         // start state of the step (with the filled cells) for the fills of the finer level
         if(s==0 && l<maxlev)
         for(int n : lev[l])
@@ -221,6 +250,13 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         SP(n)->pmom->rk_stage(SP(n)->pp,SP(n)->b,pgc,s);
         }
         tm[1] += MPI_Wtime()-t0;
+
+        // A 220 1-3: the pressure of the stage, one solve over the level (sflow_amr_subnh.cpp);
+        // A 220 4: u_a (sflow_amr_bous.cpp)
+        if(nh==1)
+        nh_level(p,pgc,l,k,s);
+        if(bous==1)
+        bous_level(p,pgc,l,k,s);
     }
 
     // end of the step as for level 0 in sflow_f::mainloop
@@ -241,16 +277,24 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
     }
     }
 
-    if(l>=maxlev)
+    if(l>=maxlev && nh==0)
     return;
 
     // cells around the patches at the end of the step: the end state of the parents of level l+1
+    // (A 220 1-3: and the reference residual of the synchronisation, all levels)
     t0 = MPI_Wtime();
     cache_stage(0);
     tint = 0.5*double(k+1);
     fill_level(pgc,l,0);
     tint = -1.0;
     tm[0] += MPI_Wtime()-t0;
+
+    if(nh==1)
+    for(int n : lev[l])
+    nh_store_end(n);
+
+    if(l>=maxlev)
+    return;
 
     for(int n : lev[l+1])
     for(int ip=0; ip<5; ++ip)
@@ -260,11 +304,12 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
     sub_level(p,pgc,l+1,0,t,0.5*dt);
     sub_level(p,pgc,l+1,1,t+0.5*dt,0.5*dt);
 
-    sub_sync(p,pgc,l);
+    sub_sync(p,pgc,l,k,dt);
 }
 
-// level l after the two steps of level l+1: refluxing, restriction (level 0: halo)
-void sflow_amr::sub_sync(lexer *p, ghostcell *pgc, int l)
+// level l after the two steps of level l+1 (in its step k): refluxing, restriction (level 0: halo);
+// dt: the step of level l
+void sflow_amr::sub_sync(lexer *p, ghostcell *pgc, int l, int k, double dt)
 {
     double t0 = MPI_Wtime();
 
@@ -275,6 +320,23 @@ void sflow_amr::sub_sync(lexer *p, ghostcell *pgc, int l)
     exchange_level0(p0,b0,pgc,2);
 
     tm[3] += MPI_Wtime()-t0;
+
+    // A 220 1-3: the synchronisation projection of the levels l..L (sflow_amr_subnh.cpp)
+    if(nh==1)
+    nh_project(p,pgc,l,dt);
+
+    // A 220 1-3: the pressure of the finer levels into the cells of level l under them, fixed in
+    // the level solves of level l (sflow_amr_nh.cpp: act -3)
+    if(nh==1)
+    {
+        wlo = l;
+        nh_restrict_vec(-1);
+        wlo = 0;
+    }
+
+    // A 220 4: u_a, M and U of level l from its synchronised V
+    if(bous==1)
+    bous_sync(p,pgc,l,k);
 }
 
 // coarse cells of level l next to the level-(l+1) patches: the summed fine face fluxes replace

@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 40,
+ "ctrl_add": ["G 1 2", "G 15 0.0 0.2 0.0 1.0 0.0 0.34"],
+ "description": "CFD mesh refinement with three levels (G 1 2): level 1 nests level 2 with a band.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr"],
+ "covers": ["cfd_amr with two refined levels: fills from a patch parent, FAC V-cycle over three levels"]}

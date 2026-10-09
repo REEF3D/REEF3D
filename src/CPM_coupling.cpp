@@ -171,7 +171,7 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             continue;
         }
         
-        Tsp = p->ccipol4a(Ts,P.X[n],P.Y[n],P.Z[n]);
+        Tsp = cip4a(p,Ts,P.X[n],P.Y[n],P.Z[n]);
         eps = MAX(1.0-Tsp, 1.0-theta_max);
         eps = MIN(eps,1.0);
         

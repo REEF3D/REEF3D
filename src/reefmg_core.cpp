@@ -129,7 +129,7 @@ reefmg_core::~reefmg_core()
 
 bool reefmg_core::setup(MPI_Comm cart,
                              int nx,int ny,int nz,int gnx,int gny,int maxlevel,
-                             const double *dxn,const double *dyn)
+                             const double *dxn,const double *dyn,int perx,int pery)
 {
     //  A duplicate keeps the topology but gives the solver its own message
     //  space, and outlives the caller's handle.
@@ -175,21 +175,31 @@ bool reefmg_core::setup(MPI_Comm cart,
             return false;
         }
 
-        //  MPI_Cart_shift would hand out the wraparound neighbours, but the
-        //  coarse operators and the agglomeration layout assume a global edge.
-        if(per[0] || per[1] || per[2])
-        {
-            snprintf(errmsg,sizeof(errmsg),"periodic boundaries are not supported");
-            return false;
-        }
-
         npx = dims[0];
         npy = nd>1 ? dims[1] : 1;
+
+        //  Periodic x/y: the Cartesian communicator is periodic in a direction
+        //  split over several ranks, so MPI_Cart_shift hands out the wraparound
+        //  neighbours.  A direction on one rank exchanges with itself (below).
+        if((perx && npx>1 && !per[0]) || (pery && npy>1 && !(nd>1 && per[1])))
+        {
+            snprintf(errmsg,sizeof(errmsg),
+                     "periodic boundary split over several ranks, but the communicator is not periodic");
+            return false;
+        }
 
         MPI_Cart_shift(comm,0,1,&nbx0,&nbx1);
         if(nd>1)
         MPI_Cart_shift(comm,1,1,&nby0,&nby1);
     }
+
+    //  a periodic direction on a single rank: the halo is the own opposite edge
+    if(perx && npx==1) nbx0=nbx1=myrank;
+    if(pery && npy==1) nby0=nby1=myrank;
+
+    //  the agglomerated coarse problem is built with global edges
+    if(perx || pery)
+    aggmode=0;
 
     //  Coarsening schedule, one (rx,ry) per step.  Both directions are
     //  halved while the mean cell aspect ratio hx/hy stays within
@@ -212,7 +222,15 @@ bool reefmg_core::setup(MPI_Comm cart,
         {
             int loc[2]={ax,ay}, glo[2]={0,0};
             MPI_Allreduce(loc,glo,2,MPI_INT,MPI_MIN,comm);
-            const bool cx=glo[0]>=8, cy=glo[1]>=8;
+            //  A direction with fewer than 8 cells per rank is still halved -
+            //  down to one cell - while the other one keeps coarsening.  Otherwise
+            //  a narrow direction (a flume a few cells wide) stays fine while the
+            //  long one is coarsened: the coarse cells become ever more
+            //  anisotropic, and the modes that are smooth in x and z but vary
+            //  across the few cells in y are neither smoothed nor corrected
+            //  (1600 x 4 x 80: ~180 cycles instead of ~10).
+            const bool cx=glo[0]>=8 || (glo[0]>=2 && glo[1]>=8);
+            const bool cy=glo[1]>=8 || (glo[1]>=2 && glo[0]>=8);
             int rx=cx?2:1, ry=cy?2:1;
             if(cx && cy)
             {

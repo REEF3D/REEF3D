@@ -1,7 +1,8 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
-// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms, surfbeat boundary generator, forcing files. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp -o seastate_test
+// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
+// structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
 #include"seastate_grid.h"
@@ -12,6 +13,7 @@
 #include"seastate_source.h"
 #include"seastate_surfbeat.h"
 #include"seastate_forcing.h"
+#include"seastate_structure.h"
 #include<cstdio>
 #include<fstream>
 #include<cmath>
@@ -889,6 +891,175 @@ static void test_bathy()
     check(!src0.cap(N3.data(),d) && N3==N,"no cap with A 737 0");
 }
 
+// ---------------------------------------------------------------------------------------------
+// Phase 6b: vegetation (Dalrymple / Suzuki et al. 2011, Jacobsen et al. 2019), structures
+// ---------------------------------------------------------------------------------------------
+static void test_vegetation()
+{
+    std::cout<<"seastate_source: vegetation"<<std::endl;
+
+    seastate_grid sg(36,0.04,1.0,36);
+    const int nb=sg.nbin;
+    std::vector<double> P(nb), D(nb);
+    const double d=2.0, ah=1.0, bv=0.01, nv=1000.0, cd=1.0;
+
+    // IVEG 1: the dissipation rate D E_tot equals eps/(rho g) of Mendez and Losada (2004) for Hrms = sqrt(8 E_tot),
+    // eps = 1/(2 sqrt(pi)) rho Cd bv Nv (g k/(2 sig))^3 (sinh^3 k ah + 3 sinh k ah)/(3 k cosh^3 k d) Hrms^3, with the
+    // k and sig of the source term (k_WAM, sig_01)
+    {
+        seastate_source_param sp; sp.vegetation=1; sp.vh=ah; sp.vd=bv; sp.vn=nv; sp.vcd=cd;
+        seastate_source src(sg,sp);
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,0.4,4.0,3.3,0.0,50.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        const double k=src.km_wam, s=src.sigm01, H=std::sqrt(8.0*src.Etot);
+        const double sh=std::sinh(k*ah), ch=std::cosh(k*d);
+        const double eps=1.0/(2.0*std::sqrt(pi))*cd*bv*nv*std::pow(g*k/(2.0*s),3.0)*(sh*sh*sh+3.0*sh)/(3.0*k*ch*ch*ch)*H*H*H/g;
+        bool uni=true;
+        for(int b=1;b<nb;++b) uni = uni && D[b]==D[0];
+        std::cout<<"        D E_tot "<<D[0]*src.Etot<<", eps/(rho g) "<<eps<<std::endl;
+        check(uni,"IVEG 1: the same dissipation rate in all bins");
+        check(close(D[0]*src.Etot,eps,1e-10),"IVEG 1: D E_tot = eps/(rho g) of Mendez and Losada (2004)");
+
+        // emergent vegetation: the height is limited to the depth
+        seastate_source_param sp2=sp; sp2.vh=5.0;
+        seastate_source src2(sg,sp2), src3(sg,[&]{seastate_source_param q=sp; q.vh=d; return q;}());
+        std::vector<double> D2(nb), D3(nb);
+        src2.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D2.data());
+        src3.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D3.data());
+        check(D2[0]==D3[0],"IVEG 1: emergent vegetation (height > depth) acts over the water depth");
+    }
+
+    // IVEG 2 (per frequency) for a spectrum in one frequency: int_0^ah S_u sqrt(mu) dz with S_u = (sig cosh kz/sinh kd)^2 E
+    // gives sqrt(2/pi)/g Cd bv Nv sig^3 sqrt(E) (sinh^3 k ah + 3 sinh k ah)/(3 k sinh^3 kd), with the dispersion relation
+    // equal to IVEG 1 at k and sig of that frequency (Simpson with 20 intervals)
+    {
+        cell_kin ck(sg,d);
+        std::vector<float> N(nb,0.0f);
+        const int l0=12;
+        for(int m=0;m<sg.ndir;++m) N[sg.bin(l0,m)] = (m==0) ? 0.05f : 0.0f;
+        seastate_source_param sp; sp.vegetation=2; sp.vh=ah; sp.vd=bv; sp.vn=nv; sp.vcd=cd;
+        seastate_source src(sg,sp);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        const double k=ck.k[l0], s=sg.sig[l0];
+        const double E=0.05*s*sg.dsig[l0]*sg.dtheta;
+        const double sh=std::sinh(k*ah), sd=std::sinh(k*d);
+        const double ref=std::sqrt(2.0/pi)/g*cd*bv*nv*s*s*s*std::sqrt(E)*(sh*sh*sh+3.0*sh)/(3.0*k*sd*sd*sd);
+        std::cout<<"        IVEG 2 one frequency "<<D[sg.bin(l0,0)]<<", closed form "<<ref<<std::endl;
+        check(close(D[sg.bin(l0,0)],ref,2e-4),"IVEG 2: one frequency, Simpson integral within 2e-4 of the closed form");
+        const double ch=std::cosh(k*d);
+        const double v1=std::sqrt(2.0/pi)*g*g*std::pow(k/s,3.0)*std::sqrt(E)/(3.0*k*ch*ch*ch)*cd*bv*nv*(sh*sh*sh+3.0*sh);
+        check(close(ref,v1,1e-5),"IVEG 2 = IVEG 1 for one frequency (dispersion relation, k in single precision)");
+    }
+}
+
+static void test_structure()
+{
+    std::cout<<"seastate_structure"<<std::endl;
+
+    // d'Angremond et al. (1996), as SWAN DAM DANGREMOND
+    {
+        const double Tp=8.0, Hs=1.0, sl=26.565;
+        const double xi=std::tan(sl*pi/180.0)/std::sqrt(Hs/(1.5613*Tp*Tp));
+        const double a=-0.4*0.5 + 0.64*std::pow(4.0,-0.31)*(1.0-std::exp(-0.5*xi));
+        check(close(seastate_dangremond(0.5,Hs,Tp,sl,4.0),a,1e-14),"d'Angremond: B/Hs < 8");
+        const double b=-0.35*(-0.2) + 0.51*std::pow(15.0,-0.65)*(1.0-std::exp(-0.41*xi));
+        check(close(seastate_dangremond(-0.2,Hs,Tp,sl,15.0),std::max(std::min(b,0.93-0.006*15.0),0.05),1e-14),"d'Angremond: B/Hs > 12");
+        check(seastate_dangremond(3.0,Hs,Tp,sl,4.0)==0.075 && seastate_dangremond(-3.0,Hs,Tp,sl,4.0)==0.9,"d'Angremond: limits 0.075 and 0.9");
+        const double k8=seastate_dangremond(0.3,Hs,Tp,sl,8.0), k12=seastate_dangremond(0.3,Hs,Tp,sl,12.0), k10=seastate_dangremond(0.3,Hs,Tp,sl,10.0);
+        check(std::fabs(k10-0.5*(k8+k12))<0.02,"d'Angremond: 8 < B/Hs < 12 between the two branches");
+    }
+
+    // porous slab: the grid and spectrum of porous_ref.py (validation 37), Hs 1 m, depth 10 m, B 8 m, n 0.4, D50 0.5 m
+    seastate_grid sg(20,0.06,0.3,36);
+    std::vector<double> E(sg.nsig);
+    double m0=0.0;
+    for(int l=0;l<sg.nsig;++l) {E[l]=std::exp(-std::pow((sg.sig[l]-0.8)/0.12,2.0)); m0+=E[l]*sg.dsig[l];}
+    for(int l=0;l<sg.nsig;++l) E[l]*=1.0/16.0/m0;
+    std::vector<float> kt2(sg.nsig), kr2(sg.nsig);
+    const double q=seastate_porous(sg,E.data(),10.0,8.0,0.4,0.5,kt2.data(),kr2.data());
+    const int ls[4]={2,6,10,15};
+    const double rt[4]={0.20019382200794292,0.16897093535502558,0.11834474190989125,0.04646329078514286};
+    const double rr[4]={0.3244055517575106,0.37460072513004794,0.44970520824901283,0.44808032888830795};
+    double dev=0.0;
+    for(int k=0;k<4;++k) dev=std::max(dev,std::max(std::fabs(kt2[ls[k]]-rt[k])/rt[k],std::fabs(kr2[ls[k]]-rr[k])/rr[k]));
+    std::cout<<"        q_rms "<<q<<" (reference 0.0783368), max. relative deviation of Kt^2, Kr^2 "<<dev<<std::endl;
+    check(std::fabs(q-0.0783368)<2e-3*0.0783368,"porous: rms discharge velocity of the independent reference (porous_ref.py) within 0.2 %");
+    check(dev<5e-3,"porous: Kt^2, Kr^2 at four frequencies within 0.5 % of the independent reference");
+
+    // stronger resistance (D50 0.2 m, depth 20 m): the progressive mode by continuation from the root without resistance
+    {
+    std::vector<float> a2(sg.nsig), b2(sg.nsig);
+    const double qq=seastate_porous(sg,E.data(),20.0,10.0,0.4,0.2,a2.data(),b2.data());
+    const int lt[3]={3,8,13};
+    const double at[3]={0.16103970538356113,0.06660913899566258,0.020084685873719924};
+    const double bt[3]={0.35228954274549995,0.5135362697553263,0.5347080822396175};
+    double dv=0.0;
+    for(int k=0;k<3;++k) dv=std::max(dv,std::max(std::fabs(a2[lt[k]]-at[k])/at[k],std::fabs(b2[lt[k]]-bt[k])/bt[k]));
+    std::cout<<"        D50 0.2 m: q_rms "<<qq<<" (reference 0.0367835), max. relative deviation "<<dv<<std::endl;
+    check(std::fabs(qq-0.0367835)<2e-3*0.0367835 && dv<5e-3,"porous, stronger resistance: within 0.5 % of the independent reference");
+    }
+
+    // lossless limit (very coarse stones: no resistance): Kt^2 + Kr^2 = 1
+    seastate_porous(sg,E.data(),10.0,8.0,0.4,1.0e6,kt2.data(),kr2.data());
+    double loss=0.0;
+    for(int l=0;l<sg.nsig;++l) loss=std::max(loss,std::fabs(1.0-double(kt2[l])-double(kr2[l])));
+    check(loss<1e-5,"porous: Kt^2 + Kr^2 = 1 without resistance (energy conservation of the matching)");
+
+    // long waves without resistance: Madsen (1974), gamma = n/sqrt(s), k_s = k sqrt(s)
+    seastate_grid sl(3,0.005,0.01,36);
+    std::vector<double> El(3,1.0e-4);
+    seastate_porous(sl,El.data(),2.0,20.0,0.4,1.0e6,kt2.data(),kr2.data());
+    const double s=1.0+0.34*0.6/0.4, kk=sl.sig[1]/std::sqrt(g*2.0), ga=0.4/std::sqrt(s), ph=kk*std::sqrt(s)*20.0;
+    const double t2=16.0*ga*ga/(std::pow((1+ga)*(1+ga)-(1-ga)*(1-ga),2.0)*std::pow(std::cos(ph),2.0)+std::pow((1+ga)*(1+ga)+(1-ga)*(1-ga),2.0)*std::pow(std::sin(ph),2.0));
+    std::cout<<"        long wave Kt^2 "<<kt2[1]<<", Madsen (1974) "<<t2<<std::endl;
+    check(std::fabs(kt2[1]-t2)<2e-3,"porous: long waves within 2e-3 of Madsen (1974)");
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phase 8: DIA of the window of a sweep (only the interaction terms it needs, periodic directions)
+// ---------------------------------------------------------------------------------------------
+static void test_dia_window()
+{
+    std::cout<<"DIA of a sweep window (Phase 8)"<<std::endl;
+
+    for(int ndir : {36,72})
+    {
+    seastate_grid sg(31,0.04,1.0,ndir);
+    const int nb=sg.nbin;
+    seastate_source_param sp; sp.dia=true;
+    seastate_source src(sg,sp);
+    const double d=15.0;
+    cell_kin ck(sg,d);
+    std::vector<float> N=make_spectrum(sg,1.5,6.0,3.3,0.6,4.0);
+    for(int b=0;b<nb;b+=7) N[b]=0.0f;                               // some empty bins
+
+    // the full DIA, split as in compute: P = S+ - L- N, D = -S-/N - L-
+    std::vector<double> S(nb), L(nb), P(nb), D(nb);
+    src.quadruplets(N.data(),d,ck.k.data(),S.data(),L.data());
+    double err=0.0;
+    for(int q=0;q<4;++q)
+    for(int sub=0;sub<2;++sub)
+    {
+        const int a=q*ndir/4+sub, b=(q+1)*ndir/4-1-2*sub, la=3*sub, lb=sg.nsig-1-4*sub;
+        std::fill(P.begin(),P.end(),0.0); std::fill(D.begin(),D.end(),0.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),a,b,la,lb);
+        for(int l=la;l<=lb;++l)
+        for(int m=a;m<=b;++m)
+        {
+            const int x=sg.bin(l,m);
+            const double s=S[x], v=N[x], ln=std::min(L[x],0.0);
+            const double pe=std::max(s,0.0)-ln*v, de=((s<0.0 && v>0.0) ? -s/v : 0.0)-ln;
+            err=std::max(err,std::fabs(P[x]-pe)/(std::fabs(pe)+std::fabs(de)*v+1e-300));
+            err=std::max(err,std::fabs(D[x]-de)/(std::fabs(de)+1e-300));
+        }
+    }
+    std::cout<<"        "<<ndir<<" directions: windows (quadrants and sub-windows) vs the full DIA, max. rel. difference "<<err<<std::endl;
+    check(err<1e-10,"DIA of a window equals the full DIA in the window (to round-off), "+std::to_string(ndir)+" directions");
+
+    }
+}
+
 int main()
 {
     test_grid();
@@ -900,6 +1071,9 @@ int main()
     test_surfbeat();
     test_forcing();
     test_bathy();
+    test_vegetation();
+    test_structure();
+    test_dia_window();
     test_memory();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;

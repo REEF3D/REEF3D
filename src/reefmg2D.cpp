@@ -572,13 +572,13 @@ void reefmg2D::solve_neumann(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, ve
     p->final_res=relres;
 
     //  An inconsistent pure-Neumann system - prescribed in- and outflow that
-    //  do not balance - has no solution, and BiCGStab then drifts off instead
-    //  of stopping.  Do not hand that back: restart from the initial guess
-    //  with hypre, i.e. behave exactly as without REEFMG.
-    if(!(relres<=1.0))
+    //  do not balance - has no solution, and BiCGStab then drifts off or
+    //  stalls instead of converging.  Do not hand that back: restart from the
+    //  initial guess with hypre, i.e. behave exactly as without REEFMG.
+    if(!(relres<=1.0e3*p->N44))
     {
         if(p->mpirank==0)
-        cout<<"REEFMG2D pure-Neumann solve diverged (res "<<relres<<") - the system is "
+        cout<<"REEFMG2D pure-Neumann solve did not converge (res "<<relres<<") - the system is "
             <<"probably inconsistent (in- and outflow do not balance).  Handing it to "
             <<"hypre GMRES+PFMG."<<endl;
 

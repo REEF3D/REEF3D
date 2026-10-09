@@ -62,7 +62,7 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    alphaR(0.0), UR(0.0), FN(0.0), XR(0.0), YR(0.0), NR(0.0), KR(0.0),
                                    mmg(false), mmg_am(false), pwake_mmg(false), mmg_draft_in(false), mmg_fluid(1),
                                    mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0),
-                                   wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0),
+                                   wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0), NM(0.0), appr(false), appr_done(false), appr_U(0.0), appr_tr(0.0), appr_tf(0.0), Xc(0.0), Yc(0.0), Nc(0.0),
                                    ub(0.0), vb(0.0), wb(0.0), pb(0.0), qb(0.0), rb_(0.0),
                                    Re(0.0), CF(0.0), XF(0.0), Ycf(0.0), Ncf(0.0), Kroll(0.0)
 {
@@ -175,6 +175,12 @@ void ship::read(lexer *p)
         
         else if(key=="current")
         ls>>Ucur[0]>>Ucur[1];
+        
+        else if(key=="approach")
+        {
+            ls>>appr_U>>appr_tr>>appr_tf;
+            appr = true;
+        }
         
         else if(key=="thrust")
         {
@@ -409,7 +415,11 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
         
         if(mmg || mmg_am)
         cout<<"ship "<<id<<": MMG hull "<<mmg<<", added mass "<<mmg_am<<", L = "<<lpp<<" m, d = "<<mmg_d
-            <<" m, midship at x = "<<xm<<" m from the CoG, fluid loads in surge/sway/yaw "<<(mmg_fluid==1 ? "on" : "off")<<endl;
+            <<" m, midship at x = "<<xm<<" m from the CoG, fluid loads in surge/sway/yaw "
+            <<(mmg_fluid==1 ? "on" : (mmg_fluid==2 ? "on, hybrid (ideal-fluid loads from the solver, Munk moment out of N'v)" : "off"))<<endl;
+        
+        if(mmg_fluid==2 && mmg && !mmg_am)
+        cout<<"ship "<<id<<": mmg_fluid 2 without mmg_added_mass: the Munk moment stays in N'v and is counted twice"<<endl;
     }
     
     initialized = true;
@@ -426,10 +436,13 @@ void ship::steering(lexer *p, double psi, double r)
     
     double cmd = 0.0;
     
-    if(rmode==0)
+    // rudder at 0 during the approach phase
+    const bool hold = appr && p->simtime<appr_tf;
+    
+    if(rmode==0 && !hold)
     cmd = rcmd;
     
-    if(rmode==1 && p->simtime>=zz_t0)
+    if(rmode==1 && p->simtime>=zz_t0 && !hold)
     {
         // zig-zag: starboard rudder first (heading decreases), counter rudder at -psi / +psi
         if(!zz_started)
@@ -450,7 +463,7 @@ void ship::steering(lexer *p, double psi, double r)
         cmd = double(zz_sign)*zz_d;
     }
     
-    if(rmode==2)
+    if(rmode==2 && !hold)
     {
         // heading error > 0: turn to port, i.e. rudder to port (delta < 0)
         const double e = wrap_angle(ap_psi - psi);
@@ -555,15 +568,47 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     Fs(0) = XF + thrust;
     Fs(1) = Ycf;
     
+    // approach phase: the speed relative to the water follows a smooth ramp 0 -> U (sin^2 over
+    // t_ramp) and is held until t_free by a controller with feed-forward; sway and yaw are held
+    // at 0. The rudder stays at 0 until t_free. No impulsive start (no start-up transient of
+    // the flow, no surge oscillation of the free surface)
+    Xc = Yc = Nc = 0.0;
+    
+    if(appr && p->simtime<appr_tf)
+    {
+        const double tau = MAX(1.0, 10.0*p->dt);
+        const double tr = MAX(appr_tr,1.0e-10);
+        const double sr = MIN(p->simtime/tr,1.0);
+        const double Ur = appr_U*pow(sin(0.5*PI*sr),2.0);
+        const double dUr = p->simtime<tr ? appr_U*0.5*PI/tr*sin(PI*sr) : 0.0;
+        const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
+        const double mx = (mmg_am ? mmg_mx*fm : 0.0), my = (mmg_am ? mmg_my*fm : 0.0);
+        const double Jz = (mmg_am ? mmg_Jz*fm*lpp*lpp : 0.0);
+        
+        Xc = (b.mass + mx)*(dUr + (Ur - ub)/tau);
+        Yc = -(b.mass + my)*vb/tau;
+        Nc = -(b.I(2,2) + Jz)*rb_/tau;
+        
+        Fs(0) += Xc;
+        Fs(1) += Yc;
+    }
+    else if(appr && !appr_done)
+    {
+        appr_done = true;
+        
+        if(p->mpirank==0)
+        cout<<"ship "<<id<<": approach ended at t = "<<p->simtime<<" s, u = "<<ub<<" m/s, the ship is free"<<endl;
+    }
+    
     Ms(0) = Kroll;
     Ms(1) = zthrust*thrust;
-    Ms(2) = Ncf;
+    Ms(2) = Ncf + Nc;
     
     // MMG hull forces about midship (xG = -xm: CoG ahead of midship), moved to the CoG
     const double xG = -xm;
     const double vm = vb - xG*rb_;
     
-    XH = YH = NH = 0.0;
+    XH = YH = NH = NM = 0.0;
     
     if(mmg)
     {
@@ -576,7 +621,7 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     
     // MMG added mass: velocity terms of the equations of motion (the acceleration terms are
     // solved by the coupling with added_mass()); the Munk moment is part of N'v
-    if(mmg_am)
+    if(mmg_am && mmg_fluid!=2)
     {
         const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
         const double mx = mmg_mx*fm, my = mmg_my*fm;
@@ -584,6 +629,18 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         Fs(0) += my*vm*rb_ - mx*vb*rb_;
         Fs(1) += (my - mx)*ub*rb_;
         Ms(2) += xG*(mx - my)*ub*rb_;
+    }
+    
+    // hybrid with a potential-flow solver (mmg_fluid 2): the solver has the ideal-fluid loads
+    // (added mass, its velocity terms, the Munk moment -(my - mx) u vm about midship, waves),
+    // so the Munk moment contained in N'v is taken out of the MMG hull moment
+    if(mmg && mmg_am && mmg_fluid==2)
+    {
+        const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
+        const double mx = mmg_mx*fm, my = mmg_my*fm;
+        
+        NM = -(my - mx)*ub*vm;
+        Ms(2) -= NM;
     }
     
     // propeller
@@ -665,7 +722,7 @@ bool ship::added_mass(const sixdof_rigidbody &b, Eigen::Matrix<double,6,6> &A) c
 {
     // MMG added masses about midship moved to the CoG (kinetic energy with vm = v - xG r):
     // surge mx, sway my, yaw Jz + my xG^2, sway-yaw -my xG
-    if(!mmg_am || !initialized)
+    if(!mmg_am || !initialized || mmg_fluid==2)
     return false;
     
     const double f = 0.5*rho_am*lpp*lpp*mmg_d;
@@ -710,6 +767,9 @@ void ship::print(lexer *p)
         if(mmg)
         out<<" \t X_H [N] \t Y_H [N] \t N_H [Nm] (midship)";
         
+        if(mmg && mmg_fluid==2)
+        out<<" \t N_Munk [Nm] (taken out)";
+        
         out<<endl;
     }
     
@@ -719,6 +779,9 @@ void ship::print(lexer *p)
     
     if(mmg)
     out<<" \t "<<XH<<" \t "<<YH<<" \t "<<NH;
+    
+    if(mmg && mmg_fluid==2)
+    out<<" \t "<<NM;
     
     out<<endl;
 }

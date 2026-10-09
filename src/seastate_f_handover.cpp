@@ -139,16 +139,46 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     seastate_param sp;
     sp.compute(g,N);
 
-    // direction sector around the grid direction closest to the mean direction
-    const int m0 = int(std::lround(sp.dir*pi/180.0/g.dtheta)) % g.ndir;
-    int nh = int(std::floor(p->A761*pi/180.0/g.dtheta + 1.0e-9));
+    // direction sector around the grid direction closest to the mean direction; with a fine direction
+    // sector (A 715) the spectrum is written on uniform directions of the smallest bin width, linear
+    // in direction between the bin centres
+    const double dto = g.uniform ? g.dtheta : *std::min_element(g.dth.begin(),g.dth.end());
+    const int nout = int(std::lround(2.0*pi/dto));
+    const double t0 = g.uniform ? 0.0 : g.theta[g.direction_bin(sp.dir*pi/180.0)];
+    const int m0 = g.uniform ? int(std::lround(sp.dir*pi/180.0/g.dtheta)) % g.ndir : 0;
+    int nh = int(std::floor(p->A761*pi/180.0/dto + 1.0e-9));
     nh = std::max(nh,1);
 
-    int ma, mb;
-        if(2*nh+1>=g.ndir)
+    // energy density of frequency l at the written direction m
+    auto Eout = [&](int l, int m)
+    {
+        if(g.uniform)
         {
-        ma = m0 - g.ndir/2;
-        mb = ma + g.ndir - 1;
+        const int mm = ((m%g.ndir)+g.ndir)%g.ndir;
+        return g.sig[l]*double(N[g.bin(l,mm)]);
+        }
+
+        double t = std::fmod(t0 + double(m)*dto,2.0*pi);
+        if(t<0.0)
+        t += 2.0*pi;
+
+        // bracketing bin centres (periodic)
+        int b = int(std::upper_bound(g.theta.begin(),g.theta.end(),t) - g.theta.begin());
+        const int m1 = (b==0) ? g.ndir-1 : b-1;
+        const int m2 = (b==g.ndir) ? 0 : b;
+        double d1 = g.theta[m1], d2 = g.theta[m2];
+        if(d1>t) d1 -= 2.0*pi;
+        if(d2<t) d2 += 2.0*pi;
+        const double w = (d2>d1) ? (t-d1)/(d2-d1) : 0.0;
+
+        return g.sig[l]*((1.0-w)*double(N[g.bin(l,m1)]) + w*double(N[g.bin(l,m2)]));
+    };
+
+    int ma, mb;
+        if(2*nh+1>=nout)
+        {
+        ma = m0 - nout/2;
+        mb = ma + nout - 1;
         }
         else
         {
@@ -165,7 +195,7 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     out<<"fq_dir";
     out<<setprecision(10);
     for(int m=ma; m<=mb; ++m)
-    out<<" "<<double(m)*g.dtheta;
+    out<<" "<<t0+double(m)*dto;
     out<<endl;
 
     double m0sec = 0.0;
@@ -176,11 +206,10 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
 
             for(int m=ma; m<=mb; ++m)
             {
-            const int mm = ((m%g.ndir)+g.ndir)%g.ndir;
-            const double E = g.sig[l]*double(N[g.bin(l,mm)]);
+            const double E = Eout(l,m);
 
             out<<" "<<E*g.dsig[l]/dw[l];
-            m0sec += E*g.dsig[l]*g.dtheta;
+            m0sec += E*g.dsig[l]*dto;
             }
 
         out<<endl;
@@ -193,7 +222,7 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     info<<"REEF3D::SEASTATE handover point "<<n+1<<endl;
     info<<"location "<<xp<<" "<<yp<<", cell centre "<<q->XP[IP]<<" "<<q->YP[JP]<<", cell size "<<q->DXN[IP]<<" m, simtime "<<p->simtime<<endl;
     info<<"water depth "<<ee->depth(i,j)<<" m"<<endl;
-    info<<"Hs "<<sp.Hs<<" m (full spectrum), "<<hs_sec<<" m (written sector "<<double(ma)*g.dtheta*180.0/pi<<" to "<<double(mb)*g.dtheta*180.0/pi<<" deg)"<<endl;
+    info<<"Hs "<<sp.Hs<<" m (full spectrum), "<<hs_sec<<" m (written sector "<<(t0+double(ma)*dto)*180.0/pi<<" to "<<(t0+double(mb)*dto)*180.0/pi<<" deg)"<<endl;
     info<<"Tp "<<sp.Tp<<" s, Tm01 "<<sp.Tm01<<" s, mean direction "<<sp.dir<<" deg, spread "<<sp.spread<<" deg"<<endl;
     info<<endl;
     info<<"wave generation (FNPF/NHFLOW): copy spectrum-file-2d_P"<<n+1<<".dat to spectrum-file-2d.dat and use"<<endl;

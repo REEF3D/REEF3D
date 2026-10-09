@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 80,
+ "ctrl_add": ["G 1 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.4"],
+ "description": "CFD mesh refinement (G 1 1, static box G 15): the dam break with one refined level around the water column; the front leaves the patch through its edge.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr"],
+ "covers": ["cfd_amr fills, level set per grid, composite projection (FAC-preconditioned BiCGStab)", "restriction", "momentum_rk SSP stages in parts", "step size of the finest level"]}

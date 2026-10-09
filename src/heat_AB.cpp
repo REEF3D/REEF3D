@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"heat_AB.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -79,7 +80,6 @@ void heat_AB::diff_update(lexer *p, fdm *a, ghostcell *pgc)
     double alpha_1;
 	double alpha_2;
     double H;
-    double epsi=p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
     
     if(p->H9==1)
     {
@@ -97,7 +97,7 @@ void heat_AB::diff_update(lexer *p, fdm *a, ghostcell *pgc)
     
     LOOP
 	{
-		H = heaviside(a->phi(i,j,k),epsi);
+		H = heaviside(a->phi(i,j,k),interface_width(p,a->phi,i,j,k));
 
 		thermdiff(i,j,k) = alpha_1*H + alpha_2*(1.0-H);
 	}

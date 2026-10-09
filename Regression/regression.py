@@ -75,6 +75,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_AMR/*.dat",
     "REEF3D_NHFLOW_Particles/*.dat",
     "REEF3D_NHFLOW_Boom/*.dat",
+    "REEF3D_DEM/*.dat",
     "REEF3D_SFLOW_AMR/*.dat",
     "REEF3D_FNPF_AMR/*.dat",
     "REEF3D_FNPF_WSF/*.dat",
@@ -97,7 +98,8 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
                "REEF3D_SFLOW_VTP_FSF", "REEF3D_SFLOW_VTP_BED",
                "REEF3D_NHFLOW_6DOF_VTP", "REEF3D_NHFLOW_6DOF_Normals_VTP", "REEF3D_NHFLOW_6DOF_STL",
                "REEF3D_FNPF_6DOF_VTP", "REEF3D_FNPF_6DOF_Normals_VTP", "REEF3D_FNPF_6DOF_STL",
-               "REEF3D_CFD_6DOF_STL", "REEF3D_SFLOW_6DOF_VTP", "REEF3D_SEASTATE_VTP"]
+               "REEF3D_CFD_6DOF_STL", "REEF3D_SFLOW_6DOF_VTP", "REEF3D_SEASTATE_VTP",
+               "REEF3D_DEM_VTP"]
 
 LEVELS = ["identical", "close", "different", "failed"]
 

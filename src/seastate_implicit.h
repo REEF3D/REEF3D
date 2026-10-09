@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<functional>
+#include<memory>
 #include<cstdint>
 
 class lexer;
@@ -55,9 +56,13 @@ struct seastate_neighbour
     const float *cg = nullptr;    // group velocity, nullptr: no active cell
     double U = 0.0, V = 0.0;
     bool self = false;            // zero-gradient side: inflow of the cell's own spectrum
+    const float *ca = nullptr;    // diffraction (A 718): Ca per frequency of the neighbour
+    double tf = 1.0;              // obstacle on the face (A 722): energy transmission Kt^2
+    const float *tff = nullptr;   // ... per frequency (structures, A 725), nullptr: tf
 };
 
 class seastate_grid;
+class seastate_obstacle;
 
 /*--------------------------------------------------------------------
 REEF3D::SEASTATE - implicit transport of the wave action density
@@ -148,6 +153,14 @@ Phase 7 (performance):
   are solved before it in the sweep), first order where a face has no
   two active upwind cells; not monotone, the solution is clipped at zero;
   two halo layers.
+
+Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
+reflecting coasts transmit Kt^2 of the inflow (per frequency for the
+structures of A 725) and return Kr^2 of the outflow into the mirrored
+direction (specular or diffuse); the spectral sparsity solves the whole
+quadrant in a cell with a reflecting face, the second-order fluxes stay
+first order next to a blocked face. Diffraction (A 718): face
+velocities Ca c_g and the turning c_g dCa/dn.
 --------------------------------------------------------------------*/
 
 class seastate_implicit : public increment
@@ -167,6 +180,9 @@ public:
 
     // wind field (A 730 2): U10 [m/s] and direction [rad] per cell for the source terms
     void wind_field(slice *U10, slice *dir) {wU = U10; wD = dir;}
+
+    // vegetation field (A 756 1): stems per m^2 per cell for the source terms
+    void vegetation_field(slice *nv) {vN = nv;}
 
     // surfbeat (A 775 2): Crank-Nicolson, second-order geographic fluxes (cell_surfbeat);
     // needs N0 (2 iterations) and 2 halo layers
@@ -190,6 +206,15 @@ public:
     // and second-order geographic fluxes (A 796 2)
     void sparsity(double e_) {eps = e_;}
     void geographic_order(int o) {order2 = (o==2);}
+    void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
+
+    // threads per rank (A 798): the cells of a quadrant sweep in wavefront order, the cells of one
+    // diagonal i+j = const at the same time (level 0 without refinement, not the surfbeat model)
+    void threads(int n) {nthreads = std::max(n,1);}
+
+    // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency; obstacles (A 722)
+    void diffraction(const seastate_store *ca, const seastate_store *cax, const seastate_store *cay) {dca = ca; dcax = cax; dcay = cay;}
+    void obstacles(const seastate_obstacle *o) {pob = o;}
 
     // mesh refinement, composite sweep: solve the one cell (i,j) for quadrant q
     void solve(lexer*, fdm_seastate*, int q, int ci, int cj, const seastate_store *N0, double rdt,
@@ -200,8 +225,15 @@ public:
 
 private:
 
-    void cell(lexer*, fdm_seastate*, int q, const float *N0, double rdt,
+    void cell(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
               const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+
+    void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
+                       const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+    int nthreads = 1;
+    const seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;
+    const seastate_obstacle *pob = nullptr;
+    vector<double> cdp, cdm;            // diffraction: c_theta at the faces m+1/2, m-1/2 per frequency and direction
 
     void cell_surfbeat(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction);
@@ -210,6 +242,7 @@ private:
     seastate_source *src;
     const vector<float> *Nbs[4], *Nbs0[4];
     slice *wU, *wD;
+    slice *vN = nullptr;
     bool second;
     bool ranged = false;
     int ri0 = 0, ri1 = -1, rj0 = 0, rj1 = -1;
@@ -218,6 +251,7 @@ private:
     vector<double> P, D;                // source terms of the cell (src != nullptr)
     vector<double> Ar;                  // sig/sinh(2kd) of the cell per frequency
     vector<double> qc, qs, cur;         // cos, sin and current shear term per direction of the quadrant
+    vector<double> rth;                 // 1/dth per direction of the quadrant
     vector<double> tAp, tCp, tAm, tCm;  // c_theta = A tA + tC at the faces m+1/2 (p) and m-1/2 (m)
     vector<double> csg;                 // c_sigma per frequency and direction of the quadrant (nsig x ndir)
     vector<float> zero;                 // zero spectrum (no inflow)
@@ -229,22 +263,33 @@ private:
     // spectral sparsity
     double eps = 0.0;
     bool order2 = false;
+    int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
+    double srctol = 0.0;                // ... until the relative energy change of the cell is below this
     vector<int> wlo, whi;               // window of directions solved per frequency (quadrant index)
     vector<double> thr;                 // threshold per frequency (action density)
-    vector<uint16_t> rg;                // active ranges per cell, quadrant, frequency
-    vector<uint16_t> rv;                // per cell: 1 ranges set, 2 triads active, 4<<q quadrant q holds energy,
+    // the active ranges are shared with the copies of the solver that work the threads (A 798)
+    struct shared_ranges
+    {
+    vector<uint16_t> rg, rv, rb;
+    int rni = 0, rnj = 0, rimin = 0, rjmin = 0;
+    };
+    std::shared_ptr<shared_ranges> sr = std::make_shared<shared_ranges>();
+    vector<uint16_t> &rg = sr->rg;      // active ranges per cell, quadrant, frequency
+    vector<uint16_t> &rv = sr->rv;      // per cell: 1 ranges set, 2 triads active, 4<<q quadrant q holds energy,
                                         // 64<<2q / 128<<2q energy in the first / last direction of quadrant q
     void summary(int ci, int cj, int q, const uint16_t *r);
     vector<double> rsum;                // row sums of the active ranges
-    vector<uint16_t> rb;                // per cell and quadrant: band of frequencies with energy (lo<<8 | hi)
+    vector<float> Nsit;                 // source iterations: the spectrum of the cell before the last solve
+    vector<uint16_t> &rb = sr->rb;      // per cell and quadrant: band of frequencies with energy (lo<<8 | hi)
     int lmin = 0, lmax = -1;            // band of the windows of the current cell
-    int rni = 0, rnj = 0, rimin = 0, rjmin = 0;
+    int &rni = sr->rni, &rnj = sr->rnj, &rimin = sr->rimin, &rjmin = sr->rjmin;
     std::function<void(int,int)> *vis = nullptr;
     double energy(const seastate_grid&, const float *N) const;
     bool managed(lexer*, fdm_seastate*, int ci, int cj) const;
     uint16_t *ranges(lexer*, fdm_seastate*, int ci, int cj);
     void windows(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N, const seastate_neighbour &W,
-                 const seastate_neighbour &E, const seastate_neighbour &S, const seastate_neighbour &Nn, bool rf, bool fs);
+                 const seastate_neighbour &E, const seastate_neighbour &S, const seastate_neighbour &Nn, bool rf, bool fs,
+                 bool all=false);
     void keep(lexer*, fdm_seastate*, int q, int ci, int cj);
     const float *usable(lexer*, fdm_seastate*, int ci, int cj) const;
     vector<int> m0, m1;                 // first and last direction of each quadrant

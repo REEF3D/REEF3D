@@ -39,11 +39,10 @@ public:
     void volcalc2(lexer*, fdm*, ghostcell*, field&);
     void correct_ls(lexer*, fdm*, ghostcell*, field&) override final;
 
-    double vol1,vol2;
+    double vol1,vol2,dvol2;
 
 private:
 
-    const double epsi;
 };
 
 #endif

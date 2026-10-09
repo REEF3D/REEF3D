@@ -82,8 +82,6 @@ class nhflow;
 class multiphase;
 class nhflow_momentum;
 class nhflow_particle;
-class momentum_RKLS3_df;
-class momentum_RKLS3_sf;
 class particle_base;
 
 #include<iostream>
@@ -112,8 +110,6 @@ public:
     void seastate_driver();
     
 	void loop_cfd(fdm*);
-	void loop_cfd_df(fdm*);
-    void loop_cfd_sf(fdm*);
     void loop_nhflow();
     void loop_fnpf();
     
@@ -209,8 +205,6 @@ public:
     nhflow_particle *pnhfpart;
     nhflow_forcing *pnhfdf;
     vrans_nhflow *pnhfvrans;
-    momentum_RKLS3_df *pmom_df;
-    momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
     dem *pdem;
     turbulence *pturbcfd;

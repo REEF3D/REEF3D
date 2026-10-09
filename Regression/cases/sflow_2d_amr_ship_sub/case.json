@@ -1,0 +1,22 @@
+{
+ "description": "sflow_2d_amr_ship subcycled (G 7 1): the body on the patches linear in time within the level-0 step, the quadratic non-hydrostatic pressure per level.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 10,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "nh",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_ship: ship_save, ship_put, ship_level; sflow_amr_subnh with sflow_pjm_quad"
+ ],
+ "base": "sflow_2d_amr_ship",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

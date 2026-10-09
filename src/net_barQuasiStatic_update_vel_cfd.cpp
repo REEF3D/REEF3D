@@ -25,18 +25,6 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void net_barQuasiStatic::update_velocity_cfd(lexer *p, fdm *a, ghostcell *pgc)
-{
-
-    //- Get velocities at knots
-    updateField_cfd(p, a, pgc, 0);
-    updateField_cfd(p, a, pgc, 1);	
-    updateField_cfd(p, a, pgc, 2);
-    
-    //- Get density at knots
-    updateField_cfd(p, a, pgc, 3);  
-}
-
 void net_barQuasiStatic::updateField_cfd(lexer *p, fdm *a, ghostcell *pgc, int cmp)
 {
 	int *recField, *count;

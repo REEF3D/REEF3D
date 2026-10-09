@@ -143,6 +143,8 @@ private:
     void stress_snider(lexer*, ghostcell*, sediment_fdm*);
     void stress_packedbed(lexer*, ghostcell*, sediment_fdm*);
     void stress_overburden(lexer*, ghostcell*, sediment_fdm*);
+    void stress_yield(lexer*, ghostcell*);
+    double yield_weight(lexer*, double, double, double);
     void friction(lexer*, fdm*, double, double, double, double&, double&, double&, double, double);
     void gradient(lexer*, ghostcell*, field&, field&, field&, field&);
     double contact_pressure(double, double);
@@ -152,6 +154,27 @@ private:
     
     void stress_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void pressure_gradient(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    
+    // seepage flow in the bed (Q 69): piezometric pore pressure p* = p - rho_f g.x (Darcy, Laplace in the bed)
+    void seepage_update(lexer*, fdm*, ghostcell*);
+    bool seep_bed(lexer*, fdm*, int, int, int);
+    double pstar_fluid(lexer*, fdm*, int, int, int);
+    field4a Pse,Gsz,Pnos;   // p* (bed: pore pressure, fluid: fluid), vertical gradient of p* in the bed, overburden without the seepage
+    int seep_ini=0;
+    
+    turbulence *pturb_=nullptr;   // turbulence model of the last call of move (bed shear stress of the layer, Q 68)
+    
+    // interpolation of the cell-centred fields with the stencils of the last two points (WP9), as ccipol4a
+    struct stencil
+    {
+        bool ok=false;
+        double x=0.0,y=0.0,z=0.0,wa=0.0,wb=0.0,wc=0.0;
+        int i=0,j=0,k=0;
+    };
+    stencil st[2];
+    int st_last=0;
+    double cip4a(lexer*, field&, double, double, double);
+    
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
     void kernel(lexer*, double, double, double);
@@ -187,6 +210,7 @@ private:
     field4a cellSum;
     field4a Us,Vs,Ws;
     field4a Pov;
+    field4a Fxy,Yr;  // column integral of the lateral load |int grad_h(Pov) dz| and the yield ratio Fxy/(mu_s Pov) (Q 67)
     field4a Kc,KUx,KUy,KUz;
     field4a dSx,dSy,dSz;
     field4a Locc,Lout,Lin,Ltc,Lloc,LA,Lh0,Lh1,Lh2,Lh3;
@@ -264,9 +288,23 @@ private:
     double settling_velocity(lexer*, double);
     void bedload_occupancy(lexer*);
     bool bedload_rest(lexer*, fdm*, int);
+    bool bedload_settle(lexer*, fdm*, sediment_fdm*, int);
+    bool bedload_nodisp(lexer*, fdm*, int);
     double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
-    int bl_npick=0, bl_ndep=0, bl_nsus=0;
+    int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0;
+    // hybrid suspension (Q 58 3), see CPM_suspension.cpp: erodible parcels per column, net exchange rate
+    slice4 blNc,blSr,blMc;
+    int blMc_ok=0;
+    int susp_cell(lexer*, fdm*, int, int);
+    double susp_column(lexer*, fdm*, int, int);
+public:
+    void susp_cbe(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void susp_flux(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    double susp_volume(lexer*, fdm*, ghostcell*);
+    fdm *afdm=nullptr;   // fluid data for the log (suspended volume)
+    double dbg_v0=0.0, dbg_ex=0.0, dbg_dv=0.0, dbg_sw=0.0;
+private:
     double Urel,Vrel,Wrel;
     double Tsval;
     double dTx_val,dTy_val,dTz_val;

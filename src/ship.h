@@ -54,6 +54,11 @@ using namespace std;
 //   current        Ux Uy        uniform current, inertial frame [m/s]: the hull, propeller and
 //                               rudder models use the velocity relative to it (ship held in a
 //                               current instead of towed)              (default 0 0)
+//   approach       U tr tf      approach phase: the speed relative to the water follows a smooth
+//                               ramp 0 -> U over tr [s] and is held until tf [s] by a controller
+//                               (surge with feed-forward, sway and yaw held at 0); the rudder
+//                               stays at 0 until tf. Start from rest instead of an initial
+//                               velocity (X 102): no impulsive start of the flow (default off)
 //
 //  propeller (body force, Hough-Ordway actuator disk)
 //   propeller      x y z D      disk centre relative to the CoG [m], diameter [m]
@@ -91,8 +96,13 @@ using namespace std;
 //   mmg_hull       R0 Xvv Xvr Xrr Xvvvv Yv Yr Yvvv Yvvr Yvrr Yrrr Nv Nr Nvvv Nvvr Nvrr Nrrr
 //                               hull hydrodynamic derivatives about midship
 //   mmg_added_mass mx my Jz     added masses (about midship); solved implicitly by the coupling
-//   mmg_fluid      0|1          0: the hydrodynamic loads of the solver in surge, sway and yaw
-//                               (inertial X, Y, N) are replaced by the MMG model (default 1)
+//   mmg_fluid      0|1|2        0: the hydrodynamic loads of the solver in surge, sway and yaw
+//                               (inertial X, Y, N) are replaced by the MMG model; 1: both are
+//                               added (default); 2: hybrid with a potential-flow solver (FNPF):
+//                               the solver supplies the ideal-fluid loads (added mass and its
+//                               velocity terms, Munk moment, waves, drift), the MMG model the
+//                               hull derivatives without the Munk moment -(my - mx) u vm (needs
+//                               mmg_added_mass for my, mx; no MMG added mass is solved)
 //   mmg_draft      d            draft for the nondimensionalisation    (default: from the hull)
 //   propeller_wake_mmg C1 C2p C2n xP   MMG wake in manoeuvring with wP0 = propeller_inflow wake,
 //                               xP: propeller position from midship in units of L
@@ -156,7 +166,9 @@ private:
     int mmg_fluid;
     double mmgc[17], mmg_mx, mmg_my, mmg_Jz, mmg_d, xm, Umin, rho_am;
     double wC1, wC2p, wC2n, wxP;
-    double XH, YH, NH;
+    double XH, YH, NH, NM;
+    bool appr, appr_done;
+    double appr_U, appr_tr, appr_tf, Xc, Yc, Nc;
     
     // loads of the last evaluation, ship frame
     double ub, vb, wb, pb, qb, rb_;

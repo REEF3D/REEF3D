@@ -46,7 +46,6 @@ public:
 
     // functions
     // add
-    void add(lexer*,ghostcell*,double,double,double,double,double);
 
     void resize(lexer*,int);
 

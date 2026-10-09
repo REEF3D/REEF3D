@@ -1,0 +1,6 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {"Q 68": "1"},
+ "description": "as cfd_2d_cpm_bedload_layer with the bed shear stress of the layer from the turbulent kinetic energy, max(log law, 0.3 rho k) (Q 68 1)",
+ "covers": ["CPM bedload layer: bed shear stress from the turbulent kinetic energy of the first fluid cell (Q 68)"]
+}

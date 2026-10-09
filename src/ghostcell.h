@@ -188,7 +188,6 @@ public:
     void gcsl_start1(lexer*,slice&, int);
 	void gcsl_start2(lexer*,slice&, int);
 	void gcsl_start4(lexer*,slice&, int);
-	void gcsl_start4a(lexer*,slice&, int);
 
     void gcsl_start1int(lexer*,sliceint&, int);
     void gcsl_start2int(lexer*,sliceint&, int);
@@ -198,7 +197,6 @@ public:
     void gcsldistro1(lexer*, slice&,int, int, int, int, int, int);
 	void gcsldistro2(lexer*, slice&,int, int, int, int, int, int);
 	void gcsldistro4(lexer*, slice&,int, int, int, int, int, int);
-	void gcsldistro4a(lexer*, slice&,int, int, int, int, int, int);
 
     void gcsldistro1int(lexer*, sliceint&,int, int, int, int, int, int);
     void gcsldistro2int(lexer*, sliceint&,int, int, int, int, int, int);
@@ -265,20 +263,14 @@ public:
     void dirichlet_para_reflect(lexer*,field&,double,int,int,int);
 	void dirichlet_ortho_reflect(lexer*,field&,double,int,int,int);
 	void neumann(field&,int,int,int);
-    void gcb_debug(field&,int,int,int);
 	void extend(lexer*,field&,double,int,int,int);
 	void outflow(lexer*,field&,int,int,int);
-    void sommerfeld(lexer*,field&,int,int,int);
     void potentialbc(lexer*,field&,int,int);
-    void neumann_all(field&,int,int,int);
-    void lsm(lexer*,field&,double,int,int,int);
     void noslip(field&,double,int,int,int);
     void imagepoint(lexer*,field&, double&, double&,double,int);
 	void atmosphere(lexer*,field&,int,int,int);
     void heatbc(lexer*,field&,int,int,int);
-	void gravity_press(lexer*,field&,double,int,int,int);
     void nhpress(lexer*,field&,double,int,int,int);
-    void kinematic_bed(lexer*,field&,double,int,int,int);
     void fivec(lexer*,double*,sliceint&);
     void fivec2D(lexer*,double*,sliceint&);
     void fivec_vel(lexer*,double*,sliceint&);

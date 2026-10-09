@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
+#include"patchBC_codes.h"
 #include"slice.h"
 
 int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
@@ -54,7 +55,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
 	return 4;
     
     else
-	if((bc==211 || bc==212 || bc==112 || bc==111) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
+	if(patch_bc(bc) && (gcv==41 || gcv==42 || gcv==43 || gcv==44))
 	return 4;
     
     // Fifsf 60 - 3D
@@ -77,7 +78,7 @@ int ghostcell::gcsleval4(lexer *p, int gcv, int bc, int cs)
     
     //Patch eta / Hx / Hy
     else
-	if((bc==221 || bc==211 || bc==121 || bc==111) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
+	if((patch_bc(bc) && !patch_fsf(bc)) && (gcv==50||gcv==51||gcv==52||gcv==53||gcv==54))
 	return 4;
     
     // eta / WL at iowave Riemann / Flather edges: set by iowave

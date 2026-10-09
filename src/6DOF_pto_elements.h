@@ -68,4 +68,25 @@ private:
     double qmin, qmax, K, C;
 };
 
+// latch (X 507): stiff spring-damper holding the position q0 while on and t < t_release, set by
+// the latching controller via set_param("q0"), ("t_release") and ("latch",1/0); no absorbed power
+class pto_latch : public pto_base
+{
+public:
+    pto_latch(double, double);
+
+    pto_output force(const pto_state&) override;
+    void set_param(const std::string&, double) override;
+    const char* name() const override {return "latch";}
+    bool useful() const override {return false;}
+    bool stiff() const override {return true;}
+
+    bool on=false;
+    double q0=0.0;
+    double t_release=1.0e30;    // released at this (stage) time
+
+private:
+    double K, C;
+};
+
 #endif

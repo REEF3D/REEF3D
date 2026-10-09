@@ -44,6 +44,9 @@ public:
     virtual void correct(lexer*, fdm2D*, slice &UH, slice &VH, slice &WH, slice &WL, double alpha)=0;
     virtual int is_active(lexer*, fdm2D*, int, int)=0;
     virtual int gcval() const=0;
+    // coefficients of the bed pressure in the u, v correction and of the w correction (G 7 1:
+    // the synchronisation projection of sflow_amr)
+    virtual void coef(double &cbq, double &cwq) const=0;
 };
 
 #endif

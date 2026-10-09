@@ -188,22 +188,3 @@ void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
         p->xtime+=endtime-starttime;
     }
 }
-
-void ghostcell::gcsl_start4a(lexer *p, slice &f, int gcv)
-{
-    starttime=timer();
-    QQGCSL4ALOOP
-    gcsldistro4a(p,f,p->gcbsl4a[qq][0], p->gcbsl4a[qq][1], p->gcbsl4a[qq][5], gcv, p->gcbsl4a[qq][4], p->gcbsl4a[qq][3]);
-    endtime=timer();
-    p->gctime+=endtime-starttime;
-
-    //  MPI Boundary Swap
-    if(do_comms)
-    {
-        starttime=timer();
-        gcslparax(p,f,4);
-        gcslparacox(p,f,gcv);
-        endtime=timer();
-        p->xtime+=endtime-starttime;
-    }
-}

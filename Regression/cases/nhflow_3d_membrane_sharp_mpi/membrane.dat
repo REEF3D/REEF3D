@@ -1,0 +1,11 @@
+# Architect: Hans Bihs
+# Regression: cylinder-on-cone bag (Strand et al. 2013 cage, model scale), coarse grid
+# fixed bag filled to 80 % in a current ramp, mobility sharp, centred on the border of the two subdomains (x = 1.5 m)
+membrane cylcone 1.5 1.2 0.38 0.9 1.2 1.53
+name strand2013
+resistance 1.0e5 0
+projections 1
+print 0
+structure fixed
+filling 0.8
+mobility sharp

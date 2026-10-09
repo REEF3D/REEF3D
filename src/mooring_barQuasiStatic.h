@@ -52,7 +52,6 @@ public:
 private:	
 	// Runtime
 	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
-    vector<double> getC(double);
     void print(lexer*,ghostcell*);
     void buildLine(lexer*,ghostcell*);
     void checkBottom(lexer*,ghostcell*);

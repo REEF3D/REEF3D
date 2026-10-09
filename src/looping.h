@@ -97,17 +97,22 @@ Authors: Hans Bihs, Alexander Hanke
 #define PORVAL4pz a->porosity(i,j,k+1)
 
 
-#define CPOR1   (1.0/(1.0+(p->B260*(PORVAL1<1.0?1.0:0.0))))
-#define CPOR2   (1.0/(1.0+(p->B260*(PORVAL2<1.0?1.0:0.0))))
-#define CPOR3   (1.0/(1.0+(p->B260*(PORVAL3<1.0?1.0:0.0))))
+// VRANS added mass 1/(1+C_m) for the Darcy velocity (Jensen et al. 2014), face porosity n:
+// B 266 1: C_m = gamma (1-n)/n with gamma = B 260 (continuous, C_m -> 0 for n -> 1)
+// B 266 0: C_m = B 260 wherever n < 1
+#define CPORval(n)  ((n)<1.0 ? 1.0/(1.0 + p->B260*(p->B266==1 ? (1.0-(n))/(n) : 1.0)) : 1.0)
+
+#define CPOR1   CPORval(PORVAL1)
+#define CPOR2   CPORval(PORVAL2)
+#define CPOR3   CPORval(PORVAL3)
 
 #define PORVAL1m (0.5*(a->porosity(i,j,k) + a->porosity(i-1,j,k)))
 #define PORVAL2m (0.5*(a->porosity(i,j,k) + a->porosity(i,j-1,k)))
 #define PORVAL3m (0.5*(a->porosity(i,j,k) + a->porosity(i,j,k-1)))
 
-#define CPOR1m   (1.0/(1.0+(p->B260*(PORVAL1m<1.0?1.0:0.0))))
-#define CPOR2m   (1.0/(1.0+(p->B260*(PORVAL2m<1.0?1.0:0.0))))
-#define CPOR3m   (1.0/(1.0+(p->B260*(PORVAL3m<1.0?1.0:0.0))))
+#define CPOR1m   CPORval(PORVAL1m)
+#define CPOR2m   CPORval(PORVAL2m)
+#define CPOR3m   CPORval(PORVAL3m)
 
 #define PORVAL1p (0.5*(a->porosity(i+2,j,k) + a->porosity(i+1,j,k)))
 #define PORVAL2p (0.5*(a->porosity(i,j+2,k) + a->porosity(i,j+1,k)))

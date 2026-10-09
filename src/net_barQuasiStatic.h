@@ -65,8 +65,6 @@ private:
     // -------------------------------
 	// Runtime
 	void startLoop(lexer*, ghostcell*, int&);
-    void update_velocity_cfd(lexer*, fdm*, ghostcell*);
-    void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
     
     void updateField_cfd(lexer*, fdm*, ghostcell*, int);
     void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
@@ -112,7 +110,6 @@ private:
     
     void fillRhs_bag(lexer*);
     
-    void fillRhs_Morison(lexer*);
     void morisonForceCoeff(double&, double&, const double&); 
  
     void fillRhs_Screen(lexer*);  

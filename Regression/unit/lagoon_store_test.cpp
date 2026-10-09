@@ -1,5 +1,5 @@
 // Standalone verification of the LAGOON store writer (lagoon_store): no MPI, no REEF3D.
-// Build:  g++ -O2 -std=c++20 -I../../src lagoon_store_test.cpp ../../src/lagoon_store.cpp -lz -o lagoon_store_test
+// Build:  g++ -O2 -std=c++20 -I../../src lagoon_store_test.cpp ../../src/lagoon_store.cpp -lz -lpthread -o lagoon_store_test
 // Run:    ./lagoon_store_test     (writes and reads back lagoon_store_test.lagoon in the current folder)
 // The files follow LAGOON's lagoon-format SPEC.md 0.1; LAGOON reads them with lagoon_format.store.
 #include"lagoon_store.h"
@@ -10,6 +10,8 @@
 #include<cstring>
 #include<fstream>
 #include<iostream>
+#include<limits>
+#include<random>
 #include<sstream>
 #include<string>
 #include<vector>
@@ -203,6 +205,46 @@ int main()
         check(zs.size()==5*8 && z4==2.0, "the heights of the levels: z (5 values)");
         check(!std::ifstream((path+"/volume/blocks/b0000/z_bed/zarr.json").c_str()), "no heights per output");
         check(slurp(path+"/volume/zarr.json").find("\"grid\": \"cartesian\"")!=std::string::npos, "grid: cartesian");
+    }
+
+    std::cout<<"noisy values, compressed by several threads"<<std::endl;
+    {
+        // 40 x 30 points, 4 levels: inner chunks of 2 levels (2400 values), 2 per output.
+        // The low bytes of noisy values are stored in the gzip stream as they are, the
+        // others compressed; the same files with 1 and 4 threads.
+        const int NX=40, NY=30, NZ=4, N=NX*NY*NZ;
+        std::vector<double> x(NX), y(NY), sigma={0.0,0.3,0.7,1.0};
+        for(int i=0;i<NX;++i) x[i]=i;
+        for(int j=0;j<NY;++j) y[j]=j;
+        std::vector<lagoon_store::variable> vars={{"pressure",1,"Pa"}};
+        std::mt19937 rng(3);
+        std::normal_distribution<float> noise(0.0f,1.0f);
+        std::vector<std::vector<float> > p(2, std::vector<float>(N));
+        for(int n=0;n<N;++n) p[0][n]=1000.0f+noise(rng);
+        for(int n=0;n<N;++n) p[1][n]= n<N/2 ? std::numeric_limits<float>::quiet_NaN() : noise(rng);  // levels 0, 1: fill
+        std::string shards[2];
+        for(int run=0;run<2;++run)
+        {
+            const std::string path = run==0 ? "lagoon_store_test_1.lagoon" : "lagoon_store_test_4.lagoon";
+            if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+            lagoon_store store(path,16,1);
+            store.set_threads(run==0 ? 1 : 4);
+            store.create_root("FNPF","");
+            store.create_output("volume","sigma",x,y,sigma,vars,1,"test");
+            store.create_block("volume",0,0,0,NX,NY,NZ,vars,0);
+            for(int t=0;t<2;++t)
+                store.write("volume",0,t,"pressure",p[t].data());
+            store.commit("volume",1,0.1,1);
+            shards[run]=slurp(path+"/volume/blocks/b0000/pressure/c/0/0/0/0");
+        }
+        check(!shards[0].empty() && shards[0]==shards[1], "1 and 4 threads write the same shard");
+        bool crc=false;
+        const size_t half=N/2;
+        const std::vector<float> a=inner_chunk(shards[1],32,0,half,crc), b=inner_chunk(shards[1],32,1,half,crc);
+        const std::vector<float> c=inner_chunk(shards[1],32,2,half,crc), d=inner_chunk(shards[1],32,3,half,crc);
+        check(crc && a==std::vector<float>(p[0].begin(),p[0].begin()+half) && b==std::vector<float>(p[0].begin()+half,p[0].end()),
+              "output 0: both chunks read back (gunzip as any reader does)");
+        check(c.empty() && d==std::vector<float>(p[1].begin()+half,p[1].end()), "output 1: the chunk of fill values is left out");
     }
 
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;

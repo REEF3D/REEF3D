@@ -43,7 +43,7 @@ public:
 	
 	double H,roval,phival;
 	int ii,jj,kk;
-	double ro_air,psi;
+	double ro_air;
 
 };
 

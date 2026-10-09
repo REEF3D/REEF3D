@@ -88,13 +88,10 @@ public:
     
     // mesh refinement with subcycling (nhflow_amr, G 7 1, 6DOF_obj_nhflow_amr.cpp): the finest
     // level advances the body; the coarser levels step before it with a predicted copy
-    void amr_save();
-    void amr_restore(lexer*, ghostcell*);
+    // (sixdof_obj::amr_save, amr_restore)
     void amr_stage(lexer*, fdm_nhf*, ghostcell*, int, bool);
 
 private:
-    
-    sixdof_rigidbody rb_amr;   // the body at the start of a predicted step (amr_save)
     
     void hydrodynamic_forces_nhflow_volume(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&, int, bool);
     void externalForces_nhflow(lexer*, fdm_nhf*, ghostcell*, double, bool);
@@ -110,7 +107,6 @@ private:
     void print_force(lexer*,fdm_nhf*,ghostcell*);
     void forces_nhflow(lexer*, fdm_nhf*, ghostcell*);
     void force_calc_stl(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
-    void force_calc_stl2(lexer*, fdm_nhf*, ghostcell*, slice&,bool);
     void hydrodynamic_viscous_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, double&,double&,double&,double,double,double,double,double,double,double);
     void force_calc_lsm(lexer*, fdm_nhf*, ghostcell*,slice&);
     void triangulation(lexer*, fdm_nhf*, ghostcell*);
@@ -118,9 +114,7 @@ private:
     void addpoint(lexer*,fdm_nhf*,int,int);
     void finalize(lexer*,fdm_nhf*);
     double triangle_area(lexer*,double,double,double,double,double,double,double,double,double);
-    double clip_edge(double,double);
     double clip_edge_vol(double,double,double);
-    bool clip_facet(lexer*,double,double,double,double,double,double,double,double,double, double,double,double,double&,double&,double&,double&);
     void buoyancy_nhflow(lexer*, fdm_nhf*, ghostcell*, double, double&, double&, double&, double&);
     
     nhflow_reinidisc_fsf *pnhfrdisc;

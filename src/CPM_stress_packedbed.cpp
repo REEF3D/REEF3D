@@ -184,6 +184,9 @@ void CPM::stress_packedbed(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     stress_overburden(p,pgc,s);
     
+    if(p->Q67>0 && p->Q58>0 && p->S10==1)
+    stress_yield(p,pgc);
+    
     dilatancy(p,pgc);
     
     cmax=0.0;
@@ -216,6 +219,16 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
     double change,old,Lk,Lkp;
     bool above;
     
+    // seepage (Q 69): the excess pore pressure gradient dp*/dz loads (downward flow) or unloads (upward flow)
+    // the contact network; Pnos keeps the overburden without it for the jam (unloading ratio)
+    const bool seep = p->Q69>0 && p->S10!=2;
+    
+    auto load = [&](int kk, double gs) -> double
+    {
+        double ramp = MIN(1.0,(Ts(i,j,kk)-tgap)/tgap);
+        return (rog*Ts(i,j,kk) + gs)*ramp;
+    };
+    
     int itermax = zsplit==1 ? 1000 : 1;
     
     for(int qn=0; qn<itermax; ++qn)
@@ -231,22 +244,36 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
             old = Pov(i,j,k);
             
             if(Ts(i,j,k)<tgap)
-            Pov(i,j,k) = 0.0;
+            {
+                Pov(i,j,k) = 0.0;
+                
+                if(seep)
+                Pnos(i,j,k) = 0.0;
+            }
             
             else
             {
-                Lk = rog*Ts(i,j,k)*MIN(1.0,(Ts(i,j,k)-tgap)/tgap);
+                Lk = load(k, seep ? Gsz(i,j,k) : 0.0);
                 
                 above = (k+1<p->knoz || p->nb6>=0) && Ts(i,j,k+1)>=tgap;
                 
                 if(above)
                 {
-                Lkp = rog*Ts(i,j,k+1)*MIN(1.0,(Ts(i,j,k+1)-tgap)/tgap);
+                Lkp = load(k+1, seep ? Gsz(i,j,k+1) : 0.0);
                 Pov(i,j,k) = Pov(i,j,k+1) + 0.5*Lkp*p->DZN[KP1] + 0.5*Lk*p->DZN[KP];
                 }
                 
                 else
                 Pov(i,j,k) = 0.5*Lk*p->DZN[KP];
+                
+                // no tension in the contact network: a fluidised layer carries nothing
+                if(seep)
+                {
+                    Pov(i,j,k) = MAX(Pov(i,j,k), 0.0);
+                    
+                    Pnos(i,j,k) = above ? Pnos(i,j,k+1) + 0.5*load(k+1,0.0)*p->DZN[KP1] + 0.5*load(k,0.0)*p->DZN[KP]
+                                        : 0.5*load(k,0.0)*p->DZN[KP];
+                }
             }
             
             change = MAX(change, fabs(Pov(i,j,k)-old));
@@ -254,6 +281,9 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
         }
         
         pgc->start4a(p,Pov,1);
+        
+        if(seep)
+        pgc->start4a(p,Pnos,1);
         
         if(zsplit==1)
         {
@@ -263,6 +293,162 @@ void CPM::stress_overburden(lexer *p, ghostcell *pgc, sediment_fdm *s)
             break;
         }
     }
+}
+
+/*--------------------------------------------------------------------
+yield of the jammed bed (Q 67), Mohr-Coulomb in the column
+
+The jammed bed (Q 64) holds every parcel below the mobile surface layer at rest, so a slope
+steeper than the angle of repose fails only by avalanches of the surface layer, and an
+undercut flank never fails as a whole. With Q 67 the bed below the surface layer is jammed
+only where its contact network can carry the load in friction. The lateral load of the
+column above a point is the integral of the horizontal gradient of the overburden stress,
+
+    F(z) = | int_z^top grad_h(Pov) dz' |,
+
+the frictional resistance on the plane below is mu_s Pov(z). For an infinite slope of angle
+beta, F/Pov = tan(beta) at any depth, so the bed yields at tan(beta) > mu_s down to the
+bottom, as in the classical infinite-slope analysis; under a flat bed F = 0. The yield ratio
+
+    Yr = F/(mu_s Pov)
+
+releases the jam smoothly between Yr = 0.95 and 1.05 (yield_weight); the parcels of the yielding
+bed are then held only by the Coulomb/mu(I) friction on their substrate, and the bed jams
+again once its slope is below the angle of repose. A free face (vertical wall of sand, the
+flank of a scour hole) has a large lateral gradient and yields from its top down.
+
+The gradient is central, one-sided next to cells without load (outside the bed, solids,
+walls); the column integration follows stress_overburden (repeated with a vertical domain
+decomposition until the values from above have arrived).
+--------------------------------------------------------------------*/
+
+void CPM::stress_yield(lexer *p, ghostcell *pgc)
+{
+    double rog = (p->S22 - p->W1)*fabs(p->W22);
+    double tgap = 0.5*theta_bed;
+    double change,old;
+    
+    auto dPdh = [&](int di, int dj, double &gx)
+    {
+        // horizontal derivative of Pov in direction (di,dj) at (i,j,k), one-sided at cells without load
+        bool okm = p->flag4[(i-di-p->imin)*p->jmax*p->kmax + (j-dj-p->jmin)*p->kmax + k-p->kmin]>0;
+        bool okp = p->flag4[(i+di-p->imin)*p->jmax*p->kmax + (j+dj-p->jmin)*p->kmax + k-p->kmin]>0;
+        double h = di==1 ? p->DXN[IP] : p->DYN[JP];
+        double pm = Pov(i-di,j-dj,k), pp = Pov(i+di,j+dj,k), pc = Pov(i,j,k);
+        
+        if(okm && okp)
+        gx = (pp - pm)/(2.0*h);
+        
+        else if(okp)
+        gx = (pp - pc)/h;
+        
+        else if(okm)
+        gx = (pc - pm)/h;
+        
+        else
+        gx = 0.0;
+    };
+    
+    int itermax = zsplit==1 ? 1000 : 1;
+    
+    // column integral of the lateral load: Fxy holds int grad_x, Yr temporarily int grad_y
+    for(int qn=0; qn<itermax; ++qn)
+    {
+        change = 0.0;
+        
+        ILOOP
+        JLOOP
+        {
+            double fxa=0.0, fya=0.0;   // integrand at the cell above
+            
+            for(k=p->knoz-1; k>=0; --k)
+            {
+                PBASECHECK
+                {
+                old = Fxy(i,j,k);
+                
+                if(Ts(i,j,k)<tgap || Pov(i,j,k)<=0.0)
+                {
+                    Fxy(i,j,k) = Yr(i,j,k) = 0.0;
+                    fxa = fya = 0.0;
+                }
+                
+                else
+                {
+                    double gx=0.0, gy=0.0;
+                    dPdh(1,0,gx);
+                    
+                    if(p->j_dir==1)
+                    dPdh(0,1,gy);
+                    
+                    bool above = (k+1<p->knoz || p->nb6>=0) && Ts(i,j,k+1)>=tgap && Pov(i,j,k+1)>0.0;
+                    
+                    if(above)
+                    {
+                        // integrand of the cell above from this loop; at the top of a subdomain
+                        // (vertical split) the one of this cell
+                        double fx1 = k+1<p->knoz ? fxa : gx;
+                        double fy1 = k+1<p->knoz ? fya : gy;
+                        
+                        Fxy(i,j,k) = Fxy(i,j,k+1) + 0.5*fx1*p->DZN[KP1] + 0.5*gx*p->DZN[KP];
+                        Yr(i,j,k)  = Yr(i,j,k+1)  + 0.5*fy1*p->DZN[KP1] + 0.5*gy*p->DZN[KP];
+                    }
+                    
+                    else
+                    {
+                        Fxy(i,j,k) = 0.5*gx*p->DZN[KP];
+                        Yr(i,j,k)  = 0.5*gy*p->DZN[KP];
+                    }
+                    
+                    fxa = gx;
+                    fya = gy;
+                }
+                
+                change = MAX(change, fabs(Fxy(i,j,k)-old));
+                }
+            }
+        }
+        
+        pgc->start4a(p,Fxy,1);
+        pgc->start4a(p,Yr,1);
+        
+        if(zsplit==1)
+        {
+            change = pgc->globalmax(change);
+            
+            if(change<1.0e-8*rog*hmin)
+            break;
+        }
+    }
+    
+    // yield ratio
+    BASELOOP
+    {
+        double F = sqrt(Fxy(i,j,k)*Fxy(i,j,k) + Yr(i,j,k)*Yr(i,j,k));
+        double Pv = Pov(i,j,k);
+        
+        Fxy(i,j,k) = F;
+        Yr(i,j,k) = Pv>1.0e-6*rog*hmin ? F/(mu_s*Pv) : 0.0;
+    }
+    
+    pgc->start4a(p,Fxy,1);
+    pgc->start4a(p,Yr,1);
+}
+
+// jam weight of the yield (Q 67): 1 within the yield (Yr <= 0.95), 0 at Yr >= 1.05, smooth in between
+double CPM::yield_weight(lexer *p, double xp, double yp, double zp)
+{
+    double yr = cip4a(p,Yr,xp,yp,zp);
+    
+    if(yr<=0.95)
+    return 1.0;
+    
+    if(yr>=1.05)
+    return 0.0;
+    
+    double xi = (yr-0.95)/0.1;
+    
+    return 0.5*(1.0 + cos(PI*xi));
 }
 
 /*--------------------------------------------------------------------
@@ -296,9 +482,9 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
     
     // contact normal: bed normal at the surface, gravity inside the bed
-    double gx = p->ccipol4a(dSx,xp,yp,zp);
-    double gy = p->j_dir==1 ? p->ccipol4a(dSy,xp,yp,zp) : 0.0;
-    double gz = p->ccipol4a(dSz,xp,yp,zp);
+    double gx = cip4a(p,dSx,xp,yp,zp);
+    double gy = p->j_dir==1 ? cip4a(p,dSy,xp,yp,zp) : 0.0;
+    double gz = cip4a(p,dSz,xp,yp,zp);
     double gr = sqrt(gx*gx + gy*gy + gz*gz);
     
     double w = MIN(1.0, gr*h/(0.5*theta_0));
@@ -344,24 +530,26 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     }
     else
     {
-        Tsub = p->ccipol4a(Ts,xs,ys,zs);
+        Tsub = cip4a(p,Ts,xs,ys,zs);
         
         if(Tsub<theta_bed)
         return;
         
-        Usub = p->ccipol4a(Us,xs,ys,zs);
-        Vsub = p->j_dir==1 ? p->ccipol4a(Vs,xs,ys,zs) : 0.0;
-        Wsub = p->ccipol4a(Ws,xs,ys,zs);
+        Usub = cip4a(p,Us,xs,ys,zs);
+        Vsub = p->j_dir==1 ? cip4a(p,Vs,xs,ys,zs) : 0.0;
+        Wsub = cip4a(p,Ws,xs,ys,zs);
     }
     
     // a grain resting on a packed substrate or a wall: see the static friction below
-    bool packed = wall || Tsub >= p->ccipol4a(T0e,xs,ys,zs) - 0.05;
+    bool packed = wall || Tsub >= cip4a(p,T0e,xs,ys,zs) - 0.05;
     
     // normal load per unit mass: support by the contact network
-    double Tsp = MAX(p->ccipol4a(Ts,xp,yp,zp),theta_bed);
-    double dTe = p->ccipol4a(dTx,xp,yp,zp)*ex + (p->j_dir==1?p->ccipol4a(dTy,xp,yp,zp)*ey:0.0) + p->ccipol4a(dTz,xp,yp,zp)*ez;
+    double Tsp = MAX(cip4a(p,Ts,xp,yp,zp),theta_bed);
+    double dTe = cip4a(p,dTx,xp,yp,zp)*ex + (p->j_dir==1?cip4a(p,dTy,xp,yp,zp)*ey:0.0) + cip4a(p,dTz,xp,yp,zp)*ez;
     
-    double aN = MAX(dTe,0.0)/(Tsp*p->S22);
+    // (the same solid fraction as for the stress force on the parcel in advec_mppic, MAX(Ts, 0.5 theta_bed):
+    // with MAX(Ts, theta_bed) the grains in the dilute surface cells of a slope had up to half the normal load)
+    double aN = MAX(dTe,0.0)/(MAX(cip4a(p,Ts,xp,yp,zp),0.5*theta_bed)*p->S22);
     
     if(aN<1.0e-12)
     return;
@@ -402,7 +590,7 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
         // inside the packed bed (own cell packed as well) the sticking grain is jammed:
         // it moves with its substrate, also no drift away from it (the stress gradient
         // balances gravity only on average over a cell, near the bottom with the ghost cells)
-        if(packed && p->ccipol4a(Ts,xp,yp,zp) >= p->ccipol4a(T0e,xp,yp,zp) - 0.05)
+        if(packed && cip4a(p,Ts,xp,yp,zp) >= cip4a(p,T0e,xp,yp,zp) - 0.05)
         {
             up = Usub;
             vp = Vsub;
@@ -412,7 +600,7 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     }
     
     // kinetic friction, mu(I) with I = d50 gamma / sqrt(P/rho_p)
-    double Peff = MAX(p->ccipol4a(Tau,xp,yp,zp), (p->S22-p->W1)*gmag*Tsp*p->S20);
+    double Peff = MAX(cip4a(p,Tau,xp,yp,zp), (p->S22-p->W1)*gmag*Tsp*p->S20);
     double gamma = smag/h;
     double I = p->S20*gamma/sqrt(Peff/p->S22);
     double mu = mu_s + (mu_2-mu_s)/(I0/MAX(I,1.0e-10) + 1.0);

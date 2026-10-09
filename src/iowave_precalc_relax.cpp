@@ -175,28 +175,6 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }
     
     count=0;
-    /*if(p->F80==4)
-    {
-    
-    FLUIDLOOP
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-        db = distbeach(p);
-
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-                vofval[count]=eta(i,j);
-            ++count;
-            }
-		}
-    }
-    }*/
     
     count=0;
     if(p->A10==3)

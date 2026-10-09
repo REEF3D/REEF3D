@@ -19,6 +19,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
+#include"interface_width.h"
 #include"rheology_f.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -30,7 +31,6 @@ void rheology_f::u_source(lexer *p, fdm *a)
     // Force base F = A*tau
     double tau;
     
-    epsi = p->psi;
  
     count=0;
     if(p->W110==2 || p->W110==3)
@@ -47,6 +47,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
 
         H = heaviside(phival);
         
@@ -78,6 +79,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
 
         H = heaviside(phival);
         
@@ -111,6 +113,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
         dpdz = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(2.0*p->DXM);
 
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
         
         H = heaviside(phival);
                  
@@ -126,7 +129,6 @@ void rheology_f::v_source(lexer *p, fdm *a)
     double fyx,fyy,fyz;
     double dpdx,dpdy,dpdz;
     
-    epsi = p->psi;
     
     count=0;
     if(p->W110==2 || p->W110==3)
@@ -142,6 +144,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
         f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,1,0);
         
         H = heaviside(phival);
         
@@ -171,6 +174,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
         dpdz = (0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(2.0*p->DXM);
 
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,1,0);
         
         H = heaviside(phival);
                  
@@ -183,7 +187,6 @@ void rheology_f::v_source(lexer *p, fdm *a)
 void rheology_f::w_source(lexer *p, fdm *a)
 {   
     
-    epsi = p->psi;
     
     count=0;
     if(p->W110==2 || p->W110==3)
@@ -199,6 +202,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
 
         H = heaviside(phival);
         
@@ -230,6 +234,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
         
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
 
         H = heaviside(phival);
         
@@ -261,6 +266,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         dpdz = (a->press(i,j,k+1) - a->press(i,j,k))/(p->DXM);
 
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
+        epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);
         
         H = heaviside(phival);
                          

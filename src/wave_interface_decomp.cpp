@@ -25,10 +25,18 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"wave_lib.h"
+#include"wave_field.h"
 
 // U
 double wave_interface::wave_u_space_sin(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,0,0,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -39,6 +47,13 @@ double wave_interface::wave_u_space_sin(lexer *p, ghostcell *pgc, double x, doub
 
 double wave_interface::wave_u_space_cos(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,0,1,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -50,6 +65,9 @@ double wave_interface::wave_u_space_cos(lexer *p, ghostcell *pgc, double x, doub
 
 double wave_interface::wave_u_time_sin(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,0,0,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -60,6 +78,9 @@ double wave_interface::wave_u_time_sin(lexer *p, ghostcell *pgc, int n)
 
 double wave_interface::wave_u_time_cos(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,0,1,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -71,6 +92,13 @@ double wave_interface::wave_u_time_cos(lexer *p, ghostcell *pgc, int n)
 // V
 double wave_interface::wave_v_space_sin(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,1,0,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -81,6 +109,13 @@ double wave_interface::wave_v_space_sin(lexer *p, ghostcell *pgc, double x, doub
 
 double wave_interface::wave_v_space_cos(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,1,1,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -92,6 +127,9 @@ double wave_interface::wave_v_space_cos(lexer *p, ghostcell *pgc, double x, doub
 
 double wave_interface::wave_v_time_sin(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,1,0,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -102,6 +140,9 @@ double wave_interface::wave_v_time_sin(lexer *p, ghostcell *pgc, int n)
 
 double wave_interface::wave_v_time_cos(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,1,1,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -113,6 +154,13 @@ double wave_interface::wave_v_time_cos(lexer *p, ghostcell *pgc, int n)
 // W
 double wave_interface::wave_w_space_sin(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,2,0,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -123,6 +171,13 @@ double wave_interface::wave_w_space_sin(lexer *p, ghostcell *pgc, double x, doub
 
 double wave_interface::wave_w_space_cos(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,2,1,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -134,6 +189,9 @@ double wave_interface::wave_w_space_cos(lexer *p, ghostcell *pgc, double x, doub
 
 double wave_interface::wave_w_time_sin(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,2,0,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -144,6 +202,9 @@ double wave_interface::wave_w_time_sin(lexer *p, ghostcell *pgc, int n)
 
 double wave_interface::wave_w_time_cos(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,2,1,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -155,6 +216,13 @@ double wave_interface::wave_w_time_cos(lexer *p, ghostcell *pgc, int n)
 // ETA
 double wave_interface::wave_eta_space_sin(lexer *p, ghostcell *pgc, double x, double y, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,3,0,n-decomp_L,x,y,0.0) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -165,6 +233,13 @@ double wave_interface::wave_eta_space_sin(lexer *p, ghostcell *pgc, double x, do
 
 double wave_interface::wave_eta_space_cos(lexer *p, ghostcell *pgc, double x, double y, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,3,1,n-decomp_L,x,y,0.0) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -175,6 +250,9 @@ double wave_interface::wave_eta_space_cos(lexer *p, ghostcell *pgc, double x, do
 
 double wave_interface::wave_eta_time_sin(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,3,0,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -185,6 +263,9 @@ double wave_interface::wave_eta_time_sin(lexer *p, ghostcell *pgc, int n)
 
 double wave_interface::wave_eta_time_cos(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,3,1,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -196,6 +277,13 @@ double wave_interface::wave_eta_time_cos(lexer *p, ghostcell *pgc, int n)
 // FI
 double wave_interface::wave_fi_space_sin(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,4,0,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -206,6 +294,13 @@ double wave_interface::wave_fi_space_sin(lexer *p, ghostcell *pgc, double x, dou
 
 double wave_interface::wave_fi_space_cos(lexer *p, ghostcell *pgc, double x, double y, double z, int n)
 {
+    // zone sources (B 524): components of sources not selected for this cell get space parts 0
+    if(n>=decomp_L)
+    return pfield->decomp_use(n-decomp_L) ? pfield->dspace(p,4,1,n-decomp_L,x,y,z) : 0.0;
+    
+    if(!legacy_on)
+    return 0.0;
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -216,6 +311,9 @@ double wave_interface::wave_fi_space_cos(lexer *p, ghostcell *pgc, double x, dou
 
 double wave_interface::wave_fi_time_sin(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,4,0,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
@@ -226,10 +324,21 @@ double wave_interface::wave_fi_time_sin(lexer *p, ghostcell *pgc, int n)
 
 double wave_interface::wave_fi_time_cos(lexer *p, ghostcell *pgc, int n)
 {
+    if(n>=decomp_L)
+    return pfield->dtime(p,4,1,n-decomp_L);
+    
     double uvel=0.0;
     
     if(p->simtime>=p->wts && p->simtime<=p->wte)
     uvel = pwave->wave_fi_time_cos(p,n);
 	
     return uvel;
+}
+
+int wave_interface::decomp_ncomp(lexer *p)
+{
+    const int L = wave_field::decomp_ncomp(wtype,p->wN);
+    decomp_L = L>0 ? L : 0;
+    
+    return decomp_L + pfield->decomp_build(p);
 }

@@ -67,6 +67,10 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     for(int nb=0; nb<nbody; ++nb)
     fb_obj.push_back(new sixdof_obj_fnpf(p,pgc,nb));
     
+    // hull pressure with the body-following time derivative of phi (exact rigid-body Neumann
+    // data, no m-terms neglected): needs the velocity field of the one body on the free surface
+    sixdof_obj_fnpf::chi_on = (nbody==1);
+    
     gcval = (p->j_dir==0) ? 150 : 250;
     
     const int size = p->imax*p->jmax*(p->kmax+2);
@@ -136,6 +140,35 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     pgc->gcparax7(p,c->V,7);
     pgc->gcparax7(p,c->W,7);
     body_velocities(g0,pgc);
+    
+    // subcycling (G 7 1): level 0 steps first with a predicted copy of the body; the loads and
+    // the added mass of all grids at the start of the step (all grids at the same time), the
+    // finest level advances the body later (fnpf_6DOF_sub.cpp)
+    if(amr_sub())
+    {
+        g0.pf = pf;
+        
+        if(iter==0)
+        {
+            amr_grids(p,pgc);
+            
+            {
+            reefamr_comms_off guard(pgc);
+            for(auto &G : gp)
+            {
+            G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
+            body_velocities(G,pgc);
+            }
+            }
+            
+            forces_amr(p,c,pgc,psolv,pf,Keta,Kfi,iter);
+        }
+        
+        for(int nb=0; nb<nbody; ++nb)
+        fb_obj[nb]->amr_predict_fnpf(p,pgc,iter);
+        
+        return;
+    }
     
     if(amr_on())
     {
@@ -298,10 +331,18 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
                        slice &Keta, slice &Kfi, int iter)
 {
     // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
+    // (one body: + V.grad(phi), the body-following derivative chi, see face_data_fnpf)
     SLICELOOP4
     psiD(i,j) = Kfi(i,j) - c->Fz(i,j)*Keta(i,j);
     
+    if(nbody==1)
+    fb_obj[0]->chi_fsf(p,c,psiD,foot);
+    
     pgc->gcsl_start4(p,psiD,50);
+    
+    // X 18: running mean of chi at body-fixed points removed next to the body
+    if(nbody==1)
+    fb_obj[0]->chi_mean(p,pgc,psiD,foot);
     
     zero_face(g0);
     for(int nb=0; nb<nbody; ++nb)
@@ -343,7 +384,7 @@ void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
     
     for(int nb=0; nb<nbody; ++nb)
     {
-        fb_obj[nb]->solve_eqmotion_fnpf(p,pgc,iter,finalize);
+        fb_obj[nb]->solve_eqmotion_fnpf(p,c,pgc,iter,finalize);
         fb_obj[nb]->update_position_fnpf(p,pgc,finalize);
         
         if(finalize)
@@ -429,6 +470,40 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
             
             if(dmax<tol)
             break;
+        }
+        
+        // X 17 w: relaxation of eta in the free-surface columns next to the footprint,
+        //     eta = (1 - w) eta + w (mean of the 4 neighbours),
+        // once per stage. A hull moving at speed uncovers columns at its waterline (stern
+        // quarters) every step; there a 2-cell disturbance of eta grows until the emergency stop
+        // (smooth hull, Fr 0.14, from about 10 s on). The relaxation of eta alone stabilises it
+        // without changing the hull loads noticeably; Fifsf is left alone (relaxing the
+        // potential next to the hull changes phi_t and the hull pressure).
+        if(p->X17>0.0)
+        {
+            const double w = MIN(p->X17,1.0);
+            
+            SLICELOOP4
+            eta_ext(i,j) = eta(i,j);
+            
+            pgc->gcsl_start4(p,eta_ext,gcval_eta);
+            
+            SLICELOOP4
+            if(foot(i,j)<0.5 && (foot(i-1,j)>0.5 || foot(i+1,j)>0.5 || (p->j_dir==1 && (foot(i,j-1)>0.5 || foot(i,j+1)>0.5))))
+            {
+                double se = eta_ext(i-1,j) + eta_ext(i+1,j);
+                double nn = 2.0;
+                
+                if(p->j_dir==1)
+                {
+                se += eta_ext(i,j-1) + eta_ext(i,j+1);
+                nn += 2.0;
+                }
+                
+                eta(i,j) = (1.0 - w)*eta_ext(i,j) + w*se/nn;
+            }
+            
+            pgc->gcsl_start4(p,eta,gcval_eta);
         }
     }
     
@@ -659,6 +734,11 @@ void fnpf_6DOF::exchange_face(fnpf_6DOF_grid &G, ghostcell *pgc)
 bool fnpf_6DOF::amr_on() const
 {
     return amr!=nullptr && amr->active();
+}
+
+bool fnpf_6DOF::amr_sub() const
+{
+    return amr!=nullptr && amr->sub_on();
 }
 
 void fnpf_6DOF::amr_attach(fnpf_amr *a)
@@ -915,7 +995,14 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     SLICELOOP4
     psiD(i,j) = Kfi(i,j) - c->Fz(i,j)*Keta(i,j);
     
+    if(nbody==1)
+    fb_obj[0]->chi_fsf(p,c,psiD,foot);
+    
     pgc->gcsl_start4(p,psiD,50);
+    
+    // X 18: running mean of chi at body-fixed points removed next to the body
+    if(nbody==1)
+    fb_obj[0]->chi_mean(p,pgc,psiD,foot);
     
     {
     reefamr_comms_off guard(pgc);
@@ -927,6 +1014,9 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         
         SLICELOOP4
         D(i,j) = Kf(i,j) - G.c->Fz(i,j)*Ke(i,j);
+        
+        if(nbody==1)
+        fb_obj[0]->chi_fsf(p,G.c,D,*G.foot);
         
         pgc->gcsl_start4(p,D,50);
     }

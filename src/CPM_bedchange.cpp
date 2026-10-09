@@ -85,7 +85,7 @@ void CPM::topo_iso(lexer *p, ghostcell *pgc, field &f)
 double CPM::ptopo(lexer *p, fdm *a, double xp, double yp, double zp)
 {
     if(p->Q58>0 && p->S10==1 && zsplit==0)
-    return p->ccipol4a(Tiso,xp,yp,zp);
+    return cip4a(p,Tiso,xp,yp,zp);
 
     return p->ccipol4_b(a->topo,xp,yp,zp);
 }

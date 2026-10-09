@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "description": "NHFLOW 3D basin 200 x 100 m, no B 92 wave, B 105 20 5 3 (rotated generation frame); linear source 2 given in the global frame (B 505 2 1): direction 30 deg, origin (10, 20) in domain coordinates, generated in a B 520 relaxation zone at x-. Equals the same source given in the B 92 frame (direction 10 deg, origin rotated).",
+ "tags": ["quick", "3d", "nhflow", "waves", "iowave", "wave_field"],
+ "covers": ["B 505 global source frame", "source with B 92 type 0"]
+}

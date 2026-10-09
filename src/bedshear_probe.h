@@ -45,7 +45,6 @@ public:
 
 private:
     void ini_location(lexer*, ghostcell*);
-    int conv(double);
 
     int *iloc,*jloc,*flag;
     double *bsg;

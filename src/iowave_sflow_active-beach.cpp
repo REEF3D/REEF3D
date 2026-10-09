@@ -36,7 +36,6 @@ void iowave::active_beach2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
     int aa,bb,ii,jj;
         
         
-		
     // UVEL
     for(n=0;n<p->gcslawa1_count;++n)
     {
@@ -110,19 +109,6 @@ void iowave::active_beach2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
     dfy2 = (P(i,j)-P(i,j-1))/p->DXM;
     dfy3 = (P(i,j+1)-P(i,j))/p->DXM;
 
-     /*       
-	if(cs==1)
-	for(q=0;q<margin;++q)
-	P(i-q-1,j) = P(i,j) - p->dt*sqrt(9.81*p->wd)*dfx1;
-
-	if(cs==2)
-	for(q=0;q<margin;++q)
-	P(i,j+q+1) = P(i,j) - p->dt*sqrt(9.81*p->wd)*dfy2;
-
-	if(cs==3)
-	for(q=0;q<margin;++q)
-	P(i,j-q-1) = P(i,j) - p->dt*sqrt(9.81*p->wd)*dfy3;
-*/
     
 	for(int q=1;q<=3;++q)
 	P(i+q*aa,j+q*bb) = P(i,j) - p->dt*sqrt(9.81*b->hp(i,j))*dfx4;
@@ -187,7 +173,6 @@ void iowave::active_beach2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice 
         fy=0.0; // !
 
         
-            
 				Uc=eta_R*sqrt(9.81/p->wd);
 				
 				b->Q(i+1*aa,j+1*bb) = Uc*fy;

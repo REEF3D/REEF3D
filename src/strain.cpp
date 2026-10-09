@@ -27,7 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fieldint.h"
 
-strain::strain(lexer *p) : gradient(p), epsi(p->F45*p->DXM)
+strain::strain(lexer *p) : gradient(p)
 {
 }
 

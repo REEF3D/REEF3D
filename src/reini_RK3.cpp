@@ -30,7 +30,7 @@ Author: Hans Bihs
 #include"picard_void.h"
 #include"reinidisc_f.h"
 
-reini_RK3::reini_RK3(lexer* p, int type) : epsi(p->F45*p->DXM),frk1(p),frk2(p),dt(p)
+reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
 {
 	if(p->F50==1)
 	gcval_phi=51;

@@ -41,14 +41,6 @@ fnpf_fsf_update::~fnpf_fsf_update()
     
 }
 
-void fnpf_fsf_update::fsfupdate(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, slice &eta)
-{
-}
-
-void fnpf_fsf_update::etaloc(lexer *p, fdm_fnpf *c, ghostcell *pgc)
-{
-}
-
 void fnpf_fsf_update::etaloc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // find k location for eta
@@ -68,17 +60,5 @@ void fnpf_fsf_update::fsfbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fi
         Fi[FIJKp2] = Fifsf(i,j);  
         Fi[FIJKp3] = Fifsf(i,j);
     }
-}
-
-void fnpf_fsf_update::fsfbc(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fifsf, field &Fi)
-{
-}
-
-void fnpf_fsf_update::fsfepol(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, field &Fi)
-{
-}
-
-void fnpf_fsf_update::velcalc(lexer *p, fdm_fnpf *c, ghostcell *pgc, field &f)
-{
 }
 

@@ -82,28 +82,6 @@ wave_lib_ssgw::wave_lib_ssgw(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     }
 
 
-    // Soliton
-/*    xs.resize(8593);
-    vector<double> xs_swapped = xs;
-    std::reverse(xs_swapped.begin(), xs_swapped.end()); 
-    xs_swapped.resize(8593-7792);
-    std::reverse(xs_swapped.begin(), xs_swapped.end()); 
-    xs = xs_swapped;
-    ys.resize(8593);
-    vector<double> ys_swapped = ys;
-    std::reverse(ys_swapped.begin(), ys_swapped.end()); 
-    ys_swapped.resize(8593-7792);
-    std::reverse(ys_swapped.begin(), ys_swapped.end()); 
-    ys = ys_swapped;
-    phis.resize(8593);
-    vector<double> phis_swapped = phis;
-    std::reverse(phis_swapped.begin(), phis_swapped.end()); 
-    phis_swapped.resize(8593-7792);
-    std::reverse(phis_swapped.begin(), phis_swapped.end()); 
-    phis = phis_swapped;
-    wL = xs.back()-xs.front()+0.1;
-*/
-
     if(p->mpirank==0)
     {
         cout<<"Wave_Lib: steady surface gravity waves; ";

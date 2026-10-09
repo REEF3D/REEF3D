@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_patch_inflow_komega",
+ "description": "as cfd_2d_patch_inflow_komega with the x+ side a wall (C 14 21) and an outlet patch on it (B 441 2 face 4, B 413 water level): patchBC_pressure sets the hydrostatic pressure below the patch water level in the ghost cells, the level set ghosts from the water level (PATCH_OUTLET_FSF), pressure correction Dirichlet there.",
+ "control_set": {"C 14": "21"},
+ "ctrl_add": ["B 441 2 4 11.9 12.1 -1.0 1.0 0.0 0.36", "B 413 2 0.24"],
+ "tags": ["2d", "patchBC", "pressure"],
+ "covers": ["patchBC::patchBC_pressure hydrostatic outlet", "patchBC::patchBC_waterlevel", "IO 3 at outlet patch faces"]
+}

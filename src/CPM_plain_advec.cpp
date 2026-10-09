@@ -54,7 +54,7 @@ void CPM::advec_plain(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     P.Vf[n] = vf;
     P.Wf[n] = wf;
     
-    Tsval = p->ccipol4a(Ts,PX[n],PY[n],PZ[n]);
+    Tsval = cip4a(p,Ts,PX[n],PY[n],PZ[n]);
 
     DragCoeff = 0.5;
 

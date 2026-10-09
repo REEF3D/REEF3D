@@ -370,3 +370,41 @@ wave_lib *wave_interface::wave_source_lib(int n, int &id, int &type, double &rot
     rot = s->rot;
     return s->lib;
 }
+
+// default: wave_eta at each time
+void wave_lib::wave_eta_series(lexer *p, double x, double y, const std::vector<double> &tv, std::vector<double> &ev)
+{
+    const double wt = p->wavetime;
+    ev.assign(tv.size(),0.0);
+    
+    for(size_t i=0; i<tv.size(); ++i)
+    {
+        p->wavetime = tv[i];
+        ev[i] = wave_eta(p,x,y);
+    }
+    
+    p->wavetime = wt;
+}
+
+// eta of the B 92 wave at one point for the times tv; false with additional sources
+// (iowave::timeseries then evaluates wave_eta itself)
+bool wave_interface::wave_eta_series(lexer *p, ghostcell *pgc, double x, double y, const std::vector<double> &tv, std::vector<double> &ev)
+{
+    if(pfield->size()>0)
+    return false;
+    
+    ev.assign(tv.size(),0.0);
+    
+    if(p->simtime>=p->wts && p->simtime<=p->wte && legacy_on)
+    pwave->wave_eta_series(p,x,y,tv,ev);
+    
+    return true;
+}
+
+// default: u, v, w at the stored coordinates; v only in 3D (unused in 2D)
+void wave_lib::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    u=wave_u_c(p,q,z);
+    v=p->j_dir==1 ? wave_v_c(p,q,z) : 0.0;
+    w=wave_w_c(p,q,z);
+}

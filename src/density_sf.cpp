@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"density_sf.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"heaviside.h"
 
-density_sf::density_sf(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_sf::density_sf(lexer* p)
 {
     H=0.0;
 }
@@ -49,7 +50,7 @@ double density_sf::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
     phival = a->phi(i+aa,j+bb,k+cc);
 
-    H = heaviside(phival,p->psi);
+    H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
     
 
 

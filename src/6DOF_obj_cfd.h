@@ -77,8 +77,6 @@ private:
     void forces_lsm_calc(lexer* p, fdm *a, ghostcell *pgc,int,bool);
     void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);
-    void print_vtp(lexer*,fdm*,ghostcell*);
-    void pvtp(lexer*,int);
     void update_trimesh_3D(lexer*, fdm*, ghostcell*, bool);
     void ray_cast(lexer*, fdm*, ghostcell*);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"density_comp.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -27,11 +28,6 @@ Author: Hans Bihs
 
 density_comp::density_comp(lexer* p) 
 {
-        if(p->j_dir==0)        
-        psi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
-        
-        if(p->j_dir==1)
-        psi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
         
         H=0.0;
 }
@@ -47,7 +43,7 @@ double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         ro_air = (0.0035*(101325.0 + 0.5*(a->press(i,j,k) + a->press(i+aa,j+bb,k+cc))))  / (273.15 + p->W31);
 
 
-        H = heaviside(phival,psi);
+        H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
         
             
         roval = p->W1*H + ro_air*(1.0-H);

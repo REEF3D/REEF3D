@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_2d_fem_light_debris",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 160,
+ "files": [
+  "fem.dat"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "fem",
+  "fsi",
+  "floating",
+  "debris",
+  "strong"
+ ],
+ "description": "As nhflow_2d_fem_light_debris with strong coupling (fem.dat: strong on): the fluid step is repeated until the motion of the empty container converges; no added-mass clamp or relative speed limit.",
+ "covers": [
+  "strong coupling of rigid bodies with NHFLOW: save and restore of the fluid and FEM state, repeated momentum step (driver_loop_nhflow), Aitken relaxation, outputs once per step",
+  "slam of a very light body without the relative speed limit of patch 0020"
+ ]
+}

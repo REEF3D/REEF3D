@@ -95,6 +95,22 @@ void seastate_f::boundary_spectrum(lexer *p, ghostcell *pgc, const seastate_grid
     }
 }
 
+// stationary convergence test of a cell: the change d of Hs in the last iteration (A 799 0), or (A 799 1)
+// the estimated distance of Hs to the solution d/(1-rho), rho = d/d_previous the contraction of the
+// iteration in the cell (at most 0.99; an alternating change counts with d); relative to Hs
+static double seastate_distance(int test, double hs, double hs0, double &dprev, double floor)
+{
+    const double d = hs-hs0;
+    double c = std::fabs(d);
+
+    if(test==1 && d*dprev>0.0)
+    c /= 1.0-std::min(std::fabs(d)/std::fabs(dprev),0.99);
+
+    dprev = d;
+
+    return c/std::max(hs,floor);
+}
+
 void seastate_f::transport(lexer *p, ghostcell *pgc)
 {
     if(pamr!=nullptr)
@@ -121,6 +137,8 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
         for(int it=0; it<iter_max; ++it)
         {
+        diffraction(p,pgc);
+        obstacles(p,pgc);
         psolv->iterate(p,pgc,e,pex,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
         }
@@ -133,6 +151,7 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     seastate_param sp;
 
     hs_old.assign(size_t(p->knox)*p->knoy,0.0);
+    std::vector<double> dprev(hs_old.size(),0.0);
 
     SLICELOOP4
     if(e->wet(i,j)==1)
@@ -143,6 +162,9 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
     for(int it=0; it<iter_max; ++it)
     {
+    // Phase 6: diffraction parameter and obstacle transmission from the latest spectra (A 718, A 722)
+    diffraction(p,pgc);
+    obstacles(p,pgc);
     psolv->iterate(p,pgc,e,pex,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
 
@@ -167,7 +189,7 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         if(e->wet(i,j)==1)
         {
         const size_t n = size_t(i)*p->knoy+j;
-        const double c = std::fabs(hs[n]-hs_old[n])/std::max(hs[n],floor);
+        const double c = seastate_distance(p->A799,hs[n],hs_old[n],dprev[n],floor);
         cmax = std::max(cmax,c);
         nall += 1.0;
         if(c<p->A708)
@@ -225,6 +247,8 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
 
         for(int it=0; it<iter_max; ++it)
         {
+        diffraction(p,pgc);
+        obstacles(p,pgc);
         pamr->iterate(p,pgc,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
         }
@@ -259,9 +283,13 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
     std::vector<double> hs, hs0;
     double hmax;
     leaf_hs(hs0,hmax);
+    std::vector<double> dprev(hs0.size(),0.0);
 
     for(int it=0; it<iter_max; ++it)
     {
+    // Phase 6: diffraction, obstacles and coasts on all grids (A 718, A 722 - A 726)
+    diffraction(p,pgc);
+    obstacles(p,pgc);
     pamr->iterate(p,pgc,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
 
@@ -275,7 +303,10 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
 
         for(size_t n=0; n<hs.size() && n<hs0.size(); ++n)
         {
-        const double c = std::fabs(hs[n]-hs0[n])/std::max(hs[n],floor);
+        if(dprev.size()<=n)
+        dprev.resize(n+1,0.0);
+
+        const double c = seastate_distance(p->A799,hs[n],hs0[n],dprev[n],floor);
         cmax = std::max(cmax,c);
         nall += wt[n];
         if(c<p->A708)

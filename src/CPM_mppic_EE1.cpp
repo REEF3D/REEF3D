@@ -175,7 +175,7 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         P.ZRK1[n] = P.Z[n] + dt*P.WRK1[n];
         
         // turbulent dispersion
-        if(p->Q52==1 && !(layer && bedload_rest(p,a,n)))
+        if(p->Q52==1 && !(layer && bedload_nodisp(p,a,n)))
         {
             double ddx,ddy,ddz;
             dispersion(p,P.X[n],P.Y[n],P.Z[n],ddx,ddy,ddz,dt);
@@ -183,6 +183,10 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
             P.YRK1[n] += ddy;
             P.ZRK1[n] += ddz;
         }
+        
+        // sub-grid bedload layer: a parcel settling from the flow onto the bed is deposited
+        if(layer)
+        bedload_settle(p,a,s,n);
     }
 
     // walls, then grid-limited step

@@ -76,6 +76,17 @@ in brackets):
                    Newton linearisation as SWAN (SbrD)               -> P, D
   bottom friction  JONSWAP (SBOT): C_b/g^2 (sig/sinh(kd))^2,
                    C_b 0.038 m^2/s^3                                 -> D
+  vegetation (1)   Dalrymple et al. (1984), Mendez and Losada (2004),
+                   as SWAN (SVEG, IVEG 1, Suzuki et al. 2011), one layer:
+                   sqrt(2/pi) g^2 (k/sig)^3 sqrt(E_tot) Cd bv Nv
+                   (sinh^3 k ah + 3 sinh k ah)/(3 k cosh^3 kd),
+                   k = k_WAM, sig = sig_01, ah = min(height, d),
+                   zero for kd > 10                                  -> D
+  vegetation (2)   per frequency, Jacobsen et al. (2019), as SWAN
+                   (SVEG, IVEG 2): sqrt(2/pi)/g Cd bv Nv int_0^ah
+                   S_u(sig, z) sqrt(mu_0(z)) dz, S_u = (sig cosh(kz)/
+                   sinh(kd))^2 E, mu_0 = int S_u dsig, Simpson with 20
+                   intervals                                         -> D
   triads           LTA of Eldeberky (1996), as the original SWAN LTA
                    (SWLTA): alpha_EB 0.05, sum frequencies below 2.5
                    sig_01, Madsen and Sorensen (1993) interaction
@@ -116,7 +127,10 @@ struct seastate_source_param
     bool triads = false;
     double alphaEB = 0.05, cutfr = 2.5, urcrit = 0.63, urslim = 0.1;
 
-    bool any() const {return wind || komen || dia || breaking || friction || triads;}
+    int vegetation = 0;                  // 1 Dalrymple / Suzuki et al. (2011), 2 per frequency, Jacobsen et al. (2019)
+    double vh = 0.0, vd = 0.0, vn = 0.0, vcd = 1.0;     // height [m], stem diameter [m], stems per m^2, drag coefficient
+
+    bool any() const {return wind || komen || dia || breaking || friction || triads || vegetation>0;}
 };
 
 class seastate_source
@@ -128,6 +142,9 @@ public:
 
     // wind field (A 730 2): wind of the cell before compute [m/s], direction the wind blows to [rad]
     void set_wind(double U10, double wdir) {prm.U10 = U10; prm.wdir = wdir;}
+
+    // vegetation field (A 756 1): stems per m^2 of the cell before compute
+    void set_vegetation(double nv) {prm.vn = nv;}
 
     // spectral sparsity (A 795): energy may appear in any bin of the cell (wind input, DIA)
     bool fills_spectrum() const {return (prm.wind && prm.U10>0.0) || prm.dia;}
@@ -169,14 +186,17 @@ private:
     void moments(const float *N, double depth, const float *k);
     void dia(const float *N, double depth);
     void lta(const float *N, double depth, const float *k, const float *cg);
+    void vegetation(const float *N, double depth, const float *k, double *D);
     void split(const float *N, double *P, double *D);
     int wa = 0, wb = 0;             // direction window of the current compute
     int fa = 0, fb = 0;             // frequency band of the current compute
 
-    double &ue(int l, int m) {return UE[size_t(l+uoff)*ndir + m];}
-    double &sa1(int l, int m) {return SA1[size_t(l+soff)*ndir + m];}
-    double &sa2(int l, int m) {return SA2[size_t(l+soff)*ndir + m];}
-    size_t sx(int l, int m) const {return size_t(l+soff)*ndir + m;}
+    // DIA arrays with the directions continued periodically beyond 0 and ndir-1 (no index wrapping in
+    // the loops): UE for m = -2 dpad .. ndir-1+2 dpad, SA1/SA2 and the derivatives for m = -dpad .. ndir-1+dpad
+    double &ue(int l, int m) {return UE[size_t(l+uoff)*uw + size_t(m+2*dpad)];}
+    double &sa1(int l, int m) {return SA1[sx(l,m)];}
+    double &sa2(int l, int m) {return SA2[sx(l,m)];}
+    size_t sx(int l, int m) const {return size_t(l+soff)*sw + size_t(m+dpad);}
     int dw(int m) const {return ((m%ndir)+ndir)%ndir;}
 
     const seastate_grid &g;
@@ -190,6 +210,7 @@ private:
 
     // DIA (FAC4WW): interpolation indices and weights, E(f,theta) incl. the tail, SA1/SA2
     int isp, isp1, ism, ism1, idp, idp1, idm, idm1, uoff, ulen, soff, slen;
+    int dpad = 0, uw = 0, sw = 0;      // largest direction offset of the interactions, row lengths of UE and SA
     double awg[8], dal1, dal2, dal3;
     std::vector<double> UE, SA1, SA2, DA1C, DA1P, DA1M, DA2C, DA2P, DA2M, af11;
 
@@ -197,6 +218,7 @@ private:
     int tsm, tsm1, tsp, tsp1;
     double twm, twm1, twp, twp1;
     std::vector<double> EL, SAL, TQ;
+    std::vector<double> VE, VS, VQ;     // vegetation per frequency: E dsig, the integral over the height, S_u/E
     mutable std::vector<double> row;    // sums over the directions per frequency (rows)
     mutable bool rows_ready = false;
     double pw_smax = 0.0, pw_se0 = 0.0, pw_se1 = 0.0, pw_se2 = 0.0, pw_fachfr = 0.0;   // tail powers

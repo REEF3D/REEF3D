@@ -44,7 +44,6 @@ public:
 	
 private:
 	double H,roval,phival;
-    double psi;
 
     concentration *pconc;
 };

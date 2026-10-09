@@ -41,6 +41,10 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		{
 		i=p->gcslout[n][0];
 		j=p->gcslout[n][1];
+        
+        // x+ handled as an absorbing Riemann edge (nhflow_active_beach_edge)
+        if(nhf_active_edge && p->gcslout[n][3]==4)
+        continue;
 		
 		eta_T = 0.0;
 		eta_M = d->eta(i,j); 
@@ -101,6 +105,10 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		{
 		i=p->gcslout[n][0];
 		j=p->gcslout[n][1];
+        
+        // x+ handled as an absorbing Riemann edge (nhflow_active_beach_edge)
+        if(nhf_active_edge && p->gcslout[n][3]==4)
+        continue;
 		
 		eta_T = 0.0;
 		eta_M = d->eta(i,j); 
@@ -188,6 +196,10 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		{
 		i=p->gcslout[n][0];
 		j=p->gcslout[n][1];
+        
+        // x+ handled as an absorbing Riemann edge (nhflow_active_beach_edge)
+        if(nhf_active_edge && p->gcslout[n][3]==4)
+        continue;
 		
 		aa=bb=0;
 		

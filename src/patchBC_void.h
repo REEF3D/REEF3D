@@ -44,14 +44,8 @@ public:
     void patchBC_waterlevel(lexer*, fdm*, ghostcell*, field&) override final;
     
     void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
-    void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
-    void patchBC_pressure2D(lexer*, ghostcell*, slice&) override final;
-    void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&) override final;
-    void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&) override final;
     void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
-    
-    void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&) override final;
     
 };
 

@@ -44,6 +44,7 @@ class linear_regression_cont;
 using namespace std;
 #include <memory>
 #include<vector>
+#include<fstream>
 
 class iowave final : public ioflow, public wave_interface, public increment, public flowfile_in
 {
@@ -61,12 +62,10 @@ public:
 	void rkinflow(lexer*,fdm*,ghostcell*,field&,field&,field&) override final;
 	void fsfrkin(lexer*,fdm*,ghostcell*,field&) override final;
 	void fsfrkout(lexer*,fdm*,ghostcell*,field&) override final;
-	void iogcb_update(lexer*,fdm*,ghostcell*) override final;
 	void isource(lexer*,fdm*,ghostcell*,vrans*) override final;
     void jsource(lexer*,fdm*,ghostcell*,vrans*) override final;
     void ksource(lexer*,fdm*,ghostcell*,vrans*) override final;
     void pressure_io(lexer*,fdm*,ghostcell*) override final;
-    void turbulence_io(lexer*,fdm*,ghostcell*) override final;
     void veltimesave(lexer*,fdm*,ghostcell*,vrans*) override final;
     void Qin(lexer*,fdm*,ghostcell*);
 	void Qout(lexer*,fdm*,ghostcell*);
@@ -80,7 +79,6 @@ public:
     void wavegen_precalc_space_dirichlet(lexer*,ghostcell*);
     void wavegen_precalc_time(lexer*,ghostcell*);
     void wavegen_precalc_decomp_relax(lexer*,ghostcell*);
-    void wavegen_precalc_decomp_dirichlet(lexer*,ghostcell*);
     
     void u_relax(lexer*,fdm*,ghostcell*,field&) override final;
     void v_relax(lexer*,fdm*,ghostcell*,field&) override final;
@@ -94,22 +92,18 @@ public:
     void W_relax(lexer*,ghostcell*,double*,double*) override final;
     void P_relax(lexer*,ghostcell*,double*) override final;
     void WL_relax(lexer*,ghostcell*,slice&,slice&) override final;
-    void fi_relax(lexer*,ghostcell*,field&,field&) override final;
-    void fivec_relax(lexer*, ghostcell*, double*) override final;
+    void fivec_relax(lexer*, ghostcell*, double*);
     void fifsf_relax(lexer*, ghostcell*, slice&) override final;
-    void test_relax(lexer*, ghostcell*, slice&)override final;
-    void visc_relax(lexer*, ghostcell*, slice&) override final;
     void eta_relax(lexer*,ghostcell*,slice&) override final;
     void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
     void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
 	void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-    void ws_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
 	void pm_relax(lexer*,ghostcell*,slice&) override final;
     
     
     // 2D
     void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*) override final;
-    void wavegen_2D_precalc_ini(lexer*,ghostcell*) override final;
+    void wavegen_2D_precalc_ini(lexer*,ghostcell*);
     
     
     void discharge2D(lexer*,fdm2D*,ghostcell*) override final;
@@ -117,10 +111,9 @@ public:
     void Qin2D(lexer*,fdm2D*,ghostcell*) override final;
 	void Qout2D(lexer*,fdm2D*,ghostcell*) override final;
     void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&) override final;
-	void rkinflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&) override final;
 	void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
-	void full_initialize2D(lexer*,fdm2D*,ghostcell*) override final;
+	void full_initialize2D(lexer*,fdm2D*,ghostcell*);
     
     void wavegen2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
     void active_beach2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&);
@@ -132,10 +125,8 @@ public:
     double wave_yvel(lexer*,ghostcell*,double,double,double) override final;
     double wave_zvel(lexer*,ghostcell*,double,double,double) override final;
     
-	int iozonecheck(lexer*,fdm*) override final;
 	void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
-    void full_initialize_ptf(lexer*,fdm*,ghostcell*);
 	void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
@@ -144,7 +135,6 @@ public:
     void ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void ini_fnpf(lexer*,fdm_fnpf*,ghostcell*) override final;
     void ini2D(lexer*,fdm2D*,ghostcell*) override final;
-    void ini_ptf(lexer*,fdm*,ghostcell*) override final;
     
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;
 
@@ -160,7 +150,7 @@ public:
 	
     // precalc
 	void wavegen_precalc(lexer*,ghostcell*) override final;
-    void wavegen_precalc_ini(lexer*,ghostcell*) override final;
+    void wavegen_precalc_ini(lexer*,ghostcell*);
     
     
     void wavegen_precalc_relax(lexer*,ghostcell*);
@@ -176,10 +166,8 @@ public:
     // FNPF
     void wavegen_precalc_fnpf(lexer*,fdm_fnpf*,ghostcell*) override final;
     void inflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,double*,double*,slice&,slice&) override final;
-    void rkinflow_fnpf(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&) override final;
     void fnpf_precalc_relax(lexer*,ghostcell*);
     void fnpf_precalc_relax_ini(lexer*,ghostcell*);
-    void fnpf_precalc_parallel_relax(lexer*,ghostcell*);
     void fnpf_precalc_parallel_relax_ini(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet(lexer*,ghostcell*);
     void fnpf_precalc_dirichlet_ini(lexer*,ghostcell*);
@@ -196,7 +184,7 @@ public:
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override final;
     void wavegen_2D_stage(lexer*,fdm2D*,ghostcell*,double) override final;
-    void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
+    void wavegen_precalc_ini_nhflow(lexer*,fdm_nhf*,ghostcell*);
     void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
     void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
@@ -306,20 +294,34 @@ private:
     void nhflow_open_edges_wl(lexer*,fdm_nhf*,slice&);
     double nhflow_col_ubar(lexer*,fdm_nhf*,double*);
 
-    // waves on the background (B 530): per source the wave state (k, h_eff, U_n) of the
-    // last update (0) and the target (1), blended over B 530 N steps from step c0
+    // waves on the background (B 530): per source the wave state of the last update (0) and
+    // the target (1), blended over B 530 N steps from step c0: h_eff, and per component k,
+    // U_n and the amplitude factor (0 for a component blocked by an opposing current)
     struct wave_bg_state
     {
-        double k0=0.0, h0=0.0, u0=0.0, k1=0.0, h1=0.0, u1=0.0;
-        int c0=0;
+        std::vector<double> k0, k1, u0, u1, a0, a1;
+        double h0=0.0, h1=0.0;
+        int c0=0, nblock=0;
         bool on=false;
     };
     std::vector<wave_bg_state> wbg;
     int wbg_count=-1;
-    bool wbg_blocked=false;
     void nhflow_wave_background(lexer*,ghostcell*);
+    void b530_auto(lexer*);
+    void nhflow_active_beach_edge(lexer*, ghostcell*);
+    double bg_kweight(int,double,double);
+    void nhflow_edge_pressure(lexer*, fdm_nhf*, ghostcell*, double, double);
+    void select_zone_at(lexer*);
+    bool nhf_active_edge = false;     // B 99 3 / 4 in NHFLOW: absorbing Riemann edge at x+
+    double bg_prof(lexer*,int,double);   // B 513 profile factor of layer k, depth average 1 per column
+    
+    // edge mass balance (B 529): flux through each open edge integrated since the last line
+    void nhflow_mass_balance(lexer*,fdm_nhf*,ghostcell*);
+    std::ofstream mb_out;
+    double mb_t=-1.0, mb_t0=0.0, mb_V0=0.0;
+    double mb_int[5]={0.0,0.0,0.0,0.0,0.0};
+    int mb_n=0;
 
-    int intriangle(lexer*,double,double,double,double,double,double,double,double);
     
     //PLIC
     slice4 vofheight;

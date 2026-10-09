@@ -28,7 +28,7 @@ Architect: Hans Bihs
 #include"slice.h"
 #include<cmath>
 
-nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p), fp(p), cbx(p), cby(p), phi(p), rL(p), Hx(p), Hy(p), first(true), nlowg(0), nlow(0)
+nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p), fp(p), cbx(p), cby(p), phi(p), rL(p), Hx(p), Hy(p), cr(p), cd(p), cq(p), wf(p), rt(p), first(true), nlowg(0), nlow(0)
 {
     pgc = ppgc;
     ncell = p->imax*p->jmax*(p->kmax+2);
@@ -44,6 +44,8 @@ nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p
     p->Darray(low,ncell);
     p->Darray(pw,ncell);
     p->Darray(side0,ncell);
+    p->Darray(tu,ncell);
+    p->Darray(tv,ncell);
     p->Darray(sideN,p->imax*p->jmax*p->kmaxF);
     
     for(int q=0; q<ncell; ++q)
@@ -57,6 +59,8 @@ nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p
     cbx(i,j) = 0.0;
     cby(i,j) = 0.0;
     phi(i,j) = 0.0;
+    wf(i,j) = 0.0;
+    rt(i,j) = 0.0;
     }
 }
 
@@ -72,6 +76,8 @@ nhflow_thinbody::~nhflow_thinbody()
     delete [] low;
     delete [] pw;
     delete [] side0;
+    delete [] tu;
+    delete [] tv;
     delete [] sideN;
     delete [] fz;
 }
@@ -93,6 +99,10 @@ void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,ux,1);
     pgc->start4V(p,uy,1);
     pgc->start4V(p,uz,1);
+    
+    // node sides of the neighbouring subdomains (node links across the subdomain border: node_cut_x/y)
+    pgc->gcparax7(p,sideN,7);
+    pgc->gcparax7co(p,sideN,7);
     
     // vertical momentum faces between cell centres on opposite sides; lower cells: odd number of them above the
     // cell in its column (sigma columns are not split between the subdomains)
@@ -132,6 +142,31 @@ void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     nlow = n;
     nlowg = pgc->globalisum(n);
+    
+    // vertical wall velocity of the floor above the lower cells of a column (the vertical node link at the topmost floor
+    // crossing, cell just below or just above it): with the normal wall velocities, the inflow through the cut face of the
+    // column (the blocked side faces of the lower cells carry their own wall fluxes)
+    ILOOP
+    JLOOP
+    {
+        wf(i,j) = 0.0;
+        
+        if(fp(i,j)<0.5)
+        continue;
+        
+        for(k=p->knoz-2; k>=0; --k)
+        if(fz[IJK]>0.5)
+        {
+            if(bz[IJK]>0.5)
+            wf(i,j) = uz[IJK];
+            else
+            if(bz[IJKp1]>0.5)
+            wf(i,j) = uz[IJKp1];
+            break;
+        }
+    }
+    
+    pgc->gcsl_start4(p,wf,1);
     
     // columns with a blocked link to their +x / +y neighbour (at any level)
     SLICELOOP4
@@ -174,6 +209,8 @@ void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,low,1);
     pgc->start4V(p,fz,1);
     pgc->gcsl_start4(p,fp,1);
+    
+    top_region(p,d);
 }
 
 void nhflow_thinbody::wall_faces(lexer *p, int i, int j, int k, int *w) const
@@ -238,6 +275,17 @@ void nhflow_thinbody::matrix_walls(lexer *p, fdm_nhf *d, const double *F)
     }
 }
 
+double nhflow_thinbody::inner_volume(lexer *p, fdm_nhf *d)
+{
+    double V=0.0;
+    
+    LOOP
+    if(p->wet[IJ]==1 && ((rt(i,j)>0.5) != (low[IJK]>0.5)))
+    V += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+    
+    return pgc->globalsum(V);
+}
+
 int nhflow_thinbody::nlower(lexer *p, ghostcell *pgc)
 {
     return pgc->globalisum(nlow);
@@ -250,9 +298,14 @@ double nhflow_thinbody::head(lexer *p, fdm_nhf *d, int i, int j, int k)
 
 void nhflow_thinbody::update_etaL(lexer *p, fdm_nhf *d, int iter)
 {
-    // harmonic extension of eta into the footprint columns (Gauss-Seidel, warm start, Dirichlet eta around it)
+    // head of the cells below a body crossing ("lower" cells, the region other than the one of the column's free surface):
+    // columns with the free surface inside the body (rt = 1, bag interior): the outer level, harmonic extension of eta of
+    // the outside columns (Dirichlet) over the inside columns; columns with the free surface outside and lower cells (a wall
+    // that leans outwards, a dent or fold of a flexible membrane: the lower cells hold inner water): the inner level,
+    // harmonic extension of eta of the inside columns over these columns (no flux to other outside columns; isolated:
+    // own eta). Gauss-Seidel, warm start.
     SLICELOOP4
-    if(fp(i,j)<0.5)
+    if(!(rt(i,j)>0.5 || fp(i,j)>0.5))
     etaL(i,j) = d->eta(i,j);
     
     pgc->gcsl_start4(p,etaL,50);
@@ -260,8 +313,9 @@ void nhflow_thinbody::update_etaL(lexer *p, fdm_nhf *d, int iter)
     for(int it=0; it<iter; ++it)
     {
         SLICELOOP4
-        if(fp(i,j)>0.5 && p->wet[IJ]==1)
+        if((rt(i,j)>0.5 || fp(i,j)>0.5) && p->wet[IJ]==1)
         {
+            const bool in = rt(i,j)>0.5;
             double s=0.0, w=0.0;
             
             auto add = [&](int ii, int jj, double dl)
@@ -271,7 +325,22 @@ void nhflow_thinbody::update_etaL(lexer *p, fdm_nhf *d, int iter)
                 if(p->wet[qq]==0)
                 return;
                 
-                const double v = fp(ii,jj)>0.5 ? etaL(ii,jj) : d->eta(ii,jj);
+                const bool nin = rt(ii,jj)>0.5;
+                double v;
+                
+                if(in)
+                v = nin ? etaL(ii,jj) : d->eta(ii,jj);
+                else
+                {
+                    if(nin)
+                    v = d->eta(ii,jj);
+                    else
+                    if(fp(ii,jj)>0.5)
+                    v = etaL(ii,jj);
+                    else
+                    return;
+                }
+                
                 s += v/(dl*dl);
                 w += 1.0/(dl*dl);
             };
@@ -285,12 +354,52 @@ void nhflow_thinbody::update_etaL(lexer *p, fdm_nhf *d, int iter)
             add(i,j-1,p->DYP[JM1]);
             }
             
-            if(w>0.0)
-            etaL(i,j) = s/w;
+            etaL(i,j) = w>0.0 ? s/w : d->eta(i,j);
         }
         
         pgc->gcsl_start4(p,etaL,50);
     }
+}
+
+void nhflow_thinbody::top_region(lexer *p, fdm_nhf *d)
+{
+    // region of the free surface of each column: 1 inside the body (the top cell on the inner side, or connected to such a
+    // column by open links of the top layer), 0 outside
+    SLICELOOP4
+    {
+        k = p->knoz-1;
+        rt(i,j) = sideC[IJK]<0.0 ? 1.0 : (sideC[IJK]>0.0 ? 0.0 : -1.0);
+    }
+    
+    pgc->gcsl_start4(p,rt,1);
+    
+    for(int it=0; it<200; ++it)
+    {
+        int ch=0;
+        k = p->knoz-1;
+        
+        SLICELOOP4
+        if(rt(i,j)<-0.5)
+        {
+            if((rt(i+1,j)>0.5 && bx[IJK]<0.5) || (rt(i-1,j)>0.5 && bx[Im1JK]<0.5)
+            || (p->j_dir==1 && ((rt(i,j+1)>0.5 && by[IJK]<0.5) || (rt(i,j-1)>0.5 && by[IJm1K]<0.5))))
+            {
+                rt(i,j) = 1.0;
+                ++ch;
+            }
+        }
+        
+        pgc->gcsl_start4(p,rt,1);
+        
+        if(pgc->globalisum(ch)==0)
+        break;
+    }
+    
+    SLICELOOP4
+    if(rt(i,j)<-0.5)
+    rt(i,j) = 0.0;
+    
+    pgc->gcsl_start4(p,rt,1);
 }
 
 void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, double *Fy)
@@ -736,8 +845,8 @@ void nhflow_thinbody::cut_forcing(lexer *p, fdm_nhf *d, double *UH, double *VH, 
         if(by[IJK]>0.5)   {++n; v+=uy[IJK];   nv+=1.0;}
         }
         
-        if(k>0 && fz[IJKm1]>0.5) {++n; w+=0.0; nw+=1.0;}
-        if(k<p->knoz-1 && fz[IJK]>0.5) {++n; w+=0.0; nw+=1.0;}
+        if(k>0 && fz[IJKm1]>0.5) {++n; w+=wf(i,j); nw+=1.0;}
+        if(k<p->knoz-1 && fz[IJK]>0.5) {++n; w+=wf(i,j); nw+=1.0;}
         
         if(n<3)
         continue;
@@ -754,6 +863,53 @@ void nhflow_thinbody::cut_forcing(lexer *p, fdm_nhf *d, double *UH, double *VH, 
         UH[IJK] = u*WL(i,j);
         VH[IJK] = v*WL(i,j);
         WH[IJK] = w*WL(i,j);
+    }
+    
+    // cells next to a blocked face: the velocity component normal to the face lies between the wall velocity and the
+    // velocity on the other side of the cell (monotone). The projection reaches this component only through the open
+    // face (half of the wide gradient), a mode with the cell flowing into the body is not controlled and can grow
+    // (flexible bag, a lower cell below a dented floor: 0.25 -> 11 m/s within 0.7 s)
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    
+    LOOP
+    if(p->wet[IJ]==1)
+    {
+        if(bx[Im1JK]>0.5 || bx[IJK]>0.5)
+        {
+            const double uw = bx[Im1JK]>0.5 ? ux[Im1JK] : d->U[Im1JK];
+            const double ue = bx[IJK]>0.5   ? ux[IJK]   : d->U[Ip1JK];
+            const double u = MAX(MIN(uw,ue), MIN(MAX(uw,ue), d->U[IJK]));
+            
+            UH[IJK] += (u - d->U[IJK])*WL(i,j);
+            tu[IJK] = u;
+        }
+        else
+        tu[IJK] = d->U[IJK];
+        
+        if(p->j_dir==1)
+        {
+            if(by[IJm1K]>0.5 || by[IJK]>0.5)
+            {
+                const double vs = by[IJm1K]>0.5 ? uy[IJm1K] : d->V[IJm1K];
+                const double vn = by[IJK]>0.5   ? uy[IJK]   : d->V[IJp1K];
+                const double v = MAX(MIN(vs,vn), MIN(MAX(vs,vn), d->V[IJK]));
+                
+                VH[IJK] += (v - d->V[IJK])*WL(i,j);
+                tv[IJK] = v;
+            }
+            else
+            tv[IJK] = d->V[IJK];
+        }
+    }
+    
+    LOOP
+    if(p->wet[IJ]==1)
+    {
+        d->U[IJK] = tu[IJK];
+        
+        if(p->j_dir==1)
+        d->V[IJK] = tv[IJK];
     }
     
     pgc->start4V(p,d->U,10);
@@ -820,7 +976,9 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
     // lower layers of a face. The imbalance goes to the outside columns, the inner level only sees the inner fluxes.
     auto isL = [&](int q) {return low[q]>0.5;};
     
-    SLICELOOP4
+    // (also the ghost columns i = -1, j = -1: the faces i-1/2, j-1/2 of the first local columns are accumulated below)
+    for(i=-1; i<=p->knox; ++i)
+    for(j=-1; j<=p->knoy; ++j)
     {
     rL(i,j)=0.0;
     Hx(i,j)=0.0;
@@ -846,35 +1004,103 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
     if(isL(IJK) && p->wet[IJ]==1)
     rL(i,j) += p->DZN[KP]*((Fx[IJK] - Fx[Im1JK])/p->DXN[IP] + (p->j_dir==1 ? (Fy[IJK] - Fy[IJm1K])/p->DYN[JP] : 0.0));
     
-    // SOR, warm start
-    const double w = 1.6;
+    // conjugate gradients on the footprint columns (symmetric positive definite -L phi = -r; parallel: the
+    // operator only needs the ghost columns of the search direction), warm start from the last stage, relative
+    // residual 1e-8
     auto ph = [&](int ii, int jj) {return fp(ii,jj)>0.5 ? phi(ii,jj) : 0.0;};
+    auto act = [&](int ii, int jj) {return fp(ii,jj)>0.5 && p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1;};
     
-    for(int it=0; it<(first_lid?400:60); ++it)
+    // A s = sa s - sum a_nb s_nb on the active columns (s = 0 elsewhere)
+    auto apply = [&](slice4 &s, slice4 &As)
     {
+        pgc->gcsl_start4(p,s,1);
+        
         SLICELOOP4
-        if(fp(i,j)>0.5 && p->wet[IJ]==1)
         {
+            As(i,j) = 0.0;
+            
+            if(!act(i,j))
+            continue;
+            
             const double ae = Hx(i,j)/(p->DXP[IP]*p->DXN[IP]);
             const double aw = Hx(i-1,j)/(p->DXP[IM1]*p->DXN[IP]);
             const double an = p->j_dir==1 ? Hy(i,j)/(p->DYP[JP]*p->DYN[JP]) : 0.0;
             const double as = p->j_dir==1 ? Hy(i,j-1)/(p->DYP[JM1]*p->DYN[JP]) : 0.0;
             const double sa = ae+aw+an+as;
             
-            if(sa<=0.0)
+            auto sv = [&](int ii, int jj) {return act(ii,jj) ? s(ii,jj) : 0.0;};
+            
+            As(i,j) = sa>0.0 ? sa*s(i,j) - (ae*sv(i+1,j) + aw*sv(i-1,j) + (p->j_dir==1 ? an*sv(i,j+1) + as*sv(i,j-1) : 0.0))
+                             : s(i,j);
+        }
+    };
+    
+    SLICELOOP4
+    if(!act(i,j))
+    phi(i,j)=0.0;
+    
+    // r = b - A phi, b = -rL (sa = 0: phi = 0)
+    apply(phi,cq);
+    
+    double rr=0.0, bb=0.0;
+    
+    SLICELOOP4
             {
-                phi(i,j)=0.0;
-                continue;
+        cr(i,j) = 0.0;
+        
+        if(act(i,j))
+        {
+            const double sa = Hx(i,j)+Hx(i-1,j)+(p->j_dir==1 ? Hy(i,j)+Hy(i,j-1) : 0.0);
+            const double b = sa>0.0 ? -(rL(i,j) + wf(i,j)) : 0.0;
+            cr(i,j) = b - cq(i,j);
+            rr += cr(i,j)*cr(i,j);
+            bb += b*b;
             }
             
-            const double pn = (ae*ph(i+1,j) + aw*ph(i-1,j) + (p->j_dir==1 ? an*ph(i,j+1) + as*ph(i,j-1) : 0.0) - rL(i,j))/sa;
-            phi(i,j) += w*(pn - phi(i,j));
+        cd(i,j) = cr(i,j);
+    }
+    
+    rr = pgc->globalsum(rr);
+    bb = pgc->globalsum(bb);
+    
+    const double tol2 = 1.0e-16*MAX(bb,1.0e-60);
+    
+    for(int it=0; it<500 && rr>tol2; ++it)
+    {
+        apply(cd,cq);
+        
+        double dq=0.0;
+        SLICELOOP4
+        if(act(i,j))
+        dq += cd(i,j)*cq(i,j);
+        
+        dq = pgc->globalsum(dq);
+        
+        if(dq<=0.0)
+        break;
+        
+        const double al = rr/dq;
+        double rn=0.0;
+        
+        SLICELOOP4
+        if(act(i,j))
+        {
+            phi(i,j) += al*cd(i,j);
+            cr(i,j)  -= al*cq(i,j);
+            rn += cr(i,j)*cr(i,j);
+        }
+        
+        rn = pgc->globalsum(rn);
+        
+        const double be = rn/rr;
+        rr = rn;
+        
+        SLICELOOP4
+        cd(i,j) = act(i,j) ? cr(i,j) + be*cd(i,j) : 0.0;
         }
         
         pgc->gcsl_start4(p,phi,1);
-    }
     
-    first_lid=false;
     
     // correction on the open lower layers
     for(i=-1; i<p->knox; ++i)

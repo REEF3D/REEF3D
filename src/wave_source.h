@@ -57,6 +57,8 @@ Frame: positions arrive in the generation frame of the legacy source
 (iowave xgen/ygen; the global frame for B 105 0 0 0). A source has an
 origin (x0,y0) and a direction rot (degrees) relative to that frame;
 its wave_lib turns velocities into the global frame with its own B 105.
+A source given in the global frame (B 505 id 1) is turned into this
+frame when it is read (wave_field::read).
 --------------------------------------------------------------------*/
 
 class wave_source
@@ -77,6 +79,8 @@ public:
     double ts,te,t_ramp;     // time window [s] and ramp duration [s]
     double x0,y0;            // origin in the legacy generation frame
     int seed;                // random phases of irregular sources (B 139, B 138)
+    bool global = false;     // B 505 id 1: direction and origin given in the global frame
+    double dir_in=0.0, x0_in=0.0, y0_in=0.0;   // as given (global frame), for the log
 
     double tshift;           // phase/360*T
     double cr,sr;            // cos/sin of rot

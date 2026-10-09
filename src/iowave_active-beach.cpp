@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"interface_width.h"
 #include"iowave.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -122,7 +123,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                 }
                
                 // inteface H
-                epsi = p->F45*p->DZN[KP];
+                epsi = interface_width(p,a->phi,i,j,k);
         
                 H = heaviside(a->phi(i,j,k),epsi);
                 
@@ -272,7 +273,7 @@ void iowave::active_beach(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, 
                }
                
                // inteface H
-                epsi = p->F45*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+                epsi = interface_width(p,a->phi,i,j,k);
         
                 H = heaviside(a->phi(i,j,k),epsi);
                 

@@ -133,67 +133,37 @@ void idiff2_FS::assemble_w(lexer* p, fdm* a, ghostcell *pgc, field &w_in, field 
         if(p->DF3[IJK]>0)
         {
             
-		if(p->DF3[Im1JK]<0)  // solid (direct forcing): u = 0 there, Dirichlet
-		{
-		a->M.s[n] = 0.0;
-		}
-		else
-		if((p->flag3[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0)))
+		if((p->flag3[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0)) || p->DF3[Im1JK]<0)
 		{
 		a->M.p[n] += a->M.s[n];
 		a->M.s[n] = 0.0;
 		}
 		
-		if(p->DF3[Ip1JK]<0)  // solid (direct forcing): u = 0 there, Dirichlet
-		{
-		a->M.n[n] = 0.0;
-		}
-		else
-		if((p->flag3[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)))
+		if((p->flag3[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0)) || p->DF3[Ip1JK]<0)
 		{
 		a->M.p[n] += a->M.n[n];
 		a->M.n[n] = 0.0;
 		}
 		
-		if(p->DF3[IJm1K]<0)  // solid (direct forcing): u = 0 there, Dirichlet
-		{
-		a->M.e[n] = 0.0;
-		}
-		else
-		if((p->flag3[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0)))
+		if((p->flag3[IJm1K]<0 && (j+p->origin_j>0 || p->periodic2==0)) || p->DF3[IJm1K]<0)
 		{
 		a->M.p[n] += a->M.e[n];
 		a->M.e[n] = 0.0;
 		}
 		
-		if(p->DF3[IJp1K]<0)  // solid (direct forcing): u = 0 there, Dirichlet
-		{
-		a->M.w[n] = 0.0;
-		}
-		else
-		if((p->flag3[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0)))
+		if((p->flag3[IJp1K]<0 && (j+p->origin_j<p->gknoy-1 || p->periodic2==0)) || p->DF3[IJp1K]<0)
 		{
 		a->M.p[n] += a->M.w[n];
 		a->M.w[n] = 0.0;
 		}
 		
-		if(p->DF3[IJKm1]<0)  // solid (direct forcing): u = 0 there, Dirichlet
-		{
-		a->M.b[n] = 0.0;
-		}
-		else
-		if((p->flag3[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0)))
+		if((p->flag3[IJKm1]<0 && (k+p->origin_k>0 || p->periodic3==0)) || p->DF3[IJKm1]<0)
 		{
 		a->M.p[n] += a->M.b[n];
 		a->M.b[n] = 0.0;
 		}
 		
-		if(p->DF3[IJKp1]<0)  // solid (direct forcing): u = 0 there, Dirichlet
-		{
-		a->M.t[n] = 0.0;
-		}
-		else
-		if((p->flag3[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)))
+		if((p->flag3[IJKp1]<0 && (k+p->origin_k<p->gknoz-1 || p->periodic3==0)) || p->DF3[IJKp1]<0)
 		{
 		a->M.p[n] += a->M.t[n];
 		a->M.t[n] = 0.0;

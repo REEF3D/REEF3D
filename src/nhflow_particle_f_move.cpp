@@ -28,12 +28,6 @@ Author: Hans Bihs
 #include<cmath>
 #include<algorithm>
 
-// time integration: Heun (explicit trapezoidal) for the deterministic drift
-//   x* = x^n + dt*u(x^n,t^n)                  (u(x^n,t^n) stored in step_begin)
-//   x^n+1 = x^n + dt/2*(u(x^n,t^n) + u(x*,t^n+1))
-// followed by the random walk (Euler-Maruyama, Visser 1997 drift correction for K(z)).
-// In NHFLOW the waves are phase-resolved, so Stokes drift comes out of the tracking itself;
-// no Stokes drift parameterisation is added.
 
 void nhflow_particle_f::step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {

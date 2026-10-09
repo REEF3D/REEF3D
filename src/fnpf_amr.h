@@ -43,6 +43,7 @@ class fnpf_laplace_cds2;
 class reefmg_core;
 class fnpf_body;
 class solver;
+class fnpf_fsf_update;
 
 using namespace std;
 
@@ -168,6 +169,18 @@ public:
     void lap_s(double);
     void lap_x(double, double);
 
+    // subcycling (G 7 1, fnpf_amr_sub.cpp): level l takes 2^l steps per level-0 step
+    bool sub_on() const { return sub==1 && active(); }
+    // the level-0 objects of fnpf_RK3 (free surface, sigma grid, boundary conditions)
+    void attach_level0(fnpf_fsf*, fnpf_sigma*, fnpf_fsf_update*, fnpf_bed_update*);
+    // a psi solve of the body loads on the level-l patches (their parent columns fixed): edge
+    // values of f from the parent phi_t, set by sub_psi_edges
+    void lap_solve_psi_level(lexer*, ghostcell*, int, double**, slice**);
+    void sub_psi_edges(int, double**);
+    int sub_level_now() const { return slev; }
+    bool sub_last_finest() const { return bfin==(1<<maxlev)-1; }
+    double sub_time() const { return tsub; }
+
 protected:
     // REEFAMR hooks
     reefamr_patch* patch_new() override;
@@ -230,6 +243,7 @@ private:
     void lap_sync(int);
     void lap_rows();
     int lap_layout = -1;
+    int lap_wkey = 0;               // level window of the row lists (G 7 1)
     struct lgrid
     {
         vector<int> lq, lr;         // leaf unknowns: Fi index, matrix row
@@ -256,6 +270,45 @@ private:
     bool print_lagoon(lexer*, fdm_fnpf*, ghostcell*);
     void gauges(lexer*, fdm_fnpf*, ghostcell*);
     ofstream gaugeout, logout;
+
+    // subcycling (G 7 1, fnpf_amr_sub.cpp)
+    int sub = 0;
+    double zr_user = 0.0;           // G 12 as given (G 7 1 with a body widens the margin)
+    int wlo = 0, whi = -1;          // level window of the Laplace solve, restriction and fills (whi<0: maxlev)
+    int wtop() const { return whi<0 ? maxlev : whi; }
+    bool lap_edge = false;          // window above level 0: the parent columns of its lowest level are fixed
+    bool lap_dir = false;           // fill_col of a Krylov vector (the fixed parent columns are 0)
+    int slev = 0;                   // level of the current subcycled step
+    int bfin = 0;                   // finest steps done in the level-0 step
+    double tsub = 0.0;              // start time of the current step of slev
+    vector<double> dtlev;           // step of each level in the current level-0 step
+    struct tcol
+    {
+        int layout = -1;
+        vector<int> ci, cj;         // the columns of the grid the fills of the next level read
+        vector<double> old, live;   // their eta, Fifsf, Fi at the start of the step / current
+        double *pt = nullptr;       // phi_t of the step at these columns (psi edges of the body)
+        int ptn = 0;
+    };
+    vector<tcol> tc;                // [g+1]
+    fnpf_fsf *pf0 = nullptr;
+    fnpf_sigma *psig0 = nullptr;
+    fnpf_fsf_update *pfu0 = nullptr;
+    fnpf_bed_update *pbu0 = nullptr;
+    int tc_nv(int g);
+    void tc_build(int);
+    void tc_pack(int, int, double*);
+    void tc_unpack(int, int, const double*);
+    void sub_snapshot(int);
+    void sub_swap_in(int, double);
+    void sub_swap_out(int);
+    void sub_step(lexer*, fdm_fnpf*, ghostcell*);
+    void sub_level(lexer*, ghostcell*, int, int, double, double);
+    void sub_stage(lexer*, ghostcell*, int, int, int, double);
+    void sub_sync(lexer*, ghostcell*, int, double);
+    void sub_derived(lexer*, ghostcell*, int, double);
+    void lap_prec_win(int, int);
+    double rko(int s) const { return (s==1) ? 0.5 : 1.0; }
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;

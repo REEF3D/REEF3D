@@ -32,6 +32,8 @@ wave_lib_linear::wave_lib_linear(lexer *p, ghostcell *pgc) : wave_lib_parameters
     // waves on a background (B 530): sigma and depth of the orbital velocities, as constructed
     wsig = ww;
     wdk = wdt;
+    wa0 = wa;
+    waf = 1.0;
     
     if(p->mpirank==0)
     {
@@ -72,7 +74,7 @@ double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = wsig*wa*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * cos(teta);
+    vel = wsig*wa*( cosh(wk*(wdt+z))/sinhkd() ) * cos(teta);
 
     return vel;
 }
@@ -83,7 +85,7 @@ double wave_lib_linear::wave_w(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = wsig*wa*( sinh(wk*(wdt+z))/sinh(wk*wdk) ) * sin(teta);
+    vel = wsig*wa*( sinh(wk*(wdt+z))/sinhkd() ) * sin(teta);
 
     return vel;
 }
@@ -105,11 +107,18 @@ double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
     
     teta = wk*x-ww*(p->wavetime) + pshift;
     
-    fi = ((wsig*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * sin(teta);
-    
-    vel = wsig*wa*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * cos(teta);
+    fi = ((wsig*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinhkd() ) * sin(teta);
     
     return fi;
+}
+
+void wave_lib_linear::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    const double vel = wave_horzvel(p,cache_x[q],cache_y[q],z);
+    
+    u = cosgamma*vel;
+    v = singamma*vel;
+    w = wave_w(p,cache_x[q],cache_y[q],z);
 }
 
 void wave_lib_linear::parameters(lexer *p, ghostcell *pgc)
@@ -120,20 +129,19 @@ void wave_lib_linear::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
 
-bool wave_lib_linear::wave_state(double &k, double &h, double &sigma, double &omega, double &h0) const
+void wave_lib_linear::wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const
 {
     k = wk;
-    h = wdk;
-    sigma = wsig;
     omega = ww;
-    h0 = wdt;
-    
-    return true;
+    sigma = wsig;
+    beta = 0.0;
+    af = waf;
 }
 
-void wave_lib_linear::wave_state_set(double k, double h, double sigma)
+void wave_lib_linear::wave_comp_set(int n, double k, double sigma, double af)
 {
     wk = k;
-    wdk = h;
     wsig = sigma;
+    waf = af;
+    wa = wa0*af;
 }

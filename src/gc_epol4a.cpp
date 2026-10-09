@@ -22,77 +22,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include<math.h>
 
+// ghost-cell label of the topo / solid / fb / level-set fields in start4a (kernel chosen in gcdistro4a):
+// 4 neumann, 3 extend, 0 nothing; cs: side of the face (sign removed)
 int ghostcell::gceval4a(lexer *p, int gcv, int bc, int cs)
 {
+    switch(gcv)
+    {
+    // topo, topo for bedload
+    case 151:
+    case 152:
+    case 153:
+    case 161:
+    case 162:
+    case 163:
+        if(bc==21||bc==22||bc==5||bc==3||bc==6||bc==7||bc==8) return 4;
+        if(bc==2 && (gcv==151||gcv==161))           return 4;
+        if(bc==1 && (gcv==152||gcv==162))           return 4;
+        return 0;
 
-	//topo
-	if((bc==21||bc==22||bc==5||bc==3||bc==6||bc==7||bc==8)&&(cs==5||cs==6)&&(gcv==151 || gcv==152 || gcv==153))
-	return 75;
+    case 150:
+    case 154:
+        return 4;
 
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==6||bc==7||bc==8)&&(cs!=5&&cs!=6)&&(gcv==151 || gcv==152 || gcv==153))
-	return 74;
+    case 159:
+        return 3;
 
-	else
-	if((bc==2&&gcv==151) || (bc==1&&gcv==152))
-	return 74;
+    // floating body
+    case 50:
+        return 4;
 
-	else
-	if(gcv==150 || gcv==154)
-	return 74;
-    
-    else
-	if(gcv==159)
-	return 79;
+    // level set
+    case 51:
+    case 52:
+    case 53:
+    case 54:
+        if(bc==21||bc==22||bc==5||bc==41||bc==3||bc==6||bc==7||bc==8||bc==9) return 4;
+        if(bc==1 && (gcv==52||gcv==54))             return 4;
+        if(bc==2 && (gcv==51||gcv==54))             return 4;
+        return 0;
 
-	//topo for bedload
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==6||bc==7||bc==8)&&(cs==5||cs==6)&&(gcv==161 || gcv==162 || gcv==163))
-	return 75;
+    // porosity
+    case 1:
+        return 4;
+    }
 
-	else
-	if((bc==21||bc==22||bc==5||bc==3||bc==6||bc==7||bc==8)&&(cs!=5&&cs!=6)&&(gcv==161 || gcv==162 || gcv==163))
-	return 74;
-
-	else
-	if((bc==2&&gcv==161) || (bc==1&&gcv==162))
-	return 74;
-	
-	// fb
-	else
-	if(gcv==50)
-	return 75;
-    
-    
-//Level Set	
-    
-    else
-	if((bc==21||bc==22||bc==5||bc==41||bc==6||bc==7||bc==8||bc==9) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
-	return 74;
-    
-	else
-	if((bc==3) && (gcv==51 || gcv==52 || gcv==53 || gcv==54))
-	return 74;
-
-	else
-	if(bc==1&&(gcv==52 || gcv==54))
-	return 74;
-
-	else
-	if((bc==2)&&(gcv==51 || gcv==54))
-	return 74;
-
-	else
-	if(gcv==50)
-	return 74;
-	
-	// porosity
-	else
-	if(gcv==1)
-	return 75;
-
-	else
-	return 0;
+    return 0;
 }
 
 void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, double dist,  int gcv, int bc, int cs)
@@ -107,11 +81,11 @@ void ghostcell::gcdistro4a(lexer *p,field& f, int ii, int jj, int kk, int nn, do
 
 	bc_label=gceval4a(p,gcv,bc,cs);
 
-	if(bc_label==74 || bc_label==75)
-	neumann_all(f,gcv,bc,cs);
-    
-    if(bc_label==79)
-    extend(p,f,dist,gcv,bc,cs);
+    switch(bc_label)
+    {
+    case 4: neumann(f,gcv,bc,cs); break;
+    case 3: extend(p,f,dist,gcv,bc,cs); break;
+    }
 }
 
 

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"outflow_pressure.h"
 #include"ioflow_f.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -80,89 +81,18 @@ void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 
 void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double pval=0.0;
-    double diff;
-    double eps,H,roval;
-    
-    /*
-    if(p->count!=iter0)
+    double pval;
+
+    for(n=0;n<p->gcout_count;++n)
     {
-    diff = p->phiout-p->fsfout;
-    
-    p->fsfoutval -= 0.1*diff;
-    
-    iter0=p->count;
-    
-    // cout<<p->mpirank<<" fsfout: "<<p->fsfout<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
-    }*/
-    
-    
-        for(n=0;n<p->gcout_count;++n)
-        {
-        i=p->gcout[n][0];
-        j=p->gcout[n][1];
-        k=p->gcout[n][2];
-        pval=0.0;
-        
-        
-        if(p->B77==0)
-        {
-        pval = a->press(i,j,k); 
-        a->press(i+1,j,k)=pval;
-        a->press(i+2,j,k)=pval;
-        a->press(i+3,j,k)=pval;
-        }
-		
-        
-			if(p->B77==1)
-			{
-                
-                
-            /*
-            eps = 2.1*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
-            H = heaviside(a->phi(i,j,k),eps);
-            
-            //pval=H*pval + (1.0-H)*a->press(i,j,k);
-            
-            roval = p->W1*H +   p->W3*(1.0-H);*/
-            
-            
-                if(p->F50==2 || p->F50==3)
-                pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-                
-                if(p->F50==1 || p->F50==4)
-                pval=a->press(i,j,k);
-                
-                pval=a->press(i,j,k);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-            
-            if(p->B77==2)
-			{
-                pval=a->press(i,j,k);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-		
-        
-        
-			if(p->B77==10)
-			{
-            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
-            H = heaviside(a->phi(i,j,k),eps);
-        
-            pval=(1.0-H)*a->press(i,j,k);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-        }
+    i=p->gcout[n][0];
+    j=p->gcout[n][1];
+    k=p->gcout[n][2];
+
+    pval = outflow_pressure(p,a,i,j,k);
+
+    a->press(i+1,j,k)=pval;
+    a->press(i+2,j,k)=pval;
+    a->press(i+3,j,k)=pval;
+    }
 }

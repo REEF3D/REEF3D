@@ -93,6 +93,8 @@
         <File Name="seastate_dispersion.h"/>
         <File Name="seastate_f.h"/>
         <File Name="seastate_grid.h"/>
+        <File Name="seastate_obstacle.h"/>
+        <File Name="seastate_structure.h"/>
         <File Name="seastate_param.h"/>
         <File Name="seastate_store.h"/>
         <File Name="seastate.h"/>
@@ -125,6 +127,7 @@
             <File Name="sloshing_force.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="probe_core.h"/>
             <File Name="probe_vel_theory.h"/>
             <File Name="probe_vel.h"/>
             <File Name="probe_pressure.h"/>
@@ -135,6 +138,7 @@
             <File Name="printer_CFD.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
+            <File Name="wsfline_core.h"/>
             <File Name="print_wsfline_y.h"/>
             <File Name="print_wsfline_x.h"/>
             <File Name="print_wsf_theory.h"/>
@@ -220,6 +224,7 @@
             <File Name="poisson.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Density">
+            <File Name="interface_width.h"/>
             <File Name="density_vof.h"/>
             <File Name="density_sf.h"/>
             <File Name="density_rheo.h"/>
@@ -234,8 +239,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
           <File Name="momentum_void.h"/>
-          <File Name="momentum_RKLS3_sf.h"/>
-          <File Name="momentum_RKLS3_df.h"/>
           <File Name="momentum_rk.h"/>
           <File Name="momentum_RK3_PLIC.h"/>
           <File Name="momentum_forcing.h"/>
@@ -367,12 +370,10 @@
             <File Name="weno_hj_nug.h"/>
             <File Name="weno_hj_df_nug.h"/>
             <File Name="weno_flux_nug.h"/>
-            <File Name="weno_flux.h"/>
             <File Name="weno3_hj.h"/>
             <File Name="weno3_flux.h"/>
             <File Name="quick.h"/>
             <File Name="iweno_hj_df_nug.h"/>
-            <File Name="iweno_hj.h"/>
             <File Name="ifou.h"/>
             <File Name="hires.h"/>
             <File Name="hcds6.h"/>
@@ -543,6 +544,7 @@
           <File Name="nhflow_turbulence.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="nhflow_solid_flux.h"/>
           <File Name="nhflow_flux_face.h"/>
           <File Name="nhflow_HLLYL.h"/>
           <VirtualDirectory Name="Scalar">
@@ -662,6 +664,7 @@
           <File Name="nhflow_momentum_RK3.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_body.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
           </VirtualDirectory>
@@ -756,6 +759,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
+          <File Name="fnpf_hj_godunov.h"/>
           <File Name="fnpf_hires.h"/>
           <File Name="fnpf_weno5_wd.h"/>
           <File Name="fnpf_weno5.h"/>
@@ -971,6 +975,7 @@
           <File Name="6DOF_load.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
+          <File Name="6DOF_pto_controller.h"/>
           <File Name="6DOF_pto.h"/>
           <File Name="6DOF_pto_elements.h"/>
           <File Name="6DOF_pto_joint.h"/>
@@ -1202,6 +1207,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Wave IO">
       <VirtualDirectory Name="PatchBC">
+        <File Name="patchBC_core.h"/>
+        <File Name="patchBC_codes.h"/>
         <File Name="patchBC_void.h"/>
         <File Name="patchBC_interface.h"/>
         <File Name="patchBC_2D.h"/>
@@ -1212,6 +1219,8 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <File Name="ioflow_gcio.h"/>
+        <File Name="outflow_pressure.h"/>
         <File Name="iowave.h"/>
         <File Name="bc_zone.h"/>
         <File Name="background_state.h"/>
@@ -1221,6 +1230,7 @@
         <File Name="ioflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
+        <File Name="wave_lib_irregular_2nd_cache.h"/>
         <File Name="wave_lib_wavemaker2nd.h"/>
         <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>
@@ -1267,11 +1277,14 @@
         <File Name="sflow_amr_ship.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>
+        <File Name="sflow_amr_subnh.cpp"/>
         <File Name="sflow_amr_linesolve.cpp"/>
         <File Name="sflow_amr_bous.cpp"/>
         <File Name="sflow_amr.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_6DOF_sub.cpp"/>
+        <File Name="fnpf_amr_sub.cpp"/>
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
         <File Name="fnpf_amr.cpp"/>
@@ -1354,6 +1367,9 @@
       <VirtualDirectory Name="SEASTATE">
         <VirtualDirectory Name="AMR">
           <File Name="seastate_grid.cpp"/>
+          <File Name="seastate_obstacle.cpp"/>
+          <File Name="seastate_structure.cpp"/>
+          <File Name="seastate_f_diffraction.cpp"/>
           <File Name="seastate_amr.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sources">
@@ -1389,6 +1405,7 @@
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="WSF">
+            <File Name="wsfline_core.cpp"/>
             <File Name="print_wsfline_y.cpp"/>
             <File Name="print_wsfline_x.cpp"/>
             <File Name="print_wsf_theory.cpp"/>
@@ -1415,6 +1432,7 @@
             <File Name="sloshing_force.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
+            <File Name="probe_core.cpp"/>
             <File Name="probe_vel_theory.cpp"/>
             <File Name="probe_vel.cpp"/>
             <File Name="probe_pressure.cpp"/>
@@ -1578,7 +1596,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Convection">
             <File Name="iweno_hj_df_nug.cpp"/>
-            <File Name="iweno_hj.cpp"/>
             <File Name="ifou.cpp"/>
             <File Name="hires.cpp"/>
             <File Name="hcds6.cpp"/>
@@ -1589,7 +1606,6 @@
             <File Name="cd2_alt.cpp"/>
             <File Name="weno_hj_df_nug.cpp"/>
             <File Name="weno_flux_nug.cpp"/>
-            <File Name="weno_flux.cpp"/>
             <File Name="weno3_hj.cpp"/>
             <File Name="weno3_flux.cpp"/>
             <File Name="quick.cpp"/>
@@ -1673,8 +1689,6 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
           <File Name="momentum_void.cpp"/>
-          <File Name="momentum_RKLS3_sf.cpp"/>
-          <File Name="momentum_RKLS3_df.cpp"/>
           <File Name="momentum_rk.cpp"/>
           <File Name="momentum_RK3_PLIC.cpp"/>
           <File Name="momentum_FCC3_PLIC.cpp"/>
@@ -2069,6 +2083,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
+          <File Name="nhflow_fsf_body.cpp"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
@@ -2291,6 +2306,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Ini">
           <File Name="CPM_seed.cpp"/>
+          <File Name="CPM_seepage.cpp"/>
+          <File Name="CPM_suspension.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
           <File Name="CPM_Heaviside.cpp"/>
@@ -2299,6 +2316,7 @@
           <File Name="CPM_count.cpp"/>
           <File Name="CPM_boundcheck.cpp"/>
           <File Name="CPM_gradient.cpp"/>
+          <File Name="CPM_ipol.cpp"/>
           <File Name="CPM_vollfrac.cpp"/>
           <File Name="CPM_limiter.cpp"/>
           <File Name="CPM_state.cpp"/>
@@ -2542,6 +2560,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
+          <File Name="6DOF_pto_controller.cpp"/>
           <File Name="6DOF_obj_pto.cpp"/>
           <File Name="6DOF_pto_elements.cpp"/>
           <File Name="6DOF_pto_joint.cpp"/>
@@ -2608,6 +2627,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="6DOF Object">
           <VirtualDirectory Name="Forces FNPF">
+            <File Name="6DOF_obj_amr.cpp"/>
             <File Name="6DOF_obj_fnpf.cpp"/>
             <File Name="6DOF_obj_fnpf_forces.cpp"/>
           </VirtualDirectory>
@@ -2793,6 +2813,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="nhflow_geometry_layer.cpp"/>
           <File Name="vrans_nhflow_force_print.cpp"/>
           <File Name="vrans_nhflow_force.cpp"/>
           <File Name="vrans_nhflow_interface.cpp"/>
@@ -2891,9 +2912,7 @@
         <File Name="gc_nhpress.cpp"/>
         <File Name="gc_periodic.cpp"/>
         <File Name="gc_heat.cpp"/>
-        <File Name="gc_debug.cpp"/>
         <File Name="gc_fivec.cpp"/>
-        <File Name="gc_kinematic_bed.cpp"/>
         <File Name="gc_epol1.cpp"/>
         <File Name="gc_epol2.cpp"/>
         <File Name="gc_epol3.cpp"/>
@@ -2903,16 +2922,12 @@
         <File Name="gc_dirichlet-para.cpp"/>
         <File Name="gc_extend.cpp"/>
         <File Name="gc_imagepoint.cpp"/>
-        <File Name="gc_neumann_all.cpp"/>
         <File Name="gc_noslip.cpp"/>
         <File Name="gc_potential.cpp"/>
         <File Name="gc_start.cpp"/>
         <File Name="gc_atmosphere.cpp"/>
         <File Name="gc_outflow.cpp"/>
-        <File Name="gc_gravity_press.cpp"/>
-        <File Name="gc_lsm.cpp"/>
         <File Name="gc_neumann.cpp"/>
-        <File Name="gc_sommerfeld.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Flag">
         <File Name="gc_nhflow_ioflag.cpp"/>
@@ -3107,9 +3122,7 @@
         <File Name="driver_logic_cfd.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Mainloop">
-        <File Name="driver_loop_cfd_sf.cpp"/>
         <File Name="driver_loop_fnpf.cpp"/>
-        <File Name="driver_loop_cfd_df.cpp"/>
         <File Name="driver_loop_nhflow.cpp"/>
         <File Name="driver_loop_cfd.cpp"/>
       </VirtualDirectory>
@@ -3117,6 +3130,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Wave IO">
       <VirtualDirectory Name="PatchBC">
+        <File Name="patchBC_core.cpp"/>
         <VirtualDirectory Name="PatchBC FNPF"/>
         <VirtualDirectory Name="PatchBC void">
           <File Name="patchBC_void.cpp"/>
@@ -3125,30 +3139,9 @@
           <File Name="patch_obj.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PatchBC 2D">
-          <File Name="patchBC_2D_waterlevel.cpp"/>
-          <File Name="patchBC_2D_pressure.cpp"/>
-          <File Name="patchBC_2D_loop.cpp"/>
-          <File Name="patchBC_2D_inflow.cpp"/>
-          <File Name="patchBC_2D_IDcount.cpp"/>
-          <File Name="patchBC_2D_hydrograph_Q.cpp"/>
-          <File Name="patchBC_2D_hydrograph_FSF.cpp"/>
-          <File Name="patchBC_2D_gcb_count.cpp"/>
-          <File Name="patchBC_2D_fillobj.cpp"/>
-          <File Name="patchBC_2D_discharge.cpp"/>
           <File Name="patchBC_2D.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PatchBC 3D">
-          <File Name="patchBC_gcb_convert.cpp"/>
-          <File Name="patchBC_waterlevel.cpp"/>
-          <File Name="patchBC_pressure.cpp"/>
-          <File Name="patchBC_loop.cpp"/>
-          <File Name="patchBC_inflow.cpp"/>
-          <File Name="patchBC_IDcount.cpp"/>
-          <File Name="patchBC_hydrograph_Q.cpp"/>
-          <File Name="patchBC_hydrograph_FSF.cpp"/>
-          <File Name="patchBC_gcb_count.cpp"/>
-          <File Name="patchBC_fillobj.cpp"/>
-          <File Name="patchBC_discharge.cpp"/>
           <File Name="patchBC.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
@@ -3252,6 +3245,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="ioFlow">
+          <File Name="ioflow_gcio.cpp"/>
           <VirtualDirectory Name="SFLOW">
             <File Name="ioflow_sflow_waterlevel.cpp"/>
             <File Name="ioflow_sflow_velsource.cpp"/>
@@ -3269,7 +3263,6 @@
           <File Name="ioflow_velsource.cpp"/>
           <File Name="ioflow_velini.cpp"/>
           <File Name="ioflow_util.cpp"/>
-          <File Name="ioflow_turbulence.cpp"/>
           <File Name="ioflow_relax.cpp"/>
           <File Name="ioflow_pressure.cpp"/>
           <File Name="ioflow_periodic.cpp"/>

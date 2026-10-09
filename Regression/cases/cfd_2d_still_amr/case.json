@@ -1,0 +1,6 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 60,
+ "ctrl_set": {"F 54": "1.0"},
+ "ctrl_add": ["G 1 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.5"],
+ "description": "CFD mesh refinement: still water in the closed tank, the free surface across the patch edge (at rest: the hydrostatic pressure of both grids balanced at the patch edge).",
+ "tags": ["quick", "2d", "levelset", "amr"],
+ "covers": ["cfd_amr: the hydrostatic pressure across a patch edge"]}

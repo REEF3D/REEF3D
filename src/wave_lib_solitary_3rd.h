@@ -34,6 +34,7 @@ class wave_lib_solitary_3rd final : public wave_lib_precalc, public wave_lib_par
                               public increment
 {
 public:
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_solitary_3rd(lexer*, ghostcell*);
 	virtual ~wave_lib_solitary_3rd();
     

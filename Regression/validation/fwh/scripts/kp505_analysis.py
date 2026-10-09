@@ -78,13 +78,14 @@ def fit(d):
     c=[b[i]/A[i][i] for i in range(m)]
     return c[0], math.hypot(c[1],c[2]), math.degrees(math.atan2(-c[2],c[1])), math.hypot(c[3],c[4])
 def rows(fn):
-    d=[]
+    # one value per time, the last one (samples written again after a restart)
+    d={}
     for l in open(fn):
         s=l.split()
         if len(s)<2: continue
-        try: d.append((float(s[0]),float(s[1])))
+        try: d[float(s[0])]=float(s[1])
         except: pass
-    return d
+    return sorted(d.items())
 print(f"BPF = {Z*n:.1f} Hz; amplitude [Pa] and phase [deg] of BPF, amplitude of 2 BPF (probe k = observer k for k <= {nprobe})")
 print(f"{'observer':>22} | {'FW-H BPF':>9} {'ph':>6} {'2BPF':>7} | {'probe BPF':>9} {'ph':>6} {'2BPF':>7}")
 for k,x in enumerate(obs):

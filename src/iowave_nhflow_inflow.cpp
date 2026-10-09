@@ -36,6 +36,18 @@ void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, doub
 	if(p->B98==4)
 	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH,WL);
     
+    // Dirichlet / active generation by a wave theory: non-hydrostatic pressure of the target
+    // waves at the inflow (Poisson boundary value, nhflow_poisson)
+    if((p->B98==3 || p->B98==4) && (p->B92<20 || p->B92>29))
+    for(n=0;n<p->gcslin_count;n++)
+    {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+        xg = xgen(p);
+        yg = ygen(p);
+        nhflow_edge_pressure(p,d,pgc,xg,yg);
+    }
+    
 	if(p->B99==3||p->B99==4||p->B99==5)
 	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
     

@@ -107,10 +107,6 @@ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 }
 
-void sflow_print_probe_da::write(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-}
-
 void sflow_print_probe_da::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     int check;

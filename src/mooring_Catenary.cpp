@@ -180,35 +180,6 @@ void mooring_Catenary::mooringForces
 }
 
 
-void mooring_Catenary::getForce(lexer *p, ghostcell *pgc, double& FH_, double& FV_)
-{
-    // Ini line
-	double rho_f = p->W1;
-	
-	rho_c = p->X311_rho_c[line];
-	w = p->X311_w[line]*9.81*(rho_c - rho_f)/rho_c;
-	L = p->X311_l[line];
-	H = p->X311_H[line];
-	EA = p->X311_EA[line];
-	
-	p->Darray(x,H); 
-	p->Darray(y,H);
-	p->Darray(z,H); 
-	p->Darray(T,H);
-
-	printtime = 0.0;
-
-    // Calculate shape
-    FH_0 = 0.01;
-    FV_0 = 0.01;
-	calcForce(p, pgc);
-
-    // Return values
-	FH_ = FH;
-	FV_ = FV;
-}
-
-
 void mooring_Catenary::getShape(lexer *p, ghostcell *pgc, double*& x_, double*& y_, double*& z_, double*& T_)
 {
     // Ini line
