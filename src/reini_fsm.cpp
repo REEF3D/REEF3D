@@ -87,11 +87,9 @@ int reini_fsm(lexer *p, fdm *a, ghostcell *pgc, field &f)
     // ------------------------------------------------------------
     field4 m(p), cx(p), cy(p), cz(p);
 
-    for(int q=0; q<n; ++q)
-    {
-    m.data()[q] = 0.0;
-    cx.data()[q] = cy.data()[q] = cz.data()[q] = nofoot;
-    }
+    std::fill(cx.begin(),cx.end(),nofoot);
+    std::fill(cy.begin(),cy.end(),nofoot);
+    std::fill(cz.begin(),cz.end(),nofoot);
 
     LOOP
     m(i,j,k) = 1.0;

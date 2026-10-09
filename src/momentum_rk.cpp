@@ -61,6 +61,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 #include"density_rheo.h"
+#include<algorithm>
 
 // loop over the cells of velocity component c (0 u, 1 v, 2 w); cpor is the porosity factor CPOR1/2/3
 #define MOMRK_LOOP(c, ...) \
@@ -432,8 +433,7 @@ void momentum_rk::amr_twoproj_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *
     {
         if(pgod!=nullptr)
         {
-            const size_t nn = size_t(p->imax)*p->jmax*p->kmax;
-            std::copy(a->phi.data(), a->phi.data() + nn, frk1->data());
+            std::copy(a->phi.begin(), a->phi.end() , frk1->data());
 
             pgod->consistent_set(nullptr,0.5*p->dt);
         }
@@ -563,10 +563,9 @@ void momentum_rk::amr_step_begin(lexer *p, fdm *a, ghostcell *pgc)
     // one step: u(n) with its ghost cells as the input of the stage
     if(stages==1)
     {
-    const size_t nn = size_t(p->imax)*p->jmax*p->kmax;
-    std::copy(a->u.data(), a->u.data() + nn, urk1.data());
-    std::copy(a->v.data(), a->v.data() + nn, vrk1.data());
-    std::copy(a->w.data(), a->w.data() + nn, wrk1.data());
+    std::copy(a->u.begin(), a->u.end(), urk1.data());
+    std::copy(a->v.begin(), a->v.end(), vrk1.data());
+    std::copy(a->w.begin(), a->w.end(), wrk1.data());
     }
 
     if(stages==3 || twoproj)
@@ -592,7 +591,7 @@ void momentum_rk::amr_ls_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
     // from it
     if(phiold)
     {
-    std::copy(a->phi.data(), a->phi.data() + size_t(p->imax)*p->jmax*p->kmax, frk1->data());
+    std::copy(a->phi.begin(), a->phi.end(), frk1->data());
     phiold_valid = 1.0;
     }
 
@@ -673,9 +672,9 @@ void momentum_rk::amr_forcing(lexer *p, fdm *a, ghostcell *pgc, sixdof *p6dof, i
 // CPM on the mesh refinement
 void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
-    std::fill(fx.data(), fx.data() + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fy.data(), fy.data() + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fz.data(), fz.data() + p->imax*p->jmax*p->kmax, 0.0);
+    std::ranges::fill(fx, 0.0);
+    std::ranges::fill(fy, 0.0);
+    std::ranges::fill(fz, 0.0);
 
     pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);
 
@@ -761,7 +760,7 @@ void momentum_rk::ls_rk_begin(lexer *p, fdm *a)
     // of the mesh refinement start here and do not pass amr_ls_transport)
     if(phiold)
     {
-    std::copy(a->phi.data(), a->phi.data() + size_t(p->imax)*p->jmax*p->kmax, frk1->data());
+    std::copy(a->phi.begin(), a->phi.end(), frk1->data());
     phiold_valid = 1.0;
     }
 
@@ -1354,7 +1353,7 @@ void momentum_rk::convection_start(lexer *p, fdm *a, int c, field &f, field &U, 
     if(ppic!=nullptr && ppic->flip())
     {
         field &F = FGH(a,c);
-        csave.assign(F.data(), F.data() + size_t(p->imax)*p->jmax*p->kmax);
+        csave.assign(F.begin(), F.end());
         pconvec->start(p,a,f,c+1,U,V,W);
         ppic->mask_convection(p,a,c,csave.data(),F);
         return;

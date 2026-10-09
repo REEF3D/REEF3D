@@ -175,7 +175,7 @@ void cfd_amr::patch_forces(int ID, double *F)
             // cell in the domain for it, so that no surface is made at the domain boundary (as the
             // boundary values of level 0)
             field &sf = c->a->solid;
-            vector<double> keep(sf.data(),sf.data()+(size_t)pp->imax*pp->jmax*pp->kmax);
+            vector<double> keep(sf.data(),sf.data()+sf.size());
             auto clampd = [](int a, int lo, int hi) { return a<lo ? lo : (a>hi ? hi : a); };
             for(int i=pp->imin; i<pp->imax+pp->imin; ++i)
             for(int j=pp->jmin; j<pp->jmax+pp->jmin; ++j)

@@ -368,8 +368,8 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
                 {
                 // the interpolated correction of the level below on all cells of the patch (0 where the patch cell has
                 // no parent on this rank)
-                std::fill(m->nE.data(),m->nE.data()+na,0.0);
-                std::fill(m->nP.data(),m->nP.data()+na,0.0);
+                std::fill(m->nE.begin(),m->nE.end(),0.0);
+                std::fill(m->nP.begin(),m->nP.end(),0.0);
 
                 for(size_t k=0; k<c.tl.size(); k+=6)
                 {

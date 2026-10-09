@@ -291,11 +291,10 @@ void cfd_amr::net_forces()
     {
         lexer *pp = CP(id)->pp;
         fdm *fa = CP(id)->a;
-        const size_t n = size_t(pp->imax)*pp->jmax*pp->kmax;
 
-        std::fill(fa->Fext.data(), fa->Fext.data() + n, 0.0);
-        std::fill(fa->Gext.data(), fa->Gext.data() + n, 0.0);
-        std::fill(fa->Hext.data(), fa->Hext.data() + n, 0.0);
+        std::fill(fa->Fext.begin(), fa->Fext.end(), 0.0);
+        std::fill(fa->Gext.begin(), fa->Gext.end(), 0.0);
+        std::fill(fa->Hext.begin(), fa->Hext.end(), 0.0);
 
         nets6->amr_net_forces(pp,fa);
     }
@@ -1461,16 +1460,12 @@ void cfd_amr::patch_fields_ini(int id)
         pp->topoforcing = p->topoforcing;
     }
 
-    // no porous media, solids or bodies: also in the cells around the patch (initialize sets
-    // the interior; PORVAL at the patch edge reads the cell outside)
-    const int na = pp->imax*pp->jmax*pp->kmax;
-    for(int n=0; n<na; ++n)
-    {
-        c->a->porosity.data()[n] = 1.0;
-        c->a->fb.data()[n] = 1.0;
-        c->a->topo.data()[n] = 1.0;
-        c->a->solid.data()[n] = 1.0e8;
-    }
+        // no porous media, solids or bodies: also in the cells around the patch (initialize sets
+        // the interior; PORVAL at the patch edge reads the cell outside)
+        std::ranges::fill(c->a->porosity,1.0);
+        std::ranges::fill(c->a->fb,1.0);
+        std::ranges::fill(c->a->topo,1.0);
+        std::ranges::fill(c->a->solid,1.0e8);
 
     // porous structures (B 200 1): porosity, d50 and the resistance coefficients of every cell of
     // the patch arrays from the zones at the cell positions (the cells around the patch as well:

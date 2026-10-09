@@ -2625,7 +2625,7 @@ void cfd_amr::pr_coef_fill(int l)
             lexer *pp = c->pp;
             const matrix_diag &M = c->a->M;
             for(field4 *f : c->kc7)
-            std::fill(f->data(),f->data()+(size_t)pp->imax*pp->jmax*pp->kmax,0.0);
+            std::ranges::fill(*f,0.0);
             for(int i=0; i<pp->knox; ++i)
             for(int j=0; j<pp->knoy; ++j)
             for(int k=0; k<pp->knoz; ++k)

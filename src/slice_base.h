@@ -25,15 +25,18 @@ Author: Alexander Hanke
 
 #include "lexer.h"
 #include "ckpt_registry.h"
+
+#include <cstddef>
 #include <type_traits>
 
 template<typename T>
 class slice_base
 {
 public:
-    explicit slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax)
+    explicit slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax),
+        m_size(static_cast<std::size_t>(p->imax)*jmax)
     {
-        V = new T[p->imax*jmax] {};
+        V = new T[m_size] {};
 
         ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
@@ -57,11 +60,19 @@ public:
     T *data() noexcept {return V;}
     const T *data() const noexcept {return V;}
 
+    // whole array including ghost cells
+    std::size_t size() const noexcept {return m_size;}
+    T *begin() noexcept {return V;}
+    const T *begin() const noexcept {return V;}
+    T *end() noexcept {return V+m_size;}
+    const T *end() const noexcept {return V+m_size;}
+
 protected:
     T *V;
 
 private:
     const int imin,jmin,jmax;
+    const std::size_t m_size;
 
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };

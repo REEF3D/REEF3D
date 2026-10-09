@@ -25,6 +25,7 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"pic_gfm.h"
+#include<algorithm>
 #include<vector>
 
 namespace
@@ -42,12 +43,8 @@ cfd_singlephase::cfd_singlephase(lexer *p) : km1(p), km2(p), km3(p), pid(p,p->F4
     // F 41 2: the pressure of the air pockets at the surface (pic_gfm_grad, presscorr)
     if(p->F41==2)
     {
-        const int size = p->imax*p->jmax*p->kmax;
-        for(int n=0; n<size; ++n)
-        {
-            pid.data()[n] = -2.0;
-            pa.data()[n] = 0.0;
-        }
+        std::fill(pid.begin(),pid.end(),-2.0);
+        std::fill(pa.begin(),pa.end(),0.0);
         pic_gfm_air_field(p,&pa);
     }
 }
@@ -84,8 +81,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
 
     if(c==1 && p->j_dir==0)
     {
-        for(int n=0; n<size; ++n)
-        dst.data()[n] = 0.0;
+        std::fill(dst.begin(),dst.end(),0.0);
         return;
     }
 
@@ -188,9 +184,7 @@ void cfd_singlephase::extend(lexer *p, fdm *a, ghostcell *pgc, field &dst, int c
 void cfd_singlephase::ext_begin(lexer *p, fdm *a, int c)
 {
     field &km = marks(c);
-    const int size = p->imax*p->jmax*p->kmax;
-    for(int n=0; n<size; ++n)
-    km.data()[n] = 1.0;
+    std::fill(km.begin(),km.end(),1.0);
 
     if(c==1 && p->j_dir==0)
     return;

@@ -90,16 +90,14 @@ void pic_f::extend(lexer *p, fdm *a, ghostcell *pgc, field &src, field &dst, int
 
     if(c==1 && p->j_dir==0)
     {
-        for(int n=0; n<size; ++n)
-        dst.data()[n] = 0.0;
-        return;
+            std::fill(vw->begin(), dst.end(), 0.0);
+            return;
     }
 
     const int di = c==0, dj = c==1, dk = c==2;
 
-    if(&dst!=&src)
-    for(int n=0; n<size; ++n)
-    dst.data()[n] = src.data()[n];
+    if(&dst!=&src)    
+    std::copy(src.begin(), src.end(), dst.begin());
 
     // the known faces, with the margin (phi is known there)
     std::vector<char> known(size,0);

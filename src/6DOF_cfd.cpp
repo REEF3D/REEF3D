@@ -247,7 +247,7 @@ void sixdof_cfd::fb_combine(lexer *p, fdm *a, int nb)
     const int n = p->imax*p->jmax*p->kmax;
     
     if(nb==0)
-    std::copy(a->fb.data(), a->fb.data()+n, fball->data());
+    std::copy(a->fb.begin(), a->fb.end(), fball->data());
     
     if(nb>0)
     for(int q=0; q<n; ++q)
@@ -259,7 +259,7 @@ void sixdof_cfd::fb_finish(lexer *p, fdm *a, ghostcell *pgc)
     if(fball==nullptr)
     return;
     
-    std::copy(fball->data(), fball->data()+p->imax*p->jmax*p->kmax, a->fb.data());
+    std::copy(fball->begin(), fball->end(), a->fb.data());
     
     pgc->start4a(p,a->fb,50);
 }
@@ -273,25 +273,24 @@ void sixdof_cfd::refit_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &uv
     for(int nb=0; nb<number6DOF; ++nb)
     fb_obj[nb]->momentum_refit(p,a,pgc,uvel,vvel,wvel);
     
-    std::fill(fx.data(), fx.data() + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fy.data(), fy.data() + p->imax*p->jmax*p->kmax, 0.0);
-    std::fill(fz.data(), fz.data() + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fx.begin(), fx.end(), 0.0);
+    std::fill(fy.begin(), fy.end(), 0.0);
+    std::fill(fz.begin(), fz.end(), 0.0);
     
     // the weights of the hull of this stage again from those of the solids alone
-    const int n = p->imax*p->jmax*p->kmax;
     if(sf[0]!=nullptr)
     {
-    std::copy(sf[0]->data(), sf[0]->data()+n, a->fbh1.data());
-    std::copy(sf[1]->data(), sf[1]->data()+n, a->fbh2.data());
-    std::copy(sf[2]->data(), sf[2]->data()+n, a->fbh3.data());
+    std::copy(sf[0]->begin(), sf[0]->end(), a->fbh1.data());
+    std::copy(sf[1]->begin(), sf[1]->end(), a->fbh2.data());
+    std::copy(sf[2]->begin(), sf[2]->end(), a->fbh3.data());
     }
     else
     {
-    std::fill(a->fbh1.data(), a->fbh1.data()+n, 0.0);
-    std::fill(a->fbh2.data(), a->fbh2.data()+n, 0.0);
-    std::fill(a->fbh3.data(), a->fbh3.data()+n, 0.0);
+    std::fill(a->fbh1.begin(), a->fbh1.end(), 0.0);
+    std::fill(a->fbh2.begin(), a->fbh2.end(), 0.0);
+    std::fill(a->fbh3.begin(), a->fbh3.end(), 0.0);
     }
-    std::fill(a->fbh4.data(), a->fbh4.data()+n, 0.0);
+    std::fill(a->fbh4.begin(), a->fbh4.end(), 0.0);
     
     for(int nb=0; nb<number6DOF; ++nb)
     {

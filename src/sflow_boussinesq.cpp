@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver2D.h"
 #include"sflow_curv.h"
+#include<algorithm>
 
 #define HWL (WL(i,j)>p->A244?WL(i,j):1.0e20)
 
@@ -907,11 +908,8 @@ void sflow_boussinesq::prepare_curv(lexer *p, fdm2D *b, ghostcell *pgc, slice &V
     const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
     double c[4],cC;
     
-    for(int n=0; n<p->imax*p->jmax; ++n)
-    {
-    ucart.data()[n] = b->UA.data()[n];
-    vcart.data()[n] = b->VA.data()[n];
-    }
+    std::ranges::copy(b->UA,ucart.begin());
+    std::ranges::copy(b->VA,vcart.begin());
     
     for(int dir=0; dir<2; ++dir)
     {
@@ -984,11 +982,8 @@ void sflow_boussinesq::prepare_curv(lexer *p, fdm2D *b, ghostcell *pgc, slice &V
 // ---------------------------------------------------------------------------
 void sflow_boussinesq::set_curv(lexer *p, fdm2D *b, slice &xa, slice &xb, bool all)
 {
-    for(int n=0; n<p->imax*p->jmax; ++n)
-    {
-    b->UA.data()[n] = ucart.data()[n];
-    b->VA.data()[n] = vcart.data()[n];
-    }
+    std::ranges::copy(ucart,b->UA.begin());
+    std::ranges::copy(vcart,b->VA.begin());
     
     auto put = [&](int ii, int jj)
     {
@@ -1101,11 +1096,8 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
     };
     
     // a, b of prepare_curv (UA, VA hold them): start and the lagged other component
-    for(int n=0; n<p->imax*p->jmax; ++n)
-    {
-    v(OA).data()[n] = b->UA.data()[n];
-    v(OB).data()[n] = b->VA.data()[n];
-    }
+    std::ranges::copy(b->UA,v(OA).begin());
+    std::ranges::copy(b->VA,v(OB).begin());
     
     int itsum=0;
     
@@ -1123,11 +1115,8 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
             apply_curv(p,b,pgc,o,x,v(ZA),y,false);
         };
         
-        for(int n=0; n<p->imax*p->jmax; ++n)
-        {
-        v(X).data()[n] = own.data()[n];
-        v(T).data()[n] = 0.0;
-        }
+        std::ranges::copy(own,v(X).begin());
+        std::ranges::fill(v(T),0.0);
         
         // constant part (in- and outflow ghost values), A x0 with the lagged other component
         opr(v(T),v(T),v(C0));
@@ -1145,12 +1134,11 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
         double rn = sqrt(dot(R,R));
         
         // the linear part: own component alone, without the constant part
-        for(int n=0; n<p->imax*p->jmax; ++n)
-        v(T).data()[n] = 0.0;
+        std::ranges::fill(v(T),0.0);
         auto apply = [&](int kx, int ky)
         {
-            for(int n=0; n<p->imax*p->jmax; ++n)
-            v(ZA).data()[n] = v(ZB).data()[n] = 0.0;
+            std::ranges::fill(v(ZA),0.0);
+            std::ranges::fill(v(ZB),0.0);
             if(dir==0)
             apply_curv(p,b,pgc,v(kx),v(ZA),v(ky),v(ZB),false);
             else
@@ -1209,8 +1197,7 @@ void sflow_boussinesq::solve_curv(lexer *p, fdm2D *b, ghostcell *pgc)
         
         // the solution of this component (the other solve keeps the old one: lagged)
         slice &res = v(dir==0 ? NA : NB);
-        for(int n=0; n<p->imax*p->jmax; ++n)
-        res.data()[n] = own.data()[n];
+        std::ranges::copy(own,res.begin());
         SLICELOOP4
         res(i,j) = (p->wet[IJ]==1) ? v(X)(i,j) : 0.0;
     }

@@ -126,11 +126,6 @@ field& cfd_amr::stf(int g, int m)
     return rf(reg[0],g);
 }
 
-namespace
-{
-inline size_t asize(const lexer *q) { return (size_t)q->imax*q->jmax*q->kmax; }
-}
-
 // the state of the grids of level l at the start of their step
 void cfd_amr::save_old(int l)
 {
@@ -144,9 +139,8 @@ void cfd_amr::save_old(int l)
     {
         if(gts(g)==nullptr)
         continue;
-        const size_t n = asize(glex(g));
         for(int m=0; m<gts(g)->n; ++m)
-        std::copy(stf(g,m).data(),stf(g,m).data()+n,gts(g)->o[m]->data());
+        std::ranges::copy(stf(g,m),gts(g)->o[m]->begin());
     }
 }
 
@@ -163,11 +157,8 @@ void cfd_amr::interp(int l, double th)
     {
         if(gts(g)==nullptr)
         continue;
-        const size_t n = asize(glex(g));
         for(int m=0; m<gts(g)->n; ++m)
         {
-            const double *o = gts(g)->o[m]->data(), *c = stf(g,m).data();
-            double *t = gts(g)->t[m]->data();
             // the pressure of a step belongs to its middle: linear between the middles of the
             // steps (the start value at -1/2, the end value at 1/2), beyond the middle extrapolated;
             // in the first step the end value (the initial pressure is not that of a step).  The
@@ -180,14 +171,15 @@ void cfd_amr::interp(int l, double th)
             const double w = (m!=tl_press) ? th : (press_step ? th+0.5 : 1.0);
             if(m==tl_press && l>=1 && w>1.0)
             {
-                const double *ph = stf(g,tl_phi).data();
+                field &ph = stf(g,tl_phi);
+                field &o = *gts(g)->o[m], &c = stf(g,m), &t = *gts(g)->t[m];
                 const double band = 3.0*glex(g)->psi;
-                for(size_t q=0; q<n; ++q)
-                t[q] = o[q] + ((ph[q]<band) ? 1.0 : w)*(c[q]-o[q]);
+                auto pt = t.begin(), po = o.begin(), pc = c.begin();
+                for(auto pp = ph.begin(); pt != t.end(); ++pt, ++po, ++pc, ++pp)
+                *pt = *po + ((*pp<band) ? 1.0 : w)*(*pc-*po);
                 continue;
             }
-            for(size_t q=0; q<n; ++q)
-            t[q] = o[q] + w*(c[q]-o[q]);
+            std::ranges::transform(*gts(g)->o[m],stf(g,m),gts(g)->t[m]->begin(),[w](double o, double c){return o + w*(c-o);});
         }
     }
 }
@@ -964,10 +956,8 @@ void cfd_amr::volume_correct(lexer *p, ghostcell *pgc)
         const double w = (target-V)/dV;
         for(int g=-1; g<(int)P.size(); ++g)
         {
-            field &f = gfd(g)->phi;
-            const size_t na = asize(glex(g));
-            for(size_t q=0; q<na; ++q)
-            f.data()[q] += w;
+            for(double &f : gfd(g)->phi)
+            f += w;
         }
     }
 
