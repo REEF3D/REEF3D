@@ -306,7 +306,8 @@ private:
     void Sendrecv_double(int,int,int,int,int,int);
     void Sendrecv_int(int,int,int,int,int,int);
     void Sendrecv(const void*[6],int[6],void*[6],int[6],MPI_Datatype);
-    
+
+    void set_DF(lexer *p, fdm *a);
 
     template<typename FlagT>
     void gcdf_update_impl(lexer *p, FlagT &flagsf, int **&gcdf, int &gcdf_count);
