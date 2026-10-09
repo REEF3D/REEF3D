@@ -959,6 +959,10 @@ void control::ctrlrecv()
     dd++;
     B201_beta = dctrl[dd];
     dd++;
+    B202 = ictrl[ii];
+    ii++;
+    B203 = ictrl[ii];
+    ii++;
     B208 = ictrl[ii];
     ii++;
     B209 = dctrl[dd];
@@ -2934,6 +2938,15 @@ void control::ctrlrecv()
         Darray(B525_tramp,B525);
     }
     
+    if(B202>0)
+    {
+        Darray(B202_t,B202);
+        Darray(B202_n,B202);
+        Darray(B202_d50,B202);
+        Darray(B202_alpha,B202);
+        Darray(B202_beta,B202);
+    }
+    
     if(B210>0)
     {
         Darray(B210_xs,B210);
@@ -4323,6 +4336,20 @@ void control::ctrlrecv()
         B525_Q[n] = dctrl[dd];
         dd++;
         B525_tramp[n] = dctrl[dd];
+        dd++;
+    }
+    
+    for(n=0;n<B202;++n)
+    {
+        B202_t[n] = dctrl[dd];
+        dd++;
+        B202_n[n] = dctrl[dd];
+        dd++;
+        B202_d50[n] = dctrl[dd];
+        dd++;
+        B202_alpha[n] = dctrl[dd];
+        dd++;
+        B202_beta[n] = dctrl[dd];
         dd++;
     }
     

@@ -963,6 +963,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B201_beta;
     dd++;
+    ictrl[ii] = B202;
+    ii++;
+    ictrl[ii] = B203;
+    ii++;
     ictrl[ii] = B208;
     ii++;
     dctrl[dd] = B209;
@@ -3044,6 +3048,19 @@ void control::ctrlsend()
         dctrl[dd] = B525_Q[n];
         dd++;
         dctrl[dd] = B525_tramp[n];
+        dd++;
+    }
+    for(n=0;n<B202;++n)
+    {
+        dctrl[dd] = B202_t[n];
+        dd++;
+        dctrl[dd] = B202_n[n];
+        dd++;
+        dctrl[dd] = B202_d50[n];
+        dd++;
+        dctrl[dd] = B202_alpha[n];
+        dd++;
+        dctrl[dd] = B202_beta[n];
         dd++;
     }
     for(n=0;n<B210;++n)

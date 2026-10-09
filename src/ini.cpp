@@ -480,6 +480,8 @@ void control::ini_default()
     B201_d50=0.01;      // double porosity d50
     B201_alpha=0.0;     // double porosity alpha
     B201_beta=0.0;      // double porosity beta
+    B202=0;             // int number of porous layers (NHFLOW), counted from the structure surface inwards
+    B203=1;             // int porous layers: 0 all surface faces, 1 skip downward-facing faces
     B210=0;      // int solid box
     B212=0;      // int solid cylinder y
     B213=0;      // int solid cylinder z

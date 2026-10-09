@@ -2806,6 +2806,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="VRANS">
         <VirtualDirectory Name="VRANS NHFLOW">
+          <File Name="nhflow_geometry_layer.cpp"/>
           <File Name="vrans_nhflow_force_print.cpp"/>
           <File Name="vrans_nhflow_force.cpp"/>
           <File Name="vrans_nhflow_interface.cpp"/>

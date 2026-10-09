@@ -51,6 +51,10 @@ public:
     
     void geometry_ini(lexer*, fdm_nhf*, ghostcell*);
     
+    // porous layers (B 202): exposed surface faces and depth below them
+    void layer_faces(lexer*, ghostcell*);
+    void layer_dist(lexer*, fdm_nhf*, double, const double*, double*);
+    
     int forcing_flag,solid_flag,floating_flag;
     int dlm_flag;
     
@@ -66,6 +70,11 @@ private:
     void grid_solids(lexer*, ghostcell*);
     int grid_solid_num, grid_solid_tri;
     vector<int> ent_raymode, ent_invert;
+    
+    // porous layers
+    bool point_inside(lexer*, int, double, double, double);
+    vector<int> tri_layer;
+    double layer_dsmax;
     
     void box(lexer*, ghostcell*, int);
     void cylinder_y(lexer*, ghostcell*, int);

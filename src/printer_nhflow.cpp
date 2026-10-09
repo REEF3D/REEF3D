@@ -494,6 +494,13 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
                 offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
                 ++n;
             }
+            
+            //  porosity (B 202 porous layers)
+            if(p->B200==1 && p->B202>0)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
 
             // Format specific structure
             outputFormat->offset(p,offset,n);
@@ -562,6 +569,12 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         if(p->B200==1)
         {
             result<<"<DataArray type=\"Float32\" Name=\"porstruc\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
+        
+        if(p->B200==1 && p->B202>0)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\"porosity\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
 
@@ -833,6 +846,30 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
                 else if(p->j_dir==1)
                     ffn=float(0.125*(d->PORSTRUC[IJK]+d->PORSTRUC[Ip1JK]+d->PORSTRUC[IJp1K]+d->PORSTRUC[Ip1Jp1K]
                                 +  d->PORSTRUC[IJKp1]+d->PORSTRUC[Ip1JKp1]+d->PORSTRUC[IJp1Kp1]+d->PORSTRUC[Ip1Jp1Kp1]));
+
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+        
+        //  porosity (B 202 porous layers)
+        if(p->B200==1 && p->B202>0)
+        {
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                if(p->j_dir==0)
+                {
+                    jj=j;
+                    j=0;
+                    ffn=float(0.25*(d->POR[IJK]+d->POR[Ip1JK]+d->POR[IJKp1]+d->POR[Ip1JKp1]));
+                    j=jj;
+                }
+                else if(p->j_dir==1)
+                    ffn=float(0.125*(d->POR[IJK]+d->POR[Ip1JK]+d->POR[IJp1K]+d->POR[Ip1Jp1K]
+                                +  d->POR[IJKp1]+d->POR[Ip1JKp1]+d->POR[IJp1Kp1]+d->POR[Ip1Jp1Kp1]));
 
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);
