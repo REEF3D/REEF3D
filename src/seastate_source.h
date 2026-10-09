@@ -191,10 +191,12 @@ private:
     int wa = 0, wb = 0;             // direction window of the current compute
     int fa = 0, fb = 0;             // frequency band of the current compute
 
-    double &ue(int l, int m) {return UE[size_t(l+uoff)*ndir + m];}
-    double &sa1(int l, int m) {return SA1[size_t(l+soff)*ndir + m];}
-    double &sa2(int l, int m) {return SA2[size_t(l+soff)*ndir + m];}
-    size_t sx(int l, int m) const {return size_t(l+soff)*ndir + m;}
+    // DIA arrays with the directions continued periodically beyond 0 and ndir-1 (no index wrapping in
+    // the loops): UE for m = -2 dpad .. ndir-1+2 dpad, SA1/SA2 and the derivatives for m = -dpad .. ndir-1+dpad
+    double &ue(int l, int m) {return UE[size_t(l+uoff)*uw + size_t(m+2*dpad)];}
+    double &sa1(int l, int m) {return SA1[sx(l,m)];}
+    double &sa2(int l, int m) {return SA2[sx(l,m)];}
+    size_t sx(int l, int m) const {return size_t(l+soff)*sw + size_t(m+dpad);}
     int dw(int m) const {return ((m%ndir)+ndir)%ndir;}
 
     const seastate_grid &g;
@@ -208,6 +210,7 @@ private:
 
     // DIA (FAC4WW): interpolation indices and weights, E(f,theta) incl. the tail, SA1/SA2
     int isp, isp1, ism, ism1, idp, idp1, idm, idm1, uoff, ulen, soff, slen;
+    int dpad = 0, uw = 0, sw = 0;      // largest direction offset of the interactions, row lengths of UE and SA
     double awg[8], dal1, dal2, dal3;
     std::vector<double> UE, SA1, SA2, DA1C, DA1P, DA1M, DA2C, DA2P, DA2M, af11;
 

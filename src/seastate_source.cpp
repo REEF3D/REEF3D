@@ -122,15 +122,19 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     awg[7] = widm1*wism1;
 
     // E(f,theta) for l = ism1 .. nsig-1-ism1+isp1 (zero below the grid, sig^-4 tail above)
+    // (directions continued periodically: UE by 2 dpad, SA1/SA2 by dpad on both sides)
+    dpad = std::max(idp1,idm1);
+    uw = ndir + 4*dpad;
+    sw = ndir + 2*dpad;
     uoff = -ism1;
     ulen = nsig - 1 - ism1 + isp1 + uoff + 1;
-    UE.assign(size_t(ulen)*ndir,0.0);
+    UE.assign(size_t(ulen)*uw,0.0);
 
     // SA1, SA2 for l = -isp1 .. nsig-1-ism1 (zero for l < 0)
     soff = isp1;
     slen = nsig - 1 - ism1 + soff + 1;
-    SA1.assign(size_t(slen)*ndir,0.0);
-    SA2.assign(size_t(slen)*ndir,0.0);
+    SA1.assign(size_t(slen)*sw,0.0);
+    SA2.assign(size_t(slen)*sw,0.0);
     DA1C = DA1P = DA1M = DA2C = DA2P = DA2M = SA1;
 
     af11.assign(nsig-ism1,0.0);
@@ -324,13 +328,6 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     {
     const int b = g.bin(l,m);
     P[b] = D[b] = S[b] = L[b] = 0.0;
-    }
-
-    // DIA writes all bins
-    if(prm.dia)
-    {
-    std::fill(S.begin(),S.end(),0.0);
-    std::fill(L.begin(),L.end(),0.0);
     }
 
     const double grav = seastate_gravity;
@@ -598,6 +595,12 @@ void seastate_source::triads(const float *N, double depth, const float *k, const
 }
 
 // DIA (SWAN SWSNL1): S(f,theta) for E(f,theta) = 2 pi sig N, converted to dN/dt
+//
+// Only what the transfers into the window wa..wb, fa..fb need is computed: the interaction terms SA1,
+// SA2 and their derivatives for the directions wa-dpad .. wb+dpad and the frequencies fa-isp1 .. fb-ism1.
+// The directions are continued periodically in UE and SA (no index wrapping), so the loops are
+// contiguous and vectorised. Every value is computed with the same operations as before: the results are
+// bitwise those of the full computation.
 void seastate_source::dia(const float *N, double depth)
 {
     const double grav = seastate_gravity;
@@ -606,62 +609,76 @@ void seastate_source::dia(const float *N, double depth)
     const int shi = nsig - 1 - ism1;            // last row of SA
 
     for(int l=ism1; l<=lhi; ++l)
-    for(int m=0; m<ndir; ++m)
     {
-        if(l<0)
-        ue(l,m) = 0.0;
-        else if(l<nsig)
-        ue(l,m) = 2.0*pi*g.sig[l]*double(N[g.bin(l,m)]);
-        else
-        ue(l,m) = ue(l-1,m)*fachfr;
+    double *u = &ue(l,0);
+
+        for(int m=0; m<ndir; ++m)
+        {
+            if(l<0)
+            u[m] = 0.0;
+            else if(l<nsig)
+            u[m] = 2.0*pi*g.sig[l]*double(N[g.bin(l,m)]);
+            else
+            u[m] = ue(l-1,m)*fachfr;
+        }
+
+        // periodic continuation of the directions
+        for(int m=-2*dpad; m<0; ++m)
+        u[m] = u[dw(m)];
+        for(int m=ndir; m<ndir+2*dpad; ++m)
+        u[m] = u[dw(m)];
     }
 
     const double x = std::max(0.75*depth*km_wam,0.5);
     const double cons = 1.0/(grav*grav*grav*grav)*(1.0 + dia_cs1/x*(1.0-dia_cs2*x)*std::exp(std::max(-1.0e15,dia_cs3*x)));
+    const double C = dia_C;
 
-    std::fill(SA1.begin(),SA1.end(),0.0);
-    std::fill(SA2.begin(),SA2.end(),0.0);
-    std::fill(DA1C.begin(),DA1C.end(),0.0);
-    std::fill(DA1P.begin(),DA1P.end(),0.0);
-    std::fill(DA1M.begin(),DA1M.end(),0.0);
-    std::fill(DA2C.begin(),DA2C.end(),0.0);
-    std::fill(DA2P.begin(),DA2P.end(),0.0);
-    std::fill(DA2M.begin(),DA2M.end(),0.0);
+    // rows and directions of SA needed by the transfers of the window
+    const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
+    const int m0 = wa-dpad, m1 = wb+dpad, nm = m1-m0+1;
 
-    for(int l=0; l<=shi; ++l)
-    for(int m=0; m<ndir; ++m)
+    for(int l=l0; l<=l1; ++l)
     {
-    const double e00 = ue(l,m);
+    const double ca = cons*af11[l];
+    const double *__restrict u00 = &ue(l,m0);
+    const double *__restrict up1 = &ue(l+isp1,m0), *__restrict up0 = &ue(l+isp,m0);
+    const double *__restrict um1 = &ue(l+ism1,m0), *__restrict um0 = &ue(l+ism,m0);
+    double *__restrict s1 = &sa1(l,m0), *__restrict s2 = &sa2(l,m0);
+    const size_t x0 = sx(l,m0);
+    double *__restrict d1c = &DA1C[x0], *__restrict d1p = &DA1P[x0], *__restrict d1m = &DA1M[x0];
+    double *__restrict d2c = &DA2C[x0], *__restrict d2p = &DA2P[x0], *__restrict d2m = &DA2M[x0];
 
-        if(e00<=0.0)
-        continue;
+        #pragma GCC ivdep
+        for(int n=0; n<nm; ++n)
+        {
+        const double e00 = u00[n];
 
-    const double ep1 = awg[0]*ue(l+isp1,dw(m+idp1)) + awg[1]*ue(l+isp1,dw(m+idp))
-                     + awg[2]*ue(l+isp ,dw(m+idp1)) + awg[3]*ue(l+isp ,dw(m+idp));
-    const double em1 = awg[4]*ue(l+ism1,dw(m-idm1)) + awg[5]*ue(l+ism1,dw(m-idm))
-                     + awg[6]*ue(l+ism ,dw(m-idm1)) + awg[7]*ue(l+ism ,dw(m-idm));
-    const double ep2 = awg[0]*ue(l+isp1,dw(m-idp1)) + awg[1]*ue(l+isp1,dw(m-idp))
-                     + awg[2]*ue(l+isp ,dw(m-idp1)) + awg[3]*ue(l+isp ,dw(m-idp));
-    const double em2 = awg[4]*ue(l+ism1,dw(m+idm1)) + awg[5]*ue(l+ism1,dw(m+idm))
-                     + awg[6]*ue(l+ism ,dw(m+idm1)) + awg[7]*ue(l+ism ,dw(m+idm));
+        const double ep1 = awg[0]*up1[n+idp1] + awg[1]*up1[n+idp]
+                         + awg[2]*up0[n+idp1] + awg[3]*up0[n+idp];
+        const double em1 = awg[4]*um1[n-idm1] + awg[5]*um1[n-idm]
+                         + awg[6]*um0[n-idm1] + awg[7]*um0[n-idm];
+        const double ep2 = awg[0]*up1[n-idp1] + awg[1]*up1[n-idp]
+                         + awg[2]*up0[n-idp1] + awg[3]*up0[n-idp];
+        const double em2 = awg[4]*um1[n+idm1] + awg[5]*um1[n+idm]
+                         + awg[6]*um0[n+idm1] + awg[7]*um0[n+idm];
 
-    const double factor = cons*af11[l]*e00;
-    const double sa1a = e00*(ep1*dal1 + em1*dal2)*dia_C;
-    const double sa1b = sa1a - ep1*em1*dal3*dia_C;
-    const double sa2a = e00*(ep2*dal1 + em2*dal2)*dia_C;
-    const double sa2b = sa2a - ep2*em2*dal3*dia_C;
+        const double factor = ca*e00;
+        const double sa1a = e00*(ep1*dal1 + em1*dal2)*C;
+        const double sa1b = sa1a - ep1*em1*dal3*C;
+        const double sa2a = e00*(ep2*dal1 + em2*dal2)*C;
+        const double sa2b = sa2a - ep2*em2*dal3*C;
 
-    sa1(l,m) = factor*sa1b;
-    sa2(l,m) = factor*sa2b;
-
-    // derivatives with respect to E00, E+ and E- (SWAN DA1C, DA1P, DA1M, ...)
-    const size_t x = sx(l,m);
-    DA1C[x] = cons*af11[l]*(sa1a + sa1b);
-    DA1P[x] = factor*(dal1*e00 - dal3*em1)*dia_C;
-    DA1M[x] = factor*(dal2*e00 - dal3*ep1)*dia_C;
-    DA2C[x] = cons*af11[l]*(sa2a + sa2b);
-    DA2P[x] = factor*(dal1*e00 - dal3*em2)*dia_C;
-    DA2M[x] = factor*(dal2*e00 - dal3*ep2)*dia_C;
+        // derivatives with respect to E00, E+ and E- (SWAN DA1C, DA1P, DA1M, ...); zero where E00 = 0
+        const bool on = e00>0.0;
+        s1[n]  = on ? factor*sa1b : 0.0;
+        s2[n]  = on ? factor*sa2b : 0.0;
+        d1c[n] = on ? ca*(sa1a + sa1b) : 0.0;
+        d1p[n] = on ? factor*(dal1*e00 - dal3*em1)*C : 0.0;
+        d1m[n] = on ? factor*(dal2*e00 - dal3*ep1)*C : 0.0;
+        d2c[n] = on ? ca*(sa2a + sa2b) : 0.0;
+        d2p[n] = on ? factor*(dal1*e00 - dal3*em2)*C : 0.0;
+        d2m[n] = on ? factor*(dal2*e00 - dal3*ep2)*C : 0.0;
+        }
     }
 
     double swg[8];
@@ -669,36 +686,53 @@ void seastate_source::dia(const float *N, double depth)
     swg[n] = awg[n]*awg[n];
 
     // the transfers into the bins of the window of this compute (the quadrant of the sweep)
+    const int nw = wb-wa+1;
+
     for(int l=fa; l<=fb; ++l)
     {
     const double rsigpi = 1.0/(2.0*pi*g.sig[l]);
 
-        for(int m=wa; m<=wb; ++m)
-        {
-        const double sfnl = -2.0*(sa1(l,m) + sa2(l,m))
-            + awg[0]*(sa1(l-isp1,dw(m-idp1)) + sa2(l-isp1,dw(m+idp1)))
-            + awg[1]*(sa1(l-isp1,dw(m-idp )) + sa2(l-isp1,dw(m+idp )))
-            + awg[2]*(sa1(l-isp ,dw(m-idp1)) + sa2(l-isp ,dw(m+idp1)))
-            + awg[3]*(sa1(l-isp ,dw(m-idp )) + sa2(l-isp ,dw(m+idp )))
-            + awg[4]*(sa1(l-ism1,dw(m+idm1)) + sa2(l-ism1,dw(m-idm1)))
-            + awg[5]*(sa1(l-ism1,dw(m+idm )) + sa2(l-ism1,dw(m-idm )))
-            + awg[6]*(sa1(l-ism ,dw(m+idm1)) + sa2(l-ism ,dw(m-idm1)))
-            + awg[7]*(sa1(l-ism ,dw(m+idm )) + sa2(l-ism ,dw(m-idm )));
+    const double *__restrict a1  = &sa1(l,wa),      *__restrict a2  = &sa2(l,wa);
+    const double *__restrict a1p1 = &sa1(l-isp1,wa), *__restrict a2p1 = &sa2(l-isp1,wa);
+    const double *__restrict a1p0 = &sa1(l-isp,wa),  *__restrict a2p0 = &sa2(l-isp,wa);
+    const double *__restrict a1m1 = &sa1(l-ism1,wa), *__restrict a2m1 = &sa2(l-ism1,wa);
+    const double *__restrict a1m0 = &sa1(l-ism,wa),  *__restrict a2m0 = &sa2(l-ism,wa);
 
-        S[g.bin(l,m)] += sfnl*rsigpi;
+    const double *__restrict c1 = &DA1C[sx(l,wa)], *__restrict c2 = &DA2C[sx(l,wa)];
+    const double *__restrict p1p1 = &DA1P[sx(l-isp1,wa)], *__restrict p2p1 = &DA2P[sx(l-isp1,wa)];
+    const double *__restrict p1p0 = &DA1P[sx(l-isp,wa)],  *__restrict p2p0 = &DA2P[sx(l-isp,wa)];
+    const double *__restrict m1m1 = &DA1M[sx(l-ism1,wa)], *__restrict m2m1 = &DA2M[sx(l-ism1,wa)];
+    const double *__restrict m1m0 = &DA1M[sx(l-ism,wa)],  *__restrict m2m0 = &DA2M[sx(l-ism,wa)];
+
+    double *__restrict Sl = &S[g.bin(l,wa)], *__restrict Ll = &L[g.bin(l,wa)];
+
+        #pragma GCC ivdep
+        for(int n=0; n<nw; ++n)
+        {
+        const double sfnl = -2.0*(a1[n] + a2[n])
+            + awg[0]*(a1p1[n-idp1] + a2p1[n+idp1])
+            + awg[1]*(a1p1[n-idp ] + a2p1[n+idp ])
+            + awg[2]*(a1p0[n-idp1] + a2p0[n+idp1])
+            + awg[3]*(a1p0[n-idp ] + a2p0[n+idp ])
+            + awg[4]*(a1m1[n+idm1] + a2m1[n-idm1])
+            + awg[5]*(a1m1[n+idm ] + a2m1[n-idm ])
+            + awg[6]*(a1m0[n+idm1] + a2m0[n-idm1])
+            + awg[7]*(a1m0[n+idm ] + a2m0[n-idm ]);
+
+        Sl[n] += sfnl*rsigpi;
 
         // diagonal derivative dS/dN = d sfnl/dE(f,theta) (SWAN DSNL)
-        const double dsnl = -2.0*(DA1C[sx(l,m)] + DA2C[sx(l,m)])
-            + swg[0]*(DA1P[sx(l-isp1,dw(m-idp1))] + DA2P[sx(l-isp1,dw(m+idp1))])
-            + swg[1]*(DA1P[sx(l-isp1,dw(m-idp ))] + DA2P[sx(l-isp1,dw(m+idp ))])
-            + swg[2]*(DA1P[sx(l-isp ,dw(m-idp1))] + DA2P[sx(l-isp ,dw(m+idp1))])
-            + swg[3]*(DA1P[sx(l-isp ,dw(m-idp ))] + DA2P[sx(l-isp ,dw(m+idp ))])
-            + swg[4]*(DA1M[sx(l-ism1,dw(m+idm1))] + DA2M[sx(l-ism1,dw(m-idm1))])
-            + swg[5]*(DA1M[sx(l-ism1,dw(m+idm ))] + DA2M[sx(l-ism1,dw(m-idm ))])
-            + swg[6]*(DA1M[sx(l-ism ,dw(m+idm1))] + DA2M[sx(l-ism ,dw(m-idm1))])
-            + swg[7]*(DA1M[sx(l-ism ,dw(m+idm ))] + DA2M[sx(l-ism ,dw(m-idm ))]);
+        const double dsnl = -2.0*(c1[n] + c2[n])
+            + swg[0]*(p1p1[n-idp1] + p2p1[n+idp1])
+            + swg[1]*(p1p1[n-idp ] + p2p1[n+idp ])
+            + swg[2]*(p1p0[n-idp1] + p2p0[n+idp1])
+            + swg[3]*(p1p0[n-idp ] + p2p0[n+idp ])
+            + swg[4]*(m1m1[n+idm1] + m2m1[n-idm1])
+            + swg[5]*(m1m1[n+idm ] + m2m1[n-idm ])
+            + swg[6]*(m1m0[n+idm1] + m2m0[n-idm1])
+            + swg[7]*(m1m0[n+idm ] + m2m0[n-idm ]);
 
-        L[g.bin(l,m)] += dsnl;
+        Ll[n] += dsnl;
         }
     }
 }
