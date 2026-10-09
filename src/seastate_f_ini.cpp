@@ -397,6 +397,14 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 715: the division of the sector directions must be at least 1";
     else if(p->A715_k>1 && p->A770==1)
     msg = "A 715: the fine direction sector is not available with the surfbeat model (A 770 1)";
+    else if(p->A716_w<0.0 || p->A716_m<0.0)
+    msg = "A 716: the bin width and the margin of the automatic direction sector must not be negative";
+    else if(p->A716_w>0.0 && p->A715_k>1)
+    msg = "A 716: the automatic direction sector replaces A 715, give only one of them";
+    else if(p->A716_w>0.0 && (p->A711!=1 || p->A770==1))
+    msg = "A 716: the automatic direction sector needs the parametric boundary spectrum (A 711 1, B 85, B 93, B 130, B 131), not the surfbeat model";
+    else if(p->A716_w>0.0 && p->A732==1 && p->A733==1)
+    msg = "A 716: the DIA quadruplets (A 733 1) need uniform directions";
     else if(p->A715_k>1 && p->A732==1 && p->A733==1)
     msg = "A 715: the DIA quadruplets (A 733 1) need uniform directions";
     else if(p->A738<1 || !(p->A739>=0.0))
@@ -531,6 +539,10 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     else
     {
     e->grid = new seastate_grid(p->A701,p->A702_fmin,p->A702_fmax,p->A703);
+
+        // automatic fine direction sector around the boundary spectrum (A 716): sets A 715
+        if(p->A716_w>0.0 && e->grid->valid())
+        auto_sector(p,pgc,*e->grid);
 
         // fine direction sector (A 715)
         if(p->A715_k>1 && e->grid->valid())

@@ -163,3 +163,93 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
     cout<<setprecision(6);
     }
 }
+
+/*--------------------------------------------------------------------
+Automatic fine direction sector (A 716 w margin): the directions of the
+parametric boundary spectrum (B 130, B 131, B 134; A 711 1) and A 716
+margin on both sides are divided so that their bins are at most w wide
+(A 715 th1 th2 k with k = ceil(dtheta/w)).
+
+The directional distribution is the energy-weighted mean over the
+frequencies of the grid, D(theta) = sum S(sig) D(theta,sig) dsig, on
+0.25 deg steps. The sector covers the directions around B 131 where D
+is at least 1e-4 of its maximum (cos^40: +-37 deg), plus the margin for
+refraction and diffraction away from the incident directions. With B 130
+0 (unidirectional) the sector is B 131 +- margin.
+--------------------------------------------------------------------*/
+
+void seastate_f::auto_sector(lexer *p, ghostcell *pgc, const seastate_grid &g)
+{
+    const double pi = 3.14159265358979323846, deg = pi/180.0;
+
+    p->wHs = p->B93_1;
+    p->wTp = p->B93_2;
+    p->wwp = 2.0*pi/p->wTp;
+
+    wave_lib_spectrum spec;
+    const double main = p->B131*deg;
+
+    // D(theta) on theta = main + a, a in [-180, 180) deg
+    const int na = 1440;
+    std::vector<double> D(na,0.0);
+
+    if(p->B130>0)
+    {
+    const double b131 = p->B131;
+    p->B131 = main;
+
+        for(int l=0; l<g.nsig; ++l)
+        {
+        const double S = spec.wave_spectrum(p,g.sig[l]);
+        if(!(S>0.0))
+        continue;
+
+            for(int n=0; n<na; ++n)
+            {
+            const double a = (-180.0 + 0.25*double(n))*deg;
+            const double v = spec.spreading_function(p,main+a,g.sig[l]);
+            if(v>0.0)
+            D[n] += S*v*g.dsig[l];
+            }
+        }
+
+    p->B131 = b131;
+    }
+
+    const double dmax = *std::max_element(D.begin(),D.end());
+    double a1 = 0.0, a2 = 0.0;
+
+    if(dmax>0.0)
+    {
+    const int c = na/2;                 // a = 0
+    int n1 = c, n2 = c;
+    while(n1>0 && D[n1-1]>=1.0e-4*dmax)
+    --n1;
+    while(n2<na-1 && D[n2+1]>=1.0e-4*dmax)
+    ++n2;
+    a1 = -180.0 + 0.25*double(n1);
+    a2 = -180.0 + 0.25*double(n2);
+    }
+
+    a1 -= p->A716_m;
+    a2 += p->A716_m;
+
+    const double dth = g.dtheta/deg;
+    const int k = std::max(1,int(std::ceil(dth/p->A716_w - 1.0e-9)));
+
+    if(a2-a1>=360.0)
+    {
+    a1 = -180.0;
+    a2 = 180.0 - 1.0e-6;
+    }
+
+    p->A715_th1 = p->B131 + a1;
+    p->A715_th2 = p->B131 + a2;
+    p->A715_k = k;
+
+    if(p->mpirank==0)
+    cout<<"SEASTATE automatic direction sector (A 716): the boundary spreading within "<<a1+p->A716_m<<" to "<<a2-p->A716_m
+        <<" deg of "<<p->B131<<" deg, margin "<<p->A716_m<<" deg: sector "<<p->A715_th1<<" to "<<p->A715_th2
+        <<" deg, A 703 bins divided by "<<k<<" ("<<dth/double(k)<<" deg)"<<endl;
+}
+

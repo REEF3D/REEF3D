@@ -176,6 +176,7 @@ private:
     void initial(lexer*, ghostcell*);
     void initial_parametric(lexer*, ghostcell*);
     void parametric_spectrum(lexer*, ghostcell*, const seastate_grid&, std::vector<float>&, const char*);
+    void auto_sector(lexer*, ghostcell*, const seastate_grid&);
     void boundary(lexer*, ghostcell*);
     void boundary_spectrum(lexer*, ghostcell*, const seastate_grid&, std::vector<float>&);
     void sources(lexer*, ghostcell*);
