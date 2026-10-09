@@ -35,6 +35,24 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
 {
     pBC = ppBC;
     
+    // combined beach (B 99 6): in NHFLOW an absorbing edge at x+ (as B 99 3) behind a relaxation
+    // beach (length B 96) that relaxes to the low-passed state, so short waves are damped in the
+    // zone and long waves pass to the edge; the solver sees B 99 3. Other solvers: B 99 2.
+    if(p->B99==6)
+    {
+        if(p->A10==5)
+        {
+        beach_lp = true;
+        p->B99 = 3;
+        }
+        else
+        {
+        if(p->mpirank==0)
+        cout<<"iowave: B 99 6 (combined beach) is available for NHFLOW; runs as B 99 2"<<endl;
+        p->B99 = 2;
+        }
+    }
+    
     // decomposed precalc (B 89 1) needs the space / time parts of the wave theory, which only
     // the 5th-order Stokes (B 92 5) and the irregular theories (31, 41, 51) provide; with any
     // other wave type it generated no waves at all, so it now falls back to B 89 0. Additional
@@ -294,6 +312,18 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     if(p->B99==1 || p->B99==2)
     beach_relax=1;
+    
+    if(beach_lp)
+    {
+        beach_relax=1;
+        // default Tp / 4: waves much longer than the peak period pass the zone to the edge
+        // (|1 - H| = omega tau / sqrt(1 + omega^2 tau^2)), shorter waves are damped; much smaller
+        // tau slows the long waves in the zone and reflects them (validation 17)
+        beach_tau = p->B526>0.0 ? p->B526 : 0.25*(p->wTp>0.0 ? p->wTp : p->wT);
+        
+        if(p->mpirank==0)
+        cout<<"iowave: combined beach B 99 6: relaxation over "<<p->B96_2<<" m to the state low-passed over "<<beach_tau<<" s, absorbing edge at x+"<<endl;
+    }
     
     expinverse = 1.0/(exp(1.0)-1.0);
     

@@ -31,7 +31,7 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
     
     // beach zones given as B 520 method 2 relax the water level too, like B 99 1 / 2
     // (and like FNPF); before, only their velocities were relaxed
-    const bool beach_wl = p->B99==1 || p->B99==2 || zones.user_beach();
+    const bool beach_wl = p->B99==1 || p->B99==2 || zones.user_beach() || beach_lp;
     
 	count=0;
     SLICELOOP4
@@ -73,6 +73,9 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             // with a background (B 523): relax to the background level instead of still water
             const int b = bg_on ? beach_bg(p) : -1;
             
+            if(b<0 && beach_lp)
+            WL(i,j) = (1.0-relax4_nb(i,j))*beach_target(p,lp_wl,p->imax*p->jmax,IJ,depth(i,j),WL(i,j)) + relax4_nb(i,j)*WL(i,j);
+            else
             if(b<0)
             WL(i,j) = (1.0-relax4_nb(i,j))*depth(i,j) + relax4_nb(i,j)*WL(i,j);
             
@@ -148,7 +151,14 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             
             if(p->B97==0 && b<0)
             {
+            const int nn = p->imax*p->jmax*(p->kmax+2);
+            if(beach_lp)
+            U[IJK] = relax4_nb(i,j)*U[IJK] + (1.0-relax4_nb(i,j))*beach_target(p,lp_u,nn,IJK,0.0,U[IJK]);
+            else
             U[IJK] = relax4_nb(i,j)*U[IJK];
+            if(beach_lp)
+            UH[IJK] = relax4_nb(i,j)*UH[IJK] + (1.0-relax4_nb(i,j))*beach_target(p,lp_uh,nn,IJK,0.0,UH[IJK]);
+            else
             UH[IJK] = relax4_nb(i,j)*UH[IJK];
             }
             
@@ -229,7 +239,14 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             
             if(b<0)
             {
+            const int nn = p->imax*p->jmax*(p->kmax+2);
+            if(beach_lp)
+            V[IJK] = relax4_nb(i,j)*V[IJK] + (1.0-relax4_nb(i,j))*beach_target(p,lp_v,nn,IJK,0.0,V[IJK]);
+            else
             V[IJK] = relax4_nb(i,j)*V[IJK];
+            if(beach_lp)
+            VH[IJK] = relax4_nb(i,j)*VH[IJK] + (1.0-relax4_nb(i,j))*beach_target(p,lp_vh,nn,IJK,0.0,VH[IJK]);
+            else
             VH[IJK] = relax4_nb(i,j)*VH[IJK];
             }
             
@@ -296,7 +313,14 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             // Zone 2
             if(db<1.0e20)
             {
+            const int nn = p->imax*p->jmax*(p->kmax+2);
+            if(beach_lp)
+            W[IJK] = relax4_nb(i,j)*W[IJK] + (1.0-relax4_nb(i,j))*beach_target(p,lp_w,nn,IJK,0.0,W[IJK]);
+            else
             W[IJK] = relax4_nb(i,j)*W[IJK];
+            if(beach_lp)
+            WH[IJK] = relax4_nb(i,j)*WH[IJK] + (1.0-relax4_nb(i,j))*beach_target(p,lp_wh,nn,IJK,0.0,WH[IJK]);
+            else
             WH[IJK] = relax4_nb(i,j)*WH[IJK];
             }
         }
@@ -354,4 +378,26 @@ void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
     }
     
     p->wavecalctime+=pgc->timer()-starttime;
+}
+
+// combined beach (B 99 6): low-passed state of a cell, updated once per step,
+// f <- f + dt/tau (x - f), starting from the still-water value f0
+double iowave::beach_target(lexer *p, lowpass &lp, int n, int idx, double f0, double x)
+{
+    if(lp.f.empty())
+    {
+        lp.f.assign(n,0.0);
+        lp.c.assign(n,-1);
+    }
+    
+    if(lp.c[idx]<0)
+    lp.f[idx] = f0;
+    
+    if(lp.c[idx]!=p->count)
+    {
+        lp.f[idx] += MIN(p->dt/beach_tau,1.0)*(x - lp.f[idx]);
+        lp.c[idx] = p->count;
+    }
+    
+    return lp.f[idx];
 }

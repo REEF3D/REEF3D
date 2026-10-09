@@ -230,6 +230,14 @@ private:
     double relax_fac = 1.0;
     void relax_stage_factor(lexer*);
     bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
+    
+    // combined beach (B 99 6, NHFLOW): the beach relaxes to the state low-passed over beach_tau,
+    // f <- f + dt/tau (x - f) once per step and cell (iowave_nhflow_relax.cpp)
+    bool beach_lp = false;
+    double beach_tau = 0.0;
+    struct lowpass {std::vector<double> f; std::vector<int> c;};
+    lowpass lp_wl, lp_u, lp_uh, lp_v, lp_vh, lp_w, lp_wh;
+    double beach_target(lexer*, lowpass&, int, int, double, double);
     sliceint4 wgflag;
 	
     

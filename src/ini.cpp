@@ -420,6 +420,7 @@ void control::ini_default()
     B530=-1;       // int iowave redesign: waves on the background, 1: on h_eff, 2: h_eff + Doppler, -1: auto (2 with a current, 1 with a level only)
     B530_N=10;     // int iowave redesign: k update interval [steps] of B 530
     B529=0;        // int iowave redesign: edge mass balance log every B 529 steps (0: off)
+    B526=0.0;      // double iowave: low-pass time scale of the combined beach B 99 6 (0: peak period of the B 92 wave / 4)
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end

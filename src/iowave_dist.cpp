@@ -357,7 +357,7 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
 {
     nhf_active_edge = false;
     
-    if(p->A10!=5 || (p->B99!=3 && p->B99!=4))
+    if(p->A10!=5 || (p->B99!=3 && p->B99!=4))   // B 99 6 arrives here as 3 (iowave constructor)
     return;
     
     // only with an outflow boundary at x+
