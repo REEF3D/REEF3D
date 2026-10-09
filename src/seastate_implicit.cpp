@@ -1097,12 +1097,19 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
             return (1.0-w)*double(Nl0[m1]) + w*double(Nl0[m2]);
         };
 
-        auto reflect = [&](const seastate_obstacle::face *f, int side)
+        // the reflection works on copies of the values it shares with the vectorised loop above: the
+        // lambda is not inlined, and locals captured by reference would live in memory, which keeps
+        // that loop from being vectorised
+        const int ra = na, rb = nb, rl = l;
+        double *const rh = rh_;
+        const double fcW = cgW, fcE = cgE, fcS = cgS, fcN = cgN, fuW = UW, fuE = UE, fvS = VS, fvN = VN;
+
+        auto reflect = [&,ra,rb,rl,rh,fcW,fcE,fcS,fcN,fuW,fuE,fvS,fvN](const seastate_obstacle::face *f, int side)
         {
             if(!reflecting(f))
             return;
 
-            const double kr2 = pob->kr2(f,l);
+            const double kr2 = pob->kr2(f,rl);
             if(!(kr2>0.0))
             return;
 
@@ -1112,15 +1119,15 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
             auto outflow = [&](double ti)
             {
-                if(side==0) return -(cgW*std::cos(ti) + UW);
-                if(side==1) return  (cgE*std::cos(ti) + UE);
-                if(side==2) return -(cgS*std::sin(ti) + VS);
-                return (cgN*std::sin(ti) + VN);
+                if(side==0) return -(fcW*std::cos(ti) + fuW);
+                if(side==1) return  (fcE*std::cos(ti) + fuE);
+                if(side==2) return -(fcS*std::sin(ti) + fvS);
+                return (fcN*std::sin(ti) + fvN);
             };
 
             const double r = (side<2) ? rdx : rdy;
 
-            for(int n=na; n<=nb; ++n)
+            for(int n=ra; n<=rb; ++n)
             {
             const double tn = g.theta[ma+n], ti = 2.0*double(f->alpha) - tn;
 
@@ -1130,7 +1137,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
                 {
                 const double cout = outflow(ti);
                 if(cout>0.0)
-                rh_[n] += kr2*cout*r*ninterp(ti);
+                rh[n] += kr2*cout*r*ninterp(ti);
                 }
                 else
                 {
@@ -1141,7 +1148,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
                     if(cout>0.0)
                     fl += double(wd[nd+k])*cout*ninterp(tk);
                     }
-                rh_[n] += kr2*r*fl;
+                rh[n] += kr2*r*fl;
                 }
             }
         };

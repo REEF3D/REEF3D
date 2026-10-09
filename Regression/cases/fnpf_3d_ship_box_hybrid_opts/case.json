@@ -1,0 +1,10 @@
+{
+ "base": "fnpf_3d_ship_box_hybrid",
+ "files": [
+  "ship.dat"
+ ],
+ "description": "as fnpf_3d_ship_box_hybrid with the ship.dat options of the hybrid: hybrid_munk 8 (A22 - A11 of the Munk moment taken out of N'v, instead of my - mx), hybrid_surge 1 (the MMG surge velocity term my vm r - mx u r added) and R0' 0.005 (MMG resistance reduced by the FNPF resistance).",
+ "covers": [
+  "ship hybrid_munk, hybrid_surge (mmg_fluid 2)"
+ ]
+}
