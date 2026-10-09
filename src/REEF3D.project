@@ -41,6 +41,9 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="CFD">
+        <File Name="reefamr3d.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.h"/>
         <File Name="sflow_amr_linesolve.h"/>
@@ -1273,6 +1276,9 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="CFD">
+        <File Name="reefamr3d.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>

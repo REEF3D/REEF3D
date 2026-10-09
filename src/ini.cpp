@@ -681,6 +681,7 @@ void control::ini_default()
     G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
     G7=0;       // int SFLOW and NHFLOW mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
+    G15=0;      // int CFD mesh refinement: number of static refinement boxes xs xe ys ye zs ze
     G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
     G12=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
     G12_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
