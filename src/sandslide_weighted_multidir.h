@@ -55,13 +55,12 @@ private:
     
     void compute_fh(lexer*, ghostcell*, sediment_fdm*);
     double compute_slope(lexer* p, slice&, int i, int j, int di, int dj);
-    double compute_weight(double excess_slope, int method);
     
     double tan_phi;       // Tangent of angle of repose
-    double relax;         // Relaxation factor (0 < relax <= 1)
+    double relax;         // Relaxation factor (S 92, 0 < relax <= 1)
     int maxiter;          // Maximum iterations
     double tol;           // Convergence tolerance
-    int weight_method;    // Weighting scheme selector
+
 }; 
 
 #endif

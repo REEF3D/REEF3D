@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
+sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 {
     if(p->S50==1)
 	gcval_topo=151;
@@ -51,63 +51,47 @@ sandslide_pde::~sandslide_pde()
 
 void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    
     SLICEBASELOOP
-    {
     s->slide_fh(i,j)=0.0;
-    ci(i,j)=0.0;
-    }
-    
-    // smallest cell for the pseudo time step
-    dxmin=1.0e20;
-    SLICELOOP4
-    {
-    dxmin = MIN(dxmin,p->DXN[IP]);
-    
-    if(p->j_dir==1 && p->gknoy>1)
-    dxmin = MIN(dxmin,p->DYN[JP]);
-    }
-    dxmin = pgc->globalmin(dxmin);
-    
+
+    // converged when no neighbour pair is steeper than phi by more than tol (height)
+    tol = 1.0e-4*MAX(p->S20,1.0e-6);
+
+    // the pair uses the mean angle of repose of its two cells: neighbour values across ranks
+    pgc->gcsl_start4(p,s->phi,1);
+
     // mainloop
     for(int qn=0; qn<p->S91; ++qn)
     {
         count=0;
-        
+
         // fill
         SLICEBASELOOP
-        {
         fh(i,j)=0.0;
-        
-        diff_update(p,pgc,s);
-        }
-        
+
         pgc->gcsl_start4(p,fh,1);
-        
+
         if(s->pmix!=nullptr)
         s->pmix->slide_zero(p,pgc);
-        pgc->gcsl_start4(p,ci,1);
-        
 
-        
         // slide loop: sediment cells in the S 77 window only
         SEDSLICELOOP
         if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
         {
             slide(p,pgc,s);
         }
-        
+
         pgc->gcslparax_fh(p,fh,4);
-        
+
         // fill back
         SEDSLICELOOP
         {
         s->slide_fh(i,j)+=fh(i,j);
         s->bedzh(i,j)+=fh(i,j);
         }
-        
+
         pgc->gcsl_start4(p,s->bedzh,1);
-        
+
         // multi-fraction bed: sorting of the slid material
         if(s->pmix!=nullptr)
         s->pmix->slide_finish(p,pgc,s);
@@ -115,84 +99,80 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         count=pgc->globalimax(count);
 
         p->slidecells=count;
-        
+
         if(p->slidecells==0)
         break;
 
         if(p->mpirank==0)
-        cout<<"sandslide_ped corrections: "<<p->slidecells<<endl;
+        cout<<"sandslide_pde corrections: "<<p->slidecells<<endl;
     }
 }
 
 void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    // finite-volume diffusion of the bed where it is steeper than the angle of repose:
-    // face coefficients dt/(cell width * centre distance), so the face flux is the same seen from
-    // both cells (conservative on non-uniform grids); faces to cells without an erodible bed
-    // (structures, DFBED<0, solids, domain boundary) and to cells outside the S 77 window are closed.
-    // pseudo time step from the smallest cell (dxmin, start())
-    double dt = 0.1*dxmin*dxmin;
-    double fcf[4];
-    const int ni[4] = {1,-1,0,0};
-    const int nj[4] = {0,0,1,-1};
-    
-    fcf[0] = dt/(p->DXN[IP]*p->DXP[IP]);
-    fcf[1] = dt/(p->DXN[IP]*p->DXP[IM1]);
-    fcf[2] = dt/(p->DYN[JP]*p->DYP[JP]);
-    fcf[3] = dt/(p->DYN[JP]*p->DYP[JM1]);
-    
-    for(int f=0;f<4;++f)
+    // finite-volume relaxation of the bed towards the angle of repose: between the cell and each
+    // of its 8 neighbours (4 faces, 4 diagonals) the volume
+    //      V = K*min(A_i,A_n)*sign(z_n - z_i)*max(|z_n - z_i| - d*tan(phi), 0)
+    // is exchanged, d the distance of the cell centres, phi the mean of the two cells.
+    // Only the excess over the angle of repose moves, so the iteration converges to phi in
+    // every direction; the exchange is symmetric (conservative on non-uniform grids).
+    // (was: diffusion of the full height difference, switched on by the central-difference
+    // cell slope; it stopped at about 37 deg for phi = 35 deg, steeper on the faces and diagonals)
+    // Pairs to cells without an erodible bed (structures, DFBED<0, solids, domain boundary) and
+    // to cells outside the S 77 window are closed; a diagonal pair needs at least one of the two
+    // cells beside it open.
+    const double K = 0.1;
+    const int ni[8] = {1,-1,0,0,1,1,-1,-1};
+    const int nj[8] = {0,0,1,-1,1,-1,1,-1};
+    double flux[8];
+    const double Ai = p->DXN[IP]*p->DYN[JP];
+    int over=0;
+
+    auto open = [&](int di, int dj)
     {
-    int ii=i+ni[f];
-    int jj=j+nj[f];
-    
-        if(!SLIDE_NB(ni[f],nj[f]) || p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]<0 || p->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]<0
-          || p->XP[IP+ni[f]]<=p->S77_xs || p->XP[IP+ni[f]]>=p->S77_xe)
-        fcf[f] = 0.0;
-    }
+        int ii=i+di;
+        int jj=j+dj;
+
+        return SLIDE_NB(di,dj) && p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]>0 && p->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]>0
+            && p->XP[IP+di]>p->S77_xs && p->XP[IP+di]<p->S77_xe;
+    };
 
     fh(i,j) = 0.0;
-    
-    for(int f=0;f<4;++f)
-    fh(i,j) += fcf[f]*(s->bedzh(i+ni[f],j+nj[f])-s->bedzh(i,j))*0.5*(ci(i+ni[f],j+nj[f])+ci(i,j));
-    
-    // multi-fraction bed: face fluxes with upwind composition
+
+    for(int f=0;f<8;++f)
+    {
+    flux[f] = 0.0;
+
+    int di=ni[f];
+    int dj=nj[f];
+
+        if(!open(di,dj))
+        continue;
+
+        if(di!=0 && dj!=0 && !open(di,0) && !open(0,dj))
+        continue;
+
+    double ddx = di<0?p->DXP[IM1]:(di>0?p->DXP[IP]:0.0);
+    double ddy = dj<0?p->DYP[JM1]:(dj>0?p->DYP[JP]:0.0);
+    double d = sqrt(ddx*ddx + ddy*ddy);
+    double An = p->DXN[IP+di]*p->DYN[JP+dj];
+
+    double dz = s->bedzh(i+di,j+dj)-s->bedzh(i,j);
+    double e = fabs(dz) - d*tan(0.5*(s->phi(i,j)+s->phi(i+di,j+dj)));
+
+        if(e>0.0)
+        {
+        flux[f] = K*(MIN(Ai,An)/Ai)*(dz>0.0?e:-e);
+        fh(i,j) += flux[f];
+
+        if(e>tol)
+        over=1;
+        }
+    }
+
+    count += over;
+
+    // multi-fraction bed: upwind composition for each pair
     if(s->pmix!=nullptr)
-    s->pmix->slide_pde(p,s,ci,i,j,fcf);
+    s->pmix->slide_pde(p,s,i,j,ni,nj,flux,8);
 }
-
-void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
-{
-    double uvel,vvel;
-    double nx,ny,nz,norm;
-    double nx0,ny0;
-    double nz0,bx0,by0,gamma;
-    
-    int kmem=0;
-    double dH;
-    
-    k = s->bedk(i,j);
-        
-
-    dH = sqrt(pow((s->bedzh(i+1,j)-s->bedzh(i-1,j))/p->DXM,2.0) + pow((s->bedzh(i,j+1)-s->bedzh(i,j-1))/p->DXM,2.0));
-        
-        
-    bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-     
-    gamma = atan(sqrt(bx0*bx0 + by0*by0));
-
-
-            if(gamma>s->phi(i,j))
-            {
-            ci(i,j) = 1.0;
-            
-            ++count;
-            }
-            
-            if(gamma<s->phi(i,j))
-            ci(i,j) = 0.0;
-
-}
-
-

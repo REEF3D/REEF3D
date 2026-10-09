@@ -592,22 +592,18 @@ void sediment_mixture::slide_transfer(int i0, int j0, int i1, int j1, double x)
     }
 }
 
-// flux form sandslide (S90 5): upwind composition at each face
-void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, slice &ci, int ii, int jj, double *fc)
+// flux form sandslide (S90 5): upwind composition for each neighbour pair;
+// flux[f]: bed change of (ii,jj) from the pair with (ii+ni[f],jj+nj[f]), > 0: inflow
+void sediment_mixture::slide_pde(lexer *p, sediment_fdm *s, int ii, int jj, const int *ni, const int *nj, const double *flux, int n)
 {
-    const int ni[4] = {1,-1,0,0};
-    const int nj[4] = {0,0,1,-1};
-    double flux;
-
-    for(int f=0;f<4;++f)
+    for(int f=0;f<n;++f)
+    if(flux[f]!=0.0)
     {
     int i1 = ii+ni[f];
     int j1 = jj+nj[f];
 
-    flux = fc[f]*(s->bedzh(i1,j1)-s->bedzh(ii,jj))*0.5*(ci(i1,j1)+ci(ii,jj));
-
         for(int q=0;q<nf;++q)
-        (*fh_k[q])(ii,jj) += flux*(flux>0.0?(*F[q])(i1,j1):(*F[q])(ii,jj));
+        (*fh_k[q])(ii,jj) += flux[f]*(flux[f]>0.0?(*F[q])(i1,j1):(*F[q])(ii,jj));
     }
 }
 
