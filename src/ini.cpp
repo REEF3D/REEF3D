@@ -1144,6 +1144,7 @@ void control::ini_default()
 	X10=0;		// int turn 6DOF on
 	X11_u=X11_v=X11_w=X11_p=X11_q=X11_r=1;		// int turn on degrees of freedom
     X12=1;      // int turn force calculation on
+    X13=0;      // int NHFLOW floating body (X 10 1/2): water level in the pierced columns from the surrounding free surface (harmonic extension, 0 off)
     X14=1;      // int tangential velocity cfd
     X15=1;      // int tangential velocity nhflow
     X16=0;          // int porous floating body (NHFLOW)

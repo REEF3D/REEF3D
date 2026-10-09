@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"vrans_nhflow.h"
 #include"6DOF.h"
 #include"nhflow_forcing.h"
+#include"nhflow_fsf_body.h"
 #include"wind_f.h"
 #include"wind_v.h"
 #include"sediment_f.h"
@@ -176,6 +177,7 @@ void nhflow_momentum_RK2::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p,d,4,d->WL,UHRK1);
 
     pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
+    pfsfbody->level(p,d,pgc,WLRK1,1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     breaking(p,d,pgc,d->eta,d->eta_n,WLRK1,1.0);
     p->fsftime+=pgc->timer()-starttime;
@@ -195,6 +197,7 @@ void nhflow_momentum_RK2::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     
     pconvec->start(p,d,4,WLRK1,d->UH);
     pfsf->rk2_step2(p, d, pgc, pflow, UHRK1,VHRK1,WHRK1, WLRK1, WLRK1, 0.5);
+    pfsfbody->level(p,d,pgc,d->WL,0.5);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     breaking(p,d,pgc,d->eta,d->eta_n,d->WL,0.5);
     p->fsftime+=pgc->timer()-starttime;
@@ -336,6 +339,8 @@ void nhflow_momentum_RK2::phase_P1(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     const double alpha = stage_alpha(s);
     const int fin = s;
     
+    pfsfbody->momentum(p,UHo,VHo,WHo);
+    
     velcalc(p,d,pgc,UHo,VHo,WHo,WL,alpha);
     
     pnhfdf->forcing(p, d, pgc, p6dof, s, alpha, UHo, VHo, WHo, WL, fin);
@@ -354,6 +359,9 @@ void nhflow_momentum_RK2::phase_P2(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     velcalc(p,d,pgc,UHo,VHo,WHo,WL,alpha);
     
     pnhfdf->reforcing(p, d, pgc, p6dof, s, alpha, UHo, VHo, WHo, WL, fin);
+    
+    if(fin==1)
+    pfsfbody->print(p,d,pgc,WL);
 }
 
 // stage s: relaxation zones, ghost cells, sediment and depth

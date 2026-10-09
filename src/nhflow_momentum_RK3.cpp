@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"vrans_nhflow.h"
 #include"6DOF.h"
 #include"nhflow_forcing.h"
+#include"nhflow_fsf_body.h"
 #include"wind_f.h"
 #include"wind_v.h"
 
@@ -187,6 +188,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p,d,4,d->eta,UHRK1);
     
     pfsf->rk3_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 1.0);
+    pfsfbody->level(p,d,pgc,WLRK1,1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     p->fsftime+=pgc->timer()-starttime;
     }
@@ -205,6 +207,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     
     pconvec->start(p,d,4,WLRK1,UHRK2);
     pfsf->rk3_step2(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 0.25);
+    pfsfbody->level(p,d,pgc,WLRK2,0.25);
     omega_update(p,d,pgc,WLRK2,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
@@ -224,6 +227,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     
     pconvec->start(p,d,4,WLRK2,d->UH);
     pfsf->rk3_step3(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 2.0/3.0);
+    pfsfbody->level(p,d,pgc,d->WL,2.0/3.0);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
@@ -380,6 +384,8 @@ void nhflow_momentum_RK3::phase_P1(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     const double alpha = stage_alpha(s);
     const int fin = s==2?1:0;
     
+    pfsfbody->momentum(p,UHo,VHo,WHo);
+    
     velcalc(p,d,pgc,UHo,VHo,WHo,WL,alpha);
     
     pnhfdf->forcing(p, d, pgc, p6dof, s, alpha, UHo, VHo, WHo, WL, fin);
@@ -398,6 +404,9 @@ void nhflow_momentum_RK3::phase_P2(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     velcalc(p,d,pgc,UHo,VHo,WHo,WL,alpha);
     
     pnhfdf->reforcing(p, d, pgc, p6dof, s, alpha, UHo, VHo, WHo, WL, fin);
+    
+    if(fin==1)
+    pfsfbody->print(p,d,pgc,WL);
 }
 
 // stage s: relaxation zones, ghost cells

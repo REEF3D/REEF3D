@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"
+#include"nhflow_fsf_body.h"
 #include"nhflow_signal_speed.h"
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_weno.h"
@@ -632,6 +633,10 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pmom = new nhflow_momentum_RK2(pp,d,pgc,c->p6dof,c->pvrans,c->pdf,c->psed);
     if(pp->A510==3)
     c->pmom = new nhflow_momentum_RK3(pp,d,pgc,c->p6dof,c->pvrans,c->pdf);
+    
+    // pierced-column water level (X 13): level 0 only
+    if(c->pmom!=nullptr && c->pmom->pfsfbody!=nullptr)
+    c->pmom->pfsfbody->off();
 
     c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
 

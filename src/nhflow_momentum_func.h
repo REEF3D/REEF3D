@@ -34,6 +34,7 @@ class nhflow_fsf_reconstruct;
 class nhflow_momentum_func;
 class nhflow_forcing;
 class sixdof;
+class nhflow_fsf_body;
 
 using namespace std;
 
@@ -108,6 +109,10 @@ public:
     // membranes (X 330, membrane.dat 'coupling iterated'): phase_P repeats the projection (nhflow_forcing::projection)
     nhflow_forcing *pmfrc = nullptr;
     sixdof *pm6dof = nullptr;
+    
+    // water level in the columns pierced by a floating body (X 13 1): level() after the water level update
+    // of a stage (phase_F), momentum() before velcalc (phase_P1), print() at the end of the step (phase_P2)
+    nhflow_fsf_body *pfsfbody = nullptr;
 	
     
 
