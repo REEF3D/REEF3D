@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef WENO3_NUG_FUNC_H_
 #define WENO3_NUG_FUNC_H_
 
-#include"increment.h"
+#include "increment.h"
 
 class lexer;
 class fdm;
@@ -34,59 +34,50 @@ using namespace std;
 class weno3_nug_func : public increment
 {
 public:
-	weno3_nug_func(lexer*);
-	virtual ~weno3_nug_func();
+    weno3_nug_func(lexer*);
+    virtual ~weno3_nug_func();
 
-	void precalc_qf(lexer*);
+    void precalc_qf(lexer*);
     void precalc_cf(lexer*);
     void precalc_isf(lexer*);
-    
+
     void ini(lexer*);
-    
 
-
-	void is_min_x();
+    void is_min_x();
     void is_min_y();
     void is_min_z();
-    
+
     void is_max_x();
     void is_max_y();
     void is_max_z();
-    
-	void weight_min_x();
+
+    void weight_min_x();
     void weight_min_y();
     void weight_min_z();
-    
+
     void weight_max_x();
     void weight_max_y();
     void weight_max_z();
-    
-    
+
     static double ****qfx,****qfy,****qfz;
     static double ***cfx,***cfy,***cfz;
     static double ***isfx,***isfy,***isfz;
-    
-	static int iniflag;
-    
-    
-    
+
     double q1,q2,q3;
-    
-    const double epsilon,psi;
-	double is1x,is2x,is3x;
+
+    double is1x,is2x,is3x;
     double is1y,is2y,is3y;
     double is1z,is2z,is3z;
-	double w1x,w2x,w3x;
+    double w1x,w2x,w3x;
     double w1y,w2y,w3y;
     double w1z,w2z,w3z;
-    
+
     int uf,vf,wf;
 
-private:
+    static inline bool iniflag = false;
 
-    
-    
-    
+    static constexpr double epsilon = 0.0;
+    static constexpr double psi = 1.0e-6;
 };
 
 #endif

@@ -23,11 +23,10 @@ Author: Hans Bihs
 #ifndef WENO_NUG_FUNC_H_
 #define WENO_NUG_FUNC_H_
 
-#include"increment.h"
-
-#include"lexer.h"
-#include"field.h"
-#include"slice.h"
+#include "increment.h"
+#include "lexer.h"
+#include "field.h"
+#include "slice.h"
 
 using namespace std;
 
@@ -385,19 +384,15 @@ public:
     static double ****s_qfx,****s_qfy,****s_qfz;
     static double ***s_cfx,***s_cfy,***s_cfz;
     static double ****s_isfx,****s_isfy,****s_isfz;
-    
-	static int iniflag;
-    static lexer *s_lexer;          // the lexer the shared tables were built for
+
+    static inline lexer *s_lexer = nullptr;          // the lexer the shared tables were built for
     void own_ini(lexer*);
-    int own_tables, own_nx, own_ny, own_nz;
-    
-    
-    
+
+    static constexpr double epsilon = 0.0;
+    static constexpr double psi = 1.0e-6;
+
     double q1,q2,q3,q4,q5;
 
-    const double epsilon,psi;
-    int wtype;
-    double teno_ct;
     double is1x,is2x,is3x;
     double is1y,is2y,is3y;
     double is1z,is2z,is3z;
@@ -405,7 +400,16 @@ public:
     double w1y,w2y,w3y;
     double w1z,w2z,w3z;
 
+    double teno_ct = 1.0e-5;
+
     int uf,vf,wf;
+
+    int wtype = 0;
+
+    int own_nx = 0, own_ny = 0, own_nz = 0;
+
+    bool own_tables = false;
+
 protected:
     inline void iqmin(field& f)
     {
@@ -551,6 +555,8 @@ protected:
     }
 
 private:
+    static inline bool iniflag = false;
+
     lexer *p;
 };
 
