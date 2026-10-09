@@ -44,7 +44,10 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         {
             // Zone 1
             if(dg<1.0e20)
+            {
+            select_zone_at(p);   // zone sources (B 524)
             eta(i,j) = wave_eta(p,pgc,xg,yg);
+            }
 		}
     }
     pgc->gcsl_start4(p,eta,50);
@@ -72,6 +75,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
+            select_zone_at(p);   // zone sources (B 524)
             if(zloc1<=fsfloc+epsi)
             uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
             
@@ -107,6 +111,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
+            select_zone_at(p);   // zone sources (B 524)
             if(zloc2<=fsfloc+epsi)
             vval[count] = wave_v(p,pgc,xg,yg,z);
             
@@ -142,6 +147,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
+            select_zone_at(p);   // zone sources (B 524)
             if(zloc3<=fsfloc+epsi)
             wval[count] = wave_w(p,pgc,xg,yg,z);
             
@@ -167,6 +173,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
+            select_zone_at(p);   // zone sources (B 524)
             lsval[count] = eta(i,j)+p->phimean-p->pos_z();
             
             ++count;
@@ -196,6 +203,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             { 
+            select_zone_at(p);   // zone sources (B 524)
             Fival[count] = wave_fi(p,pgc,xg,yg,z);
             ++count;
             }
@@ -233,6 +241,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             { 
+            select_zone_at(p);   // zone sources (B 524)
             if(zloc4<=fsfloc+epsi)
             Fival[count] = wave_fi(p,pgc,xg,yg,z);
             
@@ -262,6 +271,7 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             { 
+            select_zone_at(p);   // zone sources (B 524)
             if(zloc4<=fsfloc+epsi || p->A10==3)
             Fifsfval[count] = wave_fi(p,pgc,xg,yg,z);
             
@@ -291,5 +301,8 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
         }
         
     }
+    
+    if(zones.has_sources())
+    select_sources(nullptr);
 }
     

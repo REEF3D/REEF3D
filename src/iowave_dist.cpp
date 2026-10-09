@@ -231,8 +231,6 @@ void iowave::zones_check(lexer *p)
     if(zones.user_relax() && p->B98!=2)
     err = "relaxation zones (B 520 method 1) need relaxation wave generation (B 98 2)";
     
-    if(zones.has_sources() && p->A10!=3 && p->A10!=5)
-    err = "zone sources (B 524) are available for FNPF and NHFLOW only, so far";
     
     
     for(const bc_zone &z : zones.relax)

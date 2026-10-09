@@ -1,0 +1,28 @@
+{
+ "base": "sflow_2d_stokes2",
+ "ctrl_set": {
+  "B 96": "0.0 8.00"
+ },
+ "ctrl_add": [
+  "B 500 2 2 0.03 3.0",
+  "B 501 2 0.0 0.0 0.0 1.0e20 0.0",
+  "B 520 1 1 1",
+  "B 521 1 1 0.0 0.0 4.0",
+  "B 524 1 1",
+  "B 524 1 2"
+ ],
+ "description": "SFLOW 2D flume, generation zone from B 520/521 at x- with two sources (B 524): the B 92 Stokes 2nd wave plus a linear source 2 (H 0.03 T 3); beach from B 96.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "iowave",
+  "bc_zone",
+  "wave_field"
+ ],
+ "covers": [
+  "B 524 zone sources in SFLOW",
+  "SFLOW precalc over the generation columns (genzone4_build)"
+ ]
+}

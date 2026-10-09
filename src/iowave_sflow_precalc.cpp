@@ -28,112 +28,108 @@ Author: Hans Bihs
 void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     starttime=pgc->timer();
-    
     p->wavetime = p->simtime;
     
-    double fsfloc;
+    // only relaxation generation (B 98 2) uses the precalc values
+    if(p->B98!=2)
+    {
+    p->wavecalctime+=pgc->timer()-starttime;
+    return;
+    }
+    
     double u_val,v_val,w_val;
     double deltaz;
     
-    // pre-calc every iteration
-    count=0;
-    SLICELOOP4
+    // generation-zone columns, registered for the cached evaluation (iowave_dist.cpp); only these
+    // are evaluated (before, the depth-averaged velocities were computed for every column of the
+    // domain and kept only in the zone). Zone sources (B 524) per column.
+    if(!gen_built) genzone4_build(p,pgc);
+    
+    const bool zsel = zones.has_sources();
+    
+    if(p->B98==2 && h_switch==1)
+    for(size_t q=0; q<gen_i.size(); ++q)
     {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
-		}
+        i = gen_i[q];
+        j = gen_j[q];
+        
+        if(zsel)
+        select_sources(gen_src[q]);
+        
+        PSLICECHECK4
+        eta(i,j) = wave_eta_c(p,pgc,int(q));
     }
+    
+    if(zsel)
+    select_sources(nullptr);
+    
     pgc->gcsl_start4(p,eta,50);
     
-    // depth-averaged wave velocities at the cell centres (cell-centred HLL SFLOW)
-    count=0;
-    SLICELOOP4
+    // depth-averaged wave velocities at the cell centres (cell-centred HLL SFLOW), the count
+    // sequence of the relaxation functions (SLICELOOP4 order, zone columns)
+    const bool uv = p->B98==2 && (u_switch==1 || v_switch==1);
+    const bool ww = p->B98==2 && w_switch==1;
+    int cuv=0, cw=0;
+    
+    if(uv || ww)
+    for(size_t q=0; q<gen_i.size(); ++q)
     {
-		xg = xgen(p);
-        yg = ygen(p);
-        dg = distgen(p);
-		db = distbeach(p);
+        i = gen_i[q];
+        j = gen_j[q];
+        
+        PSLICECHECK4
+        {
+        if(zsel)
+        select_sources(gen_src[q]);
         
         deltaz = (eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
-        
         u_val=0.0;
         v_val=0.0;
+        w_val=0.0;
         z=-p->wd;
+        
         for(int qn=0;qn<=p->B160;++qn)
         {
-        u_val += wave_u(p,pgc,xg,yg,z);
-        
+        double uw, vw, wq;
+        wave_uvw_c(p,pgc,int(q),z,uw,vw,wq);
+        u_val += uw;
         if(p->j_dir==1)
-        v_val += wave_v(p,pgc,xg,yg,z);
-        
+        v_val += vw;
+        w_val += wq;
         z+=deltaz;
         }
+        
         u_val/=double(p->B160+1);
         v_val/=double(p->B160+1);
+        w_val/=double(p->B160+1);
         
         // Boussinesq (A 220 4): velocity at the reference level z_a
         if(p->A220==4)
         {
+        double uw, vw, wq;
         z = -0.53*(p->wd - b->bed(i,j)) + 0.47*eta(i,j);
-        
-        u_val = wave_u(p,pgc,xg,yg,z);
-        v_val = (p->j_dir==1)?wave_v(p,pgc,xg,yg,z):0.0;
+        wave_uvw_c(p,pgc,int(q),z,uw,vw,wq);
+        u_val = uw;
+        v_val = (p->j_dir==1)?vw:0.0;
         }
-		
-		// Wave Generation
-		if(p->B98==2 && (u_switch==1 || v_switch==1))
+        
+        if(uv)
         {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            uval[count] = u_val;
-            vval[count] = v_val;
-            ++count;
-            }
-		}
+        uval[cuv] = u_val;
+        vval[cuv] = v_val;
+        ++cuv;
+        }
+        
+        if(ww)
+        {
+        wval[cw] = w_val;
+        ++cw;
+        }
+        }
     }
     
-    count=0;
-    SLICELOOP4
-    {
-        xg = xgen(p);
-        yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-
-        deltaz = (eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
-        
-        w_val=0.0;
-        z=-p->wd;
-        for(int qn=0;qn<=p->B160;++qn)
-        {
-        w_val += wave_w(p,pgc,xg,yg,z);
-        
-        z+=deltaz;
-        }
-        w_val/=double(p->B160+1);
-        
-        
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            wval[count] = w_val;
-            ++count;
-            }
-		}
-    }
+    if(zsel)
+    select_sources(nullptr);
+    
     p->wavecalctime+=pgc->timer()-starttime;
 }
-    
