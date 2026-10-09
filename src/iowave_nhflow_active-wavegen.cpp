@@ -141,7 +141,9 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             
                 
                 // fsf deviation
-                eta_T = wave_eta(p,pgc,x,0.0);
+                // target at this column, ramped like the velocities (it was evaluated at the x of
+                // the last precalc cell and y = 0, without the ramp)
+                eta_T = ramp(p)*wave_eta(p,pgc,xgen(p),ygen(p));
                 eta_M = d->eta(i,j); 
                 eta_R = eta_T-eta_M;
 				

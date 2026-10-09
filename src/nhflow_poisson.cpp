@@ -163,7 +163,7 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                 // iowave open edge with waves (B 524): the non-hydrostatic pressure of the incoming
                 // waves instead of 0 (iowave_nhflow_tide.cpp); with 0 the edge generated waves up
                 // to 11 % too high for kh 2-3
-                pval = (p->open_xm==1 && d->Pbc!=nullptr) ? d->Pbc[FIm1JK] : 0.0;
+                pval = d->Pbc!=nullptr ? d->Pbc[FIm1JK] : 0.0;
                 d->rhsvec.V[n] -= d->M.s[n]*pval;
                 d->M.s[n] = 0.0;
                 }
