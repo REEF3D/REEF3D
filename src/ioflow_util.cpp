@@ -30,12 +30,12 @@ Author: Hans Bihs
 
 void ioflow_f::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    ioflow_gcio_lists(p,p->flagsf4,nullptr);
+    ioflow_gcio_lists(p,p->DF,nullptr);
 
     if(p->I10==1 && p->count==0)
     velini(p,a,pgc);
 
-    ioflow_gcio_marks(p,p->flagsf4,pBC);
+    ioflow_gcio_marks(p,p->DF,pBC);
 }
 
 

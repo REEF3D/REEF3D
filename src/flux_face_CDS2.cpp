@@ -114,10 +114,10 @@ void flux_face_CDS2::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, doubl
 	wflux2= wvel(i,j,k);
 	}
     
-    if(p->flagsf4[IJKm1]<0)
+    if(p->DF[IJKm1]<0)
     wflux1=0.0;
     
-    if(p->flagsf4[IJKp1]<0)
+    if(p->DF[IJKp1]<0)
     wflux2=0.0;
 }
 

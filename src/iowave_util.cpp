@@ -30,7 +30,7 @@ Author: Hans Bihs
 
 void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-    ioflow_gcio_lists(p,p->flagsf4,nullptr);
+    ioflow_gcio_lists(p,p->DF,nullptr);
 
     if(p->I10==1)
     velini(p,a,pgc);
@@ -41,7 +41,7 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->B99==3||p->B99==4||p->B99==5)
 	awa_ini(p,a,pgc);
 
-    ioflow_gcio_marks(p,p->flagsf4,pBC);
+    ioflow_gcio_marks(p,p->DF,pBC);
 }
 
 

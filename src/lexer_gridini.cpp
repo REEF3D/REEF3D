@@ -46,15 +46,6 @@ void lexer::flagini()
 	Iarray(flag3,imax*jmax*kmax);
     Iarray(flag5,imax*jmax*kmax);
 
-	Iarray(flagsf4,imax*jmax*kmax);
-
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    for(k=0; k<knoz; ++k)
-    {
-    flagsf4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=1;
-    }
-
     // boundary conditions
     Iarray(IO,imax*jmax*kmax);
     Iarray(IOSL,imax*jmax);

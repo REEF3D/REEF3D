@@ -105,17 +105,8 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     cout<<"number of active cells: "<<count<<endl;*/
     
     // -----------------------------------------------------------
-    // FLAGSF
-    BASELOOP
-    {
-    if((a->fb(i,j,k)>0.0 || p->X10==0) && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
-    p->flagsf4[IJK]=1;
     
-    if((a->fb(i,j,k)<0.0 && p->X10==1) || (a->solid(i,j,k)<0.0 && p->solidread==1) || (a->topo(i,j,k)<0.0 && p->toporead==1))
-    p->flagsf4[IJK]=-1;
-    }
-    
-    flagx(p,p->flagsf4);
+    set_DF(p,a);
 
     // -----------------------------------------------------------
     // count gcdf entries
@@ -124,25 +115,25 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     // gcdf count
     BASELOOP
-    if(p->flagsf4[IJK]>0)
+    if(p->DF[IJK]>0)
     {
      
-        if(p->flagsf4[Im1JK]<0)
+        if(p->DF[Im1JK]<0)
         ++count;
         
-        if(p->flagsf4[Ip1JK]<0)
+        if(p->DF[Ip1JK]<0)
         ++count;
         
-        if(p->flagsf4[IJm1K]<0)
+        if(p->DF[IJm1K]<0)
         ++count;
         
-        if(p->flagsf4[IJp1K]<0)
+        if(p->DF[IJp1K]<0)
         ++count;
 
-        if(p->flagsf4[IJKm1]<0)
+        if(p->DF[IJKm1]<0)
         ++count;
         
-        if(p->flagsf4[IJKp1]<0)
+        if(p->DF[IJKp1]<0)
         ++count;        
     }
     
@@ -159,9 +150,9 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     count=0;
     
     BASELOOP
-    if(p->flagsf4[IJK]>0)
+    if(p->DF[IJK]>0)
     {
-        if(p->flagsf4[Im1JK]<0)
+        if(p->DF[Im1JK]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -171,7 +162,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[Ip1JK]<0)
+        if(p->DF[Ip1JK]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -181,7 +172,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[IJm1K]<0)
+        if(p->DF[IJm1K]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -191,7 +182,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[IJp1K]<0)
+        if(p->DF[IJp1K]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -201,7 +192,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flagsf4[IJKm1]<0)
+        if(p->DF[IJKm1]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -211,7 +202,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[IJKp1]<0)
+        if(p->DF[IJKp1]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -250,27 +241,27 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         p->gcdf4[n][5]=cval(i,j,k);
     }
 
-    // flagsf1/2/3 are the staggered-face versions of flagsf4 (same convention as
+    // flagsf1/2/3 are the staggered-face versions of DF (same convention as
     // flag1-3 vs flag4): open unless the face's neighbor cell is blocked. Since
-    // that's a pure function of flagsf4 -- which already carries a p->margin-deep
+    // that's a pure function of DF -- which already carries a p->margin-deep
     // synced halo -- they're computed on the fly here instead of as separate
-    // arrays; gcdf_update_impl never reaches more than 2 cells from flagsf4.
+    // arrays; gcdf_update_impl never reaches more than 2 cells from DF.
     auto flagsf1 = [p](int i, int j, int k) -> int
     {
-        int v = p->flagsf4[IJK];
-        return (v>0 && p->flagsf4[Ip1JK]<0) ? -1 : v;
+        int v = p->DF[IJK];
+        return (v>0 && p->DF[Ip1JK]<0) ? -1 : v;
     };
 
     auto flagsf2 = [p](int i, int j, int k) -> int
     {
-        int v = p->flagsf4[IJK];
-        return (v>0 && p->flagsf4[IJp1K]<0) ? -1 : v;
+        int v = p->DF[IJK];
+        return (v>0 && p->DF[IJp1K]<0) ? -1 : v;
     };
 
     auto flagsf3 = [p](int i, int j, int k) -> int
     {
-        int v = p->flagsf4[IJK];
-        return (v>0 && p->flagsf4[IJKp1]<0) ? -1 : v;
+        int v = p->DF[IJK];
+        return (v>0 && p->DF[IJKp1]<0) ? -1 : v;
     };
 
     gcdf_update_impl(p, flagsf1, p->gcdf1, p->gcdf1_count);

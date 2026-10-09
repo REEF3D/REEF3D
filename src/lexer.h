@@ -93,7 +93,6 @@ public:
     int N7,N7_row,N7_col;
 	int surf_tot;
 	int *flag1,*flag2,*flag3,*flag4,*flag5,*flag7;
-    int *flagsf4;
 
     // flag
     double *flag_solid,*flag_topo;
