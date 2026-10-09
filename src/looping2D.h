@@ -29,7 +29,7 @@ Author: Hans Bihs
 #define PSLICECHECK4  if(p->flagslice4[IJ]>0)
 #define SSLICECHECK4  if(p->flagslice4[IJ]<0)
 
-#define SEDSLICECHECK if(p->DFBED[IJ]>0)
+#define SEDSLICECHECK if(s->DFBED[IJ]>0)
 #define SLICEFLEXCHECK  if(flagslice[IJ]>0)
 
 #define WETDRY if(p->wet[IJ]==1)

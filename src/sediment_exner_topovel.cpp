@@ -65,7 +65,7 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
         sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
 
         // complete q
@@ -76,7 +76,7 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_ED(p,pgc,s));
         
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
     
@@ -147,7 +147,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
         sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
         // complete q
         dqx = pdx->sx(p,qbx,sgx1,sgx2);
@@ -157,7 +157,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_ED(p,pgc,s));
         
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
 
@@ -202,7 +202,7 @@ void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
         sgy1=sqrt(uy1*uy1 + vy1*vy1)>1.0e-10?vy1/sqrt(uy1*uy1 + vy1*vy1):0.0;
         sgy2=sqrt(uy2*uy2 + vy2*vy2)>1.0e-10?vy2/sqrt(uy2*uy2 + vy2*vy2):0.0;
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
         // complete q
         dqx = pdx->sx(p,s->qb,sgx1,sgx2);
@@ -211,28 +211,28 @@ void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
         // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy + susp_ED(p,pgc,s));
         
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
     
     pgc->gcsl_start4(p,s->vz,1);
 }
 
-void sediment_exner::face_closure(lexer *p, double &sgx1, double &sgx2, double &sgy1, double &sgy2)
+void sediment_exner::face_closure(lexer *p, sediment_fdm *s, double &sgx1, double &sgx2, double &sgy1, double &sgy2)
 {
     // faces to cells without an erodible bed (structures, solids, non-sediment cells) carry no
     // bedload: the face direction is set to zero, and the discretisations (sediment_exnerdisc)
     // multiply every face value by the face direction (S 31 1) or by its open flag (S 31 2, 3).
     // Closed domain walls have zero face-normal velocity and are closed the same way.
-    if(p->DFBED[Im1J]<0)
+    if(s->DFBED[Im1J]<0)
     sgx1=0.0;
     
-    if(p->DFBED[Ip1J]<0)
+    if(s->DFBED[Ip1J]<0)
     sgx2=0.0;
     
-    if(p->DFBED[IJm1]<0)
+    if(s->DFBED[IJm1]<0)
     sgy1=0.0;
     
-    if(p->DFBED[IJp1]<0)
+    if(s->DFBED[IJp1]<0)
     sgy2=0.0;
 }

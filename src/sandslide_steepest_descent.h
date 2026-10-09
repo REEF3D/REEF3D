@@ -41,7 +41,7 @@ public:
 	void start(lexer*,ghostcell*,sediment_fdm*) override final;
 
 private:
-    void find_steepest_neighbor(lexer* p, slice& topo, int i, int j,
+    void find_steepest_neighbor(lexer *p,sediment_fdm *s, slice &topo, int i, int j,
                                  int& i_steep, int& j_steep, 
                                  double& max_slope, double& dist_steep);
 

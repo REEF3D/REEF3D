@@ -144,7 +144,7 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     {   
         // exchange with the bed only where the Exner equation applies it (erodible region S71-S72, DFBED>0),
         // otherwise erosion from or deposition onto a fixed bed creates or deletes sediment
-        if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
+        if(k==0 && p->DF[IJK]>0 && p->wet[IJ]==1 && s->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
         {
         zdist = p->DZN[KP]*d->WL(i,j);
         d->rhsvec.V[count]  += (-s->ws)*(-s->cbe(i,j))/zdist;

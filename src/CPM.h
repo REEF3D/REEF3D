@@ -296,7 +296,7 @@ private:
     // hybrid suspension (Q 58 3), see CPM_suspension.cpp: erodible parcels per column, net exchange rate
     slice4 blNc,blSr,blMc;
     int blMc_ok=0;
-    int susp_cell(lexer*, fdm*, int, int);
+    int susp_cell(lexer*, fdm*,sediment_fdm*, int, int);
     double susp_column(lexer*, fdm*, int, int);
 public:
     void susp_cbe(lexer*, fdm*, ghostcell*, sediment_fdm*);

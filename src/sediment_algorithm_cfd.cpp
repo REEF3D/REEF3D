@@ -104,7 +104,7 @@ void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow
     sedimentlog(p);
     
     if(s->pmix!=nullptr)
-    s->pmix->print_log(p,pgc);
+    s->pmix->print_log(p,pgc,s);
     
     if(p->mpirank==0 && p->count>0)
     cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
