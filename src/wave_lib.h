@@ -92,12 +92,7 @@ public:
     virtual double wave_v_c(lexer *p, int q, double z) {return wave_v(p,cache_x[q],cache_y[q],z);}
     virtual double wave_w_c(lexer *p, int q, double z) {return wave_w(p,cache_x[q],cache_y[q],z);}
 
-    virtual void wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
-    {
-        u=wave_u_c(p,q,z);
-        v=wave_v_c(p,q,z);
-        w=wave_w_c(p,q,z);
-    }
+    virtual void wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w);
 
     // eta at one point for the times tv (iowave::timeseries, REEF3D_Log-Wave); the default
     // evaluates wave_eta at each time, the 2nd-order theories use their cached evaluation

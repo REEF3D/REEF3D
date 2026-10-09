@@ -109,6 +109,11 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
     bg_Ai0.assign(Ai,Ai+bg_n);
     bg_si.assign(wi,wi+bg_n);
     bg_af.assign(bg_n,1.0);
+    
+    // evaluation without the lexer (iowave redesign, step 2): number of components and
+    // spreading switch of this wave, as constructed
+    Nw = p->wN;
+    B130v = p->B130;
 }
 
 wave_lib_irregular_1st::~wave_lib_irregular_1st()
@@ -120,13 +125,13 @@ double wave_lib_irregular_1st::wave_u(lexer *p, double x, double y, double z)
 {
     vel=0.0;
 	
-	for(n=0;n<p->wN;++n)
+	for(n=0;n<Nw;++n)
 	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
-	for(n=0;n<p->wN;++n)
+	for(n=0;n<Nw;++n)
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinhkd[n] ) *cos(Ti[n]) * cosbeta[n];
     
-    if(p->B130==0)
+    if(B130v==0)
     vel*=cosgamma;
     
     return vel;
@@ -138,7 +143,7 @@ double wave_lib_irregular_1st::wave_u_space_sin(lexer *p, double x, double y, do
 	
     vel = wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinh(ki[n]*wdt) ) * T * cosbeta[n];
 
-    if(p->B130==0)
+    if(B130v==0)
     vel*=cosgamma;
     
     return vel;
@@ -150,7 +155,7 @@ double wave_lib_irregular_1st::wave_u_space_cos(lexer *p, double x, double y, do
 	
     vel = wi[qn]*Ai[qn]* (cosh(ki[qn]*(wdt+z))/sinh(ki[qn]*wdt) ) * T * cosbeta[qn];
 
-    if(p->B130==0)
+    if(B130v==0)
     vel*=cosgamma;
     
     return vel;
@@ -176,14 +181,14 @@ double wave_lib_irregular_1st::wave_v(lexer *p, double x, double y, double z)
 {
     vel=0.0;
 	
-	for(n=0;n<p->wN;++n)
+	for(n=0;n<Nw;++n)
 	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 	
 	
-	for(n=0;n<p->wN;++n)
+	for(n=0;n<Nw;++n)
     vel += wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinhkd[n] ) * cos(Ti[n]) * sinbeta[n];
 	
-    if(p->B130==0)
+    if(B130v==0)
     vel*=singamma;
     
     return vel;
@@ -195,7 +200,7 @@ double wave_lib_irregular_1st::wave_v_space_sin(lexer *p, double x, double y, do
 	
     vel = wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinh(ki[n]*wdt) ) * T * sinbeta[n];
 	
-    if(p->B130==0)
+    if(B130v==0)
     vel*=singamma;
     
     return vel;
@@ -207,7 +212,7 @@ double wave_lib_irregular_1st::wave_v_space_cos(lexer *p, double x, double y, do
 	
     vel = wi[n]*Ai[n]* (cosh(ki[n]*(wdt+z))/sinh(ki[n]*wdt) ) * T * sinbeta[n];
 	
-    if(p->B130==0)
+    if(B130v==0)
     vel*=singamma;
     
     return vel;
@@ -233,10 +238,10 @@ double wave_lib_irregular_1st::wave_w(lexer *p, double x, double y, double z)
 {
     vel=0.0;
 	
-	for(n=0;n<p->wN;++n)
+	for(n=0;n<Nw;++n)
 	Ti[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - wi[n]*(p->wavetime) - ei[n];
 
-	for(n=0;n<p->wN;++n)
+	for(n=0;n<Nw;++n)
     vel += wi[n]*Ai[n]* (sinh(ki[n]*(wdt+z))/sinhkd[n]) * sin(Ti[n]);
 	
     return vel;
@@ -281,7 +286,7 @@ double wave_lib_irregular_1st::wave_eta(lexer *p, double x, double y)
     // had to be spilled around every libm call) and a SIMD-able term loop:
     // with -fno-math-errno -fopenmp-simd GCC maps cos() to libmvec. The
     // components are still summed in the original order.
-    const int N = p->wN;
+    const int N = Nw;
     const double t = p->wavetime;
     double *const __restrict T = Ti;
     
@@ -332,7 +337,7 @@ double wave_lib_irregular_1st::wave_eta_time_cos(lexer *p, int n)
 // FI -------------------------------------------------------------
 double wave_lib_irregular_1st::wave_fi(lexer *p, double x, double y, double z)
 {
-    const int N = p->wN;
+    const int N = Nw;
     const double t = p->wavetime;
     const double zz = wdt+z;
     double *const __restrict T = Ti;
@@ -409,7 +414,7 @@ void wave_lib_irregular_1st::wave_cache_points(lexer *p, const std::vector<doubl
     cache_y=y;
 
     const int N=int(x.size());
-    const int M=p->wN;
+    const int M=Nw;
 
     cS.assign(size_t(N)*M,0.0);
     sS.assign(size_t(N)*M,0.0);
@@ -439,6 +444,7 @@ void wave_lib_irregular_1st::wave_cache_points(lexer *p, const std::vector<doubl
     }
 
     cache_t=-1.0e300;
+    ph_q=-1;
     
     // registered after a B 530 update: cached data from the current wave state
     if(bg_used)
@@ -453,7 +459,7 @@ void wave_lib_irregular_1st::cache_time(lexer *p)
     if(p->wavetime==cache_t)
     return;
 
-    const int M=p->wN;
+    const int M=Nw;
     const double t=p->wavetime;
 
     for(int m=0;m<M;++m)
@@ -470,7 +476,7 @@ double wave_lib_irregular_1st::wave_eta_c(lexer *p, int q)
 {
     cache_time(p);
 
-    const int M=p->wN;
+    const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
 
     double acc=0.0;
@@ -484,7 +490,7 @@ double wave_lib_irregular_1st::wave_fi_c(lexer *p, int q, double z)
 {
     cache_time(p);
 
-    const int M=p->wN;
+    const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     double *ez=&ezb[0];
 
@@ -506,7 +512,7 @@ double wave_lib_irregular_1st::wave_u_c(lexer *p, int q, double z)
 {
     cache_time(p);
 
-    const int M=p->wN;
+    const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     double *ez=&ezb[0];
 
@@ -521,7 +527,7 @@ double wave_lib_irregular_1st::wave_u_c(lexer *p, int q, double z)
         acc += Au[m]*chr*(cs[m]*cT[m] - ss[m]*sT[m]);
     }
 
-    if(p->B130==0)
+    if(B130v==0)
     acc*=cosgamma;
 
     return acc;
@@ -531,7 +537,7 @@ double wave_lib_irregular_1st::wave_v_c(lexer *p, int q, double z)
 {
     cache_time(p);
 
-    const int M=p->wN;
+    const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     double *ez=&ezb[0];
 
@@ -546,7 +552,7 @@ double wave_lib_irregular_1st::wave_v_c(lexer *p, int q, double z)
         acc += Av[m]*chr*(cs[m]*cT[m] - ss[m]*sT[m]);
     }
 
-    if(p->B130==0)
+    if(B130v==0)
     acc*=singamma;
 
     return acc;
@@ -556,7 +562,7 @@ double wave_lib_irregular_1st::wave_w_c(lexer *p, int q, double z)
 {
     cache_time(p);
 
-    const int M=p->wN;
+    const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     double *ez=&ezb[0];
 
@@ -578,7 +584,7 @@ void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, do
 {
     cache_time(p);
 
-    const int M=p->wN;
+    const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     double *ez=&ezb[0];
 
@@ -586,21 +592,38 @@ void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, do
     for(int m=0;m<M;++m)
     ez[m]=exp(ki[m]*z);
 
+    // phases of the column, once for its levels
+    if(q!=ph_q || cache_t!=ph_t)
+    {
+        ph_c.resize(M);
+        ph_s.resize(M);
+        
+        for(int m=0;m<M;++m)
+        {
+        ph_c[m] = cs[m]*cT[m] - ss[m]*sT[m];
+        ph_s[m] = ss[m]*cT[m] + cs[m]*sT[m];
+        }
+        
+        ph_q = q;
+        ph_t = cache_t;
+    }
+    const double *pc=ph_c.data(), *ps=ph_s.data();
+
     double au=0.0, av=0.0, aw=0.0;
     for(int m=0;m<M;++m)
     {
         const double r   = em2kd[m]/ez[m];
         const double chr = (ez[m] + r)*invden[m];
         const double shr = (ez[m] - r)*invden[m];
-        const double cph = cs[m]*cT[m] - ss[m]*sT[m];
-        const double sph = ss[m]*cT[m] + cs[m]*sT[m];
+        const double cph = pc[m];
+        const double sph = ps[m];
 
         au += Au[m]*chr*cph;
         av += Av[m]*chr*cph;
         aw += Aw[m]*shr*sph;
     }
 
-    if(p->B130==0)
+    if(B130v==0)
     {
         au*=cosgamma;
         av*=singamma;
@@ -663,6 +686,7 @@ void wave_lib_irregular_1st::wave_comp_update()
     
     const int N = int(cache_x.size());
     const int M = bg_n;
+    ph_q = -1;   // column phases with the new k
     
     for(int q=0;q<N;++q)
     for(int m=0;m<M;++m)

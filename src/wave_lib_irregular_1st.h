@@ -34,7 +34,7 @@ class wave_lib_irregular_1st final : public wave_lib, public wave_lib_parameters
                                public increment
 {
 public:
-    int wave_lexer_fields() const override {return 1;}
+    int wave_lexer_fields() const override {return 0;}
     wave_lib_irregular_1st(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_1st();
     
@@ -107,6 +107,9 @@ private:
     std::vector<double> Aeta, Afi, Au, Av, Aw;  // component amplitudes of each quantity
     std::vector<double> ezb;                    // exp(k z) scratch, [n]
     double cache_t=-1.0e300;
+    std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
+    int ph_q=-1;
+    double ph_t=-1.0e300;
     double **fixy,*fin;
     
     // B 530 state: the orbital velocities use sigma through sinhkd = sinh(k h_eff) omega/sigma
@@ -115,6 +118,8 @@ private:
     int bg_n=0;
     double bg_h=0.0;
     std::vector<double> bg_Ai0, bg_si, bg_af;
+    
+    int Nw=0, B130v=0;   // p->wN, p->B130 at construction
 };
 
 #endif

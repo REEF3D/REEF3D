@@ -400,3 +400,11 @@ bool wave_interface::wave_eta_series(lexer *p, ghostcell *pgc, double x, double 
     
     return true;
 }
+
+// default: u, v, w at the stored coordinates; v only in 3D (unused in 2D)
+void wave_lib::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    u=wave_u_c(p,q,z);
+    v=p->j_dir==1 ? wave_v_c(p,q,z) : 0.0;
+    w=wave_w_c(p,q,z);
+}
