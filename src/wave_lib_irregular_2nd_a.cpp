@@ -93,10 +93,8 @@ double wave_lib_irregular_2nd_a::wave_u(lexer *p, double x, double y, double z)
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = (fabs(p->W22)*(ki[n]-ki[m])*sinh((ki[n]-ki[m])*wdt) - pow(wi[n]-wi[m],2.0)*cosh((ki[n]-ki[m])*wdt));
-    denom2 = (fabs(p->W22)*(ki[n]+ki[m])*sinh((ki[n]+ki[m])*wdt) - pow(wi[n]+wi[m],2.0)*cosh((ki[n]+ki[m])*wdt));
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    denom1 = D1val[n][m];
+    denom2 = D2val[n][m];
     
     vel += (Eval[n][m]*cosh((ki[n]-ki[m])*(wdt+z))*(cosbeta[n]*cosbeta[m] + sinbeta[n]*sinbeta[m])*(ki[n]-ki[m]))
         /   denom1
@@ -126,10 +124,8 @@ double wave_lib_irregular_2nd_a::wave_v(lexer *p, double x, double y, double z)
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = (fabs(p->W22)*(ki[n]-ki[m])*sinh((ki[n]-ki[m])*wdt) - pow(wi[n]-wi[m],2.0)*cosh((ki[n]-ki[m])*wdt));
-    denom2 = (fabs(p->W22)*(ki[n]+ki[m])*sinh((ki[n]+ki[m])*wdt) - pow(wi[n]+wi[m],2.0)*cosh((ki[n]+ki[m])*wdt));
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    denom1 = D1val[n][m];
+    denom2 = D2val[n][m];
     
     vel += (Eval[n][m]*cosh((ki[n]-ki[m])*(wdt+z))*cos(Ti[n]-Ti[m])*(sinbeta[n]*cosbeta[m] - cosbeta[n]*sinbeta[m])*(ki[n]-ki[m]))
         /   denom1
@@ -166,10 +162,8 @@ double wave_lib_irregular_2nd_a::wave_w(lexer *p, double x, double y, double z)
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = (fabs(p->W22)*(ki[n]-ki[m])*sinh((ki[n]-ki[m])*wdt) - pow(wi[n]-wi[m],2.0)*cosh((ki[n]-ki[m])*wdt));
-    denom2 = (fabs(p->W22)*(ki[n]+ki[m])*sinh((ki[n]+ki[m])*wdt) - pow(wi[n]+wi[m],2.0)*cosh((ki[n]+ki[m])*wdt));
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    denom1 = D1val[n][m];
+    denom2 = D2val[n][m];
     
     vel += (Eval[n][m]*sinh((ki[n]-ki[m])*(wdt+z))*sin(Ti[n]-Ti[m])*(ki[n]-ki[m]))
         /   denom1
@@ -223,6 +217,21 @@ void wave_lib_irregular_2nd_a::parameters(lexer *p, ghostcell *pgc)
     Eval[n][m] = wave_E(wi[n],wi[m],ki[n],ki[m],Ai[n],Ai[m]);
     Fval[n][m] = wave_F(wi[n],wi[m],ki[n],ki[m],Ai[n],Ai[m]);
     }  
+    
+    // denominators of the velocity terms, once (they were recomputed per pair and evaluation)
+    p->Darray(D1val,p->wN,p->wN);
+    p->Darray(D2val,p->wN,p->wN);
+    
+    for(n=0;n<p->wN-1;++n)
+    for(m=n+1;m<p->wN;++m)
+    {
+    denom1 = (fabs(p->W22)*(ki[n]-ki[m])*sinh((ki[n]-ki[m])*wdt) - pow(wi[n]-wi[m],2.0)*cosh((ki[n]-ki[m])*wdt));
+    denom2 = (fabs(p->W22)*(ki[n]+ki[m])*sinh((ki[n]+ki[m])*wdt) - pow(wi[n]+wi[m],2.0)*cosh((ki[n]+ki[m])*wdt));
+    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
+    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    D1val[n][m] = denom1;
+    D2val[n][m] = denom2;
+    }
 }
 
 double wave_lib_irregular_2nd_a::wave_C(double w1, double w2, double k1, double k2)

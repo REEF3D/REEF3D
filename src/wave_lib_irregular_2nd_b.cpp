@@ -100,10 +100,8 @@ double wave_lib_irregular_2nd_b::wave_u(lexer *p, double x, double y, double z)
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = Dplus[n][m]*cosh((ki[n]+ki[m])*wdt);
-    denom2 = Dminus[n][m]*cosh((ki[n]-ki[m])*wdt);
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    denom1 = P1val[n][m];
+    denom2 = P2val[n][m];
     
     vel += (ki[n]+ki[m])*Ai[n]*Ai[m]*((Gplus[n][m]*cosh((ki[n]+ki[m])*(z+wdt)))/denom1)*cos(Ti[n]+Ti[m])*(cosbeta[n]*cosbeta[m] + sinbeta[n]*sinbeta[m])
         +  (ki[n]-ki[m])*Ai[n]*Ai[m]*((Gminus[n][m]*cosh((ki[n]-ki[m])*(z+wdt)))/denom2)*cos(Ti[n]-Ti[m])*(cosbeta[n]*cosbeta[m] - sinbeta[n]*sinbeta[m]);
@@ -111,8 +109,7 @@ double wave_lib_irregular_2nd_b::wave_u(lexer *p, double x, double y, double z)
     
     for(n=0;n<p->wN;++n)
     {
-     denom3 = Dplus[n][n]*cosh(2.0*ki[n]*wdt); 
-     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     denom3 = P3val[n];
      
      vel += ki[n]*Ai[n]*Ai[n]*((Gplus[n][n]*cosh(2.0*ki[n]*(z+wdt)))/denom3)*cos(2.0*Ti[n]);
     } 
@@ -140,10 +137,8 @@ double wave_lib_irregular_2nd_b::wave_v(lexer *p, double x, double y, double z)
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = Dplus[n][m]*cosh((ki[n]+ki[m])*wdt);
-    denom2 = Dminus[n][m]*cosh((ki[n]-ki[m])*wdt);
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    denom1 = P1val[n][m];
+    denom2 = P2val[n][m];
     
     vel += (ki[n]+ki[m])*Ai[n]*Ai[m]*((Gplus[n][m]*cosh((ki[n]+ki[m])*(z+wdt)))/denom1)*cos(Ti[n]+Ti[m])*(sinbeta[n]*cosbeta[m] + cosbeta[n]*sinbeta[m])
         +  (ki[n]-ki[m])*Ai[n]*Ai[m]*((Gminus[n][m]*cosh((ki[n]-ki[m])*(z+wdt)))/denom2)*cos(Ti[n]-Ti[m])*(sinbeta[n]*cosbeta[m] - cosbeta[n]*sinbeta[m]);
@@ -151,8 +146,7 @@ double wave_lib_irregular_2nd_b::wave_v(lexer *p, double x, double y, double z)
     
     for(n=0;n<p->wN;++n)
     {
-     denom3 = Dplus[n][n]*cosh(2.0*ki[n]*wdt); 
-     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     denom3 = P3val[n];
      
      vel += ki[n]*Ai[n]*Ai[n]*((Gplus[n][n]*cosh(2.0*ki[n]*(z+wdt)))/denom3)*cos(2.0*Ti[n]);
     }
@@ -186,10 +180,8 @@ double wave_lib_irregular_2nd_b::wave_w(lexer *p, double x, double y, double z)
     for(n=0;n<p->wN-1;++n)
     for(m=n+1;m<p->wN;++m)
     {
-    denom1 = Dplus[n][m]*cosh((ki[n]+ki[m])*wdt);
-    denom2 = Dminus[n][m]*cosh((ki[n]-ki[m])*wdt);
-    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
-    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    denom1 = P1val[n][m];
+    denom2 = P2val[n][m];
     
     vel += (ki[n]+ki[m])*Ai[n]*Ai[m]*((Gplus[n][m]*sinh((ki[n]+ki[m])*(z+wdt)))/denom1)*sin(Ti[n]+Ti[m])
         +  (ki[n]-ki[m])*Ai[n]*Ai[m]*((Gminus[n][m]*sinh((ki[n]-ki[m])*(z+wdt)))/denom2)*sin(Ti[n]-Ti[m]);
@@ -197,8 +189,7 @@ double wave_lib_irregular_2nd_b::wave_w(lexer *p, double x, double y, double z)
     
     for(n=0;n<p->wN;++n)
     {
-     denom3 = Dplus[n][n]*cosh(2.0*ki[n]*wdt); 
-     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     denom3 = P3val[n];
      
      vel += ki[n]*Ai[n]*Ai[n]*((Gplus[n][n]*sinh(2.0*ki[n]*(z+wdt)))/denom3)*sin(2.0*Ti[n]);
     }
@@ -251,8 +242,7 @@ double wave_lib_irregular_2nd_b::wave_fi(lexer *p, double x, double y, double z)
     
     for(n=0;n<p->wN;++n)
     {
-     denom3 = pow(sinh(ki[n]*wdt),4.0); 
-     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     denom3 = P4val[n];
      
      fi += (3.0/8.0)*wi[n]*Ai[n]*Ai[n]*((cosh(2.0*ki[n]*(z+wdt)))/denom3)*sin(2.0*Ti[n]);
     }
@@ -290,6 +280,33 @@ void wave_lib_irregular_2nd_b::parameters(lexer *p, ghostcell *pgc)
     //cout<<"k: "<<ki[n]<<" "<<ki[m]<<" w: "<<wi[n]<<" "<<wi[m]<<" H+-: "<<Hplus[n][m]<<" "<<Hminus[n][m]<<" F+-: "<<Fplus[n][m]<<" "<<Fminus[n][m]<<endl;
     }
     
+    
+    // denominators of the 2nd-order terms, once (they were recomputed per pair and evaluation)
+    p->Darray(P1val,p->wN,p->wN);
+    p->Darray(P2val,p->wN,p->wN);
+    p->Darray(P3val,p->wN);
+    p->Darray(P4val,p->wN);
+    
+    for(n=0;n<p->wN-1;++n)
+    for(m=n+1;m<p->wN;++m)
+    {
+    denom1 = Dplus[n][m]*cosh((ki[n]+ki[m])*wdt);
+    denom2 = Dminus[n][m]*cosh((ki[n]-ki[m])*wdt);
+    denom1 = fabs(denom1)>1.0e-20?denom1:1.0e20;
+    denom2 = fabs(denom2)>1.0e-20?denom2:1.0e20;
+    P1val[n][m] = denom1;
+    P2val[n][m] = denom2;
+    }
+    
+    for(n=0;n<p->wN;++n)
+    {
+     denom3 = Dplus[n][n]*cosh(2.0*ki[n]*wdt); 
+     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     P3val[n] = denom3;
+     denom3 = pow(sinh(ki[n]*wdt),4.0); 
+     denom3 = fabs(denom3)>1.0e-20?denom3:1.0e20;
+     P4val[n] = denom3;
+    }
     
     p->Darray(cosh_kpk,p->wN*p->wN);
     p->Darray(cosh_kmk,p->wN*p->wN);

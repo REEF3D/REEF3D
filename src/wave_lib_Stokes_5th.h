@@ -74,6 +74,9 @@ public:
     double wave_fi_time_sin(lexer*,int) override final;
     double wave_fi_time_cos(lexer*,int) override final;
     
+    // cached-point evaluation: u, v share the horizontal velocity
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    
     
     void wave_parameters(lexer*,ghostcell*);
     void parameters(lexer*,ghostcell*) override final;
@@ -94,6 +97,7 @@ private:
     
     
     double eps,c0,c2,c4; 
+    double U0,F0,A1,A2,A3,A4,A5,E1,E2,E3,E4,E5;   // harmonic coefficients (parameters)
     double S,C;
     double wC,ubar;
     double wS;

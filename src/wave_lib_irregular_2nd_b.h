@@ -62,6 +62,7 @@ private:
 	double wave_F_minus(double,double,double,double);
     
     double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;
+    double **P1val,**P2val,*P3val,*P4val;   // denominators of the 2nd-order terms
     
     double *cosh_kpk,*cosh_kmk,*cosh_2k,*sinh_4kh;
     int m;

@@ -57,6 +57,7 @@ private:
     double wave_F(double,double,double,double,double,double);
     
     double **Cval,**Dval,**Eval,**Fval;
+    double **D1val,**D2val;   // velocity denominators per pair
     int m;
     double singamma,cosgamma;
     double T,vel,eta,fi;

@@ -55,6 +55,19 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
     if(p->B92!=20 && p->B92!=21 && p->B92!=22 && p->B92!=23 && p->B92!=61)
     for(int n=0; n<p->P58; ++n)
     {
+        // written by rank 0 only (every rank wrote the same file before); the other ranks only
+        // advance p->wavetime as the loop does, so it ends with the same value everywhere
+        if(p->mpirank>0)
+        {
+            p->wavetime=0.0;
+            do
+            {
+            p->wavetime+=0.1;
+            }while(p->wavetime<=p->P58_T[n]);
+            
+            continue;
+        }
+        
 		sprintf(name,"./REEF3D_Log-Wave/REEF3D-Wave-Timeseries-%i.dat",n+1);
 		
 		pout.open(name);
