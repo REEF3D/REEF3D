@@ -70,8 +70,8 @@ public:
     // Origin and both strides are folded into m_base by cache_addressing(), so
     // these reach the element with two multiplies and no member subtractions.
     // Equivalent to V[(ii-imin)*jkmax + (jj-jmin)*kmax + kk-kmin].
-    inline T& operator()(int ii, int jj, int kk) noexcept {return m_base[ii*m_js + jj*m_ks + kk];};
-    inline const T& operator()(int ii, int jj, int kk) const noexcept {return m_base[ii*m_js + jj*m_ks + kk];};
+    inline T& operator()(int ii, int jj, int kk) noexcept {return m_base[ii*m_js + jj*m_ks + kk];}
+    inline const T& operator()(int ii, int jj, int kk) const noexcept {return m_base[ii*m_js + jj*m_ks + kk];}
 
     // includeGhost=false: LOOP cells only (PCHECK: flag4 > 0). Cells with
     // flag4 <= 0 (solid, object, in/outflow, ...) keep their values, as do the

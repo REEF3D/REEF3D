@@ -28,7 +28,7 @@ Author: Hans Bihs
 class sliceint2 final : public sliceint
 {
 public:
-    sliceint2(lexer* p) : sliceint(p) {};
+    sliceint2(lexer* p) : sliceint(p) {}
     ~sliceint2() override;
 };
 
