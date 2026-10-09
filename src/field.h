@@ -30,7 +30,7 @@ Author: Hans Bihs
 class field : public field_base<double>
 {
 public:
-    field(lexer* pp, bool allocate=true) : field_base<double>(pp,allocate) {}
+    field(lexer *pp, bool allocate=true) : field_base<double>(pp,allocate) {}
     ~field() override;
 
     // same layout only; copies in place, so V is never reallocated and the
@@ -42,7 +42,7 @@ public:
     }
 
 protected:
-    field(lexer* pp, int kz, std::size_t slack) : field_base<double>(pp, kz, slack) {}
+    field(lexer *pp, int kz, std::size_t slack) : field_base<double>(pp, kz, slack) {}
 };
 
 #endif
