@@ -57,6 +57,11 @@ Author: Hans Bihs
 // and slow motions of the collar; for R dt >> the size of the bag (fluid added mass) the response to waves
 // is too stiff. The in-plane modes of the light, stiff fabric are damped by backward Euler.
 //
+// Mobility sharp (no porous layer): C = m_a A/dt with the added mass per area m_a ('addedmass'), i.e. the node is integrated
+// with the inertia m + m_a against the pressure load of the last fluid step; isotropic, the load direction of the
+// staircase links is not exactly normal. Bending hinges (quadratic model of Bergou et al. 2006, flat rest state,
+// 'bending' EI) enter the backward Euler step implicitly: they keep the slack fabric smooth at the scale of the mesh.
+//
 // The fluid sees the step-averaged node velocity (x^{n+1} - x^n)/dt.
 // 2D: the nodes on both sides of the single cell row move together, without motion in y.
 
@@ -242,6 +247,66 @@ void net_membrane::ini_structure(lexer *p, ghostcell *pgc)
     }
     
     xan_ = x_;
+    
+    // bending hinges: the two triangles of every interior edge; quadratic bending energy E = 1/2 EI 3/(A1+A2) |sum K_i x_i|^2
+    // with the cotangent weights K of the rest state (zero for a flat hinge: flat rest state, rotation invariant)
+    if(prm.EI<0.0)
+    prm.EI = prm.link==2 ? 1.0e-3 : 0.0;
+    
+    hinge_.clear();
+    hK_.clear();
+    hc_.clear();
+    
+    if(prm.EI>0.0 && prm.structure==2 && p->j_dir==1)
+    {
+        vector<array<int,2> > et(edge_.size(),{-1,-1});
+        
+        for(size_t t=0; t<tri_.size(); ++t)
+        for(int q=0; q<3; ++q)
+        {
+            const int e = tedge_[t][q];
+            
+            if(et[e][0]<0)
+            et[e][0]=t;
+            else
+            et[e][1]=t;
+        }
+        
+        auto cot = [](const Eigen::Vector3d &a, const Eigen::Vector3d &b)
+        {
+            const double c = a.cross(b).norm();
+            return c>1.0e-20 ? a.dot(b)/c : 0.0;
+        };
+        
+        for(size_t e=0; e<edge_.size(); ++e)
+        {
+            if(et[e][1]<0)
+            continue;
+            
+            const int a = edge_[e][0], b = edge_[e][1];
+            int c=-1, dd=-1;
+            
+            for(int q=0; q<3; ++q)
+            {
+                if(tri_[et[e][0]][q]!=a && tri_[et[e][0]][q]!=b) c = tri_[et[e][0]][q];
+                if(tri_[et[e][1]][q]!=a && tri_[et[e][1]][q]!=b) dd = tri_[et[e][1]][q];
+            }
+            
+            if(c<0 || dd<0)
+            continue;
+            
+            const Eigen::Vector3d e0 = x_[b]-x_[a], e1 = x_[c]-x_[a], e2 = x_[dd]-x_[a], e3 = x_[c]-x_[b], e4 = x_[dd]-x_[b];
+            const double c01 = cot(e0,e1), c02 = cot(e0,e2), c03 = cot(-e0,e3), c04 = cot(-e0,e4);
+            const double A = 0.5*e0.cross(e1).norm() + 0.5*e0.cross(e2).norm();
+            
+            if(A<1.0e-20)
+            continue;
+            
+            hinge_.push_back({a,b,c,dd});
+            hK_.push_back({c03+c04, c01+c02, -c01-c03, -c02-c04});
+            hc_.push_back(prm.EI*3.0/A);
+        }
+    }
 }
 
 Eigen::Vector3d net_membrane::attached_position(int q) const
@@ -372,6 +437,17 @@ void net_membrane::internal_forces(lexer *p, const vector<Eigen::Vector3d> &x, c
         F[a] += T*ev;
         F[b] -= T*ev;
     }
+    
+    // bending hinges
+    for(size_t hh=0; hh<hinge_.size(); ++hh)
+    {
+        Eigen::Vector3d Kx = Eigen::Vector3d::Zero();
+        for(int r=0; r<4; ++r)
+        Kx += hK_[hh][r]*x[hinge_[hh][r]];
+        
+        for(int r=0; r<4; ++r)
+        F[hinge_[hh][r]] -= hc_[hh]*hK_[hh][r]*Kx;
+    }
 }
 
 void net_membrane::external_forces(lexer *p, vector<Eigen::Vector3d> &F) const
@@ -410,12 +486,19 @@ void net_membrane::advance_structure(lexer *p, double dt)
     n.setZero();
     
     // porous-jump coupling per node, dF/dv = -C: C = rho sum_T A_T/3 (R_n n n^T + R_t (I - n n^T))
+    // mobility sharp: no porous layer, the load is the pressure jump; added mass m_a per area, C = m_a A/dt (the node
+    // is integrated with m + m_a A against the load of the last fluid step, stable for m_a above the added mass of
+    // the water)
     for(size_t t=0; t<tri_.size(); ++t)
     for(int q=0; q<3; ++q)
     {
         const Eigen::Matrix3d P = tn_[t]*tn_[t].transpose();
         
         nn_[tri_[t][q]] += ta_[t]*tn_[t];
+        
+        if(prm.link==2)
+        Cq[tri_[t][q]] += prm.ma*ta_[t]/3.0/dt*Eigen::Matrix3d::Identity();
+        else
         Cq[tri_[t][q]] += rho*ta_[t]/3.0*(prm.Rn*P + prm.Rt*(Eigen::Matrix3d::Identity() - P));
     }
     
@@ -604,6 +687,39 @@ void net_membrane::structure_solve(lexer *p, double dt, int nsub, const vector<E
             
             else
             rhs.segment<3>(3*gb) += B*vs_[a];
+        }
+        
+        // bending hinges, linear in x: F_i = -hc K_i sum_j K_j x_j, implicit (matrix h^2 hc K_i K_j)
+        for(size_t hh=0; hh<hinge_.size(); ++hh)
+        {
+            const auto &n = hinge_[hh];
+            const auto &K = hK_[hh];
+            const double hc = hc_[hh];
+            
+            Eigen::Vector3d Kx = Eigen::Vector3d::Zero();
+            for(int r=0; r<4; ++r)
+            Kx += K[r]*x_[n[r]];
+            
+            for(int r=0; r<4; ++r)
+            {
+                const int gr = gid[n[r]];
+                
+                if(gr<0)
+                continue;
+                
+                rhs.segment<3>(3*gr) -= h*hc*K[r]*Kx;
+                
+                for(int c=0; c<4; ++c)
+                {
+                    const double kk = h*h*hc*K[r]*K[c];
+                    const int gc = gid[n[c]];
+                    
+                    if(gc>=0)
+                    addblock(gr,gc,kk*Eigen::Matrix3d::Identity());
+                    else
+                    rhs.segment<3>(3*gr) -= kk*vs_[n[c]];
+                }
+            }
         }
         
         // flexible collar: pipe, fluid, bending and mooring terms

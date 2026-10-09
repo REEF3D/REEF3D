@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"wave_lib_spectrum.h"
 #include"increment.h"
+#include"wave_lib_irregular_2nd_cache.h"
 
 using namespace std;
 
@@ -48,6 +49,16 @@ public:
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
+    // cached-point evaluation (wave_lib_irregular_2nd_cache.h)
+    void wave_cache_points(lexer*, const std::vector<double>&, const std::vector<double>&) override final;
+    double wave_eta_c(lexer*, int) override final;
+    double wave_fi_c(lexer*, int, double) override final;
+    double wave_u_c(lexer*, int, double) override final;
+    double wave_v_c(lexer*, int, double) override final;
+    double wave_w_c(lexer*, int, double) override final;
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
+    
 private: 
     double wave_A_plus(double,double,double,double);
 	double wave_A_minus(double,double,double,double);
@@ -61,6 +72,7 @@ private:
 	double wave_F_minus(double,double,double,double);
     
     double **Aplus,**Aminus,**Dplus,**Dminus,**Gplus,**Gminus,**Hplus,**Hminus,**Fplus,**Fminus;
+    double **P1val,**P2val,*P3val,*P4val;   // denominators of the 2nd-order terms
     
     double *cosh_kpk,*cosh_kmk,*cosh_2k,*sinh_4kh;
     int m;
@@ -70,6 +82,14 @@ private:
     
     
     double *sinhkd;
+    
+    wave_lib_irregular_2nd_cache cc;
+    bool coeffs_on=false;
+    void cache_coeffs(lexer*);
+    double eta_pairs(lexer*, const wave_lib_irregular_2nd_cache&);
+    std::vector<double> qUp,qUm,qVp,qVm,qWp,qWm,qFp,qFm,qHp,qHm;   // pair coefficients, n < m in loop order
+    std::vector<double> fU,fV,fW,fF;                               // 1st-order coefficients
+    std::vector<double> dU,dF,dH;                                  // self-interaction (n = m) coefficients
     
 };
 

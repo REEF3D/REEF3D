@@ -99,6 +99,10 @@ public:
         w=wave_w_c(p,q,z);
     }
 
+    // eta at one point for the times tv (iowave::timeseries, REEF3D_Log-Wave); the default
+    // evaluates wave_eta at each time, the 2nd-order theories use their cached evaluation
+    virtual void wave_eta_series(lexer *p, double x, double y, const std::vector<double> &tv, std::vector<double> &ev);
+
     // ---- waves on a background (iowave, B 530) ----------------------------
     // A wave on a tide or current keeps the absolute frequency omega of each
     // component; iowave re-solves k on the background depth h_eff (and with

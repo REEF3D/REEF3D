@@ -76,9 +76,9 @@ Author: Hans Bihs
 //                                      Wall fluxes at the blocked faces, wall velocity at the blocked links in the
 //                                      projection, cut cells below/above a floor, hydrostatic head below closed floors
 //                                      from the outer free surface (no floorpressure); see nhflow_thinbody.h.
-//                                      A 520 1, projections 1, structure fixed or rigid (a flexible membrane needs the
-//                                      damping of the layer: staggered coupling unstable). Loads: pressure jump across
-//                                      the blocked links (no shear)
+//                                      A 520 1, projections 1, structure fixed, rigid or flexible (flexible: staggered
+//                                      coupling with an added mass, see addedmass, bending, smoothing). Loads: pressure
+//                                      jump across the blocked links (no shear)
 //   poisson     0|1                    membrane mobility in the pressure Poisson equation; default 1
 //                                      (0 only to demonstrate the splitting leakage of the projection)
 //
@@ -92,8 +92,21 @@ Author: Hans Bihs
 //   stiffness   Et                     membrane stiffness E t [N/m]; default 5e5
 //   damping     zeta                   damping ratio of the edge dampers; default 0.1
 //   compression f                      edge stiffness in compression as a fraction of E t (wrinkling); default 0.01
+//   smoothing   n                      mobility sharp, structure flexible: smoothing passes of the membrane geometry that
+//                                      the fluid sees (node displacement and velocity, neighbour average, removes folds
+//                                      at the scale of the mesh); default 2, 0: off
+//   bending     EI                     bending stiffness [N m] of the flexible membrane, a regularisation against folds
+//                                      at the scale of the mesh (quadratic hinge model, flat rest state, Bergou et al.
+//                                      2006); default 1e-3 with mobility sharp (the sharp walls need a membrane that is
+//                                      smooth at the cell scale), 0 otherwise
 //   sinker      w                      submerged weight along the floor edge [N/m]; default 0
 //   attach      z                      nodes at or above z are attached; default the top edge z_top
+//   addedmass   m_a                    mobility sharp, structure flexible: added mass per area [kg/m^2] of the
+//                                      staggered coupling (the fabric is integrated with m + m_a against the load of
+//                                      the last fluid step; stable for m_a above the added mass of the water, which
+//                                      is ~ rho times the bag size); default 2 rho (L + H), L the radius (cylinder) or
+//                                      half the smaller width (box), H the depth of the bag bottom below the still
+//                                      water level. The extra inertia slows the dynamics, not the equilibrium
 //   bodyaddedmass M                    added mass [kg] of the stabilised coupling to the floating body
 //                                      (translation); default 2 rho V_bag (water of the bag below the still
 //                                      water level) for a rigid membrane, 0 for a flexible one (its top
@@ -243,6 +256,16 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(!(ls>>mp.back().fill))
             error=true;
         }
+        else if(key=="smoothing")
+        {
+            if(!(ls>>mp.back().smooth) || mp.back().smooth<0)
+            error=true;
+        }
+        else if(key=="bending")
+        {
+            if(!(ls>>mp.back().EI) || mp.back().EI<0.0)
+            error=true;
+        }
         else if(key=="compression")
         {
             if(!(ls>>mp.back().compr) || mp.back().compr<0.0 || mp.back().compr>1.0)
@@ -366,6 +389,11 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             error=true;
             else
             mp.back().moor.push_back(m);
+        }
+        else if(key=="addedmass")
+        {
+            if(!(ls>>mp.back().ma) || mp.back().ma<0.0)
+            error=true;
         }
         else if(key=="bodyaddedmass")
         {

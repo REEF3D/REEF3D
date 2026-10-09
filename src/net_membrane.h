@@ -76,6 +76,13 @@ Author: Hans Bihs
 //    The fluid layer of a moving membrane moves with it (R_t = R_n by default): the Poisson mobility is
 //    isotropic, so the layer fluid can not be moved along the membrane by pressure.
 //
+//    Mobility sharp: the load is the pressure jump across the blocked links alone, without the damper of a porous
+//    layer. The staggered step integrates the fabric with an added mass m_a per area (membrane.dat 'addedmass',
+//    default 2 rho (L + H)): (m + m_a) v^{n+1} = m v^n + m_a v_f + dt F, stable for m_a above the added mass of the
+//    water (without it the light fabric oscillates with a growth factor m_f/m per step); the extra inertia slows the
+//    dynamics, not the equilibrium. A weak bending stiffness (hinges, 'bending') and a smoothed geometry for the fluid
+//    ('smoothing') keep folds at the scale of a cell out of the sharp walls; the sides of cells and nodes on the moving
+//    fabric change only beyond a hysteresis distance, and a node whose two cells lie on the other side takes their side.
 // 7. Strong coupling (membrane.dat 'coupling iterated', flexible membranes; net_membrane_coupling.cpp). The
 //    projection of every RK stage is repeated until the node velocities the fluid used and the ones the structure
 //    returns for the resulting loads agree (nhflow_forcing::projection). The structure takes a backward-Euler step
@@ -143,9 +150,16 @@ struct membrane_param
     double EA=5.0e5;                        // membrane stiffness E t [N/m]
     double zeta=0.1;                        // damping ratio of the edge dampers
     double compr=0.01;                      // stiffness in compression as a fraction of E t (wrinkling fabric)
+    int smooth=-1;                          // mobility sharp, flexible: smoothing passes of the membrane geometry the fluid
+                                            // sees (displacement and velocity), <0: 2
+    double EI=-1.0;                         // bending stiffness [N m] (regularisation of grid-scale folds), <0: 1e-3 for
+                                            // mobility sharp, 0 otherwise
     double sinker=0.0;                      // submerged weight along the floor edge [N/m]
     double zattach=-1.0e20;                 // nodes at or above this height are attached, default: top edge
     double Mbody=-1.0;                      // added mass of the coupling to the floating body [kg], <0: 2 rho V_bag
+    double ma=-1.0;                         // mobility sharp, flexible: added mass per area of the staggered coupling
+                                            // [kg/m^2], <0: 2 rho (L + H) (L: radius of a cylinder bag, half width of a
+                                            // box; H: depth of the bag bottom below the still water level)
 
     // fluid-structure coupling of a flexible membrane
     int coupling=-1;                        // 0 staggered (once per step, implicit porous damper), 1 iterated per stage,
@@ -335,6 +349,11 @@ private:
     vector<Eigen::Vector3d> vpn_, epn_;     // angle-weighted vertex and edge pseudo normals
     vector<array<int,2> > etri_;            // triangles of each edge (-1: boundary edge)
     vector<Eigen::Vector3d> fimp_;          // per layer cell: force of the forcing on the membrane in this stage [N]
+    double sdist_of(const Eigen::Vector3d&, int, double, double, double) const;
+    double sdist_near(const Eigen::Vector3d&, const cellentry&) const;
+    vector<signed char> hC_, hN_;           // moving sharp membrane: sides of the last stage (hysteresis)
+    vector<int> hCq_, hNq_;
+    double hyst_=0.0;                       // hysteresis distance of a side change [m]
     struct blockedlink {int i,j,k,dir,t; double w[3];};
     vector<blockedlink> blocked_;           // links crossing the membrane in this stage
 public:
@@ -372,6 +391,14 @@ private:
     vector<array<int,3> > tedge_;           // edges of each triangle
     vector<int> flo_;                       // floor nodes
     vector<char> cornerE_, cornerN_;        // edges between panels of different orientation (floor edge, box corners), their nodes
+    vector<array<int,4> > hinge_;           // bending: edge nodes 0, 1 and the opposite vertices 2, 3 of the two triangles
+    vector<array<double,4> > hK_;           // bending: cotangent weights of the hinge (Bergou et al. 2006)
+    vector<double> hc_;                     // bending: EI 3/(A_1 + A_2)
+    vector<vector<int> > nbr_;              // node neighbours (edges)
+    vector<Eigen::Vector3d> xst_, vst_;     // structure positions and velocities while x_, xdot_ hold the smoothed geometry
+    bool fluidgeo_=false;                   //   of the fluid (mobility sharp, flexible)
+    void smooth_geometry();
+    void restore_geometry();
     int nsub_=0;
     double Tmax_=0.0, vmax_=0.0;
 

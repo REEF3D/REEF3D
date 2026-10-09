@@ -143,6 +143,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_ship_box_propeller` | 2 | ship module in CFD: box barge in a two-phase tank, actuator disk on the staggered velocity points (water part outside the hull, exact T and Q), velocity sampling, SSP-RK3 |
 | `fnpf_3d_ship_box_hybrid` | 2 | ship module in FNPF: box in head waves, six DOFs, hybrid MMG (mmg_fluid 2, Munk moment out of N'v), approach phase from rest, propeller inflow sampled from the FNPF velocity, FNPF psi_0 = chi (body-following time derivative), X 17 relaxation of eta next to the footprint |
 | `fnpf_3d_ship_box_hybrid_x18` | 2 | as `fnpf_3d_ship_box_hybrid` with X 18 0.5: the running mean of chi at body-fixed points (second-order low-pass) removed from the psi_0 free-surface data next to the hull (patch 0015) |
+| `fnpf_3d_ship_box_hybrid_opts` | 2 | as `fnpf_3d_ship_box_hybrid` with the hybrid options of the ship module: `hybrid_munk` (A22 - A11 of the Munk moment taken out of N'v), `hybrid_surge 1` (MMG surge velocity term) and a reduced R0' (patch 0017) |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, the broken wall becomes a rigid fragment (`fragments rigid`), debris, ground and part contact (reference with 0024, adaptive integration) |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
@@ -171,6 +172,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_two_sources` (+ `_mpi2`) | 1/2 | wave_field: B 92 linear wave + linear source 2 with phase (B 500/501); P 50 prints the summed target |
 | `nhflow_2d_irregular_two_sources` | 1 | wave_field: two JONSWAP sources with their own seeds (B 139, B 504) |
 | `fnpf_2d_two_sources` | 1 | wave_field in FNPF (cached potential path) |
+| `cfd_2d_dambreak_amr` (+ `_mpi2`) | 1/2 | CFD AMR (G 1 1, static box G 15): dam break with one refined level around the water column, the front leaves the patch (fills, level set per grid, composite projection with matched fluxes at the patch edges, FAC-preconditioned BiCGStab, restriction); `_mpi2`: the box ends at the partition edge (G 4 4), the refined region is extended across it, patches on both ranks, remote fills |
+| `cfd_2d_dambreak_amr3` | 1 | CFD AMR with two refined levels (G 1 2): fills from a patch parent, FAC V-cycle over three levels |
+| `cfd_2d_nwt_amr` | 1 | CFD AMR in the wave tank: refined band at the free surface between the relaxation zones (level 0 only), the free surface across the patch edges |
+| `cfd_2d_still_amr` | 1 | CFD AMR still water, the free surface across a patch edge: the hydrostatic pressure of both grids balanced at the edge |
+| `cfd_3d_dambreak_amr` | 2 | CFD AMR 3D dam break: 3D boxes on 2 ranks, implicit diffusion of a patch with Dirichlet values around it |
 | `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
 | `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
 | `nhflow_3d_amr_still` | 1 | NHFLOW AMR static patch in a closed tank, bed ramps under the patch edges: still water stays still (fill, flux matching, restriction, composite pressure BiCGStab + FAC) |
@@ -212,6 +218,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_3d_amr_tow` (+ `_place2`) | 1/2 | FNPF AMR towed floating body (X 10 1, X 210), the zone follows it (G 12, G 2 4); `_place2` G 40 2: zone patch placed whole, body grids and triangle ownership |
 | `fnpf_3d_amr_basin_sub` (+ `basin3_sub`, `basin_sub_place`) | 1/1/2 | FNPF waves with subcycling (G 7 1): level 0 alone, the patch steps with fills in time, the Laplace solve on the level window with fixed parent columns, the restriction after the steps; `basin3_sub` three levels (G 1 2), `basin_sub_place` 2 ranks with placed patches (G 40 1) |
 | `fnpf_3d_amr_tow_sub` | 1 | FNPF towed body with G 7 1: the finest level advances the body (psi_0 solve on its patches), level 0 with a predicted copy, the zone margin widened to 12 level-0 cells |
+| `fnpf_3d_amr_tow_x18`, `fnpf_3d_amr_tow_sub_x18` | 1 | `fnpf_3d_amr_tow` and `fnpf_3d_amr_tow_sub` with X 18 0.5: the running mean of chi removed next to the body on the base grid and on the refinement patches, with subcycling once per finest step (patch 0016) |
 | `fnpf_3d_amr_decay_sub` | 1 | FNPF moored cylinder, heave decay with G 7 1: the free body, its added mass from all grids at the start of the level-0 step |
 | `nhflow_3d_two_edges` | 2 | zones with own sources (B 520/521/524): x- zone generates the B 92 wave, y- zone source 2 at 90 deg; beach zone from B 520 |
 | `fnpf_3d_two_edges` | 2 | the same in FNPF |
@@ -263,6 +270,10 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_irregular_two_sources_decomp` | 1 | `nhflow_2d_irregular_two_sources` with B 89 1: the components of both sources decomposed (wave_field::dspace / dtime) |
 | `fnpf_2d_irregular_two_sources_decomp` | 1 | `fnpf_2d_irregular_decomp` plus an irregular source 2 (B 500, B 504): B 89 1 with several sources in FNPF |
 | `nhflow_2d_b89_linear_fallback` | 1 | `nhflow_2d_two_sources` (linear) with B 89 1: falls back to B 89 0 with a message, bitwise as `nhflow_2d_two_sources` |
+| `nhflow_2d_irregular_2nd_a` | 1 | NHFLOW 2D, 2nd-order irregular waves A (B 92 32, 32 components) in the relaxation zone: cached-point evaluation of the pair terms (`wave_lib_irregular_2nd_cache.h`) |
+| `nhflow_2d_irregular_2nd_b` | 1 | as above with 2nd-order irregular waves B (B 92 33) |
+| `nhflow_3d_irregular_2nd_dir` | 2 | `nhflow_3d_irregular_decomp` with directional 2nd-order irregular waves A and B 89 0 |
+| `fnpf_2d_irregular_2nd_b` | 1 | FNPF 2D, 2nd-order irregular waves B (B 92 33): cached potential (`wave_fi_c`) and eta of the pair terms |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |

@@ -74,7 +74,7 @@ double wave_lib_linear::wave_horzvel(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = wsig*wa*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * cos(teta);
+    vel = wsig*wa*( cosh(wk*(wdt+z))/sinhkd() ) * cos(teta);
 
     return vel;
 }
@@ -85,7 +85,7 @@ double wave_lib_linear::wave_w(lexer *p, double x, double y, double z)
 	
 	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = wsig*wa*( sinh(wk*(wdt+z))/sinh(wk*wdk) ) * sin(teta);
+    vel = wsig*wa*( sinh(wk*(wdt+z))/sinhkd() ) * sin(teta);
 
     return vel;
 }
@@ -107,11 +107,18 @@ double wave_lib_linear::wave_fi(lexer *p, double x, double y, double z)
     
     teta = wk*x-ww*(p->wavetime) + pshift;
     
-    fi = ((wsig*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * sin(teta);
-    
-    vel = wsig*wa*( cosh(wk*(wdt+z))/sinh(wk*wdk) ) * cos(teta);
+    fi = ((wsig*0.5*wH)/(wk))*( cosh(wk*(wdt+z))/sinhkd() ) * sin(teta);
     
     return fi;
+}
+
+void wave_lib_linear::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    const double vel = wave_horzvel(p,cache_x[q],cache_y[q],z);
+    
+    u = cosgamma*vel;
+    v = singamma*vel;
+    w = wave_w(p,cache_x[q],cache_y[q],z);
 }
 
 void wave_lib_linear::parameters(lexer *p, ghostcell *pgc)

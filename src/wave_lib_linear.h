@@ -23,6 +23,7 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_LINEAR_H_
 #define WAVE_LIB_LINEAR_H_
 
+#include<cmath>
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
 #include"increment.h"
@@ -44,6 +45,9 @@ public:
     double wave_eta(lexer*,double,double) override final;
     double wave_fi(lexer*,double,double,double) override final;
     
+    // cached-point evaluation: u, v share the horizontal velocity
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
@@ -58,6 +62,19 @@ private:
     double singamma,cosgamma;
     double wsig,wdk;    // intrinsic frequency and depth of the orbital velocities (ww and wdt unless iowave B 530 changes them)
     double wa0,waf;     // amplitude as constructed and the B 530 factor (blocked wave: 0)
+    
+    // sinh(k d) of the orbital velocities, recomputed when k or d change (B 530)
+    double shk_k=-1.0, shk_d=-1.0, shk=0.0;
+    double sinhkd()
+    {
+        if(wk!=shk_k || wdk!=shk_d)
+        {
+        shk_k = wk;
+        shk_d = wdk;
+        shk = sinh(wk*wdk);
+        }
+        return shk;
+    }
 };
 
 #endif

@@ -55,6 +55,9 @@ public:
     double wave_fi_c(lexer*,ghostcell*,int,double);
     void wave_uvw_c(lexer*,ghostcell*,int,double,double&,double&,double&);
     double wave_um(lexer*,ghostcell*,double,double);
+    
+    // eta of the B 92 wave at one point for the times tv (iowave::timeseries); false with additional sources
+    bool wave_eta_series(lexer*,ghostcell*,double,double,const std::vector<double>&,std::vector<double>&);
     double wave_vm(lexer*,ghostcell*,double,double);
     
     
