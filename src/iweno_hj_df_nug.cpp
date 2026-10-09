@@ -539,19 +539,19 @@ void iweno_hj_df_nug::iqmin(lexer *p,fdm *a, field& f)
 {	
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flagsf4[Im2JK]>0 && p->flagsf4[Im3JK]>0)
+    if(p->DF[Im2JK]>0 && p->DF[Im3JK]>0)
 	q1 = (f(i-2,j,k)-f(i-3,j,k))/DX[IM3];
     
-    if(p->flagsf4[Im1JK]>0 && p->flagsf4[Im2JK]>0)
+    if(p->DF[Im1JK]>0 && p->DF[Im2JK]>0)
 	q2 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
     
-    if(p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]>0)
+    if(p->DF[IJK]>0 && p->DF[Im1JK]>0)
 	q3 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
     
-    if(p->flagsf4[Ip1JK]>0 && p->flagsf4[IJK]>0)
+    if(p->DF[Ip1JK]>0 && p->DF[IJK]>0)
 	q4 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
     
-    if(p->flagsf4[Ip2JK]>0 && p->flagsf4[Ip1JK]>0)
+    if(p->DF[Ip2JK]>0 && p->DF[Ip1JK]>0)
 	q5 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
 }
 
@@ -559,19 +559,19 @@ void iweno_hj_df_nug::jqmin(lexer *p,fdm *a, field& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flagsf4[IJm2K]>0 && p->flagsf4[IJm3K]>0)
+    if(p->DF[IJm2K]>0 && p->DF[IJm3K]>0)
 	q1 = (f(i,j-2,k)-f(i,j-3,k))/DY[JM3];
     
-    if(p->flagsf4[IJm1K]>0 && p->flagsf4[IJm2K]>0)
+    if(p->DF[IJm1K]>0 && p->DF[IJm2K]>0)
 	q2 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
     
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]>0)
+    if(p->DF[IJK]>0 && p->DF[IJm1K]>0)
 	q3 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
     
-    if(p->flagsf4[IJp1K]>0 && p->flagsf4[IJK]>0)
+    if(p->DF[IJp1K]>0 && p->DF[IJK]>0)
 	q4 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
     
-    if(p->flagsf4[IJp2K]>0 && p->flagsf4[IJp1K]>0)
+    if(p->DF[IJp2K]>0 && p->DF[IJp1K]>0)
 	q5 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
 }
 
@@ -579,19 +579,19 @@ void iweno_hj_df_nug::kqmin(lexer *p,fdm *a, field& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flagsf4[IJKm2]>0 && p->flagsf4[IJKm3]>0)
+    if(p->DF[IJKm2]>0 && p->DF[IJKm3]>0)
 	q1 = (f(i,j,k-2)-f(i,j,k-3))/DZ[KM3];
     
-    if(p->flagsf4[IJKm1]>0 && p->flagsf4[IJKm2]>0)
+    if(p->DF[IJKm1]>0 && p->DF[IJKm2]>0)
 	q2 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
     
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]>0)
+    if(p->DF[IJK]>0 && p->DF[IJKm1]>0)
 	q3 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
     
-    if(p->flagsf4[IJKp1]>0 && p->flagsf4[IJKp2]>0)
+    if(p->DF[IJKp1]>0 && p->DF[IJKp2]>0)
 	q4 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
     
-    if(p->flagsf4[IJKp2]>0 && p->flagsf4[IJKp1]>0)
+    if(p->DF[IJKp2]>0 && p->DF[IJKp1]>0)
 	q5 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
 }
 
@@ -599,19 +599,19 @@ void iweno_hj_df_nug::iqmax(lexer *p,fdm *a, field& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flagsf4[Im1JK]>0 && p->flagsf4[Im1JK]>0)
+    if(p->DF[Im1JK]>0 && p->DF[Im1JK]>0)
     q1 = (f(i-1,j,k)-f(i-2,j,k))/DX[IM2];
     
-    if(p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]>0)
+    if(p->DF[IJK]>0 && p->DF[Im1JK]>0)
 	q2 = (f(i,j,k)-f(i-1,j,k))/DX[IM1];
     
-    if(p->flagsf4[Ip1JK]>0 && p->flagsf4[IJK]>0)
+    if(p->DF[Ip1JK]>0 && p->DF[IJK]>0)
 	q3 = (f(i+1,j,k)-f(i,j,k))/DX[IP];
     
-    if(p->flagsf4[Ip2JK]>0 && p->flagsf4[Ip1JK]>0)
+    if(p->DF[Ip2JK]>0 && p->DF[Ip1JK]>0)
 	q4 = (f(i+2,j,k)-f(i+1,j,k))/DX[IP1];
     
-    if(p->flagsf4[Ip3JK]>0 && p->flagsf4[Ip2JK]>0)
+    if(p->DF[Ip3JK]>0 && p->DF[Ip2JK]>0)
 	q5 = (f(i+3,j,k)-f(i+2,j,k))/DX[IP2];
 }
 
@@ -619,19 +619,19 @@ void iweno_hj_df_nug::jqmax(lexer *p,fdm *a, field& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flagsf4[IJm1K]>0 && p->flagsf4[IJm2K]>0)
+    if(p->DF[IJm1K]>0 && p->DF[IJm2K]>0)
 	q1 = (f(i,j-1,k)-f(i,j-2,k))/DY[JM2];
     
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]>0)
+    if(p->DF[IJK]>0 && p->DF[IJm1K]>0)
 	q2 = (f(i,j,k)-f(i,j-1,k))/DY[JM1];
     
-    if(p->flagsf4[IJp1K]>0 && p->flagsf4[IJK]>0)
+    if(p->DF[IJp1K]>0 && p->DF[IJK]>0)
 	q3 = (f(i,j+1,k)-f(i,j,k))/DY[JP];
     
-    if(p->flagsf4[IJp2K]>0 && p->flagsf4[IJp1K]>0)
+    if(p->DF[IJp2K]>0 && p->DF[IJp1K]>0)
 	q4 = (f(i,j+2,k)-f(i,j+1,k))/DY[JP1];
     
-    if(p->flagsf4[IJp3K]>0 && p->flagsf4[IJp2K]>0)
+    if(p->DF[IJp3K]>0 && p->DF[IJp2K]>0)
 	q5 = (f(i,j+3,k)-f(i,j+2,k))/DY[JP2];
 }
 
@@ -639,18 +639,18 @@ void iweno_hj_df_nug::kqmax(lexer *p,fdm *a, field& f)
 {
     q1=q2=q3=q4=q5=0.0;
     
-    if(p->flagsf4[IJKm1]>0 && p->flagsf4[IJKm2]>0)
+    if(p->DF[IJKm1]>0 && p->DF[IJKm2]>0)
 	q1 = (f(i,j,k-1)-f(i,j,k-2))/DZ[KM2];
     
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]>0)
+    if(p->DF[IJK]>0 && p->DF[IJKm1]>0)
 	q2 = (f(i,j,k)-f(i,j,k-1))/DZ[KM1];
     
-    if(p->flagsf4[IJKp1]>0 && p->flagsf4[IJK]>0)
+    if(p->DF[IJKp1]>0 && p->DF[IJK]>0)
 	q3 = (f(i,j,k+1)-f(i,j,k))/DZ[KP];
     
-    if(p->flagsf4[IJKp2]>0 && p->flagsf4[IJKp1]>0)
+    if(p->DF[IJKp2]>0 && p->DF[IJKp1]>0)
 	q4 = (f(i,j,k+2)-f(i,j,k+1))/DZ[KP1];
     
-    if(p->flagsf4[IJKp3]>0 && p->flagsf4[IJKp2]>0)
+    if(p->DF[IJKp3]>0 && p->DF[IJKp2]>0)
 	q5 = (f(i,j,k+3)-f(i,j,k+2))/DZ[KP2];
 }

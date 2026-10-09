@@ -132,7 +132,7 @@ void suspended_RK3::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 {
 
         LOOP
-        if(p->flagsf4[IJK]<0)
+        if(p->DF[IJK]<0)
         conc(i,j,k) = 0.0;
             
         GCDF4LOOP

@@ -169,7 +169,7 @@ void komega_bc::bc_matrix(fdm* a,lexer* p,field& f)
         n=0;
         LOOP
         {
-            if((p->flag4[Im1JK]<0 && !(per_im && i+p->origin_i==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
+            if((p->flag4[Im1JK]<0 && !(per_im && i+p->origin_i==0)) || (p->DF[IJK]>0 && p->DF[Im1JK]<0))
             {
             if(p->IO[Im1JK]==1 && p->B60>=1)
             a->rhsvec.V[n] -= a->M.s[n]*f(i-1,j,k);
@@ -180,31 +180,31 @@ void komega_bc::bc_matrix(fdm* a,lexer* p,field& f)
             a->M.s[n] = 0.0;
             }
 
-            if((p->flag4[Ip1JK]<0 && !(per_im && i+p->origin_i==p->gknox-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
+            if((p->flag4[Ip1JK]<0 && !(per_im && i+p->origin_i==p->gknox-1)) || (p->DF[IJK]>0 && p->DF[Ip1JK]<0))
             {
             a->M.p[n] += a->M.n[n];
             a->M.n[n] = 0.0;
             }
 
-            if(((p->flag4[IJm1K]<0 && !(per_jm && j+p->origin_j==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1)
+            if(((p->flag4[IJm1K]<0 && !(per_jm && j+p->origin_j==0)) || (p->DF[IJK]>0 && p->DF[IJm1K]<0)) && p->j_dir==1)
             {
             a->M.p[n] += a->M.e[n];
             a->M.e[n] = 0.0;
             }
 
-            if(((p->flag4[IJp1K]<0 && !(per_jm && j+p->origin_j==p->gknoy-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1)
+            if(((p->flag4[IJp1K]<0 && !(per_jm && j+p->origin_j==p->gknoy-1)) || (p->DF[IJK]>0 && p->DF[IJp1K]<0)) && p->j_dir==1)
             {
             a->M.p[n] += a->M.w[n];
             a->M.w[n] = 0.0;
             }
 
-            if(((p->flag4[IJKm1]<0 && !(per_km && k+p->origin_k==0)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0)))
+            if(((p->flag4[IJKm1]<0 && !(per_km && k+p->origin_k==0)) || (p->DF[IJK]>0 && p->DF[IJKm1]<0)))
             {
             a->M.p[n] += a->M.b[n];
             a->M.b[n] = 0.0;
             }
 
-            if(((p->flag4[IJKp1]<0 && !(per_km && k+p->origin_k==p->gknoz-1)) || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)))
+            if(((p->flag4[IJKp1]<0 && !(per_km && k+p->origin_k==p->gknoz-1)) || (p->DF[IJK]>0 && p->DF[IJKp1]<0)))
             {
             a->M.p[n] += a->M.t[n];
             a->M.t[n] = 0.0;
@@ -217,7 +217,7 @@ void komega_bc::bc_matrix(fdm* a,lexer* p,field& f)
         n=0;
         LOOP
         {
-            if(p->flagsf4[IJK]<0)
+            if(p->DF[IJK]<0)
             {
             a->M.p[n]  =   1.0;
 
