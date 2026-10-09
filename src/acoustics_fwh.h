@@ -49,6 +49,7 @@ class fwh_permeable;
 //  Output: REEF3D_CFD_Acoustics/REEF3D-CFD-FWH-Observer-<n>.dat, time and p' of the observer
 //  times that are complete (all panels and both neighbour samples have contributed), appended
 //  every time step.
+//  After a restart from a state file (I 40) the files are appended to.
 //  REEF3D-CFD-FWH-Box.dat: the box integrals per time step, pressure part Lp_i = int p' n_i dS,
 //  momentum flux Lm_i = int rho u_i u_n dS, viscous traction V_i = int tau_ij n_j dS and
 //  M_i = int x_i rho u_n dS. For incompressible flow and bodies at rest inside the box, the

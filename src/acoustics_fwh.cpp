@@ -184,12 +184,19 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
         
         pout = new std::ofstream[size_t(nobs)];
         
+        // restart from a state file (I 40): append to the files of the first run; the signals
+        // restart with the first complete sample after the restart time
+        const bool restart = p->I40>0;
+        
         for(int n=0; n<nobs; ++n)
         {
             char name[200];
             snprintf(name,sizeof(name),"./REEF3D_CFD_Acoustics/REEF3D-CFD-FWH-Observer-%i.dat",n+1);
             std::ofstream &out = pout[n];
-            out.open(name);
+            out.open(name,restart ? std::ios::app : std::ios::out);
+            
+            if(restart)
+            continue;
             
             out<<"FW-H permeable surface, observer "<<n+1<<std::endl<<std::endl;
             out<<"x_coord     y_coord     z_coord"<<std::endl;
@@ -200,10 +207,14 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
             out<<"time \t p'"<<std::endl;
         }
         
-        bout.open("./REEF3D_CFD_Acoustics/REEF3D-CFD-FWH-Box.dat");
+        bout.open("./REEF3D_CFD_Acoustics/REEF3D-CFD-FWH-Box.dat",restart ? std::ios::app : std::ios::out);
+        
+        if(!restart)
+        {
         bout<<"FW-H box integrals: Lp_i = int p' n_i dS, Lm_i = int rho u_i u_n dS, V_i = int tau_ij n_j dS, M_i = int x_i rho u_n dS"<<std::endl;
         bout<<"force of the fluid on bodies at rest inside the box: F = -(Lp + Lm - V + dM/dt)"<<std::endl<<std::endl;
         bout<<"time \t Lpx \t Lpy \t Lpz \t Lmx \t Lmy \t Lmz \t Vx \t Vy \t Vz \t Mx \t My \t Mz"<<std::endl;
+        }
     }
 }
 

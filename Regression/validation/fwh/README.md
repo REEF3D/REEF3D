@@ -136,6 +136,13 @@ revolutions (~70 min on 8 ranks). `kp505_analysis.py 0.4 0.6`.
   momentum balance gives a thrust of only 0.3 N (pressure −11.5 N and momentum flux +11.8 N on the
   box nearly cancel). The blades need several cells across the thickness (≤ 1 mm, HPC).
 
+## 14 KP505, resolved, Betzy setup
+
+`cases/14_kp505_resolved_betzy`: the fine version of 13 (1 mm, 32.8 M cells, n = 10 rps, LES WALE,
+512 ranks) with SLURM scripts for a test and the production run and the restart procedure; see its
+README. Experiment (open-water curves) at J = 0.6: KT = 0.219, 10 KQ = 0.357; case 13 gave
+KT = 0.059, 10 KQ = 0.132.
+
 ## Notes
 
 - `X 120` (analytic sphere) gives no surface triangles with the current grid code; STL spheres used.

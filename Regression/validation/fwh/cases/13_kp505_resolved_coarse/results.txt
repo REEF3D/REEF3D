@@ -1,17 +1,11 @@
-## last revolution 0.4-0.6 s
-window 0.4..0.600 s (666 steps), J = 0.600
-6DOF force: Fx = -5.724 N (pressure -5.730, viscous 0.006), Mx = 0.3222 Nm  ->  KT = 0.0586, 10 KQ = 0.1320, eta0 = 0.424
-box momentum balance: Fx = -0.368 N  ->  KT_box = 0.0038  (ratio to 6DOF 0.064)
-BPF = 25.0 Hz; amplitude [Pa] and phase [deg] of BPF, amplitude of 2 BPF
+window 0.4..0.5997 s (666 steps), n = 5.000 1/s, U = 0.75 m/s, J = 0.600
+6DOF force (surface integral): Fx = -5.724 N, side force Fy = -0.877 Fz = -5.091 N, Mx = 0.3222 Nm
+  KT = 0.0586, 10 KQ = 0.1320, eta0 = 0.424   experiment KT = 0.219, 10 KQ = 0.357
+box momentum balance: Fx = -0.368 N (KT_box = 0.0038), side force Fy = 1.518 Fz = 1.747 N
+BPF = 25.0 Hz; amplitude [Pa] and phase [deg] of BPF, amplitude of 2 BPF (probe k = observer k for k <= 4)
               observer |  FW-H BPF     ph    2BPF | probe BPF     ph    2BPF
   (0.003, 0.25, 0.004) |    6.1958  121.6  0.7065 |    6.1531  124.5  0.6842
  (0.003, 0.004, 0.375) |    0.6554 -134.2  0.0699 |    1.0890 -161.4  0.1027
       (0.1, 0.2, 0.05) |    1.9819  139.4  0.9432 |    2.0700  161.2  0.8233
   (-0.3, 0.003, 0.004) |    0.6080  163.1  0.0885 |    1.1442  156.7  0.1805
        (0.0, 5.0, 0.0) |    0.0026  102.6  0.0006 | 
-
-## 6DOF forces (surface integral): mean, rms, BPF amplitude
-Fx: mean   -5.724, rms   0.675, BPF amplitude   0.769
-Fy: mean   -0.877, rms   0.284, BPF amplitude   0.296
-Fz: mean   -5.091, rms   0.315, BPF amplitude   0.322
-Mx: mean    0.322, rms   0.029, BPF amplitude   0.034
