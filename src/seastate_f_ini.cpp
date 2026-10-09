@@ -299,6 +299,10 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen) or 2 (van der Westhuysen)";
     else if(p->A732<0 || p->A732>2)
     msg = "A 732: deep-water physics must be 0 (off), 1 (Komen) or 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH)";
+    else if(p->A758_n<0 || p->A758_m<0)
+    msg = "A 758: the FAS period and the coarse iterations must not be negative";
+    else if(p->A758_n>0 && (p->A700!=2 || p->G1!=1))
+    msg = "A 758: the FAS coarse-grid correction is for stationary runs (A 700 2) with one refinement level (G 1 1), level 0 being the coarse grid";
     else if(p->A732==2 && (!(p->A757_cds2>0.0) || !(p->A757_br>0.0)))
     msg = "A 757: Cds2 and B_r of the Westhuysen whitecapping must be positive";
     else if(p->A733!=0 && p->A733!=1)

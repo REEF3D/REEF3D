@@ -206,6 +206,10 @@ public:
     // and second-order geographic fluxes (A 796 2)
     void sparsity(double e_) {eps = e_;}
     void geographic_order(int o) {order2 = (o==2);}
+    // FAS (A 758): residual mode (r = b - A N into R, no solve) and the coarse-grid source -tau (tau, the restricted
+    // spectra Nt at the start of the coarse solve)
+    void residual_out(seastate_store *R) {rout = R;}
+    void fas_source(const seastate_store *tau, const seastate_store *Nt) {ftau = tau; ftil = Nt;}
     void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
 
     // threads per rank (A 798): the cells of a quadrant sweep in wavefront order, the cells of one
@@ -263,6 +267,8 @@ private:
     // spectral sparsity
     double eps = 0.0;
     bool order2 = false;
+    seastate_store *rout = nullptr;
+    const seastate_store *ftau = nullptr, *ftil = nullptr;
     int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
     double srctol = 0.0;                // ... until the relative energy change of the cell is below this
     vector<int> wlo, whi;               // window of directions solved per frequency (quadrant index)

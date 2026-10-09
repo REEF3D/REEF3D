@@ -67,6 +67,10 @@ seastate_amr::~seastate_amr()
 {
     free_patches();
     delete cov0;
+    delete fasT;
+    delete fasN;
+    delete fasR;
+    delete fasC;
 }
 
 fdm_seastate* seastate_amr::gfd(int g)
@@ -243,6 +247,8 @@ void seastate_amr::patch_delete(reefamr_patch *q)
     delete c->dC;
     delete c->dE;
     delete c->vN;
+    delete c->res;
+    c->res = nullptr;
     c->pobs = nullptr;
     c->dca = c->dcax = c->dcay = nullptr;
     c->dS = c->dT = c->dK = c->dC = c->dE = c->vN = nullptr;
@@ -1159,6 +1165,191 @@ void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, d
 
         ++sweeps;
     }
+}
+
+// --------------------------------------------------------------------- FAS (A 758)
+void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse)
+{
+    static const int side0[4] = {0,0,0,0};
+    static const vector<float> none;
+
+    if(maxlev!=1 || lev[1].empty())
+    return;
+
+    // storage: the patch residuals (per patch), tau, the restricted spectra and the residuals on level 0 (once)
+    for(int id : lev[1])
+    {
+    seastate_amr_patch *c = SP(id);
+    lexer *pp = c->pp;
+        if(c->res==nullptr)
+        {
+        c->res = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nbin,2);
+        c->res->build(c->e->wet.V);
+        c->res->fill(0.0f);
+        }
+    }
+
+    if(fasT==nullptr)
+    {
+    fasT = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasT->build(L0.e->wet.V);
+    fasN = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasN->build(L0.e->wet.V);
+    fasR = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasR->build(L0.e->wet.V);
+    fasC = new seastate_store(p->imin,p->jmin,p->imax,p->jmax,nbin,p->A704);
+    fasC->build(L0.e->wet.V);
+    }
+
+    // 1: residuals of the patch cells at the latest spectra (ring cells filled first)
+    for(int id : lev[1])
+    {
+    seastate_amr_patch *c = SP(id);
+    fill_local(c);
+    c->solv->residual_out(c->res);
+        for(int q=0; q<4; ++q)
+        c->solv->sweep(c->pp,c->e,q,nullptr,rdt,none,side0,refraction,fshift);
+    c->solv->residual_out(nullptr);
+    }
+
+    // 2a: residual of the uncovered level-0 cells in the composite problem (covered cells skipped, the
+    // spectra leaving the patches on their faces); it tends to zero with the iteration
+    fasC->fill(0.0f);
+    L0.solv->residual_out(fasC);
+        for(int q=0; q<4; ++q)
+        L0.solv->sweep(p,L0.e,q,nullptr,rdt,Nb,side,refraction,fshift);
+    L0.solv->residual_out(nullptr);
+
+    // 2b: level 0 as a grid of its own (covered cells solved, no fine faces); its residual at the restricted
+    // spectra (the covered cells hold the mean of their children after the iteration)
+    fasN->copy_from(*L0.e->N);
+    L0.solv->skip(nullptr);
+    L0.solv->faces(nullptr);
+    L0.solv->residual_out(fasR);
+        for(int q=0; q<4; ++q)
+        L0.solv->sweep(p,L0.e,q,nullptr,rdt,Nb,side,refraction,fshift);
+    L0.solv->residual_out(nullptr);
+
+    // 3: tau = r_c(R N) - R r on the covered cells; on the uncovered cells tau = r_c(N) - r of the composite
+    // problem, which differ next to the patches, where the composite problem takes the fine faces
+    fasT->fill(0.0f);
+    SLICELOOP4
+    if(L0.e->wet(i,j)==1 && (*cov0)(i,j)==0)
+    {
+    float *T = fasT->spec(i,j);
+    const float *Rc = fasR->spec(i,j), *Cc = fasC->spec(i,j);
+    if(T!=nullptr && Rc!=nullptr && Cc!=nullptr)
+    for(int b=0; b<nbin; ++b)
+    T[b] = Rc[b] - Cc[b];
+    }
+
+    for(int id : lev[1])
+    {
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
+
+        for(size_t k=0; k<c->rgrid.size(); ++k)
+        {
+        if(c->rgrid[k]!=-1)
+        continue;
+        const int I = c->ric[k], J = c->rjc[k];
+        if(L0.e->wet(I,J)!=1)
+        continue;
+        float *T = fasT->spec(I,J);
+        const float *Rc = fasR->spec(I,J);
+        if(T==nullptr || Rc==nullptr)
+        continue;
+
+        const int bi = int(k)/nby, bj = int(k)%nby;
+            for(int b=0; b<nbin; ++b)
+            {
+            double rf = 0.0;
+                for(int a=0; a<2; ++a)
+                for(int d=0; d<2; ++d)
+                {
+                const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+                const float *r = (c->e->wet(ii,jj)==1) ? c->res->spec(ii,jj) : nullptr;
+                if(r!=nullptr)
+                rf += 0.25*double(r[b]);
+                }
+            T[b] = float(double(Rc[b]) - rf);
+            }
+        }
+    }
+
+    // 4: the coarse problem, m iterations on the whole level 0
+    L0.solv->fas_source(fasT,fasN);
+    for(int it=0; it<ncoarse; ++it)
+    for(int q=0; q<4; ++q)
+    {
+    L0.solv->sweep(p,L0.e,q,nullptr,rdt,Nb,side,refraction,fshift);
+    L0.pex->start(p,pgc,*L0.e->N);
+    }
+    L0.solv->fas_source(nullptr,nullptr);
+    L0.solv->skip(cov0);
+    L0.solv->faces(gfaces(-1));
+
+    // 5: the coarse change into the children (multiplicative, within 1/4 and 4; additive where the restricted
+    // spectrum vanishes), then the mean of the children into the coarse cell
+    double chg = 0.0;
+    for(int id : lev[1])
+    {
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
+
+        for(size_t k=0; k<c->rgrid.size(); ++k)
+        {
+        if(c->rgrid[k]!=-1)
+        continue;
+        const int I = c->ric[k], J = c->rjc[k];
+        if(L0.e->wet(I,J)!=1)
+        continue;
+        float *Nc = L0.e->N->spec(I,J);
+        const float *Nt = fasN->spec(I,J);
+        if(Nc==nullptr || Nt==nullptr)
+        continue;
+
+        const int bi = int(k)/nby, bj = int(k)%nby;
+        float *ch[4];
+        int n=0;
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
+            {
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+            if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
+            ch[n++] = c->e->N->spec(ii,jj);
+            }
+
+        double et = 0.0, dc = 0.0;
+            for(int b=0; b<nbin; ++b)
+            {
+            const double nt = double(Nt[b]), nc = double(Nc[b]);
+            et += nt;
+            dc += std::fabs(nc-nt);
+                if(nt>1.0e-30)
+                {
+                const float f = float(std::min(std::max(nc/nt,0.25),4.0));
+                for(int m=0; m<n; ++m)
+                ch[m][b] *= f;
+                }
+                else if(nc>nt)
+                {
+                for(int m=0; m<n; ++m)
+                ch[m][b] += float(nc-nt);
+                }
+
+            float v = 0.0f;
+            for(int m=0; m<n; ++m)
+            v += ch[m][b];
+            Nc[b] = 0.25f*v;
+            }
+        if(et>0.0)
+        chg = std::max(chg,dc/et);
+        }
+    }
+    fas_change = pgc->globalmax(chg);
+
+    L0.pex->start(p,pgc,*L0.e->N);
 }
 
 // --------------------------------------------------------------------- parameters, wind, output

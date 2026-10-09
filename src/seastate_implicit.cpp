@@ -822,11 +822,13 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     // source iterations per cell (A 738): the source terms are evaluated again from the spectrum just
     // solved and the cell is solved again
-    double esit = (nsrcit>1) ? energy(g,N) : 0.0, dsit = 0.0;
+    // (residual mode, FAS: one evaluation)
+    const int nsi = (rout!=nullptr) ? 1 : nsrcit;
+    double esit = (nsi>1) ? energy(g,N) : 0.0, dsit = 0.0;
 
-    for(int sit=0; sit<nsrcit; ++sit)
+    for(int sit=0; sit<nsi; ++sit)
     {
-    if(nsrcit>1 && sit>0)
+    if(nsi>1 && sit>0)
     Nsit.assign(N,N+g.nbin);
 
     // maximum energy (A 737 1, SWAN SINTGRL), then the source terms from the latest spectrum,
@@ -856,6 +858,30 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     src->cap(N,d);
     src->compute(N,d,kc,cgc,P.data(),D.data(),ma+wmin,ma+wmax,lmin,lmax);
+    }
+
+    // FAS coarse-grid correction (A 758): the source -tau of the coarse cell, its loss part proportional to
+    // N (exact at the restricted spectrum, where the coarse problem starts)
+    if(ftau!=nullptr)
+    {
+    const float *T = ftau->spec(ic,jc), *Nt = (ftil!=nullptr) ? ftil->spec(ic,jc) : nullptr;
+
+        if(src==nullptr)
+        for(int l=lmin; l<=lmax; ++l)
+        for(int n=wlo[l]; n<=whi[l]; ++n)
+        P[g.bin(l,ma+n)] = D[g.bin(l,ma+n)] = 0.0;
+
+        if(T!=nullptr && Nt!=nullptr)
+        for(int l=lmin; l<=lmax; ++l)
+        for(int n=wlo[l]; n<=whi[l]; ++n)
+        {
+        const int b = g.bin(l,ma+n);
+        const double s = -double(T[b]);
+            if(s>0.0)
+            P[b] += s;
+            else if(s<0.0 && Nt[b]>1.0e-30f)
+            D[b] -= s/double(Nt[b]);
+        }
     }
 
     const double *lim = (src!=nullptr) ? src->limit() : nullptr;
@@ -951,8 +977,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     const float *NN = Nn.N ? Nn.N : zero.data();
     const bool self = W.self || E.self || S.self || Nn.self;
     const float *Nold = (N0!=nullptr) ? N0 : N;
-    const double *Dsrc = (src!=nullptr) ? D.data() : zerod.data();
-    const double *Psrc = (src!=nullptr) ? P.data() : zerod.data();
+    const double *Dsrc = (src!=nullptr || ftau!=nullptr) ? D.data() : zerod.data();
+    const double *Psrc = (src!=nullptr || ftau!=nullptr) ? P.data() : zerod.data();
 
     // second-order geographic fluxes (A 796 2): the cells up to two away (active, solved or the ring
     // around a patch, not covered by a finer grid)
@@ -1220,6 +1246,40 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     if(wlo[l]<=whi[l])
     assemble(l,wlo[l],whi[l]);
 
+    // residual mode (FAS, A 758): r = b - A N of the cell equations at the latest spectra (the pseudo
+    // time step drops out: N_old = N), for the directions of the quadrant; no solve
+    if(rout!=nullptr)
+    {
+    float *R = rout->spec(ic,jc);
+
+        if(R!=nullptr)
+        {
+            for(int l=0; l<nsig; ++l)
+            for(int n=0; n<nq; ++n)
+            R[g.bin(l,ma+n)] = 0.0f;
+
+            for(int l=lmin; l<=lmax; ++l)
+            {
+            const int o = l*ndir, na = wlo[l], nb = whi[l];
+            const float *Nl = N + g.bin(l,ma);
+            const float *Nlm = (l>0) ? N + g.bin(l-1,ma) : nullptr;
+
+                for(int n=na; n<=nb; ++n)
+                {
+                double r = trh[o+n] - tdi[o+n]*double(Nl[n]);
+                if(Nlm!=nullptr) r += tsi[o+n]*double(Nlm[n]);
+                if(n>na) r -= tla[o+n]*double(Nl[n-1]);
+                if(n<nb) r -= tup[o+n]*double(Nl[n+1]);
+                R[g.bin(l,ma+n)] = float(r);
+                }
+            }
+        }
+
+    i = ic;
+    j = jc;
+    return;
+    }
+
     // B: elimination factors of all frequencies (independent, the inner loop over l hides the
     // latency of the divisions); a frequency with a vanishing pivot is set to zero
     // (with spectral sparsity the windows are short: one frequency after the other, in C)
@@ -1389,7 +1449,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         // the cell has reached the balance of its source terms with the inflow: the distance of its
         // energy to the fixed point, estimated from the change d of the last solve and the contraction
         // rho = d/d_previous as d/(1-rho), relative below A 738
-        if(nsrcit>1)
+        if(nsi>1)
         {
         const double en = energy(g,N), d = std::fabs(en-esit);
 

@@ -293,6 +293,14 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
     pamr->iterate(p,pgc,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
 
+    // FAS coarse-grid correction (A 758): level 0 as the coarse grid of the patches
+    if(p->A758_n>0 && iter_done%p->A758_n==0)
+    {
+    pamr->fas(p,pgc,rdt,Nb,side,refraction,fshift,p->A758_m);
+    if(p->mpirank==0)
+    cout<<"SEASTATE FAS: iteration "<<iter_done<<", "<<p->A758_m<<" coarse iterations, largest relative change of the coarse cells "<<pamr->fas_last()<<endl;
+    }
+
     leaf_hs(hs,hmax);
     hmax = pgc->globalmax(hmax);
 

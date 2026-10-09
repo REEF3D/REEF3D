@@ -113,6 +113,20 @@ spread, depth, level, at every VTP print of level 0; a .vtm per print
 with all patches; the patch log). The handover points (A 760) and the
 integral log use the finest grid.
 
+FAS coarse-grid correction (A 758 n m, Phase 9; stationary, G 1 1):
+every n iterations level 0 is the coarse grid of the level-1 patches.
+The residuals r = b - A N of the patch cells (residual mode of the
+solver) are restricted (mean of the children, as the spectra). Level 0
+on its own (covered cells solved as coarse cells, no fine faces) gets
+the source -tau: tau = r_c(R N) - R r on the covered cells, and on the
+others the difference of their residual on their own and in the
+composite problem (they differ next to the patches), so that the
+converged composite solution is a fixed point of the coarse problem.
+It is iterated m times (the loss part of -tau proportional to N), and
+the children take the coarse change multiplicatively (N *= N_c/R N,
+within 1/4 to 4; additive where R N vanishes), then the restriction
+again.
+
 Not with the coupling (A 750), the surfbeat model (A 770), regridding
 or patches on several ranks (G 40): patches are cut at the rank boxes.
 --------------------------------------------------------------------*/
@@ -122,6 +136,7 @@ struct seastate_amr_patch : public reefamr_patch
     fdm_seastate *e = nullptr;
     seastate_implicit *solv = nullptr;
     seastate_store *N0 = nullptr;           // spectra at the start of the step (nonstationary)
+    seastate_store *res = nullptr;          // FAS (A 758): residual of the cell equations
     sliceint4 *cov = nullptr;               // 1: covered by a patch of the next finer level
     slice4 *wU = nullptr, *wD = nullptr;    // wind field (A 730 2)
     vector<int> ring;                       // fill entries next to the interior (inflow of the sweeps), local sources
@@ -187,6 +202,11 @@ public:
     // one composite iteration (four quadrant sweeps on all grids)
     void iterate(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb,
                  const int side[4], bool refraction, bool fshift);
+
+    // FAS coarse-grid correction (A 758, stationary, one refinement level): level 0 is the coarse grid of the
+    // level-1 patches
+    void fas(lexer*, ghostcell*, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse);
+    double fas_last() const {return fas_change;}
 
     // integrated parameters of the patches; Hs of the patch interiors (leaf cells) for the
     // stationary convergence (appended to hs, the cell area relative to a level-0 cell to w),
@@ -262,6 +282,8 @@ private:
     int fills, sweeps;
     vector<double> bed0;                    // level-0 bed of the whole domain (global index I*GNY+J)
     vector<double> width0;                  // water width of the level-0 cells [m] (A 762)
+    seastate_store *fasT = nullptr, *fasN = nullptr, *fasR = nullptr, *fasC = nullptr;   // FAS: tau, restricted spectra, coarse and composite residual (level 0)
+    double fas_change = 0.0;                // FAS: largest relative change of the coarse correction (log)
     void water_width(const vector<unsigned char> &wet0, double dx, double dy);
     unordered_map<unsigned long long,double> bedmemo;
     sliceint4 *cov0 = nullptr;
