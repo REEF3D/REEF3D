@@ -61,6 +61,7 @@ class fnpf;
 class fnpf_ice;
 class fnpf_amr;
 class nhflow_amr;
+class cfd_amr;
 class nhflow_fsf;
 class nhflow_convection;
 class nhflow_scalar_convection;
@@ -142,6 +143,7 @@ public:
 	printer* pprint;
     regression_dump* preg;
 	initialize* pini;
+    cfd_amr* pcfdamr = nullptr;     // CFD mesh refinement (G 1 > 0, G 15)
 	diffusion* pdiff;
 	diffusion* pturbdiff;
 	diffusion* pconcdiff;

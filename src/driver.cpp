@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"patchBC.h"
 #include"runlog.h"
 #include"seastate_f.h"
+#include"cfd_amr.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -238,6 +239,13 @@ void driver::cfd_driver()
     logic_cfd();
 
     driver_ini_cfd();
+
+    // mesh refinement (G 1 > 0): patches from the boxes G 15, initialised from level 0
+    if(cfd_amr::scope(p,pgc))
+    {
+        pcfdamr = new cfd_amr(p,a,pgc,pmom,ppress,ppois,pflow,pvrans,pfsi,pini);
+        pcfdamr->ini(p,a,pgc);
+    }
 
     preg = new regression_dump(p);
     preg->cfd_ini(p,a,pgc,pturb,pconc);

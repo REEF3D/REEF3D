@@ -58,8 +58,12 @@
         <File Name="nhflow_amr.h"/>
         <File Name="nhflow_amr_6dof.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="CFD">
+        <File Name="cfd_amr.h"/>
+      </VirtualDirectory>
       <File Name="reefamr.h"/>
       <File Name="reefamr_krylov.h"/>
+      <File Name="reefamr3d.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -1303,9 +1307,15 @@
         <File Name="nhflow_amr.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="CFD">
+        <File Name="cfd_amr.cpp"/>
+        <File Name="cfd_amr_press.cpp"/>
+        <File Name="cfd_amr_print.cpp"/>
+      </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
       <File Name="reefamr_zone.cpp"/>
+      <File Name="reefamr3d.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
