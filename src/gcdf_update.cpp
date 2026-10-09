@@ -301,6 +301,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     // -----------------------
     // flagsf1
+    count=0;
     
     BASELOOP
     if(p->flagsf1[IJK]>0)
@@ -403,7 +404,9 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     // -----------------------
     // flagsf2
-     BASELOOP
+    count=0;
+
+    BASELOOP
     if(p->flagsf2[IJK]>0)
     {
      
@@ -504,6 +507,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     // -----------------------
     // flagsf3
+    count=0;
     
     BASELOOP
     if(p->flagsf3[IJK]>0)
