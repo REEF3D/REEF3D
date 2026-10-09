@@ -311,6 +311,7 @@ private:
     void nhflow_active_beach_edge(lexer*, ghostcell*);
     double bg_kweight(int,double,double);
     void nhflow_edge_pressure(lexer*, fdm_nhf*, ghostcell*, double, double);
+    void select_zone_at(lexer*);
     bool nhf_active_edge = false;     // B 99 3 / 4 in NHFLOW: absorbing Riemann edge at x+
     double bg_prof(lexer*,int,double);   // B 513 profile factor of layer k, depth average 1 per column
     

@@ -84,6 +84,7 @@ public:
     int decomp_build(lexer*);                    // maps the components, returns their number
     double dspace(lexer*, int kind, int sc, int n, double x, double y, double z);
     double dtime(lexer*, int kind, int sc, int n);
+    bool decomp_use(int n) const {return use(src[dsrc[n]]);}   // component n of a selected source (filter)
 
     static bool nonlinear(int);
     bool exists(int) const;

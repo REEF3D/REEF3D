@@ -45,6 +45,7 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
+            select_zone_at(p);   // zone sources (B 524)
                 for(qn=0;qn<wave_comp;++qn)
                 {
                 etaval_S_sin[count][qn] = wave_eta_space_sin(p,pgc,xg,yg,qn);
@@ -74,6 +75,7 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
+            select_zone_at(p);   // zone sources (B 524)
                 for(qn=0;qn<wave_comp;++qn)
                 {
                 Fifsfval_S_sin[count][qn] = wave_fi_space_sin(p,pgc,xg,yg,z,qn);
@@ -86,4 +88,7 @@ void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
 
 
 
+    
+    if(zones.has_sources())
+    select_sources(nullptr);
 }

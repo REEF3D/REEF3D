@@ -234,8 +234,6 @@ void iowave::zones_check(lexer *p)
     if(zones.has_sources() && p->A10!=3 && p->A10!=5)
     err = "zone sources (B 524) are available for FNPF and NHFLOW only, so far";
     
-    if(zones.has_sources() && p->B89==1)
-    err = "zone sources (B 524) do not work with decomposed precalc (B 89 1) yet: B 89 1 generates all sources in every zone";
     
     for(const bc_zone &z : zones.relax)
     for(int s : z.sources)
@@ -388,4 +386,15 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"iowave: active beach B 99 "<<p->B99<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+}
+
+// decomposed precalc (B 89 1) with zone sources (B 524): selects the sources of the relaxation
+// zone at the current cell before its space parts are computed
+void iowave::select_zone_at(lexer *p)
+{
+    if(!zones.has_sources())
+    return;
+    
+    const bc_zone *z = zones.relax_zone_at(p->pos_x(),p->pos_y());
+    select_sources((z!=nullptr && !z->sources.empty()) ? &z->sources : nullptr);
 }
