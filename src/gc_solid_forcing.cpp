@@ -49,6 +49,23 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 	double nx, ny, nz,norm ;
 	double psi, phival_sf;
     double dirac;
+
+    // combined solid/topo level set as in Hsolidface: a level set that is not read (solidread==0 or
+    // topoforcing==0) does not take part (the solid field is 0 without solids: MIN(0, topo) put every
+    // fluid cell within psi of the bed under the full no-slip forcing)
+    auto sf_phi = [&](double phis, double phit)
+    {
+        if(p->topoforcing>0 && p->solidread>0)
+        return MIN(phis,phit);
+        if(p->topoforcing>0)
+        return phit;
+        return phis;
+    };
+    // normal from the topo level set where it is the closer (or only) boundary
+    auto sf_topo_normal = [&](double phis, double phit)
+    {
+        return p->topoforcing>0 && (p->solidread==0 || phis>=phit);
+    };
     
     if(p->B21==0)
     {
@@ -94,8 +111,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     LOOP
     {
         dirac = 0.0;
-        if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
-        dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
+        if(fabs(sf_phi(a->solid(i,j,k),a->topo(i,j,k)))<psi)
+        dirac = (0.5/psi)*(1.0 + cos((PI*(sf_phi(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
         a->fbh5(i,j,k) = 1.0-MIN(dirac,1.0);
     }
@@ -114,14 +131,14 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         uf = 0.0;
         
 		// Normal vectors calculation 
-        if(0.5*(a->solid(i,j,k) + a->solid(i+1,j,k)) >= 0.5*(a->topo(i,j,k) + a->topo(i+1,j,k)))
+        if(sf_topo_normal(0.5*(a->solid(i,j,k) + a->solid(i+1,j,k)), 0.5*(a->topo(i,j,k) + a->topo(i+1,j,k))))
         {
 		nx = -(a->topo(i+1,j,k) - a->topo(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->topo(i,j+1,k) - a->topo(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->topo(i,j,k+1) - a->topo(i,j,k-1))/(2.0*p->DZN[KP]);
         }
         
-        if(0.5*(a->solid(i,j,k) + a->solid(i+1,j,k)) < 0.5*(a->topo(i,j,k) + a->topo(i+1,j,k)))
+        if(!sf_topo_normal(0.5*(a->solid(i,j,k) + a->solid(i+1,j,k)), 0.5*(a->topo(i,j,k) + a->topo(i+1,j,k))))
         {
 		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -138,7 +155,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 	    Ht = Hsolidface_t(p,a,1,0,0);
 	
 		// Level set function
-		phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i+1,j,k)), 0.5*(a->topo(i,j,k) + a->topo(i+1,j,k))); 
+		phival_sf = sf_phi(0.5*(a->solid(i,j,k) + a->solid(i+1,j,k)), 0.5*(a->topo(i,j,k) + a->topo(i+1,j,k))); 
         
 
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
@@ -157,14 +174,14 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         vf = 0.0;
     
 		// Normal vectors calculation 
-		if(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)) >= 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)))
+		if(sf_topo_normal(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k))))
         {
 		nx = -(a->topo(i+1,j,k) - a->topo(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->topo(i,j+1,k) - a->topo(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->topo(i,j,k+1) - a->topo(i,j,k-1))/(2.0*p->DZN[KP]);
         }
         
-        if(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)) < 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)))
+        if(!sf_topo_normal(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k))))
         {
 		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -183,7 +200,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 		
       
 		//Level set function
-		phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)));
+		phival_sf = sf_phi(0.5*(a->solid(i,j,k) + a->solid(i,j+1,k)), 0.5*(a->topo(i,j,k) + a->topo(i,j+1,k)));
 	  
 		//Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 	    if(phival_sf<=0.0)
@@ -201,14 +218,14 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
         wf = 0.0;
         
 		// Normal vectors calculation 
-		if(0.5*(a->solid(i,j,k) + a->solid(i,j,k+1)) >= 0.5*(a->topo(i,j,k) + a->topo(i,j,k+1)))
+		if(sf_topo_normal(0.5*(a->solid(i,j,k) + a->solid(i,j,k+1)), 0.5*(a->topo(i,j,k) + a->topo(i,j,k+1))))
         {
 		nx = -(a->topo(i+1,j,k) - a->topo(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->topo(i,j+1,k) - a->topo(i,j-1,k))/(2.0*p->DYN[JP]);
 		nz = -(a->topo(i,j,k+1) - a->topo(i,j,k-1))/(2.0*p->DZN[KP]);
         }
         
-        if(0.5*(a->solid(i,j,k) + a->solid(i,j,k+1)) < 0.5*(a->topo(i,j,k) + a->topo(i,j,k+1)))
+        if(!sf_topo_normal(0.5*(a->solid(i,j,k) + a->solid(i,j,k+1)), 0.5*(a->topo(i,j,k) + a->topo(i,j,k+1))))
         {
 		nx = -(a->solid(i+1,j,k) - a->solid(i-1,j,k))/(2.0*p->DXN[IP]);
 		ny = -(a->solid(i,j+1,k) - a->solid(i,j-1,k))/(2.0*p->DYN[JP]);
@@ -227,7 +244,7 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
 
 
 		// Level set function
-		phival_sf = MIN(0.5*(a->solid(i,j,k) + a->solid(i,j,k+1)), 0.5*(a->topo(i,j,k) + a->topo(i,j,k+1)));
+		phival_sf = sf_phi(0.5*(a->solid(i,j,k) + a->solid(i,j,k+1)), 0.5*(a->topo(i,j,k) + a->topo(i,j,k+1)));
 		
 		// Construct the field around the solid body to adjust the tangential velocity and calculate forcing
 
@@ -259,8 +276,8 @@ void ghostcell::solid_forcing(lexer *p, fdm *a, double alpha, field& uvel, field
     LOOP
     {
         dirac = 0.0;
-        if(fabs(MIN(a->solid(i,j,k),a->topo(i,j,k)))<psi)
-        dirac = (0.5/psi)*(1.0 + cos((PI*(MIN(a->solid(i,j,k),a->topo(i,j,k))))/psi));
+        if(fabs(sf_phi(a->solid(i,j,k),a->topo(i,j,k)))<psi)
+        dirac = (0.5/psi)*(1.0 + cos((PI*(sf_phi(a->solid(i,j,k),a->topo(i,j,k))))/psi));
         
         a->fbh5(i,j,k) =  1.0-MIN(dirac,1.0);
     }
