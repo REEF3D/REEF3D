@@ -89,8 +89,8 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 		a->ro(i,j,k)=      ro_1*H +   ro_2*(1.0-H);
 		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
 
-		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
+		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*PORVAL4;
+		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H)*PORVAL4;
 	}
 
 	pgc->start4(p,a->ro,gcval_ro);
