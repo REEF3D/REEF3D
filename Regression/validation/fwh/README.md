@@ -143,6 +143,15 @@ revolutions (~70 min on 8 ranks). `kp505_analysis.py 0.4 0.6`.
 README. Experiment (open-water curves) at J = 0.6: KT = 0.219, 10 KQ = 0.357; case 13 gave
 KT = 0.059, 10 KQ = 0.132.
 
+## 15 Sphere at Re = 300 (Betzy)
+
+`cases/15_sphere_re300`: fixed sphere shedding at St ≈ 0.137, FW-H against Curle (6DOF force and
+box momentum balance) from the hydrodynamic near field to the acoustic far field (λ ≈ 11 km),
+D/10 (local), D/20 and D/40 (Betzy, with VTU frames and FW-H observer planes for the animation);
+`make_case.py`, `scripts/sphere_analysis.py`, `scripts/sphere_plots.py`, `scripts/fwh_planes_vtk.py`,
+`scripts/sphere_slide_figs.py`, `scripts/sphere_fwh_animation.py`, `scripts/plot_monopole_dipole.py`.
+See its README.
+
 ## Notes
 
 - `X 120` (analytic sphere) gives no surface triangles with the current grid code; STL spheres used.
