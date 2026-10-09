@@ -466,6 +466,43 @@ static void test_source()
         check(src.km_wam>kp && src.km_wam<2.0*kp,"k_WAM between k_p and 2 k_p");
     }
 
+    // van der Westhuysen et al. (2007) as SWAN GEN3 WESTH (A 732 2, Phase 9): whitecapping of SWCAP (IWCAP 7) and the
+    // Yan wind input of SWIND5, recomputed here from the formulas
+    {
+        seastate_source_param sp; sp.komen=true; sp.westh=true; sp.wind=true; sp.U10=12.0; sp.wdir=0.3;
+        seastate_source src(sg,sp);
+        const double d=30.0;
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,1.5,5.0,3.3,0.3,10.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        // u* of Wu (1982) as the source terms, k_WAM, sig_-10, E_tot from the source object
+        const double us=src.ustar, stp=src.km_wam*std::sqrt(src.Etot)/std::sqrt(3.02e-3), ck_=3.0e-5*std::pow(stp,4.0);
+        double ew=0.0, ey=0.0;
+        for(int l=2;l<sg.nsig;l+=5)
+        {
+            double El=0.0;
+            for(int m=0;m<sg.ndir;++m) El+=N[sg.bin(l,m)];
+            El*=sg.sig[l]*sg.dtheta;
+            const double kl=ck.k[l], B=ck.cg[l]*kl*kl*kl*El;
+            const double fbr=0.5*(1.0+std::tanh(10.0*(std::sqrt(B/1.75e-3)-1.0)));
+            const double pp=3.0+std::tanh(25.76*(us*kl/sg.sig[l]-0.1));
+            const double fac2=std::sqrt(g*kl);
+            const double wc=fbr*5.0e-5*std::pow(B/1.75e-3,0.5*pp)*std::pow(fac2/sg.sig[l],0.5*pp-1.0)*fac2+(1.0-fbr)*ck_*src.sigm_10*kl/src.km_wam;
+            ew=std::max(ew,std::fabs(D[sg.bin(l,5)]-wc)/wc);
+            // Yan: max(0, ((0.04 x^2 + 0.00552 x + 0.000052) cos - 0.000302) sig) N with x = u* k/sig, plus the linear growth (P without N)
+            const double x=us*kl/sg.sig[l], cosd=std::cos(sg.theta[5]-0.3);
+            const double yan=std::max(0.0,((0.04*x*x+0.00552*x+0.000052)*cosd-0.000302)*sg.sig[l]);
+            seastate_source_param sl=sp; sl.komen=false; sl.westh=false;
+            seastate_source lin(sg,sl);
+            std::vector<double> P0(nb), D0(nb);
+            lin.compute(N.data(),d,ck.k.data(),ck.cg.data(),P0.data(),D0.data());
+            const double py=P[sg.bin(l,5)]-P0[sg.bin(l,5)];
+            if(yan*N[sg.bin(l,5)]>0.0) ey=std::max(ey,std::fabs(py-yan*N[sg.bin(l,5)])/(yan*N[sg.bin(l,5)]));
+        }
+        std::cout<<"        Westhuysen: max. rel. difference of D "<<ew<<", of the Yan input "<<ey<<std::endl;
+        check(ew<1e-9 && ey<1e-9,"van der Westhuysen whitecapping (SWAN IWCAP 7) and Yan wind input (SWIND5) as the formulas");
+    }
+
     // whitecapping (Komen): D proportional to k^2, value
     {
         seastate_source_param sp; sp.komen=true;

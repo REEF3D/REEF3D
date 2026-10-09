@@ -95,15 +95,32 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     
     starttime=pgc->timer();
     
+    amr_prepare(p,a,ppois,pgc,uvel,vvel,wvel,alpha);
+
+    psolv->start(p,a,pgc,pcorr,a->rhsvec,5);
+
+    amr_finish(p,a,pgc,uvel,vvel,wvel,alpha);
+
+    p->poissoniter=p->solveriter;
+
+	p->poissontime=pgc->timer()-starttime;
+
+	if(p->mpirank==0 && (p->count%p->P12==0))
+	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
+}
+
+// the parts of start before and after the solve (mesh refinement, cfd_amr: the composite solve of
+// all grids in between)
+void pjm_corr::amr_prepare(lexer *p, fdm *a, poisson *ppois, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)
+{
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
     ppois->start(p,a,pcorr);
-	
-        
-    psolv->start(p,a,pgc,pcorr,a->rhsvec,5);
-	
+}
 
+void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)
+{
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
     reference_start(p,a,pgc);
@@ -112,13 +129,6 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 	ucorr(p,a,uvel,alpha);
 	vcorr(p,a,vvel,alpha);
 	wcorr(p,a,wvel,alpha);
-
-    p->poissoniter=p->solveriter;
-
-	p->poissontime=pgc->timer()-starttime;
-
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
 void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)

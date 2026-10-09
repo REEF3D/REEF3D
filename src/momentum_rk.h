@@ -95,13 +95,32 @@ public:
 	virtual ~momentum_rk();
 	void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*) override final;
 
+    // mesh refinement (cfd_amr, G 15): the SSP step in parts, called grid by grid with the fills of
+    // the patches and the composite projection in between (step_ssp calls them in this order)
+    int amr_stages() const {return stages;}
+    bool amr_ssp() const {return scheme==SSP && !conservative;}
+    double amr_alpha(int s) const {return ssp_b[s];}
+    void amr_step_begin(lexer*, fdm*, ghostcell*);
+    void amr_ls_transport(lexer*, fdm*, ghostcell*, int);
+    void amr_ls_finish(lexer*, fdm*, ghostcell*, int, bool, int);
+    void amr_ls_reini(lexer*, fdm*, ghostcell*, int, int);
+    int amr_reini_iters(lexer*, int) const;
+    void amr_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, int, bool);
+    void amr_project_after(lexer*, fdm*, ghostcell*, field&, field&, field&);
+    void amr_stage_end(lexer*, fdm*, ghostcell*, int);
+    field& amr_vel(fdm*, int c, int s);
+    field& amr_velout(fdm*, int c, int s);
+    field4& amr_phi_in(int s);
+    field4& amr_phi_out(int s);
+
 private:
     enum {SSP=0, LOWSTORAGE=1};
 
     void step_ssp(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void step_lowstorage(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
-    void levelset_ssp(lexer*, fdm*, ghostcell*, int);
+    void levelset_transport(lexer*, fdm*, ghostcell*, int);
+    void levelset_finish(lexer*, fdm*, ghostcell*, int, bool, int);
     void levelset_lowstorage(lexer*, fdm*, ghostcell*, int);
 
     void component_ssp(lexer*, fdm*, ghostcell*, vrans*, int, int);

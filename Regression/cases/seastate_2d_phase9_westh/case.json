@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "2"
+ },
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, DIA) with the deep-water physics of van der Westhuysen et al. (2007) (A 732 2, as SWAN GEN3 WESTH, Phase 9): exponential wind input of Yan (1987) (SWIND5) and saturation-based whitecapping (SWCAP IWCAP 7, Cds2 5e-5, Br 1.75e-3, A 757 defaults). Validation in Dropbox SEASTATE/validation/43_westhuysen.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_source Yan wind input and saturation-based whitecapping (A 732 2)",
+  "A 757 defaults"
+ ]
+}

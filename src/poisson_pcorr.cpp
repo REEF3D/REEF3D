@@ -156,10 +156,13 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 
     // closed domain (no inflow/outflow/open boundary anywhere): the Neumann problem is singular,
     // so one face (on the lowest rank that has one) keeps the fixed value as a pressure level
+    // (not on a patch of the mesh refinement, cfd_amr: the level of the composite problem is set on
+    // level 0, and the patches are not collective)
     int nd_glob=0;
+    if(p->amr_patch==0)
     MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
-    if(nd_glob==0)
+    if(nd_glob==0 && p->amr_patch==0)
     {
         int myrank = (pin_n>=0) ? p->mpirank : 1<<30;
         int pinrank = 1<<30;
