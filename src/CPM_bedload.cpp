@@ -489,6 +489,86 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
         if(rsum<=0.0)
         blC(i,j) *= MAX(0.0, 1.0-dt/1.0);
 
+        // erodible parcels of the column (hybrid suspension Q 58 3: no erosion without them)
+        blNc(i,j) = double(cn.size() + mov[c].size());
+
+        // hybrid suspension (Q 58 3): the net exchange with the concentration (susp_flux) moves
+        // whole parcels between the bed and the suspension
+        if(p->Q58>=3)
+        {
+            blCs(i,j) += blSr(i,j)*dt;
+
+            // erosion: a parcel of the layer (moving, else exposed) goes into the concentration
+            while(blCs(i,j)>=vpar)
+            {
+                auto &mn = mov[c];
+                int q=-1;
+
+                if(!mn.empty())
+                {
+                    size_t qq = MIN(mn.size()-1, size_t(uni(rng)*mn.size()));
+                    q = mn[qq];
+                    mn.erase(mn.begin()+qq);
+                }
+                else
+                if(!cn.empty())
+                {
+                    size_t qq = MIN(cn.size()-1, size_t(uni(rng)*cn.size()));
+                    q = cn[qq];
+                    cn.erase(cn.begin()+qq);
+                    rn.erase(rn.begin()+qq);
+                }
+
+                if(q<0)
+                break;
+
+                int is,js;
+                bedload_column(p,P.X[q],P.Y[q],is,js);
+                int ks = MAX(0, MIN(p->knoz-1, p->posc_k(P.Z[q])));
+                Locc(is,js,ks) -= vpar;
+
+                P.remove(q);
+                ++bl_nsus;
+                blCs(i,j) -= vpar;
+            }
+
+            // no parcel to give: no credit beyond one parcel
+            blCs(i,j) = MIN(blCs(i,j), vpar);
+
+            // deposition: a parcel settles on the bed of the column, at rest
+            while(blCs(i,j)<=-vpar)
+            {
+                if(P.index_empty<=0)
+                P.resize(p,P.capacity+1000);
+
+                --P.index_empty;
+                n = P.Empty[P.index_empty];
+
+                double xs = p->XN[IP] + p->DXN[IP]*uni(rng);
+                double ys = p->j_dir==1 ? p->YN[JP] + p->DYN[JP]*uni(rng) : p->YP[JP];
+
+                P.X[n] = P.XRK1[n] = xs;
+                P.Y[n] = P.YRK1[n] = ys;
+                P.D[n] = p->S20;
+                P.RO[n] = p->S22;
+                P.Z[n] = zbl(s,i,j) + 0.5*P.D[n];
+                Locc(i,j,MAX(0, MIN(p->knoz-1, p->posc_k(P.Z[n])))) += vpar;
+                P.Z[n] = P.ZRK1[n] = bedload_place(p,a,xs,ys,P.Z[n],i,j,P.Z[n],P.D[n]);
+                P.U[n] = P.V[n] = P.W[n] = 0.0;
+                P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+                P.Uf[n] = P.Vf[n] = P.Wf[n] = 0.0;
+                P.Test[n] = 0.0;
+                P.Hop[n] = 0.0;
+                P.Flag[n] = ACTIVE;
+
+                if(size_t(n)<expo.size())
+                expo[n] = 0.0;
+
+                ++bl_nset;
+                blCs(i,j) += vpar;
+            }
+        }
+
         // release into the suspension
         if(p->Q58==2)
         {

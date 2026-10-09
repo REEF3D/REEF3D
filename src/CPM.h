@@ -292,7 +292,19 @@ private:
     bool bedload_nodisp(lexer*, fdm*, int);
     double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
-    int bl_npick=0, bl_ndep=0, bl_nsus=0;
+    int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0;
+    // hybrid suspension (Q 58 3), see CPM_suspension.cpp: erodible parcels per column, net exchange rate
+    slice4 blNc,blSr,blMc;
+    int blMc_ok=0;
+    int susp_cell(lexer*, fdm*, int, int);
+    double susp_column(lexer*, fdm*, int, int);
+public:
+    void susp_cbe(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void susp_flux(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    double susp_volume(lexer*, fdm*, ghostcell*);
+    fdm *afdm=nullptr;   // fluid data for the log (suspended volume)
+    double dbg_v0=0.0, dbg_ex=0.0, dbg_dv=0.0, dbg_sw=0.0;
+private:
     double Urel,Vrel,Wrel;
     double Tsval;
     double dTx_val,dTy_val,dTz_val;

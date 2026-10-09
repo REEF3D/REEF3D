@@ -56,7 +56,7 @@ public:
     void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override final;
     void topo_flags_off(lexer*, fdm*, ghostcell*);
     void ini_cfd(lexer*, fdm*, ghostcell*) override final;
-    void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*) override final {};
+    void start_susp(lexer*, fdm*, ghostcell*, ioflow*, solver*) override final;
     void update_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*) override final;
 
     // NHFLOW interface
@@ -164,9 +164,9 @@ private:
     topo_relax *prelax;
     bedshear_reduction *preduce;
     topo *ptopo;
-    suspended *psusp;
-    diffusion *psuspdiff;
-    convection *psuspdisc;
+    suspended *psusp=nullptr;
+    diffusion *psuspdiff=nullptr;
+    convection *psuspdisc=nullptr;
     bedshear *pbedshear;
     patchBC_interface *pBC;
     bedload_direction *pbeddir;

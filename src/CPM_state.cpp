@@ -207,7 +207,11 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
     int npick = pgc->globalisum(bl_npick);
     int ndep = pgc->globalisum(bl_ndep);
     int nsus = pgc->globalisum(bl_nsus);
-    bl_npick = bl_ndep = bl_nsus = 0;
+    int nset = pgc->globalisum(bl_nset);
+    bl_npick = bl_ndep = bl_nsus = bl_nset = 0;
+    
+    // hybrid suspension (Q 58 3): sediment volume in the concentration
+    double vsus = afdm!=nullptr ? susp_volume(p,afdm,pgc) : 0.0;
     double vout = pgc->globalsum(outvol);
     
     double Lx = p->global_xmax-p->global_xmin;
@@ -219,10 +223,10 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         {
             mkdir("./REEF3D_CFD_CPM_Particle",0777);
             logout.open("./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat");
-            logout<<"time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]"<<endl;
+            logout<<"time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]\tsuspended_volume[m3]\tsettled_from_suspension"<<endl;
             logini=1;
         }
         
-        logout<<p->simtime<<"\t"<<np<<"\t"<<vol<<"\t"<<vout<<"\t"<<vmov<<"\t"<<qx/(Lx*Ly)<<"\t"<<qy/(Lx*Ly)<<"\t"<<vbl<<"\t"<<npick<<"\t"<<ndep<<"\t"<<nsus<<"\t"<<tb<<"\t"<<qbx/(Lx*Ly)<<endl;
+        logout<<p->simtime<<"\t"<<np<<"\t"<<vol<<"\t"<<vout<<"\t"<<vmov<<"\t"<<qx/(Lx*Ly)<<"\t"<<qy/(Lx*Ly)<<"\t"<<vbl<<"\t"<<npick<<"\t"<<ndep<<"\t"<<nsus<<"\t"<<tb<<"\t"<<qbx/(Lx*Ly)<<"\t"<<vsus<<"\t"<<nset<<endl;
     }
 }

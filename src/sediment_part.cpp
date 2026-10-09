@@ -25,6 +25,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"bedshear.h"
 #include"momentum_forcing.h"
 #include"CPM.h"
+#include"suspended.h"
 #include<sys/stat.h>
 
 sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
@@ -62,6 +63,21 @@ sediment_part::~sediment_part()
     delete pbeddir;
     delete pslope;
     delete pturb;
+}
+
+// hybrid suspension (Q 58 3, see CPM_suspension.cpp): erosion concentration from the parcel bed,
+// concentration step (suspended_IM1), net exchange with the bed for the parcels
+void sediment_part::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
+{
+    if(psusp==nullptr || p->Q44==1)
+    return;
+    
+    if(!((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47)))
+    return;
+    
+    pst->susp_cbe(p,a,pgc,s);
+    psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+    pst->susp_flux(p,a,pgc,s);
 }
 
 void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
