@@ -974,6 +974,7 @@
           <File Name="6DOF_load.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
+          <File Name="6DOF_pto_controller.h"/>
           <File Name="6DOF_pto.h"/>
           <File Name="6DOF_pto_elements.h"/>
           <File Name="6DOF_pto_joint.h"/>
@@ -2554,6 +2555,7 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
+          <File Name="6DOF_pto_controller.cpp"/>
           <File Name="6DOF_obj_pto.cpp"/>
           <File Name="6DOF_pto_elements.cpp"/>
           <File Name="6DOF_pto_joint.cpp"/>

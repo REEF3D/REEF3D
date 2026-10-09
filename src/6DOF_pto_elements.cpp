@@ -112,3 +112,36 @@ pto_output pto_endstop::force(const pto_state &s)
 
     return o;
 }
+
+// --- latch ---
+
+pto_latch::pto_latch(double K_, double C_) : K(K_), C(C_)
+{
+}
+
+pto_output pto_latch::force(const pto_state &s)
+{
+    pto_output o;
+
+    if(on && s.t<t_release)
+    {
+    o.F     = -K*(s.q - q0) - C*s.qd;
+    o.dFdq  = -K;
+    o.dFdqd = -C;
+    o.P     = -o.F*s.qd;
+    }
+
+    return o;
+}
+
+void pto_latch::set_param(const std::string &key, double val)
+{
+    if(key=="latch")
+    on = (val>0.5);
+
+    if(key=="q0")
+    q0 = val;
+
+    if(key=="t_release")
+    t_release = val;
+}

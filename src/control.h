@@ -623,6 +623,11 @@ public:
     double X502_B;
     double X503_K,X503_B;
     double X504_qmin,X504_qmax,X504_K,X504_C;
+    int X505,X506,X507,X508;
+    double X505_Fmax,X505_Pmax;
+    double X506_T,X506_C;
+    double X507_t,X507_K,X507_C;
+    double X508_t;
 
     // FSI
     int Z10,Z11,Z20,Z30;

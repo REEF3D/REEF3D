@@ -1274,6 +1274,16 @@ void control::ini_default()
     X504_qmin=-1.0e20; // double lower stroke limit [m]
     X504_qmax=1.0e20;  // double upper stroke limit [m]
     X504_K=X504_C=0.0; // double end-stop stiffness [N/m], damping [N s/m]
+    X505=0;         // int PTO generator limits
+    X505_Fmax=X505_Pmax=0.0; // double force [N] and power [W] limit, 0: none
+    X506=0;         // int PTO tuned passive damping (pto_hydro.dat)
+    X506_T=0.0;     // double period [s], 0: wave input period (B 93)
+    X506_C=0.0;     // double hydrostatic stiffness along the joint [N/m]
+    X507=0;         // int PTO latching
+    X507_t=0.0;     // double latching time [s]
+    X507_K=X507_C=0.0; // double latch stiffness [N/m], damping [N s/m]
+    X508=0;         // int PTO declutching
+    X508_t=0.0;     // double declutching time [s]
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model

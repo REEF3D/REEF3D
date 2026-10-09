@@ -3525,6 +3525,22 @@ void control::read_control(lexer* p)
                          X504=1;
                          clear(c,numint);
                          break;
+                case  505: control>>X505_Fmax>>X505_Pmax;
+                         X505=1;
+                         clear(c,numint);
+                         break;
+                case  506: control>>X506_T>>X506_C;
+                         X506=1;
+                         clear(c,numint);
+                         break;
+                case  507: control>>X507_t>>X507_K>>X507_C;
+                         X507=1;
+                         clear(c,numint);
+                         break;
+                case  508: control>>X508_t;
+                         X508=1;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 
