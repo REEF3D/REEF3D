@@ -183,7 +183,7 @@ void sediment_RK2::RK2_step2_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow
     }
     
     SLICEBASELOOP
-    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    if(p->flagslice4[IJ]<0 || s->DFBED[IJ]<0)
     s->dryd(i,j) = 0.0;
     }
     

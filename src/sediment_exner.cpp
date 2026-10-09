@@ -138,7 +138,7 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     topovel3(p,pgc,s);
     
     if(p->S100>0)
-	filter(p,pgc,s->vz,p->S100,p->S101);
+	filter(p,pgc,s,s->vz,p->S100,p->S101);
 
 	
     // Bedch
@@ -195,7 +195,7 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     topovel3(p,pgc,s);
     
     if(p->S100>0)
-	filter(p,pgc,s->vz,p->S100,p->S101);
+	filter(p,pgc,s,s->vz,p->S100,p->S101);
 
 	
     // Bedch
@@ -284,7 +284,7 @@ void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
         topovel3(p,pgc,s);
         
         if(p->S100>0)
-        filter(p,pgc,s->vz,p->S100,p->S101);
+        filter(p,pgc,s,s->vz,p->S100,p->S101);
         
         SLICELOOP4
         {
@@ -355,7 +355,7 @@ void sediment_exner::qb_clear(lexer *p, sediment_fdm *s)
     // in cells that stopped being sediment cells were read as upwind neighbours (and, with a
     // multi-fraction bed, summed nf times per step)
     SLICEBASELOOP
-    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    if(p->flagslice4[IJ]<0 || s->DFBED[IJ]<0)
     s->qb(i,j) = 0.0;
 }
 
@@ -418,7 +418,7 @@ void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)
     }
     
     SLICEBASELOOP
-    if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
+    if(p->flagslice4[IJ]<0 || s->DFBED[IJ]<0)
     s->dryd(i,j) = 0.0;
 }
 

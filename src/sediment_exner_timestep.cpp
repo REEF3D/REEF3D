@@ -337,7 +337,7 @@ void sediment_exner::celerity(lexer *p, sediment_fdm *s, slice *mask, double &cm
 
     auto face = [&](int a, int b, double dl)
     {
-        if(!bend_open(p,a,b) || (mask!=nullptr && (*mask)(a,b)<0.5))
+        if(!bend_open(p,s,a,b) || (mask!=nullptr && (*mask)(a,b)<0.5))
         return;
         const double dz = fabs(s->bedzh(a,b)-s->bedzh(i,j));
         const double dq = fabs(s->qb(a,b)-s->qb(i,j));

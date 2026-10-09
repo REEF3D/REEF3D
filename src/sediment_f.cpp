@@ -290,3 +290,9 @@ double* sediment_f::ckpt_wln()
 {
     return (pnhfsusp!=nullptr) ? pnhfsusp->ckpt_wln() : nullptr;
 }
+
+// the sediment cell flags
+int* sediment_f::ckpt_dfbed()
+{
+    return (s!=nullptr) ? s->DFBED : nullptr;
+}

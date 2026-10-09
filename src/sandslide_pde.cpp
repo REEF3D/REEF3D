@@ -142,7 +142,7 @@ void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
         int ii=i+di;
         int jj=j+dj;
 
-        return SLIDE_NB(di,dj) && p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]>0 && p->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]>0
+        return SLIDE_NB(di,dj) && p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]>0 && s->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]>0
             && p->XP[IP+di]>p->S77_xs && p->XP[IP+di]<p->S77_xe;
     };
 
@@ -215,7 +215,7 @@ void sandslide_pde::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
         int ii=i+di;
         int jj=j+dj;
 
-        return SLIDE_NB(di,dj) && p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]>0 && p->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]>0
+        return SLIDE_NB(di,dj) && p->flagslice4[(ii-p->imin)*p->jmax + jj-p->jmin]>0 && s->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]>0
             && xpos(di,dj)>p->S77_xs && xpos(di,dj)<p->S77_xe;
     };
 

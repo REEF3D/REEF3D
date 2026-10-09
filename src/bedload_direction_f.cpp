@@ -61,24 +61,24 @@ void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         // bed slope as in bedslope::slope_cds: one-sided next to cells without a bed (structures)
         bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
         
-        if(p->DFBED[Im1J]<0)
+        if(s->DFBED[Im1J]<0)
         bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
         
-        if(p->DFBED[Ip1J]<0)
+        if(s->DFBED[Ip1J]<0)
         bx0 = (s->bedzh(i,j)-s->bedzh(i-1,j))/(p->DXP[IM1]);
         
-        if(p->DFBED[Im1J]<0 && p->DFBED[Ip1J]<0)
+        if(s->DFBED[Im1J]<0 && s->DFBED[Ip1J]<0)
         bx0 = 0.0;
         
         by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
         
-        if(p->DFBED[IJm1]<0)
+        if(s->DFBED[IJm1]<0)
         by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
         
-        if(p->DFBED[IJp1]<0)
+        if(s->DFBED[IJp1]<0)
         by0 = (s->bedzh(i,j)-s->bedzh(i,j-1))/(p->DYP[JM1]);
         
-        if(p->DFBED[IJm1]<0 && p->DFBED[IJp1]<0)
+        if(s->DFBED[IJm1]<0 && s->DFBED[IJp1]<0)
         by0 = 0.0;
 
         s->qbe(i,j) = s->qbe(i,j)*(1.0 - MIN(1.0, beta*(cosa*bx0 + sina*by0)));
@@ -112,29 +112,29 @@ void bedload_direction_f::start_curv(lexer* p, ghostcell* pgc, sediment_fdm *s)
         
         // bed slope as in bedslope::slope_cds: one-sided next to cells without a bed (structures)
         if(p->geo_curv==1)
-        sediment_curv::bedgrad(p,s->bedzh,i,j,1,bx0,by0);
+        sediment_curv::bedgrad(p,s,s->bedzh,i,j,1,bx0,by0);
         else
         {
         bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
         
-        if(p->DFBED[Im1J]<0)
+        if(s->DFBED[Im1J]<0)
         bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
         
-        if(p->DFBED[Ip1J]<0)
+        if(s->DFBED[Ip1J]<0)
         bx0 = (s->bedzh(i,j)-s->bedzh(i-1,j))/(p->DXP[IM1]);
         
-        if(p->DFBED[Im1J]<0 && p->DFBED[Ip1J]<0)
+        if(s->DFBED[Im1J]<0 && s->DFBED[Ip1J]<0)
         bx0 = 0.0;
         
         by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
         
-        if(p->DFBED[IJm1]<0)
+        if(s->DFBED[IJm1]<0)
         by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
         
-        if(p->DFBED[IJp1]<0)
+        if(s->DFBED[IJp1]<0)
         by0 = (s->bedzh(i,j)-s->bedzh(i,j-1))/(p->DYP[JM1]);
         
-        if(p->DFBED[IJm1]<0 && p->DFBED[IJp1]<0)
+        if(s->DFBED[IJm1]<0 && s->DFBED[IJp1]<0)
         by0 = 0.0;
         }
         
