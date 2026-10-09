@@ -111,8 +111,8 @@ public:
     double ks_diameter(lexer*, int, int);
 
     // output
-    void print_log(lexer*, ghostcell*);
-    void print_log_curv(lexer *p, ghostcell *pgc);     // curvilinear grid (G 50)
+    void print_log(lexer*, ghostcell*, sediment_fdm*);
+    void print_log_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
     int nfields();
 
     int nf;

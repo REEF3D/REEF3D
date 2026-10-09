@@ -28,6 +28,7 @@ Author: Hans Bihs
 
 class lexer;
 class ghostcell;
+class sediment_fdm;
 
 // The bed filter (S 100, S 101) of sediment_exner::filter in steps, for grids that exchange their ghost cells
 // with other grids between the steps (mesh refinement and multi-block grids, nhflow_amr / sflow_amr), and for
@@ -49,14 +50,14 @@ class sediment_xfilter : public increment
 public:
     sediment_xfilter(lexer*);
 
-    void mask(lexer*, slice*);
+    void mask(lexer*, sediment_fdm*, slice*);
     void weights(lexer*);
     void copy(lexer*, slice&, int);
     void sweep1(lexer*, int);
     void sweep2(lexer*, slice&, int);
 
     // the whole filter on one grid with the ghost cells of pgc (gcsl_start4)
-    void run(lexer*, ghostcell*, slice&, int, int);
+    void run(lexer*, ghostcell*, sediment_fdm*, slice&, int, int);
 
     slice4 own, m, h, dh, a, b;
 

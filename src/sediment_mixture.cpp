@@ -722,12 +722,12 @@ double sediment_mixture::ks_diameter(lexer *p, int ii, int jj)
 // log: bed volume per fraction and limiter volume
 // --------------------------------------------------------------------
 
-void sediment_mixture::print_log(lexer *p, ghostcell *pgc)
+void sediment_mixture::print_log(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     // curvilinear grid (G 50): sediment_curv.h
     if(p->geo_curv==1)
     {
-    print_log_curv(p,pgc);
+    print_log_curv(p,pgc,s);
     return;
     }
 
@@ -957,7 +957,7 @@ void sediment_mixture::slide_finish_curv(lexer *p, ghostcell *pgc, sediment_fdm 
     bedchange(p,pgc,s,fh_k);
 }
 
-void sediment_mixture::print_log_curv(lexer *p, ghostcell *pgc)
+void sediment_mixture::print_log_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double area;
 

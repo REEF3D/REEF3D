@@ -123,7 +123,7 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
         tan_phi = tan(s->phi(i,j));
         
         // Find the steepest downslope neighbor
-        find_steepest_neighbor(p, s->bedzh, i, j, i_steep, j_steep, max_slope, dist_steep);
+        find_steepest_neighbor(p, s, s->bedzh, i, j, i_steep, j_steep, max_slope, dist_steep);
         
         // Check if slope exceeds angle of repose
         if(max_slope > tan_phi)
@@ -157,13 +157,13 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
 }
 
 
-void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep, 
+void sandslide_steepest_descent::find_steepest_neighbor(lexer *p,sediment_fdm *s, slice &zh, int i, int j, int& i_steep, int& j_steep,
                                                         double& max_slope, double& dist_steep)
 {
     // curvilinear grid (G 50): sediment_curv.h
     if(p->geo_curv==1)
     {
-    find_steepest_neighbor_curv(p,zh,i,j,i_steep,j_steep,max_slope,dist_steep);
+    find_steepest_neighbor_curv(p,s,zh,i,j,i_steep,j_steep,max_slope,dist_steep);
     return;
     }
 
@@ -178,7 +178,7 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
     {
         for(int dj = -1; dj <= 1; ++dj)
         {
-            if((di == 0 && dj == 0)||p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
+            if((di == 0 && dj == 0)||s->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0)
             continue;
             
             // no transfer into physical boundary ghost cells (lost) or across rows in 2D
@@ -210,7 +210,7 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
 
 // ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
 
-void sandslide_steepest_descent::find_steepest_neighbor_curv(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep, 
+void sandslide_steepest_descent::find_steepest_neighbor_curv(lexer *p, sediment_fdm *s, slice &zh, int i, int j, int& i_steep, int& j_steep,
                                                         double& max_slope, double& dist_steep)
 {
     double z0 = zh(i,j);
@@ -224,7 +224,7 @@ void sandslide_steepest_descent::find_steepest_neighbor_curv(lexer* p, slice& zh
     {
         for(int dj = -1; dj <= 1; ++dj)
         {
-            if((di == 0 && dj == 0)||p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
+            if((di == 0 && dj == 0)||s->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0)
             continue;
             
             // no transfer into physical boundary ghost cells (lost) or across rows in 2D

@@ -56,14 +56,14 @@ void sediment_f::active_cfd(lexer *p, fdm *a, ghostcell *pgc)
     k = s->bedk(i,j);
     
     if(p->DF[IJK]>0)
-    p->DFBED[IJ]=1;
+    s->DFBED[IJ]=1;
     
     if(p->DF[IJK]<0)
-    p->DFBED[IJ]=-1;
+    s->DFBED[IJ]=-1;
     }
     
     LOOP
-    a->test(i,j,k) = p->DFBED[IJ];
+    a->test(i,j,k) = s->DFBED[IJ];
     
     dfbed_comms(p,pgc);
 }
@@ -84,10 +84,10 @@ void sediment_f::active_ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     k = s->bedk(i,j);
     
     if(p->DF[IJK]>0)
-    p->DFBED[IJ]=1;
+    s->DFBED[IJ]=1;
     
     if(p->DF[IJK]<0)
-    p->DFBED[IJ]=-1;
+    s->DFBED[IJ]=-1;
     }
     
     dfbed_comms(p,pgc);
@@ -108,10 +108,10 @@ void sediment_f::active_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
-    p->DFBED[IJ]=1;
+    s->DFBED[IJ]=1;
     
     if(p->DF[IJK]<0)
-    p->DFBED[IJ]=-1;
+    s->DFBED[IJ]=-1;
     }
     
     dfbed_comms(p,pgc);
@@ -132,10 +132,10 @@ void sediment_f::active_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICEBASELOOP
     {
     if(p->DF[IJK]>0)
-    p->DFBED[IJ]=1;
+    s->DFBED[IJ]=1;
     
     if(p->DF[IJK]<0)
-    p->DFBED[IJ]=-1;
+    s->DFBED[IJ]=-1;
     }
     
     dfbed_comms(p,pgc);
@@ -161,10 +161,10 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICEBASELOOP
     {
     if(p->flagslice4[IJ]>0)
-    p->DFBED[IJ]=1;
+    s->DFBED[IJ]=1;
     
     if(p->flagslice4[IJ]<0)
-    p->DFBED[IJ]=-1;
+    s->DFBED[IJ]=-1;
     }
     
     
@@ -174,13 +174,13 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // flagini() (3D grids) is not called for SFLOW: allocate the sediment cell flag here
-    if(p->DFBED==nullptr)
+    if(s->DFBED==nullptr)
     {
-    p->Iarray(p->DFBED,p->imax*p->jmax);
+    p->Iarray(s->DFBED,p->imax*p->jmax);
     
     for(i=-p->margin; i<p->knox+p->margin; ++i)
     for(j=-p->margin; j<p->knoy+p->margin; ++j)
-    p->DFBED[(i-p->imin)*p->jmax + j-p->jmin] = 1;
+    s->DFBED[(i-p->imin)*p->jmax + j-p->jmin] = 1;
     }
     
     SLICEBASELOOP
@@ -195,10 +195,10 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICEBASELOOP
     {
     if(p->flagslice4[IJ]>0)
-    p->DFBED[IJ]=1;
+    s->DFBED[IJ]=1;
     
     if(p->flagslice4[IJ]<0)
-    p->DFBED[IJ]=-1;
+    s->DFBED[IJ]=-1;
     }
     
     
@@ -218,6 +218,6 @@ void sediment_f::dfbed_comms(lexer *p, ghostcell *pgc)
     // sediment cell flag of the neighbour subdomains: the Exner face closure, the bed filter,
     // the non-equilibrium relaxation and the sand slide test DFBED of the ghost cells.
     // Physical boundary ghost cells keep 1 (open), closed walls have zero face velocity.
-    pgc->gcslparaxV_int(p,p->DFBED,4);
-    pgc->gcslparacoxV_int(p,p->DFBED,1);
+    pgc->gcslparaxV_int(p,s->DFBED,4);
+    pgc->gcslparacoxV_int(p,s->DFBED,1);
 }

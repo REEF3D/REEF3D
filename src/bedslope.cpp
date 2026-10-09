@@ -101,20 +101,20 @@ void bedslope::slope_cds(lexer *p, ghostcell *pgc, sediment_fdm *s)
     // ----
     
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-    
-    if(p->DFBED[Im1J]<0)
+
+    if(s->DFBED[Im1J]<0)
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
     
-    if(p->DFBED[Ip1J]<0)
+    if(s->DFBED[Ip1J]<0)
     bx0 = (s->bedzh(i,j)-s->bedzh(i-1,j))/(p->DXP[IM1]);
      
      
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    if(p->DFBED[IJm1]<0)
+    if(s->DFBED[IJm1]<0)
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
     
-    if(p->DFBED[IJp1]<0)
+    if(s->DFBED[IJp1]<0)
     by0 = (s->bedzh(i,j)-s->bedzh(i,j-1))/(p->DYP[JM1]);
     
     
@@ -217,24 +217,24 @@ void bedslope::slope_cds_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
     // ----
     
     if(p->geo_curv==1)
-    sediment_curv::bedgrad(p,s->bedzh,i,j,0,bx0,by0);
+    sediment_curv::bedgrad(p,s,s->bedzh,i,j,0,bx0,by0);
     else
     {
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
     
-    if(p->DFBED[Im1J]<0)
+    if(s->DFBED[Im1J]<0)
     bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
     
-    if(p->DFBED[Ip1J]<0)
+    if(s->DFBED[Ip1J]<0)
     bx0 = (s->bedzh(i,j)-s->bedzh(i-1,j))/(p->DXP[IM1]);
      
      
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
     
-    if(p->DFBED[IJm1]<0)
+    if(s->DFBED[IJm1]<0)
     by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
     
-    if(p->DFBED[IJp1]<0)
+    if(s->DFBED[IJp1]<0)
     by0 = (s->bedzh(i,j)-s->bedzh(i,j-1))/(p->DYP[JM1]);
     }
     

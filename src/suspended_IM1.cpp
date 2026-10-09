@@ -106,7 +106,7 @@ void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
     {
         // exchange with the bed only where the Exner equation applies it (DFBED>0, erodible window
         // S 71 - S 72) and in water: erosion into an air cell is deleted by sedfsf()
-        if(p->DF[IJK]>0 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72 && a->phi(i,j,k)>=0.0)
+        if(p->DF[IJK]>0 && s->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72 && a->phi(i,j,k)>=0.0)
         if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
         {
         zdist = p->DZN[KP];
