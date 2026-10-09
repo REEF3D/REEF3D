@@ -707,7 +707,7 @@ double sediment_mixture::ks_diameter(lexer *p, int ii, int jj)
 // log: bed volume per fraction and limiter volume
 // --------------------------------------------------------------------
 
-void sediment_mixture::print_log(lexer *p, ghostcell *pgc)
+void sediment_mixture::print_log(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     double area;
 

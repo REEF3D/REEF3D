@@ -77,6 +77,8 @@ public:
     // multi-fraction bed model (S51>0), nullptr otherwise
     sediment_mixture *pmix;
 
+    int *DFBED;
+
 };
 
 #endif

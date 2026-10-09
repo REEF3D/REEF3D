@@ -109,7 +109,7 @@ public:
     double ks_diameter(lexer*, int, int);
 
     // output
-    void print_log(lexer*, ghostcell*);
+    void print_log(lexer*, ghostcell*, sediment_fdm*);
     int nfields();
 
     int nf;

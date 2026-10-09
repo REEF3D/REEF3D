@@ -124,7 +124,7 @@ void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_
     
     auto open = [&](int di, int dj)
     {
-        return SLIDE_NB(di,dj) && p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]>0;
+        return SLIDE_NB(di,dj) && s->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]>0;
     };
     
     SEDSLICELOOP
