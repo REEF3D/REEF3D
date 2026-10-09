@@ -39,9 +39,9 @@ public:
     {cache_addressing();}
 
     slice_base(const slice_base&) = delete;
-    slice_base& operator=(const slice_base&) = delete;
+    slice_base &operator=(const slice_base&) = delete;
     slice_base(slice_base&&) = delete;
-    slice_base& operator=(slice_base&&) = delete;
+    slice_base &operator=(slice_base&&) = delete;
 
     virtual ~slice_base() = default;
 
@@ -51,8 +51,8 @@ public:
     /// computations cannot be shared).
     using stride_t = long;
 
-    inline T& operator()(int ii, int jj) noexcept {return m_base[ii*m_js + jj];}
-    inline const T& operator()(int ii, int jj) const noexcept {return m_base[ii*m_js + jj];}
+    inline T &operator()(int ii, int jj) noexcept {return m_base[ii*m_js + jj];}
+    inline const T &operator()(int ii, int jj) const noexcept {return m_base[ii*m_js + jj];}
 
     /*!
      * @brief Lightweight, capture-by-value view: the folded base pointer and
