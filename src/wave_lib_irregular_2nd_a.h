@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"wave_lib_spectrum.h"
 #include"increment.h"
+#include"wave_lib_irregular_2nd_cache.h"
 
 using namespace std;
 
@@ -50,6 +51,15 @@ public:
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
+    // cached-point evaluation (wave_lib_irregular_2nd_cache.h); wave_fi_c stays the direct evaluation
+    void wave_cache_points(lexer*, const std::vector<double>&, const std::vector<double>&) override final;
+    double wave_eta_c(lexer*, int) override final;
+    double wave_u_c(lexer*, int, double) override final;
+    double wave_v_c(lexer*, int, double) override final;
+    double wave_w_c(lexer*, int, double) override final;
+    void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
+    
 private: 
     double wave_C(double,double,double,double);
     double wave_D(double,double,double,double);
@@ -62,6 +72,13 @@ private:
     double singamma,cosgamma;
     double T,vel,eta,fi;
     double denom1,denom2,denom3;
+    
+    wave_lib_irregular_2nd_cache cc;
+    bool coeffs_on=false;
+    void cache_coeffs(lexer*);
+    double eta_pairs(lexer*, const wave_lib_irregular_2nd_cache&);
+    std::vector<double> qU1,qU2,qV1,qV2,qW1,qW2,qE1,qE2;   // pair coefficients, n < m in loop order
+    std::vector<double> fU,fV,fW;                          // 1st-order coefficients
 };
 
 #endif

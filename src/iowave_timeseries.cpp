@@ -79,14 +79,32 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
         
         pout<<"t \t eta"<<endl<<endl;
         
+        // the times as before (accumulated in steps of 0.1 s); eta as one series where the
+        // wave theory has a faster evaluation for it (2nd-order irregular waves)
+        std::vector<double> tv, ev;
         p->wavetime=0.0;
         do
         {
-        pout<<p->wavetime<<" \t "<<wave_eta(p,pgc,p->P58_x[n],p->P58_y[n])<<endl;
-            
+        tv.push_back(p->wavetime);
         p->wavetime+=0.1;
-        
         }while(p->wavetime<=p->P58_T[n]);
+        
+        const double wend = p->wavetime;
+        
+        if(!wave_eta_series(p,pgc,p->P58_x[n],p->P58_y[n],tv,ev))
+        {
+            ev.resize(tv.size());
+            for(size_t q=0; q<tv.size(); ++q)
+            {
+            p->wavetime = tv[q];
+            ev[q] = wave_eta(p,pgc,p->P58_x[n],p->P58_y[n]);
+            }
+        }
+        
+        p->wavetime = wend;
+        
+        for(size_t q=0; q<tv.size(); ++q)
+        pout<<tv[q]<<" \t "<<ev[q]<<endl;
 
 
     pout.close();
