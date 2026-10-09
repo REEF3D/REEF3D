@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
+#include"patchBC_codes.h"
 
 // ghost-cell label of w (kernel chosen in gcdistro3)
 // gcv: 3/12 w, 9 projection, 16 / 112 / 116 / 119 special treatments, 17 omega_sig, 19, 50 Neumann;
@@ -33,7 +34,7 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
     const bool orth = (cs==5||cs==6);                        // face normal to w
     const bool wall = (bc==21||bc==22||(bc==7&&awa_lable==0));
     const bool walltopo = (bc==21||bc==22||bc==5);
-    const bool patch = (bc==111||bc==112||bc==121||bc==122);
+    const bool patch_out = patch_outlet(bc);                 // patch outlet: zero gradient, inlet: set by patchBC
     const bool outflow = (bc==2 && gclabel_outflow==1);
 
     switch(gcv)
@@ -57,13 +58,13 @@ int ghostcell::gceval3(lexer *p, int gcv, int bc, int cs)
             if(bc==9 && cs==6)      return 4;
         }
         if(bc==6)                   return gclabel_w_in;
-        if(patch)                   return 4;
+        if(patch_out)               return 4;
         return 0;
 
     case 9:
         if(orth && (walltopo || wall)) return gclabel_vel;
         if(bc==6)                   return gclabel_w_in;
-        if(patch)                   return 4;
+        if(patch_out)               return 4;
         return 0;
 
     case 16:

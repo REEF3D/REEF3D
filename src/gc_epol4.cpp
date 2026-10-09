@@ -22,13 +22,14 @@ Author: Hans Bihs
 
 #include"ghostcell.h"
 #include"lexer.h"
+#include"patchBC_codes.h"
 
 // ghost-cell label of the cell-centred fields (kernel chosen in gcdistro4); cs: side of the face
 int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 {
     const bool wall = (bc==21||bc==22||bc==5);
     const bool sixdof = (bc==41||bc==42||bc==43);
-    const bool patch = (bc==111||bc==112||bc==121||bc==122);
+    const bool patch = patch_bc(bc);
     const bool para_w = (cs==1||cs==2||cs==3||cs==4);        // side faces
 
     switch(gcv)
@@ -38,7 +39,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     case 52:
     case 53:
     case 54:
-        if(wall||sixdof||bc==7||bc==8||bc==9||bc==111||bc==121||bc==211||bc==221) return gclabel_lsm;
+        if(wall||sixdof||bc==7||bc==8||bc==9||(patch && !patch_fsf(bc))) return gclabel_lsm;   // patch water level: set by patchBC
         if(bc==3)                                   return 4;
         if((bc==1||bc==6) && (gcv==52||gcv==54))    return 4;
         if(bc==2 && (gcv==51||gcv==54||(gcv==52 && p->B77==1))) return 4;
@@ -50,7 +51,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
 
     // pressure
     case 40:
-        if(wall||bc==3||bc==111||bc==112||bc==211||bc==212) return gclabel_press;
+        if(wall||bc==3||patch_inlet(bc))            return gclabel_press;   // patch outlet: set by patchBC
         if(bc==6 && pressin_lable==0)               return gclabel_press;
         if(bc==7 && awa_lable==0)                   return gclabel_press;
         if(bc==1 && pressin_lable==0)               return gclabel_press_in;
@@ -154,7 +155,7 @@ int ghostcell::gceval4(lexer *p, int gcv, int bc, int cs)
     // NHFLOW
     case 540:
         if(bc==3 && cs==6)                          return 11;
-        if(cs!=6 && (wall||bc==3||bc==6||bc==111||bc==112||bc==211||bc==212
+        if(cs!=6 && (wall||bc==3||bc==6||patch_inlet(bc)
            || (bc==2 && pressout_lable==0) || (bc==7 && awa_lable==0))) return 4;
         return 0;
     }

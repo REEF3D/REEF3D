@@ -37,17 +37,19 @@ mask[IJK] has bit (cs-1) set for the face on side cs (1 x-, 2 y+, 3 y-,
 4 x+, 5 z-, 6 z+).
 
   BC_NOFLUX_WALLS    lid (3), bed (5), walls and solid surfaces (21, 22)
-  BC_NOFLUX_INFLOW   inflow / wave generation (1, 6) and patches with
-                     prescribed velocity and Neumann pressure (2x1, 2x2 -> tens digit 1)
+  BC_NOFLUX_INFLOW   inflow / wave generation (1, 6) and patch inlets (patchBC_codes.h:
+                     prescribed velocity, Neumann pressure)
   BC_NOFLUX_SCALAR   leave out sides with a fixed scalar value (H 61-66),
                      for heat and concentration (ghost-cell label 61)
+  BC_PATCH_OUTLET    only the patch outlets (Dirichlet pressure), for the pressure correction
 --------------------------------------------------------------------*/
 
 enum
 {
     BC_NOFLUX_WALLS  = 1,
     BC_NOFLUX_INFLOW = 2,
-    BC_NOFLUX_SCALAR = 4
+    BC_NOFLUX_SCALAR = 4,
+    BC_PATCH_OUTLET  = 8
 };
 
 void bc_noflux_mask(lexer *p, std::vector<int> &mask, int what);

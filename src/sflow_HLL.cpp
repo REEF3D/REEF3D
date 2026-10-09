@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"patchBC_codes.h"
 #include"sflow_HLL.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -311,7 +312,7 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     double eg,ug,vg,wg;
     
     GCSL4LOOP
-    if(p->gcbsl4[n][4]>=100)
+    if(patch_bc(p->gcbsl4[n][4]))
     {
     i  = p->gcbsl4[n][0];
     j  = p->gcbsl4[n][1];

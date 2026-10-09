@@ -23,17 +23,18 @@ Author: Hans Bihs
 #ifndef PATCHBC_2D_H_
 #define PATCHBC_2D_H_
 
-#include"patchBC_interface.h"
+#include"patchBC_core.h"
 
 using namespace std;
 
-class patchBC_2D final : public patchBC_interface, public increment
+// patch boundary conditions ::SFLOW (cell centred velocities)
+class patchBC_2D final : public patchBC_core
 {
 public:
 	patchBC_2D(lexer*,ghostcell*);
 	virtual ~patchBC_2D();
     
-    void patchBC_ini(lexer *p, ghostcell *pgc) override final;
+    void patchBC_ini(lexer*, ghostcell*) override final;
     
     // BC update ::CFD
     void patchBC_ioflow(lexer*, fdm*, ghostcell*, field&,field&,field&) override final;
@@ -44,37 +45,16 @@ public:
     
     // BC update ::SFLOW
     void patchBC_ioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
-    void patchBC_rkioflow2D(lexer*, ghostcell*, slice&, slice&, slice&, slice&) override final;
     void patchBC_discharge2D(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&) override final;
-    void patchBC_pressure2D(lexer*, ghostcell*, slice&) override final;
-    void patchBC_pressure2D_ugrad(lexer*, fdm2D*, slice&,slice&) override final;
-    void patchBC_pressure2D_vgrad(lexer*, fdm2D*, slice&, slice&) override final;
-    void patchBC_waterlevel2D(lexer*, fdm2D*,  ghostcell*, slice&) override final;
-
-    void patchBC_loop2D(lexer*, fdm2D*, int&, int&, int&, int&) override final;
-        
+    void patchBC_waterlevel2D(lexer*, fdm2D*, ghostcell*, slice&) override final;
+    
 private:
-     // ini
-    void patchBC_gcb_count(lexer *p, ghostcell *pgc);
-    void patchBC_IDcount(lexer *p, ghostcell *pgc);
-    void patchBC_fillobj(lexer *p, ghostcell *pgc);
+    // ghost cell q (1..3) of the face (i,j,cs)
+    void ghost(int cs, int q, int &ii, int &jj);
     
-    void patchBC_hydrograph_Q_read(lexer *p, ghostcell *pgc,int,int);
-    double patchBC_hydrograph_Q_ipol(lexer *p, ghostcell *pgc,int,int);
-    
-    void patchBC_hydrograph_FSF_read(lexer *p, ghostcell *pgc,int,int);
-    double patchBC_hydrograph_FSF_ipol(lexer *p, ghostcell *pgc,int,int);
-    
-    
-    int q,n,qn,qq,count,ID_count;
-    int istart,iend,jstart,jend,kstart,kend;
-    
-    int *inflow_ID;
-    int *outflow_ID;
-    
-    int geo_count;
-    int *ID_array;
-    
+    // code of the patch face matching a staggered slice entry (same side, same tangential index,
+    // normal index within one cell), 0 if none
+    int staggered_flag(int ii, int jj, int cs);
 };
 
 #endif

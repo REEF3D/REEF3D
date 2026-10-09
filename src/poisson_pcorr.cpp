@@ -174,9 +174,32 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
         }
     }
 
+    // patch outlets: the ghost pressure holds the patch pressure (patchBC_pressure via pressure_io);
+    // Dirichlet value of the correction = patch pressure - cell pressure, so that the pressure next
+    // to the outlet relaxes to the patch pressure (the boundary face velocity is not part of the
+    // momentum step, the ghost pressure alone would have no effect)
+    bc_noflux_mask(p,outlet,BC_PATCH_OUTLET);
+
     n=0;
 	LOOP
 	{
+        int pf = outlet[IJK];
+
+        if(pf!=0)
+        {
+            const int di[6] = {-1,0,0,1,0,0};
+            const int dj[6] = {0,1,-1,0,0,0};
+            const int dk[6] = {0,0,0,0,-1,1};
+            double *coef[6] = {&a->M.s[n],&a->M.w[n],&a->M.e[n],&a->M.n[n],&a->M.b[n],&a->M.t[n]};   // cs = 1..6
+
+            for(int cs=1; cs<=6; ++cs)
+            if(pf & (1<<(cs-1)))
+            {
+            a->rhsvec.V[n] -= *coef[cs-1]*(a->press(i+di[cs-1],j+dj[cs-1],k+dk[cs-1]) - a->press(i,j,k));
+            *coef[cs-1] = 0.0;
+            }
+        }
+
         // inflow
 		if(p->flag4[Im1JK]<0 && (i+p->origin_i>0 || p->periodic1==0))
 		{

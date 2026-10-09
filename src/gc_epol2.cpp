@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"patchBC_codes.h"
 
 // ghost-cell label of v (kernel chosen in gcdistro2)
 // gcv: 2/11 v, 8 projection, 15 / 111 / 115 / 118 special treatments, 18, 50 Neumann; cs: side of the face
@@ -31,7 +32,7 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
     const bool orth = (cs==2||cs==3);                        // face normal to v
     const bool wall = (bc==21||bc==22||(bc==7&&awa_lable==0)); // walls; beach without active absorption
     const bool walltopo = (bc==21||bc==22||bc==5);
-    const bool patch = (bc==111||bc==112||bc==121||bc==122);
+    const bool patch_out = patch_outlet(bc);                 // patch outlet: zero gradient, inlet: set by patchBC
     const bool outflow = (bc==2 && gclabel_outflow==1);
 
     switch(gcv)
@@ -54,13 +55,13 @@ int ghostcell::gceval2(lexer *p, int gcv, int bc, int cs)
             if(outflow)             return gclabel_v_out;
         }
         if(bc==6)                   return gclabel_v_in;
-        if(patch)                   return 4;
+        if(patch_out)               return 4;
         return 0;
 
     case 8:
         if(orth && (walltopo || wall)) return gclabel_vel;
         if(bc==6)                   return gclabel_v_in;
-        if(patch)                   return 4;
+        if(patch_out)               return 4;
         return 0;
 
     case 15:

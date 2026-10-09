@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 
+#include"patchBC_codes.h"
 #include"seastate_sflow.h"
 #include"seastate_f.h"
 #include"fdm_seastate.h"
@@ -102,7 +103,7 @@ void seastate_sflow::ghostcells(lexer *p, fdm2D *b)
     i = p->gcbsl4[n][0];
     j = p->gcbsl4[n][1];
 
-        if(p->gcbsl4[n][3]!=1 || p->gcbsl4[n][4]>=100 || i!=0)
+        if(p->gcbsl4[n][3]!=1 || patch_bc(p->gcbsl4[n][4]) || i!=0)
         continue;
 
         if(!longwave_bc(p,j,b->WL(i,j),b->eta(i,j),b->V(i,j),etag,ug,vg))
@@ -129,7 +130,7 @@ void seastate_sflow::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx)
     i = p->gcbsl4[n][0];
     j = p->gcbsl4[n][1];
 
-        if(p->gcbsl4[n][3]!=1 || p->gcbsl4[n][4]>=100 || i!=0 || p->wet[IJ]==0)
+        if(p->gcbsl4[n][3]!=1 || patch_bc(p->gcbsl4[n][4]) || i!=0 || p->wet[IJ]==0)
         continue;
 
     const double eg = b->eta(i-1,j);

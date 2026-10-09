@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
 #include"sflow_amr.h"
 #include"lexer.h"
@@ -631,9 +632,20 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     cs = p->gcbsl4[n][3];
     bc = p->gcbsl4[n][4];
     
-        // patch boundaries are set by patchBC
-        if(bc>=100)
+        // patch inlets: velocities set by patchBC (w zero gradient), patch outlets: zero gradient
+        if(patch_inlet(bc))
+        {
+        neumann(p,w,cs);
         continue;
+        }
+        
+        if(patch_outlet(bc))
+        {
+        neumann(p,u,cs);
+        neumann(p,v,cs);
+        neumann(p,w,cs);
+        continue;
+        }
         
         // inflow side
         if(cs==1 && (bc==1 || bc==6))
