@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"reefamr_krylov.h"
 #include<cmath>
 #include<limits>
+#include<algorithm>
 
 //  Boussinesq u_a (A 220 4) on the leaf cells of all levels.
 //
@@ -404,11 +405,7 @@ void sflow_amr::bous_window(ghostcell *pgc, int l, double th)
         // initial guess: u_a of the stage; right-hand side
         for(int g=-1; g<ng-1; ++g)
         {
-            lexer *q = (g<0) ? p0 : P[g]->pp;
-            const double *u = ua(g,dir).data();
-            double *x = vx[g+1];
-            for(int n=0; n<q->imax*q->jmax; ++n)
-            x[n] = u[n];
+            std::ranges::copy(ua(g,dir),vx[g+1]);
 
             if((*bqc)[g+1].leaf.empty())
             continue;

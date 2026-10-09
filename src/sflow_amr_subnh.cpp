@@ -179,9 +179,8 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
         dts[n] = q->dt;
         q->dt = dt;
 
-        const size_t nc = (size_t)q->imax*q->jmax;
-        psave[n].assign(pb->press.data(),pb->press.data()+nc);
-        std::fill(pb->press.data(),pb->press.data()+nc,0.0);
+        psave[n].assign(pb->press.begin(),pb->press.end());
+        std::ranges::fill(pb->press,0.0);
 
         if(g<0)
         pn->assemble(q,pb,pgc,pb->UH,pb->VH,pb->WL,pb->U,pb->V,1.0);
@@ -272,7 +271,7 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
             correct();
         }
 
-        std::copy(psave[n].begin(),psave[n].end(),pb->press.data());
+        std::ranges::copy(psave[n],pb->press.begin());
         q->dt = dts[n];
     }
 
