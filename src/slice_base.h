@@ -25,13 +25,16 @@ Author: Alexander Hanke
 
 #include "lexer.h"
 
+#include <cstddef>
+
 template<typename T>
 class slice_base
 {
 public:
-    slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax)
+    slice_base(lexer *p) : imin(p->imin), jmin(p->jmin), jmax(p->jmax),
+        n(static_cast<std::size_t>(p->imax)*jmax)
     {
-        V = new T[p->imax*jmax] {};
+        V = new T[n] {};
     }
 
     slice_base(const slice_base&) = delete;
@@ -51,11 +54,19 @@ public:
     T *data() noexcept {return V;}
     const T *data() const noexcept {return V;}
 
+    // whole array including ghost cells
+    std::size_t size() const noexcept {return n;}
+    T *begin() noexcept {return V;}
+    const T *begin() const noexcept {return V;}
+    T *end() noexcept {return V+n;}
+    const T *end() const noexcept {return V+n;}
+
 protected:
     T *V;
 
 private:
     const int imin,jmin,jmax;
+    const std::size_t n;
 };
 
 #endif

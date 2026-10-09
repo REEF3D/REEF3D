@@ -486,7 +486,7 @@ void seastate_amr::regrid_static(ghostcell*)
     // spectral storage for the active cells of the interior and the ring around it (the inflow of the
     // sweeps); the outer rings of the patch arrays are never used by SEASTATE. Tiles of 2 x 2 cells, so
     // that small patches do not allocate whole 16 x 16 tiles
-    vector<int> mask(c->e->wet.data(),c->e->wet.data()+size_t(pp->imax)*pp->jmax);
+    vector<int> mask(c->e->wet.begin(),c->e->wet.end());
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
     if(ii<EXT-1 || ii>EXT+c->nx || jj<EXT-1 || jj>EXT+c->ny)
