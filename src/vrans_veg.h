@@ -46,6 +46,7 @@ public:
 	void u_source(lexer*, fdm*) override final;
 	void v_source(lexer*, fdm*) override final;
 	void w_source(lexer*, fdm*) override final;
+    void implicit_drag(lexer*, fdm*, int, double, field&, field&, field&, field&) override final {};
     
     void ke_source(lexer*, fdm*, field&) override final;
     void kw_source(lexer*, fdm*, field&) override final;

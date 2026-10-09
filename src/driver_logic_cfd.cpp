@@ -514,10 +514,14 @@ void driver::logic_cfd()
 #endif
 
 //VRANS
-    if(p->B200==0)
+    // porous structures (B 200 1) or the continuum VRANS sediment bed (S 10 2, Q 10 0); the particle
+    // sediment (Q 10 >= 1) has its own vrans_f for the porosity, its drag is in the particle coupling
+    const bool vrans_porous = p->B200==1 || (p->B200==0 && p->S10==2 && p->Q10==0);
+
+    if(p->B200==0 && !vrans_porous)
 	pvrans = new vrans_v(p,pgc);
 
-	if(p->B200==1)
+	if(vrans_porous)
 	pvrans = new vrans_f(p,pgc);
 
     if(p->B200==2)
@@ -637,9 +641,23 @@ void driver::logic_cfd()
     
     // RK2, RK3 and low-storage RK3 with the level set outside (12, 13, 44) or inside the stages
     // (2, 3, 4), conservative form (33)
+    bool mom_rk=false;
+
     if(p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
     || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
+    {
 	pmom = new momentum_rk(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);
+    mom_rk=true;
+    }
+
+    // the point-implicit VRANS resistance (B 268 1) is in momentum_rk, explicit for the other schemes
+    if(!mom_rk && p->B268==1)
+    {
+    p->B268=0;
+
+        if(p->mpirank==0 && (p->B200==1 || p->S10==2))
+        cout<<"VRANS: B 268 1 needs momentum_rk, explicit resistance used"<<endl;
+    }
 
     if((p->N40==3 || p->N40==23) && p->F80==4)
     pmom = new momentum_FC3_PLIC(p,a,pgc,pconvec,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);

@@ -504,6 +504,8 @@ void control::ini_default()
     B260=0.34;       // double C coefficient for VRANS
     B264=1.0e20;    // double KC number for VRANS
     B265=0;         // int NHFLOW VRANS inertia factor: 0 1/(1+C(1-n)/n^2), 1 n/(1+C(1-n)/n)
+    B266=1;         // int CFD VRANS added mass: 0 C_m = B 260 in the porous zone, 1 C_m = B 260 (1-n)/n
+    B268=1;         // int CFD VRANS drag: 0 explicit source, 1 point-implicit in the RK stages (momentum_rk)
     B270=0;         // int VRANS porous media box
     B274=0;         // int VRANS porous media vertical cylinder
     B281=0;         // int VRANS porous media wedge in x-direction

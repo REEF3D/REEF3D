@@ -25,8 +25,8 @@ Author: Hans Bihs
 // - Added mass follows van Gent (1995): (1 + c) du/dt = RHS,  c = gamma (1-n)/n^2  (gamma = B 260),
 //   i.e. every momentum tendency, including the non-hydrostatic pressure correction, is scaled
 //   by CPORNH = 1/(1+c). With B 265 1: CPORNH = n/(1+c_A), c_A = gamma (1-n)/n (see below).
-//   NOTE: REEF3D::CFD uses CPOR = 1/(1+gamma) inside the porous zone (looping.h), a
-//   porosity-independent added mass. The two modules therefore differ for the same B 260.
+//   NOTE: REEF3D::CFD uses CPOR = 1/(1+c_A), c_A = gamma (1-n)/n (B 266 1, looping.h), the
+//   Darcy-velocity form of Jensen et al. (2014); B 266 0 gives the old constant 1/(1+gamma).
 // - Continuity: n_s deta/dt + div(Q) = 0 with n_s the porosity of the surface cell.
 
 #define PORVALNH  d->POR[IJK]

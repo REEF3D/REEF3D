@@ -1316,7 +1316,13 @@ void control::read_control(lexer* p)
                case 265: control>>B265;
                          clear(c,numint);
                          break;
+               case 266: control>>B266;
+                         clear(c,numint);
+                         break;
                case 267: retired_key(control,p,c,numint);
+                         clear(c,numint);
+                         break;
+               case 268: control>>B268;
                          clear(c,numint);
                          break;
                case 270: ++B270;

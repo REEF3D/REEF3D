@@ -46,6 +46,9 @@ public:
 	virtual void v_source(lexer*, fdm*)=0;
 	virtual void w_source(lexer*, fdm*)=0;
     
+    // point-implicit resistance in a Runge-Kutta stage: f <- f/(1 + w dt CPOR n K(U,V,W)) for component c
+    virtual void implicit_drag(lexer*, fdm*, int, double, field&, field&, field&, field&)=0;
+    
     virtual void ke_source(lexer*, fdm*, field&)=0;
     virtual void kw_source(lexer*, fdm*, field&)=0;
     virtual void eps_source(lexer*, fdm*, field&, field&)=0;

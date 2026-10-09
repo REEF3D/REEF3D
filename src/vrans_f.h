@@ -43,6 +43,7 @@ public:
 	void u_source(lexer*, fdm*) override final;
 	void v_source(lexer*, fdm*) override final;
 	void w_source(lexer*, fdm*) override final;
+    void implicit_drag(lexer*, fdm*, int, double, field&, field&, field&, field&) override final;
     
     void ke_source(lexer*, fdm*, field&) override final;
     void kw_source(lexer*, fdm*, field&) override final;
@@ -55,16 +56,16 @@ public:
 	
 private:
 	
-	field4a alpha,beta;
+	// porous zones: porosity, d50 and the resistance coefficients a->porA, a->porB of a cell
+	void structures(lexer*, fdm*);
+	void sediment_bed(lexer*, fdm*);
+	void set_cell(lexer*, fdm*, double, double, double, double);
+	void exchange(lexer*, fdm*, ghostcell*);
 	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
+	// resistance per unit Darcy velocity A + B |U| at the face of component c
+	double drag_rate(lexer*, fdm*, int, field&, field&, field&);
 	
 	int count;
-    
-    double Aporval,Bporval,porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
 	const double Cval;
 };
 

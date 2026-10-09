@@ -27,23 +27,50 @@ Author: Hans Bihs
 
 void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
+    structures(p,a);
+    
+    // continuum sediment bed (S 10 2 with the Exner sediment module, Q 10 0)
+    if(p->S10==2 && p->Q10==0)
+    sediment_bed(p,a);
+    
+    exchange(p,a,pgc);
+}
+
+// cell values of a porous zone; the Darcy-Forchheimer coefficients (van Gent 1995, Jensen et al. 2014)
+// A = porA nu,  porA = alpha (1-n)^2/(n^3 d50^2)
+// B = porB,     porB = beta (1 + 7.5/KC) (1-n)/(n^3 d50)
+void vrans_f::set_cell(lexer *p, fdm *a, double n, double d50, double alpha, double beta)
+{
+    a->porosity(i,j,k) = n;
+    a->porpart(i,j,k) = d50;
+    a->porA(i,j,k) = 0.0;
+    a->porB(i,j,k) = 0.0;
+    
+    if(n<1.0)
+    {
+    a->porA(i,j,k) = alpha*pow(1.0-n,2.0)/(pow(n,3.0)*d50*d50);
+    a->porB(i,j,k) = beta*(1.0 + 7.5/Cval)*(1.0-n)/(pow(n,3.0)*d50);
+    }
+}
+
+void vrans_f::exchange(lexer *p, fdm *a, ghostcell *pgc)
+{
+    pgc->start4a(p,a->porosity,1);
+	pgc->start4a(p,a->porpart,1);
+	pgc->start4a(p,a->porA,1);
+	pgc->start4a(p,a->porB,1);
+}
+
+// reset to open flow, then the porous structures B 270 - B 291
+// (called before every sediment update, so the structures are kept)
+void vrans_f::structures(lexer *p, fdm *a)
+{
 	int qn;
     double zmin,zmax,slope;
     double xs,xe,ys,ye;
 	
-	LOOP
-	{
-	a->porosity(i,j,k)=1.0;
-	a->porpart(i,j,k)=0.01;
-	alpha(i,j,k)=0.0;
-	beta(i,j,k)=0.0;
-	}
-	
-	pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
-	
+	BASELOOP
+	set_cell(p,a,1.0,0.01,0.0,0.0);
 	
 	// Box
     for(qn=0;qn<p->B270;++qn)
@@ -51,12 +78,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 	if(p->XN[IP]>=p->B270_xs[qn] && p->XN[IP]<p->B270_xe[qn]
 	&& p->YN[JP]>=p->B270_ys[qn] && p->YN[JP]<p->B270_ye[qn]
 	&& p->ZN[KP]>=p->B270_zs[qn] && p->ZN[KP]<p->B270_ze[qn])
-	{
-	a->porosity(i,j,k)= p->B270_n[qn];
-	a->porpart(i,j,k) = p->B270_d50[qn];
-	alpha(i,j,k) = p->B270_alpha[qn];
-	beta(i,j,k) = p->B270_beta[qn];
-	}
+	set_cell(p,a,p->B270_n[qn],p->B270_d50[qn],p->B270_alpha[qn],p->B270_beta[qn]);
     
     // Vertical Cylinder
     for(qn=0;qn<p->B274;++qn)
@@ -65,12 +87,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
         double  r = sqrt( pow(p->XP[IP]-p->B274_xc[qn],2.0)+pow(p->YP[JP]-p->B274_yc[qn],2.0));
         
         if(r<=p->B274_r[qn] && p->pos_z()>p->B274_zs[qn] && p->pos_z()<=p->B274_ze[qn])
-        {
-        a->porosity(i,j,k)= p->B274_n[qn];
-        a->porpart(i,j,k) = p->B274_d50[qn];
-        alpha(i,j,k) = p->B274_alpha[qn];
-        beta(i,j,k) = p->B274_beta[qn];
-        }
+        set_cell(p,a,p->B274_n[qn],p->B274_d50[qn],p->B274_alpha[qn],p->B274_beta[qn]);
     }
 
 	
@@ -97,12 +114,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 		if(p->pos_x()>=xs && p->pos_x()<xe
 		&& p->pos_y()>=p->B281_ys[qn] && p->pos_y()<p->B281_ye[qn]
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B281_xs[qn])+p->B281_zs[qn] )
-		{
-		a->porosity(i,j,k)=p->B281_n[qn];
-		a->porpart(i,j,k) =p->B281_d50[qn];
-		alpha(i,j,k) = p->B281_alpha[qn];
-		beta(i,j,k) = p->B281_beta[qn];
-		}
+		set_cell(p,a,p->B281_n[qn],p->B281_d50[qn],p->B281_alpha[qn],p->B281_beta[qn]);
     }
     
     // Wedge y-dir
@@ -128,12 +140,7 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 		if(p->pos_x()>=p->B282_xs[qn] && p->pos_x()<p->B282_xe[qn]
 		&& p->pos_y()>=ys && p->pos_y()<ye
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B282_ys[qn])+p->B282_zs[qn] )
-		{
-		a->porosity(i,j,k) = p->B282_n[qn];
-		a->porpart(i,j,k) = p->B282_d50[qn];
-		alpha(i,j,k) = p->B282_alpha[qn];
-		beta(i,j,k) = p->B282_beta[qn];
-		}
+		set_cell(p,a,p->B282_n[qn],p->B282_d50[qn],p->B282_alpha[qn],p->B282_beta[qn]);
     }
     
     // Plate x-dir
@@ -165,23 +172,6 @@ void vrans_f::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
         
         && p->pos_z()<slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]+p->B291_d[qn] // upper
         && p->pos_z()>slope*(p->pos_x()-p->B291_xs[qn])+p->B291_zs[qn]) // lower
-		{
-		a->porosity(i,j,k)=p->B291_n[qn];
-		a->porpart(i,j,k) =p->B291_d50[qn];
-		alpha(i,j,k) = p->B291_alpha[qn];
-		beta(i,j,k) = p->B291_beta[qn];
-		}
+		set_cell(p,a,p->B291_n[qn],p->B291_d50[qn],p->B291_alpha[qn],p->B291_beta[qn]);
     }
-    
-    
-    pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
-    
-    
-    // Sediment
-    if(p->S10==2)
-    sed_update(p,a,pgc);
 }
-

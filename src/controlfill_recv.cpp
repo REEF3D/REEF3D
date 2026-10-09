@@ -1025,6 +1025,10 @@ void control::ctrlrecv()
     dd++;
     B265 = ictrl[ii];
     ii++;
+    B266 = ictrl[ii];
+    ii++;
+    B268 = ictrl[ii];
+    ii++;
     B270 = ictrl[ii];
     ii++;
     B274 = ictrl[ii];

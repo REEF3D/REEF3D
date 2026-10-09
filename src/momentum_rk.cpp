@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"poisson.h"
 #include"ioflow.h"
 #include"turbulence.h"
+#include"vrans.h"
 #include"solver.h"
 #include"reini.h"
 #include"picard.h"
@@ -443,6 +444,9 @@ void momentum_rk::component_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans,
         }
     }
 
+    // VRANS resistance, point-implicit with the stage weight (B 268 1)
+    pvrans->implicit_drag(p,a,c,bs,out,U,V,W);
+
     MOMRK_LOOP(c, F(i,j,k) = 0.0; )
 
     imex_pre(p,a,c,s,out);
@@ -713,6 +717,9 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
     convection_start(p,a,c,un,a->u,a->v,a->w);
 
     MOMRK_LOOP(c, uk(i,j,k) += gs*p->dt*cpor*F(i,j,k) + zs*p->dt*cpor*C(i,j,k); )
+
+    // VRANS resistance, point-implicit with the source weight 2 alpha_s (B 268 1)
+    pvrans->implicit_drag(p,a,c,al2,uk,a->u,a->v,a->w);
 
     MOMRK_LOOP(c, C(i,j,k) = F(i,j,k); )
 
