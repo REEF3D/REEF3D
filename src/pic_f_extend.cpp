@@ -62,17 +62,15 @@ void pic_f::water_velocity(lexer *p, fdm *a, ghostcell *pgc)
     {
         if(c==1 && p->j_dir==0)
         {
-        for(int n=0; n<size; ++n)
-        vw->data()[n] = 0.0;
-        continue;
+            std::fill(vw->begin(), vw->end(), 0.0);
+            continue;
         }
 
         field &src = c==0 ? static_cast<field&>(a->u) : (c==1 ? static_cast<field&>(a->v) : static_cast<field&>(a->w));
         field &dst = c==0 ? static_cast<field&>(*uw) : (c==1 ? static_cast<field&>(*vw) : static_cast<field&>(*ww));
         const int di = c==0, dj = c==1, dk = c==2;
 
-        for(int n=0; n<size; ++n)
-        dst.data()[n] = src.data()[n];
+        std::copy(src.begin(), src.end(), dst.begin());
 
         // the faces in the water, with the margin (phi is known there)
         std::vector<char> known(size,0);

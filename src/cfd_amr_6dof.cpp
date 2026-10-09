@@ -75,10 +75,9 @@ void cfd_amr_6dof::reset_fbh(lexer *p, fdm *a, ghostcell *pgc)
     
     if(sf[0]!=nullptr)
     {
-    const int n = p->imax*p->jmax*p->kmax;
-    std::copy(a->fbh1.data(), a->fbh1.data()+n, sf[0]->data());
-    std::copy(a->fbh2.data(), a->fbh2.data()+n, sf[1]->data());
-    std::copy(a->fbh3.data(), a->fbh3.data()+n, sf[2]->data());
+    std::copy(a->fbh1.begin(), a->fbh1.end(), sf[0]->data());
+    std::copy(a->fbh2.begin(), a->fbh2.end(), sf[1]->data());
+    std::copy(a->fbh3.begin(), a->fbh3.end(), sf[2]->data());
     }
     
     ULOOP
@@ -319,19 +318,17 @@ void cfd_amr_6dof::restore(lexer *p, fdm *a, ghostcell *pgc, int nb)
 // fb of all bodies: the minimum of their level sets
 void cfd_amr_6dof::combine(lexer *p, fdm *a, int nb)
 {
-    const int n = p->imax*p->jmax*p->kmax;
-    
     if(nb==0)
-    std::copy(a->fb.data(), a->fb.data()+n, fball->data());
+    std::copy(a->fb.begin(), a->fb.end(), fball->data());
     
     if(nb>0)
-    for(int q=0; q<n; ++q)
+    for(int q=0; q<(p->imax*p->jmax*p->kmax); ++q)
     fball->data()[q] = MIN(fball->data()[q], a->fb.data()[q]);
 }
 
 void cfd_amr_6dof::finish(lexer *p, fdm *a, ghostcell *pgc)
 {
-    std::copy(fball->data(), fball->data()+p->imax*p->jmax*p->kmax, a->fb.data());
+    std::copy(fball->begin(), fball->end(), a->fb.data());
     
     pgc->start4a(p,a->fb,50);
 }

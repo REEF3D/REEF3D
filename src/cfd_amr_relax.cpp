@@ -435,13 +435,8 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
     if(p->B33==2)
     {
         for(int g=-1; g<(int)P.size(); ++g)
-        {
-            lexer *q = glex(g);
-            field &pr = gfd(g)->press;
-            const size_t n = (size_t)q->imax*q->jmax*q->kmax;
-            for(size_t m=0; m<n; ++m)
-            pr.data()[m] -= shift;
-        }
+        for(double &pr : gfd(g)->press)
+        pr -= shift;
         pgc0->start4(p,a0->press,40);
     }
 }

@@ -388,12 +388,7 @@ void cfd_amr::sc_record_diff(int g, double w, bool coarse, int lfine)
 // the scalar of grid g at the start of the step
 void cfd_amr::sc_save(int g)
 {
-    lexer *q = glex(g);
-    const size_t n = (size_t)q->imax*q->jmax*q->kmax;
-    const double *src = sfield(g).data();
-    double *dst = SG(g).s0->data();
-    for(size_t c=0; c<n; ++c)
-    dst[c] = src[c];
+    std::ranges::copy(sfield(g),SG(g).s0->begin());
 }
 
 // stage s of the SSP-RK3 on grid g

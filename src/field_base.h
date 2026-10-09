@@ -54,6 +54,13 @@ public:
     T *data() noexcept {return V;}
     const T *data() const noexcept {return V;}
 
+    // whole array including ghost cells and slack; 0 for allocate=false
+    std::size_t size() const noexcept {return m_size;}
+    T *begin() noexcept {return V;}
+    const T *begin() const noexcept {return V;}
+    T *end() noexcept {return V+m_size;}
+    const T *end() const noexcept {return V+m_size;}
+
 protected:
     // Vertical-extent-parameterised constructor. operator() folds kz into both
     // the j- and k-strides, so a field with a different number of z-planes needs
@@ -61,9 +68,10 @@ protected:
     // in iterators3D.h exactly. slack is extra trailing elements, for layouts
     // whose forward-stencil macros reach past the last in-stride slot. See field7.
     field_base(lexer* p, int kz, std::size_t slack, bool allocate=true) :
-        imin(p->imin), jkmax(p->jmax*kz), jmin(p->jmin), kmin(p->kmin), kmax(kz)
+        imin(p->imin), jkmax(p->jmax*kz), jmin(p->jmin), kmin(p->kmin), kmax(kz),
+        m_size(allocate ? static_cast<std::size_t>(p->imax)*jkmax + slack : 0)
     {
-        size_t _size = static_cast<std::size_t>(p->imax)*jkmax + slack;
+        size_t _size = m_size;
         V = allocate ? new T[_size] {} : nullptr;
 
         if(V!=nullptr)
@@ -84,6 +92,7 @@ protected:
 
 private:
     const int imin,jkmax,jmin,kmin,kmax;
+    const std::size_t m_size;
 
     unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };

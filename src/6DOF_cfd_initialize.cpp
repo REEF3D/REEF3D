@@ -55,10 +55,9 @@ void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
     // the weights of the solids and the topography (ghostcell::solid_forcing of this stage)
     if(sf[0]!=nullptr)
     {
-    const int n = p->imax*p->jmax*p->kmax;
-    std::copy(a->fbh1.data(), a->fbh1.data()+n, sf[0]->data());
-    std::copy(a->fbh2.data(), a->fbh2.data()+n, sf[1]->data());
-    std::copy(a->fbh3.data(), a->fbh3.data()+n, sf[2]->data());
+    std::copy(a->fbh1.begin(), a->fbh1.end(), sf[0]->data());
+    std::copy(a->fbh2.begin(), a->fbh2.end(), sf[1]->data());
+    std::copy(a->fbh3.begin(), a->fbh3.end(), sf[2]->data());
     }
     
     // Reset heaviside field

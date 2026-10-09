@@ -140,12 +140,9 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
     // the velocity of the start of the step, extended into the air, for the FLIP update
     water_velocity(p,a,pgc);
 
-    for(int n=0; n<size; ++n)
-    {
-        uo->data()[n] = uw->data()[n];
-        vo->data()[n] = vw->data()[n];
-        wo->data()[n] = ww->data()[n];
-    }
+    std::copy(uw->begin(),uw->end(),uo->data());
+    std::copy(vw->begin(),vw->end(),vo->data());
+    std::copy(ww->begin(),ww->end(),wo->data());
 }
 
 // after the momentum step, before the particles move: the FLIP / PIC update of their velocity
