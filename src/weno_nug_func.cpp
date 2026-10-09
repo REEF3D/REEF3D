@@ -23,11 +23,8 @@ Author: Hans Bihs
 #include"weno_nug_func.h"
 #include"lexer.h"
 
-weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
+weno_nug_func::weno_nug_func(lexer *p)
 {
-    own_tables=0;
-    own_nx=own_ny=own_nz=0;
-    
     // the shared tables belong to the first lexer (the rank grid); an instance on another
     // grid (a mesh refinement patch) builds its own
     if(iniflag==1 && p!=s_lexer)
@@ -35,22 +32,22 @@ weno_nug_func::weno_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct
     else
     ini(p);
 
-    weno_nug_func::p=p;
+    weno_nug_func::p = p;
 }
 
-weno_nug_func::weno_nug_func(lexer* p, int):epsilon(0.0),psi(1.0e-6),wtype(0),teno_ct(1.0e-5)
+weno_nug_func::weno_nug_func(lexer *p, int)
 {
     own_ini(p);
 
-    weno_nug_func::p=p;
+    weno_nug_func::p = p;
 }
 
 void weno_nug_func::own_ini(lexer* p)
 {
-    own_tables=1;
-    own_nx=p->knox+2*marge;
-    own_ny=p->knoy+2*marge;
-    own_nz=p->knoz+2*marge;
+    own_tables = true;
+    own_nx = p->knox+2*marge;
+    own_ny = p->knoy+2*marge;
+    own_nz = p->knoz+2*marge;
 
     p->Darray(qfx,own_nx,2,6,2);
     p->Darray(qfy,own_ny,2,6,2);
@@ -89,7 +86,7 @@ weno_nug_func::~weno_nug_func()
 
 void weno_nug_func::ini(lexer* p)
 {
-    if(iniflag==0)
+    if(!iniflag)
     {
         p->Darray(s_qfx,p->knox+2*marge,2,6,2);
         p->Darray(s_qfy,p->knoy+2*marge,2,6,2);
@@ -108,14 +105,14 @@ void weno_nug_func::ini(lexer* p)
     cfx=s_cfx; cfy=s_cfy; cfz=s_cfz;
     isfx=s_isfx; isfy=s_isfy; isfz=s_isfz;
 
-    if(iniflag==0)
+    if(!iniflag)
     {
         precalc_qf(p);
         precalc_cf(p);
         precalc_isf(p);
 
-        iniflag=1;
-        s_lexer=p;
+        iniflag = true;
+        s_lexer = p;
     }
 }
 
@@ -138,5 +135,3 @@ void weno_nug_func::dsdiffy(slice &f, slice &dq)
 double ****weno_nug_func::s_qfx,****weno_nug_func::s_qfy,****weno_nug_func::s_qfz;
 double ***weno_nug_func::s_cfx,***weno_nug_func::s_cfy,***weno_nug_func::s_cfz;
 double ****weno_nug_func::s_isfx,****weno_nug_func::s_isfy,****weno_nug_func::s_isfz;
-int weno_nug_func::iniflag(0);
-lexer *weno_nug_func::s_lexer(nullptr);
