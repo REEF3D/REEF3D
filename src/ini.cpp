@@ -1047,7 +1047,7 @@ void control::ini_default()
     S94=1;                // int sandslide intervall
 	S100=3;					// int number of bed filter outer iterations (was hard-coded 3 in topovel2)
     S101=5;					// int number of bed filter inner iterations (was hard-coded 5 in topovel2)
-    S102=0.75;             // double filter smoothing factor
+    S102=0.0;              // double filter: fraction of the centre value kept per pass (0: 2dx wave removed)
     S103=0.0;              // double bed celerity CFL number for dtsed, 0: off
 
     // Turbulence
