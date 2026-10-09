@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #define WAVE_LIB_IRREGULAR_2ND_CACHE_H_
 
 #include<vector>
+#include<map>
 #include<cmath>
 
 /*--------------------------------------------------------------------
@@ -78,6 +79,9 @@ struct wave_lib_irregular_2nd_terms
     std::vector<double> B, G, Kx, Ky, K, nK, eK;       // nK = 1/(1+exp(-2Kh)), eK = exp(-2Kh)
     std::vector<double> bu, bv, bw, bf;                // B Kx nK, B Ky nK, B K nK, B nK
     std::vector<int> isum, idif, ioth;                 // same-direction sum (and self) / difference terms, others
+    std::vector<int> iu;                               // ioth: index of its |K| in uK
+    std::vector<double> uK, ueK;                       // distinct |K| of the ioth terms (directional grids share them)
+    mutable std::vector<double> Eu, Fu;                // exp(K z), exp(-K(z+2h)) per distinct |K|
 
     bool on=false;
 
@@ -189,6 +193,23 @@ struct wave_lib_irregular_2nd_terms
             }
         }
 
+        // distinct |K| of the terms of other directions: with a frequency-direction grid
+        // (B 136 1-3) the pairs of one frequency pair and direction difference share |K|
+        uK.clear(); ueK.clear(); iu.assign(B.size(),-1);
+        std::map<long long,int> km;
+        for(int i : ioth)
+        {
+            const long long key = llround(K[i]*1.0e12);
+            auto it = km.find(key);
+            if(it==km.end())
+            {
+                it = km.emplace(key,int(uK.size())).first;
+                uK.push_back(K[i]);
+                ueK.push_back(eK[i]);
+            }
+            iu[i] = it->second;
+        }
+        
         on = true;
     }
 
@@ -295,12 +316,17 @@ struct wave_lib_irregular_2nd_terms
             for(int i : idif)
             add(i,P[hi[i]]*iP[lo[i]],iP[hi[i]]*P[lo[i]]*eK[i]);
             
-            // other directions: one exp per term
-            for(int i : ioth)
+            // other directions: one exp per distinct |K|
+            const int U = int(uK.size());
+            Eu.resize(U); Fu.resize(U);
+            for(int j=0; j<U; ++j)
             {
-                const double E = exp(K[i]*z);
-                add(i,E,K[i]*h<600.0 ? eK[i]/E : exp(-K[i]*(z+2.0*h)));
+                Eu[j] = exp(uK[j]*z);
+                Fu[j] = uK[j]*h<600.0 ? ueK[j]/Eu[j] : exp(-uK[j]*(z+2.0*h));
             }
+            
+            for(int i : ioth)
+            add(i,Eu[iu[i]],Fu[iu[i]]);
         }
         else
         {

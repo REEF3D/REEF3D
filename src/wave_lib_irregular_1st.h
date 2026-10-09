@@ -105,7 +105,13 @@ private:
     std::vector<double> cT, sT;                 // cos/sin of the time phase, [n]
     std::vector<double> em2kd, invden;          // exp(-2 k d), 1/(1-exp(-2 k d))
     std::vector<double> Aeta, Afi, Au, Av, Aw;  // component amplitudes of each quantity
-    std::vector<double> ezb;                    // exp(k z) scratch, [n]
+    // distinct wave numbers: components of the same frequency in a directional sea share
+    // the vertical profile, so exp(k z) is evaluated once per distinct k (results bitwise equal)
+    void group_k();
+    void vertical_c(double z);
+    std::vector<int> iu;                        // component -> distinct k, [n]
+    std::vector<double> uK, uem, uinv;          // distinct k, its exp(-2 k d) and 1/(1-exp(-2 k d))
+    std::vector<double> uch, ush;               // cosh / sinh ratios at the current z, [distinct k]
     double cache_t=-1.0e300;
     std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
     int ph_q=-1;

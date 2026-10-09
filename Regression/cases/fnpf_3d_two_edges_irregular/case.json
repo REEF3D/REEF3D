@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_3d_two_edges_irregular_b89",
+ "ctrl_set": {
+  "B 89": "0"
+ },
+ "description": "fnpf_3d_two_edges_irregular_b89 with B 89 0: two irregular sources in their own zones from the cached-point potential (wave_fi_c).",
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "bc_zone",
+  "wave_field",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "wave_fi_c with distinct k",
+  "zone sources in the cached FNPF precalc"
+ ]
+}

@@ -283,6 +283,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_irregular_zone_sources` | 1 | SFLOW, two irregular sources in a B 520 zone: cached-point evaluation (wave_eta_c / wave_uvw_c) |
 | `nhflow_2d_combined_beach` | 1 | combined beach B 99 6 (default B 526 = T / 4): relaxation to the low-passed state plus the absorbing edge at x+ |
 | `fnpf_3d_waverecon_dir` | 2 | wave reconstruction (B 92 51) from a waverecon.dat with directions (column 4), zones at x- and y- |
+| `nhflow_3d_irregular_dir_cached` | 2 | `nhflow_3d_irregular_decomp` with B 89 0 and a frequency-direction grid (B 84 1, B 136 1): cached kinematics, one vertical profile per distinct k |
+| `fnpf_3d_two_edges_irregular` | 2 | `fnpf_3d_two_edges_irregular_b89` with B 89 0: cached potential (wave_fi_c) with zone sources |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
