@@ -2064,6 +2064,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = S103;
     dd++;
+    dctrl[dd] = S104;
+    dd++;
     ictrl[ii] = S51;
     ii++;
     dctrl[dd] = S52;

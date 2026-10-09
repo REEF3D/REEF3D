@@ -980,7 +980,7 @@ void control::ini_default()
 	S12=0;                  // in Suspended Sediment, formula for boundary condition
 	S13=10.0;               // double timestep for sediment transport
 	S14=0.3;               // double relaxation timestep size for sediment transport
-	S15=0;                  // int synchronize sediment time step with main solver
+	S15=0;                  // int sediment time step: 0 S17*min(S13,CFL) 1 min(S17*dt,CFL) 2 S17*S13 3 S17*dt 4 S17*flow time since the last bed update
 	S16=1;                  // int bed shear stress formulation
     S17=1.0;                  // double decoupling factor dtsed
     S18=0.823;                // double mu_d
@@ -1049,6 +1049,7 @@ void control::ini_default()
     S101=5;					// int number of bed filter inner iterations (was hard-coded 5 in topovel2)
     S102=0.0;              // double filter: fraction of the centre value kept per pass (0: 2dx wave removed)
     S103=0.0;              // double bed celerity CFL number for dtsed, 0: off
+    S104=0.0;              // double limit of bed celerity x morphological factor / near-bed flow speed for dtsed, 0: off
 
     // Turbulence
 	T10=0;			    // int turbulence model

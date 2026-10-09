@@ -87,6 +87,8 @@ private:
     slice4 q0;
     
     double maxvz_k=0.0;   // multi-fraction bed: max |vz| of the single fractions (time step)
+    double simtime_last=-1.0;   // flow time of the previous bed update
+    double morfac=0.0, c_U=0.0; // effective morphological factor S35*dtsed/flow time, bed celerity/flow speed
 };
 
 #endif
