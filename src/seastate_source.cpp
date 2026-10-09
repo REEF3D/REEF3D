@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------
 Parts of this file are C++ translations of routines of SWAN 41.51:
-FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads),
+FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads), SWIND5
+(Yan wind input) and SWCAP with IWCAP 7 (van der Westhuysen whitecapping),
 SSURF (Newton linearisation of the Battjes-Janssen dissipation),
 SINTGRL (maximum energy with Battjes-Janssen breaking) and SVEG
 (vegetation, one layer).
@@ -372,17 +373,46 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
                 P[b] += reduc*ta/sig*t*t*t*t*filter;
                 }
 
-                // exponential growth
-                if(prm.komen)
+                // exponential growth: Snyder et al. (1981) as Komen et al. (1984), or Yan (1987) as adapted by
+                // van der Westhuysen et al. (2007) (SWAN SWIND5 with IWCAP 7)
+                if(prm.komen && !prm.westh)
                 P[b] += std::max(0.0,0.25*rho_ratio*(28.0*ustar*cinv*cosdif - 1.0))*sig*double(N[b]);
+                if(prm.westh)
+                {
+                const double us = ustar*cinv;
+                const double yan = (0.04*us*us + 0.00552*us + 0.000052)*cosdif - 0.000302;
+                P[b] += std::max(0.0,yan*sig)*double(N[b]);
+                }
             }
         }
     }
 
     if(Etot>0.0)
     {
+        // whitecapping (van der Westhuysen et al. 2007, SWAN SWCAP with IWCAP 7): saturation-based breaking
+        // dissipation weighted with f_br, the rest non-breaking (Komen type, Cds 3.0e-5, delta 0)
+        if(prm.westh && km_wam>0.0)
+        {
+        const double stp = km_wam*std::sqrt(Etot)/std::sqrt(3.02e-3);
+        const double ck = 3.0e-5*stp*stp*stp*stp;
+
+            for(int l=fa; l<=fb; ++l)
+            {
+            const double sig = g.sig[l], kl = double(k[l]);
+            const double El = row[l]*sig*g.dtheta;                       // E(sig) [m^2 s/rad]
+            const double B = double(cg[l])*kl*kl*kl*El;                  // saturation spectrum
+            const double fbr = 0.5*(1.0 + std::tanh(10.0*(std::sqrt(B/prm.br) - 1.0)));
+            const double pp = 3.0 + std::tanh(25.76*(ustar*kl/sig - 0.1));
+            const double fac1 = std::pow(B/prm.br,0.5*pp), fac2 = std::sqrt(seastate_gravity*kl);
+            const double w = fbr*prm.cds2*fac1*std::pow(fac2/sig,0.5*pp-1.0)*fac2 + (1.0-fbr)*ck*sigm_10*(kl/km_wam);
+
+            for(int m=wa; m<=wb; ++m)
+            D[g.bin(l,m)] += w;
+            }
+        }
+
         // whitecapping (Komen)
-        if(prm.komen && km_wam>0.0)
+        if(prm.komen && !prm.westh && km_wam>0.0)
         {
         const double stp = km_wam*std::sqrt(Etot)/std::sqrt(wc_stpm);
         const double ck = wc_cds*stp*stp*stp*stp;

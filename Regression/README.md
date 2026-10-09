@@ -288,6 +288,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_sediment_pier_mpi2` | 2 | NHFLOW closed basin with a pier, default Exner S 31 2 with closed faces at the structure, NHFLOW bed shear with the thin-water clamp, sand slide S 90 1 (needs Exner Review patches 0001-0016) |
 | `nhflow_3d_sediment_pier_rk2` | 1 | as above with the fully coupled RK2 sediment step S 10 12 (bed advanced in both stages of every flow step, dtsed = S 17 dt) (needs Exner Review patches 0001-0016) |
 | `cfd_2d_sediment_flume` | 1 | CFD 2D flume, MPM sand bed with a submerged block, k-ω, bed shear S 16 1 at the velocity sample height, CFD topo update, sand slide (needs Exner Review patches 0001-0016) |
+| `cfd_2d_sediment_flume_susp` | 1 | As `cfd_2d_sediment_flume` with the Eulerian suspended load (S 12 1, d = 0.15 mm, W 10 0.0015): erosion w_s c_be and deposition w_s c_1 as the only bed exchange, faces of the concentration to the bed, the block, the air and the walls closed; the concentration is checked through the bed (patch 0018; reference with patch 0018) |
 | `nhflow_3d_cylinder_kepsilon_mpi2` | 2 | NHFLOW 3D channel with a cylinder (A580), k-ε, ranks split in y: k/ε and ν_t across the rank interface |
 | `sflow_1d_channel_ke` (+ `_kw`) | 1 | SFLOW depth-averaged k-ε / k-ω (A260 1/2): k, ε/ω relax to the Rastogi–Rodi equilibrium |
 | `sflow_2d_channel_walls_kw_mpi2` | 2 | SFLOW k-ω with side walls, ranks split in y: production at wall cells, uniform k/ω across the width |

@@ -654,6 +654,10 @@ void control::ctrlrecv()
     ii++;
     A799 = ictrl[ii];
     ii++;
+    A757_br = dctrl[dd];
+    dd++;
+    A757_cds2 = dctrl[dd];
+    dd++;
     A716_m = dctrl[dd];
     dd++;
     A716_w = dctrl[dd];

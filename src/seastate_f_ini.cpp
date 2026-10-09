@@ -295,10 +295,12 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 730: wind must be 0 (none), 1 (uniform, A 731) or 2 (field, seastate-wind.dat)";
     else if(p->A730==1 && !(p->A731_u10>=0.0))
     msg = "A 731: the wind speed must not be negative";
-    else if(p->A730>=1 && p->A732!=1)
-    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen)";
-    else if(p->A732!=0 && p->A732!=1)
-    msg = "A 732: deep-water physics must be 0 (off) or 1 (Komen)";
+    else if(p->A730>=1 && p->A732<1)
+    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen) or 2 (van der Westhuysen)";
+    else if(p->A732<0 || p->A732>2)
+    msg = "A 732: deep-water physics must be 0 (off), 1 (Komen) or 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH)";
+    else if(p->A732==2 && (!(p->A757_cds2>0.0) || !(p->A757_br>0.0)))
+    msg = "A 757: Cds2 and B_r of the Westhuysen whitecapping must be positive";
     else if(p->A733!=0 && p->A733!=1)
     msg = "A 733: quadruplets must be 0 (off) or 1 (DIA)";
     else if(!(p->A734>=0.0))
@@ -403,9 +405,9 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 716: the automatic direction sector replaces A 715, give only one of them";
     else if(p->A716_w>0.0 && (p->A711!=1 || p->A770==1))
     msg = "A 716: the automatic direction sector needs the parametric boundary spectrum (A 711 1, B 85, B 93, B 130, B 131), not the surfbeat model";
-    else if(p->A716_w>0.0 && p->A732==1 && p->A733==1)
+    else if(p->A716_w>0.0 && p->A732>=1 && p->A733==1)
     msg = "A 716: the DIA quadruplets (A 733 1) need uniform directions";
-    else if(p->A715_k>1 && p->A732==1 && p->A733==1)
+    else if(p->A715_k>1 && p->A732>=1 && p->A733==1)
     msg = "A 715: the DIA quadruplets (A 733 1) need uniform directions";
     else if(p->A738<1 || !(p->A739>=0.0))
     msg = "A 738, A 739: at least one source iteration, the tolerance must not be negative";
@@ -693,8 +695,11 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.wdir = p->A731_dir*3.14159265358979323846/180.0;
     sp.Alin = p->A734;
 
-    sp.komen = (p->A732==1);
-    sp.dia   = (p->A732==1 && p->A733==1);
+    sp.komen = (p->A732>=1);
+    sp.westh = (p->A732==2);
+    sp.cds2  = p->A757_cds2;
+    sp.br    = p->A757_br;
+    sp.dia   = (p->A732>=1 && p->A733==1);
     sp.limiter = p->A735;
 
     sp.breaking = (p->A740==1 || p->A740==2);
@@ -729,11 +734,13 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     {
     cout<<"SEASTATE source terms:";
     if(sp.wind && p->A730==1)
-    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg (Komen, linear growth "<<sp.Alin<<"),";
+    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
     if(sp.wind && p->A730==2)
-    cout<<" wind field seastate-wind.dat (Komen, linear growth "<<sp.Alin<<"),";
-    if(sp.komen)
+    cout<<" wind field seastate-wind.dat ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
+    if(sp.komen && !sp.westh)
     cout<<" whitecapping (Komen),";
+    if(sp.westh)
+    cout<<" whitecapping (van der Westhuysen, cds2 "<<sp.cds2<<", br "<<sp.br<<"),";
     if(sp.dia)
     cout<<" quadruplets (DIA),";
     if(sp.komen)

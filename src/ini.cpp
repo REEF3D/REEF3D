@@ -263,7 +263,7 @@ void control::ini_default()
     A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 field in space and time from seastate-wind.dat
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
-    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733)
+    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping)
     A733=1;           // int quadruplets with A 732 1: 0 off, 1 DIA
     A734=1.5e-3;      // double linear wind growth (Cavaleri and Malanotte-Rizzoli), 0 off
     A735=0.1;         // double action density limiter with A 732 1 (SWAN, Ris 1997), 0 off
@@ -322,6 +322,8 @@ void control::ini_default()
     A739=1.0e-4;      // double ... until the estimated distance of the energy of the cell to its balance is below this fraction
     A798=1;           // int threads per MPI rank for the sweeps (wavefront order)
     A799=0;           // int stationary convergence test: 0 change of Hs per iteration (A 708), 1 estimated distance of Hs to the solution
+    A757_cds2=5.0e-5; // double A 732 2 (van der Westhuysen): coefficient Cds2 of the saturation-based whitecapping (SWAN cds2)
+    A757_br=1.75e-3;  // double ... saturation threshold B_r (SWAN br)
     A797=0;           // int mesh refinement (G 1): 0 sweeps level by level (V-cycle), 1 composite sweep (the finer cells within the sweep of their parent cell)
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 
