@@ -414,7 +414,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         pscope ps(pgc,c->d,d0);
         sedscope ss(c->pp);
         vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
-        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
+        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp,c->sed->s));
         brate = MAX(brate,c->sed->exner()->bend_rate);
         // the bed celerity of the patches and blocks (their own cells): S 103, S 104 and c/U of the log
         c->sed->exner()->celerity(c->pp,c->sed->s,mask[id+1].get(),ccmax,ccdx,cumax);

@@ -123,7 +123,7 @@ public:
     // bed gradient of cell (ii,jj) (bedslope, bedload direction): central index differences,
     // one-sided next to cells without a bed (DFBED<0); zero=1: no gradient along a line closed on
     // both sides (bedload_direction_f), 0: the central difference stays
-    static void bedgrad(lexer*, slice &f, int ii, int jj, int zero, double &fx, double &fy);
+    static void bedgrad(lexer*, sediment_fdm*, slice &f, int ii, int jj, int zero, double &fx, double &fy);
 
     // contravariant component s.g^dir of a vector at cell (ii,jj) (per index), cell grid vectors
     // from the centre differences over two cells

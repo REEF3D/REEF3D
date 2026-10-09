@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"sflow_diffusion.h"
 #include"sflow_turbulence.h"
 #include"sediment_f.h"
+#include"sediment_fdm.h"
 #include"ckpt_registry.h"
 #include"lexer.h"
 #include<set>
@@ -109,8 +110,8 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     // S 10: the sediment cell flags and the arrays of the sediment objects of the patch
     if(c->sed!=nullptr)
     {
-        if(c->pp->DFBED!=nullptr)
-        fi("amr_DFBED",'S',c->pp->DFBED);
+        if(c->sed->s->DFBED!=nullptr)
+        fi("amr_DFBED",'S',c->sed->s->DFBED);
         sed_registry(c->pp,listed,[&](const ckpt_registry::entry &e)
         {
             if(e.isint) v("amr_sedreg",e.kind,nullptr,(int*)e.V);

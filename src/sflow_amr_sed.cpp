@@ -153,7 +153,7 @@ void sflow_amr::sed_patch_ini(ghostcell *pgc, sflow_amr_patch &c)
         {
         const int q = (ii-pp->imin)*pp->jmax + (jj-pp->jmin);
         c.sed->dfbed_open.push_back(q);
-        pp->DFBED[q] = 1;
+        c.sed->s->DFBED[q] = 1;
         }
     }
 
@@ -169,7 +169,7 @@ void sflow_amr::sed_patch_ini(ghostcell *pgc, sflow_amr_patch &c)
         if(!inside && pp->flagslice4[q]<0)
         {
         c.sed->dfbed_open.push_back(q);
-        pp->DFBED[q] = 1;
+        c.sed->s->DFBED[q] = 1;
         }
     }
 
@@ -705,7 +705,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         sflow_amr_patch *c = SP(id);
         sedscope ss(pgc,c->pp);
         vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
-        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
+        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp,c->sed->s));
         brate = MAX(brate,c->sed->exner()->bend_rate);
         // the bed celerity of the patches and blocks (their own cells): S 103, S 104 and c/U of the log
         c->sed->exner()->celerity(c->pp,c->sed->s,mask[id+1].get(),ccmax,ccdx,cumax);

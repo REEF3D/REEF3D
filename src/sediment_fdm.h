@@ -90,6 +90,8 @@ public:
     // (S 120 > 0, sediment_susp2D), nullptr otherwise
     slice4 *edrate = nullptr;
 
+    int *DFBED;
+
 };
 
 #endif

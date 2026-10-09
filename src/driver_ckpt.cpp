@@ -180,8 +180,8 @@ reefrun_ckpt& driver::ckpt()
             ck.blob("sediment",sv);
             psed->ckpt_rank_state(p,sr);
             ck.rank_blob("sediment_rank",sr);
-            if(p->DFBED!=nullptr)
-            ck.put_Si("DFBED",p->DFBED);
+            if(psed->ckpt_dfbed()!=nullptr)
+            ck.put_Si("DFBED",psed->ckpt_dfbed());
             if(psed->ckpt_wln()!=nullptr)
             ck.put_S("sed_WLN",psed->ckpt_wln());
         }
@@ -341,8 +341,8 @@ reefrun_ckpt& driver::ckpt()
                 msg = "the sediment state of the ranks does not fit this run (S 10)";
                 return false;
             }
-            if(p->DFBED!=nullptr && ck.has("DFBED"))
-            ok = ck.get_Si("DFBED",p->DFBED) && ok;
+            if(psed->ckpt_dfbed()!=nullptr && ck.has("DFBED"))
+            ok = ck.get_Si("DFBED",psed->ckpt_dfbed()) && ok;
             if(psed->ckpt_wln()!=nullptr && ck.has("sed_WLN"))
             ok = ck.get_S("sed_WLN",psed->ckpt_wln()) && ok;
         }
