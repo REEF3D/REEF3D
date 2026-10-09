@@ -28,7 +28,7 @@ Author: Hans Bihs
 class fieldint3 final : public fieldint
 {
 public:
-    fieldint3(lexer* pp) : fieldint(pp) {}
+    fieldint3(lexer *pp) : fieldint(pp) {}
     ~fieldint3() override;
 };
 
