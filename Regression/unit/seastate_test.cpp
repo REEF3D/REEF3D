@@ -68,6 +68,23 @@ static void test_grid()
     check(!seastate_grid(32,0.5,0.1,36).valid(),"fmax <= fmin rejected");
     check(!seastate_grid(32,0.0,1.0,36).valid(),"fmin <= 0 rejected");
     check(!seastate_grid(32,0.04,1.0,2).valid(),"ndir < 4 rejected");
+
+    // computational direction sector (A 717, Phase 10)
+    {
+    seastate_grid sc(20,0.08,1.0,24);
+    check(sc.active()==24,"full circle: all directions active");
+    const bool ok1 = sc.computational_sector(270.0*pi/180.0,90.0*pi/180.0);
+    check(ok1 && sc.active()==13,"sector 270 -> 90 deg (ccw, through 0): 13 of 24 directions, both edges included");
+    check(sc.act[0] && sc.act[6] && !sc.act[7] && !sc.act[17] && sc.act[18] && sc.act[23],"sector 270 -> 90: directions 0..90 and 270..345 active");
+    int nq[4] = {0,0,0,0};
+    for(int m=0; m<sc.ndir; ++m)
+    if(sc.act[m])
+    ++nq[sc.quad[m]];
+    check(nq[0]==6 && nq[1]==1 && nq[2]==0 && nq[3]==6,"sector 270 -> 90: quadrants hold 6, 1, 0, 6 active directions");
+    seastate_grid s72(20,0.08,1.0,72);
+    check(s72.computational_sector(pi,2.0*pi) && s72.active()==37,"SWAN SEC -90 90 (nautical) = 180 -> 360 deg: 37 of 72 directions, as SWAN");
+    check(!s72.computational_sector(60.0*pi/180.0,30.0*pi/180.0),"a sector of 330 deg (60 -> 30 deg) splits quadrant 0: rejected");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

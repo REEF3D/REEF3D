@@ -1,0 +1,22 @@
+{
+ "base": "seastate_2d_phase9_width",
+ "ctrl_add": [
+  "A 758 1 4"
+ ],
+ "ctrl_set": {
+  "A 700": "1",
+  "A 706": "120.0",
+  "A 707": "2"
+ },
+ "description": "as seastate_2d_phase9_width (one level of 100 m along a fjord) nonstationary (A 700 1, 5 steps of 120 s, 2 iterations per step, waves entering from rest) with the FAS coarse-grid correction after every iteration of the step (A 758 1 4, Phase 10): the residuals include the time term of the step (N0 of level 0 and of the patches). Validation in Dropbox SEASTATE/validation/48_performance_iii.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_amr fas nonstationary (N0)",
+  "seastate_f transport_amr FAS within the step"
+ ],
+ "time": 600.0
+}

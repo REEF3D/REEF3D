@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase9_width",
+ "ctrl_add": [
+  "A 798 2"
+ ],
+ "description": "as seastate_2d_phase9_width (one level of 100 m along a fjord, level-by-level sweeps A 797 0) with 2 threads per rank (A 798 2, Phase 10): the level-0 sweeps with the covered cells skipped and the sweeps of the patches of at least 64 cells in wavefront order; bitwise the result of one thread (the reference is that of seastate_2d_phase9_width). Validation in Dropbox SEASTATE/validation/48_performance_iii.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit sweep_threads on ranged grids with covered cells"
+ ]
+}

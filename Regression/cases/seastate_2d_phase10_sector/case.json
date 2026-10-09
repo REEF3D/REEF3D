@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_add": [
+  "A 717 270.0 90.0"
+ ],
+ "description": "as seastate_2d_wind (stationary fetch-limited growth along +x, Komen, DIA) with the computational direction sector A 717 270 90 (Phase 10, as SWAN CGRID SECTOR): 13 of the 24 directions (270 to 90 deg through 0) are computed, quadrant 1 holds one direction and quadrant 2 none (its sweep is skipped), the sector edges are absorbing for the DIA transfers and the theta fluxes. Validation in Dropbox SEASTATE/validation/47_swan_direction.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_grid computational_sector",
+  "seastate_implicit quadrant ranges of the active directions, empty quadrant"
+ ]
+}
