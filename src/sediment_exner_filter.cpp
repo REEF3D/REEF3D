@@ -28,7 +28,7 @@ Author: Hans Bihs
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
 
-void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
+void sediment_exner::filter(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &f, int outer_iter, int inner_iter)
 {
     // Conservative, mask-aware smoothing of the bed velocity f (vz).
     //
@@ -81,18 +81,18 @@ void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, i
         {
         Ai = p->DXN[IP]*p->DYN[JP];
 
-        if(i+p->origin_i>0 && m(i-1,j)>0.5 && p->flagslice4[Im1J]>0 && p->DFBED[Im1J]>0)
+        if(i+p->origin_i>0 && m(i-1,j)>0.5 && p->flagslice4[Im1J]>0 && s->DFBED[Im1J]>0)
         wxm(i,j) = beta*MIN(Ai,p->DXN[IM1]*p->DYN[JP])/Ai;
 
-        if(i+p->origin_i<p->gknox-1 && m(i+1,j)>0.5 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
+        if(i+p->origin_i<p->gknox-1 && m(i+1,j)>0.5 && p->flagslice4[Ip1J]>0 && s->DFBED[Ip1J]>0)
         wxp(i,j) = beta*MIN(Ai,p->DXN[IP1]*p->DYN[JP])/Ai;
 
             if(ydir==1)
             {
-            if(j+p->origin_j>0 && m(i,j-1)>0.5 && p->flagslice4[IJm1]>0 && p->DFBED[IJm1]>0)
+            if(j+p->origin_j>0 && m(i,j-1)>0.5 && p->flagslice4[IJm1]>0 && s->DFBED[IJm1]>0)
             wym(i,j) = beta*MIN(Ai,p->DXN[IP]*p->DYN[JM1])/Ai;
 
-            if(j+p->origin_j<p->gknoy-1 && m(i,j+1)>0.5 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
+            if(j+p->origin_j<p->gknoy-1 && m(i,j+1)>0.5 && p->flagslice4[IJp1]>0 && s->DFBED[IJp1]>0)
             wyp(i,j) = beta*MIN(Ai,p->DXN[IP]*p->DYN[JP1])/Ai;
             }
         }

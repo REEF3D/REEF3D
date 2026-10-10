@@ -97,7 +97,7 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     
         SEDSLICELOOP
         {
-            if(i+p->origin_i<p->gknox-1 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
+            if(i+p->origin_i<p->gknox-1 && p->flagslice4[Ip1J]>0 && s->DFBED[Ip1J]>0)
             {
             dz = fabs(s->bedzh(i+1,j)-s->bedzh(i,j));
             dq = fabs(s->qb(i+1,j)-s->qb(i,j));
@@ -109,7 +109,7 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
             }
             
             if(p->j_dir==1 && p->gknoy>1)
-            if(j+p->origin_j<p->gknoy-1 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
+            if(j+p->origin_j<p->gknoy-1 && p->flagslice4[IJp1]>0 && s->DFBED[IJp1]>0)
             {
             dz = fabs(s->bedzh(i,j+1)-s->bedzh(i,j));
             dq = fabs(s->qb(i,j+1)-s->qb(i,j));

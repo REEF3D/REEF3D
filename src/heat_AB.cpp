@@ -51,7 +51,7 @@ void heat_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, sol
 
     clearrhs(p,a,pgc);
 	pconvec->start(p,a,T,4,a->u,a->v,a->w);
-	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,a->eddyv,p->sigT,1.0);
+	pdiff->diff_scalar(p,a,pgc,psolv,T,thermdiff,a->eddyv,sigT,1.0);
 
 	if(p->count==1)
 	LOOP
@@ -68,7 +68,7 @@ void heat_AB::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, sol
 	pgc->start4(p,T,gcval_heat);
 	pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
-	p->heattime=pgc->timer()-starttime;
+	double heattime=pgc->timer()-starttime;
 }
 
 void heat_AB::ttimesave(lexer *p, fdm* a)

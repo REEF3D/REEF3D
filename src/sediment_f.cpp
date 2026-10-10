@@ -70,16 +70,16 @@ void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, rein
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
 		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		if(p->S42==2 && p->simtime>=sedsimtime)
 		{
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		p->sedsimtime = p->simtime + p->S46;
+		sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime)
+		if(p->S42==3  && p->simtime/p->wT>=sedwavetime)
 		{            
 		sediment_algorithm_cfd(p,a,pgc,pflow,preto,psolv);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
+		sedwavetime = p->simtime/p->wT + p->S48;
 		}
     
     sedcalc=1;
@@ -100,16 +100,16 @@ void sediment_f::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflo
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_nhflow(p,d,pgc,pflow);
 		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		if(p->S42==2 && p->simtime>=sedsimtime)
 		{
 		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		p->sedsimtime = p->simtime + p->S46;
+		sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
+		if(p->S42==3  && p->simtime/p->wT>=sedwavetime )
 		{
 		sediment_algorithm_nhflow(p,d,pgc,pflow);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
+		sedwavetime = p->simtime/p->wT + p->S48;
 		}
 	}
 }
@@ -121,16 +121,16 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 		if(p->S42==1 && p->count%p->S44==0)
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
 		
-		if(p->S42==2 && p->simtime>=p->sedsimtime)
+		if(p->S42==2 && p->simtime>=sedsimtime)
 		{
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		p->sedsimtime = p->simtime + p->S46;
+		sedsimtime = p->simtime + p->S46;
 		}
 		
-		if(p->S42==3  && p->simtime/p->wT>=p->sedwavetime )
+		if(p->S42==3  && p->simtime/p->wT>=sedwavetime )
 		{
 		sediment_algorithm_sflow(p,b,pgc,pflow,P,Q);
-		p->sedwavetime = p->simtime/p->wT + p->S48;
+		sedwavetime = p->simtime/p->wT + p->S48;
 		}
 	}
 }

@@ -88,7 +88,7 @@ public:
 
 	int pointnum,cellnum,tpcellnum;
 	int cellnum1,cellnum2,cellnum3;
-    int pointnumtot,cellnumtot;
+    int cellnumtot;
     int N4,N4_row,N4_col;
     int N7,N7_row,N7_col;
 	int surf_tot;
@@ -215,8 +215,8 @@ public:
 
 
     // flow parameters
-    const double cmu;
-    double deltax,sigT,Ui,Ua,Uo;
+    static constexpr double cmu = 0.09;
+    double deltax,Ui,Ua,Uo;
     double Ho,Hi;
 
     // 6DOF
@@ -242,7 +242,6 @@ public:
 	double mindt,maxdt;
 	double umax,vmax,wmax,epsmax,kinmax,pressmin,pressmax,omegamax;
 	double presstime,veltime,reinitime,turbtime,plstime,itertime;
-	double sedsimtime,sedwavetime;
 	double wavecalctime;
 	double meantime,totaltime;
 	double gcmeantime,gctotaltime;
@@ -251,12 +250,9 @@ public:
 	double susptime,maxtopovel;
 	double gctime, xtime;
 	double volume1,volume2,volume3;
-    double tank_vol;
-	double Qi,Qo;
-	double dtsed,sedtime,slidecells;
-	double bedmax,bedmin;
-	double field4time;
-    double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
+    double Qi,Qo;
+    double dtsed,sedtime,slidecells;
+    double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime;
     double wavetime;
     int open_xm,open_xp,open_ym,open_yp;    // iowave Riemann / Flather edge on x- / x+ / y- / y+ (NHFLOW): ghost cells set by iowave
 
@@ -273,10 +269,10 @@ public:
     double dftime;
 	double kintime,epstime;
 	double poissontime, laplacetime, matrixtime, ptime;
-    double sftime,fbtime,fsitime;
+    double sftime,fbtime;
     double fbdt,fbmax;
     double sfdt,sfmax;
-	double lsmtime,heattime,concentrationtime;
+	double lsmtime,concentrationtime;
 	double printouttime;
 	double phimean,phiout,phiin;
     double fsfin,fsfout;
