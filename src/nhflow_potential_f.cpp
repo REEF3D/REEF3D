@@ -72,6 +72,8 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     itermem=p->N46;
     p->N46=5000;
 	
+    p->final_res=0.0;
+
     for(int qn=0; qn<1;++qn)
     {
     laplace(p,d,pgc);
@@ -92,8 +94,17 @@ void nhflow_potential_f::start(lexer*p, fdm_nhf *d, solver* psolv, ghostcell* pg
     {
     int fail = (p->solveriter>=p->N46) ? 1 : 0;
 
+    // a solve that diverged within N 46 iterations (final residual far above the tolerance,
+    // REEFMG reports it in final_res, other solvers leave it at 0) or velocities far
+    // beyond the in/outflow velocities would otherwise be passed on as the initial state
+    if(!std::isfinite(p->final_res) || p->final_res>1.0e-2)
+    fail=1;
+
+    const double ulim = 100.0*MAX(1.0,MAX(fabs(p->Ui),fabs(p->Uo)));
+
     LOOP
-    if(!std::isfinite(d->U[IJK]) || !std::isfinite(d->V[IJK]) || !std::isfinite(d->W[IJK]))
+    if(!std::isfinite(d->U[IJK]) || !std::isfinite(d->V[IJK]) || !std::isfinite(d->W[IJK])
+    || fabs(d->U[IJK])>ulim || fabs(d->V[IJK])>ulim || fabs(d->W[IJK])>ulim)
     fail=1;
 
     fail = pgc->globalimax(fail);
@@ -321,10 +332,14 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
 		d->M.n[n] = 0.0;
 		}
         
+        // outflow: psi = 0 on the outflow face (ghost = -psi), not the flux Uo.  With the
+        // prescribed flux the problem was pure Neumann, and the sigma operator (bed slope
+        // terms sigxx, KBEDBC) is not in conservation form, so inflow = outflow did not make
+        // it consistent over real bathymetry: the solve stalled or diverged.  The Dirichlet
+        // outflow removes the null space; the outflow profile follows from the potential.
         if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==2)
         {
-        d->rhsvec.V[n] -= d->M.n[n]*p->Uo*p->DXP[IP1];
-        d->M.p[n] += d->M.n[n];
+        d->M.p[n] -= d->M.n[n];
         d->M.n[n] = 0.0;
         }
 		
