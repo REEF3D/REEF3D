@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SLICEINT5_H_
 #define SLICEINT5_H_
 
-#include"sliceint.h"
+#include "sliceint.h"
 
 class sliceint5 final : public sliceint
 {
