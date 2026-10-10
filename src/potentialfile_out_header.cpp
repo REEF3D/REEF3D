@@ -33,7 +33,7 @@ void potentialfile_out::header_file_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     for(n=0;n<p->P240;++n)
     {
     // open file
-    sprintf(headername,"./REEF3D_FlowFile/REEF3D-potentialheader.r3d");
+    snprintf(headername,sizeof(headername),"./REEF3D_FlowFile/REEF3D-potentialheader.r3d");
 		
     // openfile
     headerout.open(headername, ios::binary);

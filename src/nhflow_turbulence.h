@@ -43,7 +43,7 @@ class nhflow_turbulence
 {
 
 public:
-    virtual ~nhflow_turbulence() {}
+    virtual ~nhflow_turbulence() = default;
 
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*)=0;
 	virtual void ktimesave(lexer*, fdm_nhf*, ghostcell*)=0;

@@ -32,6 +32,8 @@ using namespace std;
 class sflow_timestep
 {
 public:
+    virtual ~sflow_timestep() = default;
+
     virtual void start(lexer*,fdm2D*,ghostcell*)=0;
 	virtual void ini(lexer*,fdm2D*,ghostcell*)=0;
 

@@ -64,7 +64,7 @@ void fsf_vtp::print(lexer* p, fdm* a)
     //---------------------------------------------
 
     ofstream result;
-    sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     result.open(name, ios::binary);
 
     vtp3D::beginning(p,result,vertice_num,0,0,0,polygon_num);

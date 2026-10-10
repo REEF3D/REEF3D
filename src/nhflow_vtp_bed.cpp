@@ -102,7 +102,7 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum+sizeof(int);
     ++n;
 
-    sprintf(name,"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTP_BED/REEF3D-NHFLOW-BED-%08i-%06i.vtp",num,p->mpirank+1);
 
     // Open File
     ofstream result;

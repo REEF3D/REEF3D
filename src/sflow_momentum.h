@@ -36,6 +36,7 @@ using namespace std;
 class sflow_momentum 
 {
 public:
+    virtual ~sflow_momentum() = default;
 
 	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
     virtual void ini(lexer*, fdm2D*, ghostcell*)=0;

@@ -142,7 +142,7 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
 
     // Open File
     ofstream result;
-    sprintf(name,"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_FNPF_VTP_FSF/REEF3D-FNPF-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     result.open(name, ios::binary);
 
     vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);

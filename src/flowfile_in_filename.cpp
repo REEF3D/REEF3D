@@ -26,12 +26,12 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-void flowfile_in::filename(lexer *p, fdm *a, ghostcell *pgc, char *name, int num)
+void flowfile_in::filename(lexer *p, fdm *a, ghostcell *pgc, char *name, int num, int buffer_size)
 {
 		if(p->gcin_count>0)
 		{
 			// open file
-			sprintf(name,"./REEF3D_FlowFile/REEF3D-flowfile-%08i-%08i.r3d",p->I230,num);
+			snprintf(name,buffer_size,"./REEF3D_FlowFile/REEF3D-flowfile-%08i-%08i.r3d",p->I230,num);
 		}
 }
 

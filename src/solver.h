@@ -37,6 +37,7 @@ class solver
 {
 
 public:
+    virtual ~solver() = default;
 
 	virtual void start(lexer*,fdm*, ghostcell*, field&, vec&, int)=0;
     virtual void startf(lexer*, ghostcell*, field&, vec&, matrix_diag&, int)=0;

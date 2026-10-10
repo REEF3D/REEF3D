@@ -235,7 +235,7 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     ++n;
 
     // Open File
-    sprintf(name,"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,p->mpirank+1);
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,p->mpirank+1);
     ofstream result;
     result.open(name, ios::binary);
 

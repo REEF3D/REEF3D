@@ -38,6 +38,7 @@ using namespace std;
 class fsi
 {
 public:
+    virtual ~fsi() = default;
 
 	virtual void start(lexer*,fdm*,ghostcell*)=0;
 	virtual void initialize(lexer*,fdm*,ghostcell*,turbulence*)=0;

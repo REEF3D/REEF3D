@@ -36,7 +36,7 @@ class sixdof_geometry;
 class sixdof_fluid
 {
 public:
-    virtual ~sixdof_fluid() {}
+    virtual ~sixdof_fluid() = default;
     
     virtual void velocity(int n, const double *xyz, double *uvw)=0;
 };
@@ -97,7 +97,7 @@ struct sixdof_actuator_disk
 class sixdof_load
 {
 public:
-    virtual ~sixdof_load() {}
+    virtual ~sixdof_load() = default;
     
     virtual void add_load(lexer*, const sixdof_rigidbody&, const sixdof_geometry&, sixdof_fluid*, double*)=0;
     virtual void actuator_disks(std::vector<sixdof_actuator_disk>&) const {}

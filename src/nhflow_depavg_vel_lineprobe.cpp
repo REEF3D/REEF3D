@@ -76,7 +76,7 @@ void nhflow_depavg_vel_lineprobe::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(flag[n]!=1)
             continue;
 
-        sprintf(name,"./REEF3D_NHFLOW_DEP-AVG-VEL-LINE/REEF3D-NHFLOW-DepAvgVel-LineProbe-%i-%i.dat",n+1,p->count);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_DEP-AVG-VEL-LINE/REEF3D-NHFLOW-DepAvgVel-LineProbe-%i-%i.dat",n+1,p->count);
         pout[n].open(name);
 
         pout[n]<<"Depth-Averaged Velocity Lineprobe ID:  "<<n+1<<"\n\n"

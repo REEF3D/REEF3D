@@ -3091,9 +3091,6 @@
           <File Name="fields.cpp"/>
           <File Name="fieldints.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Increment">
-          <File Name="increment.cpp"/>
-        </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
           <File Name="geotopo.cpp"/>
           <File Name="geotopo_dat.cpp"/>

@@ -68,7 +68,7 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
             continue;
         }
         
-		sprintf(name,"./REEF3D_Log-Wave/REEF3D-Wave-Timeseries-%i.dat",n+1);
+		snprintf(name,sizeof(name),"./REEF3D_Log-Wave/REEF3D-Wave-Timeseries-%i.dat",n+1);
 		
 		pout.open(name);
 

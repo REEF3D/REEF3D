@@ -40,6 +40,8 @@ class sflow_turbulence
 {
 
 public:
+    virtual ~sflow_turbulence() = default;
+
 	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*)=0;
 	virtual void ktimesave(lexer*, fdm2D*, ghostcell*)=0;
 	virtual void etimesave(lexer*, fdm2D*, ghostcell*)=0;

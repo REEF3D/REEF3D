@@ -40,12 +40,12 @@ void fsi_strip::print_ini(lexer *p)
     // Ini print parameter
     ofstream print;
     char str[1000];
-    sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
     print.open(str);
 	print<<"time \t x [m] \t y [m] \t z [m]"<<endl;
 	print.close();
     
-    sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
+    snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
     print.open(str);
 	print<<"time \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
 	print.close();
@@ -72,22 +72,22 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
         char path[300];
         
         if(num<10)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-00000%i.stl",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-00000%i.stl",nstrip,num);
 
         if(num<100&&num>9)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-0000%i.stl",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-0000%i.stl",nstrip,num);
 
         if(num<1000&&num>99)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-000%i.stl",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-000%i.stl",nstrip,num);
 
         if(num<10000&&num>999)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-00%i.stl",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-00%i.stl",nstrip,num);
 
         if(num<100000&&num>9999)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-0%i.stl",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-0%i.stl",nstrip,num);
 
         if(num>99999)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-%i.stl",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-%i-%i.stl",nstrip,num);
 
         build_strip();
 
@@ -113,22 +113,22 @@ void fsi_strip::print_stl(lexer *p, fdm *a, ghostcell *pgc)
         result.close();
 
         if(num<10)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-00000%i.csv",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-00000%i.csv",nstrip,num);
 
         if(num<100&&num>9)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-0000%i.csv",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-0000%i.csv",nstrip,num);
 
         if(num<1000&&num>99)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-000%i.csv",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-000%i.csv",nstrip,num);
 
         if(num<10000&&num>999)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-00%i.csv",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-00%i.csv",nstrip,num);
 
         if(num<100000&&num>9999)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-0%i.csv",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-0%i.csv",nstrip,num);
 
         if(num>99999)
-        sprintf(path,"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-%i.csv",nstrip,num);
+        snprintf(path,sizeof(path),"./REEF3D_CFD_Beam_STL/REEF3D-Beam-Lagrange-%i-%i.csv",nstrip,num);
         
         result.open(path, ios::binary);
 
@@ -156,7 +156,7 @@ void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
         ofstream print;
         char str[1000];
         
-        sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_position_%i.dat",nstrip);
         print.open(str, std::ofstream::out | std::ofstream::app);
         
         for (int eI = 0; eI < Ne+1; eI++)
@@ -165,7 +165,7 @@ void fsi_strip::print_parameter(lexer *p, fdm *a, ghostcell *pgc)
         }
         print.close();
         
-        sprintf(str,"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_Beam/REEF3D_Beam_forces_%i.dat",nstrip);
         print.open(str, std::ofstream::out | std::ofstream::app);
         Eigen::Vector3d sum = Eigen::Vector3d::Zero();
         for (int eI = 0; eI < Ne; eI++)

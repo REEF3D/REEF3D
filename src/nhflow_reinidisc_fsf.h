@@ -31,7 +31,7 @@ class ghostcell;
 
 using namespace std;
 
-class nhflow_reinidisc_fsf : public increment, public ddweno_nug_sig
+class nhflow_reinidisc_fsf : public ddweno_nug_sig
 {
 public:
 	nhflow_reinidisc_fsf(lexer* p);

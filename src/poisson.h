@@ -32,6 +32,7 @@ using namespace std;
 class poisson
 {
 public:
+    virtual ~poisson() = default;
 
 virtual void start(lexer *,fdm*, field&)=0;
 
