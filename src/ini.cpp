@@ -257,6 +257,8 @@ void control::ini_default()
     A714=1;           // int frequency shift
     A716_w=0.0;       // double automatic fine direction sector around the parametric boundary spectrum: largest bin width there [deg] (0 off)
     A716_m=15.0;      // double ... margin on both sides of the boundary spreading [deg]
+    A717=0;           // int computational direction sector (as SWAN CGRID SECTOR): 1 on, set by the key
+    A717_th1=A717_th2=0.0; // double ... from this direction counter-clockwise to this one [deg], ccw from +x (propagation direction); the directions outside are not computed and hold no energy
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]

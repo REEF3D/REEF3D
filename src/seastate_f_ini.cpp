@@ -401,6 +401,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 797: the sweeps with mesh refinement must be 0 (level by level) or 1 (composite)";
     else if(p->A715_k<1)
     msg = "A 715: the division of the sector directions must be at least 1";
+    else if(p->A717==1 && p->A770==1)
+    msg = "A 717: the computational direction sector is not available with the surfbeat model (A 770 1)";
     else if(p->A715_k>1 && p->A770==1)
     msg = "A 715: the fine direction sector is not available with the surfbeat model (A 770 1)";
     else if(p->A716_w<0.0 || p->A716_m<0.0)
@@ -553,6 +555,21 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
         // fine direction sector (A 715)
         if(p->A715_k>1 && e->grid->valid())
         e->grid->sector(p->A715_th1*3.14159265358979323846/180.0,p->A715_th2*3.14159265358979323846/180.0,p->A715_k);
+
+        // computational direction sector (A 717)
+        if(p->A717==1 && e->grid->valid())
+        {
+            if(!e->grid->computational_sector(p->A717_th1*3.14159265358979323846/180.0,p->A717_th2*3.14159265358979323846/180.0) || e->grid->active()==0)
+            {
+            if(p->mpirank==0)
+            cout<<endl<<"SEASTATE input error  --  A 717: the computational sector must hold at least one direction and be at most 270 deg wide"<<endl<<endl;
+
+            pgc->final(true);
+            }
+
+            if(p->mpirank==0)
+            cout<<"SEASTATE computational direction sector (A 717): "<<p->A717_th1<<" to "<<p->A717_th2<<" deg (ccw), "<<e->grid->active()<<" of "<<e->grid->ndir<<" directions computed"<<endl;
+        }
     }
 
     // spectral sparsity (A 795): the ranges of directions are stored in one byte each

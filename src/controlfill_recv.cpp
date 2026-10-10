@@ -668,6 +668,12 @@ void control::ctrlrecv()
     dd++;
     A716_w = dctrl[dd];
     dd++;
+    A717 = ictrl[ii];
+    ii++;
+    A717_th1 = dctrl[dd];
+    dd++;
+    A717_th2 = dctrl[dd];
+    dd++;
 
     B10 = ictrl[ii];
     ii++;

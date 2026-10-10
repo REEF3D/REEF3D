@@ -72,6 +72,12 @@ public:
     // the bin that holds direction th [rad]
     int direction_bin(double th) const;
 
+    // computational direction sector (A 717, as SWAN CGRID SECTOR): only the directions with centres in
+    // th1 .. th2 [rad] (counter-clockwise) are computed, the others hold no energy (act[m] = 0); false
+    // if the active directions of a quadrant are not contiguous (sector wider than 270 deg)
+    bool computational_sector(double th1, double th2);
+    int active() const;
+
     bool valid() const {return error.empty();}
     const std::string &message() const {return error;}
 
@@ -85,6 +91,7 @@ public:
     std::vector<double> costhf, sinthf;         // faces theta_m + dtheta/2, size ndir
     std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2)
     std::vector<double> dth, wth;               // bin widths, dth/dtheta (1 on the uniform grid)
+    std::vector<char> act;                      // 1: direction m is computed (A 717), size ndir
     bool uniform = true;
 
 private:

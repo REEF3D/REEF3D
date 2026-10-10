@@ -672,6 +672,12 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A716_w;
     dd++;
+    ictrl[ii] = A717;
+    ii++;
+    dctrl[dd] = A717_th1;
+    dd++;
+    dctrl[dd] = A717_th2;
+    dd++;
 
     ictrl[ii] = B10;
     ii++;

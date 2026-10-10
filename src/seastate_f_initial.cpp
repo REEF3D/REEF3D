@@ -149,8 +149,10 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
         sum = g.dth[mmain];
         }
 
+        // normalised over the full circle; with a computational sector (A 717) the directions outside hold
+        // no energy (as SWAN, the part of the spectrum outside the sector is not imposed)
         for(int m=0; m<g.ndir; ++m)
-        N[g.bin(l,m)] = float(S*D[m]/sum/g.sig[l]);
+        N[g.bin(l,m)] = (g.act.empty() || g.act[m]) ? float(S*D[m]/sum/g.sig[l]) : 0.0f;
     }
 
     seastate_param sp;

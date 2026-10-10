@@ -120,6 +120,7 @@ void seastate_grid::directions()
 
     dth.assign(ndir,dtheta);
     wth.assign(ndir,1.0);
+    act.assign(ndir,1);
 }
 
 void seastate_grid::sector(double th1, double th2, int k)
@@ -197,6 +198,49 @@ void seastate_grid::sector(double th1, double th2, int k)
     wth[m]    = dth[m]/dtheta;
     quad[m]   = std::min(int(c[n]/(0.5*pi)),3);
     }
+
+    act.assign(ndir,1);
+}
+
+bool seastate_grid::computational_sector(double th1, double th2)
+{
+    const double pi = 3.14159265358979323846;
+    auto wrap = [&](double a) {a = std::fmod(a,2.0*pi); return a<0.0 ? a+2.0*pi : a;};
+
+    const double a = wrap(th1);
+    double w = wrap(th2) - a;
+    if(w<=0.0)
+    w += 2.0*pi;
+
+    act.assign(ndir,0);
+    for(int m=0; m<ndir; ++m)
+    if(wrap(theta[m]-a)<=w+1.0e-9)
+    act[m] = 1;
+
+    // the active directions of each quadrant: one contiguous range
+    for(int q=0; q<4; ++q)
+    {
+    int first=-1, last=-1, n=0;
+        for(int m=0; m<ndir; ++m)
+        if(quad[m]==q && act[m])
+        {
+        if(first<0)
+        first = m;
+        last = m;
+        ++n;
+        }
+    if(n>0 && last-first+1!=n)
+    return false;
+    }
+    return true;
+}
+
+int seastate_grid::active() const
+{
+    int n=0;
+    for(char c : act)
+    n += c ? 1 : 0;
+    return n;
 }
 
 int seastate_grid::direction_bin(double th) const

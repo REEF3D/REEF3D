@@ -53,7 +53,9 @@ seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), 
     m0.assign(4,ndir);
     m1.assign(4,-1);
 
+    // the directions of each quadrant (with a computational sector, A 717: the active ones)
     for(int m=0; m<ndir; ++m)
+    if(g.act.empty() || g.act[m])
     {
     m0[g.quad[m]] = std::min(m0[g.quad[m]],m);
     m1[g.quad[m]] = std::max(m1[g.quad[m]],m);
