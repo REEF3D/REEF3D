@@ -46,6 +46,7 @@ Author: Hans Bihs
 #include"reefmg2D.h"
 #include"vec2D.h"
 #include"ioflow_void.h"
+#include"vtr3D.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
@@ -1621,10 +1622,10 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
 
     bool doprint=false;
 
-    if((p->count%p->P181==0 && p->P182<0.0 && p->P10==1 && p->P181>0) || (p->count==0 && p->P182<0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10>0 && p->P181>0) || (p->count==0 && p->P182<0.0))
     doprint=true;
 
-    if((p->simtime>printtime_amr && p->P182>0.0 && p->P10==1) || (p->count==0 && p->P182>0.0))
+    if((p->simtime>printtime_amr && p->P182>0.0 && p->P10>0) || (p->count==0 && p->P182>0.0))
     {
         doprint=true;
         printtime_amr += p->P182;
@@ -1671,13 +1672,26 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     for(int n=0; n<(int)P.size(); ++n)
     write_vtr(p,*SP(n),n);
 
-    // multiblock index: level 0 of every rank + all patches
+    // multiblock index: one block per level, level 0 of every rank + the patches of each level
     int np = (int)P.size();
     vector<int> all(p->mpi_size,0);
     MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
 
+    vector<int> mylev(np), off(p->mpi_size,0);
+    for(int n=0; n<np; ++n)
+    mylev[n] = P[n]->lev;
+    for(int r=1; r<p->mpi_size; ++r)
+    off[r] = off[r-1]+all[r-1];
+    vector<int> plev(off[p->mpi_size-1]+all[p->mpi_size-1]+1);
+    MPI_Gatherv(np>0?&mylev[0]:NULL,np,MPI_INT,&plev[0],&all[0],&off[0],MPI_INT,0,MPI_COMM_WORLD);
+
     if(p->mpirank==0)
     {
+        int ltop=0;
+        for(int r=0; r<p->mpi_size; ++r)
+        for(int q=0; q<all[r]; ++q)
+        ltop = max(ltop,plev[off[r]+q]);
+
         char name[256];
         snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-%08i.vtm",printcount_amr);
         ofstream out(name);
@@ -1685,16 +1699,22 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
         out<<"<Block index=\"0\" name=\"level 0\">\n";
         for(int r=0; r<p->mpi_size; ++r)
         out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-SFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<".vtr\"/>\n";
-        out<<setfill(' ')<<"</Block>\n<Block index=\"1\" name=\"patches\">\n";
-        int idx=0;
-        for(int r=0; r<p->mpi_size; ++r)
-        for(int q=0; q<all[r]; ++q)
+        out<<setfill(' ')<<"</Block>\n";
+        for(int l=1; l<=ltop; ++l)
         {
-        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-SFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
-        out<<setfill(' ');
-        ++idx;
+            out<<"<Block index=\""<<l<<"\" name=\"level "<<l<<"\">\n";
+            int idx=0;
+            for(int r=0; r<p->mpi_size; ++r)
+            for(int q=0; q<all[r]; ++q)
+            if(plev[off[r]+q]==l)
+            {
+                out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-SFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
+                out<<setfill(' ');
+                ++idx;
+            }
+            out<<"</Block>\n";
         }
-        out<<"</Block>\n</vtkMultiBlockDataSet>\n</VTKFile>\n";
+        out<<"</vtkMultiBlockDataSet>\n</VTKFile>\n";
         out.close();
     }
 
@@ -1766,106 +1786,92 @@ void sflow_amr::write_vtr0(lexer *p, fdm2D *b)
     char name[256];
     snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-L0-%08i-%04i.vtr",printcount_amr,p->mpirank+1);
 
-    const int nx=p->knox, ny=p->knoy, m=marge;
-    ofstream out(name);
-    out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
-    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
-    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
-    out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
-
-    auto field = [&](const char *nm, slice &f, double shift)
-    {
-        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
-        for(int jj=0; jj<ny; ++jj)
-        {
-            for(int ii=0; ii<nx; ++ii)
-            out<<setprecision(17)<<f(ii,jj)+shift<<" ";
-            out<<"\n";
-        }
-        out<<"</DataArray>\n";
-    };
-    field("eta",b->eta,0.0);
-    field("elevation",b->eta,p->wd);
-    field("WL",b->WL,0.0);
-    field("u",b->U,0.0);
-    field("v",b->V,0.0);
-    field("bed",b->bed,0.0);
-    field("press",b->press,0.0);
-    field("w",b->W,0.0);
-
-    out<<"<DataArray type=\"Int32\" Name=\"wetdry\" format=\"ascii\">\n";
-    for(int jj=0; jj<ny; ++jj)
-    {
-        for(int ii=0; ii<nx; ++ii)
-        out<<p->wet[lij(p,ii,jj)]<<" ";
-        out<<"\n";
-    }
-    out<<"</DataArray>\n</CellData>\n<Coordinates>\n";
-    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=0; jj<=ny; ++jj) out<<setprecision(12)<<p->YN[jj+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
-    out.close();
+    write_vtr_grid(p,p,b,name,0,p->knox,0,p->knoy,0);
 }
 
 void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
 {
-    lexer *pp = c.pp;
-    fdm2D *pb = c.b;
     char name[256];
     snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-%08i-%04i-%04i.vtr",printcount_amr,p->mpirank+1,id+1);
 
-    ofstream out(name);
-    out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
-    out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
-    out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
-    out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
-    out<<"<CellData Scalars=\"eta\">\n";
+    write_vtr_grid(p,c.pp,c.b,name,EXT,c.nx,EXT,c.ny,c.lev);
+}
 
-    auto field = [&](const char *nm, slice &f, double shift)
-    {
-        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
-        for(int jj=EXT; jj<EXT+c.ny; ++jj)
-        {
-            for(int ii=EXT; ii<EXT+c.nx; ++ii)
-            out<<setprecision(17)<<f(ii,jj)+shift<<" ";
-            out<<"\n";
-        }
-        out<<"</DataArray>\n";
-    };
-    field("eta",pb->eta,0.0);
-    field("elevation",pb->eta,p->wd);
-    field("WL",pb->WL,0.0);
-    field("u",pb->U,0.0);
-    field("v",pb->V,0.0);
-    field("bed",pb->bed,0.0);
-    field("press",pb->press,0.0);
-    field("w",pb->W,0.0);
-
-    out<<"<DataArray type=\"Int32\" Name=\"wetdry\" format=\"ascii\">\n";
-    for(int jj=EXT; jj<EXT+c.ny; ++jj)
-    {
-        for(int ii=EXT; ii<EXT+c.nx; ++ii)
-        out<<pp->wet[lij(pp,ii,jj)]<<" ";
-        out<<"\n";
-    }
-    out<<"</DataArray>\n";
-    out<<"</CellData>\n<Coordinates>\n";
-
+// cells [i0,i0+nx) x [j0,j0+ny) of a grid (lexer q, fields f), binary appended Float32 via vtr3D
+void sflow_amr::write_vtr_grid(lexer *p, lexer *q, fdm2D *f, const char *name, int i0, int nx, int j0, int ny, int lev)
+{
+    vtr3D vtr;
     const int m = marge;
-    out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
-    for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
-    out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
-    out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
-    out.close();
+    const int nf = 8;
+    const char *fname[nf] = {"eta","elevation","WL","u","v","bed","press","w"};
+    slice *fld[nf] = {&f->eta,&f->eta,&f->WL,&f->U,&f->V,&f->bed,&f->press,&f->W};
+    const double shift[nf] = {0.0,p->wd,0.0,0.0,0.0,0.0,0.0,0.0};
+    const int ncell = nx*ny;
+    const double z0 = 0.0;
+
+    // fields + wetdry, then the coordinates
+    int offset[nf+5];
+    int n=0;
+    offset[n]=0;
+    ++n;
+    for(int r=0; r<nf+1; ++r)
+    {
+        offset[n]=offset[n-1]+sizeof(float)*ncell+sizeof(int);
+        ++n;
+    }
+    vtr.offset(offset,n,nx+1,ny+1,1);
+
+    stringstream result;
+    const int ext[6] = {0,nx,0,ny,0,0};
+    vtr.beginning(result,ext,p->simtime,lev);
+    n=0;
+    result<<"<CellData Scalars=\"eta\">\n";
+    for(int r=0; r<nf; ++r)
+    {
+        result<<"<DataArray type=\"Float32\" Name=\""<<fname[r]<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        ++n;
+    }
+    result<<"<DataArray type=\"Int32\" Name=\"wetdry\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"</CellData>\n";
+    vtr.ending(result,offset,n);
+
+    size_t pos = result.str().length();
+    const size_t total = pos + offset[n] + 27;
+    vector<char> buffer(total);
+    memcpy(&buffer[0],result.str().data(),pos);
+
+    const int iin = sizeof(float)*ncell;
+    for(int r=0; r<nf; ++r)
+    {
+        memcpy(&buffer[pos],&iin,sizeof(int));
+        pos+=sizeof(int);
+        for(int jj=j0; jj<j0+ny; ++jj)
+        for(int ii=i0; ii<i0+nx; ++ii)
+        {
+            float ffn = float((*fld[r])(ii,jj)+shift[r]);
+            memcpy(&buffer[pos],&ffn,sizeof(float));
+            pos+=sizeof(float);
+        }
+    }
+    memcpy(&buffer[pos],&iin,sizeof(int));
+    pos+=sizeof(int);
+    for(int jj=j0; jj<j0+ny; ++jj)
+    for(int ii=i0; ii<i0+nx; ++ii)
+    {
+        int wd = q->wet[lij(q,ii,jj)];
+        memcpy(&buffer[pos],&wd,sizeof(int));
+        pos+=sizeof(int);
+    }
+
+    vtr.structureWrite(buffer,pos,&q->XN[i0+m],nx+1,&q->YN[j0+m],ny+1,&z0,1);
+
+    FILE *file = fopen(name,"wb");
+    if(file)
+    {
+        fwrite(buffer.data(),buffer.size(),1,file);
+        fclose(file);
+    }
 }
 
 // P 18: this rank's grids as its .vtr files have them (the fields of write_vtr0 and
