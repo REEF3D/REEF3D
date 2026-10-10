@@ -58,7 +58,8 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 
 
     count=0;
-    ULOOP
+    if(!zc_built) zonecol_build(p);
+    ZULOOP
     {
 		xg = xgen1(p);
         yg = ygen1(p);
@@ -96,7 +97,8 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 
 
     count=0;    
-    VLOOP
+    if(!zc_built) zonecol_build(p);
+    ZVLOOP
     {
         xg = xgen2(p);
         yg = ygen2(p);
@@ -135,7 +137,8 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
 
     
     count=0;
-    WLOOP
+    if(!zc_built) zonecol_build(p);
+    ZWLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -171,8 +174,9 @@ void iowave::wavegen_precalc_space(lexer *p, ghostcell *pgc)
     }	
 
     count=0;
+    if(!zc_built) zonecol_build(p);
     if(f_switch==1)
-    LOOP
+    ZLOOP
     {
 		
         xg = xgen(p);

@@ -30,6 +30,12 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     
     p->wavetime = p->simtime;
     
+    // generation-zone columns, registered for the cached evaluation: per column the cell
+    // centre (q = 3g), the u point (3g+1) and the v point (3g+2); before, the theory was
+    // evaluated directly in every zone cell
+    if(!gen_built) cfd_genzone_build(p,pgc);
+    const bool zsel = zones.has_sources();
+    
     // pre-calc every iteration
     count=0;
     SLICELOOP4
@@ -45,15 +51,17 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-            select_zone_at(p);   // zone sources (B 524)
-            eta(i,j) = wave_eta(p,pgc,xg,yg);
+            if(zsel)
+            select_sources(gen_src[gen_idx[IJ]]);   // zone sources (B 524)
+            eta(i,j) = wave_eta_c(p,pgc,3*gen_idx[IJ]);
             }
 		}
     }
     pgc->gcsl_start4(p,eta,50);
     
     count=0;
-    ULOOP
+    if(!zc_built) zonecol_build(p);
+    ZULOOP
     {
         xg = xgen1(p);
         yg = ygen1(p);
@@ -75,9 +83,14 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-            select_zone_at(p);   // zone sources (B 524)
+            if(zsel)
+            select_sources(gen_src[gen_idx[IJ]]);   // zone sources (B 524)
             if(zloc1<=fsfloc+epsi)
-            uval[count] = wave_u(p,pgc,xg,yg,z) + p->Ui;
+            {
+            double uw,vw,ww;
+            wave_uvw_c(p,pgc,3*gen_idx[IJ]+1,z,uw,vw,ww);
+            uval[count] = uw + p->Ui;
+            }
             
             if(zloc1>fsfloc+epsi)
             uval[count] = 0.0;
@@ -88,7 +101,8 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }
 		
     count=0;
-    VLOOP
+    if(!zc_built) zonecol_build(p);
+    ZVLOOP
     {
         xg = xgen2(p);
         yg = ygen2(p);
@@ -111,9 +125,14 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-            select_zone_at(p);   // zone sources (B 524)
+            if(zsel)
+            select_sources(gen_src[gen_idx[IJ]]);   // zone sources (B 524)
             if(zloc2<=fsfloc+epsi)
-            vval[count] = wave_v(p,pgc,xg,yg,z);
+            {
+            double uw,vw,ww;
+            wave_uvw_c(p,pgc,3*gen_idx[IJ]+2,z,uw,vw,ww);
+            vval[count] = vw;
+            }
             
             if(zloc2>fsfloc+epsi)
             vval[count] = 0.0;
@@ -124,7 +143,8 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }
 
     count=0;
-    WLOOP
+    if(!zc_built) zonecol_build(p);
+    ZWLOOP
     {
         xg = xgen(p);
         yg = ygen(p);
@@ -147,9 +167,14 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
             // Zone 1
             if(dg<1.0e20)
             {
-            select_zone_at(p);   // zone sources (B 524)
+            if(zsel)
+            select_sources(gen_src[gen_idx[IJ]]);   // zone sources (B 524)
             if(zloc3<=fsfloc+epsi)
-            wval[count] = wave_w(p,pgc,xg,yg,z);
+            {
+            double uw,vw,ww;
+            wave_uvw_c(p,pgc,3*gen_idx[IJ],z,uw,vw,ww);
+            wval[count] = ww;
+            }
             
             if(zloc3>fsfloc+epsi)
             wval[count] = 0.0;
@@ -160,7 +185,8 @@ void iowave::wavegen_precalc_relax(lexer *p, ghostcell *pgc)
     }	
 
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         xg = xgen(p);
         yg = ygen(p);

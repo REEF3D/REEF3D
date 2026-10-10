@@ -70,7 +70,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
     
     count=0;
-    ULOOP
+    if(!zc_built) zonecol_build(p);
+    ZULOOP
     {
         dg = distgen(p);
         
@@ -114,7 +115,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
 
     count=0;
-    VLOOP
+    if(!zc_built) zonecol_build(p);
+    ZVLOOP
     {
         dg = distgen(p);
         
@@ -156,7 +158,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
 
     count=0;
-    WLOOP
+    if(!zc_built) zonecol_build(p);
+    ZWLOOP
     {
         dg = distgen(p);
         
@@ -197,7 +200,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     }	
     
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
 		dg = distgen(p);
         
@@ -224,7 +228,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     
     if(p->F80==4)
     {
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         
@@ -257,7 +262,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     }
     }
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         

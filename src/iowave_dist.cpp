@@ -157,6 +157,23 @@ void iowave::xy_cache_build(lexer *p)
     j=js;
 }
 
+// columns of the generation and beach zones, in ILOOP / JLOOP order (CFD relaxation loops)
+void iowave::zonecol_build(lexer *p)
+{
+    zc_i.clear();
+    zc_j.clear();
+    
+    ILOOP
+    JLOOP
+    if(distgen(p)<1.0e20 || distbeach(p)<1.0e20)
+    {
+        zc_i.push_back(i);
+        zc_j.push_back(j);
+    }
+    
+    zc_built = true;
+}
+
 double iowave::distgen(lexer *p)
 {
     if(dgcache==nullptr)
@@ -215,6 +232,42 @@ void iowave::genzone4_build(lexer *p, ghostcell *pgc)
         gen_src.push_back((z!=nullptr && !z->sources.empty()) ? &z->sources : nullptr);
         xg_.push_back(xgen(p));
         yg_.push_back(ygen(p));
+        }
+    }
+    
+    wave_cache_points(p,pgc,xg_,yg_);
+    
+    gen_built=true;
+}
+
+// CFD: generation-zone columns with three cached points each, the cell centre (q = 3g),
+// the u point (3g+1) and the v point (3g+2) of the staggered grid
+void iowave::cfd_genzone_build(lexer *p, ghostcell *pgc)
+{
+    gen_i.clear(); gen_j.clear(); gen_src.clear();
+    gen_idx.assign(size_t(p->imax)*size_t(p->jmax),-1);
+    
+    std::vector<double> xg_, yg_;
+    
+    ILOOP
+    JLOOP
+    {
+        dg = distgen(p);
+        
+        if(dg<1.0e20)
+        {
+        gen_idx[IJ] = int(gen_i.size());
+        gen_i.push_back(i);
+        gen_j.push_back(j);
+        
+        const bc_zone *z = zones.relax_zone_at(p->pos_x(),p->pos_y());
+        gen_src.push_back((z!=nullptr && !z->sources.empty()) ? &z->sources : nullptr);
+        xg_.push_back(xgen(p));
+        yg_.push_back(ygen(p));
+        xg_.push_back(xgen1(p));
+        yg_.push_back(ygen1(p));
+        xg_.push_back(xgen2(p));
+        yg_.push_back(ygen2(p));
         }
     }
     

@@ -326,6 +326,13 @@ private:
     // edge mass balance (B 529): flux through each open edge integrated since the last line
     void nhflow_mass_balance(lexer*,fdm_nhf*,ghostcell*);
     
+    // CFD relaxation loops over the zone columns only (iowave_dist.cpp): columns with a
+    // generation or beach zone, in ILOOP / JLOOP order, so the count sequence is unchanged
+    std::vector<int> zc_i, zc_j;
+    bool zc_built=false;
+    void zonecol_build(lexer*);
+    void cfd_genzone_build(lexer*,ghostcell*);
+    
     // SFLOW: backgrounds, Riemann / Flather / clamped edges, B 529 (iowave_sflow_tide.cpp)
     void sflow_bg_update(lexer*,fdm2D*,ghostcell*);
     void sflow_open_edges(lexer*,fdm2D*,ghostcell*,slice&,slice&);
@@ -423,6 +430,14 @@ private:
     
     
 };
+
+// loops of the CFD relaxation and precalc over the zone columns (zonecol_build first)
+#define ZCOLLOOP for(size_t zcn=0; zcn<zc_i.size(); ++zcn) if(((i=zc_i[zcn]),(j=zc_j[zcn])),true)
+#define ZULOOP ZCOLLOOP if(i<p->knox-p->ulast) KLOOP UCHECK
+#define ZVLOOP ZCOLLOOP if(j<p->knoy-p->vlast) KLOOP VCHECK
+#define ZWLOOP ZCOLLOOP KWLOOP WCHECK
+#define ZLOOP ZCOLLOOP KLOOP PCHECK
+#define ZFLOOP ZCOLLOOP FKLOOP FPCHECK
 
 #endif
 

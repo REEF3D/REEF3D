@@ -31,7 +31,8 @@ void iowave::u_relax(lexer *p, fdm *a, ghostcell *pgc, field& uvel)
     
     count=0;
     
-    ULOOP
+    if(!zc_built) zonecol_build(p);
+    ZULOOP
     {
         dg = distgen(p);    
         db = distbeach(p);
@@ -101,7 +102,8 @@ void iowave::v_relax(lexer *p, fdm *a, ghostcell *pgc, field& vvel)
     starttime=pgc->timer();
     
     count=0;
-    VLOOP
+    if(!zc_built) zonecol_build(p);
+    ZVLOOP
     {
         dg = distgen(p);    
         db = distbeach(p);
@@ -167,7 +169,8 @@ void iowave::w_relax(lexer *p, fdm *a, ghostcell *pgc, field& wvel)
     starttime=pgc->timer();
     
     count=0;
-    WLOOP
+    if(!zc_built) zonecol_build(p);
+    ZWLOOP
     {
         dg = distgen(p);    
         db = distbeach(p);
@@ -239,7 +242,8 @@ void iowave::p_relax(lexer *p, fdm *a, ghostcell *pgc, field& press)
 {
     starttime=pgc->timer();
     
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         db = distbeach(p);
@@ -261,7 +265,8 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
     starttime=pgc->timer();
     
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);    
         db = distbeach(p);
@@ -327,7 +332,8 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     
     pgc->gcsl_start4(p,genheight,1);
     
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         db = distbeach(p);
@@ -380,7 +386,8 @@ void iowave::turb_relax(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
     starttime=pgc->timer();
     
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);    
         db = distbeach(p);
