@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FIELDINT4_H_
 #define FIELDINT4_H_
 
-#include"fieldint.h"
+#include "fieldint.h"
 
 class fieldint4 final : public fieldint
 {

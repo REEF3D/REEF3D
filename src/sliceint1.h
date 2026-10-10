@@ -24,7 +24,7 @@ Author: Hans Bihs
 #ifndef SLICEINT1_H_
 #define SLICEINT1_H_
 
-#include"sliceint.h"
+#include "sliceint.h"
 
 class sliceint1 final : public sliceint
 {
