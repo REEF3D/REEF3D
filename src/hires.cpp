@@ -177,7 +177,7 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
         
              + (1.0-vdir)*(jvel2*(b(i,j+1,k) - 0.5*plim->jphi(b,1,0,2,1)*(b(i,j+2,k)-b(i,j+1,k)))
 
-             -             jvel1*(b(i,j,k) - 0.5*plim->jphi(b,0,-1,1,0)*(b(i,j,k)-b(i+1,j,k))))/DY[JP]; 
+             -             jvel1*(b(i,j,k) - 0.5*plim->jphi(b,0,-1,1,0)*(b(i,j+1,k)-b(i,j,k))))/DY[JP]; 
         }
 
 

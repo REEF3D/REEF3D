@@ -90,10 +90,10 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     if(p->P50>0)
         pwsf_theory->height_gauge(p,b,pgc,pflow);
 
-    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0) || (p->count==0 &&  p->P55>0.0)))
         pwsfline->start(p,b,pgc,pflow,b->eta);
 
-    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0) || (p->count==0 &&  p->P55>0.0)))
         pwsfline_y->start(p,b,pgc,pflow,b->eta);
 
     // DA Gages
@@ -111,20 +111,20 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     }*/
 
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
+    if(p->P40>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
     {
         pstate->write(p,b,pgc);
     }
 
     // Print state out based on time
-    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<p->P47_te)))
+    if(p->P40>0 && p->P42>0.0 && (p->simtime>p->stateprinttime || p->count==0) && (p->P47==0 || (p->simtime>=p->P47_ts && p->simtime<p->P47_te)))
     {
         pstate->write(p,b,pgc);
 
         p->stateprinttime+=p->P42;
     }
 
-    if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+    if(p->P55>0.0 && (p->simtime>p->probeprinttime || p->count==0))
         p->probeprinttime+=p->P55;
 }
 
