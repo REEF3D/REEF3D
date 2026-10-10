@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #define SEASTATE_OBSTACLE_H_
 
 #include<vector>
+#include <cstddef>
 
 class lexer;
 class ghostcell;

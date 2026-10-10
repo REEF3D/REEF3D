@@ -29,6 +29,7 @@ version 3 or later (see seastate_source.cpp).
 #define SEASTATE_SOURCE_H_
 
 #include<vector>
+#include <cstddef>
 
 class seastate_grid;
 
