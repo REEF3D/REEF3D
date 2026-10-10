@@ -251,8 +251,8 @@ void iowave::zones_check(lexer *p)
     if(!source_exists(s))
     err = "zone "+std::to_string(z.id)+" uses source "+std::to_string(s)+", which is not defined (B 92 is 1, B 500 the others)";
     
-    if(zones.has_background() && p->A10!=5)
-    err = "backgrounds (B 523) and Riemann / Flather edges are available for NHFLOW only, so far";
+    if(zones.has_background() && p->A10!=5 && p->A10!=2)
+    err = "backgrounds (B 523) and Riemann / Flather / clamped edges are available for NHFLOW and SFLOW only, so far";
     
     // decomposed precalc (B 89 1) keeps the spatial parts of the waves from the start, so k
     // cannot follow the background
@@ -270,8 +270,8 @@ void iowave::zones_check(lexer *p)
         if(p->B530<0 || p->B530>2)
         err = "B 530 mode is 1 (waves on h_eff) or 2 (h_eff + Doppler)";
         
-        if(!zones.has_background() || p->A10!=5)
-        err = "waves on the background (B 530) need a background (B 510, B 523) in NHFLOW";
+        if(!zones.has_background() || (p->A10!=5 && p->A10!=2))
+        err = "waves on the background (B 530) need a background (B 510, B 523) in NHFLOW or SFLOW";
         
         for(int n=0; n<wave_nsources(); ++n)
         {
@@ -302,7 +302,7 @@ void iowave::b530_auto(lexer *p)
     
     int mode = 0;
     
-    if(zones.has_background() && p->A10==5)
+    if(zones.has_background() && (p->A10==5 || p->A10==2))
     for(const std::vector<bc_zone> *v : {&zones.relax, &zones.beach, &zones.edges})
     for(const bc_zone &z : *v)
     {
@@ -357,7 +357,8 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
 {
     nhf_active_edge = false;
     
-    if(p->A10!=5 || (p->B99!=3 && p->B99!=4))   // B 99 6 arrives here as 3 (iowave constructor)
+    // NHFLOW and SFLOW: B 99 3 / 4 (B 99 6 arrives here as 3, iowave constructor)
+    if((p->A10!=5 && p->A10!=2) || (p->B99!=3 && p->B99!=4))
     return;
     
     // only with an outflow boundary at x+
@@ -372,18 +373,18 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
     if(zones.open_edge(2)!=nullptr)
     {
         if(p->mpirank==0)
-        cout<<"iowave: B 99 "<<p->B99<<" ignored at x+: the edge of B 520 zone "<<zones.open_edge(2)->id<<" is used"<<endl;
+        cout<<"iowave: B 99 "<<(beach_lp ? 6 : p->B99)<<" ignored at x+: the edge of B 520 zone "<<zones.open_edge(2)->id<<" is used"<<endl;
         return;
     }
     
     bc_zone e(-99,bc_method::riemann,0.0,0.0,0.0,0.0,0.0,1.0);
     e.edge = 2;
-    e.active = p->B99;
+    e.active = beach_lp ? 6 : p->B99;
     zones.edges.push_back(e);
     nhf_active_edge = true;
     
     if(p->mpirank==0)
-    cout<<"iowave: active beach B 99 "<<p->B99<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+    cout<<"iowave: "<<(beach_lp ? "combined beach B 99 6" : (p->B99==3 ? "active beach B 99 3" : "active beach B 99 4"))<<": absorbing Riemann edge at x+ with still water outside"<<endl;
 }
 
 // decomposed precalc (B 89 1) with zone sources (B 524): selects the sources of the relaxation

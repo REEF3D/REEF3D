@@ -139,6 +139,11 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &WL)
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
     
+    // not at iowave Riemann / Flather / clamped edges (B 520 methods 3-6)
+    const int cs = p->gcslout[n][3];
+    if((cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1) || (cs==1 && p->open_xm==1))
+    continue;
+    
     if(p->wet[IJ]==1)
     b->eta(i,j) = wsfout-p->wd;
     }

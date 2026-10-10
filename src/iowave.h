@@ -231,8 +231,8 @@ private:
     void relax_stage_factor(lexer*);
     bc_zone_set zones;      // generation and beach zones (B 96, B 107, B 108)
     
-    // combined beach (B 99 6, NHFLOW): the beach relaxes to the state low-passed over beach_tau,
-    // f <- f + dt/tau (x - f) once per step and cell (iowave_nhflow_relax.cpp)
+    // combined beach (B 99 6, NHFLOW and SFLOW): the beach relaxes to the state low-passed over beach_tau,
+    // f <- f + dt/tau (x - f) once per step and cell (iowave_nhflow_relax.cpp, iowave_sflow_relax.cpp)
     bool beach_lp = false;
     double beach_tau = 0.0;
     struct lowpass {std::vector<double> f; std::vector<int> c;};
@@ -325,6 +325,12 @@ private:
     
     // edge mass balance (B 529): flux through each open edge integrated since the last line
     void nhflow_mass_balance(lexer*,fdm_nhf*,ghostcell*);
+    
+    // SFLOW: backgrounds, Riemann / Flather / clamped edges, B 529 (iowave_sflow_tide.cpp)
+    void sflow_bg_update(lexer*,fdm2D*,ghostcell*);
+    void sflow_open_edges(lexer*,fdm2D*,ghostcell*,slice&,slice&);
+    void sflow_open_edges_eta(lexer*,fdm2D*,slice&);
+    void sflow_mass_balance(lexer*,fdm2D*,ghostcell*);
     std::ofstream mb_out;
     double mb_t=-1.0, mb_t0=0.0, mb_V0=0.0;
     double mb_int[5]={0.0,0.0,0.0,0.0,0.0};

@@ -400,4 +400,60 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     // REEF3D::SEASTATE surfbeat: long-wave boundary at x-, physical flux of the ghost state (A 770 1)
     if(b->wave!=nullptr)
     b->wave->flux_bc(p,b,ipol,Fx);
+    
+    // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): the ghost cells hold the
+    // boundary state, physical flux of the ghost state
+    if(p->open_xm==1 || p->open_xp==1 || p->open_ym==1 || p->open_yp==1)
+    GCSL4LOOP
+    {
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    cs = p->gcbsl4[n][3];
+    
+    if(!((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1)))
+    continue;
+    
+    const int ii = cs==1 ? -1 : cs==4 ? 1 : 0;
+    const int jj = cs==3 ? -1 : cs==2 ? 1 : 0;
+    
+    eg = b->eta(i+ii,j+jj);
+    wl = MAX(eg + b->depth(i+ii,j+jj), 0.0);
+    ug = b->U(i+ii,j+jj);
+    vg = b->V(i+ii,j+jj);
+    wg = b->W(i+ii,j+jj);
+    
+        if(cs==1 || cs==4)
+        {
+        const int fi = (cs==1)?i-1:i;
+        
+        if(ipol==1)
+        Fx(fi,j) = wl*ug*ug + 0.5*g*eg*eg + g*eg*b->dfx(fi,j);
+        
+        if(ipol==2)
+        Fx(fi,j) = wl*vg*ug;
+        
+        if(ipol==3)
+        Fx(fi,j) = wl*wg*ug;
+        
+        if(ipol==4)
+        Fx(fi,j) = wl*ug;
+        }
+        
+        if((cs==2 || cs==3) && p->j_dir==1)
+        {
+        const int fj = (cs==3)?j-1:j;
+        
+        if(ipol==1)
+        Fy(i,fj) = wl*ug*vg;
+        
+        if(ipol==2)
+        Fy(i,fj) = wl*vg*vg + 0.5*g*eg*eg + g*eg*b->dfy(i,fj);
+        
+        if(ipol==3)
+        Fy(i,fj) = wl*wg*vg;
+        
+        if(ipol==4)
+        Fy(i,fj) = wl*vg;
+        }
+    }
 }

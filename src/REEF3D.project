@@ -3208,6 +3208,7 @@
           <File Name="bc_zone.cpp"/>
           <File Name="background_state.cpp"/>
           <VirtualDirectory Name="SFLOW">
+            <File Name="iowave_sflow_tide.cpp"/>
             <File Name="iowave_sflow_wavegen.cpp"/>
             <File Name="iowave_sflow_waterlevel.cpp"/>
             <File Name="iowave_sflow_relax.cpp"/>

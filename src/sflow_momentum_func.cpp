@@ -632,6 +632,10 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     cs = p->gcbsl4[n][3];
     bc = p->gcbsl4[n][4];
     
+        // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): ghost cells set by ioflow
+        if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
+        continue;
+        
         // patch inlets: velocities set by patchBC (w zero gradient), patch outlets: zero gradient
         if(patch_inlet(bc))
         {

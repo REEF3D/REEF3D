@@ -34,10 +34,15 @@ void iowave::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, sl
 	if(p->B98==3 || p->B98==4)
 	wavegen2D(p,b,pgc,P,Q,bed,eta);
 	
-	if(p->B99==3 || p->B99==4)
+	// B 99 3 / 4 (and B 99 6): absorbing Riemann edge at x+ (iowave_sflow_tide.cpp) when
+	// there is an outflow side; the former SFLOW active beach otherwise
+	if((p->B99==3 || p->B99==4) && !nhf_active_edge)
 	active_beach2D(p,b,pgc,P,Q,bed,eta);
     
     pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
+    
+    // Riemann / Flather / clamped edges (B 520 methods 3-6)
+    sflow_open_edges(p,b,pgc,P,Q);
 }
 
 void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &eta)

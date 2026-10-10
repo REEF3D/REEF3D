@@ -30,6 +30,9 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
     starttime=pgc->timer();
     p->wavetime = p->simtime;
     
+    // tidal / current background (B 510-514), waves on it (B 530), edge mass balance (B 529)
+    sflow_bg_update(p,b,pgc);
+    
     // only relaxation generation (B 98 2) uses the precalc values
     if(p->B98!=2)
     {
@@ -82,7 +85,11 @@ void iowave::wavegen_2D_precalc(lexer *p, fdm2D *b, ghostcell *pgc)
         if(zsel)
         select_sources(gen_src[q]);
         
-        deltaz = (eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
+        // with a background (B 523) the column reaches up to its level
+        const int bgi = bg_on ? gen_bg(p) : -1;
+        const double ebg = bgi>=0 ? bgs.eta(bgi,p->XP[IP],p->YP[JP]) : 0.0;
+        
+        deltaz = (ebg + eta(i,j) + p->wd - b->bed(i,j))/(double(p->B160));
         u_val=0.0;
         v_val=0.0;
         w_val=0.0;

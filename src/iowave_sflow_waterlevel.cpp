@@ -29,5 +29,6 @@ Author: Hans Bihs
 
 void iowave::waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
-    
+    // Riemann / clamped level edges: ghost level from the step's characteristics
+    sflow_open_edges_eta(p,b,eta);
 }

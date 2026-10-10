@@ -46,21 +46,37 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             // Zone 1
             if(dg<1.0e20)
             { 
+            // with a background (B 523): background + ramped waves
+            const int bi = bg_on ? gen_bg(p) : -1;
+            const double eb = bi>=0 ? bgs.eta(bi,p->XP[IP],p->YP[JP]) : 0.0;
+            
+            if(bi<0)
             f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*eta(i,j) + relax4_wg(i,j) * f(i,j);
+            else
+            f(i,j) = (1.0-relax4_wg(i,j))*(eb + ramp(p)*eta(i,j)) + relax4_wg(i,j) * f(i,j);
             ++count;
             }
 		}
         
 		
-		// Numerical Beach
-		if(p->B99==1 || p->B99==2)
+		// Numerical Beach (B 99 1 / 2; B 520 beach zones in SFLOW, FNPF as before)
+		if(p->B99==1 || p->B99==2 || (beach_relax==1 && p->A10==2))
 		{
             // Zone 2
             if(p->A10!=3 || p->A348==1 || p->A348==2)
             if(db<1.0e20)
             {
             if(p->wet[IJ]==1)
-            f(i,j) = relax4_nb(i,j)*f(i,j);
+            {
+            // with a background (B 523): relax to the background level instead of still water
+            const int bi = bg_on ? beach_bg(p) : -1;
+            const double eb = bi>=0 ? bgs.eta(bi,p->XP[IP],p->YP[JP]) : 0.0;
+            
+            // combined beach (B 99 6): towards the low-passed level
+            const double tg = beach_lp ? beach_target(p,lp_wl,p->imax*p->jmax,IJ,eb,f(i,j)) : eb;
+            
+            f(i,j) = relax4_nb(i,j)*f(i,j) + (1.0-relax4_nb(i,j))*tg;
+            }
             }
         }
     }
@@ -96,21 +112,46 @@ void iowave::um_relax(lexer *p, ghostcell *pgc, slice &U, slice &UH, slice &WL)
             {
             if(p->wet[IJ]==1)
             {
+            // with a background (B 523): background current + ramped waves
+            double ub=0.0, vb=0.0;
+            const int bi = bg_on ? gen_bg(p) : -1;
+            if(bi>=0)
+            bgs.vel(bi,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            
+            if(bi<0)
+            {
             U(i,j)  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U(i,j);
             UH(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*uval[count]*WL(i,j) + relax4_wg(i,j)*UH(i,j);
+            }
+            else
+            {
+            const double tg = ub + ramp(p)*uval[count];
+            U(i,j)  = (1.0-relax4_wg(i,j))*tg + relax4_wg(i,j)*U(i,j);
+            UH(i,j) = (1.0-relax4_wg(i,j))*tg*WL(i,j) + relax4_wg(i,j)*UH(i,j);
+            }
             }
             ++count;
             }
 		}
 		
 		// Numerical Beach
-        if(p->B99==1 || p->B99==2)
+        if(p->B99==1 || p->B99==2 || beach_relax==1)
 		{
-            // Zone 2
+            // Zone 2: with a background (B 523) towards the background current
             if(db<1.0e20)
             {
-            U(i,j)  = relax4_nb(i,j)*U(i,j);
-            UH(i,j) = relax4_nb(i,j)*UH(i,j);
+            double ub=0.0, vb=0.0;
+            const int bi = bg_on ? beach_bg(p) : -1;
+            if(bi>=0)
+            bgs.vel(bi,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            
+            // combined beach (B 99 6): towards the low-passed state
+            const int nn = p->imax*p->jmax;
+            const double tg  = beach_lp ? beach_target(p,lp_u,nn,IJ,ub,U(i,j)) : ub;
+            const double tgh = beach_lp ? beach_target(p,lp_uh,nn,IJ,ub*WL(i,j),UH(i,j)) : ub*WL(i,j);
+            
+            U(i,j)  = relax4_nb(i,j)*U(i,j) + (1.0-relax4_nb(i,j))*tg;
+            UH(i,j) = relax4_nb(i,j)*UH(i,j) + (1.0-relax4_nb(i,j))*tgh;
             }
         }
     }
@@ -144,21 +185,46 @@ void iowave::vm_relax(lexer *p, ghostcell *pgc, slice &V, slice &VH, slice &WL)
             {
             if(p->wet[IJ]==1)
             {
+            // with a background (B 523): background current + ramped waves
+            double ub=0.0, vb=0.0;
+            const int bi = bg_on ? gen_bg(p) : -1;
+            if(bi>=0)
+            bgs.vel(bi,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            
+            if(bi<0)
+            {
             V(i,j)  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V(i,j);
             VH(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*vval[count]*WL(i,j) + relax4_wg(i,j)*VH(i,j);
+            }
+            else
+            {
+            const double tg = vb + ramp(p)*vval[count];
+            V(i,j)  = (1.0-relax4_wg(i,j))*tg + relax4_wg(i,j)*V(i,j);
+            VH(i,j) = (1.0-relax4_wg(i,j))*tg*WL(i,j) + relax4_wg(i,j)*VH(i,j);
+            }
             }
             ++count;
             }
 		}
 		
 		// Numerical Beach
-        if(p->B99==1 || p->B99==2)
+        if(p->B99==1 || p->B99==2 || beach_relax==1)
 		{
-            // Zone 2
+            // Zone 2: with a background (B 523) towards the background current
             if(db<1.0e20)
             {
-            V(i,j)  = relax4_nb(i,j)*V(i,j);
-            VH(i,j) = relax4_nb(i,j)*VH(i,j);
+            double ub=0.0, vb=0.0;
+            const int bi = bg_on ? beach_bg(p) : -1;
+            if(bi>=0)
+            bgs.vel(bi,col_h0[IJ],p->XP[IP],p->YP[JP],ub,vb);
+            
+            // combined beach (B 99 6): towards the low-passed state
+            const int nn = p->imax*p->jmax;
+            const double tg  = beach_lp ? beach_target(p,lp_v,nn,IJ,vb,V(i,j)) : vb;
+            const double tgh = beach_lp ? beach_target(p,lp_vh,nn,IJ,vb*WL(i,j),VH(i,j)) : vb*WL(i,j);
+            
+            V(i,j)  = relax4_nb(i,j)*V(i,j) + (1.0-relax4_nb(i,j))*tg;
+            VH(i,j) = relax4_nb(i,j)*VH(i,j) + (1.0-relax4_nb(i,j))*tgh;
             }
         }
     }
@@ -199,13 +265,22 @@ void iowave::wm_relax(lexer *p, ghostcell *pgc, slice &W, slice &WH, slice &WL)
 		}
 		
 		// Numerical Beach
-        if(p->B99==1 || p->B99==2)
+        if(p->B99==1 || p->B99==2 || beach_relax==1)
 		{
             // Zone 2
             if(db<1.0e20)
             {
+            if(beach_lp)
+            {
+            const int nn = p->imax*p->jmax;
+            W(i,j)  = relax4_nb(i,j)*W(i,j)  + (1.0-relax4_nb(i,j))*beach_target(p,lp_w,nn,IJ,0.0,W(i,j));
+            WH(i,j) = relax4_nb(i,j)*WH(i,j) + (1.0-relax4_nb(i,j))*beach_target(p,lp_wh,nn,IJ,0.0,WH(i,j));
+            }
+            else
+            {
             W(i,j)  = relax4_nb(i,j)*W(i,j);
             WH(i,j) = relax4_nb(i,j)*WH(i,j);
+            }
             }
         }
     }
@@ -237,7 +312,7 @@ void iowave::pm_relax(lexer *p, ghostcell *pgc, slice &f)
 		}
 		
 		// Numerical Beach
-		if(p->B99==1 || p->B99==2)
+		if(p->B99==1 || p->B99==2 || beach_relax==1)
 		{
             // Zone 2
             if(db<1.0e20)
