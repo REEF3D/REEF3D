@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FIELDINT2_H_
 #define FIELDINT2_H_
 
-#include"fieldint.h"
+#include "fieldint.h"
 
 class fieldint2 final : public fieldint
 {
