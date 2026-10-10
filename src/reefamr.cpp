@@ -633,6 +633,8 @@ void reefamr::free_patch(reefamr_patch *c)
     pp->del_Iarray(pp->dgcsl4,pp->dgcsl4_count,3);
     }
 
+    pp->geometry_free();
+
     delete pp;
     delete c;
 }
@@ -723,6 +725,48 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     for(int a=0; a<nya-1; ++a) pp->DYP[a] = pp->YP[a+1]-pp->YP[a];
     pp->DXP[nxa-1] = pp->DXP[nxa-2];
     pp->DYP[nya-1] = pp->DYP[nya-2];
+
+    // horizontal geometry layer: the patch nodes subdivide the level-0 2D nodes bilinearly (on a
+    // Cartesian grid bit for bit the XN/YN above), then the metrics of the patch cells
+    // P1 (curvilinear): with placement (G 40) the level-0 2D nodes of other ranks are needed here
+    pp->geo_curv = p->geo_curv;
+    pp->geometry_alloc();
+    {
+        auto node0 = [&](int K, int L, double &x, double &y)   // level-0 2D node, global index
+        {
+            const int k = K-O0i, q = L-O0j;
+            if(par.place==0 && p->XN2D!=nullptr && k>=p->imin && k<=p->imin+p->imax && q>=p->jmin && q<=p->jmin+p->jmax)
+            {
+                x = p->XN2D[p->nij(k,q)];
+                y = p->YN2D[p->nij(k,q)];
+            }
+            else
+            {
+                x = x0(K);
+                y = y0(L);
+            }
+        };
+
+        for(int ii=pp->imin; ii<=pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<=pp->jmin+pp->jmax; ++jj)
+        {
+            const int NI = ii-EXT+c.I0, NJ = jj-EXT+c.J0;    // global level-l node
+            const int K = fsh(NI,l), L = fsh(NJ,l);
+            const double fr = double(NI-(K<<l))/rl, fs = double(NJ-(L<<l))/rl;
+            double x00,y00,x10,y10,x01,y01,x11,y11;
+            node0(K,L,x00,y00); node0(K+1,L,x10,y10); node0(K,L+1,x01,y01); node0(K+1,L+1,x11,y11);
+
+            pp->XN2D[pp->nij(ii,jj)] = x00 + (x10-x00)*fr + (x01-x00)*fs + (x11-x10-x01+x00)*fr*fs;
+            pp->YN2D[pp->nij(ii,jj)] = y00 + (y10-y00)*fr + (y01-y00)*fs + (y11-y10-y01+y00)*fr*fs;
+        }
+    }
+    pp->geometry_metrics();
+    {
+        double err,gcl;
+        const int mismatch = pp->geometry_check(err,gcl);
+        if(mismatch!=0)
+        cout<<"!!! AMR patch (level "<<l<<"): "<<mismatch<<" 2D nodes differ from XN/YN !!!"<<endl;
+    }
 
     // mean spacing: exact fraction of level 0, independent of the patch size
     pp->DXM = p->DXM/rl;

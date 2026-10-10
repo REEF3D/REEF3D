@@ -3039,6 +3039,10 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
+        <VirtualDirectory Name="Curvilinear">
+          <File Name="grid_geometry.cpp"/>
+          <File Name="lexer_geometry.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geo_Core">
           <File Name="geo_mesh.cpp"/>
           <File Name="geo_raycast.cpp"/>

@@ -74,6 +74,12 @@ public:
     int geodat;     // geodat bed level (GEOB) belongs to: 0 none, 1 solid, 2 topo
     double dxm;     // DIVEMesh mean cell size
 
+    // CURV (optional): river corridor grid of DIVEMesh (R 1), read and checked, not used by a solver yet
+    //   nodes (i,j), i=0..curv_ni along the river from the inflow, j=0..curv_nj from the right bank,
+    //   index i + (curv_ni+1)*j; curv_par = {R 2 wl0, R 3 wl, R 3 margin, R 5 open, raster spacing}
+    int curv_ni, curv_nj;
+    vector<double> curv_par, curv_x, curv_y, curv_zb;
+
 private:
     void allocate(int);
     void release();

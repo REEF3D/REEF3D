@@ -776,6 +776,47 @@ void reefamr3d::build_lexer(r3patch &c)
 
     // ---- gridini (without the solids of the grid file)
     pp->gridspacing(pgc0);
+
+    // horizontal geometry layer: the patch nodes subdivide the level-0 2D nodes bilinearly (on a
+    // Cartesian grid bit for bit the XN/YN above), then the metrics of the patch cells
+    pp->geo_curv = p->geo_curv;
+    pp->geometry_alloc();
+    {
+        auto node0 = [&](int K, int L, double &x, double &y)   // level-0 2D node, global index
+        {
+            const int k = K-org[0], q = L-org[1];
+            if(p->XN2D!=nullptr && k>=p->imin && k<=p->imin+p->imax && q>=p->jmin && q<=p->jmin+p->jmax)
+            {
+                x = p->XN2D[p->nij(k,q)];
+                y = p->YN2D[p->nij(k,q)];
+            }
+            else
+            {
+                x = node(0,0,K);
+                y = node(0,1,L);
+            }
+        };
+
+        for(int ii=pp->imin; ii<=pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<=pp->jmin+pp->jmax; ++jj)
+        {
+            const int NI = c.lo[0]+ii, NJ = c.lo[1]+jj;      // global level-l node
+            const int K = fdiv(NI,R[0]), L = fdiv(NJ,R[1]);
+            const double fr = double(NI-K*R[0])/double(R[0]), fs = double(NJ-L*R[1])/double(R[1]);
+            double x00,y00,x10,y10,x01,y01,x11,y11;
+            node0(K,L,x00,y00); node0(K+1,L,x10,y10); node0(K,L+1,x01,y01); node0(K+1,L+1,x11,y11);
+
+            pp->XN2D[pp->nij(ii,jj)] = x00 + (x10-x00)*fr + (x01-x00)*fs + (x11-x10-x01+x00)*fr*fs;
+            pp->YN2D[pp->nij(ii,jj)] = y00 + (y10-y00)*fr + (y01-y00)*fs + (y11-y10-y01+y00)*fr*fs;
+        }
+    }
+    pp->geometry_metrics();
+    {
+        double err,gcl;
+        const int mismatch = pp->geometry_check(err,gcl);
+        if(mismatch!=0)
+        cout<<"!!! AMR patch (level "<<l<<"): "<<mismatch<<" 2D nodes differ from XN/YN !!!"<<endl;
+    }
     pp->DXM = p->DXM/double(R[0]);
     pp->DXD = p->DXD/double(R[0]);
     pp->DYD = p->DYD/double(R[1]);
