@@ -351,21 +351,21 @@ double interpolation::lint4kin(field& f, int& i,int& j, int& k, double wa, doubl
     v8=f(i+1,j+1,k+1);
 
     
-    if(p->flagsf4[IJK]<0)
+    if(p->DF[IJK]<0)
     v1=f(i,j,k+1);
-    if(p->flagsf4[IJp1K]<0)
+    if(p->DF[IJp1K]<0)
     v2=f(i,j+1,k+1);
-    if(p->flagsf4[Ip1JK]<0)
+    if(p->DF[Ip1JK]<0)
     v3=f(i+1,j,k+1);
-    if(p->flagsf4[IJp1K]<0)
+    if(p->DF[IJp1K]<0)
     v4=f(i+1,j+1,k+1);
-    if(p->flagsf4[IJKp1]<0)
+    if(p->DF[IJKp1]<0)
     v5=f(i,j,k+2);
-    if(p->flagsf4[IJp1Kp1]<0)
+    if(p->DF[IJp1Kp1]<0)
     v6=f(i,j+1,k+2);
-    if(p->flagsf4[Ip1JKp1]<0)
+    if(p->DF[Ip1JKp1]<0)
     v7=f(i+1,j,k+2);
-    if(p->flagsf4[Ip1Jp1Kp1]<0)
+    if(p->DF[Ip1Jp1Kp1]<0)
     v8=f(i+1,j+1,k+2);
 
     x1 = wa*v1 + (1.0-wa)*v3;

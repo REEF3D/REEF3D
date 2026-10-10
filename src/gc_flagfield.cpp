@@ -93,5 +93,9 @@ void ghostcell::flagfield(lexer *p)
 
         if(p->gcb4[n][3]==6 && (p->periodic3!=1 || k+p->origin_k<p->gknoz-1))
         p->flag3[IJK]=OBJ_FLAG;
-    }	
+    }
+
+    flagx(p,p->flag1);
+    flagx(p,p->flag2);
+    flagx(p,p->flag3);
 }

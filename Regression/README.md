@@ -316,7 +316,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_cylinder_kepsilon_mpi2` | 2 | NHFLOW 3D channel with a cylinder (A580), k-ε, ranks split in y: k/ε and ν_t across the rank interface |
 | `sflow_1d_channel_ke` (+ `_kw`) | 1 | SFLOW depth-averaged k-ε / k-ω (A260 1/2): k, ε/ω relax to the Rastogi–Rodi equilibrium |
 | `sflow_2d_channel_walls_kw_mpi2` | 2 | SFLOW k-ω with side walls, ranks split in y: production at wall cells, uniform k/ω across the width |
-| `cfd_3d_heave_sphere_6dof_kepsilon` | 4 | k-ε at a direct-forcing body: wall functions at gcdf4 cells, flagsf4 turn-off, solid forcing for k/ε |
+| `cfd_3d_heave_sphere_6dof_kepsilon` | 4 | k-ε at a direct-forcing body: wall functions at gcdf4 cells, DF turn-off, solid forcing for k/ε |
 | `cfd_2d_channel_veg_kepsilon` | 1 | vegetation box (B 310, B 308 0): drag ½ Cd a \|u\| u_i, Lopez & Garcia k/ε sources |
 | `cfd_2d_freesurface_komega_t45` | 1 | k-ω buoyancy term T 45 1: implicit sink, k ≥ 0 at the interface |
 | `cfd_2d_channel_les_t21_2` | 1 | LES Smagorinsky with the second-order high-pass filter T 21 2 |

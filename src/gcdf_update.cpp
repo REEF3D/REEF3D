@@ -26,6 +26,25 @@ void gcbl_reset_all(lexer*);
 #include"fdm.h"
 #include"fieldint4.h"
 
+void ghostcell::set_DF(lexer *p, fdm *a)
+{
+    LOOP
+    {
+        int df = 1;
+
+        if(p->solidread>0 && a->solid(i,j,k)<0.0)
+            df = -1;
+        else if(p->toporead>0 && a->topo(i,j,k)<0.0)
+            df = -1;
+        else if(p->X10>0 && a->fb(i,j,k)<0.0)
+            df = -1;
+
+        p->DF[IJK] = df;
+    }
+
+    flagx(p,p->DF);
+}
+
 void ghostcell::gcdf_update(lexer *p, fdm *a)
 {
     gcbl_reset_all(p);
@@ -86,39 +105,9 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     cout<<"number of active cells: "<<count<<endl;*/
     
     // -----------------------------------------------------------
-    // FLAGSF
-    BASELOOP
-    {
-    if((a->fb(i,j,k)>0.0 || p->X10==0) && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
-    p->flagsf4[IJK]=1;
     
-    if((a->fb(i,j,k)<0.0 && p->X10==1) || (a->solid(i,j,k)<0.0 && p->solidread==1) || (a->topo(i,j,k)<0.0 && p->toporead==1))
-    p->flagsf4[IJK]=-1;
-    }
-    
-    flagx(p,p->flagsf4);
-    
-    BASELOOP
-    {
-    p->flagsf1[IJK]=p->flagsf4[IJK];
-    p->flagsf2[IJK]=p->flagsf4[IJK];
-    p->flagsf3[IJK]=p->flagsf4[IJK];
-    
-    if(p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0)
-    p->flagsf1[IJK]=-1;
-    
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)
-    p->flagsf2[IJK]=-1;
-    
-    if(p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0)
-    p->flagsf3[IJK]=-1;
-    }
-    
-    flagx(p,p->flagsf1);
-    flagx(p,p->flagsf2);
-    flagx(p,p->flagsf3);
-    
-    
+    set_DF(p,a);
+
     // -----------------------------------------------------------
     // count gcdf entries
     count=0;
@@ -126,25 +115,25 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     // gcdf count
     BASELOOP
-    if(p->flagsf4[IJK]>0)
+    if(p->DF[IJK]>0)
     {
      
-        if(p->flagsf4[Im1JK]<0)
+        if(p->DF[Im1JK]<0)
         ++count;
         
-        if(p->flagsf4[Ip1JK]<0)
+        if(p->DF[Ip1JK]<0)
         ++count;
         
-        if(p->flagsf4[IJm1K]<0)
+        if(p->DF[IJm1K]<0)
         ++count;
         
-        if(p->flagsf4[IJp1K]<0)
+        if(p->DF[IJp1K]<0)
         ++count;
 
-        if(p->flagsf4[IJKm1]<0)
+        if(p->DF[IJKm1]<0)
         ++count;
         
-        if(p->flagsf4[IJKp1]<0)
+        if(p->DF[IJKp1]<0)
         ++count;        
     }
     
@@ -161,9 +150,9 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     count=0;
     
     BASELOOP
-    if(p->flagsf4[IJK]>0)
+    if(p->DF[IJK]>0)
     {
-        if(p->flagsf4[Im1JK]<0)
+        if(p->DF[Im1JK]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -173,7 +162,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[Ip1JK]<0)
+        if(p->DF[Ip1JK]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -183,7 +172,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[IJm1K]<0)
+        if(p->DF[IJm1K]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -193,7 +182,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[IJp1K]<0)
+        if(p->DF[IJp1K]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -203,7 +192,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
 
-        if(p->flagsf4[IJKm1]<0)
+        if(p->DF[IJKm1]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -213,7 +202,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
         ++count;
         }
         
-        if(p->flagsf4[IJKp1]<0)
+        if(p->DF[IJKp1]<0)
         {
         p->gcdf4[count][0]=i;
         p->gcdf4[count][1]=j;
@@ -246,247 +235,75 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
 
     GCDF4LOOP
     {
-    i=p->gcdf4[n][0];
-    j=p->gcdf4[n][1];
-    k=p->gcdf4[n][2];
-	p->gcdf4[n][5]=cval(i,j,k);
-	}
-    
-    
+        i=p->gcdf4[n][0];
+        j=p->gcdf4[n][1];
+        k=p->gcdf4[n][2];
+        p->gcdf4[n][5]=cval(i,j,k);
+    }
+
+    // flagsf1/2/3 are the staggered-face versions of DF (same convention as
+    // flag1-3 vs flag4): open unless the face's neighbor cell is blocked. Since
+    // that's a pure function of DF -- which already carries a p->margin-deep
+    // synced halo -- they're computed on the fly here instead of as separate
+    // arrays; gcdf_update_impl never reaches more than 2 cells from DF.
+    auto flagsf1 = [p](int i, int j, int k) -> int
+    {
+        int v = p->DF[IJK];
+        return (v>0 && p->DF[Ip1JK]<0) ? -1 : v;
+    };
+
+    auto flagsf2 = [p](int i, int j, int k) -> int
+    {
+        int v = p->DF[IJK];
+        return (v>0 && p->DF[IJp1K]<0) ? -1 : v;
+    };
+
+    auto flagsf3 = [p](int i, int j, int k) -> int
+    {
+        int v = p->DF[IJK];
+        return (v>0 && p->DF[IJKp1]<0) ? -1 : v;
+    };
+
+    gcdf_update_impl(p, flagsf1, p->gcdf1, p->gcdf1_count);
+    gcdf_update_impl(p, flagsf2, p->gcdf2, p->gcdf2_count);
+    gcdf_update_impl(p, flagsf3, p->gcdf3, p->gcdf3_count);
+}
+
+template<typename FlagT>
+void ghostcell::gcdf_update_impl(lexer *p, FlagT &flagsf, int **&gcdf, int &gcdf_count)
+{
     // -----------------------
-    // flagsf1
-    
+    // flagsf
+
+    count = 0;
+
     BASELOOP
-    if(p->flagsf1[IJK]>0)
+    if(flagsf(i,j,k)>0)
     {
-     
-        if(p->flagsf1[Im1JK]<0)
-        ++count;
-        
-        if(p->flagsf1[Ip1JK]<0)
-        ++count;
-        
-        if(p->flagsf1[IJm1K]<0)
-        ++count;
-        
-        if(p->flagsf1[IJp1K]<0)
-        ++count;
+        if(flagsf(i-1,j,k)<0)
+            ++count;
 
-        if(p->flagsf1[IJKm1]<0)
-        ++count;
-        
-        if(p->flagsf1[IJKp1]<0)
-        ++count;        
-    }
-    
-    if(p->gcdf1_count!=count)
-    {
-    p->Iresize(p->gcdf1,p->gcdf1_count,count,6,6);
-    
-    p->gcdf1_count=count;
-    }
-    
-    //cout<<p->mpirank<<" p->gcdf1_count: "<<p->gcdf1_count<<endl;
-    
-    // assign gcdf entries
-    count=0;
-    
-    BASELOOP
-    if(p->flagsf1[IJK]>0)
-    {
-        if(p->flagsf1[Im1JK]<0)
-        {
-        p->gcdf1[count][0]=i;
-        p->gcdf1[count][1]=j;
-        p->gcdf1[count][2]=k;
-        p->gcdf1[count][3]=1;
-        p->gcdf1[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf1[Ip1JK]<0)
-        {
-        p->gcdf1[count][0]=i;
-        p->gcdf1[count][1]=j;
-        p->gcdf1[count][2]=k;
-        p->gcdf1[count][3]=4;
-        p->gcdf1[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf1[IJm1K]<0)
-        {
-        p->gcdf1[count][0]=i;
-        p->gcdf1[count][1]=j;
-        p->gcdf1[count][2]=k;
-        p->gcdf1[count][3]=3;
-        p->gcdf1[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf1[IJp1K]<0)
-        {
-        p->gcdf1[count][0]=i;
-        p->gcdf1[count][1]=j;
-        p->gcdf1[count][2]=k;
-        p->gcdf1[count][3]=2;
-        p->gcdf1[count][4]=48;
-        ++count;
-        }
+        if(flagsf(i+1,j,k)<0)
+            ++count;
 
-        if(p->flagsf1[IJKm1]<0)
-        {
-        p->gcdf1[count][0]=i;
-        p->gcdf1[count][1]=j;
-        p->gcdf1[count][2]=k;
-        p->gcdf1[count][3]=5;
-        p->gcdf1[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf1[IJKp1]<0)
-        {
-        p->gcdf1[count][0]=i;
-        p->gcdf1[count][1]=j;
-        p->gcdf1[count][2]=k;
-        p->gcdf1[count][3]=6;
-        p->gcdf1[count][4]=48;
-        ++count;
-        }       
-    }
-    
-    // -----------------------
-    // flagsf2
-     BASELOOP
-    if(p->flagsf2[IJK]>0)
-    {
-     
-        if(p->flagsf2[Im1JK]<0)
-        ++count;
-        
-        if(p->flagsf2[Ip1JK]<0)
-        ++count;
-        
-        if(p->flagsf2[IJm1K]<0)
-        ++count;
-        
-        if(p->flagsf2[IJp1K]<0)
-        ++count;
+        if(flagsf(i,j-1,k)<0)
+            ++count;
 
-        if(p->flagsf2[IJKm1]<0)
-        ++count;
-        
-        if(p->flagsf2[IJKp1]<0)
-        ++count;        
-    }
-    
-    if(p->gcdf2_count!=count)
-    {
-    p->Iresize(p->gcdf2,p->gcdf2_count,count,6,6);
-    
-    p->gcdf2_count=count;
-    }
-    
-    //cout<<p->mpirank<<" p->gcdf2_count: "<<p->gcdf2_count<<endl;
-    
-    // assign gcdf entries
-    count=0;
-    
-    BASELOOP
-    if(p->flagsf2[IJK]>0)
-    {
-        if(p->flagsf2[Im1JK]<0)
-        {
-        p->gcdf2[count][0]=i;
-        p->gcdf2[count][1]=j;
-        p->gcdf2[count][2]=k;
-        p->gcdf2[count][3]=1;
-        p->gcdf2[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf2[Ip1JK]<0)
-        {
-        p->gcdf2[count][0]=i;
-        p->gcdf2[count][1]=j;
-        p->gcdf2[count][2]=k;
-        p->gcdf2[count][3]=4;
-        p->gcdf2[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf2[IJm1K]<0)
-        {
-        p->gcdf2[count][0]=i;
-        p->gcdf2[count][1]=j;
-        p->gcdf2[count][2]=k;
-        p->gcdf2[count][3]=3;
-        p->gcdf2[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf2[IJp1K]<0)
-        {
-        p->gcdf2[count][0]=i;
-        p->gcdf2[count][1]=j;
-        p->gcdf2[count][2]=k;
-        p->gcdf2[count][3]=2;
-        p->gcdf2[count][4]=48;
-        ++count;
-        }
+        if(flagsf(i,j+1,k)<0)
+            ++count;
 
-        if(p->flagsf2[IJKm1]<0)
-        {
-        p->gcdf2[count][0]=i;
-        p->gcdf2[count][1]=j;
-        p->gcdf2[count][2]=k;
-        p->gcdf2[count][3]=5;
-        p->gcdf2[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf2[IJKp1]<0)
-        {
-        p->gcdf2[count][0]=i;
-        p->gcdf2[count][1]=j;
-        p->gcdf2[count][2]=k;
-        p->gcdf2[count][3]=6;
-        p->gcdf2[count][4]=48;
-        ++count;
-        }       
-    }
-    
-    // -----------------------
-    // flagsf3
-    
-    BASELOOP
-    if(p->flagsf3[IJK]>0)
-    {
-     
-        if(p->flagsf3[Im1JK]<0)
-        ++count;
-        
-        if(p->flagsf3[Ip1JK]<0)
-        ++count;
-        
-        if(p->flagsf3[IJm1K]<0)
-        ++count;
-        
-        if(p->flagsf3[IJp1K]<0)
-        ++count;
+        if(flagsf(i,j,k-1)<0)
+            ++count;
 
-        if(p->flagsf3[IJKm1]<0)
-        ++count;
-        
-        if(p->flagsf3[IJKp1]<0)
-        ++count;        
+        if(flagsf(i,j,k+1)<0)
+            ++count;
     }
-    
-    if(p->gcdf3_count!=count)
+
+    if(gcdf_count!=count)
     {
-    p->Iresize(p->gcdf3,p->gcdf3_count,count,6,6);
-    
-    p->gcdf3_count=count;
+        p->Iresize(gcdf,gcdf_count,count,6,6);
+
+        gcdf_count=count;
     }
     
     //cout<<p->mpirank<<" p->gcdf3_count: "<<p->gcdf3_count<<endl;
@@ -495,67 +312,67 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     count=0;
     
     BASELOOP
-    if(p->flagsf3[IJK]>0)
+    if(flagsf(i,j,k)>0)
     {
-        if(p->flagsf3[Im1JK]<0)
+        if(flagsf(i-1,j,k)<0)
         {
-        p->gcdf3[count][0]=i;
-        p->gcdf3[count][1]=j;
-        p->gcdf3[count][2]=k;
-        p->gcdf3[count][3]=1;
-        p->gcdf3[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf3[Ip1JK]<0)
-        {
-        p->gcdf3[count][0]=i;
-        p->gcdf3[count][1]=j;
-        p->gcdf3[count][2]=k;
-        p->gcdf3[count][3]=4;
-        p->gcdf3[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf3[IJm1K]<0)
-        {
-        p->gcdf3[count][0]=i;
-        p->gcdf3[count][1]=j;
-        p->gcdf3[count][2]=k;
-        p->gcdf3[count][3]=3;
-        p->gcdf3[count][4]=48;
-        ++count;
-        }
-        
-        if(p->flagsf3[IJp1K]<0)
-        {
-        p->gcdf3[count][0]=i;
-        p->gcdf3[count][1]=j;
-        p->gcdf3[count][2]=k;
-        p->gcdf3[count][3]=2;
-        p->gcdf3[count][4]=48;
-        ++count;
+            gcdf[count][0]=i;
+            gcdf[count][1]=j;
+            gcdf[count][2]=k;
+            gcdf[count][3]=1;
+            gcdf[count][4]=48;
+            ++count;
         }
 
-        if(p->flagsf3[IJKm1]<0)
+        if(flagsf(i+1,j,k)<0)
         {
-        p->gcdf3[count][0]=i;
-        p->gcdf3[count][1]=j;
-        p->gcdf3[count][2]=k;
-        p->gcdf3[count][3]=5;
-        p->gcdf3[count][4]=48;
-        ++count;
+            gcdf[count][0]=i;
+            gcdf[count][1]=j;
+            gcdf[count][2]=k;
+            gcdf[count][3]=4;
+            gcdf[count][4]=48;
+            ++count;
         }
-        
-        if(p->flagsf3[IJKp1]<0)
+
+        if(flagsf(i,j-1,k)<0)
         {
-        p->gcdf3[count][0]=i;
-        p->gcdf3[count][1]=j;
-        p->gcdf3[count][2]=k;
-        p->gcdf3[count][3]=6;
-        p->gcdf3[count][4]=48;
-        ++count;
-        }       
+            gcdf[count][0]=i;
+            gcdf[count][1]=j;
+            gcdf[count][2]=k;
+            gcdf[count][3]=3;
+            gcdf[count][4]=48;
+            ++count;
+        }
+
+        if(flagsf(i,j+1,k)<0)
+        {
+            gcdf[count][0]=i;
+            gcdf[count][1]=j;
+            gcdf[count][2]=k;
+            gcdf[count][3]=2;
+            gcdf[count][4]=48;
+            ++count;
+        }
+
+        if(flagsf(i,j,k-1)<0)
+        {
+            gcdf[count][0]=i;
+            gcdf[count][1]=j;
+            gcdf[count][2]=k;
+            gcdf[count][3]=5;
+            gcdf[count][4]=48;
+            ++count;
+        }
+
+        if(flagsf(i,j,k+1)<0)
+        {
+            gcdf[count][0]=i;
+            gcdf[count][1]=j;
+            gcdf[count][2]=k;
+            gcdf[count][3]=6;
+            gcdf[count][4]=48;
+            ++count;
+        }
     }
 
 

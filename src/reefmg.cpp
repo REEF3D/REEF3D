@@ -365,7 +365,7 @@ void reefmg::start_solver44(lexer *p, fdm *a, ghostcell *pgc, field *ff, double 
 //  Same row numbering as the assembly in nhflow_potential_f::laplace and
 //  potential_f::laplace (both LOOP).  The NHFLOW routine turns dry and solid
 //  cells into identity rows; the CFD routine leaves the rows it excludes
-//  (air with I 21 1, direct-forcing solids, flagsf4) empty, so there a zero
+//  (air with I 21 1, direct-forcing solids, DF) empty, so there a zero
 //  diagonal marks the cell as outside the problem.  Either way they are kept
 //  out of the multigrid rather than coarsened as if they were fluid.
 //  PSI is cell-centred: IJK, not FIJK as for the FNPF potential.
