@@ -192,7 +192,7 @@ struct weno_coef
     double cf[6];
 };
 
-static inline __attribute__((always_inline)) void weno_coef_load(weno_coef &c, double ***QF, double ***ISF, double **CF, int dir)
+static inline __attribute__((always_inline)) void weno_coef_load(weno_coef &c, const weno_nug_func::qf_t &QF, const weno_nug_func::isf_t &ISF, const weno_nug_func::cf_t &CF, int dir)
 {
     for(int r=0;r<6;++r)
     {

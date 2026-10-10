@@ -452,7 +452,7 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
         auto nodes = [&](const double *XN, int n0, int nloc, int gn, vector<double> &g)
         {
             // every rank sends its node array (first entry: global node n0-m), entries overlap
-            const int na = nloc+1+4*m;
+            const int na = nloc+1+2*m;
             vector<int> cnt(np), off(np), st(np);
             int me0 = n0;
             MPI_Allgather(&na,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
@@ -472,7 +472,7 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
                 const int K = st[r]-m+a;
                 if(K<-m || K>gn+m)
                 continue;
-                const bool interior = (a>=m && a<=cnt[r]-1-3*m);
+                const bool interior = (a>=m && a<=cnt[r]-1-m);
                 if((pass==0 && interior) || (pass==1 && !set[K+m]))
                 {
                     g[K+m] = all[off[r]+a];
@@ -599,8 +599,8 @@ void reefamr::free_patch(reefamr_patch *c)
 
     patch_delete(c);
 
-    const int nxa = pp->knox+1+4*marge;
-    const int nya = pp->knoy+1+4*marge;
+    const int nxa = pp->knox+1+2*marge;
+    const int nya = pp->knoy+1+2*marge;
     const int nsl = pp->imax*pp->jmax;
 
     pp->del_Darray(pp->XN,nxa); pp->del_Darray(pp->XP,nxa); pp->del_Darray(pp->DXN,nxa); pp->del_Darray(pp->DXP,nxa);
@@ -608,7 +608,7 @@ void reefamr::free_patch(reefamr_patch *c)
 
     if(c->zown)
     {
-        const int nza = pp->knoz+1+4*marge;
+        const int nza = pp->knoz+1+2*marge;
         pp->del_Darray(pp->ZN,nza); pp->del_Darray(pp->ZP,nza); pp->del_Darray(pp->DZN,nza); pp->del_Darray(pp->DZP,nza);
     }
 
@@ -671,10 +671,10 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->ulastsflow = 0;
 
     // coordinates
-    const int nxa = pp->knox+1+4*m;
-    const int nya = pp->knoy+1+4*m;
-    const int pnxa = p->knox+1+4*m;
-    const int pnya = p->knoy+1+4*m;
+    const int nxa = pp->knox+1+2*m;
+    const int nya = pp->knoy+1+2*m;
+    const int pnxa = p->knox+1+2*m;
+    const int pnya = p->knoy+1+2*m;
 
     pp->Darray(pp->XN,nxa); pp->Darray(pp->XP,nxa); pp->Darray(pp->DXN,nxa); pp->Darray(pp->DXP,nxa);
     pp->Darray(pp->YN,nya); pp->Darray(pp->YP,nya); pp->Darray(pp->DYN,nya); pp->Darray(pp->DYP,nya);
@@ -827,8 +827,8 @@ void reefamr::build_vertical(lexer *p, reefamr_patch &c)
     pp->kmaxF = pp->knoz+1+2*ms;
     pp->gknoz = p->gknoz*f;
 
-    const int nza = pp->knoz+1+4*m;
-    const int pnza = p->knoz+1+4*m;
+    const int nza = pp->knoz+1+2*m;
+    const int pnza = p->knoz+1+2*m;
 
     pp->ZN = pp->ZP = pp->DZN = pp->DZP = nullptr;
     pp->Darray(pp->ZN,nza); pp->Darray(pp->ZP,nza); pp->Darray(pp->DZN,nza); pp->Darray(pp->DZP,nza);

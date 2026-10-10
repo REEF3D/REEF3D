@@ -81,11 +81,11 @@ private:
     void ray_cast(lexer*, fdm*, ghostcell*);
     void reini_RK2(lexer*, fdm*, ghostcell*, field&);
     
-    fieldint5 cutl,cutr,fbio;
+    fieldint4 cutl,cutr,fbio;
     reinidisc *prdisc;
     field4a f, frk1, L, dt;
-    fieldint5 vertice, nodeflag;
-    field5 eta;
+    fieldint4 vertice, nodeflag;
+    field4 eta;
     
     void actuator_point(lexer*, int, Eigen::Vector3d&, double&);
     double actuator_fluid_fraction(lexer*, fdm*, int);

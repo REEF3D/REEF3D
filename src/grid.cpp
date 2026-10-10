@@ -55,17 +55,17 @@ void grid::gridspacing(ghostcell *pgc)
 {
     resize_class resizer;
 
-    resizer.Darray(XP,knox+1+4*marge);
-    resizer.Darray(YP,knoy+1+4*marge);
-    resizer.Darray(ZP,knoz+1+4*marge);
+    resizer.Darray(XP,knox+1+2*marge);
+    resizer.Darray(YP,knoy+1+2*marge);
+    resizer.Darray(ZP,knoz+1+2*marge);
 
-    resizer.Darray(DXN,knox+1+4*marge);
-    resizer.Darray(DYN,knoy+1+4*marge);
-    resizer.Darray(DZN,knoz+1+4*marge);
+    resizer.Darray(DXN,knox+1+2*marge);
+    resizer.Darray(DYN,knoy+1+2*marge);
+    resizer.Darray(DZN,knoz+1+2*marge);
 
-    resizer.Darray(DXP,knox+1+4*marge);
-    resizer.Darray(DYP,knoy+1+4*marge);
-    resizer.Darray(DZP,knoz+1+4*marge);
+    resizer.Darray(DXP,knox+1+2*marge);
+    resizer.Darray(DYP,knoy+1+2*marge);
+    resizer.Darray(DZP,knoz+1+2*marge);
 
     resizer.Darray(ZSN,imax*jmax*(kmax+1));
     resizer.Darray(ZSP,imax*jmax*kmax);
@@ -92,14 +92,18 @@ void grid::gridspacing(ghostcell *pgc)
 
     // dxn
 
-    for(i=-marge;i<knox+marge;++i)
+    // the last entry would need the node beyond the array: extrapolate with the last cell width
+    for(i=-marge;i<knox+marge-1;++i)
     DXP[IP] = 0.5*(XN[IP2]+XN[IP1]) - 0.5*(XN[IP1]+XN[IP]);
+    DXP[knox+2*marge-1] = DXN[knox+2*marge-1];
 
-    for(j=-marge;j<knoy+marge;++j)
+    for(j=-marge;j<knoy+marge-1;++j)
     DYP[JP] = 0.5*(YN[JP2]+YN[JP1]) - 0.5*(YN[JP1]+YN[JP]);
+    DYP[knoy+2*marge-1] = DYN[knoy+2*marge-1];
 
-    for(k=-marge;k<knoz+marge;++k)
+    for(k=-marge;k<knoz+marge-1;++k)
     DZP[KP] = 0.5*(ZN[KP2]+ZN[KP1]) - 0.5*(ZN[KP1]+ZN[KP]);
+    DZP[knoz+2*marge-1] = DZN[knoz+2*marge-1];
 
     DXM = DXD = DYD = 0.0;
 
@@ -145,6 +149,4 @@ void grid::gridspacing(ghostcell *pgc)
     DXM = pgc->globalmin(DXM);
     DXD = pgc->globalmin(DXD);
     DYD = pgc->globalmin(DYD);
-
-    
 }
