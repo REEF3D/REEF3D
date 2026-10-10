@@ -17,19 +17,21 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef FIELD4A_H_
-#define FIELD4A_H_
+#include"slice.h"
+#include"slice1.h"
+#include"slice2.h"
+#include"slice4.h"
+#include"slice5.h"
 
-#include "field.h"
+// Out-of-line destructors: each is its class's key function, so the vtable
+// is emitted once, here, instead of in every translation unit that includes
+// the header (-Wweak-vtables).
 
-class field4a final : public field
-{
-public:
-    field4a(lexer *pp) : field(pp) {}
-    ~field4a() override;
-};
-
-#endif
+slice::~slice() = default;
+slice1::~slice1() = default;
+slice2::~slice2() = default;
+slice4::~slice4() = default;
+slice5::~slice5() = default;

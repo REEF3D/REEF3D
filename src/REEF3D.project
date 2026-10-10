@@ -1155,14 +1155,18 @@
           <File Name="field4.h"/>
           <File Name="field4a.h"/>
           <File Name="field5.h"/>
+          <File Name="field7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Fieldint">
+          <File Name="ArrayWrapper3D.h"/>
+          <File Name="ArrayWrapper3D_imp.h"/>
           <File Name="fieldint.h"/>
           <File Name="fieldint1.h"/>
           <File Name="fieldint2.h"/>
           <File Name="fieldint3.h"/>
           <File Name="fieldint4.h"/>
           <File Name="fieldint5.h"/>
+          <File Name="fieldint7.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geotopo">
           <File Name="geotopo.h"/>
@@ -1190,6 +1194,8 @@
           <File Name="slice1.h"/>
           <File Name="slice2.h"/>
           <File Name="slice4.h"/>
+          <File Name="ArrayWrapper2D.h"/>
+          <File Name="ArrayWrapper2D_imp.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="solid.h"/>
@@ -3080,6 +3086,11 @@
             <File Name="grid_helper_gcb4a.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
+        <VirtualDirectory Name="Field">
+          <File Name="ArrayWrapper3D.cpp"/>
+          <File Name="fields.cpp"/>
+          <File Name="fieldints.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Increment">
           <File Name="increment.cpp"/>
         </VirtualDirectory>
@@ -3091,6 +3102,9 @@
           <File Name="boundarycheck.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Slice">
+          <File Name="ArrayWrapper2D.cpp"/>
+          <File Name="slices.cpp"/>
+          <File Name="sliceints.cpp"/>
           <VirtualDirectory Name="MGC">
             <File Name="mgcslice4.cpp"/>
             <File Name="mgcslice2.cpp"/>

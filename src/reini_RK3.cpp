@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"picard_lsm.h"
 #include"picard_void.h"
 #include"reinidisc_f.h"
+#include<algorithm>
 
 reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
 {
@@ -111,8 +112,10 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
     // patch of the mesh refinement (cfd_amr): the cells around the patch keep the values filled
     // into f (no exchange on a patch), the stage fields take them over
     if(p->amr_patch==1)
-    for(int n=0; n<p->imax*p->jmax*p->kmax; ++n)
-    frk1.V[n] = frk2.V[n] = f.V[n];
+    {
+    std::ranges::copy(f,frk1.begin());
+    std::ranges::copy(f,frk2.begin());
+    }
 
 	pflow->fsfrkin(p,a,pgc,frk1);
     pflow->fsfrkin(p,a,pgc,frk2);
@@ -126,7 +129,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         prdisc->start(p,a,pgc,f,a->L,4);
 
         BASELOOP
-        frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*a->L.V[IJK];
+        frk1(i,j,k) = f(i,j,k) + dt(i,j,k)*a->L(i,j,k);
         
         pgc->start4(p,frk1,gcval);
 
@@ -134,7 +137,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         prdisc->start(p,a,pgc,frk1,a->L,4);
 
         BASELOOP
-        frk2.V[IJK] = 0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*a->L.V[IJK];
+        frk2(i,j,k) = 0.75*f(i,j,k) + 0.25*frk1(i,j,k) + 0.25*dt(i,j,k)*a->L(i,j,k);
 
         pgc->start4(p,frk2,gcval);
 
@@ -142,7 +145,7 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
         prdisc->start(p,a,pgc,frk2,a->L,4);
 
         BASELOOP
-        f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*a->L.V[IJK];
+        f(i,j,k) = (1.0/3.0)*f(i,j,k) + (2.0/3.0)*frk2(i,j,k) + (2.0/3.0)*dt(i,j,k)*a->L(i,j,k);
 
         pgc->start4(p,f,gcval);
 	}
@@ -163,10 +166,10 @@ void reini_RK3::time_preproc(lexer* p)
 	LOOP
 	{
     if(p->j_dir==0)
-    dt.V[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    dt(i,j,k) = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
     
     if(p->j_dir==1)
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dt(i,j,k) = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 }
 

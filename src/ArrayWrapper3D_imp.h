@@ -17,19 +17,36 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef FIELD4A_H_
-#define FIELD4A_H_
+#ifndef ARRAYWRAPPER3D_IMP_H_
+#define ARRAYWRAPPER3D_IMP_H_
 
-#include "field.h"
+#include "ArrayWrapper3D.h"
 
-class field4a final : public field
+inline int &ArrayWrapper3D::operator()(int i, int j, int k) noexcept
 {
-public:
-    field4a(lexer *pp) : field(pp) {}
-    ~field4a() override;
-};
+    // Origin and strides are folded into m_base by cache_addressing(), so this
+    // touches no lexer member. Equivalent to data[IJK].
+    return m_base[i*m_js + j*m_ks + k];
+}
+
+inline const int &ArrayWrapper3D::operator()(int i, int j, int k) const noexcept
+{
+    // Origin and strides are folded into m_base by cache_addressing(), so this
+    // touches no lexer member. Equivalent to data[IJK].
+    return m_base[i*m_js + j*m_ks + k];
+}
+
+inline int &ArrayWrapper3D::operator[](int index) noexcept
+{
+    return m_data.data()[index];
+}
+
+inline const int &ArrayWrapper3D::operator[](int index) const noexcept
+{
+    return m_data.data()[index];
+}
 
 #endif

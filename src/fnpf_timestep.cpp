@@ -140,14 +140,14 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	
     k=p->knoz;
     SLICELOOP4
-	p->umax=MAX(p->umax,fabs((c->Fifsf[Ip1J]-c->Fifsf[Im1J])/(p->DXP[IP]+p->DXP[IM1])));
+	p->umax=MAX(p->umax,fabs((c->Fifsf(i+1,j)-c->Fifsf(i-1,j))/(p->DXP[IP]+p->DXP[IM1])));
 
 	p->umax=pgc->globalmax(p->umax);
 
 
 	k=p->knoz;
     SLICELOOP4
-	p->vmax=MAX(p->vmax,fabs((c->Fifsf[IJp1]-c->Fifsf[IJm1])/(p->DYP[JP]+p->DYP[JM1])));
+	p->vmax=MAX(p->vmax,fabs((c->Fifsf(i,j+1)-c->Fifsf(i,j-1))/(p->DYP[JP]+p->DYP[JM1])));
 
 	p->vmax=pgc->globalmax(p->vmax);
 

@@ -92,7 +92,7 @@ public:
         {
             if(c!=0.0 && mk[q]>=0 && mk[q]!=3)
             {
-                rhsvec.V[n] -= c*f.V[q];
+                rhsvec.V[n] -= c*f.data()[q];
                 c = 0.0;
             }
         };
@@ -569,14 +569,10 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 
         // no porous media, solids or bodies: also in the cells around the patch (initialize sets
         // the interior; PORVAL at the patch edge reads the cell outside)
-        const int na = pp->imax*pp->jmax*pp->kmax;
-        for(int n=0; n<na; ++n)
-        {
-            c->a->porosity.V[n] = 1.0;
-            c->a->fb.V[n] = 1.0;
-            c->a->topo.V[n] = 1.0;
-            c->a->solid.V[n] = 1.0e8;
-        }
+        std::ranges::fill(c->a->porosity,1.0);
+        std::ranges::fill(c->a->fb,1.0);
+        std::ranges::fill(c->a->topo,1.0);
+        std::ranges::fill(c->a->solid,1.0e8);
 
         pp->maxlength = p->maxlength;
         pp->xcoormax = p->xcoormax; pp->xcoormin = p->xcoormin;
@@ -665,7 +661,7 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
     {
         double zb = 1.0e20;
         for(const cfd_amr_cf &F : cf)
-        if(F.d==2 && fabs(CP(F.pid)->a->phi.V[F.qf])<1.5*p->psi)
+        if(F.d==2 && fabs(CP(F.pid)->a->phi.data()[F.qf])<1.5*p->psi)
         zb = MIN(zb,CP(F.pid)->pp->ZP[F.fi[2]+marge]);
         zb = pgc->globalmin(zb);
         if(p->mpirank==0 && zb<1.0e19)

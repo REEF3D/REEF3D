@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef FIELD1_H_
 #define FIELD1_H_
 
-#include"field.h"
+#include "field.h"
 
 class field1 final : public field
 {
 public:
-    field1(lexer* p) : field(p) {};
-    virtual ~field1() = default;
+    field1(lexer *pp) : field(pp) {}
+    ~field1() override;
 };
 
 #endif

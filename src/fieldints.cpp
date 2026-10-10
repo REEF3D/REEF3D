@@ -17,19 +17,25 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
-#ifndef FIELD4A_H_
-#define FIELD4A_H_
+#include "fieldint.h"
+#include "fieldint1.h"
+#include "fieldint2.h"
+#include "fieldint3.h"
+#include "fieldint4.h"
+#include "fieldint5.h"
+#include "fieldint7.h"
 
-#include "field.h"
+// Out-of-line destructors: each is its class's key function, so the vtable
+// is emitted once, here, instead of in every translation unit that includes
+// the header (-Wweak-vtables).
 
-class field4a final : public field
-{
-public:
-    field4a(lexer *pp) : field(pp) {}
-    ~field4a() override;
-};
-
-#endif
+fieldint::~fieldint() = default;
+fieldint1::~fieldint1() = default;
+fieldint2::~fieldint2() = default;
+fieldint3::~fieldint3() = default;
+fieldint4::~fieldint4() = default;
+fieldint5::~fieldint5() = default;
+fieldint7::~fieldint7() = default;

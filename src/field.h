@@ -25,11 +25,24 @@ Author: Hans Bihs
 
 #include "field_base.h"
 
+#include <cassert>
+
 class field : public field_base<double>
 {
 public:
-    field(lexer* p, bool allocate=true) : field_base<double>(p,allocate) {}
-    virtual ~field() = default;
+    field(lexer *pp, bool allocate=true) : field_base<double>(pp,allocate) {}
+    ~field() override;
+
+    // same layout only; copies in place, so V is never reallocated and the
+    // folded addressing stays valid
+    void CopyFrom(const field &src)
+    {
+        assert(size()==src.size());
+        std::ranges::copy(src, begin());
+    }
+
+protected:
+    field(lexer *pp, int kz, std::size_t slack) : field_base<double>(pp, kz, slack) {}
 };
 
 #endif

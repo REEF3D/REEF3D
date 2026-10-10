@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"reefamr_krylov.h"
 #include<cmath>
 #include<limits>
+#include<algorithm>
 
 //  Boussinesq u_a (A 220 4) on the leaf cells of all levels.
 //
@@ -223,7 +224,7 @@ double sflow_amr::bq_dot(int ka, int kb)
     double s=0.0;
     for(int g=-1; g<(int)P.size(); ++g)
     {
-        const double *a = nh_vec(g,ka).V, *b = nh_vec(g,kb).V;
+        const double *a = nh_vec(g,ka).data(), *b = nh_vec(g,kb).data();
         for(int n : (*bqc)[g+1].leaf)
         s += a[n]*b[n];
     }
@@ -239,8 +240,8 @@ void sflow_amr::bq_apply(int kx, int ky, int dir)
     {
         lexer *q = (g<0) ? p0 : P[g]->pp;
         bqrow R = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir);
-        const double *x = nh_vec(g,kx).V, *rp = R.p->V, *ru = R.up->V, *rd = R.dn->V;
-        double *y = nh_vec(g,ky).V;
+        const double *x = nh_vec(g,kx).data(), *rp = R.p->data(), *ru = R.up->data(), *rd = R.dn->data();
+        double *y = nh_vec(g,ky).data();
         const int off = (dir==0) ? q->jmax : 1;
 
         for(int n : (*bqc)[g+1].leaf)
@@ -257,8 +258,8 @@ void sflow_amr::bq_prec(int kr, int kz, int dir)
     {
         lexer *q = (g<0) ? p0 : P[g]->pp;
         bqrow R = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir);
-        const double *r = nh_vec(g,kr).V, *rp = R.p->V, *ru = R.up->V, *rd = R.dn->V;
-        double *z = nh_vec(g,kz).V;
+        const double *r = nh_vec(g,kr).data(), *rp = R.p->data(), *ru = R.up->data(), *rd = R.dn->data();
+        double *z = nh_vec(g,kz).data();
         const int off = (dir==0) ? q->jmax : 1;
         const vector<int> &S = (*bqc)[g+1].seg[dir];
 
@@ -291,8 +292,8 @@ void sflow_amr::bq_start(int dir)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vb = nh_vec(g-1,BB).V;
-        double *vr = nh_vec(g-1,BR).V, *vrh = nh_vec(g-1,BRH).V, *vp = nh_vec(g-1,BPV).V, *vv = nh_vec(g-1,BVV).V;
+        const double *vb = nh_vec(g-1,BB).data();
+        double *vr = nh_vec(g-1,BR).data(), *vrh = nh_vec(g-1,BRH).data(), *vp = nh_vec(g-1,BPV).data(), *vv = nh_vec(g-1,BVV).data();
         for(int n : (*bqc)[g].leaf)
         {
             double r = vb[n] - vv[n];
@@ -305,8 +306,8 @@ void sflow_amr::bq_p(double beta, double om)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vr = nh_vec(g-1,BR).V, *vv = nh_vec(g-1,BVV).V;
-        double *vp = nh_vec(g-1,BPV).V;
+        const double *vr = nh_vec(g-1,BR).data(), *vv = nh_vec(g-1,BVV).data();
+        double *vp = nh_vec(g-1,BPV).data();
         for(int n : (*bqc)[g].leaf)
         vp[n] = vr[n] + beta*(vp[n] - om*vv[n]);
     }
@@ -316,8 +317,8 @@ void sflow_amr::bq_s(double alp)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vr = nh_vec(g-1,BR).V, *vv = nh_vec(g-1,BVV).V;
-        double *vs = nh_vec(g-1,BS).V;
+        const double *vr = nh_vec(g-1,BR).data(), *vv = nh_vec(g-1,BVV).data();
+        double *vs = nh_vec(g-1,BS).data();
         for(int n : (*bqc)[g].leaf)
         vs[n] = vr[n] - alp*vv[n];
     }
@@ -327,8 +328,8 @@ void sflow_amr::bq_x(double alp, double om)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vph = nh_vec(g-1,BPH).V, *vsh = nh_vec(g-1,BSH).V, *vs = nh_vec(g-1,BS).V, *vt = nh_vec(g-1,BT).V;
-        double *vx = nh_vec(g-1,BX).V, *vr = nh_vec(g-1,BR).V;
+        const double *vph = nh_vec(g-1,BPH).data(), *vsh = nh_vec(g-1,BSH).data(), *vs = nh_vec(g-1,BS).data(), *vt = nh_vec(g-1,BT).data();
+        double *vx = nh_vec(g-1,BX).data(), *vr = nh_vec(g-1,BR).data();
         for(int n : (*bqc)[g].leaf)
         {
             vx[n] += alp*vph[n] + om*vsh[n];
@@ -391,7 +392,7 @@ void sflow_amr::bous_window(ghostcell *pgc, int l, double th)
     vector<double*> vx(ng),vb(ng);
     for(int g=-1; g<ng-1; ++g)
     {
-        vx[g+1]=nh_vec(g,BX).V; vb[g+1]=nh_vec(g,BB).V;
+        vx[g+1]=nh_vec(g,BX).data(); vb[g+1]=nh_vec(g,BB).data();
     }
 
     auto ua = [&](int g, int dir) -> slice& { fdm2D *b = (g<0) ? b0 : SP(g)->b; return dir==0 ? b->UA : b->VA; };
@@ -404,15 +405,11 @@ void sflow_amr::bous_window(ghostcell *pgc, int l, double th)
         // initial guess: u_a of the stage; right-hand side
         for(int g=-1; g<ng-1; ++g)
         {
-            lexer *q = (g<0) ? p0 : P[g]->pp;
-            const double *u = ua(g,dir).V;
-            double *x = vx[g+1];
-            for(int n=0; n<q->imax*q->jmax; ++n)
-            x[n] = u[n];
+            std::ranges::copy(ua(g,dir),vx[g+1]);
 
             if((*bqc)[g+1].leaf.empty())
             continue;
-            const double *rr = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir).r->V;
+            const double *rr = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir).r->data();
             for(int n : (*bqc)[g+1].leaf)
             vb[g+1][n] = rr[n];
         }

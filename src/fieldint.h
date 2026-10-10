@@ -28,8 +28,11 @@ Author: Hans Bihs
 class fieldint : public field_base<int>
 {
 public:
-    fieldint(lexer* p) : field_base<int>(p) {}
-    virtual ~fieldint() = default;
+    fieldint(lexer *pp) : field_base<int>(pp) {}
+    ~fieldint() override;
+
+protected:
+    fieldint(lexer *pp, int kz, std::size_t slack) : field_base<int>(pp, kz, slack) {}
 };
 
 #endif

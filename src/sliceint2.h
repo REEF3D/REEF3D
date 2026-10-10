@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef SLICEINT2_H_
 #define SLICEINT2_H_
 
-#include"sliceint.h"
+#include "sliceint.h"
 
 class sliceint2 final : public sliceint
 {
 public:
-    sliceint2(lexer* p) : sliceint(p) {};
-    virtual ~sliceint2() = default;
+    sliceint2(lexer* p) : sliceint(p) {}
+    ~sliceint2() override;
 };
 
 #endif

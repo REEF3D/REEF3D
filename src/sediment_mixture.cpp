@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"bedload.h"
+#include<algorithm>
 #include<cmath>
 #include<cstdlib>
 #include<iostream>
@@ -160,7 +161,6 @@ sediment_mixture::~sediment_mixture()
 
 void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    const int size = p->imax*p->jmax;
     double suma=0.0, sums=0.0;
 
     for(int q=0;q<nf;++q)
@@ -187,25 +187,21 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     cout<<"sediment_mixture: fractions normalised to sum 1 (active: "<<suma<<", substrate: "<<sums<<")"<<endl;
 
     for(int q=0;q<nf;++q)
-    for(int nn=0;nn<size;++nn)
     {
-    F[q]->V[nn]  = Fe[q];
-    Fs[q]->V[nn] = V[q];
-    qbe_k[q]->V[nn] = 0.0;
-    qb_k[q]->V[nn]  = 0.0;
-    qbn_k[q]->V[nn] = 0.0;
-    vz_k[q]->V[nn]  = 0.0;
-    dh_k[q]->V[nn]  = 0.0;
-    fh_k[q]->V[nn]  = 0.0;
+    std::ranges::fill(*F[q], Fe[q]);
+    std::ranges::fill(*Fs[q], V[q]);
+    std::ranges::fill(*qbe_k[q], 0.0);
+    std::ranges::fill(*qb_k[q], 0.0);
+    std::ranges::fill(*qbn_k[q], 0.0);
+    std::ranges::fill(*vz_k[q], 0.0);
+    std::ranges::fill(*dh_k[q], 0.0);
+    std::ranges::fill(*fh_k[q], 0.0);
     }
 
-    for(int nn=0;nn<size;++nn)
-    {
-    Hs.V[nn] = MAX(p->S53,0.0);
-    qbe_raw.V[nn] = 0.0;
-    qbe_tot.V[nn] = 0.0;
-    fac.V[nn] = 1.0;
-    }
+    std::ranges::fill(Hs, MAX(p->S53,0.0));
+    std::ranges::fill(qbe_raw, 0.0);
+    std::ranges::fill(qbe_tot, 0.0);
+    std::ranges::fill(fac, 1.0);
 
     grain_stats(p,pgc);
 
@@ -253,7 +249,7 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     cout<<"  hiding/exposure: "<<(p->S54==1?"Wu, Wang & Jia (2000), m = ":"off")<<(p->S54==1?p->S55:0.0)<<endl;
 
     for(int q=0;q<nf;++q)
-    cout<<"  fraction "<<q+1<<"  d = "<<d[q]<<" m   F_active = "<<Fe[q]<<"   F_substrate = "<<Fs[q]->V[0]<<endl;
+    cout<<"  fraction "<<q+1<<"  d = "<<d[q]<<" m   F_active = "<<Fe[q]<<"   F_substrate = "<<*Fs[q]->begin()<<endl;
 
     mkdir("./REEF3D_Log",0777);
     
@@ -296,28 +292,18 @@ double sediment_mixture::hiding(int ii, int jj, int q)
 
 void sediment_mixture::save_base(lexer *p, sediment_fdm *s)
 {
-    const int size = p->imax*p->jmax;
-
-    for(int nn=0;nn<size;++nn)
-    {
-    shields_eff0.V[nn]   = s->shields_eff.V[nn];
-    shields_crit0.V[nn]  = s->shields_crit.V[nn];
-    tau_crit0.V[nn]      = s->tau_crit.V[nn];
-    shearvel_crit0.V[nn] = s->shearvel_crit.V[nn];
-    }
+    std::ranges::copy(s->shields_eff,   shields_eff0.begin());
+    std::ranges::copy(s->shields_crit,  shields_crit0.begin());
+    std::ranges::copy(s->tau_crit,      tau_crit0.begin());
+    std::ranges::copy(s->shearvel_crit, shearvel_crit0.begin());
 }
 
 void sediment_mixture::restore_base(lexer *p, sediment_fdm *s)
 {
-    const int size = p->imax*p->jmax;
-
-    for(int nn=0;nn<size;++nn)
-    {
-    s->shields_eff.V[nn]   = shields_eff0.V[nn];
-    s->shields_crit.V[nn]  = shields_crit0.V[nn];
-    s->tau_crit.V[nn]      = tau_crit0.V[nn];
-    s->shearvel_crit.V[nn] = shearvel_crit0.V[nn];
-    }
+    std::ranges::copy(shields_eff0,   s->shields_eff.begin());
+    std::ranges::copy(shields_crit0,  s->shields_crit.begin());
+    std::ranges::copy(tau_crit0,      s->tau_crit.begin());
+    std::ranges::copy(shearvel_crit0, s->shearvel_crit.begin());
 
     s->dk = p->S20;
 }
@@ -348,8 +334,7 @@ void sediment_mixture::bedload_fractions(lexer *p, ghostcell *pgc, sediment_fdm 
 
     save_base(p,s);
 
-    for(int nn=0;nn<size;++nn)
-    qbe_raw.V[nn] = 0.0;
+    std::ranges::fill(qbe_raw, 0.0);
 
     for(int q=0;q<nf;++q)
     {
@@ -357,17 +342,18 @@ void sediment_mixture::bedload_fractions(lexer *p, ghostcell *pgc, sediment_fdm 
 
         pbed->start(p,pgc,s);
 
+        double *qk = qbe_k[q]->data(), *qraw = qbe_raw.data();
+        const double *f = F[q]->data(), *qbe = s->qbe.data();
         for(int nn=0;nn<size;++nn)
         {
-        qbe_k[q]->V[nn] = F[q]->V[nn]*s->qbe.V[nn];
-        qbe_raw.V[nn] += qbe_k[q]->V[nn];
+        qk[nn] = f[nn]*qbe[nn];
+        qraw[nn] += qk[nn];
         }
     }
 
     restore_base(p,s);
 
-    for(int nn=0;nn<size;++nn)
-    s->qbe.V[nn] = qbe_raw.V[nn];
+    std::ranges::copy(qbe_raw, s->qbe.begin());
 }
 
 // --------------------------------------------------------------------
@@ -380,10 +366,12 @@ void sediment_mixture::exner_begin(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     const int size = p->imax*p->jmax;
 
+    double *qtot = qbe_tot.data(), *fc = fac.data();
+    const double *qbe = s->qbe.data(), *qraw = qbe_raw.data();
     for(int nn=0;nn<size;++nn)
     {
-    qbe_tot.V[nn] = s->qbe.V[nn];
-    fac.V[nn] = fabs(qbe_raw.V[nn])>1.0e-20?qbe_tot.V[nn]/qbe_raw.V[nn]:0.0;
+    qtot[nn] = qbe[nn];
+    fc[nn] = fabs(qraw[nn])>1.0e-20?qtot[nn]/qraw[nn]:0.0;
     }
 
     save_base(p,s);
@@ -391,12 +379,9 @@ void sediment_mixture::exner_begin(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 void sediment_mixture::exner_end(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    const int size = p->imax*p->jmax;
-
     restore_base(p,s);
 
-    for(int nn=0;nn<size;++nn)
-    s->qbe.V[nn] = qbe_tot.V[nn];
+    std::ranges::copy(qbe_tot, s->qbe.begin());
 }
 
 // --------------------------------------------------------------------
@@ -561,15 +546,11 @@ void sediment_mixture::bedchange(lexer *p, ghostcell *pgc, sediment_fdm *s, slic
 
 void sediment_mixture::slide_zero(lexer *p, ghostcell *pgc)
 {
-    const int size = p->imax*p->jmax;
-
     for(int q=0;q<nf;++q)
-    for(int nn=0;nn<size;++nn)
-    fh_k[q]->V[nn] = 0.0;
+    std::ranges::fill(*fh_k[q], 0.0);
 
     for(int q=0;q<9;++q)
-    for(int nn=0;nn<size;++nn)
-    out[q]->V[nn] = 0.0;
+    std::ranges::fill(*out[q], 0.0);
 }
 
 // called inside the slide loops: must not touch the static loop indices
