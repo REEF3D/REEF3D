@@ -109,8 +109,9 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
     if(m1[q]<m0[q])
     return;
 
-    // threads (A 798): wavefront order on level 0
-    if(nthreads>1 && !ranged && skp==nullptr && vis==nullptr && !second)
+    // threads (A 798): wavefront order, on level 0 and on the patches of the mesh refinement (covered cells
+    // skipped); in the composite sweep (A 797 1) the visit of a covered cell gets the thread (visit_threads)
+    if(nthreads>1 && (vis==nullptr || visT!=nullptr) && !second && (ranged ? (ri1-ri0+1)*(rj1-rj0+1) : p->knox*p->knoy)>=thread_min)
     {
     sweep_threads(p,e,q,N0,rdt,Nb,side,refraction,fshift);
     return;
@@ -162,15 +163,18 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 {
     const bool idown = (q==1 || q==2);
     const bool jdown = (q==2 || q==3);
-    const int ni = p->knox, nj = p->knoy;
+
+    // the whole grid, or (mesh refinement) the interior of a patch
+    const int ia = ranged ? ri0 : 0, ja = ranged ? rj0 : 0;
+    const int ni = ranged ? ri1-ri0+1 : p->knox, nj = ranged ? rj1-rj0+1 : p->knoy;
 
     if(ni<=0 || nj<=0)
     return;
 
     if(eps>0.0)
-    for(int ci=0; ci<ni; ++ci)
-    for(int cj=0; cj<nj; ++cj)
-    if(managed(p,e,ci,cj))
+    for(int ci=ia; ci<ia+ni; ++ci)
+    for(int cj=ja; cj<ja+nj; ++cj)
+    if(managed(p,e,ci,cj) && (skp==nullptr || (*skp)(ci,cj)==0))
     ranges(p,e,ci,cj);
 
     const int nt = std::min(nthreads,std::max(ni,nj));
@@ -230,10 +234,15 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
             if(ii>i1)
             break;
 
-            const int ci = idown ? ni-1-ii : ii;
-            const int cj = jdown ? nj-1-(d-ii) : d-ii;
+            const int ci = ia + (idown ? ni-1-ii : ii);
+            const int cj = ja + (jdown ? nj-1-(d-ii) : d-ii);
 
-                if(e->wet(ci,cj)==1)
+                if(skp!=nullptr && (*skp)(ci,cj)==1)
+                {
+                if(visT!=nullptr)
+                (*visT)(t,ci,cj);
+                }
+                else if(e->wet(ci,cj)==1)
                 s->cell(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
             }
 
@@ -249,6 +258,20 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 
     for(auto &x : th)
     x.join();
+}
+
+void seastate_implicit::preset_ranges(lexer *p, fdm_seastate *e)
+{
+    if(!(eps>0.0))
+    return;
+
+    const int ia = ranged ? ri0 : 0, ib = ranged ? ri1 : p->knox-1;
+    const int ja = ranged ? rj0 : 0, jb = ranged ? rj1 : p->knoy-1;
+
+    for(int ci=ia; ci<=ib; ++ci)
+    for(int cj=ja; cj<=jb; ++cj)
+    if(managed(p,e,ci,cj))
+    ranges(p,e,ci,cj);
 }
 
 void seastate_implicit::solve(lexer *p, fdm_seastate *e, int q, int ci, int cj, const seastate_store *N0, double rdt,

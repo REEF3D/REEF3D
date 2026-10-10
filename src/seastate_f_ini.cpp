@@ -301,8 +301,12 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 732: deep-water physics must be 0 (off), 1 (Komen) or 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH)";
     else if(p->A758_n<0 || p->A758_m<0)
     msg = "A 758: the FAS period and the coarse iterations must not be negative";
-    else if(p->A758_n>0 && (p->A700!=2 || p->G1!=1))
-    msg = "A 758: the FAS coarse-grid correction is for stationary runs (A 700 2) with one refinement level (G 1 1), level 0 being the coarse grid";
+    else if(p->A758_n>0 && p->G1<1)
+    msg = "A 758: the FAS coarse-grid correction needs mesh refinement (G 1), level 0 being the coarse grid";
+    else if(p->A758_n>0 && p->A700==1 && (p->A707>0 ? p->A707 : (p->M10>1 ? 2 : 1))<2)
+    msg = "A 758: nonstationary, the FAS coarse-grid correction needs at least 2 iterations per step (A 707), a fine iteration after each correction";
+    else if(p->A758_n>0 && p->A770==1)
+    msg = "A 758: the FAS coarse-grid correction is not available with the surfbeat model (A 770 1)";
     else if(p->A732==2 && (!(p->A757_cds2>0.0) || !(p->A757_br>0.0)))
     msg = "A 757: Cds2 and B_r of the Westhuysen whitecapping must be positive";
     else if(p->A733!=0 && p->A733!=1)
@@ -652,7 +656,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A798>1 || (p->A700==2 && (p->A738>1 || p->A799==1)))
     {
     cout<<"SEASTATE solver (Phase 7b):";
-    if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->G1>0 || p->A770==1 ? ", not used with mesh refinement or surfbeat" : "");
+    if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->A770==1 ? ", not used with surfbeat" : (p->G1>0 && p->A797==1 ? ", not used in the composite sweep (A 797 1)" : ""));
     if(p->A700==2 && p->A738>1) cout<<(p->A798>1 ? "," : "")<<" up to "<<p->A738<<" source iterations per cell, tolerance "<<scientific<<setprecision(1)<<p->A739<<defaultfloat<<setprecision(6)<<" (A 738, A 739)";
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
     cout<<endl;

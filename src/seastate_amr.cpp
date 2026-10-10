@@ -516,6 +516,10 @@ void seastate_amr::regrid_static(ghostcell*)
     c->solv->sparsity(p0->A795);
     c->solv->geographic_order(p0->A796);
     c->solv->range(EXT,EXT+c->nx-1,EXT,EXT+c->ny-1);
+    // threads per rank (A 798) and source iterations (A 738) as on level 0; threads only on patches of at
+    // least 64 cells (the wavefront of a smaller patch is too short)
+    c->solv->threads(p0->A798,64);
+    c->solv->source_iterations(p0->A738,p0->A739);
 
         if(L0.wser!=nullptr)
         {
@@ -962,6 +966,8 @@ void seastate_amr::ghost_fill(seastate_amr_patch *c, int id, int fi, int fj)
     fdm_seastate *e = gfd(f.g);
     const float *src = (e->wet(f.si,f.sj)==1) ? e->N->spec(f.si,f.sj) : nullptr;
 
+    // threads (A 798): two cells of a wavefront diagonal can share a ring cell downstream of both (same value)
+    std::lock_guard<std::mutex> lock(ring_mutex);
         if(src!=nullptr)
         std::copy(src,src+nbin,d);
         else
@@ -971,7 +977,7 @@ void seastate_amr::ghost_fill(seastate_amr_patch *c, int id, int fi, int fj)
 
 // the four children of covered cell (I,J) of grid g, in the order of quadrant q (recursively), then the
 // mean of the children into the cell and the spectra on its faces
-void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift)
+void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift, int t)
 {
     static const int side0[4] = {0,0,0,0};
     static const vector<float> none;
@@ -993,11 +999,11 @@ void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refracti
     const int fi = EXT+2*bi+a, fj = EXT+2*bj+d;
 
         if((*c->cov)(fi,fj)==1)
-        descend(id,fi,fj,q,rdt,refraction,fshift);
+        descend(id,fi,fj,q,rdt,refraction,fshift,t);
         else if(c->e->wet(fi,fj)==1)
         {
         ghost_fill(c,id,fi,fj);
-        c->solv->solve(c->pp,c->e,q,fi,fj,c->N0,rdt,none,side0,refraction,fshift);
+        solver_of(id,t)->solve(c->pp,c->e,q,fi,fj,c->N0,rdt,none,side0,refraction,fshift);
         }
     }
 
@@ -1034,7 +1040,7 @@ void seastate_amr::descend(int g, int I, int J, int q, double rdt, bool refracti
     {
     const seastate_amr_flink &L = flinks[code.first][code.second];
     seastate_amr_patch *cc = SP(L.id);
-    float *F = gfaces(L.g)->F[L.key].data();
+    float *F = gfaces(L.g)->F.at(L.key).data();
     const float *a = (cc->e->wet(L.i0,L.j0)==1) ? cc->e->N->spec(L.i0,L.j0) : nullptr;
     const float *b = (cc->e->wet(L.i1,L.j1)==1) ? cc->e->N->spec(L.i1,L.j1) : nullptr;
 
@@ -1054,10 +1060,41 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
     tm[2] += t1-t0;
 
     std::function<void(int,int)> f0 = [&](int I, int J) {descend(-1,I,J,q,rdt,refraction,fshift);};
+    std::function<void(int,int,int)> fT = [&](int t, int I, int J) {descend(-1,I,J,q,rdt,refraction,fshift,t);};
+
+    // threads (A 798): the copies of the patch solvers for the threads 1 .. A 798 - 1 (static grids: once), the
+    // active ranges of all patch cells set before (spectral sparsity)
+    const int nt = L0.solv->thread_count();
+    if(nt>1)
+    {
+        if((int)tsolv.size()!=nt || (nt>1 && tsolv[1].size()!=P.size()))
+        {
+        tsolv.clear();
+        tsolv.resize(nt);
+        tsrc.clear();
+        tsrc.resize(nt);
+            for(int t=1; t<nt; ++t)
+            {
+            if(L0.src!=nullptr)
+            tsrc[t].reset(new seastate_source(*L0.src));
+                for(int id=0; id<(int)P.size(); ++id)
+                {
+                tsolv[t].emplace_back(new seastate_implicit(*SP(id)->solv));
+                if(L0.src!=nullptr)
+                tsolv[t].back()->sources(tsrc[t].get());
+                }
+            }
+        }
+
+        for(int id=0; id<(int)P.size(); ++id)
+        SP(id)->solv->preset_ranges(SP(id)->pp,SP(id)->e);
+    }
 
     L0.solv->visit(&f0);
+    L0.solv->visit_threads(nt>1 ? &fT : nullptr);
     L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->visit(nullptr);
+    L0.solv->visit_threads(nullptr);
     t0 = pgc->timer();
     tm[0] += t0-t1;
 
@@ -1168,16 +1205,18 @@ void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, d
 }
 
 // --------------------------------------------------------------------- FAS (A 758)
-void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse)
+void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4], bool refraction,
+                       bool fshift, int ncoarse)
 {
-    static const int side0[4] = {0,0,0,0};
     static const vector<float> none;
+    static const int side0[4] = {0,0,0,0};
 
-    if(maxlev!=1 || lev[1].empty())
+    if(maxlev<1 || lev[1].empty())
     return;
 
     // storage: the patch residuals (per patch), tau, the restricted spectra and the residuals on level 0 (once)
-    for(int id : lev[1])
+    for(int l=1; l<=maxlev; ++l)
+    for(int id : lev[l])
     {
     seastate_amr_patch *c = SP(id);
     lexer *pp = c->pp;
@@ -1185,7 +1224,6 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float>
         {
         c->res = new seastate_store(pp->imin,pp->jmin,pp->imax,pp->jmax,nbin,2);
         c->res->build(c->e->wet.V);
-        c->res->fill(0.0f);
         }
     }
 
@@ -1201,15 +1239,54 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float>
     fasC->build(L0.e->wet.V);
     }
 
-    // 1: residuals of the patch cells at the latest spectra (ring cells filled first)
-    for(int id : lev[1])
+    // 1: residuals of the uncovered patch cells of all levels at the latest spectra (ring cells filled first;
+    // the covered cells are skipped and hold zero), nonstationary with the time term of the step (N0)
+    for(int l=1; l<=maxlev; ++l)
+    for(int id : lev[l])
     {
     seastate_amr_patch *c = SP(id);
     fill_local(c);
+    c->res->fill(0.0f);
     c->solv->residual_out(c->res);
         for(int q=0; q<4; ++q)
-        c->solv->sweep(c->pp,c->e,q,nullptr,rdt,none,side0,refraction,fshift);
+        c->solv->sweep(c->pp,c->e,q,N0!=nullptr ? c->N0 : nullptr,rdt,none,side0,refraction,fshift);
     c->solv->residual_out(nullptr);
+    }
+
+    // 1b: the residual of the covered patch cells: the mean of the residuals of their children, from the
+    // finest level up (the composite residual restricted level by level, as the spectra)
+    for(int l=maxlev; l>=2; --l)
+    for(int id : lev[l])
+    {
+    seastate_amr_patch *c = SP(id);
+    const int nby = c->ny/2;
+
+        for(size_t k=0; k<c->rgrid.size(); ++k)
+        {
+        const int g = c->rgrid[k];
+        if(g<0)
+        continue;
+
+        seastate_amr_patch *pc = SP(g);
+        const int I = c->ric[k], J = c->rjc[k];
+        if(pc->res==nullptr || pc->e->wet(I,J)!=1)
+        continue;
+        float *R = pc->res->spec(I,J);
+        if(R==nullptr)
+        continue;
+
+        const int bi = int(k)/nby, bj = int(k)%nby;
+        std::fill(R,R+nbin,0.0f);
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
+            {
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+            const float *r = (c->e->wet(ii,jj)==1) ? c->res->spec(ii,jj) : nullptr;
+            if(r!=nullptr)
+            for(int b=0; b<nbin; ++b)
+            R[b] += 0.25f*r[b];
+            }
+        }
     }
 
     // 2a: residual of the uncovered level-0 cells in the composite problem (covered cells skipped, the
@@ -1217,7 +1294,7 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float>
     fasC->fill(0.0f);
     L0.solv->residual_out(fasC);
         for(int q=0; q<4; ++q)
-        L0.solv->sweep(p,L0.e,q,nullptr,rdt,Nb,side,refraction,fshift);
+        L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->residual_out(nullptr);
 
     // 2b: level 0 as a grid of its own (covered cells solved, no fine faces); its residual at the restricted
@@ -1227,7 +1304,7 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float>
     L0.solv->faces(nullptr);
     L0.solv->residual_out(fasR);
         for(int q=0; q<4; ++q)
-        L0.solv->sweep(p,L0.e,q,nullptr,rdt,Nb,side,refraction,fshift);
+        L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->residual_out(nullptr);
 
     // 3: tau = r_c(R N) - R r on the covered cells; on the uncovered cells tau = r_c(N) - r of the composite
@@ -1282,15 +1359,45 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float>
     for(int it=0; it<ncoarse; ++it)
     for(int q=0; q<4; ++q)
     {
-    L0.solv->sweep(p,L0.e,q,nullptr,rdt,Nb,side,refraction,fshift);
+    L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.pex->start(p,pgc,*L0.e->N);
     }
     L0.solv->fas_source(nullptr,nullptr);
     L0.solv->skip(cov0);
     L0.solv->faces(gfaces(-1));
 
-    // 5: the coarse change into the children (multiplicative, within 1/4 and 4; additive where the restricted
-    // spectrum vanishes), then the mean of the children into the coarse cell
+    // 5: the coarse change into all cells under the coarse cell, on every level (multiplicative, within 1/4 and 4;
+    // additive where the restricted spectrum vanishes), then the mean of the level-1 children into the coarse cell
+    vector<float> fac(nbin), add(nbin);
+
+    // the cell (fi,fj) of patch id and, where it is covered, the cells under it (recursively)
+    std::function<void(int,int,int)> apply = [&](int id, int fi, int fj)
+    {
+        seastate_amr_patch *c = SP(id);
+        if(c->e->wet(fi,fj)!=1)
+        return;
+        float *s = c->e->N->spec(fi,fj);
+        if(s==nullptr)
+        return;
+
+        for(int b=0; b<nbin; ++b)
+        s[b] = s[b]*fac[b] + add[b];
+
+        if((*c->cov)(fi,fj)!=1)
+        return;
+
+        auto it = childof.find(ckey(id,fi,fj));
+        if(it==childof.end())
+        return;
+
+        const int cid = it->second.first, k = it->second.second;
+        seastate_amr_patch *cc = SP(cid);
+        const int nby = cc->ny/2, bi = k/nby, bj = k%nby;
+        for(int a=0; a<2; ++a)
+        for(int d=0; d<2; ++d)
+        apply(cid,EXT+2*bi+a,EXT+2*bj+d);
+    };
+
     double chg = 0.0;
     for(int id : lev[1])
     {
@@ -1309,42 +1416,52 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, double rdt, const vector<float>
         if(Nc==nullptr || Nt==nullptr)
         continue;
 
-        const int bi = int(k)/nby, bj = int(k)%nby;
-        float *ch[4];
-        int n=0;
-            for(int a=0; a<2; ++a)
-            for(int d=0; d<2; ++d)
-            {
-            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
-            if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
-            ch[n++] = c->e->N->spec(ii,jj);
-            }
-
         double et = 0.0, dc = 0.0;
             for(int b=0; b<nbin; ++b)
             {
             const double nt = double(Nt[b]), nc = double(Nc[b]);
             et += nt;
             dc += std::fabs(nc-nt);
+            fac[b] = 1.0f;
+            add[b] = 0.0f;
                 if(nt>1.0e-30)
-                {
-                const float f = float(std::min(std::max(nc/nt,0.25),4.0));
-                for(int m=0; m<n; ++m)
-                ch[m][b] *= f;
-                }
+                fac[b] = float(std::min(std::max(nc/nt,0.25),4.0));
                 else if(nc>nt)
-                {
-                for(int m=0; m<n; ++m)
-                ch[m][b] += float(nc-nt);
-                }
+                add[b] = float(nc-nt);
+            }
+        const int bi = int(k)/nby, bj = int(k)%nby;
 
+        // no correction where a child is dry: the restricted spectrum holds the dry child as zero, so that the
+        // coarse cell is not the mean of the fine solution and its change is no correction of it (such cells along
+        // the coasts kept oscillating with corrections of 50 % and more)
+        bool coast = false;
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
+            if(c->e->wet(EXT+2*bi+a,EXT+2*bj+d)!=1)
+            coast = true;
+
+        if(!coast && et>0.0)
+        chg = std::max(chg,dc/et);
+
+        const float *ch[4];
+        int n=0;
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
+            {
+            const int ii = EXT+2*bi+a, jj = EXT+2*bj+d;
+            if(!coast)
+            apply(id,ii,jj);
+            if(c->e->wet(ii,jj)==1 && c->e->N->spec(ii,jj)!=nullptr)
+            ch[n++] = c->e->N->spec(ii,jj);
+            }
+
+            for(int b=0; b<nbin; ++b)
+            {
             float v = 0.0f;
             for(int m=0; m<n; ++m)
             v += ch[m][b];
             Nc[b] = 0.25f*v;
             }
-        if(et>0.0)
-        chg = std::max(chg,dc/et);
         }
     }
     fas_change = pgc->globalmax(chg);

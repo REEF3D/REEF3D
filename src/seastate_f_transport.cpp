@@ -251,6 +251,12 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
         obstacles(p,pgc);
         pamr->iterate(p,pgc,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
+
+        // FAS coarse-grid correction (A 758) within the step: every A 758 n iterations of the step, not after the
+        // last one (the prolonged correction needs an iteration of the fine grids after it, else its error enters
+        // the next step: with one iteration per step and a correction after it, the wind sea grew 18 % too fast)
+        if(p->A758_n>0 && iter_done%p->A758_n==0 && it<iter_max-1)
+        pamr->fas(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
 
         return;
@@ -296,7 +302,7 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
     // FAS coarse-grid correction (A 758): level 0 as the coarse grid of the patches
     if(p->A758_n>0 && iter_done%p->A758_n==0)
     {
-    pamr->fas(p,pgc,rdt,Nb,side,refraction,fshift,p->A758_m);
+    pamr->fas(p,pgc,nullptr,rdt,Nb,side,refraction,fshift,p->A758_m);
     if(p->mpirank==0)
     cout<<"SEASTATE FAS: iteration "<<iter_done<<", "<<p->A758_m<<" coarse iterations, largest relative change of the coarse cells "<<pamr->fas_last()<<endl;
     }

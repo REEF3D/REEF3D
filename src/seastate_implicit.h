@@ -112,7 +112,12 @@ F2 - F1 = c/2 phi(r) (N_down - N_up) (van Leer limiter, r = (N_up -
 N_upup)/(N_down - N_up)) between active cells, with the latest values
 (deferred correction); the source terms stay implicit, N is clipped at
 zero. The first-order path (cell) is unchanged.
-Directions: periodic (full circle).
+Directions: periodic (full circle); with a computational sector (A 717,
+Phase 10) the quadrant ranges m0..m1 hold only the active directions
+(a quadrant without any is skipped), the directions outside hold zero.
+Source iterations (A 738, Phase 7b; fixed in Phase 10): the action
+density limiter bounds the change from the spectrum of the cell before
+its first solve; a cell that does not contract keeps its first solve.
 
 Mesh refinement (Phase 5b, seastate_amr): the same solver runs on every
 grid of the hierarchy. range() limits the sweeps to the interior of a
@@ -214,7 +219,7 @@ public:
 
     // threads per rank (A 798): the cells of a quadrant sweep in wavefront order, the cells of one
     // diagonal i+j = const at the same time (level 0 without refinement, not the surfbeat model)
-    void threads(int n) {nthreads = std::max(n,1);}
+    void threads(int n, int nmin = 1) {nthreads = std::max(n,1); thread_min = nmin;}
 
     // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency; obstacles (A 722)
     void diffraction(const seastate_store *ca, const seastate_store *cax, const seastate_store *cay) {dca = ca; dcax = cax; dcay = cay;}
@@ -226,6 +231,11 @@ public:
 
     // mesh refinement, composite sweep: called for the covered cells in the sweep order (else skipped)
     void visit(std::function<void(int,int)> *f) {vis = f;}
+    // ... with threads (A 798): the visit of a covered cell gets the thread index (0 .. A 798 - 1) first
+    void visit_threads(std::function<void(int,int,int)> *f) {visT = f;}
+    int thread_count() const {return nthreads;}
+    // spectral sparsity: the active ranges of all managed cells of the grid, set before a threaded sweep
+    void preset_ranges(lexer*, fdm_seastate*);
 
 private:
 
@@ -235,6 +245,7 @@ private:
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
     int nthreads = 1;
+    int thread_min = 1;                 // threads only on grids of at least this many cells
     const seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;
     const seastate_obstacle *pob = nullptr;
     vector<double> cdp, cdm;            // diffraction: c_theta at the faces m+1/2, m-1/2 per frequency and direction
@@ -291,6 +302,7 @@ private:
     int lmin = 0, lmax = -1;            // band of the windows of the current cell
     int &rni = sr->rni, &rnj = sr->rnj, &rimin = sr->rimin, &rjmin = sr->rjmin;
     std::function<void(int,int)> *vis = nullptr;
+    std::function<void(int,int,int)> *visT = nullptr;
     double energy(const seastate_grid&, const float *N) const;
     bool managed(lexer*, fdm_seastate*, int ci, int cj) const;
     uint16_t *ranges(lexer*, fdm_seastate*, int ci, int cj);

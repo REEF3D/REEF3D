@@ -27,6 +27,8 @@ Architect: Hans Bihs
 #include"reefamr.h"
 #include"seastate_implicit.h"
 #include<fstream>
+#include<memory>
+#include<mutex>
 #include<string>
 #include<unordered_map>
 #include<vector>
@@ -126,6 +128,22 @@ It is iterated m times (the loss part of -tau proportional to N), and
 the children take the coarse change multiplicatively (N *= N_c/R N,
 within 1/4 to 4; additive where R N vanishes), then the restriction
 again.
+Phase 10: all levels (G 1 >= 1). The residuals of the uncovered cells
+of every level, the covered cells taking the mean of the residuals of
+their children from the finest level up; the coarse change of a level-0
+cell goes into all cells under it on every level. No correction under a
+coarse cell with a dry child (its restricted spectrum holds the dry
+child as zero). Nonstationary runs: the residuals with the time term of
+the step (N0 of every grid), a correction after every n iterations of
+the step but not after the last one (a fine iteration must follow).
+
+Threads (A 798, Phase 10): level by level, the level-0 sweeps (covered
+cells skipped) and the sweeps of the patches of at least 64 cells run in
+wavefront order (seastate_implicit); in the composite sweep the level-0
+wavefront visits the covered cells with the index of its thread, which
+solves the patch cells under them with its own copies of the patch
+solvers and of the source terms (made once). The ring cells of the
+patches are written under a lock. The result is that of one thread.
 
 Not with the coupling (A 750), the surfbeat model (A 770), regridding
 or patches on several ranks (G 40): patches are cut at the rank boxes.
@@ -203,9 +221,9 @@ public:
     void iterate(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb,
                  const int side[4], bool refraction, bool fshift);
 
-    // FAS coarse-grid correction (A 758, stationary, one refinement level): level 0 is the coarse grid of the
-    // level-1 patches
-    void fas(lexer*, ghostcell*, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse);
+    // FAS coarse-grid correction (A 758): level 0 is the coarse grid of the patches of all levels; N0 the spectra
+    // of the start of the step (nonstationary) or nullptr
+    void fas(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse);
     double fas_last() const {return fas_change;}
 
     // integrated parameters of the patches; Hs of the patch interiors (leaf cells) for the
@@ -272,8 +290,14 @@ private:
     void composite_maps();
     void composite_sweep(lexer*, ghostcell*, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
                          const int side[4], bool refraction, bool fshift);
-    void descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift);
+    void descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift, int t = 0);
     void ghost_fill(seastate_amr_patch*, int id, int fi, int fj);
+    // threads in the composite sweep (A 798): per thread (1 .. A 798 - 1) a copy of every patch solver and of the
+    // source terms; thread 0 uses the patch solvers themselves
+    vector<vector<std::unique_ptr<seastate_implicit>>> tsolv;
+    vector<std::unique_ptr<seastate_source>> tsrc;
+    std::mutex ring_mutex;                  // writes into the ring cells of the patches (ghost_fill)
+    seastate_implicit* solver_of(int id, int t) {return t==0 ? SP(id)->solv : tsolv[t][id].get();}
     bool remote_blocks = false;             // a parent cell on another rank (restriction through the block plans)
 
     lexer *p0;
