@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SLICEINT4_H_
 #define SLICEINT4_H_
 
-#include"sliceint.h"
+#include "sliceint.h"
 
 class sliceint4 final : public sliceint
 {
