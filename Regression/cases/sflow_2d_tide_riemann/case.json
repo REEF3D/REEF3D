@@ -1,0 +1,18 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW tidal channel with Riemann edges at both ends, the tide at x+ as background.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "Riemann edge x+ in SFLOW"
+ ]
+}

@@ -1,0 +1,17 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW flume with the active beach B 99 3, now the absorbing Riemann edge at x+ with still water outside (as NHFLOW); the former SFLOW active beach reflected 0.4-0.6.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "iowave",
+  "bc_zone"
+ ],
+ "covers": [
+  "B 99 3 in SFLOW as an absorbing edge"
+ ]
+}

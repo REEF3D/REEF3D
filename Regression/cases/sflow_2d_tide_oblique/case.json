@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 200,
+ "description": "SFLOW basin 3 km x 3 km, oblique tide (30 deg) with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+ (y edges flagged as outflow in DIVEMesh).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "open y edges in SFLOW",
+  "corners between open edges"
+ ]
+}

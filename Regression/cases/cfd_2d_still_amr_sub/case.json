@@ -1,0 +1,6 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 40,
+ "ctrl_set": {"F 54": "1.0"},
+ "ctrl_add": ["G 1 1", "G 7 1", "F 46 3", "G 15 0.0 0.3 0.0 1.0 0.0 0.5"],
+ "description": "CFD mesh refinement with subcycling and the volume correction over all levels (F 46 3): still water, the free surface across the patch edge.",
+ "tags": ["quick", "2d", "levelset", "amr"],
+ "covers": ["cfd_amr_sub with the free surface across a patch edge", "cfd_amr::volume_correct over the leaf cells of all grids"]}

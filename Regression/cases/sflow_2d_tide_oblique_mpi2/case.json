@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 2,
+ "steps": 200,
+ "description": "sflow_2d_tide_oblique on 2 ranks.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background",
+  "mpi"
+ ],
+ "covers": [
+  "open edges across ranks"
+ ]
+}

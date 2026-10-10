@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW river 40 m3/s in through a clamped discharge edge (B 525), out through a clamped level edge; edge mass balance B 529 to REEF3D_SFLOW_Log.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "clamped level / discharge edges in SFLOW",
+  "B 529 mass balance (iowave::sflow_mass_balance)"
+ ]
+}

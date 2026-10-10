@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 40,
+ "ctrl_add": ["G 1 1", "G 7 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.4"],
+ "description": "CFD mesh refinement with subcycling in time (G 7 1): the patch takes two steps per step of level 0, the cells around it linear in time; the projection of the patch alone with the flux of level 0 at its edges.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr"],
+ "covers": ["cfd_amr_sub: Berger-Oliger steps, time interpolation of the coarser level, restriction", "pr_level: level projection with the coarse flux at the patch edges, compatible right-hand side of a closed patch"]}

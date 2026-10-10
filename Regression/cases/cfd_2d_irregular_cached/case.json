@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_nwt",
+ "ctrl_set": {"B 92": "31"},
+ "ctrl_add": ["B 85 2", "B 86 32", "B 87 0.6 3.0", "B 88 3.3", "B 139 16000"],
+ "description": "CFD 2D flume, JONSWAP irregular waves (B 92 31, 32 components) in the relaxation zone with B 89 0: cached-point evaluation of the zone columns (cell centre, u and v points per column) instead of the direct evaluation in every zone cell.",
+ "tags": ["quick", "2d", "cfd", "waves", "iowave", "irregular"],
+ "covers": ["CFD cached-point precalc (iowave::cfd_genzone_build, wave_eta_c / wave_uvw_c)", "CFD relaxation loops over the zone columns"]
+}

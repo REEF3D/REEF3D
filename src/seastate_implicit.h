@@ -285,7 +285,8 @@ private:
                                         // 64<<2q / 128<<2q energy in the first / last direction of quadrant q
     void summary(int ci, int cj, int q, const uint16_t *r);
     vector<double> rsum;                // row sums of the active ranges
-    vector<float> Nsit;                 // source iterations: the spectrum of the cell before the last solve
+    vector<float> Nsi0, Nsi1;           // source iterations: the spectrum of the cell before and after the first solve
+    const float *Nlim = nullptr;        // ... the spectrum the action density limiter refers to (before the first solve)
     vector<uint16_t> &rb = sr->rb;      // per cell and quadrant: band of frequencies with energy (lo<<8 | hi)
     int lmin = 0, lmax = -1;            // band of the windows of the current cell
     int &rni = sr->rni, &rnj = sr->rnj, &rimin = sr->rimin, &rjmin = sr->rjmin;

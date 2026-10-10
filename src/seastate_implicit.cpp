@@ -688,10 +688,14 @@ void seastate_implicit::store(float *N, int l, int ma, int nq, double dmax, bool
     return;
     }
 
+    // the limiter bounds the change of the iteration: with source iterations (A 738) the change from the
+    // spectrum of the cell before its first solve, not the change of each solve
+    const float *Nb = (Nlim!=nullptr) ? Nlim + l*ndir + ma : Nl;
+
     if(dmax>=0.0)
     for(int n=na; n<=nb; ++n)
     {
-    const double v = double(Nl[n]);
+    const double v = double(Nb[n]);
     tso[o+n] = std::min(std::max(tso[o+n],v-dmax),v+dmax);
     }
 
@@ -826,10 +830,14 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     const int nsi = (rout!=nullptr) ? 1 : nsrcit;
     double esit = (nsi>1) ? energy(g,N) : 0.0, dsit = 0.0;
 
+    if(nsi>1)
+    Nsi0.assign(N,N+g.nbin);
+    Nlim = (nsi>1) ? Nsi0.data() : nullptr;
+
     for(int sit=0; sit<nsi; ++sit)
     {
-    if(nsi>1 && sit>0)
-    Nsit.assign(N,N+g.nbin);
+    if(nsi>1 && sit==1)
+    Nsi1.assign(N,N+g.nbin);
 
     // maximum energy (A 737 1, SWAN SINTGRL), then the source terms from the latest spectrum,
     // for the directions that are solved; with spectral sparsity the row sums over the active ranges
@@ -1454,12 +1462,12 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         const double en = energy(g,N), d = std::fabs(en-esit);
 
         // no contraction (the sources and the solve of the cell oscillate or stall, e.g. steep breaking
-        // dissipation, sources against the limiter): the mean of the last two spectra, end of the
-        // source iterations
+        // dissipation, sources against the limiter): the spectrum of the first solve, end of the source
+        // iterations (a fixed point of the outer iteration is then a solution of the cell, as without
+        // source iterations; the mean of the last two spectra used before held two-cycles of the cell)
         if(sit>0 && d>=0.95*dsit && d>srctol*std::max(en,1.0e-30))
         {
-        for(int b=0; b<g.nbin; ++b)
-        N[b] = 0.5f*(N[b] + Nsit[b]);
+        std::copy(Nsi1.begin(),Nsi1.end(),N);
         break;
         }
 
@@ -1470,6 +1478,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         dsit = d;
         }
     }
+
+    Nlim = nullptr;
 
     // new active ranges of the cell
     if(sparse)
