@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"sflow_curv.h"
 #include"sflow_etimestep.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -85,10 +86,16 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
     {
     c = sqrt(g*MAX(b->WL(i,j),wd_criterion));
     
+    if(p->geo_curv==1)
+    sigma = sflow_curv::sigma(p,b,i,j,c);
+    
+    else
+    {
     sigma = (fabs(b->U(i,j)) + c)/p->DXN[IP];
     
     if(p->j_dir==1)
     sigma += (fabs(b->V(i,j)) + c)/p->DYN[JP];
+    }
     
     cmin = MIN(cmin,1.0/sigma);
     
@@ -182,10 +189,23 @@ void sflow_etimestep::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	
 
 	
-	cu=2.0/((p->umax/p->DXM));
+    // curvilinear grid: the smallest cell (sqrt of its area) in place of the mean spacing
+    double dxm = p->DXM;
+    
+    if(p->geo_curv==1)
+    {
+    dxm = 1.0e20;
+    
+    SLICELOOP4
+    dxm = MIN(dxm, sqrt(p->AREA2D[IJ]));
+    
+    dxm = pgc->globalmin(dxm);
+    }
+    
+	cu=2.0/((p->umax/dxm));
     
     // include the shallow water wave speed
-    cu=MIN(cu,p->DXM/(p->umax + sqrt(fabs(p->W22)*MAX(MAX(p->F60,p->wd),1.0))));
+    cu=MIN(cu,dxm/(p->umax + sqrt(fabs(p->W22)*MAX(MAX(p->F60,p->wd),1.0))));
 	
 	
 	

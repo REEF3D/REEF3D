@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"sflow_flux_build_f.h"
 #include"sflow_amr.h"
 #include"seastate_sflow.h"
+#include"sflow_curv.h"
 
 sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -147,6 +148,12 @@ void sflow_HLL::aij_E(lexer *p, fdm2D *b)
 
 void sflow_HLL::divergence(lexer *p, fdm2D *b, slice &f)
 {
+    if(p->geo_curv==1)
+    {
+    sflow_curv::divergence(p,b,f,b->Fx,b->Fy);
+    return;
+    }
+    
     SLICELOOP4
     WETDRY
     f(i,j) -= (b->Fx(i,j) - b->Fx(i-1,j))/p->DXN[IP] 
@@ -219,6 +226,13 @@ void sflow_HLL::flux_bc(lexer *p, fdm2D *b, int ipol)
     //  inflow (gcslin) / outflow (gcslout): physical flux of the ghost state
     slice &Fx = (ipol==4)?b->FEx:b->Fx;
     slice &Fy = (ipol==4)?b->FEy:b->Fy;
+    
+    // curvilinear grid: walls, in- and outflow with the face normals
+    if(p->geo_curv==1)
+    {
+    sflow_curv::flux_bc(p,b,ipol,Fx,Fy,inflow,outflow);
+    return;
+    }
     
     const double g = fabs(p->W22);
     double wc,sw;

@@ -88,10 +88,12 @@ public:
     //   cell (i,j), slice index IJ                       : XC2D/YC2D centroid, AREA2D area
     //   face i+1/2 of cell (i,j) (as u, flagslice1)      : SX1/SY1 = normal (+i side) * face length
     //   face j+1/2 of cell (i,j) (as v, flagslice2)      : SX2/SY2 = normal (+j side) * face length
-    int geo_curv = 0;                   // 0: Cartesian product grid, 1: curvilinear (no solver yet)
+    //                                                      LEN1/LEN2 face lengths
+    int geo_curv = 0;                   // 0: Cartesian product grid, 1: curvilinear (G 50, SFLOW)
     double *XN2D=nullptr, *YN2D=nullptr;
     double *XC2D=nullptr, *YC2D=nullptr, *AREA2D=nullptr;
     double *SX1=nullptr, *SY1=nullptr, *SX2=nullptr, *SY2=nullptr;
+    double *LEN1=nullptr, *LEN2=nullptr;
     int geo_nnode=0, geo_nslice=0;      // allocated sizes
 
     int nij(int ii, int jj) const { return (ii-imin)*(jmax+1) + (jj-jmin); }

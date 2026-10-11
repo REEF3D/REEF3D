@@ -199,10 +199,10 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=p->XN[IP1];
+        ffn=(p->geo_curv==1) ? p->XN2D[p->nij(i+1,j+1)] : p->XN[IP1];
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=p->YN[JP1];
+        ffn=(p->geo_curv==1) ? p->YN2D[p->nij(i+1,j+1)] : p->YN[JP1];
         result.write((char*)&ffn, sizeof(float));
 
         ffn=b->bednode(i,j);

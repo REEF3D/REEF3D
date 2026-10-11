@@ -72,6 +72,8 @@ void grid::geometry_alloc()
     SY1 = new double[ns]();
     SX2 = new double[ns]();
     SY2 = new double[ns]();
+    LEN1 = new double[ns]();
+    LEN2 = new double[ns]();
 }
 
 void grid::geometry_free()
@@ -79,8 +81,9 @@ void grid::geometry_free()
     delete [] XN2D; delete [] YN2D;
     delete [] XC2D; delete [] YC2D; delete [] AREA2D;
     delete [] SX1; delete [] SY1; delete [] SX2; delete [] SY2;
+    delete [] LEN1; delete [] LEN2;
 
-    XN2D=YN2D=XC2D=YC2D=AREA2D=SX1=SY1=SX2=SY2=nullptr;
+    XN2D=YN2D=XC2D=YC2D=AREA2D=SX1=SY1=SX2=SY2=LEN1=LEN2=nullptr;
     geo_nnode = geo_nslice = 0;
 }
 
@@ -113,6 +116,8 @@ void grid::geometry_metrics()
             SY1[q] = 0.0;
             SX2[q] = 0.0;
             SY2[q] = DXN[a];
+            LEN1[q] = DYN[b];
+            LEN2[q] = DXN[a];
         }
         else
         {
@@ -131,6 +136,9 @@ void grid::geometry_metrics()
             // face j+1/2: edge 01 -> 11, normal to the left of it (+j side)
             SX2[q] = -(y11-y01);
             SY2[q] =  (x11-x01);
+
+            LEN1[q] = std::sqrt(SX1[q]*SX1[q] + SY1[q]*SY1[q]);
+            LEN2[q] = std::sqrt(SX2[q]*SX2[q] + SY2[q]*SY2[q]);
         }
     }
 }

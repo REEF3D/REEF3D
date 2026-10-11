@@ -65,6 +65,20 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
+        // curvilinear grid: length of the inflow face, normal velocity of the ghost cell
+        if(p->wet[IJ]==1 && p->geo_curv==1)
+        {
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        
+        area = p->LEN1[qf]*b->hp(i-1,j);
+        
+        Ai+=area;
+        p->Qi+=(b->U(i-1,j)*p->SX1[qf] + b->V(i-1,j)*p->SY1[qf])*b->hp(i-1,j);
+        hval += b->hp(i,j);
+        ++hcount;
+        continue;
+        }
+        
         if(p->wet[IJ]==1)
         {
     
@@ -112,6 +126,18 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     area=0.0;
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+        
+        // curvilinear grid: length of the outflow face, mean normal velocity at the face
+        if(p->wet[IJ]==1 && p->geo_curv==1)
+        {
+        area = p->LEN1[IJ]*b->hp(i,j);
+        
+        Ao+=area;
+        p->Qo+=0.5*((b->U(i,j)+b->U(i+1,j))*p->SX1[IJ] + (b->V(i,j)+b->V(i+1,j))*p->SY1[IJ])*b->hp(i,j);
+        hval += b->hp(i,j);
+        ++hcount;
+        continue;
+        }
         
         if(p->wet[IJ]==1)
         {

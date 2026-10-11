@@ -37,6 +37,9 @@ void lexer::gridini(ghostcell *pgc)
     
     // solids and topography of the grid file: fields, bed levels, ghost cell estimates
     grid_solids(pgc);
+
+    // curvilinear grid (G 50): bed levels of its nodes
+    geometry_bed();
 }
 
 void lexer::flagini()

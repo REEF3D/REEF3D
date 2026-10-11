@@ -69,6 +69,13 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     SLICELOOP4
     K(i,j) = 0.0;
     
+    if(p->geo_curv==1)
+    SLICELOOP4
+    WETDRY
+    K(i,j) = -(b->FEx(i,j)*p->LEN1[IJ] - b->FEx(i-1,j)*p->LEN1[Im1J]
+             + b->FEy(i,j)*p->LEN2[IJ] - b->FEy(i,j-1)*p->LEN2[IJm1])/p->AREA2D[IJ];
+    
+    if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
     K(i,j) = -(b->FEx(i,j) - b->FEx(i-1,j))/p->DXN[IP] 

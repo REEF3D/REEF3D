@@ -22,9 +22,13 @@ Author: Hans Bihs
 
 #include"sflow_f.h"
 #include"sflow_header.h"
+#include"sflow_curv.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    // curvilinear grid (G 50): options available on it
+    if(p->geo_curv==1)
+    sflow_curv::check(p);
     
     // forcing
     psfdf=new sflow_forcing(p);

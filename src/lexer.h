@@ -64,6 +64,9 @@ public:
     void grid_solids(ghostcell*);   // solids and topography of the grid file for all modules
     void geometry_ini(ghostcell*);  // horizontal geometry layer of the grid (lexer_geometry.cpp)
     void curv_report();             // checks of the CURV corridor grid of the geometry file
+    void curv_nodes(ghostcell*);    // G 50: 2D nodes of the curvilinear grid
+    void geometry_bed();            // G 50: cell bed levels from the curvilinear nodes
+    vector<double> geo_zbn;         // G 50: bed level at the 2D nodes
     void gcd_ini(ghostcell*);
     void makeflag(int*);
 

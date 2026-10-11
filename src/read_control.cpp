@@ -1938,6 +1938,9 @@ void control::read_control(lexer* p)
                 case 40: control>>G40;
                          clear(c,numint);
                          break;
+                case 50: control>>G50;
+                         clear(c,numint);
+                         break;
                 case 505: control>>G505;
                          clear(c,numint);
                          break;

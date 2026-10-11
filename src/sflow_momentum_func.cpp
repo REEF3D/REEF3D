@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"sflow_curv.h"
 #include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
 #include"sflow_amr.h"
@@ -431,6 +432,14 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     // velocities: only the normal components enter the signal speeds and fluxes
     precon->reconstruct_x(p, pgc, b, b->U, b->Us, b->Un);
     precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
+    
+    // curvilinear grid: both components on both faces, then the normal velocity of the faces
+    if(p->geo_curv==1)
+    {
+    precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
+    precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
+    sflow_curv::normal_velocities(p,b);
+    }
 
     // conserved variables (Boussinesq: volume flux M instead of V)
     slice &UHf = (bous==1)?b->MX:UH;
@@ -555,6 +564,33 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
     SLICELOOP4
     {
         // Froude number limiter
+        // curvilinear grid: on the magnitude of the horizontal discharge (independent of the
+        // orientation of the grid), Cartesian grid: per component
+        if(p->geo_curv==1)
+        {
+            if(p->wet[IJ]==1)
+            {
+            lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
+            
+            if(p->B60>=1)
+            if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0)
+            lim *= 0.1;
+            
+            fac = sqrt(UH(i,j)*UH(i,j) + VH(i,j)*VH(i,j));
+            
+            if(fac>lim)
+            {
+            fac = lim/fac;
+            UH(i,j) *= fac;
+            VH(i,j) *= fac;
+            }
+            
+            WH(i,j) = MAX(MIN(WH(i,j), lim), -lim);
+            }
+        }
+        
+        else
+        {
         if(p->wet[IJ]==1)
         {
         lim = p->A531*WL(i,j)*sqrt(g*WL(i,j));
@@ -572,6 +608,7 @@ void sflow_momentum_func::velcalc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH,
         UH(i,j) = MAX(MIN(UH(i,j), lim), -lim);
         VH(i,j) = MAX(MIN(VH(i,j), lim), -lim);
         WH(i,j) = MAX(MIN(WH(i,j), lim), -lim);
+        }
         }
         
         // velocities
@@ -666,9 +703,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
                 
                 else
                 {
-                mirror(p,u,cs,-1.0);
-                mirror(p,v,cs,1.0);
-                mirror(p,w,cs,1.0);
+                wall_bc(p,u,v,w,cs);
                 }
             }
         continue;
@@ -688,29 +723,40 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
             
             if(outflow_flag==0)
             {
-            mirror(p,u,cs,-1.0);
-            mirror(p,v,cs,1.0);
-            mirror(p,w,cs,1.0);
+            wall_bc(p,u,v,w,cs);
             }
         continue;
         }
         
         // walls, free slip
-        if(cs==1 || cs==4)
-        {
-        mirror(p,u,cs,-1.0);
-        mirror(p,v,cs,1.0);
-        mirror(p,w,cs,1.0);
-        }
-        
-        if(cs==2 || cs==3)
-        {
-        mirror(p,u,cs,1.0);
-        mirror(p,v,cs,-1.0);
-        mirror(p,w,cs,1.0);
-        }
+        wall_bc(p,u,v,w,cs);
     }
     
+}
+
+void sflow_momentum_func::wall_bc(lexer *p, slice &u, slice &v, slice &w, int cs)
+{
+    // free slip: the normal velocity is reversed (curvilinear grid: normal of the wall face)
+    if(p->geo_curv==1)
+    {
+    sflow_curv::wall_mirror(p,u,v,i,j,cs);
+    mirror(p,w,cs,1.0);
+    return;
+    }
+    
+    if(cs==1 || cs==4)
+    {
+    mirror(p,u,cs,-1.0);
+    mirror(p,v,cs,1.0);
+    mirror(p,w,cs,1.0);
+    }
+    
+    if(cs==2 || cs==3)
+    {
+    mirror(p,u,cs,1.0);
+    mirror(p,v,cs,-1.0);
+    mirror(p,w,cs,1.0);
+    }
 }
 
 void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WH, slice &WL)

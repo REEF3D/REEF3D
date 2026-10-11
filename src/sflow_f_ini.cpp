@@ -237,7 +237,16 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->eta(i,j)= -p->A251_val*(p->XP[IP]-p->global_xmin);
 
-    // eta box area
+    // eta box area (curvilinear grid: the cells whose centroid lies in the box)
+    if(p->geo_curv==1)
+    for(int qn=0;qn<p->F72;++qn)
+    {
+        SLICELOOP4
+        if(p->XC2D[IJ]>=p->F72_xs[qn] && p->XC2D[IJ]<p->F72_xe[qn] && p->YC2D[IJ]>=p->F72_ys[qn] && p->YC2D[IJ]<p->F72_ye[qn])
+        b->eta(i,j) = p->F72_h[qn]-p->wd;
+    }
+    
+    if(p->geo_curv==0)
     for(int qn=0;qn<p->F72;++qn)
     {
 		istart = p->posc_i(p->F72_xs[qn]);
