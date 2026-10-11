@@ -115,6 +115,7 @@ void sflow_amr_ship::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 #include<algorithm>
 #include<mpi.h>
 #include<cmath>
+#include<cassert>
 
 namespace
 {
@@ -393,7 +394,7 @@ void sflow_amr::ship_save(vector<shipsave> &S)
             S[k].t[d][3*n+v] = t[n][v];
         }
         slice &f = ship6->object(k)->amr_fs();
-        S[k].fs.assign(f.V,f.V+(size_t)p0->imax*p0->jmax);
+        S[k].fs.assign(f.begin(),f.end());
         for(int n=0; n<6; ++n)
         S[k].u[n] = o->amr_u(n);
         for(int n=0; n<3; ++n)
@@ -416,9 +417,11 @@ void sflow_amr::ship_put(const vector<shipsave> &A, const vector<shipsave> *B, d
             t[n][v] = (B==nullptr) ? A[k].t[d][3*n+v] : (1.0-th)*A[k].t[d][3*n+v] + th*(*B)[k].t[d][3*n+v];
         }
         slice &f = ship6->object(k)->amr_fs();
-        const size_t nc = A[k].fs.size();
-        for(size_t m=0; m<nc; ++m)
-        f.V[m] = (B==nullptr) ? A[k].fs[m] : (1.0-th)*A[k].fs[m] + th*(*B)[k].fs[m];
+        assert(A[k].fs.size()==f.size());
+        if(B==nullptr)
+        std::ranges::copy(A[k].fs,f.begin());
+        else
+        std::ranges::transform(A[k].fs,(*B)[k].fs,f.begin(),[th](double a, double b){return (1.0-th)*a + th*b;});
     }
 }
 

@@ -28,8 +28,8 @@ Author: Hans Bihs
 class slice4 final : public slice
 {
 public:
-    slice4(lexer *p) : slice(p) {};
-    virtual ~slice4() = default;
+    slice4(lexer *p) : slice(p) {}
+    ~slice4() override;
 };
 
 #endif
