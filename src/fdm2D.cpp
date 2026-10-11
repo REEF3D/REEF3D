@@ -81,7 +81,6 @@ fdm2D::fdm2D(lexer *p)
             breaking(p),breaking_print(p),
             wet1(p),deep1(p),wet2(p),deep2(p),
             nodeval(p),
-            cmu(0.09),
             ks(p)
 {
 
@@ -91,8 +90,6 @@ fdm2D::fdm2D(lexer *p)
 	maxG=0.0; 
 	maxK=0.0;
 	maxE=0.0;
-
-	sigT=0.9;
 
 	gi=p->W20;
 	gj=p->W21;

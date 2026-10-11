@@ -101,7 +101,7 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     sedimentlog(p);
     
     if(s->pmix!=nullptr)
-    s->pmix->print_log(p,pgc);
+    s->pmix->print_log(p,pgc,s);
     
     
     if(p->mpirank==0 && p->count>0)

@@ -47,7 +47,7 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
     if(p->A10==5)
     {
     k=0;
-    if(p->wet[IJ]==0 || p->DF[IJK]<0 || p->DFBED[IJ]<0)
+    if(p->wet[IJ]==0 || p->DF[IJK]<0 || s->DFBED[IJ]<0)
     val = 0.0;
     }
     

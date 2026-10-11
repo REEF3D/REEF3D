@@ -34,22 +34,22 @@ Author: Hans Bihs
 
 void sediment_f::bedlevel(lexer *p, ghostcell *pgc)
 {
-    p->bedmin=1.0e15;
-    p->bedmax=-1.0e15;
+    s->bedmin=1.0e15;
+    s->bedmax=-1.0e15;
 
     SLICELOOP4
     {
-        p->bedmin = MIN(p->bedmin, s->bedzh(i,j));
-        p->bedmax = MAX(p->bedmax, s->bedzh(i,j));
+        s->bedmin = MIN(s->bedmin, s->bedzh(i,j));
+        s->bedmax = MAX(s->bedmax, s->bedzh(i,j));
     }
 	
-    p->bedmin=pgc->globalmin(p->bedmin);
-    p->bedmax=pgc->globalmax(p->bedmax);
+    s->bedmin=pgc->globalmin(s->bedmin);
+    s->bedmax=pgc->globalmax(s->bedmax);
 
     if(p->mpirank==0)
     {
-    cout<<"bedmin: "<<setprecision(4)<<p->bedmin<<endl;
-    cout<<"bedmax: "<<setprecision(4)<<p->bedmax<<endl<<endl;
+    cout<<"bedmin: "<<setprecision(4)<<s->bedmin<<endl;
+    cout<<"bedmax: "<<setprecision(4)<<s->bedmax<<endl<<endl;
     }
 }
 

@@ -87,7 +87,6 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
         p->fsfsedprinttime=0.0;
         p->probeprinttime=0.0;
         p->stateprinttime=0.0;
-        p->exportprinttime=0.0;
     }
 
     p->printcount=0;

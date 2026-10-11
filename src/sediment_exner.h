@@ -51,7 +51,7 @@ private:
     void topovel1(lexer*,ghostcell*,sediment_fdm*);
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
-    void face_closure(lexer*,double&,double&,double&,double&);
+    void face_closure(lexer*,sediment_fdm*,double&,double&,double&,double&);
     void qb_clear(lexer*,sediment_fdm*);
     void dry_deposit(lexer*,sediment_fdm*);
     
@@ -60,7 +60,7 @@ private:
     double  susp_ED(lexer*,ghostcell*,sediment_fdm*);
     void  susp_qs(lexer*,ghostcell*,sediment_fdm*);
     
-    void filter(lexer*,ghostcell*,slice&,int,int);   
+    void filter(lexer*,ghostcell*,sediment_fdm*,slice&,int,int);
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;

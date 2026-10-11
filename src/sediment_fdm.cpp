@@ -35,23 +35,21 @@ sediment_fdm::sediment_fdm(lexer *p) : P(p),Q(p),
                                        cbe(p),cb(p),cbn(p),conc(p),dryd(p),
                                        waterlevel(p),guard(p),MOB(p),tau_i(p)
 {
+    bedmax = 0.0;
+    bedmin = 0.0;
+
     dk = p->S20;
     pmix = nullptr;
 
+    p->Iarray(DFBED,p->imax*p->jmax);
+
+    int i,j;
+    IMALOOP
+    JMALOOP
+    DFBED[IJ] = 1;
 }
 
 sediment_fdm::~sediment_fdm()
 {
+    delete[] DFBED;
 }
-
-
-
-
-
-
-
-
-
-
-
-

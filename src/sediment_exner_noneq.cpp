@@ -149,16 +149,16 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
         cx = 0.0;
         cy = 0.0;
 
-        if(sgx>0.0 && p->DFBED[Im1J]>0 && p->DXP[IM1]>1.0e-20)
+        if(sgx>0.0 && s->DFBED[Im1J]>0 && p->DXP[IM1]>1.0e-20)
         cx = Lsc*sgx/p->DXP[IM1];
 
-        if(sgx<0.0 && p->DFBED[Ip1J]>0 && p->DXP[IP]>1.0e-20)
+        if(sgx<0.0 && s->DFBED[Ip1J]>0 && p->DXP[IP]>1.0e-20)
         cx = Lsc*sgx/p->DXP[IP];
 
-        if(sgy>0.0 && p->DFBED[IJm1]>0 && p->DYP[JM1]>1.0e-20)
+        if(sgy>0.0 && s->DFBED[IJm1]>0 && p->DYP[JM1]>1.0e-20)
         cy = Lsc*sgy/p->DYP[JM1];
 
-        if(sgy<0.0 && p->DFBED[IJp1]>0 && p->DYP[JP]>1.0e-20)
+        if(sgy<0.0 && s->DFBED[IJp1]>0 && p->DYP[JP]>1.0e-20)
         cy = Lsc*sgy/p->DYP[JP];
 
         cxn(i,j) = cx;
@@ -198,7 +198,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
             i = xrev?(p->knox-1-ii):ii;
             j = yrev?(p->knoy-1-jj):jj;
 
-            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0)
+            if(p->flagslice4[IJ]>0 && s->DFBED[IJ]>0)
             {
             cx = cxn(i,j);
             cy = cyn(i,j);
