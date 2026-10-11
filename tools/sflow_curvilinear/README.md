@@ -6,15 +6,18 @@ arbitrary (x, y) positions.
 
 ## Running a case
 
-1. Grid nodes, either
-   - `curvgrid.dat` in the case folder (`G 50 2`): first line `ni nj`, then `x y zb` of node
-     `(i,j)` for `j = 0..nj`, `i = 0..ni` (i fastest); `zb` is the bed level at the node, or
-   - the `CURV` section of `DIVEMesh_Grid/grid-geometry.dat` (`G 50 1`).
-   DIVEMesh's river corridor generator (`R 1 1`) writes both, and prints the DIVEMesh keys of the
-   logical box to `DIVEMesh_Log/corridor.log`.
-2. DIVEMesh grid = the logical box: `B 2 ni nj 1`, `B 10 0 ni*h 0 nj*h 0 h` with `h` about the mean
-   spacing, `C 11 1` (inflow at i = 0), `C 14 2` (outflow at i = ni), `C 12 3`, `C 13 3` (banks).
-3. `ctrl.txt`: `G 50 2` (or `1`). Cell bed levels are the mean of the four node bed levels.
+One DIVEMesh run (river corridor, `R 1 2`): the Cartesian setup (geodat, solids, `C 11`-`C 14`
+with the inflow and outflow sides) plus `R 1 2`, `R 2 <design water level>`, `R 4 0 <nj>`.
+DIVEMesh builds the corridor grid, then writes the logical box of it (`ni x nj` cells of the mean
+spacing, the vertical of the Cartesian grid) as the grid of the run: inflow at i = 0, outflow at
+i = ni, banks at j = 0 and nj, the CURV section in `DIVEMesh_Grid/grid-geometry.dat`.
+`ctrl.txt`: `G 50 1`. Cell bed levels are the mean of the four node bed levels.
+
+Grids from elsewhere (`G 50 2`): `curvgrid.dat` in the case folder, first line `ni nj`, then
+`x y zb` of node `(i,j)` for `j = 0..nj`, `i = 0..ni` (i fastest), and a DIVEMesh grid of the
+logical box: `B 2 ni nj 1`, `B 10 0 ni*h 0 nj*h 0 h` with `h` about the mean spacing, `C 11 1`
+(inflow at i = 0), `C 14 2` (outflow at i = ni), `C 12 21`, `C 13 21` (banks). DIVEMesh `R 1 1`
+writes `curvgrid.dat` and these keys (`DIVEMesh_Log/corridor.log`) without changing its grid.
 
 Available on curvilinear grids so far: hydrostatic SFLOW (`A 220 0`), WENO or limited
 reconstruction (`A 211`), RK2/RK3, Manning friction (`A 218`), wetting and drying, walls, discharge

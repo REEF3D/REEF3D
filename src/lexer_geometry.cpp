@@ -278,7 +278,7 @@ void lexer::curv_report()
 
     cout<<"CURV corridor grid: "<<ni<<" x "<<nj<<" cells, area "<<amin<<" .. "<<amax<<" m2, "
         <<folded<<" folded, non-orthogonality max "<<nonorth<<" deg, neighbour size ratio max "<<ratio
-        <<" (not used by the solvers yet)"<<endl;
+        <<(G50==1 ? " (the grid of the run, G 50 1)" : " (not the grid of the run; G 50 1 uses it)")<<endl;
 
     if(folded>0)
     cout<<"!!! CURV corridor grid: "<<folded<<" folded cells !!!"<<endl;
