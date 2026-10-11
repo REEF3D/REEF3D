@@ -66,7 +66,9 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
             {
             pgc->startintV(p,IO,1);
             
-            georay.sigma_band(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],NB*DSM,LS);
+            // VRANS: distance to the exposed surface only (layer_faces), all faces otherwise
+            georay.sigma_band(p,tri_x,tri_y,tri_z,tstart[qn],tend[qn],NB*DSM,LS,
+                              tri_layer.empty() ? nullptr : tri_layer.data());
             }
         }
     }

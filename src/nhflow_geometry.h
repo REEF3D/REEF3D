@@ -51,8 +51,8 @@ public:
     
     void geometry_ini(lexer*, fdm_nhf*, ghostcell*);
     
-    // porous layers (B 202): exposed surface faces and depth below them
-    void layer_faces(lexer*, ghostcell*);
+    // VRANS: exposed surface faces (PORSTRUC distance, B 202 layer depth) and depth below them
+    void layer_faces(lexer*, fdm_nhf*, ghostcell*);
     void layer_dist(lexer*, fdm_nhf*, double, const double*, double*);
     
     int forcing_flag,solid_flag,floating_flag;

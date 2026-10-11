@@ -25,20 +25,27 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
-// Porous layers (B 202): depth below the exposed surface of the porous structures.
+// Exposed surface of the static porous structures (VRANS, B 210-230).
 //
-// The layer depth is the exact point-triangle distance to the exposed surface
-// triangles, evaluated in a band of the total layer thickness. A triangle is
-// exposed when the point just outside it (outward normal) lies
+// Only the exposed surface triangles define
+//   - the distance of the porous level set PORSTRUC (ray_cast -> sigma_band),
+//     i.e. the Heaviside smoothing of the porosity, and
+//   - the depth of the porous layers (B 202, layer_dist).
+// The inside/outside sign of PORSTRUC still comes from the parity test on all
+// triangles, which needs the closed surfaces.
+//
+// A triangle is exposed when the point just outside it (outward normal) lies
 //   - inside the global domain (faces on or beyond the domain boundary are skipped),
 //   - outside all other porous entities (internal faces of the union are skipped),
-//   - and, with B 203 1, not below the face: faces whose outward normal points
-//     more than 45 deg downwards rest on the bed and are skipped.
+//   - and, with B 203 1, not in the bed: downward-facing faces (outward normal more
+//     than 45 deg below horizontal) with a vertex or the centroid at or below the
+//     local bed level + B209 dx are skipped. Downward-facing faces above the bed,
+//     e.g. the underside of an elevated porous body, stay exposed.
 // In 2D the y-end caps are skipped, as in geo_raycast::sigma_band.
 //
 // The triangles are static, so the classification is done once (layer_faces).
-// The sigma nodes move with the free surface, so the distance is recomputed
-// with the level set in every update (layer_dist).
+// The sigma nodes move with the free surface, so the distances are recomputed
+// in every update.
 
 // inside/outside of entity qn by vertical ray parity, same test and ray offset as
 // geo_raycast::sigma_io, incl. raymode and inversion of the entity
@@ -113,12 +120,16 @@ bool nhflow_geometry::point_inside(lexer *p, int qn, double Px, double Py, doubl
     return inside;
 }
 
-void nhflow_geometry::layer_faces(lexer *p, ghostcell *pgc)
+void nhflow_geometry::layer_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     int qn,qe,n;
-    int exposed=0, ambiguous=0;
+    int exposed=0, ambiguous=0, onbedcount=0;
 
     tri_layer.assign(tricount,0);
+
+    // downward-facing candidates for the bed test, bed flag reduced over the ranks (MPI max)
+    vector<int> down(tricount,0);
+    vector<double> onbed(tricount,0.0);
 
     // largest horizontal cell size: the band must cover the Heaviside width B209*dx
     layer_dsmax = 0.0;
@@ -169,7 +180,6 @@ void nhflow_geometry::layer_faces(lexer *p, ghostcell *pgc)
         if(in_p==in_m)
         {
         tri_layer[n]=1;
-        ++exposed;
         ++ambiguous;
         continue;
         }
@@ -190,10 +200,6 @@ void nhflow_geometry::layer_faces(lexer *p, ghostcell *pgc)
         if(p->j_dir==1 && (qy < p->global_ymin || qy > p->global_ymax))
         continue;
 
-        // face resting on the bed
-        if(p->B203==1 && oz < -0.7071)
-        continue;
-
         // internal face of the union of the porous entities
         bool internal=false;
 
@@ -208,18 +214,69 @@ void nhflow_geometry::layer_faces(lexer *p, ghostcell *pgc)
         continue;
 
         tri_layer[n]=1;
+
+        if(p->B203==1 && oz < -0.7071)
+        down[n]=1;
+    }
+
+    // bed test of the downward-facing faces: the rank holding the column of a sample
+    // point (vertices and centroid) compares it with the local bed level
+    const double tol = p->B209*DSM;
+
+    for(n=0; n<tricount; ++n)
+    if(down[n]==1)
+    {
+        double sx[4] = {tri_x[n][0], tri_x[n][1], tri_x[n][2], (tri_x[n][0]+tri_x[n][1]+tri_x[n][2])/3.0};
+        double sy[4] = {tri_y[n][0], tri_y[n][1], tri_y[n][2], (tri_y[n][0]+tri_y[n][1]+tri_y[n][2])/3.0};
+        double sz[4] = {tri_z[n][0], tri_z[n][1], tri_z[n][2], (tri_z[n][0]+tri_z[n][1]+tri_z[n][2])/3.0};
+
+        for(int q=0; q<4; ++q)
+        {
+            if(sx[q] < p->originx || sx[q] > p->endx)
+            continue;
+
+            if(p->j_dir==1 && (sy[q] < p->originy || sy[q] > p->endy))
+            continue;
+
+            i = MIN(MAX(p->posc_i(sx[q]),0),p->knox-1);
+            j = 0;
+
+            if(p->j_dir==1)
+            j = MIN(MAX(p->posc_j(sy[q]),0),p->knoy-1);
+
+            if(sz[q] <= d->bed(i,j) + tol)
+            onbed[n] = 1.0;
+        }
+    }
+
+    pgc->globalmax(onbed.data(),tricount);
+
+    for(n=0; n<tricount; ++n)
+    {
+        if(down[n]==1 && onbed[n]>0.5)
+        {
+        tri_layer[n]=0;
+        ++onbedcount;
+        }
+
+        if(tri_layer[n]==1)
         ++exposed;
     }
 
     if(p->mpirank==0)
     {
-    cout<<"VRANS porous layers: "<<p->B202<<" layers, "<<exposed<<" of "<<tricount<<" surface triangles define the layer depth"<<endl;
+    cout<<"VRANS surface: "<<exposed<<" of "<<tricount<<" triangles are exposed ("<<onbedcount<<" on the bed skipped)";
+
+    if(p->B202>0)
+    cout<<", "<<p->B202<<" porous layers";
+
+    cout<<endl;
 
     if(ambiguous>0)
-    cout<<"VRANS porous layers: "<<ambiguous<<" triangles with undecided orientation are kept, check the STL for open edges"<<endl;
+    cout<<"VRANS surface: "<<ambiguous<<" triangles with undecided orientation are kept, check the STL for open edges"<<endl;
 
     if(exposed==0)
-    cout<<"VRANS porous layers: !!! no exposed surface triangles, all porous cells get the core properties B 201 !!!"<<endl;
+    cout<<"VRANS surface: !!! no exposed surface triangles, uniform porosity inside the structures !!!"<<endl;
     }
 }
 

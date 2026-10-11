@@ -240,7 +240,7 @@ done:
 
 
 void geo_raycast::sigma_band(lexer *p, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                             double band, double *LS)
+                             double band, double *LS, const int *use)
 {
     // band = NB*DSM, NB ~ 4 cells; must exceed A526 by 2-3
     int i,j,k,n;
@@ -248,6 +248,9 @@ void geo_raycast::sigma_band(lexer *p, double **tri_x, double **tri_y, double **
 
     for(n=ts; n<te; ++n)
     {
+        if(use!=nullptr && use[n]==0)
+        continue;
+        
         double Ax=tri_x[n][0], Ay=tri_y[n][0], Az=tri_z[n][0];
         double Bx=tri_x[n][1], By=tri_y[n][1], Bz=tri_z[n][1];
         double Cx=tri_x[n][2], Cy=tri_y[n][2], Cz=tri_z[n][2];

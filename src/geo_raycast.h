@@ -110,8 +110,9 @@ public:
     void sigma_io(lexer*, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
                   double DSM, int raymode, int *IO, int *CL, int *CR);
 
+    // use: optional per-triangle flag, triangles with use[n]==0 are skipped (VRANS exposed surface)
     void sigma_band(lexer*, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                    double band, double *LS);
+                    double band, double *LS, const int *use=nullptr);
 
     static double dist2_tri(double Px, double Py, double Pz,
                             double Ax, double Ay, double Az,
