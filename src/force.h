@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FORCE_H_
 #define FORCE_H_
 
-#include"fieldint5.h"
-#include"field5.h"
+#include"fieldint4.h"
+#include"field4.h"
 #include"increment.h"
 #include"vtp3D.h"
 #include<iostream>
@@ -61,8 +61,8 @@ private:
     double epsi;
 	
 
-	fieldint5 vertice, nodeflag;
-    field5 eta;
+	fieldint4 vertice, nodeflag;
+    field4 eta;
 	
 	
     void force_calc(lexer*,fdm*,ghostcell*);

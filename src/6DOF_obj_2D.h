@@ -61,7 +61,7 @@ protected:
     void time_preproc_2D(lexer*);
     
     slice4 press,lrk1,lrk2,K,dts,fs,Ls,Bs,Rxmin,Rxmax,Rymin,Rymax,draft;
-    sliceint5 cl,cr,fsio;
+    sliceint4 cl,cr,fsio;
 };
 
 #endif

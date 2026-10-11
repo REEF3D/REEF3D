@@ -20,48 +20,34 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"weno3_nug_func.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"flux_face_CDS2.h"
-#include"flux_face_CDS2_vrans.h"
-#include"flux_face_FOU.h"
-#include"flux_face_FOU_vrans.h"
+#include "weno3_nug_func.h"
+#include "lexer.h"
 
-weno3_nug_func::weno3_nug_func(lexer* p):epsilon(0.0),psi(1.0e-6)
+weno3_nug_func::weno3_nug_func(lexer *p)
 {
     ini(p);
 }
 
-weno3_nug_func::~weno3_nug_func()
-{
-}
-
 void weno3_nug_func::ini(lexer* p)
 {
-    if(iniflag==0)
+    if(!iniflag)
     {
-    p->Darray(qfx,p->knox+8,2,4,2);
-    p->Darray(qfy,p->knoy+8,2,4,2);
-    p->Darray(qfz,p->knoz+8,2,4,2);
-    
-    p->Darray(cfx,p->knox+8,2,4);
-    p->Darray(cfy,p->knoy+8,2,4);
-    p->Darray(cfz,p->knoz+8,2,4);
-    
-    p->Darray(isfx,p->knox+8,2,4);
-    p->Darray(isfy,p->knoy+8,2,4);
-    p->Darray(isfz,p->knoz+8,2,4);
-    
-    precalc_qf(p);
-    precalc_cf(p);
-    precalc_isf(p);
-    
-    iniflag=1;
+        qfx.resize(p->knox+2*marge);
+        qfy.resize(p->knoy+2*marge);
+        qfz.resize(p->knoz+2*marge);
+
+        cfx.resize(p->knox+2*marge);
+        cfy.resize(p->knoy+2*marge);
+        cfz.resize(p->knoz+2*marge);
+
+        isfx.resize(p->knox+2*marge);
+        isfy.resize(p->knoy+2*marge);
+        isfz.resize(p->knoz+2*marge);
+
+        precalc_qf(p);
+        precalc_cf(p);
+        precalc_isf(p);
+
+        iniflag = true;
     }
 }
-
-double ****weno3_nug_func::qfx,****weno3_nug_func::qfy,****weno3_nug_func::qfz;
-double ***weno3_nug_func::cfx,***weno3_nug_func::cfy,***weno3_nug_func::cfz;
-double ***weno3_nug_func::isfx,***weno3_nug_func::isfy,***weno3_nug_func::isfz;
-int weno3_nug_func::iniflag(0);
