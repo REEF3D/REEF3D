@@ -182,7 +182,7 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
             sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
             remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]);
 
-            sprintf(name,"./REEF3D_NHFLOW_TIME_AVG_WSFLINE/REEF3D-NHFLOW-TimeAvgWsfLine-%i-%i.dat",q+1,p->count);
+            snprintf(name,sizeof(name),"./REEF3D_NHFLOW_TIME_AVG_WSFLINE/REEF3D-NHFLOW-TimeAvgWsfLine-%i-%i.dat",q+1,p->count);
             wsfout.open(name);
 
             wsfout<<"Time-Averaged Water Surface Lineprobe ID:  "<<q+1<<"\n\n"

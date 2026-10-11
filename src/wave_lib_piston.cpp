@@ -131,7 +131,7 @@ void wave_lib_piston::read(lexer *p, ghostcell* pgc)
 	double val,val0,val1;
 	int count;
 	
-	sprintf(name,"wavemaker.dat");
+	snprintf(name,sizeof(name),"wavemaker.dat");
 
 // open file------------
 	ifstream file(name, ios_base::in);

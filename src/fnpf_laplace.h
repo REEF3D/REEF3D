@@ -37,6 +37,7 @@ using namespace std;
 class fnpf_laplace
 {
 public:
+    virtual ~fnpf_laplace() = default;
 
     virtual void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&)=0;
 

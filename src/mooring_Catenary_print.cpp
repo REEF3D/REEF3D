@@ -50,7 +50,7 @@ void mooring_Catenary::print(lexer *p)
 	{
 		printtime+=p->P30;
 		
-        sprintf(name,"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
+        snprintf(name,sizeof(name),"%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk",sixdof_output_dir(p),line,num);
 		
 		// Reconstruct line
 		buildLine(p);

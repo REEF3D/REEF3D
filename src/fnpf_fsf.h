@@ -37,7 +37,8 @@ using namespace std;
 class fnpf_fsf 
 {
 public:
-   
+    virtual ~fnpf_fsf() = default;
+
     virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*)=0;

@@ -33,6 +33,8 @@ using namespace std;
 class potential
 {
 public:
+    virtual ~potential() = default;
+
 	virtual void start(lexer*,fdm*, solver*, ghostcell* pgc)=0;
 
 };

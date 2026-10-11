@@ -49,7 +49,7 @@ nhflow_probe_press::nhflow_probe_press(lexer *p, fdm_nhf *d) : probenum(p->P64)
 		// open file
 		for(n=0;n<probenum;++n)
 		{
-		sprintf(name,"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Probe_Press-%i.dat",n+1);
+		snprintf(name,sizeof(name),"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Probe_Press-%i.dat",n+1);
 		
 		pout[n].open(name);
         

@@ -36,6 +36,7 @@ using namespace std;
 class vrans
 {
 public:
+    virtual ~vrans() = default;
 
 	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;	
 	virtual void start(lexer*, fdm*, ghostcell*, int)=0;

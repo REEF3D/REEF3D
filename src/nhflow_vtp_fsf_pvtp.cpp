@@ -26,7 +26,7 @@ Author: Hans Bihs
 
 void nhflow_vtp_fsf::pvtp(lexer *p, int num)
 {
-    sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
 
     ofstream result;
     result.open(name);
@@ -55,7 +55,7 @@ void nhflow_vtp_fsf::pvtp(lexer *p, int num)
     char pname[200];
     for(n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
+        snprintf(pname,sizeof(pname),"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 
@@ -85,7 +85,7 @@ void nhflow_vtp_fsf::pvtp_avg(lexer *p, int num)
     char pname[200];
     for(n=0; n<p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-NHFLOW-FSF-TIMEAVG-%08i-%06i.vtp",num,n+1);
+        snprintf(pname,sizeof(pname),"REEF3D-NHFLOW-FSF-TIMEAVG-%08i-%06i.vtp",num,n+1);
         result<<"<Piece Source=\""<<pname<<"\"/>\n";
     }
 

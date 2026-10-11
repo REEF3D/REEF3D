@@ -41,7 +41,7 @@ class fsi_strips final : public fsi, public increment
 {
 public:
 	
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	
     fsi_strips(lexer*,ghostcell*);
 	virtual ~fsi_strips();

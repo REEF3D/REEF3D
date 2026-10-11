@@ -47,6 +47,7 @@ using namespace std;
 class nhflow
 {
 public:    
+    virtual ~nhflow() = default;
 
     virtual void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*, nhflow_fsf*)=0;
     

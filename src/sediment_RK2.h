@@ -27,7 +27,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class sediment_RK2 : public sediment_f, public increment
+class sediment_RK2 : public sediment_f
 {
 public:
     sediment_RK2(lexer*,ghostcell*,turbulence*, patchBC_interface*);

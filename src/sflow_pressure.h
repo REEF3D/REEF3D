@@ -36,6 +36,8 @@ using namespace std;
 class sflow_pressure
 {
 public:
+    virtual ~sflow_pressure() = default;
+
     // projection of the conserved momenta UH, VH, WH at water depth WL;
     // Un, Vn: velocities at the beginning of the RK stage
 	virtual void start(lexer*, fdm2D*, ghostcell*, solver2D*, ioflow*, slice&, slice&, slice&, slice&, slice&, slice&, double)=0;

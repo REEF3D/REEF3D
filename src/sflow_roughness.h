@@ -33,7 +33,6 @@ class sflow_roughness
 {
 
 public:
-
     virtual ~sflow_roughness() = default;
 
     // bed friction for the conserved momenta: args U, V, WL (cell centres)
