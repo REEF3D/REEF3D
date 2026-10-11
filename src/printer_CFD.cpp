@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
+#include"cavitation.h"
 #include"printer_CFD.h"
 #include"lagoon_output.h"
 #include"lexer.h"
@@ -413,6 +414,9 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             pdata->offset_ParaView(p,offset,n);
             // concentration
             pconc->offset_ParaView(p,offset,n);
+            // cavitation
+            if(cavitation::active!=nullptr)
+            cavitation::active->offset_ParaView(p,offset,n);
             // rho
             if(p->P24==1 && p->F300==0)
             {
@@ -535,6 +539,9 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         pdata->name_ParaView(p,result,offset,n);
 
         pconc->name_ParaView(p,result,offset,n);
+
+        if(cavitation::active!=nullptr)
+        cavitation::active->name_ParaView(p,result,offset,n);
 
         if(p->P24==1 && p->F300==0)
         {
@@ -697,6 +704,10 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         //  Concentration
         pconc->print_3D(p,a,pgc,buffer,file_offset);
+
+        //  Cavitation
+        if(cavitation::active!=nullptr)
+        cavitation::active->print_3D(p,a,pgc,buffer,file_offset);
 
         //  density
         if(p->P24==1 && p->F300==0)

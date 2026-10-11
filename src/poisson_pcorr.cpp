@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
 #include"density_pst.h"
+#include"density_cav.h"
 
 poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
 {
@@ -72,6 +73,9 @@ poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc)
     
     if(p->F300>=1)
     pd = new density_rheo(p);
+    
+    if(p->W60>0)
+    pd = new density_cav(p);
 }
 
 poisson_pcorr::~poisson_pcorr()

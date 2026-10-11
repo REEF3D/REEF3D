@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"field_header.h"
 #include"6DOF_header.h"
 #include"acoustics.h"
+#include"cavitation.h"
 #include"runlog.h"
 #include"lagoon_output.h"
 
@@ -92,7 +93,11 @@ void driver::loop_cfd(fdm* a)
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
         pdem->start_cfd(p,a,pgc);
+        if(pcav)
+        pcav->coefficients(p,a,pgc);
         pmom->start(p,a,pgc,pvrans,p6dof); 
+        if(pcav)
+        pcav->start(p,a,pgc);
         pbench->start(p,a,pgc,pconvec);
 		
         //save previous timestep

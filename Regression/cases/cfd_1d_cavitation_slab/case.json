@@ -1,0 +1,19 @@
+{
+ "description": "Cavitation (W 60 1, Schnerr-Sauer mixture): collapse of a vapour layer (W 67, 0.2 m) at the closed end of a 1 m channel under a liquid column, p_v = -10 kPa against the pressure 0 of an outlet patch on the x+ wall (C 14 21, B 441, B 412), fixed dt, 4 MPI ranks, N40=4. Short version of Regression/validation/cavitation 01 (the layer follows the piston equation rho (L-h) h'' = -(p_out - p_v)).",
+ "np": 4,
+ "steps": 20,
+ "files": [],
+ "tags": [
+  "1d",
+  "cavitation",
+  "mpi",
+  "quick"
+ ],
+ "covers": [
+  "cavitation: vapour transport with the scheme divergence, Schnerr-Sauer source, mixture density and viscosity",
+  "projection: phase-change divergence implicit in the pressure correction",
+  "density_cav face density in momentum and Poisson",
+  "patchBC pressure outlet (B 412) holding the pressure level against the phase-change divergence",
+  "REEF3D_CFD_Cavitation output, W 60-67 keywords through read_control/controlfill"
+ ]
+}

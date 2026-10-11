@@ -93,6 +93,7 @@ using namespace std;
 
 class regression_dump;
 class acoustics;
+class cavitation;
 
 class driver : public increment
 {
@@ -143,6 +144,7 @@ public:
 	printer* pprint;
     regression_dump* preg;
     acoustics* pacoustic;
+    cavitation* pcav;
 	initialize* pini;
 	diffusion* pdiff;
 	diffusion* pturbdiff;

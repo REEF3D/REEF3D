@@ -54,6 +54,7 @@ Author: Hans Bihs
 #include"density_heat.h"
 #include"density_vof.h"
 #include"density_rheo.h"
+#include"density_cav.h"
 
 // loop over the cells of velocity component c (0 u, 1 v, 2 w); cpor is the porosity factor CPOR1/2/3
 #define MOMRK_LOOP(c, ...) \
@@ -232,6 +233,9 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
         if((p->F30>0 && p->H10==0 && p->W30==0  && p->F300==0 && p->W90>0) || p->F300>=1)
         pd = new density_rheo(p);
+
+        if(p->W60>0)
+        pd = new density_cav(p);
     }
 }
 

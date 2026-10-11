@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"acoustics_fwh.h"
 #include"acoustics_void.h"
+#include"cavitation.h"
 
 // stop for input options whose code was removed
 static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
@@ -585,6 +586,11 @@ void driver::logic_cfd()
 
     if(p->U10>0)
     pacoustic = new acoustics_fwh(p,a,pgc);
+
+// Cavitation
+    pcav = nullptr;
+    if(p->W60>0)
+    pcav = new cavitation(p,a,pgc);
 
     if(p->P150==0)
 	pdata = new expdata_void(p,a,pgc);

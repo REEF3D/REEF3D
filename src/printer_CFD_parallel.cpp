@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
+#include"cavitation.h"
 #include"printer_CFD.h"
 #include<string>
 #include"lexer.h"
@@ -67,6 +68,9 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
     pdata->name_ParaView_parallel(p,result);
 
     pconc->name_ParaView_parallel(p,result);
+
+    if(cavitation::active!=nullptr)
+    cavitation::active->name_ParaView_parallel(p,result);
 
     if(p->P24==1 && p->F300==0)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";

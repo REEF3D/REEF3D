@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
 #include"density_pst.h"
+#include"density_cav.h"
 #include"heaviside.h"
  
 pjm_hydrostatic::pjm_hydrostatic(lexer* p, fdm *a, heat *&pheat, concentration *&ppconc)
@@ -76,6 +77,9 @@ pjm_hydrostatic::pjm_hydrostatic(lexer* p, fdm *a, heat *&pheat, concentration *
     
     if(p->F300>=1)
     pd = new density_rheo(p);
+    
+    if(p->W60>0)
+    pd = new density_cav(p);
     
     
     gcval_press=40;  

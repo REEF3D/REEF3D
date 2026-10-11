@@ -39,6 +39,8 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
 #include"density_pst.h"
+#include"density_cav.h"
+#include"cavitation.h"
 #include"CPM.h"
  
 pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
@@ -76,6 +78,9 @@ pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration
     if(p->F300>=1)
     pd = new density_rheo(p);
     
+    if(p->W60>0)
+    pd = new density_cav(p);
+    
     
     gcval_press=40;  
 	
@@ -99,6 +104,10 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
     ppois->start(p,a,pcorr);
+
+    // cavitation: the divergence source of the phase change, implicit in the pressure correction
+    if(cavitation::active!=nullptr)
+    cavitation::active->projection(p,a,alpha);
 	
         
     psolv->start(p,a,pgc,pcorr,a->rhsvec,5);

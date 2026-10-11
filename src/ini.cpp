@@ -1117,6 +1117,18 @@ void control::ini_default()
 	W31=20.0;		// double temperature for air compressibility in celsius
     W41=0;         // int velocity source phase 1
     W50=0.0;        // double air inflow
+    W60=0;           // int cavitation model: 0 off, 1 Schnerr-Sauer (vapour volume fraction transport)
+    W61=0.0;         // double vapour pressure in the pressure scale of the solver [Pa]
+    W62=0.0173;      // double vapour density [kg/m^3] (water at 20 C)
+    W63=5.6e-4;      // double vapour kinematic viscosity [m^2/s]
+    W64=1.6e13;      // double nuclei number density n0 [1/m^3]
+    W65=2.0e-6;      // double nuclei diameter [m]
+    W66_v=1.0;       // double evaporation coefficient
+    W66_c=1.0;       // double condensation coefficient
+    W67=0;           // int initial vapour box W 67 xs xe ys ye zs ze
+    W67_xs=W67_xe=W67_ys=W67_ye=W67_zs=W67_ze=0.0;
+    W68=0;           // int initial vapour sphere W 68 x y z r
+    W68_x=W68_y=W68_z=W68_r=0.0;
     W50_air=0;      // int air inflow switch
     W90=0;           // int non-newtownian flow
     W95=0.001;       // double nu_0 maximum kinetic viscosity

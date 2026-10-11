@@ -147,6 +147,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_fwh_oscillating_sphere` | 4 | FW-H acoustics (U 10): permeable box on grid nodes over 4 ranks, sphere in prescribed surge (X 240), loop_cfd, image observers (U 40/41), REEF3D_CFD_Acoustics output incl. Box.dat |
 | `cfd_3d_fwh_sphere_endcaps` | 4 | FW-H around a fixed sphere in an inflow, low-storage RK3 (N 40 14 = 44), downstream face closed by 3 averaged end caps (U 21 2, U 22 3 0.8) |
 | `cfd_3d_fwh_propeller_al` | 4 | open-water propeller as actuator line (ship.dat `propeller_blades 4`) on a fixed hub sphere in a current, FW-H with the uniform mean flow U 50 |
+| `cfd_1d_cavitation_slab` | 4 | cavitation (W 60, Schnerr-Sauer mixture): vapour layer (W 67) collapsing under a liquid column against an outlet pressure patch (B 412), phase-change divergence implicit in the pressure correction, REEF3D_CFD_Cavitation output; long version Regression/validation/cavitation 01 |
 | `cfd_2d_fem_obstacle` (+ `_mpi2`) | 1/2 | FEM solid (Z 30, N10=1): elastic obstacle hit by the bore, coupling across a subdomain border |
 | `cfd_2d_fem_wall_failure` | 1 | FEM concrete wall cracking, erosion, the broken wall becomes a rigid fragment (`fragments rigid`), debris, ground and part contact (reference with 0024, adaptive integration) |
 | `cfd_3d_fem_column` | 4 | FEM solid in 3D on 4 ranks: elastic column hit by the bore |
