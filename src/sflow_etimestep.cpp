@@ -121,6 +121,10 @@ void sflow_etimestep::start(lexer *p, fdm2D* b, ghostcell* pgc)
         WETDRY
         {
         hh = MAX(b->WL(i,j),wd_criterion);
+        if(p->geo_curv==1)
+        dtd = MIN(dtd, 1.2/(sflow_curv::inv2(p,i,j)*sqrt(g*B*hh*hh*hh)));
+        
+        else
         dtd = MIN(dtd, 1.2/((1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]))*sqrt(g*B*hh*hh*hh)));
         }
         

@@ -79,6 +79,51 @@ public:
 
     // unit normal and length of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j)
     static void normal(lexer*, int dir, int i, int j, double &nx, double &ny, double &len);
+
+    // ---- collocated differential operators (non-hydrostatic pressure, Boussinesq)
+    // central gradient from the values at the four neighbours, by the chain rule with the cell
+    // centres (Cartesian grid: the central differences of the Cartesian kernels)
+    static void grad5(lexer*, int i, int j, double fE, double fW, double fN, double fS, double &fx, double &fy);
+    static void grad(lexer*, slice &f, int i, int j, double &fx, double &fy);
+    static double ddx(lexer*, slice &f, int i, int j);
+    static double ddy(lexer*, slice &f, int i, int j);
+
+    // face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j): distance of the two cell centres along
+    // the face normal, and the non-orthogonal part k = S - d |S|^2/(S.d) of the face vector
+    static double dnorm(lexer*, int dir, int i, int j);
+    static void kvec(lexer*, int dir, int i, int j, double &kx, double &ky);
+
+    // compact Laplacian of cell (i,j): L/(A dn) of its east, west, north and south faces
+    // (orthogonal part; the rest is kflux)
+    static void lapcoef(lexer*, int i, int j, double &cE, double &cW, double &cN, double &cS);
+
+    // non-orthogonal flux of grad f through the faces of cell (i,j) over the cell area, faces to
+    // neighbours with ok(i,j) only (deferred correction)
+    template<class OK>
+    static double kflux(lexer *p, slice &f, int ii, int jj, OK ok)
+    {
+        double s=0.0, kx, ky, gx0, gy0, gx, gy;
+        grad(p,f,ii,jj,gx0,gy0);
+        const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
+        for(int d=0; d<4; ++d)
+        {
+            const int a=ii+di[d], b=jj+dj[d];
+            if(!ok(a,b))
+            continue;
+            const int dir = (d<2) ? 1 : 2;
+            const int fi = (d==1) ? ii-1 : ii, fj = (d==3) ? jj-1 : jj;
+            kvec(p,dir,fi,fj,kx,ky);
+            grad(p,f,a,b,gx,gy);
+            const double sg = (d==0 || d==2) ? 1.0 : -1.0;
+            s += sg*0.5*((gx0+gx)*kx + (gy0+gy)*ky);
+        }
+        return s/area(p,ii,jj);
+    }
+
+    static double area(lexer*, int i, int j);
+
+    // 1/dx^2 + 1/dy^2 of cell (i,j) with the mean face lengths (dispersion and diffusion limits)
+    static double inv2(lexer*, int i, int j);
 };
 
 #endif

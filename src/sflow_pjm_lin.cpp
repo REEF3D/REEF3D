@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"patchBC_interface.h"
 #include"sflow_amr.h"
+#include"sflow_curv.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -123,6 +124,22 @@ void sflow_pjm_lin::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alpha
 {	
     double dx;
     
+    // curvilinear grid: central gradients by the chain rule
+    if(p->geo_curv==1)
+    {
+    double gx,gy,dx_,dy_;
+
+	SLICELOOP4
+    if(active(p,b)==1)
+    {
+    grad_q(p,b,WL,gx,gy);
+    sflow_curv::grad(p,b->depth,i,j,dx_,dy_);
+    
+	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*(gx - cb*b->press(i,j)*dx_);
+    }
+    return;
+    }
+
 	SLICELOOP4
     if(active(p,b)==1)
     {
@@ -137,6 +154,22 @@ void sflow_pjm_lin::vcorr(lexer* p, fdm2D* b, slice &VH, slice &WL, double alpha
 {	
     double dy;
     
+    // curvilinear grid: central gradients by the chain rule
+    if(p->geo_curv==1)
+    {
+    double gx,gy,dx_,dy_;
+
+	SLICELOOP4
+    if(active(p,b)==1)
+    {
+    grad_q(p,b,WL,gx,gy);
+    sflow_curv::grad(p,b->depth,i,j,dx_,dy_);
+    
+	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*(gy - cb*b->press(i,j)*dy_);
+    }
+    return;
+    }
+
     if(p->j_dir==1)
 	SLICELOOP4
     if(active(p,b)==1)
@@ -160,7 +193,39 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
     double dx,dy,dudx,dvdy,dddx,dddy;
     
     b->rhsvec.reset();
-    
+
+    // curvilinear grid: chain-rule gradients, the non-orthogonal part of the operator on the
+    // previous pressure (deferred correction)
+    if(p->geo_curv==1)
+    {
+    double ux,uy,vx,vy;
+
+    n=0;
+    SLICELOOP4
+    {
+        if(active(p,b)==1)
+        {
+        sflow_curv::grad(p,b->U,i,j,ux,uy);
+        sflow_curv::grad(p,b->V,i,j,vx,vy);
+        sflow_curv::grad(p,b->depth,i,j,dddx,dddy);
+
+        b->rhsvec.V[n] = -(WL(i,j)*(ux + vy)
+                          + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt);
+
+        const int si=i, sj=j;
+        const double kf = sflow_curv::kflux(p,b->press,si,sj,[&](int a, int c)
+                          {
+                              if(p->flagslice4[(a-p->imin)*p->jmax+(c-p->jmin)]<0) return false;
+                              i=a; j=c; const int r=active(p,b); i=si; j=sj;
+                              return r==1;
+                          });
+        b->rhsvec.V[n] += WL(i,j)/p->W1*kf;
+        }
+    ++n;
+    }
+    return;
+    }
+
     n=0;
     SLICELOOP4
     {
@@ -185,6 +250,26 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
 void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
 {
     n=0;
+
+    // curvilinear grid: compact Laplacian of the orthogonal parts of the faces
+    if(p->geo_curv==1)
+    {
+    double cE,cW,cN,cS;
+
+	SLICELOOP4
+	{
+    sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+
+	b->M.p[n] = WL(i,j)*(cE + cW + cN + cS)/p->W1 + 2.0*cb/(HP*p->W1);
+   	b->M.n[n] = -WL(i,j)*cE/p->W1;
+	b->M.s[n] = -WL(i,j)*cW/p->W1;
+	b->M.w[n] = -WL(i,j)*cN/p->W1;
+	b->M.e[n] = -WL(i,j)*cS/p->W1;
+	++n;
+	}
+    }
+
+    if(p->geo_curv==0)
     SLICELOOP4
 	{
 	b->M.p[n] =  WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP])
@@ -252,6 +337,10 @@ void sflow_pjm_lin::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
 
 void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta)
 {
+    if(p->geo_curv==1)
+    sflow_curv::pgrad(p,b,eta,b->F,1);
+
+    if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
     b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
@@ -259,6 +348,10 @@ void sflow_pjm_lin::upgrad(lexer*p, fdm2D* b, slice &eta)
 
 void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta)
 {
+    if(p->geo_curv==1)
+    sflow_curv::pgrad(p,b,eta,b->G,2);
+
+    if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
     b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
@@ -266,4 +359,11 @@ void sflow_pjm_lin::vpgrad(lexer*p, fdm2D* b, slice &eta)
 
 void sflow_pjm_lin::wpgrad(lexer*p, fdm2D* b, slice &eta)
 {
+}
+
+// curvilinear grid: gradient of h q at cell (i,j)
+void sflow_pjm_lin::grad_q(lexer *p, fdm2D *b, slice &WL, double &gx, double &gy)
+{
+    sflow_curv::grad5(p,i,j,WL(i+1,j)*b->press(i+1,j),WL(i-1,j)*b->press(i-1,j),
+                            WL(i,j+1)*b->press(i,j+1),WL(i,j-1)*b->press(i,j-1),gx,gy);
 }

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"sflow_curv.h"
 #include"sflow_amr.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -124,12 +125,25 @@ void sflow_amr::nh_resid(int g, vector<double> &R)
         if(q->flagslice4[lij(q,ii,jj)]<=0 || pn->is_active(q,pb,ii,jj)==0)
         continue;
 
+        double dudx,dvdy,dddx,dddy;
+
+        // curvilinear grid: chain-rule gradients as in sflow_pjm_lin/quad
+        if(q->geo_curv==1)
+        {
+        double a1;
+        sflow_curv::grad(q,pb->U,ii,jj,dudx,a1);
+        sflow_curv::grad(q,pb->V,ii,jj,a1,dvdy);
+        sflow_curv::grad(q,pb->depth,ii,jj,dddx,dddy);
+        }
+        else
+        {
         const double dx = q->DXP[ii+marge] + q->DXP[ii-1+marge];
         const double dy = q->DYP[jj+marge] + q->DYP[jj-1+marge];
-        const double dudx = (pb->U(ii+1,jj) - pb->U(ii-1,jj))/dx;
-        const double dvdy = (pb->V(ii,jj+1) - pb->V(ii,jj-1))/dy*p0->y_dir;
-        const double dddx = (pb->depth(ii+1,jj) - pb->depth(ii-1,jj))/dx;
-        const double dddy = (pb->depth(ii,jj+1) - pb->depth(ii,jj-1))/dy*p0->y_dir;
+        dudx = (pb->U(ii+1,jj) - pb->U(ii-1,jj))/dx;
+        dvdy = (pb->V(ii,jj+1) - pb->V(ii,jj-1))/dy*p0->y_dir;
+        dddx = (pb->depth(ii+1,jj) - pb->depth(ii-1,jj))/dx;
+        dddy = (pb->depth(ii,jj+1) - pb->depth(ii,jj-1))/dy*p0->y_dir;
+        }
 
         R[lij(q,ii,jj)] = pb->WL(ii,jj)*(dudx + dvdy) + 2.0*(pb->W(ii,jj) + pb->U(ii,jj)*dddx + pb->V(ii,jj)*dddy);
     }
@@ -246,6 +260,18 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
             {
                 if(q->flagslice4[lij(q,ii,jj)]<=0 || pn->is_active(q,pb,ii,jj)==0)
                 continue;
+
+                if(q->geo_curv==1)
+                {
+                double gx,gy,dx_,dy_;
+                sflow_curv::grad5(q,ii,jj,WL(ii+1,jj)*Pc(ii+1,jj),WL(ii-1,jj)*Pc(ii-1,jj),
+                                         WL(ii,jj+1)*Pc(ii,jj+1),WL(ii,jj-1)*Pc(ii,jj-1),gx,gy);
+                sflow_curv::grad(q,pb->depth,ii,jj,dx_,dy_);
+                pb->UH(ii,jj) -= f*(gx - cbq*Pc(ii,jj)*dx_);
+                pb->VH(ii,jj) -= f*(gy - cbq*Pc(ii,jj)*dy_);
+                pb->WH(ii,jj) += f*cwq*Pc(ii,jj);
+                continue;
+                }
 
                 const double dx = q->DXP[ii+marge] + q->DXP[ii-1+marge];
                 pb->UH(ii,jj) -= f*((WL(ii+1,jj)*Pc(ii+1,jj) - WL(ii-1,jj)*Pc(ii-1,jj))/dx

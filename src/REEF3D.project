@@ -394,6 +394,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Curvilinear">
+          <File Name="sflow_curv.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
@@ -1760,6 +1763,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Curvilinear">
+          <File Name="sflow_curv.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>

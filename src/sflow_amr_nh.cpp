@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"reefmg_core.h"
 #include"reefmg2D.h"
 #include"reefamr_krylov.h"
+#include"sflow_curv.h"
 #include<cmath>
 #include<limits>
 #include<mpi.h>
@@ -392,17 +393,19 @@ void sflow_amr::nh_apply(int kx, int ky)
         c->qrec[0].resize(c->ny); c->qrec[1].resize(c->ny);
         c->qrec[2].resize(c->nx); c->qrec[3].resize(c->nx);
 
+        // (curvilinear grid: the distance of the cell centres along the face normal)
+        const bool cv = (pp->geo_curv==1);
         for(int r=0; r<c->ny; ++r)
         {
             int jj=EXT+r;
-            c->qrec[0][r] = (x(il+1,jj)-x(il,jj))/pp->DXP[il+marge];
-            c->qrec[1][r] = (x(ih+1,jj)-x(ih,jj))/pp->DXP[ih+marge];
+            c->qrec[0][r] = (x(il+1,jj)-x(il,jj))/(cv ? sflow_curv::dnorm(pp,1,il,jj) : pp->DXP[il+marge]);
+            c->qrec[1][r] = (x(ih+1,jj)-x(ih,jj))/(cv ? sflow_curv::dnorm(pp,1,ih,jj) : pp->DXP[ih+marge]);
         }
         for(int r=0; r<c->nx; ++r)
         {
             int ii=EXT+r;
-            c->qrec[2][r] = (x(ii,jl+1)-x(ii,jl))/pp->DYP[jl+marge];
-            c->qrec[3][r] = (x(ii,jh+1)-x(ii,jh))/pp->DYP[jh+marge];
+            c->qrec[2][r] = (x(ii,jl+1)-x(ii,jl))/(cv ? sflow_curv::dnorm(pp,2,ii,jl) : pp->DYP[jl+marge]);
+            c->qrec[3][r] = (x(ii,jh+1)-x(ii,jh))/(cv ? sflow_curv::dnorm(pp,2,ii,jh) : pp->DYP[jh+marge]);
         }
     }
 
@@ -454,6 +457,14 @@ void sflow_amr::nh_apply(int kx, int ky)
             return;
             int r = (*G.row)[c];
             double x0 = x(ii,jj);
+            if(q->geo_curv==1)
+            {
+            if(m.side==0) y(ii,jj) += M.n[r]*(x0 + sflow_curv::dnorm(q,1,ii,jj)*gf - x(ii+1,jj));
+            if(m.side==1) y(ii,jj) += M.s[r]*(x0 - sflow_curv::dnorm(q,1,ii-1,jj)*gf - x(ii-1,jj));
+            if(m.side==2) y(ii,jj) += M.w[r]*(x0 + sflow_curv::dnorm(q,2,ii,jj)*gf - x(ii,jj+1));
+            if(m.side==3) y(ii,jj) += M.e[r]*(x0 - sflow_curv::dnorm(q,2,ii,jj-1)*gf - x(ii,jj-1));
+            return;
+            }
             if(m.side==0) y(ii,jj) += M.n[r]*(x0 + q->DXP[ii+marge]*gf - x(ii+1,jj));
             if(m.side==1) y(ii,jj) += M.s[r]*(x0 - q->DXP[ii-1+marge]*gf - x(ii-1,jj));
             if(m.side==2) y(ii,jj) += M.w[r]*(x0 + q->DYP[jj+marge]*gf - x(ii,jj+1));

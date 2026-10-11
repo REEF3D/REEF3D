@@ -382,7 +382,9 @@ void sflow_amr::sub_reflux(int l)
             const int ii = m.fi + (m.side==1 ? 1 : 0);
             const int jj = m.fj + (m.side==3 ? 1 : 0);
             const double sg = (m.side==0 || m.side==2) ? -1.0 : 1.0;
-            const double f = (m.dir==0) ? sg/q->DXN[ii+marge] : sg*p0->y_dir/q->DYN[jj+marge];
+            // (curvilinear grid: length of the coarse face over the area of the corrected cell)
+            const double f = (q->geo_curv==1) ? sg*((m.dir==0) ? q->LEN1[lij(q,m.fi,m.fj)] : q->LEN2[lij(q,m.fi,m.fj)])/q->AREA2D[lij(q,ii,jj)]
+                           : (m.dir==0) ? sg/q->DXN[ii+marge] : sg*p0->y_dir/q->DYN[jj+marge];
 
             pb->WL(ii,jj) += f*d[4];
             pb->UH(ii,jj) += f*d[1];

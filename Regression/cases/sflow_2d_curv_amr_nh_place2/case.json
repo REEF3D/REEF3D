@@ -1,0 +1,20 @@
+{
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "amr",
+  "mpi"
+ ],
+ "description": "SFLOW AMR on the wavy, skewed curvilinear grid: a small step with non-hydrostatic pressure (A 220 2), two levels following the surface, regrid every 4 steps, patches placed on two ranks (G 40 1).",
+ "covers": [
+  "sflow_amr_nh curvilinear composite pressure (face distances along the normals)",
+  "reefamr::build_lexer: nodes of patches placed on other ranks (lexer::curv_node)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

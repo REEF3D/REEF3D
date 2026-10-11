@@ -67,6 +67,9 @@ public:
     void curv_nodes(ghostcell*);    // G 50: 2D nodes of the curvilinear grid
     void geometry_bed();            // G 50: cell bed levels from the curvilinear nodes
     vector<double> geo_zbn;         // G 50: bed level at the 2D nodes
+    int curv_ni=0, curv_nj=0;        // G 50: the global nodes of the curvilinear grid
+    vector<double> curv_gx, curv_gy, curv_gz;
+    void curv_node(int K, int L, double &x, double &y, double &z) const;
     void gcd_ini(ghostcell*);
     void makeflag(int*);
 

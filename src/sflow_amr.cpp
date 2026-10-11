@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"sflow_curv.h"
 #include"sflow_amr.h"
 #include"sflow_boussinesq.h"
 #include"lexer.h"
@@ -545,7 +546,8 @@ void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
     nh_qfill(l,-1);
 }
 
-// fine bed: limited-linear prolongation, level by level from level 0 (children average = parent);
+// fine bed: limited-linear prolongation, level by level from level 0 (children average = parent,
+// area weighted on a curvilinear grid);
 // solid cells and cells next to solids take the parent value without slopes
 double sflow_amr::bed_at(int l, int I, int J)
 {
@@ -585,8 +587,48 @@ double sflow_amr::bed_at(int l, int I, int J)
     double ox = (I-2*Ic==0) ? -0.25 : 0.25;
     double oy = (J-2*Jc==0) ? -0.25 : 0.25;
     double r = bc + sx*ox + sy*oy;
+
+    // curvilinear grid: the area-weighted mean of the children is the parent bed (the restriction
+    // of WL is area weighted; with the plain mean a lake at rest got a surface step at the patches)
+    if(p0->geo_curv==1 && (sx!=0.0 || sy!=0.0))
+    {
+        double sa=0.0, so=0.0;
+        for(int a=0; a<2; ++a)
+        for(int d=0; d<2; ++d)
+        {
+            const double A = area_at(l,2*Ic+a,2*Jc+d);
+            sa += A;
+            so += A*(sx*(a==0 ? -0.25 : 0.25) + sy*(d==0 ? -0.25 : 0.25));
+        }
+        if(sa>0.0)
+        r -= so/sa;
+    }
+
     bedmemo[key]=r;
     return r;
+}
+
+// curvilinear grid: area of cell (I,J) of level l, its nodes subdividing the level-0 nodes
+// bilinearly (as the patch lexers, reefamr::build_lexer)
+double sflow_amr::area_at(int l, int I, int J)
+{
+    const double rl = double(1<<l);
+    double x[2][2], y[2][2];
+
+    for(int a=0; a<2; ++a)
+    for(int d=0; d<2; ++d)
+    {
+        const int NI = I+a, NJ = J+d;
+        const int K = fsh(NI,l), L = fsh(NJ,l);
+        const double fr = double(NI-(K<<l))/rl, fs = double(NJ-(L<<l))/rl;
+        double x00,y00,x10,y10,x01,y01,x11,y11,z;
+        p0->curv_node(K,L,x00,y00,z); p0->curv_node(K+1,L,x10,y10,z);
+        p0->curv_node(K,L+1,x01,y01,z); p0->curv_node(K+1,L+1,x11,y11,z);
+        x[a][d] = x00 + (x10-x00)*fr + (x01-x00)*fs + (x11-x10-x01+x00)*fr*fs;
+        y[a][d] = y00 + (y10-y00)*fr + (y01-y00)*fs + (y11-y10-y01+y00)*fr*fs;
+    }
+
+    return geo2d::area(x[0][0],y[0][0],x[1][0],y[1][0],x[0][1],y[0][1],x[1][1],y[1][1]);
 }
 
 // --------------------------------------------------------------------- refinement flags
@@ -768,6 +810,38 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
 
     int nw = pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)] + pp->wet[lij(pp,i0,j0+1)] + pp->wet[lij(pp,i0+1,j0+1)];
 
+    // curvilinear grid: the volumes of the children (area weighted) sum to the parent's
+    if(nw==4 && (int)w[0]==1 && pp->geo_curv==1)
+    {
+        double ar[2][2], at=0.0;
+        for(int a=0;a<2;++a)
+        for(int d=0;d<2;++d)
+        {
+        ar[a][d] = pp->AREA2D[lij(pp,i0+a,j0+d)];
+        at += ar[a][d];
+        }
+        double sw=0.0, su=0.0, sv=0.0, sh=0.0;
+        for(int a=0;a<2;++a)
+        for(int d=0;d<2;++d)
+        {
+        sw += ar[a][d]*b->WL(i0+a,j0+d);
+        su += ar[a][d]*b->UH(i0+a,j0+d);
+        sv += ar[a][d]*b->VH(i0+a,j0+d);
+        sh += ar[a][d]*b->WH(i0+a,j0+d);
+        }
+        const double du = at*w[2] - su, dv = at*w[3] - sv, dw = at*w[4] - sh;
+        const double fw = at*w[1]/sw;
+
+        for(int a=0;a<2;++a)
+        for(int d=0;d<2;++d)
+        {
+            b->UH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*du;
+            b->VH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*dv;
+            b->WH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*dw;
+            b->WL(i0+a,j0+d) *= fw;
+        }
+    }
+    else
     if(nw==4 && (int)w[0]==1)
     {
         double sw = b->WL(i0,j0)+b->WL(i0+1,j0)+b->WL(i0,j0+1)+b->WL(i0+1,j0+1);
@@ -1168,6 +1242,32 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  const int nby = c.ny/2;
                  const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
 
+                 // curvilinear grid: area weighted (the children of a cell differ in area)
+                 if(c.pp->geo_curv==1)
+                 {
+                 lexer *pp = c.pp;
+                 double w[4], ws=0.0;
+                 for(int a=0;a<2;++a)
+                 for(int d=0;d<2;++d)
+                 {
+                 w[2*a+d] = pp->AREA2D[lij(pp,i0+a,j0+d)];
+                 ws += w[2*a+d];
+                 }
+                 auto avg = [&](slice &f) { return (w[0]*f(i0,j0)+w[1]*f(i0,j0+1)+w[2]*f(i0+1,j0)+w[3]*f(i0+1,j0+1))/ws; };
+                 v[0] = avg(*WLo);
+                 v[1] = avg(*UHo);
+                 v[2] = avg(*VHo);
+                 v[3] = avg(*WHo);
+                 if(bous==1)
+                 {
+                 v[4] = avg(b->UA);
+                 v[5] = avg(b->VA);
+                 v[6] = avg(b->MX);
+                 v[7] = avg(b->MY);
+                 }
+                 return;
+                 }
+
                  v[0] = 0.25*((*WLo)(i0,j0)+(*WLo)(i0+1,j0)+(*WLo)(i0,j0+1)+(*WLo)(i0+1,j0+1));
                  v[1] = 0.25*((*UHo)(i0,j0)+(*UHo)(i0+1,j0)+(*UHo)(i0,j0+1)+(*UHo)(i0+1,j0+1));
                  v[2] = 0.25*((*VHo)(i0,j0)+(*VHo)(i0+1,j0)+(*VHo)(i0,j0+1)+(*VHo)(i0+1,j0+1));
@@ -1546,10 +1646,18 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
         {
             double cc = sqrt(g*MAX(pb->WL(ii,jj),p->A244));
-            double sigma = (fabs(pb->U(ii,jj))+cc)/pp->DXN[ii+marge];
+            double sigma;
+
+            if(pp->geo_curv==1)
+            sigma = sflow_curv::sigma(pp,pb,ii,jj,cc);
+
+            else
+            {
+            sigma = (fabs(pb->U(ii,jj))+cc)/pp->DXN[ii+marge];
 
             if(p->j_dir==1)
             sigma += (fabs(pb->V(ii,jj))+cc)/pp->DYN[jj+marge];
+            }
 
             double cv = 1.0/sigma;
 
@@ -1578,7 +1686,8 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
             {
                 double hh = MAX(pb->WL(ii,jj),p->A244);
                 double dx = pp->DXN[ii+marge], dy = pp->DYN[jj+marge];
-                const double dv = 1.2/((1.0/(dx*dx) + p->y_dir/(dy*dy))*sqrt(g*B*hh*hh*hh));
+                const double i2 = (pp->geo_curv==1) ? sflow_curv::inv2(pp,ii,jj) : 1.0/(dx*dx) + p->y_dir/(dy*dy);
+                const double dv = 1.2/(i2*sqrt(g*B*hh*hh*hh));
                 dtd = MIN(dtd, dv);
                 dl[c->lev] = MIN(dl[c->lev], dv);
             }
@@ -1609,7 +1718,7 @@ double sflow_amr::mass(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double m=0.0;
     SLICELOOP4
-    m += b->WL(i,j)*p->DXN[IP]*p->DYN[JP];
+    m += b->WL(i,j)*((p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP]);
 
     return pgc->globalsum(m);
 }
@@ -1684,13 +1793,13 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
         out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n<vtkMultiBlockDataSet>\n";
         out<<"<Block index=\"0\" name=\"level 0\">\n";
         for(int r=0; r<p->mpi_size; ++r)
-        out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-SFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<".vtr\"/>\n";
+        out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-SFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<(p->geo_curv==1?".vts":".vtr")<<"\"/>\n";
         out<<setfill(' ')<<"</Block>\n<Block index=\"1\" name=\"patches\">\n";
         int idx=0;
         for(int r=0; r<p->mpi_size; ++r)
         for(int q=0; q<all[r]; ++q)
         {
-        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-SFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
+        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-SFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<(p->geo_curv==1?".vts":".vtr")<<"\"/>\n";
         out<<setfill(' ');
         ++idx;
         }
@@ -1764,13 +1873,15 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_amr::write_vtr0(lexer *p, fdm2D *b)
 {
     char name[256];
-    snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-L0-%08i-%04i.vtr",printcount_amr,p->mpirank+1);
+    // curvilinear grid (G 50): structured grids (.vts) on the physical nodes
+    const bool cv = (p->geo_curv==1);
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-L0-%08i-%04i.%s",printcount_amr,p->mpirank+1,cv?"vts":"vtr");
 
     const int nx=p->knox, ny=p->knoy, m=marge;
     ofstream out(name);
     out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
+    out<<"<VTKFile type=\""<<(cv?"StructuredGrid":"RectilinearGrid")<<"\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<"<<(cv?"StructuredGrid":"RectilinearGrid")<<" WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
     out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
@@ -1802,6 +1913,16 @@ void sflow_amr::write_vtr0(lexer *p, fdm2D *b)
         out<<p->wet[lij(p,ii,jj)]<<" ";
         out<<"\n";
     }
+    if(cv)
+    {
+    out<<"</DataArray>\n</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int jj=0; jj<=ny; ++jj)
+    for(int ii=0; ii<=nx; ++ii)
+    out<<setprecision(12)<<p->XN2D[p->nij(ii,jj)]<<" "<<p->YN2D[p->nij(ii,jj)]<<" 0\n";
+    out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
+    out.close();
+    return;
+    }
     out<<"</DataArray>\n</CellData>\n<Coordinates>\n";
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
     for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
@@ -1817,12 +1938,13 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
     lexer *pp = c.pp;
     fdm2D *pb = c.b;
     char name[256];
-    snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-%08i-%04i-%04i.vtr",printcount_amr,p->mpirank+1,id+1);
+    const bool cv = (p->geo_curv==1);
+    snprintf(name,sizeof(name),"./REEF3D_SFLOW_AMR/REEF3D-SFLOW-AMR-%08i-%04i-%04i.%s",printcount_amr,p->mpirank+1,id+1,cv?"vts":"vtr");
 
     ofstream out(name);
     out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
+    out<<"<VTKFile type=\""<<(cv?"StructuredGrid":"RectilinearGrid")<<"\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<"<<(cv?"StructuredGrid":"RectilinearGrid")<<" WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
     out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
@@ -1856,6 +1978,18 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
         out<<"\n";
     }
     out<<"</DataArray>\n";
+
+    if(cv)
+    {
+    out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int jj=EXT; jj<=EXT+c.ny; ++jj)
+    for(int ii=EXT; ii<=EXT+c.nx; ++ii)
+    out<<setprecision(12)<<pp->XN2D[pp->nij(ii,jj)]<<" "<<pp->YN2D[pp->nij(ii,jj)]<<" 0\n";
+    out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
+    out.close();
+    return;
+    }
+
     out<<"</CellData>\n<Coordinates>\n";
 
     const int m = marge;
@@ -1872,6 +2006,16 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
 // write_vtr, wetdry as int32), gathered into the LAGOON store; true when the output is there
 bool sflow_amr::print_lagoon(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // curvilinear grid: the LAGOON grids are rectilinear (x and y lines); the .vts files instead
+    if(p->geo_curv==1)
+    {
+        static bool told_curv = false;
+        if(p->mpirank==0 && !told_curv)
+        cout<<"LAGOON: P 18 not yet for curvilinear grids (G 50), the .vts files are written"<<endl;
+        told_curv = true;
+        return false;
+    }
+
     static lagoon_amr_output *writer = nullptr;
     if(writer==nullptr)
     writer = new lagoon_amr_output("SFLOW", {{"eta",false}, {"elevation",false}, {"WL",false}, {"u",false}, {"v",false},

@@ -727,8 +727,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->DYP[nya-1] = pp->DYP[nya-2];
 
     // horizontal geometry layer: the patch nodes subdivide the level-0 2D nodes bilinearly (on a
-    // Cartesian grid bit for bit the XN/YN above), then the metrics of the patch cells
-    // P1 (curvilinear): with placement (G 40) the level-0 2D nodes of other ranks are needed here
+    // Cartesian grid bit for bit the XN/YN above), then the metrics of the patch cells; curvilinear
+    // grid: nodes beyond the rank's ones (placement G 40) from the global nodes
     pp->geo_curv = p->geo_curv;
     pp->geometry_alloc();
     {
@@ -739,6 +739,12 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
             {
                 x = p->XN2D[p->nij(k,q)];
                 y = p->YN2D[p->nij(k,q)];
+            }
+            else
+            if(p->geo_curv==1)
+            {
+                double z;
+                p->curv_node(K,L,x,y,z);
             }
             else
             {

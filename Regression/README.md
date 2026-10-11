@@ -220,6 +220,14 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_amr_bar_bous_sub` | 1 | the Boussinesq bar (A 220 4) subcycled: u_a level by level, u_a rebuilt after refluxing |
 | `sflow_2d_amr_ship` | 1 | `sflow_shipwave_box` (X 10 3, A 220 2) with 2 levels around the towed box (G 12 margin, G 13 wake wedge), regrid every 4 steps |
 | `sflow_2d_amr_ship_sub` (+ `_df_sub`) | 1 | the same subcycled (G 7 1): the body on the patches linear in time within the level-0 step; `_df_sub` direct forcing (X 10 2) |
+| `sflow_2d_curv_dambreak_rot90` | 1 | SFLOW on a curvilinear grid (G 50 2): dam break on the Cartesian grid rotated by 90 deg and shifted (F 72 in physical coordinates); rotated HLL fluxes, walls, CFL |
+| `sflow_2d_curv_lake_island` | 1 | lake at rest with an emerged island on a wavy, skewed grid: well balancing, bed levels from the nodes |
+| `sflow_2d_curv_channel_rot30` | 1 | river reach rotated by 30 deg at UTM coordinates: discharge inflow along the face normal, stage outflow, emerging island |
+| `sflow_2d_curv_bend_mpi2` | 2 | 90 deg bend with Manning friction on two ranks |
+| `sflow_2d_curv_wavy_nh` | 1 | non-hydrostatic pressure (A 220 2) on the wavy, skewed grid: chain-rule gradients, compact Poisson operator, deferred non-orthogonal correction |
+| `sflow_2d_curv_wavy_bous` | 1 | Boussinesq (A 220 4) on the wavy, skewed grid: inversion per grid-aligned component, matrix-free BiCGStab with line preconditioner |
+| `sflow_2d_curv_amr_bous_sub` | 1 | AMR on the rotated grid: Boussinesq undular bore, two levels following the surface, regrid, subcycling (G 7 1): composite curvilinear inversion, fills of the grid-aligned components in time |
+| `sflow_2d_curv_amr_nh_place2` | 2 | AMR on the wavy grid: non-hydrostatic pressure, regrid, patches placed on two ranks (G 40 1): curvilinear composite pressure, patch nodes from the global curvilinear nodes |
 | `fnpf_3d_amr_basin` (+ `_mpi2`, `_place2`) | 1/2 | FNPF AMR waves through a static box (composite Laplace); `_place2` G 40 2: remote parents in the FAC preconditioner |
 | `fnpf_3d_amr_tow` (+ `_place2`) | 1/2 | FNPF AMR towed floating body (X 10 1, X 210), the zone follows it (G 12, G 2 4); `_place2` G 40 2: zone patch placed whole, body grids and triangle ownership |
 | `fnpf_3d_amr_basin_sub` (+ `basin3_sub`, `basin_sub_place`) | 1/1/2 | FNPF waves with subcycling (G 7 1): level 0 alone, the patch steps with fills in time, the Laplace solve on the level window with fixed parent columns, the restriction after the steps; `basin3_sub` three levels (G 1 2), `basin_sub_place` 2 ranks with placed patches (G 40 1) |

@@ -205,6 +205,11 @@ public:
     void bq_p(double, double);
     void bq_s(double);
     void bq_x(double, double);
+    void bq_restart();
+    void cq_apply(int, int, bool, int);
+    void cq_prec(int, int, int);
+    double cq_dot(int, int, int);
+    void cq_ops(int, double, double, int);
 
 protected:
     // REEFAMR hooks
@@ -286,6 +291,7 @@ private:
     // regridding
     void tag_level(int, vector<unsigned char>&);
     double bed_at(int, int, int);
+    double area_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
     void ini_patch_defaults(sflow_amr_patch&);
     void ini_patch_old(int, vector<reefamr_patch*>&);
@@ -300,10 +306,14 @@ private:
     // Boussinesq (A 220 4): u_a on the leaf cells of all levels (sflow_amr_bous.cpp)
     void bq_setup();
     void bq_sync(int, int);
+    // curvilinear grid: the pairs (a, b) of the grid-aligned components, matrix-free operator
+    void bous_window_curv(ghostcell*, int, double);
+    slice& cq_vec(int, int, int);
+    void cq_sync(int);
     int bq_layout = -1;
     // leaf cells, line segments (start, length), the fill entries of a patch next to a leaf cell
     // along x, y
-    struct bqgrid { vector<int> leaf, seg[2], need[2]; };
+    struct bqgrid { vector<int> leaf, seg[2]; };
     map<int,vector<bqgrid>> bqw;                  // per level window (G 7 1), [g+1]
     vector<bqgrid> *bqc = nullptr;                // the current one
     int nh_keep = -1;                             // vector whose fixed cells around the patches keep their values (nh_edge)

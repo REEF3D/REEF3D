@@ -155,56 +155,67 @@ void lexer::curv_nodes(ghostcell *pgc)
         exit(1);
     }
 
-    // global node with reflection outside the domain
-    auto gid = [&](int K, int L) { return size_t(K) + size_t(ni+1)*size_t(L); };
-
-    auto node = [&](int K, int L, double &x, double &y, double &z)
-    {
-        int Kr=K, Lr=L;             // node reflected about the boundary node (Kb,Lb) in i and/or j
-        int Kb=K, Lb=L;
-
-        if(K<0)  { Kb=0;  Kr=-K; }
-        if(K>ni) { Kb=ni; Kr=2*ni-K; }
-        if(L<0)  { Lb=0;  Lr=-L; }
-        if(L>nj) { Lb=nj; Lr=2*nj-L; }
-
-        // reflect in i at the boundary row, then in j
-        double xr=gx[gid(Kr,Lr)], yr=gy[gid(Kr,Lr)];
-
-        if(Kb!=K)
-        {
-            xr = 2.0*gx[gid(Kb,Lr)] - xr;
-            yr = 2.0*gy[gid(Kb,Lr)] - yr;
-        }
-
-        if(Lb!=L)
-        {
-            const int Kc = std::min(std::max(K,0),ni);
-            double xb=gx[gid(Kc,Lb)], yb=gy[gid(Kc,Lb)];
-
-            // the boundary node of a ghost column is itself reflected in i
-            if(Kb!=K)
-            {
-                xb = 2.0*gx[gid(Kb,Lb)] - gx[gid(Kr,Lb)];
-                yb = 2.0*gy[gid(Kb,Lb)] - gy[gid(Kr,Lb)];
-            }
-
-            xr = 2.0*xb - xr;
-            yr = 2.0*yb - yr;
-        }
-
-        x = xr;
-        y = yr;
-        z = gz[gid(std::min(std::max(K,0),ni),std::min(std::max(L,0),nj))];
-    };
+    // the global nodes stay for the AMR patches (placed patches: nodes of other ranks)
+    curv_ni = ni;
+    curv_nj = nj;
+    curv_gx.swap(gx);
+    curv_gy.swap(gy);
+    curv_gz.swap(gz);
 
     geo_zbn.assign(geo_nnode,0.0);
 
     for(int ii=imin; ii<=imin+imax; ++ii)
     for(int jj=jmin; jj<=jmin+jmax; ++jj)
-    node(origin_i+ii, origin_j+jj, XN2D[nij(ii,jj)], YN2D[nij(ii,jj)], geo_zbn[nij(ii,jj)]);
+    curv_node(origin_i+ii, origin_j+jj, XN2D[nij(ii,jj)], YN2D[nij(ii,jj)], geo_zbn[nij(ii,jj)]);
 
     geo_curv = 1;
+}
+
+// G 50: global node (K,L), outside the domain by point reflection at the boundary nodes (in i at the
+// boundary row, then in j); bed level of the nearest boundary node
+void lexer::curv_node(int K, int L, double &x, double &y, double &z) const
+{
+    const int ni=curv_ni, nj=curv_nj;
+    const vector<double> &gx=curv_gx, &gy=curv_gy, &gz=curv_gz;
+    auto gid = [&](int a, int b) { return size_t(a) + size_t(ni+1)*size_t(b); };
+
+    int Kr=K, Lr=L;
+    int Kb=K, Lb=L;
+
+    if(K<0)  { Kb=0;  Kr=-K; }
+    if(K>ni) { Kb=ni; Kr=2*ni-K; }
+    if(L<0)  { Lb=0;  Lr=-L; }
+    if(L>nj) { Lb=nj; Lr=2*nj-L; }
+
+    Kr = std::min(std::max(Kr,0),ni);
+    Lr = std::min(std::max(Lr,0),nj);
+
+    double xr=gx[gid(Kr,Lr)], yr=gy[gid(Kr,Lr)];
+
+    if(Kb!=K)
+    {
+        xr = 2.0*gx[gid(Kb,Lr)] - xr;
+        yr = 2.0*gy[gid(Kb,Lr)] - yr;
+    }
+
+    if(Lb!=L)
+    {
+        const int Kc = std::min(std::max(K,0),ni);
+        double xb=gx[gid(Kc,Lb)], yb=gy[gid(Kc,Lb)];
+
+        if(Kb!=K)
+        {
+            xb = 2.0*gx[gid(Kb,Lb)] - gx[gid(Kr,Lb)];
+            yb = 2.0*gy[gid(Kb,Lb)] - gy[gid(Kr,Lb)];
+        }
+
+        xr = 2.0*xb - xr;
+        yr = 2.0*yb - yr;
+    }
+
+    x = xr;
+    y = yr;
+    z = gz[gid(std::min(std::max(K,0),ni),std::min(std::max(L,0),nj))];
 }
 
 // G 50: bed level of the cells from the bed levels of the curvilinear nodes (after grid_solids)

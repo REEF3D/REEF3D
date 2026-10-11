@@ -83,7 +83,10 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     bous = (p->A220==4)?1:0;
     
     if(bous==1)
+    {
     pbous = new sflow_boussinesq(p,b,pgc);
+    pbous->velbc = [this](lexer *q, fdm2D *bb, ghostcell *gc) { vel_bc(q,bb,gc,bb->UA,bb->VA,bb->W); };
+    }
     
 
 	gcval_u=10;

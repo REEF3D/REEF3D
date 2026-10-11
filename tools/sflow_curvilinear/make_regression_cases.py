@@ -85,4 +85,73 @@ case("sflow_2d_curv_bend_mpi2",
      {"np": 2, "steps": 100, "tags": ["2d", "sflow", "curvilinear", "river", "mpi"],
       "description": "SFLOW on a curvilinear grid (G 50 2): 90 deg river bend (radius 50 m, width 20 m) with straight reaches, Manning friction, discharge inflow and stage outflow, two ranks.",
       "covers": ["sflow_curv on several ranks (face fluxes exchanged)", "superelevation in a bend (tests/t3)"]})
+
+# 5, 6 non-hydrostatic pressure and Boussinesq: a small step on the wavy, skewed grid (flat bed)
+n, dx = 60, 0.5
+I, J = np.meshgrid(np.arange(n+1), np.arange(n+1), indexing="ij")
+X0, Y0 = I*dx, J*dx
+L = n*dx
+Xw = X0 + 0.25*Y0 + 0.8*np.sin(2*np.pi*X0/L)*np.sin(np.pi*Y0/L)
+Yw = Y0 + 0.1*X0 + 0.6*np.sin(np.pi*X0/L)*np.sin(4*np.pi*Y0/L)
+box_control = "B 1 0.5\nB 10 0.0 30.0 0.0 30.0 0.0 0.5\n\nM 10 %d\nM 20 2\n"
+wavy_ctrl = """A 10 2
+A 210 3
+A 211 4
+%s
+A 240 1
+
+F 60 1.0
+F 72 15.0 21.0 12.0 18.0 1.2
+
+G 50 2
+
+N 47 0.3
+
+W 22 -9.81
+"""
+for key, tag, what, cov in [("A 220 2", "nh", "non-hydrostatic pressure (A 220 2, quadratic profile)",
+                             ["sflow_pjm_quad curvilinear: chain-rule gradients, compact Poisson operator, deferred non-orthogonal correction", "sflow_curv::kflux, lapcoef, grad5"]),
+                            ("A 220 4", "bous", "Boussinesq (A 220 4)",
+                             ["sflow_boussinesq::prepare_curv: rows of the grid-aligned components a, b, walls", "operators_curv, rotate_back, 5-point solve"])]:
+    case("sflow_2d_curv_wavy_" + tag, box_control % 1, wavy_ctrl % key, (Xw, Yw, np.zeros_like(Xw)),
+         {"np": 1, "steps": 60, "tags": ["2d", "sflow", "curvilinear", "quick"],
+          "description": "SFLOW on a wavy, skewed curvilinear grid (G 50 2) with " + what + ": a raised box of water spreading in a closed basin.",
+          "covers": cov})
+
+# 7 mesh refinement, Boussinesq, subcycling: a small step on the grid rotated by 90 deg
+amr_ctrl = """A 10 2
+A 210 3
+A 211 4
+%s
+A 240 1
+
+F 60 1.0
+F 72 %s 1.1
+
+G 1 2
+G 2 4
+G 3 2
+G 4 8
+G 20 0.01
+%s
+G 50 2
+
+N 47 0.3
+
+W 22 -9.81
+"""
+case("sflow_2d_curv_amr_bous_sub", box_control % 1,
+     amr_ctrl % ("A 220 4", "997.0 1003.0 1997.0 2003.0", "G 7 1\n"),
+     (1000.0-(Y0-15.0), 2000.0+(X0-15.0), np.zeros_like(X0)),
+     {"np": 1, "steps": 30, "tags": ["2d", "sflow", "curvilinear", "amr"],
+      "description": "SFLOW AMR on a curvilinear grid (the Cartesian one rotated by 90 deg): undular bore of a small step with Boussinesq (A 220 4), two levels following the surface (G 20), regrid every 4 steps, subcycling (G 7 1); the same as the Cartesian run per cell index.",
+      "covers": ["sflow_amr curvilinear: area-weighted restriction, patch geometry from the curvilinear nodes, VTS output", "sflow_amr_bous: 5-point rows, fills of the grid-aligned components in time (G 7 1)", "sflow_amr_sub refluxing with face lengths"]})
+
+# 8 mesh refinement, non-hydrostatic, placed patches on two ranks: the wavy grid
+case("sflow_2d_curv_amr_nh_place2", box_control % 2,
+     amr_ctrl % ("A 220 2", "15.0 21.0 12.0 18.0", "G 40 1\n"),
+     (Xw, Yw, np.zeros_like(Xw)),
+     {"np": 2, "steps": 40, "tags": ["2d", "sflow", "curvilinear", "amr", "mpi"],
+      "description": "SFLOW AMR on the wavy, skewed curvilinear grid: a small step with non-hydrostatic pressure (A 220 2), two levels following the surface, regrid every 4 steps, patches placed on two ranks (G 40 1).",
+      "covers": ["sflow_amr_nh curvilinear composite pressure (face distances along the normals)", "reefamr::build_lexer: nodes of patches placed on other ranks (lexer::curv_node)"]})
 print("ok")

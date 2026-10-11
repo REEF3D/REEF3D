@@ -1,0 +1,19 @@
+{
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "quick"
+ ],
+ "description": "SFLOW on a wavy, skewed curvilinear grid (G 50 2) with Boussinesq (A 220 4): a raised box of water spreading in a closed basin.",
+ "covers": [
+  "sflow_boussinesq::prepare_curv: rows of the grid-aligned components a, b, walls",
+  "operators_curv, rotate_back, 5-point solve"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}
