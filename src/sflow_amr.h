@@ -349,6 +349,7 @@ private:
     double mass(lexer*, fdm2D*, ghostcell*);
     void write_vtr(lexer*, sflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm2D*);
+    void write_vtr_grid(lexer*, lexer*, fdm2D*, const char*, int, int, int, int, int);
     bool print_lagoon(lexer*, fdm2D*, ghostcell*);
     void gauges(lexer*, fdm2D*, ghostcell*);
     ofstream gaugeout;
