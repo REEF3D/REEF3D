@@ -50,7 +50,18 @@ public:
 	virtual ~sixdof_obj_fnpf();
     
     void initialize_fnpf(lexer*, fdm_fnpf*, ghostcell*);
+    struct fnpf_force_sum { double F[3], Mo[3], Am[36], Atot; };
     void solve_eqmotion_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, bool);
+    // several bodies (X 20 > 1): the stage in two parts around the coupled added-mass solve
+    // of fnpf_6DOF::motion: loads and the body's block, then the accelerations and the RK stage
+    void eqmotion_assemble_fnpf(lexer*, fdm_fnpf*, ghostcell*, int, bool);
+    bool eqmotion_block_fnpf(Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&, bool*) const;
+    void eqmotion_advance_fnpf(lexer*, ghostcell*, int, const Eigen::Matrix<double,6,1>*);
+    // cross added mass: -rho int psi_m N dS over this hull for the unit modes psi_m of another body
+    void added_mass_block_fnpf(lexer*, fdm_fnpf*, ghostcell*, double*, double**, Eigen::Matrix<double,6,6>&);
+    // the same from an integral already summed on this rank (several grids): reduce and store
+    void added_mass_from_sum(ghostcell*, fnpf_force_sum&, Eigen::Matrix<double,6,6>&);
+    bool dof_fixed_fnpf(lexer *p, int n) {return p_fixed_dof(p,n);}
     void update_position_fnpf(lexer*, ghostcell*, bool);
     // mesh refinement with subcycling (fnpf_amr, G 7 1): the stage of the predicted copy, the
     // loads frozen (6DOF_obj_amr.cpp)
@@ -70,7 +81,6 @@ public:
     // forces_fnpf in two parts for several grids (FNPF mesh refinement): the hull triangles
     // whose centroid own(x,y) accepts are integrated on grid (p,c) with the sampling distance
     // del, then the sums are reduced and stored
-    struct fnpf_force_sum { double F[3], Mo[3], Am[36], Atot; };
     void forces_fnpf_zero(lexer*, fnpf_force_sum&);
     void forces_fnpf_sum(lexer*, fdm_fnpf*, double*, double**, bool, double, const std::function<bool(double,double)>*, fnpf_force_sum&);
     void forces_fnpf_set(lexer*, ghostcell*, fnpf_force_sum&, bool);

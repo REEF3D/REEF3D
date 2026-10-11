@@ -478,3 +478,27 @@ void sixdof_obj_fnpf::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &
     cout<<"A11: "<<Aadd_(0,0)<<" A33: "<<Aadd_(2,2)<<" A55: "<<Aadd_(4,4)<<endl;
     }
 }
+
+void sixdof_obj_fnpf::added_mass_block_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *zero, double **psi,
+                                            Eigen::Matrix<double,6,6> &A)
+{
+    // A_ij(ii,jj) = -rho int_{S_i} psi_jj N_ii dS: load on this body (rows) from the unit
+    // acceleration jj of another body (psi), with the hull sampling of forces_fnpf; the
+    // pressure part is evaluated with psi_0 = 0 and not used
+    fnpf_force_sum S;
+    forces_fnpf_zero(p,S);
+
+    forces_fnpf_sum(p,c,zero,psi,true,0.5*DSM,nullptr,S);
+
+    added_mass_from_sum(pgc,S,A);
+}
+
+void sixdof_obj_fnpf::added_mass_from_sum(ghostcell *pgc, fnpf_force_sum &S, Eigen::Matrix<double,6,6> &A)
+{
+    for(int m=0; m<36; ++m)
+    S.Am[m] = pgc->globalsum(S.Am[m]);
+
+    for(int ii=0; ii<6; ++ii)
+    for(int jj=0; jj<6; ++jj)
+    A(ii,jj) = S.Am[ii*6+jj];
+}

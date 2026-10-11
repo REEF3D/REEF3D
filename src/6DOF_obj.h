@@ -315,9 +315,20 @@ protected:
     // FNPF: classical RK4 stage derivatives and the added-mass coupling
     void rk4(lexer*, ghostcell*, int);
     void apply_added_mass(lexer*, const Eigen::Matrix<double,6,6>* = nullptr);
+    void finish_added_mass(const Eigen::Matrix<double,6,1>&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const bool*);
     bool p_fixed_dof(lexer*, int);
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
+
+    // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block
+    // (Lc_, rc_), fnpf_6DOF solves the system of all bodies with the cross added mass and
+    // hands the accelerations back (finish_added_mass)
+    bool am_coupled_ = false, am_assembled_ = false;
+    Eigen::Matrix<double,6,6> Lc_;
+    Eigen::Matrix<double,6,1> rc_;
+    Eigen::Matrix3d IIc_;
+    Eigen::Vector3d gyroc_;
+    bool fixedc_[6] = {false,false,false,false,false,false};
 
     // FNPF: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
     void ini_pto(lexer*, ghostcell*);

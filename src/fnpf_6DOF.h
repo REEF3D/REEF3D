@@ -23,6 +23,7 @@ Author: Hans Bihs
 #ifndef FNPF_6DOF_H_
 #define FNPF_6DOF_H_
 
+#include<Eigen/Dense>
 #include"increment.h"
 #include"fnpf_body.h"
 #include"slice4.h"
@@ -145,6 +146,11 @@ private:
     
     vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;
+
+    // several bodies (X 20): cross added mass A_ij (load on body i from the unit modes of body j),
+    // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()
+    std::vector<Eigen::Matrix<double,6,6>> Across;
+    void motion_coupled(lexer*, fdm_fnpf*, ghostcell*, int, bool);
     int gcval;
     double *psi0;
     double *psi[6];
