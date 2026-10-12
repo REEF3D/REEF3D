@@ -104,6 +104,7 @@ public:
     // print
     void saveTimeStep(lexer*,int);
     void print_parameter(lexer*,ghostcell*);
+    void print_parameter(lexer*,ghostcell*,double);   // with the time of the printed state
     void print_ini_vtp(lexer*,ghostcell*);
 	void print_vtp(lexer*,ghostcell*);
     void print_ini_stl(lexer*,ghostcell*);

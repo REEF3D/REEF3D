@@ -113,7 +113,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
             if(p->X50==2)
             fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
         }
     }
 }
@@ -149,7 +149,7 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
             if(p->X50==2)
             fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
         }
     }
 }
@@ -177,7 +177,7 @@ void sixdof_nhflow::start_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, int it
             if(p->X50==2)
             fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
         }
     }
 }
@@ -217,7 +217,7 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
             if(p->X50==2)
             fb_obj[nb]->print_stl(p,pgc);
             
-            fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
     }
 }
 
@@ -273,7 +273,7 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
             fb_obj[nb]->saveTimeStep(p,iter);
             if(p->X50==1) fb_obj[nb]->print_vtp(p,pgc);
             if(p->X50==2) fb_obj[nb]->print_stl(p,pgc);
-            fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
         }*/
     }
 }

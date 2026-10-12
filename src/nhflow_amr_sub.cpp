@@ -557,10 +557,9 @@ void nhflow_amr::sub_body_stage(lexer *p, ghostcell *pgc, int l, int s, double t
 }
 
 // end of the level-0 step: the hull on level 0 at the final pose (FB, the position line) and the
-// output of the bodies, once per level-0 step.  The body output labels the state at the end of a
-// step with the start of that step (6DOF_obj_print_parameters, simtime); here the start of the
-// last finest step, so that the label lags by one finest step as with one step for all levels
-// (with the level-0 start it lagged by dt - dt/2^L more)
+// output of the bodies, once per level-0 step: the state at the end of the level-0 step, labelled
+// with that time (as the fluid output after the driver advances simtime); the vtp/stl print
+// interval logic still sees the start of the last finest step
 void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
 {
     const double ts = p->simtime;
@@ -577,7 +576,7 @@ void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
         if(p->X50==2)
         o->print_stl(p,pgc);
 
-        o->print_parameter(p,pgc);
+        o->print_parameter(p,pgc,ts + dtlev[0]);
     }
 
     p->simtime = ts;
