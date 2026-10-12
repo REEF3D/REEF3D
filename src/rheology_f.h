@@ -55,6 +55,7 @@ private:
     field4 tau_x,tau_y,tau_z;
     
     double gamma;
+    double gamma2; // shear rate in the neighbour cell for the gradient-based source
     double val,f,H,phival,pressureval;
     
     double tau0;

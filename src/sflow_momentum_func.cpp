@@ -73,11 +73,16 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     if(p->A218==1)
     prough = new sflow_rough_manning(p);
     
-    if(p->W90==0)
-    prheo = new sflow_rheology_v(p);
-    
     if(p->W90==1)
     prheo = new sflow_rheology_f(p);
+    
+    else
+    {
+    prheo = new sflow_rheology_v(p);
+    
+    if(p->W90>1 && p->mpirank==0)
+    cout<<"SFLOW: W 90 "<<p->W90<<" not supported, rheology switched off"<<endl;
+    }
     
     nhp  = (p->A220>=1 && p->A220<=3)?1:0;
     bous = (p->A220==4)?1:0;

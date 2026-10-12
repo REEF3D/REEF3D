@@ -47,17 +47,24 @@ double rheology_f::Mohr_Coulomb_and_Herschel_Bulkley(lexer* p, fdm* a, ghostcell
     const double tau_y = tau_0*C*C*exp(22*C*P_1);
     const double k = b*tau_y; // d_max<0.4mm
     double mu_2 = k * pow(fabs(shear_rate),n-1) + tau_y*pow(fabs(shear_rate),-1);
-    mu_2 = MIN(mu_2,p->W95);
+    // cap as kinematic viscosity: W95 is nu_max [m^2/s], mu_2 is dynamic [Pa s]
+    double nu_2 = mu_2/p->W1;
+    if(nu_2!=nu_2)
+    nu_2 = p->W95;
+    nu_2 = MIN(nu_2,p->W95);
 
     // gravel: Coulomb viscoplastic
     const double mu_min = p->W107_mu_min; // minimal dynamic viscosity
     const double delta = (p->W107_delta/180.0)*M_PI; // internal friction angle
     const double m_y = p->W106_m_y; // ]0,1]
-    double mu_3 = mu_min + (shear_rate!=0?a->press(i,j,k)*sin(delta)/shear_rate*(1-exp(-m_y*shear_rate)):0.0);
-    mu_3 = MIN(mu_3,p->W107_mu_0); // ToDo: check limiter
+    const double press = MAX(0.0,a->press(i,j,k)-p->pressgage); // no tension -> no negative viscosity
+    // p*sin(delta)*(1-exp(-m_y*gamma))/gamma, with its limit p*sin(delta)*m_y for gamma->0
+    double mu_3 = mu_min + press*sin(delta)*(shear_rate>1.0e-12 ? -expm1(-m_y*shear_rate)/shear_rate : m_y);
+    if(p->W107_mu_0>0.0)
+    mu_3 = MIN(mu_3,p->W107_mu_0);
 
     const double a_2 = p->W108_a_2;
     const double a_3 = 1.0-a_2;
     // W1 is assumed to be the mean density of the mixture
-    return (a_2*mu_2+a_3*mu_3)/p->W1;
+    return a_2*nu_2 + a_3*mu_3/p->W1;
 }

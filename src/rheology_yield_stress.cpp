@@ -70,6 +70,12 @@ double rheology_f::yield_stress(lexer* p, fdm* a)
 
 void rheology_f::yieldStressGradient(lexer* p, fdm* a, int ii, int jj, int kk)
 {
+    // shear rates in both cells of the face; previously a stale value from the last cell that set gamma was used
+    gamma = strainterm(p,a);
+    i+=ii; j+=jj; k+=kk;
+    gamma2 = strainterm(p,a);
+    i-=ii; j-=jj; k-=kk;
+    
     switch(p->W101)
     {
     default:
@@ -85,22 +91,22 @@ void rheology_f::yieldStressGradient(lexer* p, fdm* a, int ii, int jj, int kk)
         
     case 2:  // Yield stress from viscoplastic fluid (bingham) Druker-Prager - tanphi*pressureval valid in 2D - W102_c is cohesion
         tau01 = (tanphi*pressureval1 + p->W102_c)*(1.0-exp(-p->W103*gamma));
-        tau02 = (tanphi*pressureval2 + p->W102_c)*(1.0-exp(-p->W103*gamma));
+        tau02 = (tanphi*pressureval2 + p->W102_c)*(1.0-exp(-p->W103*gamma2));
         break;
         
     case 3:  // HB-C hydrostatic  - MAX added for cells on the interface.
         tau01 = MAX(0.0,tanphi*pressureval1*MAX(0.0,a->ro(i,j,k)-density_interstitial_fluid)/a->ro(i,j,k) + p->W102_c);
-        tau02 = MAX(0.0,tanphi*pressureval2*MAX(0.0,a->ro(i+1,j,k)-density_interstitial_fluid)/a->ro(i+1,j,k) + p->W102_c);
+        tau02 = MAX(0.0,tanphi*pressureval2*MAX(0.0,a->ro(i+ii,j+jj,k+kk)-density_interstitial_fluid)/a->ro(i+ii,j+jj,k+kk) + p->W102_c);
         break;
         
     case 4:  // HB-C shear rate generated excess pore pressure
         tau01 = MAX(0.0,tanphi*pressureval1*exp(-p->W104*gamma)*MAX(0.0,a->ro(i,j,k)-density_interstitial_fluid)/a->ro(i,j,k) + p->W102_c);
-        tau02 = MAX(0.0,tanphi*pressureval2*exp(-p->W104*gamma)*MAX(0.0,a->ro(i+1,j,k)-density_interstitial_fluid)/a->ro(i+1,j,k) + p->W102_c);
+        tau02 = MAX(0.0,tanphi*pressureval2*exp(-p->W104*gamma2)*MAX(0.0,a->ro(i+ii,j+jj,k+kk)-density_interstitial_fluid)/a->ro(i+ii,j+jj,k+kk) + p->W102_c);
         break;
         
     case 5:  // HB-C linear shear rate coupling, max given by pressure
         tau01 = MAX(0.0,tanphi*MAX(0.0,pressureval1*MAX(0.0,a->ro(i,j,k)-density_interstitial_fluid)/a->ro(i,j,k)-p->W104*gamma) + p->W102_c);
-        tau02 = MAX(0.0,tanphi*MAX(0.0,pressureval2*MAX(0.0,a->ro(i+1,j,k)-density_interstitial_fluid)/a->ro(i+1,j,k)-p->W104*gamma) + p->W102_c);
+        tau02 = MAX(0.0,tanphi*MAX(0.0,pressureval2*MAX(0.0,a->ro(i+ii,j+jj,k+kk)-density_interstitial_fluid)/a->ro(i+ii,j+jj,k+kk)-p->W104*gamma2) + p->W102_c);
         break;
     }   
 
