@@ -108,7 +108,9 @@ void sixdof_obj_2D::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
     {
         xpos = p->pos_x() - p->xg;
    
-        press(i,j) = press0*exp(-pow(xpos/as,2));
+        // same sign convention as the box and STL ship (press <= 0 for X 401 p0 > 0): the
+        // velocity source adds +D/rho dpress/dx
+        press(i,j) = -press0*exp(-pow(xpos/as,2));
     }
 
     pgc->gcsl_start4(p,press,50);
