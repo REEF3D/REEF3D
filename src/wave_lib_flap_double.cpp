@@ -37,6 +37,7 @@ wave_lib_flap_double::wave_lib_flap_double(lexer *p, ghostcell *pgc) : wave_lib_
     timecount=1;
     timecount_z=0;
 	
+	setup_done=0;
 	read(p,pgc);
     
     singamma = sin((p->B105_1)*(PI/180.0));
@@ -67,6 +68,9 @@ double wave_lib_flap_double::wave_v(lexer *p, double x, double y, double z)
 
 double wave_lib_flap_double::wave_horzvel(lexer *p, double x, double y, double z)
 {
+    if(setup_done==0 && p->A10!=5)
+    wavemaker_setup(p,nullptr,wdt);
+    
     double vel,fac,dX;
     
     z+=p->wd;
@@ -104,6 +108,9 @@ double wave_lib_flap_double::wave_horzvel(lexer *p, double x, double y, double z
 
 double wave_lib_flap_double::wave_w(lexer *p, double x, double y, double z)
 {
+    if(setup_done==0 && p->A10!=5)
+    wavemaker_setup(p,nullptr,wdt);
+    
     double vel,fac,dZ;
     
     if(p->B115==0)
@@ -138,6 +145,9 @@ double wave_lib_flap_double::wave_w(lexer *p, double x, double y, double z)
 
 double wave_lib_flap_double::wave_eta(lexer *p, double x, double y)
 {
+    if(setup_done==0 && p->A10!=5)
+    wavemaker_setup(p,nullptr,wdt);
+    
     double eta;
 
     eta =  0.0;
@@ -166,7 +176,6 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
 	char name[100];
 	double val,val0,val1,val2;
     double sign1,sign2;
-    double beta,s,sign;
 	int count;
 	
 	sprintf(name,"wavemaker.dat");
@@ -226,28 +235,6 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
     kinematics[qn][2] = sign2*fabs(sin(kinematics[qn][2])*(p->B112_ze-p->B112_z2));
     }
     
-    // moving-paddle BC terms from the first-order signal (before correcting it)
-    if(p->B119==1 && p->A10==3)
-    wm2.make_Qtable_double(p,pgc,kinematics,ptnum,wdt,p->B112_zs,p->B112_z2,p->B112_ze);
-    
-    // 2nd-order wavemaker correction, split over the two flaps in proportion to the first-order motion
-    if(p->B113>0)
-    wm2.correct_double(p,pgc,kinematics,ptnum,wdt,p->B112_zs,p->B112_z2,p->B112_ze);
-    
-    // calculate vertical component
-    for(int qn=0; qn<ptnum; ++qn)
-    {
-    sign = -1.0;
-    
-    beta = asin(kinematics[qn][1]/(p->B112_z2-p->B112_zs));
-    s = 2.0*(p->B112_z2-p->B112_zs)*sin(0.5*beta);
-    kinematics[qn][3] = sign*sqrt(pow(s,2.0) - pow(kinematics[qn][1],2.0));
-    
-    beta = asin(kinematics[qn][2]/(p->B112_ze-p->B112_z2));
-    s = 2.0*(p->B112_ze-p->B112_z2)*sin(0.5*beta);
-    kinematics[qn][4] = sign*sqrt(pow(s,2.0) - pow(kinematics[qn][2],2.0));
-    }
-    
     /*
     cout<<"flap kinematics"<<endl;
     if(p->mpirank==0)
@@ -257,8 +244,56 @@ void wave_lib_flap_double::read(lexer *p, ghostcell* pgc)
 	    
 }
 
+void wave_lib_flap_double::wavemaker_setup(lexer *p, ghostcell *pgc, double depth)
+{
+    double beta,s,sign;
+    
+    if(setup_done==1)
+    return;
+    
+    setup_done=1;
+    
+    // hinge elevations above the bed at the paddle (B112 is measured with the still water level at wd)
+    const double zb = p->wd - depth;
+    const double zs = p->B112_zs - zb;
+    const double z2 = p->B112_z2 - zb;
+    const double ze = p->B112_ze - zb;
+    
+    if(p->B113>0 || p->B119==1)
+    if(p->mpirank==0)
+    cout<<"Wave_Lib: double flap set-up, still-water depth at paddle: "<<depth<<"  hinges above bed: "<<zs<<" "<<z2<<"  top above bed: "<<ze<<"  B118: "<<p->B118<<endl;
+    
+    if((p->B113>0 || p->B119==1) && zs<0.0 && p->mpirank==0)
+    cout<<"Wave_Lib: WARNING lower hinge below the bed at the paddle, check B112 and the depth (B94)"<<endl;
+    
+    // moving-paddle BC terms from the first-order signal (before correcting it)
+    if(p->B119==1 && (p->A10==3 || p->A10==5))
+    wm2.make_Qtable_double(p,pgc,kinematics,ptnum,depth,zs,z2,ze);
+    
+    // 2nd-order wavemaker correction, split over the two flaps in proportion to the first-order motion
+    if(p->B113>0)
+    wm2.correct_double(p,pgc,kinematics,ptnum,depth,zs,z2,ze);
+    
+    // calculate vertical component
+    for(int qn=0; qn<ptnum; ++qn)
+    {
+    sign = -1.0;
+    
+    beta = asin(MAX(-1.0,MIN(1.0,kinematics[qn][1]/(p->B112_z2-p->B112_zs))));
+    s = 2.0*(p->B112_z2-p->B112_zs)*sin(0.5*beta);
+    kinematics[qn][3] = sign*sqrt(MAX(0.0,pow(s,2.0) - pow(kinematics[qn][1],2.0)));
+    
+    beta = asin(MAX(-1.0,MIN(1.0,kinematics[qn][2]/(p->B112_ze-p->B112_z2))));
+    s = 2.0*(p->B112_ze-p->B112_z2)*sin(0.5*beta);
+    kinematics[qn][4] = sign*sqrt(MAX(0.0,pow(s,2.0) - pow(kinematics[qn][2],2.0)));
+    }
+}
+
 double wave_lib_flap_double::wave_paddle_Q(lexer *p, double z)
 {
+    if(setup_done==0 && p->A10!=5)
+    wavemaker_setup(p,nullptr,wdt);
+    
     if(p->B119!=1 || p->wavetime<ts || p->wavetime>te)
     return 0.0;
     

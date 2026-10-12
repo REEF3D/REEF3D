@@ -74,6 +74,10 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         uwave = wave_u(p,pgc,x,y,z);
         vwave = wave_v(p,pgc,x,y,z);
+        
+        // moving paddle: 2nd-order Taylor terms of the paddle BC (B119)
+        if(p->B119==1 && (p->B92==21 || p->B92==22 || p->B92==23))
+        uwave += wave_paddle_Q(p,pgc,z);
         wwave = wave_w(p,pgc,x,y,z);
         
         // U
@@ -104,6 +108,10 @@ void iowave::nhflow_precalc_dirichlet(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // U
         uval[count] = wave_u(p,pgc,x,y,z) + p->Ui;
+        
+        // moving paddle: 2nd-order Taylor terms of the paddle BC (B119)
+        if(p->B119==1 && (p->B92==21 || p->B92==22 || p->B92==23))
+        uval[count] += wave_paddle_Q(p,pgc,z);
         UHval[count] = (etaval + d->depth(i,j))*uval[count];
         
         // V

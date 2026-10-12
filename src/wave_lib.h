@@ -71,6 +71,10 @@ public:
     // for piston/flap wavemakers (z relative to still water level)
     virtual double wave_paddle_Q(lexer*,double) {return 0.0;}
 
+    // one-time set-up of the 2nd-order correction (B113) and moving-paddle terms (B119)
+    // for piston/flap wavemakers; depth = still-water depth at the paddle
+    virtual void wavemaker_setup(lexer*,ghostcell*,double) {}
+
     virtual void parameters(lexer*,ghostcell*)=0;
     virtual void wave_prestep(lexer*,ghostcell*)=0;
 

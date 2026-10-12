@@ -408,3 +408,8 @@ void wave_lib::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, doubl
     v=p->j_dir==1 ? wave_v_c(p,q,z) : 0.0;
     w=wave_w_c(p,q,z);
 }
+
+void wave_interface::wave_paddle_setup(lexer *p, ghostcell *pgc, double depth)
+{
+    pwave->wavemaker_setup(p,pgc,depth);
+}

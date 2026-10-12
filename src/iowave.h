@@ -199,6 +199,7 @@ public:
     
     void nhflow_precalc_relax(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_relax_ini(lexer*,fdm_nhf*,ghostcell*);
+    void nhflow_paddle_setup(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_dirichlet(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_precalc_dirichlet_ini(lexer*,fdm_nhf*,ghostcell*);
     
@@ -415,6 +416,7 @@ private:
     double Apor,Bpor,porval,partval;
 	
 	int u_switch,v_switch,w_switch,p_switch,h_switch,f_switch;
+    int paddle_setup;
     
     double expinverse;
 	

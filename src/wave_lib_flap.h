@@ -46,6 +46,7 @@ public:
     
     
     double wave_paddle_Q(lexer*,double) override final;
+    void wavemaker_setup(lexer*,ghostcell*,double) override final;
 
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
@@ -53,6 +54,7 @@ public:
 private:
 	void read(lexer*, ghostcell*);
     wave_lib_wavemaker2nd wm2;
+    int setup_done;
 	
 	int ptnum;
 	

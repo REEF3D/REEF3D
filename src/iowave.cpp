@@ -34,6 +34,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
                                           vofheight(p),genheight(p)
 {
     pBC = ppBC;
+    paddle_setup = 0;
     
     // combined beach (B 99 6): in NHFLOW and SFLOW an absorbing edge at x+ (as B 99 3) behind a
     // relaxation beach (length B 96) that relaxes to the low-passed state, so short waves are damped
