@@ -1,0 +1,16 @@
+{
+ "base": "sflow_2d_mb_amr",
+ "np": 2,
+ "description": "As sflow_2d_mb_amr on 2 ranks (patches of block 0 cut at the rank boxes, remote fills and flux matching across the interfaces); bitwise the run on 1 rank.",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "remote match entries with side2/sgn, gfl0 of multi-block grids"
+ ]
+}

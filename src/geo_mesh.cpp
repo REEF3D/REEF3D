@@ -253,6 +253,57 @@ void geo_mesh::read(lexer *p, const char *name)
         curv_nj = iv[2];
     }
     
+    // BLKS: optional, layout version 1
+    blk.clear();
+    blk_ring = 0;
+
+    if(rd.find("BLKS",sc))
+    {
+        const int nint = sc.get_int();
+        vector<int> iv(nint>0 ? nint : 0);
+        for(int &v : iv)
+        v = sc.get_int();
+
+        if(nint<4 || iv[0]!=1 || iv[1]<1 || iv[3]!=11)
+        rd.fail(p,"section BLKS: unknown layout");
+
+        blk.resize(iv[1]);
+        blk_ring = iv[2];
+
+        for(blk_block &B : blk)
+        {
+            B.ni = sc.get_int();
+            B.nj = sc.get_int();
+            for(int f=0; f<4; ++f)
+            B.ring[f] = sc.get_int();
+            const int ns = sc.get_int();
+            if(B.ni<1 || B.nj<1 || ns<0)
+            rd.fail(p,"section BLKS: bad block");
+            B.seg.resize(ns);
+            for(blk_seg &S : B.seg)
+            {
+                S.face = sc.get_int(); S.lo = sc.get_int(); S.hi = sc.get_int();
+                S.nbr = sc.get_int(); S.nface = sc.get_int();
+                S.perm[0] = sc.get_int(); S.perm[1] = sc.get_int();
+                S.sign[0] = sc.get_int(); S.sign[1] = sc.get_int();
+                S.off[0] = sc.get_int(); S.off[1] = sc.get_int();
+                if(S.nbr<0 || S.nbr>=int(blk.size()) || S.face<0 || S.face>3)
+                rd.fail(p,"section BLKS: bad segment");
+            }
+        }
+
+        for(size_t q=1; q<blk.size(); ++q)
+        {
+            blk_block &B = blk[q];
+            const size_t nn = size_t(B.ni+1)*size_t(B.nj+1);
+            B.x.resize(nn); B.y.resize(nn); B.zb.resize(nn);
+            if(!sc.get(B.x.data(),nn*sizeof(double)) || !sc.get(B.y.data(),nn*sizeof(double)) || !sc.get(B.zb.data(),nn*sizeof(double)))
+            rd.fail(p,"section BLKS truncated");
+        }
+
+        rd.check(sc);
+    }
+
     if(!rd.ok())
     rd.fail(p,"truncated geometry file");
     

@@ -1,0 +1,15 @@
+{
+ "base": "sflow_2d_mb_quadrants",
+ "np": 2,
+ "description": "As sflow_2d_mb_quadrants on 2 ranks: blocks on other ranks than the native cells next to them (remote fills of the blocks and of the ring).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "mpi"
+ ],
+ "covers": [
+  "reefamr::blocks_plans remote requests, exchange_level0 of the ring"
+ ]
+}

@@ -1317,6 +1317,7 @@
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
+      <File Name="reefamr_block.cpp"/>
       <File Name="reefamr_zone.cpp"/>
       <File Name="reefamr3d.cpp"/>
     </VirtualDirectory>

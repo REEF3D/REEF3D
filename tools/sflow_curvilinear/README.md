@@ -23,11 +23,12 @@ Available on curvilinear grids so far: hydrostatic SFLOW (`A 220 0`), non-hydros
 (`A 220 1`, `2`, `3`), Boussinesq (`A 220 4`), WENO or limited reconstruction (`A 211`), RK2/RK3,
 Manning friction (`A 218`), wetting and drying, walls, discharge inflow (`B 60`) along the inflow
 face normal, stage outflow (`F 50`, `F 62`), `F 72` boxes in physical coordinates, several ranks,
-mesh refinement (`G 1`: static boxes `G 10`, regridding `G 2`, subcycling `G 7 1`, placement
-`G 40 1`, with the composite non-hydrostatic and Boussinesq solves), VTP output on the physical
-nodes, AMR output as VTS (structured grids on the physical nodes). Refused with a message:
+mesh refinement (`G 1`: static boxes `G 10` and no-refinement boxes `G 11` in physical
+coordinates (cell centres), regridding `G 2`, subcycling `G 7 1`, placement `G 40 1`, with the
+composite non-hydrostatic and Boussinesq solves), VTP output on the physical nodes, AMR output as
+VTS (structured grids on the physical nodes), AMR gauges (`P 51` with `G 1`) at physical points. Refused with a message:
 `A 220 >= 5`, diffusion and turbulence, wave generation, patch boundary conditions, sediment, 6DOF,
-SEASTATE, `I 11`. Probes and other output that use x/y positions still refer to the logical box;
+SEASTATE, `I 11`. The native probes and other output that use x/y positions still refer to the logical box;
 the LAGOON print of the AMR hierarchy is not written on curvilinear grids.
 
 Numerics (P1b, P1c):
@@ -55,6 +56,8 @@ Limitation: Boussinesq with mesh refinement on a skewed grid went unstable when 
 were much smaller than the depth (dx < h/4 at 20 deg non-orthogonality; dx = h/4 was stable): the
 coarse-fine coupling of the composite operator is not symmetric, and the lagged other component
 then amplifies.  On orthogonal grids (and single-level skewed grids) no such limit was found.
+
+Several blocks (multi-block grid, DIVEMesh `R 20 1`): see `../sflow_multiblock`.
 
 ## Tests (`REEF3D_BIN`, `DIVEMESH_BIN` select the binaries; runs go to `./runs`)
 

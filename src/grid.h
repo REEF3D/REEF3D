@@ -90,6 +90,7 @@ public:
     //   face j+1/2 of cell (i,j) (as v, flagslice2)      : SX2/SY2 = normal (+j side) * face length
     //                                                      LEN1/LEN2 face lengths
     int geo_curv = 0;                   // 0: Cartesian product grid, 1: curvilinear (G 50, SFLOW)
+    int geo_mb = 0;                     // G 50 1 with blocks (DIVEMesh R 20 1): number of blocks, 0 one grid
     double *XN2D=nullptr, *YN2D=nullptr;
     double *XC2D=nullptr, *YC2D=nullptr, *AREA2D=nullptr;
     double *SX1=nullptr, *SY1=nullptr, *SX2=nullptr, *SY2=nullptr;

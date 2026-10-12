@@ -212,7 +212,7 @@ sflow_amr::gh sflow_amr::grid(int g)
 // --------------------------------------------------------------------- setup
 void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(maxlev<1)
+    if(maxlev<1 && p->geo_mb==0)
     return;
 
     // scope
@@ -224,6 +224,20 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
     if(p->j_dir!=1) ok=0;
+
+    // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling and moving bodies so far
+    if(p->geo_mb>0)
+    {
+        if(p->A220!=0) ok=0;
+        if(p->G7==1) ok=0;
+        if(p->X10!=0) ok=0;
+        if(ok==0)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0, X 10 0, W 90 0, without G 7 1 !!!"<<endl;
+            exit(1);
+        }
+    }
 
     if(ok==0)
     {
@@ -246,6 +260,16 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcslparax(p,b->bed,4);
     pgc->gcslparax(p,b->depth,4);
 
+    // multi-block grid: blocks 1.. as level-0 patches, their initial state, the fill plans
+    if(p->geo_mb>0)
+    {
+        blocks_setup(p,pgc);
+        blocks_ini(p,pgc);
+        blocks_plans(pgc);
+        cache_stage(0);
+        fill_level0(pgc,0);
+    }
+
     mkdir("./REEF3D_SFLOW_AMR",0777);
 
     if(p->mpirank==0)
@@ -258,9 +282,15 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     for(int it=0; it<maxlev; ++it)
     regrid(p,pgc,true);
 
+    if(p->geo_mb>0 && maxlev>=1)
+    {
+        cache_stage(0);
+        fill_level0(pgc,0);
+    }
+
     m0 = mass(p,b,pgc);
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && maxlev>=1)
     {
         cout<<"SFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined cells";
         if(regrid_int>0 && sub==0)
@@ -399,6 +429,12 @@ void sflow_amr::regrid_ids()
 void sflow_amr::regrid_prepare(ghostcell *pgc)
 {
     cache_stage(0);
+
+    // multi-block: the cells around the blocks and the ring of level 0 hold the restricted values of
+    // their blocks (tags, slopes of the prolongation next to the interfaces)
+    if(nblk>0)
+    fill_level0(pgc,0);
+
     for(int l=1; l<=maxlev; ++l)
     fill_level(pgc,l,0);
 }
@@ -423,6 +459,17 @@ void sflow_amr::regrid_static(ghostcell *pgc)
         for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
         {
             int I = ii-EXT+c->I0, J = jj-EXT+c->J0;
+
+            // multi-block: the cell an index around a block stands for
+            if(nblk>0)
+            {
+                int I2,J2;
+                if(vcanon(l,I,J,I2,J2))
+                {
+                    I = I2;
+                    J = J2;
+                }
+            }
             int o = owner(fsh(I,l),fsh(J,l));
 
             if(o<0 || o==me)
@@ -551,6 +598,34 @@ void sflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 // solid cells and cells next to solids take the parent value without slopes
 double sflow_amr::bed_at(int l, int I, int J)
 {
+    // multi-block: the cell an index around a block stands for
+    if(nblk>0)
+    {
+        int I2,J2;
+        if(vcanon(l,I,J,I2,J2))
+        {
+            I = I2;
+            J = J2;
+        }
+    }
+
+    if(l==0 && nblk>0)
+    {
+        // blocks 1..: from their nodes (as blocks_ini), beyond a wall the nearest cell of the block
+        const int bn = block_near(I,J);
+        if(bn>=1)
+        {
+            int i,j;
+            block_own(0,bn,I,J,i,j);
+            return block_bed(bn,MAX(MIN(i,blk[bn].ni-1),0),MAX(MIN(j,blk[bn].nj-1),0));
+        }
+
+        // native cells beyond the rank arrays (a block's patch reaches them from another rank)
+        const int ii = I-O0i, jj = J-O0j;
+        if(I>=0 && I<GNX && J>=0 && J<GNY && (ii<p0->imin || ii>=p0->imin+p0->imax || jj<p0->jmin || jj>=p0->jmin+p0->jmax))
+        return native_bed(I,J);
+    }
+
     if(l==0)
     {
         // cells outside the domain take the bed of the nearest domain cell
@@ -615,20 +690,53 @@ double sflow_amr::area_at(int l, int I, int J)
     const double rl = double(1<<l);
     double x[2][2], y[2][2];
 
+    // multi-block: the nodes of the block that holds the cell
+    const int bk = (nblk>0) ? block_at(l,I,J) : 0;
+    auto node = [&](int K, int L, double &xx, double &yy)
+    {
+        double z;
+        if(bk>=1)
+        block_node_any(bk,K-blk[bk].vi,L-blk[bk].vj,xx,yy,z);
+        else
+        p0->curv_node(K,L,xx,yy,z);
+    };
+
     for(int a=0; a<2; ++a)
     for(int d=0; d<2; ++d)
     {
         const int NI = I+a, NJ = J+d;
         const int K = fsh(NI,l), L = fsh(NJ,l);
         const double fr = double(NI-(K<<l))/rl, fs = double(NJ-(L<<l))/rl;
-        double x00,y00,x10,y10,x01,y01,x11,y11,z;
-        p0->curv_node(K,L,x00,y00,z); p0->curv_node(K+1,L,x10,y10,z);
-        p0->curv_node(K,L+1,x01,y01,z); p0->curv_node(K+1,L+1,x11,y11,z);
+        double x00,y00,x10,y10,x01,y01,x11,y11;
+        node(K,L,x00,y00); node(K+1,L,x10,y10);
+        node(K,L+1,x01,y01); node(K+1,L+1,x11,y11);
         x[a][d] = x00 + (x10-x00)*fr + (x01-x00)*fs + (x11-x10-x01+x00)*fr*fs;
         y[a][d] = y00 + (y10-y00)*fr + (y01-y00)*fs + (y11-y10-y01+y00)*fr*fs;
     }
 
     return geo2d::area(x[0][0],y[0][0],x[1][0],y[1][0],x[0][1],y[0][1],x[1][1],y[1][1]);
+}
+
+// multi-block: bed of cell (i,j) of block b >= 1, the mean of its node levels (as blocks_ini)
+double sflow_amr::block_bed(int bk, int i, int j)
+{
+    double x,y,z00,z10,z01,z11;
+    block_node_any(bk,i,j,x,y,z00);
+    block_node_any(bk,i+1,j,x,y,z10);
+    block_node_any(bk,i,j+1,x,y,z01);
+    block_node_any(bk,i+1,j+1,x,y,z11);
+    return MAX(p0->global_zmin,0.25*(z00 + z10 + z01 + z11));
+}
+
+// multi-block: bed of a native cell beyond the rank arrays, from the curvilinear nodes
+double sflow_amr::native_bed(int I, int J)
+{
+    double x,y,z00,z10,z01,z11;
+    p0->curv_node(I,J,x,y,z00);
+    p0->curv_node(I+1,J,x,y,z10);
+    p0->curv_node(I,J+1,x,y,z01);
+    p0->curv_node(I+1,J+1,x,y,z11);
+    return MAX(p0->global_zmin,0.25*(z00 + z10 + z01 + z11));
 }
 
 // --------------------------------------------------------------------- refinement flags
@@ -669,8 +777,18 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
     {
         for(int ii=0; ii<NX0; ++ii)
         for(int jj=0; jj<NY0; ++jj)
-        if(test(p0,b0,b0->WL,ii,jj))
+        if((nblk==0 || nring[lij(p0,ii,jj)]==0) && test(p0,b0,b0->WL,ii,jj))
         tag_cell(lf,ii+O0i,jj+O0j,nbuf,M);
+
+        // multi-block: the blocks 1.. (level-0 patches)
+        for(int n : lev[0])
+        {
+            sflow_amr_patch *c = SP(n);
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            if(test(c->pp,c->b,c->b->WL,ii,jj))
+            tag_cell(lf,ii-EXT+c->I0,jj-EXT+c->J0,nbuf,M);
+        }
         return;
     }
 
@@ -900,6 +1018,125 @@ void sflow_amr::ini_patch_finish(lexer *p, sflow_amr_patch &c)
     pp->dt_old = p->dt_old;
     pp->simtime = p->simtime;
     pp->count = p->count;
+}
+
+// --------------------------------------------------------------------- multi-block level 0
+// blocks 1..: bed from the block nodes (mean of the four node bed levels, as lexer::geometry_bed),
+// state as sflow_f::ini_fsf (F 60, F 72 boxes by the cell centroid), wet flags as level 0
+void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
+{
+    // the fine bed of the patches takes level-0 beds beyond the rank arrays from the nodes
+    // (native_bed): check that the native bed of block 0 is the mean of the node levels
+    if(maxlev>=1)
+    {
+        int bad=0;
+        for(int ii=0; ii<p->knox; ++ii)
+        for(int jj=0; jj<p->knoy; ++jj)
+        if(nring[lij(p,ii,jj)]==0 && p->flagslice4[lij(p,ii,jj)]>0 && b0->bed(ii,jj)!=native_bed(ii+O0i,jj+O0j))
+        ++bad;
+        bad = pgc->globalisum(bad);
+        if(bad>0 && p->mpirank==0)
+        cout<<"SFLOW AMR: multi-block grid, "<<bad<<" level-0 cells with a bed other than the mean of their nodes (bit for bit);"
+            <<" the fine bed next to the rank boundaries may differ"<<endl;
+    }
+
+    comms_off guard(pgc);
+
+    for(int id : lev[0])
+    {
+        sflow_amr_patch *c = SP(id);
+        lexer *pp = c->pp;
+        fdm2D *pb = c->b;
+        c->phll->amr_id = id+1;
+
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        {
+            const int i = ii-EXT, j = jj-EXT;
+            // as lexer::geometry_bed (the same order of the sum)
+            double x,y,z00,z10,z01,z11;
+            block_node_any(c->blk,i,j,x,y,z00);
+            block_node_any(c->blk,i+1,j,x,y,z10);
+            block_node_any(c->blk,i,j+1,x,y,z01);
+            block_node_any(c->blk,i+1,j+1,x,y,z11);
+            const double zb = 0.25*(z00 + z10 + z01 + z11);
+            pb->bed(ii,jj) = pb->bed0(ii,jj) = pb->topobed(ii,jj) = pb->solidbed(ii,jj) = MAX(zb,p->global_zmin);
+            pb->depth(ii,jj) = p->wd - pb->bed(ii,jj);
+            pb->ks(ii,jj) = p->B50;
+        }
+
+        for(int ii=pp->imin; ii<pp->imin+pp->imax-1; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        pb->dfx(ii,jj) = 0.5*(pb->depth(ii+1,jj)+pb->depth(ii,jj));
+
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax-1; ++jj)
+        pb->dfy(ii,jj) = 0.5*(pb->depth(ii,jj+1)+pb->depth(ii,jj));
+
+        ini_patch_defaults(*c);
+
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        {
+            const int q = lij(pp,ii,jj);
+            double eta = 0.0;
+            for(int qn=0; qn<p->F72; ++qn)
+            if(pp->XC2D[q]>=p->F72_xs[qn] && pp->XC2D[q]<p->F72_xe[qn] && pp->YC2D[q]>=p->F72_ys[qn] && pp->YC2D[q]<p->F72_ye[qn])
+            eta = p->F72_h[qn]-p->wd;
+            pb->eta(ii,jj) = eta;
+            pb->WL(ii,jj) = MAX(eta + pb->depth(ii,jj),0.0);
+        }
+
+        for(int ii=0; ii<pp->knox; ++ii)
+        for(int jj=0; jj<pp->knoy; ++jj)
+        pp->wet[lij(pp,ii,jj)]=1;
+        c->pfsf->depth_update(pp,pb,pgc,pb->WL);
+
+        ini_patch_finish(p,*c);
+    }
+}
+
+// the cells around the blocks and the ring of level 0, from the stage input of their holders
+void sflow_amr::fill_level0(ghostcell *pgc, int s)
+{
+    fill_run0(NV,7099,
+              [&](const reefamr_fill &f, double *v) { eval_fill(f,v); },
+              [&](reefamr_patch *c, int n, const reefamr_fill &f, const double *w) { store_fill(SP(c),n,f.di,f.dj,w); },
+              [&](const reefamr_fill &f, const double *w) { store_native(f.di,f.dj,w); });
+
+    {
+    comms_off guard(pgc);
+    for(int n : lev[0])
+    apply_bc(pgc,*SP(n),s);
+    }
+
+    // the ghost copies of the ring cells on the other ranks
+    exchange_level0(p0,b0,pgc,s,true);
+}
+
+// values of a ring cell into level 0 (stage input, as store_fill)
+void sflow_amr::store_native(int ii, int jj, const double *w)
+{
+    lexer *p = p0;
+    fdm2D *b = b0;
+    (*sWL[0])(ii,jj) = w[0];
+    (*sUH[0])(ii,jj) = w[1];
+    (*sVH[0])(ii,jj) = w[2];
+    b->eta(ii,jj) = w[3];
+    b->U(ii,jj) = w[4];
+    b->V(ii,jj) = w[5];
+    b->hp(ii,jj) = w[0];
+    p->wet[lij(p,ii,jj)] = (int)w[6];
+    p->deep[lij(p,ii,jj)] = (int)w[7];
+    (*sWH[0])(ii,jj) = w[8];
+    b->W(ii,jj) = w[9];
+    if(bous==1)
+    {
+    b->UA(ii,jj) = w[10];
+    b->VA(ii,jj) = w[11];
+    b->MX(ii,jj) = w[12];
+    b->MY(ii,jj) = w[13];
+    }
 }
 
 // --------------------------------------------------------------------- stage data
@@ -1320,7 +1557,7 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
 }
 
 // level-0 halo after the restriction: the neighbour ranks see the restricted values
-void sflow_amr::exchange_level0(lexer *p, fdm2D *b, ghostcell *pgc, int s)
+void sflow_amr::exchange_level0(lexer *p, fdm2D *b, ghostcell *pgc, int s, bool inputs)
 {
     if(p->mpi_size<=1)
     return;
@@ -1330,6 +1567,12 @@ void sflow_amr::exchange_level0(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
     slice *WHi,*WHo;
     pmom0->stage_io_w(s,b,WHi,WHo);
+
+    // (multi-block: the stage input after the ring of level 0 was filled)
+    if(inputs)
+    {
+        WLo=WLi; UHo=UHi; VHo=VHi; WHo=WHi;
+    }
 
     slice *f[13] = {WLo,UHo,VHo,WHo,&b->eta,&b->U,&b->V,&b->W,&b->hp,&b->UA,&b->VA,&b->MX,&b->MY};
     for(int k=0; k<(bous==1?13:9); ++k)
@@ -1389,6 +1632,44 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 {
+    // multi-block: the blocks and the ring of level 0 filled from the stage input, the patches
+    // (finest first) and the blocks run their stages, level 0 follows
+    if(nblk>0)
+    {
+        double t0 = MPI_Wtime();
+        cache_stage(s);
+        fill_level0(pgc,s);
+        if(patches_total>0)
+        for(int l=1; l<=maxlev; ++l)
+        fill_level(pgc,l,s);
+        tm[0] += MPI_Wtime()-t0;
+
+        if(patches_total>0)
+        for(int l=maxlev; l>=1; --l)
+        {
+            t0 = MPI_Wtime();
+            {
+            comms_off guard(pgc);
+            for(int n : lev[l])
+            SP(n)->pmom->rk_stage(SP(n)->pp,SP(n)->b,pgc,s);
+            }
+            tm[1] += MPI_Wtime()-t0;
+
+            t0 = MPI_Wtime();
+            exchange_fluxes(l);
+            tm[2] += MPI_Wtime()-t0;
+        }
+
+        t0 = MPI_Wtime();
+        {
+        comms_off guard(pgc);
+        for(int n : lev[0])
+        SP(n)->pmom->rk_stage(SP(n)->pp,SP(n)->b,pgc,s);
+        }
+        tm[1] += MPI_Wtime()-t0;
+        return;
+    }
+
     if(maxlev<1 || patches_total==0)
     return;
 
@@ -1440,7 +1721,7 @@ void sflow_amr::stage_end(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
 void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(maxlev<1)
+    if(!active())
     return;
 
     // G 7 1: the patches take their steps now (two per step of the parent), refluxing, restriction
@@ -1469,14 +1750,27 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     }
     }
 
+
     // G 7 1: G 2 counts steps of the finest level, as without subcycling (a level-0 step is 2^G1 of them)
     const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
 
-    if(regrid_int>0 && p->count%rint==0)
+    if(maxlev>=1 && regrid_int>0 && p->count%rint==0)
     {
     double t0 = MPI_Wtime();
     regrid(p,pgc,false);
     tm[4] += MPI_Wtime()-t0;
+    }
+
+    // multi-block: the ring of level 0 again from the blocks, for the time step, the output and the
+    // non-staged fields of the next step (the outer ring cells drift from the wall of the native box
+    // during the step; the CFL number of level 0 runs over the ring; after a regrid: the restricted
+    // values under the new patches)
+    if(nblk>0)
+    {
+    double t0 = MPI_Wtime();
+    cache_stage(0);
+    fill_level0(pgc,0);
+    tm[0] += MPI_Wtime()-t0;
     }
 }
 
@@ -1569,11 +1863,14 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
         return;
     }
 
-    // coarse faces next to the patches of this rank: mean of the two fine faces
+    // coarse faces next to the patches of this rank: mean of the two fine faces (multi-block: with
+    // the sign of the coarse face, the face depth without)
     for(auto &m : match[id])
     {
         sflow_amr_patch &c = *SP(m.child);
         double val = 0.5*(c.rec[ipol][m.side][m.r]+c.rec[ipol][m.side][m.r+1]);
+        if(m.sgn<0)
+        val = -val;
 
         if(m.dir==0)
         Fx(m.fi,m.fj) = val;
@@ -1593,10 +1890,11 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
     // coarse faces next to patches of other ranks
     for(auto &m : rmatch[id])
     {
+        const double val = (m.sgn<0) ? -m.val[ipol] : m.val[ipol];
         if(m.dir==0)
-        Fx(m.fi,m.fj) = m.val[ipol];
+        Fx(m.fi,m.fj) = val;
         else
-        Fy(m.fi,m.fj) = m.val[ipol];
+        Fy(m.fi,m.fj) = val;
 
         if(ipol==4)
         {
@@ -1611,7 +1909,7 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
 // --------------------------------------------------------------------- time step
 void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(maxlev<1)
+    if(!active())
     return;
 
     // initial time step (sflow_etimestep::ini): linear in DXM, so scale with the finest patch
@@ -1718,14 +2016,25 @@ double sflow_amr::mass(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double m=0.0;
     SLICELOOP4
+    if(nblk==0 || nring[IJ]==0)
     m += b->WL(i,j)*((p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP]);
+
+    // multi-block: the own cells of the blocks 1.. (level 0)
+    for(int n : lev[0])
+    {
+        sflow_amr_patch *c = SP(n);
+        lexer *pp = c->pp;
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        m += c->b->WL(ii,jj)*pp->AREA2D[lij(pp,ii,jj)];
+    }
 
     return pgc->globalsum(m);
 }
 
 void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(maxlev<1)
+    if(!active())
     return;
 
     bool doprint=false;
@@ -1816,9 +2125,39 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
     const int ng = p->P51;
     vector<double> lv(ng,-1.0), val(ng,0.0);
 
+    // curvilinear grid: the cell whose quadrilateral holds the point (the ring of a multi-block
+    // native grid excluded)
+    auto inquad = [&](lexer *q, int a, int d, double x, double y)
+    {
+        const int o[5][2] = {{0,0},{1,0},{1,1},{0,1},{0,0}};
+        for(int k=0; k<4; ++k)
+        {
+            const int n0 = q->nij(a+o[k][0],d+o[k][1]), n1 = q->nij(a+o[k+1][0],d+o[k+1][1]);
+            const double ex = q->XN2D[n1]-q->XN2D[n0], ey = q->YN2D[n1]-q->YN2D[n0];
+            if(ex*(y-q->YN2D[n0]) - ey*(x-q->XN2D[n0]) < 0.0)
+            return false;
+        }
+        return true;
+    };
+
     auto find = [&](lexer *q, int i0, int i1, int j0, int j1, double x, double y, int &ii, int &jj)
     {
         ii=-1; jj=-1;
+        if(q->geo_curv==1 && q->XN2D!=nullptr)
+        {
+            for(int a=i0; a<=i1; ++a)
+            for(int d=j0; d<=j1; ++d)
+            {
+                if(q==p0 && nblk>0 && nring[lij(q,a,d)]==1)
+                continue;
+                if(inquad(q,a,d,x,y))
+                {
+                    ii=a; jj=d;
+                    return true;
+                }
+            }
+            return false;
+        }
         for(int a=i0; a<=i1; ++a)
         if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
         for(int a=j0; a<=j1; ++a)

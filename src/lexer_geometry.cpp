@@ -40,6 +40,12 @@ void lexer::geometry_ini(ghostcell *pgc)
     if(G50>0)
     curv_nodes(pgc);
 
+    // multi-block grid: block 0 with its ring is this grid, the other blocks are level-0 grids of
+    // the mesh refinement (reefamr_block.cpp)
+    geo_mb = 0;
+    if(G50==1 && gridgeo!=nullptr && gridgeo->blk.size()>1)
+    geo_mb = int(gridgeo->blk.size());
+
     geometry_metrics();
 
     double err=0.0, gcl=0.0;
@@ -60,14 +66,32 @@ void lexer::geometry_ini(ghostcell *pgc)
 
     if(geo_curv==1)
     {
-        // interior cells must not be folded
-        int folded = 0;
+        // interior cells must not be folded; multi-block: the ring of block 0 holds the cells of its
+        // neighbours, at a singular vertex (three or five blocks around a node) the corner of the ring
+        // has no cells: they are degenerate and become solid
+        int folded = 0, ringdeg = 0;
         double amin = 1.0e20, amax = 0.0;
+        const geo_mesh::blk_block *B0 = (geo_mb>0) ? &gridgeo->blk[0] : nullptr;
 
         for(int ii=0; ii<knox; ++ii)
         for(int jj=0; jj<knoy; ++jj)
         {
-            const double A = AREA2D[(ii-imin)*jmax + (jj-jmin)];
+            const int q = (ii-imin)*jmax + (jj-jmin);
+            const double A = AREA2D[q];
+            if(B0!=nullptr)
+            {
+                const int I = ii+origin_i, J = jj+origin_j;
+                const bool ring = I<B0->ring[0] || I>=B0->ring[0]+B0->ni || J<B0->ring[2] || J>=B0->ring[2]+B0->nj;
+                if(ring)
+                {
+                    if(A<=0.0)
+                    {
+                        ++ringdeg;
+                        flagslice4[q] = -1;
+                    }
+                    continue;
+                }
+            }
             if(A<=0.0)
             ++folded;
             amin = std::min(amin,A);
@@ -75,8 +99,12 @@ void lexer::geometry_ini(ghostcell *pgc)
         }
 
         folded = pgc->globalisum(folded);
+        ringdeg = pgc->globalisum(ringdeg);
         amin = pgc->globalmin(amin);
         amax = pgc->globalmax(amax);
+
+        if(ringdeg>0 && mpirank==0)
+        cout<<"multi-block grid: "<<ringdeg<<" degenerate cells in the ring of block 0 (singular vertices), solid"<<endl;
 
         if(mpirank==0)
         cout<<"curvilinear grid (G 50 "<<G50<<"): "<<gknox<<" x "<<gknoy<<" cells, area "<<amin<<" .. "<<amax<<" m2"<<endl;
@@ -89,7 +117,8 @@ void lexer::geometry_ini(ghostcell *pgc)
         }
     }
 
-    if(gridgeo!=nullptr && gridgeo->curv_ni>0 && mpirank==0)
+    // (multi-block: the CURV section is block 0 with its ring, checked above)
+    if(gridgeo!=nullptr && gridgeo->curv_ni>0 && mpirank==0 && geo_mb==0)
     curv_report();
 }
 

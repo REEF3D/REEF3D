@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_mb_amr",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "As sflow_2d_mb_amr with placed patches (G 40 1): rectangles split per block and placed for the load of the ranks.",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "place_patches with the clip boxes of the blocks"
+ ]
+}

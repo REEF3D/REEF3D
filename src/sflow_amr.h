@@ -291,6 +291,8 @@ private:
     // regridding
     void tag_level(int, vector<unsigned char>&);
     double bed_at(int, int, int);
+    double block_bed(int, int, int);
+    double native_bed(int, int);
     double area_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
     void ini_patch_defaults(sflow_amr_patch&);
@@ -303,6 +305,11 @@ private:
     // coupling
     void cache_stage(int);
     void fill_level(ghostcell*, int, int);
+    // multi-block level 0 (reefamr_block.cpp): the blocks 1.. run as level-0 patches
+    bool active() const { return maxlev>=1 || nblk>0; }
+    void blocks_ini(lexer*, ghostcell*);
+    void fill_level0(ghostcell*, int);
+    void store_native(int, int, const double*);
     // Boussinesq (A 220 4): u_a on the leaf cells of all levels (sflow_amr_bous.cpp)
     void bq_setup();
     void bq_sync(int, int);
@@ -330,7 +337,7 @@ private:
     void apply_bc(ghostcell*, sflow_amr_patch&, int);
     void restrict_levels(lexer*, int);   // all patches into their parents, finest first (block plans)
     void restrict_level(lexer*, int, int);   // the level-l patches into their parents
-    void exchange_level0(lexer*, fdm2D*, ghostcell*, int);
+    void exchange_level0(lexer*, fdm2D*, ghostcell*, int, bool=false);
     void exchange_fluxes(int);
 
     // G 7 1: subcycling (sflow_amr_sub.cpp)

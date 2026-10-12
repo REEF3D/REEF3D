@@ -105,6 +105,7 @@ struct reefamr_patch
     virtual ~reefamr_patch(){}
 
     int lev;
+    int blk = 0;                    // block of the multi-block grid (reefamr_block.cpp)
     int I0,I1,J0,J1;                // global box of the patch on its level
     int nx,ny;
 
@@ -130,6 +131,8 @@ struct reefamr_match
     int fi,fj;        // local face index on the target grid
     int child;        // patch that recorded the fine faces (-1: remote)
     int side,r;       // recorded side (0: low x, 1: high x, 2: low y, 3: high y) and first fine index
+    int sgn = 1;      // multi-block: -1 where the target face points against the fine faces (the fluxes
+                      // change sign, the face depth not)
     double val[NVAL]; // remote: averaged fine values (module layout)
 };
 
@@ -597,6 +600,91 @@ protected:
         }
     }
 
+    // ---- multi-block level 0 (reefamr_block.cpp)
+    //  Block 0 is the native grid of the module, its box holds a ring of cells around the faces with
+    //  an interface (DIVEMesh R 20 1).  Blocks 1.. are level-0 grids of REEFAMR: one patch of level 0
+    //  each (lev[0]), placed for the load of the ranks, the cells beyond their faces filled from
+    //  the neighbour blocks before every stage like the cells around a patch, the ring of the native
+    //  grid as well.  Index space of level 0: the native box (0..GNX-1, 0..GNY-1), then the blocks
+    //  side by side with gaps (virtual indices; nothing is allocated there).  A cell of block b at
+    //  level l in its own indices (i,j) is (i,j) + ring*2^l (block 0) or + (vi,vj)*2^l.
+    struct rseg { int face, lo, hi, nbr, nface, perm[2], sign[2], off[2]; };
+    struct rblock
+    {
+        int ni=0, nj=0, vi=0, vj=0, rank=-1, lid=-1;
+        int ring[4] = {0,0,0,0};
+        vector<rseg> seg;
+    };
+    vector<rblock> blk;                 // empty: one block, the native grid
+    int nblk = 0;
+    int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks
+    static const int BGAP = 64;         // level-0 cells between the blocks in the index space
+    void blocks_setup(lexer*, ghostcell*);
+    void blocks_plans(ghostcell*);
+    int block_near(int, int) const;     // level-0 index: block whose box (+ a margin) holds it, -1
+    bool block_resolve(int, int, int, int, int&, int&, int&, int=0) const;   // level, block, own i, j -> block, own cell
+    bool canon(int, int, int, int, int&, int&) const;   // level, block, index (around the block) -> index of the cell
+    void block_own(int, int, int, int, int&, int&) const;   // level, block, index -> own index
+    void block_virt(int, int, int, int, int&, int&) const;  // level, block, own index -> index
+    bool block_node(int, int, int, double&, double&, double&, int=0) const;   // level-0 node of a block (own index)
+    void block_node_any(int, int, int, double&, double&, double&) const;      // ... reflected at walls
+    bool native_ring(int, int) const;   // native global cell outside block 0 (the ring)
+    bool block_cross(int, int, int, int, int, int&, int&, int&) const;   // level, block, face, own i, j -> through that face first
+    bool block_face_map(int, int, int, int&, int&, int, int, int&, int&) const;   // flux matching across a block face
+    int block_at(int, int, int) const;  // level, index: block whose own cells hold it, -1 (ring, gap, outside)
+    bool vcanon(int, int, int, int&, int&) const;       // level, index -> index of the cell (identity inside a block)
+    void block_region(int, int, int&, int&, int&, int&) const;   // level, block: own cells in the index space
+    void blocks_refine_setup(lexer*);   // tile maps and no-refinement cells over the index space with the blocks
+    void blocks_propagate(int, vector<unsigned char>&, bool);   // level, tile map: tiles around a block <-> the tiles of the cells
+    vector<vector<int>> hmap;           // [l]: pairs (tile around a block, tile of a cell it stands for)
+    int nsing = 0;                      // singular vertices (no refinement around them)
+    vector<reefamr_fill> nfill;         // ring cells of the native grid on this rank
+    vector<char> nring;                 // native slice cells of the ring (lij)
+
+    // the cells around the level-0 blocks and the ring of the native grid; store(c,id,f,w) for the
+    // blocks, nstore(f,w) for the native grid
+    template<class EV, class ST, class NS>
+    void fill_run0(int nv, int tag, EV &&eval, ST &&store, NS &&nstore)
+    {
+        reefamr_xplan &X = gplan[0];
+
+        for(size_t k=0; k<X.speer.size(); ++k)
+        {
+            vector<double> &sb = X.sbuf[k];
+            sb.resize(X.sitem[k].size()*nv);
+            for(size_t m=0; m<X.sitem[k].size(); ++m)
+            eval(gserve[0][X.sitem[k][m]],&sb[m*nv]);
+        }
+
+        xrun(X,nv,tag);
+
+        fillv.resize(nv);
+        for(int id : lev[0])
+        {
+            reefamr_patch *c = P[id];
+            for(auto &f : c->fill)
+            {
+                if(f.kind==2)
+                {
+                    store(c,id,f,&X.rbuf[f.si][(size_t)f.slot*nv]);
+                    continue;
+                }
+                eval(f,&fillv[0]);
+                store(c,id,f,&fillv[0]);
+            }
+        }
+        for(auto &f : nfill)
+        {
+            if(f.kind==2)
+            {
+                nstore(f,&X.rbuf[f.si][(size_t)f.slot*nv]);
+                continue;
+            }
+            eval(f,&fillv[0]);
+            nstore(f,&fillv[0]);
+        }
+    }
+
     // ---- moving bodies
     void zone_setup(lexer*);
     bool zone_test(double, double);
@@ -652,7 +740,7 @@ protected:
     vector<vector<int>> frecv;                  // [l]: target grid id+1 and index into rmatch, -1: skip
 
 private:
-    reefamr_patch* make_patch(lexer*, ghostcell*, int, int, int, int, int);
+    reefamr_patch* make_patch(lexer*, ghostcell*, int, int, int, int, int, int=0);
     void free_patch(reefamr_patch*);
     void build_lexer(lexer*, reefamr_patch&);
     void build_vertical(lexer*, reefamr_patch&);
