@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_fsf_f.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
@@ -44,15 +45,24 @@ void nhflow_fsf_f::kinematic_bed(lexer *p, fdm_nhf *d, double *U, double *V, dou
     
     wval=0.0;    
     
-        dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
-        dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
-    
-        detadx = limiter(dfdx_plus,dfdx_min);
+        // curvilinear grid: the limited derivatives along the grid lines (nhflow_curv.h)
+        if(p->geo_curv==1)
+        {
+        nhflow_curv::grad_lim(p,i,j,d->depth(i,j),d->depth(i+1,j),d->depth(i-1,j),d->depth(i,j+1),d->depth(i,j-1),detadx,detady);
+        }
         
-        dfdy_plus = (d->depth(i,j+1)-d->depth(i,j))/p->DYP[JP];
-        dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
+        if(p->geo_curv==0)
+        {
+            dfdx_plus = (d->depth(i+1,j)-d->depth(i,j))/p->DXP[IP];
+            dfdx_min  = (d->depth(i,j)-d->depth(i-1,j))/p->DXP[IM1];
     
-        detady = limiter(dfdy_plus,dfdy_min);
+            detadx = limiter(dfdx_plus,dfdx_min);
+        
+            dfdy_plus = (d->depth(i,j+1)-d->depth(i,j))/p->DYP[JP];
+            dfdy_min  = (d->depth(i,j)-d->depth(i,j-1))/p->DYP[JM1];
+    
+            detady = limiter(dfdy_plus,dfdy_min);
+        }
         
         
         wval = - Pval*detadx

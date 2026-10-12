@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"solver.h"
+#include"nhflow_curv.h"
 
 void nhflow_idiff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *psolv, double *F, double sig, double alpha)
 {
@@ -46,6 +47,36 @@ void nhflow_idiff::diff_scalar(lexer *p, fdm_nhf *d, ghostcell *pgc, solver *pso
     
     sigxyz2 = pow(0.5*(p->sigx[FIJK]+p->sigx[FIJKp1]),2.0) + pow(0.5*(p->sigy[FIJK]+p->sigy[FIJKp1]),2.0) + pow(p->sigz[IJ],2.0);
 	
+    // curvilinear grid (G 50): compact horizontal rows, the non-orthogonal part and the sigma cross
+    // terms by the chain rule explicit (nhflow_curv.h)
+    if(p->geo_curv==1)
+    {
+    double cIp,cIm,cJp,cJm,qx,qy;
+    nhflow_curv::lapcoef(p,i,j,cIp,cIm,cJp,cJm);
+    
+	d->M.p[n]  +=        visc_IP1*cIp + visc_IM1*cIm + visc_JP1*cJp + visc_JM1*cJm
+					+   (visc_KP1*sigxyz2)/(p->DZN[KP]*p->DZP[KP])
+					+   (visc_KM1*sigxyz2)/(p->DZN[KP]*p->DZP[KM1]);
+    
+	 d->M.n[n] -= visc_IP1*cIp;
+     d->M.s[n] -= visc_IM1*cIm;
+     d->M.w[n] -= visc_JP1*cJp;
+	 d->M.e[n] -= visc_JM1*cJm;
+	 
+	 d->M.t[n] -= (visc_KP1*sigxyz2)/(p->DZP[KP]*p->DZN[KP])     
+                        + visc_KP1*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
+                        
+	 d->M.b[n] -= (visc_KM1*sigxyz2)/(p->DZP[KM1]*p->DZN[KP]) 
+                        - visc_KM1*p->sigxx[FIJK]/(p->DZN[KP]+p->DZN[KM1]);
+     
+     nhflow_curv::grad_dsig(p,F,i,j,k,qx,qy);
+     d->rhsvec.V[n] += visc_IP*(nhflow_curv::kflux3(p,F,i,j,k)
+                      + 2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*qx + 2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*qy);
+     
+     ++n;
+     continue;
+    }
+    
 //   M
 	d->M.p[n]  +=        visc_IP1/(p->DXN[IP]*p->DXP[IP])
 					+   visc_IM1/(p->DXN[IP]*p->DXP[IM1])

@@ -98,6 +98,10 @@ void ioflow_f::inflow_plain_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *
         WH[Im1JK]=0.0;
         WH[Im2JK]=0.0;
         WH[Im3JK]=0.0;
+        
+        // curvilinear grid (G 50): the inflow along the normal of the inflow face
+        if(p->geo_curv==1)
+        curv_inflow_dir(p,U,V,UH,VH);
     }
 }
 
@@ -163,6 +167,11 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
             if(p->wet[IJ]==0 || p->DF[IJK]<0)
             U[Im1JK]=U[Im2JK]=U[Im3JK] = 0.0;
             
+            // curvilinear grid (G 50): along the normal of the inflow face
+            V[Im1JK]=V[Im2JK]=V[Im3JK] = 0.0;
+            
+            if(p->geo_curv==1)
+            curv_inflow_dir(p,U,V,UH,VH);
         }
 
 
@@ -193,6 +202,13 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         U[Im1JK]*=ratio;
         U[Im2JK]*=ratio;
         U[Im3JK]*=ratio;
+        
+        if(p->geo_curv==1)
+        {
+        V[Im1JK]*=ratio;
+        V[Im2JK]*=ratio;
+        V[Im3JK]*=ratio;
+        }
         }
     }
 	
@@ -202,9 +218,12 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
     j=p->gcin[n][1];
     k=p->gcin[n][2];
     
+        if(p->geo_curv==0)
+        {
         V[Im1JK]=0.0;
         V[Im2JK]=0.0;
         V[Im3JK]=0.0;
+        }
 		
         W[Im1JK]=0.0;
         W[Im2JK]=0.0;
@@ -227,10 +246,36 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         VH[Im1JK]=0.0;
         VH[Im2JK]=0.0;
         VH[Im3JK]=0.0;
+        
+        if(p->geo_curv==1 && p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
+        VH[Im1JK] = V[Im1JK]*d->WL(i,j);
+        VH[Im2JK] = V[Im2JK]*d->WL(i,j);
+        VH[Im3JK] = V[Im3JK]*d->WL(i,j);
+        }
 		
         WH[Im1JK]=0.0;
         WH[Im2JK]=0.0;
         WH[Im3JK]=0.0;
+    }
+}
+
+// curvilinear grid: the ghost cells i-1..i-3 of the inflow cell (i,j,k) hold the inflow speed in U, UH
+// (as on Cartesian grids), turned into the direction of the normal of the inflow face
+void ioflow_f::curv_inflow_dir(lexer *p, double *U, double *V, double *UH, double *VH)
+{
+    const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+    const double len = p->LEN1[qf];
+    const double nx = len>0.0 ? p->SX1[qf]/len : 1.0;
+    const double ny = len>0.0 ? p->SY1[qf]/len : 0.0;
+    
+    const int c[3] = {Im1JK,Im2JK,Im3JK};
+    for(int q=0; q<3; ++q)
+    {
+        V[c[q]]  = U[c[q]]*ny;
+        U[c[q]]  = U[c[q]]*nx;
+        VH[c[q]] = UH[c[q]]*ny;
+        UH[c[q]] = UH[c[q]]*nx;
     }
 }
 

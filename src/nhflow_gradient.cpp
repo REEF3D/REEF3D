@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"nhflow_gradient.h"
 #include"fdm_nhf.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 
 nhflow_gradient::nhflow_gradient(lexer* pp) : tttw(13.0/12.0),fourth(1.0/4.0),third(1.0/3.0),
 			sevsix(7.0/6.0),elvsix(11.0/6.0),sixth(1.0/6.0),fivsix(5.0/6.0),tenth(1.0/10.0),
@@ -39,13 +40,21 @@ nhflow_gradient::~nhflow_gradient()
 
 }
 
+// curvilinear grid (G 50): the horizontal derivatives along the sigma layer by the chain rule
+static inline double curv_dx(lexer *p, double *f, int i, int j, int k, int comp)
+{
+    double fx,fy;
+    nhflow_curv::grad5(p,i,j,f[Ip1JK],f[Im1JK],f[IJp1K],f[IJm1K],fx,fy);
+    return comp==1 ? fx : fy;
+}
+
 // **********************************************************
 // DUXDX2
 // **********************************************************
 
 double nhflow_gradient::dudx(double *U)
 {
-	grad = (U[Ip1JK] - U[Im1JK])/(p->DXP[IP]+p->DXP[IM1]) 
+	grad = (p->geo_curv==1 ? curv_dx(p,U,i,j,k,1) : (U[Ip1JK] - U[Im1JK])/(p->DXP[IP]+p->DXP[IM1])) 
     
          + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(U[IJKp1] - U[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 
@@ -54,7 +63,7 @@ double nhflow_gradient::dudx(double *U)
 
 double nhflow_gradient::dudy(double *U)
 {
-	grad = (U[IJp1K] - U[IJm1K])/(p->DYP[JP]+p->DYP[JM1])
+	grad = (p->geo_curv==1 ? curv_dx(p,U,i,j,k,2) : (U[IJp1K] - U[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
     
          + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(U[IJKp1] - U[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 
@@ -80,7 +89,7 @@ double nhflow_gradient::dudz(double *U)
 
 double nhflow_gradient::dvdx(double *V)
 {
-	grad = (V[Ip1JK] - V[Im1JK])/(p->DXP[IP]+p->DXP[IM1])
+	grad = (p->geo_curv==1 ? curv_dx(p,V,i,j,k,1) : (V[Ip1JK] - V[Im1JK])/(p->DXP[IP]+p->DXP[IM1]))
     
          + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(V[IJKp1] - V[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 
@@ -89,7 +98,7 @@ double nhflow_gradient::dvdx(double *V)
 
 double nhflow_gradient::dvdy(double *V)
 {
-	grad = (V[IJp1K] - V[IJm1K])/(p->DYP[JP]+p->DYP[JM1])
+	grad = (p->geo_curv==1 ? curv_dx(p,V,i,j,k,2) : (V[IJp1K] - V[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
     
          + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(V[IJKp1] - V[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 
@@ -115,7 +124,7 @@ double nhflow_gradient::dvdz(double *V)
 
 double nhflow_gradient::dwdx(double *W)
 {
-	grad = (W[Ip1JK] - W[Im1JK])/(p->DXP[IP]+p->DXP[IM1])
+	grad = (p->geo_curv==1 ? curv_dx(p,W,i,j,k,1) : (W[Ip1JK] - W[Im1JK])/(p->DXP[IP]+p->DXP[IM1]))
         
          + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(W[IJKp1] - W[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 
@@ -124,7 +133,7 @@ double nhflow_gradient::dwdx(double *W)
 
 double nhflow_gradient::dwdy(double *W)
 {
-	grad = (W[IJp1K] - W[IJm1K])/(p->DYP[JP]+p->DYP[JM1])
+	grad = (p->geo_curv==1 ? curv_dx(p,W,i,j,k,2) : (W[IJp1K] - W[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
         
          + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(W[IJKp1] - W[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
 

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_curv.h"
 #include"driver.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -76,6 +77,10 @@ void driver::logic_nhflow()
     cout<<"creating objects"<<endl;
     
     p->phimean = p->wd = p->F60;
+    
+    // curvilinear grid (G 50): unsupported options are refused
+    if(p->geo_curv==1)
+    nhflow_curv::check(p);
     
 // nhflow
     if(p->A10!=5)

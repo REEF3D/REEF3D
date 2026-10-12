@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"nhflow_timestep.h"
 #include<iomanip>
 #include"lexer.h"
+#include"nhflow_curv.h"
+#include"sflow_curv.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
@@ -114,6 +116,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
+    // curvilinear grid: the widths of the cell across its faces
+    if(p->geo_curv==1)
+    dx = MIN(nhflow_curv::width1(p,i,j),nhflow_curv::width2(p,i,j));
+    
     dz = p->DZN[KP]*d->WL(i,j);
     
     cu = MIN(cu, dx/(p->umax + sqrt(9.81*depthmax)));
@@ -137,7 +143,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A512==1)
     {
     const double visc = d->VISC[IJK] + d->EV[IJK];
-    const double lam = 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]) + 1.0/(dz*dz);
+    const double lam = (p->geo_curv==1 ? sflow_curv::inv2(p,i,j) : 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0/(dz*dz);
     
     p->viscmax = MAX(p->viscmax, visc);
     cu = MIN(cu, 0.25/(visc*lam + 1.0e-20)/MAX(p->N47,1.0e-20));
@@ -257,6 +263,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
+    
+    if(p->geo_curv==1)
+    dx = MIN(nhflow_curv::width1(p,i,j),nhflow_curv::width2(p,i,j));
     
     
     cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));

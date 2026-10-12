@@ -345,9 +345,18 @@ void nhflow_amr::df_sync(int k)
                      const int nby = q->ny/2;
                      const int i0 = EXT+2*(kb/nby), j0 = EXT+2*(kb%nby);
                      const int fz = pp->knoz/Kc;
+                     double w[4];
+                     cw4(pp,i0,j0,w);    // curvilinear grid: per area of the children
                      for(int kk=0; kk<Kc; ++kk)
                      {
                          double r = 0.0;
+                         if(pp->geo_curv==1)
+                         {
+                         for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
+                         r += w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)];
+                         v[kk] = r/double(fz);
+                         continue;
+                         }
                          for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
                          r += f[cidx(pp,i0,j0,kf)]+f[cidx(pp,i0+1,j0,kf)]+f[cidx(pp,i0,j0+1,kf)]+f[cidx(pp,i0+1,j0+1,kf)];
                          v[kk] = 0.25*r/double(fz);

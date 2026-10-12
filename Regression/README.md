@@ -233,6 +233,16 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_mb_amr_adaptive` | 1 | the quadrants with two levels following the surface jumps, regrid every 4 steps: tags of the blocks, refinement continued across the interfaces |
 | `sflow_2d_mb_wetdry_amr` | 2 | two blocks (the second turned by 90 deg), dam break running up a slope: wetting and drying across the interface, shoreline refinement (G 22) |
 | `sflow_2d_mb_singular` | 1 | a hexagon split into three blocks (singular vertex): degenerate ring corner cells solid, no refinement around the vertex |
+| `nhflow_3d_curv_dambreak_rot90` | 1 | NHFLOW on a curvilinear grid (G 50 2): dam break on the Cartesian grid turned by 90 deg, A 520 2: normal velocities, HLL fluxes, walls, sigma metrics, curvilinear Poisson rows |
+| `nhflow_3d_curv_dambreak_rot30_mpi2` | 2 | the basin turned by 30 deg at UTM coordinates on two ranks |
+| `nhflow_3d_curv_wavy_lake` | 1 | lake at rest over a bump on the wavy, skewed grid (A 520 2): well balancing, non-orthogonal Poisson rows |
+| `nhflow_3d_curv_waves_rot30` | 1 | wave channel turned by 30 deg: Dirichlet generation (B 98 3) and active absorption (B 99 3) along the face normals, wave frame B 105 |
+| `nhflow_3d_curv_waves_relax_map30` | 1 | the channel stretched along x (orthogonal mapped grid) and turned: relaxation zones by B 107 / B 108 in physical coordinates (P3 gate) |
+| `nhflow_3d_curv_river_kepsilon_rot30` | 1 | river reach turned by 30 deg: discharge inflow along the face normal, stage outflow, k-epsilon with the implicit diffusion (A 512 2) |
+| `nhflow_3d_curv_tide_rot30` | 1 | oblique tide through a basin turned by 30 deg: Riemann and Flather edges on the edge-face normals |
+| `nhflow_3d_curv_amr_adaptive_sub` | 1 | NHFLOW AMR on the turned grid: patches following the surface, regrid every step, subcycling (G 7 1) |
+| `nhflow_3d_curv_amr_wavy_lake` | 1 | AMR on the wavy grid: lake at rest under six patches (restriction per area, bed prolongation with the parent's area mean) |
+| `nhflow_3d_curv_amr_shore_rot90` | 1 | AMR with wetting and drying in the patches (G 30 1) on the turned grid: run-up on a plane beach |
 | `fnpf_3d_amr_basin` (+ `_mpi2`, `_place2`) | 1/2 | FNPF AMR waves through a static box (composite Laplace); `_place2` G 40 2: remote parents in the FAC preconditioner |
 | `fnpf_3d_amr_tow` (+ `_place2`) | 1/2 | FNPF AMR towed floating body (X 10 1, X 210), the zone follows it (G 12, G 2 4); `_place2` G 40 2: zone patch placed whole, body grids and triangle ownership |
 | `fnpf_3d_amr_basin_sub` (+ `basin3_sub`, `basin_sub_place`) | 1/1/2 | FNPF waves with subcycling (G 7 1): level 0 alone, the patch steps with fills in time, the Laplace solve on the level window with fixed parent columns, the restriction after the steps; `basin3_sub` three levels (G 1 2), `basin_sub_place` 2 ranks with placed patches (G 40 1) |

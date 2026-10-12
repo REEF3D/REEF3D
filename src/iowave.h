@@ -299,6 +299,10 @@ private:
     int beach_bg(lexer*);
     void nhflow_bg_update(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_open_edges(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&);
+    // curvilinear grid (G 50): inward normal, length and centre of the boundary face of an edge cell
+    void curv_edge_normal(lexer*,int,int,int,double&,double&);
+    double curv_edge_len(lexer*,int,int,int);
+    void curv_edge_centre(lexer*,int,int,int,double&,double&);
     void nhflow_open_edges_rk(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     void nhflow_open_edges_wl(lexer*,fdm_nhf*,slice&);
     double nhflow_col_ubar(lexer*,fdm_nhf*,double*);

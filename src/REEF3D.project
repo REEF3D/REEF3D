@@ -402,6 +402,7 @@
           <File Name="sflow_HLL.h"/>
           <File Name="sflow_flux_build.h"/>
           <File Name="sflow_flux_build_f.h"/>
+          <File Name="nhflow_curv.h"/>
           <VirtualDirectory Name="Scalar"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="sflow_signal_speed.h"/>
@@ -2065,6 +2066,7 @@
             <File Name="nhflow_coastline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
+            <File Name="nhflow_curv.cpp"/>
             <File Name="nhflow_sigma_bedacc.cpp"/>
             <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>

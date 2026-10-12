@@ -219,4 +219,33 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
         eta_M = d->eta(i,j); 
         eta_R = fabs(eta_M-eta_T);
         }
+    
+    // curvilinear grid (G 50): the outflow velocity of the x+ edge along the normal of the edge face
+    if(p->geo_curv==1)
+    for(n=0;n<p->gcslout_count;++n)
+    {
+    i=p->gcslout[n][0];
+    j=p->gcslout[n][1];
+    
+    if(p->gcslout[n][3]!=4 || nhf_active_edge || p->wet[IJ]==0)
+    continue;
+    
+    const int qf = (i-p->imin)*p->jmax + (j-p->jmin);
+    const double len = p->LEN1[qf];
+    const double nx = len>0.0 ? p->SX1[qf]/len : 1.0, ny = len>0.0 ? p->SY1[qf]/len : 0.0;
+    
+        KLOOP
+        {
+        const int c[3] = {Ip1JK,Ip2JK,Ip3JK};
+        
+            for(int q=0; q<3; ++q)
+            {
+            const double un = U[c[q]], uhn = UH[c[q]];
+            U[c[q]]  = un*nx;
+            V[c[q]]  = un*ny;
+            UH[c[q]] = uhn*nx;
+            VH[c[q]] = uhn*ny;
+            }
+        }
+    }
 }

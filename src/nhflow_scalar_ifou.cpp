@@ -24,6 +24,46 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"nhflow_scalar_advec_CDS2.h"
+#include"nhflow_curv.h"
+
+
+// curvilinear grid (G 50): the face velocities along the face normals (as nhflow_scalar_advec_CDS2: the
+// mean of the two cells, zero towards solid or dry neighbours inside the domain) and the factors
+// face length / cell area that replace 1/dx, 1/dy
+static void curv_faces(lexer *p, double *U, double *V, int i, int j, int k,
+                       double &iv1, double &iv2, double &jv1, double &jv2, double &a1, double &a2, double &b1, double &b2)
+{
+    double nx,ny,len;
+    const double A = p->AREA2D[IJ];
+    
+    nhflow_curv::normal(p,1,i-1,j,nx,ny,len);
+    iv1 = 0.5*((U[IJK]+U[Im1JK])*nx + (V[IJK]+V[Im1JK])*ny);
+    a1 = len/A;
+    
+    nhflow_curv::normal(p,1,i,j,nx,ny,len);
+    iv2 = 0.5*((U[IJK]+U[Ip1JK])*nx + (V[IJK]+V[Ip1JK])*ny);
+    a2 = len/A;
+    
+    nhflow_curv::normal(p,2,i,j-1,nx,ny,len);
+    jv1 = 0.5*((U[IJK]+U[IJm1K])*nx + (V[IJK]+V[IJm1K])*ny);
+    b1 = len/A;
+    
+    nhflow_curv::normal(p,2,i,j,nx,ny,len);
+    jv2 = 0.5*((U[IJK]+U[IJp1K])*nx + (V[IJK]+V[IJp1K])*ny);
+    b2 = len/A;
+    
+    if(i+p->origin_i>0 && p->DF[Im1JK]<0)
+    iv1=0.0;
+    
+    if(i+p->origin_i<p->gknox-1 && p->DF[Ip1JK]<0)
+    iv2=0.0;
+    
+    if((j+p->origin_j==0 && p->periodic2==0) || p->DF[IJm1K]<0)
+    jv1=0.0;
+    
+    if((j+p->origin_j==p->gknoy-1 && p->periodic2==0) || p->DF[IJp1K]<0)
+    jv2=0.0;
+}
 
 nhflow_scalar_ifou::nhflow_scalar_ifou(lexer *p, int form) : advective(form)
 {
@@ -62,6 +102,26 @@ void nhflow_scalar_ifou::start(lexer* p, fdm_nhf *d, double *F, int ipol, double
     const double dxc = p->DXN[IP];
     const double dyc = p->DYN[JP];
     const double dzc = p->DZN[KP]*(p->WL[IJ]>1.0e-20?p->WL[IJ]:1.0e20);
+    
+    if(p->geo_curv==1)
+    {
+    double a1,a2,b1,b2;
+    curv_faces(p,U,V,i,j,k,ivel1,ivel2,jvel1,jvel2,a1,a2,b1,b2);
+    
+	 d->M.p[count] =    MAX(ivel2,0.0)*a2 - MIN(ivel1,0.0)*a1
+					+ MAX(jvel2,0.0)*b2 - MIN(jvel1,0.0)*b1
+					+  (MAX(kvel2,0.0) - MIN(kvel1,0.0))/dzc;
+	 
+	 d->M.s[count] = -MAX(ivel1,0.0)*a1;
+	 d->M.n[count] =  MIN(ivel2,0.0)*a2;
+	 d->M.e[count] = -MAX(jvel1,0.0)*b1;
+	 d->M.w[count] =  MIN(jvel2,0.0)*b2;
+	 d->M.b[count] = -MAX(kvel1,0.0)/dzc;
+	 d->M.t[count] =  MIN(kvel2,0.0)/dzc;
+     
+	 ++count;
+     continue;
+    }
 
 	 d->M.p[count] =    (MAX(ivel2,0.0) - MIN(ivel1,0.0))/dxc
 					+ (MAX(jvel2,0.0) - MIN(jvel1,0.0))/dyc*p->y_dir
@@ -107,6 +167,30 @@ void nhflow_scalar_ifou::start_advective(lexer* p, fdm_nhf *d, double *F, int ip
     dxc = p->DXN[IP];
     dyc = p->DYN[JP];
     dzc = p->DZN[KP]*(p->WL[IJ]>1.0e-20?p->WL[IJ]:1.0e20);
+    
+    if(p->geo_curv==1)
+    {
+    double a1,a2,b1,b2;
+    curv_faces(p,U,V,i,j,k,ivel1,ivel2,jvel1,jvel2,a1,a2,b1,b2);
+    up1 = MAX(ivel1,0.0);
+    um2 = MIN(ivel2,0.0);
+    vp1 = MAX(jvel1,0.0);
+    vm2 = MIN(jvel2,0.0);
+    
+	 d->M.p[count] =    up1*a1 - um2*a2
+					+   vp1*b1 - vm2*b2
+					+   (wp1 - wm2)/dzc;
+	 
+	 d->M.s[count] = -up1*a1;
+	 d->M.n[count] =  um2*a2;
+	 d->M.e[count] = -vp1*b1;
+	 d->M.w[count] =  vm2*b2;
+	 d->M.b[count] = -wp1/dzc;
+	 d->M.t[count] =  wm2/dzc;
+     
+	 ++count;
+     continue;
+    }
     
 	 d->M.p[count] =    (up1 - um2)/dxc
 					+  ((vp1 - vm2)/dyc)*p->y_dir
@@ -178,6 +262,27 @@ void nhflow_scalar_ifou::start_conservative(lexer* p, fdm_nhf *d, double *F, int
     dxc = hp*p->DXN[IP];
     dyc = hp*p->DYN[JP];
     dzc = hp*p->DZN[KP];
+    
+    // curvilinear grid (G 50): FEx, FEy are the fluxes per face length along the face normals
+    if(p->geo_curv==1)
+    {
+    const double A = hp*p->AREA2D[IJ];
+    const double a1 = p->LEN1[Im1J]/A, a2 = p->LEN1[IJ]/A, b1 = p->LEN2[IJm1]/A, b2 = p->LEN2[IJ]/A;
+    
+	 d->M.p[count] =    MAX(qx2,0.0)*a2 - MIN(qx1,0.0)*a1
+					+   MAX(qy2,0.0)*b2 - MIN(qy1,0.0)*b1
+					+   (MAX(qz2,0.0) - MIN(qz1,0.0))/dzc;
+	 
+	 d->M.s[count] = -MAX(qx1,0.0)*a1;
+	 d->M.n[count] =  MIN(qx2,0.0)*a2;
+	 d->M.e[count] = -MAX(qy1,0.0)*b1;
+	 d->M.w[count] =  MIN(qy2,0.0)*b2;
+	 d->M.b[count] = -MAX(qz1,0.0)/dzc;
+	 d->M.t[count] =  MIN(qz2,0.0)/dzc;
+     
+	 ++count;
+     continue;
+    }
     
 	 d->M.p[count] =    (MAX(qx2,0.0) - MIN(qx1,0.0))/dxc
 					+  ((MAX(qy2,0.0) - MIN(qy1,0.0))/dyc)*p->y_dir

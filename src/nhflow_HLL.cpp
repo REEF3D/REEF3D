@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"nhflow_flux_build_f.h"
 #include"vrans.h"
 #include"nhflow_flux_face.h"
+#include"nhflow_curv.h"
 
 nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC) 
 {
@@ -133,25 +134,56 @@ inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq)
 }
 }
 
+// curvilinear grid (G 50, nhflow_curv.h): Us/Un, Ve/Vw hold the face-normal velocities; the pressure
+// term acts along the face normal, the continuity flux is UH.n
+namespace curvface
+{
+inline double Px(lexer *p, fdm_nhf *d, double eta, int i, int j) { const double g=fabs(p->W22); return 0.5*g*eta*eta + g*eta*d->dfx(i,j); }
+inline double Py(lexer *p, fdm_nhf *d, double eta, int i, int j) { const double g=fabs(p->W22); return 0.5*g*eta*eta + g*eta*d->dfy(i,j); }
+inline double n1x(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(p,1,i,j,nx,ny,l); return nx; }
+inline double n1y(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(p,1,i,j,nx,ny,l); return ny; }
+inline double n2x(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(p,2,i,j,nx,ny,l); return nx; }
+inline double n2y(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(p,2,i,j,nx,ny,l); return ny; }
+}
+
 void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     // fused flux build + HLL
+    // curvilinear grid (G 50)
+    if(p->geo_curv==1)
+    {
     hll_sweep_x(p, d, d->Fx,
-                [p,d](int i, int j, int k){return nhflow_face::U_s(p,d,i,j,k);},
-                [p,d](int i, int j, int k){return nhflow_face::U_n(p,d,i,j,k);},
+                [p,d](int i, int j, int k){return d->UHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m) + curvface::Px(p,d,d->ETAs(i,j),i,j)*curvface::n1x(p,i,j);},
+                [p,d](int i, int j, int k){return d->UHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAn(i,j),i,j)*curvface::n1x(p,i,j);},
                 [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];});
     
-    if(p->j_dir==1)
     hll_sweep_y(p, d, d->Fy,
-                [p,d](int i, int j, int k){return nhflow_face::U_e(p,d,i,j,k);},
-                [p,d](int i, int j, int k){return nhflow_face::U_w(p,d,i,j,k);},
+                [p,d](int i, int j, int k){return d->UHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m) + curvface::Py(p,d,d->ETAe(i,j),i,j)*curvface::n2x(p,i,j);},
+                [p,d](int i, int j, int k){return d->UHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAw(i,j),i,j)*curvface::n2x(p,i,j);},
                 [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];});
+    }
+    else
+    {
+        hll_sweep_x(p, d, d->Fx,
+                    [p,d](int i, int j, int k){return nhflow_face::U_s(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return nhflow_face::U_n(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];});
+        
+        if(p->j_dir==1)
+        hll_sweep_y(p, d, d->Fy,
+                    [p,d](int i, int j, int k){return nhflow_face::U_e(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return nhflow_face::U_w(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];});
+    }
     
     nhflow_face::zflux(p,d,d->Ub,d->Ut);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
+    
+    if(p->geo_curv==1)
+    nhflow_curv::bc_fluxes(p,d,1,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,10);
     
     if(phook!=nullptr)
@@ -160,6 +192,11 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     LOOP
     WETDRY
     {
+    if(p->geo_curv==1)
+    d->F[IJK] -= (nhflow_curv::divh(p,d->Fx,d->Fy,i,j,k)
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    
+    else
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
@@ -170,21 +207,40 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     // fused flux build + HLL
+    // curvilinear grid (G 50)
+    if(p->geo_curv==1)
+    {
     hll_sweep_x(p, d, d->Fx,
-                [p,d](int i, int j, int k){return nhflow_face::V_s(p,d,i,j,k);},
-                [p,d](int i, int j, int k){return nhflow_face::V_n(p,d,i,j,k);},
+                [p,d](int i, int j, int k){return d->VHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m) + curvface::Px(p,d,d->ETAs(i,j),i,j)*curvface::n1y(p,i,j);},
+                [p,d](int i, int j, int k){return d->VHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAn(i,j),i,j)*curvface::n1y(p,i,j);},
                 [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];});
     
-    if(p->j_dir==1)
     hll_sweep_y(p, d, d->Fy,
-                [p,d](int i, int j, int k){return nhflow_face::V_e(p,d,i,j,k);},
-                [p,d](int i, int j, int k){return nhflow_face::V_w(p,d,i,j,k);},
+                [p,d](int i, int j, int k){return d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m) + curvface::Py(p,d,d->ETAe(i,j),i,j)*curvface::n2y(p,i,j);},
+                [p,d](int i, int j, int k){return d->VHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAw(i,j),i,j)*curvface::n2y(p,i,j);},
                 [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];});
+    }
+    else
+    {
+        hll_sweep_x(p, d, d->Fx,
+                    [p,d](int i, int j, int k){return nhflow_face::V_s(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return nhflow_face::V_n(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];});
+        
+        if(p->j_dir==1)
+        hll_sweep_y(p, d, d->Fy,
+                    [p,d](int i, int j, int k){return nhflow_face::V_e(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return nhflow_face::V_w(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];});
+    }
     
     nhflow_face::zflux(p,d,d->Vb,d->Vt);
     
     pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
+    
+    if(p->geo_curv==1)
+    nhflow_curv::bc_fluxes(p,d,2,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,11);
     
     if(phook!=nullptr)
@@ -193,6 +249,11 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     LOOP
     WETDRY
     {
+    if(p->geo_curv==1)
+    d->G[IJK] -= (nhflow_curv::divh(p,d->Fx,d->Fy,i,j,k)
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    
+    else
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
@@ -203,21 +264,40 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     // fused flux build + HLL
+    // curvilinear grid (G 50)
+    if(p->geo_curv==1)
+    {
     hll_sweep_x(p, d, d->Fx,
-                [p,d](int i, int j, int k){return nhflow_face::W_s(p,d,i,j,k);},
-                [p,d](int i, int j, int k){return nhflow_face::W_n(p,d,i,j,k);},
+                [p,d](int i, int j, int k){return d->WHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m);},
+                [p,d](int i, int j, int k){return d->WHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1);},
                 [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];});
     
-    if(p->j_dir==1)
     hll_sweep_y(p, d, d->Fy,
-                [p,d](int i, int j, int k){return nhflow_face::W_e(p,d,i,j,k);},
-                [p,d](int i, int j, int k){return nhflow_face::W_w(p,d,i,j,k);},
+                [p,d](int i, int j, int k){return d->WHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m);},
+                [p,d](int i, int j, int k){return d->WHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2);},
                 [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];});
+    }
+    else
+    {
+        hll_sweep_x(p, d, d->Fx,
+                    [p,d](int i, int j, int k){return nhflow_face::W_s(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return nhflow_face::W_n(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];});
+        
+        if(p->j_dir==1)
+        hll_sweep_y(p, d, d->Fy,
+                    [p,d](int i, int j, int k){return nhflow_face::W_e(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return nhflow_face::W_w(p,d,i,j,k);},
+                    [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];});
+    }
     
     nhflow_face::zflux(p,d,d->Wb,d->Wt);
     
     pgc->start1V(p,d->Fx,12);
     pgc->start2V(p,d->Fy,12);
+    
+    if(p->geo_curv==1)
+    nhflow_curv::bc_fluxes(p,d,3,d->Fx,d->Fy);
     pgc->start3V(p,d->Fz,12);
     
     if(phook!=nullptr)
@@ -226,6 +306,11 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     LOOP
     WETDRY
     {
+    if(p->geo_curv==1)
+    d->H[IJK] -= (nhflow_curv::divh(p,d->Fx,d->Fy,i,j,k)
+                + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
+    
+    else
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
@@ -236,6 +321,21 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
 {
     // HLL flux 
     // fused flux build + HLL (continuity: F = UH, VH;  q = D)
+    // curvilinear grid (G 50): the continuity flux UH.n
+    if(p->geo_curv==1)
+    {
+    hll_sweep_x(p, d, d->FEx,
+                [p,d](int i, int j, int k){return d->UHs[IJK]*curvface::n1x(p,i,j) + d->VHs[IJK]*curvface::n1y(p,i,j);},
+                [p,d](int i, int j, int k){return d->UHn[IJK]*curvface::n1x(p,i,j) + d->VHn[IJK]*curvface::n1y(p,i,j);},
+                [p,d](int i, int j, int k){return nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j));});
+    
+    hll_sweep_y(p, d, d->FEy,
+                [p,d](int i, int j, int k){return d->UHe[IJK]*curvface::n2x(p,i,j) + d->VHe[IJK]*curvface::n2y(p,i,j);},
+                [p,d](int i, int j, int k){return d->UHw[IJK]*curvface::n2x(p,i,j) + d->VHw[IJK]*curvface::n2y(p,i,j);},
+                [p,d](int i, int j, int k){return nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j));});
+    }
+    else
+    {
     hll_sweep_x(p, d, d->FEx,
                 [p,d](int i, int j, int k){return d->UHs[IJK];},
                 [p,d](int i, int j, int k){return d->UHn[IJK];},
@@ -246,6 +346,7 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
                 [p,d](int i, int j, int k){return d->VHe[IJK];},
                 [p,d](int i, int j, int k){return d->VHw[IJK];},
                 [p,d](int i, int j, int k){return nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j));});
+    }
     
     // membranes (X 330): Rhie-Chow continuity flux at faces next to membrane cells, see nhflow_membrane_beta.h
     if(d->MBETA!=nullptr)
@@ -273,6 +374,9 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     
     pgc->start1V(p,d->FEx,14);
     pgc->start2V(p,d->FEy,14); 
+    
+    if(p->geo_curv==1)
+    nhflow_curv::bc_fluxes(p,d,4,d->FEx,d->FEy);
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,4,d->FEx,d->FEy);

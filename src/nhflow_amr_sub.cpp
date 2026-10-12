@@ -735,7 +735,9 @@ void nhflow_amr::sub_reflux(int l)
             const int ii = m.fi + (m.side==1 ? 1 : 0);
             const int jj = m.fj + (m.side==3 ? 1 : 0);
             const double sg = (m.side==0 || m.side==2) ? -1.0 : 1.0;
-            const double f = (m.dir==0) ? sg/q->DXN[ii+marge] : sg*q->y_dir/q->DYN[jj+marge];
+            // curvilinear grid: face length over cell area (the fluxes are per unit length)
+            const double f = (q->geo_curv==1) ? sg*((m.dir==0) ? q->LEN1[lij(q,m.fi,m.fj)] : q->LEN2[lij(q,m.fi,m.fj)])/q->AREA2D[lij(q,ii,jj)]
+                           : ((m.dir==0) ? sg/q->DXN[ii+marge] : sg*q->y_dir/q->DYN[jj+marge]);
 
             // continuity: the layer fluxes per unit sigma times the layer thickness
             double dw = 0.0;

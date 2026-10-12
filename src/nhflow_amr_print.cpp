@@ -50,6 +50,9 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
         continue;
         if(maxlev>=1 && covered(1,2*(ii+O0i),2*(jj+O0j)))
         continue;
+        if(p->geo_curv==1)
+        v += d->WL(ii,jj)*p->AREA2D[lij(p,ii,jj)];
+        else
         v += d->WL(ii,jj)*p->DXN[ii+marge]*p->DYN[jj+marge];
     }
 
@@ -65,6 +68,9 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
             const int I = ii-EXT+q->I0, J = jj-EXT+q->J0;
             if(q->lev<maxlev && covered(q->lev+1,2*I,2*J))
             continue;
+            if(pp->geo_curv==1)
+            v += dd->WL(ii,jj)*pp->AREA2D[lij(pp,ii,jj)];
+            else
             v += dd->WL(ii,jj)*pp->DXN[ii+marge]*pp->DYN[jj+marge];
         }
     }
@@ -163,13 +169,13 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
         out<<"<?xml version=\"1.0\"?>\n<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\">\n<vtkMultiBlockDataSet>\n";
         out<<"<Block index=\"0\" name=\"level 0\">\n";
         for(int r=0; r<p->mpi_size; ++r)
-        out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-NHFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<".vtr\"/>\n";
+        out<<"<DataSet index=\""<<r<<"\" file=\"REEF3D-NHFLOW-AMR-L0-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<(p->geo_curv==1?".vts":".vtr")<<"\"/>\n";
         out<<setfill(' ')<<"</Block>\n<Block index=\"1\" name=\"patches\">\n";
         int idx=0;
         for(int r=0; r<p->mpi_size; ++r)
         for(int q=0; q<all[r]; ++q)
         {
-        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-NHFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<".vtr\"/>\n";
+        out<<"<DataSet index=\""<<idx<<"\" file=\"REEF3D-NHFLOW-AMR-"<<setw(8)<<setfill('0')<<printcount_amr<<"-"<<setw(4)<<r+1<<"-"<<setw(4)<<q+1<<(p->geo_curv==1?".vts":".vtr")<<"\"/>\n";
         out<<setfill(' ');
         ++idx;
         }
@@ -186,9 +192,34 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
     const int ng = p->P51;
     vector<double> lv(ng,-1.0), val(ng,0.0);
 
+    // curvilinear grid (G 50): the cell whose quadrilateral holds the point, its value
+    auto inquad = [&](lexer *q, int a, int b, double x, double y)
+    {
+        const int o[5][2] = {{0,0},{1,0},{1,1},{0,1},{0,0}};
+        for(int k=0; k<4; ++k)
+        {
+            const int n0 = q->nij(a+o[k][0],b+o[k][1]), n1 = q->nij(a+o[k+1][0],b+o[k+1][1]);
+            const double ex = q->XN2D[n1]-q->XN2D[n0], ey = q->YN2D[n1]-q->YN2D[n0];
+            if(ex*(y-q->YN2D[n0]) - ey*(x-q->XN2D[n0]) < 0.0)
+            return false;
+        }
+        return true;
+    };
+    
     auto find = [&](lexer *q, int i0, int i1, int j0, int j1, double x, double y, int &ii, int &jj)
     {
         ii=-1; jj=-1;
+        if(q->geo_curv==1 && q->XN2D!=nullptr)
+        {
+            for(int a=i0; a<=i1; ++a)
+            for(int b=j0; b<=j1; ++b)
+            if(inquad(q,a,b,x,y))
+            {
+                ii=a; jj=b;
+                return true;
+            }
+            return false;
+        }
         for(int a=i0; a<=i1; ++a)
         if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
         for(int a=j0; a<=j1; ++a)
@@ -198,6 +229,9 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     auto ipol = [&](lexer *q, slice &f, int ii, int jj, double x, double y)
     {
+        if(q->geo_curv==1)
+        return f(ii,jj);
+
         int a = (x>=q->XP[ii+marge]) ? ii : ii-1;
         int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
         double wx = (x-q->XP[a+marge])/(q->XP[a+1+marge]-q->XP[a+marge]);
@@ -294,17 +328,29 @@ void vtr_fields(ofstream &out, lexer *q, fdm_nhf *d, int i0, int i1, int j0, int
 void nhflow_amr::write_vtr0(lexer *p, fdm_nhf *d)
 {
     char name[256];
-    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-L0-%08i-%04i.vtr",printcount_amr,p->mpirank+1);
+    // curvilinear grid (G 50): structured grids (.vts) on the physical nodes
+    const bool cv = (p->geo_curv==1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-L0-%08i-%04i.%s",printcount_amr,p->mpirank+1,cv?"vts":"vtr");
 
     const int nx=p->knox, ny=p->knoy, m=marge;
     ofstream out(name);
     out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
+    out<<"<VTKFile type=\""<<(cv?"StructuredGrid":"RectilinearGrid")<<"\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<"<<(cv?"StructuredGrid":"RectilinearGrid")<<" WholeExtent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n";
     out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">0</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<nx<<" 0 "<<ny<<" 0 0\">\n<CellData Scalars=\"eta\">\n";
     vtr_fields(out,p,d,0,nx,0,ny,shore);
+    if(cv)
+    {
+    out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int jj=0; jj<=ny; ++jj)
+    for(int ii=0; ii<=nx; ++ii)
+    out<<setprecision(12)<<p->XN2D[p->nij(ii,jj)]<<" "<<p->YN2D[p->nij(ii,jj)]<<" 0\n";
+    out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
+    out.close();
+    return;
+    }
     out<<"</CellData>\n<Coordinates>\n";
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
     for(int ii=0; ii<=nx; ++ii) out<<setprecision(12)<<p->XN[ii+m]<<" ";
@@ -319,17 +365,28 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
 {
     lexer *pp = c.pp;
     char name[256];
-    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i-%04i-%04i.vtr",printcount_amr,p->mpirank+1,id+1);
+    const bool cv = (p->geo_curv==1);
+    snprintf(name,sizeof(name),"./REEF3D_NHFLOW_AMR/REEF3D-NHFLOW-AMR-%08i-%04i-%04i.%s",printcount_amr,p->mpirank+1,id+1,cv?"vts":"vtr");
 
     ofstream out(name);
     out<<"<?xml version=\"1.0\"?>\n";
-    out<<"<VTKFile type=\"RectilinearGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
-    out<<"<RectilinearGrid WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
+    out<<"<VTKFile type=\""<<(cv?"StructuredGrid":"RectilinearGrid")<<"\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    out<<"<"<<(cv?"StructuredGrid":"RectilinearGrid")<<" WholeExtent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
     out<<"<FieldData><DataArray type=\"Float64\" Name=\"TimeValue\" NumberOfTuples=\"1\">"<<p->simtime<<"</DataArray>";
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
     out<<"<CellData Scalars=\"eta\">\n";
     vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EXT,EXT+c.ny,shore);
+    if(cv)
+    {
+    out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+    for(int jj=EXT; jj<=EXT+c.ny; ++jj)
+    for(int ii=EXT; ii<=EXT+c.nx; ++ii)
+    out<<setprecision(12)<<pp->XN2D[pp->nij(ii,jj)]<<" "<<pp->YN2D[pp->nij(ii,jj)]<<" 0\n";
+    out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
+    out.close();
+    return;
+    }
     out<<"</CellData>\n<Coordinates>\n";
     const int m = marge;
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";

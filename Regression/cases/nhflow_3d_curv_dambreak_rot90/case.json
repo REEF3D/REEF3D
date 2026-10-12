@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "quick"
+ ],
+ "description": "NHFLOW on a curvilinear grid (G 50 2): dam break in a closed basin whose grid is the Cartesian one turned by 90 deg and shifted, non-hydrostatic (A 520 2): per cell index the Cartesian run to round-off.",
+ "covers": [
+  "nhflow_curv: normal velocities, HLL fluxes, walls (pair_bc, bc_fluxes), sigma metrics, Poisson rows, pressure gradients"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

@@ -146,10 +146,10 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->Xout(p->XN[IP1],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->XN2D[p->nij(i+1,j+1)]) : float(p->Xout(p->XN[IP1],p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=float(p->Yout(p->XN[IP1],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->YN2D[p->nij(i+1,j+1)]) : float(p->Yout(p->XN[IP1],p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
         ffn=float(p->sl_ipol4(d->bed));

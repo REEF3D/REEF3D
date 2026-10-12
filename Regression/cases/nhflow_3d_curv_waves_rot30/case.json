@@ -1,0 +1,22 @@
+{
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "waves",
+  "iowave"
+ ],
+ "description": "NHFLOW wave channel on a curvilinear grid turned by 30 deg at UTM coordinates: linear waves (kh 2) by Dirichlet generation at x- (B 98 3) along the face normal, active absorption at x+ (B 99 3), wave direction B 105.",
+ "covers": [
+  "iowave_nhflow_dirichlet on face normals",
+  "nhflow_active_beach on face normals",
+  "position::pos_x/pos_y on curvilinear grids",
+  "bc_fluxes at in- and outflow"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

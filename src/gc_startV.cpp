@@ -20,6 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_curv.h"
+
+// curvilinear NHFLOW: the grid and time step of the U (UH) of the velocity pair (start4V)
+static const lexer *curv_u_lex = nullptr, *curv_uh_lex = nullptr;
+static int curv_u_count = -1, curv_uh_count = -1;
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"sliceint.h"
@@ -676,6 +681,27 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     }
     }
 
+    // curvilinear grid (G 50, NHFLOW): the side walls (j-faces) mirror the normal velocity of the
+    // face, not V: once U (gcv 10) or UH (14) and then V (11) or VH (15) have their ghost cells, with
+    // the last U (UH) of the same grid in the same time step (nhflow_curv::pair_bc)
+    if(p->geo_curv==1)
+    {
+        const bool uh = (gcv==14 || gcv==15);
+        double *&up = uh ? curv_uhpart : curv_upart;
+        const lexer *&ul = uh ? curv_uh_lex : curv_u_lex;
+        int &uc = uh ? curv_uh_count : curv_u_count;
+        
+        if(gcv==10 || gcv==14)
+        {
+        up = f;
+        ul = p;
+        uc = p->count;
+        }
+        
+        if((gcv==11 || gcv==15) && up!=nullptr && ul==p && uc==p->count && up!=f)
+        nhflow_curv::pair_bc(p,up,f);
+    }
+    
     p->gctime+=timer()-starttime;
 }
 

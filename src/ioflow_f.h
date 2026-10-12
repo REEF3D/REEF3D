@@ -127,6 +127,7 @@ public:
     
     void inflow_plain_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     void inflow_log_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    void curv_inflow_dir(lexer*,double*,double*,double*,double*);
     
     
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;

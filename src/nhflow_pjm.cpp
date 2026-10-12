@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_pjm.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 #include"fdm_nhf.h"
 #include"nhflow_membrane_beta.h"
 #include"nhflow_thinbody.h"
@@ -149,14 +150,22 @@ void nhflow_pjm::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, dou
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, double alpha)
 {
     // membranes (X 330): face mobilities in the horizontal gradient, see nhflow_membrane_beta.h
+    // curvilinear grid: the horizontal gradient by the chain rule (nhflow_curv.h)
 	LOOP
     WETDRYDEEP
+    {
+    double px=0.0, py=0.0;
+    if(p->geo_curv==1)
+    nhflow_curv::pgrad_layer(p,d->P,i,j,k,px,py);
+    
 	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
                 ((d->MBETA!=nullptr ? nhflow_membrane_gradx(p,d,d->P,i,j,k) :
+                p->geo_curv==1 ? px :
                 ((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])))
                 
                 + MBETAVAL*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+    }
 }
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P, double alpha)
@@ -164,12 +173,19 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P, d
     if(p->j_dir==1)
     LOOP
     WETDRYDEEP
+    {
+    double px=0.0, py=0.0;
+    if(p->geo_curv==1)
+    nhflow_curv::pgrad_layer(p,d->P,i,j,k,px,py);
+    
     VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
     
                 ((d->MBETA!=nullptr ? nhflow_membrane_grady(p,d,d->P,i,j,k) :
+                p->geo_curv==1 ? py :
                 ((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])))
                 
                 + MBETAVAL*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
+    }
 }
 
 void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P, double alpha)
@@ -230,6 +246,13 @@ void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V,
         dVdz = (V[IJK] - V[IJKm1])/p->DZP[KM1];
         dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
         
+        // curvilinear grid: the horizontal divergence by the chain rule (nhflow_curv.h)
+        if(p->geo_curv==1)
+        d->rhsvec.V[n] =      -  (nhflow_curv::divh_level(p,d,U,V,i,j,k)
+                                + p->sigx[FIJK]*dUdz
+                                + p->sigy[FIJK]*dVdz
+                                + dWdz)/(alpha*p->dt);
+        else
         d->rhsvec.V[n] =      -  ((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
                                 + p->sigx[FIJK]*dUdz
                                 
@@ -258,6 +281,13 @@ void nhflow_pjm::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
 
 void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    // curvilinear grid: g eta sum(d_face S_face)/A (nhflow_curv.h)
+    if(p->geo_curv==1)
+    LOOP
+    WETDRY
+    d->F[IJK] += nhflow_curv::bedslope(p,d,1,i,j);
+    
+    if(p->geo_curv==0)
     LOOP
     WETDRY
     d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
@@ -266,6 +296,12 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 
 void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &WL)
 {
+    if(p->geo_curv==1)
+    LOOP
+    WETDRY
+    d->G[IJK] += nhflow_curv::bedslope(p,d,2,i,j);
+    
+    if(p->geo_curv==0)
     LOOP
     WETDRY
 	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*

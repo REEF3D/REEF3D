@@ -156,6 +156,23 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 UH[Im1JK] += (eta_R+d->depth(i,j))*Uc;
                 UH[Im2JK] += (eta_R+d->depth(i,j))*Uc;
                 UH[Im3JK] += (eta_R+d->depth(i,j))*Uc;
+                
+                // curvilinear grid (G 50): current and correction along the normal of the inflow face
+                if(p->geo_curv==1)
+                {
+                const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+                const double len = p->LEN1[qf];
+                const double nx = len>0.0 ? p->SX1[qf]/len : 1.0, ny = len>0.0 ? p->SY1[qf]/len : 0.0;
+                const int c[3] = {Im1JK,Im2JK,Im3JK};
+                
+                    for(int q=0; q<3; ++q)
+                    {
+                    U[c[q]]  = uval[count]*ramp(p) + p->Ui*nx + Uc*nx;
+                    V[c[q]]  = vval[count]*ramp(p) + p->Ui*ny + Uc*ny;
+                    UH[c[q]] = UHval[count]*ramp(p) + (eta_R+d->depth(i,j))*Uc*nx;
+                    VH[c[q]] = VHval[count]*ramp(p) + (eta_R+d->depth(i,j))*Uc*ny;
+                    }
+                }
          }
          ++count;
 		}

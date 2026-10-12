@@ -53,6 +53,7 @@ Author: Hans Bihs
 #include"ioflow_void.h"
 #include"patchBC_void.h"
 #include"reefmg_core.h"
+#include"nhflow_curv.h"
 #include"definitions.h"
 #include<cmath>
 #include<mpi.h>
@@ -1371,10 +1372,12 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
                    // cells of a coarse layer), a constant shift of the interpolated shape; the velocities
                    // follow
                    const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+                   double cw[4];                       // weights of the children (a,b): cw[a+2b]
+                   cw4(pp,i0,j0,cw);
                    double wm = 0.0;
                    for(int a=0; a<2; ++a)
                    for(int b=0; b<2; ++b)
-                   wm += 0.25*d->WL(i0+a,j0+b);
+                   wm += cw[a+2*b]*d->WL(i0+a,j0+b);
                    const double dwl = v[t0] - wm;
                    const bool pwet = ((int)v[t0+1]==1);
 
@@ -1407,8 +1410,8 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
                                const int ii = i0+a, jj = j0+b;
                                double e = 0.0;
                                for(int qn=0; qn<p0->F72; ++qn)
-                               if(pp->XP[ii+marge]>=p0->F72_xs[qn] && pp->XP[ii+marge]<p0->F72_xe[qn]
-                               && pp->YP[jj+marge]>=p0->F72_ys[qn] && pp->YP[jj+marge]<p0->F72_ye[qn])
+                               if(cxc(pp,ii,jj)>=p0->F72_xs[qn] && cxc(pp,ii,jj)<p0->F72_xe[qn]
+                               && cyc(pp,ii,jj)>=p0->F72_ys[qn] && cyc(pp,ii,jj)<p0->F72_ye[qn])
                                e = p0->F72_h[qn] - p0->F60;
                                if(pdry || d->eta(ii,jj) + d->depth(ii,jj)<=wdry)
                                {
@@ -1440,7 +1443,6 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
                        d->eta(i0+a,j0+b) += dwl;
                    }
 
-                   const double wb = 0.25/double(fz);
                    for(int kc=0; kc<Kc; ++kc)
                    {
                        double um=0.0, vm=0.0, hm=0.0;
@@ -1448,6 +1450,7 @@ void nhflow_amr::prolong_patch(ghostcell *pgc, int l)
                        for(int a=0; a<2; ++a)
                        for(int b=0; b<2; ++b)
                        {
+                           const double wb = cw[a+2*b]/double(fz);
                            const int n = cidx(pp,i0+a,j0+b,kk);
                            um += wb*d->UH[n];
                            vm += wb*d->VH[n];
@@ -1497,7 +1500,7 @@ void nhflow_amr::ini_boxes(int l)
                    fdm_nhf *dq = gfd(B.g);
                    for(int a=-2; a<=2; ++a)
                    for(int b=-2; b<=2; ++b)
-                   v[(a+2)*5+(b+2)] = boxof(q->XP[B.ic+a+marge],q->YP[B.jc+b+marge]);
+                   v[(a+2)*5+(b+2)] = boxof(cxc(q,B.ic+a,B.jc+b),cyc(q,B.ic+a,B.jc+b));
                    for(int a=-1; a<=1; ++a)
                    for(int b=-1; b<=1; ++b)
                    v[25+(a+1)*3+(b+1)] = dq->eta(B.ic+a,B.jc+b);
@@ -1525,7 +1528,7 @@ void nhflow_amr::ini_boxes(int l)
 
                    for(int a=0; a<2; ++a)
                    for(int b=0; b<2; ++b)
-                   if(boxof(pp->XP[EXT+2*bi+a+marge],pp->YP[EXT+2*bj+b+marge])!=b0)
+                   if(boxof(cxc(pp,EXT+2*bi+a,EXT+2*bj+b),cyc(pp,EXT+2*bi+a,EXT+2*bj+b))!=b0)
                    aff = true;
 
                    if(!aff)
@@ -1535,7 +1538,7 @@ void nhflow_amr::ini_boxes(int l)
                    for(int b=0; b<2; ++b)
                    {
                        const int ii = EXT+2*bi+a, jj = EXT+2*bj+b;
-                       const int bf = boxof(pp->XP[ii+marge],pp->YP[jj+marge]);
+                       const int bf = boxof(cxc(pp,ii,jj),cyc(pp,ii,jj));
                        const int da = a ? 1 : -1, db = b ? 1 : -1;
 
                        double e = ceta(0,0);
@@ -1580,6 +1583,15 @@ void nhflow_amr::restrict_surface(int s)
                  const int nby = c->ny/2;
                  const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
                  slice &WLf = *F.WL;
+                 if(c->pp->geo_curv==1)
+                 {
+                 // curvilinear grid: per area (the volume of the children)
+                 double w[4];
+                 cw4(c->pp,i0,j0,w);
+                 v[0] = w[0]*WLf(i0,j0) + w[1]*WLf(i0+1,j0) + w[2]*WLf(i0,j0+1) + w[3]*WLf(i0+1,j0+1);
+                 v[1] = w[0]*df->detadt(i0,j0) + w[1]*df->detadt(i0+1,j0) + w[2]*df->detadt(i0,j0+1) + w[3]*df->detadt(i0+1,j0+1);
+                 return;
+                 }
                  v[0] = 0.25*(WLf(i0,j0)+WLf(i0+1,j0)+WLf(i0,j0+1)+WLf(i0+1,j0+1));
                  v[1] = 0.25*(df->detadt(i0,j0)+df->detadt(i0+1,j0)+df->detadt(i0,j0+1)+df->detadt(i0+1,j0+1));
              },
@@ -1615,6 +1627,15 @@ void nhflow_amr::restrict_momentum(int s, bool withP)
                          auto avg = [&](const double *f)
                          {
                              double r = 0.0;
+                             // curvilinear grid: per area of the children
+                             if(pp->geo_curv==1)
+                             {
+                                 double w[4];
+                                 cw4(pp,i0,j0,w);
+                                 for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
+                                 r += w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)];
+                                 return r/double(fz);
+                             }
                              for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
                              r += f[cidx(pp,i0,j0,kf)]+f[cidx(pp,i0+1,j0,kf)]+f[cidx(pp,i0,j0+1,kf)]+f[cidx(pp,i0+1,j0+1,kf)];
                              return 0.25*r/double(fz);
@@ -1692,22 +1713,33 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
     for(int l=1; l<=maxlev; ++l)
     {
-        // bed: linear from the parent (on its rank)
-        block_down_if(l,4,7620+l,[](reefamr_patch *q) { return q->fresh; },
+        // bed: linear from the parent (on its rank); curvilinear grid: shifted so that the mean of the
+        // children per area is the parent's bed (the lake at rest stays at rest: the restriction of
+        // the water level is the mean per area)
+        block_down_if(l,5,7620+l,[](reefamr_patch *q) { return q->fresh; },
                    [&](const reefamr_block &B, int key, double *v)
                    {
                        for(int a=0; a<2; ++a)
                        for(int b=0; b<2; ++b)
                        v[2*a+b] = plin(gfd(B.g)->bed,glex(B.g),B.ic,B.jc,a==0?-1:1,b==0?-1:1);
+                       v[4] = gfd(B.g)->bed(B.ic,B.jc);
                    },
                    [&](reefamr_patch *q, int id, int k, const double *v)
                    {
                        if(!q->fresh)
                        return;
                        const int nby = q->ny/2;
+                       const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                       double sh = 0.0;
+                       if(q->pp->geo_curv==1)
+                       {
+                           double w[4];
+                           cw4(q->pp,i0,j0,w);
+                           sh = v[4] - (w[0]*v[0] + w[1]*v[2] + w[2]*v[1] + w[3]*v[3]);
+                       }
                        for(int a=0; a<2; ++a)
                        for(int b=0; b<2; ++b)
-                       NP(q)->d->bed(EXT+2*(k/nby)+a,EXT+2*(k%nby)+b) = v[2*a+b];
+                       NP(q)->d->bed(i0+a,j0+b) = (q->pp->geo_curv==1) ? v[2*a+b] + sh : v[2*a+b];
                    });
         fill_bed(pgc,l);
 
@@ -1842,6 +1874,14 @@ void nhflow_amr::regrid_finish(ghostcell *pgc, int old_total)
                  fdm_nhf *df = NP(q)->d;
                  const int nby = q->ny/2;
                  const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 // curvilinear grid: per area of the children
+                 if(q->pp->geo_curv==1)
+                 {
+                 double w[4];
+                 cw4(q->pp,i0,j0,w);
+                 v[0] = w[0]*df->WL(i0,j0) + w[1]*df->WL(i0+1,j0) + w[2]*df->WL(i0,j0+1) + w[3]*df->WL(i0+1,j0+1);
+                 return;
+                 }
                  v[0] = 0.25*(df->WL(i0,j0)+df->WL(i0+1,j0)+df->WL(i0,j0+1)+df->WL(i0+1,j0+1));
              },
              [&](const reefamr_block &B, int key, const double *v)
@@ -2400,6 +2440,10 @@ void nhflow_amr::dt_cell_size(int wetonly, double &dx, double &dz)
             continue;
 
             double h;
+            // curvilinear grid: the widths of the cell across its faces (as nhflow_timestep)
+            if(pp->geo_curv==1)
+            h = MIN(nhflow_curv::width1(pp,ii,jj),nhflow_curv::width2(pp,ii,jj));
+            else
             if(pp->j_dir==1 && pp->knoy>1)
             h = MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]);
             else

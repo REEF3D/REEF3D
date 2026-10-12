@@ -47,7 +47,7 @@ void nhflow_LES_Smagorinsky::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_
     {
     // filter width squared: (dx dy dz)^(2/3) in 3D, dx dz in 2D (the 2D slab width DYN is arbitrary)
     if(p->j_dir==1)
-    delta2 = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j),2.0/3.0);
+    delta2 = pow((p->geo_curv==1 ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP])*p->DZN[KP]*d->WL(i,j),2.0/3.0);
     
     if(p->j_dir==0)
     delta2 = p->DXN[IP]*p->DZN[KP]*d->WL(i,j);

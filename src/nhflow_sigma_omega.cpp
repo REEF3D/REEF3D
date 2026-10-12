@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_sigma.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
@@ -39,6 +40,12 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     d->omegaF[FIJK] = 0.0;
         
         
+    if(p->geo_curv==1)
+    LOOP
+    d->omegaF[FIJKp1] =   d->omegaF[FIJK]
+                        - p->DZN[KP]*(d->detadt(i,j) + nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k));
+    
+    if(p->geo_curv==0)
     LOOP
     {
     d->omegaF[FIJKp1] =   d->omegaF[FIJK]

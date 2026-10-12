@@ -65,6 +65,17 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
+        // curvilinear grid (G 50): length of the inflow face, normal velocity of the ghost cell
+        if(p->geo_curv==1)
+        {
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        area=p->LEN1[qf]*p->DZN[KP]*d->WL(i-1,j);
+        Ai+=area;
+        p->Qi+=p->DZN[KP]*d->WL(i-1,j)*(d->U[Im1JK]*p->SX1[qf] + d->V[Im1JK]*p->SY1[qf]);
+        ++count;
+        continue;
+        }
+        
         area=p->DYN[JP]*p->DZN[KP]*d->WL(i-1,j);
         
         //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
@@ -108,6 +119,16 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         i=p->gcout[n][0];
         j=p->gcout[n][1];
         k=p->gcout[n][2];
+        
+        // curvilinear grid (G 50): length of the outflow face, normal velocity of the cell
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->geo_curv==1)
+        {
+        area=p->LEN1[IJ]*p->DZN[KP]*d->WL(i,j);
+
+        Ao+=area;
+        p->Qo+=p->DZN[KP]*d->WL(i,j)*(d->U[IJK]*p->SX1[IJ] + d->V[IJK]*p->SY1[IJ]);
+        continue;
+        }
         
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
