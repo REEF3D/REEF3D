@@ -138,6 +138,12 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     u_fb.setZero();
     Aadd_.setZero();
     
+    // wavemaker kinematics
+    timecount=1;
+    timecount_old=0;
+    ptnum=0;
+    xwm1=zwm1=xwm2=zwm2=0.0;
+    
     // porous floating body (X 16): Darcy-Forchheimer coefficients, same closure as vrans_nhflow_f
     // K = Apor_fb*visc + Bpor_fb*|u - u_fb|  [1/s]
     Xd=Yd=Zd=Kd=Md=Nd=0.0;

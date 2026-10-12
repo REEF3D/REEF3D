@@ -54,7 +54,7 @@ public:
     void initialize_wavemaker(lexer*,fdm_nhf*,ghostcell*,slice&,slice&);
     void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
-    void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
+    void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, int, bool);
     void ini_band(lexer*, ghostcell*);
     void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
@@ -62,6 +62,8 @@ public:
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     double Hpsi_nhflow(lexer*, fdm_nhf*);
+    void forcing_kernel_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
+    void target_velocity(lexer*, bool, double&, double&, double&);
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
     bool membrane_iterated();

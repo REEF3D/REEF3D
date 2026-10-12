@@ -45,48 +45,33 @@ void sixdof_obj::read_format_piston(lexer *p, ghostcell *pgc)
 	if(!file)
 	cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
     
+    // count the samples at or after the start time B 117
     count=0;
-	while(!file.eof())
-	{
-	file>>val0>>val1;
+	while(file>>val0>>val1)
 	if(val0>=p->B117)
 	++count;
-	}
+	
     ptnum=count;
 	
 	file.close();
 
 // allocate
-    p->Darray(kinematics,ptnum,colnum);
+    p->Darray(kinematics,MAX(ptnum,1),colnum);
     
-
-// re.open file
+// re.open file: only the counted samples, shifted by B 117 as for the double flap
     file.open (name, ios_base::in);
 	
-	if(!file)
-	cout<<endl<<("no 'wavemaker.dat' file found")<<endl<<endl;
-    
- // read file   
-    rowcount=colcount=0;
-	while(!file.eof())
+    rowcount=0;
+	while(file>>val0>>val1)
+	if(val0>=p->B117 && rowcount<ptnum)
 	{
-        for(qn=0;qn<colnum;++qn)
-        file>>kinematics[rowcount][qn];
-        
-        //cout<<kinematics[rowcount][0]<<" "<<kinematics[rowcount][1]<<endl;
-        
+        kinematics[rowcount][0] = val0 - p->B117;
+        kinematics[rowcount][1] = val1;
         ++rowcount;
 	}
     
-    ts = kinematics[0][0];
-    te = kinematics[ptnum-1][0];
-    
-    // newline check
-    while(te<1.0e-10 && ptnum>0)
-    {
-    --ptnum;
-    te = kinematics[ptnum-1][0];
-    }
+    ts = ptnum>0 ? kinematics[0][0] : 0.0;
+    te = ptnum>0 ? kinematics[ptnum-1][0] : 0.0;
     
     if(p->mpirank==0)
     cout<<"wavemaker.dat  ts: "<<ts<<" te: "<<te<<" ptnum: "<<ptnum<<endl;
@@ -120,39 +105,31 @@ void sixdof_obj::read_format_flap_double(lexer *p, ghostcell* pgc)
 	}
 	
 	count=0;
-	while(!file.eof())
-	{
-	file>>val0>>val1>>val2;
+	while(file>>val0>>val1>>val2)
 	if(val0>=p->B117)
 	++count;
-	}
 	
 	file.close();
 
     
     ptnum=count;
 	
-	p->Darray(kinematics,ptnum,5);
+	p->Darray(kinematics,MAX(ptnum,1),5);
 	
-	file.open ("wavemaker.dat", ios_base::in);
+	file.open (name, ios_base::in);
 	
 	count=0;
-	while(!file.eof())
+	while(file>>val0>>val1>>val2)
+	if(val0>=p->B117 && count<ptnum)
 	{
-	
-        file>>val0>>val1>>val2;
-        
-        if(val0>=p->B117)
-        {
         kinematics[count][0] = val0-p->B117;
         kinematics[count][1] = val1;
         kinematics[count][2] = val2;
         ++count;
-        }
 	}
 	
-	ts = kinematics[0][0];
-	te = kinematics[ptnum-1][0];
+	ts = ptnum>0 ? kinematics[0][0] : 0.0;
+	te = ptnum>0 ? kinematics[ptnum-1][0] : 0.0;
     
     // convert from angles to X
     if(p->B116==2)

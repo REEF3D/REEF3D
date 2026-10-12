@@ -140,9 +140,9 @@ protected:
     double ramp_draft(lexer*);
     
     void objects_create(lexer*, ghostcell*);
-    void piston(lexer*, ghostcell*,int);
+    void piston(lexer*, ghostcell*,int,double);
     void flap(lexer*, ghostcell*,int);
-    void flap_double(lexer*, ghostcell*,int);
+    void flap_double(lexer*, ghostcell*,int,double);
    
     void ini_parallel(lexer*, ghostcell*);
     
@@ -305,6 +305,14 @@ protected:
     double ts,te;
     double f0;
     int timecount,timecount_old;
+    
+    // wavemaker kinematics (X 170, X 172) at the time of the RK stage: wm_sample interpolates column
+    // col of wavemaker.dat between the bracketing samples (B 118 on displacement and velocity),
+    // wm_u is the paddle velocity at (x,z); wm_tri0 the first triangle of the paddle
+    void wm_sample(lexer*, double, int, double&, double&);
+    double wm_u(lexer*, double, double) const;
+    double wm_v1=0.0, wm_v2=0.0;
+    int wm_tri0=0;
     int rowcount,colcount;
     int colnum;
     int ptnum;

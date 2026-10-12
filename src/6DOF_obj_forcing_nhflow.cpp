@@ -35,6 +35,36 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     return;
     }
     
+    forcing_kernel_nhflow(p,d,pgc,U,V,W,FX,FY,FZ,WL,iter,false);
+}
+
+void sixdof_obj_nhflow::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+                             double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
+{
+    // wavemaker (X 10 4): the same direct forcing (X 15 0/1/2) as the floating body, with the
+    // paddle velocity of the stage as the target
+    forcing_kernel_nhflow(p,d,pgc,U,V,W,FX,FY,FZ,WL,iter,true);
+}
+
+void sixdof_obj_nhflow::target_velocity(lexer *p, bool wavemaker, double &uf, double &vf, double &wf)
+{
+    // target velocity of the direct forcing at the cell (i,j,k)
+    if(wavemaker)
+    {
+        uf = wm_u(p,p->pos_x(),p->pos_z());
+        vf = 0.0;
+        wf = 0.0;
+        return;
+    }
+    
+    uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
+    vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
+    wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+}
+
+void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+                             double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, int iter, bool wavemaker)
+{
     // Calculate forcing fields
     double H, uf, vf, wf;
     double ef,efc;
@@ -54,9 +84,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        target_velocity(p,wavemaker,uf,vf,wf);
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
@@ -70,9 +98,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        target_velocity(p,wavemaker,uf,vf,wf);
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
@@ -119,9 +145,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        target_velocity(p,wavemaker,uf,vf,wf);
         
         du = uf - U[IJK];
         dv = vf - V[IJK];

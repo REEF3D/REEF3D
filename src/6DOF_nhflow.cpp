@@ -160,7 +160,7 @@ void sixdof_nhflow::start_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, int it
     {
 
         // Update position and trimesh
-        fb_obj[nb]->update_wavemaker_nhflow(p,d,pgc,d->fs,finalize);  
+        fb_obj[nb]->update_wavemaker_nhflow(p,d,pgc,d->fs,iter,finalize);  
         
         // Update forcing terms
         fb_obj[nb]->update_forcing_nhflow_wavemaker(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
