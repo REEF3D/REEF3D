@@ -31,7 +31,18 @@ sixdof_nhflow::sixdof_nhflow(lexer *p, ghostcell *pgc) : press(p)
     if(p->mpirank==0)
     cout<<"6DOF startup ..."<<endl;
     
+    // one body: d->FB, FHB and the pierced-column level (X 13) hold a single hull; every body's
+    // ray cast would overwrite the previous one
     number6DOF = 1;
+    
+    if(p->X20>1)
+    {
+        if(p->mpirank==0)
+        cout<<"6DOF NHFLOW: X 20 "<<p->X20<<" - only one floating body is supported in NHFLOW"<<endl;
+        
+        pgc->final();
+        exit(1);
+    }
     
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj_nhflow(p,pgc,nb));
@@ -213,24 +224,39 @@ void sixdof_nhflow::start_shipwave(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
 void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                  double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    // shipwave (X 10 3): moving pressure field only, there is no body in the grid to re-impose
+    // (d->FB is never cast, so the rigid-body forcing would act on the whole domain)
+    if(p->X10==3)
+    return;
+    
     // subcycling (G 7 1): the predicted body of level 0 takes no loads
     if(amr_predict)
     {
     for (int nb=0; nb<number6DOF;++nb)
-    fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+    {
+        if(p->X10==4)
+        fb_obj[nb]->update_forcing_nhflow_wavemaker(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        
+        else
+        fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+    }
     return;
     }
     
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // 1. re-impose no-slip at the position the fluid was solved with
+        // 1. re-impose the body velocity at the position the fluid was solved with:
+        //    wavemaker (X 10 4): the paddle kinematics, not the rigid-body velocity u_fb
         //    porous body (X 16): the resistance is a momentum source and was applied once before
         //    the pressure projection - applying it again would double the drag. Only restore
         //    the porosity / FHB fields that reset() cleared.
-        if(p->X16==0)
+        if(p->X10==4)
+        fb_obj[nb]->update_forcing_nhflow_wavemaker(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
+        
+        else if(p->X16==0)
         fb_obj[nb]->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
         
-        if(p->X16==1)
+        else if(p->X16==1)
         fb_obj[nb]->porosity_nhflow(p,d,pgc);
 
         // 2. load from the pressure that was just solved

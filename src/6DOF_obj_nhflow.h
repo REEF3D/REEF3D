@@ -55,6 +55,7 @@ public:
     void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
     void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
+    void ini_band(lexer*, ghostcell*);
     void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);

@@ -32,6 +32,12 @@ void sixdof_obj_nhflow::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pg
     if(p->mpirank==0)
     cout<<"6DOF_obj_ini_wavemaker "<<p->X172<<endl;
     
+    if(p->mpirank==0)
+    mkdir("./REEF3D_NHFLOW_6DOF",0777);
+    
+    // band of the ray cast (DSM, NB): was left uninitialised on this path
+    ini_band(p,pgc);
+    
     if(p->X170==1)
     read_format_piston(p,pgc);
     

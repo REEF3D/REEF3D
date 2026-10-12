@@ -68,32 +68,8 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     mkdir("./REEF3D_NHFLOW_6DOF",0777);
     
     
-    //DSM
-    int num=0;
-    DSM=0.0;
-    
-    if(p->j_dir==0)
-    SLICELOOP4
-    {
-    DSM += p->DXN[IP];
-        
-    ++num;
-    }
-    
-    if(p->j_dir==1)
-    SLICELOOP4
-    {
-    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
-        
-    ++num;
-    }
-    
-    DSM = pgc->globalsum(DSM);
-    num = pgc->globalisum(num);
-    
-    DSM = DSM/double(num);
-    
-    NB = MAX(3.0, 2.0*p->A526 + 1.0);
+    // mean horizontal spacing and band width of the ray cast
+    ini_band(p,pgc);
     
     
     // Initialise folder structure
@@ -233,3 +209,34 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 }
 
 
+
+void sixdof_obj_nhflow::ini_band(lexer *p, ghostcell *pgc)
+{
+    // DSM: mean horizontal spacing (ray cast band NB*DSM, forcing widths); NB: band in cells.
+    // Shared by the floating body (initialize_nhflow) and the wavemaker (initialize_wavemaker).
+    int num=0;
+    DSM=0.0;
+    
+    if(p->j_dir==0)
+    SLICELOOP4
+    {
+    DSM += p->DXN[IP];
+        
+    ++num;
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP4
+    {
+    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
+        
+    ++num;
+    }
+    
+    DSM = pgc->globalsum(DSM);
+    num = pgc->globalisum(num);
+    
+    DSM = DSM/double(MAX(num,1));
+    
+    NB = MAX(3.0, 2.0*p->A526 + 1.0);
+}
