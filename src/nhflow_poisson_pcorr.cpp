@@ -169,7 +169,7 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
                 
                 if(p->B76==1 && p->B90==0)
                 {
-                pval=d->P[FIJK];
+                pval=0.0;
                 
                 d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
                 d->M.s[n] = 0.0;
