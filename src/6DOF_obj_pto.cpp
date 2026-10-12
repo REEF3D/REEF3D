@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-// PTO of the FNPF body (X 500 - X 508): joint, element set-up, controllers, loads, output.
+// PTO of the FNPF and NHFLOW body (X 500 - X 508): joint, element set-up, controllers, loads, output.
 //
 // X 500 1: explicit, the PTO load enters F like the mooring load
 // X 500 2: the Jacobians of the stiff elements (end-stops) are added to the added-mass system
@@ -41,6 +41,13 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
 {
     pto_on_ = (p->X500>0);
     pto_implicit_ = (p->X500==2);
+    
+    // RK scheme of the body: NHFLOW A 510 (2 or 3), FNPF A 310 (3 or 4)
+    if(p->A10==5)
+    pto_rk_ = (p->A510==2) ? 2 : 3;
+    
+    else
+    pto_rk_ = (p->A310==3) ? 3 : 4;
 
     if(!pto_on_)
     return;
@@ -146,16 +153,10 @@ void sixdof_obj::pto_forces(lexer *p, ghostcell*, int iter)
     const Eigen::Vector3d v(u_fb(0), u_fb(1), u_fb(2));
     const Eigen::Vector3d w(u_fb(3), u_fb(4), u_fb(5));
 
-    // stage time: TVD RK3 c = 0, 1, 1/2; RK4 c = 0, 1/2, 1/2, 1 (p->simtime is t^n in all stages)
-    static const double crk3[3] = {0.0, 1.0, 0.5};
-    static const double crk4[4] = {0.0, 0.5, 0.5, 1.0};
-    double ts = p->simtime;
-
-    if(p->A310==3 && iter>=0 && iter<3)
-    ts += crk3[iter]*p->dt;
-
-    else if(p->A310!=3 && iter>=0 && iter<4)
-    ts += crk4[iter]*p->dt;
+    // stage time t^n + c dt (p->simtime is t^n in all stages)
+    double cs,ws;
+    pto_rk(iter,cs,ws);
+    const double ts = p->simtime + cs*p->dt;
 
     pto_s_ = pto_joint_.state(c_,R_,v,w,ts);
 
@@ -182,22 +183,15 @@ void sixdof_obj::pto_forces(lexer *p, ghostcell*, int iter)
     Mext += Fg(4);
     Next += Fg(5);
 
-    // absorbed energy with the weights of the RK scheme of the body (TVD RK3: 1/6, 1/6, 2/3;
-    // RK4: 1/6, 1/3, 1/3, 1/6), i.e. the work the integrator applies, also across switches
+    // absorbed energy with the weights of the RK scheme of the body (RK2: 1/2, 1/2; TVD RK3:
+    // 1/6, 1/6, 2/3; RK4: 1/6, 1/3, 1/3, 1/6), i.e. the work the integrator applies, also across switches
     if(iter==0)
     {
     pto_E_ += pto_Estep_;
     pto_Estep_ = 0.0;
     }
 
-    static const double wrk3[3] = {1.0/6.0, 1.0/6.0, 2.0/3.0};
-    static const double wrk4[4] = {1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0};
-
-    if(p->A310==3 && iter>=0 && iter<3)
-    pto_Estep_ += wrk3[iter]*pto_out_.P*p->dt;
-
-    else if(p->A310!=3 && iter>=0 && iter<4)
-    pto_Estep_ += wrk4[iter]*pto_out_.P*p->dt;
+    pto_Estep_ += ws*pto_out_.P*p->dt;
 
     // first stage: accepted state at t^n
     if(iter==0)
@@ -230,6 +224,25 @@ void sixdof_obj::pto_forces(lexer *p, ghostcell*, int iter)
     }
 }
 
+void sixdof_obj::pto_rk(int iter, double &c, double &w) const
+{
+    // node c and weight w of stage iter: RK2 (Heun / TVD RK2), TVD RK3, classical RK4
+    static const double c2[2] = {0.0, 1.0},           w2[2] = {0.5, 0.5};
+    static const double c3[3] = {0.0, 1.0, 0.5},      w3[3] = {1.0/6.0, 1.0/6.0, 2.0/3.0};
+    static const double c4[4] = {0.0, 0.5, 0.5, 1.0}, w4[4] = {1.0/6.0, 1.0/3.0, 1.0/3.0, 1.0/6.0};
+    
+    c = w = 0.0;
+    
+    if(pto_rk_==2 && iter>=0 && iter<2)
+    {c = c2[iter]; w = w2[iter];}
+    
+    if(pto_rk_==3 && iter>=0 && iter<3)
+    {c = c3[iter]; w = w3[iter];}
+    
+    if(pto_rk_==4 && iter>=0 && iter<4)
+    {c = c4[iter]; w = w4[iter];}
+}
+
 void sixdof_obj::pto_implicit(lexer *p, Eigen::Matrix<double,6,6> &L, Eigen::Matrix<double,6,1> &r)
 {
     if(!(pto_on_ && pto_implicit_))
@@ -244,9 +257,10 @@ void sixdof_obj::pto_implicit(lexer *p, Eigen::Matrix<double,6,6> &L, Eigen::Mat
 
 void sixdof_obj::pto_stability_check(lexer *p)
 {
-    // explicit RK3/RK4: |lambda dt| below ~2.5 for the explicitly treated PTO damping and
-    // stiffness, with the effective mass at the joint m_eff = 1/(J^T (M + A)^-1 J) of the free DOFs
-    if(pto_warned_ || !am_on_)
+    // explicit RK: |lambda dt| below ~2.5 (RK3/RK4; ~2 for RK2) for the explicitly treated PTO
+    // damping and stiffness, with the effective mass at the joint m_eff = 1/(J^T (M + A)^-1 J) of
+    // the free DOFs. FNPF: once the added mass is known; NHFLOW has none (A = 0, conservative)
+    if(pto_warned_ || (p->A10==3 && !am_on_))
     return;
 
     Eigen::Matrix<double,6,6> L = Aadd_;
@@ -277,7 +291,7 @@ void sixdof_obj::pto_stability_check(lexer *p)
     const double om = sqrt(fabs(Kx)/meff);
     const double cfl = p->dt*MAX(lam,om);
 
-    if(cfl>2.5)
+    if(cfl>(pto_rk_==2 ? 2.0 : 2.5))
     {
         pto_warned_ = true;
 

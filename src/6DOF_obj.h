@@ -340,7 +340,7 @@ protected:
     Eigen::Vector3d gyroc_;
     bool fixedc_[6] = {false,false,false,false,false,false};
 
-    // FNPF: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
+    // FNPF and NHFLOW: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
@@ -353,6 +353,8 @@ protected:
     pto_output pto_out_;
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
+    int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
+    void pto_rk(int, double&, double&) const;
     ofstream printpto;
 };
 

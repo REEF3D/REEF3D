@@ -206,6 +206,13 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->X10==1)
     hydrodynamic_forces_nhflow(p,d,pgc,d->WL,false);
+    
+    // power take-off (X 500): explicit (X 500 1) or with the stiff-element Jacobians on the
+    // left-hand side (X 500 2, apply_added_mass with A = 0); two-way bodies only (X 10 1)
+    ini_pto(p,pgc);
+    
+    if(pto_on_ && p->X10!=1 && p->mpirank==0)
+    cout<<"6DOF PTO: X 500 needs a two-way floating body (X 10 1) in NHFLOW to act on the motion"<<endl;
 }
 
 
