@@ -92,6 +92,7 @@ public:
     void W_relax(lexer*,ghostcell*,double*,double*) override final;
     void P_relax(lexer*,ghostcell*,double*) override final;
     void WL_relax(lexer*,ghostcell*,slice&,slice&) override final;
+    bool relax_zone(double x, double y) override final {return zones.relax_dist(x,y)<1.0e19 || zones.beach_dist(x,y)<1.0e19;}
     void fivec_relax(lexer*, ghostcell*, double*);
     void fifsf_relax(lexer*, ghostcell*, slice&) override final;
     void eta_relax(lexer*,ghostcell*,slice&) override final;

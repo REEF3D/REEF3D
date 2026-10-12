@@ -87,11 +87,14 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Calculate forces
         //fb_obj[nb]->hydrodynamic_forces_nhflow(p,d,pgc,WL,finalize);
         
-        // Advance body in time
+        // Advance body in time (X 13: already done at the start of the stage)
+        if(!advanced(p,iter))
+        {
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
+        }
         
         // Update position and trimesh
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);  
@@ -122,11 +125,14 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 {
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // Advance body in time
+        // Advance body in time (X 13: already done at the start of the stage)
+        if(!advanced(p,iter))
+        {
         fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,finalize);
         
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
+        }
         
         // Update position and trimesh
         fb_obj[nb]->update_position_nhflow(p,d,pgc,d->fs,finalize);  
@@ -316,4 +322,60 @@ bool sixdof_nhflow::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     conv = fb_obj[nb]->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it) && conv;
     
     return conv;
+}
+
+// ------------------------------------------------------------------ X 13: advance before the level
+bool sixdof_nhflow::advance_early_ok(lexer *p) const
+{
+    // the body ODE of a stage only needs the loads of the last stage. Nets (X 320), membranes
+    // (X 330) and the ship load models (X 350) also sample the fluid of the stage in
+    // solve_eqmotion_nhflow, so they keep the advance in phase_P1 (and the footprint of d->FB)
+    return (p->X10==1 || p->X10==2) && p->X320==0 && p->X330==0 && p->X350==0 && p->X16==0;
+}
+
+bool sixdof_nhflow::advanced(lexer *p, int iter) const
+{
+    return adv_count==p->count && adv_iter==iter && adv_time==p->simtime;
+}
+
+void sixdof_nhflow::advance_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter)
+{
+    if(advanced(p,iter))
+    return;
+    
+    const int last = (p->A510==2) ? 1 : 2;
+    
+    for (int nb=0; nb<number6DOF;++nb)
+    {
+        if(amr_predict || p->X10==2)
+        fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,false);
+        
+        else
+        fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,iter==last);
+        
+        fb_obj[nb]->quat_matrices(p);
+        fb_obj[nb]->pose_update(p,pgc);
+    }
+    
+    adv_count = p->count;
+    adv_iter = iter;
+    adv_time = p->simtime;
+}
+
+bool sixdof_nhflow::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, slice &WL, slice &phi)
+{
+    if(!advance_early_ok(p))
+    {
+        if(!adv_told && p->mpirank==0)
+        cout<<"NHFLOW 6DOF X 13: footprint from the last ray cast (nets, membranes or ship loads sample the fluid in the body update)"<<endl;
+        
+        adv_told = true;
+        return false;
+    }
+    
+    advance_stage(p,d,pgc,iter);
+    
+    fb_obj[0]->top_phi_nhflow(p,d,WL,fb_obj[0]->nhflow_nb()*fb_obj[0]->nhflow_dsm(),phi);
+    
+    return true;
 }

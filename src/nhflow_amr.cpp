@@ -634,9 +634,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(pp->A510==3)
     c->pmom = new nhflow_momentum_RK3(pp,d,pgc,c->p6dof,c->pvrans,c->pdf);
     
-    // pierced-column water level (X 13): level 0 only
+    // pierced-column water level (X 13): on the patch too, local to it
     if(c->pmom!=nullptr && c->pmom->pfsfbody!=nullptr)
-    c->pmom->pfsfbody->off();
+    c->pmom->pfsfbody->set_patch();
 
     c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
 

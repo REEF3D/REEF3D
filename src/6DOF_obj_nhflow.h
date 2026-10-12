@@ -83,6 +83,11 @@ public:
     void actuator_source(lexer*, fdm_nhf*, ghostcell*, slice&, int, double*);
     bool actuator_warned = false;
     double nhflow_dsm() const {return DSM;}
+    double nhflow_nb() const {return NB;}
+    
+    // X 13: signed distance of the top cell centre of every column to the hull (negative inside,
+    // |phi| <= band), from the current trimesh on the grid of p (level 0 or a patch)
+    void top_phi_nhflow(lexer*, fdm_nhf*, slice&, double, slice&);
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;
     // mesh refinement with placed patches (G 40 1): this rank takes the triangle with the centroid

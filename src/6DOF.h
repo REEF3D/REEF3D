@@ -54,6 +54,11 @@ public:
     virtual void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&) {};
     virtual bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int) {return true;};
     
+    // pierced-column water level (X 13, nhflow_fsf_body): signed distance of the top cell centre of
+    // every column to the hull at the pose of stage iter (negative inside); false: not available,
+    // the caller falls back to d->FB of the last ray cast
+    virtual bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) {return false;};
+    
     virtual void ini(lexer*,ghostcell*)=0;
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;

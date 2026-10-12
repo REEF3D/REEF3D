@@ -32,6 +32,8 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class slice;
+class sixdof;
+class ioflow;
 
 using namespace std;
 
@@ -47,18 +49,27 @@ public:
     nhflow_fsf_body(lexer*);
     virtual ~nhflow_fsf_body();
 
-    void level(lexer*, fdm_nhf*, ghostcell*, slice&, double);
+    void level(lexer*, fdm_nhf*, ghostcell*, sixdof*, ioflow*, int, slice&, double);
     void momentum(lexer*, double*, double*, double*);
     void print(lexer*, fdm_nhf*, ghostcell*, slice&);
 
-    // mesh refinement patches (nhflow_amr): the level is only treated on level 0
-    void off() {mode=0; patch=true;}
+    // mesh refinement patches (nhflow_amr): treated like level 0, local to the patch (no
+    // communication, no log); the hull is at the pose of the stage (nhflow_amr_6dof)
+    void set_patch() {patch=true;}
 
 private:
     void solve(lexer*, fdm_nhf*, ghostcell*);
+    void set_level(lexer*, fdm_nhf*, slice&, double, double);
+    void ring(lexer*);
+    double gsum(ghostcell*, double);
+    int gsum_i(ghostcell*, int);
 
-    slice4 Hb,Hbold,etaext,ratio;
+    slice4 Hb,Hbold,etaext,ratio,phitop;
     vector<int> fi,fj;              // interior columns with Hb > 0 on this rank
+    vector<int> ri,rj;              // free columns around the footprint (volume of the transition columns)
+    double aring;                   // their area on this rank
+    double dVcomp;                  // volume returned to the ring, summed over the run (global)
+    ioflow *pflow_ = nullptr;
 
     int mode,gcval_eta;
     bool patch,told;

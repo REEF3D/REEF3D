@@ -76,6 +76,8 @@ public:
     virtual void W_relax(lexer*,ghostcell*,double*,double*)=0;
     virtual void P_relax(lexer*,ghostcell*,double*)=0;
     virtual void WL_relax(lexer*,ghostcell*,slice&,slice&)=0;
+    // (x,y) inside a relaxation (generation or beach) zone
+    virtual bool relax_zone(double, double) {return false;}
     virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
     // SFLOW: um/vm/wm_relax(U,UH,WL) at the cell centres

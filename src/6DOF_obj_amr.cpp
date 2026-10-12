@@ -35,6 +35,14 @@ void sixdof_obj::amr_save()
     rb_amr = rb;
 }
 
+void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
+{
+    rb.euler_angles();
+    geom.transform(R_,c_);
+    rb.update_omega();
+    update_fbvel(p,pgc);
+}
+
 void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
 {
     rb = rb_amr;

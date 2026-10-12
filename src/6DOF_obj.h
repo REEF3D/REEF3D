@@ -77,6 +77,7 @@ public:
     // predicted copy of the body; the state is saved before and put back after
     void amr_save();
     void amr_restore(lexer*, ghostcell*);
+    void pose_update(lexer*, ghostcell*);   // Euler angles, trimesh, omega, u_fb from the rigid-body state
     sixdof_rigidbody rb_amr;
     
     // surface geometry: hull triangles and pose transformation (solver independent)
