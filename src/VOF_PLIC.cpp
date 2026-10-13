@@ -287,7 +287,80 @@ void VOF_PLIC::start(fdm* a,lexer* p, convection* pconvec,solver* psolv, ghostce
     
     if(p->F98==1)
     {
-        updatePhasemarkersCorrection(p,a,pgc,a->vof);
+        
+        LOOP
+            a->phasemarker(i,j,k)=-1.0;
+        //LOOP
+            //a->phasemarker(i,j,k)=0.0;
+        LOOP
+        {
+            if(a->vof(i,j,k)>p->F95)
+            {
+                a->phasemarker(i,j,k)=10.0;
+            }
+            else if(a->vof(i,j,k)<p->F93)
+            {
+                a->phasemarker(i,j,k)=0.0;
+            }
+        }
+        pgc->start4(p,a->phasemarker,1);
+
+        LOOP
+        {
+            if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
+            {   
+                if(searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1)
+                {
+                    a->phasemarker(i,j,k)=6.0;
+                }
+            }
+        }
+        pgc->start4(p,a->phasemarker,1);
+    
+        LOOP
+        {
+            if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
+            {
+                if(searchMarkerInVicinity(p,a,1,6.0,i,j,k)>=1)
+                {
+                    a->phasemarker(i,j,k)=4.0;
+                }
+            }
+        }
+        pgc->start4(p,a->phasemarker,1);
+       /* LOOP
+        {
+            if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
+            {
+                if(searchMarkerInVicinity(p,a,2,0.0,i,j,k)>=1)
+                {
+                    a->phasemarker(i,j,k)=4.0;
+                }
+            }
+        }*/
+    
+        /*LOOP
+        {
+            if(a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1)
+            {
+                if((searchMarkerAlongDims(p,a,1,6.0,i,j,k)>=2) && (searchMarkerInVicinity(p,a,1,10.0,i,j,k)>=1))
+                {
+                    a->phasemarker(i,j,k)=4.0;
+                }
+            }
+        }
+    
+        pgc->start4(p,a->phasemarker,1);*/
+    
+        LOOP
+        {
+            if(a->phasemarker(i,j,k)>9.9 && a->phasemarker(i,j,k)<10.1)
+                a->vof(i,j,k)=1.0;
+            
+            if((a->phasemarker(i,j,k)>-0.1 && a->phasemarker(i,j,k)<0.1))
+                a->vof(i,j,k)=0.0;
+            
+        }
         pgc->start4(p,a->vof,gcval_vof);
     //updatePlaneData(p,a,pgc,a->vof);
     }
