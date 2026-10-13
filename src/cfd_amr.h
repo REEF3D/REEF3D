@@ -97,8 +97,9 @@ struct cfd_amr_tlev
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
-//  step of the coarser level; the projection of a level alone, with the face velocity of the
-//  coarser level at the patch edges (pr_level).  F 46 2/3: the volume correction of the level set
+//  step of the coarser level; the projection of a level alone, with the pressure of the coarser
+//  level at the patch edges (pr_level), and at the end of the level-0 step the synchronisation
+//  projection over all levels (pr_sync_project).  F 46 2/3: the volume correction of the level set
 //  over the leaf cells of all grids at the end of the step.
 
 struct cfd_amr_patch : public r3patch
@@ -162,6 +163,7 @@ struct cfd_amr_cf
     int sg[5], sq[5];   // (the coarse cell and its leaf neighbours in the transverse directions,
     double sw[5];       // weights of the stage: pr_weights)
     int sc[5][3];       // (their local cell indices)
+    double ufin;        // G 7 1 level projection: the corrected face velocity
     double hf, hs;      // hydrostatic pressure of the fine cell and at its position on the coarse side
     bool hok;           // (computed)
     int tq[3][2];       // transverse neighbours of the coarse cell (index, -1: not a leaf cell)
@@ -275,7 +277,7 @@ private:
     void pr_setup();
     void pr_stencils();
     void pr_weights();
-    void pr_hydro();
+    void pr_hydro(int lsub=-1);         // lsub >= 0 (G 7 1, the projection of level lsub): the coarser grids at the time of the stage
     double pr_xs(const cfd_amr_cf&, int k);
     double pr_ps(const cfd_amr_cf&);
     void pr_matrix(int s);
@@ -284,6 +286,7 @@ private:
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k);
     void pr_level(lexer*, ghostcell*, int l, int s);
+    void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
     void pr_components();
     const vector<int>& UQ(int g) { return prl<0 ? lq[g+1] : aq[g+1]; }
     const vector<int>& UR(int g) { return prl<0 ? lr[g+1] : ar[g+1]; }
@@ -331,6 +334,8 @@ private:
     reefmg_core *mg0 = nullptr;
     vector<long> l0a, l0f;              // level-0 V-cycle: active rows of the multigrid, cells
     int pr_it_last = 0;
+    int pr_it_sync = 0;                 // G 7 1: iterations of the synchronisation projection
+    bool press_step = false;            // G 7 1: false until the end of the first level-0 step (the initial pressure is not that of a step)
     double pr_res_last = 0.0;
     long pr_it_total = 0, pr_solves = 0;
     bool pr_ready = false;

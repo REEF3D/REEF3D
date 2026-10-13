@@ -522,8 +522,12 @@ void cfd_amr::pr_weights()
 // gravity it balances): the hydrostatic pressures of the coarse and the fine grid differ inside the
 // interface band (where the free surface crosses a patch edge), at rest the patch edge then has no
 // gradient of the rest.
-void cfd_amr::pr_hydro()
+void cfd_amr::pr_hydro(int lsub)
 {
+    // the level set of grid gg: with subcycling the coarser grids at the time of the stage (as
+    // their pressure, tsf), the grids of the level their own
+    auto lsf = [&](int gg) -> field& { return (lsub>=0 && glevel(gg)<lsub) ? tsf(gg,3) : gfd(gg)->phi; };
+
     const bool zgrav = (p0->W20==0.0 && p0->W21==0.0 && p0->W22!=0.0);
     const double g = fabs(p0->W22);
 
@@ -532,7 +536,7 @@ void cfd_amr::pr_hydro()
     auto column = [&](int gg, int i, int j, int ktop, int kc, double &val) -> bool
     {
         lexer *q = glex(gg);
-        fdm *a = gfd(gg);
+        field &phi = lsf(gg);
         const int m = q->margin;
         const int k0 = MIN(kc,ktop-1);
         if(k0<-m || ktop>q->knoz+m-1 || i<-m || i>q->knox+m-1 || j<-m || j>q->knoy+m-1)
@@ -543,19 +547,19 @@ void cfd_amr::pr_hydro()
         if(q->flag4[cix(q,i,j,k)]<=0 && k<ktop)
         return false;
 
-        double h = g*rho(a->phi(i,j,ktop-1),interface_width(q,a->phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
+        double h = g*rho(phi(i,j,ktop-1),interface_width(q,phi,i,j,ktop-1))*0.5*q->DZN[ktop-1+marge];   // cell ktop-1
         if(kc==ktop)
         {
             if(q->flag4[cix(q,i,j,ktop)]<=0)
             return false;
-            val = h - g*rho(0.5*(a->phi(i,j,ktop-1)+a->phi(i,j,ktop)),interface_width_face(q,a->phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
+            val = h - g*rho(0.5*(phi(i,j,ktop-1)+phi(i,j,ktop)),interface_width_face(q,phi,i,j,ktop-1,0,0,1))*q->DZP[ktop-1+marge];
             return true;
         }
         for(int k=ktop-2; k>=kc; --k)
         {
             if(q->flag4[cix(q,i,j,k)]<=0)
             return false;
-            h += g*rho(0.5*(a->phi(i,j,k)+a->phi(i,j,k+1)),interface_width_face(q,a->phi,i,j,k,0,0,1))*q->DZP[k+marge];
+            h += g*rho(0.5*(phi(i,j,k)+phi(i,j,k+1)),interface_width_face(q,phi,i,j,k,0,0,1))*q->DZP[k+marge];
         }
         val = h;
         return true;
@@ -1307,18 +1311,55 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 
     vel_after();
 
-    // the faces at the patch edges: the coarse face velocity
+    // the faces at the patch edges: the coarse face velocity at the output time of the stage
+    // (tsf), its pressure gradient replaced by the one across the fine face as in pr_predict: the
+    // fine cell and the coarse pressure at its position, each without the discrete hydrostatic
+    // pressure of its grid (the free surface across a patch edge; the coarse one with its level set
+    // at the time of the stage), the face density of the stage.
+    // The correction of the coarser level is final (Dirichlet 0): the fine pressure answers the
+    // coarse one across the edge, the patch takes its own flux there (the coarser level takes it
+    // in the synchronisation at the end of the level-0 step)
+    pr_weights();
+    pr_hydro(l);
     for(cfd_amr_cf &F : cf)
     {
-        if(CP(F.pid)->lev!=l)
+        cfd_amr_patch *c = CP(F.pid);
+        if(c->lev!=l)
         continue;
         field &fc = tsf(F.gface,F.d);
         double v = fc(F.cf[0],F.cf[1],F.cf[2]);
         for(int t=0; t<3; ++t)
         if(t!=F.d)
         v += cell_slope(fc,F.gface,F.cf,t,1)*(F.o[t]==0 ? -0.25 : 0.25);
+
+        lexer *pp = c->pp;
+        lexer *qc = glex(F.gc), *qp = glex(F.gp);
+        const double pC = tsf(F.gc,4).V[F.qc];
+        const double pP = tsf(F.gp,4).V[F.qp];
+        double pCs = -F.hs;
+        for(int m=0; m<F.ns; ++m)
+        pCs += F.sw[m]*tsf(F.sg[m],4).V[F.sq[m]];
+        const double pf = c->a->press.V[F.qf] - F.hf;
+
+        field &lc = tsf(F.gc,3), &lp = tsf(F.gp,3);
+        const double phC = lc(F.ci[0],F.ci[1],F.ci[2]);
+        const double phP = lp(F.pi[0],F.pi[1],F.pi[2]);
+        const double wc = 0.5*(interface_width(qc,lc,F.ci[0],F.ci[1],F.ci[2]) + interface_width(qp,lp,F.pi[0],F.pi[1],F.pi[2]));
+        const double Hc = heaviside(0.5*(phC+phP),wc);
+        const double roc = qc->W1*Hc + qc->W3*(1.0-Hc);
+
+        lexer *ql = (F.dir>0) ? qp : qc;
+        const double *dp[3] = {ql->DXP,ql->DYP,ql->DZP};
+        const int Lc = (F.dir>0) ? F.pi[F.d] : F.ci[F.d];
+        const double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
+        const double Gf = double(F.dir)*(pCs-pf)/(F.dist*F.rof);
+
+        v += alpha*pp->dt*(Gc-Gf);
+        if(F.hok && F.d==2)
+        v -= alpha*pp->dt*p0->W22;
+
         F.ustar = v;
-        CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;
+        c->pmom->amr_velout(c->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;
     }
 
     for(int id : lev[l])
@@ -1330,15 +1371,18 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
     }
 
-    // the faces at the patch edges Neumann; multigrids from the patch rows (couplings to the cells
-    // around the patch dropped; a small shift of the diagonal keeps the closed patch regular)
+    // the faces at the patch edges Dirichlet: the coupling of the fine cell to the coarse value at
+    // its position stays on the diagonal, the coarse correction is 0; multigrids from the patch rows
+    // (a small shift of the diagonal keeps a closed patch, one without such faces and without a
+    // boundary of fixed pressure, regular)
     for(cfd_amr_cf &F : cf)
     {
         if(CP(F.pid)->lev!=l)
         continue;
+        F.kf = 1.0/(F.rof*F.dist*F.dxnf);
         matrix_diag &Mf = CP(F.pid)->a->M;
         double &cfn = mcoef(Mf,F.nf,F.d,F.dir);
-        Mf.p[F.nf] += cfn;
+        Mf.p[F.nf] += cfn + F.kf;
         cfn = 0.0;
     }
     for(int id : lev[l])
@@ -1390,6 +1434,9 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
             cs[3*c->comp+2] += 1.0;
         }
     }
+    for(const cfd_amr_cf &F : cf)
+    if(CP(F.pid)->lev==l)
+    cs[3*CP(F.pid)->comp+2] += 1.0;
 
     // right-hand side, compatible on the closed components
     auto cvol = [&](lexer *q, int qq) -> double
@@ -1480,11 +1527,20 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         c->ppress->amr_finish(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
     }
 
-    // the faces at the patch edges keep the coarse flux
+    // the faces at the patch edges: the predictor corrected with the fine correction against the
+    // coarse one (0), as the rows of the solve
+    for(cfd_amr_cf &F : cf)
+    {
+        cfd_amr_patch *c = CP(F.pid);
+        if(c->lev!=l)
+        continue;
+        const double xf = pvec(F.pid,-1)[F.qf];
+        F.ufin = F.ustar + double(F.dir)*alpha*c->pp->dt*xf/(F.dist*F.rof);
+    }
     vel_after();
     for(const cfd_amr_cf &F : cf)
     if(CP(F.pid)->lev==l)
-    CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
+    CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = F.ufin;
 
     for(int id : lev[l])
     {
@@ -1499,6 +1555,129 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     prg.clear();
     for(int g=-1; g<(int)P.size(); ++g)
     prg.push_back(g);
+
+    tm[2] += MPI_Wtime()-t0;
+}
+
+// G 7 1: the synchronisation projection at the end of the level-0 step.  The patches took their
+// own flux at their edges (Dirichlet from the coarser level in the level projections), the
+// coarser levels kept theirs; after the restriction the coarse faces at the patch edges are the
+// mean of the fine ones and the coarse cells next to the patches have the divergence of the
+// mismatch.  One composite correction solve over all levels (as G 7 0, the faces at the patch edges
+// with their fine values as the predictor), the velocities of all grids corrected, the
+// correction added to the pressure.  The step of level 0, alpha 1.
+void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
+{
+    const int s = mom0->amr_stages()-1;     // the end state of the step: velout of the last stage
+    const double alpha = 1.0;
+    const double t0 = MPI_Wtime();
+
+    vector<double> dts(P.size());
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        dts[id] = CP(id)->pp->dt;
+        CP(id)->pp->dt = p->dt;
+    }
+
+    fill_vel_after(s);
+    pr_weights();
+
+    // the predictor at the faces of the patch edges: their own value; the coarse faces their mean
+    for(cfd_amr_cf &F : cf)
+    {
+        F.hok = false;
+        F.ustar = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]);
+    }
+    for(cfd_amr_cf &F : cf)
+    {
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) = 0.0;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            c[F.d] -= 1;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) = 0.0;
+        }
+    }
+    for(cfd_amr_cf &F : cf)
+    {
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += F.area*F.ustar;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            c[F.d] -= 1;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += F.area*F.ustar;
+        }
+    }
+
+    field &u0 = mom0->amr_velout(a0,0,s), &v0 = mom0->amr_velout(a0,1,s), &w0 = mom0->amr_velout(a0,2,s);
+
+    pflow0->pressure_io(p,a0,pgc);
+    press0->amr_prepare(p,a0,pois0,pgc,u0,v0,w0,alpha);
+
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        momentum_rk *m = c->pmom;
+        c->pflow->pressure_io(c->pp,c->a,pgc);
+        c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
+    }
+
+    pr_matrix(s);
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *R = gfd(g)->rhsvec.V.data();
+        double *b = pvec(g,NS);
+        for(size_t n=0; n<lq[g+1].size(); ++n)
+        b[lq[g+1][n]] = R[lr[g+1][n]];
+        for(int qq : cq[g+1])
+        b[qq] = 0.0;
+    }
+
+    pr_apply(-1,NVV);
+
+    double bn, rn;
+    pr_space sp{this};
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    pr_it_sync = it;
+
+    pr_sync(-1);
+
+    press0->amr_finish(p,a0,pgc,u0,v0,w0,alpha);
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        momentum_rk *m = c->pmom;
+        c->ppress->amr_finish(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
+    }
+
+    fill_vel_after(s);
+
+    // the faces at the patch edges (as pr_correct with alpha 1)
+    for(const cfd_amr_cf &F : cf)
+    {
+        const double xf = pvec(F.pid,-1)[F.qf];
+        const double xc = pr_xs(F,-1);
+        const double rof = 1.0/(F.kf*F.dist*F.dxnf);
+        field &ff = CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s);
+        ff(F.ff[0],F.ff[1],F.ff[2]) = F.ustar - double(F.dir)*alpha*p->dt*(xc-xf)/(F.dist*rof);
+    }
+
+    mom0->amr_project_after(p,a0,pgc,u0,v0,w0);
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        momentum_rk *m = c->pmom;
+        m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
+    }
+
+    restrict_vel(s);
+
+    for(int id=0; id<(int)P.size(); ++id)
+    CP(id)->pp->dt = dts[id];
 
     tm[2] += MPI_Wtime()-t0;
 }

@@ -46,12 +46,14 @@ Architect: Hans Bihs
 //  the level alone), then two steps of level l+1, then the restriction of level l+1 onto level l.
 //  The cells around a patch get the values of the coarser level linear in time between the start
 //  and the end of its step, at the time of the stage (SSP-RK3: input times 0, 1, 1/2, output times
-//  1, 1/2, 1 of the step).  The projection of a level (cfd_amr_press.cpp, pr_level) keeps the face
-//  velocity of the coarser level at the patch edges (fine slaved to the coarse flux): the coarse
-//  cells next to a patch see the flux they computed, the patch takes the same flux, and the
-//  composite field is divergence free without a solve over the levels.  The fine grid acts on the
-//  coarse one through the restriction (velocities, level set, density, viscosity; the pressure of
-//  the coarser level stays its own).
+//  1, 1/2, 1 of the step); the pressure linear between the middles of the steps.  The projection
+//  of a level (cfd_amr_press.cpp, pr_level) takes the pressure of the coarser level at the patch
+//  edges (Dirichlet, its hydrostatic part as in G 7 0): the patch makes its own flux there, so its
+//  pressure answers what happens inside it (a floating body).  At the end of the level-0 step the
+//  synchronisation projection (pr_sync_project), one composite correction solve over all levels,
+//  makes the coarse faces at the patch edges the mean of the fine ones and the composite velocity
+//  field divergence free.  The fine grid acts on the coarse one through the restriction
+//  (velocities, level set, density, viscosity) and the synchronisation.
 
 namespace
 {
@@ -159,8 +161,12 @@ void cfd_amr::interp(int l, double th)
         {
             const double *o = gts(g)->o[m]->V, *c = stf(g,m).V;
             double *t = gts(g)->t[m]->V;
+            // the pressure of a step belongs to its middle: linear between the middles of the
+            // steps (the start value at -1/2, the end value at 1/2), beyond the middle extrapolated;
+            // in the first step the end value (the initial pressure is not that of a step)
+            const double w = (m!=4) ? th : (press_step ? th+0.5 : 1.0);
             for(size_t q=0; q<n; ++q)
-            t[q] = o[q] + th*(c[q]-o[q]);
+            t[q] = o[q] + w*(c[q]-o[q]);
         }
     }
 }
@@ -406,6 +412,11 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
 
     advance(1,p->dt,p->simtime);
 
+    // the coarser levels take the fluxes of the patches at their edges: one composite projection
+    pr_sync_project(p,pgc);
+
+    press_step = true;
+
     if(bodies)
     body_time(-1.0);
 
@@ -430,7 +441,7 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
         cout<<"CFD AMR: subcycling, level-0 step "<<setprecision(3)<<tm[4]<<" s, the patches "<<tm[7]-tm[4]<<" s; pressure iterations (last level solve) "<<pr_it_last
-            <<"  res "<<pr_res_last<<endl;
+            <<"  res "<<pr_res_last<<", synchronisation "<<pr_it_sync<<endl;
     }
 }
 
