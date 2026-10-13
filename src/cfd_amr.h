@@ -59,10 +59,11 @@ using namespace std;
 // (linear in time between the start and the end of its step)
 struct cfd_amr_tlev
 {
-    cfd_amr_tlev(lexer*);
+    cfd_amr_tlev(lexer*, int n);
     ~cfd_amr_tlev();
-    field *o[6];        // start of the step: u, v, w, phi, press, eddyv
-    field *t[6];        // at the time of the finer stage
+    int n;
+    field *o[8];        // start of the step: u, v, w, phi, press, eddyv (and kin, eps with turbulence)
+    field *t[8];        // at the time of the finer stage
 };
 
 //  REEF3D::CFD with mesh refinement (A 10 6, G 1 > 0, static boxes G 15).
@@ -110,6 +111,8 @@ struct cfd_amr_patch : public r3patch
     pjm_corr *ppress = nullptr;
     poisson *ppois = nullptr;
     turbulence *pturb = nullptr;
+    convection *pturbdisc = nullptr;
+    diffusion *pturbdiff = nullptr;
     heat *pheat = nullptr;
     concentration *pconc = nullptr;
     reini *preini = nullptr;
@@ -165,7 +168,7 @@ struct cfd_amr_cf
 class cfd_amr : public reefamr3d
 {
 public:
-    cfd_amr(lexer*, fdm*, ghostcell*, momentum*, pressure*, poisson*, ioflow*, vrans*, fsi*, initialize*);
+    cfd_amr(lexer*, fdm*, ghostcell*, momentum*, pressure*, poisson*, ioflow*, vrans*, fsi*, initialize*, turbulence*);
     virtual ~cfd_amr();
 
     // false: the run is outside the scope of the refinement (a message has been printed)
@@ -296,6 +299,17 @@ private:
 
     int gcval_phi;
     int sub = 0;                        // G 7 1
+    turbulence *pturb0 = nullptr;
+    int turb = 0;                       // RANS on the patches (T 10 1, 2)
+    int solids = 0;                     // solids or topography (direct forcing) on the patches
+    int nts = 6;                        // fields of the subcycling state (8 with turbulence)
+    field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
+    // the state of a grid transferred to new patches (ini, regrid): 0 phi, 1 press, 2 eddyv, 3-5 u,
+    // v, w; with turbulence 6 kin, 7 eps, 10 walld; with solids 8 solid, 9 topo
+    vector<int> state_ids();
+    static field& sfield(fdm *a, turbulence *t, int m);
+    vector<fspec> state_specs();
+    void turb_step(int l);              // the turbulence model on the patches of level l (cells around filled)
     cfd_amr_tlev *ts0 = nullptr;
 
     // composite pressure

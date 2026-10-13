@@ -105,9 +105,10 @@ public:
     void amr_ls_finish(lexer*, fdm*, ghostcell*, int, bool, int);
     void amr_ls_reini(lexer*, fdm*, ghostcell*, int, int);
     int amr_reini_iters(lexer*, int) const;
-    void amr_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, int, bool);
+    void amr_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, int, int);
     void amr_project_after(lexer*, fdm*, ghostcell*, field&, field&, field&);
     void amr_projection(lexer*, fdm*, ghostcell*, int);
+    void amr_solid_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&, double);
     void amr_stage_end(lexer*, fdm*, ghostcell*, int);
     field& amr_vel(fdm*, int c, int s);
     field& amr_velout(fdm*, int c, int s);

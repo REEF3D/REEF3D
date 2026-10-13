@@ -289,7 +289,7 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
         if(levelset)
         amr_ls_finish(p,a,pgc,s,true,-1);
 
-        amr_momentum(p,a,pgc,pvrans,p6dof,s,true);
+        amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
 
         projection(p,a,pgc,velout(a,0,s),velout(a,1,s),velout(a,2,s),ssp_b[s]);
 
@@ -352,7 +352,8 @@ int momentum_rk::amr_reini_iters(lexer *p, int s) const
 }
 
 // convection, sources, diffusion of the three components and the direct forcing of stage s
-void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, int s, bool forcing)
+// (forcing 1: all, as step_ssp; 2: solids and topography only, the grids of the mesh refinement)
+void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, int s, int forcing)
 {
     const bool final = (s==stages-1);
 
@@ -373,9 +374,31 @@ void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     pgc->start3(p,wout,gcval_w);
     }
 
-    if(forcing)
+    if(forcing==1)
     momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                            uout, vout, wout, fx, fy, fz, s, ssp_b[s], final);
+
+    if(forcing==2)
+    amr_solid_forcing(p,a,pgc,uout,vout,wout,ssp_b[s]);
+}
+
+// the direct forcing of solids and topography alone (as momentum_forcing_start)
+void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
+{
+    std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fy.V, fy.V + p->imax*p->jmax*p->kmax, 0.0);
+    std::fill(fz.V, fz.V + p->imax*p->jmax*p->kmax, 0.0);
+
+    pgc->solid_forcing(p,a,alpha,u,v,w,fx,fy,fz);
+
+    ULOOP
+    u(i,j,k) += alpha*p->dt*CPOR1*fx(i,j,k);
+
+    VLOOP
+    v(i,j,k) += alpha*p->dt*CPOR2*fy(i,j,k);
+
+    WLOOP
+    w(i,j,k) += alpha*p->dt*CPOR3*fz(i,j,k);
 }
 
 // after the projection: the level set of the stage, density and viscosity, the explicit diffusion

@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"interface_width.h"
 #include"momentum_rk.h"
 #include"pjm_corr.h"
+#include"turbulence.h"
 #include<cmath>
 #include<iostream>
 #include<iomanip>
@@ -227,23 +228,8 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         patch_fields_ini(id);
     }
 
-    vector<fspec> fs;
-    fs.push_back({CELL,0,[this](int g) -> field& { return gfd(g)->phi; }});
-    fs.push_back({CELL,0,[this](int g) -> field& { return gfd(g)->press; }});
-    fs.push_back({CELL,1,[this](int g) -> field& { return gfd(g)->eddyv; }});
-    fs.push_back({0,1,[this](int g) -> field& { return gfd(g)->u; }});
-    fs.push_back({1,1,[this](int g) -> field& { return gfd(g)->v; }});
-    fs.push_back({2,1,[this](int g) -> field& { return gfd(g)->w; }});
-
-    auto fld = [](fdm *a, int m) -> field&
-    {
-        if(m==0) return a->phi;
-        if(m==1) return a->press;
-        if(m==2) return a->eddyv;
-        if(m==3) return a->u;
-        if(m==4) return a->v;
-        return a->w;
-    };
+    vector<fspec> fs = state_specs();
+    const vector<int> ids = state_ids();
 
     for(int l=1; l<=maxlev; ++l)
     {
@@ -271,8 +257,8 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
                 if(o!=nullptr)
                 {
                     const int oi = I[0]-o->lo[0], oj = I[1]-o->lo[1], ok = I[2]-o->lo[2];
-                    for(int m=0; m<6; ++m)
-                    fld(c->a,m)(li,lj,lk) = fld(o->a,m)(oi,oj,ok);
+                    for(int m : ids)
+                    sfield(c->a,c->pturb,m)(li,lj,lk) = sfield(o->a,o->pturb,m)(oi,oj,ok);
                     continue;
                 }
 
@@ -327,6 +313,8 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         pgc->start4(pp,fa->ro,1);
         pgc->start4(pp,fa->visc,1);
         c->ppress->ini(pp,fa,pgc);
+        if(solids)
+        pgc->solid_forcing_ini(pp,fa);
     }
 
     // the coarser levels from the finer ones
@@ -337,6 +325,12 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         cells.push_back([this](int g) -> field& { return gfd(g)->visc; });
         if(!sub)
         cells.push_back([this](int g) -> field& { return gfd(g)->press; });
+        if(turb)
+        {
+            cells.push_back([this](int g) -> field& { return gfd(g)->eddyv; });
+            cells.push_back([this](int g) -> field& { return kfield(g,0); });
+            cells.push_back([this](int g) -> field& { return kfield(g,1); });
+        }
         faces.push_back([this](int g) -> field& { return gfd(g)->u; });
         faces.push_back([this](int g) -> field& { return gfd(g)->v; });
         faces.push_back([this](int g) -> field& { return gfd(g)->w; });
@@ -353,10 +347,21 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         pgc0->start4(p0,a0->press,40);
         pgc0->start4(p0,a0->ro,1);
         pgc0->start4(p0,a0->visc,1);
+        if(turb)
+        pturb0->gcupdate(p0,a0,pgc0);
         for(int l=1; l<=maxlev; ++l)
         fill(l,fs);
         for(int id=0; id<(int)P.size(); ++id)
         margin_rovisc(id);
+    }
+
+    // the old time level of kin, eps of the new patches (IM1: the time term; the kept patches
+    // have theirs from the end of the step)
+    if(turb)
+    for(int id : fresh)
+    {
+        CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
+        CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }
 
     if(p->mpirank==0)

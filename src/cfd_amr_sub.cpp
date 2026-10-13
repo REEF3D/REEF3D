@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"heaviside.h"
 #include"interface_width.h"
 #include"momentum_rk.h"
+#include"turbulence.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -81,27 +82,27 @@ inline void cdecode(const lexer *q, int qq, int &i, int &j, int &k)
 }
 }
 
-cfd_amr_tlev::cfd_amr_tlev(lexer *q)
+cfd_amr_tlev::cfd_amr_tlev(lexer *q, int nn) : n(nn)
 {
     o[0] = new field1(q); o[1] = new field2(q); o[2] = new field3(q);
     t[0] = new field1(q); t[1] = new field2(q); t[2] = new field3(q);
-    for(int m=3; m<6; ++m)
+    for(int m=3; m<8; ++m)
     {
-        o[m] = new field4(q);
-        t[m] = new field4(q);
+        o[m] = (m<n) ? new field4(q) : nullptr;
+        t[m] = (m<n) ? new field4(q) : nullptr;
     }
 }
 
 cfd_amr_tlev::~cfd_amr_tlev()
 {
-    for(int m=0; m<6; ++m)
+    for(int m=0; m<8; ++m)
     {
         delete o[m];
         delete t[m];
     }
 }
 
-// the fields of grid g that the finer level interpolates: u, v, w, phi, press, eddyv
+// the fields of grid g that the finer level interpolates: u, v, w, phi, press, eddyv; kin, eps
 field& cfd_amr::stf(int g, int m)
 {
     fdm *a = gfd(g);
@@ -110,7 +111,8 @@ field& cfd_amr::stf(int g, int m)
     if(m==2) return a->w;
     if(m==3) return a->phi;
     if(m==4) return a->press;
-    return a->eddyv;
+    if(m==5) return a->eddyv;
+    return kfield(g,m-6);
 }
 
 namespace
@@ -132,7 +134,7 @@ void cfd_amr::save_old(int l)
         if(gts(g)==nullptr)
         continue;
         const size_t n = asize(glex(g));
-        for(int m=0; m<6; ++m)
+        for(int m=0; m<gts(g)->n; ++m)
         std::copy(stf(g,m).V,stf(g,m).V+n,gts(g)->o[m]->V);
     }
 }
@@ -151,7 +153,7 @@ void cfd_amr::interp(int l, double th)
         if(gts(g)==nullptr)
         continue;
         const size_t n = asize(glex(g));
-        for(int m=0; m<6; ++m)
+        for(int m=0; m<gts(g)->n; ++m)
         {
             const double *o = gts(g)->o[m]->V, *c = stf(g,m).V;
             double *t = gts(g)->t[m]->V;
@@ -167,8 +169,8 @@ void cfd_amr::fill_level(int l, double th)
     interp(l-1,th);
 
     vector<fspec> fs;
-    const int mode[6] = {1,1,1,0,0,1};
-    for(int m=0; m<6; ++m)
+    const int mode[8] = {1,1,1,0,0,1,1,1};
+    for(int m=0; m<nts; ++m)
     fs.push_back({m<3 ? m : CELL,mode[m],[this,m,l](int g) -> field& { return glevel(g)==l ? stf(g,m) : tsf(g,m); }});
     fill(l,fs);
 
@@ -184,6 +186,12 @@ void cfd_amr::restrict_sub(int l)
     cells.push_back([this](int g) -> field& { return gfd(g)->phi; });
     cells.push_back([this](int g) -> field& { return gfd(g)->ro; });
     cells.push_back([this](int g) -> field& { return gfd(g)->visc; });
+    if(turb)
+    {
+        cells.push_back([this](int g) -> field& { return gfd(g)->eddyv; });
+        cells.push_back([this](int g) -> field& { return kfield(g,0); });
+        cells.push_back([this](int g) -> field& { return kfield(g,1); });
+    }
     faces.push_back([this](int g) -> field& { return gfd(g)->u; });
     faces.push_back([this](int g) -> field& { return gfd(g)->v; });
     faces.push_back([this](int g) -> field& { return gfd(g)->w; });
@@ -198,6 +206,8 @@ void cfd_amr::restrict_sub(int l)
         pgc0->start4(p0,a0->phi,gcval_phi);
         pgc0->start4(p0,a0->ro,1);
         pgc0->start4(p0,a0->visc,1);
+        if(turb)
+        pturb0->gcupdate(p0,a0,pgc0);
     }
     else
     fill_level(l-1,th_end[l-1]);
@@ -218,6 +228,10 @@ void cfd_amr::patch_step(int l, double dt, double th0)
         pp->simtime = p0->simtime + th0*2.0*dt;
         pp->count = p0->count;
     }
+
+    // the turbulence model (the cells around the patches filled at the start of the step)
+    if(turb)
+    turb_step(l);
 
     for(int id : lev[l])
     {
@@ -293,7 +307,7 @@ void cfd_amr::patch_step(int l, double dt, double th0)
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
-            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,nullptr,s,false);
+            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,nullptr,s,solids ? 2 : 0);
         }
 
         // the projection of the level with the coarse flux at the patch edges
@@ -304,6 +318,14 @@ void cfd_amr::patch_step(int l, double dt, double th0)
             pscope3 ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
         }
+    }
+
+    if(turb)
+    for(int id : lev[l])
+    {
+        pscope3 ps(pgc,CP(id)->a,a0);
+        CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
+        CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }
 }
 
@@ -358,7 +380,7 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     {
         mom0->amr_ls_transport(p,a,pgc,s);
         mom0->amr_ls_finish(p,a,pgc,s,false,-1);
-        mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,true);
+        mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
         mom0->amr_projection(p,a,pgc,s);
         mom0->amr_stage_end(p,a,pgc,s);
     }
