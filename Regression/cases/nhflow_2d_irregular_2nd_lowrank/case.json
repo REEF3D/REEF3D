@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_irregular_2nd_a",
+ "ctrl_set": {"B 86": "128"},
+ "description": "nhflow_2d_irregular_2nd_a with 128 components: the pair sums of the direction from the low-rank expansions of their coefficients (wave_lib_irregular_2nd_terms::lr_build, lr_kin, lr_eta).",
+ "tags": ["quick", "2d", "nhflow", "waves", "iowave", "irregular"],
+ "covers": ["2nd-order low-rank sums: velocities and eta"]
+}

@@ -34,7 +34,8 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
     const bool beach_wl = p->B99==1 || p->B99==2 || zones.user_beach() || beach_lp;
     
 	count=0;
-    SLICELOOP4
+    if(!zc_built) zonecol_build(p);
+    ZSLICELOOP4
     {
 		dg = distgen(p);
 		db = distbeach(p);
@@ -100,7 +101,8 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
     starttime=pgc->timer();
     
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
          dg = distgen(p);
 		db = distbeach(p);
@@ -204,8 +206,9 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
     starttime=pgc->timer();
     
     count=0;
+    if(!zc_built) zonecol_build(p);
     if(p->j_dir==1)
-    LOOP
+    ZLOOP
     {
          dg = distgen(p);
 		db = distbeach(p);
@@ -302,7 +305,8 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
     starttime=pgc->timer();
     
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         db = distbeach(p);
@@ -368,7 +372,8 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
     starttime=pgc->timer();
-    FLOOP
+    if(!zc_built) zonecol_build(p);
+    ZFLOOP
     {
         dg = distgen(p);
         db = distbeach(p);
@@ -389,7 +394,8 @@ void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
 {
     starttime=pgc->timer();
     
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);    
         db = distbeach(p);

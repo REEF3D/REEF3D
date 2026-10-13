@@ -179,7 +179,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_amr` | 1 | CFD AMR in the wave tank: refined band at the free surface between the relaxation zones (level 0 only), the free surface across the patch edges |
 | `cfd_2d_still_amr` | 1 | CFD AMR still water, the free surface across a patch edge: the hydrostatic pressure of both grids balanced at the edge |
 | `cfd_3d_dambreak_amr` | 2 | CFD AMR 3D dam break: 3D boxes on 2 ranks, implicit diffusion of a patch with Dirichlet values around it |
-| `cfd_2d_dambreak_amr_sub` | 1 | CFD AMR with subcycling (G 7 1): the patch takes two steps per level-0 step, the cells around it linear in time; the level projection with the coarse flux at the patch edges |
+| `cfd_2d_dambreak_amr_sub` | 1 | CFD AMR with subcycling (G 7 1): the patch takes two steps per level-0 step, the cells around it linear in time; the level projection with the coarse pressure at the patch edges, the synchronisation projection over all levels at the end of the level-0 step |
 | `cfd_2d_dambreak_amr3_sub` | 1 | CFD AMR, two levels with subcycling: a patch as the coarser level in time (its old and new state), level 2 four steps per level-0 step |
 | `cfd_2d_dambreak_amr_mpi2_sub` | 2 | CFD AMR subcycling with patches on both ranks next to each other: one component of the level projection across the ranks (block-Jacobi patch V-cycles) |
 | `cfd_2d_still_amr_sub` | 1 | CFD AMR still water across a patch edge with G 7 1 and the volume correction over all levels (F 46 3) |
@@ -198,8 +198,10 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_solid` | 1 | cylinder (S 32) in the dam-break tank, adaptive G 24 3 + G 25 3 (cells near the solid): solid level set prolonged, direct forcing on the patches |
 | `cfd_2d_dambreak_amr_solid_sub` | 1 | the same with G 7 1 |
 | `cfd_2d_heave_amr` | 1 | floating box (X 10 1) heave decay, static box around the body and the surface: the hull cast on the patch grid in every stage, its forcing on the patches |
-| `cfd_2d_heave_amr_sub` | 1 | the same with G 7 1: the body state interpolated in time for the patch stages |
+| `cfd_2d_heave_amr_sub` | 1 | the same with G 7 1: the finest level advances the body with the loads on its grid, level 0 steps with a predicted copy |
+| `cfd_2d_heave_amr2_sub` | 1 | the same with two refined levels: level 2 advances the body, level 1 and level 0 step with predicted copies |
 | `cfd_2d_heave_amr_adapt` | 1 | the cells within 3 cells of the body (G 25 3), regrid every 2 steps: the hull cast on new patches |
+| `cfd_2d_heave_amr_adapt_sub` | 1 | the same with G 7 1: the patches that follow the body advance it |
 | `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
 | `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
 | `nhflow_3d_amr_still` | 1 | NHFLOW AMR static patch in a closed tank, bed ramps under the patch edges: still water stays still (fill, flux matching, restriction, composite pressure BiCGStab + FAC) |
@@ -350,6 +352,10 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_irregular_cached` | 1 | CFD irregular waves (B 92 31) with B 89 0: relaxation over the zone columns, cached-point evaluation (cell centre, u and v point per column) |
 | `nhflow_3d_irregular_2nd_grid` | 2 | `nhflow_3d_irregular_decomp` with 2nd-order irregular waves A on a frequency-direction grid (8 x 4, B 136 1) and B 89 0: same-direction runs and pairs of other directions per distinct \|K\| |
 | `cfd_2d_irregular_2nd` | 1 | CFD 2D flume, 2nd-order irregular waves A (B 92 32, 32 components) with B 89 0: pair terms at the cached zone-column points |
+| `nhflow_2d_irregular_2nd_lowrank` | 1 | `nhflow_2d_irregular_2nd_a` with 128 components: the pair sums of the direction from low-rank expansions of their coefficients (`lr_build`, `lr_kin`, `lr_eta` in `wave_lib_irregular_2nd_cache.h`) |
+| `fnpf_2d_irregular_2nd_b_lowrank` | 1 | `fnpf_2d_irregular_2nd_b` with 128 components: eta and the potential of the sum terms low-rank, the potential of the difference terms direct |
+| `fnpf_2d_irregular_2nd_b_twoband_lowrank` | 1 | `fnpf_2d_irregular_2nd_b_twoband` with 128 components: B 98 7 / B 99 7 against the low-rank bound-wave target |
+| `nhflow_2d_irregular_2nd_combined_lowrank` | 1 | `nhflow_2d_irregular_2nd_lowrank` with B 98 6 / B 99 6: the low-rank target in the zone-column relaxation and at the generation edge |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
@@ -421,6 +427,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase12_fas_uniform_threads` | 1 | as `seastate_2d_phase12_fas_uniform` with 2 threads (A 798 2, Phase 12 worker threads) on the fine, residual and coarse sweeps; bitwise the reference of `seastate_2d_phase12_fas_uniform` |
 | `seastate_2d_phase12_fas_uniform_forcing_mpi2` | 2 | REEF3D::SEASTATE FAS on the uniform grid in a nonstationary run (A 758 1 4, Phase 12) with a wind field (A 730 2) and boundary spectra per side cell (A 711 3) restricted to the coarse grids |
 | `seastate_2d_phase12_threads_patches` | 1 | REEF3D::SEASTATE `seastate_2d_amr_static` with four more boxes (4 patches on level 2) and 2 threads (A 798 2, Phase 12): the patches of a level shared out to the threads along the dependency graph of their ring reads; bitwise the same case with one thread; validated in Dropbox SEASTATE/validation/54 |
+| `seastate_2d_phase13_tiles` | 1 | REEF3D::SEASTATE 3 threads (A 798 3, Phase 13) with spectral sparsity (A 795) and second-order fluxes (A 796 2) on the refraction case: the sweeps over tiles of cells along their dependency graph, the first visits and the stationary Hs test threaded; bitwise the same case with one thread; validated in Dropbox SEASTATE/validation/57 |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |

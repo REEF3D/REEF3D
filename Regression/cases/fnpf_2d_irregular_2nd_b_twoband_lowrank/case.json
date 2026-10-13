@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_2d_irregular_2nd_b_twoband",
+ "ctrl_set": {"B 86": "128"},
+ "description": "fnpf_2d_irregular_2nd_b_twoband with 128 components: two-band active generation and beach (B 98 7 / B 99 7) against the bound-wave target from the low-rank pair sums.",
+ "tags": ["quick", "2d", "waves", "iowave", "awa", "fnpf", "irregular"],
+ "covers": ["B 98 7 / B 99 7 with the 2nd-order low-rank sums"]
+}
