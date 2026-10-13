@@ -346,6 +346,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_awa_edge` | 1 | SFLOW active beach B 99 3 as the absorbing Riemann edge at x+ (as NHFLOW) |
 | `sflow_2d_combined_beach` | 1 | SFLOW combined beach B 99 6: low-pass relaxation beach in front of the absorbing edge |
 | `cfd_2d_irregular_cached` | 1 | CFD irregular waves (B 92 31) with B 89 0: relaxation over the zone columns, cached-point evaluation (cell centre, u and v point per column) |
+| `nhflow_3d_irregular_2nd_grid` | 2 | `nhflow_3d_irregular_decomp` with 2nd-order irregular waves A on a frequency-direction grid (8 x 4, B 136 1) and B 89 0: same-direction runs and pairs of other directions per distinct \|K\| |
+| `cfd_2d_irregular_2nd` | 1 | CFD 2D flume, 2nd-order irregular waves A (B 92 32, 32 components) with B 89 0: pair terms at the cached zone-column points |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
