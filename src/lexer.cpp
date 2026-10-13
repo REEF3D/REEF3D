@@ -47,6 +47,16 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
 
     // iowave Riemann / Flather edges: set by iowave on the base grid only (AMR patch grids have none)
     open_xm=open_xp=open_ym=open_yp=0;
+
+    // in- and outflow (set by the discharge of ioflow, used before it by the wave generation),
+    // irregular wave parameters (set for irregular waves only, B 526-528 default to wTp otherwise),
+    // coordinate transformation flag
+    Ui=Ua=Uo=0.0;
+    Hi=Ho=0.0;
+    Qi=Qo=0.0;
+    wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
+    wN=0;
+    cms_flag=0;
 }
 
 lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this), cmu(0.09)
@@ -84,6 +94,16 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
 
     // iowave Riemann / Flather edges: set by iowave on the base grid only (AMR patch grids have none)
     open_xm=open_xp=open_ym=open_yp=0;
+
+    // in- and outflow (set by the discharge of ioflow, used before it by the wave generation),
+    // irregular wave parameters (set for irregular waves only, B 526-528 default to wTp otherwise),
+    // coordinate transformation flag
+    Ui=Ua=Uo=0.0;
+    Hi=Ho=0.0;
+    Qi=Qo=0.0;
+    wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
+    wN=0;
+    cms_flag=0;
 }
 
 lexer::~lexer()

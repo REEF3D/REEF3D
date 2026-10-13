@@ -419,6 +419,7 @@ void control::ini_default()
     B513=0;          // int iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     B505=0;          // int iowave: frame of a wave source (B 505 id frame; 0: B 92 generation frame, 1: global)
     B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
+    B515=0;          // int iowave: number of B 515 entries (counted by read_control)
     B530=-1;       // int iowave redesign: waves on the background, 1: on h_eff, 2: h_eff + Doppler, -1: auto (2 with a current, 1 with a level only)
     B530_N=10;     // int iowave redesign: k update interval [steps] of B 530
     B529=0;        // int iowave redesign: edge mass balance log every B 529 steps (0: off)
@@ -530,6 +531,7 @@ void control::ini_default()
     B308=1;         // int porosity effects on fluid acceleration for vegetation
     B309=2.0;       // double Cm for vegetation
     B310=0;         // int VRANS vegetation box
+    B311=0;         // int VRANS vegetation
     B321=0;         // int VRANS vegetation wedge in x-direction
     B322=0;         // int VRANS vegetation wedge in y-direction
     

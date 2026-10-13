@@ -39,6 +39,8 @@ sixdof_void::sixdof_void(lexer *p, ghostcell *pgc)
     
     pnetinter = new net_interface(p,pgc);
     
+    printtime = 0.0;
+    
     alpha[0] = 8.0/15.0;
     alpha[1] = 2.0/15.0;
     alpha[2] = 2.0/6.0;
