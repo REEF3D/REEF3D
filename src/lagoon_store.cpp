@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lagoon_store.h"
+#include"georef.h"
 
 #include<algorithm>
 #include<atomic>
@@ -334,11 +335,15 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
     make_dirs(path);
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {"
-      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.3\", \"solver\": " << json_string(solver)
+      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.4\", \"solver\": " << json_string(solver)
       << ", \"outputs\": [], \"created_by\": \"REEF3D\", \"created\": \"" << utc_now()
       << "\", \"source\": \"REEF3D\"}";
     if(!run_json.empty())
         j << ", \"reef3d_run\": " << run_json;
+    // where the model lies on the Earth (SPEC 1.2): the case's georef.json, unchanged
+    const std::string georef = georef_json();
+    if(!georef.empty())
+        j << ", \"georef\": " << georef;
     j << "}}";
     write_file(path + "/zarr.json", j.str());
 }

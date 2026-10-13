@@ -1086,6 +1086,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Lagoon">
+          <File Name="georef.h"/>
           <File Name="lagoon_output.h"/>
           <File Name="lagoon_store.h"/>
         </VirtualDirectory>

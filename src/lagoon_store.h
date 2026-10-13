@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef LAGOON_STORE_H_
 #define LAGOON_STORE_H_
 
-// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.3): one Zarr v3
+// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.4): one Zarr v3
 // store per run, one group per output stream, one block per MPI rank.
 //
 // No MPI and no REEF3D types in here: every rank writes its own block's files
