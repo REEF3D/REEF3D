@@ -46,8 +46,7 @@ void nhflow_curv::check(lexer *p)
     refuse(p->j_dir!=1, "a 2D vertical slice (j_dir 0)");
     refuse(p->A520==3, "the non-hydrostatic scheme A 520 3");
     refuse(p->A511==2, "the HLLC flux A 511 2 (A 511 1: HLL)");
-    refuse(p->geo_mb>0, "a multi-block grid (DIVEMesh R 20 1)");
-    refuse(p->G1>0 && p->P18>0, "the LAGOON output of the mesh refinement (P 18)");
+    refuse((p->G1>0 || p->geo_mb>0) && p->P18>0, "the LAGOON output of the mesh refinement (P 18)");
     refuse(p->X10>0, "6DOF bodies (X 10)");
     refuse(p->X330>0, "membranes (X 330)");
     refuse(p->S10>0, "sediment transport (S 10)");
@@ -56,7 +55,6 @@ void nhflow_curv::check(lexer *p)
            || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0, "immersed solids (A 580-599)");
     refuse(p->A570>0, "wind forcing (A 570)");
     refuse(p->A750>0, "the SEASTATE coupling (A 750)");
-    refuse(p->I11>0, "the potential flow initialisation (I 11)");
     refuse(p->A519==2, "the side-wall friction A 519 2");
     refuse(p->B98==2 && p->B96_1>0.0 && p->B108==0, "the generation zone of B 96 (an x range of the box): give it by B 108 in physical coordinates");
     refuse((p->B99==1 || p->B99==2) && p->B96_2>0.0 && p->B107==0, "the beach zone of B 96 (an x range of the box): give it by B 107 in physical coordinates");
@@ -295,6 +293,66 @@ void nhflow_curv::pair_bc(lexer *p, double *u, double *v)
                 v[g] = v[a] - 2.0*un*ny;
             }
         }
+    }
+
+    // G 52 1: the i-walls as the j-walls (not the in- and outflow and the wave generation of iowave)
+    if(p->G52==1)
+    for(int ii=0; ii<p->knox; ++ii)
+    for(int jj=0; jj<p->knoy; ++jj)
+    for(int kk=0; kk<p->knoz; ++kk)
+    if(p->flag4[C(ii,jj,kk)]>0)
+    {
+        if(p->flag4[C(ii-1,jj,kk)]<0 && iwall(p,0))
+        {
+            normal(p,1,ii-1,jj,nx,ny,len);
+            for(int q=0; q<3; ++q)
+            {
+                const int a = C(ii+q,jj,kk), g = C(ii-1-q,jj,kk);
+                const double un = u[a]*nx + v[a]*ny;
+                u[g] = u[a] - 2.0*un*nx;
+                v[g] = v[a] - 2.0*un*ny;
+            }
+        }
+
+        if(p->flag4[C(ii+1,jj,kk)]<0 && iwall(p,1))
+        {
+            normal(p,1,ii,jj,nx,ny,len);
+            for(int q=0; q<3; ++q)
+            {
+                const int a = C(ii-q,jj,kk), g = C(ii+1+q,jj,kk);
+                const double un = u[a]*nx + v[a]*ny;
+                u[g] = u[a] - 2.0*un*nx;
+                v[g] = v[a] - 2.0*un*ny;
+            }
+        }
+    }
+}
+
+// G 52 1: the i-faces of the low (side 0) or high (side 1) end are walls, not in- or outflow, open edges
+// or wave generation and absorption of iowave (start4V sets their ghost cells)
+bool nhflow_curv::iwall(lexer *p, int side)
+{
+    if(side==0)
+    return p->B60==0 && p->B98<2 && p->open_xm==0;
+    return p->B60==0 && p->B99<3 && p->open_xp==0;
+}
+
+// G 52 1: a field other than the velocity pair at the i-walls symmetric, as at the j-walls (start4V)
+void nhflow_curv::iwall_sym(lexer *p, double *f)
+{
+    auto C = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
+    for(int ii=0; ii<p->knox; ++ii)
+    for(int jj=0; jj<p->knoy; ++jj)
+    for(int kk=0; kk<p->knoz; ++kk)
+    if(p->flag4[C(ii,jj,kk)]>0)
+    {
+        if(p->flag4[C(ii-1,jj,kk)]<0 && iwall(p,0))
+        for(int q=0; q<3; ++q)
+        f[C(ii-1-q,jj,kk)] = f[C(ii+q,jj,kk)];
+
+        if(p->flag4[C(ii+1,jj,kk)]<0 && iwall(p,1))
+        for(int q=0; q<3; ++q)
+        f[C(ii+1+q,jj,kk)] = f[C(ii-q,jj,kk)];
     }
 }
 

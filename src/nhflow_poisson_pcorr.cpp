@@ -189,6 +189,19 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
 	{
         WETDRYDEEP 
         {
+            // G 52 1 (curvilinear, multi-block): the i-walls as the j-walls (homogeneous Neumann)
+            if(p->G52==1 && p->geo_curv==1 && p->flag7[FIm1JK]<0 && p->IO[Im1JK]==0)
+            {
+            d->M.p[n] += d->M.s[n];
+            d->M.s[n] = 0.0;
+            }
+            
+            if(p->G52==1 && p->geo_curv==1 && p->flag7[FIp1JK]<0 && p->IO[Ip1JK]==0)
+            {
+            d->M.p[n] += d->M.n[n];
+            d->M.n[n] = 0.0;
+            }
+            
             // South
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
             {

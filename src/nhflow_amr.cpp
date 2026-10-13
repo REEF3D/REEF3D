@@ -193,7 +193,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
 
     // implicit diffusion (A 512 2): one composite solve over the leaf cells of all grids (G 31 1,
     // nhflow_amr_diff.cpp), or every grid its own (G 31 0)
-    cdiff = (p->A512==2 && p->G31==1);
+    cdiff = (p->A512==2 && (p->G31==1 || p->geo_mb>0));
     brk_split = (cdiff && p->A550==1);
 
     // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12:
@@ -212,6 +212,11 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     zr_user = q.zr;
     if(sub==1 && q.zones)
     q.zr = MAX(q.zr, 12.0*p->DXM);
+
+    // multi-block grid: passes of the block-local V-cycles of level 0 in the preconditioner of the
+    // composite pressure (G 51), the corrections of the neighbour blocks filled in between
+    npass0 = MAX(p->G51,1);
+    csw = MAX(p->G53,0);
 
     configure(q);
 
@@ -241,6 +246,7 @@ nhflow_amr::~nhflow_amr()
     for(auto v : kv0)
     delete [] v;
     delete mg0;
+    cs_free();
 }
 
 nhflow_amr::pscope::pscope(ghostcell *gg, fdm_nhf *dp, fdm_nhf *d00) : g(gg), dl0(d00)
@@ -280,8 +286,13 @@ nhflow_amr::stg nhflow_amr::stage_out(int g, int s)
 // --------------------------------------------------------------------- setup
 void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(maxlev<1)
+    if(maxlev<1 && p->geo_mb==0)
     return;
+
+    // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks run on the hierarchy, with or without
+    // refinement
+    if(p->geo_mb>0)
+    blocks_check(p);
 
     int ok=1;
     if(mom0==nullptr) ok=0;
@@ -298,6 +309,13 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A580==1) ok=0;
     if(p->E10>0 || p->L10>0 || p->Z20>0 || p->Z30>0) ok=0;
     if(p->j_dir!=1) ok=0;
+
+    if(ok==0 && p->geo_mb>0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, B 200 0, S 10 0, no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        exit(1);
+    }
 
     if(ok==0)
     {
@@ -328,6 +346,22 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     setup(p,pgc);
 
+    // multi-block grid: blocks 1.. as level-0 patches, their initial state, the fill plans, the bed
+    // and the state of the cells around the blocks and of the ring
+    if(p->geo_mb>0)
+    {
+        blocks_setup(p,pgc);
+        blocks_ini(p,pgc);
+        blocks_plans(pgc);
+        fill_bed0(pgc);
+        fill_level0(pgc,-1);
+        blocks_sigma(pgc);
+        fill_level0(pgc,-1);
+
+        // I 11: the potential flow over the blocks (nhflow_potential_f::start leaves it to this)
+        potential(p,pgc);
+    }
+
     mkdir("./REEF3D_NHFLOW_AMR",0777);
 
     if(p->mpirank==0)
@@ -338,6 +372,9 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     for(int it=0; it<maxlev; ++it)
     regrid(p,pgc,true);
+
+    if(nblk>0 && maxlev>=1)
+    fill_level0(pgc,-1);
 
     // the level-0 objects hand their time step, fluxes and time step limits to the hierarchy
     mom0->attach_runner(this);
@@ -376,6 +413,10 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
+    if(nblk>0)
+    cout<<"NHFLOW multi-block grid: "<<nblk<<" blocks"<<(maxlev>=1 ? "; " : "\n");
+    if(maxlev>=1)
+    {
     cout<<"NHFLOW AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns, dt "<<p->dt;
     if(vr==2)
     cout<<", sigma layers doubled on every level (G 6)";
@@ -406,6 +447,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<"NHFLOW AMR: G 7 1 with bodies: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
     if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
     cout<<"NHFLOW AMR: G 7 1: every grid solves its own implicit diffusion (G 31 1 needs all grids at the same time)"<<endl;
+    }
     }
 }
 
@@ -555,11 +597,20 @@ void nhflow_amr::regrid_ids()
 void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 {
     nhflow_amr_patch *c = NP(q);
+    lexer *pp = c->pp;
+
+    // multi-block: in- and outflow, open edges and wave generation belong to block 0, the faces of
+    // the blocks 1.. without an interface are walls
+    if(c->blk>0)
+    {
+        pp->B60 = 0;
+        pp->B98 = 0;
+        pp->B99 = 0;
+        pp->open_xm = pp->open_xp = pp->open_ym = pp->open_yp = 0;
+    }
 
     build_bc2D(pgc,*c);
     build_lexer3D(*c);
-
-    lexer *pp = c->pp;
 
     // vectors of the Poisson rows (nhflow_poisson fills them over FBASELOOP and LOOP)
     pp->veclength = pp->imax*pp->jmax*pp->kmaxF;
@@ -660,6 +711,28 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         d->ks(ii,jj) = pp->B50;
         d->breaking(ii,jj) = 0;
     }
+
+    // multi-block: porosity, density and viscosity of a block as level 0 sets them (nhflow_f::ini,
+    // driver_ini_nhflow): in the fluid cells, the ghost cells by start5Vfull (porosity; the corner below
+    // the bed and beyond a wall stays 0) and start4V (density, viscosity; below the bed and above the
+    // surface they stay 0); the Poisson and diffusion rows next to the walls, the bed and the surface take them
+    if(c->blk>0)
+    {
+        for(int n=0; n<n7; ++n)
+        d->POR[n] = d->RO[n] = d->VISC[n] = 0.0;
+        for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+        for(int kk=pp->kmin; kk<pp->kmin+pp->kmax; ++kk)
+        if(pp->flag4[cidx(pp,ii,jj,kk)]>0)
+        {
+            d->POR[cidx(pp,ii,jj,kk)] = 1.0;
+            d->RO[cidx(pp,ii,jj,kk)] = pp->W1;
+            d->VISC[cidx(pp,ii,jj,kk)] = pp->W2;
+        }
+        pgc->start5Vfull(pp,d->POR,1);
+        pgc->start4V(pp,d->RO,1);
+        pgc->start4V(pp,d->VISC,1);
+    }
 }
 
 void nhflow_amr::patch_delete(reefamr_patch *q)
@@ -704,6 +777,7 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     delete c->d;
 
     free_lexer3D(*c);
+    nhflow_curv::pair_forget(c->pp);
 }
 
 // cells of level l that need level l+1 (the boxes G 10 and the body zone are marked by the
@@ -764,13 +838,13 @@ void nhflow_amr::tag(int l, vector<unsigned char> &M)
         return false;
     };
 
+    // level 0: the native grid without the ring, then (multi-block) the blocks 1.. in lev[0]
     if(l==0)
     {
         for(int ii=0; ii<NX0; ++ii)
         for(int jj=0; jj<NY0; ++jj)
-        if(test(p0,d0,ii,jj))
+        if(!ring0(ii,jj) && test(p0,d0,ii,jj))
         tag_cell(lf,ii+O0i,jj+O0j,nbuf,M);
-        return;
     }
 
     for(int n : lev[l])
@@ -789,6 +863,14 @@ bool nhflow_amr::cell_unfit(int ii, int jj)
 {
     const int n = lij(p0,ii,jj);
     return p0->flagslice4[n]>0 && (p0->wet[n]==0 || d0->WL(ii,jj)<=p0->A545*p0->A544);
+}
+
+// multi-block: a cell of a block 1..
+bool nhflow_amr::cell_unfit_patch(reefamr_patch *c, int ii, int jj)
+{
+    lexer *q = c->pp;
+    const int n = lij(q,ii,jj);
+    return q->flagslice4[n]>0 && (q->wet[n]==0 || NP(c)->d->WL(ii,jj)<=q->A545*q->A544);
 }
 
 // --------------------------------------------------------------------- wetting and drying
@@ -1687,6 +1769,8 @@ void nhflow_amr::halo0(ghostcell *pgc, int s)
 // --------------------------------------------------------------------- regridding
 void nhflow_amr::regrid_prepare(ghostcell *pgc)
 {
+    if(nblk>0)
+    fill_level0(pgc,-1);
     for(int l=1; l<=maxlev; ++l)
     fill_stage(pgc,l,-1);
 }
@@ -2027,6 +2111,9 @@ void nhflow_amr::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, d
             val = 0.5*(R[m.r*Kf+k]+R[(m.r+1)*Kf+k]);
             else
             val = 0.25*(R[m.r*Kf+2*k]+R[m.r*Kf+2*k+1]+R[(m.r+1)*Kf+2*k]+R[(m.r+1)*Kf+2*k+1]);
+            // multi-block: the coarse face in the neighbour block, its normal against the fine faces
+            if(m.sgn<0)
+            val = -val;
             if(m.dir==0)
             Fx[cidx(p,m.fi,m.fj,k)] = val;
             else
@@ -2052,7 +2139,7 @@ void nhflow_amr::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, d
 
         for(int k=0; k<K; ++k)
         {
-            const double val = v[(ipol-1)*K+k];
+            const double val = (m.sgn<0) ? -v[(ipol-1)*K+k] : v[(ipol-1)*K+k];
             if(m.dir==0)
             Fx[cidx(p,m.fi,m.fj,k)] = val;
             else
@@ -2177,7 +2264,9 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         cur_stage = s;
         double t0 = MPI_Wtime();
 
-        // stage input around the patches, coarse to fine
+        // stage input around the blocks and the patches, coarse to fine
+        if(nblk>0)
+        fill_level0(pgc,s);
         for(int l=1; l<=maxlev; ++l)
         fill_stage(pgc,l,s);
         tm[0] += MPI_Wtime()-t0;
@@ -2205,6 +2294,8 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
             tm[2] += MPI_Wtime()-t0;
         }
 
+        blocks_phase(pgc,s,0);
+        blocks_phase(pgc,s,1);
         mom->phase_F(p,d,pgc,S0,s);
         mom->phase_M(p,d,pgc,S0,s);
         }
@@ -2230,6 +2321,7 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
             exchange_fluxes(l);
             tm[2] += MPI_Wtime()-t0;
         }
+        blocks_phase(pgc,s,0);
         mom->phase_F(p,d,pgc,S0,s);
 
         t0 = MPI_Wtime();
@@ -2260,6 +2352,18 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
             t0 = MPI_Wtime();
             exchange_fluxes(l);
             tm[2] += MPI_Wtime()-t0;
+        }
+
+        {
+        comms_off guard(pgc);
+        for(int n : lev[0])
+        {
+            nhflow_amr_patch *c = NP(n);
+            pscope ps(pgc,c->d,d0);
+            nhflow_stage_obj S = c->S;
+            S.pdiff = dkeep;
+            c->pmom->phase_M(c->pp,c->d,pgc,S,s);
+        }
         }
 
         nhflow_stage_obj S = S0;
@@ -2324,6 +2428,15 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     cur_stage = -1;
 
     regrid_step(p,pgc);
+
+    // multi-block: the ring and the cells around the blocks from the end of the step (the time step,
+    // the output; after a regrid the restricted values)
+    if(nblk>0)
+    {
+        const double t0 = MPI_Wtime();
+        fill_level0(pgc,-1);
+        tm[0] += MPI_Wtime()-t0;
+    }
 }
 
 // the zone around the body moves, the flags move: new patches every G 2 steps, from the state

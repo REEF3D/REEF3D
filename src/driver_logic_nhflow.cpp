@@ -304,7 +304,8 @@ void driver::logic_nhflow()
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
 
 // mesh refinement (G 1): patches on the NHFLOW grid
-    if(p->G1>0)
+    // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy
+    if(p->G1>0 || p->geo_mb>0)
     pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep,p6dof);
 
 //Lagrangian particles

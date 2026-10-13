@@ -191,7 +191,8 @@ void nhflow_amr::diff_solve(lexer *p, ghostcell *pgc, int s)
         for(int ii=0; ii<q->knox; ++ii)
         for(int jj=0; jj<q->knoy; ++jj)
         {
-            const bool box = (ii>=i0 && ii<=i1 && jj>=j0 && jj<=j1);
+            // multi-block: the ring of the native grid stands for cells of the other blocks
+            const bool box = (ii>=i0 && ii<=i1 && jj>=j0 && jj<=j1) && !(g<0 && ring0(ii,jj));
             bool cov = false;
             if(box && l<maxlev)
             {
@@ -369,6 +370,38 @@ void nhflow_amr::df_sync(int k)
                      for(int kk=0; kk<Kc; ++kk)
                      dst[cidx(q,B.ic,B.jc,kk)] = v[kk];
                  });
+    }
+
+    // multi-block: the cells around the blocks and the ring from the cells they stand for
+    if(nblk>0)
+    {
+        const int K0 = p0->knoz;
+        fill_run0(K0,7819,
+                  [&](const reefamr_fill &f, double *v)
+                  {
+                      if(f.kind!=0)
+                      {
+                          for(int kk=0; kk<K0; ++kk)
+                          v[kk] = 0.0;
+                          return;
+                      }
+                      const double *src = dvec(f.g,k);
+                      lexer *q = glex(f.g);
+                      for(int kk=0; kk<K0; ++kk)
+                      v[kk] = src[cidx(q,f.si,f.sj,kk)];
+                  },
+                  [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                  {
+                      double *dst = dvec(id,k);
+                      for(int kk=0; kk<K0; ++kk)
+                      dst[cidx(q->pp,f.di,f.dj,kk)] = w[kk];
+                  },
+                  [&](const reefamr_fill &f, const double *w)
+                  {
+                      double *dst = dvec(-1,k);
+                      for(int kk=0; kk<K0; ++kk)
+                      dst[cidx(p0,f.di,f.dj,kk)] = w[kk];
+                  });
     }
 
     if(p0->mpi_size>1)

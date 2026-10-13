@@ -46,7 +46,7 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
     for(int ii=0; ii<NX0; ++ii)
     for(int jj=0; jj<NY0; ++jj)
     {
-        if(p->flagslice4[lij(p,ii,jj)]<0)
+        if(p->flagslice4[lij(p,ii,jj)]<0 || ring0(ii,jj))
         continue;
         if(maxlev>=1 && covered(1,2*(ii+O0i),2*(jj+O0j)))
         continue;
@@ -80,8 +80,10 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(maxlev<1)
+    if(maxlev<1 && nblk==0)
     return;
+
+    dump_grids(p);
 
     bool doprint=false;
 
@@ -213,7 +215,7 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
         {
             for(int a=i0; a<=i1; ++a)
             for(int b=j0; b<=j1; ++b)
-            if(inquad(q,a,b,x,y))
+            if(!(q==p0 && ring0(a,b)) && inquad(q,a,b,x,y))
             {
                 ii=a; jj=b;
                 return true;

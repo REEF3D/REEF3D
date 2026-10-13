@@ -1308,6 +1308,7 @@
         <File Name="fnpf_amr.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_amr_block.cpp"/>
         <File Name="nhflow_amr_print.cpp"/>
         <File Name="nhflow_amr_press.cpp"/>
         <File Name="nhflow_amr_diff.cpp"/>

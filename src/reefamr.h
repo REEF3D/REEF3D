@@ -238,6 +238,8 @@ protected:
     virtual void zone_bodies(vector<sixdof_obj*>&) {}
     // level-0 cell (ii,jj) of this rank that no patch may cover at this regrid (par.dryband > 0)
     virtual bool cell_unfit(int, int) {return false;}
+    // multi-block: as cell_unfit for a cell of a level-0 block (its patch, lexer index)
+    virtual bool cell_unfit_patch(reefamr_patch*, int, int) {return false;}
 
     // ---- hierarchy
     void setup(lexer*, ghostcell*);
@@ -628,6 +630,7 @@ protected:
     void block_virt(int, int, int, int, int&, int&) const;  // level, block, own index -> index
     bool block_node(int, int, int, double&, double&, double&, int=0) const;   // level-0 node of a block (own index)
     void block_node_any(int, int, int, double&, double&, double&) const;      // ... reflected at walls
+    void block_node_reflect(int, int, int, double&, double&, double&) const;  // ... reflected in this block
     bool native_ring(int, int) const;   // native global cell outside block 0 (the ring)
     bool block_cross(int, int, int, int, int, int&, int&, int&) const;   // level, block, face, own i, j -> through that face first
     bool block_face_map(int, int, int, int&, int&, int, int, int&, int&) const;   // flux matching across a block face

@@ -190,7 +190,7 @@ public:
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
     void print(lexer*, fdm_nhf*, ghostcell*);
-    bool active() const { return maxlev>0 && patches_total>0; }
+    bool active() const { return (maxlev>0 && patches_total>0) || nblk>0; }
 
     // the time step of all grids (nhflow_momentum_RK2/RK3::start)
     void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) override;
@@ -236,6 +236,7 @@ protected:
     void regrid_finish(ghostcell*, int) override;
     void zone_bodies(vector<sixdof_obj*>&) override;
     bool cell_unfit(int, int) override;
+    bool cell_unfit_patch(reefamr_patch*, int, int) override;
 
 private:
     // a patch kernel runs: ghostcell exchange off and the fdm of the ghostcell on the patch (the
@@ -345,6 +346,18 @@ private:
     void pr_stencils();
     template<class SEL> void pr_restrict(SEL);
     template<class SEL> void pr_fill(int, int, SEL);
+    template<class SEL> void pr_fill0(SEL);  // multi-block: the columns around the blocks and the ring
+    int npass0 = 2;                          // multi-block: passes of the block-local V-cycles (G 51)
+    // multi-block: coarse space across the blocks (G 53 w): aggregates of w x w columns of every
+    // level-0 grid, the coarse operator summed from the rows, factorized on every rank; the
+    // preconditioner corrects with it before the block-local V-cycles
+    struct cs_impl;
+    cs_impl *cs = nullptr;
+    int csw = 0;
+    int cs_n = 0;
+    void cs_build(ghostcell*);
+    void cs_correct(int, int);
+    void cs_free();
     void pr_prolong(int, int);               // level, vector
 
     // composite implicit diffusion (G 31 1 with A 512 2, nhflow_amr_diff.cpp): phase_D of every
@@ -452,6 +465,20 @@ private:
     double rkw(int) const;          // weight of stage s in the step
     double rkc(int) const;          // time of the input of stage s in the step
     double rko(int) const;          // time of the output of stage s in the step
+
+    // multi-block level 0 (G 50 1 with DIVEMesh R 20 1, nhflow_amr_block.cpp): blocks 1.. are level-0
+    // patches (lev[0]), block 0 the native grid with its ring; before every stage the cells around the
+    // blocks and the ring take the stage input of the cells they stand for
+    void blocks_check(lexer*);
+    void blocks_ini(lexer*, ghostcell*);
+    void fill_level0(ghostcell*, int);
+    void fill_bed0(ghostcell*);
+    void blocks_sigma(ghostcell*);
+    void ring_halo(ghostcell*, int);
+    void blocks_phase(ghostcell*, int, int);
+    void dump_grids(lexer*);
+    void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
+    bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 
     // output
     void write_vtr(lexer*, nhflow_amr_patch&, int);

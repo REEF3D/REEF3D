@@ -25,11 +25,19 @@ the mean of its four node beds.
   placement (`G 40`), AMR output as `.vts` on the physical nodes, AMR gauges (`P 51`) by the cell
   whose quadrilateral holds the point
 
+- the potential flow initialisation (`I 11`): the compact Laplacian, the inflow flux along the
+  normal of the inflow faces, the velocities by the chain rule (phase P4)
+- multi-block grids (`G 50 1` with DIVEMesh `R 20 1`): `../nhflow_multiblock/README.md` (phase P4)
+- `G 52 1`: the i-walls act as the j-walls (the velocity pair mirrored at the face normal, the
+  pressure correction Neumann, the bed smoothing `A 509` from the old values), so that a wall acts
+  the same in any index direction; set on multi-block grids, by default the walls along i keep the
+  Cartesian treatment (ghost velocities 0)
+
 Refused with a message: HLLC (`A 511 2`), `A 520 3`, 2D slices (`j_dir 0`), side-wall friction
 (`A 519 2`), 6DOF, membranes, sediment, FEM structures, solids (`A 580`-`599`), wind, SEASTATE,
-`I 11`, the B 96 relaxation zones (an x range of the box: give `B 107` / `B 108`), Dirichlet or
-active generation on a current (`W 10`), `B 97 1`, multi-block grids, the LAGOON output of the
-mesh refinement (`P 18`). The native probes and line probes still refer to the logical box.
+the B 96 relaxation zones (an x range of the box: give `B 107` / `B 108`), Dirichlet or
+active generation on a current (`W 10`), `B 97 1`, the LAGOON output of the mesh refinement
+(`P 18`). The native probes and line probes still refer to the logical box.
 
 ## How it works
 
@@ -77,6 +85,7 @@ curvilinear path is a branch on `p->geo_curv` (the Cartesian kernels are not cha
 | `t7_nhf_amr.py [steps]` | mesh refinement, dam break with patches following the surface: Cartesian, on the same nodes, turned by 90 deg; `VAR=sub` (G 7 1), `vref` (G 6 1), `two` (two levels), `static` (G 10), `place` (G 40 1, with `NP=2`), `cdiff` (composite implicit diffusion, A 512 2); `NP=2`: level 0 and every patch to 2e-15 (on the nodes) and 3e-13 (turned), the same layouts, volume to round-off, the AMR gauges turned = on the nodes; with `cdiff` on the nodes = Cartesian to truncation (the isotropic diffusion), turned = on the nodes to 3e-13 |
 | `t8_nhf_amr_wavy.py [steps]` | mesh refinement on the wavy grid: lake at rest over a bump under six patches (`A 520 0`, `2`): velocities 2e-15 on both levels; dam break with regrid every step (G 7 0 / 1): volume to 6e-15 |
 | `t9_nhf_amr_shore.py [steps]` | wetting and drying in the patches (`G 30 1`), water running up a plane beach under a static patch: turned by 90 deg = on the nodes to 1e-15 (both against Cartesian to the bed rounding of DIVEMesh, 1e-10) |
+| `t10_nhf_potential.py` | potential flow initialisation (`I 11`) on a river reach (discharge inflow, stage outflow): curvilinear on the nodes = Cartesian bit for bit; with a bump, turned by 30 deg at UTM coordinates = on the nodes to the solver tolerance (4e-10) |
 | `make_regression_cases.py` | writes the `Regression/cases/nhflow_3d_curv_*` cases (with their `curvgrid.dat`) |
 
 Not identical to Cartesian on the same nodes, by design: the diffusion (the isotropic form above;
