@@ -79,6 +79,10 @@ public:
     void amr_restore(lexer*, ghostcell*);
     void pose_update(lexer*, ghostcell*);   // Euler angles, trimesh, omega, u_fb from the rigid-body state
     sixdof_rigidbody rb_amr;
+    sixdof_rigidbody rb_amr1;   // the state at the end of the level-0 step (cfd_amr, G 7 1)
+    // the state at the fraction w between the states a and b (CFD mesh refinement, G 7 1: the
+    // patches step between the start and the end of the level-0 step)
+    void amr_interpolate(lexer*, ghostcell*, const sixdof_rigidbody&, const sixdof_rigidbody&, double);
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;

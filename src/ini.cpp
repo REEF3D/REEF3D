@@ -702,7 +702,7 @@ void control::ini_default()
     G22=0;      // int SFLOW and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
     G23=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
     G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
-    G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid or the topography; 0 off
+    G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
     G30=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own

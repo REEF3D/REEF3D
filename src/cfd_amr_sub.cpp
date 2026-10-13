@@ -28,6 +28,8 @@ Architect: Hans Bihs
 #include"interface_width.h"
 #include"momentum_rk.h"
 #include"turbulence.h"
+#include"6DOF_cfd.h"
+#include"cfd_amr_6dof.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -214,7 +216,7 @@ void cfd_amr::restrict_sub(int l)
 }
 
 // one step of size dt of the patches of level l, starting at th0 of the step of level l-1
-void cfd_amr::patch_step(int l, double dt, double th0)
+void cfd_amr::patch_step(int l, double dt, double th0, double t)
 {
     ghostcell *pgc = pgc0;
 
@@ -225,7 +227,7 @@ void cfd_amr::patch_step(int l, double dt, double th0)
         pp->dt_old = (c->dt_l>0.0) ? c->dt_l : dt;
         pp->dt = dt;
         c->dt_l = dt;
-        pp->simtime = p0->simtime + th0*2.0*dt;
+        pp->simtime = t;
         pp->count = p0->count;
     }
 
@@ -304,10 +306,14 @@ void cfd_amr::patch_step(int l, double dt, double th0)
         }
         edge_faces(l,s);
 
+        // the bodies at the output time of the stage
+        if(bodies)
+        body_time((t + tout[s]*dt - p0->simtime)/p0->dt);
+
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
-            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,nullptr,s,solids ? 2 : 0);
+            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
         }
 
         // the projection of the level with the coarse flux at the patch edges
@@ -329,9 +335,9 @@ void cfd_amr::patch_step(int l, double dt, double th0)
     }
 }
 
-// two steps of level l per step (of size dtc) of level l-1, each followed by the steps of the finer
-// levels; then level l restricted onto level l-1
-void cfd_amr::advance(int l, double dtc)
+// two steps of level l per step (of size dtc, from the time tc) of level l-1, each followed by the
+// steps of the finer levels; then level l restricted onto level l-1
+void cfd_amr::advance(int l, double dtc, double tc)
 {
     for(int m=0; m<2; ++m)
     {
@@ -341,13 +347,13 @@ void cfd_amr::advance(int l, double dtc)
         if(l<maxlev)
         save_old(l);
 
-        patch_step(l,0.5*dtc,th0);
+        patch_step(l,0.5*dtc,th0,tc+th0*dtc);
 
         th_end[l] = th0+0.5;
         fill_level(l,th_end[l]);
 
         if(l<maxlev)
-        advance(l+1,0.5*dtc);
+        advance(l+1,0.5*dtc,tc+th0*dtc);
     }
 
     restrict_sub(l);
@@ -375,6 +381,11 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     // level 0: its step as step_ssp (the volume correction over all levels at the end)
     save_old(0);
 
+    // the bodies at the start of the step (they move with the stages of level 0)
+    if(bodies)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_save();
+
     mom0->amr_step_begin(p,a,pgc);
     for(int s=0; s<mom0->amr_stages(); ++s)
     {
@@ -388,7 +399,15 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     const double t1 = MPI_Wtime();
     tm[4] += t1-t0;
 
-    advance(1,p->dt);
+    // the bodies at the end of the step of level 0
+    if(bodies)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->rb_amr1 = b6->object(nb)->rb;
+
+    advance(1,p->dt,p->simtime);
+
+    if(bodies)
+    body_time(-1.0);
 
     volume_correct(p,pgc);
 
@@ -417,6 +436,23 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
 
 // --------------------------------------------------------------------- composite volume (F 46)
 // the volume of the level set over the leaf cells of all grids and its derivative with respect to
+// the bodies at the fraction w of the level-0 step (linear between its start and its end); w < 0:
+// back to the end
+void cfd_amr::body_time(double w)
+{
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+        sixdof_obj_cfd *o = b6->object(nb);
+        if(w<0.0)
+        {
+            o->rb_amr = o->rb_amr1;
+            o->amr_restore(p0,pgc0);
+        }
+        else
+        o->amr_interpolate(p0,pgc0,o->rb_amr,o->rb_amr1,w);
+    }
+}
+
 // a uniform shift (as picard_lsm::volcalc2)
 void cfd_amr::volume(double &V, double &dV)
 {

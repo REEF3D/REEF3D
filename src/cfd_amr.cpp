@@ -46,6 +46,8 @@ Architect: Hans Bihs
 #include"kepsilon_IM1.h"
 #include"komega_IM1.h"
 #include"rans_io.h"
+#include"6DOF_cfd.h"
+#include"cfd_amr_6dof.h"
 #include"convection_void.h"
 #include"ifou.h"
 #include"iweno_hj_df_nug.h"
@@ -196,8 +198,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "no heat, concentration, compressibility or rheology (H 10, C 10, W 30, W 90)";
     else if(p->S10!=0 || p->Q10!=0)
     why = "no sediment (S 10, Q 10)";
-    else if(p->X10!=0 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
-    why = "no floating bodies or structures (X 10, Z 10, Z 20, Z 30)";
+    else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
+    why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
     else if(p->B200!=0)
     why = "no porous media (B 200)";
     else if((p->solidread!=0 || p->toporead!=0) && p->G505!=0)
@@ -233,7 +235,7 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
 // --------------------------------------------------------------------- set-up
 cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppress, poisson *ppois, ioflow *pflow, vrans *pvrans,
-                 fsi *pfsi, initialize *pini, turbulence *pturb) : reefamr3d(p,pgc), p0(p), a0(a), pois0(ppois), pflow0(pflow), pvrans0(pvrans),
+                 fsi *pfsi, initialize *pini, turbulence *pturb, sixdof *p6dof) : reefamr3d(p,pgc), p0(p), a0(a), pois0(ppois), pflow0(pflow), pvrans0(pvrans),
                  pfsi0(pfsi), pini0(pini)
 {
     // RANS and solids on the patches
@@ -241,6 +243,10 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     turb = (p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22) && dynamic_cast<rans_io*>(pturb)!=nullptr ? 1 : 0;
     nts = turb ? 8 : 6;
     solids = (p->solidread!=0 || p->toporead!=0) ? 1 : 0;
+
+    // floating bodies: moved on level 0, the hull and its forcing on every grid
+    b6 = (p->X10==1) ? dynamic_cast<sixdof_cfd*>(p6dof) : nullptr;
+    bodies = (b6!=nullptr && b6->objects()>0) ? 1 : 0;
 
     mom0 = dynamic_cast<momentum_rk*>(pmom);
     press0 = dynamic_cast<pjm_corr*>(ppress);
@@ -392,6 +398,7 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     delete c->mg;
 
     delete c->pmom;
+    delete c->p6dof;
     delete c->ppress;
     del_as<poisson_pcorr>(c->ppois);
     del_as<reini_RK3>(c->preini);
@@ -541,6 +548,9 @@ void cfd_amr::patch_objects(r3patch *rp)
 
     c->pmom = new momentum_rk(pp,a,pgc,c->pconvec,c->pfsfdisc,c->pdiff,c->ppress,c->ppois,c->pturb,c->psolv,c->ppoissonsolv,
                               c->pflow,c->pheat,c->pconc,c->preini,pfsi0);
+
+    if(bodies)
+    c->p6dof = new cfd_amr_6dof(pp,b6);
 }
 
 // --------------------------------------------------------------------- fills
@@ -969,6 +979,8 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
         // solids and topography: the direct forcing fields and flags of the patch
         if(solids)
         pgc->solid_forcing_ini(pp,fa);
+        if(bodies)
+        c->p6dof->body(pp,fa,pgc);
         if(turb)
         {
             c->pturb->gcupdate(pp,fa,pgc);
@@ -1366,7 +1378,7 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
             for(int id : lev[l])
             {
                 pscope ps(pgc,CP(id)->a,a0);
-                CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,nullptr,s,solids ? 2 : 0);
+                CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
             }
         }
 

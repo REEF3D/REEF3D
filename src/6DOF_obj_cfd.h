@@ -60,6 +60,11 @@ public:
     
     using sixdof_obj::print_vtp;
 
+    // mesh refinement (cfd_amr, 6DOF_obj_cfd_amr.cpp): the level set of the body on the grid of a
+    // patch, the cells around the patch included, with the workspace of that grid
+    void ray_cast_amr(lexer*, fdm*, ghostcell*, fieldint5&, fieldint5&, fieldint5&);
+    void reini_amr(lexer*, fdm*, ghostcell*, field&, reinidisc*, field4a&, field4a&, field4a&);
+
 private:
     
     void ini_parameter_stl(lexer*, fdm*, ghostcell*);

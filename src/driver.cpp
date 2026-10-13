@@ -243,7 +243,7 @@ void driver::cfd_driver()
     // mesh refinement (G 1 > 0): patches from the boxes G 15, initialised from level 0
     if(cfd_amr::scope(p,pgc))
     {
-        pcfdamr = new cfd_amr(p,a,pgc,pmom,ppress,ppois,pflow,pvrans,pfsi,pini,pturb);
+        pcfdamr = new cfd_amr(p,a,pgc,pmom,ppress,ppois,pflow,pvrans,pfsi,pini,pturb,p6dof);
         pcfdamr->ini(p,a,pgc);
     }
 

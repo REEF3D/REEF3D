@@ -47,6 +47,8 @@ class patchBC_interface;
 class vrans;
 class fsi;
 class sixdof;
+class sixdof_cfd;
+class cfd_amr_6dof;
 class momentum;
 class momentum_rk;
 class reefmg_core;
@@ -120,6 +122,7 @@ struct cfd_amr_patch : public r3patch
     ioflow *pflow = nullptr;
     vrans *pvrans = nullptr;
     momentum_rk *pmom = nullptr;
+    cfd_amr_6dof *p6dof = nullptr;  // the floating bodies on the patch (X 10 1)
 
     vector<signed char> mkind;      // per cell of the array: -1 interior, else the fill kind of the cell
     vector<double> edge[3];         // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
@@ -168,7 +171,7 @@ struct cfd_amr_cf
 class cfd_amr : public reefamr3d
 {
 public:
-    cfd_amr(lexer*, fdm*, ghostcell*, momentum*, pressure*, poisson*, ioflow*, vrans*, fsi*, initialize*, turbulence*);
+    cfd_amr(lexer*, fdm*, ghostcell*, momentum*, pressure*, poisson*, ioflow*, vrans*, fsi*, initialize*, turbulence*, sixdof*);
     virtual ~cfd_amr();
 
     // false: the run is outside the scope of the refinement (a message has been printed)
@@ -252,8 +255,8 @@ private:
     cfd_amr_tlev* gts(int g) { return g<0 ? ts0 : CP(g)->ts; }
     field& tsf(int g, int m) { return *gts(g)->t[m]; }
     field& stf(int g, int m);
-    void advance(int l, double dtc);
-    void patch_step(int l, double dt, double th0);
+    void advance(int l, double dtc, double tc);
+    void patch_step(int l, double dt, double th0, double t);
     void save_old(int l);
     void interp(int l, double th);
     void fill_level(int l, double th);
@@ -302,6 +305,10 @@ private:
     turbulence *pturb0 = nullptr;
     int turb = 0;                       // RANS on the patches (T 10 1, 2)
     int solids = 0;                     // solids or topography (direct forcing) on the patches
+    sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1), moved on level 0
+    int bodies = 0;
+    void body_time(double w);           // G 7 1: the bodies at the fraction w of the level-0 step
+    int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
     int nts = 6;                        // fields of the subcycling state (8 with turbulence)
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
     // the state of a grid transferred to new patches (ini, regrid): 0 phi, 1 press, 2 eddyv, 3-5 u,

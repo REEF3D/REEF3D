@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"momentum_rk.h"
 #include"pjm_corr.h"
 #include"turbulence.h"
+#include"cfd_amr_6dof.h"
 #include<cmath>
 #include<iostream>
 #include<iomanip>
@@ -37,7 +38,7 @@ Architect: Hans Bihs
 //  Adaptive refinement (15c).  Every G 2 steps the cells of every level are flagged, each criterion
 //  on its own or together (the union):
 //    G 24 n   the interface band: |phi| < n psi (psi of the flagging level)
-//    G 25 n   within n cells of a solid or the topography (|solid|, |topo| < n dx)
+//    G 25 n   within n cells of a solid, the topography or a floating body (|solid|, |topo|, |fb| < n dx)
 //    G 26 w   a vorticity |curl u| > w [1/s]
 //    G 15     boxes, always refined to the finest level
 //  A flagged cell of level l (with a buffer of G 3 cells) marks the tiles of its children on level
@@ -97,7 +98,7 @@ bool cfd_amr::flagged(int g, int i, int j, int k, int lt, bool init)
     {
         const double dx = MIN3(q->DXN[i+marge],q->DZN[k+marge],(q->j_dir==1 ? q->DYN[j+marge] : 1.0e20))*scale;
         const double w = double(p0->G25)*dx;
-        if((p0->solidread!=0 && fabs(a->solid(i,j,k))<w) || (p0->toporead!=0 && fabs(a->topo(i,j,k))<w))
+        if((p0->solidread!=0 && fabs(a->solid(i,j,k))<w) || (p0->toporead!=0 && fabs(a->topo(i,j,k))<w) || (bodies && fabs(a->fb(i,j,k))<w))
         return true;
     }
 
@@ -315,6 +316,8 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         c->ppress->ini(pp,fa,pgc);
         if(solids)
         pgc->solid_forcing_ini(pp,fa);
+        if(bodies)
+        c->p6dof->body(pp,fa,pgc);
     }
 
     // the coarser levels from the finer ones
