@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include<map>
 #include<algorithm>
 #include<array>
+#include<Eigen/Dense>
 #include<cmath>
 #include"wave_lib_fastexp.h"
 #include"wave_lib_eta_series.h"
@@ -76,8 +77,13 @@ products per term:
 - pairs of different directions: their coefficients are summed per
   distinct |K| for the column (directional grids share |K|), each level
   one exp and two products per distinct |K|
+- directions with at least 96 components: the coefficients of their pairs
+  are smooth functions of (k_n, k_m); the sum and difference terms of
+  velocities and eta are evaluated from truncated eigen / singular value
+  expansions of the coefficient matrices (rank 7-11 at a relative error of
+  1e-10), O(R L) per level instead of O(L^2) (lr_build, lr_kin, lr_eta)
 v is skipped when all wave vectors lie on the x axis. Results agree with
-the term-by-term sums to round-off.
+the term-by-term sums to round-off (low-rank blocks: 1e-12 of the field).
 --------------------------------------------------------------------*/
 
 struct wave_lib_irregular_2nd_terms;
@@ -100,6 +106,7 @@ struct wave_lib_irregular_2nd_cache
     // 2nd order bu cp, bv cp, bw sp, bf sp
     std::vector<double> c1u, c1v, c1w, c1f, cu, cv, cw, cf;
     std::vector<double> gu, gv, gw, gf;   // other directions: bu cp ... summed per distinct |K|
+    std::vector<double> lw, lt;           // low-rank blocks: per-column vectors, per-level sums
     int colmask=0;                        // sets present: 1 u and w, 2 v, 4 f
     
     std::vector<double> P, iP, Q, Eu, Fu; // vertical profiles of the current level (internal order)
@@ -199,6 +206,31 @@ struct wave_lib_irregular_2nd_terms
     std::vector<double> uK, ueK;                       // distinct |K| of the other directions (directional grids share them)
     std::vector<int> us;                               // other directions: terms of uK[j] are [us[j], us[j+1])
     bool has_v=false;                                  // a wave vector off the x axis
+
+    // low-rank evaluation of large same-direction blocks (lr_build): for one direction the pair
+    // coefficients are smooth functions of (k_n, k_m) and the profiles and phases products of
+    // per-component factors (Z = C + i S, Q = T / P):
+    //   sum and self terms   sum_{n,m} C_nm [(P_n Z_n)(P_m Z_m) + (Q_n Z_n)(Q_m Z_m)],  C = pair / 2
+    //   difference terms     sum_{n<m} D_nm [(Z_n / P_n)(P_m conj Z_m) + (Z_n P_n / T_n)(Q_m conj Z_m)]
+    // with C = sum_r lam_r c_r c_r^T (symmetric eigen) and D = sum_r d_r e_r^T (SVD of D continued
+    // smoothly over its diagonal), truncated at a relative Frobenius error of lr_tol: per level
+    // O(R L) instead of O(L^2). Velocities and eta; the potential of the difference terms stays
+    // direct (its coefficient B grows as 1 / (k_m - k_n) next to the diagonal).
+    struct lr_blk
+    {
+        int s=0, L=0;                                  // components [s, s+L), ascending k
+        double ct=1.0, st=0.0;                         // direction
+        int Rv=0, Rf=0, Rg=0, Dv=0, Dg=0;              // ranks: sum velocity, potential, eta; difference velocity, eta
+        std::vector<double> Uv, lv, Uf, lf, Ug, lg;    // [n*R+r], eigenvalues
+        std::vector<double> DUv, DVv, DUg, DVg;        // [n*R+r]
+        int ow=0, of=0, od=0, oz=0;                    // offsets of the per-column vectors in the cache (lw)
+    };
+    std::vector<lr_blk> lrb;
+    std::vector<int> lrc;                              // component: its low-rank block or -1
+    std::vector<char> lrt;                             // term: 1 low-rank sum term, 2 low-rank difference term, 0 direct
+    int lr_work=0, lr_rmax=0;
+    static constexpr int lr_min = 96;                  // smallest block (below it the direct sums are faster)
+    static constexpr double lr_tol = 1.0e-10;          // relative Frobenius error of the truncated coefficients
 
     bool on=false;
 
@@ -404,8 +436,218 @@ struct wave_lib_irregular_2nd_terms
             perm(B); perm(G); perm(Kx); perm(Ky); perm(K); perm(nK); perm(eK);
             perm(bu); perm(bv); perm(bw); perm(bf); perm(iu);
         }
+        
+        lr_build(g);
 
         on = true;
+    }
+    
+    // coefficients of a same-direction pair for unit amplitudes: kd 0 sum (K = k1 + k2), 1 difference
+    // (K = k2 - k1, signed: smooth over k1 = k2, where the term itself is left out); as in build
+    template<typename R>
+    static void pair_unit(R k1, R w1, R k2, R w2, R h, R g, int kd, R &cw, R &cf, R &cg)
+    {
+        using std::tanh; using std::exp;
+        const R t1 = tanh(k1*h), t2 = tanh(k2*h);
+        const R b1 = w1/(k1*t1), b2 = w2/(k2*t2);
+        const R q1 = b1*k1*(g*k1 - w1*w1*t1), q2 = b2*k2*(g*k2 - w2*w2*t2);
+        const R kk = k1*k2, kt = kk*t1*t2;
+        const R cr = R(0.5)*(b2*w2*k2*t2 + b1*w1*k1*t1);
+        R F, P, W, Kp, Kd;
+        
+        if(kd==0)
+        {
+        W = w1 + w2; Kp = k1 + k2; Kd = Kp;
+        F = -b1*b2*(kk - kt)*W - R(0.5)*(q2 + q1);
+        P = R(0.5)*b1*b2*(kk - kt) - cr;
+        }
+        else
+        {
+        W = w1 - w2; Kp = k1 - k2; Kd = k2 - k1;
+        F = -b1*b2*(kk + kt)*W + R(0.5)*(q2 - q1);
+        P = R(0.5)*b1*b2*(kk + kt) - cr;
+        }
+        
+        const R Bc = F/(g*Kp*tanh(Kp*h) - W*W);
+        const R nKd = R(1)/(R(1) + exp(-R(2)*Kd*h));
+        cw = Bc*Kd*nKd;
+        cf = Bc*nKd;
+        cg = (W*Bc - P)/g;
+    }
+    
+    // low-rank blocks: same-direction blocks of at least lr_min components with distinct k and
+    // k h < 300 (P / T stays finite); kept where every rank is below L / 4
+    void lr_build(double g)
+    {
+        lrb.clear();
+        lrc.assign(M,-1);
+        lrt.assign(B.size(),0);
+        lr_work = lr_rmax = 0;
+        
+        for(int s=0; s<M; s=be[s])
+        {
+            const int L = be[s] - s;
+            bool ok = L>=lr_min && k[be[s]-1]*h<300.0;
+            for(int n=s+1; n<be[s] && ok; ++n)
+            ok = k[n]>k[n-1];
+            
+            if(!ok)
+            continue;
+            
+            Eigen::MatrixXd Cv(L,L), Cf(L,L), Cg(L,L), Dv(L,L), Dg(L,L);
+            
+            for(int n=0; n<L; ++n)
+            for(int m=0; m<L; ++m)
+            {
+                const int p=s+n, q=s+m;
+                const double am = a[p]*a[q];
+                double cw, cf, cg;
+                pair_unit<double>(k[p],w[p],k[q],w[q],h,g,0,cw,cf,cg);
+                Cv(n,m) = 0.5*am*cw;
+                Cf(n,m) = 0.5*am*cf;
+                Cg(n,m) = 0.5*am*cg;
+                
+                // difference terms in long double: next to the diagonal B is a ratio of two small
+                // differences (cancellation), and the noise would raise the rank
+                if(n!=m)
+                {
+                long double lw, lf, lg;
+                pair_unit<long double>(k[p],w[p],k[q],w[q],h,g,1,lw,lf,lg);
+                Dv(n,m) = am*double(lw);
+                Dg(n,m) = am*double(lg);
+                }
+            }
+            
+            // diagonal of the difference coefficients: their limit k2 -> k1 (Richardson, k2 = k1 (1 +- d),
+            // omega from the dispersion relation)
+            for(int n=0; n<L; ++n)
+            {
+                const int p=s+n;
+                const long double kp=k[p], wp=w[p], hh=h, gg=g;
+                long double vw[2], vg[2];
+                
+                for(int l=0; l<2; ++l)
+                {
+                    const long double d = l==0 ? 1.0e-3L : 2.0e-3L;
+                    vw[l] = vg[l] = 0.0L;
+                    
+                    for(int sg=-1; sg<=1; sg+=2)
+                    {
+                        const long double k2 = kp*(1.0L + sg*d);
+                        const long double w2 = std::sqrt(gg*k2*std::tanh(k2*hh));
+                        long double cw, cf, cg;
+                        pair_unit<long double>(kp,wp,k2,w2,hh,gg,1,cw,cf,cg);
+                        vw[l] += 0.5L*cw;
+                        vg[l] += 0.5L*cg;
+                    }
+                }
+                
+                Dv(n,n) = a[p]*a[p]*double((4.0L*vw[0] - vw[1])/3.0L);
+                Dg(n,n) = a[p]*a[p]*double((4.0L*vg[0] - vg[1])/3.0L);
+            }
+            
+            lr_blk bl;
+            bl.s = s;
+            bl.L = L;
+            bl.ct = kx[s]/k[s];
+            bl.st = ky[s]/k[s];
+            
+            // symmetric: C = sum lam c c^T, the largest |lam| until the rest is below lr_tol |C|
+            auto sym = [&](Eigen::MatrixXd &C, std::vector<double> &U, std::vector<double> &lam) -> int
+            {
+                C = 0.5*(C + C.transpose());
+                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(C);
+                const Eigen::VectorXd &ev = es.eigenvalues();
+                std::vector<int> o(L);
+                for(int r=0; r<L; ++r)
+                o[r] = r;
+                std::sort(o.begin(),o.end(),[&](int x, int y){ return fabs(ev(x))>fabs(ev(y)); });
+                
+                // the error of keeping R: the sum of the dropped squares, summed from the smallest up
+                const double ref = C.norm();
+                std::vector<double> tail(L+1,0.0);
+                for(int r=L-1; r>=0; --r)
+                tail[r] = tail[r+1] + ev(o[r])*ev(o[r]);
+                
+                int R=0;
+                while(R<L && sqrt(tail[R])>lr_tol*ref)
+                ++R;
+                
+                U.assign(size_t(L)*R,0.0);
+                lam.assign(R,0.0);
+                for(int r=0; r<R; ++r)
+                {
+                lam[r] = ev(o[r]);
+                for(int n=0; n<L; ++n)
+                U[size_t(n)*R+r] = es.eigenvectors()(n,o[r]);
+                }
+                return R;
+            };
+            
+            // general: D = sum d e^T on the strict upper triangle (n < m), until the error there is
+            // below lr_tol |D_upper|
+            auto gen = [&](const Eigen::MatrixXd &D, std::vector<double> &U, std::vector<double> &V) -> int
+            {
+                Eigen::BDCSVD<Eigen::MatrixXd,Eigen::ComputeThinU|Eigen::ComputeThinV> sv(D);
+                Eigen::MatrixXd E = D;
+                double ref=0.0;
+                for(int n=0; n<L; ++n)
+                for(int m=n+1; m<L; ++m)
+                ref += D(n,m)*D(n,m);
+                ref = sqrt(ref);
+                
+                int R=0;
+                for(;R<L;)
+                {
+                    double err=0.0;
+                    for(int n=0; n<L; ++n)
+                    for(int m=n+1; m<L; ++m)
+                    err += E(n,m)*E(n,m);
+                    
+                    if(sqrt(err)<=lr_tol*ref)
+                    break;
+                    
+                    E -= sv.singularValues()(R)*sv.matrixU().col(R)*sv.matrixV().col(R).transpose();
+                    ++R;
+                }
+                
+                U.assign(size_t(L)*R,0.0);
+                V.assign(size_t(L)*R,0.0);
+                for(int r=0; r<R; ++r)
+                for(int n=0; n<L; ++n)
+                {
+                U[size_t(n)*R+r] = sv.singularValues()(r)*sv.matrixU()(n,r);
+                V[size_t(n)*R+r] = sv.matrixV()(n,r);
+                }
+                return R;
+            };
+            
+            bl.Rv = sym(Cv,bl.Uv,bl.lv);
+            bl.Rf = sym(Cf,bl.Uf,bl.lf);
+            bl.Rg = sym(Cg,bl.Ug,bl.lg);
+            bl.Dv = gen(Dv,bl.DUv,bl.DVv);
+            bl.Dg = gen(Dg,bl.DUg,bl.DVg);
+            
+            if(4*std::max(std::max(std::max(bl.Rv,bl.Rf),std::max(bl.Rg,bl.Dv)),bl.Dg)>=L)
+            continue;
+            
+            // per-column vectors (complex, re then im): (U Z) of the sums, (DU Z) and (DV conj Z)
+            bl.ow = lr_work;  lr_work += 2*L*bl.Rv;
+            bl.of = lr_work;  lr_work += 2*L*bl.Rf;
+            bl.od = lr_work;  lr_work += 2*L*bl.Dv;
+            bl.oz = lr_work;  lr_work += 2*L*bl.Dv;
+            lr_rmax = std::max(lr_rmax,std::max(std::max(bl.Rv,bl.Rf),std::max(std::max(bl.Rg,bl.Dg),bl.Dv)));
+            
+            for(int n=s; n<s+L; ++n)
+            lrc[n] = int(lrb.size());
+            lrb.push_back(bl);
+        }
+        
+        // terms of the low-rank blocks
+        const int N = int(B.size());
+        for(int i=0; i<ns+nd; ++i)
+        if(lrc[tn[i]]>=0)
+        lrt[i] = i<ns ? 1 : 2;
     }
 
     // C, S of the wave library order into the internal order
@@ -437,6 +679,12 @@ struct wave_lib_irregular_2nd_terms
             const double *g = G.data() + i0, *Cm = C + n, *Sm = S + n;
             const int cnt = be[n] - n;
             
+            if(lrc[n]>=0)
+            {
+            i0 += cnt;
+            continue;
+            }
+            
             #pragma omp simd reduction(+:e2)
             for(int j=0; j<cnt; ++j)
             e2 += g[j]*(Cn*Cm[j] - Sn*Sm[j]);
@@ -449,6 +697,12 @@ struct wave_lib_irregular_2nd_terms
             const double Cn = C[n], Sn = S[n];
             const double *g = G.data() + i0, *Cm = C + n + 1, *Sm = S + n + 1;
             const int cnt = be[n] - n - 1;
+            
+            if(lrc[n]>=0)
+            {
+            i0 += cnt;
+            continue;
+            }
             
             #pragma omp simd reduction(+:e2)
             for(int j=0; j<cnt; ++j)
@@ -466,7 +720,54 @@ struct wave_lib_irregular_2nd_terms
         for(int i=ns+nd; i<N; ++i)
         e2 += g[i]*(C[pn[i]]*C[pm[i]] - sg[i]*S[pn[i]]*S[pm[i]]);
         
+        for(const lr_blk &bl : lrb)
+        e2 += lr_eta(bl,C,S);
+        
         return e1 + e2;
+    }
+    
+    // eta of a low-rank block: Re sum_r lam_r (sum_n U_nr Z_n)^2 + Re sum_m sum_r DV_mr conj Z_m sum_{n<m} DU_nr Z_n
+    double lr_eta(const lr_blk &bl, const double *C, const double *S) const
+    {
+        const int L = bl.L, s = bl.s;
+        double e = 0.0;
+        
+        int R = bl.Rg;
+        std::vector<double> tr(R,0.0), ti(R,0.0);
+        for(int n=0; n<L; ++n)
+        {
+            const double cn = C[s+n], sn = S[s+n];
+            const double *u = bl.Ug.data() + size_t(n)*R;
+            
+            #pragma omp simd
+            for(int r=0; r<R; ++r)
+            {
+            tr[r] += u[r]*cn;
+            ti[r] += u[r]*sn;
+            }
+        }
+        for(int r=0; r<R; ++r)
+        e += bl.lg[r]*(tr[r]*tr[r] - ti[r]*ti[r]);
+        
+        R = bl.Dg;
+        std::vector<double> ar(R,0.0), ai(R,0.0), er(R,0.0);
+        for(int m=0; m<L; ++m)
+        {
+            const double cm = C[s+m], sm = S[s+m];
+            const double *dv = bl.DVg.data() + size_t(m)*R, *du = bl.DUg.data() + size_t(m)*R;
+            
+            #pragma omp simd
+            for(int r=0; r<R; ++r)
+            {
+            er[r] += dv[r]*(cm*ar[r] + sm*ai[r]);
+            ar[r] += du[r]*cm;
+            ai[r] += du[r]*sm;
+            }
+        }
+        for(int r=0; r<R; ++r)
+        e += er[r];
+        
+        return e;
     }
     
     // eta from the phases C = cos T, S = sin T in the order of the wave library
@@ -486,7 +787,8 @@ struct wave_lib_irregular_2nd_terms
 
     // eta at a point for the times tv, with the phases phi_n = k_n.x - e_n (wave library order):
     // the components and the terms as harmonics, G cos(phi_n +- phi_m - (w_n +- w_m) t); the terms
-    // of one frequency (within 1e-14 of it) as one harmonic (wave_lib_eta_series.h)
+    // of one frequency (within 1e-14 of it) as one harmonic (wave_lib_eta_series.h). The terms of
+    // the low-rank blocks per sample from their expansions (lr_series).
     void series(const double *phi, const std::vector<double> &tv, std::vector<double> &ev) const
     {
         const int N = int(B.size());
@@ -501,6 +803,9 @@ struct wave_lib_irregular_2nd_terms
         
         for(int i=0; i<N; ++i)
         {
+            if(i<ns+nd && lrc[tn[i]]>=0)
+            continue;
+            
             double ph = phi[lib[tn[i]]] + sgn[i]*phi[lib[tm[i]]];
             double W = w[tn[i]] + sgn[i]*w[tm[i]];
             
@@ -528,6 +833,65 @@ struct wave_lib_irregular_2nd_terms
         }
         
         wave_eta_harmonics(Wb,ar,ai,tv,ev);
+        
+        if(!lrb.empty())
+        lr_series(phi,tv,ev);
+    }
+    
+    // adds the terms of the low-rank blocks to the series ev: the phases T_n = phi_n - w_n t rotated
+    // from sample to sample (exact every 32 samples and when the step changes, as
+    // wave_eta_harmonics), lr_eta per sample: O(R L) instead of O(L^2) harmonics
+    void lr_series(const double *phi, const std::vector<double> &tv, std::vector<double> &ev) const
+    {
+        const size_t NT = tv.size();
+        
+        if(NT==0)
+        return;
+        
+        std::vector<double> ph(M), C(M), S(M), cd(M), sd(M);
+        const double d0 = NT>1 ? tv[1] - tv[0] : 0.0;
+        
+        for(int n=0; n<M; ++n)
+        {
+        ph[n] = phi[lib[n]];
+        cd[n] = cos(w[n]*d0);
+        sd[n] = sin(w[n]*d0);
+        }
+        
+        int since = 32;
+        
+        for(size_t q=0; q<NT; ++q)
+        {
+            const bool exact = since>=32 || q==0 || fabs((tv[q] - tv[q-1]) - d0) > 1.0e-9*fabs(d0);
+            
+            if(exact)
+            {
+                for(int n=0; n<M; ++n)
+                {
+                C[n] = cos(ph[n] - w[n]*tv[q]);
+                S[n] = sin(ph[n] - w[n]*tv[q]);
+                }
+                since = 1;
+            }
+            else
+            {
+                #pragma omp simd
+                for(int n=0; n<M; ++n)
+                {
+                    const double cn = C[n]*cd[n] + S[n]*sd[n];
+                    S[n] = S[n]*cd[n] - C[n]*sd[n];
+                    C[n] = cn;
+                }
+                ++since;
+            }
+            
+            double e = 0.0;
+            
+            for(const lr_blk &bl : lrb)
+            e += lr_eta(bl,C.data(),S.data());
+            
+            ev[q] += e;
+        }
     }
     
     // phases of the cache into the internal order (once per point and time); the column
@@ -611,6 +975,21 @@ struct wave_lib_irregular_2nd_terms
             const int m0 = n + pass;
             const int cnt = be[n] - m0;
             
+            // low-rank block: only the potential of the difference terms directly
+            if(lrc[n]>=0)
+            {
+                if constexpr(DF)
+                if(pass==1)
+                {
+                    #pragma omp simd
+                    for(int j=0; j<cnt; ++j)
+                    cf[i0+j] = pbf[i0+j]*(Sn*C[m0+j] - Cn*S[m0+j]);
+                }
+                
+                i0 += cnt;
+                continue;
+            }
+            
             #pragma omp simd
             for(int j=0; j<cnt; ++j)
             {
@@ -668,6 +1047,43 @@ struct wave_lib_irregular_2nd_terms
             c.gv[j] = av;
             if constexpr(DF)
             c.gf[j] = af;
+        }
+        
+        // low-rank blocks: (U Z) of the sums, (DU Z) and (DV conj Z) of the difference terms
+        if(!lrb.empty())
+        {
+            c.lw.resize(lr_work);
+            c.lt.resize(12*size_t(lr_rmax));
+        }
+        
+        for(const lr_blk &bl : lrb)
+        {
+            const int L = bl.L, s = bl.s;
+            auto mult = [&](const std::vector<double> &U, int R, double *w, double sgn_i)
+            {
+                double *wr = w, *wi = w + size_t(L)*R;
+                for(int n=0; n<L; ++n)
+                {
+                    const double cn = C[s+n], sn = sgn_i*S[s+n];
+                    const double *u = U.data() + size_t(n)*R;
+                    
+                    #pragma omp simd
+                    for(int r=0; r<R; ++r)
+                    {
+                    wr[size_t(n)*R+r] = u[r]*cn;
+                    wi[size_t(n)*R+r] = u[r]*sn;
+                    }
+                }
+            };
+            
+            if constexpr(DW || DV)
+            {
+            mult(bl.Uv,bl.Rv,c.lw.data()+bl.ow,1.0);
+            mult(bl.DUv,bl.Dv,c.lw.data()+bl.od,1.0);
+            mult(bl.DVv,bl.Dv,c.lw.data()+bl.oz,-1.0);
+            }
+            if constexpr(DF)
+            mult(bl.Uf,bl.Rf,c.lw.data()+bl.of,1.0);
         }
     }
     
@@ -746,7 +1162,7 @@ struct wave_lib_irregular_2nd_terms
     // the sums of kin over the terms; the loops are SIMD reductions (#pragma omp simd, with
     // -fopenmp or -fopenmp-simd; the order of the additions then depends on the vector width)
     template<bool UW, bool DV, bool DF>
-    void kin_t(const wave_lib_irregular_2nd_cache &c, double z, bool prod, double &u, double &v, double &ww, double &f) const
+    void kin_t(wave_lib_irregular_2nd_cache &c, double z, bool prod, double &u, double &v, double &ww, double &f) const
     {
         const double *P = c.P.data(), *iP = c.iP.data(), *Q = c.Q.data();
         const double *c1u = c.c1u.data(), *c1v = c.c1v.data(), *c1w = c.c1w.data(), *c1f = c.c1f.data();
@@ -785,6 +1201,12 @@ struct wave_lib_irregular_2nd_terms
                 const double *Pm = P + n, *Qm = Q + n;
                 const int cnt = be[n] - n;
                 
+                if(lrc[n]>=0)
+                {
+                i0 += cnt;
+                continue;
+                }
+                
                 #pragma omp simd reduction(+:su,sv,sw,sf)
                 for(int j=0; j<cnt; ++j)
                 {
@@ -813,6 +1235,20 @@ struct wave_lib_irregular_2nd_terms
                 const double Pn = P[n], iPn = iP[n];
                 const double *Pm = P + n + 1, *iPm = iP + n + 1;
                 const int cnt = be[n] - n - 1;
+                
+                // low-rank block: only the potential directly
+                if(lrc[n]>=0)
+                {
+                    if constexpr(DF)
+                    {
+                        #pragma omp simd reduction(+:sf)
+                        for(int j=0; j<cnt; ++j)
+                        sf += cf[i0+j]*(Pm[j]*iPn + iPm[j]*Pn*e[i0+j]);
+                    }
+                    
+                    i0 += cnt;
+                    continue;
+                }
                 
                 #pragma omp simd reduction(+:su,sv,sw,sf)
                 for(int j=0; j<cnt; ++j)
@@ -860,7 +1296,17 @@ struct wave_lib_irregular_2nd_terms
             // deep water: exp per term (same direction) and per distinct |K| (other directions)
             for(int i=0; i<ns+nd; ++i)
             {
+                if(lrt[i]==1 || (lrt[i]==2 && !DF))
+                continue;
+                
                 const double E = exp(K[i]*z), F = exp(-K[i]*(z+2.0*h));
+                
+                if(lrt[i]==2)
+                {
+                if constexpr(DF)
+                sf += cf[i]*(E + F);
+                continue;
+                }
                 
                 if constexpr(UW)
                 {
@@ -890,10 +1336,113 @@ struct wave_lib_irregular_2nd_terms
             }
         }
         
+        for(const lr_blk &bl : lrb)
+        lr_kin<UW,DV,DF>(c,bl,su,sv,sw,sf);
+        
         u = su;
         v = sv;
         ww = sw;
         f = sf;
+    }
+    
+    // low-rank block at the current level (profiles P, Q, 1/P of the cache)
+    template<bool UW, bool DV, bool DF>
+    void lr_kin(wave_lib_irregular_2nd_cache &c, const lr_blk &bl, double &su, double &sv, double &sw, double &sf) const
+    {
+        const int L = bl.L, s = bl.s;
+        const double *P = c.P.data() + s, *Q = c.Q.data() + s, *iP = c.iP.data() + s, *Tn = T.data() + s;
+        double *t = c.lt.data();
+        
+        // sums: s1 = sum_n W_nr P_n, s2 = sum_n W_nr Q_n; sum_r lam_r (s1^2 + s2^2)
+        auto sums = [&](const double *w, int R, const double *lam, double &X, double &Y, double &Z)
+        {
+            const double *wr = w, *wi = w + size_t(L)*R;
+            double *ar = t, *ai = t + R, *br = t + 2*R, *bi = t + 3*R;
+            for(int r=0; r<4*R; ++r)
+            t[r] = 0.0;
+            
+            for(int n=0; n<L; ++n)
+            {
+                const double p = P[n], q = Q[n];
+                const double *xr = wr + size_t(n)*R, *xi = wi + size_t(n)*R;
+                
+                #pragma omp simd
+                for(int r=0; r<R; ++r)
+                {
+                ar[r] += xr[r]*p;
+                ai[r] += xi[r]*p;
+                br[r] += xr[r]*q;
+                bi[r] += xi[r]*q;
+                }
+            }
+            
+            // X = Re(SP + SQ), Y = Im(SP - SQ), Z = Im(SP + SQ)
+            X = Y = Z = 0.0;
+            for(int r=0; r<R; ++r)
+            {
+            X += lam[r]*(ar[r]*ar[r] - ai[r]*ai[r] + br[r]*br[r] - bi[r]*bi[r]);
+            Y += lam[r]*2.0*(ar[r]*ai[r] - br[r]*bi[r]);
+            Z += lam[r]*2.0*(ar[r]*ai[r] + br[r]*bi[r]);
+            }
+        };
+        
+        if constexpr(UW || DV)
+        {
+            double X, Y, Z;
+            sums(c.lw.data()+bl.ow,bl.Rv,bl.lv.data(),X,Y,Z);
+            
+            // difference terms: prefix sums A_r(m) = sum_{n<m} DU_nr Z_n / P_n, B_r(m) = sum_{n<m} DU_nr Z_n P_n / T_n
+            const int R = bl.Dv;
+            const double *dr = c.lw.data() + bl.od, *di = dr + size_t(L)*R;
+            const double *zr = c.lw.data() + bl.oz, *zi = zr + size_t(L)*R;
+            double *aAr = t, *aAi = t + R, *aBr = t + 2*R, *aBi = t + 3*R;
+            double *ser = t + 4*R, *sei = t + 5*R, *sfr = t + 6*R, *sfi = t + 7*R;
+            for(int r=0; r<8*R; ++r)
+            t[r] = 0.0;
+            
+            for(int m=0; m<L; ++m)
+            {
+                const double p = P[m], q = Q[m], ip = iP[m], pt = P[m]/Tn[m];
+                const double *vr = zr + size_t(m)*R, *vi = zi + size_t(m)*R;
+                const double *wr = dr + size_t(m)*R, *wi = di + size_t(m)*R;
+                
+                #pragma omp simd
+                for(int r=0; r<R; ++r)
+                {
+                ser[r] += p*(vr[r]*aAr[r] - vi[r]*aAi[r]);
+                sei[r] += p*(vr[r]*aAi[r] + vi[r]*aAr[r]);
+                sfr[r] += q*(vr[r]*aBr[r] - vi[r]*aBi[r]);
+                sfi[r] += q*(vr[r]*aBi[r] + vi[r]*aBr[r]);
+                aAr[r] += wr[r]*ip;
+                aAi[r] += wi[r]*ip;
+                aBr[r] += wr[r]*pt;
+                aBi[r] += wi[r]*pt;
+                }
+            }
+            
+            double Xd=0.0, Yd=0.0;
+            for(int r=0; r<R; ++r)
+            {
+            Xd += ser[r] + sfr[r];
+            Yd += sei[r] - sfi[r];
+            }
+            
+            // u = cos(beta) (X_sum - X_dif), v = sin(beta) (...), w = Y_sum + Y_dif
+            if constexpr(UW)
+            {
+            su += bl.ct*(X - Xd);
+            sw += Y + Yd;
+            }
+            if constexpr(DV)
+            sv += bl.st*(X - Xd);
+        }
+        
+        if constexpr(DF)
+        {
+            double X, Y, Z;
+            sums(c.lw.data()+bl.of,bl.Rf,bl.lf.data(),X,Y,Z);
+            sf += Z;
+        }
     }
 };
 
