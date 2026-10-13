@@ -894,6 +894,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->gcslparaco1_count = pp->gcslparaco2_count = pp->gcslparaco3_count = pp->gcslparaco4_count = 0;
     pp->nb1 = pp->nb2 = pp->nb3 = pp->nb4 = pp->nb5 = pp->nb6 = -2;
     pp->periodic1 = pp->periodic2 = pp->periodic3 = 0;   // no periodic ghost copies on a patch (the lexer copy leaves them unset)
+    pp->bcside1 = p->bcside1; pp->bcside2 = p->bcside2; pp->bcside3 = p->bcside3;   // side types of the domain edges (y in 2D),
+    pp->bcside4 = p->bcside4; pp->bcside5 = p->bcside5; pp->bcside6 = p->bcside6;   // as on the base grid (the lexer copy leaves them unset)
     pp->mpi_size = 1;
     pp->mpirank = p->mpirank;
 

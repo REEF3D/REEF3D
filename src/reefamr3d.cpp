@@ -693,6 +693,8 @@ void reefamr3d::build_lexer(r3patch &c)
     pp->i_dir = p->i_dir; pp->j_dir = p->j_dir; pp->k_dir = p->k_dir;
     pp->nb1 = pp->nb2 = pp->nb3 = pp->nb4 = pp->nb5 = pp->nb6 = -2;
     pp->periodic1 = pp->periodic2 = pp->periodic3 = 0;
+    pp->bcside1 = p->bcside1; pp->bcside2 = p->bcside2; pp->bcside3 = p->bcside3;   // side types of the domain edges (y in 2D),
+    pp->bcside4 = p->bcside4; pp->bcside5 = p->bcside5; pp->bcside6 = p->bcside6;   // as on the base grid (the lexer copy leaves them unset)
     pp->periodicX1 = pp->periodicX2 = pp->periodicX3 = pp->periodicX4 = pp->periodicX5 = pp->periodicX6 = 0;
     pp->mx = pp->my = pp->mz = 1;
     pp->P150 = 0;
