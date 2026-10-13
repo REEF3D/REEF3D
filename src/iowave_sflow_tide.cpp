@@ -321,43 +321,16 @@ void iowave::sflow_mass_balance(lexer *p, fdm2D *b, ghostcell *pgc)
     if(t==mb_t)
     return;
 
-    // flux into the domain through each open edge [m3/s], from the continuity fluxes FEx / FEy
+    // flux into the domain through each open edge [m3/s] in the last step: the continuity fluxes
+    // of its RK stages with the stage weights (sflow_mass_flux_stage)
     double q[5]={0.0,0.0,0.0,0.0,0.0};
-
+    
     for(int side : {1,2,3,4})
     {
-        const bc_zone *z = zones.open_edge(side);
-        if(z==nullptr || sflow_edge_open(p,side)==0)
-        continue;
-
-        int sc, di, dj;
-        double nx, ny;
-        sflow_edge_geometry(side,sc,di,dj,nx,ny);
-
-        for(int list=0; list<2; ++list)
-        {
-        const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
-        int **gs = list==0 ? p->gcslin : p->gcslout;
-
-        for(int m=0; m<cs; ++m)
-        if(gs[m][3]==sc)
-        {
-            i = gs[m][0];
-            j = gs[m][1];
-
-            double f = 0.0;
-            if(side==1) f =  b->FEx(i-1,j);
-            if(side==2) f = -b->FEx(i,j);
-            if(side==3) f =  b->FEy(i,j-1);
-            if(side==4) f = -b->FEy(i,j);
-
-            q[side] += f*(side<=2 ? p->DYN[JP] : p->DXN[IP]);
-        }
-        }
-
-        q[side] = pgc->globalsum(q[side]);
+    q[side] = mb_qs[side];
+    mb_qs[side] = 0.0;
     }
-
+    
     double V = 0.0;
     SLICELOOP4
     V += b->WL(i,j)*p->DXN[IP]*p->DYN[JP];
@@ -414,4 +387,57 @@ void iowave::sflow_mass_balance(lexer *p, fdm2D *b, ghostcell *pgc)
     mb_t0 = t;
     mb_V0 = V;
     mb_n = 0;
+}
+
+// boundary fluxes of one RK stage (called after the stage's water level update), weighted so
+// that their sum over the step is the flux of the step: RK3 1/6, 1/6, 2/3; RK2 1/2, 1/2
+void iowave::sflow_mass_flux_stage(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(p->count!=mb_scount)
+    {
+    mb_scount = p->count;
+    mb_stage = 0;
+    }
+    else
+    ++mb_stage;
+    
+    const double w3[3] = {1.0/6.0, 1.0/6.0, 2.0/3.0};
+    const double w2[2] = {0.5, 0.5};
+    const double w = p->A210==2 ? (mb_stage<2 ? w2[mb_stage] : 0.0) : (mb_stage<3 ? w3[mb_stage] : 0.0);
+    
+    for(int side : {1,2,3,4})
+    {
+        const bc_zone *z = zones.open_edge(side);
+        if(z==nullptr || sflow_edge_open(p,side)==0)
+        continue;
+        
+        int sc, di, dj;
+        double nx, ny;
+        sflow_edge_geometry(side,sc,di,dj,nx,ny);
+        
+        double q = 0.0;
+        
+        for(int list=0; list<2; ++list)
+        {
+        const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+        int **gs = list==0 ? p->gcslin : p->gcslout;
+        
+        for(int m=0; m<cs; ++m)
+        if(gs[m][3]==sc)
+        {
+            i = gs[m][0];
+            j = gs[m][1];
+            
+            double f = 0.0;
+            if(side==1) f =  b->FEx(i-1,j);
+            if(side==2) f = -b->FEx(i,j);
+            if(side==3) f =  b->FEy(i,j-1);
+            if(side==4) f = -b->FEy(i,j);
+            
+            q += f*(side<=2 ? p->DYN[JP] : p->DXN[IP]);
+        }
+        }
+        
+        mb_qs[side] += w*pgc->globalsum(q);
+    }
 }

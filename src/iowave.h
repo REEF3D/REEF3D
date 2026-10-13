@@ -373,6 +373,9 @@ private:
     void sflow_open_edges(lexer*,fdm2D*,ghostcell*,slice&,slice&);
     void sflow_open_edges_eta(lexer*,fdm2D*,slice&);
     void sflow_mass_balance(lexer*,fdm2D*,ghostcell*);
+    void sflow_mass_flux_stage(lexer*,fdm2D*,ghostcell*);
+    double mb_qs[5]={0.0,0.0,0.0,0.0,0.0};     // SFLOW: edge fluxes of the last step, RK-stage weighted
+    int mb_scount=-1, mb_stage=0;
     std::ofstream mb_out;
     double mb_t=-1.0, mb_t0=0.0, mb_V0=0.0;
     double mb_int[5]={0.0,0.0,0.0,0.0,0.0};

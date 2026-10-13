@@ -31,4 +31,8 @@ void iowave::waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
     // Riemann / clamped level edges: ghost level from the step's characteristics
     sflow_open_edges_eta(p,b,eta);
+    
+    // edge mass balance (B 529): boundary fluxes of this RK stage
+    if(p->B529>0)
+    sflow_mass_flux_stage(p,b,pgc);
 }
