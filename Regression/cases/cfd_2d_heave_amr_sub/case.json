@@ -1,0 +1,4 @@
+{"np": 1, "steps": 20,
+ "description": "cfd_2d_heave_amr with subcycling (G 7 1): the body at the time of the patch stages, linear between the start and the end of the level-0 step.",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["sixdof_obj::amr_interpolate, cfd_amr::body_time"]}

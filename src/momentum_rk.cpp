@@ -263,13 +263,15 @@ void momentum_rk::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 {
     p6dof = pp6dof;
 
-    imex_step_setup(p);
-
+    // (the SSP step sets the weights of the implicit diffusion in amr_step_begin)
     if(scheme==SSP)
     step_ssp(p,a,pgc,pvrans,p6dof);
 
     if(scheme==LOWSTORAGE)
+    {
+    imex_step_setup(p);
     step_lowstorage(p,a,pgc,pvrans,p6dof);
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -302,6 +304,10 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 
 void momentum_rk::amr_step_begin(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // weights of the second-order implicit diffusion of this step (also on the grids of the mesh
+    // refinement, which call the parts of the step without start)
+    imex_step_setup(p);
+
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
@@ -914,6 +920,12 @@ void momentum_rk::projection(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
 	ppress->start(a,p,ppois,ppoissonsolv,pgc,pflow,u,v,w,weight);
 
     amr_project_after(p,a,pgc,u,v,w);
+}
+
+// the projection of the SSP stage s (as step_ssp)
+void momentum_rk::amr_projection(lexer *p, fdm *a, ghostcell *pgc, int s)
+{
+    projection(p,a,pgc,velout(a,0,s),velout(a,1,s),velout(a,2,s),ssp_b[s]);
 }
 
 // after the pressure correction: relaxation zones and the ghost cells of the velocities

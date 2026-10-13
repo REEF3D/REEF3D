@@ -54,6 +54,17 @@ class initialize;
 
 using namespace std;
 
+// subcycling (G 7 1): a grid that is the coarser level of a patch keeps its state at the start of
+// its step (u, v, w, phi, press, eddyv) and gets the values at the time of a stage of the finer level
+// (linear in time between the start and the end of its step)
+struct cfd_amr_tlev
+{
+    cfd_amr_tlev(lexer*);
+    ~cfd_amr_tlev();
+    field *o[6];        // start of the step: u, v, w, phi, press, eddyv
+    field *t[6];        // at the time of the finer stage
+};
+
 //  REEF3D::CFD with mesh refinement (A 10 6, G 1 > 0, static boxes G 15).
 //
 //  The patches of reefamr3d (3D boxes, refined by 2 in every active direction) each carry an fdm
@@ -80,6 +91,12 @@ using namespace std;
 //  The step size is the minimum of all levels.  Scope of this version: laminar two-phase or
 //  single-phase flow (F 30, N 40 2/3), no solids, bodies, sediment, porous media, heat or
 //  concentration; wave generation and absorption on level 0 (the patches keep out of the zones).
+//
+//  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
+//  step of level l; the cells around a patch linear in time between the start and the end of the
+//  step of the coarser level; the projection of a level alone, with the face velocity of the
+//  coarser level at the patch edges (pr_level).  F 46 2/3: the volume correction of the level set
+//  over the leaf cells of all grids at the end of the step.
 
 struct cfd_amr_patch : public r3patch
 {
@@ -102,11 +119,17 @@ struct cfd_amr_patch : public r3patch
     momentum_rk *pmom = nullptr;
 
     vector<signed char> mkind;      // per cell of the array: -1 interior, else the fill kind of the cell
+    vector<double> edge[3];         // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
     vector<int> row;                // per cell: row of the Poisson matrix (LOOP order), -1
 
     // composite pressure
     vector<field4*> kv;
     reefmg_core *mg = nullptr;
+
+    // subcycling (G 7 1)
+    cfd_amr_tlev *ts = nullptr;
+    int comp = -1;      // connected component of the patches of its level (level projection)
+    double dt_l = 0.0;  // its step
 };
 
 // a face between a patch cell and a cell of the coarser level
@@ -164,6 +187,9 @@ public:
     void pr_s(double alp);
     void pr_x(double alp, double om);
 
+    // subcycling (cfd_amr_sub.cpp)
+    void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
+
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};
 
@@ -186,11 +212,13 @@ private:
         std::function<field&(int)> f;      // source (and destination)
         std::function<field&(int)> fd;     // destination, if not f
     };
-    void fill(int l, vector<fspec> &fs);
+    void fill(int l, vector<fspec> &fs, bool siblings_only=false);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone
     void fill_all(vector<fspec> &fs);
     double prolong(const fspec &F, int g, const int *s, const int *o);
     double cell_slope(field &f, int g, const int *s, int d, int mode);
     void margin_rovisc(int id);
+    // the boundary values of the state of patch id (before it is the parent of a new patch)
+    void bc_state(int id);
 
     // restriction onto the cells and faces under the patches of level l (from level l)
     void restrict_level(int l, const vector<std::function<field&(int)>> &cells, const vector<std::function<field&(int)>> &faces);
@@ -202,6 +230,27 @@ private:
     void fill_phi_out(int l, int s);
     void fill_velout(int l, int s);
     void fill_vel_after(int s);
+    void edge_faces(int l, int s);
+
+    // subcycling (cfd_amr_sub.cpp)
+    cfd_amr_tlev* gts(int g) { return g<0 ? ts0 : CP(g)->ts; }
+    field& tsf(int g, int m) { return *gts(g)->t[m]; }
+    field& stf(int g, int m);
+    void advance(int l, double dtc);
+    void patch_step(int l, double dt, double th0);
+    void save_old(int l);
+    void interp(int l, double th);
+    void fill_level(int l, double th);
+    void restrict_sub(int l);
+    double tin[3], tout[3];         // stage input and output times in units of the step
+    vector<double> th_end;          // per level: end of its last step in the step of the coarser level
+
+    // composite volume of the level set (F 46 2/3): leaf cells of all grids
+    void volume(double &V, double &dV);
+    void volume_correct(lexer*, ghostcell*);
+    void rovisc_all();
+    double vol_step = 0.0, vol_net = 0.0;
+    bool vol_ini = false;
 
     // composite projection (cfd_amr_press.cpp)
     void pr_setup();
@@ -215,6 +264,10 @@ private:
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k);
+    void pr_level(lexer*, ghostcell*, int l, int s);
+    void pr_components();
+    const vector<int>& UQ(int g) { return prl<0 ? lq[g+1] : aq[g+1]; }
+    const vector<int>& UR(int g) { return prl<0 ? lr[g+1] : ar[g+1]; }
     double* pvec(int g, int k);
     field& pfield(int g, int k);
 
@@ -229,11 +282,17 @@ private:
     initialize *pini0;
 
     int gcval_phi;
+    int sub = 0;                        // G 7 1
+    cfd_amr_tlev *ts0 = nullptr;
 
     // composite pressure
     vector<cfd_amr_cf> cf;
     vector<int> row0;                   // level-0 rows
     vector<vector<int>> lq, lr, cq;     // [g+1] leaf cells: index, row; covered cells
+    vector<vector<int>> aq, ar;         // [g+1] all cells with a row: index, row (level projection)
+    int prl = -1;                       // the projection: -1 composite, l level l alone (G 7 1)
+    vector<int> prg;                    // its grids
+    int ncomp = 0;                      // connected components of the patches of a level
     vector<field4*> kv0;
     reefmg_core *mg0 = nullptr;
     vector<long> l0a, l0f;              // level-0 V-cycle: active rows of the multigrid, cells

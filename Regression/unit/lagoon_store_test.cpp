@@ -247,6 +247,33 @@ int main()
         check(c.empty() && d==std::vector<float>(p[1].begin()+half,p[1].end()), "output 1: the chunk of fill values is left out");
     }
 
+    // the georeference: the case's georef.json goes into the store's root, on one line
+    {
+        std::cout<<"georef.json into the root"<<std::endl;
+        const std::string path = "lagoon_store_test_georef.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        {
+            std::ofstream out("georef.json");
+            out<<"{\n  \"version\": 1,\n  \"crs\": \"EPSG:25833\",\n  \"origin\": [270000.0, 7040000.0],\n"
+               <<"  \"rotation_deg\": 30.0\n}\n";
+        }
+        lagoon_store store(path,16,1);
+        store.create_root("NHFLOW","");
+        const std::string root=slurp(path+"/zarr.json");
+        check(root.find("\"georef\": {   \"version\": 1,   \"crs\": \"EPSG:25833\",   \"origin\": [270000.0, 7040000.0],   \"rotation_deg\": 30.0 }}}")!=std::string::npos,
+              "georef: the block, on one line, at the end of the root's attributes");
+        check(root.find("\"version\": \"0.4\"")!=std::string::npos, "format version 0.4");
+        {
+            std::ofstream out("georef.json");
+            out<<"[1, 2]\n";
+        }
+        store.create_root("NHFLOW","");
+        check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "georef: not an object, left out");
+        std::remove("georef.json");
+        store.create_root("NHFLOW","");
+        check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "no georef.json: no georef");
+    }
+
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

@@ -1,0 +1,5 @@
+{"base": "cfd_2d_freesurface_komega_t45", "np": 1, "steps": 20,
+ "ctrl_add": ["G 1 1", "G 15 2.0 4.0 0.0 1.0 0.0 0.36"],
+ "description": "CFD mesh refinement with the k-omega model (T 10 2): open channel, a refined box over the depth between x 2 and 4 m.",
+ "tags": ["quick", "2d", "turbulence", "freesurface", "amr"],
+ "covers": ["komega_IM1 on a patch: kin/eps fills, eddy viscosity, restriction of kin, eps, eddyv"]}

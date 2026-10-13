@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "T 10 2",
+  "G 1 1",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD mesh refinement with the k-omega model (T 10 2): dam break, the patches follow the free surface (G 24 3), regrid every 2 steps without hysteresis.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "turbulence",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::regrid with turbulence: kin, eps, eddyv, wall distance of the new patches, their old time level (ktimesave/etimesave)"
+ ]
+}

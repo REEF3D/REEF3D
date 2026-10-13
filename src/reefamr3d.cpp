@@ -818,6 +818,8 @@ void reefamr3d::build_lexer(r3patch &c)
         cout<<"!!! AMR patch (level "<<l<<"): "<<mismatch<<" 2D nodes differ from XN/YN !!!"<<endl;
     }
     pp->DXM = p->DXM/double(R[0]);
+    // the cells of the grid (the residual norm of the solvers of the patch, e.g. bicgstab_ijk)
+    pp->cellnum = pp->cellnumtot = pp->knox*pp->knoy*pp->knoz;
     pp->DXD = p->DXD/double(R[0]);
     pp->DYD = p->DYD/double(R[1]);
     pp->DYM = p->DYM/double(R[1]);

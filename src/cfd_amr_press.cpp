@@ -151,6 +151,12 @@ void cfd_amr::pr_setup()
     lq.assign(P.size()+1,vector<int>());
     lr.assign(P.size()+1,vector<int>());
     cq.assign(P.size()+1,vector<int>());
+    aq.assign(P.size()+1,vector<int>());
+    ar.assign(P.size()+1,vector<int>());
+    prl = -1;
+    prg.clear();
+    for(int g=-1; g<(int)P.size(); ++g)
+    prg.push_back(g);
 
     for(int g=-1; g<(int)P.size(); ++g)
     {
@@ -168,6 +174,8 @@ void cfd_amr::pr_setup()
             if(row[qq]<0)
             continue;
             const int I[3] = {i+og[0],j+og[1],k+og[2]};
+            aq[g+1].push_back(qq);
+            ar[g+1].push_back(row[qq]);
             if(covered(l,I))
             cq[g+1].push_back(qq);
             else
@@ -306,6 +314,7 @@ void cfd_amr::pr_setup()
     }
 
     pr_stencils();
+    pr_components();
 
     bad = pgc0->globalimax(bad);
     if(bad>0)
@@ -655,7 +664,10 @@ void cfd_amr::pr_predict(int s)
             const double roc = qc->W1*Hc + qc->W3*(1.0-Hc);
             const double rof = F.rof;
 
-            const double *dp[3] = {qc->DXP,qc->DYP,qc->DZP};
+            // the spacing of the centres across the coarse face, on the grid that holds it (the
+            // parent and the coarse cell may lie on different patches of the coarser level)
+            lexer *ql = (F.dir>0) ? qp : qc;
+            const double *dp[3] = {ql->DXP,ql->DYP,ql->DZP};
             const int Lc = (F.dir>0) ? F.pi[F.d] : F.ci[F.d];
             const double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
             const double Gf = double(F.dir)*(pCs-pf)/(F.dist*rof);
@@ -674,11 +686,29 @@ void cfd_amr::pr_predict(int s)
     }
 
     // the coarse faces: the mean of their fine faces (the right-hand sides of both sides see the
-    // same flux)
+    // same flux).  At a high patch edge the face belongs to the grid of the parent; when the coarse
+    // cell lies on another patch of the coarser level, its right-hand side takes the face from its
+    // own copy (in the cells around that patch): set as well
     for(cfd_amr_cf &F : cf)
-    gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) = 0.0;
+    {
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) = 0.0;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            c[F.d] -= 1;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) = 0.0;
+        }
+    }
     for(cfd_amr_cf &F : cf)
-    gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += F.area*F.ustar;
+    {
+        gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]) += F.area*F.ustar;
+        if(F.dir>0 && F.gc!=F.gface)
+        {
+            int c[3] = {F.ci[0],F.ci[1],F.ci[2]};
+            c[F.d] -= 1;
+            gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += F.area*F.ustar;
+        }
+    }
 }
 
 // multigrid coefficients from the assembled rows, then the couplings across the patch edges
@@ -768,11 +798,19 @@ void cfd_amr::pr_matrix(int s)
 // coarser cell (the patch rows couple to the coarse cell across a patch edge); the level-0 halo
 void cfd_amr::pr_sync(int k)
 {
+    vector<fspec> fs;
+    fs.push_back({CELL,2,[this,k](int g) -> field& { return pfield(g,k); }});
+
+    // level projection (G 7 1): the patches of the level next to each other
+    if(prl>0)
+    {
+        fill(prl,fs);
+        return;
+    }
+
     if(p0->mpi_size>1)
     pgc0->gcparax(p0,pfield(-1,k),4);
 
-    vector<fspec> fs;
-    fs.push_back({CELL,2,[this,k](int g) -> field& { return pfield(g,k); }});
     fill_all(fs);
 }
 
@@ -781,7 +819,7 @@ void cfd_amr::pr_apply(int kx, int ky)
 {
     pr_sync(kx);
 
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : prg)
     {
         lexer *q = glex(g);
         const matrix_diag &M = gfd(g)->M;
@@ -789,7 +827,7 @@ void cfd_amr::pr_apply(int kx, int ky)
         double *y = pvec(g,ky);
         const int sI = q->jmax*q->kmax;
         const int sJ = q->kmax;
-        const vector<int> &LQ = lq[g+1], &LR = lr[g+1];
+        const vector<int> &LQ = UQ(g), &LR = UR(g);
 
         const double *Mp=M.p.data(), *Mn=M.n.data(), *Ms=M.s.data(), *Mw=M.w.data(), *Me=M.e.data(), *Mt=M.t.data(), *Mb=M.b.data();
 
@@ -799,9 +837,14 @@ void cfd_amr::pr_apply(int kx, int ky)
             y[qq] = Mp[r]*x[qq] + Mn[r]*x[qq+sI] + Ms[r]*x[qq-sI] + Mw[r]*x[qq+sJ] + Me[r]*x[qq-sJ] + Mt[r]*x[qq+1] + Mb[r]*x[qq-1];
         }
 
+        if(prl<0)
         for(int qq : cq[g+1])
         y[qq] = 0.0;
     }
+
+    // the level projection has no couplings across the patch edges (prescribed flux)
+    if(prl>0)
+    return;
 
     for(const cfd_amr_cf &F : cf)
     {
@@ -815,10 +858,10 @@ void cfd_amr::pr_apply(int kx, int ky)
 double cfd_amr::pr_dot(int ka, int kb)
 {
     double s=0.0;
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : prg)
     {
         const double *a = pvec(g,ka), *b = pvec(g,kb);
-        for(int qq : lq[g+1])
+        for(int qq : UQ(g))
         s += a[qq]*b[qq];
     }
     MPI_Allreduce(MPI_IN_PLACE,&s,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -827,11 +870,11 @@ double cfd_amr::pr_dot(int ka, int kb)
 
 void cfd_amr::pr_start()
 {
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : prg)
     {
         const double *vb = pvec(g,NS);
         double *vr = pvec(g,NR), *vrh = pvec(g,NRH), *vp = pvec(g,NPV), *vv = pvec(g,NVV);
-        for(int qq : lq[g+1])
+        for(int qq : UQ(g))
         {
             double r = vb[qq] - vv[qq];
             vr[qq] = r; vrh[qq] = r; vp[qq] = 0.0; vv[qq] = 0.0;
@@ -841,33 +884,33 @@ void cfd_amr::pr_start()
 
 void cfd_amr::pr_p(double beta, double om)
 {
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : prg)
     {
         const double *vr = pvec(g,NR), *vv = pvec(g,NVV);
         double *vp = pvec(g,NPV);
-        for(int qq : lq[g+1])
+        for(int qq : UQ(g))
         vp[qq] = vr[qq] + beta*(vp[qq] - om*vv[qq]);
     }
 }
 
 void cfd_amr::pr_s(double alp)
 {
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : prg)
     {
         const double *vr = pvec(g,NR), *vv = pvec(g,NVV);
         double *vs = pvec(g,NS);
-        for(int qq : lq[g+1])
+        for(int qq : UQ(g))
         vs[qq] = vr[qq] - alp*vv[qq];
     }
 }
 
 void cfd_amr::pr_x(double alp, double om)
 {
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g : prg)
     {
         const double *vph = pvec(g,NPH), *vsh = pvec(g,NSH), *vs = pvec(g,NS), *vt = pvec(g,NT);
         double *x = pvec(g,-1), *vr = pvec(g,NR);
-        for(int qq : lq[g+1])
+        for(int qq : UQ(g))
         {
             x[qq] += alp*vph[qq] + om*vsh[qq];
             vr[qq] = vs[qq] - om*vt[qq];
@@ -901,6 +944,19 @@ void cfd_amr::pr_prec(int kr, int kz)
 {
     const int KT = REEFAMR_NTMP;        // residual
     const int KC = REEFAMR_NVEC;        // correction of a level, prolonged to the next finer one
+
+    // level projection (G 7 1): one patch-local V-cycle on every patch of the level
+    if(prl>0)
+    {
+        for(int g : prg)
+        {
+            lexer *q = glex(g);
+            std::fill(pvec(g,kz),pvec(g,kz)+(size_t)q->imax*q->jmax*q->kmax,0.0);
+        }
+        for(int g : prg)
+        pr_patch_solve(g,kr,kz,-1);
+        return;
+    }
 
     for(int g=-1; g<(int)P.size(); ++g)
     {
@@ -1179,4 +1235,263 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     restrict_vel(s);
 
     p->poissontime = MPI_Wtime()-t0;
+}
+
+// --------------------------------------------------------------------- level projection (G 7 1)
+// the connected components of the patches of every level (patches of a level that share a face)
+void cfd_amr::pr_components()
+{
+    const int ng = (int)GP.size();
+    vector<int> up(ng);
+    for(int g=0; g<ng; ++g)
+    up[g] = g;
+    std::function<int(int)> root = [&](int g) { while(up[g]!=g) { up[g] = up[up[g]]; g = up[g]; } return g; };
+
+    for(int a=0; a<ng; ++a)
+    for(int b=a+1; b<ng; ++b)
+    {
+        const r3gpatch &A = GP[a], &B = GP[b];
+        if(A.lev!=B.lev)
+        continue;
+        for(int d=0; d<3; ++d)
+        {
+            if(!(A.hi[d]+1==B.lo[d] || B.hi[d]+1==A.lo[d]))
+            continue;
+            bool ov = true;
+            for(int e=0; e<3; ++e)
+            if(e!=d && (A.lo[e]>B.hi[e] || B.lo[e]>A.hi[e]))
+            ov = false;
+            if(ov)
+            up[root(a)] = root(b);
+        }
+    }
+
+    vector<int> num(ng,-1);
+    ncomp = 0;
+    for(int g=0; g<ng; ++g)
+    {
+        const int r = root(g);
+        if(num[r]<0)
+        num[r] = ncomp++;
+    }
+    for(int id=0; id<(int)P.size(); ++id)
+    CP(id)->comp = num[root(P[id]->gid)];
+}
+
+// the projection of stage s on the patches of level l alone: the faces at the patch edges keep the
+// face velocity of the coarser level at the time of the stage output (in tsf, the transverse
+// distribution linear as the prolongation), so the patches of a level take the flux of the coarser
+// level and the composite field stays divergence free.  Neumann at the patch edges: a component of
+// the patches without a boundary of fixed pressure has a singular problem, the right-hand side is
+// made compatible (the round-off of the coarser solve) and the correction gets the mean 0.
+void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
+{
+    const double alpha = mom0->amr_alpha(s);
+    const double t0 = MPI_Wtime();
+
+    auto vel_after = [&]()
+    {
+        vector<fspec> fs;
+        for(int c=0; c<3; ++c)
+        fs.push_back({c,1,[this,s,c,l](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_velout(gfd(g),c,s) : tsf(g,c); },
+                          [this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); }});
+        fill(l,fs);
+    };
+
+    vel_after();
+
+    // the faces at the patch edges: the coarse face velocity
+    for(cfd_amr_cf &F : cf)
+    {
+        if(CP(F.pid)->lev!=l)
+        continue;
+        field &fc = tsf(F.gface,F.d);
+        double v = fc(F.cf[0],F.cf[1],F.cf[2]);
+        for(int t=0; t<3; ++t)
+        if(t!=F.d)
+        v += cell_slope(fc,F.gface,F.cf,t,1)*(F.o[t]==0 ? -0.25 : 0.25);
+        F.ustar = v;
+        CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;
+    }
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        momentum_rk *m = c->pmom;
+        c->pflow->pressure_io(c->pp,c->a,pgc);
+        c->ppress->amr_prepare(c->pp,c->a,c->ppois,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
+    }
+
+    // the faces at the patch edges Neumann; multigrids from the patch rows (couplings to the cells
+    // around the patch dropped; a small shift of the diagonal keeps the closed patch regular)
+    for(cfd_amr_cf &F : cf)
+    {
+        if(CP(F.pid)->lev!=l)
+        continue;
+        matrix_diag &Mf = CP(F.pid)->a->M;
+        double &cfn = mcoef(Mf,F.nf,F.d,F.dir);
+        Mf.p[F.nf] += cfn;
+        cfn = 0.0;
+    }
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        sc_level &L = c->mg->fine();
+        pr_clear(L);
+        const matrix_diag &M = c->a->M;
+        const int nx=pp->knox, ny=pp->knoy, nz=pp->knoz;
+        for(int i=0; i<nx; ++i)
+        for(int j=0; j<ny; ++j)
+        for(int k=0; k<nz; ++k)
+        {
+            const long q = L.idx(i,j,k);
+            const int r = c->row[cix(pp,i,j,k)];
+            if(r<0)
+            {
+                pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                continue;
+            }
+            pr_coef(c->mg,L,q,M.p[r]*(1.0+1.0e-6),
+                    (i+1<nx) ? M.n[r] : 0.0, (i>0) ? M.s[r] : 0.0,
+                    (j+1<ny) ? M.w[r] : 0.0, (j>0) ? M.e[r] : 0.0,
+                    (k+1<nz) ? M.t[r] : 0.0, (k>0) ? M.b[r] : 0.0);
+            L.act[q] = 1;
+        }
+        c->mg->coarsen();
+    }
+
+    prl = l;
+    prg = lev[l];
+
+    // components with a boundary of fixed pressure (a coupling to a cell outside the domain)
+    vector<double> cs(3*ncomp,0.0);     // sum b V, sum V, fixed-pressure faces
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *q = c->pp;
+        const matrix_diag &M = c->a->M;
+        const int sI = q->jmax*q->kmax, sJ = q->kmax;
+        for(size_t n=0; n<aq[id+1].size(); ++n)
+        {
+            const int qq = aq[id+1][n], r = ar[id+1][n];
+            const double cc[6] = {M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]};
+            const int nb[6] = {qq+sI,qq-sI,qq+sJ,qq-sJ,qq+1,qq-1};
+            for(int m=0; m<6; ++m)
+            if(cc[m]!=0.0 && q->flag4[nb[m]]<0)
+            cs[3*c->comp+2] += 1.0;
+        }
+    }
+
+    // right-hand side, compatible on the closed components
+    auto cvol = [&](lexer *q, int qq) -> double
+    {
+        const int jk = q->jmax*q->kmax;
+        const int i = qq/jk + q->imin, r = qq%jk;
+        const int j = r/q->kmax + q->jmin, k = r%q->kmax + q->kmin;
+        return q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
+    };
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        const double *R = c->a->rhsvec.V.data();
+        double *b = pvec(id,NS);
+        for(size_t n=0; n<aq[id+1].size(); ++n)
+        {
+            const int qq = aq[id+1][n];
+            b[qq] = R[ar[id+1][n]];
+            const double V = cvol(c->pp,qq);
+            cs[3*c->comp] += b[qq]*V;
+            cs[3*c->comp+1] += V;
+        }
+    }
+    if(ncomp>0)
+    MPI_Allreduce(MPI_IN_PLACE,cs.data(),3*ncomp,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+    vector<char> closed(ncomp,0);
+    for(int m=0; m<ncomp; ++m)
+    closed[m] = (cs[3*m+2]==0.0 && cs[3*m+1]>0.0) ? 1 : 0;
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        const int m = c->comp;
+        if(!closed[m])
+        continue;
+        const double mean = cs[3*m]/cs[3*m+1];
+        double *b = pvec(id,NS);
+        for(int qq : aq[id+1])
+        b[qq] -= mean;
+    }
+
+    pr_apply(-1,NVV);
+
+    double bn, rn;
+    pr_space sp{this};
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    pr_it_last = it;
+    pr_it_total += it;
+    ++pr_solves;
+    pr_res_last = bn>0.0 ? rn/bn : 0.0;
+
+    // the correction of a closed component: mean 0
+    std::fill(cs.begin(),cs.end(),0.0);
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        const double *x = pvec(id,-1);
+        for(int qq : aq[id+1])
+        {
+            const double V = cvol(c->pp,qq);
+            cs[3*c->comp] += x[qq]*V;
+            cs[3*c->comp+1] += V;
+        }
+    }
+    if(ncomp>0)
+    MPI_Allreduce(MPI_IN_PLACE,cs.data(),3*ncomp,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        const int m = c->comp;
+        if(!closed[m])
+        continue;
+        const double mean = cs[3*m]/cs[3*m+1];
+        double *x = pvec(id,-1);
+        for(int qq : aq[id+1])
+        x[qq] -= mean;
+    }
+
+    pr_sync(-1);
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        momentum_rk *m = c->pmom;
+        c->ppress->amr_finish(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s),alpha);
+    }
+
+    // the faces at the patch edges keep the coarse flux
+    vel_after();
+    for(const cfd_amr_cf &F : cf)
+    if(CP(F.pid)->lev==l)
+    CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = F.ustar;
+
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        pscope2 ps(pgc,c->a,a0);
+        momentum_rk *m = c->pmom;
+        m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
+    }
+
+    // back to the composite projection
+    prl = -1;
+    prg.clear();
+    for(int g=-1; g<(int)P.size(); ++g)
+    prg.push_back(g);
+
+    tm[2] += MPI_Wtime()-t0;
 }

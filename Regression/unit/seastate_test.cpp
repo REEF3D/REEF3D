@@ -85,6 +85,30 @@ static void test_grid()
     check(s72.computational_sector(pi,2.0*pi) && s72.active()==37,"SWAN SEC -90 90 (nautical) = 180 -> 360 deg: 37 of 72 directions, as SWAN");
     check(!s72.computational_sector(60.0*pi/180.0,30.0*pi/180.0),"a sector of 330 deg (60 -> 30 deg) splits quadrant 0: rejected");
     }
+
+    // compact computational sector (A 717, Phase 12): the grid holds only the directions of the sector
+    {
+    seastate_grid full(20,0.08,1.0,24), cs(20,0.08,1.0,24);
+    const bool ok = cs.compact_sector(270.0*pi/180.0,90.0*pi/180.0);
+    check(ok && cs.ndir==13 && cs.nbin==20*13 && cs.compact && !cs.periodic,"compact sector 270 -> 90: 13 directions stored, nbin = nsig*13, not periodic");
+    check(close(cs.theta0,270.0*pi/180.0,1e-14) && close(cs.theta[0],cs.theta0,1e-14) && close(cs.theta[12],2.0*pi+0.5*pi,1e-12),"compact sector: theta from 270 deg on, beyond 2 pi through 0 to 90 deg");
+    bool same=true, mono=true;
+    for(int k=0; k<13; ++k)
+    {
+    const int m = (18+k)%24;
+    same = same && cs.costh[k]==full.costh[m] && cs.sinth[k]==full.sinth[m] && cs.costhf[k]==full.costhf[m] && cs.costhl[k]==full.costhl[m] && cs.quad[k]==full.quad[m];
+    if(k>0) mono = mono && cs.theta[k]>cs.theta[k-1];
+    }
+    check(same && mono,"compact sector: cos/sin, faces and quadrants those of the full grid, theta increasing");
+    check(cs.prev(0)==-1 && cs.next(12)==-1 && cs.prev(5)==4 && full.prev(0)==23 && full.next(23)==0,"neighbour directions: none beyond the ends of the sector, periodic on the full circle");
+    check(cs.direction_bin(0.0)==6 && cs.direction_bin(300.0*pi/180.0)==2 && cs.direction_bin(100.0*pi/180.0)==12 && cs.direction_bin(250.0*pi/180.0)==0,"compact sector: direction_bin inside the sector, nearest end outside");
+    bool lf=true;
+    for(int m=0; m<24; ++m)
+    lf = lf && full.costhl[m]==full.costhf[(m+23)%24] && full.sinthl[m]==full.sinthf[(m+23)%24];
+    check(lf,"lower faces = upper faces of the previous direction (full circle)");
+    seastate_grid all(20,0.08,1.0,24);
+    check(!all.compact_sector(0.0,2.0*pi-1.0e-12) || all.ndir==24,"a sector of all directions is not compacted");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -55,6 +55,7 @@ Architect: Hans Bihs
 #include<iostream>
 #include<iomanip>
 #include<algorithm>
+#include<limits>
 
 namespace
 {
@@ -70,11 +71,14 @@ inline int cix(const lexer *q, int i, int j, int k)
 // The implicit diffusion of a patch: the cells around the patch are Dirichlet values (the stage
 // velocity of the coarser level).  bicgstab_ijk keeps its own vector and exchanges the cells
 // around a rank grid with the partition neighbours; a patch has no neighbours, so the couplings
-// to those cells are taken into the right-hand side before the solve.
+// to those cells are taken into the right-hand side before the solve.  The faces at the high
+// patch edges (the last face of a row of the patch, its own unknown) are Dirichlet values too:
+// the coarse face velocity (edge, NaN elsewhere); their momentum predictor would carry the
+// pressure jump across the edge into the patch.
 class amr_dsolver : public solver
 {
 public:
-    amr_dsolver(solver *s, const vector<signed char> *mk) : in(s), mkind(mk) {}
+    amr_dsolver(solver *s, const vector<signed char> *mk, const vector<double> *ed) : in(s), mkind(mk), edge(ed) {}
 
     void start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var) override
     {
@@ -97,6 +101,8 @@ public:
             }
         };
 
+        const vector<double> *ed = (var>=1 && var<=3 && !edge[var-1].empty()) ? &edge[var-1] : nullptr;
+
         int n=0;
         for(int i=0; i<p->knox-ul; ++i)
         for(int j=0; j<p->knoy-vl; ++j)
@@ -105,6 +111,16 @@ public:
             const int q = cix(p,i,j,k);
             if(flag[q]<=0)
             continue;
+            if(ed!=nullptr && !std::isnan((*ed)[q]))
+            {
+                const double v = (*ed)[q];
+                M.p[n] = 1.0;
+                M.n[n] = M.s[n] = M.w[n] = M.e[n] = M.t[n] = M.b[n] = 0.0;
+                rhsvec.V[n] = v;
+                f.V[q] = v;
+                ++n;
+                continue;
+            }
             fold(M.n[n],q+sI,n);
             fold(M.s[n],q-sI,n);
             if(p->j_dir==1)
@@ -127,6 +143,7 @@ public:
 private:
     solver *in;
     const vector<signed char> *mkind;
+    const vector<double> *edge;
 };
 
 // patch work: no exchange, rank-local reductions, the fdm of the patch in the ghostcell object
@@ -190,8 +207,6 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "diffusion D 20 0, 1 or 2";
     else if(p->F30>0 && p->F40!=3)
     why = "the reinitialisation F 40 3";
-    else if(p->F46!=0)
-    why = "no level-set volume correction (F 46 0)";
     else if(p->mz>1 || p->periodic1>0 || p->periodic2>0 || p->periodic3>0)
     why = "no partition in z (M 10 with the vertical not split) and no periodic boundaries";
     else if(p->B60!=0 || p->B180!=0 || p->B440>0 || p->B441>0 || p->B442>0)
@@ -271,6 +286,29 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     }
 
     pr_setup();
+
+    // subcycling (G 7 1): the stage times, the state of the grids that are the coarser level of a
+    // patch
+    sub = (p->G7==1) ? 1 : 0;
+    th_end.assign(maxlev+1,0.0);
+    if(mom0->amr_stages()==3)
+    {
+        tin[0]=0.0; tin[1]=1.0; tin[2]=0.5;
+        tout[0]=1.0; tout[1]=0.5; tout[2]=1.0;
+    }
+    else
+    {
+        tin[0]=0.0; tin[1]=1.0; tin[2]=1.0;
+        tout[0]=1.0; tout[1]=1.0; tout[2]=1.0;
+    }
+    if(sub)
+    {
+        if(maxlev>=1)
+        ts0 = new cfd_amr_tlev(p);
+        for(int id=0; id<(int)P.size(); ++id)
+        if(P[id]->lev<maxlev)
+        CP(id)->ts = new cfd_amr_tlev(CP(id)->pp);
+    }
 }
 
 cfd_amr::~cfd_amr()
@@ -359,7 +397,7 @@ void cfd_amr::patch_objects(r3patch *rp)
     c->psolv_in = new bicgstab_ijk_2D(pp,a,pgc);
     else
     c->psolv_in = new bicgstab_ijk(pp,a,pgc);
-    c->psolv = new amr_dsolver(c->psolv_in,&c->mkind);
+    c->psolv = new amr_dsolver(c->psolv_in,&c->mkind,c->edge);
     c->ppoissonsolv = new solver_void(pp,a,pgc);
 
     c->pheat = new heat_void(pp,a,pgc);
@@ -436,7 +474,7 @@ double cfd_amr::prolong(const fspec &F, int g, const int *s, const int *o)
     return T(s);
 }
 
-void cfd_amr::fill(int l, vector<fspec> &fs)
+void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only)
 {
     const int nv = (int)fs.size();
 
@@ -444,10 +482,12 @@ void cfd_amr::fill(int l, vector<fspec> &fs)
              [&](int kind, int g, const int *s, const int *o, double *v)
              {
                  for(int m=0; m<nv; ++m)
-                 v[m] = (kind==0) ? fs[m].f(g)(s[0],s[1],s[2]) : prolong(fs[m],g,s,o);
+                 v[m] = (kind==0) ? fs[m].f(g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong(fs[m],g,s,o));
              },
              [&](r3patch *c, int id, const r3fill &f, const double *v)
              {
+                 if(siblings_only && f.kind==1)
+                 return;
                  for(int m=0; m<nv; ++m)
                  (fs[m].fd ? fs[m].fd : fs[m].f)(id)(f.d[0],f.d[1],f.d[2]) = v[m];
              });
@@ -472,10 +512,30 @@ void cfd_amr::margin_rovisc(int id)
         if(f.kind==3)
         continue;
         const int i=f.d[0], j=f.d[1], k=f.d[2];
-        const double H = heaviside(a->phi(i,j,k),interface_width(pp,a->phi,i,j,k));
+        // the width from the nearest cell whose neighbours are in the field (the outermost ghost
+        // layer has no neighbour outside)
+        const int m = pp->margin;
+        const int iw = std::min(std::max(i,1-m),pp->knox+m-2);
+        const int jw = pp->j_dir==1 ? std::min(std::max(j,1-m),pp->knoy+m-2) : j;
+        const int kw = std::min(std::max(k,1-m),pp->knoz+m-2);
+        const double H = heaviside(a->phi(i,j,k),interface_width(pp,a->phi,iw,jw,kw));
         a->ro(i,j,k) = pp->W1*H + pp->W3*(1.0-H);
         a->visc(i,j,k) = pp->W2*H + pp->W4*(1.0-H);
     }
+}
+
+void cfd_amr::bc_state(int id)
+{
+    cfd_amr_patch *c = CP(id);
+    lexer *pp = c->pp;
+    fdm *fa = c->a;
+    pscope ps(pgc0,fa,a0);
+
+    pgc0->start1(pp,fa->u,10);
+    pgc0->start2(pp,fa->v,11);
+    pgc0->start3(pp,fa->w,12);
+    pgc0->start4(pp,fa->phi,gcval_phi);
+    pgc0->start4(pp,fa->press,40);
 }
 
 // --------------------------------------------------------------------- restriction
@@ -544,6 +604,41 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
                         if(side==1)
                         dl[d0] -= 1;
                         dst(dl[0],dl[1],dl[2]) = s/double(nt);
+
+                        // the - face at the low edge of the parent's grid belongs to the grid of
+                        // the cell below it (its + face): the coarse leaf cell there takes its
+                        // flux from that grid (the copies between the patches of a level go from
+                        // the owner to the cells around the other patch)
+                        if(side==1 && dl[d0]<0)
+                        {
+                            int G[3] = {P[0],P[1],P[2]};
+                            G[d0] -= 1;
+                            int go = -2, lo[3];
+                            if(l-1==0)
+                            {
+                                go = -1;
+                                for(int d=0; d<3; ++d)
+                                {
+                                    lo[d] = G[d]-org[d];
+                                    if(lo[d]<0 || lo[d]>=kn0[d])
+                                    go = -2;
+                                }
+                            }
+                            else
+                            for(int g : lev[l-1])
+                            {
+                                r3patch *q = this->P[g];
+                                if(G[0]>=q->lo[0] && G[0]<=q->hi[0] && G[1]>=q->lo[1] && G[1]<=q->hi[1] && G[2]>=q->lo[2] && G[2]<=q->hi[2])
+                                {
+                                    go = g;
+                                    for(int d=0; d<3; ++d)
+                                    lo[d] = G[d]-q->lo[d];
+                                    break;
+                                }
+                            }
+                            if(go>=-1 && go!=B.g)
+                            faces[d0](go)(lo[0],lo[1],lo[2]) = s/double(nt);
+                        }
                     }
                 }
             }
@@ -627,6 +722,11 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
             }
         }
         fill(l,fs);
+
+        // the boundary values: the cells outside the domain are the neighbours of the slopes of
+        // the prolongation into the next level
+        for(int id : lev[l])
+        bc_state(id);
     }
 
     // density, viscosity; boundary values
@@ -691,6 +791,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         lexer *pp = c->pp;
         fdm *fa = c->a;
         double umax=0.0, vmax=0.0, wmax=0.0;
+        double cp = 1.0e10;
 
         // the velocities of the patch and of the layer of cells around it (filled from the coarser
         // level or a sibling: what can enter the patch within a step)
@@ -716,7 +817,12 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         }
 
         const double mF = MAX3(fa->maxF,fa->maxG,fa->maxH);
-        const double vel = sqrt(umax*umax + vmax*vmax + wmax*wmax);
+        double vel = sqrt(umax*umax + vmax*vmax + wmax*wmax);
+
+        // the first step (from rest): the velocity a fall over the height of the domain gives (the
+        // flow starts from a pressure jump, which the finer grids feel within the first step)
+        if(p->count==0)
+        vel = MAX(vel,sqrt(2.0*sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)*(p->zcoormax-p->zcoormin)));
 
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
@@ -727,14 +833,19 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
             const double dx = MIN3(pp->DXN[i+marge],pp->DYN[j+marge],pp->DZN[k+marge]);
             if(p->N50==2)
             {
-                cu = MIN(cu,2.0/(umax/pp->DXN[i+marge] + sqrt(4.0*fabs(fa->maxF)/pp->DXN[i+marge])));
-                cu = MIN(cu,2.0/(wmax/pp->DZN[k+marge] + sqrt(4.0*fabs(fa->maxH)/pp->DZN[k+marge])));
+                cp = MIN(cp,2.0/(umax/pp->DXN[i+marge] + sqrt(4.0*fabs(fa->maxF)/pp->DXN[i+marge])));
+                cp = MIN(cp,2.0/(wmax/pp->DZN[k+marge] + sqrt(4.0*fabs(fa->maxH)/pp->DZN[k+marge])));
                 if(pp->j_dir==1)
-                cu = MIN(cu,2.0/(vmax/pp->DYN[j+marge] + sqrt(4.0*fabs(fa->maxG)/pp->DYN[j+marge])));
+                cp = MIN(cp,2.0/(vmax/pp->DYN[j+marge] + sqrt(4.0*fabs(fa->maxG)/pp->DYN[j+marge])));
             }
             else
-            cu = MIN(cu,2.0/(vel/dx + sqrt(4.0*fabs(mF)/dx)));
+            cp = MIN(cp,2.0/(vel/dx + sqrt(4.0*fabs(mF)/dx)));
         }
+
+        // subcycling: the patch takes 2^l steps per step of level 0
+        if(sub)
+        cp *= double(1<<c->lev);
+        cu = MIN(cu,cp);
 
         fa->maxF = fa->maxG = fa->maxH = 0.0;
     }
@@ -843,6 +954,33 @@ void cfd_amr::fill_vel_after(int s)
     fill_all(fs);
 }
 
+// the Dirichlet values of the implicit diffusion at the high patch edges of level l: the coarse
+// face velocity, linear in the transverse directions (G 7 0: the stage velocity of the coarser
+// level after its momentum; G 7 1: the coarser level at the output time of the stage)
+void cfd_amr::edge_faces(int l, int s)
+{
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = CP(id);
+        const size_t na = (size_t)c->pp->imax*c->pp->jmax*c->pp->kmax;
+        for(int d=0; d<3; ++d)
+        c->edge[d].assign(na,std::numeric_limits<double>::quiet_NaN());
+    }
+
+    for(cfd_amr_cf &F : cf)
+    {
+        cfd_amr_patch *c = CP(F.pid);
+        if(c->lev!=l || F.dir<0)
+        continue;
+        field &fc = sub ? tsf(F.gface,F.d) : gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s);
+        double v = fc(F.cf[0],F.cf[1],F.cf[2]);
+        for(int t=0; t<3; ++t)
+        if(t!=F.d)
+        v += cell_slope(fc,F.gface,F.cf,t,1)*(F.o[t]==0 ? -0.25 : 0.25);
+        c->edge[F.d][cix(c->pp,F.ff[0],F.ff[1],F.ff[2])] = v;
+    }
+}
+
 // restriction of the projected stage velocity (finest level first; the faces around the patches
 // of a level are filled again before that level is restricted)
 void cfd_amr::restrict_vel(int s)
@@ -856,11 +994,13 @@ void cfd_amr::restrict_vel(int s)
     for(int c=0; c<3; ++c)
     fs.push_back({c,1,[this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); }});
 
+    // after the restriction onto a level of patches, their copies of each other again; the faces
+    // at their edges to the coarser level (in the cells around them) keep the projected values
     for(int l=maxlev; l>=1; --l)
     {
         restrict_level(l,none,faces);
         if(l>=2)
-        fill(l-1,fs);
+        fill(l-1,fs,true);
     }
 
     pgc0->start1(p0,mom0->amr_velout(a0,0,s),10);
@@ -890,7 +1030,26 @@ void cfd_amr::restrict_scalars(int s)
 
 void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {
+    if(sub)
+    {
+        step_sub(p,a,pgc,pvrans,p6dof);
+        return;
+    }
+
     const double t0 = MPI_Wtime();
+
+    // composite volume of the level set at the start of the step (F 46 2, 3)
+    if(p->F46==2 || p->F46==3)
+    {
+        double V, dV;
+        volume(V,dV);
+        vol_step = V;
+        if(!vol_ini)
+        {
+            vol_net = V;
+            vol_ini = true;
+        }
+    }
 
     for(auto q : P)
     {
@@ -916,7 +1075,7 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
 
         // level set
         mom0->amr_ls_transport(p,a,pgc,s);
-        mom0->amr_ls_finish(p,a,pgc,s,true,-1);
+        mom0->amr_ls_finish(p,a,pgc,s,false,-1);
 
         for(int l=1; l<=maxlev; ++l)
         {
@@ -958,6 +1117,7 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
         for(int l=1; l<=maxlev; ++l)
         {
             fill_velout(l,s);
+            edge_faces(l,s);
 
             for(int id : lev[l])
             {
@@ -988,8 +1148,23 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
         tm[3] += MPI_Wtime()-td;
     }
 
+    // the volume correction over the leaf cells of all grids (F 46 2, 3)
+    volume_correct(p,pgc);
+
     tm[7] += MPI_Wtime()-t0;
 
+
+    if(p->count%p->P12==0)
+    {
+        double V, dV;
+        volume(V,dV);
+        if(p->mpirank==0)
+        {
+            const std::streamsize pr = cout.precision();
+            cout<<"CFD AMR: volume of the level set over the leaf cells "<<setprecision(8)<<V<<endl;
+            cout.precision(pr);
+        }
+    }
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"CFD AMR: pressure iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last

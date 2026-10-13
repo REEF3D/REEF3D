@@ -1,0 +1,5 @@
+{"base": "cfd_2d_freesurface_komega_t45", "np": 1, "steps": 20,
+ "ctrl_add": ["G 1 1", "G 7 1", "G 15 2.0 4.0 0.0 1.0 0.0 0.36"],
+ "description": "CFD mesh refinement with subcycling (G 7 1) and the k-omega model: the turbulence fields of level 0 linear in time around the patch.",
+ "tags": ["quick", "2d", "turbulence", "freesurface", "amr"],
+ "covers": ["turbulence on subcycled patches: time levels of kin/eps, ktimesave per patch step"]}
