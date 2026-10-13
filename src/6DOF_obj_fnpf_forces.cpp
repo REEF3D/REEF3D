@@ -184,6 +184,9 @@ void sixdof_obj_fnpf::chi_mean(lexer *p, ghostcell *pgc, slice &D, slice &foot)
         xmin = pgc->globalmin(xmin); ymin = pgc->globalmin(ymin);
         xmax = pgc->globalmax(xmax); ymax = pgc->globalmax(ymax);
         
+        chim_bx0 = xmin; chim_bx1 = xmax;
+        chim_by0 = ymin; chim_by1 = ymax;
+        
         chim_h = p->DXM;
         const double margin = 5.0*chim_h;
         chim_x0 = xmin - margin;
@@ -213,6 +216,70 @@ void sixdof_obj_fnpf::chi_mean(lexer *p, ghostcell *pgc, slice &D, slice &foot)
         
         double &m1 = chim_[bj*chim_nx + bi];
         double &m2 = chim2_[bj*chim_nx + bi];
+        
+        if(update)
+        {
+        m1 += alpha*(D(i,j) - m1);
+        m2 += alpha*(m1 - m2);
+        }
+        
+        D(i,j) -= m2;
+    }
+    
+    pgc->gcsl_start4(p,D,50);
+}
+
+void sixdof_obj_fnpf::chi_mean_patch(lexer *p, ghostcell *pgc, slice &D, slice &foot, int lev)
+{
+    // X 18 on a patch of level lev of FNPF mesh refinement: as chi_mean, with one body-frame grid
+    // per level (cell size of the level, so it survives regridding) and the update once per time
+    // step of the level (subcycling: once per finest step). Needs the body extent from the base
+    // grid (chi_mean, called before the patches).
+    if(!chi_on || p->X18<=0.0 || chim_nx==0 || lev<1)
+    return;
+    
+    if((int)chim_lev_.size()<=lev)
+    chim_lev_.resize(lev+1);
+    
+    chim_level &g = chim_lev_[lev];
+    
+    if(g.nx==0)
+    {
+        g.h = p->DXM;
+        const double margin = 5.0*chim_h;
+        g.x0 = chim_bx0 - margin;
+        g.y0 = chim_by0 - margin;
+        g.nx = int((chim_bx1 - chim_bx0 + 2.0*margin)/g.h) + 2;
+        g.ny = int((chim_by1 - chim_by0 + 2.0*margin)/g.h) + 2;
+        g.m1.assign(g.nx*g.ny,0.0);
+        g.m2.assign(g.nx*g.ny,0.0);
+    }
+    
+    const bool update = (p->simtime != g.t);
+    const double dtu = (g.t>-1.0e19) ? p->simtime - g.t : p->dt;
+    
+    if(update)
+    g.t = p->simtime;
+    
+    const double alpha = MIN(1.0, MAX(dtu,0.0)/p->X18);
+    
+    const double psi = atan2(R_(1,0),R_(0,0));
+    const double cp = cos(psi), sp = sin(psi);
+    
+    SLICELOOP4
+    if(foot(i,j)<0.5)
+    {
+        const double rx = p->XP[IP]-c_(0), ry = p->YP[JP]-c_(1);
+        const double xb =  cp*rx + sp*ry;
+        const double yb = -sp*rx + cp*ry;
+        const int bi = int(floor((xb - g.x0)/g.h + 0.5));
+        const int bj = int(floor((yb - g.y0)/g.h + 0.5));
+        
+        if(bi<0 || bj<0 || bi>=g.nx || bj>=g.ny)
+        continue;
+        
+        double &m1 = g.m1[bj*g.nx + bi];
+        double &m2 = g.m2[bj*g.nx + bi];
         
         if(update)
         {

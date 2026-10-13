@@ -77,6 +77,9 @@ public:
     // free-surface data next to the body (the time mean of the exact chi, the derivative of phi
     // following a body point, vanishes in any statistically steady state)
     void chi_mean(lexer*, ghostcell*, slice&, slice&);
+    // X 18 on the patches of FNPF mesh refinement (one body-frame grid per refinement level, cell
+    // size of that level; the patch lexer, the level)
+    void chi_mean_patch(lexer*, ghostcell*, slice&, slice&, int);
     static bool chi_on;   // psi_0 is chi (one body), otherwise phi_t with the m-terms neglected
     // forces_fnpf in two parts for several grids (FNPF mesh refinement): the hull triangles
     // whose centroid own(x,y) accepts are integrated on grid (p,c) with the sampling distance
@@ -96,6 +99,14 @@ private:
     std::vector<double> chim_, chim2_;
     int chim_nx=0, chim_ny=0, chim_count=-1;
     double chim_x0=0.0, chim_y0=0.0, chim_h=1.0;
+    double chim_bx0=0.0, chim_bx1=0.0, chim_by0=0.0, chim_by1=0.0;   // body extent in the body frame
+    struct chim_level
+    {
+        std::vector<double> m1, m2;
+        int nx=0, ny=0;
+        double x0=0.0, y0=0.0, h=1.0, t=-1.0e20;
+    };
+    std::vector<chim_level> chim_lev_;   // X 18 on the patches, by refinement level
 };
 
 #endif

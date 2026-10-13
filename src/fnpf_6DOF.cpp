@@ -1140,6 +1140,10 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         fb_obj[0]->chi_fsf(p,G.c,D,*G.foot);
         
         pgc->gcsl_start4(p,D,50);
+        
+        // X 18 on the patches
+        if(nbody==1)
+        fb_obj[0]->chi_mean_patch(p,pgc,D,*G.foot,amr->patch_level(G.id));
     }
     }
     
