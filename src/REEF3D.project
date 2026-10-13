@@ -1244,6 +1244,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
         <File Name="wave_lib_irregular_2nd_cache.h"/>
+        <File Name="wave_lib_fastexp.h"/>
+        <File Name="wave_lib_eta_series.h"/>
         <File Name="wave_lib_wavemaker2nd.h"/>
         <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>

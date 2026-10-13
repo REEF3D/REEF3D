@@ -49,6 +49,7 @@ public:
     double wave_v_c(lexer*, int, double) override final;
     double wave_w_c(lexer*, int, double) override final;
     void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
 
     double wave_u(lexer*,double,double,double) override final;
     double wave_u_space_sin(lexer*,double,double,double,int) override final;
@@ -108,10 +109,13 @@ private:
     // distinct wave numbers: components of the same frequency in a directional sea share
     // the vertical profile, so exp(k z) is evaluated once per distinct k (results bitwise equal)
     void group_k();
-    void vertical_c(double z);
+    void vertical_c(double z, const double*&, const double*&);
     std::vector<int> iu;                        // component -> distinct k, [n]
     std::vector<double> uK, uem, uinv;          // distinct k, its exp(-2 k d) and 1/(1-exp(-2 k d))
     std::vector<double> uch, ush;               // cosh / sinh ratios at the current z, [distinct k]
+    std::vector<double> chm, shm;               // ... per component (unless u_id)
+    double uKmax=0.0;                           // largest distinct k
+    bool u_id=false;                            // every component its own k (iu the identity)
     double cache_t=-1.0e300;
     std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
     int ph_q=-1;

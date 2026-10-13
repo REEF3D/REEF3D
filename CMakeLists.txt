@@ -189,4 +189,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     COMPILE_OPTIONS "-fopenmp-simd;-fno-math-errno"
     COMPILE_DEFINITIONS "REEF3D_SIMD_MATH")
   target_link_libraries(REEF3D PRIVATE mvec)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(src/wave_lib_irregular_1st.cpp PROPERTIES
+    COMPILE_OPTIONS "-fopenmp-simd")
+endif()
+
+# SIMD reductions over the second-order irregular-wave terms (#pragma omp simd)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(src/wave_lib_irregular_2nd_a.cpp src/wave_lib_irregular_2nd_b.cpp PROPERTIES
+    COMPILE_OPTIONS "-fopenmp-simd")
 endif()

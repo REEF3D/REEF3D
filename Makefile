@@ -79,7 +79,12 @@ debug: $(APP)
 ifeq ($(shell uname -s),Linux)
 $(OBJ_DIR)/src/wave_lib_irregular_1st.o: CXXFLAGS += -fopenmp-simd -fno-math-errno -DREEF3D_SIMD_MATH
 LDFLAGS += -lmvec
+else
+$(OBJ_DIR)/src/wave_lib_irregular_1st.o: CXXFLAGS += -fopenmp-simd
 endif
+
+# SIMD reductions over the second-order irregular-wave terms (#pragma omp simd, GCC and Clang)
+$(OBJ_DIR)/src/wave_lib_irregular_2nd_a.o $(OBJ_DIR)/src/wave_lib_irregular_2nd_b.o: CXXFLAGS += -fopenmp-simd
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)

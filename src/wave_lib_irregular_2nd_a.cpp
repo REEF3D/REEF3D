@@ -127,15 +127,15 @@ void wave_lib_irregular_2nd_a::rotate(lexer *p, double &u, double &v)
 double wave_lib_irregular_2nd_a::wave_eta(lexer *p, double x, double y)
 {
     direct(p,x,y);
-    return tt.eta(dc.C.data(),dc.S.data());
+    return tt.eta(dc);
 }
 
 double wave_lib_irregular_2nd_a::wave_fi(lexer *p, double x, double y, double z)
 {
     double u,v,w,f;
     direct(p,x,y);
-    tt.pair_phases(dc.C.data(),dc.S.data(),dc.cp,dc.sp);
-    tt.kin(dc.C.data(),dc.S.data(),dc.cp.data(),dc.sp.data(),z,4,u,v,w,f,dc.P,dc.iP,dc.Q);
+    tt.pair_phases(dc);
+    tt.kin(dc,z,4,u,v,w,f);
     return f;
 }
 
@@ -143,8 +143,8 @@ double wave_lib_irregular_2nd_a::wave_u(lexer *p, double x, double y, double z)
 {
     double u,v,w,f;
     direct(p,x,y);
-    tt.pair_phases(dc.C.data(),dc.S.data(),dc.cp,dc.sp);
-    tt.kin(dc.C.data(),dc.S.data(),dc.cp.data(),dc.sp.data(),z,1,u,v,w,f,dc.P,dc.iP,dc.Q);
+    tt.pair_phases(dc);
+    tt.kin(dc,z,1,u,v,w,f);
     rotate(p,u,v);
     return u;
 }
@@ -153,8 +153,8 @@ double wave_lib_irregular_2nd_a::wave_v(lexer *p, double x, double y, double z)
 {
     double u,v,w,f;
     direct(p,x,y);
-    tt.pair_phases(dc.C.data(),dc.S.data(),dc.cp,dc.sp);
-    tt.kin(dc.C.data(),dc.S.data(),dc.cp.data(),dc.sp.data(),z,2,u,v,w,f,dc.P,dc.iP,dc.Q);
+    tt.pair_phases(dc);
+    tt.kin(dc,z,2,u,v,w,f);
     rotate(p,u,v);
     return v;
 }
@@ -163,8 +163,8 @@ double wave_lib_irregular_2nd_a::wave_w(lexer *p, double x, double y, double z)
 {
     double u,v,w,f;
     direct(p,x,y);
-    tt.pair_phases(dc.C.data(),dc.S.data(),dc.cp,dc.sp);
-    tt.kin(dc.C.data(),dc.S.data(),dc.cp.data(),dc.sp.data(),z,1,u,v,w,f,dc.P,dc.iP,dc.Q);
+    tt.pair_phases(dc);
+    tt.kin(dc,z,1,u,v,w,f);
     return w;
 }
 
@@ -181,7 +181,7 @@ double wave_lib_irregular_2nd_a::wave_eta_c(lexer *p, int q)
 {
     cc.time(p->wavetime,wi,ei);
     cc.phases(q);
-    return tt.eta(cc.C.data(),cc.S.data());
+    return tt.eta(cc);
 }
 
 double wave_lib_irregular_2nd_a::wave_fi_c(lexer *p, int q, double z)
@@ -189,7 +189,7 @@ double wave_lib_irregular_2nd_a::wave_fi_c(lexer *p, int q, double z)
     double u,v,w,f;
     cc.time(p->wavetime,wi,ei);
     cc.phases_pairs(q,tt);
-    tt.kin(cc.C.data(),cc.S.data(),cc.cp.data(),cc.sp.data(),z,4,u,v,w,f,cc.P,cc.iP,cc.Q);
+    tt.kin(cc,z,4,u,v,w,f);
     return f;
 }
 
@@ -198,7 +198,7 @@ void wave_lib_irregular_2nd_a::wave_uvw_c(lexer *p, int q, double z, double &u, 
     double f;
     cc.time(p->wavetime,wi,ei);
     cc.phases_pairs(q,tt);
-    tt.kin(cc.C.data(),cc.S.data(),cc.cp.data(),cc.sp.data(),z,p->j_dir==1 ? 3 : 1,u,v,w,f,cc.P,cc.iP,cc.Q);
+    tt.kin(cc,z,p->j_dir==1 ? 3 : 1,u,v,w,f);
     rotate(p,u,v);
 }
 
@@ -227,14 +227,10 @@ double wave_lib_irregular_2nd_a::wave_w_c(lexer *p, int q, double z)
 void wave_lib_irregular_2nd_a::wave_eta_series(lexer *p, double x, double y, const std::vector<double> &tv, std::vector<double> &ev)
 {
     terms(p);
-    wave_lib_irregular_2nd_cache tc;
-    tc.points(std::vector<double>(1,x),std::vector<double>(1,y),Nw,ki,cosbeta,sinbeta);
-    ev.assign(tv.size(),0.0);
     
-    for(size_t i=0; i<tv.size(); ++i)
-    {
-        tc.time(tv[i],wi,ei);
-        tc.phases(0);
-        ev[i] = tt.eta(tc.C.data(),tc.S.data());
-    }
+    std::vector<double> phi(Nw);
+    for(int n=0; n<Nw; ++n)
+    phi[n] = ki[n]*(cosbeta[n]*x + sinbeta[n]*y) - ei[n];
+    
+    tt.series(phi.data(),tv,ev);
 }
