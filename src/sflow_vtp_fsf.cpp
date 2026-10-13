@@ -39,7 +39,11 @@ Author: Hans Bihs
 sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(p->I40==0)
+    {
         p->printtime=0.0;
+        p->probeprinttime=0.0;
+        p->stateprinttime=0.0;
+    }
 
     p->printcount=0;
 

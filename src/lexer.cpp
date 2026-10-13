@@ -57,6 +57,10 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
     wN=0;
     cms_flag=0;
+
+    // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
+    gcsldfeta4_count=gcsldfbed4_count=0;
+    gcsldfeta4=gcsldfbed4=nullptr;
 }
 
 lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this), cmu(0.09)
@@ -104,6 +108,10 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
     wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
     wN=0;
     cms_flag=0;
+
+    // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
+    gcsldfeta4_count=gcsldfbed4_count=0;
+    gcsldfeta4=gcsldfbed4=nullptr;
 }
 
 lexer::~lexer()

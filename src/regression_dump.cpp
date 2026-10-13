@@ -463,37 +463,37 @@ void regression_dump::sflow_collect(lexer *p, fdm2D *b)
     names.clear();
     data.clear();
 
-    add("P",p->cellnum);
+    add("P",p->cellnum2D);
     SLICELOOP1
     data.back().push_back(b->P(i,j));
 
-    add("Q",p->cellnum);
+    add("Q",p->cellnum2D);
     SLICELOOP2
     data.back().push_back(b->Q(i,j));
 
-    add("eta",p->cellnum);
+    add("eta",p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->eta(i,j));
 
-    add("WL",p->cellnum);
+    add("WL",p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->WL(i,j));
 
-    add("press",p->cellnum);
+    add("press",p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->press(i,j));
 
     // turbulence (zero without a turbulence model; kin is filled by the k-eps and k-omega models)
-    add("eddyv",p->cellnum);
+    add("eddyv",p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->eddyv(i,j));
 
-    add("kin",p->cellnum);
+    add("kin",p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->kin(i,j));
     
     // bed level (changes with sediment transport)
-    add("bed",p->cellnum);
+    add("bed",p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->bed(i,j));
 }
