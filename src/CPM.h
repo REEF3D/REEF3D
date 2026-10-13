@@ -177,6 +177,7 @@ private:
     
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
+    double kvol(lexer*, int, int, int);
     void kernel(lexer*, double, double, double);
     bool wallcell(lexer*, int, int, int);
     

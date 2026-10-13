@@ -122,9 +122,15 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
         for(k=kb;k<p->knoz;++k)
         {
-            double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+            // the vertical size of the cell: the first cell centre at least half a cell above the bed
+            // (with the mean of the cell sizes, a column of wider cells took the velocity one cell higher
+            // than its neighbours where the cell size changes in x, and the bed shear stress jumped);
+            // with a rounding tolerance: a flat bed on a cell face puts the centre exactly half a cell
+            // above it, and the last bits of the grid coordinates picked one cell or the next
+            // (bed shear stress 12 % apart on the same uniform grid)
+            double h = p->DZN[KP];
 
-            if(a->topo(i,j,k) >= 0.5*h)
+            if(a->topo(i,j,k) >= 0.5*h*(1.0-1.0e-6))
             {
                 // a solid body above the bed (e.g. a pipeline with a small gap): the fluid cell
                 // below it if there is one, else no flow (the body rests on the bed)
@@ -735,7 +741,7 @@ bool CPM::bedload_nodisp(lexer *p, fdm *a, int q)
     j = p->posc_j(P.Y[q]);
     k = p->posc_k(P.Z[q]);
     
-    double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+    double h = p->DZN[KP];
     
     return ptopo(p,a,P.X[q],P.Y[q],P.Z[q]) < h;
 }
@@ -753,7 +759,7 @@ bool CPM::bedload_rest(lexer *p, fdm *a, int q)
     j = p->posc_j(P.Y[q]);
     k = p->posc_k(P.Z[q]);
 
-    double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+    double h = p->DZN[KP];
     double sp = sqrt(P.U[q]*P.U[q] + P.V[q]*P.V[q] + P.W[q]*P.W[q]);
 
     return topo<h && sp<0.1*settling_velocity(p,P.D[q]);

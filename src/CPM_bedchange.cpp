@@ -49,7 +49,7 @@ void CPM::topo_iso(lexer *p, ghostcell *pgc, field &f)
     
     BASELOOP
     {
-        h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        h = p->DZN[KP];
         
         Tm = wallcell(p,i-1,j,k) ? Ts(i,j,k) : Ts(i-1,j,k);
         Tp = wallcell(p,i+1,j,k) ? Ts(i,j,k) : Ts(i+1,j,k);
@@ -183,6 +183,13 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
             
             if(oc[k] >= theta_bed*A*p->DZN[KP])
             ktop=k;
+            
+            // the bed ends at the first almost empty cell above it: single parcels resting higher up in
+            // the flow (on a structure, in a recirculation, at rest for a moment in the wake) are no bed
+            // level; on fine grids two slow parcels fill a cell to theta_bed (a pipeline wake on 2.5 mm
+            // cells gave a bed 7 cm above the real one)
+            else if(ktop>=0 && oc[k] < 0.25*theta_bed*A*p->DZN[KP])
+            break;
         }
 
         // the cells below the highest cell of the bed count as full (dilated or loose cells inside
@@ -224,7 +231,7 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
     
     BASELOOP
     {
-        double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        double h = p->DZN[KP];
         double val = p->ZP[KP] - zb[(i+1)*nj + j+1];
 
         a->topo(i,j,k) = MAX(-3.0*h, MIN(3.0*h, val));

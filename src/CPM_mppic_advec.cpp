@@ -82,7 +82,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
                 j = p->posc_j(PY[n]);
                 k = p->posc_k(PZ[n]);
 
-                double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+                double h = p->DZN[KP];
 
                 if(topo<h)
                 {
@@ -168,7 +168,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         j = p->posc_j(PY[n]);
         k = p->posc_k(PZ[n]);
         
-        double psi = p->Q64*(p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]));
+        double psi = p->Q64*p->DZN[KP];
         double phi = ptopo(p,a,PX[n],PY[n],PZ[n]);
         
         if(p->solidread>0)
@@ -253,7 +253,7 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
     j = p->posc_j(yp);
     k = p->posc_k(zp);
     
-    double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+    double h = p->DZN[KP];
     double delta = -topo;
     
     // pore water with the grains
@@ -382,7 +382,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     for(j=0;j<p->knoy;++j)
     {
         k = MAX(0,MIN(p->knoz-1, p->posc_k(s->bedzh(i,j))));
-        double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        double h = p->DZN[KP];
         double zr = s->bedzh(i,j) + 0.5*h;
         
         double ur = p->ccipol1c(a->u,p->XP[IP],p->YP[JP],zr);
@@ -407,7 +407,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         continue;
         
         k = p->posc_k(P.Z[n]);
-        double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        double h = p->DZN[KP];
         
         // grains of the bed below the exposed layer do not count
         if(ptopo(p,a,P.X[n],P.Y[n],P.Z[n]) < -2.0*MIN(P.D[n],0.25*h))
