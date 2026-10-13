@@ -265,6 +265,11 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // subcycling (G 7 1): the stage times
     sub = (p->G7==1) ? 1 : 0;
+
+    // G 7 1: the finest level advances the bodies with the loads on the finest grid
+    if(bodies && sub)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_loads = this;
     th_end.assign(maxlev+1,0.0);
     if(mom0->amr_stages()==3)
     {
@@ -356,6 +361,30 @@ void cfd_amr::hierarchy(bool first)
 
 cfd_amr::~cfd_amr()
 {
+    if(bodies)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_loads = nullptr;
+}
+
+bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) const
+{
+    for(int l=maxlev; l>=1; --l)
+    for(int id : lev[l])
+    {
+        cfd_amr_patch *c = static_cast<cfd_amr_patch*>(P[id]);
+        lexer *pp = c->pp;
+        const int nx = pp->knox, ny = pp->knoy, nz = pp->knoz;
+        if(x < pp->XN[marge] + 2.0*pp->DXN[marge] || x > pp->XN[nx+marge] - 2.0*pp->DXN[nx-1+marge])
+        continue;
+        if(z < pp->ZN[marge] + 2.0*pp->DZN[marge] || z > pp->ZN[nz+marge] - 2.0*pp->DZN[nz-1+marge])
+        continue;
+        if(pp->j_dir==1 && (y < pp->YN[marge] + 2.0*pp->DYN[marge] || y > pp->YN[ny+marge] - 2.0*pp->DYN[ny-1+marge]))
+        continue;
+        q = pp;
+        a = c->a;
+        return true;
+    }
+    return false;
 }
 
 namespace
@@ -992,6 +1021,10 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     timestep(p,a,pgc);
+
+    // G 7 1: the loads of the bodies for their first stage, on the finest grid
+    if(bodies && sub)
+    body_loads(0,p->simtime,false);
 
     // the top and the bottom of a refined region should stay out of the interface band (the
     // patches across the free surface at their sides are fine): hint at the start

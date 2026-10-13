@@ -48,7 +48,8 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
     
     for (int nb=0; nb<number6DOF;++nb)
     {
-        // Calculate forces
+        // Calculate forces (a predicted copy for the mesh refinement keeps the loads of the finest level)
+        if(!amr_predict)
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
         // Advance body in time
@@ -67,7 +68,7 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
         // Print
-        if(finalize==true)
+        if(finalize==true && !amr_predict)
         {
             fb_obj[nb]->saveTimeStep(p,iter);
             

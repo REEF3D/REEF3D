@@ -50,25 +50,6 @@ void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
     update_fbvel(p,pgc);
 }
 
-// CFD (cfd_amr, G 7 1): the state at the fraction w of the level-0 step, linear between its start
-// a and its end b (momenta, position, quaternion normalised), for the forcing on the patches
-void sixdof_obj::amr_interpolate(lexer *p, ghostcell *pgc, const sixdof_rigidbody &a, const sixdof_rigidbody &b, double w)
-{
-    rb = b;
-    rb.p = (1.0-w)*a.p + w*b.p;
-    rb.c = (1.0-w)*a.c + w*b.c;
-    rb.h = (1.0-w)*a.h + w*b.h;
-    rb.dc = (1.0-w)*a.dc + w*b.dc;
-    rb.e = (1.0-w)*a.e + w*b.e;
-    rb.e.normalize();
-
-    rb.quat_matrices();
-    rb.euler_angles();
-    rb.update_omega();
-    geom.transform(R_,c_);
-    update_fbvel(p,pgc);
-}
-
 // FNPF: the RK stage of the predicted copy with the loads and the added mass of the last solve
 void sixdof_obj_fnpf::amr_predict_fnpf(lexer *p, ghostcell *pgc, int iter)
 {

@@ -61,6 +61,7 @@
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.h"/>
         <File Name="cfd_amr_6dof.h"/>
+        <File Name="amr_grid_lookup.h"/>
       </VirtualDirectory>
       <File Name="reefamr.h"/>
       <File Name="reefamr_krylov.h"/>

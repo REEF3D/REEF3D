@@ -146,3 +146,13 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
         pgc->start4a(p,f,50);
 	}
 }
+
+// G 7 1 (cfd_amr): stage iter of the body with the step of the level (p->dt): the loads (Xe .. Ne)
+// of the last stage of the finest level, the external forces of the stage; the pose, the trimesh
+// and the body velocities.  The patches cast the hull at their stages (cfd_amr_6dof)
+void sixdof_obj_cfd::amr_stage_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter)
+{
+    solve_eqmotion_cfd(p,a,pgc,iter,false);
+    quat_matrices(p);
+    pose_update(p,pgc);
+}

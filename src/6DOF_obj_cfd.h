@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_CFD_H_
 
 #include"6DOF_obj.h"
+#include"amr_grid_lookup.h"
 
 //  Fluid access of the load models (ship module) in REEF3D::CFD: velocity interpolated from the
 //  staggered velocity fields
@@ -64,6 +65,11 @@ public:
     // patch, the cells around the patch included, with the workspace of that grid
     void ray_cast_amr(lexer*, fdm*, ghostcell*, fieldint5&, fieldint5&, fieldint5&);
     void reini_amr(lexer*, fdm*, ghostcell*, field&, reinidisc*, field4a&, field4a&, field4a&);
+    // ... the loads (X 60 1) from the finest grid at each hull triangle (set by cfd_amr, G 7 1)
+    const amr_grid_lookup *amr_loads = nullptr;
+    // ... G 7 1: stage iter of the body with the step of a level (p->dt): the loads of its last
+    // stage, the pose and the body velocities (the hull is cast on the patches, not on level 0)
+    void amr_stage_cfd(lexer*, fdm*, ghostcell*, int);
 
 private:
     

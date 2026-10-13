@@ -63,6 +63,9 @@ public:
     // the bodies, for the CFD mesh refinement (cfd_amr)
     int objects() const {return number6DOF;}
     sixdof_obj_cfd* object(int nb) {return fb_obj[nb];}
+    // ... G 7 1: level 0 steps with a predicted copy of the bodies (the loads of the last stage of
+    // the finest level, no output); the finest level advances them (sixdof_obj_cfd::amr_stage_cfd)
+    bool amr_predict = false;
 
 private:
    void setup(lexer*,fdm*,ghostcell*);

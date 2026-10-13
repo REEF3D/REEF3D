@@ -53,7 +53,9 @@ Architect: Hans Bihs
 //  synchronisation projection (pr_sync_project), one composite correction solve over all levels,
 //  makes the coarse faces at the patch edges the mean of the fine ones and the composite velocity
 //  field divergence free.  The fine grid acts on the coarse one through the restriction
-//  (velocities, level set, density, viscosity) and the synchronisation.
+//  (velocities, level set, density, viscosity) and the synchronisation.  Floating bodies (X 10 1):
+//  the finest level advances them, the coarser levels step with a predicted copy (the loads of the
+//  last finest stage).
 
 namespace
 {
@@ -249,6 +251,11 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
 
     const int stages = mom0->amr_stages();
 
+    // floating bodies: a level coarser than the finest steps with a predicted copy
+    if(bodies && l<maxlev)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_save();
+
     for(int s=0; s<stages; ++s)
     {
         const double thi = th0 + 0.5*tin[s];
@@ -314,7 +321,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
 
         // the bodies at the output time of the stage
         if(bodies)
-        body_time((t + tout[s]*dt - p0->simtime)/p0->dt);
+        body_stage(l,s,t,dt);
 
         for(int id : lev[l])
         {
@@ -330,7 +337,26 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             pscope3 ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
         }
+
+        // the finest level: the loads after its stage, on the finest grid at every hull triangle;
+        // the force output once per level-0 step
+        if(bodies && l==maxlev)
+        body_loads(s,t,s==stages-1 && bfin==(1<<maxlev)-1);
     }
+
+    if(bodies && l==maxlev)
+    {
+        const double dts = p0->dt;
+        p0->dt = dt;
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->saveTimeStep(p0,stages-1);
+        p0->dt = dts;
+        ++bfin;
+    }
+
+    if(bodies && l<maxlev)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_restore(p0,pgc0);
 
     if(turb)
     for(int id : lev[l])
@@ -387,10 +413,14 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     // level 0: its step as step_ssp (the volume correction over all levels at the end)
     save_old(0);
 
-    // the bodies at the start of the step (they move with the stages of level 0)
+    // the bodies: level 0 steps with a predicted copy (the finest level advances them)
     if(bodies)
-    for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->amr_save();
+    {
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_save();
+        b6->amr_predict = true;
+    }
+    bfin = 0;
 
     mom0->amr_step_begin(p,a,pgc);
     for(int s=0; s<mom0->amr_stages(); ++s)
@@ -405,10 +435,12 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     const double t1 = MPI_Wtime();
     tm[4] += t1-t0;
 
-    // the bodies at the end of the step of level 0
     if(bodies)
-    for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->rb_amr1 = b6->object(nb)->rb;
+    {
+        b6->amr_predict = false;
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_restore(p0,pgc0);
+    }
 
     advance(1,p->dt,p->simtime);
 
@@ -418,7 +450,7 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     press_step = true;
 
     if(bodies)
-    body_time(-1.0);
+    body_end();
 
     volume_correct(p,pgc);
 
@@ -445,25 +477,53 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     }
 }
 
-// --------------------------------------------------------------------- composite volume (F 46)
-// the volume of the level set over the leaf cells of all grids and its derivative with respect to
-// the bodies at the fraction w of the level-0 step (linear between its start and its end); w < 0:
-// back to the end
-void cfd_amr::body_time(double w)
+// --------------------------------------------------------------------- floating bodies (G 7 1)
+// stage s of the bodies with the step of level l (from t with dt): the finest level advances the
+// bodies (the loads of its last stage), a coarser one its predicted copy (the same loads)
+void cfd_amr::body_stage(int l, int s, double t, double dt)
+{
+    const double dts = p0->dt, ts = p0->simtime;
+    p0->dt = dt;
+    p0->simtime = t;
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->amr_stage_cfd(p0,a0,pgc0,s);
+    p0->dt = dts;
+    p0->simtime = ts;
+}
+
+// the loads after stage s of the finest level (hull triangles on the finest grid there, else on
+// level 0, sixdof_obj_cfd::forces_stl); the force file labels them with the start of the finest step
+void cfd_amr::body_loads(int s, double t, bool fin)
+{
+    const double ts = p0->simtime;
+    p0->simtime = t;
+    for(int nb=0; nb<b6->objects(); ++nb)
+    b6->object(nb)->hydrodynamic_forces_cfd(p0,a0,pgc0,a0->u,a0->v,a0->w,s,fin);
+    p0->simtime = ts;
+}
+
+// end of the level-0 step: the hull on level 0 at the final pose, the output of the bodies once per
+// level-0 step
+void cfd_amr::body_end()
 {
     for(int nb=0; nb<b6->objects(); ++nb)
     {
         sixdof_obj_cfd *o = b6->object(nb);
-        if(w<0.0)
-        {
-            o->rb_amr = o->rb_amr1;
-            o->amr_restore(p0,pgc0);
-        }
-        else
-        o->amr_interpolate(p0,pgc0,o->rb_amr,o->rb_amr1,w);
+        o->update_position_3D(p0,a0,pgc0,true);
+
+        if(p0->X50==1)
+        o->print_vtp(p0,pgc0);
+
+        if(p0->X50==2)
+        o->print_stl(p0,pgc0);
+
+        o->print_parameter(p0,pgc0);
     }
+    pgc0->gcdf_update(p0,a0);
 }
 
+// --------------------------------------------------------------------- composite volume (F 46)
+// the volume of the level set over the leaf cells of all grids and its derivative with respect to
 // a uniform shift (as picard_lsm::volcalc2)
 void cfd_amr::volume(double &V, double &dV)
 {

@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #define CFD_AMR_H_
 
 #include"reefamr3d.h"
+#include"amr_grid_lookup.h"
 #include<vector>
 #include<functional>
 
@@ -91,9 +92,10 @@ struct cfd_amr_tlev
 //    the end of the stage on every grid (level set, density, viscosity), then the restriction of
 //    velocities, level set, pressure onto the cells and faces under a patch
 //
-//  The step size is the minimum of all levels.  Scope of this version: laminar two-phase or
-//  single-phase flow (F 30, N 40 2/3), no solids, bodies, sediment, porous media, heat or
-//  concentration; wave generation and absorption on level 0 (the patches keep out of the zones).
+//  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
+//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1); no
+//  sediment, porous media, heat or concentration; wave generation and absorption on level 0 (the
+//  patches keep out of the zones).
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
@@ -170,7 +172,7 @@ struct cfd_amr_cf
     double tdel[3];     // offset of the fine cell from the coarse centre (coarse cells), 0: none
 };
 
-class cfd_amr : public reefamr3d
+class cfd_amr : public reefamr3d, public amr_grid_lookup
 {
 public:
     cfd_amr(lexer*, fdm*, ghostcell*, momentum*, pressure*, poisson*, ioflow*, vrans*, fsi*, initialize*, turbulence*, sixdof*);
@@ -180,6 +182,10 @@ public:
     static bool scope(lexer*, ghostcell*);
 
     void ini(lexer*, fdm*, ghostcell*);
+
+    // the finest patch whose interior holds the point two cells inside its edges (the loads of
+    // the floating bodies, X 60 1)
+    bool finest_grid(double, double, double, lexer*&, fdm*&) const override;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
     void print(lexer*, bool after=false);
@@ -308,9 +314,15 @@ private:
     turbulence *pturb0 = nullptr;
     int turb = 0;                       // RANS on the patches (T 10 1, 2)
     int solids = 0;                     // solids or topography (direct forcing) on the patches
-    sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1), moved on level 0
+    sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
     int bodies = 0;
-    void body_time(double w);           // G 7 1: the bodies at the fraction w of the level-0 step
+    // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its
+    // stages on the finest grid); the coarser levels step with a predicted copy (amr_save,
+    // amr_restore); bfin counts the finest steps within the level-0 step
+    void body_stage(int l, int s, double t, double dt);
+    void body_loads(int s, double t, bool fin);
+    void body_end();
+    int bfin = 0;
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
     int nts = 6;                        // fields of the subcycling state (8 with turbulence)
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
