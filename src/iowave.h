@@ -327,6 +327,7 @@ private:
     void nhflow_edge_pressure(lexer*, fdm_nhf*, ghostcell*, double, double);
     void select_zone_at(lexer*);
     bool nhf_active_edge = false;     // B 99 3 / 4 in NHFLOW: absorbing Riemann edge at x+
+    std::vector<double> ua_edge;      // FNPF B 98 4: absorption velocity per inflow column
     double bg_prof(lexer*,int,double);   // B 513 profile factor of layer k, depth average 1 per column
     
     // edge mass balance (B 529): flux through each open edge integrated since the last line

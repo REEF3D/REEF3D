@@ -80,6 +80,17 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
             p->B89 = 0;
         }
     }
+    
+    // FNPF Dirichlet / active generation (B 98 3, 4) with B 89 1 never filled the space parts of the
+    // inflow velocity (Uin 0), took the surface potential for the surface velocity and, for B 98 4,
+    // had no space parts at all: no or wrong waves. The edge is one column of cells, so it runs with B 89 0.
+    if(p->B89==1 && p->A10==3 && (p->B98==3 || p->B98==4))
+    {
+        if(p->mpirank==0)
+        cout<<"iowave: FNPF Dirichlet / active wave generation (B 98 "<<p->B98<<") runs with B 89 0"<<endl;
+        
+        p->B89 = 0;
+    }
 
     if(p->F80==4)
     vofgen = std::make_unique<field4>(p);
