@@ -59,8 +59,8 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
 		}
         
 		
-		// Numerical Beach (B 99 1 / 2; B 520 beach zones in SFLOW, FNPF as before)
-		if(p->B99==1 || p->B99==2 || (beach_relax==1 && p->A10==2))
+		// Numerical Beach (B 99 1 / 2; B 520 beach zones in SFLOW, FNPF as before; B 99 6)
+		if(p->B99==1 || p->B99==2 || (beach_relax==1 && p->A10==2) || (beach_lp && p->A10==3))
 		{
             // Zone 2
             if(p->A10!=3 || p->A348==1 || p->A348==2)

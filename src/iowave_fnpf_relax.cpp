@@ -54,7 +54,14 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		{
             // Zone 2
             if(db<1.0e20)
+            {
+            // combined beach (B 99 6): towards the low-passed surface potential, so long waves
+            // pass the zone to the active beach at x+
+            if(beach_lp)
+            f(i,j) = relax4_nb(i,j)*f(i,j) + (1.0-relax4_nb(i,j))*beach_target(p,lp_fifsf,p->imax*p->jmax,IJ,0.0,f(i,j));
+            else
             f(i,j) = relax4_nb(i,j)*f(i,j);
+            }
         }
     }
     

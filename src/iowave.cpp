@@ -36,12 +36,12 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     pBC = ppBC;
     paddle_setup = 0;
     
-    // combined beach (B 99 6): in NHFLOW and SFLOW an absorbing edge at x+ (as B 99 3) behind a
+    // combined beach (B 99 6): in NHFLOW, SFLOW and FNPF an absorbing edge at x+ (as B 99 3) behind a
     // relaxation beach (length B 96) that relaxes to the low-passed state, so short waves are damped
-    // in the zone and long waves pass to the edge; the solver sees B 99 3. Other solvers: B 99 2.
+    // in the zone and long waves pass to the edge; the solver sees B 99 3. CFD: B 99 2.
     if(p->B99==6)
     {
-        if(p->A10==5 || p->A10==2)
+        if(p->A10==5 || p->A10==2 || p->A10==3)
         {
         beach_lp = true;
         p->B99 = 3;
@@ -49,7 +49,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         else
         {
         if(p->mpirank==0)
-        cout<<"iowave: B 99 6 (combined beach) is available for NHFLOW and SFLOW; runs as B 99 2"<<endl;
+        cout<<"iowave: B 99 6 (combined beach) is available for NHFLOW, SFLOW and FNPF; runs as B 99 2"<<endl;
         p->B99 = 2;
         }
     }
