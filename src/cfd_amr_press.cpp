@@ -325,14 +325,18 @@ void cfd_amr::pr_setup()
         MPI_Abort(MPI_COMM_WORLD,-3120);
     }
 
-    // vectors
+    // vectors (a regrid keeps those of the kept patches)
+    if(kv0.empty())
     for(int k=0; k<NVEC+1; ++k)
     kv0.push_back(new field4(p0));
     for(int id=0; id<(int)P.size(); ++id)
+    if(CP(id)->kv.empty())
     for(int k=0; k<NVEC+1; ++k)
     CP(id)->kv.push_back(new field4(CP(id)->pp));
 
     // multigrids
+    if(mg0==nullptr)
+    {
     mg0 = new reefmg_core;
     mg0->set_precision(p0->N14==32 ? 32 : 64);
     mg0->set_fine_operator(&pr_fineop_none);
@@ -342,11 +346,14 @@ void cfd_amr::pr_setup()
         cout<<"CFD AMR: level-0 multigrid "<<mg0->err()<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3122);
     }
+    }
 
     for(int id=0; id<(int)P.size(); ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
+        if(c->mg!=nullptr)
+        continue;
         c->mg = new reefmg_core;
         c->mg->set_precision(pp->N14==32 ? 32 : 64);
         c->mg->set_fine_operator(&pr_fineop_none);

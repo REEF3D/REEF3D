@@ -244,7 +244,40 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     if(p->F50==3) gcval_phi = 53;
     if(p->F50==4) gcval_phi = 54;
 
+    // subcycling (G 7 1): the stage times
+    sub = (p->G7==1) ? 1 : 0;
+    th_end.assign(maxlev+1,0.0);
+    if(mom0->amr_stages()==3)
+    {
+        tin[0]=0.0; tin[1]=1.0; tin[2]=0.5;
+        tout[0]=1.0; tout[1]=0.5; tout[2]=1.0;
+    }
+    else
+    {
+        tin[0]=0.0; tin[1]=1.0; tin[2]=1.0;
+        tout[0]=1.0; tout[1]=1.0; tout[2]=1.0;
+    }
+
+    // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 of the initial level 0
+    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0) ? 1 : 0;
+    if(adapt)
+    {
+        setup_base(p,pgc);
+        vector<vector<unsigned char>> seed;
+        flags(seed,true);
+        setup(p,pgc,&seed);
+    }
+    else
     setup(p,pgc);
+
+    hierarchy(true);
+}
+
+// after the setup or a regrid
+void cfd_amr::hierarchy(bool first)
+{
+    lexer *p = p0;
+    ghostcell *pgc = pgc0;
 
     // the patches have no inflow or outflow (the wave generation stays on level 0)
     int io = 0;
@@ -259,14 +292,17 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     if(io>0)
     {
         if(p->mpirank==0)
-        cout<<"CFD AMR: a refined box (G 15) reaches an inflow or outflow boundary; keep the boxes away from them"<<endl;
+        cout<<"CFD AMR: a refined region (G 15, G 24-26) reaches an inflow or outflow boundary; keep the boxes away from them"<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3111);
     }
 
     int np = (int)GP.size();
     if(p->mpirank==0)
     {
+        if(first)
         cout<<"CFD AMR: "<<maxlev<<" refined levels, "<<np<<" patches";
+        else
+        cout<<"CFD AMR: regrid at step "<<p->count<<": "<<np<<" patches";
         for(int l=1; l<=maxlev; ++l)
         {
             long cells = 0;
@@ -281,38 +317,92 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     for(int id=0; id<(int)P.size(); ++id)
     {
         cfd_amr_patch *c = CP(id);
+        c->mkind.assign(c->pp->imax*c->pp->jmax*c->pp->kmax,-1);
         for(const r3fill &f : c->fill)
         c->mkind[cix(c->pp,f.d[0],f.d[1],f.d[2])] = (signed char)f.kind;
     }
 
     pr_setup();
 
-    // subcycling (G 7 1): the stage times, the state of the grids that are the coarser level of a
-    // patch
-    sub = (p->G7==1) ? 1 : 0;
-    th_end.assign(maxlev+1,0.0);
-    if(mom0->amr_stages()==3)
-    {
-        tin[0]=0.0; tin[1]=1.0; tin[2]=0.5;
-        tout[0]=1.0; tout[1]=0.5; tout[2]=1.0;
-    }
-    else
-    {
-        tin[0]=0.0; tin[1]=1.0; tin[2]=1.0;
-        tout[0]=1.0; tout[1]=1.0; tout[2]=1.0;
-    }
+    // subcycling: the state of the grids that are the coarser level of a patch
     if(sub)
     {
-        if(maxlev>=1)
+        if(maxlev>=1 && ts0==nullptr)
         ts0 = new cfd_amr_tlev(p);
         for(int id=0; id<(int)P.size(); ++id)
-        if(P[id]->lev<maxlev)
+        if(P[id]->lev<maxlev && CP(id)->ts==nullptr)
         CP(id)->ts = new cfd_amr_tlev(CP(id)->pp);
     }
 }
 
 cfd_amr::~cfd_amr()
 {
+}
+
+namespace
+{
+template<class T, class B> bool del_as(B *&b)
+{
+    T *t = dynamic_cast<T*>(b);
+    if(t==nullptr)
+    return false;
+    delete t;
+    b = nullptr;
+    return true;
+}
+
+// the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
+void free_lexer_cells(lexer *q)
+{
+    int **ia[] = {&q->flag1,&q->flag2,&q->flag3,&q->flag4,&q->flag5,&q->flagsf1,&q->flagsf2,&q->flagsf3,&q->flagsf4,
+                  &q->IO,&q->DF,&q->DF1,&q->DF2,&q->DF3,&q->DFF};
+    for(int **a : ia)
+    {
+        delete [] *a;
+        *a = nullptr;
+    }
+    delete [] q->flag_solid;
+    delete [] q->flag_topo;
+    q->flag_solid = q->flag_topo = nullptr;
+    q->geometry_free();     // the horizontal geometry layer of build_lexer
+}
+}
+
+// a patch of an old hierarchy (regrid): its objects, fields and the cell arrays of its lexer (the
+// boundary lists and slices of the lexer are left)
+void cfd_amr::free_patch(cfd_amr_patch *c)
+{
+    delete c->ts;
+    for(field4 *f : c->kv)
+    delete f;
+    c->kv.clear();
+    delete c->mg;
+
+    delete c->pmom;
+    delete c->ppress;
+    del_as<poisson_pcorr>(c->ppois);
+    del_as<reini_RK3>(c->preini);
+    del_as<amr_dsolver>(c->psolv);
+    if(!del_as<bicgstab_ijk>(c->psolv_in))
+    del_as<bicgstab_ijk_2D>(c->psolv_in);
+    del_as<solver_void>(c->ppoissonsolv);
+    del_as<heat_void>(c->pheat);
+    del_as<concentration_void>(c->pconc);
+    del_as<kepsilon_void>(c->pturb);
+    delete c->pBC;
+    del_as<ioflow_v>(c->pflow);
+    del_as<vrans_v>(c->pvrans);
+    if(!del_as<diff_void>(c->pdiff) && !del_as<ediff2>(c->pdiff) && !del_as<ediff2_2D>(c->pdiff) && !del_as<idiff2_FS>(c->pdiff))
+    del_as<idiff2_FS_2D>(c->pdiff);
+    if(!del_as<fou>(c->pconvec) && !del_as<weno_flux_nug>(c->pconvec))
+    del_as<weno_hj_nug>(c->pconvec);
+    if(!del_as<fou>(c->pfsfdisc) && !del_as<weno_flux_nug>(c->pfsfdisc))
+    del_as<weno_hj_df_nug>(c->pfsfdisc);
+
+    delete c->a;
+    free_lexer_cells(c->pp);
+    delete c->pp;
+    delete c;
 }
 
 r3patch* cfd_amr::patch_new()
@@ -649,37 +739,43 @@ void cfd_amr::restrict_level(int l, const vector<std::function<field&(int)>> &ce
 // --------------------------------------------------------------------- initialisation
 // the patches from the initialised level 0: geometry fields of initialize, then velocities, level
 // set, pressure prolonged into the patch and its surrounding cells, density and viscosity
+// the fields of patch id before its data: initialize, ioflow, no porous media, solids or bodies
+void cfd_amr::patch_fields_ini(int id)
+{
+    lexer *p = p0;
+    ghostcell *pgc = pgc0;
+    cfd_amr_patch *c = CP(id);
+    lexer *pp = c->pp;
+    pscope ps(pgc,c->a,a0);
+    const double psi = pp->psi, psi0 = pp->psi0;
+    pini0->start(c->a,pp,pgc);
+    c->pflow->ini(pp,c->a,pgc);
+    pp->psi = psi;      // (initialize sets it)
+    pp->psi0 = psi0;
+
+    // no porous media, solids or bodies: also in the cells around the patch (initialize sets
+    // the interior; PORVAL at the patch edge reads the cell outside)
+    const int na = pp->imax*pp->jmax*pp->kmax;
+    for(int n=0; n<na; ++n)
+    {
+        c->a->porosity.V[n] = 1.0;
+        c->a->fb.V[n] = 1.0;
+        c->a->topo.V[n] = 1.0;
+        c->a->solid.V[n] = 1.0e8;
+    }
+
+    pp->maxlength = p->maxlength;
+    pp->xcoormax = p->xcoormax; pp->xcoormin = p->xcoormin;
+    pp->ycoormax = p->ycoormax; pp->ycoormin = p->ycoormin;
+    pp->zcoormax = p->zcoormax; pp->zcoormin = p->zcoormin;
+    pp->phimean = p->phimean;
+    pp->count = p->count;
+}
+
 void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     for(int id=0; id<(int)P.size(); ++id)
-    {
-        cfd_amr_patch *c = CP(id);
-        lexer *pp = c->pp;
-        pscope ps(pgc,c->a,a0);
-        const double psi = pp->psi, psi0 = pp->psi0;
-        pini0->start(c->a,pp,pgc);
-        c->pflow->ini(pp,c->a,pgc);
-        pp->psi = psi;      // (initialize sets it)
-        pp->psi0 = psi0;
-
-        // no porous media, solids or bodies: also in the cells around the patch (initialize sets
-        // the interior; PORVAL at the patch edge reads the cell outside)
-        const int na = pp->imax*pp->jmax*pp->kmax;
-        for(int n=0; n<na; ++n)
-        {
-            c->a->porosity.V[n] = 1.0;
-            c->a->fb.V[n] = 1.0;
-            c->a->topo.V[n] = 1.0;
-            c->a->solid.V[n] = 1.0e8;
-        }
-
-        pp->maxlength = p->maxlength;
-        pp->xcoormax = p->xcoormax; pp->xcoormin = p->xcoormin;
-        pp->ycoormax = p->ycoormax; pp->ycoormin = p->ycoormin;
-        pp->zcoormax = p->zcoormax; pp->zcoormin = p->zcoormin;
-        pp->phimean = p->phimean;
-        pp->count = p->count;
-    }
+    patch_fields_ini(id);
 
     // interior of every patch from its parent, level by level
     vector<fspec> fs;
@@ -1150,6 +1246,10 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
 
     // the volume correction over the leaf cells of all grids (F 46 2, 3)
     volume_correct(p,pgc);
+
+    // adaptive refinement: regrid every G 2 steps
+    if(adapt && p->G2>0 && p->count%p->G2==0)
+    regrid(p,pgc);
 
     tm[7] += MPI_Wtime()-t0;
 

@@ -1316,6 +1316,7 @@
         <File Name="cfd_amr_press.cpp"/>
         <File Name="cfd_amr_print.cpp"/>
         <File Name="cfd_amr_sub.cpp"/>
+        <File Name="cfd_amr_regrid.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>

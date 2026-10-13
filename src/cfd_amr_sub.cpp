@@ -370,6 +370,9 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
 
     volume_correct(p,pgc);
 
+    if(adapt && p->G2>0 && p->count%p->G2==0)
+    regrid(p,pgc);
+
     tm[7] += MPI_Wtime()-t0;
 
     if(p->count%p->P12==0)

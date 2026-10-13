@@ -684,10 +684,10 @@ void control::ini_default()
     // Grid
     // mesh refinement (SFLOW, FNPF, NHFLOW)
     G1=0;       // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    G2=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrid interval in time steps (0: static; FNPF: only with G 12, NHFLOW: with G 12, G 20 or G 21)
-    G3=2;       // int SFLOW, FNPF and NHFLOW mesh refinement: buffer cells around flagged cells
-    G4=8;       // int SFLOW, FNPF and NHFLOW mesh refinement: tile size in cells of the refined level
-    G5=4;       // int SFLOW, FNPF and NHFLOW mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
+    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF: only with G 12, NHFLOW: with G 12, G 20 or G 21; CFD: with G 24, G 25 or G 26)
+    G3=2;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: buffer cells around flagged cells
+    G4=8;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: tile size in cells of the refined level
+    G5=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
     G6=0;       // int FNPF and NHFLOW mesh refinement: 1 doubles the sigma layers on every refined level
     G7=0;       // int SFLOW, NHFLOW and CFD mesh refinement: 0 one time step for all levels, 1 subcycling (every level two steps per step of the next coarser one)
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
@@ -701,6 +701,9 @@ void control::ini_default()
     G21=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
     G22=0;      // int SFLOW and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
     G23=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
+    G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
+    G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid or the topography; 0 off
+    G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
     G30=0;      // int NHFLOW mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat

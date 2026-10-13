@@ -49,7 +49,9 @@ using namespace std;
 //  boundary lists of level 0 below it, and ghostcell sets them.
 //
 //  Static refinement (step 15b): the boxes G 15 xs xe ys ye zs ze are refined to level G 1, and
-//  every coarser level covers the next finer one with a nesting band of 3 cells.
+//  every coarser level covers the next finer one with a nesting band of 3 cells.  Adaptive
+//  refinement: the module gives seed tiles per level (setup, rebuild), the boxes G 15 are added on
+//  the finest level; rebuild keeps the patches whose box is unchanged and makes the others anew.
 
 struct r3fill
 {
@@ -177,17 +179,25 @@ public:
     }
 
 protected:
-    // setup: hierarchy, patch lexers, plans
-    void setup(lexer*, ghostcell*);
+    // setup: hierarchy, patch lexers, plans; seed (optional): refined tiles per level [l][tile]
+    void setup_base(lexer*, ghostcell*);
+    void setup(lexer*, ghostcell*, const vector<vector<unsigned char>> *seed=nullptr);
     virtual r3patch* patch_new()=0;
     virtual void patch_objects(r3patch*)=0;
+
+    // new hierarchy from the seeds: false if the boxes are unchanged (nothing done); else P, lev, GP,
+    // the plans are new, gone holds the old patches not kept (the caller deletes them), fresh the
+    // local ids of the new patches (lexer and module objects made, no data)
+    bool rebuild(const vector<vector<unsigned char>> &seed, vector<r3patch*> &gone, vector<int> &fresh);
+    size_t tid(int l, int ti, int tj, int tk) const { return ((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk; }
+    bool verbose = true;
 
     void build_lexer(r3patch&);
     void xrun(r3xplan&, int);
 
 private:
     void global_nodes();
-    void mark_tiles();
+    void mark_tiles(const vector<vector<unsigned char>> *seed);
     void make_boxes();
     void plans();
     bool tile_marked(int l, int ti, int tj, int tk) const;

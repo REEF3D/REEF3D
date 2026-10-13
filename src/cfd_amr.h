@@ -232,6 +232,19 @@ private:
     void fill_vel_after(int s);
     void edge_faces(int l, int s);
 
+    // the hierarchy after setup or a regrid: checks, cell kinds, composite projection, subcycling state
+    void hierarchy(bool first);
+
+    // adaptive refinement (cfd_amr_regrid.cpp): flags G 24-26, regrid every G 2 steps
+    int adapt = 0;
+    long nregrid = 0;
+    vector<vector<int>> tage;       // [l][tile] regrids since the last flag (hysteresis G 5)
+    void flags(vector<vector<unsigned char>> &seed, bool init);
+    bool flagged(int g, int i, int j, int k, int lt, bool init);
+    void regrid(lexer*, ghostcell*);
+    void patch_fields_ini(int id);
+    void free_patch(cfd_amr_patch*);
+
     // subcycling (cfd_amr_sub.cpp)
     cfd_amr_tlev* gts(int g) { return g<0 ? ts0 : CP(g)->ts; }
     field& tsf(int g, int m) { return *gts(g)->t[m]; }

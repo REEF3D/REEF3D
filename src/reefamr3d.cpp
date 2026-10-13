@@ -142,7 +142,8 @@ double reefamr3d::node(int l, int d, int I) const
 }
 
 // --------------------------------------------------------------------- setup
-void reefamr3d::setup(lexer *p, ghostcell *pgc)
+// refinement ratios, level-0 boxes of the ranks, tiles, global nodes
+void reefamr3d::setup_base(lexer *p, ghostcell *pgc)
 {
     rr[0] = (p->i_dir==1 && p->gknox>1) ? 2 : 1;
     rr[1] = (p->j_dir==1 && p->gknoy>1) ? 2 : 1;
@@ -170,7 +171,19 @@ void reefamr3d::setup(lexer *p, ghostcell *pgc)
     }
 
     global_nodes();
-    mark_tiles();
+
+    tn.assign(maxlev+1,vector<int>(3,0));
+    for(int l=1; l<=maxlev; ++l)
+    for(int d=0; d<3; ++d)
+    tn[l][d] = (gn(l,d)+tile[d]-1)/tile[d];
+}
+
+void reefamr3d::setup(lexer *p, ghostcell *pgc, const vector<vector<unsigned char>> *seed)
+{
+    if(tn.empty())
+    setup_base(p,pgc);
+
+    mark_tiles(seed);
     make_boxes();
 
     // local patches, lexers, module objects
@@ -200,6 +213,91 @@ void reefamr3d::setup(lexer *p, ghostcell *pgc)
     plans();
 }
 
+// a new hierarchy from the seeds (adaptive refinement)
+bool reefamr3d::rebuild(const vector<vector<unsigned char>> &seed, vector<r3patch*> &gone, vector<int> &fresh)
+{
+    gone.clear();
+    fresh.clear();
+
+    const vector<r3gpatch> GPold = GP;
+    const vector<vector<unsigned char>> told = tmask;
+
+    mark_tiles(&seed);
+
+    if(tmask==told)
+    return false;
+
+    make_boxes();
+
+    bool same = (GP.size()==GPold.size());
+    for(size_t g=0; same && g<GP.size(); ++g)
+    {
+        const r3gpatch &a = GP[g], &b = GPold[g];
+        if(a.lev!=b.lev || a.rank!=b.rank)
+        same = false;
+        for(int d=0; d<3; ++d)
+        if(a.lo[d]!=b.lo[d] || a.hi[d]!=b.hi[d])
+        same = false;
+    }
+    if(same)
+    return false;
+
+    vector<r3patch*> Pold = P;
+    vector<char> kept(Pold.size(),0);
+
+    P.clear();
+    lev.assign(maxlev+1,vector<int>());
+    for(size_t g=0; g<GP.size(); ++g)
+    if(GP[g].rank==myrank)
+    {
+        r3patch *c = nullptr;
+        for(size_t q=0; q<Pold.size(); ++q)
+        {
+            r3patch *o = Pold[q];
+            if(kept[q] || o->lev!=GP[g].lev)
+            continue;
+            bool eq = true;
+            for(int d=0; d<3; ++d)
+            if(o->lo[d]!=GP[g].lo[d] || o->hi[d]!=GP[g].hi[d])
+            eq = false;
+            if(eq)
+            {
+                c = o;
+                kept[q] = 1;
+                break;
+            }
+        }
+
+        if(c==nullptr)
+        {
+            c = patch_new();
+            c->lev = GP[g].lev;
+            for(int d=0; d<3; ++d)
+            {
+                c->lo[d] = GP[g].lo[d];
+                c->hi[d] = GP[g].hi[d];
+                c->n[d] = c->hi[d]-c->lo[d]+1;
+            }
+            fresh.push_back((int)P.size());
+        }
+        c->gid = (int)g;
+        P.push_back(c);
+        lev[c->lev].push_back((int)P.size()-1);
+    }
+
+    for(int id : fresh)
+    build_lexer(*P[id]);
+    for(int id : fresh)
+    patch_objects(P[id]);
+
+    for(size_t q=0; q<Pold.size(); ++q)
+    if(!kept[q])
+    gone.push_back(Pold[q]);
+
+    plans();
+    return true;
+}
+
 // level-0 nodes of the whole domain (every rank), with marge nodes beyond each end
 void reefamr3d::global_nodes()
 {
@@ -220,18 +318,17 @@ void reefamr3d::global_nodes()
     }
 }
 
-// refined tiles of every level: the boxes G 15 on level G 1, every coarser level around the next
-// finer one with a nesting band; no refinement in the wave generation and absorption zones
-void reefamr3d::mark_tiles()
+// refined tiles of every level: the seeds, the boxes G 15 on level G 1, every coarser level around
+// the next finer one with a nesting band; no refinement in the wave generation and absorption zones
+void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
 {
-    tn.assign(maxlev+1,vector<int>(3,0));
     tmask.assign(maxlev+1,vector<unsigned char>());
 
     for(int l=1; l<=maxlev; ++l)
     {
-        for(int d=0; d<3; ++d)
-        tn[l][d] = (gn(l,d)+tile[d]-1)/tile[d];
         tmask[l].assign((size_t)tn[l][0]*tn[l][1]*tn[l][2],0);
+        if(seed!=nullptr && (int)seed->size()>l && (*seed)[l].size()==tmask[l].size())
+        tmask[l] = (*seed)[l];
     }
 
     auto mark_cells = [&](int l, const int *lo, const int *hi)
@@ -360,7 +457,7 @@ void reefamr3d::mark_tiles()
         }
     }
 
-    if(myrank==0 && (cleared>0 || dropped>0))
+    if(myrank==0 && verbose && (cleared>0 || dropped>0))
     cout<<"CFD AMR: "<<cleared<<" tiles in the wave zones and "<<dropped<<" tiles without nesting not refined"<<endl;
 
     // the edges of a level must not lie on a partition edge of level 0 (the coarse cell across a
@@ -468,14 +565,14 @@ void reefamr3d::mark_tiles()
         bad_edge += edges(l,false);
     }
 
-    if(myrank==0 && extended>0)
+    if(myrank==0 && verbose && extended>0)
     cout<<"CFD AMR: "<<extended<<" tiles added: the edges of the refined region kept off the partition edges"<<endl;
 
     if(bad_zone>0 || bad_edge>0)
     {
         if(myrank==0)
         cout<<"CFD AMR: the refined region reaches into a wave zone or keeps an edge on a partition edge; "
-              "move or resize the boxes G 15"<<endl;
+              "move or resize the boxes G 15 (or the zones, the partition)"<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3102);
     }
 }
