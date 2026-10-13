@@ -855,6 +855,8 @@ void control::ctrlrecv()
     dd++;
     B527 = dctrl[dd];
     dd++;
+    B528 = dctrl[dd];
+    dd++;
     B110 = ictrl[ii];
     ii++;
     B110_zs = dctrl[dd];

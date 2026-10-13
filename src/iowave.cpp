@@ -54,6 +54,40 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         }
     }
     
+    // two-band active absorption (B 98 7: active generation, B 99 7: active beach), FNPF with a wave
+    // theory; NHFLOW and CFD run B 98 4 / B 99 3, SFLOW B 98 2 / B 99 3
+    if(p->B98==7)
+    {
+        if(p->A10==3 && (p->B92<20 || p->B92>29))
+        {
+        ab2_in = true;
+        p->B98 = 4;
+        }
+        else
+        {
+        p->B98 = (p->A10==5 || p->A10==6) ? 4 : 2;
+        
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 7 (two-band active absorption) is available for FNPF with a wave theory; runs as B 98 "<<p->B98<<endl;
+        }
+    }
+    
+    if(p->B99==7)
+    {
+        if(p->A10==3)
+        ab2_out = true;
+        else
+        {
+        p->B99 = 3;
+        
+        if(p->mpirank==0)
+        cout<<"iowave: B 99 7 (two-band active beach) is available for FNPF; runs as B 99 3"<<endl;
+        }
+    }
+    
+    if(ab2_in || ab2_out)
+    ab2_ini(p);
+    
     // combined generation (B 98 6): relaxation zone (length B 96) towards target + low-passed deviation,
     // and an absorbing generating edge at x- behind it. FNPF runs B 98 4 (active generation) at the
     // edge and the relaxation zone with it, NHFLOW B 98 2 and a Riemann edge carrying the waves.

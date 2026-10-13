@@ -859,6 +859,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = B527;
     dd++;
+    dctrl[dd] = B528;
+    dd++;
     ictrl[ii] = B110;
     ii++;
     dctrl[dd] = B110_zs;

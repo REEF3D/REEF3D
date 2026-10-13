@@ -31,6 +31,7 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
     // B 99 3: shallow-water velocity, uniform over the depth (long waves)
     // B 99 4: linear-theory profile of the B 92 wave, eta omega cosh(k(h+z))/sinh(kh)
     // B 99 5: shallow-water flux, carried linearly between z = B 123 and the surface
+    // B 99 7: two-band, shallow-water velocity for the low-passed deviation, B 99 4 profile for the rest
     double eta_R,Uc,eta_T,eta_M,hd,z,zabs,wsf,fac,multiplier;
     
 		for(n=0;n<p->gcslout_count;++n)
@@ -45,6 +46,14 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         hd = c->depth(i,j);
         
         Uc=eta_R*sqrt(9.81/p->wd);
+        
+        // B 99 7: long and short part of the deviation
+        double eL=0.0, eS=0.0;
+        if(ab2_out)
+        {
+        eL = ab2_lowpass(p,ab2_lout,ab2_cout,n,eta_R,ab2_tau_out);
+        eS = eta_R - eL;
+        }
         
 			FKLOOP 
 			{
@@ -74,6 +83,10 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
                     Uc=0.0;
                 }
 				
+                // B 99 7: shallow-water velocity of the long part, peak-wave profile for the short part
+                if(ab2_out)
+                Uc = eL*sqrt(9.81/hd) + ab2_prof(hd,z)*eS;
+				
 				Uin[FIp1JK]=Uc;
 			}
         
@@ -101,4 +114,65 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         Fi[FIp3JK] = Fi[FIJK] + Uin[FIp1JK]*3.0*p->DXP[IP1];
         }
 		}
+}
+
+// two-band active absorption (B 98 7, B 99 7): frequency and wave number of the reference period
+// (B 528, default Tp of the B 92 wave), low-pass time scales (B 527 at the wavemaker, B 526 at the
+// beach; default a quarter of the reference period)
+void iowave::ab2_ini(lexer *p)
+{
+    const double g = 9.81;
+    const double Tr = p->B528>0.0 ? p->B528 : (p->wTp>0.0 ? p->wTp : p->wT);
+    const double hd = p->wd;
+    
+    ab2_w = Tr>0.0 ? 2.0*PI/Tr : 0.0;
+    
+    // linear dispersion, Newton from the shallow-water wave number
+    double k = ab2_w/sqrt(g*hd);
+    for(int q=0; q<50; ++q)
+    {
+    const double th = tanh(k*hd);
+    k -= (g*k*th - ab2_w*ab2_w)/(g*th + g*k*hd*(1.0-th*th));
+    }
+    ab2_k = k;
+    
+    ab2_tau_in  = p->B527>0.0 ? p->B527 : 0.25*Tr;
+    ab2_tau_out = p->B526>0.0 ? p->B526 : 0.25*Tr;
+    
+    if(p->mpirank==0)
+    {
+    if(ab2_in)
+    cout<<"iowave: two-band active absorption at the wavemaker (B 98 7): low pass over "<<ab2_tau_in<<" s, short part with the profile of omega_p "<<ab2_w<<" k_p "<<ab2_k<<endl;
+    if(ab2_out)
+    cout<<"iowave: two-band active beach (B 99 7): low pass over "<<ab2_tau_out<<" s, short part with the profile of omega_p "<<ab2_w<<" k_p "<<ab2_k<<endl;
+    }
+}
+
+// first-order low pass of the deviation of column n, x_L <- x_L + dt/tau (x - x_L), once per step
+double iowave::ab2_lowpass(lexer *p, std::vector<double> &f, std::vector<int> &c, int n, double x, double tau)
+{
+    if((int)f.size()<=n)
+    {
+    f.resize(n+1,0.0);
+    c.resize(n+1,-1);
+    }
+    
+    if(c[n]!=p->count)
+    {
+    f[n] += MIN(p->dt/tau,1.0)*(x - f[n]);
+    c[n] = p->count;
+    }
+    
+    return f[n];
+}
+
+// velocity per unit elevation of the linear peak wave at depth hd, level z (still water 0)
+double iowave::ab2_prof(double hd, double z)
+{
+    const double kh = ab2_k*hd;
+    
+    if(kh<1.0e-6)
+    return sqrt(9.81/MAX(hd,1.0e-6));
+    
+    return ab2_w*cosh(ab2_k*MAX(hd+z,0.0))/sinh(kh);
 }

@@ -343,6 +343,19 @@ private:
     void select_zone_at(lexer*);
     bool nhf_active_edge = false;     // B 99 3 / 4 in NHFLOW: absorbing Riemann edge at x+
     std::vector<double> ua_edge;      // FNPF B 98 4: absorption velocity per inflow column
+    
+    // FNPF two-band active absorption (B 98 7 at the wavemaker, B 99 7 at the beach): the deviation
+    // eta_R is split by a first-order low pass over tau into a long part, absorbed with the
+    // shallow-water velocity sqrt(g/h) eta_L (uniform over the depth, exact for long waves), and a
+    // short part, absorbed with the linear-theory profile of the peak wave,
+    // omega_p cosh(k_p(h+z))/sinh(k_p h) eta_S (exact at the peak frequency)
+    bool ab2_in = false, ab2_out = false;
+    double ab2_tau_in = 0.0, ab2_tau_out = 0.0, ab2_w = 0.0, ab2_k = 0.0;
+    std::vector<double> ab2_lin, ab2_lout, ab2_sin;
+    std::vector<int> ab2_cin, ab2_cout;
+    double ab2_lowpass(lexer*, std::vector<double>&, std::vector<int>&, int, double, double);
+    double ab2_prof(double, double);
+    void ab2_ini(lexer*);
     double bg_prof(lexer*,int,double);   // B 513 profile factor of layer k, depth average 1 per column
     
     // edge mass balance (B 529): flux through each open edge integrated since the last line
