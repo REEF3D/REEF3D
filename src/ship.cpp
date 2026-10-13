@@ -61,7 +61,7 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    zz_sign(1), zz_started(false),
                                    alphaR(0.0), UR(0.0), FN(0.0), XR(0.0), YR(0.0), NR(0.0), KR(0.0),
                                    mmg(false), mmg_am(false), pwake_mmg(false), mmg_draft_in(false), mmg_fluid(1),
-                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0),
+                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0), hyb_dm(-1.0), hyb_surge(0),
                                    wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0), NM(0.0), appr(false), appr_done(false), appr_U(0.0), appr_tr(0.0), appr_tf(0.0), Xc(0.0), Yc(0.0), Nc(0.0),
                                    ub(0.0), vb(0.0), wb(0.0), pb(0.0), qb(0.0), rb_(0.0),
                                    Re(0.0), CF(0.0), XF(0.0), Ycf(0.0), Ncf(0.0), Kroll(0.0)
@@ -321,6 +321,12 @@ void ship::read(lexer *p)
         else if(key=="mmg_fluid")
         ls>>mmg_fluid;
         
+        else if(key=="hybrid_munk")
+        ls>>hyb_dm;
+        
+        else if(key=="hybrid_surge")
+        ls>>hyb_surge;
+        
         else if(key=="mmg_draft")
         {
             ls>>mmg_d;
@@ -406,6 +412,16 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
         
         if(mmg_fluid==2 && mmg && !mmg_am)
         cout<<"ship "<<id<<": mmg_fluid 2 without mmg_added_mass: the Munk moment stays in N'v and is counted twice"<<endl;
+        
+        if(mmg_fluid==2 && mmg && mmg_am)
+        {
+            const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
+            cout<<"ship "<<id<<": Munk moment taken out of N'v with A22 - A11 = "<<(hyb_dm>=0.0 ? hyb_dm : (mmg_my - mmg_mx)*fm)<<" kg"
+                <<(hyb_dm>=0.0 ? " (hybrid_munk)" : " (my - mx of mmg_added_mass)")<<endl;
+            
+            if(hyb_surge==1)
+            cout<<"ship "<<id<<": hybrid_surge 1: the MMG surge velocity term my vm r - mx u r is added"<<endl;
+        }
     }
     
     initialized = true;
@@ -624,9 +640,16 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     {
         const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
         const double mx = mmg_mx*fm, my = mmg_my*fm;
+        const double dm = hyb_dm>=0.0 ? hyb_dm : my - mx;
         
-        NM = -(my - mx)*ub*vm;
+        NM = -dm*ub*vm;
         Ms(2) -= NM;
+        
+        // hybrid_surge 1: the ideal-fluid surge force in a turn, my v r with the implicit mx of the
+        // solver, from the MMG model (the solver's surge force from the combined sway and yaw is
+        // grid-sensitive, validation 12)
+        if(hyb_surge==1)
+        Fs(0) += my*vm*rb_ - mx*vb*rb_;
     }
     
     // propeller
