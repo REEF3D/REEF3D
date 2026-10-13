@@ -54,6 +54,31 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         }
     }
     
+    // combined generation (B 98 6): relaxation zone (length B 96) towards target + low-passed deviation,
+    // and an absorbing generating edge at x- behind it. FNPF runs B 98 4 (active generation) at the
+    // edge and the relaxation zone with it, NHFLOW B 98 2 and a Riemann edge carrying the waves.
+    // Wave theories only (no wavemakers); CFD and SFLOW: B 98 2.
+    if(p->B98==6)
+    {
+        if((p->A10==3 || p->A10==5) && (p->B92<20 || p->B92>29))
+        {
+        gen_lp = true;
+        p->B98 = p->A10==3 ? 4 : 2;
+        gen_tau = p->B527>0.0 ? p->B527 : 0.25*(p->wTp>0.0 ? p->wTp : p->wT);
+        
+        if(p->mpirank==0)
+        cout<<"iowave: combined generation B 98 6: relaxation over "<<p->B96_1<<" m towards target + deviation low-passed over "<<gen_tau<<" s, absorbing generating edge at x-"<<endl;
+        }
+        else
+        {
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 6 (combined generation) is available for FNPF and NHFLOW with a wave theory; runs as B 98 2"<<endl;
+        p->B98 = 2;
+        }
+    }
+    
+    relax_gen = p->B98==2 || gen_lp;
+    
     // decomposed precalc (B 89 1) needs the space / time parts of the wave theory, which only
     // the 5th-order Stokes (B 92 5) and the irregular theories (31, 41, 51) provide; with any
     // other wave type it generated no waves at all, so it now falls back to B 89 0. Additional
@@ -225,9 +250,10 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     b530_auto(p);
     zones_check(p);
     nhflow_active_beach_edge(p,pgc);
+    nhflow_gen_edge(p,pgc);
     
     // tidal / current background (NHFLOW)
-    if(zones.has_background() || nhf_active_edge)
+    if(zones.has_background() || nhf_active_edge || nhf_gen_edge)
     {
     bg_on = zones.has_background();
     p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;

@@ -241,6 +241,20 @@ private:
     struct lowpass {std::vector<double> f; std::vector<int> c;};
     lowpass lp_wl, lp_u, lp_uh, lp_v, lp_vh, lp_w, lp_wh, lp_fifsf;
     double beach_target(lexer*, lowpass&, int, int, double, double);
+    
+    // combined generation (B 98 6, FNPF and NHFLOW): the generation zone relaxes to the target plus the
+    // deviation of the state from it, low-passed over gen_tau, so free long waves pass the zone to an
+    // absorbing generating edge at x- (FNPF: B 98 4 active generation, NHFLOW: a Riemann edge with
+    // the waves); short waves are generated and absorbed by the zone
+    bool gen_lp = false;
+    bool relax_gen = false;         // relaxation zone generation: B 98 2 or B 98 6
+    double gen_tau = 0.0;
+    lowpass lpg_eta, lpg_fifsf, lpg_wl, lpg_u, lpg_uh, lpg_v, lpg_vh, lpg_w, lpg_wh;
+    double gen_dev(lexer*, lowpass&, int, int, double);
+    std::vector<double> edge_eta, edge_us, edge_uin;    // FNPF B 98 6: targets at the x- edge
+    void fnpf_precalc_edge(lexer*, ghostcell*);
+    void nhflow_gen_edge(lexer*, ghostcell*);
+    bool nhf_gen_edge = false;      // NHFLOW B 98 6: Riemann edge with the waves at x-
     sliceint4 wgflag;
 	
     

@@ -36,6 +36,8 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
     // (bound waves of the 2nd-order theories included) leaves the domain as a shallow-water wave,
     // u = -eta_R sqrt(g/h) on top of the target velocity, the exact condition for long waves
     // (free infragravity waves reflected in the domain). Before, B 98 4 ran as B 98 3 (no absorption).
+    // B 98 6 (gen_lp) runs as B 98 4 with the edge targets of fnpf_precalc_edge (the relaxation zone
+    // in front keeps its own)
     const bool absorb = p->B98==4 && h_switch==1;
     
     if((int)ua_edge.size()<p->gcslin_count)
@@ -50,7 +52,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         ua_edge[n] = 0.0;
         
         if(absorb)
-        ua_edge[n] = -(etaf(i,j) - rmp*eta(i,j))*sqrt(9.81/c->depth(i,j));
+        ua_edge[n] = -(etaf(i,j) - rmp*(gen_lp ? edge_eta[n] : eta(i,j)))*sqrt(9.81/c->depth(i,j));
 
         if(h_switch==1)
         {
@@ -76,7 +78,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         }
         
         // surface velocity at the edge
-        const double us = rmp*Fifsfval[count] + ua_edge[n];
+        const double us = rmp*(gen_lp ? edge_us[count] : Fifsfval[count]) + ua_edge[n];
         
         if(p->A329==1)
         {
@@ -104,7 +106,7 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         FKLOOP
         FPCHECK
         {
-        Uin[FIm1JK] = rmp*Uinval[count] + ua_edge[n]; 
+        Uin[FIm1JK] = rmp*(gen_lp ? edge_uin[count] : Uinval[count]) + ua_edge[n]; 
         
         // moving paddle: 2nd-order Taylor terms of the paddle BC about x=0,
         // phi_x = X_t + X_z*phi_z - X*phi_xx, with phi from the linear paddle

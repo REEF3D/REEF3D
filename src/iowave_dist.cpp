@@ -281,7 +281,7 @@ void iowave::zones_check(lexer *p)
 {
     std::string err;
     
-    if(zones.user_relax() && p->B98!=2)
+    if(zones.user_relax() && !relax_gen)
     err = "relaxation zones (B 520 method 1) need relaxation wave generation (B 98 2)";
     
     
@@ -438,6 +438,51 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
     
     if(p->mpirank==0)
     cout<<"iowave: "<<(beach_lp ? "combined beach B 99 6" : (p->B99==3 ? "active beach B 99 3" : "active beach B 99 4"))<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+}
+
+// NHFLOW combined generation (B 98 6): a Riemann edge at x- carrying the waves of all sources,
+// behind the relaxation zone. The zone relaxes to target + low-passed deviation (iowave_nhflow_relax.cpp),
+// so free long waves reach the edge and leave through its outgoing characteristic; short waves are
+// set by the zone. A Riemann / Flather / clamped edge of the user at x- (B 520, B 521 edge 1) takes
+// precedence.
+void iowave::nhflow_gen_edge(lexer *p, ghostcell *pgc)
+{
+    nhf_gen_edge = false;
+    
+    if(!gen_lp || p->A10!=5)
+    return;
+    
+    int nin = 0;
+    for(int q=0; q<p->gcslin_count; ++q)
+    if(p->gcslin[q][3]==1)
+    ++nin;
+    
+    if(pgc->globalisum(nin)==0)
+    return;
+    
+    if(zones.open_edge(1)!=nullptr)
+    {
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 6 at x-: the edge of B 520 zone "<<zones.open_edge(1)->id<<" is used"<<endl;
+        return;
+    }
+    
+    bc_zone e(-98,bc_method::riemann,0.0,0.0,0.0,0.0,0.0,1.0);
+    e.edge = 1;
+    
+    for(int q=0; q<wave_nsources(); ++q)
+    {
+        int sid, stype;
+        double srot;
+        wave_source_lib(q,sid,stype,srot);
+        e.sources.push_back(sid);
+    }
+    
+    zones.edges.push_back(e);
+    nhf_gen_edge = true;
+    
+    if(p->mpirank==0)
+    cout<<"iowave: combined generation B 98 6: Riemann edge with the waves at x-"<<endl;
 }
 
 // decomposed precalc (B 89 1) with zone sources (B 524): selects the sources of the relaxation

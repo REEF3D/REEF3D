@@ -41,7 +41,7 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
         
 
 		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+        if(relax_gen && h_switch==1)
         {
             // Zone 1
             if(dg<1.0e20)
@@ -50,6 +50,13 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             const int bi = bg_on ? gen_bg(p) : -1;
             const double eb = bi>=0 ? bgs.eta(bi,p->XP[IP],p->YP[JP]) : 0.0;
             
+            // combined generation (B 98 6, FNPF): target plus the low-passed deviation
+            if(bi<0 && gen_lp)
+            {
+            const double tg = ramp(p)*eta(i,j);
+            f(i,j) = (1.0-relax4_wg(i,j))*(tg + gen_dev(p,lpg_eta,p->imax*p->jmax,IJ,f(i,j)-tg)) + relax4_wg(i,j) * f(i,j);
+            }
+            else
             if(bi<0)
             f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*eta(i,j) + relax4_wg(i,j) * f(i,j);
             else

@@ -51,8 +51,15 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             // with a background (B 523): background + ramped waves
             const int b = bg_on ? gen_bg(p) : -1;
             
-            if(b<0)
+            if(b<0 && !gen_lp)
             WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            
+            // combined generation (B 98 6): target plus the low-passed deviation
+            if(b<0 && gen_lp)
+            {
+            const double tg = ramp(p)*(eta(i,j) + depth(i,j));
+            WL(i,j) = (1.0-relax4_wg(i,j))*(tg + gen_dev(p,lpg_wl,p->imax*p->jmax,IJ,WL(i,j)-tg)) + relax4_wg(i,j) * WL(i,j);
+            }
             
             if(b>=0)
             WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + bgs.eta(b,p->pos_x(),p->pos_y()) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
@@ -108,10 +115,20 @@ void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
             {
             const int b = bg_on ? gen_bg(p) : -1;
             
-            if(b<0)
+            if(b<0 && !gen_lp)
             {
             U[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
             UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
+            }
+            
+            // combined generation (B 98 6): target plus the low-passed deviation
+            if(b<0 && gen_lp)
+            {
+            const int nn = p->imax*p->jmax*(p->kmax+2);
+            const double tu  = ramp(p)*uval[count];
+            const double tuh = ramp(p)*UHval[count];
+            U[IJK]  = (1.0-relax4_wg(i,j))*(tu + gen_dev(p,lpg_u,nn,IJK,U[IJK]-tu)) + relax4_wg(i,j)*U[IJK];
+            UH[IJK] = (1.0-relax4_wg(i,j))*(tuh + gen_dev(p,lpg_uh,nn,IJK,UH[IJK]-tuh)) + relax4_wg(i,j)*UH[IJK];
             }
             
             if(b>=0)
@@ -203,10 +220,20 @@ void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
             {
             const int b = bg_on ? gen_bg(p) : -1;
             
-            if(b<0)
+            if(b<0 && !gen_lp)
             {
             V[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
             VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
+            }
+            
+            // combined generation (B 98 6): target plus the low-passed deviation
+            if(b<0 && gen_lp)
+            {
+            const int nn = p->imax*p->jmax*(p->kmax+2);
+            const double tv  = ramp(p)*vval[count];
+            const double tvh = ramp(p)*VHval[count];
+            V[IJK]  = (1.0-relax4_wg(i,j))*(tv + gen_dev(p,lpg_v,nn,IJK,V[IJK]-tv)) + relax4_wg(i,j)*V[IJK];
+            VH[IJK] = (1.0-relax4_wg(i,j))*(tvh + gen_dev(p,lpg_vh,nn,IJK,VH[IJK]-tvh)) + relax4_wg(i,j)*VH[IJK];
             }
             
             if(b>=0)
@@ -290,10 +317,20 @@ void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             {
             const int b = bg_on ? gen_bg(p) : -1;
             
-            if(b<0)
+            if(b<0 && !gen_lp)
             {
             W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
             WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
+            }
+            
+            // combined generation (B 98 6): target plus the low-passed deviation
+            if(b<0 && gen_lp)
+            {
+            const int nn = p->imax*p->jmax*(p->kmax+2);
+            const double tv  = ramp(p)*wval[count];
+            const double tvh = ramp(p)*WHval[count];
+            W[IJK]  = (1.0-relax4_wg(i,j))*(tv + gen_dev(p,lpg_w,nn,IJK,W[IJK]-tv)) + relax4_wg(i,j)*W[IJK];
+            WH[IJK] = (1.0-relax4_wg(i,j))*(tvh + gen_dev(p,lpg_wh,nn,IJK,WH[IJK]-tvh)) + relax4_wg(i,j)*WH[IJK];
             }
             
             if(b>=0)
@@ -396,6 +433,27 @@ double iowave::beach_target(lexer *p, lowpass &lp, int n, int idx, double f0, do
     if(lp.c[idx]!=p->count)
     {
         lp.f[idx] += MIN(p->dt/beach_tau,1.0)*(x - lp.f[idx]);
+        lp.c[idx] = p->count;
+    }
+    
+    return lp.f[idx];
+}
+
+// combined generation (B 98 6): deviation of the state x from the target T, low-passed over gen_tau and
+// updated once per step and cell, d <- d + dt/tau ((x - T) - d), starting from 0. The zone relaxes to
+// T + d: components of the deviation much longer than tau (free long waves) pass the zone to the
+// absorbing edge, shorter ones are relaxed to the target.
+double iowave::gen_dev(lexer *p, lowpass &lp, int n, int idx, double dev)
+{
+    if(lp.f.empty())
+    {
+        lp.f.assign(n,0.0);
+        lp.c.assign(n,-1);
+    }
+    
+    if(lp.c[idx]!=p->count)
+    {
+        lp.f[idx] += MIN(p->dt/gen_tau,1.0)*(dev - lp.f[idx]);
         lp.c[idx] = p->count;
     }
     

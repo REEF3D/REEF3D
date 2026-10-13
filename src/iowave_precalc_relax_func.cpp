@@ -115,7 +115,7 @@ void iowave::wavegen_precalc_relax_func_fnpf(lexer *p, ghostcell *pgc)
     SLICELOOP4
     {
 		// Wave Generation
-        if(p->B98==2)
+        if(relax_gen)
         {
             relax4_wg(i,j) = rb1_ext(p,4);
             wgflag(i,j) = rb1_flag(p,4);
