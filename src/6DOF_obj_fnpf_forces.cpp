@@ -31,7 +31,8 @@ void sixdof_obj_fnpf::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, doubl
     // Vertical ray per sigma column: the z-crossings with the trimesh give an exact
     // inside/outside test (parity) for every sigma node of the column.
     // Marks FBF = n6DOF+1 inside the body and foot = n6DOF+1 where the top node
-    // (the free-surface node k=knoz) lies inside, i.e. the body footprint.
+    // (the free-surface node k=knoz) lies inside, i.e. the body footprint
+    // (with X 27 n also columns with a body node within n layers below the top node).
     // The caller zeroes FBF/foot beforehand and exchanges them afterwards.
     
     const double id = double(n6DOF+1);
@@ -62,6 +63,38 @@ void sixdof_obj_fnpf::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, doubl
             
             if(cnt%2==1)
             FBF[FIJK] = id;
+        }
+        
+        // X 27 n: a body node within n sigma layers below the free-surface node puts the column
+        // into the footprint, the nodes above it become body nodes. Where the hull side passes
+        // (almost) through a column centre, the vertical ray grazes the wall: the free-surface
+        // node lies just outside, a node one or two layers below just inside (sections that curve
+        // in, a slight roll, pitch or yaw). Such a column carries the free surface one or two
+        // nodes above a body node; its Fz and the kinematic condition are not resolved there:
+        // W of 1-3 m/s, eta rises, the sigma nodes move into the sliver and the column blows up
+        // within a few steps (smooth hull on a straight course at 1.18 m/s, the side of the
+        // parallel midbody on a row of column centres after a slow sway and yaw drift).
+        if(p->X27>0)
+        {
+            k = p->knoz;
+            
+            if(fabs(FBF[FIJK]-id)>0.5)
+            for(int n=1; n<=p->X27; ++n)
+            {
+                k = p->knoz-n;
+                
+                if(k<0)
+                break;
+                
+                if(p->flag7[FIJK]>0 && fabs(FBF[FIJK]-id)<0.5)
+                {
+                    for(k=p->knoz-n+1; k<=p->knoz; ++k)
+                    if(p->flag7[FIJK]>0)
+                    FBF[FIJK] = id;
+                    
+                    break;
+                }
+            }
         }
         
         k = p->knoz;

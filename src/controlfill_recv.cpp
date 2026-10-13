@@ -2362,6 +2362,8 @@ void control::ctrlrecv()
     dd++;
     X18 = dctrl[dd];
     dd++;
+    X27 = ictrl[ii];
+    ii++;
     X31 = ictrl[ii];
     ii++;
     X32 = ictrl[ii];
