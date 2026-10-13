@@ -37,7 +37,7 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
 	poissontime=0.0;
 	pressval=0;
     alpha=0.0;
-    solidread=toporead=porousread=0;
+    solidread=toporead=porousread=topoforcing=0;
     gridgeo=nullptr;
     geobed=nullptr;
     net_count=0;
@@ -63,7 +63,7 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
 	poissontime=0.0;
 	pressval=0;
     alpha=0.0;
-    solidread=toporead=porousread=0;
+    solidread=toporead=porousread=topoforcing=0;
     gridgeo=nullptr;
     geobed=nullptr;
     net_count=0;
