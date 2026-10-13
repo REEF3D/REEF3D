@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"vrans.h"
 #include"nhflow_fsf.h"
+#include"slice4.h"
 
 nhflow_f::nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
@@ -104,6 +105,17 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     
     for(int qn=0; qn<p->A509;++qn)
     {
+    // G 52 1 (multi-block grids): the sweep from the old values, independent of the index directions
+    if(p->G52==1)
+    {
+    slice4 b0(p);
+    SLICELOOP4
+    b0(i,j) = d->bed(i,j);
+    pgc->gcsl_start4(p,b0,50);
+    SLICELOOP4
+	d->bed(i,j) = 0.5*b0(i,j) + 0.125*(b0(i-1,j) + b0(i+1,j) + b0(i,j-1) + b0(i,j+1));
+    }
+    else
 	SLICELOOP4
 	d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
     
@@ -135,6 +147,25 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     d->POR[IJK]=1.0;
     
     pgc->start5Vfull(p,d->POR,1);
+
+    // G 52 1 (multi-block grids): the columns of the partition halo (cells of the neighbour ranks, not the
+    // ghost cells beyond the domain) below the bed and above the surface as start5Vfull sets them for
+    // the own columns (the exchange covers the fluid layers only; the Poisson rows next to a partition
+    // edge read POR below the bed of the neighbour column, cN ... of nhflow_poisson), so that a block
+    // split over ranks along i or j acts as one rank
+    if(p->G52==1)
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    {
+        const int c0 = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax - p->kmin;
+        const int I = ii+p->origin_i, J = jj+p->origin_j;
+        if(p->flag4[c0]<0 || (ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy) || I<0 || I>=p->gknox || J<0 || J>=p->gknoy)
+        continue;
+        for(int kk=p->kmin; kk<0; ++kk)
+        d->POR[c0+kk] = d->POR[c0];
+        for(int kk=p->knoz; kk<p->kmin+p->kmax; ++kk)
+        d->POR[c0+kk] = d->POR[c0+p->knoz-1];
+    }
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);

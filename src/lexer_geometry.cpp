@@ -46,6 +46,10 @@ void lexer::geometry_ini(ghostcell *pgc)
     if(G50==1 && gridgeo!=nullptr && gridgeo->blk.size()>1)
     geo_mb = int(gridgeo->blk.size());
 
+    // the blocks have their own index directions: walls act the same along i and j (G 52 1)
+    if(geo_mb>0)
+    G52 = 1;
+
     geometry_metrics();
 
     double err=0.0, gcl=0.0;

@@ -22,9 +22,24 @@ Author: Hans Bihs
 
 #include"nhflow_curv.h"
 
-// curvilinear NHFLOW: the grid and time step of the U (UH) of the velocity pair (start4V)
-static const lexer *curv_u_lex = nullptr, *curv_uh_lex = nullptr;
-static int curv_u_count = -1, curv_uh_count = -1;
+#include<unordered_map>
+
+// curvilinear NHFLOW: per grid (lexer) the last U and UH of the velocity pair and their time step
+// (start4V); per grid, as the grids of the mesh refinement and the blocks call start4V in turn
+namespace
+{
+struct curv_pair_state
+{
+    double *up = nullptr, *uhp = nullptr;
+    int uc = -1, uhc = -1;
+};
+std::unordered_map<const lexer*,curv_pair_state> curv_pairs;
+}
+
+void nhflow_curv::pair_forget(const lexer *p)
+{
+    curv_pairs.erase(p);
+}
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"sliceint.h"
@@ -687,19 +702,22 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     if(p->geo_curv==1)
     {
         const bool uh = (gcv==14 || gcv==15);
-        double *&up = uh ? curv_uhpart : curv_upart;
-        const lexer *&ul = uh ? curv_uh_lex : curv_u_lex;
-        int &uc = uh ? curv_uh_count : curv_u_count;
+        curv_pair_state &S = curv_pairs[p];
+        double *&up = uh ? S.uhp : S.up;
+        int &uc = uh ? S.uhc : S.uc;
         
         if(gcv==10 || gcv==14)
         {
         up = f;
-        ul = p;
         uc = p->count;
         }
         
-        if((gcv==11 || gcv==15) && up!=nullptr && ul==p && uc==p->count && up!=f)
+        if((gcv==11 || gcv==15) && up!=nullptr && uc==p->count && up!=f)
         nhflow_curv::pair_bc(p,up,f);
+
+        // G 52 1: the other fields symmetric at the i-walls, as at the j-walls
+        if(p->G52==1 && gcv!=10 && gcv!=11 && gcv!=14 && gcv!=15)
+        nhflow_curv::iwall_sym(p,f);
     }
     
     p->gctime+=timer()-starttime;

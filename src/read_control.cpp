@@ -1956,6 +1956,15 @@ void control::read_control(lexer* p)
                 case 50: control>>G50;
                          clear(c,numint);
                          break;
+                case 51: control>>G51;
+                         clear(c,numint);
+                         break;
+                case 52: control>>G52;
+                         clear(c,numint);
+                         break;
+                case 53: control>>G53;
+                         clear(c,numint);
+                         break;
                 case 505: control>>G505;
                          clear(c,numint);
                          break;

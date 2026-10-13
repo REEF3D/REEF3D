@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW multi-block grid with in- and outflow on block 0 (DIVEMesh C 11 1, C 14 2 on the faces of block 0 without an interface): a channel blocked by a dry obstacle, the water goes around it through three turned blocks; potential flow initialisation (I 11) as one composite solve over the blocks, then a few steps with the discharge inflow and the stage outflow (nhflow_multiblock/t4).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 5,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "potential",
+  "river"
+ ],
+ "covers": [
+  "nhflow_amr::potential, nhflow_potential_f::amr_assemble/amr_velocities, the curvilinear potential rows (lapcoef, inflow flux along the face normal, chain rule velocities)",
+  "DIVEMesh R 20 1: several interfaces on one face of block 0, boundary types of the faces of block 0 without an interface"
+ ]
+}

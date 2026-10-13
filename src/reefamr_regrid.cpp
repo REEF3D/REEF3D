@@ -72,6 +72,21 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
             for(int d=MAX(J-B,0); d<=MIN(J+B,GNY-1); ++d)
             forbidd[(size_t)a*GNYV+d]=1;
         }
+
+        // multi-block: the cells of the blocks 1.. (the band within the block)
+        for(int id : lev[0])
+        {
+            reefamr_patch *c = P[id];
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            if(cell_unfit_patch(c,ii,jj))
+            {
+                int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
+                for(int a=MAX(I-B,c->I0); a<=MIN(I+B,c->I1); ++a)
+                for(int d=MAX(J-B,c->J0); d<=MIN(J+B,c->J1); ++d)
+                forbidd[(size_t)a*GNYV+d]=1;
+            }
+        }
         global_or(forbidd);
     }
 

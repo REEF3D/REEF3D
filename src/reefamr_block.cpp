@@ -289,8 +289,48 @@ bool reefamr::block_node(int b, int K, int L, double &x, double &y, double &z, i
     return false;
 }
 
-// as block_node, and beyond the walls by point reflection at the boundary nodes (as lexer::curv_node)
+// as block_node, and beyond the walls by point reflection at the boundary nodes (as lexer::curv_node);
+// a node beyond a wall and an interface goes through the interface first and is reflected at the wall of
+// the neighbour block, where the wall continues (as the one-block grid reflects it)
 void reefamr::block_node_any(int b, int K, int L, double &x, double &y, double &z) const
+{
+    if(block_node(b,K,L,x,y,z))
+    return;
+
+    const rblock &B = blk[b];
+    int fc[2], nf=0;
+    if(K<0) fc[nf++]=0;
+    if(K>B.ni) fc[nf++]=1;
+    if(L<0) fc[nf++]=2;
+    if(L>B.nj) fc[nf++]=3;
+
+    if(nf==2)
+    for(int q=0; q<nf; ++q)
+    {
+        const int f = fc[q];
+        const int k = (f<2) ? std::min(std::max(L,0),B.nj) : std::min(std::max(K,0),B.ni);
+        for(const rseg &S : B.seg)
+        {
+            if(S.face!=f || k<S.lo || k>S.hi+1)
+            continue;
+            const int N[2] = {K,L};
+            const int K2 = S.sign[0]*N[S.perm[0]] + S.off[0] + (S.sign[0]<0 ? 1 : 0);
+            const int L2 = S.sign[1]*N[S.perm[1]] + S.off[1] + (S.sign[1]<0 ? 1 : 0);
+            const rblock &M = blk[S.nbr];
+            // beyond one face of the neighbour only: reflected there
+            const int out = (K2<0 || K2>M.ni ? 1 : 0) + (L2<0 || L2>M.nj ? 1 : 0);
+            if(out==1)
+            {
+                block_node_reflect(S.nbr,K2,L2,x,y,z);
+                return;
+            }
+        }
+    }
+
+    block_node_reflect(b,K,L,x,y,z);
+}
+
+void reefamr::block_node_reflect(int b, int K, int L, double &x, double &y, double &z) const
 {
     if(block_node(b,K,L,x,y,z))
     return;

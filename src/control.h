@@ -370,7 +370,7 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G50;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G50,G51,G52,G53;
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;

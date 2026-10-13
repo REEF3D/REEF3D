@@ -105,6 +105,12 @@ public:
     // component by component: the side walls (j-faces of solid cells, not the open y edges) mirror
     // the normal velocity u.n2 of the wall face; the river outflow (B 60) acts on the normal velocity
     static void pair_bc(lexer*, double *u, double *v);
+    // a grid of the mesh refinement is deleted: its entry of the pairing of start4V
+    static void pair_forget(const lexer*);
+    // G 52 1 (multi-block grids): the i-walls act as the j-walls, the velocity pair mirrored at the face
+    // normal (pair_bc), the other fields of start4V symmetric (iwall_sym); iwall: side 0 (-i) / 1 (+i) a wall
+    static bool iwall(lexer*, int side);
+    static void iwall_sym(lexer*, double *f);
 
     // fluxes through the boundary faces (after ghostcell::start1V / start2V, which set the Cartesian
     // ones): walls the pressure of the ghost cell along the face normal, in- and outflow faces and
