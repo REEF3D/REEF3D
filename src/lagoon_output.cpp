@@ -110,6 +110,24 @@ void grid_lines(lexer *p, ghostcell *pgc, std::vector<double> &x, std::vector<do
     pgc->globalmax(x.data(), gnx);
     pgc->globalmax(y.data(), gny);
 }
+
+// a curvilinear grid (G 50): the x and y of every grid point, x fastest, as the VTU
+// and VTP points have them (lexer::curv_node: every rank has the global nodes); false
+// for a rectilinear grid
+bool curvilinear_nodes(lexer *p, std::vector<double> &xc, std::vector<double> &yc)
+{
+    if(p->geo_curv!=1)
+        return false;
+    const int gnx = p->gknox + 1;
+    const int gny = p->gknoy + 1;
+    xc.assign(size_t(gnx)*gny, 0.0);
+    yc.assign(size_t(gnx)*gny, 0.0);
+    double z;
+    for(int L=0; L<gny; ++L)
+        for(int K=0; K<gnx; ++K)
+            p->curv_node(K, L, xc[size_t(L)*gnx + K], yc[size_t(L)*gnx + K], z);
+    return true;
+}
 }
 
 // ======================================================================== timing
@@ -214,8 +232,13 @@ bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_sto
     }
 
     if(p->mpirank==0)
+    {
+        std::vector<double> xc, yc;
+        const bool curvilinear = curvilinear_nodes(p, xc, yc);
         store.create_output("volume", cartesian ? "cartesian" : "sigma", x, y, levels, fields,
-                            p->M10>0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU");
+                            p->M10>0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU",
+                            curvilinear ? &xc : nullptr, curvilinear ? &yc : nullptr);
+    }
     store.create_block("volume", p->mpirank, p->origin_i, p->origin_j, nx, ny, nz, fields, p->mpirank,
                        cartesian, cartesian ? p->origin_k : 0);
     MPI_Barrier(pgc->mpi_comm);
@@ -410,7 +433,10 @@ bool lagoon_surface::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_st
                 run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
             store.create_root(solver, run);
         }
-        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source);
+        std::vector<double> xc, yc;
+        const bool curvilinear = curvilinear_nodes(p, xc, yc);
+        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source,
+                            curvilinear ? &xc : nullptr, curvilinear ? &yc : nullptr);
     }
     MPI_Barrier(pgc->mpi_comm);
     store.create_block(output, p->mpirank, p->origin_i, p->origin_j, nx, ny, 1, fields, p->mpirank);

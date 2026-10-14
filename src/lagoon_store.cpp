@@ -302,6 +302,29 @@ void write_plain_array(const std::string &dir, const std::vector<double> &values
     std::string bytes(reinterpret_cast<const char*>(values.data()), n*sizeof(double));
     write_file(dir + "/c/0", bytes);
 }
+
+// a plain float64 array of ny rows of nx values (x fastest) in one chunk
+void write_plain_grid(const std::string &dir, const std::vector<double> &values, size_t ny, size_t nx,
+                      const std::string &units)
+{
+    if(values.size()!=ny*nx)
+        throw std::runtime_error(dir + ": " + std::to_string(values.size()) + " values for a grid of "
+                                 + std::to_string(ny) + " x " + std::to_string(nx));
+    make_dirs(dir + "/c/0");
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << ny << ", " << nx << "], "
+      << "\"data_type\": \"float64\", "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": ["
+      << std::max<size_t>(ny,1) << ", " << std::max<size_t>(nx,1) << "]}}, "
+      << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+      << "\"fill_value\": \"NaN\", "
+      << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
+      << "\"dimension_names\": [\"y\", \"x\"], "
+      << "\"attributes\": {" << (units.empty() ? "" : "\"units\": \"" + units + "\"") << "}}";
+    write_file(dir + "/zarr.json", j.str());
+    std::string bytes(reinterpret_cast<const char*>(values.data()), values.size()*sizeof(double));
+    write_file(dir + "/c/0/0", bytes);
+}
 }
 
 lagoon_store::lagoon_store(const std::string &path_, int shard_time_, int gzip_level_)
@@ -335,7 +358,7 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
     make_dirs(path);
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {"
-      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.4\", \"solver\": " << json_string(solver)
+      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.5\", \"solver\": " << json_string(solver)
       << ", \"outputs\": [], \"created_by\": \"REEF3D\", \"created\": \"" << utc_now()
       << "\", \"source\": \"REEF3D\"}";
     if(!run_json.empty())
@@ -352,8 +375,10 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
                                  const std::vector<double> &x, const std::vector<double> &y,
                                  const std::vector<double> &levels,
                                  const std::vector<variable> &variables,
-                                 int blocks, const std::string &source)
+                                 int blocks, const std::string &source,
+                                 const std::vector<double> *xc, const std::vector<double> *yc)
 {
+    const bool curvilinear = xc!=nullptr && yc!=nullptr;
     const std::string dir = path + "/" + output;
     make_dirs(dir + "/blocks");
     std::ostringstream j;
@@ -362,7 +387,10 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
       << ", \"shape\": {\"x\": " << x.size() << ", \"y\": " << y.size();
     if(grid=="sigma" || grid=="cartesian")
         j << ", \"level\": " << levels.size();
-    j << "}, \"variables\": {";
+    j << "}";
+    if(curvilinear)
+        j << ", \"horizontal\": \"curvilinear\"";
+    j << ", \"variables\": {";
     for(size_t v=0; v<variables.size(); ++v)
     {
         j << (v ? ", " : "") << json_string(variables[v].name) << ": {\"components\": "
@@ -379,6 +407,11 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
     write_file(dir + "/blocks/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
     write_plain_array(dir + "/x", x, "x", "m");
     write_plain_array(dir + "/y", y, "y", "m");
+    if(curvilinear)
+    {
+        write_plain_grid(dir + "/xc", *xc, y.size(), x.size(), "m");
+        write_plain_grid(dir + "/yc", *yc, y.size(), x.size(), "m");
+    }
     if(grid=="sigma")
         write_plain_array(dir + "/sigma", levels, "level", "");
     if(grid=="cartesian")
