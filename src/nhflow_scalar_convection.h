@@ -32,6 +32,7 @@ class nhflow_scalar_convection
 {
 public:
 
+    virtual ~nhflow_scalar_convection(){}
 	virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*)=0;
     
 };

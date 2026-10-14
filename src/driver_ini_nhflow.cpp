@@ -161,6 +161,10 @@ void driver::driver_ini_nhflow()
     if(pnhfamr!=nullptr)
     pnhfamr->ini(p,d,pgc);
     
+    // S 10: the sediment step runs on all grids (nhflow_amr_sed.cpp)
+    if(pnhfamr!=nullptr)
+    pnhfamr->sed_attach(psed);
+    
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
     
     if(pnhfamr!=nullptr)

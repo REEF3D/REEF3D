@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_curv.h"
+#include"sediment_curv.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"slice.h"
@@ -64,10 +65,11 @@ void sflow_curv::check(lexer *p)
     refuse(p->A212>0 || p->A260>0, "horizontal diffusion and turbulence (A 212, A 260)");
     refuse(p->B98>=1 || p->B90>=1, "wave generation and absorption (B 90, B 98)");
     refuse(p->B440>0 || p->B441>0 || p->B442>0, "patch boundary conditions (B 440-442)");
-    refuse(p->S10>0, "sediment transport (S 10)");
     refuse(p->X10>0, "6DOF bodies (X 10)");
     refuse(p->A750==1, "the SEASTATE coupling (A 750)");
     refuse(p->I11==1, "the potential flow initialisation (I 11)");
+
+    sediment_curv::check(p);
 
     if(bad>0)
     exit(1);

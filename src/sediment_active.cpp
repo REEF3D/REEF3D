@@ -209,7 +209,7 @@ void sediment_f::active_zone(lexer *p, ghostcell *pgc)
 {
     SLICEBASELOOP
     for(int n=0;n<p->S74;++n)
-    if(p->XP[IP]>p->S74_xs[n] && p->XP[IP]<p->S74_xe[n] && p->YP[JP]>p->S74_ys[n] && p->YP[JP]<p->S74_ye[n])
+    if(p->pos_x()>p->S74_xs[n] && p->pos_x()<p->S74_xe[n] && p->pos_y()>p->S74_ys[n] && p->pos_y()<p->S74_ye[n])
     s->active(i,j)=0;
 
 }

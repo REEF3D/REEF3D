@@ -27,7 +27,7 @@ Available: hydrostatic SFLOW (`A 220 0`) with what P1 offers on curvilinear grid
 reconstruction, RK2/RK3, Manning friction, wetting and drying, walls, `F 72` boxes in physical
 coordinates), several ranks, mesh refinement (`G 1`, static boxes `G 10` and no-refinement boxes
 `G 11` in physical coordinates, regridding `G 2` with `G 20` surface jumps and `G 22` shoreline,
-placement `G 40 1`).  Refused with a message: `A 220 >= 1` (non-hydrostatic pressure and Boussinesq
+placement `G 40 1`).  Sediment transport (`S 10 1`, bed load and the sand slide, phase P5a): `../sediment_curvilinear/README.md`.  Refused with a message: `A 220 >= 1` (non-hydrostatic pressure and Boussinesq
 across blocks: phase P2c), subcycling `G 7 1`, moving bodies `X 10`.  Faces of the blocks 1.. without
 an interface are walls; in- and outflow boundaries, solids and topography of the DIVEMesh grid
 belong to block 0.

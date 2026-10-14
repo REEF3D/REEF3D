@@ -72,6 +72,24 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->vmax=MAX(p->vmax,phook->dt_local_max(2));
 	p->vmax=pgc->globalmax(p->vmax);
 
+    // curvilinear grid (G 50): the horizontal speed in both directions (the faces have any orientation;
+    // the Cartesian components made the time step depend on the orientation of the grid)
+    if(p->geo_curv==1)
+    {
+    double sp=0.0;
+    LOOP
+    sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
+    
+    if(phook!=nullptr)
+    {
+    const double pu=phook->dt_local_max(1), pv=phook->dt_local_max(2);
+    sp=MAX(sp,sqrt(pu*pu + pv*pv));
+    }
+    
+    sp=pgc->globalmax(sp);
+    p->umax=p->vmax=sp;
+    }
+
 
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
@@ -233,6 +251,14 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->j_dir==0)
     p->vmax=0.0;
+
+    if(p->geo_curv==1)
+    {
+    double sp=0.0;
+    LOOP
+    sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
+    p->umax=p->vmax=pgc->globalmax(sp);
+    }
 
 
 	LOOP

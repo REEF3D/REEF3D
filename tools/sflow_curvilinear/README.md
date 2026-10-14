@@ -27,8 +27,8 @@ mesh refinement (`G 1`: static boxes `G 10` and no-refinement boxes `G 11` in ph
 coordinates (cell centres), regridding `G 2`, subcycling `G 7 1`, placement `G 40 1`, with the
 composite non-hydrostatic and Boussinesq solves), VTP output on the physical nodes, AMR output as
 VTS (structured grids on the physical nodes), AMR gauges (`P 51` with `G 1`) at physical points. Refused with a message:
-`A 220 >= 5`, diffusion and turbulence, wave generation, patch boundary conditions, sediment, 6DOF,
-SEASTATE, `I 11`. The native probes and other output that use x/y positions still refer to the logical box;
+`A 220 >= 5`, diffusion and turbulence, wave generation, patch boundary conditions, 6DOF,
+SEASTATE, `I 11`. Sediment transport (`S 10 1`, phase P5a): `../sediment_curvilinear/README.md`. The native probes and other output that use x/y positions still refer to the logical box;
 the LAGOON print of the AMR hierarchy is not written on curvilinear grids.
 
 Numerics (P1b, P1c):

@@ -21,15 +21,24 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_exner.h"
+#include"sediment_curv.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"bedconc_VR.h"
 #include"topo_relax.h"
 #include"sediment_exnerdisc.h"
 #include"sediment_fdm.h"
+#include"sediment_xfilter.h"
 
 void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    filter_curv(p,pgc,f,outer_iter,inner_iter);
+    return;
+    }
+
     // Conservative, mask-aware smoothing of the bed velocity f (vz).
     //
     // Only sediment cells (DFBED>0, flagslice4>0) inside the S77 window take part.
@@ -157,4 +166,13 @@ void sediment_exner::filter(lexer *p,ghostcell *pgc, slice &f, int outer_iter, i
             f(i,j) += sdh(i,j);
 		}
     }
+}
+
+// ---- curvilinear grid (G 50): the filter in the symmetric form of sediment_xfilter (independent of which
+// index family is i; the same transfer as filter() on a uniform grid)
+
+void sediment_exner::filter_curv(lexer *p,ghostcell *pgc, slice &f, int outer_iter, int inner_iter)
+{
+    sediment_xfilter xf(p);
+    xf.run(p,pgc,f,outer_iter,inner_iter);
 }

@@ -37,6 +37,7 @@ class bedload_direction : public increment
 {
 public:
 
+    virtual ~bedload_direction(){}
 	virtual void start(lexer*, ghostcell*, sediment_fdm*)=0;
 
 

@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"nhflow_momentum_func.h"
 #include"nhflow_convection.h"
 #include"nhflow_timestep.h"
+#include"sediment_f.h"
 #include<vector>
 #include<fstream>
 #include<unordered_map>
@@ -157,6 +158,8 @@ struct nhflow_amr_patch : public reefamr_patch
     vrans_nhflow *pvrans = nullptr;
     sixdof *p6dof = nullptr;
     sediment *psed = nullptr;
+    sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (nhflow_amr_sed.cpp)
+    vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side (as rec)
     ioflow *pflow = nullptr;
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
@@ -182,13 +185,16 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double> freg[5][4];
 };
 
-class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook
+class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
 {
 public:
     nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
     virtual ~nhflow_amr();
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
+    // S 10: sediment transport on all grids (nhflow_amr_sed.cpp): the level-0 sediment_f hands its step over
+    void sed_attach(sediment*);
+    void sediment_step_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, sediment_f*) override;
     void print(lexer*, fdm_nhf*, ghostcell*);
     bool active() const { return (maxlev>0 && patches_total>0) || nblk>0; }
 
@@ -503,6 +509,13 @@ private:
     int printcount_amr;
     double m0 = 0.0;
     double tm[8];
+    
+    // S 10 (nhflow_amr_sed.cpp)
+    sediment_f *sed0 = nullptr;     // the sediment of level 0
+    sediment_f* gsed(int g) { return (g<0) ? sed0 : NP(g)->sed; }
+    void sed_patch_ini(ghostcell*, nhflow_amr_patch&);
+    void sed_bed_ghosts(ghostcell*);
+    vector<vector<double>> sedr;    // remote matched faces: the fine flux of rmatch[g][n]
 };
 
 #endif

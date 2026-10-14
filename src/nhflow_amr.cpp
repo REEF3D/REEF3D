@@ -303,7 +303,10 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // breaking (A 550 1): NHFLOW has it in RK2 only; it acts through the implicit diffusion
     // (A 512 2), composite (G 31 1) or per grid (G 31 0)
     if(p->A550!=0 && (p->A550!=1 || p->A510!=2)) ok=0;
-    if(p->B200!=0 || p->S10!=0 || p->X330!=0 || p->A599!=0) ok=0;
+    if(p->B200!=0 || p->X330!=0 || p->A599!=0) ok=0;
+    // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide; no suspended load, no
+    // sediment fractions (nhflow_amr_sed.cpp)
+    if(p->S10!=0 && (p->S10!=1 || p->S12!=0 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10!=0 && (b6==nullptr || p->X60!=1 || p->X16!=0 || p->X320!=0 || p->A516==2 || p->A516==4)) ok=0;
     if(p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0) ok=0;
     if(p->A580==1) ok=0;
@@ -313,14 +316,14 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, B 200 0, S 10 0, no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0, "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles, rods or FEM structures, and 3D grids "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
@@ -357,6 +360,10 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
         fill_level0(pgc,-1);
         blocks_sigma(pgc);
         fill_level0(pgc,-1);
+
+        // S 10: the sediment of the blocks starts from their bed
+        for(int id : lev[0])
+        sed_patch_ini(pgc,*NP(id));
 
         // I 11: the potential flow over the blocks (nhflow_potential_f::start leaves it to this)
         potential(p,pgc);
@@ -481,6 +488,12 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
     pp->Darray(pp->ZSP,n3);
     pp->Darray(pp->bed,nsl);
     pp->Darray(pp->WL,nsl);
+    // sediment (S 10): the erodible-bed flag of the columns (sediment_f::active_nhflow sets it)
+    pp->Iarray(pp->DFBED,nsl);
+    for(int q=0; q<nsl; ++q)
+    pp->DFBED[q] = 1;
+    // no in- and outflow cells of the 3D lists on a patch (sediment_f::ini_guard reads them)
+    pp->gcin_count = pp->gcout_count = 0;
 
     for(int q=0; q<n7; ++q)
     pp->flag7[q] = -10;
@@ -578,6 +591,7 @@ void nhflow_amr::free_lexer3D(nhflow_amr_patch &c)
     pp->del_Darray(pp->ZSP,n3);
     pp->del_Darray(pp->bed,nsl);
     pp->del_Darray(pp->WL,nsl);
+    pp->del_Iarray(pp->DFBED,nsl);
     pp->del_Iarray(pp->gcb4,MAX(pp->gcb4_count,1),6);
     pp->del_Darray(pp->sig,n7);
     pp->del_Darray(pp->sigx,n7);
@@ -641,6 +655,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     // the floating bodies on the patch grid (all calls do nothing without bodies)
     c->p6dof = new nhflow_amr_6dof(pp,b6,(b6!=nullptr) ? b6->object(0)->nhflow_dsm()*pp->DXM/glex(-1)->DXM : 0.0);
     c->psed = psedv;
+    // S 10: the sediment of the patch (nhflow_amr_sed.cpp), its state set by regrid_state
+    if(pp->S10==1)
+    c->sed = new sediment_f(pp,pgc,nullptr,c->pBC,1);
 
     c->pss = new nhflow_signal_speed(pp);
 
@@ -743,6 +760,7 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     delete [] v;
     delete c->mg;
 
+    delete c->sed;
     delete c->pmom;
     delete c->p6dof;
     delete c->pdf;
@@ -1208,7 +1226,13 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
     const int Kc = klev(l-1);
     const bool brk = (p0->A550==1);
     const int nb = 3 + 3*K + K+1;                // position of vb (A 550)
-    const int nv = nb + (brk ? 1 : 0);
+    // sediment (S 10): the water level of the cell around the patch from the water level of its source, not
+    // from its eta. After a bed update eta is that of the old bed until the first stage (the uniform grid
+    // keeps WL and eta of the cells as they are): a copy takes the stage input WL of the source cell, a
+    // coarser source WL - depth of the new bed (the stage after the bed update, s <= 0)
+    const bool sedw = (p0->S10>0);
+    const int nwl = nb + (brk ? 1 : 0);          // position of the water level and its kind
+    const int nv = nwl + (sedw ? 2 : 0);
     vector<double> uc(3*Kc);
 
     fill_run(l,nv,7100+l,
@@ -1258,6 +1282,21 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                      // A 550: the breaking viscosity of the source cell
                      if(brk)
                      v[nb] = d->vb(f.si,f.sj);
+                     if(sedw)
+                     {
+                         if(f.kind==0)
+                         {
+                         v[nwl] = (*stage_in(f.g,s).WL)(f.si,f.sj);
+                         v[nwl+1] = 0.0;
+                         }
+                         else
+                         {
+                         double w1[25];
+                         pweights(q,f.si,f.sj,f.ox,f.oy,w1,1);
+                         v[nwl] = (s<=0) ? pqw(d->WL,q,f.si,f.sj,w1) - pqw(d->depth,q,f.si,f.sj,w1) : v[0];
+                         v[nwl+1] = 1.0;
+                         }
+                     }
                      return;
                  }
                  for(int m=0; m<nv; ++m)
@@ -1272,7 +1311,9 @@ void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
                  const int ii=f.di, jj=f.dj;
 
                  d->eta(ii,jj) = w[0];
-                 const double wl = MAX(w[0] + d->depth(ii,jj), pp->A544);
+                 double wl = MAX(w[0] + d->depth(ii,jj), pp->A544);
+                 if(sedw)
+                 wl = MAX((w[nwl+1]>0.5) ? w[nwl] + d->depth(ii,jj) : w[nwl], pp->A544);
                  (*S.WL)(ii,jj) = wl;
                  if(s<=0)
                  d->WL(ii,jj) = wl;
@@ -1857,7 +1898,8 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         // with its flags, which carry the history of the wetting and drying)
         {
             const int K = klev(l);
-            const int nv = 3 + 2 + 6*K + K+1;
+            // S 10: and the bed (the last value)
+            const int nv = 3 + 2 + 6*K + K+1 + 1;
             old_run(l,nv,7630+l,oldP,
                     [&](reefamr_patch *o, int io, int jo, double *v)
                     {
@@ -1880,6 +1922,7 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                         }
                         for(int kk=0; kk<=K; ++kk)
                         v[5+6*K+kk] = od->P[fidx(op,io,jo,kk)];
+                        v[5+6*K+K+1] = od->bed(io,jo);
                     },
                     [&](reefamr_patch *c, int id, int ii, int jj, const double *v)
                     {
@@ -1905,6 +1948,13 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                         }
                         for(int kk=0; kk<=K; ++kk)
                         d->P[fidx(pp,ii,jj,kk)] = v[5+6*K+kk];
+                        // S 10: the bed of the old patch (it evolved), the depth with it
+                        if(pp->S10==1)
+                        {
+                        d->bed(ii,jj) = v[5+6*K+K+1];
+                        d->depth(ii,jj) = pp->wd - d->bed(ii,jj);
+                        pp->bed[lij(pp,ii,jj)] = d->bed(ii,jj);
+                        }
                     });
         }
 
@@ -1945,6 +1995,11 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             // floating bodies: the hull on the new sigma grid
             body_patch(pgc,*c);
         }
+
+        // S 10: the sediment of the fresh patches starts from their bed
+        for(int id : lev[l])
+        if(P[id]->fresh)
+        sed_patch_ini(pgc,*NP(id));
     }
 }
 

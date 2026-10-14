@@ -46,6 +46,13 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     ++p->sediter;
     
+    // mesh refinement, multi-block grids: all grids together (sediment_amr.cpp)
+    if(grids!=nullptr)
+    {
+    grids->sediment_step_sflow(p,b,pgc,pflow,this);
+    }
+    else
+    {
     // prep SFLOW -------
     prep_sflow(p,b,pgc,P,Q);
     
@@ -88,6 +95,7 @@ void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, io
     
     // update sflow  --------
     update_sflow(p,b,pgc,pflow);
+    }
     
     // sediment print
     print_probes(p,pgc,s,pflow);

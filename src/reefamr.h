@@ -27,9 +27,11 @@ Author: Hans Bihs
 #include<vector>
 #include<cstddef>
 #include<algorithm>
+#include<limits>
 
 class lexer;
 class ghostcell;
+class slice;
 class sixdof_obj;
 
 using namespace std;
@@ -262,6 +264,7 @@ protected:
     // ---- exchange
     void xsetup(vector<vector<int>>&, vector<vector<int>>&, int);
     void xrun(reefamr_xplan&, int, int);
+    void xrun_rev(reefamr_xplan&, int, int);     // the reverse of xrun: rbuf to the receive peers, sbuf from the send peers
 
     // cells around the level-l patches: eval(const reefamr_fill&, double*) gives nv values of a
     // local source (kind 0, 1, 3), store(reefamr_patch*, int id, const reefamr_fill&, const double*)
@@ -688,6 +691,89 @@ protected:
         }
     }
 
+public:
+    // ---- slice fields over all grids of the same level (sediment: filter, sand slide; reefamr_sed.h)
+    void native_gc4(slice&);            // halo of the native grid (gcsl_start4, cval 1)
+    void native_fh(slice&);             // halo contributions of the native grid to their owners (gcslparax_fh)
+
+    // the cells around the level-0 blocks, the ring of the native grid, the halo of the native grid and the
+    // cells around the patches take the values of nv fields from the grid of the same level that holds them;
+    // a cell with a source of a coarser level keeps its value. F(g,k): field k of grid g (-1 the native grid)
+    template<class FG>
+    void xslice(int nv, int tag, FG &&F)
+    {
+        const double nan = std::numeric_limits<double>::quiet_NaN();
+
+        auto ev = [&](const reefamr_fill &f, double *v)
+        {
+            for(int k=0; k<nv; ++k)
+            v[k] = (f.kind==0) ? (*F(f.g,k))(f.si,f.sj) : nan;
+        };
+        auto put = [&](int g, const reefamr_fill &f, const double *w)
+        {
+            if(w[0]==w[0])
+            for(int k=0; k<nv; ++k)
+            (*F(g,k))(f.di,f.dj) = w[k];
+        };
+
+        if(nblk>0)
+        fill_run0(nv,tag,ev,
+                  [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w) { put(id,f,w); },
+                  [&](const reefamr_fill &f, const double *w) { put(-1,f,w); });
+
+        for(int k=0; k<nv; ++k)
+        native_gc4(*F(-1,k));
+
+        for(int l=1; l<=maxlev; ++l)
+        fill_run(l,nv,tag+1+l,ev,
+                 [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w) { put(id,f,w); });
+    }
+
+    // the reverse of xslice for one field: the values in the cells around the grids (and the halo and the ring
+    // of the native grid) are added to the cells of the same level they stand for (sand slide transfers)
+    template<class FG>
+    void xslice_add(int tag, FG &&F)
+    {
+        native_fh(*F(-1));
+
+        for(int l=0; l<=maxlev && l<(int)gplan.size(); ++l)
+        {
+            reefamr_xplan &X = gplan[l];
+
+            X.rbuf.resize(X.rpeer.size());
+            for(size_t k=0; k<X.rpeer.size(); ++k)
+            X.rbuf[k].assign((size_t)X.rcount[k],0.0);
+
+            auto one = [&](int g, const reefamr_fill &f)
+            {
+                const double v = (*F(g))(f.di,f.dj);
+                if(f.kind==0)
+                (*F(f.g))(f.si,f.sj) += v;
+                else if(f.kind==2)
+                X.rbuf[f.si][(size_t)f.slot] += v;
+            };
+
+            for(int id : lev[l])
+            for(auto &f : P[id]->fill)
+            one(id,f);
+
+            if(l==0)
+            for(auto &f : nfill)
+            one(-1,f);
+
+            xrun_rev(X,1,tag+l);
+
+            for(size_t k=0; k<X.speer.size(); ++k)
+            for(size_t m=0; m<X.sitem[k].size(); ++m)
+            {
+                const reefamr_fill &s = gserve[l][X.sitem[k][m]];
+                if(s.kind==0)
+                (*F(s.g))(s.si,s.sj) += X.sbuf[k][m];
+            }
+        }
+    }
+
+protected:
     // ---- moving bodies
     void zone_setup(lexer*);
     bool zone_test(double, double);

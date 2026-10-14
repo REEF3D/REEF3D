@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_f.h"
+#include"sediment_curv.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm2D.h"
@@ -89,6 +90,27 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     k=0;
     
+    // curvilinear grid (G 50): the cell velocities of the bottom layer (with their ghost cells) and
+    // the normal velocities of the faces (sediment_curv.h)
+    if(p->geo_curv==1)
+    {
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    {
+        const int c = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax - p->kmin;
+        s->ub(ii,jj) = d->U[c];
+        s->vb(ii,jj) = d->V[c];
+    }
+    
+    sediment_curv::face_normals(p,pgc,s,0);
+    
+    SLICELOOP4
+    s->waterlevel(i,j) = d->WL(i,j);
+    
+    pgc->gcsl_start4(p,s->waterlevel,1);
+    return;
+    }
+    
     SLICELOOP1
     s->P(i,j) = 0.5*(d->U[IJK] + d->U[Ip1JK]);
     
@@ -105,6 +127,25 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)
 {
+    // curvilinear grid (G 50): the cell velocities and the normal velocities of the faces (sediment_curv.h)
+    if(p->geo_curv==1)
+    {
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    {
+        s->ub(ii,jj) = b->U(ii,jj);
+        s->vb(ii,jj) = b->V(ii,jj);
+    }
+    
+    sediment_curv::face_normals(p,pgc,s,1);
+    
+    SLICELOOP4
+    s->waterlevel(i,j) = b->hp(i,j);
+    
+    pgc->gcsl_start4(p,s->waterlevel,1);
+    return;
+    }
+    
     SLICELOOP1
     s->P(i,j) = P(i,j);
     

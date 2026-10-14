@@ -220,7 +220,8 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2) ok=0;
     if(p->A260!=0) ok=0;
-    if(p->S10!=0) ok=0;
+    // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide, no fractions (sflow_amr_sed.cpp)
+    if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
     if(p->j_dir!=1) ok=0;
@@ -234,7 +235,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0, X 10 0, W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0, W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -242,7 +243,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0, S 10 0, X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -268,6 +269,11 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         blocks_plans(pgc);
         cache_stage(0);
         fill_level0(pgc,0);
+
+        // S 10: the sediment of the blocks starts from their bed
+        if(p->S10==1)
+        for(int id : lev[0])
+        sed_patch_ini(pgc,*SP(id));
     }
 
     mkdir("./REEF3D_SFLOW_AMR",0777);
@@ -324,6 +330,13 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     lexer *pp = c->pp;
 
     c->b = new fdm2D(pp);
+
+    // S 10: the sediment of the patch (sflow_amr_sed.cpp), its state set by regrid_state
+    if(p->S10==1)
+    {
+    pp->gcin_count = pp->gcout_count = 0;   // no 3D in- and outflow lists on a patch (sediment_f::ini_guard)
+    c->sed = new sediment_f(pp,pgc,nullptr,pBC,1);
+    }
     c->phll = new sflow_HLL(pp,pgc,pBC);
     c->phll->amr = this;
     c->pss = new sflow_signal_speed(pp);
@@ -389,6 +402,12 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     delete c->mg;
     told_free(c->told);
 
+    if(c->sed!=nullptr)
+    {
+    delete c->sed;
+    if(c->pp->DFBED!=nullptr)
+    c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
+    }
     delete c->pmom;
     delete c->pship;
     delete c->psolv;
@@ -556,6 +575,10 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
     for(int l=1; l<=maxlev; ++l)
     {
+        // S 10: the bed of the fresh patches from the current bed (it evolved)
+        if(p0->S10==1)
+        sed_bed_regrid(pgc,l,oldP);
+
         {
         comms_off guard(pgc);
         for(int n : lev[l])
@@ -574,6 +597,11 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         }
 
         fill_level(pgc,l,0);
+
+        // S 10: the sediment of the fresh patches starts from their bed
+        for(int n : lev[l])
+        if(P[n]->fresh)
+        sed_patch_ini(pgc,*SP(n));
     }
 }
 
@@ -2036,6 +2064,8 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(!active())
     return;
+
+    dump_grids(p);
 
     bool doprint=false;
 

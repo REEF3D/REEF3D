@@ -82,6 +82,9 @@ sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(
 
 sediment_exner::~sediment_exner()
 {
+    delete prelax;
+    delete pdx;
+    delete static_cast<sflow_bicgstab*>(psolv);
 }
 
 void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
