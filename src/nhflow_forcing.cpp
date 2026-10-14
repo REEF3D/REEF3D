@@ -255,3 +255,13 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     p->dftime+=pgc->timer()-starttime;
 }
 
+void nhflow_forcing::fem_step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(pfem!=nullptr)
+    pfem->nhf_step_begin(p,d,pgc);
+}
+
+bool nhflow_forcing::fem_step_redo(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    return pfem!=nullptr && pfem->nhf_step_redo(p,d,pgc);
+}

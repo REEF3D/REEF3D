@@ -30,6 +30,7 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<map>
 #include<iostream>
+#include<cstdlib>
 
 // FEM coupling with REEF3D::NHFLOW (sigma grid). The algorithm of start_cfd:
 // direct forcing of the structural surface velocity, debris drag, parcel and
@@ -124,7 +125,8 @@ double fem_coupling::added_mass_factor(int k) const
 {
     if(fs.coupling().added_mass>=0.0)
     return fs.coupling().added_mass;
-    if(!nhflow)
+    // CFD, and NHFLOW with strong coupling (the stabilisation only speeds up the passes)
+    if(!nhflow || fs.coupling().strong==1)
     return 1.0;
     const double ma = rho_w*fs.rigid(k).Aunit;
     if(ma<=0.0)

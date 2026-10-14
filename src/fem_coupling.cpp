@@ -527,10 +527,15 @@ void fem_coupling::write_summary(lexer *p)
             f<<"\n";
         }
     }
+    if(fs.coupling().strong==1 && sc_steps>0)
+    f<<"strong coupling:         "<<sc_steps<<" fluid steps repeated until the rigid bodies converged, "
+     <<double(sc_passes)/double(sc_steps)<<" passes on average"
+     <<(sc_unconv>0 ? ", "+std::to_string(sc_unconv)+" not converged within strong_maxit" : std::string())<<"\n";
 }
 
 fem_coupling::~fem_coupling()
 {
+    delete sc;
 }
 
 void fem_coupling::ini_points(lexer *p, ghostcell *pgc)

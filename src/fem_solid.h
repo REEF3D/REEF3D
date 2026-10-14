@@ -186,6 +186,10 @@ public:
         int    check = 0;               // 1: write the check report and stop
         double resolution = 1.0;        // element size in fluid cells if no lattice is given
         int    fix_bed = 0;             // 1: fix nodes touching the bed / solids of the fluid grid
+        int    strong = 0;              // NHFLOW: 1 the fluid step is repeated until the motion of the rigid
+                                        // bodies converges (strong coupling), 2 test: repeated once unchanged
+        int    strong_maxit = 8;        // strong coupling: at most this many passes of a fluid step
+        double strong_tol = 1.0e-3;     // strong coupling: relative change of the body velocities
     };
 
     // results of the check mode
@@ -274,6 +278,10 @@ public:
         Vec3 Jc = Vec3::Zero(), Hc = Vec3::Zero();   // contact impulse and its moment over the fluid step
     };
     void set_rigid_added_mass(int k,double A) {rbs[k].A = A;}
+    // strong coupling: acceleration of the last fluid step used by the added-mass stabilisation,
+    // mean velocity of a node over the step (seen by the fluid forcing)
+    void set_rigid_accel(int k,const Vec3& a,const Vec3& al) {rbs[k].a_prev = a; rbs[k].al_prev = al;}
+    void set_vel_mean(int i,const Vec3& vv) {vbar[i] = vv;}
     double rigid_terminal_speed(int k,double rho_f,double g) const;
     void limit_rigid_speed(int k,const Vec3& uf,double vmax);   // after advance: speed relative to the water uf
     int rigid_of_node(int i) const {return rnode.empty() ? -1 : rnode[i];}

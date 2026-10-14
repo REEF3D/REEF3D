@@ -2422,6 +2422,7 @@
         <VirtualDirectory Name="Coupling CFD">
           <File Name="fem_coupling.cpp"/>
           <File Name="fem_coupling_cfd.cpp"/>
+          <File Name="fem_coupling_strong.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">

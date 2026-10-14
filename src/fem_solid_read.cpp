@@ -454,6 +454,20 @@ void fem_solid::read(std::istream& is)
         else if(kw=="print")            need(static_cast<bool>(ls>>copt.print_dt));
         else if(kw=="hybrid_tau")       need(static_cast<bool>(ls>>copt.hybrid_tau));
         else if(kw=="added_mass")       need(static_cast<bool>(ls>>copt.added_mass) && copt.added_mass>=0.0);
+        else if(kw=="strong" || kw=="strong_coupling")
+        {
+            // strong on|off|test [max passes] [tolerance]
+            std::string t;
+            need(static_cast<bool>(ls>>t));
+            if(t=="on") copt.strong = 1;
+            else if(t=="off") copt.strong = 0;
+            else if(t=="test") copt.strong = 2;
+            else fail("strong: on, off or test");
+            int n;
+            if(ls>>n) {need(n>=2 && n<=50); copt.strong_maxit = n;}
+            double tol;
+            if(ls>>tol) {need(tol>0.0 && tol<1.0); copt.strong_tol = tol;}
+        }
         else if(kw=="rigid_contact_speed") need(static_cast<bool>(ls>>c_rigid) && c_rigid>0.0);
         else if(kw=="debris_damping")
         {
