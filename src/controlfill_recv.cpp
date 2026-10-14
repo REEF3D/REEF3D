@@ -2093,6 +2093,18 @@ void control::ctrlrecv()
     ii++;
     S85 = ictrl[ii];
     ii++;
+    S86 = ictrl[ii];
+    ii++;
+    S87 = dctrl[dd];
+    dd++;
+    S88 = dctrl[dd];
+    dd++;
+    S89 = dctrl[dd];
+    dd++;
+    S95 = ictrl[ii];
+    ii++;
+    S96 = dctrl[dd];
+    dd++;
     S90 = ictrl[ii];
     ii++;
     S91 = ictrl[ii];

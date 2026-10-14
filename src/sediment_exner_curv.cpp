@@ -35,7 +35,9 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
     //   S 32 1: the upwind cell of the face (by sg), S 32 2: the mean of the two cells
     // On Cartesian nodes this is topovel1/topovel2 with sediment_fou/sediment_cds.
     double u,v,umag;
-    
+
+    bend_prep(p,pgc,s);
+
     if(form==2)
     {
         SLICEBASELOOP
@@ -47,6 +49,12 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
         SEDSLICELOOP
         {
         sediment_curv::cellvel(p,s,i,j,u,v);
+        if(btd(i,j)!=0.0)
+        {
+        const double t = btd(i,j), c = 1.0/sqrt(1.0 + t*t), uu = u;
+        u = (uu - t*v)*c;
+        v = (v + t*uu)*c;
+        }
         umag = sqrt(u*u + v*v);
         qbx(i,j) = (fabs(umag)>1.0e-10?u/fabs(umag):0.0)*s->qb(i,j);
         qby(i,j) = (fabs(umag)>1.0e-10?v/fabs(umag):0.0)*s->qb(i,j);
@@ -99,16 +107,16 @@ void sediment_exner::topovel_curv(lexer* p, ghostcell *pgc, sediment_fdm *s, int
     SEDSLICELOOP
 	if(p->pos_x()>=p->S71 && p->pos_x()<=p->S72)
 	{
-        sgx1 = sediment_curv::face_sign(p,s,1,i-1,j);
-        sgx2 = sediment_curv::face_sign(p,s,1,i,j);
-        sgy1 = sediment_curv::face_sign(p,s,2,i,j-1);
-        sgy2 = sediment_curv::face_sign(p,s,2,i,j);
+        sgx1 = sediment_curv::face_sign(p,s,1,i-1,j,bend_td(p,1,i-1,j));
+        sgx2 = sediment_curv::face_sign(p,s,1,i,j,bend_td(p,1,i,j));
+        sgy1 = sediment_curv::face_sign(p,s,2,i,j-1,bend_td(p,2,i,j-1));
+        sgy2 = sediment_curv::face_sign(p,s,2,i,j,bend_td(p,2,i,j));
         
         face_closure(p,sgx1,sgx2,sgy1,sgy2);
         
         const int ci=i, cj=j;
         const double div = (face_flux(1,ci,cj,sgx2) - face_flux(1,ci-1,cj,sgx1)
-                          + face_flux(2,ci,cj,sgy2) - face_flux(2,ci,cj-1,sgy1))/p->AREA2D[IJ];
+                          + face_flux(2,ci,cj,sgy2) - face_flux(2,ci,cj-1,sgy1))/p->AREA2D[IJ] + bend_div(p,s,ci,cj);
         
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(div + susp_ED(p,pgc,s));
 

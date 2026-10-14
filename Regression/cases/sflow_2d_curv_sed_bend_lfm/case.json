@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "river",
+  "bend",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "River bend with bed load (P5b): the 180 deg LFM flume of Delft Hydraulics (R 4.25 m, B 1.7 m, h 0.2 m, Q 0.17 m3/s, d50 0.78 mm) on a coarse curvilinear grid, SFLOW, Keulegan bed shear, the transverse slope (S 86 1) and the spiral flow (S 95 1), the first 2 m of the inflow reach fixed (S 71) feed the bed load; the start of the point bar and the outer-bank scour (sediment_curvilinear/t6).",
+ "covers": [
+  "S 95 with a curved mean flow: streamline curvature from the cell velocities, alpha_I from the bed shear",
+  "the slope flux at the walls and next to the fixed inflow reach"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

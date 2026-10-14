@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "quick",
+  "bend",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "The bend terms of the bed load (P5b) with SFLOW on a curvilinear grid turned by 90 deg: the transverse bed slope effect (S 86 1, Talmon et al. 1995) and the spiral-flow correction of the transport direction (S 95 1), the cell flux vector of S 31 2; the bed-load dam break of t1, per cell index the Cartesian run to round-off (sediment_curvilinear/t1).",
+ "covers": [
+  "sediment_exner_bend: bend_prep (qb/f(theta), streamline curvature, tan(delta)), bend_flux, bend_div",
+  "the turned face directions (sediment_curv::face_sign with td) and cell vectors (topovel_curv form 2)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

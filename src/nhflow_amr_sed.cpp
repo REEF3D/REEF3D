@@ -193,51 +193,62 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     // the covered cells: qb of their children (mean per area): the cells around a patch take qb linear from
     // the coarser level, with the slopes of its neighbours, covered ones among them
     for(int l=maxlev; l>=1; --l)
-    block_up(l,1,7880+l,
+    block_up(l,sediment_exner::amr_nfield,7880+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
-                 slice4 &f = NP(q)->sed->s->qb;
+                 sediment_f *sf = NP(q)->sed;
                  const int nby = q->ny/2;
                  const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
                  double w[4];
                  cw4(q->pp,i0,j0,w);
-                 v[0] = w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
+                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                 {
+                 auto f = [&](int a, int b) { return sf->exner()->amr_field(sf->s,n,a,b); };
+                 v[n] = w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
+                 }
              },
              [&](const reefamr_block &B, int key, const double *v)
              {
-                 gsed(B.g)->s->qb(B.ic,B.jc) = v[0];
+                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                 gsed(B.g)->exner()->amr_field(gsed(B.g)->s,n,B.ic,B.jc) = v[n];
              });
 
     // 2. qb around the blocks and in the ring of the native grid (multi-block grid), around the patches
     if(nblk>0)
-    fill_run0(1,7898,
+    fill_run0(sediment_exner::amr_nfield,7898,
               [&](const reefamr_fill &f, double *v)
               {
-                  v[0] = (f.kind==0) ? gsed(f.g)->s->qb(f.si,f.sj) : 0.0;
+                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                  v[n] = (f.kind==0) ? gsed(f.g)->exner()->amr_field(gsed(f.g)->s,n,f.si,f.sj) : 0.0;
               },
               [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
               {
-                  NP(q)->sed->s->qb(f.di,f.dj) = w[0];
+                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                  NP(q)->sed->exner()->amr_field(NP(q)->sed->s,n,f.di,f.dj) = w[n];
               },
               [&](const reefamr_fill &f, const double *w)
               {
-                  s0->s->qb(f.di,f.dj) = w[0];
+                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                  s0->exner()->amr_field(s0->s,n,f.di,f.dj) = w[n];
               });
 
     for(int l=1; l<=maxlev; ++l)
-    fill_run(l,1,7900+l,
+    fill_run(l,sediment_exner::amr_nfield,7900+l,
              [&](const reefamr_fill &f, double *v)
              {
+                 sediment_f *sf = gsed(f.g);
+                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
                  if(f.kind==0)
-                 v[0] = gsed(f.g)->s->qb(f.si,f.sj);
+                 v[n] = sf->exner()->amr_field(sf->s,n,f.si,f.sj);
                  else if(f.kind==1)
-                 v[0] = plin(gsed(f.g)->s->qb,glex(f.g),f.si,f.sj,f.ox,f.oy);
+                 v[n] = plin((n==0 ? sf->s->qb : sf->exner()->bend_slice(n)),glex(f.g),f.si,f.sj,f.ox,f.oy);
                  else
-                 v[0] = 0.0;
+                 v[n] = 0.0;
              },
              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
              {
-                 NP(q)->sed->s->qb(f.di,f.dj) = w[0];
+                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                 NP(q)->sed->exner()->amr_field(NP(q)->sed->s,n,f.di,f.dj) = w[n];
              });
 
     // 3. face fluxes, the box faces of the patches, the matched coarse faces
@@ -394,6 +405,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 
     double vzmax = s0->exner()->amr_vzmax(p,s0->s,mask[0].get());
     double dxmin = 1.0e20;
+    double brate = s0->exner()->bend_rate;
 
     for(int id=0; id<ng; ++id)
     {
@@ -402,6 +414,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         sedscope ss(c->pp);
         vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
         dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
+        brate = MAX(brate,c->sed->exner()->bend_rate);
     }
 
     // level 0: no bed change in the covered cells (their bed is the restriction)
@@ -415,9 +428,11 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 
     s0->exner()->amr_maxvz = vzmax;
     s0->exner()->amr_mindx = (dxmin<1.0e19) ? dxmin : 0.0;
+    s0->exner()->amr_bendrate = brate;
     s0->exner()->timestep(p,pgc,s0->s);
     s0->exner()->amr_maxvz = 0.0;
     s0->exner()->amr_mindx = 0.0;
+    s0->exner()->amr_bendrate = 0.0;
 
     for(int id=0; id<ng; ++id)
     NP(id)->pp->dtsed = p->dtsed;

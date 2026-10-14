@@ -1,5 +1,6 @@
 # writes the regression cases of the curvilinear sediment transport (P5a, S 10 1 with G 50): one block (G 50 2,
-# curvgrid.dat), mesh refinement, multi-block grids (G 50 1, blocks.dat): Regression/cases/*_sed_*
+# curvgrid.dat), mesh refinement, multi-block grids (G 50 1, blocks.dat): Regression/cases/*_sed_*; the bend terms
+# of P5b (S 86 transverse bed slope, S 95 spiral flow): *_sed_*bend*
 import os, sys, json, numpy as np
 S5 = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, S5)
@@ -117,4 +118,67 @@ case("sflow_2d_mb_sed_mpi2", "sflow", mbcontrol.replace("NP", "2"),
       "description": "As nhflow_3d_mb_sed_amr with SFLOW, without refinement, the weighted multi-direction sand slide (S 90 4), two ranks (blocks on other ranks than the native cells next to them): the same bed as one block to round-off (sediment_curvilinear/t5).",
       "covers": ["remote fills and the reverse exchange (xrun_rev) of the slid material", "sandslide_weighted_multidir in steps (amr_sweep)"]},
      blocks=quads)
+
+# P5b: 8 the bed-load dam break of t1 turned by 90 deg with SFLOW, the transverse slope and the spiral flow, S 31 2
+nx, ny, nz, dx = 32, 24, 6, 0.125
+X, Y = nodes(nx, ny, dx, "rot90", 1000.0, 2000.0)
+b = box_phys((1.0, 1.75, 1.0, 2.0), "rot90", 1000.0, 2000.0)
+bend = "S 86 1\nS 95 1\n"
+case("sflow_2d_curv_sed_bend_dambreak_rot90", "sflow", control(nx, ny, nz, nx*dx, ny*dx, 0.5, np_=1),
+     flow["sflow"] + "N 47 0.3\nF 60 0.2\nM 10 1\nP 10 0\nW 22 -9.81\n" + bedload.replace("S 31 1", "S 31 2") + "S 35 20.0\n" + bend
+     + "F 72 %g %g %g %g 0.35\nG 50 2\n" % b,
+     {"np": 1, "steps": 40, "tags": ["2d", "sflow", "quick", "bend"] + tags,
+      "description": "The bend terms of the bed load (P5b) with SFLOW on a curvilinear grid turned by 90 deg: the transverse bed slope effect (S 86 1, Talmon et al. 1995) and the spiral-flow correction of the transport direction (S 95 1), the cell flux vector of S 31 2; the bed-load dam break of t1, per cell index the Cartesian run to round-off (sediment_curvilinear/t1).",
+      "covers": ["sediment_exner_bend: bend_prep (qb/f(theta), streamline curvature, tan(delta)), bend_flux, bend_div", "the turned face directions (sediment_curv::face_sign with td) and cell vectors (topovel_curv form 2)"]},
+     G=(X, Y, np.zeros_like(X)))
+
+# 9 the LFM bend of t6 (coarse, short): SFLOW, 180 deg, the bed load fed from the fixed inflow reach
+R, B, h0, Q, d50, Cz, sl, ds = 4.25, 1.7, 0.2, 0.17, 0.00078, 26.4, 0.0018, 0.2
+n1, n2, nb, nyb = int(round(11.0/ds)), int(round(6.0/ds)), int(round(np.pi*R/ds)), 9
+s_n = np.concatenate([np.linspace(0, 11.0, n1+1), 11.0 + np.linspace(0, np.pi*R, nb+1)[1:], 11.0 + np.pi*R + np.linspace(0, 6.0, n2+1)[1:]])
+n_n = np.linspace(-0.5*B, 0.5*B, nyb+1)
+S, N = np.meshgrid(s_n, n_n, indexing="ij")
+X, Y = S.copy(), N.copy()
+mb_ = (S > 11.0) & (S < 11.0 + np.pi*R)
+m2 = S >= 11.0 + np.pi*R
+phi = (S[mb_] - 11.0)/R - 0.5*np.pi
+X[mb_], Y[mb_] = 11.0 + (R - N[mb_])*np.cos(phi), R + (R - N[mb_])*np.sin(phi)
+X[m2], Y[m2] = 11.0 - (S[m2] - 11.0 - np.pi*R), 2*R - N[m2]
+ks = 12.0*h0/np.exp(Cz/np.sqrt(9.81)/2.5)
+nxb = len(s_n) - 1
+case("sflow_2d_curv_sed_bend_lfm", "sflow", control(nxb, nyb, 1, nxb*ds, nyb*ds, 0.5, bc=bc, np_=1),
+     "A 10 2\nA 210 3\nA 211 4\nA 220 0\nA 240 1\nB 50 %g\nB 60 1\nW 10 %g\nF 60 %g\nF 62 %g\nN 47 0.3\nM 10 1\nP 10 0\nW 22 -9.81\n" % (ks, Q, h0, h0)
+     + "S 10 1\nS 11 2\nS 16 2\nS 20 %g\nS 21 %g\nS 15 3\nS 17 1.0\nS 35 100\nS 41 1\nS 43 200\nS 44 1\nS 31 1\nS 100 0\nS 71 2.0\n" % (d50, ks/d50)
+     + bend + "G 50 2\n",
+     {"np": 1, "steps": 400, "tags": ["2d", "sflow", "river", "bend"] + tags,
+      "description": "River bend with bed load (P5b): the 180 deg LFM flume of Delft Hydraulics (R 4.25 m, B 1.7 m, h 0.2 m, Q 0.17 m3/s, d50 0.78 mm) on a coarse curvilinear grid, SFLOW, Keulegan bed shear, the transverse slope (S 86 1) and the spiral flow (S 95 1), the first 2 m of the inflow reach fixed (S 71) feed the bed load; the start of the point bar and the outer-bank scour (sediment_curvilinear/t6).",
+      "covers": ["S 95 with a curved mean flow: streamline curvature from the cell velocities, alpha_I from the bed shear", "the slope flux at the walls and next to the fixed inflow reach"]},
+     G=(X, Y, sl*(s_n[-1] - S)))
+
+# 10 the four turned quadrants of t5 with SFLOW on three ranks and the bend terms (blocks on other ranks than the cells
+# next to them: the bend fields of the cells around the blocks from their sources)
+n, nz, dx = 40, 6, 0.05
+L = n*dx
+I, J = np.meshgrid(np.arange(n+1), np.arange(n+1), indexing="ij")
+x, y = I*dx, J*dx
+X = x + 0.15*y + 0.04*np.sin(2*np.pi*x/L)*np.sin(np.pi*y/L)
+Y = y + 0.05*x + 0.03*np.sin(np.pi*x/L)*np.sin(2*np.pi*y/L)
+Z = 0.06*np.exp(-((X-1.3)**2+(Y-0.7)**2)/0.04)
+quads = [quad(0, 0, 0), quad(hq, 0, 1), quad(0, hq, 2), quad(hq, hq, 3)]
+case("sflow_2d_mb_sed_bend_mpi3", "sflow", mbcontrol.replace("NP", "3"),
+     flow["sflow"] + mb.replace("NP", "3").replace("S 31 1", "S 31 2") + bend,
+     {"np": 3, "steps": 40, "tags": ["2d", "sflow", "multiblock", "mpi", "bend"] + tags,
+      "description": "The bend terms (S 86 1, S 95 1, S 31 2) on the multi-block grid of t5 with SFLOW on three ranks: the same bed as one block to round-off, the bed volume conserved (sediment_curvilinear/t5).",
+      "covers": ["the bend fields qb/f, tan(delta), the bed and the open flag of the slope flux filled around the blocks (sediment_exner::amr_field)"]},
+     blocks=quads)
+
+# 11 NHFLOW, two levels of patches following the surface, the transverse slope: the slope flux of two patches that meet
+nx, ny, nz, dx = 32, 24, 6, 0.125
+X, Y = nodes(nx, ny, dx, "rot90", 1000.0, 2000.0)
+case("nhflow_3d_curv_sed_bend_amr_adaptive", "nhflow", control(nx, ny, nz, nx*dx, ny*dx, 0.5, np_=1),
+     flow["nhflow"] + amrbase.replace("NP", "1") + "G 1 2\nG 2 4\nG 20 0.01\nS 86 1\n",
+     {"np": 1, "steps": 40, "tags": ["3d", "nhflow", "amr", "bend"] + tags,
+      "description": "The transverse bed slope effect (S 86 1) on the mesh refinement of NHFLOW, two levels of patches following the surface on a curvilinear grid turned by 90 deg: patches that meet compute the same slope flux (the bed of the cells around them from their source, not the flow bed of a fresh patch); the bed volume over the leaf cells is conserved (sediment_curvilinear/t4).",
+      "covers": ["amr_qb with bend_prep, the fill of the bend fields (nhflow_amr_sed: block_up, fill_run)"]},
+     G=(X, Y, np.zeros_like(X)))
 print("written")

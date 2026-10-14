@@ -150,6 +150,14 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // morphological acceleration is of the order of this ratio (validation case 02)
     if(p->S104>0.0 && cmax>1.0e-20 && umax>1.0e-20)
     p->dtsed = MIN(p->dtsed, p->S104*umax*dtflow/cmax);
+
+    // S 86: the slope flux -qb/f dz/dn is an explicit diffusion of the bed: dtsed <= 0.4/(S35/(1-n) max(qb/f (1/dx^2+1/dy^2)))
+    if(p->S86>0)
+    {
+    const double rate = pgc->globalmax(MAX(bend_rate,amr_bendrate));
+    if(rate>1.0e-20)
+    p->dtsed = MIN(p->dtsed, 0.4/(cfac*rate));
+    }
     
     p->dtsed=pgc->timesync(p->dtsed);
     
@@ -310,6 +318,14 @@ void sediment_exner::timestep_curv(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // morphological acceleration is of the order of this ratio (validation case 02)
     if(p->S104>0.0 && cmax>1.0e-20 && umax>1.0e-20)
     p->dtsed = MIN(p->dtsed, p->S104*umax*dtflow/cmax);
+
+    // S 86: the slope flux -qb/f dz/dn is an explicit diffusion of the bed: dtsed <= 0.4/(S35/(1-n) max(qb/f (1/dx^2+1/dy^2)))
+    if(p->S86>0)
+    {
+    const double rate = pgc->globalmax(MAX(bend_rate,amr_bendrate));
+    if(rate>1.0e-20)
+    p->dtsed = MIN(p->dtsed, 0.4/(cfac*rate));
+    }
     
     p->dtsed=pgc->timesync(p->dtsed);
     

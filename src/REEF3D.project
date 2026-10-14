@@ -2540,6 +2540,7 @@
           <File Name="sediment_exner.cpp"/>
           <File Name="sediment_exner_curv.cpp"/>
           <File Name="sediment_exner_amr.cpp"/>
+          <File Name="sediment_exner_bend.cpp"/>
           <File Name="sediment_amr.cpp"/>
           <File Name="sediment_curv.cpp"/>
           <File Name="sediment_xfilter.cpp"/>
