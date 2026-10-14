@@ -40,6 +40,7 @@ class seastate_roller;
 class seastate_spc_series;
 class seastate_wind_series;
 class seastate_amr;
+class seastate_fas2;
 class seastate_bathy;
 class slice4;
 class seastate_obstacle;
@@ -239,6 +240,9 @@ private:
     // mesh refinement (G 1), bathymetry raster (A 790 1)
     seastate_amr *pamr;
     seastate_bathy *bathy;
+
+    // Phase 12: FAS on a uniform grid (A 758 without G 1): a V-cycle over coarse grids of 2 x 2 cells
+    seastate_fas2 *pfas = nullptr;
     void transport_amr(lexer*, ghostcell*);
 
     // Phase 6: diffraction (A 718), obstacles (A 722)

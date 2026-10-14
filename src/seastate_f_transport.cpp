@@ -30,6 +30,7 @@ Architect: Hans Bihs
 #include"seastate_swan_spc.h"
 #include"seastate_source.h"
 #include"seastate_amr.h"
+#include"seastate_fas2.h"
 #include"sliceint4.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -141,6 +142,10 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         obstacles(p,pgc);
         psolv->iterate(p,pgc,e,pex,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
+
+        // Phase 12: FAS on the uniform grid (A 758), within the step but not after its last iteration
+        if(pfas!=nullptr && iter_done%p->A758_n==0 && it<iter_max-1)
+        pfas->correct(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
 
         return;
@@ -167,6 +172,14 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     obstacles(p,pgc);
     psolv->iterate(p,pgc,e,pex,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
+
+    // Phase 12: FAS on the uniform grid (A 758)
+    if(pfas!=nullptr && iter_done%p->A758_n==0)
+    {
+    pfas->correct(p,pgc,nullptr,rdt,Nb,side,refraction,fshift,p->A758_m);
+    if(p->mpirank==0)
+    cout<<"SEASTATE FAS: iteration "<<iter_done<<", "<<p->A758_m<<" coarse iterations, largest relative change of the coarse cells "<<pfas->last()<<endl;
+    }
 
     double hmax=0.0;
     std::vector<double> hs(size_t(p->knox)*p->knoy,0.0);

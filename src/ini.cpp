@@ -327,8 +327,8 @@ void control::ini_default()
     A757_cds2=5.0e-5; // double A 732 2 (van der Westhuysen): coefficient Cds2 of the saturation-based whitecapping (SWAN cds2)
     A757_br=1.75e-3;  // double ... saturation threshold B_r (SWAN br)
     A762=0;           // int mesh refinement (G 1): refine where the water width (shortest wet run through the level-0 cell along x, y and the diagonals) is below this many cells of the level, 0 off
-    A758_n=0;         // int mesh refinement (G 1): FAS coarse-grid correction on level 0 every this many iterations (nonstationary: of the step), all levels corrected, 0 off
-    A758_m=4;         // int ... coarse-grid iterations of each correction
+    A758_n=0;         // int FAS coarse-grid correction every this many iterations (nonstationary: of the step), 0 off; mesh refinement (G 1): level 0 the coarse grid, all levels corrected; uniform grid (Phase 12): a V-cycle over coarse grids of 2 x 2 cells
+    A758_m=4;         // int ... coarse-grid iterations of each correction (uniform grid: m/2 before and m/2 after the next coarser grid, 4 m on the coarsest)
     A797=0;           // int mesh refinement (G 1): 0 sweeps level by level (V-cycle), 1 composite sweep (the finer cells within the sweep of their parent cell)
     A775=2;           // int surfbeat: geographic advection of the wave groups: 1 first-order upwind, 2 second order (van Leer)
 

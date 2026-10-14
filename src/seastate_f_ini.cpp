@@ -30,6 +30,7 @@ Architect: Hans Bihs
 #include"seastate_source.h"
 #include"seastate_roller.h"
 #include"seastate_amr.h"
+#include"seastate_fas2.h"
 #include"seastate_bathy.h"
 #include"seastate_obstacle.h"
 #include"slice4.h"
@@ -222,6 +223,21 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     pex->start(p,pgc,*e->N);
 
+    // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
+    if(p->A758_n>0 && p->G1<1)
+    {
+    const std::vector<float> *s[4] = {&Nside[0],&Nside[1],&Nside[2],&Nside[3]};
+    pfas = new seastate_fas2(p,pgc,e,psolv,pex,psrc,bser!=nullptr ? s : nullptr,wser!=nullptr ? wU10 : nullptr,
+                             wser!=nullptr ? wdir : nullptr);
+        if(p->mpirank==0)
+        {
+        cout<<"SEASTATE FAS on the uniform grid (A 758 "<<p->A758_n<<" "<<p->A758_m<<"): "<<pfas->levels()<<" coarse grids of 2 x 2 cells each, active cells";
+        for(int k=1; k<=pfas->levels(); ++k)
+        cout<<" "<<pfas->cells_of_level(k);
+        cout<<endl;
+        }
+    }
+
     // mesh refinement (G 1): static hierarchy of patches
     if(p->G1>0)
     {
@@ -301,8 +317,10 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 732: deep-water physics must be 0 (off), 1 (Komen) or 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH)";
     else if(p->A758_n<0 || p->A758_m<0)
     msg = "A 758: the FAS period and the coarse iterations must not be negative";
-    else if(p->A758_n>0 && p->G1<1)
-    msg = "A 758: the FAS coarse-grid correction needs mesh refinement (G 1), level 0 being the coarse grid";
+    else if(p->A758_n>0 && p->G1<1 && (p->A718>=1 || p->A722>0 || p->A723_kr>0.0 || p->A754>0))
+    msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available with diffraction (A 718), obstacles and coasts (A 722, A 723) or vegetation (A 754)";
+    else if(p->A758_n>0 && p->G1<1 && coupled)
+    msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available in a coupled run";
     else if(p->A758_n>0 && p->A700==1 && (p->A707>0 ? p->A707 : (p->M10>1 ? 2 : 1))<2)
     msg = "A 758: nonstationary, the FAS coarse-grid correction needs at least 2 iterations per step (A 707), a fine iteration after each correction";
     else if(p->A758_n>0 && p->A770==1)

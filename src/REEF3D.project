@@ -118,6 +118,7 @@
         <File Name="seastate_forcing.h"/>
         <File Name="seastate_amr.h"/>
         <File Name="seastate_bathy.h"/>
+        <File Name="seastate_fas2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
@@ -1401,6 +1402,7 @@
           <File Name="seastate_structure.cpp"/>
           <File Name="seastate_f_diffraction.cpp"/>
           <File Name="seastate_amr.cpp"/>
+          <File Name="seastate_fas2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sources">
           <File Name="seastate_source.cpp"/>

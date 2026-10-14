@@ -213,7 +213,10 @@ public:
     void geographic_order(int o) {order2 = (o==2);}
     // FAS (A 758): residual mode (r = b - A N into R, no solve) and the coarse-grid source -tau (tau, the restricted
     // spectra Nt at the start of the coarse solve)
-    void residual_out(seastate_store *R) {rout = R;}
+    void residual_out(seastate_store *R) {rout = R; raccum = false;}
+    // ... added into the cell (i >> s, j >> s) of R instead (Phase 12, the FAS of a uniform grid: the sum over the
+    // children of a coarse cell; s > 0 without threads); nullptr: off
+    void residual_add(seastate_store *R, int s) {rout = R; raccum = (R!=nullptr); rshift = s;}
     void fas_source(const seastate_store *tau, const seastate_store *Nt) {ftau = tau; ftil = Nt;}
     void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
 
@@ -279,6 +282,8 @@ private:
     double eps = 0.0;
     bool order2 = false;
     seastate_store *rout = nullptr;
+    bool raccum = false;                // residual_add
+    int rshift = 0;
     const seastate_store *ftau = nullptr, *ftil = nullptr;
     int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
     double srctol = 0.0;                // ... until the relative energy change of the cell is below this

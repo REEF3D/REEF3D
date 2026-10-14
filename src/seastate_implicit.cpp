@@ -111,7 +111,9 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
 
     // threads (A 798): wavefront order, on level 0 and on the patches of the mesh refinement (covered cells
     // skipped); in the composite sweep (A 797 1) the visit of a covered cell gets the thread (visit_threads)
-    if(nthreads>1 && (vis==nullptr || visT!=nullptr) && !second && (ranged ? (ri1-ri0+1)*(rj1-rj0+1) : p->knox*p->knoy)>=thread_min)
+    // (not when the residuals of neighbouring cells are added into the same coarse cell, residual_add with s > 0)
+    if(nthreads>1 && (vis==nullptr || visT!=nullptr) && !second && !(rout!=nullptr && raccum && rshift>0)
+       && (ranged ? (ri1-ri0+1)*(rj1-rj0+1) : p->knox*p->knoy)>=thread_min)
     {
     sweep_threads(p,e,q,N0,rdt,Nb,side,refraction,fshift);
     return;
@@ -1281,12 +1283,15 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     // residual mode (FAS, A 758): r = b - A N of the cell equations at the latest spectra (the pseudo
     // time step drops out: N_old = N), for the directions of the quadrant; no solve
+    // (residual_add, Phase 12: added into the cell (ic >> s, jc >> s) of R, no zeroing: the sum over the children of a
+    // coarse cell of the uniform-grid FAS)
     if(rout!=nullptr)
     {
-    float *R = rout->spec(ic,jc);
+    float *R = raccum ? rout->spec(ic>>rshift,jc>>rshift) : rout->spec(ic,jc);
 
         if(R!=nullptr)
         {
+            if(!raccum)
             for(int l=0; l<nsig; ++l)
             for(int n=0; n<nq; ++n)
             R[g.bin(l,ma+n)] = 0.0f;
@@ -1303,6 +1308,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
                 if(Nlm!=nullptr) r += tsi[o+n]*double(Nlm[n]);
                 if(n>na) r -= tla[o+n]*double(Nl[n-1]);
                 if(n<nb) r -= tup[o+n]*double(Nl[n+1]);
+                if(raccum)
+                R[g.bin(l,ma+n)] += float(r);
+                else
                 R[g.bin(l,ma+n)] = float(r);
                 }
             }

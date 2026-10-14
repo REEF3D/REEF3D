@@ -38,6 +38,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
+#include"seastate_fas2.h"
 #include<iostream>
 #include<iomanip>
 
@@ -56,6 +57,7 @@ seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr
 
 seastate_f::~seastate_f()
 {
+    delete pfas;
     delete pamr;
     delete bathy;
     delete pprint;
