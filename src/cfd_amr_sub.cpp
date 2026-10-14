@@ -309,7 +309,10 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             {
                 pscope3 ps(pgc,CP(id)->a,a0);
                 if(it==0)
+                {
+                patch_relax_phi(id,CP(id)->pmom->amr_phi_out(s));
                 CP(id)->pmom->amr_ls_finish(CP(id)->pp,CP(id)->a,pgc,s,false,1);
+                }
                 else
                 CP(id)->pmom->amr_ls_reini(CP(id)->pp,CP(id)->a,pgc,s,1);
             }

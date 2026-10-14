@@ -60,6 +60,7 @@ Architect: Hans Bihs
 #include"vrans_v.h"
 #include"initialize.h"
 #include"reefmg_core.h"
+#include"bc_zone.h"
 #include<cmath>
 #include<iostream>
 #include<iomanip>
@@ -266,6 +267,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // subcycling (G 7 1): the stage times
     sub = (p->G7==1) ? 1 : 0;
 
+    // the relaxation zones of the wave generation and the beach on the patches
+    relax_setup(p,pgc);
+
     // G 7 1: the finest level advances the bodies with the loads on the finest grid
     if(bodies && sub)
     for(int nb=0; nb<b6->objects(); ++nb)
@@ -365,6 +369,7 @@ cfd_amr::~cfd_amr()
 {
     for(cfd_amr_lmg &M : lmg)
     delete M.mg;
+    delete zones0;
 
     if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
@@ -1424,7 +1429,10 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
                 {
                     pscope ps(pgc,CP(id)->a,a0);
                     if(it==0)
+                    {
+                    patch_relax_phi(id,CP(id)->pmom->amr_phi_out(s));
                     CP(id)->pmom->amr_ls_finish(CP(id)->pp,CP(id)->a,pgc,s,false,1);
+                    }
                     else
                     CP(id)->pmom->amr_ls_reini(CP(id)->pp,CP(id)->a,pgc,s,1);
                 }

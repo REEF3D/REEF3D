@@ -127,6 +127,9 @@ public:
     vector<vector<int>> glev;       // [l] global ids
     vector<r3xplan> xp;             // [l] remote fills
     vector<double> gx[3];           // global level-0 nodes, with margin nodes (index + marge)
+    // the relaxation zones of the wave generation (B 98 2) and the beach (B 99 1/2) may be refined
+    // (the model relaxes its patches there; CFD with a wave theory), else they stay on level 0
+    bool zone_gen_refine = false, zone_beach_refine = false;
 
     // index helpers
     int gn(int l, int d) const;                         // global cells of level l

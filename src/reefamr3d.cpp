@@ -320,6 +320,7 @@ void reefamr3d::global_nodes()
 
 // refined tiles of every level: the seeds, the boxes G 15 on level G 1, every coarser level around
 // the next finer one with a nesting band; no refinement in the wave generation and absorption zones
+// (unless the model relaxes its patches there: zone_gen_refine, zone_beach_refine)
 void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
 {
     tmask.assign(maxlev+1,vector<unsigned char>());
@@ -396,14 +397,18 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         mark_cells(l,lo,hi);
     }
 
-    // wave generation and absorption zones (relaxation, B 98 2, B 99 1/2) stay on level 0
+    // wave generation and absorption zones (relaxation, B 98 2, B 99 1/2) stay on level 0, unless
+    // the model relaxes its patches there
     double zx0 = 1.0e20, zx1 = -1.0e20;     // forbidden: x < zx0 and x > zx1
     const double xmin = gx[0][marge], xmax = gx[0][gn0[0]+marge];
     zx0 = -1.0e20; zx1 = 1.0e20;
+    // (refined zones: the tiles at the in- and outflow edge stay on level 0, the patches have no
+    // in- or outflow boundary; the relaxation there takes the target nearly fully)
+    const double zeps = 1.0e-9*(xmax-xmin);
     if(p0->B98==2 && p0->B96_1>0.0)
-    zx0 = xmin + p0->B96_1;
+    zx0 = zone_gen_refine ? xmin + zeps : xmin + p0->B96_1;
     if((p0->B99==1 || p0->B99==2) && p0->B96_2>0.0)
-    zx1 = xmax - p0->B96_2;
+    zx1 = zone_beach_refine ? xmax - zeps : xmax - p0->B96_2;
 
     int cleared = 0;
     for(int l=1; l<=maxlev; ++l)
@@ -458,7 +463,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     }
 
     if(myrank==0 && verbose && (cleared>0 || dropped>0))
-    cout<<"CFD AMR: "<<cleared<<" tiles in the wave zones and "<<dropped<<" tiles without nesting not refined"<<endl;
+    cout<<"CFD AMR: "<<cleared<<(zone_gen_refine || zone_beach_refine ? " tiles at the in- or outflow edge of the wave zones and " : " tiles in the wave zones and ")
+        <<dropped<<" tiles without nesting not refined"<<endl;
 
     // the edges of a level must not lie on a partition edge of level 0 (the coarse cell across a
     // patch edge on the rank of the patch): such a level is extended by the tiles across, finest

@@ -48,6 +48,8 @@ class patchBC_interface;
 class vrans;
 class fsi;
 class sixdof;
+class wave_interface;
+class bc_zone_set;
 class sixdof_cfd;
 class cfd_amr_6dof;
 class momentum;
@@ -94,8 +96,10 @@ struct cfd_amr_tlev
 //
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
 //  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1); no
-//  sediment, porous media, heat or concentration; wave generation and absorption on level 0 (the
-//  patches keep out of the zones).
+//  sediment, porous media, heat or concentration; the relaxation zones of the wave generation and
+//  the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0 (cfd_amr_relax.cpp;
+//  the edge tiles at the in- and outflow boundary stay on level 0), the other wave generation and
+//  absorption on level 0 (the patches keep out of the zones).
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
@@ -363,6 +367,17 @@ private:
     void pr_level_mg_fill_comp(int m);
     void pr_level_vcycle(int m, int kr, int kz);
     void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
+
+    // wave generation and the numerical beach on the patches (cfd_amr_relax.cpp): the relaxation
+    // zones (B 98 2, B 99 1/2) with a wave theory of level 0, evaluated at the cells of the patch
+    // and the time of its step (G 7 1) or of the step (G 7 0)
+    wave_interface *pwave0 = nullptr;
+    bc_zone_set *zones0 = nullptr;
+    int zgen = 0, zbeach = 0;
+    void relax_setup(lexer*, ghostcell*);
+    bool patch_in_zone(int id);
+    void patch_relax_vel(int id, field &u, field &v, field &w);
+    void patch_relax_phi(int id, field &f);
     int pr_it_last = 0;
     int pr_it_sync = 0;                 // G 7 1: iterations of the synchronisation projection
     vector<vector<double>> sync_x;      // G 7 1: the correction of the last synchronisation (leaf cells per grid), its start

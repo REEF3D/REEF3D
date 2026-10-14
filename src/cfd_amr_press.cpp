@@ -1632,6 +1632,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
+        patch_relax_vel(id,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
     }
 
@@ -1945,6 +1946,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
+        patch_relax_vel(id,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
     }
 
@@ -2103,6 +2105,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
         momentum_rk *m = c->pmom;
+        patch_relax_vel(id,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
         m->amr_project_after(c->pp,c->a,pgc,m->amr_velout(c->a,0,s),m->amr_velout(c->a,1,s),m->amr_velout(c->a,2,s));
     }
 
