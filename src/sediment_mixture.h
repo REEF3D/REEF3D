@@ -97,12 +97,14 @@ public:
     void load_fraction(lexer*, ghostcell*, sediment_fdm*, int);
     void exner_end(lexer*, ghostcell*, sediment_fdm*);
     void bedchange(lexer*, ghostcell*, sediment_fdm*, slice4**);
+    void bedchange_curv(lexer *p, ghostcell *pgc, sediment_fdm *s, slice4 **dhk);     // curvilinear grid (G 50)
 
     // sandslide hooks
     void slide_zero(lexer*, ghostcell*);
     void slide_transfer(int,int,int,int,double);
     void slide_pde(lexer*, sediment_fdm*, int, int, const int*, const int*, const double*, int);
     void slide_finish(lexer*, ghostcell*, sediment_fdm*);
+    void slide_finish_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 
     // grain size statistics and roughness
     void grain_stats(lexer*, ghostcell*);
@@ -110,6 +112,7 @@ public:
 
     // output
     void print_log(lexer*, ghostcell*);
+    void print_log_curv(lexer *p, ghostcell *pgc);     // curvilinear grid (G 50)
     int nfields();
 
     int nf;

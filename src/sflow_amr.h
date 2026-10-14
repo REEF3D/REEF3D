@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"sediment_f.h"
 #include<vector>
 #include<fstream>
 #include<unordered_map>
@@ -113,6 +114,8 @@ struct sflow_amr_told
 
 struct sflow_amr_patch : public reefamr_patch
 {
+    sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (sflow_amr_sed.cpp)
+    vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side
     fdm2D *b;
     sflow_HLL *phll;
     sflow_signal_speed *pss;
@@ -155,9 +158,12 @@ struct sflow_amr_patch : public reefamr_patch
     vector<double> rend;
 };
 
-class sflow_amr : public reefamr
+class sflow_amr : public reefamr, public sediment_grids
 {
 public:
+    // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
+    void sed_attach(sediment*);
+    void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, sediment_f*) override;
     sflow_amr(lexer*, fdm2D*, ghostcell*, patchBC_interface*, sixdof*, sflow_HLL*, sflow_momentum_RK3*);
     virtual ~sflow_amr();
 
@@ -168,6 +174,7 @@ public:
     void step_end(lexer*, fdm2D*, ghostcell*);
     void timestep(lexer*, fdm2D*, ghostcell*);
     void print(lexer*, fdm2D*, ghostcell*);
+    void dump_grids(lexer*);        // REEF3D_AMR_DUMP: every grid of the rank (own cells) to <dir>/amr_r<rank>.bin (tests)
 
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)
     void hll_hook(lexer*, fdm2D*, int, int);
@@ -296,6 +303,15 @@ private:
     double area_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
     void ini_patch_defaults(sflow_amr_patch&);
+    // S 10 (sflow_amr_sed.cpp)
+    sediment_f *sed0 = nullptr;
+    sediment_f* gsed(int g) { return (g<0) ? sed0 : SP(g)->sed; }
+    void sed_patch_ini(ghostcell*, sflow_amr_patch&);
+    void sed_bed_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+    void sed_fill_bed(ghostcell*, int);
+    void sed_fill_bed0(ghostcell*);
+    double sed_plin(slice&, lexer*, int, int, int, int);
+    vector<vector<double>> sedr;
     void ini_patch_old(int, vector<reefamr_patch*>&);
     void ini_patch_prolong(int);
     void ini_block(sflow_amr_patch&, int, int, const double*);

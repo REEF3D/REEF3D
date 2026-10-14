@@ -84,6 +84,7 @@ void sediment_f::ini_cfd(lexer *p, fdm *a,ghostcell *pgc)
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
+    if(amrgrid==0)
     log_ini(p);
 }
 
@@ -114,6 +115,7 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
+    if(amrgrid==0)
     log_ini(p);
     
     pslope->slope_cds(p,pgc,s);
@@ -147,6 +149,7 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     
     ini_parameters(p,pgc);
     ini_guard(p,pgc);
+    if(amrgrid==0)
     log_ini(p);
 }
 

@@ -170,7 +170,7 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     ptopo = new sediment_exner(p,pgc);
     
     // Exner formulations that do not conserve the bed volume
-    if(p->mpirank==0)
+    if(p->mpirank==0 && amrgrid==0)
     {
         if(p->S31==3)
         cout<<"WARNING S 31 3: advective Exner form sign(u)*dqb/dx, not conservative where the transport direction turns; use S 31 1 or 2"<<endl;
@@ -266,6 +266,9 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     volume_token=0;
     
     
+    // the grids of the mesh refinement and the blocks: no probes (level 0 writes them)
+    if(amrgrid==0)
+    {
     if(p->P121>0)
 	pbedpt = new bedprobe_point(p,pgc,s);
 
@@ -283,6 +286,7 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 
 	if(p->P126>0)
 	pbedshearmax = new bedshear_max(p,pgc);
+    }
     
     pks = new sediment_roughness(p);
     

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_curv.h"
+#include"sediment_curv.h"
 #include"sflow_curv.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -49,7 +50,6 @@ void nhflow_curv::check(lexer *p)
     refuse((p->G1>0 || p->geo_mb>0) && p->P18>0, "the LAGOON output of the mesh refinement (P 18)");
     refuse(p->X10>0, "6DOF bodies (X 10)");
     refuse(p->X330>0, "membranes (X 330)");
-    refuse(p->S10>0, "sediment transport (S 10)");
     refuse(p->Z30>0, "FEM structures (Z 30)");
     refuse(p->A580>0 || p->A599>0 || p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0
            || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0, "immersed solids (A 580-599)");
@@ -60,6 +60,8 @@ void nhflow_curv::check(lexer *p)
     refuse((p->B99==1 || p->B99==2) && p->B96_2>0.0 && p->B107==0, "the beach zone of B 96 (an x range of the box): give it by B 107 in physical coordinates");
     refuse(p->B97==1, "the relaxation to the inflow current in the numerical beach (B 97 1)");
     refuse(p->B98>=3 && fabs(p->W10)>0.0, "Dirichlet or active wave generation (B 98 3, 4) on a current (W 10)");
+
+    sediment_curv::check(p);
 
     if(bad>0)
     exit(1);

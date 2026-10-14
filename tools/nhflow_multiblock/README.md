@@ -23,7 +23,7 @@ friction, `F 72` boxes in physical coordinates, several ranks; in- and outflow, 
 wave generation and absorption on the faces of block 0; the potential flow initialisation (`I 11`) as
 one solve over the blocks; mesh refinement (`G 1`) inside the blocks and across their interfaces (static
 boxes `G 10`, `G 11`, regridding `G 2` with the surface flags `G 20`, `G 21`, vertical refinement
-`G 6 1`, wetting and drying in the patches `G 30 1`, placement `G 40 1`).  Refused with a message:
+`G 6 1`, wetting and drying in the patches `G 30 1`, placement `G 40 1`).  Sediment transport (`S 10 1`, bed load and the sand slide, phase P5a): `../sediment_curvilinear/README.md`.  Refused with a message:
 subcycling (`G 7 1`), floating bodies (`X 10`), turbulence (`A 560`, not in the mesh refinement
 either), breaking (`A 550`).  Output: the native grid (block 0 with its ring) as before, the blocks
 1.. and the patches in the AMR output (`REEF3D_NHFLOW_AMR`, `.vts`, level 0 for the blocks); the AMR

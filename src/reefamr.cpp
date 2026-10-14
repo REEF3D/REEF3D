@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"geo_mesh.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"slice.h"
 #include"mgcslice1.h"
 #include"mgcslice2.h"
 #include"mgcslice4.h"
@@ -1032,6 +1033,42 @@ void reefamr::xsetup(vector<vector<int>> &req, vector<vector<int>> &srv, int K)
 
     for(int r=0; r<np; ++r)
     srv[r].assign(rb.begin()+rd[r],rb.begin()+rd[r]+rc[r]);
+}
+
+void reefamr::xrun_rev(reefamr_xplan &X, int nv, int tag)
+{
+    vector<MPI_Request> rq;
+    X.sbuf.resize(X.speer.size());
+
+    for(size_t k=0; k<X.speer.size(); ++k)
+    {
+        X.sbuf[k].resize(X.sitem[k].size()*nv);
+        if(!X.sbuf[k].empty())
+        {
+            rq.push_back(MPI_REQUEST_NULL);
+            MPI_Irecv(&X.sbuf[k][0],(int)X.sbuf[k].size(),MPI_DOUBLE,X.speer[k],tag,MPI_COMM_WORLD,&rq.back());
+        }
+    }
+
+    for(size_t k=0; k<X.rpeer.size(); ++k)
+    if(!X.rbuf[k].empty())
+    {
+        rq.push_back(MPI_REQUEST_NULL);
+        MPI_Isend(&X.rbuf[k][0],(int)X.rbuf[k].size(),MPI_DOUBLE,X.rpeer[k],tag,MPI_COMM_WORLD,&rq.back());
+    }
+
+    if(!rq.empty())
+    MPI_Waitall((int)rq.size(),&rq[0],MPI_STATUSES_IGNORE);
+}
+
+void reefamr::native_gc4(slice &f)
+{
+    pgc0->gcsl_start4(p0,f,1);
+}
+
+void reefamr::native_fh(slice &f)
+{
+    pgc0->gcslparax_fh(p0,f,4);
 }
 
 void reefamr::xrun(reefamr_xplan &X, int nv, int tag)

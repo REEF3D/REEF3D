@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedload_EH.h"
+#include"sediment_curv.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -40,6 +41,13 @@ bedload_EH::~bedload_EH()
 
 void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    start_curv(p,pgc,s);
+    return;
+    }
+
     // Engelund-Hansen (1967), total load:  Phi = 0.1*theta^2.5/f,  f = 2*u*^2/V^2
     // SFLOW: P,Q are depth-averaged -> f from u* and V directly
     // CFD/NHFLOW: P,Q are near-bed -> f from Engelund's resistance law V/u* = 6 + 2.5 ln(h/ks)
@@ -61,6 +69,63 @@ void bedload_EH::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         {
         uvel = 0.5*(s->P(i,j)+s->P(i-1,j));
         vvel = 0.5*(s->Q(i,j)+s->Q(i,j-1));
+        u_abs = sqrt(uvel*uvel + vvel*vvel);
+        ustar = s->shearvel_eff(i,j);
+
+        if(u_abs>1.0e-10)
+        fc = 2.0*(ustar*ustar)/(u_abs*u_abs);
+        }
+
+        if(p->A10!=2)
+        {
+        h  = s->waterlevel(i,j);
+        ks = s->ks_eff(i,j);
+
+        if(h>ks && ks>1.0e-20)
+        fc = 2.0/pow(6.0 + 2.5*log(h/ks),2.0);
+        }
+
+        qb=0.0;
+
+        if(s->active(i,j)==1 && Tb>=Ts && fc>1.0e-10)
+        qb = (0.1/fc)*pow(Tb,2.5)*sqrt(Rstar*g*d50*d50*d50);
+
+        s->qbe(i,j) = qb;
+	}
+
+    pgc->gcsl_start4(p,s->qbe,1);
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void bedload_EH::start_curv(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{
+    // Engelund-Hansen (1967), total load:  Phi = 0.1*theta^2.5/f,  f = 2*u*^2/V^2
+    // SFLOW: P,Q are depth-averaged -> f from u* and V directly
+    // CFD/NHFLOW: P,Q are near-bed -> f from Engelund's resistance law V/u* = 6 + 2.5 ln(h/ks)
+	double qb,Ts,Tb,Rstar,fc,h,ks,uvel,vvel,u_abs,ustar;
+
+    d50 = s->dk;
+
+	SEDSLICELOOP
+    {
+        rhowat = p->W1;      // water density (s->ro is the density at the bed cell, air in dry CFD cells)
+        Rstar = (rhosed-rhowat)/rhowat;
+
+        Ts = s->shields_crit(i,j);
+        Tb = s->shields_eff(i,j);
+
+        fc = 0.0;
+
+        if(p->A10==2)
+        {
+        if(p->geo_curv==1)
+        sediment_curv::cellvel(p,s,i,j,uvel,vvel);
+        else
+        {
+        uvel = 0.5*(s->P(i,j)+s->P(i-1,j));
+        vvel = 0.5*(s->Q(i,j)+s->Q(i,j-1));
+        }
         u_abs = sqrt(uvel*uvel + vvel*vvel);
         ustar = s->shearvel_eff(i,j);
 

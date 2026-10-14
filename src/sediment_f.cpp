@@ -57,8 +57,47 @@ sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_inte
     psed = this;
 }
 
+sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC, int amr) : amrgrid(amr)
+{
+    pBC = ppBC;
+
+    sediment_logic(p,pgc,pturb);
+
+    volume_token=0;
+
+    if(p->F50==1)
+	gcval_eta = 51;
+
+    if(p->F50==2)
+	gcval_eta = 52;
+
+    if(p->F50==3)
+	gcval_eta = 53;
+
+    if(p->F50==4)
+	gcval_eta = 54;
+
+    psed = this;
+}
+
 sediment_f::~sediment_f()
 {
+    // the grids of the mesh refinement come and go with the regrids (the level-0 object lives for the run)
+    delete pbed;
+    delete pcbed;
+    delete pslide;
+    delete prelax;
+    delete pvrans;
+    delete pslope;
+    delete preduce;
+    delete ptopo;
+    delete pnhfsusp;
+    delete pnhfsuspdisc;
+    delete pnhfsuspdiff;
+    delete pbedshear;
+    delete pbeddir;
+    delete pks;
+    delete s;
 }
 
 void sediment_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)

@@ -64,6 +64,7 @@
         <File Name="amr_grid_lookup.h"/>
       </VirtualDirectory>
       <File Name="reefamr.h"/>
+      <File Name="reefamr_sed.h"/>
       <File Name="reefamr_krylov.h"/>
       <File Name="reefamr3d.h"/>
     </VirtualDirectory>
@@ -927,6 +928,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
           <File Name="sediment_exner.h"/>
+          <File Name="sediment_curv.h"/>
+          <File Name="sediment_xfilter.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds_hj.h"/>
             <File Name="sediment_exnerdisc.h"/>
@@ -1301,6 +1304,7 @@
         <File Name="sflow_amr_linesolve.cpp"/>
         <File Name="sflow_amr_bous.cpp"/>
         <File Name="sflow_amr.cpp"/>
+        <File Name="sflow_amr_sed.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <File Name="fnpf_6DOF_sub.cpp"/>
@@ -1316,6 +1320,7 @@
         <File Name="nhflow_amr_diff.cpp"/>
         <File Name="nhflow_amr_sub.cpp"/>
         <File Name="nhflow_amr.cpp"/>
+        <File Name="nhflow_amr_sed.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
@@ -2531,6 +2536,11 @@
           <File Name="sediment_exner_topovel.cpp"/>
           <File Name="sediment_exner_timestep.cpp"/>
           <File Name="sediment_exner.cpp"/>
+          <File Name="sediment_exner_curv.cpp"/>
+          <File Name="sediment_exner_amr.cpp"/>
+          <File Name="sediment_amr.cpp"/>
+          <File Name="sediment_curv.cpp"/>
+          <File Name="sediment_xfilter.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds_hj.cpp"/>
             <File Name="sediment_cds.cpp"/>

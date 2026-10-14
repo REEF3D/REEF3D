@@ -30,6 +30,12 @@ Author: Hans Bihs
 
 void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
+    if(p->geo_curv==1)
+    {
+    topovel_curv(p,pgc,s,1);
+    return;
+    }
+    
 	double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;
@@ -85,6 +91,12 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
 
 void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
+    if(p->geo_curv==1)
+    {
+    topovel_curv(p,pgc,s,2);
+    return;
+    }
+    
 	double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
     double sgx1,sgx2,sgy1,sgy2;

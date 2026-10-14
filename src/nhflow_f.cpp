@@ -148,12 +148,11 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     
     pgc->start5Vfull(p,d->POR,1);
 
-    // G 52 1 (multi-block grids): the columns of the partition halo (cells of the neighbour ranks, not the
-    // ghost cells beyond the domain) below the bed and above the surface as start5Vfull sets them for
-    // the own columns (the exchange covers the fluid layers only; the Poisson rows next to a partition
-    // edge read POR below the bed of the neighbour column, cN ... of nhflow_poisson), so that a block
-    // split over ranks along i or j acts as one rank
-    if(p->G52==1)
+    // the columns of the partition halo (cells of the neighbour ranks, not the ghost cells beyond the
+    // domain) below the bed and above the surface as start5Vfull sets them for the own columns: the
+    // exchange covers the fluid layers only, and the Poisson rows of the bottom layer next to a partition
+    // edge read POR below the bed of the neighbour column (cN ... of nhflow_poisson), which stayed 0
+    // (coefficient 0 instead of 1): the result depended on the rank layout
     for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     {
