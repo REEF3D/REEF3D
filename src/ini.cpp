@@ -498,6 +498,7 @@ void control::ini_default()
     B201_beta=0.0;      // double porosity beta
     B202=0;             // int number of porous layers (NHFLOW), counted from the structure surface inwards
     B203=1;             // int VRANS surface: 1 faces resting on the bed do not define the porous interface / layer depth, 0 all faces
+    B204=1;             // int NHFLOW VRANS drag: 0 explicit, 1 point-implicit with the stage update
     B210=0;      // int solid box
     B212=0;      // int solid cylinder y
     B213=0;      // int solid cylinder z
