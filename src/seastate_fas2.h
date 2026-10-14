@@ -33,6 +33,7 @@ class seastate_store;
 class seastate_implicit;
 class seastate_exchange;
 class seastate_source;
+class seastate_obstacle;
 class slice;
 class slice4;
 
@@ -85,8 +86,14 @@ grids together.
 Nonstationary: the time term of the step (N0 restricted), corrections
 within the step but not after its last iteration.
 
-Not with diffraction (A 718), obstacles and coasts (A 722, A 723),
-vegetation (A 754), the surfbeat model (A 770) or a coupled host.
+Obstacles, structures and reflecting coasts (A 722, A 723, A 725; Phase 15):
+every coarse grid has its own faces, built from the obstacle segments
+and its own land cells as on a refinement patch (seastate_obstacle::
+build), with the coefficients of its own spectra (update); no correction
+under a coarse cell with a blocked face of the finer grid between its
+children (the coarse staircase of a line runs elsewhere than the fine one).
+Not with diffraction (A 718), vegetation (A 754), the surfbeat model
+(A 770) or a coupled host.
 --------------------------------------------------------------------*/
 
 class seastate_fas2 : public increment
@@ -98,7 +105,7 @@ public:
     // more than one cell and depth < maxdepth
     seastate_fas2(lexer*, ghostcell*, fdm_seastate*, seastate_implicit*, seastate_exchange*, seastate_source*,
                   const vector<float> *const Nside[4], slice *wU, slice *wD, int depth = 1, int maxdepth = 6,
-                  const vector<char> *fine_coast = nullptr);
+                  const vector<char> *fine_coast = nullptr, const seastate_obstacle *fine_obs = nullptr);
     virtual ~seastate_fas2();
 
     // one correction; N0 the spectra of the start of the step (nonstationary) or nullptr
@@ -113,7 +120,7 @@ public:
 
 private:
     void build_lexer(lexer*, ghostcell*);
-    void build_fields(lexer*, const vector<char> *fine_coast);
+    void build_fields(lexer*, const vector<char> *fine_coast, const seastate_obstacle *fine_obs);
     void forcing();
     int child0(int I, int n, int nc) const;     // first fine index under coarse index I (n fine, nc coarse cells)
     int children(int I, int n, int nc, int c[2]) const;
@@ -133,6 +140,7 @@ private:
     int ci0, cj0, cgx, cgy;                     // global index of the coarse cell (0,0) and the coarse domain (boundary tests)
     long ncoarse_wet = 0;
     seastate_fas2 *child = nullptr;             // the next coarser grid (FAS V-cycle)
+    seastate_obstacle *cobs = nullptr;          // Phase 15: the faces of the coarse grid (obstacles, coasts), nullptr: none
     int depth;
     double change = 0.0;
     int gcount[4] = {0,0,0,0};

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_fas2.h"
+#include"seastate_obstacle.h"
 #include"seastate_implicit.h"
 #include"seastate_exchange.h"
 #include"seastate_store.h"
@@ -36,7 +37,7 @@ Architect: Hans Bihs
 
 seastate_fas2::seastate_fas2(lexer *p, ghostcell *pgc, fdm_seastate *e, seastate_implicit *fs, seastate_exchange *fx, seastate_source *s,
                              const vector<float> *const Nside[4], slice *wU, slice *wD, int depth_, int maxdepth,
-                             const vector<char> *fine_coast)
+                             const vector<char> *fine_coast, const seastate_obstacle *fine_obs)
               : p0(p), pc(nullptr), ef(e), ec(nullptr), fsolv(fs), csolv(nullptr), fex(fx), cex(nullptr), src(s), wUf(wU), wDf(wD), depth(depth_)
 {
     nbin = e->grid->nbin;
@@ -48,7 +49,7 @@ seastate_fas2::seastate_fas2(lexer *p, ghostcell *pgc, fdm_seastate *e, seastate
     Nsf[k] = (Nside!=nullptr) ? Nside[k] : nullptr;
 
     build_lexer(p,pgc);
-    build_fields(p,fine_coast);
+    build_fields(p,fine_coast,fine_obs);
 
     csolv = new seastate_implicit(pc,ec);
     csolv->sources(src);
@@ -77,6 +78,14 @@ seastate_fas2::seastate_fas2(lexer *p, ghostcell *pgc, fdm_seastate *e, seastate
 
     cex = new seastate_exchange(pc,nbin,1);
 
+    // Phase 15: obstacles and coasts (A 722, A 723, A 725) on the coarse grid, its own faces as on a refinement patch
+    if(fine_obs!=nullptr && fine_obs->active())
+    {
+    cobs = new seastate_obstacle(*fine_obs);
+    cobs->build(pc,ec,ci0,cj0,cgx,cgy);
+    csolv->obstacles(cobs);
+    }
+
     forcing();
 
     long nw = 0;
@@ -91,13 +100,14 @@ seastate_fas2::seastate_fas2(lexer *p, ghostcell *pgc, fdm_seastate *e, seastate
         if(pgc->globalmin(more)>0.5)
         {
         const vector<float> *sc[4] = {&Nsc[0],&Nsc[1],&Nsc[2],&Nsc[3]};
-        child = new seastate_fas2(pc,pgc,ec,csolv,cex,src,sides ? sc : nullptr,wUc,wDc,depth+1,maxdepth,&coast);
+        child = new seastate_fas2(pc,pgc,ec,csolv,cex,src,sides ? sc : nullptr,wUc,wDc,depth+1,maxdepth,&coast,cobs);
         }
 }
 
 seastate_fas2::~seastate_fas2()
 {
     delete child;
+    delete cobs;
     delete csolv;
     delete cex;
     delete Nt;
@@ -350,7 +360,7 @@ void seastate_fas2::build_lexer(lexer *p, ghostcell *pgc)
     pc->count = p->count;
 }
 
-void seastate_fas2::build_fields(lexer *p, const vector<char> *fine_coast)
+void seastate_fas2::build_fields(lexer *p, const vector<char> *fine_coast, const seastate_obstacle *fine_obs)
 {
     ec = new fdm_seastate(pc);
     ec->grid = ef->grid;
@@ -413,6 +423,19 @@ void seastate_fas2::build_fields(lexer *p, const vector<char> *fine_coast)
         for(int c=0; c<nb; ++c)
         if(ef->wet(ci[a],cj[c])!=1 || (fine_coast!=nullptr && (*fine_coast)[size_t(ci[a])*p->knoy+cj[c]]))
         coast[size_t(I)*ky+J] = 1;
+
+        // Phase 15: a blocked face of the finer grid between the children (obstacle, structure)
+        if(fine_obs!=nullptr && fine_obs->active())
+        {
+        if(na==2)
+        for(int c=0; c<nb; ++c)
+        if(fine_obs->east(ci[0],cj[c])!=nullptr)
+        coast[size_t(I)*ky+J] = 1;
+        if(nb==2)
+        for(int a=0; a<na; ++a)
+        if(fine_obs->north(ci[a],cj[0])!=nullptr)
+        coast[size_t(I)*ky+J] = 1;
+        }
     }
 }
 
@@ -516,6 +539,10 @@ void seastate_fas2::correct(lexer *p, ghostcell *pgc, const seastate_store *N0, 
     ec->N->copy_from(*Nt);
     cex->start(pc,pgc,*ec->N);
 
+    // Phase 15: the coefficients of the coarse faces (Goda, d'Angremond, porous) from the restricted spectra
+    if(cobs!=nullptr)
+    cobs->update(pc,ec);
+
     // 3: the residual of the coarse problem at the restricted spectra added: tau = r_c(N_t) - R r
     csolv->residual_add(Tc,0);
         for(int q=0; q<4; ++q)
@@ -534,7 +561,7 @@ void seastate_fas2::correct(lexer *p, ghostcell *pgc, const seastate_store *N0, 
         }
     };
 
-    csolv->fas_source(Tc,Nt);
+    csolv->fas_source(Tc,Nt,p0->A795>0.0);
         if(child!=nullptr)
         {
         const int pre = std::max(ncoarse/2,1);

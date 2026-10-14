@@ -1534,7 +1534,7 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
     }
 
     // 4: the coarse problem, m iterations on the whole level 0
-    L0.solv->fas_source(fasT,fasN);
+    L0.solv->fas_source(fasT,fasN,p->A795>0.0);
     for(int it=0; it<ncoarse; ++it)
     for(int q=0; q<4; ++q)
     {

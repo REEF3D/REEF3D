@@ -703,6 +703,7 @@ void seastate_implicit::copy_config(const seastate_implicit &o)
     rshift = o.rshift;
     ftau = o.ftau;
     ftil = o.ftil;
+    fhold = o.fhold;
     nsrcit = o.nsrcit;
     srctol = o.srctol;
     vis = o.vis;
@@ -1369,7 +1370,10 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     }
 
     // FAS coarse-grid correction (A 758): the source -tau of the coarse cell, its loss part proportional to
-    // N (exact at the restricted spectrum, where the coarse problem starts)
+    // N (exact at the restricted spectrum, where the coarse problem starts); Phase 15, with the spectral sparsity
+    // (A 795) of the finer grid: a bin that is zero in all children is held at zero. The finer grid keeps the bins
+    // below its threshold empty; filled on the coarse grid (wind input, DIA) they changed the coarse spectra at the
+    // converged fine solution, the corrections did not vanish and grew after about 100 iterations
     if(ftau!=nullptr)
     {
     const float *T = ftau->spec(ic,jc), *Nt = (ftil!=nullptr) ? ftil->spec(ic,jc) : nullptr;
@@ -1385,7 +1389,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         {
         const int b = g.bin(l,ma+n);
         const double s = -double(T[b]);
-            if(s>0.0)
+            if(fhold && !(Nt[b]>0.0f))
+            D[b] += 1.0e20;
+            else if(s>0.0)
             P[b] += s;
             else if(s<0.0 && Nt[b]>1.0e-30f)
             D[b] -= s/double(Nt[b]);
@@ -1796,6 +1802,10 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
                 if(Nlm!=nullptr) r += tsi[o+n]*double(Nlm[n]);
                 if(n>na) r -= tla[o+n]*double(Nl[n-1]);
                 if(n<nb) r -= tup[o+n]*double(Nl[n+1]);
+                // Phase 15: with the spectral sparsity a zero bin is inactive (below the threshold, set to zero by
+                // the sweep), its equation does not hold at the converged solution: no residual
+                if(sparse && !(Nl[n]>0.0f))
+                r = 0.0;
                 if(raccum)
                 R[g.bin(l,ma+n)] += float(r);
                 else

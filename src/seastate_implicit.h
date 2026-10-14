@@ -254,7 +254,8 @@ public:
     // ... added into the cell (i >> s, j >> s) of R instead (Phase 12, the FAS of a uniform grid: the sum over the
     // children of a coarse cell; s > 0 without threads); nullptr: off
     void residual_add(seastate_store *R, int s) {rout = R; raccum = (R!=nullptr); rshift = s;}
-    void fas_source(const seastate_store *tau, const seastate_store *Nt) {ftau = tau; ftil = Nt;}
+    // hold_zero (Phase 15, with the spectral sparsity A 795 of the finer grid): the bins that are zero in N_t are held at zero
+    void fas_source(const seastate_store *tau, const seastate_store *Nt, bool hold_zero=false) {ftau = tau; ftil = Nt; fhold = hold_zero;}
     void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
 
     // threads per rank (A 798): the tiles of a quadrant sweep, a tile once its two upwind tiles are solved (Phase 13;
@@ -358,6 +359,7 @@ private:
     bool raccum = false;                // residual_add
     int rshift = 0;
     const seastate_store *ftau = nullptr, *ftil = nullptr;
+    bool fhold = false;
     int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
     double srctol = 0.0;                // ... until the relative energy change of the cell is below this
     vector<int> wlo, whi;               // window of directions solved per frequency (quadrant index)
