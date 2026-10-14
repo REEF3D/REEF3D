@@ -340,11 +340,22 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
         }
 
 
-        for(n=0;n<wNs;++n)
-        dw[n] = (wp-ws)/double(wNs);
+        // the peak outside the frequency range (B 87 range below or above wp): wNs or wNe
+        // would leave 0 .. wN; equal spacing over ws .. we instead (before, dw was written
+        // past its end)
+        if(!(wp>ws && wp<we) || wNs<1 || wNe<1)
+        {
+            for(n=0;n<p->wN;++n)
+            dw[n] = (we-ws)/double(p->wN);
+        }
+        else
+        {
+            for(n=0;n<wNs;++n)
+            dw[n] = (wp-ws)/double(wNs);
 
-        for(n=wNs;n<p->wN;++n)
-        dw[n] = (we-wp)/double(wNe);
+            for(n=wNs;n<p->wN;++n)
+            dw[n] = (we-wp)/double(wNe);
+        }
 
         if(p->mpirank==0)
         cout<<"wNs: "<<wNs<<"  wNe: "<<wNe<<"  p->wN "<<p->wN<<endl;
