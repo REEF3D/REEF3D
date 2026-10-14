@@ -115,6 +115,11 @@ zero. The first-order path (cell) is unchanged.
 Directions: periodic (full circle); with a computational sector (A 717,
 Phase 10) the quadrant ranges m0..m1 hold only the active directions
 (a quadrant without any is skipped), the directions outside hold zero.
+Compact computational sector (A 717 on uniform directions, Phase 12):
+the grid holds only the directions of the sector (seastate_grid::
+compact_sector); the theta fluxes beyond its ends carry no inflow
+(prev/next of the grid), the faces m - 1/2 are the lower faces of the
+grid.
 Source iterations (A 738, Phase 7b; fixed in Phase 10): the action
 density limiter bounds the change from the spectrum of the cell before
 its first solve; a cell that does not contract keeps its first solve.

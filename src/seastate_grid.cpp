@@ -121,6 +121,7 @@ void seastate_grid::directions()
     dth.assign(ndir,dtheta);
     wth.assign(ndir,1.0);
     act.assign(ndir,1);
+    lower_faces();
 }
 
 void seastate_grid::sector(double th1, double th2, int k)
@@ -200,6 +201,7 @@ void seastate_grid::sector(double th1, double th2, int k)
     }
 
     act.assign(ndir,1);
+    lower_faces();
 }
 
 bool seastate_grid::computational_sector(double th1, double th2)
@@ -235,6 +237,67 @@ bool seastate_grid::computational_sector(double th1, double th2)
     return true;
 }
 
+// lower face of every direction: the upper face of the previous one (periodic), Phase 12
+void seastate_grid::lower_faces()
+{
+    costhl.resize(ndir);
+    sinthl.resize(ndir);
+    for(int m=0; m<ndir; ++m)
+    {
+    const int mm = (m-1+ndir)%ndir;
+    costhl[m] = costhf[mm];
+    sinthl[m] = sinthf[mm];
+    }
+}
+
+// Phase 12: the computational sector (A 717) as a grid of its own directions only, so that the spectra hold only the
+// computed directions. The directions run from the first one of the sector counter-clockwise (theta may exceed
+// 2 pi), are not periodic (the ends of the sector absorb), the faces and quadrants as on the full circle.
+bool seastate_grid::compact_sector(double th1, double th2)
+{
+    if(!uniform || !computational_sector(th1,th2))
+    return false;
+
+    const int n = ndir;
+    int s = -1;
+    for(int m=0; m<n; ++m)
+    if(act[m] && !act[(m-1+n)%n])
+    s = m;
+    if(s<0)
+    return false;           // all directions active: nothing to compact
+
+    int na = 0;
+    while(na<n && act[(s+na)%n])
+    ++na;
+
+    const double pi = 3.14159265358979323846;
+    std::vector<double> th(na), c(na), sn(na), cf(na), sf(na), cl(na), sl(na);
+    std::vector<int> qd(na);
+    for(int k=0; k<na; ++k)
+    {
+    const int m = (s+k)%n;
+    th[k] = theta[m] + ((s+k)>=n ? 2.0*pi : 0.0);
+    c[k]  = costh[m];
+    sn[k] = sinth[m];
+    cf[k] = costhf[m];
+    sf[k] = sinthf[m];
+    cl[k] = costhl[m];
+    sl[k] = sinthl[m];
+    qd[k] = quad[m];
+    }
+
+    theta0 = theta[s];
+    ndir = na;
+    nbin = nsig*ndir;
+    theta = th; costh = c; sinth = sn; costhf = cf; sinthf = sf; costhl = cl; sinthl = sl; quad = qd;
+    dth.assign(ndir,dtheta);
+    wth.assign(ndir,1.0);
+    act.assign(ndir,1);
+    periodic = false;
+    compact = true;
+    return true;
+}
+
 int seastate_grid::active() const
 {
     int n=0;
@@ -251,8 +314,20 @@ int seastate_grid::direction_bin(double th) const
     if(t<0.0)
     t += 2.0*pi;
 
-    if(uniform)
+    if(uniform && periodic)
     return int(std::lround(t/dtheta))%ndir;
+
+    // compact sector (A 717): the nearest direction of the sector
+    if(uniform)
+    {
+    double d = std::fmod(t-theta0,2.0*pi);
+    if(d<0.0)
+    d += 2.0*pi;
+    const int m = int(std::lround(d/dtheta));
+    if(m<ndir)
+    return m;
+    return (d-double(ndir-1)*dtheta < 2.0*pi-d) ? ndir-1 : 0;
+    }
 
     // the bin whose faces enclose t (upper face of bin m: theta_m + dth_m/2)
     for(int m=0; m<ndir; ++m)

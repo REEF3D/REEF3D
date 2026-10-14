@@ -138,6 +138,24 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
             sum += D[m]*g.dth[m];
             }
 
+            // compact computational sector (A 717, Phase 12): normalised over the full circle as well, the
+            // directions beyond the sector (theta0 + m dtheta, m >= ndir) added
+            if(g.compact)
+            {
+            const int nfull = int(std::lround(2.0*pi/g.dtheta));
+                for(int m=g.ndir; m<nfull; ++m)
+                {
+                double beta = g.theta0 + double(m)*g.dtheta;
+                while(beta-main>pi)
+                beta -= 2.0*pi;
+                while(beta-main<-pi)
+                beta += 2.0*pi;
+                const double d = spec.spreading_function(p,beta,g.sig[l]);
+                if(d>0.0)
+                sum += d*g.dtheta;
+                }
+            }
+
         p->B131 = b131;
         }
 
@@ -147,6 +165,17 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
         std::fill(D.begin(),D.end(),0.0);
         D[mmain] = 1.0;
         sum = g.dth[mmain];
+
+            // compact computational sector (A 717): no energy if the main direction lies outside the sector
+            if(g.compact)
+            {
+            double d = std::fmod(mw-g.theta0,2.0*pi);
+            if(d<0.0)
+            d += 2.0*pi;
+            const int nfull = int(std::lround(2.0*pi/g.dtheta));
+            if(int(std::lround(d/g.dtheta))%nfull>=g.ndir)
+            D[mmain] = 0.0;
+            }
         }
 
         // normalised over the full circle; with a computational sector (A 717) the directions outside hold

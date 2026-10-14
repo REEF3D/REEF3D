@@ -581,7 +581,10 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
         // computational direction sector (A 717)
         if(p->A717==1 && e->grid->valid())
         {
-            if(!e->grid->computational_sector(p->A717_th1*3.14159265358979323846/180.0,p->A717_th2*3.14159265358979323846/180.0) || e->grid->active()==0)
+            const double t1 = p->A717_th1*3.14159265358979323846/180.0, t2 = p->A717_th2*3.14159265358979323846/180.0;
+            const int nfull = e->grid->ndir;
+
+            if(!e->grid->computational_sector(t1,t2) || e->grid->active()==0)
             {
             if(p->mpirank==0)
             cout<<endl<<"SEASTATE input error  --  A 717: the computational sector must hold at least one direction and be at most 270 deg wide"<<endl<<endl;
@@ -589,8 +592,12 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
             pgc->final(true);
             }
 
+            // Phase 12: on uniform directions the spectra hold only the directions of the sector
+            const bool compact = e->grid->compact_sector(t1,t2);
+
             if(p->mpirank==0)
-            cout<<"SEASTATE computational direction sector (A 717): "<<p->A717_th1<<" to "<<p->A717_th2<<" deg (ccw), "<<e->grid->active()<<" of "<<e->grid->ndir<<" directions computed"<<endl;
+            cout<<"SEASTATE computational direction sector (A 717): "<<p->A717_th1<<" to "<<p->A717_th2<<" deg (ccw), "<<e->grid->active()<<" of "<<nfull<<" directions computed"
+                <<(compact ? " and stored" : "")<<endl;
         }
     }
 

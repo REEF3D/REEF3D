@@ -138,7 +138,9 @@ int seastate_obstacle::weights(double pown)
     const int ndir = g->ndir;
     std::vector<double> w(1,1.0);
 
-    for(int k=1; k<=ndir/2; ++k)
+    // over the full circle (a compact computational sector, A 717, holds fewer directions)
+    const int nhalf = g->periodic ? ndir/2 : int(std::lround(3.14159265358979323846/g->dtheta));
+    for(int k=1; k<=nhalf; ++k)
     {
     const double c = std::cos(k*g->dtheta);
     const double v = (c>0.0) ? std::pow(c,pown) : 0.0;

@@ -254,7 +254,10 @@ void seastate_swan_spc::to_grid(const seastate_grid &g, std::vector<float> &N) c
 
         for(int m=0; m<g.ndir; ++m)
         {
-        const double th = g.theta[m]*180.0/pi;
+        // a compact computational sector (A 717) may hold directions beyond 2 pi
+        double th = std::fmod(g.theta[m]*180.0/pi,360.0);
+        if(th<0.0)
+        th += 360.0;
 
         // periodic bracket in direction
         size_t b = std::upper_bound(dir.begin(),dir.end(),th) - dir.begin();

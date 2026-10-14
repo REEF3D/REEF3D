@@ -57,6 +57,13 @@ REEF3D::SEASTATE - spectral (frequency-direction) grid
   from the angle. wth[m] = dth[m]/dtheta, exactly 1 on the uniform grid,
   so that the integrals sum N wth and multiply by dtheta in both cases
 
+  compact computational sector (A 717, compact_sector(), Phase 12): on
+  uniform directions only the directions of the sector form the grid,
+  theta_m = theta0 + m dtheta from its first direction on (beyond 2 pi
+  where the sector passes 0), not periodic (prev/next give -1 beyond the
+  ends), faces and quadrants those of the full circle; costhl, sinthl:
+  the lower faces of every direction
+
 No lexer or MPI dependency, so the class is unit-testable stand-alone.
 --------------------------------------------------------------------*/
 
@@ -78,6 +85,15 @@ public:
     bool computational_sector(double th1, double th2);
     int active() const;
 
+    // Phase 12: the computational sector (A 717) as a grid of its own directions only (uniform grids): the spectra hold
+    // only the computed directions; theta_m = theta0 + m dtheta, not periodic; false (grid unchanged except act) if the
+    // grid is not uniform or the sector holds all directions
+    bool compact_sector(double th1, double th2);
+
+    // neighbour directions (-1: none, the end of a compact sector)
+    int prev(int m) const {return m>0 ? m-1 : (periodic ? ndir-1 : -1);}
+    int next(int m) const {return m<ndir-1 ? m+1 : (periodic ? 0 : -1);}
+
     bool valid() const {return error.empty();}
     const std::string &message() const {return error;}
 
@@ -92,10 +108,15 @@ public:
     std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2)
     std::vector<double> dth, wth;               // bin widths, dth/dtheta (1 on the uniform grid)
     std::vector<char> act;                      // 1: direction m is computed (A 717), size ndir
+    std::vector<double> costhl, sinthl;         // lower faces theta_m - dth/2 (the upper face of the previous direction)
     bool uniform = true;
+    bool periodic = true;                       // false: compact computational sector (A 717), the ends absorb
+    bool compact = false;
+    double theta0 = 0.0;                        // direction of bin 0 (compact sector), else 0
 
 private:
     void directions();
+    void lower_faces();
     std::string error;
 };
 

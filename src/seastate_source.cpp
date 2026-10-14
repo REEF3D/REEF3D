@@ -652,11 +652,21 @@ void seastate_source::dia(const float *N, double depth)
             u[m] = ue(l-1,m)*fachfr;
         }
 
-        // periodic continuation of the directions
+        // periodic continuation of the directions; a compact sector (A 717, Phase 12) has none beyond its ends
+        if(g.periodic)
+        {
         for(int m=-2*dpad; m<0; ++m)
         u[m] = u[dw(m)];
         for(int m=ndir; m<ndir+2*dpad; ++m)
         u[m] = u[dw(m)];
+        }
+        else
+        {
+        for(int m=-2*dpad; m<0; ++m)
+        u[m] = 0.0;
+        for(int m=ndir; m<ndir+2*dpad; ++m)
+        u[m] = 0.0;
+        }
     }
 
     const double x = std::max(0.75*depth*km_wam,0.5);

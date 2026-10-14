@@ -954,9 +954,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         tAp[n] = tCp[n] = tAm[n] = tCm[n] = 0.0;
         else
         {
-        const int mm = (m-1+ndir)%ndir;
         const double sp = g.sinthf[m],  cp_ = g.costhf[m];
-        const double sm = g.sinthf[mm], cm  = g.costhf[mm];
+        const double sm = g.sinthl[m],  cm  = g.costhl[m];
 
         tAp[n] = sp*ddx - cp_*ddy;
         tCp[n] = sp*cp_*(dUdx-dVdy) + sp*sp*dVdx - cp_*cp_*dUdy;
@@ -982,9 +981,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
         for(int n=0; n<nq; ++n)
         {
-        const int m = ma+n, mm = (m-1+ndir)%ndir;
+        const int m = ma+n;
         dp[n] = A*tAp[n] + tCp[n] - ax*g.sinthf[m]  + ay*g.costhf[m];
-        dm[n] = A*tAm[n] + tCm[n] - ax*g.sinthf[mm] + ay*g.costhf[mm];
+        dm[n] = A*tAm[n] + tCm[n] - ax*g.sinthl[m]  + ay*g.costhl[m];
         }
     }
 
@@ -1130,8 +1129,11 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     // theta: outside the window (other quadrants, empty bins) with the latest values
     {
     const double ctm0 = dif ? cdm_[na] : A*tAm[na] + tCm[na], ctp1 = dif ? cdp_[nb] : A*tAp[nb] + tCp[nb];
-    rh_[na] += pos(ctm0)*rth[na]*double(N[g.bin(l,(ma+na-1+ndir)%ndir)]);
-    rh_[nb] -= neg(ctp1)*rth[nb]*double(N[g.bin(l,(ma+nb+1)%ndir)]);
+    const int mlo = g.prev(ma+na), mhi = g.next(ma+nb);       // -1: the end of a compact sector (no inflow)
+    if(mlo>=0)
+    rh_[na] += pos(ctm0)*rth[na]*double(N[g.bin(l,mlo)]);
+    if(mhi>=0)
+    rh_[nb] -= neg(ctp1)*rth[nb]*double(N[g.bin(l,mhi)]);
     la_[na] = 0.0;
     up_[nb] = 0.0;
     }
@@ -1149,6 +1151,19 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
             t = std::fmod(t,pi2);
             if(t<0.0)
             t += pi2;
+            // compact sector (A 717): directions from theta0 on, nothing outside the sector
+            if(!g.periodic)
+            {
+            double d = std::fmod(t-g.theta0,pi2);
+            if(d<0.0)
+            d += pi2;
+            const double x = d/g.dtheta;
+            if(x>double(ndir-1))
+            return 0.0;
+            const int a = std::min(int(x),ndir-2);
+            const double w = x-double(a);
+            return (1.0-w)*double(Nl0[a]) + w*double(Nl0[a+1]);
+            }
             const int b = int(std::upper_bound(g.theta.begin(),g.theta.end(),t) - g.theta.begin());
             const int m1 = (b==0) ? ndir-1 : b-1, m2 = (b==ndir) ? 0 : b;
             double d1 = g.theta[m1], d2 = g.theta[m2];
