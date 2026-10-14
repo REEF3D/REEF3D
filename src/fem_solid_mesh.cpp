@@ -321,8 +321,11 @@ void fem_solid::make_nodes_elements()
         elems.push_back(e);
     }
 
+    // stored integration points per element: 8 for full and adaptive integration
     ngp = full_int ? 8 : 1;
     gps.assign(elems.size()*ngp,gpstate());
+    for(element& e : elems)
+    e.full = (full_int==1);
 
     // node -> element connectivity (CSR)
     const int nn = (int)X.size();

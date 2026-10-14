@@ -286,11 +286,17 @@ void fem_solid::read(std::istream& is)
         {
             std::string type;
             need(static_cast<bool>(ls>>type));
+            // element adaptive [frac] | reduced [hg] | full
             if(type=="full") full_int = 1;
             else if(type=="reduced") full_int = 0;
-            else fail("element type must be 'full' or 'reduced'");
-            double hg;
-            if(ls>>hg) hg_coef = hg;
+            else if(type=="adaptive") full_int = 2;
+            else fail("element type must be 'adaptive', 'full' or 'reduced'");
+            double v;
+            if(ls>>v)
+            {
+                if(full_int==2) {need(v>0.0 && v<=1.0); adapt_frac = v;}
+                else hg_coef = v;
+            }
         }
         else if(kw=="cfl")           need(static_cast<bool>(ls>>cfl) && cfl>0.0 && cfl<=1.0);
         else if(kw=="threads")

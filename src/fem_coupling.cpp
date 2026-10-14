@@ -484,6 +484,8 @@ void fem_coupling::write_summary(lexer *p)
     else
     f<<"first element failure:   none\n";
     f<<"failed mass:             "<<100.0*ef<<" %,  debris particles "<<fs.debris().size()<<"\n";
+    if(fs.element_type()==2 && fs.n_full_elements()>0)
+    f<<"2x2x2 integration:       "<<fs.n_full_elements()<<" of "<<fs.n_deformable()<<" intact deformable elements (adaptive: near cracking or yield)\n";
     }
 
     // rigid bodies: floating and drifting debris

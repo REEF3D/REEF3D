@@ -128,6 +128,7 @@ public:
         int shape = -1;                 // input shape that created the element
         bool alive = true;
         bool rigid = false;             // part of a rigid body: no internal forces
+        bool full = false;              // 2x2x2 integration (element full, or switched by element adaptive)
         double svm = 0.0;               // von Mises (Cauchy) stress, averaged over the GPs
         double util = -1.0;             // utilisation (stress / strength), -1: elastic material
         double J = 1.0;
@@ -221,7 +222,12 @@ public:
     void add_box(double x0,double x1,double y0,double y1,double z0,double z1,int matid);
     void remove_box(double x0,double x1,double y0,double y1,double z0,double z1);
     void add_fix(double x0,double x1,double y0,double y1,double z0,double z1,bool fx,bool fy,bool fz);
+    // 0 reduced (one point + hourglass control), 1 full (2x2x2), 2 adaptive: one point while the
+    // element is far from its first nonlinearity (cracking, yield), 2x2x2 from then on
     void set_element_type(int full) {full_int = full;}
+    void set_adaptive_fraction(double f) {adapt_frac = f;}
+    int n_full_elements() const;                // intact elements with 2x2x2 integration
+    int element_type() const {return full_int;}
     void set_hourglass(double c) {hg_coef = c;}
     void set_cfl(double c) {cfl = c;}
     void set_damping(double a) {alpha_damp = a;}
@@ -359,7 +365,8 @@ public:
     void set_pos(int i,const Vec3& xx) {x[i] = xx;}
     const element& elem(int e) const {return elems[e];}
     const gpstate& gp(int e,int q) const {return gps[e*ngp+q];}
-    int  ngauss() const {return ngp;}
+    int  ngauss() const {return ngp;}           // integration points stored per element (1 or 8)
+    int  ngauss(int e) const {return elems[e].full ? 8 : 1;}   // integration points of element e
     const std::vector<face>& surface() const {return faces;}
     const std::vector<int>& debris() const {return orphan;}
     bool is_debris(int i) const {return nalive[i]==0;}
@@ -519,7 +526,8 @@ private:
     coupling_options copt;
 
     // options
-    int full_int = 0;
+    int full_int = 2;
+    double adapt_frac = 0.5;                    // adaptive: switch at this fraction of the first nonlinear strain
     double hg_coef = 0.1;
     double cfl = 0.5;
     double alpha_damp = 0.0;
