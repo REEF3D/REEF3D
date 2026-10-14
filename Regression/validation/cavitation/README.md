@@ -88,3 +88,13 @@ Local D/20 runs (12 s, window 7-12 s), no cavitation: the nose up to s/D = 0.5 a
 measurement; the suction peak is too weak, laminar Cp_min = -0.45 with reverse flow behind the
 shoulder to s/D ≈ 2, k-epsilon -0.49 at s/D = 0.63 with the separation to s/D ≈ 1.1. Ten cells
 over the nose radius are not enough for the direct-forcing body; D/40 on Betzy is the comparison.
+
+D/40 on Betzy (3.0 M cells, 128 ranks, 15 s, 2974 steps, rho_l/rho_v = 1000), sigma 0.5 case,
+window 10-15 s: p_ref = -15.5 Pa, so the actual sigma = 0.469. Cavity from s/D = 0.71 (just before
+the shoulder, as measured) with Cp = -0.469 = -sigma along it, alpha_v up to 0.88 at the wall,
+closure (Cp = -0.1) at s/D ≈ 1.40 with an overshoot +0.125 at 1.5; vapour volume 0.12 m³
+oscillating at about 0.2 Hz. Measured at K = 0.50: plateau -0.50 over s/d 0.66-0.92, closure
+≈ 1.15, no overshoot. The cavity is ~0.25 D longer; part of it is the lower sigma (the measured
+closure moves to ≈ 1.4 at K = 0.40). Nose: Cp(0.40) = +0.11 against -0.01 measured, the suction
+develops later. To hit sigma exactly, shift p_v by the upstream pressure of the run:
+W 61 = p_ref - sigma rho U²/2 (here -265.5 for 0.5).
