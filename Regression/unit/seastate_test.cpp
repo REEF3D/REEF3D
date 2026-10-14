@@ -2,7 +2,7 @@
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
 // structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp -o seastate_test
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
 #include"seastate_grid.h"
@@ -16,6 +16,7 @@
 #include"seastate_structure.h"
 #include<cstdio>
 #include<fstream>
+#include<algorithm>
 #include<cmath>
 #include<iostream>
 #include<string>
@@ -108,6 +109,27 @@ static void test_grid()
     check(lf,"lower faces = upper faces of the previous direction (full circle)");
     seastate_grid all(20,0.08,1.0,24);
     check(!all.compact_sector(0.0,2.0*pi-1.0e-12) || all.ndir==24,"a sector of all directions is not compacted");
+
+    // Phase 15: a quadrant that holds only a direction on an axis joins the neighbouring quadrant that sweeps the
+    // same way along the axis (270 -> 90: the direction 90 deg, alone in quadrant 1, joins quadrant 0)
+    const int mv = cs.merge_axis_quadrants();
+    int nq = 0;
+    for(int q=0; q<4; ++q)
+    if(std::count(cs.quad.begin(),cs.quad.end(),q)>0)
+    ++nq;
+    check(mv==1 && cs.quad[12]==0 && cs.quad[11]==0 && cs.quad[0]==3 && nq==2,"axis quadrant: 270 -> 90, the direction 90 deg joins quadrant 0, two sweeps");
+    seastate_grid tr(31,0.05,1.0,72);
+    tr.compact_sector(180.0*pi/180.0,360.0*pi/180.0);
+    const int mt = tr.merge_axis_quadrants();
+    nq = 0;
+    for(int q=0; q<4; ++q)
+    if(std::count(tr.quad.begin(),tr.quad.end(),q)>0)
+    ++nq;
+    check(mt==1 && tr.quad[tr.ndir-1]==3 && tr.quad[0]==2 && nq==2,"axis quadrant: 180 -> 360 (Trondheimsfjorden), the direction 0 deg joins quadrant 3, two sweeps");
+    seastate_grid ns(20,0.08,1.0,24);
+    ns.compact_sector(200.0*pi/180.0,340.0*pi/180.0);
+    check(ns.merge_axis_quadrants()==0,"axis quadrant: a sector without a direction on an axis is unchanged");
+    check(full.merge_axis_quadrants()==0,"axis quadrant: the full circle is unchanged");
     }
 }
 

@@ -638,44 +638,47 @@ void seastate_source::dia(const float *N, double depth)
     const int lhi = nsig - 1 - ism1 + isp1;     // last row of UE
     const int shi = nsig - 1 - ism1;            // last row of SA
 
-    for(int l=ism1; l<=lhi; ++l)
+    // rows and directions of SA needed by the transfers of the window
+    const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
+    const int m0 = wa-dpad, m1 = wb+dpad, nm = m1-m0+1;
+
+    // E for the rows and directions that these SA read (Phase 15: before, every row and direction of the spectrum in
+    // every call; the same values): rows l0+ism1 .. l1+isp1, directions m0-dpad .. m1+dpad, continued periodically or
+    // (compact sector, A 717) zero beyond the ends; above the grid the sig^-4 tail of the row below
+    const int ua = std::max(ism1,l0+ism1), ub = std::min(lhi,l1+isp1);
+    const int ma = std::max(m0-dpad,-2*dpad), mb = std::min(m1+dpad,ndir+2*dpad-1);
+    const bool per = g.periodic;
+
+    for(int l=ua; l<=ub; ++l)
     {
     double *u = &ue(l,0);
 
-        for(int m=0; m<ndir; ++m)
+        if(l<0)
         {
-            if(l<0)
-            u[m] = 0.0;
-            else if(l<nsig)
-            u[m] = 2.0*pi*g.sig[l]*double(N[g.bin(l,m)]);
-            else
-            u[m] = ue(l-1,m)*fachfr;
+        for(int m=ma; m<=mb; ++m)
+        u[m] = 0.0;
         }
-
-        // periodic continuation of the directions; a compact sector (A 717, Phase 12) has none beyond its ends
-        if(g.periodic)
+        else if(l<nsig)
         {
-        for(int m=-2*dpad; m<0; ++m)
-        u[m] = u[dw(m)];
-        for(int m=ndir; m<ndir+2*dpad; ++m)
-        u[m] = u[dw(m)];
+        const double tps = 2.0*pi*g.sig[l];
+        const float *Nl = N + g.bin(l,0);
+            for(int m=ma; m<=mb; ++m)
+            {
+            const int mm = per ? dw(m) : m;
+            u[m] = (mm>=0 && mm<ndir) ? tps*double(Nl[mm]) : 0.0;
+            }
         }
         else
         {
-        for(int m=-2*dpad; m<0; ++m)
-        u[m] = 0.0;
-        for(int m=ndir; m<ndir+2*dpad; ++m)
-        u[m] = 0.0;
+        const double *ul = &ue(l-1,0);
+        for(int m=ma; m<=mb; ++m)
+        u[m] = ul[m]*fachfr;
         }
     }
 
     const double x = std::max(0.75*depth*km_wam,0.5);
     const double cons = 1.0/(grav*grav*grav*grav)*(1.0 + dia_cs1/x*(1.0-dia_cs2*x)*std::exp(std::max(-1.0e15,dia_cs3*x)));
     const double C = dia_C;
-
-    // rows and directions of SA needed by the transfers of the window
-    const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
-    const int m0 = wa-dpad, m1 = wb+dpad, nm = m1-m0+1;
 
     for(int l=l0; l<=l1; ++l)
     {

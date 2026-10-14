@@ -619,9 +619,17 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
             // Phase 12: on uniform directions the spectra hold only the directions of the sector
             const bool compact = e->grid->compact_sector(t1,t2);
 
+            // Phase 15: a quadrant that holds only a direction on an axis (the end of the sector) is swept with its neighbour
+            const int merged = compact ? e->grid->merge_axis_quadrants() : 0;
+            int nsweep = 0;
+            for(int q=0; q<4; ++q)
+            if(std::count(e->grid->quad.begin(),e->grid->quad.end(),q)>0)
+            ++nsweep;
+
             if(p->mpirank==0)
             cout<<"SEASTATE computational direction sector (A 717): "<<p->A717_th1<<" to "<<p->A717_th2<<" deg (ccw), "<<e->grid->active()<<" of "<<nfull<<" directions computed"
-                <<(compact ? " and stored" : "")<<endl;
+                <<(compact ? " and stored" : "")<<", "<<nsweep<<" sweeps per iteration"
+                <<(merged>0 ? " (the direction on the axis at the end of the sector swept with the neighbouring quadrant)" : "")<<endl;
         }
     }
 
