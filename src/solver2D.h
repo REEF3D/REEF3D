@@ -36,6 +36,7 @@ class solver2D
 {
 
 public:
+    virtual ~solver2D() = default;    // deleted through the base pointer (AMR patches)
 
 	virtual void start(lexer*,ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int)=0;
 };
