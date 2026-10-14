@@ -1114,6 +1114,27 @@ static void test_structure()
     const double t2=16.0*ga*ga/(std::pow((1+ga)*(1+ga)-(1-ga)*(1-ga),2.0)*std::pow(std::cos(ph),2.0)+std::pow((1+ga)*(1+ga)+(1-ga)*(1-ga),2.0)*std::pow(std::sin(ph),2.0));
     std::cout<<"        long wave Kt^2 "<<kt2[1]<<", Madsen (1974) "<<t2<<std::endl;
     check(std::fabs(kt2[1]-t2)<2e-3,"porous: long waves within 2e-3 of Madsen (1974)");
+
+    // Phase 15: strong resistance after the first iteration of q (regular waves of growing height on small stones,
+    // depth 1 m, width 2 m, n 0.45, D50 5 cm): the root is followed in steps of at most 0.05 max(1, f) of the
+    // resistance; with 4 steps it jumped to a damped mode (H 0.3 m: Kt 0.004, Kr 0.95). Kt falls with H; at H 0.3 m
+    // the values of a continuation in steps of 0.002
+    {
+    seastate_grid sr(0.5,4);
+    std::vector<float> a(1), b(1);
+    const double H[6] = {0.05,0.1,0.15,0.2,0.25,0.3};
+    double kp = 1.0;
+    bool mono = true;
+        for(int k=0; k<6; ++k)
+        {
+        double Er = 0.5*(0.5*H[k])*(0.5*H[k])/sr.dsig[0];
+        seastate_porous(sr,&Er,1.0,2.0,0.45,0.05,a.data(),b.data());
+        mono = mono && std::sqrt(a[0])<kp;
+        kp = std::sqrt(a[0]);
+        }
+    std::cout<<"        regular waves T 2 s, H 0.3 m: Kt "<<kp<<", Kr "<<std::sqrt(b[0])<<" (continuation in small steps: 0.0392, 0.7088)"<<std::endl;
+    check(mono && std::fabs(kp-0.039216)<1e-3 && std::fabs(std::sqrt(b[0])-0.708849)<1e-3,"porous: strong resistance on the progressive mode (Kt falls with H, H 0.3 m: Kt 0.039, Kr 0.709)");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
