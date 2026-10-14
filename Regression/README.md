@@ -202,6 +202,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_heave_amr2_sub` | 1 | the same with two refined levels: level 2 advances the body, level 1 and level 0 step with predicted copies |
 | `cfd_2d_heave_amr_adapt` | 1 | the cells within 3 cells of the body (G 25 3), regrid every 2 steps: the hull cast on new patches |
 | `cfd_2d_heave_amr_adapt_sub` | 1 | the same with G 7 1: the patches that follow the body advance it |
+| `cfd_3d_heave_amr_mpi2_sub` | 2 | 3D floating box with G 7 1 on 2 ranks, the rank cut through the body and the refined box: the loads on the patches up to the cut; a second box on one rank (different patch counts per rank: no MPI exchange in the body forcing of the patches) |
 | `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
 | `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
 | `nhflow_3d_amr_still` | 1 | NHFLOW AMR static patch in a closed tank, bed ramps under the patch edges: still water stays still (fill, flux matching, restriction, composite pressure BiCGStab + FAC) |
@@ -372,6 +373,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_sediment_pier_rk2` | 1 | as above with the fully coupled RK2 sediment step S 10 12 (bed advanced in both stages of every flow step, dtsed = S 17 dt) (needs Exner Review patches 0001-0016) |
 | `cfd_2d_sediment_flume` | 1 | CFD 2D flume, MPM sand bed with a submerged block, k-ω, bed shear S 16 1 at the velocity sample height, CFD topo update, sand slide (needs Exner Review patches 0001-0016) |
 | `cfd_2d_sediment_flume_susp` | 1 | As `cfd_2d_sediment_flume` with the Eulerian suspended load (S 12 1, d = 0.15 mm, W 10 0.0015): erosion w_s c_be and deposition w_s c_1 as the only bed exchange, faces of the concentration to the bed, the block, the air and the walls closed; the concentration is checked through the bed (patch 0018; reference with patch 0018) |
+| `cfd_2d_bedshear_wave_s16_9` | 1 | CFD 2D oscillatory flow in a periodic channel with a slip lid (B 180/181 body force, U = 0.3 sin(pi t) m/s), k-ω, MPM bed (S 35 50): wave friction bed shear S 16 9 with S 58 (needs Bed Shear Stress patch 0002; reference with 0001-0003) |
+| `cfd_2d_bedshear_s16_7` | 1 | CFD 2D periodic channel driven by W 20, MPM bed: bed shear S 16 7 in 2D, lint*_2D keeps the caller's j (needs Bed Shear Stress patch 0001; reference with 0001-0003) |
+| `cfd_2d_bedshear_bed_at_centre` | 1 | As `cfd_2d_bedshear_s16_7` with S 16 1 and the bed S 57 exactly at a cell-centre height: solid forcing with phi = 0 on faces (needs Bed Shear Stress patch 0003; reference with 0001-0003) |
 | `nhflow_3d_cylinder_kepsilon_mpi2` | 2 | NHFLOW 3D channel with a cylinder (A580), k-ε, ranks split in y: k/ε and ν_t across the rank interface |
 | `sflow_1d_channel_ke` (+ `_kw`) | 1 | SFLOW depth-averaged k-ε / k-ω (A260 1/2): k, ε/ω relax to the Rastogi–Rodi equilibrium |
 | `sflow_2d_channel_walls_kw_mpi2` | 2 | SFLOW k-ω with side walls, ranks split in y: production at wall cells, uniform k/ω across the width |

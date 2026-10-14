@@ -495,6 +495,17 @@ void cfd_amr::body_stage(int l, int s, double t, double dt)
 // level 0, sixdof_obj_cfd::forces_stl); the force file labels them with the start of the finest step
 void cfd_amr::body_loads(int s, double t, bool fin)
 {
+    // the cells around the patches that copy a patch of the same level: up to date (the loads
+    // take the patch values there, finest_grid)
+    for(int l=1; l<=maxlev; ++l)
+    {
+        vector<fspec> fs;
+        for(int c=0; c<3; ++c)
+        fs.push_back({c,1,[this,c](int g) -> field& { if(c==0) return gfd(g)->u; if(c==1) return gfd(g)->v; return gfd(g)->w; }});
+        fs.push_back({CELL,0,[this](int g) -> field& { return gfd(g)->press; }});
+        fill(l,fs,true);
+    }
+
     const double ts = p0->simtime;
     p0->simtime = t;
     for(int nb=0; nb<b6->objects(); ++nb)

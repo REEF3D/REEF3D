@@ -74,8 +74,12 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
     p->DF3[IJK]=-1;
     
     
+    // MPI exchange (not for the patches of the mesh refinement, whose work is rank local)
+    if(do_comms)
+    {
     gcparaxintV(p, p->DF1, 1);
     gcparaxintV(p, p->DF2, 1);
     gcparaxintV(p, p->DF3, 1);
+    }
 
 }

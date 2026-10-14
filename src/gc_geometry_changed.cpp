@@ -30,6 +30,11 @@ Author: Hans Bihs
 // since the last call (always true on the first call), so the rebuild can be skipped otherwise.
 bool ghostcell::geometry_changed(lexer *p, fdm *a)
 {
+    // the patches of the mesh refinement (rank-local work, comms off) share this ghostcell: no
+    // signature per grid, always rebuild
+    if(!do_comms)
+    return true;
+
     const int size = p->imax*p->jmax*p->kmax;
     int changed = 0;
 

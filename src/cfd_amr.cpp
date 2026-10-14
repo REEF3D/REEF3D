@@ -368,18 +368,47 @@ cfd_amr::~cfd_amr()
 
 bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) const
 {
+    // a patch whose interior holds the point and whose cells within two cells of it are its own,
+    // copies of a patch of the same level (on this rank or another one) or the boundary: not
+    // prolonged from the coarser level (a patch edge to the coarser level).  The patches lie on
+    // the rank of the level-0 cells below them, so the point's rank holds them.
+    auto cell = [](const double *N, int n, double v) -> int
+    {
+        if(v<N[marge] || v>=N[n+marge])
+        return -1;
+        int lo = 0, hi = n-1;
+        while(lo<hi)
+        {
+            const int m = (lo+hi+1)/2;
+            if(N[m+marge]<=v)
+            lo = m;
+            else
+            hi = m-1;
+        }
+        return lo;
+    };
+
     for(int l=maxlev; l>=1; --l)
     for(int id : lev[l])
     {
-        cfd_amr_patch *c = static_cast<cfd_amr_patch*>(P[id]);
+        const cfd_amr_patch *c = static_cast<const cfd_amr_patch*>(P[id]);
         lexer *pp = c->pp;
-        const int nx = pp->knox, ny = pp->knoy, nz = pp->knoz;
-        if(x < pp->XN[marge] + 2.0*pp->DXN[marge] || x > pp->XN[nx+marge] - 2.0*pp->DXN[nx-1+marge])
+        const int i = cell(pp->XN,pp->knox,x);
+        const int j = (pp->j_dir==1) ? cell(pp->YN,pp->knoy,y) : 0;
+        const int k = cell(pp->ZN,pp->knoz,z);
+        if(i<0 || j<0 || k<0)
         continue;
-        if(z < pp->ZN[marge] + 2.0*pp->DZN[marge] || z > pp->ZN[nz+marge] - 2.0*pp->DZN[nz-1+marge])
+
+        const int jw = (pp->j_dir==1) ? 2 : 0;
+        bool ok = true;
+        for(int ii=i-2; ii<=i+2 && ok; ++ii)
+        for(int jj=j-jw; jj<=j+jw && ok; ++jj)
+        for(int kk=k-2; kk<=k+2 && ok; ++kk)
+        if(c->mkind[cix(pp,ii,jj,kk)]==1)
+        ok = false;
+        if(!ok)
         continue;
-        if(pp->j_dir==1 && (y < pp->YN[marge] + 2.0*pp->DYN[marge] || y > pp->YN[ny+marge] - 2.0*pp->DYN[ny-1+marge]))
-        continue;
+
         q = pp;
         a = c->a;
         return true;
