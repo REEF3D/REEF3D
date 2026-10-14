@@ -117,6 +117,8 @@ public:
 
     // transport direction u.n/|u| of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (ii,jj)
     static double face_sign(lexer*, sediment_fdm*, int dir, int ii, int jj);
+    // the same with the direction turned to the left by delta, tan(delta) = td (spiral-flow correction, S 95)
+    static double face_sign(lexer*, sediment_fdm*, int dir, int ii, int jj, double td);
 
     // bed gradient of cell (ii,jj) (bedslope, bedload direction): central index differences,
     // one-sided next to cells without a bed (DFBED<0); zero=1: no gradient along a line closed on

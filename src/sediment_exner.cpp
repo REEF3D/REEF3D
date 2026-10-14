@@ -34,8 +34,9 @@ Author: Hans Bihs
 #include"sediment_mixture.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p),bK(p),btd(p),bu(p),bv(p),bz(p),bg(p)
 {
+    p_S95 = p->S95;
     noneq_ini=0;
 
 	if(p->S50==1)

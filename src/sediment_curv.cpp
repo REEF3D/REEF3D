@@ -136,6 +136,11 @@ void sediment_curv::cellvel(lexer *p, sediment_fdm *s, int ii, int jj, double &u
 
 double sediment_curv::face_sign(lexer *p, sediment_fdm *s, int dir, int ii, int jj)
 {
+    return face_sign(p,s,dir,ii,jj,0.0);
+}
+
+double sediment_curv::face_sign(lexer *p, sediment_fdm *s, int dir, int ii, int jj, double td)
+{
     double nx,ny,len;
     normal(p,dir,ii,jj,nx,ny,len);
 
@@ -163,7 +168,12 @@ double sediment_curv::face_sign(lexer *p, sediment_fdm *s, int dir, int ii, int 
     const double ut = 0.25*(-tu*ny + tv*nx);
     const double mag = sqrt(un*un + ut*ut);
 
+    if(td==0.0)
     return fabs(mag)>1.0e-10 ? un/fabs(mag) : 0.0;
+
+    // the transport direction turned to the left (towards t = (-ny,nx)) by delta
+    const double c = 1.0/sqrt(1.0 + td*td);
+    return fabs(mag)>1.0e-10 ? (un - td*ut)*c/fabs(mag) : 0.0;
 }
 
 void sediment_curv::bedgrad(lexer *p, slice &f, int ii, int jj, int zero, double &fx, double &fy)

@@ -107,6 +107,15 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
     // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
     cu = pgc->globalmin(cu);
+    
+    // no water and no velocity: the time step would be N47*1e10 and the run would end silently
+    if(cu>=1.0e10)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! FNPF: no time step, the domain holds no water (max water depth "<<depthmax<<" m, umax "<<p->umax<<" m/s) !!!"<<endl<<endl;
+        
+        pgc->final(true);
+    }
 
    	p->dt=p->N47*cu;
     
@@ -198,6 +207,38 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 
 	if(p->B94==1)
 	wdt=p->B94_wdt;
+    
+    // all columns dry: no wet cell set the time step above, it would be N47*1e10 and the run
+    // would end after one step without a message (e.g. a bed level above the still water level
+    // everywhere from a broken geo.dat interpolation)
+    int nwet=0, ncol=0;
+    double bedmin=1.0e20, bedmax=-1.0e20;
+    
+    SLICELOOP4
+    {
+    ++ncol;
+    
+    if(p->wet[IJ]>0)
+    ++nwet;
+    
+    bedmin=MIN(bedmin,c->bed(i,j));
+    bedmax=MAX(bedmax,c->bed(i,j));
+    }
+    
+    nwet=pgc->globalisum(nwet);
+    ncol=pgc->globalisum(ncol);
+    bedmin=pgc->globalmin(bedmin);
+    bedmax=pgc->globalmax(bedmax);
+    
+    if(nwet==0)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"!!! FNPF: all "<<ncol<<" columns are dry: bed level "<<bedmin<<" to "<<bedmax
+            <<" m, still water level F 60 = "<<p->phimean<<" m, wetting criterion A 344 = "<<p->A344<<" m."
+            <<" Check the bed level of the grid (DIVEMesh geo.dat, G 51/G 52, G 23) and F 60 !!!"<<endl<<endl;
+        
+        pgc->final(true);
+    }
     
     
     if(p->mpirank==0 && (p->count%p->P12==0))

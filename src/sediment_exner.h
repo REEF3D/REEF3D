@@ -58,6 +58,11 @@ public:
     //   amr_dx:   the smallest cell width of the grid (rank-local), for dtsed
     // amr_maxvz and amr_mindx (> 0) take part in timestep(): the maxima and minima of the other grids.
     void amr_qb(lexer*, ghostcell*, sediment_fdm*);
+    // the cell fields of the Exner step that the cells around the grids take from their sources: qb, and
+    // the bend fields qb/f(theta) (S 86), tan(delta) (S 95), the bed of the slope flux and its open flag
+    static const int amr_nfield = 5;
+    double& amr_field(sediment_fdm*, int n, int ii, int jj);
+    slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : bg)); }
     void amr_flux(lexer*, ghostcell*, sediment_fdm*, slice&, slice&);
     double amr_vz(lexer*, ghostcell*, sediment_fdm*, slice&, slice&, slice*);
     double amr_vzmax(lexer*, sediment_fdm*, slice*);
@@ -82,6 +87,23 @@ private:
     double  susp_ED(lexer*,ghostcell*,sediment_fdm*);
     void  susp_qs(lexer*,ghostcell*,sediment_fdm*);
     
+    // bend morphology (sediment_exner_bend.cpp): the transverse bed slope effect (S 86) as a face flux
+    // -qb/f(theta) dz/dn, and the spiral-flow correction (S 95) of the transport direction, tan(delta)
+    // = alpha_I h/R_s (turned towards the centre of the streamline curvature)
+    void bend_prep(lexer*,ghostcell*,sediment_fdm*);
+    double bend_flux(lexer*,sediment_fdm*,int,int,int);
+    double bend_div(lexer*,sediment_fdm*,int,int);
+    bool bend_open(lexer*,int,int);
+    double bend_td(lexer*,int,int,int);
+    static double bend_turn(double un, double ut, double mag, double td);
+    slice4 bK,btd,bu,bv,bz,bg;
+    // the largest qb/f (1/dx^2 + 1/dy^2) of the grid (rank-local): the slope flux is an explicit diffusion of the
+    // bed, timestep() keeps dtsed below its stability limit; amr_bendrate: that of the other grids
+public:
+    double bend_rate = 0.0, amr_bendrate = 0.0;
+private:
+    int p_S95=0;
+
     void filter(lexer*,ghostcell*,slice&,int,int);
     void filter_curv(lexer*,ghostcell*,slice&,int,int);     // curvilinear grid (G 50)   
     topo_relax *prelax;

@@ -44,8 +44,23 @@ void sediment_exner::amr_qb(lexer *p, ghostcell *pgc, sediment_fdm *s)
     qb_clear(p,s);
     pgc->gcsl_start4(p,s->qb,1);
 
+    bend_prep(p,pgc,s);
+
     if(p->S62==2)
     susp_qs(p,pgc,s);
+}
+
+double& sediment_exner::amr_field(sediment_fdm *s, int n, int ii, int jj)
+{
+    if(n==1)
+    return bK(ii,jj);
+    if(n==2)
+    return btd(ii,jj);
+    if(n==3)
+    return bz(ii,jj);
+    if(n==4)
+    return bg(ii,jj);
+    return s->qb(ii,jj);
 }
 
 void sediment_exner::amr_flux(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &Fx, slice &Fy)
@@ -73,6 +88,13 @@ void sediment_exner::amr_flux(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &
             v = 0.5*(s->Q(i,j)+s->Q(i,j-1));
             }
 
+            if(btd(i,j)!=0.0)
+            {
+            const double t = btd(i,j), c = 1.0/sqrt(1.0 + t*t), uu = u;
+            u = (uu - t*v)*c;
+            v = (v + t*uu)*c;
+            }
+
         umag = sqrt(u*u + v*v);
         qbx(i,j) = (fabs(umag)>1.0e-10?u/fabs(umag):0.0)*s->qb(i,j);
         qby(i,j) = (fabs(umag)>1.0e-10?v/fabs(umag):0.0)*s->qb(i,j);
@@ -86,23 +108,23 @@ void sediment_exner::amr_flux(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &
     auto sign_i = [&](int ii, int jj) -> double
     {
         if(curv==1)
-        return sediment_curv::face_sign(p,s,1,ii,jj);
+        return sediment_curv::face_sign(p,s,1,ii,jj,bend_td(p,1,ii,jj));
 
         const double ux = s->P(ii,jj);
         const double vx = 0.25*(s->Q(ii+1,jj)+s->Q(ii,jj)+s->Q(ii+1,jj-1)+s->Q(ii,jj-1));
         const double ua = sqrt(ux*ux + vx*vx);
-        return fabs(ua)>1.0e-10?ux/fabs(ua):0.0;
+        return bend_turn(ux,vx,ua,bend_td(p,1,ii,jj));
     };
 
     auto sign_j = [&](int ii, int jj) -> double
     {
         if(curv==1)
-        return sediment_curv::face_sign(p,s,2,ii,jj);
+        return sediment_curv::face_sign(p,s,2,ii,jj,bend_td(p,2,ii,jj));
 
         const double uy = 0.25*(s->P(ii,jj)+s->P(ii,jj+1)+s->P(ii-1,jj)+s->P(ii-1,jj+1));
         const double vy = s->Q(ii,jj);
         const double ua = sqrt(uy*uy + vy*vy);
-        return fabs(ua)>1.0e-10?vy/fabs(ua):0.0;
+        return bend_turn(vy,-uy,ua,bend_td(p,2,ii,jj));
     };
 
     auto dfbed = [&](int ii, int jj) { return p->DFBED[(ii-p->imin)*p->jmax + (jj-p->jmin)]; };
@@ -157,12 +179,12 @@ void sediment_exner::amr_flux(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &
     // the faces of the cells of the grid: i-faces i = -1 .. knox-1, j-faces j = -1 .. knoy-1
     for(int ii=-1; ii<p->knox; ++ii)
     for(int jj=0; jj<p->knoy; ++jj)
-    Fx(ii,jj) = flux(1,ii,jj,ii+1,jj,sign_i(ii,jj));
+    Fx(ii,jj) = flux(1,ii,jj,ii+1,jj,sign_i(ii,jj)) + bend_flux(p,s,1,ii,jj);
 
     if(p->j_dir==1)
     for(int ii=0; ii<p->knox; ++ii)
     for(int jj=-1; jj<p->knoy; ++jj)
-    Fy(ii,jj) = flux(2,ii,jj,ii,jj+1,sign_j(ii,jj));
+    Fy(ii,jj) = flux(2,ii,jj,ii,jj+1,sign_j(ii,jj)) + bend_flux(p,s,2,ii,jj);
 }
 
 double sediment_exner::amr_vz(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &Fx, slice &Fy, slice *mask)

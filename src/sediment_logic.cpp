@@ -88,6 +88,15 @@ Author: Hans Bihs
 
 void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
+    // bend morphology (sediment_exner_bend.cpp): the spiral-flow correction is for the depth-averaged
+    // SFLOW (NHFLOW and CFD resolve the secondary flow); both corrections act on the conservative Exner forms
+    if((p->S95>0 && p->A10!=2) || ((p->S86>0 || p->S95>0) && p->S31==3))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! S 95 (spiral-flow correction) is for SFLOW (A 10 2) only; S 86 and S 95 need S 31 1 or 2 !!!"<<endl;
+        exit(1);
+    }
+
     s = new sediment_fdm(p);
     
     // multi-fraction bed

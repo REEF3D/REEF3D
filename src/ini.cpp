@@ -1071,6 +1071,12 @@ void control::ini_default()
     S82=5.0;              // double delta phi for slope reduction
     S84=1;                  // int type of critical bed shear stress reduction limiters
     S85=1;                  // int bedload direction Koch and Flokstra
+    S86=0;                  // int transverse bed slope effect on the bed-load direction: 1 f(theta) = S87 theta^S88 (d/h)^S89
+    S87=9.0;                // double slope factor A_sh of f(theta) (Talmon et al. 1995: 9)
+    S88=0.5;                // double Shields exponent B_sh of f(theta) (0.5)
+    S89=0.3;                // double d/h exponent C_sh of f(theta) (0.3)
+    S95=0;                  // int spiral-flow correction of the bed-load direction (depth-averaged SFLOW): 1 tan(delta) = alpha_I h/R_s
+    S96=1.0;                // double spiral-flow intensity factor E_spir of alpha_I = E_spir 2/kappa^2 (1 - sqrt(g)/(kappa C))
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor

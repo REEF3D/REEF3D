@@ -35,6 +35,8 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
     topovel_curv(p,pgc,s,1);
     return;
     }
+
+    bend_prep(p,pgc,s);
     
 	double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
@@ -65,11 +67,11 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
         uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
         uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
             
-        sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
-        sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
-        
-        sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
-        sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+        // transport directions of the faces (S 95: turned by the spiral-flow angle, sediment_exner_bend.cpp)
+        sgx1=bend_turn(ux1,vx1,ux1_abs,bend_td(p,1,i-1,j));
+        sgx2=bend_turn(ux2,vx2,ux2_abs,bend_td(p,1,i,j));
+        sgy1=bend_turn(vy1,-uy1,uy1_abs,bend_td(p,2,i,j-1));
+        sgy2=bend_turn(vy2,-uy2,uy2_abs,bend_td(p,2,i,j));
         
         face_closure(p,sgx1,sgx2,sgy1,sgy2);
         
@@ -80,7 +82,7 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
         
 
     // Exner equations
-        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_ED(p,pgc,s));
+        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + bend_div(p,s,i,j) + susp_ED(p,pgc,s));
         
         if(p->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
@@ -96,6 +98,8 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     topovel_curv(p,pgc,s,2);
     return;
     }
+
+    bend_prep(p,pgc,s);
     
 	double dqx,dqy;
     double ux1,vx1,ux2,vx2,uy1,vy1,uy2,vy2;
@@ -121,6 +125,15 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
 		signx=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
 		signy=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
         
+        // S 95: the cell direction turned by the spiral-flow angle
+        if(btd(i,j)!=0.0)
+        {
+        const double t = btd(i,j), c = 1.0/sqrt(1.0 + t*t);
+        const double sx = signx;
+        signx = (sx - t*signy)*c;
+        signy = (signy + t*sx)*c;
+        }
+
         qbx(i,j) = signx*s->qb(i,j);
         qby(i,j) = signy*s->qb(i,j);
     }
@@ -153,11 +166,11 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         uy1_abs = sqrt(uy1*uy1 + vy1*vy1);
         uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
             
-        sgx1=fabs(ux1_abs)>1.0e-10?ux1/fabs(ux1_abs):0.0;
-        sgx2=fabs(ux2_abs)>1.0e-10?ux2/fabs(ux2_abs):0.0;
-        
-        sgy1=fabs(uy1_abs)>1.0e-10?vy1/fabs(uy1_abs):0.0;
-        sgy2=fabs(uy2_abs)>1.0e-10?vy2/fabs(uy2_abs):0.0;
+        // transport directions of the faces (S 95: turned by the spiral-flow angle, sediment_exner_bend.cpp)
+        sgx1=bend_turn(ux1,vx1,ux1_abs,bend_td(p,1,i-1,j));
+        sgx2=bend_turn(ux2,vx2,ux2_abs,bend_td(p,1,i,j));
+        sgy1=bend_turn(vy1,-uy1,uy1_abs,bend_td(p,2,i,j-1));
+        sgy2=bend_turn(vy2,-uy2,uy2_abs,bend_td(p,2,i,j));
         
         face_closure(p,sgx1,sgx2,sgy1,sgy2);
         
@@ -167,7 +180,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         
 
     // Exner equations
-        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + susp_ED(p,pgc,s));
+        s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + bend_div(p,s,i,j) + susp_ED(p,pgc,s));
         
         if(p->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
