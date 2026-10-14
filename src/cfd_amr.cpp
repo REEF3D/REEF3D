@@ -337,6 +337,8 @@ void cfd_amr::hierarchy(bool first)
         cout<<endl;
     }
 
+    sync_x_ok = false;
+
     // kinds of the cells around the patches
     for(int id=0; id<(int)P.size(); ++id)
     {

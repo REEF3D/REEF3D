@@ -347,6 +347,10 @@ private:
     vector<long> l0a, l0f;              // level-0 V-cycle: active rows of the multigrid, cells
     int pr_it_last = 0;
     int pr_it_sync = 0;                 // G 7 1: iterations of the synchronisation projection
+    vector<vector<double>> sync_x;      // G 7 1: the correction of the last synchronisation (leaf cells per grid), its start
+    bool sync_x_ok = false;             // (false after a regrid)
+    double t_sync = 0.0;                // G 7 1: time of the synchronisation projections
+    double sync_bref = 0.0;             // G 7 1: the largest right-hand side norm of the level projections of the level-0 step
     bool press_step = false;            // G 7 1: false until the end of the first level-0 step (the initial pressure is not that of a step)
     double pr_res_last = 0.0;
     long pr_it_total = 0, pr_solves = 0;

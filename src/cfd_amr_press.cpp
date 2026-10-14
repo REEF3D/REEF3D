@@ -21,6 +21,8 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include<map>
+#include<tuple>
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -111,6 +113,15 @@ inline double& mcoef(matrix_diag &M, int n, int d, int dir)
     if(d==0) return dir>0 ? M.n[n] : M.s[n];
     if(d==1) return dir>0 ? M.w[n] : M.e[n];
     return dir>0 ? M.t[n] : M.b[n];
+}
+
+// the coefficient of multigrid row q towards its neighbour in direction d (dir > 0: up)
+template<class T>
+inline T& mcoef_mg(std::vector<T> &n, std::vector<T> &s, std::vector<T> &w, std::vector<T> &e, std::vector<T> &t, std::vector<T> &b, long q, int d, int dir)
+{
+    if(d==0) return dir>0 ? n[q] : s[q];
+    if(d==1) return dir>0 ? w[q] : e[q];
+    return dir>0 ? t[q] : b[q];
 }
 
 enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
@@ -744,7 +755,6 @@ void cfd_amr::pr_matrix(int s)
             pr_coef(mg0,L,q,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[q] = 1;
         }
-        mg0->coarsen();
     }
 
     // patches: their own matrix (before the couplings across the patch edges below), the couplings
@@ -775,7 +785,6 @@ void cfd_amr::pr_matrix(int s)
                     (k+1<nz) ? M.t[r] : 0.0, (k>0) ? M.b[r] : 0.0);
             L.act[q] = 1;
         }
-        c->mg->coarsen();
     }
 
     // the faces at the patch edges
@@ -802,6 +811,65 @@ void cfd_amr::pr_matrix(int s)
         Mc.p[F.nc] += ccn;
         ccn = 0.0;
     }
+
+    // the multigrid of a coarser grid (level 0 or a patch with finer patches): a coarse cell next
+    // to a patch couples to the covered cell across the face with the couplings of the fine faces
+    // (sum of kc, their densities and distances; the coarse face may lie on the other side of the
+    // free surface, its density off by the density ratio), the covered cell back the same way.
+    // The preconditioner then sees the operator of the composite rows (2 levels with the free
+    // surface across the patches: 27 -> 11 BiCGStab iterations)
+    {
+        std::map<std::tuple<int,int,int,int,int,int>,double> ks;
+        for(const cfd_amr_cf &F : cf)
+        if(F.gc==F.gp)
+        ks[std::make_tuple(F.gc,F.ci[0],F.ci[1],F.ci[2],F.d,F.dir)] += F.kc;
+
+        for(const auto &kv : ks)
+        {
+            const int g = std::get<0>(kv.first);
+            const int ci[3] = {std::get<1>(kv.first),std::get<2>(kv.first),std::get<3>(kv.first)};
+            const int d = std::get<4>(kv.first), dir = std::get<5>(kv.first);
+            int pi[3] = {ci[0],ci[1],ci[2]};
+            pi[d] -= dir;
+            lexer *q = glex(g);
+            const int n[3] = {q->knox,q->knoy,q->knoz};
+            if(pi[d]<0 || pi[d]>=n[d] || ci[d]<0 || ci[d]>=n[d])
+            continue;
+
+            reefmg_core *mg = (g<0) ? mg0 : CP(g)->mg;
+            sc_level &L = mg->fine();
+            const long lc = L.idx(ci[0],ci[1],ci[2]), lp = L.idx(pi[0],pi[1],pi[2]);
+            if(!L.act[lc] || !L.act[lp])
+            continue;
+            const double K = kv.second;
+            if(mg->precision()==32)
+            {
+                float &c = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lc,d,-dir);
+                float &b = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lp,d,dir);
+                if(c==0.0f || b==0.0f)
+                continue;
+                L.pf[lc] += c + (float)K;
+                L.pf[lp] += b + (float)K;
+                c = -(float)K;
+                b = -(float)K;
+            }
+            else
+            {
+                double &c = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lc,d,-dir);
+                double &b = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lp,d,dir);
+                if(c==0.0 || b==0.0)
+                continue;
+                L.p[lc] += c + K;
+                L.p[lp] += b + K;
+                c = -K;
+                b = -K;
+            }
+        }
+    }
+
+    mg0->coarsen();
+    for(int id=0; id<(int)P.size(); ++id)
+    CP(id)->mg->coarsen();
 
 }
 
@@ -1489,6 +1557,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     pr_it_total += it;
     ++pr_solves;
     pr_res_last = bn>0.0 ? rn/bn : 0.0;
+    sync_bref = MAX(sync_bref,bn);
 
     // the correction of a closed component: mean 0
     std::fill(cs.begin(),cs.end(),0.0);
@@ -1635,12 +1704,46 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         b[qq] = 0.0;
     }
 
+    // the start: the correction of the last synchronisation (the mismatch at the patch edges
+    // changes slowly from step to step), as long as the patches are the same
+    if(sync_x_ok && sync_x.size()==P.size()+1)
+    {
+        for(int g=-1; g<(int)P.size(); ++g)
+        if(sync_x[g+1].size()==lq[g+1].size())
+        {
+            double *x = pvec(g,-1);
+            for(size_t n=0; n<lq[g+1].size(); ++n)
+            x[lq[g+1][n]] = sync_x[g+1][n];
+        }
+        pr_sync(-1);
+    }
+
     pr_apply(-1,NVV);
+
+    // the tolerance: N 44 relative to the right-hand side of the level projections of the step
+    // (the divergence they leave), when that is larger than the one of the synchronisation
+    double tol = p->N44;
+    {
+        const double b0 = sqrt(pr_dot(NS,NS));
+        if(b0>0.0 && sync_bref>b0)
+        tol *= sync_bref/b0;
+    }
+    sync_bref = 0.0;
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
     pr_it_sync = it;
+
+    sync_x.assign(P.size()+1,vector<double>());
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *x = pvec(g,-1);
+        sync_x[g+1].reserve(lq[g+1].size());
+        for(int qq : lq[g+1])
+        sync_x[g+1].push_back(x[qq]);
+    }
+    sync_x_ok = true;
 
     pr_sync(-1);
 
@@ -1679,5 +1782,6 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     for(int id=0; id<(int)P.size(); ++id)
     CP(id)->pp->dt = dts[id];
 
+    t_sync += MPI_Wtime()-t0;
     tm[2] += MPI_Wtime()-t0;
 }
