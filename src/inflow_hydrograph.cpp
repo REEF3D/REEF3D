@@ -64,17 +64,14 @@ void ioflow_f::hydrograph_in_read(lexer *p, ghostcell* pgc)
 
 	}
 	
+	// number of (time, value) pairs; the eof() loops counted one value too many with a final
+	// newline and then read one pair past the end of the array
 	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
+	double val2;
+	while(hg>>val>>val2)
 	++count;
-	}
 	
 	hg.close();
-	
-	count/=2;
-    
     
     hydro_in_count=count;
 	
@@ -83,11 +80,8 @@ void ioflow_f::hydrograph_in_read(lexer *p, ghostcell* pgc)
 	hg.open ("hydrograph.dat", ios_base::in);
 	
 	count=0;
-	while(!hg.eof())
-	{
-	hg>>hydro_in[count][0]>>hydro_in[count][1];
+	while(count<hydro_in_count && hg>>hydro_in[count][0]>>hydro_in[count][1])
 	++count;
-	}
     
 }
 
@@ -108,17 +102,14 @@ void ioflow_f::hydrograph_out_read(lexer *p, ghostcell* pgc)
 
 	}
 	
+	// number of (time, value) pairs; the eof() loops counted one value too many with a final
+	// newline and then read one pair past the end of the array
 	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
+	double val2;
+	while(hg>>val>>val2)
 	++count;
-	}
 	
 	hg.close();
-	
-	count/=2;
-    
     
     hydro_out_count=count;
 	
@@ -127,10 +118,7 @@ void ioflow_f::hydrograph_out_read(lexer *p, ghostcell* pgc)
 	hg.open ("hydrograph_out.dat", ios_base::in);
 	
 	count=0;
-	while(!hg.eof())
-	{
-	hg>>hydro_out[count][0]>>hydro_out[count][1];
+	while(count<hydro_out_count && hg>>hydro_out[count][0]>>hydro_out[count][1])
 	++count;
-	}
     
 }
