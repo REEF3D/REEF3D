@@ -45,6 +45,10 @@ public:
 	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
 	virtual void w_source(lexer*, fdm_nhf*, slice&)=0;
     
+    // point-implicit Darcy-Forchheimer drag of the static structures, applied after the stage update:
+    // UH /= 1 + fac dt CPORNH (A + B |U|), comp 0,1,2 = UH,VH,WH, fac = RK stage weight
+    virtual void implicit_drag(lexer*, fdm_nhf*, double*, double, int)=0;
+    
     // porous-media turbulence closure (Nakayama & Kuwahara 1999), B 295 1
     // arguments: KIN, EPS (epsilon or omega); omega_source also gets beta of the k-omega model
     virtual void ke_source(lexer*, fdm_nhf*, double*, double*)=0;

@@ -215,7 +215,7 @@ public:
     
     int B200,B201,B208;
     double B201_n, B201_d50, B201_alpha, B201_beta;
-    int B202,B203;
+    int B202,B203,B204;
     double *B202_t,*B202_n,*B202_d50,*B202_alpha,*B202_beta;
     double B209;
     int B210;

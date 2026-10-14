@@ -285,6 +285,9 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	d->UH[IJK] = (1.0/3.0)*d->UH[IJK] + (2.0/3.0)*UHDIFF[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->F[IJK];
 
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p,d,UHo,alpha,0);
+    
     if(s==0)
     p->utime=pgc->timer()-starttime;
     else
@@ -320,6 +323,9 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	d->VH[IJK] = (1.0/3.0)*d->VH[IJK] + (2.0/3.0)*VHDIFF[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->G[IJK];
 
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p,d,VHo,alpha,1);
+    
     if(s==0)
     p->vtime=pgc->timer()-starttime;
     else
@@ -352,6 +358,9 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	d->WH[IJK] = (1.0/3.0)*d->WH[IJK] + (2.0/3.0)*WHDIFF[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->H[IJK];
 	
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p,d,WHo,alpha,2);
+    
     if(s==0)
     p->wtime=pgc->timer()-starttime;
     else
