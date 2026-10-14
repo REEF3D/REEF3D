@@ -1050,6 +1050,7 @@ void control::ini_default()
     S56=0;                  // int grain size for bed roughness ks=S21*d, 0: S20, 1: local d50, 2: local dm, 3: local d90
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
+    S58=0.0;            // double wave period for the wave friction bed shear stress S 16 9, <=0: period of the wave generation
     S61=1;              // int reference height for cb
     S62=1;              // int type of suspended Exner solution
     S71=-1.0e20;                 // int x start of erosion

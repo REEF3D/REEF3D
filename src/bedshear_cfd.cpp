@@ -30,11 +30,82 @@ Author: Hans Bihs
 #include"sliceint.h"
 
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4)
+bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_mean(p), vw_mean(p), uw_old(p), vw_old(p), uw_hat(p)
 {
     tau=0.0;
     tauc=0.0;
     pturb=ppturb;
+    tw_old=0.0;
+    tw_dt=0.0;
+    tw_count=0;
+}
+
+// S 16 9 ------------------------------------------------------------------------------------------
+// The log law at the sample height assumes that the boundary layer reaches the sample. Under waves the
+// wave boundary layer is only a few mm thick, the sample (1.6 DZN, or the first cell) lies in the
+// free stream, and the log law then gives a far too small shear stress. The wave friction stress
+//     tau_w = 0.5 rho fw(A/ks) |u_w|^2,   fw = 1.39 (A/z0)^-0.52 <= 0.3, z0 = ks/30   (Soulsby 1997)
+// uses the oscillatory part u_w = u - u_mean of the same velocity sample (u_mean: running mean over
+// one wave period, the current); A = Uhat T/2pi with the orbital amplitude of the sample
+//     Uhat^2 = |u_w|^2 + |du_w/dt|^2/omega^2   (exact for a harmonic motion)
+// and T = S 58 (if > 0) or the period of the wave generation. S 16 9 takes max(tau_log, tau_w):
+// in a current (no wave period, or u_w -> 0) it is S 16 1. Wave-current interaction is not included.
+void bedshear::tau_wave_step(lexer *p)
+{
+    // time since the previous call: the derivative of the sample needs a new time level
+    tw_dt = p->simtime - tw_old;
+    
+    if(tw_dt>1.0e-12)
+    {
+    tw_old = p->simtime;
+    ++tw_count;
+    }
+}
+
+double bedshear::tau_wave(lexer *p, double uvel, double vvel, double ks, double density)
+{
+    double T = p->S58>0.0 ? p->S58 : p->wT;
+    
+    if(T<=1.0e-10)
+    return 0.0;
+    
+    double omega = 2.0*PI/T;
+    
+    // current: running mean over one wave period; oscillatory part and its amplitude
+    // (kept when called twice at the same time level)
+    if(tw_dt>1.0e-12)
+    {
+        if(tw_count>1)
+        {
+        double r = MIN(tw_dt/T, 1.0);
+        uw_mean(i,j) += r*(uvel - uw_mean(i,j));
+        vw_mean(i,j) += r*(vvel - vw_mean(i,j));
+        }
+        
+        double uw = uvel - uw_mean(i,j);
+        double vw = vvel - vw_mean(i,j);
+        
+        double uhat2 = uw*uw + vw*vw;
+        
+        if(tw_count>1)
+        {
+        double dudt = (uw - uw_old(i,j))/tw_dt;
+        double dvdt = (vw - vw_old(i,j))/tw_dt;
+        
+        uhat2 += (dudt*dudt + dvdt*dvdt)/(omega*omega);
+        }
+        
+    uw_hat(i,j) = sqrt(uhat2);
+    uw_old(i,j) = uw;
+    vw_old(i,j) = vw;
+    }
+    
+    double A = uw_hat(i,j)/omega;
+    double z0 = MAX(ks,1.0e-12)/30.0;
+    
+    double fw = A>1.0e-12 ? MIN(1.39*pow(A/z0,-0.52), 0.3) : 0.3;
+    
+    return 0.5*density*fw*(uw_old(i,j)*uw_old(i,j) + vw_old(i,j)*vw_old(i,j));
 }
 
 bedshear::~bedshear()
@@ -48,6 +119,9 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
 	double zval,fac,topoval,taukin,tauvel,density;
     double tau_eff,tau_i;
     
+    if(p->S16==9)
+    tau_wave_step(p);
+    
     SEDSLICELOOP
     {
     k = s->bedk(i,j);
@@ -60,7 +134,7 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     density = s->ro(i,j);
     
 	
-    if(p->S16==1)
+    if(p->S16==1 || p->S16==9)
     {
     dist = p->DZN[KP];
     
@@ -77,6 +151,13 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     u_plus = uplus(1.6*dist,s->ks_eff(i,j));
 
     tau_eff = density*(u_abs*u_abs)/(u_plus*u_plus);
+    
+    // tau_wave updates the running mean: called once (MAX is a macro)
+    if(p->S16==9)
+    {
+    double tau_w = tau_wave(p,uvel,vvel,s->ks_eff(i,j),density);
+    tau_eff = MAX(tau_eff, tau_w);
+    }
     }
     
     

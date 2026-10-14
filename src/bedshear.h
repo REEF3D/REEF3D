@@ -61,6 +61,10 @@ public:
     return (1.0/kappa)*log(r>2.718281828459045?r:2.718281828459045);
     }
     
+    // S 16 9: wave friction bed shear stress 0.5 rho fw |u|^2 of the near-bed velocity sample (u,v)
+    double tau_wave(lexer*, double, double, double, double);
+    void tau_wave_step(lexer*);
+
 
 private:
     turbulence *pturb;
@@ -71,6 +75,12 @@ private:
     double uvel,vvel,wvel;
 	double kinval;
     double scale;
+    
+    // S 16 9: running mean of the sample (current part), oscillatory part of the previous call and its
+    // amplitude, for A = Uhat T/2pi
+    slice4 uw_mean,vw_mean,uw_old,vw_old,uw_hat;
+    double tw_old,tw_dt;
+    int tw_count;
 };
 
 #endif

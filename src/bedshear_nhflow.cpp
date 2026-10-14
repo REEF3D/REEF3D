@@ -44,6 +44,9 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
     }
     
     
+    if(p->S16==9)
+    tau_wave_step(p);
+    
     SEDSLICELOOP
     {
         k=0;
@@ -76,7 +79,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         tau_eff = density * us * us;
         }
         
-        if(p->S16==1 && p->B22==2)
+        if((p->S16==1 && p->B22==2) || p->S16==9)
         {
         U = d->U[IJK];
         V = d->V[IJK];
@@ -89,6 +92,13 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         u_plus = uplus(dist,s->ks_eff(i,j));
 
         tau_eff = density*(uabs*uabs)/(u_plus*u_plus);
+        
+        // tau_wave updates the running mean: called once (MAX is a macro)
+        if(p->S16==9)
+        {
+        double tau_w = tau_wave(p,U,V,s->ks_eff(i,j),density);
+        tau_eff = MAX(tau_eff, tau_w);
+        }
         }
         
         
