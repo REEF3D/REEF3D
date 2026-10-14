@@ -499,15 +499,24 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     }
 
     double um = sqrt(ur*ur + vr*vr);
-    double up = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
-    double us = um/up;
-    double tau = rho*us*us;
-    
-    if(kterm && pt!=nullptr && !rest)
-    tau = MAX(tau, 0.3*rho*MAX(pt->kinval(i,j,k),0.0));
+    bool kt = kterm && pt!=nullptr && !rest;
+    double tau = tau_logk(um, zr, ks, kt ? pt->kinval(i,j,k) : 0.0, kt, rho);
 
     tx = um>1.0e-12 ? tau*ur/um : 0.0;
     ty = um>1.0e-12 ? tau*vr/um : 0.0;
     
     return true;
+}
+
+// the closure of column_tau, shared by the CFD and the NHFLOW column (S 16 10) and the CPM bedload layer
+double bedshear::tau_logk(double um, double zr, double ks, double kin, bool kterm, double rho)
+{
+    double up = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
+    double us = um/up;
+    double tau = rho*us*us;
+    
+    if(kterm)
+    tau = MAX(tau, 0.3*rho*MAX(kin,0.0));
+    
+    return tau;
 }

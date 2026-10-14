@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 1",
+  "G 7 1",
+  "G 15 0.0 11.8 0.0 1.0 0.3 0.75"
+ ],
+ "description": "CFD mesh refinement with subcycling in the wave tank, the refined band over the wave generation zone (B 98 2): the patch relaxes towards the wave theory of level 0 at its cells and the time of its step; the tiles at the inflow edge stay on level 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr_relax.cpp: patch_relax_vel, patch_relax_phi (generation zone)",
+  "reefamr3d::mark_tiles with zone_gen_refine"
+ ]
+}

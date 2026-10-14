@@ -179,6 +179,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr` (+ `_mpi2`) | 1/2 | CFD AMR (G 1 1, static box G 15): dam break with one refined level around the water column, the front leaves the patch (fills, level set per grid, composite projection with matched fluxes at the patch edges, FAC-preconditioned BiCGStab, restriction); `_mpi2`: the box ends at the partition edge (G 4 4), the refined region is extended across it, patches on both ranks, remote fills |
 | `cfd_2d_dambreak_amr3` | 1 | CFD AMR with two refined levels (G 1 2): fills from a patch parent, FAC V-cycle over three levels |
 | `cfd_2d_nwt_amr` | 1 | CFD AMR in the wave tank: refined band at the free surface between the relaxation zones (level 0 only), the free surface across the patch edges |
+| `cfd_2d_nwt_amr_zone` | 1 | the refined band over the numerical beach (B 99 2, G 7 0): the patch relaxes towards still water as level 0; the tiles at the outflow edge stay on level 0 |
+| `cfd_2d_nwt_amr_zone_sub` | 1 | the band over the wave generation zone (B 98 2) with subcycling: the patch relaxes towards the wave theory of level 0 at its cells and the time of its step |
 | `cfd_2d_still_amr` | 1 | CFD AMR still water, the free surface across a patch edge: the hydrostatic pressure of both grids balanced at the edge |
 | `cfd_3d_dambreak_amr` | 2 | CFD AMR 3D dam break: 3D boxes on 2 ranks, implicit diffusion of a patch with Dirichlet values around it |
 | `cfd_2d_dambreak_amr_sub` | 1 | CFD AMR with subcycling (G 7 1): the patch takes two steps per level-0 step, the cells around it linear in time; the level projection with the coarse pressure at the patch edges, the synchronisation projection over all levels at the end of the level-0 step |
@@ -191,6 +193,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_adapt` | 1 | CFD AMR adaptive (G 24 3: cells with \|phi\| < 3 psi flagged), regrid every 2 steps without hysteresis (G 2 2, G 5 0): flags, rebuild, transfer from the old patches, prolongation into new cells, freeing of patches |
 | `cfd_2d_dambreak_amr_adapt_sub` | 1 | the same with subcycling (G 7 1): the regrid after the level-0 step |
 | `cfd_2d_dambreak_amr3_adapt` | 1 | two levels adaptive (G 1 2, G 24 3): new level-1 patches as the parents of new level-2 patches |
+| `cfd_2d_dambreak_amr3_adapt_sub` | 1 | two levels adaptive with subcycling (G 7 1): touching patches of a level share one multigrid in the level projections and the synchronisation; the pressure of level 1 held at its end value for level 2 |
 | `cfd_2d_dambreak_amr_adapt_mpi2` | 2 | adaptive on 2 ranks: patches moving across the partition edge |
 | `cfd_2d_dambreak_amr_flags` | 1 | the criteria together: interface band G 24 1, vorticity G 26 20, a static box G 15 |
 | `cfd_3d_dambreak_amr_adapt` | 2 | CFD AMR 3D adaptive (G 24 1, tiles G 4 2, no buffer G 3 0) on 2 ranks |
@@ -380,6 +383,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_sediment_basin_noneq_mpi2` | 2 | as above with S 31 1, WENO flux Exner (S 32 4) and non-equilibrium bedload (S 33 1) across the subdomain boundary (needs Exner Review patches 0001-0016) |
 | `nhflow_3d_sediment_pier_mpi2` | 2 | NHFLOW closed basin with a pier, default Exner S 31 2 with closed faces at the structure, NHFLOW bed shear with the thin-water clamp, sand slide S 90 1 (needs Exner Review patches 0001-0016) |
 | `nhflow_3d_sediment_pier_rk2` | 1 | as above with the fully coupled RK2 sediment step S 10 12 (bed advanced in both stages of every flow step, dtsed = S 17 dt) (needs Exner Review patches 0001-0016) |
+| `nhflow_3d_sediment_pier_s1610` | 2 | as `nhflow_3d_sediment_pier_mpi2` with k-omega (A 560 2) and the bed shear stress S 16 10 (shared with CFD S 16 10 and the CPM bedload layer): log law 2 cells above the bed on the sigma grid (S 63 2.0), at most half the water depth, max(log law, 0.3 rho k) with k of the first cell (patch 0021) |
 | `cfd_2d_sediment_flume` | 1 | CFD 2D flume, MPM sand bed with a submerged block, k-ω, bed shear S 16 1 at the velocity sample height, CFD topo update, sand slide (needs Exner Review patches 0001-0016) |
 | `cfd_2d_sediment_flume_s1610` | 1 | As `cfd_2d_sediment_flume` with the bed shear stress S 16 10 (`bedshear::column_tau`, shared with the CPM bedload layer): log law 2 cells above the bed level (S 63 2.0), max(log law, 0.3 rho k) with k of the first fluid cell, flow over and behind the block (patch 0020) |
 | `cfd_2d_sediment_flume_susp` | 1 | As `cfd_2d_sediment_flume` with the Eulerian suspended load (S 12 1, d = 0.15 mm, W 10 0.0015): erosion w_s c_be and deposition w_s c_1 as the only bed exchange, faces of the concentration to the bed, the block, the air and the walls closed; the concentration is checked through the bed (patch 0018; reference with patch 0018) |

@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 4.2 19.8 0.0 1.0 0.3 0.75"
+ ],
+ "description": "CFD mesh refinement (G 7 0) in the wave tank, the refined band over the numerical beach (B 99 2): the patch relaxes towards still water as level 0; the tiles at the outflow edge stay on level 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr_relax.cpp: patch_relax_vel (pressure of the beach), patch_relax_phi (beach zone) with G 7 0",
+  "reefamr3d::mark_tiles with zone_beach_refine"
+ ]
+}

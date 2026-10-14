@@ -117,6 +117,18 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         tau_eff = MAX(density*(uabs*uabs)/(u_plus*u_plus), density*d->KIN[IJK]*0.3);
         }
         
+        // S 16 10: the bed shear stress of the CFD S 16 10 and the CPM bedload layer (bedshear::column_tau):
+        // log law at the first cell centre, or S 63 cells above the bed, horizontal velocity, and
+        // max(log law, 0.3 rho k) with k of the first cell
+        if(p->S16==10)
+        {
+        double tx=0.0, ty=0.0;
+        
+        bedshear::column_tau(p,d,i,j,s->ks_eff(i,j),p->S63,true,density,tx,ty);
+        
+        tau_eff = sqrt(tx*tx + ty*ty);
+        }
+        
         if(p->S16==3)
         {
         double v_t,v_d;
@@ -271,4 +283,73 @@ void bedshear::taucritbed(lexer *p, fdm_nhf* d, ghostcell *pgc, sediment_fdm *s)
     
     SEDSLICELOOP
     s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
+}
+/*--------------------------------------------------------------------
+bed shear stress of a bed column on the NHFLOW sigma grid (S 16 10), the same as bedshear::column_tau of CFD:
+the first cell centre is half a cell above the bed; href > 0 takes the velocity href cells (of the first cell)
+above the bed, at most half the water depth, linear between the cell centres (below the second cell centre
+the first cell, as in CFD); horizontal velocity; k of the first cell
+thin water: z_r at least e k_s/30 (u+ >= 1/kappa, as uplus and the NHFLOW wall drag), no singular shear
+stress when the depth approaches zero; the CFD column has z_r >= half a cell
+--------------------------------------------------------------------*/
+bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double href, bool kterm,
+                          double rho, double &tx, double &ty)
+{
+    double wl = d->WL(i,j);
+    int k=0;
+    
+    tx = ty = 0.0;
+    ks = MAX(ks, 1.0e-6);
+    
+    if(wl<=1.0e-20)
+    return false;
+    
+    double ur = d->U[IJK];
+    double vr = p->j_dir==1 ? d->V[IJK] : 0.0;
+    double zr = p->ZP[KP]*wl;
+    double kin = d->KIN[IJK];
+    
+    if(href>0.0)
+    {
+        double zref = href*p->DZN[KP]*wl;
+        
+        zref = MIN(zref, 0.5*wl);
+        zref = MAX(zref, zr);
+        
+        int kr = 0;
+        while(kr+1<p->knoz && p->ZP[kr+1+marge]*wl<=zref)
+        ++kr;
+        
+        if(kr>0 && kr+1<p->knoz)
+        {
+            double z0 = p->ZP[kr+marge]*wl, z1 = p->ZP[kr+1+marge]*wl;
+            double f = (zref - z0)/(z1 - z0);
+            
+            k=kr;
+            double u0 = d->U[IJK], v0 = p->j_dir==1 ? d->V[IJK] : 0.0;
+            k=kr+1;
+            double u1 = d->U[IJK], v1 = p->j_dir==1 ? d->V[IJK] : 0.0;
+            
+            ur = (1.0-f)*u0 + f*u1;
+            vr = (1.0-f)*v0 + f*v1;
+            zr = zref;
+        }
+        else if(kr>0)
+        {
+            k=kr;
+            ur = d->U[IJK];
+            vr = p->j_dir==1 ? d->V[IJK] : 0.0;
+            zr = p->ZP[KP]*wl;
+        }
+    }
+    
+    zr = MAX(zr, 2.718281828459045*ks/30.0);
+    
+    double um = sqrt(ur*ur + vr*vr);
+    double tau = tau_logk(um, zr, ks, kin, kterm, rho);
+    
+    tx = um>1.0e-12 ? tau*ur/um : 0.0;
+    ty = um>1.0e-12 ? tau*vr/um : 0.0;
+    
+    return true;
 }
