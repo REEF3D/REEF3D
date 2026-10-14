@@ -36,8 +36,11 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
+#include<atomic>
 #include<cmath>
 #include<cstdint>
+#include<thread>
+#include<unordered_set>
 #include<iostream>
 #include<iomanip>
 #include<mpi.h>
@@ -211,6 +214,8 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     }
     mb = pgc->globalsum(mb)/1048576.0;
     act = pgc->globalsum(act);
+
+    dag_report();
 
     if(p->mpirank==0)
     cout<<"SEASTATE AMR: active leaf cells on the patches "<<long(act)<<", memory of the patches "<<fixed<<setprecision(1)<<mb<<" MB"<<endl<<endl;
@@ -658,6 +663,9 @@ void seastate_amr::regrid_finish(ghostcell *pgc, int)
         }
     }
 
+    // Phase 12: the order of the threads over the patches of a level
+    dag_build();
+
     L0.solv->skip(cov0);
     L0.solv->faces(gfaces(-1));
 
@@ -1067,24 +1075,7 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
     const int nt = L0.solv->thread_count();
     if(nt>1)
     {
-        if((int)tsolv.size()!=nt || (nt>1 && tsolv[1].size()!=P.size()))
-        {
-        tsolv.clear();
-        tsolv.resize(nt);
-        tsrc.clear();
-        tsrc.resize(nt);
-            for(int t=1; t<nt; ++t)
-            {
-            if(L0.src!=nullptr)
-            tsrc[t].reset(new seastate_source(*L0.src));
-                for(int id=0; id<(int)P.size(); ++id)
-                {
-                tsolv[t].emplace_back(new seastate_implicit(*SP(id)->solv));
-                if(L0.src!=nullptr)
-                tsolv[t].back()->sources(tsrc[t].get());
-                }
-            }
-        }
+        thread_copies(nt);
 
         for(int id=0; id<(int)P.size(); ++id)
         SP(id)->solv->preset_ranges(SP(id)->pp,SP(id)->e);
@@ -1111,10 +1102,198 @@ void seastate_amr::step_begin()
     SP(q)->N0->copy_from(*SP(q)->e->N);
 }
 
+// the copies of the patch solvers and of the source terms for the threads 1 .. nt-1 (static grids: once)
+void seastate_amr::thread_copies(int nt)
+{
+    if((int)tsolv.size()==nt && (nt<2 || tsolv[1].size()==P.size()))
+    return;
+
+    tsolv.clear();
+    tsolv.resize(nt);
+    tsrc.clear();
+    tsrc.resize(nt);
+        for(int t=1; t<nt; ++t)
+        {
+        if(L0.src!=nullptr)
+        tsrc[t].reset(new seastate_source(*L0.src));
+            for(int id=0; id<(int)P.size(); ++id)
+            {
+            tsolv[t].emplace_back(new seastate_implicit(*SP(id)->solv));
+            if(L0.src!=nullptr)
+            tsolv[t].back()->sources(tsrc[t].get());
+            }
+        }
+}
+
+// Phase 12: the order of the threads over the patches of a level: positions i < j of order[q][l] depend on each other if
+// one of the two patches fills its ring from the other
+void seastate_amr::dag_build()
+{
+    vector<unordered_set<int>> reads(P.size());
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+    seastate_amr_patch *c = SP(id);
+        for(int k : c->ring)
+        {
+        const reefamr_fill &f = c->fill[k];
+        if((f.kind==0 || f.kind==1) && f.g>=0 && P[f.g]->lev==c->lev)
+        reads[id].insert(f.g);
+        }
+    }
+
+    for(int q=0; q<4; ++q)
+    {
+    dag_npred[q].assign(maxlev+1,vector<int>());
+    dag_succ[q].assign(maxlev+1,vector<vector<int>>());
+    dag_gain[q].assign(maxlev+1,0.0);
+        for(int l=1; l<=maxlev; ++l)
+        {
+        const vector<int> &o = order[q][l];
+        const int n = int(o.size());
+        unordered_map<int,int> pos;
+        for(int k=0; k<n; ++k)
+        pos[o[k]] = k;
+        vector<unordered_set<int>> pred(n);
+            for(int k=0; k<n; ++k)
+            for(int g : reads[o[k]])
+            {
+            auto it = pos.find(g);
+            if(it==pos.end() || it->second==k)
+            continue;
+            const int a = std::min(k,it->second), b = std::max(k,it->second);
+            pred[b].insert(a);
+            }
+        dag_npred[q][l].assign(n,0);
+        dag_succ[q][l].assign(n,vector<int>());
+        vector<double> chain(n,0.0);
+        double total=0.0, longest=0.0;
+            for(int b=0; b<n; ++b)
+            {
+            dag_npred[q][l][b] = int(pred[b].size());
+            for(int a : pred[b])
+            dag_succ[q][l][a].push_back(b);
+
+            // the predecessors come first in the order: the longest chain of cells ending at b
+            const double w = double(P[o[b]]->nx)*double(P[o[b]]->ny);
+            double c0 = 0.0;
+            for(int a : pred[b])
+            c0 = std::max(c0,chain[a]);
+            chain[b] = c0 + w;
+            total += w;
+            longest = std::max(longest,chain[b]);
+            }
+        dag_gain[q][l] = longest>0.0 ? total/longest : 0.0;
+        }
+    }
+}
+
+void seastate_amr::dag_report()
+{
+    const int nt = p0->A798;
+    if(p0->mpirank==0 && nt>=2 && p0->A797!=1 && (int)dag_gain[0].size()>maxlev)
+    for(int l=1; l<=maxlev; ++l)
+    {
+    const int n = int(order[0][l].size());
+    double g0 = 1.0e30, g1 = 0.0;
+    int nq = 0;
+        for(int q=0; q<4; ++q)
+        {
+        g0 = std::min(g0,dag_gain[q][l]);
+        g1 = std::max(g1,dag_gain[q][l]);
+        if(n>=2*nt && dag_gain[q][l]>=0.75*nt)
+        ++nq;
+        }
+    cout<<"SEASTATE AMR threads (A 798): level "<<l<<", "<<n<<" patch(es) on rank 0, parallelism of the patches "<<fixed<<setprecision(2)<<g0;
+    if(g1>g0)
+    cout<<"-"<<g1;
+    cout<<": patches shared out to the threads in "<<nq<<" of 4 sweep directions, threads inside the patches in the others"<<endl;
+    cout.unsetf(ios::floatfield);
+    cout<<setprecision(6);
+    }
+}
+
+bool seastate_amr::sweep_level_threads(int l, int q, double rdt, bool refraction, bool fshift)
+{
+    static const int side0[4] = {0,0,0,0};
+    static const vector<float> none;
+
+    const int nt = L0.solv->thread_count();
+    const vector<int> &o = order[q][l];
+    const int n = int(o.size());
+    if(nt<2 || n<2*nt || (int)dag_npred[q].size()<=l || dag_gain[q][l]<0.75*nt)
+    return false;
+
+    thread_copies(nt);
+
+    vector<std::atomic<int>> cnt(n);
+    vector<int> ready;
+    ready.reserve(n);
+    for(int k=n-1; k>=0; --k)
+    {
+    cnt[k].store(dag_npred[q][l][k],std::memory_order_relaxed);
+    if(dag_npred[q][l][k]==0)
+    ready.push_back(k);
+    }
+    std::mutex mx;
+    std::atomic<int> done(0);
+
+    const std::function<void(int)> job = [&](int t)
+    {
+        for(;;)
+        {
+        int k = -1;
+            {
+            std::lock_guard<std::mutex> lk(mx);
+                if(!ready.empty())
+                {
+                k = ready.back();
+                ready.pop_back();
+                }
+            }
+
+            if(k<0)
+            {
+            if(done.load(std::memory_order_acquire)>=n)
+            return;
+            std::this_thread::yield();
+            continue;
+            }
+
+        const int id = o[k];
+        seastate_amr_patch *c = SP(id);
+        seastate_implicit *s = solver_of(id,t);
+        if(t>0)
+        s->copy_config(*c->solv);
+        s->threads(1);
+
+        fill_local(c);
+        s->sweep(c->pp,c->e,q,c->N0,rdt,none,side0,refraction,fshift);
+
+            for(int j : dag_succ[q][l][k])
+            if(cnt[j].fetch_sub(1,std::memory_order_acq_rel)==1)
+            {
+            std::lock_guard<std::mutex> lk(mx);
+            ready.push_back(j);
+            }
+        done.fetch_add(1,std::memory_order_acq_rel);
+        }
+    };
+    seastate_implicit::run_threads(nt,job);
+
+    // the patch solvers keep their threads for the sweeps of the patches on their own
+    for(int id : o)
+    SP(id)->solv->threads(nt,64);
+
+    return true;
+}
+
 void seastate_amr::sweep_level(int l, int q, double rdt, bool refraction, bool fshift)
 {
     static const int side0[4] = {0,0,0,0};
     static const vector<float> none;
+
+    if(sweep_level_threads(l,q,rdt,refraction,fshift))
+    return;
 
     for(int id : order[q][l])
     {

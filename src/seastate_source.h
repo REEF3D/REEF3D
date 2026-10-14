@@ -159,6 +159,9 @@ public:
     // vegetation field (A 756 1): stems per m^2 of the cell before compute
     void set_vegetation(double nv) {prm.vn = nv;}
 
+    // the parameters of another source object of the same grid (Phase 12: the copies kept for the threads)
+    void sync_param(const seastate_source &o) {prm = o.prm;}
+
     // spectral sparsity (A 795): energy may appear in any bin of the cell (wind input, DIA)
     bool fills_spectrum() const {return (prm.wind && prm.U10>0.0) || prm.dia;}
     // LTA triads: the lowest frequency offset (negative) that feeds a bin, 0 without triads

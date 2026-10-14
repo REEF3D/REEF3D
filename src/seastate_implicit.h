@@ -164,6 +164,12 @@ Phase 7 (performance):
   two active upwind cells; not monotone, the solution is clipped at zero;
   two halo layers.
 
+Phase 12: threads (A 798) with persistent worker threads (spinning
+shortly, then sleeping) and the copies of the solver and of the source
+terms kept from sweep to sweep (copy_config before every sweep), so that
+the many small sweeps of the refinement patches do not start threads and
+copy the solver each time.
+
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -245,6 +251,15 @@ public:
     // spectral sparsity: the active ranges of all managed cells of the grid, set before a threaded sweep
     void preset_ranges(lexer*, fdm_seastate*);
 
+    // Phase 12: the settings of another solver of the same grid (a copy that works a thread: everything the cell
+    // kernel reads besides its own work arrays)
+    void copy_config(const seastate_implicit &o);
+    int thread_minimum() const {return thread_min;}
+
+    // Phase 12: f(t), t = 0 .. nt-1, t = 0 on the calling thread, the others on the persistent worker threads of the
+    // threaded sweeps (not from within such a job)
+    static void run_threads(int nt, const std::function<void(int)> &f);
+
 private:
 
     void cell(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
@@ -252,6 +267,19 @@ private:
 
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+    // Phase 12: the copies of the solver and of the source terms that work the threads, kept from sweep to sweep
+    // (their settings are taken from this solver before every threaded sweep, copy_config); a copy of the solver
+    // starts with none of its own
+    struct worker_cache
+    {
+    std::vector<std::shared_ptr<seastate_implicit>> wk;
+    std::vector<std::shared_ptr<seastate_source>> ws;
+    const seastate_source *from = nullptr;
+    worker_cache() = default;
+    worker_cache(const worker_cache&) {}
+    worker_cache &operator=(const worker_cache&) {return *this;}
+    };
+    worker_cache workers;
     int nthreads = 1;
     int thread_min = 1;                 // threads only on grids of at least this many cells
     const seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;

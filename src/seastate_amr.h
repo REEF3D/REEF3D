@@ -139,7 +139,14 @@ the step but not after the last one (a fine iteration must follow).
 
 Threads (A 798, Phase 10): level by level, the level-0 sweeps (covered
 cells skipped) and the sweeps of the patches of at least 64 cells run in
-wavefront order (seastate_implicit); in the composite sweep the level-0
+wavefront order (seastate_implicit); Phase 12: on a level with at least
+2 A 798 patches the patches themselves are shared out to the threads, one
+thread per patch, in an order that keeps every patch to the values of the
+serial order (a patch waits for the patches before it that it reads or
+that read it through their rings), where this dependency graph leaves
+enough parallelism (the cells of the level over the cells of its longest
+chain at least 0.75 A 798; otherwise the patches are threaded inside, one
+after the other, as before); in the composite sweep the level-0
 wavefront visits the covered cells with the index of its thread, which
 solves the patch cells under them with its own copies of the patch
 solvers and of the source terms (made once). The ring cells of the
@@ -280,6 +287,19 @@ private:
     void fill_local(seastate_amr_patch*);
     vector<vector<int>> order[4];           // [q][l]: patches of level l in the downstream order of quadrant q
     void sweep_level(int l, int q, double rdt, bool refraction, bool fshift);
+
+    // Phase 12: threads over the patches of a level (level by level, A 798, at least 2 A 798 patches on the level):
+    // patch k of order[q][l] waits for the patches before it that it reads or that read it through their rings, so
+    // that every patch sees the values of the serial order (bitwise the result of one thread); each patch is swept
+    // by one thread. Only where the graph allows it: the cells of the level over the cells of its longest chain of
+    // dependent patches at least 0.75 times the threads; otherwise the patches are threaded inside, one after the other
+    vector<vector<int>> dag_npred[4];                   // [q][l][k]: number of predecessors of position k
+    vector<double> dag_gain[4];                         // [q][l]: cells of the level / cells of the longest chain
+    vector<vector<vector<int>>> dag_succ[4];            // [q][l][k]: successors of position k
+    void dag_build();
+    void dag_report();                                  // the choice per level in the log (rank 0)
+    bool sweep_level_threads(int l, int q, double rdt, bool refraction, bool fshift);
+    void thread_copies(int nt);
 
     // composite sweep (A 797 1): the cells of a patch are solved where the sweep of the coarser grid
     // reaches their parent cell, so that one sweep carries the waves through all levels

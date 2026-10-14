@@ -33,9 +33,122 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include<algorithm>
 #include<atomic>
+#include<chrono>
+#include<condition_variable>
 #include<memory>
+#include<mutex>
 #include<thread>
 #include<cmath>
+
+namespace
+{
+// Phase 12: persistent worker threads for the threaded sweeps (A 798). A sweep hands a job to the
+// workers and works its own share; the workers stay awake for a short time after a job (the next
+// sweep of a patch follows within microseconds), then sleep until the next one.
+class seastate_pool
+{
+public:
+    static seastate_pool &get()
+    {
+        static seastate_pool p;
+        return p;
+    }
+
+    // f(t) for t = 0 .. nt-1: t = 0 on the calling thread, the others on the workers
+    void run(int nt, const std::function<void(int)> &f)
+    {
+        if(nt<=1)
+        {
+        f(0);
+        return;
+        }
+
+        ensure(nt-1);
+
+        {
+        std::lock_guard<std::mutex> lk(mx);
+        job = &f;
+        njob = nt;
+        pending.store(nt-1,std::memory_order_relaxed);
+        gen.fetch_add(1,std::memory_order_release);
+        }
+        cv.notify_all();
+
+        f(0);
+
+        for(int k=0; pending.load(std::memory_order_acquire)>0; ++k)
+        if(k>2000)
+        std::this_thread::yield();
+    }
+
+    ~seastate_pool()
+    {
+        {
+        std::lock_guard<std::mutex> lk(mx);
+        quit = true;
+        gen.fetch_add(1,std::memory_order_release);
+        }
+        cv.notify_all();
+        for(auto &t : th)
+        t.join();
+    }
+
+private:
+    void ensure(int n)
+    {
+        // the generation before the job that needs the new workers: they take that job too
+        const long g0 = gen.load(std::memory_order_acquire);
+        while(int(th.size())<n)
+        {
+        const int t = int(th.size())+1;
+        th.emplace_back([this,t,g0]() {loop(t,g0);});
+        }
+    }
+
+    void loop(int t, long seen)
+    {
+        for(;;)
+        {
+            // short spin for the next job, then sleep
+            const auto t0 = std::chrono::steady_clock::now();
+            while(gen.load(std::memory_order_acquire)==seen && std::chrono::steady_clock::now()-t0<std::chrono::microseconds(200))
+            std::this_thread::yield();
+
+            if(gen.load(std::memory_order_acquire)==seen)
+            {
+            std::unique_lock<std::mutex> lk(mx);
+            cv.wait(lk,[&]() {return gen.load(std::memory_order_acquire)!=seen;});
+            }
+
+            const std::function<void(int)> *f;
+            int n;
+            {
+            std::lock_guard<std::mutex> lk(mx);
+            if(quit)
+            return;
+            seen = gen.load(std::memory_order_acquire);
+            f = job;
+            n = njob;
+            }
+
+            if(t<n)
+            {
+            (*f)(t);
+            pending.fetch_sub(1,std::memory_order_acq_rel);
+            }
+        }
+    }
+
+    std::vector<std::thread> th;
+    std::mutex mx;
+    std::condition_variable cv;
+    const std::function<void(int)> *job = nullptr;
+    int njob = 0;
+    std::atomic<long> gen{0};
+    std::atomic<int> pending{0};
+    bool quit = false;
+};
+}
 
 seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), wU(nullptr), wD(nullptr), second(false)
 {
@@ -181,20 +294,33 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 
     const int nt = std::min(nthreads,std::max(ni,nj));
 
-    // copies of the solver and of the source terms for the threads 1..nt-1
-    std::vector<std::unique_ptr<seastate_source>> ws(nt);
-    std::vector<std::unique_ptr<seastate_implicit>> wk(nt);
+    // copies of the solver and of the source terms for the threads 1..nt-1, made once (Phase 12) and given the
+    // settings of this solver before every sweep
+    worker_cache &W = workers;
+    if(W.from!=src)
+    {
+    W.wk.clear();
+    W.ws.clear();
+    W.from = src;
+    }
+    while(int(W.wk.size())<nt)
+    {
+    W.wk.push_back(std::make_shared<seastate_implicit>(*this));
+    W.ws.push_back(src!=nullptr ? std::make_shared<seastate_source>(*src) : nullptr);
+    }
+
     std::vector<seastate_implicit*> sol(nt,this);
 
     for(int t=1; t<nt; ++t)
     {
-    wk[t].reset(new seastate_implicit(*this));
+    seastate_implicit *w = W.wk[t].get();
+    w->copy_config(*this);
         if(src!=nullptr)
         {
-        ws[t].reset(new seastate_source(*src));
-        wk[t]->src = ws[t].get();
+        W.ws[t]->sync_param(*src);
+        w->src = W.ws[t].get();
         }
-    sol[t] = wk[t].get();
+    sol[t] = w;
     }
 
     const int nd = ni+nj-1;
@@ -252,14 +378,48 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
         }
     };
 
-    std::vector<std::thread> th;
-    for(int t=1; t<nt; ++t)
-    th.emplace_back(work,t);
+    const std::function<void(int)> job = work;
+    seastate_pool::get().run(nt,job);
+}
 
-    work(0);
+void seastate_implicit::run_threads(int nt, const std::function<void(int)> &f)
+{
+    seastate_pool::get().run(nt,f);
+}
 
-    for(auto &x : th)
-    x.join();
+// the settings of another solver of the same grid (the threads of a sweep, Phase 12): everything the cell kernel
+// reads besides its own work arrays
+void seastate_implicit::copy_config(const seastate_implicit &o)
+{
+    for(int k=0; k<4; ++k)
+    {
+    Nbs[k] = o.Nbs[k];
+    Nbs0[k] = o.Nbs0[k];
+    }
+    wU = o.wU;
+    wD = o.wD;
+    vN = o.vN;
+    second = o.second;
+    ranged = o.ranged;
+    ri0 = o.ri0; ri1 = o.ri1; rj0 = o.rj0; rj1 = o.rj1;
+    skp = o.skp;
+    fcs = o.fcs;
+    eps = o.eps;
+    order2 = o.order2;
+    rout = o.rout;
+    raccum = o.raccum;
+    rshift = o.rshift;
+    ftau = o.ftau;
+    ftil = o.ftil;
+    nsrcit = o.nsrcit;
+    srctol = o.srctol;
+    vis = o.vis;
+    visT = o.visT;
+    dca = o.dca; dcax = o.dcax; dcay = o.dcay;
+    pob = o.pob;
+    nthreads = o.nthreads;
+    thread_min = o.thread_min;
+    sr = o.sr;
 }
 
 void seastate_implicit::preset_ranges(lexer *p, fdm_seastate *e)
