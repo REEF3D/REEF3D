@@ -483,15 +483,34 @@ void fem_solid::internal_forces(double dts)
         fe_on[e] = 1;
     }
 
-    // in the order of the elements (as a serial loop): dissipated energy, eroded elements
+    // in the order of the elements (as a serial loop): dissipated energy (per element),
+    // eroded elements
+    std::vector<int> failed;
     for(int k=0; k<na; ++k)
     {
         const int e = act[k];
         const double* wl = &wl_buf[(size_t)e*WLOG];
         for(int q=0; q<wl_n[e]; ++q)
-        wdiss += wl[q];
+        wde[e] += wl[q];
         if(!elems[e].alive)
         {
+            surf_dirty = true;
+            act_dirty = true;
+            failed.push_back(e);
+            for(int a=0; a<8; ++a)
+            --nalive[elems[e].n[a]];
+        }
+    }
+
+    // distributed: elements that failed on other ranks fail here too
+    if(dist)
+    {
+        dist_failures(failed);
+        for(int e : failed)
+        if(elems[e].alive)
+        {
+            elems[e].alive = false;
+            fe_on[e] = 0;
             surf_dirty = true;
             act_dirty = true;
             for(int a=0; a<8; ++a)
@@ -530,7 +549,7 @@ void fem_solid::build_gather()
     if(elems[e].alive)
     {
         ++nalive_el;
-        if(!elems[e].rigid)
+        if(!elems[e].rigid && (!dist || ecomp[e]))
         act.push_back(e);
     }
     if(fe_buf.size()!=(size_t)ne*24)
@@ -547,6 +566,8 @@ void fem_solid::build_gather()
     g_node.clear(); g_start.assign(1,0); g_off.clear(); g_elem.clear();
     for(int i=0; i<nn; ++i)
     {
+        if(dist && nown[i]!=myrank)
+        continue;
         const int q0 = (int)g_off.size();
         for(int q=node_elem_start[i]; q<node_elem_start[i+1]; ++q)
         {

@@ -728,6 +728,7 @@ fem_solid::check_info fem_solid::check()
     const std::vector<element> e0 = elems;
     const Vec3 grav0 = grav;
     const double wdiss0 = wdiss;
+    const std::vector<double> wde0 = wde;
 
     // self weight
     if(ci.nfixed>0 || ground_on)
@@ -747,7 +748,7 @@ fem_solid::check_info fem_solid::check()
         if(n_eroded()>0)
         ci.warnings.push_back("elements fail under the self weight alone");
 
-        x = x0; gps = g0; elems = e0; wdiss = wdiss0; act_dirty = true;
+        x = x0; gps = g0; elems = e0; wdiss = wdiss0; wde = wde0; act_dirty = true;
         build_surface();
         count_bodies();
     }
@@ -841,6 +842,7 @@ void fem_solid::rayleigh_frequencies(double f[3],bool ok[3])
     const std::vector<element> e0 = elems;
     const Vec3 grav0 = grav;
     const double wdiss0 = wdiss;
+    const std::vector<double> wde0 = wde;
     const int ne0 = n_eroded();
     const std::vector<material> m0 = mats;
 
@@ -873,7 +875,7 @@ void fem_solid::rayleigh_frequencies(double f[3],bool ok[3])
             f[d] = std::sqrt(num/den)/(2.0*3.14159265358979);
             ok[d] = true;
         }
-        x = x0; gps = g0; elems = e0; wdiss = wdiss0; act_dirty = true;
+        x = x0; gps = g0; elems = e0; wdiss = wdiss0; wde = wde0; act_dirty = true;
         build_surface();
         count_bodies();
     }

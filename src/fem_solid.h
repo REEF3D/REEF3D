@@ -65,6 +65,18 @@ Architect: Hans Bihs
 #define FEM_OMP(...)
 #endif
 
+// communicator of the distributed solid (MPI ranks in the coupling, threads in the unit test):
+// all ranks hold the whole solid; the elements are computed and the nodes moved by their owners
+struct fem_comm
+{
+    virtual ~fem_comm() = default;
+    virtual int size() const = 0;
+    virtual int rank() const = 0;
+    // concatenation of the bytes of all ranks in rank order (counts and displacements in bytes)
+    virtual void allgatherv(const void* send, int nbytes, void* recv, const int* counts, const int* displs) = 0;
+    virtual void allgather_int(int v, int* all) = 0;      // one int per rank
+};
+
 class fem_solid
 {
 public:
@@ -305,6 +317,11 @@ public:
     void set_snap(bool on) {snap_on = on;}
     // threads for the solid (OpenMP builds); 0: automatic (cores / MPI ranks on the node)
     void set_threads(int n) {nthr_req = n;}
+    // distribution over ranks: -1 auto (more than 1 rank and at least dist_min deformable elements), 0 off, 1 on
+    void set_distribute(int d) {dist_req = d;}
+    int distribute_requested() const {return dist_req;}
+    void set_comm(fem_comm* c) {comm = c;}
+    bool distributed() const {return dist;}
     int threads_requested() const {return nthr_req;}
     void use_threads(int n) {nthr = std::max(1,n);}
     int threads() const {return nthr;}
@@ -412,7 +429,7 @@ public:
     int n_eroded() const {return nelem()-n_alive();}
     double kinetic_energy() const;
     double strain_energy() const;               // elastic strain energy (undamaged part)
-    double dissipated_energy() const {return wdiss;}
+    double dissipated_energy() const;           // sum over the elements (any number of threads or ranks)
     Vec3 support_force() const;                 // force of the structure on its supports
     Vec3 support_force(double x0,double x1,double y0,double y1,double z0,double z1) const;   // supports inside a box
     Vec3 total_load() const;                    // sum of the external (fluid) loads
@@ -606,8 +623,25 @@ private:
     bool rigid_contact_near(double dt) const;
     int nsub_last = 0;
     double wdiss = 0.0;
+    std::vector<double> wde;                    // dissipated energy per element
     bool built = false;
     int nthr_req = 0;
+    // distribution over ranks
+    fem_comm *comm = nullptr;
+    int dist_req = -1;
+    static const int dist_min = 1000;           // auto: at least this many deformable elements
+    bool dist = false;                          // distributed in the current fluid step
+    int myrank = 0, nranks = 1;
+    std::vector<int> nown;                      // owner rank of a node (-1: rigid body node, moved by all)
+    std::vector<int> eown;                      // owner rank of a deformable element (-1: none)
+    std::vector<unsigned char> ecomp;           // element computed here (a node of it is owned here)
+    std::vector<std::vector<int>> rnodes, relems;   // owned nodes / elements of every rank, ascending
+    std::vector<int> cnt, dsp;                  // byte counts and displacements of an exchange
+    std::vector<char> sbuf, rbuf;
+    void dist_partition();                      // at the start of a fluid step
+    void dist_exchange_nodes(bool end);         // x, v of the owned nodes (end: vbar and fint)
+    void dist_exchange_elements();              // integration points and element data, at the end of a fluid step
+    void dist_failures(std::vector<int>& failed);   // elements failed in the substep on any rank
 };
 
 #endif

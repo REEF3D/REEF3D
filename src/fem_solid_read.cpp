@@ -299,6 +299,16 @@ void fem_solid::read(std::istream& is)
             }
         }
         else if(kw=="cfl")           need(static_cast<bool>(ls>>cfl) && cfl>0.0 && cfl<=1.0);
+        else if(kw=="distribute")
+        {
+            // distribute auto|on|off: the solid split over the MPI ranks
+            std::string t;
+            need(static_cast<bool>(ls>>t));
+            if(t=="auto") dist_req = -1;
+            else if(t=="on") dist_req = 1;
+            else if(t=="off") dist_req = 0;
+            else fail("distribute: auto, on or off");
+        }
         else if(kw=="threads")
         {
             // threads <n> | threads auto: threads of the solid (OpenMP builds)

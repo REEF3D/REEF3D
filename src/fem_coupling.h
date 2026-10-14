@@ -134,6 +134,7 @@ private:
         std::vector<std::vector<int>> iarr;
     };
     sc_snapshot *sc = nullptr;
+    fem_comm *dcomm = nullptr;          // MPI communicator of the distributed solid
     bool sc_on = false;                 // strong coupling active in this fluid step
     bool sc_defer = false;              // outputs after the last pass
     int sc_pass = 0;

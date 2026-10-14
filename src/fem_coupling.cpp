@@ -132,6 +132,24 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
 #endif
     fs.use_threads(nthr);
 
+    // distribution of the solid over the ranks (fem.dat 'distribute', default auto)
+    struct comm_mpi : public fem_comm
+    {
+        MPI_Comm c; int n, r;
+        explicit comm_mpi(MPI_Comm cc) : c(cc) {MPI_Comm_size(c,&n); MPI_Comm_rank(c,&r);}
+        int size() const override {return n;}
+        int rank() const override {return r;}
+        void allgatherv(const void* send,int nbytes,void* recv,const int* counts,const int* displs) override
+        {MPI_Allgatherv(send,nbytes,MPI_BYTE,recv,counts,displs,MPI_BYTE,c);}
+        void allgather_int(int v,int* all) override
+        {MPI_Allgather(&v,1,MPI_INT,all,1,MPI_INT,c);}
+    };
+    if(p->mpi_size>1 && fs.distribute_requested()!=0)
+    {
+        dcomm = new comm_mpi(pgc->mpi_comm);
+        fs.set_comm(dcomm);
+    }
+
     force_scale = (p->j_dir==0) ? 1.0/fs.lattice_h(1) : 1.0;
     outdir = "./REEF3D_FEM";
 
@@ -536,6 +554,7 @@ void fem_coupling::write_summary(lexer *p)
 fem_coupling::~fem_coupling()
 {
     delete sc;
+    delete dcomm;
 }
 
 void fem_coupling::ini_points(lexer *p, ghostcell *pgc)

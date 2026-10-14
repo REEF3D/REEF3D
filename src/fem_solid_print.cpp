@@ -150,6 +150,8 @@ void fem_solid::info(std::ostream& os) const
       <<(plane_strain ? ", plane strain" : "")<<"\n";
     if(nthr>1)
     os<<"FEM: "<<nthr<<" threads (OpenMP)\n";
+    if(comm && comm->size()>1 && dist_req!=0)
+    os<<"FEM: solid split over the "<<comm->size()<<" ranks"<<(dist_req<0 ? " if it has at least "+std::to_string(dist_min)+" deformable elements (now "+std::to_string(n_deformable())+")" : std::string())<<"\n";
 
     for(const material& mt : mats)
     {
