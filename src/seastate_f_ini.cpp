@@ -681,7 +681,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A798>1 || (p->A700==2 && (p->A738>1 || p->A799==1)))
     {
     cout<<"SEASTATE solver (Phase 7b):";
-    if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->A770==1 ? ", not used with surfbeat" : (p->G1>0 && p->A797==1 ? ", not used in the composite sweep (A 797 1)" : ""));
+    if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->A770==1 ? ", not used with surfbeat" : "");
     if(p->A700==2 && p->A738>1) cout<<(p->A798>1 ? "," : "")<<" up to "<<p->A738<<" source iterations per cell, tolerance "<<scientific<<setprecision(1)<<p->A739<<defaultfloat<<setprecision(6)<<" (A 738, A 739)";
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
     cout<<endl;
@@ -704,7 +704,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
 void seastate_f::initial(lexer *p, ghostcell *pgc)
 {
     if(p->A710==0)
-    e->N->fill(0.0f);
+    e->N->fill(0.0f,p->A798);
 
     if(p->A710==1)
     initial_parametric(p,pgc);

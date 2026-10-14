@@ -138,8 +138,8 @@ the step (N0 of every grid), a correction after every n iterations of
 the step but not after the last one (a fine iteration must follow).
 
 Threads (A 798, Phase 10): level by level, the level-0 sweeps (covered
-cells skipped) and the sweeps of the patches of at least 64 cells run in
-wavefront order (seastate_implicit); Phase 12: on a level with at least
+cells skipped) and the sweeps of the patches of at least 64 cells run
+over tiles of cells (seastate_implicit, Phase 13); Phase 12: on a level with at least
 2 A 798 patches the patches themselves are shared out to the threads, one
 thread per patch, in an order that keeps every patch to the values of the
 serial order (a patch waits for the patches before it that it reads or
@@ -147,7 +147,7 @@ that read it through their rings), where this dependency graph leaves
 enough parallelism (the cells of the level over the cells of its longest
 chain at least 0.75 A 798; otherwise the patches are threaded inside, one
 after the other, as before); in the composite sweep the level-0
-wavefront visits the covered cells with the index of its thread, which
+tiles visit the covered cells with the index of its thread, which
 solves the patch cells under them with its own copies of the patch
 solvers and of the source terms (made once). The ring cells of the
 patches are written under a lock. The result is that of one thread.

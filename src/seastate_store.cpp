@@ -21,6 +21,8 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_store.h"
+#include"seastate_implicit.h"
+#include<functional>
 #include<algorithm>
 
 seastate_store::seastate_store(int imin_, int jmin_, int ni_, int nj_, int nbin_, int tile_)
@@ -73,20 +75,26 @@ void seastate_store::build(const int *mask)
     }
 
     // release the old pool before allocating the new one (no peak of two pools)
-    std::vector<float>().swap(pool);
-    pool.assign(size_t(ncell_alloc)*nbin,0.0f);
+    decltype(pool)().swap(pool);
+    pool.resize(size_t(ncell_alloc)*nbin);
 }
 
-void seastate_store::fill(float val)
+void seastate_store::fill(float val, int nt)
 {
-    for(int ii=0; ii<ni; ++ii)
-    for(int jj=0; jj<nj; ++jj)
-    {
-    float *s = spec(ii+imin,jj+jmin);
+    nt = std::max(1,std::min(nt,ni));
 
-    if(s!=nullptr)
-    std::fill(s,s+nbin,act[size_t(ii)*nj+jj] ? val : 0.0f);
-    }
+    const std::function<void(int)> job = [&](int t)
+    {
+        for(int ii=t; ii<ni; ii+=nt)
+        for(int jj=0; jj<nj; ++jj)
+        {
+        float *s = spec(ii+imin,jj+jmin);
+
+        if(s!=nullptr)
+        std::fill(s,s+nbin,act[size_t(ii)*nj+jj] ? val : 0.0f);
+        }
+    };
+    seastate_implicit::run_threads(nt,job);
 }
 
 bool seastate_store::copy_from(const seastate_store &s)

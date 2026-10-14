@@ -37,6 +37,7 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<cmath>
 #include<fstream>
+#include<functional>
 #include<iomanip>
 #include<sys/stat.h>
 
@@ -96,6 +97,33 @@ void seastate_f::boundary_spectrum(lexer *p, ghostcell *pgc, const seastate_grid
     }
 }
 
+// Phase 13: Hs of every wet cell, the rows shared out to nt threads (each with its own seastate_param); returns the
+// largest Hs of the rank
+static double hs_cells(lexer *p, fdm_seastate *e, const seastate_grid &g, std::vector<double> &hs, int nt)
+{
+    nt = std::max(1,std::min(nt,p->knox));
+    std::vector<double> hm(nt,0.0);
+
+    const std::function<void(int)> job = [&](int t)
+    {
+        seastate_param sp;
+        double m = 0.0;
+
+        for(int ii=t; ii<p->knox; ii+=nt)
+        for(int jj=0; jj<p->knoy; ++jj)
+        if(p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0 && e->wet(ii,jj)==1)
+        {
+        sp.compute(g,e->N->spec(ii,jj));
+        hs[size_t(ii)*p->knoy+jj] = sp.Hs;
+        m = std::max(m,sp.Hs);
+        }
+    hm[t] = m;
+    };
+    seastate_implicit::run_threads(nt,job);
+
+    return *std::max_element(hm.begin(),hm.end());
+}
+
 // stationary convergence test of a cell: the change d of Hs in the last iteration (A 799 0), or (A 799 1)
 // the estimated distance of Hs to the solution d/(1-rho), rho = d/d_previous the contraction of the
 // iteration in the cell (at most 0.99; an alternating change counts with d); relative to Hs
@@ -153,17 +181,12 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
     // stationary: iterate until the largest relative change of Hs is below A 708
     const seastate_grid &g = *e->grid;
-    seastate_param sp;
 
     hs_old.assign(size_t(p->knox)*p->knoy,0.0);
     std::vector<double> dprev(hs_old.size(),0.0);
+    const int nth = psolv->thread_count();
 
-    SLICELOOP4
-    if(e->wet(i,j)==1)
-    {
-    sp.compute(g,e->N->spec(i,j));
-    hs_old[size_t(i)*p->knoy+j] = sp.Hs;
-    }
+    hs_cells(p,e,g,hs_old,nth);
 
     for(int it=0; it<iter_max; ++it)
     {
@@ -181,16 +204,8 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE FAS: iteration "<<iter_done<<", "<<p->A758_m<<" coarse iterations, largest relative change of the coarse cells "<<pfas->last()<<endl;
     }
 
-    double hmax=0.0;
     std::vector<double> hs(size_t(p->knox)*p->knoy,0.0);
-
-        SLICELOOP4
-        if(e->wet(i,j)==1)
-        {
-        sp.compute(g,e->N->spec(i,j));
-        hs[size_t(i)*p->knoy+j] = sp.Hs;
-        hmax = std::max(hmax,sp.Hs);
-        }
+    double hmax = hs_cells(p,e,g,hs,nth);
 
     hmax = pgc->globalmax(hmax);
 

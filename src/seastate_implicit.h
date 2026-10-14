@@ -170,6 +170,17 @@ terms kept from sweep to sweep (copy_config before every sweep), so that
 the many small sweeps of the refinement patches do not start threads and
 copy the solver each time.
 
+Phase 13: the sweeps go over tiles of 16 x 16 cells (smaller where the
+grid holds too few tiles for the threads), also with one thread. A tile
+waits for its two upwind tiles, inside it the cells follow the serial
+order, so that every cell has its four neighbours solved before or after
+it as in the serial sweep: the result is that of the serial sweep. The
+upwind neighbours of a cell stay in the cache of its thread, which the
+cell diagonals of Phase 7b did not (22 % more time per cell with 2
+threads on the sparse swell spectra, 10 % less with one thread now).
+The first visits of the cells (spectral sparsity) are shared out to the
+threads as well.
+
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -231,8 +242,8 @@ public:
     void fas_source(const seastate_store *tau, const seastate_store *Nt) {ftau = tau; ftil = Nt;}
     void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
 
-    // threads per rank (A 798): the cells of a quadrant sweep in wavefront order, the cells of one
-    // diagonal i+j = const at the same time (level 0 without refinement, not the surfbeat model)
+    // threads per rank (A 798): the tiles of a quadrant sweep, a tile once its two upwind tiles are solved (Phase 13;
+    // Phase 7b: the cells of one diagonal i+j = const at the same time); not the surfbeat model
     void threads(int n, int nmin = 1) {nthreads = std::max(n,1); thread_min = nmin;}
 
     // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency; obstacles (A 722)
@@ -344,6 +355,9 @@ private:
     double energy(const seastate_grid&, const float *N) const;
     bool managed(lexer*, fdm_seastate*, int ci, int cj) const;
     uint16_t *ranges(lexer*, fdm_seastate*, int ci, int cj);
+    void ranges_alloc(lexer*);
+    void ranges_all(lexer*, fdm_seastate*, int ia, int ni, int ja, int nj, int nt);   // the first visits, by nt threads
+    static int tile_size(int ni, int nj, int nt);
     void windows(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N, const seastate_neighbour &W,
                  const seastate_neighbour &E, const seastate_neighbour &S, const seastate_neighbour &Nn, bool rf, bool fs,
                  bool all=false);

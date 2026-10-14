@@ -222,11 +222,13 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
     if(m1[q]<m0[q])
     return;
 
-    // threads (A 798): wavefront order, on level 0 and on the patches of the mesh refinement (covered cells
-    // skipped); in the composite sweep (A 797 1) the visit of a covered cell gets the thread (visit_threads)
+    // tiles (Phase 13, also with one thread: the upwind neighbours of a cell stay in the cache) and threads (A 798),
+    // on level 0 and on the patches of the mesh refinement (covered cells skipped); in the composite sweep (A 797 1)
+    // the visit of a covered cell gets the thread (visit_threads)
     // (not when the residuals of neighbouring cells are added into the same coarse cell, residual_add with s > 0)
-    if(nthreads>1 && (vis==nullptr || visT!=nullptr) && !second && !(rout!=nullptr && raccum && rshift>0)
-       && (ranged ? (ri1-ri0+1)*(rj1-rj0+1) : p->knox*p->knoy)>=thread_min)
+    const int nbox = ranged ? (ri1-ri0+1)*(rj1-rj0+1) : p->knox*p->knoy;
+    if((vis==nullptr || visT!=nullptr) && !second && !(rout!=nullptr && raccum && rshift>0)
+       && nbox>=thread_min && (nthreads>1 || nbox>=4096))     // one thread: tiles from 16 tiles of 16 x 16 cells on
     {
     sweep_threads(p,e,q,N0,rdt,Nb,side,refraction,fshift);
     return;
@@ -286,13 +288,10 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
     if(ni<=0 || nj<=0)
     return;
 
-    if(eps>0.0)
-    for(int ci=ia; ci<ia+ni; ++ci)
-    for(int cj=ja; cj<ja+nj; ++cj)
-    if(managed(p,e,ci,cj) && (skp==nullptr || (*skp)(ci,cj)==0))
-    ranges(p,e,ci,cj);
-
     const int nt = std::min(nthreads,std::max(ni,nj));
+
+    if(eps>0.0)
+    ranges_all(p,e,ia,ni,ja,nj,nt);
 
     // copies of the solver and of the source terms for the threads 1..nt-1, made once (Phase 12) and given the
     // settings of this solver before every sweep
@@ -323,47 +322,62 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
     sol[t] = w;
     }
 
-    const int nd = ni+nj-1;
-    std::vector<std::atomic<int>> next(nd);
-    for(int d=0; d<nd; ++d)
-    next[d].store(0,std::memory_order_relaxed);
+    // Phase 13: tiles of tb x tb cells (in the order of the quadrant) are the units of the threads. A tile waits for
+    // its upwind tiles (the tile before it in i and the one before it in j); inside a tile the cells are solved in the
+    // order of the serial sweep. So every cell has its four neighbours solved before or after it as in the serial
+    // sweep, and the result is that of the serial sweep. Unlike the cell diagonals (Phase 7b), the tiles keep the
+    // upwind neighbours of a cell in the cache of its thread: on the sparse swell spectra the cells took 22 % more time
+    // with 2 threads than alone. The thread that finishes a tile goes on with the next tile in j if it is ready
+    const int tb = tile_size(ni,nj,nt);
+    const int nI = (ni+tb-1)/tb, nJ = (nj+tb-1)/tb, ntile = nI*nJ;
+    std::vector<std::atomic<int>> npred(ntile);
+    for(int I=0; I<nI; ++I)
+    for(int J=0; J<nJ; ++J)
+    npred[size_t(I)*nJ+J].store((I>0 ? 1 : 0) + (J>0 ? 1 : 0),std::memory_order_relaxed);
 
-    // barrier after each diagonal: generation counter, spinning first (a diagonal takes microseconds
-    // to milliseconds), then yielding (more threads than cores)
-    std::atomic<int> arrived(0), generation(0);
-    auto barrier = [&]()
-    {
-        const int gen = generation.load(std::memory_order_acquire);
-
-        if(arrived.fetch_add(1,std::memory_order_acq_rel)==nt-1)
-        {
-        arrived.store(0,std::memory_order_relaxed);
-        generation.fetch_add(1,std::memory_order_release);
-        return;
-        }
-
-        for(int k=0; generation.load(std::memory_order_acquire)==gen; ++k)
-        if(k>2000)
-        std::this_thread::yield();
-    };
+    std::mutex qm;
+    std::vector<int> ready;
+    ready.reserve(ntile);
+    ready.push_back(0);
+    std::atomic<int> done(0);
 
     auto work = [&](int t)
     {
         seastate_implicit *s = sol[t];
+        int k = -1;
 
-        for(int d=0; d<nd; ++d)
+        for(int spin=0;;)
         {
-        const int i0 = std::max(0,d-(nj-1)), i1 = std::min(ni-1,d);
-
-            for(;;)
+            if(k<0)
             {
-            const int k = next[d].fetch_add(1,std::memory_order_relaxed);
-            const int ii = i0+k;
-            if(ii>i1)
-            break;
+                {
+                std::lock_guard<std::mutex> lk(qm);
+                    if(!ready.empty())
+                    {
+                    k = ready.back();
+                    ready.pop_back();
+                    }
+                }
 
+                if(k<0)
+                {
+                if(done.load(std::memory_order_acquire)>=ntile)
+                break;
+                if(++spin>2000)
+                std::this_thread::yield();
+                continue;
+                }
+            spin = 0;
+            }
+
+        const int I = k/nJ, J = k%nJ;
+        const int ie = std::min(ni,(I+1)*tb), je = std::min(nj,(J+1)*tb);
+
+            for(int ii=I*tb; ii<ie; ++ii)
+            for(int jj=J*tb; jj<je; ++jj)
+            {
             const int ci = ia + (idown ? ni-1-ii : ii);
-            const int cj = ja + (jdown ? nj-1-(d-ii) : d-ii);
+            const int cj = ja + (jdown ? nj-1-jj : jj);
 
                 if(skp!=nullptr && (*skp)(ci,cj)==1)
                 {
@@ -374,12 +388,41 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
                 s->cell(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
             }
 
-        barrier();
+        int next = -1;
+        if(J+1<nJ && npred[k+1].fetch_sub(1,std::memory_order_acq_rel)==1)
+        next = k+1;
+            if(I+1<nI && npred[k+nJ].fetch_sub(1,std::memory_order_acq_rel)==1)
+            {
+                if(next<0)
+                next = k+nJ;
+                else
+                {
+                std::lock_guard<std::mutex> lk(qm);
+                ready.push_back(k+nJ);
+                }
+            }
+        done.fetch_add(1,std::memory_order_acq_rel);
+        k = next;
         }
     };
 
     const std::function<void(int)> job = work;
     seastate_pool::get().run(nt,job);
+}
+
+// tiles of the threaded sweep: 16 x 16 cells; with several threads smaller while the tile graph holds less than 3
+// tiles per thread on average along its longest chain (nI nJ / (nI + nJ - 1))
+int seastate_implicit::tile_size(int ni, int nj, int nt)
+{
+    int tb = 16;
+        while(nt>1 && tb>2)
+        {
+        const double nI = std::ceil(double(ni)/tb), nJ = std::ceil(double(nj)/tb);
+        if(nI*nJ/(nI+nJ-1.0)>=3.0*nt)
+        break;
+        tb /= 2;
+        }
+    return tb;
 }
 
 void seastate_implicit::run_threads(int nt, const std::function<void(int)> &f)
@@ -569,15 +612,36 @@ bool seastate_implicit::managed(lexer *p, fdm_seastate *e, int ci, int cj) const
     return skp==nullptr || (*skp)(ci,cj)==0;
 }
 
-uint16_t *seastate_implicit::ranges(lexer *p, fdm_seastate *e, int ci, int cj)
+void seastate_implicit::ranges_alloc(lexer *p)
 {
-    if(rg.empty())
-    {
+    if(!rg.empty())
+    return;
+
     rni = p->imax; rnj = p->jmax; rimin = p->imin; rjmin = p->jmin;
     rg.assign(size_t(rni)*rnj*4*nsig,0xFFFF);
     rv.assign(size_t(rni)*rnj,uint16_t(0));
     rb.assign(size_t(rni)*rnj*4,uint16_t(0xFFFF));
-    }
+}
+
+// the first visits of the cells of a box (ranges of the present spectrum), shared out by rows to nt threads: each
+// writes only the ranges and the spectrum of its own cells
+void seastate_implicit::ranges_all(lexer *p, fdm_seastate *e, int ia, int ni, int ja, int nj, int nt)
+{
+    ranges_alloc(p);
+
+    const std::function<void(int)> job = [&](int t)
+    {
+        for(int ci=ia+t; ci<ia+ni; ci+=nt)
+        for(int cj=ja; cj<ja+nj; ++cj)
+        if(rv[size_t(ci-rimin)*rnj + (cj-rjmin)]==0 && managed(p,e,ci,cj))
+        ranges(p,e,ci,cj);
+    };
+    seastate_pool::get().run(std::max(1,std::min(nt,ni)),job);
+}
+
+uint16_t *seastate_implicit::ranges(lexer *p, fdm_seastate *e, int ci, int cj)
+{
+    ranges_alloc(p);
 
     const size_t c = size_t(ci-rimin)*rnj + (cj-rjmin);
     uint16_t *r = &rg[c*4*nsig];
