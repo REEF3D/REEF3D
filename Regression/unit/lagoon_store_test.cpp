@@ -262,7 +262,7 @@ int main()
         const std::string root=slurp(path+"/zarr.json");
         check(root.find("\"georef\": {   \"version\": 1,   \"crs\": \"EPSG:25833\",   \"origin\": [270000.0, 7040000.0],   \"rotation_deg\": 30.0 }}}")!=std::string::npos,
               "georef: the block, on one line, at the end of the root's attributes");
-        check(root.find("\"version\": \"0.4\"")!=std::string::npos, "format version 0.4");
+        check(root.find("\"version\": \"0.5\"")!=std::string::npos, "format version 0.5");
         {
             std::ofstream out("georef.json");
             out<<"[1, 2]\n";
@@ -272,6 +272,47 @@ int main()
         std::remove("georef.json");
         store.create_root("NHFLOW","");
         check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "no georef.json: no georef");
+    }
+
+    // a curvilinear grid (G 50, SPEC 2.2): xc and yc, the place of every grid point
+    {
+        std::cout<<"curvilinear surface: xc, yc"<<std::endl;
+        const std::string path = "lagoon_store_test_curv.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        const int CX=4, CY=3;
+        std::vector<double> x, y, xc, yc;
+        for(int i=0;i<CX;++i) x.push_back(i);
+        for(int j=0;j<CY;++j) y.push_back(j);
+        for(int j=0;j<CY;++j)
+            for(int i=0;i<CX;++i)
+            {
+                const double a = 0.5*i, r = 10.0 + j;
+                xc.push_back(r*std::cos(a));
+                yc.push_back(r*std::sin(a));
+            }
+        lagoon_store store(path,16,1);
+        store.create_root("SFLOW","");
+        store.create_output("free_surface","surface",x,y,{},{{"eta",1,"m"}},1,"REEF3D_SFLOW_VTP_FSF",&xc,&yc);
+        const std::string meta=slurp(path+"/free_surface/zarr.json");
+        check(meta.find("\"horizontal\": \"curvilinear\"")!=std::string::npos, "horizontal: curvilinear");
+        const std::string xmeta=slurp(path+"/free_surface/xc/zarr.json");
+        check(xmeta.find("\"shape\": [3, 4]")!=std::string::npos && xmeta.find("\"dimension_names\": [\"y\", \"x\"]")!=std::string::npos,
+              "xc: (ny, nx) = (3, 4), dimensions y, x");
+        const std::string xs=slurp(path+"/free_surface/xc/c/0/0");
+        const std::string ys=slurp(path+"/free_surface/yc/c/0/0");
+        double x5=0.0, y5=0.0;
+        if(xs.size()==12*8 && ys.size()==12*8)
+        {
+            std::memcpy(&x5, xs.data()+5*8, 8);
+            std::memcpy(&y5, ys.data()+5*8, 8);
+        }
+        check(x5==11.0*std::cos(0.5) && y5==11.0*std::sin(0.5), "point (i 1, j 1): x fastest, float64 as given");
+        lagoon_store plain("lagoon_store_test_plain.lagoon",16,1);
+        plain.create_root("SFLOW","");
+        plain.create_output("bed","surface",x,y,{},{{"z",1,"m"}},1,"");
+        check(slurp("lagoon_store_test_plain.lagoon/bed/zarr.json").find("horizontal")==std::string::npos
+              && !std::ifstream("lagoon_store_test_plain.lagoon/bed/xc/zarr.json"), "a rectilinear grid: no xc, yc");
+        if(std::system("rm -rf lagoon_store_test_plain.lagoon")!=0) std::cout<<"  (could not clear)"<<std::endl;
     }
 
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;

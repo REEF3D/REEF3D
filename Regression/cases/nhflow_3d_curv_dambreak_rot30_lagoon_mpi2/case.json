@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_3d_curv_dambreak_rot30_mpi2",
+ "ctrl_set": {"P 10": "1", "P 20": "10", "P 180": "1", "P 181": "10", "P 18": "1"},
+ "keep_keys": ["P 20"],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "mpi",
+  "lagoon"
+ ],
+ "description": "as nhflow_3d_curv_dambreak_rot30_mpi2, its volume, free surface and bed written to the LAGOON store instead of the VTU/VTP files (P 18 1): on the curvilinear grid the outputs carry xc and yc (LAGOON SPEC 2.2).",
+ "covers": [
+  "lagoon_output (σ-grid volume) on a curvilinear grid (G 50)",
+  "lagoon_surface for NHFLOW's free surface and bed on a curvilinear grid"
+ ]
+}
