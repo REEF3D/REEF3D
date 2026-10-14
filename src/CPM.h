@@ -95,6 +95,7 @@ public:
     void state_read(lexer*, ghostcell*, int);
     void sedlog(lexer*, ghostcell*);
     void ini_fields(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void set_turbulence(turbulence *pt){pturb_=pt;}   // before ini_fields: the k term of the layer (Q 68 1) from the first step on
     
     // print
     void print_particles(lexer*,sediment_fdm*);

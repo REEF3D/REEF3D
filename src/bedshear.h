@@ -54,6 +54,13 @@ public:
 
 	const double kappa;
     
+    // bed shear stress of the bed column (i,j) from the flow above the bed level set, shared by the Eulerian
+    // bed shear stress (S 16 10) and the CPM bedload layer (Q 58): log law at the first cell centre at least
+    // half a cell above the bed, or href cells above the bed (href > 0), and with kterm max(log law, 0.3 rho k)
+    // with k of the first fluid cell; returns false if the column has no fluid cell above the bed
+    static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, bool kterm,
+                           double rho, double &tx, double &ty, double &hcell, bool &rest);
+    
     // rough-wall log law u/u* = ln(30 z/ks)/kappa, with z0 = ks/30 clamped so that u+ >= 1/kappa
     // (as the NHFLOW wall drag): no singular shear stress when z approaches ks/30 in thin water
     double uplus(double z, double ks) const

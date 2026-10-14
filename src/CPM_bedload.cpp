@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"sediment_fdm.h"
 #include"turbulence.h"
+#include"bedshear.h"
 #include<vector>
 
 /*--------------------------------------------------------------------
@@ -113,124 +114,20 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     const double ks = MAX(p->S21*p->S20, 1.0e-6);
 
+    // the bed shear stress of the column, shared with the Eulerian bed shear stress S 16 10 (bedshear::column_tau):
+    // log law at the first cell centre at least half a cell above the bed, or Q 66 cells above it; Q 68 1:
+    // max(log law, 0.3 rho k) with k of the first fluid cell
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
-        int kb = MAX(0,MIN(p->knoz-1, p->posc_k(s->bedzh(i,j))));
-        double ur=0.0, vr=0.0, zr=0.0;
-        bool found=false, rest=false;
-
-        for(k=kb;k<p->knoz;++k)
-        {
-            // the vertical size of the cell: the first cell centre at least half a cell above the bed
-            // (with the mean of the cell sizes, a column of wider cells took the velocity one cell higher
-            // than its neighbours where the cell size changes in x, and the bed shear stress jumped);
-            // with a rounding tolerance: a flat bed on a cell face puts the centre exactly half a cell
-            // above it, and the last bits of the grid coordinates picked one cell or the next
-            // (bed shear stress 12 % apart on the same uniform grid)
-            double h = p->DZN[KP];
-
-            if(a->topo(i,j,k) >= 0.5*h*(1.0-1.0e-6))
-            {
-                // a solid body above the bed (e.g. a pipeline with a small gap): the fluid cell
-                // below it if there is one, else no flow (the body rests on the bed)
-                bool body = p->solidread>0 && a->solid(i,j,k)<0.0;
-                
-                if(body && k>kb && a->topo(i,j,k-1)>0.0 && a->solid(i,j,k-1)>0.0)
-                {
-                    --k;
-                    body = false;
-                }
-                
-                rest = body;
-                ur = body ? 0.0 : 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
-                vr = (body || p->j_dir==0) ? 0.0 : 0.5*(a->v(i,j-1,k) + a->v(i,j,k));
-                zr = a->topo(i,j,k);
-                blH(i,j) = h;
-                found = true;
-                break;
-            }
-        }
-
-        // no fluid cell above the bed in this subdomain (vertical decomposition): no transport
-        if(!found)
-        {
-            blTx(i,j) = blTy(i,j) = 0.0;
-            blH(i,j) = p->DZN[kb+marge];
-            continue;
-        }
-
-        // reference height Q 66 (in cells above the bed, > 0): the velocity of the log law is taken at
-        // Q 66 h above the bed, linear between the cell centres of the column, at most half way to
-        // a solid body or the free surface above; the first cell next to the bed is under-resolved
-        // in an accelerated flow (gap below a pipeline) and gives a too low bed shear stress
-        if(p->Q66>0.0 && !rest)
-        {
-            int k0 = k;
-            double h = blH(i,j);
-            double zbed = p->ZP[k0+marge] - a->topo(i,j,k0);
-            double zref = zbed + p->Q66*h;
-            
-            // top of the fluid column above the bed: solid body or free surface
-            for(int kk=k0+1; kk<p->knoz; ++kk)
-            {
-                double dtop = 1.0e20;
-                
-                if(p->solidread>0 && a->solid(i,j,kk)<0.0)
-                dtop = p->ZP[kk+marge] + a->solid(i,j,kk) - zbed;
-                
-                if(a->phi(i,j,kk)<0.0)
-                dtop = MIN(dtop, p->ZP[kk+marge] + a->phi(i,j,kk) - zbed);
-                
-                if(dtop<1.0e19)
-                {
-                    zref = MIN(zref, zbed + 0.5*dtop);
-                    break;
-                }
-            }
-            
-            zref = MAX(zref, zbed + zr);
-            
-            // linear between the cell centres around zref
-            int kr = k0;
-            while(kr+1<p->knoz && p->ZP[kr+1+marge]<=zref)
-            ++kr;
-            
-            if(kr>k0 && kr+1<p->knoz && !(p->solidread>0 && a->solid(i,j,kr+1)<0.0))
-            {
-                double f = (zref - p->ZP[kr+marge])/(p->ZP[kr+1+marge] - p->ZP[kr+marge]);
-                double u0 = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr)), u1 = 0.5*(a->u(i-1,j,kr+1) + a->u(i,j,kr+1));
-                ur = (1.0-f)*u0 + f*u1;
-                
-                if(p->j_dir==1)
-                {
-                    double v0 = 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)), v1 = 0.5*(a->v(i,j-1,kr+1) + a->v(i,j,kr+1));
-                    vr = (1.0-f)*v0 + f*v1;
-                }
-                
-                zr = zref - zbed;
-            }
-            else if(kr>k0)
-            {
-                ur = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr));
-                vr = p->j_dir==1 ? 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)) : 0.0;
-                zr = p->ZP[kr+marge] - zbed;
-            }
-        }
-
-        double um = sqrt(ur*ur + vr*vr);
-        double uplus = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
-        double us = um/uplus;
-        double tau = p->W1*us*us;
+        double tx=0.0, ty=0.0, hc=0.0;
+        bool rest=false;
         
-        // Q 68 1: the turbulence near the bed moves the grains as well, tau = max(log law, 0.3 rho k) with the
-        // turbulent kinetic energy of the first fluid cell (as S 16 2 of the Eulerian bed); in a non-equilibrium
-        // flow (wake, reattachment, gap jet) k is not tied to the mean velocity of the cell
-        if(p->Q68==1 && pturb_!=nullptr && !rest)
-        tau = MAX(tau, 0.3*p->W1*MAX(pturb_->kinval(i,j,k),0.0));
-
-        blTx(i,j) = um>1.0e-12 ? tau*ur/um : 0.0;
-        blTy(i,j) = um>1.0e-12 ? tau*vr/um : 0.0;
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,p->Q68==1,p->W1,tx,ty,hc,rest);
+        
+        blTx(i,j) = tx;
+        blTy(i,j) = ty;
+        blH(i,j) = hc;
     }
 
     // bed slope, central differences; periodic sides wrap, walls one-sided

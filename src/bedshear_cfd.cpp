@@ -327,6 +327,19 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
         }
     }
     
+    // S 16 10: the bed shear stress of the CPM bedload layer (bedshear::column_tau): log law at the first cell
+    // centre at least half a cell above the bed level, or S 63 cells above it, and max(log law, 0.3 rho k) with
+    // k of the first fluid cell (validation 16: in separated flow the log law gives a fraction of the skin friction)
+    if(p->S16==10)
+    {
+        double tx=0.0, ty=0.0, hc=0.0;
+        bool rest=false;
+        
+        bedshear::column_tau(p,a,pturb,i,j,s->bedzh(i,j),s->ks_eff(i,j),p->S63,true,density,tx,ty,hc,rest);
+        
+        tau_eff = sqrt(tx*tx + ty*ty);
+    }
+    
     // tau_i for Ti: grain roughness, log law at the height of the velocity sample
         dist = 1.6*p->DZN[KP];
         
@@ -369,3 +382,132 @@ void bedshear::taucritbed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
 }
 
+
+/*--------------------------------------------------------------------
+bed shear stress of a bed column from the flow above the bed level set (S 16 10 and the CPM bedload layer)
+
+  reference cell: the first cell centre at least half a cell above the bed level (distance from the topo
+  level set, with a rounding tolerance: a flat bed on a cell face puts the centre exactly half a cell above
+  it); a solid body above the bed (a pipeline with a small gap) takes the fluid cell below it if there is one,
+  else the column is at rest
+  href > 0: the velocity of the log law is taken href cells above the bed, linear between the cell centres of
+  the column, at most half way to a solid body or the free surface above (the first cell next to the bed is
+  under-resolved in an accelerated flow, e.g. the gap below a pipeline)
+  log law:  tau = rho (u / u+)^2,  u+ = ln(30 z_r/k_s)/kappa
+  kterm:    tau = max(tau, 0.3 rho k) with k of the reference cell: in a separated or reattaching flow the
+            near-bed turbulence moves the grains while the mean velocity next to the bed is small
+            (backward-facing step: the log law gives 0-13 % of the measured skin friction in the
+            recirculation, 0.3 rho k its size, validation 16)
+  k is the value of the first fluid cell in both sediment models: the Eulerian S 16 2 interpolates k half a
+  cell above the bed level, which takes in the cell below the bed where the bed cuts through the cells
+--------------------------------------------------------------------*/
+bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, bool kterm,
+                          double rho, double &tx, double &ty, double &hcell, bool &rest)
+{
+    int kb = MAX(0,MIN(p->knoz-1, p->posc_k(zbed)));
+    double ur=0.0, vr=0.0, zr=0.0;
+    bool found=false;
+    int k;
+    
+    rest=false;
+    ks = MAX(ks, 1.0e-6);
+
+    for(k=kb;k<p->knoz;++k)
+    {
+        double h = p->DZN[k+marge];
+
+        if(a->topo(i,j,k) >= 0.5*h*(1.0-1.0e-6))
+        {
+            bool body = p->solidread>0 && a->solid(i,j,k)<0.0;
+            
+            if(body && k>kb && a->topo(i,j,k-1)>0.0 && a->solid(i,j,k-1)>0.0)
+            {
+                --k;
+                body = false;
+            }
+            
+            rest = body;
+            ur = body ? 0.0 : 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
+            vr = (body || p->j_dir==0) ? 0.0 : 0.5*(a->v(i,j-1,k) + a->v(i,j,k));
+            zr = a->topo(i,j,k);
+            hcell = h;
+            found = true;
+            break;
+        }
+    }
+
+    // no fluid cell above the bed in this subdomain (vertical decomposition)
+    if(!found)
+    {
+        tx = ty = 0.0;
+        hcell = p->DZN[kb+marge];
+        return false;
+    }
+
+    if(href>0.0 && !rest)
+    {
+        int k0 = k;
+        double h = hcell;
+        double zb = p->ZP[k0+marge] - a->topo(i,j,k0);
+        double zref = zb + href*h;
+        
+        // top of the fluid column above the bed: solid body or free surface
+        for(int kk=k0+1; kk<p->knoz; ++kk)
+        {
+            double dtop = 1.0e20;
+            
+            if(p->solidread>0 && a->solid(i,j,kk)<0.0)
+            dtop = p->ZP[kk+marge] + a->solid(i,j,kk) - zb;
+            
+            if(a->phi(i,j,kk)<0.0)
+            dtop = MIN(dtop, p->ZP[kk+marge] + a->phi(i,j,kk) - zb);
+            
+            if(dtop<1.0e19)
+            {
+                zref = MIN(zref, zb + 0.5*dtop);
+                break;
+            }
+        }
+        
+        zref = MAX(zref, zb + zr);
+        
+        // linear between the cell centres around zref
+        int kr = k0;
+        while(kr+1<p->knoz && p->ZP[kr+1+marge]<=zref)
+        ++kr;
+        
+        if(kr>k0 && kr+1<p->knoz && !(p->solidread>0 && a->solid(i,j,kr+1)<0.0))
+        {
+            double f = (zref - p->ZP[kr+marge])/(p->ZP[kr+1+marge] - p->ZP[kr+marge]);
+            double u0 = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr)), u1 = 0.5*(a->u(i-1,j,kr+1) + a->u(i,j,kr+1));
+            ur = (1.0-f)*u0 + f*u1;
+            
+            if(p->j_dir==1)
+            {
+                double v0 = 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)), v1 = 0.5*(a->v(i,j-1,kr+1) + a->v(i,j,kr+1));
+                vr = (1.0-f)*v0 + f*v1;
+            }
+            
+            zr = zref - zb;
+        }
+        else if(kr>k0)
+        {
+            ur = 0.5*(a->u(i-1,j,kr) + a->u(i,j,kr));
+            vr = p->j_dir==1 ? 0.5*(a->v(i,j-1,kr) + a->v(i,j,kr)) : 0.0;
+            zr = p->ZP[kr+marge] - zb;
+        }
+    }
+
+    double um = sqrt(ur*ur + vr*vr);
+    double up = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
+    double us = um/up;
+    double tau = rho*us*us;
+    
+    if(kterm && pt!=nullptr && !rest)
+    tau = MAX(tau, 0.3*rho*MAX(pt->kinval(i,j,k),0.0));
+
+    tx = um>1.0e-12 ? tau*ur/um : 0.0;
+    ty = um>1.0e-12 ? tau*vr/um : 0.0;
+    
+    return true;
+}

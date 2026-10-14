@@ -1053,6 +1053,7 @@ void control::ini_default()
     S58=0.0;            // double wave period for the wave friction bed shear stress S 16 9, <=0: period of the wave generation
     S61=1;              // int reference height for cb
     S62=1;              // int type of suspended Exner solution
+    S63=0.0;            // double S 16 10: reference height of the log law in cells above the bed, 0: first cell centre at least half a cell above the bed
     S71=-1.0e20;                 // int x start of erosion
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed

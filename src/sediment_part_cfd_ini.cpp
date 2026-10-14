@@ -70,6 +70,9 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     pbedshear->taucritbed(p,a,pgc,s);
     pgc->gcsl_start4(p,s->tau_crit,1);
 
+    // the turbulence model for the bed shear stress of the layer (Q 68 1) before the first call of move: the bed
+    // shear stress of the start (and of the first bed file after a restart) was without the k term
+    pst->set_turbulence(pturb);
     pst->ini_fields(p,a,pgc,s);
     pst->print_particles(p,s);
     
