@@ -62,6 +62,7 @@ Other commands:
 ./regression.py write --out DIR --cases cfd_2d_nwt      # only write the resolved input files
 ./regression.py bless DIR [--note "why"]                # store compact references in cases/<case>/reference.json
 ./regression.py check DIR [--rtol 1e-6]                 # check a run against the stored references
+./regression.py ranks DIR                               # SEASTATE: cases with "same_as" against that case of the run, cell by cell
 ```
 
 ## Workflow for code changes
@@ -89,6 +90,7 @@ Each case is a directory in `cases/` with a `case.json` and either its own `cont
  "np": 4, "steps": 40, "dump_every": 0,
  "files": ["floating.stl"],            // extra input files copied into the run directory
  "tags": ["quick", "2d"],
+ "same_as": "<case>",                  // SEASTATE: bitwise the result of that case (other ranks); checked by `ranks`, not inherited
  "description": "...", "covers": ["code paths this case is meant to exercise"]
 }
 ```
@@ -379,6 +381,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_sediment_pier_mpi2` | 2 | NHFLOW closed basin with a pier, default Exner S 31 2 with closed faces at the structure, NHFLOW bed shear with the thin-water clamp, sand slide S 90 1 (needs Exner Review patches 0001-0016) |
 | `nhflow_3d_sediment_pier_rk2` | 1 | as above with the fully coupled RK2 sediment step S 10 12 (bed advanced in both stages of every flow step, dtsed = S 17 dt) (needs Exner Review patches 0001-0016) |
 | `cfd_2d_sediment_flume` | 1 | CFD 2D flume, MPM sand bed with a submerged block, k-ω, bed shear S 16 1 at the velocity sample height, CFD topo update, sand slide (needs Exner Review patches 0001-0016) |
+| `cfd_2d_sediment_flume_s1610` | 1 | As `cfd_2d_sediment_flume` with the bed shear stress S 16 10 (`bedshear::column_tau`, shared with the CPM bedload layer): log law 2 cells above the bed level (S 63 2.0), max(log law, 0.3 rho k) with k of the first fluid cell, flow over and behind the block (patch 0020) |
 | `cfd_2d_sediment_flume_susp` | 1 | As `cfd_2d_sediment_flume` with the Eulerian suspended load (S 12 1, d = 0.15 mm, W 10 0.0015): erosion w_s c_be and deposition w_s c_1 as the only bed exchange, faces of the concentration to the bed, the block, the air and the walls closed; the concentration is checked through the bed (patch 0018; reference with patch 0018) |
 | `cfd_2d_bedshear_wave_s16_9` | 1 | CFD 2D oscillatory flow in a periodic channel with a slip lid (B 180/181 body force, U = 0.3 sin(pi t) m/s), k-ω, MPM bed (S 35 50): wave friction bed shear S 16 9 with S 58 (needs Bed Shear Stress patch 0002; reference with 0001-0003) |
 | `cfd_2d_bedshear_s16_7` | 1 | CFD 2D periodic channel driven by W 20, MPM bed: bed shear S 16 7 in 2D, lint*_2D keeps the caller's j (needs Bed Shear Stress patch 0001; reference with 0001-0003) |
@@ -443,6 +446,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase12_fas_uniform_forcing_mpi2` | 2 | REEF3D::SEASTATE FAS on the uniform grid in a nonstationary run (A 758 1 4, Phase 12) with a wind field (A 730 2) and boundary spectra per side cell (A 711 3) restricted to the coarse grids |
 | `seastate_2d_phase12_threads_patches` | 1 | REEF3D::SEASTATE `seastate_2d_amr_static` with four more boxes (4 patches on level 2) and 2 threads (A 798 2, Phase 12): the patches of a level shared out to the threads along the dependency graph of their ring reads; bitwise the same case with one thread; validated in Dropbox SEASTATE/validation/54 |
 | `seastate_2d_phase13_tiles` | 1 | REEF3D::SEASTATE 3 threads (A 798 3, Phase 13) with spectral sparsity (A 795) and second-order fluxes (A 796 2) on the refraction case: the sweeps over tiles of cells along their dependency graph, the first visits and the stationary Hs test threaded; bitwise the same case with one thread; validated in Dropbox SEASTATE/validation/57 |
+| `seastate_2d_phase14_refraction_mpi4` | 4 | REEF3D::SEASTATE sweeps pipelined across the MPI ranks (A 781 1, Phase 14): `seastate_2d_refraction` on 4 ranks, `same_as` it (`regression.py ranks`: bitwise, cell by cell); validated in Dropbox SEASTATE/validation/58 |
+| `seastate_2d_phase14_tiles_mpi3` | 3 | `seastate_2d_phase13_tiles` (3 threads, sparsity, second order) on 3 ranks, pipelined: two halo layers per message, the second halo layer of the rank boundaries wet (seastate_halo2), the first visits exchanged; `same_as` the one-rank case |
+| `seastate_2d_phase14_front_mpi4` | 4 | `seastate_2d_front` (nonstationary) on 4 ranks, pipelined: one iteration per step as on one rank; `same_as` it |
+| `seastate_2d_phase14_current_mpi2` | 2 | `seastate_2d_current` on 2 ranks, pipelined: the current carries energy against the sweep (the downstream halo of the last exchange); `same_as` it |
+| `seastate_2d_phase14_sordup`, `_windsea`, `_diffraction`, `_coasts`, `_vegetation_field`, `_wind_field` | 1 | the one-rank twins of `seastate_2d_phase7_sordup_mpi2`, `seastate_2d_windsea_mpi2`, `seastate_2d_phase6_diffraction_mpi2`, `seastate_2d_phase6b_coasts_mpi2`, `seastate_2d_phase6b_vegetation_field_mpi2`, `seastate_2d_wind_field_mpi2`, which have `same_as` them (Phase 14); also `refraction_mpi2`, `front_mpi2`, `init_mpi2`, `phase7b_threads_mpi2` (`same_as` `phase13_tiles`) |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |

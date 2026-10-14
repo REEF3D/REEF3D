@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_current",
+ "np": 2,
+ "same_as": "seastate_2d_current",
+ "description": "as seastate_2d_current on 2 MPI ranks, pipelined (Phase 14): the current carries energy against the sweep direction (the downstream halo of the last exchange); bitwise one rank.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "Phase 14 with currents"
+ ]
+}
