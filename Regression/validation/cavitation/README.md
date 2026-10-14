@@ -97,4 +97,4 @@ oscillating at about 0.2 Hz. Measured at K = 0.50: plateau -0.50 over s/d 0.66-0
 ≈ 1.15, no overshoot. The cavity is ~0.25 D longer; part of it is the lower sigma (the measured
 closure moves to ≈ 1.4 at K = 0.40). Nose: Cp(0.40) = +0.11 against -0.01 measured, the suction
 develops later. To hit sigma exactly, shift p_v by the upstream pressure of the run:
-W 61 = p_ref - sigma rho U²/2 (here -265.5 for 0.5).
+W 61 = p_ref - sigma rho U²/2 (here -265.5 for 0.5): `python3 make_case.py 40 128 15 --pref -15.5`.
