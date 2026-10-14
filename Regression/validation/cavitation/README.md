@@ -50,3 +50,41 @@ collapse (`slab_collapse.png`). The collapse is held by the implicit coupling: t
 interface stays at p_v and the column accelerates under the full p_out − p_v.
 
 Short regression version: `Regression/cases/cfd_1d_cavitation_slab` (20 steps).
+
+## 02 Hemispherical head form (Rouse & McNown 1948)
+
+`cases/02_headform`: cylinder of diameter D = 1 m with a hemispherical nose at zero yaw,
+Re = 1.36e5 (U = 1 m/s), sheet cavitation behind the shoulder. `make_case.py` writes the body
+(`floating.stl`, closed, 29808 triangles), the inputs and a Betzy job per cavitation number into
+`d<D/dx>/<name>/` (git-ignored, 7 MB per case):
+
+    python3 make_case.py 40 128 15        # D/40, 3.0 M cells, 1 Betzy node, 15 s: nocav, sigma 0.5, 0.4, 0.3
+    python3 make_case.py                  # D/20, 0.74 M cells, 8 ranks, 20 s (local)
+
+Copy `REEF3D` and `DiveMESH` into each case directory, set the account in `job.slurm`, `sbatch`.
+Domain [-4, 12] × [-4, 4]², inflow U at x = -4, outlet pressure patch p = 0 on the x+ wall;
+p_v = -sigma rho U²/2; k-epsilon with wall functions at the direct-forcing body (`T 10 1`);
+density ratio rho_l/rho_v = 1000 (`W 62 1`, `W 63 1e-5`) and CFL 0.2 (`N 47`): with the real
+ratio 58000 the D/40 sigma 0.5 run diverged at t = 3.3 s (lateral velocity 567 m/s in the vapour,
+k up to 4 m²/s²); at D/20 sigma 0.4 the two ratios give the same cavity (s/D 0.725-2.225), the
+same vapour volume (0.43 m³) and Cp within 0.006, as reported for sheet cavitation in the
+literature (Kunz et al. 2000, Senocak & Shyy 2002 use 1000).
+VTU frames over the last 5 s (`P 35`), probe 1 upstream for the reference pressure.
+
+    python ../../scripts/headform_analysis.py nocav sigma0.5 sigma0.4 sigma0.3 --exp ../../rouse_mcnown.csv --plot headform_cp.png
+
+(from `d40/`; the csv is `cases/02_headform/rouse_mcnown.csv`). Cp is the wall pressure, extrapolated
+from two bands 0.5-1.5 dx and 1.5-2.5 dx off the surface (at the nose the normal pressure gradient
+ρu²/R makes Cp 0.05 D off the wall ~0.3 higher), averaged over time and azimuth; sigma from
+probe 1; the cavity from alpha_v > 0.1 next to the wall.
+
+Measured data: `rouse_mcnown.csv`, read from the scanned figure of the hemispherical head in the
+report (K = sigma ≥ 0.80, 0.50, 0.40, 0.30 at the 15 piezometers, about ±0.02, see the header):
+no cavitation Cp_min = -0.74 at s/d = 0.66 (on the nose, before the shoulder at 0.785); with
+cavitation Cp = -K along the cavity, closure at s/d ≈ 1.0 (K 0.5), 1.3-1.5 (K 0.4), 1.8-2.1 (K 0.3)
+with a small overshoot.
+
+Local D/20 runs (12 s, window 7-12 s), no cavitation: the nose up to s/D = 0.5 agrees with the
+measurement; the suction peak is too weak, laminar Cp_min = -0.45 with reverse flow behind the
+shoulder to s/D ≈ 2, k-epsilon -0.49 at s/D = 0.63 with the separation to s/D ≈ 1.1. Ten cells
+over the nose radius are not enough for the direct-forcing body; D/40 on Betzy is the comparison.
