@@ -363,6 +363,9 @@ void cfd_amr::hierarchy(bool first)
 
 cfd_amr::~cfd_amr()
 {
+    for(cfd_amr_lmg &M : lmg)
+    delete M.mg;
+
     if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
     b6->object(nb)->amr_loads = nullptr;

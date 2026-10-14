@@ -345,6 +345,24 @@ private:
     vector<field4*> kv0;
     reefmg_core *mg0 = nullptr;
     vector<long> l0a, l0f;              // level-0 V-cycle: active rows of the multigrid, cells
+    // the joint multigrid of the patches of a level on this rank that touch each other (their
+    // bounding box, the cells outside the patches identity rows): the V-cycle of a level in the
+    // preconditioners (the level projection of G 7 1, the FAC sweep of the composite projection
+    // and the synchronisation) couples the patches next to each other; a patch alone its own
+    struct cfd_amr_lmg
+    {
+        reefmg_core *mg = nullptr;
+        vector<int> ids;                        // its patches
+        int lo[3] = {0,0,0}, n[3] = {0,0,0};    // box: first cell (index of the level), extent
+        vector<int> own;                        // per cell of the box: the patch, -1
+    };
+    vector<cfd_amr_lmg> lmg;            // the joint multigrids (all levels)
+    vector<int> lmg_of;                 // per patch: its joint multigrid, -1 (its own)
+    void pr_level_mg_setup();
+    void pr_level_mg_fill(int m);
+    void pr_level_mg_fill_comp(int m);
+    void pr_level_vcycle(int m, int kr, int kz);
+    void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
     int pr_it_last = 0;
     int pr_it_sync = 0;                 // G 7 1: iterations of the synchronisation projection
     vector<vector<double>> sync_x;      // G 7 1: the correction of the last synchronisation (leaf cells per grid), its start

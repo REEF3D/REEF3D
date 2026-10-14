@@ -37,6 +37,7 @@ Architect: Hans Bihs
 #include<iostream>
 #include<iomanip>
 #include<algorithm>
+#include<limits>
 #include"definitions.h"
 
 //  The composite pressure projection of REEF3D::CFD with mesh refinement.
@@ -385,6 +386,327 @@ void cfd_amr::pr_setup()
             l0f.push_back(cix(p0,i,j,k));
         }
     }
+
+    pr_level_mg_setup();
+}
+
+// The joint multigrids of the levels: the patches of a level on this rank that touch each other
+// (a component) get one multigrid over the bounding box of the component (the cells of the level
+// index space; the cells outside the patches identity rows), so the couplings between the patches
+// stay in the preconditioner.  With a patch-local V-cycle on each patch the preconditioner was a
+// block Jacobi over the patches: many small patches of an adaptive level took 30+ iterations in the
+// level projections of G 7 1 and 50-90 in the synchronisation.  A component whose box is more than
+// four times its cells keeps the patch-local V-cycles.  The cell widths of the box from the patches
+// (those of level 0 refined where no patch has the column).
+void cfd_amr::pr_level_mg_setup()
+{
+    for(cfd_amr_lmg &M : lmg)
+    delete M.mg;
+    lmg.clear();
+    lmg_of.assign(P.size(),-1);
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        // the patches of the level on this rank next to each other (sharing a face): together
+        vector<int> up(P.size());
+        for(int id : lev[l])
+        up[id] = id;
+        std::function<int(int)> root = [&](int g) { while(up[g]!=g) { up[g] = up[up[g]]; g = up[g]; } return g; };
+        for(int a : lev[l])
+        for(int b : lev[l])
+        {
+            if(b<=a)
+            continue;
+            const r3patch *A = P[a], *B = P[b];
+            for(int d=0; d<3; ++d)
+            {
+                if(!(A->hi[d]+1==B->lo[d] || B->hi[d]+1==A->lo[d]))
+                continue;
+                bool ov = true;
+                for(int e=0; e<3; ++e)
+                if(e!=d && (A->lo[e]>B->hi[e] || B->lo[e]>A->hi[e]))
+                ov = false;
+                if(ov)
+                up[root(a)] = root(b);
+            }
+        }
+        std::map<int,vector<int>> groups;
+        for(int id : lev[l])
+        groups[root(id)].push_back(id);
+
+        for(auto &G : groups)
+        {
+            if(G.second.size()<2)
+            continue;
+
+            cfd_amr_lmg M;
+            M.ids = G.second;
+            int hi[3];
+            size_t ncell = 0;
+            for(int d=0; d<3; ++d)
+            {
+                M.lo[d] = std::numeric_limits<int>::max();
+                hi[d] = std::numeric_limits<int>::min();
+            }
+            for(int id : M.ids)
+            {
+                ncell += (size_t)P[id]->n[0]*P[id]->n[1]*P[id]->n[2];
+                for(int d=0; d<3; ++d)
+                {
+                    M.lo[d] = MIN(M.lo[d],P[id]->lo[d]);
+                    hi[d] = MAX(hi[d],P[id]->hi[d]);
+                }
+            }
+            for(int d=0; d<3; ++d)
+            M.n[d] = hi[d]-M.lo[d]+1;
+
+            // a box mostly outside the patches (a long thin component): the patch-local V-cycles
+            if((size_t)M.n[0]*M.n[1]*M.n[2] > 4*ncell)
+            continue;
+
+            // the multigrid is 2D in x, y with full columns in z: the box layout of sc_level
+            M.own.assign((size_t)M.n[0]*M.n[1]*M.n[2],-1);
+            auto bix = [&](int i, int j, int k) { return ((size_t)i*M.n[1] + j)*M.n[2] + k; };
+            vector<double> wx(M.n[0]+2,-1.0), wy(M.n[1]+2,-1.0);
+            for(int id : M.ids)
+            {
+                r3patch *c = P[id];
+                lexer *pp = c->pp;
+                for(int i=0; i<c->n[0]; ++i)
+                for(int j=0; j<c->n[1]; ++j)
+                for(int k=0; k<c->n[2]; ++k)
+                M.own[bix(c->lo[0]-M.lo[0]+i,c->lo[1]-M.lo[1]+j,c->lo[2]-M.lo[2]+k)] = id;
+                for(int i=-1; i<=c->n[0]; ++i)
+                {
+                    const int b = c->lo[0]-M.lo[0]+i;
+                    if(b>=-1 && b<=M.n[0] && (wx[b+1]<0.0 || (i>=0 && i<c->n[0])))
+                    wx[b+1] = pp->DXN[i+marge];
+                }
+                for(int j=-1; j<=c->n[1]; ++j)
+                {
+                    const int b = c->lo[1]-M.lo[1]+j;
+                    if(b>=-1 && b<=M.n[1] && (wy[b+1]<0.0 || (j>=0 && j<c->n[1])))
+                    wy[b+1] = pp->DYN[j+marge];
+                }
+            }
+            // the columns of no patch: the width of level 0 refined
+            double f = 1.0, fy = 1.0;
+            for(int m=0; m<l; ++m)
+            {
+                f /= rr[0];
+                fy /= rr[1];
+            }
+            for(int b=-1; b<=M.n[0]; ++b)
+            if(wx[b+1]<0.0)
+            {
+                const int I = (int)std::floor(double(M.lo[0]+b)*f) - org[0];
+                wx[b+1] = p0->DXN[MIN(MAX(I,-1),p0->knox)+marge]*f;
+            }
+            for(int b=-1; b<=M.n[1]; ++b)
+            if(wy[b+1]<0.0)
+            {
+                const int J = (int)std::floor(double(M.lo[1]+b)*fy) - org[1];
+                wy[b+1] = p0->DYN[MIN(MAX(J,-1),p0->knoy)+marge]*fy;
+            }
+
+            M.mg = new reefmg_core;
+            M.mg->set_precision(p0->N14==32 ? 32 : 64);
+            M.mg->set_fine_operator(&pr_fineop_none);
+            if(!M.mg->setup(MPI_COMM_SELF,M.n[0],M.n[1],M.n[2],M.n[0],M.n[1],0,wx.data(),wy.data()))
+            {
+                cout<<"CFD AMR: level multigrid "<<M.mg->err()<<" (level "<<l<<"), the patch-local ones"<<endl;
+                delete M.mg;
+                continue;
+            }
+            for(int id : M.ids)
+            lmg_of[id] = (int)lmg.size();
+            lmg.push_back(std::move(M));
+        }
+    }
+}
+
+// the coefficients of the level multigrid from the rows of the patches (pr_level: the couplings
+// across the patch edges to the coarser level on the diagonal): a coupling to a cell of another
+// patch of the level on this rank stays, the others (another rank, the boundary) are dropped as in
+// the patch-local multigrids
+void cfd_amr::pr_level_mg_fill(int m)
+{
+    cfd_amr_lmg &M = lmg[m];
+    sc_level &L = M.mg->fine();
+    pr_clear(L);
+    auto bix = [&](int i, int j, int k) { return ((size_t)i*M.n[1] + j)*M.n[2] + k; };
+
+    for(int i=0; i<M.n[0]; ++i)
+    for(int j=0; j<M.n[1]; ++j)
+    for(int k=0; k<M.n[2]; ++k)
+    pr_coef(M.mg,L,L.idx(i,j,k),1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+
+    for(int id : M.ids)
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        const matrix_diag &A = c->a->M;
+        const int o[3] = {c->lo[0]-M.lo[0], c->lo[1]-M.lo[1], c->lo[2]-M.lo[2]};
+        // the neighbour at side dir of direction d of patch cell (i,j,k): in the patch, or a cell
+        // of another patch of the level with a row
+        auto nb = [&](int i, int j, int k, int d, int dir) -> bool
+        {
+            int q[3] = {i,j,k};
+            q[d] += dir;
+            if(q[d]>=0 && q[d]<pp->knox*(d==0) + pp->knoy*(d==1) + pp->knoz*(d==2))
+            return true;
+            int b[3] = {q[0]+o[0],q[1]+o[1],q[2]+o[2]};
+            if(b[d]<0 || b[d]>=M.n[d])
+            return false;
+            const int g = M.own[bix(b[0],b[1],b[2])];
+            if(g<0 || g==id)
+            return false;
+            cfd_amr_patch *e = CP(g);
+            const int qi = b[0]-(e->lo[0]-M.lo[0]), qj = b[1]-(e->lo[1]-M.lo[1]), qk = b[2]-(e->lo[2]-M.lo[2]);
+            return e->row[cix(e->pp,qi,qj,qk)]>=0;
+        };
+
+        for(int i=0; i<pp->knox; ++i)
+        for(int j=0; j<pp->knoy; ++j)
+        for(int k=0; k<pp->knoz; ++k)
+        {
+            const long q = L.idx(i+o[0],j+o[1],k+o[2]);
+            const int r = c->row[cix(pp,i,j,k)];
+            if(r<0)
+            continue;
+            pr_coef(M.mg,L,q,A.p[r]*(1.0+1.0e-6),
+                    nb(i,j,k,0,1) ? A.n[r] : 0.0, nb(i,j,k,0,-1) ? A.s[r] : 0.0,
+                    nb(i,j,k,1,1) ? A.w[r] : 0.0, nb(i,j,k,1,-1) ? A.e[r] : 0.0,
+                    nb(i,j,k,2,1) ? A.t[r] : 0.0, nb(i,j,k,2,-1) ? A.b[r] : 0.0);
+            L.act[q] = 1;
+        }
+    }
+    M.mg->coarsen();
+}
+
+// the level multigrid of the composite projection (pr_matrix): the rows of the patch multigrids
+// (the couplings across the patch edges on the diagonal, those of a coarse cell next to a finer
+// patch as there), the couplings between the patches of the level on this rank added
+void cfd_amr::pr_level_mg_fill_comp(int m)
+{
+    cfd_amr_lmg &M = lmg[m];
+    reefmg_core *U = M.mg;
+    sc_level &L = U->fine();
+    pr_clear(L);
+    const bool f32 = U->precision()==32;
+    auto bix = [&](int i, int j, int k) { return ((size_t)i*M.n[1] + j)*M.n[2] + k; };
+
+    for(int i=0; i<M.n[0]; ++i)
+    for(int j=0; j<M.n[1]; ++j)
+    for(int k=0; k<M.n[2]; ++k)
+    pr_coef(U,L,L.idx(i,j,k),1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+
+    for(int id : M.ids)
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        const matrix_diag &A = c->a->M;
+        const sc_level &S = c->mg->fine();
+        const int o[3] = {c->lo[0]-M.lo[0], c->lo[1]-M.lo[1], c->lo[2]-M.lo[2]};
+        const int nn[3] = {pp->knox,pp->knoy,pp->knoz};
+        auto sib = [&](int i, int j, int k, int d, int dir) -> bool
+        {
+            int q[3] = {i,j,k};
+            q[d] += dir;
+            if(q[d]>=0 && q[d]<nn[d])
+            return false;
+            int b[3] = {q[0]+o[0],q[1]+o[1],q[2]+o[2]};
+            if(b[d]<0 || b[d]>=M.n[d])
+            return false;
+            const int g = M.own[bix(b[0],b[1],b[2])];
+            if(g<0 || g==id)
+            return false;
+            cfd_amr_patch *e = CP(g);
+            return e->row[cix(e->pp,b[0]-(e->lo[0]-M.lo[0]),b[1]-(e->lo[1]-M.lo[1]),b[2]-(e->lo[2]-M.lo[2]))]>=0;
+        };
+
+        for(int i=0; i<nn[0]; ++i)
+        for(int j=0; j<nn[1]; ++j)
+        for(int k=0; k<nn[2]; ++k)
+        {
+            const long q = L.idx(i+o[0],j+o[1],k+o[2]), s = S.idx(i,j,k);
+            double cc[7];
+            if(f32)
+            {
+                cc[0]=S.pf[s]; cc[1]=S.nf[s]; cc[2]=S.sf[s]; cc[3]=S.wf[s]; cc[4]=S.ef[s]; cc[5]=S.tf[s]; cc[6]=S.bf[s];
+            }
+            else
+            {
+                cc[0]=S.p[s]; cc[1]=S.n[s]; cc[2]=S.s[s]; cc[3]=S.w[s]; cc[4]=S.e[s]; cc[5]=S.t[s]; cc[6]=S.b[s];
+            }
+            const int r = c->row[cix(pp,i,j,k)];
+            if(r>=0)
+            {
+                if(sib(i,j,k,0,1))  cc[1] = A.n[r];
+                if(sib(i,j,k,0,-1)) cc[2] = A.s[r];
+                if(sib(i,j,k,1,1))  cc[3] = A.w[r];
+                if(sib(i,j,k,1,-1)) cc[4] = A.e[r];
+                if(sib(i,j,k,2,1))  cc[5] = A.t[r];
+                if(sib(i,j,k,2,-1)) cc[6] = A.b[r];
+            }
+            pr_coef(U,L,q,cc[0],cc[1],cc[2],cc[3],cc[4],cc[5],cc[6]);
+            L.act[q] = S.act[s];
+        }
+    }
+    U->coarsen();
+}
+
+// one V-cycle of the level multigrid of level l on the right-hand side kr of its patches, added
+// to z
+void cfd_amr::pr_level_vcycle(int m, int kr, int kz)
+{
+    const double t0 = MPI_Wtime();
+    cfd_amr_lmg &M = lmg[m];
+    sc_level &L = M.mg->fine();
+    std::fill(L.u.begin(),L.u.end(),0.0);
+    std::fill(L.f.begin(),L.f.end(),0.0);
+    for(int g : M.ids)
+    {
+        cfd_amr_patch *c = CP(g);
+        lexer *pp = c->pp;
+        const double *t = pvec(g,kr);
+        const int o[3] = {c->lo[0]-M.lo[0], c->lo[1]-M.lo[1], c->lo[2]-M.lo[2]};
+        for(int i=0; i<pp->knox; ++i)
+        for(int j=0; j<pp->knoy; ++j)
+        for(int k=0; k<pp->knoz; ++k)
+        {
+            const int qq = cix(pp,i,j,k);
+            if(c->row[qq]>=0)
+            L.f[L.idx(i+o[0],j+o[1],k+o[2])] = t[qq];
+        }
+    }
+    M.mg->vcycle(0,2,2);
+    for(int g : M.ids)
+    {
+        cfd_amr_patch *c = CP(g);
+        lexer *pp = c->pp;
+        double *z = pvec(g,kz);
+        const int o[3] = {c->lo[0]-M.lo[0], c->lo[1]-M.lo[1], c->lo[2]-M.lo[2]};
+        for(int i=0; i<pp->knox; ++i)
+        for(int j=0; j<pp->knoy; ++j)
+        for(int k=0; k<pp->knoz; ++k)
+        {
+            const int qq = cix(pp,i,j,k);
+            if(c->row[qq]>=0)
+            z[qq] += L.u[L.idx(i+o[0],j+o[1],k+o[2])];
+        }
+    }
+    tp[0] += MPI_Wtime()-t0;
+}
+
+void cfd_amr::pr_level_solve(int l, int kr, int kz)
+{
+    for(int m=0; m<(int)lmg.size(); ++m)
+    if(P[lmg[m].ids[0]]->lev==l)
+    pr_level_vcycle(m,kr,kz);
+    for(int id : lev[l])
+    if(lmg_of[id]<0)
+    pr_patch_solve(id,kr,kz,-1);
 }
 
 // the coarse value at the position of the fine cell of a face at a patch edge: from the coarse cell
@@ -869,8 +1191,10 @@ void cfd_amr::pr_matrix(int s)
 
     mg0->coarsen();
     for(int id=0; id<(int)P.size(); ++id)
+    if(lmg_of[id]<0)
     CP(id)->mg->coarsen();
-
+    for(int m=0; m<(int)lmg.size(); ++m)
+    pr_level_mg_fill_comp(m);
 }
 
 // the cells around the patches: the vector of the patch of the same level, or the value of the
@@ -1032,8 +1356,7 @@ void cfd_amr::pr_prec(int kr, int kz)
             lexer *q = glex(g);
             std::fill(pvec(g,kz),pvec(g,kz)+(size_t)q->imax*q->jmax*q->kmax,0.0);
         }
-        for(int g : prg)
-        pr_patch_solve(g,kr,kz,-1);
+        pr_level_solve(prl,kr,kz);
         return;
     }
 
@@ -1045,6 +1368,10 @@ void cfd_amr::pr_prec(int kr, int kz)
         std::fill(pvec(g,KC),pvec(g,KC)+n,0.0);
     }
 
+    // a level: its multigrid over the patches together (several patches on the rank), else a
+    // patch-local V-cycle on each
+    auto level_solve = [&](int l, int kt) { pr_level_solve(l,kt,kz); };
+
     vector<fspec> fc;
     fc.push_back({CELL,2,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); }});
     const fspec cl = {CELL,0,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); }};
@@ -1055,14 +1382,12 @@ void cfd_amr::pr_prec(int kr, int kz)
         if(l==maxlev)
         {
             // z = 0: the residual is r
-            for(int id : lev[l])
-            pr_patch_solve(id,kr,kz,-1);
+            level_solve(l,kr);
         }
         else
         {
             pr_residual(kr,kz,KT,l);
-            for(int id : lev[l])
-            pr_patch_solve(id,KT,kz,-1);
+            level_solve(l,KT);
         }
     }
 
@@ -1127,8 +1452,7 @@ void cfd_amr::pr_prec(int kr, int kz)
         }
 
         pr_residual(kr,kz,KT,l);
-        for(int id : lev[l])
-        pr_patch_solve(id,KT,kz,-1);
+        level_solve(l,KT);
 
         // the correction of this level for the next finer one: all of z (zero before the cycle;
         // the part of the down sweep is the coarse correction of the finer level's residual)
@@ -1455,6 +1779,8 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     }
     for(int id : lev[l])
     {
+        if(lmg_of[id]>=0)
+        continue;
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
         sc_level &L = c->mg->fine();
@@ -1480,6 +1806,9 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         }
         c->mg->coarsen();
     }
+    for(int m=0; m<(int)lmg.size(); ++m)
+    if(P[lmg[m].ids[0]]->lev==l)
+    pr_level_mg_fill(m);
 
     prl = l;
     prg = lev[l];
