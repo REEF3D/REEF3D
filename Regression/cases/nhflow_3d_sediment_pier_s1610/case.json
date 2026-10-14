@@ -1,0 +1,10 @@
+{
+ "base": "nhflow_3d_sediment_pier_mpi2",
+ "ctrl_set": {"S 16": "10"},
+ "ctrl_add": ["A 560 2", "S 63 2.0"],
+ "np": 2,
+ "steps": 250,
+ "tags": ["3d", "nhflow", "sediment", "closed", "structure", "mpi", "turbulence"],
+ "description": "As nhflow_3d_sediment_pier_mpi2 with k-omega (A 560 2) and the bed shear stress S 16 10 (shared with CFD S 16 10 and the CPM bedload layer): log law 2 cells above the bed on the sigma grid (S 63 2.0), linear between the cell centres, at most half the water depth, horizontal velocity, max(log law, 0.3 rho k) with k of the first cell; dam break against the pier, wetting front over the dry bed",
+ "covers": ["bedshear::column_tau for fdm_nhf (S 16 10, S 63): reference height on the sigma grid, cap at half the water depth, thin-water clamp of the reference height", "bedshear::tau_logk (shared closure)"]
+}

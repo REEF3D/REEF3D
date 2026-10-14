@@ -60,6 +60,15 @@ public:
     // with k of the first fluid cell; returns false if the column has no fluid cell above the bed
     static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, bool kterm,
                            double rho, double &tx, double &ty, double &hcell, bool &rest);
+
+    // the same for the NHFLOW sigma grid (S 16 10): the first cell centre is half a cell above the bed, href > 0
+    // takes the log law href cells of the first cell above the bed (at most half the water depth)
+    static bool column_tau(lexer*, fdm_nhf*, int i, int j, double ks, double href, bool kterm,
+                           double rho, double &tx, double &ty);
+
+    // the closure of column_tau: rho (u / u+)^2 with u+ = ln(30 z_r/k_s)/kappa at the reference height z_r,
+    // with kterm max(log law, 0.3 rho k)
+    static double tau_logk(double um, double zr, double ks, double kin, bool kterm, double rho);
     
     // rough-wall log law u/u* = ln(30 z/ks)/kappa, with z0 = ks/30 clamped so that u+ >= 1/kappa
     // (as the NHFLOW wall drag): no singular shear stress when z approaches ks/30 in thin water
