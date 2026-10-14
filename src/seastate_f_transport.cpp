@@ -187,6 +187,7 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     const int nth = psolv->thread_count();
 
     hs_cells(p,e,g,hs_old,nth);
+    bool stopped = false;
 
     for(int it=0; it<iter_max; ++it)
     {
@@ -244,11 +245,40 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         }
 
         if(conv<p->A708)
+        {
+        stopped = true;
         break;
+        }
 
         // SWAN-type criterion (A 709 < 100): the percentage of cells within A 708
         if(p->A709<100.0 && percent>=p->A709)
+        {
+        stopped = true;
         break;
+        }
+    }
+
+    // Phase 15: the iterations ran out with cells whose peak lies within a factor 1.5 of the highest frequency: the
+    // young wind sea of the first cells of fetch at the upwind shores of fine grids, whose high frequencies the grid
+    // cuts, goes back and forth by some percent per iteration without settling (validation 63: with A 702 up to 2 Hz
+    // the same cells converge)
+    if(!stopped && psrc!=nullptr && psrc->param().komen)
+    {
+    seastate_param sp;
+    const double flim = g.f[g.nsig-1]/1.5;
+    double nc = 0.0;
+        SLICELOOP4
+        if(e->wet(i,j)==1)
+        {
+        sp.compute(g,e->N->spec(i,j));
+        if(sp.Hs>0.0 && sp.Tp>0.0 && 1.0/sp.Tp>flim)
+        nc += 1.0;
+        }
+    nc = pgc->globalsum(nc);
+        if(p->mpirank==0 && nc>0.0)
+        cout<<"SEASTATE note: "<<long(nc)<<" wet cells have their peak above "<<std::round(100.0*flim)/100.0<<" Hz, within a factor 1.5 of the highest "
+            <<"frequency (A 702). The young wind sea of the first cells of fetch at upwind shores of fine grids, cut by the frequency "
+            <<"grid, may not settle; a higher A 702 fmax (e.g. 2 Hz) lets it converge"<<endl;
     }
 }
 
