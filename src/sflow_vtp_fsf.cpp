@@ -33,8 +33,14 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"sflow_state.h"
 #include"fnpf_print_Hs.h"
+#include"lagoon_output.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+
+namespace
+{
+lagoon_surface *lagoon_free_surface = nullptr;  // P 18
+}
 
 sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 {
@@ -140,7 +146,7 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     else if(p->P15==2)
         num = p->count;
     
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
         pvtp(p,b,pgc,pturb,psed,num);
 
     if(p->origin_i==0 && p->origin_j==0)
@@ -465,6 +471,9 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     vtp3D::footer(result);
 
     result.close();
+
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    lagoon_surface::piece_written(p,pgc,lagoon_free_surface,"SFLOW","free_surface","REEF3D_SFLOW_VTP_FSF",name,num);
 
     ++p->printcount;
 }

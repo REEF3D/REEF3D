@@ -117,8 +117,8 @@ private:
     static std::vector<lagoon_output*> &all();
 };
 
-// LAGOON store output of a solver's free surface or bed VTP (P 18; FNPF, NHFLOW, CFD
-// topography): each rank's piece, just written, goes into its block of the output
+// LAGOON store output of a solver's free surface or bed VTP (P 18; FNPF, NHFLOW, SFLOW,
+// CFD topography): each rank's piece, just written, goes into its block of the output
 // "free_surface" or "bed" (grid "surface": the point heights z and the point arrays).
 // The VTP points are the grid nodes, x outermost (TPSLICELOOP); the store's blocks
 // have x fastest. As for the volume, a thread of each rank writes its block while
