@@ -25,6 +25,7 @@ Architect: Hans Bihs
 
 #include"increment.h"
 #include<vector>
+#include<functional>
 
 class lexer;
 class ghostcell;
@@ -46,6 +47,12 @@ Cells without storage send zeros and ignore received values, so both
 sides always exchange the same message sizes.
 --------------------------------------------------------------------*/
 
+// Phase 14: the second halo layer at the rank boundaries takes nv values per cell from the neighbour rank (its second
+// interior layer): get(i,j,v) reads them from an interior cell, set(i,j,v) writes them into a halo cell. The grid flags
+// of REEF3D mark only the first halo layer as part of the domain; the second-order fluxes (A 796 2) read two
+void seastate_halo2(lexer*, ghostcell*, int nv, const std::function<void(int,int,double*)> &get,
+                    const std::function<void(int,int,const double*)> &set);
+
 class seastate_exchange : public increment
 {
 public:
@@ -54,6 +61,7 @@ public:
     void start(lexer*, ghostcell*, seastate_store&);
 
     long bytes_sent() const {return sent;}
+    int halo_layers() const {return layers;}
 
 private:
     void pack(lexer*, seastate_store&, int side);

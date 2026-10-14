@@ -210,6 +210,7 @@ private:
     int iter_max, iter_done;
     double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
     bool coupled;
+    bool kba = false;                   // Phase 14: the sweeps pipelined across the ranks (A 781 1)
     double conv;
     std::vector<double> hs_old;
     std::ofstream convlog;              // stationary convergence history (rank 0)

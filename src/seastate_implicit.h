@@ -85,7 +85,8 @@ order of its quadrant, so that geographic upwinding is exact within a
 sweep. In each cell the directions of the quadrant are solved together
 per frequency (tridiagonal in theta, Thomas algorithm); frequencies and
 the directions of the other quadrants use the latest values. Halo
-exchange after each sweep (block Gauss-Seidel across ranks).
+exchange after each sweep (block Gauss-Seidel across ranks; Phase 14:
+pipelined across the ranks, see below).
 
 Source terms (Phase 2, seastate_source): dN/dt = P - D N with P >= 0
 added to the right-hand side and D >= 0 to the diagonal, computed per
@@ -181,6 +182,20 @@ threads on the sparse swell spectra, 10 % less with one thread now).
 The first visits of the cells (spectral sparsity) are shared out to the
 threads as well.
 
+Phase 14: the sweeps pipelined across the MPI ranks (A 781 1, the
+default; grids without refinement, not the surfbeat model or the FAS
+residuals). A tile at the upstream boundary of a rank waits for the
+halo cells of the same sweep from the rank upstream of it (one message
+per boundary tile and halo layers), and a tile at the downstream
+boundary sends its cells as soon as it is solved: the tiles of all ranks
+form one dependency graph, swept as a wavefront (KBA, Koch, Baker and
+Alcouffe 1992). The halo downstream holds the values of the exchange
+after the last sweep, which the serial sweep sees as well. So every cell
+sees its neighbours as in the serial sweep of one rank, and the result
+is that of one rank, bitwise, for any number of ranks and threads. The
+thread 0 of a rank posts the messages. Before: each rank swept from the
+halo of the last exchange (block Gauss-Seidel), and the stationary
+iterations grew with the ranks.
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -271,6 +286,13 @@ public:
     // threaded sweeps (not from within such a job)
     static void run_threads(int nt, const std::function<void(int)> &f);
 
+    // Phase 14: the sweeps pipelined across the MPI ranks (A 781 1) on a grid without refinement. Collective: true when
+    // every rank has aligned neighbours (the same rows as its i neighbours, the same columns as its j neighbours);
+    // then the tiles at the boundary of a rank wait for the halo cells of the same sweep from the ranks upstream, and the
+    // result is that of one rank. false: the ranks sweep from the halo of the last exchange as before
+    bool pipeline(lexer*, ghostcell*);
+    bool pipelined() const {return kpgc!=nullptr;}
+
 private:
 
     void cell(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
@@ -291,6 +313,13 @@ private:
     worker_cache &operator=(const worker_cache&) {return *this;}
     };
     worker_cache workers;
+    // Phase 14: pipelined sweeps across the ranks (pipeline): communicator, the tile size of all ranks, the exchange of
+    // iterate (halo layers), the first visits of the cells exchanged once
+    ghostcell *kpgc = nullptr;
+    int ktb = 16;
+    seastate_exchange *kex = nullptr;
+    bool kfirst = true;
+    bool pipelined_sweep() const;
     int nthreads = 1;
     int thread_min = 1;                 // threads only on grids of at least this many cells
     const seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;

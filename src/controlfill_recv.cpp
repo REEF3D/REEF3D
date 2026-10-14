@@ -668,6 +668,8 @@ void control::ctrlrecv()
     ii++;
     A799 = ictrl[ii];
     ii++;
+    A781 = ictrl[ii];
+    ii++;
     A758_m = ictrl[ii];
     ii++;
     A758_n = ictrl[ii];

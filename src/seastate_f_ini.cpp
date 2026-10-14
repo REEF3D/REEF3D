@@ -223,6 +223,22 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     pex->start(p,pgc,*e->N);
 
+    // Phase 14: the sweeps pipelined across the ranks (A 781 1) on a grid without refinement: the result of one rank,
+    // so nonstationary one iteration per step as on one rank (unless A 707, FAS or surfbeat)
+    if(p->A781==1 && p->M10>1 && p->G1<1 && !second)
+    {
+    kba = psolv->pipeline(p,pgc);
+    if(kba && p->A700==1 && p->A707<=0 && p->A758_n<=0 && p->A770!=1)
+    {
+    iter_max = 1;
+    delete N0;
+    N0 = nullptr;
+    }
+        if(p->mpirank==0)
+        cout<<"SEASTATE sweeps pipelined across the "<<p->M10<<" ranks (A 781 1)"
+            <<(kba ? ": the result of one rank" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
+    }
+
     // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
     if(p->A758_n>0 && p->G1<1)
     {
@@ -556,6 +572,14 @@ void seastate_f::environment(lexer *p, ghostcell *pgc)
     e->wet(i,j)=(inside && p->flagslice4[IJ]>0 && e->depth(i,j)>=p->A705) ? 1 : 0;
     e->wet0(i,j)=e->wet(i,j);
     }
+
+    // Phase 14: the second halo layer at the rank boundaries for the second-order fluxes (A 796 2, surfbeat A 775 2):
+    // bed, depth and wet flag of the neighbour rank. The grid flags mark only the first halo layer, so that the faces
+    // next to a rank boundary stayed first order on several ranks
+    if(!coupled && (p->A796==2 || (p->A770==1 && p->A775==2)))
+    seastate_halo2(p,pgc,4,
+                   [&](int ii, int jj, double *v) {v[0]=e->bed(ii,jj); v[1]=e->depth(ii,jj); v[2]=e->wet(ii,jj); v[3]=e->wet0(ii,jj);},
+                   [&](int ii, int jj, const double *v) {e->bed(ii,jj)=v[0]; e->depth(ii,jj)=v[1]; e->wet(ii,jj)=int(v[2]); e->wet0(ii,jj)=int(v[3]);});
 }
 
 void seastate_f::storage(lexer *p, ghostcell *pgc)

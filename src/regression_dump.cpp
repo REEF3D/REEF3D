@@ -600,6 +600,20 @@ void regression_dump::seastate_collect(lexer *p, fdm_seastate *e)
     for(int b=0; b<nbin; ++b)
     data.back().push_back(double(s[b]));
     }
+
+    // Phase 14: the global cell indices and the wet flag, so that runs on different numbers of ranks can be compared
+    // cell by cell (regression.py ranks)
+    add("gi",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(double(i+p->origin_i));
+
+    add("gj",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(double(j+p->origin_j));
+
+    add("wet",p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(double(e->wet(i,j)));
 }
 
 void regression_dump::seastate_state(lexer *p, fdm_seastate *e)
