@@ -388,6 +388,7 @@ void control::ini_default()
 	B85=1;		 // int PM or JONSWAP spectrum for irregular waves
 	B86=10;		 // int number of regular waves for irregular wave generation
 	B87=0;		 // int give ws and we for irregular wave generation
+	B87_1=B87_2=0.0;  // double ws, we (B 87)
 	B88=3.3;	 // double gamma for JONSWAP spectrum
 	B89=0;            // int wave generation optimization
 	B90=0;            // int iowave
@@ -457,6 +458,7 @@ void control::ini_default()
     B135=10.0;       // double peak value
     B136=1;         // int double summation method frequency vector
     B138=0;         // int seed number multidir waves
+    B138_1=B138_2=0;  // int seeds (B 138)
     B139=0;         // int seed number wave spectrum
     B160=5;        // int number of vertical layers for 2D wave generation
     B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves

@@ -30,6 +30,10 @@ ioflow_f::ioflow_f(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)
 {
 	pBC = ppBC;
     
+    // in- and outflow areas: computed by discharge(); the hydrograph start value below
+    // (B 60 2, 4) divides by Ai before it
+    area=Ai=Ao=0.0;
+    
 	walldin_size=1;
 	walldout_size=1;
 	

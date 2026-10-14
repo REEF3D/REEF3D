@@ -54,9 +54,16 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     Ui=Ua=Uo=0.0;
     Hi=Ho=0.0;
     Qi=Qo=0.0;
+    wT=wV=wH=wA=wL=wd=ww=wk=wC=0.0;
     wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
     wN=0;
     cms_flag=0;
+
+    // free-surface levels at the in- and outflow: set by ini_phi (F 60-62), read by the outflow
+    // pressure (B 77 1) also without a free surface
+    fsfin=fsfout=0.0;
+    printcount=printcount_sixdof=0;
+    maxlength=0.0;      // largest domain extent: set by CFD (initialize) and FNPF (driver_ini_fnpf), not by NHFLOW
 
     // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
     gcsldfeta4_count=gcsldfbed4_count=0;
@@ -105,9 +112,16 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
     Ui=Ua=Uo=0.0;
     Hi=Ho=0.0;
     Qi=Qo=0.0;
+    wT=wV=wH=wA=wL=wd=ww=wk=wC=0.0;
     wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
     wN=0;
     cms_flag=0;
+
+    // free-surface levels at the in- and outflow: set by ini_phi (F 60-62), read by the outflow
+    // pressure (B 77 1) also without a free surface
+    fsfin=fsfout=0.0;
+    printcount=printcount_sixdof=0;
+    maxlength=0.0;      // largest domain extent: set by CFD (initialize) and FNPF (driver_ini_fnpf), not by NHFLOW
 
     // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
     gcsldfeta4_count=gcsldfbed4_count=0;
