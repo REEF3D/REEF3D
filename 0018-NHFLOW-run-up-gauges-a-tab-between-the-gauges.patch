@@ -1,0 +1,46 @@
+From ffaf7861f358ac51608e647962773e42b9dd9fd6 Mon Sep 17 00:00:00 2001
+From: Hans Bihs <hans.bihs@gmail.com>
+Date: Wed, 14 Oct 2026 09:00:02 +0000
+Subject: [PATCH] NHFLOW run-up gauges: a tab between the gauges
+
+The run-up files (P 133, P 134) wrote the z of one gauge and the x of the
+next without anything between them (10.050.1 for 10.05 and 0.1): with more
+than one gauge the rows could not be read. A tab after each gauge, as in
+the header.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_013aJaRBweadkc883UkvkqYs
+---
+ src/nhflow_print_runup_gage_x.cpp     | 2 +-
+ src/nhflow_print_runup_max_gage_x.cpp | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/nhflow_print_runup_gage_x.cpp b/src/nhflow_print_runup_gage_x.cpp
+index 9fe9ad0..9c2f66e 100644
+--- a/src/nhflow_print_runup_gage_x.cpp
++++ b/src/nhflow_print_runup_gage_x.cpp
+@@ -146,7 +146,7 @@ void nhflow_print_runup_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
+     {
+     wsfout<<setprecision(9)<<p->simtime<<"\t";
+     for(q=0;q<p->P133;++q)
+-    wsfout<<setprecision(9)<<p->Xout(xloc[q],yloc[q])<<"  \t  "<<zloc[q];
++    wsfout<<setprecision(9)<<p->Xout(xloc[q],yloc[q])<<"  \t  "<<zloc[q]<<"  \t  ";
+     wsfout<<endl;
+     }
+ }
+diff --git a/src/nhflow_print_runup_max_gage_x.cpp b/src/nhflow_print_runup_max_gage_x.cpp
+index fb7ad2c..ca7bb66 100644
+--- a/src/nhflow_print_runup_max_gage_x.cpp
++++ b/src/nhflow_print_runup_max_gage_x.cpp
+@@ -152,7 +152,7 @@ void nhflow_print_runup_max_gage_x::start(lexer *p, fdm_nhf *d, ghostcell *pgc,
+     {
+     wsfout<<setprecision(9)<<T<<"\t";
+     for(q=0;q<p->P134;++q)
+-    wsfout<<setprecision(9)<<p->Xout(xloc[q],yloc[q])<<"  \t  "<<zloc[q];
++    wsfout<<setprecision(9)<<p->Xout(xloc[q],yloc[q])<<"  \t  "<<zloc[q]<<"  \t  ";
+     wsfout<<endl;
+     }
+     
+-- 
+2.34.1
+

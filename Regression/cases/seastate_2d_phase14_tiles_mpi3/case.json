@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase13_tiles",
+ "np": 3,
+ "same_as": "seastate_2d_phase13_tiles",
+ "description": "as seastate_2d_phase13_tiles (3 threads, spectral sparsity, second order) on 3 MPI ranks, pipelined (Phase 14): two halo layers per message, the first visits exchanged before the first sweep; bitwise one rank.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "Phase 14 with threads, A 795 and A 796 2"
+ ]
+}

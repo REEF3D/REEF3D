@@ -23,6 +23,10 @@ Typical use
   ./regression.py bless runs/ref
   ./regression.py check runs/new --rtol 1e-6
 
+  # SEASTATE on several ranks against one rank, cell by cell: the cases with "same_as": "<case>" in their
+  # case.json against that case of the same run
+  ./regression.py ranks runs/new
+
 Case selection: --cases <glob> [<glob> ...] and/or --tags <tag> [...] (e.g. --tags quick).
 
 How it works
@@ -132,7 +136,7 @@ def load_case(name, _seen=None):
         # inherit everything that is not specific to the base case's own files/overrides
         for k, v in b.items():
             if k not in ("name", "dir", "base", "control_lines", "ctrl_lines", "files_abs", "files",
-                         "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers"):
+                         "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers", "same_as"):
                 c.setdefault(k, v)
     else:
         control = read_lines(os.path.join(cdir, "control.txt"))
@@ -612,6 +616,74 @@ def cmd_compare(args):
     return 0
 
 
+def merged_by_cell(rundir):
+    """SEASTATE: {(gi, gj): values} of the final state, all ranks together (needs the fields gi, gj, wet of
+    regression_dump::seastate_collect, Phase 14); None without them."""
+    m = merged_final_state(rundir)
+    if m is None:
+        return None
+    count, states = m
+    cells = {}
+    for st in states:
+        f = st["fields"]
+        if "gi" not in f or "gj" not in f or "wet" not in f:
+            return None
+        n = len(f["gi"])
+        per_cell = [name for name in st["order"] if name not in ("gi", "gj", "wet", "N") and len(f[name]) == n]
+        nwet = sum(1 for w in f["wet"] if w == 1.0)
+        nbin = len(f["N"]) // nwet if nwet > 0 and "N" in f else 0
+        b = 0
+        for c in range(n):
+            vals = [f[name][c] for name in per_cell]
+            if f["wet"][c] == 1.0 and nbin > 0:
+                vals += list(f["N"][b * nbin:(b + 1) * nbin])
+                b += 1
+            cells[(int(f["gi"][c]), int(f["gj"][c]))] = vals
+    return count, cells
+
+
+def cmd_ranks(args):
+    rc = 0
+    names = sorted(n for n in os.listdir(args.run) if os.path.isdir(os.path.join(args.run, n)) and n in set(all_case_names()))
+    if args.cases:
+        names = [n for n in names if any(fnmatch.fnmatch(n, p) for p in args.cases)]
+    pairs = []
+    for n in names:
+        same = load_case(n).get("same_as")
+        if same:
+            pairs.append((same, n))
+    if not pairs:
+        print("no cases with \"same_as\" in %s" % args.run)
+        return 1
+    for a, b in pairs:
+        ra = merged_by_cell(os.path.join(args.run, a))
+        rb = merged_by_cell(os.path.join(args.run, b))
+        if ra is None or rb is None:
+            print("%-48s %-40s FAILED (missing state dump or cell indices)" % (b, "= " + a))
+            rc = 1
+            continue
+        if ra[0] != rb[0] or set(ra[1]) != set(rb[1]):
+            print("%-48s %-40s DIFFERENT (steps %d/%d, cells %d/%d)" % (b, "= " + a, ra[0], rb[0], len(ra[1]), len(rb[1])))
+            rc = 1
+            continue
+        nd, md, nv = 0, 0.0, 0
+        for k, va in ra[1].items():
+            vb = rb[1][k]
+            if len(va) != len(vb):
+                nd += 1
+                continue
+            for x, y in zip(va, vb):
+                nv += 1
+                if x != y and not (x != x and y != y):
+                    nd += 1
+                    md = max(md, abs(x - y))
+        ok = (nd == 0)
+        rc |= 0 if ok else 1
+        print("%-48s %-40s %s" % (b, "= " + a, "bitwise identical (%d cells, %d values)" % (len(ra[1]), nv) if ok
+                                  else "DIFFERENT: %d values, max diff %.3e" % (nd, md)))
+    return rc
+
+
 def cmd_ab(args):
     a = argparse.Namespace(**vars(args))
     rc = 0
@@ -780,6 +852,8 @@ def main():
     p.add_argument("--out", required=True); p.set_defaults(func=cmd_ab)
     p = sub.add_parser("bless"); sel(p); p.add_argument("run"); p.add_argument("--note")
     p.set_defaults(func=cmd_bless)
+    p = sub.add_parser("ranks"); p.add_argument("run"); p.add_argument("--cases", nargs="*")
+    p.set_defaults(func=cmd_ranks)
     p = sub.add_parser("check"); sel(p); p.add_argument("run")
     p.add_argument("--rtol", type=float, default=1e-6); p.add_argument("--atol", type=float, default=1e-10)
     p.set_defaults(func=cmd_check)

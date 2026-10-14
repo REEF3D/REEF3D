@@ -15,5 +15,6 @@
  "covers": [
   "seastate_f diffraction per frequency, halo exchange of the smoothed energy and Ca",
   "diffraction with threads"
- ]
+ ],
+ "same_as": "seastate_2d_phase14_diffraction"
 }
