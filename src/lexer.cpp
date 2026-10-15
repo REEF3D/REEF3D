@@ -63,7 +63,7 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     // pressure (B 77 1) also without a free surface
     fsfin=fsfout=0.0;
     printcount=printcount_sixdof=0;
-    maxlength=0.0;      // largest domain extent: set by CFD (initialize) and FNPF (driver_ini_fnpf), not by NHFLOW
+    maxlength=0.0;      // largest domain extent: set by initialize (CFD), makegrid_sigma (NHFLOW, FNPF), sflow_maxcoor
 
     // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
     gcsldfeta4_count=gcsldfbed4_count=0;
@@ -106,22 +106,20 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
     // iowave Riemann / Flather edges: set by iowave on the base grid only (AMR patch grids have none)
     open_xm=open_xp=open_ym=open_yp=0;
 
-    // in- and outflow (set by the discharge of ioflow, used before it by the wave generation),
-    // irregular wave parameters (set for irregular waves only, B 526-528 default to wTp otherwise),
-    // coordinate transformation flag
-    Ui=Ua=Uo=0.0;
-    Hi=Ho=0.0;
-    Qi=Qo=0.0;
-    wT=wV=wH=wA=wL=wd=ww=wk=wC=0.0;
-    wHs=wAs=wwp=ww_s=ww_e=wTp=wLp=0.0;
-    wN=0;
-    cms_flag=0;
-
-    // free-surface levels at the in- and outflow: set by ini_phi (F 60-62), read by the outflow
-    // pressure (B 77 1) also without a free surface
-    fsfin=fsfout=0.0;
+    // the state of the base grid that the patch grids (AMR, FAS) read but do not set themselves:
+    // in- and outflow (discharge of ioflow, used before it by the wave generation), wave parameters
+    // (wave_lib, B 526-528 default to wTp), free-surface levels at the in- and outflow (ini_phi,
+    // F 60-62; the outflow pressure B 77 1), largest domain extent (reinitialisation)
+    Ui=b.Ui; Ua=b.Ua; Uo=b.Uo;
+    Hi=b.Hi; Ho=b.Ho;
+    Qi=b.Qi; Qo=b.Qo;
+    wT=b.wT; wV=b.wV; wH=b.wH; wA=b.wA; wL=b.wL; wd=b.wd; ww=b.ww; wk=b.wk; wC=b.wC;
+    wHs=b.wHs; wAs=b.wAs; wwp=b.wwp; ww_s=b.ww_s; ww_e=b.ww_e; wTp=b.wTp; wLp=b.wLp;
+    wN=b.wN;
+    cms_flag=0;     // coordinate transformation: set by the patch builder (reefamr3d)
+    fsfin=b.fsfin; fsfout=b.fsfout;
+    maxlength=b.maxlength;
     printcount=printcount_sixdof=0;
-    maxlength=0.0;      // largest domain extent: set by CFD (initialize) and FNPF (driver_ini_fnpf), not by NHFLOW
 
     // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
     gcsldfeta4_count=gcsldfbed4_count=0;
