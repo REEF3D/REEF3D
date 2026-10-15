@@ -1,0 +1,1004 @@
+From 3546841bb1dc849f96bf1f622b2218aa75b235dd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 15 Oct 2026 11:30:37 +0200
+Subject: [PATCH 4/5] NHFLOW: river free-surface initialisation (F 65), shared
+ with SFLOW (river_ini)
+
+The 1D river solver of F 65 moves from sflow_f_ini_river.cpp into the
+class river_ini (river_ini.h/.cpp), used by SFLOW and NHFLOW:
+start() gathers the global cross-sections and solves for the column
+levels, eta() and velocity() give the values of a cell.
+
+NHFLOW:
+- F 65 1/2 set eta in nhflow_f::ini (after eta = 0, before WL and the
+  wet flags); without F 60 the reference level wd is F 62
+  (driver_logic_nhflow)
+- F 65 2 sets U,V (and UH,VH = WL U, WL V; W = 0) on all layers of the
+  wet cells after the potential-flow ini (driver_ini_nhflow), the strip
+  velocity of the column friction slope along the i-direction
+- friction law of the 1D solve: the log law at the centre of the
+  bottom layer as nhflow_bcmom (A 519 1), u+ = 2.5 ln(30 z0/ks),
+  z0 = dz0 h/2 (dz0 the sigma height of the bottom layer), with a
+  depth-uniform velocity; SFLOW keeps Manning n = ks^(1/6)/20
+- dry: WL below A 544 (SFLOW: A 244)
+
+SFLOW results unchanged (river_ini law 0 is the code of before).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01SNSbKfgx2N4udXVThPoqfD
+---
+ src/REEF3D.project          |   1 +
+ src/driver_ini_nhflow.cpp   |  33 ++++
+ src/driver_logic_nhflow.cpp |   4 +
+ src/nhflow_f.cpp            |  14 ++
+ src/river_ini.cpp           | 376 ++++++++++++++++++++++++++++++++++++
+ src/river_ini.h             |  97 ++++++++++
+ src/sflow_f_ini_river.cpp   | 341 +-------------------------------
+ 7 files changed, 533 insertions(+), 333 deletions(-)
+ create mode 100644 src/river_ini.cpp
+ create mode 100644 src/river_ini.h
+
+diff --git a/src/REEF3D.project b/src/REEF3D.project
+index 7741bce6c..7095820f5 100644
+--- a/src/REEF3D.project
++++ b/src/REEF3D.project
+@@ -1803,6 +1803,7 @@
+         <File Name="sflow_f_logic.cpp"/>
+         <File Name="sflow_f_ini.cpp"/>
+         <File Name="sflow_f_ini_river.cpp"/>
++        <File Name="river_ini.cpp"/>
+         <File Name="sflow_f.cpp"/>
+         <VirtualDirectory Name="Turbulence">
+           <File Name="sflow_turb_kw_IM1_v1.cpp"/>
+diff --git a/src/driver_ini_nhflow.cpp b/src/driver_ini_nhflow.cpp
+index 46dd79353..d784474af 100644
+--- a/src/driver_ini_nhflow.cpp
++++ b/src/driver_ini_nhflow.cpp
+@@ -37,6 +37,7 @@ Author: Hans Bihs
+ #include"heat_header.h"
+ #include"concentration_header.h"
+ #include"benchmark_header.h"
++#include"river_ini.h"
+ #include"6DOF_header.h"
+ #include"vrans_header.h"
+ #include"nhflow_header.h"
+@@ -131,6 +132,38 @@ void driver::driver_ini_nhflow()
+     // potential ini
+     pnhfpot->start(p,d,ppoissonsolv,pgc);
+     
++    // steady 1D river flow (F 65 2, river_ini.h): depth-averaged velocities of the wet cells on all layers
++    if(p->F65==2)
++    {
++    river_ini river;
++        if(river.start(p,pgc,d->bed,0,1)==1)
++        {
++        double uc,vc;
++        
++            LOOP
++            {
++            river.velocity(p,i,j,d->bed(i,j),uc,vc);
++            
++            if(p->wet[IJ]==0)
++            uc=vc=0.0;
++            
++            d->U[IJK] = uc;
++            d->V[IJK] = vc;
++            d->W[IJK] = 0.0;
++            d->UH[IJK] = d->WL(i,j)*uc;
++            d->VH[IJK] = d->WL(i,j)*vc;
++            d->WH[IJK] = 0.0;
++            }
++        
++        pgc->start4V(p,d->U,10);
++        pgc->start4V(p,d->V,11);
++        pgc->start4V(p,d->W,12);
++        pgc->start4V(p,d->UH,14);
++        pgc->start4V(p,d->VH,15);
++        pgc->start4V(p,d->WH,16);
++        }
++    }
++    
+     pflow->discharge_nhflow(p,d,pgc);
+     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
+     
+diff --git a/src/driver_logic_nhflow.cpp b/src/driver_logic_nhflow.cpp
+index e77337621..9212f3c97 100644
+--- a/src/driver_logic_nhflow.cpp
++++ b/src/driver_logic_nhflow.cpp
+@@ -78,6 +78,10 @@ void driver::logic_nhflow()
+     
+     p->phimean = p->wd = p->F60;
+     
++    // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
++    if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
++    p->phimean = p->wd = p->F62;
++    
+     // curvilinear grid (G 50): unsupported options are refused
+     if(p->geo_curv==1)
+     nhflow_curv::check(p);
+diff --git a/src/nhflow_f.cpp b/src/nhflow_f.cpp
+index d910244d3..16ff98111 100644
+--- a/src/nhflow_f.cpp
++++ b/src/nhflow_f.cpp
+@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
+ Author: Hans Bihs
+ --------------------------------------------------------------------*/
+ 
++#include"river_ini.h"
+ #include"nhflow_f.h"
+ #include"lexer.h"
+ #include"fdm_nhf.h"
+@@ -141,6 +142,19 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
+     pgc->gcsl_start4Vint(p,p->wet,50);
+     pgc->gcsl_start4Vint(p,p->deep,50);
+     pgc->gcsl_start4(p,d->eta,50);
++    
++    // river free-surface initialisation along the i-direction (F 65, river_ini.h)
++    if(p->F65>0)
++    {
++    river_ini river;
++        if(river.start(p,pgc,d->bed,1,1)==1)
++        {
++        SLICELOOP4
++        d->eta(i,j) = river.eta(p,i,j,d->bed(i,j));
++        
++        pgc->gcsl_start4(p,d->eta,50);
++        }
++    }
+ 
+     
+     LOOP
+diff --git a/src/river_ini.cpp b/src/river_ini.cpp
+new file mode 100644
+index 000000000..2fe229073
+--- /dev/null
++++ b/src/river_ini.cpp
+@@ -0,0 +1,376 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Architect: Hans Bihs
++--------------------------------------------------------------------*/
++
++#include"river_ini.h"
++#include"lexer.h"
++#include"ghostcell.h"
++#include"slice.h"
++#include<mpi.h>
++#include<cmath>
++#include<vector>
++#include<algorithm>
++#include<iostream>
++
++river_ini::river_ini()
++{
++}
++
++
++// the cells of the column below h connected to its lowest cell (neighbours in j): side pools behind
++// higher ground stay dry
++void river_ini::xs_run(const river_ini::xsec &c, double h, int &n0, int &n1)
++{
++    n0 = n1 = c.nmin;
++    if(c.zb.empty() || h<=c.zb[c.nmin])
++    {
++        n1 = n0-1;
++        return;
++    }
++    while(n0>0 && c.J[n0-1]==c.J[n0]-1 && h>c.zb[n0-1])
++    --n0;
++    while(n1<int(c.zb.size())-1 && c.J[n1+1]==c.J[n1]+1 && h>c.zb[n1+1])
++    ++n1;
++}
++
++double river_ini::xs_area(const river_ini::xsec &c, double h)
++{
++    int n0,n1;
++    xs_run(c,h,n0,n1);
++    double A=0.0;
++    for(int n=n0; n<=n1; ++n)
++    A += (h-c.zb[n])*c.w[n];
++    return A;
++}
++
++// unit-width conveyance q/sqrt(S) of a strip of depth d: Manning (law 0, SFLOW) kst d^(5/3); log law at the
++// centre of the bottom layer (law 1, NHFLOW A 519 1, depth-uniform velocity) sqrt(g d) d u+(z0), z0 = dz0 d/2
++double river_ini::strip(double d) const
++{
++    if(law==0)
++    return kst*pow(d,5.0/3.0);
++
++    const double ks = MAX(ksl,1.0e-4);
++    const double z0 = MAX(0.5*dz0*d,ks/30.0);
++    const double uplus = 2.5*MAX(1.0,log(30.0*z0/ks));
++    return sqrt(g*d)*d*uplus;
++}
++
++// conveyance of the column (strips, law), and the conveyance-weighted length along of the column
++double river_ini::xs_conv(const river_ini::xsec &c, double h, double kst, double &dsw) const
++{
++    int n0,n1;
++    xs_run(c,h,n0,n1);
++    double K=0.0, kd=0.0;
++    dsw = 0.0;
++    for(int n=n0; n<=n1; ++n)
++    {
++        const double k = (law==0) ? kst*pow(h-c.zb[n],5.0/3.0)*c.w[n] : strip(h-c.zb[n])*c.w[n];
++        K += k;
++        kd += k*c.ds[n];
++    }
++    if(K>0.0)
++    dsw = kd/K;
++    return K;
++}
++
++double river_ini::xs_zmin(const river_ini::xsec &c)
++{
++    double z=1.0e20;
++    for(double v : c.zb)
++    z = std::min(z,v);
++    return z;
++}
++
++double river_ini::xs_dsmean(const river_ini::xsec &c)
++{
++    double s=0.0;
++    for(double v : c.ds)
++    s += v;
++    return c.ds.empty() ? 0.0 : s/double(c.ds.size());
++}
++
++double river_ini::xs_energy(const river_ini::xsec &c, double h, double Q, double g)
++{
++    const double A = xs_area(c,h);
++    return (A>1.0e-12) ? h + Q*Q/(2.0*g*A*A) : 1.0e20;
++}
++
++// critical level: minimum of the specific energy (golden section)
++double river_ini::xs_critical(const river_ini::xsec &c, double Q, double g, double hmax)
++{
++    double a = xs_zmin(c)+1.0e-4, b = a+hmax;
++    const double r = 0.5*(sqrt(5.0)-1.0);
++    double x1 = b-r*(b-a), x2 = a+r*(b-a);
++    double f1 = xs_energy(c,x1,Q,g), f2 = xs_energy(c,x2,Q,g);
++    for(int it=0; it<100 && b-a>1.0e-5; ++it)
++    {
++        if(f1<f2)
++        {
++            b=x2; x2=x1; f2=f1;
++            x1 = b-r*(b-a);
++            f1 = xs_energy(c,x1,Q,g);
++        }
++        else
++        {
++            a=x1; x1=x2; f1=f2;
++            x2 = a+r*(b-a);
++            f2 = xs_energy(c,x2,Q,g);
++        }
++    }
++    return 0.5*(a+b);
++}
++
++int river_ini::start(lexer *p, ghostcell *pgc, slice &bed, int verbose, int flaw)
++{
++    law = flaw;
++    if(p->F65<1 || p->F65>2)
++    return 0;
++
++    if(p->geo_mb>0)
++    {
++        if(p->mpirank==0 && verbose==1)
++        cout<<"!!! F 65: not available on multi-block grids, no river free-surface initialisation !!!"<<endl;
++        return 0;
++    }
++
++    if(p->F62<-1.0e19 || (p->F65==1 && p->F61<-1.0e19) || (p->F65==2 && fabs(p->W10)<1.0e-12))
++    {
++        if(p->mpirank==0)
++        cout<<"!!! F 65 "<<p->F65<<" needs "<<(p->F65==1?"F 61 and F 62":"F 62 and W 10")<<" !!!"<<endl;
++        exit(1);
++    }
++
++    NI=p->gknox;
++    NJ=p->gknoy;
++    const long NC = long(NI)*long(NJ);
++    g = fabs(p->W22)>1.0e-12 ? fabs(p->W22) : 9.81;
++    Q = fabs(p->W10);
++    const double ks = MAX(p->B50,1.0e-6);
++    ksl = ks;
++
++    // law 1: sigma height of the bottom layer
++    if(law==1)
++    {
++    const int m0 = p->margin;
++    const double zr = p->ZN[p->knoz+m0]-p->ZN[m0];
++    dz0 = (zr>0.0) ? p->DZN[m0]/zr : 1.0/double(MAX(p->knoz,1));
++    }
++    kst = 20.0/pow(ks,1.0/6.0);
++    const double hmax = 50.0;
++
++    // global cross-sections: bed, width across and length along of every cell (0 width: no cell)
++    std::vector<double> gz(NC,0.0), gw(NC,0.0), gs(NC,0.0);
++
++    SLICELOOP4
++    {
++        const long q = long(i+p->origin_i)*NJ + long(j+p->origin_j);
++        const double w = 0.5*(p->LEN1[Im1J] + p->LEN1[IJ]);
++        gz[q] = bed(i,j);
++        gw[q] = w;
++        gs[q] = (w>1.0e-12) ? p->AREA2D[IJ]/w : 0.0;
++    }
++
++    MPI_Allreduce(MPI_IN_PLACE,gz.data(),int(NC),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
++    MPI_Allreduce(MPI_IN_PLACE,gw.data(),int(NC),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
++    MPI_Allreduce(MPI_IN_PLACE,gs.data(),int(NC),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
++
++    xs.assign(NI,xsec());
++    for(int I=0; I<NI; ++I)
++    for(int J=0; J<NJ; ++J)
++    {
++        const long q = long(I)*NJ + J;
++        if(gw[q]>1.0e-12)
++        {
++            xs[I].zb.push_back(gz[q]);
++            xs[I].w.push_back(gw[q]);
++            xs[I].ds.push_back(gs[q]);
++            xs[I].J.push_back(J);
++            if(xs[I].zb.back()<xs[I].zb[xs[I].nmin])
++            xs[I].nmin = int(xs[I].zb.size())-1;
++        }
++    }
++
++    // water level of the columns
++    wl.assign(NI,p->F62);
++    int ncrit=0;
++    double hn_out=0.0;
++
++    if(p->F65==1)
++    {
++        std::vector<double> s(NI,0.0);
++        for(int I=1; I<NI; ++I)
++        s[I] = s[I-1] + 0.5*(xs_dsmean(xs[I-1])+xs_dsmean(xs[I]));
++
++        const double L = MAX(s[NI-1],1.0e-12);
++        for(int I=0; I<NI; ++I)
++        wl[I] = p->F61 + (p->F62-p->F61)*s[I]/L;
++    }
++
++    if(p->F65==2)
++    {
++        int last=NI-1;
++        while(last>0 && xs[last].zb.empty())
++        --last;
++
++        const double hc_out = xs_critical(xs[last],Q,g,hmax);
++        wl[last] = MAX(p->F62,hc_out);
++
++        for(int I=last+1; I<NI; ++I)
++        wl[I] = wl[last];
++
++        for(int I=last-1; I>=0; --I)
++        {
++            if(xs[I].zb.empty())
++            {
++                wl[I] = wl[I+1];
++                continue;
++            }
++
++            int Id=I+1;
++            while(Id<last && xs[Id].zb.empty())
++            ++Id;
++
++            double dsd;
++            const double Kd = xs_conv(xs[Id],wl[Id],kst,dsd);
++            const double Sfd = (Kd>0.0) ? Q*Q/(Kd*Kd) : 0.0;
++            const double Ed = xs_energy(xs[Id],wl[Id],Q,g);
++
++            auto res = [&](double h)
++            {
++                double dsu;
++                const double Ku = xs_conv(xs[I],h,kst,dsu);
++                const double Sfu = (Ku>0.0) ? Q*Q/(Ku*Ku) : 1.0e20;
++                const double dx = 0.5*(dsu+dsd)*double(Id-I);
++                return xs_energy(xs[I],h,Q,g) - Ed - 0.5*(Sfu+Sfd)*dx;
++            };
++
++            const double hc = xs_critical(xs[I],Q,g,hmax);
++            double lo=hc, hi=MAX(hc,wl[Id])+1.0;
++
++            if(res(lo)>=0.0)
++            {
++                wl[I] = hc;
++                ++ncrit;
++                continue;
++            }
++
++            int it=0;
++            while(res(hi)<0.0 && it<60)
++            {
++                hi += 2.0*(hi-lo);
++                ++it;
++            }
++
++            for(it=0; it<80 && hi-lo>1.0e-5; ++it)
++            {
++                const double mid = 0.5*(lo+hi);
++                if(res(mid)<0.0)
++                lo=mid;
++                else
++                hi=mid;
++            }
++            wl[I] = 0.5*(lo+hi);
++        }
++
++        // normal-flow level at the outflow for the log: slope of the lowest bed over the last tenth
++        int Iu = MAX(0,last-MAX(NI/10,2));
++        double dl=0.0;
++        for(int I=Iu; I<last; ++I)
++        dl += 0.5*(xs_dsmean(xs[I])+xs_dsmean(xs[I+1]));
++        const double S0 = (dl>0.0) ? MAX((xs_zmin(xs[Iu])-xs_zmin(xs[last]))/dl,1.0e-6) : 1.0e-3;
++
++        double lo=xs_zmin(xs[last])+1.0e-4, hi=lo+hmax, dsn;
++        for(int it=0; it<80; ++it)
++        {
++            const double mid=0.5*(lo+hi);
++            if(xs_conv(xs[last],mid,kst,dsn)*sqrt(S0)<Q)
++            lo=mid;
++            else
++            hi=mid;
++        }
++        hn_out = 0.5*(lo+hi);
++
++        if(verbose==1 && p->mpirank==0)
++        {
++            cout<<"F 65 2: steady 1D river flow, Q "<<Q<<" m3/s, ks "<<ks<<" m"<<(law==1?" (log law, bottom layer)":"")<<": water level "<<wl[0]<<" m at the inflow, "
++                <<wl[last]<<" m at the outflow ("<<ncrit<<" critical sections)"<<endl;
++            cout<<"F 65 2: normal-flow level at the outflow "<<hn_out<<" m (bed slope "<<S0<<"), F 62 "<<p->F62<<" m, critical level "<<hc_out<<" m"<<endl;
++        }
++    }
++
++    if(verbose==1 && p->F65==1 && p->mpirank==0)
++    cout<<"F 65 1: water level linear along the river, "<<wl[0]<<" m at the inflow, "<<wl[NI-1]<<" m at the outflow"<<endl;
++
++    // eta of the cells
++    // the cells of a column connected to its lowest cell below the level
++    inrun.assign(NC,0);
++    for(int I=0; I<NI; ++I)
++    {
++        int n0,n1;
++        xs_run(xs[I],wl[I],n0,n1);
++        for(int n=n0; n<=n1; ++n)
++        inrun[long(I)*NJ + xs[I].J[n]] = 1;
++    }
++
++
++    return 1;
++}
++
++double river_ini::eta(lexer *p, int ii, int jj, double bed) const
++{
++    const int I = ii+p->origin_i;
++    const long q = long(I)*NJ + long(jj+p->origin_j);
++    return (inrun[q]==1 ? wl[I] : MIN(wl[I],bed)) - p->wd;
++}
++
++void river_ini::velocity(lexer *p, int ii, int jj, double bed, double &u, double &v) const
++{
++    // Manning strip velocity along the i-direction of the cell
++    const int I = ii+p->origin_i;
++    const double d = wl[I] - bed;
++    const int qc = (ii-p->imin)*p->jmax + (jj-p->jmin);
++    const int qw = qc - p->jmax;
++
++    u = 0.0;
++    v = 0.0;
++
++    if(d<=(law==0 ? p->A244 : p->A544) || xs[I].zb.empty() || inrun[long(I)*NJ + long(jj+p->origin_j)]==0)
++    return;
++
++    double dsw;
++    const double K = xs_conv(xs[I],wl[I],kst,dsw);
++    if(K<=0.0)
++    return;
++
++    const double um = (law==0) ? kst*pow(d,2.0/3.0)*Q/K : strip(d)/d*Q/K;
++
++    double tx = p->SX1[qw] + p->SX1[qc];
++    double ty = p->SY1[qw] + p->SY1[qc];
++    const double tl = sqrt(tx*tx + ty*ty);
++    if(tl<1.0e-12)
++    return;
++    tx/=tl;
++    ty/=tl;
++
++    u = um*tx;
++    v = um*ty*p->y_dir;
++}
+diff --git a/src/river_ini.h b/src/river_ini.h
+new file mode 100644
+index 000000000..6478b9e31
+--- /dev/null
++++ b/src/river_ini.h
+@@ -0,0 +1,97 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Architect: Hans Bihs
++--------------------------------------------------------------------*/
++
++#ifndef RIVER_INI_H_
++#define RIVER_INI_H_
++
++#include"increment.h"
++#include<vector>
++
++class lexer;
++class ghostcell;
++class slice;
++
++using namespace std;
++
++// River free-surface initialisation along the i-direction of the grid (F 65), shared by SFLOW and
++// NHFLOW, for rivers whose water level follows the slope of the bed. The cross-sections are the grid
++// lines i = const: the curvilinear corridor grid (G 50) has i along the river from the inflow; on a
++// Cartesian grid the river runs along x.
++//
++//   F 65 1  water level linear in the distance along the river, from F 61 at the inflow column to
++//           F 62 at the outflow column
++//   F 65 2  steady 1D flow of the discharge W 10: standard-step backwater from F 62 at the outflow
++//           column upstream, energy equation with the bed friction of B 50 and strip conveyance of the
++//           cells of each cross-section (SFLOW: Manning n = ks^(1/6)/20 as sflow_rough_manning; NHFLOW:
++//           the log law at the centre of the bottom layer as nhflow_bcmom A 519 1, depth-uniform
++//           velocity); a column without a subcritical solution gets the critical level. The velocities of
++//           the wet cells: strip velocity of the column friction slope along the i-direction of the cell,
++//           so the initial discharge of every cross-section is W 10 (NHFLOW: on all layers).
++//
++// The level is uniform in a cross-section; cells above it, and side pools below it that are not
++// connected to the lowest cell of the cross-section (neighbours in j), start dry. All ranks gather the
++// global cross-sections (gknox x gknoy cells) and solve the same 1D problem.
++
++class river_ini : public increment
++{
++public:
++    river_ini();
++
++    // solve for the levels from the bed levels of the cells; 0: F 65 off (or not on this grid), 1: done;
++    // verbose 1 prints the levels at the inflow and outflow
++    // law 0: Manning n = ks^(1/6)/20 (SFLOW); 1: log law at the centre of the bottom layer (NHFLOW A 519 1)
++    int start(lexer*, ghostcell*, slice &bed, int verbose, int law);
++
++    // eta of cell (ii,jj) (local indices) relative to p->wd: the column level for the connected wet
++    // cells, the bed (depth 0) for the others
++    double eta(lexer*, int ii, int jj, double bed) const;
++
++    // F 65 2: Cartesian velocity of cell (ii,jj); 0 for dry cells
++    void velocity(lexer*, int ii, int jj, double bed, double &u, double &v) const;
++
++private:
++    struct xsec
++    {
++        std::vector<double> zb, w, ds;     // bed, width across, length along of the cells of the column
++        std::vector<int> J;                // their j index
++        int nmin=0;                        // the lowest cell
++    };
++
++    std::vector<xsec> xs;
++    std::vector<double> wl;
++    std::vector<char> inrun;
++    int NI=0, NJ=0;
++    double Q=0.0, kst=0.0, g=9.81, ksl=0.05, dz0=1.0;
++    int law=0;
++
++    double strip(double d) const;
++
++    static void xs_run(const xsec&, double h, int &n0, int &n1);
++    static double xs_area(const xsec&, double h);
++    double xs_conv(const xsec&, double h, double kst, double &dsw) const;
++    static double xs_zmin(const xsec&);
++    static double xs_dsmean(const xsec&);
++    static double xs_energy(const xsec&, double h, double Q, double g);
++    static double xs_critical(const xsec&, double Q, double g, double hmax);
++};
++
++#endif
+diff --git a/src/sflow_f_ini_river.cpp b/src/sflow_f_ini_river.cpp
+index ab0607d5b..0e36aec60 100644
+--- a/src/sflow_f_ini_river.cpp
++++ b/src/sflow_f_ini_river.cpp
+@@ -24,132 +24,10 @@ Architect: Hans Bihs
+ #include"lexer.h"
+ #include"fdm2D.h"
+ #include"ghostcell.h"
+-#include<mpi.h>
+-#include<cmath>
+-#include<vector>
+-#include<algorithm>
+-
+-// River free-surface initialisation along the i-direction of the grid (F 65), for rivers whose
+-// water level follows the slope of the bed. The cross-sections are the grid lines i = const: the
+-// curvilinear corridor grid (G 50) has i along the river from the inflow; on a Cartesian grid the
+-// river runs along x.
+-//
+-//   F 65 1  water level linear in the distance along the river, from F 61 at the inflow column to
+-//           F 62 at the outflow column
+-//   F 65 2  steady 1D flow of the discharge W 10: standard-step backwater from F 62 at the outflow
+-//           column upstream, energy equation with the Manning friction of the bed roughness B 50
+-//           (n = ks^(1/6)/20, as sflow_rough_manning) and strip conveyance of the cells of each
+-//           cross-section; a column without a subcritical solution gets the critical level. The
+-//           velocities of the wet cells are set as well: Manning strip velocity of the column friction
+-//           slope along the i-direction of the cell, so the initial discharge of every cross-section
+-//           is W 10.
+-//
+-// The level is uniform in a cross-section; cells above it, and side pools below it that are not connected
+-// to the lowest cell of the cross-section (neighbours in j), start dry. Called with vel=0 from ini_fsf
+-// (eta) and with vel=1 after the potential-flow initialisation (U,V, F 65 2 only). All ranks gather
+-// the global cross-sections (gknox x gknoy cells) and solve the same 1D problem.
+-
+-namespace
+-{
+-struct river_xs
+-{
+-    std::vector<double> zb, w, ds;     // bed, width across, length along of the cells of the column
+-    std::vector<int> J;                // their j index
+-    int nmin=0;                        // the lowest cell
+-};
+-
+-// the cells of the column below h connected to its lowest cell (neighbours in j): side pools behind
+-// higher ground stay dry
+-void xs_run(const river_xs &c, double h, int &n0, int &n1)
+-{
+-    n0 = n1 = c.nmin;
+-    if(c.zb.empty() || h<=c.zb[c.nmin])
+-    {
+-        n1 = n0-1;
+-        return;
+-    }
+-    while(n0>0 && c.J[n0-1]==c.J[n0]-1 && h>c.zb[n0-1])
+-    --n0;
+-    while(n1<int(c.zb.size())-1 && c.J[n1+1]==c.J[n1]+1 && h>c.zb[n1+1])
+-    ++n1;
+-}
+-
+-double xs_area(const river_xs &c, double h)
+-{
+-    int n0,n1;
+-    xs_run(c,h,n0,n1);
+-    double A=0.0;
+-    for(int n=n0; n<=n1; ++n)
+-    A += (h-c.zb[n])*c.w[n];
+-    return A;
+-}
+-
+-// conveyance with Strickler kst, and the conveyance-weighted length along of the column
+-double xs_conv(const river_xs &c, double h, double kst, double &dsw)
+-{
+-    int n0,n1;
+-    xs_run(c,h,n0,n1);
+-    double K=0.0, kd=0.0;
+-    dsw = 0.0;
+-    for(int n=n0; n<=n1; ++n)
+-    {
+-        const double k = kst*pow(h-c.zb[n],5.0/3.0)*c.w[n];
+-        K += k;
+-        kd += k*c.ds[n];
+-    }
+-    if(K>0.0)
+-    dsw = kd/K;
+-    return K;
+-}
+-
+-double xs_zmin(const river_xs &c)
+-{
+-    double z=1.0e20;
+-    for(double v : c.zb)
+-    z = std::min(z,v);
+-    return z;
+-}
+-
+-double xs_dsmean(const river_xs &c)
+-{
+-    double s=0.0;
+-    for(double v : c.ds)
+-    s += v;
+-    return c.ds.empty() ? 0.0 : s/double(c.ds.size());
+-}
+-
+-double xs_energy(const river_xs &c, double h, double Q, double g)
+-{
+-    const double A = xs_area(c,h);
+-    return (A>1.0e-12) ? h + Q*Q/(2.0*g*A*A) : 1.0e20;
+-}
+-
+-// critical level: minimum of the specific energy (golden section)
+-double xs_critical(const river_xs &c, double Q, double g, double hmax)
+-{
+-    double a = xs_zmin(c)+1.0e-4, b = a+hmax;
+-    const double r = 0.5*(sqrt(5.0)-1.0);
+-    double x1 = b-r*(b-a), x2 = a+r*(b-a);
+-    double f1 = xs_energy(c,x1,Q,g), f2 = xs_energy(c,x2,Q,g);
+-    for(int it=0; it<100 && b-a>1.0e-5; ++it)
+-    {
+-        if(f1<f2)
+-        {
+-            b=x2; x2=x1; f2=f1;
+-            x1 = b-r*(b-a);
+-            f1 = xs_energy(c,x1,Q,g);
+-        }
+-        else
+-        {
+-            a=x1; x1=x2; f1=f2;
+-            x2 = a+r*(b-a);
+-            f2 = xs_energy(c,x2,Q,g);
+-        }
+-    }
+-    return 0.5*(a+b);
+-}
+-}
++#include"river_ini.h"
+ 
++// River free-surface initialisation (F 65, river_ini.h): eta from ini_fsf (vel=0), the velocities after
++// the potential-flow initialisation (vel=1, F 65 2 only)
+ void sflow_f::ini_river(lexer *p, fdm2D *b, ghostcell *pgc, int vel)
+ {
+     if(p->F65<1 || p->F65>2)
+@@ -158,220 +36,17 @@ void sflow_f::ini_river(lexer *p, fdm2D *b, ghostcell *pgc, int vel)
+     if(vel==1 && p->F65!=2)
+     return;
+ 
+-    if(p->geo_mb>0)
+-    {
+-        if(p->mpirank==0 && vel==0)
+-        cout<<"!!! F 65: not available on multi-block grids, no river free-surface initialisation !!!"<<endl;
+-        return;
+-    }
+-
+-    if(p->F62<-1.0e19 || (p->F65==1 && p->F61<-1.0e19) || (p->F65==2 && fabs(p->W10)<1.0e-12))
+-    {
+-        if(p->mpirank==0)
+-        cout<<"!!! F 65 "<<p->F65<<" needs "<<(p->F65==1?"F 61 and F 62":"F 62 and W 10")<<" !!!"<<endl;
+-        exit(1);
+-    }
+-
+-    const int NI=p->gknox, NJ=p->gknoy;
+-    const long NC = long(NI)*long(NJ);
+-    const double g = fabs(p->W22)>1.0e-12 ? fabs(p->W22) : 9.81;
+-    const double Q = fabs(p->W10);
+-    const double ks = MAX(p->B50,1.0e-6);
+-    const double kst = 20.0/pow(ks,1.0/6.0);
+-    const double hmax = 50.0;
+-
+-    // global cross-sections: bed, width across and length along of every cell (0 width: no cell)
+-    std::vector<double> gz(NC,0.0), gw(NC,0.0), gs(NC,0.0);
+-
+-    SLICELOOP4
+-    {
+-        const long q = long(i+p->origin_i)*NJ + long(j+p->origin_j);
+-        const double w = 0.5*(p->LEN1[Im1J] + p->LEN1[IJ]);
+-        gz[q] = b->bed(i,j);
+-        gw[q] = w;
+-        gs[q] = (w>1.0e-12) ? p->AREA2D[IJ]/w : 0.0;
+-    }
+-
+-    MPI_Allreduce(MPI_IN_PLACE,gz.data(),int(NC),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+-    MPI_Allreduce(MPI_IN_PLACE,gw.data(),int(NC),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+-    MPI_Allreduce(MPI_IN_PLACE,gs.data(),int(NC),MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+-
+-    std::vector<river_xs> xs(NI);
+-    for(int I=0; I<NI; ++I)
+-    for(int J=0; J<NJ; ++J)
+-    {
+-        const long q = long(I)*NJ + J;
+-        if(gw[q]>1.0e-12)
+-        {
+-            xs[I].zb.push_back(gz[q]);
+-            xs[I].w.push_back(gw[q]);
+-            xs[I].ds.push_back(gs[q]);
+-            xs[I].J.push_back(J);
+-            if(xs[I].zb.back()<xs[I].zb[xs[I].nmin])
+-            xs[I].nmin = int(xs[I].zb.size())-1;
+-        }
+-    }
+-
+-    // water level of the columns
+-    std::vector<double> wl(NI,p->F62);
+-    int ncrit=0;
+-    double hn_out=0.0;
+-
+-    if(p->F65==1)
+-    {
+-        std::vector<double> s(NI,0.0);
+-        for(int I=1; I<NI; ++I)
+-        s[I] = s[I-1] + 0.5*(xs_dsmean(xs[I-1])+xs_dsmean(xs[I]));
+-
+-        const double L = MAX(s[NI-1],1.0e-12);
+-        for(int I=0; I<NI; ++I)
+-        wl[I] = p->F61 + (p->F62-p->F61)*s[I]/L;
+-    }
+-
+-    if(p->F65==2)
+-    {
+-        int last=NI-1;
+-        while(last>0 && xs[last].zb.empty())
+-        --last;
+-
+-        const double hc_out = xs_critical(xs[last],Q,g,hmax);
+-        wl[last] = MAX(p->F62,hc_out);
+-
+-        for(int I=last+1; I<NI; ++I)
+-        wl[I] = wl[last];
+-
+-        for(int I=last-1; I>=0; --I)
+-        {
+-            if(xs[I].zb.empty())
+-            {
+-                wl[I] = wl[I+1];
+-                continue;
+-            }
+-
+-            int Id=I+1;
+-            while(Id<last && xs[Id].zb.empty())
+-            ++Id;
+-
+-            double dsd;
+-            const double Kd = xs_conv(xs[Id],wl[Id],kst,dsd);
+-            const double Sfd = (Kd>0.0) ? Q*Q/(Kd*Kd) : 0.0;
+-            const double Ed = xs_energy(xs[Id],wl[Id],Q,g);
+-
+-            auto res = [&](double h)
+-            {
+-                double dsu;
+-                const double Ku = xs_conv(xs[I],h,kst,dsu);
+-                const double Sfu = (Ku>0.0) ? Q*Q/(Ku*Ku) : 1.0e20;
+-                const double dx = 0.5*(dsu+dsd)*double(Id-I);
+-                return xs_energy(xs[I],h,Q,g) - Ed - 0.5*(Sfu+Sfd)*dx;
+-            };
+-
+-            const double hc = xs_critical(xs[I],Q,g,hmax);
+-            double lo=hc, hi=MAX(hc,wl[Id])+1.0;
+-
+-            if(res(lo)>=0.0)
+-            {
+-                wl[I] = hc;
+-                ++ncrit;
+-                continue;
+-            }
+-
+-            int it=0;
+-            while(res(hi)<0.0 && it<60)
+-            {
+-                hi += 2.0*(hi-lo);
+-                ++it;
+-            }
+-
+-            for(it=0; it<80 && hi-lo>1.0e-5; ++it)
+-            {
+-                const double mid = 0.5*(lo+hi);
+-                if(res(mid)<0.0)
+-                lo=mid;
+-                else
+-                hi=mid;
+-            }
+-            wl[I] = 0.5*(lo+hi);
+-        }
+-
+-        // normal-flow level at the outflow for the log: slope of the lowest bed over the last tenth
+-        int Iu = MAX(0,last-MAX(NI/10,2));
+-        double dl=0.0;
+-        for(int I=Iu; I<last; ++I)
+-        dl += 0.5*(xs_dsmean(xs[I])+xs_dsmean(xs[I+1]));
+-        const double S0 = (dl>0.0) ? MAX((xs_zmin(xs[Iu])-xs_zmin(xs[last]))/dl,1.0e-6) : 1.0e-3;
+-
+-        double lo=xs_zmin(xs[last])+1.0e-4, hi=lo+hmax, dsn;
+-        for(int it=0; it<80; ++it)
+-        {
+-            const double mid=0.5*(lo+hi);
+-            if(xs_conv(xs[last],mid,kst,dsn)*sqrt(S0)<Q)
+-            lo=mid;
+-            else
+-            hi=mid;
+-        }
+-        hn_out = 0.5*(lo+hi);
+-
+-        if(vel==0 && p->mpirank==0)
+-        {
+-            cout<<"F 65 2: steady 1D river flow, Q "<<Q<<" m3/s, ks "<<ks<<" m: water level "<<wl[0]<<" m at the inflow, "
+-                <<wl[last]<<" m at the outflow ("<<ncrit<<" critical sections)"<<endl;
+-            cout<<"F 65 2: normal-flow level at the outflow "<<hn_out<<" m (bed slope "<<S0<<"), F 62 "<<p->F62<<" m, critical level "<<hc_out<<" m"<<endl;
+-        }
+-    }
+-
+-    if(vel==0 && p->F65==1 && p->mpirank==0)
+-    cout<<"F 65 1: water level linear along the river, "<<wl[0]<<" m at the inflow, "<<wl[NI-1]<<" m at the outflow"<<endl;
+-
+-    // eta of the cells
+-    // the cells of a column connected to its lowest cell below the level
+-    std::vector<char> inrun(NC,0);
+-    for(int I=0; I<NI; ++I)
+-    {
+-        int n0,n1;
+-        xs_run(xs[I],wl[I],n0,n1);
+-        for(int n=n0; n<=n1; ++n)
+-        inrun[long(I)*NJ + xs[I].J[n]] = 1;
+-    }
++    river_ini river;
++    if(river.start(p,pgc,b->bed,vel==0?1:0,0)==0)
++    return;
+ 
+     if(vel==0)
+     {
+         SLICELOOP4
+-        {
+-        const long q = long(i+p->origin_i)*NJ + long(j+p->origin_j);
+-        b->eta(i,j) = (inrun[q]==1 ? wl[i+p->origin_i] : MIN(wl[i+p->origin_i],b->bed(i,j))) - p->wd;
+-        }
++        b->eta(i,j) = river.eta(p,i,j,b->bed(i,j));
+         return;
+     }
+ 
+-    // velocities (F 65 2): Manning strip velocity along the i-direction of the cell
+     SLICELOOP4
+-    {
+-        const int I = i+p->origin_i;
+-        const double d = wl[I] - b->bed(i,j);
+-
+-        b->U(i,j) = 0.0;
+-        b->V(i,j) = 0.0;
+-
+-        if(d<=p->A244 || xs[I].zb.empty() || inrun[long(I)*NJ + long(j+p->origin_j)]==0)
+-        continue;
+-
+-        double dsw;
+-        const double K = xs_conv(xs[I],wl[I],kst,dsw);
+-        if(K<=0.0)
+-        continue;
+-
+-        const double u = kst*pow(d,2.0/3.0)*Q/K;
+-
+-        double tx = p->SX1[Im1J] + p->SX1[IJ];
+-        double ty = p->SY1[Im1J] + p->SY1[IJ];
+-        const double tl = sqrt(tx*tx + ty*ty);
+-        if(tl<1.0e-12)
+-        continue;
+-        tx/=tl;
+-        ty/=tl;
+-
+-        b->U(i,j) = u*tx;
+-        b->V(i,j) = u*ty*p->y_dir;
+-    }
++    river.velocity(p,i,j,b->bed(i,j),b->U(i,j),b->V(i,j));
+ }
+-- 
+2.43.0
+

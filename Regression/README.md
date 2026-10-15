@@ -276,6 +276,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_curv_waves_rot30` | 1 | wave channel turned by 30 deg: Dirichlet generation (B 98 3) and active absorption (B 99 3) along the face normals, wave frame B 105 |
 | `nhflow_3d_curv_waves_relax_map30` | 1 | the channel stretched along x (orthogonal mapped grid) and turned: relaxation zones by B 107 / B 108 in physical coordinates (P3 gate) |
 | `nhflow_3d_curv_river_kepsilon_rot30` | 1 | river reach turned by 30 deg: discharge inflow along the face normal, stage outflow, k-epsilon with the implicit diffusion (A 512 2) |
+| `nhflow_3d_curv_river_ini_bend_mpi2` | 2 | NHFLOW, sloping river through a 90 deg bend, free surface and velocities on all layers from the steady 1D solution with the log law of the bottom layer (F 65 2), two ranks (needs patch 0004 of Curvilinear/patches) |
+| `nhflow_3d_curv_river_inflow_conveyance` | 1 | NHFLOW, the bend with a rising hydrograph (10 to 120 m3/s in 10 s), log inflow profile across the face by conveyance (B 62 1) (needs patch 0005) |
+| `nhflow_3d_curv_river_inflow_conveyance_plain` | 1 | as above with the plain inflow profile (B 61 1): u = Uk h^(2/3) (needs patch 0005) |
 | `nhflow_3d_curv_tide_rot30` | 1 | oblique tide through a basin turned by 30 deg: Riemann and Flather edges on the edge-face normals |
 | `nhflow_3d_curv_amr_adaptive_sub` | 1 | NHFLOW AMR on the turned grid: patches following the surface, regrid every step, subcycling (G 7 1) |
 | `nhflow_3d_curv_amr_wavy_lake` | 1 | AMR on the wavy grid: lake at rest under six patches (restriction per area, bed prolongation with the parent's area mean) |
@@ -386,6 +389,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_irregular_2nd_b_lowrank` | 1 | `fnpf_2d_irregular_2nd_b` with 128 components: eta and the potential of the sum terms low-rank, the potential of the difference terms direct |
 | `fnpf_2d_irregular_2nd_b_twoband_lowrank` | 1 | `fnpf_2d_irregular_2nd_b_twoband` with 128 components: B 98 7 / B 99 7 against the low-rank bound-wave target |
 | `nhflow_2d_irregular_2nd_combined_lowrank` | 1 | `nhflow_2d_irregular_2nd_lowrank` with B 98 6 / B 99 6: the low-rank target in the zone-column relaxation and at the generation edge |
+| `nhflow_3d_irregular_2nd_rows` | 2 | NHFLOW 3D, long-crested 2nd-order irregular waves A (128 components) along x: the cells across the crests share their phases, eta once per row, u, v, w from the Chebyshev tables in z of the row (`wave_lib_zgroup.h`) |
+| `nhflow_3d_irregular_rows` | 2 | `nhflow_3d_irregular_2nd_rows` with 1st-order irregular waves (64 components): groups and tables in z in `wave_lib_irregular_1st` |
+| `fnpf_3d_irregular_2nd_b_rows` | 2 | FNPF 3D, long-crested 2nd-order irregular waves B (128 components): eta and the surface potential once per row of zone cells; the difference-term potential of the low-rank block with the pair phase in the loop |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |

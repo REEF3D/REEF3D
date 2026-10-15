@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"river_ini.h"
 #include"nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -141,6 +142,19 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4Vint(p,p->deep,50);
     pgc->gcsl_start4(p,d->eta,50);
+    
+    // river free-surface initialisation along the i-direction (F 65, river_ini.h)
+    if(p->F65>0)
+    {
+    river_ini river;
+        if(river.start(p,pgc,d->bed,1,1)==1)
+        {
+        SLICELOOP4
+        d->eta(i,j) = river.eta(p,i,j,d->bed(i,j));
+        
+        pgc->gcsl_start4(p,d->eta,50);
+        }
+    }
 
     
     LOOP

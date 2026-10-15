@@ -1,0 +1,21 @@
+{
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "river",
+  "wetdry",
+  "mpi"
+ ],
+ "description": "NHFLOW on a curvilinear grid (G 50 2, 5 sigma layers): sloping river (bed slope 0.002) through a 90 deg bend, free surface and velocities on all layers from the steady 1D backwater solution of W 10 with the log law of the bottom layer (F 65 2), non-hydrostatic, two ranks",
+ "covers": [
+  "F 65 2 in NHFLOW: river_ini with law 1, eta in nhflow_f::ini, velocities after the potential-flow ini",
+  "wd from F 62 without F 60"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

@@ -1803,6 +1803,7 @@
         <File Name="sflow_f_logic.cpp"/>
         <File Name="sflow_f_ini.cpp"/>
         <File Name="sflow_f_ini_river.cpp"/>
+        <File Name="river_ini.cpp"/>
         <File Name="sflow_f.cpp"/>
         <VirtualDirectory Name="Turbulence">
           <File Name="sflow_turb_kw_IM1_v1.cpp"/>

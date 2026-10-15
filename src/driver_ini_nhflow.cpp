@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"heat_header.h"
 #include"concentration_header.h"
 #include"benchmark_header.h"
+#include"river_ini.h"
 #include"6DOF_header.h"
 #include"vrans_header.h"
 #include"nhflow_header.h"
@@ -130,6 +131,38 @@ void driver::driver_ini_nhflow()
     
     // potential ini
     pnhfpot->start(p,d,ppoissonsolv,pgc);
+    
+    // steady 1D river flow (F 65 2, river_ini.h): depth-averaged velocities of the wet cells on all layers
+    if(p->F65==2)
+    {
+    river_ini river;
+        if(river.start(p,pgc,d->bed,0,1)==1)
+        {
+        double uc,vc;
+        
+            LOOP
+            {
+            river.velocity(p,i,j,d->bed(i,j),uc,vc);
+            
+            if(p->wet[IJ]==0)
+            uc=vc=0.0;
+            
+            d->U[IJK] = uc;
+            d->V[IJK] = vc;
+            d->W[IJK] = 0.0;
+            d->UH[IJK] = d->WL(i,j)*uc;
+            d->VH[IJK] = d->WL(i,j)*vc;
+            d->WH[IJK] = 0.0;
+            }
+        
+        pgc->start4V(p,d->U,10);
+        pgc->start4V(p,d->V,11);
+        pgc->start4V(p,d->W,12);
+        pgc->start4V(p,d->UH,14);
+        pgc->start4V(p,d->VH,15);
+        pgc->start4V(p,d->WH,16);
+        }
+    }
     
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);

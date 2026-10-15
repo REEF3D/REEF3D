@@ -1,0 +1,8 @@
+{
+ "description": "nhflow_3d_irregular_2nd_rows with 1st-order irregular waves (B 92 31, 64 components): eta once per row of cells with the same phases, u, v, w from the tables in z of the row (wave_lib_zgroup.h in wave_lib_irregular_1st).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 30,
+ "tags": ["3d", "nhflow", "waves", "iowave", "irregular", "mpi"],
+ "covers": ["wave_lib_zgroup: groups and tables in z (1st order)"]
+}

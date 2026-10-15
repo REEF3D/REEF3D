@@ -78,6 +78,10 @@ void driver::logic_nhflow()
     
     p->phimean = p->wd = p->F60;
     
+    // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
+    if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
+    p->phimean = p->wd = p->F62;
+    
     // curvilinear grid (G 50): unsupported options are refused
     if(p->geo_curv==1)
     nhflow_curv::check(p);
