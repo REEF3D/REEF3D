@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_nwt_komega",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 1",
+  "G 7 1",
+  "G 15 0.0 11.8 0.0 1.0 0.3 0.75"
+ ],
+ "description": "k-omega in the wave tank with the refined band over the generation zone (G 7 1): the patch relaxes the eddy viscosity in the zone as level 0 (iowave::turb_relax).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "turbulence",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::patch_relax_turb (cfd_amr_relax.cpp), cfd_amr::turb_step"
+ ]
+}

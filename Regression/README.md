@@ -181,6 +181,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_amr` | 1 | CFD AMR in the wave tank: refined band at the free surface between the relaxation zones (level 0 only), the free surface across the patch edges |
 | `cfd_2d_nwt_amr_zone` | 1 | the refined band over the numerical beach (B 99 2, G 7 0): the patch relaxes towards still water as level 0; the tiles at the outflow edge stay on level 0 |
 | `cfd_2d_nwt_amr_zone_sub` | 1 | the band over the wave generation zone (B 98 2) with subcycling: the patch relaxes towards the wave theory of level 0 at its cells and the time of its step |
+| `cfd_2d_nwt_amr_zone_komega_sub` | 1 | k-omega in the wave tank, the band over the generation zone (G 7 1): the patch relaxes the eddy viscosity in the zone as level 0 (iowave::turb_relax) |
+| `cfd_2d_nwt_amr_active_sub` | 1 | active wave generation and absorption at the boundaries (B 98 4, B 99 3), two levels over the whole tank (G 7 1): the tiles at the in- and outflow boundary, and those whose nesting would reach them, stay on the coarser level |
 | `cfd_2d_still_amr` | 1 | CFD AMR still water, the free surface across a patch edge: the hydrostatic pressure of both grids balanced at the edge |
 | `cfd_3d_dambreak_amr` | 2 | CFD AMR 3D dam break: 3D boxes on 2 ranks, implicit diffusion of a patch with Dirichlet values around it |
 | `cfd_2d_dambreak_amr_sub` | 1 | CFD AMR with subcycling (G 7 1): the patch takes two steps per level-0 step, the cells around it linear in time; the level projection with the coarse pressure at the patch edges, the synchronisation projection over all levels at the end of the level-0 step |
@@ -188,7 +190,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_mpi2_sub` | 2 | CFD AMR subcycling with patches on both ranks next to each other: one component of the level projection across the ranks (block-Jacobi patch V-cycles) |
 | `cfd_2d_still_amr_sub` | 1 | CFD AMR still water across a patch edge with G 7 1 and the volume correction over all levels (F 46 3) |
 | `cfd_2d_dambreak_amr_vol` | 1 | CFD AMR (G 7 0) with the volume correction over the leaf cells of all grids (F 46 2) |
+| `cfd_2d_dambreak_amr_weno3_sub` | 1 | CFD AMR with WENO3 (D 10 7, F 35 8) and G 7 1: the patch builds its own WENO3 coefficient tables (weno3_nug_func) |
+| `cfd_2d_dambreak_amr_hires` | 1 | CFD AMR (G 7 0) with a TVD scheme on all grids (hires, D 10 13, F 35 13) |
+| `cfd_2d_dambreak_amr_ref_sub` | 1 | CFD AMR with G 7 1 and the pressure fixed at a point in the air (B 30 1, B 33 2): the reference over all grids once at the end of the step |
 | `cfd_3d_dambreak_amr_sub` | 2 | CFD AMR 3D dam break with subcycling on 2 ranks |
+| `cfd_3d_dambreak_amr_cn_sub` | 2 | the same with the Crank-Nicolson diffusion (D 20 3) on all grids |
 | `cfd_2d_dambreak_amr3_adapt_edges` | 1 | two levels adaptive (G 1 2, G 24 3, regrid every 4 steps): level-2 patch edges on the edges between level-1 patches (the fine flux into the patch that owns the coarse face and into the copy of the coarse cell) |
 | `cfd_2d_dambreak_amr_adapt` | 1 | CFD AMR adaptive (G 24 3: cells with \|phi\| < 3 psi flagged), regrid every 2 steps without hysteresis (G 2 2, G 5 0): flags, rebuild, transfer from the old patches, prolongation into new cells, freeing of patches |
 | `cfd_2d_dambreak_amr_adapt_sub` | 1 | the same with subcycling (G 7 1): the regrid after the level-0 step |
@@ -204,6 +210,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr_solid_sub` | 1 | the same with G 7 1 |
 | `cfd_2d_heave_amr` | 1 | floating box (X 10 1) heave decay, static box around the body and the surface: the hull cast on the patch grid in every stage, its forcing on the patches |
 | `cfd_2d_heave_amr_sub` | 1 | the same with G 7 1: the finest level advances the body with the loads on its grid, level 0 steps with a predicted copy |
+| `cfd_2d_heave_amr_ref_sub` | 1 | the same with the gage at the free surface above x = 0.3 (B 30 2, B 33 1): the gage of the loads from the finest grid |
 | `cfd_2d_heave_amr2_sub` | 1 | the same with two refined levels: level 2 advances the body, level 1 and level 0 step with predicted copies |
 | `cfd_2d_heave_amr_adapt` | 1 | the cells within 3 cells of the body (G 25 3), regrid every 2 steps: the hull cast on new patches |
 | `cfd_2d_heave_amr_adapt_sub` | 1 | the same with G 7 1: the patches that follow the body advance it |
