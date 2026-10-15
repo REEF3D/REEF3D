@@ -377,7 +377,7 @@ void control::ini_default()
     B57=0.0001;       // double global side wall roughness
 	B60=0;            // int ioflow discharge
 	B61=2;            // int plain or logarithmic inflow profile
-    B62=0;            // int SFLOW discharge inflow across the face: 0 uniform velocity, 1 by conveyance (u ~ h^(2/3))
+    B62=0;            // int SFLOW/NHFLOW discharge inflow across the face: 0 as B 61, 1 by conveyance (depth average u ~ h^(2/3))
 	B71=0;       // double distance for use relaxation method for fixed water level ini
 	B75=1;		 // int type of outflow boundary conditions
     B76=1;      // int type of pressure inlet boundary condition

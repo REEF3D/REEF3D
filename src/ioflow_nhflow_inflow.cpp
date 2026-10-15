@@ -55,11 +55,14 @@ void ioflow_f::inflow_plain_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *
     j=p->gcin[n][1];
     k=p->gcin[n][2];
         
+        // B 62 1: by conveyance across the face, u = Uk h^(2/3)
+        const double ui = (p->B62==1) ? Uk*pow(MAX(d->WL(i-1,j),0.0),2.0/3.0) : p->Ui;
+        
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-        U[Im1JK]=p->Ui;
-        U[Im2JK]=p->Ui;
-        U[Im3JK]=p->Ui;
+        U[Im1JK]=ui;
+        U[Im2JK]=ui;
+        U[Im3JK]=ui;
         }
         
         if(p->wet[IJ]==0 || p->DF[IJK]<0)
@@ -79,9 +82,9 @@ void ioflow_f::inflow_plain_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *
         
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
-        UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
-        UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
-        UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
+        UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*ui;
+        UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*ui;
+        UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*ui;
         }
         
         if(p->wet[IJ]==0 || p->DF[IJK]<0)
@@ -161,8 +164,20 @@ void ioflow_f::inflow_log_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *U,
         //cout<<"zcoor: "<<MAX(30.0*MIN(zcoor,dmax)/ks,1.0)<<endl;
         //cout<<"Uvel: "<<shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0))<<endl;
             
+            // B 62 1: the log profile of each column scaled so that its depth average goes with
+            // h^(2/3) (Manning strip), shallow columns at the edges of the inflow get small velocities
+            double cfac = 1.0;
+            if(p->B62==1)
+            {
+            const double hc = MAX(d->WL(i,j),1.0e-6);
+            const double lh = log(30.0*hc/ks)-1.0, lm = log(30.0*hmax/ks)-1.0;
+            cfac = pow(hc/hmax,2.0/3.0);
+            if(lh>1.0e-3 && lm>1.0e-3)
+            cfac *= lm/lh;
+            }
+            
             if(p->wet[IJ]==1 && p->DF[IJK]>0)
-            U[Im1JK]=U[Im2JK]=U[Im3JK] = shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0));
+            U[Im1JK]=U[Im2JK]=U[Im3JK] = cfac*shearvel*2.5*log(MAX(30.0*MIN(zcoor,hmax)/ks,1.0));
             
             if(p->wet[IJ]==0 || p->DF[IJK]<0)
             U[Im1JK]=U[Im2JK]=U[Im3JK] = 0.0;
