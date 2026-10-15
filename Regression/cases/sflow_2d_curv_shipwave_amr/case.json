@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 40,
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "6dof",
+  "amr"
+ ],
+ "description": "Ship pressure of the hull (X 10 3, X 400 10) moving through a curvilinear grid turned by 90 deg with the refinement zone and wake wedge around the hull (G 12, G 13) (sixdof_curvilinear/t2): the waterline level set, the draft and the pressure on the curvilinear patches.",
+ "covers": [
+  "sflow_amr::ship_fields_curv",
+  "ray_cast_2D_curv on level 0",
+  "geo_grad of the ship pressure"
+ ]
+}

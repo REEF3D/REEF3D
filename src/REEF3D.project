@@ -2768,6 +2768,7 @@
               <File Name="6DOF_obj_ray2D_io_y.cpp"/>
               <File Name="6DOF_obj_ray2D_io_x.cpp"/>
               <File Name="6DOF_obj_ray2D.cpp"/>
+          <File Name="6DOF_obj_ray2D_curv.cpp"/>
             </VirtualDirectory>
             <File Name="6DOF_obj_objects.cpp"/>
             <File Name="6DOF_obj_geometry.cpp"/>
@@ -3077,6 +3078,7 @@
       <VirtualDirectory Name="Geometry">
         <VirtualDirectory Name="Curvilinear">
           <File Name="grid_geometry.cpp"/>
+          <File Name="grid_locate.cpp"/>
           <File Name="lexer_geometry.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Core">

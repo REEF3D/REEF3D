@@ -401,15 +401,40 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
             const int g = finest_at(x,y);
             if(g<0)
             return sixdof_obj_nhflow::nhflow_grid{glex(-1),d0,(cur_stage<0) ? &d0->WL : stage_out(-1,cur_stage).WL};
-            return sixdof_obj_nhflow::nhflow_grid{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL};
+            sixdof_obj_nhflow::nhflow_grid r{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL};
+            // multi-block grid: the blocks have their own logical spacing, the band by the level
+            if(nblk>0)
+            r.hr = 1.0/double(1<<P[g]->lev);
+            return r;
         };
 
         // placed patches: the rank of the finest grid at the centroid takes the triangle
-        if(par.place>0)
+        if(par.place>0 && nblk==0)
         for(int nb=0; nb<b6->objects(); ++nb)
         b6->object(nb)->amr_owner_nhflow = [this](double x, double y)
         {
             return finest_rank(x,y)==p0->mpirank;
+        };
+
+        // multi-block grid (P5c): the rank of the native cell that holds the centroid (not the ring, it stands for
+        // the cells of the neighbour blocks) or of the piece of a block 1.. that holds it; the patches of the
+        // blocks are on the rank of the block piece below (G 40 0)
+        if(nblk>0)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_point_grid = true;
+
+        if(nblk>0)
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_owner_nhflow = [this](double x, double y)
+        {
+            int a,b;
+            if(p0->geo_cell(x,y,a,b) && !native_ring(a+O0i,b+O0j))
+            return true;
+            for(reefamr_patch *c : P)
+            if(c->lev==0 && c->blk>0)
+            if(c->pp->geo_cell(x,y,a,b) && a>=EXT && a<EXT+c->nx && b>=EXT && b<EXT+c->ny)
+            return true;
+            return false;
         };
 
         cur_stage = -1;
@@ -653,7 +678,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pBC = pBCv;
     c->pflow = pflowv;
     // the floating bodies on the patch grid (all calls do nothing without bodies)
-    c->p6dof = new nhflow_amr_6dof(pp,b6,(b6!=nullptr) ? b6->object(0)->nhflow_dsm()*pp->DXM/glex(-1)->DXM : 0.0);
+    // (multi-block grid: the blocks have their own logical spacing, the band by the level)
+    c->p6dof = new nhflow_amr_6dof(pp,b6,(b6==nullptr) ? 0.0 : (nblk>0) ? b6->object(0)->nhflow_dsm()/double(1<<c->lev)
+                                                          : b6->object(0)->nhflow_dsm()*pp->DXM/glex(-1)->DXM);
     c->psed = psedv;
     // S 10: the sediment of the patch (nhflow_amr_sed.cpp), its state set by regrid_state
     if(pp->S10==1)
@@ -2520,13 +2547,45 @@ void nhflow_amr::zone_bodies(vector<sixdof_obj*> &obj)
 // the finest local grid whose interior holds (x,y), -1: level 0
 int nhflow_amr::finest_at(double x, double y)
 {
-    int g=-1, l=0;
+    // multi-block grid: the pieces of the blocks 1.. are level-0 grids of their own (a point in the ring of the
+    // native grid lies in one of them)
+    int g=-1, l=(nblk>0) ? -1 : 0;
+    int haveX=0;
+    bool inX=false;
+    double X=0.0, Y=0.0;
     for(int n=0; n<(int)P.size(); ++n)
     {
         reefamr_patch *c = P[n];
         lexer *pp = c->pp;
         if(c->lev<=l)
         continue;
+        // curvilinear grid (G 50): the logical range of the patch, as finest_rank (the same patch for the
+        // ownership of a hull triangle and its loads)
+        if(pp->geo_curv==1 && p0->geo_mb==0)
+        {
+            if(!haveX)
+            {
+                haveX = 1;
+                inX = p0->curv_logical(x,y,X,Y);
+            }
+            const double r = double(1<<c->lev);
+            if(inX && X*r>=double(c->I0) && X*r<double(c->I0+c->nx) && Y*r>=double(c->J0) && Y*r<double(c->J0+c->ny))
+            {
+                g=n;
+                l=c->lev;
+            }
+            continue;
+        }
+        if(pp->geo_curv==1)
+        {
+            int a,b;
+            if(pp->geo_cell(x,y,a,b) && a>=EXT && a<EXT+c->nx && b>=EXT && b<EXT+c->ny)
+            {
+                g=n;
+                l=c->lev;
+            }
+            continue;
+        }
         if(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge] && y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge])
         {
             g=n;

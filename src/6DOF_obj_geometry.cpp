@@ -227,7 +227,7 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	LOOP
 	{
         H = Hsolidface_nhflow(p,d,0,0,0);
-		Vfb+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H*d->WL(i,j);
+		Vfb+= p->cellarea(i,j)*p->DZN[KP]*H*d->WL(i,j);   // curvilinear grid: AREA2D (cellarea, bit for bit DXN DYN else)
 	}
     
 	Vfb=pgc->globalsum(Vfb);
@@ -283,7 +283,7 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             
             H = Hsolidface_nhflow(p,d,0,0,0);
 
-		    Vol = H*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+		    Vol = (p->geo_curv==1) ? H*p->AREA2D[IJ]*p->DZN[KP]*d->WL(i,j) : H*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
 
             c_(0) += (1.0/Mass_fb)*rx*Rfb*Vol;
             c_(1) += (1.0/Mass_fb)*ry*Rfb*Vol;
@@ -336,7 +336,7 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 			
             H = Hsolidface_nhflow(p,d,0,0,0);
 			
-            Vol = H*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+            Vol = (p->geo_curv==1) ? H*p->AREA2D[IJ]*p->DZN[KP]*d->WL(i,j) : H*p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
 
 			Ix += (ry*ry + rz*rz)*Rfb*Vol;
 			Iy += (rx*rx + rz*rz)*Rfb*Vol;

@@ -35,7 +35,9 @@ void sixdof_fluid_nhflow::velocity(int n, const double *xyz, double *uvw)
         
         uvw[3*q] = uvw[3*q+1] = uvw[3*q+2] = 0.0;
         
-        const bool own = (x>=p->originx && x<p->endx) && (p->j_dir==0 || (y>=p->originy && y<p->endy));
+        int ci,cj;
+        const bool own = (p->geo_curv==1) ? p->geo_cell(x,y,ci,cj)       // curvilinear grid: the rank of the cell
+                       : (x>=p->originx && x<p->endx) && (p->j_dir==0 || (y>=p->originy && y<p->endy));
         
         if(own)
         {
@@ -72,8 +74,8 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
         
         LOOP
         {
-            const Eigen::Vector3d x(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
-            const double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+            const Eigen::Vector3d x(p->pos_x(), p->pos_y(), p->ZSP[IJK]);
+            const double V = p->cellarea(i,j)*p->DZN[KP]*WL(i,j);
             const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
             
             for(int c=0; c<3; ++c)
@@ -115,7 +117,7 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
         LOOP
         {
             // force density on the fluid [N/m^3]: thrust reaction along -axis, swirl along the blade motion
-            const Eigen::Vector3d x(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
+            const Eigen::Vector3d x(p->pos_x(), p->pos_y(), p->ZSP[IJK]);
             const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
             
             F[IJK] += WL(i,j)*ad.force(x,fl,comp,S[comp],kappa)/p->W1;

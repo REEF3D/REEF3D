@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"6DOF_geometry.h"
 #include"6DOF_obj_remesh.h"
+#include<cmath>
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
@@ -86,6 +87,32 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
 
     if(p->j_dir==1 && p->gknoy>1)
     gather_nodes(gy,p->gknoy,p->origin_j,p->knoy,p->YN);
+
+    // curvilinear grid (G 50): XN/YN are the logical box, the horizontal target length is the mean physical
+    // width of the cells (one uniform spacing in x and y)
+    if(p->geo_curv==1)
+    {
+        double ws=0.0;
+        int nw=0;
+        for(int ii=0; ii<p->knox; ++ii)
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+            ws += p->geo_width(ii,jj);
+            ++nw;
+        }
+        ws = pgc->globalsum(ws);
+        nw = pgc->globalisum(nw);
+        // rounded to 6 digits: the remeshing reacts to the last digit of the target length, which the order of
+        // the sum over the ranks would change
+        double wm = ws/double(std::max(nw,1));
+        if(wm>0.0)
+        {
+            const double sc = std::pow(10.0, 5.0 - std::floor(std::log10(wm)));
+            wm = std::round(wm*sc)/sc;
+        }
+        gx.assign({0.0, wm});
+        gy.assign({0.0, wm});
+    }
 
     if(p->gknoz>1)
     {
@@ -186,12 +213,39 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
         {
             in.clear();
 
+            // curvilinear grid (G 50, map coordinates): remeshed about the centre of the entity's box, so that
+            // the surface does not depend on where the body lies (the round-off of coordinates of 1e6 m)
+            double ox=0.0, oy=0.0, oz=0.0;
+            if(p->geo_curv==1 && tend[qn]>tstart[qn])
+            {
+                double bx0=1.0e300, bx1=-1.0e300, by0=1.0e300, by1=-1.0e300, bz0=1.0e300, bz1=-1.0e300;
+                for(int n=tstart[qn]; n<tend[qn]; ++n)
+                for(int q=0; q<3; ++q)
+                {
+                    bx0 = std::min(bx0,tri_x[n][q]); bx1 = std::max(bx1,tri_x[n][q]);
+                    by0 = std::min(by0,tri_y[n][q]); by1 = std::max(by1,tri_y[n][q]);
+                    bz0 = std::min(bz0,tri_z[n][q]); bz1 = std::max(bz1,tri_z[n][q]);
+                }
+                ox = 0.5*(bx0+bx1);
+                oy = 0.5*(by0+by1);
+                oz = 0.5*(bz0+bz1);
+            }
+
             for(int n=tstart[qn]; n<tend[qn]; ++n)
             for(int q=0; q<3; ++q)
-            in.push_back({tri_x[n][q],tri_y[n][q],tri_z[n][q]});
+            in.push_back({tri_x[n][q]-ox,tri_y[n][q]-oy,tri_z[n][q]-oz});
+
+            auto Hloc = [&](double x, double y, double z) { return Hfunc(x+ox, y+oy, z+oz); };
 
             sixdof_remesh::stats st;
-            const bool ok = R.remesh(in,out,sixdof_remesh::metric_func(Hfunc),prm,st);
+            const bool ok = R.remesh(in,out,sixdof_remesh::metric_func(Hloc),prm,st);
+
+            for(auto &v : out)
+            {
+                v[0] += ox;
+                v[1] += oy;
+                v[2] += oz;
+            }
 
             cout<<endl<<"6DOF surface remeshing, body "<<id<<" entity "<<qn<<": "<<(ok?"ok":"FAILED, keeping the input triangles")<<endl;
 

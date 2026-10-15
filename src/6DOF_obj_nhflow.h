@@ -62,6 +62,7 @@ public:
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     double Hpsi_nhflow(lexer*, fdm_nhf*);
+    void fbnormal_curv(lexer*, fdm_nhf*, double&, double&);   // curvilinear grid: horizontal part of -grad(FB)
     void forcing_kernel_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
     void target_velocity(lexer*, bool, double&, double&, double&);
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
@@ -88,8 +89,14 @@ public:
     // X 13: signed distance of the top cell centre of every column to the hull (negative inside,
     // |phi| <= band), from the current trimesh on the grid of p (level 0 or a patch)
     void top_phi_nhflow(lexer*, fdm_nhf*, slice&, double, slice&);
-    struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
+    // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
+    // the blocks of a multi-block grid have their own logical DXM)
+    struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;
+    // multi-block grid: every quadrature point of a triangle on the grid of this rank that holds it (a hull triangle
+    // reaches across the faces of the blocks), the grid of the centroid where none does
+    static inline bool amr_point_grid = false;
+    void amr_point_nhflow(lexer*, double, double, lexer*, fdm_nhf*, slice*, lexer*&, fdm_nhf*&, slice*&);
     // mesh refinement with placed patches (G 40 1): this rank takes the triangle with the centroid
     // (x,y) (it holds the finest grid there), instead of the level-0 subdomain test
     std::function<bool(double,double)> amr_owner_nhflow;

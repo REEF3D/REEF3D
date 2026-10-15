@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"6DOF_geometry.h"
 #include"lexer.h"
+#include<algorithm>
 #include"ghostcell.h"
 #include"fieldint.h"
 #include<vector>
@@ -216,6 +217,17 @@ void sixdof_geometry::orient(lexer *p, ghostcell *pgc)
     bze[n] = MAX3(tri_z[n][0],tri_z[n][1],tri_z[n][2]) + psi;
     }
 
+    // ray ends: beyond the domain; curvilinear grid (G 50): the global box is the logical box of DIVEMesh,
+    // the rays end beyond the surface itself
+    double gxmin=p->global_xmin, gxmax=p->global_xmax, gymin=p->global_ymin, gymax=p->global_ymax;
+    if(p->geo_curv==1 && tricount>0)
+    {
+        gxmin = *std::min_element(bxs.begin(),bxs.end());
+        gxmax = *std::max_element(bxe.begin(),bxe.end());
+        gymin = *std::min_element(bys.begin(),bys.end());
+        gymax = *std::max_element(bye.begin(),bye.end());
+    }
+
     // bin grids for the three ray directions
     tri_bin2d grid_x, grid_y, grid_z;
 
@@ -296,20 +308,20 @@ void sixdof_geometry::orient(lexer *p, ghostcell *pgc)
 
         if(domdir==1)
         {
-        Px = p->global_xmin-10.0*p->DXM;
-        Qx = p->global_xmax+10.0*p->DXM;
+        Px = gxmin-10.0*p->DXM;
+        Qx = gxmax+10.0*p->DXM;
 
-        Sx = nx>0.0 ? xc : p->global_xmin-10.0*p->DXM;
-        Tx = nx>0.0 ? p->global_xmax+10.0*p->DXM : xc;
+        Sx = nx>0.0 ? xc : gxmin-10.0*p->DXM;
+        Tx = nx>0.0 ? gxmax+10.0*p->DXM : xc;
         }
 
         if(domdir==2)
         {
-        Py = p->global_ymin-1000.0*p->DXM;
-        Qy = p->global_ymax+1000.0*p->DXM;
+        Py = gymin-1000.0*p->DXM;
+        Qy = gymax+1000.0*p->DXM;
 
-        Sy = ny>0.0 ? yc : p->global_ymin-1000.0*p->DXM;
-        Ty = ny>0.0 ? p->global_ymax+1000.0*p->DXM : yc;
+        Sy = ny>0.0 ? yc : gymin-1000.0*p->DXM;
+        Ty = ny>0.0 ? gymax+1000.0*p->DXM : yc;
         }
 
         if(domdir==3)

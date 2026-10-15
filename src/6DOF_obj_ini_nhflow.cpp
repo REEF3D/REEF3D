@@ -232,14 +232,23 @@ void sixdof_obj_nhflow::ini_band(lexer *p, ghostcell *pgc)
     ++num;
     }
     
-    if(p->j_dir==1)
+    if(p->j_dir==1 && p->geo_curv==0)
     SLICELOOP4
     {
     DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
         
     ++num;
     }
-    
+
+    // curvilinear grid (G 50): the physical mean widths of the cells
+    if(p->j_dir==1 && p->geo_curv==1)
+    SLICELOOP4
+    {
+    DSM += p->geo_width(i,j);
+
+    ++num;
+    }
+
     DSM = pgc->globalsum(DSM);
     num = pgc->globalisum(num);
     

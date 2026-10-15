@@ -251,6 +251,112 @@ void lexer::curv_node(int K, int L, double &x, double &y, double &z) const
     z = gz[gid(std::min(std::max(K,0),ni),std::min(std::max(L,0),nj))];
 }
 
+// G 50: the logical coordinates of a physical point over the global nodes; buckets of the cells (the box of
+// their four nodes), the cell whose bilinear inverse holds the point, the first one in the order of the cells
+// on a shared face (X and Y are continuous across the faces)
+struct curv_logical_cache
+{
+    double x0=0.0, y0=0.0, hb=1.0;
+    int nbx=1, nby=1;
+    std::vector<int> start, cells;      // the cells of bucket b: cells[start[b]..start[b+1])
+};
+
+void lexer::curv_logical_free()
+{
+    delete curvloc;
+    curvloc = nullptr;
+}
+
+bool lexer::curv_logical(double x, double y, double &X, double &Y)
+{
+    const int ni=curv_ni, nj=curv_nj;
+    if(ni<1 || nj<1 || curv_gx.empty())
+    return false;
+
+    auto gid = [&](int a, int b) { return size_t(a) + size_t(ni+1)*size_t(b); };
+
+    if(curvloc==nullptr)
+    {
+        curv_logical_cache *c = new curv_logical_cache;
+        double x0=1.0e300, x1=-1.0e300, y0=1.0e300, y1=-1.0e300;
+        for(size_t n=0; n<curv_gx.size(); ++n)
+        {
+            x0 = std::min(x0,curv_gx[n]); x1 = std::max(x1,curv_gx[n]);
+            y0 = std::min(y0,curv_gy[n]); y1 = std::max(y1,curv_gy[n]);
+        }
+        c->hb = std::max(2.0*std::sqrt(std::max((x1-x0)*(y1-y0),1.0e-300)/double(ni*nj)), 1.0e-12);
+        c->x0 = x0;
+        c->y0 = y0;
+        c->nbx = std::max(1, int((x1-x0)/c->hb)+1);
+        c->nby = std::max(1, int((y1-y0)/c->hb)+1);
+
+        auto range = [&](int K, int L, int &as, int &ae, int &bs, int &be)
+        {
+            double qx0=1.0e300, qx1=-1.0e300, qy0=1.0e300, qy1=-1.0e300;
+            for(int a=K; a<=K+1; ++a)
+            for(int b=L; b<=L+1; ++b)
+            {
+                qx0 = std::min(qx0,curv_gx[gid(a,b)]); qx1 = std::max(qx1,curv_gx[gid(a,b)]);
+                qy0 = std::min(qy0,curv_gy[gid(a,b)]); qy1 = std::max(qy1,curv_gy[gid(a,b)]);
+            }
+            as = std::max(0, std::min(c->nbx-1, int(std::floor((qx0-c->x0)/c->hb))));
+            ae = std::max(0, std::min(c->nbx-1, int(std::floor((qx1-c->x0)/c->hb))));
+            bs = std::max(0, std::min(c->nby-1, int(std::floor((qy0-c->y0)/c->hb))));
+            be = std::max(0, std::min(c->nby-1, int(std::floor((qy1-c->y0)/c->hb))));
+        };
+
+        std::vector<int> cnt(size_t(c->nbx)*c->nby+1,0);
+        for(int K=0; K<ni; ++K)
+        for(int L=0; L<nj; ++L)
+        {
+            int as,ae,bs,be;
+            range(K,L,as,ae,bs,be);
+            for(int a=as; a<=ae; ++a)
+            for(int b=bs; b<=be; ++b)
+            ++cnt[a*c->nby+b+1];
+        }
+        for(size_t n=1; n<cnt.size(); ++n)
+        cnt[n] += cnt[n-1];
+        c->start = cnt;
+        c->cells.assign(cnt.back(),0);
+        for(int K=0; K<ni; ++K)
+        for(int L=0; L<nj; ++L)
+        {
+            int as,ae,bs,be;
+            range(K,L,as,ae,bs,be);
+            for(int a=as; a<=ae; ++a)
+            for(int b=bs; b<=be; ++b)
+            c->cells[cnt[a*c->nby+b]++] = K*nj + L;
+        }
+        curvloc = c;
+    }
+
+    const curv_logical_cache &c = *curvloc;
+    const int a = int(std::floor((x-c.x0)/c.hb)), b = int(std::floor((y-c.y0)/c.hb));
+    if(a<0 || a>=c.nbx || b<0 || b>=c.nby)
+    return false;
+
+    const int bk = a*c.nby + b;
+    for(int m=c.start[bk]; m<c.start[bk+1]; ++m)
+    {
+        const int K = c.cells[m]/nj, L = c.cells[m]%nj;
+        const double ox = curv_gx[gid(K,L)], oy = curv_gy[gid(K,L)];
+        double s,t;
+        if(!geo_bilinear_inverse(x-ox, y-oy, curv_gx[gid(K+1,L)]-ox, curv_gy[gid(K+1,L)]-oy,
+                                 curv_gx[gid(K+1,L+1)]-ox, curv_gy[gid(K+1,L+1)]-oy,
+                                 curv_gx[gid(K,L+1)]-ox, curv_gy[gid(K,L+1)]-oy, s, t))
+        continue;
+
+        if(s>=0.0 && s<=1.0 && t>=0.0 && t<=1.0)
+        {
+            X = double(K) + s;
+            Y = double(L) + t;
+            return true;
+        }
+    }
+    return false;
+}
+
 // G 50: bed level of the cells from the bed levels of the curvilinear nodes (after grid_solids)
 void lexer::geometry_bed()
 {

@@ -134,4 +134,5 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
 
 lexer::~lexer()
 {
+    curv_logical_free();
 }
