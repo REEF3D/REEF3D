@@ -216,8 +216,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "solids and topography with direct forcing (G 505 0)";
     else if(p->D30<1 || p->D30>3)
     why = "the pressure projection D 30 1-3";
-    else if(p->B30!=0)
-    why = "no pressure reference point (B 30 0)";
+    else if(!(p->B30>=0 && p->B30<=4))
+    why = "the pressure reference B 30 0-4";
     else if(!(p->D10==0 || p->D10==1 || p->D10==2 || p->D10==3 || p->D10==4 || p->D10==5 || p->D10==6 || p->D10==7 || p->D10==8
             || p->D10==60 || (p->D10>=10 && p->D10<=16)))
     why = "convection D 10 0-8, 10-16 or 60";
@@ -279,6 +279,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // the relaxation zones of the wave generation and the beach on the patches
     relax_setup(p,pgc);
+
+    // the pressure reference (B 30)
+    b30 = p->B30;
 
     // G 7 1: the finest level advances the bodies with the loads on the finest grid
     if(bodies && sub)
@@ -535,8 +538,11 @@ void cfd_amr::patch_objects(r3patch *rp)
     cfd_amr_patch *c = static_cast<cfd_amr_patch*>(rp);
     lexer *pp = c->pp;
 
-    // the patch takes no volume correction of its own (level 0 does it over the whole domain)
+    // the patch takes no volume correction of its own (level 0 does it over the whole domain), and
+    // no pressure reference of its own (cfd_amr::reference over all grids; B 30 3, the atmosphere
+    // at the top boundary, is a boundary condition and stays)
     pp->F46 = 0;
+    pp->B30 = (b30==3) ? 3 : 0;
 
     c->a = new fdm(pp);
     pscope ps(pgc0,c->a,a0);
@@ -1404,12 +1410,27 @@ void cfd_amr::restrict_scalars(int s)
 
 void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {
-    if(sub)
-    {
-        step_sub(p,a,pgc,pvrans,p6dof);
-        return;
-    }
+    // the pressure reference (B 30 1, 2, 4) once at the end of the step over all grids; level 0
+    // has none of its own during the step (it would shift level 0 alone against the patches)
+    const bool ref = (b30==1 || b30==2 || b30==4);
+    if(ref)
+    p->B30 = 0;
 
+    if(sub)
+    step_sub(p,a,pgc,pvrans,p6dof);
+    else
+    step_comp(p,a,pgc,pvrans,p6dof);
+
+    if(ref)
+    {
+        p->B30 = b30;
+        reference(p,pgc);
+    }
+}
+
+// G 7 0: all levels with the step of the finest one
+void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
+{
     const double t0 = MPI_Wtime();
 
     // composite volume of the level set at the start of the step (F 46 2, 3)

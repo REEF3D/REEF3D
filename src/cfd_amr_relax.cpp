@@ -30,6 +30,7 @@ Architect: Hans Bihs
 #include"bc_zone.h"
 #include"definitions.h"
 #include<cmath>
+#include<mpi.h>
 #include<iostream>
 
 //  The relaxation zones of the wave generation (B 98 2) and of the numerical beach (B 99 1/2) on
@@ -45,6 +46,12 @@ Architect: Hans Bihs
 //  (not the wavemakers B 92 20-29), B 95 0, without zone sources or backgrounds (B 523, B 524);
 //  otherwise the zones stay on level 0 as before.  The eddy viscosity of a RANS model relaxes in
 //  the generation zone as on level 0 (iowave::turb_relax: towards 0 with the weight of the zone).
+//
+//  The pressure reference (B 30 1: at a point, 2: at the free surface above a point, 4: the mean
+//  over the interface band; B 33 1: the gage pressure for the loads, 2: the pressure shifted):
+//  over all grids once at the end of the step (cfd_amr::reference).  Level 0 alone, as before,
+//  shifted its pressure in every projection, the patches theirs on their own (or not at all): the
+//  pressure at the patch edges jumped by the shift.
 
 namespace
 {
@@ -327,4 +334,97 @@ bool cfd_amr::patch_relax_turb(int id)
         }
     }
     return any;
+}
+
+// --------------------------------------------------------------------- pressure reference (B 30)
+// the value of the reference over all grids (B 30 1, 2: at the point on the finest grid that holds
+// it, else level 0; B 30 4: the mean over the interface band of the leaf cells, volume weighted),
+// then for B 33 2 every grid shifted by it, for B 33 1 the gage pressure of the loads
+void cfd_amr::reference(lexer *p, ghostcell *pgc)
+{
+    double pval = -1.0e20;
+
+    // the value on the finest grid at (x,y,z), on this rank
+    auto at = [&](double x, double y, double z) -> double
+    {
+        lexer *q = nullptr;
+        fdm *fa = nullptr;
+        if(finest_grid(x,y,z,q,fa))
+        return q->ccipol4(fa->press,x,y,z);
+        if(x>=p->originx && x<p->endx && y>=p->originy && y<p->endy && z>=p->originz && z<p->endz)
+        return p->ccipol4(a0->press,x,y,z);
+        return -1.0e20;
+    };
+
+    if(b30==1)
+    pval = pgc->globalmax(at(p->B32_x,p->B32_y,p->B32_z));
+
+    if(b30==2)
+    {
+        // the free surface above the point: the level-set zero of the column (level 0, as
+        // pressure_reference::gage_fsf), the pressure there on the finest grid
+        double zf = -1.0e20;
+        if(p->B32_x>=p->originx && p->B32_x<p->endx && p->B32_y>=p->originy && p->B32_y<p->endy)
+        {
+            const int i = p->posc_i(p->B32_x), j = p->posc_j(p->B32_y);
+            for(int k=0; k<p->knoz-1; ++k)
+            if(p->flag4[cix_r(p,i,j,k)]>0 && a0->phi(i,j,k)>=0.0 && a0->phi(i,j,k+1)<0.0)
+            zf = MAX(zf,-(a0->phi(i,j,k)*p->DZP[k+marge])/(a0->phi(i,j,k+1)-a0->phi(i,j,k)+1.0e-8) + p->ZP[k+marge]);
+        }
+        zf = pgc->globalmax(zf);
+        p->B32_z = zf;
+        if(zf>-0.9e20)
+        pval = pgc->globalmax(at(p->B32_x,p->B32_y,zf));
+    }
+
+    if(b30==4)
+    {
+        // the leaf cells of all grids (those with a row of the composite projection) on the air
+        // side of the interface band
+        double s[2] = {0.0,0.0};
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            lexer *q = glex(g);
+            fdm *fa = gfd(g);
+            const double epsi = (q->j_dir==0) ? 2.1*0.5*(q->DXM+q->DZM) : 2.1*(1.0/3.0)*(q->DXM+q->DYM+q->DZM);
+            const int jk = q->jmax*q->kmax;
+            for(int qq : lq[g+1])
+            {
+                const double ph = fa->phi.V[qq];
+                if(fabs(ph)>=epsi || ph>=0.0)
+                continue;
+                const double dirac = (0.5/epsi)*(1.0 + cos((PI*ph)/epsi));
+                if(dirac<=1.0e-10)
+                continue;
+                const int i = qq/jk + q->imin, r2 = qq%jk;
+                const int j = r2/q->kmax + q->jmin, k = r2%q->kmax + q->kmin;
+                const double V = q->DXN[i+marge]*q->DYN[j+marge]*q->DZN[k+marge];
+                s[0] += dirac*V*fa->press.V[qq];
+                s[1] += dirac*V;
+            }
+        }
+        MPI_Allreduce(MPI_IN_PLACE,s,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        pval = (s[1]>0.0) ? s[0]/s[1] : 0.0;
+    }
+
+    if(b30!=4 && pval<-0.9e20)
+    return;
+
+    const double shift = (b30==4) ? pval : pval - p->B31;
+
+    if(p->B33==1)
+    p->pressgage = shift;
+
+    if(p->B33==2)
+    {
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            lexer *q = glex(g);
+            field &pr = gfd(g)->press;
+            const size_t n = (size_t)q->imax*q->jmax*q->kmax;
+            for(size_t m=0; m<n; ++m)
+            pr.V[m] -= shift;
+        }
+        pgc0->start4(p,a0->press,40);
+    }
 }
