@@ -1,0 +1,21 @@
+{
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "river",
+  "wetdry",
+  "mpi"
+ ],
+ "description": "SFLOW on a curvilinear grid (G 50 2): sloping river (bed slope 0.002, trapezoidal channel with floodplains) through a 90 deg bend at UTM coordinates, rotated by 30 deg; free surface and velocities from the steady 1D backwater solution of the discharge (F 65 2), two ranks.",
+ "covers": [
+  "F 65 2: global cross-sections gathered over the ranks, standard-step backwater from F 62, Manning strip conveyance and velocities",
+  "wd from F 62 without F 60, inflow ghost levels from the first column"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

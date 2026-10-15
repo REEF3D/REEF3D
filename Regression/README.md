@@ -257,6 +257,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_curv_channel_rot30` | 1 | river reach rotated by 30 deg at UTM coordinates: discharge inflow along the face normal, stage outflow, emerging island |
 | `sflow_2d_curv_bend_mpi2` | 2 | 90 deg bend with Manning friction on two ranks |
 | `sflow_2d_curv_bend_lagoon_mpi2` | 2 | the bend with its free surface and bed in the LAGOON store as well (P 18 2): `xc`, `yc` of the curvilinear grid (needs patch 0020) |
+| `sflow_2d_curv_river_ini_bend_mpi2` | 2 | sloping river (slope 0.002) through a 90 deg bend, free surface and velocities from the steady 1D backwater solution of W 10 (F 65 2) on two ranks (needs patch 0001 of Curvilinear/patches) |
+| `sflow_2d_curv_river_ini_linear` | 1 | straight sloping river reach, free surface linear from F 61 to F 62 along the river (F 65 1) (needs patch 0001 of Curvilinear/patches) |
 | `sflow_2d_curv_wavy_nh` | 1 | non-hydrostatic pressure (A 220 2) on the wavy, skewed grid: chain-rule gradients, compact Poisson operator, deferred non-orthogonal correction |
 | `sflow_2d_curv_wavy_bous` | 1 | Boussinesq (A 220 4) on the wavy, skewed grid: inversion per grid-aligned component, matrix-free BiCGStab with line preconditioner |
 | `sflow_2d_curv_amr_bous_sub` | 1 | AMR on the rotated grid: Boussinesq undular bore, two levels following the surface, regrid, subcycling (G 7 1): composite curvilinear inversion, fills of the grid-aligned components in time |

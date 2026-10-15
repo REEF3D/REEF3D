@@ -1725,6 +1725,9 @@ void control::read_control(lexer* p)
                 case 64: control>>F64;
                          clear(c,numint);
                          break;
+                case 65: control>>F65;
+                         clear(c,numint);
+                         break;
                 case 68: control>>F68_x>>F68_y>>F68_z;
                          clear(c,numint);
                          F68=1;

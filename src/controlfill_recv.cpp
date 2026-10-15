@@ -1274,6 +1274,8 @@ void control::ctrlrecv()
     dd++;
     F64 = ictrl[ii];
     ii++;
+    F65 = ictrl[ii];
+    ii++;
     F68 = ictrl[ii];
     ii++;
     F68_x = dctrl[dd];

@@ -629,6 +629,7 @@ void control::ini_default()
 	F62=-1.0e20;  // double outflow  ini
 	F63=-1.0e20;  // double xstart phi interpolate with outflow h
 	F64=0;			// int iterations for relaxing outflow waterlevel
+    F65=0;            // int SFLOW river free-surface ini along i: 1 linear F 61 to F 62, 2 steady 1D flow of W 10 from F 62
     F68=0;            // int seaward free surface level 
 	F70=0;             // int number of phi 1 ini boxes
 	F71=0;             // int number of phi 2 ini boxes

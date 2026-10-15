@@ -74,6 +74,7 @@ private:
     void ini_fsf(lexer*, fdm2D*, ghostcell*);
     void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
     void ini_wl(lexer*, fdm2D*, ghostcell*);
+    void ini_river(lexer*, fdm2D*, ghostcell*, int);   // F 65: river free surface along i (sflow_f_ini_river.cpp)
 	
 	void maxcoor(lexer*, fdm2D*, ghostcell*);
 	
