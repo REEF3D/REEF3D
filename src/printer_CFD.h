@@ -67,6 +67,7 @@ public:
     virtual ~printer_CFD() = default;
     void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
     void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void amr_probes(const amr_grid_lookup*) override final;
 
 private:
     void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);

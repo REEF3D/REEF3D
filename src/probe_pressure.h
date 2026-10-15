@@ -32,6 +32,7 @@ class fdm;
 class ghostcell;
 class field;
 class turbulence;
+class amr_grid_lookup;
 
 using namespace std;
 
@@ -42,6 +43,8 @@ public:
 	virtual ~probe_pressure();
 
 	void start(lexer*, fdm*, ghostcell*,turbulence*);
+
+    const amr_grid_lookup *amr = nullptr;     // CFD mesh refinement: the finest grid at the probe
 
 
 private:

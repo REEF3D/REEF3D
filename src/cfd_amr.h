@@ -95,13 +95,16 @@ struct cfd_amr_tlev
 //    velocities, level set, pressure onto the cells and faces under a patch
 //
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
-//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1); no
-//  sediment, porous media, heat or concentration; the convection schemes D 10 0-8, 10-16, 60 and
-//  F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of the wave generation and the
-//  beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0 (cfd_amr_relax.cpp, the
-//  eddy viscosity as well), the other wave generation and absorption on level 0; the tiles at an in-
-//  or outflow boundary stay on level 0 (reefamr3d::mark_tiles); the pressure reference B 30 1, 2, 4
-//  over all grids at the end of the step (cfd_amr::reference), B 30 3 (the atmosphere) on all grids.
+//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1), the
+//  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
+//  the patch edges); no sediment, vegetation, heat or concentration; the convection schemes D 10
+//  0-8, 10-16, 60 and F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of the wave
+//  generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0
+//  (cfd_amr_relax.cpp, the eddy viscosity as well), the other wave generation and absorption on
+//  level 0; the tiles at an in- or outflow boundary stay on level 0 (reefamr3d::mark_tiles); the
+//  pressure reference B 30 1, 2, 4 over all grids at the end of the step (cfd_amr::reference), B 30
+//  3 (the atmosphere) on all grids.  The probes and wave gauges of the printer (P 51, P 61, P 64)
+//  read the finest grid at their position (finest_grid).
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
@@ -192,6 +195,7 @@ public:
     // the finest patch whose interior holds the point two cells inside its edges (the loads of
     // the floating bodies, X 60 1)
     bool finest_grid(double, double, double, lexer*&, fdm*&) const override;
+    bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
     void print(lexer*, bool after=false);

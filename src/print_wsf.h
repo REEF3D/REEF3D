@@ -34,6 +34,8 @@ class field;
 
 using namespace std;
 
+class amr_grid_lookup;
+
 class print_wsf : public boundarycheck
 {
 public:
@@ -42,9 +44,12 @@ public:
 
 	void height_gauge(lexer*, fdm*, ghostcell*,field&);
 
+    const amr_grid_lookup *amr = nullptr;     // CFD mesh refinement: the free surface on the finest grid
+
 
 private:
     void ini_location(lexer*, fdm*, ghostcell*);
+    void amr_gauge(lexer*, int);
     void write(lexer*, fdm*, ghostcell*);
 	
 	double *x,*y;

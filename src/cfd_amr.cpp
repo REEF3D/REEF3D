@@ -67,6 +67,7 @@ Architect: Hans Bihs
 #include"patchBC_void.h"
 #include"ioflow_void.h"
 #include"vrans_v.h"
+#include"vrans_f.h"
 #include"initialize.h"
 #include"reefmg_core.h"
 #include"bc_zone.h"
@@ -210,8 +211,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "no sediment (S 10, Q 10)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
     why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
-    else if(p->B200!=0)
-    why = "no porous media (B 200)";
+    else if(p->B200!=0 && p->B200!=1)
+    why = "porous structures B 200 1 (no vegetation B 200 2)";
     else if((p->solidread!=0 || p->toporead!=0) && p->G505!=0)
     why = "solids and topography with direct forcing (G 505 0)";
     else if(p->D30<1 || p->D30>3)
@@ -391,6 +392,12 @@ cfd_amr::~cfd_amr()
 
 bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) const
 {
+    turbulence *t = nullptr;
+    return finest_grid(x,y,z,q,a,t);
+}
+
+bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turbulence *&t) const
+{
     // a patch whose interior holds the point and whose cells within two cells of it are its own,
     // copies of a patch of the same level (on this rank or another one) or the boundary: not
     // prolonged from the coarser level (a patch edge to the coarser level).  The patches lie on
@@ -434,6 +441,7 @@ bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) cons
 
         q = pp;
         a = c->a;
+        t = c->pturb;
         return true;
     }
     return false;
@@ -516,7 +524,8 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     del_as<idiff2>(c->pturbdiff);
     delete c->pBC;
     del_as<ioflow_v>(c->pflow);
-    del_as<vrans_v>(c->pvrans);
+    if(!del_as<vrans_v>(c->pvrans))
+    del_as<vrans_f>(c->pvrans);
     del_diff(c->pdiff);
     del_convec(c->pconvec);
     del_convec(c->pfsfdisc);
@@ -675,6 +684,10 @@ void cfd_amr::patch_objects(r3patch *rp)
     c->preini = new reini_RK3(pp,1);
     c->pBC = new patchBC_void(pp);
     c->pflow = new ioflow_v(pp,pgc,c->pBC);
+    // porous structures (B 200 1): the zones of level 0 on the cells of the patch (its resolution)
+    if(pp->B200==1)
+    c->pvrans = new vrans_f(pp,pgc);
+    else
     c->pvrans = new vrans_v(pp,pgc);
 
     c->pmom = new momentum_rk(pp,a,pgc,c->pconvec,c->pfsfdisc,c->pdiff,c->ppress,c->ppois,c->pturb,c->psolv,c->ppoissonsolv,
@@ -992,7 +1005,8 @@ vector<cfd_amr::fspec> cfd_amr::state_specs()
     return fs;
 }
 
-// the fields of patch id before its data: initialize, ioflow, no porous media, solids or bodies
+// the fields of patch id before its data: initialize, ioflow, the porous structures; no solids or
+// bodies
 void cfd_amr::patch_fields_ini(int id)
 {
     lexer *p = p0;
@@ -1024,6 +1038,12 @@ void cfd_amr::patch_fields_ini(int id)
         c->a->topo.V[n] = 1.0;
         c->a->solid.V[n] = 1.0e8;
     }
+
+    // porous structures (B 200 1): porosity, d50 and the resistance coefficients of every cell of
+    // the patch arrays from the zones at the cell positions (the cells around the patch as well:
+    // PORVAL, CPOR and the resistance at the faces of the patch edge read them; they do not change)
+    if(pp->B200==1)
+    static_cast<vrans_f*>(c->pvrans)->initialize_patch(pp,c->a);
 
     pp->maxlength = p->maxlength;
     pp->xcoormax = p->xcoormax; pp->xcoormin = p->xcoormin;
