@@ -34,6 +34,15 @@ Architect: Hans Bihs
 #include"weno_flux_nug.h"
 #include"weno_hj_nug.h"
 #include"weno_hj_df_nug.h"
+#include"cds2.h"
+#include"cds2_alt.h"
+#include"cds4.h"
+#include"quick.h"
+#include"weno3_flux.h"
+#include"weno3_hj.h"
+#include"hcds6.h"
+#include"hires.h"
+#include"idiff2_CN.h"
 #include"diff_void.h"
 #include"ediff2.h"
 #include"ediff2_2D.h"
@@ -209,12 +218,13 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "the pressure projection D 30 1-3";
     else if(p->B30!=0)
     why = "no pressure reference point (B 30 0)";
-    else if(!(p->D10==1 || p->D10==4 || p->D10==5))
-    why = "convection D 10 1, 4 or 5";
-    else if(p->F30>0 && !(p->F35==1 || p->F35==4 || p->F35==5))
-    why = "level-set convection F 35 1, 4 or 5";
-    else if(!(p->D20==0 || p->D20==1 || p->D20==2))
-    why = "diffusion D 20 0, 1 or 2";
+    else if(!(p->D10==0 || p->D10==1 || p->D10==2 || p->D10==3 || p->D10==4 || p->D10==5 || p->D10==6 || p->D10==7 || p->D10==8
+            || p->D10==60 || (p->D10>=10 && p->D10<=16)))
+    why = "convection D 10 0-8, 10-16 or 60";
+    else if(p->F30>0 && !((p->F35>=1 && p->F35<=8) || (p->F35>=10 && p->F35<=16)))
+    why = "level-set convection F 35 1-8 or 10-16";
+    else if(!(p->D20==0 || p->D20==1 || p->D20==2 || (p->D20==3 && p->j_dir==1)))
+    why = "diffusion D 20 0, 1, 2 (3 in 3D)";
     else if(p->F30>0 && p->F40!=3)
     why = "the reinitialisation F 40 3";
     else if(p->mz>1 || p->periodic1>0 || p->periodic2>0 || p->periodic3>0)
@@ -438,6 +448,25 @@ template<class T, class B> bool del_as(B *&b)
     return true;
 }
 
+// the convection and diffusion objects of patch_objects (the base classes have no virtual
+// destructor; weno3_flux, weno3_hj free the coefficient tables of the patch in theirs)
+void del_convec(convection *&b)
+{
+    if(b==nullptr)
+    return;
+    del_as<fou>(b) || del_as<weno_flux_nug>(b) || del_as<weno_hj_nug>(b) || del_as<weno_hj_df_nug>(b)
+    || del_as<convection_void>(b) || del_as<cds2>(b) || del_as<cds2_alt>(b) || del_as<quick>(b) || del_as<cds4>(b)
+    || del_as<weno3_flux>(b) || del_as<weno3_hj>(b) || del_as<hcds6>(b) || del_as<hires>(b);
+}
+
+void del_diff(diffusion *&b)
+{
+    if(b==nullptr)
+    return;
+    del_as<diff_void>(b) || del_as<ediff2>(b) || del_as<ediff2_2D>(b) || del_as<idiff2_FS>(b) || del_as<idiff2_FS_2D>(b)
+    || del_as<idiff2_CN>(b);
+}
+
 // the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
 void free_lexer_cells(lexer *q)
 {
@@ -485,12 +514,9 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     delete c->pBC;
     del_as<ioflow_v>(c->pflow);
     del_as<vrans_v>(c->pvrans);
-    if(!del_as<diff_void>(c->pdiff) && !del_as<ediff2>(c->pdiff) && !del_as<ediff2_2D>(c->pdiff) && !del_as<idiff2_FS>(c->pdiff))
-    del_as<idiff2_FS_2D>(c->pdiff);
-    if(!del_as<fou>(c->pconvec) && !del_as<weno_flux_nug>(c->pconvec))
-    del_as<weno_hj_nug>(c->pconvec);
-    if(!del_as<fou>(c->pfsfdisc) && !del_as<weno_flux_nug>(c->pfsfdisc))
-    del_as<weno_hj_df_nug>(c->pfsfdisc);
+    del_diff(c->pdiff);
+    del_convec(c->pconvec);
+    del_convec(c->pfsfdisc);
 
     delete c->a;
     free_lexer_cells(c->pp);
@@ -530,9 +556,26 @@ void cfd_amr::patch_objects(r3patch *rp)
     // cells around the patch: fill kind (-1 interior)
     c->mkind.assign(pp->imax*pp->jmax*pp->kmax,-1);
 
-    // convection
+    // convection (the schemes of level 0: the widest stencil, hcds6 and the WENO schemes, reaches 3
+    // cells, the margin of the patch)
+    if(pp->D10==0)
+    c->pconvec = new convection_void(pp);
     if(pp->D10==1)
     c->pconvec = new fou(pp);
+    if(pp->D10==2)
+    c->pconvec = new cds2(pp);
+    if(pp->D10==3)
+    c->pconvec = new quick(pp);
+    if(pp->D10==6)
+    c->pconvec = new cds4(pp);
+    if(pp->D10==7)
+    c->pconvec = new weno3_flux(pp);
+    if(pp->D10==8)
+    c->pconvec = new weno3_hj(pp);
+    if(pp->D10==60)
+    c->pconvec = new hcds6(pp);
+    if(pp->D10>=10 && pp->D10<=16)
+    c->pconvec = new hires(pp,pp->D10);
     if(pp->D10==4)
     {
         weno_flux_nug *w = new weno_flux_nug(pp);
@@ -561,6 +604,18 @@ void cfd_amr::patch_objects(r3patch *rp)
         w->set_weno_weights(pp->F37,pp->F38);
         c->pfsfdisc = w;
     }
+    if(pp->F35==2)
+    c->pfsfdisc = new cds2_alt(pp);
+    if(pp->F35==3)
+    c->pfsfdisc = new quick(pp);
+    if(pp->F35==6)
+    c->pfsfdisc = new cds4(pp);
+    if(pp->F35==7)
+    c->pfsfdisc = new weno3_flux(pp);
+    if(pp->F35==8)
+    c->pfsfdisc = new weno3_hj(pp);
+    if(pp->F35>=10 && pp->F35<=16)
+    c->pfsfdisc = new hires(pp,pp->F35);
     if(c->pfsfdisc==nullptr)
     c->pfsfdisc = new fou(pp);
 
@@ -575,6 +630,8 @@ void cfd_amr::patch_objects(r3patch *rp)
     c->pdiff = new idiff2_FS(pp);
     if(pp->D20==2 && pp->j_dir==0)
     c->pdiff = new idiff2_FS_2D(pp);
+    if(pp->D20==3 && pp->j_dir==1)
+    c->pdiff = new idiff2_CN(pp);
 
     if(pp->j_dir==0)
     c->psolv_in = new bicgstab_ijk_2D(pp,a,pgc);
