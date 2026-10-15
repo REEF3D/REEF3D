@@ -148,6 +148,7 @@ private:
 
     int n,count;
     double area,Ai,Ao,Hi,Ho,Ui,fac;
+    double Ki,Uk;     // SFLOW inflow by conveyance (B 62 1): sum of L h^(5/3) of the wet inflow cells, Q/Ki
     double zval;
     double *walldin, *walldout;
 	int walldin_size, walldout_size;

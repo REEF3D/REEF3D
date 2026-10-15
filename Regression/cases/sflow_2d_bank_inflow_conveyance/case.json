@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_bank_ediff",
+ "ctrl_add": [
+  "B 62 1"
+ ],
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "sflow",
+  "wetdry",
+  "river"
+ ],
+ "description": "as sflow_2d_bank_ediff with the discharge inflow distributed across the inflow face by conveyance (B 62 1): the shallow cells on the bank get u ~ h^(2/3) instead of the mean velocity",
+ "covers": [
+  "Qin2D/inflow2D Cartesian branch with B 62 1"
+ ]
+}

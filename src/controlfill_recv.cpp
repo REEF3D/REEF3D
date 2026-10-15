@@ -739,6 +739,8 @@ void control::ctrlrecv()
     ii++;
     B61 = ictrl[ii];
     ii++;
+    B62 = ictrl[ii];
+    ii++;
     B71 = ictrl[ii];
     ii++;
     B75 = ictrl[ii];

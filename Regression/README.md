@@ -259,6 +259,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_curv_bend_lagoon_mpi2` | 2 | the bend with its free surface and bed in the LAGOON store as well (P 18 2): `xc`, `yc` of the curvilinear grid (needs patch 0020) |
 | `sflow_2d_curv_river_ini_bend_mpi2` | 2 | sloping river (slope 0.002) through a 90 deg bend, free surface and velocities from the steady 1D backwater solution of W 10 (F 65 2) on two ranks (needs patch 0001 of Curvilinear/patches) |
 | `sflow_2d_curv_river_ini_linear` | 1 | straight sloping river reach, free surface linear from F 61 to F 62 along the river (F 65 1) (needs patch 0001 of Curvilinear/patches) |
+| `sflow_2d_curv_river_inflow_conveyance_mpi2` | 2 | the sloping bend with a rising hydrograph (10 to 120 m3/s in 10 s) onto the floodplains, discharge across the inflow face by conveyance (B 62 1) on two ranks (needs patch 0003 of Curvilinear/patches) |
 | `sflow_2d_curv_wavy_nh` | 1 | non-hydrostatic pressure (A 220 2) on the wavy, skewed grid: chain-rule gradients, compact Poisson operator, deferred non-orthogonal correction |
 | `sflow_2d_curv_wavy_bous` | 1 | Boussinesq (A 220 4) on the wavy, skewed grid: inversion per grid-aligned component, matrix-free BiCGStab with line preconditioner |
 | `sflow_2d_curv_amr_bous_sub` | 1 | AMR on the rotated grid: Boussinesq undular bore, two levels following the surface, regrid, subcycling (G 7 1): composite curvilinear inversion, fills of the grid-aligned components in time |
@@ -470,6 +471,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase15_fas_coasts` | 1 | REEF3D::SEASTATE FAS on the uniform grid (A 758 2 4) with reflecting coasts (diffuse), a reflecting line obstacle and the spectral sparsity (A 795): coarse faces of their own, no correction under blocked fine faces, zero bins held at zero (Phase 15); validated in Dropbox SEASTATE/validation/61 |
 | `seastate_2d_phase15_fas_structures` | 1 | REEF3D::SEASTATE FAS on the uniform grid (A 758 2 4) with the three structure types (d'Angremond, per frequency, porous) and diffuse reflection: the coarse coefficients from the restricted spectra (Phase 15); validated in Dropbox SEASTATE/validation/61 |
 | `sflow_2d_bank_ediff` (+ `_idiff`) | 1 | SFLOW sloping bank (T 62) with a shoreline, constant viscosity, A212 1 / 2: free slip at the dry neighbours |
+| `sflow_2d_bank_inflow_conveyance` | 1 | as `sflow_2d_bank_ediff`, discharge across the inflow face by conveyance (B 62 1), Cartesian (needs patch 0003 of Curvilinear/patches) |
 | `cfd_2d_channel_kepsilon_stretched_ifou` | 1 | CFD open channel on a grid stretched in x (B 101 1, B 111 2.0), k-ε with implicit first-order upwind T 12 1: per-face conservative upwind |
 | `nhflow_2d_bump_ediff` | 1 | NHFLOW 2D flow over a bump, constant viscosity, explicit momentum diffusion A 512 1: σ face metrics, A 513 wall rule (no no-slip bed from the A 518 2 ghost), viscous time-step limit |
 | `nhflow_3d_bank_kepsilon` | 1 | NHFLOW 3D channel with a sloping bank (T 62) and a shoreline along x, k-ε: zero gradient of k and ε towards dry columns |
