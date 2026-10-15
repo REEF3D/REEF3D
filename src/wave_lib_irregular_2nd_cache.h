@@ -81,9 +81,13 @@ products per term:
   are smooth functions of (k_n, k_m); the sum and difference terms of
   velocities and eta are evaluated from truncated eigen / singular value
   expansions of the coefficient matrices (rank 7-11 at a relative error of
-  1e-10), O(R L) per level instead of O(L^2) (lr_build, lr_kin, lr_eta)
+  1e-10), O(R L) per level instead of O(L^2)
+  (lr_build, lr_kin, lr_eta); the potential of their difference terms stays
+  direct, with the pair phase formed in the summation loop (the coefficient
+  array is the only one read per pair)
 v is skipped when all wave vectors lie on the x axis. Results agree with
 the term-by-term sums to round-off (low-rank blocks: 1e-12 of the field).
+Points with the same phases and the levels of a column: wave_lib_zgroup.h.
 --------------------------------------------------------------------*/
 
 struct wave_lib_irregular_2nd_terms;
@@ -975,17 +979,9 @@ struct wave_lib_irregular_2nd_terms
             const int m0 = n + pass;
             const int cnt = be[n] - m0;
             
-            // low-rank block: only the potential of the difference terms directly
+            // low-rank block: the potential of its difference terms is summed directly in kin_t
             if(lrc[n]>=0)
             {
-                if constexpr(DF)
-                if(pass==1)
-                {
-                    #pragma omp simd
-                    for(int j=0; j<cnt; ++j)
-                    cf[i0+j] = pbf[i0+j]*(Sn*C[m0+j] - Cn*S[m0+j]);
-                }
-                
                 i0 += cnt;
                 continue;
             }
@@ -1165,6 +1161,7 @@ struct wave_lib_irregular_2nd_terms
     void kin_t(wave_lib_irregular_2nd_cache &c, double z, bool prod, double &u, double &v, double &ww, double &f) const
     {
         const double *P = c.P.data(), *iP = c.iP.data(), *Q = c.Q.data();
+        const double *Ci = c.Ci.data(), *Si = c.Si.data();
         const double *c1u = c.c1u.data(), *c1v = c.c1v.data(), *c1w = c.c1w.data(), *c1f = c.c1f.data();
         const double *cu = c.cu.data(), *cv = c.cv.data(), *cw = c.cw.data(), *cf = c.cf.data();
         const int N = int(B.size());
@@ -1236,14 +1233,19 @@ struct wave_lib_irregular_2nd_terms
                 const double *Pm = P + n + 1, *iPm = iP + n + 1;
                 const int cnt = be[n] - n - 1;
                 
-                // low-rank block: only the potential directly
+                // low-rank block: only the potential directly, with the pair phase in the loop,
+                // B nK sin(T_n - T_m) (P_m / P_n + (P_n / T_n) Q_m), exp(-2Kh) = T_m / T_n: the
+                // coefficients B nK are the only array per pair (no column array written and read)
                 if(lrc[n]>=0)
                 {
                     if constexpr(DF)
                     {
+                        const double *Cm = Ci + n + 1, *Sm = Si + n + 1, *Qm = Q + n + 1, *pbf = bf.data() + i0;
+                        const double Cn = Ci[n], Sn = Si[n], Bn = Pn/T[n];
+                        
                         #pragma omp simd reduction(+:sf)
                         for(int j=0; j<cnt; ++j)
-                        sf += cf[i0+j]*(Pm[j]*iPn + iPm[j]*Pn*e[i0+j]);
+                        sf += pbf[j]*(Sn*Cm[j] - Cn*Sm[j])*(Pm[j]*iPn + Qm[j]*Bn);
                     }
                     
                     i0 += cnt;
@@ -1304,7 +1306,7 @@ struct wave_lib_irregular_2nd_terms
                 if(lrt[i]==2)
                 {
                 if constexpr(DF)
-                sf += cf[i]*(E + F);
+                sf += bf[i]*(Si[tn[i]]*Ci[tm[i]] - Ci[tn[i]]*Si[tm[i]])*(E + F);
                 continue;
                 }
                 
