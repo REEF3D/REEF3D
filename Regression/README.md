@@ -185,12 +185,15 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_nwt_amr_zone_sub` | 1 | the band over the wave generation zone (B 98 2) with subcycling: the patch relaxes towards the wave theory of level 0 at its cells and the time of its step |
 | `cfd_2d_nwt_amr_zone_komega_sub` | 1 | k-omega in the wave tank, the band over the generation zone (G 7 1): the patch relaxes the eddy viscosity in the zone as level 0 (iowave::turb_relax) |
 | `cfd_2d_nwt_amr_active_sub` | 1 | active wave generation and absorption at the boundaries (B 98 4, B 99 3), two levels over the whole tank (G 7 1): the tiles at the in- and outflow boundary, and those whose nesting would reach them, stay on the coarser level |
+| `cfd_2d_nwt_amr_porous` | 1 | k-omega in the wave tank with the porous box (B 270, x 5-6 m) inside a refined box (G 7 0): vrans_f on the patch (the zones at its cells), resistance, porosity factors and turbulence sources there |
+| `cfd_2d_nwt_amr_porous_sub` | 1 | the same with the band z 0.3-0.75 refined and subcycling: the patch edge across the porous box (CPOR n at the faces of the patch edges, in the predictors and the level projections) |
 | `cfd_2d_still_amr` | 1 | CFD AMR still water, the free surface across a patch edge: the hydrostatic pressure of both grids balanced at the edge |
 | `cfd_3d_dambreak_amr` | 2 | CFD AMR 3D dam break: 3D boxes on 2 ranks, implicit diffusion of a patch with Dirichlet values around it |
 | `cfd_2d_dambreak_amr_sub` | 1 | CFD AMR with subcycling (G 7 1): the patch takes two steps per level-0 step, the cells around it linear in time; the level projection with the coarse pressure at the patch edges, the synchronisation projection over all levels at the end of the level-0 step |
 | `cfd_2d_dambreak_amr3_sub` | 1 | CFD AMR, two levels with subcycling: a patch as the coarser level in time (its old and new state), level 2 four steps per level-0 step |
 | `cfd_2d_dambreak_amr_mpi2_sub` | 2 | CFD AMR subcycling with patches on both ranks next to each other: one component of the level projection across the ranks (block-Jacobi patch V-cycles) |
 | `cfd_2d_still_amr_sub` | 1 | CFD AMR still water across a patch edge with G 7 1 and the volume correction over all levels (F 46 3) |
+| `cfd_2d_still_amr_porous_sub` | 1 | still water with a porous box across the patch edge and the free surface (G 7 1): the hydrostatic balance of the porous faces at the patch edge |
 | `cfd_2d_dambreak_amr_vol` | 1 | CFD AMR (G 7 0) with the volume correction over the leaf cells of all grids (F 46 2) |
 | `cfd_2d_dambreak_amr_weno3_sub` | 1 | CFD AMR with WENO3 (D 10 7, F 35 8) and G 7 1: the patch builds its own WENO3 coefficient tables (weno3_nug_func) |
 | `cfd_2d_dambreak_amr_hires` | 1 | CFD AMR (G 7 0) with a TVD scheme on all grids (hires, D 10 13, F 35 13) |

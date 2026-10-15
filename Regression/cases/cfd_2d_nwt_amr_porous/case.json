@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_nwt_porous_komega",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 4.4 6.8 0.0 1.0 0.0 0.75"
+ ],
+ "description": "k-omega in the wave tank with the porous box (B 270, x 5-6 m, full depth) inside a refined box (G 7 0): the porous structure resolved on the patch, its turbulence sources there.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "turbulence",
+  "vrans",
+  "amr"
+ ],
+ "covers": [
+  "vrans_f on the patch (momentum resistance, k-omega sources), cfd_amr composite projection with porosity"
+ ]
+}
