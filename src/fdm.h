@@ -23,13 +23,7 @@ Author: Hans Bihs
 #ifndef FDM_H_
 #define FDM_H_
 
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field4a.h"
-#include"field5.h"
-#include"fieldint5.h"
+#include"field_header.h"
 #include"fieldint1.h"
 #include"fieldint2.h"
 #include"fieldint3.h"
@@ -38,7 +32,6 @@ Author: Hans Bihs
 #include"slice2.h"
 #include"slice4.h"
 #include"sliceint4.h"
-#include"sliceint5.h"
 #include"increment.h"
 #include"vec.h"
 #include"matrix_diag.h"
@@ -72,10 +65,10 @@ public:
 	field4a topo,solid;
 	field4a fb;
 	field4a porosity,porpart,porA,porB;
-	field5 walld;
+	field4 walld;
 	 
-	fieldint5 nodeval;
-    sliceint5 nodeval2D;
+	fieldint4 nodeval;
+    sliceint4 nodeval2D;
    
     // 6DOF
     field1 fbh1;

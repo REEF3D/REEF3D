@@ -24,8 +24,8 @@ Author: Hans Bihs
 #define FSF_VTP_H_
 
 #include"increment.h"
-#include"fieldint5.h"
-#include"field5.h"
+#include"fieldint4.h"
+#include"field4.h"
 #include"vtp3D.h"
 
 class lexer;
@@ -58,8 +58,8 @@ private:
     const double zero,interfac;
     double epsi;
 
-    fieldint5 vertice, nodeflag;
-    field5 eta;
+    fieldint4 vertice, nodeflag;
+    field4 eta;
 
     void print(lexer*,fdm*);
     void pvtp(lexer*,int);

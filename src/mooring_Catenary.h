@@ -24,12 +24,6 @@ Author: Tobias Martin
 #define MOORING_CATENARY_H_
 
 #include"mooring.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field5.h"
-#include"fieldint5.h"
 #include"vec.h"
 #include<fstream>
 #include<iostream>

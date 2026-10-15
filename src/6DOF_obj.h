@@ -25,15 +25,10 @@ Authors: Hans Bihs, Tobias Martin
 
 #include"ddweno_f_nug.h"
 #include<functional>
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field4a.h"
-#include"field5.h"
-#include"fieldint5.h"
+#include"field_header.h"
+#include"fieldint4.h"
 #include"slice4.h"
-#include"sliceint5.h"
+#include"sliceint4.h"
 #include"vtp3D.h"
 #include"geo_raycast.h"
 #include"6DOF_pto.h"
