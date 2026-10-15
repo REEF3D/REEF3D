@@ -164,15 +164,23 @@ void cfd_amr::interp(int l, double th)
             const double *o = gts(g)->o[m]->V, *c = stf(g,m).V;
             double *t = gts(g)->t[m]->V;
             // the pressure of a step belongs to its middle: linear between the middles of the
-            // steps (the start value at -1/2, the end value at 1/2), beyond the middle extrapolated
-            // from level 0, held at the end value from a patch; in the first step the end value
-            // (the initial pressure is not that of a step).  The pressure of a patch follows the
-            // edge pressure of its own coarser level and the synchronisation, it is not smooth from
-            // step to step: extrapolated it fed its jumps back through the edges of the finer level
-            // (two levels, the free surface across the edge of level 2: unstable after 1.3 s)
-            double w = (m!=4) ? th : (press_step ? th+0.5 : 1.0);
-            if(m==4 && l>=1)
-            w = MIN(w,1.0);
+            // steps (the start value at -1/2, the end value at 1/2), beyond the middle extrapolated;
+            // in the first step the end value (the initial pressure is not that of a step).  The
+            // pressure of a patch follows the edge pressure of its own coarser level and the
+            // synchronisation, it is not smooth from step to step at the free surface: extrapolated
+            // there it fed its jumps back through the edges of the finer level (two levels, the free
+            // surface across the edge of level 2: unstable after 1.3 s).  From a patch it is held at
+            // the end value in the interface band and the air (phi < 3 psi), extrapolated in the
+            // water (held everywhere, the waves lost 1-3.5 % of their amplitude along two levels)
+            const double w = (m!=4) ? th : (press_step ? th+0.5 : 1.0);
+            if(m==4 && l>=1 && w>1.0)
+            {
+                const double *ph = stf(g,3).V;
+                const double band = 3.0*glex(g)->psi;
+                for(size_t q=0; q<n; ++q)
+                t[q] = o[q] + ((ph[q]<band) ? 1.0 : w)*(c[q]-o[q]);
+                continue;
+            }
             for(size_t q=0; q<n; ++q)
             t[q] = o[q] + w*(c[q]-o[q]);
         }
