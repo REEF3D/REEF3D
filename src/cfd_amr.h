@@ -96,10 +96,10 @@ struct cfd_amr_tlev
 //
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
 //  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1); no
-//  sediment, porous media, heat or concentration; the relaxation zones of the wave generation and
-//  the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0 (cfd_amr_relax.cpp;
-//  the edge tiles at the in- and outflow boundary stay on level 0), the other wave generation and
-//  absorption on level 0 (the patches keep out of the zones).
+//  sediment, porous media, heat or concentration, no pressure reference (B 30 0); the relaxation
+//  zones of the wave generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches
+//  as on level 0 (cfd_amr_relax.cpp), the other wave generation and absorption on level 0; the
+//  tiles at an in- or outflow boundary stay on level 0 (reefamr3d::mark_tiles).
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the

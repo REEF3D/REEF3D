@@ -410,7 +410,87 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     if((p0->B99==1 || p0->B99==2) && p0->B96_2>0.0)
     zx1 = zone_beach_refine ? xmax - zeps : xmax - p0->B96_2;
 
-    int cleared = 0;
+    // in- and outflow boundaries (wave generation and absorption at the boundary, B 98 3/4,
+    // B 99 3-5, the wavemakers, a current): the tiles whose patch with its margin of 3 fine cells
+    // would reach the face stay on level 0, so the patches have no in- or outflow boundary.  The
+    // faces of the domain with such boundary cells (gcb4 type 1, 6 inflow, 2, 7, 8 outflow; side
+    // 1 x-, 4 x+, 3 y-, 2 y+, 5 z-, 6 z+)
+    int ioface[6] = {0,0,0,0,0,0};      // x-, x+, y-, y+, z-, z+
+    for(int n=0; n<p0->gcb4_count; ++n)
+    {
+        const int t = p0->gcb4[n][4], s = p0->gcb4[n][3];
+        if(!(t==1 || t==2 || t==6 || t==7 || t==8))
+        continue;
+        const int f = (s==1) ? 0 : (s==4) ? 1 : (s==3) ? 2 : (s==2) ? 3 : (s==5) ? 4 : (s==6) ? 5 : -1;
+        if(f>=0)
+        ioface[f] = 1;
+    }
+    MPI_Allreduce(MPI_IN_PLACE,ioface,6,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    auto io_near = [&](int l, int ti, int tj, int tk) -> bool
+    {
+        const int t[3] = {ti,tj,tk};
+        for(int d=0; d<3; ++d)
+        {
+            if(rr[d]!=2)
+            continue;
+            if(ioface[2*d] && t[d]*tile[d]-3<0)
+            return true;
+            if(ioface[2*d+1] && MIN((t[d]+1)*tile[d],gn(l,d))+3>gn(l,d))
+            return true;
+        }
+        return false;
+    };
+    // forbidden tiles, coarse to fine: at the face, or with their nesting band (nest cells of the
+    // coarser level) on a forbidden tile of the coarser level - so the nesting of the tiles left
+    // never asks for a forbidden one
+    vector<vector<char>> fbd(maxlev+1);
+    for(int l=1; l<=maxlev; ++l)
+    {
+        fbd[l].assign((size_t)tn[l][0]*tn[l][1]*tn[l][2],0);
+        for(int ti=0; ti<tn[l][0]; ++ti)
+        for(int tj=0; tj<tn[l][1]; ++tj)
+        for(int tk=0; tk<tn[l][2]; ++tk)
+        {
+            bool f = io_near(l,ti,tj,tk);
+            if(!f && l>=2)
+            {
+                const int t[3] = {ti,tj,tk};
+                int a[3], b[3];
+                for(int d=0; d<3; ++d)
+                {
+                    const int lo = MAX(fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? nest : 0),0);
+                    const int hi = MIN(fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0),gn(l-1,d)-1);
+                    a[d] = lo/tile[d];
+                    b[d] = hi/tile[d];
+                }
+                for(int ui=a[0]; ui<=b[0] && !f; ++ui)
+                for(int uj=a[1]; uj<=b[1] && !f; ++uj)
+                for(int uk=a[2]; uk<=b[2] && !f; ++uk)
+                if(fbd[l-1][((size_t)ui*tn[l-1][1] + uj)*tn[l-1][2] + uk])
+                f = true;
+            }
+            fbd[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk] = f ? 1 : 0;
+        }
+    }
+    auto io_tile = [&](int l, int ti, int tj, int tk) -> bool
+    {
+        return fbd[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk]!=0;
+    };
+
+    int cleared = 0, cleared_io = 0;
+    for(int l=1; l<=maxlev; ++l)
+    for(int ti=0; ti<tn[l][0]; ++ti)
+    for(int tj=0; tj<tn[l][1]; ++tj)
+    for(int tk=0; tk<tn[l][2]; ++tk)
+    {
+        unsigned char &m = tmask[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk];
+        if(m && io_tile(l,ti,tj,tk))
+        {
+            m = 0;
+            ++cleared_io;
+        }
+    }
+
     for(int l=1; l<=maxlev; ++l)
     for(int ti=0; ti<tn[l][0]; ++ti)
     {
@@ -465,6 +545,8 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     if(myrank==0 && verbose && (cleared>0 || dropped>0))
     cout<<"CFD AMR: "<<cleared<<(zone_gen_refine || zone_beach_refine ? " tiles at the in- or outflow edge of the wave zones and " : " tiles in the wave zones and ")
         <<dropped<<" tiles without nesting not refined"<<endl;
+    if(myrank==0 && verbose && cleared_io>0)
+    cout<<"CFD AMR: "<<cleared_io<<" tiles at an in- or outflow boundary not refined (the patches keep off it)"<<endl;
 
     // the edges of a level must not lie on a partition edge of level 0 (the coarse cell across a
     // patch edge on the rank of the patch): such a level is extended by the tiles across, finest
@@ -568,6 +650,11 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
             if(tile_marked(l,ti,tj,tk))
             ++bad_zone;
         }
+        for(int ti=0; ti<tn[l][0]; ++ti)
+        for(int tj=0; tj<tn[l][1]; ++tj)
+        for(int tk=0; tk<tn[l][2]; ++tk)
+        if(tile_marked(l,ti,tj,tk) && io_tile(l,ti,tj,tk))
+        ++bad_zone;
         bad_edge += edges(l,false);
     }
 
@@ -577,7 +664,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     if(bad_zone>0 || bad_edge>0)
     {
         if(myrank==0)
-        cout<<"CFD AMR: the refined region reaches into a wave zone or keeps an edge on a partition edge; "
+        cout<<"CFD AMR: the refined region reaches into a wave zone or an in- or outflow boundary, or keeps an edge on a partition edge; "
               "move or resize the boxes G 15 (or the zones, the partition)"<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3102);
     }

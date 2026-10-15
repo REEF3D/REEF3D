@@ -220,7 +220,7 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     else if(p->mz>1 || p->periodic1>0 || p->periodic2>0 || p->periodic3>0)
     why = "no partition in z (M 10 with the vertical not split) and no periodic boundaries";
     else if(p->B440>0 || p->B441>0 || p->B442>0)
-    why = "no patch boundary conditions (B 440-442); inflow, outflow and waves on level 0 (the patches keep away from them)";
+    why = "no patch boundary conditions (B 440-442)";
 
     int bad = (why!=nullptr) ? 1 : 0;
     bad = pgc->globalimax(bad);
