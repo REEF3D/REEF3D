@@ -754,6 +754,13 @@ void cfd_amr::pr_stencils()
 
 namespace
 {
+// the porosity factor CPOR n of the pressure gradient (and of every momentum source) at a face of
+// porosity n (B 200 1; looping.h, pjm_corr): 1 in open flow
+inline double porfac(const lexer *p, double n)
+{
+    return (n<1.0 ? 1.0/(1.0 + p->B260*(p->B266==1 ? (1.0-n)/n : 1.0)) : 1.0)*n;
+}
+
 // R(phi) = int_0^phi rho ds with the density of the smoothed level set (half width e)
 inline double rint(double phi, double e, double row, double roa)
 {
@@ -791,6 +798,10 @@ void cfd_amr::pr_weights()
         const double w = interface_width_face(c->pp,c->a->phi,F.fi[0],F.fi[1],F.fi[2],o[0],o[1],o[2]);
         const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
         F.rof = c->pp->W1*H + c->pp->W3*(1.0-H);
+
+        // porous structures: the face density divided by the porosity factor of the face (all
+        // the fluxes of the face, kf, kc and the corrections, carry it as pjm_corr / poisson_pcorr)
+        F.rof /= porfac(c->pp,0.5*(c->a->porosity.V[F.qm] + c->a->porosity.V[F.qf]));
     }
 
     for(cfd_amr_cf &F : cf)
@@ -1005,7 +1016,10 @@ void cfd_amr::pr_predict(int s)
             lexer *qp = glex(F.gp);
             const double wc = 0.5*(interface_width(qc,ac->phi,F.ci[0],F.ci[1],F.ci[2]) + interface_width(qp,ap->phi,F.pi[0],F.pi[1],F.pi[2]));
             const double Hc = heaviside(0.5*(phC+phP),wc);
-            const double roc = qc->W1*Hc + qc->W3*(1.0-Hc);
+            // the coarse face with its porosity factor (the coarse stage velocity has it on its
+            // pressure gradient and its gravity)
+            const double fpc = porfac(qc,0.5*(ac->porosity(F.ci[0],F.ci[1],F.ci[2]) + ap->porosity(F.pi[0],F.pi[1],F.pi[2])));
+            const double roc = (qc->W1*Hc + qc->W3*(1.0-Hc))/fpc;
             const double rof = F.rof;
 
             // the spacing of the centres across the coarse face, on the grid that holds it (the
@@ -1021,7 +1035,7 @@ void cfd_amr::pr_predict(int s)
             // a face normal to gravity: the hydrostatic part of the pressure gradient balances the
             // gravity of the coarse stage velocity, both out
             if(F.hok && F.d==2)
-            v -= bs*p0->dt*p0->W22;
+            v -= bs*p0->dt*p0->W22*fpc;
         }
 
         F.ustar = v;
@@ -1739,7 +1753,8 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         const double phP = lp(F.pi[0],F.pi[1],F.pi[2]);
         const double wc = 0.5*(interface_width(qc,lc,F.ci[0],F.ci[1],F.ci[2]) + interface_width(qp,lp,F.pi[0],F.pi[1],F.pi[2]));
         const double Hc = heaviside(0.5*(phC+phP),wc);
-        const double roc = qc->W1*Hc + qc->W3*(1.0-Hc);
+        const double fpc = porfac(qc,0.5*(gfd(F.gc)->porosity.V[F.qc] + gfd(F.gp)->porosity.V[F.qp]));
+        const double roc = (qc->W1*Hc + qc->W3*(1.0-Hc))/fpc;
 
         lexer *ql = (F.dir>0) ? qp : qc;
         const double *dp[3] = {ql->DXP,ql->DYP,ql->DZP};
@@ -1749,7 +1764,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 
         v += alpha*pp->dt*(Gc-Gf);
         if(F.hok && F.d==2)
-        v -= alpha*pp->dt*p0->W22;
+        v -= alpha*pp->dt*p0->W22*fpc;
 
         F.ustar = v;
         c->pmom->amr_velout(c->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;

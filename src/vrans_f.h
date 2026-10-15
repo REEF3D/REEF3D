@@ -36,6 +36,7 @@ public:
 	virtual ~vrans_f();
 
 	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;	
+    void initialize_patch(lexer*, fdm*);     // a grid of the mesh refinement: all cells, no exchange
 	void start(lexer*, fdm*, ghostcell*, int) override final {};
     void sed_update(lexer*, fdm*, ghostcell*) override final;	
     void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override final;
@@ -58,6 +59,7 @@ private:
 	
 	// porous zones: porosity, d50 and the resistance coefficients a->porA, a->porB of a cell
 	void structures(lexer*, fdm*);
+	void structure_cell(lexer*, fdm*);
 	void sediment_bed(lexer*, fdm*);
 	void set_cell(lexer*, fdm*, double, double, double, double);
 	void exchange(lexer*, fdm*, ghostcell*);

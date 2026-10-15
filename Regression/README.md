@@ -130,6 +130,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_membrane_sharp_mpi` | 2 | fixed 80 % `cylcone` bag centred on the subdomain border in a current ramp, `mobility sharp`: lid potential (CG), ghost faces and node sides across subdomains (needs patch 0007) |
 | `nhflow_3d_membrane_sharp_flex` | 2 | flexible `cylcone` bag with `mobility sharp`: drain from 98 %, staggered coupling with added mass, bending hinges, smoothed geometry, normal wall velocity, hysteresis, moving floor (needs patches 0007, 0008) |
 | `nhflow_3d_6dof_box` | 2 | NHFLOW 3D box, all six DOFs free, initial roll/yaw |
+| `nhflow_3d_6dof_box_towed_x15_3` | 2 | NHFLOW 3D box towed at 0.5 m/s in waves, heave and pitch free, X 15 3: forcing inside the body only, momentum fluxes at body faces from the fluid side (needs patch 0020) |
 | `nhflow_3d_sphere_force` | 1 | NHFLOW force integration P 81 in still water: submerged sphere (A 586) on 6 sigma layers, marching-tetra quads split into two triangles: Fx = Fy = 0 to round-off, Fz = rho g V of the reconstructed surface (needs patch 0001 of NHFLOW Forces; reference with 0001) |
 | `nhflow_3d_cylinder_force_mpi2` | 2 | P 81 on the vertical cylinder in the k-eps channel (base `nhflow_3d_cylinder_kepsilon_mpi2`), surface across the rank interface, globalsum of the forces (needs patch 0001 of NHFLOW Forces; reference with 0001) |
 | `nhflow_3d_shipwave_box` | 1 | NHFLOW moving pressure patch, ship-wave mode (X10=3, X400=2) |
