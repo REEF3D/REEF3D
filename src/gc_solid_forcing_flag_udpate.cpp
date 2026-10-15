@@ -27,27 +27,7 @@ Authors: Hans Bihs
 void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
 {   
     // Update DF
-    LOOP
-    p->DF[IJK]=1;
-    
-    if(p->solidread>0)
-    LOOP
-    if(a->solid(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    
-    if(p->toporead>0)
-    LOOP
-    if(a->topo(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    if(p->X10>0)
-    LOOP
-    if(a->fb(i,j,k)<0.0)
-    p->DF[IJK]=-1;
-    
-    startintV(p,p->DF,1);
-    
+    set_DF(p, a);
     
     // 1
     ULOOP
