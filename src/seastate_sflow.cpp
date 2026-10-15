@@ -41,7 +41,7 @@ void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     forces(p,pgc,b->U,b->V);
 
-    if(p->P10==1)
+    if(p->P10>0)
     pwave->printer()->print2D(p,pwave->e,pgc);
 }
 

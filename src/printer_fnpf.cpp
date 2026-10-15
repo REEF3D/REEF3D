@@ -241,7 +241,7 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
 
     // Print state out based on iteration
-    if(p->P40>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
+    if(p->P40>0 && p->P41>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
     {
         pstate->write(p,c,pgc);
     }

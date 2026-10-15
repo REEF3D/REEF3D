@@ -58,7 +58,7 @@ void seastate_nhflow::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     average(p,d);
     forces(p,pgc,Ub,Vb);
 
-    if(p->P10==1)
+    if(p->P10>0)
     pwave->printer()->print2D(p,pwave->e,pgc);
 }
 
