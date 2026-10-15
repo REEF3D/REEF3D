@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"wave_lib_spectrum.h"
 #include"increment.h"
 #include"wave_lib_irregular_2nd_cache.h"
+#include"wave_lib_zgroup.h"
 
 using namespace std;
 
@@ -67,6 +68,7 @@ private:
     
     wave_lib_irregular_2nd_terms tt;      // second-order theory
     wave_lib_irregular_2nd_cache cc, dc;  // cached points / direct evaluation
+    wave_lib_zgroup zg;                   // cached points: groups with the same phases, tables in z
     
     int Nw=0, B130v=0;   // p->wN, p->B130 at construction
 };

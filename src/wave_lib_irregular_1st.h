@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"wave_lib_spectrum.h"
 #include"increment.h"
+#include"wave_lib_zgroup.h"
 
 using namespace std;
 
@@ -102,6 +103,9 @@ private:
 
     // cached-point data
     void cache_time(lexer*);
+    double eta_c(int);                          // eta, the potential and u, v, w of cached point q at cache_t
+    double fi_c(int, double);
+    void uvw_c(int, double, bool, double&, double&, double&);
     std::vector<double> cS, sS;                 // cos/sin of the spatial phase, [q*wN+n]
     std::vector<double> cT, sT;                 // cos/sin of the time phase, [n]
     std::vector<double> em2kd, invden;          // exp(-2 k d), 1/(1-exp(-2 k d))
@@ -118,6 +122,7 @@ private:
     bool u_id=false;                            // every component its own k (iu the identity)
     double cache_t=-1.0e300;
     std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
+    wave_lib_zgroup zg;                         // groups of points with the same phases, tables in z
     int ph_q=-1;
     double ph_t=-1.0e300;
     double **fixy,*fin;

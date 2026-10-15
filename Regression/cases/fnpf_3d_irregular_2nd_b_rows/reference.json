@@ -134,7 +134,7 @@
   0.02257618204928606,
   0.02257618204928606
  ],
- "blessed_from": "/home/claude/reg/reg58f/REEF3D",
+ "blessed_from": "/home/claude/reg/reg58i/REEF3D",
  "date": "2026-10-15",
  "note": "hans_dev 9ed0340d + iowave 0053-0054 (regression flags -O2, Linux x86-64, DIVEMesh ee065db); validation 24"
 }

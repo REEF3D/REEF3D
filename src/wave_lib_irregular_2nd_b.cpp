@@ -175,30 +175,53 @@ void wave_lib_irregular_2nd_b::wave_cache_points(lexer *p, const std::vector<dou
     cache_y=y;
     terms(p);
     cc.points(x,y,Nw,ki,cosbeta,sinbeta);
+    
+    // points with the same phases (the cells across the crests of a unidirectional sea); the profiles
+    // exp(+-K z) of the terms have K <= 2 kmax
+    zg.build(x,y,Nw,cosbeta,sinbeta,2.0*tt.kmax,wdt);
 }
 
+// cached points: eta and the potential once per group of points with the same phases, u, v, w
+// from the tables in z of the group where it asked for enough values (wave_lib_zgroup.h)
 double wave_lib_irregular_2nd_b::wave_eta_c(lexer *p, int q)
 {
     cc.time(p->wavetime,wi,ei);
-    cc.phases(q);
-    return tt.eta(cc);
+    
+    return zg.eta(q,cc.t,[&]()
+    {
+        cc.phases(q);
+        return tt.eta(cc);
+    });
 }
 
 double wave_lib_irregular_2nd_b::wave_fi_c(lexer *p, int q, double z)
 {
-    double u,v,w,f;
     cc.time(p->wavetime,wi,ei);
-    cc.phases_pairs(q,tt);
-    tt.kin(cc,z,4,u,v,w,f);
-    return f;
+    
+    return zg.fi(q,cc.t,z,[&](double zz)
+    {
+        double u,v,w,f;
+        cc.phases_pairs(q,tt);
+        tt.kin(cc,zz,4,u,v,w,f);
+        return f;
+    });
 }
 
 void wave_lib_irregular_2nd_b::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
 {
-    double f;
     cc.time(p->wavetime,wi,ei);
-    cc.phases_pairs(q,tt);
-    tt.kin(cc,z,p->j_dir==1 ? 3 : 1,u,v,w,f);
+    
+    const int mode = p->j_dir==1 ? 3 : 1;
+    auto ev = [&](double zz, double &uu, double &vv, double &ww)
+    {
+        double f;
+        cc.phases_pairs(q,tt);
+        tt.kin(cc,zz,mode,uu,vv,ww,f);
+    };
+    
+    if(!zg.uvw(q,cc.t,z,mode,ev,u,v,w))
+    ev(z,u,v,w);
+    
     rotate(p,u,v);
 }
 

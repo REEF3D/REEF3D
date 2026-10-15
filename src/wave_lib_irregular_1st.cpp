@@ -453,6 +453,9 @@ void wave_lib_irregular_1st::wave_cache_points(lexer *p, const std::vector<doubl
         Aw[m]   = wi[m]*Ai[m];
     }
     group_k();
+    
+    // points with the same phases (the cells across the crests of a unidirectional sea)
+    zg.build(x,y,M,cosbeta,sinbeta,uKmax,wdt);
 
     cache_t=-1.0e300;
     ph_q=-1;
@@ -568,7 +571,12 @@ void wave_lib_irregular_1st::cache_time(lexer *p)
 double wave_lib_irregular_1st::wave_eta_c(lexer *p, int q)
 {
     cache_time(p);
+    
+    return zg.eta(q,cache_t,[&](){ return eta_c(q); });
+}
 
+double wave_lib_irregular_1st::eta_c(int q)
+{
     const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
 
@@ -585,7 +593,12 @@ double wave_lib_irregular_1st::wave_eta_c(lexer *p, int q)
 double wave_lib_irregular_1st::wave_fi_c(lexer *p, int q, double z)
 {
     cache_time(p);
+    
+    return zg.fi(q,cache_t,z,[&](double zz){ return fi_c(q,zz); });
+}
 
+double wave_lib_irregular_1st::fi_c(int q, double z)
+{
     const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
@@ -663,7 +676,23 @@ double wave_lib_irregular_1st::wave_w_c(lexer *p, int q, double z)
 void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
 {
     cache_time(p);
+    
+    // the table of the group (unrotated), or directly
+    const bool jd = p->j_dir==1;
+    auto ev = [&](double zz, double &uu, double &vv, double &ww){ uvw_c(q,zz,jd,uu,vv,ww); };
+    
+    if(!zg.uvw(q,cache_t,z,jd ? 3 : 1,ev,u,v,w))
+    ev(z,u,v,w);
 
+    if(B130v==0)
+    {
+        u*=cosgamma;
+        v*=singamma;
+    }
+}
+
+void wave_lib_irregular_1st::uvw_c(int q, double z, bool jd, double &u, double &v, double &w)
+{
     const int M=Nw;
     const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
@@ -689,7 +718,7 @@ void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, do
 
     double au=0.0, av=0.0, aw=0.0;
     
-    if(p->j_dir==1)
+    if(jd)
     {
         #pragma omp simd reduction(+:au,av,aw)
         for(int m=0;m<M;++m)
@@ -709,12 +738,6 @@ void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, do
             au += A1[m]*ch[m]*pc[m];
             aw += A3[m]*sh[m]*ps[m];
         }
-    }
-
-    if(B130v==0)
-    {
-        au*=cosgamma;
-        av*=singamma;
     }
 
     u=au; v=av; w=aw;
@@ -814,4 +837,7 @@ void wave_lib_irregular_1st::wave_comp_update()
         Aw[m]   = bg_si[m]*Ai[m];
     }
     group_k();
+    
+    zg.kz = uKmax;
+    zg.invalidate();
 }
