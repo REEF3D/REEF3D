@@ -65,6 +65,9 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     printcount=printcount_sixdof=0;
     maxlength=0.0;      // largest domain extent: set by initialize (CFD), makegrid_sigma (NHFLOW, FNPF), sflow_maxcoor
 
+    // extra ghost cells per side: never set, read by vecsize (gcbextra) and reduced over the ranks
+    gcextra1=gcextra2=gcextra3=gcextra4=gcextra4a=gcextra6=0;
+
     // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
     gcsldfeta4_count=gcsldfbed4_count=0;
     gcsldfeta4=gcsldfbed4=nullptr;
@@ -120,6 +123,9 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
     fsfin=b.fsfin; fsfout=b.fsfout;
     maxlength=b.maxlength;
     printcount=printcount_sixdof=0;
+
+    // extra ghost cells per side: never set, read by vecsize (gcbextra) and reduced over the ranks
+    gcextra1=gcextra2=gcextra3=gcextra4=gcextra4a=gcextra6=0;
 
     // direct-forcing slice ghost cells: allocated by gridini (CFD, NHFLOW) or gcsldf_update, not for SFLOW
     gcsldfeta4_count=gcsldfbed4_count=0;

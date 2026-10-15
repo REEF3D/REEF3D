@@ -228,6 +228,7 @@ void control::ini_default()
     A589=0;      // int solid wedge z
     
     A590=0;      // int STL
+    A591=0;      // int scaling of stl geometry on/off (set by A 591)
     A591_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
     A592=0;     // int translation on/off
     A592_dx=A592_dy=A592_dz=0.0;  // double translation of stl geometry
@@ -381,6 +382,7 @@ void control::ini_default()
     B76=1;      // int type of pressure inlet boundary condition
 	B77=1;           // int outflow pressure controlled or free stream
 	B81=0;		 // int focussed wave parameter
+    B81_1=B81_2=0.0;   // double focused wave: focus location x, focus time
     B81_3=0.0;    // double unidirectional focused wave y is condisered 0
     B82=1;      // int type of focus point and time calculation
 	B83=0.0025;  // double wave steepness parameter for focused breaking waves
@@ -509,7 +511,8 @@ void control::ini_default()
     B219=0;      // int solid wedge z
     
     B230=0;      // int STL
-    B231_x=A591_y=A591_z=1.0;  // double scaling of stl geometry
+    B231=0;      // int scaling of stl geometry on/off (set by B 231)
+    B231_x=B231_y=B231_z=1.0;  // double scaling of stl geometry
     B232=0;     // int translation on/off
     B232_dx=B232_dy=B232_dz=0.0;  // double translation of stl geometry
     B233=0;
@@ -1341,4 +1344,22 @@ void control::ini_default()
     Z21=0.0;        // double rod-tree VTP print interval [s], 0: off
     Z30=0;          // int FEM solid structures (elastic, plastic, concrete damage, collapse), 1: coupling with CFD or NHFLOW, input fem.dat
     Z31=0.0;        // double FEM VTU print interval [s], 0: off
+    
+    // values of keys that also set their switch (read only with it): defined for the broadcast of
+    // the control parameters to the other ranks (controlfill_send)
+    A251_val=0.0;
+    G501=0;      // (set by control::parse after the broadcast)
+    B110_zs=B110_ze=0.0;
+    F68_x=F68_y=F68_z=0.0;
+    P43_xs=P43_xe=P43_ys=P43_ye=0.0;
+    P46_is=P46_ie=0;
+    P47_ts=P47_te=0;
+    P101_xm=P101_ym=P101_zs=P101_ze=P101_r1=P101_r2=0.0;
+    S29_ts=S29_te=S29_dts=S29_dte=0.0;
+    X23_x=X23_y=X23_z=0.0;
+    X24_Ix=X24_Iy=X24_Iz=0.0;
+    X141=X142=X143=0;
+    X153_xs=X153_xe=X153_ys=X153_ye=X153_zs=X153_ze=0.0;
+    X206_te=X207_te=0.0;
+    X211_p=X211_q=X211_r=0.0;
 }
