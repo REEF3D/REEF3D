@@ -146,12 +146,36 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 
         if(par.zones)
         SLICELOOP4
-        if(zone_test(p->XP[IP],p->YP[JP]))
+        if(p->geo_curv==1 ? zone_test(p->XC2D[(i-p->imin)*p->jmax+(j-p->jmin)],p->YC2D[(i-p->imin)*p->jmax+(j-p->jmin)])
+                          : zone_test(p->XP[IP],p->YP[JP]))
         {
+            // curvilinear grid: the cell centres (as the boxes above); multi-block: not the ring
             int I=i+O0i, J=j+O0j;
+            if(nblk>0 && native_ring(I,J))
+            continue;
             for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
             for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
             M[l][(size_t)ti*gtny[l]+tj]=1;
+        }
+
+        // multi-block: the zone in the cells of the blocks of this rank
+        if(par.zones)
+        for(int id : lev[0])
+        {
+            reefamr_patch *c = P[id];
+            lexer *pp = c->pp;
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            {
+                const int k = (ii-pp->imin)*pp->jmax+(jj-pp->jmin);
+                if(zone_test(pp->XC2D[k],pp->YC2D[k]))
+                {
+                    int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
+                    for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
+                    for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                    M[l][(size_t)ti*gtny[l]+tj]=1;
+                }
+            }
         }
 
         global_or(M[l]);

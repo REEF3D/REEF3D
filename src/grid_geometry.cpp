@@ -78,6 +78,8 @@ void grid::geometry_alloc()
 
 void grid::geometry_free()
 {
+    geo_locate_free();
+
     delete [] XN2D; delete [] YN2D;
     delete [] XC2D; delete [] YC2D; delete [] AREA2D;
     delete [] SX1; delete [] SY1; delete [] SX2; delete [] SY2;
@@ -99,6 +101,8 @@ void grid::geometry_cartesian_nodes()
 
 void grid::geometry_metrics()
 {
+    geo_locate_free();
+
     for(int ii=imin; ii<imin+imax; ++ii)
     for(int jj=jmin; jj<jmin+jmax; ++jj)
     {

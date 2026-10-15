@@ -273,6 +273,7 @@ private:
     int shipmode;                   // X 10 of the body, 0: none
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch&, bool);
+    void ship_fields_curv(sflow_amr_patch&, bool);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch&, int, int);
     // G 7 1: the level-0 body at the start of the level-0 step (hull triangles, level set, u, c);

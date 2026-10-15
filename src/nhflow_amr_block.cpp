@@ -65,13 +65,14 @@ void nhflow_amr::blocks_check(lexer *p)
 {
     int ok=1;
     if(p->G7==1) ok=0;              // subcycling
-    if(p->X10!=0) ok=0;             // floating bodies
+    if(p->X10>2) ok=0;              // floating (X 10 1) and prescribed (X 10 2) bodies only (P5c)
+    if(p->X10>0 && p->G40>0) ok=0;  // bodies: the patches on the rank of the block piece below
     if(p->A560!=0) ok=0;            // turbulence (not in the patches)
     if(p->A550!=0) ok=0;            // breaking
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1), floating bodies (X 10), turbulence (A 560) or breaking (A 550) !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1), the ship pressure X 10 3 (X 10 1/2 without G 40), turbulence (A 560) or breaking (A 550) !!!"<<endl;
         exit(1);
     }
 }
@@ -173,6 +174,9 @@ void nhflow_amr::blocks_sigma(ghostcell *pgc)
         c->pmom->sigma_ini(pp,d,pgc,d->eta);
         c->pmom->inidisc(pp,d,pgc,c->pfsf);
         c->pfsf->kinematic_fsf(pp,d,d->U,d->V,d->W,d->eta);
+
+        // floating bodies: the hull on the sigma grid of the block
+        body_patch(pgc,*c);
     }
 }
 
@@ -395,6 +399,20 @@ void nhflow_amr::dump_grids(lexer *p)
         for(int jj=i0; jj<i0+ny; ++jj)
         for(int kk=0; kk<=q->knoz; ++kk)
         f->push_back(d->P[fidx(q,ii,jj,kk)]);
+
+        // floating bodies: the level set of the hull and the solid flags
+        if(b6!=nullptr)
+        {
+            vector<double> *fb = add("FB");
+            vector<double> *df = add("DF");
+            for(int ii=i0; ii<i0+nx; ++ii)
+            for(int jj=i0; jj<i0+ny; ++jj)
+            for(int kk=0; kk<q->knoz; ++kk)
+            {
+                fb->push_back(d->FB[cidx(q,ii,jj,kk)]);
+                df->push_back(q->DF[cidx(q,ii,jj,kk)]);
+            }
+        }
     };
 
     grid(0,p0,d0,0,0,O0i,O0j,0,p0->knox,p0->knoy);

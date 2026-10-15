@@ -48,7 +48,12 @@ void nhflow_curv::check(lexer *p)
     refuse(p->A520==3, "the non-hydrostatic scheme A 520 3");
     refuse(p->A511==2, "the HLLC flux A 511 2 (A 511 1: HLL)");
     refuse((p->G1>0 || p->geo_mb>0) && p->P18>0, "the LAGOON output of the mesh refinement (P 18)");
-    refuse(p->X10>0, "6DOF bodies (X 10)");
+    // 6DOF (P5c): floating, prescribed and wavemaker bodies with the STL forces, the ship pressure patch and the
+    // ship load models; not yet: the level-set forces, the viscous forces, the pierced columns, nets
+    refuse(p->X10>0 && p->X60==2, "the level-set force integration of 6DOF bodies (X 60 2; X 60 1: STL)");
+    refuse(p->X10>0 && p->X38>0, "the viscous forces of 6DOF bodies (X 38)");
+    refuse(p->X10>0 && p->X13>0, "the water level in the pierced columns of 6DOF bodies (X 13)");
+    refuse(p->X320>0, "nets (X 320)");
     refuse(p->X330>0, "membranes (X 330)");
     refuse(p->Z30>0, "FEM structures (Z 30)");
     refuse(p->A580>0 || p->A599>0 || p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0

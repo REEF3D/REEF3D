@@ -65,7 +65,8 @@ void sflow_curv::check(lexer *p)
     refuse(p->A212>0 || p->A260>0, "horizontal diffusion and turbulence (A 212, A 260)");
     refuse(p->B98>=1 || p->B90>=1, "wave generation and absorption (B 90, B 98)");
     refuse(p->B440>0 || p->B441>0 || p->B442>0, "patch boundary conditions (B 440-442)");
-    refuse(p->X10>0, "6DOF bodies (X 10)");
+    // 6DOF (P5c): prescribed bodies (X 10 2) and the ship pressure patch (X 10 3) with the waterline level set of
+    // 6DOF_obj_ray2D_curv.cpp
     refuse(p->A750==1, "the SEASTATE coupling (A 750)");
     refuse(p->I11==1, "the potential flow initialisation (I 11)");
 

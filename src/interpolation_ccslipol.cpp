@@ -122,6 +122,17 @@ double interpolation::ccslipol4(slice& f, double xp, double yp)
 {
     ii=i;
     jj=j;
+
+    // curvilinear grid (G 50): the quadrilateral of the cell centres that holds the point (grid_locate.cpp)
+    if(p->geo_curv==1)
+    {
+    double fx,fy;
+    p->geo_quad(xp,yp,i,j,fx,fy);
+    value = lintsl4(f,i,j,1.0-fx,1.0-fy);
+    i=ii;
+    j=jj;
+    return value;
+    }
     
     i = p->posf_i(xp);
     j = p->posf_j(yp);

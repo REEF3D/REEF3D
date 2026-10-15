@@ -98,6 +98,13 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             if(!amr_owner_nhflow(xc,yc))
             continue;
         }
+        else if(p->geo_curv==1)
+        {
+            // curvilinear grid (G 50): the rank of the cell that holds the centroid (grid_locate.cpp)
+            int ci,cj;
+            if(!p->geo_cell(xc,yc,ci,cj))
+            continue;
+        }
         else
         {
         if(!(xc >= p->originx && xc < p->endx))
@@ -118,8 +125,11 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             pl = g.p;
             dl = g.d;
             WLl = g.WL;
-            dsm = DSM*pl->DXM/p->DXM;
+            dsm = (g.hr>0.0) ? DSM*g.hr : DSM*pl->DXM/p->DXM;
         }
+        lexer *plc = pl;
+        fdm_nhf *dlc = dl;
+        slice *WLc = WLl;
         
         // Normal vector (pointing outwards)
         double nx = (vy[1] - vy[0])*(vz[2] - vz[0]) - (vy[2] - vy[0])*(vz[1] - vz[0]);
@@ -194,6 +204,43 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             const double my[3] = {0.5*(ay + by), 0.5*(by + cy), 0.5*(cy + ay)};
             const double mz[3] = {0.5*(az + bz), 0.5*(bz + cz), 0.5*(cz + az)};
             
+            // multi-block grid: every quadrature point on the grid of this rank that holds it (amr_point_nhflow)
+            if(amr_point_grid)
+            {
+            for(int q=0; q<3; ++q)
+            {
+                const double sx = mx[q] + p->X42*nx*dsm, sy = my[q] + p->X42*ny*dsm;
+                amr_point_nhflow(p,sx,sy,plc,dlc,WLc,pl,dl,WLl);
+                
+                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, sx, sy, mz[q] + p->X42*nz*dsm);
+                const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
+                
+                const double w  = A_sub/3.0;
+                const double fx = -pfac*(pval + hsp)*w*nx;
+                const double fy = -pfac*(pval + hsp)*w*ny;
+                const double fz = -pfac*(pval + hsp)*w*nz;
+                
+                const double rx = mx[q] - c_(0);
+                const double ry = my[q] - c_(1);
+                const double rz = mz[q] - c_(2);
+                
+                Xe += fx;
+                Ye += fy;
+                Ze += fz;
+                Ke += ry*fz - rz*fy;
+                Me += rz*fx - rx*fz;
+                Ne += rx*fy - ry*fx;
+                
+                Xe_p += fx;
+                Ye_p += fy;
+                Ze_p += fz;
+            }
+            pl = plc;
+            dl = dlc;
+            WLl = WLc;
+            }
+            
+            else
             for(int q=0; q<3; ++q)
             {
                 // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
@@ -315,4 +362,25 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
         printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
     }
+}
+
+// multi-block grid (amr_point_grid): the grid of this rank that holds the quadrature point (x,y): a patch or block piece,
+// level 0 (the native grid with its ring) where it holds the point, else the grid of the centroid (plc, dlc, WLc)
+void sixdof_obj_nhflow::amr_point_nhflow(lexer *p, double x, double y, lexer *plc, fdm_nhf *dlc, slice *WLc,
+                                         lexer *&pl, fdm_nhf *&dl, slice *&WLl)
+{
+    nhflow_grid g = amr_grid_nhflow(x,y);
+    int a,b;
+    
+    if(g.p!=p || plc==p || p->geo_cell(x,y,a,b))
+    {
+        pl = g.p;
+        dl = g.d;
+        WLl = g.WL;
+        return;
+    }
+    
+    pl = plc;
+    dl = dlc;
+    WLl = WLc;
 }

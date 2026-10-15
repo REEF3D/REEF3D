@@ -1,0 +1,22 @@
+{
+ "np": 2,
+ "steps": 16,
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "6dof",
+  "amr",
+  "mpi"
+ ],
+ "description": "Floating box with one refinement level around the hull (G 12), patches placed for the load of two ranks (G 40 1), curvilinear grid turned by 30 deg (sixdof_curvilinear/t2): the zone flags by the physical cell centres, the rank of a hull triangle by the logical coordinates of its centroid (lexer::curv_logical).",
+ "covers": [
+  "reefamr::finest_rank and nhflow_amr::finest_at on G 50",
+  "zone flags with XC2D/YC2D",
+  "the hull on curvilinear patches"
+ ]
+}

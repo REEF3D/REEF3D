@@ -32,6 +32,29 @@ double interpolation::ccipol4V(double *f, slice &WL, slice &bed, double xp, doub
     ii=i;
     jj=j;
     kk=k;
+
+    // curvilinear grid (G 50): the quadrilateral of the cell centres that holds the point, the sigma levels
+    // along its bilinear coordinates (the Cartesian form with (x-XP)/DXP = fx)
+    if(p->geo_curv==1)
+    {
+    double fx,fy;
+    p->geo_quad(xp,yp,i,j,fx,fy);
+    k = p->posf_sig(i,j,zp);
+
+    Z1 = (p->ZSP[Ip1JK] - p->ZSP[IJK])*fx + (p->ZSP[IJp1K] - p->ZSP[IJK])*fy + p->ZSP[IJK];
+    Z2 = (p->ZSP[Ip1JKp1] - p->ZSP[IJKp1])*fx + (p->ZSP[IJp1Kp1] - p->ZSP[IJKp1])*fy + p->ZSP[IJKp1];
+
+    wc = (Z2-zp)/(Z2-Z1);
+    wc = MAX(wc,0);
+    wc = MIN(wc,1.0);
+
+    value = lint4V(f,i,j,k,1.0-fx,1.0-fy,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+    return value;
+    }
     
     i = p->posf_i(xp);
     j = p->posf_j(yp);
@@ -106,12 +129,49 @@ double interpolation::ccipol7V(double *f, slice &WL, slice &bed, double xp, doub
     ii=i;
     jj=j;
     kk=k;
+
+    // curvilinear grid (G 50): as ccipol4V
+    if(p->geo_curv==1)
+    {
+    double fx,fy;
+    p->geo_quad(xp,yp,i,j,fx,fy);
+    const int ic=i, jc=j;
+    k = p->posc_sig(i,j,xp,yp,zp);
+
+    WLval = p->ccslipol4(WL,xp,yp);
+    bedval = p->ccslipol4(bed,xp,yp);
+
+    i=ic;
+    j=jc;
+
+    if((zp >= WLval + bedval) || k>p->knoz)
+    {
+    i=ii;
+    j=jj;
+    k=kk;
+    return 0.0;
+    }
+
+    Z1 = (p->ZSN[FIp1JK] - p->ZSN[FIJK])*fx + (p->ZSN[FIJp1K] - p->ZSN[FIJK])*fy + p->ZSN[FIJK];
+    Z2 = (p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])*fx + (p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])*fy + p->ZSN[FIJKp1];
+
+    wc = (Z2-zp)/(Z2-Z1);
+    wc = MAX(wc,0.0);
+    wc = MIN(wc,1.0);
+
+    value = lint7V(f,i,j,k,1.0-fx,1.0-fy,wc);
+
+    i=ii;
+    j=jj;
+    k=kk;
+    return value;
+    }
     
     // find ijk position for interpolation cell
     i = p->posf_i(xp);
     j = p->posf_j(yp);
     k = p->posc_sig(i,j,xp,yp,zp);
-    
+
     // -------------------------------------
     // above FSF
     WLval = p->ccslipol4(WL,xp,yp); 

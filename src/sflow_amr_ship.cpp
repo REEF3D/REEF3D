@@ -46,6 +46,11 @@ sflow_amr_ship::~sflow_amr_ship()
 double sflow_amr_ship::Hsolid(lexer *p, slice &fs)
 {
     double psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]);
+
+    // curvilinear grid (G 50): the physical width of the cell (as sixdof_obj_2D::Hsolidface_2D)
+    if(p->geo_curv==1)
+    psi = p->X41*cellwidth(p,i,j);
+
     double phival_fb = fs(i,j);
 
     if(-phival_fb > psi)
@@ -55,6 +60,15 @@ double sflow_amr_ship::Hsolid(lexer *p, slice &fs)
     return 0.0;
 
     return 0.5*(1.0 + -phival_fb/psi + (1.0/PI)*sin((PI*-phival_fb)/psi));
+}
+
+// curvilinear grid: the physical width of cell (ii,jj), also in the first ghost layer (geo_width needs the faces
+// below the cell)
+double sflow_amr_ship::cellwidth(lexer *p, int ii, int jj)
+{
+    if(ii>p->imin && jj>p->jmin)
+    return p->geo_width(ii,jj);
+    return sqrt(p->AREA2D[(ii-p->imin)*p->jmax + (jj-p->jmin)]);
 }
 
 // X 10 2: direct forcing of the body velocity (the body is moved on level 0)
@@ -68,8 +82,8 @@ void sflow_amr_ship::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, s
 
     SLICELOOP4
     {
-        uf = u[0] + u[4]*(zref - c[2]) - u[5]*(p->YP[JP] - c[1]);
-        vf = u[1] + u[5]*(p->XP[IP] - c[0]) - u[3]*(zref - c[2]);
+        uf = u[0] + u[4]*(zref - c[2]) - u[5]*(p->pos_y() - c[1]);
+        vf = u[1] + u[5]*(p->pos_x() - c[0]) - u[3]*(zref - c[2]);
 
         H = Hsolid(p,fs);
         fx(i,j) += H*(uf - P(i,j))/(alpha[iter]*p->dt);
@@ -86,6 +100,15 @@ void sflow_amr_ship::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     dfdx = (press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+
+    // curvilinear grid (G 50): the physical gradient (as sixdof_sflow::isource2D)
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    dfdx = gx;
+    }
+
     b->F(i,j) += b->WL(i,j)*dfdx/p->W1;
     }
 
@@ -101,6 +124,14 @@ void sflow_amr_ship::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
     dfdy = (press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    dfdy = gy;
+    }
+
     b->G(i,j) += b->WL(i,j)*dfdy/p->W1;
     }
 }
@@ -158,6 +189,12 @@ double sflow_amr::fs0_at(sflow_amr_patch &c, int ii, int jj)
 // body fields on one patch: level set, kinematics and (X 10 3) the surface pressure
 void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
 {
+    if(p0->geo_curv==1)
+    {
+        ship_fields_curv(c,withpress);
+        return;
+    }
+
     lexer *pp = c.pp;
     fdm2D *bp = c.b;
     sflow_amr_ship *s = c.pship;
@@ -357,6 +394,241 @@ void sflow_amr::ship_fields(sflow_amr_patch &c, bool withpress)
         }
 
         s->press(ii,jj) = pr;
+    }
+}
+
+// curvilinear grid (G 50): ship_fields with the physical cell centres of the patch (XC2D, YC2D): the draft from
+// vertical rays through the centres, the level set as on level 0 (the distance to the waterline), the pressure
+// with the physical gradient and the bilinear interpolation on the patch cell centres
+void sflow_amr::ship_fields_curv(sflow_amr_patch &c, bool withpress)
+{
+    lexer *pp = c.pp;
+    fdm2D *bp = c.b;
+    sflow_amr_ship *s = c.pship;
+    sixdof_obj *o0 = ship6->object(0);
+
+    const int i0 = pp->imin, i1 = pp->imin+pp->imax;
+    const int j0 = pp->jmin, j1 = pp->jmin+pp->jmax;
+    auto q = [&](int ii, int jj) { return (ii-pp->imin)*pp->jmax + (jj-pp->jmin); };
+
+    const double th = ship_th;
+    for(int n=0; n<6; ++n)
+    s->u[n] = (th<0.0) ? o0->amr_u(n) : (1.0-th)*sh_old[0].u[n] + th*o0->amr_u(n);
+    for(int n=0; n<3; ++n)
+    s->c[n] = (th<0.0) ? o0->amr_c(n) : (1.0-th)*sh_old[0].c[n] + th*o0->amr_c(n);
+    s->zref = p0->ZP[marge];
+
+    // box of the patch cell centres (all cells of the arrays)
+    double px0=1.0e300, px1=-1.0e300, py0=1.0e300, py1=-1.0e300;
+    for(int ii=i0; ii<i1; ++ii)
+    for(int jj=j0; jj<j1; ++jj)
+    {
+        px0 = MIN(px0,pp->XC2D[q(ii,jj)]); px1 = MAX(px1,pp->XC2D[q(ii,jj)]);
+        py0 = MIN(py0,pp->YC2D[q(ii,jj)]); py1 = MAX(py1,pp->YC2D[q(ii,jj)]);
+    }
+
+    const double psi = 1.0e-8*p0->DXM;
+
+    // draft: vertical rays through the patch cell centres, as sixdof_obj_2D::ray_cast_2D_curv
+    for(int ii=i0; ii<i1; ++ii)
+    for(int jj=j0; jj<j1; ++jj)
+    s->draft(ii,jj) = 0.0;
+
+    for(int nb=0; nb<ship6->objects(); ++nb)
+    {
+        sixdof_obj *o = ship6->object(nb);
+        double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
+
+        const reefamr_zone &z = zones[nb];
+        if(z.bx1<px0-psi || z.bx0>px1+psi || z.by1<py0-psi || z.by0>py1+psi)
+        continue;
+
+        for(int n : ztri[nb])
+        {
+            double Ax=tx[n][0], Ay=ty[n][0], Az=tz[n][0];
+            double Bx=tx[n][1], By=ty[n][1], Bz=tz[n][1];
+            double Cx=tx[n][2], Cy=ty[n][2], Cz=tz[n][2];
+
+            const double xs = MIN3(Ax,Bx,Cx)-2.0*psi, xe = MAX3(Ax,Bx,Cx)+2.0*psi;
+            const double ys = MIN3(Ay,By,Cy)-2.0*psi, ye = MAX3(Ay,By,Cy)+2.0*psi;
+            if(xe<px0 || xs>px1 || ye<py0 || ys>py1)
+            continue;
+
+            double d = (By-Cy)*(Ax-Cx) + (Cx-Bx)*(Ay-Cy);
+            if(fabs(d)<1.0e-30)
+            continue;
+
+            for(int ii=i0; ii<i1; ++ii)
+            for(int jj=j0; jj<j1; ++jj)
+            {
+                const double x = pp->XC2D[q(ii,jj)], y = pp->YC2D[q(ii,jj)];
+                if(x<xs || x>xe || y<ys || y>ye)
+                continue;
+
+                double Px = x-psi, Py = y+psi;
+                double u = ((By-Cy)*(Px-Cx) + (Cx-Bx)*(Py-Cy))/d;
+                double v = ((Cy-Ay)*(Px-Cx) + (Ax-Cx)*(Py-Cy))/d;
+                double w = 1.0-u-v;
+
+                if(u>0.0 && v>0.0 && w>0.0)
+                {
+                    double Rz = u*Az + v*Bz + w*Cz;
+                    if(p0->wd-Rz>0.0)
+                    s->draft(ii,jj) = MAX(p0->wd-Rz,s->draft(ii,jj));
+                }
+            }
+        }
+    }
+
+    // level set: the signed distance to the waterline of the hulls (the section with z = wd), as
+    // sixdof_obj_2D::ray_cast_2D_curv on level 0: inside by the parity of the waterline segments to the right of
+    // the centre (+x), the exact distance to the nearest segment, clamped to 10 cell widths. The patches and the
+    // blocks 1.. of a multi-block grid build it from the hull itself (not from the level-0 grid, which does not
+    // hold the blocks): the same level set as level 0 on every grid
+    {
+        const int ncell = pp->imax*pp->jmax;
+        std::vector<double> dist(ncell);
+        std::vector<int> par(ncell);
+        const double z0 = p0->wd + psi;
+
+        for(int ii=i0; ii<i1; ++ii)
+        for(int jj=j0; jj<j1; ++jj)
+        bp->fs(ii,jj) = 10.0*sqrt(pp->AREA2D[q(ii,jj)]);
+
+        for(int nb=0; nb<ship6->objects(); ++nb)
+        {
+            sixdof_obj *o = ship6->object(nb);
+            double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
+
+            for(int ii=i0; ii<i1; ++ii)
+            for(int jj=j0; jj<j1; ++jj)
+            {
+                dist[q(ii,jj)] = 10.0*sqrt(pp->AREA2D[q(ii,jj)]);
+                par[q(ii,jj)] = 0;
+            }
+
+            bool any = false;
+            for(int n : ztri[nb])
+            {
+                const double X[3] = {tx[n][0], tx[n][1], tx[n][2]};
+                const double Y[3] = {ty[n][0], ty[n][1], ty[n][2]};
+                const double Z[3] = {tz[n][0], tz[n][1], tz[n][2]};
+
+                double sx[2], sy[2];
+                int ns=0;
+                for(int m=0; m<3 && ns<2; ++m)
+                {
+                    const int r = (m+1)%3;
+                    const double dq = Z[m]-z0, dr = Z[r]-z0;
+                    if((dq<0.0 && dr>=0.0) || (dq>=0.0 && dr<0.0))
+                    {
+                        const double t = dq/(dq-dr);
+                        sx[ns] = X[m] + t*(X[r]-X[m]);
+                        sy[ns] = Y[m] + t*(Y[r]-Y[m]);
+                        ++ns;
+                    }
+                }
+                if(ns<2)
+                continue;
+
+                any = true;
+                const double ax=sx[0], ay=sy[0], bx=sx[1], by=sy[1];
+                const double ex=bx-ax, ey=by-ay;
+                const double ll = ex*ex + ey*ey;
+                const double ylo = MIN(ay,by), yhi = MAX(ay,by);
+
+                for(int ii=i0; ii<i1; ++ii)
+                for(int jj=j0; jj<j1; ++jj)
+                {
+                    const int c = q(ii,jj);
+                    const double xc = pp->XC2D[c], yc = pp->YC2D[c];
+
+                    // parity: the segment crosses the ray from the centre in +x (half-open in y)
+                    if(ay!=by && yc>=ylo && yc<yhi && xc < ax + (yc-ay)*ex/ey)
+                    ++par[c];
+
+                    const double px = xc-ax, py = yc-ay;
+                    if(fabs(px)-fabs(ex) > dist[c] || fabs(py)-fabs(ey) > dist[c])
+                    continue;
+                    const double t = ll>0.0 ? MAX(0.0, MIN(1.0, (px*ex + py*ey)/ll)) : 0.0;
+                    const double dx = px - t*ex, dy = py - t*ey;
+                    dist[c] = MIN(dist[c], sqrt(dx*dx + dy*dy));
+                }
+            }
+
+            if(!any)
+            continue;
+
+            for(int ii=i0; ii<i1; ++ii)
+            for(int jj=j0; jj<j1; ++jj)
+            {
+                const int c = q(ii,jj);
+                const double v = (par[c]%2==1) ? -dist[c] : dist[c];
+                bp->fs(ii,jj) = MIN(bp->fs(ii,jj), v);
+            }
+        }
+    }
+
+    if(!withpress)
+    return;
+
+    const double ramp = o0->amr_ramp_draft(p0);
+
+    // bilinear value of a patch field on the quadrilateral of the patch cell centres
+    auto ipol = [&](slice &f, double x, double y)
+    {
+        int a,e;
+        double wx,wy;
+        pp->geo_quad(x,y,a,e,wx,wy);
+        a = MAX(MIN(a,i1-2),i0);
+        e = MAX(MIN(e,j1-2),j0);
+        return (1.0-wx)*(1.0-wy)*f(a,e) + wx*(1.0-wy)*f(a+1,e) + (1.0-wx)*wy*f(a,e+1) + wx*wy*f(a+1,e+1);
+    };
+
+    for(int ii=i0; ii<i1; ++ii)
+    for(int jj=j0; jj<j1; ++jj)
+    {
+        i=ii; j=jj;
+        double H = s->Hsolid(pp,bp->fs);
+        double xpos = pp->XC2D[q(ii,jj)] - p0->xg;
+        double ypos = pp->YC2D[q(ii,jj)] - p0->yg;
+        double pr = 0.0;
+
+        if(p0->X400==2)
+        {
+            double Ls = p0->X110_xe[0] - p0->X110_xs[0];
+            double Bs = p0->X110_ye[0] - p0->X110_ys[0];
+            if(xpos<=Ls/2.0 && xpos>=-Ls/2.0 && ypos<=Bs/2.0 && ypos>=-Bs/2.0)
+            pr = -H*p0->X401_p0*(1.0 - p0->X401_cl*pow(xpos/Ls,4.0))*(1.0 - p0->X401_cb*pow(ypos/Bs,2.0))
+                   *exp(-p0->X401_a*pow(ypos/Bs,2.0))*ramp;
+        }
+
+        if(p0->X400==3)
+        pr = p0->X401_p0*exp(-pow(xpos/p0->X401_a,2));
+
+        if(p0->X400==10)
+        {
+            double etaval = 0.0;
+            if(p0->X410==1 && ii>i0 && ii<i1-1 && jj>j0 && jj<j1-1)
+            {
+                const double w = sflow_amr_ship::cellwidth(pp,ii,jj);
+                double dfdx,dfdy;
+                pp->geo_grad(ii,jj,bp->fs(ii+1,jj),bp->fs(ii-1,jj),bp->fs(ii,jj+1),bp->fs(ii,jj-1),dfdx,dfdy);
+                double dnorm = sqrt(dfdx*dfdx + dfdy*dfdy);
+                double nx = dfdx/(dnorm>1.0e-20?dnorm:1.0e20);
+                double ny = dfdy/(dnorm>1.0e-20?dnorm:1.0e20);
+                double xc = pp->XC2D[q(ii,jj)] + p0->X41*nx*w;
+                double yc = pp->YC2D[q(ii,jj)] + p0->X41*ny*w;
+                double fbval = ipol(bp->fs,xc,yc);
+                if(fbval>-0.6*w)
+                etaval = ipol(bp->eta,xc,yc);
+            }
+            pr = -H*fabs(p0->W22)*p0->W1*(s->draft(ii,jj)+etaval)*ramp;
+        }
+
+        // level 0 computes its first ship pressure at the end of the first step (sixdof_sflow::start_shipwave):
+        // none in the first step here either
+        s->press(ii,jj) = (p0->count<=1) ? 0.0 : pr;
     }
 }
 

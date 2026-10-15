@@ -226,16 +226,17 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->W90!=0) ok=0;
     if(p->j_dir!=1) ok=0;
 
-    // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling and moving bodies so far
+    // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling; moving bodies X 10 2/3 (P5c: the
+    // body on the blocks 1.. as on the patches, sflow_amr_ship.cpp)
     if(p->geo_mb>0)
     {
         if(p->A220!=0) ok=0;
         if(p->G7==1) ok=0;
-        if(p->X10!=0) ok=0;
+        if(p->X10!=0 && p->X10!=2 && p->X10!=3) ok=0;
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0, W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -1115,6 +1116,22 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
             pb->WL(ii,jj) = MAX(eta + pb->depth(ii,jj),0.0);
         }
 
+        // X 10 3 (X 207 0): the draft of the ship depresses the water level at t = 0, as on level 0
+        // (sixdof_obj_2D::ini_shipwave)
+        if(shipmode==3 && p->X207==0)
+        {
+            zone_setup(p0);
+            ship_fields(*c,false);
+            for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+            for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+            {
+                i=ii; j=jj;
+                const double H = c->pship->Hsolid(pp,pb->fs);
+                pb->eta(ii,jj) = -H*c->pship->draft(ii,jj);
+                pb->WL(ii,jj) = MAX(pb->eta(ii,jj) + pb->depth(ii,jj),0.0);
+            }
+        }
+
         for(int ii=0; ii<pp->knox; ++ii)
         for(int jj=0; jj<pp->knoy; ++jj)
         pp->wet[lij(pp,ii,jj)]=1;
@@ -1670,6 +1687,10 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
         if(patches_total>0)
         for(int l=1; l<=maxlev; ++l)
         fill_level(pgc,l,s);
+
+        // X 10 2: the body moves in every stage (on the blocks and the patches)
+        if(shipmode==2 && s>0)
+        ship_patches(false);
         tm[0] += MPI_Wtime()-t0;
 
         if(patches_total>0)

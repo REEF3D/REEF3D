@@ -70,6 +70,12 @@ public:
     int curv_ni=0, curv_nj=0;        // G 50: the global nodes of the curvilinear grid
     vector<double> curv_gx, curv_gy, curv_gz;
     void curv_node(int K, int L, double &x, double &y, double &z) const;
+    // G 50: the continuous logical coordinates (X, Y) of the physical point (x, y) in the global grid, in level-0
+    // node units (cell K holds K <= X < K+1; the patches of level l subdivide them by 2^l); false: outside the
+    // domain. The same on every rank (one table over the global nodes, built on the first call)
+    struct curv_logical_cache *curvloc=nullptr;
+    bool curv_logical(double x, double y, double &X, double &Y);
+    void curv_logical_free();
     void gcd_ini(ghostcell*);
     void makeflag(int*);
 

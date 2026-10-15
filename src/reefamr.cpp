@@ -400,6 +400,33 @@ int reefamr::finest_rank(double x, double y)
     if(p0->j_dir==0)
     y = 0.5*(gyn[marge]+gyn[marge+GNY]);
 
+    // curvilinear grid (G 50): the logical coordinates of the point (lexer::curv_logical), the patches and the
+    // level-0 cells by their logical ranges (the patch cells subdivide the level-0 cells bilinearly)
+    if(p0->geo_curv==1 && p0->geo_mb==0)
+    {
+        double X,Y;
+        if(!p0->curv_logical(x,y,X,Y))
+        return -1;
+        if(p0->j_dir==0)
+        Y = 0.5*double(GNY);
+
+        int best=-1, bl=0;
+        for(const reefamr_gpatch &G : GP)
+        {
+            if(G.lev<=bl)
+            continue;
+            const double r = double(1<<G.lev);
+            if(X*r>=double(G.I0) && X*r<double(G.I1+1) && Y*r>=double(G.J0) && Y*r<double(G.J1+1))
+            {
+                best = G.rank;
+                bl = G.lev;
+            }
+        }
+        if(best>=0)
+        return best;
+        return owner(std::min(int(X),GNX-1),std::min(int(Y),GNY-1));
+    }
+
     int best=-1, bl=0;
     for(const reefamr_gpatch &G : GP)
     {
