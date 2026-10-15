@@ -503,10 +503,10 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 
     Mcur=&M;
 
-    //  A 328 1: the Laplace assembly has sized the cross-couplings nt..eb.
-    //  BiCGStab then multiplies through fine_apply(), which needs rowmap and
-    //  colrow0 also in fp64 mode.
-    mixed = (p->A328==1 && !M.nt.empty() && M.nt.size()==M.p.size());
+    //  A 328 1 (FNPF) / A 529 1 (NHFLOW): the Laplace / Poisson assembly has sized
+    //  the cross-couplings nt..eb. BiCGStab then multiplies through fine_apply(),
+    //  which needs rowmap and colrow0 also in fp64 mode.
+    mixed = ((p->A328==1 || p->A529==1) && !M.nt.empty() && M.nt.size()==M.p.size());
     const bool rmap = fp32 || mixed;
 
     //  First call: zero everything once (this also leaves the halo of the

@@ -664,6 +664,7 @@
           <VirtualDirectory Name="Poisson">
             <File Name="nhflow_poisson_pcorr.h"/>
             <File Name="nhflow_poisson.h"/>
+            <File Name="nhflow_poisson_cross.h"/>
           </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>

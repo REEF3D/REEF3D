@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"vrans.h"
 #include"vrans_definitions.h"
+#include"nhflow_poisson_cross.h"
 
 nhflow_poisson::nhflow_poisson(lexer *p) 
 {
@@ -47,6 +48,13 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
 {	
     double ab,denom;
     double cP,cN,cS,cW,cE,cT,cB;
+    
+    // sigma cross terms: A 529 implicit / explicit, A 530 in porous cells (nhflow_poisson_cross.h)
+    const bool cross_impl = nhflow_poisson_cross::implicit(p,d);
+    nhflow_poisson_cross::ini(p,d,cross_impl);
+    
+    if(p->A529==1 && !cross_impl && p->mpirank==0 && p->count==0)
+    cout<<"NHFLOW Poisson: A 529 1 needs N 10 1 on the Cartesian grid without mesh refinement, multi-block grid or membranes, explicit cross terms used"<<endl;
     
     n=0;
     FBASELOOP
@@ -118,8 +126,12 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                 return p->flag7[fq]>0 && p->wet[q]==1 && p->deep[q]==1;
             };
             
+            if(nhflow_poisson_cross::active(p,d,i,j,k))
             d->rhsvec.V[n] += cP*(nhflow_curv::sigma_cross(p,P,i,j,k)
                                 + nhflow_curv::kflux_level(p,P,i,j,k,ok))/p->W1;
+            
+            else
+            d->rhsvec.V[n] += cP*nhflow_curv::kflux_level(p,P,i,j,k,ok)/p->W1;
             }
             
             if(p->geo_curv==0)
@@ -147,11 +159,18 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
                             + cP*p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
             
             
-                d->rhsvec.V[n] += cP*(2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
-                                /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
+                if(nhflow_poisson_cross::active(p,d,i,j,k))
+                {
+                    if(cross_impl)
+                    nhflow_poisson_cross::assemble(p,d,P,i,j,k,n,cP);
+                    
+                    else
+                    d->rhsvec.V[n] += cP*(2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
+                                    /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
                         
-                                + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
-                                /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir);
+                                    + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
+                                    /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir);
+                }
             
             }
             

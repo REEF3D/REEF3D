@@ -182,6 +182,8 @@ void control::ini_default()
     A526=1.1;    // double direct forcing factor
     A527=1;      // int NHFLOW WENO5 nonlinear weights (A514 4,5): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A528=1.0e-5; // double NHFLOW TENO5 cutoff C_T (A527 2)
+    A529=0;      // int NHFLOW Poisson sigma cross terms: 0 explicit (P of the last solve), 1 implicit in the matrix, 15-point (2D: 9-point) operator in REEFMG's BiCGStab (N 10 1 only)
+    A530=0;      // int NHFLOW Poisson sigma cross terms in porous cells (POR < 1): 0 off, 1 on
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
