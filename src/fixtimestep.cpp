@@ -37,7 +37,7 @@ fixtimestep::~fixtimestep()
 
 void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 {
-   	p->dt=p->N49;
+    p->dt=p->dt_old=p->N49;
 
     // maximum values of this step (as etimestep / ietimestep; they were maxima over the whole run,
     // and N 61 stopped the run on a past value): local first, then one reduction over all ranks
@@ -102,6 +102,5 @@ void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 
 void fixtimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
-    p->dt=p->N49;
-
+    p->dt=p->dt_old=p->N49;
 }

@@ -38,7 +38,7 @@ void sflow_eta::breaking(lexer* p, fdm2D* b, ghostcell* pgc, slice &eta, slice &
             if((eta(i+1,j)-eta(i-1,j))/(2.0*p->DXM)   < -p->A355 || (eta(i+1,j)-eta(i-1,j))/(2.0*p->DXM)   > p->A355)
             b->breaking(i,j)=1;
             
-            if((eta(i,j+1)-eta(i,j+1))/(2.0*p->DXM)   < -p->A355 || (eta(i,j+1)-eta(i,j-1))/(2.0*p->DXM)   > p->A355)
+            if((eta(i,j+1)-eta(i,j-1))/(2.0*p->DXM)   < -p->A355 || (eta(i,j+1)-eta(i,j-1))/(2.0*p->DXM)   > p->A355)
             b->breaking(i,j)=1;
             }
     }
