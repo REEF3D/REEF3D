@@ -65,5 +65,5 @@ void bedprobe_max::bed_max(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     // write to file
     if(p->mpirank==0)
-    wsfout<<p->sedtime<<" \t "<<p->bedmin<<endl;
+    wsfout<<p->sedtime<<" \t "<<s->bedmin<<endl;
 }

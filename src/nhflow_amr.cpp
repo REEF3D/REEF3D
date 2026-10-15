@@ -513,10 +513,6 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
     pp->Darray(pp->ZSP,n3);
     pp->Darray(pp->bed,nsl);
     pp->Darray(pp->WL,nsl);
-    // sediment (S 10): the erodible-bed flag of the columns (sediment_f::active_nhflow sets it)
-    pp->Iarray(pp->DFBED,nsl);
-    for(int q=0; q<nsl; ++q)
-    pp->DFBED[q] = 1;
     // no in- and outflow cells of the 3D lists on a patch (sediment_f::ini_guard reads them)
     pp->gcin_count = pp->gcout_count = 0;
 
@@ -616,7 +612,6 @@ void nhflow_amr::free_lexer3D(nhflow_amr_patch &c)
     pp->del_Darray(pp->ZSP,n3);
     pp->del_Darray(pp->bed,nsl);
     pp->del_Darray(pp->WL,nsl);
-    pp->del_Iarray(pp->DFBED,nsl);
     pp->del_Iarray(pp->gcb4,MAX(pp->gcb4_count,1),6);
     pp->del_Darray(pp->sig,n7);
     pp->del_Darray(pp->sigx,n7);

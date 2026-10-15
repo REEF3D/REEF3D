@@ -108,26 +108,26 @@ void sediment_exner::amr_flux(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &
     auto sign_i = [&](int ii, int jj) -> double
     {
         if(curv==1)
-        return sediment_curv::face_sign(p,s,1,ii,jj,bend_td(p,1,ii,jj));
+        return sediment_curv::face_sign(p,s,1,ii,jj,bend_td(p,s,1,ii,jj));
 
         const double ux = s->P(ii,jj);
         const double vx = 0.25*(s->Q(ii+1,jj)+s->Q(ii,jj)+s->Q(ii+1,jj-1)+s->Q(ii,jj-1));
         const double ua = sqrt(ux*ux + vx*vx);
-        return bend_turn(ux,vx,ua,bend_td(p,1,ii,jj));
+        return bend_turn(ux,vx,ua,bend_td(p,s,1,ii,jj));
     };
 
     auto sign_j = [&](int ii, int jj) -> double
     {
         if(curv==1)
-        return sediment_curv::face_sign(p,s,2,ii,jj,bend_td(p,2,ii,jj));
+        return sediment_curv::face_sign(p,s,2,ii,jj,bend_td(p,s,2,ii,jj));
 
         const double uy = 0.25*(s->P(ii,jj)+s->P(ii,jj+1)+s->P(ii-1,jj)+s->P(ii-1,jj+1));
         const double vy = s->Q(ii,jj);
         const double ua = sqrt(uy*uy + vy*vy);
-        return bend_turn(vy,-uy,ua,bend_td(p,2,ii,jj));
+        return bend_turn(vy,-uy,ua,bend_td(p,s,2,ii,jj));
     };
 
-    auto dfbed = [&](int ii, int jj) { return p->DFBED[(ii-p->imin)*p->jmax + (jj-p->jmin)]; };
+    auto dfbed = [&](int ii, int jj) { return s->DFBED[(ii-p->imin)*p->jmax + (jj-p->jmin)]; };
 
     // flux per unit length through the face between (ii,jj) and (ia,ja), direction sg
     auto flux = [&](int dir, int ii, int jj, int ia, int ja, double sg) -> double
@@ -204,7 +204,7 @@ double sediment_exner::amr_vz(lexer *p, ghostcell *pgc, sediment_fdm *s, slice &
 
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(div + susp_ED(p,pgc,s));
 
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
 
@@ -237,7 +237,7 @@ void sediment_exner::amr_bed(lexer *p, ghostcell *pgc, sediment_fdm *s)
 	pgc->gcsl_start4(p,s->bedzh,1);
 }
 
-double sediment_exner::amr_dx(lexer *p)
+double sediment_exner::amr_dx(lexer *p, sediment_fdm *s)
 {
     double dx = 1.0e8;
 

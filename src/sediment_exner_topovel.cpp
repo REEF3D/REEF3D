@@ -68,12 +68,12 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
         uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
             
         // transport directions of the faces (S 95: turned by the spiral-flow angle, sediment_exner_bend.cpp)
-        sgx1=bend_turn(ux1,vx1,ux1_abs,bend_td(p,1,i-1,j));
-        sgx2=bend_turn(ux2,vx2,ux2_abs,bend_td(p,1,i,j));
-        sgy1=bend_turn(vy1,-uy1,uy1_abs,bend_td(p,2,i,j-1));
-        sgy2=bend_turn(vy2,-uy2,uy2_abs,bend_td(p,2,i,j));
+        sgx1=bend_turn(ux1,vx1,ux1_abs,bend_td(p,s,1,i-1,j));
+        sgx2=bend_turn(ux2,vx2,ux2_abs,bend_td(p,s,1,i,j));
+        sgy1=bend_turn(vy1,-uy1,uy1_abs,bend_td(p,s,2,i,j-1));
+        sgy2=bend_turn(vy2,-uy2,uy2_abs,bend_td(p,s,2,i,j));
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
 
         // complete q
@@ -84,7 +84,7 @@ void sediment_exner::topovel1(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + bend_div(p,s,i,j) + susp_ED(p,pgc,s));
         
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
     
@@ -167,12 +167,12 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
         uy2_abs = sqrt(uy2*uy2 + vy2*vy2);
             
         // transport directions of the faces (S 95: turned by the spiral-flow angle, sediment_exner_bend.cpp)
-        sgx1=bend_turn(ux1,vx1,ux1_abs,bend_td(p,1,i-1,j));
-        sgx2=bend_turn(ux2,vx2,ux2_abs,bend_td(p,1,i,j));
-        sgy1=bend_turn(vy1,-uy1,uy1_abs,bend_td(p,2,i,j-1));
-        sgy2=bend_turn(vy2,-uy2,uy2_abs,bend_td(p,2,i,j));
+        sgx1=bend_turn(ux1,vx1,ux1_abs,bend_td(p,s,1,i-1,j));
+        sgx2=bend_turn(ux2,vx2,ux2_abs,bend_td(p,s,1,i,j));
+        sgy1=bend_turn(vy1,-uy1,uy1_abs,bend_td(p,s,2,i,j-1));
+        sgy2=bend_turn(vy2,-uy2,uy2_abs,bend_td(p,s,2,i,j));
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
         // complete q
         dqx = pdx->sx(p,qbx,sgx1,sgx2);
@@ -182,7 +182,7 @@ void sediment_exner::topovel2(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx + dqy + bend_div(p,s,i,j) + susp_ED(p,pgc,s));
         
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
 
@@ -227,7 +227,7 @@ void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
         sgy1=sqrt(uy1*uy1 + vy1*vy1)>1.0e-10?vy1/sqrt(uy1*uy1 + vy1*vy1):0.0;
         sgy2=sqrt(uy2*uy2 + vy2*vy2)>1.0e-10?vy2/sqrt(uy2*uy2 + vy2*vy2):0.0;
         
-        face_closure(p,sgx1,sgx2,sgy1,sgy2);
+        face_closure(p,s,sgx1,sgx2,sgy1,sgy2);
         
         // complete q
         dqx = pdx->sx(p,s->qb,sgx1,sgx2);
@@ -236,28 +236,28 @@ void sediment_exner::topovel3(lexer* p, ghostcell *pgc, sediment_fdm *s)
         // Exner equations
         s->vz(i,j) =  -p->S35*s->guard(i,j)*prelax->rf(p,pgc)*(1.0/(1.0-p->S24))*(dqx*signx + dqy*signy + susp_ED(p,pgc,s));
         
-        if(p->DFBED[IJ]<0)
+        if(s->DFBED[IJ]<0)
         s->vz(i,j) = 0.0;
 	}
     
     pgc->gcsl_start4(p,s->vz,1);
 }
 
-void sediment_exner::face_closure(lexer *p, double &sgx1, double &sgx2, double &sgy1, double &sgy2)
+void sediment_exner::face_closure(lexer *p, sediment_fdm *s, double &sgx1, double &sgx2, double &sgy1, double &sgy2)
 {
     // faces to cells without an erodible bed (structures, solids, non-sediment cells) carry no
     // bedload: the face direction is set to zero, and the discretisations (sediment_exnerdisc)
     // multiply every face value by the face direction (S 31 1) or by its open flag (S 31 2, 3).
     // Closed domain walls have zero face-normal velocity and are closed the same way.
-    if(p->DFBED[Im1J]<0)
+    if(s->DFBED[Im1J]<0)
     sgx1=0.0;
     
-    if(p->DFBED[Ip1J]<0)
+    if(s->DFBED[Ip1J]<0)
     sgx2=0.0;
     
-    if(p->DFBED[IJm1]<0)
+    if(s->DFBED[IJm1]<0)
     sgy1=0.0;
     
-    if(p->DFBED[IJp1]<0)
+    if(s->DFBED[IJp1]<0)
     sgy2=0.0;
 }

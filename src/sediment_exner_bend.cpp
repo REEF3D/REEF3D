@@ -123,27 +123,27 @@ void sediment_exner::bend_prep(lexer *p, ghostcell *pgc, sediment_fdm *s)
         {
             if(p->geo_curv==1)
             {
-            sediment_curv::bedgrad(p,f,i,j,0,fx,fy);
+            sediment_curv::bedgrad(p,s,f,i,j,0,fx,fy);
             return;
             }
 
             fx = (f(i+1,j)-f(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-            if(p->DFBED[Im1J]<0)
+            if(s->DFBED[Im1J]<0)
             fx = (f(i+1,j)-f(i,j))/p->DXP[IP];
-            if(p->DFBED[Ip1J]<0)
+            if(s->DFBED[Ip1J]<0)
             fx = (f(i,j)-f(i-1,j))/p->DXP[IM1];
-            if(p->DFBED[Im1J]<0 && p->DFBED[Ip1J]<0)
+            if(s->DFBED[Im1J]<0 && s->DFBED[Ip1J]<0)
             fx = 0.0;
 
             fy = 0.0;
             if(p->j_dir==1)
             {
             fy = (f(i,j+1)-f(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-            if(p->DFBED[IJm1]<0)
+            if(s->DFBED[IJm1]<0)
             fy = (f(i,j+1)-f(i,j))/p->DYP[JP];
-            if(p->DFBED[IJp1]<0)
+            if(s->DFBED[IJp1]<0)
             fy = (f(i,j)-f(i,j-1))/p->DYP[JM1];
-            if(p->DFBED[IJm1]<0 && p->DFBED[IJp1]<0)
+            if(s->DFBED[IJm1]<0 && s->DFBED[IJp1]<0)
             fy = 0.0;
             }
         };
@@ -193,17 +193,17 @@ double sediment_exner::bend_turn(double un, double ut, double mag, double td)
 
 // a cell with an erodible bed inside the domain (the cells around a patch or block: from the flags of their
 // source, outside the domain closed)
-bool sediment_exner::bend_open(lexer *p, int a, int b)
+bool sediment_exner::bend_open(lexer *p, sediment_fdm *s, int a, int b)
 {
     const int c = (a-p->imin)*p->jmax + (b-p->jmin);
     return a+p->origin_i>=0 && a+p->origin_i<p->gknox && b+p->origin_j>=0 && b+p->origin_j<p->gknoy
-        && p->flagslice4[c]>0 && p->DFBED[c]>0;
+        && p->flagslice4[c]>0 && s->DFBED[c]>0;
 }
 
 // tan(delta) of the face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (ii,jj): the mean of its two cells; 0 at
 // closed faces (walls, the domain edge), where the turn would open the face, and where the two cells cancel
 // to round-off (a symmetry line: the upwind side of S 31 2 / S 32 1 must not follow the sign of round-off)
-double sediment_exner::bend_td(lexer *p, int dir, int ii, int jj)
+double sediment_exner::bend_td(lexer *p, sediment_fdm *s, int dir, int ii, int jj)
 {
     if(p_S95==0)
     return 0.0;
@@ -211,7 +211,7 @@ double sediment_exner::bend_td(lexer *p, int dir, int ii, int jj)
     const int ia = ii + (dir==1?1:0);
     const int ja = jj + (dir==2?1:0);
 
-    if(!bend_open(p,ii,jj) || !bend_open(p,ia,ja))
+    if(!bend_open(p,s,ii,jj) || !bend_open(p,s,ia,ja))
     return 0.0;
 
     const double a = btd(ii,jj), b = btd(ia,ja);
@@ -234,7 +234,7 @@ double sediment_exner::bend_flux(lexer *p, sediment_fdm *s, int dir, int ii, int
     return 0.0;
 
     // closed also to the cells whose bed is held (the inflow guard S 78: no bed change there)
-    if(!bend_open(p,ii,jj) || !bend_open(p,ia,ja) || bg(ii,jj)<0.5 || bg(ia,ja)<0.5)
+    if(!bend_open(p,s,ii,jj) || !bend_open(p,s,ia,ja) || bg(ii,jj)<0.5 || bg(ia,ja)<0.5)
     return 0.0;
 
     double dn;

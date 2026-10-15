@@ -176,11 +176,11 @@ double sediment_curv::face_sign(lexer *p, sediment_fdm *s, int dir, int ii, int 
     return fabs(mag)>1.0e-10 ? (un - td*ut)*c/fabs(mag) : 0.0;
 }
 
-void sediment_curv::bedgrad(lexer *p, slice &f, int ii, int jj, int zero, double &fx, double &fy)
+void sediment_curv::bedgrad(lexer *p, sediment_fdm *s, slice &f, int ii, int jj, int zero, double &fx, double &fy)
 {
     auto xc = [&](int a, int b) { return p->XC2D[q(p,a,b)]; };
     auto yc = [&](int a, int b) { return p->YC2D[q(p,a,b)]; };
-    auto df = [&](int a, int b) { return p->DFBED[q(p,a,b)]; };
+    auto df = [&](int a, int b) { return s->DFBED[q(p,a,b)]; };
 
     // stencil per direction as bedslope::slope_cds / bedload_direction_f: forward next to a closed
     // cell at -1, backward next to a closed cell at +1 (both closed: backward, or no gradient with zero=1)

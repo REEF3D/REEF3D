@@ -22,9 +22,8 @@ Author: Hans Bihs
 
 #include"lexer.h"
 
-lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(this)
+lexer::lexer() : position(this), interpolation(this), coordinates(this)
 {
-    sigT=0.9;
     veclength=0;
     vec2Dlength=0;
     
@@ -73,9 +72,8 @@ lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(thi
     gcsldfeta4=gcsldfbed4=nullptr;
 }
 
-lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this), cmu(0.09)
+lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(this), coordinates(this)
 {
-    sigT=0.9;
     veclength=0;
     vec2Dlength=0;
 

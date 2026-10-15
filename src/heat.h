@@ -54,6 +54,8 @@ public:
     virtual void name_ParaView_parallel(lexer*, ofstream&)=0;
     virtual void name_ParaView(lexer*, std::stringstream&, int*, int &)=0;
     virtual void offset_ParaView(lexer*, int*, int &)=0;
+protected:
+    static constexpr double sigT = 0.9;
 };
 
 #endif

@@ -58,9 +58,9 @@ the balance of the exchange and the near-bed concentrations).
 
 // first fluid cell above the fluid's bed in the column (i,j), -1 if none: the cell of the
 // bed exchange in suspended_IM1::suspsource
-int CPM::susp_cell(lexer *p, fdm *a, int ii, int jj)
+int CPM::susp_cell(lexer *p, fdm *a, sediment_fdm *s, int ii, int jj)
 {
-    if(p->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]<=0 || p->XP[ii+marge]<p->S71 || p->XP[ii+marge]>p->S72)
+    if(s->DFBED[(ii-p->imin)*p->jmax + jj-p->jmin]<=0 || p->XP[ii+marge]<p->S71 || p->XP[ii+marge]>p->S72)
     return -1;
     
     for(int kk=1; kk<p->knoz; ++kk)
@@ -115,7 +115,7 @@ void CPM::susp_cbe(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
-        int k1 = susp_cell(p,a,i,j);
+        int k1 = susp_cell(p,a,s,i,j);
         
         // columns without erodible parcels (no bed, fixed floor, structure) do not erode
         if(k1<0 || blNc(i,j)<=0.0)
@@ -167,7 +167,7 @@ void CPM::susp_flux(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
-        int k1 = susp_cell(p,a,i,j);
+        int k1 = susp_cell(p,a,s,i,j);
         
         if(k1<0)
         continue;
@@ -201,7 +201,7 @@ void CPM::susp_flux(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         for(i=0;i<p->knox;++i)
         for(j=0;j<p->knoy;++j)
         {
-            int k1 = susp_cell(p,a,i,j);
+            int k1 = susp_cell(p,a,s,i,j);
             if(k1<0) continue;
             sc += s->cbe(i,j); s1 += a->conc(i,j,k1); sz += a->topo(i,j,k1); sn += 1.0;
         }

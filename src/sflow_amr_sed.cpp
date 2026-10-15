@@ -566,7 +566,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         sflow_amr_patch *c = SP(id);
         sedscope ss(pgc,c->pp);
         vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
-        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
+        dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp,c->sed->s));
         brate = MAX(brate,c->sed->exner()->bend_rate);
     }
 

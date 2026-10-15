@@ -43,10 +43,10 @@ public:
     slice* amr_fh() override { return &fh; }
 
 private:
-    void find_steepest_neighbor(lexer* p, slice& topo, int i, int j,
+    void find_steepest_neighbor(lexer *p,sediment_fdm *s, slice &topo, int i, int j,
                                  int& i_steep, int& j_steep, 
                                  double& max_slope, double& dist_steep);
-    void find_steepest_neighbor_curv(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep,
+    void find_steepest_neighbor_curv(lexer *p, sediment_fdm *s, slice &zh, int i, int j, int& i_steep, int& j_steep,
                                      double& max_slope, double& dist_steep);     // curvilinear grid (G 50)
 
     void slide(lexer*,ghostcell*,sediment_fdm*);

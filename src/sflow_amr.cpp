@@ -403,12 +403,7 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     delete c->mg;
     told_free(c->told);
 
-    if(c->sed!=nullptr)
-    {
     delete c->sed;
-    if(c->pp->DFBED!=nullptr)
-    c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
-    }
     delete c->pmom;
     delete c->pship;
     delete c->psolv;
