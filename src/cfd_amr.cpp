@@ -392,6 +392,12 @@ cfd_amr::~cfd_amr()
 
 bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) const
 {
+    turbulence *t = nullptr;
+    return finest_grid(x,y,z,q,a,t);
+}
+
+bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turbulence *&t) const
+{
     // a patch whose interior holds the point and whose cells within two cells of it are its own,
     // copies of a patch of the same level (on this rank or another one) or the boundary: not
     // prolonged from the coarser level (a patch edge to the coarser level).  The patches lie on
@@ -435,6 +441,7 @@ bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) cons
 
         q = pp;
         a = c->a;
+        t = c->pturb;
         return true;
     }
     return false;

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
+#include"amr_grid_lookup.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -87,13 +88,20 @@ void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		yp=p->P61_y[n];
 		zp=p->P61_z[n];
 		
-		val[7*n+0] = p->ccipol1(a->u, xp, yp, zp);
-		val[7*n+1] = p->ccipol2(a->v, xp, yp, zp);
-		val[7*n+2] = p->ccipol3(a->w, xp, yp, zp);
-		val[7*n+3] = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
-		val[7*n+4] = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
-		val[7*n+5] = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
-		val[7*n+6] = p->ccipol4a(a->eddyv, xp, yp, zp);
+        // the grid of the values: level 0, or the finest patch of a mesh refinement there
+        lexer *q = p;
+        fdm *fa = a;
+        turbulence *t = pturb;
+        if(amr!=nullptr)
+        amr->finest_grid(xp,yp,zp,q,fa,t);
+
+		val[7*n+0] = q->ccipol1(fa->u, xp, yp, zp);
+		val[7*n+1] = q->ccipol2(fa->v, xp, yp, zp);
+		val[7*n+2] = q->ccipol3(fa->w, xp, yp, zp);
+		val[7*n+3] = q->ccipol4a(fa->press, xp, yp, zp) - p->pressgage;
+		val[7*n+4] = t->ccipol_kinval(q, pgc, xp, yp, zp);
+		val[7*n+5] = t->ccipol_epsval(q, pgc, xp, yp, zp);
+		val[7*n+6] = q->ccipol4a(fa->eddyv, xp, yp, zp);
 	}
 	
 	pgc->globalmax(val.data(),7*probenum);

@@ -26,14 +26,19 @@ Architect: Hans Bihs
 
 class lexer;
 class fdm;
+class turbulence;
 
 // The finest grid of a mesh refinement at a point (rank local): the loads of a body (sixdof_obj_cfd
-// forces_stl) take the pressure, density, viscosity and velocities there.  false: level 0.
+// forces_stl) take the pressure, density, viscosity and velocities there, the probes and wave
+// gauges of the CFD printer (P 51, P 61, P 64) their values.  false: level 0.
 class amr_grid_lookup
 {
 public:
     virtual ~amr_grid_lookup() {}
     virtual bool finest_grid(double x, double y, double z, lexer *&q, fdm *&a) const = 0;
+
+    // the same with the turbulence model of that grid
+    virtual bool finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turbulence *&t) const = 0;
 };
 
 #endif

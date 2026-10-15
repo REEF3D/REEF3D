@@ -245,6 +245,7 @@ void driver::cfd_driver()
     {
         pcfdamr = new cfd_amr(p,a,pgc,pmom,ppress,ppois,pflow,pvrans,pfsi,pini,pturb,p6dof);
         pcfdamr->ini(p,a,pgc);
+        pprint->amr_probes(pcfdamr);
     }
 
     preg = new regression_dump(p);

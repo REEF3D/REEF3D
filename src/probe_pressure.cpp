@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"probe_core.h"
 #include"probe_pressure.h"
 #include"lexer.h"
+#include"amr_grid_lookup.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
@@ -93,7 +94,13 @@ void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 		yp=p->P64_y[n];
 		zp=p->P64_z[n];
 		
-		pval = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
+        // level 0, or the finest patch of a mesh refinement there
+        lexer *q = p;
+        fdm *fa = a;
+        if(amr!=nullptr)
+        amr->finest_grid(xp,yp,zp,q,fa);
+
+		pval = q->ccipol4a(fa->press, xp, yp, zp) - p->pressgage;
 		}
 	
 	val[n*1+0]=pval;

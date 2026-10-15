@@ -103,7 +103,8 @@ struct cfd_amr_tlev
 //  (cfd_amr_relax.cpp, the eddy viscosity as well), the other wave generation and absorption on
 //  level 0; the tiles at an in- or outflow boundary stay on level 0 (reefamr3d::mark_tiles); the
 //  pressure reference B 30 1, 2, 4 over all grids at the end of the step (cfd_amr::reference), B 30
-//  3 (the atmosphere) on all grids.
+//  3 (the atmosphere) on all grids.  The probes and wave gauges of the printer (P 51, P 61, P 64)
+//  read the finest grid at their position (finest_grid).
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
@@ -194,6 +195,7 @@ public:
     // the finest patch whose interior holds the point two cells inside its edges (the loads of
     // the floating bodies, X 60 1)
     bool finest_grid(double, double, double, lexer*&, fdm*&) const override;
+    bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
     void print(lexer*, bool after=false);

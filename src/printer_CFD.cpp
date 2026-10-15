@@ -35,6 +35,7 @@ Authors: Hans Bihs, Alexander Hanke
 #include"vorticity_f.h"
 #include"vorticity_void.h"
 #include"probe_point.h"
+#include"amr_grid_lookup.h"
 #include"probe_pressure.h"
 #include"probe_line.h"
 #include"ioflow.h"
@@ -887,4 +888,13 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         pgc->start4a(p,a->topo,150);
     }
+}
+
+// CFD mesh refinement: the point probes (P 61), pressure probes (P 64) and wave gauges (P 51) read
+// the finest grid at their position
+void printer_CFD::amr_probes(const amr_grid_lookup *amr)
+{
+    pprobe->amr = amr;
+    ppressprobe->amr = amr;
+    pwsf->amr = amr;
 }
