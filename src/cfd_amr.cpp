@@ -930,6 +930,8 @@ void cfd_amr::turb_step(int l)
         cfd_amr_patch *c = CP(id);
         pscope ps(pgc0,c->a,a0);
         c->pturb->start(c->a,c->pp,c->pturbdisc,c->pturbdiff,c->psolv,pgc0,c->pflow,c->pvrans);
+        if(patch_relax_turb(id))
+        pgc0->start4(c->pp,c->a->eddyv,24);
     }
 }
 

@@ -99,8 +99,9 @@ struct cfd_amr_tlev
 //  sediment, porous media, heat or concentration, no pressure reference (B 30 0); the convection
 //  schemes D 10 0-8, 10-16, 60 and F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of
 //  the wave generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on
-//  level 0 (cfd_amr_relax.cpp), the other wave generation and absorption on level 0; the tiles at
-//  an in- or outflow boundary stay on level 0 (reefamr3d::mark_tiles).
+//  level 0 (cfd_amr_relax.cpp, the eddy viscosity as well), the other wave generation and
+//  absorption on level 0; the tiles at an in- or outflow boundary stay on level 0
+//  (reefamr3d::mark_tiles).
 //
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
@@ -379,6 +380,7 @@ private:
     bool patch_in_zone(int id);
     void patch_relax_vel(int id, field &u, field &v, field &w);
     void patch_relax_phi(int id, field &f);
+    bool patch_relax_turb(int id);      // the eddy viscosity in the generation zone (as iowave::turb_relax)
     int pr_it_last = 0;
     int pr_it_sync = 0;                 // G 7 1: iterations of the synchronisation projection
     vector<vector<double>> sync_x;      // G 7 1: the correction of the last synchronisation (leaf cells per grid), its start

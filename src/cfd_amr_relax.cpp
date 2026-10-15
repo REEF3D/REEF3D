@@ -43,8 +43,8 @@ Architect: Hans Bihs
 //  (wave_interface) evaluated there at the start of the patch's step (G 7 1; G 7 0: of the step,
 //  as level 0), the interface band of the patch (3 and 0.6 of its cell size).  For wave theories
 //  (not the wavemakers B 92 20-29), B 95 0, without zone sources or backgrounds (B 523, B 524);
-//  otherwise the zones stay on level 0 as before.  The turbulence quantities are not relaxed on
-//  the patches.
+//  otherwise the zones stay on level 0 as before.  The eddy viscosity of a RANS model relaxes in
+//  the generation zone as on level 0 (iowave::turb_relax: towards 0 with the weight of the zone).
 
 namespace
 {
@@ -300,4 +300,31 @@ void cfd_amr::patch_relax_phi(int id, field &f)
             f(i,j,k) = (1.0-wb)*(phimean - zc) + wb*f(i,j,k);
         }
     }
+}
+
+// the eddy viscosity of patch id in the generation zone (iowave::turb_relax); true if any cell
+bool cfd_amr::patch_relax_turb(int id)
+{
+    if(zones0==nullptr || !zgen || !patch_in_zone(id))
+    return false;
+
+    cfd_amr_patch *c = CP(id);
+    lexer *pp = c->pp;
+    fdm *a = c->a;
+    bool any = false;
+    for(int i=0; i<pp->knox; ++i)
+    for(int j=0; j<pp->knoy; ++j)
+    {
+        const double xc = pp->XP[i+marge], yc = pp->YP[j+marge];
+        if(zones0->relax_dist(xc,yc)>=1.0e20)
+        continue;
+        const double wg = zones0->relax_weight(xc,yc);
+        for(int k=0; k<pp->knoz; ++k)
+        if(pp->flag4[cix_r(pp,i,j,k)]>0)
+        {
+            a->eddyv(i,j,k) = wg*a->eddyv(i,j,k);
+            any = true;
+        }
+    }
+    return any;
 }
