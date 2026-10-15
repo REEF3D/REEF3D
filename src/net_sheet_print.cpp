@@ -46,10 +46,10 @@ void net_sheet::print(lexer *p)
         char str[1000];
         
         if(p->A10==5)
-        sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         
         if(p->A10==6)
-        sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
+        snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
             
         ofstream header_out;
         header_out.open(str, std::ofstream::out | std::ofstream::app);
@@ -65,10 +65,10 @@ void net_sheet::print(lexer *p)
             char str[1000];
             
             if(p->A10==5)
-            sprintf(str,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            snprintf(str,sizeof(str),"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             
             if(p->A10==6)
-            sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
+            snprintf(str,sizeof(str),"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             
             ofstream header_out;
             header_out.open(str, std::ofstream::out | std::ofstream::app);
@@ -88,10 +88,10 @@ void net_sheet::print(lexer *p)
 		printtime += p->P30;
 		
         if(p->A10==5)
-        sprintf(name,"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
         
         if(p->A10==6)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-%08i-%06i.stl",nNet,num);
 
         // Save net as .stl
         ofstream result;
@@ -140,10 +140,10 @@ void net_sheet::print(lexer *p)
 
         //- Print Lagrangian points
         if(p->A10==5)
-        sprintf(name,"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-Lagrange-%08i.pvtu",num);
+        snprintf(name,sizeof(name),"./REEF3D_NHFLOW_6DOF_Net/REEF3D-Net-Lagrange-%08i.pvtu",num);
         
         if(p->A10==6)
-        sprintf(name,"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-%08i.pvtu",num);
+        snprintf(name,sizeof(name),"./REEF3D_CFD_6DOF_Net/REEF3D-Net-Lagrange-%08i.pvtu",num);
         
         result.open(name, ios::binary);
         for (int ii = 0; ii < nK; ii++)

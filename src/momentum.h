@@ -45,6 +45,8 @@ using namespace std;
 class momentum
 {
 public:
+    virtual ~momentum() = default;
+
 	virtual void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*)=0;
 
 };

@@ -50,7 +50,7 @@ void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     {
     // open force surf file
-	sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
+	snprintf(name,sizeof(name),"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
 	
 	fout.open(name);
 

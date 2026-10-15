@@ -31,6 +31,7 @@ using namespace std;
 class nhflow_scalar_advec
 {
 public:
+    virtual ~nhflow_scalar_advec() = default;
 
     virtual void uadvec(int,double*,double&,double&)=0;
 	virtual void vadvec(int,double*,double&,double&)=0;

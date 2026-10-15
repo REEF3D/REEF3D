@@ -33,6 +33,7 @@ using namespace std;
 class sflow_convection
 {
 public:
+    virtual ~sflow_convection() = default;
 
 virtual void start(lexer*,fdm2D*,slice&,int,slice&,slice&)=0;
 

@@ -33,8 +33,7 @@ class nhflow_flux_build
 {
 
 public:
-
-    virtual ~nhflow_flux_build() {}
+    virtual ~nhflow_flux_build() = default;
 
     virtual void start_E(lexer*, fdm_nhf*, ghostcell*)=0;
     virtual void start_U(lexer*, fdm_nhf*, ghostcell*)=0;

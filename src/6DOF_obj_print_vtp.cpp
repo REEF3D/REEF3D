@@ -150,11 +150,11 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 
         char path[300];
         if(p->A10==2)
-            sprintf(path,"./REEF3D_SFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+            snprintf(path,sizeof(path),"./REEF3D_SFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
         else if((p->A10==5||p->A10==3))
-            sprintf(path,(p->A10==3?"./REEF3D_FNPF_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp":"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp"),n6DOF,num);
+            snprintf(path,sizeof(path),(p->A10==3?"./REEF3D_FNPF_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp":"./REEF3D_NHFLOW_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp"),n6DOF,num);
         else if(p->A10==6)
-            sprintf(path,"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
+            snprintf(path,sizeof(path),"./REEF3D_CFD_6DOF_VTP/REEF3D-6DOF-%i-%06i.vtp",n6DOF,num);
 
         // P 18: the body in the LAGOON store, its mesh once and its motion (x = R x0 + c);
         // P 18 1 leaves out the VTP file then (P 18 2 writes it as well)

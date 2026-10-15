@@ -44,7 +44,7 @@ class mooring_dynamic final : public mooring, public beam
 {
 public:
 	
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     mooring_dynamic(int);
 	virtual ~mooring_dynamic();
