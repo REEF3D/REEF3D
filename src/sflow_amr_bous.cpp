@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"reefamr_krylov.h"
 #include<cmath>
 #include<limits>
+#include<algorithm>
 
 //  Boussinesq u_a (A 220 4) on the leaf cells of all levels.
 //
@@ -199,7 +200,7 @@ double sflow_amr::bq_dot(int ka, int kb)
     double s=0.0;
     for(int g=-1; g<(int)P.size(); ++g)
     {
-        const double *a = nh_vec(g,ka).V, *b = nh_vec(g,kb).V;
+        const double *a = nh_vec(g,ka).data(), *b = nh_vec(g,kb).data();
         for(int n : (*bqc)[g+1].leaf)
         s += a[n]*b[n];
     }
@@ -215,8 +216,8 @@ void sflow_amr::bq_apply(int kx, int ky, int dir)
     {
         lexer *q = (g<0) ? p0 : P[g]->pp;
         bqrow R = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir);
-        const double *x = nh_vec(g,kx).V, *rp = R.p->V, *ru = R.up->V, *rd = R.dn->V;
-        double *y = nh_vec(g,ky).V;
+        const double *x = nh_vec(g,kx).data(), *rp = R.p->data(), *ru = R.up->data(), *rd = R.dn->data();
+        double *y = nh_vec(g,ky).data();
         const int off = (dir==0) ? q->jmax : 1;
 
         for(int n : (*bqc)[g+1].leaf)
@@ -233,8 +234,8 @@ void sflow_amr::bq_prec(int kr, int kz, int dir)
     {
         lexer *q = (g<0) ? p0 : P[g]->pp;
         bqrow R = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir);
-        const double *r = nh_vec(g,kr).V, *rp = R.p->V, *ru = R.up->V, *rd = R.dn->V;
-        double *z = nh_vec(g,kz).V;
+        const double *r = nh_vec(g,kr).data(), *rp = R.p->data(), *ru = R.up->data(), *rd = R.dn->data();
+        double *z = nh_vec(g,kz).data();
         const int off = (dir==0) ? q->jmax : 1;
         const vector<int> &S = (*bqc)[g+1].seg[dir];
 
@@ -267,8 +268,8 @@ void sflow_amr::bq_start(int dir)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vb = nh_vec(g-1,BB).V;
-        double *vr = nh_vec(g-1,BR).V, *vrh = nh_vec(g-1,BRH).V, *vp = nh_vec(g-1,BPV).V, *vv = nh_vec(g-1,BVV).V;
+        const double *vb = nh_vec(g-1,BB).data();
+        double *vr = nh_vec(g-1,BR).data(), *vrh = nh_vec(g-1,BRH).data(), *vp = nh_vec(g-1,BPV).data(), *vv = nh_vec(g-1,BVV).data();
         for(int n : (*bqc)[g].leaf)
         {
             double r = vb[n] - vv[n];
@@ -281,8 +282,8 @@ void sflow_amr::bq_p(double beta, double om)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vr = nh_vec(g-1,BR).V, *vv = nh_vec(g-1,BVV).V;
-        double *vp = nh_vec(g-1,BPV).V;
+        const double *vr = nh_vec(g-1,BR).data(), *vv = nh_vec(g-1,BVV).data();
+        double *vp = nh_vec(g-1,BPV).data();
         for(int n : (*bqc)[g].leaf)
         vp[n] = vr[n] + beta*(vp[n] - om*vv[n]);
     }
@@ -292,8 +293,8 @@ void sflow_amr::bq_s(double alp)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vr = nh_vec(g-1,BR).V, *vv = nh_vec(g-1,BVV).V;
-        double *vs = nh_vec(g-1,BS).V;
+        const double *vr = nh_vec(g-1,BR).data(), *vv = nh_vec(g-1,BVV).data();
+        double *vs = nh_vec(g-1,BS).data();
         for(int n : (*bqc)[g].leaf)
         vs[n] = vr[n] - alp*vv[n];
     }
@@ -303,8 +304,8 @@ void sflow_amr::bq_x(double alp, double om)
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vph = nh_vec(g-1,BPH).V, *vsh = nh_vec(g-1,BSH).V, *vs = nh_vec(g-1,BS).V, *vt = nh_vec(g-1,BT).V;
-        double *vx = nh_vec(g-1,BX).V, *vr = nh_vec(g-1,BR).V;
+        const double *vph = nh_vec(g-1,BPH).data(), *vsh = nh_vec(g-1,BSH).data(), *vs = nh_vec(g-1,BS).data(), *vt = nh_vec(g-1,BT).data();
+        double *vx = nh_vec(g-1,BX).data(), *vr = nh_vec(g-1,BR).data();
         for(int n : (*bqc)[g].leaf)
         {
             vx[n] += alp*vph[n] + om*vsh[n];
@@ -318,8 +319,8 @@ void sflow_amr::bq_restart()
 {
     for(int g=0; g<(int)bqc->size(); ++g)
     {
-        const double *vr = nh_vec(g-1,BR).V;
-        double *vrh = nh_vec(g-1,BRH).V, *vp = nh_vec(g-1,BPV).V, *vv = nh_vec(g-1,BVV).V;
+        const double *vr = nh_vec(g-1,BR).data();
+        double *vrh = nh_vec(g-1,BRH).data(), *vp = nh_vec(g-1,BPV).data(), *vv = nh_vec(g-1,BVV).data();
         for(int n : (*bqc)[g].leaf)
         {
             vrh[n] = vr[n];
@@ -390,7 +391,7 @@ void sflow_amr::bous_window(ghostcell *pgc, int l, double th)
     vector<double*> vx(ng),vb(ng);
     for(int g=-1; g<ng-1; ++g)
     {
-        vx[g+1]=nh_vec(g,BX).V; vb[g+1]=nh_vec(g,BB).V;
+        vx[g+1]=nh_vec(g,BX).data(); vb[g+1]=nh_vec(g,BB).data();
     }
 
     auto ua = [&](int g, int dir) -> slice& { fdm2D *b = (g<0) ? b0 : SP(g)->b; return dir==0 ? b->UA : b->VA; };
@@ -403,15 +404,11 @@ void sflow_amr::bous_window(ghostcell *pgc, int l, double th)
         // initial guess: u_a of the stage; right-hand side
         for(int g=-1; g<ng-1; ++g)
         {
-            lexer *q = (g<0) ? p0 : P[g]->pp;
-            const double *u = ua(g,dir).V;
-            double *x = vx[g+1];
-            for(int n=0; n<q->imax*q->jmax; ++n)
-            x[n] = u[n];
+            std::ranges::copy(ua(g,dir),vx[g+1]);
 
             if((*bqc)[g+1].leaf.empty())
             continue;
-            const double *rr = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir).r->V;
+            const double *rr = rows((g<0 ? pmom0 : SP(g)->pmom)->boussinesq(),dir).r->data();
             for(int n : (*bqc)[g+1].leaf)
             vb[g+1][n] = rr[n];
         }
@@ -637,12 +634,7 @@ void sflow_amr::cq_apply(int kx, int ky, bool lin, int dir)
 {
     if(lin)
     for(int g=-1; g<(int)P.size(); ++g)
-    {
-        lexer *q = (g<0) ? p0 : P[g]->pp;
-        double *o = cq_vec(g,kx,1-dir).V;
-        for(int n=0; n<q->imax*q->jmax; ++n)
-        o[n] = 0.0;
-    }
+    std::ranges::fill(cq_vec(g,kx,1-dir),0.0);
 
     cq_sync(kx);
 
@@ -655,8 +647,8 @@ void sflow_amr::cq_apply(int kx, int ky, bool lin, int dir)
         continue;
         lexer *q = (g<0) ? p0 : P[g]->pp;
         const vector<signed char> &act = *nh_grid(g).act;
-        double *o = cq_vec(g,kx,1-dir).V;
-        const double *os = cq_vec(g,CQO,1-dir).V;
+        double *o = cq_vec(g,kx,1-dir).data();
+        const double *os = cq_vec(g,CQO,1-dir).data();
         for(int n=0; n<q->imax*q->jmax; ++n)
         if(act[n]!=1)
         o[n] = os[n];
@@ -686,12 +678,12 @@ void sflow_amr::cq_apply(int kx, int ky, bool lin, int dir)
         // own component of ky
         if(dir==1)
         for(int n : (*bqc)[g+1].leaf)
-        cq_vec(g,ky,1).V[n] = y.V[n];
+        cq_vec(g,ky,1).data()[n] = y.data()[n];
 
         if(lin)
         {
-            const double *c0 = cq_vec(g,CQC0,dir).V;
-            double *yy = cq_vec(g,ky,dir).V;
+            const double *c0 = cq_vec(g,CQC0,dir).data();
+            double *yy = cq_vec(g,ky,dir).data();
             for(int n : (*bqc)[g+1].leaf)
             yy[n] -= c0[n];
         }
@@ -703,7 +695,7 @@ double sflow_amr::cq_dot(int ka, int kb, int dir)
     double s=0.0;
     for(int g=-1; g<(int)P.size(); ++g)
     {
-        const double *a = cq_vec(g,ka,dir).V, *b = cq_vec(g,kb,dir).V;
+        const double *a = cq_vec(g,ka,dir).data(), *b = cq_vec(g,kb,dir).data();
         for(int n : (*bqc)[g+1].leaf)
         s += a[n]*b[n];
     }
@@ -721,7 +713,7 @@ void sflow_amr::cq_ops(int op, double s1, double s2, int dir)
 {
     for(int g=-1; g<(int)P.size(); ++g)
     {
-        auto V = [&](int k) { return cq_vec(g,k,dir).V; };
+        auto V = [&](int k) { return cq_vec(g,k,dir).data(); };
         double *x=V(CQX), *bb=V(CQB), *r=V(CQR), *rh=V(CQRH), *pv=V(CQPV), *vv=V(CQVV), *sv=V(CQS), *t=V(CQT), *ph=V(CQPH), *sh=V(CQSH);
         for(int n : (*bqc)[g+1].leaf)
         {
@@ -785,18 +777,14 @@ void sflow_amr::bous_window_curv(ghostcell *pgc, int l, double th)
     for(int g=-1; g<ng-1; ++g)
     {
         fdm2D *b = (g<0) ? b0 : SP(g)->b;
-        for(int n=0; n<cells(g); ++n)
-        {
-            cq_vec(g,CQX,0).V[n] = b->UA.V[n];
-            cq_vec(g,CQX,1).V[n] = b->VA.V[n];
-        }
+        std::ranges::copy(b->UA,cq_vec(g,CQX,0).begin());
+        std::ranges::copy(b->VA,cq_vec(g,CQX,1).begin());
     }
 
     // the lagged component: the start values (the stage state also around the patches)
     for(int g=-1; g<ng-1; ++g)
     for(int c=0; c<2; ++c)
-    for(int n=0; n<cells(g); ++n)
-    cq_vec(g,CQO,c).V[n] = cq_vec(g,CQX,c).V[n];
+    std::ranges::copy(cq_vec(g,CQX,c),cq_vec(g,CQO,c).begin());
 
     if(l>=0)
     fill_run(l,2,7360+l,
@@ -816,18 +804,17 @@ void sflow_amr::bous_window_curv(ghostcell *pgc, int l, double th)
         // right-hand side V.e/H of the leaf cells
         for(int g=-1; g<ng-1; ++g)
         {
-            const double *rh = (dir==0) ? bous(g)->Ra.V : bous(g)->Rb.V;
+            const double *rh = (dir==0) ? bous(g)->Ra.data() : bous(g)->Rb.data();
             for(int n : (*bqc)[g+1].leaf)
-            cq_vec(g,CQB,dir).V[n] = rh[n];
+            cq_vec(g,CQB,dir).data()[n] = rh[n];
         }
 
         // constant part C0 = A(0), A x0 with the lagged other component
         for(int g=-1; g<ng-1; ++g)
         for(int c=0; c<2; ++c)
-        for(int n=0; n<cells(g); ++n)
         {
-            cq_vec(g,CQPH,c).V[n] = 0.0;
-            cq_vec(g,CQT,c).V[n] = (c==dir) ? cq_vec(g,CQX,c).V[n] : cq_vec(g,CQO,c).V[n];
+            std::ranges::fill(cq_vec(g,CQPH,c),0.0);
+            std::ranges::copy(cq_vec(g,(c==dir) ? CQX : CQO,c),cq_vec(g,CQT,c).begin());
         }
         cq_apply(CQPH,CQC0,false,dir);
         cq_apply(CQT,CQVV,false,dir);
@@ -841,7 +828,7 @@ void sflow_amr::bous_window_curv(ghostcell *pgc, int l, double th)
         if(bn<=0.0)
         for(int g=-1; g<ng-1; ++g)
         for(int n : (*bqc)[g+1].leaf)
-        cq_vec(g,CQX,dir).V[n] = 0.0;
+        cq_vec(g,CQX,dir).data()[n] = 0.0;
     }
 
     // u_a everywhere: leaf cells, covered cells, around the patches, partition halo; dry cells 0
@@ -856,7 +843,7 @@ void sflow_amr::bous_window_curv(ghostcell *pgc, int l, double th)
         fdm2D *b = (g<0) ? b0 : SP(g)->b;
         for(int n=0; n<cells(g); ++n)
         if(q->wet[n]==0)
-        cq_vec(g,CQX,0).V[n] = cq_vec(g,CQX,1).V[n] = 0.0;
+        cq_vec(g,CQX,0).data()[n] = cq_vec(g,CQX,1).data()[n] = 0.0;
         bous(g)->set_curv(q,b,cq_vec(g,CQX,0),cq_vec(g,CQX,1),g>=0);
     }
 

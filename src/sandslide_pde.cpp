@@ -267,7 +267,7 @@ int sandslide_pde::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
     tol = 1.0e-4*MAX(p->S20,1.0e-6);
 
     count=0;
-    std::fill(fh.V,fh.V+p->imax*p->jmax,0.0);
+    std::ranges::fill(fh,0.0);
 
     SEDSLICELOOP
     SLIDE_DONOR

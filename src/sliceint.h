@@ -28,8 +28,8 @@ Author: Hans Bihs
 class sliceint : public slice_base<int>
 {
 public:
-    sliceint(lexer* p) : slice_base<int>(p) {};
-    virtual ~sliceint() = default;
+    sliceint(lexer* p) : slice_base<int>(p) {}
+    ~sliceint() override;
 };
 
 #endif

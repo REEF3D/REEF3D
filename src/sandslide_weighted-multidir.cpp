@@ -331,7 +331,7 @@ double  sandslide_weighted_multidir::compute_slope_curv(lexer* p, slice & zh, in
 int sandslide_weighted_multidir::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     slidecount=0;
-    std::fill(fh.V,fh.V+p->imax*p->jmax,0.0);
+    std::ranges::fill(fh,0.0);
 
     compute_fh(p,pgc,s);
 

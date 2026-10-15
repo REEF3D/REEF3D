@@ -88,11 +88,11 @@ void fem_coupling::sc_fluid(lexer *p, fdm_nhf *d, bool save)
     for(size_t q=0; q<na; ++q)
     cpd(F[q],a3[q],n3);
     for(size_t q=0; q<ns; ++q)
-    cpd(F[na+q],s2[q]->V,n2);
+    cpd(F[na+q],s2[q]->data(),n2);
     cpd(F[na+ns],p->sigz,n2);
     cpd(F[na+ns+1],p->WL,n2);
     for(size_t q=0; q<ni; ++q)
-    cpi(I[q],i2[q]->V,n2);
+    cpi(I[q],i2[q]->data(),n2);
     cpi(I[ni],p->DF,nd);
     cpi(I[ni+1],p->wet,n2);
     cpi(I[ni+2],p->wet_n,n2);

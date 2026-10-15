@@ -28,8 +28,8 @@ Author: Hans Bihs
 class slice : public slice_base<double>
 {
 public:
-    slice(lexer* p) : slice_base<double>(p) {};
-    virtual ~slice() = default;
+    slice(lexer* p) : slice_base<double>(p) {}
+    ~slice() override;
 };
 
 #endif

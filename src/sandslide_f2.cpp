@@ -456,7 +456,7 @@ void sandslide_f2::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
 int sandslide_f2::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     count=0;
-    std::fill(fh.V,fh.V+p->imax*p->jmax,0.0);
+    std::ranges::fill(fh,0.0);
 
     SEDSLICELOOP
     SLIDE_DONOR
