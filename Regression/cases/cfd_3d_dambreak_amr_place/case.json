@@ -1,0 +1,21 @@
+{
+ "base": "cfd_3d_dambreak_amr",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "3D dam break with the placement (G 40 1) on 2 ranks: the refined box on rank 0's level 0 cut into two units (load max/mean 1.53 without G 40, 1.16 with it: the cut at a tile edge).",
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "the shadows in 3D",
+  "the load report"
+ ]
+}
