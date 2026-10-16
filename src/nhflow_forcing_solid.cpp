@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"vrans.h"
 
 void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double alpha, double *U, double *V, double *W, slice &WL)
@@ -41,15 +42,20 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     uf=vf=wf=0.0;
     
+    // The forcing is added as  U += alpha dt CPORNH F  (nhflow_forcing, reforcing), like all momentum tendencies.
+    // The direct forcing is a constraint, not a tendency: F is divided by CPORNH here, so that the solid velocity
+    // is fully imposed also where a solid lies inside a porous structure (e.g. a pile with a porous cover, n < 1).
+    // Without porous media CPORNH = 1 and nothing changes.
+    
     // -- full no-slip direct forcing
     if(p->A517==0)
     LOOP
     {
         H = Hsolidface(p,d,0,0,0);
        
-        FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt);
-        FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt);
-        FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt);
+        FX[IJK] += H*(uf - U[IJK])/(alpha*p->dt*CPORNH);
+        FY[IJK] += H*(vf - V[IJK])/(alpha*p->dt*CPORNH);
+        FZ[IJK] += H*(wf - W[IJK])/(alpha*p->dt*CPORNH);
         
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
     }
@@ -69,9 +75,9 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
         if(d->SOLID[IJK] <= 0.0)
         {
             // interior of the body: enforce the full rigid-body velocity
-            FX[IJK] += H*du/(alpha*p->dt);
-            FY[IJK] += H*dv/(alpha*p->dt);
-            FZ[IJK] += H*dw/(alpha*p->dt);
+            FX[IJK] += H*du/(alpha*p->dt*CPORNH);
+            FY[IJK] += H*dv/(alpha*p->dt*CPORNH);
+            FZ[IJK] += H*dw/(alpha*p->dt*CPORNH);
         }
         
         else
@@ -97,17 +103,17 @@ void nhflow_forcing::solid_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc,
             
             udotn = nx*du + ny*dv + nz*dw;
             
-            FX[IJK] += H*(beta*du + (1.0-beta)*udotn*nx)/(alpha*p->dt);
-            FY[IJK] += H*(beta*dv + (1.0-beta)*udotn*ny)/(alpha*p->dt);
-            FZ[IJK] += H*(beta*dw + (1.0-beta)*udotn*nz)/(alpha*p->dt);
+            FX[IJK] += H*(beta*du + (1.0-beta)*udotn*nx)/(alpha*p->dt*CPORNH);
+            FY[IJK] += H*(beta*dv + (1.0-beta)*udotn*ny)/(alpha*p->dt*CPORNH);
+            FZ[IJK] += H*(beta*dw + (1.0-beta)*udotn*nz)/(alpha*p->dt*CPORNH);
             }
             
             else
             {
             // degenerate gradient (flat level set): fall back to full forcing
-            FX[IJK] += H*du/(alpha*p->dt);
-            FY[IJK] += H*dv/(alpha*p->dt);
-            FZ[IJK] += H*dw/(alpha*p->dt);
+            FX[IJK] += H*du/(alpha*p->dt*CPORNH);
+            FY[IJK] += H*dv/(alpha*p->dt*CPORNH);
+            FZ[IJK] += H*dw/(alpha*p->dt*CPORNH);
             }
         }
     }
