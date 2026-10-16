@@ -315,6 +315,55 @@ int main()
         if(std::system("rm -rf lagoon_store_test_plain.lagoon")!=0) std::cout<<"  (could not clear)"<<std::endl;
     }
 
+    // a store holds one run: the first writer of a new run moves the store of an earlier
+    // run aside (SFLOW writes no volume: its surfaces and AMR start the store)
+    {
+        std::cout<<"a new run: a new store, the earlier one moved aside"<<std::endl;
+        if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
+        const std::string path = "lagoon_store_test_run.lagoon";
+        const std::string run_a = "{\"type\": \"run\", \"run\": \"20261015T173119Z-fc5d\"}";
+        const std::string run_b = "{\"type\": \"run\", \"run\": \"20261015T211317Z-6b67\"}";
+        check(lagoon_store::run_id(run_a)=="20261015T173119Z-fc5d", "the run id of a run record");
+        {
+            lagoon_store earlier(path,16,1);  // the store of run a, with an AMR group
+            earlier.create_root("SFLOW", run_a);
+            if(std::system(("mkdir -p "+path+"/amr/sflow_amr && touch "+path+"/amr/sflow_amr/zarr.json").c_str())!=0)
+                std::cout<<"  (could not make the AMR group)"<<std::endl;
+        }
+        check(lagoon_store::run_id(slurp(path+"/zarr.json"))=="20261015T173119Z-fc5d", "the run id of a store's root");
+        lagoon_store surfaces(path,16,1);   // run b: its free surface starts the store
+        const std::string aside = surfaces.begin_run("SFLOW", run_b);
+        check(aside=="lagoon_store_test_run-20261015T173119Z-fc5d.lagoon-earlier", "run a's store moved aside, named by its run");
+        check(std::ifstream((aside+"/amr/sflow_amr/zarr.json").c_str()).good(), "run a's AMR goes with it");
+        check(!std::ifstream((path+"/amr/sflow_amr/zarr.json").c_str()), "the new store has no AMR of run a");
+        check(lagoon_store::run_id(slurp(path+"/zarr.json"))=="20261015T211317Z-6b67", "the new root is run b's");
+        surfaces.create_output("free_surface","surface",{0.0,1.0},{0.0,1.0},{},{{"eta",1,"m"}},1,"REEF3D_SFLOW_VTP_FSF");
+        lagoon_store amr(path,16,1);        // run b's AMR writer, later: writes into the same store
+        check(amr.begin_run("SFLOW", run_b).empty() && std::ifstream((path+"/free_surface/zarr.json").c_str()).good(),
+              "a second writer of the run keeps the store");
+        check(slurp(path+"/zarr.json").find("\"outputs\": [\"free_surface\"]")!=std::string::npos, "and its root");
+        // a store without a run id (no run log), moved aside twice by the same name
+        const std::string other = "lagoon_store_test_run2.lagoon";
+        for(int k=0; k<2; ++k)
+        {
+            lagoon_store plain(other,16,1);
+            plain.create_root("SFLOW","");
+        }
+        lagoon_store first(other,16,1);
+        check(first.begin_run("SFLOW", run_b)=="lagoon_store_test_run2-earlier.lagoon-earlier", "no run id: -earlier");
+        if(std::system(("rm -rf "+other+" && mkdir "+other+" && touch "+other+"/zarr.json").c_str())!=0)
+            std::cout<<"  (could not remake)"<<std::endl;
+        lagoon_store again("./"+other,16,1);  // another path string: begun anew
+        check(again.begin_run("SFLOW", run_b)=="./lagoon_store_test_run2-earlier-2.lagoon-earlier", "a second one: -2");
+        // an empty folder (a writer made it before the root) is no earlier store
+        if(std::system("rm -rf lagoon_store_test_run3.lagoon && mkdir lagoon_store_test_run3.lagoon")!=0)
+            std::cout<<"  (could not make)"<<std::endl;
+        lagoon_store empty("lagoon_store_test_run3.lagoon",16,1);
+        check(empty.begin_run("SFLOW", run_b).empty() && std::ifstream("lagoon_store_test_run3.lagoon/zarr.json").good(),
+              "an empty folder: the root made in it, nothing moved");
+        if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
+    }
+
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

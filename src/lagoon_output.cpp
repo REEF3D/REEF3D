@@ -60,21 +60,12 @@ void log_stored(lexer *p, const std::string &output, const std::string &group, c
                     path.c_str(), group.c_str(), pieces);
 }
 
-// the run id in a store's root metadata, or "" if there is none
-std::string stored_run(const std::string &path)
+// the run log's run record for a store's root, or "" without a run log
+std::string run_record(lexer *p)
 {
-    std::ifstream in((path + "/zarr.json").c_str());
-    if(!in)
+    if(!p->plog)
         return "";
-    std::stringstream text;
-    text << in.rdbuf();
-    const std::string s = text.str();
-    const std::string key = "\"run\": \"";
-    const size_t at = s.find(key, s.find("\"reef3d_run\""));
-    if(at==std::string::npos)
-        return "earlier";
-    const size_t end = s.find('"', at + key.size());
-    return s.substr(at + key.size(), end - at - key.size());
+    return "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
 }
 
 double seconds_since(std::chrono::steady_clock::time_point start)
@@ -163,20 +154,7 @@ lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
 {
     // a store holds one run: the store of an earlier run in this folder is moved aside
     if(p->mpirank==0)
-    {
-        const std::string path = store_path(solver_);
-        struct stat info;
-        if(stat(path.c_str(), &info)==0)
-        {
-            const std::string aside = std::string("./REEF3D_") + solver_ + "-" + stored_run(path) + ".lagoon-earlier";
-            if(std::rename(path.c_str(), aside.c_str())==0)
-                std::cout<<"LAGOON: the store of the earlier run is now "<<aside<<std::endl;
-        }
-        std::string run;
-        if(p->plog)
-            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
-        store.create_root(solver, run);
-    }
+        store.begin_run(solver, run_record(p));
     timing.threads = lagoon_timing::compress_threads(pgc);
     store.set_threads(timing.threads);
     all().push_back(this);
@@ -425,14 +403,7 @@ bool lagoon_surface::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_st
     grid_lines(p, pgc, x, y);
     if(p->mpirank==0)
     {
-        struct stat info;
-        if(stat((store_path(solver.c_str()) + "/zarr.json").c_str(), &info)!=0)  // no volume output
-        {
-            std::string run;
-            if(p->plog)
-                run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
-            store.create_root(solver, run);
-        }
+        store.begin_run(solver, run_record(p));  // a new run: a new store (the volume's, if any)
         std::vector<double> xc, yc;
         const bool curvilinear = curvilinear_nodes(p, xc, yc);
         store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source,
@@ -653,9 +624,7 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
         {
             if(writer==nullptr)
             {
-                std::string run;
-                if(p->plog)
-                    run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+                const std::string run = run_record(p);
                 std::string key = solver;
                 for(char &c : key)
                     c = char(std::tolower((unsigned char)c));
