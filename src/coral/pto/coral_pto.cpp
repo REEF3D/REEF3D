@@ -33,6 +33,12 @@ pto_load::pto_load(const joint &j, bool rotational, const pto_settings &s, const
     : settings(s), name_(name), j_(&j), rot_(rotational)
 {}
 
+void pto_load::coupled_bodies(std::vector<int> &b) const
+{
+    b.push_back(j_->body_a);
+    b.push_back(j_->body_b);
+}
+
 double pto_load::coordinate(const model &m) const
 {
     return rot_ ? j_->rotation_coordinate(m) : j_->coordinate(m);

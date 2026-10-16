@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_timeint.h"
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_rotation.h"
+#include"coral/core/coral_fdjac.h"
 #include<algorithm>
 #include<cmath>
 
@@ -128,17 +129,12 @@ void timeint::build_jacobian(model &m, double t1, double h, const VecX &u, const
     const int n = m.ndof(), N = (int)u.size(), nc = N - n;
     J_.setZero(N, N);
     VecX up = u, rp;
-    for(int k=0; k<n; ++k)
-    {
-        const double eps = set_.fd_eps*std::max(1.0, std::fabs(u(k)));
-        up(k) = u(k) + eps;
-        if(initial)
-            residual_initial(m, t1, c, up, rp);
-        else
-            residual(m, t1, h, up, rp);
-        J_.col(k) = (rp - r)/eps;
-        up(k) = u(k);
-    }
+    fd_jacobian(m, J_, r,
+        [&](int col, double e) {up(col) = u(col) + e;},
+        [&](VecX &rr) {if(initial) residual_initial(m, t1, c, up, rr); else residual(m, t1, h, up, rr);},
+        [&](int col) {return set_.fd_eps*std::max(1.0, std::fabs(u(col)));},
+        false);
+    (void)n;
     // lambda columns are exact; restore the work arrays of the unperturbed state
     if(initial)
         residual_initial(m, t1, c, u, rp);
@@ -231,6 +227,15 @@ bool timeint::converged(const model &m, double ddnu, double h) const
     return beta_*h*h*c*ddnu <= set_.tol*(1.0 + xmax) && gam_*h*c*ddnu <= set_.tol*(1.0 + vmax);
 }
 
+bool timeint::stagnated(const model &m, double ddnu, double h) const
+{
+    const double c = (1.0 - af_)/(1.0 - am_);
+    double xmax = 0.0;
+    for(const auto &b : m.bodies)
+        xmax = std::max(xmax, b.x.cwiseAbs().maxCoeff());
+    return beta_*h*h*c*ddnu <= 1.0e-9*(1.0 + xmax);
+}
+
 bool timeint::step(model &m, double t, double h)
 {
     const int n = m.ndof(), nc = m.ncon();
@@ -269,6 +274,13 @@ bool timeint::step(model &m, double t, double h)
             ++stats.iterations;
             const double dn = du.head(n).cwiseAbs().maxCoeff();
             if(converged(m, dn, h))
+            {
+                conv = true;
+                break;
+            }
+            // stagnation at the round-off level of the loads (e.g. finite-difference element forces):
+            // the increments no longer fall but change the positions by less than 1e-9 of their size
+            if(it >= 3 && dn > 0.5*dprev && stagnated(m, dn, h))
             {
                 conv = true;
                 break;

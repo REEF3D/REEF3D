@@ -55,6 +55,8 @@ namespace coral
                      double rho=1025.0, const Vec3 &current=Vec3::Zero(), const std::string &name="morison");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(b_);}
         void eval(const model&, double t, VecX &f) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;

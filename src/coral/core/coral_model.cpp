@@ -121,6 +121,67 @@ void model::add_moment(VecX &f, int i, const Vec3 &M) const
     f.segment<3>(6*i+3) += bodies[i].R.transpose()*M;
 }
 
+int model::coloring(std::vector<int> &color, std::vector<std::vector<int>> &nbr) const
+{
+    const int nb = nbody();
+    std::vector<std::vector<char>> adj(nb, std::vector<char>(nb, 0));
+    bool dense = false;
+    auto clique = [&](const std::vector<int> &v)
+    {
+        for(int a : v)
+            for(int b : v)
+                if(a >= 0 && b >= 0)
+                    adj[a][b] = 1;
+    };
+    std::vector<int> list;
+    for(const auto &l : load_list)
+    {
+        const coupling_kind k = l->coupling();
+        if(k==coupling_kind::global)
+            dense = true;
+        else if(k==coupling_kind::local)
+        {
+            list.clear();
+            l->coupled_bodies(list);
+            clique(list);
+        }
+    }
+    for(const auto &c : constraint_list)
+        clique({c->body_a, c->body_b});
+    nbr.assign(nb, std::vector<int>());
+    color.assign(nb, 0);
+    for(int i=0; i<nb; ++i)
+    {
+        adj[i][i] = 1;
+        for(int j=0; j<nb; ++j)
+            if(dense || adj[i][j])
+                nbr[i].push_back(j);
+    }
+    if(dense)
+    {
+        for(int i=0; i<nb; ++i) color[i] = i;
+        return nb;
+    }
+    // greedy distance-2 colouring
+    int nc = 0;
+    std::vector<int> used;
+    for(int i=0; i<nb; ++i)
+    {
+        used.assign(nc + 1, 0);
+        for(int j : nbr[i])
+        {
+            if(j < i) used[color[j]] = 1;
+            for(int k : nbr[j])
+                if(k < i) used[color[k]] = 1;
+        }
+        int c = 0;
+        while(c < nc && used[c]) ++c;
+        color[i] = c;
+        if(c==nc) ++nc;
+    }
+    return nc;
+}
+
 double model::kinetic_energy() const
 {
     double e = 0.0;

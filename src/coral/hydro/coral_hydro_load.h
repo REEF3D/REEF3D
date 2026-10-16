@@ -66,6 +66,8 @@ namespace coral
                    const std::string &name="hydro");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.insert(b.end(), map_.begin(), map_.end());}
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;

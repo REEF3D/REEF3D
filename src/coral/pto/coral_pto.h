@@ -64,6 +64,8 @@ namespace coral
         pto_load(const joint&, bool rotational, const pto_settings&, const std::string &name="pto");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;

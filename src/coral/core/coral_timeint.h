@@ -93,6 +93,7 @@ namespace coral
 
     private:
         bool converged(const model&, double ddnu, double h) const;
+        bool stagnated(const model&, double ddnu, double h) const;
         void store(const model&);
         void restore(model&) const;
         void trial(model&, const VecX &dnu, double h) const;

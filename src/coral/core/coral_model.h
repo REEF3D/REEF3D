@@ -68,6 +68,11 @@ namespace coral
         void add_force(VecX &f, int i, const Vec3 &p, const Vec3 &F) const;
         void add_moment(VecX &f, int i, const Vec3 &M) const;
 
+        // distance-2 colouring of the coupling graph of the bodies (loads and constraints): bodies of the
+        // same colour share no load or constraint and no neighbour, so a finite-difference Jacobian can
+        // perturb them together. Returns the number of colours; nbr[i]: body i and its neighbours.
+        int coloring(std::vector<int> &color, std::vector<std::vector<int>> &nbr) const;
+
         double kinetic_energy() const;
         double potential_energy() const;
 

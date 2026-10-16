@@ -73,6 +73,8 @@ namespace coral
     public:
         mooring_qs(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, const std::string &name="mooring");
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
         void eval(const model&, double t, VecX &f) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
@@ -97,6 +99,8 @@ namespace coral
                      double z_seabed=-1.0e30, double dt_line=0.0, const std::string &name="line");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;

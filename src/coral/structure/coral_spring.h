@@ -41,6 +41,8 @@ namespace coral
                       const std::string &name="spring");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(a_); b.push_back(b_);}
         void eval(const model&, double t, VecX &f) const override;
         double potential(const model&) const override;
         void channel_names(std::vector<std::string>&) const override;
