@@ -1,0 +1,19 @@
+{
+ "base": "seastate_2d_phase16_faces_composite",
+ "ctrl_set": {
+  "A 795": "1.0e-4",
+  "A 796": "2",
+  "A 707": "30"
+ },
+ "description": "as seastate_2d_phase16_faces_composite with the spectral sparsity (A 795 1e-4) and the second-order fluxes (A 796 2), 30 iterations: the second ring layer of the patches (Phase 17): a cell two upwind beyond the patch box is used where it is a cell of the same level not covered by a finer grid, as inside one patch.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr ring2 (fills, ghost_fill at distance 2, marking)",
+  "seastate_implicit::usable with ring_width 2"
+ ]
+}

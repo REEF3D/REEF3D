@@ -1,0 +1,19 @@
+{
+ "base": "seastate_2d_phase17_windsea",
+ "np": 4,
+ "ctrl_add": [
+  "A 798 2"
+ ],
+ "same_as": "seastate_2d_phase17_windsea",
+ "description": "as seastate_2d_phase17_windsea on 4 ranks with 2 threads each (A 798 2): the pipelined composite sweep with the threads over the tiles, the covered cells visited by the thread of their tile; bitwise the result of one rank and one thread (regression.py ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "pipelined composite sweep with threads (visit_threads, the thread copies of the patch solvers)"
+ ]
+}

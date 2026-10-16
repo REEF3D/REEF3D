@@ -1,0 +1,19 @@
+{
+ "description": "CFD 2D wave tank (cfd_2d_nwt) with PLIC VOF (F 80 4, N 40 3) and the start-up ramp B 101 1 over two periods. The ramp acts on the wave elevation only: before hans_dev fe03b66a vof_relax scaled the still water level of the generation zone and of the beach (umax 1.6 m/s in this case).",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "vof",
+  "plic",
+  "iowave",
+  "ramp"
+ ],
+ "covers": [
+  "iowave::vof_relax B 101 ramp",
+  "momentum_FC3_PLIC",
+  "iowave relaxation B98=2/B99=2"
+ ]
+}

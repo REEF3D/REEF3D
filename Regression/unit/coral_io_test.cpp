@@ -8,7 +8,9 @@
 // joints, waves, hydrodynamic database, PTO, spring, linear6, quasi-static and dynamic mooring,
 // Morison) is read with the right numbers; line continuation and comments; errors name the line;
 // a pendulum read from the input runs bit for bit like the same model built in code; the output
-// file has one column per channel.
+// file has one column per channel; structure keywords (section, member, point_mass, static, modes,
+// output vtp) build the same frame as the code and give bit for bit the same modes, the mode table
+// (kinetic energy split) and the VTP file are written.
 // Architect: Hans Bihs
 #include"coral/core/coral_gravity.h"
 #include"coral/core/coral_constraint.h"
@@ -16,10 +18,16 @@
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/io/coral_input.h"
 #include"coral/io/coral_output.h"
+#include"coral/io/coral_modes_out.h"
+#include"coral/io/coral_vtp.h"
+#include"coral/core/coral_static.h"
+#include"coral/structure/coral_frame.h"
+#include"coral/linear/coral_modes.h"
 #include<cmath>
 #include<cstdio>
 #include<fstream>
 #include<iostream>
+#include<memory>
 #include<sstream>
 #include<string>
 
@@ -30,6 +38,14 @@ static void check(bool ok, const std::string &what)
 {
     std::cout<<(ok ? "  PASS  " : "  FAIL  ")<<what<<std::endl;
     if(!ok) ++nfail;
+}
+
+static std::string fmt_modes(const mode_result &r)
+{
+    char b[256];
+    std::snprintf(b, sizeof(b), "input file and code give bit for bit the same modes (%.4f %.4f %.4f %.4f Hz)",
+                  r.frequency(0), r.frequency(1), r.frequency(2), r.frequency(3));
+    return b;
 }
 
 static void test_full_model()
@@ -140,11 +156,85 @@ static void test_same_as_code()
     check(c.m.bodies[0].x==m.bodies[0].x && c.m.bodies[0].R==m.bodies[0].R, "pendulum: bit for bit the same state after 1 s");
 }
 
+static void test_structure()
+{
+    std::cout<<"structure keywords"<<std::endl;
+    const std::string text = R"(
+section a tube D 0.5 t 0.02 E 2.1e11 G 8.08e10 rho 7850
+section b EA 1e9 EIy 2e7 EIz 3e7 GJ 1e7 m 100 rIx 1 GAy 4e8
+member post p1 0 0 0 p2 0 0 10 n 4 section a orient 1 0 0 end1 ground
+member arm p1 0 0 10 p2 5 0 10 n 2 section b orient 0 0 1
+point_mass arm:2 mass 500 inertia 1 2 3
+static
+modes 4
+output vtp 0.5
+time dt 0.01 end 0
+)";
+    coral_case c;
+    bool ok = true;
+    try {c.read_string(text);} catch(const std::exception &e) {std::cout<<"  "<<e.what()<<std::endl; ok = false;}
+    check(ok, "reads without error");
+    if(!ok) return;
+    const run_settings &r = c.run;
+    check(r.static_ini && r.modes==4 && !r.modes_damped && r.vtp_dt==0.5 && r.t_end==0.0, "static, modes, output vtp, time");
+    int tip = -1;
+    for(int b=0; b<c.m.nbody(); ++b) if(c.m.bodies[b].name=="arm:2") tip = b;
+    check(c.m.nbody()==6 && tip >= 0 && c.m.bodies[tip].mass > 500.0 && c.m.bodies[tip].inertia(2,2) > 3.0,
+          "six node bodies (shared corner node), point mass and inertia on 'arm:2'");
+    // the same frame in code
+    model m;
+    {
+        frame_builder fb(m);
+        member_spec post, arm;
+        post.name = "post"; post.p2 = Vec3(0, 0, 10); post.n = 4; post.s1 = beam_section::tube(0.5, 0.02, 2.1e11, 8.08e10, 7850.0);
+        post.orient = Vec3::UnitX(); post.body1 = -1;
+        beam_section b;
+        b.EA = 1e9; b.EIy = 2e7; b.EIz = 3e7; b.GJ = 1e7; b.m = 100.0; b.rIx = 1.0; b.GAy = 4e8;
+        arm.name = "arm"; arm.p1 = Vec3(0, 0, 10); arm.p2 = Vec3(5, 0, 10); arm.n = 2; arm.s1 = b; arm.orient = Vec3::UnitZ();
+        fb.add_member(post);
+        fb.add_member(arm);
+        fb.finish();
+    }
+    m.bodies[tip].mass += 500.0;
+    m.bodies[tip].inertia += Mat3(Vec3(1, 2, 3).asDiagonal());
+    m.add_load(std::make_unique<gravity_load>());     // after the members, as the input does
+    const static_result s1 = static_solve(c.m, 0.0), s2 = static_solve(m, 0.0);
+    check(s1.converged && s2.converged, "static equilibrium of both");
+    const mode_result r1 = modes(c.m, 0.0, 4), r2 = modes(m, 0.0, 4);
+    check(r1.ok && r2.ok && r1.frequency==r2.frequency, fmt_modes(r1));
+    write_modes("/tmp/coral_io_test_", c.m, r1);
+    std::ifstream mf("/tmp/coral_io_test_modes.dat");
+    std::string line;
+    int nl = 0;
+    bool sum1 = true;
+    while(std::getline(mf, line))
+    {
+        if(line.empty() || line[0]=='#') continue;
+        std::istringstream l(line);
+        double q, f, T, z, e, es = 0.0;
+        l>>q>>f>>T>>z;
+        for(int k=0; k<6; ++k) {l>>e; es += e;}
+        sum1 = sum1 && std::fabs(es - 1.0) < 1.0e-3 && std::fabs(f - r1.frequency(nl)) < 1.0e-6*f;
+        ++nl;
+    }
+    check(nl==4 && sum1, "modes.dat: four modes, kinetic energy split sums to 1");
+    std::ifstream sf("/tmp/coral_io_test_mode_shapes.dat");
+    int ns = 0;
+    while(std::getline(sf, line)) if(!line.empty() && line[0]!='#') ++ns;
+    check(ns==4*6, "mode_shapes.dat: one line per body and mode");
+    check(write_vtp(c.m, "/tmp/coral_io_test.vtp"), "VTP written");
+    std::ifstream vf("/tmp/coral_io_test.vtp");
+    std::stringstream vs;
+    vs<<vf.rdbuf();
+    check(vs.str().find("NumberOfLines=\"6\"")!=std::string::npos, "VTP: six beam elements as lines");
+}
+
 int main()
 {
     test_full_model();
     test_errors();
     test_same_as_code();
+    test_structure();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }
