@@ -87,8 +87,25 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"CPM hotstart: no parcel state file found, the parcels are seeded from the bed"<<endl;
-        
+        cout<<"CPM hotstart: no parcel state file found, the parcels are seeded from the bed of the state"<<endl;
+
+        // the parcels seeded from the grid bed before the state was read are removed: ini_cfd seeds again
+        // from the bed of the state (it added a second set of parcels to the first before)
+        for(n=0;n<P.index;++n)
+        P.Flag[n]=EMPTY;
+
+        P.index_empty=0;
+        for(n=P.index-1;n>=0;--n)
+        {
+            P.Empty[P.index_empty]=n;
+            ++P.index_empty;
+        }
+
+        // the bed level of the layer starts again from the new parcels (the relaxed level seen by the fluid
+        // kept the grid bed and pulled the fluid bed back to it)
+        zbf_ini=0;
+        zbl_ok=0;
+
         return;
     }
     

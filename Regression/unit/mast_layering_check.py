@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Layering of REEF3D::MAST (src/mast/): checks the include rules of src/mast/README.md, no build needed.
-#   * a folder includes only from the folders it may use (table ALLOWED below = README "Layers")
+#   * a folder includes only from itself and the folders it may use (table ALLOWED below = README "Layers")
 #   * quoted includes outside src/mast/reef3d/ start with "mast/" (no REEF3D headers there)
 #   * <mpi.h> only in src/mast/reef3d/
 #   * file names are unique across the folders
@@ -74,7 +74,7 @@ for d in sorted(os.listdir(root)):
                     parts = target.split('/')
                     if len(parts) < 3 or parts[1] not in ALLOWED:
                         errors.append('%s: "%s" is not a MAST folder' % (rel, target))
-                    elif parts[1] not in ALLOWED[d]:
+                    elif parts[1] != d and parts[1] not in ALLOWED[d]:
                         errors.append('%s: %s/ may not include from %s/ ("%s")' % (rel, d, parts[1], target))
                 elif d != 'reef3d':
                     errors.append('%s: "%s" (REEF3D headers only in reef3d/; MAST includes start with "mast/")' % (rel, target))

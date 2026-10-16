@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase16_faces",
+ "ctrl_set": {
+  "G 1": "2",
+  "G 10": null,
+  "A 791": "16.0"
+ },
+ "description": "as seastate_2d_phase16_faces with two levels from the depth criterion (A 791 16: the shoal), no box: the levels are cut into several patches on one rank, and ring cells next to a covered cell of a neighbouring patch of the level take its face (Phase 16; before: its restricted spectrum).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr::ring_faces_plan, ring_faces_local (fills, FAS residuals)"
+ ]
+}
