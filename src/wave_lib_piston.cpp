@@ -34,6 +34,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
     }
 	
     timecount_old=0;
+    wtime_old=0.0;
 	timecount=1;
 	
 	setup_done=0;
@@ -81,6 +82,12 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
     
 	while(p->wavetime>kinematics[timecount][0])
 	++timecount;
+
+    // restart
+    if(p->wavetime-wtime_old > 10.0*p->dt)
+    timecount_old = MAX(timecount-1,0);
+
+    wtime_old = p->wavetime;
 	
 	vel = p->B118*(kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     

@@ -34,6 +34,7 @@ wave_lib_flap::wave_lib_flap(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,p
     }
 	
     timecount_old=0;
+    wtime_old=0.0;
 	timecount=1;
     timecount_z=0;
 	
@@ -87,6 +88,12 @@ double wave_lib_flap::wave_horzvel(lexer *p, double x, double y, double z)
     
 	while(p->wavetime>kinematics[timecount][0])
 	++timecount;
+
+    // restart
+    if(p->wavetime-wtime_old > 10.0*p->dt)
+    timecount_old = MAX(timecount-1,0);
+
+    wtime_old = p->wavetime;
 	
 	vel = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
 	

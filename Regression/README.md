@@ -115,6 +115,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_teno` | 1 | TENO5 weights for momentum (D 12 2) and level set + reini (F 37 2) |
 | `cfd_2d_dambreak_plic` (+ `_rk3`, `_fcc3`) | 1 | PLIC VOF (F80=4) with N40=3 / 13 / 33 |
 | `cfd_2d_dambreak_picard`, `cfd_2d_dambreak_plic_picard_lsm` | 1 | Picard volume correction: F46=2 (once per step), F46=3 with PLIC redistancing (F92=1) |
+| `cfd_2d_compressible_box` | 1 | sealed box, piston pushes water in: isentropic air compressibility (W 32 2), closed domain without pressure pinning |
 | `cfd_2d_cylinder_singlephase` | 1 | single phase, explicit diffusion, inflow/outflow, forces |
 | `cfd_3d_dambreak_obstacle` | 4 | 3D, MPI halos, solid box |
 | `cfd_3d_dambreak_periodic` | 4 | periodic x and y with obstacle: REEFMG periodic halo (across ranks and on one rank) |
@@ -437,6 +438,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_freesurface_komega_t45` | 1 | k-ω buoyancy term T 45 1: implicit sink, k ≥ 0 at the interface |
 | `cfd_2d_channel_les_t21_2` | 1 | LES Smagorinsky with the second-order high-pass filter T 21 2 |
 | `nhflow_3d_channel_walls_kepsilon_mpi2` | 2 | NHFLOW side walls with A519 2: friction and turbulence wall functions per wall face (nhflow_wall.h), ranks split in y |
+| `nhflow_3d_channel_walls_sst_mpi2` | 2 | as `nhflow_3d_channel_walls_kepsilon_mpi2` with k-ω and the SST limiter (A564 2): F2 wall distance to the bed and the side walls (walldist_h), ranks split in y |
 | `seastate_2d_init` (+ `_mpi2`) | 1/2 | REEF3D::SEASTATE (A 10 7): shoal + land block, JONSWAP initial spectrum with Mitsuyasu spreading (A 710 1), block-sparse storage (8 x 8 tiles), no boundary spectrum: the waves leave the domain through its open sides |
 | `seastate_2d_shoaling` | 1 | REEF3D::SEASTATE stationary (A 700 2) shoaling on a plane slope, unidirectional JONSWAP from x- (A 711 1); validated against energy-flux conservation (Dropbox SEASTATE/validation/01_shoaling) |
 | `seastate_2d_refraction` (+ `_mpi2`) | 1/2 | REEF3D::SEASTATE stationary refraction at 30 deg on parallel contours, boundary spectrum on x- and y-, 72 directions; 2 ranks give the 1-rank result (halo exchange `seastate_exchange`) |

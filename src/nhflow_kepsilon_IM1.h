@@ -44,8 +44,7 @@ public:
 
 private:
     int gcval_kin, gcval_eps;
-    int count,q;
-    double aii;
+    int count;
 };
 
 #endif

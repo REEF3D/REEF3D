@@ -200,7 +200,7 @@ void control::ini_default()
     A557=1.86;   // double viscosity breaking wave
     
     A560=0;      // int turbulence model
-    A564=1;      // int eddyv limiter
+    A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
@@ -1106,11 +1106,11 @@ void control::ini_default()
     T33=0;               // int kin source
     T34=1;               // int eddyv limiter
 	T36=0;				// int explciti free surface dampong through dissipation
-	T37=0.07;		    // int damping coefficient for T36
+	T37=0.07;		    // double free-surface length scale y' for T36 / NHFLOW A567
     T38=1.6;            // double epsi fsf turbulence damping
     T39=0;              // blend fsf eddyv with sgs-eddyv
     T41=0;              // int RANS stabilization
-    T42=0.05;           // double lambda1 factor
+    T42=0.05;           // double lambda2 factor (Larsen & Fuhrman stabilization)
     T44=1.0;            // double komega_func wall BC velocity factor for DF
     T45=0;              // int buoyancy term
 
@@ -1155,6 +1155,11 @@ void control::ini_default()
     W29_z=0.0;		// double pressure gradient z-direction
 	W30=0;			// int air compressibility on/off
 	W31=20.0;		// double temperature for air compressibility in celsius
+	W32=0;			// int isentropic air compressibility
+	W33=1.4;		// double ratio of specific heats
+	W34=-1.0;		// double interface band width
+	W35=-1.0;		// double compensation layer width
+	W36=101325.0;	// double reference pressure
     W41=0;         // int velocity source phase 1
     W50=0.0;        // double air inflow
     W50_air=0;      // int air inflow switch
