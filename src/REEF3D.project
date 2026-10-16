@@ -801,6 +801,62 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="MAST">
+        <File Name="mast/README.md"/>
+        <VirtualDirectory Name="Core">
+          <File Name="mast/core/README.md"/>
+          <File Name="mast/core/mast_types.h"/>
+          <File Name="mast/core/mast_version.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Structure">
+          <File Name="mast/structure/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Linear">
+          <File Name="mast/linear/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Wind">
+          <File Name="mast/wind/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Aero">
+          <File Name="mast/aero/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Control">
+          <File Name="mast/control/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Hydro">
+          <File Name="mast/hydro/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Panel">
+          <File Name="mast/panel/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Mooring">
+          <File Name="mast/mooring/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PTO">
+          <File Name="mast/pto/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Soil">
+          <File Name="mast/soil/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Ice">
+          <File Name="mast/ice/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="IO">
+          <File Name="mast/io/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Load Cases">
+          <File Name="mast/loadcase/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Post">
+          <File Name="mast/post/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="REEF3D">
+          <File Name="mast/reef3d/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="App">
+          <File Name="mast/app/README.md"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="DEM">
         <File Name="dem.h"/>
         <File Name="dem_void.h"/>
@@ -2293,6 +2349,27 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="MAST">
+        <VirtualDirectory Name="Core">
+          <File Name="mast/core/mast_version.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Structure"/>
+        <VirtualDirectory Name="Linear"/>
+        <VirtualDirectory Name="Wind"/>
+        <VirtualDirectory Name="Aero"/>
+        <VirtualDirectory Name="Control"/>
+        <VirtualDirectory Name="Hydro"/>
+        <VirtualDirectory Name="Panel"/>
+        <VirtualDirectory Name="Mooring"/>
+        <VirtualDirectory Name="PTO"/>
+        <VirtualDirectory Name="Soil"/>
+        <VirtualDirectory Name="Ice"/>
+        <VirtualDirectory Name="IO"/>
+        <VirtualDirectory Name="Load Cases"/>
+        <VirtualDirectory Name="Post"/>
+        <VirtualDirectory Name="REEF3D"/>
+        <VirtualDirectory Name="App"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DEM">
         <File Name="dem_core.cpp"/>
         <File Name="dem_shape.cpp"/>

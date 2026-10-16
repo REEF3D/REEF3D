@@ -120,7 +120,13 @@ file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
 if(NOT REEF3D_USE_HYPRE)
   list(FILTER SOURCES EXCLUDE REGEX "/hypre_[^/]*\\.cpp$")
 endif()
+# REEF3D::MAST (src/mast/<folder>/): every folder except app/ (the standalone MAST executable)
+file(GLOB_RECURSE MAST_SOURCES CONFIGURE_DEPENDS src/mast/*.cpp)
+list(FILTER MAST_SOURCES EXCLUDE REGEX "/src/mast/app/")
+list(APPEND SOURCES ${MAST_SOURCES})
 add_executable(REEF3D ${SOURCES})
+# includes of MAST start at src/ (#include"mast/core/mast_types.h")
+target_include_directories(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 set_target_properties(REEF3D PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
