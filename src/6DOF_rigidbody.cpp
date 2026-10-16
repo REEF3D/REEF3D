@@ -190,8 +190,29 @@ void sixdof_rigidbody::euler_angles()
 
 void sixdof_rigidbody::update_omega()
 {
+    constrain_rotation();
+    
     omega_B = I.inverse()*h;
     omega_I = R*omega_B;
+}
+
+// fixed rotational DOFs (X 11 0): the inertial angular velocity has no component there.  Without
+// this only their moments are zero, and the gyroscopic term of dh (h not parallel to omega when
+// the inertia tensor has products, e.g. from the voxelised body) turns a body spinning about x
+// (a propeller, X 11 0 0 0 2 0 0) slowly about y and z.  h is projected (body frame, with R of
+// the current quaternion); 2D runs keep pitch only anyway.
+void sixdof_rigidbody::constrain_rotation()
+{
+    if(twoD || (dof[3]!=0 && dof[4]!=0 && dof[5]!=0))
+    return;
+    
+    Eigen::Vector3d wI = R*(I.inverse()*h);
+    
+    for(int n=0; n<3; ++n)
+    if(dof[n+3]==0)
+    wI(n) = 0.0;
+    
+    h = I*(R.transpose()*wI);
 }
 
 void sixdof_rigidbody::velocity(Eigen::Matrix<double, 6, 1> &u) const
@@ -266,6 +287,8 @@ void sixdof_rigidbody::derivatives_trans()
 void sixdof_rigidbody::derivatives_rot()
 {
     quat_matrices();
+    
+    constrain_rotation();
 
     // RHS of e
     de = 0.5*G.transpose()*I.inverse()*h;
