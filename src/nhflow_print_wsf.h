@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define NHFLOW_PRINT_WSF_H_
 
 #include"increment.h"
+#include"amr_grid_lookup.h"
 #include<iostream>
 #include<fstream>
 
@@ -37,6 +38,9 @@ using namespace std;
 class nhflow_print_wsf : public increment
 {
 public:
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
+
     nhflow_print_wsf(lexer*,fdm_nhf*);
 	virtual ~nhflow_print_wsf();
 

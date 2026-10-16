@@ -41,6 +41,10 @@ public:
 
 	void start(lexer*, fdm*, ghostcell*, field&, field&, field&) override final;
 
+    // the densities and viscosities of the two phases at the temperature temp (as start; the mesh
+    // refinement evaluates them at the cells around its patches and at its patch edges)
+    void props(lexer*, double temp, double &ro1, double &ro2, double &v1, double &v2);
+
 private:
     void material(lexer*, fdm*, ghostcell*);
     double material_ipol(double**,int,double);

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_PRINT_PROBE_DA_H_
 
 #include"boundarycheck.h"
+#include"amr_grid_lookup.h"
 #include<iostream>
 #include<fstream>
 
@@ -38,6 +39,9 @@ using namespace std;
 class sflow_print_probe_da : public boundarycheck
 {
 public:
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
+
     sflow_print_probe_da(lexer*,fdm2D*,ghostcell*);
 	virtual ~sflow_print_probe_da();
 

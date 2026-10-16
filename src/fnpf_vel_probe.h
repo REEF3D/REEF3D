@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define FNPF_VEL_PROBE_H_
 
 #include"boundarycheck.h"
+#include"amr_grid_lookup.h"
 #include<iostream>
 #include<fstream>
 
@@ -37,6 +38,9 @@ using namespace std;
 class fnpf_vel_probe : public boundarycheck
 {
 public:
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
+
     fnpf_vel_probe(lexer*,fdm_fnpf*);
 	virtual ~fnpf_vel_probe();
 

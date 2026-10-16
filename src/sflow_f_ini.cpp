@@ -205,6 +205,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     if(pamr!=nullptr)
     {
     pamr->ini(p,b,pgc);
+    pprint->amr_columns(pamr);      // the wave gauges and probes on the finest grid
     pamr->sed_attach(psed);
     pamr->timestep(p,b,pgc);
     pamr->print(p,b,pgc);

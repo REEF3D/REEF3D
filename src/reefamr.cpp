@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"mgcslice2.h"
 #include"mgcslice4.h"
 #include<mpi.h>
+#include<algorithm>
 
 namespace
 {
@@ -448,6 +449,57 @@ int reefamr::finest_rank(double x, double y)
     const int I = int(std::upper_bound(gxn.begin()+m,gxn.begin()+m+GNX+1,x) - (gxn.begin()+m)) - 1;
     const int J = int(std::upper_bound(gyn.begin()+m,gyn.begin()+m+GNY+1,y) - (gyn.begin()+m)) - 1;
     return owner(I,J);
+}
+
+int reefamr::finest_point(double x, double y, int &id) const
+{
+    id = -1;
+    if(p0->geo_mb>0)
+    return 0;
+
+    int best = 0;
+    for(int n=0; n<(int)P.size(); ++n)
+    {
+        const reefamr_patch *c = P[n];
+        lexer *pp = c->pp;
+        if(c->lev<=best)
+        continue;
+
+        // the cell of the point in the patch lexer (index EXT: first interior cell)
+        int a=-1, b=-1;
+        if(pp->geo_curv==1)
+        {
+            if(!pp->geo_cell(x,y,a,b))
+            continue;
+        }
+        else
+        {
+            if(!(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge]))
+            continue;
+            if(pp->j_dir==1 && !(y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge]))
+            continue;
+            a = int(std::upper_bound(pp->XN+EXT+marge,pp->XN+EXT+c->nx+marge+1,x) - (pp->XN+marge)) - 1;
+            b = (pp->j_dir==1) ? int(std::upper_bound(pp->YN+EXT+marge,pp->YN+EXT+c->ny+marge+1,y) - (pp->YN+marge)) - 1 : EXT;
+        }
+        if(a<EXT || a>=EXT+c->nx || b<EXT || b>=EXT+c->ny)
+        continue;
+
+        // the cells within two of it: interior, or not taken from another grid
+        bool ok = true;
+        const int bj = (pp->j_dir==1) ? 2 : 0;
+        for(const reefamr_fill &f : c->fill)
+        if(f.kind<=2 && f.di>=a-2 && f.di<=a+2 && f.dj>=b-bj && f.dj<=b+bj)
+        {
+            ok = false;
+            break;
+        }
+        if(!ok)
+        continue;
+
+        best = c->lev;
+        id = n;
+    }
+    return best;
 }
 
 // --------------------------------------------------------------------- setup

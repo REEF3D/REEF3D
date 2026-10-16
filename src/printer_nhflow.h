@@ -64,6 +64,8 @@ class printer_nhflow final : public printer, public increment
 {
 
 public:
+    void amr_columns(lexer*, const amr_column_lookup*) override;
+
     printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
     virtual ~printer_nhflow() = default;
     void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;

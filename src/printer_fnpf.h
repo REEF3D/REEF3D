@@ -53,6 +53,8 @@ class printer_fnpf final : public printer, public increment
 {
 
 public:
+    void amr_columns(lexer*, const amr_column_lookup*) override;
+
     printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
     virtual ~printer_fnpf() = default;
     void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;

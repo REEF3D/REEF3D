@@ -1348,6 +1348,7 @@ void control::ini_default()
     Z21=0.0;        // double rod-tree VTP print interval [s], 0: off
     Z30=0;          // int FEM solid structures (elastic, plastic, concrete damage, collapse), 1: coupling with CFD or NHFLOW, input fem.dat
     Z31=0.0;        // double FEM VTU print interval [s], 0: off
+    Z40=0;          // int REEF3D::CORAL structural solver, 1: run the CORAL model of coral.txt with the fluid solver (CFD, NHFLOW, FNPF)
     
     // values of keys that also set their switch (read only with it): defined for the broadcast of
     // the control parameters to the other ranks (controlfill_send)

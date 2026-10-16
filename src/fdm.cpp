@@ -23,25 +23,25 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"lexer.h"
 
-fdm::fdm(lexer *p) :
+fdm::fdm(lexer *p, unsigned lean) :
             u(p),F(p),Fext(p),
             v(p),G(p),Gext(p),
             w(p),H(p),Hext(p),
             press(p),
-            Fi(p),
+            Fi(p,!(lean&FDM_LEAN_FI)),
             eddyv(p),
             L(p),
             ro(p),visc(p),
             phi(p),
-            vof(p),vof_nt(p,p->F80>0),vof_nb(p,p->F80>0),vof_st(p,p->F80>0),vof_sb(p,p->F80>0),phasemarker(p,p->F80>0),
+            vof(p,!(lean&FDM_LEAN_VOF)),vof_nt(p,p->F80>0),vof_nb(p,p->F80>0),vof_st(p,p->F80>0),vof_sb(p,p->F80>0),phasemarker(p,p->F80>0),
             vof_nte(p,p->F80>0),vof_ntw(p,p->F80>0),vof_nbe(p,p->F80>0),vof_nbw(p,p->F80>0),vof_ste(p,p->F80>0),vof_stw(p,p->F80>0),vof_sbe(p,p->F80>0),vof_sbw(p,p->F80>0),
-            conc(p),
+            conc(p,!(lean&FDM_LEAN_CONC)),
             topo(p),solid(p),
-            test(p),
+            test(p,!(lean&FDM_LEAN_TEST)),
             fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),
-            porosity(p),porpart(p),porA(p),porB(p),
-            walld(p),
-            nodeval(p),nodeval2D(p),etaloc(p),
+            porosity(p),porpart(p,!(lean&FDM_LEAN_POR)),porA(p,!(lean&FDM_LEAN_POR)),porB(p,!(lean&FDM_LEAN_POR)),
+            walld(p,!(lean&FDM_LEAN_WALLD)),
+            nodeval(p,!(lean&FDM_LEAN_NODE)),nodeval2D(p),etaloc(p),
             eta(p),eta_n(p),depth(p),WL(p),
             Fifsf(p),K(p),
             P(p),Q(p),bed(p),

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define NHFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"amr_grid_lookup.h"
 #include"lexer.h"
 #include"nhflow_momentum_func.h"
 #include"nhflow_convection.h"
@@ -185,9 +186,22 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double> freg[5][4];
 };
 
-class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
+class nhflow_amr : public reefamr, public amr_column_lookup, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
 {
 public:
+    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
+    int finest_column(double x, double y, lexer *&q, void *&f) const override
+    {
+        int id;
+        const int L = finest_point(x,y,id);
+        if(L>0)
+        {
+            q = P[id]->pp;
+            f = static_cast<nhflow_amr_patch*>(P[id])->d;
+        }
+        return L;
+    }
+
     nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
     virtual ~nhflow_amr();
 

@@ -58,7 +58,7 @@ endif
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
-.PHONY: all clean debug dev info release
+.PHONY: all clean debug dev info release coral
 
 .DEFAULT_GOAL := release
 
@@ -97,6 +97,20 @@ $(OBJ_DIR)/%.o: %.cpp
 $(APP): $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(OMPLIBS)
+
+# REEF3D::CORAL standalone executable (bin/CORAL): src/coral without reef3d/, with app/; no MPI needed
+CORAL_APP     := $(APP_DIR)/CORAL
+CORAL_SRC     := $(shell find src/coral -name '*.cpp' -not -path 'src/coral/reef3d/*' 2>/dev/null | sort)
+CORAL_OBJECTS := $(CORAL_SRC:%.cpp=$(OBJ_DIR)/%.o)
+
+coral: CXXFLAGS += -O3 -DNDEBUG -DEIGEN_NO_DEBUG -w -DBUILD=\"coral\"
+coral: $(CORAL_APP)
+
+$(CORAL_APP): $(CORAL_OBJECTS)
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(OMPLIBS)
+
+-include $(CORAL_OBJECTS:.o=.d)
 
 -include $(DEPENDENCIES)
 

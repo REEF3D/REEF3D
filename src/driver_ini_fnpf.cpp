@@ -198,6 +198,10 @@ void driver::driver_ini_fnpf()
     // mesh refinement: initial hierarchy
     if(pfamr!=nullptr)
     pfamr->ini(p,c,pgc);
+
+    // the wave gauges and probes of the printer on the finest grid
+    if(pfamr!=nullptr)
+    pprint->amr_columns(p,pfamr);
     
     pftstep->ini(c,p,pgc);
     

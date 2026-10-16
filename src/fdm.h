@@ -50,11 +50,24 @@ class lexer;
 
 using namespace std;
 
+// fields a grid of the mesh refinement leaves unallocated (cfd_amr::patch_objects): the patch
+// objects never touch them (fdm(lexer*, unsigned lean))
+enum : unsigned
+{
+    FDM_LEAN_FI     = 1u<<0,    // Fi (initialisation of the potential flow)
+    FDM_LEAN_TEST   = 1u<<1,    // test (output)
+    FDM_LEAN_CONC   = 1u<<2,    // conc (sediment suspension, CPM, output)
+    FDM_LEAN_VOF    = 1u<<3,    // vof (VOF / PLIC)
+    FDM_LEAN_NODE   = 1u<<4,    // nodeval (VTU output)
+    FDM_LEAN_POR    = 1u<<5,    // porpart, porA, porB (VRANS)
+    FDM_LEAN_WALLD  = 1u<<6     // walld (RANS)
+};
+
 class fdm : public increment
 {
 public:
 
-    fdm(lexer*);
+    fdm(lexer*, unsigned lean=0);
 
 	double gi,gj,gk;
 

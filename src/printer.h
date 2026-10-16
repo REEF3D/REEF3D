@@ -40,6 +40,7 @@ class concentration;
 class multiphase;
 class sediment;
 class amr_grid_lookup;
+class amr_column_lookup;
 
 class printer
 {
@@ -49,6 +50,8 @@ public:
     virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
     // CFD mesh refinement: the probes and wave gauges read the finest grid at their position
     virtual void amr_probes(const amr_grid_lookup*) {};
+    // the 2D-column models (NHFLOW, FNPF): the gauges and probes read the finest grid
+    virtual void amr_columns(lexer*, const amr_column_lookup*) {};
     // NHFLOW
     virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};

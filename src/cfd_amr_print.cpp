@@ -104,6 +104,11 @@ void cfd_amr::print(lexer *p, bool after)
         put("pressure",[&](int i, int j, int k) { return a->press(i,j,k); });
         put("level",[&](int i, int j, int k) { return double(c->lev); });
         put("covered",[&](int i, int j, int k) { const int I[3] = {i+c->lo[0],j+c->lo[1],k+c->lo[2]}; return covered(c->lev,I) ? 1.0 : 0.0; });
+        if(scal)
+        {
+            field &S = sfield(id);
+            put(scal==1 ? "T" : "C",[&](int i, int j, int k) { return S(i,j,k); });
+        }
 
         size_t m=0;
         for(int k=0; k<nz; ++k)

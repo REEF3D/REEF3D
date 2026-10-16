@@ -797,7 +797,7 @@ void cfd_amr::pr_weights()
         o[F.d] = F.dir;
         const double w = interface_width_face(c->pp,c->a->phi,F.fi[0],F.fi[1],F.fi[2],o[0],o[1],o[2]);
         const double H = heaviside(0.5*(c->a->phi.V[F.qf] + c->a->phi.V[F.qm]),w);
-        F.rof = c->pp->W1*H + c->pp->W3*(1.0-H);
+        F.rof = rmix(c->pp,H,0.5*(sval(F.pid,F.qf) + sval(F.pid,F.qm)));
 
         // porous structures: the face density divided by the porosity factor of the face (all
         // the fluxes of the face, kf, kc and the corrections, carry it as pjm_corr / poisson_pcorr)
@@ -1019,7 +1019,7 @@ void cfd_amr::pr_predict(int s)
             // the coarse face with its porosity factor (the coarse stage velocity has it on its
             // pressure gradient and its gravity)
             const double fpc = porfac(qc,0.5*(ac->porosity(F.ci[0],F.ci[1],F.ci[2]) + ap->porosity(F.pi[0],F.pi[1],F.pi[2])));
-            const double roc = (qc->W1*Hc + qc->W3*(1.0-Hc))/fpc;
+            const double roc = rmix(qc,Hc,0.5*(sval(F.gc,F.qc) + sval(F.gp,F.qp)))/fpc;
             const double rof = F.rof;
 
             // the spacing of the centres across the coarse face, on the grid that holds it (the
@@ -1754,7 +1754,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         const double wc = 0.5*(interface_width(qc,lc,F.ci[0],F.ci[1],F.ci[2]) + interface_width(qp,lp,F.pi[0],F.pi[1],F.pi[2]));
         const double Hc = heaviside(0.5*(phC+phP),wc);
         const double fpc = porfac(qc,0.5*(gfd(F.gc)->porosity.V[F.qc] + gfd(F.gp)->porosity.V[F.qp]));
-        const double roc = (qc->W1*Hc + qc->W3*(1.0-Hc))/fpc;
+        const double roc = rmix(qc,Hc,scal ? 0.5*(tsf(F.gc,tl_s).V[F.qc] + tsf(F.gp,tl_s).V[F.qp]) : 0.0)/fpc;
 
         lexer *ql = (F.dir>0) ? qp : qc;
         const double *dp[3] = {ql->DXP,ql->DYP,ql->DZP};

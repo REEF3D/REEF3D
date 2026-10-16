@@ -212,6 +212,10 @@ void cfd_amr::restrict_sub(int l)
 {
     vector<std::function<field&(int)>> cells = rcells(AF_RSTEP), faces = rfaces(AF_RSTEP);
 
+    // heat, concentration: the coarse cells at the patch edges take the fluxes of the patches
+    if(scal)
+    sc_reflux(l);
+
     restrict_level(l,cells,faces);
 
     if(l==1)
@@ -244,6 +248,10 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
     // the turbulence model (the cells around the patches filled at the start of the step)
     if(turb)
     turb_step(l);
+
+    // heat, concentration (the cells around the patches linear in time on the coarser level)
+    if(scal)
+    sc_step_level(l,dt,th0);
 
     for(int id : lev[l])
     {
@@ -423,6 +431,10 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     // level 0: its step as step_ssp (the volume correction over all levels at the end)
     save_old(0);
 
+    // heat, concentration on level 0 (the flux registers of the level-1 edges start with its fluxes)
+    if(scal)
+    sc_step_level(0,p->dt,0.0);
+
     // the bodies: level 0 steps with a predicted copy (the finest level advances them)
     if(bodies)
     {
@@ -477,6 +489,18 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
         {
             const std::streamsize pr = cout.precision();
             cout<<"CFD AMR: volume of the level set over the leaf cells "<<setprecision(8)<<V<<endl;
+            cout.precision(pr);
+        }
+    }
+    if(scal && p->count%p->P12==0)
+    {
+        double smin, smax;
+        const double S = sc_total(smin,smax);
+        if(p->mpirank==0)
+        {
+            const std::streamsize pr = cout.precision();
+            cout<<"CFD AMR: "<<(scal==1 ? "heat (T V)" : "concentration (C V)")<<" over the leaf cells "<<setprecision(12)<<S
+                <<", range "<<setprecision(6)<<smin<<" "<<smax<<endl;
             cout.precision(pr);
         }
     }
@@ -616,8 +640,9 @@ void cfd_amr::rovisc_all()
         for(int k=0; k<q->knoz; ++k)
         {
             const double H = heaviside(a->phi(i,j,k),interface_width(q,a->phi,i,j,k));
-            a->ro(i,j,k) = q->W1*H + q->W3*(1.0-H);
-            a->visc(i,j,k) = q->W2*H + q->W4*(1.0-H);
+            const double sv = sval(g,i,j,k);
+            a->ro(i,j,k) = rmix(q,H,sv);
+            a->visc(i,j,k) = vmix(q,H,sv);
         }
         if(g>=0)
         margin_rovisc(g);

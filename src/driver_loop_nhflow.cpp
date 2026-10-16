@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"seastate_nhflow.h"
 #include"nhflow_amr.h"
 #include"regression_dump.h"
+#include"coral/reef3d/coral_reef3d.h"
 #include"runlog.h"
 #include"lagoon_output.h"
 
@@ -106,6 +107,10 @@ void driver::loop_nhflow()
         pnhfturb->etimesave(p,d,pgc);
         //pflow->veltimesave(p,a,pgc,pvrans);
         
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral!=nullptr)
+        pcoral->step(p,pgc);
+
         //timestep control
         p->simtime+=p->dt;
         
