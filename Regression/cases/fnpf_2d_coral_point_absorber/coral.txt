@@ -1,0 +1,12 @@
+# REEF3D::CORAL model run with REEF3D (Z 40 1): heaving point absorber released 3 cm above
+# equilibrium, Cummins equation with point_absorber.chd, tether and PTO damper (validation 01).
+# Architect: Hans Bihs
+gravity 0 0 -9.81
+rho 1000
+time dt 0.005 end 1000 rho_inf 0.8
+output dt 0.01 file results.dat
+body buoy mass 9.06625494752 inertia 0.05 0.05 0.04 cog 0 0 -0.075 offset 0 0 0.03
+joint heave prismatic ground buoy point 0 0 -0.075 axis 0 0 1
+hydro bem file point_absorber.chd bodies buoy memory 10 0.002
+pto pto joint heave c 40
+spring tether a ground 0 0 -1 b buoy 0 0 -0.15 k 150 T0 15 tension_only

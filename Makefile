@@ -27,9 +27,9 @@ LDFLAGS      :=
 INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC          := $(filter-out src/hypre_%.cpp,$(wildcard src/*.cpp))
 endif
-# REEF3D::MAST (src/mast/<folder>/): every folder except app/ (the standalone MAST executable);
-# its includes start at src/ (#include"mast/core/mast_types.h")
-SRC          += $(shell find src/mast -name '*.cpp' -not -path 'src/mast/app/*' 2>/dev/null | sort)
+# REEF3D::CORAL (src/coral/<folder>/): every folder except app/ (the standalone CORAL executable);
+# its includes start at src/ (#include"coral/core/coral_types.h")
+SRC          += $(shell find src/coral -name '*.cpp' -not -path 'src/coral/app/*' 2>/dev/null | sort)
 INCLUDE      += -I src
 # zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
 LDFLAGS      += -lz -pthread
