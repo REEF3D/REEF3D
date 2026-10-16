@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 3,
+ "steps": 48,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "Adaptive refinement with the placement (G 40 1) on 3 ranks: the units fill the ranks in turn, the shadows reach the level 0 of two ranks.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "a shadow over two level-0 ranks",
+  "the copy plans with several peers"
+ ]
+}

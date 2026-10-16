@@ -17,15 +17,18 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SIXDOF_PTO_CONTROLLER_H_
-#define SIXDOF_PTO_CONTROLLER_H_
+#ifndef CORAL_PTO_CONTROLLER_H_
+#define CORAL_PTO_CONTROLLER_H_
 
-#include"6DOF_pto.h"
+#include"coral/pto/coral_pto_element.h"
 #include<string>
 #include<vector>
+
+namespace coral
+{
 
 // PTO controllers: called once per time step with the accepted state at t^n (before the
 // PTO force of that step), they act on the composite through set_param() and its gain.
@@ -113,5 +116,7 @@ private:
 
 // optimal passive damping of a single-DOF absorber at the frequency w
 double pto_bopt(double w, double m, double A, double Brad, double C);
+
+}
 
 #endif

@@ -17,36 +17,44 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_pto_joint.h"
+#include"coral/core/coral_points.h"
+#include"coral/core/coral_model.h"
 
-void pto_joint_prismatic::initialize(const Eigen::Vector3d &axis, const Eigen::Vector3d &x_att,
-                                     const Eigen::Vector3d &c, const Eigen::Matrix3d &R)
+namespace coral
 {
-    // axis: inertial, x_att: inertial position of the attachment at t=0, c/R: initial body pose
-    a  = axis.normalized();
-    rb = R.transpose()*(x_att - c);
-    x0 = x_att;
 
-    J.head<3>() = a;
-    J.tail<3>() = (R*rb).cross(a);
+int body_points::add(const model &m, int b, const Vec3 &p)
+{
+    body_.push_back(b);
+    s_.push_back(b >= 0 ? m.body(b).to_body(p) : p);
+    return (int)body_.size() - 1;
 }
 
-pto_state pto_joint_prismatic::state(const Eigen::Vector3d &c, const Eigen::Matrix3d &R,
-                                     const Eigen::Vector3d &v, const Eigen::Vector3d &w, double t)
+void body_points::point_state(const model &m, int k, Vec3 &p, Vec3 &v, Vec3 &a) const
 {
-    const Eigen::Vector3d r = R*rb;
+    const int b = body_[k];
+    if(b < 0)
+    {
+        p = s_[k];
+        v.setZero();
+        a.setZero();
+        return;
+    }
+    const rigid_body &B = m.body(b);
+    p = B.point(s_[k]);
+    v = B.point_velocity(s_[k]);
+    a = B.point_acceleration(s_[k]);
+}
 
-    J.head<3>() = a;
-    J.tail<3>() = r.cross(a);
+void body_points::add_point_force(const model &m, int k, const Vec3 &F, VecX &f) const
+{
+    const int b = body_[k];
+    if(b < 0)
+        return;
+    m.add_force(f, b, m.body(b).point(s_[k]), F);
+}
 
-    pto_state s;
-
-    s.q  = a.dot(c + r - x0);
-    s.qd = a.dot(v) + J.tail<3>().dot(w);
-    s.t  = t;
-
-    return s;
 }

@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include"coral/linear/coral_modes.h"
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_rotation.h"
+#include"coral/core/coral_fdjac.h"
 #include<algorithm>
 #include<cmath>
 #include<complex>
@@ -34,23 +35,17 @@ namespace coral
 
 linear_model linearize(model &m, double t)
 {
-    const int n = m.ndof(), nc = m.ncon();
+    const int n = m.ndof(), nc = m.ncon(), nb = m.nbody(), nq = m.ncoord();
     linear_model L;
-    std::vector<Vec3> x0, v0, w0, vd0, wd0;
-    std::vector<Mat3> R0;
+    const model::config c0 = m.save_config();
+    std::vector<Vec3> v0, w0, vd0, wd0;
     for(const auto &b : m.bodies)
     {
-        x0.push_back(b.x); R0.push_back(b.R); v0.push_back(b.v); w0.push_back(b.w); vd0.push_back(b.vd); wd0.push_back(b.wd);
+        v0.push_back(b.v); w0.push_back(b.w); vd0.push_back(b.vd); wd0.push_back(b.wd);
     }
-    auto restore = [&]()
-    {
-        for(int i=0; i<m.nbody(); ++i)
-        {
-            rigid_body &b = m.bodies[i];
-            b.x = x0[i]; b.R = R0[i]; b.v.setZero(); b.w.setZero(); b.vd.setZero(); b.wd.setZero();
-        }
-    };
-    restore();
+    const VecX cv0 = m.cv, ca0 = m.ca;
+    m.zero_rates();
+    const bool tang = m.has_tangents();
     VecX f, in, g;
     MatX G;
     m.forces(t, f);
@@ -59,53 +54,76 @@ linear_model linearize(model &m, double t)
     VecX lam = VecX::Zero(nc);
     if(nc)
         lam = (G*G.transpose()).ldlt().solve(G*f);
-    auto rest = [&](VecX &r)    // restoring residual -f + G^T lambda (lambda fixed)
+    const VecX zero = VecX::Zero(n);
+    auto dense = [&](const std::vector<triplet> &T)
     {
-        m.forces(t, f);
-        m.constraints(g, G);
-        r = -f;
-        if(nc) r += G.transpose()*lam;
+        MatX A = MatX::Zero(n, n);
+        for(const auto &x : T)
+            if(x.row() < n && x.col() < n)
+                A(x.row(), x.col()) += x.value();
+        return A;
     };
-    VecX rp, rm;
-    L.K.setZero(n, n);
-    L.C.setZero(n, n);
-    L.M.setZero(n, n);
-    for(int k=0; k<n; ++k)
+    // configuration: restoring residual -f + G^T lambda (lambda fixed), constraint rows appended
+    std::vector<triplet> T;
+    VecX dq = zero;
+    fd_jacobian(m, T, VecX(),
+        [&](int col, double e) {dq(col) = e;},
+        [&](VecX &r)
+        {
+            m.set_config(c0, dq);
+            m.forces(t, f, tang);
+            m.constraints(g, G);
+            r.resize(n + nc);
+            r.head(n) = -f;
+            if(nc) {r.head(n) += G.transpose()*lam; r.tail(nc) = g;}
+        },
+        [&](int col) {return 1.0e-6*(col < 6*nb ? ((col%6) < 3 ? std::max(1.0, c0.x[col/6].cwiseAbs().maxCoeff()) : 1.0)
+                                                : std::max(1.0, std::fabs(c0.cq(col - 6*nb))));},
+        true, tang);
+    m.set_config(c0, zero);
+    if(tang) m.tangents(t, -1.0, 0.0, 0.0, T);
+    L.K = dense(T);
+    // velocities and accelerations
+    auto rates = [&](bool acc)
     {
-        const int i = k/6, c = k%6;
-        const double e = c < 3 ? 1.0e-6*std::max(1.0, x0[i].cwiseAbs().maxCoeff()) : 1.0e-6;
-        for(int s=-1; s<=1; s+=2)
+        std::vector<triplet> T2;
+        VecX du = zero;
+        auto apply = [&]()
         {
-            restore();
-            if(c < 3) m.bodies[i].x(c) += s*e;
-            else m.bodies[i].R = R0[i]*exp_so3(s*e*Vec3::Unit(c-3));
-            rest(s < 0 ? rm : rp);
-        }
-        L.K.col(k) = (rp - rm)/(2.0*e);
-        // velocities and accelerations
-        for(int s=-1; s<=1; s+=2)
-        {
-            restore();
-            if(c < 3) m.bodies[i].v(c) = s*1.0e-6; else m.bodies[i].w(c-3) = s*1.0e-6;
-            m.forces(t, f);
-            (s < 0 ? rm : rp) = -f;
-        }
-        L.C.col(k) = (rp - rm)/2.0e-6;
-        for(int s=-1; s<=1; s+=2)
-        {
-            restore();
-            if(c < 3) m.bodies[i].vd(c) = s*1.0e-6; else m.bodies[i].wd(c-3) = s*1.0e-6;
-            m.forces(t, f);
-            m.inertia_forces(in);
-            (s < 0 ? rm : rp) = in - f;
-        }
-        L.M.col(k) = (rp - rm)/2.0e-6;
-    }
-    restore();
-    for(int i=0; i<m.nbody(); ++i)
+            for(int i=0; i<nb; ++i)
+            {
+                rigid_body &b = m.bodies[i];
+                (acc ? b.vd : b.v) = du.segment<3>(6*i);
+                (acc ? b.wd : b.w) = du.segment<3>(6*i+3);
+            }
+            if(nq) (acc ? m.ca : m.cv) = du.tail(nq);
+        };
+        fd_jacobian(m, T2, VecX(),
+            [&](int col, double e) {du(col) = e;},
+            [&](VecX &r)
+            {
+                apply();
+                m.forces(t, f, tang);
+                r.setZero(n + nc);
+                r.head(n) = -f;
+                if(acc) {m.inertia_forces(in); r.head(n) += in;}
+            },
+            [&](int) {return 1.0e-6;},
+            true, tang);
+        du.setZero();
+        apply();
+        if(tang) m.tangents(t, 0.0, acc ? 0.0 : -1.0, acc ? -1.0 : 0.0, T2);
+        return dense(T2);
+    };
+    L.C = rates(false);
+    L.M = rates(true);
+    m.set_config(c0, zero);
+    for(int i=0; i<nb; ++i)
     {
         m.bodies[i].v = v0[i]; m.bodies[i].w = w0[i]; m.bodies[i].vd = vd0[i]; m.bodies[i].wd = wd0[i];
     }
+    m.cv = cv0;
+    m.ca = ca0;
     // null space of G
     if(nc)
     {
@@ -135,7 +153,20 @@ mode_result modes(model &m, double t, int nmode, bool damped)
     std::vector<double> fr, ze;
     std::vector<VecX> sh;
     const MatX Mi = L.Mr.ldlt().solve(MatX::Identity(nr, nr));
-    if(!damped)
+    const double asym = (L.Kr - L.Kr.transpose()).norm()/std::max(L.Kr.norm(), 1.0e-300);
+    if(!damped && asym < 1.0e-5)
+    {
+        // (nearly) symmetric stiffness: symmetric generalized problem, M-orthogonal shapes
+        Eigen::GeneralizedSelfAdjointEigenSolver<MatX> es(0.5*(L.Kr + L.Kr.transpose()), 0.5*(L.Mr + L.Mr.transpose()));
+        for(int q=0; q<nr; ++q)
+        {
+            const double w2 = es.eigenvalues()(q);
+            fr.push_back(std::sqrt(std::max(w2, 0.0))/(2.0*M_PI));
+            ze.push_back(0.0);
+            sh.push_back(es.eigenvectors().col(q));
+        }
+    }
+    else if(!damped)
     {
         Eigen::EigenSolver<MatX> es(Mi*L.Kr);
         for(int q=0; q<nr; ++q)
@@ -170,11 +201,42 @@ mode_result modes(model &m, double t, int nmode, bool damped)
     res.frequency.resize(nmode);
     res.damping.resize(nmode);
     res.shape.resize(L.N.rows(), nmode);
+    // shapes in the full coordinates; in a cluster of equal frequencies (symmetric structures) the
+    // basis is turned so that the modes separate by global direction: generalized eigenvectors of the
+    // x-translation kinetic energy against the mass in the cluster's subspace (x first, then the rest)
+    const int nall = (int)idx.size();
+    MatX S(L.N.rows(), nall);
+    for(int q=0; q<nall; ++q)
+        S.col(q) = L.N*sh[idx[q]];
+    if(!damped)
+    {
+        MatX Dx = MatX::Zero(L.M.rows(), L.M.cols());
+        for(int b=0; b<m.nbody(); ++b)
+            Dx(6*b, 6*b) = L.M(6*b, 6*b);
+        for(int q=0; q<nmode; )
+        {
+            int e = q + 1;
+            const double f0 = fr[idx[q]];
+            while(e < nall && std::fabs(fr[idx[e]] - f0) <= 1.0e-6*std::max(f0, 1.0e-12)) ++e;
+            if(e - q > 1)
+            {
+                const MatX C = S.middleCols(q, e - q);
+                const MatX Mc = C.transpose()*L.M*C, Qx = C.transpose()*Dx*C;
+                Eigen::GeneralizedSelfAdjointEigenSolver<MatX> ge(0.5*(Qx + Qx.transpose()), 0.5*(Mc + Mc.transpose()));
+                if(ge.info()==Eigen::Success)
+                {
+                    const MatX V = ge.eigenvectors().rowwise().reverse();
+                    S.middleCols(q, e - q) = C*V;
+                }
+            }
+            q = e;
+        }
+    }
     for(int q=0; q<nmode; ++q)
     {
         res.frequency(q) = fr[idx[q]];
         res.damping(q) = ze[idx[q]];
-        VecX s = L.N*sh[idx[q]];
+        const VecX s = S.col(q);
         const double mx = s.cwiseAbs().maxCoeff();
         res.shape.col(q) = mx > 0.0 ? VecX(s/mx) : s;
     }

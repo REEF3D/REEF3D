@@ -17,10 +17,12 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-// PTO of the FNPF and NHFLOW body (X 500 - X 508): joint, element set-up, controllers, loads, output.
+// REEF3D::CORAL inside REEF3D: PTO of the 6DOF body of FNPF and NHFLOW (X 500 - X 508): joint, element
+// set-up, controllers, loads, output. The joint, the elements and the controllers are CORAL's PTO
+// library (coral/pto); this file is the REEF3D side (sixdof_obj, ctrl.txt, output).
 //
 // X 500 1: explicit, the PTO load enters F like the mooring load
 // X 500 2: the Jacobians of the stiff elements (end-stops) are added to the added-mass system
@@ -31,7 +33,7 @@ Author: Hans Bihs
 // X 507: latching, X 508: declutching
 
 #include"6DOF_obj.h"
-#include"6DOF_pto_elements.h"
+#include"coral/pto/coral_pto_elements.h"
 #include"6DOF_output_dir.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -82,16 +84,16 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
 
     // elements
     if(p->X502==1)
-    pto_.add(std::make_unique<pto_damper>(p->X502_B));
+    pto_.add(std::make_unique<coral::pto_damper>(p->X502_B));
 
     if(p->X503==1)
-    pto_.add(std::make_unique<pto_springdamper>(p->X503_K, p->X503_B));
+    pto_.add(std::make_unique<coral::pto_springdamper>(p->X503_K, p->X503_B));
 
     if(p->X507==1)
-    pto_.add(std::make_unique<pto_latch>(p->X507_K, p->X507_C));
+    pto_.add(std::make_unique<coral::pto_latch>(p->X507_K, p->X507_C));
 
     if(p->X504==1)
-    pto_.add(std::make_unique<pto_endstop>(p->X504_qmin, p->X504_qmax, p->X504_K, p->X504_C));
+    pto_.add(std::make_unique<coral::pto_endstop>(p->X504_qmin, p->X504_qmax, p->X504_K, p->X504_C));
 
     // generator limits
     if(p->X505==1)
@@ -105,10 +107,10 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
     pto_tuned_passive(p,pgc);
 
     if(p->X507==1)
-    pto_ctrl_.push_back(std::make_unique<pto_ctrl_latching>(p->X507_t));
+    pto_ctrl_.push_back(std::make_unique<coral::pto_ctrl_latching>(p->X507_t));
 
     if(p->X508==1)
-    pto_ctrl_.push_back(std::make_unique<pto_ctrl_declutching>(p->X508_t));
+    pto_ctrl_.push_back(std::make_unique<coral::pto_ctrl_declutching>(p->X508_t));
 
     if(pto_.empty() && p->mpirank==0)
     cout<<"6DOF PTO: X 500 set but no PTO element (X 502 - X 504, X 506, X 507) given"<<endl;
@@ -163,7 +165,7 @@ void sixdof_obj::pto_forces(lexer *p, ghostcell*, int iter)
     // controllers act once per time step on the accepted state at t^n
     if(iter==0)
     {
-        pto_ctrl_in in;
+        coral::pto_ctrl_in in;
         in.t  = p->simtime;
         in.q  = pto_s_.q;
         in.qd = pto_s_.qd;
@@ -313,7 +315,7 @@ void sixdof_obj::pto_tuned_passive(lexer *p, ghostcell *pgc)
     if(T<=0.0)
     T = (p->B93==1) ? p->B93_2 : p->wT;
 
-    pto_hydro_table tab;
+    coral::pto_hydro_table tab;
 
     // the input of X 506 T C, every missing part with its own message
     const bool tab_ok = tab.read("pto_hydro.dat");
@@ -347,11 +349,11 @@ void sixdof_obj::pto_tuned_passive(lexer *p, ghostcell *pgc)
     const double m = 1.0/J.dot(M.partialPivLu().solve(J));
 
     const double A = tab.A(w), B = tab.B(w);
-    const double Bopt = pto_bopt(w, m, A, B, p->X506_C);
+    const double Bopt = coral::pto_bopt(w, m, A, B, p->X506_C);
 
     if(!pto_.set_param("damper","B",Bopt))
     {
-    pto_.elem.insert(pto_.elem.begin(), std::make_unique<pto_damper>(Bopt));     // first, as with X 502
+    pto_.elem.insert(pto_.elem.begin(), std::make_unique<coral::pto_damper>(Bopt));     // first, as with X 502
     }
 
     if(p->mpirank==0)

@@ -8,7 +8,8 @@ Engineering hydrodynamic loads (no resolved fluid needed).
 * `coral_hydro_db.h/.cpp`: hydrodynamic database (C, A(w), B(w), A_inf, X(w, beta), reference points, volume): CORAL text format (read/write), WAMIT reader (.1, .3, .hst)
 * `coral_radiation.h/.cpp`: retardation function K(t) (exact for B piecewise linear), A_inf from Ogilvie's relation, state-space realization of K (eigensystem realization, diagonal form, exact step for a linear velocity)
 * `coral_hydro_load.h/.cpp`: Cummins equation for the database bodies: buoyancy, hydrostatics, excitation, radiation (convolution or state-space), linear and quadratic damping
-* `coral_morison.h/.cpp`: Morison members (strip theory, relative velocity, current, added mass of the member)
+* `coral_morison.h/.cpp`: Morison members on rigid bodies (strip theory, relative velocity, current, added mass of the member)
+* `coral_member_morison.h/.cpp`: Morison loads distributed along flexible members (frame nodes or superelement nodes through `point_set`), relative motion, current, buoyancy of the submerged strips, wet part of the strip cut by the surface
 
 ## Planned
 

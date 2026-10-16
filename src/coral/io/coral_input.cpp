@@ -23,13 +23,18 @@ Architect: Hans Bihs
 #include"coral/io/coral_input.h"
 #include"coral/core/coral_constraint.h"
 #include"coral/core/coral_gravity.h"
+#include"coral/core/coral_force.h"
 #include"coral/core/coral_rotation.h"
 #include"coral/structure/coral_spring.h"
 #include"coral/structure/coral_linear6.h"
 #include"coral/structure/coral_frame.h"
+#include"coral/structure/coral_superelement.h"
+#include"coral/soil/coral_soil.h"
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_hydro_load.h"
 #include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_member_morison.h"
+#include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
 #include"coral/mooring/coral_mooring.h"
 #include<cmath>
@@ -276,13 +281,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 it.fail("unknown wave type '" + type + "'");
         }
     }
-    // members (nodes are bodies: before the joints and loads), then point masses
+    // members (nodes are bodies: before the joints and loads), superelements, point masses, soil
+    std::map<std::string, std::vector<int>> stations;     // frame member -> node bodies
+    std::map<std::string, member_spec> frame_specs;
+    std::map<std::string, superelement*> super_of;        // superelement member -> its superelement
     {
-        frame_builder fb(m);
-        bool any = false;
-        for(const item &it : items)
+        auto parse_member = [&](const item &it)
         {
-            if(it.t[0] != "member") continue;
             member_spec ms;
             ms.name = it.word(1);
             ms.p1 = it.need_vec("p1");
@@ -302,18 +307,140 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             ms.beta = it.get("beta", 0.0);
             if(it.has("end1")) ms.body1 = body_of(it, it.word("end1"));
             if(it.has("end2")) ms.body2 = body_of(it, it.word("end2"));
-            fb.add_member(ms);
+            return ms;
+        };
+        // members that belong to a superelement
+        std::map<std::string, std::string> in_super;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "superelement") continue;
+            const int i0 = it.find("members");
+            if(i0 < 0) it.fail("'members' is required");
+            for(int i=i0+1; i<(int)it.t.size() && it.t[i]!="modes" && it.t[i]!="zeta" && it.t[i]!="beta"; ++i)
+            {
+                if(in_super.count(it.t[i])) it.fail("member '" + it.t[i] + "' in two superelements");
+                in_super[it.t[i]] = it.word(1);
+            }
+        }
+        frame_builder fb(m);
+        bool any = false;
+        std::map<std::string, member_spec> super_members;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "member") continue;
+            const member_spec ms = parse_member(it);
+            if(stations.count(ms.name) || super_members.count(ms.name)) it.fail("member '" + ms.name + "' defined twice");
+            if(in_super.count(ms.name))
+            {
+                super_members[ms.name] = ms;
+                continue;
+            }
+            stations[ms.name] = fb.add_member(ms);
+            frame_specs[ms.name] = ms;
             any = true;
         }
         if(any) fb.finish();
         for(const item &it : items)
         {
+            if(it.t[0] != "superelement") continue;
+            std::vector<member_spec> list;
+            const int i0 = it.find("members");
+            for(int i=i0+1; i<(int)it.t.size() && it.t[i]!="modes" && it.t[i]!="zeta" && it.t[i]!="beta"; ++i)
+            {
+                if(!super_members.count(it.t[i])) it.fail("unknown member '" + it.t[i] + "'");
+                list.push_back(super_members[it.t[i]]);
+            }
+            try
+            {
+                auto se = std::make_unique<superelement>(m, it.word(1), list, (int)it.get("modes", 10), it.get("zeta", 0.0),
+                                                         it.get("beta", 0.0), gravity_on ? m.gravity : Vec3::Zero());
+                for(const auto &ms : list) super_of[ms.name] = se.get();
+                m.add_load(std::move(se));
+            }
+            catch(const std::exception &e) {it.fail(e.what());}
+        }
+        for(const item &it : items)
+        {
             if(it.t[0] != "point_mass") continue;
             const int b = body_of(it, it.word(1));
             if(b < 0) it.fail("point mass on the ground");
-            m.bodies[b].mass += it.need("mass");
+            Mat3 J = Mat3::Zero();
             const int ii = it.find("inertia");
-            if(ii >= 0) m.bodies[b].inertia += Mat3(it.vec(ii+1).asDiagonal());
+            if(ii >= 0) J = it.vec(ii+1).asDiagonal();
+            if(it.has("at"))
+                m.add_point_mass(b, it.need_vec("at"), it.need("mass"), J);
+            else
+            {
+                m.bodies[b].mass += it.need("mass");
+                m.bodies[b].inertia += J;
+            }
+        }
+        // soil profiles and pile springs
+        std::map<std::string, soil_profile> soils;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "soil") continue;
+            soil_profile sp;
+            sp.name = it.word(1);
+            sp.mudline = it.need("mudline");
+            soils[sp.name] = sp;
+        }
+        for(const item &it : items)
+        {
+            if(it.t[0] != "soil_layer") continue;
+            const std::string sn = it.word(1);
+            if(!soils.count(sn)) it.fail("unknown soil '" + sn + "'");
+            soil_layer l;
+            const std::string type = it.word(2);
+            l.top = it.need("top");
+            l.bottom = it.need("bottom");
+            l.gamma = it.get("gamma", l.gamma);
+            l.cyclic = it.has("cyclic");
+            if(type=="sand")
+            {
+                l.type = soil_layer::kind::sand;
+                l.phi = it.need("phi");
+                l.k = it.get("k", 0.0);
+                l.delta = it.get("delta", -1.0);
+                l.K = it.get("K", l.K);
+                l.Nq = it.get("Nq", l.Nq);
+            }
+            else if(type=="clay")
+            {
+                l.type = soil_layer::kind::clay;
+                l.su_top = it.need("su");
+                l.su_bottom = it.get("su_bottom", -1.0);
+                l.eps50 = it.get("eps50", l.eps50);
+                l.J = it.get("J", l.J);
+                l.residual = it.get("residual", l.residual);
+            }
+            else if(type=="linear")
+            {
+                l.type = soil_layer::kind::linear;
+                l.kh = it.need("kh");
+                l.kv = it.get("kv", 0.0);
+                l.kq = it.get("kq", 0.0);
+            }
+            else
+                it.fail("unknown soil layer type '" + type + "'");
+            if(l.bottom <= l.top) it.fail("bottom must lie below top (depths below the mudline)");
+            soils[sn].layers.push_back(l);
+        }
+        for(const item &it : items)
+        {
+            if(it.t[0] != "pile") continue;
+            const std::string mem = it.word(1), sn = it.word("soil");
+            if(!stations.count(mem)) it.fail("unknown frame member '" + mem + "'");
+            if(!soils.count(sn)) it.fail("unknown soil '" + sn + "'");
+            const bool all = !it.has("py") && !it.has("tz") && !it.has("qz");
+            std::vector<int> nodes;
+            for(int b : stations[mem]) if(b >= 0) nodes.push_back(b);
+            try
+            {
+                add_pile_springs(m, soils[sn], nodes, it.need("D"), all || it.has("py"), all || it.has("tz"),
+                                 all || it.has("qz"), it.has("linear"), "pile:" + mem);
+            }
+            catch(const std::exception &e) {it.fail(e.what());}
         }
     }
 
@@ -417,7 +544,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 if(is+4 < (int)it.t.size()) {try {s.c_stop = std::stod(it.t[is+4]);} catch(...) {}}
             }
             const int il = it.find("latching");
-            if(il >= 0) {s.control = pto_control::latching; s.t_hold = it.num(il+1); s.c_latch = it.num(il+2);}
+            if(il >= 0)
+            {
+                s.control = pto_control::latching;
+                s.t_hold = it.num(il+1);
+                s.c_latch = it.num(il+2);
+                if(il+3 < (int)it.t.size()) {try {s.k_latch = std::stod(it.t[il+3]);} catch(...) {}}
+            }
             const int idc = it.find("declutching");
             if(idc >= 0) {s.control = pto_control::declutching; s.t_hold = it.num(idc+1);}
             m.add_load(std::make_unique<pto_load>(*joints[jn], it.has("rotational"), s, name));
@@ -434,11 +567,17 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         {
             const int b = body_of(it, it.word("body"));
             Mat6 K = Mat6::Zero(), C = Mat6::Zero();
-            const int ik = it.find("k"), ic = it.find("c");
+            const int ik = it.find("k"), ic = it.find("c"), iK = it.find("K"), iC = it.find("C");
             for(int d=0; d<6; ++d)
             {
                 if(ik >= 0) K(d,d) = it.num(ik+1+d);
                 if(ic >= 0) C(d,d) = it.num(ic+1+d);
+            }
+            // full matrices, row by row
+            for(int d=0; d<36; ++d)
+            {
+                if(iK >= 0) K(d/6, d%6) = it.num(iK+1+d);
+                if(iC >= 0) C(d/6, d%6) = it.num(iC+1+d);
             }
             m.add_load(std::make_unique<linear6>(m, b, it.need_vec("point"), K, C, Vec6::Zero(), it.word(1)));
         }
@@ -470,6 +609,74 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else
                 it.fail("mooring type must be quasi_static or dynamic");
         }
+        else if(k=="force")
+        {
+            const int b = body_of(it, it.word("body"));
+            m.add_load(std::make_unique<point_force>(m, b, it.vec("point", m.body(b).x), it.vec("F", Vec3::Zero()),
+                                                     it.vec("M", Vec3::Zero()), it.get("ramp", 0.0), it.word(1)));
+        }
+        else if(k=="morison" && it.has("member"))
+        {
+            // distributed Morison loads on a frame member or a superelement member
+            const std::string mem = it.word("member");
+            member_morison_coef c;
+            c.Cd = it.get("Cd", 1.0);
+            c.Ca = it.get("Ca", 1.0);
+            c.Cm = it.get("Cm", 1.0 + c.Ca);
+            c.n = (int)it.get("n", 2);
+            c.buoyancy = !it.has("no_buoyancy");
+            std::shared_ptr<const point_set> pts;
+            std::vector<std::pair<int,int>> elems;
+            const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;
+            if(stations.count(mem))
+            {
+                const member_spec &ms = frame_specs[mem];
+                c.D = it.get("D", ms.s1.D);
+                auto bp = std::make_shared<body_points>();
+                const std::vector<int> &st = stations[mem];
+                const int n = (int)st.size() - 1;
+                auto on_body = [&](int i) {return (i==0 && ms.body1 > -2) || (i==n && ms.body2 > -2);};
+                for(int i=0; i<=n; ++i)
+                {
+                    bp->add(m, st[i], ms.p1 + (double)i/n*(ms.p2 - ms.p1));
+                    if(i > 0) elems.emplace_back(i-1, i);
+                }
+                pts = bp;
+                // flooded member: the inner water below the still water level as node mass
+                if(it.has("flooded"))
+                {
+                    const double Din = it.need("flooded"), Ai = 0.25*M_PI*Din*Din;
+                    for(int i=0; i<n; ++i)
+                    {
+                        const Vec3 pa = ms.p1 + (double)i/n*(ms.p2 - ms.p1), pb = ms.p1 + (double)(i+1)/n*(ms.p2 - ms.p1);
+                        double f = 0.0;
+                        if(pa(2) <= 0.0 && pb(2) <= 0.0) f = 1.0;
+                        else if(pa(2) < 0.0 || pb(2) < 0.0) f = -std::min(pa(2), pb(2))/std::fabs(pb(2) - pa(2));
+                        const double mw = 0.5*rho*Ai*(pb - pa).norm()*f;
+                        for(int e=0; e<2; ++e)
+                        {
+                            const int b = st[i+e];
+                            if(b < 0 || mw <= 0.0) continue;
+                            if(on_body(i+e)) m.add_point_mass(b, e ? pb : pa, mw);
+                            else m.bodies[b].mass += mw;
+                        }
+                    }
+                }
+            }
+            else if(super_of.count(mem))
+            {
+                superelement *se = super_of[mem];
+                if(it.has("flooded")) it.fail("flooded superelement members: put the inner water into the section mass");
+                c.D = it.get("D", se->member_diameter(mem));
+                pts = std::shared_ptr<const point_set>(std::shared_ptr<const point_set>(), se);     // owned by the model
+                const std::vector<int> nd = se->member_nodes(mem);
+                for(size_t i=1; i<nd.size(); ++i) elems.emplace_back(nd[i-1], nd[i]);
+            }
+            else
+                it.fail("unknown member '" + mem + "'");
+            if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
+            m.add_load(std::make_unique<member_morison>(pts, elems, c, waves, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
+        }
         else if(k=="morison")
         {
             morison_member mb;
@@ -484,7 +691,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, waves, rho, it.vec("current", Vec3::Zero()), it.word(1)));
         }
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
-                && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes")
+                && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
+                && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force")
             it.fail("unknown keyword");
     }
 

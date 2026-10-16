@@ -36,9 +36,9 @@ Authors: Hans Bihs, Tobias Martin
 #include"sliceint5.h"
 #include"vtp3D.h"
 #include"geo_raycast.h"
-#include"6DOF_pto.h"
-#include"6DOF_pto_joint.h"
-#include"6DOF_pto_controller.h"
+#include"coral/pto/coral_pto_element.h"
+#include"coral/pto/coral_pto_joint.h"
+#include"coral/pto/coral_pto_controller.h"
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
 #include"6DOF_load.h"
@@ -340,17 +340,17 @@ protected:
     Eigen::Vector3d gyroc_;
     bool fixedc_[6] = {false,false,false,false,false,false};
 
-    // FNPF and NHFLOW: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
+    // FNPF and NHFLOW: power take-off (X 500 - X 508, coral/reef3d/coral_sixdof_pto.cpp; elements in coral/pto)
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
     void pto_stability_check(lexer*);
-    pto_joint_prismatic pto_joint_;
-    pto_composite pto_;
-    std::vector<std::unique_ptr<pto_controller>> pto_ctrl_;
+    coral::pto_joint_prismatic pto_joint_;
+    coral::pto_composite pto_;
+    std::vector<std::unique_ptr<coral::pto_controller>> pto_ctrl_;
     void pto_tuned_passive(lexer*, ghostcell*);
-    pto_state pto_s_;
-    pto_output pto_out_;
+    coral::pto_state pto_s_;
+    coral::pto_output pto_out_;
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
     int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)

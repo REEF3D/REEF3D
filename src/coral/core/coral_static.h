@@ -43,6 +43,7 @@ namespace coral
         int max_iter = 60;
         double tol = 1.0e-9;        // increments of positions and rotations <= tol (1 + max |x|)
         double fd_eps = 1.0e-7;
+        int dense_max = 400;        // dense LU up to this many unknowns, sparse LU above
     };
 
     struct static_result

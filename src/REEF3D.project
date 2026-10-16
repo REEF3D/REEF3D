@@ -808,9 +808,12 @@
           <File Name="coral/core/coral_body.h"/>
           <File Name="coral/core/coral_constraint.h"/>
           <File Name="coral/core/coral_fdjac.h"/>
+          <File Name="coral/core/coral_force.h"/>
           <File Name="coral/core/coral_gravity.h"/>
+          <File Name="coral/core/coral_linsolve.h"/>
           <File Name="coral/core/coral_load.h"/>
           <File Name="coral/core/coral_model.h"/>
+          <File Name="coral/core/coral_points.h"/>
           <File Name="coral/core/coral_rotation.h"/>
           <File Name="coral/core/coral_static.h"/>
           <File Name="coral/core/coral_timeint.h"/>
@@ -823,6 +826,7 @@
           <File Name="coral/structure/coral_frame.h"/>
           <File Name="coral/structure/coral_linear6.h"/>
           <File Name="coral/structure/coral_spring.h"/>
+          <File Name="coral/structure/coral_superelement.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/README.md"/>
@@ -841,6 +845,7 @@
           <File Name="coral/hydro/README.md"/>
           <File Name="coral/hydro/coral_hydro_db.h"/>
           <File Name="coral/hydro/coral_hydro_load.h"/>
+          <File Name="coral/hydro/coral_member_morison.h"/>
           <File Name="coral/hydro/coral_morison.h"/>
           <File Name="coral/hydro/coral_radiation.h"/>
           <File Name="coral/hydro/coral_waves.h"/>
@@ -856,9 +861,14 @@
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/README.md"/>
           <File Name="coral/pto/coral_pto.h"/>
+          <File Name="coral/pto/coral_pto_controller.h"/>
+          <File Name="coral/pto/coral_pto_element.h"/>
+          <File Name="coral/pto/coral_pto_elements.h"/>
+          <File Name="coral/pto/coral_pto_joint.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
+          <File Name="coral/soil/coral_soil.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Ice">
           <File Name="coral/ice/README.md"/>
@@ -1074,12 +1084,6 @@
           <File Name="6DOF_rigidbody.h"/>
           <File Name="6DOF_geometry.h"/>
           <File Name="6DOF_load.h"/>
-        </VirtualDirectory>
-        <VirtualDirectory Name="PTO">
-          <File Name="6DOF_pto_controller.h"/>
-          <File Name="6DOF_pto.h"/>
-          <File Name="6DOF_pto_elements.h"/>
-          <File Name="6DOF_pto_joint.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geometry">
           <File Name="6DOF_obj_remesh.h"/>
@@ -2381,8 +2385,11 @@
       <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
           <File Name="coral/core/coral_constraint.cpp"/>
+          <File Name="coral/core/coral_force.cpp"/>
           <File Name="coral/core/coral_gravity.cpp"/>
+          <File Name="coral/core/coral_linsolve.cpp"/>
           <File Name="coral/core/coral_model.cpp"/>
+          <File Name="coral/core/coral_points.cpp"/>
           <File Name="coral/core/coral_rotation.cpp"/>
           <File Name="coral/core/coral_static.cpp"/>
           <File Name="coral/core/coral_timeint.cpp"/>
@@ -2393,6 +2400,7 @@
           <File Name="coral/structure/coral_frame.cpp"/>
           <File Name="coral/structure/coral_linear6.cpp"/>
           <File Name="coral/structure/coral_spring.cpp"/>
+          <File Name="coral/structure/coral_superelement.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/coral_modes.cpp"/>
@@ -2403,6 +2411,7 @@
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/coral_hydro_db.cpp"/>
           <File Name="coral/hydro/coral_hydro_load.cpp"/>
+          <File Name="coral/hydro/coral_member_morison.cpp"/>
           <File Name="coral/hydro/coral_morison.cpp"/>
           <File Name="coral/hydro/coral_radiation.cpp"/>
           <File Name="coral/hydro/coral_waves.cpp"/>
@@ -2414,8 +2423,13 @@
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>
+          <File Name="coral/pto/coral_pto_controller.cpp"/>
+          <File Name="coral/pto/coral_pto_elements.cpp"/>
+          <File Name="coral/pto/coral_pto_joint.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Soil"/>
+        <VirtualDirectory Name="Soil">
+          <File Name="coral/soil/coral_soil.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Ice"/>
         <VirtualDirectory Name="IO">
           <File Name="coral/io/coral_input.cpp"/>
@@ -2427,6 +2441,7 @@
         <VirtualDirectory Name="Post"/>
         <VirtualDirectory Name="REEF3D">
           <File Name="coral/reef3d/coral_reef3d.cpp"/>
+          <File Name="coral/reef3d/coral_sixdof_pto.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="App"/>
       </VirtualDirectory>
@@ -2749,12 +2764,6 @@
             <File Name="6DOF_geometry_remesh.cpp"/>
             <File Name="6DOF_obj_remesh.cpp"/>
           </VirtualDirectory>
-        </VirtualDirectory>
-        <VirtualDirectory Name="PTO">
-          <File Name="6DOF_pto_controller.cpp"/>
-          <File Name="6DOF_obj_pto.cpp"/>
-          <File Name="6DOF_pto_elements.cpp"/>
-          <File Name="6DOF_pto_joint.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Membrane">
           <File Name="net_membrane.cpp"/>
