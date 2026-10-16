@@ -1155,6 +1155,11 @@ void control::ini_default()
     W29_z=0.0;		// double pressure gradient z-direction
 	W30=0;			// int air compressibility on/off
 	W31=20.0;		// double temperature for air compressibility in celsius
+	W32=0;			// int isentropic air compressibility
+	W33=1.4;		// double ratio of specific heats
+	W34=-1.0;		// double interface band width
+	W35=-1.0;		// double compensation layer width
+	W36=101325.0;	// double reference pressure
     W41=0;         // int velocity source phase 1
     W50=0.0;        // double air inflow
     W50_air=0;      // int air inflow switch

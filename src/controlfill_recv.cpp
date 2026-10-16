@@ -2261,6 +2261,16 @@ void control::ctrlrecv()
     ii++;
     W31 = dctrl[dd];
     dd++;
+    W32 = ictrl[ii];
+    ii++;
+    W33 = dctrl[dd];
+    dd++;
+    W34 = dctrl[dd];
+    dd++;
+    W35 = dctrl[dd];
+    dd++;
+    W36 = dctrl[dd];
+    dd++;
     W41 = ictrl[ii];
     ii++;
     W50 = dctrl[dd];

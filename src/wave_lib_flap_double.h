@@ -60,6 +60,7 @@ private:
 	
 	double ts,te,val;
 	int timecount,timecount_old,timecount_z;
+    double wtime_old;
     double singamma,cosgamma;
     
     wave_lib_wavemaker2nd wm2;

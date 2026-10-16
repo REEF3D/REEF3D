@@ -62,6 +62,7 @@ private:
 	
 	double ts,te,val;
 	int timecount,timecount_old;
+    double wtime_old;
     double singamma,cosgamma;
 };
 
