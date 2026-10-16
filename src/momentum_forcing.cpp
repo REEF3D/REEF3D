@@ -130,6 +130,14 @@ void momentum_forcing::momentum_forcing_start(fdm* a, lexer* p, ghostcell *pgc, 
     pgc->gcdf_update(p,a);
     pgc->gcb_velflagio(p,a);
     }
+
+    // ghost cells of the forced velocities: the implicit diffusion (combine first, then solve)
+    // sets the ghost cells of the stage velocities before the forcing, so the outflow/wall ghost
+    // cells inside solids and the bed would keep the unforced values for the projection
+    // (D 22 2 with topo: unstable at the outflow); refresh them from the forced interior
+    pgc->start1(p,u,gcval_u);
+    pgc->start2(p,v,gcval_v);
+    pgc->start3(p,w,gcval_w);
 }
 
 
