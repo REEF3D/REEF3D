@@ -93,7 +93,10 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
     }
     
-    if(p->X15==1)
+    // X 15 3: as X 15 1, but only the cells inside the body are forced. A body moving through the
+    // grid at speed (towed or self-propelled ship) otherwise pushes the water in the forcing band ahead
+    // of the bow up to the body velocity; that water passes under the hull and is carried along with it.
+    if(p->X15==1 || p->X15==3)
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
@@ -101,6 +104,9 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         target_velocity(p,wavemaker,uf,vf,wf);
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
+        
+        if(p->X15==3 && d->FB[IJK]>=0.0)
+        continue;
         
     // Normal vectors calculation 
         if(p->geo_curv==1)
